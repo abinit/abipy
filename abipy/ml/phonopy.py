@@ -4,13 +4,12 @@ Based on a similar implementation available at: https://github.com/modl-uclouvai
 from __future__ import annotations
 
 import numpy as np
-import logging
 
 #from monty.json import MSONable, MontyDecoder
+from monty.dev import requires
 from ase.calculators.calculator import Calculator
 from ase.atoms import Atoms
 from pymatgen.io.phonopy import get_phonopy_structure
-from monty.dev import requires
 from abipy.core.structure import Structure
 from abipy.dfpt.ddb import DdbFile
 from abipy.ml.aseml import RX_MODE, CalcBuilder, AseResults, MlBase, get_atoms, relax_atoms, dataframe_from_results_list
@@ -32,8 +31,6 @@ def get_phonopy(structure: Structure,
 
     structure = Structure.as_structure(structure)
     unitcell = get_phonopy_structure(structure)
-    #if supercell_matrix is None:
-    #    supercell_matrix = np.eye(3)
 
     phonon = Phonopy(unitcell, supercell_matrix=supercell_matrix, primitive_matrix=primitive_matrix)
 
@@ -41,7 +38,7 @@ def get_phonopy(structure: Structure,
 
     forces = []
     nsc = len(phonon.supercells_with_displacements)
-    print(f"Calculating forces for {nsc} supercell configurations ...")
+    #print(f"Calculating forces for {nsc} supercell configurations ...")
     for i, sc in enumerate(phonon.supercells_with_displacements):
         a = Atoms(symbols=sc.symbols,
                   positions=sc.positions,
@@ -104,6 +101,7 @@ class MlPhononsWithDDB(MlBase):
         self.ddb_filepath = ddb_filepath
         with DdbFile(self.ddb_filepath) as ddb:
             self.initial_atoms = get_atoms(ddb.structure)
+
         self.supercell = supercell
         self.distance = float(distance)
         self.qmesh = qmesh
@@ -111,6 +109,8 @@ class MlPhononsWithDDB(MlBase):
         self.nqpath = nqpath
         self.relax_mode = relax_mode
         RX_MODE.validate(self.relax_mode)
+
+
         self.fmax = fmax
         self.pressure = pressure
         self.steps = steps
@@ -153,6 +153,9 @@ class MlPhononsWithDDB(MlBase):
         atoms = self.initial_atoms.copy()
         atoms.calc = calculator
 
+        if self.relax_mode == RX_MODE.cell:
+            raise RuntimeError("Öne should not try to relax the cell when comparing with a DDB file")
+
         if self.relax_mode != RX_MODE.no:
             print(f"Relaxing input DDB atoms with relax mode: {self.relax_mode}.")
             relax_kws = dict(optimizer=self.optimizer,
@@ -175,13 +178,11 @@ class MlPhononsWithDDB(MlBase):
 
         with DdbFile(self.ddb_filepath) as ddb:
             if ddb.has_lo_to_data:
-                print("Activating dipolar term in phonopy calculation using BECS and Zeff taken from DDB.")
+                print("Activating dipolar term in phonopy using BECS and eps_inf taken from DDB.")
                 out = ddb.anaget_epsinf_and_becs(chneut=1)
-                becs = out.becs.values
-                epsinf = out.epsinf
                 # according to the phonopy website 14.399652 is not the coefficient for abinit
                 # probably it relies on the other conventions in the output.
-                phonon.nac_params = {"born": becs, "dielectric": epsinf, "factor": 14.399652}
+                phonon.nac_params = {"born": out.becs.values, "dielectric": out.epsinf, "factor": 14.399652}
 
             # Call anaddb to compute ab-initio phonons from the DDB.
             #ddb.anaget_phmodes_at_qpoints(
@@ -191,13 +192,21 @@ class MlPhononsWithDDB(MlBase):
             #   spell_check=True, directions=None, anaddb_kwargs=None, return_input=False)
 
 
-            #ddb.anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1,
-            #                                 dipdip=1, dipquad=1, quadquad=1,
-            #                                 dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None,
-            #                                 anaddb_kwargs=None, with_phonopy_obj=False, verbose=0, spell_check=True,
-            #                                 mpi_procs=1, workdir=None, manager=None, return_input=False):
+            print("Beging anaddb interpolation...")
+            with ddb.anaget_phbst_and_phdos_files(
+                    nqsmall=0, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1,
+                    dipdip=1, dipquad=1, quadquad=1,
+                    #dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None,
+                    #anaddb_kwargs=None, with_phonopy_obj=False, verbose=0, spell_check=True,
+                    #mpi_procs=1, workdir=None, manager=None, return_input=False):
+                    ) as g:
+                phbst_file, phdos_file = g[0], g[1]
+                abi_phbands = phbst_file.phbands
 
-
+            #print("Beging phonopy interpolation...")
+            #qpoints = abi_phbands.qpoints.frac_coords
+            #for qpt in abi_phbands.qpoints:
+            #    freq_q, eig_q = phonon.get_frequencies_with_eigenvectors(qpt.frac_coords)
 
             # Band structure part.
             #qpath = [[[0, 0, 0], [0.5, 0, 0.5], [0.5, 0.25, 0.75], [0.375, 0.375, 0.75],
@@ -209,15 +218,18 @@ class MlPhononsWithDDB(MlBase):
             #        "W", "L", "K",
             #        "U", "X"]
 
-            labels = [q.name for q in ddb.structure.hsym_kpoints]
-            qpath = [q.frac_coords.tolist() for q in ddb.structure.hsym_kpoints]
-            print(f"{qpath=}\n{labels=}")
+            #labels = [q.name for q in ddb.structure.hsym_kpoints]
+            #qpath = [q.frac_coords.tolist() for q in ddb.structure.hsym_kpoints]
+            #print(f"{qpath=}\n{labels=}")
 
-            from phonopy.phonon.band_structure import get_band_qpoints_and_path_connections, get_band_qpoints
-            rec_lattice = ddb.structure.reciprocal_lattice.matrix.T
-            qpoints, connections = get_band_qpoints_and_path_connections(qpath, npoints=51, rec_lattice=rec_lattice)
-            qpoints, connections = get_band_qpoints(qpath, npoints=51, rec_lattice=rec_lattice)
-            print(f"{qpoints=}\n{connections=}")
+            #from abipy.dfpt.phonons import PhononBands
+            #phpy_phbands = PhononBands
+
+            #from phonopy.phonon.band_structure import get_band_qpoints_and_path_connections, get_band_qpoints
+            #rec_lattice = ddb.structure.reciprocal_lattice.matrix.T
+            #qpoints, connections = get_band_qpoints_and_path_connections(qpath, npoints=51, rec_lattice=rec_lattice)
+            #qpoints, connections = get_band_qpoints(qpath, npoints=51, rec_lattice=rec_lattice)
+            #print(f"{qpoints=}\n{connections=}")
             #phonon.run_band_structure(qpoints, path_connections=connections, labels=labels)
 
             #plt.figure(figsize=(20,20))

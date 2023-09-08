@@ -697,7 +697,7 @@ class PhononBands:
 
         return PhononDos(mesh, values)
 
-    def create_xyz_vib(self, iqpt, filename, pre_factor=200, do_real=True, 
+    def create_xyz_vib(self, iqpt, filename, pre_factor=200, do_real=True,
                        scale_matrix=None, max_supercell=None) -> None:
         """
         Create vibration XYZ file for visualization of phonons.
@@ -1862,7 +1862,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         return fig
 
     @add_fig_kwargs
-    def plot_with_phdos(self, phdos, units="eV", qlabels=None, ax_list=None, 
+    def plot_with_phdos(self, phdos, units="eV", qlabels=None, ax_list=None,
                         width_ratios=(2, 1), **kwargs) -> Figure:
         r"""
         Plot the phonon band structure with the phonon DOS.
@@ -1979,7 +1979,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     def plot_phdispl(self, qpoint, cart_dir=None, use_reduced_coords=False, ax=None, units="eV",
                      is_non_analytical_direction=False, use_eigvec=False,
                      colormap="viridis", hatches="default", atoms_index=None, labels_groups=None,
-                     normalize=True, use_sqrt=False, fontsize=12, 
+                     normalize=True, use_sqrt=False, fontsize=12,
                      branches=None, format_w="%.3f", **kwargs) -> Figure:
         """
         Plot vertical bars with the contribution of the different atoms or atomic types to all the phonon modes
@@ -2140,7 +2140,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     def plot_phdispl_cartdirs(self, qpoint, cart_dirs=("x", "y", "z"), units="eV",
                               is_non_analytical_direction=False, use_eigvec=False,
                               colormap="viridis", hatches="default", atoms_index=None, labels_groups=None,
-                              normalize=True, use_sqrt=False, fontsize=8, 
+                              normalize=True, use_sqrt=False, fontsize=8,
                               branches=None, format_w="%.3f", **kwargs) -> Figure:
         """
         Plot three panels. Each panel shows vertical bars with the contribution of the different atomic types
@@ -2400,6 +2400,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         if not phdispl_cart:
             phdispl_cart = np.zeros((len(phfreqs), n_modes, n_modes))
         else:
+            #print(phdispl_cart)
             phdispl_cart = np.array(phdispl_cart)
 
         na = None
@@ -3865,7 +3866,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_pjdos_cartdirs_site(self, view="inequivalent", units="eV", stacked=True, colormap="jet", alpha=0.7,
-                                 xlims=None, ylims=None, ax_list=None, fontsize=8, 
+                                 xlims=None, ylims=None, ax_list=None, fontsize=8,
                                  verbose=0, **kwargs) -> Figure:
         """
         Plot phonon PJDOS for each atom in the unit cell. By default, only "inequivalent" atoms are shown.
@@ -5238,7 +5239,7 @@ class PhononDosPlotter(NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class RobotWithPhbands(object):
+class RobotWithPhbands:
     """
     Mixin class for robots associated to files with |PhononBands|.
     """
