@@ -23,7 +23,6 @@ from abipy.electrons.gsr import GsrFile
 try:
     from phonopy import Phonopy, load
     from phonopy.file_IO import write_FORCE_CONSTANTS, parse_FORCE_CONSTANTS, parse_BORN, parse_FORCE_SETS
-    #from phonopy.interface.phonopy_yaml import PhonopyYaml
     from phonopy.interface.calculator import get_default_physical_units, get_force_constant_conversion_factor
 except ImportError:
     Phonopy = None

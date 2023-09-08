@@ -10,8 +10,13 @@ treatment of relativistic corrections although one might have multiple pseudos f
 Due to this ambiguity, a repo cannot be directly used for running calculations in an automatic fashion
 hence the user is supposed to specify both the `repo_name` and the `table_name` when constructing a `PseudoTable`.
 
+High-level API:
 
-Usage:
+    from abipy.flowtk.psrepos import get_oncvpsp_pseudos
+    pseudos = get_oncvpsp_pseudos(xc_name="PBE", version="0.4")
+
+
+Low-level API:
 
     from abipy.flowtk.psrepos import get_repo_from_name
     repo = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4")
@@ -36,6 +41,22 @@ from monty.termcolor import cprint, colored
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
 from abipy.tools.decorators import memoized_method
 from tqdm import tqdm
+
+
+def get_oncvpsp_pseudos(xc_name: str, version: str, relativity_type: str = "SR", accuracy: str = "standard") -> PseudoTable:
+    """
+    High-level API that returns a PseudoTable of ONCVPSP pseudos for a given xc functional and version.
+
+    Args:
+        xc_name: Name of the XC functional.
+        version: Version string e.g. "0.4".
+        relativity_type: SR for scalar-relativistic, FR for fully-relativistic with SOC.
+        accuracy: "standard" or "stringent".
+    """
+    ps_generator, project_name = OncvpspRepo.ps_generator, OncvpspRepo.project_name 
+    repo_name = f"{ps_generator}-{xc_name}-{relativity_type}-{project_name}v{version}"
+
+    return get_repo_from_name(repo_name).get_pseudos(accuracy)
 
 
 # Installation directory.
@@ -137,22 +158,6 @@ def get_repo_from_name(repo_name: str) -> PseudosRepo:
     else:
         all_names = [repo.name for repo in _ALL_REPOS]
         raise KeyError(f"Couldn't find {repo_name} in the list of registered repos:\n{all_names}")
-
-
-def get_oncvpsp_pseudos(xc_name: str, version: str, relativity_type: str = "SR", accuracy: str = "standard") -> PseudoTable:
-    """
-    High-level API that returns a PseudoTable of ONCVPSP pseudos for a given xc functional and version.
-
-    Args:
-        xc_name: Name of the XC functional.
-        version: Version string e.g. "0.4".
-        relativity_type: SR for scalar-relativistic, FR for fully-relativistic with SOC.
-        accuracy: "standard" or "stringent".
-    """
-    ps_generator, project_name = OncvpspRepo.ps_generator, OncvpspRepo.project_name 
-    repo_name = f"{ps_generator}-{xc_name}-{relativity_type}-{project_name}v{version}"
-
-    return get_repo_from_name(repo_name).get_pseudos(accuracy)
 
 
 def get_installed_repos_and_root(dirpath: Optional[str] = None) -> tuple[list[PseudosRepo], str]:

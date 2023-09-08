@@ -362,6 +362,46 @@ def aseph(ctx, filepath, nn_name,
 @click.pass_context
 @click.argument("filepath", type=str)
 @add_nn_name_opt
+@click.option("--supercell", "-s", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="Supercell")
+@click.option("--qmesh", "-k", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="q-mesh for phonon-DOS")
+@click.option('--asr/--no-asr', default=True, show_default=True,
+              help="Restore the acoustic sum rule on the interatomic force constants.")
+@click.option('--nqpath', default=100, type=int, show_default=True, help="Number of q-points along the q-path")
+@add_relax_opts
+@add_workdir_verbose_opts
+def phddb(ctx, filepath, nn_name, 
+          supercell, qmesh, asr, nqpath,
+          relax_mode, fmax, pressure, steps, optimizer, 
+          workdir, verbose):
+    """
+    Use finite-displacement method to compute phonon band structure and DOS with phonopy and ML potential.
+
+    Usage example:
+
+    \b
+        abiml.py.py phddb FILE --supercell 4 4 4 --qmesh 8 8 8 --relax no
+
+    where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
+
+    To change the ML potential, use e.g.:
+
+        abiml.py.py aseph -nn m3gnet [...]
+    """
+    from abipy.ml.phonopy import  MlPhononsWithDDB
+    distance = 0.03
+    ml_phddb = MlPhononsWithDDB(filepath, supercell, distance, qmesh, asr, nqpath,
+                                relax_mode, fmax, pressure, steps, optimizer, nn_name,
+                                verbose, workdir, prefix="_phddb_")
+    print(ml_phddb.to_string(verbose=verbose))
+    ml_phddb.run()
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("filepath", type=str)
+@add_nn_name_opt
 @click.option("--max-ns", "-m", default=100, type=int, show_default=True, help='Max number of structures')
 @add_relax_opts
 @add_workdir_verbose_opts

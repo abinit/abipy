@@ -497,15 +497,15 @@ class TestAbiView(ScriptTest):
         #r = env.run(self.script, "denpot", ncpath, "cube", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
-class TestAbiw(ScriptTest):
-    script = os.path.join(script_dir, "abiw.py")
-
-    def test_abiw(self):
-        """Testing abiw.py script"""
-        #env = self.get_env()
-        # Note that lscan has side effect as it updates the list of local servers.
-        #r = env.run(self.script, "lscan", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
-        #r = env.run(self.script, "clients", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+#class TestAbiw(ScriptTest):
+#    script = os.path.join(script_dir, "abiw.py")
+#
+#    def test_abiw(self):
+#        """Testing abiw.py script"""
+#        #env = self.get_env()
+#        # Note that lscan has side effect as it updates the list of local servers.
+#        #r = env.run(self.script, "lscan", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+#        #r = env.run(self.script, "clients", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 class TestAbipsp(ScriptTest):
@@ -519,14 +519,14 @@ class TestAbipsp(ScriptTest):
         # Cannot test other commands as they perform installation
 
 
-class TestAbidb(ScriptTest):
-    script = os.path.join(script_dir, "abidb.py")
-
-    def test_abidb(self):
-        """Testing abidb.py script"""
-        env = self.get_env()
-        # Cannot test other commands as we need a MongoDB server
-        #r = env.run(self.script, "avail", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+#class TestAbidb(ScriptTest):
+#    script = os.path.join(script_dir, "abidb.py")
+#
+#    def test_abidb(self):
+#        """Testing abidb.py script"""
+#        env = self.get_env()
+#        # Cannot test other commands as we need a MongoDB server
+#        #r = env.run(self.script, "avail", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 class TestAOncv(ScriptTest):

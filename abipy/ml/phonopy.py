@@ -1,25 +1,19 @@
 """
 Based on a similar implementation available at: https://github.com/modl-uclouvain/randomcarbon/blob/main/randomcarbon/run/phonon.py
 """
+from __future__ import annotations
+
 import numpy as np
 import logging
 
-from typing import Callable, Union, List
-from pymatgen.io.ase import AseAtomsAdaptor
-from monty.json import MSONable, MontyDecoder
+#from monty.json import MSONable, MontyDecoder
 from ase.calculators.calculator import Calculator
 from ase.atoms import Atoms
-#from pymatgen.core import Structure, Site, Element, Composition
 from pymatgen.io.phonopy import get_phonopy_structure
-#from m3gnet.models import M3GNet, Potential, Relaxer, M3GNetCalculator
-from phonopy import Phonopy
-#from typing import Union, List
 from monty.dev import requires
-#from pymatgen.core.structure import Structure
-#from pymatgen.io.phonopy import get_phonopy_structure
-#from ase.atoms import Atoms
+from abipy.core.structure import Structure
 from abipy.dfpt.ddb import DdbFile
-from abipy.ml.aseml import RX_MODE, CalcBuilder, AseResults
+from abipy.ml.aseml import RX_MODE, CalcBuilder, AseResults, MlBase, get_atoms, relax_atoms, dataframe_from_results_list
 try:
     import phonopy
     from phonopy import Phonopy
@@ -29,56 +23,43 @@ except ImportError:
     Phonopy = None
 
 
-#def get_phonons(structure: Structure, calculator: Union[Calculator, Factory], constraints: list = None,
 @requires(phonopy, "phonopy should be installed to calculate phonons")
 def get_phonopy(structure: Structure,
+                supercell_matrix,
                 calculator: Calculator,
                 distance=0.03,
-                constraints: list = None,
-                supercell_matrix: List[List[int]] = None,
-                primitive_matrix: List[List[float]] = None) -> Phonopy:
+                primitive_matrix=None) -> Phonopy:
 
+    structure = Structure.as_structure(structure)
     unitcell = get_phonopy_structure(structure)
-    if supercell_matrix is None:
-        supercell_matrix = np.eye(3)
+    #if supercell_matrix is None:
+    #    supercell_matrix = np.eye(3)
 
-    phonon = Phonopy(unitcell,
-                     supercell_matrix=supercell_matrix,
-                     primitive_matrix=primitive_matrix)
+    phonon = Phonopy(unitcell, supercell_matrix=supercell_matrix, primitive_matrix=primitive_matrix)
 
     phonon.generate_displacements(distance=distance)
-    supercells = phonon.supercells_with_displacements
 
-    supercells_atoms = []
-    for sc in supercells:
+    forces = []
+    nsc = len(phonon.supercells_with_displacements)
+    print(f"Calculating forces for {nsc} supercell configurations ...")
+    for i, sc in enumerate(phonon.supercells_with_displacements):
         a = Atoms(symbols=sc.symbols,
                   positions=sc.positions,
                   masses=sc.masses,
-                  cell=sc.cell, pbc=True,
+                  cell=sc.cell, 
+                  pbc=True,
                   constraint=None,
                   calculator=calculator)
-        if constraints:
-            tmp_constraints = []
-            for i, c in enumerate(constraints):
-                if isinstance(c, Factory):
-                    tmp_constraints.append(c.generate(atoms=a))
-                else:
-                    tmp_constraints.append(c)
-            a.set_constraint(tmp_constraints)
-        supercells_atoms.append(a)
-
-    forces = []
-    for i, sca in enumerate(supercells_atoms):
-        #logger.debug(f"calculating forces for supercell {i+1} of {len(supercells_atoms)}")
-        forces.append(sca.get_forces())
+        #print(f"{i+1} of {nsc}")
+        forces.append(a.get_forces())
 
     phonon.set_forces(forces)
     phonon.produce_force_constants()
+
     return phonon
 
     #from phonopy.units import Hartree, Bohr
     #from phonopy.structure.symmetry import symmetrize_borns_and_epsilon 
-
     #borns_, epsilon_ = symmetrize_borns_and_epsilon(
     #borns,
     #epsilon,
@@ -88,45 +69,24 @@ def get_phonopy(structure: Structure,
     #                  [0.5, 0.5, 0]],
     #supercell_matrix=np.diag([2, 2, 2]),
     #symprec=1e-5)
-
     #nac_params = {'born': borns_,
     #              'factor': Hartree * Bohr,
     #              'dielectric': epsilon_}
 
-    # Band structure part.
-    #path = [[[0, 0, 0], [0.5, 0, 0.5], [0.5, 0.25, 0.75], [0.375, 0.375, 0.75],
-    #        [0, 0, 0], [0.5, 0.5, 0.5], [0.625, 0.25, 0.625],
-    #        [0.5, 0.25, 0.75], [0.5, 0.5, 0.5], [0.375, 0.375, 0.75]],
-    #        [[0.625, 0.25, 0.625], [0.5, 0, 0.5]]]
-    #labels = ["$\\Gamma$", "X", "W", "K",
-    #        "$\\Gamma$", "L", "U",
-    #        "W", "L", "K",
-    #        "U", "X"]
 
-    #qpoints, connections = get_band_qpoints_and_path_connections(path, npoints=51)
-    #phonon.run_band_structure(qpoints, path_connections=connections, labels=labels)
-    #plt.figure(figsize=(20,20))
-    #phonon.plot_band_structure()
-    #plt.savefig(f"{folder_path}/{mp_id}_phonon_band_structure.png")
-    #plt.close()
-    #bands_dict = phonon.get_band_structure_dict()
-    #qpoints = bands_dict['qpoints']
-    #frequencies = bands_dict['frequencies']
-
-
-
-class MlPhononsWithDDB(_MlBase):
+class MlPhononsWithDDB(MlBase):
     """
-    Compute phonons with phonopy and a set of ML potentials starting from a DDB file.
+    Compute phonons with phonopy and ML potential starting from a DDB file.
+    and compare the results.
     """
-
-    def __init__(self, ddb_filepath: str, supercell, qmesh, asr, nqpath,
+    def __init__(self, ddb_filepath: str, supercell, distance, qmesh, asr, nqpath,
                  relax_mode, fmax, pressure, steps, optimizer, nn_name,
                  verbose, workdir, prefix=None):
         """
         Args:
             ddb_filepath: DDB filename.
             supercell: tuple with supercell dimension.
+            distance:
             qmesh: q-mesh for phonon-DOS
             asr: Enforce acoustic sum-rule.
             nqpath: Number of q-point along the q-path.
@@ -140,9 +100,12 @@ class MlPhononsWithDDB(_MlBase):
             prefix:
         """
         super().__init__(workdir, prefix)
-        self.ddb = DdbFile(ddb_file)
-        self.initial_atoms = get_atoms(ddb.structure)
+
+        self.ddb_filepath = ddb_filepath
+        with DdbFile(self.ddb_filepath) as ddb:
+            self.initial_atoms = get_atoms(ddb.structure)
         self.supercell = supercell
+        self.distance = float(distance)
         self.qmesh = qmesh
         self.asr = asr
         self.nqpath = nqpath
@@ -161,8 +124,9 @@ class MlPhononsWithDDB(_MlBase):
 
 {self.__class__.__name__} parameters:
 
-     ddb_path   = {self.ddb.filepath}
+     ddb_path   = {self.ddb_filepath}
      supercell  = {self.supercell}
+     distance   = {self.distance}
      qmesh      = {self.qmesh}
      asr        = {self.asr}
      nqpath     = {self.nqpath}
@@ -171,7 +135,7 @@ class MlPhononsWithDDB(_MlBase):
      steps      = {self.steps}
      optimizer  = {self.optimizer}
      pressure   = {self.pressure}
-     nn_names   = {self.nn_names}
+     nn_name    = {self.nn_name}
      workdir    = {self.workdir}
      verbose    = {self.verbose}
 
@@ -185,12 +149,12 @@ class MlPhononsWithDDB(_MlBase):
         """Run MlPhononsWithDDB."""
         workdir = self.workdir
 
-        atoms = self.initial_atoms.copy()
         calculator = CalcBuilder(self.nn_name).get_calculator()
+        atoms = self.initial_atoms.copy()
         atoms.calc = calculator
 
-        if self.relax != RX_MODE.no:
-            print(f"Relaxing DDB atoms with relax mode: {self.relax_mode}.")
+        if self.relax_mode != RX_MODE.no:
+            print(f"Relaxing input DDB atoms with relax mode: {self.relax_mode}.")
             relax_kws = dict(optimizer=self.optimizer,
                              relax_mode=self.relax_mode,
                              fmax=self.fmax,
@@ -205,17 +169,64 @@ class MlPhononsWithDDB(_MlBase):
             df = dataframe_from_results_list(["DDB_initial", "DDB_relaxed"], [r0, r1])
             print(df, end=2*"\n")
 
-        phonon = get_phonopy(structure, calculator, distance, supercell, primitive_matrix=None)
-        #phonon.save(settings={'force_constants': True})
-
         # Call phonopy to compute phonons with finite difference and ML potential.
         # Include non-analytical term if dipoles are available in the DDB file.
-        if self.dbb.has_lo_to_data:
-            print("Activating dipolar term in phonopy calculation using BECS and Zeff taken from DDB.")
+        phonon = get_phonopy(atoms, self.supercell, calculator, distance=self.distance, primitive_matrix=None)
 
-        # Call anaddb to compute ab-initio phonon frequencies from the DDB.
-        #self.ddb.anaget_phmodes_at_qpoints(
-        #   qpoints=None, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
-        #   ifcflag=0, ngqpt=None, workdir=None, mpi_procs=1, manager=None, verbose=0,
-        #   lo_to_splitting=False,
-        #   spell_check=True, directions=None, anaddb_kwargs=None, return_input=False)
+        with DdbFile(self.ddb_filepath) as ddb:
+            if ddb.has_lo_to_data:
+                print("Activating dipolar term in phonopy calculation using BECS and Zeff taken from DDB.")
+                out = ddb.anaget_epsinf_and_becs(chneut=1)
+                becs = out.becs.values
+                epsinf = out.epsinf
+                # according to the phonopy website 14.399652 is not the coefficient for abinit
+                # probably it relies on the other conventions in the output.
+                phonon.nac_params = {"born": becs, "dielectric": epsinf, "factor": 14.399652}
+
+            # Call anaddb to compute ab-initio phonons from the DDB.
+            #ddb.anaget_phmodes_at_qpoints(
+            #   qpoints=None, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
+            #   ifcflag=0, ngqpt=None, workdir=None, mpi_procs=1, manager=None, verbose=0,
+            #   lo_to_splitting=False,
+            #   spell_check=True, directions=None, anaddb_kwargs=None, return_input=False)
+
+
+            #ddb.anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1,
+            #                                 dipdip=1, dipquad=1, quadquad=1,
+            #                                 dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None,
+            #                                 anaddb_kwargs=None, with_phonopy_obj=False, verbose=0, spell_check=True,
+            #                                 mpi_procs=1, workdir=None, manager=None, return_input=False):
+
+
+
+            # Band structure part.
+            #qpath = [[[0, 0, 0], [0.5, 0, 0.5], [0.5, 0.25, 0.75], [0.375, 0.375, 0.75],
+            #        [0, 0, 0], [0.5, 0.5, 0.5], [0.625, 0.25, 0.625],
+            #        [0.5, 0.25, 0.75], [0.5, 0.5, 0.5], [0.375, 0.375, 0.75]],
+            #        [[0.625, 0.25, 0.625], [0.5, 0, 0.5]]]
+            #labels = ["$\\Gamma$", "X", "W", "K",
+            #        "$\\Gamma$", "L", "U",
+            #        "W", "L", "K",
+            #        "U", "X"]
+
+            labels = [q.name for q in ddb.structure.hsym_kpoints]
+            qpath = [q.frac_coords.tolist() for q in ddb.structure.hsym_kpoints]
+            print(f"{qpath=}\n{labels=}")
+
+            from phonopy.phonon.band_structure import get_band_qpoints_and_path_connections, get_band_qpoints
+            rec_lattice = ddb.structure.reciprocal_lattice.matrix.T
+            qpoints, connections = get_band_qpoints_and_path_connections(qpath, npoints=51, rec_lattice=rec_lattice)
+            qpoints, connections = get_band_qpoints(qpath, npoints=51, rec_lattice=rec_lattice)
+            print(f"{qpoints=}\n{connections=}")
+            #phonon.run_band_structure(qpoints, path_connections=connections, labels=labels)
+
+            #plt.figure(figsize=(20,20))
+            #plt = phonon.plot_band_structure()
+            #plt.show() 
+            #plt.savefig(f"{folder_path}/{mp_id}_phonon_band_structure.png")
+            #plt.close()
+            #bands_dict = phonon.get_band_structure_dict()
+            #qpoints = bands_dict['qpoints']
+            #frequencies = bands_dict['frequencies']
+
+            #phonon.save(settings={'force_constants': True})

@@ -1077,7 +1077,7 @@ class _MyMlCalculator:
         super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
 
         if self.correct_forces_algo != CORRALGO.none:
-            if self.__verbose: print(f"Applying ab-initio correction to the ml_forces with {self.correct_forces_algo=}"
+            if self.__verbose: print(f"Applying ab-initio correction to the ml_forces with {self.correct_forces_algo=}")
             forces = self.results["forces"]
             abi_forces, ml_forces = self.get_abi_ml_forces()
             if abi_forces is not None:
@@ -1094,7 +1094,7 @@ class _MyMlCalculator:
                 self.results.update(forces=forces)
 
         if self.correct_stress_algo != CORRALGO.none:
-            if self.__verbose: print(f"Applying ab-initio correction to the ml_stress with {self.correct_stress_algo=}"
+            if self.__verbose: print(f"Applying ab-initio correction to the ml_stress with {self.correct_stress_algo=}")
             stress = self.results["stress"]
             abi_stress, ml_stress = self.get_abi_ml_stress()
             if abi_stress is not None:
@@ -1930,7 +1930,7 @@ class MlNeb(_MlNebBase):
             relax.summarize(tags=["final_unrelaxed", "final_relaxed"])
 
         # Generate several instances of the calculator. It is probably fine to have just one, but just in case...
-        calculators = [CalcBuilder(self.nn_name).get_calculator()) for i in range(self.nimages)]
+        calculators = [CalcBuilder(self.nn_name).get_calculator() for i in range(self.nimages)]
         neb = make_ase_neb(initial_atoms, final_atoms, self.nimages, calculators, self.neb_method, self.climb,
                            method='linear', mic=False)
 
