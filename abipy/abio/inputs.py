@@ -958,7 +958,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             if nspden is not None and nspden not in (1, 4):
                 eapp(f"nspden should be either 1 or 4 when nspinor == 2 while it is: {nspden}")
         else:
-            eapp(f"Invalid value for nspinor: {nspinor}")
+            eapp(f"Invalid {nspinor=}")
 
         if errors:
             raise self.Error("\n".join(errors))
@@ -1873,7 +1873,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         # Call Abinit to get the list of irreducible perts.
         perts = self.abiget_irred_phperts(qpt=qpt, manager=manager, prepgkk=prepgkk)
@@ -1929,7 +1929,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolwfr": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         if "tolvrs" in tolerance:
             raise self.Error("tolvrs should not be used in a DDK calculation")
@@ -1979,7 +1979,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolwfr": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         if "tolvrs" in tolerance:
             raise self.Error("tolvrs should not be used in a DKDK calculation")
@@ -2015,7 +2015,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             tolerance = {"tolvrs": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         if use_symmetries:
             # Call Abinit to get the list of irred perts.
@@ -2147,7 +2147,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         # Call Abinit to get the list of irred perts.
         perts = self.abiget_irred_phperts(qpt=(0, 0, 0), prepalw=prepalw, manager=manager)
@@ -2201,7 +2201,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error("Invalid {tolerance=}")
 
         # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
         inp = self.new_with_vars(
@@ -2239,7 +2239,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             tolerance = {"tolvrs": 1.0e-12}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: {}".format(str(tolerance)))
+            raise self.Error(f"Invalid {tolerance=}")
 
         perts = self.abiget_irred_strainperts(kptopt=kptopt, phonon_pert=phonon_pert,
                                               efield_pert=efield_pert, prepalw=prepalw, manager=manager)
@@ -4595,7 +4595,7 @@ def kpoints_from_line_density(structure, line_density, symprec=1e-2):
     Return: (nkpt, 3) numpy array with k-points in reduced coords.
     """
     if line_density <= 0:
-        raise ValueError(f"Invalid line_density: {line_density}")
+        raise ValueError(f"Invalid {line_density=}}")
 
     hs = HighSymmKpath(structure, symprec=1e-2)
     qpts, labels_list = hs.get_kpoints(line_density=line_density, coords_are_cartesian=False)

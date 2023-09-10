@@ -120,6 +120,14 @@ def add_nn_name_opt(f):
     return f
 
 
+def add_nn_names_opt(f):
+    """Add CLI options to select multiple NN potentials."""
+    f = click.option("-nns", '--nn-names', type=str, multiple=True,  show_default=True, help='ML potentials to be used',
+                  #default=["m3gnet", "chgnet"],
+                  default=["chgnet"])(f)
+    return f
+
+
 @click.group()
 @click.pass_context
 @click.option("--seaborn", "-sns", default=None, show_default=True,
@@ -163,11 +171,16 @@ def relax(ctx, filepath, nn_name,
 
         abiml.py.py relax -nn m3gnet [...]
     """
-    atoms = aseml.get_atoms(filepath)
+    if filepath.startswith("__mp-"):
+        print(f"Fetching structure for mp-id {filepath[2:]} from the materials project database.")
+        atoms = aseml.get_atoms(Structure.from_mpid(filepath[2:]))
+    else:
+        atoms = aseml.get_atoms(filepath)
+
     aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     ml_relaxer = aseml.MlRelaxer(atoms, relax_mode, fmax, pressure, steps, optimizer,
-                                 nn_name, verbose, workdir, prefix="_relax_")
+                                 nn_name, verbose, workdir, prefix="_abiml_relax_")
 
     print(ml_relaxer.to_string(verbose=verbose))
     ml_relaxer.run()
@@ -227,7 +240,7 @@ def md(ctx, filepath, nn_name,
     aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     ml_md = aseml.MlMd(atoms, temperature, timestep, steps, loginterval, ensemble, nn_name, verbose,
-                       workdir, prefix="_md_")
+                       workdir, prefix="_abiml_md_")
     print(ml_md.to_string(verbose=verbose))
     ml_md.run()
     return 0
@@ -269,7 +282,7 @@ def neb(ctx, filepaths, nn_name,
 
     ml_neb = aseml.MlNeb(initial_atoms, final_atoms,
                          nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
-                         nn_name, verbose, workdir, prefix="_neb_")
+                         nn_name, verbose, workdir, prefix="_abiml_neb_")
     print(ml_neb.to_string(verbose=verbose))
     ml_neb.run()
     return 0
@@ -309,7 +322,7 @@ def mneb(ctx, filepaths, nn_name,
         aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     mneb = aseml.MultiMlNeb(atoms_list, nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
-                            nn_name, verbose, workdir, prefix="_mneb_")
+                            nn_name, verbose, workdir, prefix="_abiml_mneb_")
     print(mneb.to_string(verbose=verbose))
     mneb.run()
     return 0
@@ -319,87 +332,46 @@ def mneb(ctx, filepaths, nn_name,
 @herald
 @click.pass_context
 @click.argument("filepath", type=str)
-@add_nn_name_opt
-@click.option("--supercell", "-s", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="Supercell")
-@click.option("--qmesh", "-k", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="q-mesh for phonon-DOS")
-@click.option('--asr/--no-asr', default=True, show_default=True,
-              help="Restore the acoustic sum rule on the interatomic force constants.")
-@click.option('--nqpath', default=100, type=int, show_default=True, help="Number of q-points along the q-path")
-@add_relax_opts
-@add_workdir_verbose_opts
-def aseph(ctx, filepath, nn_name, 
-          supercell, qmesh, asr, nqpath,
-          relax_mode, fmax, pressure, steps, optimizer, 
-          workdir, verbose):
-    """
-    Use finite-displacement method to compute phonon band structure and DOS with ASE and ML potential.
-
-    Based on:
-
-        https://github.com/materialsvirtuallab/m3gnet/blob/main/examples/Relaxation%20of%20LiFePO4.ipynb
-
-    Usage example:
-
-    \b
-        abiml.py.py aseph FILE --supercell 4 4 4 --qmesh 8 8 8 --relax no
-
-    where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
-
-    To change the ML potential, use e.g.:
-
-        abiml.py.py aseph -nn m3gnet [...]
-    """
-    ml_aseph = aseml.MlAsePhonons(filepath, supercell, qmesh, asr, nqpath,
-                                  relax_mode, fmax, pressure, steps, optimizer, nn_name,
-                                  verbose, workdir, prefix="_aseph_")
-    print(ml_aseph.to_string(verbose=verbose))
-    ml_aseph.run()
-    return 0
-
-
-@main.command()
-@herald
-@click.pass_context
-@click.argument("filepath", type=str)
-@add_nn_name_opt
+@add_nn_names_opt
 @click.option("--supercell", "-s", nargs=3, type=int, default=(-1, -1, -1), show_default=True, help="Supercell")
 @click.option("--distance", "-d", type=float, show_default=True, default=0.01, help="displacement distance in Ang.")
-@click.option("--qmesh", "-k", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="q-mesh for phonon-DOS")
+@click.option("--qmesh", "-qm", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="q-mesh for phonon-DOS")
 @click.option('--asr', type=int, default=2, show_default=True, help="Restore the acoustic sum rule on the interatomic force constants.")
 @click.option('--dipdip', type=int, default=1, show_default=True, help="Treatment of dipole-dipole term.")
 @click.option('--nqpath', default=100, type=int, show_default=True, help="Number of q-points along the q-path")
 @add_relax_opts
 @add_workdir_verbose_opts
-def phddb(ctx, filepath, nn_name, 
+def phddb(ctx, filepath, nn_names, 
           supercell, distance, qmesh, asr, dipdip, nqpath,
           relax_mode, fmax, pressure, steps, optimizer, 
           workdir, verbose):
     """
-    Use finite-displacement method to compute phonon band structure and DOS with phonopy and ML potential.
+    Use phonopy and ML potential to compute phonons and compare with DDB.
 
     Usage example:
 
     \b
         abiml.py.py phddb DDB_FILE --supercell 4 4 4 --qmesh 8 8 8 --relax no
 
-    where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
+    where `DDB_FILE` is an Abiit DDB file.
 
     To change the ML potential, use e.g.:
 
         abiml.py.py aseph -nn m3gnet [...]
     """
-
     if filepath.startswith("__mp-"):
         print(f"Fetching DDB for mp-id {filepath[2:]} from the materials project database.")
         from abipy.dfpt.ddb import DdbFile
         with DdbFile.from_mpid(filepath[2:]) as ddb:
             filepath = ddb.filepath
 
-    from abipy.ml.phonopy import  MlPhononsWithDDB
+    from abipy.ml.ml_phonopy import MlPhonopy
     if any(s <= 0 for s in supercell): supercell = None
-    ml_phddb = MlPhononsWithDDB(filepath, distance, qmesh, asr, dipdip, nqpath,
-                                relax_mode, fmax, pressure, steps, optimizer, nn_name,
-                                verbose, workdir, prefix="_phddb_", supercell=supercell)
+    ml_phddb = MlPhonopy(distance, qmesh, asr, dipdip, nqpath,
+                         relax_mode, fmax, pressure, steps, optimizer, nn_names,
+                         verbose, workdir, prefix="_abiml_phddb_", 
+                         ddb_filepath=filepath, supercell=supercell
+                         )
     print(ml_phddb.to_string(verbose=verbose))
     ml_phddb.run()
     return 0
@@ -428,7 +400,7 @@ def order(ctx, filepath, nn_name,
     Based on: https://matgenb.materialsvirtuallab.org/2013/01/01/Ordering-Disordered-Structures.html
     """
     ml_orderer = aseml.MlOrderer(filepath, max_ns, optimizer, relax_mode, fmax, pressure,
-                                 steps, nn_name, verbose, workdir, prefix="_order_")
+                                 steps, nn_name, verbose, workdir, prefix="_abiml_order_")
     print(ml_orderer.to_string(verbose=verbose))
     ml_orderer.run()
     return 0
@@ -473,7 +445,7 @@ def scan_relax(ctx, filepath, nn_name,
     scanner = RelaxScanner(structure, isite, mesh, nn_name,
                            relax_mode=relax_mode, fmax=fmax, steps=steps, verbose=verbose,
                            optimizer_name=optimizer, pressure=pressure,
-                           workdir=workdir, prefix="_scan_relax_")
+                           workdir=workdir, prefix="_abiml_scan_relax_")
     print(scanner)
     scanner.run(nprocs=nprocs)
 
@@ -484,9 +456,7 @@ def scan_relax(ctx, filepath, nn_name,
 @herald
 @click.pass_context
 @click.argument('filepaths', type=str, nargs=-1)
-@click.option("-nns", '--nn-names', type=str, multiple=True,  show_default=True, help='ML potentials to be used',
-              #default=["m3gnet", "chgnet"],
-              default=["chgnet"])
+@add_nn_names_opt
 @click.option("--traj_range", type=str, show_default=True,
               help="Trajectory range e.g. `5` to select the first 5 iterations, `1:4` to select steps 1,2,3.",
               default=None)
@@ -512,7 +482,7 @@ def compare(ctx, filepaths,
     where `FILE` can be either a _HIST.nc or a VASPRUN.xml file.
     """
     traj_range = cli.range_from_str(traj_range)
-    ml_comp = aseml.MlCompareWithAbinitio(filepaths, nn_names, traj_range, verbose, workdir, prefix="_compare_")
+    ml_comp = aseml.MlCompareWithAbinitio(filepaths, nn_names, traj_range, verbose, workdir, prefix="_abiml_compare_")
     print(ml_comp)
     c = ml_comp.run(nprocs=nprocs)
 

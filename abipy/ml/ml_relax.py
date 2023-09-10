@@ -2,6 +2,7 @@
 """
 from __future__ import annotations
 
+import sys
 import os
 import time
 import tempfile
@@ -20,25 +21,10 @@ from ase.stress import full_3x3_to_voigt_6_stress, voigt_6_to_full_3x3_stress
 from abipy.core.abinit_units import eV_Ha, Ang_Bohr
 from abipy.core.structure import Structure, StructDiff
 from abipy.tools.iotools import workdir_with_prefix
+from abipy.tools.context_managers import Timer
 from abipy.dynamics.hist import HistFile
 from abipy.flowtk import PseudoTable
 from abipy.ml.aseml import print_atoms, get_atoms, CalcBuilder, ase_optimizer_cls, abisanitize_atoms, RX_MODE
-
-from time import perf_counter
-
-
-class Timer:
-
-    def __enter__(self):
-        self.time = perf_counter()
-        return self
-
-    def __str__(self):
-        return self.readout
-
-    def __exit__(self, type, value, traceback):
-        self.time = perf_counter() - self.time
-        self.readout = f'Time: {self.time:.3f} seconds'
 
 
 class RelaxationProfiler:
@@ -204,12 +190,10 @@ class RelaxationProfiler:
         """
         Perform a GS calculation with ABINIT. Return namedtuple with results in ASE units.
         """
-        with Timer() as timer:
-            print(f"\nBegin ABINIT GS in {str(directory)}")
+        with Timer(header=f"\nBegin ABINIT GS in {str(directory)}", footer="ABINIT GS") as timer:
             abinit = Abinit(profile=self.abinit_profile, directory=directory, **self.gs_kwargs)
             forces = abinit.get_forces(atoms=atoms)
             stress = abinit.get_stress(atoms=atoms)
-            print('ABINIT GS completed in %.2f sec\n' % (timer.time))
 
         return dict2namedtuple(abinit=abinit, forces=forces,
                                stress=voigt_6_to_full_3x3_stress(stress),

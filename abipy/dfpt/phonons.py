@@ -414,6 +414,17 @@ class PhononBands:
         else:
             return np.max(self.phfreqs[:, mode])
 
+    def get_phfreqs_stats_dict(self) -> dict:
+        """
+        Return dictionary with phonon frequency stats in eV.
+        """
+        return dict(
+            wmin_ev=self.phfreqs.min(),
+            wmax_ev=self.phfreqs.max(),
+            wmean_ev=self.phfreqs.mean(),
+            wstd_ev=self.phfreqs.std(),
+        )
+
     @property
     def shape(self) -> tuple:
         """Shape of the array with the eigenvalues."""

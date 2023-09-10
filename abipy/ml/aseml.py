@@ -28,6 +28,7 @@ from typing import Type, Any, Optional, Union
 from enum import IntEnum
 from monty.string import marquee, list_strings
 from monty.functools import lazy_property
+from monty.json import MontyEncoder
 from monty.collections import AttrDict
 from pymatgen.core import Structure as PmgStructure
 from pymatgen.io.ase import AseAtomsAdaptor
@@ -238,7 +239,7 @@ class AseResults:
         """Build the object from an atoms instance with a calculator."""
         if calc is not None:
             atoms.calc = calc
-        results = cls(atoms=atoms,
+        results = cls(atoms=atoms.copy(),
                       ene=float(atoms.get_potential_energy()),
                       stress=atoms.get_stress(voigt=False),
                       forces=atoms.get_forces())
@@ -802,8 +803,9 @@ class AseRelaxation:
     """
     Container with the results produced by the ASE calculator.
     """
-    def __init__(self, dyn, traj_path):
+    def __init__(self, dyn, r0, r1, traj_path):
         self.dyn = dyn
+        self.r0, self.r1 = r0, r1
         self.traj_path = str(traj_path)
 
     @lazy_property
@@ -820,7 +822,8 @@ class AseRelaxation:
     def summarize(self, tags=None, mode="smart", stream=sys.stdout):
         """"""
         if self.traj_path is None: return
-        r0, r1 = AseResults.from_traj_inds(self.traj, 0, -1)
+        r0, r1 = self.r0, self.r1
+        #r0, r1 = AseResults.from_traj_inds(self.traj, 0, -1)
         if tags is None: tags = ["unrelaxed", "relaxed"],
         df = dataframe_from_results_list(tags, [r0, r1], mode=mode)
         print_dataframe(df, end="\n", file=stream)
@@ -919,13 +922,18 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
         dyn = opt_class(ExpCellFilter(atoms, scalar_pressure=pressure), **opt_kwargs) if relax_mode == RX_MODE.cell else \
               opt_class(atoms, **opt_kwargs)
 
+        r0 = AseResults.from_atoms(dyn.atoms)
+
         t_start = time.time()
         converged = dyn.run(fmax=fmax, steps=steps)
         t_end = time.time()
-        pf("Converged:", converged)
         pf('Relaxation completed in %2.4f sec\n' % (t_end - t_start))
+        if not converged: 
+            raise RuntimeError("ASE relaxation didn't converge")
 
-    return AseRelaxation(dyn, traj_path)
+        r1 = AseResults.from_atoms(dyn.atoms)
+
+    return AseRelaxation(dyn, r0, r1, traj_path)
 
 
 def silence_tensorflow() -> None:
@@ -965,7 +973,7 @@ class CORRALGO(IntEnum):
            raise ValueError(f'Error: {string} is not a valid value')
 
 
-class _MyMlCalculator:
+class _MyCalculator:
     """
     Add __abi_forces_list and __abi_stress_list internal attributes to an ASE calculator.
     Extend `calculate` method so that ML forces and stresses can be corrected.
@@ -1169,7 +1177,7 @@ class CalcBuilder:
     def reset(self) -> None:
         self._model = None
 
-    def get_calculator(self, reset=False) -> Calculator:
+    def get_calculator(self, with_delta=True, reset=False) -> Calculator:
         """
         Return an ASE calculator with ML potential.
 
@@ -1191,10 +1199,11 @@ class CalcBuilder:
                 assert self.model_name is None
                 self._model = Potential(M3GNet.load())
 
-            class MyM3GNetCalculator(_MyMlCalculator, M3GNetCalculator):
+            class MyM3GNetCalculator(_MyCalculator, M3GNetCalculator):
                 """Add abi_forces and abi_stress"""
 
-            return MyM3GNetCalculator(potential=self._model)
+            cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
+            return cls(potential=self._model)
 
         if self.nn_type == "matgl":
             # See https://github.com/materialsvirtuallab/matgl
@@ -1208,10 +1217,11 @@ class CalcBuilder:
                 model_name = "M3GNet-MP-2021.2.8-PES" if self.model_name is None else self.model_name
                 self._model = matgl.load_model(model_name)
 
-            class MyM3GNetCalculator(_MyMlCalculator, M3GNetCalculator):
+            class MyM3GNetCalculator(_MyCalculator, M3GNetCalculator):
                 """Add abi_forces and abi_stress"""
 
-            return MyM3GNetCalculator(potential=self._model)
+            cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
+            return cls(potential=self._model)
 
         if self.nn_type == "chgnet":
             try:
@@ -1224,10 +1234,11 @@ class CalcBuilder:
                 assert self.model_name is None
                 self._model = CHGNet.load()
 
-            class MyCHGNetCalculator(_MyMlCalculator, CHGNetCalculator):
+            class MyCHGNetCalculator(_MyCalculator, CHGNetCalculator):
                 """Add abi_forces and abi_stress"""
 
-            return MyCHGNetCalculator(model=self._model)
+            cls = MyCHGNetCalculator if with_delta else CHGNetCalculator
+            return cls(model=self._model)
 
         if self.nn_type == "alignn":
             try:
@@ -1235,11 +1246,12 @@ class CalcBuilder:
             except ImportError as exc:
                 raise ImportError("alignn not installed. See https://github.com/usnistgov/alignn") from exc
 
-            class MyAlignnCalculator(_MyMlCalculator, AlignnAtomwiseCalculator):
+            class MyAlignnCalculator(_MyCalculator, AlignnAtomwiseCalculator):
                 """Add abi_forces and abi_stress"""
 
             model_name = default_path() if self.model_name is None else self.model_name
-            return MyAlignnCalculator(path=model_name)
+            cls = MyAlignnCalculator if with_delta else AlignnAtomwiseCalculator 
+            return cls(path=model_name)
 
         #if self.nn_type == "quip":
         #    try:
@@ -1248,7 +1260,7 @@ class CalcBuilder:
         #        raise ImportError("quippy not installed. Try `pip install quippy-ase`.\n" +
         #                          "See https://github.com/libAtoms/QUIP") from exc
 
-        #    class MyQuipPotential(_MyMlCalculator, Potential):
+        #    class MyQuipPotential(_MyCalculator, Potential):
         #        """Add abi_forces and abi_stress"""
 
         #    assert self.model_name is None
@@ -1289,18 +1301,6 @@ class MlBase:
         # Delegated to the subclass.
         return self.to_string()
 
-    #@lazy_property
-    #def calc_builder(self):
-    #    return CalcBuilder(self.nn_name)
-
-    #def get_calculator_name(self) -> tuple[Calculator, str]:
-    #    return self.get_calculator(), self.calc_builder.name
-
-    #def get_calculator(self) -> Calculator:
-    #    """Return ASE calculator."""
-    #    calc = self.calc_builder.get_calculator()
-    #    return calc
-
     def add_basename_info(self, basename: str, info: str) -> None:
         """
         Register basename with info in the internal buffer used to generate
@@ -1338,13 +1338,13 @@ class MlBase:
         """Write data in JSON format and mirror output to `stream`."""
         self.add_basename_info(basename, info)
         with open(self.workdir / basename, "wt") as fh:
-            json.dump(data, fh, indent=indent, **kwargs)
+            json.dump(data, fh, indent=indent, cls=MontyEncoder, **kwargs)
 
         if stream is not None:
             # Print JSON to stream as well.
             print("", file=stream)
             print(marquee(info, mark="="), file=stream)
-            print(json.dumps(data, indent=4), file=stream, end="\n")
+            print(json.dumps(data, cls=MontyEncoder, indent=4), file=stream, end="\n")
 
     def write_df(self, df, basename: str, info: str, fmt="csv") -> None:
         """Write dataframe to file."""
@@ -2579,129 +2579,3 @@ def traj_to_qepos(traj_filepath: str, pos_filepath: str) -> None:
             posFile.write(str(i)+ '\n')
             for j in range(nAtoms):
                 posFile.write(str(posArray[i,j,0]) + ' ' + str(posArray[i,j,1]) + ' ' + str(posArray[i,j,2]) + '\n')
-
-
-
-class MlAsePhonons(MlBase):
-    """
-    Compute phonons with ASE and ML potential.
-    """
-
-    def __init__(self, atoms: Atoms, supercell, qmesh, asr, nqpath,
-                 relax_mode, fmax, pressure, steps, optimizer, nn_name,
-                 verbose, workdir, prefix=None):
-        """
-        Args:
-            atoms: ASE atoms.
-            supercell: tuple with supercell dimension.
-            qmesh: K-mesh for phonon-DOS
-            asr: Enforce acoustic sum-rule.
-            nqpath: Number of q-point along the q-path.
-            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
-            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
-            verbose: whether to print stdout.
-            optimizer: name of the ASE optimizer to use for relaxation.
-            nn_name: String defining the NN potential. See also CalcBuilder.
-            verbose: Verbosity level.
-            workdir:
-            prefix:
-        """
-        super().__init__(workdir, prefix)
-        self.atoms = get_atoms(atoms)
-        self.supercell = supercell
-        self.qmesh = qmesh
-        self.asr = asr
-        self.nqpath = nqpath
-        self.relax_mode = relax_mode
-        RX_MODE.validate(self.relax_mode)
-        self.fmax = fmax
-        self.pressure = pressure
-        self.steps = steps
-        self.optimizer = optimizer
-        self.nn_name = nn_name
-        self.verbose = verbose
-
-    def to_string(self, verbose=0):
-        """String representation with verbosity level `verbose`."""
-        s = f"""\
-
-{self.__class__.__name__} parameters:
-
-     supercell  = {self.supercell}
-     qmesh      = {self.qmesh}
-     asr        = {self.asr}
-     nqpath     = {self.nqpath}
-     relax_mode = {self.relax_mode}
-     fmax       = {self.fmax}
-     steps      = {self.steps}
-     optimizer  = {self.optimizer}
-     pressure   = {self.pressure}
-     nn_name    = {self.nn_name}
-     workdir    = {self.workdir}
-     verbose    = {self.verbose}
-
-=== ATOMS ===
-
-{self.atoms}
-"""
-        return s
-
-    def run(self) -> None:
-        """Run AseMlPhonons."""
-        #self.pickle_dump()
-        workdir = self.workdir
-        calculator = CalcBuilder(self.nn_name).get_calculator()
-        self.atoms.calc = calculator
-
-        if self.relax != RX_MODE.no:
-            print(f"Relaxing atoms with relax mode: {self.relax_mode}.")
-            relax_kws = dict(optimizer=self.optimizer,
-                             relax_mode=self.relax_mode,
-                             fmax=self.fmax,
-                             pressure=self.pressure,
-                             steps=self.steps,
-                             traj_path=self.get_path("relax.traj", "ASE relax trajectory"),
-                             verbose=self.verbose,
-                            )
-
-            relax = relax_atoms(self.atoms, **relax_kws)
-            r0, r1 = AseResults.from_traj_inds(relax.traj, 0, -1)
-            df = dataframe_from_results_list(["initial_unrelaxed", "initial_relaxed"], [r0, r1])
-            print(df, end=2*"\n")
-
-        # Phonon calculator
-        from ase.phonons import Phonons
-        ph = Phonons(self.atoms, calculator, supercell=self.supercell, delta=0.05)
-        #ph.read_born_charges(name=, neutrality=True)
-        ph.run()
-        #print("Phonons Done")
-
-        # Read forces and assemble the dynamical matrix
-        ph.read(acoustic=self.asr, born=False)
-        ph.clean()
-
-        # Calculate phonon dispersion along a path in the Brillouin zone.
-        path = self.atoms.cell.bandpath(npoints=self.nqpath)
-        bs = ph.get_band_structure(path, born=False)
-        dos = ph.get_dos(kpts=self.qmesh).sample_grid(npts=100, width=1e-3)
-
-        # Plot the band structure and DOS
-        import matplotlib.pyplot as plt
-        plt.rc("figure", dpi=150)
-        fig = plt.figure(1, figsize=(7, 4))
-        bs_ax = fig.add_axes([0.12, 0.07, 0.67, 0.85])
-        emax = 0.035
-        bs.plot(ax=bs_ax, emin=0.0, emax=emax)
-        dos_ax = fig.add_axes([0.8, 0.07, 0.17, 0.85])
-        dos_ax.fill_between(dos.get_weights(), dos.get_energies(), y2=0, color="grey", edgecolor="black", lw=1)
-        dos_ax.set_ylim(0, emax)
-        dos_ax.set_yticks([])
-        dos_ax.set_xticks([])
-        dos_ax.set_xlabel("PH DOS", fontsize=14)
-
-        #title = f"Phonon band structure and DOS of {self.atoms.symbols} with supercell: {self.supercell}",
-        title = f"Phonon band structure and DOS with supercell: {self.supercell}",
-        fig.suptitle(title, fontsize=8, y=1.02)
-        self.savefig("phonons.png", fig, info=title)
-
-        self._finalize()
