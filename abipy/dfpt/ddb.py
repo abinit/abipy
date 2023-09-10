@@ -1106,7 +1106,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             try:
                 iqs = [self.qindex(q) for q in qpoints]
             except Exception:
-                raise ValueError("input qpoint %s not in %s.\nddb.qpoints:\n%s" % (
+                raise ValueError("input qpoint:\n %s\n not in %s.\nddb.qpoints:\n%s" % (
                     qpoints, self.filepath, self.qpoints))
 
             qpoints = [self.qpoints[iq] for iq in iqs]

@@ -362,15 +362,16 @@ def aseph(ctx, filepath, nn_name,
 @click.pass_context
 @click.argument("filepath", type=str)
 @add_nn_name_opt
-@click.option("--supercell", "-s", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="Supercell")
+@click.option("--supercell", "-s", nargs=3, type=int, default=(-1, -1, -1), show_default=True, help="Supercell")
+@click.option("--distance", "-d", type=float, show_default=True, default=0.01, help="displacement distance in Ang.")
 @click.option("--qmesh", "-k", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="q-mesh for phonon-DOS")
-@click.option('--asr/--no-asr', default=True, show_default=True,
-              help="Restore the acoustic sum rule on the interatomic force constants.")
+@click.option('--asr', type=int, default=2, show_default=True, help="Restore the acoustic sum rule on the interatomic force constants.")
+@click.option('--dipdip', type=int, default=1, show_default=True, help="Treatment of dipole-dipole term.")
 @click.option('--nqpath', default=100, type=int, show_default=True, help="Number of q-points along the q-path")
 @add_relax_opts
 @add_workdir_verbose_opts
 def phddb(ctx, filepath, nn_name, 
-          supercell, qmesh, asr, nqpath,
+          supercell, distance, qmesh, asr, dipdip, nqpath,
           relax_mode, fmax, pressure, steps, optimizer, 
           workdir, verbose):
     """
@@ -379,7 +380,7 @@ def phddb(ctx, filepath, nn_name,
     Usage example:
 
     \b
-        abiml.py.py phddb FILE --supercell 4 4 4 --qmesh 8 8 8 --relax no
+        abiml.py.py phddb DDB_FILE --supercell 4 4 4 --qmesh 8 8 8 --relax no
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
 
@@ -387,11 +388,18 @@ def phddb(ctx, filepath, nn_name,
 
         abiml.py.py aseph -nn m3gnet [...]
     """
+
+    if filepath.startswith("__mp-"):
+        print(f"Fetching DDB for mp-id {filepath[2:]} from the materials project database.")
+        from abipy.dfpt.ddb import DdbFile
+        with DdbFile.from_mpid(filepath[2:]) as ddb:
+            filepath = ddb.filepath
+
     from abipy.ml.phonopy import  MlPhononsWithDDB
-    distance = 0.03
-    ml_phddb = MlPhononsWithDDB(filepath, supercell, distance, qmesh, asr, nqpath,
+    if any(s <= 0 for s in supercell): supercell = None
+    ml_phddb = MlPhononsWithDDB(filepath, distance, qmesh, asr, dipdip, nqpath,
                                 relax_mode, fmax, pressure, steps, optimizer, nn_name,
-                                verbose, workdir, prefix="_phddb_")
+                                verbose, workdir, prefix="_phddb_", supercell=supercell)
     print(ml_phddb.to_string(verbose=verbose))
     ml_phddb.run()
     return 0

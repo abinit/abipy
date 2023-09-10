@@ -1239,7 +1239,7 @@ class CalcBuilder:
                 """Add abi_forces and abi_stress"""
 
             model_name = default_path() if self.model_name is None else self.model_name
-            return MyAlignnAtomwiseCalculator(path=model_name)
+            return MyAlignnCalculator(path=model_name)
 
         #if self.nn_type == "quip":
         #    try:
