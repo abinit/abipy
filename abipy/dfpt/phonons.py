@@ -2398,7 +2398,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             phfreqs.extend(pmg_bs.bands.T[start_index:b["end_index"] + 1])
             if pmg_bs.has_eigendisplacements:
                 e = pmg_bs.eigendisplacements[:, start_index:b["end_index"] + 1]
-                e = np.transpose(e, [0, 1, 2, 3])
+                e = np.transpose(e, [1, 0, 2, 3])
                 e = np.reshape(e, e.shape[:-2] + (-1,))
                 phdispl_cart.extend(e)
 
@@ -2411,7 +2411,6 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         if not phdispl_cart:
             phdispl_cart = np.zeros((len(phfreqs), n_modes, n_modes))
         else:
-            #print(phdispl_cart)
             phdispl_cart = np.array(phdispl_cart)
 
         na = None
