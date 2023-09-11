@@ -122,10 +122,34 @@ def add_nn_name_opt(f):
 
 def add_nn_names_opt(f):
     """Add CLI options to select multiple NN potentials."""
-    f = click.option("-nns", '--nn-names', type=str, multiple=True,  show_default=True, help='ML potentials to be used',
-                  #default=["m3gnet", "chgnet"],
+    f = click.option("-nns", '--nn-names', type=str, multiple=True, show_default=True, help='ML potentials to be used',
                   default=["chgnet"])(f)
     return f
+
+
+def _get_nn_names(nn_names: list[str]) -> list[str]:
+    """
+    Additional pre-processing of nn-names option.
+
+    --nn-names all                   --> return all NN names.
+    --nn-names all-alignn-m3gnet      --> return all NN names except alignn and m3gnet
+    --nn-names !chgnet               --> return all NN names except chgnet.
+    """
+    if "all" in nn_names:
+        # Return all possibilities.
+        return aseml.CalcBuilder.ALL_NN_TYPES
+
+    if any(n.startswith("all-") for n in nn_names):
+        assert len(nn_names) == 1
+        skip_names = nn_names[0].replace("all-", "").split("-")
+        return [s for s in aseml.CalcBuilder.ALL_NN_TYPES if s not in skip_names]
+
+    if any(n.startswith("!") for n in nn_names):
+        assert len(nn_names) == 1
+        skip = nn_names[0][1:]
+        return [s for s in aseml.CalcBuilder.ALL_NN_TYPES if s != skip]
+
+    return nn_names
 
 
 @click.group()
@@ -166,6 +190,7 @@ def relax(ctx, filepath, nn_name,
         abiml.py.py relax FILE --fix-inds "0 3" --fix-symbols "Si O"
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
+    or a string such as __mp-134 to fetch the structure from the MP database.
 
     To change the ML potential, use e.g.:
 
@@ -335,14 +360,14 @@ def mneb(ctx, filepaths, nn_name,
 @add_nn_names_opt
 @click.option("--supercell", "-s", nargs=3, type=int, default=(-1, -1, -1), show_default=True, help="Supercell")
 @click.option("--distance", "-d", type=float, show_default=True, default=0.01, help="displacement distance in Ang.")
-@click.option("--qmesh", "-qm", nargs=3, type=int, default=(4, 4, 4), show_default=True, help="q-mesh for phonon-DOS")
 @click.option('--asr', type=int, default=2, show_default=True, help="Restore the acoustic sum rule on the interatomic force constants.")
 @click.option('--dipdip', type=int, default=1, show_default=True, help="Treatment of dipole-dipole term.")
-@click.option('--nqpath', default=100, type=int, show_default=True, help="Number of q-points along the q-path")
+@click.option('--line-density', "-ld", default=20, type=float, show_default=True, help="Line density to generate the q-path for bands")
+@click.option('--qppa', "-qppa", default=None, type=float, show_default=True, help="q-points per atom to generate the q-mesh for DOS")
 @add_relax_opts
 @add_workdir_verbose_opts
 def phddb(ctx, filepath, nn_names, 
-          supercell, distance, qmesh, asr, dipdip, nqpath,
+          supercell, distance, asr, dipdip, line_density, qppa,
           relax_mode, fmax, pressure, steps, optimizer, 
           workdir, verbose):
     """
@@ -351,13 +376,18 @@ def phddb(ctx, filepath, nn_names,
     Usage example:
 
     \b
-        abiml.py.py phddb DDB_FILE --supercell 4 4 4 --qmesh 8 8 8 --relax no
+        abiml.py.py phddb DDB_FILE --distance 0.03 --relax --dipdip 0
 
-    where `DDB_FILE` is an Abiit DDB file.
+    where `DDB_FILE` is an Abiit DDB file 
+    or a string such as __mp-134 to fetch the DDB from the MP database.
 
-    To change the ML potential, use e.g.:
+    To specify the list of ML potential, use e.g.:
 
-        abiml.py.py aseph -nn m3gnet [...]
+        abiml.py.py phddb -nn-names m3gnet --nn-names chgnet [...]
+
+    To use all NN potentials supported, use:
+
+        -nn-names all [...]
     """
     if filepath.startswith("__mp-"):
         print(f"Fetching DDB for mp-id {filepath[2:]} from the materials project database.")
@@ -365,13 +395,14 @@ def phddb(ctx, filepath, nn_names,
         with DdbFile.from_mpid(filepath[2:]) as ddb:
             filepath = ddb.filepath
 
-    from abipy.ml.ml_phonopy import MlPhonopy
+    from abipy.ml.ml_phonopy import MlPhonopyWithDDB
     if any(s <= 0 for s in supercell): supercell = None
-    ml_phddb = MlPhonopy(distance, qmesh, asr, dipdip, nqpath,
-                         relax_mode, fmax, pressure, steps, optimizer, nn_names,
-                         verbose, workdir, prefix="_abiml_phddb_", 
-                         ddb_filepath=filepath, supercell=supercell
-                         )
+    nn_names = _get_nn_names(nn_names)
+    ml_phddb = MlPhonopyWithDDB(distance, asr, dipdip, line_density, qppa,
+                                relax_mode, fmax, pressure, steps, optimizer, nn_names,
+                                verbose, workdir, prefix="_abiml_phddb_", 
+                                ddb_filepath=filepath, supercell=supercell,
+                                )
     print(ml_phddb.to_string(verbose=verbose))
     ml_phddb.run()
     return 0
@@ -482,6 +513,7 @@ def compare(ctx, filepaths,
     where `FILE` can be either a _HIST.nc or a VASPRUN.xml file.
     """
     traj_range = cli.range_from_str(traj_range)
+    nn_names = _get_nn_names(nn_names)
     ml_comp = aseml.MlCompareWithAbinitio(filepaths, nn_names, traj_range, verbose, workdir, prefix="_abiml_compare_")
     print(ml_comp)
     c = ml_comp.run(nprocs=nprocs)

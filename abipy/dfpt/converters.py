@@ -207,7 +207,7 @@ def phonopy_to_abinit(unit_cell=None, supercell_matrix=None, out_ddb_path=None, 
             At least one among ngqpt and qpt_list should be defined.
         force_constants: an array with shape (num atoms unit cell, num atoms supercell, 3, 3)
             containing the force constants. Alternatively a string with the path to the
-            FORCE_CONSTANTS file. This or force_set or phonopy_yaml should be defined. If both given this
+            FORCE_CONSTANTS file. This or force_sets or phonopy_yaml should be defined. If both given this
             has precedence.
         force_sets: a dictionary obtained from the force sets generated with phonopy.
             Alternatively a string with the path to the FORCE_SETS file. This or force_constants

@@ -1984,12 +1984,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if "tolvrs" in tolerance:
             raise self.Error("tolvrs should not be used in a DKDK calculation")
 
-        # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+        # See Dataset 3 of https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi
         dkdk_input= self.new_with_vars(
             qpt=(0, 0, 0),        # q-wavevector.
             kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
             iscf=-3,              # The d2/dk perturbation is treated in a non-self-consistent way
             rf2_dkdk=1,
+            #rf2_dkdk=3,
             useylm=1,
             comment="Input file for DKDK calculation.",
         )
@@ -2722,7 +2723,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Returns:
-            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            List of dictionaries with the Abinit variables defining the irreducible perturbations
             Example:
 
                 [{'idir': 1, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]},
@@ -3695,7 +3696,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
             nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
-            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per atom.
                 Overrides nqsmall.
             line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
                 Overrides ndivsm.
@@ -4595,7 +4596,7 @@ def kpoints_from_line_density(structure, line_density, symprec=1e-2):
     Return: (nkpt, 3) numpy array with k-points in reduced coords.
     """
     if line_density <= 0:
-        raise ValueError(f"Invalid {line_density=}}")
+        raise ValueError(f"Invalid {line_density=}")
 
     hs = HighSymmKpath(structure, symprec=1e-2)
     qpts, labels_list = hs.get_kpoints(line_density=line_density, coords_are_cartesian=False)

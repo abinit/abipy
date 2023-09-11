@@ -84,12 +84,6 @@ class RX_MODE(EnumMixin, StrEnum):  # StrEnum added in 3.11
     ions = "ions"
     cell = "cell"
 
-    #@classmethod
-    #def from_ionmov_optcell(cls, ionmov: int, optcell: int) -> RX_MODE:
-    #    cls.no
-    #    cls.ions
-    #    cls.cell
-
 
 def to_ase_atoms(structure: PmgStructure, calc=None) -> Atoms:
     """Convert pymatgen structure to ASE atoms. Optionally, attach a calculator."""
@@ -1408,7 +1402,7 @@ import matplotlib.pyplot as plt
                 if not p.exists():
                     print(f"WARNING: Cannot find `{basename}` in {self.workdir}")
 
-        print("\nResults available in directory:", self.workdir)
+        print("\nResults available in:", self.workdir)
 
 
 class MlRelaxer(MlBase):
