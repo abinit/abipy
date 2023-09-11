@@ -1,6 +1,7 @@
 """"
 AbiPy panels for electronic properties.
 """
+from __future__ import annotations
 
 import param
 import panel as pn
@@ -137,7 +138,7 @@ The user can change the SKW intepolation parameters to gauge the quality of the 
         self.ebands_kpath = self.get_ebands_from_file_input(self.kpath_file_input)
         self.update_main_area()
 
-    def update_main_area(self):
+    def update_main_area(self) -> None:
 
         with Loading(self.main_area):
 

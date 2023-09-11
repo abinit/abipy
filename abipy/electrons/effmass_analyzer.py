@@ -1,7 +1,8 @@
 # coding: utf-8
 """
-This module provides objects to compute electronic effective masses via finite differences starting from a GSR
-file with KS energies defined along segments passing through the k-point of interest.
+This module provides objects to compute electronic effective masses
+via finite differences starting from a GSR file with KS energies defined
+along segments passing through the k-point of interest.
 """
 from __future__ import annotations
 
@@ -15,6 +16,7 @@ from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure, Has_ElectronBands
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.printing import print_dataframe
+from abipy.tools.typing import Figure
 from abipy.electrons.ebands import ElectronBands
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible
 
@@ -34,9 +36,12 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
         emana.select_vbm()
 
-        # Or use one of the following APIs.
+        # Alternatively, one can use:
         #emana.select_cbm()
         #emana.select_band_edges()
+
+        or the most flexible API:
+
         #emana.select_kpoint_band(kpoint=[0, 0, 0], band=3)
 
         #amana.summarize()
@@ -77,7 +82,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
     def to_string(self, verbose: int = 0) -> str:
         """
-        Human-readable string with useful info such as band gaps, position of HOMO, LOMO, etc.
+        Human-readable string with info such as band gaps, position of HOMO, LOMO, etc.
 
         Args:
             verbose: Verbosity level.
@@ -94,7 +99,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         """|Structure| object."""
         return self.ebands.structure
 
-    def select_kpoint_band(self, kpoint, band: int, spin: int = 0, degtol_ev: float = 1e-3):
+    def select_kpoint_band(self, kpoint, band: int, spin: int = 0, degtol_ev: float = 1e-3) -> int:
         """
         Construct line segments based on the k-point ``kpoint`` and the band index ``band``.
         This is the most flexible interface and allows one to include extra bands
@@ -119,7 +124,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         band_inds_k = len(ik_indices) * [band_inds_k]
         return self._build_segments(spin, ik_indices, band_inds_k)
 
-    def select_cbm(self, spin: int = 0, degtol_ev: float = 1e-3) -> None:
+    def select_cbm(self, spin: int = 0, degtol_ev: float = 1e-3) -> int:
         """
         Select the conduction band minimum for the given spin.
 
@@ -128,7 +133,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         ik_indices, band_inds_k = self._select(["cbm"], spin, degtol_ev)
         return self._build_segments(spin, ik_indices, band_inds_k)
 
-    def select_vbm(self, spin: int = 0, degtol_ev: float = 1e-3) -> None:
+    def select_vbm(self, spin: int = 0, degtol_ev: float = 1e-3) -> int:
         """
         Select the valence band maximum for the given spin
 
@@ -137,7 +142,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         ik_indices, band_inds_k = self._select(["vbm"], spin, degtol_ev)
         return self._build_segments(spin, ik_indices, band_inds_k)
 
-    def select_band_edges(self, spin: int = 0, degtol_ev: float = 1e-3) -> None:
+    def select_band_edges(self, spin: int = 0, degtol_ev: float = 1e-3) -> int:
         """
         Select conduction band minimum and valence band maximum.
 
@@ -177,16 +182,14 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
         return ik_indices, band_inds_k
 
-    def _build_segments(self, spin, ik_indices, band_inds_k):
+    def _build_segments(self, spin, ik_indices, band_inds_k) -> int:
         """
-        Build list of segments.
+        Build list of segments. Return: Number of segments
 
         Args:
             spin: Spin index.
             ik_indices: List of k-point indices [nk][kids]
             band_inds_k: [nk][kids]
-
-        Return: Number of segments
         """
         #print("in build_segments with:\n\tik_indices:", ik_indices, "\n\tband_inds_k:", band_inds_k)
         self.spin = spin
@@ -216,7 +219,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
     def summarize(self, acc_list=None) -> None:
         """
         Compute effective masses with different accuracies and print results in tabular format.
-        Useful to understand is results are sensitive to the number of points in the finite difference.
+        Useful to understand if results are sensitive to the number of points in the finite difference.
         Note however that numerical differentiation is performed with the same delta_k step.
         """
         self._consistency_check()
@@ -227,12 +230,9 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
             print_dataframe(df, title=title)
             #print("")
 
-    #def print_segments(self):
-    #    self._consistency_check()
-    #    for segment in self.segments
-
     @add_fig_kwargs
-    def plot_emass(self, acc=4, units="eV", sharey=True, fontsize=6, colormap="viridis", verbose=0, **kwargs):
+    def plot_emass(self, acc=4, units="eV", sharey=True, fontsize=6,
+                   colormap="viridis", verbose=0, **kwargs) -> Figure:
         """
         Plot electronic dispersion and quadratic approximant based on the
         effective masses computed along each segment.
@@ -272,7 +272,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         return fig
 
     @add_fig_kwargs
-    def plot_all_segments(self, ax=None, colormap="viridis", fontsize=8, **kwargs):
+    def plot_all_segments(self, ax=None, colormap="viridis", fontsize=8, **kwargs) -> Figure:
         """
 
         Args:
@@ -381,9 +381,9 @@ class Segment:
                     emass, d2 = self.get_fd_emass_d2(enes_kline, acc)
                     emass_dict["effm_b%d" % ib] = emass
                 except (ValueError, KeyError) as exc:
-                    pass
-                    #cprint(exc, color="red")
+                    cprint(exc, color="red")
                     #emass_dict["effm_b%d" % ib] = None
+                    pass
 
             if emass_dict:
                 od = {"accuracy": acc, "npts": d2.npts}
@@ -393,7 +393,8 @@ class Segment:
         return pd.DataFrame(rows, columns=list(rows[0].keys())).set_index('accuracy')
 
     @add_fig_kwargs
-    def plot_emass(self, acc: int = 4, units="eV", ax=None, fontsize: int = 8, colormap: str = "viridis", **kwargs):
+    def plot_emass(self, acc: int = 4, units="eV", ax=None, fontsize: int = 8,
+                   colormap: str = "viridis", **kwargs) -> Figure:
         """
         Plot band dispersion and quadratic approximation.
 

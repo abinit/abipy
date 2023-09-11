@@ -1,5 +1,7 @@
 # coding: utf-8
 """This module defines objects describing the sampling of the Brillouin Zone."""
+from __future__ import annotations
+
 import collections
 import json
 import sys
@@ -662,7 +664,7 @@ class Kpoint(SlotPickleMixin):
     def __repr__(self):
         s = "[%+.3f, %+.3f, %+.3f]" % tuple(self.frac_coords)
         if self.name is not None:
-            s += " %s" % self.name
+            s = "%s %s" % (self.name, s)
         return s
 
     def tos(self, m="fract", scale=False):
@@ -691,7 +693,7 @@ class Kpoint(SlotPickleMixin):
         else:
             raise ValueError(f"Invalid mode: {m}")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
@@ -704,8 +706,8 @@ class Kpoint(SlotPickleMixin):
             s = "[%+.9f, %+.9f, %+.9f]" % tuple(self.frac_coords)
 
         if self.name is not None:
-            s += ", name: %s" % self.name
-        if self._weight is not None: s += ", weight: %.3f" % self.weight
+            s = "%s %s" % (self.name, s)
+        if self._weight is not None and float(self._weight) > 0.0: s += ", weight: %.3f" % self.weight
 
         return s
 
@@ -898,17 +900,17 @@ class KpointList(collections.abc.Sequence):
         """|Lattice| object defining the reciprocal lattice."""
         return self._reciprocal_lattice
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.to_string(func=repr)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string(func=str)
 
-    def to_string(self, func=str, title=None, verbose=0):
+    def to_string(self, func=str, title=None, verbose=0, pre_string="") -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
-        lines.extend(["%d) %s" % (i, func(kpoint)) for i, kpoint in enumerate(self)])
+        lines.extend(["%s%d) %s" % (pre_string, i, func(kpoint)) for i, kpoint in enumerate(self)])
 
         return "\n".join(lines)
 
@@ -1301,7 +1303,7 @@ class Kpath(KpointList):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0, title=None, **kwargs):
+    def to_string(self, verbose=0, title=None, **kwargs) -> str:
         """
         String representation.
 
@@ -1431,12 +1433,13 @@ class Kpath(KpointList):
             der = finite_diff(vals_on_line, h, order=order, acc=acc)
             ders_on_lines.append(der)
 
-        return np.array(ders_on_lines)
+        return np.array(ders_on_lines, dtype=object)
+        #return np.array(ders_on_lines)
 
 
 class IrredZone(KpointList):
     """
-    An :class:`IrredZone` is a (immutable) sequence of points in the irreducible wedge of the BZ.
+    Immutable sequence of points in the irreducible wedge of the BZ.
     Each point has a weight whose sum must equal 1 so that we can integrate quantities in the full Brillouin zone.
 
     .. note::
@@ -1470,7 +1473,7 @@ class IrredZone(KpointList):
     #        return cls.from_kppa(structure, kppa, shiftk, kptopt=kptopt, verbose=verbose)
 
     @classmethod
-    def from_ngkpt(cls, structure, ngkpt, shiftk, kptopt=1, spin_mode="unpolarized", verbose=0):
+    def from_ngkpt(cls, structure, ngkpt, shiftk, kptopt=1, spin_mode="unpolarized", verbose=0) -> IrredZone:
         """
         Build an IrredZone object from (ngkpt, shift) by calling Abinit
         to get the list of irreducible k-points.
@@ -1485,7 +1488,7 @@ class IrredZone(KpointList):
                    names=None, ksampling=ksampling)
 
     @classmethod
-    def from_kppa(cls, structure, kppa, shiftk, kptopt=1, verbose=0):
+    def from_kppa(cls, structure, kppa, shiftk, kptopt=1, verbose=0) -> IrredZone:
         """
         Build an IrredZone object from (kppa, shift) by calling Abinit
         to get the list of irreducible k-points.
@@ -1519,10 +1522,10 @@ class IrredZone(KpointList):
             print(err_msg)
             #raise ValueError(err_msg)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, func=str, verbose=0, title=None):
+    def to_string(self, func=str, verbose=0, title=None) -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
@@ -1601,7 +1604,7 @@ class KSamplingInfo(AttrDict):
     ])
 
     @classmethod
-    def as_ksampling(cls, obj):
+    def as_ksampling(cls, obj) -> KSamplingInfo:
         """"
         Convert obj into a :class:`KSamplingInfo` instance.
         Accepts: :class:`KSamplingInfo` instance, None (if info are not available) or dict-like object.
@@ -1623,7 +1626,7 @@ class KSamplingInfo(AttrDict):
             raise TypeError("Don't know how to convert `%s` into KSamplingInfo object:\n%s" % (type(obj), str(exc)))
 
     @classmethod
-    def from_mpdivs(cls, mpdivs, shifts, kptopt):
+    def from_mpdivs(cls, mpdivs, shifts, kptopt) -> KSamplingInfo:
         """
         Homogeneous sampling specified in terms of ``mpdivs`` (ngkpt in abinit),
         the set of ``shifts`` and the value of ``kptopt``.
@@ -1635,7 +1638,7 @@ class KSamplingInfo(AttrDict):
                    kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
 
     @classmethod
-    def from_kptrlatt(cls, kptrlatt, shifts, kptopt):
+    def from_kptrlatt(cls, kptrlatt, shifts, kptopt) -> KSamplingInfo:
         """
         Homogeneous sampling specified in terms of ``kptrlatt``
         the set of ``shifts`` and the value of ``kptopt``.
@@ -1649,7 +1652,7 @@ class KSamplingInfo(AttrDict):
                    kptrlatt=kptrlatt, kptrlatt_orig=kptrlatt_orig, kptopt=kptopt)
 
     @classmethod
-    def from_kbounds(cls, kbounds):
+    def from_kbounds(cls, kbounds) -> KSamplingInfo:
         """
         Metadata associated to a k-path specified in terms of boundaries.
         """
@@ -1685,7 +1688,7 @@ class KSamplingInfo(AttrDict):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0, title=None, **kwargs):
+    def to_string(self, verbose=0, title=None, **kwargs) -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
@@ -1708,12 +1711,12 @@ class KSamplingInfo(AttrDict):
         return "\n".join(lines)
 
     @property
-    def is_mesh(self):
+    def is_mesh(self) -> bool:
         """True if we have a mesh in the BZ."""
         return self.kptopt > 0 and (self.mpdivs is not None or self.kptrlatt is not None)
 
     @property
-    def is_path(self):
+    def is_path(self) -> bool:
         """True if we have a path in the BZ."""
         return self.kptopt < 0
 
@@ -1723,13 +1726,13 @@ class KSamplingInfo(AttrDict):
     #    return self.kptopt > 0 and (self.mpdivs is not None or self.kptrlatt is not None)
 
     @property
-    def has_diagonal_kptrlatt(self):
+    def has_diagonal_kptrlatt(self) -> bool:
         """True if sampling with diagonal kptrlatt."""
         if self.kptrlatt is None: return False
         return is_diagonal(self.kptrlatt)
 
 
-class KpointsReaderMixin(object):
+class KpointsReaderMixin:
     """
     Mixin class that provides methods for reading k-point data from a netcdf
     file written according to the ETSF-IO specifications.
@@ -1762,7 +1765,7 @@ class KpointsReaderMixin(object):
         # We have a homogeneous sampling of the BZ.
         return IrredZone(structure.reciprocal_lattice, frac_coords, weights=weights, ksampling=ksampling)
 
-    def read_ksampling_info(self):
+    def read_ksampling_info(self) -> KSamplingInfo:
         """
         Read information on the k-point sampling. Return :class:`KSamplingInfo` object.
         """
@@ -1779,22 +1782,22 @@ class KpointsReaderMixin(object):
             kptopt=int(self.read_value("kptopt", default=0)),
         )
 
-    def read_kfrac_coords(self):
+    def read_kfrac_coords(self) -> np.ndarray:
         """Fractional coordinates of the k-points"""
         return self.read_value("reduced_coordinates_of_kpoints")
 
-    def read_kweights(self):
+    def read_kweights(self) -> np.ndarray:
         """Returns the weight of the k-points. None if not found."""
         return self.read_value("kpoint_weights")
 
-    def read_kshifts(self):
+    def read_kshifts(self) -> np.ndarray:
         """Returns the shifts of the k-mesh in reduced coordinates. None if not found."""
         try:
             return self.read_value("shiftk")
         except self.Error:
             return self.read_value("kpoint_grid_shift")
 
-    def read_kmpdivs(self):
+    def read_kmpdivs(self) -> np.ndarray:
         """Returns the Monkhorst-Pack divisions defining the mesh. None if not found."""
 
         if "monkhorst_pack_folding" in self.rootgrp.variables:
@@ -1807,7 +1810,7 @@ class KpointsReaderMixin(object):
                     if i != j and kptrlatt[i, j] != 0: kmpdivs = None
             return kmpdivs
 
-    def read_kptrlatt(self):
+    def read_kptrlatt(self) -> np.ndarray:
         """Returns ABINIT variable kptrlatt. None if not found."""
         try:
             return self.read_value("kptrlatt")
@@ -1823,7 +1826,7 @@ class KpointsReader(ETSF_Reader, KpointsReaderMixin):
     """
 
 
-class Ktables(object):
+class Ktables:
     """
     Call spglib to compute the k-points in the IBZ with the corresponding weights
     as well as the mapping BZ --> IBZ.
@@ -1845,7 +1848,6 @@ class Ktables(object):
     """
     def __init__(self, structure, mesh, is_shift, has_timrev):
         """
-
         Args:
             structure
             mesh
@@ -1880,7 +1882,7 @@ class Ktables(object):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0, title=None, **kwargs):
+    def to_string(self, verbose=0, title=None, **kwargs) -> str:
         """String representation"""
         lines = collections.deque(); app = lines.append
         if title is not None: app(marquee(title, mark="="))
@@ -1894,7 +1896,7 @@ class Ktables(object):
 
         return "\n".join(lines)
 
-    def print_bz2ibz(self, file=sys.stdout):
+    def print_bz2ibz(self, file=sys.stdout) -> None:
         """Print BZ --> IBZ mapping."""
         print("BZ points --> IBZ points mapping", file=file)
         for ik_bz, ik_ibz in enumerate(self.bz2ibz):
@@ -1971,7 +1973,7 @@ def find_points_along_path(cart_bounds, cart_coords, dist_tol):
                            path_ticks=np.array(path_ticks))
 
 
-def build_segments(k0_list, npts, step, red_dirs, reciprocal_lattice):
+def build_segments(k0_list, npts, step, red_dirs, reciprocal_lattice) -> np.ndarray:
     """
     For each point in k0_list, build a line passing through the point for each
     reduced direction in red_dir. Each line consists of `npts` points with step `step` in Ang-1

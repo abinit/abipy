@@ -1,5 +1,4 @@
 """abipy is a set of tools for the analysis of ABINIT results."""
-from __future__ import absolute_import
 
 #-----------------------------------------------------------------------------
 # Setup everything

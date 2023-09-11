@@ -61,9 +61,6 @@ def build_flow(options):
     table = abilab.PseudoTable(abidata.pseudos("12mg.pspnc", "5b.pspnc"))
     pseudos = table.get_pseudos_for_structure(structure)
 
-    nval = structure.num_valence_electrons(pseudos)
-    #print(nval)
-
     inputs = make_scf_nscf_inputs(structure, pseudos)
     scf_input, nscf_input, dos_inputs = inputs[0], inputs[1], inputs[2:]
 

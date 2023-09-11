@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # flake8: noqa
 """Setup script for AbiPy."""
+from __future__ import annotations
 
 import sys
 import os
@@ -90,7 +91,6 @@ def find_package_data():
             "sio2_screening/*",
             "znse_phonons/*",
         ],
-        #'abipy.gui.awx': ['images/*'],
     }
 
     return package_data

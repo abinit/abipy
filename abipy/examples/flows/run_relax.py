@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Relaxation Flow
+Relaxation flow
 ===============
 
 This script shows how to perform a structural relaxation in two steps:

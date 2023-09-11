@@ -1,17 +1,21 @@
 """
 This module provides objects related to site symmetries
 """
+from __future__ import annotations
+
 import numpy as np
+import pandas as pd
 import sympy as sp
 
 from collections import OrderedDict
 from monty.termcolor import cprint
 from abipy.core.mixins import Has_Structure
+from abipy.core.structure import Structure
 
 
 class SiteSymmetries(Has_Structure):
 
-    def __init__(self, structure):
+    def __init__(self, structure: Structure):
         """
         Args:
             structure: |Structure| object.
@@ -69,21 +73,21 @@ class SiteSymmetries(Has_Structure):
         #        # isite_eq = rm1(irred_site - tau) + l0
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self._structure
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation with verbosity level verbose."""
         lines = []; app = lines.append
         app(self.structure.to_string(verbose=verbose, title="Structure"))
 
         return "\n".join(lines)
 
-    def get_wyckoff_dataframe(self, view="all", select_symbols=None, decimals=5, verbose=0):
+    def get_wyckoff_dataframe(self, view="all", select_symbols=None, decimals=5, verbose=0) -> pd.DataFrame:
         """
         Find Wyckoff positions.
 
@@ -145,11 +149,10 @@ class SiteSymmetries(Has_Structure):
                 d.update({str(k): str(v) for k, v in solutions[0].items()})
                 rows.append(d)
 
-        import pandas as pd
         df = pd.DataFrame(rows, index=None, columns=list(rows[0].keys()) if rows else None)
         return df
 
-    def get_tensor_rank2_dataframe(self, view="all", select_symbols=None, decimals=5, verbose=0):
+    def get_tensor_rank2_dataframe(self, view="all", select_symbols=None, decimals=5, verbose=0) -> pd.DataFrame:
         """
         Use site symmetries to detect indipendent elements of rank 2 tensor.
 
@@ -216,7 +219,7 @@ class SiteSymmetries(Has_Structure):
         df = pd.DataFrame(rows, index=None, columns=list(rows[0].keys()) if rows else None)
         return df
 
-    def check_site_symmetries(self, tcart, verbose=0):
+    def check_site_symmetries(self, tcart, verbose=0) -> float:
         """
         Test whether a set of tensors associated to the crystalline sites are compatible
         with the space group symmetries.

@@ -4,9 +4,12 @@ This script provides a simplified interface to the AbiPy factory functions.
 For a more flexible interface, please use the AbiPy objects
 to generate input files and workflows.
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse
+import abipy.tools.cli_parsers as cli
 
 from monty.termcolor import cprint
 from monty.functools import prof_main
@@ -440,13 +443,7 @@ def main():
     if not options.command:
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    cli.set_loglevel(options.loglevel)
 
     # Dispatch
     return globals()["abinp_" + options.command](options)

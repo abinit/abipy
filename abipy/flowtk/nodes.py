@@ -14,9 +14,9 @@ import pandas as pd
 
 from collections import OrderedDict
 from pprint import pprint
-from typing import List, Any, Union
+from typing import Any, Union
 from monty.json import jsanitize
-from abipy.tools.iotools import AtomicFile
+
 from pydispatch import dispatcher
 from monty.termcolor import colored
 from monty.serialization import loadfn
@@ -26,12 +26,18 @@ from monty.collections import AttrDict, Namespace
 from monty.functools import lazy_property
 from monty.json import MSONable
 from abipy.tools.serialization import json_pretty_dump, pmg_serialize
+from abipy.tools.iotools import AtomicFile
+#from abipy.tools.typing import TYPE_CHECKING
 from .utils import File, Directory, Dirviz, irdvars_for_ext, abi_extensions
 
 
 import logging
 logger = logging.getLogger(__name__)
 
+#if TYPE_CHECKING:  # needed to avoid circular imports
+#    from .tasks import Task
+#    from .works import Work
+#    from .flows import Flow
 
 def _2attrs(item):
     return item if item is None or isinstance(list, tuple) else (item,)
@@ -84,7 +90,7 @@ class Status(int):
         return obj if isinstance(obj, cls) else cls.from_string(obj)
 
     @classmethod
-    def from_string(cls, s: string) -> str:
+    def from_string(cls, s: str) -> str:
         """Return a `Status` instance from its string representation."""
         for num, text in cls._STATUS2STR.items():
             if text == s:
@@ -93,7 +99,7 @@ class Status(int):
             raise ValueError("Wrong string %s" % s)
 
     @classmethod
-    def all_status_strings(cls) -> List[str]:
+    def all_status_strings(cls) -> list[str]:
         """List of strings with all possible values status."""
         return [info[1] for info in cls._STATUS_INFO]
 
@@ -112,7 +118,7 @@ class Status(int):
         return colored(str(self), **self.color_opts)
 
 
-class Dependency(object):
+class Dependency:
     """
     This object describes the dependencies among the nodes of a calculation.
 
@@ -169,7 +175,7 @@ class Dependency(object):
         return self.node.status
 
     @lazy_property
-    def products(self) -> List[Product]:
+    def products(self) -> list[Product]:
         """List of output files produces by self."""
         _products = []
         for ext in self.exts:
@@ -200,18 +206,18 @@ class Dependency(object):
             else:
                 raise ValueError("Wrong getter %s" % getter)
 
-    def connecting_vars(self):
+    def connecting_vars(self) -> dict:
         """
         Returns a dictionary with the variables that must be added to the
         input file in order to connect this |Node| to its dependencies.
         """
-        vars = {}
+        dvars = {}
         for prod in self.products:
-            vars.update(prod.connecting_vars())
+            dvars.update(prod.connecting_vars())
 
-        return vars
+        return dvars
 
-    def get_filepaths_and_exts(self):
+    def get_filepaths_and_exts(self) -> tuple[list, list]:
         """Returns the paths of the output files produced by self and its extensions"""
         filepaths = [prod.filepath for prod in self.products]
         exts = [prod.ext for prod in self.products]
@@ -219,7 +225,7 @@ class Dependency(object):
         return filepaths, exts
 
 
-class Product(object):
+class Product:
     """
     A product represents an output file produced by ABINIT instance.
     This file is needed to start another `Task` or another `Work`.
@@ -366,16 +372,16 @@ class NodeResults(dict, MSONable):
     def json_load(cls, filename):
         return cls.from_dict(loadfn(filename))
 
-    def validate_json_schema(self):
-        import validictory
-        d = self.as_dict()
-        try:
-            validictory.validate(d, self.JSON_SCHEMA)
-            return True
-        except ValueError as exc:
-            pprint(d)
-            print(exc)
-            return False
+    #def validate_json_schema(self):
+    #    import validictory
+    #    d = self.as_dict()
+    #    try:
+    #        validictory.validate(d, self.JSON_SCHEMA)
+    #        return True
+    #    except ValueError as exc:
+    #        pprint(d)
+    #        print(exc)
+    #        return False
 
     def update_collection(self, collection):
         """
@@ -554,7 +560,7 @@ class Node(metaclass=abc.ABCMeta):
     #    return super().__setattr__(name,value)
 
     @lazy_property
-    def color_hex(self):
+    def color_hex(self) -> str:
         """Node color as Hex Triplet https://en.wikipedia.org/wiki/Web_colors#Hex_triplet"""
         def clamp(x):
             return max(0, min(int(x), 255))
@@ -614,7 +620,7 @@ class Node(metaclass=abc.ABCMeta):
                 return os.path.basename(self.workdir)
 
     @property
-    def relworkdir(self):
+    def relworkdir(self) -> str:
         """Return a relative version of the workdir"""
         if getattr(self, "workdir", None) is None:
             return None
@@ -629,7 +635,7 @@ class Node(metaclass=abc.ABCMeta):
         self._name = name
 
     @property
-    def node_id(self):
+    def node_id(self) -> int:
         """Node identifier."""
         return self._node_id
 
@@ -658,7 +664,7 @@ class Node(metaclass=abc.ABCMeta):
         return self._user_message
 
     @check_spectator
-    def set_node_id(self, node_id) -> None:
+    def set_node_id(self, node_id: int) -> None:
         """Set the node identifier. Use it carefully!"""
         self._node_id = node_id
 
@@ -684,7 +690,7 @@ class Node(metaclass=abc.ABCMeta):
         #self.history.info("in_spectator_mode set to %s" % mode)
 
     @property
-    def corrections(self) -> List[dict]:
+    def corrections(self) -> list[dict]:
         """
         List of dictionaries with infornation on the actions performed to solve `AbiCritical` Events.
         Each dictionary contains the `AbinitEvent` who triggered the correction and
@@ -694,9 +700,10 @@ class Node(metaclass=abc.ABCMeta):
 
     @property
     def num_corrections(self) -> int:
+        """Number of corrections performed."""
         return len(self.corrections)
 
-    def log_correction(self, event, action) -> None:
+    def log_correction(self, event, action: str) -> None:
         """
         This method should be called once we have fixed the problem associated to this event.
         It adds a new entry in the correction history of the node.
@@ -738,7 +745,7 @@ class Node(metaclass=abc.ABCMeta):
         return isinstance(self, Flow)
 
     @property
-    def deps(self) -> List[Dependency]:
+    def deps(self) -> list[Dependency]:
         """
         List of :class:`Dependency` objects defining the dependencies
         of this `Node`. Empty list if this |Node| does not have dependencies.
@@ -746,7 +753,7 @@ class Node(metaclass=abc.ABCMeta):
         return self._deps
 
     @check_spectator
-    def add_deps(self, deps):
+    def add_deps(self, deps) -> None:
         """
         Add a list of dependencies to the |Node|.
 
@@ -779,7 +786,7 @@ class Node(metaclass=abc.ABCMeta):
         for dep in (d for d in deps if d.node.is_file):
             dep.node.add_filechild(self)
 
-    def merge_deps(self):
+    def merge_deps(self) -> None:
         """
         Group all extensions associated to the same node in a single list.
         Useful for cases in which we may end up with the same node appearing more than once
@@ -792,7 +799,7 @@ class Node(metaclass=abc.ABCMeta):
         self._deps = [Dependency(node, exts) for node, exts in node2exts.items()]
 
     @check_spectator
-    def remove_deps(self, deps):
+    def remove_deps(self, deps) -> None:
         """
         Remove a list of dependencies from the |Node|.
 
@@ -812,18 +819,18 @@ class Node(metaclass=abc.ABCMeta):
                 task.remove_deps(deps)
 
     @property
-    def deps_status(self):
+    def deps_status(self) -> list:
         """Returns a list with the status of the dependencies."""
         if not self.deps:
             return [self.S_OK]
 
         return [d.status for d in self.deps]
 
-    def depends_on(self, other: None) -> bool:
+    def depends_on(self, other: Node) -> bool:
         """True if this node depends on the other node."""
         return other in [d.node for d in self.deps]
 
-    def find_parent_with_ext(self, ext) -> Node:
+    def find_parent_with_ext(self, ext: str) -> Node:
         """
         Return the parent (usually a |Task|) that produces the file with extension `ext`.
         Raises ValueError if multiple parents are found.
@@ -840,11 +847,11 @@ class Node(metaclass=abc.ABCMeta):
 
         return parent
 
-    def get_parents(self) -> List[Node]:
+    def get_parents(self) -> list[Node]:
         """Return the list of nodes in the |Flow| required by this |Node|"""
         return [d.node for d in self.deps]
 
-    def get_children(self) -> List[Node]:
+    def get_children(self) -> list[Node]:
         """
         Return the list of nodes in the |Flow| that depends on this |Node|
 
@@ -934,7 +941,7 @@ class Node(metaclass=abc.ABCMeta):
             return None
 
     @property
-    def event_handlers(self):
+    def event_handlers(self) -> list:
         """
         The list of handlers registered for this node.
         If the node is not a `Flow` and does not have its own list of
@@ -954,7 +961,7 @@ class Node(metaclass=abc.ABCMeta):
             return self.flow._event_handlers
 
     @check_spectator
-    def install_event_handlers(self, categories=None, handlers=None):
+    def install_event_handlers(self, categories=None, handlers=None) -> None:
         """
         Install the `EventHandlers for this `Node`. If no argument is provided
         the default list of handlers is installed.
@@ -1053,7 +1060,7 @@ class FileNode(Node):
     """
     color_rgb = np.array((102, 51, 255)) / 255
 
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         super().__init__()
         self.filepath = os.path.abspath(filename)
 
@@ -1066,7 +1073,7 @@ class FileNode(Node):
 
         self._filechildren = []
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         try:
             return "<%s, node_id=%s, rpath=%s>" % (
                 self.__class__.__name__, self.node_id, os.path.relpath(self.filepath))
@@ -1080,30 +1087,29 @@ class FileNode(Node):
         return os.path.basename(self.filepath)
 
     @property
-    def products(self) -> List[Product]:
+    def products(self) -> list[Product]:
         return [Product.from_file(self.filepath)]
 
-    def opath_from_ext(self, ext) -> str:
+    def opath_from_ext(self, ext: str) -> str:
         return self.filepath
 
     @property
     def status(self) -> Status:
         return self.S_OK if os.path.exists(self.filepath) else self.S_ERROR
 
-    def check_status(self):
+    def check_status(self) -> Status:
         return self.status
 
     def get_results(self, **kwargs):
         results = super().get_results(**kwargs)
-        #results.register_gridfs_files(filepath=self.filepath)
         return results
 
-    def add_filechild(self, node):
+    def add_filechild(self, node: Node) -> None:
         """Add a node (usually Task) to the children of this FileNode."""
         self._filechildren.append(node)
 
     @property
-    def filechildren(self):
+    def filechildren(self) -> list:
         """List with the children (nodes) of this FileNode."""
         return self._filechildren
 
@@ -1136,7 +1142,7 @@ Continuing anyway assuming that the netcdf file provides the API/dims/vars neeed
         return self.abiopen()
 
 
-class HistoryRecord(object):
+class HistoryRecord:
     """
     A `HistoryRecord` instance represents an entry in the :class:`NodeHistory`.
 
@@ -1228,13 +1234,13 @@ class HistoryRecord(object):
         i = self.asctime.find(".")
         if i != -1: self.asctime = self.asctime[:i]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<%s, %s, %s, %s,\n"%s">' % (self.__class__.__name__, self.levelno, self.pathname, self.lineno, self.msg)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.get_message(metadata=False)
 
-    def get_message(self, metadata=False, asctime=True):
+    def get_message(self, metadata=False, asctime=True) -> str:
         """
         Return the message after merging any user-supplied arguments with the message.
 
@@ -1258,12 +1264,12 @@ class HistoryRecord(object):
         return msg
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return {'level': self.levelno, 'pathname': self.pathname, 'lineno': self.lineno, 'msg': self.msg,
                 'args': self.args, 'exc_info': self.exc_info, 'func': self.func_name}
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> HistoryRecord:
         return cls(level=d['level'], pathname=d['pathname'], lineno=int(d['lineno']), msg=d['msg'], args=d['args'],
                    exc_info=d['exc_info'], func=d['func'])
 
@@ -1271,30 +1277,30 @@ class HistoryRecord(object):
 class NodeHistory(collections.deque):
     """Logger-like object"""
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, metadata=False):
+    def to_string(self, metadata=False) -> str:
         """Returns  a string with the history. Set metadata to True to have info on function and module."""
         return "\n".join(rec.get_message(metadata=metadata) for rec in self)
 
-    def info(self, msg, *args, **kwargs):
+    def info(self, msg: str, *args, **kwargs) -> None:
         """Log 'msg % args' with the info severity level"""
         self._log("INFO", msg, args, kwargs)
 
-    def warning(self, msg, *args, **kwargs):
+    def warning(self, msg: str, *args, **kwargs) -> None:
         """Log 'msg % args' with the warning severity level"""
         self._log("WARNING", msg, args, kwargs)
 
-    def critical(self, msg, *args, **kwargs):
+    def critical(self, msg: str, *args, **kwargs) -> None:
         """Log 'msg % args' with the critical severity level"""
         self._log("CRITICAL", msg, args, kwargs)
 
-    def debug(self, msg, *args, **kwargs):
+    def debug(self, msg: str, *args, **kwargs) -> None:
         """Log 'msg % args' with the critical severity level"""
         self._log("DEBUG", msg, args, kwargs)
 
-    def _log(self, level, msg, args, exc_info=None, extra=None):
+    def _log(self, level: str, msg: str, args, exc_info=None, extra=None) -> None:
         """Low-level logging routine which creates a :class:`HistoryRecord`."""
         if exc_info and not isinstance(exc_info, tuple):
             exc_info = sys.exc_info()
@@ -1318,7 +1324,7 @@ class NodeCorrections(list):
     #def _find(self, event_class)
 
 
-class GarbageCollector(object):
+class GarbageCollector:
     """This object stores information on the """
     def __init__(self, exts, policy):
         self.exts, self.policy = set(exts), policy
@@ -1332,7 +1338,7 @@ _COUNTER = None
 _COUNTER_FILE = os.path.join(os.path.expanduser("~"), ".abinit", "abipy", "nodecounter")
 
 
-def init_counter():
+def init_counter() -> None:
     global _COUNTER
 
     # Make dir and file if not present.
@@ -1369,7 +1375,7 @@ def get_newnode_id() -> int:
     return _COUNTER
 
 
-def save_lastnode_id():
+def save_lastnode_id() -> None:
     """Save the id of the last node created."""
     init_counter()
 

@@ -1,9 +1,10 @@
 # coding: utf-8
 """Tools for writing Xcrysden files."""
+from __future__ import annotations
 
 import numpy as np
 
-from pymatgen.core.units import Energy, EnergyArray #, ArrayWithUnit
+from pymatgen.core.units import Energy, EnergyArray
 from abipy.tools.numtools import transpose_last3dims, add_periodic_replicas
 
 
@@ -15,7 +16,7 @@ __all__ = [
 ]
 
 
-def xsf_write_structure(file, structures):
+def xsf_write_structure(file, structures: list) -> None:
     """
     Write the crystalline structure in the Xcrysden format (XSF)
 
@@ -65,21 +66,39 @@ def xsf_write_structure(file, structures):
                 fwrite(' %20.14f %20.14f %20.14f\n' % tuple(cart_forces[a]))
 
 
-def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs):
-    """Simplified interface to xsf routines to write structure and data to filepath."""
+def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs) -> None:
+    """Simplified interface to write structure and data to filepath in XSF format."""
     with open(filepath, mode="wt") as fh:
         xsf_write_structure(fh, structure)
         xsf_write_data(fh, structure, datar, **kwargs)
 
 
-def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
+#def xsf_write_structure_and_multidata(filepath, structure, multi_datar, tags=None, **kwargs) -> None:
+#    """
+#    """
+#    multi_datar = np.array(multi_datar, ndmin=4)
+#    if tags is not None:
+#        if len(tags) != len(multi_datar):
+#            raise ValueError(f"tags and multi_datar should have same length but {len(tags)} != {len(multi_datar)}")
+#
+#    with open(filepath, mode="wt") as fh:
+#        xsf_write_structure(fh, structure)
+#        for i, datar in enumerate(multi_datar):
+#           tag = tags[i] if tags is not None else f"data_{i}"
+#           xsf_write_data(fh, structure, multi_datar[i], tag=tag, **kwargs)
+
+
+
+def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,
+                   idname="data", tag="_UNKNOWN") -> None:
+                   #idname="data", tag="_grid") -> None:
     """
     Write data in the Xcrysden format (XSF)
 
     Args:
         file: file-like object.
         structure: :class:`Structure` object.
-        data: array-like object in C-order, i.e data[nx, ny, nz]
+        data: array-like object in C-order, i.e data[nx, ny, nz] or data[ngrids, nx, ny, nz]
         add_replicas: If True, data is padded with redundant data points.
             in order to have a periodic 3D array of shape: (nx+1, ny+1, nz+1).
         cplx_mode: string defining the data to print when data is a complex array.
@@ -127,10 +146,13 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
     origin = np.zeros(3)
 
     fwrite('BEGIN_BLOCK_DATAGRID_3D\n')
-    fwrite(' data\n')
+    fwrite(f' {idname}\n')
 
     for dg in range(ngrids):
-        fwrite(" BEGIN_DATAGRID_3Dgrid#" + str(dg+1) + "\n")
+        if ngrids != 1:
+            fwrite(f" BEGIN_DATAGRID_3D{tag}#{dg+1}" + "\n")
+        else:
+            fwrite(f" BEGIN_DATAGRID_3D{tag}" + "\n")
         fwrite('%d %d %d\n' % shape[-3:])
 
         fwrite('%f %f %f\n' % tuple(origin))
@@ -148,7 +170,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None):
     fwrite('END_BLOCK_DATAGRID_3D\n')
 
 
-def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="eV"):
+def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="eV") -> None:
     """
     Write band structure data in the Xcrysden format (XSF)
 

@@ -12,7 +12,6 @@ from tabulate import tabulate
 ####################
 ### Monty import ###
 ####################
-from monty.os.path import which
 from monty.termcolor import cprint
 
 #######################
@@ -29,9 +28,9 @@ ArrayWithUnit = units.ArrayWithUnit
 from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Flow, Work, TaskManager, AbinitBuild, flow_main
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
-from abipy.core import restapi
+#from abipy.core import restapi
 from abipy.core.structure import (Lattice, Structure, StructureModifier, dataframes_from_structures,
-  mp_match_structure, mp_search, cod_search)
+  mp_match_structure, mp_search, cod_search, display_structure)
 from abipy.core.mixins import TextFile, JsonFile, CubeFile
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import set_atol_kdiff
@@ -41,6 +40,7 @@ from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile, AboRobot
 from abipy.tools.printing import print_dataframe
 from abipy.tools.notebooks import print_source, print_doc
+from abipy.tools.serialization import mjson_load, mjson_loads, mjson_write
 from abipy.tools.plotting import get_ax_fig_plt, get_axarray_fig_plt, get_ax3d_fig_plt
 from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
@@ -308,7 +308,7 @@ def abiopen(filepath: str):
     return cls.from_file(filepath)
 
 
-def abirobot(filepaths: Union[str, List[str]]):
+def abirobot(filepaths: Union[str, List[str]]) -> Robot:
     """
     Factory function to create and return a Robot subclass from a list of filenames
     The Robot subclass is detected from the extension of the first file hence
@@ -328,58 +328,6 @@ def abirobot(filepaths: Union[str, List[str]]):
     cls = Robot.class_for_ext(ext)
     robot = cls.from_files(filepaths)
     return robot
-
-
-def display_structure(obj, **kwargs):
-    """
-    Use Jsmol to display a structure in the jupyter notebook.
-    Requires `nbjsmol` notebook extension installed on the local machine.
-    Install it with `pip install nbjsmol`. See also https://github.com/gmatteo/nbjsmol.
-
-    Args:
-        obj: Structure object or file with a structure or python object with a `structure` attribute.
-        kwargs: Keyword arguments passed to `nbjsmol_display`
-    """
-    try:
-        from nbjsmol import nbjsmol_display
-    except ImportError as exc:
-        raise ImportError(str(exc) +
-                          "\ndisplay structure requires nbjsmol package\n."
-                          "Install it with `pip install nbjsmol.`\n"
-                          "See also https://github.com/gmatteo/nbjsmol.")
-
-    # Cast to structure, get string with cif data and pass it to nbjsmol.
-    structure = Structure.as_structure(obj)
-    return nbjsmol_display(structure.to(fmt="cif"), ext=".cif", **kwargs)
-
-
-def mjson_load(filepath: str, **kwargs) -> dict:
-    """
-    Read JSON file in MSONable format with MontyDecoder. Return dict with python objects.
-    """
-    import json
-    from monty.json import MontyDecoder
-    with open(filepath, "rt") as fh:
-        return json.load(fh, cls=MontyDecoder, **kwargs)
-
-
-def mjson_loads(string: str, **kwargs) -> dict:
-    """
-    Read JSON string in MSONable format with MontyDecoder. Return dict with python objects.
-    """
-    import json
-    from monty.json import MontyDecoder
-    return json.loads(string, cls=MontyDecoder, **kwargs)
-
-
-def mjson_write(d, filepath, **kwargs):
-    """
-    Write dictionary d to filepath in JSON format using MontyDecoder
-    """
-    import json
-    from monty.json import MontyEncoder
-    with open(filepath, "wt") as fh:
-        json.dump(d, fh, cls=MontyEncoder, **kwargs)
 
 
 def software_stack(as_dataframe: bool = False):
@@ -449,7 +397,18 @@ def abicheck(verbose: int = 0) -> str:
         app(_straceback())
 
     # Get info on the Abinit build.
-    from abipy.core.testing import cmp_version
+    # This to avoid having to depend on pytest.
+    #from abipy.core.testing import cmp_version
+    def cmp_version(this: str, other: str, op: str = ">=") -> bool:
+        """
+        Compare two version strings with the given operator ``op``
+        >>> assert cmp_version("1.1.1", "1.1.0") and not cmp_version("1.1.1", "1.1.0", op="==")
+        """
+        from pkg_resources import parse_version
+        from monty.operator import operator_from_str
+        op = operator_from_str(op)
+        return op(parse_version(this), parse_version(other))
+
     from abipy.flowtk import PyFlowScheduler
 
     if manager is not None:
@@ -589,7 +548,7 @@ so that the abinit executable is in $PATH.
     return 0
 
 
-def abipy_logo1():
+def abipy_logo1() -> str:
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""
                  `:-                                                               -:`
@@ -607,7 +566,7 @@ def abipy_logo1():
 """
 
 
-def abipy_logo2():
+def abipy_logo2() -> str:
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""
 MMMMMMMMMMMMMMMMNhdMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMdhmMMMMMMMMMMMMMMM
@@ -625,7 +584,7 @@ MMMMMMMMMMMMMMMMmmNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 """
 
 
-def abipy_logo3():
+def abipy_logo3() -> str:
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""\
              `-.                                                  `--`

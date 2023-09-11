@@ -3,16 +3,19 @@
 This script visualizes results with external graphical applications.
 or convert data from Abinit files (usually netcdf) to other formats.
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse
+import abipy.tools.cli_parsers as cli
 
 from pprint import pformat
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
-from abipy.tools.plotting import MplExpose, PanelExpose, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
+from abipy.tools.plotting import MplExposer, PanelExposer, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
 
 
 def handle_overwrite(path, options):
@@ -25,7 +28,7 @@ def handle_overwrite(path, options):
     return path
 
 
-def df_to_clipboard(options, df):
+def df_to_clipboard(options, df) -> None:
     """Copy dataframe to clipboard if options.clipboard."""
     if getattr(options, "clipboard", False):
         cprint("Copying dataframe to the system clipboard.", "green")
@@ -104,11 +107,11 @@ def abiview_data(options):
 #    return 0
 
 
-def abiview_dirviz(options):
+def abiview_dirviz(options) -> int:
     """
     Visualize directory tree with graphviz.
     """
-    from pymatgen.io.abinit.utils import Dirviz
+    from abipy.flowtk.utils import Dirviz
     import tempfile
     graph = Dirviz(options.filepath).get_cluster_graph(engine=options.engine)
     directory = tempfile.mkdtemp()
@@ -118,7 +121,7 @@ def abiview_dirviz(options):
     return 0
 
 
-def abiview_ebands(options):
+def abiview_ebands(options) -> int:
     """
     Plot electronic bands if file contains high-symmetry k-path or DOS if k-sampling.
     Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, ...
@@ -140,7 +143,7 @@ def abiview_ebands(options):
         return 0
 
 
-def abiview_skw(options):
+def abiview_skw(options) -> int:
     """
     Interpolate energies in k-space along a k-path with star-function methods
     Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
@@ -155,7 +158,7 @@ def abiview_skw(options):
     return 0
 
 
-def abiview_fs(options):
+def abiview_fs(options) -> int:
     """
     Extract eigenvalues in the IBZ from file and visualize Fermi surface with
     the external application specified via --appname
@@ -175,7 +178,7 @@ def abiview_fs(options):
         return 0
 
 
-def abiview_ifermi_fs(options):
+def abiview_ifermi_fs(options) -> int:
     """
     Use ifermi package to visualize the Fermi surface. Requires netcdf file with energies in the IBZ.
     See <https://fermisurfaces.github.io/IFermi/>
@@ -200,7 +203,7 @@ def abiview_ifermi_fs(options):
         return 0
 
 
-def abiview_ddb(options):
+def abiview_ddb(options) -> int:
     """
     Invoke Anaddb to compute phonon bands and DOS from the DDB, plot the results.
     """
@@ -241,7 +244,7 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
         elif options.plotly:
             # Plotly + Panel version.
             phdos = phdos_file.phdos
-            with PanelExpose(title=f"Vibrational properties of {phdos_file.structure.formula}") as e:
+            with PanelExposer(title=f"Vibrational properties of {phdos_file.structure.formula}") as e:
                 e(phbands.qpoints.plotly(show=False))
                 e(phbands.plotly_with_phdos(phdos, units=units, show=False))
                 e(phdos_file.plotly_pjdos_type(units=units, show=False))
@@ -257,10 +260,10 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
 
             if not options.expose_web:
                 # matplotlib figure and X-server.
-                e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+                e = MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
             else:
                 # panel version with matplotlib.
-                e = PanelExpose(title=f"Vibrational properties of {phdos_file.structure.formula}")
+                e = PanelExposer(title=f"Vibrational properties of {phdos_file.structure.formula}")
 
             with e:
                 e(phbands.qpoints.plot(show=False))
@@ -278,7 +281,7 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
     return 0
 
 
-def abiview_ddb_vs(options):
+def abiview_ddb_vs(options) -> int:
     """
     Compute speed of sound by fitting phonon frequencies along selected directions.
     """
@@ -301,7 +304,7 @@ num_points: {num_points}, asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
     return 0
 
 
-def abiview_ddb_ir(options):
+def abiview_ddb_ir(options) -> int:
     """
     Compute infra-red spectrum from DDB. Plot results.
     """
@@ -325,7 +328,7 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
     return 0
 
 
-def abiview_ddb_asr(options):
+def abiview_ddb_asr(options) -> int:
     """
     Compute phonon band structure from DDB with/without acoustic sum rule. Plot results.
     """
@@ -343,7 +346,7 @@ def abiview_ddb_asr(options):
     return 0
 
 
-def abiview_ddb_dipdip(options):
+def abiview_ddb_dipdip(options) -> int:
     """
     Compute phonon band structure from DDB with/without dipole-dipole interaction. Plot results.
     """
@@ -361,7 +364,7 @@ def abiview_ddb_dipdip(options):
     return 0
 
 
-def abiview_ddb_quad(options):
+def abiview_ddb_quad(options) -> int:
     """
     Compute phonon band structure from DDB with/without quadrupole terms. Plot results.
     """
@@ -379,7 +382,7 @@ def abiview_ddb_quad(options):
     return 0
 
 
-def abiview_ddb_isodistort_ph(options):
+def abiview_ddb_isodistort_ph(options) -> int:
     """
     Compute ph-freqs for given q-point (default: Gamma), produce CIF files for unperturbed and distorded structure
     that can be used with ISODISTORT (https://stokes.byu.edu/iso/isodistort.php) to analyze the symmetry of phonon modes.
@@ -404,7 +407,7 @@ qpoint = {qpoint}
     return 0
 
 
-def abiview_ddb_qpt(options):
+def abiview_ddb_qpt(options) -> int:
     """
     Compute ph-frequencies at the selected q-point without passing through the
     Fourier interpolation of the interatomic force constants.
@@ -427,7 +430,7 @@ def abiview_ddb_qpt(options):
     return 0
 
 
-def abiview_ddb_ifc(options):
+def abiview_ddb_ifc(options) -> int:
     """
     Visualize interatomic force constants in real space.
     """
@@ -444,10 +447,10 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
 
         if not options.expose_web:
             # matplotlib figure and X-server.
-            e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+            e = MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
         else:
             # panel version
-            e = PanelExpose(title=f"Interatomic force constants of {phdos_file.structure.formula}")
+            e = PanelExposer(title=f"Interatomic force constants of {ddb.structure.formula}")
 
         with e:
             e(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", show=False))
@@ -457,7 +460,7 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
     return 0
 
 
-def abiview_phbands(options):
+def abiview_phbands(options) -> int:
     """
     Plot phonon bands. Accept any file with PhononBands e.g. PHBST.nc, ...
     """
@@ -474,12 +477,12 @@ def abiview_phbands(options):
         else:
             print(abifile.to_string(verbose=options.verbose))
             abifile.expose_phbands(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                           verbose=options.verbose, units="mev")
+                                    verbose=options.verbose, units="mev")
 
         return 0
 
 
-def abiview_denpot(options):
+def abiview_denpot(options) -> int:
     """
     Visualize netcdf DEN/POT files with --appname (default: Vesta).
     NB: Appplication must be installed and in $PATH.
@@ -502,7 +505,7 @@ def abiview_denpot(options):
     return 0
 
 
-def abiview_lobster(options):
+def abiview_lobster(options) -> int:
     """
     Analyze lobster output files in directory.
     """
@@ -526,7 +529,7 @@ def abiview_lobster(options):
     return 0
 
 
-def get_epilog():
+def get_epilog() -> str:
     return """\
 Usage example:
 
@@ -609,7 +612,7 @@ def get_parser(with_epilog=False):
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
 
-    # Parent parser for commands supporting MplExpose.
+    # Parent parser for commands supporting MplExposer.
     slide_parser = argparse.ArgumentParser(add_help=False)
     slide_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
             help="Iterate over figures. Expose all figures at once if not given on the CLI.")
@@ -823,13 +826,7 @@ def main():
     if not options.command:
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    cli.set_loglevel(options.loglevel)
 
     if getattr(options, "plotly", False): options.expose = True
     if options.verbose > 2: print(options)

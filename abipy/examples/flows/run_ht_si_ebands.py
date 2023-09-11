@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Band structure Flow with factory functions
+Band structure flow with factory functions
 ==========================================
 
 This example show how to build a flow to compute the band structure and the DOS of silicon.

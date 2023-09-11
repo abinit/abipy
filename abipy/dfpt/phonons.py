@@ -29,6 +29,7 @@ from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.numtools import gaussian, sort_and_groupby
+from abipy.tools.typing import Figure
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims, get_axarray_fig_plt, set_visible,\
     set_ax_xylabels, get_figs_plotly, get_fig_plotly, add_plotly_fig_kwargs, plotlyfigs_to_browser,\
     push_to_chart_studio, PlotlyRowColDesc, plotly_klabels, plotly_set_xylabels, plotly_set_lims
@@ -207,7 +208,7 @@ class PhononBands:
         self.non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
     def set_phonopy_obj_from_ananc(self, ananc, supercell_matrix, symmetrize_tensors=False,
-                                   symprec=1e-5, set_masses=True):
+                                   symprec=1e-5, set_masses=True) -> None:
         """
         Generates the Phonopy object from an anaddb.nc file that contains the interatomic force constants.
         Based on the converter implemented in abipy.dfpt.converters.
@@ -302,12 +303,12 @@ class PhononBands:
         """An alias for num_qpoints."""
         return self.num_qpoints
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """String representation (short version)"""
         return "<%s, nk=%d, %s, id=%s>" % (
                 self.__class__.__name__, self.num_qpoints, self.structure.formula, id(self))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
     def to_string(self, title=None, with_structure=True, with_qpoints=False, verbose=0) -> str:
@@ -414,12 +415,12 @@ class PhononBands:
             return np.max(self.phfreqs[:, mode])
 
     @property
-    def shape(self):
+    def shape(self) -> tuple:
         """Shape of the array with the eigenvalues."""
         return self.num_qpoints, self.num_branches
 
     @property
-    def linewidths(self):
+    def linewidths(self) -> np.ndarray:
         """linewidths in eV. |numpy-array| with shape [nqpt, num_branches]."""
         return self._linewidths
 
@@ -436,7 +437,7 @@ class PhononBands:
         return getattr(self, "_linewidths", None) is not None
 
     @lazy_property
-    def dyn_mat_eigenvect(self):
+    def dyn_mat_eigenvect(self) -> np.ndarray:
         """
         [nqpt, 3*natom, 3*natom] array with the orthonormal eigenvectors of the dynamical matrix.
         in Cartesian coordinates.
@@ -606,7 +607,7 @@ class PhononBands:
 
             return qindex, qpoint
 
-    def get_unstable_modes(self, below_mev=-5.0):
+    def get_unstable_modes(self, below_mev=-5.0) -> list[PhononMode]:
         """
         Return a list of :class:`PhononMode` objects with the unstable modes.
         A mode is unstable if its frequency is < below_mev. Output list is sorted
@@ -696,7 +697,8 @@ class PhononBands:
 
         return PhononDos(mesh, values)
 
-    def create_xyz_vib(self, iqpt, filename, pre_factor=200, do_real=True, scale_matrix=None, max_supercell=None):
+    def create_xyz_vib(self, iqpt, filename, pre_factor=200, do_real=True,
+                       scale_matrix=None, max_supercell=None) -> None:
         """
         Create vibration XYZ file for visualization of phonons.
 
@@ -726,7 +728,7 @@ class PhononBands:
                     pre_factor * np.reshape(self.phdispl_cart[iqpt, imode,:],(-1,3)),
                     do_real=True, frac_coords=False, max_supercell=max_supercell, scale_matrix=scale_matrix)
 
-    def create_ascii_vib(self, iqpts, filename, pre_factor=1):
+    def create_ascii_vib(self, iqpts, filename, pre_factor=1) -> None:
         """
         Create vibration ascii file for visualization of phonons.
         This format can be read with v_sim_ or ascii-phonons.
@@ -793,7 +795,7 @@ class PhononBands:
         with open(filename, 'wt') as f:
             f.write("\n".join(lines))
 
-    def view_phononwebsite(self, browser=None, verbose=0, dryrun=False, **kwargs):
+    def view_phononwebsite(self, browser=None, verbose=0, dryrun=False, **kwargs) -> int:
         """
         Produce JSON_ file that can be parsed from the phononwebsite_ and open it in ``browser``.
 
@@ -818,7 +820,7 @@ class PhononBands:
         return open_file_phononwebsite(rpath, browser=browser)
 
     def create_phononwebsite_json(self, filename, name=None, repetitions=None, highsym_qpts=None,
-                                  match_bands=True, highsym_qpts_mode="std", indent=2):
+                                  match_bands=True, highsym_qpts_mode="std", indent=2) -> None:
         """
         Writes a JSON_ file that can be parsed from the phononwebsite_.
 
@@ -1071,7 +1073,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @add_fig_kwargs
     def plot(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
-             fontsize=12, **kwargs):
+             fontsize=12, **kwargs) -> Figure:
         r"""
         Plot the phonon band structure with matplotlib.
 
@@ -1250,7 +1252,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @add_fig_kwargs
     def plot_colored_matched(self, ax=None, units="eV", qlabels=None, branch_range=None,
-                             colormap="rainbow", max_colors=None, **kwargs):
+                             colormap="rainbow", max_colors=None, **kwargs) -> Figure:
         r"""
         Plot the phonon band structure with different colors for each line.
 
@@ -1306,7 +1308,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @add_fig_kwargs
     def plot_lt_character(self, units="eV", qlabels=None, ax=None, xlims=None, ylims=None, scale_size=50,
-                          use_becs=True, colormap="jet", fontsize=12, **kwargs):
+                          use_becs=True, colormap="jet", fontsize=12, **kwargs) -> Figure:
         r"""
         Plot the phonon band structure with colored lines. The color of the lines indicates
         the degree to which the mode is longitudinal.
@@ -1574,7 +1576,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     @add_fig_kwargs
     def plot_fatbands(self, use_eigvec=True, units="eV", colormap="jet", phdos_file=None,
                       alpha=0.6, max_stripe_width_mev=5.0, width_ratios=(2, 1),
-                      qlabels=None, ylims=None, fontsize=12, **kwargs):
+                      qlabels=None, ylims=None, fontsize=12, **kwargs) -> Figure:
         r"""
         Plot phonon fatbands and, optionally, atom-projected phonon DOSes with matplotlib.
         The width of the band is given by ||v_{type}||
@@ -1860,7 +1862,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         return fig
 
     @add_fig_kwargs
-    def plot_with_phdos(self, phdos, units="eV", qlabels=None, ax_list=None, width_ratios=(2, 1), **kwargs):
+    def plot_with_phdos(self, phdos, units="eV", qlabels=None, ax_list=None,
+                        width_ratios=(2, 1), **kwargs) -> Figure:
         r"""
         Plot the phonon band structure with the phonon DOS.
 
@@ -1976,7 +1979,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     def plot_phdispl(self, qpoint, cart_dir=None, use_reduced_coords=False, ax=None, units="eV",
                      is_non_analytical_direction=False, use_eigvec=False,
                      colormap="viridis", hatches="default", atoms_index=None, labels_groups=None,
-                     normalize=True, use_sqrt=False, fontsize=12, branches=None, format_w="%.3f", **kwargs):
+                     normalize=True, use_sqrt=False, fontsize=12,
+                     branches=None, format_w="%.3f", **kwargs) -> Figure:
         """
         Plot vertical bars with the contribution of the different atoms or atomic types to all the phonon modes
         at a given ``qpoint``. The contribution is given by ||v_{type}||
@@ -2136,7 +2140,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     def plot_phdispl_cartdirs(self, qpoint, cart_dirs=("x", "y", "z"), units="eV",
                               is_non_analytical_direction=False, use_eigvec=False,
                               colormap="viridis", hatches="default", atoms_index=None, labels_groups=None,
-                              normalize=True, use_sqrt=False, fontsize=8, branches=None, format_w="%.3f", **kwargs):
+                              normalize=True, use_sqrt=False, fontsize=8,
+                              branches=None, format_w="%.3f", **kwargs) -> Figure:
         """
         Plot three panels. Each panel shows vertical bars with the contribution of the different atomic types
         to all the phonon displacements at the given ``qpoint`` along on the Cartesian directions in ``cart_dirs``.
@@ -2222,7 +2227,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         return df
 
     @add_fig_kwargs
-    def boxplot(self, ax=None, units="eV", mode_range=None, swarm=False, **kwargs):
+    def boxplot(self, ax=None, units="eV", mode_range=None, swarm=False, **kwargs) -> Figure:
         """
         Use seaborn_ to draw a box plot showing the distribution of the phonon
         frequencies with respect to the mode index.
@@ -2395,6 +2400,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         if not phdispl_cart:
             phdispl_cart = np.zeros((len(phfreqs), n_modes, n_modes))
         else:
+            #print(phdispl_cart)
             phdispl_cart = np.array(phdispl_cart)
 
         na = None
@@ -2551,7 +2557,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @add_fig_kwargs
     def plot_longitudinal_fraction(self, qpoint, idir=None, ax_list=None, units="eV", branches=None,
-                                   format_w="%.3f", fontsize=10, **kwargs):
+                                   format_w="%.3f", fontsize=10, **kwargs) -> Figure:
         """
         Plots an histogram "longitudinal" fraction of the eigendisplacements.
 
@@ -2635,7 +2641,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @add_fig_kwargs
     def plot_longitudinal_fatbands(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False,
-                                   sum_degenerate=False, factor=1, **kwargs):
+                                   sum_degenerate=False, factor=1, **kwargs) -> Figure:
         r"""
         Plot the phonon band structure with width representing the longitudinal fraction of the fatbands.
 
@@ -2725,7 +2731,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     @add_fig_kwargs
     def plot_qpt_distance(self, qpt_list=None, ngqpt=None, shiftq=(0, 0, 0), plot_distances=False,
                           units="eV", qlabels=None, branch_range=None, colormap="viridis_r",
-                          match_bands=False, log_scale=False, **kwargs):
+                          match_bands=False, log_scale=False, **kwargs) -> Figure:
         r"""
         Plot the phonon band structure coloring the point according to the minimum distance of
         the qpoints of the path from a list of qpoints. This can be for example defined as the
@@ -3209,7 +3215,7 @@ class PhononDos(Function1D):
 
     # TODO: This should be called plot_dos_idos!
     @add_fig_kwargs
-    def plot(self, units="eV", **kwargs):
+    def plot(self, units="eV", **kwargs) -> Figure:
         """
         Plot Phonon DOS and IDOS on two distinct plots.
 
@@ -3370,7 +3376,7 @@ class PhononDos(Function1D):
 
     @add_fig_kwargs
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=None,
-                             quantities="all", fontsize=8, **kwargs):
+                             quantities="all", fontsize=8, **kwargs) -> Figure:
         """
         Plot thermodynamic properties from the phonon DOSes within the harmonic approximation.
 
@@ -3668,7 +3674,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_pjdos_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7, exchange_xy=False,
-                        ax=None, xlims=None, ylims=None, fontsize=12, **kwargs):
+                        ax=None, xlims=None, ylims=None, fontsize=12, **kwargs) -> Figure:
         """
         Plot type-projected phonon DOS with matplotlib.
 
@@ -3793,7 +3799,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_pjdos_cartdirs_type(self, units="eV", stacked=True, colormap="jet", alpha=0.7,
-                                 xlims=None, ylims=None, ax_list=None, fontsize=8, **kwargs):
+                                 xlims=None, ylims=None, ax_list=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot type-projected phonon DOS decomposed along the three cartesian directions.
         Three rows for each cartesian direction. Each row shows the contribution of each atomic type + Total Phonon DOS.
@@ -3860,7 +3866,8 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_pjdos_cartdirs_site(self, view="inequivalent", units="eV", stacked=True, colormap="jet", alpha=0.7,
-                                 xlims=None, ylims=None, ax_list=None, fontsize=8, verbose=0, **kwargs):
+                                 xlims=None, ylims=None, ax_list=None, fontsize=8,
+                                 verbose=0, **kwargs) -> Figure:
         """
         Plot phonon PJDOS for each atom in the unit cell. By default, only "inequivalent" atoms are shown.
 
@@ -4007,7 +4014,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 # FIXME: Remove. Use PhononBandsPlotter API.
 @add_fig_kwargs
 def phbands_gridplot(phb_objects, titles=None, phdos_objects=None, phdos_kwargs=None,
-                     units="eV", width_ratios=(2, 1), fontsize=8, **kwargs):
+                     units="eV", width_ratios=(2, 1), fontsize=8, **kwargs) -> Figure:
     """
     Plot multiple phonon bandstructures and optionally DOSes on a grid.
 
@@ -4259,7 +4266,7 @@ class PhononBandsPlotter(NotebookWriter):
 
     @add_fig_kwargs
     def combiplot(self, qlabels=None, units='eV', ylims=None, width_ratios=(2, 1), fontsize=8,
-                  linestyle_dict=None, **kwargs):
+                  linestyle_dict=None, **kwargs) -> Figure:
         r"""
         Plot the band structure and the DOS on the same figure with matplotlib.
         Use ``gridplot`` to plot band structures on different figures.
@@ -4428,7 +4435,7 @@ class PhononBandsPlotter(NotebookWriter):
             #yield self.combiboxplotly(show=False)
 
     @add_fig_kwargs
-    def gridplot(self, with_dos=True, units="eV", fontsize=8, **kwargs):
+    def gridplot(self, with_dos=True, units="eV", fontsize=8, **kwargs) -> Figure:
         """
         Plot multiple phonon bandstructures and optionally DOSes on a grid with matplotlib.
 
@@ -4510,7 +4517,7 @@ class PhononBandsPlotter(NotebookWriter):
 
     @add_fig_kwargs
     def gridplot_with_hue(self, hue, with_dos=False, units="eV", width_ratios=(2, 1),
-                          ylims=None, fontsize=8, **kwargs):
+                          ylims=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot multiple phonon bandstructures and optionally DOSes on a grid.
         Group results by ``hue``.
@@ -4635,7 +4642,7 @@ class PhononBandsPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def boxplot(self, mode_range=None, units="eV", swarm=False, **kwargs):
+    def boxplot(self, mode_range=None, units="eV", swarm=False, **kwargs) -> Figure:
         """
         Use seaborn_ to draw a box plot to show distribution of eigenvalues with respect to the band index.
         Band structures are drawn on different subplots.
@@ -4667,7 +4674,7 @@ class PhononBandsPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def combiboxplot(self, mode_range=None, units="eV", swarm=False, ax=None, **kwargs):
+    def combiboxplot(self, mode_range=None, units="eV", swarm=False, ax=None, **kwargs) -> Figure:
         """
         Use seaborn_ to draw a box plot comparing the distribution of the frequencies.
         Phonon Band structures are drawn on the same plot.
@@ -4708,7 +4715,7 @@ class PhononBandsPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_phdispl(self, qpoint, **kwargs):
+    def plot_phdispl(self, qpoint, **kwargs) -> Figure:
         """
         Plot vertical bars with the contribution of the different atomic types to the phonon displacements
         at a given q-point. One panel for all |PhononBands| stored in the plotter.
@@ -4899,7 +4906,7 @@ class PhononDosPlotter(NotebookWriter):
     #    return True
 
     @add_fig_kwargs
-    def combiplot(self, ax=None, units="eV", xlims=None, ylims=None, fontsize=8, **kwargs):
+    def combiplot(self, ax=None, units="eV", xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot DOSes on the same figure. Use ``gridplot`` to plot DOSes on different figures.
 
@@ -4932,7 +4939,7 @@ class PhononDosPlotter(NotebookWriter):
 
         return fig
 
-    @add_fig_kwargs
+    @add_plotly_fig_kwargs
     def combiplotly(self, fig=None, units="eV", xlims=None, ylims=None, fontsize=8, **kwargs):
         """
         Plot DOSes on the same plotly figure. Use ``gridplotly`` to plot DOSes on different figures.
@@ -4967,7 +4974,7 @@ class PhononDosPlotter(NotebookWriter):
         return self.combiplot(**kwargs)
 
     @add_fig_kwargs
-    def gridplot(self, units="eV", xlims=None, ylims=None, fontsize=8, **kwargs):
+    def gridplot(self, units="eV", xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot multiple DOSes on a grid with matplotlib.
 
@@ -5052,7 +5059,7 @@ class PhononDosPlotter(NotebookWriter):
 
     @add_fig_kwargs
     def plot_harmonic_thermo(self, tstart=5, tstop=300, num=50, units="eV", formula_units=1,
-                             quantities="all", fontsize=8, **kwargs):
+                             quantities="all", fontsize=8, **kwargs) -> Figure:
         """
         Plot thermodynamic properties from the phonon DOS within the harmonic approximation
         for all the files in the plotter with matplotlib.
@@ -5232,7 +5239,7 @@ class PhononDosPlotter(NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class RobotWithPhbands(object):
+class RobotWithPhbands:
     """
     Mixin class for robots associated to files with |PhononBands|.
     """
@@ -5285,7 +5292,7 @@ class RobotWithPhbands(object):
                                       index=self.labels, with_spglib=with_spglib)
 
     @add_fig_kwargs
-    def plot_phdispl(self, qpoint, **kwargs):
+    def plot_phdispl(self, qpoint, **kwargs) -> Figure:
         """
         Plot vertical bars with the contribution of the different atomic types to the phonon displacements
         at a given q-point. One panel for all phbands stored in the plotter.

@@ -1,13 +1,21 @@
 # coding: utf-8
-"""Work subclasses related to DFTP."""
+"""
+Work subclasses related to DFTP.
+"""
+from __future__ import annotations
 
+from abipy.tools.typing import TYPE_CHECKING
+from .tasks import ScfTask
 from .works import Work, MergeDdb
+
+if TYPE_CHECKING:  # needed to avoid circular imports
+    from abipy.abio.inputs import AbinitInput
 
 
 class ElasticWork(Work, MergeDdb):
     """
     This Work computes the elastic constants and (optionally) the piezoelectric tensor.
-    It consists of Response function calculations for:
+    It consists of response function calculations for:
 
         * rigid-atom elastic tensor
         * rigid-atom piezoelectric tensor
@@ -26,8 +34,9 @@ class ElasticWork(Work, MergeDdb):
     The Phonon tasks and the elastic task will read the DDK produced at the beginning
     """
     @classmethod
-    def from_scf_input(cls, scf_input, with_relaxed_ion=True, with_piezo=False, with_dde=False,
-                       tolerances=None, den_deps=None, manager=None):
+    def from_scf_input(cls, scf_input: AbinitInput,
+                       with_relaxed_ion=True, with_piezo=False, with_dde=False,
+                       tolerances=None, den_deps=None, manager=None) -> ElasticWork:
         """
         Args:
             scf_input:
@@ -99,7 +108,7 @@ class ElasticWork(Work, MergeDdb):
 
         return new
 
-    def on_all_ok(self):
+    def on_all_ok(self):  # pragma: no cover
         """
         This method is called when all the tasks of the Work reach S_OK.
         Ir runs `mrgddb` in sequential on the local machine to produce
@@ -122,7 +131,8 @@ class NscfDdksWork(Work):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task, ddk_ngkpt, ddk_shiftk, ddk_nband, manager=None):
+    def from_scf_task(cls, scf_task : ScfTask,
+                      ddk_ngkpt, ddk_shiftk, ddk_nband, manager=None) -> NscfDdksWork:
         """
         Build NscfDdksWork from a scf_task.
 
@@ -132,7 +142,6 @@ class NscfDdksWork(Work):
             ddk_shiftk: k-mesh shifts
             ddk_nband: Number of bands (occupied + empty) used in the NSCF task and the DDKs tasks.
             manager: TaskManager instance. Use default if None.
-        Return: NscfDdksWork instance
         """
         new = cls(manager=manager)
 

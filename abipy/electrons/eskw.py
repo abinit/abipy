@@ -24,7 +24,7 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     .. inheritance-diagram:: EskwFile
     """
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str):
         """Initialize the object from a netcdf_ file."""
         return cls(filepath)
 
