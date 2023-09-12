@@ -27,9 +27,10 @@ from inspect import isclass
 from multiprocessing import Pool
 from typing import Type, Any, Optional, Union
 from enum import IntEnum
-from monty.string import marquee, list_strings # is_string,
+from monty.string import marquee, list_strings
 from monty.functools import lazy_property
-from monty.collections import AttrDict #, dict2namedtuple
+from monty.json import MontyEncoder
+from monty.collections import AttrDict
 from pymatgen.core import Structure as PmgStructure
 from pymatgen.io.ase import AseAtomsAdaptor
 from ase import units
@@ -83,12 +84,6 @@ class RX_MODE(EnumMixin, StrEnum):  # StrEnum added in 3.11
     no   = "no"
     ions = "ions"
     cell = "cell"
-
-    #@classmethod
-    #def from_ionmov_optcell(cls, ionmov: int, optcell: int) -> RX_MODE:
-    #    cls.no
-    #    cls.ions
-    #    cls.cell
 
 
 def to_ase_atoms(structure: PmgStructure, calc=None) -> Atoms:
@@ -239,7 +234,7 @@ class AseResults:
         """Build the object from an atoms instance with a calculator."""
         if calc is not None:
             atoms.calc = calc
-        results = cls(atoms=atoms,
+        results = cls(atoms=atoms.copy(),
                       ene=float(atoms.get_potential_energy()),
                       stress=atoms.get_stress(voigt=False),
                       forces=atoms.get_forces())
@@ -803,8 +798,9 @@ class AseRelaxation:
     """
     Container with the results produced by the ASE calculator.
     """
-    def __init__(self, dyn, traj_path):
+    def __init__(self, dyn, r0, r1, traj_path):
         self.dyn = dyn
+        self.r0, self.r1 = r0, r1
         self.traj_path = str(traj_path)
 
     @lazy_property
@@ -821,7 +817,8 @@ class AseRelaxation:
     def summarize(self, tags=None, mode="smart", stream=sys.stdout):
         """"""
         if self.traj_path is None: return
-        r0, r1 = AseResults.from_traj_inds(self.traj, 0, -1)
+        r0, r1 = self.r0, self.r1
+        #r0, r1 = AseResults.from_traj_inds(self.traj, 0, -1)
         if tags is None: tags = ["unrelaxed", "relaxed"],
         df = dataframe_from_results_list(tags, [r0, r1], mode=mode)
         print_dataframe(df, end="\n", file=stream)
@@ -920,13 +917,18 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
         dyn = opt_class(ExpCellFilter(atoms, scalar_pressure=pressure), **opt_kwargs) if relax_mode == RX_MODE.cell else \
               opt_class(atoms, **opt_kwargs)
 
+        r0 = AseResults.from_atoms(dyn.atoms)
+
         t_start = time.time()
         converged = dyn.run(fmax=fmax, steps=steps)
         t_end = time.time()
-        pf("Converged:", converged)
         pf('Relaxation completed in %2.4f sec\n' % (t_end - t_start))
+        if not converged:
+            raise RuntimeError("ASE relaxation didn't converge")
 
-    return AseRelaxation(dyn, traj_path)
+        r1 = AseResults.from_atoms(dyn.atoms)
+
+    return AseRelaxation(dyn, r0, r1, traj_path)
 
 
 def silence_tensorflow() -> None:
@@ -966,9 +968,9 @@ class CORRALGO(IntEnum):
            raise ValueError(f'Error: {string} is not a valid value')
 
 
-class _MyMlCalculator:
+class _MyCalculator:
     """
-    Add _abi_forces_list and _abi_stress_list internal attributes to an ASE calculator.
+    Add __abi_forces_list and __abi_stress_list internal attributes to an ASE calculator.
     Extend `calculate` method so that ML forces and stresses can be corrected.
     """
 
@@ -978,8 +980,8 @@ class _MyMlCalculator:
 
         from collections import deque
         maxlen = 2
-        self.__correct_forces_algo = CORRALGO.delta
-        self.__correct_stress_algo = CORRALGO.delta
+        self.__correct_forces_algo = CORRALGO.none
+        self.__correct_stress_algo = CORRALGO.none
         self.__abi_forces_list = deque(maxlen=maxlen)
         self.__abi_stress_list = deque(maxlen=maxlen)
         self.__abi_atoms_list = deque(maxlen=maxlen)
@@ -988,6 +990,7 @@ class _MyMlCalculator:
         self.__verbose = 0
 
     def set_correct_forces_algo(self, new_algo: int) -> int:
+        """Set the correction algorithm for forces."""
         assert new_algo in CORRALGO
         old_algo = self.__correct_forces_algo
         self.__correct_forces_algo = new_algo
@@ -995,16 +998,19 @@ class _MyMlCalculator:
 
     @property
     def correct_forces_algo(self) -> int:
+        """Correction algorithm for forces."""
         return self.__correct_forces_algo
 
     def set_correct_stress_algo(self, new_algo: int) -> int:
+        """Set the correction algorithm for the stress."""
         assert new_algo in CORRALGO
         old_algo = self.__correct_stress_algo
         self.__correct_stress_algo = new_algo
         return old_algo
 
     @property
-    def correct_stress_algo(self) -> bool:
+    def correct_stress_algo(self) -> int:
+        """Correction algorithm for the stress."""
         return self.__correct_stress_algo
 
     def store_abi_forstr_atoms(self, abi_forces, abi_stress, atoms):
@@ -1012,32 +1018,32 @@ class _MyMlCalculator:
         Stores a copy of the ab-initio forces, stress tensor and atoms
         in the internal buffers. Also compute and store the corresponding ML values.
         """
-        # Store copies.
+        # Store copies in internal buffers.
         abi_forces = np.asarray(abi_forces).copy()
         self.__abi_forces_list.append(abi_forces)
         abi_stress = np.asarray(abi_stress).copy()
         self.__abi_stress_list.append(abi_stress)
         self.__abi_atoms_list.append(atoms.copy())
 
-        self.reset()
+        # Compute ML forces and stresses for the input atoms.
         old_forces_algo = self.set_correct_forces_algo(CORRALGO.none)
         old_stress_algo = self.set_correct_stress_algo(CORRALGO.none)
+        self.reset()
         ml_forces = self.get_forces(atoms=atoms)
         ml_stress = self.get_stress(atoms=atoms)
-        #print(f"{ml_forces=}"); print(f"{ml_stress=}")
-        self.set_correct_forces_algo(old_forces_algo)
-        self.set_correct_stress_algo(old_stress_algo)
+        self.reset()
         self.__ml_forces_list.append(ml_forces)
         self.__ml_stress_list.append(ml_stress)
         self.reset()
-        #self.__delta_forces_list = []
-
-        def fmt_vec3(vec3) -> str:
-            return "{:.6e} {:.6e} {:.6e}".format(*vec3)
-        def fmt_vec6(vec6) -> str:
-            return "{:.6e} {:.6e} {:.6e} {:.6e} {:.6e} {:.6e}".format(*vec6)
+        self.set_correct_forces_algo(old_forces_algo)
+        self.set_correct_stress_algo(old_stress_algo)
 
         if self.__verbose:
+            def fmt_vec3(vec3) -> str:
+                return "{:.6e} {:.6e} {:.6e}".format(*vec3)
+            def fmt_vec6(vec6) -> str:
+                return "{:.6e} {:.6e} {:.6e} {:.6e} {:.6e} {:.6e}".format(*vec6)
+
             from ase.stress import full_3x3_to_voigt_6_stress
             print("abi_stress6:", fmt_vec6(full_3x3_to_voigt_6_stress(abi_stress)))
             print("ml_stress6: ", fmt_vec6(full_3x3_to_voigt_6_stress(ml_stress)))
@@ -1045,21 +1051,15 @@ class _MyMlCalculator:
                 print(f"abi_fcart_{iat=}:", fmt_vec3(abi_forces[iat]))
                 print(f"ml_fcart_{iat=} :", fmt_vec3(ml_forces[iat]))
 
-    def get_abi_forces(self):
-        if self.__abi_forces_list: return self.__abi_forces_list[-1]
-        return None
+    def get_abi_ml_forces(self, pos=-1):
+        """Return the ab-initio and the ML forces or (None, None) if not available."""
+        if not self.__abi_forces_list: return (None, None)
+        return self.__abi_forces_list[pos], self.__ml_forces_list[pos]
 
-    def get_ml_forces(self):
-        if self.__ml_forces_list: return self.__ml_forces_list[-1]
-        return None
-
-    def get_abi_stress(self):
-        if self.__abi_stress_list: return self.__abi_stress_list[-1]
-        return None
-
-    def get_ml_stress(self):
-        if self.__ml_stress_list: return self.__ml_stress_list[-1]
-        return None
+    def get_abi_ml_stress(self, pos=-1):
+        """Return the ab-initio and the ML stress or (None, None) if not available."""
+        if not self.__abi_stress_list: return (None, None)
+        return self.__abi_stress_list[pos], self.__ml_stress_list[pos]
 
     def calculate(
          self,
@@ -1081,15 +1081,16 @@ class _MyMlCalculator:
         super().calculate(atoms=atoms, properties=properties, system_changes=system_changes)
 
         if self.correct_forces_algo != CORRALGO.none:
-            # Apply ab-initio correction to ml_forces.
+            if self.__verbose: print(f"Applying ab-initio correction to the ml_forces with {self.correct_forces_algo=}")
             forces = self.results["forces"]
-            abi_forces = self.get_abi_forces()
-            ml_forces = self.get_ml_forces()
+            abi_forces, ml_forces = self.get_abi_ml_forces()
             if abi_forces is not None:
                 # Change forces only if have invoked store_abi_forstr_atoms
                 if self.correct_forces_algo == CORRALGO.delta:
                     # Apply delta correction to forces.
-                    delta_forces = (abi_forces - ml_forces)/2.0
+                    alpha = 1.0
+                    delta_forces = (abi_forces - ml_forces)/alpha
+                    if self.__verbose > 1: print("Updating forces with delta_forces:\n", abi_forces)
                     forces += delta_forces
                     print(f"{delta_forces=}")
                     #AA: TODO: save the delta in list and call method... 
@@ -1101,25 +1102,24 @@ class _MyMlCalculator:
                     forces += abi_forces
                 else:
                     raise ValueError(f"Invalid {self.correct_forces_algo=}")
-                #print("Updating forces with abi_forces:\n", abi_forces)
+
                 self.results.update(forces=forces)
 
         if self.correct_stress_algo != CORRALGO.none:
-            # Apply ab-initio correction to stress.
+            if self.__verbose: print(f"Applying ab-initio correction to the ml_stress with {self.correct_stress_algo=}")
             stress = self.results["stress"]
-            abi_stress = self.get_abi_stress()
-            ml_stress = self.get_ml_stress()
+            abi_stress, ml_stress = self.get_abi_ml_stress()
             if abi_stress is not None:
                 # Change stresses only if have invoked store_abi_forstr_atoms
                 if self.correct_stress_algo == CORRALGO.delta:
                     # Apply delta correction to stress.
                     delta_stress = abi_stress - ml_stress
+                    if self.__verbose > 1: print("Updating stress with delta_stress:\n", delta_stress)
                     stress += delta_stress
                 elif self.correct_stress_algo == CORRALGO.one_point:
                     stress += abi_stress
                 else:
                     raise ValueError(f"Invalid {self.correct_stress_algo=}")
-                #print("Updating stress with abi_stress:\n", abi_stress)
                 self.results.update(stress=stress)
 
 
@@ -1138,7 +1138,7 @@ class CalcBuilder:
     Supports different backends defined by `name` string.
     Possible formats are:
 
-        1) nn_type e.g. m3net
+        1) nn_type e.g. m3gnet
         2) nn_type:model_name
         3) nn_type@filepath
     """
@@ -1178,10 +1178,18 @@ class CalcBuilder:
         self.name = d["name"]
         self._model = None
 
-    def get_calculator(self) -> Calculator:
+    def reset(self) -> None:
+        self._model = None
+
+    def get_calculator(self, with_delta=True, reset=False) -> Calculator:
         """
-        Return ASE calculator with ML potential.
+        Return an ASE calculator with ML potential.
+
+        Args:
+            reset: True if the internal cache should be reset.
         """
+        if reset: self.reset()
+
         if self.nn_type == "m3gnet":
             # m3gnet legacy version.
             if self._model is None:
@@ -1195,10 +1203,11 @@ class CalcBuilder:
                 assert self.model_name is None
                 self._model = Potential(M3GNet.load())
 
-            class MyM3GNetCalculator(_MyMlCalculator, M3GNetCalculator):
+            class MyM3GNetCalculator(_MyCalculator, M3GNetCalculator):
                 """Add abi_forces and abi_stress"""
 
-            return MyM3GNetCalculator(potential=self._model)
+            cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
+            return cls(potential=self._model)
 
         if self.nn_type == "matgl":
             # See https://github.com/materialsvirtuallab/matgl
@@ -1212,10 +1221,11 @@ class CalcBuilder:
                 model_name = "M3GNet-MP-2021.2.8-PES" if self.model_name is None else self.model_name
                 self._model = matgl.load_model(model_name)
 
-            class MyM3GNetCalculator(_MyMlCalculator, M3GNetCalculator):
+            class MyM3GNetCalculator(_MyCalculator, M3GNetCalculator):
                 """Add abi_forces and abi_stress"""
 
-            return MyM3GNetCalculator(potential=self._model)
+            cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
+            return cls(potential=self._model)
 
         if self.nn_type == "chgnet":
             try:
@@ -1228,10 +1238,11 @@ class CalcBuilder:
                 assert self.model_name is None
                 self._model = CHGNet.load()
 
-            class MyCHGNetCalculator(_MyMlCalculator, CHGNetCalculator):
+            class MyCHGNetCalculator(_MyCalculator, CHGNetCalculator):
                 """Add abi_forces and abi_stress"""
 
-            return MyCHGNetCalculator(model=self._model)
+            cls = MyCHGNetCalculator if with_delta else CHGNetCalculator
+            return cls(model=self._model)
 
         if self.nn_type == "alignn":
             try:
@@ -1239,11 +1250,12 @@ class CalcBuilder:
             except ImportError as exc:
                 raise ImportError("alignn not installed. See https://github.com/usnistgov/alignn") from exc
 
-            class MyAlignnCalculator(_MyMlCalculator, AlignnAtomwiseCalculator):
+            class MyAlignnCalculator(_MyCalculator, AlignnAtomwiseCalculator):
                 """Add abi_forces and abi_stress"""
 
             model_name = default_path() if self.model_name is None else self.model_name
-            return AlignnAtomwiseCalculator(path=model_name)
+            cls = MyAlignnCalculator if with_delta else AlignnAtomwiseCalculator
+            return cls(path=model_name)
 
         #if self.nn_type == "quip":
         #    try:
@@ -1252,7 +1264,7 @@ class CalcBuilder:
         #        raise ImportError("quippy not installed. Try `pip install quippy-ase`.\n" +
         #                          "See https://github.com/libAtoms/QUIP") from exc
 
-        #    class MyQuipPotential(_MyMlCalculator, Potential):
+        #    class MyQuipPotential(_MyCalculator, Potential):
         #        """Add abi_forces and abi_stress"""
 
         #    assert self.model_name is None
@@ -1262,7 +1274,7 @@ class CalcBuilder:
         raise ValueError(f"Invalid {self.nn_type=}")
 
 
-class _MlBase:
+class MlBase:
     """
     Base class for all Ml subclasses providing helper methods to
     perform typical tasks such as writing files in the workdir
@@ -1292,18 +1304,6 @@ class _MlBase:
     def __str__(self):
         # Delegated to the subclass.
         return self.to_string()
-
-    @lazy_property
-    def calc_builder(self):
-        return CalcBuilder(self.nn_name)
-
-    def get_calculator_name(self) -> tuple[Calculator, str]:
-        return self.get_calculator(), self.calc_builder.name
-
-    def get_calculator(self) -> Calculator:
-        """Return ASE calculator."""
-        calc = self.calc_builder.get_calculator()
-        return calc
 
     def add_basename_info(self, basename: str, info: str) -> None:
         """
@@ -1342,13 +1342,13 @@ class _MlBase:
         """Write data in JSON format and mirror output to `stream`."""
         self.add_basename_info(basename, info)
         with open(self.workdir / basename, "wt") as fh:
-            json.dump(data, fh, indent=indent, **kwargs)
+            json.dump(data, fh, indent=indent, cls=MontyEncoder, **kwargs)
 
         if stream is not None:
             # Print JSON to stream as well.
             print("", file=stream)
             print(marquee(info, mark="="), file=stream)
-            print(json.dumps(data, indent=4), file=stream, end="\n")
+            print(json.dumps(data, cls=MontyEncoder, indent=4), file=stream, end="\n")
 
     def write_df(self, df, basename: str, info: str, fmt="csv") -> None:
         """Write dataframe to file."""
@@ -1412,10 +1412,10 @@ import matplotlib.pyplot as plt
                 if not p.exists():
                     print(f"WARNING: Cannot find `{basename}` in {self.workdir}")
 
-        print("\nResults available in directory:", self.workdir)
+        print("\nResults available in:", self.workdir)
 
 
-class MlRelaxer(_MlBase):
+class MlRelaxer(MlBase):
     """
     Relax structure with ASE and ML-potential.
     """
@@ -1556,8 +1556,8 @@ class MlRelaxer(_MlBase):
             fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
             pressure: Target pressure.
             steps: max number of steps for relaxation.
-            optimizer: name of the ASE optimizer to use.
-            nn_name:
+            optimizer: name of the ASE optimizer to use for relaxation.
+            nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
         """
         super().__init__(workdir, prefix)
@@ -1596,7 +1596,7 @@ class MlRelaxer(_MlBase):
         """Run structural relaxation."""
         #self.pickle_dump()
         workdir = self.workdir
-        self.atoms.calc = self.get_calculator()
+        self.atoms.calc = CalcBuilder(self.nn_name).get_calculator()
         # TODO: Here I should add the ab-initio forces/stress to the calculator to correct the ML ones
 
         print(f"Relaxing structure with relax mode: {self.relax_mode} ...")
@@ -1629,20 +1629,20 @@ class MlRelaxer(_MlBase):
         return relax
 
 
-class MlMd(_MlBase):
+class MlMd(MlBase):
     """Perform MD calculations with ASE and ML potential."""
 
     def __init__(self, atoms: Atoms, temperature, timestep, steps, loginterval,
                  ensemble, nn_name, verbose, workdir, prefix=None):
         """
         Args:
-            atoms:
-            temperature:
+            atoms: ASE atoms.
+            temperature: Temperatur in K
             timestep:
             steps:
             loginterval:
             ensemble:
-            nn_name:
+            nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
             workdir:
             prefix:
@@ -1668,7 +1668,7 @@ class MlMd(_MlBase):
     steps       = {self.steps}
     loginterval = {self.loginterval}
     ensemble    = {self.ensemble}
-    calculator  = {self.calc_builder}
+    nn_name     = {self.nn_name}
     workdir     = {self.workdir}
     verbose     = {self.verbose}
 
@@ -1682,7 +1682,7 @@ class MlMd(_MlBase):
         """Run MD"""
         #self.pickle_dump()
         workdir = self.workdir
-        self.atoms.calc = self.get_calculator()
+        self.atoms.calc = CalcBuilder(self.nn_name).get_calculator()
 
         traj_file = self.get_path("md.traj", "ASE MD trajectory")
         logfile = self.get_path("md.log", "ASE MD log file")
@@ -1732,7 +1732,7 @@ plt.show()
         #                   label=f"xdatcar with relaxation generated by {self.__class__.__name__}")
 
 
-class _MlNebBase(_MlBase):
+class _MlNebBase(MlBase):
     """
     Base class for Neb calculations
     """
@@ -1777,6 +1777,7 @@ class _MlNebBase(_MlBase):
             return json.load(fh)
 
 
+
 class MlGsList(_MlNebBase):
     """
     Perform ground-state calculations for a list of atoms with ASE and ML-potential.
@@ -1788,7 +1789,7 @@ class MlGsList(_MlNebBase):
         """
         Args:
             atoms_list: List of ASE atoms
-            nn_name:
+            nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
         """
         super().__init__(workdir, prefix)
@@ -1814,9 +1815,10 @@ class MlGsList(_MlNebBase):
         workdir = self.workdir
 
         results = []
+        calc = CalcBuilder(self.nn_name).get_calculator()
         for ind, atoms in enumerate(self.atoms_list):
             write_vasp(self.workdir / f"IND_{ind}_POSCAR", atoms, label=None)
-            atoms.calc = self.get_calculator()
+            atoms.calc = calc
             results.append(AseResults.from_atoms(atoms))
 
         write_vasp_xdatcar(self.workdir / "XDATCAR", self.atoms_list,
@@ -1836,17 +1838,17 @@ class MlNeb(_MlNebBase):
                  nn_name, verbose, workdir, prefix=None):
         """
         Args:
-            initial_atoms
-            final_atoms:
-            nimages:
+            initial_atoms: initial ASE atoms.
+            final_atoms: final ASE atoms.
+            nimages: Number of images.
             neb_method:
             climb:
-            optimizer:
-            relax_mode:
-            fmax:
-            pressure:
-            nn_name:
-            verbose:
+            optimizer: name of the ASE optimizer to use for relaxation.
+            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
+            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
+            pressure: Target pressure
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
             workdir:
             prefix:
         """
@@ -1906,9 +1908,10 @@ class MlNeb(_MlNebBase):
         #self.pickle_dump()
         workdir = self.workdir
         initial_atoms, final_atoms = self.initial_atoms, self.final_atoms
+        calculator = CalcBuilder(self.nn_name).get_calculator()
 
         if self.relax_mode != RX_MODE.no:
-            relax_kws = dict(calculator=self.get_calculator(),
+            relax_kws = dict(calculator=calculator,
                              optimizer=self.optimizer,
                              relax_mode=self.relax_mode,
                              fmax=self.fmax,
@@ -1931,7 +1934,7 @@ class MlNeb(_MlNebBase):
             relax.summarize(tags=["final_unrelaxed", "final_relaxed"])
 
         # Generate several instances of the calculator. It is probably fine to have just one, but just in case...
-        calculators = [self.get_calculator() for i in range(self.nimages)]
+        calculators = [CalcBuilder(self.nn_name).get_calculator() for i in range(self.nimages)]
         neb = make_ase_neb(initial_atoms, final_atoms, self.nimages, calculators, self.neb_method, self.climb,
                            method='linear', mic=False)
 
@@ -1986,16 +1989,16 @@ class MultiMlNeb(_MlNebBase):
                  nn_name, verbose, workdir, prefix=None):
         """
         Args:
-            atoms_list:
-            nimages:
+            atoms_list: List of ASE atoms.
+            nimages: Number of NEB images.
             neb_method:
             climb:
             optimizer:
-            relax_mode:
-            fmax:
+            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
+            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
             pressure:
-            nn_name:
-            verbose:
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
             workdir:
             prefix:
         """
@@ -2118,7 +2121,7 @@ def make_ase_neb(initial: Atoms, final: Atoms, nimages: int,
     return neb
 
 
-class MlOrderer(_MlBase):
+class MlOrderer(MlBase):
     """
     Order a disordered structure using pymatgen and ML potential.
     """
@@ -2126,15 +2129,15 @@ class MlOrderer(_MlBase):
                  workdir, prefix=None):
         """
         Args:
-            structure:
+            structure: Abipy Structure object or any object that can be converted to structure.
             max_ns:
             optimizer:
             relax_mode:
             fmax:
             pressure:
             steps:
-            nn_name:
-            verbose:
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
             workdir:
             prefix:
         """
@@ -2220,9 +2223,11 @@ class MlOrderer(_MlBase):
             for group in groups:
                 print(group[0])
 
+        calculator = CalcBuilder(self.nn_name).get_calculator()
+
         if self.relax_mode != RX_MODE.no:
             print(f"Relaxing structures with relax mode: {self.relax_mode}")
-            relax_kws = dict(calculator=self.get_calculator(),
+            relax_kws = dict(calculator=calculator,
                              optimizer=self.optimizer,
                              relax_mode=self.relax_mode,
                              fmax=self.fmax,
@@ -2257,133 +2262,6 @@ class MlOrderer(_MlBase):
         self._finalize()
 
 
-class MlPhonons(_MlBase):
-    """Compute phonons with ASE and ML potential."""
-
-    def __init__(self, atoms: Atoms, supercell, kpts, asr, nqpath,
-                 relax_mode, fmax, pressure, steps, optimizer, nn_name,
-                 verbose, workdir, prefix=None):
-        """
-        Args:
-            atoms: ASE atoms.
-            supercell: tuple with supercell dimension.
-            kpts:
-            asr: Enforce acoustic sum-rule.
-            nqpath: Number of q-point along the q-path.
-            relax_mode:
-            fmax:
-            steps:
-            optimizer:
-            nn_name,
-            verbose:
-            workdir:
-            prefix:
-        """
-        super().__init__(workdir, prefix)
-        self.atoms = get_atoms(atoms)
-        self.supercell = supercell
-        self.kpts = kpts
-        self.asr = asr
-        self.nqpath = nqpath
-        self.relax_mode = relax_mode
-        RX_MODE.validate(self.relax_mode)
-        self.fmax = fmax
-        self.pressure = pressure
-        self.steps = steps
-        self.optimizer = optimizer
-        self.nn_name = nn_name
-        self.verbose = verbose
-
-    def to_string(self, verbose=0):
-        """String representation with verbosity level `verbose`."""
-        s = f"""\
-
-{self.__class__.__name__} parameters:
-
-     supercell  = {self.supercell}
-     kpts       = {self.kpts}
-     asr        = {self.asr}
-     nqpath     = {self.nqpath}
-     relax_mode = {self.relax_mode}
-     fmax       = {self.fmax}
-     steps      = {self.steps}
-     optimizer  = {self.optimizer}
-     pressure   = {self.pressure}
-     nn_name    = {self.nn_name}
-     workdir    = {self.workdir}
-     verbose    = {self.verbose}
-
-=== ATOMS ===
-
-{self.atoms}
-"""
-        return s
-
-    def run(self) -> None:
-        """Run MlPhonons."""
-        #self.pickle_dump()
-        workdir = self.workdir
-        calculator = self.get_calculator()
-        atoms = self.atoms
-
-        if self.relax != RX_MODE.no:
-            print(f"Relaxing atoms with relax mode: {self.relax_mode}.")
-            relax_kws = dict(calculator=calculator,
-                             optimizer=self.optimizer,
-                             relax_mode=self.relax_mode,
-                             fmax=self.fmax,
-                             pressure=self.pressure,
-                             steps=self.steps,
-                             traj_path=self.get_path("relax.traj", "ASE relax trajectory"),
-                             verbose=self.verbose,
-                            )
-
-            relax = relax_atoms(atoms, **relax_kws)
-            #self.write_traj("relax.traj", traj, info="")
-
-            r0, r1 = AseResults.from_traj_inds(relax.traj, 0, -1)
-            df = dataframe_from_results_list(["initial_unrelaxed", "initial_relaxed"], [r0, r1])
-            print(df, end=2*"\n")
-
-        # Phonon calculator
-        from ase.phonons import Phonons
-        ph = Phonons(atoms, calculator, supercell=self.supercell, delta=0.05)
-        #ph.read_born_charges(name=, neutrality=True)
-        ph.run()
-        #print("Phonons Done")
-
-        # Read forces and assemble the dynamical matrix
-        ph.read(acoustic=self.asr, born=False)
-        ph.clean()
-
-        # Calculate phonon dispersion along a path in the Brillouin zone.
-        path = atoms.cell.bandpath(npoints=self.nqpath)
-        bs = ph.get_band_structure(path, born=False)
-        dos = ph.get_dos(kpts=self.kpts).sample_grid(npts=100, width=1e-3)
-
-        # Plot the band structure and DOS
-        import matplotlib.pyplot as plt
-        plt.rc("figure", dpi=150)
-        fig = plt.figure(1, figsize=(7, 4))
-        bs_ax = fig.add_axes([0.12, 0.07, 0.67, 0.85])
-        emax = 0.035
-        bs.plot(ax=bs_ax, emin=0.0, emax=emax)
-        dos_ax = fig.add_axes([0.8, 0.07, 0.17, 0.85])
-        dos_ax.fill_between(dos.get_weights(), dos.get_energies(), y2=0, color="grey", edgecolor="black", lw=1)
-        dos_ax.set_ylim(0, emax)
-        dos_ax.set_yticks([])
-        dos_ax.set_xticks([])
-        dos_ax.set_xlabel("PH DOS", fontsize=14)
-
-        #title = f"Phonon band structure and DOS of {atoms.symbols} with supercell: {self.supercell}",
-        title = f"Phonon band structure and DOS with supercell: {self.supercell}",
-        fig.suptitle(title, fontsize=8, y=1.02)
-        self.savefig("phonons.png", fig, info=title)
-
-        self._finalize()
-
-
-
 class MlCompareWithAbinitio(_MlNebBase):
     """
     Compare ab-initio energies, forces and stresses with ML results.
@@ -2393,7 +2271,7 @@ class MlCompareWithAbinitio(_MlNebBase):
         """
         Args:
             filepaths: List of file produced by the ab-initio code with energies, forces and stresses.
-            nn_names: String or list of strings defining the NN potential.
+            nn_names: String or list of strings defining the NN potential. See also CalcBuilder.
             traj_range: Trajectory range. None to include all steps.
             verbose: Verbosity level.
             workdir: Working directory.
@@ -2561,7 +2439,6 @@ def main():
 class MolecularDynamics:
     """
     Molecular dynamics class
-
     Based on https://github.com/materialsvirtuallab/m3gnet/blob/main/m3gnet/models/_dynamics.py
     """
 
@@ -2706,4 +2583,3 @@ def traj_to_qepos(traj_filepath: str, pos_filepath: str) -> None:
             posFile.write(str(i)+ '\n')
             for j in range(nAtoms):
                 posFile.write(str(posArray[i,j,0]) + ' ' + str(posArray[i,j,1]) + ' ' + str(posArray[i,j,2]) + '\n')
-

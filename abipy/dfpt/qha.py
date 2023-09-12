@@ -403,7 +403,8 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
             with open(os.path.join(path, "thermal_properties-{}.yaml".format(j)), 'wt') as f:
                 f.write("\n".join(lines))
 
-    def get_phonopy_qha(self, tstart=0, tstop=2100, num=211, eos='vinet', t_max=None, energy_plot_factor=None):
+    def get_phonopy_qha(self, tstart=0, tstop=2100, num=211, eos='vinet', t_max=None,
+                        energy_plot_factor=None, pressure=None):
         """
         Creates an instance of phonopy.qha.core.QHA that can be used generate further plots and output data.
         The object is returned right after the construction. The "run()" method should be executed
@@ -419,6 +420,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
                 "murnaghan" and "birch_murnaghan". Passed to phonopy's QHA.
             t_max: maximum temperature. Passed to phonopy's QHA.
             energy_plot_factor: factor multiplying the energies. Passed to phonopy's QHA.
+            pressure: pressure value, passed to phonopy.
 
         Returns: An instance of phonopy.qha.core.QHA
         """
@@ -437,7 +439,18 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
 
         en = self.energies + self.volumes * self.pressure / abu.eVA3_GPa
 
-        qha_p = QHA_phonopy(self.volumes, en, temperatures, cv, entropy, fe, eos, t_max, energy_plot_factor)
+        qha_p = QHA_phonopy(
+            volumes=self.volumes,
+            electronic_energies=en,
+            temperatures=temperatures,
+            cv=cv,
+            entropy=entropy,
+            fe_phonon=fe,
+            pressure=pressure,
+            eos=eos,
+            t_max=t_max,
+            energy_plot_factor=energy_plot_factor
+        )
 
         return qha_p
 

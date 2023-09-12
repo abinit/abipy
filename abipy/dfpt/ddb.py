@@ -1106,7 +1106,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             try:
                 iqs = [self.qindex(q) for q in qpoints]
             except Exception:
-                raise ValueError("input qpoint %s not in %s.\nddb.qpoints:\n%s" % (
+                raise ValueError("input qpoint:\n %s\n not in %s.\nddb.qpoints:\n%s" % (
                     qpoints, self.filepath, self.qpoints))
 
             qpoints = [self.qpoints[iq] for iq in iqs]
@@ -1166,7 +1166,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
                 used to sample the smallest lattice vector. If 0, DOS is not computed and
                 (phbst, None) is returned.
-            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciprocal atom.
                 Overrides nqsmall.
             ndivsm: Number of division used for the smallest segment of the q-path.
             line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.

@@ -958,7 +958,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             if nspden is not None and nspden not in (1, 4):
                 eapp(f"nspden should be either 1 or 4 when nspinor == 2 while it is: {nspden}")
         else:
-            eapp(f"Invalid value for nspinor: {nspinor}")
+            eapp(f"Invalid {nspinor=}")
 
         if errors:
             raise self.Error("\n".join(errors))
@@ -1531,7 +1531,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             if scdims.shape != (3,):
                 raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
 
-            numcells = np.product(scdims)
+            numcells = np.prod(scdims)
             if len(new_structure) != numcells * len(self.structure):
                 errmsg = "Number of atoms in the input structure should be %d * %d but found %d" % (
                     numcells, len(self.structure), len(new_structure))
@@ -1873,7 +1873,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         # Call Abinit to get the list of irreducible perts.
         perts = self.abiget_irred_phperts(qpt=qpt, manager=manager, prepgkk=prepgkk)
@@ -1929,7 +1929,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolwfr": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         if "tolvrs" in tolerance:
             raise self.Error("tolvrs should not be used in a DDK calculation")
@@ -1979,17 +1979,18 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolwfr": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         if "tolvrs" in tolerance:
             raise self.Error("tolvrs should not be used in a DKDK calculation")
 
-        # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+        # See Dataset 3 of https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi
         dkdk_input= self.new_with_vars(
             qpt=(0, 0, 0),        # q-wavevector.
             kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
             iscf=-3,              # The d2/dk perturbation is treated in a non-self-consistent way
             rf2_dkdk=1,
+            #rf2_dkdk=3,
             useylm=1,
             comment="Input file for DKDK calculation.",
         )
@@ -2015,7 +2016,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             tolerance = {"tolvrs": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         if use_symmetries:
             # Call Abinit to get the list of irred perts.
@@ -2147,7 +2148,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         # Call Abinit to get the list of irred perts.
         perts = self.abiget_irred_phperts(qpt=(0, 0, 0), prepalw=prepalw, manager=manager)
@@ -2201,7 +2202,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error("Invalid {tolerance=}")
 
         # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
         inp = self.new_with_vars(
@@ -2239,7 +2240,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             tolerance = {"tolvrs": 1.0e-12}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: {}".format(str(tolerance)))
+            raise self.Error(f"Invalid {tolerance=}")
 
         perts = self.abiget_irred_strainperts(kptopt=kptopt, phonon_pert=phonon_pert,
                                               efield_pert=efield_pert, prepalw=prepalw, manager=manager)
@@ -2722,7 +2723,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Returns:
-            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            List of dictionaries with the Abinit variables defining the irreducible perturbations
             Example:
 
                 [{'idir': 1, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]},
@@ -3695,7 +3696,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
             nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
-            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per atom.
                 Overrides nqsmall.
             line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
                 Overrides ndivsm.
@@ -4595,7 +4596,7 @@ def kpoints_from_line_density(structure, line_density, symprec=1e-2):
     Return: (nkpt, 3) numpy array with k-points in reduced coords.
     """
     if line_density <= 0:
-        raise ValueError(f"Invalid line_density: {line_density}")
+        raise ValueError(f"Invalid {line_density=}")
 
     hs = HighSymmKpath(structure, symprec=1e-2)
     qpts, labels_list = hs.get_kpoints(line_density=line_density, coords_are_cartesian=False)

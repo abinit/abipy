@@ -25,7 +25,7 @@ def abips_list(options) -> list:
     repos, repos_root = get_installed_repos_and_root()
     if not repos:
         print("Could not find any pseudopotential repository installed in:", repos_root)
-        return 1
+        return 0
 
     print(f"The following pseudopotential repositories are installed in {repos_root}:\n")
     print(tabulate_repos(repos, exclude=["installed"], verbose=options.verbose))

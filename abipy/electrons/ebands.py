@@ -3001,7 +3001,7 @@ class ElectronBands(Has_Structure):
         interpolator = FourierInterpolator(bs)
 
         nworkers = 1 # Use 1 worker because it does not seem to scale well on my Mac.
-        with Timer(f"BoltzTraP2 interpolation with factor {interpolation_factor} and velocities: {with_velocities}"):
+        with Timer(footer=f"BoltzTraP2 interpolation with {interpolation_factor=} and {with_velocities=}"):
             if with_velocities:
                 dense_bs, velocities = interpolator.interpolate_bands(interpolation_factor=interpolation_factor,
                                                                       return_velocities=with_velocities,
@@ -3065,8 +3065,7 @@ class ElectronBands(Has_Structure):
             raise ValueError(f"Invalid value for eref: {eref}")
 
         # generate the Fermi surface
-        with Timer(f"Building Fermi surface with wigner_seitz: {wigner_seitz}, eref: {eref} and mu: {mu} (eV)"):
-
+        with Timer(footer=f"Building Fermi surface with {wigner_seitz=}, {eref=} and {mu=} (eV)"):
             from ifermi.kpoints import kpoints_from_bandstructure
             dense_kpoints = kpoints_from_bandstructure(r.dense_bs) if r.velocities else None
 

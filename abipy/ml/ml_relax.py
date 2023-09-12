@@ -2,6 +2,7 @@
 """
 from __future__ import annotations
 
+import sys
 import os
 import time
 import tempfile
@@ -20,25 +21,10 @@ from ase.stress import full_3x3_to_voigt_6_stress, voigt_6_to_full_3x3_stress
 from abipy.core.abinit_units import eV_Ha, Ang_Bohr
 from abipy.core.structure import Structure, StructDiff
 from abipy.tools.iotools import workdir_with_prefix
+from abipy.tools.context_managers import Timer
 from abipy.dynamics.hist import HistFile
 from abipy.flowtk import PseudoTable
 from abipy.ml.aseml import print_atoms, get_atoms, CalcBuilder, ase_optimizer_cls, abisanitize_atoms, RX_MODE
-
-from time import perf_counter
-
-
-class Timer:
-
-    def __enter__(self):
-        self.time = perf_counter()
-        return self
-
-    def __str__(self):
-        return self.readout
-
-    def __exit__(self, type, value, traceback):
-        self.time = perf_counter() - self.time
-        self.readout = f'Time: {self.time:.3f} seconds'
 
 
 class RelaxationProfiler:
@@ -204,10 +190,9 @@ class RelaxationProfiler:
 
     def abinit_run_gs_atoms(self, directory, atoms):
         """
-        Perform a GS calculation with ABINIT. Return namedtuple with results.
+        Perform a GS calculation with ABINIT. Return namedtuple with results in ASE units.
         """
-        with Timer() as timer:
-            print(f"\nBegin ABINIT GS in {str(directory)}")
+        with Timer(header=f"\nBegin ABINIT GS in {str(directory)}", footer="ABINIT GS") as timer:
             abinit = Abinit(profile=self.abinit_profile, directory=directory, **self.gs_kwargs)
             forces = abinit.get_forces(atoms=atoms)
             stress = abinit.get_stress(atoms=atoms)
@@ -221,6 +206,7 @@ class RelaxationProfiler:
                                energy=energy 
                                )
 
+
     def run(self, workdir=None, prefix=None):
         """
         Run the different steps of the benchmark.
@@ -233,15 +219,14 @@ class RelaxationProfiler:
         # Run fully ab-initio relaxation with abinit.
         abi_relax = self.abi_relax_atoms(workdir / "abinit_relax")
 
-        # Run relaxation with ASE optimizer and Abinit forces.
         if False:
+            # Run relaxation with ASE optimizer and Abinit forces.
             abiase_opt = self.abi_relax_atoms_with_ase(workdir / f"abiase_relax")
 
         # Compare structures
         diff = StructDiff(["INITIAL", "ABINIT_RELAX", self.nn_name + "_RELAX"],
                           [self.initial_atoms, abi_relax.atoms, ml_opt.atoms])
         diff.tabulate()
-        #raise RuntimeError()
 
         # Run hybrid relaxation (ML + abinit)
         ml_calc = CalcBuilder(self.nn_name).get_calculator()
@@ -271,14 +256,11 @@ class RelaxationProfiler:
             gs = self.abinit_run_gs_atoms(directory, atoms)
             abiml_nsteps += 1
             print("Iteration:", count, "abi_fmax:", gs.fmax, ", fmax:", self.fmax)
-            #if self.relax_mode == RX_MODE.cell:
-            print("abinit_stress", full_3x3_to_voigt_6_stress(gs.stress))
+            print("abinit_stress_voigt", gs.stress_voigt)
             #print_atoms(atoms, cart_forces=gs.forces)
             print("abinit_energy", gs.energy )   
             # Store ab-initio forces/stresses in the ML calculator and attach it to atoms.
             ml_calc.store_abi_forstr_atoms(gs.forces, gs.stress, atoms)
-            #ml_calc.store_abi_energy_atoms(gs.energy)
-            ml_calc.reset()
             atoms.calc = ml_calc
             
             opt_kws = dict(
@@ -345,19 +327,10 @@ class RelaxationProfiler:
 
 
 if __name__ == "__main__":
-    from abipy.flowtk.psrepos import get_repo_from_name
-    xc_name = "PBE"
     # Get pseudos
-    repo_name = {
-        "PBE": "ONCVPSP-PBE-SR-PDv0.4",
-        "PBEsol": "ONCVPSP-PBEsol-SR-PDv0.4",
-        "LDA": "ONCVPSP-LDA-SR-PDv0.4",
-    }[xc_name]
-    print(f"Using {repo_name=}")
-    pseudos = get_repo_from_name(repo_name).get_pseudos("standard")
-    #pseudos = get_latest_pseudos(xc_name=PBE)
-
-
+    from abipy.flowtk.psrepos import get_oncvpsp_pseudos
+    xc_name = "PBE"
+    pseudos = get_oncvpsp_pseudos(xc_name=xc_name, version="0.4")
     from ase.build import bulk
     atoms = bulk('Si')
     atoms.rattle(stdev=0.1, seed=42)

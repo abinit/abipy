@@ -19,8 +19,8 @@ class AceViewer(Viewer):
         self.open_btn = pnw.Button(name=f"Open {basename}", button_type='primary')
         self.open_btn.on_click(self.open_ace_editor)
 
-        self.ace = pnw.Ace(language='text', readonly=True, theme=theme,
-                           sizing_mode='stretch_width', height=height, visible=False)
+        self.ace = pnw.CodeEditor(language='text', readonly=True, theme=theme,
+                                  sizing_mode='stretch_width', height=height, visible=False)
 
         self.controls = pn.Card(self.ace.param.height, self.ace.param.theme, self.ace.param.visible,
                                 title="ACE controls", collapsed=True)

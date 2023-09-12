@@ -61,7 +61,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
     structure.__class__ = pmg_Structure
 
     from abipy.core import restapi
-    structures = []
+    structures, mpids = [], []
     with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
         try:
             mpids = rest.find_structure(structure)
@@ -69,7 +69,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
                 structures = [Structure.from_mpid(mid, final=final, api_key=api_key, endpoint=endpoint)
                               for mid in mpids]
 
-        except rest.Error as exc:
+        except Exception as exc:
             cprint(str(exc), "red")
 
         finally:
@@ -387,6 +387,13 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         import pymatgen.io.ase as aio
         return aio.AseAtomsAdaptor.get_atoms(self)
+
+    def get_phonopy_atoms(self):
+        """
+        Convert a pymatgen Structure object to a PhonopyAtoms object.
+        """
+        from pymatgen.io.phonopy import get_phonopy_structure
+        return get_phonopy_structure(structure)
 
     @classmethod
     def boxed_molecule(cls, pseudos, cart_coords, acell=3 * (10,)) -> Structure:

@@ -1,10 +1,11 @@
 """Context managers"""
 from __future__ import annotations
 
-import time
 import signal
+import sys
 
 from contextlib import contextmanager
+from time import perf_counter
 
 
 class Timer:
@@ -15,17 +16,32 @@ class Timer:
 
         with Timer("Timing code section"):
             do_stuff()
-    """
 
-    def __init__(self, description: str):
-        self.description = description
+    or 
+
+        with Timer(header=f"Begin ABINIT", footer="ABINIT GS") as timer:
+            do_stuff()
+    """
+    def __init__(self, footer=None, header=None, file=sys.stdout):
+        self.header = header
+        self.footer = footer
+        self.file = file
 
     def __enter__(self):
-        self.start = time.time()
+        self.time = perf_counter()
+        if self.header is not None:
+            print(self.header, file=self.file)
+        return self
 
-    def __exit__(self, exc_type, value, traceback):
-        self.end = time.time()
-        print(f"{self.description}.\n\tCompleted in {self.end - self.start:.4f} seconds\n")
+    def __str__(self):
+        return self.readout
+
+    def __exit__(self, type, value, traceback):
+        self.time = perf_counter() - self.time
+        self.readout = f'Time: {self.time:.3f} seconds'
+        if self.footer is not None:
+            msg = f'{self.footer} completed in {self.time:.3f} seconds.'
+            print(msg, file=self.file)
 
 
 @contextmanager
