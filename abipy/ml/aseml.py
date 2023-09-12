@@ -1089,7 +1089,7 @@ class _MyMlCalculator:
                 # Change forces only if have invoked store_abi_forstr_atoms
                 if self.correct_forces_algo == CORRALGO.delta:
                     # Apply delta correction to forces.
-                    delta_forces = (abi_forces - ml_forces)
+                    delta_forces = (abi_forces - ml_forces)/2.0
                     forces += delta_forces
                     print(f"{delta_forces=}")
                     #AA: TODO: save the delta in list and call method... 

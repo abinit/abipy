@@ -231,16 +231,16 @@ class RelaxationProfiler:
         ml_opt = self.ml_relax_opt(workdir / "ml_relax")
         
         # Run fully ab-initio relaxation with abinit.
-        #abi_relax = self.abi_relax_atoms(workdir / "abinit_relax")
+        abi_relax = self.abi_relax_atoms(workdir / "abinit_relax")
 
         # Run relaxation with ASE optimizer and Abinit forces.
         if False:
             abiase_opt = self.abi_relax_atoms_with_ase(workdir / f"abiase_relax")
 
         # Compare structures
-        #diff = StructDiff(["INITIAL", "ABINIT_RELAX", self.nn_name + "_RELAX"],
-        #                  [self.initial_atoms, abi_relax.atoms, ml_opt.atoms])
-        #diff.tabulate()
+        diff = StructDiff(["INITIAL", "ABINIT_RELAX", self.nn_name + "_RELAX"],
+                          [self.initial_atoms, abi_relax.atoms, ml_opt.atoms])
+        diff.tabulate()
         #raise RuntimeError()
 
         # Run hybrid relaxation (ML + abinit)
