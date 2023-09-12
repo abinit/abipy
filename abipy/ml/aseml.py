@@ -922,7 +922,7 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
         converged = dyn.run(fmax=fmax, steps=steps)
         t_end = time.time()
         pf('Relaxation completed in %2.4f sec\n' % (t_end - t_start))
-        if not converged: 
+        if not converged:
             raise RuntimeError("ASE relaxation didn't converge")
 
         r1 = AseResults.from_atoms(dyn.atoms)
@@ -1244,7 +1244,7 @@ class CalcBuilder:
                 """Add abi_forces and abi_stress"""
 
             model_name = default_path() if self.model_name is None else self.model_name
-            cls = MyAlignnCalculator if with_delta else AlignnAtomwiseCalculator 
+            cls = MyAlignnCalculator if with_delta else AlignnAtomwiseCalculator
             return cls(path=model_name)
 
         #if self.nn_type == "quip":

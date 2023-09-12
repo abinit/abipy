@@ -1,4 +1,5 @@
 """
+Classes to compute vibrational properties with phonopy and ML potentials.
 
 """
 from __future__ import annotations
@@ -17,7 +18,7 @@ from pymatgen.io.phonopy import get_phonopy_structure
 from abipy.core.structure import Structure
 from abipy.dfpt.ddb import DdbFile
 from abipy.tools.context_managers import Timer
-from abipy.ml.aseml import RX_MODE, CalcBuilder, AseResults, MlBase, get_atoms, relax_atoms, dataframe_from_results_list
+from abipy.ml.aseml import RX_MODE, CalcBuilder, AseResults, MlBase, relax_atoms, dataframe_from_results_list
 try:
     import phonopy
     from phonopy import Phonopy
@@ -67,7 +68,7 @@ def get_phonopy(structure: Structure,
         a = Atoms(symbols=sc.symbols,
                   positions=sc.positions,
                   masses=sc.masses,
-                  cell=sc.cell, 
+                  cell=sc.cell,
                   pbc=True,
                   calculator=calculator)
 
@@ -89,7 +90,7 @@ class MlPhonopyWithDDB(MlBase):
     """
     def __init__(self, distance, asr, dipdip, line_density, qppa,
                  relax_mode, fmax, pressure, steps, optimizer, nn_names,
-                 verbose, workdir, prefix=None, 
+                 verbose, workdir, prefix=None,
                  ddb_filepath=None, supercell=None):
         """
         Args:
@@ -123,12 +124,14 @@ class MlPhonopyWithDDB(MlBase):
         self.optimizer = optimizer
         self.nn_names = list_strings(nn_names)
         self.verbose = verbose
-        
         self.supercell = supercell
+        self.line_density = line_density
+        self.qppa = qppa
+
         self.ddb_filepath = ddb_filepath
 
         with DdbFile(self.ddb_filepath) as ddb:
-            self.initial_atoms = get_atoms(ddb.structure)
+            self.initial_atoms = ddb.structure.to_ase_atoms()
             if self.supercell is None:
                 # Take supercell from the q-mesh used in the DDB
                 self.supercell = np.eye(3) * ddb.guessed_ngqpt
@@ -136,8 +139,7 @@ class MlPhonopyWithDDB(MlBase):
         if self.supercell is None:
             raise ValueError("Supercell must be specified in input!")
 
-        self.line_density = line_density
-        self.qppa = qppa
+
         self.abi_nac_params = {}
 
     def to_string(self, verbose=0):
@@ -162,10 +164,6 @@ class MlPhonopyWithDDB(MlBase):
      nn_names      = {self.nn_names}
      workdir       = {self.workdir}
      verbose       = {self.verbose}
-
-=== ATOMS ===
-
-{self.initial_atoms}
 """
         return s
 
@@ -182,7 +180,7 @@ class MlPhonopyWithDDB(MlBase):
 
             # ab-initio phonons from the DDB.
             with ddb.anaget_phbst_and_phdos_files(
-                        qppa=self.qppa, line_density=self.line_density, 
+                        qppa=self.qppa, line_density=self.line_density,
                         asr=self.asr, dipdip=self.dipdip, verbose=self.verbose) as g:
 
                 phbst_file, phdos_file = g[0], g[1]
@@ -228,7 +226,8 @@ class MlPhonopyWithDDB(MlBase):
                              pressure=self.pressure,
                              steps=self.steps,
                              traj_path=self.get_path(f"{nn_name}_relax.traj", "ASE relax trajectory"),
-                             verbose=self.verbose,
+                             #verbose=self.verbose,
+                             verbose=1,
                             )
 
             relax = relax_atoms(atoms, **relax_kws)
@@ -237,7 +236,8 @@ class MlPhonopyWithDDB(MlBase):
         # Call phonopy to compute phonons with finite difference and ML potential.
         # Include non-analytical term if dipoles are available in the DDB file.
         with Timer(header=f"Calling get_phonopy with {nn_name=}", footer=""):
-            phonon = get_phonopy(atoms, self.supercell, calculator, distance=self.distance, primitive_matrix=None)
+            phonon = get_phonopy(atoms, self.supercell, calculator,
+                                 distance=self.distance, primitive_matrix=None, remove_drift=True)
             if self.abi_nac_params:
                 print("Including dipolar term in phonopy using BECS and eps_inf taken from DDB.")
                 phonon.nac_params = self.abi_nac_params
@@ -250,18 +250,18 @@ class MlPhonopyWithDDB(MlBase):
         from abipy.dfpt.converters import phonopy_to_abinit
         with DdbFile(self.ddb_filepath) as ddb:
             zion = ddb.header["zion"]
-            py_ddb = phonopy_to_abinit(unit_cell=Structure.as_structure(atoms.copy()), 
-                                       supercell_matrix=self.supercell, 
+            py_ddb = phonopy_to_abinit(unit_cell=Structure.as_structure(atoms.copy()),
+                                       supercell_matrix=self.supercell,
                                        out_ddb_path=str(self.workdir / f"{nn_name}_DDB"),
                                        ngqpt=ddb.guessed_ngqpt,
-                                       force_constants=force_constants, 
+                                       force_constants=force_constants,
                                        born=None,
-                                       primitive_matrix=np.eye(3), 
+                                       primitive_matrix=np.eye(3),
                                        verbose=self.verbose,
                                        )
             # Call anaddb to compute ab-initio phonons from the DDB.
             with py_ddb.anaget_phbst_and_phdos_files(
-                        qppa=self.qppa, line_density=self.line_density, 
+                        qppa=self.qppa, line_density=self.line_density,
                         asr=self.asr, dipdip=self.dipdip, verbose=self.verbose) as g:
 
                 phbst_file, phdos_file = g[0], g[1]
@@ -278,7 +278,7 @@ class MlPhonopyWithDDB(MlBase):
 
         plt = phonon.plot_band_structure()
         plt.savefig(workdir / f"phonopy_{nn_name}_phbands.png")
-        if show: plt.show() 
+        if show: plt.show()
         plt.close()
 
         bands_dict = phonon.get_band_structure_dict()
@@ -294,10 +294,10 @@ class MlPhonopyWithDDB(MlBase):
         py_displ_cart = np.reshape(py_displ_cart, (nqpt, 3*natom, 3*natom))
 
         # Build abipy phonon bands from phonopy results.
-        py_phbands = PhononBands(self.abi_phbands.structure, self.abi_phbands.qpoints, py_phfreqs, 
+        py_phbands = PhononBands(self.abi_phbands.structure, self.abi_phbands.qpoints, py_phfreqs,
                                  # FIXME: Use phononopy displacement
-                                 self.abi_phbands.phdispl_cart, 
-                                 non_anal_ph=None, 
+                                 self.abi_phbands.phdispl_cart,
+                                 non_anal_ph=None,
                                  amu=self.abi_phbands.amu,
                                  epsinf=self.abi_phbands.epsinf,
                                  zcart=self.abi_phbands.zcart,
@@ -305,7 +305,7 @@ class MlPhonopyWithDDB(MlBase):
 
         # Compute diff stats.
         mabs_wdiff_ev = np.abs(py_phbands.phfreqs - self.abi_phbands.phfreqs).mean()
-        
+
         ph_plotter = PhononBandsPlotter(key_phbands=[
             (f"phonopy with {nn_name}", py_phbands),
             ("ABINIT DDB", self.abi_phbands),
