@@ -1531,7 +1531,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             if scdims.shape != (3,):
                 raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
 
-            numcells = np.product(scdims)
+            numcells = np.prod(scdims)
             if len(new_structure) != numcells * len(self.structure):
                 errmsg = "Number of atoms in the input structure should be %d * %d but found %d" % (
                     numcells, len(self.structure), len(new_structure))

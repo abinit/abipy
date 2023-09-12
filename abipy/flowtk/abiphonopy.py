@@ -99,7 +99,7 @@ class PhonopyWork(Work):
         phonon.generate_displacements(**displ_kwargs)  # distance=0.01,
 
         # Obtain supercells containing respective displacements (list of Atoms objects).
-        for atoms in phonon.get_supercells_with_displacements():
+        for atoms in phonon.supercells_with_displacements:
             sc_struct = structure_from_atoms(atoms)
             sc_gsinp = gsinp.new_with_structure(sc_struct, scdims=new.scdims)
             sc_gsinp.pop_tolerances()

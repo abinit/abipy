@@ -201,7 +201,7 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="
     ucdata_sbk = EnergyArray(ucdata_sbk, unit).to("Ha")
     fermie = Energy(fermie, unit).to("Ha")
 
-    ucdata_sbk = np.reshape(ucdata_sbk, (nsppol, nband, np.product(ndivs)))
+    ucdata_sbk = np.reshape(ucdata_sbk, (nsppol, nband, np.prod(ndivs)))
 
     close_it = False
     if not hasattr(file, "write"):

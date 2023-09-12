@@ -4,7 +4,6 @@ Script to perform structural relaxations with ML + ABINIT
 """
 from __future__ import annotations
 
-
 import sys
 import os
 import click
@@ -13,7 +12,6 @@ import numpy as np
 from ase.atoms import Atoms
 from ase.build import bulk
 from abipy.core.structure import Structure
-from abipy.flowtk.psrepos import get_repo_from_name
 from abipy.ml.aseml import get_atoms, ase_optimizer_cls, CORRALGO
 from abipy.ml.ml_relax import RelaxationProfiler
 
@@ -70,28 +68,23 @@ def main(filepath, nn_name, corr_algo_str,
     warnings.simplefilter("ignore")
 
     # Get pseudos
-    repo_name = {
-        "PBE": "ONCVPSP-PBE-SR-PDv0.4",
-        "PBEsol": "ONCVPSP-PBEsol-SR-PDv0.4",
-        "LDA": "ONCVPSP-LDA-SR-PDv0.4",
-    }[xc_nane]
-    print(f"Using {repo_name=}")
-    pseudos = get_repo_from_name(repo_name).get_pseudos("standard")
-    #from abipy.flowtk.psrepos import get_repo_from_name get_oncvpsp_pseudos
-    #pseudos = get_oncvpsp_pseudos(xc_name=xc_name, version="0.4")
+    from abipy.flowtk.psrepos import get_oncvpsp_pseudos
+    pseudos = get_oncvpsp_pseudos(xc_name=xc_name, version="0.4")
 
-    # Get atoms
     if os.path.exists(filepath):
+        # Read structure from file.
         structure = Structure.from_file(filepath)
-        if abs(scale_volume - 1.0) > 0.0:
-            print(f"Scaling input volume by {scale_volume=}")
-            #print("before structure:\n", structure)
-            structure = structure.scale_lattice(scale_volume * structure.lattice.volume)
-            #print("after structure:\n", structure)
-        atoms = get_atoms(structure)
-    else:
-        raise ValueError(f"Cannot init Atoms from {filepath=}")
-        #atoms = bulk(filepath)
+
+    elif filepath.startswith("__mp-"):
+        print(f"Fetching structure for mp-id {filepath[2:]} from the materials project database.")
+        structure = Structure.from_mpid(filepath[2:])
+
+    if abs(scale_volume - 1.0) > 0.0:
+        print(f"Scaling input volume by {scale_volume=}")
+        structure = structure.scale_lattice(scale_volume * structure.lattice.volume)
+
+    # Convert to ASE atoms
+    atoms = get_atoms(structure)
 
     if rattle:
         print("Displacing atoms randomly with stdev=", rattle)

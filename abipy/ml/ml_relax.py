@@ -302,6 +302,7 @@ class RelaxationProfiler:
 
 
 if __name__ == "__main__":
+    # Get pseudos
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
     xc_name = "PBE"
     pseudos = get_oncvpsp_pseudos(xc_name=xc_name, version="0.4")
