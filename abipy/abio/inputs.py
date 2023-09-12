@@ -672,6 +672,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             else:
                 runlevel.update([atags.MANY_BODY, atags.SIGMA])
 
+        elif optdriver == 5:
+            # DTE run.
+            runlevel.add(atags.DFPT)
+            runlevel.add(atags.DTE)
+    
         elif optdriver == 99:
             # BSE run
             runlevel.update([atags.MANY_BODY, atags.BSE])
@@ -2113,6 +2118,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         inp = self.deepcopy()
+        # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
+        # Do this as last, so not to interfere with the the generation of the other steps.
+        nval = inp.structure.num_valence_electrons(inp.pseudos)
+        nval -= inp['charge']
+        nband = int(round(nval / 2))
+        inp.set_vars(nband=nband)
+        inp.pop('nbdbuf', None)
 
         if ixc is not None:
             inp.set_vars(ixc=int(ixc))
