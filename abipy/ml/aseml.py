@@ -2,13 +2,14 @@
 Objects to perform ASE calculations with machine-learned potentials.
 """
 from __future__ import annotations
-
+            
 import sys
 import os
 import io
 import time
 import contextlib
 import json
+from monty.json import MontyEncoder
 import pickle
 import warnings
 import dataclasses
@@ -1029,6 +1030,7 @@ class _MyMlCalculator:
         self.__ml_forces_list.append(ml_forces)
         self.__ml_stress_list.append(ml_stress)
         self.reset()
+        #self.__delta_forces_list = []
 
         def fmt_vec3(vec3) -> str:
             return "{:.6e} {:.6e} {:.6e}".format(*vec3)
@@ -1087,8 +1089,14 @@ class _MyMlCalculator:
                 # Change forces only if have invoked store_abi_forstr_atoms
                 if self.correct_forces_algo == CORRALGO.delta:
                     # Apply delta correction to forces.
-                    delta_forces = abi_forces - ml_forces
+                    delta_forces = (abi_forces - ml_forces)
                     forces += delta_forces
+                    print(f"{delta_forces=}")
+                    #AA: TODO: save the delta in list and call method... 
+                    dict ={'delta_forces': delta_forces,}
+                    with open('delta_forces.json', 'a') as outfile:
+                        json.dump(dict, outfile,indent=1,cls=MontyEncoder)
+
                 elif self.correct_forces_algo == CORRALGO.one_point:
                     forces += abi_forces
                 else:

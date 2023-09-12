@@ -50,6 +50,8 @@ def add_workdir_verbose_opts(f):
               type=click.Choice(["m3gnet", "matgl", "chgnet"]), help='ML potential')
 @click.option("-c", "--corr-algo_str", default="delta", show_default=True,
               type=click.Choice(CORRALGO._member_names_), help='Correction algorithm')
+@click.option("-algo","--algorithm", default="old", type=str, show_default=True, help="String used to test algorithms... ")
+
 @add_relax_opts
 @click.option("-k", "--kppa", default=1000, type=float, show_default=True,
               help="Defines the sampling of BZ mesh (k-points per atom)")
@@ -60,10 +62,10 @@ def add_workdir_verbose_opts(f):
               help="XC functional.")
 @click.option("-m","--mpi-runner", default="mpirun", type=str, show_default=True, help="String used to invoke the MPI runner. ")
 @add_workdir_verbose_opts
-def main(filepath, nn_name, corr_algo_str,
+def main(filepath, nn_name, corr_algo_str,algorithm,
          relax_mode, fmax, steps, optimizer,
          kppa, rattle, scale_volume, mpi_nprocs, xc, mpi_runner,
-         workdir, verbose,
+         workdir, verbose
          ):
 
     import warnings
@@ -97,7 +99,7 @@ def main(filepath, nn_name, corr_algo_str,
 
     print("Using corr_algo:", corr_algo_str)
     corr_algo = CORRALGO.from_string(corr_algo_str)
-    prof = RelaxationProfiler(atoms, pseudos, corr_algo, xc, kppa, relax_mode, fmax, mpi_nprocs,
+    prof = RelaxationProfiler(atoms, pseudos, corr_algo,algorithm, xc, kppa, relax_mode, fmax, mpi_nprocs,
                               steps=steps, verbose=verbose, optimizer=optimizer, nn_name=nn_name, mpi_runner=mpi_runner)
     prof.run(workdir=workdir)
     return 0
