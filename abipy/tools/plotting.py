@@ -16,7 +16,7 @@ import pandas as pd
 
 from collections import namedtuple, OrderedDict
 from typing import Any, Callable, Iterator
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
+from pymatgen.util.plotting import add_fig_kwargs
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
@@ -66,6 +66,91 @@ linestyles = OrderedDict(
 ###################
 # Matplotlib tools
 ###################
+
+
+def get_ax_fig_plt(ax=None, **kwargs):
+    """Helper function used in plot functions supporting an optional Axes argument.
+    If ax is None, we build the `matplotlib` figure and create the Axes else
+    we return the current active figure.
+
+    Args:
+        ax (Axes, optional): Axes object. Defaults to None.
+        kwargs: keyword arguments are passed to plt.figure if ax is not None.
+
+      Returns:
+        ax: :class:`Axes` object
+        figure: matplotlib figure
+        plt: matplotlib pyplot module.
+    """
+    import matplotlib.pyplot as plt
+    if ax is None:
+        fig = plt.figure(**kwargs)
+        ax = fig.gca()
+    else:
+        fig = plt.gcf()
+
+    return ax, fig, plt
+
+
+def get_ax3d_fig_plt(ax=None, **kwargs):
+    """Helper function used in plot functions supporting an optional Axes3D
+    argument. If ax is None, we build the `matplotlib` figure and create the
+    Axes3D else we return the current active figure.
+
+    Args:
+        ax (Axes3D, optional): Axes3D object. Defaults to None.
+        kwargs: keyword arguments are passed to plt.figure if ax is not None.
+
+    Returns:
+        tuple[Axes3D, Figure]: matplotlib Axes3D and corresponding figure objects
+    """
+    import matplotlib.pyplot as plt
+    if ax is None:
+        fig = plt.figure(**kwargs)
+        ax = fig.add_subplot(projection="3d")
+    else:
+        fig = plt.gcf()
+
+    return ax, fig, plt
+
+
+def get_axarray_fig_plt(
+    ax_array, nrows=1, ncols=1, sharex=False, sharey=False, squeeze=True, subplot_kw=None, gridspec_kw=None, **fig_kw
+):
+    """Helper function used in plot functions that accept an optional array of Axes
+    as argument. If ax_array is None, we build the `matplotlib` figure and
+    create the array of Axes by calling plt.subplots else we return the
+    current active figure.
+
+    Returns:
+        ax: Array of Axes objects
+        figure: matplotlib figure
+        plt: matplotlib pyplot module.
+    """
+    import matplotlib.pyplot as plt
+
+    if ax_array is None:
+        fig, ax_array = plt.subplots(
+            nrows=nrows,
+            ncols=ncols,
+            sharex=sharex,
+            sharey=sharey,
+            squeeze=squeeze,
+            subplot_kw=subplot_kw,
+            gridspec_kw=gridspec_kw,
+            **fig_kw,
+        )
+    else:
+        fig = plt.gcf()
+        ax_array = np.reshape(np.array(ax_array), (nrows, ncols))
+        if squeeze:
+            if ax_array.size == 1:
+                ax_array = ax_array[0]
+            elif any(s == 1 for s in ax_array.shape):
+                ax_array = ax_array.ravel()
+
+    return ax_array, fig, plt
+
 
 def is_mpl_figure(obj: Any) -> bool:
     """Return True if obj is a matplotlib Figure."""

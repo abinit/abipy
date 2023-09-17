@@ -13,6 +13,7 @@ import panel.widgets as pnw
 from monty.termcolor import cprint
 from monty.string import list_strings
 from abipy.panels.core import AbipyParameterized, depends_on_btn_click, mpl, dfc, ButtonContext, Loading
+from abipy.tools.numtools import build_mesh
 from abipy.ppcodes.ppgen import OncvGenerator
 #from abipy.ppcodes.oncv_parser import OncvParser
 
@@ -481,26 +482,6 @@ def run_psgen(psgen: OncvGenerator, data: dict) -> dict:
     data.update(**d)
     return data
 
-
-
-def build_mesh(x0: float, num: int, step: float, direction: str) -> list:
-    """
-    Generate a linear mesh of step `step` that is centered on x0 if
-    directions == "centered" or a mesh that starts/ends at x0 if direction is `>`/`<`.
-    """
-
-    if direction == "centered":
-        start = x0 - num * step
-        return [start + i * step for i in range(2 * num + 1)]
-    elif direction in (">", "<"):
-        start = x0
-        if direction == "<": step = -abs(step)
-        return sorted([start + i * step for i in range(num)])
-    else:
-        raise ValueError(f"Invalid direction: `{direction}`")
-
-
-
 class OncvGui(AbipyParameterized):
 
     calc_type = param.ObjectSelector(default="scalar-relativistic",
@@ -813,7 +794,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             i0, qcut0 = oncv_input.find_lparam(l, "qcut")
 
             # Define list of qc to be tested and build list of OncvGenerator.
-            qcut_values = build_mesh(qcut0, self.qcut_num, self.qcut_step, self.qcut_dir)
+            qcut_values, _ = build_mesh(qcut0, self.qcut_num, self.qcut_step, self.qcut_dir)
             psgens = []
 
             try:
@@ -881,7 +862,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             # Define list of qc to be tested and build list of OncvGenerator.
             i0, debl0 = oncv_input.find_lparam(l, "debl")
-            debl_values = build_mesh(debl0, self.debl_num, self.debl_step, self.debl_dir)
+            debl_values, _ = build_mesh(debl0, self.debl_num, self.debl_step, self.debl_dir)
             psgens = []
 
             try:
@@ -922,7 +903,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             # Define list of qc to be tested and build list of OncvGenerator.
             rc5 = oncv_input.rc5
-            rc5_values = build_mesh(rc5, self.rc5_num, self.rc5_step, self.rc5_dir)
+            rc5_values, _ = build_mesh(rc5, self.rc5_num, self.rc5_step, self.rc5_dir)
             psgens = []
 
             try:
@@ -963,7 +944,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             # Define list of qc to be tested and build list of OncvGenerator.
             dvloc0 = oncv_input.dvloc0
-            dvloc_values = build_mesh(dvloc0, self.dvloc0_num, self.dvloc0_step, self.dvloc0_dir)
+            dvloc_values, _ = build_mesh(dvloc0, self.dvloc0_num, self.dvloc0_step, self.dvloc0_dir)
             psgens = []
 
             try:
@@ -1006,7 +987,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             # Define list of qc to be tested and build list of OncvGenerator.
             i0, rc0 = oncv_input.find_lparam(l, "rc")
-            rc_values = build_mesh(rc0, self.rc_num, self.rc_step, self.rc_dir)
+            rc_values, _ = build_mesh(rc0, self.rc_num, self.rc_step, self.rc_dir)
             psgens = []
 
             try:
@@ -1051,8 +1032,8 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             rcfact0 =  oncv_input.rcfact
 
             # Define list of values to be tested and build list of OncvGenerator.
-            fcfact_values = build_mesh(fcfact0, self.fcfact_num, self.fcfact_step, self.fcfact_dir)
-            rcfact_values = build_mesh(rcfact0, self.rcfact_num, self.rcfact_step, self.rcfact_dir)
+            fcfact_values, _ = build_mesh(fcfact0, self.fcfact_num, self.fcfact_step, self.fcfact_dir)
+            rcfact_values, _ = build_mesh(rcfact0, self.rcfact_num, self.rcfact_step, self.rcfact_dir)
 
             psgens = []
             tasks = []
@@ -1141,11 +1122,11 @@ The present values of rc_l are: {rc_l}
 
             # Define list of qc to be tested and build list of OncvGenerator.
             i0, rc0 = oncv_input.find_lparam(l, "rc")
-            rc_values = build_mesh(rc0, self.rc_num, self.rc_step, self.rc_dir)
+            rc_values, _ = build_mesh(rc0, self.rc_num, self.rc_step, self.rc_dir)
 
             # Define list of qc to be tested and build list of OncvGenerator.
             i0, qcut0 = oncv_input.find_lparam(l, "qcut")
-            qcut_values = build_mesh(qcut0, self.qcut_num, self.qcut_step, self.qcut_dir)
+            qcut_values, _ = build_mesh(qcut0, self.qcut_num, self.qcut_step, self.qcut_dir)
 
             def rq_prod():
                 return itertools.product(rc_values, qcut_values)

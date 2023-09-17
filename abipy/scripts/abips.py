@@ -329,7 +329,7 @@ def main():
         print(exc)
         show_examples_and_exit(error_code=1)
 
-    cli.set_loglevel(options.loglevel)
+    #cli.set_loglevel(options.loglevel)
 
     # Use seaborn settings.
     if hasattr(options, "seaborn") and options.seaborn:

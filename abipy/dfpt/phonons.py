@@ -12,7 +12,7 @@ import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
-from typing import Any, List
+from typing import Any
 from monty.string import is_string, list_strings, marquee
 from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
@@ -4230,12 +4230,12 @@ class PhononBandsPlotter(NotebookWriter):
         return self._phdoses_dict
 
     @property
-    def phbands_list(self) -> List[PhononBands]:
+    def phbands_list(self) -> list[PhononBands]:
         """"List of |PhononBands| objects."""
         return list(self._bands_dict.values())
 
     @property
-    def phdoses_list(self) -> List[PhononDos]:
+    def phdoses_list(self) -> list[PhononDos]:
         """"List of |PhononDos|."""
         return list(self._phdoses_dict.values())
 
@@ -4324,7 +4324,7 @@ class PhononBandsPlotter(NotebookWriter):
         i = -1
         nqpt_list = [phbands.nqpt for phbands in self._bands_dict.values()]
         if any(nq != nqpt_list[0] for nq in nqpt_list):
-            cprint("WARNING combiblot: Bands have different number of k-points:\n%s" % str(nqpt_list), "yellow")
+            cprint("WARNING combiplot: Bands have different number of k-points:\n%s" % str(nqpt_list), "yellow")
 
         for (label, phbands), lineopt in zip(self._bands_dict.items(), self.iter_lineopt()):
             i += 1
@@ -4888,7 +4888,7 @@ class PhononDosPlotter(NotebookWriter):
             self.add_phdos(label, phdos, phdos_kwargs=phdos_kwargs)
 
     @property
-    def phdos_list(self) -> List[PhononDos]:
+    def phdos_list(self) -> list[PhononDos]:
         """List of phonon DOSes"""
         return list(self._phdoses_dict.values())
 

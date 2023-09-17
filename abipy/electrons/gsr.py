@@ -402,8 +402,7 @@ class GsrReader(ElectronsReader):
     """
     def read_cart_forces(self, unit="eV ang^-1"):
         """
-        Read and return a |numpy-array| with the cartesian forces in unit ``unit``.
-        Shape (natom, 3)
+        Read and return a |numpy-array| with the cartesian forces in unit ``unit``. Shape (natom, 3)
         """
         return ArrayWithUnit(self.read_value("cartesian_forces"), "Ha bohr^-1").to(unit)
 

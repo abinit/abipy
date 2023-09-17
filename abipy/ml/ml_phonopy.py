@@ -1,6 +1,5 @@
 """
 Classes to compute vibrational properties with phonopy and ML potentials.
-
 """
 from __future__ import annotations
 
@@ -8,9 +7,8 @@ import numpy as np
 import json
 import abipy.core.abinit_units as abu
 
-#from monty.json import MSONable, MontyDecoder
 from monty.dev import requires
-from monty.string import marquee, list_strings
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from ase.calculators.calculator import Calculator
 from ase.atoms import Atoms
@@ -32,6 +30,7 @@ except ImportError:
 def cprint_traceback() -> None:
     """Returns a string with the traceback."""
     import traceback
+    from monty.termcolor import cprint
     cprint(traceback.format_exc(), color="red")
 
 
@@ -313,7 +312,7 @@ class MlPhonopyWithDDB(MlBase):
         mae_str = f"MAE {1000 * mabs_wdiff_ev:.3f} meV"
         print(mae_str)
         latex_formula = self.abi_phbands.structure.latex_formula
-        ph_plotter.combiplot(show=show, title=f"{latex_formula}: {mae_str}",
+        ph_plotter.combiplot(show=show, title=f"{latex_formula}: {mae_str}", units="meV",
                              savefig=str(workdir / f"combiplot_{nn_name}.png"))
 
         data = dict(

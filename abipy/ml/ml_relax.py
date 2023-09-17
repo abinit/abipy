@@ -160,6 +160,7 @@ class RelaxationProfiler:
 
         with HistFile(abinit.directory / "abinito_HIST.nc") as hist:
             nsteps = hist.num_steps
+            energy = float(hist.final_energy)
             atoms = get_atoms(hist.final_structure)
         print('ABINIT relaxation completed in %.2f sec after nsteps: %d\n' % (timer.time, nsteps))
 
@@ -167,6 +168,7 @@ class RelaxationProfiler:
                 atoms=atoms,
                 fmax=np.sqrt((forces ** 2).sum(axis=1).max()),
                 nsteps=nsteps,
+                energy=energy,
                )
 
     def abi_relax_atoms_with_ase(self, directory, header="Begin ABINIT+ASE relaxation"):
@@ -184,7 +186,7 @@ class RelaxationProfiler:
         with Timer() as timer:
             opt.run(fmax=self.fmax, steps=self.steps)
             if not opt.converged():
-                raise RuntimeError("Abinit+ASE opt didn't converge!")
+                raise RuntimeError("Abinit+ASE optimizer didn't converge!")
         print('%s relaxation completed in %.2f sec after nsteps: %d\n' % (self.nn_name, timer.time, opt.nsteps))
         return opt
 
@@ -196,16 +198,14 @@ class RelaxationProfiler:
             abinit = Abinit(profile=self.abinit_profile, directory=directory, **self.gs_kwargs)
             forces = abinit.get_forces(atoms=atoms)
             stress = abinit.get_stress(atoms=atoms)
-            #AA
             energy = abinit.get_potential_energy(atoms=atoms)
             print('ABINIT GS completed in %.2f sec\n' % (timer.time))
 
         return dict2namedtuple(abinit=abinit, forces=forces,
                                stress=voigt_6_to_full_3x3_stress(stress),
                                fmax=np.sqrt((forces ** 2).sum(axis=1).max()),
-                               energy=energy 
+                               energy=energy,
                                )
-
 
     def run(self, workdir=None, prefix=None):
         """
@@ -215,7 +215,7 @@ class RelaxationProfiler:
 
         # Run relaxation with ML potential.
         ml_opt = self.ml_relax_opt(workdir / "ml_relax")
-        
+
         # Run fully ab-initio relaxation with abinit.
         abi_relax = self.abi_relax_atoms(workdir / "abinit_relax")
 
@@ -232,8 +232,6 @@ class RelaxationProfiler:
         ml_calc = CalcBuilder(self.nn_name).get_calculator()
         ml_calc.set_correct_forces_algo(self.corr_algo)
         ml_calc.set_correct_stress_algo(self.corr_algo)
-        #ml_calc.set_correct_energy_algo(self.corr_algo)
-        
 
         print(f"\nBegin ABINIT + {self.nn_name} hybrid relaxation")
         if self.xc_name == "PBE":
@@ -246,8 +244,8 @@ class RelaxationProfiler:
             atoms = self.initial_atoms.copy()
 
         count, abiml_nsteps, ml_nsteps = 0, 0, 0
-        
-        count_max = 150 #AA: just playing with for testing delta_force convergance 
+
+        count_max = 150 #AA: just playing with for testing delta_force convergance
         t_start = time.time()
         while count <= count_max:
             count += 1
@@ -258,11 +256,11 @@ class RelaxationProfiler:
             print("Iteration:", count, "abi_fmax:", gs.fmax, ", fmax:", self.fmax)
             print("abinit_stress_voigt", gs.stress_voigt)
             #print_atoms(atoms, cart_forces=gs.forces)
-            print("abinit_energy", gs.energy )   
+            print("abinit_energy", gs.energy )
             # Store ab-initio forces/stresses in the ML calculator and attach it to atoms.
             ml_calc.store_abi_forstr_atoms(gs.forces, gs.stress, atoms)
             atoms.calc = ml_calc
-            
+
             opt_kws = dict(
                 trajectory=str(gs.abinit.directory / f"opt.traj"),
                 #logfile=str(abinit.directory / f"log_{count}"),
@@ -271,31 +269,22 @@ class RelaxationProfiler:
             opt.run(fmax=self.fmax, steps=self.steps)
             opt_converged = opt.converged()
             ml_nsteps += opt.nsteps
-            
-            #AA
-            # Sanite atoms at each step to avoid possibile issues when relaxing with Abinit.
-            #atoms = abisanitize_atoms(opt.atoms.copy())
+
             atoms = opt.atoms.copy()
 
             final_mlabi_relax = None
-            if self.algorithm =='old':
-                if opt_converged and opt.nsteps <= 1:
-                    #atoms = abisanitize_atoms(opt.atoms.copy())
-                    final_mlabi_relax = self.abi_relax_atoms(directory=workdir / "abiml_final_relax",
+            if self.algorithm =='old': do_final_relax = opt_converged and opt.nsteps <= 1
+            if self.algorithm == 'one-GS': do_final_relax = opt_converged
+
+            if do_final_relax:
+                # Sanitize atoms at each step to avoid possibile issues when relaxing with Abinit.
+                #atoms = abisanitize_atoms(opt.atoms.copy())
+                final_mlabi_relax = self.abi_relax_atoms(directory=workdir / "abiml_final_relax",
                                                          atoms=atoms,
                                                          header="Performing final structural relaxation with ABINIT",
                                                          )
-                    abiml_nsteps += final_mlabi_relax.nsteps
-                    break
-            if self.algorithm == 'one-GS':
-                if opt_converged :
-                    #atoms = abisanitize_atoms(opt.atoms.copy())
-                    final_mlabi_relax = self.abi_relax_atoms(directory=workdir / "abiml_final_relax",
-                                                         atoms=atoms,
-                                                         header="Performing final structural relaxation with ABINIT",
-                                                         )
-                    abiml_nsteps += final_mlabi_relax.nsteps
-                    break
+                abiml_nsteps += final_mlabi_relax.nsteps
+                break
 
         print(f'ABINIT + {self.nn_name} relaxation completed in {time.time() - t_start :.2f} sec\n')
         #print_atoms(atoms, title="Atoms after ABINIT + ML relaxation:")
@@ -335,5 +324,8 @@ if __name__ == "__main__":
     atoms = bulk('Si')
     atoms.rattle(stdev=0.1, seed=42)
     kppa = 200
-    prof = RelaxationProfiler(atoms, pseudos, xc_name, kppa, relax_mode="ions", fmax=0.001, mpi_nprocs=2, verbose=0)
+    corr_algo = CORRALGO.from_string("delta")
+    algorithm = "öld"
+    prof = RelaxationProfiler(atoms, pseudos, corr_algo, algorithm, xc_name, kppa,
+                              relax_mode="ions", fmax=0.001, mpi_nprocs=2, verbose=1)
     prof.run()

@@ -381,19 +381,21 @@ class Structure(pmg_Structure, NotebookWriter):
         import pymatgen.io.ase as aio
         return aio.AseAtomsAdaptor.get_structure(atoms, cls=cls)
 
-    def to_ase_atoms(self):
+    def to_ase_atoms(self, calc=None):
         """
-        Returns ASE Atoms object from structure.
+        Returns ASE Atoms object from structure and attach calculator calc.
         """
         import pymatgen.io.ase as aio
-        return aio.AseAtomsAdaptor.get_atoms(self)
+        atoms = aio.AseAtomsAdaptor.get_atoms(self)
+        if calc is not None: atoms.calc = calc
+        return atoms
 
     def get_phonopy_atoms(self):
         """
         Convert a pymatgen Structure object to a PhonopyAtoms object.
         """
         from pymatgen.io.phonopy import get_phonopy_structure
-        return get_phonopy_structure(structure)
+        return get_phonopy_structure(self)
 
     @classmethod
     def boxed_molecule(cls, pseudos, cart_coords, acell=3 * (10,)) -> Structure:

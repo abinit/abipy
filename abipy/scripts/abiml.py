@@ -132,8 +132,8 @@ def _get_nn_names(nn_names: list[str]) -> list[str]:
     Additional pre-processing of nn-names option.
 
     --nn-names all                   --> return all NN names.
-    --nn-names all-alignn-m3gnet      --> return all NN names except alignn and m3gnet
-    --nn-names !chgnet               --> return all NN names except chgnet.
+    --nn-names all-alignn-m3gnet     --> return all NN names except alignn and m3gnet
+    --nn-names chgnet-               --> return all NN names except chgnet.
     """
     if "all" in nn_names:
         # Return all possibilities.
@@ -144,10 +144,9 @@ def _get_nn_names(nn_names: list[str]) -> list[str]:
         skip_names = nn_names[0].replace("all-", "").split("-")
         return [s for s in aseml.CalcBuilder.ALL_NN_TYPES if s not in skip_names]
 
-    if any(n.startswith("!") for n in nn_names):
-        assert len(nn_names) == 1
-        skip = nn_names[0][1:]
-        return [s for s in aseml.CalcBuilder.ALL_NN_TYPES if s != skip]
+    if any(n.endswith("-") for n in nn_names):
+        skip_names = [n[:-2] for n in nn_names if n.endswith("-")]
+        return [s for s in aseml.CalcBuilder.ALL_NN_TYPES if s not in skip_names]
 
     return nn_names
 
@@ -358,17 +357,17 @@ def mneb(ctx, filepaths, nn_name,
 @click.pass_context
 @click.argument("filepath", type=str)
 @add_nn_names_opt
-@click.option("--supercell", "-s", nargs=3, type=int, default=(-1, -1, -1), show_default=True, help="Supercell")
-@click.option("--distance", "-d", type=float, show_default=True, default=0.01, help="displacement distance in Ang.")
+@click.option("--supercell", "-s", nargs=3, type=int, default=(-1, -1, -1), show_default=True, help="Supercell. If < 0, supercell is taken from DDB ngqpt.")
+@click.option("--distance", "-d", type=float, show_default=True, default=0.01, help="Displacement distance in Ang.")
 @click.option('--asr', type=int, default=2, show_default=True, help="Restore the acoustic sum rule on the interatomic force constants.")
-@click.option('--dipdip', type=int, default=1, show_default=True, help="Treatment of dipole-dipole term.")
-@click.option('--line-density', "-ld", default=20, type=float, show_default=True, help="Line density to generate the q-path for bands")
-@click.option('--qppa', "-qppa", default=None, type=float, show_default=True, help="q-points per atom to generate the q-mesh for DOS")
+@click.option('--dipdip', type=int, default=1, show_default=True, help="Treatment of dipole-dipole interaction.")
+@click.option('--line-density', "-ld", default=20, type=float, show_default=True, help="Line density to generate the q-path for PH bands.")
+@click.option('--qppa', "-qppa", default=None, type=float, show_default=True, help="q-points per atom to generate the q-mesh for PH DOS.")
 @add_relax_opts
 @add_workdir_verbose_opts
-def phddb(ctx, filepath, nn_names, 
+def phddb(ctx, filepath, nn_names,
           supercell, distance, asr, dipdip, line_density, qppa,
-          relax_mode, fmax, pressure, steps, optimizer, 
+          relax_mode, fmax, pressure, steps, optimizer,
           workdir, verbose):
     """
     Use phonopy and ML potential to compute phonons and compare with DDB.
@@ -376,9 +375,9 @@ def phddb(ctx, filepath, nn_names,
     Usage example:
 
     \b
-        abiml.py.py phddb DDB_FILE --distance 0.03 --relax --dipdip 0
+        abiml.py.py phddb DDB_FILE --distance 0.03 --dipdip 0 --supercell 2 2 2
 
-    where `DDB_FILE` is an Abiit DDB file 
+    where `DDB_FILE` is an Abinit DDB file
     or a string such as __mp-134 to fetch the DDB from the MP database.
 
     To specify the list of ML potential, use e.g.:
@@ -396,11 +395,15 @@ def phddb(ctx, filepath, nn_names,
             filepath = ddb.filepath
 
     from abipy.ml.ml_phonopy import MlPhonopyWithDDB
-    if any(s <= 0 for s in supercell): supercell = None
+    if any(s <= 0 for s in supercell):
+        supercell = None
+    else:
+        supercell = np.eye(3) * np.array(supercell)
+
     nn_names = _get_nn_names(nn_names)
     ml_phddb = MlPhonopyWithDDB(distance, asr, dipdip, line_density, qppa,
                                 relax_mode, fmax, pressure, steps, optimizer, nn_names,
-                                verbose, workdir, prefix="_abiml_phddb_", 
+                                verbose, workdir, prefix="_abiml_phddb_",
                                 ddb_filepath=filepath, supercell=supercell,
                                 )
     print(ml_phddb.to_string(verbose=verbose))
@@ -535,3 +538,4 @@ def compare(ctx, filepaths,
 
 if __name__ == "__main__":
     sys.exit(main())
+

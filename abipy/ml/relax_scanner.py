@@ -16,7 +16,6 @@ import pandas as pd
 
 from pathlib import Path
 from multiprocessing import Pool
-#from typing import Any
 from monty.json import MontyEncoder
 from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
@@ -26,6 +25,7 @@ from ase.io.vasp import write_vasp # write_vasp_xdatcar,
 from abipy.core import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt,
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, ShellScript
+from abipy.tools.serialization import HasPickleIO
 from abipy.tools.printing import print_dataframe
 from abipy.ml.aseml import (relax_atoms, get_atoms, as_calculator, ase_optimizer_cls, RX_MODE, fix_atoms,
                             MlNeb, MlGsList, CalcBuilder, make_ase_neb, nprocs_for_ntasks)
@@ -98,7 +98,7 @@ class Pair:
         return dataclasses.asdict(self)
 
 
-class RelaxScanner:
+class RelaxScanner(HasPickleIO):
     """
     This object employs an ASE calculator to perform many
     structural relaxations in which the initial configurations are obtained
@@ -106,14 +106,6 @@ class RelaxScanner:
     The relaxed configurations are then compared with each other and only
     the unique solutions (Entry objects) are kept and stored to disk in pickle format.
     """
-
-    @classmethod
-    def pickle_load(cls, workdir) -> RelaxScanner:
-        """
-        Reconstruct the object from a pickle file located in workdir.
-        """
-        with open(Path(workdir) / f"{cls.__name__}.pickle", "rb") as fh:
-            return pickle.load(fh)
 
     def __init__(self, structure, isite, mesh, nn_name,
                  relax_mode: str = "ions", fmax: float = 1e-3, steps=500,
@@ -162,8 +154,7 @@ class RelaxScanner:
         self.workdir = workdir_with_prefix(workdir, prefix)
 
         # Write pickle file for object persistence.
-        with open(self.workdir / f"{self.__class__.__name__}.pickle", "wb") as fh:
-            pickle.dump(self, fh)
+        self.pickle_dump(self.workdir)
 
     def __str__(self) -> str:
         return self.to_string()

@@ -41,7 +41,6 @@ from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile, AboRo
 from abipy.tools.printing import print_dataframe
 from abipy.tools.notebooks import print_source, print_doc
 from abipy.tools.serialization import mjson_load, mjson_loads, mjson_write
-from abipy.tools.plotting import get_ax_fig_plt, get_axarray_fig_plt, get_ax3d_fig_plt
 from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
     dataframe_from_ebands, EdosFile)

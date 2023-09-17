@@ -2,14 +2,13 @@
 Objects to perform ASE calculations with machine-learned potentials.
 """
 from __future__ import annotations
-            
+
 import sys
 import os
 import io
 import time
 import contextlib
 import json
-from monty.json import MontyEncoder
 import pickle
 import warnings
 import dataclasses
@@ -45,6 +44,7 @@ from ase.md.nvtberendsen import NVTBerendsen
 from abipy.core import Structure
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
 from abipy.tools.printing import print_dataframe
+from abipy.tools.serialization import HasPickleIO
 from abipy.abio.enums import StrEnum, EnumMixin
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
     set_visible, set_ax_xylabels)
@@ -1093,7 +1093,7 @@ class _MyCalculator:
                     if self.__verbose > 1: print("Updating forces with delta_forces:\n", abi_forces)
                     forces += delta_forces
                     print(f"{delta_forces=}")
-                    #AA: TODO: save the delta in list and call method... 
+                    #AA: TODO: save the delta in list and call method...
                     dict ={'delta_forces': delta_forces,}
                     with open('delta_forces.json', 'a') as outfile:
                         json.dump(dict, outfile,indent=1,cls=MontyEncoder)
@@ -1181,12 +1181,13 @@ class CalcBuilder:
     def reset(self) -> None:
         self._model = None
 
-    def get_calculator(self, with_delta=True, reset=False) -> Calculator:
+    def get_calculator(self, with_delta: bool = True, reset: bool = False) -> Calculator:
         """
         Return an ASE calculator with ML potential.
 
         Args:
-            reset: True if the internal cache should be reset.
+            with_delta: False if the calculator should not include delta corrections.
+            reset: True if the internal cache for the mode should be reset.
         """
         if reset: self.reset()
 
@@ -1274,19 +1275,12 @@ class CalcBuilder:
         raise ValueError(f"Invalid {self.nn_type=}")
 
 
-class MlBase:
+class MlBase(HasPickleIO):
     """
     Base class for all Ml subclasses providing helper methods to
     perform typical tasks such as writing files in the workdir
     and object persistence via pickle.
     """
-    @classmethod
-    def pickle_load(cls, workdir):
-        """
-        Reconstruct the object from a pickle file located in workdir.
-        """
-        with open(Path(workdir) / f"{cls.__name__}.pickle", "rb") as fh:
-            return pickle.load(fh)
 
     def __init__(self, workdir, prefix=None):
         """
@@ -1295,11 +1289,6 @@ class MlBase:
         """
         self.workdir = workdir_with_prefix(workdir, prefix)
         self.basename_info = []
-
-    def pickle_dump(self):
-        """Write pickle file for object persistence."""
-        with open(self.workdir / f"{self.__class__.__name__}.pickle", "wb") as fh:
-            pickle.dump(self, fh)
 
     def __str__(self):
         # Delegated to the subclass.
