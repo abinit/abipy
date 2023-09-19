@@ -196,13 +196,9 @@ class LumiWork(Work):
 
 class LumiWork_relaxations(Work):
     """
-    This Work implements Fig 1 of https://arxiv.org/abs/2010.00423.
+    This Work implements the ground and excited state relaxations only.
 
-    Client code is responsible for the preparation of the supercell and
-    of the GS SCF input files with the fixed electronic occupations associated to the two configurations.
-    By default, the work computes the two relaxed structures and the four total energies
-    corresponding to the Ag, Ag*, Ae*, Ae configurations. Optionally, one can activate the computation of
-    four electronic band structures. See docstring of from_scf_inputs for further info.
+    The relaxations run simultaneously. No task creation at run-time. 
     """
 
     @classmethod
@@ -215,16 +211,6 @@ class LumiWork_relaxations(Work):
                 when generating input files for ground state structural relaxations.
             relax_kwargs_ex: Dictonary with input variables to be added to ex_scf_inp
                 when generating input files for excited state structural relaxations.
-            ndivsm: Activates the computation of band structure if different from zero.
-                if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
-                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
-                in the segment is proportional to its length. Typical value: -20.
-                This option is the recommended one if the k-path contains two high symmetry k-points that are very close
-                as ndivsm > 0 may produce a very large number of wavevectors.
-            nb_extra: Number of extra bands added to the input nband when computing band structures (ndivsm != 0).
-            tolwfr: Tolerance of the residuals used for the NSCF band structure calculations.
-            four_points : if True, compute the two relaxations and the four points energies.
-                If false, only the two relaxations.
             meta : dict corresponding to the metadata of a lumiwork (supercell size, dopant type,...)
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
@@ -272,7 +258,8 @@ class LumiWork_relaxations(Work):
 
 class LumiWorkFromRelax(Work):
     """
-    Same as LumiWork, except that the two relaxed structures (in ground and excited state) are given as input.
+    Same as LumiWork, without the relaxations. Typically used after a LumiWork_relaxations work.
+    The two relaxed structures (in ground and excited state) are given as input. No creation at run-time
 
     """
 
