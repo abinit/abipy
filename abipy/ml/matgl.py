@@ -2,9 +2,9 @@
 """
 from __future__ import annotations
 
-import os
-import shutil
-import warnings
+#import os
+#import shutil
+#import warnings
 import numpy as np
 import pytorch_lightning as pl
 
@@ -17,6 +17,7 @@ from matgl.ext.pymatgen import Structure2Graph, get_element_list
 from matgl.graph.data import M3GNetDataset, MGLDataLoader, collate_fn_efs
 from matgl.models import M3GNet
 from matgl.utils.training import PotentialLightningModule
+from monty.string import list_strings
 from abipy.ml.tools import get_structures_labels_from_files
 
 
@@ -25,15 +26,15 @@ class MatglSystem:
     See also: https://github.com/materialsvirtuallab/matgl/blob/main/examples/Training%20a%20M3GNet%20Potential%20with%20PyTorch%20Lightning.ipynb
     """
 
-    def __init__(self, filepaths, verbose):
-     .  self.filepaths = filepaths
+    def __init__(self, filepaths, workdir, verbose):
+        self.filepaths = list_strings(filepaths)
+        self.workdir = workdir
         self.verbose = verbose
 
     def train(self):
-        """
-        https://github.com/materialsvirtuallab/matgl/blob/main/examples/Training%20a%20M3GNet%20Potential%20with%20PyTorch%20Lightning.ipynb
-        """
         structures, labels = get_structures_labels_from_files(self.filepaths)
+        magmoms = labels.pop("magmoms", None)
+        #print(labels)
 
         element_types = get_element_list(structures)
         converter = Structure2Graph(element_types=element_types, cutoff=5.0)

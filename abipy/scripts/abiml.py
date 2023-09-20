@@ -644,18 +644,17 @@ def train(ctx, filepaths,
     """
     if nn_name == "matgl":
         from abipy.ml.matgl import MatglSystem
-        s = MatglSystem(filepaths, verbose)
-        s.train()
-        return 0
+        s = MatglSystem(filepaths, workdir, verbose)
 
-    if nn_name == "chgnet":
+    elif nn_name == "chgnet":
         from abipy.ml.chgnet import ChgnetSystem
-        s = ChgnetSystem(filepaths, verbose)
-        s.train()
-        return 0
+        s = ChgnetSystem(filepaths, workdir, verbose)
 
-    raise ValueError(f"Unsupported {nn_name=}")
+    else:
+        raise ValueError(f"Unsupported {nn_name=}")
 
+    s.train()
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -914,10 +914,10 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
                 pf("\t", c)
             pf("")
 
+        r0 = AseResults.from_atoms(atoms)
+
         dyn = opt_class(ExpCellFilter(atoms, scalar_pressure=pressure), **opt_kwargs) if relax_mode == RX_MODE.cell else \
               opt_class(atoms, **opt_kwargs)
-
-        r0 = AseResults.from_atoms(dyn.atoms)
 
         t_start = time.time()
         converged = dyn.run(fmax=fmax, steps=steps)
@@ -926,7 +926,7 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
         if not converged:
             raise RuntimeError("ASE relaxation didn't converge")
 
-        r1 = AseResults.from_atoms(dyn.atoms)
+        r1 = AseResults.from_atoms(atoms)
 
     return AseRelaxation(dyn, r0, r1, traj_path)
 
@@ -2331,18 +2331,7 @@ class MlCompareWithAbinitio(_MlNebBase):
 
         elif fnmatch(basename, "vasprun*.xml*"):
             # Assume Vasprun file with structural relaxation or MD results.
-            def get_energy_step(step: dict) -> float:
-                """Copied from final_energy property in vasp.outputs."""
-                final_istep = step
-                total_energy = final_istep["e_0_energy"]
-                # Addresses a bug in vasprun.xml. See https://www.vasp.at/forum/viewtopic.php?f=3&t=16942
-                final_estep = final_istep["electronic_steps"][-1]
-                electronic_energy_diff = final_estep["e_0_energy"] - final_estep["e_fr_energy"]
-                total_energy_bugfix = np.round(electronic_energy_diff + final_istep["e_fr_energy"], 8)
-                if np.abs(total_energy - total_energy_bugfix) > 1e-7:
-                    return total_energy_bugfix
-                return total_energy
-
+            from abipy.ml.tools import get_energy_step
             from pymatgen.io.vasp.outputs import Vasprun
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")

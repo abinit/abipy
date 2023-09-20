@@ -27,11 +27,11 @@ except ImportError:
 
 
 
-def cprint_traceback() -> None:
-    """Returns a string with the traceback."""
+def cprint_traceback(color="red") -> None:
+    """Print traceback."""
     import traceback
     from monty.termcolor import cprint
-    cprint(traceback.format_exc(), color="red")
+    cprint(traceback.format_exc(), color=color)
 
 
 @requires(phonopy, "phonopy should be installed to calculate phonons")
@@ -40,16 +40,16 @@ def get_phonopy(structure: Structure,
                 calculator: Calculator,
                 distance=0.01,
                 primitive_matrix=None,
-                remove_drift=False,
+                remove_drift=True,
                 ) -> Phonopy:
     """
     Args:
-        structure:
-        supercell_matrix
-        calculator:
-        distance:
+        structure: Structure object.
+        supercell_matrix: Supercell matrix.
+        calculator: ASE calculator to be attached to the atoms.
+        distance: Distance of finite displacements in Angstrom.
         primitive_matrix
-        remove_drift:
+        remove_drift: True if the drift in the forces should be removed
 
     Based on a similar implementation available at: https://github.com/modl-uclouvain/randomcarbon/blob/main/randomcarbon/run/phonon.py
     """
@@ -94,7 +94,7 @@ class MlPhonopyWithDDB(MlBase):
         """
         Args:
             ddb_filepath: DDB filepath.
-            distance:
+            distance: Distance of finite displacement in Angstrom.
             asr: Enforce acoustic sum-rule. Abinit variable.
             dipdip: Treatment of dipole-dipole term. Abinit variable.
             line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
@@ -203,7 +203,7 @@ class MlPhonopyWithDDB(MlBase):
         self.write_json("data.json", data, info="JSON file with final results.")
         self._finalize()
 
-    def _run_nn_name(self, nn_name) -> None:
+    def _run_nn_name(self, nn_name: str) -> None:
         """
         Run calculation for a single NN potential.
         """
@@ -215,7 +215,7 @@ class MlPhonopyWithDDB(MlBase):
         natom = len(atoms)
 
         if self.relax_mode == RX_MODE.cell:
-            raise RuntimeError("Öne should not relax the cell when comparing ML phonons with a DDB file!")
+            raise RuntimeError("One should not relax the cell when comparing ML phonons with a DDB file!")
 
         if self.relax_mode != RX_MODE.no:
             print(f"Relaxing input DDB atoms with relax mode: {self.relax_mode}.")
@@ -333,9 +333,9 @@ class MlPhonopy(MlBase):
                  verbose, workdir, prefix=None):
         """
         Args:
-            structure:
+            structure: Structure object
             supercell: Supercell dimensions.
-            distance:
+            distance: Distance of finite displacements in Angstrom.
             line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
             qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per atom.
             relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
@@ -346,7 +346,7 @@ class MlPhonopy(MlBase):
             nn_names: String or list of strings defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
             workdir: Working directory, None to generate temporary directory automatically.
-            prefix: Prefix for workdir
+            prefix: Prefix for workdir.
 
         """
         # Store args for reconstruction
@@ -370,8 +370,7 @@ class MlPhonopy(MlBase):
         self.supercell = supercell
         self.line_density = line_density
         self.qppa = qppa
-
-        self.abi_nac_params = {}
+        #self.abi_nac_params = {}
 
     def to_string(self, verbose=0):
         """String representation with verbosity level `verbose`."""
@@ -397,26 +396,7 @@ class MlPhonopy(MlBase):
 
     def run(self) -> None:
         """Run MlPhonopy."""
-        # Run anaddb computation and save results in self.
-        #with DdbFile(self.ddb_filepath) as ddb, Timer(header="Starting anaddb ph-bands computation...") as timer:
-        #    if ddb.has_lo_to_data and self.dipdip != 0:
-        #        # according to the phonopy website 14.399652 is not the coefficient for abinit
-        #        # probably it relies on the other conventions in the output.
-        #        out = ddb.anaget_epsinf_and_becs()
-        #        self.abi_nac_params = {"born": out.becs.values, "dielectric": out.epsinf, "factor": 14.399652}
-
-        #    # ab-initio phonons from the DDB.
-        #    with ddb.anaget_phbst_and_phdos_files(
-        #                qppa=self.qppa, line_density=self.line_density,
-        #                asr=self.asr, dipdip=self.dipdip, verbose=self.verbose) as g:
-
-        #        phbst_file, phdos_file = g[0], g[1]
-        #        self.abi_phbands = phbst_file.phbands
-        #        # The q-points passed to phonopy.
-        #        self.py_qpoints = [[qpt.frac_coords for qpt in self.abi_phbands.qpoints]]
-
         data = {}
-        #data["ddb"] = self.abi_phbands.get_phfreqs_stats_dict()
         d_nn = data["nn_names"] = {}
         for nn_name in self.nn_names:
             try:
@@ -431,7 +411,7 @@ class MlPhonopy(MlBase):
         self.write_json("data.json", data, info="JSON file with final results.")
         self._finalize()
 
-    def _run_nn_name(self, nn_name) -> None:
+    def _run_nn_name(self, nn_name: str) -> None:
         """
         Run calculation for a single NN potential.
         """
@@ -485,7 +465,7 @@ class MlPhonopy(MlBase):
               with_group_velocities=False,
               plot=True,
               write_yaml=False,
-              filename="band.yaml",
+              filename=workdir / f"{nn_name}_band.yml")
         )
         plt.savefig(workdir / f"phonopy_{nn_name}_phbands.png")
         if show: plt.show()
@@ -517,7 +497,6 @@ class MlPhonopy(MlBase):
         #    print(("%12.3f " + "%15.7f" * 3) % ( t, F, S, cv ))
 
         #phonon.plot_thermal_properties().show()
-
         #bands_dict = phonon.get_band_structure_dict()
         #nqpt = 0
         #py_phfreqs, py_displ_cart = [], []
