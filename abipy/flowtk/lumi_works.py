@@ -2,8 +2,6 @@
 """Work subclasses for the computation of luminiscent properties."""
 from __future__ import annotations
 
-from .works import Work, PhononWork
-
 from .works import Work
 from abipy.abilab import abiopen
 
