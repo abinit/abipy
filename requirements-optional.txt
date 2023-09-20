@@ -16,11 +16,5 @@ ase
 # -r requirements-panel.txt
 
 # Libraries required for running unit tests.
-<<<<<<< HEAD
-#-r requirements-tests.txt
-||||||| 97ae563a
--r requirements-tests.txt
-=======
 # -r requirements-tests.txt
->>>>>>> upstream/develop
 
