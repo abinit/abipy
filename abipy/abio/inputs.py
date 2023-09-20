@@ -1549,7 +1549,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             # Rescale nband and k-point sampling
             iscale = int(np.ceil(len(new.structure) / len(self.structure)))
             if "nband" in new:
-                new["nband"] = int(self["nband"] * iscale)
+                # take care of nband in format "*xxx"
+                if self["nband"][0]=="*":
+                    new["nband"] = "*%d" %(int(self["nband"][1:])*iscale)
+                else:
+                    new["nband"] = int(self["nband"] * iscale)
                 if verbose: print("self['nband']", self["nband"], "new['nband']", new["nband"])
 
             if "ngkpt" in new:
