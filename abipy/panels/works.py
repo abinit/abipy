@@ -1,4 +1,6 @@
 """"Panels to interact with the AbiPy tasks."""
+from __future__ import annotations
+
 import param
 import panel as pn
 import panel.widgets as pnw

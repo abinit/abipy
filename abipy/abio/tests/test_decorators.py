@@ -57,7 +57,7 @@ class DecoratorTest(AbipyTest):
     def test_spin_decorator(self):
         """Testing spin decorator."""
         spinor_deco = ideco.SpinDecorator("spinor")
-        self.assertMSONable(spinor_deco)
+        self.assert_msonable(spinor_deco)
         print(spinor_deco)
 
         new_inp = spinor_deco(self.si_ebands)
@@ -79,7 +79,7 @@ class DecoratorTest(AbipyTest):
     def test_smearing_decorator(self):
         """Testing electronic smearing decorator."""
         smearing_deco = ideco.SmearingDecorator("fermi_dirac:0.1 eV")
-        self.assertMSONable(smearing_deco)
+        self.assert_msonable(smearing_deco)
 
         new_inp = smearing_deco(self.si_ebands)
         self.validate_inp(new_inp)
@@ -87,7 +87,7 @@ class DecoratorTest(AbipyTest):
     def test_xcdecorator(self):
         """Testing XCdecorator."""
         xc_deco = ideco.XcDecorator(17)
-        self.assertMSONable(xc_deco)
+        self.assert_msonable(xc_deco)
 
         new_inp = xc_deco(self.si_ebands)
         self.validate_inp(new_inp)
@@ -97,7 +97,7 @@ class DecoratorTest(AbipyTest):
         symbols_luj = dict(Ni=dict(l=2, u=5.0, j=0.5))
 
         ldau_deco = ideco.LdaUDecorator(symbols_luj, usepawu=1, unit="eV")
-        self.assertMSONable(ldau_deco)
+        self.assert_msonable(ldau_deco)
 
         new_inp = ldau_deco(self.nio_ebands)
         new_inp.set_vars(chkprim=0, ecut=3, pawecutdg=3)
@@ -112,7 +112,7 @@ class DecoratorTest(AbipyTest):
     def test_lexx_decorators(self):
         """Testing LexxDecorator."""
         lexx_deco = ideco.LexxDecorator({"Ni": 2})
-        self.assertMSONable(lexx_deco)
+        self.assert_msonable(lexx_deco)
 
         new_inp = lexx_deco(self.nio_ebands)
         new_inp.set_vars(chkprim=0, ecut=3, pawecutdg=3)

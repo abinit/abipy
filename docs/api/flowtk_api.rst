@@ -85,10 +85,18 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`gw` Module
+:mod:`gw_works` Module
 ----------------
 
-.. automodule:: abipy.flowtk.gw
+.. automodule:: abipy.flowtk.gw_works
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`gwr_works` Module
+-----------------------
+
+.. automodule:: abipy.flowtk.gwr_works
    :members:
    :undoc-members:
    :show-inheritance:

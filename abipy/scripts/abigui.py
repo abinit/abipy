@@ -2,6 +2,8 @@
 """
 Script to start the panel-based AbiPy web GUI.
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse
@@ -30,7 +32,6 @@ NB: To deploy the GUI, use the ~abipy/dev_scripts/deploy_abigui.sh script.
         sys.exit(error_code)
 
     def get_copts_parser():
-
         # Parent parser implementing common options.
         p = argparse.ArgumentParser(add_help=False)
         p.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2

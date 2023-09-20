@@ -8,9 +8,9 @@ band structures on a grid.
 
 We use two files produced by anaddb:
 
-    trf2_5.out_PHBST.nc: phonon frequencies on a q-path in the BZ
-                         (used to plot the band dispersion)
-    trf2_5.out_PHDOS.nc: phonon DOS compute with anaddb.
+1) trf2_5.out_PHBST.nc: phonon frequencies on a q-path in the BZ
+                        (used to plot the band dispersion)
+2) trf2_5.out_PHDOS.nc: phonon DOS compute with anaddb.
 
 See also tutorial/lesson_rf2.html
 """

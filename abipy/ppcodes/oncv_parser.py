@@ -8,22 +8,17 @@ import os
 import re
 import tempfile
 import numpy as np
+import pandas as pd
 
-from collections import namedtuple
-from typing import Union, Any  #, List, Optional
+from collections import namedtuple, defaultdict
+from typing import Union, Any
+from dataclasses import dataclass
 from monty.functools import lazy_property
 from monty.collections import AttrDict, dict2namedtuple
+from monty.termcolor import colored
 from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction, l2char
 from abipy.ppcodes.base_parser import BaseParser
 
-
-def is_integer(s: Any) -> bool:
-    """True if object `s` in an integer."""
-    try:
-        c = float(s)
-        return int(c) == c
-    except (ValueError, TypeError):
-        return False
 
 # Object returned by self._grep
 GrepResults = namedtuple("GrepResults", "data, start, stop")
@@ -34,6 +29,18 @@ AePsNamedTuple = namedtuple("AePsNamedTuple", "ae, ps")
 ConvData = namedtuple("ConvData", "l energies values")
 
 AtanLogDer = namedtuple("AtanLogDer", "l, energies, values")
+
+
+@dataclass
+class AtomicLevel:
+    """
+    Stores the energy levels of the AE isolated atom.
+    """
+    nlk: NlkState
+    eig: float
+    occ: float
+    is_valence: bool
+
 
 
 class OncvParser(BaseParser):
@@ -50,8 +57,7 @@ class OncvParser(BaseParser):
 
     Example:
 
-        parser = OncvParser(filename)
-        parser.scan()
+        parser = OncvParser(filename).scan()
 
         # To access data:
         parser.radial_wavefunctions
@@ -63,18 +69,28 @@ class OncvParser(BaseParser):
     """
     # TODO Improve fully-relativistic case.
 
-    def scan(self, verbose: int = 0) -> None:
+    def scan(self, verbose: int = 0) -> OncvParser:
         """
         Scan the output file, set `run_completed` attribute.
 
         Raises: self.Error if invalid file.
         """
         try:
-            return self._scan(verbose=verbose)
+            self._scan(verbose=verbose)
         except Exception as exc:
             raise self.Error(f"Exception while parsing: {self.filepath}") from exc
 
-    def _scan(self, verbose: int = 0) -> None:
+        #if not self.run_completed:
+        #    cprint("oncvpsp output is not completed. Exiting", "red")
+        #    return 1
+
+        #if self.errors:
+        #    lines.append(f"# ERRORS ({len(self.errors)})")
+        #    lines.extend([colored(s, "red") for s in self.errors])
+
+        return self
+
+    def _scan(self, verbose: int = 0) -> OncvParser:
         if not os.path.exists(self.filepath):
             raise self.Error(f"File {self.filepath} does not exist")
 
@@ -199,35 +215,54 @@ class OncvParser(BaseParser):
 
         nc, nv = self.nc, self.nv
 
+        self.atomic_levels = []
+
+        def parse_eigs(str_list):
+            """Convert string to float taking into account Fortran numbers in scientific notation."""
+            return [float(s.replace("D+", "E+").replace("D-", "E-")) for s in tokens[3:]]
+
         for i, line in enumerate(self.lines):
             if line.startswith(header):
-                beg, core = i + 1, [],
+                # Parse core levels
+                beg, is_valence = i + 1, False
                 for c in range(nc):
-                    n, l, f = self.lines[beg+c].split()[:3]
-                    if is_integer(f):
-                        f = str(int(float(f)))
-                    else:
-                        f = "%.1f" % f
-                    core.append(n + l2char[l] + "^%s" % f)
-                #self.core = "$" + " ".join(core) + "$"
+                    tokens = self.lines[beg+c].split()
+                    n, l, f = tokens[:3]
+                    n, l, f = int(n), int(l), float(f)
+                    eigs = parse_eigs(tokens[3:])
 
-                beg, valence = i + nc + 1, []
+                    if not self.relativistic:
+                        nlk = NlkState(n=n, l=l, k=None)
+                        self.atomic_levels.append(AtomicLevel(nlk, eigs[0], f, is_valence))
+                    else:
+                        kpa_list = [1, 2] if l != 0 else [1]
+                        for ik, kpa in enumerate(kpa_list):
+                            nlk = NlkState(n=n, l=l, k=kpa)
+                            self.atomic_levels.append(AtomicLevel(nlk, eigs[ik], f, is_valence))
+
+                # Parse valence levels
+                beg, is_valence = i + nc + 1, True
                 for v in range(nv):
                     #print("lines[beg+v]", self.lines[beg+v])
-                    n, l, f = self.lines[beg+v].split()[:3]
-                    if is_integer(f):
-                        f = str(int(float(f)))
+                    tokens = self.lines[beg+v].split()
+                    n, l, f = tokens[:3]
+                    n, l, f = int(n), int(l), float(f)
+                    eigs = parse_eigs(tokens[3:])
+
+                    if not self.relativistic:
+                        nlk = NlkState(n=n, l=l, k=None)
+                        self.atomic_levels.append(AtomicLevel(nlk, eigs[0], f, is_valence))
                     else:
-                        #print(f)
-                        f = "%.1f" % float(f)
+                        kpa_list = [1, 2] if l != 0 else [1]
+                        for ik, kpa in enumerate(kpa_list):
+                            nlk = NlkState(n=n, l=l, k=kpa)
+                            self.atomic_levels.append(AtomicLevel(nlk, eigs[ik], f, is_valence))
 
-                    valence.append(n + l2char[l] + "^{%s}" % f)
-
-                #self.valence = "$" + " ".join(valence) + "$"
-                #print("core", self.core, "valence",self.valence)
                 break
         else:
             raise self.Error(f"Cannot find header:\n`{header}`\nin output file {self.filepath}")
+
+        return self
 
     @lazy_property
     def lmax(self) -> int:
@@ -255,16 +290,26 @@ class OncvParser(BaseParser):
             app("completed: %s" % self.run_completed)
             return "\n".join(lines)
 
-        app("%s, oncvpsp version: %s, date: %s" % (self.calc_type, self.version, self.gendate))
+        app(f"relativity: {self.calc_type}, oncvpsp version: {self.version}, date: {self.gendate}\n")
+
+        df = self.get_atomic_levels_df()
+        app("# Atomic levels:")
+        app(str(df) + 2 * "\n")
+        app("# Peaks of radial wavefunctions:")
+        df = self.get_peaks_df()
+        app(str(df) + 2 * "\n")
 
         from pprint import pformat
-        app(pformat(self.get_results()))
+        app("# Results:\n")
+        app(pformat(self.get_results()) + 2*"\n")
 
         if self.warnings:
-            lines.extend(self.warnings)
+            lines.append(f"# WARNINGS ({len(self.warnings)})")
+            lines.extend([colored(s, "magenta") for s in self.warnings])
 
         if self.errors:
-            lines.extend(self.errors)
+            lines.append(f"# ERRORS ({len(self.errors)})")
+            lines.extend([colored(s, "red") for s in self.errors])
 
         return "\n".join(lines)
 
@@ -307,7 +352,7 @@ class OncvParser(BaseParser):
         Dictionary with the error on the kinetic energy indexed by nlk.
         """
 
-        # In relativist mode we write data inside the following loops:
+        # In relativistic mode we write data inside the following loops:
 
         #do l1=1,lmax+1
         #   ll=l1-1
@@ -343,9 +388,7 @@ class OncvParser(BaseParser):
         iproj_l_seen = set()
 
         for i, line in enumerate(self.lines):
-
             m = re_start.match(line)
-
             if m:
                 # Extract iproj and l.
                 if self.major_version > 3:
@@ -400,7 +443,7 @@ class OncvParser(BaseParser):
         return kinerr_nlk
 
     @staticmethod
-    def _check_nlk_key(nlk, d, dict_name):
+    def _check_nlk_key(nlk, d, dict_name) -> None:
 
         if nlk in d:
             ks = "\n\t".join(str(k) for k in d)
@@ -459,6 +502,13 @@ class OncvParser(BaseParser):
         """
         return self._get_radial_wavefunctions(what="bound_states")
 
+    @property
+    def has_scattering_wfs(self) -> bool:
+        """
+        True if pp generation included scattering states.
+        """
+        return bool(self.scattering_wfs.ae)
+
     @lazy_property
     def scattering_wfs(self) -> AePsNamedTuple:
         """
@@ -473,7 +523,7 @@ class OncvParser(BaseParser):
         #
         #    &     0    0.009945   -0.092997    0.015273
 
-        # bound states, fully-relativistic case:
+        # For fully-relativistic bound states, we have:
         #
         #    n= 1,  l= 0  kap=-1, all-electron wave function, pseudo w-f
         #
@@ -486,6 +536,11 @@ class OncvParser(BaseParser):
         # scattering, iprj= 2,  l= 1, kap= 1, all-electron wave function, pseudo w-f
 
         ae_waves, ps_waves = {}, {}
+
+        #l_to_nlist = defaultdict(list)
+        #for level in self.atomic_levels:
+        #    if not level.is_valence: continue
+        #    l_to_nlist[level.nlk.l].append(level.nlk.n)
 
         beg = 0
         while True:
@@ -504,15 +559,18 @@ class OncvParser(BaseParser):
                     continue
                 header = header.replace("scattering,", "")
             else:
-                raise ValueError(f"Invalid value of what: `{what}`")
-
-            #print(header)
+                raise ValueError(f"Invalid value of {what=}")
+            #print("header:", header)
 
             if not self.relativistic:
                 # n= 1,  l= 0, all-electron wave function, pseudo w-f
                 n, l = header.split(",")[0:2]
                 n = int(n.split("=")[1])
                 l = int(l.split("=")[1])
+                # TODO
+                #if what == "bound_states" and l_to_nlist[l]:
+                #    print(f"for {l=} {l_to_nlist[l]=}")
+                #    n = l_to_nlist[l].pop(0)
                 kap = None
             else:
                 # n= 1,  l= 0,  kap=-1, all-electron wave function, pseudo w-f
@@ -820,18 +878,16 @@ class OncvParser(BaseParser):
         plotfile = base + ".plot"
         temp = base + ".tmp"
 
-        from monty.os import cd
-        from subprocess import check_call
         workdir = tempfile.mkdtemp()
         print(f"Working in: {workdir}")
 
+        from monty.os import cd
+        from subprocess import check_call
         with cd(workdir):
             check_call("awk 'BEGIN{out=0};/GNUSCRIPT/{out=0}; {if(out == 1) {print}}; \
                                 /DATA FOR PLOTTING/{out=1}' %s > %s" % (outfile, plotfile), shell=True)
-
             check_call("awk 'BEGIN{out=0};/END_GNU/{out=0}; {if(out == 1) {print}}; \
                                 /GNUSCRIPT/{out=1}' %s > %s" % (outfile, temp), shell=True)
-
             check_call('sed -e 1,1000s/t1/"%s"/ %s > %s' % (plotfile, temp, gnufile), shell=True)
 
             try:
@@ -840,3 +896,36 @@ class OncvParser(BaseParser):
                 print("Received KeyboardInterrupt")
 
         os.rmdir(workdir)
+
+    def get_atomic_levels_df(self) -> pd.DataFrame:
+        """
+        Return pandas dataframe with the atomic levels. Columns: (n, l, k, eig, occ, is_valence)
+        """
+        d_list = []
+        from dataclasses import asdict
+        for level in self.atomic_levels:
+            data = asdict(level)
+            d = data.pop("nlk").get_dict4pandas()
+            d.update(**data)
+            d_list.append(d)
+
+        return pd.DataFrame(d_list)
+
+    def get_peaks_df(self) -> pd.DataFrame:
+        """
+        Return pandas dataframe with the position of the last peak.
+        """
+        d_list = []
+
+        def _push(typ, nkl, wf) -> None:
+            peaks = wf.get_peaks()
+            d = nlk.get_dict4pandas()
+            d.update({"type": typ, "name": str(nlk), "last_peak_au": peaks.xs[-1]})
+            d_list.append(d)
+
+        ae_wfs, ps_wfs = self.radial_wfs.ae, self.radial_wfs.ps
+        for nlk, ae_wf in ae_wfs.items():
+            _push("AE", nlk, ae_wf)
+            _push("PS", nlk, ps_wfs[nlk])
+
+        return pd.DataFrame(d_list)

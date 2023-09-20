@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-G0W0 Flow with convergence study wrt nband
+G0W0 flow with convergence study wrt nband
 ==========================================
 
 This script shows how to compute the G0W0 corrections in silicon.
@@ -13,6 +13,7 @@ import os
 import sys
 import abipy.data as data
 import abipy.abilab as abilab
+
 from abipy import flowtk
 
 

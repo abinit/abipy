@@ -4,11 +4,13 @@ Script to analyze/compare results stored in multiple netcdf/output files.
 By default the script displays the results/plots in the shell.
 Use --ipython to start an ipython terminal or -nb to generate an ipython notebook.
 """
+from __future__ import annotations
 
 import sys
 import os
 import argparse
 import numpy as np
+import abipy.tools.cli_parsers as cli
 
 from pprint import pprint
 from monty.functools import prof_main
@@ -597,6 +599,13 @@ def abicomp_psps(options):
     return _invoke_robot(options)
 
 
+def abicomp_gwr(options):
+    """
+    Compare multiple GWR files.
+    """
+    return _invoke_robot(options)
+
+
 def _build_robot(options, trim_paths=True):
     """Build robot instance from CLI options."""
     robot_cls = abilab.Robot.class_for_ext(options.command.upper())
@@ -640,6 +649,9 @@ def _invoke_robot(options):
     or --nb to generate a jupyter notebook.
     """
     robot = _build_robot(options)
+
+    if options.expose_web:
+        options.expose = True
 
     if options.notebook:
         robot.make_and_open_notebook(foreground=options.foreground,
@@ -974,6 +986,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 
     # Parent parser for commands supporting expose
     expose_parser = argparse.ArgumentParser(add_help=False)
+
     expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
             help='Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.')
     expose_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
@@ -1101,7 +1114,8 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
                               )
     robot_parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
     robot_parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
-            help='Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.')
+                              help="Generate matplotlib plots in $BROWSER instead of X-server.\n" +
+                                   "WARNING: Not all the features are supported.")
 
     robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser, pandas_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
@@ -1120,6 +1134,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_v1qavg = subparsers.add_parser('v1qavg', parents=robot_parents, help=abicomp_v1qavg.__doc__)
     #p_wrmax = subparsers.add_parser('wrmax', parents=robot_parents, help=abicomp_wrmax.__doc__)
     p_abiwan = subparsers.add_parser('abiwan', parents=robot_parents, help=abicomp_abiwan.__doc__)
+    p_gwr = subparsers.add_parser('gwr', parents=robot_parents, help=abicomp_gwr.__doc__)
 
     # Subparser for pseudos command.
     p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)
@@ -1191,13 +1206,7 @@ def main():
     if getattr(options, "plotly", None): options.expose = True
     if getattr(options, "classic_notebook", None): options.notebook = True
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    cli.set_loglevel(options.loglevel)
 
     if options.mpl_backend is not None:
         # Set matplotlib backend

@@ -1,23 +1,20 @@
 # coding: utf-8
-"""HirshfeldCharges."""
+"""Hirshfeld Charges."""
+from __future__ import annotations
 
+import numpy as np
+import os
+
+from shutil import which
 from monty.dev import requires
-from monty.os.path import which
 from pymatgen.command_line.bader_caller import BaderAnalysis
 from pymatgen.io.abinit.pseudos import Pseudo
 from pymatgen.core.units import bohr_to_angstrom
+from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.core.fields import Density
 from abipy.core.globals import get_workdir
 from abipy.electrons.denpot import DensityFortranFile
-
-import numpy as np
-import os
-import tempfile
-
-import logging
-logger = logging.getLogger(__name__)
-
 
 __all__ = [
     "HirshfeldCharges",
@@ -49,7 +46,7 @@ class Charges(Has_Structure):
         self.reference_charges = np.array(reference_charges)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         return self._structure
 
     @property

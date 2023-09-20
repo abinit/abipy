@@ -21,6 +21,7 @@ from abipy.core.kpoints import Kpath, IrredZone
 from abipy.core.skw import ElectronInterpolator
 from abipy.abio.robots import Robot
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt
+from abipy.tools.typing import Figure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader, ElectronBandsPlotter, RobotWithEbands
 
 class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -52,7 +53,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         self.num_bands_spin = self.reader.read_value("num_bands")
 
     @lazy_property
-    def nwan_spin(self):
+    def nwan_spin(self) -> np.ndarray:
         """Number of Wannier functions for each spin."""
         return self.reader.read_value("nwan")
 
@@ -70,7 +71,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return int(self.reader.read_value("nntot"))
 
     @lazy_property
-    def bands_in(self):
+    def bands_in(self) -> np.ndarray:
         """
         [nsppol, mband] logical array. Set to True if (spin, band) is included
         in the calculation. Set by exclude_bands
@@ -78,7 +79,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return self.reader.read_value("band_in_int").astype(bool)
 
     @lazy_property
-    def lwindow(self):
+    def lwindow(self) -> np.ndarray:
         """
         [nsppol, nkpt, max_num_bands] array. Only if disentanglement.
         True if this band at this k-point lies within the outer window
@@ -93,19 +94,19 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
     #    return self.reader.read_value("ndimwin")
 
     @lazy_property
-    def have_disentangled_spin(self):
+    def have_disentangled_spin(self) -> np.ndarray:
         """[nsppol] bool array. Whether disentanglement has been performed."""
         #return self.reader.read_value("have_disentangled_spin").astype(bool)
         # TODO: Exclude bands
         return self.nwan_spin != self.num_bands_spin
 
     @lazy_property
-    def wann_centers(self):
+    def wann_centers(self) -> np.ndarray:
         """[nsppol, mwan, 3] array with Wannier centers in Ang."""
         return self.reader.read_value("wann_centres")
 
     @lazy_property
-    def wann_spreads(self):
+    def wann_spreads(self) -> np.ndarray:
         """[nsppol, mwan] array with spreads in Ang^2"""
         return self.reader.read_value("wann_spreads")
 
@@ -115,7 +116,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
     #    return self.reader.read_value("spread")
 
     @lazy_property
-    def irvec(self):
+    def irvec(self) -> np.ndarray:
         """
         [nrpts, 3] array with the lattice vectors in the Wigner-Seitz cell
         in the basis of the lattice vectors defining the unit cell
@@ -123,7 +124,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return self.reader.read_value("irvec")
 
     @lazy_property
-    def ndegen(self):
+    def ndegen(self) -> np.ndarray:
         """
         [nrpts] array with the degeneracy of each point.
         It will be weighted using 1 / ndegen[ir]
@@ -372,7 +373,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         else:
             cprint("Use verbose option to compare ab-initio points with interpolated values", "yellow")
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -423,7 +424,7 @@ class HWanR(ElectronInterpolator):
         self.nband = nwan_spin[0]
         #self.nelect
 
-    def eval_sk(self, spin, kpt, der1=None, der2=None):
+    def eval_sk(self, spin, kpt, der1=None, der2=None) -> np.ndarray:
         """
         Interpolate eigenvalues for all bands at a given (spin, k-point).
         Optionally compute gradients and Hessian matrices.
@@ -465,7 +466,7 @@ class HWanR(ElectronInterpolator):
     #def interpolate_sigeph(self, sigeph):
 
     @add_fig_kwargs
-    def plot(self, ax=None, fontsize=12, yscale="log", **kwargs):
+    def plot(self, ax=None, fontsize=8, yscale="log", **kwargs) -> Figure:
         """
         Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
 
@@ -532,7 +533,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
     """
     EXT = "ABIWAN"
 
-    def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs):
+    def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the most important Wannier90 results.
         and the filenames as index.
@@ -582,7 +583,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
-    def plot_hwanr(self, ax=None, colormap="jet", fontsize=8, **kwargs):
+    def plot_hwanr(self, ax=None, colormap="jet", fontsize=8, **kwargs) -> Figure:
         """
         Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
         on the same Axes.
@@ -602,7 +603,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
         return fig
 
     def get_interpolated_ebands_plotter(self, vertices_names=None, knames=None, line_density=20,
-            ngkpt=None, shiftk=(0, 0, 0), kpoints=None, **kwargs):
+            ngkpt=None, shiftk=(0, 0, 0), kpoints=None, **kwargs) -> ElectronBandsPlotter:
         """
         Args:
             vertices_names: Used to specify the k-path for the interpolated QP band structure
@@ -654,7 +655,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
         yield p.gridplot(show=False)
         yield self.plot_hwanr(show=False)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.

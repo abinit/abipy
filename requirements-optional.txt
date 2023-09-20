@@ -8,13 +8,19 @@ pygments
 ipywidgets
 networkx
 scikit-image
-#graphviz or python-graphviz if conda
+#python-graphviz #graphviz or python-graphviz if conda
 phonopy
 ase
 
 # Libraries required by AbiPy panel applications.
-#-r requirements-panel.txt
+# -r requirements-panel.txt
 
 # Libraries required for running unit tests.
+<<<<<<< HEAD
 #-r requirements-tests.txt
+||||||| 97ae563a
+-r requirements-tests.txt
+=======
+# -r requirements-tests.txt
+>>>>>>> upstream/develop
 

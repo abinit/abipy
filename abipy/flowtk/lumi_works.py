@@ -1,5 +1,8 @@
 # coding: utf-8
-"""Work subclasses for the computation of luminescent properties."""
+"""Work subclasses for the computation of luminiscent properties."""
+from __future__ import annotations
+
+from .works import Work, PhononWork
 
 from .works import Work
 from abipy.abilab import abiopen
@@ -16,7 +19,8 @@ class LumiWork(Work):
     """
 
     @classmethod
-    def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, relax_kwargs_gs, relax_kwargs_ex, ndivsm=0, nb_extra=10, tolwfr=1e-12, four_points=True, meta=None, manager=None):
+    def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, relax_kwargs_gs, relax_kwargs_ex, ndivsm=0, nb_extra=10, 
+                        tolwfr=1e-12, four_points=True, meta=None, manager=None) -> LumiWork:
         """
         Args:
             gs_scf_inp: |AbinitInput| representing a GS SCF run for the ground-state.

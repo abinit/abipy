@@ -3,24 +3,26 @@ Converters between abinit/abipy format and other external tools.
 Some portions of the code have been imported from the ConvertDDB.py script
 developed by Hu Xe, Eric Bousquet and Aldo Romero.
 """
+from __future__ import annotations
 
 import os
 import itertools
 import warnings
 import numpy as np
-from monty.dev import requires
+import abipy.core.abinit_units as abu
 
+from monty.dev import requires
+from monty.os import makedirs_p
 from pymatgen.io.phonopy import get_phonopy_structure, get_pmg_structure
 from pymatgen.io.vasp.inputs import Poscar
-import abipy.core.abinit_units as abu
+from abipy.core.structure import Structure
+from abipy.tools.typing import VectorLike
 from abipy.dfpt.ddb import DdbFile
 from abipy.abio.factories import minimal_scf_input
 from abipy.electrons.gsr import GsrFile
-from monty.os import makedirs_p
 try:
     from phonopy import Phonopy, load
     from phonopy.file_IO import write_FORCE_CONSTANTS, parse_FORCE_CONSTANTS, parse_BORN, parse_FORCE_SETS
-    #from phonopy.interface.phonopy_yaml import PhonopyYaml
     from phonopy.interface.calculator import get_default_physical_units, get_force_constant_conversion_factor
 except ImportError:
     Phonopy = None
@@ -205,7 +207,7 @@ def phonopy_to_abinit(unit_cell=None, supercell_matrix=None, out_ddb_path=None, 
             At least one among ngqpt and qpt_list should be defined.
         force_constants: an array with shape (num atoms unit cell, num atoms supercell, 3, 3)
             containing the force constants. Alternatively a string with the path to the
-            FORCE_CONSTANTS file. This or force_set or phonopy_yaml should be defined. If both given this
+            FORCE_CONSTANTS file. This or force_sets or phonopy_yaml should be defined. If both given this
             has precedence.
         force_sets: a dictionary obtained from the force sets generated with phonopy.
             Alternatively a string with the path to the FORCE_SETS file. This or force_constants
@@ -241,8 +243,6 @@ def phonopy_to_abinit(unit_cell=None, supercell_matrix=None, out_ddb_path=None, 
     Returns:
         a DdbFile instance of the file written in out_ddb_path.
     """
-
-
     if ngqpt is None and qpt_list is None:
         raise ValueError("at least one among nqgpt and qpt_list should be defined")
 
@@ -261,7 +261,6 @@ def phonopy_to_abinit(unit_cell=None, supercell_matrix=None, out_ddb_path=None, 
 
     if isinstance(force_sets, str):
         force_sets = parse_FORCE_SETS(filename=force_sets)
-
 
     if phonopy_yaml is not None:
         phonon=load(phonopy_yaml=phonopy_yaml,
@@ -371,7 +370,7 @@ def phonopy_to_abinit(unit_cell=None, supercell_matrix=None, out_ddb_path=None, 
     return new_ddb
 
 
-def generate_born_deriv(born, zion, structure):
+def generate_born_deriv(born: dict, zion: VectorLike, structure: Structure) -> np.ndarray:
     """
     Helper function to generate the portion of the derivatives in the DDB
     that are related to the Born effective charges and dielectric tensor,
@@ -424,7 +423,7 @@ def generate_born_deriv(born, zion, structure):
 
 
 @requires(Phonopy, "phonopy not installed!")
-def get_dm(phonon, qpt_list, structure):
+def get_dm(phonon, qpt_list: list, structure: Structure) -> list:
     """
     Helper function to generate the dynamical matrix in the abinit conventions
     for a list of q-points from a Phonopy object.
@@ -466,7 +465,7 @@ def get_dm(phonon, qpt_list, structure):
     return dm_list
 
 
-def add_data_ddb(ddb, dm_list, qpt_list, born_data):
+def add_data_ddb(ddb: DdbFile, dm_list: list, qpt_list: list, born_data) -> None:
     """
     Helper function to add the blocks for the dynamical matrix and BECs to a DdbFile object.
 
@@ -568,7 +567,7 @@ def tdep_to_abinit(unit_cell, fc_path, supercell_matrix, supercell, out_ddb_path
     return ddb
 
 
-def parse_tdep_fc(fc_path, unit_cell, supercell):
+def parse_tdep_fc(fc_path: str, unit_cell: Structure, supercell) -> np.ndarray:
     """
     Parses a forceconstants file produced by TDEP an converts it to an array in the
     phonopy format.
@@ -612,7 +611,7 @@ def parse_tdep_fc(fc_path, unit_cell, supercell):
     return fc
 
 
-def parse_tdep_lotosplitting(filepath):
+def parse_tdep_lotosplitting(filepath: str) -> tuple:
     """
     Parses the lotosplitting file produced by TDEP and transforms them in
     the phonopy format for Born effective charges and dielectric tensor.
@@ -642,7 +641,7 @@ def parse_tdep_lotosplitting(filepath):
     return eps, born
 
 
-def write_tdep_lotosplitting(eps, born, filepath="infile.lotosplitting", fmt="%14.10f"):
+def write_tdep_lotosplitting(eps, born, filepath="infile.lotosplitting", fmt="%14.10f") -> None:
     """
     Writes an lotosplitting file starting from arrays containing dielectric tensor and
     Born effective charges.
@@ -658,7 +657,7 @@ def write_tdep_lotosplitting(eps, born, filepath="infile.lotosplitting", fmt="%1
     np.savetxt(filepath, values, fmt=fmt)
 
 
-def born_to_lotosplitting(born, lotosplitting_path="infile.lotosplitting"):
+def born_to_lotosplitting(born, lotosplitting_path="infile.lotosplitting") -> None:
     """
     Converted of a file from the BORN file produced from phonopy to the lotosplitting
     file used by TDEP.
@@ -676,7 +675,7 @@ def born_to_lotosplitting(born, lotosplitting_path="infile.lotosplitting"):
 
 
 @requires(Phonopy, "phonopy not installed!")
-def write_BORN(primitive, borns, epsilon, filename="BORN", symmetrize_tensors=False):
+def write_BORN(primitive, borns, epsilon, filename="BORN", symmetrize_tensors=False) -> None:
     """
     Helper function imported from phonopy.file_IO.
     Contrarily to the original, it does not symmetrize the tensor.
@@ -691,7 +690,7 @@ def get_BORN_lines(unitcell, borns, epsilon,
                    factor=None,
                    primitive_matrix=None,
                    supercell_matrix=None,
-                   symprec=1e-5, symmetrize_tensors=False):
+                   symprec=1e-5, symmetrize_tensors=False) -> list:
     """
     Helper function imported from phonopy.file_IO that exposes the
     option of not symmetrizing the tensor.

@@ -6,13 +6,28 @@ import os
 import codecs
 import errno
 import tempfile
+import datetime
 import ruamel.yaml as yaml
+import pandas as pd
 
+from pathlib import Path
 from contextlib import ExitStack
 from subprocess import call
 from typing import Any
 from monty.termcolor import cprint
 from monty.string import list_strings
+
+
+def make_executable(filepath: str) -> None:
+    """Make file executable"""
+    mode = os.stat(filepath).st_mode
+    mode |= (mode & 0o444) >> 2    # copy R bits to X
+    os.chmod(filepath, mode)
+
+    #from pathlib import Path
+    #import stat
+    #f = Path(filepath)
+    #f.chmod(f.stat().st_mode | stat.S_IEXEC)
 
 
 def yaml_safe_load(string: str) -> Any:
@@ -22,8 +37,20 @@ def yaml_safe_load(string: str) -> Any:
 
 def yaml_safe_load_path(filepath: str) -> Any:
     """Load Yaml document from filepath"""
-    with open(filepath, "rt") as fh:
+    with open(os.path.expanduser(filepath), "rt") as fh:
         return yaml.YAML(typ='safe', pure=True).load(fh.read())
+
+
+def dataframe_from_filepath(filepath: str, **kwargs) -> pd.DataFrame:
+    """
+    Try to read a dataframe from an external file according to the file extension.
+    """
+    _, ext = os.path.splitext(filepath)
+    if ext == 'csv': return pd.read_csv(filepath, **kwargs)
+    if ext == "json": return pd.read_json(filepath, **kwargs)
+    if ext in ("xls", "xlsx"): return pd.read_excel(filepath, **kwargs)
+
+    raise ValueError(f"Don't know how to construct DataFrame from file {filepath} with extension: {ext}")
 
 
 class ExitStackWithFiles(ExitStack):
@@ -59,9 +86,11 @@ class ExitStackWithFiles(ExitStack):
         return self.files.__getitem__(slice)
 
 
-def get_input(prompt):
+def get_input(prompt: str):
     """
     Wraps python builtin input so that we can easily mock it in unit tests using:
+
+    Example:
 
         from unittest.mock import patch
         with patch('abipy.tools.iotools.get_input', return_value='no'):
@@ -117,7 +146,7 @@ class EditorError(Exception):
     """Base class for exceptions raised by `Editor`"""
 
 
-class Editor(object):  # pragma: no cover
+class Editor:  # pragma: no cover
     DEFAULT_EDITOR = "vi"
 
     Error = EditorError
@@ -128,20 +157,20 @@ class Editor(object):  # pragma: no cover
         else:
             self.editor = str(editor)
 
-    def edit_file(self, fname):
-        retcode = call([self.editor, fname])
+    def edit_file(self, filepath):
+        retcode = call([self.editor, filepath])
         if retcode != 0:
-            cprint("Retcode %s while editing file: %s" % (retcode, fname), "red")
+            cprint("Retcode %s while editing file: %s" % (retcode, filepath), "red")
         return retcode
 
-    def edit_files(self, fnames, ask_for_exit=True):
-        for idx, fname in enumerate(list_strings(fnames)):
+    def edit_files(self, filepaths, ask_for_exit=True):
+        for idx, fname in enumerate(list_strings(filepaths)):
             exit_status = self.edit_file(fname)
 
             if exit_status != 0:
                 return exit_status
 
-            if ask_for_exit and idx != len(fnames) - 1 and _user_wants_to_exit():
+            if ask_for_exit and idx != len(filepaths) - 1 and _user_wants_to_exit():
                 break
 
         return 0
@@ -159,7 +188,7 @@ def input_from_editor(message=None):  # pragma: no cover
         return fileobj.read()
 
 
-def ask_yesno(question, default=True):
+def ask_yesno(question: str, default=True):
     """
     Args:
         question ():
@@ -176,7 +205,7 @@ def ask_yesno(question, default=True):
 umask = os.umask(0)
 os.umask(umask)
 
-def _maketemp(name, createmode=None):
+def _maketemp(name: str, createmode=None) -> str:
     """
     Create a temporary file with the filename similar the given ``name``.
     The permission bits are copied from the original file or ``createmode``.
@@ -243,7 +272,7 @@ class AtomicFile:
             return
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         """
         Close the file.
         """
@@ -257,7 +286,7 @@ class AtomicFile:
                 os.remove(self.__name)
             os.rename(self._tempname, self.__name)
 
-    def discard(self):
+    def discard(self) -> None:
         """
         Discard the file.
         """
@@ -271,3 +300,127 @@ class AtomicFile:
     def __del__(self):
         if getattr(self, "_fp", None):  # constructor actually did something
             self.discard()
+
+
+def workdir_with_prefix(workdir, prefix) -> Path:
+    """
+    if workdir is None, create temporary directory with prefix else
+    check that workdir does not exist.
+    """
+    if workdir is None:
+        if prefix is not None:
+            prefix += datetime.datetime.now().strftime("dT%H-%M-%S-")
+        workdir = tempfile.mkdtemp(prefix=prefix, dir=os.getcwd())
+    else:
+        workdir = str(workdir)
+        if os.path.exists(workdir):
+            raise RuntimeError(f"{workdir=} already exists!")
+        os.makedirs(workdir)
+
+    return Path(workdir).absolute()
+
+
+
+class _Script:
+    """
+    Base class for Script objects.
+    """
+
+    def __init__(self, filepath: str):
+        self.filepath = filepath
+
+        self.text = f"""\
+#!/usr/bin/env python
+# This script has been automatically generated by AbiPy.
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+
+if False:
+    import seaborn as sns
+    sns.set(context="paper", style='darkgrid', palette='deep',
+            font='sans-serif', font_scale=0.8, color_codes=False, rc=None)
+"""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement."""
+        self.write()
+
+    def add_text(self, text: str):
+        """Add `text` to the script."""
+        self.text += "\n" + text
+        return self
+
+    def write(self):
+        """
+        Write python script and json file with the list of files in the Robot.
+        """
+        with open(self.filepath, "wt") as fh:
+            fh.write(self.text)
+        make_executable(self.filepath)
+        return self
+
+
+class PythonScript(_Script):
+    """
+    Small object used to generate python scripts programmatically.
+    Client code can then add additional logic to the script and write it to disk.
+
+    Example:
+
+        with PythonScript("script.py") as script:
+            script.add_text("a = 1")
+    """
+
+    def __init__(self, filepath: str):
+        super().__init__(filepath)
+
+        self.text = f"""\
+#!/usr/bin/env python
+# This script has been automatically generated by AbiPy.
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+
+if False:
+    import seaborn as sns
+    sns.set(context="paper", style='darkgrid', palette='deep',
+            font='sans-serif', font_scale=0.8, color_codes=False, rc=None)
+"""
+
+    def add_main(self):
+        """Add main section"""
+        self.text += \
+"""
+
+if __name__ == "__main__":
+    main()
+"""
+        return self
+
+
+
+class ShellScript(_Script):
+    """
+    Small object used to generate a shell scripts programmatically.
+    Client code can then add additional logic to the script and write it to disk.
+
+    Example:
+
+        with ShellScript("script.sh") as script:
+            script.add_text("a = 1")
+    """
+
+    def __init__(self, filepath: str):
+        super().__init__(filepath)
+
+        self.text = f"""\
+#!/bin/bash
+# This script has been automatically generated by AbiPy.
+
+"""

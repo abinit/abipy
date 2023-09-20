@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Relaxation Flow
+Relaxation flow
 ===============
 
 This example shows how to build a very simple Flow for the structural relaxation of SiC.
@@ -44,10 +44,10 @@ def build_flow(options):
 
     # K-points sampling
     shiftk = [
-        [0.5,0.5,0.5],
-        [0.5,0.0,0.0],
-        [0.0,0.5,0.0],
-        [0.0,0.0,0.5]
+        [0.5, 0.5, 0.5],
+        [0.5, 0.0, 0.0],
+        [0.0, 0.5, 0.0],
+        [0.0, 0.0, 0.5]
     ]
     relax_inp.set_kmesh(ngkpt=[4, 4, 4], shiftk=shiftk)
 

@@ -2,6 +2,8 @@
 """
 Workflows for calculations within the quasi-harmonic approximation.
 """
+from __future__ import annotations
+
 import numpy as np
 
 from monty.json import jsanitize
@@ -19,7 +21,8 @@ class RelaxAndPhononWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, volumes, ngqpt, with_becs, optcell, ionmov, edos_ngkpt=None):
+    def from_scf_input(cls, scf_input, volumes, ngqpt, with_becs, optcell, ionmov, 
+                       edos_ngkpt=None) -> RelaxAndPhononWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -98,7 +101,7 @@ class QhaFlow(Flow):
 
     @classmethod
     def from_scf_input(cls, workdir, scf_input, volumes, ngqpt, with_becs,
-                       edos_ngkpt=None, metadata=None, manager=None):
+                       edos_ngkpt=None, metadata=None, manager=None) -> QhaFlow:
         """
         Build a |Flow| for QHA calculations from an |AbinitInput| for GS-SCF calculations.
 

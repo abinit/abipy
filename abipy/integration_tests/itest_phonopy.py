@@ -1,6 +1,8 @@
 """
 Integration tests for flows (require pytest, ABINIT and a properly configured environment)
 """
+from __future__ import annotations
+
 import os
 import unittest
 #import numpy.testing.utils as nptu

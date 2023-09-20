@@ -6,12 +6,14 @@ import collections
 import numpy as np
 
 from io import StringIO
-from typing import Any, List, Union, Optional, Iterable, Tuple
-from abipy.data import nist_database
+from dataclasses import dataclass
+from typing import Any, Union, Optional, Iterable
+from monty.functools import lazy_property
+from monty.string import marquee  # is_string, list_strings,
 from scipy.interpolate import UnivariateSpline
 from scipy.integrate import cumtrapz
-
-from monty.functools import lazy_property
+from abipy.data import nist_database
+from abipy.tools.serialization import pmg_serialize
 
 __version__ = "0.1"
 __author__ = "Matteo Giantomassi"
@@ -56,7 +58,7 @@ def _asl(obj: Any) -> int:
         return int(obj)
 
 
-def states_from_string(confstr: str) -> List[QState]:
+def states_from_string(confstr: str) -> list[QState]:
     """
     Parse a string with an atomic configuration and build a list of `QState` instance.
     """
@@ -93,7 +95,9 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
     # the radial Dirac equations kappa (kap) =l, -(l+1) for j=l -/+ 1/2.
 
     def __new__(cls, n: int, l: int, k: Optional[int] = None):
-        """Extends super.__new__ adding type conversion and default values."""
+        """
+        Extends super.__new__ adding type conversion and default values.
+        """
         if k is not None:
             if k not in (1, 2):
                 raise ValueError(f"Invalid k index: {k} for l: {l}")
@@ -130,20 +134,16 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
             return f"{self.n}{lc}{self.ksign}"  # e.g. 2s+
 
     @lazy_property
-    def latex(self):
+    def latex(self) -> str:
         lc = l2char[self.l]
-        if self.k is None:
-            return f"${self.n}{lc}$"  # e.g. 2s
-        else:
-            return f"${self.n}{lc}^{self.ksign}$"  # e.g. 2s^+
+        # e.g. 2s or 2s^+
+        return f"${self.n}{lc}$" if self.k is None else f"${self.n}{lc}^{self.ksign}$"
 
     @lazy_property
-    def latex_l(self):
+    def latex_l(self) -> str:
         lc = l2char[self.l]
-        if self.k is None:
-            return f"${lc}$"  # e.g. s
-        else:
-            return f"${lc}^{self.ksign}$"  # e.g. s^+
+        # e.g. s or s^+
+        return f"${lc}$"  if self.k is None else f"${lc}^{self.ksign}$"
 
     @lazy_property
     def ksign(self) -> str:
@@ -156,9 +156,20 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
         if self.k is None: return l
         return l - 1/2 if self.k == l else l + 1/2
 
-    #@property
-    #def to_dict(self) -> dict:
-    #    return {"n": self.n, "l": self.l, "k": self.k}
+    @pmg_serialize
+    def as_dict(self) -> dict:
+        """Makes Nlk obey the general json interface used in pymatgen for easier serialization."""
+        return {"n": self.n, "l": self.l, "k": self.k}
+
+    def get_dict4pandas(self) -> dict:
+        """Dictionary used to build pandas DataFrames."""
+        return {k: v for k, v in self.as_dict().items() if not k.startswith("@")}
+
+    def from_dict(cls, d: dict) -> NlkState:
+        """
+        Reconstruct object from the dictionary in MSONable format produced by as_dict.
+        """
+        return cls(n=d["n"], l=d["l"], k=d["k"])
 
 
 class QState(collections.namedtuple("QState", "n, l, occ, eig, j, s")):
@@ -203,7 +214,7 @@ class AtomicConfiguration:
     """
     Atomic configuration of an all-electron atom.
     """
-    def __init__(self, Z: int, states: List[QState]) -> None:
+    def __init__(self, Z: int, states: list[QState]) -> None:
         """
         Args:
             Z: Atomic number.
@@ -285,21 +296,21 @@ class AtomicConfiguration:
         """True if self is a neutral configuration."""
         return abs(self.echarge + self.Z) < 1.e-8
 
-    def add_state(self, **qnumbers):
+    def add_state(self, **qnumbers) -> None:
         """Add a list of :class:`QState` instances to self."""
         self._push(QState(**qnumbers))
 
-    def remove_state(self, **qnumbers):
+    def remove_state(self, **qnumbers) -> None:
         """Remove a quantum state from self."""
         self._pop(QState(**qnumbers))
 
-    def _push(self, state):
+    def _push(self, state) -> None:
         # TODO check that ordering in the input does not matter!
         if state in self.states:
             raise ValueError("state %s is already in self" % str(state))
         self.states.append(state)
 
-    def _pop(self, state):
+    def _pop(self, state) -> None:
         try:
             self.states.remove(state)
         except ValueError:
@@ -393,7 +404,7 @@ class RadialFunction:
         return len(self.rmesh)
 
     @property
-    def minmax_ridx(self) -> Tuple[int, int]:
+    def minmax_ridx(self) -> tuple[int, int]:
         """
         Returns the indices of the values in a list with the maximum and minimum value.
         """
@@ -402,7 +413,7 @@ class RadialFunction:
         return minimum[0], maximum[0]
 
     @property
-    def inodes(self) -> List[int]:
+    def inodes(self) -> list[int]:
         """"
         List with the index of the nodes of the radial function.
         """
@@ -412,19 +423,25 @@ class RadialFunction:
                 inodes.append(i)
         return inodes
 
-    @property
+    @lazy_property
     def spline(self):
         """Cubic spline."""
-        try:
-            return self._spline
-        except AttributeError:
-            self._spline = UnivariateSpline(self.rmesh, self.values, s=0)
-            return self._spline
+        #return UnivariateSpline(self.rmesh, self.values, s=0)
+        return UnivariateSpline(self.rmesh, self.values, s=None)
 
-    @property
+    @lazy_property
     def roots(self):
         """Return the zeros of the spline."""
         return self.spline.roots()
+
+    def get_peaks(self, **kwargs):
+        """
+        """
+        from scipy.signal import find_peaks
+        inds, properties = find_peaks(self.values, **kwargs)
+        xs = self.rmesh[inds] if len(inds) else []
+        ys = self.values[inds] if len(inds) else []
+        return Peaks(xs=xs, ys=ys, inds=inds, properties=properties)
 
     def derivatives(self, r):
         """Return all derivatives of the spline at the point r."""
@@ -457,7 +474,7 @@ class RadialFunction:
 
         return r2v2_spline.integral(a, b)
 
-    def ifromr(self, rpoint):
+    def ifromr(self, rpoint) -> int:
         """
         The index of the point in the radial mesh.
         """
@@ -532,21 +549,37 @@ class RadialWaveFunction(RadialFunction):
     Extends :class:`RadialFunction` adding info on the set of quantum numbers.
     and methods specialized for electronic wavefunctions.
     """
-    TOL_BOUND = 1.e-10
 
     def __init__(self, nlk: NlkState, name: str, rmesh, values):
         super().__init__(name, rmesh, values)
         self.nlk = nlk
 
-    @lazy_property
-    def isbound(self) -> bool:
-        """True if self is a bound state."""
-        back = min(10, len(self))
-        return np.all(np.abs(self.values[-back:]) < self.TOL_BOUND)
 
-    #@property
-    #def to_dict(self) -> dict:
-    #    d = super().to_dict
-    #    d.update(self.nlk.to_dict)
-    #    return d
+@dataclass
+class Peaks:
+    """
+    Store information on the peaks of the radial functions.
+    """
+    xs: np.ndarray     # Absissas of the peaks
+    ys: np.ndarray     # Values of the peaks
+    inds: np.ndarray   # Indices of the peaks.
+    properties: dict   # Dict with peaks properties.
+
+    def __bool__(self) -> bool:
+        return bool(len(self.xs))
+
+    def __str__(self) -> str:
+        return self.to_string()
+
+    def to_string(self, title=None, verbose=0) -> str:
+        """
+        String representation.
+        """
+        lines = []; app = lines.append
+        if title is not None: app(marquee(title, mark="="))
+
+        if self:
+            app(f"last peak at: {round(self.xs[-1], 2)}, num peaks: {len(self.xs)}")
+
+        return "\n".join(lines)
 

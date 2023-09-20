@@ -1,5 +1,6 @@
 # coding: utf-8
 """Decorators for AbinitInput or MultiDataset objects."""
+from __future__ import annotations
 import abc
 import pymatgen.io.abinit.abiobjects as aobj
 
@@ -7,9 +8,6 @@ from monty.json import MSONable
 from abipy.tools.serialization import pmg_serialize
 from abipy.flowtk.abiobjects import LdauParams, LexxParams
 from .inputs import AbinitInput, MultiDataset
-
-import logging
-logger = logging.getLogger(__file__)
 
 
 class InputDecoratorError(Exception):
@@ -89,16 +87,17 @@ class AbinitInputDecorator(MSONable, metaclass=abc.ABCMeta):
 
 class SpinDecorator(AbinitInputDecorator):
     """This decorator changes the spin polarization."""
+
     def __init__(self, spinmode, kptopt_ifspinor=4):
         self.spinmode = aobj.SpinMode.as_spinmode(spinmode)
         self.kptopt_ifspinor = kptopt_ifspinor
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return dict(spinmode=self.spinmode.as_dict(), kptopt_ifspinor=self.kptopt_ifspinor)
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> SpinDecorator:
         return cls(aobj.SpinMode.from_dict(d["spinmode"]), kptopt_ifspinor=d["kptopt_ifspinor"])
 
     def _decorate(self, inp, deepcopy=True):
@@ -123,15 +122,16 @@ class SpinDecorator(AbinitInputDecorator):
 
 class SmearingDecorator(AbinitInputDecorator):
     """This decorator changes the electronic smearing."""
+
     def __init__(self, smearing):
         self.smearing = aobj.Smearing.as_smearing(smearing)
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return {"smearing": self.smearing.as_dict()}
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> SmearingDecorator:
         return cls(aobj.Smearing.from_dict(d["smearing"]))
 
     def _decorate(self, inp, deepcopy=True):
@@ -142,7 +142,8 @@ class SmearingDecorator(AbinitInputDecorator):
 
 class XcDecorator(AbinitInputDecorator):
     """Change the exchange-correlation functional."""
-    def __init__(self, ixc):
+
+    def __init__(self, ixc: int):
         """
         Args:
             ixc: Abinit input variable
@@ -154,7 +155,7 @@ class XcDecorator(AbinitInputDecorator):
         return {"ixc": self.ixc}
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> XcDecorator:
         return cls(d["ixc"])
 
     def _decorate(self, inp, deepcopy=True):
@@ -169,6 +170,7 @@ class XcDecorator(AbinitInputDecorator):
 
 class LdaUDecorator(AbinitInputDecorator):
     """This decorator adds LDA+U parameters to an :class:`AbinitInput` object."""
+
     def __init__(self, symbols_luj, usepawu=1, unit="eV"):
         """
         Args:
@@ -179,11 +181,11 @@ class LdaUDecorator(AbinitInputDecorator):
         self.symbols_luj, self.usepawu, self.unit = symbols_luj, usepawu, unit
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return dict(symbols_luj=self.symbols_luj, usepawu=self.usepawu, unit=self.unit)
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> LdaUDecorator:
         return cls(**{k: v for k, v in d.items() if not k.startswith("@")})
 
     def _decorate(self, inp, deepcopy=True):
@@ -204,7 +206,8 @@ class LdaUDecorator(AbinitInputDecorator):
 
 
 class LexxDecorator(AbinitInputDecorator):
-    """This decorator add local exact exchange to an :class:`AbinitInput` object."""
+    """This decorator add local exact exchange to a :class:`AbinitInput` object."""
+
     def __init__(self, symbols_lexx, exchmix=None):
         """
         Args:
@@ -219,11 +222,11 @@ class LexxDecorator(AbinitInputDecorator):
         self.symbols_lexx, self.exchmix = symbols_lexx, exchmix
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> LexxDecorator:
         return cls(**{k:v for k, v in d.items() if not k.startswith("@")})
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         return {"symbols_lexx": self.symbols_lexx, "exchmix": self.exchmix}
 
     def _decorate(self, inp, deepcopy=True):
