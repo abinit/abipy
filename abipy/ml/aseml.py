@@ -914,10 +914,10 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
                 pf("\t", c)
             pf("")
 
+        r0 = AseResults.from_atoms(atoms)
+
         dyn = opt_class(ExpCellFilter(atoms, scalar_pressure=pressure), **opt_kwargs) if relax_mode == RX_MODE.cell else \
               opt_class(atoms, **opt_kwargs)
-
-        r0 = AseResults.from_atoms(dyn.atoms)
 
         t_start = time.time()
         converged = dyn.run(fmax=fmax, steps=steps)
@@ -926,7 +926,7 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
         if not converged:
             raise RuntimeError("ASE relaxation didn't converge")
 
-        r1 = AseResults.from_atoms(dyn.atoms)
+        r1 = AseResults.from_atoms(atoms)
 
     return AseRelaxation(dyn, r0, r1, traj_path)
 
@@ -1138,7 +1138,7 @@ class CalcBuilder:
     Supports different backends defined by `name` string.
     Possible formats are:
 
-        1) nn_type e.g. m3gnet
+        1) nn_type e.g. m3gnet. See ALL_NN_TYPES for available keys.
         2) nn_type:model_name
         3) nn_type@filepath
     """
@@ -1155,11 +1155,13 @@ class CalcBuilder:
         self.name = name
 
         # Extract nn_type and model_name from name
-        self.nn_type, self.model_name = name, None
+        self.nn_type, self.model_name, self.model_path = name, None, None
         if ":" in name:
             self.nn_type, self.model_name = name.split(":")
+        elif "@" in name:
+            self.nn_type, self.model_path = name.split("@")
 
-        if  self.nn_type not in self.ALL_NN_TYPES:
+        if self.nn_type not in self.ALL_NN_TYPES:
             raise ValueError(f"Invalid {name=}, it should be in {self.ALL_NN_TYPES=}")
 
         self._model = None
@@ -1219,8 +1221,11 @@ class CalcBuilder:
                 raise ImportError("matgl not installed. Try `pip install matgl`.") from exc
 
             if self._model is None:
-                model_name = "M3GNet-MP-2021.2.8-PES" if self.model_name is None else self.model_name
-                self._model = matgl.load_model(model_name)
+                if self.model_path is not None:
+                    self._model = matgl.load_model(self.model_path)
+                else:
+                    model_name = "M3GNet-MP-2021.2.8-PES" if self.model_name is None else self.model_name
+                    self._model = matgl.load_model(model_name)
 
             class MyM3GNetCalculator(_MyCalculator, M3GNetCalculator):
                 """Add abi_forces and abi_stress"""
@@ -1237,7 +1242,13 @@ class CalcBuilder:
 
             if self._model is None:
                 assert self.model_name is None
-                self._model = CHGNet.load()
+                if self.model_path is not None:
+                    self._model = CHGNet.from_file(self.model_path)
+                elif self.model_name is not None:
+                    self._model = CHGNet.load(model_name=self.model_name)
+                else:
+                    # Default model with model_name="MPtrj-efsm"
+                    self._model = CHGNet.load()
 
             class MyCHGNetCalculator(_MyCalculator, CHGNetCalculator):
                 """Add abi_forces and abi_stress"""
@@ -1247,12 +1258,15 @@ class CalcBuilder:
 
         if self.nn_type == "alignn":
             try:
-                from alignn.ff.ff import AlignnAtomwiseCalculator, default_path
+                from alignn.ff.ff import AlignnAtomwiseCalculator, default_path, get_figshare_model_ff
             except ImportError as exc:
                 raise ImportError("alignn not installed. See https://github.com/usnistgov/alignn") from exc
 
             class MyAlignnCalculator(_MyCalculator, AlignnAtomwiseCalculator):
                 """Add abi_forces and abi_stress"""
+
+            #if self.model_path is not None:
+            #    get_figshare_model_ff(model_name=self.model_path)
 
             model_name = default_path() if self.model_name is None else self.model_name
             cls = MyAlignnCalculator if with_delta else AlignnAtomwiseCalculator
@@ -2317,18 +2331,7 @@ class MlCompareWithAbinitio(_MlNebBase):
 
         elif fnmatch(basename, "vasprun*.xml*"):
             # Assume Vasprun file with structural relaxation or MD results.
-            def get_energy_step(step: dict) -> float:
-                """Copied from final_energy property in vasp.outputs."""
-                final_istep = step
-                total_energy = final_istep["e_0_energy"]
-                # Addresses a bug in vasprun.xml. See https://www.vasp.at/forum/viewtopic.php?f=3&t=16942
-                final_estep = final_istep["electronic_steps"][-1]
-                electronic_energy_diff = final_estep["e_0_energy"] - final_estep["e_fr_energy"]
-                total_energy_bugfix = np.round(electronic_energy_diff + final_istep["e_fr_energy"], 8)
-                if np.abs(total_energy - total_energy_bugfix) > 1e-7:
-                    return total_energy_bugfix
-                return total_energy
-
+            from abipy.ml.tools import get_energy_step
             from pymatgen.io.vasp.outputs import Vasprun
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
