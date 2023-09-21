@@ -20,6 +20,20 @@ from abipy.tools.printing import print_dataframe
 ASE_OPTIMIZERS = aseml.ase_optimizer_cls("__all__")
 
 
+def set_default(ctx, param, filepath):
+    """
+    to have config file for a single command:
+    Based on https://stackoverflow.com/questions/46358797/python-click-supply-arguments-and-options-from-a-configuration-file
+    """
+    from abipy.tools.iotools import yaml_safe_load_path
+    if os.path.exists(filepath):
+        print("Reading CLI options from:", filepath)
+        config = yaml_safe_load_path(filepath)
+        print("Config options:\n", config)
+        ctx.default_map = config
+    return filepath
+
+
 def herald(f):
     @wraps(f)
     def wrapper(*args, **kw):
@@ -35,9 +49,6 @@ def herald(f):
         # Set OMP_NUM_THREADS to 1 if env var is not defined.
         num_threads = cli.fix_omp_num_threads()
 
-        #import warnings
-        #with warnings.catch_warnings():
-        #    warnings.simplefilter("ignore")
         t_start = time()
         exit_code = f(*args, **kw)
         t_end = time()
@@ -48,7 +59,7 @@ def herald(f):
 
 
 def add_constraint_opts(f):
-    """Add CLI options to constrain atoms"""
+    """Add CLI options to constrain atoms."""
     def mk_cbk(type):
         def callback(ctx, param, value):
             #print(f"{param=}, {value=}")
@@ -60,12 +71,13 @@ def add_constraint_opts(f):
                     callback=mk_cbk(int),
                     help='Fix atoms by indices e.g. `--fix-inds "0 1"` to fix the first two atoms.')(f)
     f = click.option("--fix-symbols", "-fs", type=str, default=None, show_default=True,
-                    callback=mk_cbk(str), help='Fix atoms by chemical symbols e.g. `--fix-symbols "C O"`')(f)
+                    callback=mk_cbk(str),
+                    help='Fix atoms by chemical symbols e.g. `--fix-symbols "C O"`')(f)
     return f
 
 
 def add_relax_opts(f):
-    """Add CLI options for structural relaxations."""
+    """Add CLI options for structural relaxations with ASE."""
     # fmax (float): total force tolerance for relaxation convergence.
     # Here fmax is a sum of force and stress forces. Defaults to 0.1.
     f = click.option("--relax-mode", "-r", default="ions", show_default=True, type=click.Choice(["no", "ions", "cell"]),
@@ -81,7 +93,7 @@ def add_relax_opts(f):
 
 
 def add_neb_opts(f):
-    """Add CLI options for NEB calculations."""
+    """Add CLI options for NEB calculations with ASE."""
     f = click.option("--nimages", "-n", default=14, type=click.IntRange(3, None), show_default=True,
                      help='Number of NEB images including initial/final points. Must be >= 3')(f)
     f = click.option("--relax-mode", "-r", default="ions", show_default=True, type=click.Choice(["no", "ions", "cell"]),
@@ -122,8 +134,8 @@ def add_nn_name_opt(f):
 
 def add_nn_names_opt(f):
     """Add CLI options to select multiple NN potentials."""
-    f = click.option("-nns", '--nn-names', type=str, multiple=True, show_default=True, help='ML potentials to be used',
-                  default=["chgnet"])(f)
+    f = click.option("-nns", '--nn-names', type=str, multiple=True, show_default=True,
+                    help='ML potentials to use.', default=["chgnet"])(f)
     return f
 
 
@@ -140,11 +152,13 @@ def _get_nn_names(nn_names: list[str]) -> list[str]:
         return aseml.CalcBuilder.ALL_NN_TYPES
 
     if any(n.startswith("all-") for n in nn_names):
+        # --nn-names all-alignn-m3gnet     --> return all NN names except alignn and m3gnet
         assert len(nn_names) == 1
         skip_names = nn_names[0].replace("all-", "").split("-")
         return [s for s in aseml.CalcBuilder.ALL_NN_TYPES if s not in skip_names]
 
     if any(n.endswith("-") for n in nn_names):
+        # --nn-names chgnet-               --> return all NN names except chgnet.
         skip_names = [n[:-2] for n in nn_names if n.endswith("-")]
         return [s for s in aseml.CalcBuilder.ALL_NN_TYPES if s not in skip_names]
 
@@ -160,7 +174,6 @@ def main(ctx, seaborn):
     ctx.ensure_object(dict)
 
     if seaborn:
-    #if True:
         # Activate seaborn settings for plots
         import seaborn as sns
         sns.set(context=seaborn, style='darkgrid', palette='deep',
@@ -175,6 +188,7 @@ def main(ctx, seaborn):
 @add_relax_opts
 @add_constraint_opts
 @add_workdir_verbose_opts
+@click.option('--config', default='abiml_relax.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def relax(ctx, filepath, nn_name,
           relax_mode, fmax, pressure, steps, optimizer,
           fix_inds, fix_symbols,
@@ -216,6 +230,7 @@ def relax(ctx, filepath, nn_name,
 @click.pass_context
 @click.argument("filepath", type=str)
 @add_workdir_verbose_opts
+@click.option('--config', default='abiml_abinit_relax.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def abinit_relax(ctx, filepath,
                  workdir, verbose):
     """
@@ -240,6 +255,7 @@ def abinit_relax(ctx, filepath,
               type=click.Choice(["nvt", "npt", "npt_berendsen"]), help='Ensemble e.g. nvt, npt.')
 @add_constraint_opts
 @add_workdir_verbose_opts
+@click.option('--config', default='abiml_md.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def md(ctx, filepath, nn_name,
        temperature, timestep, steps, loginterval, ensemble,
        fix_inds, fix_symbols,
@@ -278,6 +294,7 @@ def md(ctx, filepath, nn_name,
 @add_neb_opts
 @add_constraint_opts
 @add_workdir_verbose_opts
+@click.option('--config', default='abiml_neb.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def neb(ctx, filepaths, nn_name,
         nimages, relax_mode, fmax, pressure, optimizer, neb_method, climb,
         fix_inds, fix_symbols,
@@ -320,6 +337,7 @@ def neb(ctx, filepaths, nn_name,
 @add_neb_opts
 @add_constraint_opts
 @add_workdir_verbose_opts
+@click.option('--config', default='abiml_mneb.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def mneb(ctx, filepaths, nn_name,
          nimages, relax_mode, fmax, pressure, optimizer, neb_method, climb,
          fix_inds, fix_symbols,
@@ -357,6 +375,67 @@ def mneb(ctx, filepaths, nn_name,
 @click.pass_context
 @click.argument("filepath", type=str)
 @add_nn_names_opt
+@click.option("--supercell", "-s", nargs=3, type=int, default=(2, 2, 2), show_default=True, help="Supercell dimensions.")
+@click.option("--distance", "-d", type=float, show_default=True, default=0.01, help="Displacement distance in Ang.")
+#@click.option('--asr', type=int, default=2, show_default=True, help="Restore the acoustic sum rule on the interatomic force constants.")
+#@click.option('--dipdip', type=int, default=1, show_default=True, help="Treatment of dipole-dipole interaction.")
+@click.option('--line-density', "-ld", default=20, type=float, show_default=True, help="Line density to generate the q-path for PH bands.")
+@click.option('--qppa', "-qppa", default=None, type=float, show_default=True, help="q-points per atom to generate the q-mesh for PH DOS.")
+@add_relax_opts
+@add_workdir_verbose_opts
+@click.option('--config', default='abiml_ph.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def ph(ctx, filepath, nn_names,
+       supercell, distance,
+       #asr, dipdip,
+       line_density, qppa,
+       relax_mode, fmax, pressure, steps, optimizer,
+       workdir, verbose):
+    """
+    Use phonopy and ML potential to compute phonons.
+
+    Usage example:
+
+    \b
+        abiml.py.py ph FILE --distance 0.03 --supercell 2 2 2
+
+    where `FILE` provides the crystalline structure
+    or a string such as __mp-134 to fetch the structure from the MP database.
+
+    To specify the list of ML potential, use e.g.:
+
+        abiml.py.py ddb -nn-names m3gnet --nn-names chgnet [...]
+
+    To use all NN potentials supported, use:
+
+        -nn-names all [...]
+    """
+    if filepath.startswith("__mp-"):
+        print(f"Fetching structure for mp-id {filepath[2:]} from the materials project database.")
+        structure = Structure.from_mpid(filepath[2:])
+    else:
+        structure = Structure.from_file(filepath)
+
+    from abipy.ml.ml_phonopy import MlPhonopy
+    supercell = np.eye(3) * np.array(supercell)
+
+    nn_names = _get_nn_names(nn_names)
+    ml_ph = MlPhonopy(structure, supercell,
+                      distance,
+                      # asr, dipdip,
+                      line_density, qppa,
+                      relax_mode, fmax, pressure, steps, optimizer, nn_names,
+                      verbose, workdir, prefix="_abiml_ph_",
+                      )
+    print(ml_ph.to_string(verbose=verbose))
+    ml_ph.run()
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("ddb_filepath", type=str)
+@add_nn_names_opt
 @click.option("--supercell", "-s", nargs=3, type=int, default=(-1, -1, -1), show_default=True, help="Supercell. If < 0, supercell is taken from DDB ngqpt.")
 @click.option("--distance", "-d", type=float, show_default=True, default=0.01, help="Displacement distance in Ang.")
 @click.option('--asr', type=int, default=2, show_default=True, help="Restore the acoustic sum rule on the interatomic force constants.")
@@ -365,7 +444,8 @@ def mneb(ctx, filepaths, nn_name,
 @click.option('--qppa', "-qppa", default=None, type=float, show_default=True, help="q-points per atom to generate the q-mesh for PH DOS.")
 @add_relax_opts
 @add_workdir_verbose_opts
-def phddb(ctx, filepath, nn_names,
+@click.option('--config', default='abiml_phddb.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def phddb(ctx, ddb_filepath, nn_names,
           supercell, distance, asr, dipdip, line_density, qppa,
           relax_mode, fmax, pressure, steps, optimizer,
           workdir, verbose):
@@ -388,11 +468,11 @@ def phddb(ctx, filepath, nn_names,
 
         -nn-names all [...]
     """
-    if filepath.startswith("__mp-"):
-        print(f"Fetching DDB for mp-id {filepath[2:]} from the materials project database.")
+    if ddb_filepath.startswith("__mp-"):
+        print(f"Fetching DDB for mp-id {ddb_filepath[2:]} from the materials project database.")
         from abipy.dfpt.ddb import DdbFile
-        with DdbFile.from_mpid(filepath[2:]) as ddb:
-            filepath = ddb.filepath
+        with DdbFile.from_mpid(ddb_filepath[2:]) as ddb:
+            ddb_filepath = ddb.filepath
 
     from abipy.ml.ml_phonopy import MlPhonopyWithDDB
     if any(s <= 0 for s in supercell):
@@ -401,10 +481,11 @@ def phddb(ctx, filepath, nn_names,
         supercell = np.eye(3) * np.array(supercell)
 
     nn_names = _get_nn_names(nn_names)
-    ml_phddb = MlPhonopyWithDDB(distance, asr, dipdip, line_density, qppa,
+    ml_phddb = MlPhonopyWithDDB(ddb_filepath,
+                                distance, asr, dipdip, line_density, qppa,
                                 relax_mode, fmax, pressure, steps, optimizer, nn_names,
                                 verbose, workdir, prefix="_abiml_phddb_",
-                                ddb_filepath=filepath, supercell=supercell,
+                                supercell=supercell,
                                 )
     print(ml_phddb.to_string(verbose=verbose))
     ml_phddb.run()
@@ -419,6 +500,7 @@ def phddb(ctx, filepath, nn_names,
 @click.option("--max-ns", "-m", default=100, type=int, show_default=True, help='Max number of structures')
 @add_relax_opts
 @add_workdir_verbose_opts
+@click.option('--config', default='abiml_order.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def order(ctx, filepath, nn_name,
           max_ns, relax_mode, fmax, pressure, steps, optimizer, workdir, verbose):
     """
@@ -451,6 +533,7 @@ def order(ctx, filepath, nn_name,
 @add_relax_opts
 @add_nprocs_opt
 @add_workdir_verbose_opts
+@click.option('--config', default='abiml_scan_relax.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def scan_relax(ctx, filepath, nn_name,
                isite, mesh,
                relax_mode, fmax, pressure, steps, optimizer,
@@ -482,7 +565,6 @@ def scan_relax(ctx, filepath, nn_name,
                            workdir=workdir, prefix="_abiml_scan_relax_")
     print(scanner)
     scanner.run(nprocs=nprocs)
-
     return 0
 
 
@@ -498,6 +580,7 @@ def scan_relax(ctx, filepath, nn_name,
               help='Plotting backend: mpl for matplotlib, panel for web-based')
 @add_nprocs_opt
 @add_workdir_verbose_opts
+@click.option('--config', default='abiml_compare.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def compare(ctx, filepaths,
             nn_names,
             traj_range,
@@ -506,14 +589,14 @@ def compare(ctx, filepaths,
             workdir, verbose
             ):
     """
-    Compare ab-initio energies, forces, and stresses with ML-computed ones.
+    compare ab-initio energies, forces, and stresses with ml-computed ones.
 
-    Usage example:
+    usage example:
 
     \b
         abiml.py.py compare FILE --nn-names matgl --nn-names chgnet
 
-    where `FILE` can be either a _HIST.nc or a VASPRUN.xml file.
+    where `FILE` can be either a _HIST.nc or a vasprun.xml FILE.
     """
     traj_range = cli.range_from_str(traj_range)
     nn_names = _get_nn_names(nn_names)
@@ -536,6 +619,42 @@ def compare(ctx, filepaths,
     return 0
 
 
+@main.command()
+@herald
+@click.pass_context
+@click.argument('filepaths', type=str, nargs=-1)
+@add_nn_name_opt
+#@add_nprocs_opt
+@add_workdir_verbose_opts
+@click.option('--config', default='abiml_train.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def train(ctx, filepaths,
+          nn_name,
+          #nprocs,
+          workdir, verbose
+          ):
+    """
+    Train a ML potential using the trajectory stored on FILE.
+
+    usage example:
+
+    \b
+        abiml.py.py train FILE --nn-names matgl
+
+    where `FILE` can be either a _HIST.nc or a vasprun.xml FILE.
+    """
+    if nn_name == "matgl":
+        from abipy.ml.matgl import MatglSystem
+        s = MatglSystem(filepaths, workdir, verbose)
+
+    elif nn_name == "chgnet":
+        from abipy.ml.chgnet import ChgnetSystem
+        s = ChgnetSystem(filepaths, workdir, verbose)
+
+    else:
+        raise ValueError(f"Unsupported {nn_name=}")
+
+    s.train()
+    return 0
+
 if __name__ == "__main__":
     sys.exit(main())
-
