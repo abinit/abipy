@@ -487,6 +487,8 @@ class DeltaSCF():
         Make a 3d visualisation of the displacements induced by the electronic transition =
         Difference between ground state and excited state atomic positions.
         The colors of the atoms are based on Delta_Q_^2 per atom.
+        For displacement visualisation with VESTA, check https://github.com/lucydot/vesta_vectors
+    
         Args:
             a_g = coefficient that multiplies the displacement magnitudes
         Returns: |matplotlib-Figure|
@@ -591,7 +593,7 @@ class DeltaSCF():
             with abiopen(file) as f:
                 ebands.append(f.ebands)
 
-        fig, axs = plt.subplots(1, 4) #figsize=(9, 5))
+        fig, axs = plt.subplots(1, 4) 
         titles = [r'$A_g$', r'$A_g^*$', r'$A_e^*$', r'$A_e$']
         e0 = ebands[0].fermie
         for i,eband in enumerate(ebands):
