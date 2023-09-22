@@ -10,6 +10,7 @@ from abipy.abio.input_tags import *
 
 import abipy.abio.decorators as ideco
 from abipy.abio.factories import *
+from abipy.flowtk.abiphonopy import *
 
 
 class TestAbinitInput(AbipyTest):
@@ -332,6 +333,44 @@ class TestAbinitInput(AbipyTest):
 
         #new_inp = si2_inp.new_with_structure(super_structure, scdims=scdims)
         #self.abivalidate_input(new_inp)
+
+    def test_new_with_structure_2(self):
+        """Testing new_with_structure with occopt=2 nband='*xxx' format ."""
+
+        abi_kwargs = dict(ecut=15, chksymbreak=0,)
+
+        inp = AbinitInput(structure=abidata.cif_file("NV_center_64_at_sc.cif"),
+                          pseudos=abidata.pseudos("C.psp8", "N.psp8"),
+                          abi_kwargs=abi_kwargs)
+
+        n_val = inp.num_valence_electrons
+        n_cond = round(10)  
+
+        spin_up_gs = f"\n{int((n_val - 3) / 2)}*1 1 1   1 {n_cond}*0" 
+        spin_dn_gs = f"\n{int((n_val - 3) / 2)}*1 1 0   0 {n_cond}*0"
+
+        nsppol = 2
+        ngkpt=[2,2,2]
+        shiftk=[0,0,0]
+
+        inp.set_kmesh_nband_and_occ(ngkpt, shiftk, nsppol, [spin_up_gs, spin_dn_gs])
+        sc_stru=inp.structure.copy()
+        sc_stru.make_supercell([2,1,1])
+
+        new_inp = inp.new_with_structure(new_structure=sc_stru,
+                       scdims=[2,1,1],verbose=0)
+        assert new_inp["nband"] == '*276'  
+        #self.abivalidate_input(new_inp) 
+        # Not valid now because occ should be rewritten as well
+        # TODO
+        # go from 
+        # occ='125*1 1 1 1 10*0'
+        # to 
+        # occ='125*1 1 1 1 125*1 1 1 1 10*0 10*0 '
+        # if size is doubled.
+
+
+
 
     def test_abinit_calls(self):
         """Testing AbinitInput methods invoking Abinit."""
