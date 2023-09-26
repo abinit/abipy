@@ -9,7 +9,8 @@ import math
 from mpmath import coth
 from scipy.integrate import simps
 from scipy.special import factorial
-from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs
+from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs,get_axarray_fig_plt
+import abipy.core.abinit_units as abu
 
 
 class DeltaSCF():
@@ -75,10 +76,10 @@ class DeltaSCF():
                    structureex=structure_ex,
                    forces_gs=forces_gs,
                    forces_ex=forces_ex,
-                   AgEnergy=Ag_energy,
-                   AgstarEnergy=Agstar_energy,
-                   AestarEnergy=Aestar_energy,
-                   AeEnergy=Ae_energy,
+                   ag_energy=Ag_energy,
+                   ag_star_energy=Agstar_energy,
+                   ae_star_energy=Aestar_energy,
+                   ae_energy=Ae_energy,
                    meta=meta)
 
 
@@ -102,10 +103,10 @@ class DeltaSCF():
                    structureex=structures[2],
                    forces_gs=forces[3],
                    forces_ex=forces[1],
-                   AgEnergy=energies[0],
-                   AgstarEnergy=energies[1],
-                   AestarEnergy=energies[2],
-                   AeEnergy=energies[3],)
+                   ag_energy=energies[0],
+                   ag_star_energy=energies[1],
+                   ae_star_energy=energies[2],
+                   ae_energy=energies[3],)
 
     @classmethod
     def from_relax_file(cls,filepaths):
@@ -126,23 +127,23 @@ class DeltaSCF():
                    structureex=structures[1],
                    forces_gs=None,
                    forces_ex=None,
-                   AgEnergy=energies[0],
-                   AgstarEnergy=None,
-                   AestarEnergy=energies[1],
-                   AeEnergy=None,)
+                   ag_energy=energies[0],
+                   ag_star_energy=None,
+                   ae_star_energy=energies[1],
+                   ae_energy=None,)
 
 
     def __init__(self,structuregs,structureex,forces_gs,forces_ex,
-                 AgEnergy,AgstarEnergy,AestarEnergy,AeEnergy,meta=None):
+                 ag_energy,ag_star_energy,ae_star_energy,ae_energy,meta=None):
         """
         :param structuregs: relaxed ground state structure
         :param structureex: relaxed excited state structure
         :param forces_gs: forces in the gs
         :param forces_ex: forces in the ex
-        :param AgEnergy
-        :param AgstarEnergy
-        :param AestarEnergy
-        :param AeEnergy
+        :param ag_energy
+        :param ag_star_energy
+        :param ae_star_energy
+        :param ae_energy
         :param meta : dict. of meta data of the lumiwork (can be the supercell size, ecut,...)
         """
 
@@ -150,10 +151,10 @@ class DeltaSCF():
         self.structureex=structureex
         self.forces_gs=forces_gs
         self.forces_ex=forces_ex
-        self.AgEnergy=AgEnergy
-        self.AgstarEnergy=AgstarEnergy
-        self.AestarEnergy=AestarEnergy
-        self.AeEnergy=AeEnergy
+        self.ag_energy=ag_energy
+        self.ag_star_energy=ag_star_energy
+        self.ae_star_energy=ae_star_energy
+        self.ae_energy=ae_energy
         self.meta=meta
 
 
@@ -290,26 +291,26 @@ class DeltaSCF():
         """
         Zero-phonon line energy (eV)
         """
-        return (self.AestarEnergy - self.AgEnergy)
+        return (self.ae_star_energy - self.ag_energy)
 
     def E_em(self):
         """
         Emission energy(eV)
         """
-        return(self.AestarEnergy-self.AeEnergy)
+        return(self.ae_star_energy-self.ae_energy)
 
     def E_abs(self):
         """
         Absorption energy(eV)
         """
-        return(self.AgstarEnergy-self.AgEnergy)
+        return(self.ag_star_energy-self.ag_energy)
 
     def E_FC_ex(self,unit='eV'):
         """
         Franck condon energy in excited state (eV)
         = Relaxation energy between Ag* and Ae* states
         """
-        e_fc=self.AgstarEnergy - self.AestarEnergy
+        e_fc=self.ag_star_energy - self.ae_star_energy
         if unit == 'SI':
             return 1.602176565e-19*e_fc
         else:
@@ -320,7 +321,7 @@ class DeltaSCF():
         Franck condon energy in ground state (eV)
         = Relaxation energy between Ae and Ag states
         """
-        e_fc=self.AeEnergy - self.AgEnergy
+        e_fc=self.ae_energy - self.ag_energy
         if unit == 'SI':
             return 1.602176565e-19*e_fc
         else:
@@ -336,17 +337,15 @@ class DeltaSCF():
         """
         Phonon effective frequency of the ground state (eV)
         """
-        hbar_eV = 6.582119570e-16  # in eV*s
         omega_g=np.sqrt(2*self.E_FC_gs(unit='SI')/(self.delta_q(unit='SI'))**2)
-        return(hbar_eV*omega_g)
+        return(abu.hbar_eVs*omega_g)
 
     def eff_freq_ex(self):
         """
         Phonon effective frequency of the excited state (eV)
         """
-        hbar_eV = 6.582119570e-16  # in eV*s
         omega_e=np.sqrt(2*self.E_FC_ex(unit='SI')/(self.delta_q(unit='SI'))**2)
-        return(hbar_eV*omega_e)
+        return(abu.hbar_eVs*omega_e)
 
     def S_em(self):
         """
@@ -373,7 +372,7 @@ class DeltaSCF():
         if T==0:
             return w_0
         else :
-            k_b = 8.6173303e-5# in eV/K
+            k_b = abu.kb_eVK
             w_T = w_0 * np.sqrt(coth(self.eff_freq_ex() / (2 * k_b * T)))
             return w_T
 
@@ -386,7 +385,7 @@ class DeltaSCF():
         FC = np.exp(self.S_em()) * self.S_em() ** n / math.factorial(n)
         return FC
 
-    def lineshape_1D_zero_temp(self,energy_range=[0.5,5],max_m=25,phonon_width=0.01,with_omega_cube="True",normalized='Area'):
+    def lineshape_1D_zero_temp(self,energy_range=[0.5,5],max_m=25,phonon_width=0.01,with_omega_cube=True,normalized='Area'):
         """
         Compute the emission lineshape following the effective phonon 1D-CCM at T=0K.
         See eq. (9) of  https://doi.org/10.1002/adom.202100649 
@@ -415,7 +414,7 @@ class DeltaSCF():
             gaussian_1D = fc_factor * (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(arg_exp)
             A += gaussian_1D
 
-        if with_omega_cube=="True":
+        if with_omega_cube==True:
             A=A*E_x**3
 
         if normalized=="Area":
@@ -446,7 +445,10 @@ class DeltaSCF():
         x,y=self.lineshape_1D_zero_temp(energy_range,max_m,phonon_width,with_omega_cube,
                                         normalized)
         ax.plot(x,y, **kwargs)
+        ax.set_xlabel(r'Energy (eV)')
+        ax.set_ylabel(r'Intensity ')
         return fig
+    
 
     def get_dict_results(self):
         d=dict([
@@ -510,8 +512,8 @@ class DeltaSCF():
         fig=plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-        ax.quiver(x, y, z,u*a_g,v*a_g,w*a_g, color='k',linewidths=1)
-        sc = ax.scatter(x, y, z, c=M, marker='o', s=60, cmap="jet")
+        ax.quiver(x, y, z,u*a_g,v*a_g,w*a_g, color='k',linewidths=1,**kwargs)
+        sc = ax.scatter(x, y, z, c=M, marker='o', s=60, cmap="jet",**kwargs)
 
         clb=plt.colorbar(sc)
         clb.set_label(r'$\Delta Q^2$ per atom')
@@ -583,24 +585,119 @@ class DeltaSCF():
         return fig
     
     @add_fig_kwargs
-    def plot_four_BandStructures(self,nscf_files):
+    def plot_four_BandStructures(self,nscf_files,ax_mat=None,ylims=[-5,5],**kwargs):
         """"
         plot the 4 band structures
-        nscf_files is the list of Ag, Agstar, Aestar, Ae nscf file paths.
+        nscf_files is the list of Ag, Agstar, Aestar, Ae nscf gsr file paths.
         """
         ebands = []
         for file in nscf_files:
             with abiopen(file) as f:
                 ebands.append(f.ebands)
 
-        fig, axs = plt.subplots(1, 4) 
+        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=1, ncols=4,
+                                               sharex=True, sharey=True, squeeze=False)
+                
         titles = [r'$A_g$', r'$A_g^*$', r'$A_e^*$', r'$A_e$']
         e0 = ebands[0].fermie
+                                               
         for i,eband in enumerate(ebands):
-            eband.plot(ax=axs[i], e0=e0, ylims=(-5, 5))
-            eband.decorate_ax(ax=axs[i], title=titles[i])
+            eband.plot_ax(ax=ax_mat[0,i],spin=0, e0=e0,color="k",**kwargs)
+            eband.plot_ax(ax=ax_mat[0,i],spin=1, e0=e0,color="r",**kwargs)
+            eband.decorate_ax(ax=ax_mat[0,i],title=titles[i])
+            
+        ax_mat[0,0].set_ylim(ylims)
+        ax_mat[0,1].set_ylabel("")
+        ax_mat[0,2].set_ylabel("")
+        ax_mat[0,3].set_ylabel("")
+                        
+        return fig
+    
+    @add_fig_kwargs
+    def draw_displaced_parabolas(self,ax=None,scale_eff_freq=4,font_size=8):
+        """
+        Draw the four points diagram with relevant transition energies.
+        Args:
+        ax: |matplotlib-Axes| or None if a new figure should be created.
+        scale_eff_freq:  scaling factor to adjust the parabolas curvatures. 
+        font_size: font size for the annotations
+    
+        Returns: |matplotlib-Figure|
+        """
 
-        for ax in axs.flat:
-            ax.label_outer()
 
-        plt.subplots_adjust(hspace=0.5, wspace=0.1)
+        ax,fig,plt=get_ax_fig_plt(ax=ax)
+
+        delta_Q=self.delta_q()
+        E_zpl=self.E_zpl()
+        omega_gs_sq=scale_eff_freq*2*self.E_FC_gs()/self.delta_q()**2
+        omega_ex_sq=scale_eff_freq*2*self.E_FC_ex()/self.delta_q()**2
+
+        new_FC_gs=omega_gs_sq*delta_Q**2*0.5
+        new_FC_ex=omega_ex_sq*delta_Q**2*0.5
+
+        Qs=np.linspace(-delta_Q*0.2,delta_Q*1.5,1000)
+
+        E_gs=0.5*omega_gs_sq.real*(Qs)**2+0 # ref at (0,0)
+        E_ex=0.5*omega_ex_sq.real*(Qs-delta_Q)**2+ self.E_zpl()# min at (delta_Q,ae_energy)
+        
+
+        #  parabolas
+        ax.plot(Qs,E_gs,'k',zorder=1)
+        ax.plot(Qs,E_ex,'k',zorder=1)
+
+        #  points
+        xs=np.array([0,0,delta_Q,delta_Q])
+        ys=np.array([0,E_zpl+new_FC_ex,E_zpl,new_FC_gs])
+
+        ax.scatter(xs,ys,s=50,color='k',zorder=2)
+
+        # arrows 
+        
+        ax.annotate("", xy=(0, E_zpl+0.95*new_FC_ex), xytext=(0, 0),
+            arrowprops=dict(arrowstyle="->",color="b",lw=1))
+        ax.annotate(r' $E_{abs}$='+format(self.E_abs(),".2f")+' eV  ', xy=(0,(E_zpl+new_FC_ex)/2),ha='left',fontsize=font_size)
+
+        ax.annotate("", xy=(delta_Q, new_FC_gs*1.05), xytext=(delta_Q, E_zpl),
+            arrowprops=dict(arrowstyle="->",color="r",lw=1))
+        ax.annotate(r' $E_{em}$='+format(self.E_em(),".2f")+' eV  ', xy=(delta_Q,E_zpl-(E_zpl-new_FC_gs)/2),ha='left',fontsize=font_size)
+
+        ax.annotate("", xy=(delta_Q, E_zpl), xytext=(delta_Q, E_zpl+new_FC_ex*1.5),
+            arrowprops=dict(arrowstyle="-",color="k",lw=0.3,ls='--'))
+        ax.annotate(r' $E_{FC,e}$='+format(self.E_FC_ex(),".2f")+' eV  ', xy=(delta_Q,E_zpl+new_FC_ex/2),ha='left',fontsize=font_size)
+
+        ax.annotate("", xy=(delta_Q, new_FC_gs), xytext=(delta_Q, -new_FC_gs*0.5),
+            arrowprops=dict(arrowstyle="-",color="k",lw=0.3,ls='--'))
+        ax.annotate(r' $E_{FC,g}$='+format(self.E_FC_gs(),".2f")+' eV  ', xy=(delta_Q,new_FC_gs/2),ha='left',fontsize=font_size)
+
+        ax.annotate("", xy=(0, 0), xytext=(delta_Q*1.1, 0),
+            arrowprops=dict(arrowstyle="-",color="k",lw=0.3,ls='--'))
+        ax.annotate("", xy=(0, E_zpl+new_FC_ex), xytext=(delta_Q*1.1, E_zpl+new_FC_ex),
+            arrowprops=dict(arrowstyle="-",color="k",lw=0.3,ls='--'))
+
+        ax.annotate("", xy=(0, -new_FC_gs*0.2), xytext=(delta_Q, -new_FC_gs*0.2),
+            arrowprops=dict(arrowstyle="<->",color="k",lw=0.6))
+        ax.annotate(r'$\Delta Q$ ='+format(self.delta_q(),".2f"), xy=(delta_Q/2, -new_FC_gs*0.4),ha='center',fontsize=font_size)
+        
+        ax.set_ylim(-new_FC_gs*1.5,E_zpl+2*new_FC_ex)
+        ax.set_xlim(-0.5*delta_Q,2*delta_Q)
+
+        ax.annotate("", xy=(-0.4*delta_Q, -new_FC_gs), xytext=(-0.4*delta_Q, E_zpl+2*new_FC_ex),
+            arrowprops=dict(arrowstyle="<-",color="k",lw=1.5))
+        ax.text(x=-0.45*delta_Q,y=(E_zpl+new_FC_ex)/2, s='Energy (eV)',fontsize=10,rotation=90,ha='center')
+
+        ax.annotate("", xy=(-0.5*delta_Q, -new_FC_gs*0.6), xytext=(+1.4*delta_Q, -new_FC_gs*0.6),
+            arrowprops=dict(arrowstyle="<-",color="k",lw=1.5))
+        ax.text(x=0.7*delta_Q,y=-new_FC_gs, s='Configuration coordinate Q',fontsize=10,ha='center')
+
+
+        ax.axis('off')
+
+        return fig
+
+
+
+
+    
+
+

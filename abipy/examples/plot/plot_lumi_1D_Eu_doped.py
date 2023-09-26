@@ -27,6 +27,13 @@ SLA_site_2 = DeltaSCF.from_four_points_file([abidata.ref_file("site_2_relaxed_gs
                                             abidata.ref_file("site_2_unrelaxed_gs_out_GSR.nc")])
 
 #%%
+# To plot the luminescence lineshape following the one effective phonon mode model at 0K
+
+SLA_site_1.plot_lineshape_1D_zero_temp(energy_range=[0.5,3],max_m=20,phonon_width=0.02,
+               with_omega_cube='True',
+               normalized='Area');
+
+#%%
 # To get a panda dataframe with the main restults : 
 dataframes=[]
 df_1=SLA_site_1.get_dataframe('Site_1')
@@ -39,12 +46,10 @@ pd.concat([df_1,df_2])
 # To plot the magnitude of the displacements
 SLA_site_1.plot_delta_R_distance(defect_symbol="Eu")
 
+# %%
+# To draw the configuration coordinates diagram.
+SLA_site_1.draw_displaced_parabolas(scale_eff_freq=2.5);
+SLA_site_2.draw_displaced_parabolas(scale_eff_freq=2.5);
 
-#%%
-# To plot the luminescence lineshape following the one effective phonon mode model at 0K
-
-SLA_site_1.plot_lineshape_1D_zero_temp(energy_range=[0.5,3],max_m=20,phonon_width=0.02,
-               with_omega_cube='True',
-               normalized='Area');
 
 # %%

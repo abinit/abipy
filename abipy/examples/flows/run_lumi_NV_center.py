@@ -24,7 +24,7 @@ import os
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 import abipy.data as abidata
-from abipy.core import structure
+from abipy.core.structure import Structure
 from abipy.flowtk.lumi_works import LumiWork
 
 
@@ -98,16 +98,16 @@ def build_flow(options):
 
     #Construct the structure
 
-    stru=structure.Structure.from_file(abidata.cif_file("NV_center_64_at_sc.cif"))
+    stru=Structure.from_file(abidata.cif_file("NV_center_64_at_sc.cif"))
 
     ####### Delta SCF part of the flow #######
         
     gs_scf_inp,exc_scf_inp = scf_inp(stru)
 
     relax_kwargs_gs, relax_kwargs_ex = relax_kwargs()
-    Lumi_work=LumiWork.from_scf_inputs(gs_scf_inp, exc_scf_inp, relax_kwargs_gs, relax_kwargs_ex,four_points=True)
+    lumi_work=LumiWork.from_scf_inputs(gs_scf_inp, exc_scf_inp, relax_kwargs_gs, relax_kwargs_ex,four_points=True)
 
-    flow.register_work(Lumi_work)
+    flow.register_work(lumi_work)
  
     return flow
 

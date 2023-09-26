@@ -136,7 +136,7 @@ def build_flow(options):
     #prim_structure=structure.Structure.from_file('SLA_prim.cif') 
     prim_structure=structure.Structure.from_file(abidata.cif_file("SLA_prim.cif"))
     supercell_matrix=[1,1,1]  # Too small, just for test
-    strus=make_doped_supercell(prim_structure,supercell_matrix,'Sr','Eu')
+    strus=prim_structure.make_doped_supercells(supercell_matrix,'Sr','Eu')
 
 
     ####### Delta SCF part of the flow #######
@@ -145,8 +145,8 @@ def build_flow(options):
     for stru in strus:
         gs_scf_inp, exc_scf_inp = scf_inp(stru)
         relax_kwargs_gs, relax_kwargs_ex = relax_kwargs()
-        Lumi_work=LumiWork.from_scf_inputs(gs_scf_inp, exc_scf_inp, relax_kwargs_gs, relax_kwargs_ex)
-        flow.register_work(Lumi_work)
+        lumi_work=LumiWork.from_scf_inputs(gs_scf_inp, exc_scf_inp, relax_kwargs_gs, relax_kwargs_ex)
+        flow.register_work(lumi_work)
 
     return flow
 
