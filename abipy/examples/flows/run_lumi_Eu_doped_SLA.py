@@ -24,7 +24,7 @@ import os
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 import abipy.data as abidata
-from abipy.core import structure
+from abipy.core.structure import Structure
 from abipy.flowtk.lumi_works import LumiWork
 
 def get_non_eq_sites(structure,replaced_atom):
@@ -134,7 +134,7 @@ def build_flow(options):
     #Construct the two structures (2 non-eq. sites for Sr) from the primitive cell of SLA (SrAlLi3N4)
 
     #prim_structure=structure.Structure.from_file('SLA_prim.cif') 
-    prim_structure=structure.Structure.from_file(abidata.cif_file("SLA_prim.cif"))
+    prim_structure=Structure.from_file(abidata.cif_file("SLA_prim.cif"))
     supercell_matrix=[1,1,1]  # Too small, just for test
     strus=prim_structure.make_doped_supercells(supercell_matrix,'Sr','Eu')
 

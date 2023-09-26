@@ -624,8 +624,6 @@ class DeltaSCF():
     
         Returns: |matplotlib-Figure|
         """
-
-
         ax,fig,plt=get_ax_fig_plt(ax=ax)
 
         delta_Q=self.delta_q()
