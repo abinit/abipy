@@ -14,6 +14,12 @@ class ChgnetSystem:
     See also https://github.com/CederGroupHub/chgnet/blob/main/examples/fine_tuning.ipynb
     """
     def __init__(self, filepaths, workdir, verbose):
+        """
+        Args:
+            filepaths: List of files with ab-initio results.
+            workdir: Working directory.
+            verbose: Verbosity level.
+        """
         self.filepaths = list_strings(filepaths)
         self.workdir = workdir
         self.verbose = verbose

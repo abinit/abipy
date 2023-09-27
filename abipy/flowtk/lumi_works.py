@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .works import Work
 from abipy.abilab import abiopen
+from abipy.lumi.deltaSCF import DeltaSCF
 
 class LumiWork(Work):
     """
@@ -185,14 +186,17 @@ class LumiWork(Work):
             # Write json file in the outdir of the work
             self.write_json_in_outdir("lumi.json", self.json_data)
 
-            # Build deltascf results from previous json file
-            #delta_scf = DeltaSCF.from_json_file(str(jsonpath))
+            # Build deltascf results 
+            delta_scf = DeltaSCF.from_four_points_file([self.ag_scf_task.gsr_path,
+                                                        self.agstar_scf_task.gsr_path,
+                                                        self.aestar_scf_task.gsr_path,
+                                                        self.ae_scf_task.gsr_path])
 
             # Create dict with all post-processed results
-            #d = delta_scf.get_dict_results()
+            d = delta_scf.get_dict_results()
 
             # save d in json format.
-            #self.write_json_in_outdir("deltascf.json", d)
+            self.write_json_in_outdir("Delta_SCF.json", d)
 
             return super().on_all_ok()
 
@@ -363,6 +367,17 @@ class LumiWorkFromRelax(Work):
 
         # Write json file in the outdir of the work
         self.write_json_in_outdir("lumi.json", self.json_data)
+
+        # Build deltascf results 
+        delta_scf = DeltaSCF.from_four_points_file([self.ag_scf_task.gsr_path,
+                                                        self.agstar_scf_task.gsr_path,
+                                                        self.aestar_scf_task.gsr_path,
+                                                        self.ae_scf_task.gsr_path])
+
+        # Create dict with all post-processed results
+        d = delta_scf.get_dict_results()
+        # save d in json format.
+        self.write_json_in_outdir("Delta_SCF.json", d)
 
         return super().on_all_ok()
 

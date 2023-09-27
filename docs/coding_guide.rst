@@ -20,8 +20,6 @@ When committing changes to AbiPy, there are a few things to bear in mind.
     .. versionadded:: 0.2
        Add new argument ``foobar``
 
-* Are your changes python2.7 compatible?
-
 * Can you pass the automatic tests? 
 
 * Can you add a test to test your changes?
@@ -102,6 +100,7 @@ Writing examples
 We have examples in subdirectories of :file:`abipy/examples`, and these are automatically
 generated when the website is built to show up both in the :file:`examples`
 and :file:`gallery` sections of the website.  
+
 Many people find these examples from the website, and do not have ready access to the 
 :file:`examples` directory in which they reside.  
 Thus any example data that is required for the example should be added to the :file:`abipy/data` directory
@@ -114,3 +113,20 @@ Abipy has a testing infrastructure based on :mod:`unittest` and pytest_.
 Common test support is provided by :mod:`abipy.core.testing`, 
 data files are stored in :file:`abipy/data`, in particular in :file:`abipy/data/refs` that
 contains several output files that can be used for writing unit tests and examples.
+
+To install pytest with useful plugins, use::
+
+    pip install -r requirements-tests.txt
+
+
+in the top-level directory of the package.
+To run the tests associated to the abio.inputs module, use::
+
+    pytest -v abio/tests/test_inputs.py
+
+or use::
+
+    pytest -v 
+
+to run the entire test suite.
+
