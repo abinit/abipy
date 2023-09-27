@@ -1536,8 +1536,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 errmsg = "Number of atoms in the input structure should be %d * %d but found %d" % (
                     numcells, len(self.structure), len(new_structure))
                 raise ValueError(errmsg)
+            
+            expected_supercell=self.structure.copy()
+            expected_supercell.make_supercell(scdims)
 
-            expected_symbols = numcells * [site.specie.symbol for site in self.structure]
+            expected_symbols = [site.specie.symbol for site in expected_supercell]
             supcell_symbols = [site.specie.symbol for site in new_structure]
             if not np.array_equal(expected_symbols, supcell_symbols):
                 msg = ("Wrong supercell. The routine assumes the atoms in the other cells have the\n"
@@ -1577,7 +1580,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             # Rescale nband and k-point sampling
             iscale = int(np.ceil(len(new.structure) / len(self.structure)))
             if "nband" in new:
-                new["nband"] = int(self["nband"] * iscale)
+                # take care of nband in format "*xxx"
+                if str(self["nband"])[0]=="*": #, convert to a string if nband considered as a int
+                    new["nband"] = "*%d" %(int(self["nband"][1:])*iscale)
+                else:
+                    new["nband"] = int(self["nband"] * iscale)
                 if verbose: print("self['nband']", self["nband"], "new['nband']", new["nband"])
 
             if "ngkpt" in new:
