@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
 Luminescent properties (1D-CCM)
-====================
+===============================
 
 This example shows how to post-process the results of a LumiWork
 following a one-dimensional configuration coordinate model (1D-CCM).
@@ -34,7 +34,7 @@ SLA_site_1.plot_lineshape_1D_zero_temp(energy_range=[0.5,3],max_m=20,phonon_widt
                normalized='Area');
 
 #%%
-# To get a panda dataframe with the main restults : 
+# To get a panda dataframe with the main restults :
 dataframes=[]
 df_1=SLA_site_1.get_dataframe('Site_1')
 df_2=SLA_site_2.get_dataframe('Site_2')
@@ -51,5 +51,3 @@ SLA_site_1.plot_delta_R_distance(defect_symbol="Eu")
 SLA_site_1.draw_displaced_parabolas(scale_eff_freq=2.5);
 SLA_site_2.draw_displaced_parabolas(scale_eff_freq=2.5);
 
-
-# %%

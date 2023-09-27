@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 r"""
 Delta SCF constrained occupation method calculation, to determine luminescent properties.
-==================
+=========================================================================================
 
-This example shows how to compute the luminescent properties of the NV- center in diamond. 
+This example shows how to compute the luminescent properties of the NV- center in diamond.
 It uses a 64 atoms supercell, where one C atom was replaced by one N atom and one vacancy was created.
 See Fig.3 of https://doi.org/10.1103/PhysRevB.104.045303 for the setting of electron occupation
 in the ground/excited state.
 Steps:
-1) Relaxation in the ground state 
+1) Relaxation in the ground state
 2) Relaxation in the excited state, starting from the relaxed ground state. Created at run-time
 3) Scf computation in the relaxed/unrelaxed ground/excited state (4 computations).
 
@@ -16,7 +16,7 @@ Even if we use minimal settings, the workflow takes a few minutes to run on one 
 Filepaths of the 6 runs are stored in /w0/outdata/lumi.json
 A quick post-processing is automatically done at the end of a LumiWork
 and stored in /w0/outdata/Delta_SCF.json, with relevant luminescent properties
-(ZPL energy, Stoke Shift, \Delta Q,...), see abipy/lumi/delta_scf.py 
+(ZPL energy, Stoke Shift, \Delta Q,...), see abipy/lumi/delta_scf.py
 """
 
 import sys
@@ -33,7 +33,7 @@ def scf_inp(structure):
 
     gs_scf_inp = abilab.AbinitInput(structure=structure, pseudos=pseudos)
     gs_scf_inp.set_vars(ecut=10, ### too low, just for example!
-                        chksymbreak=0, 
+                        chksymbreak=0,
                         diemac=5,
                         prtwf=0,
                         nstep=300,
@@ -45,15 +45,15 @@ def scf_inp(structure):
     ### Setting of the occupations, for spin up-dn in the ground/excited state
     ### Only valid for NV center in this particular cell.
     n_val = gs_scf_inp.num_valence_electrons
-    n_cond = round(10)  
+    n_cond = round(10)
 
-    spin_up_gs = f"\n{int((n_val - 3) / 2)}*1 1 1   1 {n_cond}*0" 
+    spin_up_gs = f"\n{int((n_val - 3) / 2)}*1 1 1   1 {n_cond}*0"
     spin_up_ex = f"\n{int((n_val - 3) / 2)}*1 1 1   1 {n_cond}*0"
     spin_dn_gs = f"\n{int((n_val - 3) / 2)}*1 1 0   0 {n_cond}*0"
     spin_dn_ex = f"\n{int((n_val - 3) / 2)}*1 0 0.5 0.5 {n_cond}*0"
 
     nsppol = 2
-    
+
     #Dealing with supercell, Gamma only calculation
     shiftk = [0, 0, 0]
     ngkpt = [1, 1, 1]
@@ -80,11 +80,11 @@ def relax_kwargs():
     # Relaxation settings could be different between excited and ground state...
     relax_kwargs_gs=relax_kwargs.copy()
     relax_kwargs_gs['optcell']=0 # in the ground state, no relaxation of the cell
-    # Could be different! 
+    # Could be different!
 
     relax_kwargs_ex=relax_kwargs.copy()
     relax_kwargs_ex['optcell']=0 # in the excited state, no relaxation of the cell
-    
+
     return relax_kwargs_gs, relax_kwargs_ex
 
 
@@ -101,14 +101,14 @@ def build_flow(options):
     stru=Structure.from_file(abidata.cif_file("NV_center_64_at_sc.cif"))
 
     ####### Delta SCF part of the flow #######
-        
+
     gs_scf_inp,exc_scf_inp = scf_inp(stru)
 
     relax_kwargs_gs, relax_kwargs_ex = relax_kwargs()
     lumi_work=LumiWork.from_scf_inputs(gs_scf_inp, exc_scf_inp, relax_kwargs_gs, relax_kwargs_ex,four_points=True)
 
     flow.register_work(lumi_work)
- 
+
     return flow
 
 
@@ -122,7 +122,6 @@ if os.getenv("READTHEDOCS", False):
 
 
 @flowtk.flow_main
-
 def main(options):
     """
     This is our main function that will be invoked by the script.
