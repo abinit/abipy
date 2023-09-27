@@ -1148,7 +1148,9 @@ class CalcBuilder:
         "matgl",
         "chgnet",
         "alignn",
+        #"pyace",
         #"quip",
+        #"nequip",
     ]
 
     def __init__(self, name: str, **kwargs):
@@ -1271,6 +1273,37 @@ class CalcBuilder:
             model_name = default_path() if self.model_name is None else self.model_name
             cls = MyAlignnCalculator if with_delta else AlignnAtomwiseCalculator
             return cls(path=model_name)
+
+        if self.nn_type == "pyace":
+            try:
+                from pyace import PyACECalculator
+            except ImportError as exc:
+                raise ImportError("pyace not installed. See https://pacemaker.readthedocs.io/en/latest/pacemaker/install/") from exc
+
+            class MyPyACECalculator(_MyCalculator, PyACECalculator):
+                """Add abi_forces and abi_stress"""
+
+            if self.model_path is None:
+                raise RuntimeError("PyACECalculator requires model_path e.g. nn_name='pyace:FILEPATH'")
+
+            cls = MyPyACECalculator if with_delta else PyACECalculator
+            return cls(basis_set=self.model_path)
+
+        if self.nn_type == "nequip":
+            try:
+                from nequip.ase.nequip_calculator import NequIPCalculator
+            except ImportError as exc:
+                raise ImportError("nequip not installed. See https://github.com/mir-group/nequip") from exc
+
+            class MyNequIPCalculator(_MyCalculator, NequIPCalculator):
+                """Add abi_forces and abi_stress"""
+
+            if self.model_path is None:
+                raise RuntimeError("NequIPCalculator requires model_path e.g. nn_name='nequip:FILEPATH'")
+
+            cls = MyNequIPCalculator if with_delta else NequIPCalculator
+            return cls.from_deployed_model(modle_path=self.model_path, species_to_type_name=None)
+
 
         #if self.nn_type == "quip":
         #    try:

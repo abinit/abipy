@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import json
 from abipy.core.structure import Structure
@@ -15,10 +17,10 @@ import abipy.core.abinit_units as abu
 
 class DeltaSCF():
     """
-    Object to post-process the results from a LumiWork, following a one-effective phonon mode model (1D-CCM). 
-    For equations, notations and formalism, please refer to : 
+    Object to post-process the results from a LumiWork, following a one-effective phonon mode model (1D-CCM).
+    For equations, notations and formalism, please refer to :
      https://doi.org/10.1103/PhysRevB.96.125132
-     https://doi.org/10.1002/adom.202100649 
+     https://doi.org/10.1002/adom.202100649
     """
 
     @classmethod
@@ -203,7 +205,7 @@ class DeltaSCF():
     def get_dataframe_atoms(self,defect_symbol):
         """
         Panda dataframe with relevant properties per atom.
-        units used are 
+        units used are
         mass     - amu
         DeltaR   - Angstrom
         DeltaQ^2 - amu.Angstrom^2
@@ -229,11 +231,11 @@ class DeltaSCF():
         d[r"$\Delta Q^2$"]=specie.atomic_mass*sum(dr_sp)
 
         return d
-    
+
     def get_dataframe_species(self):
         """
         Panda dataframe with relevant properties per species.
-        units used are 
+        units used are
         mass     - amu
         DeltaR   - Angstrom
         DeltaQ^2 - amu.Angstrom^2
@@ -265,7 +267,7 @@ class DeltaSCF():
 
     def delta_q(self,unit='atomic'):
         """
-        Total Delta_Q 
+        Total Delta_Q
         Args:
             unit: amu^1/2.Angstrom if unit = 'atomic', kg^1/2.m if 'SI'
         """
@@ -363,7 +365,7 @@ class DeltaSCF():
 
     def FWHM_1D(self,T=0):
         """
-        Full width at half-maximum following a semi-classical approx in the 1D-CCM 
+        Full width at half-maximum following a semi-classical approx in the 1D-CCM
         (eq.20-21 of https://doi.org/10.1103/PhysRevB.96.125132)
         Args:
             T: Temperature
@@ -380,7 +382,7 @@ class DeltaSCF():
         """
         FC factor between initial vib. state m=0 to final vib. state n
         approx of same eff frequency in gs and ex and T = 0K.
-        See eq. (9) of https://doi.org/10.1002/adom.202100649 
+        See eq. (9) of https://doi.org/10.1002/adom.202100649
         """
         FC = np.exp(self.S_em()) * self.S_em() ** n / math.factorial(n)
         return FC
@@ -388,7 +390,7 @@ class DeltaSCF():
     def lineshape_1D_zero_temp(self,energy_range=[0.5,5],max_m=25,phonon_width=0.01,with_omega_cube=True,normalized='Area'):
         """
         Compute the emission lineshape following the effective phonon 1D-CCM at T=0K.
-        See eq. (9) of  https://doi.org/10.1002/adom.202100649 
+        See eq. (9) of  https://doi.org/10.1002/adom.202100649
         Args:
             energy_range:  Energy range at which the intensities are computed, ex : [0.5,5]
             max_m: Maximal vibrational state m considered
@@ -404,7 +406,7 @@ class DeltaSCF():
         E_x = np.linspace(energy_range[0], energy_range[1], n_x)
 
         list_n = np.arange(0, max_m)
-        A = np.zeros(n_x) 
+        A = np.zeros(n_x)
         sigma = phonon_width / (2.35482)
         for n in list_n:
             #gaussian_1D = np.zeros(n_x)
@@ -418,12 +420,12 @@ class DeltaSCF():
             A=A*E_x**3
 
         if normalized=="Area":
-            C = 1 / (simps(A, E_x)) 
+            C = 1 / (simps(A, E_x))
         if normalized=="Sum":
             C=1/(max(A))
 
         return E_x, C*A
-    
+
     @add_fig_kwargs
     def plot_lineshape_1D_zero_temp(self,energy_range=[0.5,5],max_m=25,phonon_width=0.01,with_omega_cube="True",
                                     normalized='Area', ax=None, **kwargs):
@@ -437,7 +439,7 @@ class DeltaSCF():
         with_omega_cube: Considered or not the omega^3 dependence of the intensity
         normlized: Normalisation procedure. 'Area' if Area under the curve = 1
                    'Sum' if maximum of the curve = 1.
-        
+
         Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -448,7 +450,7 @@ class DeltaSCF():
         ax.set_xlabel(r'Energy (eV)')
         ax.set_ylabel(r'Intensity ')
         return fig
-    
+
 
     def get_dict_results(self):
         d=dict([
@@ -470,8 +472,8 @@ class DeltaSCF():
     def get_dataframe(self,label=None):
         """
         Panda dataframe with the main results of a LumiWork : transition energies, delta Q, Huang Rhys factor,...
-        Units used are Angstrom, eV, amu. 
-        DeltaSCF object should be instantiated with the four points files, not with relax files only. 
+        Units used are Angstrom, eV, amu.
+        DeltaSCF object should be instantiated with the four points files, not with relax files only.
         """
         rows=[]
         index=[]
@@ -482,7 +484,7 @@ class DeltaSCF():
         df=pd.DataFrame(rows,index=index)
 
         return df
-    
+
     @add_fig_kwargs
     def displacements_visu(self,a_g=10,**kwargs):
         """
@@ -490,7 +492,7 @@ class DeltaSCF():
         Difference between ground state and excited state atomic positions.
         The colors of the atoms are based on Delta_Q_^2 per atom.
         For displacement visualisation with VESTA, check https://github.com/lucydot/vesta_vectors
-    
+
         Args:
             a_g = coefficient that multiplies the displacement magnitudes
         Returns: |matplotlib-Figure|
@@ -526,9 +528,9 @@ class DeltaSCF():
         Plot \DeltaR vs distance from defect for each atom, colored by species.
         Args:
         ax: |matplotlib-Axes| or None if a new figure should be created.
-        defect_symbol:  defect_symbol, defect location will be the reference 
+        defect_symbol:  defect_symbol, defect location will be the reference
         colors: list of colors for the species
-        
+
         Returns: |matplotlib-Figure|
         """
 
@@ -542,25 +544,25 @@ class DeltaSCF():
             dfs.append(df.loc[df['symbol'] == symbol])
             xs.append(dfs[i]["dist. from defect"])
             ys.append(dfs[i]["$\\Delta R$"])
-        
+
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         for i, symbol in enumerate(symbols):
             ax.stem(xs[i], ys[i], label=symbol, linefmt=colors[i], markerfmt="o" + colors[i],**kwargs)
             ax.set_xlabel(r'Distance from defect ($\AA$)')
             ax.set_ylabel(r'$\Delta R $ ($\AA$)')
             ax.legend()
-        
+
         return fig
-    
+
     @add_fig_kwargs
     def plot_delta_F_distance(self, defect_symbol,colors=["k","r","g","b","c","m"],ax=None, **kwargs):
         """
         Plot \DeltaF vs distance from defect for each atom, colored by species.
         Args:
         ax: |matplotlib-Axes| or None if a new figure should be created.
-        defect_symbol:  defect_symbol, defect location will be the reference 
+        defect_symbol:  defect_symbol, defect location will be the reference
         colors: list of colors for the species
-        
+
         Returns: |matplotlib-Figure|
         """
 
@@ -574,16 +576,16 @@ class DeltaSCF():
             dfs.append(df.loc[df['symbol'] == symbol])
             xs.append(dfs[i]["dist. from defect"])
             ys.append(dfs[i]["$\\Delta F$"])
-        
+
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         for i, symbol in enumerate(symbols):
             ax.stem(xs[i], ys[i], label=symbol, linefmt=colors[i], markerfmt="o" + colors[i],**kwargs)
             ax.set_xlabel(r'Distance from defect ($\AA$)')
             ax.set_ylabel(r'$\Delta F$ ($eV/\AA$)')
             ax.legend()
-        
+
         return fig
-    
+
     @add_fig_kwargs
     def plot_four_BandStructures(self,nscf_files,ax_mat=None,ylims=[-5,5],**kwargs):
         """"
@@ -597,31 +599,31 @@ class DeltaSCF():
 
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=1, ncols=4,
                                                sharex=True, sharey=True, squeeze=False)
-                
+
         titles = [r'$A_g$', r'$A_g^*$', r'$A_e^*$', r'$A_e$']
         e0 = ebands[0].fermie
-                                               
+
         for i,eband in enumerate(ebands):
             eband.plot_ax(ax=ax_mat[0,i],spin=0, e0=e0,color="k",**kwargs)
             eband.plot_ax(ax=ax_mat[0,i],spin=1, e0=e0,color="r",**kwargs)
             eband.decorate_ax(ax=ax_mat[0,i],title=titles[i])
-            
+
         ax_mat[0,0].set_ylim(ylims)
         ax_mat[0,1].set_ylabel("")
         ax_mat[0,2].set_ylabel("")
         ax_mat[0,3].set_ylabel("")
-                        
+
         return fig
-    
+
     @add_fig_kwargs
-    def draw_displaced_parabolas(self,ax=None,scale_eff_freq=4,font_size=8):
+    def draw_displaced_parabolas(self,ax=None,scale_eff_freq=4,font_size=8, **kwargs):
         """
         Draw the four points diagram with relevant transition energies.
         Args:
         ax: |matplotlib-Axes| or None if a new figure should be created.
-        scale_eff_freq:  scaling factor to adjust the parabolas curvatures. 
+        scale_eff_freq:  scaling factor to adjust the parabolas curvatures.
         font_size: font size for the annotations
-    
+
         Returns: |matplotlib-Figure|
         """
         ax,fig,plt=get_ax_fig_plt(ax=ax)
@@ -638,7 +640,7 @@ class DeltaSCF():
 
         E_gs=0.5*omega_gs_sq.real*(Qs)**2+0 # ref at (0,0)
         E_ex=0.5*omega_ex_sq.real*(Qs-delta_Q)**2+ self.E_zpl()# min at (delta_Q,ae_energy)
-        
+
 
         #  parabolas
         ax.plot(Qs,E_gs,'k',zorder=1)
@@ -650,8 +652,8 @@ class DeltaSCF():
 
         ax.scatter(xs,ys,s=50,color='k',zorder=2)
 
-        # arrows 
-        
+        # arrows
+
         ax.annotate("", xy=(0, E_zpl+0.95*new_FC_ex), xytext=(0, 0),
             arrowprops=dict(arrowstyle="->",color="b",lw=1))
         ax.annotate(r' $E_{abs}$='+format(self.E_abs(),".2f")+' eV  ', xy=(0,(E_zpl+new_FC_ex)/2),ha='left',fontsize=font_size)
@@ -676,7 +678,7 @@ class DeltaSCF():
         ax.annotate("", xy=(0, -new_FC_gs*0.2), xytext=(delta_Q, -new_FC_gs*0.2),
             arrowprops=dict(arrowstyle="<->",color="k",lw=0.6))
         ax.annotate(r'$\Delta Q$ ='+format(self.delta_q(),".2f"), xy=(delta_Q/2, -new_FC_gs*0.4),ha='center',fontsize=font_size)
-        
+
         ax.set_ylim(-new_FC_gs*1.5,E_zpl+2*new_FC_ex)
         ax.set_xlim(-0.5*delta_Q,2*delta_Q)
 
@@ -692,10 +694,4 @@ class DeltaSCF():
         ax.axis('off')
 
         return fig
-
-
-
-
-    
-
 

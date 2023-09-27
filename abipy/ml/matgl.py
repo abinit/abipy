@@ -25,8 +25,13 @@ class MatglSystem:
     """
     See also: https://github.com/materialsvirtuallab/matgl/blob/main/examples/Training%20a%20M3GNet%20Potential%20with%20PyTorch%20Lightning.ipynb
     """
-
     def __init__(self, filepaths, workdir, verbose):
+        """
+        Args:
+            filepaths: List of files with ab-initio results.
+            workdir: Working directory.
+            verbose: Verbosity level.
+        """
         self.filepaths = list_strings(filepaths)
         self.workdir = workdir
         self.verbose = verbose
