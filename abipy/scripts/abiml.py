@@ -266,7 +266,7 @@ def md(ctx, filepath, nn_name,
     Usage example:
 
     \b
-        abiml.py.py md FILE --temperature 1200 --timestep 2 --steps 5000 -w OUT_DIR
+        abiml.py.py md FILE --temperature 1200 --timestep 2 --steps 5000 --workdir OUT_DIR
         abiml.py.py md FILE --fix-inds "0 3" --fix-symbols "Si O"
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
@@ -274,6 +274,8 @@ def md(ctx, filepath, nn_name,
     To change the ML potential, use e.g.:
 
         abiml.py.py md -nn m3gnet [...]
+
+    To restart a MD run, use --workdir to specify a pre-existent directory.
     """
     # See https://github.com/materialsvirtuallab/m3gnet#molecular-dynamics
     atoms = aseml.get_atoms(filepath)
@@ -622,6 +624,37 @@ def compare(ctx, filepaths,
 @main.command()
 @herald
 @click.pass_context
+@click.option('-v', '--verbose', count=True, help="Verbosity level")
+def show_nn(ctx, verbose):
+    """
+    Show the NN potentials installed in the environment.
+    """
+    installed, versions = aseml.get_installed_nn_names(verbose=verbose, printout=True)
+    return 0 if installed else 1
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.option("-nns", '--nn-names', type=str, multiple=True, show_default=True,
+              help='ML potentials to install.', default=["all"])
+@click.option('-U', '--update', is_flag=True, default=False, show_default=True, help="Update packages.")
+@click.option('-v', '--verbose', count=True, help="Verbosity level")
+def install(ctx, nn_names, update, verbose):
+    """
+    Install NN potentials in the environment using pip
+    """
+    aseml.install_nn_names(nn_names=nn_names, update=update, verbose=verbose)
+    installed, versions = aseml.get_installed_nn_names(verbose=verbose, printout=True)
+
+    return 0 if installed else 1
+
+
+
+
+@main.command()
+@herald
+@click.pass_context
 @click.argument('filepaths', type=str, nargs=-1)
 @add_nn_name_opt
 #@add_nprocs_opt
@@ -655,6 +688,7 @@ def train(ctx, filepaths,
 
     s.train()
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

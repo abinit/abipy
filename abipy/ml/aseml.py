@@ -41,6 +41,7 @@ from ase.io.vasp import write_vasp_xdatcar, write_vasp
 from ase.neb import NEB
 from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
+from ase.md.velocitydistribution import (MaxwellBoltzmannDistribution, Stationary, ZeroRotation)
 from abipy.core import Structure
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
 from abipy.tools.printing import print_dataframe
@@ -225,7 +226,7 @@ class AseResults:
     forces: np.ndarray
 
     @classmethod
-    def from_traj_inds(cls, trajectory, *inds) -> AseResults:
+    def from_traj_inds(cls, trajectory: Trajectory, *inds) -> AseResults:
         """Build list of AseResults from a trajectory and list of indices."""
         return [cls.from_atoms(trajectory[i]) for i in inds]
 
@@ -1132,6 +1133,73 @@ def as_calculator(obj) -> Calculator:
     return CalcBuilder(obj).get_calculator()
 
 
+def get_installed_nn_names(verbose=0, printout=True) -> tuple[list[str], list[str]]:
+    """
+    Return list of strings with the names of the nn potentials installed in the environment
+    """
+    installed, versions = [], []
+    from importlib import import_module
+
+    for name in CalcBuilder.ALL_NN_TYPES:
+        try:
+            mod = import_module(name)
+            installed.append(name)
+            try:
+                v = mod.__version__
+            except AttributeError:
+                v = "0.0.0"
+            versions.append(v)
+
+        except ImportError as exc:
+            if verbose: print(exc)
+
+    if printout:
+        print("The following NN potentials are installed in the environment:", sys.executable)
+        for mod_name, version in zip(installed, versions):
+            print(2*" ", mod_name, version)
+        print("")
+
+    return installed, versions
+
+
+def install_nn_names(nn_names="all", update=False, verbose=0):
+    """
+    Install NN potentials in the environment using pip.
+    """
+    def pip_install(nn_name) -> int:
+        from subprocess import call
+        cmd = f"python -m pip install {nn_name}"
+        try:
+            retcode = call(cmd, shell=True)
+            if retcode < 0:
+                print(f"`{cmd=}` was terminated by signal", -retcode, file=sys.stderr)
+            else:
+                print(f"`{cmd=}` returned", retcode, file=sys.stderr)
+        except OSError as exc:
+            print(f"`{cmd=}` failed:", exc, file=sys.stderr)
+
+        return retcode
+
+    black_list = [
+        "alignn",
+    ]
+
+    nn_names = CalcBuilder.ALL_NN_TYPES if nn_names == "all" else list_strings(nn_names)
+    installed, versions = get_installed_nn_names(verbose=verbose, printout=False)
+
+    for name in nn_names:
+        if name in black_list:
+            print("Cannot install {name} with pip!")
+            continue
+        if name in installed:
+            if not update:
+                print("{name} is already installed!. Use update to update the package")
+                continue
+            print("Upgradig {name}")
+
+        pip_install(name)
+
+
 class CalcBuilder:
     """
     Factory class to build an ASE calculator with a ML potential as backend.
@@ -1304,7 +1372,6 @@ class CalcBuilder:
             cls = MyNequIPCalculator if with_delta else NequIPCalculator
             return cls.from_deployed_model(modle_path=self.model_path, species_to_type_name=None)
 
-
         #if self.nn_type == "quip":
         #    try:
         #        from quippy.potential import Potential
@@ -1329,12 +1396,12 @@ class MlBase(HasPickleIO):
     and object persistence via pickle.
     """
 
-    def __init__(self, workdir, prefix=None):
+    def __init__(self, workdir, prefix=None, exist_ok=False):
         """
         Build directory with `prefix` if `workdir` is None else create it.
-        Raise RuntimeError if workdir already exists.
+        If exist_ok is False (the default), a FileExistsError is raised if the target directory already exists.
         """
-        self.workdir = workdir_with_prefix(workdir, prefix)
+        self.workdir = workdir_with_prefix(workdir, prefix, exist_ok=exist_ok)
         self.basename_info = []
 
     def __str__(self):
@@ -1665,6 +1732,32 @@ class MlRelaxer(MlBase):
         return relax
 
 
+def restart_md(traj_filepath, atoms, verbose) -> bool:
+    """
+    Try to restart a MD run from an existent trajectory file.
+    """
+    traj_filepath = str(traj_filepath)
+    if not os.path.exists(traj_filepath):
+        if verbose: print(f"Starting MD run from scratch.")
+        return False
+
+    print(f"Restarting MD run from the last image of the trajectory file: {traj_filepath}")
+    last = ase.io.read(f"{traj_filepath}@-1")
+    if verbose:
+        print("input_cell:\n", atoms.cell)
+        print("last_cell:\n", last.cell)
+        print("input_positions:\n", atoms.positions)
+        print("last_positions:\n", last.positions)
+        print("input_velocites:\n", atoms.get_velocities())
+        print("last_velocites:\n", last.get_velocities())
+
+    atoms.set_cell(last.cell, scale_atoms=False, apply_constraint=True)
+    atoms.set_positions(last.positions)
+    atoms.set_velocities(last.get_velocities())
+    #atoms.set_initial_magnetic_moments(magmoms=None)
+    return True
+
+
 class MlMd(MlBase):
     """Perform MD calculations with ASE and ML potential."""
 
@@ -1683,7 +1776,7 @@ class MlMd(MlBase):
             workdir:
             prefix:
         """
-        super().__init__(workdir, prefix)
+        super().__init__(workdir, prefix, exist_ok=True)
         self.atoms = atoms
         self.temperature = temperature
         self.timestep = timestep
@@ -1718,10 +1811,17 @@ class MlMd(MlBase):
         """Run MD"""
         #self.pickle_dump()
         workdir = self.workdir
-        self.atoms.calc = CalcBuilder(self.nn_name).get_calculator()
-
         traj_file = self.get_path("md.traj", "ASE MD trajectory")
         logfile = self.get_path("md.log", "ASE MD log file")
+
+        append_trajectory = restart_md(traj_file, self.atoms, self.verbose)
+        self.atoms.calc = CalcBuilder(self.nn_name).get_calculator()
+
+        if not append_trajectory:
+           print("Setting momenta corresponding to the input temperature using MaxwellBoltzmannDistribution.")
+           MaxwellBoltzmannDistribution(self.atoms, temperature_K=self.temperature)
+           #Stationary(self.atoms)  # zero linear momentum
+           #ZeroRotation(self.atoms)  # zero angular momentum
 
         md = MolecularDynamics(
             atoms=self.atoms,
@@ -1732,7 +1832,7 @@ class MlMd(MlBase):
             trajectory=str(traj_file),      # save trajectory to md.traj
             logfile=str(logfile),           # log file for MD
             loginterval=self.loginterval,   # interval for record the log
-            #append_trajectory,
+            append_trajectory=append_trajectory, # If True, the new structures are appended to the trajectory
         )
 
         self.write_script("diffusion_coeff.py", text=f"""\
@@ -2530,6 +2630,9 @@ class MolecularDynamics:
             This is a more flexible scheme that fixes three angles of the unit
             cell but allows three lattice parameter to change independently.
             """
+            if append_trajectory:
+                raise NotImplementedError("append_trajectory with Inhomogeneous_NPTBerendsen")
+
             self.dyn = Inhomogeneous_NPTBerendsen(
                 self.atoms,
                 timestep * units.fs,
@@ -2600,16 +2703,14 @@ def traj_to_qepos(traj_filepath: str, pos_filepath: str) -> None:
     nAtoms = len(traj[0])
     #print(nStepsTraj)
     posArray = np.zeros((nStepsTraj, nAtoms, 3), dtype=float)
-    # positionsArray = np.zeros((nStepsTraj), dtype=float)
 
     count = -1
     for atoms in traj:
         count = count + 1
         #print(atoms.positions)
         posArray[count,:,:] = atoms.positions
-    #print(posArray.shape)
 
-    with open(pos_filepath, 'w+') as posFile:
+    with open(pos_filepath, 'w') as posFile:
         for i in range(nStepsTraj):
             posFile.write(str(i)+ '\n')
             for j in range(nAtoms):

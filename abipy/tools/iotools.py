@@ -302,10 +302,10 @@ class AtomicFile:
             self.discard()
 
 
-def workdir_with_prefix(workdir, prefix) -> Path:
+def workdir_with_prefix(workdir, prefix, exist_ok=False) -> Path:
     """
-    if workdir is None, create temporary directory with prefix else
-    check that workdir does not exist.
+    if workdir is None, create temporary directory with prefix else check that workdir does not exist.
+    If exist_ok is False (the default), a FileExistsError is raised if the target directory already exists.
     """
     if workdir is None:
         if prefix is not None:
@@ -313,9 +313,9 @@ def workdir_with_prefix(workdir, prefix) -> Path:
         workdir = tempfile.mkdtemp(prefix=prefix, dir=os.getcwd())
     else:
         workdir = str(workdir)
-        if os.path.exists(workdir):
+        if os.path.exists(workdir) and not exist_ok:
             raise RuntimeError(f"{workdir=} already exists!")
-        os.makedirs(workdir)
+        os.makedirs(workdir, exist_ok=exist_ok)
 
     return Path(workdir).absolute()
 
