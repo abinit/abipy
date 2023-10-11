@@ -29,7 +29,6 @@ def set_loglevel(loglevel: str) -> None:
     logging.basicConfig(level=numeric_level)
 
 
-
 def pn_serve_parser(**kwargs) -> argparse.ArgumentParser:
     """
     Parent parser implementing cli options for panel.serve
@@ -68,7 +67,6 @@ def get_pn_serve_kwargs(options) -> dict:
     """
     Return dict with the arguments to be passed to pn.serve.
     """
-
     import abipy.panels as mod
     assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
 
@@ -150,18 +148,15 @@ def add_expose_options_to_parser(parser, with_mpl_options=True) -> None:
                   "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
 
 
-
 class EnumAction(argparse.Action):
     """
     Argparse action for handling Enums
-
 
     Usage:
 
         class Do(enum.Enum):
             Foo = "foo"
             Bar = "bar"
-
 
         parser = argparse.ArgumentParser()
         parser.add_argument('do', type=Do, action=EnumAction)
@@ -189,4 +184,36 @@ class EnumAction(argparse.Action):
         # Convert value back into an Enum
         value = self._enum(values)
         setattr(namespace, self.dest, value)
+
+
+def fix_omp_num_threads() -> int:
+    """
+    Set OMP_NUM_THREADS to 1 if env var is not defined. Return num_threads.
+    """
+    num_threads = os.getenv("OMP_NUM_THREADS", default=None)
+    if num_threads is None:
+        num_threads = 1
+        os.environ["OMP_NUM_THREADS"] = str(num_threads)
+
+    return num_threads
+
+
+def range_from_str(string: str) -> range:
+    """
+    Convert string into a range object.
+    """
+    if string is None: return None
+
+    tokens = string.split(":")
+    start, stop, step = 0, None, 1
+    if len(tokens) == 1:
+        stop = int(tokens[0])
+    elif len(tokens) == 2:
+        start, stop = map(int, tokens)
+    elif len(tokens) == 3:
+        start, stop, step = map(int, tokens)
+    else:
+        raise ValueError(f"Cannot interpret {string=} as range object.")
+
+    return range(start, stop, step)
 

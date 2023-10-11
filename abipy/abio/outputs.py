@@ -22,9 +22,6 @@ from abipy.tools.typing import Figure
 from abipy.abio.inputs import GEOVARS
 from abipy.abio.timer import AbinitTimerParser
 from abipy.abio.robots import Robot
-#from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-#    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly,
-#    get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
 from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DEScfCycle
 
 

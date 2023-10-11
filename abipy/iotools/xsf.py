@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from pymatgen.core.units import Energy, EnergyArray #, ArrayWithUnit
+from pymatgen.core.units import Energy, EnergyArray
 from abipy.tools.numtools import transpose_last3dims, add_periodic_replicas
 
 
@@ -91,7 +91,7 @@ def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs) -
 
 def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,
                    idname="data", tag="_UNKNOWN") -> None:
-                   #idname="data", tag="_grid":) -> None:
+                   #idname="data", tag="_grid") -> None:
     """
     Write data in the Xcrysden format (XSF)
 
@@ -201,7 +201,7 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="
     ucdata_sbk = EnergyArray(ucdata_sbk, unit).to("Ha")
     fermie = Energy(fermie, unit).to("Ha")
 
-    ucdata_sbk = np.reshape(ucdata_sbk, (nsppol, nband, np.product(ndivs)))
+    ucdata_sbk = np.reshape(ucdata_sbk, (nsppol, nband, np.prod(ndivs)))
 
     close_it = False
     if not hasattr(file, "write"):

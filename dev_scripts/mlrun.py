@@ -4,7 +4,6 @@ Script to perform structural relaxations with ML + ABINIT
 """
 from __future__ import annotations
 
-
 import sys
 import os
 import click
@@ -13,8 +12,7 @@ import numpy as np
 from ase.atoms import Atoms
 from ase.build import bulk
 from abipy.core.structure import Structure
-from abipy.flowtk.psrepos import get_repo_from_name
-from abipy.ml.aseml import get_atoms, ase_optimizer_cls
+from abipy.ml.aseml import get_atoms, ase_optimizer_cls, CORRALGO
 from abipy.ml.ml_relax import RelaxationProfiler
 
 
@@ -46,21 +44,25 @@ def add_workdir_verbose_opts(f):
 
 @click.command()
 @click.argument("filepath", type=str)
-@click.option("--nn-name", "-nn", default="m3gnet", show_default=True,
-              type=click.Choice(["m3gnet_old", "m3gnet", "chgnet"]), help='ML potential')
+@click.option("--nn-name", "-nn", default="chgnet", show_default=True,
+              type=click.Choice(["m3gnet", "matgl", "chgnet"]), help='ML potential')
+@click.option("-c", "--corr-algo_str", default="delta", show_default=True,
+              type=click.Choice(CORRALGO._member_names_), help='Correction algorithm')
+@click.option("-algo","--algorithm", default="old", type=str, show_default=True, help="String used to test algorithms... ")
+
 @add_relax_opts
 @click.option("-k", "--kppa", default=1000, type=float, show_default=True,
               help="Defines the sampling of BZ mesh (k-points per atom)")
 @click.option("--rattle", default=0.0, type=float, show_default=True, help="Displace atoms randomly with stdev.")
 @click.option("-sv", "--scale-volume", default=1.0, type=float, show_default=True, help="Scale input volume.")
 @click.option("-n","--mpi-nprocs", default=2, type=int, show_default=True, help="Number of MPI processes to run ABINIT")
-@click.option("-xc", default="PBE", show_default=True, type=click.Choice(["PBE", "PBEsol", "LDA"]),
+@click.option("-xc", "--xc-name",  default="PBE", show_default=True, type=click.Choice(["PBE", "PBEsol", "LDA"]),
               help="XC functional.")
 @click.option("-m","--mpi-runner", default="mpirun", type=str, show_default=True, help="String used to invoke the MPI runner. ")
 @add_workdir_verbose_opts
-def main(filepath, nn_name,
+def main(filepath, nn_name, corr_algo_str,algorithm,
          relax_mode, fmax, steps, optimizer,
-         kppa, rattle, scale_volume, mpi_nprocs, xc, mpi_runner,
+         kppa, rattle, scale_volume, mpi_nprocs, xc_name, mpi_runner,
          workdir, verbose,
          ):
 
@@ -68,33 +70,32 @@ def main(filepath, nn_name,
     warnings.simplefilter("ignore")
 
     # Get pseudos
-    repo_name = {
-        "PBE": "ONCVPSP-PBE-SR-PDv0.4",
-        "PBEsol": "ONCVPSP-PBEsol-SR-PDv0.4",
-        "LDA": "ONCVPSP-LDA-SR-PDv0.4",
-    }[xc]
-    print(f"Using {repo_name=}")
-    pseudos = get_repo_from_name(repo_name).get_pseudos("standard")
+    from abipy.flowtk.psrepos import get_oncvpsp_pseudos
+    pseudos = get_oncvpsp_pseudos(xc_name=xc_name, version="0.4")
 
-    # Get atoms
     if os.path.exists(filepath):
+        # Read structure from file.
         structure = Structure.from_file(filepath)
-        if abs(scale_volume - 1.0) > 0.0:
-            print(f"Scaling input volume by {scale_volume=}")
-            structure.scale_lattice(scale_volume * structure.lattice.volume)
-        atoms = get_atoms(structure)
-    else:
-        raise ValueError(f"Cannot init Atoms from {filepath=}")
-        #atoms = bulk(filepath)
+
+    elif filepath.startswith("__mp-"):
+        print(f"Fetching structure for mp-id {filepath[2:]} from the materials project database.")
+        structure = Structure.from_mpid(filepath[2:])
+
+    if abs(scale_volume - 1.0) > 0.0:
+        print(f"Scaling input volume by {scale_volume=}")
+        structure = structure.scale_lattice(scale_volume * structure.lattice.volume)
+
+    # Convert to ASE atoms
+    atoms = get_atoms(structure)
 
     if rattle:
         print("Displacing atoms randomly with stdev=", rattle)
         atoms.rattle(stdev=abs(rattle), seed=42)
 
-    prof = RelaxationProfiler(atoms, pseudos, xc, kppa, relax_mode, fmax, mpi_nprocs, steps=steps,
-                              verbose=verbose, optimizer=optimizer, nn_name=nn_name, mpi_runner=mpi_runner)
-                              #mpi_runner="srun --mpi=cray_shasta")
-                              #mpi_runner="srun --mpi=cray_shasta --account=battab")
+    print("Using corr_algo:", corr_algo_str)
+    corr_algo = CORRALGO.from_string(corr_algo_str)
+    prof = RelaxationProfiler(atoms, pseudos, corr_algo, algorithm, xc_name, kppa, relax_mode, fmax, mpi_nprocs,
+                              steps=steps, verbose=verbose, optimizer=optimizer, nn_name=nn_name, mpi_runner=mpi_runner)
     prof.run(workdir=workdir)
     return 0
 

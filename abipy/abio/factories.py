@@ -1677,14 +1677,11 @@ def minimal_scf_input(structure: Structure, pseudos) -> AbinitInput:
     that are produced only after a full calculation completes.
     In general this will contain 1 kpt, 1 band, very low cutoff, no polarization,
     no smearing. Disables checks on primitive cell and symmetries.
-    Even for large system it will require small memory allocations and few seconds
-    to execute.
+    Even for large system it will require small memory allocations and few seconds to execute.
 
     Args:
         structure: |Structure| object.
         pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.
-
-    Returns: |AbinitInput|
     """
     inp = scf_input(structure, pseudos, smearing=None, spin_mode="unpolarized")
     inp["ngkpt"] = [1, 1, 1]

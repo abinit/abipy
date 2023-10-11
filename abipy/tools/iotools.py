@@ -37,7 +37,7 @@ def yaml_safe_load(string: str) -> Any:
 
 def yaml_safe_load_path(filepath: str) -> Any:
     """Load Yaml document from filepath"""
-    with open(filepath, "rt") as fh:
+    with open(os.path.expanduser(filepath), "rt") as fh:
         return yaml.YAML(typ='safe', pure=True).load(fh.read())
 
 
@@ -350,17 +350,19 @@ if False:
         """Activated at the end of the with statement."""
         self.write()
 
-    def add_text(self, text: str) -> None:
+    def add_text(self, text: str):
         """Add `text` to the script."""
         self.text += "\n" + text
+        return self
 
-    def write(self) -> None:
+    def write(self):
         """
         Write python script and json file with the list of files in the Robot.
         """
         with open(self.filepath, "wt") as fh:
             fh.write(self.text)
         make_executable(self.filepath)
+        return self
 
 
 class PythonScript(_Script):
@@ -390,6 +392,16 @@ if False:
     sns.set(context="paper", style='darkgrid', palette='deep',
             font='sans-serif', font_scale=0.8, color_codes=False, rc=None)
 """
+
+    def add_main(self):
+        """Add main section"""
+        self.text += \
+"""
+
+if __name__ == "__main__":
+    main()
+"""
+        return self
 
 
 

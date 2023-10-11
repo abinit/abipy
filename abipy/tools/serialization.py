@@ -12,6 +12,7 @@ import pickle
 import json
 
 from typing import Any
+from pathlib import Path
 from monty.json import MontyDecoder, MontyEncoder
 from pymatgen.core.periodic_table import Element
 
@@ -50,8 +51,7 @@ class PmgPickler(pickle.Pickler):
     """
 
     def persistent_id(self, obj: Any):
-        """Instead of pickling as a regular class instance, we emit a
-        persistent ID."""
+        """Instead of pickling as a regular class instance, we emit a persistent ID."""
         if isinstance(obj, Element):
             # Here, our persistent ID is simply a tuple, containing a tag and
             # a key
@@ -132,9 +132,28 @@ def mjson_loads(string: str, **kwargs) -> Any:
     return json.loads(string, cls=MontyDecoder, **kwargs)
 
 
-def mjson_write(d: dict, filepath: str, **kwargs) -> None:
+def mjson_write(obj: Any, filepath: str, **kwargs) -> None:
     """
-    Write dictionary d to filepath in JSON format using MontyDecoder
+    Write object to filepath in JSON format using MontyDecoder.
     """
     with open(filepath, "wt") as fh:
-        json.dump(d, fh, cls=MontyEncoder, **kwargs)
+        json.dump(obj, fh, cls=MontyEncoder, **kwargs)
+
+
+class HasPickleIO:
+    """
+    Mixin class providing pickle IO methods.
+    """
+
+    @classmethod
+    def pickle_load(cls, workdir, basename=None):
+        """Reconstruct the object from a pickle file located in workdir."""
+        filepath = Path(workdir) / f"{cls.__name__}.pickle" if basename is None else Path(workdir) / basename
+        with open(filepath, "rb") as fh:
+            return pickle.load(fh)
+
+    def pickle_dump(self, workdir, basename=None):
+        """Write pickle file."""
+        filepath = Path(workdir) / f"{self.__class__.__name__}.pickle" if basename is None else Path(workdir) / basename
+        with open(filepath, "wb") as fh:
+            pickle.dump(self, fh)

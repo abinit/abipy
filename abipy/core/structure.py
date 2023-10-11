@@ -61,7 +61,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
     structure.__class__ = pmg_Structure
 
     from abipy.core import restapi
-    structures = []
+    structures, mpids = [], []
     with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
         try:
             mpids = rest.find_structure(structure)
@@ -69,7 +69,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
                 structures = [Structure.from_mpid(mid, final=final, api_key=api_key, endpoint=endpoint)
                               for mid in mpids]
 
-        except rest.Error as exc:
+        except Exception as exc:
             cprint(str(exc), "red")
 
         finally:
@@ -381,12 +381,21 @@ class Structure(pmg_Structure, NotebookWriter):
         import pymatgen.io.ase as aio
         return aio.AseAtomsAdaptor.get_structure(atoms, cls=cls)
 
-    def to_ase_atoms(self):
+    def to_ase_atoms(self, calc=None):
         """
-        Returns ASE Atoms object from structure.
+        Returns ASE Atoms object from structure and attach calculator calc.
         """
         import pymatgen.io.ase as aio
-        return aio.AseAtomsAdaptor.get_atoms(self)
+        atoms = aio.AseAtomsAdaptor.get_atoms(self)
+        if calc is not None: atoms.calc = calc
+        return atoms
+
+    def get_phonopy_atoms(self):
+        """
+        Convert a pymatgen Structure object to a PhonopyAtoms object.
+        """
+        from pymatgen.io.phonopy import get_phonopy_structure
+        return get_phonopy_structure(self)
 
     @classmethod
     def boxed_molecule(cls, pseudos, cart_coords, acell=3 * (10,)) -> Structure:
@@ -1906,6 +1915,45 @@ class Structure(pmg_Structure, NotebookWriter):
 
         # Fortran 2 python!!!
         return scale_matrix.T
+    
+    def make_doped_supercells(self,scaling_matrix,replaced_atom, dopant_atom):
+        """
+        Returns a list doped supercell structures, one for each non-equivalent site of the replaced atom.
+        Args:
+            scaling_matrix: A scaling matrix for transforming the lattice vectors.
+                Has to be all integers. Several options are possible:
+                a. A full 3x3 scaling matrix defining the linear combination of the old lattice vectors.
+                    E.g., [[2,1,0],[0,3,0],[0,0,1]] generates a new structure with lattice vectors
+                    a' = 2a + b, b' = 3b, c' = c
+                    where a, b, and c are the lattice vectors of the original structure.
+                b. A sequence of three scaling factors. e.g., [2, 1, 1]
+                   specifies that the supercell should have dimensions 2a x b x c.
+                c. A number, which simply scales all lattice vectors by the same factor.       
+            replaced atom : Symbol of the atom to be replaced (ex: 'Sr')
+            dopant_atom : Symbol of the dopant_atom (ex: 'Eu')
+        """
+        ### list of positions of non-equivalent sites for the replaced atom. ###
+        irred=self.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
+        positions=self.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
+    
+        index_non_eq_sites=[]
+        for pos in positions:
+            if len(irred[pos]) != 0:
+                 index_non_eq_sites.append(irred[pos][0])
+
+        doped_supercell=self.copy()
+        doped_supercell.make_supercell(scaling_matrix)
+    
+        doped_structure_list=[]
+    
+        for index in index_non_eq_sites:
+            final_structure=doped_supercell.copy()    
+            final_structure.replace(index,dopant_atom)  
+            doped_structure_list.append(final_structure)
+    
+        return doped_structure_list    
+
+
 
     def get_trans_vect(self, scale_matrix):
         """
@@ -2717,7 +2765,7 @@ class StructDiff:
         """
         # Compare lattices.
         df = self.get_lattice_dataframe()
-        print("\nLattice difference (Ang units):", file=file)
+        print("\nLattice parameters (Ang units):", file=file)
         print(df.to_string(), file=file)
         if only_lattice: return
 

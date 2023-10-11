@@ -28,7 +28,7 @@ ArrayWithUnit = units.ArrayWithUnit
 from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Flow, Work, TaskManager, AbinitBuild, flow_main
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
-from abipy.core import restapi
+#from abipy.core import restapi
 from abipy.core.structure import (Lattice, Structure, StructureModifier, dataframes_from_structures,
   mp_match_structure, mp_search, cod_search, display_structure)
 from abipy.core.mixins import TextFile, JsonFile, CubeFile
@@ -41,7 +41,6 @@ from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile, AboRo
 from abipy.tools.printing import print_dataframe
 from abipy.tools.notebooks import print_source, print_doc
 from abipy.tools.serialization import mjson_load, mjson_loads, mjson_write
-from abipy.tools.plotting import get_ax_fig_plt, get_axarray_fig_plt, get_ax3d_fig_plt
 from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
     dataframe_from_ebands, EdosFile)

@@ -43,7 +43,7 @@ def build_flow(options):
     flow = flowtk.Flow(workdir=options.workdir)
 
     # GS-SCF run to get the DEN, followed by direct diago to obtain green_nband bands.
-    from abipy.flowtk.gwr_works import DirectDiagoWork, GwrSigmaConvWork
+    from abipy.flowtk.gwr_works import DirectDiagoWork, GWRSigmaConvWork
     green_nband = -1  # -1 this means full diago
     diago_work = DirectDiagoWork.from_scf_input(scf_input, green_nband)
     flow.register_work(diago_work)
@@ -63,7 +63,7 @@ def build_flow(options):
     #   ("ecuteps", [2, 4]),
     #]
 
-    gwr_work = GwrSigmaConvWork.from_varname_values(
+    gwr_work = GWRSigmaConvWork.from_varname_values(
             varname_values, gwr_template, den_node=diago_work[0], wfk_node=diago_work[1])
     flow.register_work(gwr_work)
 

@@ -1,4 +1,8 @@
 
+Release 0.9.6:
+
+    * Version compatible with aiida-common-workflows.
+
 Release 0.9.5:
 
     * Force make_dte_inputs to consider the psp to be in LDA
@@ -7,7 +11,7 @@ Release 0.9.5:
 
 Release 0.9.4:
 
-    * Require pymatgen == 2023.7.17
+    * pymatgen == 2023.7.17 is highly recommended.
 
 Release 0.9.3:
 

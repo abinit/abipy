@@ -4,7 +4,7 @@ Tests for base_models module.
 #from pprint import pprint
 import os
 import zlib
-import mongomock
+import pytest
 
 from typing import List
 from pydantic.main import ModelMetaclass
@@ -14,6 +14,8 @@ from abipy.core.structure import Structure as abi_Structure
 from abipy.abio.inputs import AbinitInput
 from abipy.htc.base_models import (AbipyModel, MongoConnector, MockedMongoConnector, QueryResults, GfsFileDesc,
         TopLevelModel, mng_insert_models)
+
+mongomock = pytest.importskip("mongomock")
 
 
 class SubModel(AbipyModel):
@@ -61,7 +63,7 @@ class TestAbipyBaseModels(AbipyTest):
         assert isinstance(same_top_model.submodel.abi_structure, abi_Structure)
         assert same_top_model.submodel.abi_structure == pmg_structure
         #assert same_top_model.abinit_input == abinit_input
-        #self.assert_msonable(top_model, test_if_subclass=True)
+        #self.assert_msonable(top_model, test_is_subclass=True)
         #assert 0
 
         collection = mongomock.MongoClient().db.collection
@@ -88,7 +90,7 @@ class TestAbipyBaseModels(AbipyTest):
 
         connector = MongoConnector.for_localhost(collection_name="foobar")
         assert "foobar" in str(connector)
-        self.assert_msonable(connector, test_if_subclass=True)
+        self.assert_msonable(connector, test_is_subclass=True)
 
         # Username requires password.
         with self.assertRaises(ValueError):
