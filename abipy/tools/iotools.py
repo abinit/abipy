@@ -24,11 +24,6 @@ def make_executable(filepath: str) -> None:
     mode |= (mode & 0o444) >> 2    # copy R bits to X
     os.chmod(filepath, mode)
 
-    #from pathlib import Path
-    #import stat
-    #f = Path(filepath)
-    #f.chmod(f.stat().st_mode | stat.S_IEXEC)
-
 
 def yaml_safe_load(string: str) -> Any:
     """Load Yaml string"""
