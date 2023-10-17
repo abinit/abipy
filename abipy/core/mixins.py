@@ -1,5 +1,5 @@
 # coding: utf-8
-"""This module provides mixin classes"""
+"""Mixin classes"""
 from __future__ import annotations
 
 import abc
@@ -36,6 +36,7 @@ class BaseFile(metaclass=abc.ABCMeta):
     by the concrete classes representing the different files produced by ABINIT.
     """
     def __init__(self, filepath: str):
+        filepath = str(filepath)
         self._filepath = os.path.abspath(filepath)
 
         # Save stat values

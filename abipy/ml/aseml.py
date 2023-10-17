@@ -20,12 +20,12 @@ try:
     import ase
 except ImportError as exc:
     raise ImportError("ase not installed. Try `pip install ase`.") from exc
-
 from pathlib import Path
 from inspect import isclass
 from multiprocessing import Pool
 from typing import Type, Any, Optional, Union
 from enum import IntEnum
+from tabulate import tabulate
 from monty.string import marquee, list_strings
 from monty.functools import lazy_property
 from monty.json import MontyEncoder
@@ -35,6 +35,7 @@ from pymatgen.io.ase import AseAtomsAdaptor
 from ase import units
 from ase.atoms import Atoms
 from ase.io.trajectory import write_traj, Trajectory
+from ase.io import read
 from ase.optimize.optimize import Optimizer
 from ase.calculators.calculator import Calculator
 from ase.io.vasp import write_vasp_xdatcar, write_vasp
@@ -809,7 +810,6 @@ class AseRelaxation:
         """ASE trajectory."""
         if self.traj_path is None:
             raise RuntimeError("Cannot read ASE traj as traj_path is None")
-        from ase.io import read
         return read(self.traj_path, index=":")
 
     #def __str__(self):
@@ -887,8 +887,6 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
         calculator:
     """
     from ase.constraints import ExpCellFilter
-    from ase.io import read
-
     RX_MODE.validate(relax_mode)
     if relax_mode == RX_MODE.no:
         raise ValueError(f"Invalid {relax_mode:}")
@@ -1154,17 +1152,22 @@ def get_installed_nn_names(verbose=0, printout=True) -> tuple[list[str], list[st
             if verbose: print(exc)
 
     if printout:
-        print("The following NN potentials are installed in the environment:", sys.executable)
-        for mod_name, version in zip(installed, versions):
-            print(2*" ", mod_name, version)
+        print("The following NN potentials are installed in the environment:", sys.executable, end=2*"\n")
+        table = [t for t in zip(installed, versions)]
+        print(tabulate(table, headers=["Package", "Version"]))
         print("")
 
     return installed, versions
 
 
-def install_nn_names(nn_names="all", update=False, verbose=0):
+def install_nn_names(nn_names="all", update=False, verbose=0) -> None:
     """
     Install NN potentials in the environment using pip.
+
+    Args:
+        nn_names:
+        update:
+        verbose: Verbosity level.
     """
     def pip_install(nn_name) -> int:
         from subprocess import call
@@ -1697,7 +1700,6 @@ class MlRelaxer(MlBase):
 
     def run(self):
         """Run structural relaxation."""
-        #self.pickle_dump()
         workdir = self.workdir
         self.atoms.calc = CalcBuilder(self.nn_name).get_calculator()
         # TODO: Here I should add the ab-initio forces/stress to the calculator to correct the ML ones
@@ -1732,17 +1734,19 @@ class MlRelaxer(MlBase):
         return relax
 
 
-def restart_md(traj_filepath, atoms, verbose) -> bool:
+def restart_md(traj_filepath, atoms, verbose) -> tuple[bool, int]:
     """
     Try to restart a MD run from an existent trajectory file.
+    Return: (restart_bool, len_traj)
     """
     traj_filepath = str(traj_filepath)
     if not os.path.exists(traj_filepath):
         if verbose: print(f"Starting MD run from scratch.")
-        return False
+        return False, 0
 
     print(f"Restarting MD run from the last image of the trajectory file: {traj_filepath}")
-    last = ase.io.read(f"{traj_filepath}@-1")
+    traj = read(traj_filepath, index=":")
+    last = traj[-1]
     if verbose:
         print("input_cell:\n", atoms.cell)
         print("last_cell:\n", last.cell)
@@ -1755,7 +1759,83 @@ def restart_md(traj_filepath, atoms, verbose) -> bool:
     atoms.set_positions(last.positions)
     atoms.set_velocities(last.get_velocities())
     #atoms.set_initial_magnetic_moments(magmoms=None)
-    return True
+    return True, len(traj)
+
+
+from abipy.core.mixins import TextFile, NotebookWriter
+#class AseMdLog(TextFile, NotebookWriter):
+class AseMdLog(TextFile):
+    """
+    Postprocessing tool for the log file produced by ASE MD.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: AseMdLog
+    """
+
+    time_key = "Time[ps]"
+
+    @lazy_property
+    def df(self) -> pd.DataFrame:
+        """
+        DataFrame with the results.
+        """
+        # Here we implement the logic required to take into account a possible restart.
+        begin_restart = False
+        d = {}
+        with open(self.filepath, mode="rt") as fh:
+            for i, line in enumerate(fh):
+                if i == 0:
+                    # Extract column names from the header and init dict.
+                    columns = line.split()
+                    d = {c: [] for c in columns}
+                    continue
+
+                if line.startswith(self.time_key):
+                    # Found new header denoting restart.
+                    begin_restart = True
+                    continue
+
+                add_time = 0.0
+                if begin_restart:
+                    # First iteration after restart. Set add_time and kkip it.
+                    begin_restart = False
+                    add_time = d[self.time_key][-1]
+                    continue
+
+                tokens = [float(tok) for tok in line.split()]
+                tokens[0] += add_time
+                for c, v in zip(columns, tokens):
+                    d[c].append(v)
+
+        return pd.DataFrame(d)
+
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level verbose."""
+        return "=== Summary statistics ===\n" + self.df.describe().to_string()
+
+    @add_fig_kwargs
+    def plot(self, **kwargs) -> Figure:
+        """
+        """
+        ynames = [k for k in self.df.keys() if k != self.time_key]
+        axes = self.df.plot.line(x=self.time_key, y=ynames, subplots=True)
+        return axes[0].get_figure()
+
+    @add_fig_kwargs
+    def histplot(self, **kwargs) -> Figure:
+        """
+        """
+        ynames = [k for k in self.df.keys() if k != self.time_key]
+        axes = self.df.plot.hist(column=ynames, subplots=True)
+        return axes[0].get_figure()
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        Generate a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot(show=False)
+        yield self.histplot(show=False)
+
 
 
 class MlMd(MlBase):
@@ -1766,14 +1846,14 @@ class MlMd(MlBase):
         """
         Args:
             atoms: ASE atoms.
-            temperature: Temperatur in K
+            temperature: Temperature in K
             timestep:
-            steps:
+            steps: Number of steps.
             loginterval:
             ensemble:
             nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
-            workdir:
+            workdir: Working directory.
             prefix:
         """
         super().__init__(workdir, prefix, exist_ok=True)
@@ -1809,19 +1889,35 @@ class MlMd(MlBase):
 
     def run(self) -> None:
         """Run MD"""
-        #self.pickle_dump()
         workdir = self.workdir
         traj_file = self.get_path("md.traj", "ASE MD trajectory")
-        logfile = self.get_path("md.log", "ASE MD log file")
+        logfile = self.get_path("md.aselog", "ASE MD log file")
 
-        append_trajectory = restart_md(traj_file, self.atoms, self.verbose)
+        # Write JSON files with parameters.
+        md_dict = dict(
+            temperature=self.temperature,
+            timestep   =self.timestep,
+            steps      =self.steps,
+            loginterval=self.loginterval,
+            ensemble   =self.ensemble,
+            nn_name    =self.nn_name,
+            workdir    =self.workdir,
+            verbose    =self.verbose,
+        )
+        self.write_json("md.json", md_dict, info="JSON file with ASE MD parameters")
+
+        append_trajectory, len_traj = restart_md(traj_file, self.atoms, self.verbose)
         self.atoms.calc = CalcBuilder(self.nn_name).get_calculator()
 
         if not append_trajectory:
-           print("Setting momenta corresponding to the input temperature using MaxwellBoltzmannDistribution.")
-           MaxwellBoltzmannDistribution(self.atoms, temperature_K=self.temperature)
-           #Stationary(self.atoms)  # zero linear momentum
-           #ZeroRotation(self.atoms)  # zero angular momentum
+            print("Setting momenta corresponding to the input temperature using MaxwellBoltzmannDistribution.")
+            MaxwellBoltzmannDistribution(self.atoms, temperature_K=self.temperature)
+            #Stationary(self.atoms)    # zero linear momentum
+            #ZeroRotation(self.atoms)  # zero angular momentum
+        else:
+            self.steps = self.steps - (len_traj * self.loginterval)
+            if self.steps <= 0:
+                raise RuntimeError(f"Have already performed {self.steps} iterations!")
 
         md = MolecularDynamics(
             atoms=self.atoms,
@@ -1835,7 +1931,7 @@ class MlMd(MlBase):
             append_trajectory=append_trajectory, # If True, the new structures are appended to the trajectory
         )
 
-        self.write_script("diffusion_coeff.py", text=f"""\
+        self.write_script("ase_diffusion_coeff.py", text=f"""\
 from ase.md.analysis import DiffusionCoefficient
 from ase.io import read
 
@@ -1846,27 +1942,20 @@ dc = DiffusionCoefficient(traj, timestep, atom_indices=None, molecule=False)
 dc.calculate(ignore_n_images=0, number_of_segments=1)
 dc.print_data()
 dc.plot(ax=None, show=True)
-""", info="Python script to compute and visualize diffusion coefficients.")
+""", info="Python script to compute and visualize diffusion coefficients with ASE.")
 
         self.write_script("plot_energies.py", text=f"""\
-df = pd.read_csv("{str(logfile)}", sep="\s+")
-print(df)
-xname = "Time[ps]"
-ynames = [k for k in df.keys() if k != xname]
-print("=== Summary statistics ===")
-print(df[ynames].describe())
-
-axes = df.plot.line(x=xname, y=ynames, subplots=True)
-fig = axes[0].get_figure()
-plt.show()
-""", info="Python script to visualize energies vs Time.")
+from abipy.ml.aseml import AseMdLog
+log = AseMdLog("{str(logfile)}")
+log.plot(savefig=None)
+""", info="Python script to visualize energies vs time.")
 
         md.run(steps=self.steps)
 
         # Convert ASE trajectory file to QE POS file.
         write_qe_pos = True
         if write_qe_pos:
-            pos_filepath = self.get_path("md.pos", "QE POS file")
+            pos_filepath = self.get_path("md.pos", "QE position file")
             traj_to_qepos(traj_file, pos_filepath)
 
         #trajectory = read(traj_file, index=":")
@@ -1953,7 +2042,6 @@ class MlGsList(_MlNebBase):
 
     def run(self) -> None:
         """Run list of GS calculations."""
-        #self.pickle_dump()
         workdir = self.workdir
 
         results = []
@@ -2047,7 +2135,6 @@ class MlNeb(_MlNebBase):
 
     def run(self) -> None:
         """Run NEB"""
-        #self.pickle_dump()
         workdir = self.workdir
         initial_atoms, final_atoms = self.initial_atoms, self.final_atoms
         calculator = CalcBuilder(self.nn_name).get_calculator()
@@ -2180,7 +2267,6 @@ class MultiMlNeb(_MlNebBase):
         """
         Run multi NEB calculations.
         """
-        #self.pickle_dump()
         workdir = self.workdir
         atoms_list = self.atoms_list
         camp_dirs = [workdir / f"CAMP_{i}" for i in range(len(atoms_list) - 1)]
@@ -2230,8 +2316,7 @@ def make_ase_neb(initial: Atoms, final: Atoms, nimages: int,
         climb: True to use a climbing image.
         method: str
             Method by which to interpolate: 'linear' or 'idpp'.
-            linear provides a standard straight-line interpolation, while
-            idpp uses an image-dependent pair potential.
+            linear provides a standard straight-line interpolation, while idpp uses an image-dependent pair potential.
         mic: Map movement into the unit cell by using the minimum image convention.
     """
     images = [initial]
@@ -2323,7 +2408,6 @@ class MlOrderer(MlBase):
         """
         Run MlOrderer.
         """
-        #self.pickle_dump()
         workdir = self.workdir
         from pymatgen.core import Lattice
         specie = {"Cu0+": 0.5, "Au0+": 0.5}
@@ -2493,7 +2577,6 @@ class MlCompareWithAbinitio(_MlNebBase):
         """
         Run calculation with nprocs processes.
         """
-        #self.pickle_dump()
         workdir = self.workdir
 
         labels = ["abinitio"]
@@ -2692,26 +2775,22 @@ class MolecularDynamics:
 
 def traj_to_qepos(traj_filepath: str, pos_filepath: str) -> None:
     """
-    Convert ASE trajectory file to QE POS file.
+    Convert an ASE trajectory file to QE POS file.
 
     Args:
-        traj_filepath: Name of ASE trajectory file
-        pos_filepath: Name of output POS file.
+        traj: Name of ASE trajectory file or Trajectory instance.
+        pos_filepath: Name of output file.
     """
-    traj = Trajectory(str(traj_filepath))
-    nStepsTraj = len(traj)
-    nAtoms = len(traj[0])
-    #print(nStepsTraj)
-    posArray = np.zeros((nStepsTraj, nAtoms, 3), dtype=float)
+    #if not isinstance(traj, Trajectory):
+    traj = read(traj_filepath, index=":")
 
-    count = -1
-    for atoms in traj:
-        count = count + 1
-        #print(atoms.positions)
-        posArray[count,:,:] = atoms.positions
+    nsteps, natoms = len(traj), len(traj[0])
+    pos_tac = np.empty((nsteps, natoms, 3))
+    for it, atoms in enumerate(traj):
+        pos_tac[it] = atoms.positions
 
-    with open(pos_filepath, 'w') as posFile:
-        for i in range(nStepsTraj):
-            posFile.write(str(i)+ '\n')
-            for j in range(nAtoms):
-                posFile.write(str(posArray[i,j,0]) + ' ' + str(posArray[i,j,1]) + ' ' + str(posArray[i,j,2]) + '\n')
+    with open(str(pos_filepath), "wt") as fh:
+        for it in range(nsteps):
+            fh.write(str(it) + '\n')
+            for ia in range(natoms):
+                fh.write(str(pos_tac[it,ia,0]) + ' ' + str(pos_tac[it,ia,1]) + ' ' + str(pos_tac[it,ia,2]) + '\n')
