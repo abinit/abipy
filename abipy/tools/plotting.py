@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import time
 import itertools
+import functools
 import numpy as np
 import pandas as pd
 
@@ -48,19 +49,39 @@ linestyles = OrderedDict(
      ('loosely_dotted',      (0, (1, 10))),
      ('dotted',              (0, (1, 5))),
      ('densely_dotted',      (0, (1, 1))),
-
+     #
      ('loosely_dashed',      (0, (5, 10))),
      ('dashed',              (0, (5, 5))),
      ('densely_dashed',      (0, (5, 1))),
-
+     #
      ('loosely_dashdotted',  (0, (3, 10, 1, 10))),
      ('dashdotted',          (0, (3, 5, 1, 5))),
      ('densely_dashdotted',  (0, (3, 1, 1, 1))),
-
+     #
      ('loosely_dashdotdotted', (0, (3, 10, 1, 10, 1, 10))),
      ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
      ('densely_dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))]
 )
+
+
+
+@functools.cache
+def get_color_symbol(style: str="VESTA") -> dict:
+    """
+    Dictionary mapping chemical symbol to RGB color.
+
+    Args:
+        style: "VESTA" or "Jmol".
+    """
+    from monty.serialization import loadfn
+    from pymatgen import vis
+    colors = loadfn(os.path.join(os.path.dirname(vis.__file__), "ElementColorSchemes.yaml"))
+    if style not in colors:
+        raise KeyError(f"Invalid {style=}. Should be in {colors.keys()}")
+    color_symbol = {el: [j / 256.001 for j in colors[style][el]] for el in colors[style]}
+    return color_symbol
+
+
 
 
 ###################
@@ -230,6 +251,26 @@ def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> 
     if exchange_xy: xlabel, ylabel = ylabel, xlabel
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+
+
+def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string="xy") -> None:
+    """
+    Set tick properties for one axis or a list of axis.
+
+    Args:
+        xy_string: "x" to share x-axis, "xy" for both
+    """
+    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
+
+    for ix, ax in enumerate(ax_list):
+        if "x" in xy_string:
+            for tick in ax.xaxis.get_major_ticks():
+                tick.label.set_fontsize(fontsize)
+
+        if "y" in xy_string:
+            for tick in ax.yaxis.get_major_ticks():
+                tick.label.set_fontsize(fontsize)
+
 
 
 def set_grid_legend(ax_or_axlist, fontsize: int,

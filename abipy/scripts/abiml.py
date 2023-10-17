@@ -625,7 +625,7 @@ def compare(ctx, filepaths,
 @herald
 @click.pass_context
 @click.option('-v', '--verbose', count=True, help="Verbosity level")
-def show_nn(ctx, verbose):
+def show(ctx, verbose):
     """
     Show the NN potentials installed in the environment.
     """
@@ -648,8 +648,6 @@ def install(ctx, nn_names, update, verbose):
     installed, versions = aseml.get_installed_nn_names(verbose=verbose, printout=True)
 
     return 0 if installed else 1
-
-
 
 
 @main.command()

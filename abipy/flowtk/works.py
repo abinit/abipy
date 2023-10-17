@@ -1034,7 +1034,7 @@ class Work(BaseWork, NodeContainer):
             gsr_path = task.outdir.has_abiext("GSR")
             etot = np.inf
             if gsr_path:
-                with ETSF_Reader(gsr_path) as r:
+                with EtsfReader(gsr_path) as r:
                     etot = r.read_value("etotal")
 
             etotals.append(etot)
