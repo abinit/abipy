@@ -28,7 +28,11 @@ from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, E
                     EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
                     DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
 from .utils import Directory
-from .netcdf import ETSF_Reader, NetcdfReader
+from .netcdf import NetcdfReader
+try:
+    from .netcdf import ETSF_Reader
+except ImportError:
+    from .netcdf import EtsfReader as ETSF_Reader
 from .abitimer import AbinitTimerParser
 
 if TYPE_CHECKING:  # needed to avoid circular imports
