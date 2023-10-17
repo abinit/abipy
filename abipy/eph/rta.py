@@ -455,7 +455,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
             for irta in range(self.nrta):
                 for itemp, temp in enumerate(self.tmesh):
-                    ys = what_var[irta, spin, itemp, :, j, i]
+                    ys = what_var[irta, itemp, spin, :, j, i]
                     label = "T = %dK" % temp
                     if itemp == 0: label = "%s (%s)" % (label, irta2s(irta))
                     if irta == 0 and itemp > 0: label = None
@@ -649,6 +649,7 @@ class RtaRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
         """
+        bte = list(list_strings(bte))
 
         if 'ibte' in bte and not self.all_have_ibte:
             print("At least some IBTE results are missing ! Will remove ibte from the bte list")
@@ -668,11 +669,11 @@ class RtaRobot(Robot, RobotWithEbands):
 
             mob_serta, mob_mrta, mob_ibte = -1, -1, -1
             if 'serta' in bte:
-                mob_serta = ncfile.reader.read_variable("mobility_mu")[0, spin, itemp, eh, j, i]
+                mob_serta = ncfile.reader.read_variable("mobility_mu")[0, itemp, spin, eh, j, i]
             if 'mrta' in bte:
-                mob_mrta = ncfile.reader.read_variable("mobility_mu")[1, spin, itemp, eh, j, i]
+                mob_mrta = ncfile.reader.read_variable("mobility_mu")[1, itemp, spin, eh, j, i]
             if 'ibte' in bte:
-                mob_ibte = ncfile.reader.read_variable("ibte_mob")[spin, itemp, eh, j, i]
+                mob_ibte = ncfile.reader.read_variable("ibte_mob")[itemp, spin, eh, j, i]
 
             res.append([kptrlattx, mob_serta, mob_mrta, mob_ibte])
             temps.append(ncfile.tmesh[itemp])
