@@ -79,6 +79,11 @@ class EvpFile(TextFile, NotebookWriter):
         df = pd.read_csv(self.filepath, delim_whitespace=True, skiprows=1, names=names)
         return df
 
+    @lazy_property
+    def times(self):
+        """Array with times in ps units."""
+        return evp.df["tps(ps)"].values
+
     def to_string(self, verbose=0) -> str:
         """String representation with verbosity level verbose."""
         lines = []; app = lines.append

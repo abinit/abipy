@@ -2047,7 +2047,7 @@ class ElectronBands(Has_Structure):
             method: String defining the method.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
-            colormap: Have a look at the colormaps here and decide which one you like:
+            colormap: Color map. Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             cumulative: True for cumulative plots (default).
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -2449,7 +2449,7 @@ class ElectronBands(Has_Structure):
                 - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to ``e0 = 0``.
-            colormap: Have a look at the colormaps here and decide which one you like:
+            colormap: Color map. Have a look at the colormaps here and decide which one you like:
                 <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>
             ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
         """

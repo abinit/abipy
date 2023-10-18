@@ -45,6 +45,7 @@ from ase.md.nvtberendsen import NVTBerendsen
 from ase.md.velocitydistribution import (MaxwellBoltzmannDistribution, Stationary, ZeroRotation)
 from abipy.core import Structure
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
+from abipy.tools.typing import Figure
 from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import HasPickleIO
 from abipy.abio.enums import StrEnum, EnumMixin
@@ -1172,6 +1173,7 @@ def install_nn_names(nn_names="all", update=False, verbose=0) -> None:
     def pip_install(nn_name) -> int:
         from subprocess import call
         cmd = f"python -m pip install {nn_name}"
+        #print("About to execute", cmd)
         try:
             retcode = call(cmd, shell=True)
             if retcode < 0:
@@ -1187,10 +1189,12 @@ def install_nn_names(nn_names="all", update=False, verbose=0) -> None:
         "alignn",
     ]
 
-    nn_names = CalcBuilder.ALL_NN_TYPES if nn_names == "all" else list_strings(nn_names)
+    nn_names == list_strings(nn_names)
+    if "all" in nn_names: nn_names = CalcBuilder.ALL_NN_TYPES 
     installed, versions = get_installed_nn_names(verbose=verbose, printout=False)
 
     for name in nn_names:
+        #print(f"About to install nn_name={name}")
         if name in black_list:
             print("Cannot install {name} with pip!")
             continue
@@ -1198,7 +1202,10 @@ def install_nn_names(nn_names="all", update=False, verbose=0) -> None:
             if not update:
                 print("{name} is already installed!. Use update to update the package")
                 continue
-            print("Upgradig {name}")
+            print("Upgrading: {name}")
+        if name not in CalcBuilder.ALL_NN_TYPES:
+            print(f"Ignoring unknown {name=}")
+            continue
 
         pip_install(name)
 
@@ -1763,7 +1770,6 @@ def restart_md(traj_filepath, atoms, verbose) -> tuple[bool, int]:
 
 
 from abipy.core.mixins import TextFile, NotebookWriter
-#class AseMdLog(TextFile, NotebookWriter):
 class AseMdLog(TextFile):
     """
     Postprocessing tool for the log file produced by ASE MD.
@@ -1782,6 +1788,7 @@ class AseMdLog(TextFile):
         # Here we implement the logic required to take into account a possible restart.
         begin_restart = False
         d = {}
+        add_time = 0.0
         with open(self.filepath, mode="rt") as fh:
             for i, line in enumerate(fh):
                 if i == 0:
@@ -1795,7 +1802,6 @@ class AseMdLog(TextFile):
                     begin_restart = True
                     continue
 
-                add_time = 0.0
                 if begin_restart:
                     # First iteration after restart. Set add_time and kkip it.
                     begin_restart = False
@@ -1901,7 +1907,7 @@ class MlMd(MlBase):
             loginterval=self.loginterval,
             ensemble   =self.ensemble,
             nn_name    =self.nn_name,
-            workdir    =self.workdir,
+            workdir    =str(self.workdir),
             verbose    =self.verbose,
         )
         self.write_json("md.json", md_dict, info="JSON file with ASE MD parameters")

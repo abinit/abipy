@@ -253,12 +253,41 @@ def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> 
     ax.set_ylabel(ylabel)
 
 
+def set_logscale(ax_or_axlist, xy_log) -> None:
+    """
+    Activate logscale
+
+    Args:
+        ax_or_axlist: Axes or list of axes.
+        xy_log:
+            None or empty string -> Use linear scale.
+            x                    -> Use log scale on x-axis
+            xy                   -> Use log scale on x- and y-axis
+            x:semilog            -> Use semilog scale on x-axis.
+    """
+    if not xy_log: return
+
+    # Parse xy_log string.
+    xy, log_type = xy_log, "log"
+    if ":" in xy_log:
+        xy, log_type = xy_log.split(":")
+
+    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
+
+    for ix, ax in enumerate(ax_list):
+        if "x" in xy:
+            ax.set_xscale(log_type)
+        if "y" in xy:
+            ax.set_yscale(log_type)
+
+
 def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string="xy") -> None:
     """
     Set tick properties for one axis or a list of axis.
 
     Args:
-        xy_string: "x" to share x-axis, "xy" for both
+        ax_or_axlist: Axes or list of axes.
+        xy_string: "x" to share x-axis, "xy" for both.
     """
     ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
 

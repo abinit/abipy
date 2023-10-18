@@ -642,7 +642,7 @@ def show(ctx, verbose):
 @click.option('-v', '--verbose', count=True, help="Verbosity level")
 def install(ctx, nn_names, update, verbose):
     """
-    Install NN potentials in the environment using pip
+    Install NN potentials in the environment using pip.
     """
     aseml.install_nn_names(nn_names=nn_names, update=update, verbose=verbose)
     installed, versions = aseml.get_installed_nn_names(verbose=verbose, printout=True)

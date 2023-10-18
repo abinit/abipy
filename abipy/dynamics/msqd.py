@@ -11,7 +11,6 @@ import pandas as pd
 import pymatgen.core.units as units
 
 from pathlib import Path
-from matplotlib.ticker import (MultipleLocator, FormatStrFormatter, AutoMinorLocator)
 from matplotlib.offsetbox import AnchoredText
 from monty.functools import lazy_property
 from monty.bisect import find_le
@@ -22,13 +21,16 @@ from abipy.core.structure import Structure
 from abipy.tools.typing import Figure
 from abipy.tools.serialization import HasPickleIO
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, get_color_symbol,
-                                  set_ticks_fontsize)
+                                  set_ticks_fontsize, set_logscale)
+
+
+__author__ = "Giuliana Materzanini, Matteo Giantomassi"
 
 
 def _pos_tac_structure_from_traj(traj_filepath) -> tuple[np.ndarray, Structure]:
     """
     Read all configurations from an ASE trajectory file.
-    Returns (nsteps, natom, 3) array with cartesian coords and the initial structure.
+    Returns (nsteps, natom, 3) array with the Cartesian coords and the initial structure.
     """
     from ase.io import read
     traj = read(traj_filepath, index=":")
@@ -44,28 +46,30 @@ def _pos_tac_structure_from_traj(traj_filepath) -> tuple[np.ndarray, Structure]:
 
 class MdAnalyzer(HasPickleIO):
     """
+    High-level interface to read MD trajectories and metadata from external files,
+    compute the MSQD and visualize the results.
     """
 
     @classmethod
     def from_abiml_dir(cls, directory) -> MdAnalyzer:
         """
-        Build an instance from an ASE traj file and a JSON file with MD parameters.
+        Build an instance from a directory containing an ASE trajectory file and
+        a JSON file with the MD parameters as produced by `abiml.py md`.
         """
         directory = Path(str(directory))
         pos_tac, structure = _pos_tac_structure_from_traj(directory / "md.traj")
 
-        # Read parameters from the JSON file produced by `abiml.py md`
+        # Read metadata from the JSON file.
         with open(directory / "md.json", "rt") as fh:
             meta = json.load(fh)
 
         temperature = meta["temperature"]
         timestep = meta["timestep"]
         loginterval = meta["loginterval"]
-
         nsteps = len(pos_tac)
         times = np.arange(0, nsteps) * timestep * loginterval
-        new = cls(structure, times, pos_tac)
-        return new
+
+        return cls(structure, temperature, times, pos_tac)
 
     #@classmethod
     #def from_hist_file(cls, hist_filepath: str) -> MdAnalyzer:
@@ -75,10 +79,9 @@ class MdAnalyzer(HasPickleIO):
     #    from abipy.dynamics.hist import HistFile
     #    with HistFile(hist_filepath) as hist:
     #        pos_tac = self.r.read_value("xcart") * units.bohr_to_ang
-    #    times = None
+    #    times = np.arange(0, nsteps) * timestep * loginterval
     #    temperature = None
-    #    new = cls(hist.structure.copy(), times, pos_tac)
-    #    return new
+    #    return cls(hist.structure.copy(), temperature, times, pos_tac)
 
     @classmethod
     def from_vaspruns(cls, filepaths) -> MdAnalyzer:
@@ -125,11 +128,9 @@ class MdAnalyzer(HasPickleIO):
 
         nsteps, natom = i + 1, len(structure)
         pos_tac = np.reshape(pos_tac, (nsteps, natom, 3))
-
         times = np.arange(0, nsteps) * timestep * step_kip
-        new = cls(structure, times, pos_tac)
-        #new.temperature = temperature
-        return new
+
+        return cls(structure, temperature, times, pos_tac)
 
     #@classmethod
     #def from_cp_pos_and_input(cls, qepos_filepath: str, qeinp_filepath: str):
@@ -143,8 +144,7 @@ class MdAnalyzer(HasPickleIO):
     #    pos_tac = None
     #    times = None
     #    temperature =
-    #    new = cls(qe_inp.structure, times, pos_tac)
-    #    return new
+    #    return cls(qe_inp.structure, temperature, times, pos_tac)
 
     @classmethod
     def from_lammpstrj(cls, traj_filepath: str, log_filepath: str) -> MdAnalyzer:
@@ -157,16 +157,16 @@ class MdAnalyzer(HasPickleIO):
             # Extract times from CP EVP file (Giuliana's way)
             from abipy.dynamics.cpx import EvpFile
             with EvpFile(log_filepath) as evp:
-                times = evp.df["tps(ps)"].values.copy()
+                times = evp.times.copy()
         else:
             raise NotImplementedError
 
         temperature = None
-        new = cls(structure, times, pos_tac)
-        return new
+        return cls(structure, temperature, times, pos_tac)
 
     def __init__(self,
                 structure: Structure,
+                temperature: float,
                 times: np.ndarray,
                 cart_positions: np.ndarray,
                 lattices=None,
@@ -174,9 +174,10 @@ class MdAnalyzer(HasPickleIO):
         """
         Args:
             structure: Structure object (first geometry of the MD run).
-            times: List of times in ps units.
-            cart_positions: Cartesian positions in Ang.
-            lattices: array of lattice matrix of every step. Used for NPT.
+            temperature: Temperature in Kelvin.
+            times: Array with times in ps units.
+            cart_positions: Cartesian positions in Ang. Default shape: (nt, natom, 3).
+            lattices: Array of lattice matrix of every step. Used for NPT.
                 For NVT-AIMD, the lattice at each time step is set to the lattice in the "structure" argument.
             pos_order: "tac" if cart_positions has shape (nt, natom, 3).
                        "atc" if cart_positions has shape (natom, nt, 3).
@@ -196,7 +197,7 @@ class MdAnalyzer(HasPickleIO):
         #    self.lattices = np.array([structure.lattice.matrix.tolist()])
 
         self.latex_formula = self.structure.latex_formula
-        self.temperature = 0.0
+        self.temperature = temperature
 
         # Consistencty check.
         if self.pos_atc.shape != (self.natom, self.nt, 3):
@@ -204,7 +205,7 @@ class MdAnalyzer(HasPickleIO):
         if len(self.times) != self.nt:
             raise ValueError(f"{len(self.times)=} != {self.nt=}")
 
-        # Check times mesh
+        # Check times mesh.
         ierr = 0
         for it in range(self.nt-1):
             dt = self.times[it+1] - self.times[it]
@@ -239,7 +240,7 @@ class MdAnalyzer(HasPickleIO):
     @temperature.setter
     def temperature(self, value):
         """Set temperature in Kelvin."""
-        self._temperature = float(value)
+        self._temperature = value
 
     @property
     def latex_formula(self) -> str:
@@ -250,9 +251,15 @@ class MdAnalyzer(HasPickleIO):
         """LaTeX formatted formula. E.g., Fe2O3 is transformed to Fe$_{2}$O$_{3}$."""
         self._latex_formula = latexify(value)
 
-    def set_color_symbol(self, dict_or_string) -> None:
+    @lazy_property
+    def avg_volume(self) -> float:
+        """Average unit cell volume in Ang^3."""
+        return self.structure.lattice.volume
+
+    def set_color_symbol(self, dict_or_string: dict | str) -> None:
         """
-        Set the mapping chemical_symbol --> color used in the matplotlib plots.
+        Set the dictionary mapping chemical_symbol --> color
+        used in the matplotlib plots.
 
         Args:
             dict_or_string: "VESTA", "Jmol"
@@ -266,7 +273,7 @@ class MdAnalyzer(HasPickleIO):
             if symbol not in self.color_symbol:
                 raise KeyError(f"Cannot find {symbol=} in color_symbol dictionary!")
 
-    def get_it0_ts(self, t0: float) -> tuple[int, np.ndarray]:
+    def get_it_ts(self, t0: float) -> tuple[int, np.ndarray]:
         """
         Return the index of time t0 in self.times and the array with the time values.
         """
@@ -280,29 +287,34 @@ class MdAnalyzer(HasPickleIO):
         """String representation with verbosity level verbose."""
         lines = []
         app = lines.append
+        app(f"temperature = {self.temperature} K")
+        app(f"timestep = {self.timestep} fs")
+        app(f"trajectory_size = {self.nt}")
         app(self.structure.to_string(verbose=verbose))
+        #if verbose:
+        #    app(self.structure.spget_summary(verbose=verbose))
 
         return "\n".join(lines)
 
-    def iatoms_with_symbol(self, symbol) -> np.ndarray:
+    def iatoms_with_symbol(self, symbol: str) -> np.ndarray:
         """Array with the index of the atoms with chemical symbol."""
         return np.array([iatom for iatom in range(len(self.structure)) if self.structure[iatom].specie.symbol == symbol])
 
-    def _select_symbols(self, symbols) -> list[str]:
+    def select_symbols(self, symbols) -> list[str]:
         if symbols == "all": return sorted(self.structure.symbol_set)
         return list_strings(symbols)
 
     def get_sqdt_iatom(self, iatom: int, it0: int = 0) -> np.array:
         """
         Compute the square displacement vs time for a given atomic index
-        starting from time index it0
+        starting from time index it0.
         """
         return ((self.pos_atc[iatom,it0:] - self.pos_atc[iatom,it0]) ** 2).sum(axis=1)
 
     def get_sqdt_symbol(self, symbol: str, it0: int = 0) -> np.array:
         """
         Compute the square displacement vs time averaged over atoms with the same chemical symbol
-        starting from time index it0
+        starting from time index it0.
         """
         for count, iatom in enumerate(self.iatoms_with_symbol(symbol)):
             if count == 0:
@@ -334,22 +346,23 @@ class MdAnalyzer(HasPickleIO):
 
     @add_fig_kwargs
     def plot_sqdt_atoms(self, symbols="all", t0: float = 0.0,
-                        ax=None, fontsize=30, xlims=None, **kwargs) -> Figure:
+                        ax=None, xy_log=None, fontsize=30, xlims=None, **kwargs) -> Figure:
         """
         Plot the square displacement of each atom vs time.
 
         Args:
-            symbols:
+            symbols: List of chemical symbols to consider.
             t0: Initial time in ps.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            xy_log:
             fontsize: fontsize for legends and titles.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
         """
-        it0, ts = self.get_it0_ts(t0)
+        it0, ts = self.get_it_ts(t0)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        for symbol in self._select_symbols(symbols):
+        for symbol in self.select_symbols(symbols):
             for iatom in self.iatoms_with_symbol(symbol):
                 sd_t = self.get_sqdt_iatom(iatom, it0=it0)
                 ax.plot(ts, sd_t, label=f"${symbol}_{{iatom}}$")
@@ -359,32 +372,34 @@ class MdAnalyzer(HasPickleIO):
         ax.set_xlabel('t (ps)', fontsize=fontsize)
         set_axlims(ax, xlims, "x")
         set_ticks_fontsize(ax, fontsize)
-        anchored_text = AnchoredText(self.latex_formula + '\n'+ 'T = ' + str(self.temperature) + ' K' + '\n' +
-                                     #'V' + '_' + 'ave = ' + str(2186.87) + r'$\mathrm{{\AA}^3}$' + '\n' +
-                                     'sd(t, t0 =' + str(int(self.times[it0])) + ' ps)',
-                                     loc=1, prop=dict(size=20))
-        ax.add_artist(anchored_text)
+        set_logscale(ax, xy_log)
+        ax.add_artist(AnchoredText(
+                        self.latex_formula + '\n'+ 'T = ' + str(self.temperature) + ' K' + '\n' +
+                        #'V' + '_' + 'ave = ' + str(2186.87) + r'$\mathrm{{\AA}^3}$' + '\n' +
+                        'sd(t, t0 =' + str(int(self.times[it0])) + ' ps)',
+                        loc=1, prop=dict(size=20)))
 
         return fig
 
     @add_fig_kwargs
     def plot_sqdt_symbols(self, symbols, t0: float = 0.0,
-                          ax=None, fontsize=30, xlims=None, **kwargs) -> Figure:
+                          ax=None, xy_log=None, fontsize=30, xlims=None, **kwargs) -> Figure:
         """
         Plot the square displacement averaged over all atoms of the same specie vs time.
 
         Args:
-            symbols: List of chemical symbols.
+            symbols: List of chemical symbols to consider. "all" for all symbols in structure.
             t0: Initial time in ps.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            xy_log:
             fontsize: fontsize for legends and titles.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
         """
-        it0, ts = self.get_it0_ts(t0)
+        it0, ts = self.get_it_ts(t0)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        for symbol in self._select_symbols(symbols):
+        for symbol in self.select_symbols(symbols):
             ax.plot(ts, self.get_sqdt_symbol(symbol, it0=it0),
                     label=symbol + ' msd(t, t0 = ' + str(t0) + ' ps)',
                     color=self.color_symbol[symbol],
@@ -395,32 +410,34 @@ class MdAnalyzer(HasPickleIO):
         ax.set_xlabel('t (ps)', fontsize=fontsize)
         set_axlims(ax, xlims, "x")
         set_ticks_fontsize(ax, fontsize)
-        anchored_text = AnchoredText(self.latex_formula + '\n'+ 'T =' + str(self.temperature) + ' K', # +'\n', +
-                                     #'V' + '_' + 'ave = ' + str(2186.87) + '$\mathrm{{\AA}^3}$',
-                                     loc=1, prop=dict(size=20))
-        ax.add_artist(anchored_text)
+        set_logscale(ax, xy_log)
+        ax.add_artist(AnchoredText(
+                self.latex_formula + '\n'+ 'T =' + str(self.temperature) + ' K', # +'\n', +
+                #'V' + '_' + 'ave = ' + str(2186.87) + '$\mathrm{{\AA}^3}$',
+                loc=1, prop=dict(size=20)))
 
         return fig
 
     @add_fig_kwargs
     def plot_sqdt_symbols_tmax(self, symbols, tmax: float,
-                               ax=None, fontsize=30, xlims=None, **kwargs) -> Figure:
+                               ax=None, xy_log=None, fontsize=30, xlims=None, **kwargs) -> Figure:
         """
         Plot the square displacement averaged over all atoms of the same specie vs time.
 
         Args:
-            symbols: List of chemical symbols.
+            symbols: List of chemical symbols to consider. "all" for all symbols in structure.
             tmax: Max time in ps.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            xy_log:
             fontsize: fontsize for legends and titles
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
         """
         #TODO Finalize and optimize timeMeanSquareDispAllinOne
-        indexTMax, _ = self.get_it0_ts(tmax)
+        indexTMax, _ = self.get_it_ts(tmax)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        for symbol in self._select_symbols(symbols):
+        for symbol in self.select_symbols(symbols):
             iatoms = self.iatoms_with_symbol(symbol)
             tac = self.pos_atc[iatoms].transpose(1, 0, 2).copy()
             #print(f"{tac.shape=}")
@@ -441,15 +458,119 @@ class MdAnalyzer(HasPickleIO):
         ax.set_ylabel('average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
         ax.set_xlabel('t (ps)', fontsize=fontsize)
         set_ticks_fontsize(ax, fontsize)
-        anchored_text = AnchoredText(self.latex_formula + '\n' + 'T =' + str(self.temperature) + ' K', # +'\n' +
-                                     #'V' +'_'+'ave = ' + str(2186.87) + '$\mathrm{{\AA}^3}$',
-                                     loc=1, prop=dict(size=20))
-        ax.add_artist(anchored_text)
+        set_logscale(ax, xy_log)
+        ax.add_artist(AnchoredText(
+                         self.latex_formula + '\n' + 'T =' + str(self.temperature) + ' K', # +'\n' +
+                         #'V' +'_'+'ave = ' + str(2186.87) + '$\mathrm{{\AA}^3}$',
+                         loc=1, prop=dict(size=20)))
 
         return fig
 
 
-__author__ = "Giuliana Materzanini"
+
+class MdAnalyzers:
+    """
+    High-level interface to analyze MD trajectories for different temperatures.
+    """
+
+    def __init__(self, mdas: list[MdAnalyzer], colormap="jet"):
+        """
+        Args:
+            mdas:
+            colormap:
+        """
+        # Sort input objects according to temperature.
+        self.mdas = sorted(mdas, key=lambda x: x.temperature)
+
+        # Consistency check.
+        #for i in range(1, len(self)):
+        #    if np.any((self.mdas[i].times - self.mdas[i-1].times).abs() > 1e-3):
+        #        raise ValueError(f"Found different time meshes for indices: {i} and {i-1}")
+
+        self.set_colormap(colormap)
+
+    def __iter__(self):
+        return self.mdas.__iter__()
+
+    def __len__(self) -> int:
+        return len(self.mdas)
+
+    #def __getitem__(self, items):
+    #    return self.mdas.__getitem__[items]
+
+    @property
+    def ntemps(self) -> int:
+        return len(self)
+
+    def set_colormap(self, colormap) -> None
+        """Set the colormap for the list of temperatures."""
+        import matplotlib.pyplot as plt
+        self.cmap = plt.get_cmap(colormap)
+
+    def __str__(self) -> str:
+        return self.to_string()
+
+    #def to_string(self, verbose: int = 0) -> str:
+    #    """String representation with verbosity level verbose."""
+    #    lines = []
+    #    app = lines.append
+    #    app(f"temperature = {self.temperature} K")
+    #    app(f"timestep = {self.timestep} fs")
+    #    app(f"trajectory_size = {self.nt}")
+    #    app(self.structure.to_string(verbose=verbose))
+
+    #    return "\n".join(lines)
+
+    #def color_itemp(self, itemp: int):
+    #    return self.cmap(float(itemp) / len(self))
+
+    #def temps_colors(self) -> tuple[list, list]:
+    #    return ([mda.temperature for mda in self],
+    #            [self.color_itemp(itemp) for itemp in range(len(self))])
+
+    def _nrows_ncols(self, size=None)
+        size = size or len(self)
+        nrows, ncols, num_plots = 1, 1, len(self)
+        if num_plots > 1:
+            ncols = 2; nrows = num_plots // ncols + num_plots % ncols
+        return nrows, ncols
+
+    #@add_fig_kwargs
+    #def plot_sqdt_atoms(self, **kwargs) -> Figure:
+    #    """
+    #    Plot the square displacement of each atom vs time.
+    #    """
+    #    nrows, ncols = self._nrows_ncols()
+    #    ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=True)
+    #    for ix, (ax, mda) in enumerate(zip(ax_list, self)):
+    #        kws = kwargs.copy()
+    #        kws.update(ax=ax, title="T={mda.temperature} K", show=False)
+    #        mda.plot_sqdt_atoms(**kws)
+
+    #    return fig
+
+    @add_fig_kwargs
+    def plot_sqdt_symbols(self, symbols, **kwargs) -> Figure:
+        """
+        Plot the square displacement averaged over all atoms of the same specie vs time
+        for the different temperatures.
+        """
+        symbols = self.mdas[0].select_symbols(symbols)
+        nrows, ncols = self._nrows_ncols(size=len(symbols))
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=True)
+
+        for ix, (ax, symbol) in enumerate(zip(ax_list, symbols)):
+            for mda, temp, color in self.iter_mtc()
+                kws = kwargs.copy()
+                kws.update(ax=ax, title="T={mda.temperature} K", show=False)
+                mda.plot_sqdt_symbols(symbol, color=color, **kws)
+
+        return fig
+
+
+
+
+
 
 Ang2PsTocm2S=0.0001
 bohr2a = 0.529177
@@ -463,17 +584,17 @@ def find_nearest(array, value):
     return array[idx]
 
 
-def linearLSQLineFit(x, z, weights):
+def linear_lsq_linefit(x, z, weights):
     S00 = np.sum(weights)
-    S10 = np.sum(z*weights)
-    S01 = np.sum(x*weights)
-    S20 = np.sum(z**2*weights)
-    S11 = np.sum((x*z)*weights)
-    D = S00*S20-S10**2
-    m = (S00*S11-S10*S01)/D
-    q = (S01*S20-S11*S10)/D
-    varM = S00/D
-    varQ = S20/D
+    S10 = np.sum(z * weights)
+    S01 = np.sum(x * weights)
+    S20 = np.sum(z**2 * weights)
+    S11 = np.sum((x*z) * weights)
+    D = S00 * S20 - S10**2
+    m = (S00*S11 - S10*S01) / D
+    q = (S01*S20 - S11*S10) / D
+    varM = S00 / D
+    varQ = S20 / D
     return m, q, varM, varQ
 
 
@@ -520,27 +641,6 @@ def read_from_file_evp(f_name: str) -> np.ndarray:
         timeArray = np.array(every_step, dtype=float)
         return timeArray
 
-
-def read_pos_from_file_pos(f_name, nstep_pos) -> tuple[np.ndarray, int]:
-    """
-    """
-    with open(str(f_name), 'rt') as file_pos:
-        pos_every_step = []
-        file_pos_lines = file_pos.readlines()
-        nlinetot = len(file_pos_lines)
-        nt = int(len(file_pos_lines)/nstep_pos)
-        posArrayB = np.zeros((nt,nstep_pos-1,3), dtype=float)
-
-        for it in range(nt):
-            pos_every_step = []
-            for line in file_pos_lines[(nstep_pos*it)+1:nstep_pos*(it+1)]:
-                y = line.split()
-                y = np.array(y, dtype=float)
-                pos_every_step.append(y)
-            posArrayB[it,:,:] = np.array(pos_every_step, dtype=float)
-
-        posArray = np.copy(posArrayB*bohr2a)
-        return posArray, nt
 
 
 def read_cel_from_file_cel(f_name: str, nstep_cel: int) -> tuple[np.ndarray, int]:
@@ -620,36 +720,6 @@ def fromPos2DictPos(speciesDict: dict, posArray: np.ndarray) -> dict:
     return dictPos
 
 
-#def timeMeanSquareDispOneAtomOneDimTrial(posT: np.ndarray) -> np.ndarray:
-#    """"""
-#    indexTmax = int(posT.shape[0]/2)
-#    msd = np.zeros(indexTmax, dtype=float)
-#    for t in range(indexTmax):
-#        summT0 = 0
-#        for t0 in range(indexTmax):
-#            summT0 = summT0 + (posT[t+t0]-posT[t0])**2/indexTmax
-#        msd[t] = summT0
-#
-#    return msd
-
-
-def timeMeanSquareDispOneAtomOneDim(posT: np.ndarray) -> np.ndarray:
-    """
-    Calculate MSD of each atom depending on t and t0
-    """
-    indexTmax = int(posT.shape[0]/2)
-    sizeT = int(indexTmax)
-    sizeT0 = int(indexTmax)
-    msd = np.zeros((sizeT, sizeT0), dtype=float)
-    for it in range(0, sizeT):
-        tStar = it
-        for it0 in range(0, sizeT0):
-            t0Star = it0
-            msd[it,it0] = (posT[tStar+t0Star] - posT[t0Star])**2
-
-    return msd
-
-
 def timeMeanSquareDispAllinOne(pos_tac: np.ndarray, max_index: int) -> np.ndarray:
     # Check if max_index is valid.
     n_time_points = pos_tac.shape[0]
@@ -714,32 +784,6 @@ def timeMeanSquareDispAllinOneIonCorrel(pos_tac: np.ndarray, indexTmax: int) -> 
     return msd
 
 
-#def timeMeanSquareDispOneAtom(pos3DT: np.ndarray) -> np.ndarray:
-#    """"""
-#    msdListDim = []
-#    for ic in range(3):
-#        msdListDim.append(timeMeanSquareDispOneAtomOneDim(pos3DT[:,ic]))
-#
-#    msd = np.zeros((msdListDim[0].shape[0], msdListDim[0].shape[1]), dtype=float)
-#    for msdDim in msdListDim:
-#        msd = msd + msdDim
-#
-#    return msd
-
-
-#def timeMeanSquareDisp(pos_tac: np.ndarray) -> np.ndarray:
-#    """"""
-#    msdListAtoms = []
-#    for ia in range(pos_tac.shape[1]):
-#        msdListAtoms.append(timeMeanSquareDispOneAtom(pos_tac[:,ia,:]))
-#
-#    msd = np.zeros((msdListAtoms[0].shape[0], msdListAtoms[1].shape[0]), dtype=float)
-#    for msdAtom in msdListAtoms:
-#        msd = msd + msdAtom / len(msdListAtoms)
-#
-#    return msd
-
-
 def block_mean_var(data, data_mean, n_block):
     """
     Perform the block mean and the block variance of data
@@ -785,6 +829,7 @@ def sigma_berend(nblock_step, tot_block, data, timeElapsedConsidered, temperatur
     ax.set_xlabel('N. of data in block', fontsize=14)
     #ax.set_title('Variance of correlated data as function of block number.')
     ax.grid(True)
+    from matplotlib.ticker import MultipleLocator
     ax.xaxis.set_major_locator(MultipleLocator(500))
     ax.xaxis.set_minor_locator(MultipleLocator(100))
     set_ticks_fontsize(ax, 14)
@@ -822,7 +867,6 @@ def main():
     fileVolumeOutName = path + 'volume_' + material + '_' + str(temperature) + 'K.out'
     fileSdName = path + 'sd_' + material + '_' + str(temperature) + '.dat'
 
-    # natoms = 192
     speciesDict={'Li':[0,56],'La':[1,24],'Zr':[2,16],'O':[3,96]}
     nCarriers=speciesDict['Li'][1]
     natoms = speciesDict['Li'][1] + speciesDict['La'][1] + speciesDict['Zr'][1] + speciesDict['O'][1]
@@ -948,11 +992,11 @@ def main():
     #print(timeArrayTmp.shape[0])
 
     sd = SquareDispOneAtom(posDict['Li'])
-    with open(fileSdName, "w+") as fileSd:
-        for t in range(timeArray.shape[0]):
-            for i in range(sd.shape[0]):
-                fileSd.write(str(timeArray[t]) + ' ' + str(sd[i,t]))
-            fileSd.write('\n')
+    #with open(fileSdName, "w+") as fileSd:
+    #    for t in range(timeArray.shape[0]):
+    #        for i in range(sd.shape[0]):
+    #            fileSd.write(str(timeArray[t]) + ' ' + str(sd[i,t]))
+    #        fileSd.write('\n')
 
     species2Plot = 'Li'
     it0 = 2000
@@ -1132,7 +1176,7 @@ def main():
     #msdS_Ge = msdS
     #msdS_P = msdS
 
-    angCoeffMSD, quoteMSD, varangCoeffMSD, varquoteMSD = linearLSQLineFit(msdSScorrelated, timeArrScorrelated, 1/(errMSDScorrelated)**2)
+    angCoeffMSD, quoteMSD, varangCoeffMSD, varquoteMSD = linear_lsq_linefit(msdSScorrelated, timeArrScorrelated, 1/(errMSDScorrelated)**2)
 
     volAve = 2186.87
     fig = plt.figure()
