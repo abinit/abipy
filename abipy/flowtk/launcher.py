@@ -431,11 +431,11 @@ days: 0 # number of days to wait (DEFAULT: 0).
 hours: 0 # number of hours to wait (DEFAULT: 0).
 minutes: 0 # number of minutes to wait (DEFAULT: 0).
 seconds: 0 # number of seconds to wait (DEFAULT: 0).
-mailto: None # The scheduler will send an email to `mailto` every `remindme_s` seconds. (DEFAULT: None i.e. not used).
+mailto: null # The scheduler will send an email to `mailto` every `remindme_s` seconds. (DEFAULT: None i.e. not used).
 verbose: 0 # (int) verbosity level. (DEFAULT: 0)
 use_dynamic_manager: no # "yes" if the |TaskManager| must be re-initialized from file before launching the jobs. (DEFAULT: "no")
 max_njobs_inqueue: 200 # Limit on the number of jobs that can be present in the queue. (DEFAULT: 200)
-max_ncores_used: None # Maximum number of cores that can be used by the scheduler. (DEFAULT: None)
+max_ncores_used: null # Maximum number of cores that can be used by the scheduler. (DEFAULT: None)
 remindme_s: 1 # The scheduler will send an email to the user specified by `mailto` every `remindme_s` seconds. (int, DEFAULT: 1 day).
 max_num_pyexcs: 0 # The scheduler will exit if the number of python exceptions is > max_num_pyexcs (int, DEFAULT: 0)
 max_num_abierrs: 0 # The scheduler will exit if the number of errored tasks is > max_num_abierrs (int, DEFAULT: 0)
