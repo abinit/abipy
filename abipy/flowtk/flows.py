@@ -268,7 +268,7 @@ class Flow(Node, NodeContainer, MSONable):
         return cls.pickle_load(d["workdir"], **kwargs)
 
     @classmethod
-    def temporary_flow(cls, manager=None, workdir=None) -> Flow:
+    def temporary_flow(cls, workdir=None, manager=None) -> Flow:
         """Return a Flow in a temporary directory. Useful for unit tests."""
         workdir = get_workdir(workdir)
         return cls(workdir=workdir, manager=manager)
