@@ -259,11 +259,8 @@ def set_logscale(ax_or_axlist, xy_log) -> None:
 
     Args:
         ax_or_axlist: Axes or list of axes.
-        xy_log:
-            None or empty string -> Use linear scale.
-            x                    -> Use log scale on x-axis
-            xy                   -> Use log scale on x- and y-axis
-            x:semilog            -> Use semilog scale on x-axis.
+        xy_log: None or empty string for linear scale. "x" for log scale on x-axis.
+            "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
     """
     if not xy_log: return
 
@@ -281,7 +278,7 @@ def set_logscale(ax_or_axlist, xy_log) -> None:
             ax.set_yscale(log_type)
 
 
-def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string="xy") -> None:
+def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string="xy", **kwargs) -> None:
     """
     Set tick properties for one axis or a list of axis.
 
@@ -293,12 +290,10 @@ def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string="xy") -> None:
 
     for ix, ax in enumerate(ax_list):
         if "x" in xy_string:
-            for tick in ax.xaxis.get_major_ticks():
-                tick.label.set_fontsize(fontsize)
+            ax.tick_params(axis='x', labelsize=fontsize, **kwargs)
 
         if "y" in xy_string:
-            for tick in ax.yaxis.get_major_ticks():
-                tick.label.set_fontsize(fontsize)
+            ax.tick_params(axis='y', labelsize=fontsize, **kwargs)
 
 
 

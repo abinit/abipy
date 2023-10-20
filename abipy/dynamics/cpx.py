@@ -82,7 +82,7 @@ class EvpFile(TextFile, NotebookWriter):
     @lazy_property
     def times(self):
         """Array with times in ps units."""
-        return evp.df["tps(ps)"].values
+        return self.df["tps(ps)"].values
 
     def to_string(self, verbose=0) -> str:
         """String representation with verbosity level verbose."""

@@ -591,7 +591,7 @@ def compare(ctx, filepaths,
             workdir, verbose
             ):
     """
-    compare ab-initio energies, forces, and stresses with ml-computed ones.
+    Compare ab-initio energies, forces, and stresses with ml-computed ones.
 
     usage example:
 

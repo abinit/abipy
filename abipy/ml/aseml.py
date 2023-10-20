@@ -60,7 +60,7 @@ from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, ge
 def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
     """
     Return the number of procs to be used in a multiprocessing Pool.
-    If negative or None, use hlaf the procs in the system.
+    If negative or None, use half the procs available in the system.
     """
     if nprocs is None or nprocs <= 0:
         nprocs = max(1, os.cpu_count() // 2)
@@ -71,6 +71,7 @@ def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
     if title is not None:
         print(title)
         print(f"Using multiprocessing pool with {nprocs=} for {ntasks=} ...")
+
     return nprocs
 
 
@@ -1190,7 +1191,7 @@ def install_nn_names(nn_names="all", update=False, verbose=0) -> None:
     ]
 
     nn_names == list_strings(nn_names)
-    if "all" in nn_names: nn_names = CalcBuilder.ALL_NN_TYPES 
+    if "all" in nn_names: nn_names = CalcBuilder.ALL_NN_TYPES
     installed, versions = get_installed_nn_names(verbose=verbose, printout=False)
 
     for name in nn_names:
