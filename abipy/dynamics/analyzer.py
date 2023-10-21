@@ -11,7 +11,7 @@ import pandas as pd
 import pymatgen.core.units as units
 
 from pathlib import Path
-from multiprocessing import Pool
+#from multiprocessing import Pool
 from matplotlib.offsetbox import AnchoredText
 from monty.functools import lazy_property
 from monty.bisect import find_le
@@ -204,8 +204,6 @@ class MdAnalyzer(HasPickleIO):
         self.consistency_check()
 
     def consistency_check(self):
-
-        # Consistencty check.
         if self.pos_atc.shape != (self.natom, self.nt, 3):
             raise ValueError(f"Invalid shape {self.pos_atc.shape=}, expecting: {(self.natom, self.nt, 3)}")
         if len(self.times) != self.nt:
@@ -477,7 +475,6 @@ class MdAnalyzer(HasPickleIO):
 
         return MSDTT0(msd_tt0, self, index_tmax, symbol)
 
-
     @add_fig_kwargs
     def plot_sqdt_symbols_tmax(self, symbols, tmax: float, atom_inds=None,
                                ax=None, xy_log=None, fontsize=30, xlims=None, **kwargs) -> Figure:
@@ -531,7 +528,6 @@ class MdAnalyzer(HasPickleIO):
         return fig
 
 
-
 class MSDTT0:
 
     def __init__(self, msd_tt0, mda, index_tmax, symbol):
@@ -562,15 +558,14 @@ class MSDTT0:
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
         """
-        msdS = np.mean(self.msd_tt0, axis=1)
+        msd_t = np.mean(self.msd_tt0, axis=1)
         index_tmax = self.index_tmax
         t_start = self.mda.nt - index_tmax
-        #print(f"{t_start=}, {len(self.times)=}")
-        #print(f"{self.times[0]=}, {self.times[-1]=}")
+        #print(f"{t_start=}, {len(self.times)=}\n{self.times[0]=}, {self.times[-1]=}")
         ts = self.times[t_start:] - self.times[t_start]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.plot(ts, msdS,
+        ax.plot(ts, msd_t,
                 label=self.symbol + ' <msd(t, t0)>$\{$t0$\}$, t = [0, ' + str(int(self.times[index_tmax]))+ ' ps]',
                 color=self.mda.color_symbol[self.symbol],
                 )
@@ -588,93 +583,114 @@ class MSDTT0:
 
         return fig
 
-    @add_fig_kwargs
-    def plot_sigma(self, first_time, second_time, nblock_step=1, tot_block=1000,
-                   fontsize=8, **kwargs) -> Figure:
+    def get_sigma_berend(self, t1, t2, nblock_step=1, tot_block=1000):
         """
         """
-        #print("In plot_sigma")
         # choose the time elapsed
-        estimatedFirstTElapsed = first_time
-        timeArray = self.times
-        MSD = self.msd_tt0
         symbol = self.symbol
-        temperature = self.temperature
         latex_formula = self.mda.latex_formula
 
-        firstTElapsed = find_nearest(timeArray, estimatedFirstTElapsed)
-        indexFirstTElapsed=int(np.nonzero(timeArray == firstTElapsed)[0])
+        firstTElapsed = find_nearest(self.times, t1)
+        it1 = int(np.nonzero(self.times == firstTElapsed)[0])
+        #it1 = find_ind(self.times, t1)
 
-        estimatedSecondTElapsed = second_time
-        secondTElapsed = find_nearest(timeArray, estimatedSecondTElapsed)
-        indexSecondTElapsed=int(np.nonzero(timeArray == secondTElapsed)[0])
+        secondTElapsed = find_nearest(self.times, t2)
+        it2 = int(np.nonzero(self.times == secondTElapsed)[0])
+        #it2 = find_ind(self.times, t2)
+
+        ax_list, sigma_fig, plt = get_axarray_fig_plt(None, nrows=1, ncols=2, sharex=True, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        sigmas1, block_sizes1 = sigma_berend(nblock_step, tot_block,
+                                             self.msd_tt0[it1,:], self.times[it1],
+                                             self.temperature, self.mda.latex_formula, ax=ax_list[0])
+
+        sigmas2, block_sizes2 = sigma_berend(nblock_step, tot_block,
+                                             self.msd_tt0[it2,:], self.times[it2],
+                                             self.temperature, self.mda.latex_formula, ax=ax_list[1])
+
+        return SigmaBerend(self, sigma_fig,
+                           it1, sigmas1, block_sizes1,
+                           it2, sigmas2, block_sizes2)
 
 
-        ax1, sigmaArrFirst, dataInBlockArrFirst = sigma_berend(nblock_step, tot_block,
-                                                               MSD[indexFirstTElapsed,:], timeArray[indexFirstTElapsed],
-                                                               self.temperature, self.mda.latex_formula)
+class SigmaBerend:
 
+    def __init__(self, msq_tt0, sigma_fig,
+                 it1, sigmas1, block_sizes1,
+                 it2, sigmas2, block_sizes2):
 
+        self.msq_tt0 = msq_tt0
+        self.sigma_fig = sigma_fig
+        self.it1, self.sigmas1, self.block_sizes1 = it1, sigmas1, block_sizes1
+        self.it2, self.sigmas2, self.block_sizes2 = it2, sigmas2, block_sizes2
+
+    @add_fig_kwargs
+    def plot(self, **kwargs):
+        return self.sigma_fig
+
+    def get(self):
+
+        sigmas1, block_sizes1 = self.sigmas1, self.block_sizes1
+        sigmas2, block_sizes2 = self.sigmas2, self.block_sizes2
+        it1, it2 = self.it1, self.it2
+
+        times = self.msq_tt0.times
 
         estimatedDataInBlockFirst = 200
-        dataInBlockFirst = find_nearest(dataInBlockArrFirst, estimatedDataInBlockFirst)
-        indexDataInBlockFirst=int(np.nonzero(dataInBlockArrFirst == dataInBlockFirst)[0])
-        sigmaFirst = sigmaArrFirst[indexDataInBlockFirst]
-        print(sigmaFirst)
-
-        ax2, sigmaArrSecond, dataInBlockArrSecond = sigma_berend(nblock_step, tot_block,
-                                                                 MSD[indexSecondTElapsed,:], timeArray[indexSecondTElapsed],
-                                                                 self.temperature, self.mda.latex_formula)
+        size1 = find_nearest(block_sizes1, estimatedDataInBlockFirst)
+        ib1=int(np.nonzero(block_sizes1 == size1)[0])
+        #ib1 = find_ind(block_sizes1, estimatedDataInBlockFirst)
+        sig1 = sigmas1[ib1]
+        print(f"{sig1=}")
 
         estimatedDataInBlockSecond = 200
-        dataInBlockSecond = find_nearest(dataInBlockArrSecond, estimatedDataInBlockSecond)
-        indexDataInBlockSecond=int(np.nonzero(dataInBlockArrSecond == dataInBlockSecond)[0])
-        sigmaSecond = sigmaArrSecond[indexDataInBlockSecond]
-        print(sigmaSecond)
+        size2 = find_nearest(block_sizes2, estimatedDataInBlockSecond)
+        ib2=int(np.nonzero(block_sizes2 == size2)[0])
+        #ib2 = find_ind(block_sizes2, estimatedDataInBlockSecond)
+        sig2 = sigmas2[ib2]
+        print(f"{sig2=}")
 
         # fit to a linear behaviour the errors
-        mSigma = (sigmaSecond-sigmaFirst)/(indexSecondTElapsed-indexFirstTElapsed)
-        qSigma = sigmaFirst - mSigma*indexFirstTElapsed
-        mDataInBlock = (dataInBlockSecond-dataInBlockFirst)/(indexSecondTElapsed-indexFirstTElapsed)
-        qDataInBlock = dataInBlockFirst - mDataInBlock*indexFirstTElapsed
+        mSigma = (sig2 - sig1)/(it2-it1)
+        qSigma = sig1 - mSigma*it1
+        mDataInBlock = (size2-size1)/(it2-it1)
+        qDataInBlock = size1 - mDataInBlock*it1
         #print(qDataInBlock,mDataInBlock )
 
         # and find error for anytime
-        errMSD = np.zeros(MSD.shape[0],dtype=float)
-        for t in range(MSD.shape[0]):
-            errMSD[t] = abs(mSigma * t + qSigma)
+        msd_tt0 = self.msq_tt0.msd_tt0
+        err_msd = np.zeros(msd_tt0.shape[0], dtype=float)
+        for t in range(msd_tt0.shape[0]):
+            err_msd[t] = abs(mSigma * t + qSigma)
 
         # and find error for anytime
-        dataScorrelated = np.zeros(MSD.shape[0],dtype=int)
-        for t in range(MSD.shape[0]):
+        dataScorrelated = np.zeros(msd_tt0.shape[0],dtype=int)
+        for t in range(msd_tt0.shape[0]):
             dataScorrelated[t] = int(mDataInBlock * t + qDataInBlock)
 
-        errMSD_Li = errMSD
-        msdS=np.mean(MSD,axis=1)  # msdS= msd_small, as it is the average over the initial times
+        # average over the initial times
+        msdS = np.mean(msd_tt0, axis=1)
 
-        #print(timeArray.shape[0])
-        #print(msdS.shape[0])
-        timeArrayHalf = timeArray[:msdS.shape[0]]
+        timeArrayHalf = times[:msdS.shape[0]]
         msdSScorrelatedList = []
         timeArrScorrelatedList = []
         errMSDScorrelatedList = []
-        #timeIndexMin = int(1000/timeStepJump)
-        # counter= timeIndexMin
 
-        estimatedStartFitTime=50
         # TO BE DECIDED!!!!!!!
-        estimatedEndFitTime=150
-        #estimatedEndFitTime=timeArrayHalf[timeArrayHalf.shape[0]-1]
+        estimatedStartFitTime = 50
+        estimatedEndFitTime = 150
 
+        timeArrStartFit = find_nearest(times, estimatedStartFitTime)
+        indextimeArrStartFit=int(np.nonzero(times==timeArrStartFit)[0])
+        #indextimeArrStartFit = find_ind(timeArray, estimatedStartFitTime)
 
-        timeArrStartFit = find_nearest(timeArray, estimatedStartFitTime)
-        indextimeArrStartFit=int(np.nonzero(timeArray==timeArrStartFit)[0])
-
-        timeArrEndFit = find_nearest(timeArray, estimatedEndFitTime)
-        indextimeArrEndFit=int(np.nonzero(timeArray==timeArrEndFit)[0])
+        timeArrEndFit = find_nearest(times, estimatedEndFitTime)
+        indextimeArrEndFit=int(np.nonzero(times==timeArrEndFit)[0])
+        #indextimeArrEndFit = find_ind(times, estimatedEndFitTime)
 
         counter= indextimeArrStartFit
-        # print (indextimeArrStartFit)
+        #print (indextimeArrStartFit)
         condition=True
 
         while condition:
@@ -683,88 +699,78 @@ class MSDTT0:
             else:
                 index=dataScorrelated[counter]
                 msdSScorrelatedList.append(msdS[counter])
-                timeArrScorrelatedList.append(timeArray[counter])
-                errMSDScorrelatedList.append(errMSD[counter])
+                timeArrScorrelatedList.append(times[counter])
+                errMSDScorrelatedList.append(err_msd[counter])
                 counter = counter + index
-        msdSScorrelated=np.array(msdSScorrelatedList,dtype=float)
-        timeArrScorrelated=np.array(timeArrScorrelatedList,dtype=float)
-        errMSDScorrelated=np.array(errMSDScorrelatedList,dtype=float)
 
-        msdS_Li = msdS
+        msdSScorrelated = np.array(msdSScorrelatedList,dtype=float)
+        timeArrScorrelated = np.array(timeArrScorrelatedList,dtype=float)
+        errMSDScorrelated = np.array(errMSDScorrelatedList,dtype=float)
 
         angCoeffMSD, quoteMSD, varangCoeffMSD,varquoteMSD = linear_lsq_linefit(msdSScorrelated,timeArrScorrelated,1/(errMSDScorrelated)**2)
 
-        nCarriers = len(self.mda.structure.indices_from_symbol(self.symbol))
-        print(f"{nCarriers=} for {self.symbol=}")
+        mda = self.msq_tt0.mda
+        symbol = self.msq_tt0.symbol
+        temperature = mda.temperature
+        latex_formula = mda.latex_formula
+        volAve = mda.avg_volume
 
-        volAve = 2186.87
-        ax1, fig, plt = get_ax_fig_plt(ax=None)
-        # plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15)
-        # ax1.set_ylabel(r'$\langle\mathrm{MSD}_\mathrm{tr}^\mathrm{Li}\rangle \mathrm{(\AA}^2\mathrm{)}$', fontsize=18)
-        ax1.set_ylabel(r'$\mathrm{MSD}_\mathrm{tr}$ $\mathrm{(\AA}^2\mathrm{)}$', fontsize=18)
-        ax1.set_xlabel('t (ps)', fontsize=18)
+        nCarriers = len(mda.structure.indices_from_symbol(symbol))
+        print(f"{nCarriers=} for {symbol=}")
 
-        print(e2s)
-        DiffCoeff=angCoeffMSD*Ang2PsTocm2S/6
-        ErrDiffCoeff=np.sqrt(varangCoeffMSD)*Ang2PsTocm2S/6
-        Conduct=e2s/kbs*nCarriers*DiffCoeff/volAve/temperature * 1.e09
-        ErrConduct=e2s/kbs*nCarriers/volAve/temperature*ErrDiffCoeff * 1.e09
+        ax, fig, plt = get_ax_fig_plt(ax=None)
+        ax.set_ylabel(r'$\mathrm{MSD}_\mathrm{tr}$ $\mathrm{(\AA}^2\mathrm{)}$', fontsize=18)
+        ax.set_xlabel('t (ps)', fontsize=18)
 
-        print('{:.2E}'.format(angCoeffMSD*Ang2PsTocm2S/6,2))
-
-        anchored_text = AnchoredText('D$_{tr}$ = (' + str('{:.2E}'.format(DiffCoeff)) + '\u00B1' + str('{:.2E}'.format(ErrDiffCoeff)) + ') cm$^2$/s', loc=2, prop=dict(size=14))
-
-        ax1.add_artist(anchored_text)
-
-        ax1.errorbar(timeArrayHalf,msdS_Li,yerr=errMSD_Li, color='mediumblue', label = 'Li')#,label='Li (D ~ 1.5e-05cm$^2$/s)')
-
-        ax1.errorbar(timeArrScorrelated,msdSScorrelated,yerr=errMSDScorrelated, linestyle='-')
-        ax1.errorbar(timeArrayHalf,angCoeffMSD*timeArrayHalf+quoteMSD, linestyle='--')
-        ax1.errorbar(timeArrayHalf,(angCoeffMSD-np.sqrt(varangCoeffMSD))*timeArrayHalf+quoteMSD, linestyle='--')
-        ax1.errorbar(timeArrayHalf,(angCoeffMSD+np.sqrt(varangCoeffMSD))*timeArrayHalf+quoteMSD, linestyle='--')
-        print (angCoeffMSD)
-        print (angCoeffMSD+np.sqrt(varangCoeffMSD))
-        print (angCoeffMSD-np.sqrt(varangCoeffMSD))
-        ax1.legend(fontsize=12, loc=4)
-        anchored_text_1 = AnchoredText(latex_formula +'\n' +
-                                '192 atoms' +'\n'+ 'T =' + str(temperature) + ' K' +'\n'+ '500 ps', loc=1, prop=dict(size=14))
-        ax1.add_artist(anchored_text_1)
-        #ax1.set_ylim([0,300])
-
-        fig = plt.figure()
-        ax1 = fig.add_subplot(111)
-        ax1.set_ylabel(r'$\mathrm{MSD}_\mathrm{tr}$ $\mathrm{(\AA}^2\mathrm{)}$', fontsize=18)
-        ax1.set_xlabel('t (ps)', fontsize=18)
-        #ax1.set_title('Li msd averaged over the initial times: ' + str(latex_formula) + ', ' + str(temperature) + 'K-NVT' )
-        #ax1.set_title('Li msd averaged over the initial times: ' + str(latex_formula) + ', NVE(' + '929' + 'K)')
-
-
-        #print(e2s)
-        DiffCoeff=angCoeffMSD*Ang2PsTocm2S/6
-        ErrDiffCoeff=np.sqrt(varangCoeffMSD)*Ang2PsTocm2S/6
-        Conduct=e2s/kbs*nCarriers*DiffCoeff/volAve/temperature * 1.e09
-        ErrConduct=e2s/kbs*nCarriers/volAve/temperature*ErrDiffCoeff * 1.e09
+        DiffCoeff = angCoeffMSD * Ang2PsTocm2S / 6
+        ErrDiffCoeff = np.sqrt(varangCoeffMSD)*Ang2PsTocm2S / 6
+        Conduct = e2s/kbs*nCarriers*DiffCoeff/volAve/temperature * 1.e09
+        ErrConduct = e2s/kbs*nCarriers/volAve/temperature*ErrDiffCoeff * 1.e09
 
         print('{:.2E}'.format(angCoeffMSD*Ang2PsTocm2S/6,2))
 
-        anchored_text = AnchoredText('D$_{tr}$ = (' + str('{:.2E}'.format(DiffCoeff)) + '\u00B1' + str('{:.2E}'.format(ErrDiffCoeff)) + ') cm$^2$/s', loc=2, prop=dict(size=18))
-        ax1.add_artist(anchored_text)
+        ax.add_artist(AnchoredText(
+            'D$_{tr}$ = (' + str('{:.2E}'.format(DiffCoeff)) + '\u00B1' + str('{:.2E}'.format(ErrDiffCoeff)) + ') cm$^2$/s',
+            loc=2, prop=dict(size=14)))
 
-        ax1.errorbar(timeArrayHalf,msdS_Li,yerr=errMSD_Li, color='mediumblue', label = 'Li')#,label='Li (D ~ 1.5e-05cm$^2$/s)')
+        ax.errorbar(timeArrayHalf, msdS, yerr=err_msd, color='mediumblue', label=symbol)
+        ax.errorbar(timeArrScorrelated,msdSScorrelated, yerr=errMSDScorrelated, linestyle='-')
+        ax.errorbar(timeArrayHalf, angCoeffMSD * timeArrayHalf + quoteMSD, linestyle='--')
+        ax.errorbar(timeArrayHalf, (angCoeffMSD - np.sqrt(varangCoeffMSD)) * timeArrayHalf + quoteMSD, linestyle='--')
+        ax.errorbar(timeArrayHalf, (angCoeffMSD + np.sqrt(varangCoeffMSD)) * timeArrayHalf + quoteMSD, linestyle='--')
+        print(angCoeffMSD)
+        print(angCoeffMSD + np.sqrt(varangCoeffMSD))
+        print(angCoeffMSD - np.sqrt(varangCoeffMSD))
+        ax.legend(fontsize=12, loc=4)
+        ax.add_artist(AnchoredText(
+            latex_formula +'\n' + 'T =' + str(temperature) + ' K' +'\n'+ '500 ps',
+            loc=1, prop=dict(size=14)))
 
-        ax1.errorbar(timeArrScorrelated,msdSScorrelated,yerr=errMSDScorrelated, linestyle='-')
-        ax1.errorbar(timeArrayHalf,angCoeffMSD*timeArrayHalf+quoteMSD, linestyle='--')
-        ax1.errorbar(timeArrayHalf,(angCoeffMSD-np.sqrt(varangCoeffMSD))*timeArrayHalf+quoteMSD, linestyle='--')
-        ax1.errorbar(timeArrayHalf,(angCoeffMSD+np.sqrt(varangCoeffMSD))*timeArrayHalf+quoteMSD, linestyle='--')
-        print (angCoeffMSD)
-        print (angCoeffMSD+np.sqrt(varangCoeffMSD))
-        print (angCoeffMSD-np.sqrt(varangCoeffMSD))
-        # plt.xlabel('time (ps)')
-        # plt.ylabel('<MSD>(A2)')
-        # plotMSD = plt.errorbar(timeArray[:msdS.shape[0]],msdS,yerr=errMSD)
-        # plotMSD = plt.errorbar(timeArrScorrelated,msdSScorrelated,yerr=errMSDScorrelated)
-        ax1.legend(fontsize=12)
-        #plt.savefig(fileMsdPngName,dpi=300, bbox_inches='tight', pad_inches=0)
+        ax, fig, plt = get_ax_fig_plt(ax=None)
+        ax.set_ylabel(r'$\mathrm{MSD}_\mathrm{tr}$ $\mathrm{(\AA}^2\mathrm{)}$', fontsize=18)
+        ax.set_xlabel('t (ps)', fontsize=18)
+
+        DiffCoeff = angCoeffMSD*Ang2PsTocm2S/6
+        ErrDiffCoeff = np.sqrt(varangCoeffMSD)*Ang2PsTocm2S/6
+        Conduct = e2s/kbs*nCarriers*DiffCoeff/volAve/temperature * 1.e09
+        ErrConduct = e2s/kbs*nCarriers/volAve/temperature*ErrDiffCoeff * 1.e09
+        print('{:.2E}'.format(angCoeffMSD*Ang2PsTocm2S/6,2))
+
+        ax.add_artist(AnchoredText(
+            'D$_{tr}$ = (' + str('{:.2E}'.format(DiffCoeff)) + '\u00B1' + str('{:.2E}'.format(ErrDiffCoeff)) + ') cm$^2$/s',
+            loc=2, prop=dict(size=18)))
+
+        ax.errorbar(timeArrayHalf, msdS, yerr=err_msd, color='mediumblue', label=symbol)
+        ax.errorbar(timeArrScorrelated, msdSScorrelated, yerr=errMSDScorrelated, linestyle='-')
+        ax.errorbar(timeArrayHalf, angCoeffMSD*timeArrayHalf+quoteMSD, linestyle='--')
+        ax.errorbar(timeArrayHalf, (angCoeffMSD-np.sqrt(varangCoeffMSD))*timeArrayHalf+quoteMSD, linestyle='--')
+        ax.errorbar(timeArrayHalf, (angCoeffMSD+np.sqrt(varangCoeffMSD))*timeArrayHalf+quoteMSD, linestyle='--')
+        print(angCoeffMSD)
+        print(angCoeffMSD + np.sqrt(varangCoeffMSD))
+        print(angCoeffMSD - np.sqrt(varangCoeffMSD))
+        #plotMSD = ax.errorbar(timeArray[:msdS.shape[0]],msdS,yerr=err_msd)
+        #plotMSD = ax.errorbar(timeArrScorrelated,msdSScorrelated,yerr=errMSDScorrelated)
+        ax.legend(fontsize=12)
 
         """
         outMSD_file=open(fileMsdOutName, "w+")
@@ -802,9 +808,6 @@ class MSDTT0:
             outMSDT_file.write(str(timeArray[i])+ ' '  + str(msdS[i]) + '\n')
         outMSDT_file.close()
         """
-
-
-
 
 
 class MultiMdAnalyzer(HasPickleIO):
@@ -931,19 +934,16 @@ class MultiMdAnalyzer(HasPickleIO):
 
         return fig
 
-    @add_fig_kwargs
-    def plot_arrhenius(self, ax=None, **kwargs) -> Figure:
-        """
-        """
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        return fig
-
-
+    #@add_fig_kwargs
+    #def plot_arrhenius(self, ax=None, **kwargs) -> Figure:
+    #    """
+    #    """
+    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
+    #    return fig
 
 
 
 Ang2PsTocm2S=0.0001
-bohr2a = 0.529177
 e2s = 1.602188**2 # electron charge in Coulomb scaled by 10.d-19**2
 kbs = 1.38066     # Boltzmann constant in Joule/K scaled by 10.d-23
 
@@ -952,6 +952,14 @@ def find_nearest(array, value):
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return array[idx]
+
+
+def find_ind(array, value, sorted_arr=False) -> int:
+    if sorted_arr:
+        return find_le(array, value)
+    else:
+        nval = find_nearest(array, value)
+        return int(np.nonzero(array == nval)[0])
 
 
 def linear_lsq_linefit(x, z, weights):
@@ -985,6 +993,7 @@ def linear_lsq_linefit(x, z, weights):
 #                y = np.array(y, dtype=float)
 #                cel_every_step.append(y)
 #            celArrayB[it,:,:] = np.array(cel_every_step, dtype=float)
+#        bohr2a = 0.529177
 #        celArray = np.copy(celArrayB*bohr2a)
 #        return celArray, nt
 
@@ -1000,7 +1009,7 @@ def timeMeanSquareDispAllinOne(pos_tac: np.ndarray, site_t: int) -> np.ndarray:
     # Check if site_t is valid.
     n_time_points = pos_tac.shape[0]
     if site_t >= n_time_points:
-        raise ValueError(f"site_t must be less than {n_time_points}")
+        raise ValueError(f"{site_t=} must be less than {n_time_points}")
     size_t0 = pos_tac.shape[0] - site_t
 
     print(f"timeMeanSquareDispAllinOne: {site_t=}, {size_t0=}")
@@ -1057,21 +1066,21 @@ def sigma_berend(nblock_step, tot_block, data, timeElapsedConsidered, temperatur
     ax, fig, plt = get_ax_fig_plt(ax=ax)
     ax.set_ylabel('$\sigma$ ($\AA^2$)', fontsize=14)
     ax.set_xlabel('N. of data in block', fontsize=14)
-    #ax.set_title('Variance of correlated data as function of block number.')
+    ax.set_title('Variance of correlated data as function of block number.')
     ax.grid(True)
     from matplotlib.ticker import MultipleLocator
     ax.xaxis.set_major_locator(MultipleLocator(500))
     ax.xaxis.set_minor_locator(MultipleLocator(100))
     set_ticks_fontsize(ax, 14)
-    #ax.xaxis.grid(True, which='minor')
     sigma = np.sqrt(sigma2)
     delta_sigma = 0.5 * delta_sigma2 / sigma
-    ax.errorbar(data_in_block, sigma, yerr=delta_sigma,
-                linestyle='-', linewidth=0.5,
-                label="$\sigma(\mathrm{MSD}($"+'%2.1f' % timeElapsedConsidered+" ps$))$ "+ '\n' + material + ', '+ '%4.0f' % temperature + 'K')
+    ax.errorbar(data_in_block, sigma,
+                yerr=delta_sigma, linestyle='-', linewidth=0.5,
+                label="$\sigma(\mathrm{MSD}($" + '%2.1f' % timeElapsedConsidered +" ps$))$ "+ '\n' +
+                       material + ', '+ 'T = %4.0f' % temperature + 'K')
     ax.legend(fontsize=16, loc=4)
 
-    return ax, sigma, data_in_block
+    return sigma, data_in_block
 
 
 #if __name__ == "__main__":
