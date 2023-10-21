@@ -1250,8 +1250,7 @@ class CalcBuilder:
     def __str__(self):
         if self.model_name is not None:
             return f"{self.__class__.__name__} nn_type: {self.nn_type}, model_name: {self.model_name}"
-        else:
-            return f"{self.__class__.__name__} nn_type: {self.nn_type}"
+        return f"{self.__class__.__name__} nn_type: {self.nn_type}"
 
     # pickle support.
     def __getstate__(self):
@@ -1270,7 +1269,7 @@ class CalcBuilder:
 
         Args:
             with_delta: False if the calculator should not include delta corrections.
-            reset: True if the internal cache for the mode should be reset.
+            reset: True if the internal cache for the model should be reset.
         """
         if reset: self.reset()
 
