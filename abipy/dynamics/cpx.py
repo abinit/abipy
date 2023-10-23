@@ -154,3 +154,25 @@ class EvpFile(TextFile, NotebookWriter):
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
+
+
+#def read_cel_from_file_cel(f_name: str, nstep_cel: int) -> tuple[np.ndarray, int]:
+#    """
+#    """
+#    with open(str(f_name), 'rt') as file_cel:
+#        cel_every_step = []
+#        file_cel_lines = file_cel.readlines()
+#        nlinetot = len(file_cel_lines)
+#        nt = int(nlinetot/nstep_cel)
+#        celArrayB = np.zeros((nt,nstep_cel-1,3), dtype=float)
+#        #
+#        for it in range(nt):
+#            cel_every_step = []
+#            for line in file_cel_lines[(nstep_cel*it)+1:nstep_cel*(it+1)]:
+#                y = line.split()
+#                y = np.array(y, dtype=float)
+#                cel_every_step.append(y)
+#            celArrayB[it,:,:] = np.array(cel_every_step, dtype=float)
+#        bohr2a = 0.529177
+#        celArray = np.copy(celArrayB*bohr2a)
+#        return celArray, nt
