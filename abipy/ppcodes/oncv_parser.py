@@ -97,9 +97,10 @@ class OncvParser(BaseParser):
         # Read data and store it in lines
         self.lines = []
         import io
-        with io.open(self.filepath, "rt") as fh:
+        #with io.open(self.filepath, "rt") as fh:
+        with io.open(self.filepath, "rt", encoding="latin-1") as fh:
             for i, line in enumerate(fh):
-                #print(line)
+                #print(f"{i=}: {line=}")
                 line = line.strip()
                 self.lines.append(line)
 

@@ -591,7 +591,7 @@ def compare(ctx, filepaths,
             workdir, verbose
             ):
     """
-    compare ab-initio energies, forces, and stresses with ml-computed ones.
+    Compare ab-initio energies, forces, and stresses with ml-computed ones.
 
     usage example:
 
@@ -625,7 +625,7 @@ def compare(ctx, filepaths,
 @herald
 @click.pass_context
 @click.option('-v', '--verbose', count=True, help="Verbosity level")
-def show_nn(ctx, verbose):
+def show(ctx, verbose):
     """
     Show the NN potentials installed in the environment.
     """
@@ -642,14 +642,12 @@ def show_nn(ctx, verbose):
 @click.option('-v', '--verbose', count=True, help="Verbosity level")
 def install(ctx, nn_names, update, verbose):
     """
-    Install NN potentials in the environment using pip
+    Install NN potentials in the environment using pip.
     """
     aseml.install_nn_names(nn_names=nn_names, update=update, verbose=verbose)
     installed, versions = aseml.get_installed_nn_names(verbose=verbose, printout=True)
 
     return 0 if installed else 1
-
-
 
 
 @main.command()

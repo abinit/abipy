@@ -766,7 +766,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         Group files by ``hue`` and, inside each group` sort items by ``func_or_string``.
 
         Args:
-            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+            hue: Variable that defines subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula

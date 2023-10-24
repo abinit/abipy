@@ -13,7 +13,10 @@ from monty.json import MSONable
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.tools.tensors import Tensor, ElasticTensor, PiezoTensor
-from abipy.flowtk.netcdf import ETSF_Reader
+try:
+    from abipy.flowtk.netcdf import ETSF_Reader
+except ImportError:
+    from abipy.flowtk.netcdf import EtsfReader as ETSF_Reader
 
 
 class MyElasticTensor(ElasticTensor):

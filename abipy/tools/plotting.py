@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import time
 import itertools
+import functools
 import numpy as np
 import pandas as pd
 
@@ -48,19 +49,39 @@ linestyles = OrderedDict(
      ('loosely_dotted',      (0, (1, 10))),
      ('dotted',              (0, (1, 5))),
      ('densely_dotted',      (0, (1, 1))),
-
+     #
      ('loosely_dashed',      (0, (5, 10))),
      ('dashed',              (0, (5, 5))),
      ('densely_dashed',      (0, (5, 1))),
-
+     #
      ('loosely_dashdotted',  (0, (3, 10, 1, 10))),
      ('dashdotted',          (0, (3, 5, 1, 5))),
      ('densely_dashdotted',  (0, (3, 1, 1, 1))),
-
+     #
      ('loosely_dashdotdotted', (0, (3, 10, 1, 10, 1, 10))),
      ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
      ('densely_dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))]
 )
+
+
+
+@functools.cache
+def get_color_symbol(style: str="VESTA") -> dict:
+    """
+    Dictionary mapping chemical symbol to RGB color.
+
+    Args:
+        style: "VESTA" or "Jmol".
+    """
+    from monty.serialization import loadfn
+    from pymatgen import vis
+    colors = loadfn(os.path.join(os.path.dirname(vis.__file__), "ElementColorSchemes.yaml"))
+    if style not in colors:
+        raise KeyError(f"Invalid {style=}. Should be in {colors.keys()}")
+    color_symbol = {el: [j / 256.001 for j in colors[style][el]] for el in colors[style]}
+    return color_symbol
+
+
 
 
 ###################
@@ -232,6 +253,50 @@ def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> 
     ax.set_ylabel(ylabel)
 
 
+def set_logscale(ax_or_axlist, xy_log) -> None:
+    """
+    Activate logscale
+
+    Args:
+        ax_or_axlist: Axes or list of axes.
+        xy_log: None or empty string for linear scale. "x" for log scale on x-axis.
+            "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
+    """
+    if not xy_log: return
+
+    # Parse xy_log string.
+    xy, log_type = xy_log, "log"
+    if ":" in xy_log:
+        xy, log_type = xy_log.split(":")
+
+    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
+
+    for ix, ax in enumerate(ax_list):
+        if "x" in xy:
+            ax.set_xscale(log_type)
+        if "y" in xy:
+            ax.set_yscale(log_type)
+
+
+def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string="xy", **kwargs) -> None:
+    """
+    Set tick properties for one axis or a list of axis.
+
+    Args:
+        ax_or_axlist: Axes or list of axes.
+        xy_string: "x" to share x-axis, "xy" for both.
+    """
+    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
+
+    for ix, ax in enumerate(ax_list):
+        if "x" in xy_string:
+            ax.tick_params(axis='x', labelsize=fontsize, **kwargs)
+
+        if "y" in xy_string:
+            ax.tick_params(axis='y', labelsize=fontsize, **kwargs)
+
+
+
 def set_grid_legend(ax_or_axlist, fontsize: int,
                     xlabel=None, ylabel=None, grid=True, legend=True, direction=None, title=None, legend_loc="best") -> None:
     """
@@ -397,6 +462,25 @@ def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
     ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
     return fig
+
+
+def linear_fit_ax(ax, xs, ys, fontsize, with_label=True, with_ideal_line=False, **kwargs) -> tuple[float]:
+    """
+    Calculate a linear least-squares regression for two sets of measurements.
+    kwargs are passed to ax.plot.
+    """
+    from scipy.stats import linregress
+    fit = linregress(xs, ys)
+    label = r"Linear fit $\alpha={:.2f}$, $r^2$={:.2f}".format(fit.slope, fit.rvalue**2)
+    if "color" not in kwargs:
+        kwargs["color"] = "r"
+
+    ax.plot(xs, fit.slope*xs + fit.intercept, label=label if with_label else None, **kwargs)
+    if with_ideal_line:
+        # Plot y = x line
+        ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-',
+                linewidth=1, label='Ideal' if with_label else None)
+    return fit
 
 
 @add_fig_kwargs

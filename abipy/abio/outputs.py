@@ -58,6 +58,7 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
     """
 
     def to_string(self, verbose=0) -> str:
+        """String representation with verbosity level verbose."""
         return str(self.events)
 
     def plot(self, **kwargs):

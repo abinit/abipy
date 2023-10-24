@@ -24,10 +24,17 @@ def make_executable(filepath: str) -> None:
     mode |= (mode & 0o444) >> 2    # copy R bits to X
     os.chmod(filepath, mode)
 
-    #from pathlib import Path
-    #import stat
-    #f = Path(filepath)
-    #f.chmod(f.stat().st_mode | stat.S_IEXEC)
+
+def try_files(filepaths: list) -> Path:
+    """
+    Return the first existent file in filepaths
+    or raise RuntimeError.
+    """
+    for path in filepaths:
+        path = Path(str(path))
+        if path.exists(): return path
+
+    raise RuntimeError("Cannot find {filepaths=}")
 
 
 def yaml_safe_load(string: str) -> Any:

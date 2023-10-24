@@ -17,7 +17,7 @@ class Timer:
         with Timer("Timing code section"):
             do_stuff()
 
-    or 
+    or
 
         with Timer(header=f"Begin ABINIT", footer="ABINIT GS") as timer:
             do_stuff()
@@ -40,7 +40,7 @@ class Timer:
         self.time = perf_counter() - self.time
         self.readout = f'Time: {self.time:.3f} seconds'
         if self.footer is not None:
-            msg = f'{self.footer} completed in {self.time:.3f} seconds.'
+            msg = f'{self.footer} completed in {self.time:.3f} seconds'.lstrip()
             print(msg, file=self.file)
 
 
