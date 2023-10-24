@@ -15,6 +15,7 @@ from typing import Any
 from pathlib import Path
 from monty.json import MontyDecoder, MontyEncoder
 from pymatgen.core.periodic_table import Element
+from abipy.tools.context_managers import Timer
 
 
 def pmg_serialize(method):
@@ -145,15 +146,16 @@ class HasPickleIO:
 
     @classmethod
     def pickle_load(cls, workdir, basename=None):
-        """Reconstruct the object from a pickle file located in workdir."""
-        #if workdir is None: workdir = os.getcwd()
+        """
+        Reconstruct the object from a pickle file located in workdir.
+        """
+
         filepath = Path(workdir) / f"{cls.__name__}.pickle" if basename is None else Path(workdir) / basename
-        with open(filepath, "rb") as fh:
+        with open(filepath, "rb") as fh, Timer(header=f"Reconstructing {cls.__name__} instance from file: {str(filepath)}", footer="") as timer:
             return pickle.load(fh)
 
     def pickle_dump(self, workdir, basename=None) -> None:
         """Write pickle file."""
-        #if workdir is None: workdir = os.getcwd()
         filepath = Path(workdir) / f"{self.__class__.__name__}.pickle" if basename is None else Path(workdir) / basename
-        with open(filepath, "wb") as fh:
+        with open(filepath, "wb") as fh, Timer(header=f"Saving {self.__class__.__name__} instance to file: {str(filepath)}", footer="") as timer:
             pickle.dump(self, fh)

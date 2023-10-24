@@ -374,7 +374,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.set_ylabel('F stats (eV/A)')
 
         else:
-            raise ValueError("Invalid value for what: `%s`" % str(what))
+            raise ValueError(f"Invalid value for {what=}")
 
         ax.set_xlabel('Step')
         ax.grid(True)

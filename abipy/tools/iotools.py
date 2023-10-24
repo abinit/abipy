@@ -25,6 +25,18 @@ def make_executable(filepath: str) -> None:
     os.chmod(filepath, mode)
 
 
+def try_files(filepaths: list) -> Path:
+    """
+    Return the first existent file in filepaths
+    or raise RuntimeError.
+    """
+    for path in filepaths:
+        path = Path(str(path))
+        if path.exists(): return path
+
+    raise RuntimeError("Cannot find {filepaths=}")
+
+
 def yaml_safe_load(string: str) -> Any:
     """Load Yaml string"""
     return yaml.YAML(typ='safe', pure=True).load(string)

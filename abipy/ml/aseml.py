@@ -50,7 +50,7 @@ from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import HasPickleIO
 from abipy.abio.enums import StrEnum, EnumMixin
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
-    set_visible, set_ax_xylabels)
+    set_visible, set_ax_xylabels, linear_fit_ax)
 
 
 ###################
@@ -329,20 +329,6 @@ def diff_stats(xs, ys):
        ADIFF_MAX=abs_diff.max(),
        ADIFF_STD=abs_diff.std(),
     )
-
-
-def linear_fit_ax(ax, xs, ys, fontsize, with_label=True, with_ideal_line=False) -> tuple[float]:
-    """
-    """
-    from scipy.stats import linregress
-    result = linregress(xs, ys)
-    label = r"Linear fit $\alpha={:.2f}$, $r^2$={:.2f}".format(result.slope, result.rvalue**2)
-    ax.plot(xs, result.slope*xs + result.intercept, 'r', label=label if with_label else None)
-    if with_ideal_line:
-        # Plot y = x line
-        ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-',
-                linewidth=1, label='Ideal' if with_label else None)
-    return result
 
 
 def make_square_axes(ax_mat):

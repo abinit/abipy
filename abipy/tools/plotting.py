@@ -464,6 +464,25 @@ def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
     return fig
 
 
+def linear_fit_ax(ax, xs, ys, fontsize, with_label=True, with_ideal_line=False, **kwargs) -> tuple[float]:
+    """
+    Calculate a linear least-squares regression for two sets of measurements.
+    kwargs are passed to ax.plot.
+    """
+    from scipy.stats import linregress
+    fit = linregress(xs, ys)
+    label = r"Linear fit $\alpha={:.2f}$, $r^2$={:.2f}".format(fit.slope, fit.rvalue**2)
+    if "color" not in kwargs:
+        kwargs["color"] = "r"
+
+    ax.plot(xs, fit.slope*xs + fit.intercept, label=label if with_label else None, **kwargs)
+    if with_ideal_line:
+        # Plot y = x line
+        ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-',
+                linewidth=1, label='Ideal' if with_label else None)
+    return fit
+
+
 @add_fig_kwargs
 def plot_array(array, color_map=None, cplx_mode="abs", **kwargs) -> Figure:
     """
