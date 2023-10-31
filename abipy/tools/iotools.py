@@ -16,16 +16,17 @@ from subprocess import call
 from typing import Any
 from monty.termcolor import cprint
 from monty.string import list_strings
+from abipy.tools.typing import PathLike
 
 
-def make_executable(filepath: str) -> None:
+def make_executable(filepath: PathLike) -> None:
     """Make file executable"""
     mode = os.stat(filepath).st_mode
     mode |= (mode & 0o444) >> 2    # copy R bits to X
     os.chmod(filepath, mode)
 
 
-def try_files(filepaths: list) -> Path:
+def try_files(filepaths: list[PathLike]) -> Path:
     """
     Return the first existent file in filepaths
     or raise RuntimeError.
@@ -35,6 +36,20 @@ def try_files(filepaths: list) -> Path:
         if path.exists(): return path
 
     raise RuntimeError("Cannot find {filepaths=}")
+
+
+def file_with_ext_indir(ext: str, directory: PathLike) -> Path:
+    """
+    Find file with extension `ext` inside directory.
+    Raise RuntimeError if no file can be found.
+    """
+    directory = Path(str(directory))
+    for path in directory.listdir():
+        if path.is_dir(): continue
+        if path.suffix == ext:
+            return path.absolute()
+
+    raise RuntimeError(f"Cannot find file with extension {ext} in {directory=})")
 
 
 def yaml_safe_load(string: str) -> Any:

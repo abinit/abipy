@@ -7,6 +7,7 @@ from __future__ import annotations
 import numpy as np
 
 from typing import TYPE_CHECKING, Any, Union, Sequence
+from pymatgen.util.typing import PathLike
 
 
 if TYPE_CHECKING:  # needed to avoid circular imports

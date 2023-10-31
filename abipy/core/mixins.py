@@ -868,12 +868,12 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
 
     def expose(self, slide_mode=False, slide_timeout=None, use_web=False, **kwargs):
         """
-        Shows a predefined list of matplotlib figures with minimal input from the user.
-        Relies on the ``yield_fig``s methods implemented by the subclass to generate matplotlib figures.
+        Shows a predefined list of figures with minimal input from the user.
+        Relies on the ``yield_fig``s methods implemented by the subclass to generate such figures.
 
         Args:
             use_web: True to show all figures inside a panel template executed in the local browser.
-               False to show figures in different GUIs
+               False to show figures in different GUIs.
         """
         if not use_web:
             # Produce all matplotlib figures and show them with the X-server.

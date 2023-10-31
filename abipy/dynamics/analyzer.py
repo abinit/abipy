@@ -6,11 +6,13 @@ from __future__ import annotations
 import dataclasses
 import warnings
 import json
+import os
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
 
 from pathlib import Path
+from scipy.stats import linregress
 from matplotlib.offsetbox import AnchoredText
 from monty.functools import lazy_property
 from monty.bisect import find_le
@@ -20,15 +22,16 @@ from pymatgen.util.string import latexify
 from pymatgen.core.lattice import Lattice
 from abipy.core.mixins import TextFile, NotebookWriter
 from abipy.core.structure import Structure
-from abipy.tools.typing import Figure
+from abipy.tools.typing import Figure, PathLike
 from abipy.tools.serialization import HasPickleIO
-from abipy.tools.iotools import try_files
+from abipy.tools.iotools import try_files, file_with_ext_indir
 from abipy.tools.context_managers import Timer
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, get_color_symbol,
                                   set_ticks_fontsize, set_logscale, linear_fit_ax)
+from abipy.dynamics.cpx import parse_file_with_blocks, EvpFile
 
 
-__author__ = "Giuliana Materzanini, Matteo Giantomassi"
+__author__ = "Giuliana Materzanini, Tommaso Chiarotti, Matteo Giantomassi"
 
 
 Ang2PsTocm2S = 0.0001
@@ -36,22 +39,26 @@ e2s = 1.602188**2 # electron charge in Coulomb scaled by 10.d-19**2
 kbs = 1.38066     # Boltzmann constant in Joule/K scaled by 10.d-23
 
 
-def read_structure_postac_ucmats(traj_filepath: str, step_skip: int) -> tuple[Structure, np.ndarray, np.ndarray]:
+def read_structure_postac_ucmats(traj_filepath: PathLike, step_skip: int) -> tuple[Structure, np.ndarray, np.ndarray, int]:
     """
     Read all configurations from an ASE trajectory file.
-    Returns (nsteps, natom, 3) array with the Cartesian coords and the initial structure.
 
-    Args
+    Args:
+        traj_filepath: File path.
         step_skip: Sampling frequency.
-                time_step is multiplied by this number to get the real time between measurements.
+            time_step should be multiplied by this number to get the real time between measurements.
+
+    Returns:
+        tuple with: initial Structure, (nsteps, natom, 3) array with the Cartesian coords,
+        (nsteps,3,3) array with cell vectors.
     """
     from ase.io import read
     traj = read(traj_filepath, index=":")
-    nsteps = len(traj)
+    traj_len = len(traj)
     structure = Structure.as_structure(traj[0])
 
     pos_tac, ucmats = [], []
-    for it in range(0, nsteps, step_skip):
+    for it in range(0, traj_len, step_skip):
         atoms = traj[it]
         pos_tac.append(atoms.positions)
         ucmats.append(atoms.cell.array)
@@ -60,35 +67,94 @@ def read_structure_postac_ucmats(traj_filepath: str, step_skip: int) -> tuple[St
     pos_tac = np.array(pos_tac, dtype=float)
     ucmats = np.array(ucmats, dtype=float)
 
-    return structure, pos_tac, ucmats
+    return structure, pos_tac, ucmats, traj_len
+
+
+def parse_lammps_input(filepath: PathLike, verbose: int=0):
+    """
+    Extract parameters, atoms and structure from a LAMMPS input file.
+    """
+    dirpath = Path(os.path.dirname(filepath)).absolute()
+    from pymatgen.io.lammps.inputs import LammpsInputFile
+    inp = LammpsInputFile.from_file(filepath, ignore_comments=False)
+
+    atom_style = inp.get_args("atom_style")
+    units = inp.get_args("units")
+    timestep = float(inp.get_args("timestep"))
+    # dump ID group-ID style N file attribute1 attribute2 ...
+    dump = inp.get_args("dump")
+    #print(f"{dump=}")
+    assert dump
+    tokens = dump.split()
+    loginterval = int(tokens[3])
+    traj_filepath = dirpath / tokens[4]
+
+    read_data = dirpath / inp.get_args("read_data")
+    log = inp.get_args("log")
+    if not log:
+        log = "log.lammps"
+    log = dirpath / log
+
+    if verbose:
+        print(f"{atom_style=}, {units=}, {timestep=}, {read_data=}")
+
+    # Build atoms from read_data.
+    from ase.io.lammpsdata import read_lammps_data
+    atoms = read_lammps_data(
+        read_data,
+        Z_of_type=None,
+        sort_by_id=False,
+        units=units,
+        style=atom_style,
+    )
+
+    # Extract temperature from fix command.
+    temperature = None
+    fix_list = inp.get_args("fix")
+    for fix in fix_list:
+        tokens = fix.split()
+        try:
+            i = tokens.index("temp")
+        except ValueError:
+            continue
+        temp = float(tokens[i+1])
+        if temperature is not None and temp != temperature:
+            raise ValueError(f"Found two different temperatures {temp=} and {temperature=}")
+        temperature = temp
+
+    if temperature is None:
+        raise ValueError(f"Cannot detect temperature in LAMMPS input file!")
+
+    return dict2namedtuple(atoms=atoms, structure=Structure.as_structure(atoms),
+                           units=units, temperature=temperature, timestep=timestep, loginterval=loginterval,
+                           traj_filepath=traj_filepath, log=log, lammps_input=inp)
 
 
 class MdAnalyzer(HasPickleIO):
     """
     High-level interface to read MD trajectories and metadata from external files,
-    compute the MSQD and visualize the results.
+    compute the MSQD and plot the results.
     """
 
     @classmethod
-    def from_abiml_dir(cls, directory, step_skip=1) -> MdAnalyzer:
+    def from_abiml_dir(cls, directory: PathLike, step_skip: int=1) -> MdAnalyzer:
         """
         Build an instance from a directory containing an ASE trajectory file and
-        a JSON file with the MD parameters as produced by `abiml.py md`.
+        a JSON file with the MD parameters as produced by the `abiml.py md` script.
         """
         directory = Path(str(directory))
-        structure, pos_tac, ucmats = read_structure_postac_ucmats(directory / "md.traj", step_skip)
+        structure, pos_tac, ucmats, traj_len = read_structure_postac_ucmats(directory / "md.traj", step_skip)
 
         # Read metadata from the JSON file.
         with open(directory / "md.json", "rt") as fh:
             meta = json.load(fh)
 
         temperature = meta["temperature"]
-        # Convert from fs to ps
+        # Convert from ASE fs to ps
         timestep = meta["timestep"] * 1e-3
         loginterval = meta["loginterval"]
         engine = meta["nn_name"]
-        nsteps = len(pos_tac)
-        times = (np.arange(0, nsteps) * timestep * loginterval)[::step_skip].copy()
+        times = (np.arange(0, traj_len) * timestep * loginterval)[::step_skip].copy()
 
         log_path = try_files([directory / "md.aselog", directory / "md.log"])
         from abipy.ml.aseml import AseMdLog
@@ -98,18 +164,26 @@ class MdAnalyzer(HasPickleIO):
         return cls(structure, temperature, times, pos_tac, ucmats, engine, evp_df=evp_df)
 
     @classmethod
-    def from_hist_file(cls, hist_filepath: str, step_skip=1) -> MdAnalyzer:
+    def from_hist_file(cls, hist_filepath: PathLike, step_skip: int=1) -> MdAnalyzer:
         """
-        Build an instance from a list of ABINIT HIST.nc files.
+        Build an instance from an ABINIT HIST.nc file.
         """
+        from abipy.dynamics.hist import HistFile
+        with HistFile(hist_filepath) as hist:
+            structure = hist.structure.copy()
+            #hist.r.read_dimvalue("time")
+            pos_tac = hist.r.read_value("xcart") * units.bohr_to_ang
+            ucmat = hist.r.read_value("rprimd") * units.bohr_to_ang
+            #temperature = None
+            #evp_df = None
+
+        #times = (np.arange(0, traj_len) * r.timestep * r.loginterval)[::step_skip].copy()
+        if step_skip != 1:
+            ucmats = ucmats[::step_skip].copy()
+            pos_tac = pos_tac[::step_skip].copy()
+
         raise NotImplementedError()
-        #from abipy.dynamics.hist import HistFile
-        #with HistFile(hist_filepath) as hist:
-        #    pos_tac = hist.r.read_value("xcart") * units.bohr_to_ang
-        #times = (np.arange(0, nsteps) * timestep * loginterval)[::step_skip].copy()
-        #temperature = None
-        #evp_df = None
-        #return cls(hist.structure.copy(), temperature, times, pos_tac, ucmats, "abinit", evp_df=evp_df)
+        #return cls(structure, temperature, times, pos_tac, ucmats, "abinit", evp_df=evp_df)
 
     @classmethod
     def from_vaspruns(cls, filepaths: list) -> MdAnalyzer:
@@ -162,61 +236,143 @@ class MdAnalyzer(HasPickleIO):
         return cls(structure, temperature, times, pos_tac, "vasp", evp_df=evp_df)
 
     #@classmethod
-    #def from_qe_dir(cls, directory: str, step_skip=1):
-
-    #@classmethod
-    #def from_qe_input(cls, filepath: str, step_skip=1):
-    #    """
-    #    Build an instance from a directory with CP results.
-    #    """
-    #    # Get structure from QE input.
-    #    from pymatgen.io.pwscf import PWInput
-    #    qe_inp = PWInput(filepath)
-    #    times = None
-    #    temperature = None
-    #    # Get atomic positions from qe pos file.
-    #    pos_tac = None
-    #    engine = "qecp"
-    #    engine = "qepw"
-    #    return cls(qe_inp.structure, temperature, times, pos_tac, ucmats, engine)
+    #def from_qe_dir(cls, directory: PathLike, step_skip: int=1):
+    #    traj_filepath = file_with_ext_indir(".lammpstrj", directory)
+    #    return cls.from_qe_input(filepath: PathLike, step_skip=step_skip):
 
     @classmethod
-    def from_lammps_dir(cls, directory: str, step_skip=1) -> MdAnalyzer:
+    def from_qe_input(cls, filepath: PathLike, step_skip: int=1):
         """
-        Build an instance from a directory containing LAMMPS results.
+        Build an instance from a CP/PW input file.
+
+        Conventions for Quantum ESPRESSO input files:
+           ".pwi" -> pw.x
+           ".cpi" -> cp.x
         """
-        traj_filepath, log_filepath = None, None
-        directory = Path(str(directory))
-        for path in directory.listdir():
-            if path.is_dir(): continue
-            if path.suffix == ".lammpstrj":
-                traj_filepath = path.absolute()
+        filepath = Path(str(filepath)).absolute()
+        engine = None
+        if filepath.name.endswith(".pwi"):
+            engine = "qepw"
+            default_prefix = "pwscf"
+        if filepath.name.endswith(".cpi"):
+            engine = "qecp"
+            default_prefix = "cp"
 
-        if traj_filepath is None:
-            raise ValueError(f"Cannot find file with .lammpstrj extension in {directory=})")
-        if log_filepath is None:
-            raise ValueError(f"Cannot find log file in {directory=}")
+        if engine is None:
+            raise ValueError("QE input file should end with .pwi for pw.x or .cpi for cp.x")
 
-        return cls.from_lammpstrj(traj_filepath, log_filepath, step_skip=step_skip)
+        # Use ASE to parse QE input file.
+        from ase.io.espresso import read_espresso_in, read_fortran_namelist
+        with open(filepath, "rt") as fh:
+            atoms = read_espresso_in(fh)
+            fh.seek(0)
+            sections, card_lines = read_fortran_namelist(fh)
+
+        structure = Structure.as_structure(atoms)
+        natoms = len(structure)
+
+        # https://www.quantum-espresso.org/Doc/INPUT_CP.html
+        control = sections["control"]
+        calculation = control["calculation"]
+
+        # time step for molecular dynamics, in Hartree atomic units
+        # (1 a.u.=2.4189 * 10^-17 s : beware, PW code use Rydberg atomic units, twice that much!!!)
+        timestep = control.get("dt", 1.0)
+        timestep = timestep * 2.4189 * 1e-5
+        if engine == "qepw": timestep *= 2
+        isave = control.get("isave", 100)
+        prefix = control.get("prefix", default_prefix)
+        outdir = Path(control.get("outdir", filepath.cwd()))
+
+        # ELECTRONS section
+        #electrons = sections["electrons"]
+        # IONS section
+        ions = sections["ions"]
+        temperature = ions.get("tempw", 300)
+        # CELL section
+        #cell = sections["cell"]
+
+        # Get atomic positions from the pos file.
+        pos_filepath = outdir / (prefix + ".pos")
+        pos_nsteps, pos_tac, pos_headers = parse_file_with_blocks(pos_filepath, natoms)
+        pos_tac = np.reshape(pos_tac, (pos_nsteps, natoms, 3))
+
+        # Get lattices from the cell file.
+        cel_filepath = outdir / (prefix + ".cel")
+        cel_nsteps, ucmats, pos_headers = parse_file_with_blocks(cel_filepath, 3)
+        ucmats = np.reshape(ucmats, (cel_nsteps, 3, 3))
+
+        if pos_nsteps != cel_nsteps:
+            raise RuntimeError(f"Found differrent no. iterations in pos and cel file: {pos_nsteps=} != {cel_nsteps=}")
+
+        times = np.arange(0, pos_nsteps) * timestep * step_skip
+        if step_skip != 1:
+            ucmats = ucmats[::step_skip].copy()
+            pos_tac = pos_tac[::step_skip].copy()
+
+        # Extract times from CP EVP file
+        with EvpFile(outdir / (prefix + ".evp")) as evp:
+            #evp_times = evp.times.copy()
+            #print("evp_df:", evp.df)
+            evp_df = evp.df.copy()
+
+        return cls(structure, temperature, times, pos_tac, ucmats, engine, evp_df=evp_df)
 
     @classmethod
-    def from_lammpstrj(cls, traj_filepath: str, log_filepath: str, step_skip=1) -> MdAnalyzer:
+    def from_lammps_dir(cls, directory: PathLike, step_skip: int=1, basename="in.lammps") -> MdAnalyzer:
         """
-        Build an instance from a LAMMPS trajectory file and log file.
+        Build an instance from a directory containing a LAMMPS input file.
         """
-        structure, pos_tac, ucmats = read_structure_postac_ucmats(traj_filepath, step_skip)
-        temperature = None
+        return cls.from_lammp_input(Path(str(directory)) / basename, step_skip=step_skip)
 
-        if log_filepath.endswith(".evp"):
+    @classmethod
+    def from_lammps_input(cls, input_filepath: PathLike, step_skip: int=1) -> MdAnalyzer:
+        """
+        Build an instance from a LAMMPS input file.
+
+        Args:
+            input_filepath: LAMMPS input file.
+        """
+        r = parse_lammps_input(input_filepath, verbose=0)
+        #structure = r.structure
+
+        structure, pos_tac, ucmats, traj_len = read_structure_postac_ucmats(r.traj_filepath, step_skip)
+
+        if r.units != "metal":
+            from ase.calculators.lammps import convert
+            pos_tac = convert(pos_tac, "distance", r.units, "metal")
+            ucmats = convert(ucmats, "distance", r.units, "metal")
+
+        times = (np.arange(0, traj_len) * r.timestep * r.loginterval)[::step_skip].copy()
+
+        # Extract dataframen from log file.
+        evp_df = None
+        if r.log.exists():
+            from pymatgen.io.lammps.outputs import parse_lammps_log
+            df_list = parse_lammps_log(r.log)
+            evp_df = df_list[-1]
+
+        return cls(structure, r.temperature, times, pos_tac, ucmats, "lammps", evp_df=evp_df)
+
+    @classmethod
+    def from_lammpstrj(cls, traj_filepath: PathLike, input_filepath: PathLike, step_skip: int=1) -> MdAnalyzer:
+        """
+        Build an instance from a LAMMPS trajectory file and a log file.
+
+        Args:
+            traj_filepath:
+            input_filepath:
+        """
+        structure, pos_tac, ucmats, traj_len = read_structure_postac_ucmats(traj_filepath, step_skip)
+        nsteps = len(pos_tac)
+
+        if input_filepath.endswith(".evp"):
+            temperature = None
             # Extract times from CP EVP file (Giuliana's way)
-            from abipy.dynamics.cpx import EvpFile
-            with EvpFile(log_filepath) as evp:
+            with EvpFile(input_filepath) as evp:
                 times = evp.times.copy()
                 evp_df = evp.df.copy()
         else:
-            #from pymatgen.io.lammps.outputs import parse_lammps_log
-            #def parse_lammps_log(filename: str = "log.lammps") -> list[pd.DataFrame]:
-            evp_df = None
             raise NotImplementedError()
 
         return cls(structure, temperature, times, pos_tac, ucmats, "lammps", evp_df=evp_df)
@@ -268,8 +424,10 @@ class MdAnalyzer(HasPickleIO):
 
         self.consistency_check()
 
-    def consistency_check(self):
-        """Perform internal consistency check."""
+    def consistency_check(self) -> None:
+        """
+        Perform internal consistency check.
+        """
         if self.pos_atc.shape != (self.natom, self.nt, 3):
             raise ValueError(f"Invalid shape {self.pos_atc.shape=}, expecting: {(self.natom, self.nt, 3)}")
         if len(self.times) != self.nt:
@@ -289,7 +447,7 @@ class MdAnalyzer(HasPickleIO):
             raise ValueError(f"{len(self.lattices)=} != {self.nt=}")
 
     def get_params_dict(self) -> dict:
-        """Dictionary with important parameters."""
+        """Dictionary with the most important parameters."""
         attr_names = [
             "latex_formula", "temperature", "timestep", "nt", "max_time", "natom", "avg_volume", "engine",
         ]
@@ -301,11 +459,43 @@ class MdAnalyzer(HasPickleIO):
         import copy
         return copy.deepcopy(self)
 
-    def resample_nsteps(self, start_nsteps: int, tmesh_nsteps) -> MdAnalyzer:
-        return self.resample_time(start_time=start_nsteps * self.timestep, new_timestep=tmesh_nsteps * self.timestep)
+    def iter_structures(self):
+        """Generate pymatgen structures."""
+        species = self.structure.species
+        pos_tac = self.pos_atc.transpose(1, 0, 2).copy()
+
+        if self.lattices is None:
+            # Same lattice.
+            const_lattice = self.structure.lattice
+            for coords in pos_tac:
+                yield Structure(const_lattice, species, coords, coords_are_cartesian=True)
+        else:
+            for coords, lattice in zip(pos_tac, self.lattices):
+                yield Structure(lattice.copy(), species, coords, coords_are_cartesian=True)
+
+    #def iter_atoms(self):
+    #    """Generate ASE atoms"""
+    #    Atoms(symbols=None,
+    #          positions=None, numbers=None,
+    #          tags=None, momenta=None, masses=None,
+    #          magmoms=None, charges=None,
+    #          scaled_positions=None,
+    #          cell=None, pbc=None, celldisp=None,
+    #          constraint=None,
+    #          calculator=None,
+    #          info=None,
+    #          velocities=None)
+
+    def resample_step(self, start_at_step: int, take_every: int) -> MdAnalyzer:
+        """
+        Resample the trajectory. Start at iteration start_at_step and increase the timestep
+        by taking every `take_every` iteration.
+        """
+        return self.resample_time(start_time=start_at_step * self.timestep, new_timestep=take_every * self.timestep)
 
     def resample_time(self, start_time: float, new_timestep: float) -> MdAnalyzer:
         """
+        Resample the trajectory. Start at time `start_time` and use new timestep `new_timestep`.
         """
         # NB: Cannot change the object in place as SigmaBerend and DiffusionData keep a reference to self.
         new = self.deepcopy()
@@ -341,7 +531,7 @@ class MdAnalyzer(HasPickleIO):
 
     @property
     def max_time(self) -> float:
-        """Max. simulation time in ps."""
+        """Maximum simulation time in ps."""
         return self.times[-1]
 
     @property
@@ -462,7 +652,6 @@ class MdAnalyzer(HasPickleIO):
         iatoms = [iat for iat in range(len(self.structure)) if self.structure[iat].specie.symbol == symbol]
         if atom_inds is not None:
             iatoms = [iat for iat in iatoms if iat in atom_inds]
-
         if not iatoms:
             raise ValueError(f"Empty list of iatoms indices for {symbol=} and {atom_inds=}")
 
@@ -479,7 +668,7 @@ class MdAnalyzer(HasPickleIO):
         """
         return ((self.pos_atc[iatom,it0:] - self.pos_atc[iatom,it0]) ** 2).sum(axis=1)
 
-    def get_sqdt_symbol(self, symbol: str, it0: int = 0, atom_inds=None) -> np.array:
+    def get_sqdt_symbol(self, symbol: str, it0: int=0, atom_inds=None) -> np.array:
         """
         Compute the square displacement vs time averaged over atoms with the same chemical symbol
         starting from time index it0. atoms_inds adds an additional filter on the site index.
@@ -490,7 +679,24 @@ class MdAnalyzer(HasPickleIO):
             else:
                 sqdt += self.get_sqdt_iatom(iatom, it0=it0)
 
-        return sqdt / (count + 1)
+        sqdt /= (count + 1)
+        return sqdt
+
+    def get_dw_symbol(self, symbol, t0: float = 0.0, tmax=None, atom_inds=None):
+        """
+        Compute diffusion coefficient by performing a naive linear regression of the raw MQST.
+        """
+        it0, ts = self.get_it_ts(t0)
+        it1 = -1
+        if tmax is not None:
+            it1, _ = self.get_it_ts(tmax)
+            ts = ts[:it1]
+
+        sqdt = self.get_sqdt_symbol(symbol, it0=it0, atom_inds=atom_inds)
+        fit = linregress(ts[:it1], sqdt[:it1])
+        naive_d = fit.slope * Ang2PsTocm2S / 6
+        label = r"Linear fit: D={:.2E} cm$^2$/s, $r^2$={:.2f}".format(naive_d, fit.rvalue**2)
+        return dict2namedtuple(naive_d=naive_d, ts=ts, fit=fit, label=label)
 
     def get_msdtt0_symbol(self, symbol: str, tmax: float, atom_inds=None, nprocs=None) -> Msdtt0:
         """
@@ -522,18 +728,9 @@ class MdAnalyzer(HasPickleIO):
     #            f.write(delimiter.join([str(v) for v in [dt, msd, *list(msdc), mscd]]))
     #            f.write("\n")
 
-    #@add_fig_kwargs
-    #def plot_evp(self, **kwargs) -> Figure:
-    #    if self.evp_df is None:
-    #        print("Cannot plot evp data as self.evp_df is None!")
-    #        return None
-
-    #    if self.engine == "lampps"
-    #    #return self.evp.plot(**kwargs)
-
     @add_fig_kwargs
     def plot_sqdt_atoms(self, symbols="all", t0: float = 0.0, atom_inds=None,
-                        ax=None, xy_log=None, fontsize=30, xlims=None, **kwargs) -> Figure:
+                        ax=None, xy_log=None, fontsize=8, xlims=None, **kwargs) -> Figure:
         """
         Plot the square displacement of atoms vs time.
 
@@ -556,20 +753,20 @@ class MdAnalyzer(HasPickleIO):
                 sd_t = self.get_sqdt_iatom(iatom, it0=it0)
                 ax.plot(ts, sd_t, label=f"${symbol}_{{{iatom}}}$")
 
-        ax.legend(fontsize=5, loc=2)
+        ax.legend(fontsize=fontsize, loc="upper left")
         ax.set_xlabel('t (ps)', fontsize=fontsize)
         ax.set_ylabel(r'square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
         set_axlims(ax, xlims, "x")
-        set_ticks_fontsize(ax, fontsize)
+        #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
         ax.add_artist(AnchoredText(f"{self.latex_formula_n_temp}\n{self.latex_avg_volume}\n" +
                                    'sd(t, $t_0$ =' + str(int(self.times[it0])) + ' ps)',
-                                   loc=1, prop=dict(size=20)))
+                                   loc="upper right", prop=dict(size=fontsize)))
         return fig
 
     @add_fig_kwargs
-    def plot_sqdt_symbols(self, symbols, t0: float = 0.0, atom_inds=None,
-                          ax=None, xy_log=None, fontsize=30, xlims=None, **kwargs) -> Figure:
+    def plot_sqdt_symbols(self, symbols, t0: float = 0.0, atom_inds=None, with_dw=0,
+                          ax=None, xy_log=None, fontsize=8, xlims=None, **kwargs) -> Figure:
         """
         Plot the square displacement averaged over all atoms of the same specie vs time.
 
@@ -577,6 +774,8 @@ class MdAnalyzer(HasPickleIO):
             symbols: List of chemical symbols to consider. "all" for all symbols in structure.
             t0: Initial time in ps.
             atom_inds: List of atom indices to include. None to disable filtering.
+            with_dw: If != 0 compute diffusion coefficient via least-squares fit in the time-interval [t0, with_dw].
+                If with_dw < 0, time-interval is set to [t0, tmax]
             ax: |matplotlib-Axes| or None if a new figure should be created.
             xy_log: None or empty string for linear scale. "x" for log scale on x-axis.
                 "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
@@ -593,19 +792,28 @@ class MdAnalyzer(HasPickleIO):
                     color=self.color_symbol[symbol],
                     )
 
-        ax.legend(fontsize=16, loc=2)
+            if with_dw != 0:
+                tmax = self.times[-1] if with_dw < 0 else with_dw
+                dw = self.get_dw_symbol(symbol, t0=t0, tmax=with_dw, atom_inds=atom_inds)
+                ax.plot(dw.ts, dw.fit.slope*dw.ts + dw.fit.intercept,
+                        #label=symbol + ' Linear_fit($t, t_0$ = ' + str(t0) + ' ps)',
+                        label=symbol + " " + dw.label,
+                        color=self.color_symbol[symbol],
+                        )
+
+        ax.legend(fontsize=fontsize, loc="upper left")
         ax.set_xlabel('t (ps)', fontsize=fontsize)
         ax.set_ylabel('mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
         set_axlims(ax, xlims, "x")
-        set_ticks_fontsize(ax, fontsize)
+        #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
         ax.add_artist(AnchoredText(f"{self.latex_formula_n_temp}\n{self.latex_avg_volume}",
-                                   loc=1, prop=dict(size=20)))
+                                   loc="upper right", prop=dict(size=fontsize)))
         return fig
 
     @add_fig_kwargs
     def plot_sqdt_symbols_tmax(self, symbols, tmax: float, atom_inds=None, nprocs=None,
-                               ax=None, xy_log=None, fontsize=30, xlims=None, **kwargs) -> Figure:
+                               ax=None, xy_log=None, fontsize=8, xlims=None, **kwargs) -> Figure:
         """
         Plot the square displacement averaged over all atoms of the same specie vs time.
 
@@ -638,13 +846,13 @@ class MdAnalyzer(HasPickleIO):
                     )
 
         set_axlims(ax, xlims, "x")
-        ax.legend(fontsize=16, loc=2)
+        ax.legend(fontsize=fontsize, loc="upper left")
         ax.set_xlabel('t (ps)', fontsize=fontsize)
         ax.set_ylabel('average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
-        set_ticks_fontsize(ax, fontsize)
+        #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
         ax.add_artist(AnchoredText(f"{self.latex_formula_n_temp}\n{self.latex_avg_volume}",
-                                   loc=1, prop=dict(size=20)))
+                                   loc="upper right", prop=dict(size=fontsize)))
         return fig
 
     @add_fig_kwargs
@@ -652,9 +860,18 @@ class MdAnalyzer(HasPickleIO):
                       xy_log=None, fontsize=8, xlims=None, **kwargs) -> Figure:
         """
         Plot lattice lengths/angles/volume as a function of time.
+
+        Args:
+            what_list: List of strings specifying the quantities to plot. Default all
+            ax_list: List of axis or None if a new figure should be created.
+            xy_log: None or empty string for linear scale. "x" for log scale on x-axis.
+                "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
+            fontsize: fontsize for legends and titles
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used
         """
         if self.lattices is None:
-            print("MD simulation has been done with fixed lattice.")
+            print("MD simulation has been performed with fixed lattice!")
             return None
 
         what_list = list_strings(what_list)
@@ -669,7 +886,7 @@ class MdAnalyzer(HasPickleIO):
                         label=label, marker=markers[i])
             ax.set_ylabel("abc (A)")
 
-        if "abc" in what_list:
+        if "angles" in what_list:
             # plot lattice angles.
             for i, label in enumerate(["alpha", "beta", "gamma"]):
                 ax.plot(self.times, [lattice.angles[i] for lattice in self.lattices],
@@ -703,11 +920,11 @@ class Msdtt0:
     mda: MdAnalyzer
 
     @property
-    def times(self):
+    def times(self) -> np.ndarray:
         return self.mda.times
 
     @property
-    def temperature(self):
+    def temperature(self) -> float:
         return self.mda.temperature
 
     @lazy_property
@@ -731,18 +948,13 @@ class Msdtt0:
         """
         t_start = self.mda.nt - self.index_tmax
         ts = self.times[t_start:] - self.times[t_start]
-        from scipy.stats import linregress
         fit = linregress(ts, self.msd_t)
         naive_d = fit.slope * Ang2PsTocm2S / 6
-
-        # TODO: Improve format.
-        dw = f"D = {naive_d:.2E} cm$^2$/s"
-        #label = r"Linear fit $\alpha={:.2f}$, $r^2$={:.2f}".format(fit.slope, fit.rvalue**2)
-        label = r"Linear fit a la Waroquieres: {}, $r^2$={:.2f}".format(dw, fit.rvalue**2)
+        label = r"Linear fit: D={:.2E} cm$^2$/s, $r^2$={:.2f}".format(naive_d, fit.rvalue**2)
         return dict2namedtuple(naive_d=naive_d, fit=fit, label=label)
 
     @add_fig_kwargs
-    def plot(self, ax=None, xy_log=None, fontsize=30, xlims=None, **kwargs) -> Figure:
+    def plot(self, ax=None, xy_log=None, fontsize=8, xlims=None, **kwargs) -> Figure:
         """
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -758,7 +970,7 @@ class Msdtt0:
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.plot(ts, self.msd_t,
-                label=self.symbol + ' <msd($t, t_0$)>$\{$t_0$\}$, t = [0, ' + str(int(self.times[index_tmax]))+ ' ps]',
+                label=self.symbol + ' <msd($t, t_0$)>$\{$t_0$\}$, t = [0, ' + str(int(self.times[index_tmax])) + ' ps]',
                 color=self.mda.color_symbol[self.symbol],
                 )
 
@@ -767,17 +979,22 @@ class Msdtt0:
         ax.plot(ts, r.fit.slope*ts + r.fit.intercept, label=r.label)
 
         set_axlims(ax, xlims, "x")
-        ax.legend(fontsize=16, loc=2)
+        ax.legend(fontsize=fontsize, loc="upper left")
         ax.set_xlabel('t (ps)', fontsize=fontsize)
         ax.set_ylabel('average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
-        set_ticks_fontsize(ax, fontsize)
+        #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
         ax.add_artist(AnchoredText(f"{self.mda.latex_formula_n_temp}\n{self.mda.latex_avg_volume}",
-                                   loc=1, prop=dict(size=20)))
+                                   loc="upper right", prop=dict(size=fontsize)))
         return fig
 
-    def get_sigma_berend(self, t1, t2, nblock_step=1, tot_block=1000) -> SigmaBerend:
+    def get_sigma_berend(self, t1: float, t2: float, nblock_step: int=1, tot_block: int=1000) -> SigmaBerend:
         """
+        Args:
+            t1:
+            t2:
+            nblock_step
+            tot_block
         """
         # choose the time elapsed
         it1, _ = sfind_ind_val(self.times, t1)
@@ -803,8 +1020,8 @@ class Msdtt0:
         return SigmaBerend(**{k: data[k] for k in [field.name for field in dataclasses.fields(SigmaBerend)]})
 
     def get_diffusion_with_sigma(self,
-                                 fit_time_start: float, fit_time_stop: float,
                                  block_size1: int, block_size2: int,
+                                 fit_time_start: float, fit_time_stop: float,
                                  sigma_berend: SigmaBerend,
                                  ax=None) -> DiffusionData:
         """
@@ -916,7 +1133,6 @@ class Msdtt0List(list):
     """
     A list of Msdtt0 objects.
     """
-
     def __str__(self) -> str:
         return self.to_string()
 
@@ -926,10 +1142,11 @@ class Msdtt0List(list):
         app = lines.append
         for i, obj in enumerate(self):
             app(obj.to_string(verbose=verbose))
+
         return "\n".join(lines)
 
     @add_fig_kwargs
-    def plot(self, sharex=True, sharey=True, **kwargs) -> Figure:
+    def plot(self, sharex=True, sharey=True, fontsize=8, **kwargs) -> Figure:
         nrows, ncols = len(self), 1
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=sharex, sharey=sharey, squeeze=False)
@@ -937,7 +1154,7 @@ class Msdtt0List(list):
         if len(self) % ncols != 0: ax_list[-1].axis("off")
 
         for ix, (obj, ax) in enumerate(zip(self, ax_list)):
-            obj.plot(ax=ax, show=False, **kwargs)
+            obj.plot(ax=ax, fontsize=fontsize, show=False, **kwargs)
 
         return fig
 
@@ -963,11 +1180,11 @@ class SigmaBerend:
     delta_sigmas2: np.ndarray
 
     @add_fig_kwargs
-    def plot(self, **kwargs) -> Figure:
+    def plot(self, fontsize=8, ax_list=None, **kwargs) -> Figure:
         """
         Plot variance of correlated data as function of block number.
         """
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=1, ncols=2,
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=1, ncols=2,
                                                 sharex=True, sharey=True, squeeze=False)
 
         for ix, ax in enumerate(ax_list.ravel()):
@@ -979,9 +1196,9 @@ class SigmaBerend:
                         yerr=yerr, linestyle='-', linewidth=0.5,
                         label="$\sigma(\mathrm{MSD}($" + '%2.1f' % time +" ps$))$ "+ '\n' +
                                self.latex_formula + ', '+ 'T = %4.0f' % self.temperature + 'K')
-            ax.legend(fontsize=16, loc=4)
-            ax.set_xlabel('N. of data in block', fontsize=14)
-            ax.set_ylabel('$\sigma$ ($\AA^2$)', fontsize=14)
+            ax.legend(fontsize=fontsize, loc="lower right")
+            ax.set_xlabel('N. of data in block', fontsize=fontsize)
+            ax.set_ylabel('$\sigma$ ($\AA^2$)', fontsize=fontsize)
             ax.grid(True)
 
         fig.suptitle("Variance of correlated data as function of block number")
@@ -1025,7 +1242,7 @@ class DiffusionData:
     #def json_dump(cls, filepath):
 
     @add_fig_kwargs
-    def plot(self, ax=None, **kwargs) -> Figure:
+    def plot(self, fontsize=8, ax=None, **kwargs) -> Figure:
         """
         Plot ...
         """
@@ -1038,15 +1255,15 @@ class DiffusionData:
         ax.errorbar(ts, self.min_angcoeff * ts + self.quote, linestyle='--')
         ax.errorbar(ts, self.max_angcoeff * ts + self.quote, linestyle='--')
 
-        ax.set_xlabel('t (ps)', fontsize=18)
-        ax.set_ylabel(r'$\mathrm{MSD}_\mathrm{tr}$ $\mathrm{(\AA}^2\mathrm{)}$', fontsize=18)
+        ax.set_xlabel('t (ps)', fontsize=fontsize)
+        ax.set_ylabel(r'$\mathrm{MSD}_\mathrm{tr}$ $\mathrm{(\AA}^2\mathrm{)}$', fontsize=fontsize)
         ax.add_artist(AnchoredText(
             'D$_{tr}$ = (' + str('{:.2E}'.format(self.diffusion_coeff)) + '\u00B1' +
             str('{:.2E}'.format(self.err_diffusion_coeff)) + ') cm$^2$/s',
-            loc=2, prop=dict(size=14)))
-        ax.legend(fontsize=12, loc=4)
+            loc="upper left", prop=dict(size=fontsize)))
+        ax.legend(fontsize=fontsize, loc="lower right")
         ax.add_artist(AnchoredText(f"{self.latex_formula}\nT = {self.temperature} K",
-                                   loc=1, prop=dict(size=14)))
+                                   loc="upper right", prop=dict(size=fontsize)))
         return fig
 
 
@@ -1065,9 +1282,6 @@ class DiffusionDataList(list):
     #    for path in filepaths:
     #        new.append(DiffusionData.from_file(path))
     #    return new
-
-    #def append(self, data: DiffusionData) -> None
-    #    super().append(data)
 
     #def _nrows_ncols_nplots(self, size=None):
     #    size = size or len(self)
@@ -1102,13 +1316,12 @@ class DiffusionDataList(list):
         Plot variance of correlated data as function of block number
         for all items stored DiffusionDataList.
         """
-        nrows, ncols = len(self), 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=False, squeeze=False)
-        ax_list = ax_list.ravel()
-        if len(self) % ncols != 0: ax_list[-1].axis("off")
-        for ix, (data, ax) in enumerate(zip(self, ax_list)):
-            data.sigma_berend.plot(ax=ax, show=False)
+        nrows, ncols = len(self), 2
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=False, sharey=False, squeeze=False)
+
+        for ix, (data, ax_list) in enumerate(zip(self, ax_mat)):
+            data.sigma_berend.plot(ax_list=ax_list, show=False)
 
         return fig
 
@@ -1123,6 +1336,7 @@ class DiffusionDataList(list):
                                                 sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
         if len(self) % ncols != 0: ax_list[-1].axis("off")
+
         for i, (data, ax) in enumerate(zip(self, ax_list)):
             data.plot(ax=ax, show=False)
 
@@ -1134,6 +1348,18 @@ class DiffusionDataList(list):
     #    ax, fig, plt = get_ax_fig_plt(ax=ax)
     #    return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot_sigma_berend(show=False)
+        yield self.plot(show=False)
+        #yield self.plot_arrhenius(show=False)
+
+    def expose(self, exposer="mpl", **kwargs):
+        from abipy.tools.plotting import Exposer
+        with Exposer.as_exposer(exposer) as e:
+            e(self.yield_figs(**kwargs))
 
 
 class MultiMdAnalyzer(HasPickleIO):
@@ -1153,26 +1379,15 @@ class MultiMdAnalyzer(HasPickleIO):
             return cls(pool.starmap(MdAnalyzer.from_abiml_dir, args))
 
     @classmethod
-    def from_lammps_dirs(cls, directories: str, step_skip=1, pmode="processes") -> MdAnalyzer:
+    def from_lammps_dirs(cls, directories: list, step_skip=1, basename="in.lammps", pmode="processes") -> MdAnalyzer:
         """
         Build an instance from a list of directories containing LAMMPS results.
         """
         nprocs, pool_cls, using_msg = nprocs_poolcls_msg(len(directories), pmode=pmode)
         using_msg = f"Reading {len(directories)} LAMMPS directories {using_msg}"
-        args = [(dirpath, step_skip) for dirpath in directories]
+        args = [(dirpath, step_skip, basename) for dirpath in directories]
         with pool_cls(nprocs) as pool, Timer(header=using_msg, footer="") as timer:
             return cls(pool.starmap(MdAnalyzer.from_lammps_dir, args))
-
-    #@classmethod
-    #def from_lammpstrj(cls, traj_filepath: str, log_filepath: str, step_skip=1) -> MdAnalyzer:
-    #    """
-    #    Build an instance from a LAMMPS trajectory.
-    #    """
-    #    nprocs, pool_cls, using_msg = nprocs_poolcls_msg(len(vasprun_filepaths), pmode=pmode)
-    #    using_msg = f"Reading {len(vasprun_filespaths} vasprun files {using_msg}"
-    #    args = [(vrun, step_skip) for vrun in vasprun_filepaths]
-    #    with pool_cls(nprocs) as pool, Timer(header=using_msg, footer="") as timer:
-    #        return cls(pool.starmap(MdAnalyzer.from_vaspruns, args))
 
     @classmethod
     def from_vaspruns(cls, vasprun_filepaths: list, step_skip=1, pmode="processes") -> MultiMdAnalyzer:
@@ -1180,7 +1395,7 @@ class MultiMdAnalyzer(HasPickleIO):
         Build an instance from a list of vasprun files.
         """
         nprocs, pool_cls, using_msg = nprocs_poolcls_msg(len(vasprun_filepaths), pmode=pmode)
-        using_msg = f"Reading {len(vasprun_filespaths)} vasprun files {using_msg}..."
+        using_msg = f"Reading {len(vasprun_filepaths)} vasprun files {using_msg}..."
         args = [(vrun, step_skip) for vrun in vasprun_filepaths]
         with pool_cls(nprocs) as pool, Timer(header=using_msg, footer="") as timer:
             return cls(pool.starmap(MdAnalyzer.from_vaspruns, args))
@@ -1191,17 +1406,19 @@ class MultiMdAnalyzer(HasPickleIO):
         Build an instance from a list of ABINIT HIST.nc files.
         """
         nprocs, pool_cls, using_msg = nprocs_poolcls_msg(len(hist_filepaths), pmode=pmode)
-        using_msg = f"Reading {len(hist_filespaths)} HIST.nc files {using_msg}..."
+        using_msg = f"Reading {len(hist_filepaths)} HIST.nc files {using_msg}..."
         args = [(ncpath, step_skip) for ncpath in hist_filepaths]
         with pool_cls(nprocs) as pool, Timer(header=using_msg, footer="") as timer:
             return cls(pool.starmap(MdAnalyzer.from_hist_file, args))
 
     #@classmethod
-    #def from_qe_files(cls, qe_filepaths: list, step_skip=1, pmode="processes") -> MultiMdAnalyzer:
-    #    """Build an instance from a list of QE input files."""
-    #    nprocs, pool_cls, using_msg = nprocs_poolcls_msg(len(hist_filepaths), pmode=pmode)
-    #    using_msg = f"Reading {len(qe_filespaths)} QE files {using_msg}..."
-    #    args = [(path, step_skip) for path in qe_filepaths]
+    #def from_qe_inputs(cls, filepaths: list, step_skip=1, pmode="processes") -> MultiMdAnalyzer:
+    #    """
+    #    Build an instance from a list of QE input files.
+    #    """
+    #    nprocs, pool_cls, using_msg = nprocs_poolcls_msg(len(filepaths), pmode=pmode)
+    #    using_msg = f"Reading {len(filespaths)} QE input files {using_msg}..."
+    #    args = [(path, step_skip) for path in filepaths]
     #    with pool_cls(nprocs) as pool, Timer(header=using_msg, footer="") as timer:
     #        return cls(pool.starmap(MdAnalyzer.from_qe_input, args))
 
@@ -1337,10 +1554,10 @@ class MultiMdAnalyzer(HasPickleIO):
         for ix, (ax, symbol) in enumerate(zip(ax_list, symbols)):
             ax.set_title(symbol, fontsize=fontsize)
             set_axlims(ax, xlims, "x")
-            ax.legend(fontsize=fontsize, loc=2)
+            ax.legend(fontsize=fontsize, loc="upper left")
             ax.set_xlabel('t (ps)', fontsize=fontsize)
             ax.set_ylabel('average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
-            set_ticks_fontsize(ax, fontsize)
+            #set_ticks_fontsize(ax, fontsize)
             set_logscale(ax, xy_log)
 
         return fig
