@@ -104,6 +104,16 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
+
+:mod:`parallel` Module
+----------------------
+
+.. automodule:: abipy.tools.parallel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 :mod:`plotting` Module
 ----------------------
 

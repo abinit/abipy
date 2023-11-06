@@ -149,13 +149,13 @@ class HasPickleIO:
         """
         Reconstruct the object from a pickle file located in workdir.
         """
-
         filepath = Path(workdir) / f"{cls.__name__}.pickle" if basename is None else Path(workdir) / basename
         with open(filepath, "rb") as fh, Timer(header=f"Reconstructing {cls.__name__} instance from file: {str(filepath)}", footer="") as timer:
             return pickle.load(fh)
 
-    def pickle_dump(self, workdir, basename=None) -> None:
-        """Write pickle file."""
+    def pickle_dump(self, workdir, basename=None) -> Path:
+        """Write pickle file. Return path to file"""
         filepath = Path(workdir) / f"{self.__class__.__name__}.pickle" if basename is None else Path(workdir) / basename
         with open(filepath, "wb") as fh, Timer(header=f"Saving {self.__class__.__name__} instance to file: {str(filepath)}", footer="") as timer:
             pickle.dump(self, fh)
+        return filepath

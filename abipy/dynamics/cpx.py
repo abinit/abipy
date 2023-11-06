@@ -79,9 +79,8 @@ def parse_file_with_header(filepath: PathLike) -> pd.DataFrame:
         for il, line in enumerate(fh):
             if il == 0:
                 if not line.startswith("#"):
-                    raise ValueError("Line number {il=} in {filepath=} should start with '#', but got {line=}")
+                    raise ValueError(f"Line number {il=} in {filepath=} should start with '#', but got {line=}")
                 names = line[1:].split()
-                sbuf.write(line[1:])
                 continue
 
             if line.startswith("#"):
@@ -154,9 +153,9 @@ class EvpFile(TextFile, NotebookWriter):
         return df
 
     @lazy_property
-    def times(self):
+    def times(self) -> np.ndarray:
         """Array with times in ps units."""
-        return self.df["tps(ps)"].values
+        return np.array(self.df["tps(ps)"].values, dtype=float)
 
     def to_string(self, verbose=0) -> str:
         """String representation with verbosity level verbose."""

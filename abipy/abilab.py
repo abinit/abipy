@@ -133,6 +133,7 @@ ext2file = collections.OrderedDict([
     ("DOSCAR.lobster", LobsterDoscarFile),
     # Vasp files.
     ("POSCAR", Structure),
+    (".vasp", Structure),
     #("ZINVCONV.nc", ZinvConvFile),
     #("TETRATEST.nc", TetraTestFile),
     # QE/CP files

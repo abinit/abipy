@@ -442,12 +442,11 @@ def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
         data = data.round({hue: decimals})
 
     ax, fig, plt = get_ax_fig_plt(ax=ax)
-    for key, grp in data.groupby(hue):
+    for key, grp in data.groupby(by=hue):
         # Sort xs and rearrange ys
         xy = np.array(sorted(zip(grp[x], grp[y]), key=lambda t: t[0]))
         xvals, yvals = xy[:, 0], xy[:, 1]
 
-        #label = "{} = {}".format(hue, key)
         label = "%s" % (str(key))
         if not kwargs:
             ax.plot(xvals, yvals, 'o-', label=label)

@@ -13,11 +13,12 @@ import pymatgen.core.units as units
 
 from pathlib import Path
 from scipy.stats import linregress
+from scipy import optimize
 from matplotlib.offsetbox import AnchoredText
 from monty.functools import lazy_property
 from monty.bisect import find_le
 from monty.string import list_strings, is_string, marquee
-from monty.collections import AttrDict, dict2namedtuple
+from monty.collections import AttrDict #, dict2namedtuple
 from pymatgen.util.string import latexify
 from pymatgen.core.lattice import Lattice
 from abipy.core.mixins import TextFile, NotebookWriter
@@ -28,6 +29,7 @@ from abipy.tools.iotools import try_files, file_with_ext_indir
 from abipy.tools.context_managers import Timer
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, get_color_symbol,
                                   set_ticks_fontsize, set_logscale, linear_fit_ax)
+from abipy.tools.parallel import get_max_nprocs, pool_nprocs_pmode
 from abipy.dynamics.cpx import parse_file_with_blocks, EvpFile
 
 
@@ -38,6 +40,11 @@ Ang2PsTocm2S = 0.0001
 e2s = 1.602188**2 # electron charge in Coulomb scaled by 10.d-19**2
 kbs = 1.38066     # Boltzmann constant in Joule/K scaled by 10.d-23
 
+#bohr2a = 0.529177
+#kBoltzAng10m9 = 1.38066e-02
+#kBoltz = 1.38066e-23
+kBoltzEv = 8.617333e-05
+#nCar = 56  # FIXME: Harcoded
 
 def read_structure_postac_ucmats(traj_filepath: PathLike, step_skip: int) -> tuple[Structure, np.ndarray, np.ndarray, int]:
     """
@@ -73,6 +80,7 @@ def read_structure_postac_ucmats(traj_filepath: PathLike, step_skip: int) -> tup
 def parse_lammps_input(filepath: PathLike, verbose: int=0):
     """
     Extract parameters, atoms and structure from a LAMMPS input file.
+    Returns namedtuple with results.
     """
     dirpath = Path(os.path.dirname(filepath)).absolute()
     from pymatgen.io.lammps.inputs import LammpsInputFile
@@ -83,8 +91,8 @@ def parse_lammps_input(filepath: PathLike, verbose: int=0):
     timestep = float(inp.get_args("timestep"))
     # dump ID group-ID style N file attribute1 attribute2 ...
     dump = inp.get_args("dump")
-    #print(f"{dump=}")
-    assert dump
+    if not dump:
+        raise ValueError(f"Cannot find dump command in LAMMPS input file: {filepath}")
     tokens = dump.split()
     loginterval = int(tokens[3])
     traj_filepath = dirpath / tokens[4]
@@ -108,7 +116,7 @@ def parse_lammps_input(filepath: PathLike, verbose: int=0):
         style=atom_style,
     )
 
-    # Extract temperature from fix command.
+    # Extract temperature from the fix command.
     temperature = None
     fix_list = inp.get_args("fix")
     for fix in fix_list:
@@ -119,15 +127,15 @@ def parse_lammps_input(filepath: PathLike, verbose: int=0):
             continue
         temp = float(tokens[i+1])
         if temperature is not None and temp != temperature:
-            raise ValueError(f"Found two different temperatures {temp=} and {temperature=}")
+            raise ValueError(f"Found two different temperatures {temp=} and {temperature=} in LAMMPS input file: {filepath}")
         temperature = temp
 
     if temperature is None:
-        raise ValueError(f"Cannot detect temperature in LAMMPS input file!")
+        raise ValueError(f"Cannot detect temperature in LAMMPS input file: {filepath}")
 
-    return dict2namedtuple(atoms=atoms, structure=Structure.as_structure(atoms),
-                           units=units, temperature=temperature, timestep=timestep, loginterval=loginterval,
-                           traj_filepath=traj_filepath, log=log, lammps_input=inp)
+    return AttrDict(atoms=atoms, structure=Structure.as_structure(atoms),
+                    units=units, temperature=temperature, timestep=timestep, loginterval=loginterval,
+                    traj_filepath=traj_filepath, log=log, lammps_input=inp)
 
 
 class MdAnalyzer(HasPickleIO):
@@ -310,10 +318,8 @@ class MdAnalyzer(HasPickleIO):
             ucmats = ucmats[::step_skip].copy()
             pos_tac = pos_tac[::step_skip].copy()
 
-        # Extract times from CP EVP file
+        # Extract energies from CP EVP file
         with EvpFile(outdir / (prefix + ".evp")) as evp:
-            #evp_times = evp.times.copy()
-            #print("evp_df:", evp.df)
             evp_df = evp.df.copy()
 
         return cls(structure, temperature, times, pos_tac, ucmats, engine, evp_df=evp_df)
@@ -345,7 +351,7 @@ class MdAnalyzer(HasPickleIO):
 
         times = (np.arange(0, traj_len) * r.timestep * r.loginterval)[::step_skip].copy()
 
-        # Extract dataframen from log file.
+        # Extract dataframe from the log file.
         evp_df = None
         if r.log.exists():
             from pymatgen.io.lammps.outputs import parse_lammps_log
@@ -364,16 +370,18 @@ class MdAnalyzer(HasPickleIO):
             input_filepath:
         """
         structure, pos_tac, ucmats, traj_len = read_structure_postac_ucmats(traj_filepath, step_skip)
-        nsteps = len(pos_tac)
 
         if input_filepath.endswith(".evp"):
-            temperature = None
             # Extract times from CP EVP file (Giuliana's way)
+            temperature = None
             with EvpFile(input_filepath) as evp:
-                times = evp.times.copy()
                 evp_df = evp.df.copy()
+                timestep = evp.times[1] - evp.times[0]
+                loginterval = 1
         else:
             raise NotImplementedError()
+
+        times = (np.arange(0, traj_len) * timestep * loginterval)[::step_skip].copy()
 
         return cls(structure, temperature, times, pos_tac, ucmats, "lammps", evp_df=evp_df)
 
@@ -488,8 +496,8 @@ class MdAnalyzer(HasPickleIO):
 
     def resample_step(self, start_at_step: int, take_every: int) -> MdAnalyzer:
         """
-        Resample the trajectory. Start at iteration start_at_step and increase the timestep
-        by taking every `take_every` iteration.
+        Resample the trajectory. Start at iteration start_at_step and increase
+        the timestep by taking every `take_every` iteration.
         """
         return self.resample_time(start_time=start_at_step * self.timestep, new_timestep=take_every * self.timestep)
 
@@ -497,6 +505,7 @@ class MdAnalyzer(HasPickleIO):
         """
         Resample the trajectory. Start at time `start_time` and use new timestep `new_timestep`.
         """
+        # TODO: This is not true anymore!
         # NB: Cannot change the object in place as SigmaBerend and DiffusionData keep a reference to self.
         new = self.deepcopy()
 
@@ -510,6 +519,8 @@ class MdAnalyzer(HasPickleIO):
             new.times = new.times[it0:] - new.times[it0]
             if new.lattices is not None:
                 new.lattices = new.lattices[it0:]
+            if self.evp_df is not None:
+                self.evp_df = self.evp_df.iloc[it0:]
 
         if new_timestep < old_timestep:
             raise ValueError(f"Invalid {new_timestep=} should be >= {old_timestep}")
@@ -520,6 +531,8 @@ class MdAnalyzer(HasPickleIO):
             new.times = new.times[::istep] - new.times[0]
             if new.lattices is not None:
                 new.lattices = new.lattices[::istep].copy()
+            if self.evp_df is not None:
+                self.evp_df = self.evp_df.iloc[::istep]
 
         new.consistency_check()
         return new
@@ -696,10 +709,20 @@ class MdAnalyzer(HasPickleIO):
         fit = linregress(ts[:it1], sqdt[:it1])
         naive_d = fit.slope * Ang2PsTocm2S / 6
         label = r"Linear fit: D={:.2E} cm$^2$/s, $r^2$={:.2f}".format(naive_d, fit.rvalue**2)
-        return dict2namedtuple(naive_d=naive_d, ts=ts, fit=fit, label=label)
+        return AttrDict(naive_d=naive_d, ts=ts, fit=fit, label=label)
 
     def get_msdtt0_symbol(self, symbol: str, tmax: float, atom_inds=None, nprocs=None) -> Msdtt0:
-        """
+        r"""
+        Calculates the MSD for every possible pair of time points using the formula:
+
+            $$MSD(t,t_0) = \frac{1}{N} \sum_{i=1}^{N} (\vec{r}_i(t+t_0) - \vec{r}_i(t_0))^2$$
+
+        where $N$ is the number of particles with the given symbol, and $\vec{r}_i(t)$ is the position vector.
+
+        Args:
+            symbols:
+            tmax:
+            atoms_ins
         """
         index_tmax, _ = self.get_it_ts(tmax)
         iatoms = self.iatoms_with_symbol(symbol, atom_inds=atom_inds)
@@ -743,7 +766,7 @@ class MdAnalyzer(HasPickleIO):
                 "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
             fontsize: fontsize for legends and titles.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
-                   or scalar e.g. ``left``. If left (right) is None, default values are used
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
         """
         it0, ts = self.get_it_ts(t0)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -781,7 +804,7 @@ class MdAnalyzer(HasPickleIO):
                 "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
             fontsize: fontsize for legends and titles.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
-                   or scalar e.g. ``left``. If left (right) is None, default values are used
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
         """
         it0, ts = self.get_it_ts(t0)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -796,7 +819,6 @@ class MdAnalyzer(HasPickleIO):
                 tmax = self.times[-1] if with_dw < 0 else with_dw
                 dw = self.get_dw_symbol(symbol, t0=t0, tmax=with_dw, atom_inds=atom_inds)
                 ax.plot(dw.ts, dw.fit.slope*dw.ts + dw.fit.intercept,
-                        #label=symbol + ' Linear_fit($t, t_0$ = ' + str(t0) + ' ps)',
                         label=symbol + " " + dw.label,
                         color=self.color_symbol[symbol],
                         )
@@ -827,7 +849,7 @@ class MdAnalyzer(HasPickleIO):
                 "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
             fontsize: fontsize for legends and titles
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
-                   or scalar e.g. ``left``. If left (right) is None, default values are used
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
         """
         index_tmax, _ = self.get_it_ts(tmax)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -868,7 +890,7 @@ class MdAnalyzer(HasPickleIO):
                 "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
             fontsize: fontsize for legends and titles
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
-                   or scalar e.g. ``left``. If left (right) is None, default values are used
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
         """
         if self.lattices is None:
             print("MD simulation has been performed with fixed lattice!")
@@ -897,13 +919,13 @@ class MdAnalyzer(HasPickleIO):
             # plot lattice volume.
             marker = "o"
             ax.plot(self.times, [lattice.volume for lattice in self.lattices],
-                    lable="Volume", marker=marker)
+                    label="Volume", marker=marker)
             ax.set_ylabel(r'$V\, (A^3)$')
 
         for ix, ax in enumerate(ax_list):
             set_logscale(ax, xy_log)
             set_axlims(ax, xlims, "x")
-            if ix == len(ax_list) -1:
+            if ix == len(ax_list) - 1:
                 ax.set_xlabel('t (ps)', fontsize=fontsize)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
@@ -912,7 +934,12 @@ class MdAnalyzer(HasPickleIO):
 
 @dataclasses.dataclass(kw_only=True)
 class Msdtt0:
-    """
+    r"""
+    Stores
+
+        $$MSD(t,t_0) = \frac{1}{N} \sum_{i=1}^{N} (\vec{r}_i(t+t_0) - \vec{r}_i(t_0))^2$$
+
+    where $N$ is the number of particles, and $\vec{r}_i(t)$ is the position vector.
     """
     index_tmax: int
     symbol: str
@@ -929,6 +956,7 @@ class Msdtt0:
 
     @lazy_property
     def msd_t(self) -> np.ndarray:
+        """Average of MSD(t,t_0) over t0."""
         return np.mean(self.arr_tt0, axis=1)
 
     def __str__(self) -> str:
@@ -944,25 +972,27 @@ class Msdtt0:
 
     def get_linfit_results(self):
         """
-        Perform linear fit. Return namedtuple with results.
+        Perform linear fit.
         """
         t_start = self.mda.nt - self.index_tmax
         ts = self.times[t_start:] - self.times[t_start]
         fit = linregress(ts, self.msd_t)
         naive_d = fit.slope * Ang2PsTocm2S / 6
         label = r"Linear fit: D={:.2E} cm$^2$/s, $r^2$={:.2f}".format(naive_d, fit.rvalue**2)
-        return dict2namedtuple(naive_d=naive_d, fit=fit, label=label)
+        return AttrDict(naive_d=naive_d, fit=fit, label=label)
 
     @add_fig_kwargs
     def plot(self, ax=None, xy_log=None, fontsize=8, xlims=None, **kwargs) -> Figure:
         """
+        Plor <msd($t, t_0$)>$ averaged over the the initial time t0.
+
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             xy_log: None or empty string for linear scale. "x" for log scale on x-axis.
                 "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
             fontsize: fontsize for legends and titles
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
-                   or scalar e.g. ``left``. If left (right) is None, default values are used
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
         """
         index_tmax = self.index_tmax
         t_start = self.mda.nt - index_tmax
@@ -1022,8 +1052,7 @@ class Msdtt0:
     def get_diffusion_with_sigma(self,
                                  block_size1: int, block_size2: int,
                                  fit_time_start: float, fit_time_stop: float,
-                                 sigma_berend: SigmaBerend,
-                                 ax=None) -> DiffusionData:
+                                 sigma_berend: SigmaBerend) -> DiffusionData:
         """
         Compute diffusion coefficient with uncertainty.
         """
@@ -1053,7 +1082,7 @@ class Msdtt0:
         mDataInBlock = (size2-size1) / (it2-it1)
         qDataInBlock = size1 - mDataInBlock*it1
 
-        # and find error for anytime
+        # and find error for anytime.
         msd_tt0 = self.arr_tt0
         err_msd = np.zeros(msd_tt0.shape[0], dtype=float)
         for t in range(msd_tt0.shape[0]):
@@ -1064,7 +1093,7 @@ class Msdtt0:
         for t in range(msd_tt0.shape[0]):
             dataScorrelated[t] = int(mDataInBlock * t + qDataInBlock)
 
-        # average over the initial times
+        # average over the initial times.
         msd_t = np.mean(msd_tt0, axis=1)
 
         fit_istart, _ = sfind_ind_val(times, fit_time_start)
@@ -1140,21 +1169,24 @@ class Msdtt0List(list):
         """String representation with verbosity level verbose."""
         lines = []
         app = lines.append
-        for i, obj in enumerate(self):
-            app(obj.to_string(verbose=verbose))
+        for i, msdtt0 in enumerate(self):
+            app(msdtt0.to_string(verbose=verbose))
 
         return "\n".join(lines)
 
     @add_fig_kwargs
     def plot(self, sharex=True, sharey=True, fontsize=8, **kwargs) -> Figure:
+        """
+        Plot all Msdtt0 objects on a grid.
+        """
         nrows, ncols = len(self), 1
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=sharex, sharey=sharey, squeeze=False)
         ax_list = ax_list.ravel()
         if len(self) % ncols != 0: ax_list[-1].axis("off")
 
-        for ix, (obj, ax) in enumerate(zip(self, ax_list)):
-            obj.plot(ax=ax, fontsize=fontsize, show=False, **kwargs)
+        for ix, (msdtt0, ax) in enumerate(zip(self, ax_list)):
+            msdtt0.plot(ax=ax, fontsize=fontsize, show=False, **kwargs)
 
         return fig
 
@@ -1163,6 +1195,7 @@ class Msdtt0List(list):
 @dataclasses.dataclass(kw_only=True)
 class SigmaBerend:
     """
+    Stores the variance of correlated data as function of block number.
     """
     temperature: float
     latex_formula: str
@@ -1193,9 +1226,9 @@ class SigmaBerend:
                 xs, ys, yerr, it, time = self.block_sizes2, self.sigmas2, self.delta_sigmas2, self.it2, self.time2
 
             ax.errorbar(xs, ys,
-                        yerr=yerr, linestyle='-', linewidth=0.5,
+                        yerr=yerr, linestyle='-', # linewidth=0.5,
                         label="$\sigma(\mathrm{MSD}($" + '%2.1f' % time +" ps$))$ "+ '\n' +
-                               self.latex_formula + ', '+ 'T = %4.0f' % self.temperature + 'K')
+                              self.latex_formula + ', '+ 'T = %4.0f' % self.temperature + 'K')
             ax.legend(fontsize=fontsize, loc="lower right")
             ax.set_xlabel('N. of data in block', fontsize=fontsize)
             ax.set_ylabel('$\sigma$ ($\AA^2$)', fontsize=fontsize)
@@ -1206,8 +1239,9 @@ class SigmaBerend:
 
 
 @dataclasses.dataclass(kw_only=True)
-class DiffusionData:
+class DiffusionData(HasPickleIO):
     """
+    Diffusion results
     """
     diffusion_coeff: float
     err_diffusion_coeff: float
@@ -1216,6 +1250,7 @@ class DiffusionData:
     temperature: float
     symbol: str
     latex_formula: str
+    avg_volume: float
     ncarriers: int
     block_size1: int
     block_size2: int
@@ -1235,16 +1270,10 @@ class DiffusionData:
     msdSScorrelated: np.ndarray
     errMSDScorrelated: np.ndarray
 
-    #@classmethod
-    #def from_file(cls, filepath):
-    #    return cls
-
-    #def json_dump(cls, filepath):
-
     @add_fig_kwargs
-    def plot(self, fontsize=8, ax=None, **kwargs) -> Figure:
+    def plot(self, ax=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot ...
+        Plot MDS(t) with errors.
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ts = self.times[:self.msd_t.shape[0]]
@@ -1290,6 +1319,16 @@ class DiffusionDataList(list):
     #        ncols = 2; nrows = nplots // ncols + nplots % ncols
     #    return nrows, ncols, nplots
 
+    #def filter(self, filter_dict: dict) -> DiffusionDataList:
+    #    """
+    #    filter_dict = [{symbol: "Li"}
+    #    """
+    #    new = DiffusionDataList()
+    #    for df_data in self:
+    #        if all(getattr(df_data, a_name) == a_value for (a_name, a_value) in filter_dict.items()):
+    #            new.append(df_data)
+    #    return new
+
     def get_dataframe(self, add_keys=None) -> pd.DataFrame:
         """
         Dataframe with diffusion results.
@@ -1314,7 +1353,7 @@ class DiffusionDataList(list):
     def plot_sigma_berend(self, **kwargs) -> Figure:
         """
         Plot variance of correlated data as function of block number
-        for all items stored DiffusionDataList.
+        for all items stored in DiffusionDataList.
         """
         nrows, ncols = len(self), 2
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
@@ -1342,11 +1381,64 @@ class DiffusionDataList(list):
 
         return fig
 
-    #@add_fig_kwargs
-    #def plot_arrhenius(self, ax=None, **kwargs) -> Figure:
-    #    df = self.get_dataframe()
-    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
-    #    return fig
+    def get_arrhenius_nmtuples(self, df: pd.Dataframe, hue: str|None) -> list:
+        """
+        Return list of namedtuple objects.
+
+        Args:
+            df: |pandas-DataFrame|.
+            hue: Variable that defines how to group data. If None, no grouping is performed.
+        """
+        df = df.sort_values(["temperature"])
+
+        if hue is None:
+            if not df["temperature"].is_unique:
+                raise ValueError("Found duplicated values in temperature column. Please specify hue")
+
+            return [AttrDict(temps=df["temperature"].values,
+                             d_coeffs=df["diffusion_coeff"].values,
+                             d_errs=df["err_diffusion_coeff"].values,
+                             )]
+
+        nt_list = []
+        for key, grp in df.groupby(hue):
+            grp = gpr.sort_values(["temperature"])
+            if not grp["temperature"].is_unique:
+                raise ValueError(f"Found duplicated values in temperature column for {hue=}")
+            nt = AttrDict(temps=grp["temperature"].values,
+                          d_coeffs=grp["diffusion_coeff"].values,
+                          d_errs=grp["err_diffusion_coeff"].values,
+                          )
+            nt_list.append(nt)
+        return nt_list
+
+    @add_fig_kwargs
+    def plot_arrhenius(self, hue=None, ax=None,
+                       xy_log=None, fontsize=8, **kwargs) -> Figure:
+        """
+        Arrhenius plot.
+
+        Args:
+            xy_log: None or empty string for linear scale. "x" for log scale on x-axis.
+                "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
+            fontsize: fontsize for legends and titles
+        """
+        df = self.get_dataframe()
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        for nt in self.get_arrhenius_nmtuples(df, hue):
+            xs = 1000 / nt.temps
+            ys = nt.d_coeff
+            #log10DiffArraym3gnet = np.log10(diffArraym3gnet)
+            #errLog10DiffArraym3gnet = np.log10(np.e)*errDiffArraym3gnet/diffArraym3gnet
+            #nt.d_err
+            #ax.plot(xs, ys, label=f"${symbol}_{{{iatom}}}$")
+
+        ax.legend(fontsize=fontsize, loc="upper left")
+        ax.set_xlabel('T (K)', fontsize=fontsize)
+        ax.set_ylabel(r"D$_{tr}$", fontsize=fontsize)
+        set_logscale(ax, xy_log)
+
+        return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -1372,10 +1464,10 @@ class MultiMdAnalyzer(HasPickleIO):
         """
         Build an instance from a list of directories produced by abiml.py md
         """
-        nprocs, pool_cls, using_msg = nprocs_poolcls_msg(len(directories), pmode=pmode)
-        using_msg = f"Reading {len(directories)} abiml directories {using_msg}"
+        p = pool_nprocs_pmode(len(directories), pmode=pmode)
+        using_msg = f"Reading {len(directories)} abiml directories {p.using_msg}"
         args = [(dirpath, step_skip) for dirpath in directories]
-        with pool_cls(nprocs) as pool, Timer(header=using_msg, footer="") as timer:
+        with p.pool_cls(p.nprocs) as pool, Timer(header=using_msg, footer="") as timer:
             return cls(pool.starmap(MdAnalyzer.from_abiml_dir, args))
 
     @classmethod
@@ -1383,10 +1475,10 @@ class MultiMdAnalyzer(HasPickleIO):
         """
         Build an instance from a list of directories containing LAMMPS results.
         """
-        nprocs, pool_cls, using_msg = nprocs_poolcls_msg(len(directories), pmode=pmode)
-        using_msg = f"Reading {len(directories)} LAMMPS directories {using_msg}"
+        p = pool_nprocs_pmode(len(directories), pmode=pmode)
+        using_msg = f"Reading {len(directories)} LAMMPS directories {p.using_msg}"
         args = [(dirpath, step_skip, basename) for dirpath in directories]
-        with pool_cls(nprocs) as pool, Timer(header=using_msg, footer="") as timer:
+        with p.pool_cls(p.nprocs) as pool, Timer(header=using_msg, footer="") as timer:
             return cls(pool.starmap(MdAnalyzer.from_lammps_dir, args))
 
     @classmethod
@@ -1394,10 +1486,10 @@ class MultiMdAnalyzer(HasPickleIO):
         """
         Build an instance from a list of vasprun files.
         """
-        nprocs, pool_cls, using_msg = nprocs_poolcls_msg(len(vasprun_filepaths), pmode=pmode)
-        using_msg = f"Reading {len(vasprun_filepaths)} vasprun files {using_msg}..."
+        p = pool_nprocs_pmode(len(vasprun_filepaths), pmode=pmode)
+        using_msg = f"Reading {len(vasprun_filepaths)} vasprun files {p.using_msg}..."
         args = [(vrun, step_skip) for vrun in vasprun_filepaths]
-        with pool_cls(nprocs) as pool, Timer(header=using_msg, footer="") as timer:
+        with p.pool_cls(p.nprocs) as pool, Timer(header=using_msg, footer="") as timer:
             return cls(pool.starmap(MdAnalyzer.from_vaspruns, args))
 
     @classmethod
@@ -1405,10 +1497,10 @@ class MultiMdAnalyzer(HasPickleIO):
         """
         Build an instance from a list of ABINIT HIST.nc files.
         """
-        nprocs, pool_cls, using_msg = nprocs_poolcls_msg(len(hist_filepaths), pmode=pmode)
-        using_msg = f"Reading {len(hist_filepaths)} HIST.nc files {using_msg}..."
+        p = pool_nprocs_pmode(len(hist_filepaths), pmode=pmode)
+        using_msg = f"Reading {len(hist_filepaths)} HIST.nc files {p.using_msg}..."
         args = [(ncpath, step_skip) for ncpath in hist_filepaths]
-        with pool_cls(nprocs) as pool, Timer(header=using_msg, footer="") as timer:
+        with p.pool_cls(p.nprocs) as pool, Timer(header=using_msg, footer="") as timer:
             return cls(pool.starmap(MdAnalyzer.from_hist_file, args))
 
     #@classmethod
@@ -1416,10 +1508,10 @@ class MultiMdAnalyzer(HasPickleIO):
     #    """
     #    Build an instance from a list of QE input files.
     #    """
-    #    nprocs, pool_cls, using_msg = nprocs_poolcls_msg(len(filepaths), pmode=pmode)
-    #    using_msg = f"Reading {len(filespaths)} QE input files {using_msg}..."
+    #    p = pool_nprocs_pmode(len(filepaths), pmode=pmode)
+    #    using_msg = f"Reading {len(filespaths)} QE input files {p.using_msg}..."
     #    args = [(path, step_skip) for path in filepaths]
-    #    with pool_cls(nprocs) as pool, Timer(header=using_msg, footer="") as timer:
+    #    with p.pool_cls(p.nprocs) as pool, Timer(header=using_msg, footer="") as timer:
     #        return cls(pool.starmap(MdAnalyzer.from_qe_input, args))
 
     def __init__(self, mdas: list[MdAnalyzer], temp_colormap="jet"):
@@ -1532,7 +1624,7 @@ class MultiMdAnalyzer(HasPickleIO):
                 "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
             fontsize: fontsize for legends and titles.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
-                   or scalar e.g. ``left``. If left (right) is None, default values are used
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
         """
         symbols = self[0]._select_symbols(symbols)
         nrows, ncols, nplots = self._nrows_ncols_nplots(size=len(symbols))
@@ -1588,40 +1680,6 @@ def linear_lsq_linefit(x, z, weights):
     return m, q, varM, varQ
 
 
-def nprocs_poolcls_msg(nprocs: int | None, pmode: str) -> tuple:
-    """
-
-    Args:
-        nprocs:
-        pmode: "threads", "processes" or "seq"
-    """
-    from multiprocessing.pool import ThreadPool
-    from multiprocessing import Pool
-    import os
-    max_nprocs = max(1, os.cpu_count())
-
-    if pmode == "seq":
-        nprocs, pool_cls = 1, ThreadPool
-
-    elif pmode == "threads":
-        pool_cls = ThreadPool
-        if nprocs is not None:
-            pool_cls = ThreadPool if nprocs > 0 else Pool
-            nprocs = min(abs(nprocs), max_nprocs)
-
-    elif pmode == "processes":
-        pool_cls = Pool
-        if nprocs is not None:
-            pool_cls = Pool if nprocs > 0 else ThreadPool
-            nprocs = min(abs(nprocs), max_nprocs)
-
-    else:
-        raise ValueError(f"Invalid value of {pmode=}, it should be in ['seq', 'threads', 'processes']")
-
-    nprocs = nprocs or max_nprocs
-    return nprocs, pool_cls, f"using {nprocs=} with {pmode=} and Pool class: {pool_cls.__name__} ..."
-
-
 def _func(size_t0: int, it: int, pos_tac: np.ndarray, msd_tt0: np.ndarray):
     msd_tt0[it,:] = np.mean(np.sum((pos_tac[it:it+size_t0,:,:] - pos_tac[:size_t0,:,:])**2, axis=2), axis=1)
 
@@ -1633,6 +1691,11 @@ def msd_tt0_from_tac(pos_tac: np.ndarray, size_t: int, nprocs=None) -> np.ndarra
         $$MSD(t,t_0) = \frac{1}{N} \sum_{i=1}^{N} (\vec{r}_i(t+t_0) - \vec{r}_i(t_0))^2$$
 
     where $N$ is the number of particles, and $\vec{r}_i(t)$ is the position vector.
+
+    Args:
+        pos_tac
+        size_t
+        nprocs:
     """
     # Check if size_t is valid.
     n_time_points = pos_tac.shape[0]
@@ -1642,17 +1705,16 @@ def msd_tt0_from_tac(pos_tac: np.ndarray, size_t: int, nprocs=None) -> np.ndarra
     size_t0 = pos_tac.shape[0] - size_t
     msd_tt0 = np.empty((size_t, size_t0), dtype=float)
 
-    #print(f"msd_tt0_from_tac: {size_t=}, {size_t0=} with {nprocs=}")
     if nprocs == 1:
         for it in range(0, size_t):
             #for it0 in range(0, size_t0):
             #    msd_tt0[it,it0] = np.mean(np.sum((pos_tac[it+it0,:,:] - pos_tac[it0,:,:])**2, axis=1))
             msd_tt0[it,:] = np.mean(np.sum((pos_tac[it:it+size_t0,:,:] - pos_tac[:size_t0,:,:])**2, axis=2), axis=1)
     else:
-        nprocs, pool_cls, using_msg = nprocs_poolcls_msg(nprocs, pmode="threads")
-        using_msg = f"Computing MSD(t,t_0) matrix of shape {(size_t, size_t0)} {using_msg}"
+        p = pool_nprocs_pmode(nprocs, pmode="threads")
+        using_msg = f"Computing MSD(t,t_0) matrix of shape {(size_t, size_t0)} {p.using_msg}"
         args = [(size_t0, it, pos_tac, msd_tt0) for it in range(0, size_t)]
-        with pool_cls(nprocs) as pool, Timer(header=using_msg, footer="") as timer:
+        with p.pool_cls(p.nprocs) as pool, Timer(header=using_msg, footer="") as timer:
             pool.starmap(_func, args)
 
     return msd_tt0
@@ -1684,7 +1746,7 @@ def sigma_berend(nblock_step: int, tot_block: int, data: np.ndarray) -> tuple[fl
         tot_block:
         data:
 
-    Return: data_in_block, sigma, delta_sigma
+    Return: (data_in_block, sigma, delta_sigma)
     """
     Ndata = data.shape[0]
     mean = np.mean(data)
@@ -1706,3 +1768,341 @@ def sigma_berend(nblock_step: int, tot_block: int, data: np.ndarray) -> tuple[fl
     delta_sigma = 0.5 * delta_sigma2 / sigma
 
     return data_in_block, sigma, delta_sigma
+
+
+def _lin_fit(th_invt, log10d0, e_act):
+    return log10d0 - e_act * th_invt
+
+
+@dataclasses.dataclass(kw_only=True)
+class Entry:
+    """
+    """
+
+    key: str
+    symbol: str
+    formula: str
+    temps: np.ndarray
+    diffusions: np.ndarray
+    err_diffusions: np.ndarray
+    volumes: np.ndarray
+    style: dict
+
+    @classmethod
+    def from_file(cls, filepath: PathLike, key, symbol, formula, style) -> Entry:
+
+        if str(filepath).endswith(".dat"):
+            try:
+                arr = np.loadtxt(filepath)
+                temps = arr[:,0]
+                diffusions = arr[:,1]
+                err_diffusions = arr[:,2]
+                volumes = arr[:,3]
+            except Exception as exc:
+                raise RuntimeError(f"Exception while reading {filepath=}") from exc
+        else:
+            try:
+                # Read data in CSV format. Assuming header with at least the following entries:
+                # T,diffusion,err_diffusion,volume,symbol,formula
+                df = pd.read_csv(filepath, skipinitialspace=True) #, delim_whitespace=True)
+
+                def get_unique(col):
+                    v0 = df[col].values[0]
+                    if np.any(v0 != df[col].values):
+                        raise ValueError(f"All values for column: {k} should be unique while found:\n{df[col].values}")
+                    return v0
+
+                symbol = get_unique("symbol")
+                formula = get_unique("formula")
+                temps = df["T"].values
+                volumes = df["volume"].values
+                diffusions = df["diffusion"].values
+                err_diffusions = np.zeros(len(temps))
+                if "err_diffusion" in df.keys():
+                    err_diffusions = df["err_diffusion"].values
+
+            except Exception as exc:
+                raise RuntimeError(f"Exception while reading {filepath=}") from exc
+
+        return cls(key=key,
+                   symbol=symbol,
+                   formula=formula,
+                   temps=temps,
+                   diffusions=diffusions,
+                   err_diffusions=err_diffusions,
+                   volumes=volumes,
+                   style=style,
+                   )
+
+    #def __post_init__(self):
+    #    self.latex_formula = latexify(self.formula)
+
+    #@property
+    #def latex_formula(self) -> str:
+    #    return self._latex_formula
+
+    #@latex_formula.setter
+    #def latex_formula(self, value):
+    #    """LaTeX formatted formula. E.g., Fe2O3 is transformed to Fe$_{2}$O$_{3}$."""
+    #    self._latex_formula = latexify(value)
+
+    def get_diffusion_data(self, fit_thinvt=None) -> AttrDict:
+        """
+        Fit diffusion(T) taking into account uncertainties.
+        Return activation energy in eV and fit parameters.
+        """
+        # NB: log10(x) = ln(x) log10(e) --> d_x log_10(x) = log10(e) / x
+        th_invt = 1000 / self.temps
+        log10 = np.log10(self.diffusions)
+        err_log10 = np.log10(np.e) * self.err_diffusions / self.diffusions
+        popt, pcov = optimize.curve_fit(_lin_fit, th_invt, log10, sigma=err_log10)
+        e_act = popt[1] * 1000 * kBoltzEv * np.log(10)
+
+        fit_log10 = None
+        if fit_thinvt is not None:
+            fit_log10 = _lin_fit(fit_thinvt, popt[0], popt[1])
+
+        return AttrDict(
+            th_invt=th_invt,
+            log10=log10, err_log10=err_log10,
+            fit_thinvt=fit_thinvt, fit_log10=fit_log10,
+            e_act=e_act, popt=popt, pcov=pcov,
+        )
+
+    def get_conductivity_data(self, ncar: float, fit_thinvt=None) -> tuple[AttrDict, AttrDict]:
+        """
+        Compute conductivity sigma and T x sigma(T) assuming ncar carriers.
+        Fit values taking into account uncertainties.
+
+            sigma(T) =  Nq^2 D(T) / (VkT)
+        """
+        temps = self.temps
+        diffusions = self.diffusions
+        err_diffusions = self.err_diffusions
+        volumes = self.volumes
+
+        th_invt = 1000 / self.temps
+
+        # NB: log10(x) = ln(x) log10(e) --> d_x log_10(x) = log10(e) / x
+        conds  = e2s/kbs * ncar * diffusions/volumes/temps * 1.e09
+        err_conds = e2s/kbs * ncar * err_diffusions/volumes/temps * 1.e09
+        log10_conds = np.log10(conds)
+        err_log10_conds = np.log10(np.e) * err_conds / conds
+        cond_popt, cond_pcov = optimize.curve_fit(_lin_fit, th_invt, log10_conds, sigma=err_log10_conds)
+
+        fit_log10_cond = None
+        if fit_thinvt is not None:
+            fit_log10_cond = _lin_fit(fit_thinvt, cond_popt[0], cond_popt[1])
+
+        # temp(K) * sigma(S/cm)
+        t_conds = e2s/kbs * ncar * diffusions/volumes*1.e09
+        err_tconds = e2s/kbs * ncar * err_diffusions/volumes*1.e09
+        log10_tconds = np.log10(t_conds)
+        err_log10_tconds = np.log10(np.e) * err_tconds / t_conds
+        tcond_popt, tcond_pcov = optimize.curve_fit(_lin_fit, th_invt, log10_tconds, sigma=err_log10_tconds)
+
+        fit_log10_tcond = None
+        if fit_thinvt is not None:
+            fit_log10_tcond = _lin_fit(fit_thinvt, tcond_popt[0], tcond_popt[1])
+
+        return (
+           AttrDict(
+               th_invt=th_invt,
+               log10=log10_conds, err_log10=err_log10_conds,
+               fit_thinvt=fit_thinvt, fit_log10=fit_log10_cond,
+               popt=cond_popt, cov=cond_pcov,
+           ),
+           AttrDict(
+               th_invt=th_invt,
+               log10=log10_tconds, err_log10=err_log10_tconds,
+               fit_thinvt=fit_thinvt, fit_log10=fit_log10_tcond,
+               popt=tcond_popt, cov=tcond_pcov,
+           )
+        )
+
+
+class ArrheniusPlotter:
+    """
+    This object stores the conductivities D(T) computed for different structures and/or
+    different ML-potentials and allows one to produce Arrnehnius plots on the same figure.
+    Internally, the results are indexed by a unique key that is be used as label in the matplotlib plot.
+    The style for each key can be customized by setting a dict with the options that will be passed to ax.plot.
+
+    In the simplest case, one reads the data from external files in CSV format.
+
+    Example:
+
+        from abipy.dynamics.analyzer import ArrheniusPlotter
+        symbol = "Li"
+        formula = "c-LLZO"
+
+        key_path = {
+            "matgl-MD":  "diffusion_cLLZO-matgl.dat",
+            "m3gnet-MD": "diffusion_cLLZO-m3gnet.dat",
+        }
+
+        style_key = {
+            "matgl-MD" : dict(c='blue'),
+            "m3gnet-MD": dict(c='purple'),
+        }
+
+        plotter = ArrheniusPlotter()
+        for key, path in key_path.items():
+            plotter.add_entry_from_file(path, key, symbol, formula, style=style_key[key])
+
+        # temperature grid refined
+        thinvt_arange = (0.6, 2.5, 0.01)
+        xlims, ylims = (0.5, 2.0), (-7, -4)
+
+        plotter.plot(thinvt_arange=thinvt_arange,
+                     xlims=xlims, ylims=ylims, text='LLZO cubic',
+                     savefig=None)
+    """
+
+    def __init__(self):
+        self.entries = []
+
+    def __iter__(self):
+        return self.entries.__iter__()
+
+    def __len__(self) -> int:
+        return len(self.entries)
+
+    def __getitem__(self, items):
+        return self.entries.__getitem__(items)
+
+    def copy(self):
+        """Deep copy of the object."""
+        import copy
+        return copy.deepcopy(self)
+
+    def keys(self) -> list[str]:
+        """List of keys. Must be unique"""
+        return [entry.key for entry in self]
+
+    def symbols(self) -> set[str]:
+        """Return set with chemical symbols."""
+        return set([entry.symbol for entry in self])
+
+    def index_key(self, key: str) -> int:
+        """Find the index of key. Raise KeyError if not found."""
+        for i, entry in enumerate(self):
+            if entry.key == key: return i
+        raise KeyError(f"Cannot find {key=} in {self.keys=}")
+
+    def pop_key(self, key: str) -> Entry:
+        """Popn entry by key"""
+        i = self.index_key(key)
+        return self.entries.pop(i)
+
+    def append(self, entry: Entry) -> None:
+        """Append new entry."""
+        if entry.key in self.keys():
+            raise KeyError(f"{key=} is already present.")
+        self.entries.append(entry)
+
+    def set_style(self, key: str, style: dict) -> None:
+        """Set matplotlib style for key."""
+        i = self.index_key(key)
+        self.entries[i].style = style
+
+    def get_min_max_temp(self) -> tuple[float, float]:
+        """Compute the min and max temperature for all entries."""
+        min_temp = min([e.temperatures.min() for e in self])
+        max_temp = max([e.temperatures.max() for e in self])
+        return min_temp, max_temp
+
+    def add_entry_from_file(self, filepath: PathLike, key: str, symbol: str, formula: str, style=None) -> Entry:
+        """
+        """
+        style = style or {}
+        self.append(Entry.from_file(filepath, key, symbol, formula, style))
+
+    @add_fig_kwargs
+    def plot(self, thinvt_arange=None, what="diffusion", ncar=None, colormap="jet", with_t=True, text=None,
+             ax=None, fontsize=8, xlims=None, ylims=None, **kwargs) -> Figure:
+        """
+        Arrhenius plot.
+
+        Args:
+            thinvt_arange: start, stop, step for 1000/T mesh. If None, the mesh is automatically computed.
+            what: Selects the quantity to plot. Possibile values: "diffusion", "sigma", "tsigma".
+            ncar: Number of carriers. Required if what is "sigma" or "tsigma".
+            colormap: Colormap used to select the color if entry.style does not provide it.
+            with_t: True to dd a twin axes with the value of T
+            text:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: fontsize for legends and titles.
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
+            ylims: Similar to xlims but for the y-axis.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        cmap = plt.get_cmap(colormap)
+
+        # Build temperature grid for fit.
+        if thinvt_arange is None:
+            t_min, t_max = self.get_min_max_temp()
+            xstart, xstop = 1000 / t_max, 1000 / t_min
+            xstart, xstop = 0.8 * xstart, 1.2 * xstop
+            thinvt_arange = (xstart, xstop, 0.01)
+
+        fit_thinvt = np.arange(thinvt_arange[0], thinvt_arange[1], step=thinvt_arange[2])
+
+        for ie, entry in enumerate(self):
+            my_style = entry.style.copy()
+            if "marker" not in my_style:
+                my_style["marker"] = "."
+            if "linestyle" not in my_style and "ls" not in my_style:
+                my_style["linestyle"] = ""
+            if "color" not in my_style and "c" not in my_style:
+                my_style["color"] = cmap(ie / len(self))
+
+            diff = entry.get_diffusion_data(fit_thinvt=fit_thinvt)
+            label = r"D$_{\mathrm{%s}}$ (%s): " % (entry.symbol, entry.key)
+            label += r"E$_\mathrm{a}$=" + str('{:.2F}'.format(diff.e_act)) + 'eV'
+
+            if what == "diffusion":
+                data = diff
+            else:
+                if ncar is None:
+                    raise ValueError("Computation of conductivity requires the specification of ncar!")
+                if len(self.symbols()) != 1:
+                    raise ValueError(f"Computation of conductivity requires entries with same symbol while {self.symbols()=}!")
+                sigma_data, tsigma_data = entry.get_conductivity_data(ncar, fit_thinvt=fit_thinvt)
+                data = dict(sigma=sigma_data, tsigma=tsigma_data)[what]
+
+            ebar = ax.errorbar(data.th_invt, data.log10, yerr=data.err_log10, label=label, capsize=5.0, **my_style)
+            ax.plot(fit_thinvt, data.fit_log10, linestyle='--', color=ebar[0].get_color())
+
+        ax.set_xlabel('1000 / T(K)', fontsize=18)
+        ylabel = dict(
+            diffusion=r"log$_{10}$ (D(cm$^2$/s))",
+            sigma=r"log$_{10}$ [$\sigma$(S/cm)]",
+            tsigma=r"log$_{10}$ [$\sigma$T(SK/cm)]",
+        )[what]
+        ax.set_ylabel(ylabel, fontsize=18)
+        set_axlims(ax, xlims, "x")
+        set_axlims(ax, ylims, "y")
+        ax.legend(loc="lower left", fontsize=12)
+        #set_ticks_fontsize(ax, fontsize=14)
+        #from matplotlib.ticker import MultipleLocator
+        #ax.yaxis.set_major_locator(MultipleLocator(1))
+        #ax.yaxis.set_minor_locator(MultipleLocator(0.2))
+
+        if text:
+            ax.text(0.96, 0.85, text,
+                    verticalalignment='bottom', horizontalalignment='right', transform=ax.transAxes,
+                    color='black', fontsize=18, bbox=dict(facecolor='none', edgecolor='grey', pad=10))
+
+        if with_t:
+            # Add a twin axes and set its limits so it matches the first.
+            ax_t = ax.twiny()
+            ax_t.set_xlabel('T (K)', fontsize=18)
+            ax_t.set_xlim(ax.get_xlim())
+            # apply a function formatter
+            import matplotlib.ticker as mticker
+            formatter = mticker.FuncFormatter(lambda x, pos: '{:.0f}'.format(1000/x))
+            ax_t.xaxis.set_major_formatter(formatter)
+
+        return fig

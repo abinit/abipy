@@ -345,7 +345,7 @@ def make_square_axes(ax_mat):
     #ax.set_aspect(1 / ax.get_data_ratio())
 
 
-class AseResultsComparator:
+class AseResultsComparator(HasPickleIO):
     """
     This object allows one to compare energies, forces and stressee computed
     for the same structure but with different methods e.g. results obtained
@@ -353,14 +353,6 @@ class AseResultsComparator:
     """
 
     ALL_VOIGT_COMPS = "xx yy zz yz xz xy".split()
-
-    @classmethod
-    def pickle_load(cls, workdir):
-        """
-        Reconstruct the object from a pickle file located in workdir.
-        """
-        with open(Path(workdir) / f"{cls.__name__}.pickle", "rb") as fh:
-            return pickle.load(fh)
 
     @classmethod
     def from_ase_results(cls, keys: list[str], results_list: list[list[AseResults]]):
@@ -434,8 +426,7 @@ class AseResultsComparator:
         Write pickle file for object persistence and python script.
         """
         workdir = Path(str(workdir))
-        with open(workdir / f"{self.__class__.__name__}.pickle", "wb") as fh:
-            pickle.dump(self, fh)
+        self.pickle_dump(workdir)
 
         py_path = workdir / "analyze.py"
         print("Writing python script to analyze the results in:", str(py_path))
@@ -1472,7 +1463,7 @@ class MlBase(HasPickleIO):
         the README.md file in _finalize. Print WARNING if basename is already registered.
         """
         if any(basename == t[0] for t in self.basename_info):
-            print(f"WARNING: {basename:} already in basename_info:")
+            print(f"WARNING: {basename=} already in basename_info!")
         self.basename_info.append((basename, info))
 
     def mkdir(self, basename: str, info: str) -> Path:
@@ -1962,6 +1953,7 @@ class MlMd(MlBase):
 
         append_trajectory, len_traj = restart_md(traj_file, self.atoms, self.verbose)
         self.atoms.calc = CalcBuilder(self.nn_name).get_calculator()
+        #forces = self.atoms.get_forces()
 
         if not append_trajectory:
             print("Setting momenta corresponding to the input temperature using MaxwellBoltzmannDistribution.")
@@ -2849,8 +2841,6 @@ class MlCompareNNs(_MlNebBase):
             with Timer(f"Computing GS properties for {len(atoms_list)} configurations with {nn_name=}...") as timer:
                 items = [AseResults.from_atoms(atoms, calc=calc) for atoms in atoms_list]
 
-            #print(timer)
-            #msg = f'completed in {timer.time:.3f} seconds'.lstrip()
             results_list.append(items)
 
         comp = AseResultsComparator.from_ase_results(labels, results_list)
