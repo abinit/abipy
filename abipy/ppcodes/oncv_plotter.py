@@ -163,14 +163,15 @@ class OncvPlotter(NotebookWriter):
             ps_wf, l, k = ps_wfs[nlk], nlk.l, nlk.k
 
             if what == "bound_states":
-                # Show position of the last peak.
+        #         # Show position of the last peak.
                 s, marker = 10, "^"
                 ae_peaks = ae_wf.get_peaks()
-                style = dict(color=self.color_l[l], s=s, marker=marker)
-                ax.scatter(ae_peaks.xs[-1], ae_peaks.ys[-1], **style)
+                # style = dict(color=self.color_l[l], s=s, marker=marker)
+                
+                ax.plot(ae_peaks.xs[-1], ae_peaks.ys[-1], color=self.color_l[l])
                 ps_peaks = ps_wf.get_peaks()
-                style = dict(color=self.color_l[l], s=s, marker=marker)
-                ax.scatter(ps_peaks.xs[-1], ps_peaks.ys[-1], **style)
+                # style = dict(color=self.color_l[l], s=s, marker=marker)
+                ax.plot(ps_peaks.xs[-1], ps_peaks.ys[-1], color=self.color_l[l])
 
             ax.plot(ae_wf.rmesh, ae_wf.values, label=f"AE {nlk.latex}", **self._mpl_opts_laeps(l, "ae"))
             ax.plot(ps_wf.rmesh, ps_wf.values, label=f"PS {nlk.latex}", **self._mpl_opts_laeps(l, "ps"))

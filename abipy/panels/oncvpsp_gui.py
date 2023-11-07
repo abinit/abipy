@@ -12,7 +12,7 @@ import panel.widgets as pnw
 
 from monty.termcolor import cprint
 from monty.string import list_strings
-from abipy.panels.core import AbipyParameterized, depends_on_btn_click, mpl, dfc, ButtonContext, Loading
+from abipy.panels.core import AbipyParameterized, depends_on_btn_click, mpl, dfc, ply, ButtonContext, Loading
 from abipy.tools.numtools import build_mesh
 from abipy.ppcodes.ppgen import OncvGenerator
 #from abipy.ppcodes.oncv_parser import OncvParser
@@ -483,7 +483,6 @@ def run_psgen(psgen: OncvGenerator, data: dict) -> dict:
     return data
 
 class OncvGui(AbipyParameterized):
-
     calc_type = param.ObjectSelector(default="scalar-relativistic",
                                      objects=["scalar-relativistic", "fully-relativistic", "non-relativistic"],
                                      label="Relativistic effects")
@@ -1197,8 +1196,7 @@ The present values of rc_l are: {rc_l}
 
             self._update_out_area(psgen, oncv_input)
 
-    def _update_out_area(self, psgen, oncv_input: OncvInput) -> None:
-
+    def _update_out_area(self, psgen, oncv_input: OncvInput, how="ply") -> None:
         with Loading(self.out_area):
             #self.psgen_to_save = psgen
             plotter = psgen.parser.get_plotter()
@@ -1207,7 +1205,11 @@ The present values of rc_l are: {rc_l}
                 self.out_area.objects = pn.Column("## Plotter is None")
                 return
 
-            _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
+            if how == "mpl":
+                _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
+
+            else:
+                _m = functools.partial(ply, with_divider=False)
 
             save_btn = pnw.Button(name="Save output", button_type='primary')
             save_btn.on_click(self.on_save_btn)
@@ -1217,26 +1219,26 @@ The present values of rc_l are: {rc_l}
                 pn.layout.Divider(),
                 "## Pseudized Wavefunctions",
                 pn.Row(_m(plotter.plot_radial_wfs(show=False)),
-                       self.get_rc_widgets(oncv_input)),
-                pn.Row(_m(plotter.plot_radial_wfs(what="scattering_states", show=False))),
+                    self.get_rc_widgets(oncv_input), height=600),
+                pn.Row(_m(plotter.plot_radial_wfs(what="scattering_states", show=False)), height=600),
                 pn.layout.Divider(),
                 "## Logder and convergence profile",
                 pn.Row(_m(plotter.plot_atanlogder_econv(show=False)),
-                       self.get_qcut_widgets(oncv_input),
-                       self.get_debl_widgets(oncv_input)),
+                    self.get_qcut_widgets(oncv_input), height=500),
+                pn.Row(pn.Spacer(), self.get_debl_widgets(oncv_input), align='end', height=300),
                 pn.layout.Divider(),
                 "## Pseudized local part",
                 pn.Row(_m(plotter.plot_potentials(show=False)),
-                       self.get_rc5_widgets(oncv_input),
-                       self.get_dvloc0_widgets(oncv_input)),
+                    self.get_rc5_widgets(oncv_input), height=400),
+                pn.Row(pn.Spacer(), self.get_dvloc0_widgets(oncv_input), align="end", height=300),
                 pn.layout.Divider(),
                 "## Model core charge",
                 pn.Row(_m(plotter.plot_densities(show=False)),
-                       self.get_rhomodel_widgets(oncv_input)),
-                pn.Row(_m(plotter.plot_den_formfact(show=False))),
+                    self.get_rhomodel_widgets(oncv_input), height=600),
+                pn.Row(_m(plotter.plot_den_formfact(show=False)), height=600),
                 pn.layout.Divider(),
                 "## Projectors",
-                pn.Row(_m(plotter.plot_projectors(show=False))),
+                pn.Row(_m(plotter.plot_projectors(show=False)), height=600),
                 pn.layout.Divider(),
             ]
 

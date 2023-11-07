@@ -343,6 +343,10 @@ def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=Fals
       showLink=True,
       plotlyServerURL="https://chart-studio.plotly.com",
       )
+    
+    from plotly.tools import mpl_to_plotly
+    
+    fig = mpl_to_plotly(fig)
 
     plotly_pane = pn.pane.Plotly(fig, config=config)
     ca(plotly_pane)
