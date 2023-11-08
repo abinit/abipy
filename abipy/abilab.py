@@ -134,6 +134,8 @@ ext2file = collections.OrderedDict([
     # Vasp files.
     ("POSCAR", Structure),
     (".vasp", Structure),
+    # ASE files
+    (".xyz", Structure),
     #("ZINVCONV.nc", ZinvConvFile),
     #("TETRATEST.nc", TetraTestFile),
     # QE/CP files

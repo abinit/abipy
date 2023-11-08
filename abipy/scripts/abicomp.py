@@ -229,7 +229,7 @@ def abicomp_xrd(options):
     Compare X-ray diffraction plots (requires FILES with structure).
     """
     if len(options.paths) < 2:
-        print("You need more than one structure to compare!")
+        print("You need more than one structures to compare!")
         return 1
 
     structures = [abilab.Structure.from_file(p) for p in options.paths]
@@ -584,7 +584,7 @@ def abicomp_abiwan(options):
 
 
 def abicomp_pseudos(options):
-    """"Compare multiple pseudos Print table to terminal."""
+    """"Compare multiple pseudos and print table to terminal."""
     # Make sure entries in index are unique.
     index = [os.path.basename(p) for p in options.paths]
     if len(index) != len(set(index)): index = [os.path.relpath(p) for p in options.paths]

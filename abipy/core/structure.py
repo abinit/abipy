@@ -290,7 +290,6 @@ class Structure(pmg_Structure, NotebookWriter):
             raise ValueError("Cannot find structure in Abinit output file `%s`" % filepath)
 
         elif filepath.endswith(".abivars") or filepath.endswith(".ucell"):
-            #print("in abivars")
             with open(filepath, "rt") as fh:
                 return cls.from_abistring(fh.read())
 
@@ -313,6 +312,15 @@ class Structure(pmg_Structure, NotebookWriter):
                         (filepath, type(new)))
 
                 if new.__class__ != cls: new.__class__ = cls
+
+        elif filepath.endswith(".xyz"):
+            # ASE extended xyz format.
+            try:
+                from ase.io import read
+            except ImportError:
+                raise RuntimeError("ase is required to read xyz files. Use `pip install ase`")
+            atoms = read(filepath)
+            return cls.as_structure(atoms)
 
         else:
             # Invoke pymatgen and change class. Note that AbinitSpacegroup is missing here.
@@ -2624,7 +2632,7 @@ def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.st
             print(diff, file=file)
 
     else:
-        raise ValueError("Unsupported mode: `%s`" % str(mode))
+        raise ValueError(f"Unsupported {mode=}")
 
 
 def structure2siesta(structure: Structure, verbose=0) -> str:
@@ -2686,7 +2694,6 @@ class StructDiff:
     """
     Print difference among structures.
     """
-
     def __init__(self, labels: list[str], structures):
         """
         Args:

@@ -1818,7 +1818,7 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
                 ================  ====================================================================
                 title             Title of the plot (Default: None).
                 show              True to show the figure (default: True).
-                hovormode         True to show the hover info (default: False)
+                hovermode         True to show the hover info (default: False)
                 savefig           "abc.png" , "abc.jpeg" or "abc.webp" to save the figure to a file.
                 write_json        Write plotly figure to `write_json` JSON file.
                                   Inside jupyter-lab, one can right-click the `write_json` file from

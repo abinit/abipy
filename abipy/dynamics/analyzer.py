@@ -21,6 +21,7 @@ from monty.string import list_strings, is_string, marquee
 from monty.collections import AttrDict #, dict2namedtuple
 from pymatgen.util.string import latexify
 from pymatgen.core.lattice import Lattice
+from pymatgen.core.composition import Composition
 from abipy.core.mixins import TextFile, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools.typing import Figure, PathLike
@@ -45,6 +46,21 @@ kbs = 1.38066     # Boltzmann constant in Joule/K scaled by 10.d-23
 #kBoltz = 1.38066e-23
 kBoltzEv = 8.617333e-05
 #nCar = 56  # FIXME: Harcoded
+
+
+def common_oxidation_states():
+    oxi2symbols = {
+    +1: ["Li", "Na", "K", "Rb", "Cs", "Fr"],
+    +2: ["Be", "Mg", "Ca", "Sr", "Ba", "Ra"],
+    }
+
+    # map: symbol to oxidation state.
+    symb2oxi = {}
+    for oxi, slist in oxi2symbols.items():
+        for s in slist:
+            symb2oxi[s] = oxi
+    return symb2oxi
+
 
 def read_structure_postac_ucmats(traj_filepath: PathLike, step_skip: int) -> tuple[Structure, np.ndarray, np.ndarray, int]:
     """
@@ -711,7 +727,7 @@ class MdAnalyzer(HasPickleIO):
         label = r"Linear fit: D={:.2E} cm$^2$/s, $r^2$={:.2f}".format(naive_d, fit.rvalue**2)
         return AttrDict(naive_d=naive_d, ts=ts, fit=fit, label=label)
 
-    def get_msdtt0_symbol(self, symbol: str, tmax: float, atom_inds=None, nprocs=None) -> Msdtt0:
+    def get_msdtt0_symbol_tmax(self, symbol: str, tmax: float, atom_inds=None, nprocs=None) -> Msdtt0:
         r"""
         Calculates the MSD for every possible pair of time points using the formula:
 
@@ -1571,10 +1587,10 @@ class MultiMdAnalyzer(HasPickleIO):
         for itemp, mda in enumerate(self):
             yield mda, mda.temperature, self.temp_cmap(float(itemp) / len(self))
 
-    def get_msdtt0_symbol(self, symbol: str, tmax: float, atom_inds=None, nprocs=None) -> Msdtt0List:
+    def get_msdtt0_symbol_tmax(self, symbol: str, tmax: float, atom_inds=None, nprocs=None) -> Msdtt0List:
         msdtt0_list = Msdtt0List()
         for mda in self:
-            obj = mda.get_msdtt0_symbol(symbol, tmax, atom_inds=atom_inds, nprocs=nprocs)
+            obj = mda.get_msdtt0_symbol_tmax(symbol, tmax, atom_inds=atom_inds, nprocs=nprocs)
             msdtt0_list.append(obj)
 
         return msdtt0_list
@@ -1602,7 +1618,7 @@ class MultiMdAnalyzer(HasPickleIO):
     #    data_list = DiffusionDataList()
     #    for it, ((mda, temp), params) in enumerate(zip(self.iter_mdat(), params_list)):
     #        p = AttrDict(**params)
-    #        msq_tt0 = mda.get_msdtt0_symbol(symbol, p.tmax, nprocs=nprocs)
+    #        msq_tt0 = mda.get_msdtt0_symbol_tmax(symbol, p.tmax, nprocs=nprocs)
     #        sigma = msq_tt0.get_sigma_berend(t1=p.t1, t2=p.t2)
     #        data_t = msq_tt0.get_diffusion_with_sigma(p.fit_time_start, p.fit_time_stop, p.block_size1, p.block_size2, sigma)
     #        data_list.append(data_t)
@@ -1781,7 +1797,8 @@ class Entry:
 
     key: str
     symbol: str
-    formula: str
+    #formula: str
+    composition: str
     temps: np.ndarray
     diffusions: np.ndarray
     err_diffusions: np.ndarray
@@ -1789,7 +1806,7 @@ class Entry:
     style: dict
 
     @classmethod
-    def from_file(cls, filepath: PathLike, key, symbol, formula, style) -> Entry:
+    def from_file(cls, filepath: PathLike, key, symbol, composition, style) -> Entry:
 
         if str(filepath).endswith(".dat"):
             try:
@@ -1803,7 +1820,7 @@ class Entry:
         else:
             try:
                 # Read data in CSV format. Assuming header with at least the following entries:
-                # T,diffusion,err_diffusion,volume,symbol,formula
+                # T,diffusion,err_diffusion,volume,symbol,composition
                 df = pd.read_csv(filepath, skipinitialspace=True) #, delim_whitespace=True)
 
                 def get_unique(col):
@@ -1813,7 +1830,7 @@ class Entry:
                     return v0
 
                 symbol = get_unique("symbol")
-                formula = get_unique("formula")
+                composition = get_unique("composition")
                 temps = df["T"].values
                 volumes = df["volume"].values
                 diffusions = df["diffusion"].values
@@ -1824,9 +1841,12 @@ class Entry:
             except Exception as exc:
                 raise RuntimeError(f"Exception while reading {filepath=}") from exc
 
+        composition = Composition(composition)
+        #print(composition)
+
         return cls(key=key,
                    symbol=symbol,
-                   formula=formula,
+                   composition=composition,
                    temps=temps,
                    diffusions=diffusions,
                    err_diffusions=err_diffusions,
@@ -1934,7 +1954,7 @@ class ArrheniusPlotter:
 
         from abipy.dynamics.analyzer import ArrheniusPlotter
         symbol = "Li"
-        formula = "c-LLZO"
+        composition = "c-LLZO"
 
         key_path = {
             "matgl-MD":  "diffusion_cLLZO-matgl.dat",
@@ -1948,19 +1968,19 @@ class ArrheniusPlotter:
 
         plotter = ArrheniusPlotter()
         for key, path in key_path.items():
-            plotter.add_entry_from_file(path, key, symbol, formula, style=style_key[key])
+            plotter.add_entry_from_file(path, key, symbol, composition, style=style_key[key])
 
         # temperature grid refined
         thinvt_arange = (0.6, 2.5, 0.01)
         xlims, ylims = (0.5, 2.0), (-7, -4)
 
         plotter.plot(thinvt_arange=thinvt_arange,
-                     xlims=xlims, ylims=ylims, text='LLZO cubic',
-                     savefig=None)
+                     xlims=xlims, ylims=ylims, text='LLZO cubic', savefig=None)
     """
 
     def __init__(self):
         self.entries = []
+        self.sym2oxi = common_oxidation_states()
 
     def __iter__(self):
         return self.entries.__iter__()
@@ -2012,11 +2032,11 @@ class ArrheniusPlotter:
         max_temp = max([e.temperatures.max() for e in self])
         return min_temp, max_temp
 
-    def add_entry_from_file(self, filepath: PathLike, key: str, symbol: str, formula: str, style=None) -> Entry:
+    def add_entry_from_file(self, filepath: PathLike, key: str, symbol: str, composition: str, style=None) -> Entry:
         """
         """
         style = style or {}
-        self.append(Entry.from_file(filepath, key, symbol, formula, style))
+        self.append(Entry.from_file(filepath, key, symbol, composition, style))
 
     @add_fig_kwargs
     def plot(self, thinvt_arange=None, what="diffusion", ncar=None, colormap="jet", with_t=True, text=None,
@@ -2058,17 +2078,22 @@ class ArrheniusPlotter:
             if "color" not in my_style and "c" not in my_style:
                 my_style["color"] = cmap(ie / len(self))
 
+            symbol = entry.symbol
+            composition = entry.composition
+
             diff = entry.get_diffusion_data(fit_thinvt=fit_thinvt)
-            label = r"D$_{\mathrm{%s}}$ (%s): " % (entry.symbol, entry.key)
+            label = r"D$_{\mathrm{%s}}$ (%s): " % (symbol, entry.key)
             label += r"E$_\mathrm{a}$=" + str('{:.2F}'.format(diff.e_act)) + 'eV'
 
             if what == "diffusion":
                 data = diff
             else:
                 if ncar is None:
-                    raise ValueError("Computation of conductivity requires the specification of ncar!")
-                if len(self.symbols()) != 1:
-                    raise ValueError(f"Computation of conductivity requires entries with same symbol while {self.symbols()=}!")
+                    if symbol not in self.symb2oxi:
+                        raise ValueError(f"No entry for {symbol=} found in symb2oxi! Please add the oxistate manually!")
+                    ncar = symb2oxi[symbol] * composition[symbol]
+                    print(self.symb2oxi[symbol], composition[symbol])
+
                 sigma_data, tsigma_data = entry.get_conductivity_data(ncar, fit_thinvt=fit_thinvt)
                 data = dict(sigma=sigma_data, tsigma=tsigma_data)[what]
 

@@ -58,22 +58,22 @@ from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, ge
 # Helper functions
 ###################
 
-def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
-    """
-    Return the number of procs to be used in a multiprocessing Pool.
-    If negative or None, use half the procs available in the system.
-    """
-    if nprocs is None or nprocs <= 0:
-        nprocs = max(1, os.cpu_count() // 2)
-    else:
-        nprocs = int(nprocs)
-
-    nprocs = min(nprocs, ntasks)
-    if title is not None:
-        print(title)
-        print(f"Using multiprocessing pool with {nprocs=} for {ntasks=} ...")
-
-    return nprocs
+#def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
+#    """
+#    Return the number of procs to be used in a multiprocessing Pool.
+#    If negative or None, use half the procs available in the system.
+#    """
+#    if nprocs is None or nprocs <= 0:
+#        nprocs = max(1, os.cpu_count() // 2)
+#    else:
+#        nprocs = int(nprocs)
+#
+#    nprocs = min(nprocs, ntasks)
+#    if title is not None:
+#        print(title)
+#        print(f"Using multiprocessing pool with {nprocs=} for {ntasks=} ...")
+#
+#    return nprocs
 
 
 _CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
@@ -124,7 +124,7 @@ def fix_atoms(atoms: Atoms,
               fix_inds: list[int] | None = None,
               fix_symbols: list[str] | None = None) -> None:
     """
-    Fix atoms by indices and by symbols.
+    Fix atoms by indices and/or by symbols.
 
     Args:
         atoms: ASE atoms
@@ -347,7 +347,7 @@ def make_square_axes(ax_mat):
 
 class AseResultsComparator(HasPickleIO):
     """
-    This object allows one to compare energies, forces and stressee computed
+    This object allows one to compare energies, forces and stresses computed
     for the same structure but with different methods e.g. results obtained
     with different ML potentials.
     """
@@ -2028,6 +2028,7 @@ class _MlNebBase(MlBase):
         ef, de = nebtools.get_barrier(fit=False)
         neb_data.update(barrier_without_fit=float(ef),
                         energy_change_without_fit=float(de),
+                        nn_name=str(self.nn_name),
         )
 
         self.write_json("neb_data.json", neb_data, info="JSON document with NEB results",
@@ -2232,7 +2233,7 @@ class MlNeb(_MlNebBase):
         self.write_script("ase_gui.sh", text=f"""\
 # To visualize the results, use:
 
-ase gui {nebtraj_file}@-{self.nimages}
+ase gui "{nebtraj_file}@-{self.nimages}"
 
 # then select `tools->neb` in the gui.
 """, info="Shell script to visualize NEB results with ase gui")
@@ -2240,7 +2241,7 @@ ase gui {nebtraj_file}@-{self.nimages}
         self.write_script("ase_nebplot.sh", text=f"""\
 # This command create a series of plots showing the progression of the neb relaxation
 
-ase nebplot --share-x --share-y --nimages {self.nimages} {nebtraj_file}
+ase nebplot --share-x --share-y --nimages {self.nimages} "{nebtraj_file}"
 """, info="Shell script to create a series of plots showing the progression of the neb relaxation")
 
         self._finalize()
@@ -2621,7 +2622,6 @@ class MlValidateWithAbinitio(_MlNebBase):
         results_list = [abi_results]
 
         ntasks = len(abi_results)
-        #nprocs = nprocs_for_ntasks(nprocs, ntasks, title="Begin ML computation")
         nprocs = 1
 
         for nn_name in self.nn_names:
@@ -2775,7 +2775,7 @@ class MolecularDynamics:
         self.dyn.run(steps)
 
 
-class MlCompareNNs(_MlNebBase):
+class MlCompareNNs(MlBase):
     """
     Compare energies, forces and stresses obtaiend with different ML potentials.
     Also profile the time required.
@@ -2821,7 +2821,7 @@ class MlCompareNNs(_MlNebBase):
 
     def run(self, print_dataframes=True) -> AseResultsComparator:
         """
-        Run calculations
+        Run calculations.
         """
         workdir = self.workdir
 

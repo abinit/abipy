@@ -92,6 +92,11 @@ class OncvPlotter(NotebookWriter):
             color = "magenta" if self.parser.lloc == 4 else "k"
             ax.axvline(self.parser.rc5, lw=2, color=color, ls="--")
 
+    def plotly_atan_logders(self, *args, **kwargs):
+        mpl_fig = self.plot_atan_logders(*args, show=False, **kwargs)
+        from plotly.tools import mpl_to_plotly
+        return mpl_to_plotly(mpl_fig)
+
     @add_fig_kwargs
     def plot_atan_logders(self, ax=None, with_xlabel=True,
                           fontsize: int = 8, **kwargs) -> Figure:
