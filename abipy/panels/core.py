@@ -23,6 +23,7 @@ from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
 from abipy.tools.decorators import Appender
 
+import matplotlib.collections as mcoll
 from plotly.tools import mpl_to_plotly
 
 _ABINIT_TEMPLATE_NAME = "FastList"
@@ -345,8 +346,18 @@ def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=Fals
         plotlyServerURL="https://chart-studio.plotly.com",
     )
     
-    # Horrible workaround for plotly latex rendering in legend
+    # Nasty workaround for plotly latex rendering in legend/breaking exception
     for ax in fig.get_axes():
+        # Loop backwards through the collections to avoid modifying the list as we iterate
+        for coll in ax.collections[::-1]:
+            if isinstance(coll, mcoll.PathCollection):
+                # Use the remove() method to remove the scatter plot collection from the axes
+                coll.remove()
+                
+        # # Remove scatter plot collections from the axes, causes plotly to crash
+        # for scatter_coll in scatter_collections:
+        #     ax.collections.remove(scatter_coll)
+
         # Check if the axis has a legend
         if ax.get_legend():
             legend = ax.get_legend()
@@ -360,7 +371,9 @@ def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=Fals
                 label = f"${label}$"
                 # Set the new label
                 text.set_text(label)
-    
+                
+        
+    # Convert to plotly figure
     plotly_fig = mpl_to_plotly(fig)
     
     plotly_fig.update_layout(title = {

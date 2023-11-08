@@ -522,26 +522,26 @@ class OncvGui(AbipyParameterized):
     rcfact_dir = param.Selector(["centered", ">", "<"])
 
     ace_theme = param.ObjectSelector(default="chrome",
-                                     objects=pnw.Ace.param.theme.objects,
-                                     doc="Theme of the editor")
+                                    objects=pnw.Ace.param.theme.objects,
+                                    doc="Theme of the editor")
 
     history_idx = param.Integer(default=-1, label="History index")
 
     @classmethod
-    def from_file(cls, path: str) -> OncvGui:
+    def from_file(cls, path: str, plotlyFlag: bool) -> OncvGui:
         """
         Build an instance from a file with the oncvpsp input variables.
         """
-        return cls(oncv_input=OncvInput.from_file(path), in_filepath=path)
+        return cls(oncv_input=OncvInput.from_file(path), plotlyFlag=plotlyFlag, in_filepath=path)
 
-    def __init__(self, oncv_input, in_filepath="", **params):
+    def __init__(self, oncv_input, plotlyFlag, in_filepath="", **params):
         super().__init__(**params)
 
         self.ace_kwargs = dict(sizing_mode='stretch_both', print_margin=False, language='text', height=600,
-                          theme="chrome",
-                          #theme="dracula",
-                          #max_length=150,
-                          )
+                            theme="chrome",
+                            #theme="dracula",
+                            #max_length=150,
+                            )
 
         self.input_ace = pnw.Ace(value=str(oncv_input), **self.ace_kwargs)
 
@@ -566,6 +566,8 @@ class OncvGui(AbipyParameterized):
         #self.history_btn.on_click(self.on_history_btn)
 
         self.rc_qcut_btn = pnw.Button(name="Execute", button_type='primary')
+        
+        self.plotlyFlag = plotlyFlag
 
     @param.depends("ace_theme")
     def change_ace_theme(self):
@@ -618,7 +620,7 @@ class OncvGui(AbipyParameterized):
         main = pn.Column(
             pn.Row(
                 self.pws_col(["calc_type", "max_nprocs",
-                              "dpi", "ace_theme", "execute_btn"]),
+                                "dpi", "ace_theme", "execute_btn"]),
                 self.input_ace,
             ),
             pn.Card(self.annotated_example, title='Annotated example', collapsed=True,
@@ -645,9 +647,9 @@ class OncvGui(AbipyParameterized):
     def get_history_view(self) -> pn.Row:
         return pn.Row(
             self.pws_col(["## History",
-                          "history_idx",
-                          "history_btn",
-                         ]),
+                            "history_idx",
+                            "history_btn",
+                            ]),
             self.on_history_btn
         )
 
@@ -1105,7 +1107,7 @@ The present values of rc_l are: {rc_l}
         wbox = pn.WidgetBox(menu_button,
                             *[self.param[k] for k in ("qcut_num", "qcut_step", "qcut_dir")],
                             *[self.param[k] for k in ("rc_num", "rc_step", "rc_dir")],
-                             help_str)
+                            help_str)
 
         return pn.Row(wbox, self.rc_qcut_out_area, sizing_mode="stretch_width")
 
@@ -1196,7 +1198,7 @@ The present values of rc_l are: {rc_l}
 
             self._update_out_area(psgen, oncv_input)
 
-    def _update_out_area(self, psgen, oncv_input: OncvInput, how="ply") -> None:
+    def _update_out_area(self, psgen, oncv_input: OncvInput) -> None:
         with Loading(self.out_area):
             #self.psgen_to_save = psgen
             plotter = psgen.parser.get_plotter()
@@ -1205,11 +1207,11 @@ The present values of rc_l are: {rc_l}
                 self.out_area.objects = pn.Column("## Plotter is None")
                 return
 
-            if how == "mpl":
-                _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
+            if self.plotlyFlag:
+                _m = functools.partial(ply, with_divider=False)
 
             else:
-                _m = functools.partial(ply, with_divider=False)
+                _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
 
             save_btn = pnw.Button(name="Save output", button_type='primary')
             save_btn.on_click(self.on_save_btn)
