@@ -1151,7 +1151,7 @@ The present values of rc_l are: {rc_l}
                             f"## Rc/qcut optimization for l: {l}. Click the icon to update the input",
                             dfw,
                             ),
-                         )
+                        )
 
             col = pn.Column(head, sizing_mode="stretch_width")
 

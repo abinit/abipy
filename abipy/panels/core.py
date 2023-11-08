@@ -383,16 +383,13 @@ def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=Fals
                     line_dash="dash",
                     line_color=color
                 )
-    # # Loop through each trace and update the legend labels
-    # for trace in plotly_fig.data:
-    #     # Retrieve the current label and remove any $ signs
-    #     current_label = trace.name.replace("$", "")
+    # # Loop through each trace and update the hover labels to remove $
+    for trace in plotly_fig.data:
+        # Retrieve the current label and remove any $ signs
+        new_label = trace.name.replace("$", "")
         
-    #     # Now wrap the entire label in $ signs to interpret it as LaTeX
-    #     new_label = f"${current_label}$"
-        
-    #     # Update the trace's name (which is used for the legend label)
-    #     trace.name = new_label
+        # Update the trace's name (which is used for the legend label)
+        trace.name = new_label
     
     plotly_pane = pn.pane.Plotly(plotly_fig, config=config)
     ca(plotly_pane)
