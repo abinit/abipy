@@ -23,6 +23,7 @@ from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
 from abipy.tools.decorators import Appender
 
+from plotly.tools import mpl_to_plotly
 
 _ABINIT_TEMPLATE_NAME = "FastList"
 
@@ -338,17 +339,62 @@ def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=Fals
     col = pn.Column(sizing_mode=sizing_mode); ca = col.append
 
     config = dict(
-      responsive=True,
-      #showEditInChartStudio=True,
-      showLink=True,
-      plotlyServerURL="https://chart-studio.plotly.com",
-      )
+        responsive=True,
+        #showEditInChartStudio=True,
+        showLink=True,
+        plotlyServerURL="https://chart-studio.plotly.com",
+    )
     
-    from plotly.tools import mpl_to_plotly
+    # Horrible workaround for plotly latex rendering in legend
+    for ax in fig.get_axes():
+        # Check if the axis has a legend
+        if ax.get_legend():
+            legend = ax.get_legend()
+            # Get the legend's text entries
+            for text in legend.get_texts():
+                label = text.get_text()
+                # Remove any existing dollar signs
+                label = label.replace("$", "")
+                label = label.replace(" ", "\\ ")
+                # Now wrap the entire label in dollar signs to make it LaTeX
+                label = f"${label}$"
+                # Set the new label
+                text.set_text(label)
     
-    fig = mpl_to_plotly(fig)
-
-    plotly_pane = pn.pane.Plotly(fig, config=config)
+    plotly_fig = mpl_to_plotly(fig)
+    
+    plotly_fig.update_layout(title = {
+        "xanchor": "center",
+        "yanchor": "top",
+        "x": 0.5,
+        "font": {
+            "size": 14
+        }
+    })
+    
+    # Iterate over the axes in the figure to retrieve the custom line attributes
+    for ax in fig.get_axes():
+        if hasattr(ax, '_custom_rc_lines'):
+            for rc, color in ax._custom_rc_lines:
+                # Add vertical lines to the Plotly figure
+                plotly_fig.add_vline(
+                    x=rc,
+                    line_width=2,
+                    line_dash="dash",
+                    line_color=color
+                )
+    # # Loop through each trace and update the legend labels
+    # for trace in plotly_fig.data:
+    #     # Retrieve the current label and remove any $ signs
+    #     current_label = trace.name.replace("$", "")
+        
+    #     # Now wrap the entire label in $ signs to interpret it as LaTeX
+    #     new_label = f"${current_label}$"
+        
+    #     # Update the trace's name (which is used for the legend label)
+    #     trace.name = new_label
+    
+    plotly_pane = pn.pane.Plotly(plotly_fig, config=config)
     ca(plotly_pane)
 
     if with_chart_studio:
