@@ -211,7 +211,7 @@ queue_id = job_array.sbatch("job.sh")
                 break
         else:
             raise ValueError("Cannot find line starting with #SBATCH")
-        lines.insert(il, f"#SBATCH --array=0:{len(self.arr_options)-1}")
+        lines.insert(il, f"#SBATCH --array=0-{len(self.arr_options)-1}")
         header = "\n".join(lines)
 
         select_opts = r"""
@@ -224,13 +224,14 @@ OPTS_STRING="
 IFS=$'\n' read -rd '' -a OPTS_LIST <<< "$OPTS_STRING"
 
 # Index of the entry you want (0-based)
-index=0
-#index=${SLURM_ARRAY_TASK_ID}
+#index=0
+index=${SLURM_ARRAY_TASK_ID}
 
 # Check if the index is within the range of the array
 OPTS="${OPTS_LIST[index]}"
-echo "Selected entry at index $index: $OPTS"
+echo "Selected entry at index $index:\n OPTS=$OPTS"
 
+env
 """ % (self.arr_options_str)
 
         end = f"{self.command} ${{OPTS}} > job_${{index}}.log 2> job_${{index}}.err"
@@ -245,7 +246,7 @@ echo "Selected entry at index $index: $OPTS"
 
         # Save slurm job id in .qid file
         with open(slurm_filepath + ".qid", "wt") as fh:
-            fh.write("# Slurm job id")
+            fh.write("# Slurm job id\n")
             fh.write(str(queue_id))
 
         return queue_id
