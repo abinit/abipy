@@ -200,7 +200,8 @@ queue_id = job_array.sbatch("job.sh")
         self.command = str(command)
         self.header = str(header)
         self.arr_options = arr_options
-        self.arr_options_str = "\n".join(arr_options)
+        from abipy.tools.text import rm_multiple_spaces
+        self.arr_options_str = rm_multiple_spaces("\n".join(arr_options))
 
     def __str__(self):
         # Add slurm array section.
@@ -227,34 +228,33 @@ index=0
 #index=${SLURM_ARRAY_TASK_ID}
 
 # Check if the index is within the range of the array
-if (( index >= 0 && index < ${#OPTS_LIST[@]} )); then
-    OPTS="${OPTS_LIST[index]}"
-    echo "Selected entry at index $index: $OPTS"
-else
-    echo "Index $index is out of range"
-    exit 1
-fi
+OPTS="${OPTS_LIST[index]}"
+echo "Selected entry at index $index: $OPTS"
 
 """ % (self.arr_options_str)
 
-        end = f"{self.command} ${{OPTS}}"
+        end = f"{self.command} ${{OPTS}} > job_${{index}}.log 2> job_${{index}}.err"
+
         return header + select_opts + end
 
-    def sbatch(self, slurm_filepath: PathLike, dry_run=False) -> int:
+    def sbatch(self, slurm_filepath: PathLike) -> int:
         with open(slurm_filepath, "wt") as fh:
             fh.write(str(self))
 
-        queue_id = slurm_submit(slurm_filepath)
+        queue_id = slurm_sbatch(slurm_filepath)
+
+        # Save slurm job id in .qid file
         with open(slurm_filepath + ".qid", "wt") as fh:
             fh.write("# Slurm job id")
             fh.write(str(queue_id))
+
         return queue_id
 
 
 
-def slurm_submit(script_file) -> int:
+def slurm_sbatch(script_file) -> int:
     """
-    Submit a job script to the queue with sbatch
+    Submit a job script to the queue with sbatch. Return JOB ID.
     """
     from subprocess import Popen, PIPE
     # need string not bytes so must use universal_newlines
