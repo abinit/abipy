@@ -45,9 +45,10 @@ from ase.md.nvtberendsen import NVTBerendsen
 from ase.md.velocitydistribution import (MaxwellBoltzmannDistribution, Stationary, ZeroRotation)
 from abipy.core import Structure
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
-from abipy.tools.typing import Figure
+from abipy.tools.typing import Figure, PathLike
 from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import HasPickleIO
+from abipy.tools.context_managers import Timer
 from abipy.abio.enums import StrEnum, EnumMixin
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
     set_visible, set_ax_xylabels, linear_fit_ax)
@@ -57,22 +58,22 @@ from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, ge
 # Helper functions
 ###################
 
-def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
-    """
-    Return the number of procs to be used in a multiprocessing Pool.
-    If negative or None, use half the procs available in the system.
-    """
-    if nprocs is None or nprocs <= 0:
-        nprocs = max(1, os.cpu_count() // 2)
-    else:
-        nprocs = int(nprocs)
-
-    nprocs = min(nprocs, ntasks)
-    if title is not None:
-        print(title)
-        print(f"Using multiprocessing pool with {nprocs=} for {ntasks=} ...")
-
-    return nprocs
+#def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
+#    """
+#    Return the number of procs to be used in a multiprocessing Pool.
+#    If negative or None, use half the procs available in the system.
+#    """
+#    if nprocs is None or nprocs <= 0:
+#        nprocs = max(1, os.cpu_count() // 2)
+#    else:
+#        nprocs = int(nprocs)
+#
+#    nprocs = min(nprocs, ntasks)
+#    if title is not None:
+#        print(title)
+#        print(f"Using multiprocessing pool with {nprocs=} for {ntasks=} ...")
+#
+#    return nprocs
 
 
 _CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
@@ -123,7 +124,7 @@ def fix_atoms(atoms: Atoms,
               fix_inds: list[int] | None = None,
               fix_symbols: list[str] | None = None) -> None:
     """
-    Fix atoms by indices and by symbols.
+    Fix atoms by indices and/or by symbols.
 
     Args:
         atoms: ASE atoms
@@ -344,22 +345,14 @@ def make_square_axes(ax_mat):
     #ax.set_aspect(1 / ax.get_data_ratio())
 
 
-class AseResultsComparator:
+class AseResultsComparator(HasPickleIO):
     """
-    This object allows one to compare energies, forces and stressee computed
+    This object allows one to compare energies, forces and stresses computed
     for the same structure but with different methods e.g. results obtained
     with different ML potentials.
     """
 
     ALL_VOIGT_COMPS = "xx yy zz yz xz xy".split()
-
-    @classmethod
-    def pickle_load(cls, workdir):
-        """
-        Reconstruct the object from a pickle file located in workdir.
-        """
-        with open(Path(workdir) / f"{cls.__name__}.pickle", "rb") as fh:
-            return pickle.load(fh)
 
     @classmethod
     def from_ase_results(cls, keys: list[str], results_list: list[list[AseResults]]):
@@ -427,6 +420,34 @@ class AseResultsComparator:
     def natom(self) -> int:
         """Number of atoms."""
         return len(self.structure)
+
+    def pickle_dump_and_write_script(self, workdir: PathLike) -> None:
+        """
+        Write pickle file for object persistence and python script.
+        """
+        workdir = Path(str(workdir))
+        self.pickle_dump(workdir)
+
+        py_path = workdir / "analyze.py"
+        print("Writing python script to analyze the results in:", str(py_path))
+        with PythonScript(py_path) as script:
+            script.add_text("""
+def main():
+    from abipy.ml.aseml import AseResultsComparator
+    c = AseResultsComparator.pickle_load(".")
+    with_stress = True
+    from abipy.tools.plotting import Exposer
+    exposer = "mpl" # or "panel"
+    with Exposer.as_exposer(exposer) as e:
+        e(c.plot_energies(show=False))
+        e(c.plot_forces(delta_mode=True, show=False))
+        e(c.plot_energies_traj(delta_mode=True, show=False))
+        e(c.plot_energies_traj(delta_mode=False, show=False))
+        if with_stress:
+            e(c.plot_stresses(delta_mode=True, show=False))
+        e(c.plot_forces_traj(delta_mode=True, show=False))
+        e(c.plot_stress_traj(delta_mode=True, show=False))
+""").add_main()
 
     def get_key_pairs(self) -> list[tuple]:
         """
@@ -537,6 +558,22 @@ class AseResultsComparator:
 
         df = pd.DataFrame(d_list).sort_values(by=["istep"], ignore_index=True)
         return df
+
+    #def get_rdf(self):
+    #    try:
+    #        from pymatgen.analysis.diffusion.aimd import RadialDistributionFunction, RadialDistributionFunctionFast
+    #    except ImportError as exc:
+    #        raise ImportError("pymatgen-analysis-diffusion. Try `pip install pymatgen-analysis-diffusion`.") from exc
+
+    #    rdf = RadialDistributionFcuntion.from_species(
+    #        structures: list,
+    #        ngrid: int = 101,
+    #        rmax: float = 10.0,
+    #        cell_range: int = 1,
+    #        sigma: float = 0.1,
+    #        species: tuple | list = ("Li", "Na"),
+    #        reference_species: tuple | list | None = None,
+    #    )
 
     @add_fig_kwargs
     def plot_energies(self, fontsize=8, **kwargs):
@@ -1119,6 +1156,18 @@ def as_calculator(obj) -> Calculator:
     return CalcBuilder(obj).get_calculator()
 
 
+def find_spec_nn() -> list[str]:
+    # https://stackoverflow.com/questions/14050281/how-to-check-if-a-python-module-exists-without-importing-it
+    import importlib.util
+    installed = []
+    for nn_name in CalcBuilder.ALL_NN_TYPES:
+        nn_spec = importlib.util.find_spec(nn_name)
+        if nn_spec is not None:
+            installed.append(nn_name)
+
+    return installed
+
+
 def get_installed_nn_names(verbose=0, printout=True) -> tuple[list[str], list[str]]:
     """
     Return list of strings with the names of the nn potentials installed in the environment
@@ -1213,6 +1262,7 @@ class CalcBuilder:
         "matgl",
         "chgnet",
         "alignn",
+        "mace",
         #"pyace",
         #"quip",
         #"nequip",
@@ -1223,6 +1273,7 @@ class CalcBuilder:
 
         # Extract nn_type and model_name from name
         self.nn_type, self.model_name, self.model_path = name, None, None
+
         if ":" in name:
             self.nn_type, self.model_name = name.split(":")
         elif "@" in name:
@@ -1232,6 +1283,7 @@ class CalcBuilder:
             raise ValueError(f"Invalid {name=}, it should be in {self.ALL_NN_TYPES=}")
 
         self._model = None
+        #print(self)
 
     def __str__(self):
         if self.model_name is not None:
@@ -1348,10 +1400,25 @@ class CalcBuilder:
                 """Add abi_forces and abi_stress"""
 
             if self.model_path is None:
-                raise RuntimeError("PyACECalculator requires model_path e.g. nn_name='pyace:FILEPATH'")
+                raise RuntimeError("PyACECalculator requires model_path e.g. nn_name='pyace@FILEPATH'")
 
             cls = MyPyACECalculator if with_delta else PyACECalculator
             return cls(basis_set=self.model_path)
+
+        if self.nn_type == "mace":
+            try:
+                from mace.calculators import MACECalculator
+            except ImportError as exc:
+                raise ImportError("mace not installed. See https://github.com/ACEsuit/mace") from exc
+
+            class MyMACECalculator(_MyCalculator, MACECalculator):
+                """Add abi_forces and abi_stress"""
+
+            if self.model_path is None:
+                raise RuntimeError("MACECalculator requires model_path e.g. nn_name='mace@FILEPATH'")
+
+            cls = MyMACECalculator if with_delta else MACECalculator
+            return cls(model_path=self.model_path, device="cpu") #, default_dtype='float32')
 
         if self.nn_type == "nequip":
             try:
@@ -1367,20 +1434,6 @@ class CalcBuilder:
 
             cls = MyNequIPCalculator if with_delta else NequIPCalculator
             return cls.from_deployed_model(modle_path=self.model_path, species_to_type_name=None)
-
-        #if self.nn_type == "quip":
-        #    try:
-        #        from quippy.potential import Potential
-        #    except ImportError as exc:
-        #        raise ImportError("quippy not installed. Try `pip install quippy-ase`.\n" +
-        #                          "See https://github.com/libAtoms/QUIP") from exc
-
-        #    class MyQuipPotential(_MyCalculator, Potential):
-        #        """Add abi_forces and abi_stress"""
-
-        #    assert self.model_name is None
-        #    args_str = ""
-        #    return MyQuipPotential(args_str="")
 
         raise ValueError(f"Invalid {self.nn_type=}")
 
@@ -1410,7 +1463,7 @@ class MlBase(HasPickleIO):
         the README.md file in _finalize. Print WARNING if basename is already registered.
         """
         if any(basename == t[0] for t in self.basename_info):
-            print(f"WARNING: {basename:} already in basename_info:")
+            print(f"WARNING: {basename=} already in basename_info!")
         self.basename_info.append((basename, info))
 
     def mkdir(self, basename: str, info: str) -> Path:
@@ -1900,6 +1953,7 @@ class MlMd(MlBase):
 
         append_trajectory, len_traj = restart_md(traj_file, self.atoms, self.verbose)
         self.atoms.calc = CalcBuilder(self.nn_name).get_calculator()
+        #forces = self.atoms.get_forces()
 
         if not append_trajectory:
             print("Setting momenta corresponding to the input temperature using MaxwellBoltzmannDistribution.")
@@ -1907,9 +1961,10 @@ class MlMd(MlBase):
             #Stationary(self.atoms)    # zero linear momentum
             #ZeroRotation(self.atoms)  # zero angular momentum
         else:
+            prev_steps = self.steps
             self.steps = self.steps - (len_traj * self.loginterval)
             if self.steps <= 0:
-                raise RuntimeError(f"Have already performed {self.steps} iterations!")
+                raise RuntimeError(f"Have already performed {prev_steps} iterations!")
 
         md = MolecularDynamics(
             atoms=self.atoms,
@@ -1944,16 +1999,6 @@ log.plot(savefig=None)
 
         md.run(steps=self.steps)
 
-        # Convert ASE trajectory file to QE POS file.
-        write_qe_pos = True
-        if write_qe_pos:
-            pos_filepath = self.get_path("md.pos", "QE position file")
-            traj_to_qepos(traj_file, pos_filepath)
-
-        #trajectory = read(traj_file, index=":")
-        #write_vasp_xdatcar(workdir / "XDATCAR", trajectory,
-        #                   label=f"xdatcar with relaxation generated by {self.__class__.__name__}")
-
 
 class _MlNebBase(MlBase):
     """
@@ -1983,6 +2028,7 @@ class _MlNebBase(MlBase):
         ef, de = nebtools.get_barrier(fit=False)
         neb_data.update(barrier_without_fit=float(ef),
                         energy_change_without_fit=float(de),
+                        nn_name=str(self.nn_name),
         )
 
         self.write_json("neb_data.json", neb_data, info="JSON document with NEB results",
@@ -2187,7 +2233,7 @@ class MlNeb(_MlNebBase):
         self.write_script("ase_gui.sh", text=f"""\
 # To visualize the results, use:
 
-ase gui {nebtraj_file}@-{self.nimages}
+ase gui "{nebtraj_file}@-{self.nimages}"
 
 # then select `tools->neb` in the gui.
 """, info="Shell script to visualize NEB results with ase gui")
@@ -2195,7 +2241,7 @@ ase gui {nebtraj_file}@-{self.nimages}
         self.write_script("ase_nebplot.sh", text=f"""\
 # This command create a series of plots showing the progression of the neb relaxation
 
-ase nebplot --share-x --share-y --nimages {self.nimages} {nebtraj_file}
+ase nebplot --share-x --share-y --nimages {self.nimages} "{nebtraj_file}"
 """, info="Shell script to create a series of plots showing the progression of the neb relaxation")
 
         self._finalize()
@@ -2480,7 +2526,7 @@ class MlOrderer(MlBase):
         self._finalize()
 
 
-class MlCompareWithAbinitio(_MlNebBase):
+class MlValidateWithAbinitio(_MlNebBase):
     """
     Compare ab-initio energies, forces and stresses with ML results.
     """
@@ -2576,7 +2622,6 @@ class MlCompareWithAbinitio(_MlNebBase):
         results_list = [abi_results]
 
         ntasks = len(abi_results)
-        #nprocs = nprocs_for_ntasks(nprocs, ntasks, title="Begin ML computation")
         nprocs = 1
 
         for nn_name in self.nn_names:
@@ -2594,31 +2639,7 @@ class MlCompareWithAbinitio(_MlNebBase):
             results_list.append(items)
 
         comp = AseResultsComparator.from_ase_results(labels, results_list)
-
-        # Write pickle file for object persistence.
-        with open(self.workdir / f"{comp.__class__.__name__}.pickle", "wb") as fh:
-            pickle.dump(comp, fh)
-
-        py_path = self.workdir / "analyze.py"
-        print("Writing python script to analyze the results in:", py_path.name)
-        with PythonScript(py_path) as script:
-            script.add_text("""
-def main():
-    from abipy.ml.aseml import AseResultsComparator
-    c = AseResultsComparator.pickle_load(".")
-    with_stress = True
-    from abipy.tools.plotting import Exposer
-    exposer = "mpl" # or "panel"
-    with Exposer.as_exposer(exposer) as e:
-        e(c.plot_energies(show=False))
-        e(c.plot_forces(delta_mode=True, show=False))
-        e(c.plot_energies_traj(delta_mode=True, show=False))
-        e(c.plot_energies_traj(delta_mode=False, show=False))
-        if with_stress:
-            e(c.plot_stresses(delta_mode=True, show=False))
-        e(c.plot_forces_traj(delta_mode=True, show=False))
-        e(c.plot_stress_traj(delta_mode=True, show=False))
-""").add_main()
+        comp.pickle_dump_and_write_script(self.workdir)
 
         if print_dataframes:
             # Write dataframes to disk in CSV format.
@@ -2629,17 +2650,6 @@ def main():
 
         self._finalize()
         return comp
-
-
-#__COMPARE_CALC = None
-#
-#def _map_run_compare(args: tuple) -> AseResults:
-#    """Function passed to pool.map."""
-#    nn_name, res = args
-#    global __COMPARE_CALC
-#    if __COMPARE_CALC is None:
-#        #__COMPARE_CALC = as_calculator(nn_name)
-#    return AseResults.from_atoms(res.atoms, calc=__COMPARE_CALC)
 
 
 class MolecularDynamics:
@@ -2754,7 +2764,7 @@ class MolecularDynamics:
 
     def run(self, steps: int):
         """
-        Thin wrapper of ase MD run
+        Thin wrapper of ase MD run.
 
         Args:
             steps (int): number of MD steps
@@ -2765,24 +2775,83 @@ class MolecularDynamics:
         self.dyn.run(steps)
 
 
-def traj_to_qepos(traj_filepath: str, pos_filepath: str) -> None:
+class MlCompareNNs(MlBase):
     """
-    Convert an ASE trajectory file to QE POS file.
-
-    Args:
-        traj: Name of ASE trajectory file or Trajectory instance.
-        pos_filepath: Name of output file.
+    Compare energies, forces and stresses obtaiend with different ML potentials.
+    Also profile the time required.
     """
-    #if not isinstance(traj, Trajectory):
-    traj = read(traj_filepath, index=":")
 
-    nsteps, natoms = len(traj), len(traj[0])
-    pos_tac = np.empty((nsteps, natoms, 3))
-    for it, atoms in enumerate(traj):
-        pos_tac[it] = atoms.positions
+    def __init__(self, atoms, nn_names, num_tests, rattle, stdev_rvol, verbose, workdir, prefix=None):
+        """
+        Args:
+            atoms: ASE atoms
+            nn_names: String or list of strings defining the NN potential. See also CalcBuilder.
+            num_tests: Number of tests.
+            rattle: Displace atoms randomly with this stdev.
+            stdev_rvol: Scale volumes randomly around input v0 with stdev: v0*value
+            verbose: Verbosity level.
+            workdir: Working directory.
+        """
+        super().__init__(workdir, prefix)
+        self.initial_atoms = atoms
+        self.nn_names = list_strings(nn_names)
+        self.num_tests = num_tests
+        self.rattle = rattle
+        self.stdev_rvol = stdev_rvol
+        self.verbose = verbose
 
-    with open(str(pos_filepath), "wt") as fh:
-        for it in range(nsteps):
-            fh.write(str(it) + '\n')
-            for ia in range(natoms):
-                fh.write(str(pos_tac[it,ia,0]) + ' ' + str(pos_tac[it,ia,1]) + ' ' + str(pos_tac[it,ia,2]) + '\n')
+    def to_string(self, verbose=0) -> str:
+        """String representation with verbosity level `verbose`."""
+        return f"""\
+
+{self.__class__.__name__} parameters:
+
+     nn_names    = {self.nn_names}
+     num_tests   = {self.num_tests}
+     rattle      = {self.rattle}
+     stdev_rvol  = {self.stdev_rvol}
+     workdir     = {self.workdir}
+     verbose     = {self.verbose}
+
+=== ATOMS ===
+
+{self.initial_atoms}
+
+"""
+
+    def run(self, print_dataframes=True) -> AseResultsComparator:
+        """
+        Run calculations.
+        """
+        workdir = self.workdir
+
+        # Build list of atoms
+        v0 = self.initial_atoms.cell.volume
+        vols = np.random.normal(loc=v0, scale=self.stdev_rvol * v0, size=self.num_tests)
+        atoms_list = []
+        for it in range(self.num_tests):
+            atoms = self.initial_atoms.copy()
+            atoms.rattle(stdev=abs(self.rattle))
+            atoms_list.append(Structure.as_structure(atoms).scale_lattice(vols[it]).to_ase_atoms())
+
+        labels, results_list = [], []
+        for nn_name in self.nn_names:
+            labels.append(nn_name)
+            calc = as_calculator(nn_name)
+            with Timer(f"Computing GS properties for {len(atoms_list)} configurations with {nn_name=}...") as timer:
+                items = [AseResults.from_atoms(atoms, calc=calc) for atoms in atoms_list]
+
+            results_list.append(items)
+
+        comp = AseResultsComparator.from_ase_results(labels, results_list)
+        comp.pickle_dump_and_write_script(self.workdir)
+
+        if print_dataframes:
+            # Write dataframes to disk in CSV format.
+            forces_df = comp.get_forces_dataframe()
+            self.write_df(forces_df, "cart_forces.csv", info="CSV file with cartesian forces.")
+            stress_df = comp.get_stress_dataframe()
+            self.write_df(stress_df, "voigt_stress.csv", info="CSV file with cartesian stresses in Voigt notation")
+
+        self._finalize()
+        return comp

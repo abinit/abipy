@@ -1,5 +1,6 @@
 """
-Output files produced by CP code.
+Parser for the output files produced by CP code.
+
 See: https://www.quantum-espresso.org/Doc/INPUT_CP.html
 
       prefix.pos : atomic positions
@@ -26,10 +27,76 @@ import dataclasses
 from monty.functools import lazy_property
 from monty.bisect import find_le
 from abipy.core.mixins import TextFile, NotebookWriter
-from abipy.tools.typing import Figure
+from abipy.tools.typing import PathLike, Figure
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly,
     get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
+
+
+
+def parse_file_with_blocks(filepath: PathLike, block_size: int) -> tuple[int, np.ndarray, list]:
+    """
+    Parse a QE file whose format is:
+
+          20    0.00241888
+         0.31882936800000E+01     0.14832370390000E+02     0.12288296100000E+01
+         0.78323146900000E+01     0.67870403900000E+01     0.12288296100000E+01
+         0.20744346700000E+01     0.59953799200000E+01     0.47375825000000E+01
+          20    0.00241888
+         0.31889894893205E+01     0.14833320999242E+02     0.12271083047604E+01
+         0.78345550025202E+01     0.67881458009071E+01     0.12273445304341E+01
+         0.20762325213327E+01     0.59955571558384E+01     0.47335647385293E+01
+
+    i.e. a header followed by block_size lines
+
+    Args:
+        filepath: Filename
+        block_size: Number of lines in block.
+
+    Return: (number_of_steps, array_to_be_reshaped, list_of_headers)
+    """
+    nsteps, data, headers = 0, [], []
+    with open(filepath, "rt") as fh:
+        for il, line in enumerate(fh):
+            toks = line.split()
+            if il % (block_size + 1) == 0:
+                #assert len(toks) == 2
+                headers.append([int(toks[0]), float(toks[1])])
+                nsteps += 1
+            else:
+                data.append([float(t) for t in toks])
+
+    return nsteps, np.array(data, dtype=float), headers
+
+
+def parse_file_with_header(filepath: PathLike) -> pd.DataFrame:
+    """
+    Parse a file with an header followed by csv-like columns e.g. an .evp file
+    """
+    from io import StringIO
+    sbuf = StringIO()
+    with open(filepath, "rt") as fh:
+        for il, line in enumerate(fh):
+            if il == 0:
+                if not line.startswith("#"):
+                    raise ValueError(f"Line number {il=} in {filepath=} should start with '#', but got {line=}")
+                names = line[1:].split()
+                continue
+
+            if line.startswith("#"):
+                # Found other header, likely due to restart.
+                # Check that column names agree with the first header.
+                new_names = line[1:].split()
+                if new_names != names:
+                    raise ValueError("Line number {il=} in {filepath=} has different names\n: {new_names=}\n{names=}")
+                continue
+
+            sbuf.write(line)
+
+    sbuf.seek(0)
+    df = pd.read_csv(sbuf, delim_whitespace=True, names=names)
+    sbuf.close()
+    return df
 
 
 @dataclasses.dataclass
@@ -65,24 +132,30 @@ class EvpFile(TextFile, NotebookWriter):
          Key(name="enthal" , color="b", info="etot+external_pressure*volume"),
          Key(name="econs"  , color="b", info="etot+kinetic_energy_due_to_ions_moving"),
          Key(name="econt"  , color="b", info="econs+ekinc+(thermostat_total_energy)"),
+         Key(name="time(ps)", color="b", info="time"),
          Key(name="tps(ps)", color="b", info="time"),
          #Volume        Pressure(GPa)        EXX               EVDW
     ]}
 
     @lazy_property
+    def time_key(self) -> str:
+        key1 = "time(ps)"
+        key2 = "tps(ps)"
+        if key1 in self.df.keys(): return key1
+        if key2 in self.df.keys(): return key2
+        raise ValueError(f"Cannot find time key in {self.df.keys()}")
+
+    @lazy_property
     def df(self) -> pd.DataFrame:
         """Dataframe with the results."""
-        # Read colums from first row.
-        header = pd.read_csv(self.filepath, nrows=0).columns[0]
-        names = header[1:].split()
-        # Build dataframe from the remaining rows and set column names
-        df = pd.read_csv(self.filepath, delim_whitespace=True, skiprows=1, names=names)
+        # TODO: Handle restart
+        df = parse_file_with_header(self.filepath)
         return df
 
     @lazy_property
-    def times(self):
+    def times(self) -> np.ndarray:
         """Array with times in ps units."""
-        return self.df["tps(ps)"].values
+        return np.array(self.df["tps(ps)"].values, dtype=float)
 
     def to_string(self, verbose=0) -> str:
         """String representation with verbosity level verbose."""
@@ -99,8 +172,8 @@ class EvpFile(TextFile, NotebookWriter):
     def plot(self, **kwargs) -> Figure:
         """
         """
-        ax_mat = self.df.plot.line(x='tps(ps)', subplots=True,
-                                   y=[k for k in self.df.keys() if k not in ("nfi", "tps(ps)")])
+        ax_mat = self.df.plot.line(x=self.time_key, subplots=True,
+                                   y=[k for k in self.df.keys() if k not in ("nfi", self.time_key)])
         return ax_mat.ravel()[0].get_figure()
 
         """
@@ -130,7 +203,7 @@ class EvpFile(TextFile, NotebookWriter):
     @add_fig_kwargs
     def plot_hist(self, **kwargs) -> Figure:
         """Plot one histogram per column."""
-        ax_mat = self.df.hist(column=[k for k in self.df.keys() if k not in ("nfi", "tps(ps)")])
+        ax_mat = self.df.hist(column=[k for k in self.df.keys() if k not in ("nfi", self.time_key)])
         return ax_mat.ravel()[0].get_figure()
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -156,23 +229,24 @@ class EvpFile(TextFile, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-#def read_cel_from_file_cel(f_name: str, nstep_cel: int) -> tuple[np.ndarray, int]:
-#    """
-#    """
-#    with open(str(f_name), 'rt') as file_cel:
-#        cel_every_step = []
-#        file_cel_lines = file_cel.readlines()
-#        nlinetot = len(file_cel_lines)
-#        nt = int(nlinetot/nstep_cel)
-#        celArrayB = np.zeros((nt,nstep_cel-1,3), dtype=float)
-#        #
-#        for it in range(nt):
-#            cel_every_step = []
-#            for line in file_cel_lines[(nstep_cel*it)+1:nstep_cel*(it+1)]:
-#                y = line.split()
-#                y = np.array(y, dtype=float)
-#                cel_every_step.append(y)
-#            celArrayB[it,:,:] = np.array(cel_every_step, dtype=float)
-#        bohr2a = 0.529177
-#        celArray = np.copy(celArrayB*bohr2a)
-#        return celArray, nt
+def traj_to_qepos(traj_filepath: PathLike, pos_filepath: PathLike) -> None:
+    """
+    Convert an ASE trajectory file to QE POS file.
+
+    Args:
+        traj: Name of ASE trajectory file or Trajectory instance.
+        pos_filepath: Name of output file.
+    """
+    from ase.io import read
+    traj = read(traj_filepath, index=":")
+
+    nsteps, natoms = len(traj), len(traj[0])
+    pos_tac = np.empty((nsteps, natoms, 3))
+    for it, atoms in enumerate(traj):
+        pos_tac[it] = atoms.positions
+
+    with open(str(pos_filepath), "wt") as fh:
+        for it in range(nsteps):
+            fh.write(str(it) + '\n')
+            for ia in range(natoms):
+                fh.write(str(pos_tac[it,ia,0]) + ' ' + str(pos_tac[it,ia,1]) + ' ' + str(pos_tac[it,ia,2]) + '\n')

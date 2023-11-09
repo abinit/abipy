@@ -125,6 +125,7 @@ ext2file = collections.OrderedDict([
     (".pspnc", Pseudo),
     (".fhi", Pseudo),
     ("JTH.xml", Pseudo),
+    (".upf", Pseudo),
     # Lobster files.
     ("COHPCAR.lobster", CoxpFile),
     ("COOPCAR.lobster", CoxpFile),
@@ -132,6 +133,9 @@ ext2file = collections.OrderedDict([
     ("DOSCAR.lobster", LobsterDoscarFile),
     # Vasp files.
     ("POSCAR", Structure),
+    (".vasp", Structure),
+    # ASE files
+    (".xyz", Structure),
     #("ZINVCONV.nc", ZinvConvFile),
     #("TETRATEST.nc", TetraTestFile),
     # QE/CP files

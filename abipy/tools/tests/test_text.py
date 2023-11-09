@@ -28,3 +28,7 @@ class TestTools(AbipyTest):
         numbers = [1.0, 1.0, 1.0]
         text = ' acell Bohr'
         self.assertEqual(nums_and_text(line), (numbers, text.replace(", u'", ", '")))
+
+        original_string = "hello    world   with   multiple   spaces"
+        cleaned_string = rm_multiple_spaces(original_string)
+        assert cleaned_string == "hello world with multiple spaces"
