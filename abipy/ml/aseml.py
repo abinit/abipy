@@ -239,9 +239,15 @@ class AseResults:
         """Build the object from an atoms instance with a calculator."""
         if calc is not None:
             atoms.calc = calc
+
+        from ase.stress import voigt_6_to_full_3x3_strain
+        stress_voigt = atoms.get_stress()
+        print(stress_voigt)
+        stress = voigt_6_to_full_3x3_strain(stress_voigt)
+
         results = cls(atoms=atoms.copy(),
                       ene=float(atoms.get_potential_energy()),
-                      stress=atoms.get_stress(voigt=False),
+                      stress=stress,
                       forces=atoms.get_forces())
         if calc is not None:
             atoms.calc = None

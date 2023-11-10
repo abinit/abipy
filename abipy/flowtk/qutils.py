@@ -15,6 +15,7 @@ from monty.string import is_string
 from pymatgen.core.units import Time, Memory
 from abipy.tools.typing import PathLike
 from abipy.tools import duck
+from abipy.tools.text import rm_multiple_spaces
 
 
 def slurm_parse_timestr(s: str) -> Time:
@@ -196,11 +197,11 @@ print(job_array)
 queue_id = job_array.sbatch("job.sh")
     """
 
-    def __init__(self, header, command, arr_options):
-        self.command = str(command)
-        self.header = str(header)
+    def __init__(self, header: str, command: str, arr_options: list[str]):
+        self.command = command
+        if not self.command.endswith(" "): self.command += " "
+        self.header = header
         self.arr_options = arr_options
-        from abipy.tools.text import rm_multiple_spaces
         self.arr_options_str = rm_multiple_spaces("\n".join(arr_options))
 
     def __str__(self):
