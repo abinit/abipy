@@ -15,6 +15,7 @@ from monty.string import is_string
 from pymatgen.core.units import Time, Memory
 from abipy.tools.typing import PathLike
 from abipy.tools import duck
+from abipy.tools.text import rm_multiple_spaces
 
 
 def slurm_parse_timestr(s: str) -> Time:
@@ -196,11 +197,11 @@ print(job_array)
 queue_id = job_array.sbatch("job.sh")
     """
 
-    def __init__(self, header, command, arr_options):
-        self.command = str(command)
-        self.header = str(header)
+    def __init__(self, header: str, command: str, arr_options: list[str]):
+        self.command = command
+        if not self.command.endswith(" "): self.command += " "
+        self.header = header
         self.arr_options = arr_options
-        from abipy.tools.text import rm_multiple_spaces
         self.arr_options_str = rm_multiple_spaces("\n".join(arr_options))
 
     def __str__(self):
@@ -211,7 +212,7 @@ queue_id = job_array.sbatch("job.sh")
                 break
         else:
             raise ValueError("Cannot find line starting with #SBATCH")
-        lines.insert(il, f"#SBATCH --array=0:{len(self.arr_options)-1}")
+        lines.insert(il, f"#SBATCH --array=0-{len(self.arr_options)-1}")
         header = "\n".join(lines)
 
         select_opts = r"""
@@ -224,13 +225,14 @@ OPTS_STRING="
 IFS=$'\n' read -rd '' -a OPTS_LIST <<< "$OPTS_STRING"
 
 # Index of the entry you want (0-based)
-index=0
-#index=${SLURM_ARRAY_TASK_ID}
+#index=0
+index=${SLURM_ARRAY_TASK_ID}
 
 # Check if the index is within the range of the array
 OPTS="${OPTS_LIST[index]}"
-echo "Selected entry at index $index: $OPTS"
+echo "Selected entry at index $index:\n OPTS=$OPTS"
 
+env
 """ % (self.arr_options_str)
 
         end = f"{self.command} ${{OPTS}} > job_${{index}}.log 2> job_${{index}}.err"
@@ -245,7 +247,7 @@ echo "Selected entry at index $index: $OPTS"
 
         # Save slurm job id in .qid file
         with open(slurm_filepath + ".qid", "wt") as fh:
-            fh.write("# Slurm job id")
+            fh.write("# Slurm job id\n")
             fh.write(str(queue_id))
 
         return queue_id

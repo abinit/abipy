@@ -66,7 +66,7 @@ def herald(f):
             print("Command line options:")
             print(json.dumps(kw, indent=4), end="\n")
 
-        # Set OMP_NUM_THREADS to 1 if env var is not defined.
+        # IMPORTANT: Set OMP_NUM_THREADS to 1 if env variable is not defined.
         num_threads = cli.fix_omp_num_threads()
 
         t_start = time()
@@ -118,7 +118,7 @@ def add_neb_opts(f):
     f = click.option("--relax-mode", "-r", default="ions", show_default=True, type=click.Choice(["no", "ions", "cell"]),
             help="Relax initial and final structure. Use `cell` to relax ions and cell, " +
                  "`ions` to relax atomic positions only, `no` to disable relaxation")(f)
-    f = click.option("--fmax", default=0.01, type=float, show_default=True, help='Stopping criterion.')(f)
+    f = click.option("--fmax", default=0.03, type=float, show_default=True, help='Stopping criterion.')(f)
     f = click.option("--pressure", default=0.0, type=float, show_default=True, help='Scalar pressure')(f)
     f = click.option("--optimizer", "-o", default="BFGS", show_default=True, type=click.Choice(ASE_OPTIMIZERS),
                      help="ASE optimizer class.")(f)
