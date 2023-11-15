@@ -13,7 +13,7 @@ _MAX_NPROCS = os.cpu_count()
 
 def get_max_nprocs() -> int:
     """
-    Return the maximum number of procs that can be used.
+    Return the maximum number of procs that can be used by AbiPy.
     """
     return _MAX_NPROCS
 
@@ -34,7 +34,7 @@ def set_max_nprocs(max_nprocs: int | None) -> int:
 
 def pool_nprocs_pmode(nprocs: int | None, pmode: str):
     """
-    Helper function that allows one to switch from ThreadPool and multiprocessing Pool.
+    Helper function that allows one to switch from ThreadPool to multiprocessing Pool.
     Returns named tuple with (nprocs, pool_class, using_msg)
 
     Args:

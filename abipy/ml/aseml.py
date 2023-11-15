@@ -50,30 +50,9 @@ from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import HasPickleIO
 from abipy.tools.context_managers import Timer
 from abipy.abio.enums import StrEnum, EnumMixin
+from abipy.core.mixins import TextFile, NotebookWriter
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
     set_visible, set_ax_xylabels, linear_fit_ax)
-
-
-###################
-# Helper functions
-###################
-
-#def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
-#    """
-#    Return the number of procs to be used in a multiprocessing Pool.
-#    If negative or None, use half the procs available in the system.
-#    """
-#    if nprocs is None or nprocs <= 0:
-#        nprocs = max(1, os.cpu_count() // 2)
-#    else:
-#        nprocs = int(nprocs)
-#
-#    nprocs = min(nprocs, ntasks)
-#    if title is not None:
-#        print(title)
-#        print(f"Using multiprocessing pool with {nprocs=} for {ntasks=} ...")
-#
-#    return nprocs
 
 
 _CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
@@ -242,7 +221,7 @@ class AseResults:
 
         from ase.stress import voigt_6_to_full_3x3_strain
         stress_voigt = atoms.get_stress()
-        print(stress_voigt)
+        #print(stress_voigt)
         stress = voigt_6_to_full_3x3_strain(stress_voigt)
 
         results = cls(atoms=atoms.copy(),
@@ -1441,6 +1420,21 @@ class CalcBuilder:
             cls = MyNequIPCalculator if with_delta else NequIPCalculator
             return cls.from_deployed_model(modle_path=self.model_path, species_to_type_name=None)
 
+        if self.nn_type == "metatensor":
+            try:
+                from metatensor.torch.atomistic.ase_calculator import MetatensorCalculator
+            except ImportError as exc:
+                raise ImportError("metatensor not installed. See https://github.com/lab-cosmo/metatensor") from exc
+
+            class MyMetatensorCalculator(_MyCalculator, MetatensorCalculator):
+                """Add abi_forces and abi_stress"""
+
+            if self.model_path is None:
+                raise RuntimeError("MetaTensorCalculator requires model_path e.g. nn_name='metatensor:FILEPATH'")
+
+            cls = MyMetaTensorCalculator if with_delta else MetatensorCalculator
+            return cls(self.model_path)
+
         raise ValueError(f"Invalid {self.nn_type=}")
 
 
@@ -1551,7 +1545,9 @@ import matplotlib.pyplot as plt
         return path
 
     def _finalize(self) -> None:
-        """Called at the end of the `run` method to write the README.md file in the workdir."""
+        """
+        Called at the end of the `run` method to write the README.md file in the workdir.
+        """
         if self.basename_info:
             # Generate README.md file.
             md_lines = ["## Directory content\n",]
@@ -1814,7 +1810,6 @@ def restart_md(traj_filepath, atoms, verbose) -> tuple[bool, int]:
     return True, len(traj)
 
 
-from abipy.core.mixins import TextFile, NotebookWriter
 class AseMdLog(TextFile):
     """
     Postprocessing tool for the log file produced by ASE MD.
@@ -1890,7 +1885,9 @@ class AseMdLog(TextFile):
 
 
 class MlMd(MlBase):
-    """Perform MD calculations with ASE and ML potential."""
+    """
+    Perform MD calculations with ASE and ML potential.
+    """
 
     def __init__(self, atoms: Atoms, temperature, timestep, steps, loginterval,
                  ensemble, nn_name, verbose, workdir, prefix=None):
@@ -1964,8 +1961,6 @@ class MlMd(MlBase):
         if not append_trajectory:
             print("Setting momenta corresponding to the input temperature using MaxwellBoltzmannDistribution.")
             MaxwellBoltzmannDistribution(self.atoms, temperature_K=self.temperature)
-            #Stationary(self.atoms)    # zero linear momentum
-            #ZeroRotation(self.atoms)  # zero angular momentum
         else:
             prev_steps = self.steps
             self.steps = self.steps - (len_traj * self.loginterval)

@@ -225,12 +225,11 @@ OPTS_STRING="
 IFS=$'\n' read -rd '' -a OPTS_LIST <<< "$OPTS_STRING"
 
 # Index of the entry you want (0-based)
-#index=0
 index=${SLURM_ARRAY_TASK_ID}
 
 # Check if the index is within the range of the array
 OPTS="${OPTS_LIST[index]}"
-echo "Selected entry at index $index:\n OPTS=$OPTS"
+echo "Running entry at index $index:\nwith OPTS=$OPTS"
 
 env
 """ % (self.arr_options_str)
@@ -245,13 +244,13 @@ env
 
         queue_id = slurm_sbatch(slurm_filepath)
 
-        # Save slurm job id in .qid file
-        with open(slurm_filepath + ".qid", "wt") as fh:
+        save_qid = slurm_filepath + ".qid",
+        print("Saving Slurm job ID to file:", save_qid)
+        with open(save_qid, "wt") as fh:
             fh.write("# Slurm job id\n")
             fh.write(str(queue_id))
 
         return queue_id
-
 
 
 def slurm_sbatch(script_file) -> int:
