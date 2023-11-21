@@ -2595,8 +2595,21 @@ def add_colorscale_dropwdowns(fig):
 
     return fig
 
-def mpl_to_ply(fig, latex=False):
+def mpl_to_ply(fig, latex=True):
     # Nasty workaround for plotly latex rendering in legend/breaking exception
+    def parse_latex(label):
+        # Remove latex symobols
+        new_label = label.replace("$", "")
+        new_label = new_label.replace("\\", "") if not latex else new_label
+        new_label = new_label.replace("{", "") if not latex else new_label
+        new_label = new_label.replace("}", "") if not latex else new_label
+        # plotly latex needs an extra \ for parsing python strings
+        # new_label = new_label.replace(" ", "\\ ") if latex else new_label 
+        # Wrap the label in dollar signs for LaTeX, if needed unless empty
+        new_label = f"${new_label}$" if latex and len(new_label) > 0 else new_label
+        
+        return new_label
+    
     for ax in fig.get_axes():
         # TODO improve below logic to add new scatter plots?
         # Loop backwards through the collections to avoid modifying the list as we iterate
@@ -2606,36 +2619,15 @@ def mpl_to_ply(fig, latex=False):
                 coll.remove()
                 
         # Process the axis title, x-label, and y-label
-        for label_item in [ax.get_title(), ax.get_xlabel(), ax.get_ylabel()]:
-            # Remove any existing dollar signs
-            new_label = label_item.replace("$", "")
-            new_label = new_label.replace("\\", "") if not latex else new_label
-            new_label = new_label.replace("{", "") if not latex else new_label
-            new_label = new_label.replace("}", "") if not latex else new_label
-            # new_label = new_label.replace(" ", "\\ ") if latex else new_label # differences in the two latex renderers
-            # Wrap the label in dollar signs for LaTeX, if needed
-            new_label = f"${new_label}$" if latex else new_label
+        for label in [ax.get_title(), ax.get_xlabel(), ax.get_ylabel()]:
+            # Few differences in how mpl and ply parse/encode symbols
+            new_label = parse_latex(label)
             # Set the new label
-            if label_item == ax.get_title():
+            if label == ax.get_title():
                 ax.set_title(new_label)
-            elif label_item == ax.get_xlabel():
+            elif label == ax.get_xlabel():
                 ax.set_xlabel(new_label)
-            elif label_item == ax.get_ylabel():
-                ax.set_ylabel(new_label)
-
-        # Process the axis title, x-label, and y-label
-        for label_item in [ax.get_title(), ax.get_xlabel(), ax.get_ylabel()]:
-            # Remove any existing dollar signs
-            new_label = label_item.replace("$", "")
-            new_label = new_label.replace(" ", "\\ ") if latex else new_label
-            # Wrap the label in dollar signs for LaTeX, if needed
-            new_label = f"${new_label}$" if latex else new_label
-            # Set the new label
-            if label_item == ax.get_title():
-                ax.set_title(new_label)
-            elif label_item == ax.get_xlabel():
-                ax.set_xlabel(new_label)
-            elif label_item == ax.get_ylabel():
+            elif label == ax.get_ylabel():
                 ax.set_ylabel(new_label)
                 
         # Check if the axis has a legend
@@ -2645,25 +2637,21 @@ def mpl_to_ply(fig, latex=False):
             for text in legend.get_texts():
                 label = text.get_text()
                 # Remove any existing dollar signs
-                label = label.replace("$", "")
-                label = label.replace(" ", "\\ ") if latex else label
-                # Now wrap the entire label in dollar signs to make it LaTeX
-                label = f"${label}$" if latex else label
+                new_label = parse_latex(label)
                 # Set the new label
-                text.set_text(label)
-                
-        
+                text.set_text(new_label)
+
     # Convert to plotly figure
     plotly_fig = mpl_to_plotly(fig)
     
-    plotly_fig.update_layout(title = {
-        "xanchor": "center",
-        "yanchor": "top",
-        "x": 0.5,
-        "font": {
-            "size": 14
-        }
-    })
+    plotly_fig.update_layout(template  = "plotly_white", title = {
+                                "xanchor": "center",
+                                "yanchor": "top",
+                                "x": 0.5,
+                                "font": {
+                                    "size": 14
+                                },
+                            })
     
     # Iterate over the axes in the figure to retrieve the custom line attributes
     for ax in fig.get_axes():
