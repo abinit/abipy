@@ -2595,7 +2595,7 @@ def add_colorscale_dropwdowns(fig):
 
     return fig
 
-def mpl_to_ply(fig, latex=True):
+def mpl_to_ply(fig, latex=False):
     # Nasty workaround for plotly latex rendering in legend/breaking exception
     def parse_latex(label):
         # Remove latex symobols
@@ -2605,7 +2605,7 @@ def mpl_to_ply(fig, latex=True):
         new_label = new_label.replace("}", "") if not latex else new_label
         # plotly latex needs an extra \ for parsing python strings
         # new_label = new_label.replace(" ", "\\ ") if latex else new_label 
-        # Wrap the label in dollar signs for LaTeX, if needed unless empty
+        # Wrap the label in dollar signs for LaTeX, if needed unless empty``
         new_label = f"${new_label}$" if latex and len(new_label) > 0 else new_label
         
         return new_label
