@@ -15,7 +15,7 @@ from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
-from abipy.tools.plotting import MplExpose, PanelExpose, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
+from abipy.tools.plotting import MplExposer, PanelExposer, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
 
 
 def handle_overwrite(path, options):
@@ -244,7 +244,7 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
         elif options.plotly:
             # Plotly + Panel version.
             phdos = phdos_file.phdos
-            with PanelExpose(title=f"Vibrational properties of {phdos_file.structure.formula}") as e:
+            with PanelExposer(title=f"Vibrational properties of {phdos_file.structure.formula}") as e:
                 e(phbands.qpoints.plotly(show=False))
                 e(phbands.plotly_with_phdos(phdos, units=units, show=False))
                 e(phdos_file.plotly_pjdos_type(units=units, show=False))
@@ -260,10 +260,10 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
 
             if not options.expose_web:
                 # matplotlib figure and X-server.
-                e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+                e = MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
             else:
                 # panel version with matplotlib.
-                e = PanelExpose(title=f"Vibrational properties of {phdos_file.structure.formula}")
+                e = PanelExposer(title=f"Vibrational properties of {phdos_file.structure.formula}")
 
             with e:
                 e(phbands.qpoints.plot(show=False))
@@ -447,10 +447,10 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
 
         if not options.expose_web:
             # matplotlib figure and X-server.
-            e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+            e = MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
         else:
             # panel version
-            e = PanelExpose(title=f"Interatomic force constants of {ddb.structure.formula}")
+            e = PanelExposer(title=f"Interatomic force constants of {ddb.structure.formula}")
 
         with e:
             e(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", show=False))
@@ -612,7 +612,7 @@ def get_parser(with_epilog=False):
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
 
-    # Parent parser for commands supporting MplExpose.
+    # Parent parser for commands supporting MplExposer.
     slide_parser = argparse.ArgumentParser(add_help=False)
     slide_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
             help="Iterate over figures. Expose all figures at once if not given on the CLI.")

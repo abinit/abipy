@@ -198,6 +198,14 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
 
         return 1
 
+    def start_and_wait(self) -> int:
+        """
+        Run the calculation in a subprocess, wait for it and return exit status.
+        """
+        self.start()
+        retcode = self.wait()
+        return retcode
+
     def poll(self) -> int:
         """
         Check if child process has terminated. Set and return returncode attribute.
@@ -280,6 +288,13 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         This function checks the status of the task by inspecting the output and the
         error files produced by the application
         """
+
+#import enum
+#class CalcType(enum.Enum):
+#    nor = "non-relativistic"
+#    sr = "scalar-relativistic"
+#    fr = "fully-relativistic"
+
 
 
 class OncvGenerator(_PseudoGenerator):

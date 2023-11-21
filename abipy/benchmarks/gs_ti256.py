@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Titanium with 256 atoms and k-point sampling.
-GS calculations with paralkgb==1 and wfoptalg in [default, 1]
+GS calculations with paralkgb == 1 and wfoptalg in [default, 1]
 """
 import sys
 import operator
@@ -17,8 +17,7 @@ from abipy.benchmarks import bench_main, BenchmarkFlow
 
 def make_input(paw=True):
     """
-    Titanium with 256 atoms.
-    GS calculations with paralkgb == 1
+    Titanium with 256 atoms. GS calculations with paral_kgb == 1
     """
     pseudos = abidata.pseudos("ti.paw") if paw else abidata.pseudos("Ti-sp.psp8")
 

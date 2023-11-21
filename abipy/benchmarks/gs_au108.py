@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Gold with 107 atoms. Gamma-point.
-GS calculations with paralkgb==1 and wfoptalg in [default, 1]
+GS calculations with paral_kgb == 1 and wfoptalg in [default, 1]
 """
 import sys
 import operator
@@ -17,7 +17,7 @@ from abipy.benchmarks import bench_main, BenchmarkFlow
 
 def make_input():
     """
-    GS calculations with paralkgb==1
+    GS calculations with paral_kgb == 1
     Gold with 107 atoms.
     """
     pseudos = abidata.pseudos("au.paw")

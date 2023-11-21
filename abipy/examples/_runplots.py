@@ -64,15 +64,27 @@ def main():
         if fname.endswith(".py") and fname.startswith("plot"):
             scripts.append(os.path.join(root, fname))
 
+    #env = {
+    #    "MPLBACKEND":  options.backend,
+    #}
+    env = None
+    print(f"{env=}")
+
     # Run scripts according to mode.
     if options.mode in ["s", "sequential"]:
         for script in scripts:
-            retcode = call(["python", script])
-            if retcode != 0: break
+            print("About to execute", script)
+            args = ["python", script]
+            retcode = call(args, shell=False, env=env)
+            if retcode != 0:
+                print("Failure")
+                break
 
     elif options.mode in ["a", "automatic"]:
         for script in scripts:
-            p = Popen(["python", script])
+            print("About to execute", script)
+            args = ["python", script]
+            p = Popen(args, shell=False, env=env)
             time.sleep(options.time)
             p.kill()
         retcode = 0
@@ -80,7 +92,8 @@ def main():
     elif options.mode == "screenshot":
         processes = []
         for script in scripts:
-            p = Popen(["python", script])
+            args = ["python", script]
+            p = Popen(args, shell=False, env=env)
             processes.append(p)
 
         time.sleep(options.time)
@@ -90,6 +103,8 @@ def main():
 
     else:
         show_examples_and_exit(err_msg="Wrong value for mode: %s" % options.mode)
+
+    print("Final return code:", retcode)
 
     return retcode
 

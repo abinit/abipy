@@ -24,6 +24,7 @@ from abipy.abio.timer import AbinitTimerParser
 from abipy.abio.robots import Robot
 from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DEScfCycle
 
+
 class AbinitTextFile(TextFile):
     """
     Base class for the ABINIT main output files and log files.
@@ -50,18 +51,27 @@ class AbinitTextFile(TextFile):
 
 class AbinitLogFile(AbinitTextFile, NotebookWriter):
     """
-    Class representing the Abinit log file.
+    Class representing the ABINIT log file.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: AbinitLogFile
     """
 
     def to_string(self, verbose=0) -> str:
+        """String representation with verbosity level verbose."""
         return str(self.events)
 
     def plot(self, **kwargs):
         """Empty placeholder."""
         return None
+
+    #@add_fig_kwargs
+    #def plot_mem(self, **kwargs) -> Figure:
+    #   return fig
+
+    #@add_fig_kwargs
+    #def plot_time(self, **kwargs) -> Figure:
+    #   return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -686,8 +696,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         Args:
             with_timer: True if timer section should be plotted
         """
-        from abipy.tools.plotting import MplExpose #, PanelExpose
-        with MplExpose(slide_mode=False, slide_timeout=5.0) as e:
+        from abipy.tools.plotting import MplExposer #, PanelExposer
+        with MplExposer(slide_mode=False, slide_timeout=5.0) as e:
             e(self.yield_figs(tight_layout=tight_layout, with_timer=with_timer))
 
     # TODO: Use header and vars to understand if we have SCF/DFPT/Relaxation

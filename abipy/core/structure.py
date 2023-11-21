@@ -61,7 +61,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
     structure.__class__ = pmg_Structure
 
     from abipy.core import restapi
-    structures = []
+    structures, mpids = [], []
     with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
         try:
             mpids = rest.find_structure(structure)
@@ -69,7 +69,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
                 structures = [Structure.from_mpid(mid, final=final, api_key=api_key, endpoint=endpoint)
                               for mid in mpids]
 
-        except rest.Error as exc:
+        except Exception as exc:
             cprint(str(exc), "red")
 
         finally:
@@ -192,11 +192,20 @@ class Structure(pmg_Structure, NotebookWriter):
             - Filename
             - Dictionaries (JSON_ format or dictionaries with abinit variables).
             - Objects with a ``structure`` attribute.
+            - ASE atoms.
         """
         if isinstance(obj, cls): return obj
         if isinstance(obj, pmg_Structure):
             obj.__class__ = cls
             return obj
+        if hasattr(obj, "ase_objtype"):
+            # ASE Atoms.
+            from pymatgen.io.ase import AseAtomsAdaptor
+            return AseAtomsAdaptor.get_structure(obj, cls=cls)
+
+        if hasattr(obj, "atoms") and hasattr(obj.atoms, "ase_objtype"):
+            # Handle ASE constraints e.g. ExpCellFilter. Note recursive call
+            return Structure.as_structure(obj.atoms)
 
         if is_string(obj):
             return cls.from_file(obj)
@@ -209,6 +218,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         if hasattr(obj, "structure"):
             return cls.as_structure(obj.structure)
+
         elif hasattr(obj, "final_structure"):
             # This for HIST.nc file
             return cls.as_structure(obj.final_structure)
@@ -280,7 +290,6 @@ class Structure(pmg_Structure, NotebookWriter):
             raise ValueError("Cannot find structure in Abinit output file `%s`" % filepath)
 
         elif filepath.endswith(".abivars") or filepath.endswith(".ucell"):
-            #print("in abivars")
             with open(filepath, "rt") as fh:
                 return cls.from_abistring(fh.read())
 
@@ -303,6 +312,15 @@ class Structure(pmg_Structure, NotebookWriter):
                         (filepath, type(new)))
 
                 if new.__class__ != cls: new.__class__ = cls
+
+        elif filepath.endswith(".xyz"):
+            # ASE extended xyz format.
+            try:
+                from ase.io import read
+            except ImportError:
+                raise RuntimeError("ase is required to read xyz files. Use `pip install ase`")
+            atoms = read(filepath)
+            return cls.as_structure(atoms)
 
         else:
             # Invoke pymatgen and change class. Note that AbinitSpacegroup is missing here.
@@ -371,17 +389,26 @@ class Structure(pmg_Structure, NotebookWriter):
         import pymatgen.io.ase as aio
         return aio.AseAtomsAdaptor.get_structure(atoms, cls=cls)
 
-    def to_ase_atoms(self):
+    def to_ase_atoms(self, calc=None):
         """
-        Returns ASE_ Atoms object from structure.
+        Returns ASE Atoms object from structure and attach calculator calc.
         """
         import pymatgen.io.ase as aio
-        return aio.AseAtomsAdaptor.get_atoms(self)
+        atoms = aio.AseAtomsAdaptor.get_atoms(self)
+        if calc is not None: atoms.calc = calc
+        return atoms
+
+    def get_phonopy_atoms(self):
+        """
+        Convert a pymatgen Structure object to a PhonopyAtoms object.
+        """
+        from pymatgen.io.phonopy import get_phonopy_structure
+        return get_phonopy_structure(self)
 
     @classmethod
     def boxed_molecule(cls, pseudos, cart_coords, acell=3 * (10,)) -> Structure:
         """
-        Creates a molecule in a periodic box of lengths acell [Bohr]
+        Creates a molecule in a periodic box of lengths acell in Bohr.
 
         Args:
             pseudos: List of pseudopotentials
@@ -399,7 +426,7 @@ class Structure(pmg_Structure, NotebookWriter):
     @classmethod
     def boxed_atom(cls, pseudo, cart_coords=3*(0,), acell=3*(10,)) -> Structure:
         """
-        Creates an atom in a periodic box of lengths acell [Bohr]
+        Creates an atom in a periodic box of lengths acell in Bohr.
 
         Args:
             pseudo: Pseudopotential object.
@@ -576,7 +603,7 @@ class Structure(pmg_Structure, NotebookWriter):
     @property
     def species_by_znucl(self):
         """
-        Return list of unique specie found in the structure **ordered according to sites**.
+        Return list of unique species found in the structure **ordered according to sites**.
 
         Example:
 
@@ -874,6 +901,11 @@ class Structure(pmg_Structure, NotebookWriter):
             if x_prod < 0: raise RuntimeError("x_prod is still negative!")
 
         return self.__class__.as_structure(structure)
+
+    #def relax(self, **kwargs) -> Structure:
+    #    new = super().relax(**kwargs)
+    #    new.__class__ = self.__class__
+    #    return new
 
     def get_oxi_state_decorated(self, **kwargs) -> Structure:
         """
@@ -1381,7 +1413,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     def get_dict4pandas(self, symprec=1e-2, angle_tolerance=5.0, with_spglib=True) -> dict:
         """
-        Return a :class:`OrderedDict` with the most important structural parameters:
+        Return a dict with the most important structural parameters:
 
             - Chemical formula and number of atoms.
             - Lattice lengths, angles and volume.
@@ -1891,6 +1923,45 @@ class Structure(pmg_Structure, NotebookWriter):
 
         # Fortran 2 python!!!
         return scale_matrix.T
+
+    def make_doped_supercells(self,scaling_matrix,replaced_atom, dopant_atom):
+        """
+        Returns a list doped supercell structures, one for each non-equivalent site of the replaced atom.
+        Args:
+            scaling_matrix: A scaling matrix for transforming the lattice vectors.
+                Has to be all integers. Several options are possible:
+                a. A full 3x3 scaling matrix defining the linear combination of the old lattice vectors.
+                    E.g., [[2,1,0],[0,3,0],[0,0,1]] generates a new structure with lattice vectors
+                    a' = 2a + b, b' = 3b, c' = c
+                    where a, b, and c are the lattice vectors of the original structure.
+                b. A sequence of three scaling factors. e.g., [2, 1, 1]
+                   specifies that the supercell should have dimensions 2a x b x c.
+                c. A number, which simply scales all lattice vectors by the same factor.
+            replaced atom : Symbol of the atom to be replaced (ex: 'Sr')
+            dopant_atom : Symbol of the dopant_atom (ex: 'Eu')
+        """
+        ### list of positions of non-equivalent sites for the replaced atom. ###
+        irred=self.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
+        positions=self.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
+
+        index_non_eq_sites=[]
+        for pos in positions:
+            if len(irred[pos]) != 0:
+                 index_non_eq_sites.append(irred[pos][0])
+
+        doped_supercell=self.copy()
+        doped_supercell.make_supercell(scaling_matrix)
+
+        doped_structure_list=[]
+
+        for index in index_non_eq_sites:
+            final_structure=doped_supercell.copy()
+            final_structure.replace(index,dopant_atom)
+            doped_structure_list.append(final_structure)
+
+        return doped_structure_list
+
+
 
     def get_trans_vect(self, scale_matrix):
         """
@@ -2547,13 +2618,9 @@ def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.st
     outs = [s.convert(fmt=fmt).splitlines() for s in map(Structure.as_structure, structures)]
 
     if mode == "table":
-        try:
-            from itertools import izip_longest as zip_longest  # Py2
-        except ImportError:
-            from itertools import zip_longest  # Py3k
-
-        table = [r for r in zip_longest(*outs, fillvalue=" ")]
+        from itertools import zip_longest  # Py3k
         from tabulate import tabulate
+        table = [r for r in zip_longest(*outs, fillvalue=" ")]
         print(tabulate(table, headers=headers), file=file)
 
     elif mode == "diff":
@@ -2565,7 +2632,7 @@ def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.st
             print(diff, file=file)
 
     else:
-        raise ValueError("Unsupported mode: `%s`" % str(mode))
+        raise ValueError(f"Unsupported {mode=}")
 
 
 def structure2siesta(structure: Structure, verbose=0) -> str:
@@ -2579,7 +2646,7 @@ def structure2siesta(structure: Structure, verbose=0) -> str:
 
     if not structure.is_ordered:
         raise NotImplementedError("""\
-Received disordered structure with partial occupancies that cannot be converted into a Siesta input
+Received disordered structure with partial occupancies that cannot be converted to a Siesta input
 Please use OrderDisorderedStructureTransformation or EnumerateStructureTransformation
 to build an appropriate supercell from partial occupancies or alternatively use the Virtual Crystal Approximation.""")
 
@@ -2621,3 +2688,103 @@ to build an appropriate supercell from partial occupancies or alternatively use 
     app("%endblock AtomicCoordinatesAndAtomicSpecies")
 
     return "\n".join(lines)
+
+
+class StructDiff:
+    """
+    Print difference among structures.
+    """
+    def __init__(self, labels: list[str], structures):
+        """
+        Args:
+            labels: Labels associated to structures
+            structures: List of structures or objects that can be converted to structures.
+        """
+        self.labels = labels
+        self.structs = [Structure.as_structure(s) for s in structures]
+
+        # Consistency check.
+        if len(self.labels) != len(self.structs):
+            raise ValueError("len(self.labels) != len(self.structs)")
+        if len(self.labels) != len(self.labels):
+            raise ValueError(f"Found duplicated entries in: {self.labels}")
+        natom = len(self.structs[0])
+        if any(len(s) != natom for s in self.structs):
+            raise ValueError(f"structures have different number of atoms!")
+
+    def del_label(self, label: str) -> None:
+        """Remove entry associated to label."""
+        for il, this_label in enumerate(self.labels):
+            if label == this_label:
+                del self.labels[il]
+                del self.structs[il]
+
+    def get_lattice_dataframe(self) -> pd.DataFrame:
+        """
+        Build dataframe with lattice parameters.
+        """
+        d_list = []
+        for label, structure in zip(self.labels, self.structs):
+            d = {"label": label}
+            for i, k in enumerate(["a", "b", "c"]):
+                d[k] = structure.lattice.abc[i]
+            for i, k in enumerate(["alpha", "beta", "gamma"]):
+                d[k] = structure.lattice.angles[i]
+            d_list.append(d)
+
+        return pd.DataFrame(d_list).set_index("label", inplace=False)
+
+    def get_sites_dataframe(self, with_cart_coords=False) -> pd.DataFrame:
+        """
+        Build dataframe with site positions.
+        """
+        # Handle possible rigid shift.
+        #shift_cart, shift_frac = np.zeros(3), np.zeros(3)
+        #if allow_rigid_shift:
+        #    site1, site2 = self.structs[0][0], self.structs[1][0]
+        #    shift_cart = site2.coords - site1.coords
+        #    shift_frac = site2.frac_coords - site1.frac_coords
+
+        d_list = []
+        natom = len(self.structs[0])
+        for isite in range(natom):
+            for label, structure in zip(self.labels, self.structs):
+                site = structure[isite]
+                d = {"label": label, "site_index": isite}
+                for i, k in enumerate(["xred1", "xred2", "xred3"]):
+                    d[k] = site.frac_coords[i]
+                if with_cart_coords:
+                    for i, k in enumerate(["xcart1", "xcart2", "xcart3"]):
+                        d[k] = site.coords[i]
+                d_list.append(d)
+
+        return pd.DataFrame(d_list).set_index("label", inplace=False)
+
+    def tabulate(self, only_lattice=False, allow_rigid_shift=True, with_cart_coords=False, file=sys.stdout) -> None:
+        """
+        Tabulate lattice parameters and atomic positions.
+
+        Args:
+            only_lattice:
+            allow_rigid_shift:
+            with_cart_coords:
+            file: Output stream
+        """
+        # Compare lattices.
+        df = self.get_lattice_dataframe()
+        print("\nLattice parameters (Ang units):", file=file)
+        print(df.to_string(), file=file)
+        if only_lattice: return
+
+        # Compare sites.
+        natom = len(self.structs[0])
+        if any(len(s) != natom for s in self.structs): return
+        df = self.get_sites_dataframe(with_cart_coords=with_cart_coords)
+
+        print("\nAtomic sites (Ang units):", file=file)
+        print(df.to_string(), file=file)
+        print("", file=file)
+
+    #def diff(self, ref_label, with_cart_coords=False, file=sys.stdout) -> None:
+    #    df = self.get_lattice_dataframe()
+    #    df = self.get_sites_dataframe(with_cart_coords=with_cart_coords)

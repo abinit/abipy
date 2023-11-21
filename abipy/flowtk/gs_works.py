@@ -42,7 +42,7 @@ class GsKmeshConvWork(Work):
 
         return work
 
-    def on_all_ok(self):
+    def on_all_ok(self): # pragma: no cover
         """
         This method is called when all tasks in the GsKmeshTsmearConvWork have reached S_OK.
         """
@@ -99,7 +99,7 @@ class GsKmeshTsmearConvWork(Work):
 
         return work
 
-    def on_all_ok(self):
+    def on_all_ok(self): # pragma: no cover
         """
         This method is called when all tasks in the GsKmeshTsmearConvWork have reached S_OK.
         """
@@ -203,7 +203,7 @@ class EosWork(Work):
         return new_work
 
     @classmethod
-    def from_inputs(cls, inputs: list, manager=None) -> EosWork:
+    def from_inputs(cls, inputs: list[AbinitInput], manager=None) -> EosWork:
         """
         Advanced interface to build an EosWork from an list of AbinitInputs.
         """
@@ -242,7 +242,7 @@ class EosWork(Work):
 
         return eos_data
 
-    def on_all_ok(self):
+    def on_all_ok(self): # pragma: no cover
         """
         This method is called when all tasks have reached S_OK.
         It reads the energies and the volumes from the GSR file, computes the EOS

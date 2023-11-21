@@ -11,16 +11,17 @@ from __future__ import annotations
 import os
 import time
 import itertools
+import functools
 import numpy as np
 import pandas as pd
 
 from collections import namedtuple, OrderedDict
 from typing import Any, Callable, Iterator
-from pymatgen.util.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt
+from pymatgen.util.plotting import add_fig_kwargs
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
-from .numtools import data_from_cplx_mode
+from abipy.tools.numtools import data_from_cplx_mode
 
 
 __all__ = [
@@ -48,24 +49,129 @@ linestyles = OrderedDict(
      ('loosely_dotted',      (0, (1, 10))),
      ('dotted',              (0, (1, 5))),
      ('densely_dotted',      (0, (1, 1))),
-
+     #
      ('loosely_dashed',      (0, (5, 10))),
      ('dashed',              (0, (5, 5))),
      ('densely_dashed',      (0, (5, 1))),
-
+     #
      ('loosely_dashdotted',  (0, (3, 10, 1, 10))),
      ('dashdotted',          (0, (3, 5, 1, 5))),
      ('densely_dashdotted',  (0, (3, 1, 1, 1))),
-
+     #
      ('loosely_dashdotdotted', (0, (3, 10, 1, 10, 1, 10))),
      ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
      ('densely_dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))]
 )
 
 
+
+@functools.cache
+def get_color_symbol(style: str="VESTA") -> dict:
+    """
+    Dictionary mapping chemical symbol to RGB color.
+
+    Args:
+        style: "VESTA" or "Jmol".
+    """
+    from monty.serialization import loadfn
+    from pymatgen import vis
+    colors = loadfn(os.path.join(os.path.dirname(vis.__file__), "ElementColorSchemes.yaml"))
+    if style not in colors:
+        raise KeyError(f"Invalid {style=}. Should be in {colors.keys()}")
+    color_symbol = {el: [j / 256.001 for j in colors[style][el]] for el in colors[style]}
+    return color_symbol
+
+
+
+
 ###################
 # Matplotlib tools
 ###################
+
+
+def get_ax_fig_plt(ax=None, **kwargs):
+    """Helper function used in plot functions supporting an optional Axes argument.
+    If ax is None, we build the `matplotlib` figure and create the Axes else
+    we return the current active figure.
+
+    Args:
+        ax (Axes, optional): Axes object. Defaults to None.
+        kwargs: keyword arguments are passed to plt.figure if ax is not None.
+
+      Returns:
+        ax: :class:`Axes` object
+        figure: matplotlib figure
+        plt: matplotlib pyplot module.
+    """
+    import matplotlib.pyplot as plt
+    if ax is None:
+        fig = plt.figure(**kwargs)
+        ax = fig.gca()
+    else:
+        fig = plt.gcf()
+
+    return ax, fig, plt
+
+
+def get_ax3d_fig_plt(ax=None, **kwargs):
+    """Helper function used in plot functions supporting an optional Axes3D
+    argument. If ax is None, we build the `matplotlib` figure and create the
+    Axes3D else we return the current active figure.
+
+    Args:
+        ax (Axes3D, optional): Axes3D object. Defaults to None.
+        kwargs: keyword arguments are passed to plt.figure if ax is not None.
+
+    Returns:
+        tuple[Axes3D, Figure]: matplotlib Axes3D and corresponding figure objects
+    """
+    import matplotlib.pyplot as plt
+    if ax is None:
+        fig = plt.figure(**kwargs)
+        ax = fig.add_subplot(projection="3d")
+    else:
+        fig = plt.gcf()
+
+    return ax, fig, plt
+
+
+def get_axarray_fig_plt(
+    ax_array, nrows=1, ncols=1, sharex=False, sharey=False, squeeze=True, subplot_kw=None, gridspec_kw=None, **fig_kw
+):
+    """Helper function used in plot functions that accept an optional array of Axes
+    as argument. If ax_array is None, we build the `matplotlib` figure and
+    create the array of Axes by calling plt.subplots else we return the
+    current active figure.
+
+    Returns:
+        ax: Array of Axes objects
+        figure: matplotlib figure
+        plt: matplotlib pyplot module.
+    """
+    import matplotlib.pyplot as plt
+
+    if ax_array is None:
+        fig, ax_array = plt.subplots(
+            nrows=nrows,
+            ncols=ncols,
+            sharex=sharex,
+            sharey=sharey,
+            squeeze=squeeze,
+            subplot_kw=subplot_kw,
+            gridspec_kw=gridspec_kw,
+            **fig_kw,
+        )
+    else:
+        fig = plt.gcf()
+        ax_array = np.reshape(np.array(ax_array), (nrows, ncols))
+        if squeeze:
+            if ax_array.size == 1:
+                ax_array = ax_array[0]
+            elif any(s == 1 for s in ax_array.shape):
+                ax_array = ax_array.ravel()
+
+    return ax_array, fig, plt
+
 
 def is_mpl_figure(obj: Any) -> bool:
     """Return True if obj is a matplotlib Figure."""
@@ -147,8 +253,52 @@ def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> 
     ax.set_ylabel(ylabel)
 
 
+def set_logscale(ax_or_axlist, xy_log) -> None:
+    """
+    Activate logscale
+
+    Args:
+        ax_or_axlist: Axes or list of axes.
+        xy_log: None or empty string for linear scale. "x" for log scale on x-axis.
+            "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
+    """
+    if not xy_log: return
+
+    # Parse xy_log string.
+    xy, log_type = xy_log, "log"
+    if ":" in xy_log:
+        xy, log_type = xy_log.split(":")
+
+    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
+
+    for ix, ax in enumerate(ax_list):
+        if "x" in xy:
+            ax.set_xscale(log_type)
+        if "y" in xy:
+            ax.set_yscale(log_type)
+
+
+def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string="xy", **kwargs) -> None:
+    """
+    Set tick properties for one axis or a list of axis.
+
+    Args:
+        ax_or_axlist: Axes or list of axes.
+        xy_string: "x" to share x-axis, "xy" for both.
+    """
+    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
+
+    for ix, ax in enumerate(ax_list):
+        if "x" in xy_string:
+            ax.tick_params(axis='x', labelsize=fontsize, **kwargs)
+
+        if "y" in xy_string:
+            ax.tick_params(axis='y', labelsize=fontsize, **kwargs)
+
+
+
 def set_grid_legend(ax_or_axlist, fontsize: int,
-                    xlabel=None, ylabel=None, grid=True, legend=True, direction=None) -> None:
+                    xlabel=None, ylabel=None, grid=True, legend=True, direction=None, title=None, legend_loc="best") -> None:
     """
     Activate grid and legend for one axis or a list of axis.
 
@@ -156,23 +306,26 @@ def set_grid_legend(ax_or_axlist, fontsize: int,
         grid: True to activate the grid.
         legend: True to activate the legend.
         direction: Use "x" ("y") if to add xlabel (ylabel) only to the last ax.
+        title: Title string
     """
     if duck.is_listlike(ax_or_axlist):
         for ix, ax in enumerate(ax_or_axlist):
             ax.grid(grid)
-            if legend: ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            if legend: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
             if xlabel:
                 doit = direction is None or (direction == "y" and ix == len(ax_or_axlist) -1)
                 if doit: ax.set_xlabel(xlabel)
             if ylabel:
                 doit = direction is None or (direction == "x" and ix == len(ax_or_axlist) -1)
                 if doit: ax.set_ylabel(ylabel)
+            if title: ax.set_title(title, fontsize=fontsize)
     else:
         ax = ax_or_axlist
         ax.grid(grid)
-        if legend: ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        if legend: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
         if xlabel: ax.set_xlabel(xlabel)
         if ylabel: ax.set_ylabel(ylabel)
+        if title: ax.set_title(title, fontsize=fontsize)
 
 
 def set_visible(ax, boolean: bool, *args) -> None:
@@ -220,7 +373,7 @@ def rotate_ticklabels(ax, rotation: float, axname: str ="x") -> None:
 def hspan_ax_line(ax, line, abs_conv, hatch, alpha=0.2, with_label=True) -> None:
     """
     Add hspan to ax showing the convergence region of width `abs_conv`.
-    Use same color as line. Return immediately if abs_conv is None of x-values are strings.
+    Use same color as line. Return immediately if abs_conv is None or x-values are strings.
     """
     if abs_conv is None: return
     xs = line.get_xdata()
@@ -236,7 +389,7 @@ def hspan_ax_line(ax, line, abs_conv, hatch, alpha=0.2, with_label=True) -> None
     for i, ix in enumerate(x_inds):
         y_xmax = ys[ix]
         ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv,
-                   label=r"$|y-y(Max)| \leq %s$" % abs_conv if (with_label and i == 0) else None,
+                   label=r"$|y-y(x_{max})| \leq %s$" % abs_conv if (with_label and i == 0) else None,
                    **span_style)
 
 
@@ -289,12 +442,11 @@ def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
         data = data.round({hue: decimals})
 
     ax, fig, plt = get_ax_fig_plt(ax=ax)
-    for key, grp in data.groupby(hue):
+    for key, grp in data.groupby(by=hue):
         # Sort xs and rearrange ys
         xy = np.array(sorted(zip(grp[x], grp[y]), key=lambda t: t[0]))
         xvals, yvals = xy[:, 0], xy[:, 1]
 
-        #label = "{} = {}".format(hue, key)
         label = "%s" % (str(key))
         if not kwargs:
             ax.plot(xvals, yvals, 'o-', label=label)
@@ -309,6 +461,25 @@ def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
     ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
     return fig
+
+
+def linear_fit_ax(ax, xs, ys, fontsize, with_label=True, with_ideal_line=False, **kwargs) -> tuple[float]:
+    """
+    Calculate a linear least-squares regression for two sets of measurements.
+    kwargs are passed to ax.plot.
+    """
+    from scipy.stats import linregress
+    fit = linregress(xs, ys)
+    label = r"Linear fit $\alpha={:.2f}$, $r^2$={:.2f}".format(fit.slope, fit.rvalue**2)
+    if "color" not in kwargs:
+        kwargs["color"] = "r"
+
+    ax.plot(xs, fit.slope*xs + fit.intercept, label=label if with_label else None, **kwargs)
+    if with_ideal_line:
+        # Plot y = x line
+        ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-',
+                linewidth=1, label='Ideal' if with_label else None)
+    return fit
 
 
 @add_fig_kwargs
@@ -638,7 +809,7 @@ class ConvergenceAnalyzer:
                 title += pre_str + s
 
             ax2.set_title(title, fontsize=fontsize)
-            ax2.set_ylabel(r"$|y-y(Max)|$", fontsize=fontsize)
+            ax2.set_ylabel(r"$|y-y(x_{max})|$", fontsize=fontsize)
 
             set_grid_legend(ax_row, fontsize,
                             xlabel=self.xlabel if irow == (nrows - 1) else None,
@@ -817,22 +988,84 @@ class Marker(namedtuple("Marker", "x y s")):
         return self.__class__(pos_x, pos_y, pos_s), self.__class__(neg_x, neg_y, neg_s)
 
 
-class MplExpose: # pragma: no cover
+class Exposer:
     """
-    Context manager used to produce several matplotlib figures and then show
-    all them at the end so that the user does not need to close the window to
-    visualize to the next one.
+    Base class for Exposer objects.
 
     Example:
 
-        with MplExpose() as e:
-            e(obj.plot1(show=False))
-            e(obj.plot2(show=False))
+        kws = dict(show=False)
+        with Exposer.as_exposer("panel") as e:
+            e(obj.plot1(**plot_kws))
+            e(obj.plot2(**plot_kws))
     """
-    def __init__(self, slide_mode=False, slide_timeout=None, verbose=1):
+
+    @classmethod
+    def as_exposer(cls, exposer, **kwargs) -> Exposer:
+        """
+        Return an instance of Exposer, usually from a string with then name.
+
+        Args:
+            exposer: "mpl" for MplExposer, "panel" for PanelExposer.
+        """
+        if isinstance(exposer, cls): return exposer
+
+        # Assume string.
+        exposer_cls = dict(
+            mpl=MplExposer,
+            panel=PanelExposer,
+        )[exposer]
+        return exposer_cls(**kwargs)
+
+    def add_obj_with_yield_figs(self, obj: Any) -> None:
+        """
+        Add an object implementing a `yield_figs` method to the Exposer.
+        """
+        if not hasattr(obj, "yield_figs"):
+            raise TypeError(f"object of type {type(obj)} does not implement `yield_figs` method")
+
+        for fig in obj.yield_figs():
+            self.add_fig(fig)
+
+    def __call__(self, obj: Any):
+        """
+        Add an object to the Exposer
+        Support mpl figure, list of figures or generator yielding figures.
+        """
+        import types
+        if isinstance(obj, (types.GeneratorType, list, tuple)):
+            for fig in obj:
+                self.add_fig(fig)
+        else:
+            self.add_fig(obj)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement. """
+        if exc_type is not None: return
+        self.expose()
+
+
+class MplExposer(Exposer): # pragma: no cover
+    """
+    Context manager used to produce several matplotlib figures and show
+    all of them at once so that users do not have to close the window
+    to visualize the next one.
+
+    Example:
+
+        plot_args = dict(show=False)
+        with MplExposer() as e:
+            e(obj.plot1(**plot_args))
+            e(obj.plot2(**plot_args))
+    """
+
+    def __init__(self, slide_mode=False, slide_timeout=None, verbose=1, **kwargs):
         """
         Args:
-            slide_mode: If Rrue, iterate over figures. Default: Expose all figures at once.
+            slide_mode: If True, iterate over figures. Default: Expose all figures at once.
             slide_timeout: Close figure after slide-timeout seconds. Block if None.
             verbose: verbosity level
         """
@@ -852,18 +1085,6 @@ class MplExpose: # pragma: no cover
 
         self.start_time = time.time()
 
-    def __call__(self, obj: Any):
-        """
-        Add an object to MplExpose.
-        Support mpl figure, list of figures or generator yielding figures.
-        """
-        import types
-        if isinstance(obj, (types.GeneratorType, list, tuple)):
-            for fig in obj:
-                self.add_fig(fig)
-        else:
-            self.add_fig(obj)
-
     def add_fig(self, fig: Figure) -> None:
         """
         Add a matplotlib figure.
@@ -873,7 +1094,6 @@ class MplExpose: # pragma: no cover
         if not self.slide_mode:
             self.figures.append(fig)
         else:
-            #print("Printing and closing", fig)
             import matplotlib.pyplot as plt
             if self.timeout_ms is not None:
                 # Creating a timer object
@@ -885,16 +1105,10 @@ class MplExpose: # pragma: no cover
             plt.show()
             fig.clear()
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Activated at the end of the with statement. """
-        if exc_type is not None: return
-        self.expose()
-
     def expose(self) -> None:
-        """Show all figures. Clear figures if needed."""
+        """
+        Show all figures. Clear figures if needed.
+        """
         if not self.slide_mode:
             print("All figures in memory, elapsed time: %.3f s" % (time.time() - self.start_time))
             import matplotlib.pyplot as plt
@@ -903,18 +1117,18 @@ class MplExpose: # pragma: no cover
                 fig.clear()
 
 
-class PanelExpose:  # pragma: no cover
+class PanelExposer(Exposer):  # pragma: no cover
     """
     Context manager used to produce several matplotlib/plotly figures
-    and show all of them inside the Browser using a panel template.
+    and show all of them inside the web browser using a panel template.
 
     Example:
 
-        with PanelExpose() as e:
+        with PanelExposer() as e:
             e(obj.plot1(show=False))
             e(obj.plot2(show=False))
     """
-    def __init__(self, title=None, dpi=92, verbose=1):
+    def __init__(self, title=None, dpi=92, verbose=1, **kwargs):
         """
         Args:
             title: String to be show in the header.
@@ -930,30 +1144,10 @@ class PanelExpose:  # pragma: no cover
 
         self.start_time = time.time()
 
-    def __call__(self, obj: Any):
-        """
-        Add an object to PanelExpose.
-        Support mpl figure, list of figures or generator yielding figures.
-        """
-        import types
-        if isinstance(obj, (types.GeneratorType, list, tuple)):
-            for fig in obj:
-                self.add_fig(fig)
-        else:
-            self.add_fig(obj)
-
     def add_fig(self, fig: Figure) -> None:
         """Add a matplotlib figure."""
         if fig is None: return
         self.figures.append(fig)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Activated at the end of the with statement. """
-        if exc_type is not None: return
-        self.expose()
 
     def expose(self):
         """Show all figures. Clear figures if needed."""
@@ -1624,12 +1818,13 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
                 ================  ====================================================================
                 title             Title of the plot (Default: None).
                 show              True to show the figure (default: True).
-                hovormode         True to show the hover info (default: False)
+                hovermode         True to show the hover info (default: False)
                 savefig           "abc.png" , "abc.jpeg" or "abc.webp" to save the figure to a file.
                 write_json        Write plotly figure to `write_json` JSON file.
-                                  Inside jupyter-lab, one can right-click the `write_json` file from the file menu
-                                  and open with "Plotly Editor".
-                                  Make some changes to the figure, then use the file menu to save the customized plotly plot.
+                                  Inside jupyter-lab, one can right-click the `write_json` file from
+                                  the file menu and open with "Plotly Editor".
+                                  Make some changes to the figure, then use the file menu to save
+                                  the customized plotly plot.
                                   Requires `jupyter labextension install jupyterlab-chart-editor`.
                                   See https://github.com/plotly/jupyterlab-chart-editor
                 renderer          (str or None (default None)) –
@@ -1641,7 +1836,8 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
                 chart_studio      True to push figure to chart_studio server. Requires authenticatios.
                                   Default: False.
                 template          Plotly template. See https://plotly.com/python/templates/
-                                  ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]
+                                  ["plotly", "plotly_white", "plotly_dark", "ggplot2",
+                                   "seaborn", "simple_white", "none"]
                                   Default is None that is the default template is used.
                 ================  ====================================================================
         """

@@ -1,5 +1,5 @@
 # coding: utf-8
-"""This module provides mixin classes"""
+"""Mixin classes"""
 from __future__ import annotations
 
 import abc
@@ -36,6 +36,7 @@ class BaseFile(metaclass=abc.ABCMeta):
     by the concrete classes representing the different files produced by ABINIT.
     """
     def __init__(self, filepath: str):
+        filepath = str(filepath)
         self._filepath = os.path.abspath(filepath)
 
         # Save stat values
@@ -92,7 +93,7 @@ class BaseFile(metaclass=abc.ABCMeta):
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Activated at the end of the with statement. It automatically closes the file."""
         self.close()
 
@@ -472,12 +473,12 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         """
         Shows a predefined list of matplotlib figures for electron bands with minimal input from the user.
         """
-        from abipy.tools.plotting import MplExpose, PanelExpose
+        from abipy.tools.plotting import MplExposer, PanelExposer
 
         if expose_web:
-            e = PanelExpose(title=f"e-Bands of {self.structure.formula}")
+            e = PanelExposer(title=f"e-Bands of {self.structure.formula}")
         else:
-            e = MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1)
+            e = MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1)
 
         with e:
             e(self.yield_ebands_figs(**kwargs))
@@ -544,8 +545,8 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
         """
         Shows a predefined list of matplotlib figures for phonon bands with minimal input from the user.
         """
-        from abipy.tools.plotting import MplExpose
-        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+        from abipy.tools.plotting import MplExposer
+        with MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
             e(self.yield_phbands_figs(**kwargs))
 
 
@@ -687,15 +688,7 @@ See also https://jupyter.readthedocs.io/en/latest/install.html
             print("nbpath:", nbpath)
 
             import socket
-
-            def find_free_port():
-                """https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number"""
-                from contextlib import closing
-                with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-                    s.bind(('', 0))
-                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                    return s.getsockname()[1]
-
+            from abipy.tools.notebooks import find_free_port
             username = os.getlogin()
             hostname = socket.gethostname()
             port = find_free_port()
@@ -875,26 +868,29 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
 
     def expose(self, slide_mode=False, slide_timeout=None, use_web=False, **kwargs):
         """
-        Shows a predefined list of matplotlib figures with minimal input from the user.
-        Relies on the ``yield_fig``s methods implemented by the subclass to generate matplotlib figures.
+        Shows a predefined list of figures with minimal input from the user.
+        Relies on the ``yield_fig``s methods implemented by the subclass to generate such figures.
 
         Args:
             use_web: True to show all figures inside a panel template executed in the local browser.
-               False to show figures in different GUIs
+               False to show figures in different GUIs.
         """
         if not use_web:
             # Produce all matplotlib figures and show them with the X-server.
-            from abipy.tools.plotting import MplExpose
-            with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+            from abipy.tools.plotting import MplExposer
+            with MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
                 e(self.yield_figs(**kwargs))
 
         else:
             # Create panel template with matplotlib figures and show them in the browser.
             pn, template = self._get_panel_and_template()
             pn.config.sizing_mode = 'stretch_width'
-            from abipy.panels.core import mpl
+            from abipy.panels.core import mpl, dfc
             for i, fig in enumerate(self.yield_figs()):
                 row, col = divmod(i, 2)
+                #if isinstance(fig, pd.DataFrame, pd.Series):
+                #    p = dfc(fig)
+                #elsse
                 p = mpl(fig, with_divider=False, dpi=82)
                 if hasattr(template.main, "append"):
                     template.main.append(p)
@@ -957,9 +953,9 @@ class SlotPickleMixin:
     This mixin makes it possible to pickle/unpickle objects with __slots__
     """
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         return {slot: getattr(self, slot) for slot in self.__slots__ if hasattr(self, slot)}
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict) -> None:
         for slot, value in state.items():
             setattr(self, slot, value)

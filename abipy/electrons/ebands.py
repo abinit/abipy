@@ -16,7 +16,7 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict, namedtuple
 from collections.abc import Iterable
-from typing import List, Any
+from typing import Any
 from monty.string import is_string, list_strings, marquee
 from monty.termcolor import cprint
 from monty.json import MontyEncoder
@@ -2047,7 +2047,7 @@ class ElectronBands(Has_Structure):
             method: String defining the method.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
-            colormap: Have a look at the colormaps here and decide which one you like:
+            colormap: Color map. Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             cumulative: True for cumulative plots (default).
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -2449,7 +2449,7 @@ class ElectronBands(Has_Structure):
                 - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to ``e0 = 0``.
-            colormap: Have a look at the colormaps here and decide which one you like:
+            colormap: Color map. Have a look at the colormaps here and decide which one you like:
                 <http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html>
             ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
         """
@@ -3001,7 +3001,7 @@ class ElectronBands(Has_Structure):
         interpolator = FourierInterpolator(bs)
 
         nworkers = 1 # Use 1 worker because it does not seem to scale well on my Mac.
-        with Timer(f"BoltzTraP2 interpolation with factor {interpolation_factor} and velocities: {with_velocities}"):
+        with Timer(footer=f"BoltzTraP2 interpolation with {interpolation_factor=} and {with_velocities=}"):
             if with_velocities:
                 dense_bs, velocities = interpolator.interpolate_bands(interpolation_factor=interpolation_factor,
                                                                       return_velocities=with_velocities,
@@ -3065,8 +3065,7 @@ class ElectronBands(Has_Structure):
             raise ValueError(f"Invalid value for eref: {eref}")
 
         # generate the Fermi surface
-        with Timer(f"Building Fermi surface with wigner_seitz: {wigner_seitz}, eref: {eref} and mu: {mu} (eV)"):
-
+        with Timer(footer=f"Building Fermi surface with {wigner_seitz=}, {eref=} and {mu=} (eV)"):
             from ifermi.kpoints import kpoints_from_bandstructure
             dense_kpoints = kpoints_from_bandstructure(r.dense_bs) if r.velocities else None
 
@@ -3104,11 +3103,11 @@ class ElectronBands(Has_Structure):
     #    from ifermi.plot import FermiSlicePlotter
 
     #    expose_web = True
-    #    from abipy.tools.plotting import MplExpose, PanelExpose
+    #    from abipy.tools.plotting import MplExposer, PanelExposer
     #    if expose_web:
-    #        e = PanelExpose(title=f"e-Bands of {self.structure.formula}")
+    #        e = PanelExposer(title=f"e-Bands of {self.structure.formula}")
     #    else:
-    #        e = MplExpose(verbose=1)
+    #        e = MplExposer(verbose=1)
 
     #    with e:
     #        for plane_normal in plane_normals:

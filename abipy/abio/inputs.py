@@ -598,7 +598,7 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
 
         if self.spell_check and not is_abivar(key):
             raise self.Error("""
-Cannot find variable `%s` in internal database. If you believe this is not a typo, use:
+Cannot find variable `%s` in the internal database. If you believe this is not a typo, use:
 
     input.set_spell_check(False)
 
@@ -958,7 +958,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             if nspden is not None and nspden not in (1, 4):
                 eapp(f"nspden should be either 1 or 4 when nspinor == 2 while it is: {nspden}")
         else:
-            eapp(f"Invalid value for nspinor: {nspinor}")
+            eapp(f"Invalid {nspinor=}")
 
         if errors:
             raise self.Error("\n".join(errors))
@@ -969,7 +969,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     def set_cutoffs_for_accuracy(self, accuracy: str) -> dict:
         """
-        Set the value of ecut and pawcutdg (if PAW) using the hints reported in the pseudos.
+        Set the value of ecut and pawecutdg (if PAW) using the hints reported in the pseudos.
         Raises ``AbinitInputError`` if pseudos do not provide hints.
         In the case of PAW, pawecutdg is either taken from the hints or computed from the recommended
         value of ecut using a scaling factor that depends on ``accuracy``.
@@ -998,18 +998,46 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if has_paw: d.update(pawecutdg=pawecutdg)
         return self.set_vars(**d)
 
-    #def set_auto_scf_nband(self, nsppol: int, nspinor: int, nspden: int,
-    #                       occopt: int, tsmear: float) -> dict:
-    #    self._check_nsppol_nspinor(nsppol, nspinor)
+    def set_scf_nband_semicond(self, nsppol=1, nspinor=1, nspden=1, charge=0.0, spinat=None) -> dict:
+        """
+        Set electronic pararameters, smearing options and compute ``nband`` for a GS-SCF run.
+        assuming a semiconductor. See set_scf_nband.
+        Return dict with variables.
+        """
+        return self.set_scf_nband(nsppol=nsppol, nspinor=nspinor, nspden=nspden,
+                                  occopt=1, tsmear=0.0, charge=0.0, spinat=None)
 
-    #    scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
-    #                                   charge=charge, nband=scf_nband, fband=None)
-    #    _find_scf_nband(structure, pseudos, electrons, spinat=None)
-    #    num_valence_electrons = self.structure.num_valence_electrons(pseudos)
-    #    nband = num_valence_electrons // nsppol
-    #    _, rest = divmod(nband, 4)
-    #    nband += rest
-    #    return self.set_vars(nsppol=nsppol, nspinor=nspinor, nsppden=nspden, nband=nband)
+    def set_scf_nband(self, nsppol: int, nspinor: int, nspden: int,
+                      occopt: int, tsmear: float, charge: float, spinat) -> dict:
+        """
+        Set electronic pararameters, smearing options and compute ``nband`` for a GS-SCF run.
+        Return dict with variables.
+
+        Args:
+            nsppol: Number of spins.
+            nspinor: Number of spinor components.
+            nspden: Number of spin density components.
+            occopt: Occoputation option.
+            tsmear: Electronic smearing.
+            charge: Extra charge.
+            spinat: If None and nsppol 2, spinat is automatically computed.
+        """
+        self._check_nsppol_nspinor(nsppol, nspinor)
+        spin_mode = aobj.SpinMode(mode="test", nsppol=nsppol, nspinor=nspinor, nspden=nsppol)
+        smearing = aobj.Smearing(occopt, tsmear)
+
+        scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=None,
+                                       charge=charge, nband=None, fband=None)
+
+        if nsppol == 2 and spinat is None:
+            self.set_autospinat()
+            spinat = self["spinat"]
+
+        from abipy.abio.factories import _find_scf_nband
+        nband = _find_scf_nband(self.structure, self.pseudos, scf_electrons, spinat=spinat)
+        return self.set_vars(nsppol=nsppol, nspinor=nspinor, nspden=nspden,
+                             occopt=occopt, tsmear=tsmear, charge=charge,
+                             nband=nband, spinat=spinat)
 
     def set_kmesh(self, ngkpt, shiftk, kptopt: int = 1) -> dict:
         """
@@ -1503,13 +1531,16 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             if scdims.shape != (3,):
                 raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
 
-            numcells = np.product(scdims)
+            numcells = np.prod(scdims)
             if len(new_structure) != numcells * len(self.structure):
                 errmsg = "Number of atoms in the input structure should be %d * %d but found %d" % (
                     numcells, len(self.structure), len(new_structure))
                 raise ValueError(errmsg)
+            
+            expected_supercell=self.structure.copy()
+            expected_supercell.make_supercell(scdims)
 
-            expected_symbols = numcells * [site.specie.symbol for site in self.structure]
+            expected_symbols = [site.specie.symbol for site in expected_supercell]
             supcell_symbols = [site.specie.symbol for site in new_structure]
             if not np.array_equal(expected_symbols, supcell_symbols):
                 msg = ("Wrong supercell. The routine assumes the atoms in the other cells have the\n"
@@ -1549,7 +1580,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             # Rescale nband and k-point sampling
             iscale = int(np.ceil(len(new.structure) / len(self.structure)))
             if "nband" in new:
-                new["nband"] = int(self["nband"] * iscale)
+                # take care of nband in format "*xxx"
+                if str(self["nband"])[0]=="*": #, convert to a string if nband considered as a int
+                    new["nband"] = "*%d" %(int(self["nband"][1:])*iscale)
+                else:
+                    new["nband"] = int(self["nband"] * iscale)
                 if verbose: print("self['nband']", self["nband"], "new['nband']", new["nband"])
 
             if "ngkpt" in new:
@@ -1845,7 +1880,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         # Call Abinit to get the list of irreducible perts.
         perts = self.abiget_irred_phperts(qpt=qpt, manager=manager, prepgkk=prepgkk)
@@ -1901,7 +1936,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolwfr": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         if "tolvrs" in tolerance:
             raise self.Error("tolvrs should not be used in a DDK calculation")
@@ -1951,17 +1986,18 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolwfr": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         if "tolvrs" in tolerance:
             raise self.Error("tolvrs should not be used in a DKDK calculation")
 
-        # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+        # See Dataset 3 of https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi
         dkdk_input= self.new_with_vars(
             qpt=(0, 0, 0),        # q-wavevector.
             kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
             iscf=-3,              # The d2/dk perturbation is treated in a non-self-consistent way
             rf2_dkdk=1,
+            #rf2_dkdk=3,
             useylm=1,
             comment="Input file for DKDK calculation.",
         )
@@ -1987,7 +2023,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             tolerance = {"tolvrs": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         if use_symmetries:
             # Call Abinit to get the list of irred perts.
@@ -2035,7 +2071,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return multi
 
-    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, ixc=None, manager=None) -> MultiDataset:
+    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, ixc=7, manager=None) -> MultiDataset:
         """
         Return |MultiDataset| inputs for DTE calculation.
         This functions should be called with an input that represents a GS run.
@@ -2119,7 +2155,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error(f"Invalid {tolerance=}")
 
         # Call Abinit to get the list of irred perts.
         perts = self.abiget_irred_phperts(qpt=(0, 0, 0), prepalw=prepalw, manager=manager)
@@ -2173,7 +2209,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+            raise self.Error("Invalid {tolerance=}")
 
         # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
         inp = self.new_with_vars(
@@ -2211,7 +2247,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             tolerance = {"tolvrs": 1.0e-12}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
-            raise self.Error("Invalid tolerance: {}".format(str(tolerance)))
+            raise self.Error(f"Invalid {tolerance=}")
 
         perts = self.abiget_irred_strainperts(kptopt=kptopt, phonon_pert=phonon_pert,
                                               efield_pert=efield_pert, prepalw=prepalw, manager=manager)
@@ -2419,16 +2455,21 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     #    return new
 
-    def make_gwr_qprange_input(self, gwr_ntau, nband, ecuteps, gw_qprange=0, **kwargs) -> AbinitInput:
+    def make_gwr_qprange_input(self, gwr_ntau, nband, ecuteps, gw_qprange=0, gwr_task=GWR_TASK.G0W0,
+                               **kwargs) -> AbinitInput:
         """
         Build and return an input file to compute QP corrections with the GWR code.
 
         Args:
-            gw_qprange = 0 to Compute the QP corrections only for the fundamental and the direct gap.
+            gwr_ntau: Number of minimax points.
+            nband: Number of bands in Green's function
+            ecuteps: Cutoff energy for chi0
+            gw_qprange = 0 to compute the QP corrections only for the fundamental and the direct gap.
+            gwr_task: String defining the GWR task
         """
         new = self.new_with_vars(
             optdriver=RUNL.GWR,
-            gwr_task=GWR_TASK.G0W0,
+            gwr_task=gwr_task,
             gwr_ntau=gwr_ntau,
             nband=nband,
             ecuteps=ecuteps,
@@ -2689,7 +2730,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Returns:
-            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            List of dictionaries with the Abinit variables defining the irreducible perturbations
             Example:
 
                 [{'idir': 1, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]},
@@ -3662,7 +3703,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
             nqsmall: Used to generate the (dense) mesh for the DOS.
                 It defines the number of q-points used to sample the smallest lattice vector.
-            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per atom.
                 Overrides nqsmall.
             line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
                 Overrides ndivsm.
@@ -4562,7 +4603,7 @@ def kpoints_from_line_density(structure, line_density, symprec=1e-2):
     Return: (nkpt, 3) numpy array with k-points in reduced coords.
     """
     if line_density <= 0:
-        raise ValueError(f"Invalid line_density: {line_density}")
+        raise ValueError(f"Invalid {line_density=}")
 
     hs = HighSymmKpath(structure, symprec=1e-2)
     qpts, labels_list = hs.get_kpoints(line_density=line_density, coords_are_cartesian=False)

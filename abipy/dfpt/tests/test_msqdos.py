@@ -16,7 +16,7 @@ class MsqdTest(AbipyTest):
 
         filepath = os.path.join(abidata.dirpath, "refs", "mp-7000_DDB.bz2")
         with abilab.abiopen(filepath) as ddb:
-            phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=2, ndivsm=1, mpi_procs=2)
+            phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=2, ndivsm=1, mpi_procs=1)
             msqd_dos = phdos_file.msqd_dos
             # Read indsym from file and convert from F to C
             indsym = phdos_file.reader.read_value("indsym")
@@ -42,7 +42,7 @@ class MsqdTest(AbipyTest):
         assert np.all(abipy_indsym == msqd_dos.structure.indsym)
 
         cif_string = msqd_dos.get_cif_string(temp=300)
-        print("cif_string:\n", cif_string)
+        #print("cif_string:\n", cif_string)
 
         self.assertMultiLineEqual(cif_string, """\
 # generated using pymatgen

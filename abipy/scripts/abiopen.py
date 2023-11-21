@@ -76,7 +76,7 @@ from abipy import abilab
         return 0
 
 
-def get_epilog():
+def get_epilog() -> str:
     s = """\
 ======================================================================================================
 Usage example:
@@ -155,7 +155,7 @@ def get_parser(with_epilog=False):
     parser.add_argument("-t", "--slide-timeout", type=int, default=None,
         help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
     parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
-        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
+            help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
     parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
@@ -277,9 +277,9 @@ def main():
             else:
                 if not hasattr(abifile, "yield_figs"):
                     raise TypeError("Object of type `%s` does not implement (expose or yield_figs methods" % type(abifile))
-                from abipy.tools.plotting import MplExpose
-                with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                               verbose=options.verbose) as e:
+                from abipy.tools.plotting import MplExposer
+                with MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                                verbose=options.verbose) as e:
                     e(abifile.yield_figs())
 
             return 0

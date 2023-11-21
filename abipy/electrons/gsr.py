@@ -174,7 +174,8 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         table = [["Site", "Cartesian Force", "Length"]]
         for i, fmod in enumerate(fmods):
-            table.append([self.structure.sites[i], cart_forces[i], fmod])
+            #table.append([self.structure.sites[i], cart_forces[i], fmod])
+            table.append([str(self.structure.sites[i]), str(cart_forces[i]), str(fmod)])
         s += "\n" + tabulate(table)
 
         return s
@@ -401,8 +402,7 @@ class GsrReader(ElectronsReader):
     """
     def read_cart_forces(self, unit="eV ang^-1"):
         """
-        Read and return a |numpy-array| with the cartesian forces in unit ``unit``.
-        Shape (natom, 3)
+        Read and return a |numpy-array| with the cartesian forces in unit ``unit``. Shape (natom, 3)
         """
         return ArrayWithUnit(self.read_value("cartesian_forces"), "Ha bohr^-1").to(unit)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Effective masses with finite diff.
+Effective masses with finite diff
 =================================
 
 This example shows how to use finite differences to compute

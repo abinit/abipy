@@ -79,9 +79,9 @@ in the form of pre-compiled packages that can be easily installed with e.g.::
 
     conda install numpy scipy netcdf4
 
-Create a new conda_ environment (let's call it ``abienv``) based on e.g. python3.6 with::
+Create a new conda_ environment (let's call it ``abienv``) with::
 
-    conda create --name abienv python=3.6
+    conda create --name abienv
 
 and activate it with::
 
@@ -116,10 +116,9 @@ For pip, use::
     pip install -r requirements.txt
     pip install -r requirements-optional.txt
 
-If you are using conda_ (see `Installing conda`_ to install conda itself), create a new environment (``abienv``)
-based on python3.9 with::
+If you are using conda_ (see `Installing conda`_ to install conda itself), create a new environment (``abienv``) with::
 
-    conda create -n abienv python=3.9
+    conda create -n abienv
     source activate abienv
 
 Add ``conda-forge``, and ``abinit`` to your channels with::
@@ -407,7 +406,7 @@ A brief install guide, in case you have not yet used conda ... For a more extens
 `Anaconda Howto <http://abinit.github.io/abipy/installation#anaconda-howto>`_.
 
 Download the `miniconda installer <https://conda.io/miniconda.html>`_.
-Select python3.6 and the version corresponding to your operating system.
+Select the version corresponding to your operating system.
 
 As an example, if you are a Linux user, download and install `miniconda` on your local machine with::
 
@@ -430,73 +429,6 @@ Source your ``.bashrc`` file to activate the changes done by ``miniconda`` to yo
     source ~/.bashrc
 
 .. _troubleshooting:
-
-Troubleshooting
-===============
-
-GLIBC error
------------
-
-The python interpreter may raise the following exception when importing one of the pymatgen modules::
-
-    from pymatgen.util.coord import pbc_shortest_vectors
-    File "/python3.6/site-packages/pymatgen/util/coord.py", line 11, in <module>
-    from . import coord_cython as cuc
-    ImportError: /lib64/libc.so.6: version `GLIBC_2.14' not found (required by /python3.6/site-packages/pymatgen/util/coord_cython.cpython-36m-x86_64-linux-gnu.so)`
-
-This means that the pre-compiled version of pymatgen is not compatible with the GLIBC version available on your machine.
-To solve the problem, we suggest to build and install pymatgen from source using the local version of GLIBC and the gcc compiler.
-In the example below, we use a conda environment to install most of the dependencies with the exception of pymatgen and abipy.
-
-Let's start by creating a conda environment with::
-
-    conda create -n glibc_env python=3.6
-    source activate glibc_env
-    conda config --add channels conda-forge
-
-Use pip to install spglib::
-
-    pip install spglib
-
-and try to ``import spglib`` inside the python terminal.
-
-Download the pymatgen repository from github with::
-
-    git clone https://github.com/materialsproject/pymatgen.git
-    cd pymatgen
-
-If git is not installed, use ``conda install git``
-
-Now use conda to install the pymatgen requirements listed in ``requirements.txt``
-but before that make sure that ``gcc`` is in ``$PATH``.
-If you are working on a cluster, you may want to issue::
-
-    module purge
-
-to avoid compiling C code with the intel compiler (it's possible to use ``icc`` but ``gcc`` is less problematic).
-
-Remove the line::
-
-    enum34==1.1.6; python_version < '3.4'
-
-from ``requirements.txt`` as this syntax is not supported by conda then issue::
-
-    conda install -y --file requirements.txt
-
-At this point, we can build pymatgen and the C extensions::
-
-        python setup.py install
-
-then ``cd`` to another directory (important) and test the build inside the python terminal with::
-
-    import spglib
-    import pymatgen
-
-Finally, we can install Abipy from source with::
-
-	git clone https://github.com/abinit/abipy.git
-	cd abipy && conda install -y --file ./requirements.txt
-
 
 License
 =======

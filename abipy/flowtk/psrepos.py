@@ -1,14 +1,27 @@
 """
 This module provides an API to deal with pseudopotential repositories.
-A repo is essentially a collection of versioned pseudopotentials files installed within the same root directory.
+A repo is a collection of versioned pseudopotentials files installed within the same root directory.
 A repo has a unique name that encodes the XC functional, relativity type, the kind of pseudopotential and the version.
-The default root is ~/.abinit/pseudos although it is possible to change it via the ABIPY_PSREPOS_ROOT env variable
+The default root is $HOME/.abinit/pseudos although it is possible to change it via the ABIPY_PSREPOS_ROOT env variable
 
-Note that all pseudos in a repo share the same XC functional, the type (NC, PAW) and the
+Note that all pseudos in a repo share the same XC functional, the type e.g. NC or PAW and the
 treatment of relativistic corrections although one might have multiple pseudos for the same element.
 
 Due to this ambiguity, a repo cannot be directly used for running calculations in an automatic fashion
 hence the user is supposed to specify both the `repo_name` and the `table_name` when constructing a `PseudoTable`.
+
+High-level API:
+
+    from abipy.flowtk.psrepos import get_oncvpsp_pseudos
+    pseudos = get_oncvpsp_pseudos(xc_name="PBE", version="0.4")
+
+
+Low-level API:
+
+    from abipy.flowtk.psrepos import get_repo_from_name
+    repo = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4")
+    pseudos = repo.get_pseudos("standard")
+    print(pseudos)
 """
 from __future__ import annotations
 
@@ -30,6 +43,23 @@ from abipy.tools.decorators import memoized_method
 from tqdm import tqdm
 
 
+def get_oncvpsp_pseudos(xc_name: str, version: str, relativity_type: str = "SR", accuracy: str = "standard") -> PseudoTable:
+    """
+    High-level API that returns a PseudoTable of ONCVPSP pseudos for a given xc functional and version.
+
+    Args:
+        xc_name: Name of the XC functional.
+        version: Version string e.g. "0.4".
+        relativity_type: SR for scalar-relativistic, FR for fully-relativistic with SOC.
+        accuracy: "standard" or "stringent".
+    """
+    ps_generator, project_name = OncvpspRepo.ps_generator, OncvpspRepo.project_name 
+    repo_name = f"{ps_generator}-{xc_name}-{relativity_type}-{project_name}v{version}"
+
+    return get_repo_from_name(repo_name).get_pseudos(accuracy)
+
+
+# Installation directory.
 REPOS_ROOT = os.environ.get("ABIPY_PSREPOS_ROOT",
                             default=os.path.join(os.path.expanduser("~"), ".abinit", "pseudos"))
 
@@ -135,6 +165,7 @@ def get_installed_repos_and_root(dirpath: Optional[str] = None) -> tuple[list[Ps
     Return (all_repos, dirpath)
     """
     dirpath = REPOS_ROOT if not dirpath else dirpath
+    if not os.path.exists(dirpath): os.makedirs(dirpath)
     dir_basenames = [name for name in os.listdir(dirpath) if os.path.isdir(os.path.join(dirpath, name))]
     dirname2repo = {repo.name: repo for repo in _ALL_REPOS}
     return [dirname2repo[dirname] for dirname in dir_basenames if dirname in dirname2repo], dirpath
@@ -169,7 +200,7 @@ class PseudosRepo(abc.ABC):
                  version: str, url: str):
         """
         Args:
-            ps_generator: Name of the pseudopotential generator
+            ps_generator: Name of the pseudopotential generator.
             xc_name: XC functional.
             relativity_type: SR for scalar-relativistic or FR for fully relativistic.
             project_name: Name of the project associated to this repository.
@@ -177,7 +208,7 @@ class PseudosRepo(abc.ABC):
             url: URL from which the targz will be taken.
         """
         if relativity_type not in {"SR", "FR"}:
-            raise ValueError(f"Invalid relativity_type: {relativity_type}")
+            raise ValueError(f"Invalid {relativity_type=}")
 
         self.ps_generator = ps_generator
         self.xc_name = xc_name
@@ -187,6 +218,9 @@ class PseudosRepo(abc.ABC):
         self.url = url
 
     def to_rowdict(self, verbose: int = 0) -> dict:
+        """
+        Return dict with metadata, useful to build DataFrames.
+        """
         row = dict(
             ps_generator=self.ps_generator,
             ps_type=self.ps_type,
@@ -224,8 +258,15 @@ class PseudosRepo(abc.ABC):
         """True if PAW repo."""
         return self.ps_type == "PAW"
 
-    #@property
-    #def all_table_names(self) -> List[str]:
+    @property
+    def table_names(self) -> list[str]:
+        """
+        List of strings with the name of tables provided by this repository.
+        """
+        if not self.is_installed(): return []
+        # TODO: Should read table_names from directory
+        table_names = ["standard", "stringent"]
+        return table_names
 
     @property
     def dirpath(self) -> str:
@@ -278,25 +319,27 @@ class PseudosRepo(abc.ABC):
 
 
 class OncvpspRepo(PseudosRepo):
+    """
+    A repo containing ONCVPSP pseudopotentials.
+    """
+    ps_generator, project_name = "ONCVPSP", "PD"
 
     @classmethod
     def from_github(cls, xc_name: str, relativity_type: str, version: str) -> OncvpspRepo:
         """
-        Build a OncvpsRepo assuming a github repository.
+        Build an OncvpsRepo from a github repository.
         """
-        ps_generator, project_name = "ONCVPSP", "PD"
-
         if relativity_type == "FR":
             # https://github.com/PseudoDojo/ONCVPSP-PBE-FR-PDv0.4/archive/refs/heads/master.zip
-            sub_url = f"{ps_generator}-{xc_name}-FR-{project_name}v{version}"
+            sub_url = f"{cls.ps_generator}-{xc_name}-FR-{cls.project_name}v{version}"
         elif relativity_type == "SR":
             # https://github.com/PseudoDojo/ONCVPSP-PBE-PDv0.4/archive/refs/heads/master.zip
-            sub_url = f"{ps_generator}-{xc_name}-{project_name}v{version}"
+            sub_url = f"{cls.ps_generator}-{xc_name}-{cls.project_name}v{version}"
         else:
-            raise ValueError(f"Invalid relativity_type {relativity_type}")
+            raise ValueError(f"Invalid {relativity_type=}")
 
         url = f"https://github.com/PseudoDojo/{sub_url}/archive/refs/heads/master.zip"
-        return cls(ps_generator, xc_name, relativity_type, project_name, version, url)
+        return cls(cls.ps_generator, xc_name, relativity_type, cls.project_name, version, url)
 
     @property
     def ps_type(self) -> str:
@@ -309,6 +352,7 @@ class OncvpspRepo(PseudosRepo):
         return f"{self.ps_generator}-{self.xc_name}-{self.relativity_type}-{self.project_name}v{self.version}"
 
     def get_citations(self) -> list[Citation]:
+        """List of Citations."""
         return [
             Citation(
                 title="The PseudoDojo: Training and grading a 85 element optimized norm-conserving pseudopotential table",
@@ -316,6 +360,9 @@ class OncvpspRepo(PseudosRepo):
         ]
 
     def validate_checksums(self, verbose: int) -> None:
+        """
+        Compare checksums given in the djson file with the ones computed from file after the donwload.
+        """
         print(f"\nValidating md5 checksums of {repr(self)}...")
         djson_paths = [os.path.join(self.dirpath, jfile) for jfile in ("standard.djson", "stringent.djson")]
 
@@ -375,14 +422,18 @@ class OncvpspRepo(PseudosRepo):
 
 
 class JthRepo(PseudosRepo):
+    """
+    A Repo containing JTH PAW pseudos.
+    """
+    ps_generator, project_name = "ATOMPAW", "JTH"
 
     @classmethod
     def from_abinit_website(cls, xc_name: str, relativity_type: str, version: str) -> JthRepo:
-        ps_generator, project_name = "ATOMPAW", "JTH"
+
         # https://www.abinit.org/ATOMICDATA/JTH-LDA-atomicdata.tar.gz
         # ATOMPAW-LDA-JTHv0.4
         url = f"https://www.abinit.org/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"
-        return cls(ps_generator, xc_name, relativity_type, project_name, version, url)
+        return cls(cls.ps_generator, xc_name, relativity_type, cls.project_name, version, url)
 
     @property
     def ps_type(self) -> str:
@@ -403,7 +454,7 @@ class JthRepo(PseudosRepo):
         Build and return the PseudoPotential table associated to the given table_name
         """
         if table_name != "standard":
-            raise ValueError(f"JTH table does not support table_name: {table_name}")
+            raise ValueError(f"JTH table does not support {table_name=}")
 
         # Read the list of pseudopotential paths (relative to dirpath)
         txt_path = os.path.join(self.dirpath, f"{table_name}.txt")
@@ -447,7 +498,15 @@ def repo_from_name(repo_name: str) -> PseudosRepo:
 
 def tabulate_repos(repos: list[PseudosRepo], exclude: Optional[list[str]] = None,
                    with_citations: bool = False, verbose: int = 0) -> str:
+    """
+    Return string with info on a list of PseudosRepo.
 
+    Args:
+        repos: List of PseudosRepo
+        exclude: List of keys to exclude
+        with_citations: True if citations should be reported.
+        verbose: Verbosity level.
+    """
     bool2color = {True: "green", False: "red"}
 
     rows = []
@@ -479,9 +538,7 @@ def tabulate_repos(repos: list[PseudosRepo], exclude: Optional[list[str]] = None
         for i, citation in enumerate(citations):
             lines.append(f"\t- {citation.doi}")
 
-    s = "\n".join(lines)
-
-    return s
+    return "\n".join(lines)
 
 
 #############################################################
@@ -499,6 +556,8 @@ _ONCVPSP_REPOS = [
     _mk_onc(xc_name="PBEsol", relativity_type="FR", version="0.4"),
     _mk_onc(xc_name="PBE", relativity_type="SR", version="0.4"),
     #_mk_onc(xc_name="PBE", relativity_type="FR", version="0.4"),  FIXME: checksum fails
+    _mk_onc(xc_name="LDA", relativity_type="SR", version="0.4"),
+    #_mk_onc(xc_name="LDA", relativity_type="FR", version="0.4"),
 ]
 
 _mk_jth = JthRepo.from_abinit_website
@@ -514,3 +573,8 @@ _ALL_REPOS = _ONCVPSP_REPOS + _PAW_REPOS
 _repo_names = [_repo.name for _repo in _ALL_REPOS]
 if len(set(_repo_names)) != len(_repo_names):
     raise RuntimeError(f"Found duplicated repo_names in ALL_REPOS:\nids: {_repo_names}")
+
+
+if __name__ == "__main__":
+    pseudos = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4").get_pseudos("standard")
+    print(pseudos)

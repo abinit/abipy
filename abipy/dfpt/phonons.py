@@ -12,7 +12,7 @@ import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
-from typing import Any, List
+from typing import Any
 from monty.string import is_string, list_strings, marquee
 from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
@@ -414,6 +414,17 @@ class PhononBands:
         else:
             return np.max(self.phfreqs[:, mode])
 
+    def get_phfreqs_stats_dict(self) -> dict:
+        """
+        Return dictionary with phonon frequency stats in eV.
+        """
+        return dict(
+            wmin_ev=self.phfreqs.min(),
+            wmax_ev=self.phfreqs.max(),
+            wmean_ev=self.phfreqs.mean(),
+            wstd_ev=self.phfreqs.std(),
+        )
+
     @property
     def shape(self) -> tuple:
         """Shape of the array with the eigenvalues."""
@@ -697,7 +708,7 @@ class PhononBands:
 
         return PhononDos(mesh, values)
 
-    def create_xyz_vib(self, iqpt, filename, pre_factor=200, do_real=True, 
+    def create_xyz_vib(self, iqpt, filename, pre_factor=200, do_real=True,
                        scale_matrix=None, max_supercell=None) -> None:
         """
         Create vibration XYZ file for visualization of phonons.
@@ -1862,7 +1873,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         return fig
 
     @add_fig_kwargs
-    def plot_with_phdos(self, phdos, units="eV", qlabels=None, ax_list=None, 
+    def plot_with_phdos(self, phdos, units="eV", qlabels=None, ax_list=None,
                         width_ratios=(2, 1), **kwargs) -> Figure:
         r"""
         Plot the phonon band structure with the phonon DOS.
@@ -1979,7 +1990,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     def plot_phdispl(self, qpoint, cart_dir=None, use_reduced_coords=False, ax=None, units="eV",
                      is_non_analytical_direction=False, use_eigvec=False,
                      colormap="viridis", hatches="default", atoms_index=None, labels_groups=None,
-                     normalize=True, use_sqrt=False, fontsize=12, 
+                     normalize=True, use_sqrt=False, fontsize=12,
                      branches=None, format_w="%.3f", **kwargs) -> Figure:
         """
         Plot vertical bars with the contribution of the different atoms or atomic types to all the phonon modes
@@ -2140,7 +2151,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     def plot_phdispl_cartdirs(self, qpoint, cart_dirs=("x", "y", "z"), units="eV",
                               is_non_analytical_direction=False, use_eigvec=False,
                               colormap="viridis", hatches="default", atoms_index=None, labels_groups=None,
-                              normalize=True, use_sqrt=False, fontsize=8, 
+                              normalize=True, use_sqrt=False, fontsize=8,
                               branches=None, format_w="%.3f", **kwargs) -> Figure:
         """
         Plot three panels. Each panel shows vertical bars with the contribution of the different atomic types
@@ -2387,7 +2398,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             phfreqs.extend(pmg_bs.bands.T[start_index:b["end_index"] + 1])
             if pmg_bs.has_eigendisplacements:
                 e = pmg_bs.eigendisplacements[:, start_index:b["end_index"] + 1]
-                e = np.transpose(e, [0, 1, 2, 3])
+                e = np.transpose(e, [1, 0, 2, 3])
                 e = np.reshape(e, e.shape[:-2] + (-1,))
                 phdispl_cart.extend(e)
 
@@ -3865,7 +3876,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_pjdos_cartdirs_site(self, view="inequivalent", units="eV", stacked=True, colormap="jet", alpha=0.7,
-                                 xlims=None, ylims=None, ax_list=None, fontsize=8, 
+                                 xlims=None, ylims=None, ax_list=None, fontsize=8,
                                  verbose=0, **kwargs) -> Figure:
         """
         Plot phonon PJDOS for each atom in the unit cell. By default, only "inequivalent" atoms are shown.
@@ -4219,12 +4230,12 @@ class PhononBandsPlotter(NotebookWriter):
         return self._phdoses_dict
 
     @property
-    def phbands_list(self) -> List[PhononBands]:
+    def phbands_list(self) -> list[PhononBands]:
         """"List of |PhononBands| objects."""
         return list(self._bands_dict.values())
 
     @property
-    def phdoses_list(self) -> List[PhononDos]:
+    def phdoses_list(self) -> list[PhononDos]:
         """"List of |PhononDos|."""
         return list(self._phdoses_dict.values())
 
@@ -4313,7 +4324,7 @@ class PhononBandsPlotter(NotebookWriter):
         i = -1
         nqpt_list = [phbands.nqpt for phbands in self._bands_dict.values()]
         if any(nq != nqpt_list[0] for nq in nqpt_list):
-            cprint("WARNING combiblot: Bands have different number of k-points:\n%s" % str(nqpt_list), "yellow")
+            cprint("WARNING combiplot: Bands have different number of k-points:\n%s" % str(nqpt_list), "yellow")
 
         for (label, phbands), lineopt in zip(self._bands_dict.items(), self.iter_lineopt()):
             i += 1
@@ -4877,7 +4888,7 @@ class PhononDosPlotter(NotebookWriter):
             self.add_phdos(label, phdos, phdos_kwargs=phdos_kwargs)
 
     @property
-    def phdos_list(self) -> List[PhononDos]:
+    def phdos_list(self) -> list[PhononDos]:
         """List of phonon DOSes"""
         return list(self._phdoses_dict.values())
 
@@ -5238,7 +5249,7 @@ class PhononDosPlotter(NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class RobotWithPhbands(object):
+class RobotWithPhbands:
     """
     Mixin class for robots associated to files with |PhononBands|.
     """

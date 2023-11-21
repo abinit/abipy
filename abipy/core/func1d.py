@@ -11,9 +11,9 @@ from io import StringIO
 from typing import Tuple, Union
 from monty.functools import lazy_property
 from abipy.tools.typing import Figure
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, data_from_cplx_mode,
-    add_plotly_fig_kwargs, PlotlyRowColDesc, get_fig_plotly)
+from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, add_plotly_fig_kwargs, PlotlyRowColDesc, get_fig_plotly)
 from abipy.tools.derivatives import finite_diff
+from abipy.tools.numtools import data_from_cplx_mode
 
 __all__ = [
     "Function1D",

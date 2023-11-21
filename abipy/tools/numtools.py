@@ -7,6 +7,28 @@ import numpy as np
 from monty.collections import dict2namedtuple
 from abipy.tools import duck
 
+
+def build_mesh(x0: float, num: int, step: float, direction: str) -> tuple[list, int]:
+    """
+    Generate a linear mesh of step `step` that is centered on x0 if
+    directions == "centered" or a mesh that starts/ends at x0 if direction is `>`/`<`.
+    Return mesh and index of x0.
+    """
+    if direction == "centered":
+        start = x0 - num * step
+        return [start + i * step for i in range(2 * num + 1)], num
+
+    elif direction in (">", "<"):
+        start, ix0 = x0, 0
+        if direction == "<":
+            ix0 = num - 1
+            step = -abs(step)
+
+        return sorted([start + i * step for i in range(num)]), ix0
+
+    raise ValueError(f"Invalid {direction=}")
+
+
 def transpose_last3dims(arr) -> np.ndarray:
     """
     Transpose the last three dimensions of arr: (...,x,y,z) --> (...,z,y,x).

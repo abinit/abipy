@@ -309,7 +309,8 @@ class TransportReader(ElectronsReader):
         """
         # nctkarr_t('mobility',"dp", "edos_nw, nsppol, three, three, ntemp, two"), &
         i, j = abu.s2itup(component)
-        wvals = self.read_variable("vvdos_mesh")
+        #wvals = self.read_variable("vvdos_mesh")
+        wvals = self.read_value("vvdos_mesh")
         mobility = self.read_variable("mobility")[eh,itemp,i,j,spin,:]
 
         return wvals, mobility

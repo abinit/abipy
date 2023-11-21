@@ -1106,7 +1106,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             try:
                 iqs = [self.qindex(q) for q in qpoints]
             except Exception:
-                raise ValueError("input qpoint %s not in %s.\nddb.qpoints:\n%s" % (
+                raise ValueError("input qpoint:\n %s\n not in %s.\nddb.qpoints:\n%s" % (
                     qpoints, self.filepath, self.qpoints))
 
             qpoints = [self.qpoints[iq] for iq in iqs]
@@ -1166,7 +1166,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             nqsmall: Defines the homogeneous q-mesh used for the DOS. Gives the number of divisions
                 used to sample the smallest lattice vector. If 0, DOS is not computed and
                 (phbst, None) is returned.
-            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciprocal atom.
                 Overrides nqsmall.
             ndivsm: Number of division used for the smallest segment of the q-path.
             line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
@@ -1915,7 +1915,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return retobj if not return_input else (retobj, inp)
 
     def anaget_raman(self, asr=2, chneut=1, ramansr=1, alphon=1, workdir=None, mpi_procs=1,
-                     manager=None, verbose=0, directions=None, anaddb_kwargs=None, return_input=False):
+                     manager=None, verbose=0, directions=None, anaddb_kwargs=None, return_input=False) -> Raman:
         """
         Execute anaddb to compute the Raman spectrum.
 
@@ -1930,7 +1930,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 If None the three cartesian direction will be used.
             anaddb_kwargs: additional kwargs for anaddb.
 
-        Return: |Raman| object.
+        Return: Raman object.
         """
         #if not self.has_raman_terms():
         #    raise ValueError('The DDB file does not contain Raman terms.')
@@ -1969,7 +1969,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def write(self, filepath, filter_blocks=None) -> None:
         """
         Writes the DDB file in filepath. Requires the blocks data.
-        Only the information stored in self.header.lines and in self.blocks will be used to produce the file
+        Only the information stored in self.header.lines and in self.blocks
+        are be used to produce the file
         """
         lines = list(self.header.lines)
 
@@ -2292,7 +2293,7 @@ class Becs(Has_Structure, MSONable):
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3, 
+    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3,
                             select_symbols=None, decimals=5, verbose=0) -> pd.DataFrame:
         """
         Return |pandas-DataFrame| with Voigt indices as columns and natom rows.
@@ -3051,8 +3052,8 @@ class DdbRobot(Robot):
 
     #    return retcode, results
 
-    def get_dataframe_at_qpoint(self, qpoint=None, units="eV", asr=2, chneut=1, 
-                                dipdip=1, dipquad=1, quadquad=1, ifcflag=0, with_geo=True, 
+    def get_dataframe_at_qpoint(self, qpoint=None, units="eV", asr=2, chneut=1,
+                                dipdip=1, dipquad=1, quadquad=1, ifcflag=0, with_geo=True,
                                 with_spglib=True, abspath=False, funcs=None) -> pd.DataFrame:
         """
         Call anaddb to compute the phonon frequencies at a single q-point using the DDB files treated

@@ -52,3 +52,9 @@ def rreplace(s, old, new, occurrence):
     # https://stackoverflow.com/questions/2556108/rreplace-how-to-replace-the-last-occurrence-of-an-expression-in-a-string
     li = s.rsplit(old, occurrence)
     return new.join(li)
+
+
+def rm_multiple_spaces(string: str) -> str:
+    """remove multiple spaces in a string."""
+    import re
+    return re.sub(' +', ' ', string)
