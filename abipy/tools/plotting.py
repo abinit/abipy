@@ -2595,15 +2595,49 @@ def add_colorscale_dropwdowns(fig):
 
     return fig
 
-def mpl_to_ply(fig):
+def mpl_to_ply(fig, latex=False):
     # Nasty workaround for plotly latex rendering in legend/breaking exception
     for ax in fig.get_axes():
+        # TODO improve below logic to add new scatter plots?
         # Loop backwards through the collections to avoid modifying the list as we iterate
         for coll in ax.collections[::-1]:
             if isinstance(coll, mcoll.PathCollection):
                 # Use the remove() method to remove the scatter plot collection from the axes
                 coll.remove()
+                
+        # Process the axis title, x-label, and y-label
+        for label_item in [ax.get_title(), ax.get_xlabel(), ax.get_ylabel()]:
+            # Remove any existing dollar signs
+            new_label = label_item.replace("$", "")
+            new_label = new_label.replace("\\", "") if not latex else new_label
+            new_label = new_label.replace("{", "") if not latex else new_label
+            new_label = new_label.replace("}", "") if not latex else new_label
+            # new_label = new_label.replace(" ", "\\ ") if latex else new_label # differences in the two latex renderers
+            # Wrap the label in dollar signs for LaTeX, if needed
+            new_label = f"${new_label}$" if latex else new_label
+            # Set the new label
+            if label_item == ax.get_title():
+                ax.set_title(new_label)
+            elif label_item == ax.get_xlabel():
+                ax.set_xlabel(new_label)
+            elif label_item == ax.get_ylabel():
+                ax.set_ylabel(new_label)
 
+        # Process the axis title, x-label, and y-label
+        for label_item in [ax.get_title(), ax.get_xlabel(), ax.get_ylabel()]:
+            # Remove any existing dollar signs
+            new_label = label_item.replace("$", "")
+            new_label = new_label.replace(" ", "\\ ") if latex else new_label
+            # Wrap the label in dollar signs for LaTeX, if needed
+            new_label = f"${new_label}$" if latex else new_label
+            # Set the new label
+            if label_item == ax.get_title():
+                ax.set_title(new_label)
+            elif label_item == ax.get_xlabel():
+                ax.set_xlabel(new_label)
+            elif label_item == ax.get_ylabel():
+                ax.set_ylabel(new_label)
+                
         # Check if the axis has a legend
         if ax.get_legend():
             legend = ax.get_legend()
@@ -2612,9 +2646,9 @@ def mpl_to_ply(fig):
                 label = text.get_text()
                 # Remove any existing dollar signs
                 label = label.replace("$", "")
-                label = label.replace(" ", "\\ ")
+                label = label.replace(" ", "\\ ") if latex else label
                 # Now wrap the entire label in dollar signs to make it LaTeX
-                label = f"${label}$"
+                label = f"${label}$" if latex else label
                 # Set the new label
                 text.set_text(label)
                 
