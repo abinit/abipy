@@ -415,8 +415,38 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         if os.path.exists(path):
             return cls.from_file(path)
 
-        raise cls.Error("Cannot locate %s neither in current directory nor in %s" % (cls.YAML_FILE, path))
+        raise cls.Error(f"""
+Cannot locate {cls.YAML_FILE} neither in current directory nor in {path}.
 
+An example of scheduler.yml is given below:
+
+{cls.get_default_scheduler()}
+""")
+
+    @classmethod 
+    def get_default_scheduler(cls) -> str:
+        return """
+weeks: 0 # number of weeks to wait (DEFAULT: 0).
+days: 0 # number of days to wait (DEFAULT: 0).
+hours: 0 # number of hours to wait (DEFAULT: 0).
+minutes: 0 # number of minutes to wait (DEFAULT: 0).
+seconds: 0 # number of seconds to wait (DEFAULT: 0).
+mailto: null # The scheduler will send an email to `mailto` every `remindme_s` seconds. (DEFAULT: None i.e. not used).
+verbose: 0 # (int) verbosity level. (DEFAULT: 0)
+use_dynamic_manager: no # "yes" if the |TaskManager| must be re-initialized from file before launching the jobs. (DEFAULT: "no")
+max_njobs_inqueue: 200 # Limit on the number of jobs that can be present in the queue. (DEFAULT: 200)
+max_ncores_used: null # Maximum number of cores that can be used by the scheduler. (DEFAULT: None)
+remindme_s: 1 # The scheduler will send an email to the user specified by `mailto` every `remindme_s` seconds. (int, DEFAULT: 1 day).
+max_num_pyexcs: 0 # The scheduler will exit if the number of python exceptions is > max_num_pyexcs (int, DEFAULT: 0)
+max_num_abierrs: 0 # The scheduler will exit if the number of errored tasks is > max_num_abierrs (int, DEFAULT: 0)
+safety_ratio: 5 # The scheduler will exits if the number of jobs launched becomes greater than safety_ratio` * total_number_of_tasks_in_flow. (int, DEFAULT: 5)
+max_nlaunches: -1 # Maximum number of tasks launched in a single iteration of the scheduler. (DEFAULT: -1 i.e. no limit)
+debug: 0 # Debug level. Use 0 for production (int, DEFAULT: 0)
+fix_qcritical: no # "yes" if the launcher should try to fix QCritical Errors (DEFAULT: "no")
+rmflow: no # If "yes", the scheduler will remove the flow directory if the calculation completed successfully. (DEFAULT: "no")
+killjobs_if_errors: yes # "yes" if the scheduler should try to kill all the running jobs before exiting due to an error. (DEFAULT: "yes")
+"""
+    
     def __str__(self) -> str:
         """String representation."""
         lines = [self.__class__.__name__ + ", Pid: %d" % self.pid]

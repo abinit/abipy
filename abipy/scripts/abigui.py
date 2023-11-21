@@ -143,7 +143,6 @@ with extensions that are not recognized by AbiPy.
 
 {cls.info_str}
 """
-
     main_home = pn.Column(pn.pane.Markdown(intro, sizing_mode="stretch_both"),
                           sizing_mode="stretch_both")
 
