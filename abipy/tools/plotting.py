@@ -2596,13 +2596,6 @@ def add_colorscale_dropwdowns(fig):
     return fig
 
 def mpl_to_ply(fig):
-    config = dict(
-        responsive=True,
-        #showEditInChartStudio=True,
-        showLink=True,
-        plotlyServerURL="https://chart-studio.plotly.com",
-    )
-    
     # Nasty workaround for plotly latex rendering in legend/breaking exception
     for ax in fig.get_axes():
         # Loop backwards through the collections to avoid modifying the list as we iterate
