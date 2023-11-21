@@ -23,11 +23,9 @@ from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
 from abipy.tools.decorators import Appender
 
-import matplotlib.collections as mcoll
-from plotly.tools import mpl_to_plotly
+from abipy.tools.plotting import mpl_to_ply
 
 _ABINIT_TEMPLATE_NAME = "FastList"
-
 
 def set_abinit_template(template_name: str):
     global _ABINIT_TEMPLATE_NAME
@@ -330,7 +328,6 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
 
     return col
 
-
 def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=False,
         with_divider=True, with_controls=False) -> pn.Column:
     """
@@ -346,63 +343,7 @@ def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=Fals
         plotlyServerURL="https://chart-studio.plotly.com",
     )
     
-    # Nasty workaround for plotly latex rendering in legend/breaking exception
-    for ax in fig.get_axes():
-        # Loop backwards through the collections to avoid modifying the list as we iterate
-        for coll in ax.collections[::-1]:
-            if isinstance(coll, mcoll.PathCollection):
-                # Use the remove() method to remove the scatter plot collection from the axes
-                coll.remove()
-                
-        # # Remove scatter plot collections from the axes, causes plotly to crash
-        # for scatter_coll in scatter_collections:
-        #     ax.collections.remove(scatter_coll)
-
-        # Check if the axis has a legend
-        if ax.get_legend():
-            legend = ax.get_legend()
-            # Get the legend's text entries
-            for text in legend.get_texts():
-                label = text.get_text()
-                # Remove any existing dollar signs
-                label = label.replace("$", "")
-                label = label.replace(" ", "\\ ")
-                # Now wrap the entire label in dollar signs to make it LaTeX
-                label = f"${label}$"
-                # Set the new label
-                text.set_text(label)
-                
-        
-    # Convert to plotly figure
-    plotly_fig = mpl_to_plotly(fig)
-    
-    plotly_fig.update_layout(title = {
-        "xanchor": "center",
-        "yanchor": "top",
-        "x": 0.5,
-        "font": {
-            "size": 14
-        }
-    })
-    
-    # Iterate over the axes in the figure to retrieve the custom line attributes
-    for ax in fig.get_axes():
-        if hasattr(ax, '_custom_rc_lines'):
-            for rc, color in ax._custom_rc_lines:
-                # Add vertical lines to the Plotly figure
-                plotly_fig.add_vline(
-                    x=rc,
-                    line_width=2,
-                    line_dash="dash",
-                    line_color=color
-                )
-    # # Loop through each trace and update the hover labels to remove $
-    for trace in plotly_fig.data:
-        # Retrieve the current label and remove any $ signs
-        new_label = trace.name.replace("$", "")
-        
-        # Update the trace's name (which is used for the legend label)
-        trace.name = new_label
+    plotly_fig = mpl_to_ply(fig)
     
     plotly_pane = pn.pane.Plotly(plotly_fig, config=config)
     ca(plotly_pane)
