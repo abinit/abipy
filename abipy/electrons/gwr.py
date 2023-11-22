@@ -38,6 +38,7 @@ __all__ = [
 class _MyQpkindsList(list):
     """Returned by find_qpkinds."""
 
+
 @dataclasses.dataclass
 class MinimaxMesh:
     """

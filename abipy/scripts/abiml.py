@@ -681,11 +681,28 @@ def compare(ctx, filepath, nn_names,
     Compare different neural networks.
     """
     atoms = _get_atoms_from_filepath(filepath)
-
     nn_names = _get_nn_names(nn_names)
     ml_comp = aseml.MlCompareNNs(atoms, nn_names, num_tests, rattle, stdev_rvol, verbose, workdir, prefix="_abiml_comp_")
     print(ml_comp.to_string(verbose=verbose))
     ase_comp = ml_comp.run()
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("elements", type=str)
+@add_nn_names_opt
+@add_workdir_verbose_opts
+@click.option('--config', default='abiml_cwf_eos.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def cwf_eos(ctx, elements, nn_names,
+            workdir, verbose
+            ):
+
+    nn_names = _get_nn_names(nn_names)
+    ml_cwf_eos = aseml.MlCwfEos(elements, nn_names, verbose, workdir, prefix="_abiml_cwf_eos_")
+    print(ml_cwf_eos.to_string(verbose=verbose))
+    ml_cwf_eos.run()
     return 0
 
 

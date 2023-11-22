@@ -270,7 +270,6 @@ class MlPhonopyWithDDB(MlBase):
 
         show = False
         from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter
-
         with Timer(header="Starting phonopy ph-bands computation...", footer=""):
             phonon.run_band_structure(self.py_qpoints, with_eigenvectors=True)
 
@@ -347,7 +346,6 @@ class MlPhonopy(MlBase):
             verbose: Verbosity level.
             workdir: Working directory, None to generate temporary directory automatically.
             prefix: Prefix for workdir.
-
         """
         # Store args for reconstruction
         #self.init_kwargs = {k: v for k, v in locals().items() if k not in ["self", "__class__", "kwargs"]}
@@ -465,7 +463,7 @@ class MlPhonopy(MlBase):
               with_group_velocities=False,
               plot=True,
               write_yaml=False,
-              filename=workdir / f"{nn_name}_band.yml")
+              filename=workdir / f"{nn_name}_band.yml",
         )
         plt.savefig(workdir / f"phonopy_{nn_name}_phbands.png")
         if show: plt.show()

@@ -1187,8 +1187,8 @@ def install_nn_names(nn_names="all", update=False, verbose=0) -> None:
     Install NN potentials in the environment using pip.
 
     Args:
-        nn_names:
-        update:
+        nn_names: List of NN potentisl to install.
+        update: True if packages should be updated.
         verbose: Verbosity level.
     """
     def pip_install(nn_name) -> int:
@@ -1246,11 +1246,11 @@ class CalcBuilder:
         "m3gnet",
         "matgl",
         "chgnet",
-        "alignn",
-        "mace",
+        #"alignn",
+        #"mace",
         #"pyace",
-        #"quip",
         #"nequip",
+        #"metatensor",
     ]
 
     def __init__(self, name: str, **kwargs):
@@ -1268,7 +1268,6 @@ class CalcBuilder:
             raise ValueError(f"Invalid {name=}, it should be in {self.ALL_NN_TYPES=}")
 
         self._model = None
-        #print(self)
 
     def __str__(self):
         if self.model_name is not None:
@@ -2781,7 +2780,6 @@ class MlCompareNNs(MlBase):
     Compare energies, forces and stresses obtaiend with different ML potentials.
     Also profile the time required.
     """
-
     def __init__(self, atoms, nn_names, num_tests, rattle, stdev_rvol, verbose, workdir, prefix=None):
         """
         Args:
@@ -2856,3 +2854,201 @@ class MlCompareNNs(MlBase):
 
         self._finalize()
         return comp
+
+
+
+class MlCwfEos(MlBase):
+    """
+    Compute EOS with different ML potentials.
+    """
+    def __init__(self, elements, nn_names, verbose, workdir, prefix=None):
+        """
+        Args:
+            atoms: ASE atoms
+            elements: String or List of strings with the chemical symbols to consider.
+            nn_names: String or list of strings defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
+            workdir: Working directory.
+        """
+        super().__init__(workdir, prefix)
+        self.elements = list_strings(elements)
+        self.nn_names = list_strings(nn_names)
+        self.verbose = verbose
+
+        self.configurations_set_name = {
+            "unaries": ["SC", "FCC", "BCC", "Diamond"],
+            "oxides": ["XO", "XO2", "XO3", "X2O", "X2O3", "X2O5"],
+        }
+
+        root = Path("/Users/giantomassi/git_repos/acwf-verification-scripts/0-preliminary-do-not-run")
+        self.dirpath_set_name = {
+            "unaries": root / "unaries" / "xsfs-unaries-verification-PBE-v1",
+            "oxides": root / "oxides" / "xsfs-oxides-verification-PBE-v1",
+        }
+
+    def to_string(self, verbose=0) -> str:
+        """String representation with verbosity level `verbose`."""
+        return f"""\
+
+{self.__class__.__name__} parameters:
+
+     elements    = {self.elements}
+     nn_names    = {self.nn_names}
+     workdir     = {self.workdir}
+     verbose     = {self.verbose}
+"""
+
+    def run(self):
+        for nn_name in self.nn_names:
+            data = {}
+            for set_name in ["unaries", "oxides"]:
+                states = []
+                data_to_print = {}
+                warning_lines = []
+
+                uuid_mapping = {}
+                all_missing_outputs = {}
+                completely_off = []
+                failed_wfs = []
+                all_eos_data = {}
+                all_stress_data = {}
+                all_BM_fit_data = {}
+                num_atoms_in_sim_cell = {}
+
+                for element in self.elements:
+                    #key = f'{element}-{configuration}'
+
+                    #uuid_mapping[f'{element}-{configuration}'] = {
+                    #    'structure': structure.uuid,
+                    #    'eos_workflow': node.uuid
+                    #}
+
+                    try:
+                        data[nn_name] = self.run_nn_name_element(nn_name, set_name, element)
+                    except Exception as exc:
+                        raise exc
+
+            #self.write_json(f"cwf_eos_{nn_name}.json", data, info=f"JSON file with EOS results for {nn_name=}.")
+
+    def compute_eos(self, v0_atoms, calc, element, configuration, completely_off) -> dict:
+        # This piece is taken from get_results.py
+        #import acwf_paper_plots as acwf
+        try:
+            from acwf_paper_plots.eosfit_31_adapted import BM, echarge
+        except ImportError as exc:
+            raise ImportError("ase not installed. Try `pip install ase`.") from exc
+
+        v0 = v0_atoms.get_volume()
+        volumes = (v0 * np.array([0.94, 0.96, 0.98, 1.00, 1.02, 1.04, 1.06])).tolist()
+        energies, stresses = [], []
+        for volume in volumes:
+            atoms = to_ase_atoms(Structure.as_structure(v0_atoms).scale_lattice(volume))
+            r = AseResults.from_atoms(atoms, calc=calc)
+            energies.append(r.ene)
+            stresses.append(r.stress)
+
+        # Initialize to None if the outputs are not there
+        eos_data = None
+        stress_data = None
+        BM_fit_data = None
+        num_atoms = len(v0_atoms)
+
+        warning_lines = []
+
+        d = dict(volumes=volumes, energies=energies)
+        eos_data = np.array([ve for ve in zip(volumes, energies)])
+        stress_data = list(zip(volumes, stresses))
+        #for v, e in eos_data:
+        #    print(v, e)
+
+        # Check if the central point was completely off (i.e. the minimum of the energies is
+        # on the very left or very right of the volume range)
+        min_loc = np.array(energies).argmin()
+        if min_loc == 0:
+            # Side is whether the minimum occurs on the left side (small volumes) or right side (large volumes)
+            completely_off.append({'element': element, 'configuration': configuration, 'side': 'left'})
+        elif min_loc == len(energies) - 1:
+            completely_off.append({'element': element, 'configuration': configuration, 'side': 'right'})
+
+        try:
+            min_volume, E0, bulk_modulus_internal, bulk_deriv, residuals = BM(eos_data)
+            bulk_modulus_GPa = bulk_modulus_internal * echarge * 1.0e21
+            #1 eV/Angstrom3 = 160.21766208 GPa
+            bulk_modulus_ev_ang3 = bulk_modulus_GPa / 160.21766208
+            #data_to_print[(structure.extras['element'], structure.extras['configuration'])] = (
+            #    min_volume, E0, bulk_modulus_GPa, bulk_deriv)
+            BM_fit_data = {
+                'min_volume': min_volume,
+                'E0': E0,
+                'bulk_modulus_ev_ang3': bulk_modulus_ev_ang3,
+                'bulk_deriv': bulk_deriv,
+                'residuals': residuals[0]
+            }
+            if residuals[0] > 1.e-3:
+                warning_lines.append(f"WARNING! High fit residuals: {residuals[0]} for {element} {configuration}")
+        except ValueError:
+            # If we cannot find a minimum
+            # Note that BM_fit_data was already set to None at the top
+            warning_lines.append(f"WARNING! Unable to fit for {structure.extras['element']} {structure.extras['configuration']}")
+
+        return d
+
+    def run_nn_name_element(self, nn_name: str, set_name: str, element: str) -> dict:
+        calc = as_calculator(nn_name)
+        data = {}
+        completely_off = []
+        for configuration in self.configurations_set_name[set_name]:
+            v0_atoms = read(self.dirpath_set_name[set_name] / f"{element}-{configuration}.xsf", format='xsf')
+            data[configuration] = self.compute_eos(v0_atoms, calc, element, configuration, completely_off)
+
+        return data
+
+        data = {
+            'script_version': "0.0.4",
+            'set_name': set_name,
+            # Mapping from strings like "He-X2O" to a dictionary with the UUIDs of the structure and the EOS workflow
+            'uuid_mapping': uuid_mapping,
+            # A list of dictionaries with information on the workchains that did not finish with a 0 exit code
+            'failed_wfs': failed_wfs,
+            # A dictionary that indicate for which elements and configurations there are missing outputs,
+            # (only for the workchains that still had enough volumes to be considered for a fit)
+            'missing_outputs': all_missing_outputs,
+            # A list of dictionaries that indicate which elements and configurations have been computed completely
+            # off-centre (meaning that the minimum of all computed energies is on either of the two edges, i.e. for
+            # the smallest or largest volume)
+            'completely_off': completely_off,
+            # Dictionary with the EOS data (volumes and energies datapoints). The keys are the same as the `uuid_mapping`.
+            # Values can be None.
+            'eos_data': all_eos_data,
+            'stress_data': all_stress_data,
+            # Birch-Murnaghan fit data. See above for the keys. Can be None.
+            'BM_fit_data': all_BM_fit_data,
+            'num_atoms_in_sim_cell': num_atoms_in_sim_cell
+        }
+
+        # Print some statistics on the results
+        warning_lines.append("")
+        warning_lines.append("Counter of states: " + str(Counter(states)))
+        good_cnt = len([eos_data for eos_data in data['eos_data'] if eos_data is not None])
+        warning_lines.append("")
+        warning_lines.append(f"Minimum completely off for {len(completely_off)}/{good_cnt}")
+        warning_lines.append("Completely off systems (symbol indicates if the minimum is on the very left or right):")
+        for system in data['completely_off']:
+            warning_lines.append(
+                f"- {system['element']} {system['configuration']} "
+                f"({'<' if system['side'] == 'left' else '>'})"
+            )
+
+        fname = f"outputs/warnings-{SET_NAME}-{PLUGIN_NAME}.txt"
+        with open(fname, 'w') as fhandle:
+            for line in warning_lines:
+                fhandle.write(f"{line}\n")
+                print(line)
+        print(f"Warning log written to: '{fname}'.")
+
+        # Output results to file
+        os.makedirs('outputs', exist_ok=True)
+        fname = f"outputs/results-{SET_NAME}-{PLUGIN_NAME}.json"
+        with open(fname, 'w') as fhandle:
+            json.dump(data, fhandle, indent=2, sort_keys=True)
+        print(f"Output results written to: '{fname}'.")
