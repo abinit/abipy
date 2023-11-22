@@ -1,14 +1,13 @@
 # coding: utf-8
 """Wrappers for ABINIT main executables"""
+from __future__ import annotations
+
 import os
 import numpy as np
 
 from monty.string import list_strings
 from io import StringIO
 from abipy.core.globals import get_workdir
-
-import logging
-logger = logging.getLogger(__name__)
 
 __author__ = "Matteo Giantomassi"
 __copyright__ = "Copyright 2013, The Materials Project"
@@ -22,6 +21,8 @@ __all__ = [
     "Mrgscr",
     "Mrgddb",
     "Mrgdvdb",
+    "Cut3D",
+    "Fold2Bloch",
 ]
 
 
@@ -29,8 +30,10 @@ class ExecError(Exception):
     """Error class raised by :class:`ExecWrapper`"""
 
 
-class ExecWrapper(object):
-    """Base class that runs an executable in a subprocess."""
+class ExecWrapper:
+    """
+    Base class that runs an executable in a subprocess.
+    """
     Error = ExecError
 
     def __init__(self, manager=None, executable=None, verbose=0):
@@ -49,21 +52,21 @@ class ExecWrapper(object):
         assert os.path.basename(self.executable) == self.name
         self.verbose = int(verbose)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "%s" % self.executable
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
-    def execute(self, workdir, exec_args=None):
+    def execute(self, workdir, exec_args=None) -> int:
         # Try to execute binary without and with mpirun.
         try:
             return self._execute(workdir, with_mpirun=True, exec_args=exec_args)
         except self.Error:
             return self._execute(workdir, with_mpirun=False, exec_args=exec_args)
 
-    def _execute(self, workdir, with_mpirun=False, exec_args=None):
+    def _execute(self, workdir, with_mpirun=False, exec_args=None) -> int:
         """
         Execute the executable in a subprocess inside workdir.
 
@@ -102,6 +105,9 @@ class ExecWrapper(object):
 
 
 class Mrgscr(ExecWrapper):
+    """
+    Wraps the mrgddb Fortran executable.
+    """
     _name = "mrgscr"
 
     def merge_qpoints(self, workdir, files_to_merge, out_prefix):
@@ -145,9 +151,12 @@ class Mrgscr(ExecWrapper):
 
 
 class Mrgddb(ExecWrapper):
+    """
+    Wraps the mrgddb Fortran executable.
+    """
     _name = "mrgddb"
 
-    def merge(self, workdir, ddb_files, out_ddb, description, delete_source_ddbs=True):
+    def merge(self, workdir, ddb_files, out_ddb, description, delete_source_ddbs=True) -> str:
         """Merge DDB file, return the absolute path of the new database in workdir."""
         # We work with absolute paths.
         ddb_files = [os.path.abspath(s) for s in list_strings(ddb_files)]
@@ -199,9 +208,13 @@ class Mrgddb(ExecWrapper):
 
 
 class Mrgdvdb(ExecWrapper):
+    """
+    Wraps the mrgdvdb Fortran executable.
+    """
+
     _name = "mrgdv"
 
-    def merge(self, workdir, pot_files, out_dvdb, delete_source=True):
+    def merge(self, workdir, pot_files, out_dvdb, delete_source=True) -> str:
         """
         Merge POT files containing 1st order DFPT potential
         return the absolute path of the new database in workdir.
@@ -258,9 +271,12 @@ class Mrgdvdb(ExecWrapper):
 
 
 class Cut3D(ExecWrapper):
+    """
+    Wraps the cut3d Fortran executable.
+    """
     _name = "cut3d"
 
-    def cut3d(self, cut3d_input, workdir):
+    def cut3d(self, cut3d_input, workdir) -> tuple[str, str]:
         """
         Runs cut3d with a Cut3DInput
 
@@ -295,10 +311,12 @@ class Cut3D(ExecWrapper):
 
 
 class Fold2Bloch(ExecWrapper):
-    """Wrapper for fold2Bloch Fortran executable."""
+    """
+    Wraps the fold2Bloch Fortran executable.
+    """
     _name = "fold2Bloch"
 
-    def unfold(self, wfkpath, folds, workdir=None):
+    def unfold(self, wfkpath, folds, workdir=None) -> str:
         workdir = get_workdir(workdir)
 
         self.stdin_fname = None

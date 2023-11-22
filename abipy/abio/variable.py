@@ -1,8 +1,11 @@
 """Support for Abinit input variables."""
+from __future__ import annotations
 
 import string
 import collections
 import numpy as np
+
+from typing import Any
 
 
 __all__ = [
@@ -26,11 +29,11 @@ _UNITS = {
 }
 
 
-class InputVariable(object):
+class InputVariable:
     """
     An Abinit input variable.
     """
-    def __init__(self, name, value, units='', valperline=3):
+    def __init__(self, name: str, value: Any, units='', valperline=3):
         """
         Args:
             name: Name of the variable.
@@ -60,27 +63,27 @@ class InputVariable(object):
             return self.value
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Name of the variable."""
         return self._name
 
     @property
-    def basename(self):
+    def basename(self) -> str:
         """Return the name trimmed of any dataset index."""
         basename = self.name
         return basename.rstrip(_DATASET_INDICES)
 
     @property
-    def dataset(self):
+    def dataset(self) -> str:
         """Return the dataset index in string form."""
         return self.name.split(self.basename)[-1]
 
     @property
-    def units(self):
-        """Return the units."""
+    def units(self) -> str:
+        """Return the units. Empty if unitless."""
         return self._units
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Declaration of the variable in the input file."""
         value = self.value
         if value is None or not str(value):
@@ -130,7 +133,7 @@ class InputVariable(object):
 
         return line
 
-    def format_scalar(self, val, floatdecimal=0):
+    def format_scalar(self, val, floatdecimal=0) -> str:
         """
         Format a single numerical value into a string
         with the appropriate number of decimal.
@@ -164,8 +167,10 @@ class InputVariable(object):
 
         return sval
 
-    def format_list2d(self, values, floatdecimal=0):
-        """Format a list of lists."""
+    def format_list2d(self, values: list[list], floatdecimal=0) -> str:
+        """
+        Format a list of lists.
+        """
         lvals = flatten(values)
 
         # Determine the representation
@@ -204,7 +209,7 @@ class InputVariable(object):
 
         return line.rstrip('\n')
 
-    def format_list(self, values, floatdecimal=0):
+    def format_list(self, values: list, floatdecimal=0) -> str:
         """
         Format a list of values into a string.
         The result might be spread among several lines.
@@ -224,7 +229,7 @@ class InputVariable(object):
         return line.rstrip('\n')
 
 
-def is_iter(obj):
+def is_iter(obj: Any) -> bool:
     """Return True if the argument is list-like."""
     return hasattr(obj, '__iter__')
 

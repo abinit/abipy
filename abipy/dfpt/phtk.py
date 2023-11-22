@@ -2,6 +2,8 @@
 """
 Phonon Toolkit: This module gathers low-level tools to operate on phonons.
 """
+from __future__ import annotations
+
 import warnings
 import sys
 import numpy as np
@@ -14,11 +16,11 @@ from abipy.iotools import ETSF_Reader
 
 
 # TODO: amu should become mandatory.
-def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None):
+def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None) -> np.ndarray:
     """
     Converts the phonon displacements to the orthonormal eigenvectors of the dynamical matrix.
-    Small discrepancies with the original values may be expected due to the different values of the atomic masses in
-    abinit and pymatgen.
+    Small discrepancies with the original values may be expected due to the different values 
+    of the atomic masses in abinit and pymatgen.
 
     .. note::
 
@@ -59,7 +61,7 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None):
     return eigvec
 
 
-def match_eigenvectors(v1, v2):
+def match_eigenvectors(v1, v2) -> np.ndarray:
     """
     Given two list of vectors, returns the pair matching based on the complex scalar product.
     Returns the indices of the second list that match the vectors of the first list in ascending order.
@@ -112,7 +114,7 @@ class NonAnalyticalPh(Has_Structure):
                 self.amu_symbol[el.symbol] = m
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> NonAnalyticalPh:
         """
         Reads the non analytical directions, frequencies and displacements from the anaddb.nc file specified.
         Non existence of displacements is accepted for compatibility with abinit 8.0.6
@@ -138,7 +140,7 @@ class NonAnalyticalPh(Has_Structure):
             return cls(structure=structure, directions=directions, phfreqs=phfreq, phdispl_cart=phdispl_cart, amu=amu)
 
     @lazy_property
-    def dyn_mat_eigenvect(self):
+    def dyn_mat_eigenvect(self) -> np.ndarray:
         """
         [ndirection, 3*natom, 3*natom] array with the orthonormal eigenvectors of the dynamical matrix.
         in Cartesian coordinates.
@@ -150,7 +152,7 @@ class NonAnalyticalPh(Has_Structure):
         """|Structure| object."""
         return self._structure
 
-    def index_direction(self, direction, cartesian=False):
+    def index_direction(self, direction, cartesian=False) -> int:
         """
         Returns: the index of direction. Raises: `ValueError` if not found.
 
@@ -173,7 +175,7 @@ class NonAnalyticalPh(Has_Structure):
         raise ValueError("Cannot find direction: `%s` with cartesian: `%s` in non_analytical cartesian directions:\n%s" %
                 (str(direction), cartesian, str(self.directions)))
 
-    def has_direction(self, direction, cartesian=False):
+    def has_direction(self, direction, cartesian=False) -> bool:
         """
         Checks if the input direction is among those available.
 

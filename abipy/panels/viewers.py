@@ -1,4 +1,5 @@
 """Viewer objects."""
+from __future__ import annotations
 
 import os
 #import param
@@ -10,7 +11,7 @@ from panel.viewable import Viewer
 
 class AceViewer(Viewer):
 
-    def __init__(self, filepath, theme="terminal", height=1200, **params):
+    def __init__(self, filepath: str, theme="terminal", height=1200, **params):
         self.filepath = filepath
         super().__init__(**params)
 
@@ -18,8 +19,8 @@ class AceViewer(Viewer):
         self.open_btn = pnw.Button(name=f"Open {basename}", button_type='primary')
         self.open_btn.on_click(self.open_ace_editor)
 
-        self.ace = pnw.Ace(language='text', readonly=True, theme=theme,
-                           sizing_mode='stretch_width', height=height, visible=False)
+        self.ace = pnw.CodeEditor(language='text', readonly=True, theme=theme,
+                                  sizing_mode='stretch_width', height=height, visible=False)
 
         self.controls = pn.Card(self.ace.param.height, self.ace.param.theme, self.ace.param.visible,
                                 title="ACE controls", collapsed=True)
@@ -30,7 +31,7 @@ class AceViewer(Viewer):
                                 pn.layout.Divider(),
                                 sizing_mode="stretch_width")
 
-    def open_ace_editor(self, event):
+    def open_ace_editor(self, event) -> None:
         self.ace.visible = True
         self.ace.value = open(self.filepath, "rt").read()
         self.open_btn.name = "Reopen %s" % os.path.basename(self.filepath)

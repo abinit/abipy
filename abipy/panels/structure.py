@@ -1,4 +1,5 @@
 """"GUIs for structure."""
+from __future__ import annotations 
 
 import os
 import io
@@ -16,11 +17,11 @@ from abipy.tools.decorators import Appender
 
 add_inp_docstring = Appender("""
 kprra (number of **k**-points per reciprocal atom) defines the **k**-mesh for electrons.
-AbiPy will automatically compute the ABINIT variables [[ngkpt]], [[nshiftk]] and [[shiftk]] from kprra.
+AbiPy automatically computes the variables [[ngkpt]], [[nshiftk]] and [[shiftk]] from kprra.
 
-The pseudopotentials are taken from the PseudoDojo table (XXX) according to value of `XC type`
-and `Pseudos type` and recommended values for [[ecut]] and [[pawecutdg]] and [[nband]]
-are automatically added to the input.
+The pseudopotentials are taken from the [PseudoDojo project](http://www.pseudo-dojo.org/)
+according to value of `XC type` and `Pseudos type` and recommended values for [[ecut]]
+and [[pawecutdg]] and [[nband]] are automatically added to the input.
 
 At the end of the page, there is a button to download a targz file with all the required input files.
 """, indents=0)
@@ -35,9 +36,6 @@ def _make_targz_bytes(inp_or_multi, remove_dir=True):
     with open(targz_path, "rb") as fh:
         output.write(fh.read())
     output.seek(0)
-
-    # TODO Remove directory. Implement with in make_targz.
-    #if remove_dir:
 
     return output
 
@@ -119,10 +117,6 @@ class StructurePanel(PanelWithStructure):
 
         self.spin_mode = pnw.Select(name="SpinMode", value="unpolarized", options=list(self.label2mode.keys()))
 
-    #@property
-    #def structure(self):
-    #    return self._structure
-
     @pn.depends("output_format.value")
     def convert(self):
         """Convert the input structure to one of the format selected by the user."""
@@ -130,14 +124,14 @@ class StructurePanel(PanelWithStructure):
         return self.html_with_clipboard_btn(f"<pre> {s} </pre>")
 
     @pn.depends("spglib_symprec.value", "spglib_angtol.value")
-    def spglib_summary(self):
+    def spglib_summary(self) -> pn.Row:
         """Call spglib to find space group symmetries and Wyckoff positions."""
         s = self.structure.spget_summary(symprec=self.spglib_symprec.value,
                                          angle_tolerance=self.spglib_angtol.value)
         return pn.Row(bkw.PreText(text=s, sizing_mode='stretch_width'))
 
     @depends_on_btn_click('abisanitize_btn')
-    def on_abisanitize_btn(self):
+    def on_abisanitize_btn(self) -> None:
         """
         Returns a new structure in which:
 
@@ -167,7 +161,6 @@ class StructurePanel(PanelWithStructure):
             assert self.select_primitive.value == "no_primitive"
 
         #print("primitive", primitive, "primitive_standard", primitive_standard)
-
         s = self.structure.abi_sanitize(symprec=self.spglib_symprec.value,
                                         angle_tolerance=self.spglib_angtol.value,
                                         primitive=primitive, primitive_standard=primitive_standard)
@@ -178,7 +171,7 @@ class StructurePanel(PanelWithStructure):
                 sizing_mode='stretch_width')
 
     @pn.depends("kpath_format.value", "line_density.value")
-    def get_kpath(self):
+    def get_kpath(self) -> pn.Column:
         """
         Generate high-symmetry k-path from input structure in the ABINIT format.
         """
@@ -198,12 +191,21 @@ class StructurePanel(PanelWithStructure):
 
         return col
 
-    def _get_pseudos(self):
+    def _get_pseudos_ecut_pawecutdg(self) -> tuple:
         #from abipy.data.hgh_pseudos import HGH_TABLE
         #return HGH_TABLE
         from abipy.flowtk.psrepos import get_repo_from_name
         repo = get_repo_from_name(self.repos_name.value)
-        return repo.get_pseudos(self.table_name.value)
+        pseudos = repo.get_pseudos(self.table_name.value)
+        ecut = 0
+        pawecutdg = 0
+
+        for p in pseudos:
+            hint = p.hint_for_accuracy(accuracy="normal")
+            ecut = max(ecut, hint.ecut)
+            pawecutdg = max(pawecutdg, hint.pawecutdg)
+
+        return pseudos, ecut, pawecutdg
 
     def _get_smearing(self):
         smearing = None
@@ -265,23 +267,27 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
         return pn.Column(*items, sizing_mode="stretch_width")
 
-    def get_gs_input(self):
+    def get_gs_input(self) -> AbinitInput:
         """
         Return an AbinitInput for GS calculation from the parameters selected via the widgets.
         """
         from abipy.abio.factories import gs_input
-        gs_inp = gs_input(structure=self.structure, pseudos=self._get_pseudos(),
+        pseudos, ecut, pawecutdg = self._get_pseudos_ecut_pawecutdg()
+
+        gs_inp = gs_input(structure=self.structure,
+                          pseudos=pseudos,
                           kppa=self.kppra.value,
-                          ecut=8,
+                          ecut=ecut,
+                          pawecutdg=pawecutdg,
                           spin_mode=self.label2mode[self.spin_mode.value],
                           smearing=self._get_smearing(),
                           charge=0.0,
                          )
 
         gs_inp.set_mnemonics(False)
-
-        # TODO: Should reorder pseudos?
         gs_inp.pop_vars(("charge", "chksymbreak"))
+
+        # TODO: ecut, ....
         #gs_inp.set_vars(#ecut="??  # depends on pseudos",
         #                #nband="?? # depends on pseudos",
         #                pseudos='"%s"' % ", ".join(p.basename for p in gs_inp.pseudos),
@@ -324,13 +330,15 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
         dos_kppa = self.edos_kppra.value
         if dos_kppa == 0.0: dos_kppa = None
+        pseudos, ecut, pawecutdg = self._get_pseudos_ecut_pawecutdg()
 
-        multi = ebands_input(structure=self.structure, pseudos=self._get_pseudos(),
+        multi = ebands_input(structure=self.structure,
+                             pseudos=pseudos,
                              kppa=self.kppra.value,
                              nscf_nband=None,
                              ndivsm=10,
-                             ecut=8,
-                             pawecutdg=None,
+                             ecut=ecut,
+                             pawecutdg=pawecutdg,
                              scf_nband=None,
                              spin_mode=self.label2mode[self.spin_mode.value],
                              smearing=self._get_smearing(),
@@ -345,7 +353,6 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         multi.pop_vars(("charge", "chksymbreak"))
         #multi.set_vars(#ecut="??  # depends on pseudos",
         #               #nband="?? # depends on pseudos",
-        #               pseudos='"%s"' % ", ".join(p.basename for p in multi.pseudos),
         #               )
 
         return self._finalize(multi)
@@ -363,6 +370,8 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         gs_inp = self.get_gs_input()
         ngkpt = np.array(gs_inp["ngkpt"])
 
+        # TODO Find an easy way to specify the q-mesh.
+        # Use ngqpt a la Samuel?
         ph_ngqpt = [2, 2, 2]
         #ph_nqpt = qscale * ngkpt
         #any(ngkp % ph_ngqpt != 0):
@@ -471,6 +480,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         d = dict()
 
         d["Summary"] = self.get_summary_view_for_abiobj(self.structure)
+        d["Viewer"] = self.get_structure_view()
         d["Spglib"] = pn.Row(
             self.pws_col(['## Spglib options',
                           "spglib_symprec", "spglib_angtol",
@@ -495,7 +505,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
                          ]),
             self.convert
         )
-        d["Viewer"] = self.get_structure_view()
+
 
         if with_inputs:
             # Add tabs to generate inputs from structure.
@@ -541,11 +551,11 @@ class InputFileGenerator(AbipyParameterized):
     abi_sanitize = param.Boolean(True, doc="Sanitize structure")
 
     info_str = """
-Generate ABINIT input files for performing basic
+Generate ABINIT input files for performing basic:
 
    - GS calculations
    - NSCF band structure calculations
-   - DFPT calculations for phonons, BECS and dielectric constant
+   - DFPT calculations for phonons including Born effective charges and dielectric constant
 
 starting from a crystalline structure provided by the user either via an external file
 or through the Materials Project identifier (*mp-id*).

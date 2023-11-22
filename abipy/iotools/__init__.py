@@ -1,7 +1,13 @@
 # coding: utf-8
 # flake8: noqa
+from __future__ import annotations
+
 import numpy as np
-import pymatgen.io.abinit.netcdf as ionc
+from pymatgen.io.abinit.netcdf import as_etsfreader
+try:
+    from pymatgen.io.abinit.netcdf import ETSF_Reader
+except ImportError:
+    from pymatgen.io.abinit.netcdf import EtsfReader as ETSF_Reader
 
 from monty.functools import lazy_property
 from pymatgen.core.periodic_table import Element
@@ -9,10 +15,10 @@ from .xsf import *
 from .visualizer import *
 
 
-as_etsfreader = ionc.as_etsfreader
+#as_etsfreader = ionc.as_etsfreader
 
 
-class ETSF_Reader(ionc.ETSF_Reader):
+class ETSF_Reader(ETSF_Reader):
     """
     Provides high-level API to read data from netcdf files written
     following the ETSF-IO specifications described in :cite:`Caliste2008`
@@ -25,6 +31,10 @@ class ETSF_Reader(ionc.ETSF_Reader):
         """
         from abipy.core.structure import Structure
         return Structure.from_file(self.path)
+
+    def typeidx_from_symbol(self, symbol: str) -> int:
+        """Returns the type index from the chemical symbol. Note python convention."""
+        return self.chemical_symbols.index(symbol)
 
     # Must overwrite implementation of pymatgen.io.abinit.netcdf
     # due to a possible bug introduced by initial whitespaces in symbol
@@ -40,7 +50,7 @@ class ETSF_Reader(ionc.ETSF_Reader):
 
         return symbols
 
-    def read_string(self, varname):
+    def read_string(self, varname: str):
         """
         Args:
             varname: Name of the variable
@@ -65,7 +75,7 @@ class ETSF_Reader(ionc.ETSF_Reader):
         """Return None if arr is a MaskedArray else None."""
         return None if np.ma.is_masked(arr) else arr
 
-    def read_amu_symbol(self):
+    def read_amu_symbol(self) -> dict:
         """
         Read atomic masses and return dictionary element_symbol --> amu.
 
@@ -85,7 +95,7 @@ class ETSF_Reader(ionc.ETSF_Reader):
 
         return amu_symbol
 
-    def read_ngfft3(self):
+    def read_ngfft3(self) -> np.array:
         """
         Return the number of FFT divisions.
         """

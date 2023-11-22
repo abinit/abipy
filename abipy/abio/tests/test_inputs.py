@@ -10,6 +10,7 @@ from abipy.abio.input_tags import *
 
 import abipy.abio.decorators as ideco
 from abipy.abio.factories import *
+from abipy.flowtk.abiphonopy import *
 
 
 class TestAbinitInput(AbipyTest):
@@ -131,7 +132,7 @@ class TestAbinitInput(AbipyTest):
 
         # Compatible with Pickle and MSONable?
         self.serialize_with_pickle(inp, test_eq=False)
-        self.assertMSONable(inp)
+        self.assert_msonable(inp)
 
         # Test generate method.
         ecut_list = [10, 20]
@@ -162,6 +163,28 @@ class TestAbinitInput(AbipyTest):
         other_inp = new_inp.new_with_vars(ph_qpath=[0, 0, 0, 0.5, 0, 0], kptgw=[0, 0, 0, 1, 1, 1, 2, 2, 2])
         assert other_inp["ph_nqpath"] == 2
         assert other_inp["nkptgw"] == 3
+
+        # Test news_varname_values with single variable.
+        varname_values = ("nband", [1, 4])
+        inp_list = new_inp.news_varname_values(varname_values)
+        assert len(inp_list) == len(varname_values[1])
+        for inp, nband in zip(inp_list, varname_values[1]):
+            assert inp["nband"] == nband
+
+        # Test news_varname_values with Cartesian product.
+        varname_values = [
+            ("nband", [8, 12]),
+            ("ecut", [4, 8]),
+        ]
+
+        inp_list = new_inp.news_varname_values(varname_values)
+        assert len(inp_list) == 4
+        i = -1
+        for nband in varname_values[0][1]:
+            for ecut in varname_values[1][1]:
+                i += 1
+                assert inp_list[i]["nband"] == nband
+                assert inp_list[i]["ecut"] == ecut
 
         new_inp["outdata_prefix"] = "some/path"
         assert "some/path" in new_inp.to_string()
@@ -254,7 +277,17 @@ class TestAbinitInput(AbipyTest):
         inp["kptopt"] = 4
         assert not inp.uses_ktimereversal
 
-        assert inp.pseudos_abivars["pseudos"] == f'"{pseudo.filepath}"'
+        assert inp.pseudos_abivars["pseudos"] == f"{pseudo.filepath}"
+
+        # Test set_scf_nband.
+        d = inp.set_scf_nband(nsppol=1, nspinor=1, nspden=1,
+                              occopt=1, tsmear=0.0, charge=0.0, spinat=None)
+        assert d["nband"] == 8
+
+        # Test set_scf_nband_semicond.
+        d = inp.set_scf_nband_semicond()
+        assert d["nband"] == 8
+
 
     def test_new_with_structure(self):
         """Testing new_with_structure."""
@@ -301,6 +334,44 @@ class TestAbinitInput(AbipyTest):
         #new_inp = si2_inp.new_with_structure(super_structure, scdims=scdims)
         #self.abivalidate_input(new_inp)
 
+    def test_new_with_structure_2(self):
+        """Testing new_with_structure with occopt=2 nband='*xxx' format ."""
+
+        abi_kwargs = dict(ecut=15, chksymbreak=0,)
+
+        inp = AbinitInput(structure=abidata.cif_file("NV_center_64_at_sc.cif"),
+                          pseudos=abidata.pseudos("C.psp8", "N.psp8"),
+                          abi_kwargs=abi_kwargs)
+
+        n_val = inp.num_valence_electrons
+        n_cond = round(10)  
+
+        spin_up_gs = f"\n{int((n_val - 3) / 2)}*1 1 1   1 {n_cond}*0" 
+        spin_dn_gs = f"\n{int((n_val - 3) / 2)}*1 1 0   0 {n_cond}*0"
+
+        nsppol = 2
+        ngkpt=[2,2,2]
+        shiftk=[0,0,0]
+
+        inp.set_kmesh_nband_and_occ(ngkpt, shiftk, nsppol, [spin_up_gs, spin_dn_gs])
+        sc_stru=inp.structure.copy()
+        sc_stru.make_supercell([2,1,1])
+
+        new_inp = inp.new_with_structure(new_structure=sc_stru,
+                       scdims=[2,1,1],verbose=0)
+        assert new_inp["nband"] == '*276'  
+        #self.abivalidate_input(new_inp) 
+        # Not valid now because occ should be rewritten as well
+        # TODO
+        # go from 
+        # occ='125*1 1 1 1 10*0'
+        # to 
+        # occ='125*1 1 1 1 125*1 1 1 1 10*0 10*0 '
+        # if size is doubled.
+
+
+
+
     def test_abinit_calls(self):
         """Testing AbinitInput methods invoking Abinit."""
         inp_si = AbinitInput(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"))
@@ -329,6 +400,12 @@ class TestAbinitInput(AbipyTest):
         structure_with_abispg = inp_si.abiget_spacegroup()
         assert structure_with_abispg.abi_spacegroup is not None
         assert structure_with_abispg.abi_spacegroup.spgid == 227
+
+        # Test abiget_dims_spginfo
+        dims, spginfo = inp_si.abiget_dims_spginfo()
+        assert dims["nsppol"] == 1
+        assert dims["mpw"] == 20
+        assert spginfo["spg_number"] == 227
 
         # Test abiget_ibz
         ibz = inp_si.abiget_ibz()
@@ -387,7 +464,7 @@ class TestAbinitInput(AbipyTest):
         #self.assertIsInstance(inp_dict['abi_kwargs'], collections.OrderedDict)
         assert "abi_args" in inp_dict and len(inp_dict["abi_args"]) == len(inp)
         assert all(k in inp for k, _ in inp_dict["abi_args"])
-        self.assertMSONable(inp)
+        self.assert_msonable(inp)
 
     def test_enforce_znucl_and_typat(self):
         """
@@ -849,7 +926,7 @@ class TestMultiDataset(AbipyTest):
 
         # Compatible with Pickle and MSONable?
         self.serialize_with_pickle(multi, test_eq=False)
-        #self.assertMSONable(multi)
+        #self.assert_msonable(multi)
 
         # Test tags
         new_multi.add_tags([GROUND_STATE, RELAX], [0, 2])
@@ -878,7 +955,7 @@ class AnaddbInputTest(AbipyTest):
         assert inp.get("brav") == 1
 
         self.serialize_with_pickle(inp, test_eq=False)
-        self.assertMSONable(inp)
+        self.assert_msonable(inp)
 
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
@@ -1013,7 +1090,7 @@ class TestCut3DInput(AbipyTest):
         cut3d_input.write(self.get_tmpname(text=True))
 
         self.serialize_with_pickle(cut3d_input, test_eq=False)
-        self.assertMSONable(cut3d_input)
+        self.assert_msonable(cut3d_input)
 
     def test_generation_methods(self):
         cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
@@ -1077,7 +1154,7 @@ class OpticInputTest(AbipyTest):
         self.serialize_with_pickle(optic_input, test_eq=True)
 
         # TODO: But change function that build namelist to ignore @module ...
-        #self.assertMSONable(optic_input)
+        #self.assert_msonable(optic_input)
 
         self.abivalidate_input(optic_input)
 

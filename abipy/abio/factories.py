@@ -13,10 +13,10 @@ from collections import namedtuple
 from monty.collections import AttrDict
 from monty.string import is_string
 from monty.json import jsanitize, MontyDecoder, MSONable
-from pymatgen.util.serialization import pmg_serialize
 from pymatgen.io.abinit.pseudos import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
+from abipy.tools.serialization import pmg_serialize
 
 
 __all__ = [
@@ -100,8 +100,8 @@ def _stopping_criterion(runlevel: str, accuracy: str) -> dict:
     return {tolname: getattr(_tolerances[tolname], accuracy)}
 
 
-def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy):
-    """Return a |AttrDict| with the value of ``ecut`` and ``pawecutdg``."""
+def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy) -> AttrDict:
+    """Return an |AttrDict| with the value of ``ecut`` and ``pawecutdg``."""
     # Get ecut and pawecutdg from the pseudo hints.
     has_hints = False
     if ecut is None or (pawecutdg is None and any(p.ispaw for p in pseudos)):
@@ -122,7 +122,7 @@ def _find_ecut_pawecutdg(ecut, pawecutdg, pseudos, accuracy):
     return AttrDict(ecut=ecut, pawecutdg=pawecutdg)
 
 
-def _find_scf_nband(structure, pseudos, electrons, spinat=None):
+def _find_scf_nband(structure, pseudos, electrons, spinat=None) -> int:
     """Find the value of ``nband``."""
     if electrons.nband is not None: return electrons.nband
 
@@ -152,6 +152,34 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None):
     # Force even nband (easier to divide among procs, mandatory if nspinor == 2)
     nband += nband % 2
     return int(nband)
+
+
+def _find_nscf_nband_from_gsinput(gs_input: AbinitInput) -> int:
+    """
+    Find the value of nband for a NSCF calculation based on the input of a previous gs calculation.
+
+    Args:
+        gs_input (AbinitInput): the ground state input.
+
+    Returns:
+        the value of nband.
+    """
+    scf_nband = gs_input.get("nband")
+    if scf_nband is None:
+        occopt = gs_input.get("occopt", 1)
+        tsmear = gs_input.get("tsmear", 0.01)
+        smearing = aobj.Smearing(occopt, tsmear)
+
+        # only nsppol is used in _find_scf_nband, so just set that with a meaningful value
+        nsppol = gs_input.get("nsppol", 1)
+        spin_mode = aobj.SpinMode(mode="test", nsppol=nsppol, nspinor=1, nspden=nsppol)
+
+        charge = gs_input.get("charge", 0)
+        electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, charge=charge)
+        spinat = gs_input.get('spinat', None)
+        scf_nband = _find_scf_nband(gs_input.structure, gs_input.pseudos, electrons, spinat)
+
+    return scf_nband + 10
 
 
 def _get_shifts(shift_mode: str, structure: Structure):
@@ -239,7 +267,7 @@ def ebands_input(structure: Structure, pseudos,
         spin_mode: Spin polarization.
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
-        scf_algorithm: Algorithm used for solving of the SCF cycle.
+        scf_algorithm: Algorithm used for solving the SCF cycle.
         dos_kppa: Scalar or List of integers with the number of k-points per atom
             to be used for the computation of the DOS (None if DOS is not wanted).
     """
@@ -315,32 +343,16 @@ def ion_ioncell_relax_input(structure, pseudos,
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for the solution of the SCF cycle.
     """
-    structure = Structure.as_structure(structure)
-    multi = MultiDataset(structure, pseudos, ndtset=2)
-
-    # Set the cutoff energies.
-    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos, accuracy))
-
-    kppa = _DEFAULTS.get("kppa") if kppa is None else kppa
-
-    shift_mode = ShiftMode.from_object(shift_mode)
-    shifts = _get_shifts(shift_mode, structure)
-    ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
-    electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
-                               charge=charge, nband=nband, fband=None)
-
-    if spin_mode == "polarized":
-        spinat_dict = multi[0].set_autospinat()
-        multi[1].set_vars(spinat_dict)
-
-    if electrons.nband is None:
-        electrons.nband = _find_scf_nband(structure, multi.pseudos, electrons, multi[0].get('spinat', None))
+    # Scf options
+    inp = scf_input(structure=structure, pseudos=pseudos, kppa=kppa,
+                    ecut=ecut, pawecutdg=pawecutdg, nband=nband,
+                    accuracy=accuracy, spin_mode=spin_mode, smearing=smearing,
+                    charge=charge, scf_algorithm=scf_algorithm, shift_mode=shift_mode)
+    # Relaxation-specific options
+    multi = MultiDataset.replicate_input(inp, ndtset=2)
 
     ion_relax = aobj.RelaxationMethod.atoms_only(atoms_constraints=None)
     ioncell_relax = aobj.RelaxationMethod.atoms_and_cell(atoms_constraints=None)
-
-    multi.set_vars(electrons.to_abivars())
-    multi.set_vars(ksampling.to_abivars())
 
     multi[0].set_vars(ion_relax.to_abivars())
     multi[0].set_vars(_stopping_criterion("relax", accuracy))
@@ -395,6 +407,44 @@ def ion_ioncell_relax_and_ebands_input(structure, pseudos,
     return relax_multi + ebands_multi
 
 
+def scr_from_nscfinput(nscf_input, nband=None, ecuteps=3.0, ecutwfn=None, inclvkb=2, w_type="RPA",
+                       sc_mode="one_shot", hilbert=None, accuracy="normal") -> AbinitInput:
+    """Return a screening input."""
+    scr_input = nscf_input.deepcopy()
+    scr_input.pop_irdvars()
+    if nband is None:
+        nband = nscf_input.get("nband")
+    screening = aobj.Screening(ecuteps, nband, w_type=w_type, sc_mode=sc_mode,
+                               hilbert=hilbert, ecutwfn=ecutwfn, inclvkb=inclvkb)
+
+    scr_input.set_vars(screening.to_abivars())
+    scr_input.set_vars(_stopping_criterion("screening", accuracy))  # Dummy
+
+    return scr_input
+
+
+def sigma_from_inputs(nscf_input, scr_input, nband=None, ecutwfn=None, ecuteps=None, ecutsigx=None,
+                      ppmodel="godby", gw_qprange=1, accuracy="normal") -> AbinitInput:
+    """Return a sigma input."""
+    self_input = nscf_input.deepcopy()
+    self_input.pop_irdvars()
+    if nband is None:
+        nband = nscf_input.get("nband")
+    screening = aobj.Screening(ecuteps=scr_input["ecuteps"], nband=scr_input["nband"],
+                               w_type="RPA",
+                               sc_mode="one_shot",
+                               hilbert=None,
+                               ecutwfn=scr_input["ecutwfn"],)
+    ecuteps = ecuteps if ecuteps is not None else screening.ecuteps
+    self_energy = aobj.SelfEnergy(se_type="gw", sc_mode="one_shot", nband=nband, ecutsigx=ecutsigx, screening=screening,
+                                  gw_qprange=gw_qprange, ppmodel=ppmodel, ecuteps=ecuteps, ecutwfn=ecutwfn, gwpara=2)
+
+    self_input.set_vars(self_energy.to_abivars())
+    self_input.set_vars(_stopping_criterion("sigma", accuracy))  # Dummy
+
+    return self_input
+
+
 def g0w0_with_ppmodel_inputs(structure, pseudos,
                              kppa, nscf_nband, ecuteps, ecutsigx,
                              ecut=None, pawecutdg=None, shifts=(0.0, 0.0, 0.0),
@@ -434,55 +484,35 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
     """
 
     structure = Structure.as_structure(structure)
-    multi = MultiDataset(structure, pseudos, ndtset=4)
-
-    # Set the cutoff energies.
-    multi.set_vars(_find_ecut_pawecutdg(ecut, pawecutdg, multi.pseudos, accuracy))
-
-    scf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
+    # Scf input
+    # Note that kppa and shift_mode here are dummy as, they will be overwritten just after.
+    scf_inp = scf_input(structure=structure, pseudos=pseudos, kppa=kppa,
+                        ecut=ecut, pawecutdg=pawecutdg, nband=None, accuracy=accuracy,
+                        spin_mode=spin_mode, smearing=smearing, charge=charge, scf_algorithm=scf_algorithm,
+                        shift_mode="Monkhorst-Pack")
+    ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
+    scf_inp.set_vars(ksampling.to_abivars())
+    scf_inp.set_vars(istwfk="*1")
+    # The following is to keep the previous behavior
+    # - The spinat is not set
+    # - The number of bands is not adapted for spinat
+    # TODO: Should we consider changing that and update the reference files accordingly ?
+    scf_inp.pop_vars('spinat')
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=None, fband=None)
+    nband = _find_scf_nband(structure, scf_inp.pseudos, scf_electrons)
+    scf_inp.set_vars(nband=nband)
+    # Non-Scf input
+    nscf_inp = nscf_from_gsinput(gs_input=scf_inp, nband=nscf_nband, accuracy=accuracy)
+    # Scr input
+    scr_inp = scr_from_nscfinput(nscf_input=nscf_inp, nband=scr_nband, ecuteps=ecuteps, ecutwfn=None,
+                                 inclvkb=inclvkb, w_type="RPA", sc_mode="one_shot", hilbert=None, accuracy="normal")
+    # Sigma input
+    sigma_inp = sigma_from_inputs(nscf_input=nscf_inp, scr_input=scr_inp, nband=sigma_nband,
+                                  ecutwfn=None, ecuteps=None, ecutsigx=ecutsigx,
+                                  ppmodel=ppmodel, gw_qprange=gw_qprange)
 
-    if scf_electrons.nband is None:
-        scf_electrons.nband = _find_scf_nband(structure, multi.pseudos, scf_electrons)
-
-    multi[0].set_vars(scf_ksampling.to_abivars())
-    multi[0].set_vars(scf_electrons.to_abivars())
-    multi[0].set_vars(_stopping_criterion("scf", accuracy))
-
-    nscf_ksampling = aobj.KSampling.automatic_density(structure, kppa, chksymbreak=0, shifts=shifts)
-    nscf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm={"iscf": -2},
-                                    charge=charge, nband=nscf_nband, fband=None)
-
-    multi[1].set_vars(nscf_ksampling.to_abivars())
-    multi[1].set_vars(nscf_electrons.to_abivars())
-    multi[1].set_vars(_stopping_criterion("nscf", accuracy))
-    # nbdbuf
-
-    # Screening.
-    if scr_nband is None: scr_nband = nscf_nband
-    screening = aobj.Screening(ecuteps, scr_nband, w_type="RPA", sc_mode="one_shot",
-                               hilbert=None, ecutwfn=None, inclvkb=inclvkb)
-
-    multi[2].set_vars(nscf_ksampling.to_abivars())
-    multi[2].set_vars(nscf_electrons.to_abivars())
-    multi[2].set_vars(screening.to_abivars())
-    multi[2].set_vars(_stopping_criterion("screening", accuracy)) # Dummy
-
-    # Sigma.
-    if sigma_nband is None: sigma_nband = nscf_nband
-    self_energy = aobj.SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening,
-                                  gw_qprange=gw_qprange, ppmodel=ppmodel)
-
-    multi[3].set_vars(nscf_ksampling.to_abivars())
-    multi[3].set_vars(nscf_electrons.to_abivars())
-    multi[3].set_vars(self_energy.to_abivars())
-    multi[3].set_vars(_stopping_criterion("sigma", accuracy)) # Dummy
-
-    # TODO: Cannot use istwfk != 1.
-    multi.set_vars(istwfk="*1")
-
-    return multi
+    return MultiDataset.from_inputs([scf_inp, nscf_inp, scr_inp, sigma_inp])
 
 
 def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecutsigx, scf_nband, ecut,
@@ -764,7 +794,7 @@ def bse_with_mdf_inputs(structure: Structure, pseudos,
 
 def scf_phonons_inputs(structure, pseudos, kppa,
                        ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode="polarized",
-                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None):
+                       smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None, qptopt=1) -> list[AbinitInput]:
     # TODO: Please check the unused variables in the function
     """
     Returns a list of input files for performing phonon calculations.
@@ -784,6 +814,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
+        qptopt: Option for the generation of q-points. Default: 1
     """
     # Build the input file for the GS run.
     gs_inp = AbinitInput(structure=structure, pseudos=pseudos)
@@ -797,7 +828,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 
     # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
     # i.e. the same parameters used for the k-mesh in gs_inp.
-    qpoints = gs_inp.abiget_ibz(ngkpt=(4, 4, 4), shiftk=(0, 0, 0), kptopt=1).points
+    qpoints = gs_inp.abiget_ibz(ngkpt=(4, 4, 4), shiftk=(0, 0, 0), kptopt=qptopt).points
     #print("get_ibz qpoints:", qpoints)
 
     # Build the input files for the q-points in the IBZ.
@@ -841,7 +872,8 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 
 
 def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, with_dde=True, with_bec=False,
-                         ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, qpoints_to_skip=None, manager=None):
+                         ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None,
+                         qpoints_to_skip=None, qptopt=1, manager=None):
     """
     Returns a list of inputs in the form of a MultiDataset to perform phonon calculations, based on
     a ground state |AbinitInput|.
@@ -874,6 +906,8 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
         qpoints_to_skip: a list of coordinates of q points in reduced coordinates that will be skipped.
             Useful when calculating multiple grids for the same system to avoid duplicate calculations.
             If a DDB needs to be extended with more q points use e.g. ddb.qpoints.to_array().
+        qptopt: Option for the generation of q-points. Default: 1
+
         manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
     gs_inp = gs_inp.deepcopy()
@@ -909,7 +943,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
         else:
             ph_ngqpt = np.array(ph_ngqpt)
 
-        qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0, 0, 0), kptopt=1, manager=manager).points
+        qpoints = gs_inp.abiget_ibz(ngkpt=ph_ngqpt, shiftk=(0, 0, 0), kptopt=qptopt, manager=manager).points
 
     if qpoints_to_skip:
         preserved_qpoints = []
@@ -1134,15 +1168,18 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
     return abinit_input
 
 
-def ebands_from_gsinput(gs_input, nband=None, ndivsm=15, accuracy="normal") -> AbinitInput:
+def ebands_from_gsinput(gs_input, nband=None, ndivsm=15, accuracy="normal",
+                        projection=None) -> AbinitInput:
     """
     Return an |AbinitInput| object to compute a band structure from a GS SCF input.
 
     Args:
-        gs_input:
-        nband:
-        ndivsm:
-        accuracy:
+        gs_input: the |AbinitInput| that was used to calculated the charge density.
+        nband: the number of bands to be used for the calculation. If None it will be
+            automatically generated.
+        ndivsm: Number of divisions used to sample the smallest segment of the k-path.
+        accuracy: Accuracy of the calculation.
+        projection: which projection should be performed. If None no projection, otherwise "l" or "lm"
 
     Return: |AbinitInput|
     """
@@ -1153,34 +1190,116 @@ def ebands_from_gsinput(gs_input, nband=None, ndivsm=15, accuracy="normal") -> A
 
     nscf_ksampling = aobj.KSampling.path_from_structure(ndivsm, gs_input.structure)
     if nband is None:
-        nband = gs_input.get("nband", gs_input.structure.num_valence_electrons(gs_input.pseudos)) + 10
+        nband = _find_nscf_nband_from_gsinput(gs_input)
 
     bands_input.set_vars(nscf_ksampling.to_abivars())
     bands_input.set_vars(nband=nband, iscf=-2)
     bands_input.set_vars(_stopping_criterion("nscf", accuracy))
 
+    if projection is None:
+        pass
+    elif projection == "l":
+        bands_input.set_vars(prtdos=3)
+    elif projection == "lm":
+        bands_input.set_vars(prtdos=3, prtdosm=1)
+    else:
+        raise ValueError(f"Unrecognized value for projection: {projection}")
+
     return bands_input
 
 
-def dos_from_gsinput(gs_input, dos_kppa, nband=None, accuracy="normal", pdos=False):
+def nscf_from_gsinput(gs_input, kppa=None, nband=None, accuracy="normal",
+                      shift_mode="Monkhorst-Pack") -> AbinitInput:
+    """
+    Return an |AbinitInput| object to perform a NSCF calculation from a GS SCF input.
 
+    Args:
+        gs_input: the |AbinitInput| that was used to calculated the charge density.
+        kppa: defines the kpt sampling used for the NSCF run. If None the kpoint sampling and
+            shifts will be the same as in the SCF input.
+        nband: the number of bands to be used for the calculation. If None it will be
+            automatically generated.
+        accuracy: accuracy of the calculation.
+        shift_mode: the mode to be used for the shifts. Options are "Gamma", "Monkhorst-Pack",
+            "Symmetric", "OneSymmetric". See ShiftMode object for more details. Only used if kppa
+            is not None.
+
+    Return: |AbinitInput|
+    """
     # create a copy to avoid messing with the previous input
-    dos_input = gs_input.deepcopy()
-    dos_input.pop_irdvars()
+    nscf_input = gs_input.deepcopy()
+    nscf_input.pop_irdvars()
 
-    dos_ksampling = aobj.KSampling.automatic_density(dos_input.structure, dos_kppa, chksymbreak=0)
-    dos_input.set_vars(dos_ksampling.to_abivars())
-    dos_input.set_vars(iscf=-2, ionmov=0)
-    dos_input.set_vars(_stopping_criterion("nscf", accuracy))
+    if kppa is not None:
+        shift_mode = ShiftMode.from_object(shift_mode)
+        shifts = _get_shifts(shift_mode, gs_input.structure)
+        dos_ksampling = aobj.KSampling.automatic_density(nscf_input.structure, kppa, chksymbreak=0, shifts=shifts)
+        nscf_input.set_vars(dos_ksampling.to_abivars())
 
-    if pdos:
-        # FIXME
-        raise NotImplementedError()
+    if nband is None:
+        nband = _find_nscf_nband_from_gsinput(gs_input)
+
+    nscf_input.set_vars(nband=nband, iscf=-2)
+    nscf_input.set_vars(_stopping_criterion("nscf", accuracy))
+
+    return nscf_input
+
+
+def dos_from_gsinput(gs_input, kppa=None, nband=None, accuracy="normal", dos_method="tetra",
+                     projection="l", shift_mode="Monkhorst-Pack") -> AbinitInput:
+    """
+    Return an |AbinitInput| object to perform a DOS calculation from a GS SCF input.
+
+    Args:
+        gs_input: the |AbinitInput| that was used to calculated the charge density.
+        kppa: defines the kpt sampling used for the NSCF run. If None the kpoint sampling and
+            shifts will be the same as in the SCF input.
+        nband: the number of bands to be used for the calculation. If None it will be
+            automatically generated.
+        accuracy: accuracy of the calculation.
+        dos_method: method to calculate the DOS in abinit (NB: not the one used from postprocessing
+            in abipy). Set to "tetra" for the tetrahedron method (prtdos 2 or 3). If "smearing",
+            occopt and tsmear will be taken from gs_input else a "smearing-type: smearing value"
+            (prtdos 1 or 4).
+        projection: which projection should be performed. If None no projection, otherwise "l" or "lm"
+        shift_mode: the mode to be used for the shifts. Options are "Gamma", "Monkhorst-Pack",
+            "Symmetric", "OneSymmetric". See ShiftMode object for more details. Only used if kppa
+            is not None.
+
+    Return: |AbinitInput|
+    """
+    dos_input = nscf_from_gsinput(gs_input, kppa=kppa, nband=nband, accuracy=accuracy, shift_mode=shift_mode)
+
+    if dos_method == "tetra":
+        if projection is None:
+            dos_input.set_vars(prtdos=2)
+        elif projection == "l":
+            dos_input.set_vars(prtdos=3)
+        elif projection == "lm":
+            dos_input.set_vars(prtdos=3, prtdosm=1)
+        else:
+            ValueError(f"Unrecognized value for projection: {projection}")
+    else:
+        if dos_method != "smearing":
+            smear_obj = aobj.Smearing.as_smearing(dos_method)
+            dos_input.set_vars(smear_obj.to_abivars())
+
+        if projection is None:
+            dos_input.set_vars(prtdos=1)
+        elif projection == "l":
+            dos_input.set_vars(prtdos=4)
+        elif projection == "lm":
+            raise ValueError("lm projection is only allowed for dos_method 'tetra'")
+        else:
+            ValueError(f"Unrecognized value for projection: {projection}")
+
+    if projection is not None and "m" in projection.lower():
+        dos_input.set_vars(prtdosm=1)
 
     return dos_input
 
 
-def ioncell_relax_from_gsinput(gs_input, accuracy="normal"):
+def ioncell_relax_from_gsinput(gs_input: AbinitInput, accuracy="normal") -> AbinitInput:
 
     ioncell_input = gs_input.deepcopy()
     ioncell_input.pop_irdvars()
@@ -1192,7 +1311,8 @@ def ioncell_relax_from_gsinput(gs_input, accuracy="normal"):
     return ioncell_input
 
 
-def hybrid_oneshot_input(gs_input, functional="hse06", ecutsigx=None, gw_qprange=1):
+def hybrid_oneshot_input(gs_input: AbinitInput,
+                         functional="hse06", ecutsigx=None, gw_qprange=1) -> AbinitInput:
 
     hybrid_input = gs_input.deepcopy()
     hybrid_input.pop_irdvars()
@@ -1216,16 +1336,16 @@ def hybrid_oneshot_input(gs_input, functional="hse06", ecutsigx=None, gw_qprange
     ecut = hybrid_input['ecut']
     ecutsigx = ecutsigx or 2*ecut
 
-    hybrid_input.set_vars(optdriver=4, gwcalctyp=gwcalctyp, gw_nstep=1, gwpara=2, icutcoul=icutcoul, rcut=rcut,
+    hybrid_input.set_vars(optdriver=4, gwcalctyp=gwcalctyp, gwpara=2, icutcoul=icutcoul, rcut=rcut,
                           gw_qprange=gw_qprange, ecutwfn=ecut*0.995, ecutsigx=ecutsigx)
 
     return hybrid_input
 
 
-def hybrid_scf_input(gs_input, functional="hse06", ecutsigx=None, gw_qprange=1):
+def hybrid_scf_input(gs_input: AbinitInput,
+                     functional="hse06", ecutsigx=None, gw_qprange=1) -> AbinitInput:
 
     hybrid_input = hybrid_oneshot_input(gs_input=gs_input, functional=functional, ecutsigx=ecutsigx, gw_qprange=gw_qprange)
-
     hybrid_input['gwcalctyp'] += 10
 
     return hybrid_input
@@ -1233,15 +1353,19 @@ def hybrid_scf_input(gs_input, functional="hse06", ecutsigx=None, gw_qprange=1):
 
 def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
                     spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                    shift_mode="Symmetric"):
+                    shift_mode="Symmetric") -> AbinitInput:
+
+    # add the band for nbdbuf, if needed
+    nbdbuf = 4
+    if nband is not None:
+        nband += nbdbuf
 
     abiinput = scf_input(structure=structure, pseudos=pseudos, kppa=kppa, ecut=ecut, pawecutdg=pawecutdg, nband=nband,
                          accuracy=accuracy, spin_mode=spin_mode, smearing=smearing, charge=charge,
                          scf_algorithm=scf_algorithm, shift_mode=shift_mode)
 
-    nbdbuf = 4
-    # with no smearing set the minimum number of bands plus some nbdbuf
-    if smearing is None:
+    # with no bands set and no smearing the minimum number of bands plus some nbdbuf
+    if nband is None and smearing is None:
         nval = structure.num_valence_electrons(pseudos)
         nval -= abiinput['charge']
         nband = int(round(nval / 2) + nbdbuf)
@@ -1254,7 +1378,7 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
 
 
 def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None,
-                     skip_dte_permutations=False, manager=None):
+                     skip_dte_permutations=False, manager=None) -> MultiDataset:
     """
     Returns a list of inputs in the form of a |MultiDataset| to perform calculations of non-linear properties, based on
     a ground state AbinitInput.
@@ -1322,7 +1446,7 @@ def dte_from_gsinput(gs_inp, use_phonons=True, ph_tol=None, ddk_tol=None, dde_to
 
 def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=True, do_strain=True,
                       do_dte=False, ph_tol=None, ddk_tol=None, dde_tol=None, wfq_tol=None, strain_tol=None,
-                      skip_dte_permutations=False, manager=None):
+                      skip_dte_permutations=False, manager=None) -> MultiDataset:
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations based on DFPT including
     phonons, elastic and non-linear properties. Requires a ground state |AbinitInput| as a starting point.
@@ -1425,7 +1549,8 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
     return multi
 
 
-def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, sigma_erange, boxcutmin=1.1, mixprec=1):
+def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, sigma_erange,
+                       boxcutmin=1.1, mixprec=1) -> MultiDataset:
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine conductivity.
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
@@ -1472,7 +1597,7 @@ def conduc_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine, 
 
 def conduc_kerange_from_inputs(scf_input, nscf_input, tmesh, ddb_ngqpt, eph_ngqpt_fine,
                                sigma_ngkpt, sigma_erange, sigma_kerange=None, epad=0.25*abu.eV_Ha,
-                               einterp=(1, 5, 0, 0), boxcutmin=1.1, mixprec=1):
+                               einterp=(1, 5, 0, 0), boxcutmin=1.1, mixprec=1) -> MultiDataset:
     """
     Returns a list of inputs in the form of a MultiDataset to perform a set of calculations to determine the conductivity.
     This part require a ground state |AbinitInput| and a non self-consistent |AbinitInput|. You will also need
@@ -1552,16 +1677,12 @@ def minimal_scf_input(structure: Structure, pseudos) -> AbinitInput:
     that are produced only after a full calculation completes.
     In general this will contain 1 kpt, 1 band, very low cutoff, no polarization,
     no smearing. Disables checks on primitive cell and symmetries.
-    Even for large system it will require small memory allocations and few seconds
-    to execute.
+    Even for large system it will require small memory allocations and few seconds to execute.
 
     Args:
         structure: |Structure| object.
         pseudos: List of filenames or list of |Pseudo| objects or |PseudoTable| object.
-
-    Returns: |AbinitInput|
     """
-
     inp = scf_input(structure, pseudos, smearing=None, spin_mode="unpolarized")
     inp["ngkpt"] = [1, 1, 1]
     inp["nshiftk"] = 1
@@ -1610,12 +1731,12 @@ class InputFactory(MSONable):
         return abiinput
 
     @pmg_serialize
-    def as_dict(self):
+    def as_dict(self) -> dict:
         # sanitize to avoid numpy arrays and serialize MSONable objects
         return jsanitize(dict(args=self.args, kwargs=self.kwargs), strict=True)
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict):
         dec = MontyDecoder()
         return cls(*dec.process_decoded(d['args']), **dec.process_decoded(d['kwargs']))
 

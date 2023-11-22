@@ -13,10 +13,6 @@ import numpy
 import json
 import tempfile
 import unittest
-#import subprocess
-#import time
-#import atexit
-#import shutil
 try:
     import numpy.testing as nptu
 except ImportError:
@@ -25,11 +21,11 @@ import abipy.data as abidata
 
 from typing import Optional
 from functools import wraps
-from monty.os.path import which
+from shutil import which
 from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
 from abipy.core.structure import Structure
-from abipy.abio.inputs import AbinitInput
+from abipy.abio.inputs import AbinitInput, MultiDataset
 
 root = os.path.dirname(__file__)
 
@@ -514,26 +510,26 @@ class AbipyTest(PymatgenTest):
             return False
 
     @staticmethod
-    def assert_almost_equal(actual, desired, decimal=7, err_msg='', verbose=True):
+    def assert_almost_equal(actual, desired, decimal=7, err_msg='', verbose=True) -> None:
         """
         Alternative naming for assertArrayAlmostEqual.
         """
         return nptu.assert_almost_equal(actual, desired, decimal, err_msg, verbose)
 
     @staticmethod
-    def assert_equal(actual, desired, err_msg='', verbose=True):
+    def assert_equal(actual, desired, err_msg='', verbose=True) -> None:
         """
         Alternative naming for assertArrayEqual.
         """
         return nptu.assert_equal(actual, desired, err_msg=err_msg, verbose=verbose)
 
     @staticmethod
-    def json_read_abinit_input(json_basename: str):
+    def json_read_abinit_input(json_basename: str) -> AbinitInput:
         """Return an |AbinitInput| from the basename of the file in abipy/data/test_files."""
         return json_read_abinit_input_from_path(os.path.join(root, '..', 'test_files', json_basename))
 
     @staticmethod
-    def assert_input_equality(ref_basename, input_to_test, rtol=1e-05, atol=1e-08, equal_nan=False):
+    def assert_input_equality(ref_basename, input_to_test, rtol=1e-05, atol=1e-08, equal_nan=False) -> None:
         """
         Check equality between an input and a reference in test_files.
         only input variables and structure are compared.
@@ -637,7 +633,7 @@ class AbipyTest(PymatgenTest):
             assert v.retcode == 0
 
     @staticmethod
-    def abivalidate_multi(multi) -> None:
+    def abivalidate_multi(multi: MultiDataset) -> None:
         """
         Invoke Abinit to test validity of a |MultiDataset| or a list of |AbinitInput| objects.
         """
@@ -701,7 +697,7 @@ class AbipyTest(PymatgenTest):
 ABIPY_TESTDB_NAME = "abipy_unit_tests"
 
 
-def abipy_has_mongodb(host='localhost', port=27017, name=ABIPY_TESTDB_NAME, username=None, password=None):
+def abipy_has_mongodb(host='localhost', port=27017, name=ABIPY_TESTDB_NAME, username=None, password=None) -> bool:
     try:
         from pymongo import MongoClient
         connection = MongoClient(host, port, j=True)

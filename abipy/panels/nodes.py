@@ -18,7 +18,8 @@ from abipy.flowtk.nodes import Node
 class FilePathSelect(pnw.Select):
 
     @classmethod
-    def from_filepaths(cls, filepaths, filter_files=True, **kwargs):
+    def from_filepaths(cls, filepaths: list[str], 
+                       filter_files=True, **kwargs):
         import os
         items = [(os.path.basename(p), p) for p in filepaths ]
 
@@ -37,7 +38,7 @@ class FilePathSelect(pnw.Select):
         return new
 
     @property
-    def filepath(self):
+    def filepath(self) -> str:
         return self._base2path[self.value]
 
     def __bool__(self):
@@ -100,7 +101,7 @@ class NodeParameterized(AbipyParameterized):
             filepaths = directory.list_filepaths()
             self.filepath_select_dir[where] = FilePathSelect.from_filepaths(filepaths) #, name=f"Files in {where}")
 
-    def get_status_view(self):
+    def get_status_view(self) -> pn.Column:
         return pn.Column(
             f"## Show the status of: `{repr(self.node)}`",
             pn.Row(
@@ -113,7 +114,7 @@ class NodeParameterized(AbipyParameterized):
         )
 
     @depends_on_btn_click("status_btn")
-    def on_status_btn(self):
+    def on_status_btn(self) -> None:
         """
         Show the status of the node.
         """
@@ -161,7 +162,7 @@ class NodeParameterized(AbipyParameterized):
 
         return ply(fig)
 
-    def get_history_view(self):
+    def get_history_view(self) -> pn.Column:
         return pn.Column(
             f"## Show the history of: `{repr(self.node)}`",
             self.wdg_box(["verbose", "history_btn"]),
@@ -171,7 +172,7 @@ class NodeParameterized(AbipyParameterized):
        )
 
     @depends_on_btn_click("history_btn")
-    def on_history_btn(self):
+    def on_history_btn(self) -> None:
         """
         Show the history of the node.
         """
@@ -189,7 +190,7 @@ class NodeParameterized(AbipyParameterized):
                                )
         return term
 
-    def get_graphviz_view(self):
+    def get_graphviz_view(self) -> pn.Column:
         return pn.Column(
                 f"## Graphviz options for node: `{repr(self.node)}`",
                 pn.WidgetBox(self.engine, self.dirtree, self.graphviz_btn),
@@ -199,7 +200,7 @@ class NodeParameterized(AbipyParameterized):
         )
 
     @depends_on_btn_click("graphviz_btn")
-    def on_graphviz_btn(self):
+    def on_graphviz_btn(self) -> None:
         """
         Visualize node dependencies with [graphviz package](https://graphviz.readthedocs.io/en/stable/index.html)
         """
@@ -217,7 +218,7 @@ class NodeParameterized(AbipyParameterized):
             sizing_mode="stretch_width"
         )
 
-    def get_debug_view(self):
+    def get_debug_view(self) -> pn.Column:
         return pn.Column(
             f"## Debug node:`{repr(self.node)}`",
             self.pws_col(["verbose", "debug_btn"]),
@@ -230,7 +231,7 @@ class NodeParameterized(AbipyParameterized):
         #d["Handlers"] = pn.Row(self.handlers_btn, self.on_handlers_btn)
 
     @depends_on_btn_click("debug_btn")
-    def on_debug_btn(self):
+    def on_debug_btn(self) -> None:
         term = pnw.Terminal(output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
             sizing_mode='stretch_width',
@@ -238,7 +239,7 @@ class NodeParameterized(AbipyParameterized):
         self.flow.debug(stream=term, nids=self.nids) # status=options.task_status,
         return term
 
-    def get_events_view(self):
+    def get_events_view(self) -> pn.Column:
         return pn.Column(
             f"## Show the events of: `{repr(self.node)}`",
             self.pws_col(["verbose", "events_btn"]),
@@ -248,7 +249,7 @@ class NodeParameterized(AbipyParameterized):
         )
 
     @depends_on_btn_click("events_btn")
-    def on_events_btn(self):
+    def on_events_btn(self) -> pnw.Terminal:
         term = pnw.Terminal(
             output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
@@ -258,7 +259,7 @@ class NodeParameterized(AbipyParameterized):
         return term
 
     @depends_on_btn_click("corrections_btn")
-    def on_corrections_btn(self):
+    def on_corrections_btn(self) -> pnw.Terminal:
         term = pnw.Terminal(
             output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
@@ -277,7 +278,7 @@ class NodeParameterized(AbipyParameterized):
         self.flow.show_event_handlers(stream=term, verbose=self.verbose) #, nids=self.nids,  status=None,
         return term
 
-    def get_dims_and_vars_view(self):
+    def get_dims_and_vars_view(self) -> pn.Row:
         row = pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)
         return row
         #d["Dims"] = pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)
@@ -291,7 +292,7 @@ class NodeParameterized(AbipyParameterized):
         return pn.Row(dfc(df))
 
     @depends_on_btn_click("dims_btn")
-    def on_dims_btn(self):
+    def on_dims_btn(self) -> pn.Row:
         df = self.flow.get_dims_dataframe(nids=self.nids, printout=False, with_colors=False)
         return pn.Row(dfc(df), sizing_mode="scale_width")
 

@@ -6,6 +6,7 @@ provided by the resource manager  (qsub, qdel and qstat for PBS, sinfo, squeue..
 The main goal indeed is providing a simplified common interface for different resource managers without
 having to rely on external libraries.
 """
+from __future__ import annotations
 
 import shlex
 
@@ -69,8 +70,8 @@ class JobStatus(int):
         return self._STATUS_TABLE[self]
 
     @classmethod
-    def from_string(cls, s):
-        """Return a :class:`JobStatus` instance from its string representation."""
+    def from_string(cls, s: str) -> JobStatus:
+        """Return an instance from its string representation."""
         for num, text in cls._STATUS_TABLE.items():
             if text == s: return cls(num)
         else:
@@ -79,10 +80,10 @@ class JobStatus(int):
             return cls.from_string("UNKNOWN")
 
 
-class QueueJob(object):
+class QueueJob:
     """
-    This object provides methods to contact the resource manager to get info on the status
-    of the job and useful statistics. This is an abstract class.
+    This object provides methods to contact the resource manager to get info 
+    on the status of the job and useful statistics. This is an abstract class.
     """
     QTYPE = None
 
@@ -101,7 +102,7 @@ class QueueJob(object):
     S_NODEFAIL = JobStatus.from_string("NODEFAIL")
 
     @staticmethod
-    def from_qtype_and_id(qtype, queue_id, qname=None):
+    def from_qtype_and_id(qtype: str, queue_id, qname=None):
         """
         Return a new istance of the appropriate subclass.
 
@@ -142,27 +143,27 @@ class QueueJob(object):
     #def is_terminated()
 
     @property
-    def is_completed(self):
+    def is_completed(self) -> bool:
         return self.status == self.S_COMPLETED
 
     @property
-    def is_running(self):
+    def is_running(self) -> bool:
         return self.status == self.S_RUNNING
 
     @property
-    def is_failed(self):
+    def is_failed(self) -> bool:
         return self.status == self.S_FAILED
 
     @property
-    def timeout(self):
+    def timeout(self) -> bool:
         return self.status == self.S_TIMEOUT
 
     @property
-    def has_node_failures(self):
+    def has_node_failures(self) -> bool:
         return self.status == self.S_NODEFAIL
 
     @property
-    def unknown_status(self):
+    def unknown_status(self) -> bool:
         return self.status == self.S_UNKNOWN
 
     def set_status_exitcode_signal(self, status, exitcode, signal):
@@ -216,7 +217,7 @@ class QueueJob(object):
 
         return False
 
-    def received_signal(self, sig_name):
+    def received_signal(self, sig_name: str) -> bool:
         if self.signal is None: return False
         # Get the numeric value from signal and compare it with self.signal
         import signal
@@ -327,7 +328,7 @@ class SlurmJob(QueueJob):
         self.set_status_exitcode_signal(JobStatus.from_string(status), exitcode, signal)
         return AttrDict(exitcode=exitcode, signal=signal, status=status)
 
-    def get_stats(self, **kwargs):
+    def get_stats(self, **kwargs) -> dict:
         cmd = "sacct --long --job %s --parsable2" % self.qid
         process = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()

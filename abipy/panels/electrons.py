@@ -1,10 +1,13 @@
-""""AbiPy panels for electronic properties."""
+""""
+AbiPy panels for electronic properties.
+"""
+from __future__ import annotations
 
 import param
 import panel as pn
 import panel.widgets as pnw
 
-from .core import AbipyParameterized, ActiveBar, ply, mpl, depends_on_btn_click
+from abipy.panels.core import AbipyParameterized, ActiveBar, Loading, ply, mpl, depends_on_btn_click
 
 
 class CompareEbandsWithMP(AbipyParameterized):
@@ -58,19 +61,20 @@ This app alllows users to upload two files with KS energies.
         self.update_main()
 
     def update_main(self):
-        col = self.pws_col(["## Plot options", "with_gaps", "ylims_ev", "replot_btn"])
-        ca = col.append
+        with Loading(self.main_area):
+            col = self.pws_col(["## Plot options", "with_gaps", "ylims_ev", "replot_btn"])
+            ca = col.append
 
-        ca("## Abinit Electronic band structure:")
-        ylims = self.ylims_ev
-        ca(ply(self.abinit_ebands.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)))
+            ca("## Abinit Electronic band structure:")
+            ylims = self.ylims_ev
+            ca(ply(self.abinit_ebands.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)))
 
-        for mp_ebands in self.mp_ebands_list:
-            ca("## MP Electronic band structure:")
-            ca(ply(mp_ebands.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)))
+            for mp_ebands in self.mp_ebands_list:
+                ca("## MP Electronic band structure:")
+                ca(ply(mp_ebands.plotly(e0="fermie", ylims=ylims, with_gaps=self.with_gaps, show=False)))
 
-        #self.main_area.objects = [col]
-        self.main_area.objects = col.objects
+            #self.main_area.objects = [col]
+            self.main_area.objects = col.objects
 
     @depends_on_btn_click('replot_btn')
     def on_replot_btn(self):
@@ -93,10 +97,13 @@ This app alllows users to upload two files with KS energies.
 
 class SkwPanelWithFileInput(AbipyParameterized):
 
+    lpratio = param.Integer(default=5, bounds=(1, None),
+                            doc="Ratio between number of k-points and number of star-functions")
+
     info_str = """
 This app allows users to upload two files with KS energies.
-The first file gives the energies in the IBZ used to perform the SKW interpolation (NB: this file is mandatory).
-The second file contains the enegies along a k-path.
+The first file contains the energies in the IBZ used for the SKW interpolation (NB: this file is required).
+The second (optional) file contains the energies along a k-path.
 The interpolated energies are then compared with the ab-initio ones on the k-path.
 The user can change the SKW intepolation parameters to gauge the quality of the SKW fit.
 """
@@ -131,20 +138,23 @@ The user can change the SKW intepolation parameters to gauge the quality of the 
         self.ebands_kpath = self.get_ebands_from_file_input(self.kpath_file_input)
         self.update_main_area()
 
-    def update_main_area(self):
+    def update_main_area(self) -> None:
 
-        if self.ebands_kpath is None or self.ebands_ibz is None: return
+        with Loading(self.main_area):
 
-        # SKW interpolation
-        r = self.ebands_ibz.interpolate(lpratio=5, filter_params=None)
+            if self.ebands_kpath is None or self.ebands_ibz is None: return
 
-        # Build plotter.
-        plotter = self.ebands_kpath.get_plotter_with("Ab-initio", "SKW interp", r.ebands_kpath)
-        mpl_pane = mpl(plotter.combiplot(**self.mpl_kwargs))
+            # SKW interpolation
+            r = self.ebands_ibz.interpolate(lpratio=self.lpratio, filter_params=None)
 
-        col = pn.Column(mpl_pane, sizing_mode="stretch_width")
+            # Build plotter.
+            plotter = self.ebands_kpath.get_plotter_with("Ab-initio", "SKW interp", r.ebands_kpath)
 
-        self.main_area.objects = [col]
+            mpl_pane = mpl(plotter.combiplot(**self.mpl_kwargs))
+
+            col = pn.Column(mpl_pane, sizing_mode="stretch_width")
+
+            self.main_area.objects = [col]
 
     def get_panel(self):
         col = pn.Column(

@@ -20,6 +20,14 @@ core Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`atom` Module
+------------------
+
+.. automodule:: abipy.core.atom
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`fields` Module
 --------------------
 

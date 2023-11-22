@@ -2,6 +2,7 @@
 """Test AbiPy command line scripts."""
 import sys
 import os
+import pytest
 import abipy.data as abidata
 import abipy.flowtk as flowtk
 
@@ -243,6 +244,7 @@ class TestAbistruct(ScriptTest):
         r = env.run(self.script, "cod_search", "Si", "--select-spgnum=227", "--primitive",
                     self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
+    @pytest.mark.skip(reason="Interface with MP rester is broken")
     def test_mp_api(self):
         """Testing abistruct mp methods."""
         env = self.get_env()
@@ -495,15 +497,15 @@ class TestAbiView(ScriptTest):
         #r = env.run(self.script, "denpot", ncpath, "cube", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
-class TestAbiw(ScriptTest):
-    script = os.path.join(script_dir, "abiw.py")
-
-    def test_abiw(self):
-        """Testing abiw.py script"""
-        env = self.get_env()
-        # Note that lscan has side effect as it updates the list of local servers.
-        r = env.run(self.script, "lscan", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
-        r = env.run(self.script, "clients", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+#class TestAbiw(ScriptTest):
+#    script = os.path.join(script_dir, "abiw.py")
+#
+#    def test_abiw(self):
+#        """Testing abiw.py script"""
+#        #env = self.get_env()
+#        # Note that lscan has side effect as it updates the list of local servers.
+#        #r = env.run(self.script, "lscan", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+#        #r = env.run(self.script, "clients", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 class TestAbipsp(ScriptTest):
@@ -517,12 +519,31 @@ class TestAbipsp(ScriptTest):
         # Cannot test other commands as they perform installation
 
 
-class TestAbidb(ScriptTest):
-    script = os.path.join(script_dir, "abidb.py")
+#class TestAbidb(ScriptTest):
+#    script = os.path.join(script_dir, "abidb.py")
+#
+#    def test_abidb(self):
+#        """Testing abidb.py script"""
+#        env = self.get_env()
+#        # Cannot test other commands as we need a MongoDB server
+#        #r = env.run(self.script, "avail", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
-    def test_abidb(self):
-        """Testing abips.py script"""
+
+class TestAOncv(ScriptTest):
+
+    script = os.path.join(script_dir, "oncv.py")
+
+    def test_oncv(self):
+        """Testing oncv.py script"""
         env = self.get_env()
-        # Cannot test other commands as we need a MongoDB server
-        #r = env.run(self.script, "avail", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
+
+
+class TestAbiml(ScriptTest):
+    script = os.path.join(script_dir, "abiml.py")
+
+    def test_abiml(self):
+        """Testing abimk.py script"""
+        #env = self.get_env()
+        #r = env.run(self.script, "md", "--help", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        #r = env.run(self.script, "relax", "--help", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)

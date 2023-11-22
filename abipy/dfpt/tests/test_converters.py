@@ -7,7 +7,6 @@ import abipy.core.abinit_units as abu
 from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.dfpt.ddb import DdbFile
-
 from abipy.dfpt.converters import abinit_to_phonopy, phonopy_to_abinit, tdep_to_abinit
 from abipy.dfpt.converters import born_to_lotosplitting
 
@@ -65,8 +64,8 @@ class ConverterTest(AbipyTest):
         conv_phbands = ddb_conv.anaget_phmodes_at_qpoints(qpoints=qpoints, asr=0, dipdip=0, chneut=0,
                                                           lo_to_splitting=False)
 
-        self.assertArrayAlmostEqual(orig_phbands.phfreqs, conv_phbands.phfreqs, decimal=5)
-        self.assertArrayAlmostEqual(orig_phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy, decimal=3)
+        self.assert_almost_equal(orig_phbands.phfreqs, conv_phbands.phfreqs, decimal=5)
+        self.assert_almost_equal(orig_phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy, decimal=3)
 
     def test_ddb_phonopy_ddb_becs(self):
         """
@@ -105,12 +104,12 @@ class ConverterTest(AbipyTest):
                                                           lo_to_splitting=False, workdir=conv_run_ana)
         ananc_conv = abilab.abiopen(find_anaddbnc_in_dir(os.path.join(conv_run_ana, "outdata")))
 
-        self.assertArrayAlmostEqual(orig_phbands.phfreqs, conv_phbands.phfreqs, decimal=5)
-        self.assertArrayAlmostEqual(orig_phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy, decimal=3)
-        self.assertArrayAlmostEqual(ananc_orig.becs.values, nac["born"], decimal=5)
-        self.assertArrayAlmostEqual(ananc_conv.becs.values, nac["born"], decimal=5)
-        self.assertArrayAlmostEqual(ananc_orig.epsinf, nac["dielectric"], decimal=5)
-        self.assertArrayAlmostEqual(ananc_conv.epsinf, nac["dielectric"], decimal=5)
+        self.assert_almost_equal(orig_phbands.phfreqs, conv_phbands.phfreqs, decimal=5)
+        self.assert_almost_equal(orig_phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy, decimal=3)
+        self.assert_almost_equal(ananc_orig.becs.values, nac["born"], decimal=5)
+        self.assert_almost_equal(ananc_conv.becs.values, nac["born"], decimal=5)
+        self.assert_almost_equal(ananc_orig.epsinf, nac["dielectric"], decimal=5)
+        self.assert_almost_equal(ananc_conv.epsinf, nac["dielectric"], decimal=5)
 
     def test_phonopy_ddb_phonopy(self):
 
@@ -154,12 +153,12 @@ class ConverterTest(AbipyTest):
                                                 lo_to_splitting=False, workdir=run_ana)
         ananc = abilab.abiopen(find_anaddbnc_in_dir(os.path.join(run_ana, "outdata")))
 
-        self.assertArrayAlmostEqual(phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy_orig, decimal=3)
-        self.assertArrayAlmostEqual(phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy_conv, decimal=3)
-        self.assertArrayAlmostEqual(ananc.becs.values, orig_nac["born"], decimal=5)
-        self.assertArrayAlmostEqual(ananc.becs.values, conv_nac["born"], decimal=5)
-        self.assertArrayAlmostEqual(ananc.epsinf, orig_nac["dielectric"], decimal=5)
-        self.assertArrayAlmostEqual(ananc.epsinf, conv_nac["dielectric"], decimal=5)
+        self.assert_almost_equal(phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy_orig, decimal=3)
+        self.assert_almost_equal(phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy_conv, decimal=3)
+        self.assert_almost_equal(ananc.becs.values, orig_nac["born"], decimal=5)
+        self.assert_almost_equal(ananc.becs.values, conv_nac["born"], decimal=5)
+        self.assert_almost_equal(ananc.epsinf, orig_nac["dielectric"], decimal=5)
+        self.assert_almost_equal(ananc.epsinf, conv_nac["dielectric"], decimal=5)
 
     def test_tdep_lotosplitting(self):
         self.skip_if_not_phonopy()

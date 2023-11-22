@@ -2,8 +2,10 @@
 """
 AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.
 """
+from __future__ import annotations
+
 import pandas as pd
-import warnings
+#import warnings
 
 from collections import OrderedDict
 from monty.functools import lazy_property
@@ -12,6 +14,7 @@ from monty.termcolor import cprint
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
+from abipy.tools.typing import Figure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, rotate_ticklabels
 from abipy.tools.tensors import Tensor, DielectricTensor, NLOpticalSusceptibilityTensor
 from abipy.dfpt.ifc import InteratomicForceConstants
@@ -46,11 +49,11 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> AnaddbNcFile:
         """Initialize the object from file."""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = ETSF_Reader(filepath)
 
@@ -71,10 +74,10 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             ("symdynmat", int(self.reader.read_value("symdynmat", default=-666))),
         ])
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """
         String representation
 
@@ -237,17 +240,17 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             return None
 
     @lazy_property
-    def has_elastic_data(self):
+    def has_elastic_data(self) -> bool:
         """True if elastic tensors have been computed."""
         return self.reader.read_value("elaflag", default=0) != 0
 
     @lazy_property
-    def has_piezoelectric_data(self):
+    def has_piezoelectric_data(self) -> bool:
         """True if piezoelectric tensors have been computed."""
         return self.reader.read_value("piezoflag", default=0) != 0
 
     @lazy_property
-    def elastic_data(self):
+    def elastic_data(self) -> ElasticData:
         """
         Container with the different (piezo)elastic tensors computed by anaddb.
         stored in pymatgen tensor objects.
@@ -275,7 +278,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         yield None
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -300,7 +303,7 @@ class AnaddbNcRobot(Robot):
     EXT = "anaddb"
 
     @property
-    def has_elastic_data(self):
+    def has_elastic_data(self) -> bool:
         return all(ncfile.has_elastic_data for ncfile in self.abifiles)
 
     def get_dataframe(self):
@@ -308,7 +311,8 @@ class AnaddbNcRobot(Robot):
             return self.get_elastic_dataframe()
         return None
 
-    def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params=False, funcs=None, **kwargs):
+    def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params
+                              =False, funcs=None, **kwargs) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with properties derived from the elastic tensor
         and an associated structure. Filename is used as index.

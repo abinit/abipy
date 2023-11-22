@@ -1,10 +1,12 @@
 """"Panels for HIST files."""
+from __future__ import annotations
 
 #import param
 import panel as pn
 import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
+from abipy.dynamics.hist import HistFile
 from abipy.panels.core import AbipyParameterized, mpl, ply, depends_on_btn_click
 
 
@@ -13,7 +15,7 @@ class HistFilePanel(AbipyParameterized):
     Panel with widgets to interact with a |HistFile|.
     """
 
-    def __init__(self, hist, **params):
+    def __init__(self, hist: HistFile, **params):
         self.hist = hist
 
         _what_list = ["abc", "angles", "energy", "volume", "pressure", "forces"]
@@ -27,7 +29,7 @@ class HistFilePanel(AbipyParameterized):
         super().__init__(**params)
 
     @depends_on_btn_click('plot_relax_btn')
-    def on_plot_relax_btn(self):
+    def on_plot_relax_btn(self) -> pn.Column:
         """
         Plot the evolution of structural parameters (lattice lengths, angles and volume)
         as well as pressure, info on forces and total energy.

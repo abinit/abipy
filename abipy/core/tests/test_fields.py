@@ -167,7 +167,7 @@ class TestScalarField(AbipyTest):
         core_den_2 = Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1.5,
                                                      method='mesh3d_dist_gridpoints', small_dist_mesh=(6, 6, 6))
         self.assertAlmostEqual(np.sum(core_den_1.datar) * si_den.mesh.dv, 20, delta=0.5)
-        self.assertArrayAlmostEqual(core_den_1.datar, core_den_2.datar, decimal=1)
+        self.assert_almost_equal(core_den_1.datar, core_den_2.datar, decimal=1)
         with self.assertRaises(ValueError):
             Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1, nelec=20, tol=0.001,
                                             method='get_sites_in_sphere', small_dist_mesh=(2, 2, 2))
@@ -177,7 +177,7 @@ class TestScalarField(AbipyTest):
         """Testing density object (spin polarized, collinear)."""
         ni_den = Density.from_file(abidata.ref_file("ni_666k_DEN.nc"))
         repr(ni_den); str(ni_den)
-        ni_den.to_string(verbose=1)
+        assert ni_den.to_string(verbose=1)
 
         self.assert_almost_equal(ni_den.mesh.vectors, pmgu.bohr_to_angstrom *
             np.reshape([0.0000000, 3.3259180, 3.3259180,

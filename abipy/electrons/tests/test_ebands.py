@@ -19,7 +19,7 @@ class SmearingTest(AbipyTest):
 
         sm = Smearing(scheme=None, occopt=3, tsmear_ev=0.0)
         repr(sm); str(sm)
-        self.assertMSONable(sm, test_if_subclass=False)
+        self.assert_msonable(sm, test_is_subclass=False)
         assert sm.has_metallic_scheme
         assert Smearing.as_smearing(sm) is sm
         assert Smearing.as_smearing(sm).occopt == 3
@@ -64,7 +64,7 @@ class EbandsReaderTest(AbipyTest):
             assert not smearing.has_metallic_scheme
             assert smearing.scheme == "none"
 
-            self.assertMSONable(smearing, test_if_subclass=False)
+            self.assert_msonable(smearing, test_is_subclass=False)
             assert len(smearing.to_json())
 
 
@@ -127,10 +127,10 @@ class ElectronBandsTest(AbipyTest):
 
         # Serialization
         self.serialize_with_pickle(ni_ebands_kpath, test_eq=False)
-        self.assertMSONable(ni_ebands_kpath, test_if_subclass=False)
+        self.assert_msonable(ni_ebands_kpath, test_is_subclass=False)
         assert len(ni_ebands_kpath.to_json())
 
-        self.assertMSONable(ni_ebands_kmesh, test_if_subclass=False)
+        self.assert_msonable(ni_ebands_kmesh, test_is_subclass=False)
         #d = ni_ebands_kmesh.as_dict()
         from monty.json import MontyDecoder #, MSONable
         import json
@@ -265,7 +265,7 @@ class ElectronBandsTest(AbipyTest):
 
         # Serialization
         self.serialize_with_pickle(si_ebands_kmesh, test_eq=False)
-        self.assertMSONable(si_ebands_kmesh, test_if_subclass=False)
+        self.assert_msonable(si_ebands_kmesh, test_is_subclass=False)
         assert len(si_ebands_kmesh.to_json())
 
         dless_states = si_ebands_kmesh.dispersionless_states()
@@ -292,6 +292,8 @@ class ElectronBandsTest(AbipyTest):
         assert ElectronDos.as_edos(abidata.ref_file("si_scf_GSR.nc"), {}) == si_edos
         with self.assertRaises(TypeError):
             ElectronDos.as_edos({}, {})
+
+        assert si_ebands_kmesh.to_pymatgen()
 
         mu = si_edos.find_mu(8)
         imu = si_edos.tot_idos.find_mesh_index(mu)

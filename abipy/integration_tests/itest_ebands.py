@@ -1,6 +1,8 @@
 """
 Integration tests for flows (require pytest, ABINIT and a properly configured environment)
 """
+from __future__ import annotations
+
 import pytest
 import os
 import numpy as np
@@ -122,6 +124,8 @@ def itest_unconverged_scf(fwp, tvars):
     if not flow.all_ok:
         flow.debug()
         raise RuntimeError()
+
+    assert flow.explain(verbose=1)
 
     # Test inspect methods
     if has_matplotlib():

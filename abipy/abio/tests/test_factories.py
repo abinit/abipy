@@ -7,6 +7,7 @@ from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
 from abipy.abio.factories import (BandsFromGsFactory, IoncellRelaxFromGsFactory, HybridOneShotFromGsFactory,
     ScfForPhononsFactory, PhononsFromGsFactory, PiezoElasticFactory, PiezoElasticFromGsFactory, ShiftMode)
+from abipy.abio.factories import _find_nscf_nband_from_gsinput
 import json
 
 write_inputs_to_json = False
@@ -21,6 +22,38 @@ class ShiftModeTest(AbipyTest):
         assert ShiftMode.from_object(gamma) == gamma
         with self.assertRaises(TypeError):
             ShiftMode.from_object({})
+
+
+class HelperTest(AbipyTest):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.si_structure = abidata.structure_from_cif("si.cif")
+        cls.si_pseudo = abidata.pseudos("14si.pspnc")
+
+    def test_find_nscf_nband_from_gsinput(self):
+        gsi = AbinitInput(self.si_structure, self.si_pseudo)
+        gsi.set_vars(nband=100)
+        assert _find_nscf_nband_from_gsinput(gsi) == 110
+
+        gsi = AbinitInput(self.si_structure, self.si_pseudo)
+        gsi.set_vars(occopt=1, nsppol=1)
+        assert _find_nscf_nband_from_gsinput(gsi) == 18
+
+        sc4 = self.si_structure.copy()
+        sc4.make_supercell([4, 4, 4])
+        gsi = AbinitInput(sc4, self.si_pseudo)
+        gsi.set_vars(occopt=1, nsppol=1)
+        assert _find_nscf_nband_from_gsinput(gsi) == 292
+
+        gsi.set_vars(occopt=3)
+        assert _find_nscf_nband_from_gsinput(gsi) == 318
+
+        gsi.set_vars(nsppol=2)
+        assert _find_nscf_nband_from_gsinput(gsi) == 318
+
+        gsi.set_vars(spinat=[[0, 0, 1]] * len(sc4))
+        assert _find_nscf_nband_from_gsinput(gsi) == 382
 
 
 class FactoryTest(AbipyTest):
@@ -93,6 +126,15 @@ class FactoryTest(AbipyTest):
         self.assertIn('ion_relax', ion_inp.runlevel)
         self.assertIn('relax', ion_inp.runlevel)
         self.assertIn('ground_state', ion_inp.runlevel)
+
+        if write_inputs_to_json:
+            with open('ion_ioncell_relax_ion_input.json', mode='w') as fp:
+                json.dump(ion_inp.as_dict(), fp, indent=2)
+            with open('ion_ioncell_relax_ioncell_input.json', mode='w') as fp:
+                json.dump(ioncell_inp.as_dict(), fp, indent=2)
+
+        self.assert_input_equality('ion_ioncell_relax_ion_input.json', ion_inp)
+        self.assert_input_equality('ion_ioncell_relax_ioncell_input.json', ioncell_inp)
         flow = Flow.temporary_flow()
         flow.register_work(RelaxWork(ion_inp, ioncell_inp))
         assert flow.build_and_pickle_dump(abivalidate=True) == 0
@@ -286,7 +328,7 @@ class FactoryTest(AbipyTest):
 
         factory_obj = PhononsFromGsFactory(ph_ngqpt=[4, 4, 4], with_ddk=True, with_dde=True, with_bec=False,
                                            ph_tol=None, ddk_tol=None, dde_tol=None)
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         multi_obj = factory_obj.build_input(gs_inp)
 
         inp_ddk_obj = multi_obj.filter_by_tags(DDK)[0]
@@ -305,7 +347,7 @@ class FactoryTest(AbipyTest):
         multi = piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
         self.abivalidate_multi(multi)
         factory_obj = PiezoElasticFromGsFactory(ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         multi_obj = factory_obj.build_input(gs_inp)
 
     def test_scf_piezo_elastic_inputs(self):
@@ -321,7 +363,7 @@ class FactoryTest(AbipyTest):
                                           scf_nband=None, accuracy="normal", spin_mode="polarized",
                                           smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
                                           ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         multi_obj = factory_obj.build_input()
 
     def test_scf_input(self):
@@ -339,19 +381,39 @@ class FactoryTest(AbipyTest):
         inp["ecut"] = 2
         self.abivalidate_input(inp)
 
-    def test_ebands_dos_from_gsinput(self):
+    def test_nscf_ebands_dos_from_gsinput(self):
         """Testing ebands_from_gsinput and dos_from_gsinput"""
-        from abipy.abio.factories import ebands_from_gsinput, dos_from_gsinput
+        from abipy.abio.factories import ebands_from_gsinput, dos_from_gsinput, nscf_from_gsinput
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
+
+        nscf_inp = nscf_from_gsinput(gs_inp, kppa=None, nband=120)
+        self.assert_equal(gs_inp["ngkpt"], nscf_inp["ngkpt"])
+        self.assertEqual(nscf_inp["nband"], 120)
+
         ebands_inp = ebands_from_gsinput(gs_inp, nband=None, ndivsm=15, accuracy="normal")
         self.abivalidate_input(ebands_inp)
 
+        ebands_inp = ebands_from_gsinput(gs_inp, nband=None, ndivsm=15, accuracy="normal", projection="lm")
+        self.assertEqual(ebands_inp["prtdos"], 3)
+        self.assertEqual(ebands_inp["prtdosm"], 1)
+
         dos_kppa = 3000
-        edos_inp = dos_from_gsinput(gs_inp, dos_kppa, nband=None, accuracy="normal", pdos=False)
+        edos_inp = dos_from_gsinput(gs_inp, dos_kppa, nband=None, accuracy="normal")
         self.abivalidate_input(edos_inp)
 
+        edos_inp = dos_from_gsinput(gs_inp, dos_method="smearing", projection="l")
+        self.assertEqual(gs_inp["occopt"], edos_inp["occopt"])
+        self.assertEqual(edos_inp["prtdos"], 4)
+
+        with self.assertRaises(ValueError):
+            edos_inp = dos_from_gsinput(gs_inp, dos_method="smearing", projection="lm")
+
+        edos_inp = dos_from_gsinput(gs_inp, dos_method="marzari5: 0.01 eV", projection="l")
+        self.assertEqual(edos_inp["occopt"], 5)
+        self.assertNotIn("prtdosm", edos_inp)
+
         factory_obj = BandsFromGsFactory(nband=None, ndivsm=15, accuracy="normal")
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         ebands_input_obj = factory_obj.build_input(gs_inp)
 
     def test_ioncell_relax_from_gsinput(self):
@@ -362,7 +424,7 @@ class FactoryTest(AbipyTest):
         self.abivalidate_input(icrelax_input)
 
         factory_obj = IoncellRelaxFromGsFactory()
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         icrelax_input_obj = factory_obj.build_input(gs_inp)
 
     def test_hybrid_oneshot_input(self):
@@ -377,7 +439,7 @@ class FactoryTest(AbipyTest):
         self.assertNotIn('many_body', hyb_inp.runlevel)
 
         factory_obj = HybridOneShotFromGsFactory(functional="hse06", ecutsigx=None, gw_qprange=1)
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         hyb_inp_obj = factory_obj.build_input(gs_inp)
 
     def test_scf_for_phonons(self):
@@ -394,7 +456,7 @@ class FactoryTest(AbipyTest):
         self.assert_input_equality('scf_for_phonons.json', scf_inp)
 
         factory_obj = ScfForPhononsFactory(self.si_structure, self.si_pseudo, kppa=1000, ecut=3)
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         scf_inp_obj = factory_obj.build_input(scf_inp)
 
         self.assert_input_equality('scf_for_phonons.json', scf_inp_obj)

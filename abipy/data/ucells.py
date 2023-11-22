@@ -1,8 +1,6 @@
 """Database of unit cells in the ABINIT format."""
 from __future__ import annotations
 
-from typing import List
-
 from pymatgen.core.units import ArrayWithUnit
 from abipy.core import Structure
 
@@ -14,7 +12,7 @@ __all__ = [
 
 
 # Public API
-def ucell_names() -> List[str]:
+def ucell_names() -> list[str]:
     """List with the name of the entries."""
     return list(_UCELLS.keys())
 

@@ -1,9 +1,8 @@
 """Integration tests for phonon flows."""
+from __future__ import annotations
 
-#import numpy as np
 import abipy.data as abidata
 import abipy.abilab as abilab
-#import abipy.flowtk as flowtk
 
 from abipy.dfpt.ddb import DdbFile
 

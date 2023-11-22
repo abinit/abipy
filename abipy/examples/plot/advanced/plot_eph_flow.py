@@ -40,7 +40,7 @@ axes[1, 1].text(-0.1,1.05, '(d)', size=fz, transform=axes[1, 1].transAxes)
 with abiopen(root + "w0/t1/outdata/out_GSR.nc") as abifile:
     ebands = abifile.ebands
     formula = abifile.structure.formula
-    
+
 # Add the title to the whole figure containing the pretty formula
 pretty_formula = "".join([i for i in formula if i != str(1) and i != " "]) # Remove '1's and spaces
 fig.suptitle(pretty_formula)

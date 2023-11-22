@@ -1,4 +1,5 @@
 """Panels for interacting with output files in text format."""
+from __future__ import annotations
 
 import panel as pn
 import panel.widgets as pnw
@@ -15,7 +16,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
         super().__init__(**params)
         self.outfile = outfile
 
-    def get_cycles_view(self, what):
+    def get_cycles_view(self, what: str) -> pn.GridBox:
         """
         Return GridBox with matplotlib plots for the GS/DFPT SCF cycles
         or None if no cycle is found.
@@ -44,7 +45,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
 
         return box
 
-    def get_outfile_view(self):
+    def get_outfile_view(self) -> pn.Column:
         col = pn.Column(sizing_mode="stretch_width")
         ca = col.append; cext = col.extend
 
@@ -105,7 +106,7 @@ This application allows users to analyze the Abinit main output file
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
 
-    def on_file_input(self, event):
+    def on_file_input(self, event) -> None:
 
         with Loading(self.main_area):
             new_abifile = self.get_abifile_from_file_input(self.file_input)
