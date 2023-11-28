@@ -539,7 +539,9 @@ limits:
                 'queue': {'qtype': self.QTYPE,
                           'qname': self._qname,
                           'qnodes': self.qnodes,
-                          'qparams': self._qparams},
+                          'qparams': self._qparams,
+                          'mail_type': self.mail_type,
+                          'mail_user': self.mail_user},
                 'limits': {'timelimit_hard': self._timelimit_hard,
                            'timelimit': self._timelimit,
                            'min_cores': self.min_cores,
@@ -689,6 +691,9 @@ limits:
 
         self.set_qname(d.pop("qname", ""))
         self.qnodes = d.pop("qnodes", "standard")
+        self.mail_type = d.pop("mail_type", "")
+        self.mail_user = d.pop("mail_user", "")
+        
         if self.qnodes not in ["standard", "shared", "exclusive"]:
             raise ValueError("Nodes must be either in standard, shared or exclusive mode "
                              "while qnodes parameter was {}".format(self.qnodes))

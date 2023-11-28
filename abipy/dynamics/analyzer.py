@@ -48,10 +48,10 @@ kBoltzEv = 8.617333e-05
 #nCar = 56  # FIXME: Harcoded
 
 
-def common_oxidation_states():
+def common_oxidation_states() -> dict:
     oxi2symbols = {
-    +1: ["Li", "Na", "K", "Rb", "Cs", "Fr"],
-    +2: ["Be", "Mg", "Ca", "Sr", "Ba", "Ra"],
+        +1: ["Li", "Na", "K", "Rb", "Cs", "Fr"],
+        +2: ["Be", "Mg", "Ca", "Sr", "Ba", "Ra"],
     }
 
     # map: symbol to oxidation state.
@@ -747,26 +747,6 @@ class MdAnalyzer(HasPickleIO):
 
         return Msdtt0(arr_tt0=arr_tt0, mda=self, index_tmax=index_tmax, symbol=symbol)
 
-    #def export_msdt(self, filename: str) -> None:
-    #    """
-    #    Writes MSD data to a file that can be easily plotted in other software.
-
-    #    Args:
-    #        filename: Supported formats are csv and dat.
-    #            If the extension is csv, a csv file is written. Otherwise, a dat format is assumed.
-    #    """
-    #    fmt = "csv" if filename.lower().endswith(".csv") else "dat"
-    #    delimiter = ", " if fmt == "csv" else " "
-    #    with open(filename, "w") as f:
-    #        if fmt == "dat": f.write("# ")
-    #        f.write(delimiter.join(["t", "MSD", "MSD_a", "MSD_b", "MSD_c", "MSCD"]))
-    #        f.write("\n")
-    #        for dt, msd, msdc, mscd in zip(
-    #            self.dt, self.msd, self.msd_components, self.mscd
-    #        ):
-    #            f.write(delimiter.join([str(v) for v in [dt, msd, *list(msdc), mscd]]))
-    #            f.write("\n")
-
     @add_fig_kwargs
     def plot_sqdt_atoms(self, symbols="all", t0: float = 0.0, atom_inds=None,
                         ax=None, xy_log=None, fontsize=8, xlims=None, **kwargs) -> Figure:
@@ -799,7 +779,7 @@ class MdAnalyzer(HasPickleIO):
         #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
         ax.add_artist(AnchoredText(f"{self.latex_formula_n_temp}\n{self.latex_avg_volume}\n" +
-                                   'sd(t, $t_0$ =' + str(int(self.times[it0])) + ' ps)',
+                                   "sd(t, $t_0$ =" + str(int(self.times[it0])) + " ps)",
                                    loc="upper right", prop=dict(size=fontsize)))
         return fig
 
@@ -814,7 +794,7 @@ class MdAnalyzer(HasPickleIO):
             t0: Initial time in ps.
             atom_inds: List of atom indices to include. None to disable filtering.
             with_dw: If != 0 compute diffusion coefficient via least-squares fit in the time-interval [t0, with_dw].
-                If with_dw < 0, time-interval is set to [t0, tmax]
+                If with_dw < 0 e.g. -1 the time-interval is set to [t0, tmax].
             ax: |matplotlib-Axes| or None if a new figure should be created.
             xy_log: None or empty string for linear scale. "x" for log scale on x-axis.
                 "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
@@ -835,8 +815,7 @@ class MdAnalyzer(HasPickleIO):
                 tmax = self.times[-1] if with_dw < 0 else with_dw
                 dw = self.get_dw_symbol(symbol, t0=t0, tmax=with_dw, atom_inds=atom_inds)
                 ax.plot(dw.ts, dw.fit.slope*dw.ts + dw.fit.intercept,
-                        label=symbol + " " + dw.label,
-                        color=self.color_symbol[symbol],
+                        label=symbol + " " + dw.label, color=self.color_symbol[symbol],
                         )
 
         ax.legend(fontsize=fontsize, loc="upper left")
@@ -879,7 +858,7 @@ class MdAnalyzer(HasPickleIO):
             ts = self.times[t_start:] - self.times[t_start]
 
             ax.plot(ts, msd_t,
-                    label=symbol + ' <msd($t$, $t_0$)>$\{$t_0$\}$, $t$ = [0, ' + str(int(self.times[index_tmax])) + ' ps]',
+                    label=symbol + " <msd($t$, $t_0$)>$\{$t_0$\}$, $t$ = [0, " + str(int(self.times[index_tmax])) + " ps]",
                     color=self.color_symbol[symbol],
                     )
 
@@ -951,11 +930,11 @@ class MdAnalyzer(HasPickleIO):
 @dataclasses.dataclass(kw_only=True)
 class Msdtt0:
     r"""
-    Stores
+    This object stores:
 
         $$MSD(t,t_0) = \frac{1}{N} \sum_{i=1}^{N} (\vec{r}_i(t+t_0) - \vec{r}_i(t_0))^2$$
 
-    where $N$ is the number of particles, and $\vec{r}_i(t)$ is the position vector.
+    where $N$ is the number of particles of a particular chemical symbol and $\vec{r}_i(t)$ is the position vector.
     """
     index_tmax: int
     symbol: str
@@ -1000,7 +979,7 @@ class Msdtt0:
     @add_fig_kwargs
     def plot(self, ax=None, xy_log=None, fontsize=8, xlims=None, **kwargs) -> Figure:
         """
-        Plor <msd($t, t_0$)>$ averaged over the the initial time t0.
+        Plot <msd($t, t_0$)>$ averaged over the initial time t0.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -1016,13 +995,13 @@ class Msdtt0:
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.plot(ts, self.msd_t,
-                label=self.symbol + ' <msd($t, t_0$)>$\{$t_0$\}$, t = [0, ' + str(int(self.times[index_tmax])) + ' ps]',
+                label=self.symbol + " <msd($t, t_0$)>$\{$t_0$\}$, t = [0, " + str(int(self.times[index_tmax])) + " ps]",
                 color=self.mda.color_symbol[self.symbol],
                 )
 
         # Linear fit.
         r = self.get_linfit_results()
-        ax.plot(ts, r.fit.slope*ts + r.fit.intercept, label=r.label)
+        ax.plot(ts, r.fit.slope * ts + r.fit.intercept, label=r.label)
 
         set_axlims(ax, xlims, "x")
         ax.legend(fontsize=fontsize, loc="upper left")
@@ -1187,7 +1166,6 @@ class Msdtt0List(list):
         app = lines.append
         for i, msdtt0 in enumerate(self):
             app(msdtt0.to_string(verbose=verbose))
-
         return "\n".join(lines)
 
     @add_fig_kwargs
@@ -1257,7 +1235,7 @@ class SigmaBerend:
 @dataclasses.dataclass(kw_only=True)
 class DiffusionData(HasPickleIO):
     """
-    Diffusion results
+    Diffusion results for a given temperature.
     """
     diffusion_coeff: float
     err_diffusion_coeff: float
@@ -1345,6 +1323,23 @@ class DiffusionDataList(list):
     #            new.append(df_data)
     #    return new
 
+    #def write_csv(self, filename: PathLike) -> None:
+    #    """
+    #    Writes data to a file that can be easily plotted in other software.
+
+    #    Args:
+    #        filename: Supported formats are csv and dat.
+    #            If the extension is csv, a csv file is written. Otherwise, a dat format is assumed.
+    #    """
+    #    delimiter = ", "
+    #    with open(filename, "wt") as f:
+    #        f.write("T,diffusion,err_diffusion,volume,symbol,composition\n")
+    #        #for dt, msd, msdc, mscd in zip(
+    #        #    self.dt, self.msd, self.msd_components, self.mscd
+    #        #):
+    #        #    f.write(delimiter.join([str(v) for v in [dt, msd, *list(msdc), mscd]]))
+    #        #    f.write("\n")
+
     def get_dataframe(self, add_keys=None) -> pd.DataFrame:
         """
         Dataframe with diffusion results.
@@ -1369,7 +1364,7 @@ class DiffusionDataList(list):
     def plot_sigma_berend(self, **kwargs) -> Figure:
         """
         Plot variance of correlated data as function of block number
-        for all items stored in DiffusionDataList.
+        for all objects stored in DiffusionDataList.
         """
         nrows, ncols = len(self), 2
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
@@ -1384,7 +1379,7 @@ class DiffusionDataList(list):
     def plot(self, **kwargs) -> Figure:
         """
         Plot ...
-        for all items stored DiffusionDataList.
+        for all objects stored DiffusionDataList.
         """
         nrows, ncols = len(self), 1
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
@@ -1403,7 +1398,7 @@ class DiffusionDataList(list):
 
         Args:
             df: |pandas-DataFrame|.
-            hue: Variable that defines how to group data. If None, no grouping is performed.
+            hue: Variable defining how to group data. If None, no grouping is performed.
         """
         df = df.sort_values(["temperature"])
 
@@ -1428,41 +1423,12 @@ class DiffusionDataList(list):
             nt_list.append(nt)
         return nt_list
 
-    @add_fig_kwargs
-    def plot_arrhenius(self, hue=None, ax=None,
-                       xy_log=None, fontsize=8, **kwargs) -> Figure:
-        """
-        Arrhenius plot.
-
-        Args:
-            xy_log: None or empty string for linear scale. "x" for log scale on x-axis.
-                "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
-            fontsize: fontsize for legends and titles
-        """
-        df = self.get_dataframe()
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        for nt in self.get_arrhenius_nmtuples(df, hue):
-            xs = 1000 / nt.temps
-            ys = nt.d_coeff
-            #log10DiffArraym3gnet = np.log10(diffArraym3gnet)
-            #errLog10DiffArraym3gnet = np.log10(np.e)*errDiffArraym3gnet/diffArraym3gnet
-            #nt.d_err
-            #ax.plot(xs, ys, label=f"${symbol}_{{{iatom}}}$")
-
-        ax.legend(fontsize=fontsize, loc="upper left")
-        ax.set_xlabel('T (K)', fontsize=fontsize)
-        ax.set_ylabel(r"D$_{tr}$", fontsize=fontsize)
-        set_logscale(ax, xy_log)
-
-        return fig
-
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
         yield self.plot_sigma_berend(show=False)
         yield self.plot(show=False)
-        #yield self.plot_arrhenius(show=False)
 
     def expose(self, exposer="mpl", **kwargs):
         from abipy.tools.plotting import Exposer
@@ -1609,22 +1575,6 @@ class MultiMdAnalyzer(HasPickleIO):
             ncols = 2; nrows = nplots // ncols + nplots % ncols
         return nrows, ncols, nplots
 
-    #def get_arrhenius_data(self, symbol, params_list, nprocs=None) -> DiffusionDataList:
-    #    """
-    #    """
-    #    if len(params_list) != len(self):
-    #        raise ValueError(f"{len(params)=} != {len(self)=}")
-
-    #    data_list = DiffusionDataList()
-    #    for it, ((mda, temp), params) in enumerate(zip(self.iter_mdat(), params_list)):
-    #        p = AttrDict(**params)
-    #        msq_tt0 = mda.get_msdtt0_symbol_tmax(symbol, p.tmax, nprocs=nprocs)
-    #        sigma = msq_tt0.get_sigma_berend(t1=p.t1, t2=p.t2)
-    #        data_t = msq_tt0.get_diffusion_with_sigma(p.fit_time_start, p.fit_time_stop, p.block_size1, p.block_size2, sigma)
-    #        data_list.append(data_t)
-
-    #    return data_list
-
     @add_fig_kwargs
     def plot_sqdt_symbols(self, symbols, t0: float = 0.0,
                           xy_log=None, fontsize=8, xlims=None, **kwargs) -> Figure:
@@ -1654,9 +1604,7 @@ class MultiMdAnalyzer(HasPickleIO):
             it0, ts = mda.get_it_ts(t0)
             for ix, (ax, symbol) in enumerate(zip(ax_list, symbols)):
                 ax.plot(ts, mda.get_sqdt_symbol(symbol, it0=it0),
-                        label=f"T = {temp} K",
-                        color=color,
-                    )
+                        label=f"T = {temp} K", color=color)
 
         # Decorate axes.
         for ix, (ax, symbol) in enumerate(zip(ax_list, symbols)):
@@ -1791,58 +1739,43 @@ def _lin_fit(th_invt, log10d0, e_act):
 
 
 @dataclasses.dataclass(kw_only=True)
-class Entry:
+class ArrheniusEntry:
     """
     """
-
     key: str
     symbol: str
-    #formula: str
     composition: str
     temps: np.ndarray
     diffusions: np.ndarray
     err_diffusions: np.ndarray
     volumes: np.ndarray
-    style: dict
+    mpl_style: dict
 
     @classmethod
-    def from_file(cls, filepath: PathLike, key, symbol, composition, style) -> Entry:
+    def from_file(cls, filepath: PathLike, key, mpl_style) -> ArrheniusEntry:
 
-        if str(filepath).endswith(".dat"):
-            try:
-                arr = np.loadtxt(filepath)
-                temps = arr[:,0]
-                diffusions = arr[:,1]
-                err_diffusions = arr[:,2]
-                volumes = arr[:,3]
-            except Exception as exc:
-                raise RuntimeError(f"Exception while reading {filepath=}") from exc
-        else:
-            try:
-                # Read data in CSV format. Assuming header with at least the following entries:
-                # T,diffusion,err_diffusion,volume,symbol,composition
-                df = pd.read_csv(filepath, skipinitialspace=True) #, delim_whitespace=True)
+        # Read data in CSV format. Assuming header with at least the following entries:
+        #   temperature,diffusion,err_diffusion,volume,symbol,composition
+        try:
+            df = pd.read_csv(filepath, skipinitialspace=True)
 
-                def get_unique(col):
-                    v0 = df[col].values[0]
-                    if np.any(v0 != df[col].values):
-                        raise ValueError(f"All values for column: {k} should be unique while found:\n{df[col].values}")
-                    return v0
+            def get_unique(col):
+                v0 = df[col].values[0]
+                if np.any(v0 != df[col].values):
+                    raise ValueError(f"All values for column: {k} should be unique while found:\n{df[col].values}")
+                return v0
 
-                symbol = get_unique("symbol")
-                composition = get_unique("composition")
-                temps = df["T"].values
-                volumes = df["volume"].values
-                diffusions = df["diffusion"].values
-                err_diffusions = np.zeros(len(temps))
-                if "err_diffusion" in df.keys():
-                    err_diffusions = df["err_diffusion"].values
+            symbol = get_unique("symbol")
+            composition = Composition(get_unique("composition"))
+            temps = df["temperature"].values
+            volumes = df["volume"].values
+            diffusions = df["diffusion"].values
+            err_diffusions = np.zeros(len(temps))
+            if "err_diffusion" in df.keys():
+                err_diffusions = df["err_diffusion"].values
 
-            except Exception as exc:
-                raise RuntimeError(f"Exception while reading {filepath=}") from exc
-
-        composition = Composition(composition)
-        #print(composition)
+        except Exception as exc:
+            raise RuntimeError(f"Exception while reading {filepath=}") from exc
 
         return cls(key=key,
                    symbol=symbol,
@@ -1851,7 +1784,7 @@ class Entry:
                    diffusions=diffusions,
                    err_diffusions=err_diffusions,
                    volumes=volumes,
-                   style=style,
+                   mpl_style=mpl_style,
                    )
 
     #def __post_init__(self):
@@ -1869,7 +1802,7 @@ class Entry:
     def get_diffusion_data(self, fit_thinvt=None) -> AttrDict:
         """
         Fit diffusion(T) taking into account uncertainties.
-        Return activation energy in eV and fit parameters.
+        Return dict with activation energy in eV and fit parameters.
         """
         # NB: log10(x) = ln(x) log10(e) --> d_x log_10(x) = log10(e) / x
         th_invt = 1000 / self.temps
@@ -1902,6 +1835,10 @@ class Entry:
         volumes = self.volumes
 
         th_invt = 1000 / self.temps
+
+        #if charge is None:
+        #ncar = symb2oxi[symbol] * self.composition[self.symbol]
+        #ncar = charge * self.composition[self.symbol]
 
         # NB: log10(x) = ln(x) log10(e) --> d_x log_10(x) = log10(e) / x
         conds  = e2s/kbs * ncar * diffusions/volumes/temps * 1.e09
@@ -1943,32 +1880,31 @@ class Entry:
 
 class ArrheniusPlotter:
     """
-    This object stores the conductivities D(T) computed for different structures and/or
+    This object stores conductivities D(T) computed for different structures and/or
     different ML-potentials and allows one to produce Arrnehnius plots on the same figure.
     Internally, the results are indexed by a unique key that is be used as label in the matplotlib plot.
-    The style for each key can be customized by setting a dict with the options that will be passed to ax.plot.
+    The style for each key can be customized by setting the mpl_style dict
+    with the options that will be passed to ax.plot.
 
     In the simplest case, one reads the data from external files in CSV format.
 
     Example:
 
         from abipy.dynamics.analyzer import ArrheniusPlotter
-        symbol = "Li"
-        composition = "c-LLZO"
 
         key_path = {
-            "matgl-MD":  "diffusion_cLLZO-matgl.dat",
-            "m3gnet-MD": "diffusion_cLLZO-m3gnet.dat",
+            "matgl-MD":  "diffusion_cLLZO-matgl.csv",
+            "m3gnet-MD": "diffusion_cLLZO-m3gnet.csv",
         }
 
-        style_key = {
+        mpl_style_key = {
             "matgl-MD" : dict(c='blue'),
             "m3gnet-MD": dict(c='purple'),
         }
 
         plotter = ArrheniusPlotter()
         for key, path in key_path.items():
-            plotter.add_entry_from_file(path, key, symbol, composition, style=style_key[key])
+            plotter.add_entry_from_file(path, key, mpl_style=mpl_style_key[key])
 
         # temperature grid refined
         thinvt_arange = (0.6, 2.5, 0.01)
@@ -1978,9 +1914,9 @@ class ArrheniusPlotter:
                      xlims=xlims, ylims=ylims, text='LLZO cubic', savefig=None)
     """
 
-    def __init__(self):
-        self.entries = []
-        self.sym2oxi = common_oxidation_states()
+    def __init__(self, entries=None):
+        self.entries = entries or []
+        self.symb2oxi = common_oxidation_states()
 
     def __iter__(self):
         return self.entries.__iter__()
@@ -2010,21 +1946,21 @@ class ArrheniusPlotter:
             if entry.key == key: return i
         raise KeyError(f"Cannot find {key=} in {self.keys=}")
 
-    def pop_key(self, key: str) -> Entry:
-        """Popn entry by key"""
+    def pop_key(self, key: str) -> ArrheniusEntry:
+        """Pop entry by key"""
         i = self.index_key(key)
         return self.entries.pop(i)
 
-    def append(self, entry: Entry) -> None:
+    def append(self, entry: ArrheniusEntry) -> None:
         """Append new entry."""
         if entry.key in self.keys():
             raise KeyError(f"{key=} is already present.")
         self.entries.append(entry)
 
-    def set_style(self, key: str, style: dict) -> None:
+    def set_style(self, key: str, mpl_style: dict) -> None:
         """Set matplotlib style for key."""
         i = self.index_key(key)
-        self.entries[i].style = style
+        self.entries[i].mpl_style = mpl_style
 
     def get_min_max_temp(self) -> tuple[float, float]:
         """Compute the min and max temperature for all entries."""
@@ -2032,11 +1968,11 @@ class ArrheniusPlotter:
         max_temp = max([e.temperatures.max() for e in self])
         return min_temp, max_temp
 
-    def add_entry_from_file(self, filepath: PathLike, key: str, symbol: str, composition: str, style=None) -> Entry:
+    def add_entry_from_file(self, filepath: PathLike, key: str, mpl_style=None) -> None:
         """
         """
-        style = style or {}
-        self.append(Entry.from_file(filepath, key, symbol, composition, style))
+        mpl_style = mpl_style or {}
+        self.append(ArrheniusEntry.from_file(filepath, key, mpl_style))
 
     @add_fig_kwargs
     def plot(self, thinvt_arange=None, what="diffusion", ncar=None, colormap="jet", with_t=True, text=None,
@@ -2048,7 +1984,7 @@ class ArrheniusPlotter:
             thinvt_arange: start, stop, step for 1000/T mesh. If None, the mesh is automatically computed.
             what: Selects the quantity to plot. Possibile values: "diffusion", "sigma", "tsigma".
             ncar: Number of carriers. Required if what is "sigma" or "tsigma".
-            colormap: Colormap used to select the color if entry.style does not provide it.
+            colormap: Colormap used to select the color if entry.mpl_style does not provide it.
             with_t: True to dd a twin axes with the value of T
             text:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -2070,35 +2006,42 @@ class ArrheniusPlotter:
         fit_thinvt = np.arange(thinvt_arange[0], thinvt_arange[1], step=thinvt_arange[2])
 
         for ie, entry in enumerate(self):
-            my_style = entry.style.copy()
-            if "marker" not in my_style:
-                my_style["marker"] = "."
-            if "linestyle" not in my_style and "ls" not in my_style:
-                my_style["linestyle"] = ""
-            if "color" not in my_style and "c" not in my_style:
-                my_style["color"] = cmap(ie / len(self))
+            mpl_style = entry.mpl_style.copy()
+            if "marker" not in mpl_style:
+                mpl_style["marker"] = "."
+            if "linestyle" not in mpl_style and "ls" not in mpl_style:
+                mpl_style["linestyle"] = ""
+            if "color" not in mpl_style and "c" not in mpl_style:
+                mpl_style["color"] = cmap(ie / len(self))
 
-            symbol = entry.symbol
-            composition = entry.composition
+            symbol, composition = entry.symbol, entry.composition
 
             diff = entry.get_diffusion_data(fit_thinvt=fit_thinvt)
             label = r"D$_{\mathrm{%s}}$ (%s): " % (symbol, entry.key)
-            label += r"E$_\mathrm{a}$=" + str('{:.2F}'.format(diff.e_act)) + 'eV'
+            label += r"E$_\mathrm{a}$=" + str('{:.2F}'.format(diff.e_act)) + ' eV'
 
             if what == "diffusion":
                 data = diff
             else:
-                if ncar is None:
+                ncar_ = ncar
+                if ncar_ is None:
                     if symbol not in self.symb2oxi:
                         raise ValueError(f"No entry for {symbol=} found in symb2oxi! Please add the oxistate manually!")
-                    ncar = symb2oxi[symbol] * composition[symbol]
-                    print(self.symb2oxi[symbol], composition[symbol])
+                    charge = self.symb2oxi[symbol]
+                    ncar_ = charge * composition[symbol]
+                    label += f", q={charge}"
 
-                sigma_data, tsigma_data = entry.get_conductivity_data(ncar, fit_thinvt=fit_thinvt)
+                sigma_data, tsigma_data = entry.get_conductivity_data(ncar_, fit_thinvt=fit_thinvt)
                 data = dict(sigma=sigma_data, tsigma=tsigma_data)[what]
 
-            ebar = ax.errorbar(data.th_invt, data.log10, yerr=data.err_log10, label=label, capsize=5.0, **my_style)
-            ax.plot(fit_thinvt, data.fit_log10, linestyle='--', color=ebar[0].get_color())
+            if data.err_log10 is not None:
+                # Plot data with errors.
+                lines = ax.errorbar(data.th_invt, data.log10, yerr=data.err_log10, label=label, capsize=5.0, **mpl_style)
+            else:
+                # Plot data without errors.
+                lines = ax.plot(data.th_invt, data.log10, label=label, **mpl_style)
+
+            ax.plot(fit_thinvt, data.fit_log10, linestyle='--', color=lines[0].get_color())
 
         ax.set_xlabel('1000 / T(K)', fontsize=18)
         ylabel = dict(
