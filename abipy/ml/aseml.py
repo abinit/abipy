@@ -817,7 +817,7 @@ def main():
 class AseRelaxation:
     """
     Container with the results produced by the ASE calculator.
-    ""
+    """
     def __init__(self, dyn, r0, r1, traj_path):
         self.dyn = dyn
         self.r0, self.r1 = r0, r1
