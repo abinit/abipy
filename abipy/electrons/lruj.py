@@ -50,19 +50,21 @@ class LrujResults:
     """
     This object stores the results produced by lruj.
     """
+    natom: int
+    npert: int
     ndata: int
-    maxdeg: int
     pawujat: int
     macro_uj: int
-    pert_name: str
     diem_token: str
-    dmatpuopt: int
     diem: float
     alphas: np.ndarray
     occ_unscr: np.ndarray
     occ_scr: np.ndarray
     chi0_coefficients: dict
     chi_coefficients: dict
+    maxdeg: int
+    dmatpuopt: int
+    pert_name: str
 
     @classmethod
     def from_file(cls, filepath: PathLike):
@@ -101,7 +103,7 @@ class LrujResults:
                 degree = int(k.replace(magic, ""))
                 chi_coefficients[degree] = v
 
-        #print(f"{chi0_coefficients=}")
+#        print(f"{natom=}")
         #print(f"{chi_coefficients=}")
 
         def find(header, dtype=None):
@@ -114,10 +116,12 @@ class LrujResults:
 
 #        _, npert = find("Number of perturbations detected:", dtype=int)
         _, maxdeg = find("Maximum degree of polynomials analyzed:", dtype=int)
-#        _, pawujat = find("Index of perturbed atom:", dtype=int)
-#        _, macro_uj = find("Value of macro_uj:", dtype=int)
+        _, pawujat = find("Index of perturbed atom:", dtype=int)
+        _, macro_uj = find("Value of macro_uj:", dtype=int)
         _, dmatpuopt = find("Value of dmatpuopt:", dtype=int)
-#        _, diem = find("Mixing constant factored out of Chi0:", dtype=float)
+        _, diem = find("Mixing constant factored out of Chi0:", dtype=float)
+
+        npert = 6
 
         # Parse the section with perturbations and occupations.
         """
@@ -129,12 +133,12 @@ class LrujResults:
         -0.1500000676   8.6964981922   8.6520722003
 
         """
-        i, _ = find("beta [eV]     Unscreened      Screened",dtype=None)
-        i += 2
+        i, _ = find("Perturbations",dtype=None)
+        i += 4
         vals = []
-        for ipert in range(ndata-1):
+        for ipert in range(npert):
             vals.append([float(t) for t in lines[i+ipert].split()])
-        vals = np.reshape(vals, (ndata-1, 3))
+        vals = np.reshape(vals, (npert, 3))
         alphas, occ_unscr, occ_scr = vals[:,0], vals[:,1], vals[:,2]
         """
                                                                                RMS Errors
