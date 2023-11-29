@@ -1211,10 +1211,14 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
     @staticmethod
     def get_yvals_item_abifiles(item: Any, abifiles: list) -> np.ndarray:
         """Extract values for a list of Abinit files."""
+        def _float(obj):
+            if obj is None: return obj
+            return float(obj)
+
         if callable(item):
-            return np.array([float(item(a)) for a in abifiles])
+            return np.array([_float(item(a)) for a in abifiles])
         else:
-            return np.array([float(duck.getattrd(a, item)) for a in abifiles])
+            return np.array([_float(duck.getattrd(a, item)) for a in abifiles])
 
     @staticmethod
     def plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, **kwargs) -> list:

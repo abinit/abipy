@@ -81,7 +81,7 @@ in the form of pre-compiled packages that can be easily installed with e.g.::
 
 Create a new conda_ environment (let's call it ``abienv``) with::
 
-    conda create --name abienv
+    conda create --name abienv python=3.11
 
 and activate it with::
 
@@ -118,7 +118,7 @@ For pip, use::
 
 If you are using conda_ (see `Installing conda`_ to install conda itself), create a new environment (``abienv``) with::
 
-    conda create -n abienv
+    conda create -n abienv python=3.11
     source activate abienv
 
 Add ``conda-forge``, and ``abinit`` to your channels with::
