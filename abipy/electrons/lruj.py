@@ -50,10 +50,12 @@ class LrujResults:
     """
     This object stores the results produced by lruj.
     """
-    npert: int
+    ndata: int
     maxdeg: int
     pawujat: int
     macro_uj: int
+    pert_name: str
+    diem_token: str
     dmatpuopt: int
     diem: float
     alphas: np.ndarray
@@ -110,12 +112,12 @@ class LrujResults:
                     return i, after
             raise ValueError(f"Cannot find {header=} in {filepath=}")
 
-        _, npert = find("Number of perturbations detected:", dtype=int)
+#        _, npert = find("Number of perturbations detected:", dtype=int)
         _, maxdeg = find("Maximum degree of polynomials analyzed:", dtype=int)
-        _, pawujat = find("Index of perturbed atom:", dtype=int)
-        _, macro_uj = find("Value of macro_uj:", dtype=int)
+#        _, pawujat = find("Index of perturbed atom:", dtype=int)
+#        _, macro_uj = find("Value of macro_uj:", dtype=int)
         _, dmatpuopt = find("Value of dmatpuopt:", dtype=int)
-        _, diem = find("Mixing constant factored out of Chi0:", dtype=float)
+#        _, diem = find("Mixing constant factored out of Chi0:", dtype=float)
 
         # Parse the section with perturbations and occupations.
         """
@@ -127,17 +129,17 @@ class LrujResults:
         -0.1500000676   8.6964981922   8.6520722003
 
         """
-        i, _ = find("alpha [eV]     Unscreened      Screened")
+        i, _ = find("beta [eV]     Unscreened      Screened",dtype=None)
         i += 2
         vals = []
-        for ipert in range(npert):
+        for ipert in range(ndata-1):
             vals.append([float(t) for t in lines[i+ipert].split()])
-        vals = np.reshape(vals, (npert, 3))
+        vals = np.reshape(vals, (ndata-1, 3))
         alphas, occ_unscr, occ_scr = vals[:,0], vals[:,1], vals[:,2]
         """
                                                                                RMS Errors
                                                                  ---------------------------------------
-         Regression   Chi0 [eV^-1]   Chi [eV^-1]      U [eV]    | Chi0 [eV^-1]  Chi [eV^-1]     U [eV]
+         Regression   Chi0 [eV^-1]   Chi [eV^-1]      J [eV]    | Chi0 [eV^-1]  Chi [eV^-1]     J [eV]
         --------------------------------------------------------|---------------------------------------
          Linear:        -0.8594082    -0.0949434     9.3689952  |    0.0023925    0.0000878    0.1139297
          Quadratic:     -0.8574665    -0.0955791     9.2963099  |    0.0023777    0.0000129    0.0681722
@@ -146,12 +148,12 @@ class LrujResults:
         """
         i, _ = find("Regression   Chi0 [eV^-1]")
         i += 2
-        keys = ["Chi0", "Chi", "U", "rms_Chi0", "rms_Chi", "rms_U"]
+        keys = ["Chi0", "Chi", "HP", "rms_Chi0", "rms_Chi", "rms_HP"]
         dict_list = []
         for irow in range(maxdeg):
             l = lines[i+irow].replace("|", " ")
             tokens = l.split()
-            d = dict(zip(keys, [float(t) for t in tokens[1:]]))
+            d = dict(zip(keys, [float(t) for t in tokens[-6:]]))
             d["degree"] = irow + 1
             dict_list.append(d)
 
@@ -161,6 +163,8 @@ class LrujResults:
         # Build instance from locals dict.
         data = locals()
         return cls(**{k: data[k] for k in [field.name for field in dataclasses.fields(cls)]})
+
+        print(f"{macro_uj=}")
 
     @add_fig_kwargs
     def plot(self, ax=None, fontsize=12, **kwargs) -> Figure:
