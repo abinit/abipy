@@ -66,6 +66,7 @@ class LrujResults:
     dmatpuopt: int
     pert_name: str
     parname: str
+    metric: str
 
     @classmethod
     def from_file(cls, filepath: PathLike):
@@ -86,7 +87,6 @@ class LrujResults:
 
             if in_doc and line.startswith("..."):
                 data = yaml_safe_load("".join(yaml_lines))
-                print("data:", data)
                 break
 
             if in_doc:
@@ -101,9 +101,11 @@ class LrujResults:
         npert = ndata - 1
         if macro_uj==4:
           pert_name = 'beta'
+          metric = 'M (N\u2191 - N\u2193)'
           parname = 'J'
         else:
           pert_name = 'alpha'
+          metric = 'N (N\u2191 + N\u2193)'
           parname = 'U'
         
         chi0_coefficients = {}
@@ -118,7 +120,6 @@ class LrujResults:
                 degree = int(k.replace(magic, ""))
                 chi_coefficients[degree] = v
 
-        print(f"{natom=}")
         #print(f"{chi_coefficients=}")
 
         def find(header, dtype=None):
@@ -184,8 +185,6 @@ class LrujResults:
         _data = locals()
         return cls(**{k: _data[k] for k in [field.name for field in dataclasses.fields(cls)]})
 
-        print(f"{macro_uj=}")
-
     @add_fig_kwargs
     def plot(self, ax=None, fontsize=12, **kwargs) -> Figure:
         """
@@ -196,9 +195,12 @@ class LrujResults:
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
+        AbiOrange = '#E08631'
+        NewBlue = '#5B7F97'
+
         # Plot raw data.
-        ax.scatter(self.alphas, self.occ_unscr, marker="o", c="b", label="Unscreened")
-        ax.scatter(self.alphas, self.occ_scr, marker="x", c="r", label="Screened")
+        ax.scatter(self.alphas, self.occ_unscr, color=NewBlue, marker="o", label="Unscreened")
+        ax.scatter(self.alphas, self.occ_scr, color=AbiOrange, label="Screened")
         ax.axvline(x=0.0, color="k", linestyle="--", lw=0.5)
 
         # Plot regression fit (only linear part)
@@ -210,9 +212,9 @@ class LrujResults:
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
         ax.grid(True)
-        ax.set_xlabel(r"$\alpha$ (eV)")
-        #ylabel = r"$N(n^{\up} + n^{\down})" is U else r"$N(n^{\up} - n^{\down})"
-        #ax.set_ylabel(ylabel)
+        ax.set_xlabel(' '.join([self.pert_name,"(eV)"]))
+        ylabel = r"$M(n^{\up} - n^{\down})$" if self.macro_uj==4 else r"$N(n^{\up} + n^{\down})$"
+        ax.set_ylabel(ylabel)
 
         return fig
 
