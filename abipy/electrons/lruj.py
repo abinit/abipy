@@ -65,6 +65,7 @@ class LrujResults:
     maxdeg: int
     dmatpuopt: int
     pert_name: str
+    parname: str
 
     @classmethod
     def from_file(cls, filepath: PathLike):
@@ -91,6 +92,20 @@ class LrujResults:
             if in_doc:
                 yaml_lines.append(line)
 
+        natom = data['natom']
+        ndata = data['ndata']
+        pawujat = data['pawujat']
+        macro_uj = data['macro_uj']
+        diem_token = data['diem_token']
+        diem = data['diem']
+        npert = ndata - 1
+        if macro_uj==4:
+          pert_name = 'beta'
+          parname = 'J'
+        else:
+          pert_name = 'alpha'
+          parname = 'U'
+        
         chi0_coefficients = {}
         chi_coefficients = {}
         for k, v in data.items():
@@ -103,7 +118,7 @@ class LrujResults:
                 degree = int(k.replace(magic, ""))
                 chi_coefficients[degree] = v
 
-#        print(f"{natom=}")
+        print(f"{natom=}")
         #print(f"{chi_coefficients=}")
 
         def find(header, dtype=None):
@@ -114,14 +129,8 @@ class LrujResults:
                     return i, after
             raise ValueError(f"Cannot find {header=} in {filepath=}")
 
-#        _, npert = find("Number of perturbations detected:", dtype=int)
         _, maxdeg = find("Maximum degree of polynomials analyzed:", dtype=int)
-        _, pawujat = find("Index of perturbed atom:", dtype=int)
-        _, macro_uj = find("Value of macro_uj:", dtype=int)
         _, dmatpuopt = find("Value of dmatpuopt:", dtype=int)
-        _, diem = find("Mixing constant factored out of Chi0:", dtype=float)
-
-        npert = 6
 
         # Parse the section with perturbations and occupations.
         """
@@ -132,13 +141,20 @@ class LrujResults:
          0.0000000000   8.6380182458   8.6380182458
         -0.1500000676   8.6964981922   8.6520722003
 
+       -OR-
+ 
+        Perturbations         Magnetizations
+        --------------- -----------------------------
+           beta [eV]     Unscreened      Screened
+        --------------- -----------------------------
+
         """
         i, _ = find("Perturbations",dtype=None)
         i += 4
         vals = []
-        for ipert in range(npert):
+        for ipert in range(ndata):
             vals.append([float(t) for t in lines[i+ipert].split()])
-        vals = np.reshape(vals, (npert, 3))
+        vals = np.reshape(vals, (ndata, 3))
         alphas, occ_unscr, occ_scr = vals[:,0], vals[:,1], vals[:,2]
         """
                                                                                RMS Errors
@@ -165,8 +181,8 @@ class LrujResults:
         #print("fit_df:\n", fit_df)
 
         # Build instance from locals dict.
-        data = locals()
-        return cls(**{k: data[k] for k in [field.name for field in dataclasses.fields(cls)]})
+        _data = locals()
+        return cls(**{k: _data[k] for k in [field.name for field in dataclasses.fields(cls)]})
 
         print(f"{macro_uj=}")
 
