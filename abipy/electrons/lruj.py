@@ -44,7 +44,8 @@ from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, ge
 #        self.r = r = EtsfReader(filepath)
 
 
-
+#===============================================================================================================
+#===============================================================================================================
 @dataclasses.dataclass(kw_only=True)
 class LrujResults:
     """
@@ -67,6 +68,7 @@ class LrujResults:
     pert_name: str
     parname: str
     metric: str
+    fit_df: pd.DataFrame
 
     @classmethod
     def from_file(cls, filepath: PathLike):
@@ -100,12 +102,12 @@ class LrujResults:
         diem = data['diem']
         npert = ndata - 1
         if macro_uj==4:
-          pert_name = 'beta'
-          metric = 'M (N\u2191 - N\u2193)'
+          pert_name = r"$\beta$"
+          metric = r"M $(n^{\uparrow} - n^{\downarrow})$"
           parname = 'J'
         else:
-          pert_name = 'alpha'
-          metric = 'N (N\u2191 + N\u2193)'
+          pert_name = r"$\alpha$"
+          metric = r"N $(n^{\uparrow} + n^{\downarrow})$"
           parname = 'U'
         
         chi0_coefficients = {}
@@ -179,46 +181,119 @@ class LrujResults:
             dict_list.append(d)
 
         fit_df = pd.DataFrame(dict_list)
-        #print("fit_df:\n", fit_df)
 
         # Build instance from locals dict.
         _data = locals()
         return cls(**{k: _data[k] for k in [field.name for field in dataclasses.fields(cls)]})
 
+#===============================================================================================================
+#===============================================================================================================
     @add_fig_kwargs
-    def plot(self, ax=None, fontsize=12, **kwargs) -> Figure:
+    def plot(self, ax=None, degrees="all", inset=True, insetdegree=1, insetlocale="lower left", ptcolor0='k', ptcolor='k', gradcolor1='#3575D5',gradcolor2='#FDAE7B', ptitle="default", fontsize=12, **kwargs) -> Figure:
         """
         Plot
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            degrees: List of degrees to plot. If None, no polynomials are plotted.
+            ptcolor0: Color of unscreened response data points (default: black)
+            ptcolor: Color of screened response data points (default: black)
+            gradcolor1: Hex code of linear regression color (default: Blue #3575D5)
+            gradcolor2: Hex code of color of regression of maximum degree in list <degrees> (default: Salmon #FDAE7B)
+            ptitle: Plot title (default: "Linear Response for atom <pawujat>)
+            inset: Plots inset with LR parameter for polynomial fit of degree <insetdegree> (default: True)
+            insetdegree: Degree of polynomial fit information printed in the inset (default: 1)
+            insetlocale: Position of inset in the plot. Standard matplotlob locations. (default: "lower left")
         """
+        import seaborn as sns
+        sns.set()
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        AbiOrange = '#E08631'
-        NewBlue = '#5B7F97'
+        # Plot data
+        yshift = self.occ_unscr[np.where(self.alphas == 0.0000)] * (self.diem - 1.0)
+        data0 = 1.0/self.diem * (self.occ_unscr + yshift)
+        ax.scatter(self.alphas, data0, s=70, color=ptcolor0, facecolors='none', linewidths=2, label="Unscreened")
+        ax.scatter(self.alphas, self.occ_scr, s=70, color=ptcolor, label="Screened")
+        ax.axvline(x=0.0, color="white", linestyle="--", lw=0.5)
 
-        # Plot raw data.
-        ax.scatter(self.alphas, self.occ_unscr, color=NewBlue, marker="o", label="Unscreened")
-        ax.scatter(self.alphas, self.occ_scr, color=AbiOrange, label="Screened")
-        ax.axvline(x=0.0, color="k", linestyle="--", lw=0.5)
-
-        # Plot regression fit (only linear part)
-        xstart, xstop = self.alphas.min(), self.alphas.max()
-        xstart, xstop = 0.9 * xstart, 1.1 * xstop
+        # Generate mesh for polynomial functions
+        xstart, xstop = 1.1 * self.alphas.min(), 1.1 * self.alphas.max()
         xs = np.arange(xstart, xstop, step=0.01)
-        #for ideg in range(maxdeg):
-        #    ax.plot(xs, lin_coeff * xs, color=, label="Degree {ideg}")
+
+        #Prepare colors and coefficients for polynomials the use wants to plot
+        if degrees == "all":
+          degrees = self.chi0_coefficients.keys()
+
+        def hex_to_RGB(hex_str):
+          return [int(hex_str[i:i+2], 16) for i in range(1,6,2)]
+
+        def get_color_gradient(c1, c2, n):
+          assert n > 1
+          c1_rgb = np.array(hex_to_RGB(c1))/255
+          c2_rgb = np.array(hex_to_RGB(c2))/255
+          mix_pcts = [x/(n-1) for x in range(n)]
+          rgb_colors = [((1-mix)*c1_rgb + (mix*c2_rgb)) for mix in mix_pcts]
+          return ["#" + "".join([format(int(round(val*255)), "02x") for val in item]) for item in rgb_colors]
+
+        linecolors=get_color_gradient(gradcolor1,gradcolor2,len(degrees))
+
+        # Plot polynomial functions
+        def poly0(coeffs):
+          return lambda x: 1.0/self.diem * (sum((coeff*x**i for i,coeff in enumerate(coeffs))) + yshift)
+
+        def poly(coeffs):
+          return lambda x: sum((coeff*x**i for i,coeff in enumerate(coeffs)))
+
+        for degree in degrees:
+          polynomial0=poly0(self.chi0_coefficients[degree])
+          polynomial=poly(self.chi_coefficients[degree])
+          if degree == 1:
+            Labelstring='Linear'
+          elif degree == 2:
+            Labelstring='Quadratic'
+          elif degree == 3:
+            Labelstring='Cubic'
+          else:
+            Labelstring=' '.join(['Degree',str(degree)])
+
+          if insetdegree==degree:
+            deginfo = ' '.join(['Parameters for',Labelstring,'fit'])
+            insetcolor = linecolors[degree-1]
+
+          ax.plot(xs,polynomial0(xs),color=linecolors[degree-1],linewidth=2.0,linestyle='dashed')
+          ax.plot(xs,polynomial(xs),color=linecolors[degree-1],linewidth=2.0,label=Labelstring)
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        if ptitle=="default":
+          ptitle=' '.join(["Linear Response",self.parname,"on atom",str(self.pawujat)])
+        plt.title(ptitle)
         ax.grid(True)
         ax.set_xlabel(' '.join([self.pert_name,"(eV)"]))
-        ylabel = r"$M(n^{\up} - n^{\down})$" if self.macro_uj==4 else r"$N(n^{\up} + n^{\down})$"
-        ax.set_ylabel(ylabel)
+        ax.set_ylabel(self.metric)
 
+        # Generate inset with numerical information on LR
+        if inset:
+          from matplotlib.offsetbox import AnchoredText
+          select =  self.fit_df["degree"] == insetdegree
+          def dfvalue(keywo):
+            tablevalue = self.fit_df[select][keywo]
+            return "%.4f" % tablevalue.values[0]
+
+          X0str = ' '.join([r"$\chi_0$","=",dfvalue("Chi0"),r"$\pm$",dfvalue("rms_Chi0"),r"[eV]$^{-1}$"])
+          Xstr = ' '.join([r"$\chi$","=",dfvalue("Chi"),r"$\pm$",dfvalue("rms_Chi"),r"[eV]$^{-1}$"])
+          HPstr = ' '.join([self.parname,"=",dfvalue("HP"),r"$\pm$",dfvalue("rms_HP"),r"[eV]"])
+          insettxt = '\n'.join([deginfo,X0str,Xstr,HPstr])
+          parambox = AnchoredText(insettxt,loc=insetlocale)
+          parambox.patch.set_linewidth(2)
+          parambox.patch.set_edgecolor(insetcolor)
+          parambox.patch.set_facecolor('white')
+          ax.add_artist(parambox)
         return fig
 
 
+
+#===============================================================================================================
+#===============================================================================================================
 class LrujAnalyzer:
     """
     Analyzes multiple sets of LRUJ files.
