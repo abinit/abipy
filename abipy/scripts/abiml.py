@@ -692,15 +692,18 @@ def compare(ctx, filepath, nn_names,
 @click.pass_context
 @click.argument("filepath", type=str)
 @add_nn_name_opt
-@click.option('--config', default='abiml_magmoms.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
-def magmoms(ctx, filepath, nn_name):
+@click.option('--config', default='abiml_gs.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def gs(ctx, filepath, nn_name):
     """
-    Compute magnetic moments with ML potential.
+    Compute grounde-state properties and magnetic moments with ML potential.
     """
     atoms = _get_atoms_from_filepath(filepath)
-    atoms.calc = aseml.CalcBuilder(nn_name).get_calculator()
-    magmoms = atoms.get_magnetic_moments()
-    for ia, (atom, magmoms) in enumerate(zip(atoms, magmoms)):
+    calc = aseml.CalcBuilder(nn_name).get_calculator()
+    #magmoms = atoms.get_magnetic_moments()
+    from abipy.ml.aseml import AseResults
+    res = AseResults.from_atoms(atoms, calc=calc)
+
+    for ia, (atom, magmoms) in enumerate(zip(res.atoms, res.magmoms)):
         print(atom, magmoms)
 
     return 0

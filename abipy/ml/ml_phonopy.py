@@ -26,7 +26,6 @@ except ImportError:
     Phonopy = None
 
 
-
 def cprint_traceback(color="red") -> None:
     """Print traceback."""
     import traceback
@@ -110,9 +109,6 @@ class MlPhonopyWithDDB(MlBase):
             prefix: Prefix for workdir
             supercell: with supercell dimensions. None to use the supercell from the DDB file.
         """
-        # Store args for reconstruction
-        #self.init_kwargs = {k: v for k, v in locals().items() if k not in ["self", "__class__", "kwargs"]}
-
         super().__init__(workdir, prefix)
 
         self.distance = float(distance)
@@ -284,7 +280,6 @@ class MlPhonopyWithDDB(MlBase):
         for q_list, w_list, eig_list in zip(bands_dict['qpoints'], bands_dict['frequencies'], bands_dict['eigenvectors']):
             nqpt += len(q_list)
             py_phfreqs.extend(w_list)
-            #print(eig_list)
             py_displ_cart.extend(eig_list)
 
         py_phfreqs = np.reshape(py_phfreqs, (nqpt, 3*natom)) / abu.eV_to_THz
@@ -347,9 +342,6 @@ class MlPhonopy(MlBase):
             workdir: Working directory, None to generate temporary directory automatically.
             prefix: Prefix for workdir.
         """
-        # Store args for reconstruction
-        #self.init_kwargs = {k: v for k, v in locals().items() if k not in ["self", "__class__", "kwargs"]}
-
         super().__init__(workdir, prefix)
 
         self.initial_atoms = structure.to_ase_atoms()

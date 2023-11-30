@@ -28,7 +28,27 @@ from abipy.tools.iotools import workdir_with_prefix, PythonScript, ShellScript
 from abipy.tools.serialization import HasPickleIO
 from abipy.tools.printing import print_dataframe
 from abipy.ml.aseml import (relax_atoms, get_atoms, as_calculator, ase_optimizer_cls, RX_MODE, fix_atoms,
-                            MlNeb, MlGsList, CalcBuilder, make_ase_neb, nprocs_for_ntasks)
+                            MlNeb, MlGsList, CalcBuilder, make_ase_neb)
+
+
+
+def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
+    """
+    Return the number of procs to be used in a multiprocessing Pool.
+    If negative or None, use all procs in the system.
+    """
+    import os
+    if nprocs is None or nprocs <= 0:
+        nprocs = max(1, os.cpu_count())
+    else:
+        nprocs = int(nprocs)
+
+    nprocs = min(nprocs, ntasks)
+    if title is not None:
+        print(title)
+        print(f"Using multiprocessing pool with {nprocs=} for {ntasks=} ...")
+    return nprocs
+
 
 
 @dataclasses.dataclass

@@ -106,7 +106,10 @@ in the `anaconda howto <http://abinit.github.io/abipy/installation#anaconda-howt
 Developmental version
 ---------------------
 
-Getting the developmental version of AbiPy is easy.
+To install the developmental version of AbiPy with pip, use::
+
+    pip install git+https://github.com/abinit/abipy.git@develop
+
 Clone the `github repository <https://github.com/abinit/abipy>`_ with::
 
     git clone https://github.com/abinit/abipy
@@ -142,22 +145,6 @@ or alternately::
 
 to install the package in developmental mode.
 This is the recommended approach, especially if you are planning to implement new features.
-
-Note, however, that the developmental version of AbiPy is kept in sync with the
-developmental version of pymatgen thus ```python setup.py develop``` may
-try to download new versions from the PyPi portal and then fail with e.g. the error message::
-
-    ...
-    processing dependencies for abipy==0.6.0.dev0
-    error: scipy 1.0.0 is installed but scipy>=1.0.1 is required by {'pymatgen'}
-
-due to inconsistent dependencies.
-To solve the problem, use conda to update scipy to a version >= 1.0.1 with::
-
-    conda install "scipy>=1.0.1"
-
-then issue again python setup.py develop. If this fails, supposing you were upgrading abipy inside 
-an already existing conda environment, try to restart by creating from scratch a fresh conda environment, see above.
 
 Also note that the BLAS/Lapack libraries provided by conda have multithreading support activated by default.
 Each process will try to use all of the cores on your machine, which quickly overloads things
