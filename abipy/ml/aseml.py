@@ -198,8 +198,101 @@ def diff_two_structures(label1, structure1, label2, structure2, fmt, file=sys.st
         print(l1.ljust(pad), " | ", l2, file=file)
 
 
+class AseTrajectoryPlotter:
+    """
+    Plot an ASE trajectory with matplotlib.
+    """
+
+    def __init__(self, traj: Trajectory):
+        self.traj = traj
+
+    @classmethod
+    def from_file(cls, filepath: PathLike) -> AseTrajectoryPlotter:
+        """Initialize object from file."""
+        return cls(read(filepath, index=":"))
+
+    def __str__(self) -> str:
+        return self.to_string()
+
+    def to_string(self, verbose=0) -> str:
+        """String representation with verbosity level verbose."""
+        lines = [f"ASE trajectory with {len(self.traj)} configuration(s)."]
+        app = lines.append
+        if len(self.traj) == 1:
+            first = AseResults.from_atoms(self.traj[0])
+            app(first.to_string(verbose=verbose))
+        else:
+            first, last = AseResults.from_atoms(self.traj[0]), AseResults.from_atoms(self.traj[-1])
+            raise NotImplementedError()
+
+        return "\n".join(lines)
+
+    #@add_fig_kwargs
+    #def plot_lattice(self, what_list=("abc", "angles", "volume"), ax_list=None,
+    #                 fontsize=8, xlims=None, **kwargs) -> Figure:
+    #    """
+    #    Plot lattice lengths/angles/volume as a function the trajectory index.
+    #    """
+    #    energies = [ene=float(atoms.get_potential_energy()) for atoms in self.traj]
+    #
+    #    stress_voigt = atoms.get_stress()
+    #    forces=atoms.get_forces(),
+    #    try:
+    #        magmoms = atoms.get_magnetic_moments()
+    #    except PropertyNotImplementedError:
+    #        magmoms = None
+
+    #@add_fig_kwargs
+    #def plot_lattice(self, what_list=("abc", "angles", "volume"), ax_list=None,
+    #                 fontsize=8, xlims=None, **kwargs) -> Figure:
+    #    """
+    #    Plot lattice lengths/angles/volume as a function the trajectory index.
+
+    #    Args:
+    #        what_list: List of strings specifying the quantities to plot. Default all
+    #        ax_list: List of axis or None if a new figure should be created.
+    #        fontsize: fontsize for legends and titles
+    #        xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+    #               or scalar e.g. ``left``. If left (right) is None, default values are used.
+    #    """
+    #    what_list = list_strings(what_list)
+    #    ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=1, ncols=len(what_list),
+    #                                            sharex=True, sharey=False, squeeze=False)
+    #    markers = ["o", "^", "v"]
+
+    #    if "abc" in what_list:
+    #        # plot lattice parameters.
+    #        for i, label in enumerate(["a", "b", "c"]):
+    #            ax.plot(self.times, [lattice.abc[i] for lattice in self.lattices],
+    #                    label=label, marker=markers[i])
+    #        ax.set_ylabel("abc (A)")
+
+    #    if "angles" in what_list:
+    #        # plot lattice angles.
+    #        for i, label in enumerate(["alpha", "beta", "gamma"]):
+    #            ax.plot(self.times, [lattice.angles[i] for lattice in self.lattices],
+    #                    label=label, marker=markers[i])
+    #        ax.set_ylabel(r"$\alpha\beta\gamma$ (degree)")
+
+    #    if "volume" in what_list:
+    #        # plot lattice volume.
+    #        marker = "o"
+    #        ax.plot(self.times, [lattice.volume for lattice in self.lattices],
+    #                label="Volume", marker=marker)
+    #        ax.set_ylabel(r'$V\, (A^3)$')
+
+    #    for ix, ax in enumerate(ax_list):
+    #        set_axlims(ax, xlims, "x")
+    #        if ix == len(ax_list) - 1:
+    #            ax.set_xlabel('t (ps)', fontsize=fontsize)
+    #        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+    #    return fig
+
+
+
 @dataclasses.dataclass
-class AseResults:
+class AseResults(HasPickleIO):
     """
     Container with the results produced by an ASE calculator.
     """
@@ -262,12 +355,14 @@ class AseResults:
         lines = []; app = lines.append
 
         app(f"Energy: {self.ene} (eV)")
-        app(f"Pressure: {self.pressure} ")
+        app(f"Pressure: {self.pressure} (Gpa)")
+
         fstats = self.get_fstats()
         for k, v in fstats.items():
-            app(f"{k} = {v}")
-        #app('Stress tensor:', r.stress)
-        if verbose:
+            app(f"{k} = {v} (eV/Ang)")
+
+        #if verbose:
+        if True:
             app('Forces (eV/Ang):')
             positions = self.atoms.get_positions()
             df = pd.DataFrame(dict(
@@ -278,7 +373,15 @@ class AseResults:
                 fy=self.forces[:,1],
                 fz=self.forces[:,2],
             ))
-            app(str(df))
+            app(df.to_string())
+
+        #if self.magmoms is not None:
+        #    for ia, (atom, magmoms) in enumerate(zip(self.atoms, self.magmoms)):
+        #        print(atom, magmoms)
+
+        app('Stress tensor:')
+        for row in self.strees:
+            app(str(row))
 
         return "\n".join(lines)
 
@@ -323,19 +426,6 @@ def diff_stats(xs, ys):
        ADIFF_MAX=abs_diff.max(),
        ADIFF_STD=abs_diff.std(),
     )
-
-
-def make_square_axes(ax_mat):
-    """
-    Make an axes square in screen units.
-    Should be called after plotting.
-    """
-    return
-    for ax in ax_mat.flat:
-        #ax.set_aspect(1 / ax.get_data_ratio())
-        #ax.set(adjustable='box', aspect='equal')
-        ax.set(adjustable='datalim', aspect='equal')
-    #ax.set_aspect(1 / ax.get_data_ratio())
 
 
 class AseResultsComparator(HasPickleIO):
@@ -595,7 +685,6 @@ def main():
                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
         if "title" not in kwargs: fig.suptitle(f"Energies in eV for {self.structure.latex_formula}")
-        #make_square_axes(ax_mat)
         return fig
 
     @add_fig_kwargs
@@ -628,7 +717,6 @@ def main():
                 ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
         if "title" not in kwargs: fig.suptitle(f"Cartesian forces in ev/Ang for {self.structure.latex_formula}")
-        #make_square_axes(ax_mat)
         return fig
 
     @add_fig_kwargs
@@ -661,7 +749,6 @@ def main():
                 ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
         if "title" not in kwargs: fig.suptitle(f"Stresses in (eV/Ang^2) for {self.structure.latex_formula}")
-        #make_square_axes(ax_mat)
         return fig
 
     @add_fig_kwargs
@@ -2785,6 +2872,29 @@ class MolecularDynamics:
         self.dyn.attach(MDLogger(self.dyn, self.atoms, '-', header=True, stress=False,
                         peratom=True, mode="a"), interval=self.loginterval)
         self.dyn.run(steps)
+
+
+class GsMl(MlBase):
+    """
+    Single point calculation of energy, forces and stress with ML potential.
+    """
+    def __init__(self, atoms, nn_name, verbose, workdir, prefix=None):
+        super().__init__(workdir, prefix)
+        self.atoms = atoms
+        self.nn_name = nn_name
+        self.verbose = verbose
+
+    def run(self):
+        calc = CalcBuilder(self.nn_name).get_calculator()
+        self.atoms.calc = calc
+        res = AseResults.from_atoms(self.atoms)
+        print(res.to_string(verbose=self.verbose))
+
+        # Write ASE traj file with results.
+        with open(self.workdir / "gs.traj", "wb") as fd:
+            write_traj(fd, [self.atoms])
+
+        return 0
 
 
 class MlCompareNNs(MlBase):

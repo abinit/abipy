@@ -669,7 +669,7 @@ def install(ctx, nn_names, update, verbose):
 @click.option('--num-tests', "-n", default=20, type=int, show_default=True, help='Number of configurations to generate.')
 @click.option("--rattle", default=0.2, type=float, show_default=True, help="Displace atoms randomly with this stdev.")
 @click.option("-srv", "--stdev-rvol", default=0.1, type=float, show_default=True,
-              help="Scale volumes randomly around input v0 with stdev: v0*value")
+              help="Scale volumes randomly around input v0 with stdev: v0 * value")
 @add_workdir_verbose_opts
 @click.option('--config', default='abiml_compare.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def compare(ctx, filepath, nn_names,
@@ -692,20 +692,17 @@ def compare(ctx, filepath, nn_names,
 @click.pass_context
 @click.argument("filepath", type=str)
 @add_nn_name_opt
+@add_workdir_verbose_opts
 @click.option('--config', default='abiml_gs.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
-def gs(ctx, filepath, nn_name):
+def gs(ctx, filepath, nn_name,
+       workdir, verbose,
+       ):
     """
-    Compute grounde-state properties and magnetic moments with ML potential.
+    Compute ground-state properties and magnetic moments with ML potential(s).
     """
     atoms = _get_atoms_from_filepath(filepath)
-    calc = aseml.CalcBuilder(nn_name).get_calculator()
-    #magmoms = atoms.get_magnetic_moments()
-    from abipy.ml.aseml import AseResults
-    res = AseResults.from_atoms(atoms, calc=calc)
-
-    for ia, (atom, magmoms) in enumerate(zip(res.atoms, res.magmoms)):
-        print(atom, magmoms)
-
+    gs = aseml.GsMl(atoms, nn_name, verbose, workdir, prefix="_abiml_gs_")
+    gs.run()
     return 0
 
 

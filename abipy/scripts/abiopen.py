@@ -333,11 +333,15 @@ Use `print(abifile)` to print the object.
 
 def handle_ase_traj(options):
     """Handle ASE trajectory file."""
-    from ase.io import read
-    traj = read(options.filepath, index=":")
-    print(f"ASE trajectory with {len(traj)} configurations")
-    from abipy.ml.aseml import AseResults
-    first, last = AseResults(traj[0]), AseResults(traj[-1])
+    from abipy.ml.aseml import AseTrajectoryPlotter
+    plotter = AseTrajectoryPlotter.from_file(options.filepath)
+    print(plotter.to_string(verbose=options.verbose))
+
+    #if len(plotter.traj) > 1):
+    plotter.plot_cell()
+    #plotter.plot_cell()
+
+    return 0
 
 
 def handle_json(options):
