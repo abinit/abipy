@@ -4,11 +4,11 @@ Alas mobility
 =============
 
 This example shows how to plot the electronic band structure,
-phonon dispersion, electron linewidths and 
-the convergence of the electron mobility in the case of AlAs 
+phonon dispersion, electron linewidths and
+the convergence of the electron mobility in the case of AlAs
 (see example e-ph mobility flow).
 Only electrons are considered, but the script can easily be
-extended to holes (and combination of e/h as well). 
+extended to holes (and combination of e/h as well).
 """
 #%%
 
@@ -80,13 +80,13 @@ with abiopen(root + 'w3/t2/outdata/out_SIGEPH.nc') as abifile:
     qparray = qparray[np.nonzero(qparray)]
     eigs = qparray.real - np.min(qparray.real) # 0 to CBM
     lws = 2000*qparray.imag # Factor or 2x1000 to get from linewidths to 1/tau in meV
-    
+
     # Then within MRTA
     qparray_mrta = abifile.get_qp_array(mode="ks+lifetimes", rta_type="mrta")
     qparray_mrta = qparray_mrta[np.nonzero(qparray_mrta)]
     eigs_mrta = qparray_mrta.real - np.min(qparray_mrta.real) # 0 to CBM
     lws_mrta = 2000*qparray_mrta.imag
-    
+
 # Plot 1/tau
 axes[0, 1].plot(eigs, lws, 'ob', markersize=mz, label='SERTA')
 axes[0, 1].plot(eigs_mrta, lws_mrta, 'xr', markersize=mz, label='MRTA')
