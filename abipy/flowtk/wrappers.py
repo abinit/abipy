@@ -99,7 +99,6 @@ class ExecWrapper:
         qjob, process = qadapter.submit_to_queue(script_file)
         self.stdout_data, self.stderr_data = process.communicate()
         self.returncode = process.returncode
-        #raise self.Error("%s returned %s\n cmd_str: %s" % (self, self.returncode, self.cmd_str))
 
         return self.returncode
 
@@ -296,7 +295,7 @@ class Cut3D(ExecWrapper):
         retcode = self._execute(workdir, with_mpirun=False)
 
         if retcode != 0:
-            raise RuntimeError("Error while running cut3d in %s." % workdir)
+            raise RuntimeError("Error while running cut3d in %s" % workdir)
 
         output_filepath = cut3d_input.output_filepath
 
@@ -345,3 +344,33 @@ class Fold2Bloch(ExecWrapper):
             raise RuntimeError("Cannot find *_FOLD2BLOCH.nc file in: %s" % str(os.listdir(workdir)))
 
         return os.path.join(workdir, filepaths[0])
+
+
+class Lruj(ExecWrapper):
+    """
+    Wraps the lruj Fortran executable.
+    """
+    _name = "lruj"
+
+    def run(self, nc_paths: list[str], workdir=None) -> int:
+        """
+        Execute lruj inside directory `workdir` to analyze `nc_paths`.
+        """
+        workdir = get_workdir(workdir)
+
+        self.stdin_fname = None
+        self.stdout_fname, self.stderr_fname = \
+            map(os.path.join, 2 * [workdir], ["lruj.stdout", "lruj.stderr"])
+
+        # We work with absolute paths.
+        nc_paths = [os.path.abspath(s) for s in list_strings(nc_paths)]
+
+        retcode = self.execute(workdir, exec_args=nc_paths)
+        if retcode != 0:
+            print("stdout:")
+            print(self.stdout_data)
+            print("stderr:")
+            print(self.stderr_data)
+            raise RuntimeError("Error while running lruj in %s" % workdir)
+
+        return retcode

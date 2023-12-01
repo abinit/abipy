@@ -201,12 +201,13 @@ def diff_two_structures(label1, structure1, label2, structure2, fmt, file=sys.st
 @dataclasses.dataclass
 class AseResults:
     """
-    Container with the results produced by the ASE calculator.
+    Container with the results produced by an ASE calculator.
     """
     atoms: Atoms
     ene: float
-    stress: np.ndarray  # 3x3 matrix with stress
+    stress: np.ndarray   # 3x3 matrix with stress tensor.
     forces: np.ndarray
+    magmoms: np.ndarray  # None if calculator does not provide magmoms.
 
     @classmethod
     def from_traj_inds(cls, trajectory: Trajectory, *inds) -> AseResults:
@@ -221,13 +222,20 @@ class AseResults:
 
         from ase.stress import voigt_6_to_full_3x3_strain
         stress_voigt = atoms.get_stress()
-        #print(stress_voigt)
         stress = voigt_6_to_full_3x3_strain(stress_voigt)
+
+        from ase.calculators.calculator import PropertyNotImplementedError
+        try:
+            magmoms = atoms.get_magnetic_moments()
+        except PropertyNotImplementedError:
+            magmoms = None
 
         results = cls(atoms=atoms.copy(),
                       ene=float(atoms.get_potential_energy()),
                       stress=stress,
-                      forces=atoms.get_forces())
+                      forces=atoms.get_forces(),
+                      magmoms=magmoms)
+
         if calc is not None:
             atoms.calc = None
         return results
@@ -1187,8 +1195,8 @@ def install_nn_names(nn_names="all", update=False, verbose=0) -> None:
     Install NN potentials in the environment using pip.
 
     Args:
-        nn_names:
-        update:
+        nn_names: List of NN potentisl to install.
+        update: True if packages should be updated.
         verbose: Verbosity level.
     """
     def pip_install(nn_name) -> int:
@@ -1248,9 +1256,9 @@ class CalcBuilder:
         "chgnet",
         "alignn",
         "mace",
-        #"pyace",
-        #"quip",
-        #"nequip",
+        "pyace",
+        "nequip",
+        "metatensor",
     ]
 
     def __init__(self, name: str, **kwargs):
@@ -1268,11 +1276,11 @@ class CalcBuilder:
             raise ValueError(f"Invalid {name=}, it should be in {self.ALL_NN_TYPES=}")
 
         self._model = None
-        #print(self)
 
     def __str__(self):
         if self.model_name is not None:
             return f"{self.__class__.__name__} nn_type: {self.nn_type}, model_name: {self.model_name}"
+
         return f"{self.__class__.__name__} nn_type: {self.nn_type}"
 
     # pickle support.
@@ -1399,11 +1407,14 @@ class CalcBuilder:
             class MyMACECalculator(_MyCalculator, MACECalculator):
                 """Add abi_forces and abi_stress"""
 
+            self.model_path = os.path.expanduser("~/NN_MODELS/2023-08-14-mace-universal.model")
+            print("Using MACE model_path:", self.model_path)
+
             if self.model_path is None:
                 raise RuntimeError("MACECalculator requires model_path e.g. nn_name='mace@FILEPATH'")
 
             cls = MyMACECalculator if with_delta else MACECalculator
-            return cls(model_path=self.model_path, device="cpu") #, default_dtype='float32')
+            return cls(model_paths=self.model_path, device="cpu") #, default_dtype='float32')
 
         if self.nn_type == "nequip":
             try:
@@ -2778,10 +2789,9 @@ class MolecularDynamics:
 
 class MlCompareNNs(MlBase):
     """
-    Compare energies, forces and stresses obtaiend with different ML potentials.
+    Compare energies, forces and stresses obtained with different ML potentials.
     Also profile the time required.
     """
-
     def __init__(self, atoms, nn_names, num_tests, rattle, stdev_rvol, verbose, workdir, prefix=None):
         """
         Args:
@@ -2856,3 +2866,207 @@ class MlCompareNNs(MlBase):
 
         self._finalize()
         return comp
+
+
+
+class MlCwfEos(MlBase):
+    """
+    Compute EOS with different ML potentials.
+    """
+    def __init__(self, elements, nn_names, verbose, workdir, prefix=None):
+        """
+        Args:
+            atoms: ASE atoms
+            elements: String or List of strings with the chemical symbols to consider.
+            nn_names: String or list of strings defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
+            workdir: Working directory.
+        """
+        super().__init__(workdir, prefix)
+        self.elements = list_strings(elements)
+        self.nn_names = list_strings(nn_names)
+        self.verbose = verbose
+
+        self.configurations_set_name = {
+            "unaries-verification-PBE-v1": ["X/SC", "X/FCC", "X/BCC", "X/Diamond"],
+            "oxides-verification-PBE-v1": ["XO", "XO2", "XO3", "X2O", "X2O3", "X2O5"],
+        }
+
+        root = Path("/Users/giantomassi/git_repos/acwf-verification-scripts/0-preliminary-do-not-run")
+        self.dirpath_set_name = {
+            "unaries-verification-PBE-v1": root / "unaries" / "xsfs-unaries-verification-PBE-v1",
+            "oxides-verification-PBE-v1": root / "oxides" / "xsfs-oxides-verification-PBE-v1",
+        }
+
+    def to_string(self, verbose=0) -> str:
+        """String representation with verbosity level `verbose`."""
+        return f"""\
+
+{self.__class__.__name__} parameters:
+
+     elements    = {self.elements}
+     nn_names    = {self.nn_names}
+     workdir     = {self.workdir}
+     verbose     = {self.verbose}
+"""
+
+    def run(self):
+        for nn_name in self.nn_names:
+            for set_name in self.configurations_set_name:
+                self.run_nn_name_set_name(nn_name, set_name)
+
+    def run_nn_name_set_name(self, nn_name: str, set_name: str) -> dict:
+        print(f"Computing ML EOS with {nn_name=}, {set_name=} ...")
+        # This piece is taken from get_results.py
+        try:
+            from acwf_paper_plots.eosfit_31_adapted import BM, echarge
+        except ImportError as exc:
+            raise ImportError("ase not installed. Try `pip install ase`.") from exc
+
+        calc = as_calculator(nn_name)
+        warning_lines = []
+
+        uuid_mapping = {}
+        all_missing_outputs = {}
+        completely_off = []
+        failed_wfs = []
+        all_eos_data = {}
+        all_stress_data = {}
+        all_BM_fit_data = {}
+        num_atoms_in_sim_cell = {}
+
+        import uuid
+        for element in self.elements:
+            for configuration in self.configurations_set_name[set_name]:
+                my_uuid = uuid.uuid4().hex
+                uuid_mapping[f'{element}-{configuration}'] = {
+                    'structure': my_uuid,
+                    'eos_workflow': my_uuid
+                }
+
+                #count = 7
+                #increment = 0.02
+                #return tuple(float(1 + i * increment - (count - 1) * increment / 2) for i in range(count))
+
+                conf = configuration.replace("X/", "")
+                filepath = self.dirpath_set_name[set_name] / f"{element}-{conf}.xsf"
+                v0_atoms = read(filepath, format='xsf')
+                v0 = v0_atoms.get_volume()
+                volumes = (v0 * np.array([0.94, 0.96, 0.98, 1.00, 1.02, 1.04, 1.06])).tolist()
+                energies, stresses = [], []
+
+                # Initialize to None if the outputs are not there
+                eos_data = None
+                stress_data = None
+                BM_fit_data = None
+                num_atoms = len(v0_atoms)
+
+                try:
+                    for volume in volumes:
+                        #ase = structure.get_ase().copy()
+                        #ase.set_cell(ase.get_cell() * float(scale_factor)**(1 / 3), scale_atoms=True)
+                        atoms = to_ase_atoms(Structure.as_structure(v0_atoms).scale_lattice(volume))
+                        r = AseResults.from_atoms(atoms, calc=calc)
+                        energies.append(r.ene)
+                        stresses.append(r.stress.tolist())
+
+                    eos_data = list(zip(volumes, energies))
+                    stress_data = list(zip(volumes, stresses))
+                    # This line disables the visualization of stress
+                    stress_data = None
+                    #for v, e in eos_data: print(v, e)
+                    #except IndexError:
+
+                    # Check if the central point was completely off (i.e. the minimum of the energies is
+                    # on the very left or very right of the volume range)
+                    min_loc = np.array(energies).argmin()
+                    if min_loc == 0:
+                        # Side is whether the minimum occurs on the left side (small volumes) or right side (large volumes)
+                        completely_off.append({'element': element, 'configuration': configuration, 'side': 'left'})
+                    elif min_loc == len(energies) - 1:
+                        completely_off.append({'element': element, 'configuration': configuration, 'side': 'right'})
+
+                    try:
+                        min_volume, E0, bulk_modulus_internal, bulk_deriv, residuals = BM(np.array(eos_data))
+                        bulk_modulus_GPa = bulk_modulus_internal * echarge * 1.0e21
+                        #1 eV/Angstrom3 = 160.21766208 GPa
+                        bulk_modulus_ev_ang3 = bulk_modulus_GPa / 160.21766208
+                        BM_fit_data = {
+                            'min_volume': min_volume,
+                            'E0': E0,
+                            'bulk_modulus_ev_ang3': bulk_modulus_ev_ang3,
+                            'bulk_deriv': bulk_deriv,
+                            'residuals': residuals[0]
+                        }
+                        if residuals[0] > 1.e-3:
+                            warning_lines.append(f"WARNING! High fit residuals: {residuals[0]} for {element} {configuration}")
+                    except ValueError as exc:
+                        # If we cannot find a minimum
+                        # Note that BM_fit_data was already set to None at the top
+                        warning_lines.append(f"WARNING! Unable to fit for {element=} {configuration=}")
+                        #print(str(exc))
+
+                except Exception as exc:
+                    warning_lines.append(f"WARNING! Unable to compute E(V) for {element=} {configuration=}")
+                    #print(str(exc))
+
+                all_eos_data[f'{element}-{configuration}'] = eos_data
+                num_atoms_in_sim_cell[f'{element}-{configuration}'] = num_atoms
+                if stress_data is None:
+                    stress_data = list(zip(volumes, [None for _ in range(len(volumes))]))
+                all_stress_data[f'{element}-{configuration}'] = stress_data
+                all_BM_fit_data[f'{element}-{configuration}'] = BM_fit_data
+
+        data = {
+            'script_version': "0.0.4",
+            'set_name': set_name,
+            # Mapping from strings like "He-X2O" to a dictionary with the UUIDs of the structure and the EOS workflow
+            'uuid_mapping': uuid_mapping,
+            # A list of dictionaries with information on the workchains that did not finish with a 0 exit code
+            'failed_wfs': failed_wfs,
+            # A dictionary that indicate for which elements and configurations there are missing outputs,
+            # (only for the workchains that still had enough volumes to be considered for a fit)
+            'missing_outputs': all_missing_outputs,
+            # A list of dictionaries that indicate which elements and configurations have been computed completely
+            # off-centre (meaning that the minimum of all computed energies is on either of the two edges, i.e. for
+            # the smallest or largest volume)
+            'completely_off': completely_off,
+            # Dictionary with the EOS data (volumes and energies datapoints). The keys are the same as the `uuid_mapping`.
+            # Values can be None.
+            'eos_data': all_eos_data,
+            'stress_data': all_stress_data,
+            # Birch-Murnaghan fit data. See above for the keys. Can be None.
+            'BM_fit_data': all_BM_fit_data,
+            'num_atoms_in_sim_cell': num_atoms_in_sim_cell
+        }
+
+        # Print some statistics on the results
+        warning_lines.append("")
+        #warning_lines.append("Counter of states: " + str(Counter(states)))
+        good_cnt = len([eos_data for eos_data in data['eos_data'] if eos_data is not None])
+        warning_lines.append("")
+        warning_lines.append(f"Minimum completely off for {len(completely_off)}/{good_cnt}")
+        warning_lines.append("Completely off systems (symbol indicates if the minimum is on the very left or right):")
+        for system in data['completely_off']:
+            warning_lines.append(
+                f"- {system['element']} {system['configuration']} "
+                f"({'<' if system['side'] == 'left' else '>'})"
+            )
+
+        SET_NAME = set_name
+        PLUGIN_NAME = nn_name
+
+        fname = self.workdir / f"warnings-{SET_NAME}-{PLUGIN_NAME}.txt"
+        with open(fname, 'w') as fhandle:
+            for line in warning_lines:
+                fhandle.write(f"{line}\n")
+                print(line)
+        print(f"Warning log written to: '{fname}'.")
+
+        # Output results to file
+        fname = self.workdir / f"results-{SET_NAME}-{PLUGIN_NAME}.json"
+        with open(fname, 'w') as fhandle:
+            json.dump(data, fhandle, indent=2, sort_keys=True)
+        print(f"Output results written to: '{fname}'.")
+
+        return data
