@@ -1,0 +1,941 @@
+[33m
+                 `:-                                                               -:`
+         --`  .+/`                              `                                  `/+.  .-.
+   `.  :+.   /s-                   `yy         .yo                                   -s/   :+. .`
+ ./.  +o`   /s/           `-::-`   `yy.-::-`   `:-    .:::-`   -:`     .:`            /s/   :s- ./.
+.o.  /o:   .oo.         .oyo++syo. `yyys++oys. -ys  -syo++sy+` sy-     +y:            .oo-   oo` `o.
+++   oo.   /oo          yy-    -yy `yy:    .yy`-ys .ys`    /yo sy-     +y:             oo/   /o:  ++
++/   oo`   /oo         `yy.    .yy` yy.    `yy`-ys :ys     :yo oy/     oy:             +o/   :o:  /o
+-/   :+.   -++`         -sy+::+yyy` .sy+::+yy- -ys :yys/::oys. `oyo::/syy:            `++-   /+.  /:
+ --  `//    /+-           -/++/-//    -/++/-   `+: :yo:/++/.     .:++/:oy:            -+/   `+-  --
+  `.`  -:    :/`                                   :yo                 +y:           `/:`  `:. `.`
+        `..   .:.                                   .`                 `.           .:.  `..
+                ...                                                               ...
+[0m
+[4m[33mRunning on MacBook-Pro-de-Administrateur.local -- system Darwin -- Python 3.11.3 -- abirun-0.9.6[0m
+[32mAbiPy Manager:
+[Qadapter 0]
+ShellAdapter:localhost
+Hardware:
+   num_nodes: 4, sockets_per_node: 1, cores_per_socket: 2, mem_per_node 4096,
+Qadapter selected: 0
+[0m
+self.info  DATA TYPE INFORMATION: 
+ REAL:      Data type name: REAL(DP) 
+            Kind value:      8
+            Precision:      15
+            Smallest nonnegligible quantity relative to 1: 0.22204460E-015
+            Smallest positive number:                      0.22250739E-307
+            Largest representable number:                  0.17976931E+309
+ INTEGER:   Data type name: INTEGER(default) 
+            Kind value: 4
+            Bit size:   32
+            Largest representable number: 2147483647
+ LOGICAL:   Data type name: LOGICAL 
+            Kind value: 4
+ CHARACTER: Data type name: CHARACTER             Kind value: 1
+  ==== Using MPI-2 specifications ==== 
+  MPI-IO support is ON
+  xmpi_tag_ub ................   2147483647
+  xmpi_bsize_ch ..............            1
+  xmpi_bsize_int .............            4
+  xmpi_bsize_sp ..............            4
+  xmpi_bsize_dp ..............            8
+  xmpi_bsize_spc .............            8
+  xmpi_bsize_dpc .............           16
+  xmpio_bsize_frm ............            4
+  xmpi_address_kind ..........            8
+  xmpi_offset_kind ...........            8
+  MPI_WTICK ..................    9.9999999999999995E-007
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ CPP options activated during the build:
+
+                   CC_LLVM                  CXX_LLVM                    FC_GNU
+ 
+ HAVE_FC_ALLOCATABLE_DT...             HAVE_FC_ASYNC         HAVE_FC_BACKTRACE
+ 
+  HAVE_FC_COMMAND_ARGUMENT      HAVE_FC_COMMAND_LINE        HAVE_FC_CONTIGUOUS
+ 
+           HAVE_FC_CPUTIME              HAVE_FC_EXIT             HAVE_FC_FLUSH
+ 
+             HAVE_FC_GAMMA            HAVE_FC_GETENV   HAVE_FC_IEEE_ARITHMETIC
+ 
+   HAVE_FC_IEEE_EXCEPTIONS          HAVE_FC_INT_QUAD             HAVE_FC_IOMSG
+ 
+     HAVE_FC_ISO_C_BINDING  HAVE_FC_ISO_FORTRAN_2008        HAVE_FC_LONG_LINES
+ 
+        HAVE_FC_MOVE_ALLOC  HAVE_FC_ON_THE_FLY_SHAPE           HAVE_FC_PRIVATE
+ 
+         HAVE_FC_PROTECTED           HAVE_FC_SHIFTLR         HAVE_FC_STREAM_IO
+ 
+            HAVE_FC_SYSTEM          HAVE_FORTRAN2003                 HAVE_HDF5
+ 
+        HAVE_LIBPAW_ABINIT      HAVE_LIBTETRA_ABINIT                HAVE_LIBXC
+ 
+         HAVE_LINALG_AXPBY HAVE_LINALG_OPENBLAS_T...                  HAVE_MPI
+ 
+                 HAVE_MPI2       HAVE_MPI_IALLGATHER       HAVE_MPI_IALLREDUCE
+ 
+        HAVE_MPI_IALLTOALL       HAVE_MPI_IALLTOALLV           HAVE_MPI_IBCAST
+ 
+         HAVE_MPI_IGATHERV        HAVE_MPI_INTEGER16               HAVE_MPI_IO
+ 
+ HAVE_MPI_TYPE_CREATE_S...               HAVE_NETCDF       HAVE_NETCDF_FORTRAN
+ 
+         HAVE_TIMER_ABINIT                                                      
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ === Build Information === 
+  Version       : 9.11.1
+  Build target  : aarch64_darwin21.6.0_gnu13.1
+  Build date    : 20230710
+
+ === Compiler Suite === 
+  C compiler       : llvm14.0
+  C++ compiler     : llvm14.0
+  Fortran compiler : gnu13.1
+  CFLAGS           : -g -O2
+  CXXFLAGS         : -g -O2 -mtune=native -mcpu=native
+  FCFLAGS          : -g -ffree-line-length-none -fallow-argument-mismatch     -I/opt/hom ...
+  FC_LDFLAGS       : 
+
+ === Optimizations === 
+  Debug level        : basic
+  Optimization level : standard
+  Architecture       : _
+
+ === Multicore === 
+  Parallel build : /opt/homebrew/opt/open-mpi
+  Parallel I/O   : 
+  openMP support : no
+  GPU support    : 
+
+ === Connectors / Fallbacks === 
+  LINALG flavor  : openblas
+  FFT flavor     : goedecker
+  HDF5           : yes
+  NetCDF         : yes
+  NetCDF Fortran : yes
+  LibXC          : yes
+  Wannier90      : no
+
+ === Experimental features === 
+  Exports             : 
+  GW double-precision : 
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Default optimizations:
+   -O2 -mtune=native -march=native
+
+
+ Optimizations for 43_ptgroups:
+   -O0
+
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+ DATA TYPE INFORMATION: 
+ REAL:      Data type name: REAL(DP) 
+            Kind value:      8
+            Precision:      15
+            Smallest nonnegligible quantity relative to 1: 0.22204460E-015
+            Smallest positive number:                      0.22250739E-307
+            Largest representable number:                  0.17976931E+309
+ INTEGER:   Data type name: INTEGER(default) 
+            Kind value: 4
+            Bit size:   32
+            Largest representable number: 2147483647
+ LOGICAL:   Data type name: LOGICAL 
+            Kind value: 4
+ CHARACTER: Data type name: CHARACTER             Kind value: 1
+  ==== Using MPI-2 specifications ==== 
+  MPI-IO support is ON
+  xmpi_tag_ub ................   2147483647
+  xmpi_bsize_ch ..............            1
+  xmpi_bsize_int .............            4
+  xmpi_bsize_sp ..............            4
+  xmpi_bsize_dp ..............            8
+  xmpi_bsize_spc .............            8
+  xmpi_bsize_dpc .............           16
+  xmpio_bsize_frm ............            4
+  xmpi_address_kind ..........            8
+  xmpi_offset_kind ...........            8
+  MPI_WTICK ..................    9.9999999999999995E-007
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ CPP options activated during the build:
+
+                   CC_LLVM                  CXX_LLVM                    FC_GNU
+ 
+ HAVE_FC_ALLOCATABLE_DT...             HAVE_FC_ASYNC         HAVE_FC_BACKTRACE
+ 
+  HAVE_FC_COMMAND_ARGUMENT      HAVE_FC_COMMAND_LINE        HAVE_FC_CONTIGUOUS
+ 
+           HAVE_FC_CPUTIME              HAVE_FC_EXIT             HAVE_FC_FLUSH
+ 
+             HAVE_FC_GAMMA            HAVE_FC_GETENV   HAVE_FC_IEEE_ARITHMETIC
+ 
+   HAVE_FC_IEEE_EXCEPTIONS          HAVE_FC_INT_QUAD             HAVE_FC_IOMSG
+ 
+     HAVE_FC_ISO_C_BINDING  HAVE_FC_ISO_FORTRAN_2008        HAVE_FC_LONG_LINES
+ 
+        HAVE_FC_MOVE_ALLOC  HAVE_FC_ON_THE_FLY_SHAPE           HAVE_FC_PRIVATE
+ 
+         HAVE_FC_PROTECTED           HAVE_FC_SHIFTLR         HAVE_FC_STREAM_IO
+ 
+            HAVE_FC_SYSTEM          HAVE_FORTRAN2003                 HAVE_HDF5
+ 
+        HAVE_LIBPAW_ABINIT      HAVE_LIBTETRA_ABINIT                HAVE_LIBXC
+ 
+         HAVE_LINALG_AXPBY HAVE_LINALG_OPENBLAS_T...                  HAVE_MPI
+ 
+                 HAVE_MPI2       HAVE_MPI_IALLGATHER       HAVE_MPI_IALLREDUCE
+ 
+        HAVE_MPI_IALLTOALL       HAVE_MPI_IALLTOALLV           HAVE_MPI_IBCAST
+ 
+         HAVE_MPI_IGATHERV        HAVE_MPI_INTEGER16               HAVE_MPI_IO
+ 
+ HAVE_MPI_TYPE_CREATE_S...               HAVE_NETCDF       HAVE_NETCDF_FORTRAN
+ 
+         HAVE_TIMER_ABINIT                                                      
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ === Build Information === 
+  Version       : 9.11.1
+  Build target  : aarch64_darwin21.6.0_gnu13.1
+  Build date    : 20230710
+
+ === Compiler Suite === 
+  C compiler       : llvm14.0
+  C++ compiler     : llvm14.0
+  Fortran compiler : gnu13.1
+  CFLAGS           : -g -O2
+  CXXFLAGS         : -g -O2 -mtune=native -mcpu=native
+  FCFLAGS          : -g -ffree-line-length-none -fallow-argument-mismatch     -I/opt/hom ...
+  FC_LDFLAGS       : 
+
+ === Optimizations === 
+  Debug level        : basic
+  Optimization level : standard
+  Architecture       : _
+
+ === Multicore === 
+  Parallel build : /opt/homebrew/opt/open-mpi
+  Parallel I/O   : 
+  openMP support : no
+  GPU support    : 
+
+ === Connectors / Fallbacks === 
+  LINALG flavor  : openblas
+  FFT flavor     : goedecker
+  HDF5           : yes
+  NetCDF         : yes
+  NetCDF Fortran : yes
+  LibXC          : yes
+  Wannier90      : no
+
+ === Experimental features === 
+  Exports             : 
+  GW double-precision : 
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ Default optimizations:
+   -O2 -mtune=native -march=native
+
+
+ Optimizations for 43_ptgroups:
+   -O0
+
+
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+[35mAbinitbuild:
+Abinit Build Information:
+    Abinit version: 9.11.1
+    MPI: True, MPI-IO: True, OpenMP: False
+    Netcdf: True[0m
+
+[33mAbipy Scheduler:
+PyFlowScheduler, Pid: 37682
+Scheduler options:
+{'weeks': 0, 'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 10}
+[0m
+[34mInstalled packages:[0m
+[34mPackage         Version
+--------------  ---------
+system          Darwin
+python_version  3.11.3
+numpy           1.23.5
+scipy           1.10.1
+netCDF4         1.6.3
+apscheduler     3.10.1
+pydispatch      2.0.5
+yaml            6.0
+boken           2.4.3
+panel           0.14.4
+plotly          5.14.1
+ase             3.22.1
+phonopy         2.18.0
+monty           2022.9.9
+pymatgen        2023.7.17
+abipy           0.9.6[0m
+
+PyFlowScheduler, Pid: 37682
+Scheduler options:
+{'weeks': 0, 'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 10}
+[33m[Sun Oct  8 11:05:50 2023] Number of launches: 1[0m
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [34mSubmitted[0m | 37690@local | 1|  1|2.0    | 0|  0      | RelaxTask | (1, 0, 0)       | 0:00:00Q |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:00:00R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:00:10R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:00:20R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:00:30R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:00:40R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:00:50R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:01:00R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:01:10R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:01:20R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:01:30R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:01:40R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:01:50R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:02:00R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:02:10R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:02:20R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:02:30R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:02:40R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:02:50R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:03:00R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:03:10R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:03:20R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:03:30R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:03:40R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:03:50R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:04:00R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:04:10R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:04:20R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:04:30R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:04:40R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:04:50R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status   | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+==========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [35mRunning[0m  | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:00R |      4924 |
++--------+----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+in iteration step 0
+[33m[Sun Oct  8 11:11:10 2023] Number of launches: 1[0m
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [34mSubmitted[0m | 37840@local | 1|  1|2.0    | 0|  0      | RelaxTask | (1, 0, 0)       | 0:00:00Q |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:00:00R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:00:10R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:00:20R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:00:30R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:00:40R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:00:50R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:01:00R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:01:10R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:01:20R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:01:30R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:01:40R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:01:50R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:02:00R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:02:10R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:02:20R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:02:30R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:02:40R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:02:50R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:03:00R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:03:10R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:03:20R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:03:30R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:03:40R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:03:50R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:04:00R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:04:10R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:04:20R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:04:30R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:04:40R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:04:50R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [35mRunning[0m   | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:00R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+in iteration step 1
+[33m[Sun Oct  8 11:16:30 2023] Number of launches: 3[0m
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [32mCompleted[0m | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:15R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t2  | [34mSubmitted[0m | 37882@local | 1|  1|2.0    | 0|  0      | ScfTask   | (1, 0, 0)       | 0:00:00Q |      4926 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t3  | [34mSubmitted[0m | 37884@local | 1|  1|2.0    | 0|  0      | ScfTask   | (1, 0, 0)       | 0:00:00Q |      4927 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t4  | [34mSubmitted[0m | 37886@local | 1|  1|2.0    | 0|  0      | ScfTask   | (1, 0, 0)       | 0:00:00Q |      4928 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t5  | Ready[0m     | None        | 1|  1|2.0    | NA|NA      | ScfTask   | (0, 0, 0)       | None     |      4929 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+[33m[Sun Oct  8 11:16:40 2023] Number of launches: 1[0m
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=False
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| Task   | Status    | Queue       | MPI|Omp|Gb   | Warn|Com   | Class     | Sub|Rest|Corr   | Time     |   Node_ID |
++========+===========+=============+==============+============+===========+=================+==========+===========+
+| w0_t0  | [32mCompleted[0m | 37690@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:20R |      4924 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t1  | [32mCompleted[0m | 37840@local | 1|  1|2.0    | 0|  4      | RelaxTask | (1, 0, 0)       | 0:05:15R |      4925 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t2  | [35mRunning[0m   | 37882@local | 1|  1|2.0    | 1|  3      | ScfTask   | (1, 0, 0)       | 0:00:00R |      4926 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t3  | [35mRunning[0m   | 37884@local | 1|  1|2.0    | 4|  3      | ScfTask   | (1, 0, 0)       | 0:00:00R |      4927 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t4  | [35mRunning[0m   | 37886@local | 1|  1|2.0    | 1|  3      | ScfTask   | (1, 0, 0)       | 0:00:00R |      4928 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+| w0_t5  | [34mSubmitted[0m | 37898@local | 1|  1|2.0    | 0|  0      | ScfTask   | (1, 0, 0)       | 0:00:00Q |      4929 |
++--------+-----------+-------------+--------------+------------+-----------+-----------------+----------+-----------+
+
+Too many jobs in the queue: 4 >= 4.
+ No job will be submitted.
+Too many jobs in the queue: 4 >= 4.
+ No job will be submitted.
+Too many jobs in the queue: 4 >= 4.
+ No job will be submitted.
+Too many jobs in the queue: 4 >= 4.
+ No job will be submitted.
+Too many jobs in the queue: 4 >= 4.
+ No job will be submitted.
+in iteration step 2
+
+Work #0: <LumiWork, node_id=4923, workdir=flow_lumi_NV_center/w0>, Finalized=[32mTrue[0m
+  Finalized works are not shown. Use verbose > 0 to force output.
+[32m
+all_ok reached
+[0m
+Calling flow.finalize() ...
+
+Submitted on: Sun Oct  8 11:05:50 2023
+Completed on: Sun Oct  8 11:17:42 2023
+Elapsed time: 0:11:51.620257
+Flow completed successfully
+

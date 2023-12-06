@@ -30,8 +30,6 @@ class Lineshape():
                    forces_gs=forces,
                    forces_ex=None)
 
-
-
     def __init__(self, E_zpl, ph_eigvec, ph_eigfreq, structuregs, structureex,
                  use_forces=False,forces_gs=None,forces_ex=None):
         """

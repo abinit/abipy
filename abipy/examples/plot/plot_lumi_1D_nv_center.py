@@ -55,3 +55,5 @@ nscf_files=[abidata.ref_file("relaxed_gs_nscf_GSR.nc"),
             abidata.ref_file("relaxed_ex_nscf_GSR.nc"),
             abidata.ref_file("unrelaxed_gs_nscf_GSR.nc")]
 NV_center.plot_four_BandStructures(nscf_files, ylims=[-4,4]);
+
+# %%

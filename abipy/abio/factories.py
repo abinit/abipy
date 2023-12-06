@@ -1692,6 +1692,7 @@ def minimal_scf_input(structure: Structure, pseudos) -> AbinitInput:
     inp["nband"] = 1
     inp["chkprim"] = 0
     inp["chksymbreak"] = 0
+    inp["maxnsym"] = 100000 # to be able to deal with supercells
     inp["charge"] = structure.num_valence_electrons(inp.pseudos) - 1
     inp["boxcutmin"] = 1.2
     return inp

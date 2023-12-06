@@ -51,3 +51,5 @@ SLA_site_1.plot_delta_R_distance(defect_symbol="Eu")
 SLA_site_1.draw_displaced_parabolas(scale_eff_freq=2.5);
 SLA_site_2.draw_displaced_parabolas(scale_eff_freq=2.5);
 
+
+# %%
