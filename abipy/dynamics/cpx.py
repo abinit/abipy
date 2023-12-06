@@ -113,7 +113,7 @@ class EvpFile(TextFile, NotebookWriter):
     for each time step of a CP simulation.
     The evp file has the following format:
 
-    # nfi tps(ps) ekinc T cell(K) Tion(K) etot enthal econs
+    # nfi tps(ps) ekinc Tcell(K) Tion(K) etot enthal econs
           0            0          300   -2099.0164    7.4066063   -2091.6098    19363.353    2188.2406    5.0978969
           10         0.01    557.43004   -2105.3429    13.762216   -2091.5807    16917.626    2188.2406    5.0978969
     ...
@@ -260,30 +260,33 @@ class Qe2Extxyz:
     Example:
 
         from abipy.dynamics.cpx import Qe2Extxyz
-        converter = Qe2Extxyz.from_input("cp.in")
-        coverter.write_xyz("extended.xyz", take_every=1)
+        converter = Qe2Extxyz.from_input("cp.in", code="cp")
+        converter.write_xyz("extended.xyz", take_every=1)
     """
 
     @classmethod
-    def from_input(cls, qe_input, prefix="cp"):
+    def from_input(cls, qe_input, code, prefix=None):
         """
         Build object from QE/CP input assuming all the other output files
         are located in the same directory with the given prefix.
         """
         qe_input = Path(str(qe_input)).absolute()
         directory = qe_input.cwd()
-        #from ase.io.espresso import read_fortran_namelist
-        #with open(, "rt") as fh:
-        #    atoms = read_espresso_in(fh)
-        #    fh.seek(0)
-        #    sections, card_lines = read_fortran_namelist(fh)
-        #control = sections["control"]
-        #prefix = control.get("prefix", default_prefix)
-        #from ase.io.espresso import read_espresso_in
-        #with open(qe_input, "rt") as fh:
-        #    self.initial_atoms = read_espresso_in(fh)
+        from ase.io.espresso import read_fortran_namelist
+        with open(qe_input, "rt") as fh:
+            sections, card_lines = read_fortran_namelist(fh)
+
+        # https://www.quantum-espresso.org/Doc/INPUT_CP.html
+        control = sections["control"]
+        calculation = control["calculation"]
+        #outdir = control["outdir"]
+
+        default_prefix = "cp" if code == "cp" else "pwscf"
+        if prefix is None:
+            prefix = control.get("prefix", default_prefix)
 
         pos_filepath = directory / f"{prefix}.pos"
+        for_filepath = directory / f"{prefix}.for"
         cell_filepath = directory / f"{prefix}.cel"
         evp_filepath = directory / f"{prefix}.evp"
         str_filepath = directory / f"{prefix}.str"
@@ -291,19 +294,22 @@ class Qe2Extxyz:
             # File with stresses is optional.
             str_filepath = None
 
-        return cls(qe_input, pos_filepath, cell_filepath, evp_filepath, str_filepath=str_filepath)
+        return cls(code, qe_input, pos_filepath, for_filepath, cell_filepath, evp_filepath, str_filepath=str_filepath)
 
-    def __init__(self, qe_input, pos_filepath, cell_filepath, evp_filepath, str_filepath=None):
+    def __init__(self, code, qe_input, pos_filepath, for_filepath, cell_filepath, evp_filepath, str_filepath=None):
         """
         Args:
+            code: Either "pwscf" or "cp".
             qe_input: QE/CP input file
             pos_filepath: File with cartesian positions.
+            for_filepath: File with cartesian forces.
             cell_filepath: File with lattice vectors.
             evp_filepath: File with energies
         """
         print(f"""
-Reading symbols from {qe_input=}
+Reading symbols from: {qe_input=}
 Reading positions from: {pos_filepath=}
+Reading forces from: {for_filepath=}
 Reading cell from: {cell_filepath=}
 Reading energies from: {evp_filepath=}
 Reading stresses from: {str_filepath=}
@@ -316,41 +322,46 @@ Reading stresses from: {str_filepath=}
             natom = len(self.initial_atoms)
             print("initial_atoms:", self.initial_atoms)
 
-        # Parse cell.
-        cell_nsteps, cells, cell_headers = parse_file_with_blocks(cell_filepath, 3)
-        # FIXME: row vectors or column vectors?
-        self.cells = np.reshape(cells, (cell_nsteps, 3, 3))
-
-        # Parse stress.
-        self.stresses = None
-        if str_filepath is not None:
-            str_nsteps, stresses, str_headers = parse_file_with_blocks(str_filepath, 3)
-            if str_nsteps != cell_nsteps:
-                raise RuntimeError(f"{str_nsteps=} != {cell_nsteps=}")
-
         # FIXME: Clarify units for positions, forces and stresses.
+        # NB: in QE/CP lengths are in Bohr
+        # but CP uses Hartree for energies whereas PW uses Rydberg
+        e_fact = 1.0 if code == "cp" else 0.5
 
-        # Parse Cartesian positions.
-        pos_nsteps, pos_cart, pos_headers = parse_file_with_blocks(pos_filepath, natom)
-        self.pos_cart = np.reshape(pos_cart, (pos_nsteps, natom, 3))
-        if pos_nsteps != cell_nsteps:
-            raise RuntimeError(f"{pos_nsteps=} != {cell_nsteps=}")
+        # Parse lattice vectors NB: in the cel file, lattice vectors are stored as column-vectors.
+        # so he have to transpose the data as ASE uses row-vectors.
+        cell_nsteps, cells, cell_headers = parse_file_with_blocks(cell_filepath, 3)
+        cells = np.reshape(cells, (cell_nsteps, 3, 3)) * abu.Bohr_Ang
+        self.cells = np.transpose(cells, (0, 2, 1)).copy()
 
-        # Parse Cartesian forces.
-        for_nsteps, forces_list, for_headers = parse_file_with_blocks(for_filepath, natom)
-        self.forces_list = np.reshape(forces_list, (for_nsteps, natom, 3))
-        if for_nsteps != cell_nsteps:
-            raise RuntimeError(f"{for_nsteps=} != {cell_nsteps=}")
-
-        # Get energies from evl file and convert from Ha to eV.
+        # Get energies from the evp file and convert from Ha to eV.
         with EvpFile(evp_filepath) as evp:
-            self.energies = evp.df["etot"].values * abu.Ha_to_eV
+            self.energies = evp.df["etot"].values * (e_fact * abu.Ha_to_eV)
             if len(self.energies) != cell_nsteps:
                 raise RuntimeError(f"{len(energies)=} != {cell_nsteps=}")
 
+        # Parse Cartesian positions (Bohr --> Ang)
+        pos_nsteps, pos_cart, pos_headers = parse_file_with_blocks(pos_filepath, natom)
+        self.pos_cart = np.reshape(pos_cart, (pos_nsteps, natom, 3)) * abu.Bohr_Ang
+        if pos_nsteps != cell_nsteps:
+            raise RuntimeError(f"{pos_nsteps=} != {cell_nsteps=}")
+
+        # Parse Cartesian forces (Ha/Bohr --> eV/Ang)
+        for_nsteps, forces_list, for_headers = parse_file_with_blocks(for_filepath, natom)
+        self.forces_step = np.reshape(forces_list, (for_nsteps, natom, 3)) * (e_fact * abu.Ha_to_eV / abu.Bohr_Ang)
+        if for_nsteps != cell_nsteps:
+            raise RuntimeError(f"{for_nsteps=} != {cell_nsteps=}")
+
+        # Optionally, parse stress. In ASE, stress is eV/Ang^3
+        self.stresses = None
+        if str_filepath is not None:
+            str_nsteps, stresses, str_headers = parse_file_with_blocks(str_filepath, 3)
+            self.stresses = np.reshape(stresses, (str_nsteps, 3, 3)) * (e_fact * abu.Ha_to_eV / abu.Bohr_Ang**3)
+            if str_nsteps != cell_nsteps:
+                raise RuntimeError(f"{str_nsteps=} != {cell_nsteps=}")
+
         self.nsteps = cell_nsteps
 
-    def write_xyz(self, xyz_filepath, take_every=1) -> None:
+    def write_xyz(self, xyz_filepath, take_every=1, pbc=True) -> None:
         """
         Write results in ASE extended xyz format.
 
@@ -358,13 +369,14 @@ Reading stresses from: {str_filepath=}
             xyz_filepath: Name of the XYZ file.
             take_every: Used to downsample the trajectory.
         """
+        print(f"Writing results in extended xyz format in: {xyz_filepath}")
         from ase.io import write
         with open(xyz_filepath, "wt") as fh:
-            for istep, atoms in enumerate(self.yield_atoms()):
+            for istep, atoms in enumerate(self.yield_atoms(pbc)):
                 if istep % take_every != 0: continue
                 write(fh, atoms, format='extxyz', append=True)
 
-    def yield_atoms(self):
+    def yield_atoms(self, pbc):
         """Yields ASE atoms along the trajectory."""
         from ase.atoms import Atoms
         from ase.calculators.singlepoint import SinglePointCalculator
@@ -372,14 +384,14 @@ Reading stresses from: {str_filepath=}
             atoms = Atoms(symbols=self.initial_atoms.symbols,
                           positions=self.pos_cart[istep],
                           cell=self.cells[istep],
-                          pbc=True,
+                          pbc=pbc,
                           )
 
             # Attach calculator with results.
             atoms.calc = SinglePointCalculator(atoms,
                                                energy=self.energies[istep],
                                                free_energy=self.energies[istep],
-                                               #forces=self.forces[istep],
+                                               forces=self.forces_step[istep],
                                                stress=self.stresses[istep] if self.stresses is not None else None,
                                                )
             yield atoms
