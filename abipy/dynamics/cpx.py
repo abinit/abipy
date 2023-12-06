@@ -23,7 +23,9 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import dataclasses
+import abipy.core.abinit_units as abu
 
+from pathlib import Path
 from monty.functools import lazy_property
 from monty.bisect import find_le
 from abipy.core.mixins import TextFile, NotebookWriter
@@ -33,8 +35,7 @@ from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, ge
     get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
 
 
-
-def parse_file_with_blocks(filepath: PathLike, block_size: int) -> tuple[int, np.ndarray, list]:
+def parse_file_with_blocks(filepath: PathLike, block_len: int) -> tuple[int, np.ndarray, list]:
     """
     Parse a QE file whose format is:
 
@@ -47,11 +48,11 @@ def parse_file_with_blocks(filepath: PathLike, block_size: int) -> tuple[int, np
          0.78345550025202E+01     0.67881458009071E+01     0.12273445304341E+01
          0.20762325213327E+01     0.59955571558384E+01     0.47335647385293E+01
 
-    i.e. a header followed by block_size lines
+    i.e. a header followed by block_len lines
 
     Args:
         filepath: Filename
-        block_size: Number of lines in block.
+        block_len: Number of lines in block.
 
     Return: (number_of_steps, array_to_be_reshaped, list_of_headers)
     """
@@ -59,7 +60,7 @@ def parse_file_with_blocks(filepath: PathLike, block_size: int) -> tuple[int, np
     with open(filepath, "rt") as fh:
         for il, line in enumerate(fh):
             toks = line.split()
-            if il % (block_size + 1) == 0:
+            if il % (block_len + 1) == 0:
                 #assert len(toks) == 2
                 headers.append([int(toks[0]), float(toks[1])])
                 nsteps += 1
@@ -250,3 +251,135 @@ def traj_to_qepos(traj_filepath: PathLike, pos_filepath: PathLike) -> None:
             fh.write(str(it) + '\n')
             for ia in range(natoms):
                 fh.write(str(pos_tac[it,ia,0]) + ' ' + str(pos_tac[it,ia,1]) + ' ' + str(pos_tac[it,ia,2]) + '\n')
+
+
+class Qe2Extxyz:
+    """
+    Convert QE/CP output files into ASE extended xyz format.
+
+    Example:
+
+        from abipy.dynamics.cpx import Qe2Extxyz
+        converter = Qe2Extxyz.from_input("cp.in")
+        coverter.write_xyz("extended.xyz", take_every=1)
+    """
+
+    @classmethod
+    def from_input(cls, qe_input, prefix="cp"):
+        """
+        Build object from QE/CP input assuming all the other output files
+        are located in the same directory with the given prefix.
+        """
+        qe_input = Path(str(qe_input)).absolute()
+        directory = qe_input.cwd()
+        #from ase.io.espresso import read_fortran_namelist
+        #with open(, "rt") as fh:
+        #    atoms = read_espresso_in(fh)
+        #    fh.seek(0)
+        #    sections, card_lines = read_fortran_namelist(fh)
+        #control = sections["control"]
+        #prefix = control.get("prefix", default_prefix)
+        #from ase.io.espresso import read_espresso_in
+        #with open(qe_input, "rt") as fh:
+        #    self.initial_atoms = read_espresso_in(fh)
+
+        pos_filepath = directory / f"{prefix}.pos"
+        cell_filepath = directory / f"{prefix}.cel"
+        evp_filepath = directory / f"{prefix}.evp"
+        str_filepath = directory / f"{prefix}.str"
+        if not str_filepath.exists():
+            # File with stresses is optional.
+            str_filepath = None
+
+        return cls(qe_input, pos_filepath, cell_filepath, evp_filepath, str_filepath=str_filepath)
+
+    def __init__(self, qe_input, pos_filepath, cell_filepath, evp_filepath, str_filepath=None):
+        """
+        Args:
+            qe_input: QE/CP input file
+            pos_filepath: File with cartesian positions.
+            cell_filepath: File with lattice vectors.
+            evp_filepath: File with energies
+        """
+        print(f"""
+Reading symbols from {qe_input=}
+Reading positions from: {pos_filepath=}
+Reading cell from: {cell_filepath=}
+Reading energies from: {evp_filepath=}
+Reading stresses from: {str_filepath=}
+        """)
+
+        # Parse input file to get initial_atoms and symbols
+        from ase.io.espresso import read_espresso_in
+        with open(qe_input, "rt") as fh:
+            self.initial_atoms = read_espresso_in(fh)
+            natom = len(self.initial_atoms)
+            print("initial_atoms:", self.initial_atoms)
+
+        # Parse cell.
+        cell_nsteps, cells, cell_headers = parse_file_with_blocks(cell_filepath, 3)
+        # FIXME: row vectors or column vectors?
+        self.cells = np.reshape(cells, (cell_nsteps, 3, 3))
+
+        # Parse stress.
+        self.stresses = None
+        if str_filepath is not None:
+            str_nsteps, stresses, str_headers = parse_file_with_blocks(str_filepath, 3)
+            if str_nsteps != cell_nsteps:
+                raise RuntimeError(f"{str_nsteps=} != {cell_nsteps=}")
+
+        # FIXME: Clarify units for positions, forces and stresses.
+
+        # Parse Cartesian positions.
+        pos_nsteps, pos_cart, pos_headers = parse_file_with_blocks(pos_filepath, natom)
+        self.pos_cart = np.reshape(pos_cart, (pos_nsteps, natom, 3))
+        if pos_nsteps != cell_nsteps:
+            raise RuntimeError(f"{pos_nsteps=} != {cell_nsteps=}")
+
+        # Parse Cartesian forces.
+        for_nsteps, forces_list, for_headers = parse_file_with_blocks(for_filepath, natom)
+        self.forces_list = np.reshape(forces_list, (for_nsteps, natom, 3))
+        if for_nsteps != cell_nsteps:
+            raise RuntimeError(f"{for_nsteps=} != {cell_nsteps=}")
+
+        # Get energies from evl file and convert from Ha to eV.
+        with EvpFile(evp_filepath) as evp:
+            self.energies = evp.df["etot"].values * abu.Ha_to_eV
+            if len(self.energies) != cell_nsteps:
+                raise RuntimeError(f"{len(energies)=} != {cell_nsteps=}")
+
+        self.nsteps = cell_nsteps
+
+    def write_xyz(self, xyz_filepath, take_every=1) -> None:
+        """
+        Write results in ASE extended xyz format.
+
+        Args:
+            xyz_filepath: Name of the XYZ file.
+            take_every: Used to downsample the trajectory.
+        """
+        from ase.io import write
+        with open(xyz_filepath, "wt") as fh:
+            for istep, atoms in enumerate(self.yield_atoms()):
+                if istep % take_every != 0: continue
+                write(fh, atoms, format='extxyz', append=True)
+
+    def yield_atoms(self):
+        """Yields ASE atoms along the trajectory."""
+        from ase.atoms import Atoms
+        from ase.calculators.singlepoint import SinglePointCalculator
+        for istep in range(self.nsteps):
+            atoms = Atoms(symbols=self.initial_atoms.symbols,
+                          positions=self.pos_cart[istep],
+                          cell=self.cells[istep],
+                          pbc=True,
+                          )
+
+            # Attach calculator with results.
+            atoms.calc = SinglePointCalculator(atoms,
+                                               energy=self.energies[istep],
+                                               free_energy=self.energies[istep],
+                                               #forces=self.forces[istep],
+                                               stress=self.stresses[istep] if self.stresses is not None else None,
+                                               )
+            yield atoms

@@ -4,6 +4,8 @@ Plot the LRUJ results
 =====================
 
 This example shows how to parse the output file produced by lruj and plot the results
+
+
 See also https://docs.abinit.org/tutorial/lruj/#43-execution-of-the-lruj-post-processinng-utility
 """
 from abipy.electrons.lruj import LrujAnalyzer, LrujResults
@@ -17,8 +19,7 @@ lr = LrujResults.from_file(outfile)
 #%%
 # Plot the fits.
 
-lr.plot(degrees="all", insetdegree=4, ptcolor0='blue',
-         ptitle="Hello World", fontsize=9)
+lr.plot(degrees="all", insetdegree=4, ptcolor0='blue', ptitle="Hello World", fontsize=9)
 
 #filepaths = [
 #    "tlruj_2.o_DS1_LRUJ.nc",
