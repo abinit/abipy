@@ -121,7 +121,7 @@ def abips_install(options) -> int:
         return 0
 
     print("The following pseudopotential repositories will be installed:")
-    print(tabulate_repos(repos, verbose=options.verbose))
+    print(tabulate_repos(repos, verbose=options.verbose), "\n")
     #if not options.yes and cli.user_wants_to_abort(): return 2
 
     for repo in repos:

@@ -76,6 +76,13 @@ from abipy.eph.rta import RtaFile, RtaRobot
 from abipy.eph.transportfile import TransportFile
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
 from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
+
+from abipy.dynamics.cpx import EvpFile
+#try:
+#    from abipy.ml.aseml import AseMdLog
+#except ImportError:
+#    AseMdLog = None
+
 #from abipy.electrons.abitk import ZinvConvFile, TetraTestFile
 
 # Abinit Documentation.
@@ -90,6 +97,7 @@ def _straceback():
 
 # Abinit text files. Use OrderedDict for nice output in show_abiopen_exc2class.
 ext2file = collections.OrderedDict([
+    # ABINIT files
     (".abi", AbinitInputFile),
     (".in", AbinitInputFile),
     (".abo", AbinitOutputFile),
@@ -98,7 +106,6 @@ ext2file = collections.OrderedDict([
     (".cif", Structure),
     (".abivars", Structure),
     (".ucell", Structure),
-    ("POSCAR", Structure),
     (".cssr", Structure),
     (".json", JsonFile),
     (".py", TextFile),
@@ -111,19 +118,30 @@ ext2file = collections.OrderedDict([
     (".cube", CubeFile),
     ("anaddb.nc", AnaddbNcFile),
     ("DEN", DensityFortranFile),
+    (".wout", WoutFile),
+    ("EDOS", EdosFile),
+    # Pseudos
     (".psp8", Pseudo),
     (".pspnc", Pseudo),
     (".fhi", Pseudo),
     ("JTH.xml", Pseudo),
-    (".wout", WoutFile),
+    (".upf", Pseudo),
     # Lobster files.
     ("COHPCAR.lobster", CoxpFile),
     ("COOPCAR.lobster", CoxpFile),
     ("ICOHPLIST.lobster", ICoxpFile),
     ("DOSCAR.lobster", LobsterDoscarFile),
+    # Vasp files.
+    ("POSCAR", Structure),
+    (".vasp", Structure),
+    # ASE files
+    (".xyz", Structure),
     #("ZINVCONV.nc", ZinvConvFile),
     #("TETRATEST.nc", TetraTestFile),
-    ("EDOS", EdosFile),
+    # QE/CP files
+    (".evp", EvpFile),
+    # ASE files produced by Abipy.
+    #("md.aselog", AseMdLog),
 ])
 
 # Abinit files require a special treatment.
@@ -169,7 +187,6 @@ def abiopen_ext2class_table():
     Print the association table between file extensions and File classes.
     """
     table = []
-
     for ext, cls in chain(ext2file.items(), abiext2ncfile.items()):
         table.append((ext, str(cls)))
 

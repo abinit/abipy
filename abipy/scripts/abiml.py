@@ -19,10 +19,30 @@ from abipy.tools.printing import print_dataframe
 
 ASE_OPTIMIZERS = aseml.ase_optimizer_cls("__all__")
 
+DEFAULT_NN = "chgnet"
+
+
+def _get_atoms_from_filepath(filepath):
+    if filepath.startswith("__mp-"):
+        print(f"Fetching structure for mp-id {filepath[2:]} from the materials project database.")
+        return aseml.get_atoms(Structure.from_mpid(filepath[2:]))
+
+    return aseml.get_atoms(filepath)
+
+
+def _get_structure_from_filepath(filepath) -> Structure:
+    if filepath.startswith("__mp-"):
+        print(f"Fetching structure for mp-id {filepath[2:]} from the materials project database.")
+        structure = Structure.from_mpid(filepath[2:])
+    else:
+        structure = Structure.from_file(filepath)
+
+    return structure
+
 
 def set_default(ctx, param, filepath):
     """
-    to have config file for a single command:
+    To have config file for a single command:
     Based on https://stackoverflow.com/questions/46358797/python-click-supply-arguments-and-options-from-a-configuration-file
     """
     from abipy.tools.iotools import yaml_safe_load_path
@@ -46,7 +66,7 @@ def herald(f):
             print("Command line options:")
             print(json.dumps(kw, indent=4), end="\n")
 
-        # Set OMP_NUM_THREADS to 1 if env var is not defined.
+        # IMPORTANT: Set OMP_NUM_THREADS to 1 if env variable is not defined.
         num_threads = cli.fix_omp_num_threads()
 
         t_start = time()
@@ -62,7 +82,6 @@ def add_constraint_opts(f):
     """Add CLI options to constrain atoms."""
     def mk_cbk(type):
         def callback(ctx, param, value):
-            #print(f"{param=}, {value=}")
             if value is None: return None
             return [type(s) for s in value.split()]
         return callback
@@ -99,7 +118,7 @@ def add_neb_opts(f):
     f = click.option("--relax-mode", "-r", default="ions", show_default=True, type=click.Choice(["no", "ions", "cell"]),
             help="Relax initial and final structure. Use `cell` to relax ions and cell, " +
                  "`ions` to relax atomic positions only, `no` to disable relaxation")(f)
-    f = click.option("--fmax", default=0.01, type=float, show_default=True, help='Stopping criterion.')(f)
+    f = click.option("--fmax", default=0.03, type=float, show_default=True, help='Stopping criterion.')(f)
     f = click.option("--pressure", default=0.0, type=float, show_default=True, help='Scalar pressure')(f)
     f = click.option("--optimizer", "-o", default="BFGS", show_default=True, type=click.Choice(ASE_OPTIMIZERS),
                      help="ASE optimizer class.")(f)
@@ -125,31 +144,31 @@ def add_workdir_verbose_opts(f):
 
 
 def add_nn_name_opt(f):
-    """Add CLI options to select NN potential."""
-    f = click.option("--nn-name", "-nn", default="chgnet", show_default=True,
-                     type=click.Choice(aseml.CalcBuilder.ALL_NN_TYPES),
-                     help='ML potential to be used')(f)
+    """Add CLI options to select the NN potential."""
+    f = click.option("--nn-name", "-nn", default=DEFAULT_NN, show_default=True,
+                     help=f"ML potential to be used. Supported values are: {aseml.CalcBuilder.ALL_NN_TYPES}")(f)
     return f
 
 
 def add_nn_names_opt(f):
     """Add CLI options to select multiple NN potentials."""
     f = click.option("-nns", '--nn-names', type=str, multiple=True, show_default=True,
-                    help='ML potentials to use.', default=["chgnet"])(f)
+                    help='ML potentials to use.', default=[DEFAULT_NN])(f)
     return f
 
 
 def _get_nn_names(nn_names: list[str]) -> list[str]:
     """
-    Additional pre-processing of nn-names option.
+    Pre-processing of nn-names option.
 
-    --nn-names all                   --> return all NN names.
-    --nn-names all-alignn-m3gnet     --> return all NN names except alignn and m3gnet
+    --nn-names all                   --> return all NN names installed in this env.
+    --nn-names all-alignn-m3gnet     --> return all NN names except alignn and m3gnet.
     --nn-names chgnet-               --> return all NN names except chgnet.
     """
     if "all" in nn_names:
         # Return all possibilities.
-        return aseml.CalcBuilder.ALL_NN_TYPES
+        nn_installed, nn_versions = aseml.get_installed_nn_names(verbose=0, printout=False)
+        return nn_installed
 
     if any(n.startswith("all-") for n in nn_names):
         # --nn-names all-alignn-m3gnet     --> return all NN names except alignn and m3gnet
@@ -209,12 +228,7 @@ def relax(ctx, filepath, nn_name,
 
         abiml.py.py relax -nn m3gnet [...]
     """
-    if filepath.startswith("__mp-"):
-        print(f"Fetching structure for mp-id {filepath[2:]} from the materials project database.")
-        atoms = aseml.get_atoms(Structure.from_mpid(filepath[2:]))
-    else:
-        atoms = aseml.get_atoms(filepath)
-
+    atoms = _get_atoms_from_filepath(filepath)
     aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
     ml_relaxer = aseml.MlRelaxer(atoms, relax_mode, fmax, pressure, steps, optimizer,
@@ -266,7 +280,7 @@ def md(ctx, filepath, nn_name,
     Usage example:
 
     \b
-        abiml.py.py md FILE --temperature 1200 --timestep 2 --steps 5000 -w OUT_DIR
+        abiml.py.py md FILE --temperature 1200 --timestep 2 --steps 5000 --workdir OUT_DIR
         abiml.py.py md FILE --fix-inds "0 3" --fix-symbols "Si O"
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
@@ -274,6 +288,8 @@ def md(ctx, filepath, nn_name,
     To change the ML potential, use e.g.:
 
         abiml.py.py md -nn m3gnet [...]
+
+    To restart a MD run, use --workdir to specify a pre-existent directory.
     """
     # See https://github.com/materialsvirtuallab/m3gnet#molecular-dynamics
     atoms = aseml.get_atoms(filepath)
@@ -409,11 +425,7 @@ def ph(ctx, filepath, nn_names,
 
         -nn-names all [...]
     """
-    if filepath.startswith("__mp-"):
-        print(f"Fetching structure for mp-id {filepath[2:]} from the materials project database.")
-        structure = Structure.from_mpid(filepath[2:])
-    else:
-        structure = Structure.from_file(filepath)
+    structure = _get_structure_from_filepath(filepath)
 
     from abipy.ml.ml_phonopy import MlPhonopy
     supercell = np.eye(3) * np.array(supercell)
@@ -580,27 +592,27 @@ def scan_relax(ctx, filepath, nn_name,
               help='Plotting backend: mpl for matplotlib, panel for web-based')
 @add_nprocs_opt
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_compare.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
-def compare(ctx, filepaths,
-            nn_names,
-            traj_range,
-            exposer,
-            nprocs,
-            workdir, verbose
+@click.option('--config', default='abiml_validate.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def validate(ctx, filepaths,
+             nn_names,
+             traj_range,
+             exposer,
+             nprocs,
+             workdir, verbose
             ):
     """
-    compare ab-initio energies, forces, and stresses with ml-computed ones.
+    Compare ab-initio energies, forces, and stresses with ml-computed ones.
 
     usage example:
 
     \b
-        abiml.py.py compare FILE --nn-names matgl --nn-names chgnet
+        abiml.py.py validate FILE --nn-names matgl --nn-names chgnet
 
     where `FILE` can be either a _HIST.nc or a vasprun.xml FILE.
     """
     traj_range = cli.range_from_str(traj_range)
     nn_names = _get_nn_names(nn_names)
-    ml_comp = aseml.MlCompareWithAbinitio(filepaths, nn_names, traj_range, verbose, workdir, prefix="_abiml_compare_")
+    ml_comp = aseml.MlValidateWithAbinitio(filepaths, nn_names, traj_range, verbose, workdir, prefix="_abiml_compare_")
     print(ml_comp)
     c = ml_comp.run(nprocs=nprocs)
 
@@ -622,39 +634,140 @@ def compare(ctx, filepaths,
 @main.command()
 @herald
 @click.pass_context
-@click.argument('filepaths', type=str, nargs=-1)
-@add_nn_name_opt
-#@add_nprocs_opt
+@click.option('-v', '--verbose', count=True, help="Verbosity level")
+def show(ctx, verbose):
+    """
+    Show the NN potentials installed in the environment.
+    """
+    installed, versions = aseml.get_installed_nn_names(verbose=verbose, printout=True)
+    return 0 if installed else 1
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.option("-nns", '--nn-names', type=str, multiple=True, show_default=True,
+              help='ML potentials to install.', default=["all"])
+@click.option('-U', '--update', is_flag=True, default=False, show_default=True, help="Update packages.")
+@click.option('-v', '--verbose', count=True, help="Verbosity level")
+def install(ctx, nn_names, update, verbose):
+    """
+    Install NN potentials in the environment using pip.
+    """
+    aseml.install_nn_names(nn_names=nn_names, update=update, verbose=verbose)
+    installed, versions = aseml.get_installed_nn_names(verbose=verbose, printout=True)
+
+    return 0 if installed else 1
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("filepath", type=str)
+@click.option("-nns", '--nn-names', type=str, multiple=True, show_default=True,
+              help='ML potentials to compare.', default=["all"])
+@click.option('--num-tests', "-n", default=20, type=int, show_default=True, help='Number of configurations to generate.')
+@click.option("--rattle", default=0.2, type=float, show_default=True, help="Displace atoms randomly with this stdev.")
+@click.option("-srv", "--stdev-rvol", default=0.1, type=float, show_default=True,
+              help="Scale volumes randomly around input v0 with stdev: v0 * value")
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_train.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
-def train(ctx, filepaths,
-          nn_name,
-          #nprocs,
-          workdir, verbose
-          ):
+@click.option('--config', default='abiml_compare.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def compare(ctx, filepath, nn_names,
+            num_tests, rattle, stdev_rvol,
+            workdir, verbose
+         ):
     """
-    Train a ML potential using the trajectory stored on FILE.
-
-    usage example:
-
-    \b
-        abiml.py.py train FILE --nn-names matgl
-
-    where `FILE` can be either a _HIST.nc or a vasprun.xml FILE.
+    Compare different neural networks.
     """
-    if nn_name == "matgl":
-        from abipy.ml.matgl import MatglSystem
-        s = MatglSystem(filepaths, workdir, verbose)
-
-    elif nn_name == "chgnet":
-        from abipy.ml.chgnet import ChgnetSystem
-        s = ChgnetSystem(filepaths, workdir, verbose)
-
-    else:
-        raise ValueError(f"Unsupported {nn_name=}")
-
-    s.train()
+    atoms = _get_atoms_from_filepath(filepath)
+    nn_names = _get_nn_names(nn_names)
+    ml_comp = aseml.MlCompareNNs(atoms, nn_names, num_tests, rattle, stdev_rvol, verbose, workdir, prefix="_abiml_comp_")
+    print(ml_comp.to_string(verbose=verbose))
+    ase_comp = ml_comp.run()
     return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("filepath", type=str)
+@add_nn_name_opt
+@add_workdir_verbose_opts
+@click.option('--config', default='abiml_gs.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def gs(ctx, filepath, nn_name,
+       workdir, verbose,
+       ):
+    """
+    Compute ground-state properties and magnetic moments with ML potential(s).
+    """
+    atoms = _get_atoms_from_filepath(filepath)
+    gs = aseml.GsMl(atoms, nn_name, verbose, workdir, prefix="_abiml_gs_")
+    gs.run()
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("elements", nargs=-1, type=str)
+@add_nn_names_opt
+@add_workdir_verbose_opts
+@click.option('--config', default='abiml_cwf_eos.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def cwf_eos(ctx, elements, nn_names,
+            workdir, verbose
+            ):
+    """
+    Compute CWF EOS with ML potentials.
+    """
+    nn_names = _get_nn_names(nn_names)
+    if "all" in elements:
+        if len(elements) != 1:
+            raise ValueError(f"When all is used for elements len(elements) should be 1 while {elements=}")
+        from ase.data import chemical_symbols
+        elements = [chemical_symbols[Z] for Z in range(1, 96+1)]
+
+    ml_cwf_eos = aseml.MlCwfEos(elements, nn_names, verbose, workdir, prefix="_abiml_cwf_eos_")
+    print(ml_cwf_eos.to_string(verbose=verbose))
+    ml_cwf_eos.run()
+    return 0
+
+
+#@main.command()
+#@herald
+#@click.pass_context
+#@click.argument('filepaths', type=str, nargs=-1)
+#@add_nn_name_opt
+#@add_workdir_verbose_opts
+#@click.option('--config', default='abiml_train.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+#def train(ctx, filepaths,
+#          nn_name,
+#          #nprocs,
+#          workdir, verbose
+#          ):
+#    """
+#    Train a ML potential using the trajectory stored on FILE.
+#
+#    usage example:
+#
+#    \b
+#        abiml.py.py train FILE --nn-names matgl
+#
+#    where `FILE` can be either a _HIST.nc or a vasprun.xml FILE.
+#    """
+#    if nn_name == "matgl":
+#        from abipy.ml.matgl import MatglSystem
+#        s = MatglSystem(filepaths, workdir, verbose)
+#
+#    elif nn_name == "chgnet":
+#        from abipy.ml.chgnet import ChgnetSystem
+#        s = ChgnetSystem(filepaths, workdir, verbose)
+#
+#    else:
+#        raise ValueError(f"Unsupported {nn_name=}")
+#
+#    s.train()
+#    return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

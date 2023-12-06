@@ -83,14 +83,27 @@ class OncvPlotter(NotebookWriter):
 
     def _add_rc_vlines_ax(self, ax, with_lloc=False) -> None:
         """
-        Add vertical lines to axis `ax` showing the core radii.
+        Add vertical lines to axis `ax` showing the core radii. axvline does not
+        directly store the x-intersect and cannot be converted by plotly, so this
+        is stored as a custom attribute on the matplotlib.Axes as a clean/nasty
+        workaround.
         """
+        if not hasattr(ax, "_custom_rc_lines"):
+            ax._custom_rc_lines = []
+
         for l, rc in self.parser.rc_l.items():
             ax.axvline(rc, lw=2, color=self.color_l[l], ls="--")
+            ax._custom_rc_lines.append((rc, self.color_l[l]))
 
         if with_lloc:
             color = "magenta" if self.parser.lloc == 4 else "k"
             ax.axvline(self.parser.rc5, lw=2, color=color, ls="--")
+            ax._custom_rc_lines.append((self.parser.rc5, color))
+
+    def plotly_atan_logders(self, *args, **kwargs):
+        mpl_fig = self.plot_atan_logders(*args, show=False, **kwargs)
+        from plotly.tools import mpl_to_plotly
+        return mpl_to_plotly(mpl_fig)
 
     @add_fig_kwargs
     def plot_atan_logders(self, ax=None, with_xlabel=True,
@@ -119,20 +132,19 @@ class OncvPlotter(NotebookWriter):
             pad = (abs(l) + 1) * 1.0
 
             ae_line, = ax.plot(ae_alog.energies, ae_alog.values + pad,
-                               label=f"AE {lch}",
-                               **self._mpl_opts_laeps(l, "ae"))
+                            label=f"AE {lch}",
+                            **self._mpl_opts_laeps(l, "ae"))
 
             ps_line, = ax.plot(ps_alog.energies, ps_alog.values + pad,
-                               label=f"PS {lch}",
-                               **self._mpl_opts_laeps(l, "ps"))
+                            label=f"PS {lch}", **self._mpl_opts_laeps(l, "ps"))
 
         xlabel = "Energy (Ha)" if with_xlabel else ""
         #ylabel = "ATAN(LogDer)"
         ylabel = r"$\phi(E) = \arctan(R * d \psi_E(r)/dr |_R)$"
 
         self.decorate_ax(ax, xlabel=xlabel, ylabel=ylabel, title="",
-                         fontsize=fontsize,
-                         )
+                        fontsize=fontsize,
+                        )
         return fig
 
     def _get_ae_ps_wfs(self, what) -> tuple:
@@ -163,22 +175,23 @@ class OncvPlotter(NotebookWriter):
             ps_wf, l, k = ps_wfs[nlk], nlk.l, nlk.k
 
             if what == "bound_states":
-                # Show position of the last peak.
+        #         # Show position of the last peak.
                 s, marker = 10, "^"
                 ae_peaks = ae_wf.get_peaks()
                 style = dict(color=self.color_l[l], s=s, marker=marker)
-                ax.scatter(ae_peaks.xs[-1], ae_peaks.ys[-1], **style)
+                
+                ax.scatter(ae_peaks.xs[-1], ae_peaks.ys[-1], color=self.color_l[l])
                 ps_peaks = ps_wf.get_peaks()
                 style = dict(color=self.color_l[l], s=s, marker=marker)
-                ax.scatter(ps_peaks.xs[-1], ps_peaks.ys[-1], **style)
+                ax.scatter(ps_peaks.xs[-1], ps_peaks.ys[-1], color=self.color_l[l])
 
-            ax.plot(ae_wf.rmesh, ae_wf.values, label=f"AE {nlk.latex}", **self._mpl_opts_laeps(l, "ae"))
-            ax.plot(ps_wf.rmesh, ps_wf.values, label=f"PS {nlk.latex}", **self._mpl_opts_laeps(l, "ps"))
+            ax.plot(ae_wf.rmesh, ae_wf.values, label=fr"AE { nlk.latex }", **self._mpl_opts_laeps(l, "ae"))
+            ax.plot(ps_wf.rmesh, ps_wf.values, label=fr"PS {nlk.latex}", **self._mpl_opts_laeps(l, "ps"))
 
         self.decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$\phi(r)$",
-                         title="Wave Functions" if what == "bound_states" else "Scattering States",
-                         fontsize=fontsize,
-                         )
+                        title="Wave Functions" if what == "bound_states" else "Scattering States",
+                        fontsize=fontsize,
+                        )
 
         self._add_rc_vlines_ax(ax)
 
@@ -206,8 +219,8 @@ class OncvPlotter(NotebookWriter):
                     )
 
         self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="$p(r)$", title="Projectors",
-                         fontsize=fontsize,
-                         )
+                        fontsize=fontsize,
+                        )
 
         self._add_rc_vlines_ax(ax)
 

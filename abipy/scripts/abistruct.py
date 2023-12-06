@@ -517,8 +517,6 @@ ehull < show_unstable will be shown.""")
 
 
 def serve_kwargs_from_options(options) -> dict:
-
-    #address = "localhost"
     if options.no_browser:
         print("""
 Use:
@@ -657,8 +655,6 @@ def main():
                 print(sanitized)
 
         # Save file.
-        #print("sanitized structure\n", sanitized)
-        #print("lattice matrix:\n", sanitized.lattice.matrix)
         save_structure(sanitized, options)
 
     elif options.command == "primitive":

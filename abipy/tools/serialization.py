@@ -15,6 +15,7 @@ from typing import Any
 from pathlib import Path
 from monty.json import MontyDecoder, MontyEncoder
 from pymatgen.core.periodic_table import Element
+from abipy.tools.context_managers import Timer
 
 
 def pmg_serialize(method):
@@ -118,7 +119,6 @@ def pmg_pickle_dump(obj: Any, filobj, **kwargs):
 def mjson_load(filepath: str, **kwargs) -> Any:
     """
     Read JSON file in MSONable format with MontyDecoder.
-    Return dict with python object.
     """
     with open(filepath, "rt") as fh:
         return json.load(fh, cls=MontyDecoder, **kwargs)
@@ -127,7 +127,6 @@ def mjson_load(filepath: str, **kwargs) -> Any:
 def mjson_loads(string: str, **kwargs) -> Any:
     """
     Read JSON string in MSONable format with MontyDecoder.
-    Return python object
     """
     return json.loads(string, cls=MontyDecoder, **kwargs)
 
@@ -147,13 +146,16 @@ class HasPickleIO:
 
     @classmethod
     def pickle_load(cls, workdir, basename=None):
-        """Reconstruct the object from a pickle file located in workdir."""
+        """
+        Reconstruct the object from a pickle file located in workdir.
+        """
         filepath = Path(workdir) / f"{cls.__name__}.pickle" if basename is None else Path(workdir) / basename
-        with open(filepath, "rb") as fh:
+        with open(filepath, "rb") as fh, Timer(header=f"Reconstructing {cls.__name__} instance from file: {str(filepath)}", footer="") as timer:
             return pickle.load(fh)
 
-    def pickle_dump(self, workdir, basename=None):
-        """Write pickle file."""
+    def pickle_dump(self, workdir, basename=None) -> Path:
+        """Write pickle file. Return path to file"""
         filepath = Path(workdir) / f"{self.__class__.__name__}.pickle" if basename is None else Path(workdir) / basename
-        with open(filepath, "wb") as fh:
+        with open(filepath, "wb") as fh, Timer(header=f"Saving {self.__class__.__name__} instance to file: {str(filepath)}", footer="") as timer:
             pickle.dump(self, fh)
+        return filepath

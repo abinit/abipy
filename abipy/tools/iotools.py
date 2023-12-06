@@ -16,18 +16,40 @@ from subprocess import call
 from typing import Any
 from monty.termcolor import cprint
 from monty.string import list_strings
+from abipy.tools.typing import PathLike
 
 
-def make_executable(filepath: str) -> None:
+def make_executable(filepath: PathLike) -> None:
     """Make file executable"""
     mode = os.stat(filepath).st_mode
     mode |= (mode & 0o444) >> 2    # copy R bits to X
     os.chmod(filepath, mode)
 
-    #from pathlib import Path
-    #import stat
-    #f = Path(filepath)
-    #f.chmod(f.stat().st_mode | stat.S_IEXEC)
+
+def try_files(filepaths: list[PathLike]) -> Path:
+    """
+    Return the first existent file in filepaths
+    or raise RuntimeError.
+    """
+    for path in filepaths:
+        path = Path(str(path))
+        if path.exists(): return path
+
+    raise RuntimeError("Cannot find {filepaths=}")
+
+
+def file_with_ext_indir(ext: str, directory: PathLike) -> Path:
+    """
+    Find file with extension `ext` inside directory.
+    Raise RuntimeError if no file can be found.
+    """
+    directory = Path(str(directory))
+    for path in directory.listdir():
+        if path.is_dir(): continue
+        if path.suffix == ext:
+            return path.absolute()
+
+    raise RuntimeError(f"Cannot find file with extension {ext} in {directory=})")
 
 
 def yaml_safe_load(string: str) -> Any:
@@ -302,10 +324,10 @@ class AtomicFile:
             self.discard()
 
 
-def workdir_with_prefix(workdir, prefix) -> Path:
+def workdir_with_prefix(workdir, prefix, exist_ok=False) -> Path:
     """
-    if workdir is None, create temporary directory with prefix else
-    check that workdir does not exist.
+    if workdir is None, create temporary directory with prefix else check that workdir does not exist.
+    If exist_ok is False (the default), a FileExistsError is raised if the target directory already exists.
     """
     if workdir is None:
         if prefix is not None:
@@ -313,12 +335,35 @@ def workdir_with_prefix(workdir, prefix) -> Path:
         workdir = tempfile.mkdtemp(prefix=prefix, dir=os.getcwd())
     else:
         workdir = str(workdir)
-        if os.path.exists(workdir):
+        if os.path.exists(workdir) and not exist_ok:
             raise RuntimeError(f"{workdir=} already exists!")
-        os.makedirs(workdir)
+        os.makedirs(workdir, exist_ok=exist_ok)
 
     return Path(workdir).absolute()
 
+
+def change_ext_from_top(top: PathLike, old_ext: str, new_ext: str) -> int:
+    """
+    Change the extension of all the files with extension old_ext with new_ext.
+
+    Args:
+        top: Walk the file system starting from top.
+        old_ext: Old file extension.
+        new_ext: New file extension.
+
+    Return: Number of files whose extension has been changed.
+    """
+    count = 0
+    for root, dirs, files in os.walk(str(top)):
+        root = Path(root)
+        for filepath in files:
+            filepath = root / Path(filepath)
+            if not filepath.name.endswith(old_ext): continue
+            new_name = filepath.name[:-len(old_ext)] + new_ext
+            filepath.rename(root / new_name)
+            count += 1
+
+    return count
 
 
 class _Script:

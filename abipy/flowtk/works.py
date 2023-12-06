@@ -28,7 +28,11 @@ from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, E
                     EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
                     DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
 from .utils import Directory
-from .netcdf import ETSF_Reader, NetcdfReader
+from .netcdf import NetcdfReader
+try:
+    from .netcdf import ETSF_Reader
+except ImportError:
+    from .netcdf import EtsfReader as ETSF_Reader
 from .abitimer import AbinitTimerParser
 
 if TYPE_CHECKING:  # needed to avoid circular imports
@@ -1030,7 +1034,7 @@ class Work(BaseWork, NodeContainer):
             gsr_path = task.outdir.has_abiext("GSR")
             etot = np.inf
             if gsr_path:
-                with ETSF_Reader(gsr_path) as r:
+                with EtsfReader(gsr_path) as r:
                     etot = r.read_value("etotal")
 
             etotals.append(etot)

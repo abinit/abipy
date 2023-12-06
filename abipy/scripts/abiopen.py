@@ -239,6 +239,9 @@ def main():
     if options.filepath.endswith(".json"):
         return handle_json(options)
 
+    if options.filepath.endswith(".traj"):
+        return handle_ase_traj(options)
+
     if os.path.basename(options.filepath) == "flows.db":
         from abipy.flowtk.launcher import print_flowsdb_file
         return print_flowsdb_file(options.filepath)
@@ -324,6 +327,19 @@ Use `print(abifile)` to print the object.
                                                       no_browser=options.no_browser)
         else:
             return make_and_open_notebook(options)
+
+    return 0
+
+
+def handle_ase_traj(options):
+    """Handle ASE trajectory file."""
+    from abipy.ml.aseml import AseTrajectoryPlotter
+    plotter = AseTrajectoryPlotter.from_file(options.filepath)
+    print(plotter.to_string(verbose=options.verbose))
+
+    #if len(plotter.traj) > 1):
+    plotter.plot_cell()
+    #plotter.plot_cell()
 
     return 0
 

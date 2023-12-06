@@ -766,7 +766,7 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         Group files by ``hue`` and, inside each group` sort items by ``func_or_string``.
 
         Args:
-            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+            hue: Variable that defines subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
@@ -816,36 +816,6 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 except Exception as exc:
                     print("Exception while closing: ", abifile.filepath)
                     print(exc)
-
-    #@classmethod
-    #def open(cls, obj, nids=None, **kwargs):
-    #    """
-    #    Flexible constructor. obj can be a :class:`Flow` or a string with the directory containing the Flow.
-    #    `nids` is an optional list of :class:`Node` identifiers used to filter the set of :class:`Task` in the Flow.
-    #    """
-    #    has_dirpath = False
-    #    if is_string(obj):
-    #        try:
-    #            from abipy.flowtk import Flow
-    #            obj = Flow.pickle_load(obj)
-    #        except:
-    #            has_dirpath = True
-
-    #    if not has_dirpath:
-    #        # We have a Flow. smeth is the name of the Task method used to open the file.
-    #        items = []
-    #        smeth = "open_" + cls.EXT.lower()
-    #        for task in obj.iflat_tasks(nids=nids): #, status=obj.S_OK):
-    #            open_method = getattr(task, smeth, None)
-    #            if open_method is None: continue
-    #            abifile = open_method()
-    #            if abifile is not None: items.append((task.pos_str, abifile))
-    #        return cls(*items)
-
-    #    else:
-    #        # directory --> search for files with the appropriate extension and open it with abiopen.
-    #        if nids is not None: raise ValueError("nids cannot be used when obj is a directory.")
-    #        return cls.from_dir(obj)
 
     #def get_attributes(self, attr_name, obj=None, retdict=False):
     #    od = OrderedDict()
@@ -1241,10 +1211,14 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
     @staticmethod
     def get_yvals_item_abifiles(item: Any, abifiles: list) -> np.ndarray:
         """Extract values for a list of Abinit files."""
+        def _float(obj):
+            if obj is None: return obj
+            return float(obj)
+
         if callable(item):
-            return np.array([float(item(a)) for a in abifiles])
+            return np.array([_float(item(a)) for a in abifiles])
         else:
-            return np.array([float(duck.getattrd(a, item)) for a in abifiles])
+            return np.array([_float(duck.getattrd(a, item)) for a in abifiles])
 
     @staticmethod
     def plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, **kwargs) -> list:

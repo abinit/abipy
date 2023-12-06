@@ -290,7 +290,6 @@ class Structure(pmg_Structure, NotebookWriter):
             raise ValueError("Cannot find structure in Abinit output file `%s`" % filepath)
 
         elif filepath.endswith(".abivars") or filepath.endswith(".ucell"):
-            #print("in abivars")
             with open(filepath, "rt") as fh:
                 return cls.from_abistring(fh.read())
 
@@ -313,6 +312,15 @@ class Structure(pmg_Structure, NotebookWriter):
                         (filepath, type(new)))
 
                 if new.__class__ != cls: new.__class__ = cls
+
+        elif filepath.endswith(".xyz"):
+            # ASE extended xyz format.
+            try:
+                from ase.io import read
+            except ImportError:
+                raise RuntimeError("ase is required to read xyz files. Use `pip install ase`")
+            atoms = read(filepath)
+            return cls.as_structure(atoms)
 
         else:
             # Invoke pymatgen and change class. Note that AbinitSpacegroup is missing here.
@@ -1405,7 +1413,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     def get_dict4pandas(self, symprec=1e-2, angle_tolerance=5.0, with_spglib=True) -> dict:
         """
-        Return a :class:`OrderedDict` with the most important structural parameters:
+        Return a dict with the most important structural parameters:
 
             - Chemical formula and number of atoms.
             - Lattice lengths, angles and volume.
@@ -1915,7 +1923,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         # Fortran 2 python!!!
         return scale_matrix.T
-    
+
     def make_doped_supercells(self,scaling_matrix,replaced_atom, dopant_atom):
         """
         Returns a list doped supercell structures, one for each non-equivalent site of the replaced atom.
@@ -1928,14 +1936,14 @@ class Structure(pmg_Structure, NotebookWriter):
                     where a, b, and c are the lattice vectors of the original structure.
                 b. A sequence of three scaling factors. e.g., [2, 1, 1]
                    specifies that the supercell should have dimensions 2a x b x c.
-                c. A number, which simply scales all lattice vectors by the same factor.       
+                c. A number, which simply scales all lattice vectors by the same factor.
             replaced atom : Symbol of the atom to be replaced (ex: 'Sr')
             dopant_atom : Symbol of the dopant_atom (ex: 'Eu')
         """
         ### list of positions of non-equivalent sites for the replaced atom. ###
         irred=self.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
         positions=self.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
-    
+
         index_non_eq_sites=[]
         for pos in positions:
             if len(irred[pos]) != 0:
@@ -1943,15 +1951,15 @@ class Structure(pmg_Structure, NotebookWriter):
 
         doped_supercell=self.copy()
         doped_supercell.make_supercell(scaling_matrix)
-    
+
         doped_structure_list=[]
-    
+
         for index in index_non_eq_sites:
-            final_structure=doped_supercell.copy()    
-            final_structure.replace(index,dopant_atom)  
+            final_structure=doped_supercell.copy()
+            final_structure.replace(index,dopant_atom)
             doped_structure_list.append(final_structure)
-    
-        return doped_structure_list    
+
+        return doped_structure_list
 
 
 
@@ -2624,7 +2632,7 @@ def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.st
             print(diff, file=file)
 
     else:
-        raise ValueError("Unsupported mode: `%s`" % str(mode))
+        raise ValueError(f"Unsupported {mode=}")
 
 
 def structure2siesta(structure: Structure, verbose=0) -> str:
@@ -2686,7 +2694,6 @@ class StructDiff:
     """
     Print difference among structures.
     """
-
     def __init__(self, labels: list[str], structures):
         """
         Args:

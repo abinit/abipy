@@ -23,9 +23,9 @@ from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
 from abipy.tools.decorators import Appender
 
+from abipy.tools.plotting import mpl_to_ply
 
 _ABINIT_TEMPLATE_NAME = "FastList"
-
 
 def set_abinit_template(template_name: str):
     global _ABINIT_TEMPLATE_NAME
@@ -328,7 +328,6 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
 
     return col
 
-
 def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=False,
         with_divider=True, with_controls=False) -> pn.Column:
     """
@@ -338,13 +337,15 @@ def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=Fals
     col = pn.Column(sizing_mode=sizing_mode); ca = col.append
 
     config = dict(
-      responsive=True,
-      #showEditInChartStudio=True,
-      showLink=True,
-      plotlyServerURL="https://chart-studio.plotly.com",
-      )
-
-    plotly_pane = pn.pane.Plotly(fig, config=config)
+        responsive=True,
+        #showEditInChartStudio=True,
+        showLink=True,
+        plotlyServerURL="https://chart-studio.plotly.com",
+    )
+    
+    plotly_fig = mpl_to_ply(fig)
+    
+    plotly_pane = pn.pane.Plotly(plotly_fig, config=config)
     ca(plotly_pane)
 
     if with_chart_studio:

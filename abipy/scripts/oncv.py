@@ -79,6 +79,8 @@ def oncv_plot(options) -> int:
 
     out_path = _find_oncv_output(options.filepath)
     plotter = OncvPlotter.from_file(out_path)
+    plotter.plotly_atan_logders().show()
+    return 0
 
     plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                    use_web=options.expose_web, verbose=options.verbose)
@@ -266,7 +268,7 @@ def oncv_gui(options):
         print("Using default template:", tmpl_cls, "with kwds:\n", pformat(tmpl_kwds), "\n")
 
     def build():
-        gui = OncvGui.from_file(os.path.abspath(options.filepath))
+        gui = OncvGui.from_file(os.path.abspath(options.filepath), plotlyFlag=options.plotly)
         return tmpl_cls(main=gui.get_panel(), title="Oncvpsp GUI", **tmpl_kwds)
 
     # Call pn.serve to serve the multipage app.
@@ -392,7 +394,6 @@ Usage example:
 
     # Dispatch
     return globals()["oncv_" + options.command](options)
-
 
 if __name__ == "__main__":
     sys.exit(main())

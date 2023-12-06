@@ -13,7 +13,9 @@ import json
 
 from monty.string import is_string
 from pymatgen.core.units import Time, Memory
+from abipy.tools.typing import PathLike
 from abipy.tools import duck
+from abipy.tools.text import rm_multiple_spaces
 
 
 def slurm_parse_timestr(s: str) -> Time:
@@ -164,3 +166,131 @@ def slurm_get_jobs(username=None) -> dict[int, dict]:
             entries.append(d)
 
     return {e["JOBID"]: e for e in entries}
+
+
+
+class SlurmJobArray:
+    """
+
+    Example:
+
+    header = '''\
+#!/bin/bash
+
+#SBATCH --account=battab
+#SBATCH --job-name=abiml_md
+#SBATCH --time=0-16:0:0
+#SBATCH --partition=batch
+#SBATCH --nodes=1             # 1 node has 128 cores
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=1
+
+conda activate env3.10
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+ulimit -s unlimited
+'''
+
+command = "abiml.py md"
+arr_options = ["--help", "--version"]
+job_array = SlurmJobArray(header, command, arr_options)
+print(job_array)
+queue_id = job_array.sbatch("job_array.sh")
+    """
+
+    def __init__(self, header: str, command: str, arr_options: list[str]):
+        self.command = command
+        if not self.command.endswith(" "): self.command += " "
+        self.header = header
+        self.arr_options = arr_options
+        self.arr_options_str = rm_multiple_spaces("\n".join(arr_options))
+
+    def __str__(self):
+        # Add slurm array section.
+        lines = self.header.splitlines()
+        for il, line in enumerate(lines):
+            if line.startswith("#SBATCH"):
+                break
+        else:
+            raise ValueError("Cannot find line starting with #SBATCH")
+
+        lines.insert(il, f"#SBATCH --array=0-{len(self.arr_options)-1}")
+        header = "\n".join(lines)
+
+        select_opts = r"""
+# multiline string
+OPTS_STRING="
+%s
+"
+
+# Convert the multiline string to an array
+IFS=$'\n' read -rd '' -a OPTS_LIST <<< "$OPTS_STRING"
+
+# Index of the entry you want (0-based)
+index=${SLURM_ARRAY_TASK_ID}
+
+# Check if the index is within the range of the array
+OPTS="${OPTS_LIST[index]}"
+echo "Running entry at index $index:\nwith OPTS=$OPTS"
+
+env
+""" % (self.arr_options_str)
+
+        end = f"""
+{self.command} ${{OPTS}} > job_${{index}}.log 2> job_${{index}}.err
+
+# Remove the file with the Slurm job id
+me=$(basename "$0")
+rm ${{me}}.qid
+"""
+
+        return header + select_opts + end
+
+    def sbatch(self, slurm_filepath: PathLike) -> int:
+        """
+        Write slurm submission script to slurm_filepath and submits it.
+        Return Slurm JOB id.
+        """
+        # Make sure no slurm job is already running by checking for a .qid file.
+        path_qid = slurm_filepath + ".qid"
+        if os.path.exists(path_qid):
+            with open(path_qid, "rt") as fh:
+                queue_id = int(fh.read().split("#"))
+                err_msg = f"Found slurm job ID {queue_id} in {path_qid}" + \
+                          "This usually indicates that a similar array job is already running\n" + \
+                          f"If this not the case, please remove {path_qid} and rerun the script."
+                raise RuntimeError(err_msg)
+
+        with open(slurm_filepath, "wt") as fh:
+            fh.write(str(self))
+
+        queue_id = slurm_sbatch(slurm_filepath)
+
+        print("Saving slurm job ID in:", path_qid)
+        with open(path_qid, "wt") as fh:
+            fh.write(str(queue_id) + " # Slurm job id")
+
+        return queue_id
+
+
+def slurm_sbatch(script_file) -> int:
+    """
+    Submit a job script to the queue with sbatch. Return Slurm JOB ID.
+    """
+    from subprocess import Popen, PIPE
+    # need string not bytes so must use universal_newlines
+    process = Popen(['sbatch', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    out, err = process.communicate()
+
+    # grab the returncode. SLURM returns 0 if the job was successful
+    if process.returncode == 0:
+        try:
+            # output should of the form '2561553.sdb' or '352353.jessup' - just grab the first part for job id
+            queue_id = int(out.split()[3])
+            print(f"Job submission was successful and {queue_id=}")
+            return queue_id
+        except Exception as exc:
+            # probably error parsing job code
+            print('Could not parse job id following slurm...')
+            raise exc
+    else:
+        raise RuntimeError(f"Error while submitting {script_file=}")

@@ -11,17 +11,21 @@ from __future__ import annotations
 import os
 import time
 import itertools
+import functools
 import numpy as np
 import pandas as pd
 
 from collections import namedtuple, OrderedDict
 from typing import Any, Callable, Iterator
+from monty.string import list_strings
 from pymatgen.util.plotting import add_fig_kwargs
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
 from abipy.tools.numtools import data_from_cplx_mode
 
+import matplotlib.collections as mcoll
+from plotly.tools import mpl_to_plotly
 
 __all__ = [
     "set_axlims",
@@ -48,28 +52,78 @@ linestyles = OrderedDict(
      ('loosely_dotted',      (0, (1, 10))),
      ('dotted',              (0, (1, 5))),
      ('densely_dotted',      (0, (1, 1))),
-
+     #
      ('loosely_dashed',      (0, (5, 10))),
      ('dashed',              (0, (5, 5))),
      ('densely_dashed',      (0, (5, 1))),
-
+     #
      ('loosely_dashdotted',  (0, (3, 10, 1, 10))),
      ('dashdotted',          (0, (3, 5, 1, 5))),
      ('densely_dashdotted',  (0, (3, 1, 1, 1))),
-
+     #
      ('loosely_dashdotdotted', (0, (3, 10, 1, 10, 1, 10))),
      ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
      ('densely_dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))]
 )
 
 
+class FilesPlotter:
+    """
+    Use matplotlib to plot multiple png files on a grid.
+
+    Example:
+
+        FilesPlotter(["file1.png", file2.png"]).plot()
+    """
+    def __init__(self, filepaths: list[str]):
+        self.filepaths = list_strings(filepaths)
+
+    @add_fig_kwargs
+    def plot(self, **kwargs) -> Figure:
+        """Loop through the PNG files and display them in subplots."""
+        # Build grid of plots.
+        num_plots, ncols, nrows = len(self.filepaths), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+        # don't show the last ax if num_plots is odd.
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
+
+        for i, (filepath, ax) in enumerate(zip(self.filepaths, ax_list)):
+            ax.axis('off')
+            ax.imshow(plt.imread(filepath))
+
+        return fig
+
+
+@functools.cache
+def get_color_symbol(style: str="VESTA") -> dict:
+    """
+    Dictionary mapping chemical symbols to RGB color.
+
+    Args:
+        style: "VESTA" or "Jmol".
+    """
+    from monty.serialization import loadfn
+    from pymatgen import vis
+    colors = loadfn(os.path.join(os.path.dirname(vis.__file__), "ElementColorSchemes.yaml"))
+    if style not in colors:
+        raise KeyError(f"Invalid {style=}. Should be in {colors.keys()}")
+    color_symbol = {el: [j / 256.001 for j in colors[style][el]] for el in colors[style]}
+    return color_symbol
+
+
 ###################
 # Matplotlib tools
 ###################
 
-
 def get_ax_fig_plt(ax=None, **kwargs):
-    """Helper function used in plot functions supporting an optional Axes argument.
+    """
+    Helper function used in plot functions supporting an optional Axes argument.
     If ax is None, we build the `matplotlib` figure and create the Axes else
     we return the current active figure.
 
@@ -93,7 +147,8 @@ def get_ax_fig_plt(ax=None, **kwargs):
 
 
 def get_ax3d_fig_plt(ax=None, **kwargs):
-    """Helper function used in plot functions supporting an optional Axes3D
+    """
+    Helper function used in plot functions supporting an optional Axes3D
     argument. If ax is None, we build the `matplotlib` figure and create the
     Axes3D else we return the current active figure.
 
@@ -117,7 +172,8 @@ def get_ax3d_fig_plt(ax=None, **kwargs):
 def get_axarray_fig_plt(
     ax_array, nrows=1, ncols=1, sharex=False, sharey=False, squeeze=True, subplot_kw=None, gridspec_kw=None, **fig_kw
 ):
-    """Helper function used in plot functions that accept an optional array of Axes
+    """
+    Helper function used in plot functions that accept an optional array of Axes
     as argument. If ax_array is None, we build the `matplotlib` figure and
     create the array of Axes by calling plt.subplots else we return the
     current active figure.
@@ -232,6 +288,49 @@ def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> 
     ax.set_ylabel(ylabel)
 
 
+def set_logscale(ax_or_axlist, xy_log) -> None:
+    """
+    Activate logscale
+
+    Args:
+        ax_or_axlist: Axes or list of axes.
+        xy_log: None or empty string for linear scale. "x" for log scale on x-axis.
+            "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
+    """
+    if not xy_log: return
+
+    # Parse xy_log string.
+    xy, log_type = xy_log, "log"
+    if ":" in xy_log:
+        xy, log_type = xy_log.split(":")
+
+    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
+
+    for ix, ax in enumerate(ax_list):
+        if "x" in xy:
+            ax.set_xscale(log_type)
+        if "y" in xy:
+            ax.set_yscale(log_type)
+
+
+def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string="xy", **kwargs) -> None:
+    """
+    Set tick properties for one axis or a list of axis.
+
+    Args:
+        ax_or_axlist: Axes or list of axes.
+        xy_string: "x" to share x-axis, "xy" for both.
+    """
+    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
+
+    for ix, ax in enumerate(ax_list):
+        if "x" in xy_string:
+            ax.tick_params(axis='x', labelsize=fontsize, **kwargs)
+
+        if "y" in xy_string:
+            ax.tick_params(axis='y', labelsize=fontsize, **kwargs)
+
+
 def set_grid_legend(ax_or_axlist, fontsize: int,
                     xlabel=None, ylabel=None, grid=True, legend=True, direction=None, title=None, legend_loc="best") -> None:
     """
@@ -301,8 +400,6 @@ def rotate_ticklabels(ax, rotation: float, axname: str ="x") -> None:
     if "y" in axname:
         for tick in ax.get_yticklabels():
             tick.set_rotation(rotation)
-
-
 
 
 def hspan_ax_line(ax, line, abs_conv, hatch, alpha=0.2, with_label=True) -> None:
@@ -377,12 +474,11 @@ def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
         data = data.round({hue: decimals})
 
     ax, fig, plt = get_ax_fig_plt(ax=ax)
-    for key, grp in data.groupby(hue):
+    for key, grp in data.groupby(by=hue):
         # Sort xs and rearrange ys
         xy = np.array(sorted(zip(grp[x], grp[y]), key=lambda t: t[0]))
         xvals, yvals = xy[:, 0], xy[:, 1]
 
-        #label = "{} = {}".format(hue, key)
         label = "%s" % (str(key))
         if not kwargs:
             ax.plot(xvals, yvals, 'o-', label=label)
@@ -397,6 +493,25 @@ def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
     ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
     return fig
+
+
+def linear_fit_ax(ax, xs, ys, fontsize, with_label=True, with_ideal_line=False, **kwargs) -> tuple[float]:
+    """
+    Calculate a linear least-squares regression for two sets of measurements.
+    kwargs are passed to ax.plot.
+    """
+    from scipy.stats import linregress
+    fit = linregress(xs, ys)
+    label = r"Linear fit $\alpha={:.2f}$, $r^2$={:.2f}".format(fit.slope, fit.rvalue**2)
+    if "color" not in kwargs:
+        kwargs["color"] = "r"
+
+    ax.plot(xs, fit.slope*xs + fit.intercept, label=label if with_label else None, **kwargs)
+    if with_ideal_line:
+        # Plot y = x line
+        ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-',
+                linewidth=1, label='Ideal' if with_label else None)
+    return fit
 
 
 @add_fig_kwargs
@@ -1735,7 +1850,7 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
                 ================  ====================================================================
                 title             Title of the plot (Default: None).
                 show              True to show the figure (default: True).
-                hovormode         True to show the hover info (default: False)
+                hovermode         True to show the hover info (default: False)
                 savefig           "abc.png" , "abc.jpeg" or "abc.webp" to save the figure to a file.
                 write_json        Write plotly figure to `write_json` JSON file.
                                   Inside jupyter-lab, one can right-click the `write_json` file from
@@ -2551,3 +2666,83 @@ def add_colorscale_dropwdowns(fig):
     ])
 
     return fig
+
+def mpl_to_ply(fig, latex=False):
+    # Nasty workaround for plotly latex rendering in legend/breaking exception
+    def parse_latex(label):
+        # Remove latex symobols
+        new_label = label.replace("$", "")
+        new_label = new_label.replace("\\", "") if not latex else new_label
+        new_label = new_label.replace("{", "") if not latex else new_label
+        new_label = new_label.replace("}", "") if not latex else new_label
+        # plotly latex needs an extra \ for parsing python strings
+        # new_label = new_label.replace(" ", "\\ ") if latex else new_label
+        # Wrap the label in dollar signs for LaTeX, if needed unless empty``
+        new_label = f"${new_label}$" if latex and len(new_label) > 0 else new_label
+
+        return new_label
+
+    for ax in fig.get_axes():
+        # TODO improve below logic to add new scatter plots?
+        # Loop backwards through the collections to avoid modifying the list as we iterate
+        for coll in ax.collections[::-1]:
+            if isinstance(coll, mcoll.PathCollection):
+                # Use the remove() method to remove the scatter plot collection from the axes
+                coll.remove()
+
+        # Process the axis title, x-label, and y-label
+        for label in [ax.get_title(), ax.get_xlabel(), ax.get_ylabel()]:
+            # Few differences in how mpl and ply parse/encode symbols
+            new_label = parse_latex(label)
+            # Set the new label
+            if label == ax.get_title():
+                ax.set_title(new_label)
+            elif label == ax.get_xlabel():
+                ax.set_xlabel(new_label)
+            elif label == ax.get_ylabel():
+                ax.set_ylabel(new_label)
+
+        # Check if the axis has a legend
+        if ax.get_legend():
+            legend = ax.get_legend()
+            # Get the legend's text entries
+            for text in legend.get_texts():
+                label = text.get_text()
+                # Remove any existing dollar signs
+                new_label = parse_latex(label)
+                # Set the new label
+                text.set_text(new_label)
+
+    # Convert to plotly figure
+    plotly_fig = mpl_to_plotly(fig)
+
+    plotly_fig.update_layout(template  = "plotly_white", title = {
+                                "xanchor": "center",
+                                "yanchor": "top",
+                                "x": 0.5,
+                                "font": {
+                                    "size": 14
+                                },
+                            })
+
+    # Iterate over the axes in the figure to retrieve the custom line attributes
+    for ax in fig.get_axes():
+        if hasattr(ax, '_custom_rc_lines'):
+            for rc, color in ax._custom_rc_lines:
+                # Add vertical lines to the Plotly figure
+                plotly_fig.add_vline(
+                    x=rc,
+                    line_width=2,
+                    line_dash="dash",
+                    line_color=color
+                )
+
+    # # Loop through each trace and update the hover labels to remove $
+    for trace in plotly_fig.data:
+        # Retrieve the current label and remove any $ signs
+        new_label = trace.name.replace("$", "")
+
+        # Update the trace's name (which is used for the legend label)
+        trace.name = new_label
+
+    return plotly_fig
