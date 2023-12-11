@@ -268,7 +268,7 @@ def oncv_gui(options):
         print("Using default template:", tmpl_cls, "with kwds:\n", pformat(tmpl_kwds), "\n")
 
     def build():
-        gui = OncvGui.from_file(os.path.abspath(options.filepath))
+        gui = OncvGui.from_file(os.path.abspath(options.filepath), plotlyFlag=options.plotly)
         return tmpl_cls(main=gui.get_panel(), title="Oncvpsp GUI", **tmpl_kwds)
 
     # Call pn.serve to serve the multipage app.
@@ -394,7 +394,6 @@ Usage example:
 
     # Dispatch
     return globals()["oncv_" + options.command](options)
-
 
 if __name__ == "__main__":
     sys.exit(main())

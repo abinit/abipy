@@ -12,6 +12,7 @@ import os
 import argparse
 import subprocess
 import abipy.tools.cli_parsers as cli
+from abipy.tools.plotting import Exposer
 
 from pprint import pprint
 from shutil import which
@@ -143,8 +144,6 @@ def get_parser(with_epilog=False):
                              "Default: FastList"
                         )
     parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
-
-
     #add_expose_options_to_parser(parser)
 
     # Expose option.
@@ -239,6 +238,9 @@ def main():
     if options.filepath.endswith(".json"):
         return handle_json(options)
 
+    if options.filepath.endswith(".traj"):
+        return handle_ase_traj(options)
+
     if os.path.basename(options.filepath) == "flows.db":
         from abipy.flowtk.launcher import print_flowsdb_file
         return print_flowsdb_file(options.filepath)
@@ -324,6 +326,23 @@ Use `print(abifile)` to print the object.
                                                       no_browser=options.no_browser)
         else:
             return make_and_open_notebook(options)
+
+    return 0
+
+
+def handle_ase_traj(options):
+    """Handle ASE trajectory file."""
+    from abipy.ml.aseml import AseTrajectoryPlotter
+    plotter = AseTrajectoryPlotter.from_file(options.filepath)
+
+    print(plotter.to_string(verbose=options.verbose))
+    if options.expose:
+        print(plotter.to_string(verbose=options.verbose))
+        if len(plotter.traj) > 1:
+            plot_kws = dict(show=False)
+            with Exposer.as_exposer("mpl") as e:
+                e(plotter.plot(**plot_kws))
+                e(plotter.plot_lattice(**plot_kws))
 
     return 0
 

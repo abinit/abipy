@@ -12,7 +12,7 @@ import panel.widgets as pnw
 
 from monty.termcolor import cprint
 from monty.string import list_strings
-from abipy.panels.core import AbipyParameterized, depends_on_btn_click, mpl, dfc, ButtonContext, Loading
+from abipy.panels.core import AbipyParameterized, depends_on_btn_click, mpl, dfc, ply, ButtonContext, Loading
 from abipy.tools.numtools import build_mesh
 from abipy.ppcodes.ppgen import OncvGenerator
 #from abipy.ppcodes.oncv_parser import OncvParser
@@ -483,7 +483,6 @@ def run_psgen(psgen: OncvGenerator, data: dict) -> dict:
     return data
 
 class OncvGui(AbipyParameterized):
-
     calc_type = param.ObjectSelector(default="scalar-relativistic",
                                      objects=["scalar-relativistic", "fully-relativistic", "non-relativistic"],
                                      label="Relativistic effects")
@@ -523,26 +522,26 @@ class OncvGui(AbipyParameterized):
     rcfact_dir = param.Selector(["centered", ">", "<"])
 
     ace_theme = param.ObjectSelector(default="chrome",
-                                     objects=pnw.Ace.param.theme.objects,
-                                     doc="Theme of the editor")
+                                    objects=pnw.Ace.param.theme.objects,
+                                    doc="Theme of the editor")
 
     history_idx = param.Integer(default=-1, label="History index")
 
     @classmethod
-    def from_file(cls, path: str) -> OncvGui:
+    def from_file(cls, path: str, plotlyFlag: bool) -> OncvGui:
         """
         Build an instance from a file with the oncvpsp input variables.
         """
-        return cls(oncv_input=OncvInput.from_file(path), in_filepath=path)
+        return cls(oncv_input=OncvInput.from_file(path), plotlyFlag=plotlyFlag, in_filepath=path)
 
-    def __init__(self, oncv_input, in_filepath="", **params):
+    def __init__(self, oncv_input, plotlyFlag, in_filepath="", **params):
         super().__init__(**params)
 
         self.ace_kwargs = dict(sizing_mode='stretch_both', print_margin=False, language='text', height=600,
-                          theme="chrome",
-                          #theme="dracula",
-                          #max_length=150,
-                          )
+                            theme="chrome",
+                            #theme="dracula",
+                            #max_length=150,
+                            )
 
         self.input_ace = pnw.Ace(value=str(oncv_input), **self.ace_kwargs)
 
@@ -567,6 +566,8 @@ class OncvGui(AbipyParameterized):
         #self.history_btn.on_click(self.on_history_btn)
 
         self.rc_qcut_btn = pnw.Button(name="Execute", button_type='primary')
+        
+        self.plotlyFlag = plotlyFlag
 
     @param.depends("ace_theme")
     def change_ace_theme(self):
@@ -619,7 +620,7 @@ class OncvGui(AbipyParameterized):
         main = pn.Column(
             pn.Row(
                 self.pws_col(["calc_type", "max_nprocs",
-                              "dpi", "ace_theme", "execute_btn"]),
+                                "dpi", "ace_theme", "execute_btn"]),
                 self.input_ace,
             ),
             pn.Card(self.annotated_example, title='Annotated example', collapsed=True,
@@ -646,9 +647,9 @@ class OncvGui(AbipyParameterized):
     def get_history_view(self) -> pn.Row:
         return pn.Row(
             self.pws_col(["## History",
-                          "history_idx",
-                          "history_btn",
-                         ]),
+                            "history_idx",
+                            "history_btn",
+                            ]),
             self.on_history_btn
         )
 
@@ -1106,7 +1107,7 @@ The present values of rc_l are: {rc_l}
         wbox = pn.WidgetBox(menu_button,
                             *[self.param[k] for k in ("qcut_num", "qcut_step", "qcut_dir")],
                             *[self.param[k] for k in ("rc_num", "rc_step", "rc_dir")],
-                             help_str)
+                            help_str)
 
         return pn.Row(wbox, self.rc_qcut_out_area, sizing_mode="stretch_width")
 
@@ -1152,7 +1153,7 @@ The present values of rc_l are: {rc_l}
                             f"## Rc/qcut optimization for l: {l}. Click the icon to update the input",
                             dfw,
                             ),
-                         )
+                        )
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
@@ -1198,7 +1199,6 @@ The present values of rc_l are: {rc_l}
             self._update_out_area(psgen, oncv_input)
 
     def _update_out_area(self, psgen, oncv_input: OncvInput) -> None:
-
         with Loading(self.out_area):
             #self.psgen_to_save = psgen
             plotter = psgen.parser.get_plotter()
@@ -1207,7 +1207,11 @@ The present values of rc_l are: {rc_l}
                 self.out_area.objects = pn.Column("## Plotter is None")
                 return
 
-            _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
+            if self.plotlyFlag:
+                _m = functools.partial(ply, with_divider=False)
+
+            else:
+                _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
 
             save_btn = pnw.Button(name="Save output", button_type='primary')
             save_btn.on_click(self.on_save_btn)
@@ -1217,26 +1221,26 @@ The present values of rc_l are: {rc_l}
                 pn.layout.Divider(),
                 "## Pseudized Wavefunctions",
                 pn.Row(_m(plotter.plot_radial_wfs(show=False)),
-                       self.get_rc_widgets(oncv_input)),
-                pn.Row(_m(plotter.plot_radial_wfs(what="scattering_states", show=False))),
+                    self.get_rc_widgets(oncv_input), height=600),
+                pn.Row(_m(plotter.plot_radial_wfs(what="scattering_states", show=False)), height=600),
                 pn.layout.Divider(),
                 "## Logder and convergence profile",
                 pn.Row(_m(plotter.plot_atanlogder_econv(show=False)),
-                       self.get_qcut_widgets(oncv_input),
-                       self.get_debl_widgets(oncv_input)),
+                    self.get_qcut_widgets(oncv_input), height=500),
+                pn.Row(pn.Spacer(), self.get_debl_widgets(oncv_input), align='end', height=300),
                 pn.layout.Divider(),
                 "## Pseudized local part",
                 pn.Row(_m(plotter.plot_potentials(show=False)),
-                       self.get_rc5_widgets(oncv_input),
-                       self.get_dvloc0_widgets(oncv_input)),
+                    self.get_rc5_widgets(oncv_input), height=400),
+                pn.Row(pn.Spacer(), self.get_dvloc0_widgets(oncv_input), align="end", height=300),
                 pn.layout.Divider(),
                 "## Model core charge",
                 pn.Row(_m(plotter.plot_densities(show=False)),
-                       self.get_rhomodel_widgets(oncv_input)),
-                pn.Row(_m(plotter.plot_den_formfact(show=False))),
+                    self.get_rhomodel_widgets(oncv_input), height=600),
+                pn.Row(_m(plotter.plot_den_formfact(show=False)), height=600),
                 pn.layout.Divider(),
                 "## Projectors",
-                pn.Row(_m(plotter.plot_projectors(show=False))),
+                pn.Row(_m(plotter.plot_projectors(show=False)), height=600),
                 pn.layout.Divider(),
             ]
 

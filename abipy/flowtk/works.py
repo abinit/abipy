@@ -30,9 +30,9 @@ from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, E
 from .utils import Directory
 from .netcdf import NetcdfReader
 try:
-    from .netcdf import ETSF_Reader as EtsfReader
+    from .netcdf import ETSF_Reader
 except ImportError:
-    from .netcdf import EtsfReader
+    from .netcdf import EtsfReader as ETSF_Reader
 from .abitimer import AbinitTimerParser
 
 if TYPE_CHECKING:  # needed to avoid circular imports

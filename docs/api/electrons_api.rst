@@ -93,6 +93,15 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
+
+:mod:`lruj` Module
+------------------
+
+.. automodule:: abipy.electrons.lruj
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`lobster` Module
 ---------------------
 

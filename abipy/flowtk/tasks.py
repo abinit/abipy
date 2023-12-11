@@ -653,6 +653,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         _USER_CONFIG_TASKMANAGER = cls.from_file(path)
         return _USER_CONFIG_TASKMANAGER
 
+
     @classmethod
     def from_file(cls, filepath: str) -> TaskManager:
         """Read the configuration parameters from the Yaml file filepath."""

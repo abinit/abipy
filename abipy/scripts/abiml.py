@@ -146,8 +146,9 @@ def add_workdir_verbose_opts(f):
 def add_nn_name_opt(f):
     """Add CLI options to select the NN potential."""
     f = click.option("--nn-name", "-nn", default=DEFAULT_NN, show_default=True,
-                     #type=click.Choice(aseml.CalcBuilder.ALL_NN_TYPES),
-                     help='ML potential to be used')(f)
+                     help=f"ML potential to be used. Supported values are: {aseml.CalcBuilder.ALL_NN_TYPES}")(f)
+    #f = click.option("--dftd3", , default="no", show_default=True,
+    #                 help=f"Activate DFD3.")(f)
     return f
 
 
@@ -670,9 +671,9 @@ def install(ctx, nn_names, update, verbose):
 @click.option('--num-tests', "-n", default=20, type=int, show_default=True, help='Number of configurations to generate.')
 @click.option("--rattle", default=0.2, type=float, show_default=True, help="Displace atoms randomly with this stdev.")
 @click.option("-srv", "--stdev-rvol", default=0.1, type=float, show_default=True,
-              help="Scale volumes randomly around input v0 with stdev: v0*value")
+              help="Scale volumes randomly around input v0 with stdev: v0 * value")
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_time.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option('--config', default='abiml_compare.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def compare(ctx, filepath, nn_names,
             num_tests, rattle, stdev_rvol,
             workdir, verbose
@@ -681,11 +682,55 @@ def compare(ctx, filepath, nn_names,
     Compare different neural networks.
     """
     atoms = _get_atoms_from_filepath(filepath)
-
     nn_names = _get_nn_names(nn_names)
     ml_comp = aseml.MlCompareNNs(atoms, nn_names, num_tests, rattle, stdev_rvol, verbose, workdir, prefix="_abiml_comp_")
     print(ml_comp.to_string(verbose=verbose))
     ase_comp = ml_comp.run()
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("filepath", type=str)
+@add_nn_name_opt
+@add_workdir_verbose_opts
+@click.option('--config', default='abiml_gs.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def gs(ctx, filepath, nn_name,
+       workdir, verbose,
+       ):
+    """
+    Compute ground-state properties and magnetic moments with ML potential(s).
+    """
+    atoms = _get_atoms_from_filepath(filepath)
+    gs = aseml.GsMl(atoms, nn_name, verbose, workdir, prefix="_abiml_gs_")
+    gs.run()
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("elements", nargs=-1, type=str)
+@add_nn_names_opt
+@add_workdir_verbose_opts
+@click.option('--config', default='abiml_cwf_eos.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def cwf_eos(ctx, elements, nn_names,
+            workdir, verbose
+            ):
+    """
+    Compute CWF EOS with ML potentials.
+    """
+    nn_names = _get_nn_names(nn_names)
+    if "all" in elements:
+        if len(elements) != 1:
+            raise ValueError(f"When all is used for elements len(elements) should be 1 while {elements=}")
+        from ase.data import chemical_symbols
+        elements = [chemical_symbols[Z] for Z in range(1, 96+1)]
+
+    ml_cwf_eos = aseml.MlCwfEos(elements, nn_names, verbose, workdir, prefix="_abiml_cwf_eos_")
+    print(ml_cwf_eos.to_string(verbose=verbose))
+    ml_cwf_eos.run()
     return 0
 
 

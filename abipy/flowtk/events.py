@@ -273,7 +273,10 @@ class EventReport(collections.abc.Iterable, MSONable):
             events: List of Event objects
         """
         self.filename = os.path.abspath(filename)
-        self.stat = os.stat(self.filename)
+        try:
+            self.stat = os.stat(self.filename)
+        except FileNotFoundError:
+            self.stat = None
         self.start_datetime, self.end_datetime = None, None
 
         self._events = []
