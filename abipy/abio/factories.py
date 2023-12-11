@@ -147,6 +147,7 @@ def _find_scf_nband(structure, pseudos, electrons, spinat=None) -> int:
 
     # Increase number of bands based on the starting magnetization
     if nsppol == 2 and spinat is not None:
+        print(spinat) #VT
         nband += np.ceil(max(np.sum(spinat, axis=0)) / 2.)
 
     # Force even nband (easier to divide among procs, mandatory if nspinor == 2)
