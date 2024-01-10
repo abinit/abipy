@@ -202,13 +202,14 @@ class AseTrajectoryPlotter:
     """
     Plot an ASE trajectory with matplotlib.
     """
-
     def __init__(self, traj: Trajectory):
         self.traj = traj
+        self.natom = len(traj[0])
+        self.traj_size = len(traj)
 
     @classmethod
     def from_file(cls, filepath: PathLike) -> AseTrajectoryPlotter:
-        """Initialize object from file."""
+        """Initialize an instance from file filepath"""
         return cls(read(filepath, index=":"))
 
     def __str__(self) -> str:
@@ -223,72 +224,128 @@ class AseTrajectoryPlotter:
             app(first.to_string(verbose=verbose))
         else:
             first, last = AseResults.from_atoms(self.traj[0]), AseResults.from_atoms(self.traj[-1])
-            raise NotImplementedError()
+            app("First configuration:")
+            app(first.to_string(verbose=verbose))
+            app("Last configuration:")
+            app(last.to_string(verbose=verbose))
 
         return "\n".join(lines)
 
-    #@add_fig_kwargs
-    #def plot_lattice(self, what_list=("abc", "angles", "volume"), ax_list=None,
-    #                 fontsize=8, xlims=None, **kwargs) -> Figure:
-    #    """
-    #    Plot lattice lengths/angles/volume as a function the trajectory index.
-    #    """
-    #    energies = [ene=float(atoms.get_potential_energy()) for atoms in self.traj]
-    #
-    #    stress_voigt = atoms.get_stress()
-    #    forces=atoms.get_forces(),
-    #    try:
-    #        magmoms = atoms.get_magnetic_moments()
-    #    except PropertyNotImplementedError:
-    #        magmoms = None
+    @add_fig_kwargs
+    def plot(self, fontsize=8, xlims=None, **kwargs) -> Figure:
+        """
+        Plot energies, force stats, and pressure as a function of the trajectory index.
+        """
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=3, ncols=1,
+                                                sharex=True, sharey=False, squeeze=True)
 
-    #@add_fig_kwargs
-    #def plot_lattice(self, what_list=("abc", "angles", "volume"), ax_list=None,
-    #                 fontsize=8, xlims=None, **kwargs) -> Figure:
-    #    """
-    #    Plot lattice lengths/angles/volume as a function the trajectory index.
+        # Plot total energy in eV.
+        energies = [float(atoms.get_potential_energy()) for atoms in self.traj]
+        ax = ax_list[0]
+        marker = "o"
+        ax.plot(energies, marker=marker)
+        ax.set_ylabel('Energy (eV)')
 
-    #    Args:
-    #        what_list: List of strings specifying the quantities to plot. Default all
-    #        ax_list: List of axis or None if a new figure should be created.
-    #        fontsize: fontsize for legends and titles
-    #        xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
-    #               or scalar e.g. ``left``. If left (right) is None, default values are used.
-    #    """
-    #    what_list = list_strings(what_list)
-    #    ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=1, ncols=len(what_list),
-    #                                            sharex=True, sharey=False, squeeze=False)
-    #    markers = ["o", "^", "v"]
+        # Plot Force stats.
+        forces_traj = np.reshape([atoms.get_forces() for atoms in self.traj], (self.traj_size, self.natom, 3))
+        fmin_steps, fmax_steps, fmean_steps, fstd_steps = [], [], [], []
+        for forces in forces_traj:
+            fmods = np.sqrt([np.dot(force, force) for force in forces])
+            fmean_steps.append(fmods.mean())
+            fstd_steps.append(fmods.std())
+            fmin_steps.append(fmods.min())
+            fmax_steps.append(fmods.max())
 
-    #    if "abc" in what_list:
-    #        # plot lattice parameters.
-    #        for i, label in enumerate(["a", "b", "c"]):
-    #            ax.plot(self.times, [lattice.abc[i] for lattice in self.lattices],
-    #                    label=label, marker=markers[i])
-    #        ax.set_ylabel("abc (A)")
+        markers = ["o", "^", "v", "X"]
+        ax = ax_list[1]
+        ax.plot(fmin_steps, label="min |F|", marker=markers[0])
+        ax.plot(fmax_steps, label="max |F|", marker=markers[1])
+        ax.plot(fmean_steps, label="mean |F|", marker=markers[2])
+        #ax.plot(fstd_steps, label="std |F|", marker=markers[3])
+        ax.set_ylabel('F stats (eV/A)')
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
-    #    if "angles" in what_list:
-    #        # plot lattice angles.
-    #        for i, label in enumerate(["alpha", "beta", "gamma"]):
-    #            ax.plot(self.times, [lattice.angles[i] for lattice in self.lattices],
-    #                    label=label, marker=markers[i])
-    #        ax.set_ylabel(r"$\alpha\beta\gamma$ (degree)")
+        # Plot pressure.
+        voigt_stresses_traj = np.reshape([atoms.get_stress() for atoms in self.traj], (self.traj_size, 6))
+        pressures = [-sum(vs[0:3])/3 for vs in voigt_stresses_traj]
+        ax = ax_list[2]
+        ax.plot(pressures, marker=marker)
+        ax.set_ylabel('Pressure (GPa)')
 
-    #    if "volume" in what_list:
-    #        # plot lattice volume.
-    #        marker = "o"
-    #        ax.plot(self.times, [lattice.volume for lattice in self.lattices],
-    #                label="Volume", marker=marker)
-    #        ax.set_ylabel(r'$V\, (A^3)$')
+        for ix, ax in enumerate(ax_list):
+            set_axlims(ax, xlims, "x")
+            ax.grid(True)
+            if ix == len(ax_list) - 1:
+                ax.set_xlabel('Trajectory index', fontsize=fontsize)
 
-    #    for ix, ax in enumerate(ax_list):
-    #        set_axlims(ax, xlims, "x")
-    #        if ix == len(ax_list) - 1:
-    #            ax.set_xlabel('t (ps)', fontsize=fontsize)
-    #        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+        return fig
 
-    #    return fig
+    @add_fig_kwargs
+    def plot_lattice(self, ax_list=None,
+                     fontsize=8, xlims=None, **kwargs) -> Figure:
+        """
+        Plot lattice lengths/angles/volume as a function the of the trajectory index.
 
+        Args:
+            ax_list: List of axis or None if a new figure should be created.
+            fontsize: fontsize for legends and titles
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
+        """
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=3, ncols=1,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        def cell_dict(atoms):
+            return dict(zip(_CELLPAR_KEYS, atoms.cell.cellpar()))
+
+        cellpar_list = [cell_dict(atoms) for atoms in self.traj]
+        df = pd.DataFrame(cellpar_list)
+        #print(df)
+
+        # plot lattice parameters.
+        ax = ax_list[0]
+        markers = ["o", "^", "v"]
+        for i, label in enumerate(["a", "b", "c"]):
+            ax.plot(df[label].values, label=label, marker=markers[i])
+        ax.set_ylabel("abc (A)")
+
+        # plot lattice angles.
+        ax = ax_list[1]
+        for i, label in enumerate(["angle(b,c)", "angle(a,c)", "angle(a,b)"]):
+            ax.plot(df[label].values, label=label, marker=markers[i])
+        ax.set_ylabel(r"$\alpha\beta\gamma$ (degree)")
+
+        # plot lattice volume.
+        ax = ax_list[2]
+        volumes = [atoms.get_volume() for atoms in self.traj]
+        marker = "o"
+        ax.plot(volumes, label="Volume", marker=marker)
+        ax.set_ylabel(r'$V\, (A^3)$')
+
+        for ix, ax in enumerate(ax_list):
+            set_axlims(ax, xlims, "x")
+            if ix == len(ax_list) - 1:
+                ax.set_xlabel('Trajectory index', fontsize=fontsize)
+            ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+        return fig
+
+
+def get_fstats(cart_forces: np.ndarray) -> dict:
+    """
+    Return dictionary with statistics on cart_forces.
+    """
+    fmods = np.array([np.linalg.norm(f) for f in cart_forces])
+    #fmods = np.sqrt(np.einsum('ij, ij->i', cart_forces, cart_forces))
+    #return AttrDict(
+    return dict(
+        fmin=fmods.min(),
+        fmax=fmods.max(),
+        fmean=fmods.mean(),
+        fstd=fmods.std(),
+        drift=np.linalg.norm(cart_forces.sum(axis=0)),
+    )
 
 
 @dataclasses.dataclass
@@ -361,26 +418,27 @@ class AseResults(HasPickleIO):
         for k, v in fstats.items():
             app(f"{k} = {v} (eV/Ang)")
 
-        #if verbose:
         if True:
+        #if verbose:
             app('Forces (eV/Ang):')
             positions = self.atoms.get_positions()
-            df = pd.DataFrame(dict(
+            data = dict(
                 x=positions[:,0],
                 y=positions[:,1],
                 z=positions[:,2],
                 fx=self.forces[:,0],
                 fy=self.forces[:,1],
                 fz=self.forces[:,2],
-            ))
+            )
+            # Add magmoms if available.
+            if self.magmoms is not None:
+                data["magmoms"] = self.magmoms
+
+            df = pd.DataFrame(data)
             app(df.to_string())
 
-        #if self.magmoms is not None:
-        #    for ia, (atom, magmoms) in enumerate(zip(self.atoms, self.magmoms)):
-        #        print(atom, magmoms)
-
         app('Stress tensor:')
-        for row in self.strees:
+        for row in self.stress:
             app(str(row))
 
         return "\n".join(lines)
@@ -389,16 +447,7 @@ class AseResults(HasPickleIO):
         """
         Return dictionary with statistics on forces.
         """
-        fmods = np.array([np.linalg.norm(force) for force in self.forces])
-        #fmods = np.sqrt(np.einsum('ij, ij->i', forces, forces))
-        #return AttrDict(
-        return dict(
-            fmin=fmods.min(),
-            fmax=fmods.max(),
-            fmean=fmods.mean(),
-            #fstd=fmods.std(),
-            drift=np.linalg.norm(self.forces.sum(axis=0)),
-        )
+        return get_fstats(self.forces)
 
     def get_dict4pandas(self, with_geo=True, with_fstats=True) -> dict:
         """
@@ -1310,7 +1359,7 @@ def install_nn_names(nn_names="all", update=False, verbose=0) -> None:
     installed, versions = get_installed_nn_names(verbose=verbose, printout=False)
 
     for name in nn_names:
-        #print(f"About to install nn_name={name}")
+        print(f"About to install nn_name={name} ...")
         if name in black_list:
             print("Cannot install {name} with pip!")
             continue
@@ -1346,9 +1395,11 @@ class CalcBuilder:
         "pyace",
         "nequip",
         "metatensor",
+        "deepmd",
     ]
 
-    def __init__(self, name: str, **kwargs):
+
+    def __init__(self, name: str, dftd3_args=None, **kwargs):
         self.name = name
 
         # Extract nn_type and model_name from name
@@ -1361,6 +1412,15 @@ class CalcBuilder:
 
         if self.nn_type not in self.ALL_NN_TYPES:
             raise ValueError(f"Invalid {name=}, it should be in {self.ALL_NN_TYPES=}")
+
+        # Handle DFTD3.
+        self.dftd3_args = dftd3_args
+        if self.dftd3_args and not isinstance(dftd3_args, dict):
+            # Load parameters from Yaml file.
+            self.dftd3_args = yaml_safe_load_path(self.dftd3_args)
+
+        if self.dftd3_args:
+            print("Activating dftd3 with arguments:", self.dftd3_args)
 
         self._model = None
 
@@ -1408,9 +1468,9 @@ class CalcBuilder:
                 """Add abi_forces and abi_stress"""
 
             cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
-            return cls(potential=self._model)
+            calc = cls(potential=self._model)
 
-        if self.nn_type == "matgl":
+        elif self.nn_type == "matgl":
             # See https://github.com/materialsvirtuallab/matgl
             try:
                 import matgl
@@ -1429,9 +1489,9 @@ class CalcBuilder:
                 """Add abi_forces and abi_stress"""
 
             cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
-            return cls(potential=self._model)
+            calc = cls(potential=self._model)
 
-        if self.nn_type == "chgnet":
+        elif self.nn_type == "chgnet":
             try:
                 from chgnet.model.dynamics import CHGNetCalculator
                 from chgnet.model.model import CHGNet
@@ -1452,9 +1512,9 @@ class CalcBuilder:
                 """Add abi_forces and abi_stress"""
 
             cls = MyCHGNetCalculator if with_delta else CHGNetCalculator
-            return cls(model=self._model)
+            calc = cls(model=self._model)
 
-        if self.nn_type == "alignn":
+        elif self.nn_type == "alignn":
             try:
                 from alignn.ff.ff import AlignnAtomwiseCalculator, default_path, get_figshare_model_ff
             except ImportError as exc:
@@ -1468,9 +1528,9 @@ class CalcBuilder:
 
             model_name = default_path() if self.model_name is None else self.model_name
             cls = MyAlignnCalculator if with_delta else AlignnAtomwiseCalculator
-            return cls(path=model_name)
+            calc = cls(path=model_name)
 
-        if self.nn_type == "pyace":
+        elif self.nn_type == "pyace":
             try:
                 from pyace import PyACECalculator
             except ImportError as exc:
@@ -1483,9 +1543,9 @@ class CalcBuilder:
                 raise RuntimeError("PyACECalculator requires model_path e.g. nn_name='pyace@FILEPATH'")
 
             cls = MyPyACECalculator if with_delta else PyACECalculator
-            return cls(basis_set=self.model_path)
+            calc = cls(basis_set=self.model_path)
 
-        if self.nn_type == "mace":
+        elif self.nn_type == "mace":
             try:
                 from mace.calculators import MACECalculator
             except ImportError as exc:
@@ -1501,9 +1561,9 @@ class CalcBuilder:
                 raise RuntimeError("MACECalculator requires model_path e.g. nn_name='mace@FILEPATH'")
 
             cls = MyMACECalculator if with_delta else MACECalculator
-            return cls(model_paths=self.model_path, device="cpu") #, default_dtype='float32')
+            calc = cls(model_paths=self.model_path, device="cpu") #, default_dtype='float32')
 
-        if self.nn_type == "nequip":
+        elif self.nn_type == "nequip":
             try:
                 from nequip.ase.nequip_calculator import NequIPCalculator
             except ImportError as exc:
@@ -1516,9 +1576,9 @@ class CalcBuilder:
                 raise RuntimeError("NequIPCalculator requires model_path e.g. nn_name='nequip:FILEPATH'")
 
             cls = MyNequIPCalculator if with_delta else NequIPCalculator
-            return cls.from_deployed_model(modle_path=self.model_path, species_to_type_name=None)
+            calc = cls.from_deployed_model(modle_path=self.model_path, species_to_type_name=None)
 
-        if self.nn_type == "metatensor":
+        elif self.nn_type == "metatensor":
             try:
                 from metatensor.torch.atomistic.ase_calculator import MetatensorCalculator
             except ImportError as exc:
@@ -1531,9 +1591,32 @@ class CalcBuilder:
                 raise RuntimeError("MetaTensorCalculator requires model_path e.g. nn_name='metatensor:FILEPATH'")
 
             cls = MyMetaTensorCalculator if with_delta else MetatensorCalculator
-            return cls(self.model_path)
+            calc = cls(self.model_path)
 
-        raise ValueError(f"Invalid {self.nn_type=}")
+        elif self.nn_type == "deepmd":
+            try:
+                from deepmd.calculator import DP
+            except ImportError as exc:
+                raise ImportError("deepmd not installed. See https://tutorials.deepmodeling.com/") from exc
+
+            class MyDpCalculator(_MyCalculator, DP):
+                """Add abi_forces and abi_stress"""
+
+            if self.model_path is None:
+                raise RuntimeError("DeepMD calculator requires model_path e.g. nn_name='deepmd:FILEPATH'")
+
+            cls = MyDp if with_delta else Dp
+            calc = cls(self.model_path)
+
+        else:
+            raise ValueError(f"Invalid {self.nn_type=}")
+
+        # Include DFTD3 vDW corrections on top of ML potential.
+        if self.dftd3_args is not None:
+            from ase.calculators.dftd3 import DFTD3
+            calc = DFTD3(dft=calc, **self.dftd3_args)
+
+        return calc
 
 
 class MlBase(HasPickleIO):
@@ -2890,7 +2973,7 @@ class GsMl(MlBase):
         res = AseResults.from_atoms(self.atoms)
         print(res.to_string(verbose=self.verbose))
 
-        # Write ASE traj file with results.
+        # Write ASE trajectory file with results.
         with open(self.workdir / "gs.traj", "wb") as fd:
             write_traj(fd, [self.atoms])
 

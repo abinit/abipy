@@ -12,6 +12,7 @@ import os
 import argparse
 import subprocess
 import abipy.tools.cli_parsers as cli
+from abipy.tools.plotting import Exposer
 
 from pprint import pprint
 from shutil import which
@@ -143,8 +144,6 @@ def get_parser(with_epilog=False):
                              "Default: FastList"
                         )
     parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
-
-
     #add_expose_options_to_parser(parser)
 
     # Expose option.
@@ -335,11 +334,15 @@ def handle_ase_traj(options):
     """Handle ASE trajectory file."""
     from abipy.ml.aseml import AseTrajectoryPlotter
     plotter = AseTrajectoryPlotter.from_file(options.filepath)
-    print(plotter.to_string(verbose=options.verbose))
 
-    #if len(plotter.traj) > 1):
-    plotter.plot_cell()
-    #plotter.plot_cell()
+    print(plotter.to_string(verbose=options.verbose))
+    if options.expose:
+        print(plotter.to_string(verbose=options.verbose))
+        if len(plotter.traj) > 1:
+            plot_kws = dict(show=False)
+            with Exposer.as_exposer("mpl") as e:
+                e(plotter.plot(**plot_kws))
+                e(plotter.plot_lattice(**plot_kws))
 
     return 0
 
