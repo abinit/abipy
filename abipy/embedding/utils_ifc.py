@@ -9,7 +9,10 @@ import os,shutil
 ## Usefull functions to be used in embedding_ifc ###
 
 def stru_0_1_to_minus_05_05(structure):
-    # frac_coords from [0,1] to [-0.5,0,5]
+    """
+    translate the structure so that the frac_coords go from [0,1] to [-0.5,0,5]
+    """
+
     new_stru = structure.copy()
     for site in new_stru:
         if site.frac_coords[0] >= 0.5:
@@ -23,6 +26,10 @@ def stru_0_1_to_minus_05_05(structure):
     return new_stru
 
 def frac_coords_05_to_minus05(stru):
+    """
+    Move atoms that are close to frac_coord = 0.5 to -0.5
+    Needed for atoms that are at -0.5 in the perfect supercell but move to for instance 0.498 after relaxation
+    """
     new_stru = stru.copy()
     for i, atom in enumerate(new_stru):
         if atom.frac_coords[0] > 0.495:
@@ -35,7 +42,10 @@ def frac_coords_05_to_minus05(stru):
     return new_stru
 
 def center_wrt_defect(structure,defect_coord):
-    # : shift structure so that the atom with index is at 0,0,0
+    """
+    Center the structure around defect_coord. Defect is now at [0,0,0]
+    """
+
     new_stru = structure.copy()
 #    site = structure[index_in_structure]
     new_stru.translate_sites(indices=np.arange(0, len(structure)),
@@ -45,6 +55,11 @@ def center_wrt_defect(structure,defect_coord):
 
 
 def clean_structure(structure,defect_coord):
+    """
+    Apply successively :
+    center_wrt_defect(), stru_0_1_to_minus_05_05(), frac_coords_05_to_minus05()
+    Usefull to match structures after clean_structure()
+    """
     stru=structure.copy()
     stru=center_wrt_defect(stru,defect_coord)
     stru=stru_0_1_to_minus_05_05(stru)
@@ -53,9 +68,12 @@ def clean_structure(structure,defect_coord):
 
 
 def map_two_structures_coords(stru_1, stru_2,tol=0.1):
-    # return a mapping between two structures based on 
-    # the coordinates, within a given tolerance in Angstrom
-    # stru_1 should be a subset of the superset structure stru_2
+    """
+    Returns a mapping between two structures based on 
+    the coordinates, within a given tolerance in Angstrom.
+    stru_1 should be a subset of the superset structure stru_2
+    """
+
     cart_1 = stru_1.cart_coords
     cart_2 = stru_2.cart_coords
     mapping = []
@@ -77,6 +95,10 @@ def accoustic_sum(Hessian_matrix, atom_label):
 
 
 def inverse_participation_ratio(eigenvectors):
+    """
+    Compute equation (10) of https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537
+    for a given q-point, eigenvectors shape=(nbands,natoms,3)
+    """
     # for a given q-point,  eigenvectors shape=(nbands,natoms,3)
     ipr=[]
     for iband in range(len(eigenvectors)):    
@@ -87,11 +109,12 @@ def inverse_participation_ratio(eigenvectors):
     return np.array(ipr).real
 
 def localization_ratio(eigenvectors):
-    # for a given q-point, eigenvectors shape=(nbands,natoms,3)
+    """
+    See equation (10) of https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537   
+    for a given q-point, eigenvectors shape=(nbands,natoms,3)
+    """
     ipr=inverse_participation_ratio(eigenvectors)
     return len(eigenvectors[0])/ipr
-
-
 
 
 def vesta_phonon(eigenvectors,in_path,ibands=None,
@@ -100,20 +123,19 @@ def vesta_phonon(eigenvectors,in_path,ibands=None,
                  out_path="VESTA_FILES"):
     """
     Draw the phonons eigenvectors on a vesta file. 
+    Inspired from https://github.com/AdityaRoy-1996/Phonopy_VESTA/tree/master
 
-    eigenvectors: phonons eigenvectors for given q-point with shape (nbands,natom,3)
-    in_path : path where the initial vesta structure in stored, the structure should be consistent 
-    with the eigenvectors provided.
-    ibands: list of indices of the bands to include, if not provided, all the bands
-    scale_vector : scaling factor of the vector modulus
-    width_vector : vector width
-    color_vector : color in rgb format
-    centered : center the vesta structure around [0,0,0]
-    factor_keep_vectors : draw only the eigenvectors with magnitude > factor_keep_vectors * max(magnitude)
-    out_path : path where .vesta files with vector are stored
-
-    inspired from https://github.com/AdityaRoy-1996/Phonopy_VESTA/tree/master
-
+    Args:
+        eigenvectors: phonons eigenvectors for given q-point with shape (nbands,natom,3)
+        in_path : path where the initial vesta structure in stored, the structure should be consistent 
+        with the eigenvectors provided.
+        ibands: list of indices of the bands to include, if not provided, all the bands
+        scale_vector : scaling factor of the vector modulus
+        width_vector : vector width
+        color_vector : color in rgb format
+        centered : center the vesta structure around [0,0,0]
+        factor_keep_vectors : draw only the eigenvectors with magnitude > factor_keep_vectors * max(magnitude)
+        out_path : path where .vesta files with vector are stored
     """
 
     vesta = open(in_path,'r').read()
@@ -179,12 +201,3 @@ def vesta_phonon(eigenvectors,in_path,ibands=None,
             
     print(f"Vesta files created and stored in : \n {os.getcwd()}/{out_path}")
     return
-
-def get_distance_matrix(structure):
-    distance_matrix=np.zeros(shape=(len(structure),len(structure)))
-    for i,atom_1 in enumerate(structure):
-        for j,atom_2 in enumerate(structure):
-            diff_coords=atom_1.coords-atom_2.coords
-            dist=np.sqrt(diff_coords[0]**2+diff_coords[1]**2+diff_coords[2]**2)
-            distance_matrix[i,j]=dist
-    return distance_matrix

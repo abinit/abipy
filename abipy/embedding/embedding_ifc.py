@@ -44,7 +44,7 @@ class Embedded_phonons(Phonopy):
     def from_phonopy_instances(cls,
                                phonopy_pristine,
                                phonopy_defect,
-                               structure_defect_wo_relax,# Should corresponds to order of phonopy_defect structure!
+                               structure_defect_wo_relax,
                                main_defect_coords_in_pristine,
                                main_defect_coords_in_defect, 
                                substitutions_list:list=None,  #index in pristine,specie ex: [0,"Eu"]
@@ -56,20 +56,31 @@ class Embedded_phonons(Phonopy):
                                verbose=0,
                                asr=True) -> Phonopy :
         """
-        :param phonopy_pristine: Phonopy object of the pristine structure
-        :param phonopy_defect  : Phonopy object of the defect structure
-        :param structure_defect_wo_relax: Supercell structure associated to the defect structure, but without relaxation. Needed for an easier mapping
-        :param main_defect_coords_in_pristine: Coordinates of th
-        :param main_defect_coords_in_defect : Non-analytical parameters associated to the supercell embedded structure, in phonopy format. 
-        :param substitutions_list:
-        :param vacancies_list
-        :param interstitial_list
-        :param tol_mapping
-        :param cut_off_mode
-        :param rc_1
-        :param rc_2
-        :param factor_ifc
-        :param asr
+
+        Args:
+            phonopy_pristine: Phonopy object of the pristine structure
+            phonopy_defect  : Phonopy object of the defect structure
+            structure_defect_wo_relax : Supercell structure associated to the defect structure, but without relaxation. Needed for an easier mapping.
+                Should corresponds to order of phonopy_defect structure!
+            main_defect_coords_in_pristine : Main coordinates of the defect in pristine structure, if defect complex, can be set to the
+                center of mass of the complex
+            main_defect_coords_in_defect : Main coordinates of the defect in defect structure, if defect complex, can be set to the
+                center of mass of the complex
+            substitutions_list : List of substitutions infos [index,specie], ex : [[0, "Eu"],[1,"N"]]
+            vacancies_list : List of indices where the vacancies are, ex: [13,14]
+            interstitial_list : List of interstitial infos [specie, cart_coord], ex [['Eu',[0,0,0]],['Ce','[0,0,3]']]
+            tol_mapping : Tolerance in angstrom for the mapping between structures
+            cut_off_mode : Cut off mode for the radii of the sphere centered around the defect (rc_2). if 'auto' : the code tries to find the largest sphere 
+                inscribed in the defect supercell. If 'manual' :  rc_1 and rc_2 should be provided.
+            rc_1 : Radii of the sphere centered around the defect outside which the IFCs are set to zero, allows to get sparse matrix. 
+            rc_2 : Radii of the sphere centered around the defect where the IFCs of the defect computation are included 
+            factor_ifc : Multiply the IFCs inside the sphere of radii rc_2 by factor_ifc, usefull to introduce fictious high-frequency local mode 
+            verbose : Print explicitely all the IFCs replacements 
+            asr : If True, re-enforce acoustic sum rule after IFCs embedding, following eq. (S4) of https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537
+
+        Returns:
+            A new phonopy object with the embedded structure and embedded IFCs.
+
         """
         
         
@@ -97,7 +108,6 @@ class Embedded_phonons(Phonopy):
         stru_emb=clean_structure(stru_emb,defect_coord=main_defect_coords_in_pristine)
         structure_defect_wo_relax=clean_structure(structure_defect_wo_relax,defect_coord=main_defect_coords_in_defect)
         
-
 
         mapping=map_two_structures_coords(structure_defect_wo_relax,stru_emb,tol=tol_mapping)
 
@@ -157,8 +167,8 @@ class Embedded_phonons(Phonopy):
 
         if cut_off_mode=='auto':
             rc_1=100000 # very large value to include all the ifcs, no sparse matrix. 
-            rc_2=0.99*min(np.array(structure_defect_wo_relax.lattice.abc)/2) # largest sphere inscribed in defect supercell
-        
+            rc_2=0.99*min(np.array(structure_defect_wo_relax.lattice.abc)/2) # largest sphere inscribed in defect supercell, 
+                                                                             # 0.99 to avoid problem with atoms at the border
         if cut_off_mode=='manual':
             rc_1=rc_1
             rc_2=rc_2
@@ -211,7 +221,8 @@ class Embedded_phonons(Phonopy):
         ########################
         
         if phonopy_pristine.nac_params is not None:
-
+            
+            # Simply copy the nac params from the pristine
             nac_params_emb=phonopy_pristine.nac_params.copy()
 
             if vacancies_list is not None:
@@ -227,18 +238,30 @@ class Embedded_phonons(Phonopy):
     
 
     def get_gamma_freq_with_vec_abipy_fmt(self):
-    # compute with phonopy the Gamma phonons freq and vectors and returns them in abipy format
+        """
+        Compute with phonopy the Gamma phonons freq and vectors and returns them in abipy format
+        such that ph_vec[iband][iatom] gives vector of iband,iatom
+        
+        Returns:
+            phonons frequencies, phonon eigenvectors
+        """
+
         ph_freq_phonopy,ph_vec_phonopy=self.get_frequencies_with_eigenvectors(q=[0,0,0])
 
         ph_freq = ph_freq_phonopy / (eV_to_THz)  # put it in eV
         ph_vec = ph_vec_phonopy.transpose().reshape(3*len(self.supercell),len(self.supercell),3)  
-        # such that ph_vec[iband][iatom] gives vector of iband,iatom
         
         return ph_freq, ph_vec
     
     
     def to_ddb(self,embedded_ddb_path='out_DDB',workdir=None):
-        # Call the converter to go from phonopy to a DDB
+        """
+        Call the converter to go from phonopy to a DDB
+
+        Args:
+            embedded_ddb_path: filepath where to save the DDB 
+            workdir: work directory for the conversion 
+        """
         ddb_sc = phonopy_to_abinit(unit_cell=get_pmg_structure(self.supercell), supercell_matrix=[1,1,1], qpt_list=[[0,0,0]],
                                    out_ddb_path=embedded_ddb_path, force_constants=self.force_constants,
                                    born=self.nac_params, primitive_matrix=np.eye(3), symprec=1e-5,

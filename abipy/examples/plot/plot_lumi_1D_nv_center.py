@@ -13,6 +13,8 @@ Based on NV- center in diamond (64 atoms supercell)
 
 from abipy.lumi.deltaSCF import DeltaSCF
 import abipy.data as abidata
+import abipy.abilab as abilab
+
 
 NV_center = DeltaSCF.from_four_points_file([abidata.ref_file("relaxed_gs_out_GSR.nc"),
                                             abidata.ref_file("unrelaxed_ex_out_GSR.nc"),

@@ -15,6 +15,7 @@ See example/flows/run_lumi_Eu_doped_SLA.py
 from abipy.lumi.deltaSCF import DeltaSCF
 import abipy.data as abidata
 import pandas as pd
+import abipy.abilab as abilab
 
 SLA_site_1 = DeltaSCF.from_four_points_file([abidata.ref_file("site_1_relaxed_gs_out_GSR.nc"),
                                             abidata.ref_file("site_1_unrelaxed_ex_out_GSR.nc"),

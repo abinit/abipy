@@ -719,12 +719,12 @@ def get_BORN_lines(unitcell, borns, epsilon,
     return lines
 
 @requires(Phonopy, "phonopy not installed!")
-def ddb_ucell_to_ddb_supercell(unit_ddb=None,unit_ddb_filepath=None,supercell_ddb_path='out_DDB',nac=True):
+def ddb_ucell_to_ddb_supercell(unit_ddb=None,unit_ddb_filepath=None,supercell_ddb_path='out_DDB',nac=True) -> DdbFile:
     """
     Convert a DDB file or DDB instance of a unit cell on a q-mesh to the corresponding supercell
     at q=Gamma.
     Args:
-        ddb_unit_cell: an instance of DDB file.
+        unit_ddb: an instance of DDB file.
         unit_ddb_filepath : alternatively, a path to the input DDB.
         supercell_ddb_path: DDB path of the output DDB on a supercell at Gamma
         nac : Set the non-analytical correction
@@ -732,6 +732,7 @@ def ddb_ucell_to_ddb_supercell(unit_ddb=None,unit_ddb_filepath=None,supercell_dd
     Returns:
         a DdbFile instance and the corresponding DDB file in supercell_ddb_path.
     """
+
     phonopy_supercell=ddb_ucell_to_phonopy_supercell(unit_ddb,unit_ddb_filepath,nac=nac)
 
     sc_structure=get_pmg_structure(phonopy_supercell.supercell)
@@ -744,10 +745,11 @@ def ddb_ucell_to_ddb_supercell(unit_ddb=None,unit_ddb_filepath=None,supercell_dd
 
     return ddb_sc
 
-def ddb_ucell_to_phonopy_supercell(unit_ddb=None,unit_ddb_filepath=None,nac=True):
+def ddb_ucell_to_phonopy_supercell(unit_ddb=None,unit_ddb_filepath=None,nac=True) -> Phonopy:
     """
     Convert a DDB file or DDB instance of a unit cell on a q-mesh to the corresponding supercell
     at q=Gamma.
+
     Args:
         ddb_unit_cell: an instance of DDB file.
         unit_ddb_filepath : alternatively, a path to the input DDB.
