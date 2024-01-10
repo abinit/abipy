@@ -723,6 +723,7 @@ def ddb_ucell_to_ddb_supercell(unit_ddb=None,unit_ddb_filepath=None,supercell_dd
     """
     Convert a DDB file or DDB instance of a unit cell on a q-mesh to the corresponding supercell
     at q=Gamma.
+    
     Args:
         unit_ddb: an instance of DDB file.
         unit_ddb_filepath : alternatively, a path to the input DDB.
