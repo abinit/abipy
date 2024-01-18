@@ -162,8 +162,8 @@ install_requires = [
     "plotly",
     "ipython",
     "chart-studio",
+    "click",
     #pydantic,
-    #pymongo,
     #panel,
 ]
 

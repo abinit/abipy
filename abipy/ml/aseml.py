@@ -1041,6 +1041,7 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
         calculator:
     """
     from ase.constraints import ExpCellFilter
+    #from ase.filters import FrechetCellFilter
     RX_MODE.validate(relax_mode)
     if relax_mode == RX_MODE.no:
         raise ValueError(f"Invalid {relax_mode:}")
@@ -1392,6 +1393,7 @@ class CalcBuilder:
         "chgnet",
         "alignn",
         "mace",
+        "mace_mp",
         "pyace",
         "nequip",
         "metatensor",
@@ -1562,6 +1564,21 @@ class CalcBuilder:
 
             cls = MyMACECalculator if with_delta else MACECalculator
             calc = cls(model_paths=self.model_path, device="cpu") #, default_dtype='float32')
+
+        elif self.nn_type == "mace_mp":
+            try:
+                from mace.calculators import MACECalculator
+                from mace.calculators import mace_mp
+            except ImportError as exc:
+                raise ImportError("mace not installed. See https://github.com/ACEsuit/mace") from exc
+
+            class MyMACECalculator(_MyCalculator, MACECalculator):
+                """Add abi_forces and abi_stress"""
+
+            calc = mace_mp(model="medium",
+                           #dispersion=False, default_dtype="float32", device='cuda'
+                           )
+            #calc.__class__ = MyMACECalculator
 
         elif self.nn_type == "nequip":
             try:
