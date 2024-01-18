@@ -13,7 +13,7 @@ from scipy.integrate import simps
 from scipy.special import factorial
 from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs,get_axarray_fig_plt
 import abipy.core.abinit_units as abu
-
+import os,shutil 
 
 class DeltaSCF():
     """
@@ -84,14 +84,21 @@ class DeltaSCF():
                    ae_energy=Ae_energy,
                    meta=meta)
 
-
     @classmethod
     def from_four_points_file(cls,filepaths):
-        """ Create the object from a list of netcdf files in the order (Ag,Agstar,Aestar,Ae)
-            Ag     -->  Ground state at relaxed ground state atomic positions
-            Agstar -->  Excited state at relaxed ground state atomic positions
-            Aestar -->  Excited state at relaxed excited state atomic positions
-            Ae     -->  Ground state at relaxed excited state atomic positions
+        """ 
+            Create the object from a list of netcdf files in the order (Ag,Agstar,Aestar,Ae).
+            Ag: Ground state at relaxed ground state atomic positions. 
+            Agstar: Excited state at relaxed ground state atomic positions.
+            Aestar: Excited state at relaxed excited state atomic positions.
+            Ae: Ground state at relaxed excited state atomic positions.
+    
+        Args:
+            filepaths: list of netcdf files in the order [Ag,Agstar,Aestar,Ae]
+        
+        Returns:
+            A DeltaSCF object
+
         """
         energies=[]
         structures=[]
@@ -160,27 +167,34 @@ class DeltaSCF():
         self.meta=meta
 
 
-    def get_meta(self):
-        return self.meta
-
     def structure_gs(self):
+        """ Ground state relaxed structure """
+
         return self.structuregs
 
     def structure_ex(self):
+        """ Excited state relaxed structure """
+
         return self.structureex
 
     def natom(self):
-        """Number of atoms in structure."""
+        """Number of atoms in the structure."""
         return len(self.structuregs)
 
     def diff_pos(self):
-        """"
+        """
         Difference between gs and ex structures in Angström, (n_atoms,3) shape
         """
         return (self.structureex.cart_coords - self.structuregs.cart_coords)
+    
+    def diff_pos_mass_weighted(self):
+        """
+        Difference between gs and ex structures in Angström, weighted by the squared atomic masses (n_atoms,3) shape
+        """
+        return np.einsum('i,ij->ij',np.array(self.amu_list()),self.diff_pos())
 
     def defect_index(self,defect_symbol):
-        """"
+        """
         Defect index in the structure from its symbol, ex defect_index("Eu").
         """
         index=self.structuregs.get_symbol2indices()[defect_symbol][0]
@@ -205,11 +219,7 @@ class DeltaSCF():
     def get_dataframe_atoms(self,defect_symbol):
         """
         Panda dataframe with relevant properties per atom.
-        units used are
-        mass     - amu
-        DeltaR   - Angstrom
-        DeltaQ^2 - amu.Angstrom^2
-        DeltaF   - eV/Angstrom
+        Units : [ (mass,amu), (deltaR,Angstrom), (DeltaQ^2,amu.Angstrom^2), (DeltaF,eV/Angstrom) ] 
         """
         list_of_dict=[]
         for index,atom in enumerate(self.structuregs):
@@ -235,11 +245,6 @@ class DeltaSCF():
     def get_dataframe_species(self):
         """
         Panda dataframe with relevant properties per species.
-        units used are
-        mass     - amu
-        DeltaR   - Angstrom
-        DeltaQ^2 - amu.Angstrom^2
-        DeltaF   - eV/Angstrom
         """
         list_of_dict=[]
         for index,specie in enumerate(self.structuregs.types_of_species):
@@ -268,8 +273,10 @@ class DeltaSCF():
     def delta_q(self,unit='atomic'):
         """
         Total Delta_Q
+
         Args:
             unit: amu^1/2.Angstrom if unit = 'atomic', kg^1/2.m if 'SI'
+
         """
         sq_Q_matrix = np.zeros((self.natom(), 3))
         for a in np.arange(self.natom()):
@@ -367,6 +374,7 @@ class DeltaSCF():
         """
         Full width at half-maximum following a semi-classical approx in the 1D-CCM
         (eq.20-21 of https://doi.org/10.1103/PhysRevB.96.125132)
+
         Args:
             T: Temperature
         """
@@ -390,17 +398,18 @@ class DeltaSCF():
     def lineshape_1D_zero_temp(self,energy_range=[0.5,5],max_m=25,phonon_width=0.01,with_omega_cube=True,normalized='Area'):
         """
         Compute the emission lineshape following the effective phonon 1D-CCM at T=0K.
-        See eq. (9) of  https://doi.org/10.1002/adom.202100649
+        See eq. (9) of  https://doi.org/10.1002/adom.202100649.
+        
         Args:
             energy_range:  Energy range at which the intensities are computed, ex : [0.5,5]
             max_m: Maximal vibrational state m considered
             phonon_width: fwhm of each phonon peak, in eV
             with_omega_cube: Considered or not the omega^3 dependence of the intensity
-            normlized: Normalisation procedure. 'Area' if Area under the curve = 1
-                       'Sum' if maximum of the curve = 1.
+            normalized: Normalisation procedure. 'Area' if Area under the curve = 1. 'Sum' if maximum of the curve = 1.
+                       
         Returns:
-            E_x = Energies at which the intensities are computed, np.array
-            I   = Intensities, np.array
+            E_x = Energies at which the intensities are computed
+            I   = Intensities
         """
         n_x = 10000  #
         E_x = np.linspace(energy_range[0], energy_range[1], n_x)
@@ -431,14 +440,14 @@ class DeltaSCF():
                                     normalized='Area', ax=None, **kwargs):
         """
         Plot the the emission lineshape following the effective phonon 1D-CCM at T=0K.
+
         Args:
-        ax: |matplotlib-Axes| or None if a new figure should be created.
-        energy_range:  Energy range at which the intensities are computed, ex : [0.5,5]
-        max_m: Maximal vibrational state m considered
-        phonon_width: fwhm of each phonon peak, in eV
-        with_omega_cube: Considered or not the omega^3 dependence of the intensity
-        normlized: Normalisation procedure. 'Area' if Area under the curve = 1
-                   'Sum' if maximum of the curve = 1.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            energy_range:  Energy range at which the intensities are computed, ex : [0.5,5]
+            max_m: Maximal vibrational state m considered
+            phonon_width: fwhm of each phonon peak, in eV
+            with_omega_cube: Considered or not the omega^3 dependence of the intensity
+            normlized: Normalisation procedure. 'Area' if Area under the curve = 1. 'Sum' if maximum of the curve = 1.
 
         Returns: |matplotlib-Figure|
         """
@@ -454,18 +463,18 @@ class DeltaSCF():
 
     def get_dict_results(self):
         d=dict([
-            (r'$E_{em}$',self.E_em()),
-            (r'$E_{abs}$' ,self.E_abs()),
-            (r'$E_{zpl}$',self.E_zpl()),
-            (r'$E_{FC,g}$',self.E_FC_gs()),
-            (r'$E_{FC,e}$',self.E_FC_ex()),
-            (r'$\Delta S$',self.Stoke_shift()),
-            (r'$\Delta R $',self.delta_r()),
-            (r'$\Delta Q$',self.delta_q()),
-            (r'$\hbar\Omega_g$',self.eff_freq_gs()),
-            (r'$\hbar\Omega_e$',self.eff_freq_ex()),
-            (r'$S_{em}$',self.S_em()),
-            (r'$S_{abs}$',self.S_abs()),
+            (r'E_em',self.E_em()),
+            (r'E_abs' ,self.E_abs()),
+            (r'E_zpl',self.E_zpl()),
+            (r'E_fc_gs',self.E_FC_gs()),
+            (r'E_fc_ex',self.E_FC_ex()),
+            (r'Delta_S',self.Stoke_shift()),
+            (r'Delta_R ',self.delta_r()),
+            (r'Delta_Q',self.delta_q()),
+            (r'Eff_freq_gs',self.eff_freq_gs()),
+            (r'Eff_freq_ex',self.eff_freq_ex()),
+            (r'S_em',self.S_em()),
+            (r'S_abs',self.S_abs()),
         ])
         return d
 
@@ -484,6 +493,92 @@ class DeltaSCF():
         df=pd.DataFrame(rows,index=index)
 
         return df
+    
+    def draw_displacements_vesta(self,in_path, mass_weighted = False,
+                 scale_vector=20,width_vector=0.3,color_vector=[255,0,0],centered=True,
+                 factor_keep_vectors=0.1,
+                 out_path="VESTA_FILES",out_filename="gs_ex_relaxation"):
+        """
+        Draw the ground state to excited state atomic relaxation on a vesta structure. 
+
+        Args:
+            in_path : path where the initial .vesta structure in stored, should correspond to the ground state relaxed structure. 
+            mass_weighted : If True, weight the displacements by the atomic masses. Draw the \Delta Q in that case.  
+            scale_vector : scaling factor of the vector modulus
+            width_vector : vector width
+            color_vector : color in rgb format
+            centered : center the vesta structure around [0,0,0]
+            factor_keep_vectors : draw only the eigenvectors with magnitude > factor_keep_vectors * max(magnitude)
+            out_path : path where .vesta files with vector are stored
+        """
+
+        vesta = open(in_path,'r').read()
+        natoms = len(self.structure_gs())
+
+
+        if os.path.isdir(out_path): 
+            shutil.rmtree(out_path)
+            os.mkdir(out_path)
+        else : 
+            os.mkdir(out_path)
+
+        path=out_path
+
+        towrite = vesta.split('VECTR')[0]
+        towrite += 'VECTR\n'
+
+        magnitudes=[]
+        displacements=self.diff_pos()
+        if mass_weighted == True:
+            displacements=self.diff_pos_mass_weighted()
+
+        for iatom in range(natoms) :
+            magnitudes.append(np.sqrt(displacements[iatom][0]**2 + displacements[iatom][1]**2 + displacements[iatom][2]**2))
+
+        for iatom in range(natoms) :
+            if magnitudes[iatom] > factor_keep_vectors * max(np.real(magnitudes)):
+                towrite += '%5d' %(iatom + 1)
+                towrite += '%10.5f' %(displacements[iatom][0] * (scale_vector))
+                towrite += '%10.5f' %(displacements[iatom][1] * (scale_vector))
+                towrite += '%10.5f' %(displacements[iatom][2] * (scale_vector))
+                towrite += '\n'
+                towrite += '%5d' %(iatom + 1)  +  ' 0 0 0 0\n  0 0 0 0 0\n'
+    
+        towrite += '0 0 0 0 0\n' 
+        towrite += 'VECTT\n'
+
+        for atom in range(natoms) :
+            towrite += '%5d' %(atom + 1)
+            towrite += f'  {width_vector} {color_vector[0]}   {color_vector[1]}   {color_vector[2]} 0\n'
+
+        towrite += '0 0 0 0 0\n' 
+        towrite += 'SPLAN'
+        towrite += vesta.split('SPLAN')[1]
+        towrite += 'VECTS 1.00000'
+
+
+        filename = path + '/'+out_filename
+        filename += '.vesta'
+
+        open(filename, 'w').write(towrite)
+
+        if centered==True:
+
+            with open(filename, 'r') as file:
+                file_contents = file.read()
+                search_word="BOUND\n       0        1         0        1         0        1\n  0   0   0   0  0"
+                replace_word="BOUND\n       -0.5        0.5         -0.5        0.5         -0.5        0.5\n  0   0   0   0  0"
+
+                updated_contents = file_contents.replace(search_word, replace_word)
+
+            with open(filename, 'w') as file:
+                file.write(updated_contents)
+                
+        print(f"Vesta files created and stored in : \n {os.getcwd()}/{out_path}")
+
+        return 
+     
+
 
     @add_fig_kwargs
     def displacements_visu(self,a_g=10,**kwargs):
@@ -491,10 +586,10 @@ class DeltaSCF():
         Make a 3d visualisation of the displacements induced by the electronic transition =
         Difference between ground state and excited state atomic positions.
         The colors of the atoms are based on Delta_Q_^2 per atom.
-        For displacement visualisation with VESTA, check https://github.com/lucydot/vesta_vectors
 
         Args:
-            a_g = coefficient that multiplies the displacement magnitudes
+            a_g : coefficient that multiplies the displacement magnitudes
+
         Returns: |matplotlib-Figure|
         """
         pos_gs=self.structuregs.cart_coords
@@ -526,10 +621,11 @@ class DeltaSCF():
     def plot_delta_R_distance(self, defect_symbol,colors=["k","r","g","b","c","m"],ax=None, **kwargs):
         """
         Plot \DeltaR vs distance from defect for each atom, colored by species.
+
         Args:
-        ax: |matplotlib-Axes| or None if a new figure should be created.
-        defect_symbol:  defect_symbol, defect location will be the reference
-        colors: list of colors for the species
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            defect_symbol:  defect_symbol, defect location will be the reference
+            colors: list of colors for the species
 
         Returns: |matplotlib-Figure|
         """
@@ -558,10 +654,11 @@ class DeltaSCF():
     def plot_delta_F_distance(self, defect_symbol,colors=["k","r","g","b","c","m"],ax=None, **kwargs):
         """
         Plot \DeltaF vs distance from defect for each atom, colored by species.
+
         Args:
-        ax: |matplotlib-Axes| or None if a new figure should be created.
-        defect_symbol:  defect_symbol, defect location will be the reference
-        colors: list of colors for the species
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            defect_symbol:  defect_symbol, defect location will be the reference
+            colors: list of colors for the species
 
         Returns: |matplotlib-Figure|
         """
@@ -588,8 +685,8 @@ class DeltaSCF():
 
     @add_fig_kwargs
     def plot_four_BandStructures(self,nscf_files,ax_mat=None,ylims=[-5,5],**kwargs):
-        """"
-        plot the 4 band structures
+        """
+        plot the 4 band structures.
         nscf_files is the list of Ag, Agstar, Aestar, Ae nscf gsr file paths.
         """
         ebands = []
@@ -619,6 +716,7 @@ class DeltaSCF():
     def draw_displaced_parabolas(self,ax=None,scale_eff_freq=4,font_size=8, **kwargs):
         """
         Draw the four points diagram with relevant transition energies.
+
         Args:
         ax: |matplotlib-Axes| or None if a new figure should be created.
         scale_eff_freq:  scaling factor to adjust the parabolas curvatures.
