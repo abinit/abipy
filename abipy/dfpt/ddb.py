@@ -3396,9 +3396,9 @@ def get_2nd_ord_block_string(qpt, data) -> list:
     Returns: list of str: the lines that can be added to the DDB file.
     """
     lines = []
-    lines.append(f" 2nd derivatives (non-stat.)  - # elements :{len(data):8}")
+    lines.append(f" 2nd derivatives (non-stat.)  - # elements :{len(data):12}")
     lines.append(" qpt{:16.8E}{:16.8E}{:16.8E}   1.0".format(*qpt))
-    l_format = "{:4d}" * 4 + "  {:22.14E}" * 2
+    l_format = "{:6d}" * 4 + "  {:22.14E}" * 2
 
     for p, v in data.items():
         lines.append(l_format.format(*p, v.real, v.imag))
