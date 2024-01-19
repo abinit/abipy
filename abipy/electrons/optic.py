@@ -28,7 +28,10 @@ ALL_CHIS = OrderedDict([
         "longname": "Second Harmonic Generation",
         "rank": 3,
         "terms": ["shg_inter2w", "shg_inter1w", "shg_intra2w",
-                  "shg_intra1w", "shg_intra1wS", "shg_chi2tot"],
+                  "shg_intra1w", "shg_intra1wS", "shg_chi2tot",
+                  "shg_inter2w_AR", "shg_inter1w_AR", "shg_intra2w_AR",
+                  "shg_intra1w_AR", "shg_intra1wS_AR", "shg_chi2tot_AR",
+                  "shg_chi2full"],
         }
         #"latex": r"\chi(-2\omega, \omega, \omega)"
     ),

@@ -215,7 +215,7 @@ class Hardware:
 
         # Convert memory to megabytes.
         m = str(kwargs.pop("mem_per_node"))
-        self.mem_per_node = int(Memory.from_str(m).to("Mb"))
+        self.mem_per_node = int(Memory.from_string(m).to("Mb"))
 
         if self.mem_per_node <= 0 or self.sockets_per_node <= 0 or self.cores_per_socket <= 0:
             raise ValueError("invalid parameters: %s" % kwargs)
