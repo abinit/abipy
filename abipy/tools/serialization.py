@@ -26,9 +26,8 @@ def pmg_serialize(method):
 
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
-        # Needed because it is called without args at some point when ConvergenceWarning #VT
-        if not args: #VT
-            return None #VT
+        if not args:
+            return None
         self = args[0]
         d = method(*args, **kwargs)
         # Add @module and @class

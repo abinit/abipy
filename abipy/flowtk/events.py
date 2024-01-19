@@ -433,7 +433,7 @@ class EventsParser:
                 if w.match(doc.tag):
                     #print("got doc.tag", doc.tag,"--")
                     try:
-                        doc.text  = doc.text.replace('\n    \n', '\n') #VT, needed for the RelaxConvergenceWarning
+                        doc.text  = doc.text.replace('\n    \n', '\n')
                         #print(doc.text)
                         event = yaml.load(doc.text)   # Can't use ruamel safe_load!
                         # FIXME: This new (recommend) API does not reproduce yaml.load behavior. bug in ruamel?
