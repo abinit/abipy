@@ -147,6 +147,8 @@ def add_nn_name_opt(f):
     """Add CLI options to select the NN potential."""
     f = click.option("--nn-name", "-nn", default=DEFAULT_NN, show_default=True,
                      help=f"ML potential to be used. Supported values are: {aseml.CalcBuilder.ALL_NN_TYPES}")(f)
+    #f = click.option("--dftd3", , default="no", show_default=True,
+    #                 help=f"Activate DFD3.")(f)
     return f
 
 
