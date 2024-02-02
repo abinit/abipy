@@ -1451,7 +1451,8 @@ class CalcBuilder:
             with_delta: False if the calculator should not include delta corrections.
             reset: True if the internal cache for the model should be reset.
         """
-        if reset: self.reset()
+        #if reset: self.reset()
+        self.reset()
 
         if self.nn_type == "m3gnet":
             # m3gnet legacy version.
@@ -2282,10 +2283,9 @@ class MlGsList(_MlNebBase):
         workdir = self.workdir
 
         results = []
-        calc = CalcBuilder(self.nn_name).get_calculator()
         for ind, atoms in enumerate(self.atoms_list):
             write_vasp(self.workdir / f"IND_{ind}_POSCAR", atoms, label=None)
-            atoms.calc = calc
+            atoms.calc = CalcBuilder(self.nn_name).get_calculator()
             results.append(AseResults.from_atoms(atoms))
 
         write_vasp_xdatcar(self.workdir / "XDATCAR", self.atoms_list,
