@@ -44,7 +44,7 @@ def ion_relaxation(tvars, ntime=50):
 
     return inp
 
-
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_atomic_relaxation(fwp, tvars):
     """Test atomic relaxation with automatic restart."""
     # Build the flow
