@@ -44,7 +44,7 @@ def make_scf_input(usepaw=0):
 
     return scf_input
 
-
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_frohlich_zpr_flow(fwp, tvars):
     """
     """

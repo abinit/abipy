@@ -93,7 +93,7 @@ def make_g0w0_inputs(ngkpt, tvars):
 
     return multi.split_datasets()
 
-
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_g0w0_flow(fwp, tvars):
     """Test flow for G0W0 calculations."""
     scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
