@@ -9,6 +9,7 @@ import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_matplotlib
 
+import pytest
 
 def ion_relaxation(tvars, ntime=50):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))

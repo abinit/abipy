@@ -12,6 +12,7 @@ import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_matplotlib
 
+import pytest
 
 def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     """

@@ -6,6 +6,7 @@ import abipy.abilab as abilab
 
 from abipy.dfpt.ddb import DdbFile
 
+import pytest
 
 def make_scf_input(usepaw=0):
     """Returns the GS input file"""

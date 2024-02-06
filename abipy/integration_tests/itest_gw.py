@@ -7,6 +7,7 @@ import abipy.flowtk as flowtk
 
 #from abipy.core.testing import has_abinit, has_matplotlib
 
+import pytest
 
 def make_g0w0_inputs(ngkpt, tvars):
     """
