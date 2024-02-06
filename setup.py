@@ -147,7 +147,7 @@ install_requires = [
     "monty",
     "tabulate",
     #"apscheduler==2.1.0",
-    "apscheduler",
+    "apscheduler<=3.10.4",
     "pydispatcher>=2.0.5",
     "tqdm",
     "pyyaml>=3.11",
