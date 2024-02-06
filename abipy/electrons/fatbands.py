@@ -332,7 +332,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         if verbose > 1:
             app("")
-            app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
+            app(self.hdr.to_str(verbose=verbose, title="Abinit Header"))
 
         return "\n".join(lines)
 

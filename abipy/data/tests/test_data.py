@@ -23,10 +23,11 @@ class DataModuleTest(AbipyTest):
         structure = abidata.structure_from_cif("gan2.cif")
         assert hasattr(structure, "to_abivars")
 
-        structure = abidata.structure_from_mpid("mp-4820")
-        assert hasattr(structure, "to_abivars")
-        with self.assertRaises(KeyError):
-            abidata.structure_from_mpid("foobar")
+        if self.test_mprester():
+            structure = abidata.structure_from_mpid("mp-4820")
+            assert hasattr(structure, "to_abivars")
+            with self.assertRaises(KeyError):
+                abidata.structure_from_mpid("foobar")
 
 
 class FilesGeneratorTest(AbipyTest):

@@ -1250,7 +1250,7 @@ class _MyCalculator:
                     #AA: TODO: save the delta in list and call method...
                     dict ={'delta_forces': delta_forces,}
                     with open('delta_forces.json', 'a') as outfile:
-                        json.dump(dict, outfile,indent=1,cls=MontyEncoder)
+                        json.dump(dict, outfile, indent=1, cls=MontyEncoder)
 
                 elif self.correct_forces_algo == CORRALGO.one_point:
                     forces += abi_forces
