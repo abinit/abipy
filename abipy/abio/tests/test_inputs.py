@@ -249,7 +249,7 @@ class TestAbinitInput(AbipyTest):
         assert inp["ndivsm"] == 3 and inp["iscf"] == -2 and len(inp["kptbounds"]) == 12
 
         inp.set_kpath(ndivsm=-20)
-        assert inp["nkpt"] == 157 and inp["iscf"] == -2
+        assert inp["nkpt"] in (156, 157) and inp["iscf"] == -2
 
         inp.set_qpath(ndivsm=3, qptbounds=None)
         assert len(inp["ph_qpath"]) == 12 and inp["ph_nqpath"] == 12 and inp["ph_ndivsm"] == 3

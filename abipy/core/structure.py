@@ -1802,7 +1802,10 @@ class Structure(pmg_Structure, NotebookWriter):
             # Don't call super for poscar because we need more significant_figures to
             # avoid problems with abinit space group routines where the default numerical tolerance is tight.
             from pymatgen.io.vasp import Poscar
-            return Poscar(self).get_str(significant_figures=12)
+            try:
+                return Poscar(self).get_str(significant_figures=12)
+            except AttributeError:
+                return Poscar(self).get_string(significant_figures=12)
         else:
             return super().to(fmt=fmt, **kwargs)
 

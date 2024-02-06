@@ -1185,6 +1185,8 @@ class _MyCalculator:
         self.reset()
         ml_forces = self.get_forces(atoms=atoms)
         ml_stress = self.get_stress(atoms=atoms)
+        if ml_stress.ndim == 1:
+            ml_stress = voigt_6_to_full_3x3_strain(ml_stress)
         self.reset()
         self.__ml_forces_list.append(ml_forces)
         self.__ml_stress_list.append(ml_stress)
