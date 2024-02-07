@@ -202,6 +202,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         Return:
             path to Xdatcar file.
         """
+        # This library takes 13s to import on HPC (07/02/24) so moved to class method instead of header
         from pymatgen.io.vasp.outputs import Xdatcar
 
         if filepath is not None and os.path.exists(filepath) and not overwrite:
