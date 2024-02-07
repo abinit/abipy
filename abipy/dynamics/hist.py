@@ -14,7 +14,6 @@ from monty.collections import AttrDict
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
 from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
-from pymatgen.io.vasp.outputs import Xdatcar
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, get_figs_plotly, \
     get_fig_plotly, add_plotly_fig_kwargs, plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc, plotly_set_lims, \
     latex_greek_2unicode
@@ -180,6 +179,8 @@ class HistFile(AbinitNcFile, NotebookWriter):
             to_unit_cell (bool): Whether to translate sites into the unit cell.
             kwargs: keywords arguments passed to Xdatcar constructor.
         """
+        from pymatgen.io.vasp.outputs import Xdatcar
+
         filepath = self.write_xdatcar(filepath=filepath, groupby_type=groupby_type,
                                       to_unit_cell=to_unit_cell, overwrite=True)
 
@@ -201,6 +202,8 @@ class HistFile(AbinitNcFile, NotebookWriter):
         Return:
             path to Xdatcar file.
         """
+        from pymatgen.io.vasp.outputs import Xdatcar
+
         if filepath is not None and os.path.exists(filepath) and not overwrite:
             raise RuntimeError("Cannot overwrite pre-existing file `%s`" % filepath)
 
