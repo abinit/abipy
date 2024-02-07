@@ -1575,10 +1575,11 @@ class CalcBuilder:
             except ImportError as exc:
                 raise ImportError("mace not installed. See https://github.com/ACEsuit/mace") from exc
 
-            class MyMACECalculator(_MyCalculator, MACECalculator):
-                """Add abi_forces and abi_stress"""
+            #class MyMACECalculator(_MyCalculator, MACECalculator):
+            #     """Add abi_forces and abi_stress"""
 
             calc = mace_mp(model="medium",
+                           #cls=MyMACECalculator,
                            #dispersion=False, default_dtype="float32", device='cuda'
                            )
             #calc.__class__ = MyMACECalculator

@@ -2667,7 +2667,10 @@ def add_colorscale_dropwdowns(fig):
     return fig
 
 def mpl_to_ply(fig, latex=False):
-    # Nasty workaround for plotly latex rendering in legend/breaking exception
+    """Nasty workaround for plotly latex rendering in legend/breaking exception"""
+    if is_plotly_figure(fig):
+        return fig
+
     def parse_latex(label):
         # Remove latex symobols
         new_label = label.replace("$", "")
