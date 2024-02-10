@@ -1387,6 +1387,7 @@ def ddkpert_from_gsinput(gs_input, ddk_pert, nband=None, use_symmetries=False, d
     """
     gs_input = gs_input.deepcopy()
     gs_input.pop_irdvars()
+    gs_input.pop_vars(['autoparal', 'npfft'])
 
     if ddk_tol is None:
         ddk_tol = {"tolwfr": 1.0e-22}
@@ -1418,6 +1419,7 @@ def ddepert_from_gsinput(gs_input, dde_pert, use_symmetries=True, dde_tol=None, 
     """
     gs_input = gs_input.deepcopy()
     gs_input.pop_irdvars()
+    gs_input.pop_vars(['autoparal', 'npfft'])
 
     if dde_tol is None:
         dde_tol = {"tolvrs": 1.0e-22}
@@ -1439,6 +1441,7 @@ def dtepert_from_gsinput(gs_input, dte_pert, manager=None) -> AbinitInput:
     """
     gs_input = gs_input.deepcopy()
     gs_input.pop_irdvars()
+    gs_input.pop_vars(['autoparal', 'npfft'])
 
     dte_inp = gs_input.make_dtepert_input(perturbation=dte_pert, manager=manager)
 
