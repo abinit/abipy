@@ -3,7 +3,7 @@ r"""
 Thermodynamic properties
 ========================
 
-This example shows how to compute and plot thermodinamic properties within
+This example shows how to compute and plot thermodynamic properties within
 the harmonic approximation using the phonon DOS produced by anaddb.
 """
 from abipy.abilab import abiopen
