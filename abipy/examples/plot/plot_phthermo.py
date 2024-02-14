@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Thermodinamic properties
+Thermodynamic properties
 ========================
 
 This example shows how to compute and plot thermodinamic properties within
