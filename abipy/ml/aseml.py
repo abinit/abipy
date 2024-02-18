@@ -49,6 +49,7 @@ from abipy.tools.typing import Figure, PathLike
 from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import HasPickleIO
 from abipy.tools.context_managers import Timer
+from abipy.tools.parallel import get_max_nprocs, pool_nprocs_pmode
 from abipy.abio.enums import StrEnum, EnumMixin
 from abipy.core.mixins import TextFile, NotebookWriter
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
@@ -2845,21 +2846,31 @@ class MlValidateWithAbinitio(_MlNebBase):
         labels = ["abinitio"]
         abi_results = self.get_abinitio_results()
         results_list = [abi_results]
+        ntasks = len(results_list)
 
-        ntasks = len(abi_results)
-        nprocs = 1
+        if nprocs <= 0 or nprocs is None:
+            nprocs = get_max_nprocs()
+        print(f"Using {nprocs=}")
+
+        #from abipy.relax_scanner import nprocs_for_ntasks
+        #nprocs = nprocs_for_ntasks(nprocs, ntasks, title="Begin relaxations")
+        #p = pool_nprocs_pmode(ntasks, pmode=pmode)
+        #using_msg = f"Reading {len(directories)} abiml directories {p.using_msg}"
 
         for nn_name in self.nn_names:
-            labels.append(nn_name)
             # Use ML to compute quantities with the same ab-initio trajectory.
+            labels.append(nn_name)
             if nprocs == 1:
                 calc = as_calculator(nn_name)
                 items = [AseResults.from_atoms(res.atoms, calc=calc) for res in abi_results]
             else:
-                raise NotImplementedError("run with multiprocessing!")
-                args_list = [(nn_name, res) for res in abi_results]
+                func = _GetAseResults(nn_name)
                 with Pool(processes=nprocs) as pool:
-                    items = pool.map(_map_run_compare, args_list)
+                    items = pool.map(func, abi_results)
+                #p = pool_nprocs_pmode(len(directories), pmode=pmode)
+                #using_msg = f"Reading {len(directories)} abiml directories {p.using_msg}"
+                #with p.pool_cls(p.nprocs) as pool, Timer(header=using_msg, footer="") as timer:
+                #    return cls(pool.starmap(MdAnalyzer.from_abiml_dir, args))
 
             results_list.append(items)
 
@@ -2875,6 +2886,21 @@ class MlValidateWithAbinitio(_MlNebBase):
 
         self._finalize()
         return comp
+
+
+class _GetAseResults:
+    """
+    Callable class used to parallelize the computation of AseResults with multiprocessing
+    """
+
+    def __init__(self, nn_name):
+        self.nn_name = nn_name
+        self.calc = None
+
+    def __call__(self, abi_res):
+        if self.calc is None:
+            self.calc = as_calculator(self.nn_name)
+        return AseResults.from_atoms(abi_res.atoms, calc=self.calc)
 
 
 class MolecularDynamics:

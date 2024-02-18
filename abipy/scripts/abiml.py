@@ -591,7 +591,7 @@ def scan_relax(ctx, filepath, nn_name,
               help="Trajectory range e.g. `5` to select the first 5 iterations, `1:4` to select steps 1,2,3. `1:4:2 for 1,3",
               default=None)
 @click.option("-e", '--exposer', default="mpl", show_default=True, type=click.Choice(["mpl", "panel"]),
-              help='Plotting backend: mpl for matplotlib, panel for web-based')
+              help='Plotting backend: mpl for matplotlib, panel for web-based, None to disable plotting')
 @add_nprocs_opt
 @add_workdir_verbose_opts
 @click.option('--config', default='abiml_validate.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
@@ -618,17 +618,18 @@ def validate(ctx, filepaths,
     print(ml_comp)
     c = ml_comp.run(nprocs=nprocs)
 
-    with_stress = True
-    from abipy.tools.plotting import Exposer
-    with Exposer.as_exposer(exposer, title=" ".join(os.path.basename(p) for p in filepaths)) as e:
-        e(c.plot_energies(show=False))
-        e(c.plot_forces(delta_mode=True, show=False))
-        e(c.plot_energies_traj(delta_mode=True, show=False))
-        e(c.plot_energies_traj(delta_mode=False, show=False))
-        if with_stress:
-            e(c.plot_stresses(delta_mode=True, show=False))
-        e(c.plot_forces_traj(delta_mode=True, show=False))
-        e(c.plot_stress_traj(delta_mode=True, show=False))
+    if exposer != "None":
+        from abipy.tools.plotting import Exposer
+        with_stress = True
+        with Exposer.as_exposer(exposer, title=" ".join(os.path.basename(p) for p in filepaths)) as e:
+            e(c.plot_energies(show=False))
+            e(c.plot_forces(delta_mode=True, show=False))
+            e(c.plot_energies_traj(delta_mode=True, show=False))
+            e(c.plot_energies_traj(delta_mode=False, show=False))
+            if with_stress:
+                e(c.plot_stresses(delta_mode=True, show=False))
+            e(c.plot_forces_traj(delta_mode=True, show=False))
+            e(c.plot_stress_traj(delta_mode=True, show=False))
 
     return 0
 
