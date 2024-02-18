@@ -258,7 +258,13 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 if dtidx is None:
                     vars_global[key] = value
                 else:
-                    vars_dataset[dtidx][key] = value
+                    try:
+                        vars_dataset[dtidx][key] = value
+                    except KeyError:
+                        if dtidx==0:
+                            vars_global[key] = value
+                        else:
+                            raise Exception("dataset index != 0 but still not found in vars_dataset")
 
         for line in lines:
             if not line: continue

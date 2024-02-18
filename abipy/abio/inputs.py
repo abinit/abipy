@@ -1229,7 +1229,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         for site in self.structure:
             if hasattr(site, 'magmom'):
                 spinat.append((0., 0., site.magmom))
-            elif hasattr(site.specie, 'spin'):
+            elif hasattr(site.specie, 'spin') and site.specie.spin:
                 spinat.append((0., 0., site.specie.spin))
             elif str(site.specie) in magmom_mp_conf:
                 spinat.append((0., 0., magmom_mp_conf.get(str(site.specie))))

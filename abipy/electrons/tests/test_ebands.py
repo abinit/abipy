@@ -561,42 +561,44 @@ class ElectronBandsFromRestApi(AbipyTest):
     def test_from_mpid(self):
         """Testing interpolation of SnO2 band energies from MP database."""
 
-        with self.assertRaises(ValueError):
-            abilab.ElectronBands.from_mpid("foobar")
+        if self.test_mprester():
+            with self.assertRaises(ValueError):
+                abilab.ElectronBands.from_mpid("foobar")
 
-        #mpid = "mp-149"
-        #mpid = "mp-856"
-        mpid = "mp-3079"
-        ebands = abilab.ElectronBands.from_mpid(mpid)
-        # Use prune_step to remove k-points (too many k-points on a k-path can cause numerical instabilities)
-        ebands = ebands.new_with_irred_kpoints(prune_step=2)
-        # Interpolate on k-path + kmesh.
-        # Results are very sensitive to the value of lpratio. The default is not enough in this case!!
-        r = ebands.interpolate(lpratio=50, kmesh=[10, 10, 10])
+            #mpid = "mp-149"
+            #mpid = "mp-856"
+            mpid = "mp-3079"
+            ebands = abilab.ElectronBands.from_mpid(mpid)
+            # Use prune_step to remove k-points (too many k-points on a k-path can cause numerical instabilities)
+            ebands = ebands.new_with_irred_kpoints(prune_step=2)
+            # Interpolate on k-path + kmesh.
+            # Results are very sensitive to the value of lpratio. The default is not enough in this case!!
+            r = ebands.interpolate(lpratio=50, kmesh=[10, 10, 10])
 
-        new_fermie = r.ebands_kpath.set_fermie_to_vbm()
-        assert new_fermie == r.ebands_kpath.fermie
-        assert r.ebands_kpath.isnot_ibz_sampling()
+            new_fermie = r.ebands_kpath.set_fermie_to_vbm()
+            assert new_fermie == r.ebands_kpath.fermie
+            assert r.ebands_kpath.isnot_ibz_sampling()
 
-        edos = r.ebands_kmesh.get_edos()
-        new_fermie = r.ebands_kpath.set_fermie_from_edos(edos)
-        assert new_fermie == edos.fermie
+            edos = r.ebands_kmesh.get_edos()
+            new_fermie = r.ebands_kpath.set_fermie_from_edos(edos)
+            assert new_fermie == edos.fermie
 
-        if self.has_matplotlib():
-            # Plot bands + dos using interpolated energies.
-            assert r.ebands_kpath.plot_with_edos(edos, show=False)
+            if self.has_matplotlib():
+                # Plot bands + dos using interpolated energies.
+                assert r.ebands_kpath.plot_with_edos(edos, show=False)
 
 
     def test_ebands_from_mpid_magnetic_semiconductor_nelect_automatically_computed(self):
         """https://github.com/abinit/abipy/issues/232"""
-        ebands = ElectronBands.from_mpid('mp-565814')
 
-        assert ebands.nsppol == 2
-        self.assert_almost_equal(ebands.direct_gaps[0].energy, 3.6776999999999997)
-        self.assert_almost_equal(ebands.direct_gaps[1].energy, 2.0054000000000003)
-        self.assert_almost_equal(ebands.nelect, 368.0)
-        self.assert_almost_equal(ebands.fermie, 3.1562566)
-        assert str(ebands.to_string(verbose=1))
+        if self.test_mprester():
+            ebands = ElectronBands.from_mpid('mp-565814')
+            assert ebands.nsppol == 2
+            self.assert_almost_equal(ebands.direct_gaps[0].energy, 3.6776999999999997)
+            self.assert_almost_equal(ebands.direct_gaps[1].energy, 2.0054000000000003)
+            self.assert_almost_equal(ebands.nelect, 368.0)
+            self.assert_almost_equal(ebands.fermie, 3.1562566)
+            assert str(ebands.to_string(verbose=1))
 
     #def test_ebands_from_mpid_metal(self):
     #    # This is Al but it's disabled because it takes ~ 77s

@@ -16,7 +16,7 @@ from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
-from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter
+from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter, FilesPlotter
 
 
 def remove_disordered(structures, paths):
@@ -254,6 +254,15 @@ def abicomp_data(options):
     plotter = GenericDataFilesPlotter.from_files(options.paths)
     print(plotter.to_string(verbose=options.verbose))
     plotter.plot(use_index=options.use_index)
+    return 0
+
+
+def abicomp_png(options):
+    """
+    Use matplotlib to plot multiple png files on a grid.
+    """
+    plotter = FilesPlotter(options.filepaths)
+    plotter.plot()
     return 0
 
 
@@ -1054,6 +1063,9 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_data = subparsers.add_parser('data', parents=[copts_parser, expose_parser], help=abicomp_data.__doc__)
     p_data.add_argument("-i", "--use-index", default=False, action="store_true",
         help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
+
+    # Subparser for png command.
+    p_png = subparsers.add_parser('png', parents=[copts_parser], help=abicomp_png.__doc__)
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser, pandas_parser],

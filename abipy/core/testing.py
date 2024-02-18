@@ -338,6 +338,11 @@ class AbipyTest(PymatgenTest):
             raise unittest.SkipTest("This test requires Abinit version %s %s" % (op, version))
 
     @staticmethod
+    def test_mprester():
+        """Skip MP rester tests."""
+        raise unittest.SkipTest("MPRester tests have been disabled")
+
+    @staticmethod
     def has_matplotlib(version: Optional[str] = None, op: str = ">=") -> bool:
         return has_matplotlib(version=version, op=op)
 

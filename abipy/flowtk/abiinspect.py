@@ -11,7 +11,6 @@ from collections.abc import Iterable, Iterator, Mapping
 from typing import Union
 
 import numpy as np
-#import ruamel.yaml as yaml
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from tabulate import tabulate

@@ -342,6 +342,29 @@ def workdir_with_prefix(workdir, prefix, exist_ok=False) -> Path:
     return Path(workdir).absolute()
 
 
+def change_ext_from_top(top: PathLike, old_ext: str, new_ext: str) -> int:
+    """
+    Change the extension of all the files with extension old_ext with new_ext.
+
+    Args:
+        top: Walk the file system starting from top.
+        old_ext: Old file extension.
+        new_ext: New file extension.
+
+    Return: Number of files whose extension has been changed.
+    """
+    count = 0
+    for root, dirs, files in os.walk(str(top)):
+        root = Path(root)
+        for filepath in files:
+            filepath = root / Path(filepath)
+            if not filepath.name.endswith(old_ext): continue
+            new_name = filepath.name[:-len(old_ext)] + new_ext
+            filepath.rename(root / new_name)
+            count += 1
+
+    return count
+
 
 class _Script:
     """

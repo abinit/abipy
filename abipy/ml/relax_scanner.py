@@ -28,7 +28,27 @@ from abipy.tools.iotools import workdir_with_prefix, PythonScript, ShellScript
 from abipy.tools.serialization import HasPickleIO
 from abipy.tools.printing import print_dataframe
 from abipy.ml.aseml import (relax_atoms, get_atoms, as_calculator, ase_optimizer_cls, RX_MODE, fix_atoms,
-                            MlNeb, MlGsList, CalcBuilder, make_ase_neb, nprocs_for_ntasks)
+                            MlNeb, MlGsList, CalcBuilder, make_ase_neb)
+
+
+
+def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
+    """
+    Return the number of procs to be used in a multiprocessing Pool.
+    If negative or None, use all procs in the system.
+    """
+    import os
+    if nprocs is None or nprocs <= 0:
+        nprocs = max(1, os.cpu_count())
+    else:
+        nprocs = int(nprocs)
+
+    nprocs = min(nprocs, ntasks)
+    if title is not None:
+        print(title)
+        print(f"Using multiprocessing pool with {nprocs=} for {ntasks=} ...")
+    return nprocs
+
 
 
 @dataclasses.dataclass
@@ -195,7 +215,6 @@ class RelaxScanner(HasPickleIO):
                     and name.startswith("start_")]
         for dpath in dirpaths:
             # Directory name has pattern: f"start:{start}-stop:{stop}"
-            # Directory name has pattern: f"start_{start}-stop_{stop}"
             tokens = dpath.split("-")
             this_start = int(tokens[0].replace("start_", ""))
             this_stop = int(tokens[1].replace("stop_", ""))
@@ -248,8 +267,6 @@ class RelaxScanner(HasPickleIO):
         stop = start + count
         directory = self._make_directory(start, stop)
 
-        #with warnings.catch_warnings():
-        #    warnings.simplefilter("ignore")
         calculator = as_calculator(self.nn_name)
 
         entries, errors = [], []
@@ -318,18 +335,18 @@ def main():
 
     # Tolerances for pairs detection.
     #ediff_tol, dist_tol = 1e-3, 3.5              # For max values.
-    ediff_tol, dist_tol = (0, 1e-3), (0.5, 3.5)  # For ranges.
+    ediff_tol, dist_tol = (0, 1e-3), (0.5, 3.5)   # For ranges.
 
     # Find pairs and save them to file
-    rsa.pairs_enediff_dist(ediff_tol, dist_tol, neb_method=None)
+    rsa.pairs_enediff_dist(ediff_tol, dist_tol, neb_method=None, nprocs=-1)
 
     # Find pairs and compute static transition path.
     # NO NEB HERE, just linear interpolation between final and end points
     # followed by total energy calculations.
-    #rsa.pairs_enediff_dist(ediff_tol, dist_tol, neb_method="static")
+    #rsa.pairs_enediff_dist(ediff_tol, dist_tol, neb_method="static", nprocs=-1)
 
     # Find pairs and compute transition path with NEB.
-    #rsa.pairs_enediff_dist(ediff_tol, dist_tol, neb_method="aseneb")
+    #rsa.pairs_enediff_dist(ediff_tol, dist_tol, neb_method="aseneb", nprocs=-1)
 """).add_main()
 
         ntasks = self.nx * self.ny * self.nz
@@ -617,7 +634,7 @@ class RelaxScannerAnalyzer:
                 directory.mkdir()
                 atoms = initial_atoms if ip == 0 else final_atoms
                 write_vasp(directory / "POSCAR", atoms, label=None)
-                shutil.copyfile(self.jobsh_path, directory / "job.sh")
+                #shutil.copyfile(self.jobsh_path, directory / "job.sh")
                 (directory / "INCAR").symlink_to(self.incar_path)
                 (directory / "KPOINTS").symlink_to(self.kpoints_path)
                 (directory / "POTCAR").symlink_to(self.potcar_path)

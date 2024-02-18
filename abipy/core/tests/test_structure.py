@@ -205,16 +205,17 @@ xred_symbols
         self.assert_almost_equal(mgb2.lattice.angles, (90.0, 90.0, 120.00000000000001))
         self.assert_almost_equal(mgb2.lattice.volume * abu.Ang_Bohr ** 3, 196.07928976151663)
 
-        si = Structure.from_mpid("mp-149")
-        assert si.formula == "Si2"
-        with self.assertRaises(ValueError):
-            Structure.from_mpid("foobar")
+        if self.test_mprester():
+            si = Structure.from_mpid("mp-149")
+            assert si.formula == "Si2"
+            with self.assertRaises(ValueError):
+                Structure.from_mpid("foobar")
 
-        # Test abiget_spginfo
-        d = si.abiget_spginfo(tolsym=None, pre="abi_")
-        assert d["abi_spg_symbol"] == "Fd-3m"
-        assert d["abi_spg_number"] == 227
-        assert d["abi_bravais"] == "Bravais cF (face-center cubic)"
+            # Test abiget_spginfo
+            d = si.abiget_spginfo(tolsym=None, pre="abi_")
+            assert d["abi_spg_symbol"] == "Fd-3m"
+            assert d["abi_spg_number"] == 227
+            assert d["abi_bravais"] == "Bravais cF (face-center cubic)"
 
         llzo = Structure.from_file(abidata.cif_file("LLZO_oxi.cif"))
         assert llzo.is_ordered

@@ -181,8 +181,8 @@ class SlurmJobArray:
 #SBATCH --job-name=abiml_md
 #SBATCH --time=0-16:0:0
 #SBATCH --partition=batch
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1  # 1 node has 128 cores
+#SBATCH --nodes=1             # 1 node has 128 cores
+#SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 
 conda activate env3.10
@@ -194,7 +194,7 @@ command = "abiml.py md"
 arr_options = ["--help", "--version"]
 job_array = SlurmJobArray(header, command, arr_options)
 print(job_array)
-queue_id = job_array.sbatch("job.sh")
+queue_id = job_array.sbatch("job_array.sh")
     """
 
     def __init__(self, header: str, command: str, arr_options: list[str]):
@@ -212,6 +212,7 @@ queue_id = job_array.sbatch("job.sh")
                 break
         else:
             raise ValueError("Cannot find line starting with #SBATCH")
+
         lines.insert(il, f"#SBATCH --array=0-{len(self.arr_options)-1}")
         header = "\n".join(lines)
 
@@ -234,28 +235,45 @@ echo "Running entry at index $index:\nwith OPTS=$OPTS"
 env
 """ % (self.arr_options_str)
 
-        end = f"{self.command} ${{OPTS}} > job_${{index}}.log 2> job_${{index}}.err"
+        end = f"""
+{self.command} ${{OPTS}} > job_${{index}}.log 2> job_${{index}}.err
+
+# Remove the file with the Slurm job id
+me=$(basename "$0")
+rm ${{me}}.qid
+"""
 
         return header + select_opts + end
 
     def sbatch(self, slurm_filepath: PathLike) -> int:
+        """
+        Write slurm submission script to slurm_filepath and submits it.
+        Return Slurm JOB id.
+        """
+        # Make sure no slurm job is already running by checking for a .qid file.
+        path_qid = slurm_filepath + ".qid"
+        if os.path.exists(path_qid):
+            with open(path_qid, "rt") as fh:
+                queue_id = int(fh.read().split("#"))
+                err_msg = f"Found slurm job ID {queue_id} in {path_qid}" + \
+                          "This usually indicates that a similar array job is already running\n" + \
+                          f"If this not the case, please remove {path_qid} and rerun the script."
+                raise RuntimeError(err_msg)
+
         with open(slurm_filepath, "wt") as fh:
             fh.write(str(self))
 
         queue_id = slurm_sbatch(slurm_filepath)
-
-        save_qid = slurm_filepath + ".qid",
-        print("Saving Slurm job ID to file:", save_qid)
-        with open(save_qid, "wt") as fh:
-            fh.write("# Slurm job id\n")
-            fh.write(str(queue_id))
+        print("Saving slurm job ID in:", path_qid)
+        with open(path_qid, "wt") as fh:
+            fh.write(str(queue_id) + " # Slurm job id")
 
         return queue_id
 
 
 def slurm_sbatch(script_file) -> int:
     """
-    Submit a job script to the queue with sbatch. Return JOB ID.
+    Submit a job script to the queue with sbatch. Return Slurm JOB ID.
     """
     from subprocess import Popen, PIPE
     # need string not bytes so must use universal_newlines
@@ -267,7 +285,7 @@ def slurm_sbatch(script_file) -> int:
         try:
             # output should of the form '2561553.sdb' or '352353.jessup' - just grab the first part for job id
             queue_id = int(out.split()[3])
-            print('Job submission was successful and queue_id is {}'.format(queue_id))
+            print(f"Job submission was successful and {queue_id=}")
             return queue_id
         except Exception as exc:
             # probably error parsing job code

@@ -3933,7 +3933,7 @@ class ElectronBandsPlotter(NotebookWriter):
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=False, sharey=True, squeeze=False)
         ax_list = ax_list.ravel()
-        # don't show the last ax if numeb is odd.
+        # don't show the last ax if num_plots is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
         for (label, ebands), ax in zip(self.ebands_dict.items(), ax_list):

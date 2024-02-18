@@ -320,8 +320,8 @@ class A2f:
             lax_nu = [ax.twinx() for ax in ax_mat.flat]
             # Share axis after creation. Based on
             # https://stackoverflow.com/questions/42973223/how-share-x-axis-of-two-subplots-after-they-are-created
-            lax_nu[0].get_shared_x_axes().join(*lax_nu)
-            lax_nu[0].get_shared_y_axes().join(*lax_nu)
+            #lax_nu[0].get_shared_x_axes().join(*lax_nu)
+            #lax_nu[0].get_shared_y_axes().join(*lax_nu)
             for i, ax in enumerate(lax_nu):
                 if i == 2: continue
                 ax.set_yticklabels([])
@@ -749,7 +749,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot(self, what="gamma", units="eV", scale=None, alpha=0.6, ylims=None, 
+    def plot(self, what="gamma", units="eV", scale=None, alpha=0.6, ylims=None,
              ax=None, colormap="jet", **kwargs) -> Figure:
         """
         Plot phonon bands with gamma(q, nu) or lambda(q, nu) depending on the value of `what`.
