@@ -2745,6 +2745,9 @@ class MlValidateWithAbinitio(_MlNebBase):
         super().__init__(workdir, prefix)
         self.filepaths = list_strings(filepaths)
         self.traj_range = traj_range
+        if self.traj_range is not None and not isinstance(self.traj_range, range):
+            raise TypeError(f"traj_range should be either None or range instance while got {type(traj_range)}")
+
         self.nn_names = list_strings(nn_names)
         self.verbose = verbose
 
@@ -2771,6 +2774,10 @@ class MlValidateWithAbinitio(_MlNebBase):
     def _get_results_filepath(self, filepath) -> list[AseResults]:
         """
         Extract ab-initio results from self.filepath according to the file extension.
+        Supports:
+            - ABINIT HIST.nc
+            - vasprun.xml
+            - ASE extended xyz.
         """
         basename = os.path.basename(filepath)
         abi_results = []
@@ -2782,15 +2789,17 @@ class MlValidateWithAbinitio(_MlNebBase):
             with HistFile(filepath) as hist:
                 # etotals in eV units.
                 etotals = hist.etotals
-                if self.traj_range is None: self.traj_range = range(0, len(hist.etotals), 1)
+                num_steps = len(hist.etotals)
+                if self.traj_range is None: self.traj_range = range(0, num_steps, 1)
+                print(f"Reading trajectory from {filepath=}, {num_steps=}, {self.traj_range=}")
                 forces_hist = hist.r.read_cart_forces(unit="eV ang^-1")
                 # GPa units.
                 stress_cart_tensors, pressures = hist.reader.read_cart_stress_tensors()
                 for istep, (structure, ene, stress, forces) in enumerate(zip(hist.structures, etotals, stress_cart_tensors, forces_hist)):
                     if not istep in self.traj_range: continue
-                    r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress)
+                    magmoms = None
+                    r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress, magmoms=magmoms)
                     abi_results.append(r)
-                return abi_results
 
         elif fnmatch(basename, "vasprun*.xml*"):
             # Assume Vasprun file with structural relaxation or MD results.
@@ -2801,17 +2810,31 @@ class MlValidateWithAbinitio(_MlNebBase):
                 vasprun = Vasprun(filepath)
 
             num_steps = len(vasprun.ionic_steps)
-            if self.traj_range is None: self.traj_range = range(0, num_steps, 1)
+            print(f"Reading trajectory from {filepath=}, {num_steps=}, {self.traj_range=}")
             for istep, step in enumerate(vasprun.ionic_steps):
                 #print(step.keys())
                 if not istep in self.traj_range: continue
                 structure, forces, stress = step["structure"], step["forces"], step["stress"]
                 ene = get_energy_step(step)
-                r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress)
+                magmoms = None
+                r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress, magmoms=magmoms)
                 abi_results.append(r)
-            return abi_results
 
-        raise ValueError(f"Don't know how to extract data from: {filepath=}")
+        elif fnmatch(basename, "*.xyz"):
+            # Assume ASE extended xyz file.
+            atoms_list = read(filepath, index=":")
+            num_steps = len(atoms_list)
+            if self.traj_range is None: self.traj_range = range(0, num_steps, 1)
+            print(f"Reading trajectory from {filepath=}, {num_steps=}, {self.traj_range=}")
+            for istep, atoms in enumerate(atoms_list):
+                if not istep in self.traj_range: continue
+                r = AseResults.from_atoms(atoms)
+                abi_results.append(r)
+
+        else:
+            raise ValueError(f"Don't know how to extract data from: {filepath=}")
+
+        return abi_results
 
     def run(self, nprocs, print_dataframes=True) -> AseResultsComparator:
         """
