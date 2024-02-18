@@ -5,7 +5,7 @@ import os
 from abipy.flowtk.qutils import SlurmJobArray
 
 
-def get_slurm_header(conda_env)
+def get_slurm_header(conda_env):
     # IMPORTANT: You need customize the slurm options below according to your machine.
     #conda_env = os.environ['CONDA_DEFAULT_ENV']
     #print(f"Slurm script will be executed in {conda_env=}")
@@ -43,7 +43,7 @@ def main():
 Performing MD calculations with the following parameters:
 
 {filepath=}
-{nn_names=}
+{nn_names_env=}
 {temperature_list=}
 {steps=}
 """)
