@@ -49,6 +49,7 @@ from abipy.tools.typing import Figure, PathLike
 from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import HasPickleIO
 from abipy.tools.context_managers import Timer
+from abipy.tools.parallel import get_max_nprocs, pool_nprocs_pmode
 from abipy.abio.enums import StrEnum, EnumMixin
 from abipy.core.mixins import TextFile, NotebookWriter
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
@@ -1041,6 +1042,7 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
         calculator:
     """
     from ase.constraints import ExpCellFilter
+    #from ase.filters import FrechetCellFilter
     RX_MODE.validate(relax_mode)
     if relax_mode == RX_MODE.no:
         raise ValueError(f"Invalid {relax_mode:}")
@@ -1184,6 +1186,8 @@ class _MyCalculator:
         self.reset()
         ml_forces = self.get_forces(atoms=atoms)
         ml_stress = self.get_stress(atoms=atoms)
+        if ml_stress.ndim == 1:
+            ml_stress = voigt_6_to_full_3x3_strain(ml_stress)
         self.reset()
         self.__ml_forces_list.append(ml_forces)
         self.__ml_stress_list.append(ml_stress)
@@ -1249,7 +1253,7 @@ class _MyCalculator:
                     #AA: TODO: save the delta in list and call method...
                     dict ={'delta_forces': delta_forces,}
                     with open('delta_forces.json', 'a') as outfile:
-                        json.dump(dict, outfile,indent=1,cls=MontyEncoder)
+                        json.dump(dict, outfile, indent=1, cls=MontyEncoder)
 
                 elif self.correct_forces_algo == CORRALGO.one_point:
                     forces += abi_forces
@@ -1392,6 +1396,7 @@ class CalcBuilder:
         "chgnet",
         "alignn",
         "mace",
+        "mace_mp",
         "pyace",
         "nequip",
         "metatensor",
@@ -1449,7 +1454,8 @@ class CalcBuilder:
             with_delta: False if the calculator should not include delta corrections.
             reset: True if the internal cache for the model should be reset.
         """
-        if reset: self.reset()
+        #if reset: self.reset()
+        self.reset()
 
         if self.nn_type == "m3gnet":
             # m3gnet legacy version.
@@ -1562,6 +1568,22 @@ class CalcBuilder:
 
             cls = MyMACECalculator if with_delta else MACECalculator
             calc = cls(model_paths=self.model_path, device="cpu") #, default_dtype='float32')
+
+        elif self.nn_type == "mace_mp":
+            try:
+                from mace.calculators import MACECalculator
+                from mace.calculators import mace_mp
+            except ImportError as exc:
+                raise ImportError("mace not installed. See https://github.com/ACEsuit/mace") from exc
+
+            #class MyMACECalculator(_MyCalculator, MACECalculator):
+            #     """Add abi_forces and abi_stress"""
+
+            calc = mace_mp(model="medium",
+                           #cls=MyMACECalculator,
+                           #dispersion=False, default_dtype="float32", device='cuda'
+                           )
+            #calc.__class__ = MyMACECalculator
 
         elif self.nn_type == "nequip":
             try:
@@ -2265,10 +2287,9 @@ class MlGsList(_MlNebBase):
         workdir = self.workdir
 
         results = []
-        calc = CalcBuilder(self.nn_name).get_calculator()
         for ind, atoms in enumerate(self.atoms_list):
             write_vasp(self.workdir / f"IND_{ind}_POSCAR", atoms, label=None)
-            atoms.calc = calc
+            atoms.calc = CalcBuilder(self.nn_name).get_calculator()
             results.append(AseResults.from_atoms(atoms))
 
         write_vasp_xdatcar(self.workdir / "XDATCAR", self.atoms_list,
@@ -2725,6 +2746,9 @@ class MlValidateWithAbinitio(_MlNebBase):
         super().__init__(workdir, prefix)
         self.filepaths = list_strings(filepaths)
         self.traj_range = traj_range
+        if self.traj_range is not None and not isinstance(self.traj_range, range):
+            raise TypeError(f"traj_range should be either None or range instance while got {type(traj_range)}")
+
         self.nn_names = list_strings(nn_names)
         self.verbose = verbose
 
@@ -2751,6 +2775,10 @@ class MlValidateWithAbinitio(_MlNebBase):
     def _get_results_filepath(self, filepath) -> list[AseResults]:
         """
         Extract ab-initio results from self.filepath according to the file extension.
+        Supports:
+            - ABINIT HIST.nc
+            - vasprun.xml
+            - ASE extended xyz.
         """
         basename = os.path.basename(filepath)
         abi_results = []
@@ -2762,15 +2790,17 @@ class MlValidateWithAbinitio(_MlNebBase):
             with HistFile(filepath) as hist:
                 # etotals in eV units.
                 etotals = hist.etotals
-                if self.traj_range is None: self.traj_range = range(0, len(hist.etotals), 1)
+                num_steps = len(hist.etotals)
+                if self.traj_range is None: self.traj_range = range(0, num_steps, 1)
+                print(f"Reading trajectory from {filepath=}, {num_steps=}, {self.traj_range=}")
                 forces_hist = hist.r.read_cart_forces(unit="eV ang^-1")
                 # GPa units.
                 stress_cart_tensors, pressures = hist.reader.read_cart_stress_tensors()
                 for istep, (structure, ene, stress, forces) in enumerate(zip(hist.structures, etotals, stress_cart_tensors, forces_hist)):
                     if not istep in self.traj_range: continue
-                    r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress)
+                    magmoms = None
+                    r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress, magmoms=magmoms)
                     abi_results.append(r)
-                return abi_results
 
         elif fnmatch(basename, "vasprun*.xml*"):
             # Assume Vasprun file with structural relaxation or MD results.
@@ -2781,17 +2811,31 @@ class MlValidateWithAbinitio(_MlNebBase):
                 vasprun = Vasprun(filepath)
 
             num_steps = len(vasprun.ionic_steps)
-            if self.traj_range is None: self.traj_range = range(0, num_steps, 1)
+            print(f"Reading trajectory from {filepath=}, {num_steps=}, {self.traj_range=}")
             for istep, step in enumerate(vasprun.ionic_steps):
                 #print(step.keys())
                 if not istep in self.traj_range: continue
                 structure, forces, stress = step["structure"], step["forces"], step["stress"]
                 ene = get_energy_step(step)
-                r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress)
+                magmoms = None
+                r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress, magmoms=magmoms)
                 abi_results.append(r)
-            return abi_results
 
-        raise ValueError(f"Don't know how to extract data from: {filepath=}")
+        elif fnmatch(basename, "*.xyz"):
+            # Assume ASE extended xyz file.
+            atoms_list = read(filepath, index=":")
+            num_steps = len(atoms_list)
+            if self.traj_range is None: self.traj_range = range(0, num_steps, 1)
+            print(f"Reading trajectory from {filepath=}, {num_steps=}, {self.traj_range=}")
+            for istep, atoms in enumerate(atoms_list):
+                if not istep in self.traj_range: continue
+                r = AseResults.from_atoms(atoms)
+                abi_results.append(r)
+
+        else:
+            raise ValueError(f"Don't know how to extract data from: {filepath=}")
+
+        return abi_results
 
     def run(self, nprocs, print_dataframes=True) -> AseResultsComparator:
         """
@@ -2802,21 +2846,31 @@ class MlValidateWithAbinitio(_MlNebBase):
         labels = ["abinitio"]
         abi_results = self.get_abinitio_results()
         results_list = [abi_results]
+        ntasks = len(results_list)
 
-        ntasks = len(abi_results)
-        nprocs = 1
+        if nprocs <= 0 or nprocs is None:
+            nprocs = get_max_nprocs()
+        print(f"Using {nprocs=}")
+
+        #from abipy.relax_scanner import nprocs_for_ntasks
+        #nprocs = nprocs_for_ntasks(nprocs, ntasks, title="Begin relaxations")
+        #p = pool_nprocs_pmode(ntasks, pmode=pmode)
+        #using_msg = f"Reading {len(directories)} abiml directories {p.using_msg}"
 
         for nn_name in self.nn_names:
-            labels.append(nn_name)
             # Use ML to compute quantities with the same ab-initio trajectory.
+            labels.append(nn_name)
             if nprocs == 1:
                 calc = as_calculator(nn_name)
                 items = [AseResults.from_atoms(res.atoms, calc=calc) for res in abi_results]
             else:
-                raise NotImplementedError("run with multiprocessing!")
-                args_list = [(nn_name, res) for res in abi_results]
+                func = _GetAseResults(nn_name)
                 with Pool(processes=nprocs) as pool:
-                    items = pool.map(_map_run_compare, args_list)
+                    items = pool.map(func, abi_results)
+                #p = pool_nprocs_pmode(len(directories), pmode=pmode)
+                #using_msg = f"Reading {len(directories)} abiml directories {p.using_msg}"
+                #with p.pool_cls(p.nprocs) as pool, Timer(header=using_msg, footer="") as timer:
+                #    return cls(pool.starmap(MdAnalyzer.from_abiml_dir, args))
 
             results_list.append(items)
 
@@ -2832,6 +2886,21 @@ class MlValidateWithAbinitio(_MlNebBase):
 
         self._finalize()
         return comp
+
+
+class _GetAseResults:
+    """
+    Callable class used to parallelize the computation of AseResults with multiprocessing
+    """
+
+    def __init__(self, nn_name):
+        self.nn_name = nn_name
+        self.calc = None
+
+    def __call__(self, abi_res):
+        if self.calc is None:
+            self.calc = as_calculator(self.nn_name)
+        return AseResults.from_atoms(abi_res.atoms, calc=self.calc)
 
 
 class MolecularDynamics:

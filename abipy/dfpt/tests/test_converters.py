@@ -7,8 +7,9 @@ import abipy.core.abinit_units as abu
 from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.dfpt.ddb import DdbFile
-from abipy.dfpt.converters import abinit_to_phonopy, phonopy_to_abinit, tdep_to_abinit
+from abipy.dfpt.converters import abinit_to_phonopy, phonopy_to_abinit, tdep_to_abinit, ddb_ucell_to_ddb_supercell
 from abipy.dfpt.converters import born_to_lotosplitting
+from abipy.core.kpoints import kmesh_from_mpdivs
 
 from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.io.phonopy import get_phonopy_structure
@@ -188,3 +189,24 @@ class ConverterTest(AbipyTest):
         phbands = ddb.anaget_phmodes_at_qpoints(qpoints=[[0, 0, 0]], asr=0, dipdip=0, chneut=0,
                                                 lo_to_splitting=False)
         self.assertAlmostEqual(phbands.phfreqs[0, 3], 0.062997, places=3)
+
+    def test_ddb_ucell_ddb_sc(self):
+        self.skip_if_not_phonopy()
+
+        ddb_unit=DdbFile(os.path.join(test_dir, "AlAs_444_nobecs_DDB"))
+
+        # make sure we have all the qpts in the ddb 
+        qpts=kmesh_from_mpdivs(mpdivs=[4,4,4],shifts=[0,0,0],order="unit_cell")
+        ddb_unit_444=ddb_unit.anaget_interpolated_ddb(qpt_list=qpts)
+
+
+        ddb_sc_444=ddb_ucell_to_ddb_supercell(unit_ddb=ddb_unit_444,nac=False)
+
+        # compare phfreqs of the sc at Gamma with the ones of ucell at qpts, should be identical
+        modes_unit_444=ddb_unit_444.anaget_phmodes_at_qpoints(qpoints=qpts)
+        modes_sc_444=ddb_sc_444.anaget_phmodes_at_qpoint(qpoint=[0,0,0])
+
+        diff = np.sort(modes_unit_444.phfreqs.flatten())- modes_sc_444.phfreqs[0]
+        self.assertAlmostEqual(max(abs(diff)), 0, places=5)
+
+

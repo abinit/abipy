@@ -264,7 +264,6 @@ rm ${{me}}.qid
             fh.write(str(self))
 
         queue_id = slurm_sbatch(slurm_filepath)
-
         print("Saving slurm job ID in:", path_qid)
         with open(path_qid, "wt") as fh:
             fh.write(str(queue_id) + " # Slurm job id")

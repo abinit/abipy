@@ -84,6 +84,7 @@ class RelaxationProfiler:
             expert_user=1,   # Ignore warnings (chksymbreak, chksymtnons, chkdilatmx)
             autoparal=1,
             paral_kgb=1,
+            #npfft=1,
             rmm_diis=1 if all(p.isnc for p in pseudos) else 0,
             nstep=100,
             prtwf=0,

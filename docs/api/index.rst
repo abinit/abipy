@@ -15,9 +15,11 @@ API documentation
    display_api.rst
    dynamics_api.rst
    electrons_api.rst
+   embedding_api.rst
    eph_api.rst
    flowtk_api.rst
    iotools_api.rst
+   lumi_api.rst
    panels_api.rst
    tools_api.rst
    waves_api.rst
