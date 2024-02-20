@@ -1386,8 +1386,8 @@ class CalcBuilder:
     Possible formats are:
 
         1) nn_type e.g. m3gnet. See ALL_NN_TYPES for available keys.
-        2) nn_type:model_name
-        3) nn_type@filepath
+        2) nn_type@model_path e.g.: mace:FILEPATH
+        3) nn_type:model_name
     """
 
     ALL_NN_TYPES = [
@@ -1414,6 +1414,8 @@ class CalcBuilder:
             self.nn_type, self.model_name = name.split(":")
         elif "@" in name:
             self.nn_type, self.model_path = name.split("@")
+            self.model_path = os.path.expandpath(self.model_path)
+            #self.model_path = os.path.expandvars(self.model_path)
 
         if self.nn_type not in self.ALL_NN_TYPES:
             raise ValueError(f"Invalid {name=}, it should be in {self.ALL_NN_TYPES=}")
@@ -1560,9 +1562,7 @@ class CalcBuilder:
             class MyMACECalculator(_MyCalculator, MACECalculator):
                 """Add abi_forces and abi_stress"""
 
-            self.model_path = os.path.expanduser("~/NN_MODELS/2023-08-14-mace-universal.model")
-            print("Using MACE model_path:", self.model_path)
-
+            #print("Using MACE model_path:", self.model_path)
             if self.model_path is None:
                 raise RuntimeError("MACECalculator requires model_path e.g. nn_name='mace@FILEPATH'")
 
@@ -2850,8 +2850,8 @@ class MlValidateWithAbinitio(_MlNebBase):
 
         if nprocs <= 0 or nprocs is None:
             nprocs = get_max_nprocs()
-        print(f"Using {nprocs=}")
 
+        #print(f"Using {nprocs=}")
         #from abipy.relax_scanner import nprocs_for_ntasks
         #nprocs = nprocs_for_ntasks(nprocs, ntasks, title="Begin relaxations")
         #p = pool_nprocs_pmode(ntasks, pmode=pmode)
