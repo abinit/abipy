@@ -19663,7 +19663,7 @@ Variable(
     topics=['SCFControl_basic'],
     dimensions="scalar",
     defaultval=0.0,
-    mnemonics="TOLerance on WaveFunction squared Residual",
+    added_in_version="before_v9",
     text=r"""
 The signification of this tolerance depends on the basis set. In plane waves,
 it gives a convergence tolerance for the largest squared "residual" (defined
