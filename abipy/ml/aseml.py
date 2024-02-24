@@ -1531,6 +1531,13 @@ class CalcBuilder:
             class MyAlignnCalculator(_MyCalculator, AlignnAtomwiseCalculator):
                 """Add abi_forces and abi_stress"""
 
+                def get_forces(self, *args, **kwargs):
+                    """Path get_forces method of ALIGNN calculator so that we always return 2d array (natom, 3)"""
+                    forces = super().get_forces(*args, **kwargs)
+                    #print("alignn, forces.shape", forces.shape)
+                    forces = np.reshape(forces, (-1, 3))
+                    return forces
+
             #if self.model_path is not None:
             #    get_figshare_model_ff(model_name=self.model_path)
 
