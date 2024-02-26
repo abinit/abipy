@@ -3049,6 +3049,20 @@ class GsMl(MlBase):
         res = AseResults.from_atoms(self.atoms)
         print(res.to_string(verbose=self.verbose))
 
+        # Write json file with GS results.
+        from abipy.tools.serialization import mjson_write
+        data = dict(
+            structure=Structure.as_structure(self.atoms),
+            ene=res.ene,
+            stress=res.stress,
+            forces=res.forces,
+        )
+        mjson_write(data, self.workdir / "gs.json", indent=4)
+
+        # To read the dictionary from json use:
+        #from abipy.tools.serialization import mjson_load
+        #data = mjson_load(self.workdir / "gs.json")
+
         # Write ASE trajectory file with results.
         with open(self.workdir / "gs.traj", "wb") as fd:
             write_traj(fd, [self.atoms])
