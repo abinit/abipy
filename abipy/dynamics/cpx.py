@@ -315,16 +315,15 @@ Reading energies from: {evp_filepath=}
 Reading stresses from: {str_filepath=}
         """)
 
-        # Parse input file to get initial_atoms and symbols
+        # Parse input file to get initial_atoms and symbols.
         from ase.io.espresso import read_espresso_in
         with open(qe_input, "rt") as fh:
             self.initial_atoms = read_espresso_in(fh)
             natom = len(self.initial_atoms)
-            print("initial_atoms:", self.initial_atoms)
+            #print("initial_atoms:", self.initial_atoms)
 
-        # FIXME: Clarify units for positions, forces and stresses.
         # NB: in QE/CP lengths are in Bohr
-        # but CP uses Hartree for energies whereas PW uses Rydberg
+        # but CP uses Hartree for energies whereas PW uses Rydberg.
         e_fact = 1.0 if code == "cp" else 0.5
 
         # Parse lattice vectors NB: in the cel file, lattice vectors are stored as column-vectors.
@@ -339,19 +338,19 @@ Reading stresses from: {str_filepath=}
             if len(self.energies) != cell_nsteps:
                 raise RuntimeError(f"{len(energies)=} != {cell_nsteps=}")
 
-        # Parse Cartesian positions (Bohr --> Ang)
+        # Parse Cartesian positions (Bohr --> Ang).
         pos_nsteps, pos_cart, pos_headers = parse_file_with_blocks(pos_filepath, natom)
         self.pos_cart = np.reshape(pos_cart, (pos_nsteps, natom, 3)) * abu.Bohr_Ang
         if pos_nsteps != cell_nsteps:
             raise RuntimeError(f"{pos_nsteps=} != {cell_nsteps=}")
 
-        # Parse Cartesian forces (Ha/Bohr --> eV/Ang)
+        # Parse Cartesian forces (Ha/Bohr --> eV/Ang).
         for_nsteps, forces_list, for_headers = parse_file_with_blocks(for_filepath, natom)
         self.forces_step = np.reshape(forces_list, (for_nsteps, natom, 3)) * (e_fact * abu.Ha_to_eV / abu.Bohr_Ang)
         if for_nsteps != cell_nsteps:
             raise RuntimeError(f"{for_nsteps=} != {cell_nsteps=}")
 
-        # Optionally, parse stress. In ASE, stress is eV/Ang^3
+        # Optionally, parse stress. In ASE, stress is eV/Ang^3.
         self.stresses = None
         if str_filepath is not None:
             str_nsteps, stresses, str_headers = parse_file_with_blocks(str_filepath, 3)
@@ -368,6 +367,7 @@ Reading stresses from: {str_filepath=}
         Args:
             xyz_filepath: Name of the XYZ file.
             take_every: Used to downsample the trajectory.
+            pbc: Values of pbc.
         """
         print(f"Writing results in extended xyz format in: {xyz_filepath}")
         from ase.io import write
@@ -395,3 +395,28 @@ Reading stresses from: {str_filepath=}
                                                stress=self.stresses[istep] if self.stresses is not None else None,
                                                )
             yield atoms
+
+
+def downsample_xyz(input_xyz, take_every, output_xyz, skip_head=None, verbose=1) -> int:
+    """
+    Downsample an XYZ file. Return the number of configurations written in the new file.
+
+    Args:
+        input_xyz: Input XYZ file.
+        take_every: Extract configurations from input_xyz every `take_every` step.
+        output_xyz: Output XYZ file.
+        skip_head: If not None, skip the first skip_head configurations.
+        verbose: Verbosity level.
+    """
+    from ase.io import write, iread
+    count = 0
+    with open(output_xyz, "wt") as out_xyz:
+        for istep, atoms in enumerate(iread(input_xyz)):
+            if istep % take_every != 0: continue
+            if skip_head is not None and (istep + 1) <= skip_head: continue
+            count += 1
+            write(out_xyz, atoms, format='extxyz', append=True)
+
+    if verbose: print(f"Wrote {count=} configurations to {output_xyz=} with {take_every=} and {skip_head=}")
+    return count
+

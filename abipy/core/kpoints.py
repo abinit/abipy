@@ -10,11 +10,9 @@ import numpy as np
 
 from itertools import product
 from tabulate import tabulate
-from monty.json import MontyEncoder
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import marquee
-from pymatgen.core.lattice import Lattice
 from abipy.tools.serialization import pmg_serialize
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
@@ -847,6 +845,7 @@ class KpointList(collections.abc.Sequence):
         """
         Makes Kpoints obey the general json interface used in pymatgen for easier serialization.
         """
+        from pymatgen.core.lattice import Lattice
         reciprocal_lattice = Lattice.from_dict(d["reciprocal_lattice"])
         return cls(reciprocal_lattice, d["frac_coords"],
                    weights=d["weights"], names=d["names"], ksampling=d["ksampling"])
@@ -1140,6 +1139,7 @@ class KpointList(collections.abc.Sequence):
         """
         Returns a JSON_ string representation of the MSONable object.
         """
+        from monty.json import MontyEncoder
         return json.dumps(self.as_dict(), cls=MontyEncoder)
 
     def plot(self, ax=None, **kwargs):

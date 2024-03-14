@@ -26,6 +26,8 @@ def pmg_serialize(method):
 
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
+        if not args:
+            return None
         self = args[0]
         d = method(*args, **kwargs)
         # Add @module and @class

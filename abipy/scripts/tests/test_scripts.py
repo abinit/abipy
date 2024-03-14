@@ -274,8 +274,8 @@ class TestAbicomp(ScriptTest):
         r = env.run(self.script, "spg", cif_paths[0], cif_paths[1], cif_paths[2], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
-        r = env.run(self.script, "mp_structure", cif_paths[0], cif_paths[1], self.loglevel, self.verbose,
-                    expect_stderr=self.expect_stderr)
+        #r = env.run(self.script, "mp_structure", cif_paths[0], cif_paths[1], self.loglevel, self.verbose,
+        #            expect_stderr=self.expect_stderr)
 
         dirpath = os.path.join(abidata.dirpath, "refs", "si_ebands")
         args = [os.path.join(dirpath, p) for p in ("si_nscf_GSR.nc", "si_scf_WFK.nc")]

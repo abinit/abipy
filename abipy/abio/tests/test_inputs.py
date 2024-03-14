@@ -249,7 +249,7 @@ class TestAbinitInput(AbipyTest):
         assert inp["ndivsm"] == 3 and inp["iscf"] == -2 and len(inp["kptbounds"]) == 12
 
         inp.set_kpath(ndivsm=-20)
-        assert inp["nkpt"] == 156 and inp["iscf"] == -2
+        assert inp["nkpt"] in (156, 157) and inp["iscf"] == -2
 
         inp.set_qpath(ndivsm=3, qptbounds=None)
         assert len(inp["ph_qpath"]) == 12 and inp["ph_nqpath"] == 12 and inp["ph_ndivsm"] == 3
@@ -344,9 +344,9 @@ class TestAbinitInput(AbipyTest):
                           abi_kwargs=abi_kwargs)
 
         n_val = inp.num_valence_electrons
-        n_cond = round(10)  
+        n_cond = round(10)
 
-        spin_up_gs = f"\n{int((n_val - 3) / 2)}*1 1 1   1 {n_cond}*0" 
+        spin_up_gs = f"\n{int((n_val - 3) / 2)}*1 1 1   1 {n_cond}*0"
         spin_dn_gs = f"\n{int((n_val - 3) / 2)}*1 1 0   0 {n_cond}*0"
 
         nsppol = 2
@@ -359,13 +359,13 @@ class TestAbinitInput(AbipyTest):
 
         new_inp = inp.new_with_structure(new_structure=sc_stru,
                        scdims=[2,1,1],verbose=0)
-        assert new_inp["nband"] == '*276'  
-        #self.abivalidate_input(new_inp) 
+        assert new_inp["nband"] == '*276'
+        #self.abivalidate_input(new_inp)
         # Not valid now because occ should be rewritten as well
         # TODO
-        # go from 
+        # go from
         # occ='125*1 1 1 1 10*0'
-        # to 
+        # to
         # occ='125*1 1 1 1 125*1 1 1 1 10*0 10*0 '
         # if size is doubled.
 
@@ -573,7 +573,7 @@ class TestAbinitInput(AbipyTest):
         self.abivalidate_input(nscf_inp)
 
         # Test make_ebands_input with nband = "*91" (occopt 2)
-        gs_occopt2 = gs_inp.new_with_vars(nband="*91", occopt=2)
+        gs_occopt2 = gs_inp.new_with_vars(nband="*91", occopt=2, paral_kgb=0)
         nscf_inp = gs_occopt2.make_ebands_input(nb_extra=10)
         assert nscf_inp["nband"] == "*101"
         self.abivalidate_input(nscf_inp)

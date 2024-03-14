@@ -28,7 +28,10 @@ ALL_CHIS = OrderedDict([
         "longname": "Second Harmonic Generation",
         "rank": 3,
         "terms": ["shg_inter2w", "shg_inter1w", "shg_intra2w",
-                  "shg_intra1w", "shg_intra1wS", "shg_chi2tot"],
+                  "shg_intra1w", "shg_intra1wS", "shg_chi2tot",
+                  "shg_inter2w_AR", "shg_inter1w_AR", "shg_intra2w_AR",
+                  "shg_intra1w_AR", "shg_intra1wS_AR", "shg_chi2tot_AR",
+                  "shg_chi2full"],
         }
         #"latex": r"\chi(-2\omega, \omega, \omega)"
     ),
@@ -479,7 +482,14 @@ class OpticReader(ElectronsReader):
         od = OrderedDict([(comp, OrderedDict()) for comp in components])
         for chiname in ALL_CHIS[key]["terms"]:
             #print("About to read:", chiname)
-            var = self.read_variable(chiname)
+
+            try:
+                var = self.read_variable(chiname)
+            except self.Error as exc:
+                # This to support new terms added ina shg
+                if key != "shg":
+                    raise exc
+
             for comp in components:
                 try:
                     ijkp = self.computed_components[key].index(comp)
