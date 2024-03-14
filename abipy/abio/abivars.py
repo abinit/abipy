@@ -1,8 +1,10 @@
 """This module contains lookup table with the name of the ABINIT variables."""
+from __future__ import annotations
+
 import os
 import warnings
 import numpy as np
-from typing import Union, List, Tuple
+from typing import Union
 
 from pprint import pformat #, pprint
 from monty.string import is_string, boxed
@@ -22,12 +24,12 @@ __all__ = [
 ]
 
 
-def is_anaddb_var(varname):
+def is_anaddb_var(varname: str) -> bool:
     """True if varname is a valid Anaddb variable."""
     return varname in get_codevars()["anaddb"]
 
 
-def is_abivar(varname):
+def is_abivar(varname: str) -> bool:
     """True if s is an ABINIT variable."""
     # Add include statement
     # FIXME: These variables should be added to the database.
@@ -47,7 +49,7 @@ ABI_UNIT_NAMES = {
 }
 
 
-def is_abiunit(s):
+def is_abiunit(s: str) -> bool:
     """
     True if string is one of the units supported by the ABINIT parser
     """
@@ -55,7 +57,7 @@ def is_abiunit(s):
     return s.lower() in ABI_UNIT_NAMES
 
 
-def expand_star_syntax(s):
+def expand_star_syntax(s: str) -> str:
     """
     Evaluate star syntax. Return new string
     Remember that Abinit does not accept white spaces.
@@ -119,7 +121,7 @@ def str2array_bohr(obj):
         raise ValueError("Don't know how to handle unit: %s" % str(unit))
 
 
-def str2array(obj, dtype=float):
+def str2array(obj, dtype=float) -> np.ndarray:
     if not is_string(obj): return np.asarray(obj)
     if obj.startswith("*"):
         raise ValueError("This case should be treated by the caller: %s" % str(obj))
@@ -129,7 +131,7 @@ def str2array(obj, dtype=float):
     return np.fromstring(s, sep=" ", dtype=dtype)
 
 
-def eval_abinit_operators(tokens):
+def eval_abinit_operators(tokens: list[str]) -> list[str]:
     """
     Receive a list of strings, find the occurences of operators supported
     in the input file (e.g. sqrt), evalute the expression and return new list of strings.
@@ -158,7 +160,7 @@ def eval_abinit_operators(tokens):
     return values
 
 
-def abi_tokenize(string):
+def abi_tokenize(string: str) -> list[str]:
 
     string = string.strip()
 
@@ -202,7 +204,7 @@ def abi_tokenize(string):
 class Dataset(dict, Has_Structure):
 
     @lazy_property
-    def structure(self):
+    def structure(self) -> Structure:
         """
         The initial structure associated to the dataset.
         """
@@ -286,7 +288,7 @@ class Dataset(dict, Has_Structure):
             print("acell:", acell, "znucl:", znucl, "typat:", typat, "kwargs:", kwargs, sep="\n")
             raise exc
 
-    def get_vars(self):
+    def get_vars(self) -> dict:
         """
         Return dictionary with variables. The variables describing the crystalline structure
         are removed from the output dictionary.
@@ -294,10 +296,10 @@ class Dataset(dict, Has_Structure):
         geovars = {"acell", "angdeg", "rprim", "ntypat", "natom", "znucl", "typat", "xred", "xcart", "xangst"}
         return {k: self[k] for k in self if k not in geovars}
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, post=None, mode="text", verbose=0):
+    def to_string(self, post=None, mode="text", verbose=0) -> str:
         """
         String representation.
 
@@ -334,7 +336,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
     """
 
     @classmethod
-    def from_string(cls, string):
+    def from_string(cls, string: str) -> AbinitInputFile:
         """Build the object from string."""
         import tempfile
         _, filename = tempfile.mkstemp(suffix=".abi", text=True)
@@ -342,7 +344,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
             fh.write(string)
         return cls(filename)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
 
         with open(filepath, "rt") as fh:
@@ -351,10 +353,10 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
         self.datasets = AbinitInputParser().parse(self.string)
         self.ndtset = len(self.datasets)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = []
         app = lines.append
@@ -386,7 +388,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
         return "\n".join(lines)
 
     @lazy_property
-    def has_multi_structures(self):
+    def has_multi_structures(self) -> bool:
         """True if input defines multiple structures."""
         return self.structure is None
 
@@ -396,11 +398,11 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
         return repr_html_from_abinit_string(self.string)
         #return self.to_string(mode="html"))
 
-    def close(self):
+    def close(self) -> None:
         """NOP, required by ABC."""
 
     @lazy_property
-    def structure(self):
+    def structure(self) -> Structure:
         """
         The structure defined in the input file.
 
@@ -432,7 +434,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
                 yield dt.structure.plot(show=False)
                 yield dt.structure.plot_bz(show=False)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -460,7 +462,7 @@ for dataset in abinp.datasets:
 
         return self._write_nb_nbpath(nb, nbpath)
 
-    def get_differences(self, other, ignore_vars=None):
+    def get_differences(self, other, ignore_vars=None) -> list[str]:
         """
         Get the differences between this AbinitInputFile and another.
         """
@@ -500,11 +502,11 @@ for dataset in abinp.datasets:
         return diffs
 
 
-class AbinitInputParser(object):
+class AbinitInputParser:
 
     verbose = 0
 
-    def parse(self, s):
+    def parse(self, s: str):
         """
         This function receives a string `s` with the Abinit input and return
         a list of :class:`Dataset` objects.

@@ -10,7 +10,7 @@ import shutil
 import time
 
 from typing import Union, Optional # Any,
-from monty.os.path import which
+from shutil import which
 from monty.termcolor import cprint
 from abipy.flowtk.pseudos import Pseudo
 from abipy.ppcodes.oncv_parser import OncvParser
@@ -99,11 +99,9 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
     ]
 
     # Basenames for stdin/stdout/stderr.
-    stdin_basename = "run.in"
-
-    stdout_basename = "run.out"
-
-    stderr_basename = "run.err"
+    stdin_basename: str = "run.in"
+    stdout_basename: str = "run.out"
+    stderr_basename: str = "run.err"
 
     def __init__(self, workdir: Optional[str] = None) -> None:
         # Set the initial status.
@@ -124,7 +122,6 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         return "<%s at %s>" % (self.__class__.__name__, self.workdir)
 
     def __str__(self) -> str:
-        #print("Using oncvpsp exec:\n\t", self.executable)
         return "<%s at %s, status=%s>" % (self.__class__.__name__, self.workdir, self.status)
 
     @property
@@ -150,7 +147,8 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
     @property
     def retcode(self) -> Union[int, None]:
         """
-        Return code of the subprocess. None if not available because e.g. the job has not been started yet.
+        Return code of the subprocess.
+        None if not available because e.g. the job has not been started yet.
         """
         try:
             return self._retcode
@@ -199,6 +197,14 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         self.set_status(self.S_RUN, info_msg="Start on %s" % time.asctime)
 
         return 1
+
+    def start_and_wait(self) -> int:
+        """
+        Run the calculation in a subprocess, wait for it and return exit status.
+        """
+        self.start()
+        retcode = self.wait()
+        return retcode
 
     def poll(self) -> int:
         """
@@ -283,6 +289,13 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         error files produced by the application
         """
 
+#import enum
+#class CalcType(enum.Enum):
+#    nor = "non-relativistic"
+#    sr = "scalar-relativistic"
+#    fr = "fully-relativistic"
+
+
 
 class OncvGenerator(_PseudoGenerator):
     """
@@ -365,8 +378,8 @@ class OncvGenerator(_PseudoGenerator):
 
             # Add md5 checksum to dojo_report
             if pseudo.has_dojo_report:
-                pseudo.dojo_report["md5"] = p.compute_md5()
-                pseudo.write_dojo_report(report=p.dojo_report)
+                pseudo.dojo_report["md5"] = pseudo.compute_md5()
+                pseudo.write_dojo_report(report=pseudo.dojo_report)
 
         if parser.errors:
             logger.warning("setting status to S_ERROR")

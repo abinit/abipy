@@ -22,9 +22,9 @@ class EventsParserTest(AbipyTest):
         # Analyze scf log
         parser = events.EventsParser()
         report = parser.parse(ref_file("mgb2_scf.log"), verbose=1)
-        self.assertMSONable(report)
+        self.assert_msonable(report)
 
-        print(report)
+        assert str(report)
         assert (report.num_errors, report.num_warnings, report.num_comments) == (0, 0, 0)
         assert report.run_completed
         fmt = "%a %b %d %H:%M:%S %Y"
@@ -35,7 +35,7 @@ class EventsParserTest(AbipyTest):
         report = events.EventsParser().parse(ref_file("mgb2_nscf.log"), verbose=0)
         assert (report.num_errors, report.num_warnings, report.num_comments) == (0, 2, 0)
         print(report)
-        self.assertMSONable(report)
+        self.assert_msonable(report)
 
         #d = report.as_dict()
         #print(d)
@@ -45,7 +45,7 @@ class EventsParserTest(AbipyTest):
             print(warning)
             assert warning == report[i]
             # Msonable is conflict with YAMLObject
-            #self.assertMSONable(warning, check_inst=False)
+            #self.assert_msonable(warning, check_inst=False)
 
         report = parser.report_exception(ref_file("mgb2_scf.log"), "exception")
         assert len(report.errors) == 1
@@ -72,7 +72,7 @@ class EventHandlersTest(AbipyTest):
             # Test pickle
             handler = cls()
             self.serialize_with_pickle(handler, test_eq=False)
-            self.assertMSONable(handler)
+            self.assert_msonable(handler)
 
         assert events.as_event_class(events.AbinitWarning) == events.AbinitWarning
         assert events.as_event_class('!WARNING') == events.AbinitWarning

@@ -2,15 +2,19 @@
 """
 RTA.nc file.
 """
+from __future__ import annotations
+
 import numpy as np
 import abipy.core.abinit_units as abu
 
 from monty.functools import lazy_property
 #from monty.termcolor import cprint
 from monty.string import marquee, list_strings
+from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
+from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.typing import Figure
 from abipy.abio.robots import Robot
 
 
@@ -20,16 +24,16 @@ __all__ = [
 ]
 
 
-def eh2s(eh):
+def eh2s(eh) -> str:
     return {0: "n", 1: "p"}[eh]
 
 
-def irta2s(irta):
+def irta2s(irta) -> str:
     """Return RTA type from irta index."""
     return {0: "SERTA", 1: "MRTA"}[irta]
 
 
-def style_for_irta(irta, with_marker=False):
+def style_for_irta(irta, with_marker=False) -> dict:
     """
     Return dict with linestyle to plot SERTA/MRTA results
     """
@@ -45,7 +49,7 @@ def style_for_irta(irta, with_marker=False):
     return opts
 
 
-def transptens2latex(what, component):
+def transptens2latex(what, component) -> str:
     return {
         "sigma": r"$\sigma_{%s}$" % component,
         "seebeck": "$S_{%s}$" % component,
@@ -55,7 +59,7 @@ def transptens2latex(what, component):
     }[what]
 
 
-def edos_infos(edos_intmeth, edos_broad):
+def edos_infos(edos_intmeth, edos_broad) -> str:
     s = {1: "Gaussian smearing Method",
          2: "Linear Tetrahedron Method",
         -2: "Linear Tetrahedron Method with Blochl's corrections",
@@ -65,13 +69,13 @@ def edos_infos(edos_intmeth, edos_broad):
     return s
 
 
-def irta2latextau(irta, with_dollars=False):
+def irta2latextau(irta, with_dollars=False) -> str:
     s = r"\tau^{\mathbf{%s}}}" % irta2s(irta)
     if with_dollars: s = "$%s$" % s
     return s
 
 
-def x2_grid(what_list):
+def x2_grid(what_list) -> tuple:
     """
     Build (x, 2) grid of plots or just (1, 1) depending of the length of what_list.
 
@@ -89,11 +93,11 @@ def x2_grid(what_list):
 class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> RtaFile:
         """Initialize the object from a netcdf file."""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = RtaReader(filepath)
 
@@ -120,46 +124,46 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         self.edos_mesh_eV = self.reader.read_value("edos_mesh") * abu.Ha_to_eV
 
     @property
-    def ntemp(self):
+    def ntemp(self) -> int:
         """Number of temperatures."""
         return len(self.tmesh)
 
     @property
-    def tmesh(self):
+    def tmesh(self) -> np.ndarray:
         """Mesh with Temperatures in Kelvin."""
         return self.reader.tmesh
 
     @lazy_property
-    def assume_gap(self):
+    def assume_gap(self) -> bool:
         """True if we are dealing with a semiconductor. More precisely if all(sigma_erange) > 0."""
         return bool(self.reader.rootgrp.variables["assume_gap"])
 
     @lazy_property
-    def has_ibte(self):
+    def has_ibte(self) -> bool:
         """True if file contains IBTE results."""
         return "ibte_sigma" in self.reader.rootgrp.variables
 
     @lazy_property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.reader.read_ebands()
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
     @lazy_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+    def params(self) -> dict:
+        """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation."""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -234,7 +238,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             #ax.text(x, 5, "VBM", rotation=90, verticalalignment='center', fontsize=8)
 
     @add_fig_kwargs
-    def plot_edos(self, ax=None, fontsize=8, **kwargs):
+    def plot_edos(self, ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot electron DOS
 
@@ -275,7 +279,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_tau_isoe(self, ax_list=None, colormap="jet", fontsize=8, **kwargs):
+    def plot_tau_isoe(self, ax_list=None, colormap="jet", fontsize=8, **kwargs) -> Figure:
         r"""
         Plot tau(e). Energy-dependent scattering rate defined by:
 
@@ -329,7 +333,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     #def plot_vv_dos(self, component="xx", spin=0, ax=None, fontsize=8, **kwargs):
 
     @add_fig_kwargs
-    def plot_vvtau_dos(self, component="xx", spin=0, ax=None, colormap="jet", fontsize=8, **kwargs):
+    def plot_vvtau_dos(self, component="xx", spin=0, ax=None, colormap="jet", fontsize=8, **kwargs) -> Figure:
         r"""
         Plot (v_i * v_j * tau) DOS.
 
@@ -382,7 +386,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @add_fig_kwargs
     def plot_mobility(self, eh=0, irta=0, component='xx', spin=0, ax=None,
-                      colormap='jet', fontsize=8, yscale="log", **kwargs):
+                      colormap='jet', fontsize=8, yscale="log", **kwargs) -> Figure:
         """
         Read the mobility from the netcdf file and plot it
 
@@ -422,7 +426,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     @add_fig_kwargs
     def plot_transport_tensors_mu(self, component="xx", spin=0,
                                   what_list=("sigma", "seebeck", "kappa", "pi"),
-                                  colormap="jet", fontsize=8, **kwargs):
+                                  colormap="jet", fontsize=8, **kwargs) -> Figure:
         """
         Plot selected Cartesian components of transport tensors as a function
         of the chemical potential mu at the given temperature.
@@ -451,7 +455,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
             for irta in range(self.nrta):
                 for itemp, temp in enumerate(self.tmesh):
-                    ys = what_var[irta, spin, itemp, :, j, i]
+                    ys = what_var[irta, itemp, spin, :, j, i]
                     label = "T = %dK" % temp
                     if itemp == 0: label = "%s (%s)" % (label, irta2s(irta))
                     if irta == 0 and itemp > 0: label = None
@@ -472,7 +476,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_ibte_vs_rta_rho(self, component="xx", fontsize=8, ax=None, **kwargs):
+    def plot_ibte_vs_rta_rho(self, component="xx", fontsize=8, ax=None, **kwargs) -> Figure:
         """
         Plot resistivity computed with SERTA, MRTA and IBTE
         """
@@ -511,11 +515,11 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         #if self.has_ibte:
         #    yield self.plot_ibte_vs_rta_rho(show=False)
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -542,7 +546,7 @@ class RtaReader(ElectronsReader):
     This class reads the results stored in the RTA.nc file
     It provides helper function to access the most important quantities.
     """
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
 
         self.nsppol = self.read_dimvalue('nsppol')
@@ -626,7 +630,7 @@ class RtaRobot(Robot, RobotWithEbands):
 
     @add_fig_kwargs
     def plot_mobility_kconv(self, eh=0, bte=('serta', 'mrta', 'ibte'), mode="full", component='xx', itemp=0, 
-                            spin=0, fontsize=14, ax=None, **kwargs):
+                            spin=0, fontsize=14, ax=None, **kwargs) -> Figure:
         """
         Plot the convergence of the mobility as a function of the number of k-points,
         for different transport formalisms included in the computation.
@@ -645,6 +649,7 @@ class RtaRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
         """
+        bte = list(list_strings(bte))
 
         if 'ibte' in bte and not self.all_have_ibte:
             print("At least some IBTE results are missing ! Will remove ibte from the bte list")
@@ -664,11 +669,11 @@ class RtaRobot(Robot, RobotWithEbands):
 
             mob_serta, mob_mrta, mob_ibte = -1, -1, -1
             if 'serta' in bte:
-                mob_serta = ncfile.reader.read_variable("mobility_mu")[0, spin, itemp, eh, j, i]
+                mob_serta = ncfile.reader.read_variable("mobility_mu")[0, itemp, spin, eh, j, i]
             if 'mrta' in bte:
-                mob_mrta = ncfile.reader.read_variable("mobility_mu")[1, spin, itemp, eh, j, i]
+                mob_mrta = ncfile.reader.read_variable("mobility_mu")[1, itemp, spin, eh, j, i]
             if 'ibte' in bte:
-                mob_ibte = ncfile.reader.read_variable("ibte_mob")[spin, itemp, eh, j, i]
+                mob_ibte = ncfile.reader.read_variable("ibte_mob")[itemp, spin, eh, j, i]
 
             res.append([kptrlattx, mob_serta, mob_mrta, mob_ibte])
             temps.append(ncfile.tmesh[itemp])
@@ -714,12 +719,12 @@ class RtaRobot(Robot, RobotWithEbands):
         return fig
 
     @lazy_property
-    def assume_gap(self):
+    def assume_gap(self) -> bool:
         """True if we are dealing with a semiconductor. More precisely if all(sigma_erange) > 0."""
         return all(abifile.assume_gap for abifile in self.abifiles)
 
     @lazy_property
-    def all_have_ibte(self):
+    def all_have_ibte(self) -> bool:
         """True if all files contain IBTE results."""
         return all(abifile.has_ibte for abifile in self.abifiles)
 
@@ -742,7 +747,7 @@ class RtaRobot(Robot, RobotWithEbands):
     #@add_fig_kwargs
     #def plot_transport_tensors_mu_kconv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=8, ax=None, **kwargs):
 
-    def plot_ibte_vs_rta_rho(self, component="xx", fontsize=8, **kwargs):
+    def plot_ibte_vs_rta_rho(self, component="xx", fontsize=8, **kwargs) -> Figure:
         """
         """
         nrows = 1 # xx
@@ -756,7 +761,7 @@ class RtaRobot(Robot, RobotWithEbands):
 
         return fig
 
-    def plot_ibte_mrta_serta_conv(self,  what="resistivity", fontsize=8, **kwargs):
+    def plot_ibte_mrta_serta_conv(self,  what="resistivity", fontsize=8, **kwargs) -> Figure:
         """
         """
         #num_plots, ncols, nrows, what_list = x2_grid(what_list)
@@ -828,7 +833,7 @@ class RtaRobot(Robot, RobotWithEbands):
     #    from abipy.panels.transportfile import TransportRobotPanel
     #    return TransportRobotPanel(self).get_panel()
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.

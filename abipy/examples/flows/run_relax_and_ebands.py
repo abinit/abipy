@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 r"""
-Relaxation + Bands
+Relaxation + bands
 ==================
 
-This script shows how to perform a structural relaxation and a band structure calculation
+This script shows how to perform a structural relaxation
+followed by a band structure calculation
 
 WARNING: The API could change!
 """

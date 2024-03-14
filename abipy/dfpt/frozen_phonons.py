@@ -1,5 +1,6 @@
 # coding: utf-8
 """Objects to run and analyze the frozen phonons generated from displacements of atoms"""
+from __future__ import annotations
 
 import numpy as np
 import scipy.optimize as optimize
@@ -8,6 +9,7 @@ from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 from abipy.core.abinit_units import phfactor_ev2units, amu_emass, Bohr_Ang, eV_Ha
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.typing import Figure
 
 
 def quadratic_fit_function(xx, aa, bb):
@@ -22,7 +24,7 @@ def quadratic_fit_function(xx, aa, bb):
     return aa * xx ** 2 + bb
 
 
-class FrozenPhonon(object):
+class FrozenPhonon:
     """
     Class defining a set of structures with displaced atoms.
     Provides methods to generate, interpolate and plot the data.
@@ -80,14 +82,14 @@ class FrozenPhonon(object):
         return self.original_structure.lattice.reciprocal_lattice.get_cartesian_coords(self.qpt_frac_coords)
 
     @property
-    def n_displ(self):
+    def n_displ(self) -> int:
         """
         Number of displacements.
         """
         return len(self.structures)
 
     @lazy_property
-    def ieta0(self):
+    def ieta0(self) -> int:
         """
         The index corresponding to the structure with no displacements.
         """
@@ -97,7 +99,8 @@ class FrozenPhonon(object):
             raise ValueError("The structure with no displacement is not present in the list.")
 
     @classmethod
-    def from_phbands(cls, phbands, qpt_frac_coords, imode, etas, scale_matrix=None, max_supercell=None):
+    def from_phbands(cls, phbands, qpt_frac_coords, imode, etas, 
+                     scale_matrix=None, max_supercell=None) ->FrozenPhonon:
         """
         Create an instace of FrozenPhonon using the eigendisplacements from a |PhononBands|
 
@@ -130,7 +133,7 @@ class FrozenPhonon(object):
                    phbands.qpoints[qind].frac_coords, normalized_fp.scale_matrix)
 
     @lazy_property
-    def mass_factor(self):
+    def mass_factor(self) -> float:
         """
         The factor accounting for the different masses and displacement of each atom
         """
@@ -204,7 +207,7 @@ class FrozenPhonon(object):
 
     @add_fig_kwargs
     def plot_fit_energies(self, fit_function=None, min_fit_eta=None, max_fit_eta=None, freq=None,
-                          ax=None, **kwargs):
+                          ax=None, **kwargs) -> Figure:
         """
         Fits the displacements etas to the energies. See fit_to_frequency() for more details.
 
@@ -259,7 +262,7 @@ class FrozenPhonon(object):
         return fig
 
     @add_fig_kwargs
-    def plot_anharmonic_contribution(self, freq, relative=False, ax=None, **kwargs):
+    def plot_anharmonic_contribution(self, freq, relative=False, ax=None, **kwargs) -> Figure:
         """
         Plots the the absolute relative difference between the energies extracted from the frequency as
         quadratic coefficient and the calculated energies, giving an estimate of the anharmonic contribution

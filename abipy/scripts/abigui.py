@@ -2,6 +2,8 @@
 """
 Script to start the panel-based AbiPy web GUI.
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse
@@ -17,8 +19,10 @@ def main():
         return """\
 Usage example:
 
-    oncv.py run H.in         ==> Run oncvpsp input file (scalar relativistic mode).
-    oncv.py plot H.out       ==> Use matplotlib to plot oncvpsp results for pseudo H.psp8.
+    abigui.py --verbose
+    abigui.py --num_procs 4 --has-remote-server  => Options used for gui.abinit.org
+
+NB: To deploy the GUI, use the ~abipy/dev_scripts/deploy_abigui.sh script.
 """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -28,7 +32,6 @@ Usage example:
         sys.exit(error_code)
 
     def get_copts_parser():
-
         # Parent parser implementing common options.
         p = argparse.ArgumentParser(add_help=False)
         p.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
@@ -36,6 +39,9 @@ Usage example:
 
         p.add_argument('--loglevel', default="ERROR", type=str,
                             help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+
+        from abipy.core.release import __version__
+        p.add_argument('-V', '--version', action='version', version=__version__)
 
         return p
 
@@ -92,11 +98,11 @@ Usage example:
 This web application exposes some of the capabilities of the [AbiPy package](https://github.com/abinit/abipy).
 It consists of **multiple pages** each of which provides **specialized tools** to operate on a particular ABINIT file.
 
-To access one of these tools, click one of the links in the sidebar or, alternatively, use the links below.
+To access the tools, click one of the links in the sidebar or, alternatively, use the links below.
 
 To **open/close** the sidebar, click on the Hamburger Menu Icon ☰ in the header.
 
-Note that the **file extension** matters as the GUI won't work properly if you upload files
+Note that the **file extension matters** as the GUI won't work properly if you upload files
 with extensions that are not recognized by AbiPy.
 
 """
@@ -137,7 +143,6 @@ with extensions that are not recognized by AbiPy.
 
 {cls.info_str}
 """
-
     main_home = pn.Column(pn.pane.Markdown(intro, sizing_mode="stretch_both"),
                           sizing_mode="stretch_both")
 

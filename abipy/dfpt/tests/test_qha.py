@@ -24,25 +24,25 @@ class QhaTest(AbipyTest):
         """Testing QHA"""
         qha = QHA.from_files(self.gsr_paths, self.dos_paths)
 
-        self.assertEqual(qha.nvols, len(self.strains))
-        self.assertEqual(qha.natoms, 2)
+        self.assert_equal(qha.nvols, len(self.strains))
+        self.assert_equal(qha.natoms, 2)
 
         f = qha.fit_energies(tstart=0, tstop=300, num=3)
-        self.assertArrayEqual(f.tot_en.shape, (len(self.strains), 3))
-        self.assertAlmostEqual(f.min_en[0], -230.15471148501612, places=5)
+        self.assert_equal(f.tot_en.shape, (len(self.strains), 3))
+        self.assert_almost_equal(f.min_en[0], -230.15471148501612, decimal=5)
 
-        self.assertEqual(qha.eos._eos_name, "vinet")
+        self.assert_equal(qha.eos._eos_name, "vinet")
         qha.set_eos("murnaghan")
-        self.assertEqual(qha.eos._eos_name, "murnaghan")
+        self.assert_equal(qha.eos._eos_name, "murnaghan")
 
         te = qha.get_thermal_expansion_coeff(num=4)
-        self.assertAlmostEqual(te.values[1], 1.4676820862386381e-05)
+        self.assert_almost_equal(te.values[1], 1.4676820862386381e-05)
 
-        self.assertAlmostEqual(qha.get_vol_at_t(200), 41.07441539803265, places=4)
+        self.assert_almost_equal(qha.get_vol_at_t(200), 41.07441539803265, decimal=4)
         temps = qha.get_t_for_vols([40, 41.065, 41.1])
-        self.assertEqual(len(temps[0]), 0)
-        self.assertEqual(len(temps[1]), 2)
-        self.assertEqual(len(temps[2]), 1)
+        self.assert_equal(len(temps[0]), 0)
+        self.assert_equal(len(temps[1]), 2)
+        self.assert_equal(len(temps[2]), 1)
 
         tmpdir = self.mkdtemp()
         qha.write_phonopy_qha_inputs(num=3, path=tmpdir)
@@ -107,21 +107,21 @@ class Qha3pfTest(AbipyTest):
 
         qha = QHA3PF.from_files(self.gsr_paths, self.dos_paths[1:4], ind_doses=[1, 2, 3])
 
-        self.assertEqual(qha.nvols, len(self.strains))
-        self.assertEqual(qha.natoms, 2)
+        self.assert_equal(qha.nvols, len(self.strains))
+        self.assert_equal(qha.natoms, 2)
 
         f = qha.fit_energies(tstart=0, tstop=300, num=3)
-        self.assertArrayEqual(f.tot_en.shape, (len(self.strains), 3))
-        self.assertAlmostEqual(f.min_en[0], -230.15433223031306, places=5)
+        self.assert_equal(f.tot_en.shape, (len(self.strains), 3))
+        self.assert_almost_equal(f.min_en[0], -230.15433223031306, decimal=5)
 
-        self.assertEqual(qha.eos._eos_name, "vinet")
+        self.assert_equal(qha.eos._eos_name, "vinet")
         qha.set_eos("murnaghan")
-        self.assertEqual(qha.eos._eos_name, "murnaghan")
+        self.assert_equal(qha.eos._eos_name, "murnaghan")
 
         te = qha.get_thermal_expansion_coeff(num=4)
-        self.assertAlmostEqual(te.values[1], 1.2773693323408941e-05)
+        self.assert_almost_equal(te.values[1], 1.2773693323408941e-05)
 
-        self.assertAlmostEqual(qha.get_vol_at_t(200), 41.10212044734946, places=4)
+        self.assert_almost_equal(qha.get_vol_at_t(200), 41.10212044734946, decimal=4)
 
         tmpdir = self.mkdtemp()
         qha.write_phonopy_qha_inputs(num=3, path=tmpdir)
@@ -161,21 +161,21 @@ class Qha3pTest(AbipyTest):
         """Base tests for QHA3PF"""
         qha = QHA3P.from_files(self.gsr_paths, self.gruns_path, ind_doses=[1, 2, 3])
 
-        self.assertEqual(qha.nvols, len(self.strains))
-        self.assertEqual(qha.natoms, 2)
+        self.assert_equal(qha.nvols, len(self.strains))
+        self.assert_equal(qha.natoms, 2)
 
         f = qha.fit_energies(tstart=0, tstop=300, num=3)
-        self.assertArrayEqual(f.tot_en.shape, (len(self.strains), 3))
-        self.assertAlmostEqual(f.min_en[0], -230.15458036894498, places=5)
+        self.assert_equal(f.tot_en.shape, (len(self.strains), 3))
+        self.assert_almost_equal(f.min_en[0], -230.15458036894498, decimal=5)
 
-        self.assertEqual(qha.eos._eos_name, "vinet")
+        self.assert_equal(qha.eos._eos_name, "vinet")
         qha.set_eos("murnaghan")
-        self.assertEqual(qha.eos._eos_name, "murnaghan")
+        self.assert_equal(qha.eos._eos_name, "murnaghan")
 
         te = qha.get_thermal_expansion_coeff(num=4)
-        self.assertAlmostEqual(te.values[1], 1.2725767394824783e-05)
+        self.assert_almost_equal(te.values[1], 1.2725767394824783e-05)
 
-        self.assertAlmostEqual(qha.get_vol_at_t(200), 41.1083743159003, places=4)
+        self.assert_almost_equal(qha.get_vol_at_t(200), 41.1083743159003, decimal=4)
 
         tmpdir = self.mkdtemp()
         qha.write_phonopy_qha_inputs(num=3, path=tmpdir)

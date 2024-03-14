@@ -1,5 +1,7 @@
 # coding: utf-8
 """Tools to analyze the output files produced by Lobster."""
+from __future__ import annotations
+
 import os
 import re
 import glob
@@ -13,13 +15,12 @@ from monty.termcolor import cprint
 from monty.functools import lazy_property
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import OrbitalType
-from pymatgen.io.vasp.outputs import Vasprun
-from pymatgen.io.vasp.inputs import Potcar
 from pymatgen.io.abinit.pseudos import Pseudo
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import BaseFile, NotebookWriter
 from abipy.electrons.gsr import GsrFile
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, set_ax_xylabels
+from abipy.tools.typing import Figure
 from abipy.tools import duck
 
 
@@ -61,14 +62,14 @@ class _LobsterFile(BaseFile, NotebookWriter):
       "4f_z(x^2-y^2)": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{z(x^2-y^2)}"},
     }
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def close(self):
+    def close(self) -> None:
         """Needed by ABC."""
 
     #@add_fig_kwargs
-    #def plot_with_ebands(self, ebands, fontsize=12, **kwargs):
+    #def plot_with_ebands(self, ebands, fontsize=12, **kwargs) -> Figure:
     #    """
     #    Plot bands + (COHP|COOP|DOSCAR) depending on the content of the file.
 
@@ -159,21 +160,21 @@ class CoxpFile(_LobsterFile):
     """
 
     @property
-    def site_pairs_total(self):
+    def site_pairs_total(self) -> list:
         """
         List of site pairs available for the total COP
         """
         return list(self.total.keys())
 
     @property
-    def site_pairs_partial(self):
+    def site_pairs_partial(self) -> list:
         """
         List of site pairs available for the partial COP
         """
         return list(self.partial.keys())
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> CoxpFile:
         """
         Generates an instance of CoxpFile from the files produce by Lobster.
         Accepts gzipped files.
@@ -344,7 +345,7 @@ class CoxpFile(_LobsterFile):
                 results[pair][spin] = Function1D(self.energies, pair_data[spin]['single'])
         return results
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation with verbosity level `verbose`."""
         lines = []; app = lines.append
         if verbose:
@@ -369,7 +370,7 @@ class CoxpFile(_LobsterFile):
         yield self.plot(what="i", show=False)
 
     @add_fig_kwargs
-    def plot(self, what="d", spin=None, ax=None, exchange_xy=False, fontsize=12, **kwargs):
+    def plot(self, what="d", spin=None, ax=None, exchange_xy=False, fontsize=12, **kwargs) -> Figure:
         """
         Plot COXP averaged values (DOS or IDOS depending on what).
 
@@ -422,7 +423,7 @@ class CoxpFile(_LobsterFile):
 
     @add_fig_kwargs
     def plot_average_pairs(self, with_site_index, what="single", exchange_xy=False,
-                           fontsize=8, **kwargs):
+                           fontsize=8, **kwargs) -> Figure:
         """
         Plot COXP total overlap for all sites containg `with_site_index` and average sum
         (multiplied by the number of pairs)
@@ -504,7 +505,7 @@ class CoxpFile(_LobsterFile):
 
     @add_fig_kwargs
     def plot_site_pairs_total(self, from_site_index, what="single", exchange_xy=False, ax=None,
-                              fontsize=8, **kwargs):
+                              fontsize=8, **kwargs) -> Figure:
         """
         Plot COXP total overlap (DOS or IDOS) for all sites listed in `from_site_index`
 
@@ -575,7 +576,7 @@ class CoxpFile(_LobsterFile):
 
     @add_fig_kwargs
     def plot_site_pairs_partial(self, from_site_index, what="single", exchange_xy=True, ax=None,
-                                fontsize=8, **kwargs):
+                                fontsize=8, **kwargs) -> Figure:
         """
         Plot partial crystal orbital projections (DOS or IDOS) for all sites listed in `from_site_index`
 
@@ -766,7 +767,7 @@ class ICoxpFile(_LobsterFile):
         return pd.DataFrame(rows, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
-    def plot(self, ax=None, **kwargs):
+    def plot(self, ax=None, **kwargs) -> Figure:
         """Barplot with average values."""
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         import seaborn as sns
@@ -897,7 +898,7 @@ class LobsterDoscarFile(_LobsterFile):
             yield self.plot_pdos_site(site_index, show=False)
 
     @add_fig_kwargs
-    def plot(self, spin=None, ax=None, exchange_xy=False, fontsize=12, **kwargs):
+    def plot(self, spin=None, ax=None, exchange_xy=False, fontsize=12, **kwargs) -> Figure:
         """
         Plot DOS.
 
@@ -932,7 +933,7 @@ class LobsterDoscarFile(_LobsterFile):
         return fig
 
     @add_fig_kwargs
-    def plot_pdos_site(self, site_index, ax=None, exchange_xy=False, fontsize=8, **kwargs):
+    def plot_pdos_site(self, site_index, ax=None, exchange_xy=False, fontsize=8, **kwargs) -> Figure:
         """
         Plot projected DOS
 
@@ -1163,6 +1164,10 @@ class LobsterInput(object):
         Returns:
             A LobsterInput.
         """
+        # These two libraries take a long time to import on HPC (07/02/24) so moved to method instead of header
+        from pymatgen.io.vasp.outputs import Vasprun
+        from pymatgen.io.vasp.inputs import Potcar
+
         # Try to determine the code used for the calculation
         dft_code = None
         if os.path.isfile(os.path.join(dirpath, 'vasprun.xml')):
@@ -1299,7 +1304,7 @@ class LobsterAnalyzer(NotebookWriter):
         yield self.plot(show=False)
 
     @add_fig_kwargs
-    def plot(self, entries=("coop", "cohp", "doscar"), spin=None, **kwargs):
+    def plot(self, entries=("coop", "cohp", "doscar"), spin=None, **kwargs) -> Figure:
         """
         Plot COOP + COHP + DOSCAR.
 
@@ -1329,7 +1334,7 @@ class LobsterAnalyzer(NotebookWriter):
 
     @add_fig_kwargs
     def plot_coxp_with_dos(self, from_site_index, what="cohp", with_orbitals=False, exchange_xy=True,
-                           fontsize=8, **kwargs):
+                           fontsize=8, **kwargs) -> Figure:
         """
         Plot COHP (COOP) for all sites in from_site_index and Lobster DOS on len(from_site_index) + 1 subfigures.
 
@@ -1370,7 +1375,7 @@ class LobsterAnalyzer(NotebookWriter):
         return fig
 
     #@add_fig_kwargs
-    #def plot_with_ebands(self, ebands, entries=("coop", "cohp", "doscar"), **kwargs):
+    #def plot_with_ebands(self, ebands, entries=("coop", "cohp", "doscar"), **kwargs) -> Figure:
     #    """
     #    Plot bands + COHP, COOP, DOSCAR.
 

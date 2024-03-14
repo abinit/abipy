@@ -1,5 +1,5 @@
 # coding: utf-8
-"""This module provides mixin classes"""
+"""Mixin classes"""
 from __future__ import annotations
 
 import abc
@@ -11,11 +11,12 @@ import numpy as np
 import pandas as pd
 
 from time import ctime
-from monty.os.path import which
+from shutil import which
 from monty.termcolor import cprint
 from monty.string import list_strings
 from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
+from abipy.tools.typing import Figure
 
 
 __all__ = [
@@ -35,6 +36,7 @@ class BaseFile(metaclass=abc.ABCMeta):
     by the concrete classes representing the different files produced by ABINIT.
     """
     def __init__(self, filepath: str):
+        filepath = str(filepath)
         self._filepath = os.path.abspath(filepath)
 
         # Save stat values
@@ -43,15 +45,13 @@ class BaseFile(metaclass=abc.ABCMeta):
         self._last_mtime = stat.st_mtime
         self._last_ctime = stat.st_ctime
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<%s, %s>" % (self.__class__.__name__, self.relpath)
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str):
         """Initialize the object from a string."""
         if isinstance(filepath, cls): return filepath
-
-        #print("Perhaps the subclass", cls, "must redefine the classmethod from_file.")
         return cls(filepath)
 
     @property
@@ -93,7 +93,7 @@ class BaseFile(metaclass=abc.ABCMeta):
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Activated at the end of the with statement. It automatically closes the file."""
         self.close()
 
@@ -201,8 +201,7 @@ class AbinitNcFile(BaseFile):
     @abc.abstractproperty
     def params(self) -> dict:
         """
-        :class:`OrderedDict` with the convergence parameters
-        Used to construct |pandas-DataFrames|.
+        dict with the convergence parameters used to construct |pandas-DataFrames|.
         """
 
     def get_dims_dataframe(self, as_dict=False, path="/") -> pd.DataFrame:
@@ -260,7 +259,7 @@ class CubeFile(BaseFile):
 
         |numpy-array| of shape [nx, ny, nz] with numerical values on the real-space mesh.
     """
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         from abipy.iotools.cube import cube_read_structure_mesh_data
         super().__init__(filepath)
         self.structure, self.mesh, self.data = cube_read_structure_mesh_data(self.filepath)
@@ -284,7 +283,7 @@ class Has_Structure(metaclass=abc.ABCMeta):
     def structure(self):
         """Returns the |Structure| object."""
 
-    def plot_bz(self, **kwargs):
+    def plot_bz(self, **kwargs) -> Figure:
         """
         Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
         """
@@ -433,11 +432,11 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
             ("nkpt", self.nkpt),
         ])
 
-    def plot_ebands(self, **kwargs):
+    def plot_ebands(self, **kwargs) -> Figure:
         """Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature."""
         return self.ebands.plot(**kwargs)
 
-    def plot_ebands_with_edos(self, edos, **kwargs):
+    def plot_ebands_with_edos(self, edos, **kwargs) -> Figure:
         """Plot the electron energy bands with DOS. See the :func:`ElectronBands.plot_with_edos` for the signature."""
         return self.ebands.plot_with_edos(edos, **kwargs)
 
@@ -474,12 +473,12 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         """
         Shows a predefined list of matplotlib figures for electron bands with minimal input from the user.
         """
-        from abipy.tools.plotting import MplExpose, PanelExpose
+        from abipy.tools.plotting import MplExposer, PanelExposer
 
         if expose_web:
-            e = PanelExpose(title=f"e-Bands of {self.structure.formula}")
+            e = PanelExposer(title=f"e-Bands of {self.structure.formula}")
         else:
-            e = MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1)
+            e = MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1)
 
         with e:
             e(self.yield_ebands_figs(**kwargs))
@@ -513,7 +512,7 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
             ("nqpt", len(self.phbands.qpoints)),
         ])
 
-    def plot_phbands(self, **kwargs):
+    def plot_phbands(self, **kwargs) -> Figure:
         """
         Plot the electron energy bands. See the :func:`PhononBands.plot` for the signature.""
         """
@@ -546,8 +545,8 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
         """
         Shows a predefined list of matplotlib figures for phonon bands with minimal input from the user.
         """
-        from abipy.tools.plotting import MplExpose
-        with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+        from abipy.tools.plotting import MplExposer
+        with MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
             e(self.yield_phbands_figs(**kwargs))
 
 
@@ -593,7 +592,7 @@ def size2str(size):
     return "%.2f " % (size / factor) + suffix
 
 
-def get_filestat(filepath):
+def get_filestat(filepath: str) -> dict:
     stat = os.stat(filepath)
     return collections.OrderedDict([
         ("Name", os.path.basename(filepath)),
@@ -605,7 +604,7 @@ def get_filestat(filepath):
     ])
 
 
-class HasNotebookTools(object):
+class HasNotebookTools:
 
     def has_panel(self):
         """
@@ -618,9 +617,9 @@ class HasNotebookTools(object):
             return False
 
     def make_and_open_notebook(self, nbpath=None, foreground=False,
-                               classic_notebook=False, no_browser=False):  # pragma: no cover
+                               classic_notebook=False, no_browser=False) -> int:  # pragma: no cover
         """
-        Generate an jupyter_ notebook and open it in the browser.
+        Generate a jupyter_ notebook and open it in the browser.
 
         Args:
             nbpath: If nbpath is None, a temporay file is created.
@@ -689,15 +688,7 @@ See also https://jupyter.readthedocs.io/en/latest/install.html
             print("nbpath:", nbpath)
 
             import socket
-
-            def find_free_port():
-                """https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number"""
-                from contextlib import closing
-                with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-                    s.bind(('', 0))
-                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                    return s.getsockname()[1]
-
+            from abipy.tools.notebooks import find_free_port
             username = os.getlogin()
             hostname = socket.gethostname()
             port = find_free_port()
@@ -728,13 +719,13 @@ http://localhost:{port}/notebooks/{notebook_name}
             return os.system(cmd)
 
     @staticmethod
-    def get_nbformat_nbv():
-        """Return nbformat module, notebook version module"""
+    def get_nbformat_nbv() -> tuple:
+        """Return (nbformat module, notebook version module)"""
         import nbformat
         nbv = nbformat.v4
         return nbformat, nbv
 
-    def get_nbformat_nbv_nb(self, title=None):
+    def get_nbformat_nbv_nb(self, title=None) -> tuple:
         """
         Return ``nbformat`` module, notebook version module
         and new notebook with title and import section
@@ -776,7 +767,7 @@ abilab.enable_notebook(with_seaborn=True)
         return nbformat, nbv, nb
 
     @staticmethod
-    def _write_nb_nbpath(nb, nbpath):
+    def _write_nb_nbpath(nb, nbpath: str) -> str:
         """
         This method must be called at the end of ``write_notebook``.
         nb is the jupyter notebook and nbpath the argument passed to ``write_notebook``.
@@ -799,7 +790,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file is created.
         Return path to the notebook. A typical template:
@@ -831,7 +822,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
             #assert cls is new.__class__
             return new
 
-    def pickle_dump(self, filepath=None):
+    def pickle_dump(self, filepath=None) -> str:
         """
         Save the status of the object in pickle format.
         If filepath is None, a temporary file is created.
@@ -859,7 +850,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
     #    Used in abiview.py to get a quick look at the results.
     #    """
 
-    def _get_panel_and_template(self):
+    def _get_panel_and_template(self) -> tuple:
         # Create panel template with matplotlib figures and show them in the browser.
         import panel as pn
         pn.config.sizing_mode = 'stretch_width'
@@ -877,26 +868,29 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
 
     def expose(self, slide_mode=False, slide_timeout=None, use_web=False, **kwargs):
         """
-        Shows a predefined list of matplotlib figures with minimal input from the user.
-        Relies on the ``yield_fig``s methods implemented by the subclass to generate matplotlib figures.
+        Shows a predefined list of figures with minimal input from the user.
+        Relies on the ``yield_fig``s methods implemented by the subclass to generate such figures.
 
         Args:
             use_web: True to show all figures inside a panel template executed in the local browser.
-               False to show figures in different GUIs
+               False to show figures in different GUIs.
         """
         if not use_web:
-            # Produce all matplotlib versions and show them with the X-server.
-            from abipy.tools.plotting import MplExpose
-            with MplExpose(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
+            # Produce all matplotlib figures and show them with the X-server.
+            from abipy.tools.plotting import MplExposer
+            with MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
                 e(self.yield_figs(**kwargs))
 
         else:
             # Create panel template with matplotlib figures and show them in the browser.
             pn, template = self._get_panel_and_template()
             pn.config.sizing_mode = 'stretch_width'
-            from abipy.panels.core import mpl
+            from abipy.panels.core import mpl, dfc
             for i, fig in enumerate(self.yield_figs()):
                 row, col = divmod(i, 2)
+                #if isinstance(fig, pd.DataFrame, pd.Series):
+                #    p = dfc(fig)
+                #elsse
                 p = mpl(fig, with_divider=False, dpi=82)
                 if hasattr(template.main, "append"):
                     template.main.append(p)
@@ -941,8 +935,10 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
         return template.show()
 
 
-class Has_Header(object):
-    """Mixin class for netcdf files containing the Abinit header."""
+class Has_Header:
+    """
+    Mixin class for netcdf files containing the Abinit header.
+    """
 
     @lazy_property
     def hdr(self):
@@ -955,12 +951,11 @@ class Has_Header(object):
 class SlotPickleMixin:
     """
     This mixin makes it possible to pickle/unpickle objects with __slots__
-    defined.
     """
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         return {slot: getattr(self, slot) for slot in self.__slots__ if hasattr(self, slot)}
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict) -> None:
         for slot, value in state.items():
             setattr(self, slot, value)

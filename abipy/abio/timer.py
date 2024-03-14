@@ -2,9 +2,10 @@
 This module provides objects for extracting timing data from the ABINIT output files
 It also provides tools to analyze and to visualize the parallel efficiency.
 """
+from __future__ import annotations
+
 from abipy.core.mixins import NotebookWriter
 from abipy.flowtk import AbinitTimerParser as _Parser
-
 
 class AbinitTimerParser(_Parser, NotebookWriter):
 
@@ -17,7 +18,7 @@ class AbinitTimerParser(_Parser, NotebookWriter):
         yield self.plot_efficiency(show=False)
         yield self.plot_pie(show=False)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write an ipython notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.

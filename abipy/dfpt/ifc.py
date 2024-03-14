@@ -8,6 +8,7 @@ from typing import Union
 from monty.functools import lazy_property
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
+from abipy.tools.typing import Figure
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 
@@ -216,7 +217,7 @@ class InteratomicForceConstants(Has_Structure):
         return self.distances[ind], self.ifc_local_coord[ind]
 
     def get_plot_ifc(self, ifc, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,
-                     max_dist=None, yscale="log", ax=None, **kwargs):
+                     max_dist=None, yscale="log", ax=None, **kwargs) -> Figure:
         """
         Plots the specified IFCs, filtered according to the optional arguments.
         An array with shape number_of_atoms * number_of_neighbours, so only one
@@ -263,7 +264,7 @@ class InteratomicForceConstants(Has_Structure):
 
     @add_fig_kwargs
     def plot_longitudinal_ifc(self, atom_indices=None, atom_element=None, neighbour_element=None, min_dist=None,
-                              max_dist=None, yscale="log", ax=None, **kwargs):
+                              max_dist=None, yscale="log", ax=None, **kwargs) -> Figure:
         """
         Plots the total longitudinal IFCs in local coordinates, filtered according to the optional arguments.
 
@@ -289,7 +290,7 @@ class InteratomicForceConstants(Has_Structure):
 
     @add_fig_kwargs
     def plot_longitudinal_ifc_short_range(self, atom_indices=None, atom_element=None, neighbour_element=None,
-                                          min_dist=None, max_dist=None, yscale="log", ax=None, **kwargs):
+                                          min_dist=None, max_dist=None, yscale="log", ax=None, **kwargs) -> Figure:
         """
         Plots the short range longitudinal IFCs in local coordinates, filtered according to the optional arguments.
 
@@ -318,7 +319,7 @@ class InteratomicForceConstants(Has_Structure):
 
     @add_fig_kwargs
     def plot_longitudinal_ifc_ewald(self, atom_indices=None, atom_element=None, neighbour_element=None,
-                                    min_dist=None, max_dist=None, yscale="log", ax=None, **kwargs):
+                                    min_dist=None, max_dist=None, yscale="log", ax=None, **kwargs) -> Figure:
         """
         Plots the Ewald part of the IFCs in local coordinates, filtered according to the optional arguments.
 

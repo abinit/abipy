@@ -64,7 +64,7 @@ qadapters:
         # Test pickle
         self.serialize_with_pickle(slurm_manager, test_eq=False)
 
-        self.assertMSONable(slurm_manager)
+        self.assert_msonable(slurm_manager)
 
         fixed_manager = slurm_manager.new_with_fixed_mpi_omp(mpi_procs=5, omp_threads=2)
         assert fixed_manager.policy.autoparal == 0

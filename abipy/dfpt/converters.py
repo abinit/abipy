@@ -3,25 +3,29 @@ Converters between abinit/abipy format and other external tools.
 Some portions of the code have been imported from the ConvertDDB.py script
 developed by Hu Xe, Eric Bousquet and Aldo Romero.
 """
+from __future__ import annotations
 
 import os
 import itertools
 import warnings
 import numpy as np
-from monty.dev import requires
+import abipy.core.abinit_units as abu
 
+from monty.dev import requires
+from monty.os import makedirs_p
 from pymatgen.io.phonopy import get_phonopy_structure, get_pmg_structure
 from pymatgen.io.vasp.inputs import Poscar
-import abipy.core.abinit_units as abu
+from abipy.core.structure import Structure
+from abipy.tools.typing import VectorLike
 from abipy.dfpt.ddb import DdbFile
 from abipy.abio.factories import minimal_scf_input
 from abipy.electrons.gsr import GsrFile
-from monty.os import makedirs_p
 try:
-    from phonopy import Phonopy
+    from phonopy import Phonopy, load
     from phonopy.file_IO import write_FORCE_CONSTANTS, parse_FORCE_CONSTANTS, parse_BORN, parse_FORCE_SETS
-    #from phonopy.interface.phonopy_yaml import PhonopyYaml
     from phonopy.interface.calculator import get_default_physical_units, get_force_constant_conversion_factor
+    from phonopy.harmonic import force_constants
+
 except ImportError:
     Phonopy = None
 
@@ -169,14 +173,16 @@ def abinit_to_phonopy(anaddbnc, supercell_matrix, symmetrize_tensors=False, outp
 
 
 @requires(Phonopy, "phonopy not installed!")
-def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt_list=None,
-                      force_constants=None, force_sets=None, born=None,
-                      primitive_matrix="auto", symprec=1e-5, tolsym=None, supercell=None,
+def phonopy_to_abinit(unit_cell=None, supercell_matrix=None, out_ddb_path=None, ngqpt=None, qpt_list=None,
+                      force_constants=None, force_sets=None, phonopy_yaml=None,  born=None,
+                      primitive_matrix="auto", symprec=1e-5, tolsym=None, nsym=None, supercell=None, 
                       calculator=None, manager=None, workdir=None, pseudos=None, verbose=False):
     """
     Converts the data from phonopy to an abinit DDB file. The data can be provided
     in form of arrays or paths to the phonopy files that should be parsed.
-    The minimal input should contains the FORCE_CONSTANTS or FORCE_SETS.
+    The minimal input should contains the FORCE_CONSTANTS or FORCE_SETS,
+    or the phonopy.yaml ouput from the postprocessing of phonopy
+    (https://phonopy.github.io/phonopy/output-files.html#phonopy-yaml-and-phonopy-disp-yaml).
     If BORN is present the Born effective charges (BEC) and dielectric
     tensor will also be added to the DDB.
 
@@ -194,7 +200,7 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
 
     Args:
         unit_cell: a |Structure| object that identifies the unit cell used for the phonopy
-            calculation.
+            calculation. 
         supercell_matrix: a 3x3 array representing the supercell matrix used to generated the
             forces with phonopy.
         out_ddb_path: a full path to the file where the new DDB will be written
@@ -203,11 +209,15 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
             At least one among ngqpt and qpt_list should be defined.
         force_constants: an array with shape (num atoms unit cell, num atoms supercell, 3, 3)
             containing the force constants. Alternatively a string with the path to the
-            FORCE_CONSTANTS file. This or force_set should be defined. If both given this
+            FORCE_CONSTANTS file. This or force_sets or phonopy_yaml should be defined. If both given this
             has precedence.
         force_sets: a dictionary obtained from the force sets generated with phonopy.
             Alternatively a string with the path to the FORCE_SETS file. This or force_constants
-            should be defined.
+            or phonopy_yaml should be defined.
+        phonopy_yaml: a filename from the post-processing of phonopy (phonopy.yaml),
+            see https://phonopy.github.io/phonopy/output-files.html#phonopy-yaml-and-phonopy-disp-yaml
+            This or force_constants or force_sets should be dependent. Note that the unit_cel,
+            supercell_matrix, primitive_matrix are included in this file so they do not need to be given.
         born: a dictionary with "dielectric" and "born" keywords as obtained from the nac_params
             in phonopy. Alternatively a string with the path to the BORN file. Notice that
             the "factor" attribute is not taken into account, so the values should be in
@@ -235,14 +245,15 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
     Returns:
         a DdbFile instance of the file written in out_ddb_path.
     """
-
     if ngqpt is None and qpt_list is None:
         raise ValueError("at least one among nqgpt and qpt_list should be defined")
 
-    if force_sets is None and force_constants is None:
+    if not ((force_sets is not None) or  (force_constants is not None) or (phonopy_yaml is not None) ):
         raise ValueError("at least one of force_sets and force_constants should be provided")
 
-    phon_at = get_phonopy_structure(unit_cell)
+
+    if unit_cell is not None:
+        phon_at = get_phonopy_structure(unit_cell)
 
     if isinstance(force_constants, str):
         force_constants = parse_FORCE_CONSTANTS(filename=force_constants)
@@ -253,9 +264,21 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
     if isinstance(force_sets, str):
         force_sets = parse_FORCE_SETS(filename=force_sets)
 
-    # no nac_params here, otherwise they will be used for the interpolation
-    phonon = Phonopy(phon_at, supercell_matrix, primitive_matrix=primitive_matrix, nac_params=None,
-                     symprec=symprec, calculator=calculator)
+    if phonopy_yaml is not None:
+        phonon=load(phonopy_yaml=phonopy_yaml,
+                    supercell_matrix=supercell_matrix,
+                    primitive_matrix=primitive_matrix,
+                    unitcell=unit_cell,
+                    symprec=symprec,
+                    is_nac=False,
+                    nac_params=None,
+                    calculator=calculator
+
+                    )
+    else:
+        # no nac_params here, otherwise they will be used for the interpolation
+        phonon = Phonopy(phon_at, supercell_matrix, primitive_matrix=primitive_matrix, nac_params=None,
+                         symprec=symprec, calculator=calculator)
 
     primitive = get_pmg_structure(phonon.primitive)
 
@@ -286,9 +309,11 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
 
     if force_constants is not None:
         phonon.force_constants = force_constants
-    else:
+    elif force_sets is not None:
         phonon.dataset = force_sets
         phonon.produce_force_constants()
+    else: # phonopy_yaml already included the forceconstants
+        pass
 
     if calculator:
         units = get_default_physical_units(calculator)
@@ -320,6 +345,10 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
     inp = minimal_scf_input(primitive, pseudos)
     if tolsym is not None:
         inp["tolsym"] = tolsym
+
+    if nsym is not None:
+        inp["nsym"] = nsym
+
     task = inp.run_in_shell(workdir=workdir, manager=manager, verbose=verbose)
 
     # use the output of abinit to check that the spacegroup identified by
@@ -334,6 +363,8 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
 
     tmp_ddb_path = task.opath_from_ext("DDB")
 
+
+
     ddb = DdbFile(tmp_ddb_path)
     # remove the blocks generated by the calculation and that are meaningless
     ddb.remove_block(dord=0)
@@ -347,7 +378,7 @@ def phonopy_to_abinit(unit_cell, supercell_matrix, out_ddb_path, ngqpt=None, qpt
     return new_ddb
 
 
-def generate_born_deriv(born, zion, structure):
+def generate_born_deriv(born: dict, zion: VectorLike, structure: Structure) -> np.ndarray:
     """
     Helper function to generate the portion of the derivatives in the DDB
     that are related to the Born effective charges and dielectric tensor,
@@ -400,7 +431,7 @@ def generate_born_deriv(born, zion, structure):
 
 
 @requires(Phonopy, "phonopy not installed!")
-def get_dm(phonon, qpt_list, structure):
+def get_dm(phonon, qpt_list: list, structure: Structure) -> list:
     """
     Helper function to generate the dynamical matrix in the abinit conventions
     for a list of q-points from a Phonopy object.
@@ -442,7 +473,7 @@ def get_dm(phonon, qpt_list, structure):
     return dm_list
 
 
-def add_data_ddb(ddb, dm_list, qpt_list, born_data):
+def add_data_ddb(ddb: DdbFile, dm_list: list, qpt_list: list, born_data) -> None:
     """
     Helper function to add the blocks for the dynamical matrix and BECs to a DdbFile object.
 
@@ -544,7 +575,7 @@ def tdep_to_abinit(unit_cell, fc_path, supercell_matrix, supercell, out_ddb_path
     return ddb
 
 
-def parse_tdep_fc(fc_path, unit_cell, supercell):
+def parse_tdep_fc(fc_path: str, unit_cell: Structure, supercell) -> np.ndarray:
     """
     Parses a forceconstants file produced by TDEP an converts it to an array in the
     phonopy format.
@@ -588,7 +619,7 @@ def parse_tdep_fc(fc_path, unit_cell, supercell):
     return fc
 
 
-def parse_tdep_lotosplitting(filepath):
+def parse_tdep_lotosplitting(filepath: str) -> tuple:
     """
     Parses the lotosplitting file produced by TDEP and transforms them in
     the phonopy format for Born effective charges and dielectric tensor.
@@ -618,7 +649,7 @@ def parse_tdep_lotosplitting(filepath):
     return eps, born
 
 
-def write_tdep_lotosplitting(eps, born, filepath="infile.lotosplitting", fmt="%14.10f"):
+def write_tdep_lotosplitting(eps, born, filepath="infile.lotosplitting", fmt="%14.10f") -> None:
     """
     Writes an lotosplitting file starting from arrays containing dielectric tensor and
     Born effective charges.
@@ -634,7 +665,7 @@ def write_tdep_lotosplitting(eps, born, filepath="infile.lotosplitting", fmt="%1
     np.savetxt(filepath, values, fmt=fmt)
 
 
-def born_to_lotosplitting(born, lotosplitting_path="infile.lotosplitting"):
+def born_to_lotosplitting(born, lotosplitting_path="infile.lotosplitting") -> None:
     """
     Converted of a file from the BORN file produced from phonopy to the lotosplitting
     file used by TDEP.
@@ -652,7 +683,7 @@ def born_to_lotosplitting(born, lotosplitting_path="infile.lotosplitting"):
 
 
 @requires(Phonopy, "phonopy not installed!")
-def write_BORN(primitive, borns, epsilon, filename="BORN", symmetrize_tensors=False):
+def write_BORN(primitive, borns, epsilon, filename="BORN", symmetrize_tensors=False) -> None:
     """
     Helper function imported from phonopy.file_IO.
     Contrarily to the original, it does not symmetrize the tensor.
@@ -667,7 +698,7 @@ def get_BORN_lines(unitcell, borns, epsilon,
                    factor=None,
                    primitive_matrix=None,
                    supercell_matrix=None,
-                   symprec=1e-5, symmetrize_tensors=False):
+                   symprec=1e-5, symmetrize_tensors=False) -> list:
     """
     Helper function imported from phonopy.file_IO that exposes the
     option of not symmetrizing the tensor.
@@ -686,3 +717,86 @@ def get_BORN_lines(unitcell, borns, epsilon,
     for z in borns:
         lines.append(("%13.8f " * 9) % tuple(z.flatten()))
     return lines
+
+@requires(Phonopy, "phonopy not installed!")
+def ddb_ucell_to_ddb_supercell(unit_ddb=None,unit_ddb_filepath=None,supercell_ddb_path='out_DDB',nac=True) -> DdbFile:
+    """
+    Convert a DDB file or DDB instance of a unit cell on a q-mesh to the corresponding supercell
+    at q=Gamma.
+    
+    Args:
+        unit_ddb: an instance of DDB file.
+        unit_ddb_filepath : alternatively, a path to the input DDB.
+        supercell_ddb_path: DDB path of the output DDB on a supercell at Gamma
+        nac : Set the non-analytical correction
+
+    Returns:
+        a DdbFile instance and the corresponding DDB file in supercell_ddb_path.
+    """
+
+    phonopy_supercell=ddb_ucell_to_phonopy_supercell(unit_ddb,unit_ddb_filepath,nac=nac)
+
+    sc_structure=get_pmg_structure(phonopy_supercell.supercell)
+    full_fc=phonopy_supercell.force_constants
+
+    ddb_sc = phonopy_to_abinit(unit_cell=sc_structure, supercell_matrix=[1,1,1], qpt_list=[[0,0,0]],
+                                out_ddb_path=supercell_ddb_path, force_constants=full_fc,
+                                born=phonopy_supercell.nac_params, primitive_matrix=np.eye(3), symprec=1e-5,
+                                tolsym=None,nsym=1)
+
+    return ddb_sc
+
+def ddb_ucell_to_phonopy_supercell(unit_ddb=None,unit_ddb_filepath=None,nac=True) -> Phonopy:
+    """
+    Convert a DDB file or DDB instance of a unit cell on a q-mesh to the corresponding supercell
+    at q=Gamma.
+
+    Args:
+        ddb_unit_cell: an instance of DDB file.
+        unit_ddb_filepath : alternatively, a path to the input DDB.
+        supercell_ddb_path: DDB path of the output DDB on a supercell at Gamma
+        nac : Set the non-analytical correction
+
+    Returns:
+        a Phonopy instance.
+    """
+        
+    if unit_ddb_filepath is not None:
+        unit_ddb=DdbFile(unit_ddb_filepath)
+        # close 
+
+
+    ngqpt=unit_ddb.guessed_ngqpt
+    
+    # create a phonopy object from the ddb 
+    phonopy_ucell= unit_ddb.anaget_phonopy_ifc(ngqpt=ngqpt, asr=1, dipdip=0, chneut=1,
+                                          set_masses=True)
+    
+    # fc from (uc_size x sc_size) to (sc_size x sc_size)
+
+    full_fc = force_constants.compact_fc_to_full_fc(phonon=phonopy_ucell,
+                                                    compact_fc=phonopy_ucell.force_constants)
+
+    # create a phonopy object with supercell structure 
+    phonopy_supercell = Phonopy(unitcell=phonopy_ucell.supercell,# the new unit cell is the 'old' supercell
+                                supercell_matrix=[1, 1, 1],  # sup_size= unit_size, gamma only
+                                primitive_matrix=np.eye(3))
+    phonopy_supercell.force_constants=full_fc
+
+    if nac==True:
+        p2p=phonopy_ucell.primitive.p2p_map
+        s2p = phonopy_ucell.primitive.s2p_map
+        s2pp = [p2p[i] for i in s2p]
+
+        born_ucell = phonopy_ucell.nac_params["born"]
+        born = [born_ucell[i] for i in s2pp]
+
+        nac_params = { "born": np.array(born, dtype="double", order="C"),
+                       "factor": phonopy_ucell.nac_params["factor"],
+                       "dielectric": phonopy_ucell.nac_params["dielectric"].copy()}
+
+        phonopy_supercell.nac_params=nac_params
+        
+    return phonopy_supercell
+
+

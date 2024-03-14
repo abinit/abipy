@@ -1,8 +1,9 @@
 # coding: utf-8
 """Utilities for working with strings and text."""
+from __future__ import annotations
 
 
-def tonumber(s):
+def tonumber(s: str) -> float:
     """
     Convert string to number, raise ValueError if s cannot be converted.
     """
@@ -19,7 +20,7 @@ def tonumber(s):
         raise RuntimeError("Don't know how to handle type %s: %s" % (type(s), str(s)))
 
 
-def nums_and_text(line):
+def nums_and_text(line: str) -> tuple:
     """
     Split line into (numbers, text).
     """
@@ -51,3 +52,9 @@ def rreplace(s, old, new, occurrence):
     # https://stackoverflow.com/questions/2556108/rreplace-how-to-replace-the-last-occurrence-of-an-expression-in-a-string
     li = s.rsplit(old, occurrence)
     return new.join(li)
+
+
+def rm_multiple_spaces(string: str) -> str:
+    """remove multiple spaces in a string."""
+    import re
+    return re.sub(' +', ' ', string)

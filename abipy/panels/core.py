@@ -23,16 +23,16 @@ from abipy.core.structure import Structure
 from abipy.tools.plotting import push_to_chart_studio
 from abipy.tools.decorators import Appender
 
+from abipy.tools.plotting import mpl_to_ply
 
 _ABINIT_TEMPLATE_NAME = "FastList"
 
-
-def set_abinit_template(template_name):
+def set_abinit_template(template_name: str):
     global _ABINIT_TEMPLATE_NAME
     _ABINIT_TEMPLATE_NAME = template_name
 
 
-def get_abinit_template_cls_kwds():
+def get_abinit_template_cls_kwds() -> tuple:
     cls =  get_template_cls_from_name(_ABINIT_TEMPLATE_NAME)
     kwds = dict(header_background="#ff8c00", # Dark orange
                 favicon="/assets/img/abinit_favicon.ico",
@@ -45,7 +45,7 @@ def get_abinit_template_cls_kwds():
     return cls, kwds
 
 
-def open_html(html_string: str, browser: str = None):
+def open_html(html_string: str, browser: str = None) -> None:
     """
     Open a string with an HTML document in browser.
     """
@@ -89,7 +89,8 @@ def abipanel(panel_template: str = "FastList"):
     ]
 
     css_files = [
-        pn.io.resources.CSS_URLS['font-awesome'],
+        # FIXME
+        #pn.io.resources.CSS_URLS['font-awesome'],
     ]
 
     #pn.extension(loading_spinner='petal', loading_color='#00aa41')
@@ -247,7 +248,7 @@ def show_exception(func):
 
 class HTMLwithClipboardBtn(pn.pane.HTML):
     """
-    Receives an HTML string and returns an HTML pane with a button that allows the user
+    Receives an HTML string and returns an HTML pane with a button that allows users
     to copy the content to the system clipboard.
     Requires call to abipanel to load the JS extension.
     """
@@ -327,7 +328,6 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
 
     return col
 
-
 def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=False,
         with_divider=True, with_controls=False) -> pn.Column:
     """
@@ -337,13 +337,15 @@ def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=Fals
     col = pn.Column(sizing_mode=sizing_mode); ca = col.append
 
     config = dict(
-      responsive=True,
-      #showEditInChartStudio=True,
-      showLink=True,
-      plotlyServerURL="https://chart-studio.plotly.com",
-      )
-
-    plotly_pane = pn.pane.Plotly(fig, config=config)
+        responsive=True,
+        #showEditInChartStudio=True,
+        showLink=True,
+        plotlyServerURL="https://chart-studio.plotly.com",
+    )
+    
+    plotly_fig = mpl_to_ply(fig)
+    
+    plotly_pane = pn.pane.Plotly(plotly_fig, config=config)
     ca(plotly_pane)
 
     if with_chart_studio:
@@ -1032,7 +1034,7 @@ class PanelWithStructure(AbipyParameterized):
             #from awesome_panel_extesions.pane.widgets.ngl_viewer import NGLViewer
             #view = NGLViewer()
 
-            view.pdb_string = pdb_string
+            #view.pdb_string = pdb_string
             return view
 
             #js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
@@ -1618,11 +1620,11 @@ class PanelWithEbandsRobot(BaseRobotPanel):
         self.edos_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot", options=["gridplot", "combiplot"])
         self.edos_plotter_btn = pnw.Button(name="Plot", button_type='primary')
 
-    def get_ebands_plotter_widgets(self):
+    def get_ebands_plotter_widgets(self) -> pn.Column:
         return pn.Column(self.ebands_plotter_mode, self.ebands_df_checkbox, self.ebands_plotter_btn)
 
     @depends_on_btn_click("ebands_plotter_btn")
-    def on_ebands_plotter_btn(self):
+    def on_ebands_plotter_btn(self) -> pn.Row:
         """
         Plot the electronic density of states.
         """
@@ -1641,11 +1643,11 @@ class PanelWithEbandsRobot(BaseRobotPanel):
 
         return pn.Row(col, sizing_mode='scale_width')
 
-    def get_edos_plotter_widgets(self):
+    def get_edos_plotter_widgets(self) -> pn.Column:
         return pn.Column(self.edos_plotter_mode, self.edos_plotter_btn)
 
     @depends_on_btn_click("edos_plotter_btn")
-    def on_edos_plotter_btn(self):
+    def on_edos_plotter_btn(self) -> pn.Row:
         """
         Plot the electronic density of states.
         """

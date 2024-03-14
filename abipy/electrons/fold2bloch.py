@@ -1,19 +1,23 @@
 # coding: utf-8
 """Fold2Bloch netcdf file."""
+from __future__ import annotations
+
 import os
 import numpy as np
+import pymatgen.core.units as units
 
 from monty.string import marquee
 from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 from monty.termcolor import cprint
-import pymatgen.core.units as units
 from pymatgen.core.lattice import Lattice
+from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import KpointList, is_diagonal, find_points_along_path
 from abipy.core.globals import get_workdir
 from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt
-from abipy.electrons.ebands import ElectronsReader
+from abipy.tools.typing import Figure
+from abipy.electrons.ebands import ElectronBands, ElectronsReader
 from abipy.tools.numtools import gaussian
 
 
@@ -32,7 +36,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
     .. inheritance-diagram:: Fold2BlochNcfile
     """
     @classmethod
-    def from_wfkpath(cls, wfkpath, folds, workdir=None, manager=None, mpi_procs=1, verbose=0):
+    def from_wfkpath(cls, wfkpath, folds, workdir=None, manager=None, mpi_procs=1, verbose=0) -> Fold2BlochNcfile:
         """
         Run fold2bloch in workdir.
 
@@ -60,7 +64,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
         return cls(ncpath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = ElectronsReader(filepath)
 
@@ -86,10 +90,10 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         self.uf_kpoints = KpointList(self.pc_lattice.reciprocal_lattice, self.uf_kfrac_coords)
         self.uf_nkpt = len(self.uf_kpoints)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -118,33 +122,33 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         return "\n".join(lines)
 
     @property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object with folded band energies."""
         return self._ebands
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object defining the supercell."""
         return self.ebands.structure
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
     @lazy_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+    def params(self) -> dict:
+        """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
     @lazy_property
-    def uf_eigens(self):
+    def uf_eigens(self) -> np.ndarray:
         """[nsppol, nk_unfolded, nband] |numpy-array| with unfolded eigenvalues in eV."""
         # nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")
         return self.reader.read_value("unfolded_eigenvalues") * units.Ha_to_eV
 
     @lazy_property
-    def uf_weights(self):
+    def uf_weights(self) -> np.ndarray:
         """[nss, nk_unfolded, nband] array with spectral weights. nss = max(nspinor, nsppol)."""
         # nctkarr_t("spectral_weights", "dp", "max_number_of_states, nk_unfolded, nsppol_times_nspinor")
         return self.reader.read_value("spectral_weights")
@@ -179,7 +183,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     @add_fig_kwargs
     def plot_unfolded(self, kbounds, klabels, ylims=None, dist_tol=1e-12, verbose=0,
-                      colormap="afmhot", facecolor="black", ax=None, fontsize=12, **kwargs):
+                      colormap="afmhot", facecolor="black", ax=None, fontsize=8, **kwargs) -> Figure:
         r"""
         Plot unfolded band structure with spectral weights.
 
@@ -245,7 +249,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         print("TODO: Add call to plot_unfolded")
         yield self.ebands.plot(show=False)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to nbpath. If `nbpath` is None, a temporay file in the current
         working directory is created. Return path to the notebook.

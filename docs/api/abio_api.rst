@@ -37,6 +37,14 @@ abio Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`enums` Module
+-------------------
+
+.. automodule:: abipy.abio.enums
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`factories` Module
 -----------------------
 

@@ -1,7 +1,6 @@
 monty
 tabulate
-#apscheduler==2.1.0
-apscheduler
+apscheduler<=3.10.4
 pydispatcher>=2.0.5
 tqdm
 pyyaml>=3.11
@@ -11,11 +10,15 @@ numpy
 scipy
 sympy
 spglib
-pymatgen>=2022.0.14
+#pymatgen>=2023.3.23
+pymatgen==2023.7.17
 netCDF4
 matplotlib
 seaborn
 plotly
 ipython
 chart-studio
+click
+# TODO remove after https://github.com/materialsproject/emmet/issues/768 is fixed
+pydantic<2.0.0
 #python-daemon

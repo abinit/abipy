@@ -22,7 +22,7 @@ from .events import EventsParser, autodoc_event_handlers
 #from abipy.flowtk.works import *
 #from abipy.flowtk.gs_works import EosWork
 from .dfpt_works import ElasticWork, NscfDdksWork
-from .gw import ScreeningWork
+from .gw_works import ScreeningWork
 
 
 def flow_main(main):  # pragma: no cover

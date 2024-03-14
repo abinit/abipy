@@ -4,17 +4,19 @@ Script to analyze/compare results stored in multiple netcdf/output files.
 By default the script displays the results/plots in the shell.
 Use --ipython to start an ipython terminal or -nb to generate an ipython notebook.
 """
+from __future__ import annotations
 
 import sys
 import os
 import argparse
 import numpy as np
+import abipy.tools.cli_parsers as cli
 
 from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
-from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter
+from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter, FilesPlotter
 
 
 def remove_disordered(structures, paths):
@@ -227,7 +229,7 @@ def abicomp_xrd(options):
     Compare X-ray diffraction plots (requires FILES with structure).
     """
     if len(options.paths) < 2:
-        print("You need more than one structure to compare!")
+        print("You need more than one structures to compare!")
         return 1
 
     structures = [abilab.Structure.from_file(p) for p in options.paths]
@@ -252,6 +254,15 @@ def abicomp_data(options):
     plotter = GenericDataFilesPlotter.from_files(options.paths)
     print(plotter.to_string(verbose=options.verbose))
     plotter.plot(use_index=options.use_index)
+    return 0
+
+
+def abicomp_png(options):
+    """
+    Use matplotlib to plot multiple png files on a grid.
+    """
+    plotter = FilesPlotter(options.filepaths)
+    plotter.plot()
     return 0
 
 
@@ -582,7 +593,7 @@ def abicomp_abiwan(options):
 
 
 def abicomp_pseudos(options):
-    """"Compare multiple pseudos Print table to terminal."""
+    """"Compare multiple pseudos and print table to terminal."""
     # Make sure entries in index are unique.
     index = [os.path.basename(p) for p in options.paths]
     if len(index) != len(set(index)): index = [os.path.relpath(p) for p in options.paths]
@@ -590,6 +601,18 @@ def abicomp_pseudos(options):
     df = dataframe_from_pseudos(options.paths, index=index)
     abilab.print_dataframe(df, sortby="Z_val")
     return 0
+
+
+def abicomp_psps(options):
+    """"Compare multiple PSPS.nc files."""
+    return _invoke_robot(options)
+
+
+def abicomp_gwr(options):
+    """
+    Compare multiple GWR files.
+    """
+    return _invoke_robot(options)
 
 
 def _build_robot(options, trim_paths=True):
@@ -636,6 +659,9 @@ def _invoke_robot(options):
     """
     robot = _build_robot(options)
 
+    if options.expose_web:
+        options.expose = True
+
     if options.notebook:
         robot.make_and_open_notebook(foreground=options.foreground,
                                      classic_notebook=options.classic_notebook,
@@ -666,8 +692,7 @@ def _invoke_robot(options):
                 print(robot.to_string(verbose=options.verbose))
 
         else:
-            cprint("%s does not provide `get_dataframe` method. Using `to_string`" % (
-                    robot.__class__.__name__), "yellow")
+            cprint("%s does not provide `get_dataframe` method. Using `to_string`" % (robot.__class__.__name__), "yellow")
             print(robot.to_string(verbose=options.verbose))
 
         if not options.verbose:
@@ -685,7 +710,7 @@ def _invoke_robot(options):
             elif hasattr(robot, "expose"):
                 # matplotlib version.
                 robot.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                             verbose=options.verbose)
+                             verbose=options.verbose, use_web=options.expose_web)
     else:
         # Default behaviour: use ipython
         import IPython
@@ -859,6 +884,7 @@ Usage example:
   abicomp.py getattr energy *_GSR.nc              => Extract the `energy` attribute from a list of GSR files
                                                      and print results. Use `--list` to get list of possible names.
   abicomp.py pseudos PSEUDO_FILES                 => Compare pseudopotential files.
+  abicomp.py psps *_PSPS.nc                       => Compare multiple PSPS.nc files produced with prtpsp 1.
 
 ############
 # Text files
@@ -969,6 +995,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 
     # Parent parser for commands supporting expose
     expose_parser = argparse.ArgumentParser(add_help=False)
+
     expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
             help='Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.')
     expose_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
@@ -1037,6 +1064,9 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_data.add_argument("-i", "--use-index", default=False, action="store_true",
         help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
 
+    # Subparser for png command.
+    p_png = subparsers.add_parser('png', parents=[copts_parser], help=abicomp_png.__doc__)
+
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser, pandas_parser],
             help=abicomp_ebands.__doc__)
@@ -1095,6 +1125,9 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
                                    "Default: FastList"
                               )
     robot_parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
+    robot_parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
+                              help="Generate matplotlib plots in $BROWSER instead of X-server.\n" +
+                                   "WARNING: Not all the features are supported.")
 
     robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser, pandas_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
@@ -1113,9 +1146,11 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_v1qavg = subparsers.add_parser('v1qavg', parents=robot_parents, help=abicomp_v1qavg.__doc__)
     #p_wrmax = subparsers.add_parser('wrmax', parents=robot_parents, help=abicomp_wrmax.__doc__)
     p_abiwan = subparsers.add_parser('abiwan', parents=robot_parents, help=abicomp_abiwan.__doc__)
+    p_gwr = subparsers.add_parser('gwr', parents=robot_parents, help=abicomp_gwr.__doc__)
 
     # Subparser for pseudos command.
     p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)
+    p_pspsp = subparsers.add_parser('psps', parents=robot_parents, help=abicomp_psps.__doc__)
 
     # Subparser for time command.
     p_time = subparsers.add_parser('time', parents=[copts_parser, ipy_parser], help=abicomp_time.__doc__)
@@ -1183,13 +1218,7 @@ def main():
     if getattr(options, "plotly", None): options.expose = True
     if getattr(options, "classic_notebook", None): options.notebook = True
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    cli.set_loglevel(options.loglevel)
 
     if options.mpl_backend is not None:
         # Set matplotlib backend
@@ -1202,8 +1231,15 @@ def main():
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
-    if options.verbose > 2:
-        print(options)
+    ##############################################################################################
+    # Handle meta options i.e. options that set other options.
+    # OK, it's not very clean but I haven't find any parse API to express this kind of dependency.
+    ##############################################################################################
+    #if options.plotly: options.expose = True
+    #if options.expose_web: options.expose = True
+    #if options.classic_notebook: options.notebook = True
+
+    if options.verbose > 2: print(options)
 
     # Dispatch
     return globals()["abicomp_" + options.command](options)

@@ -205,16 +205,17 @@ xred_symbols
         self.assert_almost_equal(mgb2.lattice.angles, (90.0, 90.0, 120.00000000000001))
         self.assert_almost_equal(mgb2.lattice.volume * abu.Ang_Bohr ** 3, 196.07928976151663)
 
-        si = Structure.from_mpid("mp-149")
-        assert si.formula == "Si2"
-        with self.assertRaises(ValueError):
-            Structure.from_mpid("foobar")
+        if self.test_mprester():
+            si = Structure.from_mpid("mp-149")
+            assert si.formula == "Si2"
+            with self.assertRaises(ValueError):
+                Structure.from_mpid("foobar")
 
-        # Test abiget_spginfo
-        d = si.abiget_spginfo(tolsym=None, pre="abi_")
-        assert d["abi_spg_symbol"] == "Fd-3m"
-        assert d["abi_spg_number"] == 227
-        assert d["abi_bravais"] == "Bravais cF (face-center cubic)"
+            # Test abiget_spginfo
+            d = si.abiget_spginfo(tolsym=None, pre="abi_")
+            assert d["abi_spg_symbol"] == "Fd-3m"
+            assert d["abi_spg_number"] == 227
+            assert d["abi_bravais"] == "Bravais cF (face-center cubic)"
 
         llzo = Structure.from_file(abidata.cif_file("LLZO_oxi.cif"))
         assert llzo.is_ordered
@@ -386,21 +387,21 @@ xred_symbols
                                           max_supercell=mx_sc, scale_matrix=scale_matrix)
 
         max_displ = np.linalg.norm(displ, axis=1).max()
-        self.assertArrayAlmostEqual(fp_data.structure[0].coords,
+        self.assert_almost_equal(fp_data.structure[0].coords,
                                     structure[0].coords + 0.5*displ[0]/max_displ)
-        self.assertArrayAlmostEqual(fp_data.structure[8].coords,
+        self.assert_almost_equal(fp_data.structure[8].coords,
                                     structure[1].coords + 0.5*displ[1]/max_displ)
 
         displ2 = np.array([[1, 0, 0], [0, 1, 1]])
 
         f2p_data = structure.frozen_2phonon(qpoint, 0.05 * displ, 0.02*displ2, eta=0.5, frac_coords=False,
-                                           max_supercell=mx_sc, scale_matrix=scale_matrix)
+                                            max_supercell=mx_sc, scale_matrix=scale_matrix)
 
         d_tot = 0.05*displ+0.02*displ2
         max_displ = np.linalg.norm(d_tot, axis=1).max()
-        self.assertArrayAlmostEqual(f2p_data.structure[0].coords,
+        self.assert_almost_equal(f2p_data.structure[0].coords,
                                     structure[0].coords + 0.5*d_tot[0]/max_displ)
-        self.assertArrayAlmostEqual(f2p_data.structure[8].coords,
+        self.assert_almost_equal(f2p_data.structure[8].coords,
                                     structure[1].coords + 0.5*d_tot[1]/max_displ)
 
         #print("Structure = ", structure)

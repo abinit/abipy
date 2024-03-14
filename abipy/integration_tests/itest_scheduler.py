@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Integration tests for the scheduler."""
+from __future__ import annotations
 
 import abipy.data as abidata
 import abipy.abilab as abilab

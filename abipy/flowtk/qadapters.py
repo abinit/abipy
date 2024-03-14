@@ -25,8 +25,7 @@ from . import qutils as qu
 
 from collections import namedtuple
 from subprocess import Popen, PIPE
-from typing import Optional, List, Tuple, Any
-from pymatgen.util.io_utils import AtomicFile
+from typing import Optional, Any
 from monty.string import is_string, list_strings
 from monty.collections import AttrDict
 from monty.functools import lazy_property
@@ -34,6 +33,7 @@ from monty.inspect import all_subclasses
 from monty.io import FileLock
 from monty.json import MSONable
 from pymatgen.core.units import Memory
+from abipy.tools.iotools import AtomicFile
 from .utils import Condition
 from .launcher import ScriptEditor
 from .qjobs import QueueJob
@@ -85,8 +85,8 @@ class MpiRunner:
                       stdin: Optional[str] = None,
                       stdout: Optional[str] = None,
                       stderr: Optional[str] = None,
-                      exec_args: Optional[List[str]] = None
-                      ):
+                      exec_args: Optional[list[str]] = None
+                      ) -> str:
         """
         Build and return a string with the command required to launch `executable` with the qadapter `qad`.
 
@@ -215,7 +215,11 @@ class Hardware:
 
         # Convert memory to megabytes.
         m = str(kwargs.pop("mem_per_node"))
-        self.mem_per_node = int(Memory.from_string(m).to("Mb"))
+        # Support for old pymatgen API
+        try:
+            self.mem_per_node = int(Memory.from_string(m).to("Mb"))
+        except:
+            self.mem_per_node = int(Memory.from_str(m).to("Mb"))
 
         if self.mem_per_node <= 0 or self.sockets_per_node <= 0 or self.cores_per_socket <= 0:
             raise ValueError("invalid parameters: %s" % kwargs)
@@ -250,7 +254,7 @@ class Hardware:
         """True if omp_threads fit in a node."""
         return self.cores_per_node >= omp_threads
 
-    def divmod_node(self, mpi_procs: int, omp_threads: int) -> Tuple[int, int]:
+    def divmod_node(self, mpi_procs: int, omp_threads: int) -> tuple[int, int]:
         """Use divmod to compute (num_nodes, rest_cores)"""
         return divmod(mpi_procs * omp_threads, self.cores_per_node)
 
@@ -288,7 +292,7 @@ class _ExcludeNodesFile:
         with open(self.FILEPATH, "r") as fh:
             return json.load(fh).get(qname, [])
 
-    def add_nodes(self, qname, nodes):
+    def add_nodes(self, qname, nodes) -> None:
         nodes = (nodes,) if not isinstance(nodes, (tuple, list)) else nodes
         with FileLock(self.FILEPATH):
             with AtomicFile(self.FILEPATH, mode="w+") as fh:
@@ -304,7 +308,7 @@ class _ExcludeNodesFile:
 _EXCL_NODES_FILE = _ExcludeNodesFile()
 
 
-def show_qparams(qtype, stream=sys.stdout):
+def show_qparams(qtype: str, stream=sys.stdout):
     """Print to the given stream the template of the :class:`QueueAdapter` of type `qtype`."""
     for cls in all_subclasses(QueueAdapter):
         if cls.QTYPE == qtype: return stream.write(cls.QTEMPLATE)
@@ -312,7 +316,7 @@ def show_qparams(qtype, stream=sys.stdout):
     raise ValueError("Cannot find class associated to qtype %s" % qtype)
 
 
-def all_qtypes():
+def all_qtypes() -> list:
     """Return sorted list with all qtypes supported."""
     return sorted([cls.QTYPE for cls in all_subclasses(QueueAdapter)])
 
@@ -381,7 +385,7 @@ class QueueAdapter(MSONable, metaclass=abc.ABCMeta):
     MaxNumLaunchesError = MaxNumLaunchesError
 
     @classmethod
-    def all_qtypes(cls) -> List[str]:
+    def all_qtypes(cls) -> list[str]:
         """Return sorted list with all qtypes supported."""
         return sorted([subcls.QTYPE for subcls in all_subclasses(cls)])
 
@@ -539,7 +543,9 @@ limits:
                 'queue': {'qtype': self.QTYPE,
                           'qname': self._qname,
                           'qnodes': self.qnodes,
-                          'qparams': self._qparams},
+                          'qparams': self._qparams,
+                          'mail_type': self.mail_type,
+                          'mail_user': self.mail_user},
                 'limits': {'timelimit_hard': self._timelimit_hard,
                            'timelimit': self._timelimit,
                            'min_cores': self.min_cores,
@@ -689,6 +695,9 @@ limits:
 
         self.set_qname(d.pop("qname", ""))
         self.qnodes = d.pop("qnodes", "standard")
+        self.mail_type = d.pop("mail_type", "")
+        self.mail_user = d.pop("mail_user", "")
+
         if self.qnodes not in ["standard", "shared", "exclusive"]:
             raise ValueError("Nodes must be either in standard, shared or exclusive mode "
                              "while qnodes parameter was {}".format(self.qnodes))
@@ -710,9 +719,9 @@ limits:
         return self._qparams
 
     @lazy_property
-    def supported_qparams(self):
+    def supported_qparams(self) -> list:
         """
-        Dictionary with the supported parameters that can be passed to the
+        List with the supported parameters that can be passed to the
         queue manager (obtained by parsing QTEMPLATE).
         """
         import re
@@ -765,8 +774,8 @@ limits:
         """Deep copy of the object."""
         return copy.deepcopy(self)
 
-    def record_launch(self, queue_id): # retcode):
-        """Save submission"""
+    def record_launch(self, queue_id) -> None:
+        """Save submission, return number of launches"""
         self.launches.append(
             AttrDict(queue_id=queue_id, mpi_procs=self.mpi_procs, omp_threads=self.omp_threads,
                      mem_per_proc=self.mem_per_proc, timelimit=self.timelimit))
@@ -890,7 +899,7 @@ limits:
         self._master_mem_overhead = int(mem_mb)
 
     @property
-    def total_mem(self):
+    def total_mem(self) -> Memory:
         """Total memory required by the job in megabytes."""
         return Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "Mb")
 
@@ -905,7 +914,7 @@ limits:
         Returns: Exit status.
         """
 
-    def can_run_pconf(self, pconf):
+    def can_run_pconf(self, pconf) -> bool:
         """True if the qadapter in principle is able to run the :class:`ParalConf` pconf"""
         if not self.hint_cores >= pconf.num_cores >= self.min_cores: return False
         if not self.hw.can_use_omp_threads(self.omp_threads): return False
@@ -915,7 +924,7 @@ limits:
 
         return self.condition(pconf)
 
-    def distribute(self, mpi_procs, omp_threads, mem_per_proc):
+    def distribute(self, mpi_procs, omp_threads, mem_per_proc) -> tuple[int, int]:
         """
         Returns (num_nodes, mpi_per_node)
 
@@ -980,7 +989,7 @@ limits:
             raise self.Error("Cannot distribute mpi_procs %d, omp_threads %d, mem_per_proc %s" %
                             (mpi_procs, omp_threads, mem_per_proc))
 
-    def optimize_params(self, qnodes=None):
+    def optimize_params(self, qnodes=None) -> dict:
         """
         This method is called in get_subs_dict. Return a dict with parameters to be added to qparams
         Subclasses may provide a specialized version.
@@ -988,7 +997,7 @@ limits:
         #logger.debug("optimize_params of baseclass --> no optimization available!!!")
         return {}
 
-    def get_subs_dict(self, qnodes=None):
+    def get_subs_dict(self, qnodes=None) -> dict:
         """
         Return substitution dict for replacements into the template
         Subclasses may want to customize this method.
@@ -1001,7 +1010,7 @@ limits:
         #print("subs_dict:", subs_dict)
         return subs_dict
 
-    def _make_qheader(self, job_name, qout_path, qerr_path):
+    def _make_qheader(self, job_name, qout_path, qerr_path) -> str:
         """Return a string with the options that are passed to the resource manager."""
         # get substitution dict for replacements into the template
         subs_dict = self.get_subs_dict()
@@ -1099,7 +1108,7 @@ limits:
 
         return qheader + se.get_script_str() + "\n"
 
-    def submit_to_queue(self, script_file: str):
+    def submit_to_queue(self, script_file: str) -> QueueJob:
         """
         Public API: wraps the concrete implementation _submit_to_queue
 
@@ -1139,7 +1148,7 @@ limits:
             queue_id, process
         """
 
-    def get_njobs_in_queue(self, username=None):
+    def get_njobs_in_queue(self, username=None) -> int:
         """
         returns the number of jobs in the queue, probably using subprocess or shutil to
         call a command like 'qstat'. returns None when the number of jobs cannot be determined.
@@ -1256,7 +1265,7 @@ class ShellAdapter(QueueAdapter):
 $${qverbatim}
 """
 
-    def cancel(self, job_id: int):
+    def cancel(self, job_id: int) -> int:
         return os.system("kill -9 %d" % job_id)
 
     def _submit_to_queue(self, script_file: str) -> SubmitResults:
@@ -1334,7 +1343,7 @@ $${qverbatim}
     def cancel(self, job_id: int) -> int:
         return os.system("scancel %d" % job_id)
 
-    def optimize_params(self, qnodes=None):
+    def optimize_params(self, qnodes=None) -> dict:
         params = {}
         if self.allocation == "nodes":
             # run on the smallest number of nodes compatible with the configuration
