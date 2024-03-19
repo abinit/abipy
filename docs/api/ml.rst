@@ -22,7 +22,7 @@ ml Package
 :mod:`aseml` Package
 --------------------
 
-.. automodule:: abipy.mk.aseml
+.. automodule:: abipy.ml.aseml
    :members:
    :undoc-members:
    :show-inheritance:
