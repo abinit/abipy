@@ -147,8 +147,9 @@ def add_nn_name_opt(f):
     """Add CLI options to select the NN potential."""
     f = click.option("--nn-name", "-nn", default=DEFAULT_NN, show_default=True,
                      help=f"ML potential to be used. Supported values are: {aseml.CalcBuilder.ALL_NN_TYPES}")(f)
-    #f = click.option("--dftd3", , default="no", show_default=True,
-    #                 help=f"Activate DFD3.")(f)
+    #f = click.option("--nn-name", "-nn", default=DEFAULT_NN, show_default=True,
+    #                 help=f"ML potential to be used.\n{aseml.CalcBuilder.DOC_NAME}")(f)
+    #f = click.option("--dftd3", , default="no", show_default=True, help=f"Activate DFD3.")(f)
     return f
 
 
@@ -618,18 +619,19 @@ def validate(ctx, filepaths,
     print(ml_comp)
     c = ml_comp.run(nprocs=nprocs)
 
+    show = True
     if exposer != "None":
         from abipy.tools.plotting import Exposer
         with_stress = True
         with Exposer.as_exposer(exposer, title=" ".join(os.path.basename(p) for p in filepaths)) as e:
-            e(c.plot_energies(show=False))
-            e(c.plot_forces(delta_mode=True, show=False))
-            e(c.plot_energies_traj(delta_mode=True, show=False))
-            e(c.plot_energies_traj(delta_mode=False, show=False))
+            e(c.plot_energies(show=show, savefig="energies.png"))
+            e(c.plot_forces(delta_mode=True, show=show, savefig="forces.png"))
+            e(c.plot_energies_traj(delta_mode=True, show=show, savefig="energies_traj.png"))
+            e(c.plot_energies_traj(delta_mode=False, show=show, savefig="energies_traj_with_delta.png"))
             if with_stress:
-                e(c.plot_stresses(delta_mode=True, show=False))
-            e(c.plot_forces_traj(delta_mode=True, show=False))
-            e(c.plot_stress_traj(delta_mode=True, show=False))
+                e(c.plot_stresses(delta_mode=True, show=show, savefig="stresses.png"))
+            e(c.plot_forces_traj(delta_mode=True, show=show, savefig="forces_traj.png"))
+            e(c.plot_stress_traj(delta_mode=True, show=show, savefig="stress_traj.png"))
 
     return 0
 

@@ -372,10 +372,13 @@ class AseResults(HasPickleIO):
             atoms.calc = calc
 
         from ase.stress import voigt_6_to_full_3x3_strain
-        stress_voigt = atoms.get_stress()
-        stress = voigt_6_to_full_3x3_strain(stress_voigt)
-
         from ase.calculators.calculator import PropertyNotImplementedError
+        try:
+            stress_voigt = atoms.get_stress()
+            stress = voigt_6_to_full_3x3_strain(stress_voigt)
+        except PropertyNotImplementedError:
+            stress = -np.eye(3)
+
         try:
             magmoms = atoms.get_magnetic_moments()
         except PropertyNotImplementedError:
@@ -1414,8 +1417,7 @@ class CalcBuilder:
             self.nn_type, self.model_name = name.split(":")
         elif "@" in name:
             self.nn_type, self.model_path = name.split("@")
-            self.model_path = os.path.expandpath(self.model_path)
-            #self.model_path = os.path.expandvars(self.model_path)
+            self.model_path = os.path.expandvars(os.path.expanduser(self.model_path))
 
         if self.nn_type not in self.ALL_NN_TYPES:
             raise ValueError(f"Invalid {name=}, it should be in {self.ALL_NN_TYPES=}")
@@ -1605,7 +1607,7 @@ class CalcBuilder:
                 raise RuntimeError("NequIPCalculator requires model_path e.g. nn_name='nequip:FILEPATH'")
 
             cls = MyNequIPCalculator if with_delta else NequIPCalculator
-            calc = cls.from_deployed_model(modle_path=self.model_path, species_to_type_name=None)
+            calc = cls.from_deployed_model(modele_path=self.model_path, species_to_type_name=None)
 
         elif self.nn_type == "metatensor":
             try:
