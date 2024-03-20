@@ -1607,7 +1607,7 @@ class CalcBuilder:
                 raise RuntimeError("NequIPCalculator requires model_path e.g. nn_name='nequip:FILEPATH'")
 
             cls = MyNequIPCalculator if with_delta else NequIPCalculator
-            calc = cls.from_deployed_model(modele_path=self.model_path, species_to_type_name=None)
+            calc = cls.from_deployed_model(model_path=self.model_path, species_to_type_name=None)
 
         elif self.nn_type == "metatensor":
             try:
