@@ -619,19 +619,26 @@ def validate(ctx, filepaths,
     print(ml_comp)
     c = ml_comp.run(nprocs=nprocs)
 
-    show = True
     if exposer != "None":
-        from abipy.tools.plotting import Exposer
+        show = True
+        show = False
         with_stress = True
+        with_stress = False
+        on_traj = True
+        from abipy.tools.plotting import Exposer
         with Exposer.as_exposer(exposer, title=" ".join(os.path.basename(p) for p in filepaths)) as e:
             e(c.plot_energies(show=show, savefig="energies.png"))
-            e(c.plot_forces(delta_mode=True, show=show, savefig="forces.png"))
-            e(c.plot_energies_traj(delta_mode=True, show=show, savefig="energies_traj.png"))
-            e(c.plot_energies_traj(delta_mode=False, show=show, savefig="energies_traj_with_delta.png"))
+            if on_traj:
+                e(c.plot_energies_traj(delta_mode=True, show=show, savefig="energies_traj.png"))
+                e(c.plot_energies_traj(delta_mode=False, show=show, savefig="energies_traj_delta_mode.png"))
+            e(c.plot_forces(delta_mode=False, show=show, savefig="forces.png"))
+            e(c.plot_forces(delta_mode=True, show=show, savefig="forces_delta.png"))
+            if on_traj:
+                e(c.plot_forces_traj(delta_mode=True, show=show, savefig="forces_traj_delta_mode.png"))
             if with_stress:
-                e(c.plot_stresses(delta_mode=True, show=show, savefig="stresses.png"))
-            e(c.plot_forces_traj(delta_mode=True, show=show, savefig="forces_traj.png"))
-            e(c.plot_stress_traj(delta_mode=True, show=show, savefig="stress_traj.png"))
+                e(c.plot_stresses(delta_mode=True, show=show, savefig="stresses_delta_mode.png"))
+                if on_traj:
+                    e(c.plot_stress_traj(delta_mode=True, show=show, savefig="stress_traj_delta_mode.png"))
 
     return 0
 
