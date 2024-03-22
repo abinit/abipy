@@ -43,6 +43,8 @@ from ase.neb import NEB
 from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from ase.md.velocitydistribution import (MaxwellBoltzmannDistribution, Stationary, ZeroRotation)
+from ase.stress import voigt_6_to_full_3x3_strain
+from ase.calculators.calculator import PropertyNotImplementedError
 from abipy.core import Structure
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
 from abipy.tools.typing import Figure, PathLike
@@ -366,23 +368,25 @@ class AseResults(HasPickleIO):
         return [cls.from_atoms(trajectory[i]) for i in inds]
 
     @classmethod
-    def from_atoms(cls, atoms: Atoms, calc=None) -> AseResults:
+    def from_atoms(cls, atoms: Atoms, calc=None, with_stress=True, with_magmoms=True) -> AseResults:
         """Build the object from an atoms instance with a calculator."""
         if calc is not None:
             atoms.calc = calc
 
-        from ase.stress import voigt_6_to_full_3x3_strain
-        from ase.calculators.calculator import PropertyNotImplementedError
-        try:
-            stress_voigt = atoms.get_stress()
-            stress = voigt_6_to_full_3x3_strain(stress_voigt)
-        except PropertyNotImplementedError:
-            stress = -np.eye(3)
+        stress = -np.eye(3)
+        if with_stress:
+            try:
+                stress_voigt = atoms.get_stress()
+                stress = voigt_6_to_full_3x3_strain(stress_voigt)
+            except PropertyNotImplementedError:
+                stress = -np.eye(3)
 
-        try:
-            magmoms = atoms.get_magnetic_moments()
-        except PropertyNotImplementedError:
-            magmoms = None
+        magmoms = None
+        if with_magmoms:
+            try:
+                magmoms = atoms.get_magnetic_moments()
+            except PropertyNotImplementedError:
+                pass
 
         results = cls(atoms=atoms.copy(),
                       ene=float(atoms.get_potential_energy()),
@@ -574,9 +578,11 @@ def main():
     with_stress = True
     from abipy.tools.plotting import Exposer
     exposer = "mpl" # or "panel"
+    symbol = None
     with Exposer.as_exposer(exposer) as e:
         e(c.plot_energies(show=False))
-        e(c.plot_forces(delta_mode=True, show=False))
+        e(c.plot_forces(delta_mode=False, symbol=symbol, show=False))
+        #e(c.plot_forces(delta_mode=True, symbol=symbol, show=False))
         e(c.plot_energies_traj(delta_mode=True, show=False))
         e(c.plot_energies_traj(delta_mode=False, show=False))
         if with_stress:
@@ -630,14 +636,26 @@ def main():
 
         return zip_sort(xs, ys) if sort else (xs, ys)
 
-    def xy_forces_for_keys(self, key1, key2, direction) -> tuple:
+    def xy_forces_for_keys(self, key1, key2, direction, symbol=None) -> tuple:
         """
         Return (xs, ys), sorted arrays with forces along the cart direction for (key1, key2).
+
+        Args:
+            symbol: If not None, select only forces for this atomic species:
         """
         idir = self.idir_from_direction(direction)
         ik1, ik2 = self.inds_of_keys(key1, key2)
-        xs = self.forces_list[ik1,:,:,idir].flatten()
-        ys = self.forces_list[ik2,:,:,idir].flatten()
+
+        if symbol is None:
+            xs = self.forces_list[ik1,:,:,idir].flatten()
+            ys = self.forces_list[ik2,:,:,idir].flatten()
+        else:
+            inds = np.array(self.structure.indices_from_symbol(symbol))
+            if len(inds) == 0:
+                raise ValueError(f"Cannot find chemical symbol {symbol} in structure!")
+            #print("selecting symbol", symbol, "with inds:", inds)
+            xs = self.forces_list[ik1,:,inds,idir].flatten()
+            ys = self.forces_list[ik2,:,inds,idir].flatten()
 
         return zip_sort(xs, ys)
 
@@ -741,9 +759,12 @@ def main():
         return fig
 
     @add_fig_kwargs
-    def plot_forces(self, fontsize=8, **kwargs):
+    def plot_forces(self, symbol=None, fontsize=8, **kwargs):
         """
-        Compare forces.
+        Parity plot for forces.
+
+        Args:
+            symbol: If not None, select only forces for this atomic species
         """
         key_pairs = self.get_key_pairs()
         nrows, ncols = 3, len(key_pairs)
@@ -755,7 +776,7 @@ def main():
 
         for icol, (key1, key2) in enumerate(key_pairs):
             for irow, direction in enumerate(("x", "y", "z")):
-                xs, ys = self.xy_forces_for_keys(key1, key2, direction)
+                xs, ys = self.xy_forces_for_keys(key1, key2, direction, symbol=symbol)
                 stats = diff_stats(xs, ys)
                 ax = ax_mat[irow, icol]
                 ax.scatter(xs, ys, marker="o")
@@ -767,9 +788,10 @@ def main():
                     ax.set_ylabel(f"{key2} {f_tex}", fontsize=fontsize)
                 if irow == 2:
                     ax.set_xlabel(f"{key1} {f_tex}", fontsize=fontsize)
-                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
+                symb = "" if symbol is None else f"{symbol=}"
+                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f} {symb}", fontsize=fontsize)
 
-        if "title" not in kwargs: fig.suptitle(f"Cartesian forces in ev/Ang for {self.structure.latex_formula}")
+        if "title" not in kwargs: fig.suptitle(f"Cartesian forces in eV/Ang for {self.structure.latex_formula}")
         return fig
 
     @add_fig_kwargs
@@ -2876,10 +2898,6 @@ class MlValidateWithAbinitio(_MlNebBase):
                 func = _GetAseResults(nn_name)
                 with Pool(processes=nprocs) as pool:
                     items = pool.map(func, abi_results)
-                #p = pool_nprocs_pmode(len(directories), pmode=pmode)
-                #using_msg = f"Reading {len(directories)} abiml directories {p.using_msg}"
-                #with p.pool_cls(p.nprocs) as pool, Timer(header=using_msg, footer="") as timer:
-                #    return cls(pool.starmap(MdAnalyzer.from_abiml_dir, args))
 
             results_list.append(items)
 

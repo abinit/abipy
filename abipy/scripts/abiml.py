@@ -631,8 +631,10 @@ def validate(ctx, filepaths,
             if on_traj:
                 e(c.plot_energies_traj(delta_mode=True, show=show, savefig="energies_traj.png"))
                 e(c.plot_energies_traj(delta_mode=False, show=show, savefig="energies_traj_delta_mode.png"))
-            e(c.plot_forces(delta_mode=False, show=show, savefig="forces.png"))
-            e(c.plot_forces(delta_mode=True, show=show, savefig="forces_delta.png"))
+            symbol = None
+            #symbol = "Li"
+            e(c.plot_forces(delta_mode=False, symbol=symbol, show=show, savefig="forces.png"))
+            e(c.plot_forces(delta_mode=True, symbol=symbol, show=show, savefig="forces_delta.png"))
             if on_traj:
                 e(c.plot_forces_traj(delta_mode=True, show=show, savefig="forces_traj_delta_mode.png"))
             if with_stress:
