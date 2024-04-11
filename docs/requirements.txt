@@ -12,7 +12,7 @@ jupyter-sphinx
 graphviz
 
 # For the time being:
-solved the issue by matching jinja2 version and nb convert as follows
+# solved the issue by matching jinja2 version and nb convert as follows
 #jinja2==3.0.3
 #nbconvert==6.4.4
 
