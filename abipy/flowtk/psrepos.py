@@ -53,7 +53,7 @@ def get_oncvpsp_pseudos(xc_name: str, version: str, relativity_type: str = "SR",
         relativity_type: SR for scalar-relativistic, FR for fully-relativistic with SOC.
         accuracy: "standard" or "stringent".
     """
-    ps_generator, project_name = OncvpspRepo.ps_generator, OncvpspRepo.project_name 
+    ps_generator, project_name = OncvpspRepo.ps_generator, OncvpspRepo.project_name
     repo_name = f"{ps_generator}-{xc_name}-{relativity_type}-{project_name}v{version}"
 
     return get_repo_from_name(repo_name).get_pseudos(accuracy)
@@ -556,6 +556,7 @@ _ONCVPSP_REPOS = [
     _mk_onc(xc_name="PBEsol", relativity_type="FR", version="0.4"),
     _mk_onc(xc_name="PBE", relativity_type="SR", version="0.4"),
     #_mk_onc(xc_name="PBE", relativity_type="FR", version="0.4"),  FIXME: checksum fails
+    #_mk_onc(xc_name="LDA", relativity_type="SR", version="0.3"),  FIXME: djrepo is not easy to regenerate
     _mk_onc(xc_name="LDA", relativity_type="SR", version="0.4"),
     #_mk_onc(xc_name="LDA", relativity_type="FR", version="0.4"),
 ]
