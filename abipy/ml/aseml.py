@@ -835,7 +835,7 @@ def main():
                     ax.set_xlabel(f"{key1} {s_tex}", fontsize=fontsize)
                 ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
-        if "title" not in kwargs: fig.suptitle(f"Stresses in (eV/Ang^2) for {self.structure.latex_formula}")
+        if "title" not in kwargs: fig.suptitle(f"Stresses in (eV/Ang$^3$) for {self.structure.latex_formula}")
         return fig
 
     @add_fig_kwargs
@@ -991,7 +991,7 @@ def main():
                                 grid=True, legend=not delta_mode, legend_loc="upper left",
                                 ylabel=f"$|\Delta \sigma_{voigt_comp_tex}|$ " if delta_mode else "$\sigma$ ")
 
-        head = r"$\Delta \sigma$ (eV/Ang$^2$)" if delta_mode else "Stress tensor (eV/Ang$^2$)"
+        head = r"$\Delta \sigma$ (eV/Ang$^3$)" if delta_mode else "Stress tensor (eV/Ang$^3$)"
         if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
 
         return fig
@@ -1535,14 +1535,16 @@ class CalcBuilder:
                 if self.model_path is not None:
                     self._model = matgl.load_model(self.model_path)
                 else:
-                    model_name = "M3GNet-MP-2021.2.8-PES" if self.model_name is None else self.model_name
+                    #model_name = "M3GNet-MP-2021.2.8-PES" if self.model_name is None else self.model_name
+                    model_name = "M3GNet-MP-2021.2.8-DIRECT-PES" if self.model_name is None else self.model_name
                     self._model = matgl.load_model(model_name)
 
             class MyM3GNetCalculator(_MyCalculator, M3GNetCalculator):
                 """Add abi_forces and abi_stress"""
 
             cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
-            calc = cls(potential=self._model)
+            # stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
+            calc = cls(potential=self._model, stress_weight= 1/abu.eVA3_GPa)
 
         elif self.nn_type == "chgnet":
             try:
