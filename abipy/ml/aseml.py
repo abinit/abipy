@@ -1520,8 +1520,10 @@ class CalcBuilder:
             class MyM3GNetCalculator(_MyCalculator, M3GNetCalculator):
                 """Add abi_forces and abi_stress"""
 
+            # Use same value of stress_weight as in Relaxer at:
+            # https://github.com/materialsvirtuallab/m3gnet/blob/main/m3gnet/models/_dynamics.py
             cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
-            calc = cls(potential=self._model)
+            calc = cls(potential=self._model, stress_weight=0.01)
 
         elif self.nn_type == "matgl":
             # See https://github.com/materialsvirtuallab/matgl
@@ -1544,6 +1546,8 @@ class CalcBuilder:
 
             cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
             # stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
+            # here we use  1 / 160.21766208 as in
+            # https://github.com/materialsvirtuallab/matgl/blob/main/src/matgl/ext/ase.py
             calc = cls(potential=self._model, stress_weight= 1/abu.eVA3_GPa)
 
         elif self.nn_type == "chgnet":
@@ -1566,6 +1570,8 @@ class CalcBuilder:
             class MyCHGNetCalculator(_MyCalculator, CHGNetCalculator):
                 """Add abi_forces and abi_stress"""
 
+            # This calculator by default returns stress in eV/Ang^3 as expected by ASE
+            # https://github.com/CederGroupHub/chgnet/blob/main/chgnet/model/dynamics.py
             cls = MyCHGNetCalculator if with_delta else CHGNetCalculator
             calc = cls(model=self._model)
 
@@ -1587,6 +1593,12 @@ class CalcBuilder:
 
             #if self.model_path is not None:
             #    get_figshare_model_ff(model_name=self.model_path)
+
+            # This calculator by default uses
+            #   stress_wt=1.0,
+            #   force_multiplier=1.0,
+            # and it's therefore compatible with ASE. See ForceField
+            # https://github.com/usnistgov/alignn/blob/main/alignn/ff/ff.py
 
             model_name = default_path() if self.model_name is None else self.model_name
             cls = MyAlignnCalculator if with_delta else AlignnAtomwiseCalculator
