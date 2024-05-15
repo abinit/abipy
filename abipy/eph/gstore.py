@@ -130,6 +130,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
         app(f"gstore_cplex: {self.r.cplex}")
         app(f"gstore_kzone: {self.r.kzone}")
         app(f"gstore_kfilter: {self.r.kfilter}")
+        app(f"gstore_gmode: {self.r.gmode}")
         app(f"gstore_qzone: {self.r.qzone}")
         app(f"gstore_with_vk: {self.r.with_vk}")
         app(f"gstore_kptopt: {self.r.kptopt}")
@@ -169,6 +170,7 @@ class GstoreReader(BaseEphReader):
         self.kzone = self.read_string("gstore_kzone")
         self.qzone = self.read_string("gstore_qzone")
         self.kfilter = self.read_string("gstore_kfilter")
+        self.gmode = self.read_string("gstore_gmode")
 
         self.brange_spin = self.read_value("gstore_brange_spin")
         self.erange_spin = self.read_value("gstore_erange_spin")
@@ -199,10 +201,7 @@ class GstoreReader(BaseEphReader):
         #self.max_bstart = self.bstart_sk.max()
         #self.min_bstop = self.bstop_sk.min()
 
-        ## Number of frequency points in Eliashberg functions
-        ## This quantity is optional, 0 means *not available*
-        #self.gfw_nomega = self.read_dimvalue("gfw_nomega", default=0)
-
+    # TODO: This fix to read groups should be imported in pymatgen.
     @lazy_property
     def path2group(self) -> dict:
         return self.rootgrp.groups
@@ -240,7 +239,7 @@ def compare_two_gstores(path1: str, path2: str):
                 raise AssertionError(f"Different values of {aname=}, {val1=}, {val2=}")
 
         for aname in ["structure", "nsppol", "cplex", "nkbz", "nkibz",
-                      "nqbz", "nqibz", "completed", "kzone", "qzone", "kfilter",
+                      "nqbz", "nqibz", "completed", "kzone", "qzone", "kfilter", "gmode",
                       "brange_spin", "erange_spin", "glob_spin_nq", "glob_nk_spin",
                      ]:
             check_eq(aname)

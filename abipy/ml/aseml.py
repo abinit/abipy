@@ -1432,8 +1432,9 @@ class CalcBuilder:
     Possible formats are:
 
         1) nn_type e.g. m3gnet. See ALL_NN_TYPES for available keys.
-        2) nn_type@model_path e.g.: mace:FILEPATH
-        3) nn_type:model_name
+        2) nn_type:model_name
+        3) nn_type@model_path e.g.: mace:FILEPATH
+        4) nn_type@calc_kwargs.yaml e.g.: mace:calc_kwargs.yaml.
     """
 
     ALL_NN_TYPES = [
@@ -1455,9 +1456,15 @@ class CalcBuilder:
 
         # Extract nn_type and model_name from name
         self.nn_type, self.model_name, self.model_path = name, None, None
+        self.calc_kwargs = {}
 
         if ":" in name:
-            self.nn_type, self.model_name = name.split(":")
+            self.nn_type, last = name.split(":")
+            if last.endswith(".yaml") or last.endswith(".yml"):
+                self.calc_kwargs = yaml_safe_load_path(last)
+            else:
+                self.model_name = last
+
         elif "@" in name:
             self.nn_type, self.model_path = name.split("@")
             self.model_path = os.path.expandvars(os.path.expanduser(self.model_path))
@@ -1523,7 +1530,7 @@ class CalcBuilder:
             # Use same value of stress_weight as in Relaxer at:
             # https://github.com/materialsvirtuallab/m3gnet/blob/main/m3gnet/models/_dynamics.py
             cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
-            calc = cls(potential=self._model, stress_weight=0.01)
+            calc = cls(potential=self._model, stress_weight=0.01, **self.calc_kwargs)
 
         elif self.nn_type == "matgl":
             # See https://github.com/materialsvirtuallab/matgl
@@ -1548,7 +1555,7 @@ class CalcBuilder:
             # stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
             # here we use  1 / 160.21766208 as in
             # https://github.com/materialsvirtuallab/matgl/blob/main/src/matgl/ext/ase.py
-            calc = cls(potential=self._model, stress_weight= 1/abu.eVA3_GPa)
+            calc = cls(potential=self._model, stress_weight= 1/abu.eVA3_GPa, **self.calc_kwargs)
 
         elif self.nn_type == "chgnet":
             try:
@@ -1573,7 +1580,7 @@ class CalcBuilder:
             # This calculator by default returns stress in eV/Ang^3 as expected by ASE
             # https://github.com/CederGroupHub/chgnet/blob/main/chgnet/model/dynamics.py
             cls = MyCHGNetCalculator if with_delta else CHGNetCalculator
-            calc = cls(model=self._model)
+            calc = cls(model=self._model, **self.calc_kwargs)
 
         elif self.nn_type == "alignn":
             try:
@@ -1602,7 +1609,7 @@ class CalcBuilder:
 
             model_name = default_path() if self.model_name is None else self.model_name
             cls = MyAlignnCalculator if with_delta else AlignnAtomwiseCalculator
-            calc = cls(path=model_name)
+            calc = cls(path=model_name, **self.calc_kwargs)
 
         elif self.nn_type == "pyace":
             try:
@@ -1617,7 +1624,7 @@ class CalcBuilder:
                 raise RuntimeError("PyACECalculator requires model_path e.g. nn_name='pyace@FILEPATH'")
 
             cls = MyPyACECalculator if with_delta else PyACECalculator
-            calc = cls(basis_set=self.model_path)
+            calc = cls(basis_set=self.model_path, **self.calc_kwargs)
 
         elif self.nn_type == "mace":
             try:
@@ -1633,7 +1640,7 @@ class CalcBuilder:
                 raise RuntimeError("MACECalculator requires model_path e.g. nn_name='mace@FILEPATH'")
 
             cls = MyMACECalculator if with_delta else MACECalculator
-            calc = cls(model_paths=self.model_path, device="cpu") #, default_dtype='float32')
+            calc = cls(model_paths=self.model_path, device="cpu", **self.calc_kwargs) #, default_dtype='float32')
 
         elif self.nn_type == "mace_mp":
             try:
@@ -1645,9 +1652,12 @@ class CalcBuilder:
             #class MyMACECalculator(_MyCalculator, MACECalculator):
             #     """Add abi_forces and abi_stress"""
 
-            calc = mace_mp(model="medium",
+            model = self.calc_kwargs.pop("model", "medium")
+
+            calc = mace_mp(model=model,
                            #cls=MyMACECalculator,
                            #dispersion=False, default_dtype="float32", device='cuda'
+                           **self.calc_kwargs
                            )
             #calc.__class__ = MyMACECalculator
 
@@ -1664,7 +1674,7 @@ class CalcBuilder:
                 raise RuntimeError("NequIPCalculator requires model_path e.g. nn_name='nequip:FILEPATH'")
 
             cls = MyNequIPCalculator if with_delta else NequIPCalculator
-            calc = cls.from_deployed_model(model_path=self.model_path, species_to_type_name=None)
+            calc = cls.from_deployed_model(model_path=self.model_path, species_to_type_name=None, **self.calc_kwargs)
 
         elif self.nn_type == "metatensor":
             try:
@@ -1679,7 +1689,7 @@ class CalcBuilder:
                 raise RuntimeError("MetaTensorCalculator requires model_path e.g. nn_name='metatensor:FILEPATH'")
 
             cls = MyMetaTensorCalculator if with_delta else MetatensorCalculator
-            calc = cls(self.model_path)
+            calc = cls(self.model_path, **self.calc_kwargs)
 
         elif self.nn_type == "deepmd":
             try:
@@ -1694,7 +1704,7 @@ class CalcBuilder:
                 raise RuntimeError("DeepMD calculator requires model_path e.g. nn_name='deepmd:FILEPATH'")
 
             cls = MyDp if with_delta else Dp
-            calc = cls(self.model_path)
+            calc = cls(self.model_path, **self.calc_kwargs)
 
         else:
             raise ValueError(f"Invalid {self.nn_type=}")
