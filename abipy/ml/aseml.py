@@ -43,6 +43,8 @@ from ase.neb import NEB
 from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from ase.md.velocitydistribution import (MaxwellBoltzmannDistribution, Stationary, ZeroRotation)
+from ase.stress import voigt_6_to_full_3x3_strain
+from ase.calculators.calculator import PropertyNotImplementedError
 from abipy.core import Structure
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
 from abipy.tools.typing import Figure, PathLike
@@ -366,20 +368,25 @@ class AseResults(HasPickleIO):
         return [cls.from_atoms(trajectory[i]) for i in inds]
 
     @classmethod
-    def from_atoms(cls, atoms: Atoms, calc=None) -> AseResults:
+    def from_atoms(cls, atoms: Atoms, calc=None, with_stress=True, with_magmoms=True) -> AseResults:
         """Build the object from an atoms instance with a calculator."""
         if calc is not None:
             atoms.calc = calc
 
-        from ase.stress import voigt_6_to_full_3x3_strain
-        stress_voigt = atoms.get_stress()
-        stress = voigt_6_to_full_3x3_strain(stress_voigt)
+        stress = -np.eye(3)
+        if with_stress:
+            try:
+                stress_voigt = atoms.get_stress()
+                stress = voigt_6_to_full_3x3_strain(stress_voigt)
+            except PropertyNotImplementedError:
+                stress = -np.eye(3)
 
-        from ase.calculators.calculator import PropertyNotImplementedError
-        try:
-            magmoms = atoms.get_magnetic_moments()
-        except PropertyNotImplementedError:
-            magmoms = None
+        magmoms = None
+        if with_magmoms:
+            try:
+                magmoms = atoms.get_magnetic_moments()
+            except PropertyNotImplementedError:
+                pass
 
         results = cls(atoms=atoms.copy(),
                       ene=float(atoms.get_potential_energy()),
@@ -571,9 +578,11 @@ def main():
     with_stress = True
     from abipy.tools.plotting import Exposer
     exposer = "mpl" # or "panel"
+    symbol = None
     with Exposer.as_exposer(exposer) as e:
         e(c.plot_energies(show=False))
-        e(c.plot_forces(delta_mode=True, show=False))
+        e(c.plot_forces(delta_mode=False, symbol=symbol, show=False))
+        #e(c.plot_forces(delta_mode=True, symbol=symbol, show=False))
         e(c.plot_energies_traj(delta_mode=True, show=False))
         e(c.plot_energies_traj(delta_mode=False, show=False))
         if with_stress:
@@ -627,14 +636,35 @@ def main():
 
         return zip_sort(xs, ys) if sort else (xs, ys)
 
-    def xy_forces_for_keys(self, key1, key2, direction) -> tuple:
+    def xy_forces_for_keys(self, key1, key2, direction, symbol=None, site_inds=None) -> tuple:
         """
         Return (xs, ys), sorted arrays with forces along the cart direction for (key1, key2).
+
+        Args:
+            symbol: If not None, select only forces for this atomic specie.
+            site_inds: List of site indices to consider. None if all sites should be included.
         """
         idir = self.idir_from_direction(direction)
         ik1, ik2 = self.inds_of_keys(key1, key2)
-        xs = self.forces_list[ik1,:,:,idir].flatten()
-        ys = self.forces_list[ik2,:,:,idir].flatten()
+
+        if symbol is not None and site_inds is not None:
+            raise ValueError("symbol and site_inds are mutually exclusive!")
+
+        if symbol is not None:
+            inds = np.array(self.structure.indices_from_symbol(symbol))
+            if len(inds) == 0:
+                raise ValueError(f"Cannot find chemical {symbol=} in structure!")
+            xs = self.forces_list[ik1,:,inds,idir].flatten()
+            ys = self.forces_list[ik2,:,inds,idir].flatten()
+
+        elif site_inds is not None:
+            site_inds = np.array(site_inds)
+            xs = self.forces_list[ik1,:,site_inds,idir].flatten()
+            ys = self.forces_list[ik2,:,site_inds,idir].flatten()
+
+        else:
+            xs = self.forces_list[ik1,:,:,idir].flatten()
+            ys = self.forces_list[ik2,:,:,idir].flatten()
 
         return zip_sort(xs, ys)
 
@@ -738,9 +768,13 @@ def main():
         return fig
 
     @add_fig_kwargs
-    def plot_forces(self, fontsize=8, **kwargs):
+    def plot_forces(self, symbol=None, site_inds=None, fontsize=8, **kwargs):
         """
-        Compare forces.
+        Parity plot for forces.
+
+        Args:
+            symbol: If not None, select only forces for this atomic specie.
+            site_inds: List of site indices to consider. None if all sites should be included.
         """
         key_pairs = self.get_key_pairs()
         nrows, ncols = 3, len(key_pairs)
@@ -752,21 +786,24 @@ def main():
 
         for icol, (key1, key2) in enumerate(key_pairs):
             for irow, direction in enumerate(("x", "y", "z")):
-                xs, ys = self.xy_forces_for_keys(key1, key2, direction)
-                stats = diff_stats(xs, ys)
                 ax = ax_mat[irow, icol]
-                ax.scatter(xs, ys, marker="o")
                 ax.grid(True)
+
+                xs, ys = self.xy_forces_for_keys(key1, key2, direction, symbol=symbol, site_inds=site_inds)
+                stats = diff_stats(xs, ys)
+                ax.scatter(xs, ys, marker="o")
                 linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
+
                 ax.legend(loc="best", shadow=True, fontsize=fontsize)
                 f_tex = f"$F_{direction}$"
                 if icol == 0:
                     ax.set_ylabel(f"{key2} {f_tex}", fontsize=fontsize)
                 if irow == 2:
                     ax.set_xlabel(f"{key1} {f_tex}", fontsize=fontsize)
-                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
+                symb = "" if symbol is None else f"{symbol=}"
+                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f} {symb}", fontsize=fontsize)
 
-        if "title" not in kwargs: fig.suptitle(f"Cartesian forces in ev/Ang for {self.structure.latex_formula}")
+        if "title" not in kwargs: fig.suptitle(f"Cartesian forces in eV/Ang for {self.structure.latex_formula}")
         return fig
 
     @add_fig_kwargs
@@ -798,7 +835,7 @@ def main():
                     ax.set_xlabel(f"{key1} {s_tex}", fontsize=fontsize)
                 ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
-        if "title" not in kwargs: fig.suptitle(f"Stresses in (eV/Ang^2) for {self.structure.latex_formula}")
+        if "title" not in kwargs: fig.suptitle(f"Stresses in (eV/Ang$^3$) for {self.structure.latex_formula}")
         return fig
 
     @add_fig_kwargs
@@ -840,12 +877,13 @@ def main():
         return fig
 
     @add_fig_kwargs
-    def plot_forces_traj(self, delta_mode=True, fontsize=6, markersize=2, **kwargs):
+    def plot_forces_traj(self, delta_mode=True, symbol=None, fontsize=6, markersize=2, **kwargs):
         """
         Plot forces along the trajectory.
 
         Args:
             delta_mode: True to plot differences instead of absolute values.
+            symbol: If not None, select only forces for this atomic species
         """
         # Fx,Fy,Fx along rows, pairs along columns.
         key_pairs = self.get_key_pairs()
@@ -859,19 +897,27 @@ def main():
         atom2_cmap = plt.get_cmap("jet")
         marker_idir = {0: ">", 1: "<", 2: "^"}
 
+        if symbol is None:
+            inds = np.array(self.structure.indices_from_symbol(symbol))
+            if len(inds) == 0:
+                raise ValueError(f"Cannot find chemical {symbol=} in structure!")
+
         for icol, (key1, key2) in enumerate(key_pairs):
             # Arrays of shape: [nsteps, natom, 3]
             f1_tad, f2_tad = self.traj_forces_for_keys(key1, key2)
             for idir, direction in enumerate(("x", "y", "z")):
                 last_row = idir == 2
                 fp_tex = f"F_{direction}"
-                xs, ys = self.xy_forces_for_keys(key1, key2, direction)
+                xs, ys = self.xy_forces_for_keys(key1, key2, direction, symbol=symbol)
                 stats = diff_stats(xs, ys)
                 ax = ax_mat[idir, icol]
-                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
+                symb = "" if symbol is None else f"{symbol=}"
+                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f} {symb}", fontsize=fontsize)
 
                 zero_values = False
                 for iatom in range(self.natom):
+                    # Select atoms by symbol
+                    if symbol is not None and iatom not in inds: continue
                     if delta_mode:
                         # Plot delta of forces along the trajectory.
                         style = dict(marker=marker_idir[idir], markersize=markersize,
@@ -945,7 +991,7 @@ def main():
                                 grid=True, legend=not delta_mode, legend_loc="upper left",
                                 ylabel=f"$|\Delta \sigma_{voigt_comp_tex}|$ " if delta_mode else "$\sigma$ ")
 
-        head = r"$\Delta \sigma$ (eV/Ang$^2$)" if delta_mode else "Stress tensor (eV/Ang$^2$)"
+        head = r"$\Delta \sigma$ (eV/Ang$^3$)" if delta_mode else "Stress tensor (eV/Ang$^3$)"
         if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
 
         return fig
@@ -1386,8 +1432,9 @@ class CalcBuilder:
     Possible formats are:
 
         1) nn_type e.g. m3gnet. See ALL_NN_TYPES for available keys.
-        2) nn_type@model_path e.g.: mace:FILEPATH
-        3) nn_type:model_name
+        2) nn_type:model_name
+        3) nn_type@model_path e.g.: mace:FILEPATH
+        4) nn_type@calc_kwargs.yaml e.g.: mace:calc_kwargs.yaml.
     """
 
     ALL_NN_TYPES = [
@@ -1409,13 +1456,18 @@ class CalcBuilder:
 
         # Extract nn_type and model_name from name
         self.nn_type, self.model_name, self.model_path = name, None, None
+        self.calc_kwargs = {}
 
         if ":" in name:
-            self.nn_type, self.model_name = name.split(":")
+            self.nn_type, last = name.split(":")
+            if last.endswith(".yaml") or last.endswith(".yml"):
+                self.calc_kwargs = yaml_safe_load_path(last)
+            else:
+                self.model_name = last
+
         elif "@" in name:
             self.nn_type, self.model_path = name.split("@")
-            self.model_path = os.path.expandpath(self.model_path)
-            #self.model_path = os.path.expandvars(self.model_path)
+            self.model_path = os.path.expandvars(os.path.expanduser(self.model_path))
 
         if self.nn_type not in self.ALL_NN_TYPES:
             raise ValueError(f"Invalid {name=}, it should be in {self.ALL_NN_TYPES=}")
@@ -1475,8 +1527,10 @@ class CalcBuilder:
             class MyM3GNetCalculator(_MyCalculator, M3GNetCalculator):
                 """Add abi_forces and abi_stress"""
 
+            # Use same value of stress_weight as in Relaxer at:
+            # https://github.com/materialsvirtuallab/m3gnet/blob/main/m3gnet/models/_dynamics.py
             cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
-            calc = cls(potential=self._model)
+            calc = cls(potential=self._model, stress_weight=0.01, **self.calc_kwargs)
 
         elif self.nn_type == "matgl":
             # See https://github.com/materialsvirtuallab/matgl
@@ -1490,14 +1544,18 @@ class CalcBuilder:
                 if self.model_path is not None:
                     self._model = matgl.load_model(self.model_path)
                 else:
-                    model_name = "M3GNet-MP-2021.2.8-PES" if self.model_name is None else self.model_name
+                    #model_name = "M3GNet-MP-2021.2.8-PES" if self.model_name is None else self.model_name
+                    model_name = "M3GNet-MP-2021.2.8-DIRECT-PES" if self.model_name is None else self.model_name
                     self._model = matgl.load_model(model_name)
 
             class MyM3GNetCalculator(_MyCalculator, M3GNetCalculator):
                 """Add abi_forces and abi_stress"""
 
             cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
-            calc = cls(potential=self._model)
+            # stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
+            # here we use  1 / 160.21766208 as in
+            # https://github.com/materialsvirtuallab/matgl/blob/main/src/matgl/ext/ase.py
+            calc = cls(potential=self._model, stress_weight= 1/abu.eVA3_GPa, **self.calc_kwargs)
 
         elif self.nn_type == "chgnet":
             try:
@@ -1519,8 +1577,10 @@ class CalcBuilder:
             class MyCHGNetCalculator(_MyCalculator, CHGNetCalculator):
                 """Add abi_forces and abi_stress"""
 
+            # This calculator by default returns stress in eV/Ang^3 as expected by ASE
+            # https://github.com/CederGroupHub/chgnet/blob/main/chgnet/model/dynamics.py
             cls = MyCHGNetCalculator if with_delta else CHGNetCalculator
-            calc = cls(model=self._model)
+            calc = cls(model=self._model, **self.calc_kwargs)
 
         elif self.nn_type == "alignn":
             try:
@@ -1541,9 +1601,15 @@ class CalcBuilder:
             #if self.model_path is not None:
             #    get_figshare_model_ff(model_name=self.model_path)
 
+            # This calculator by default uses
+            #   stress_wt=1.0,
+            #   force_multiplier=1.0,
+            # and it's therefore compatible with ASE. See ForceField
+            # https://github.com/usnistgov/alignn/blob/main/alignn/ff/ff.py
+
             model_name = default_path() if self.model_name is None else self.model_name
             cls = MyAlignnCalculator if with_delta else AlignnAtomwiseCalculator
-            calc = cls(path=model_name)
+            calc = cls(path=model_name, **self.calc_kwargs)
 
         elif self.nn_type == "pyace":
             try:
@@ -1558,7 +1624,7 @@ class CalcBuilder:
                 raise RuntimeError("PyACECalculator requires model_path e.g. nn_name='pyace@FILEPATH'")
 
             cls = MyPyACECalculator if with_delta else PyACECalculator
-            calc = cls(basis_set=self.model_path)
+            calc = cls(basis_set=self.model_path, **self.calc_kwargs)
 
         elif self.nn_type == "mace":
             try:
@@ -1574,7 +1640,7 @@ class CalcBuilder:
                 raise RuntimeError("MACECalculator requires model_path e.g. nn_name='mace@FILEPATH'")
 
             cls = MyMACECalculator if with_delta else MACECalculator
-            calc = cls(model_paths=self.model_path, device="cpu") #, default_dtype='float32')
+            calc = cls(model_paths=self.model_path, device="cpu", **self.calc_kwargs) #, default_dtype='float32')
 
         elif self.nn_type == "mace_mp":
             try:
@@ -1586,9 +1652,12 @@ class CalcBuilder:
             #class MyMACECalculator(_MyCalculator, MACECalculator):
             #     """Add abi_forces and abi_stress"""
 
-            calc = mace_mp(model="medium",
+            model = self.calc_kwargs.pop("model", "medium")
+
+            calc = mace_mp(model=model,
                            #cls=MyMACECalculator,
                            #dispersion=False, default_dtype="float32", device='cuda'
+                           **self.calc_kwargs
                            )
             #calc.__class__ = MyMACECalculator
 
@@ -1605,7 +1674,7 @@ class CalcBuilder:
                 raise RuntimeError("NequIPCalculator requires model_path e.g. nn_name='nequip:FILEPATH'")
 
             cls = MyNequIPCalculator if with_delta else NequIPCalculator
-            calc = cls.from_deployed_model(modle_path=self.model_path, species_to_type_name=None)
+            calc = cls.from_deployed_model(model_path=self.model_path, species_to_type_name=None, **self.calc_kwargs)
 
         elif self.nn_type == "metatensor":
             try:
@@ -1620,7 +1689,7 @@ class CalcBuilder:
                 raise RuntimeError("MetaTensorCalculator requires model_path e.g. nn_name='metatensor:FILEPATH'")
 
             cls = MyMetaTensorCalculator if with_delta else MetatensorCalculator
-            calc = cls(self.model_path)
+            calc = cls(self.model_path, **self.calc_kwargs)
 
         elif self.nn_type == "deepmd":
             try:
@@ -1635,7 +1704,7 @@ class CalcBuilder:
                 raise RuntimeError("DeepMD calculator requires model_path e.g. nn_name='deepmd:FILEPATH'")
 
             cls = MyDp if with_delta else Dp
-            calc = cls(self.model_path)
+            calc = cls(self.model_path, **self.calc_kwargs)
 
         else:
             raise ValueError(f"Invalid {self.nn_type=}")
@@ -2874,10 +2943,6 @@ class MlValidateWithAbinitio(_MlNebBase):
                 func = _GetAseResults(nn_name)
                 with Pool(processes=nprocs) as pool:
                     items = pool.map(func, abi_results)
-                #p = pool_nprocs_pmode(len(directories), pmode=pmode)
-                #using_msg = f"Reading {len(directories)} abiml directories {p.using_msg}"
-                #with p.pool_cls(p.nprocs) as pool, Timer(header=using_msg, footer="") as timer:
-                #    return cls(pool.starmap(MdAnalyzer.from_abiml_dir, args))
 
             results_list.append(items)
 

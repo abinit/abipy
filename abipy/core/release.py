@@ -13,7 +13,7 @@ name = 'abipy'
 # release.  'dev' as a _version_extra string means this is a development version
 _version_major = 0
 _version_minor = 9
-_version_micro = 6  # use '' for first of series, number for 1 and above
+_version_micro = 7  # use '' for first of series, number for 1 and above
 #_version_extra = 'dev'
 _version_extra = ''  # Uncomment this for full releases
 

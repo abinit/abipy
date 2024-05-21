@@ -44,6 +44,15 @@ eph Package
    :undoc-members:
    :show-inheritance:
 
+
+:mod:`gstore` Module
+--------------------
+
+.. automodule:: abipy.eph.gstore
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`rta` Module
 -----------------
 

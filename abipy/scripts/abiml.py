@@ -147,8 +147,9 @@ def add_nn_name_opt(f):
     """Add CLI options to select the NN potential."""
     f = click.option("--nn-name", "-nn", default=DEFAULT_NN, show_default=True,
                      help=f"ML potential to be used. Supported values are: {aseml.CalcBuilder.ALL_NN_TYPES}")(f)
-    #f = click.option("--dftd3", , default="no", show_default=True,
-    #                 help=f"Activate DFD3.")(f)
+    #f = click.option("--nn-name", "-nn", default=DEFAULT_NN, show_default=True,
+    #                 help=f"ML potential to be used.\n{aseml.CalcBuilder.DOC_NAME}")(f)
+    #f = click.option("--dftd3", , default="no", show_default=True, help=f"Activate DFD3.")(f)
     return f
 
 
@@ -619,17 +620,27 @@ def validate(ctx, filepaths,
     c = ml_comp.run(nprocs=nprocs)
 
     if exposer != "None":
-        from abipy.tools.plotting import Exposer
+        show = True
+        show = False
         with_stress = True
+        with_stress = False
+        on_traj = True
+        from abipy.tools.plotting import Exposer
         with Exposer.as_exposer(exposer, title=" ".join(os.path.basename(p) for p in filepaths)) as e:
-            e(c.plot_energies(show=False))
-            e(c.plot_forces(delta_mode=True, show=False))
-            e(c.plot_energies_traj(delta_mode=True, show=False))
-            e(c.plot_energies_traj(delta_mode=False, show=False))
+            e(c.plot_energies(show=show, savefig="energies.png"))
+            if on_traj:
+                e(c.plot_energies_traj(delta_mode=True, show=show, savefig="energies_traj.png"))
+                e(c.plot_energies_traj(delta_mode=False, show=show, savefig="energies_traj_delta_mode.png"))
+            symbol = None
+            #symbol = "Li"
+            e(c.plot_forces(delta_mode=False, symbol=symbol, show=show, savefig="forces.png"))
+            e(c.plot_forces(delta_mode=True, symbol=symbol, show=show, savefig="forces_delta.png"))
+            if on_traj:
+                e(c.plot_forces_traj(delta_mode=True, show=show, savefig="forces_traj_delta_mode.png"))
             if with_stress:
-                e(c.plot_stresses(delta_mode=True, show=False))
-            e(c.plot_forces_traj(delta_mode=True, show=False))
-            e(c.plot_stress_traj(delta_mode=True, show=False))
+                e(c.plot_stresses(delta_mode=True, show=show, savefig="stresses_delta_mode.png"))
+                if on_traj:
+                    e(c.plot_stress_traj(delta_mode=True, show=show, savefig="stress_traj_delta_mode.png"))
 
     return 0
 
