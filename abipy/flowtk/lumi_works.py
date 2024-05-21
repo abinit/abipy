@@ -268,7 +268,6 @@ class LumiWorkFromRelax(Work):
     The two relaxed structures (in ground and excited state) are given as input. No creation at run-time
 
     """
-
     @classmethod
     def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, gs_structure, ex_structure, ndivsm=0, nb_extra=10,
                         tolwfr=1e-12, meta=None ,manager=None):
