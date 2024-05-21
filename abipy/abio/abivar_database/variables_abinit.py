@@ -313,10 +313,10 @@ distribution if not specified in input file.
 
 !!! note
 
-    Note that this variable is only used when running **ground-state calculations** in parallel with MPI.
+    Note that this variable is only used when running **ground-state calculations** in parallel with MPI ([[optdriver]]=1).
     Other [[optdriver]] runlevels implement different MPI algorithms that rely on other input variables that are
-    not automatically set by [[autoparal]]. Please consult the [[tutorial:paral_mbt|tutorial on parallelism for Many-Body Perturbation Theory]] to learn how
-    to run beyond-GS calculations with MPI.
+    not automatically set by [[autoparal]]. For example, consult the [[tutorial:paral_mbt|tutorial on parallelism for Many-Body Perturbation Theory]] to learn how
+    to run beyond-GS calculations with MPI. Other tutorials on parallelism are also available.
 
 Given a total number of processors, ABINIT can find a suitable distribution that fill (when possible)
 all the different levels of parallelization. ABINIT can also determine optimal
@@ -435,7 +435,8 @@ Variable(
     requires="[[paral_kgb]] == 1",
     added_in_version="before_v9",
     text=r"""
-Control the size of the block in the LOBPCG algorithm.
+Affect the size of a block in the LOBPCG algorithm.
+One should use [[nblock_lobpcg]] instead, which sets **bandpp** depending on [[nband]] and [[npband]].
 
 !!! important
 
@@ -1175,7 +1176,7 @@ Variable(
     dimensions="scalar",
     defaultval=0,
     mnemonics="Bethe-Salpeter Number of STATES",
-    requires="[[optdriver]] == 99 and [[bs_algorithm]] in [2, 3]",
+    requires="[[optdriver]] == 99 and [[bs_algorithm]] in [1, 3]",
     added_in_version="before_v9",
     text=r"""
 **bs_nstates** defines the maximum number of excitonic states calculated in
@@ -1192,7 +1193,7 @@ Variable(
     topics=['Control_expert'],
     dimensions="scalar",
     defaultval=0,
-    mnemonics="BUIT-IN TEST number",
+    mnemonics="BUILT-IN TEST number",
     characteristics=['[[DEVELOP]]'],
     added_in_version="before_v9",
     text=r"""
@@ -1746,6 +1747,27 @@ For [[optdriver]]=1, it does not modify the self-consistent calculations, neithe
 of the Born effective charge, and the subsequent echo of the phonon frequencies at Gamma, LO part only.
 
 See also the variables [[asr]] and [[asr@anaddb]], that govern the imposition of the acoustic sum rule.
+""",
+),
+
+Variable(
+    abivarname="chrgat",
+    varset="gstate",
+    vartype="real",
+    topics=['ConstrainedDFT_useful'],
+    dimensions=ValueWithConditions({'[[natrd]]<[[natom]]': '[ [[natrd]] ]', 'defaultval': '[ [[natom]] ]'}),
+    defaultval=0.0,
+    mnemonics="CHARGE of the AToms",
+    added_in_version="before_v9",
+    text=r"""
+Gives the target integrated charge in case of constrained DFT calculations, see [[constraint_kind]].
+Given in atomic unit of charge (=minus the charge of the electron).
+Note that this number is the net positive charge inside the sphere: one subtract from the
+nucleus charge [[ziontypat]] the integrated valence electron density in a sphere defined by [[ratsph]].
+The latter has indeed a negative value. Note that if the sphere radius [[ratsph]] is not sufficiently large,
+the amount of electrons will be smaller than expected based on chemical intuition. This means that there
+is in this case a bias toward too positive integrated charges. By contrast, if the sphere radius is too large,
+the spheres will overlap, and the electrons in the interatomic region will be double counted.
 """,
 ),
 
@@ -2333,27 +2355,6 @@ When [[delayperm]] is zero, there are no permutation trials.
 ),
 
 Variable(
-    abivarname="chrgat",
-    varset="gstate",
-    vartype="real",
-    topics=['ConstrainedDFT_useful'],
-    dimensions=ValueWithConditions({'[[natrd]]<[[natom]]': '[ [[natrd]] ]', 'defaultval': '[ [[natom]] ]'}),
-    defaultval=0.0,
-    mnemonics="CHARGE of the AToms",
-    added_in_version="before_v9",
-    text=r"""
-Gives the target integrated charge in case of constrained DFT calculations, see [[constraint_kind]].
-Given in atomic unit of charge (=minus the charge of the electron).
-Note that this number is the net positive charge inside the sphere: one subtract from the
-nucleus charge [[ziontypat]] the integrated valence electron density in a sphere defined by [[ratsph]].
-The latter has indeed a negative value. Note that if the sphere radius [[ratsph]] is not sufficiently large,
-the amount of electrons will be smaller than expected based on chemical intuition. This means that there
-is in this case a bias toward too positive integrated charges. By contrast, if the sphere radius is too large,
-the spheres will overlap, and the electrons in the interatomic region will be double counted.
-""",
-),
-
-Variable(
     abivarname="densfor_pred",
     varset="dev",
     vartype="integer",
@@ -2480,21 +2481,6 @@ Can be specified in Ha (the default), Ry, eV or Kelvin, since [[ecut]] has the
 [[ENERGY]] characteristics (1 Ha = 27.2113845 eV).
 Typical use is for response to electric field ([[rfelfd]] = 3), but NOT for d/dk
 ([[rfelfd]] = 2) and phonon responses.
-""",
-),
-
-Variable(
-    abivarname="diago_apply_block_sliced",
-    varset="rlx",
-    vartype="integer",
-    topics=['parallelism_expert'],
-    dimensions="scalar",
-    defaultval=1,
-    mnemonics="Inverse Overlapp block matrix applied in a sliced fashion",
-    added_in_version="9.7.2",
-    text=r"""
-In the Chebyshev-filtered subspace method, one need to apply inverse overlapp matrix.
-This parameter allows to choose between two variants, sliced (1) or non-sliced (0).
 """,
 ),
 
@@ -4118,6 +4104,25 @@ If phonon frequencies are to be computed:
 ),
 
 Variable(
+    abivarname="eph_ahc_type",
+    varset="eph",
+    vartype="integer",
+    topics=['ElPhonInt_useful'],
+    dimensions="scalar",
+    defaultval=1,
+    mnemonics="Electron-PHonon: Allen-Heine-Cardona type",
+    added_in_version="9.11.6",
+    text=r"""
+Only relevant for [[optdriver]]=7 and [[eph_task]]=4.
+If set to 0, use the adiabatic version of the Allen-Heine-Cardona equation to compute the
+zero-point renormalisation as well as temperature dependence.
+If set to 1 (default), use the non-adiabatic version of the Allen-Heine-Cardona equation to compute the
+zero-point renormalisation as well as temperature dependence.
+Note: The use of [[eph_ahc_type]]=0 is not recommanded in IR-active materials.
+""",
+),
+
+Variable(
     abivarname="eph_extrael",
     varset="eph",
     vartype="real",
@@ -4164,7 +4169,7 @@ Variable(
     mnemonics="Electron-PHonon: FROHLICH Model",
     added_in_version="before_v9",
     text=r"""
-Only relevant for [[optdriver]]=7 and [[eph_task]]=6.
+Only relevant for [[optdriver]]=7 and [[eph_task]]=6, 10.
 If set to 1, use the dynamical matrix at Gamma, the Born effective charges, the dielectric tensor, as well as
 the effective masses (must give a _EFMAS file as input, see [[prtefmas]] and [[getefmas]] or [[irdefmas]]),
 as the parameters of a Frohlich Hamiltonian.
@@ -4654,7 +4659,7 @@ In this case, the default value of [[fftalg]] is changed accordingly.
 !!! important
 
     This keyword is **ignored** when Fast Fourier Transforms are done using
-    **Graphics Processing Units** (GPU), i.e. when [[use_gpu_cuda]] = 1
+    **Graphics Processing Units** (GPU), i.e. when [[gpu_option]] > 0.
 """,
 ),
 
@@ -5604,7 +5609,7 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 Eventually used when [[ndtset]] > 0 (multi-dataset mode).
-Only relevant for [[optdriver]]=7 and [[eph_task]]=6.
+Only relevant for [[optdriver]]=7 and [[eph_task]]=6. 10.
 If set to 1, take the data from a _EFMAS file as input. The latter must have been produced using [[prtefmas]].
 
   * If [[getefmas]] == 0, no such use of previously computed output _EFMAS file is done.
@@ -6096,13 +6101,14 @@ Variable(
     varset="paral",
     vartype="integer",
     topics=['parallelism_expert'],
-    dimensions=[5],
-    defaultval=[-1, -1, -1, -1, -1],
+    dimensions=[12],
+    defaultval=12*(-1),
     mnemonics="GPU: choice of DEVICES on one node",
-    requires="[[use_gpu_cuda]] == 1 (CUDA functionality)",
+    requires="[[gpu_option]] > 0 and [[CUDA]] (Nvidia GPU)",
     added_in_version="before_v9",
     text=r"""
-To be used when several GPU devices are present on each node, assuming the
+@legacy
+This variable is intended to be used when several GPU devices are present on each node, assuming the
 same number of devices on all nodes.
 Allows to choose in which order the GPU devices are chosen and distributed
 among MPI processes (see examples below). When the default value (-1) is set,
@@ -6110,20 +6116,39 @@ the GPU devices are chosen by order of performance (FLOPS, memory).
 
 Examples:
 
-  * 2 GPU devices per node, 4 MPI processes per node, **gpu_device** =[-1,-1,-1,-1,-1] (default):
+  * 2 GPU devices per node, 4 MPI processes per node, **gpu_device** = *-1 (default):
 MPI processes 0 and 2 use the best GPU card, MPI processes 1 and 3 use the
 slowest GPU card.
 
-  * 3 GPU devices per node, 5 MPI processes per node, **gpu_device** =[1,0,2,-1,-1]:
+  * 3 GPU devices per node, 5 MPI processes per node, **gpu_device** =[1,0,2,-1,-1, . . .]:
 MPI processes 0 and 3 use GPU card 1, MPI processes 1 and 4 use GPU card 0,
 MPI process 2 uses GPU card 2.
 
-  * 3 GPU devices per node, 5 MPI processes per node, **gpu_device** =[0,1,-1,-1,-1]:
+  * 3 GPU devices per node, 5 MPI processes per node, **gpu_device** =[0,1,-1,-1, . . .]:
 MPI processes 0, 2 and 4 use GPU card 0, MPI processes 1 and 3 use GPU card 1;
 the 3rd GPU card is not used.
 
-GPU card are numbered starting from 0; to get the GPU devices list, type
+GPU card are numbered starting from 0; to get the GPU devices list, type f.i. (Nvidia):
 "nvidia-smi" or "lspci | grep -i nvidia".
+""",
+),
+
+Variable(
+    abivarname="gpu_kokkos_nthrd",
+    varset="paral",
+    vartype="integer",
+    topics=['parallelism_expert'],
+    dimensions="scalar",
+    defaultval="number of [[OPENMP]] threads",
+    mnemonics="GPU KOKKOS implementation: Number of THReaDs",
+    requires="[[gpu_option]] == 3 ([[KOKKOS]] GPU implementation)",
+    added_in_version="v9.12",
+    text=r"""
+When GPU acceleration is enabled (via [[KOKKOS]] implementation), OpenMP parallelism
+on CPU cores is not fully supported. ABINIT will ignore `OMP_NUM_THREADS` value,
+using 1 instead. But we may locally increase the number of OpenMP threads to speed-up
+some specific parts of the code. In that case we use [[gpu_kokkos_nthrd]] to specify
+the number of OpenMP threads.
 """,
 ),
 
@@ -6134,21 +6159,137 @@ Variable(
     topics=['parallelism_expert'],
     dimensions="scalar",
     defaultval=2000000,
-    mnemonics="GPU (Cuda): LINear ALGebra LIMIT",
-    requires="[[use_gpu_cuda]] == 1 (CUDA functionality)",
+    mnemonics="GPU: LINear ALGebra LIMIT",
+    requires="[[gpu_option]] == 1 and [[CUDA]] (Nvidia GPU, old CUDA implementation)",
     added_in_version="before_v9",
     text=r"""
-Use of linear algebra and matrix algebra on GPU is only efficient if the size
+@legacy
+This variable is obsolete and is only intended to be used with the old 2013 cuda
+implementation of ABINIT on GPU ([[gpu_option]]=1).
+In that case, the use of linear/matrix algebra on GPU is only efficient if the size
 of the involved matrices is large enough. The [[gpu_linalg_limit]] parameter
 defines the threshold above which linear (and matrix) algebra operations are
 done on the Graphics Processing Unit.
-The considered matrix size is equal to:
-
-* SIZE=([[mpw]] $\times$ [[nspinor]] / [[npspinor]]) $\times$ ([[npband]] $\times$ [[bandpp]]) $^2$
-
+The matrix size is evaluated as to: SIZE=([[mpw]] $\times$ [[nspinor]] / [[npspinor]]) $\times$ ([[npband]] $\times$ [[bandpp]]) $^2$
 When SIZE>=[[gpu_linalg_limit]], [[wfoptalg]] parameter is automatically set
-to 14 which corresponds to the use of LOBPCG algorithm for the calculation of
+to 14 which corresponds to the use of the legacy LOBPCG algorithm for the calculation of
 the eigenstates.
+""",
+),
+
+Variable(
+    abivarname="gpu_nl_distrib",
+    varset="paral",
+    vartype="integer",
+    topics=['parallelism_expert'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="GPU: Non-Local operator, DISTRIBute projections",
+    requires="[[use_gemm_nonlop]] == 1 and [[gpu_option]] == 2 ([[OPENMP_OFFLOAD]])",
+    added_in_version="9.12",
+    text=r"""
+When using GPU acceleration, the wave-function projections ($<\tilde{p}_i|\Psi_{nk}> (used
+in the non-local operator) are all stored on all GPU devices.
+[[gpu_nl_distrib]] forces the distribution of these projections on several GPU devices. This
+uses less memory per GPU but requires communications beween GPU devices. These communication
+penalize the execution time.
+[[gpu_nl_splitsize]] defines the number of blocks used to split the projections.
+In standard executions, the distribution is only needed on large use cases to address
+the high memory needs. Therefore ABINIT uses the "distributed mode" automatically
+when needed.
+""",
+),
+
+Variable(
+    abivarname="gpu_nl_splitsize",
+    varset="paral",
+    vartype="integer",
+    topics=['parallelism_expert'],
+    dimensions="scalar",
+    defaultval=1,
+    mnemonics="GPU: Non-Local operator SPLITing SIZE",
+    requires="[[use_gemm_nonlop]] == 1 and [[gpu_option]] == 2 ([[OPENMP_OFFLOAD]])",
+    added_in_version="9.12",
+    text=r"""
+Only relevant when [[gpu_nl_distrib]] = 1.
+When using GPU acceleration, the wave-function projections ($<\tilde{p}_i|\Psi_{nk}> (used
+in the non-local operator) are all stored on all GPU devices.
+[[gpu_nl_splitsize]] defines the number of blocks used to split these projections
+on several GPU devices.
+In standard executions, the distribution is only needed on large use cases to address
+the high memory needs. Therefore ABINIT uses the "distributed mode" automatically
+when needed.
+""",
+),
+
+Variable(
+    abivarname="gpu_option",
+    varset="paral",
+    vartype="integer or string",
+    topics=['parallelism_useful'],
+    dimensions="scalar",
+    defaultval=ValueWithConditions({'[[OPENMP_OFFLOAD]]': 2, '[[KOKKOS]]': 3, '[[CUDA]]': 1, 'defaultval': 0}),
+    mnemonics="GPU: OPTION to choose the implementation",
+    added_in_version="v9.12",
+    text=r"""
+Only relevant for Ground-State calculations ([[optdriver]] == 0).
+This option is only available if ABINIT executable has been compiled for the purpose
+of being used with GPU accelerators. It allows to choose between the different
+GPU programming models available in ABINIT:
+
+- [[gpu_option]]= "GPU_DISABLED" or [[gpu_option]] = 0: no use of GPU (even if compiled for GPU).
+
+- [[gpu_option]]= "GPU_LEGACY" or [[gpu_option]] = 1: use the "legacy" 2013 implementation of GPU. This is a partial [[CUDA]]
+  implementation, using the `nvcc` [[CUDA]] compiler. The old LOBPCG algorithm is automatically
+  used to compute the eigenstates ([[wfoptalg]]=14). The external linear algebra library
+  `MAGMA can also be linked to ABINIT to improve performances on large systems
+  (see [[gpu_linalg_limit]]).
+
+- [[gpu_option]]= "GPU_OPENMP" or [[gpu_option]] = 2: use of the [[OPENMP_OFFLOAD]] programming model to execute time consuming
+  parts of the code on GPU. This implementation works on NVidia accelerators, if ABINIT has been
+  compiled with a [[CUDA]] compatible compiler and linked with NVidia FFT/linear algebra
+  libraries ([cuFFT](https://docs.nvidia.com/cuda/cufft),
+  [cuBLAS](https://docs.nvidia.com/cuda/cublas) and
+  [cuSOLVER](https://docs.nvidia.com/cuda/cusolvermp)).
+  It also works on `AMD accelerators (EXPERIMENTAL),
+  if ABINIT has been compiled with a AMD compatible compiler and linked with NVidia
+  FFT/linear algebra libraries ([ROCm](https://www.amd.com/fr/graphics/servers-solutions-rocm)
+  or [HIP](https://github.com/ROCm/HIP)).
+
+- [[gpu_option]]= "GPU_KOKKOS" or [[gpu_option]] = 3: use of the [[KOKKOS]]+[[CUDA]] programming model to execute time consuming
+  parts of the code on GPU. This implementation -- at present -- is only compatible with
+  NVidia accelerators. It required that ABINIT has been linked to the
+  [Kokkos](https://github.com/kokkos/kokkos) and [YAKL](https://github.com/mrnorman/YAKL)
+  performance libraries. It also uses NVidia FFT/linear algebra libraries
+  ([cuFFT](https://docs.nvidia.com/cuda/cufft), [cuBLAS](https://docs.nvidia.com/cuda/cublas)).
+  The [[KOKKOS]] GPU implementation can be used in conjuction with openMP threads
+  on CPU (see [[gpu_kokkos_nthrd]]).
+
+For an expert use of ABINIT on [[GPU]], some additional keywords can be used. See
+[[gpu_use_nvtx]],[[gpu_nl_distrib]],[[gpu_nl_splitsize]].
+""",
+),
+
+Variable(
+    abivarname="gpu_use_nvtx",
+    varset="paral",
+    vartype="integer",
+    topics=['parallelism_expert'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="GPU: activate USE of NVTX tracing/profiling",
+    added_in_version="9.7.2",
+    text=r"""
+Only available if ABINIT executable has been linked with the [[NVTX]] (Nvidia) or
+[[ROCTX]] (AMD) library.
+When [[gpu_use_nvtx]] = 1 on Nvidia GPU(s),
+the use of [NVTX](https://github.com/NVIDIA/NVTX)
+ tracing/profiling ((NVIDIA Tools eXtension Library) is activated.
+ The trace can be used for instance with
+ [NVidia NSight System](https://developer.nvidia.com/nsight-systems)
+When [[gpu_use_nvtx]] = 1 on AMD GPU(s),
+the use of [ROCTX](https://rocm.docs.amd.com/projects/roctracer/en/latest/roctracer_spec.html)
+ tracing/profiling (ROCm Tools eXtension Library) is activated.
 """,
 ),
 
@@ -7661,6 +7802,24 @@ Other targets are prioritary. You will notice that many automatic tests use
 ),
 
 Variable(
+    abivarname="invol_blk_sliced",
+    varset="dev",
+    vartype="integer",
+    topics=['parallelism_expert'],
+    dimensions="scalar",
+    mnemonics="INVerse OverLap: BLocK-diagonal matrix applied SLICED",
+    added_in_version="9.7.2",
+    defaultval=ValueWithConditions({'[[gpu_option]] > 0': '0', 'defaultval': 1}),
+    text=r"""
+Only relevant if [[wfoptalg]] == 1 or 111 (WF optimization by Chebyshev filtering algorithm).
+In the Chebyshev-filtered subspace method (iterative diagonalization algorithm))
+one needs to apply the inverse of the overlap matrix. [[invol_blk_sliced]] allows one
+to choose between two variants, sliced (1) or non-sliced (0).
+Default value is different for an execution on GPU.
+""",
+),
+
+Variable(
     abivarname="iomode",
     varset="dev",
     vartype="integer",
@@ -8282,7 +8441,7 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 Eventually used when [[ndtset]] > 0 (multi-dataset mode).
-Only relevant for [[optdriver]]=7 and [[eph_task]]=6.
+Only relevant for [[optdriver]]=7 and [[eph_task]]=6, 10.
 If set to 1, take the data from a _EFMAS file as input. The latter must have been produced using [[prtefmas]] in another run.
 """,
 ),
@@ -9702,7 +9861,7 @@ defines the k point grid. The other piece of information is contained in
 
 The values [[kptrlatt]](1:3,1), [[kptrlatt]](1:3,2), [[kptrlatt]](1:3,3) are the
 coordinates of three vectors in real space, expressed in the [[rprimd]]
-coordinate system (reduced coordinates). They defines a super-lattice in real
+coordinate system (reduced coordinates). They define a super-lattice in real
 space. The k point lattice is the reciprocal of this super-lattice, possibly shifted (see [[shiftk]]).
 
 If neither [[ngkpt]] nor [[kptrlatt]] are defined, ABINIT will automatically
@@ -9784,7 +9943,7 @@ Variable(
     abivarname="lambsig",
     varset="paw",
     vartype="real",
-    topics=['MagField_expert'],
+    topics=['NMR_basic','MagField_expert'],
     dimensions=['[[ntypat]]'],
     defaultval=MultipleValue(number=None, value=0),
     mnemonics="LAMB shielding SIGma",
@@ -10926,6 +11085,45 @@ for which a Berry phase is computed.
 
 For the [[berryopt]] = 1, 2, and 3 cases, spinor wavefunctions are not
 allowed, nor are parallel computations.
+""",
+),
+
+Variable(
+    abivarname="nblock_lobpcg",
+    varset="gstate",
+    vartype="integer",
+    topics=['SCFAlgorithms_useful'],
+    dimensions="scalar",
+    defaultval=1,
+    mnemonics="Number of BLOCKs in the LOBPCG algorithm",
+    requires="[[wfoptalg]] = 4, 14, or 114",
+    added_in_version="v9.11.6",
+    text=r"""
+This variable controls the number of blocks in the LOBPCG algorithm.
+It has to be a divisor of [[nband]].
+Contrary to the simple conjugate gradient, which is a band-by-band algorithm, LOBPCG can work on blocks of wavefunctions.
+This is partly why LOBPCG is more robust and efficient, especially for systems with many atoms.
+The size of a block is [[nband]] / **nblock_lobpcg**.
+Blocks are treated sequentially, starting from the block of bands with the lowest eigenvalues up to the block of bands with the highest eigenvalues.
+
+With the default value, all bands are included in a single block (**nblock_lobpcg**=1), but it is very likely not the most efficient solution.
+To increase the number of blocks (which decreases the block size) can be interesting as:
+
+* it decreases the time spend in every LOBPCG call (a part of the work to be done on each block is proportional to (blocksize)^3).
+* it decreases the memory footprint, as the size of many work arrays is proportional to the block size.
+
+However, to increase the number of blocks has some drawbacks:
+
+* it decreases the algorithm robustness, so difficult systems may not converge. To use one block is the most robust choice.
+* it decreases the convergence rate, so either more steps (see [[nstep]]) are needed to converge, or more "lines" are needed (see [[nline]]).
+* when used in a parallel computation, it decreases the scalability, so less cores can be used efficiently.
+
+A first try could be **nblock_lobpcg**=4.
+If possible one can slightly adapt [[nband]] in order to be a multiple of **nblock_lobpcg**.
+
+When use with [[paral_kgb]]=1, the bands of a block are distributed among [[npband]] MPI processes.
+So [[npband]] has to be a divisor of [[nband]] / **nblock_lobpcg** and [[bandpp]] is internally set to [[nband]] / (**nblock_lobpcg** * [[npband]]).
+**nblock_lobpcg** and [[bandpp]] cannot be used simultaneously, one should prefer **nblock_lobpcg**.
 """,
 ),
 
@@ -12601,7 +12799,7 @@ allowed x, y and z magnetization (useful only with [[nspinor]] = 2 and
 [[nsppol]] = 1, either because there is spin-orbit without time-reversal
 symmetry - and thus spontaneous magnetization, or with spin-orbit, if one
 allows for spontaneous non-collinear magnetism). Available for
-response functions [[cite:Ricci2019]]. Not yest available for mGGA. Also note that, with [[nspden]] = 4, time-reversal symmetry
+response functions [[cite:Ricci2019]]. Not yet available for mGGA. Also note that, with [[nspden]] = 4, time-reversal symmetry
 is not taken into account (at present; this has to be checked) and thus
 [[kptopt]] has to be different from 1 or 2.
 
@@ -12870,7 +13068,7 @@ Variable(
     abivarname="nucdipmom",
     varset="gstate",
     vartype="real",
-    topics=['MagField_expert'],
+    topics=['NMR_basic','MagField_expert'],
     dimensions=[3, '[[natom]]'],
     defaultval=0.0,
     mnemonics="NUClear DIPole MOMents",
@@ -13594,7 +13792,7 @@ Variable(
     abivarname="orbmag",
     varset="dfpt",
     vartype="integer",
-    topics=['MagField_expert'],
+    topics=['NMR_basic','MagField_expert'],
     dimensions="scalar",
     defaultval=0,
     mnemonics="ORBital MAGnetization",
@@ -13699,6 +13897,14 @@ Variable(
     mnemonics="activate PARALelization over K-point, G-vectors and Bands",
     added_in_version="before_v9",
     text=r"""
+
+!!! note
+
+    Note that this variable is only used when running **ground-state calculations** in parallel with MPI ([[optdriver]]=1) (or GW Lanczos-Sternheimer [[optdriver]]=66, but this is very rare).
+    Other [[optdriver]] runlevels implement different MPI algorithms that rely on other input variables that are
+    not automatically set by [[autoparal]]. For example, consult the [[tutorial:paral_mbt|tutorial on parallelism for Many-Body Perturbation Theory]] to learn how
+    to run beyond-GS calculations with MPI. Other tutorials on parallelism are also available.
+
 **If paral_kgb is not explicitely put in the input file**, ABINIT
 automatically detects if the job has been sent in sequential or in parallel.
 In this last case, it detects the number of processors on which the job has
@@ -13714,7 +13920,7 @@ Require compilation option --enable-mpi="yes".
 components is activated (see [[np_spkpt]], [[npfft]] [[npband]] and possibly
 [[npspinor]]). With this parallelization, the work load is split over four
 levels of parallelization (three level of parallelisation (kpt-band-fft )+
-spin) The different communications almost occur along one dimension only.
+spin). The different communications almost occur along one dimension only.
 Require compilation option --enable-mpi="yes".
 
 HOWTO fix the number of processors along one level of parallelisation:
@@ -17030,7 +17236,7 @@ defines the q point grid. The other piece of information is contained in
 
 The values [[qptrlatt]](1:3,1), [[qptrlatt]](1:3,2), [[qptrlatt]](1:3,3) are
 the coordinates of three vectors in real space, expressed in the [[rprimd]]
-coordinate system (reduced coordinates). They defines a super-lattice in real
+coordinate system (reduced coordinates). They define a super-lattice in real
 space. The k point lattice is the reciprocal of this super-lattice, possibly
 shifted (see [[shiftq]]).
 
@@ -19194,8 +19400,8 @@ Variable(
     defaultval=0.0,
     mnemonics="TOLerance on the DiFference of total Energy",
     characteristics=['[[ENERGY]]'],
-    commentdefault="The default value implies that this stopping condition is ignored. For the SCF case, one and only one of the input tolerance criteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]] must differ from zero.",
-    excludes="[[tolwfr]] or [[toldff]] or [[tolrff]] or [[tolvrs]]",
+    commentdefault="The default value implies that this stopping condition is ignored. For the SCF case, one and only one of the input tolerance criteria [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]] can differ from zero.",
+    excludes="[[toldff]] or [[tolrff]] or [[tolvrs]]",
     added_in_version="before_v9",
     text=r"""
 Sets a tolerance for absolute differences of total energy that, reached TWICE
@@ -19213,13 +19419,18 @@ vectors), the use of [[toldfe]] is to be avoided. The use of [[toldff]] or
 characteristics. When all forces vanish by symmetry (e.g. optimization of the
 lattice parameters of a high-symmetry crystal), then place [[toldfe]] to
 1.0d-12, or use (better) [[tolvrs]].
-Since [[toldfe]], [[toldff]], [[tolrff]], [[tolvrs]] and [[tolwfr]] are aimed
+Since [[toldfe]], [[toldff]], [[tolrff]] and [[tolvrs]] are aimed
 at the same goal (causing the SCF cycle to stop), they are seen as a unique
 input variable at reading. Hence, it is forbidden that two of these input
 variables have non-zero values for the same dataset, or generically (for all
 datasets). However, a non-zero value for one such variable for one dataset
 will have precedence on the non-zero value for another input variable defined
 generically.
+
+**toldfe** can be coupled with [[tolwfr]]. In that case, SCF cycle is stopped when both criteria are satisfied.
+To do so one has to specify both criteria for the same dataset.
+Note that a tolerance defined generically does not couple with a criterion defined for one particular dataset.
+See [[tolwfr]] for more details about coupling two criteria.
 """,
 ),
 
@@ -19231,8 +19442,8 @@ Variable(
     dimensions="scalar",
     defaultval=0.0,
     mnemonics="TOLerance on the DiFference of Forces",
-    commentdefault="The default value implies that this stopping condition is ignored. For the SCF case, one and only one of the input tolerance criteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]] must differ from zero.",
-    excludes="[[tolwfr]] or [[toldfe]] or [[tolrff]] or [[tolvrs]]",
+    commentdefault="The default value implies that this stopping condition is ignored. For the SCF case, one and only one of the input tolerance criteria [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]] can differ from zero.",
+    excludes="[[toldfe]] or [[tolrff]] or [[tolvrs]]",
     added_in_version="before_v9",
     text=r"""
 Sets a tolerance for differences of forces (in hartree/Bohr) that, reached
@@ -19245,12 +19456,17 @@ configuration (select [[ionmov]]), or in case of molecular dynamics ([[ionmov]] 
 A value ten times smaller than [[tolmxf]] is suggested (for example 5.0d-6
 hartree/Bohr).
 This stopping criterion is not allowed for RF calculations.
-Since [[toldfe]], [[toldff]], [[tolrff]], [[tolvrs]] and [[tolwfr]] are aimed
+Since [[toldfe]], [[toldff]], [[tolrff]] and [[tolvrs]] are aimed
 at the same goal (causing the SCF cycle to stop), they are seen as a unique
 input variable at reading. Hence, it is forbidden that two of these input
 variables have non-zero values for the same dataset, or generically (for all
 datasets). However, a non-zero value for one such variable for one dataset
 will have precedence on the non-zero value for another input variable defined generically.
+
+**toldff** can be coupled with [[tolwfr]]. In that case, SCF cycle is stopped when both criteria are satisfied.
+To do so one has to specify both criteria for the same dataset.
+Note that a tolerance defined generically does not couple with a criterion defined for one particular dataset.
+See [[tolwfr]] for more details about coupling two criteria.
 """,
 ),
 
@@ -19335,9 +19551,8 @@ eigenenergy due to the last line minimisation, with the one observed for the
 first line minimisation. When the ratio is lower than [[tolrde]], the next
 line minimisations are skipped.
 The number of line minimisations is limited by [[nline]] anyhow.
-This stopping criterion is present for both GS and RF calculations. In RF
-calculations, [[tolrde]] is actually doubled before comparing with the above-
-mentioned ratio, for historical reasons.
+This stopping criterion is present only for band-by-band conjugate gradient ([[wfoptalg]] different than 1,4,14 and 114) and [[rmm_diis]], but both GS and RF calculations.
+In RF calculations, [[tolrde]] is actually doubled before comparing with the above-mentioned ratio, for historical reasons.
 """,
 ),
 
@@ -19349,8 +19564,8 @@ Variable(
     dimensions="scalar",
     defaultval=0.0,
     mnemonics="TOLerance on the Relative diFference of Forces",
-    commentdefault="The default value implies that this stopping condition is ignored. For the SCF case, one and only one of the input tolerance criteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]] must differ from zero.",
-    excludes="[[tolwfr]] or [[toldfe]] or [[toldff]] or [[tolvrs]]'",
+    commentdefault="The default value implies that this stopping condition is ignored. For the SCF case, one and only one of the input tolerance criteria [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]] can differ from zero.",
+    excludes="[[toldfe]] or [[toldff]] or [[tolvrs]]'",
     added_in_version="before_v9",
     text=r"""
 Sets a tolerance for the ratio of differences of forces (in hartree/Bohr) to
@@ -19363,13 +19578,18 @@ is to be used when trying to equilibrate a structure to its lowest energy
 configuration (select [[ionmov]]), or in case of molecular dynamics ([[ionmov]] = 1)
 A value of 0.02 is suggested.
 This stopping criterion is not allowed for RF calculations.
-Since [[toldfe]], [[toldff]], [[tolrff]], [[tolvrs]] and [[tolwfr]] are aimed
+Since [[toldfe]], [[toldff]], [[tolrff]] and [[tolvrs]] are aimed
 at the same goal (causing the SCF cycle to stop), they are seen as a unique
 input variable at reading. Hence, it is forbidden that two of these input
 variables have non-zero values for the same dataset, or generically (for all
 datasets). However, a non-zero value for one such variable for one dataset
 will have precedence on the non-zero value for another input variable defined
 generically.
+
+**tolrff** can be coupled with [[tolwfr]]. In that case, SCF cycle is stopped when both criteria are satisfied.
+To do so one has to specify both criteria for the same dataset.
+Note that a tolerance defined generically does not couple with a criterion defined for one particular dataset.
+See [[tolwfr]] for more details about coupling two criteria.
 """,
 ),
 
@@ -19407,8 +19627,8 @@ Variable(
     dimensions="scalar",
     defaultval=0.0,
     mnemonics="TOLerance on the potential V(r) ReSidual",
-    commentdefault="The default value implies that this stopping condition is ignored. For the SCF case, one and only one of the input tolerance criteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]] must differ from zero.",
-    excludes="[[tolwfr]] or [[toldfe]] or [[toldff]] or [[tolrff]]'",
+    commentdefault="The default value implies that this stopping condition is ignored. For the SCF case, one and only one of the input tolerance criteria [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]] can differ from zero.",
+    excludes="[[toldfe]] or [[toldff]] or [[tolrff]]'",
     added_in_version="before_v9",
     text=r"""
 Sets a tolerance for potential residual that, when reached, will cause one SCF
@@ -19429,13 +19649,18 @@ tolerance on the potential residual is imposed by first subtracting the mean
 of the residual of the potential (or the trace of the potential matrix, if the
 system is spin-polarized), then summing the square of this function over all
 FFT grid points. The result should be lower than [[tolvrs]].
-Since [[toldfe]], [[toldff]], [[tolrff]], [[tolvrs]] and [[tolwfr]] are aimed
+Since [[toldfe]], [[toldff]], [[tolrff]] and [[tolvrs]] are aimed
 at the same goal (causing the SCF cycle to stop), they are seen as a unique
 input variable at reading. Hence, it is forbidden that two of these input
 variables have non-zero values for the same dataset, or generically (for all
 datasets). However, a non-zero value for one such variable for one dataset
 will have precedence on the non-zero value for another input variable defined
 generically.
+
+**tolvrs** can be coupled with [[tolwfr]]. In that case, SCF cycle is stopped when both criteria are satisfied.
+To do so one has to specify both criteria for the same dataset.
+Note that a tolerance defined generically does not couple with a criterion defined for one particular dataset.
+See [[tolwfr]] for more details about coupling two criteria.
 """,
 ),
 
@@ -19445,10 +19670,8 @@ Variable(
     vartype="real",
     topics=['SCFControl_basic'],
     dimensions="scalar",
+    mnemonics="TOLerance on the Wavefunction Residuals",
     defaultval=0.0,
-    mnemonics="TOLerance on WaveFunction squared Residual",
-    commentdefault="The default value implies that this stopping condition is ignored. For the SCF case, one and only one of the input tolerance criteria [[tolwfr]], [[toldff]], [[tolrff]], [[toldfe]] or [[tolvrs]] must differ from zero.",
-    excludes="[[toldfe]] or [[toldff]] or [[tolrff]] or [[tolvrs]]",
     added_in_version="before_v9",
     text=r"""
 The signification of this tolerance depends on the basis set. In plane waves,
@@ -19467,26 +19690,52 @@ Note that if [[iscf]] > 0, this criterion should be replaced by those based on
 [[toldfe]] (preferred for [[ionmov]] == 0), [[toldff]] [[tolrff]] (preferred for
 [[ionmov]] /= 0), or [[tolvrs]] (preferred for theoretical reasons!).
 When **tolwfr** is 0.0, this criterion is ignored, and a finite value of
-[[toldfe]], [[toldff]] or [[tolvrs]] must be specified. This also imposes a
+[[toldfe]], [[toldff]], [[tolrff]] or [[tolvrs]] must be specified. This also imposes a
 restriction on taking an ion step; ion steps are not permitted unless the
 largest squared residual is less than **tolwfr**, ensuring accurate forces.
 To get accurate stresses may be quite demanding.
 Note that the preparatory GS calculations before a RF calculations must be highly converged.
 Typical values for these preparatory runs are **tolwfr** between 1.0d-16 and 1.0d-22.
 
-Note that **tolwfr** is often used in the test cases, but this is **tolwfr**
-purely for historical reasons: except when [[iscf]] < 0, other criteria should be used.
+Note that **tolwfr** is often used in the test cases, but this is
+purely for historical reasons: except when [[iscf]] < 0, **other criteria should be used**.
+Indeed, the squared residual can be small even with non self-consistent density and potential.
+
+**tolwfr** alone should not be used as SCF criterion, but it can be coupled with [[toldfe]], [[toldff]], [[tolrff]] or [[tolvrs]].
+In that case, SCF cycle is stopped when both criteria are satisfied.
+That way one can insure that physical properties are converged (=SCF converged) while insuring that wavefunctions are converged.
+For example, a ground state computations done before DFPT can use stringent values of **tolwfr** in addition to a desired criterion on self-consistency.
+
+**tolwfr** is coupled with an other tolerance only if both criteria are specified for one particular dataset, or if both criteria are given generically.
+If a single criterion is given (for a single dataset or generically), it will not be coupled with another criterion (defined generically or for a single dataset, respectfully).
 
 In the wavelet case (see [[usewvl]] = 1), this criterion is the favoured one.
 It is based on the norm 2 of the gradient of the wavefunctions.
 Typical values range from 5*10^-4  to 5*10^-5.
+""",
+),
 
-Since [[toldfe]], [[toldff]], [[tolrff]], [[tolvrs]] and **tolwfr** are aimed
-at the same goal (causing the SCF cycle to stop), they are seen as a unique
-input variable at reading. Hence, it is forbidden that two of these input
-variables have non-zero values for the same dataset, or generically (for all
-datasets). However, a non-zero value for one such variable for one dataset
-will have precedence on the non-zero value for another input variable defined generically.
+Variable(
+    abivarname="tolwfr_diago",
+    varset="basic",
+    vartype="real",
+    topics=['SCFControl_expert'],
+    dimensions="scalar",
+    defaultval="[[tolwfr]]",
+    mnemonics="TOLerance on WaveFunction squared Residual at the DIAGOnalization level",
+    added_in_version="9.11.3",
+    text=r"""
+This criterion is the same than [[tolwfr]], but used to control the diagonalization algorithm instead of the SCF cycles.
+In practice it is used to reduce the number of "lines" done at the diagonalization step (see [[nline]]), saving computational time.
+If the squared residual becomes lower than **tolwfr_diago**, the remaining "lines" to be done are skipped.
+For LOBPCG, "lines" are skipped if the biggest squared residual of the block is less than **tolwfr_diago**.
+If **tolwfr_diago**=0, [[nline]] "lines" are done at every self-consistent step.
+By default **tolwfr_diago** is equal to [[tolwfr]], but can be used independently.
+One can use [[tolvrs]] (or any other tolerance) to define a criterion for SCF cycles, and use **tolwfr_diago** to save computational time.
+However, when [[tolwfr]]>0, **tolwfr_diago**>[[tolwfr]] is forbidden as the SCF cycles cannot converge in that case.
+
+For [[wfoptalg]]=114 only (LOBPCG), if **tolwfr_diago**=0 then it is set to 1e-20 internally.
+As a consequence, to ensure that no lines are skipped one has to set **tolwfr_diago**=1e-30 in the input (instead of 0) in this particular case.
 """,
 ),
 
@@ -19757,46 +20006,6 @@ nonlocal operator.
 This option is available only if [[useylm]] is 1. ABINIT will automatically set [[useylm]] to 1
 if [[use_gemm_nonlop]] is set to 1 in the input file (actually, this is only needed when NC pseudos are used as
 PAW already uses 1 for [[useylm]]).
-""",
-),
-
-Variable(
-    abivarname="use_gpu_cuda",
-    varset="paral",
-    vartype="integer",
-    topics=['parallelism_expert'],
-    dimensions="scalar",
-    defaultval=ValueWithConditions({'[[optdriver]] == 0 and [[CUDA]]': 1, 'defaultval': 0}),
-    mnemonics="activate USE of GPU accelerators with CUDA (nvidia)",
-    added_in_version="before_v9",
-    text=r"""
-Only available if ABINIT executable has been compiled with cuda nvcc compiler.
-This parameter activates the use of NVidia graphic accelerators (GPU) if present.
-If [[use_gpu_cuda]] = 1, some parts of the computation are transmitted to the GPUs.
-If [[use_gpu_cuda]] = 0, no computation is done on GPUs, even if present.
-
-Note that, while running ABINIT on GPUs, it is recommended to use MAGMA
-external library (i.e. Lapack on GPUs). The latter is activated during
-compilation stage (see "configure" step of ABINIT compilation process). If
-MAGMA is not used, ABINIT performances on GPUs can be poor.
-""",
-),
-
-Variable(
-    abivarname="use_nvtx",
-    varset="paral",
-    vartype="integer",
-    topics=['parallelism_expert'],
-    dimensions="scalar",
-    defaultval=0,
-    mnemonics="activate USE of NVTX tracing/profiling",
-    added_in_version="9.7.2",
-    text=r"""
-Only available if ABINIT executable has been compiled with cuda nvcc compiler,
-and only meaningful when [[use_gpu_cuda]]=1.
-This parameter activates the use of nvtx tracing/profiling if present.
-If [[use_nvtx]] = 1, when profiling with nsys, additional information with be added in the report.
-If [[use_nvtx]] = 0, nothing happens.
 """,
 ),
 
@@ -20366,7 +20575,7 @@ Variable(
     vartype="integer",
     topics=['TuningSpeedMem_expert'],
     dimensions="scalar",
-    defaultval=ValueWithConditions({'[[tfkinfunc]] == 1': 1, '[[usepaw]] == 1': 1, 'defaultval': 0}),
+    defaultval=ValueWithConditions({'[[usepaw]] == 1': 1, '[[gpu_option]] > 0': 1, '[[tfkinfunc]] == 1': 1, 'defaultval': 0}),
     mnemonics="USE YLM (the spherical harmonics)",
     characteristics=['[[DEVELOP]]'],
     added_in_version="before_v9",
@@ -21345,7 +21554,7 @@ The different possibilities are:
   * [[wfoptalg]] = 1: new algorithm based on Chebyshev filtering, designed for very large number of processors, in the regime
   where LOBPCG does not scale anymore. It is not able to use preconditionning and therefore might converge slower than other algorithms.
   By design, it will **not** converge the last bands: it is recommended to use slightly more bands than necessary.
-  For usage with [[tolwfr]], it is imperative to use [[nbdbuf]]. For more performance, try [[use_gemm_nonlop]].
+  For usage with [[tolwfr_diago]], it is imperative to use [[nbdbuf]]. For more performance, try [[use_gemm_nonlop]].
   For more information, see the [performance guide](/theory/howto_chebfi.pdf) and the [[cite:Levitt2015]]. Status: experimental but usable.
   Questions and bug reports should be sent to antoine (dot) levitt (at) gmail.com.
 """,

@@ -238,6 +238,9 @@ def main():
     if options.filepath.endswith(".json"):
         return handle_json(options)
 
+    if options.filepath.endswith(".csv"):
+        return handle_csv(options)
+
     if options.filepath.endswith(".traj"):
         return handle_ase_traj(options)
 
@@ -247,7 +250,6 @@ def main():
 
     if not options.notebook:
         abifile = abilab.abiopen(options.filepath)
-
         if options.print:
             # Print object to terminal.
             if hasattr(abifile, "to_string"):
@@ -337,7 +339,6 @@ def handle_ase_traj(options):
 
     print(plotter.to_string(verbose=options.verbose))
     if options.expose:
-        print(plotter.to_string(verbose=options.verbose))
         if len(plotter.traj) > 1:
             plot_kws = dict(show=False)
             with Exposer.as_exposer("mpl") as e:
@@ -347,9 +348,58 @@ def handle_ase_traj(options):
     return 0
 
 
+def handle_csv(options):
+    """Handle CSV file."""
+    df = pd.read_csv(options.filepath)
+
+    def print_df():
+        print("=== Dataframe info ===")
+        print(df.info())
+        print("=== Dataframe describe ===")
+        print(df.describe())
+
+    if options.notebook:
+        raise NotImplementedError("")
+        # Visualize JSON document in jupyter
+        #cmd = "jupyter-lab %s" % options.filepath
+        #print("Executing:", cmd)
+        #process = subprocess.Popen(cmd.split(), shell=False) #, stdout=fd, stderr=fd)
+        #cprint("pid: %s" % str(process.pid), "yellow")
+        return 0
+
+    elif options.panel:
+        raise NotImplementedError("")
+        # Visualize JSON document in panel dashboard.
+        #pn = abilab.abipanel()
+        #with abilab.abiopen(options.filepath) as json_file:
+        #    app = json_file.get_panel()
+
+        #serve_kwargs = serve_kwargs_from_options(options)
+        #return pn.serve(app, **serve_kwargs)
+
+    else:
+        if options.print:
+            # Print python object to terminal.
+            print_df()
+            return 0
+        elif options.expose:
+            print_df()
+            raise NotImplementedError("")
+            return 0
+
+        # Start ipython shell with namespace
+        # Use embed because I don't know how to show a header with start_ipython.
+        print_df()
+        import IPython
+        IPython.embed(header="""
+The pandas DataFrame initialized from the csv file can be accesssed via the `df` python variable.
+""")
+
+    return 0
+
+
 def handle_json(options):
     """Handle JSON file."""
-
     if options.notebook:
         # Visualize JSON document in jupyter
         cmd = "jupyter-lab %s" % options.filepath

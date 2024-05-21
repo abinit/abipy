@@ -814,6 +814,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 for name in names:
                     value = vars[name]
                     if mnemonics and value is not None:
+                        print(f"{name=}")
                         app(escape("#### <" + var_database[name].mnemonics + ">"))
 
                     # Build variable, convert to string and append it
@@ -827,11 +828,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 #app("####" + "STRUCTURE".center(w - 1))
                 app("####" + "STRUCTURE".center(w - 1).rstrip())
                 app(w * "#")
+                #print("abivars keys:", self.structure_abivars.keys())
                 for name, value in self.structure_abivars.items():
                     if mnemonics and value is not None:
                         app(escape("#### <" + var_database[name].mnemonics + ">"))
                     vname = name + post
                     if mode == "html": vname = var_database[name].html_link(label=vname)
+                    #print(f"{vname=}, {value=}")
                     app(str(InputVariable(vname, value)))
 
         else:
@@ -1229,7 +1232,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         for site in self.structure:
             if hasattr(site, 'magmom'):
                 spinat.append((0., 0., site.magmom))
-            elif hasattr(site.specie, 'spin'):
+            elif hasattr(site.specie, 'spin') and site.specie.spin:
                 spinat.append((0., 0., site.specie.spin))
             elif str(site.specie) in magmom_mp_conf:
                 spinat.append((0., 0., magmom_mp_conf.get(str(site.specie))))
@@ -1536,7 +1539,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 errmsg = "Number of atoms in the input structure should be %d * %d but found %d" % (
                     numcells, len(self.structure), len(new_structure))
                 raise ValueError(errmsg)
-            
+
             expected_supercell=self.structure.copy()
             expected_supercell.make_supercell(scdims)
 
