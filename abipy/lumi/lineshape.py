@@ -3,7 +3,7 @@ from numpy import fft
 from scipy import signal
 from scipy.integrate import simps
 from pymatgen.io.phonopy import get_pmg_structure
-from abipy.tools.plotting import get_ax_fig_plt
+from abipy.tools.plotting import get_ax_fig_plt,add_fig_kwargs
 from abipy.embedding.utils_ifc import clean_structure
 import abipy.core.abinit_units as abu
 
@@ -33,16 +33,19 @@ class Lineshape():
 
         """ 
        Different levels of approximations for the phonons and force/displacements: 
-       See discussion in the supplementary informations of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537, section (1)
+       See discussion in the supplementary informations of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537, section (1).
 
-        - size_supercell deltaSCF = size_supercell phonons (phonons of the bulk structure or phonons of the structure with defect).
+        - size_supercell deltaSCF = size_supercell phonons (phonons of the bulk structure or phonons of defect structure).
           Use of the forces or the displacemements is allowed.   
 
-        - size_supercell dSCF < size_supercell phonons (bulk)
+        - size_supercell dSCF < size_bulk_supercell phonons (bulk)
           Use of the forces only.
 
-        - size_supercell dSCF < size_supercell phonons (embedding) 
+        - size_supercell dSCF < size__defect_supercell phonons (embedding) 
           Use of the forces only
+
+        The code first extracts the eigenmodes of the phonopy object. Then, it tries performs a structure matching between the phonopy 
+        structure and the dSCF structure (critical part) in order to put the displacements/forces on the right atoms. 
 
         Args:
             E_zpl: Zero-phonon line energy in eV
@@ -97,11 +100,11 @@ class Lineshape():
         """
         :param E_zpl: Zero-phonon line energy in eV
         :param ph_eigvec: phonon eigenvectors, shape : (3 * N_atoms, 3 * N_atoms)
-        :param ph_eigfreq: phonon eigenfrequencies, shape : (3 * N_atoms)
+        :param ph_eigfreq: phonon eigenfrequencies, shape : (3 * N_atoms), in eV
         :param structure: Structure object 
+        :param forces : Forces acting on the atoms in the ground state, with atomic positions of the relaxed excited state, in eV/Ang
+        :param displacements : Atomic relaxation induced by the electronic transition, in Ang
         :param use_forces : True in order to use the forces, False to use the displacements
-        :param forces : Forces acting on the atoms in the ground state, with atomic positions of the relaxed excited state. 
-        :param displacements : Atomic relaxation induced by the electronic transition.
         """
         self.E_zpl = E_zpl
         self.ph_eigvec = ph_eigvec
@@ -164,6 +167,12 @@ class Lineshape():
         hbar = abu.hbar_eVs*((abu.eV_Ha)*(abu.Ha_J)) # hbar in SI
         S_nu = omega * Delta_Q ** 2 / (2 * hbar)
         return (S_nu)
+    
+    def S_tot(self):
+        """
+        Total Huang-Rhys factor = sum of the S_nu. 
+        """ 
+        return (np.sum(self.S_nu()))
 
     def Delta_Q(self):
         """
@@ -258,6 +267,7 @@ class Lineshape():
         """
         Lineshape function
         Eq. (2) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537 
+        Returns (Energy in eV, Lineshape function )
 
         Args:
             T: Temperature in K
@@ -303,6 +313,7 @@ class Lineshape():
         """     
         Normalized Luminescence intensity (area under the curve = 1)
         Eq. (1) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537 
+        Returns (Energy in eV, Luminescence intensity)
 
         Args:
             T: Temperature in K
@@ -318,7 +329,7 @@ class Lineshape():
 
 
 ##### Plot functions ######
-
+    @add_fig_kwargs
     def plot_spectral_function(self,broadening=1,ax=None,with_S_nu=False,**kwargs):
         """     
         Plot the Huang-Rhys spectral function S_hbarOmega
@@ -348,7 +359,7 @@ class Lineshape():
 
         return fig
 
-
+    @add_fig_kwargs
     def plot_emission_spectrum(self,unit='eV',T=0,lamb=3,w=3,ax=None,**kwargs):
         """     
         Plot the Luminescence intensity
@@ -386,6 +397,8 @@ class Lineshape():
             ax.plot(x_nm,y_nm,**kwargs)
             ax.set_xlabel(r'Photon wavelength (nm))')
             ax.set_ylabel(r'Intensity (a.u.)')
+
+        return fig
 
 
 
