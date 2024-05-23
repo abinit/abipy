@@ -56,7 +56,8 @@ from abipy.abio.enums import StrEnum, EnumMixin
 from abipy.core.mixins import TextFile, NotebookWriter
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
     set_visible, set_ax_xylabels, linear_fit_ax)
-
+from abipy.ml.tools import get_energy_step
+from pymatgen.io.vasp.outputs import Vasprun
 
 _CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
 
@@ -2880,14 +2881,12 @@ class MlValidateWithAbinitio(_MlNebBase):
 
         elif fnmatch(basename, "vasprun*.xml*"):
             # Assume Vasprun file with structural relaxation or MD results.
-            from abipy.ml.tools import get_energy_step
-            from pymatgen.io.vasp.outputs import Vasprun
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                vasprun = Vasprun(filepath)
-
+            #with warnings.catch_warnings():
+            #warnings.simplefilter("ignore")
+            vasprun = Vasprun(filepath)
             num_steps = len(vasprun.ionic_steps)
             print(f"Reading trajectory from {filepath=}, {num_steps=}, {self.traj_range=}")
+
             for istep, step in enumerate(vasprun.ionic_steps):
                 #print(step.keys())
                 if not istep in self.traj_range: continue
@@ -3214,7 +3213,6 @@ class MlCompareNNs(MlBase):
 
         self._finalize()
         return comp
-
 
 
 class MlCwfEos(MlBase):

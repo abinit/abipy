@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import sys
 import os
-#import abc
 import inspect
 import itertools
 import json
@@ -30,7 +29,7 @@ from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_p
     rotate_ticklabels, set_visible, ConvergenceAnalyzer)
 
 
-class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
+class Robot(NotebookWriter):
     """
     This is the base class from which all Robot subclasses should derive.
     A Robot supports the `with` context manager:
@@ -183,7 +182,7 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
     def from_files(cls, filenames, labels=None, abspath=False) -> Robot:
         """
         Build a Robot from a list of `filenames`.
-        if labels is None, labels are automatically generated from absolute paths.
+        If labels is None, labels are automatically generated from absolute paths.
 
         Args:
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
@@ -619,10 +618,6 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
     def abifiles(self) -> list:
         """List of netcdf files."""
         return list(self._abifiles.values())
-
-    #@abc.abstractproperty
-    #def abifiles(self) -> list:
-    #    """List of netcdf files."""
 
     def has_different_structures(self, rtol=1e-05, atol=1e-08) -> str:
         """
