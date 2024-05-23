@@ -1547,6 +1547,7 @@ class CalcBuilder:
                 else:
                     #model_name = "M3GNet-MP-2021.2.8-PES" if self.model_name is None else self.model_name
                     model_name = "M3GNet-MP-2021.2.8-DIRECT-PES" if self.model_name is None else self.model_name
+                    print("Using model_name:", model_name)
                     self._model = matgl.load_model(model_name)
 
             class MyM3GNetCalculator(_MyCalculator, M3GNetCalculator):
