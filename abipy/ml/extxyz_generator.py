@@ -160,7 +160,7 @@ class SinglePointRunner:
         self.topdir = Path(str(topdir)).absolute()
         self.traj_range = traj_range
         self.abinitio_code = abinitio_code
-        self.slurm_template = slurm_template
+        self.slurm_template = open(slurm_template, "rt").read()
         self.kwargs = kwargs
 
     def __str__(self) -> str:
@@ -178,11 +178,14 @@ class SinglePointRunner:
         """
         from abipy.flowtk.qutils import slurm_sbatch
 
-        for index in traj_range:
+        if not self.topdir.exists(): self.topdir.mkdir()
+
+        for index in self.traj_range:
             workdir = self.topdir / f"SINGLEPOINT_{index}"
             if workdir.exists():
                 continue
 
+            workdir.mkdir()
             atoms = read(self.traj_path, index=index)
             structure = Structure.as_structure(atoms)
             script_filepath = workdir / "run.sh"

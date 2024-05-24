@@ -271,27 +271,31 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
     """
     Submit a job script to the queue with sbatch. Return Slurm JOB ID.
     """
-    from subprocess import Popen, PIPE
-    # need string not bytes so must use universal_newlines
-    slurm_filepath = str(slurm_filepath)
-    process = Popen(['sbatch', slurm_filepath], stdout=PIPE, stderr=PIPE, universal_newlines=True)
-    out, err = process.communicate()
+    from monty.os import cd 
+    dirpath = os.path.dirname(slurm_filepath)
+    print("dirpath", dirpath)
+    with cd(dirpath):
+        from subprocess import Popen, PIPE
+        # need string not bytes so must use universal_newlines
+        slurm_filepath = str(slurm_filepath)
+        process = Popen(['sbatch', slurm_filepath], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        out, err = process.communicate()
 
-    # grab the returncode. SLURM returns 0 if the job was successful
-    if process.returncode == 0:
-        try:
-            # output should of the form '2561553.sdb' or '352353.jessup' - just grab the first part for job id
-            queue_id = int(out.split()[3])
-            print(f"Job submission was successful and {queue_id=}")
-            path_qid = slurm_filepath + ".qid"
-            print("Saving slurm job ID in:", path_qid)
-            with open(path_qid, "wt") as fh:
-                fh.write(str(queue_id) + " # Slurm job id")
+        # grab the returncode. SLURM returns 0 if the job was successful
+        if process.returncode == 0:
+            try:
+                # output should of the form '2561553.sdb' or '352353.jessup' - just grab the first part for job id
+                queue_id = int(out.split()[3])
+                print(f"Job submission was successful and {queue_id=}")
+                path_qid = slurm_filepath + ".qid"
+                print("Saving slurm job ID in:", path_qid)
+                with open(path_qid, "wt") as fh:
+                    fh.write(str(queue_id) + " # Slurm job id")
 
-            return queue_id
-        except Exception as exc:
-            # probably error parsing job code
-            print('Could not parse job id following slurm...')
-            raise exc
-    else:
-        raise RuntimeError(f"Error while submitting {slurm_filepath=}")
+                return queue_id
+            except Exception as exc:
+                # probably error parsing job code
+                print('Could not parse job id following slurm...')
+                raise exc
+        else:
+            raise RuntimeError(f"Error while submitting {slurm_filepath=}")
