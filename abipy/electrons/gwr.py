@@ -39,7 +39,7 @@ class _MyQpkindsList(list):
     """Returned by find_qpkinds."""
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class MinimaxMesh:
     """
     The minimax mesh reported in the GWR file.

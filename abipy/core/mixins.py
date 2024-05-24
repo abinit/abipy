@@ -943,7 +943,9 @@ class Has_Header:
     @lazy_property
     def hdr(self):
         """|AttrDict| with the Abinit header e.g. hdr.ecut."""
-        return self.reader.read_abinit_hdr()
+        if hasattr(self, "reader"):
+            return self.reader.read_abinit_hdr()
+        return self.r.read_abinit_hdr()
 
     #def compare_hdr(self, other_hdr):
 
