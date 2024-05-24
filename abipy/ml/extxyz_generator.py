@@ -9,7 +9,7 @@ import abipy.core.abinit_units as abu
 #    import ase
 #except ImportError as exc:
 #    raise ImportError("ase not installed. Try `pip install ase`.") from exc
-#from pathlib import Path
+from pathlib import Path
 #from inspect import isclass
 #from multiprocessing import Pool
 #from typing import Type, Any, Optional, Union
@@ -109,7 +109,7 @@ class ExtxyzIOWriter:
         if not overwrite and os.path.isfile(xyz_filepath):
             raise RuntimeError(f"Cannot overwrite pre-existent file: {xyz_filepath=}, use overwrite=True to allow overwriting.")
 
-        with open(xzy_filepath, "wt") as fh
+        with open(xzy_filepath, "wt") as fh:
             for atoms in self.yield_atoms():
                 write(fh, atoms, format='extxyz', append=True)
 
@@ -124,26 +124,26 @@ class ExtxyzIOWriter:
                 energy = get_energy_step(last_step)
 
             elif self.ext == "GSR.nc":
-               with GsrFile(filepath) as gsr:
-                     if not gsr.is_scf_run:
-                         raise RuntimeError("GSR file was not produced by a SCF run!")
-                     structure, forces, stress_gpa = gsr.structure, gsr.cart_forces, gsr.cart_stress_tensor
-                     stress = stress_gpa / abu.eVA3_GPa
-                     energy = float(gsr.energy)
+                with GsrFile(filepath) as gsr:
+                      if not gsr.is_scf_run:
+                          raise RuntimeError("GSR file was not produced by a SCF run!")
+                      structure, forces, stress_gpa = gsr.structure, gsr.cart_forces, gsr.cart_stress_tensor
+                      stress = stress_gpa / abu.eVA3_GPa
+                      energy = float(gsr.energy)
 
-          else:
-              raise ValueError(f"Format {self.ext=} is not supported!")
+            else:
+                raise ValueError(f"Format {self.ext=} is not supported!")
 
-        atoms = structure.to_ase_atoms()
+            atoms = structure.to_ase_atoms()
 
-        # Attach calculator with results.
-        atoms.calc = SinglePointCalculator(atoms,
-                                           energy=energy,
-                                           free_energy=energy,
-                                           forces=forces,
-                                           stress=stress,
-                                           )
-        yield atoms
+            # Attach calculator with results.
+            atoms.calc = SinglePointCalculator(atoms,
+                                               energy=energy,
+                                               free_energy=energy,
+                                               forces=forces,
+                                               stress=stress,
+                                               )
+            yield atoms
 
 
 
@@ -154,9 +154,10 @@ class SinglePointRunner:
     runner.collect_xyz("foo.xyz")
     """
 
-    def __init__(self, traj_path: PathLike, topdir: PathLike, traj_range: range, abinitio_code: str, **kwargs):
+    def __init__(self, traj_path: PathLike, topdir: PathLike, traj_range: range, 
+                 abinitio_code: str, slurm_template: PathLike, **kwargs):
         self.traj_path = traj_path
-        self.topdir = Path(str(topdir).absolute()
+        self.topdir = Path(str(topdir)).absolute()
         self.traj_range = traj_range
         self.abinitio_code = abinitio_code
         self.slurm_template = slurm_template
@@ -196,7 +197,7 @@ class SinglePointRunner:
                 raise ValueError(f"Unsupported {abinitio_code=}")
 
             with open(script_filepath, "wt") as fh:
-                fh.write(slurm_template)
+                fh.write(self.slurm_template)
 
             slurm_sbatch(script_filepath)
 
