@@ -567,6 +567,12 @@ def main():
     if options.verbose > 2:
         print(options)
 
+    #structure = abilab.Structure.from_file(options.filepath)
+    #from pymatgen.io.vasp.sets import MPStaticSet
+    #vasp_input_set = MPStaticSet(structure) #, reciprocal_density=100)
+    #vasp_input_set.write_input(".")
+    #return 0
+
     if options.command == "spglib":
         structure = abilab.Structure.from_file(options.filepath)
         print(structure.spget_summary(symprec=options.symprec, angle_tolerance=options.angle_tolerance,

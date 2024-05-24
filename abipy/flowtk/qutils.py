@@ -264,20 +264,17 @@ rm ${{me}}.qid
             fh.write(str(self))
 
         queue_id = slurm_sbatch(slurm_filepath)
-        print("Saving slurm job ID in:", path_qid)
-        with open(path_qid, "wt") as fh:
-            fh.write(str(queue_id) + " # Slurm job id")
-
         return queue_id
 
 
-def slurm_sbatch(script_file) -> int:
+def slurm_sbatch(slurm_filepath: PathLike) -> int:
     """
     Submit a job script to the queue with sbatch. Return Slurm JOB ID.
     """
     from subprocess import Popen, PIPE
     # need string not bytes so must use universal_newlines
-    process = Popen(['sbatch', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    slurm_filepath = str(slurm_filepath)
+    process = Popen(['sbatch', slurm_filepath], stdout=PIPE, stderr=PIPE, universal_newlines=True)
     out, err = process.communicate()
 
     # grab the returncode. SLURM returns 0 if the job was successful
@@ -286,10 +283,15 @@ def slurm_sbatch(script_file) -> int:
             # output should of the form '2561553.sdb' or '352353.jessup' - just grab the first part for job id
             queue_id = int(out.split()[3])
             print(f"Job submission was successful and {queue_id=}")
+            path_qid = slurm_filepath + ".qid"
+            print("Saving slurm job ID in:", path_qid)
+            with open(path_qid, "wt") as fh:
+                fh.write(str(queue_id) + " # Slurm job id")
+
             return queue_id
         except Exception as exc:
             # probably error parsing job code
             print('Could not parse job id following slurm...')
             raise exc
     else:
-        raise RuntimeError(f"Error while submitting {script_file=}")
+        raise RuntimeError(f"Error while submitting {slurm_filepath=}")

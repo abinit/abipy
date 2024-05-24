@@ -35,9 +35,14 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
 
     .. code-block:: python
 
-        with GstoreFile("out_GSTORE.nc") as ncfile:
-            print(ncfile)
-            ncfile.ebands.plot()
+        with GstoreFile("out_GSTORE.nc") as gstore:
+            print(gstore)
+
+            for spin in range(gstore.nsppol):
+                gqk = gstore.gqk_spin[spin]
+                print(gqk)
+                df = gqk.get_gdf_at_qpt_kpt([1/2,0,0], [0,0,0])
+                print(df)
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GstoreFile
@@ -121,7 +126,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
 
         return "\n".join(lines)
 
-    #def to_epw_hdf5(self, filepath: PathLike) -> None:
+    #def write_epw_hdf5(self, filepath: PathLike) -> None:
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -130,24 +135,16 @@ class Gqk:
     Stores the e-ph matrix elements (g or g^2) and the matrix elements
     of the velocity operator for a given spin.
     """
-    cplex: int
-    # 1 if |g|^2 is stored
-    # 2 if complex valued g (mind the gauge)
-
-    spin: int
-    # Spin index.
-
-    #natom3: int
-    nb: int
-
+    cplex: int         # 1 if |g|^2 is stored
+                       # 2 if complex valued g (mind the gauge)
+    spin: int          # Spin index.
+    nb: int            # Number of bands
     bstart: int
     #bstop: int
 
-    glob_nk: int
-    glob_nq: int
-    # Total number of k/q points in global matrix.
-    # Note that k-points/q-points can be filtered.
-    # Use kzone, qzone and kfilter to interpret these dimensions.
+    glob_nk: int       # Total number of k/q points in global matrix.
+    glob_nq: int       # Note that k-points/q-points can be filtered.
+                       # Use kzone, qzone and kfilter to interpret these dimensions.
 
     gstore: GstoreFile
 
@@ -216,6 +213,8 @@ class Gqk:
 
     def get_dataframe(self, what="g2"):
         """
+        Build and return a dataframe with all the |g(k+q,k)|^2 if what=="g2" or
+        all |v_nk|^2 if what=="v2".
         """
         if what == "g2":
             g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
@@ -224,6 +223,8 @@ class Gqk:
             indices = np.indices(shape).reshape(ndim, -1).T
             df = pd.DataFrame(indices, columns=["iq", "ik", "imode", "m_kq", "n_k"])
             df["g2"] = g2.flatten()
+            #df["m_kq"] += bstart_mkq
+            #df["n_k"] += bstart_nk
 
         elif what == "v2":
             if self.vk_cart_ibz is None:
@@ -234,8 +235,9 @@ class Gqk:
             shape, ndim = v2.shape, v2.ndim
             # Flatten the array, get the indices and combine indices and values into a DataFrame
             indices = np.indices(shape).reshape(ndim, -1).T
-            df = pd.DataFrame(indices, columns=["ik", "ib"])
+            df = pd.DataFrame(indices, columns=["ik", "n_k"])
             df["v2"] = v2.flatten()
+            #df["n_k"] += bstart_nk
 
         else:
             raise ValueError(f"Invalid {what=}")
@@ -258,6 +260,8 @@ class Gqk:
         indices = np.indices(shape).reshape(ndim, -1).T
         df = pd.DataFrame(indices, columns=["imode", "m_kq", "n_k"])
         df["g2"] = g2_slice.flatten()
+        #df["m_kq"] += bstart_mkq
+        #df["n_k"] += bstart_nk
 
         return df
 
@@ -341,6 +345,7 @@ class GstoreReader(BaseEphReader):
         # nctkarr_t("gstore_qbz2ibz", "i", "six, gstore_nqbz"), &
         self.kbz2ibz = self.read_value("gstore_kbz2ibz")
         self.kbz2ibz[:,0] -= 1
+
         self.qbz2ibz = self.read_value("gstore_qbz2ibz")
         self.qbz2ibz[:,0] -= 1
 
@@ -349,11 +354,12 @@ class GstoreReader(BaseEphReader):
         # nctkarr_t("gstore_kglob2bz", "i", "gstore_max_nk, number_of_spins") &
         self.qglob2bz = self.read_value("gstore_qglob2bz")
         self.qglob2bz -= 1
+
         self.kglob2bz = self.read_value("gstore_kglob2bz")
         self.kglob2bz -= 1
 
     def find_iq_glob_qpoint(self, qpoint, spin: int):
-        """Find the internal index of qpoint needed to access the gvals array."""
+        """Find the internal index of the qpoint needed to access the gvals array."""
         qpoint = np.array(qpoint)
         for iq_g, iq_bz in enumerate(self.qglob2bz[spin]):
             if np.allclose(qpoint, self.qbz[iq_bz]):
@@ -362,7 +368,7 @@ class GstoreReader(BaseEphReader):
         raise ValueError(f"Cannot find {qpoint=} in GSTORE.nc")
 
     def find_ik_glob_kpoint(self, kpoint, spin: int):
-        """Find the internal indices of kpoint needed in access the gvals array."""
+        """Find the internal indices of the kpoint needed to access the gvals array."""
         kpoint = np.array(kpoint)
         for ik_g, ik_bz in enumerate(self.kglob2bz[spin]):
             if np.allclose(kpoint, self.kbz[ik_bz]):
@@ -380,6 +386,18 @@ class GstoreReader(BaseEphReader):
 class GstoreRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple GSTORE.nc files.
+
+    Usage example:
+
+    .. code-block:: python
+
+        robot = GstoreRobot.from_files([
+            "t04o_GSTORE.nc",
+            "foo_GSTORE.nc",
+            ])
+
+        print(robot)
+        robot.compare()
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GstoreRobot
