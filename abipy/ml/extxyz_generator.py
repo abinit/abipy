@@ -152,7 +152,7 @@ def check_vasp_success(vasprun, outcar, verbose: int = 0) -> bool:
     Returns:
     bool: True if the calculation completed successfully, False otherwise.
     """
-    def my_print(*args, **kwargs)
+    def my_print(*args, **kwargs):
         if verbose: print(*args, **kwargs)
 
     from pymatgen.io.vasp.outputs import Vasprun, Outcar
@@ -192,10 +192,10 @@ class SinglePointRunner:
         self.traj_path = traj_path
         self.topdir = Path(str(topdir)).absolute()
         self.traj_range = traj_range
-        if not isinstance(traj_range):
+        if not isinstance(traj_range, range):
             raise TypeError(f"Got type{traj_range} instead of range")
         self.abinitio_code = abinitio_code
-        if not ps.path.exists(self.slurm_template):
+        if not os.path.exists(slurm_template):
             s = qu.get_slurm_template()
             open(slurm_template, "wt").write(s)
             raise RuntimeError("")
@@ -225,7 +225,12 @@ class SinglePointRunner:
                 print("{workdir=} already exists. Ignoring it")
                 continue
 
-            atoms = read(self.traj_path, index=index)
+            try:
+                atoms = read(self.traj_path, index=index)
+            except StopIteration as exc:
+                print("ASE trajector does not have more that {index=} configurations. Exiting loop!")
+                break
+
             structure = Structure.as_structure(atoms)
             script_filepath = workdir / "run.sh"
             workdir.mkdir()
