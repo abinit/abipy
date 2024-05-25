@@ -271,7 +271,7 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
     """
     Submit a job script to the queue with sbatch. Return Slurm JOB ID.
     """
-    from monty.os import cd 
+    from monty.os import cd
     dirpath = os.path.dirname(slurm_filepath)
     print("dirpath", dirpath)
     with cd(dirpath):
@@ -299,3 +299,66 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
                 raise exc
         else:
             raise RuntimeError(f"Error while submitting {slurm_filepath=}")
+
+
+def get_slurm_template() -> str:
+    """
+    Return template for slurm submission that is supposed to be customized by the user
+    """
+
+    return """\
+#!/bin/bash
+
+# Please customize this section using your settings.
+#SBATCH --job-name=my_job
+#SBATCH --output=%j_%x.out
+#SBATCH --error=%j_%x.err
+#SBATCH --partition=debug
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=64
+#SBATCH --mem-per-cpu=2G
+#SBATCH --time=2:00:00
+#SBATCH --account=htforft
+
+# ------------------------------------------------------------------------------
+# Printing some information
+# ------------------------------------------------------------------------------
+
+echo "------------------- Job info -------------------"
+echo "job_id             : $SLURM_JOB_ID"
+echo "jobname            : $SLURM_JOB_NAME"
+echo "queue              : $SLURM_JOB_PARTITION"
+echo "qos                : $SLURM_JOB_QOS"
+echo "account            : $SLURM_JOB_ACCOUNT"
+echo "submit dir         : $SLURM_SUBMIT_DIR"
+echo "number of mpi tasks: $SLURM_NTASKS tasks"
+echo "OMP_NUM_THREADS    : $OMP_NUM_THREADS"
+echo "number of gpus     : $SLURM_GPUS_ON_NODE"
+
+echo "------------------- Node list ------------------"
+echo $SLURM_JOB_NODELIST
+
+echo "---------------- Checking limits ---------------"
+ulimit -a
+
+# ------------------------------------------------------------------------------
+# Setting up the environment
+# ------------------------------------------------------------------------------
+
+echo "----------------- Environment ------------------"
+source $HOME/vasp.6.2.1/modules.sh
+module list
+
+# ------------------------------------------------------------------------------
+# And finally running the code
+# ------------------------------------------------------------------------------
+
+echo "--------------- Running the code ---------------"
+echo -n "This run started on: "
+date
+
+mpirun vasp_std > log 2> err
+
+echo -n "This run completed on: "
+date
+"""

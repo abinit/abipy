@@ -10,7 +10,6 @@ import abipy.core.abinit_units as abu
 #except ImportError as exc:
 #    raise ImportError("ase not installed. Try `pip install ase`.") from exc
 from pathlib import Path
-#from inspect import isclass
 #from multiprocessing import Pool
 #from typing import Type, Any, Optional, Union
 #from enum import IntEnum
@@ -21,14 +20,12 @@ from monty.string import list_strings  # marquee,
 #from monty.functools import lazy_property
 #from monty.json import MontyEncoder
 #from monty.collections import AttrDict
-#from pymatgen.io.ase import AseAtomsAdaptor
 #from ase import units
 #from ase.atoms import Atoms
 #from ase.io.trajectory import write_traj, Trajectory
 from ase.io import read
 #from ase.calculators.calculator import Calculator
 #from ase.io.vasp import write_vasp_xdatcar, write_vasp
-#from ase.neb import NEB
 #from ase.stress import voigt_6_to_full_3x3_strain
 #from ase.calculators.calculator import PropertyNotImplementedError
 from ase.calculators.singlepoint import SinglePointCalculator
@@ -38,6 +35,7 @@ from abipy.core import Structure
 from abipy.electrons.gsr import GsrFile
 #from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
 from abipy.tools.typing import PathLike
+import abipy.flowtk.qutils as qu
 #from abipy.tools.serialization import HasPickleIO
 #from abipy.tools.context_managers import Timer
 #from abipy.tools.parallel import get_max_nprocs, pool_nprocs_pmode
@@ -90,6 +88,7 @@ class ExtxyzIOWriter:
         for ext in self.SUPPORTED_EXTS:
             if all(f.endswith(ext) for f in self.filepaths):
                 self.ext = ext
+                break
         else:
             raise ValueError(f"Cannot detect extension from filepaths, should be in: {self.SUPPORTED_EXTS}")
 
@@ -146,6 +145,38 @@ class ExtxyzIOWriter:
             yield atoms
 
 
+def check_vasp_success(vasprun, outcar, verbose: int = 0) -> bool:
+    """
+    Check if a VASP calculation completed successfully.
+
+    Returns:
+    bool: True if the calculation completed successfully, False otherwise.
+    """
+    def my_print(*args, **kwargs)
+        if verbose: print(*args, **kwargs)
+
+    from pymatgen.io.vasp.outputs import Vasprun, Outcar
+    try:
+        # vasprun = Vasprun(f"{directory}/vasprun.xml")
+        if not vasprun.converged:
+            my_print("Calculation did not converge.")
+            return False
+
+        #outcar = Outcar(f"{directory}/OUTCAR")
+        if outcar.run_stats.get("Elapsed time (sec)"):
+            my_print("Calculation completed in {} seconds.".format(outcar.run_stats["Elapsed time (sec)"]))
+        else:
+            my_print("Elapsed time not found in OUTCAR.")
+            return False
+
+        my_print("Calculation completed successfully.")
+        return True
+
+    except Exception as e:
+        my_print(f"Error checking calculation status: {e}")
+        return False
+
+
 
 class SinglePointRunner:
     """
@@ -154,13 +185,23 @@ class SinglePointRunner:
     runner.collect_xyz("foo.xyz")
     """
 
-    def __init__(self, traj_path: PathLike, topdir: PathLike, traj_range: range, 
-                 abinitio_code: str, slurm_template: PathLike, **kwargs):
+    def __init__(self, traj_path: PathLike, topdir: PathLike, traj_range: range,
+                 abinitio_code: str, slurm_template: PathLike, verbose=0, **kwargs):
+        """
+        """
         self.traj_path = traj_path
         self.topdir = Path(str(topdir)).absolute()
         self.traj_range = traj_range
+        if not isinstance(traj_range):
+            raise TypeError(f"Got type{traj_range} instead of range")
         self.abinitio_code = abinitio_code
+        if not ps.path.exists(self.slurm_template):
+            s = qu.get_slurm_template()
+            open(slurm_template, "wt").write(s)
+            raise RuntimeError("")
+
         self.slurm_template = open(slurm_template, "rt").read()
+        self.verbose = int(verbose)
         self.kwargs = kwargs
 
     def __str__(self) -> str:
@@ -176,19 +217,18 @@ class SinglePointRunner:
     def sbatch(self):
         """
         """
-        from abipy.flowtk.qutils import slurm_sbatch
-
         if not self.topdir.exists(): self.topdir.mkdir()
 
         for index in self.traj_range:
             workdir = self.topdir / f"SINGLEPOINT_{index}"
             if workdir.exists():
+                print("{workdir=} already exists. Ignoring it")
                 continue
 
-            workdir.mkdir()
             atoms = read(self.traj_path, index=index)
             structure = Structure.as_structure(atoms)
             script_filepath = workdir / "run.sh"
+            workdir.mkdir()
 
             if self.abinitio_code == "vasp":
                 # Generate VASP input files using the Materials Project settings for a single-point calculation
@@ -202,7 +242,7 @@ class SinglePointRunner:
             with open(script_filepath, "wt") as fh:
                 fh.write(self.slurm_template)
 
-            slurm_sbatch(script_filepath)
+            qu.slurm_sbatch(script_filepath)
 
     def write_xyz(self, xyz_filepath: PathLike, dryrun=False) -> None:
         """
