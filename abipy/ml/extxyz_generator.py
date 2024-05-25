@@ -198,7 +198,7 @@ class SinglePointRunner:
 
         err_msgs = []
         if not os.path.exists(slurm_script):
-            open(slurm_script, "wt").write(qu.get_slurm_script()
+            open(slurm_script, "wt").write(qu.get_slurm_script())
             err_msgs.append("""\
 No template for slurm submission script has been found. A default template that requires customization has been generated for you!""")
         else:
@@ -206,11 +206,11 @@ No template for slurm submission script has been found. A default template that 
 
         if code == "vasp":
             if not os.path.exists(custodian_script):
-                open(custodian_script, "wt").write(qu.get_custodian_script()
+                open(custodian_script, "wt").write(qu.get_custodian_script())
                 err_msgs.append("""\
 No template for custodian script has been found. A default template that requires customization has been generated for you!""")
             else:
-                self.custodian_script = open(slurm_script, "rt").read()
+                self.custodian_script = open(custodian_script, "rt").read()
 
         if err_msgs:
             raise RuntimeError("\n".join(err_msgs))
@@ -270,14 +270,14 @@ No template for custodian script has been found. A default template that require
                 from pymatgen.io.vasp.sets import MPStaticSet
                 vasp_input_set = MPStaticSet(structure, **self.kwargs)
                 vasp_input_set.write_input(workdir)
-                with open(workdir / "run_custodian.py", wt) as fh:
+                with open(workdir / "run_custodian.py", "wt") as fh:
                     fh.write(self.custodian_script)
 
             else:
                 raise ValueError(f"Unsupported {self.code=}")
 
             with open(script_filepath, "wt") as fh:
-                fh.write(self.slurm_template)
+                fh.write(self.slurm_script)
 
             queue_id = qu.slurm_sbatch(script_filepath)
             num_jobs += 1
