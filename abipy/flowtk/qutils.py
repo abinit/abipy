@@ -291,8 +291,8 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
                 print("Saving slurm job ID in:", path_qid)
                 with open(path_qid, "wt") as fh:
                     fh.write(str(queue_id) + " # Slurm job id")
-
                 return queue_id
+
             except Exception as exc:
                 # probably error parsing job code
                 print('Could not parse job id following slurm...')
@@ -303,9 +303,8 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
 
 def get_slurm_template() -> str:
     """
-    Return template for slurm submission that is supposed to be customized by the user
+    Return template for slurm submission that is supposed to be customized by the user.
     """
-
     return """\
 #!/bin/bash
 
@@ -316,9 +315,12 @@ def get_slurm_template() -> str:
 #SBATCH --partition=debug
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=64
+#SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2G
 #SBATCH --time=2:00:00
 #SBATCH --account=htforft
+
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 # ------------------------------------------------------------------------------
 # Printing some information
@@ -339,6 +341,7 @@ echo "------------------- Node list ------------------"
 echo $SLURM_JOB_NODELIST
 
 echo "---------------- Checking limits ---------------"
+ulimit -s unlimited
 ulimit -a
 
 # ------------------------------------------------------------------------------
@@ -361,4 +364,36 @@ mpirun vasp_std > log 2> err
 
 echo -n "This run completed on: "
 date
+"""
+
+
+def get_custodian_template() -> str:
+    return """\
+#!/usr/bin/env python
+from custodian.custodian import Custodian
+from custodian.vasp.jobs import VaspJob
+from custodian.vasp.handlers import VaspErrorHandler, UnconvergedErrorHandler
+
+# List of error handlers
+handlers = [
+    VaspErrorHandler(),        # Handles common VASP errors
+    UnconvergedErrorHandler()  # Handles unconverged calculations
+]
+
+# Define the VASP job with appropriate command and parameters
+jobs = [
+    VaspJob(
+        #["mpirun", "vasp_std"],  # Replace NCORES with the number of cores
+        #["mpirun", "-np", "1", "vasp_std"],  # Replace NCORES with the number of cores
+        ["mpirun", "vasp_std"],  # Replace NCORES with the number of cores
+        auto_npar=False,
+        final=True
+    )
+]
+
+# Create the Custodian instance with handlers and jobs
+c = Custodian(handlers, jobs, max_errors=5)
+
+# Run the Custodian job
+c.run()
 """

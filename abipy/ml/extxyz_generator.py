@@ -30,7 +30,7 @@ from ase.io import read
 #from ase.calculators.calculator import PropertyNotImplementedError
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import write
-from pymatgen.io.vasp.outputs import Vasprun
+from pymatgen.io.vasp.outputs import Vasprun, Outcar
 from abipy.core import Structure
 from abipy.electrons.gsr import GsrFile
 #from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
@@ -75,10 +75,6 @@ class ExtxyzIOWriter:
          from monty.os.paths import find_exts
          filepaths = find_exts(str(top), ext)
          return cls(filepaths)
-
-    #@classmethod
-    #def from_dirs(cls, dirs: list[PathLike], ext: str):
-    #    return cls(filepaths, ext)
 
     def __init__(self, filepaths: list[PathLike]):
         self.filepaths = list_strings(filepaths)
@@ -145,29 +141,27 @@ class ExtxyzIOWriter:
             yield atoms
 
 
-def check_vasp_success(vasprun, outcar, verbose: int = 0) -> bool:
+def check_vasp_success(vasprun, outcar, verbose: int = 1) -> bool:
     """
     Check if a VASP calculation completed successfully.
 
-    Returns:
-    bool: True if the calculation completed successfully, False otherwise.
+    Returns: True if the calculation completed successfully, False otherwise.
     """
     def my_print(*args, **kwargs):
         if verbose: print(*args, **kwargs)
 
-    from pymatgen.io.vasp.outputs import Vasprun, Outcar
     try:
-        # vasprun = Vasprun(f"{directory}/vasprun.xml")
         if not vasprun.converged:
             my_print("Calculation did not converge.")
             return False
 
         #outcar = Outcar(f"{directory}/OUTCAR")
-        if outcar.run_stats.get("Elapsed time (sec)"):
-            my_print("Calculation completed in {} seconds.".format(outcar.run_stats["Elapsed time (sec)"]))
-        else:
-            my_print("Elapsed time not found in OUTCAR.")
-            return False
+        if outcar is not None:
+            if outcar.run_stats.get("Elapsed time (sec)"):
+                my_print("Calculation completed in {} seconds.".format(outcar.run_stats["Elapsed time (sec)"]))
+            else:
+                my_print("Elapsed time not found in OUTCAR.")
+                return False
 
         my_print("Calculation completed successfully.")
         return True
@@ -177,16 +171,22 @@ def check_vasp_success(vasprun, outcar, verbose: int = 0) -> bool:
         return False
 
 
-
 class SinglePointRunner:
     """
-    runner = SinglePointRunner("out.traj", "outdir", traj_range=(0,-1,100), "vasp")
-    runner.sbatch()
-    runner.collect_xyz("foo.xyz")
+
+    Usage example:
+
+    .. code-block:: python
+
+        runner = SinglePointRunner("out.traj", "outdir", traj_range=(0,-1,100), "vasp")
+        runner.sbatch()
+        runner.collect_xyz("foo.xyz")
     """
 
-    def __init__(self, traj_path: PathLike, topdir: PathLike, traj_range: range,
-                 abinitio_code: str, slurm_template: PathLike, verbose=0, **kwargs):
+    def __init__(self, traj_path: PathLike, topdir: PathLike, traj_range: range, code: str = "vasp",
+                 slurm_script: PathLike = "run.sh",
+                 custodian_script: PathLike = "run_custodian.py",
+                 verbose=0, **kwargs):
         """
         """
         self.traj_path = traj_path
@@ -194,13 +194,27 @@ class SinglePointRunner:
         self.traj_range = traj_range
         if not isinstance(traj_range, range):
             raise TypeError(f"Got type{traj_range} instead of range")
-        self.abinitio_code = abinitio_code
-        if not os.path.exists(slurm_template):
-            s = qu.get_slurm_template()
-            open(slurm_template, "wt").write(s)
-            raise RuntimeError("")
+        self.code = code
 
-        self.slurm_template = open(slurm_template, "rt").read()
+        err_msgs = []
+        if not os.path.exists(slurm_script):
+            open(slurm_script, "wt").write(qu.get_slurm_script()
+            err_msgs.append("""\
+No template for slurm submission script has been found. A default template that requires customization has been generated for you!""")
+        else:
+            self.slurm_script = open(slurm_script, "rt").read()
+
+        if code == "vasp":
+            if not os.path.exists(custodian_script):
+                open(custodian_script, "wt").write(qu.get_custodian_script()
+                err_msgs.append("""\
+No template for custodian script has been found. A default template that requires customization has been generated for you!""")
+            else:
+                self.custodian_script = open(slurm_script, "rt").read()
+
+        if err_msgs:
+            raise RuntimeError("\n".join(err_msgs))
+
         self.verbose = int(verbose)
         self.kwargs = kwargs
 
@@ -214,11 +228,27 @@ class SinglePointRunner:
 
         return "\n".join(lines)
 
-    def sbatch(self):
+    #def get_custom_incar_settings():
+    #    # Define custom INCAR settings
+    #    custom_incar_settings = {
+    #        'ENCUT': 600,         # Override plane-wave cutoff energy
+    #        'ISMEAR': -5,         # Use tetrahedron method with Blöchl corrections
+    #        'SIGMA': 0.01,        # Smearing width
+    #        'EDIFF': 1E-8,        # Electronic energy convergence criterion
+    #        'NSW': 0,             # Number of ionic steps (static calculation)
+    #        'ISIF': 2,            # Stress tensor calculation
+    #        'LREAL': 'Auto',      # Projection operators (automatic)
+    #        'LWAVE': False,       # Do not write WAVECAR
+    #        'LCHARG': True        # Write CHGCAR
+    #    }
+    #    return custom_incar_settings
+
+    def sbatch(self, max_jobs: int=100) -> int:
         """
         """
         if not self.topdir.exists(): self.topdir.mkdir()
 
+        num_jobs = 0
         for index in self.traj_range:
             workdir = self.topdir / f"SINGLEPOINT_{index}"
             if workdir.exists():
@@ -228,26 +258,33 @@ class SinglePointRunner:
             try:
                 atoms = read(self.traj_path, index=index)
             except StopIteration as exc:
-                print("ASE trajector does not have more that {index=} configurations. Exiting loop!")
+                print(f"ASE trajectory does not have more that {index=} configurations. Exiting sbatch loop!")
                 break
 
             structure = Structure.as_structure(atoms)
-            script_filepath = workdir / "run.sh"
             workdir.mkdir()
+            script_filepath = workdir / "run.sh"
 
-            if self.abinitio_code == "vasp":
+            if self.code == "vasp":
                 # Generate VASP input files using the Materials Project settings for a single-point calculation
                 from pymatgen.io.vasp.sets import MPStaticSet
                 vasp_input_set = MPStaticSet(structure, **self.kwargs)
                 vasp_input_set.write_input(workdir)
+                with open(workdir / "run_custodian.py", wt) as fh:
+                    fh.write(self.custodian_script)
 
             else:
-                raise ValueError(f"Unsupported {abinitio_code=}")
+                raise ValueError(f"Unsupported {self.code=}")
 
             with open(script_filepath, "wt") as fh:
                 fh.write(self.slurm_template)
 
-            qu.slurm_sbatch(script_filepath)
+            queue_id = qu.slurm_sbatch(script_filepath)
+            num_jobs += 1
+            if num_jobs == max_jobs:
+                print(f"Reached {max_jobs=}, will stop firing new jobs!")
+
+        return num_jobs
 
     def write_xyz(self, xyz_filepath: PathLike, dryrun=False) -> None:
         """
@@ -255,8 +292,8 @@ class SinglePointRunner:
         ext = {
             "vasp": "vasprun.xml",
             "abinit": "GSR.nc",
-        }[self.abinitio_code]
+        }[self.code]
 
-        writer.ExtxyzIOWriter.from_top(self.workdir, ext)
+        writer = ExtxyzIOWriter.from_top(self.workdir, ext)
         writer.write(xyz_filepath)
 
