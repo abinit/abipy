@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-#import numpy as np
+import numpy as np
 import abipy.core.abinit_units as abu
 #try:
 #    import ase
@@ -30,6 +30,7 @@ from abipy.electrons.gsr import GsrFile
 #from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
 from abipy.tools.typing import PathLike
 import abipy.flowtk.qutils as qu
+from abipy.ml.tools import get_energy_step
 #from abipy.tools.serialization import HasPickleIO
 #from abipy.core.mixins import TextFile, NotebookWriter
 #from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
@@ -63,7 +64,7 @@ class ExtxyzIOWriter:
 
     @classmethod
     def from_top(cls, top: PathLike, ext: str):
-         from monty.os.paths import find_exts
+         from monty.os.path import find_exts
          filepaths = find_exts(str(top), ext)
          return cls(filepaths)
 
@@ -95,7 +96,7 @@ class ExtxyzIOWriter:
         if not overwrite and os.path.isfile(xyz_filepath):
             raise RuntimeError(f"Cannot overwrite pre-existent file: {xyz_filepath=}, use overwrite=True to allow overwriting.")
 
-        with open(xzy_filepath, "wt") as fh:
+        with open(xyz_filepath, "wt") as fh:
             for atoms in self.yield_atoms():
                 write(fh, atoms, format='extxyz', append=True)
 
@@ -107,15 +108,16 @@ class ExtxyzIOWriter:
                 vasprun = Vasprun(filepath)
                 last_step = vasprun.ionic_steps[-1]
                 structure, forces, stress = last_step["structure"], last_step["forces"], last_step["stress"]
+                stress = np.reshape(stress, (3, 3))
                 energy = get_energy_step(last_step)
 
             elif self.ext == "GSR.nc":
                 with GsrFile(filepath) as gsr:
-                      if not gsr.is_scf_run:
-                          raise RuntimeError("GSR file was not produced by a SCF run!")
-                      structure, forces, stress_gpa = gsr.structure, gsr.cart_forces, gsr.cart_stress_tensor
-                      stress = stress_gpa / abu.eVA3_GPa
-                      energy = float(gsr.energy)
+                    if not gsr.is_scf_run:
+                        raise RuntimeError("GSR file was not produced by a SCF run!")
+                    structure, forces, stress_gpa = gsr.structure, gsr.cart_forces, gsr.cart_stress_tensor
+                    stress = stress_gpa / abu.eVA3_GPa
+                    energy = float(gsr.energy)
 
             else:
                 raise ValueError(f"Format {self.ext=} is not supported!")
@@ -286,6 +288,6 @@ No template for custodian script has been found. A default template that require
             "abinit": "GSR.nc",
         }[self.code]
 
-        writer = ExtxyzIOWriter.from_top(self.workdir, ext)
+        writer = ExtxyzIOWriter.from_top(self.topdir, ext)
         writer.write(xyz_filepath)
 
