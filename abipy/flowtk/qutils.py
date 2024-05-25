@@ -306,7 +306,7 @@ def get_slurm_template(runner="srun") -> str:
     """
     Return template for slurm submission that is supposed to be customized by the user.
     """
-    header """\
+    header = """\
 #!/bin/bash
 
 # Please customize this section using your settings.

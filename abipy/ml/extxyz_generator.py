@@ -192,7 +192,7 @@ class SinglePointRunner:
 
         err_lines = []
         if not os.path.exists(slurm_script):
-            open(slurm_script, "wt").write(qu.get_slurm_template()
+            open(slurm_script, "wt").write(qu.get_slurm_template())
             err_lines.append("""\
 No template for slurm submission script has been found. A default template that requires customization has been generated for you!""")
         else:
@@ -200,7 +200,7 @@ No template for slurm submission script has been found. A default template that 
 
         if code == "vasp":
             if not os.path.exists(custodian_script):
-                open(custodian_script, "wt").write(qu.get_custodian_template()
+                open(custodian_script, "wt").write(qu.get_custodian_template())
                 err_lines.append("""\
 No template for custodian script has been found. A default template that requires customization has been generated for you!""")
             else:
