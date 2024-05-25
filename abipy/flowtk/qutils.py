@@ -269,11 +269,12 @@ rm ${{me}}.qid
 
 def slurm_sbatch(slurm_filepath: PathLike) -> int:
     """
-    Submit a job script to the queue with sbatch. Return Slurm JOB ID.
+    Submit a job script to the queue with Slurm sbatch.
+    Return Slurm JOB ID.
     """
     from monty.os import cd
     dirpath = os.path.dirname(slurm_filepath)
-    print("dirpath", dirpath)
+    #print("dirpath", dirpath)
     with cd(dirpath):
         from subprocess import Popen, PIPE
         # need string not bytes so must use universal_newlines
@@ -301,11 +302,11 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
             raise RuntimeError(f"Error while submitting {slurm_filepath=}")
 
 
-def get_slurm_template() -> str:
+def get_slurm_template(runner="srun") -> str:
     """
     Return template for slurm submission that is supposed to be customized by the user.
     """
-    return """\
+    header """\
 #!/bin/bash
 
 # Please customize this section using your settings.
@@ -352,19 +353,31 @@ echo "----------------- Environment ------------------"
 source $HOME/vasp.6.2.1/modules.sh
 module list
 
-# ------------------------------------------------------------------------------
-# And finally running the code
-# ------------------------------------------------------------------------------
-
 echo "--------------- Running the code ---------------"
 echo -n "This run started on: "
 date
 
-mpirun vasp_std > log 2> err
+"""
 
+    if app == "custodian":
+        body = """\
+python run_custodian.py
+"""
+
+    elif app == "vasp":
+        body = """\
+{runner} vasp_std > run.log 2> run.err
+"""
+    elif app == "abinit":
+        body = f"""\
+{runner} abinit run.abi > run.log 2> run.err
+"""
+
+    footer = """\
 echo -n "This run completed on: "
 date
 """
+    return header + body + footer
 
 
 def get_custodian_template() -> str:

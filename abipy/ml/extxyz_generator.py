@@ -10,24 +10,18 @@ import abipy.core.abinit_units as abu
 #except ImportError as exc:
 #    raise ImportError("ase not installed. Try `pip install ase`.") from exc
 from pathlib import Path
-#from multiprocessing import Pool
-#from typing import Type, Any, Optional, Union
-#from enum import IntEnum
-#from tabulate import tabulate
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from monty.string import list_strings  # marquee,
 #from monty.functools import lazy_property
 #from monty.json import MontyEncoder
-#from monty.collections import AttrDict
 #from ase import units
 #from ase.atoms import Atoms
 #from ase.io.trajectory import write_traj, Trajectory
 from ase.io import read
 #from ase.calculators.calculator import Calculator
 #from ase.io.vasp import write_vasp_xdatcar, write_vasp
-#from ase.stress import voigt_6_to_full_3x3_strain
-#from ase.calculators.calculator import PropertyNotImplementedError
+from ase.stress import full_3x3_to_voigt_6_stress
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import write
 from pymatgen.io.vasp.outputs import Vasprun, Outcar
@@ -37,9 +31,6 @@ from abipy.electrons.gsr import GsrFile
 from abipy.tools.typing import PathLike
 import abipy.flowtk.qutils as qu
 #from abipy.tools.serialization import HasPickleIO
-#from abipy.tools.context_managers import Timer
-#from abipy.tools.parallel import get_max_nprocs, pool_nprocs_pmode
-#from abipy.abio.enums import StrEnum, EnumMixin
 #from abipy.core.mixins import TextFile, NotebookWriter
 #from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
 #    set_visible, set_ax_xylabels, linear_fit_ax)
@@ -130,6 +121,7 @@ class ExtxyzIOWriter:
                 raise ValueError(f"Format {self.ext=} is not supported!")
 
             atoms = structure.to_ase_atoms()
+            stress = full_3x3_to_voigt_6_stress(stress)
 
             # Attach calculator with results.
             atoms.calc = SinglePointCalculator(atoms,
@@ -196,24 +188,24 @@ class SinglePointRunner:
             raise TypeError(f"Got type{traj_range} instead of range")
         self.code = code
 
-        err_msgs = []
+        err_lines = []
         if not os.path.exists(slurm_script):
-            open(slurm_script, "wt").write(qu.get_slurm_script())
-            err_msgs.append("""\
+            open(slurm_script, "wt").write(qu.get_slurm_template()
+            err_lines.append("""\
 No template for slurm submission script has been found. A default template that requires customization has been generated for you!""")
         else:
             self.slurm_script = open(slurm_script, "rt").read()
 
         if code == "vasp":
             if not os.path.exists(custodian_script):
-                open(custodian_script, "wt").write(qu.get_custodian_script())
-                err_msgs.append("""\
+                open(custodian_script, "wt").write(qu.get_custodian_template()
+                err_lines.append("""\
 No template for custodian script has been found. A default template that requires customization has been generated for you!""")
             else:
-                self.custodian_script = open(custodian_script, "rt").read()
+                self.custodian_script = open(slurm_script, "rt").read()
 
-        if err_msgs:
-            raise RuntimeError("\n".join(err_msgs))
+        if err_lines:
+            raise RuntimeError("\n".join(err_lines))
 
         self.verbose = int(verbose)
         self.kwargs = kwargs
@@ -270,14 +262,14 @@ No template for custodian script has been found. A default template that require
                 from pymatgen.io.vasp.sets import MPStaticSet
                 vasp_input_set = MPStaticSet(structure, **self.kwargs)
                 vasp_input_set.write_input(workdir)
-                with open(workdir / "run_custodian.py", "wt") as fh:
+                with open(workdir / "run_custodian.py", wt) as fh:
                     fh.write(self.custodian_script)
 
             else:
                 raise ValueError(f"Unsupported {self.code=}")
 
             with open(script_filepath, "wt") as fh:
-                fh.write(self.slurm_script)
+                fh.write(self.slurm_template)
 
             queue_id = qu.slurm_sbatch(script_filepath)
             num_jobs += 1
