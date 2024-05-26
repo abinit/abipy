@@ -178,7 +178,7 @@ class SinglePointRunner:
 
     custodian_script_name = "run_custodian.py"
 
-    def __init__(self, traj_path: PathLike, topdir: PathLike, traj_range: range, code: str = "vasp", verbose=0):
+    def __init__(self, traj_path: PathLike, traj_range: range, code: topdir: PathLike = "outdir", str = "vasp", verbose=0):
         """
         """
         self.traj_path = traj_path
