@@ -177,7 +177,7 @@ class SinglePointRunner:
     """
     slurm_script_name = "run.sh"
 
-    custodian_script = "run_custodian.py"
+    custodian_script_name = "run_custodian.py"
 
     def __init__(self, traj_path: PathLike, topdir: PathLike, traj_range: range, code: str = "vasp", verbose=0):
         """
@@ -193,9 +193,9 @@ class SinglePointRunner:
         slurm_body = ""
 
         if code == "vasp":
-            slurm_body = f"python {custodian_script}"
-            if not os.path.exists(sefl.custodian_script):
-                open(self.custodian_script, "wt").write(qu.get_custodian_template())
+            slurm_body = f"python {self.custodian_script_name}"
+            if not os.path.exists(self.custodian_script_name):
+                open(self.custodian_script_name, "wt").write(qu.get_custodian_template())
                 err_lines.append("""\
 No template for custodian script has been found. A default template that requires customization has been generated for you!""")
             else:
@@ -247,7 +247,7 @@ No template for slurm submission script has been found. A default template that 
         for index in self.traj_range:
             workdir = self.topdir / f"SINGLEPOINT_{index}"
             if workdir.exists():
-                print("{workdir=} already exists. Ignoring it")
+                print(f"{workdir=} already exists. Ignoring it")
                 continue
 
             try:
@@ -259,7 +259,6 @@ No template for slurm submission script has been found. A default template that 
             structure = Structure.as_structure(atoms)
             workdir.mkdir()
 
-
             if self.code == "vasp":
                 # Generate VASP input files using the Materials Project settings for a single-point calculation
                 from pymatgen.io.vasp.sets import MPStaticSet
@@ -267,7 +266,7 @@ No template for slurm submission script has been found. A default template that 
                 vasp_input_set = MPStaticSet(structure, user_incar_settings=user_incar_settings)
 
                 vasp_input_set.write_input(workdir)
-                with open(workdir / "run_custodian.py", wt) as fh:
+                with open(workdir / "run_custodian.py", "wt") as fh:
                     fh.write(self.custodian_script_str)
 
             else:

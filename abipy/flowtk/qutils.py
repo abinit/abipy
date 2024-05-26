@@ -287,7 +287,7 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
             try:
                 # output should of the form '2561553.sdb' or '352353.jessup' - just grab the first part for job id
                 queue_id = int(out.split()[3])
-                print(f"Job submission was successful and {queue_id=}")
+                print(f"Job submission was successful and queue_id: {queue_id}")
                 path_qid = slurm_filepath + ".qid"
                 print("Saving slurm job ID in:", path_qid)
                 with open(path_qid, "wt") as fh:
