@@ -108,7 +108,6 @@ class ExtxyzIOWriter:
                 vasprun = Vasprun(filepath)
                 last_step = vasprun.ionic_steps[-1]
                 structure, forces, stress = last_step["structure"], last_step["forces"], last_step["stress"]
-                stress = np.reshape(stress, (3, 3))
                 energy = get_energy_step(last_step)
 
             elif self.ext == "GSR.nc":
@@ -172,45 +171,47 @@ class SinglePointRunner:
 
     .. code-block:: python
 
-        runner = SinglePointRunner("out.traj", "outdir", traj_range=(0,-1,100), "vasp")
+        runner = SinglePointRunner("out.traj", "outdir", traj_range=(0,-1,100))
         runner.sbatch()
         runner.collect_xyz("foo.xyz")
     """
+    slurm_script_name = "run.sh"
 
-    def __init__(self, traj_path: PathLike, topdir: PathLike, traj_range: range, code: str = "vasp",
-                 slurm_script: PathLike = "run.sh",
-                 custodian_script: PathLike = "run_custodian.py",
-                 verbose=0, **kwargs):
+    custodian_script = "run_custodian.py"
+
+    def __init__(self, traj_path: PathLike, topdir: PathLike, traj_range: range, code: str = "vasp", verbose=0):
         """
         """
         self.traj_path = traj_path
         self.topdir = Path(str(topdir)).absolute()
         self.traj_range = traj_range
         if not isinstance(traj_range, range):
-            raise TypeError(f"Got type{traj_range} instead of range")
+            raise TypeError(f"Got {type(traj_range)} instead of range")
         self.code = code
 
         err_lines = []
-        if not os.path.exists(slurm_script):
-            open(slurm_script, "wt").write(qu.get_slurm_template())
-            err_lines.append("""\
-No template for slurm submission script has been found. A default template that requires customization has been generated for you!""")
-        else:
-            self.slurm_script = open(slurm_script, "rt").read()
+        slurm_body = ""
 
         if code == "vasp":
-            if not os.path.exists(custodian_script):
-                open(custodian_script, "wt").write(qu.get_custodian_template())
+            slurm_body = f"python {custodian_script}"
+            if not os.path.exists(sefl.custodian_script):
+                open(self.custodian_script, "wt").write(qu.get_custodian_template())
                 err_lines.append("""\
 No template for custodian script has been found. A default template that requires customization has been generated for you!""")
             else:
-                self.custodian_script = open(slurm_script, "rt").read()
+                self.custodian_script_str = open(self.custodian_script_name, "rt").read()
+
+        if not os.path.exists(self.slurm_script_name):
+            open(self.slurm_script_name, "wt").write(qu.get_slurm_template(slurm_body))
+            err_lines.append("""\
+No template for slurm submission script has been found. A default template that requires customization has been generated for you!""")
+        else:
+            self.slurm_script_str = open(self.slurm_script_name, "rt").read()
 
         if err_lines:
             raise RuntimeError("\n".join(err_lines))
 
         self.verbose = int(verbose)
-        self.kwargs = kwargs
 
     def __str__(self) -> str:
         return self.to_string()
@@ -237,12 +238,12 @@ No template for custodian script has been found. A default template that require
     #    }
     #    return custom_incar_settings
 
-    def sbatch(self, max_jobs: int=100) -> int:
+    def sbatch(self, max_jobs: int=100) -> list[int]:
         """
         """
         if not self.topdir.exists(): self.topdir.mkdir()
 
-        num_jobs = 0
+        job_ids = []
         for index in self.traj_range:
             workdir = self.topdir / f"SINGLEPOINT_{index}"
             if workdir.exists():
@@ -257,28 +258,30 @@ No template for custodian script has been found. A default template that require
 
             structure = Structure.as_structure(atoms)
             workdir.mkdir()
-            script_filepath = workdir / "run.sh"
+
 
             if self.code == "vasp":
                 # Generate VASP input files using the Materials Project settings for a single-point calculation
                 from pymatgen.io.vasp.sets import MPStaticSet
-                vasp_input_set = MPStaticSet(structure, **self.kwargs)
+                user_incar_settings = {"NCORE": 2}
+                vasp_input_set = MPStaticSet(structure, user_incar_settings=user_incar_settings)
+
                 vasp_input_set.write_input(workdir)
                 with open(workdir / "run_custodian.py", wt) as fh:
-                    fh.write(self.custodian_script)
+                    fh.write(self.custodian_script_str)
 
             else:
                 raise ValueError(f"Unsupported {self.code=}")
 
+            script_filepath = workdir / "run.sh"
             with open(script_filepath, "wt") as fh:
-                fh.write(self.slurm_template)
+                fh.write(self.slurm_script_str)
 
-            queue_id = qu.slurm_sbatch(script_filepath)
-            num_jobs += 1
-            if num_jobs == max_jobs:
+            job_ids.append(qu.slurm_sbatch(script_filepath))
+            if len(job_ids) == max_jobs:
                 print(f"Reached {max_jobs=}, will stop firing new jobs!")
 
-        return num_jobs
+        return job_ids
 
     def write_xyz(self, xyz_filepath: PathLike, dryrun=False) -> None:
         """
