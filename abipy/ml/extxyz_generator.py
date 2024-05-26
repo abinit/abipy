@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import os
-import numpy as np
+#import numpy as np
 import abipy.core.abinit_units as abu
 #try:
 #    import ase
 #except ImportError as exc:
 #    raise ImportError("ase not installed. Try `pip install ase`.") from exc
 from pathlib import Path
-from ase.atoms import Atoms
+#from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from monty.string import list_strings  # marquee,
 #from monty.functools import lazy_property
@@ -22,7 +22,6 @@ from ase.io import read
 #from ase.calculators.calculator import Calculator
 #from ase.io.vasp import write_vasp_xdatcar, write_vasp
 from ase.stress import full_3x3_to_voigt_6_stress
-from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import write
 from pymatgen.io.vasp.outputs import Vasprun, Outcar
 from abipy.core import Structure
@@ -64,9 +63,9 @@ class ExtxyzIOWriter:
 
     @classmethod
     def from_top(cls, top: PathLike, ext: str):
-         from monty.os.path import find_exts
-         filepaths = find_exts(str(top), ext)
-         return cls(filepaths)
+        from monty.os.path import find_exts
+        filepaths = find_exts(str(top), ext)
+        return cls(filepaths)
 
     def __init__(self, filepaths: list[PathLike]):
         self.filepaths = list_strings(filepaths)
@@ -90,7 +89,7 @@ class ExtxyzIOWriter:
     def __str__(self) -> str:
         return self.to_string()
 
-    def write(self, xyz_filepath: PathLike, overwrite: bool=False):
+    def write(self, xyz_filepath: PathLike, overwrite: bool = False):
         """
         """
         if not overwrite and os.path.isfile(xyz_filepath):
@@ -134,7 +133,7 @@ class ExtxyzIOWriter:
             yield atoms
 
 
-def check_vasp_success(vasprun, outcar, verbose: int = 1) -> bool:
+def check_vasp_success(vasprun: Vasprun, outcar: Outcar, verbose: int = 1) -> bool:
     """
     Check if a VASP calculation completed successfully.
 
@@ -223,22 +222,7 @@ No template for slurm submission script has been found. A default template that 
 
         return "\n".join(lines)
 
-    #def get_custom_incar_settings():
-    #    # Define custom INCAR settings
-    #    custom_incar_settings = {
-    #        'ENCUT': 600,         # Override plane-wave cutoff energy
-    #        'ISMEAR': -5,         # Use tetrahedron method with Blöchl corrections
-    #        'SIGMA': 0.01,        # Smearing width
-    #        'EDIFF': 1E-8,        # Electronic energy convergence criterion
-    #        'NSW': 0,             # Number of ionic steps (static calculation)
-    #        'ISIF': 2,            # Stress tensor calculation
-    #        'LREAL': 'Auto',      # Projection operators (automatic)
-    #        'LWAVE': False,       # Do not write WAVECAR
-    #        'LCHARG': True        # Write CHGCAR
-    #    }
-    #    return custom_incar_settings
-
-    def sbatch(self, max_jobs: int=100) -> list[int]:
+    def sbatch(self, max_jobs: int = 100) -> list[int]:
         """
         """
         if not self.topdir.exists(): self.topdir.mkdir()
@@ -247,7 +231,7 @@ No template for slurm submission script has been found. A default template that 
         for index in self.traj_range:
             workdir = self.topdir / f"SINGLEPOINT_{index}"
             if workdir.exists():
-                print(f"{workdir=} already exists. Ignoring it")
+                print(f"{str(workdir)} already exists. Ignoring it")
                 continue
 
             try:
@@ -262,9 +246,12 @@ No template for slurm submission script has been found. A default template that 
             if self.code == "vasp":
                 # Generate VASP input files using the Materials Project settings for a single-point calculation
                 from pymatgen.io.vasp.sets import MPStaticSet
-                user_incar_settings = {"NCORE": 2}
+                user_incar_settings = {
+                    "NCORE": 2
+                    'LWAVE': False,       # Do not write WAVECAR
+                    'LCHARG': False,      # Do not Write CHGCAR
+                }
                 vasp_input_set = MPStaticSet(structure, user_incar_settings=user_incar_settings)
-
                 vasp_input_set.write_input(workdir)
                 with open(workdir / "run_custodian.py", "wt") as fh:
                     fh.write(self.custodian_script_str)
@@ -282,7 +269,7 @@ No template for slurm submission script has been found. A default template that 
 
         return job_ids
 
-    def write_xyz(self, xyz_filepath: PathLike, dryrun=False) -> None:
+    def write_xyz(self, xyz_filepath: PathLike, dry_run=False) -> None:
         """
         """
         ext = {
@@ -292,4 +279,3 @@ No template for slurm submission script has been found. A default template that 
 
         writer = ExtxyzIOWriter.from_top(self.topdir, ext)
         writer.write(xyz_filepath)
-

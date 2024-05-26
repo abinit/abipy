@@ -1806,6 +1806,13 @@ class Structure(pmg_Structure, NotebookWriter):
                 return Poscar(self).get_str(significant_figures=12)
             except AttributeError:
                 return Poscar(self).get_string(significant_figures=12)
+
+        elif fmt.lower() == "lammps":
+            from pymatgen.io.lammps.data import LammpsData
+            # Convert the structure to a LAMMPS data file
+            lammps_data = LammpsData.from_structure(self)
+            return lammps_data.get_str()
+
         else:
             return super().to(fmt=fmt, **kwargs)
 

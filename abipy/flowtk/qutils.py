@@ -308,11 +308,12 @@ def get_slurm_template(body) -> str:
     """
     return """\
 #!/bin/bash
-
-# Please customize this section using your settings.
+#
+# Please CUSTOMIZE this section according to your cluster and the type of calculation
+#
 #SBATCH --job-name=my_job
-#SBATCH --output=%j_%x.out
-#SBATCH --error=%j_%x.err
+#SBATCH --output=%j_%x.slurm.out
+#SBATCH --error=%j_%x.slurm.err
 #SBATCH --partition=debug
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=64
@@ -337,11 +338,10 @@ echo "submit dir         : $SLURM_SUBMIT_DIR"
 echo "number of mpi tasks: $SLURM_NTASKS tasks"
 echo "OMP_NUM_THREADS    : $OMP_NUM_THREADS"
 echo "number of gpus     : $SLURM_GPUS_ON_NODE"
-
 echo "------------------- Node list ------------------"
 echo $SLURM_JOB_NODELIST
 
-echo "---------------- Checking limits ---------------"
+echo "---------------- Printing limits ---------------"
 ulimit -s unlimited
 ulimit -a
 
@@ -350,6 +350,7 @@ ulimit -a
 # ------------------------------------------------------------------------------
 
 echo "----------------- Environment ------------------"
+
 source $HOME/vasp.6.2.1/modules.sh
 module list
 
@@ -359,6 +360,7 @@ date
 
 {body}
 
+echo -n "This run completed on: "
 date
 """
 

@@ -15,7 +15,7 @@ from monty.string import marquee, list_strings
 from monty.functools import lazy_property
 #from monty.termcolor import cprint
 from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
 from abipy.tools.typing import PathLike
 #from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
 #    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
@@ -24,7 +24,6 @@ from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands, 
 #from abipy.tools.typing import Figure
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
-
 
 
 class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , NotebookWriter):
@@ -178,15 +177,15 @@ class Gqk:
 
         vk_cart_ibz, vkmat_cart_ibz = None, None
         if ncr.with_vk == 1:
-           # NCF_CHECK(nctk_def_arrays(spin_ncid, nctkarr_t("vk_cart_ibz", "dp", "three, nb, gstore_nkibz")))
-           vk_cart_ibz = ncr.read_value("vk_cart_ibz", path=path)
+            # NCF_CHECK(nctk_def_arrays(spin_ncid, nctkarr_t("vk_cart_ibz", "dp", "three, nb, gstore_nkibz")))
+            vk_cart_ibz = ncr.read_value("vk_cart_ibz", path=path)
 
         if ncr.with_vk == 2:
-           # Full (nb x nb) matrix.
-           # Have to transpose (nb_kq, nb_k) submatrix written by Fortran.
-           # NCF_CHECK(nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb, nb, gstore_nkibz")))
-           vkmat_cart_ibz = ncr.read_value("vkmat_cart_ibz", path=path).transpose(0, 1, 3, 2, 4).copy()
-           vkmat_cart_ibz = vkmat_cart_ibz[...,0] + 1j*vkmat_cart_ibz[...,1]
+            # Full (nb x nb) matrix.
+            # Have to transpose (nb_kq, nb_k) submatrix written by Fortran.
+            # NCF_CHECK(nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb, nb, gstore_nkibz")))
+            vkmat_cart_ibz = ncr.read_value("vkmat_cart_ibz", path=path).transpose(0, 1, 3, 2, 4).copy()
+            vkmat_cart_ibz = vkmat_cart_ibz[...,0] + 1j*vkmat_cart_ibz[...,1]
 
         # Note conversion between Fortran and python convention.
         bstart = ncr.read_value("bstart", path=path) - 1
@@ -382,7 +381,6 @@ class GstoreReader(BaseEphReader):
         return self.rootgrp.groups
 
 
-
 class GstoreRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple GSTORE.nc files.
@@ -413,38 +411,38 @@ class GstoreRobot(Robot, RobotWithEbands):
 
     @staticmethod
     def compare_two_gstores(gstore1: GstoreFile, gstore2: GstoreFile):
-       """
-       Helper function to compare two GSTORE files.
-       """
-       aname_list = ["structure", "nsppol", "cplex", "nkbz", "nkibz",
-                     "nqbz", "nqibz", "completed", "kzone", "qzone", "kfilter", "gmode",
-                     "brange_spin", "erange_spin", "glob_spin_nq", "glob_nk_spin",
-                    ]
+        """
+        Helper function to compare two GSTORE files.
+        """
+        aname_list = ["structure", "nsppol", "cplex", "nkbz", "nkibz",
+                      "nqbz", "nqibz", "completed", "kzone", "qzone", "kfilter", "gmode",
+                      "brange_spin", "erange_spin", "glob_spin_nq", "glob_nk_spin",
+                     ]
 
-       for aname in aname_list:
-           # Get attributes in gstore first, then in gstore.r, else raise.
-           if hasattr(gstore1, aname):
-               val1, val2 = getattr(gstore1, aname), getattr(gstore2, aname)
-           elif hasattr(gstore1.r, aname):
-               val1, val2 = getattr(gstore1.r, aname), getattr(gstore2.r, aname)
-           else:
-               raise AttributeError(f"Cannot find attribute `{aname=}` neither in gstore not in gstore.r")
+        for aname in aname_list:
+            # Get attributes in gstore first, then in gstore.r, else raise.
+            if hasattr(gstore1, aname):
+                val1, val2 = getattr(gstore1, aname), getattr(gstore2, aname)
+            elif hasattr(gstore1.r, aname):
+                val1, val2 = getattr(gstore1.r, aname), getattr(gstore2.r, aname)
+            else:
+                raise AttributeError(f"Cannot find attribute `{aname=}` neither in gstore not in gstore.r")
 
            # Now compare val1 and val2 taking into account the type.
-           if isinstance(val1, (str, int, float, Structure)):
-               eq = val1 == val2
-           elif isinstance(val1, np.ndarray):
-               eq = np.allclose(val1, val2)
-           else:
-               raise TypeError(f"Don't know how to handle comparison for type: {type(val1)}")
+            if isinstance(val1, (str, int, float, Structure)):
+                eq = val1 == val2
+            elif isinstance(val1, np.ndarray):
+                eq = np.allclose(val1, val2)
+            else:
+                raise TypeError(f"Don't know how to handle comparison for type: {type(val1)}")
 
-           if not eq:
-               raise RuntimeError(f"Different values of {aname=}, {val1=}, {val2=}")
+            if not eq:
+                raise RuntimeError(f"Different values of {aname=}, {val1=}, {val2=}")
 
-           # Compare gkq objects for each spin.
-           for spin in range(gstore1.nsppol):
-               gqk1, gqk2 = gstore1.gqk_spin[spin], gstore2.gqk_spin[spin]
-               gqk1.compare(gqk2)
+            # Compare gkq objects for each spin.
+            for spin in range(gstore1.nsppol):
+                gqk1, gqk2 = gstore1.gqk_spin[spin], gstore2.gqk_spin[spin]
+                gqk1.compare(gqk2)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
