@@ -178,7 +178,7 @@ class SinglePointRunner:
 
     custodian_script_name = "run_custodian.py"
 
-    def __init__(self, traj_path: PathLike, traj_range: range, code: topdir: PathLike = "outdir", str = "vasp", verbose=0):
+    def __init__(self, traj_path: PathLike, traj_range: range, code: str = "vasp",  topdir: PathLike = "outdir", verbose=0):
         """
         """
         self.traj_path = traj_path
@@ -247,7 +247,7 @@ No template for slurm submission script has been found. A default template that 
                 # Generate VASP input files using the Materials Project settings for a single-point calculation
                 from pymatgen.io.vasp.sets import MPStaticSet
                 user_incar_settings = {
-                    "NCORE": 2
+                    "NCORE": 2,
                     'LWAVE': False,       # Do not write WAVECAR
                     'LCHARG': False,      # Do not Write CHGCAR
                 }

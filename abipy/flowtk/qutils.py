@@ -299,7 +299,7 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
                 print('Could not parse job id following slurm...')
                 raise exc
         else:
-            raise RuntimeError(f"Error while submitting {slurm_filepath=}")
+            raise RuntimeError(f"Error while submitting {slurm_filepath=} with {process.returncode=},\n{out=}\n{err=}")
 
 
 def get_slurm_template(body) -> str:
