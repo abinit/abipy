@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 #import numpy as np
 import abipy.core.abinit_units as abu
 #try:
@@ -13,6 +14,7 @@ from pathlib import Path
 #from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from monty.string import list_strings  # marquee,
+from monty.termcolor import cprint
 #from monty.functools import lazy_property
 #from monty.json import MontyEncoder
 #from ase import units
@@ -178,7 +180,8 @@ class SinglePointRunner:
 
     custodian_script_name = "run_custodian.py"
 
-    def __init__(self, traj_path: PathLike, traj_range: range, code: topdir: PathLike = "outdir", str = "vasp", verbose=0):
+    def __init__(self, traj_path: PathLike, traj_range: range, 
+                topdir: PathLike = ".", code: str = "vasp", verbose=0):
         """
         """
         self.traj_path = traj_path
@@ -195,15 +198,17 @@ class SinglePointRunner:
             slurm_body = f"python {self.custodian_script_name}"
             if not os.path.exists(self.custodian_script_name):
                 open(self.custodian_script_name, "wt").write(qu.get_custodian_template())
-                err_lines.append("""\
-No template for custodian script has been found. A default template that requires customization has been generated for you!""")
+                err_lines.append(f"""\
+No custodian script: {self.custodian_script_name} has been found.
+A template that requires customization has been generated for you!""")
             else:
                 self.custodian_script_str = open(self.custodian_script_name, "rt").read()
 
         if not os.path.exists(self.slurm_script_name):
             open(self.slurm_script_name, "wt").write(qu.get_slurm_template(slurm_body))
-            err_lines.append("""\
-No template for slurm submission script has been found. A default template that requires customization has been generated for you!""")
+            err_lines.append(f"""\
+No slurm submission script: {self.slurm_script_name} has been found.
+A template that requires customization has been generated for you!""")
         else:
             self.slurm_script_str = open(self.slurm_script_name, "rt").read()
 
@@ -259,11 +264,15 @@ No template for slurm submission script has been found. A default template that 
             else:
                 raise ValueError(f"Unsupported {self.code=}")
 
-            script_filepath = workdir / "run.sh"
-            with open(script_filepath, "wt") as fh:
-                fh.write(self.slurm_script_str)
+            try:
+                job_id = qu.slurm_write_and_sbatch(workdir / "run.sh", slurm_script_str)
+            except Exception as exc:
+                cprint(exc, "red")
+                cprin("Job sumbission failed. Will remove directory and exit sbatch loop."
+                shutil.rmtree(workdir)
+                break
 
-            job_ids.append(qu.slurm_sbatch(script_filepath))
+            job_ids.append(job_id)
             if len(job_ids) == max_jobs:
                 print(f"Reached {max_jobs=}, will stop firing new jobs!")
 

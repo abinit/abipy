@@ -267,10 +267,18 @@ rm ${{me}}.qid
         return queue_id
 
 
+def slurm_write_and_sbatch(script_filepath: str, slurm_script_str: str) -> int:
+    """
+    Write job script and submit it to the queue with Slurm sbatch. Return Slurm JOB ID.
+    """
+    with open(script_filepath, "wt") as fh:
+        fh.write(slurm_script_str)
+        return qu.slurm_sbatch(script_filepath)
+
+
 def slurm_sbatch(slurm_filepath: PathLike) -> int:
     """
-    Submit a job script to the queue with Slurm sbatch.
-    Return Slurm JOB ID.
+    Submit a job script to the queue with Slurm sbatch. Return Slurm JOB ID.
     """
     from monty.os import cd
     dirpath = os.path.dirname(slurm_filepath)
