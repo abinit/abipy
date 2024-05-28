@@ -171,7 +171,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """
         return RelaxationAnalyzer(self.initial_structure, self.final_structure)
 
-    def to_xdatcar(self, filepath=None, groupby_type=True, to_unit_cell=False, **kwargs) -> Xdatcar:
+    def to_xdatcar(self, filepath=None, groupby_type=True, to_unit_cell=False, **kwargs): #-> Xdatcar:
         """
         Return Xdatcar pymatgen object. See write_xdatcar for the meaning of arguments.
 
@@ -180,7 +180,6 @@ class HistFile(AbinitNcFile, NotebookWriter):
             kwargs: keywords arguments passed to Xdatcar constructor.
         """
         from pymatgen.io.vasp.outputs import Xdatcar
-
         filepath = self.write_xdatcar(filepath=filepath, groupby_type=groupby_type,
                                       to_unit_cell=to_unit_cell, overwrite=True)
 

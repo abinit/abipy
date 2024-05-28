@@ -222,7 +222,7 @@ See also the HTML page:
 
 TIPS:
 
-    1) Issue `rehash` in the shell if the AbiPy scripts cannot be found after the installation
+    1) Issue `rehash` in the shell if the AbiPy scripts cannot be found after the installation (MacOs only)
     2) Use `abicheck.py --with-flow` to validate the final configuration before running large calculations.
 
 Have fun!

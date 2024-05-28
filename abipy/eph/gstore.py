@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 #import abipy.core.abinit_units as abu
 
-from monty.string import marquee, list_strings
+from monty.string import marquee #, list_strings
 from monty.functools import lazy_property
 #from monty.termcolor import cprint
 from abipy.core.structure import Structure
@@ -20,7 +20,7 @@ from abipy.tools.typing import PathLike
 #from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
 #    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
 #from abipy.tools import duck
-from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
+from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 #from abipy.tools.typing import Figure
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
@@ -187,7 +187,7 @@ class Gqk:
             vkmat_cart_ibz = ncr.read_value("vkmat_cart_ibz", path=path).transpose(0, 1, 3, 2, 4).copy()
             vkmat_cart_ibz = vkmat_cart_ibz[...,0] + 1j*vkmat_cart_ibz[...,1]
 
-        # Note conversion between Fortran and python convention.
+        # Note conversion between Fortran and python indexing.
         bstart = ncr.read_value("bstart", path=path) - 1
         #bstop = ncr.read_value("stop", path=path)
 
@@ -210,10 +210,10 @@ class Gqk:
 
         return "\n".join(lines)
 
-    def get_dataframe(self, what="g2"):
+    def get_dataframe(self, what: str = "g2"):
         """
-        Build and return a dataframe with all the |g(k+q,k)|^2 if what=="g2" or
-        all |v_nk|^2 if what=="v2".
+        Build and return a dataframe with all the |g(k+q,k)|^2 if what == "g2" or
+        all |v_nk|^2 if what == "v2".
         """
         if what == "g2":
             g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
@@ -227,7 +227,7 @@ class Gqk:
 
         elif what == "v2":
             if self.vk_cart_ibz is None:
-                raise ValueError("vk_cart_ibz is not available!")
+                raise ValueError("vk_cart_ibz is not available in GSTORE!")
 
             # Compute the squared norm of each vector
             v2 = np.sum(self.vk_cart_ibz ** 2, axis=2)

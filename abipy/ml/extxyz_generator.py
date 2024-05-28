@@ -26,6 +26,7 @@ from ase.io import read
 from ase.stress import full_3x3_to_voigt_6_stress
 from ase.io import write
 from pymatgen.io.vasp.outputs import Vasprun, Outcar
+from pymatgen.io.vasp.sets import MatPESStaticSet # , MPStaticSet
 from abipy.core import Structure
 from abipy.electrons.gsr import GsrFile
 #from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
@@ -65,6 +66,9 @@ class ExtxyzIOWriter:
 
     @classmethod
     def from_top(cls, top: PathLike, ext: str):
+        """
+        Scan for files with extension ext starting from the top directory top.
+        """
         from monty.os.path import find_exts
         filepaths = find_exts(str(top), ext)
         return cls(filepaths)
@@ -81,7 +85,7 @@ class ExtxyzIOWriter:
         else:
             raise ValueError(f"Cannot detect extension from filepaths, should be in: {self.SUPPORTED_EXTS}")
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
         lines = []
         for i, path in enumerate(self.filepaths):
@@ -107,6 +111,12 @@ class ExtxyzIOWriter:
         for filepath in self.filepaths:
             if self.ext == "vasprun.xml":
                 vasprun = Vasprun(filepath)
+                dirname = os.path.dirname(filepath)
+                outcar_path = os.path.join(dirname, "OUTCAR")
+                outcar = Outcar(outcar_path) if os.path.exists(outcar_path) else None
+
+                ok = check_vasp_success(vasprun, outcar, verbose=1)
+
                 last_step = vasprun.ionic_steps[-1]
                 structure, forces, stress = last_step["structure"], last_step["forces"], last_step["stress"]
                 energy = get_energy_step(last_step)
@@ -135,7 +145,7 @@ class ExtxyzIOWriter:
             yield atoms
 
 
-def check_vasp_success(vasprun: Vasprun, outcar: Outcar, verbose: int = 1) -> bool:
+def check_vasp_success(vasprun: Vasprun, outcar: Outcar | None, verbose: int = 1) -> bool:
     """
     Check if a VASP calculation completed successfully.
 
@@ -149,7 +159,6 @@ def check_vasp_success(vasprun: Vasprun, outcar: Outcar, verbose: int = 1) -> bo
             my_print("Calculation did not converge.")
             return False
 
-        #outcar = Outcar(f"{directory}/OUTCAR")
         if outcar is not None:
             if outcar.run_stats.get("Elapsed time (sec)"):
                 my_print("Calculation completed in {} seconds.".format(outcar.run_stats["Elapsed time (sec)"]))
@@ -172,7 +181,8 @@ class SinglePointRunner:
 
     .. code-block:: python
 
-        runner = SinglePointRunner("out.traj", "outdir", traj_range=(0,-1,100))
+        traj_range = range(0, -1, 100)
+        runner = SinglePointRunner("out.traj", "outdir", traj_range)
         runner.sbatch()
         runner.collect_xyz("foo.xyz")
     """
@@ -180,8 +190,8 @@ class SinglePointRunner:
 
     custodian_script_name = "run_custodian.py"
 
-    def __init__(self, traj_path: PathLike, traj_range: range, 
-                topdir: PathLike = ".", code: str = "vasp", verbose=0):
+    def __init__(self, traj_path: PathLike, traj_range: range,
+                 topdir: PathLike = ".", code: str = "vasp", verbose=0):
         """
         """
         self.traj_path = traj_path
@@ -195,6 +205,7 @@ class SinglePointRunner:
         slurm_body = ""
 
         if code == "vasp":
+            self.vasp_set_cls = MatPESStaticSet
             slurm_body = f"python {self.custodian_script_name}"
             if not os.path.exists(self.custodian_script_name):
                 open(self.custodian_script_name, "wt").write(qu.get_custodian_template())
@@ -220,7 +231,7 @@ A template that requires customization has been generated for you!""")
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
         lines = []
         app = lines.append
@@ -229,6 +240,7 @@ A template that requires customization has been generated for you!""")
 
     def sbatch(self, max_jobs: int = 100) -> list[int]:
         """
+        Submit max_jobs SinglePoint calculations with structures taken from the ASE trajectory file.
         """
         if not self.topdir.exists(): self.topdir.mkdir()
 
@@ -250,25 +262,25 @@ A template that requires customization has been generated for you!""")
 
             if self.code == "vasp":
                 # Generate VASP input files using the Materials Project settings for a single-point calculation
-                from pymatgen.io.vasp.sets import MPStaticSet
+
                 user_incar_settings = {
-                    "NCORE": 2
+                    "NCORE": 2,
                     'LWAVE': False,       # Do not write WAVECAR
                     'LCHARG': False,      # Do not Write CHGCAR
                 }
-                vasp_input_set = MPStaticSet(structure, user_incar_settings=user_incar_settings)
+                vasp_input_set = self.vasp_set_cls(structure, user_incar_settings=user_incar_settings)
                 vasp_input_set.write_input(workdir)
-                with open(workdir / "run_custodian.py", "wt") as fh:
+                with open(workdir / self.custodian_script_name, "wt") as fh:
                     fh.write(self.custodian_script_str)
 
             else:
                 raise ValueError(f"Unsupported {self.code=}")
 
             try:
-                job_id = qu.slurm_write_and_sbatch(workdir / "run.sh", slurm_script_str)
+                job_id = qu.slurm_write_and_sbatch(workdir / "run.sh", self.slurm_script_str)
             except Exception as exc:
                 cprint(exc, "red")
-                cprin("Job sumbission failed. Will remove directory and exit sbatch loop."
+                cprint("Job sumbission failed. Will remove directory and exit sbatch loop.")
                 shutil.rmtree(workdir)
                 break
 

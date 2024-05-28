@@ -402,12 +402,9 @@ class GkqRobot(Robot, RobotWithEbands):
             if abifile.qpoint != ref_qpoint:
                 raise ValueError("Found different qpoint in %s" % str(abifile.filepath))
 
-
     #@add_fig_kwargs
     #def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
     #                    ax=None, fontsize=8, eph_wtol=EPH_WTOL, **kwargs):
-
-
     #    ncols, nrows = 2, len(self) - 1
     #    num_plots = ncols * nrows
     #    ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,

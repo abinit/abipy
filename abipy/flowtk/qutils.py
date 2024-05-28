@@ -9,7 +9,7 @@ The preferred way of importing this module is:
 from __future__ import annotations
 
 import os
-import json
+#import json
 
 from monty.string import is_string
 from pymatgen.core.units import Time, Memory
@@ -168,7 +168,6 @@ def slurm_get_jobs(username=None) -> dict[int, dict]:
     return {e["JOBID"]: e for e in entries}
 
 
-
 class SlurmJobArray:
     """
 
@@ -273,7 +272,7 @@ def slurm_write_and_sbatch(script_filepath: str, slurm_script_str: str) -> int:
     """
     with open(script_filepath, "wt") as fh:
         fh.write(slurm_script_str)
-        return qu.slurm_sbatch(script_filepath)
+        return slurm_sbatch(script_filepath)
 
 
 def slurm_sbatch(slurm_filepath: PathLike) -> int:
@@ -295,8 +294,8 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
             try:
                 # output should of the form '2561553.sdb' or '352353.jessup' - just grab the first part for job id
                 queue_id = int(out.split()[3])
-                print(f"Job submission was successful and queue_id: {queue_id}")
                 path_qid = slurm_filepath + ".qid"
+                print(f"Job submission was successful and queue_id: {queue_id}")
                 print("Saving slurm job ID in:", path_qid)
                 with open(path_qid, "wt") as fh:
                     fh.write(str(queue_id) + " # Slurm job id")
@@ -307,7 +306,7 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
                 print('Could not parse job id following slurm...')
                 raise exc
         else:
-            raise RuntimeError(f"Error while submitting {slurm_filepath=}")
+            raise RuntimeError(f"Error while submitting {slurm_filepath=} with {process.returncode=},\n{out=}\n{err=}")
 
 
 def get_slurm_template(body) -> str:
@@ -372,9 +371,11 @@ echo -n "This run completed on: "
 date
 """
 
+
 def get_custodian_template() -> str:
     return """\
 #!/usr/bin/env python
+
 from custodian.custodian import Custodian
 from custodian.vasp.jobs import VaspJob
 from custodian.vasp.handlers import VaspErrorHandler, UnconvergedErrorHandler

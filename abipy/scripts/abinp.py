@@ -13,10 +13,38 @@ import abipy.tools.cli_parsers as cli
 
 from monty.termcolor import cprint
 from monty.functools import prof_main
+from pymatgen.io.vasp.sets import DictSet
 from abipy import abilab
 from abipy.abio import factories
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.ddb import DdbFile
+
+
+def vasp_dict_set_cls(s: str | DictSet) -> Type | list[str]:
+    """
+    Return a subclass of DictSect from string `s`.
+    If s == "__all__", return list with all DictSet subclasses supported by pymatgen.
+    """
+    from inspect import isclass
+    from pymatgen.io.vasp import sets
+    def is_dict_set(key: str) -> bool:
+        return isclass(obj := getattr(sets, key)) and issubclass(obj, DictSet)
+
+    valid_keys = [key for key in dir(sets) if is_dict_set(key)]
+
+    if s == "__all__":
+        return valid_keys
+
+    if isinstance(s, DictSet):
+        return s
+
+    if s not in valid_keys:
+        raise ValueError(f"Unknown DictSet {s}, must be one of {valid_keys}")
+
+    return getattr(sets, s)
+
+
+ALL_VASP_DICT_SETS = vasp_dict_set_cls("__all__")
 
 
 def get_structure(options):
@@ -250,10 +278,21 @@ def abinp_anaph(options):
     return finalize(inp, options)
 
 
+def abinp_vasp(options):
+    """
+    Build VASP input files from a FILE defining the structure.
+    """
+    structure = abilab.Structure.from_file(options.filepath)
+    cls = vasp_dict_set_cls(options.dict_set)
+    cprint(f"Generating VASP input using {cls}. Use -d option to change settings.", color="yellow")
+    cls(structure).write_input(".")
+    return 0
+
+
 def abinp_wannier90(options):
     """
     Build wannier90 template input file from Abinit input/output file.
-    possibly with electron bands
+    possibly with electron bands.
     """
     from abipy.wannier90.win import Wannier90Input
     inp = Wannier90Input.from_abinit_file(options.filepath)
@@ -308,7 +347,8 @@ Usage example:
 # Other Codes
 #############
 
-    abinp.py wannier90 FILE         # Build and print wannier90 input file from FILE with structure.
+    abinp.py vasp FILE              # Build and write Vasp input files starting from a FILE with structure.
+    abinp.py wannier90 FILE         # Build and print wannier90 input file starting from a FILE with structure.
     abinp.py lobster .              # Build and print lobster input file from directory.
 
 
@@ -412,6 +452,12 @@ def get_parser(with_epilog=False):
 
     # Subparser for anaph command.
     p_anaph = subparsers.add_parser('anaph', parents=inpgen_parsers, help=abinp_anaph.__doc__)
+
+    # Subparser for vasp command.
+    p_vasp = subparsers.add_parser('vasp', parents=[path_selector], help=abinp_vasp.__doc__)
+    p_vasp.add_argument('--dict-set', default="MPStaticSet", type=str,
+                        help="VaspDictSet. Default: MPStaticSet. For further info see pymatgen.io.vasp.sets",
+                        choices=ALL_VASP_DICT_SETS)
 
     # Subparser for wannier90 command.
     p_wannier90 = subparsers.add_parser('wannier90', parents=[path_selector], help=abinp_wannier90.__doc__)

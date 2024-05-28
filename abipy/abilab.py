@@ -454,6 +454,11 @@ def abicheck(verbose: int = 0) -> str:
     except ImportError:
         app(_straceback())
 
+    import pprint
+    shell_vars = [os.environ.get(vname, "") for vname in ("PATH", "LD_LIBRARY_PATH", "TMPDIR")]
+    print("Important Shell Variables:")
+    pprint.pprint(shell_vars)
+
     return "\n".join(err_lines)
 
 
