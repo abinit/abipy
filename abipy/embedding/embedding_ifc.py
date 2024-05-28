@@ -205,7 +205,6 @@ class Embedded_phonons(Phonopy):
                         print(f"by defect cell IFC = \n {ifc_defect[mapping.index(i)][mapping.index(j)]}" )
                         print(f"Diff IFC = \n {ifc_pristine[i][j]-ifc_defect[mapping.index(i)][mapping.index(j)]}" )
 
-
                     ifc_emb[i][j]=factor_ifc*ifc_defect[mapping.index(i)][mapping.index(j)]
                     
                 # enforce ASR
