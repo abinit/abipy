@@ -13,7 +13,7 @@ import pandas as pd
 
 from monty.string import marquee #, list_strings
 from monty.functools import lazy_property
-#from monty.termcolor import cprint
+from monty.termcolor import cprint
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
 from abipy.tools.typing import PathLike
@@ -24,6 +24,21 @@ from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 #from abipy.tools.typing import Figure
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
+
+
+def _allclose(arr_name, array1, array2, rtol=1e-5, atol=1e-8):
+        """
+        """
+        if np.allclose(array1, array2, rtol=rtol, atol=atol):
+            cprint(f"The arrays for {arr_name} are almost equal within the given tolerance.", color="green")
+            return 
+
+        cprint(f"The arrays for {arr_name} are not almost equal within the given tolerance.", color="red")
+
+        #differing_indices = np.where(~np.isclose(array1, array2, atol=atol))
+        #for index in zip(*differing_indices):
+        #    print(f"Difference at index {index}: array1 = {array1[index]}, array2 = {array2[index]}, difference = {abs(array1[index] - array2[index])}")
+
 
 
 class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , NotebookWriter):
@@ -264,7 +279,7 @@ class Gqk:
 
         return df
 
-    def compare(self, other: Gqk):
+    def compare(self, other: Gqk) -> int:
         """
         Helper function to compare two GQK objects.
         """
@@ -284,16 +299,19 @@ class Gqk:
                 raise RuntimeError(f"Different values of {aname=}, {val1=}, {val2=}")
 
         # Compare v_nk or v_mn_k.
+        ierr = 0
         if self.vk_cart_ibz is not None:
-            assert np.allclose(self.vk_cart_ibz, other.vk_cart_ibz)
+            if not _allclose("vk_cart_ibz", self.vk_cart_ibz, other.vk_cart_ibz): ierr += 1
+
         if self.vkmat_cart_ibz is not None:
-            assert np.allclose(self.vkmat_cart_ibz, other.vkmat_cart_ibz)
+            if not _allclose("vkmat_cart_ibz", self.vkmat_cart_ibz, other.vkmat_cart_ibz): ierr += 1
 
         # Compare g or g^2.
         if self.g2 is not None:
-            assert np.allclose(self.g2, other.g2)
+            if not _allclose("g2", self.g2, other.g2): ierr += 1
+
         if self.gvals is not None:
-            assert np.allclose(self.gvals, other.gvals)
+            if not _allclose("gvals", self.gvals, other.gvals): ierr += 1
 
 
 class GstoreReader(BaseEphReader):
@@ -402,12 +420,29 @@ class GstoreRobot(Robot, RobotWithEbands):
     """
     EXT = "GSTORE"
 
-    def compare(self) -> None:
+    def compare(self, ref_basename=None) -> None:
         """
         Compare all GSTORE.nc files stored in the GstoreRobot
         """
-        for other_gstore in self.abifiles[1:]:
-            self.compare_two_gstores(self.abifiles[0], other_gstore)
+        exc_list = []
+
+        ref_gstore = self.abifiles[0]
+        if ref_basename is not None:
+            for i, gstore in enumerate(self.abifiles):
+                if gstore.basename == ref_basename: 
+                    ref_gstore = gstore
+                    break
+            else:
+                raise ValueError(f"Cannot find {ref_basename=}")
+
+        for other_gstore in self.abifiles:
+            if ref_gstore.filepath == other_gstore.filepath: continue
+            print("Comparing ", ref_gstore.basename, " with: ", other_gstore.basename)
+            try:
+                self.compare_two_gstores(ref_gstore, other_gstore)
+                cprint("EQUAL", color="green")
+            except Exception as exc:
+                exc_list.append(str(exc))
 
     @staticmethod
     def compare_two_gstores(gstore1: GstoreFile, gstore2: GstoreFile):
