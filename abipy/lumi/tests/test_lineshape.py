@@ -1,5 +1,7 @@
 """Tests for lumi.lineshape module"""
 import abipy.data as abidata
+import phonopy 
+
 from abipy.core.testing import AbipyTest
 from abipy.lumi.deltaSCF import DeltaSCF
 from abipy.embedding.embedding_ifc import Embedded_phonons
@@ -8,13 +10,6 @@ from abipy.lumi.lineshape import Lineshape
 from pymatgen.io.phonopy import get_pmg_structure
 from abipy.dfpt.converters import ddb_ucell_to_phonopy_supercell
 from abipy.core.kpoints import kmesh_from_mpdivs
-
-try:
-    import phonopy 
-except ImportError:
-    Phonopy = None
-
-
 
 class DeltaSCFTest(AbipyTest):
     

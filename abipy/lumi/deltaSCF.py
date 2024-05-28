@@ -2,18 +2,19 @@ from __future__ import annotations
 
 import numpy as np
 import json
+import os, shutil 
+import pandas as pd
+
 from abipy.core.structure import Structure
 from abipy.abilab import abiopen
-import pandas as pd
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+#from mpl_toolkits.mplot3d import Axes3D
 import math
 from mpmath import coth
 from scipy.integrate import simps
-from scipy.special import factorial
+#from scipy.special import factorial
 from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs,get_axarray_fig_plt
 import abipy.core.abinit_units as abu
-import os,shutil 
 
 class DeltaSCF():
     """

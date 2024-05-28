@@ -19,6 +19,8 @@ plotly
 ipython
 chart-studio
 click
+phonopy
+custodian
 # TODO remove after https://github.com/materialsproject/emmet/issues/768 is fixed
 pydantic<2.0.0
 #python-daemon
