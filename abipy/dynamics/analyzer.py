@@ -23,7 +23,7 @@ from monty.termcolor import cprint
 from pymatgen.util.string import latexify
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.composition import Composition
-from abipy.core.mixins import TextFile # , NotebookWriter
+#from abipy.core.mixins import TextFile # , NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools.typing import Figure, PathLike
 from abipy.tools.serialization import HasPickleIO
@@ -31,7 +31,7 @@ from abipy.tools.iotools import try_files # , file_with_ext_indir
 from abipy.tools.context_managers import Timer
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, get_color_symbol,
                                   set_ticks_fontsize, set_logscale, linear_fit_ax)
-from abipy.tools.parallel import get_max_nprocs, pool_nprocs_pmode
+from abipy.tools.parallel import pool_nprocs_pmode #, get_max_nprocs
 from abipy.dynamics.cpx import parse_file_with_blocks, EvpFile
 
 
@@ -94,7 +94,7 @@ def read_structure_postac_ucmats(traj_filepath: PathLike, step_skip: int) -> tup
     return structure, pos_tac, ucmats, traj_len
 
 
-def parse_lammps_input(filepath: PathLike, verbose: int=0):
+def parse_lammps_input(filepath: PathLike, verbose: int = 0):
     """
     Extract parameters, atoms and structure from a LAMMPS input file.
     Returns namedtuple with results.
@@ -162,7 +162,7 @@ class MdAnalyzer(HasPickleIO):
     """
 
     @classmethod
-    def from_abiml_dir(cls, directory: PathLike, step_skip: int=1) -> MdAnalyzer:
+    def from_abiml_dir(cls, directory: PathLike, step_skip: int = 1) -> MdAnalyzer:
         """
         Build an instance from a directory containing an ASE trajectory file and
         a JSON file with the MD parameters as produced by the `abiml.py md` script.
@@ -198,7 +198,7 @@ class MdAnalyzer(HasPickleIO):
             structure = hist.structure.copy()
             #hist.r.read_dimvalue("time")
             pos_tac = hist.r.read_value("xcart") * units.bohr_to_ang
-            ucmat = hist.r.read_value("rprimd") * units.bohr_to_ang
+            ucmats = hist.r.read_value("rprimd") * units.bohr_to_ang
             #temperature = None
             #evp_df = None
 

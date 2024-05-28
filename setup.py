@@ -146,7 +146,6 @@ def cleanup():
 install_requires = [
     "monty",
     "tabulate",
-    #"apscheduler==2.1.0",
     "apscheduler<=3.10.4",
     "pydispatcher>=2.0.5",
     "tqdm",
@@ -165,6 +164,7 @@ install_requires = [
     "click",
     "phonopy",
     "custodian",
+    "ase",
     #pydantic,
     #panel,
 ]

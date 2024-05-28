@@ -9,17 +9,13 @@ import io
 import time
 import contextlib
 import json
-import pickle
-import warnings
 import dataclasses
 import stat
 import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
-try:
-    import ase
-except ImportError as exc:
-    raise ImportError("ase not installed. Try `pip install ase`.") from exc
+import ase
+
 from pathlib import Path
 from inspect import isclass
 from multiprocessing import Pool

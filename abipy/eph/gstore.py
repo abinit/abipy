@@ -26,19 +26,21 @@ from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
 
-def _allclose(arr_name, array1, array2, rtol=1e-5, atol=1e-8):
-        """
-        """
-        if np.allclose(array1, array2, rtol=rtol, atol=atol):
+def _allclose(arr_name, array1, array2, verbose: int, rtol=1e-5, atol=1e-8) -> bool:
+    """
+    """
+    if np.allclose(array1, array2, rtol=rtol, atol=atol):
+        if verbose:
             cprint(f"The arrays for {arr_name} are almost equal within the given tolerance.", color="green")
-            return 
+        return True
 
+    if verbose:
         cprint(f"The arrays for {arr_name} are not almost equal within the given tolerance.", color="red")
 
-        #differing_indices = np.where(~np.isclose(array1, array2, atol=atol))
-        #for index in zip(*differing_indices):
-        #    print(f"Difference at index {index}: array1 = {array1[index]}, array2 = {array2[index]}, difference = {abs(array1[index] - array2[index])}")
-
+    #differing_indices = np.where(~np.isclose(array1, array2, atol=atol))
+    #for index in zip(*differing_indices):
+    #    print(f"Difference at index {index}: array1 = {array1[index]}, array2 = {array2[index]}, difference = {abs(array1[index] - array2[index])}")
+    return False
 
 
 class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , NotebookWriter):
@@ -55,13 +57,12 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
             for spin in range(gstore.nsppol):
                 gqk = gstore.gqk_spin[spin]
                 print(gqk)
-                df = gqk.get_gdf_at_qpt_kpt([1/2,0,0], [0,0,0])
+                df = gqk.get_gdf_at_qpt_kpt([1/2, 0, 0], [0, 0, 0])
                 print(df)
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GstoreFile
     """
-
     @classmethod
     def from_file(cls, filepath: PathLike) -> GstoreFile:
         """Initialize the object from a netcdf file."""
@@ -146,7 +147,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
 @dataclasses.dataclass(kw_only=True)
 class Gqk:
     """
-    Stores the e-ph matrix elements (g or g^2) and the matrix elements
+    This object stores the e-ph matrix elements (g or g^2) and the matrix elements
     of the velocity operator for a given spin.
     """
     cplex: int         # 1 if |g|^2 is stored
@@ -225,7 +226,7 @@ class Gqk:
 
         return "\n".join(lines)
 
-    def get_dataframe(self, what: str = "g2"):
+    def get_dataframe(self, what: str = "g2") -> pd.DataFrame:
         """
         Build and return a dataframe with all the |g(k+q,k)|^2 if what == "g2" or
         all |v_nk|^2 if what == "v2".
@@ -279,10 +280,12 @@ class Gqk:
 
         return df
 
-    def compare(self, other: Gqk) -> int:
+    def neq(self, other: Gqk, verbose: int) -> int:
         """
         Helper function to compare two GQK objects.
         """
+        # This dimensions must agree in order to have a meaningfull comparison.
+        # so raise immediately if not equal.
         aname_list = ["cplex", "spin", "nb", "glob_nk", "glob_nq"]
 
         for aname in aname_list:
@@ -298,20 +301,24 @@ class Gqk:
             if not eq:
                 raise RuntimeError(f"Different values of {aname=}, {val1=}, {val2=}")
 
-        # Compare v_nk or v_mn_k.
         ierr = 0
+        kws = dict(verbose=verbose) # , atol= rtol)
+
+        # Compare v_nk or v_mn_k.
         if self.vk_cart_ibz is not None:
-            if not _allclose("vk_cart_ibz", self.vk_cart_ibz, other.vk_cart_ibz): ierr += 1
+            if not _allclose("vk_cart_ibz", self.vk_cart_ibz, other.vk_cart_ibz, **kws): ierr += 1
 
         if self.vkmat_cart_ibz is not None:
-            if not _allclose("vkmat_cart_ibz", self.vkmat_cart_ibz, other.vkmat_cart_ibz): ierr += 1
+            if not _allclose("vkmat_cart_ibz", self.vkmat_cart_ibz, other.vkmat_cart_ibz, **kws): ierr += 1
 
         # Compare g or g^2.
         if self.g2 is not None:
-            if not _allclose("g2", self.g2, other.g2): ierr += 1
+            if not _allclose("g2", self.g2, other.g2, **kws): ierr += 1
 
         if self.gvals is not None:
-            if not _allclose("gvals", self.gvals, other.gvals): ierr += 1
+            if not _allclose("gvals", self.gvals, other.gvals, **kws): ierr += 1
+
+        return ierr
 
 
 class GstoreReader(BaseEphReader):
@@ -412,43 +419,51 @@ class GstoreRobot(Robot, RobotWithEbands):
             "foo_GSTORE.nc",
             ])
 
-        print(robot)
-        robot.compare()
+        robot.neq(verbose=1)
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GstoreRobot
     """
     EXT = "GSTORE"
 
-    def compare(self, ref_basename=None) -> None:
+    def neq(self, verbose: int, ref_basename: str | None) -> int:
         """
         Compare all GSTORE.nc files stored in the GstoreRobot
         """
         exc_list = []
 
+        # Find reference gstore. By default the first file in the robot is used.
         ref_gstore = self.abifiles[0]
         if ref_basename is not None:
             for i, gstore in enumerate(self.abifiles):
-                if gstore.basename == ref_basename: 
+                if gstore.basename == ref_basename:
                     ref_gstore = gstore
                     break
             else:
                 raise ValueError(f"Cannot find {ref_basename=}")
 
+        ierr = 0
         for other_gstore in self.abifiles:
-            if ref_gstore.filepath == other_gstore.filepath: continue
+            if ref_gstore.filepath == other_gstore.filepath:
+                continue
             print("Comparing ", ref_gstore.basename, " with: ", other_gstore.basename)
             try:
-                self.compare_two_gstores(ref_gstore, other_gstore)
+                ierr += self._neq_two_gstores(ref_gstore, other_gstore, verbose)
                 cprint("EQUAL", color="green")
             except Exception as exc:
                 exc_list.append(str(exc))
 
+        for exc in exc_list:
+            cprint(exc, color="red")
+
+        return ierr
+
     @staticmethod
-    def compare_two_gstores(gstore1: GstoreFile, gstore2: GstoreFile):
+    def _neq_two_gstores(gstore1: GstoreFile, gstore2: GstoreFile, verbose: int) -> int:
         """
         Helper function to compare two GSTORE files.
         """
+        # These quantities must be the same to have a meaningfull comparison.
         aname_list = ["structure", "nsppol", "cplex", "nkbz", "nkibz",
                       "nqbz", "nqibz", "completed", "kzone", "qzone", "kfilter", "gmode",
                       "brange_spin", "erange_spin", "glob_spin_nq", "glob_nk_spin",
@@ -474,10 +489,12 @@ class GstoreRobot(Robot, RobotWithEbands):
             if not eq:
                 raise RuntimeError(f"Different values of {aname=}, {val1=}, {val2=}")
 
-            # Compare gkq objects for each spin.
-            for spin in range(gstore1.nsppol):
-                gqk1, gqk2 = gstore1.gqk_spin[spin], gstore2.gqk_spin[spin]
-                gqk1.compare(gqk2)
+        # Now compare the gkq objects for each spin.
+        ierr = 0
+        for spin in range(gstore1.nsppol):
+            gqk1, gqk2 = gstore1.gqk_spin[spin], gstore2.gqk_spin[spin]
+            ierr += gqk1.neq(gqk2, verbose)
+        return ierr
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

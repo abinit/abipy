@@ -11,6 +11,7 @@ import os
 import argparse
 import abipy.tools.cli_parsers as cli
 
+from typing import Type
 from monty.termcolor import cprint
 from monty.functools import prof_main
 from pymatgen.io.vasp.sets import DictSet
@@ -309,6 +310,15 @@ def abinp_lobster(options):
     print(lobinp)
 
 
+def abinp_slurm(options):
+    """
+    Print template for Slurm submmission script
+    """
+    from abipy.flowtk.qutils import get_slurm_template
+    body = "srun abinit run.abi > run.log 2> run.err"
+    print(get_slurm_template(body))
+
+
 def get_epilog():
     return r"""
 Usage example:
@@ -350,6 +360,7 @@ Usage example:
     abinp.py vasp FILE              # Build and write Vasp input files starting from a FILE with structure.
     abinp.py wannier90 FILE         # Build and print wannier90 input file starting from a FILE with structure.
     abinp.py lobster .              # Build and print lobster input file from directory.
+    abinp.py slurm                  # Print template for Slurm submission script
 
 
 Note that one can use pass any file providing a pymatgen structure
@@ -464,6 +475,8 @@ def get_parser(with_epilog=False):
 
     # Subparser for lobster command.
     p_lobster = subparsers.add_parser('lobster', parents=[dir_selector], help=abinp_lobster.__doc__)
+
+    p_slurm = subparsers.add_parser('slurm', help=abinp_slurm.__doc__)
 
     return parser
 

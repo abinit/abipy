@@ -309,11 +309,11 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
             raise RuntimeError(f"Error while submitting {slurm_filepath=} with {process.returncode=},\n{out=}\n{err=}")
 
 
-def get_slurm_template(body) -> str:
+def get_slurm_template(body: str) -> str:
     """
     Return template for slurm submission that is supposed to be customized by the user.
     """
-    return """\
+    return f"""\
 #!/bin/bash
 #
 # Please CUSTOMIZE this section according to your cluster and the type of calculation

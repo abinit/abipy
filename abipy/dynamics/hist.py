@@ -22,7 +22,6 @@ from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools.typing import Figure
-from abipy.core.structure import Structure
 
 
 class HistFile(AbinitNcFile, NotebookWriter):
@@ -431,7 +430,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             for i, label in enumerate(["α ", "β ", "ɣ"]):
                 fig.add_scatter(x=self.steps, y=[s.lattice.angles[i] for s in self.structures], mode='lines+markers',
                                 name=label, marker_symbol=markers[i], row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = "αβɣ (degree)"+ "  "
+            fig.layout['yaxis%u' % rcd.iax].title.text = "αβɣ (degree)" + "  "
             fig.layout['yaxis%u' % rcd.iax].tickformat = ".3r"
 
         elif what in ("alpha", "beta", "gamma"):

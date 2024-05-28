@@ -27,7 +27,7 @@ import abipy.core.abinit_units as abu
 
 from pathlib import Path
 from monty.functools import lazy_property
-from monty.bisect import find_le
+#from monty.bisect import find_le
 from abipy.core.mixins import TextFile, NotebookWriter
 from abipy.tools.typing import PathLike, Figure
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,

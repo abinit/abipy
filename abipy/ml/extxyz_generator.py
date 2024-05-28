@@ -191,8 +191,16 @@ class SinglePointRunner:
     custodian_script_name = "run_custodian.py"
 
     def __init__(self, traj_path: PathLike, traj_range: range,
-                 topdir: PathLike = ".", code: str = "vasp", verbose=0):
+                 topdir: PathLike = ".", code: str = "vasp",
+                 vasp_set_cls=MatPESStaticSet,
+                 verbose: int = 0):
         """
+        Args:
+            traj_path: Path to ASE trajectory file.
+            traj_range:
+            topdir: 
+            code:
+            verbose:
         """
         self.traj_path = traj_path
         self.topdir = Path(str(topdir)).absolute()
@@ -205,12 +213,12 @@ class SinglePointRunner:
         slurm_body = ""
 
         if code == "vasp":
-            self.vasp_set_cls = MatPESStaticSet
+            self.vasp_set_cls = vasp_set_cls
             slurm_body = f"python {self.custodian_script_name}"
             if not os.path.exists(self.custodian_script_name):
                 open(self.custodian_script_name, "wt").write(qu.get_custodian_template())
                 err_lines.append(f"""\
-No custodian script: {self.custodian_script_name} has been found.
+No custodian script: {self.custodian_script_name} has been found in {str(self.topdir)}.
 A template that requires customization has been generated for you!""")
             else:
                 self.custodian_script_str = open(self.custodian_script_name, "rt").read()
@@ -218,7 +226,7 @@ A template that requires customization has been generated for you!""")
         if not os.path.exists(self.slurm_script_name):
             open(self.slurm_script_name, "wt").write(qu.get_slurm_template(slurm_body))
             err_lines.append(f"""\
-No slurm submission script: {self.slurm_script_name} has been found.
+No slurm submission script: {self.slurm_script_name} has been found in {str(self.topdir)}.
 A template that requires customization has been generated for you!""")
         else:
             self.slurm_script_str = open(self.slurm_script_name, "rt").read()
@@ -254,7 +262,7 @@ A template that requires customization has been generated for you!""")
             try:
                 atoms = read(self.traj_path, index=index)
             except StopIteration as exc:
-                print(f"ASE trajectory does not have more that {index=} configurations. Exiting sbatch loop!")
+                print(f"ASE trajectory does not have more that {index+1} configurations. Exiting sbatch loop!")
                 break
 
             structure = Structure.as_structure(atoms)
@@ -278,9 +286,10 @@ A template that requires customization has been generated for you!""")
 
             try:
                 job_id = qu.slurm_write_and_sbatch(workdir / "run.sh", self.slurm_script_str)
+
             except Exception as exc:
                 cprint(exc, "red")
-                cprint("Job sumbission failed. Will remove directory and exit sbatch loop.")
+                cprint("Job sumbission failed. Will remove directory and exit sbatch loop.", color="red")
                 shutil.rmtree(workdir)
                 break
 
