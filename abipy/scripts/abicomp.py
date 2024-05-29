@@ -261,7 +261,7 @@ def abicomp_png(options):
     """
     Use matplotlib to plot multiple png files on a grid.
     """
-    plotter = FilesPlotter(options.filepaths)
+    plotter = FilesPlotter(options.paths)
     plotter.plot()
     return 0
 

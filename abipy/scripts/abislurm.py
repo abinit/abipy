@@ -16,6 +16,7 @@ def get_epilog() -> str:
 Usage example:\n
 
     abislurm.py running                => Get info on all the running jobs
+    abislurm.py completed 111 112      => Get info on completed jobs
 """
 
 
@@ -38,13 +39,20 @@ def get_parser(with_epilog=False):
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
+    job_ids_parser = argparse.ArgumentParser(add_help=False)
+    job_ids_parser.add_argument('job_ids', nargs="+", help="List of job ids.")
+
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help',
         description="Valid subcommands, use command --help for help")
 
     # Subparser for running command.
-    p_running = subparsers.add_parser('jobs', parents=[copts_parser],
+    p_running = subparsers.add_parser('running', parents=[copts_parser],
         help="Check info on all the running jobs.")
+
+    # Subparser for running command.
+    p_completed = subparsers.add_parser('completed', parents=[copts_parser, job_ids_parser],
+        help="Returning info on completed jobs.")
 
     return parser
 
@@ -81,8 +89,8 @@ def main():
     #elif options.command == "running_from_logs":
 
     elif options.command == "completed":
-        raise NotImplementedError("")
-        #qu.get_completed_job_info(job_id)
+        for job_id in options.job_ids:
+            print(qu.get_completed_job_info(job_id))
 
     #elif options.command == "completed_from_logs":
 
