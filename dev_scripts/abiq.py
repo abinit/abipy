@@ -6,8 +6,10 @@ import sys
 import os
 import argparse
 import abipy.tools.cli_parsers as cli
+import abipy.flowtk.qutils as qu
 
 from abipy.core.release import __version__
+
 
 
 def main():
@@ -35,9 +37,6 @@ Usage example:\n
     parser.add_argument('--loglevel', default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
-    #parser.add_argument('--qtype', default="pbspro", help="Queue Type.")
-    #parser.add_argument('job_id', help="Job Indentifier.")
-
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -46,7 +45,11 @@ Usage example:\n
 
     cli.set_loglevel(options.loglevel)
 
-    #return retcode
+    jobs_dict = qu.slurm_get_jobs()
+    for job_id, dct in jobs_dict.items():
+        print(f"{job_id=}", dct)
+
+    return 0
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 #import json
 
+from subprocess import Popen, PIPE
 from monty.string import is_string
 from pymatgen.core.units import Time, Memory
 from abipy.tools.typing import PathLike
@@ -137,15 +138,13 @@ def any2mb(s):
         return int(s)
 
 
-def slurm_get_jobs(username=None) -> dict[int, dict]:
+def slurm_get_jobs() -> dict[int, dict]:
     """
     Invoke squeue, parse output and return list of dictionaries with job info indexed by job id.
     """
     # Based on https://gist.github.com/stevekm/7831fac98473ea17d781330baa0dd7aa
-    username = os.getlogin() if username is None else username
-    import subprocess as sp
-    process = sp.Popen(['squeue', '-u',  username, "-o", '%all'],
-                       stdout=sp.PIPE, stderr=sp.PIPE, shell=False, universal_newlines=True)
+    process = Popen(["squeue", "--me", "-o", '%all'],
+                       stdout=PIPE, stderr=PIPE, shell=False, universal_newlines=True)
     proc_stdout, proc_stderr = process.communicate()
 
     lines = proc_stdout.split('\n')
@@ -283,7 +282,7 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
     dirpath = os.path.dirname(slurm_filepath)
     #print("dirpath", dirpath)
     with cd(dirpath):
-        from subprocess import Popen, PIPE
+
         # need string not bytes so must use universal_newlines
         slurm_filepath = str(slurm_filepath)
         process = Popen(['sbatch', slurm_filepath], stdout=PIPE, stderr=PIPE, universal_newlines=True)

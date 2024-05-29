@@ -424,8 +424,8 @@ class AseResults(HasPickleIO):
         for k, v in fstats.items():
             app(f"{k} = {v} (eV/Ang)")
 
+        # if verbose:
         if True:
-        #if verbose:
             app('Forces (eV/Ang):')
             positions = self.atoms.get_positions()
             data = dict(

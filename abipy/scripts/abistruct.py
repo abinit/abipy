@@ -1066,7 +1066,6 @@ def main():
 
     elif options.command == "chemenv":
         # Based on https://matgenb.materialsvirtuallab.org/2018/01/01/ChemEnv-How-to-automatically-identify-coordination-environments-in-a-structure.html
-
         from pymatgen.analysis.chemenv.coordination_environments.chemenv_strategies import SimplestChemenvStrategy
         from pymatgen.analysis.chemenv.coordination_environments.coordination_geometry_finder import LocalGeometryFinder
         from pymatgen.analysis.chemenv.coordination_environments.structure_environments import LightStructureEnvironments
