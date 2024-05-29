@@ -45,7 +45,8 @@ def _allclose(arr_name, array1, array2, verbose: int, rtol=1e-5, atol=1e-8) -> b
 
 class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , NotebookWriter):
     """
-    This file stores the e-ph matrix elements and provides methods to analyze and plot results.
+    This file stores the e-ph matrix elements produced by the EPH code of Abinit
+    and provides methods to analyze and plot results.
 
     Usage example:
 
@@ -55,8 +56,11 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
             print(gstore)
 
             for spin in range(gstore.nsppol):
+                # Extract the object storing the g for this spin.
                 gqk = gstore.gqk_spin[spin]
                 print(gqk)
+
+                # Get a Dataframe with g(k, q) for all modes and bands.
                 df = gqk.get_gdf_at_qpt_kpt([1/2, 0, 0], [0, 0, 0])
                 print(df)
 

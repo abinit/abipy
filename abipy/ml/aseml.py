@@ -47,9 +47,9 @@ from abipy.tools.typing import Figure, PathLike
 from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import HasPickleIO
 from abipy.tools.context_managers import Timer
-from abipy.tools.parallel import get_max_nprocs, pool_nprocs_pmode
+from abipy.tools.parallel import get_max_nprocs # , pool_nprocs_pmode
 from abipy.abio.enums import StrEnum, EnumMixin
-from abipy.core.mixins import TextFile, NotebookWriter
+from abipy.core.mixins import TextFile # , NotebookWriter
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
     set_visible, set_ax_xylabels, linear_fit_ax)
 from abipy.ml.tools import get_energy_step
@@ -65,7 +65,7 @@ class RX_MODE(EnumMixin, StrEnum):  # StrEnum added in 3.11
     """
     Relaxation mode string flags.
     """
-    no   = "no"
+    no = "no"
     ions = "ions"
     cell = "cell"
 
@@ -126,6 +126,7 @@ _FMT2FNAME = {
     "abinit": "run.abi",
     #"qe": "qe.in",
 }
+
 
 def write_atoms(atoms: Atoms, workdir, verbose: int,
                 formats=None, prefix=None, postfix=None) -> list[tuple[Path, str]]:
@@ -749,17 +750,17 @@ def main():
                                                )
         irow = 0
         for icol, (key1, key2) in enumerate(key_pairs):
-           xs, ys = self.xy_energies_for_keys(key1, key2)
-           stats = diff_stats(xs, ys)
-           ax = ax_mat[irow, icol]
-           ax.scatter(xs, ys, marker="o")
-           ax.grid(True)
-           ax.set_xlabel(f"{key1} energy", fontsize=fontsize)
-           ax.set_ylabel(f"{key2} energy", fontsize=fontsize)
-           linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
-           ax.legend(loc="best", shadow=True, fontsize=fontsize)
-           if irow == 0:
-               ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
+            xs, ys = self.xy_energies_for_keys(key1, key2)
+            stats = diff_stats(xs, ys)
+            ax = ax_mat[irow, icol]
+            ax.scatter(xs, ys, marker="o")
+            ax.grid(True)
+            ax.set_xlabel(f"{key1} energy", fontsize=fontsize)
+            ax.set_ylabel(f"{key2} energy", fontsize=fontsize)
+            linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
+            ax.legend(loc="best", shadow=True, fontsize=fontsize)
+            if irow == 0:
+                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
         if "title" not in kwargs: fig.suptitle(f"Energies in eV for {self.structure.latex_formula}")
         return fig
@@ -1146,7 +1147,6 @@ def silence_tensorflow() -> None:
         pass
 
 
-
 class CORRALGO(IntEnum):
     """
     Enumerate the different algorithms used to correct the ML forces/stresses.
@@ -1160,10 +1160,10 @@ class CORRALGO(IntEnum):
     def from_string(cls, string: str):
         """Build instance from string."""
         try:
-           enum = getattr(cls, string)
-           return enum
+            enum = getattr(cls, string)
+            return enum
         except AttributeError as exc:
-           raise ValueError(f'Error: {string} is not a valid value')
+            raise ValueError(f'Error: {string} is not a valid value')
 
 
 class _MyCalculator:
@@ -1447,7 +1447,6 @@ class CalcBuilder:
         "deepmd",
     ]
 
-
     def __init__(self, name: str, dftd3_args=None, **kwargs):
         self.name = name
 
@@ -1553,7 +1552,7 @@ class CalcBuilder:
             # stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
             # here we use  1 / 160.21766208 as in
             # https://github.com/materialsvirtuallab/matgl/blob/main/src/matgl/ext/ase.py
-            calc = cls(potential=self._model, stress_weight= 1/abu.eVA3_GPa, **self.calc_kwargs)
+            calc = cls(potential=self._model, stress_weight=1/abu.eVA3_GPa, **self.calc_kwargs)
 
         elif self.nn_type == "chgnet":
             try:
@@ -1582,7 +1581,7 @@ class CalcBuilder:
 
         elif self.nn_type == "alignn":
             try:
-                from alignn.ff.ff import AlignnAtomwiseCalculator, default_path, get_figshare_model_ff
+                from alignn.ff.ff import AlignnAtomwiseCalculator, default_path # , get_figshare_model_ff
             except ImportError as exc:
                 raise ImportError("alignn not installed. See https://github.com/usnistgov/alignn") from exc
 
@@ -1686,7 +1685,7 @@ class CalcBuilder:
             if self.model_path is None:
                 raise RuntimeError("MetaTensorCalculator requires model_path e.g. nn_name='metatensor:FILEPATH'")
 
-            cls = MyMetaTensorCalculator if with_delta else MetatensorCalculator
+            cls = MyMetatensorCalculator if with_delta else MetatensorCalculator
             calc = cls(self.model_path, **self.calc_kwargs)
 
         elif self.nn_type == "deepmd":
@@ -1701,7 +1700,7 @@ class CalcBuilder:
             if self.model_path is None:
                 raise RuntimeError("DeepMD calculator requires model_path e.g. nn_name='deepmd:FILEPATH'")
 
-            cls = MyDp if with_delta else Dp
+            cls = MyDpCalculator if with_delta else DP
             calc = cls(self.model_path, **self.calc_kwargs)
 
         else:
@@ -2066,7 +2065,7 @@ def restart_md(traj_filepath, atoms, verbose) -> tuple[bool, int]:
     """
     traj_filepath = str(traj_filepath)
     if not os.path.exists(traj_filepath):
-        if verbose: print(f"Starting MD run from scratch.")
+        if verbose: print("Starting MD run from scratch.")
         return False, 0
 
     print(f"Restarting MD run from the last image of the trajectory file: {traj_filepath}")
@@ -2168,7 +2167,6 @@ class AseMdLog(TextFile):
         yield self.histplot(show=False)
 
 
-
 class MlMd(MlBase):
     """
     Perform MD calculations with ASE and ML potential.
@@ -2229,13 +2227,13 @@ class MlMd(MlBase):
         # Write JSON files with parameters.
         md_dict = dict(
             temperature=self.temperature,
-            timestep   =self.timestep,
-            steps      =self.steps,
+            timestep=self.timestep,
+            steps=self.steps,
             loginterval=self.loginterval,
-            ensemble   =self.ensemble,
-            nn_name    =self.nn_name,
-            workdir    =str(self.workdir),
-            verbose    =self.verbose,
+            ensemble=self.ensemble,
+            nn_name=self.nn_name,
+            workdir=str(self.workdir),
+            verbose=self.verbose,
         )
         self.write_json("md.json", md_dict, info="JSON file with ASE MD parameters")
 
@@ -2375,7 +2373,7 @@ class MlGsList(_MlNebBase):
             results.append(AseResults.from_atoms(atoms))
 
         write_vasp_xdatcar(self.workdir / "XDATCAR", self.atoms_list,
-                           label=f"XDATCAR with list of atoms.")
+                           label="XDATCAR with list of atoms.")
 
         self.postprocess_images(self.atoms_list)
         self._finalize()
@@ -2491,7 +2489,7 @@ class MlNeb(_MlNebBase):
                            method='linear', mic=False)
 
         write_vasp_xdatcar(workdir / "INITIAL_NEB_XDATCAR", neb.images,
-                           label=f"XDATCAR with initial NEB images.")
+                           label="XDATCAR with initial NEB images.")
 
         # Optimize
         opt_class = ase_optimizer_cls(self.optimizer)
@@ -2504,7 +2502,7 @@ class MlNeb(_MlNebBase):
         # To read the last nimages atoms e.g. 5: read('neb.traj@-5:')
         images = ase.io.read(f"{str(nebtraj_file)}@-{self.nimages}:")
         write_vasp_xdatcar(workdir / "FINAL_NEB_XDATCAR", images,
-                           label=f"XDATCAR with final NEB images.")
+                           label="XDATCAR with final NEB images.")
 
         # write vasp poscar files for each image in vasp_neb
         dirpath = self.mkdir("VASP_NEB", info="Directory with POSCAR files for each NEB image.")
@@ -2879,7 +2877,7 @@ class MlValidateWithAbinitio(_MlNebBase):
                 # GPa units.
                 stress_cart_tensors, pressures = hist.reader.read_cart_stress_tensors()
                 for istep, (structure, ene, stress, forces) in enumerate(zip(hist.structures, etotals, stress_cart_tensors, forces_hist)):
-                    if not istep in self.traj_range: continue
+                    if istep not in self.traj_range: continue
                     magmoms = None
                     r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress, magmoms=magmoms)
                     abi_results.append(r)
@@ -2894,7 +2892,7 @@ class MlValidateWithAbinitio(_MlNebBase):
 
             for istep, step in enumerate(vasprun.ionic_steps):
                 #print(step.keys())
-                if not istep in self.traj_range: continue
+                if istep not in self.traj_range: continue
                 structure, forces, stress = step["structure"], step["forces"], step["stress"]
                 ene = get_energy_step(step)
                 magmoms = None
@@ -2908,7 +2906,7 @@ class MlValidateWithAbinitio(_MlNebBase):
             if self.traj_range is None: self.traj_range = range(0, num_steps, 1)
             print(f"Reading trajectory from {filepath=}, {num_steps=}, {self.traj_range=}")
             for istep, atoms in enumerate(atoms_list):
-                if not istep in self.traj_range: continue
+                if istep not in self.traj_range: continue
                 r = AseResults.from_atoms(atoms)
                 abi_results.append(r)
 

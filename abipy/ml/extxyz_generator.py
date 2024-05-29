@@ -198,7 +198,7 @@ class SinglePointRunner:
         Args:
             traj_path: Path to ASE trajectory file.
             traj_range:
-            topdir: 
+            topdir:
             code:
             verbose:
         """

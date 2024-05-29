@@ -2,13 +2,11 @@
 """
 This script retrieve information on a job in the queue
 """
-
 import sys
 import os
 import argparse
 import abipy.tools.cli_parsers as cli
 
-from pymatgen.io.abinit.qjobs import QueueJob
 from abipy.core.release import __version__
 
 
@@ -48,15 +46,7 @@ Usage example:\n
 
     cli.set_loglevel(options.loglevel)
 
-    job = QueueJob.from_qtype_and_id(options.qtype, int(options.job_id))
-    #print(job)
-
-    print("get_info", job.get_info())
-    #print("get_stats", job.get_stats())
-    #print("estimated_start_time", job.estimated_start_time())
-    print(job)
-
-    return retcode
+    #return retcode
 
 
 if __name__ == "__main__":
