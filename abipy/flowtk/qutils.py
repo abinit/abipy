@@ -11,7 +11,7 @@ from __future__ import annotations
 import os
 #import json
 
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, run
 from monty.string import is_string
 from pymatgen.core.units import Time, Memory
 from abipy.tools.typing import PathLike
@@ -306,6 +306,56 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
                 raise exc
         else:
             raise RuntimeError(f"Error while submitting {slurm_filepath=} with {process.returncode=},\n{out=}\n{err=}")
+
+
+def get_sacct_info():
+    """
+    Run the sacct command to get the job information
+    """
+    try:
+
+        result = run(['sacct', '--format=JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode', '--noheader'],
+                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        # Check if the command was successful
+        if result.returncode != 0:
+            print(f"Error running sacct: {result.stderr}")
+            return None
+
+        # Process the output
+        jobs_info = result.stdout.strip().split('\n')
+        jobs = [dict(zip(['JobID', 'JobName', 'Partition', 'Account', 'AllocCPUS', 'State', 'ExitCode'], job.split())) for job in jobs_info]
+        return jobs
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+
+def get_completed_job_info(job_id):
+    try:
+        # Define the fields we want to retrieve
+        fields = "JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode,Start,End,Elapsed,TotalCPU,MaxRSS"
+
+        # Run the sacct command with the specified fields for the given job ID
+        result = run(
+            ['sacct', '--jobs', job_id, '--format', fields, '--noheader', '--parsable2'],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
+
+        # Check if the command was successful
+        if result.returncode != 0:
+            print(f"Error running sacct: {result.stderr}")
+            return None
+
+        # Process the output
+        lines = result.stdout.strip().split('\n')
+        jobs = [dict(zip(fields.split(','), line.split('|'))) for line in lines]
+        return jobs
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
 
 def get_slurm_template(body: str) -> str:
