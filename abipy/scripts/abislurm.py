@@ -50,7 +50,7 @@ def get_parser(with_epilog=False):
     p_running = subparsers.add_parser('running', parents=[copts_parser],
         help="Check info on all the running jobs.")
 
-    # Subparser for running command.
+    # Subparser for completed command.
     p_completed = subparsers.add_parser('completed', parents=[copts_parser, job_ids_parser],
         help="Returning info on completed jobs.")
 
@@ -86,16 +86,17 @@ def main():
         for job_id, dct in jobs_dict.items():
             print(f"{job_id=}", dct)
 
-    #elif options.command == "running_from_logs":
+    #elif options.command == "running_from_abilogs":
 
     elif options.command == "completed":
         for job_id in options.job_ids:
             print(qu.get_completed_job_info(job_id))
 
-    #elif options.command == "completed_from_logs":
+    #elif options.command == "completed_from_abilogs":
+    #    job_ids = []
 
     else:
-        raise ValueError("Unsupported command: %s" % options.command)
+        raise ValueError(f"Unsupported {options.command=}")
 
     return 0
 
