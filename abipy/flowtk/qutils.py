@@ -9,7 +9,6 @@ The preferred way of importing this module is:
 from __future__ import annotations
 
 import os
-#import json
 
 from subprocess import Popen, PIPE, run
 from monty.string import is_string
@@ -315,7 +314,7 @@ def get_sacct_info():
     try:
 
         result = run(['sacct', '--format=JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode', '--noheader'],
-                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                      stdout=PIPE, stderr=PIPE, text=True)
 
         # Check if the command was successful
         if result.returncode != 0:
@@ -324,7 +323,8 @@ def get_sacct_info():
 
         # Process the output
         jobs_info = result.stdout.strip().split('\n')
-        jobs = [dict(zip(['JobID', 'JobName', 'Partition', 'Account', 'AllocCPUS', 'State', 'ExitCode'], job.split())) for job in jobs_info]
+        jobs = [dict(zip(['JobID', 'JobName', 'Partition', 'Account', 'AllocCPUS', 'State', 'ExitCode'], job.split())) 
+                for job in jobs_info]
         return jobs
 
     except Exception as e:
@@ -332,15 +332,15 @@ def get_sacct_info():
         return None
 
 
-def get_completed_job_info(job_id):
+def get_completed_job_info(job_id: int | str):
     try:
         # Define the fields we want to retrieve
         fields = "JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode,Start,End,Elapsed,TotalCPU,MaxRSS"
 
         # Run the sacct command with the specified fields for the given job ID
         result = run(
-            ['sacct', '--jobs', job_id, '--format', fields, '--noheader', '--parsable2'],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            ['sacct', '--jobs', str(job_id), '--format', fields, '--noheader', '--parsable2'],
+            stdout=PIPE, stderr=PIPE, text=True
         )
 
         # Check if the command was successful

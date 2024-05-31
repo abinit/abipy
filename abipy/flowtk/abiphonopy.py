@@ -5,13 +5,9 @@ from __future__ import annotations
 import os
 import numpy as np
 
-try:
-    from phonopy import Phonopy, file_IO
-    from phonopy.interface.vasp import read_vasp_from_strings
-    from phonopy.interface.abinit import parse_set_of_forces
-except ImportError:
-    import warnings
-    warnings.warn("phonopy is required by abiphonopy. Install it with conda or pip install phonopy")
+from phonopy import Phonopy, file_IO
+from phonopy.interface.vasp import read_vasp_from_strings
+from phonopy.interface.abinit import parse_set_of_forces
 
 from abipy.core.structure import Structure
 from abipy.flowtk.works import Work

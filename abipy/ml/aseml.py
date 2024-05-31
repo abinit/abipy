@@ -1294,7 +1294,7 @@ class _MyCalculator:
                     forces += delta_forces
                     print(f"{delta_forces=}")
                     #AA: TODO: save the delta in list and call method...
-                    dict ={'delta_forces': delta_forces,}
+                    dict = {'delta_forces': delta_forces,}
                     with open('delta_forces.json', 'a') as outfile:
                         json.dump(dict, outfile, indent=1, cls=MontyEncoder)
 
@@ -2328,7 +2328,6 @@ class _MlNebBase(MlBase):
         """
         with open(self.workdir / 'neb_data.json', "rt") as fh:
             return json.load(fh)
-
 
 
 class MlGsList(_MlNebBase):

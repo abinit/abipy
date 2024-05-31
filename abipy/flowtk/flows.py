@@ -2612,7 +2612,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 app(make_banner(s, mark="="))
                 app(polish_doc(task_cls.__doc__, "task"))
                 app("Tasks belonging to this class (%s):" % len(tasks))
-                for task  in tasks:
+                for task in tasks:
                     app(4 * " " + str(task) + ", status: " + task.status.colored)
 
         return "\n".join(lines)

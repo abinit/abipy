@@ -148,7 +148,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         natom3 = natom * 3
         phfreqs_ha, phdispl_red = self.phfreqs_ha, self.phdispl_red
         gkq_nu = np.empty_like(gkq_atm)
-        cwork = np.empty((natom3, nb2), dtype=np.complex)
+        cwork = np.empty((natom3, nb2), dtype=complex)
         for spin in range(self.ebands.nsppol):
             for ik in range(self.ebands.nkpt):
                 g = np.reshape(gkq_atm[spin, ik], (-1, nb2))
@@ -177,7 +177,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     #           gkq_atm = gkq_atm[:, 0] + 1j * gkq_atm[:, 1]
     #
     #           # Transform the gkk matrix elements from (atom, red_direction) basis to phonon-mode basis.
-    #           gkq_nu = np.zeros(natom3), dtype=np.complex)
+    #           gkq_nu = np.zeros(natom3), dtype=complex)
     #           for nu in range(natom3):
     #               if self.phfreqs_ha[nu] < eph_wtol: continue
     #               gkq_nu[nu] = np.dot(self.phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * self.phfreqs_ha[nu])
@@ -441,8 +441,8 @@ class GkqRobot(Robot, RobotWithEbands):
         natom3 = len(self.abifiles[0].structure) * 3
         nsppol = self.abifiles[0].nsppol
         nqpt = len(self.abifiles)
-        gkq_snuq = np.empty((nsppol, natom3, nqpt), dtype=np.complex)
-        if with_glr: gkq_lr = np.empty((nsppol, natom3, nqpt), dtype=np.complex)
+        gkq_snuq = np.empty((nsppol, natom3, nqpt), dtype=complex)
+        if with_glr: gkq_lr = np.empty((nsppol, natom3, nqpt), dtype=complex)
 
         # TODO: Should take into account possible degeneracies in k and kq...
         xticks, xlabels = [], []
