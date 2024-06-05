@@ -560,7 +560,7 @@ class EphSelfEnergy:
 
     @add_fig_kwargs
     def plot_tdep(self, itemps="all", zero_energy="e0", colormap="jet", ax_list=None,
-                  what_list=("re", "im", "spfunc"), with_frohl=False, 
+                  what_list=("re", "im", "spfunc"), with_frohl=False,
                   xlims=None, ylims= None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the real/imaginary part of self-energy as well as the spectral function for
@@ -2546,7 +2546,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         for nc in self.abifiles[1:]:
             for k0, k1 in zip(nc0.sigma_kpoints, nc.sigma_kpoints):
                 if k0 != k1:
-                    cprint("Files with different values of `sigma_kpoints`\n"+
+                    cprint("Files with different values of `sigma_kpoints`\n" +
                            "Specify the kpoint via reduced coordinates and not via the index", "yellow")
                     break
 

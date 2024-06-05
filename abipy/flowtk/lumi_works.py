@@ -6,6 +6,7 @@ from .works import Work
 from abipy.abilab import abiopen
 from abipy.lumi.deltaSCF import DeltaSCF
 
+
 class LumiWork(Work):
     """
     This Work implements Fig 1 of https://arxiv.org/abs/2010.00423.
@@ -18,7 +19,7 @@ class LumiWork(Work):
     """
 
     @classmethod
-    def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, relax_kwargs_gs, relax_kwargs_ex, ndivsm=0, nb_extra=10, 
+    def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, relax_kwargs_gs, relax_kwargs_ex, ndivsm=0, nb_extra=10,
                         tolwfr=1e-12, four_points=True, meta=None, manager=None) -> LumiWork:
         """
         Args:
@@ -82,7 +83,7 @@ class LumiWork(Work):
         #with self.gs_relax_task.open_gsr() as gsr:
            # ag_relaxed_structure = gsr.structure
         with abiopen(self.gs_relax_task.output_file.path) as relax_gs_abo:
-           ag_relaxed_structure = relax_gs_abo.final_structure
+            ag_relaxed_structure = relax_gs_abo.final_structure
 
         if self.iteration_step == 0:
             print("in iteration step 0")
@@ -131,7 +132,6 @@ class LumiWork(Work):
             ae_scf_inp = self.gs_scf_inp.new_with_structure(aestar_relaxed_structure)
             self.ae_scf_task = self.register_scf_task((ae_scf_inp),deps={self.ex_relax_task: "DEN"})
 
-
             if self.ndivsm != 0:
                 # Compute band structure for Ag configuration.
                 self.ag_scf_task.add_ebands_task_to_work(self, ndivsm=self.ndivsm,
@@ -164,7 +164,6 @@ class LumiWork(Work):
 
             #with self.ex_relax_task.open_gsr() as gsr:
             self.json_data["ex_relax_filepath"]=self.ex_relax_task.gsr_path
-
 
             if self.four_points == True:
                 # Get Ag total energy.
@@ -199,6 +198,7 @@ class LumiWork(Work):
             self.write_json_in_outdir("Delta_SCF.json", d)
 
             return super().on_all_ok()
+
 
 class LumiWork_relaxations(Work):
     """
@@ -236,7 +236,6 @@ class LumiWork_relaxations(Work):
         new.gs_relax_task = new.register_relax_task(gs_scf_inp.new_with_vars(relax_kwargs_gs))
         new.ex_relax_task = new.register_relax_task(ex_scf_inp.new_with_vars(relax_kwargs_ex))
 
-
         new.json_data = {}
 
         return new
@@ -260,15 +259,12 @@ class LumiWork_relaxations(Work):
         return super().on_all_ok()
 
 
-
-
 class LumiWorkFromRelax(Work):
     """
     Same as LumiWork, without the relaxations. Typically used after a LumiWork_relaxations work.
     The two relaxed structures (in ground and excited state) are given as input. No creation at run-time
 
     """
-
     @classmethod
     def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, gs_structure, ex_structure, ndivsm=0, nb_extra=10,
                         tolwfr=1e-12, meta=None ,manager=None):
@@ -322,7 +318,6 @@ class LumiWorkFromRelax(Work):
         aestar_scf_inp = new.ex_scf_inp.new_with_structure(ex_structure)
         new.aestar_scf_task = new.register_scf_task(aestar_scf_inp)
 
-
         # Build GS SCF input for the Ag* configuration:
         # use same structure as Ag but with excited occupation factors.
         ae_scf_inp = new.gs_scf_inp.new_with_structure(ex_structure)
@@ -347,7 +342,6 @@ class LumiWorkFromRelax(Work):
     def on_all_ok(self):
 
         self.json_data["meta"] = self.meta
-
 
         # Get Ag total energy.
         # with self.ag_scf_task.open_gsr() as gsr:
@@ -380,4 +374,3 @@ class LumiWorkFromRelax(Work):
         self.write_json_in_outdir("Delta_SCF.json", d)
 
         return super().on_all_ok()
-

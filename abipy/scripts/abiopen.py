@@ -244,6 +244,9 @@ def main():
     if options.filepath.endswith(".traj"):
         return handle_ase_traj(options)
 
+    if options.filepath.endswith("md.aselog"):
+        return handle_ase_md_log(options)
+
     if os.path.basename(options.filepath) == "flows.db":
         from abipy.flowtk.launcher import print_flowsdb_file
         return print_flowsdb_file(options.filepath)
@@ -345,6 +348,15 @@ def handle_ase_traj(options):
                 e(plotter.plot(**plot_kws))
                 e(plotter.plot_lattice(**plot_kws))
 
+    return 0
+
+
+def handle_ase_md_log(options):
+    """Handle ASE MD log file."""
+    from abipy.ml.aseml import AseMdLog
+    md_log = AseMdLog(options.filepath)
+    with Exposer.as_exposer("mpl") as e:
+        e.add_obj_with_yield_figs(md_log)
     return 0
 
 

@@ -9,8 +9,8 @@ The preferred way of importing this module is:
 from __future__ import annotations
 
 import os
-import json
 
+from subprocess import Popen, PIPE, run
 from monty.string import is_string
 from pymatgen.core.units import Time, Memory
 from abipy.tools.typing import PathLike
@@ -137,15 +137,13 @@ def any2mb(s):
         return int(s)
 
 
-def slurm_get_jobs(username=None) -> dict[int, dict]:
+def slurm_get_jobs() -> dict[int, dict]:
     """
     Invoke squeue, parse output and return list of dictionaries with job info indexed by job id.
     """
     # Based on https://gist.github.com/stevekm/7831fac98473ea17d781330baa0dd7aa
-    username = os.getlogin() if username is None else username
-    import subprocess as sp
-    process = sp.Popen(['squeue', '-u',  username, "-o", '%all'],
-                       stdout=sp.PIPE, stderr=sp.PIPE, shell=False, universal_newlines=True)
+    process = Popen(["squeue", "--me", "-o", '%all'],
+                       stdout=PIPE, stderr=PIPE, shell=False, universal_newlines=True)
     proc_stdout, proc_stderr = process.communicate()
 
     lines = proc_stdout.split('\n')
@@ -166,7 +164,6 @@ def slurm_get_jobs(username=None) -> dict[int, dict]:
             entries.append(d)
 
     return {e["JOBID"]: e for e in entries}
-
 
 
 class SlurmJobArray:
@@ -264,32 +261,194 @@ rm ${{me}}.qid
             fh.write(str(self))
 
         queue_id = slurm_sbatch(slurm_filepath)
-        print("Saving slurm job ID in:", path_qid)
-        with open(path_qid, "wt") as fh:
-            fh.write(str(queue_id) + " # Slurm job id")
-
         return queue_id
 
 
-def slurm_sbatch(script_file) -> int:
+def slurm_write_and_sbatch(script_filepath: str, slurm_script_str: str) -> int:
     """
-    Submit a job script to the queue with sbatch. Return Slurm JOB ID.
+    Write job script and submit it to the queue with Slurm sbatch. Return Slurm JOB ID.
     """
-    from subprocess import Popen, PIPE
-    # need string not bytes so must use universal_newlines
-    process = Popen(['sbatch', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
-    out, err = process.communicate()
+    with open(script_filepath, "wt") as fh:
+        fh.write(slurm_script_str)
+        return slurm_sbatch(script_filepath)
 
-    # grab the returncode. SLURM returns 0 if the job was successful
-    if process.returncode == 0:
-        try:
-            # output should of the form '2561553.sdb' or '352353.jessup' - just grab the first part for job id
-            queue_id = int(out.split()[3])
-            print(f"Job submission was successful and {queue_id=}")
-            return queue_id
-        except Exception as exc:
-            # probably error parsing job code
-            print('Could not parse job id following slurm...')
-            raise exc
-    else:
-        raise RuntimeError(f"Error while submitting {script_file=}")
+
+def slurm_sbatch(slurm_filepath: PathLike) -> int:
+    """
+    Submit a job script to the queue with Slurm sbatch. Return Slurm JOB ID.
+    """
+    from monty.os import cd
+    dirpath = os.path.dirname(slurm_filepath)
+    #print("dirpath", dirpath)
+    with cd(dirpath):
+
+        # need string not bytes so must use universal_newlines
+        slurm_filepath = str(slurm_filepath)
+        process = Popen(['sbatch', slurm_filepath], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        out, err = process.communicate()
+
+        # grab the returncode. SLURM returns 0 if the job was successful
+        if process.returncode == 0:
+            try:
+                # output should of the form '2561553.sdb' or '352353.jessup' - just grab the first part for job id
+                queue_id = int(out.split()[3])
+                path_qid = slurm_filepath + ".qid"
+                print(f"Job submission was successful and queue_id: {queue_id}")
+                print("Saving slurm job ID in:", path_qid)
+                with open(path_qid, "wt") as fh:
+                    fh.write(str(queue_id) + " # Slurm job id")
+                return queue_id
+
+            except Exception as exc:
+                # probably error parsing job code
+                print('Could not parse job id following slurm...')
+                raise exc
+        else:
+            raise RuntimeError(f"Error while submitting {slurm_filepath=} with {process.returncode=},\n{out=}\n{err=}")
+
+
+def get_sacct_info():
+    """
+    Run the sacct command to get the job information
+    """
+    try:
+
+        result = run(['sacct', '--format=JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode', '--noheader'],
+                      stdout=PIPE, stderr=PIPE, text=True)
+
+        # Check if the command was successful
+        if result.returncode != 0:
+            print(f"Error running sacct: {result.stderr}")
+            return None
+
+        # Process the output
+        jobs_info = result.stdout.strip().split('\n')
+        jobs = [dict(zip(['JobID', 'JobName', 'Partition', 'Account', 'AllocCPUS', 'State', 'ExitCode'], job.split())) 
+                for job in jobs_info]
+        return jobs
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+
+def get_completed_job_info(job_id: int | str):
+    try:
+        # Define the fields we want to retrieve
+        fields = "JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode,Start,End,Elapsed,TotalCPU,MaxRSS"
+
+        # Run the sacct command with the specified fields for the given job ID
+        result = run(
+            ['sacct', '--jobs', str(job_id), '--format', fields, '--noheader', '--parsable2'],
+            stdout=PIPE, stderr=PIPE, text=True
+        )
+
+        # Check if the command was successful
+        if result.returncode != 0:
+            print(f"Error running sacct: {result.stderr}")
+            return None
+
+        # Process the output
+        lines = result.stdout.strip().split('\n')
+        jobs = [dict(zip(fields.split(','), line.split('|'))) for line in lines]
+        return jobs
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+
+def get_slurm_template(body: str) -> str:
+    """
+    Return template for slurm submission that is supposed to be customized by the user.
+    """
+    return f"""\
+#!/bin/bash
+#
+# Please CUSTOMIZE this section according to your cluster and the type of calculation
+#
+#SBATCH --job-name=my_job
+#SBATCH --output=%j_%x.slurm.out
+#SBATCH --error=%j_%x.slurm.err
+#SBATCH --partition=debug
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=64
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=2G
+#SBATCH --time=2:00:00
+#SBATCH --account=htforft
+
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+
+# ------------------------------------------------------------------------------
+# Printing some information
+# ------------------------------------------------------------------------------
+
+echo "------------------- Job info -------------------"
+echo "job_id             : $SLURM_JOB_ID"
+echo "jobname            : $SLURM_JOB_NAME"
+echo "queue              : $SLURM_JOB_PARTITION"
+echo "qos                : $SLURM_JOB_QOS"
+echo "account            : $SLURM_JOB_ACCOUNT"
+echo "submit dir         : $SLURM_SUBMIT_DIR"
+echo "number of mpi tasks: $SLURM_NTASKS tasks"
+echo "OMP_NUM_THREADS    : $OMP_NUM_THREADS"
+echo "number of gpus     : $SLURM_GPUS_ON_NODE"
+echo "------------------- Node list ------------------"
+echo $SLURM_JOB_NODELIST
+
+echo "---------------- Printing limits ---------------"
+ulimit -s unlimited
+ulimit -a
+
+# ------------------------------------------------------------------------------
+# Setting up the environment
+# ------------------------------------------------------------------------------
+
+echo "----------------- Environment ------------------"
+
+source $HOME/vasp.6.2.1/modules.sh
+module list
+
+echo "--------------- Running the code ---------------"
+echo -n "This run started on: "
+date
+
+{body}
+
+echo -n "This run completed on: "
+date
+"""
+
+
+def get_custodian_template() -> str:
+    return """\
+#!/usr/bin/env python
+
+from custodian.custodian import Custodian
+from custodian.vasp.jobs import VaspJob
+from custodian.vasp.handlers import VaspErrorHandler, UnconvergedErrorHandler
+
+# List of error handlers
+handlers = [
+    VaspErrorHandler(),        # Handles common VASP errors
+    UnconvergedErrorHandler()  # Handles unconverged calculations
+]
+
+# Define the VASP job with appropriate command and parameters
+jobs = [
+    VaspJob(
+        #["mpirun", "vasp_std"],  # Replace NCORES with the number of cores
+        #["mpirun", "-np", "1", "vasp_std"],  # Replace NCORES with the number of cores
+        ["mpirun", "vasp_std"],  # Replace NCORES with the number of cores
+        auto_npar=False,
+        final=True
+    )
+]
+
+# Create the Custodian instance with handlers and jobs
+c = Custodian(handlers, jobs, max_errors=5)
+
+# Run the Custodian job
+c.run()
+"""

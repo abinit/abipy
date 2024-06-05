@@ -80,8 +80,8 @@ class EffMassLineWork(Work):
         new.register_nscf_task(nscf_input, deps={scf_task: "DEN"})
 
         if ndivsm != 0:
-           ebands_inp = scf_input.make_ebands_input(ndivsm=ndivsm)
-           new.register_nscf_task(ebands_inp, deps={scf_task: "DEN"})
+            ebands_inp = scf_input.make_ebands_input(ndivsm=ndivsm)
+            new.register_nscf_task(ebands_inp, deps={scf_task: "DEN"})
 
         return new
 
