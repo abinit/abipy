@@ -36,6 +36,7 @@ from ase.optimize.optimize import Optimizer
 from ase.calculators.calculator import Calculator
 from ase.io.vasp import write_vasp_xdatcar, write_vasp
 from ase.neb import NEB
+from ase.md.npt import NPT
 from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from ase.md.velocitydistribution import (MaxwellBoltzmannDistribution, Stationary, ZeroRotation)
@@ -51,7 +52,7 @@ from abipy.tools.parallel import get_max_nprocs # , pool_nprocs_pmode
 from abipy.abio.enums import StrEnum, EnumMixin
 from abipy.core.mixins import TextFile # , NotebookWriter
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
-    set_visible, set_ax_xylabels, linear_fit_ax)
+    set_ax_xylabels, linear_fit_ax)
 from abipy.ml.tools import get_energy_step
 from pymatgen.io.vasp.outputs import Vasprun
 
@@ -282,8 +283,7 @@ class AseTrajectoryPlotter:
         return fig
 
     @add_fig_kwargs
-    def plot_lattice(self, ax_list=None,
-                     fontsize=8, xlims=None, **kwargs) -> Figure:
+    def plot_lattice(self, ax_list=None, fontsize=8, xlims=None, **kwargs) -> Figure:
         """
         Plot lattice lengths/angles/volume as a function the of the trajectory index.
 
@@ -335,7 +335,7 @@ class AseTrajectoryPlotter:
 
 def get_fstats(cart_forces: np.ndarray) -> dict:
     """
-    Return dictionary with statistics on cart_forces.
+    Return dictionary with statistics on the Cartesian forces.
     """
     fmods = np.array([np.linalg.norm(f) for f in cart_forces])
     #fmods = np.sqrt(np.einsum('ij, ij->i', cart_forces, cart_forces))
@@ -3021,6 +3021,7 @@ class MolecularDynamics:
             taup = 1000 * timestep * units.fs
 
         ensemble = ensemble.lower()
+
         if ensemble == "nvt":
             self.dyn = NVTBerendsen(
                 self.atoms,
@@ -3033,6 +3034,19 @@ class MolecularDynamics:
                 append_trajectory=append_trajectory,
             )
 
+        #elif ensemble == "npt":
+        #    self.dyn = NPT(self.atoms,
+        #                   timestep * units.fs,
+        #                   temperature_K=temperature,
+        #                   externalstrees=pressure,
+        #                   ttime=None,
+        #                   trajectory=trajectory,
+        #                   logfile=logfile,
+        #                   loginterval=loginterval,
+        #                   append_trajectory=append_trajectory,
+        #   )
+
+        #elif ensemble == "inhomo_npt_berendsen":
         elif ensemble == "npt":
             """
             NPT ensemble default to Inhomogeneous_NPTBerendsen thermo/barostat
@@ -3061,8 +3075,7 @@ class MolecularDynamics:
             """
             This is a similar scheme to the Inhomogeneous_NPTBerendsen.
             This is a less flexible scheme that fixes the shape of the
-            cell - three angles are fixed and the ratios between the three
-            lattice constants.
+            cell - three angles are fixed and the ratios between the three lattice constants.
             """
             self.dyn = NPTBerendsen(
                 self.atoms,

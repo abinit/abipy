@@ -96,12 +96,12 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def phdispl_cart_bohr(self):
-        """(natom3_nu, natom3) complex array with phonon displacement in cartesian coordinates in Bohr."""
+        """(natom3_nu, natom3) complex array with the phonon displacement in cartesian coordinates in Bohr."""
         return self.reader.read_value("phdispl_cart", cmode="c")
 
     @lazy_property
     def phdispl_red(self):
-        """(natom3_nu, natom3) complex array with phonon displacement in reduced coordinates."""
+        """(natom3_nu, natom3) complex array with the phonon displacement in reduced coordinates."""
         return self.reader.read_value("phdispl_red", cmode="c")
 
     @lazy_property
@@ -436,7 +436,7 @@ class GkqRobot(Robot, RobotWithEbands):
             kpoint = Kpoint.as_kpoint(kpoint, self.abifiles[0].structure.reciprocal_lattice)
             ik = self.kpoints.index(kpoint)
 
-        # Assume abifiles are already ordered according to q-path.
+        # Assume abifiles in the robot are already ordered according to q-path.
         xs = list(range(len(self.abifiles)))
         natom3 = len(self.abifiles[0].structure) * 3
         nsppol = self.abifiles[0].nsppol
@@ -444,7 +444,7 @@ class GkqRobot(Robot, RobotWithEbands):
         gkq_snuq = np.empty((nsppol, natom3, nqpt), dtype=complex)
         if with_glr: gkq_lr = np.empty((nsppol, natom3, nqpt), dtype=complex)
 
-        # TODO: Should take into account possible degeneracies in k and kq...
+        # TODO: Should take into account possible degeneracies in k and k+q and phonon modes.
         xticks, xlabels = [], []
         for iq, abifile in enumerate(self.abifiles):
             qpoint = abifile.qpoint
@@ -465,7 +465,7 @@ class GkqRobot(Robot, RobotWithEbands):
                 gkq_atm = ncvar[spin, ik, :, band_k, band_kq]
                 gkq_atm = gkq_atm[:, 0] + 1j * gkq_atm[:, 1]
 
-                # Transform the gkk matrix elements from (atom, red_direction) basis to phonon-mode basis.
+                # Transform the gkq matrix elements from (atom, red_direction) basis to phonon-mode basis.
                 gkq_snuq[spin, :, iq] = 0.0
                 for nu in range(natom3):
                     if phfreqs_ha[nu] < eph_wtol: continue
@@ -504,20 +504,6 @@ class GkqRobot(Robot, RobotWithEbands):
         ax.set_title(title, fontsize=fontsize)
 
         return fig
-
-    #@add_fig_kwargs
-    #def plot_gkq2_qpath_with_robots(self, other_robots, all_labels, band_kq, band_k, kpoint=0, ax=None, **kwargs):
-    #    if not isinstance(other_robots, (list, tuple)):
-    #        raise TypeError("other_robots should be a list. Received: %s" % type(other_robots))
-    #    if len(all_labels) /= 1 + len(other_robots):
-    #        raise ValueError("len(all_labels) should be equal to 1 + len(other_robots)")
-
-    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
-    #    #self.plot_gkq2_qpath(self, band_kq, band_k, kpoint=kpoint,
-    #    #                with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
-    #    #                ax=ax, fontsize=8, eph_wtol=EPH_WTOL, **kwargs):
-
-    #    return fig
 
     @add_fig_kwargs
     def plot_gkq2_diff(self, iref=0, **kwargs):

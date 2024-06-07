@@ -239,7 +239,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     #            op_waves = waves
 
     #            # Compute <u1|Op|u2>
-    #            cmat = np.empty((nb, nb), dtype=np.complex)
+    #            cmat = np.empty((nb, nb), dtype=complex)
     #            for i in range(nb):
     #                #print("int", waves[i].norm2())
     #                for j in range(nb):

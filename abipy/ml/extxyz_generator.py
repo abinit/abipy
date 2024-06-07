@@ -4,39 +4,21 @@ from __future__ import annotations
 
 import os
 import shutil
-#import numpy as np
 import abipy.core.abinit_units as abu
-#try:
-#    import ase
-#except ImportError as exc:
-#    raise ImportError("ase not installed. Try `pip install ase`.") from exc
 from pathlib import Path
-#from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from monty.string import list_strings  # marquee,
 from monty.termcolor import cprint
-#from monty.functools import lazy_property
-#from monty.json import MontyEncoder
-#from ase import units
-#from ase.atoms import Atoms
-#from ase.io.trajectory import write_traj, Trajectory
 from ase.io import read
-#from ase.calculators.calculator import Calculator
-#from ase.io.vasp import write_vasp_xdatcar, write_vasp
 from ase.stress import full_3x3_to_voigt_6_stress
 from ase.io import write
 from pymatgen.io.vasp.outputs import Vasprun, Outcar
 from pymatgen.io.vasp.sets import MatPESStaticSet # , MPStaticSet
 from abipy.core import Structure
 from abipy.electrons.gsr import GsrFile
-#from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
 from abipy.tools.typing import PathLike
 import abipy.flowtk.qutils as qu
 from abipy.ml.tools import get_energy_step
-#from abipy.tools.serialization import HasPickleIO
-#from abipy.core.mixins import TextFile, NotebookWriter
-#from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
-#    set_visible, set_ax_xylabels, linear_fit_ax)
 
 
 class ExtxyzIOWriter:
