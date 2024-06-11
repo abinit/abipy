@@ -187,7 +187,7 @@ class Gqk:
 
         # Read e-ph matrix elements
         # nctkarr_t("gvals", "dp", "gstore_cplex, nb_kq, nb_k, natom3, glob_nk, glob_nq)
-        # Have to transpose (nb_kq, nb_k) submatrix written by Fortran.
+        # Have to transpose the (nb_kq, nb_k) submatrix written by Fortran.
         g2, gvals = None, None
         if cplex == 1:
             g2 = ncr.read_value("gvals", path=path).transpose(0, 1, 2, 4, 3, 5).copy()
@@ -269,10 +269,10 @@ class Gqk:
         Return numpy array with the |g(k,q)|^2 for the given (qpoint, kpoint) pair.
         """
         # Find the internal indices of (qpoint, kpoint)
-        iq_g, qpoint = self.gstore.r.find_iq_glob_qpoint(qpoint, self.spin)        
-        ik_g, kpoint = self.gstore.r.find_ik_glob_kpoint(kpoint, self.spin)        
-        g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2           
-        return g2[iq_g, ik_g]                                                
+        iq_g, qpoint = self.gstore.r.find_iq_glob_qpoint(qpoint, self.spin)
+        ik_g, kpoint = self.gstore.r.find_ik_glob_kpoint(kpoint, self.spin)
+        g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
+        return g2[iq_g, ik_g]
 
     def get_gd2f_at_qpt_kpt(self, qpoint, kpoint) -> pd.DataFrame:
         """

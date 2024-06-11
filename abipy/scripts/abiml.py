@@ -604,7 +604,7 @@ def validate(ctx, filepaths,
              workdir, verbose
             ):
     """
-    Compare ab-initio energies, forces, and stresses with ml-computed ones.
+    Compare ab-initio energies, forces, and stresses with ML-computed ones.
 
     usage example:
 
@@ -744,43 +744,6 @@ def cwf_eos(ctx, elements, nn_names,
     print(ml_cwf_eos.to_string(verbose=verbose))
     ml_cwf_eos.run()
     return 0
-
-
-#@main.command()
-#@herald
-#@click.pass_context
-#@click.argument('filepaths', type=str, nargs=-1)
-#@add_nn_name_opt
-#@add_workdir_verbose_opts
-#@click.option('--config', default='abiml_train.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
-#def train(ctx, filepaths,
-#          nn_name,
-#          #nprocs,
-#          workdir, verbose
-#          ):
-#    """
-#    Train a ML potential using the trajectory stored on FILE.
-#
-#    usage example:
-#
-#    \b
-#        abiml.py train FILE --nn-names matgl
-#
-#    where `FILE` can be either a _HIST.nc or a vasprun.xml FILE.
-#    """
-#    if nn_name == "matgl":
-#        from abipy.ml.matgl import MatglSystem
-#        s = MatglSystem(filepaths, workdir, verbose)
-#
-#    elif nn_name == "chgnet":
-#        from abipy.ml.chgnet import ChgnetSystem
-#        s = ChgnetSystem(filepaths, workdir, verbose)
-#
-#    else:
-#        raise ValueError(f"Unsupported {nn_name=}")
-#
-#    s.train()
-#    return 0
 
 
 if __name__ == "__main__":

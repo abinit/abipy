@@ -2447,9 +2447,8 @@ class MlNeb(_MlNebBase):
         if verbose:
             #s += scompare_two_atoms("initial image", self.initial_atoms, "final image", self.final_atoms)
             file = io.StringIO()
-            fmt = "poscar"
             diff_two_structures("initial image", self.initial_atoms,
-                                "final image", self.final_atoms, fmt, file=file)
+                                "final image", self.final_atoms, fmt="poscar", file=file)
             s += "\n" + file.getvalue()
         return s
 

@@ -4,25 +4,29 @@ in the atomic representation (idir, ipert) for a single q-point.
 This file is produced by the eph code with eph_task -4.
 To analyze the e-ph scattering potentials, use v1qavg and eph_task 15 or -15
 """
+from __future__ import annotations
+
 import numpy as np
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from monty.string import marquee
 from monty.functools import lazy_property
+from abipy.core.structure import Structure
 from abipy.core.kpoints import Kpoint
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools import duck
+from abipy.tools.typing import Figure, PathLike
 from abipy.abio.robots import Robot
-from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
+from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
 from abipy.eph.common import glr_frohlich, EPH_WTOL
 
 
 class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: PathLike):
         """Initialize the object from a netcdf_ file."""
         return cls(filepath)
 
@@ -30,11 +34,11 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         super().__init__(filepath)
         self.reader = GkqReader(filepath)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation."""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -60,66 +64,66 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         return "\n".join(lines)
 
-    def close(self):
+    def close(self) -> None:
         self.reader.close()
 
     @lazy_property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.reader.read_ebands()
 
     @lazy_property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
     @lazy_property
-    def uses_interpolated_dvdb(self):
+    def uses_interpolated_dvdb(self) -> bool:
         """True if the matrix elements have been computed with an interpolated potential."""
         return int(self.reader.read_value("interpolated")) == 1
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
     @lazy_property
-    def qpoint(self):
+    def qpoint(self) -> Kpoint:
         """Q-point object."""
         return Kpoint(self.reader.read_value('qpoint'), self.structure.reciprocal_lattice)
 
     @lazy_property
-    def phfreqs_ha(self):
+    def phfreqs_ha(self) -> np.ndarray:
         """(3 * natom) array with phonon frequencies in Ha."""
         return self.reader.read_value("phfreqs")
 
     @lazy_property
-    def phdispl_cart_bohr(self):
+    def phdispl_cart_bohr(self) -> np.ndarray:
         """(natom3_nu, natom3) complex array with the phonon displacement in cartesian coordinates in Bohr."""
         return self.reader.read_value("phdispl_cart", cmode="c")
 
     @lazy_property
-    def phdispl_red(self):
+    def phdispl_red(self) -> np.ndarray:
         """(natom3_nu, natom3) complex array with the phonon displacement in reduced coordinates."""
         return self.reader.read_value("phdispl_red", cmode="c")
 
     @lazy_property
-    def becs_cart(self):
+    def becs_cart(self) -> np.ndarray:
         """(natom, 3, 3) array with the Born effective charges in Cartesian coordinates."""
         return self.reader.read_value("becs_cart").transpose(0, 2, 1).copy()
 
     @lazy_property
-    def epsinf_cart(self):
+    def epsinf_cart(self) -> np.ndarray:
         """(3, 3) array with electronic macroscopic dielectric tensor in Cartesian coordinates."""
         return self.reader.read_value("emacro_cart").T.copy()
 
     @lazy_property
-    def eigens_kq(self):
+    def eigens_kq(self) -> np.ndarray:
         """(spin, nkpt, mband) array with eigenvalues on the k+q grid in eV."""
         return self.reader.read_value("eigenvalues_kq") * abu.Ha_eV
 
-    def read_all_gkq(self, mode="phonon"):
+    def read_all_gkq(self, mode: str = "phonon") -> np.ndarray:
         """
         Read all eph matrix stored on disk.
 
@@ -134,9 +138,10 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         # Read e-ph matrix element in the atomic representation (idir, ipert)
         # Fortran array on disk has shape:
-        # nctkarr_t('gkq', "dp", &
-        # 'complex, max_number_of_states, max_number_of_states, number_of_phonon_modes, number_of_kpoints, number_of_spins')
-        gkq_atm = self.reader.read_value("gkq", cmode="c")
+        # nctkarr_t('gkq', "dp", 'complex, max_number_of_states, max_number_of_states, number_of_phonon_modes, number_of_kpoints, number_of_spins')
+        # The first band index in Fortran referes to m_kq, the second one to n_k
+        # Have to transpose the (nb_kq, nb_k) submatrix written by Fortran.
+        gkq_atm = self.reader.read_value("gkq", cmode="c").transpose(0, 1, 2, 4, 3).copy()
         if mode == "atom": return gkq_atm
 
         # Convert from atomic to phonon representation.
@@ -186,7 +191,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     #    return np.sqrt(gkq2_nu)
 
     @add_fig_kwargs
-    def plot(self, mode="phonon", with_glr=True, fontsize=8, colormap="viridis", sharey=True, **kwargs):
+    def plot(self, mode="phonon", with_glr=True, fontsize=8, colormap="viridis", sharey=True, **kwargs) -> Figure:
         """
         Plot the gkq matrix elements for a given q-point.
 
@@ -256,7 +261,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return fig
 
     @add_fig_kwargs
-    def plot_diff_with_other(self, other, mode="phonon", ax_list=None, labels=None, fontsize=8, **kwargs):
+    def plot_diff_with_other(self, other, mode="phonon", ax_list=None, labels=None, fontsize=8, **kwargs) -> Figure:
         """
         Produce scatter plot and histogram to compare the gkq matrix elements stored in two files.
 
@@ -411,7 +416,7 @@ class GkqRobot(Robot, RobotWithEbands):
 
     @add_fig_kwargs
     def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
-                        ax=None, fontsize=8, eph_wtol=EPH_WTOL, kq_labels=False, **kwargs):
+                        ax=None, fontsize=8, eph_wtol=EPH_WTOL, kq_labels=False, **kwargs) -> Figure:
         r"""
         Plot the magnitude of the electron-phonon matrix elements <k+q, band_kq| Delta_{q\nu} V |k, band_k>
         for a given set of (band_kq, band, k) as a function of the q-point.
@@ -506,7 +511,7 @@ class GkqRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_gkq2_diff(self, iref=0, **kwargs):
+    def plot_gkq2_diff(self, iref=0, **kwargs) -> Figure:
         """
         Wraps gkq.plot_diff_with_other
         Produce scatter and histogram plot to compare the gkq matrix elements stored in all the files
