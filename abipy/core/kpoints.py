@@ -948,7 +948,7 @@ class KpointList(collections.abc.Sequence):
     def __ne__(self, other):
         return not (self == other)
 
-    def index(self, kpoint):
+    def index(self, kpoint) -> int:
         """
         Returns: the first index of kpoint in self.
 
@@ -971,7 +971,7 @@ class KpointList(collections.abc.Sequence):
             if k == k0: kinds.append(ik)
         return np.array(kinds)
 
-    def find(self, kpoint):
+    def find(self, kpoint) -> int:
         """
         Returns: first index of kpoint. -1 if not found
         """
