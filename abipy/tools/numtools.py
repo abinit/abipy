@@ -50,12 +50,12 @@ def add_periodic_replicas(arr: np.ndarray) -> np.ndarray:
     oshape = ishape.copy()
 
     if ndim == 1:
-        oarr = np.empty(ishape+1, dtype=arr.dtype)
+        oarr = np.empty(ishape + 1, dtype=arr.dtype)
         oarr[:-1] = arr
         oarr[-1] = arr[0]
 
     elif ndim == 2:
-        oarr = np.empty(oshape+1, dtype=arr.dtype)
+        oarr = np.empty(oshape + 1, dtype=arr.dtype)
         oarr[:-1,:-1] = arr
         oarr[-1,:-1] = arr[0,:]
         oarr[:-1,-1] = arr[:,0]

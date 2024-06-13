@@ -18,7 +18,7 @@ from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
 from abipy.tools.typing import PathLike
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
+    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles, Marker)
 #from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.tools.typing import Figure
@@ -36,6 +36,7 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
 
     .. code-block:: python
 
+        from abipy.eph.varpeq import VarpeqFile
         with VarpeqFile("out_VARPEQ.nc") as varpeq:
             print(varpeq)
             varpeq.plot_scf_cycle()
@@ -67,8 +68,8 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
         self.r.close()
 
     @lazy_property
-    def gqk_spin(self) -> list:
-        return [Gqk.from_gstore(self, spin) for spin in range(self.nsppol)]
+    def polaron_spin(self) -> list:
+        return [Polaron.from_varpeq(self, spin) for spin in range(self.r.nsppol)]
 
     @lazy_property
     def params(self) -> dict:
@@ -116,9 +117,9 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
         return "\n".join(lines)
 
     @add_fig_kwargs
-    def plot_scf_cyle(self, ax=None, fontsize=12, **kwargs) -> Figure:
+    def plot_scf_cyle(self, ax_mat=None, fontsize=12, **kwargs) -> Figure:
         """
-        Plot the SCF cycle
+        Plot the SCF cycle.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -126,33 +127,156 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
 
         Returns: |matplotlib-Figure|
         """
-        #varpeq_data = netCDF4.Dataset(varpeq_ncfile)
-        nsppol = self.r.nsppol
         labels = [r'$E_{pol}$',
                   r'$E_{el}$',
                   r'$E_{ph}$',
                   r'$E_{elph}$',
-                  r'$\varepsilon$']
+                  r'$\varepsilon$'
+        ]
 
+        nsppol = self.r.nsppol
         nstep2cv_spin = self.r.read_value('nstep2cv')
         iter_rec_spin = self.r.read_value('iter_rec')
 
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        # Build grid of plots.
+        nrows, ncols = nsppol, 2
+        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
+                                               sharex=False, sharey=False, squeeze=False)
 
-        for spin in range(nsppol):
+        for spin in range(self.r.nsppol):
             nstep2cv = nstep2cv_spin[spin]
-            iterations = iter_rec_spin[spin,:nstep2cv, :] * abu.Ha_eV
+            iterations = iter_rec_spin[spin, :nstep2cv, :] * abu.Ha_eV
+            xs = np.arange(1, nstep2cv + 1)
 
-            for i in range(5):
-                ax.plot(np.arange(1,nstep2cv+1), iterations[:,i], label=labels[i])
+            for iax, ax in enumerate(ax_mat[spin]):
+                for ilab, label in enumerate(labels):
+                    ys = iterations[:,ilab]
+                    if iax == 0:
+                        # Plot energies in linear scale.
+                        ax.plot(xs, ys, label=label)
+                    else:
+                        # Plot deltas in logscale.
+                        ax.plot(xs, np.abs(ys - ys[-1]), label=label)
+                        ax.set_yscale("log")
 
-            ax.set_xlim(1, nstep2cv)
-            ax.legend(loc="best", shadow=True, fontsize=fontsize)
-            ax.set_xlabel('Iteration (-)')
-            ax.set_ylabel('Energy (eV)')
+                ax.set_xlim(1, nstep2cv)
+                ax.grid(True)
+                ax.legend(loc="best", shadow=True, fontsize=fontsize)
+                ax.set_xlabel("Iteration", fontsize=fontsize)
+                ax.set_ylabel("Energy (eV)" if iax == 0 else r"$|\Delta|$ Energy (eV)", fontsize=fontsize)
+                if nsppol == 2: ax.set_title(f"{spin=}", fontsize=fontsize)
 
         return fig
 
+
+@dataclasses.dataclass(kw_only=True)
+class Polaron:
+    """
+    This object stores the polaron coefficients A_kn for a given spin.
+    """
+    spin: int          # Spin index.
+    nk: int            # Number of k-points
+    nb: int            # Number of bands.
+
+    #bstart: int        # First band starts at bstart
+    #bstop: int
+    #glob_nk: int       # Total number of k/q points in global matrix.
+    #glob_nq: int       # Note that k-points/q-points can be filtered.
+                        # Use kzone, qzone and kfilter to interpret these dimensions.
+
+    #varpeq: VarpeqFile
+
+    a_kn: np.ndarray
+    kpoints: np.ndarray
+    qpoints: np.ndarray
+
+    @classmethod
+    def from_varpeq(cls, varpeq: VarpeqFile, spin: int) -> Polaron:
+        """
+        Build an istance from a VarpeqFile and the spin index.
+        """
+        r = varpeq.r
+        nk, nq, nb = r.nk_spin[spin], r.nq_spin[spin], r.nb_spin[spin]
+        kpoints = r.read_value("kpts_spin")[spin, :nk]
+        qpoints = r.read_value("qpts_spin")[spin, :nq]
+        a_kn = r.read_value("a_spin", cmode="c")[spin, :nk, :nb]
+        b_qnu = r.read_value("b_spin", cmode="c")[spin, :nq]
+
+        data = locals()
+        return cls(**{k: data[k] for k in [field.name for field in dataclasses.fields(Polaron)]})
+
+    def __str__(self) -> str:
+        return self.to_string()
+
+    def to_string(self, verbose=0) -> str:
+        """String representation with verbosiy level ``verbose``."""
+        lines = []; app = lines.append
+
+        app(marquee(f"Ank for {self.spin=}", mark="="))
+        #app(f"nb: {self.nb}")
+        #app(f"bstart: {self.bstart}")
+        #app(f"bstart: {self.bstop}")
+        #app(f"glob_nk: {self.glob_nk}")
+        #app(f"glob_nq: {self.glob_nq}")
+
+        return "\n".join(lines)
+
+    def interpolate_amods_n(self, kpoint):
+
+        from abipy.tools.numtools import BlochRegularGridInterpolator
+
+        BlochRegularGridInterpolator(structure, datar)
+
+        from  scipy.interpolate import RegularGridInterpolator
+        nx, ny, nz =
+        ngkpt = np.array([nx, ny, nz])
+
+        points = (
+            np.linspace(0, 1, nx + 1),
+            np.linspace(0, 1, ny + 1),
+            np.linspace(0, 1, nz + 1),
+        ]
+
+        # Transforms x in its corresponding reduced number in the interval [0,1[
+        k_indices = []
+        for kpt in self.kpoints:
+            kpt = kpt % 1
+            k_indices.append(kpt * ngkpt)
+        k_indices = np.array(k_indices, dtype=int)
+        from abipy.tools.numtools import add_periodic_replicas
+
+        interpol_band = []
+        for ib in range(self.nb)
+            values = np.zeros((nx+1, ny+1, nz+1), dtype=complex)
+            for a, inds  in zip(self.a_kn[:,ib], k_indices):
+                values[inds] = a
+                # Have to fill other portions of the mesh
+
+            rgi = RegularGridInterpolator(points, values, method='linear', bounds_error=True)
+            interpol_band.append(rgi)
+
+        return interpol_band
+
+
+    #def interpolate_bmods_nu(self, qpoint):
+
+    @add_fig_kwargs
+    def plot_with_ebands(self, ebands, ax=None, **kwargs) -> Figure:
+        """
+        """
+        ebands = ElectronBands.as_ebands(ebands)
+        x, y, s = [], [], []
+        for ik, kpoint in enumerate(ebands.kpoints):
+            enes_n = ebands.eigens[self.spin, ik, self.bstart:self.bstop]
+            amods_n = self.interpolate_amods_n(kpoint)
+            for e, a in zip(enes_n, amods_n):
+                x.append(ik); y.append(e); s.append(a)
+
+        points = Marker(x, y, s)
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ebands.plot(ax=ax, points=points, show=False)
+
+        return fig
 
 
 class VarpeqReader(BaseEphReader):
@@ -162,6 +286,7 @@ class VarpeqReader(BaseEphReader):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VarpeqReader
     """
+
     def __init__(self, filepath: PathLike):
         super().__init__(filepath)
 
@@ -183,16 +308,18 @@ class VarpeqReader(BaseEphReader):
 
         # Read important dimensions.
         self.nsppol = self.read_dimvalue("nsppol")
-        #self.cplex = self.read_dimvalue("gstore_cplex")
+        self.nk_spin = self.read_value("nk_spin")
+        self.nq_spin = self.read_value("nq_spin")
+        self.nb_spin = self.read_value("nb_spin")
         #self.nkbz = self.read_dimvalue("gstore_nkbz")
         #self.nkibz = self.read_dimvalue("gstore_nkibz")
         #self.nqbz = self.read_dimvalue("gstore_nqbz")
         #self.nqibz = self.read_dimvalue("gstore_nqibz")
+        self.varpeq_pkind = self.read_string("varpeq_pkind")
 
         # Read important variables.
         #self.completed = self.read_value("gstore_completed")
         #self.done_spin_qbz = self.read_value("gstore_done_qbz_spin")
-        #self.with_vk = self.read_value("gstore_with_vk")
         #self.qptopt = self.read_value("gstore_qptopt")
         #self.kptopt = self.read_value("kptopt")
         #self.kzone = self.read_string("gstore_kzone")
@@ -252,29 +379,29 @@ class VarpeqReader(BaseEphReader):
 
 
 
-#class GstoreRobot(Robot, RobotWithEbands):
+#class VarpeqRobot(Robot, RobotWithEbands):
 #    """
-#    This robot analyzes the results contained in multiple GSTORE.nc files.
+#    This robot analyzes the results contained in multiple VARPEQ.nc files.
 #
 #    Usage example:
 #
 #    .. code-block:: python
 #
-#        robot = GstoreRobot.from_files([
-#            "t04o_GSTORE.nc",
-#            "foo_GSTORE.nc",
+#        robot = VarpeqRobot.from_files([
+#            "out1_VARPEQ.nc",
+#            "out2_VARPEQ.nc",
 #            ])
 #
 #        robot.neq(verbose=1)
 #
 #    .. rubric:: Inheritance Diagram
-#    .. inheritance-diagram:: GstoreRobot
+#    .. inheritance-diagram:: VarpeqRobot
 #    """
-#    EXT = "GSTORE"
+#    EXT = "VARPEQ"
 #
 #    def neq(self, verbose: int, ref_basename: str | None) -> int:
 #        """
-#        Compare all GSTORE.nc files stored in the GstoreRobot
+#        Compare all GSTORE.nc files stored in the VarpeqRobot
 #        """
 #        exc_list = []
 #
@@ -361,7 +488,7 @@ class VarpeqReader(BaseEphReader):
 #        args = [(l, f.filepath) for l, f in self.items()]
 #        nb.cells.extend([
 #            #nbv.new_markdown_cell("# This is a markdown cell"),
-#            nbv.new_code_cell("robot = abilab.GstoreRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+#            nbv.new_code_cell("robot = abilab.VarpeqRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
 #            #nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
 #        ])
 #
