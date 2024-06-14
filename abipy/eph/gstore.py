@@ -222,7 +222,7 @@ class Gqk:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
 
-        app(marquee(f"Gqk for {self.spin=}", mark="="))
+        app(marquee(f"Gqk for spin: {self.spin}", mark="="))
         app(f"cplex: {self.cplex}")
         app(f"nb: {self.nb}")
         app(f"bstart: {self.bstart}")
@@ -358,7 +358,9 @@ class GstoreReader(BaseEphReader):
         self.kfilter = self.read_string("gstore_kfilter")
         self.gmode = self.read_string("gstore_gmode")
 
+        # Note conversion Fortran --> C for the isym index.
         self.brange_spin = self.read_value("gstore_brange_spin")
+        self.brange_spin[:,0] -= 1
         self.erange_spin = self.read_value("gstore_erange_spin")
         # Total number of k/q points for each spin after filtering (if any)
         self.glob_spin_nq = self.read_value("gstore_glob_nq_spin")

@@ -281,7 +281,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         df["e_mkq[eV]"] = self.eigens_kq[spin_inds, ik, mkq_inds]
 
         # Reorder the columns and drop the index
-        new_order = ["m_kq", "n_k", "spin", "imode", "e_nk[eV]", "e_mkq[eV]", "omega(q)[meV]", "|g|[meV]"]
+        new_order = ["n_k", "m_kq", "spin", "imode", "e_nk[eV]", "e_mkq[eV]", "omega(q)[meV]", "|g|[meV]"]
         return df[new_order].reset_index(drop=True)
 
     @add_fig_kwargs

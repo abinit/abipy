@@ -406,6 +406,27 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
 #    #return irred_map
 
 
+def kpoints_indices(frac_coords, ngkpt, debug_mode=0) -> np.ndarray:
+    """
+    Compute the indices of the k-points assuming a mesh with ngkpt divisions.
+    Mainly used to insert k-dependent quantities in a (nx, ny, nz) array.
+    """
+    # Transforms kpt in its corresponding reduced number in the interval [0,1[
+    k_indices = [np.round((kpt % 1) * ngkpt) for kpt in frac_coords]
+
+    if debug_mode:
+        print("kpoints_indices: activating debug_mode")
+        ierr = 0
+        for kpt, inds in zip(frac_coords, k_indices):
+            same_k = np.array((inds[0]/ngkpt[0], inds[1]/ngkpt[1], inds[2]/ngkpt[2]))
+            if not issamek(kpt, same_k):
+                ierr += 1; print(kpt, "-->", same_k)
+        if ierr:
+            raise ValueError("Wrong mapping")
+
+    return np.array(k_indices, dtype=int)
+
+
 def find_irred_kpoints_generic(structure, kfrac_coords, verbose=1):
     """
     Remove the k-points that are connected to each other by one of the

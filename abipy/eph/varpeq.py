@@ -15,13 +15,16 @@ from monty.string import marquee #, list_strings
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.structure import Structure
+from abipy.core.kpoints import kpoints_indices
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
 from abipy.tools.typing import PathLike
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles, Marker)
 #from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
+from abipy.dfpt.phonons import PhononBands
 from abipy.tools.typing import Figure
+from abipy.tools.numtools import BzRegularGridInterpolator
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
@@ -68,7 +71,7 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
         self.r.close()
 
     @lazy_property
-    def polaron_spin(self) -> list:
+    def polaron_spin(self) -> list[Polaron]:
         return [Polaron.from_varpeq(self, spin) for spin in range(self.r.nsppol)]
 
     @lazy_property
@@ -94,16 +97,18 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
-        app("WARNING: Structure is missing")
-        #app(self.structure.to_string(verbose=verbose, title="Structure"))
+        app("")
+        app(self.structure.to_string(verbose=verbose, title="Structure"))
 
-        app("WARNING: Ebands is missing")
-        #app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
+        app("")
+        app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
         #if verbose > 1:
         #    app("")
         #    app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
 
-        app(f"nsppol: {self.r.nsppol}")
+        app("")
+        app("VARPEQ parameters:")
+        app(f"varpeq_pkind: {self.r.varpeq_pkind}")
         #app(f"gstore_completed: {bool(self.r.completed)}")
         #app(f"gstore_cplex: {self.r.cplex}")
         #app(f"gstore_kzone: {self.r.kzone}")
@@ -175,20 +180,18 @@ class Polaron:
     This object stores the polaron coefficients A_kn for a given spin.
     """
     spin: int          # Spin index.
-    nk: int            # Number of k-points
     nb: int            # Number of bands.
+    nk: int            # Number of k-points (including filtering if any)
+    nq: int            # Number of q-points (including filtering if any)
+    bstart: int        # First band starts at bstart
+    bstop: int
 
-    #bstart: int        # First band starts at bstart
-    #bstop: int
-    #glob_nk: int       # Total number of k/q points in global matrix.
-    #glob_nq: int       # Note that k-points/q-points can be filtered.
-                        # Use kzone, qzone and kfilter to interpret these dimensions.
-
-    #varpeq: VarpeqFile
-
-    a_kn: np.ndarray
     kpoints: np.ndarray
     qpoints: np.ndarray
+    a_kn: np.ndarray
+    b_qnu: np.ndarray
+
+    varpeq: VarpeqFile
 
     @classmethod
     def from_varpeq(cls, varpeq: VarpeqFile, spin: int) -> Polaron:
@@ -197,6 +200,7 @@ class Polaron:
         """
         r = varpeq.r
         nk, nq, nb = r.nk_spin[spin], r.nq_spin[spin], r.nb_spin[spin]
+        bstart, bstop = r.brange_spin[spin]
         kpoints = r.read_value("kpts_spin")[spin, :nk]
         qpoints = r.read_value("qpts_spin")[spin, :nq]
         a_kn = r.read_value("a_spin", cmode="c")[spin, :nk, :nb]
@@ -205,6 +209,10 @@ class Polaron:
         data = locals()
         return cls(**{k: data[k] for k in [field.name for field in dataclasses.fields(Polaron)]})
 
+    @property
+    def structure(self):
+        return self.varpeq.structure
+
     def __str__(self) -> str:
         return self.to_string()
 
@@ -212,69 +220,153 @@ class Polaron:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
 
-        app(marquee(f"Ank for {self.spin=}", mark="="))
-        #app(f"nb: {self.nb}")
-        #app(f"bstart: {self.bstart}")
-        #app(f"bstart: {self.bstop}")
-        #app(f"glob_nk: {self.glob_nk}")
-        #app(f"glob_nq: {self.glob_nq}")
+        app(marquee(f"Ank for spin: {self.spin}", mark="="))
+        app(f"nb: {self.nb}")
+        app(f"nk: {self.nk}")
+        app(f"nq: {self.nq}")
+        app(f"bstart: {self.bstart}")
+        app(f"bstop: {self.bstop}")
+
+        #ksampling = self.varpeq.ebands.kpoints.ksampling
+        #print(ksampling)
+        #ngqpt = self.varpeq.r.ngqpt
+        #print(ngqpt)
+
+        #if verbose:
+        norm = np.sum(np.abs(self.a_kn) ** 2) / self.nk
+        app("1/N_k sum_{nk} |A_nk|^2: %f" % norm)
+        norm = np.sum(np.abs(self.b_qnu) ** 2)
+        app("sum_{qnu} |B_qnu|^2: %f" % norm)
 
         return "\n".join(lines)
 
-    def interpolate_amods_n(self, kpoint):
+    def get_a_interpolator(self) -> BzRegularGridInterpolator:
+        """
+        Build and return an interpolator for |A_nk|
+        """
+        # Neeed to know the size of the k-mesh.
+        ksampling = self.varpeq.ebands.kpoints.ksampling
+        ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
 
-        from abipy.tools.numtools import BlochRegularGridInterpolator
+        if ngkpt is None:
+            raise ValueError("Non diagonal k-meshes are not supported")
+        if len(shifts) > 1:
+            raise ValueError("Multiple k-shifts are not supported!")
 
-        BlochRegularGridInterpolator(structure, datar)
+        k_indices = kpoints_indices(self.kpoints, ngkpt, debug_mode=1)
 
-        from  scipy.interpolate import RegularGridInterpolator
-        nx, ny, nz =
-        ngkpt = np.array([nx, ny, nz])
+        nx, ny, nz = ngkpt
+        a_data = np.empty((self.nb, nx, ny, nz), dtype=complex)
+        for ib in range(self.nb):
+            assert len(self.a_kn[:,ib]) == len(k_indices)
+            for a, k_inds in zip(self.a_kn[:,ib], k_indices):
+                a_data[ib, k_inds] = a
 
-        points = (
-            np.linspace(0, 1, nx + 1),
-            np.linspace(0, 1, ny + 1),
-            np.linspace(0, 1, nz + 1),
-        ]
+        a_data = np.abs(a_data)
+        return BzRegularGridInterpolator(self.varpeq.structure, shifts, a_data)
 
-        # Transforms x in its corresponding reduced number in the interval [0,1[
-        k_indices = []
-        for kpt in self.kpoints:
-            kpt = kpt % 1
-            k_indices.append(kpt * ngkpt)
-        k_indices = np.array(k_indices, dtype=int)
-        from abipy.tools.numtools import add_periodic_replicas
+    def get_b_interpolator(self) -> BzRegularGridInterpolator:
+        """
+        Build and return an interpolator for |B_qnu|.
+        """
+        # Neeed to know the size of the q-mesh (always Gamma-centered)
+        ngqpt, shifts = self.varpeq.r.ngqpt, [0, 0, 0]
+        q_indices = kpoints_indices(self.qpoints, ngqpt, debug_mode=1)
 
-        interpol_band = []
-        for ib in range(self.nb)
-            values = np.zeros((nx+1, ny+1, nz+1), dtype=complex)
-            for a, inds  in zip(self.a_kn[:,ib], k_indices):
-                values[inds] = a
-                # Have to fill other portions of the mesh
+        natom3 = 3 * len(self.varpeq.structure)
+        nx, ny, nz = ngqpt
+        b_data = np.empty((natom3, nx, ny, nz), dtype=complex)
+        for nu in range(natom3):
+            assert len(self.b_qnu[:,nu]) == len(q_indices)
+            for b, q_inds in zip(self.b_qnu[:,nu], q_indices):
+                b_data[nu, q_inds] = b
 
-            rgi = RegularGridInterpolator(points, values, method='linear', bounds_error=True)
-            interpol_band.append(rgi)
-
-        return interpol_band
-
-
-    #def interpolate_bmods_nu(self, qpoint):
+        b_data = np.abs(b_data)
+        return BzRegularGridInterpolator(self.varpeq.structure, shifts, b_data, add_replicas=True)
 
     @add_fig_kwargs
-    def plot_with_ebands(self, ebands, ax=None, **kwargs) -> Figure:
+    def plot_bz_sampling(self, what="kpoints", fold=False,
+                        ax=None, pmg_path=True, with_labels=True, **kwargs) -> Figure:
         """
+        Plots a 3D representation of the Brillouin zone with the sampling.
+
+        Args:
+            what: "kpoints" or "qpoints"
+            fold: whether the points should be folded inside the first Brillouin Zone.
+                Defaults to False.
+        """
+        bz_points = dict(kpoints=self.kpoints, qpoints=self.qpoints)[what]
+
+        kws = dict(ax=ax, pmg_path=pmg_path, with_labels=with_labels, fold=fold,
+                   kpoints=bz_points)
+        fig = self.structure.plot_bz(show=False, **kws)
+        return fig
+
+    @add_fig_kwargs
+    def plot_ank_with_ebands(self, ebands, ax=None, scale=50, **kwargs) -> Figure:
+        """
+        Plot electronic energies with markers whose size is proportional to |A_nk|^2.
+
+        Args:
+            ebands: ElectronBands or Abipy file providing an electronic band structure.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            scale: Scaling factor for |A_nk|^2.
         """
         ebands = ElectronBands.as_ebands(ebands)
+        a_interp = self.get_a_interpolator()
+
+        ref_kn = np.abs(self.a_kn)
+        for ik, kpoint in enumerate(self.kpoints):
+            print("A ref - interp\n", ref_kn[ik] - a_interp.eval_kpoint(kpoint))
+        return
+
         x, y, s = [], [], []
         for ik, kpoint in enumerate(ebands.kpoints):
             enes_n = ebands.eigens[self.spin, ik, self.bstart:self.bstop]
-            amods_n = self.interpolate_amods_n(kpoint)
+            amods_n = a_interp.eval_kpoint(kpoint.frac_coords)
+            assert len(enes_n) == len(amods_n)
             for e, a in zip(enes_n, amods_n):
-                x.append(ik); y.append(e); s.append(a)
-
+                x.append(ik); y.append(e); s.append(scale * (a**2))
         points = Marker(x, y, s)
+
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ebands.plot(ax=ax, points=points, show=False)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_bqnu_with_phbands(self, phbands, ax=None, scale=50, **kwargs) -> Figure:
+        """
+        Plot phonon energies with markers whose size is proportional to |B_qnu|^2.
+
+        Args:
+            phbands: PhononBands or Abipy file providing a phonon band structure.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            scale: Scaling factor for |B_qnu|^2.
+        """
+        phbands = PhononBands.as_phbands(phbands)
+        b_interp = self.get_b_interpolator()
+
+        ref_qnu = np.abs(self.b_qnu)
+        for iq, qpoint in enumerate(self.qpoints):
+            print("B ref - interp:", qpoint)
+            #print(ref_qnu[iq])
+            #print(b_interp.eval_kpoint(qpoint))
+            diff = ref_qnu[iq] - b_interp.eval_kpoint(qpoint)
+            print(np.abs(diff).max())
+        return
+
+        x, y, s = [], [], []
+        for iq, qpoint in enumerate(phbands.qpoints):
+            omegas_nu = phbands.phfreqs[iq,:]
+            bmods_nu = b_interp.eval_kpoint(qpoint.frac_coords)
+            assert len(omegas_nu) == len(bmods_nu)
+            for w, b in zip(omegas_nu, bmods_nu):
+                x.append(iq); y.append(w); s.append(scale * (b**2))
+        points = Marker(x, y, s)
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        phbands.plot(ax=ax, points=points, show=False)
 
         return fig
 
@@ -310,12 +402,13 @@ class VarpeqReader(BaseEphReader):
         self.nsppol = self.read_dimvalue("nsppol")
         self.nk_spin = self.read_value("nk_spin")
         self.nq_spin = self.read_value("nq_spin")
-        self.nb_spin = self.read_value("nb_spin")
+        #self.nb_spin = self.read_value("nb_spin")
         #self.nkbz = self.read_dimvalue("gstore_nkbz")
         #self.nkibz = self.read_dimvalue("gstore_nkibz")
         #self.nqbz = self.read_dimvalue("gstore_nqbz")
         #self.nqibz = self.read_dimvalue("gstore_nqibz")
         self.varpeq_pkind = self.read_string("varpeq_pkind")
+        self.ngqpt = self.read_value("gstore_ngqpt")
 
         # Read important variables.
         #self.completed = self.read_value("gstore_completed")
@@ -327,7 +420,10 @@ class VarpeqReader(BaseEphReader):
         #self.kfilter = self.read_string("gstore_kfilter")
         #self.gmode = self.read_string("gstore_gmode")
 
-        #self.brange_spin = self.read_value("gstore_brange_spin")
+        # Note conversion Fortran --> C for the isym index.
+        self.brange_spin = self.read_value("brange_spin")
+        self.brange_spin[:,0] -= 1
+        self.nb_spin = self.brange_spin[:,1] - self.brange_spin[:,0]
         #self.erange_spin = self.read_value("gstore_erange_spin")
         # Total number of k/q points for each spin after filtering (if any)
         #self.glob_spin_nq = self.read_value("gstore_glob_nq_spin")
