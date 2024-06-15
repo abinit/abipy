@@ -231,6 +231,10 @@ class Gqk:
 
         return "\n".join(lines)
 
+    @property
+    def structure(self):
+        return self.gstore.structure
+
     def get_dataframe(self, what: str = "g2") -> pd.DataFrame:
         """
         Build and return a dataframe with all the |g(k,q)|^2 if what == "g2" or
@@ -264,18 +268,19 @@ class Gqk:
 
         return df
 
-    def get_g2q_interpolator_kpoint(self, kpoint, method="linear"):
+    def get_g2q_interpolator_kpoint(self, kpoint, method="linear", check_mesh=1):
         """
         """
         from abipy.core.kpoints import kpoints_indices
         from abipy.tools.numtools import BzRegularGridInterpolator
+        r = self.gstore.r
 
         # Find the index of the kpoint.
-        ik_g, kpoint = self.gstore.r.find_ik_glob_kpoint(kpoint, self.spin)
+        ik_g, kpoint = r.find_ik_glob_kpoint(kpoint, self.spin)
 
         # Compute indices of qpoints in the ngqpt mesh.
-        ngqpt, shifts = None, [0, 0, 0]
-        q_indices = kpoints_indices(qpoints, ngqpt, check_mesh=0)
+        ngqpt, shifts = r.ngqpt, [0, 0, 0]
+        q_indices = kpoints_indices(r.qbz, ngqpt, check_mesh=check_mesh)
 
         natom3 = 3 * len(self.structure)
         nb = self.nb
@@ -403,6 +408,7 @@ class GstoreReader(BaseEphReader):
         # K-points and q-points in the BZ
         self.kbz = self.read_value("gstore_kbz")
         self.qbz = self.read_value("gstore_qbz")
+        self.ngqpt = self.read_value("gstore_ngqpt")
 
         # Mapping BZ --> IBZ. Note conversion Fortran --> C for the isym index.
         # nctkarr_t("gstore_kbz2ibz", "i", "six, gstore_nkbz"), &
