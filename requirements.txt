@@ -11,7 +11,7 @@ scipy
 sympy
 spglib
 #pymatgen>=2023.3.23
-pymatgen==2023.7.17
+pymatgen==2024.2.20
 netCDF4
 matplotlib
 seaborn
