@@ -11,7 +11,10 @@ from typing import Any, Union, Optional, Iterable
 from monty.functools import lazy_property
 from monty.string import marquee  # is_string, list_strings,
 from scipy.interpolate import UnivariateSpline
-from scipy.integrate import cumtrapz
+try :
+    from scipy.integrate import cumtrapz
+except ImportError:
+    from scipy.integrate import cumulative_trapezoid as cumtrapz
 from abipy.data import nist_database
 from abipy.tools.serialization import pmg_serialize
 

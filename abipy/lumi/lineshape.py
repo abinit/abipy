@@ -1,7 +1,10 @@
 import numpy as np
 from numpy import fft
 from scipy import signal
-from scipy.integrate import simps
+try:
+    from scipy.integrate import simps
+except ImportError:
+    from scipy.integrate import simpson as simps
 from pymatgen.io.phonopy import get_pmg_structure
 from abipy.tools.plotting import get_ax_fig_plt,add_fig_kwargs
 from abipy.embedding.utils_ifc import clean_structure

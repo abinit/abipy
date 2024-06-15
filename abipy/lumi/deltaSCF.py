@@ -11,7 +11,10 @@ import matplotlib.pyplot as plt
 #from mpl_toolkits.mplot3d import Axes3D
 import math
 from mpmath import coth
-from scipy.integrate import simps
+try:
+    from scipy.integrate import simps
+except ImportError:
+    from scipy.integrate import simpson as simps
 #from scipy.special import factorial
 from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs,get_axarray_fig_plt
 import abipy.core.abinit_units as abu
@@ -578,8 +581,6 @@ class DeltaSCF():
         print(f"Vesta files created and stored in : \n {os.getcwd()}/{out_path}")
 
         return 
-     
-
 
     @add_fig_kwargs
     def displacements_visu(self,a_g=10,**kwargs):
