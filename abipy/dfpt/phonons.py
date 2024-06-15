@@ -148,8 +148,8 @@ class PhononBands:
             # does not contain all the directions required by AbiPy.
             # So we read NonAnalyticalPh only if we know that all directions are available.
             # The flag has_abipy_non_anal_ph is set at the Fortran level. See e.g ifc_mkphbs
-            if ("non_analytical_directions" in r.rootgrp.variables and
-                "has_abipy_non_anal_ph" in r.rootgrp.variables):
+            if ("non_analytical_directions" in r.rootgrp.variables and "has_abipy_non_anal_ph" in r.rootgrp.variables):
+            #if ("non_analytical_directions" in r.rootgrp.variables):
                 #print("Found non_anal_ph term compatible with AbiPy plotter.")
                 non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
@@ -182,6 +182,9 @@ class PhononBands:
             if obj.endswith(".pickle"):
                 with open(obj, "rb") as fh:
                     return cls.as_phbands(pickle.load(fh))
+
+            #print("Returning PhononBands.from_file(obj)")
+            #return PhononBands.from_file(obj)
 
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:

@@ -39,6 +39,8 @@ from abipy.tools.context_managers import Timer
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly,
     get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
+from abipy.core.mixins import TextFile
+from abipy.abio.robots import Robot
 
 
 __all__ = [
@@ -3252,7 +3254,7 @@ class ElectronBands(Has_Structure):
         """
         Interpolate energies in k-space along a k-path and, optionally, in the IBZ for DOS calculations.
         Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
-        so it's recommended to call this method with energies obtained in the IBZ.
+        so it is recommended to call this method with energies obtained in the IBZ.
 
         Args:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
@@ -4260,7 +4262,7 @@ class ElectronsReader(ETSF_Reader, KpointsReaderMixin):
         )
 
 
-class ElectronDos(object):
+class ElectronDos:
     """
     This object stores the electronic density of states.
     It is usually created by calling the get_edos method of |ElectronBands|.
@@ -5883,8 +5885,7 @@ class RobotWithEbands:
         return fig
 
 
-from abipy.core.mixins import TextFile #, AbinitNcFile, NotebookWriter
-from abipy.abio.robots import Robot
+
 
 def find_yaml_section_in_lines(lines, tag):
 

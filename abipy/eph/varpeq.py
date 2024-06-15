@@ -14,9 +14,10 @@ import abipy.core.abinit_units as abu
 from monty.string import marquee #, list_strings
 from monty.functools import lazy_property
 from monty.termcolor import cprint
+from abipy.core.func1d import Function1D
 from abipy.core.structure import Structure
 from abipy.core.kpoints import kpoints_indices
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header, NotebookWriter
 from abipy.tools.typing import PathLike
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles, Marker)
@@ -24,22 +25,21 @@ from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fi
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.dfpt.phonons import PhononBands
 from abipy.tools.typing import Figure
-from abipy.tools.numtools import BzRegularGridInterpolator
+from abipy.tools.numtools import BzRegularGridInterpolator, gaussian
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
 
 
-class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , NotebookWriter):
+class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    This file stores the e-ph matrix elements produced by the EPH code of Abinit
+    This file stores the results of a VARPEQ calculations: SCF cycle, A_nk, B_nk
     and provides methods to analyze and plot results.
 
     Usage example:
 
     .. code-block:: python
 
-        from abipy.eph.varpeq import VarpeqFile
         with VarpeqFile("out_VARPEQ.nc") as varpeq:
             print(varpeq)
             varpeq.plot_scf_cycle()
@@ -47,6 +47,15 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VarpeqFile
     """
+
+    ITER_LABELS = [
+        r'$E_{pol}$',
+        r'$E_{el}$',
+        r'$E_{ph}$',
+        r'$E_{elph}$',
+        r'$\varepsilon$'
+    ]
+
     @classmethod
     def from_file(cls, filepath: PathLike) -> VarpeqFile:
         """Initialize the object from a netcdf file."""
@@ -72,6 +81,7 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
 
     @lazy_property
     def polaron_spin(self) -> list[Polaron]:
+        """List of polaron objects, one for each spin (if any)."""
         return [Polaron.from_varpeq(self, spin) for spin in range(self.r.nsppol)]
 
     @lazy_property
@@ -121,24 +131,27 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
 
         return "\n".join(lines)
 
-    @add_fig_kwargs
-    def plot_scf_cyle(self, ax_mat=None, fontsize=12, **kwargs) -> Figure:
+    def get_last_iteration_dict_ev(self, spin: int) -> dict:
         """
-        Plot the SCF cycle.
+        Return dictionary mapping the latex label to the value of the last iteration
+        for the given spin index. All energies are in eV.
+        """
+        nstep2cv_spin = self.r.read_value('nstep2cv')
+        iter_rec_spin = self.r.read_value('iter_rec')
+        nstep2cv = nstep2cv_spin[spin]
+        last_iteration = iter_rec_spin[spin, nstep2cv-1, :] * abu.Ha_eV
+
+        return dict(zip(self.ITER_LABELS, last_iteration))
+
+    @add_fig_kwargs
+    def plot_scf_cycle(self, ax_mat=None, fontsize=12, **kwargs) -> Figure:
+        """
+        Plot the VARPEQ SCF cycle.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: fontsize for legends and titles
-
-        Returns: |matplotlib-Figure|
         """
-        labels = [r'$E_{pol}$',
-                  r'$E_{el}$',
-                  r'$E_{ph}$',
-                  r'$E_{elph}$',
-                  r'$\varepsilon$'
-        ]
-
         nsppol = self.r.nsppol
         nstep2cv_spin = self.r.read_value('nstep2cv')
         iter_rec_spin = self.r.read_value('iter_rec')
@@ -148,13 +161,13 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
                                                sharex=False, sharey=False, squeeze=False)
 
-        for spin in range(self.r.nsppol):
+        for spin in range(nsppol):
             nstep2cv = nstep2cv_spin[spin]
             iterations = iter_rec_spin[spin, :nstep2cv, :] * abu.Ha_eV
             xs = np.arange(1, nstep2cv + 1)
 
             for iax, ax in enumerate(ax_mat[spin]):
-                for ilab, label in enumerate(labels):
+                for ilab, label in enumerate(self.ITER_LABELS):
                     ys = iterations[:,ilab]
                     if iax == 0:
                         # Plot energies in linear scale.
@@ -173,11 +186,32 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
 
         return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot_scf_cycle(show=False)
+
+    def write_notebook(self, nbpath=None) -> str:
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("varpeq = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(varpeq)"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
+
 
 @dataclasses.dataclass(kw_only=True)
 class Polaron:
     """
-    This object stores the polaron coefficients A_kn for a given spin.
+    This object stores the polaron coefficients A_kn, B_qnu for a given spin.
+    Provides methods to plot |A_nk|^2 or |B_qnu|^2 together with band structures.
     """
     spin: int          # Spin index.
     nb: int            # Number of bands.
@@ -190,7 +224,6 @@ class Polaron:
     qpoints: np.ndarray
     a_kn: np.ndarray
     b_qnu: np.ndarray
-
     varpeq: VarpeqFile
 
     @classmethod
@@ -213,6 +246,10 @@ class Polaron:
     def structure(self):
         return self.varpeq.structure
 
+    @property
+    def ebands(self):
+        return self.varpeq.ebands
+
     def __str__(self) -> str:
         return self.to_string()
 
@@ -226,8 +263,8 @@ class Polaron:
         app(f"nq: {self.nq}")
         app(f"bstart: {self.bstart}")
         app(f"bstop: {self.bstop}")
-
-        #ksampling = self.varpeq.ebands.kpoints.ksampling
+        ksampling = self.ebands.kpoints.ksampling
+        ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
         #print(ksampling)
         #ngqpt = self.varpeq.r.ngqpt
         #print(ngqpt)
@@ -235,17 +272,21 @@ class Polaron:
         #if verbose:
         norm = np.sum(np.abs(self.a_kn) ** 2) / self.nk
         app("1/N_k sum_{nk} |A_nk|^2: %f" % norm)
-        norm = np.sum(np.abs(self.b_qnu) ** 2)
-        app("sum_{qnu} |B_qnu|^2: %f" % norm)
+        #norm = np.sum(np.abs(self.b_qnu) ** 2)
+        #app("sum_{qnu} |B_qnu|^2: %f" % norm)
 
         return "\n".join(lines)
 
-    def get_a_interpolator(self) -> BzRegularGridInterpolator:
+    def get_a2_interpolator(self, method: str, check_mesh: int = 0) -> BzRegularGridInterpolator:
         """
-        Build and return an interpolator for |A_nk|
+        Build and return an interpolator for |A_nk|^2
+
+        Args:
+            method: String defining the interpolation method.
+            check_mesh: Check whether k-points belong to the mesh ff !=0.
         """
         # Neeed to know the size of the k-mesh.
-        ksampling = self.varpeq.ebands.kpoints.ksampling
+        ksampling = self.ebands.kpoints.ksampling
         ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
 
         if ngkpt is None:
@@ -253,36 +294,40 @@ class Polaron:
         if len(shifts) > 1:
             raise ValueError("Multiple k-shifts are not supported!")
 
-        k_indices = kpoints_indices(self.kpoints, ngkpt, debug_mode=1)
+        k_indices = kpoints_indices(self.kpoints, ngkpt, check_mesh=check_mesh)
 
         nx, ny, nz = ngkpt
         a_data = np.empty((self.nb, nx, ny, nz), dtype=complex)
         for ib in range(self.nb):
-            assert len(self.a_kn[:,ib]) == len(k_indices)
-            for a, k_inds in zip(self.a_kn[:,ib], k_indices):
-                a_data[ib, k_inds] = a
+            for a_cplx, k_inds in zip(self.a_kn[:,ib], k_indices):
+                ix, iy, iz = k_inds
+                a_data[ib, ix, iy, iz] = a_cplx
 
-        a_data = np.abs(a_data)
-        return BzRegularGridInterpolator(self.varpeq.structure, shifts, a_data)
+        return BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data) ** 2,
+                                         method=method)
 
-    def get_b_interpolator(self) -> BzRegularGridInterpolator:
+    def get_b2_interpolator(self, method: str, check_mesh: int = 0) -> BzRegularGridInterpolator:
         """
-        Build and return an interpolator for |B_qnu|.
+        Build and return an interpolator for |B_qnu|^2.
+
+        Args
+            method: String defining the interpolation method.
+            check_mesh: Check whether k-points belong to the mesh ff !=0.
         """
         # Neeed to know the size of the q-mesh (always Gamma-centered)
         ngqpt, shifts = self.varpeq.r.ngqpt, [0, 0, 0]
-        q_indices = kpoints_indices(self.qpoints, ngqpt, debug_mode=1)
+        q_indices = kpoints_indices(self.qpoints, ngqpt, check_mesh=check_mesh)
 
-        natom3 = 3 * len(self.varpeq.structure)
+        natom3 = 3 * len(self.structure)
         nx, ny, nz = ngqpt
         b_data = np.empty((natom3, nx, ny, nz), dtype=complex)
         for nu in range(natom3):
-            assert len(self.b_qnu[:,nu]) == len(q_indices)
-            for b, q_inds in zip(self.b_qnu[:,nu], q_indices):
-                b_data[nu, q_inds] = b
+            for b_cplx, q_inds in zip(self.b_qnu[:,nu], q_indices):
+                ix, iy, iz = q_inds
+                b_data[nu, ix, iy, iz] = b_cplx
 
-        b_data = np.abs(b_data)
-        return BzRegularGridInterpolator(self.varpeq.structure, shifts, b_data, add_replicas=True)
+        return BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data) ** 2,
+                                         method=method)
 
     @add_fig_kwargs
     def plot_bz_sampling(self, what="kpoints", fold=False,
@@ -296,77 +341,136 @@ class Polaron:
                 Defaults to False.
         """
         bz_points = dict(kpoints=self.kpoints, qpoints=self.qpoints)[what]
-
         kws = dict(ax=ax, pmg_path=pmg_path, with_labels=with_labels, fold=fold,
                    kpoints=bz_points)
-        fig = self.structure.plot_bz(show=False, **kws)
-        return fig
+
+        return self.structure.plot_bz(show=False, **kws)
 
     @add_fig_kwargs
-    def plot_ank_with_ebands(self, ebands, ax=None, scale=50, **kwargs) -> Figure:
+    def plot_ank_with_ebands(self, ebands_kpath, ebands_kmesh=None,
+                             ax=None, scale=50, fontsize=12, **kwargs) -> Figure:
         """
         Plot electronic energies with markers whose size is proportional to |A_nk|^2.
 
         Args:
-            ebands: ElectronBands or Abipy file providing an electronic band structure.
+            ebands: ElectronBands or Abipy file providing an electronic band structure along a path.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             scale: Scaling factor for |A_nk|^2.
         """
-        ebands = ElectronBands.as_ebands(ebands)
-        a_interp = self.get_a_interpolator()
+        ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
 
-        ref_kn = np.abs(self.a_kn)
-        for ik, kpoint in enumerate(self.kpoints):
-            print("A ref - interp\n", ref_kn[ik] - a_interp.eval_kpoint(kpoint))
-        return
+        # Interpolate A_nk
+        a2_interp = self.get_a2_interpolator("linear")
 
+        # DEBUG SECTION
+        #ref_kn = np.abs(self.a_kn) ** 2
+        #for ik, kpoint in enumerate(self.kpoints):
+        #    interp = a2_interp.eval_kpoint(kpoint)
+        #    print("MAX (A2 ref - A2 interp) at qpoint", kpoint)
+        #    print((np.abs(ref_kn[ik] - interp)).max())
+
+        ymin, ymax = +np.inf, -np.inf
         x, y, s = [], [], []
-        for ik, kpoint in enumerate(ebands.kpoints):
-            enes_n = ebands.eigens[self.spin, ik, self.bstart:self.bstop]
-            amods_n = a_interp.eval_kpoint(kpoint.frac_coords)
-            assert len(enes_n) == len(amods_n)
-            for e, a in zip(enes_n, amods_n):
-                x.append(ik); y.append(e); s.append(scale * (a**2))
+        for ik, kpoint in enumerate(ebands_kpath.kpoints):
+            enes_n = ebands_kpath.eigens[self.spin, ik, self.bstart:self.bstop]
+            a2_n = a2_interp.eval_kpoint(kpoint.frac_coords)
+            for e, a2 in zip(enes_n, a2_n):
+                x.append(ik); y.append(e); s.append(scale * a2)
+                ymin = min(ymin, e)
+                ymax = max(ymax, e)
+
         points = Marker(x, y, s)
 
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ebands.plot(ax=ax, points=points, show=False)
+        nrows, ncols = 1, 2
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        ax = ax_list[0]
+        ebands_kpath.plot(ax=ax, points=points, show=False)
+
+        vertices_names = [(k.frac_coords, k.name) for k in ebands_kpath.kpoints]
+        lpratio = 5
+        kmesh = np.array([12, 12, 12]) * 3
+        step = 0.1
+        width = 0.2
+
+        if ebands_kmesh is None:
+            # Compute ebands_kmesh with Star-function interpolation.
+            r = self.ebands.interpolate(lpratio=lpratio, vertices_names=vertices_names, kmesh=kmesh)
+            ebands_kmesh = r.ebands_kmesh
+
+        # Get electronic DOS.
+        edos = ebands_kmesh.get_edos(step=step, width=width)
+
+        mesh = edos.spin_dos[self.spin].mesh
+        ank_dos = np.zeros(len(mesh))
+        e0 = self.ebands.fermie
+
+        ymin -= 0.5 * abs(ymin)
+        ymin -= e0
+        ymax += 0.5 * abs(ymax)
+        ymax -= e0
+        #ymax = None
+
+        #################
+        # Compute Ank DOS
+        #################
+        # NB: This is just to sketch the ideas. I don't think the present version
+        # is correct as only k --> -k symmetry can be used.
+
+        for ik, kpoint in enumerate(ebands_kmesh.kpoints):
+            weight = kpoint.weight
+            enes_n = ebands_kmesh.eigens[self.spin, ik, self.bstart:self.bstop]
+            a2_n = a2_interp.eval_kpoint(kpoint)
+            for e, a2 in zip(enes_n, a2_n):
+                ank_dos += weight * a2 * gaussian(mesh, width, center=e-e0)
+
+        ax = ax_list[1]
+        edos.plot_ax(ax, e0, spin=self.spin, exchange_xy=True, label="eDOS(E)")
+
+        ank_dos = Function1D(mesh, ank_dos)
+        ank_dos.plot_ax(ax, exchange_xy=True, label=r"$A^2$(E)")
+        ax.grid(True)
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+        print("A2(E) integrates to", ank_dos.integral_value)
+
+        for ax in ax_list:
+            ax.set_ylim(ymin, ymax)
 
         return fig
 
     @add_fig_kwargs
-    def plot_bqnu_with_phbands(self, phbands, ax=None, scale=50, **kwargs) -> Figure:
+    def plot_bqnu_with_phbands(self, phbands_qpath, ax=None, scale=10, **kwargs) -> Figure:
         """
         Plot phonon energies with markers whose size is proportional to |B_qnu|^2.
 
         Args:
-            phbands: PhononBands or Abipy file providing a phonon band structure.
+            phbands_qpath: PhononBands or Abipy file providing a phonon band structure.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             scale: Scaling factor for |B_qnu|^2.
         """
-        phbands = PhononBands.as_phbands(phbands)
-        b_interp = self.get_b_interpolator()
+        phbands_qpath = PhononBands.as_phbands(phbands_qpath)
+        b2_interp = self.get_b2_interpolator("linear")
 
-        ref_qnu = np.abs(self.b_qnu)
-        for iq, qpoint in enumerate(self.qpoints):
-            print("B ref - interp:", qpoint)
-            #print(ref_qnu[iq])
-            #print(b_interp.eval_kpoint(qpoint))
-            diff = ref_qnu[iq] - b_interp.eval_kpoint(qpoint)
-            print(np.abs(diff).max())
-        return
+        # DEBUG SECTION
+        #ref_qnu = np.abs(self.b_qnu) ** 2
+        #for iq, qpoint in enumerate(self.qpoints):
+        #    print("MAX (B2 ref - B2 interp) at qpoint", qpoint)
+        #    interp = b2_interp.eval_kpoint(qpoint)
+        #    print((np.abs(ref_qnu[iq] - interp)).max())
 
         x, y, s = [], [], []
-        for iq, qpoint in enumerate(phbands.qpoints):
-            omegas_nu = phbands.phfreqs[iq,:]
-            bmods_nu = b_interp.eval_kpoint(qpoint.frac_coords)
-            assert len(omegas_nu) == len(bmods_nu)
-            for w, b in zip(omegas_nu, bmods_nu):
-                x.append(iq); y.append(w); s.append(scale * (b**2))
+        for iq, qpoint in enumerate(phbands_qpath.qpoints):
+            omegas_nu = phbands_qpath.phfreqs[iq,:]
+            b2_nu = b2_interp.eval_kpoint(qpoint.frac_coords)
+            assert len(omegas_nu) == len(b2_nu)
+            for w, b2 in zip(omegas_nu, b2_nu):
+                x.append(iq); y.append(w); s.append(scale * b2)
         points = Marker(x, y, s)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        phbands.plot(ax=ax, points=points, show=False)
+        phbands_qpath.plot(ax=ax, points=points, show=False)
 
         return fig
 
@@ -475,121 +579,150 @@ class VarpeqReader(BaseEphReader):
 
 
 
-#class VarpeqRobot(Robot, RobotWithEbands):
-#    """
-#    This robot analyzes the results contained in multiple VARPEQ.nc files.
-#
-#    Usage example:
-#
-#    .. code-block:: python
-#
-#        robot = VarpeqRobot.from_files([
-#            "out1_VARPEQ.nc",
-#            "out2_VARPEQ.nc",
-#            ])
-#
-#        robot.neq(verbose=1)
-#
-#    .. rubric:: Inheritance Diagram
-#    .. inheritance-diagram:: VarpeqRobot
-#    """
-#    EXT = "VARPEQ"
-#
-#    def neq(self, verbose: int, ref_basename: str | None) -> int:
-#        """
-#        Compare all GSTORE.nc files stored in the VarpeqRobot
-#        """
-#        exc_list = []
-#
-#        # Find reference gstore. By default the first file in the robot is used.
-#        ref_gstore = self.abifiles[0]
-#        if ref_basename is not None:
-#            for i, gstore in enumerate(self.abifiles):
-#                if gstore.basename == ref_basename:
-#                    ref_gstore = gstore
-#                    break
-#            else:
-#                raise ValueError(f"Cannot find {ref_basename=}")
-#
-#        ierr = 0
-#        for other_gstore in self.abifiles:
-#            if ref_gstore.filepath == other_gstore.filepath:
-#                continue
-#            print("Comparing ", ref_gstore.basename, " with: ", other_gstore.basename)
-#            try:
-#                ierr += self._neq_two_gstores(ref_gstore, other_gstore, verbose)
-#                cprint("EQUAL", color="green")
-#            except Exception as exc:
-#                exc_list.append(str(exc))
-#
-#        for exc in exc_list:
-#            cprint(exc, color="red")
-#
-#        return ierr
-#
-#    @staticmethod
-#    def _neq_two_gstores(gstore1: GstoreFile, gstore2: GstoreFile, verbose: int) -> int:
-#        """
-#        Helper function to compare two GSTORE files.
-#        """
-#        # These quantities must be the same to have a meaningfull comparison.
-#        aname_list = ["structure", "nsppol", "cplex", "nkbz", "nkibz",
-#                      "nqbz", "nqibz", "completed", "kzone", "qzone", "kfilter", "gmode",
-#                      "brange_spin", "erange_spin", "glob_spin_nq", "glob_nk_spin",
-#                     ]
-#
-#        for aname in aname_list:
-#            # Get attributes in gstore first, then in gstore.r, else raise.
-#            if hasattr(gstore1, aname):
-#                val1, val2 = getattr(gstore1, aname), getattr(gstore2, aname)
-#            elif hasattr(gstore1.r, aname):
-#                val1, val2 = getattr(gstore1.r, aname), getattr(gstore2.r, aname)
-#            else:
-#                raise AttributeError(f"Cannot find attribute `{aname=}` neither in gstore not in gstore.r")
-#
-#           # Now compare val1 and val2 taking into account the type.
-#            if isinstance(val1, (str, int, float, Structure)):
-#                eq = val1 == val2
-#            elif isinstance(val1, np.ndarray):
-#                eq = np.allclose(val1, val2)
-#            else:
-#                raise TypeError(f"Don't know how to handle comparison for type: {type(val1)}")
-#
-#            if not eq:
-#                raise RuntimeError(f"Different values of {aname=}, {val1=}, {val2=}")
-#
-#        # Now compare the gkq objects for each spin.
-#        ierr = 0
-#        for spin in range(gstore1.nsppol):
-#            gqk1, gqk2 = gstore1.gqk_spin[spin], gstore2.gqk_spin[spin]
-#            ierr += gqk1.neq(gqk2, verbose)
-#        return ierr
-#
-#    def yield_figs(self, **kwargs):  # pragma: no cover
-#        """
-#        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-#        Used in abiview.py to get a quick look at the results.
-#        """
-#        #yield self.plot_lattice_convergence(show=False)
-#        #yield self.plot_gsr_convergence(show=False)
-#        #for fig in self.get_ebands_plotter().yield_figs(): yield fig
-#
-#    def write_notebook(self, nbpath=None) -> str:
-#        """
-#        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
-#        working directory is created. Return path to the notebook.
-#        """
-#        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
-#
-#        args = [(l, f.filepath) for l, f in self.items()]
-#        nb.cells.extend([
-#            #nbv.new_markdown_cell("# This is a markdown cell"),
-#            nbv.new_code_cell("robot = abilab.VarpeqRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-#            #nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
-#        ])
-#
-#        # Mixins
-#        #nb.cells.extend(self.get_baserobot_code_cells())
-#        #nb.cells.extend(self.get_ebands_code_cells())
-#
-#        return self._write_nb_nbpath(nb, nbpath)
+class VarpeqRobot(Robot, RobotWithEbands):
+    """
+    This robot analyzes the results contained in multiple VARPEQ.nc files.
+
+    Usage example:
+
+    .. code-block:: python
+
+        robot = VarpeqRobot.from_files([
+            "out1_VARPEQ.nc",
+            "out2_VARPEQ.nc",
+            ])
+
+        robot.neq(verbose=1)
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: VarpeqRobot
+    """
+
+    EXT = "VARPEQ"
+
+    def neq(self, ref_basename: str | None = None, verbose: int = 0) -> int:
+        """
+        Compare all VARPEQ.nc files stored in the VarpeqRobot
+        """
+        # Find reference abifile. By default the first file in the robot is used.
+        ref_varpeq = self._get_ref_abifile_from_basename(ref_basename)
+
+        exc_list = []
+        ierr = 0
+        for other_varpeq in self.abifiles:
+            if ref_varpeq.filepath == other_varpeq.filepath:
+                continue
+            print("Comparing: ", ref_varpeq.basename, " with: ", other_varpeq.basename)
+            try:
+                ierr += self._neq_two_varpeqs(ref_varpeq, other_varpeq, verbose)
+                cprint("EQUAL", color="green")
+            except Exception as exc:
+                exc_list.append(str(exc))
+
+        for exc in exc_list:
+            cprint(exc, color="red")
+
+        return ierr
+
+    def _neq_two_varpeqs(self, varpeq1: VarpeqFile, varpeq2: VarpeqFile, verbose: int) -> int:
+        """
+        Helper function to compare two VARPEQ files.
+        """
+        # These quantities must be the same to have a meaningfull comparison.
+        aname_list = ["structure", "nsppol",
+                      #"nkbz", "nkibz",
+                      #"nqbz", "nqibz", "completed", "kzone", "qzone", "kfilter", "gmode",
+                      #"brange_spin", "erange_spin", "glob_spin_nq", "glob_nk_spin",
+                     ]
+
+        for aname in aname_list:
+            self._compare_attr_name(aname, varpeq1, varpeq2)
+
+        # Now compare the gkq objects for each spin.
+        ierr = 0
+        #for spin in range(varpeq1.nsppol):
+        #    gqk1, gqk2 = varpeq1.gqk_spin[spin], varpeq2.gqk_spin[spin]
+        #    ierr += gqk1.neq(gqk2, verbose)
+        return ierr
+
+    def get_kdata_spin(self, spin: int) -> dict:
+
+        # First of all sort the files in reverse order using the total number of k-points in the mesh.
+        def sort_func(abifile):
+            ksampling = abifile.ebands.kpoints.ksampling
+            ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
+            return np.prod(ngkpt)
+
+        labels, abifiles, nktot_list = self.sortby(sort_func, reverse=True, unpack=True)
+
+        # Now loop over the sorted files and extract the results of the final iteration.
+        for i, (label, abifile, nktot) in zip(labels, abifiles, nktot_list):
+            if i == 0:
+                data = {k: [] for k in abifile.ITER_LABELS}
+                data["ngkpt"] = []
+
+            for k, v in abifile.get_last_iteration_dict_ev(spin).items():
+                data[k].append(v)
+
+            ksampling = abifile.ebands.kpoints.ksampling
+            ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
+            data["ngkpt"].append(ngkpt)
+
+        return data
+
+    @add_fig_kwargs
+    def plot_scf_cycle(self, **kwargs) -> Figure:
+        """
+        Plot the VARPEQ SCF cycle for all the files stored in the Robot.
+        """
+        nsppol = self.getattr_alleq("nsppol")
+
+        # Build grid of plots.
+        nrows, ncols = nsppol * len(self), 2
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=True, squeeze=False)
+
+        for ifile, abifile in enumerate(self.abifiles):
+            row_start = nsppol * ifile
+            row_stop = row_start + nsppol
+            this_ax_mat = ax_mat[row_start:row_stop]
+            abifile.plot_scf_cycle(ax_mat=this_ax_mat, show=False)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_kconvergence(self, **kwargs) -> Figure:
+        nsppol = self.getattr_alleq("nsppol")
+
+        # Build grid of plots.
+        nrows, ncols = nsppol * len(self), 2
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=True, squeeze=False)
+
+        for spin in range(nsppol):
+            kdata = self.get_kdata_spin(spin)
+
+        return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        yield self.plot_scf_cycle(show=False)
+
+    def write_notebook(self, nbpath=None) -> str:
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            nbv.new_code_cell("robot = abilab.VarpeqRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            #nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)

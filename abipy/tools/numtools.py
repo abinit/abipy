@@ -418,15 +418,15 @@ class BlochRegularGridInterpolator:
     This object interpolates the periodic part of a Bloch wavefunction in real space.
     """
 
-    def __init__(self, structure, datar, add_replicas=True):
+    def __init__(self, structure, datar, add_replicas=True, **kwargs):
         """
         Args:
             structure: :class:`Structure` object.
             datar: [ndat, nx, ny, nz] array.
             add_replicas: If True, data is padded with redundant data points.
                 in order to have a periodic 3D array of shape=[ndat, nx+1, ny+1, nz+1].
+            kwargs: Extra arguments are passed to RegularGridInterpolator.
         """
-        from scipy.interpolate import RegularGridInterpolator
         self.structure = structure
 
         if add_replicas:
@@ -445,23 +445,23 @@ class BlochRegularGridInterpolator:
         # [nx, ny, nz, ...] arrays but then each call operates on the full set of
         # ndat components and this complicates the declation of callbacks
         # operating on a single component.
+        from scipy.interpolate import RegularGridInterpolator
         self._interpolators = [None] * self.ndat
         for i in range(self.ndat):
-            self._interpolators[i] = RegularGridInterpolator((x, y, z), datar[i])
+            self._interpolators[i] = RegularGridInterpolator((x, y, z), datar[i], **kwargs)
 
-
-    def eval_points(self, frac_coords, idt=None, cartesian=False, kpoint=None) -> np.ndarray:
+    def eval_points(self, frac_coords, idat=None, cartesian=False, kpoint=None, **kwargs) -> np.ndarray:
         """
         Interpolate values on an arbitrary list of points.
 
         Args:
             frac_coords: List of points in reduced coordinates unless `cartesian`.
-            idt: Index of the sub-array to interpolate. If None, all sub-arrays are interpolated.
+            idat: Index of the sub-array to interpolate. If None, all sub-arrays are interpolated.
             cartesian: True if points are in cartesian coordinates.
             kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
 
         Return:
-            [ndat, npoints] array or [1, npoints] if idt is not None
+            [ndat, npoints] array or [1, npoints] if idat is not None
         """
         frac_coords = np.reshape(frac_coords, (-1, 3))
         if cartesian:
@@ -470,12 +470,12 @@ class BlochRegularGridInterpolator:
 
         uc_coords = np.reshape(frac_coords, (-1, 3)) % 1
 
-        if idt is None:
+        if idat is None:
             values = np.empty((self.ndat, len(uc_coords)), dtype=self.dtype)
-            for idt in range(self.ndat):
-                values[idt] = self._interpolators[idt](uc_coords)
+            for idat in range(self.ndat):
+                values[idat] = self._interpolators[idat](uc_coords, **kwargs)
         else:
-            values = self._interpolators[idt](uc_coords)
+            values = self._interpolators[idat](uc_coords, **kwargs)
 
         if kpoint is not None:
             if hasattr(kpoint, "frac_coords"): kpoint = kpoint.frac_coords
@@ -484,7 +484,7 @@ class BlochRegularGridInterpolator:
 
         return values
 
-    def eval_line(self, point1, point2, num=200, cartesian=False, kpoint=None):
+    def eval_line(self, point1, point2, num=200, cartesian=False, kpoint=None, **kwargs):
         """
         Interpolate values along a line.
 
@@ -532,7 +532,7 @@ class BlochRegularGridInterpolator:
         line_points += point1
 
         return dict2namedtuple(site1=site1, site2=site2, points=line_points, dist=dist,
-                               values=self.eval_points(line_points, kpoint=kpoint))
+                               values=self.eval_points(line_points, kpoint=kpoint, **kwargs))
 
 
 class BzRegularGridInterpolator:
@@ -540,7 +540,7 @@ class BzRegularGridInterpolator:
     This object interpolates quantities defined in the BZ.
     """
 
-    def __init__(self, structure, shifts, datak, add_replicas=True):
+    def __init__(self, structure, shifts, datak, add_replicas=True, **kwargs):
         """
         Args:
             structure: :class:`Structure` object.
@@ -548,8 +548,8 @@ class BzRegularGridInterpolator:
             shifts: Shift of the mesh.
             add_replicas: If True, data is padded with redundant data points.
                 in order to have a periodic 3D array of shape=[ndat, nx+1, ny+1, nz+1].
+            kwargs: Extra arguments are passed to RegularGridInterpolator.
         """
-        from scipy.interpolate import RegularGridInterpolator
         self.structure = structure
         self.shifts = shifts
 
@@ -569,11 +569,12 @@ class BzRegularGridInterpolator:
         # [nx, ny, nz, ...] arrays but then each call operates on the full set of
         # ndat components and this complicates the declation of callbacks
         # operating on a single component.
+        from scipy.interpolate import RegularGridInterpolator
         self._interpolators = [None] * self.ndat
         for i in range(self.ndat):
-            self._interpolators[i] = RegularGridInterpolator((x, y, z), datak[i])
+            self._interpolators[i] = RegularGridInterpolator((x, y, z), datak[i], **kwargs)
 
-    def eval_kpoint(self, frac_coords, cartesian=False) -> np.ndarray:
+    def eval_kpoint(self, frac_coords, cartesian=False, **kwargs) -> np.ndarray:
         """
         Interpolate values at frac_coords
 
@@ -584,6 +585,10 @@ class BzRegularGridInterpolator:
         Return:
             [ndat] array with interpolated data.
         """
+        # Handle K-point object
+        if hasattr(frac_coords, "frac_coords"):
+            frac_coords = frac_coords.frac_coords
+
         if cartesian:
             red_from_cart = self.structure.reciprocal_lattice.inv_matrix.T
             frac_coords = np.dot(red_from_cart, frac_coords)
@@ -591,8 +596,8 @@ class BzRegularGridInterpolator:
         uc_coords = np.reshape(frac_coords, (3,)) % 1
 
         values = np.empty(self.ndat, dtype=self.dtype)
-        for idt in range(self.ndat):
-            values[idt] = self._interpolators[idt](uc_coords)
+        for idat in range(self.ndat):
+            values[idat] = self._interpolators[idat](uc_coords, **kwargs)
 
         return values
 

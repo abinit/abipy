@@ -67,6 +67,7 @@ from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 from abipy.eph.cumulant import CumulantEPhFile
+from abipy.eph.varpeq import VarpeqFile
 from abipy.eph.eph_plotter import EphPlotter
 from abipy.eph.v1sym import V1symFile
 from abipy.eph.gkq import GkqFile, GkqRobot
@@ -181,6 +182,7 @@ abiext2ncfile = collections.OrderedDict([
     ("V1QAVG.nc", V1qAvgFile),
     ("ABIWAN.nc", AbiwanFile),
     ("EPH_CUMULANT.nc", CumulantEPhFile),
+    ("VARPEQ.nc", VarpeqFile),
 ])
 
 

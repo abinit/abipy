@@ -21,6 +21,7 @@ from monty.termcolor import cprint
 from monty.json import MontyEncoder
 from abipy.tools.serialization import pmg_serialize
 from abipy.tools.iotools import make_executable
+from abipy.core.structure import Structure
 from abipy.core.mixins import NotebookWriter
 from abipy.tools.numtools import sort_and_groupby
 from abipy.tools import duck
@@ -333,6 +334,30 @@ class Robot(NotebookWriter):
 
         return robot
 
+
+    def __len__(self):
+        return len(self._abifiles)
+
+    #def __iter__(self):
+    #    return iter(self._abifiles)
+
+    def __getitem__(self, key):
+        # self[key]
+        return self._abifiles.__getitem__(key)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement."""
+        self.close()
+
+    def keys(self):
+        return self._abifiles.keys()
+
+    def items(self):
+        return self._abifiles.items()
+
     def add_extfile_of_node(self, node, nids=None, task_class=None) -> None:
         """
         Add the file produced by this node to the robot.
@@ -547,32 +572,6 @@ class Robot(NotebookWriter):
         """List of exceptions."""
         return self._exceptions
 
-    def __len__(self):
-        return len(self._abifiles)
-
-    #def __iter__(self):
-    #    return iter(self._abifiles)
-
-    #def __contains__(self, item):
-    #    return item in self._abifiles
-
-    def __getitem__(self, key):
-        # self[key]
-        return self._abifiles.__getitem__(key)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Activated at the end of the with statement."""
-        self.close()
-
-    def keys(self):
-        return self._abifiles.keys()
-
-    def items(self):
-        return self._abifiles.items()
-
     @property
     def labels(self) -> list[str]:
         """
@@ -614,6 +613,24 @@ class Robot(NotebookWriter):
         """Integration with jupyter_ notebooks."""
         return '<ol start="0">\n{}\n</ol>'.format("\n".join("<li>%s</li>" % label for label, abifile in self.items()))
 
+    def getattr_alleq(self, aname : str):
+        """
+        Return the value of attribute aname.
+        Raises ValueError if value is not the same across all the files in the robot.
+        """
+        val1 = getattr(self.abifiles[0], aname)
+
+        for abifile in self.abifiles[1:]:
+            val2 = getattr(abifile, aname)
+            if isinstance(val1, (str, int, float)):
+                eq = val1 == val2
+            elif isinstance(val1, np.ndarray):
+                eq = np.allclose(val1, val2)
+            if not eq:
+                raise ValueError(f"Different values of {aname=}, {val1=}, {val2=}")
+
+        return val1
+
     @property
     def abifiles(self) -> list:
         """List of netcdf files."""
@@ -639,22 +656,45 @@ class Robot(NotebookWriter):
 
         return "\n".join(lines)
 
-    #def apply(self, func_or_string, args=(), **kwargs):
-    #    """
-    #    Applies function to all ``abifiles`` available in the robot.
+    def _get_ref_abifile_from_basename(self, ref_basename: str | None):
+        """
+        Find reference abifile. If None, the first file in the robot is used.
+        """
+        ref_file = self.abifiles[0]
+        if ref_basename is None:
+            return ref_file
 
-    #    Args:
-    #        func_or_string: If callable, the output of func_or_string(abifile, ...) is used.
-    #            If string, the output of getattr(abifile, func_or_string)(...)
-    #        args (tuple): Positional arguments to pass to function in addition to the array/series
-    #        kwargs: Additional keyword arguments will be passed as keywords to the function
+        for i, abifile in enumerate(self.abifiles):
+            if abifile.basename == ref_basename:
+                return abifile
 
-    #    Return: List of results
-    #    """
-    #    if callable(func_or_string):
-    #        return [func_or_string(abifile, *args, *kwargs) for abifile in self.abifiles]
-    #    else:
-    #        return [duck.getattrd(abifile, func_or_string)(*args, **kwargs) for abifile in self.abifiles]
+        raise ValueError(f"Cannot find {ref_basename=}")
+
+    @staticmethod
+    def _compare_attr_name(aname: str, ref_abifile, other_abifile) -> None:
+        """
+        Compare the value of attribute `aname` in two files.
+        """
+        # Get attributes in abifile first, then in abifile.r, else raise.
+        if hasattr(ref_abifile, aname):
+            val1, val2 = getattr(ref_abifile, aname), getattr(other_abifile, aname)
+
+        elif hasattr(ref_abifile , "r") and hasattr(ref_abifile.r, aname):
+            val1, val2 = getattr(ref_abifile.r, aname), getattr(other_abifile.r, aname)
+
+        else:
+            raise AttributeError(f"Cannot find attribute `{aname =}`")
+
+        # Now compare val1 and val2 taking into account the type.
+        if isinstance(val1, (str, int, float, Structure)):
+            eq = val1 == val2
+        elif isinstance(val1, np.ndarray):
+            eq = np.allclose(val1, val2)
+        else:
+            raise TypeError(f"Don't know how to handle comparison for type: {type(val1)}")
+
+        if not eq:
+            raise ValueError(f"Different values of {aname=}, {val1=}, {val2=}")
 
     def is_sortable(self, aname: str, raise_exc: bool = False) -> bool:
         """
@@ -811,16 +851,6 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 except Exception as exc:
                     print("Exception while closing: ", abifile.filepath)
                     print(exc)
-
-    #def get_attributes(self, attr_name, obj=None, retdict=False):
-    #    od = OrderedDict()
-    #    for label, abifile in self.items():
-    #        obj = abifile if obj is None else getattr(abifile, obj)
-    #        od[label] = getattr(obj, attr_name)
-    #    if retdict:
-    #        return od
-    #    else:
-    #        return list(od.values())
 
     def _exec_funcs(self, funcs, arg) -> dict:
         """

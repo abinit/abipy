@@ -264,6 +264,36 @@ class Gqk:
 
         return df
 
+    def get_g2q_interpolator_kpoint(self, kpoint, method="linear"):
+        """
+        """
+        from abipy.core.kpoints import kpoints_indices
+        from abipy.tools.numtools import BzRegularGridInterpolator
+
+        # Find the index of the kpoint.
+        ik_g, kpoint = self.gstore.r.find_ik_glob_kpoint(kpoint, self.spin)
+
+        # Compute indices of qpoints in the ngqpt mesh.
+        ngqpt, shifts = None, [0, 0, 0]
+        q_indices = kpoints_indices(qpoints, ngqpt, check_mesh=0)
+
+        natom3 = 3 * len(self.structure)
+        nb = self.nb
+        nx, ny, nz = ngqpt
+
+        # (glob_nq, glob_nk, natom3, m_kq, n_k)
+        g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
+        g2_qph_mn = g2[:,ik_g]
+
+        # Insert g2 in g2_grid
+        g2_grid = np.empty((nb, nb, natom3, nx, ny, nz))
+        for nu in range(natom3):
+            for g2_mn, q_inds in zip(g2_qph_mn[:,nu], q_indices):
+                ix, iy, iz = q_inds
+                g2_grid[:, :, nu, ix, iy, iz] = g2_mn
+
+        return BzRegularGridInterpolator(self.structure, shifts, g2_grid, method=method)
+
     def get_g2_qpt_kpt(self, qpoint, kpoint) -> np.ndarray:
         """
         Return numpy array with the |g(k,q)|^2 for the given (qpoint, kpoint) pair.
@@ -436,27 +466,19 @@ class GstoreRobot(Robot, RobotWithEbands):
     """
     EXT = "GSTORE"
 
-    def neq(self, verbose: int, ref_basename: str | None) -> int:
+    def neq(self, ref_basename: str | None = None, verbose: int = 0) -> int:
         """
         Compare all GSTORE.nc files stored in the GstoreRobot
         """
-        exc_list = []
-
         # Find reference gstore. By default the first file in the robot is used.
-        ref_gstore = self.abifiles[0]
-        if ref_basename is not None:
-            for i, gstore in enumerate(self.abifiles):
-                if gstore.basename == ref_basename:
-                    ref_gstore = gstore
-                    break
-            else:
-                raise ValueError(f"Cannot find {ref_basename=}")
+        ref_gstore = self._get_ref_abifile_from_basename(ref_basename)
 
+        exc_list = []
         ierr = 0
         for other_gstore in self.abifiles:
             if ref_gstore.filepath == other_gstore.filepath:
                 continue
-            print("Comparing ", ref_gstore.basename, " with: ", other_gstore.basename)
+            print("Comparing: ", ref_gstore.basename, " with: ", other_gstore.basename)
             try:
                 ierr += self._neq_two_gstores(ref_gstore, other_gstore, verbose)
                 cprint("EQUAL", color="green")
@@ -480,30 +502,14 @@ class GstoreRobot(Robot, RobotWithEbands):
                      ]
 
         for aname in aname_list:
-            # Get attributes in gstore first, then in gstore.r, else raise.
-            if hasattr(gstore1, aname):
-                val1, val2 = getattr(gstore1, aname), getattr(gstore2, aname)
-            elif hasattr(gstore1.r, aname):
-                val1, val2 = getattr(gstore1.r, aname), getattr(gstore2.r, aname)
-            else:
-                raise AttributeError(f"Cannot find attribute `{aname=}` neither in gstore not in gstore.r")
-
-           # Now compare val1 and val2 taking into account the type.
-            if isinstance(val1, (str, int, float, Structure)):
-                eq = val1 == val2
-            elif isinstance(val1, np.ndarray):
-                eq = np.allclose(val1, val2)
-            else:
-                raise TypeError(f"Don't know how to handle comparison for type: {type(val1)}")
-
-            if not eq:
-                raise RuntimeError(f"Different values of {aname=}, {val1=}, {val2=}")
+            self._compare_attr_name(aname, gstore1, gstore2)
 
         # Now compare the gkq objects for each spin.
         ierr = 0
         for spin in range(gstore1.nsppol):
             gqk1, gqk2 = gstore1.gqk_spin[spin], gstore2.gqk_spin[spin]
             ierr += gqk1.neq(gqk2, verbose)
+
         return ierr
 
     def yield_figs(self, **kwargs):  # pragma: no cover

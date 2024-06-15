@@ -52,7 +52,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
         app("qpoint in g(k,q): %s" % str(self.qpoint))
         app("uses_interpolated_dvdb: %s" % str(self.uses_interpolated_dvdb))
-        app("phonon frequencies in meV %s:" % str(self.phfreqs_ha))
+        app("phonon frequencies in Ha %s:" % str(self.phfreqs_ha))
         app("Macroscopic dielectric tensor in Cartesian coordinates:")
         app(str(self.epsinf_cart))
         app("")
