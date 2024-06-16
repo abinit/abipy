@@ -1,74 +1,79 @@
 import numpy as np
+import abipy.core.abinit_units as abu
+
 from numpy import fft
 from scipy import signal
 try:
-    from scipy.integrate import simps
-except ImportError:
     from scipy.integrate import simpson as simps
+except ImportError:
+    from scipy.integrate import simps
+
 from pymatgen.io.phonopy import get_pmg_structure
 from abipy.tools.plotting import get_ax_fig_plt,add_fig_kwargs
 from abipy.embedding.utils_ifc import clean_structure
-import abipy.core.abinit_units as abu
-
 
 class Lineshape():
     """
 
     Object representing a luminescent lineshape, following a multi-phonon mode model (multiD-CCM).
-    For 1D-CCM, use plot_lineshape_1D_zero_temp() function of the abipy/lumi/deltaSCF module. 
+    For 1D-CCM, use plot_lineshape_1D_zero_temp() function of the abipy/lumi/deltaSCF module.
 
     For equations, notations and formalism, please refer to :
      https://doi.org/10.1103/PhysRevB.96.125132
      https://doi.org/10.1002/adom.202100649
      https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
 
-    In the 1D-CCM, the vibronic peaks are the ones from a fictious phonon mode that connects the atomic relaxation between the ground state and excited state.
-    Within this model, the global shape (fwhm) is well represented if the total Huang-Rhys factor is large enough (gaussian shaped spectrum). However, if vibronic
-    peaks are present in the experimental spectrum, this model is not able to correctly reproduce them as it assumes a fictious phonon mode.
+    In the 1D-CCM, the vibronic peaks are the ones from a fictious phonon mode that connects
+    the atomic relaxation between the ground state and excited state.
+    Within this model, the global shape (fwhm) is well represented if the total Huang-Rhys
+    factor is large enough (gaussian shaped spectrum). However, if vibronic
+    peaks are present in the experimental spectrum, this model is not able to correctly
+    reproduce them as it assumes a fictious phonon mode.
 
-    In the multiD-CCM, the atomic relaxation is projected along the phonon eigenvectors of the system, allowing a phonon-projected decomposition of the relaxation.
-    Better agreement with experimental vibronic peaks is expected. 
-
+    In the multiD-CCM, the atomic relaxation is projected along the phonon eigenvectors of the system,
+    allowing a phonon-projected decomposition of the relaxation.
+    Better agreement with experimental vibronic peaks is expected.
     """
 
     @classmethod
-    def from_phonopy_phonons(cls,E_zpl,phonopy_ph,dSCF_structure,use_forces=True,dSCF_displacements=None,dSCF_forces=None,coords_defect_dSCF=None,tol=0.3):
-
-        """ 
-       Different levels of approximations for the phonons and force/displacements: 
-       See discussion in the supplementary informations of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537, section (1).
+    def from_phonopy_phonons(cls,E_zpl,phonopy_ph,dSCF_structure,
+                             use_forces=True,dSCF_displacements=None,dSCF_forces=None,coords_defect_dSCF=None,tol=0.3):
+        r"""
+        Different levels of approximations for the phonons and force/displacements:
+        See discussion in the supplementary informations of
+        https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537, section (1).
 
         - size_supercell deltaSCF = size_supercell phonons (phonons of the bulk structure or phonons of defect structure).
-          Use of the forces or the displacemements is allowed.   
+          Use of the forces or the displacemements is allowed.
 
         - size_supercell dSCF < size_bulk_supercell phonons (bulk)
           Use of the forces only.
 
-        - size_supercell dSCF < size__defect_supercell phonons (embedding) 
+        - size_supercell dSCF < size__defect_supercell phonons (embedding)
           Use of the forces only
 
-        The code first extracts the eigenmodes of the phonopy object. Then, it tries performs a structure matching between the phonopy 
-        structure and the dSCF structure (critical part) in order to put the displacements/forces on the right atoms. 
+        The code first extracts the eigenmodes of the phonopy object.
+        Then, it tries performs a structure matching between the phonopy
+        structure and the dSCF structure (critical part) in order to put the displacements/forces on the right atoms.
 
         Args:
             E_zpl: Zero-phonon line energy in eV
-            phonopy_ph  : Phonopy object containing eigenfrequencies and eigenvectors
-            dSCF_structure : Delta_SCF structure
-            dSCF_displacements : Dispalcements \Delta R induced by the electronic transition
-            dSCF_forces : Dispalcements \Delta F induced by the electronic transition
-            coords_defect_dSCF : Main coordinates of the defect in defect structure, if defect complex, can be set to the
+            phonopy_ph: Phonopy object containing eigenfrequencies and eigenvectors
+            dSCF_structure: Delta_SCF structure
+            dSCF_displacements: Dispalcements \Delta R induced by the electronic transition
+            dSCF_forces: Dispalcements \Delta F induced by the electronic transition
+            coords_defect_dSCF: Main coordinates of the defect in defect structure, if defect complex, can be set to the
                 center of mass of the complex
-            tol : tolerance in Angstrom applied for the matching between the dSCF structure and phonon structure
-        Returns:
-            A lineshape object 
+            tol: tolerance in Angstrom applied for the matching between the dSCF structure and phonon structure
 
+        Returns: A lineshape object
         """
 
         ph_modes = phonopy_ph.get_frequencies_with_eigenvectors(q=[0, 0, 0])
         ph_freq_phonopy, ph_vec_phonopy = ph_modes
 
         freqs = ph_freq_phonopy * (1/ abu.eV_to_THz)   # THz to eV
-        vecs = ph_vec_phonopy.transpose() # 
+        vecs = ph_vec_phonopy.transpose() #
 
         dSCF_structure=clean_structure(dSCF_structure,coords_defect_dSCF)
 
@@ -81,7 +86,7 @@ class Lineshape():
                                                                 phonon_supercell=phonon_supercell,
                                                                 displacements_dSCF=dSCF_displacements,
                                                                 tol=tol)
-        
+
         if use_forces==True:
             displacements=None
             forces=get_forces_on_phonon_supercell(dSCF_supercell=dSCF_structure,
@@ -96,18 +101,20 @@ class Lineshape():
                    use_forces=use_forces,
                    forces=forces,
                    displacements=displacements)
-    
+
 
     def __init__(self, E_zpl, ph_eigvec, ph_eigfreq, structure,
                  forces,displacements,use_forces):
         """
-        :param E_zpl: Zero-phonon line energy in eV
-        :param ph_eigvec: phonon eigenvectors, shape : (3 * N_atoms, 3 * N_atoms)
-        :param ph_eigfreq: phonon eigenfrequencies, shape : (3 * N_atoms), in eV
-        :param structure: Structure object 
-        :param forces : Forces acting on the atoms in the ground state, with atomic positions of the relaxed excited state, in eV/Ang
-        :param displacements : Atomic relaxation induced by the electronic transition, in Ang
-        :param use_forces : True in order to use the forces, False to use the displacements
+
+        Args:
+            E_zpl: Zero-phonon line energy in eV
+            ph_eigvec: phonon eigenvectors, shape : (3 * N_atoms, 3 * N_atoms)
+            ph_eigfreq: phonon eigenfrequencies, shape : (3 * N_atoms), in eV
+            structure: Structure object
+            forces : Forces acting on the atoms in the ground state, with atomic positions of the relaxed excited state, in eV/Ang
+            displacements : Atomic relaxation induced by the electronic transition, in Ang
+            use_forces : True in order to use the forces, False to use the displacements
         """
         self.E_zpl = E_zpl
         self.ph_eigvec = ph_eigvec
@@ -127,7 +134,7 @@ class Lineshape():
         """
         List of masses of the atoms in the structure, in amu unit
         """
-        # 
+        #
         amu_list = np.zeros(len(self.structure))
         for i, atom in enumerate(self.structure.species):
             amu_list[i] = atom.atomic_mass
@@ -136,10 +143,10 @@ class Lineshape():
     def Delta_Q_nu(self):
         """
         List of Delta_Q_nu of the atoms in the structure, in SI unit
-        """ 
+        """
         Q_nu = np.zeros(self.n_modes())
 
-        masses = np.repeat(self.mass_list(), 3) * 1.66053892173E-27 # amu to kg 
+        masses = np.repeat(self.mass_list(), 3) * 1.66053892173E-27 # amu to kg
         ph_eigvector = self.ph_eigvec
         ph_eigfreq= self.ph_eigfreq * (abu.eV_s)  # eV to rad/s
 
@@ -164,35 +171,35 @@ class Lineshape():
     def S_nu(self):
         """
         Partial Huang-Rhys factors
-        """ 
+        """
         omega = (abu.eV_s) * self.ph_eigfreq # eV to [rad/s]
-        Delta_Q = self.Delta_Q_nu() 
+        Delta_Q = self.Delta_Q_nu()
         hbar = abu.hbar_eVs*((abu.eV_Ha)*(abu.Ha_J)) # hbar in SI
         S_nu = omega * Delta_Q ** 2 / (2 * hbar)
         return (S_nu)
-    
+
     def S_tot(self):
         """
-        Total Huang-Rhys factor = sum of the S_nu. 
-        """ 
+        Total Huang-Rhys factor = sum of the S_nu.
+        """
         return (np.sum(self.S_nu()))
 
     def Delta_Q(self):
         """
         Total Delta_Q
-        """ 
+        """
         return (np.sqrt(np.sum(self.Delta_Q_nu() ** 2)))
 
     def p_nu(self):
         """
         Contribution of each mode, eq. (11) of  https://doi.org/10.1002/adom.202100649
-        """ 
+        """
         return (self.Delta_Q_nu() / self.Delta_Q()) ** 2
 
     def eff_freq_multiD(self):
         """
         Effective coupling frequency, eq. (13) of  https://doi.org/10.1002/adom.202100649
-        """ 
+        """
         w = np.sqrt(np.sum(self.p_nu() * self.ph_eigfreq ** 2))
         return (w)
 
@@ -218,12 +225,12 @@ class Lineshape():
 
     def Bose_einstein(self, T, freq):
         """
-        Bose Einstein average occupation number 
+        Bose Einstein average occupation number
 
         Args:
             T: Temperature in K
             freq: frequency in eV
-        """        
+        """
         k_b = abu.kb_eVK  # in eV/K
 
         if T == 0:
@@ -235,20 +242,20 @@ class Lineshape():
 
     def G_t(self, T, S_nu, omega_nu):
         """
-        Generation function
-        Eq. (3) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537 
+        Generation function.
+        Eq. (3) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
 
         Args:
             T: Temperature in K
             S_nu: Parial Huang-Rhys factors
             omega_nu: phonon frequencies
-        """        
+        """
         n_step = 10001
         t = np.linspace(-1e-11, +1e-11, n_step)  # time in the fourier domain
 
         freq = omega_nu
         freq_SI = freq * (abu.eV_s) # in SI rad/sec
-        
+
         S=np.zeros(n_step, dtype=complex)
         C_plus=np.zeros(n_step, dtype=complex)
         C_minus=np.zeros(n_step, dtype=complex)
@@ -257,7 +264,7 @@ class Lineshape():
             S +=  S_nu[i] * np.exp(-1j * freq_SI[i] * t)
             C_plus += self.Bose_einstein(T, freq[i]) * S_nu[i] * np.exp(+1j * freq_SI[i] * t)
             C_minus += self.Bose_einstein(T, freq[i]) * S_nu[i] * np.exp(-1j * freq_SI[i] * t)
-        
+
         index_0 = int((len(t) - 1) / 2)
         C_0=2*C_plus[index_0]
         S_0=S[index_0]
@@ -269,7 +276,7 @@ class Lineshape():
     def A_hw(self, T, lamb=5, w=1, model='multi-D'):
         """
         Lineshape function
-        Eq. (2) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537 
+        Eq. (2) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
         Returns (Energy in eV, Lineshape function )
 
         Args:
@@ -277,7 +284,7 @@ class Lineshape():
             lamb: Lorentzian broadening applied to the vibronic peaks, in meV
             w: Gaussian broadening applied to the vibronic peaks, in meV
             model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
-        """     
+        """
         if model == 'multi-D':
             t, G_t = self.G_t(T, S_nu=self.S_nu(), omega_nu=self.ph_eigfreq)
 
@@ -313,9 +320,9 @@ class Lineshape():
         return (E_x, A_conv)
 
     def L_hw(self, T=0, lamb=5, w=1, model='multi-D'):
-        """     
+        """
         Normalized Luminescence intensity (area under the curve = 1)
-        Eq. (1) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537 
+        Eq. (1) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
         Returns (Energy in eV, Luminescence intensity)
 
         Args:
@@ -323,24 +330,24 @@ class Lineshape():
             lamb: Lorentzian broadening applied to the vibronic peaks, in meV
             w: Gaussian broadening applied to the vibronic peaks, in meV
             model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
-        """     
+        """
 
         E_x, A = self.A_hw(T, lamb, w, model)
         C = 1 / (simps(A * E_x ** 3, E_x))
         I = C * A * E_x ** 3  # intensity prop to energy CUBE
         return (E_x, I)
 
+    ##### Plot functions ######
 
-##### Plot functions ######
     @add_fig_kwargs
     def plot_spectral_function(self,broadening=1,ax=None,with_S_nu=False,**kwargs):
-        """     
+        """
         Plot the Huang-Rhys spectral function S_hbarOmega
 
         Args:
             broadening: fwhm of the gaussian broadening in meV
             with_S_nu: True to add stem lines associated to the individuals partial Huang-Rhys factors
-        """     
+        """
 
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -364,15 +371,15 @@ class Lineshape():
 
     @add_fig_kwargs
     def plot_emission_spectrum(self,unit='eV',T=0,lamb=3,w=3,ax=None,**kwargs):
-        """     
+        """
         Plot the Luminescence intensity
-        
+
         Args:
             unit: 'eV', 'cm-1', or 'nm'
             T: Temperature in K
             lamb: Lorentzian broadening applied to the vibronic peaks, in meV
             w: Gaussian broadening applied to the vibronic peaks, in meV
-        """     
+        """
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -404,9 +411,6 @@ class Lineshape():
         return fig
 
 
-
-
-
 def get_forces_on_phonon_supercell(dSCF_supercell,phonon_supercell,forces_dSCF,tol):
     forces_in_supercell = np.zeros(shape=(len(phonon_supercell), 3))
     mapping=get_matching_dSCF_phonon_spcell(dSCF_supercell,phonon_supercell,tol)
@@ -432,12 +436,10 @@ def get_matching_dSCF_phonon_spcell(dSCF_spcell,phonon_spcell,tol):
         for j, site_2 in enumerate(phonon_spcell):  # superset structure
             if max(abs(dSCF_spcell_cart[i] - phonon_spcell_cart[j])) < tol :
                 mapping.append(j)
-    
+
     if len(mapping)==len(dSCF_spcell):
         print("Mapping between delta SCF supercell and phonon supercell succeeded. ",len(mapping),"/",len(dSCF_spcell))
     if len(mapping)!=len(dSCF_spcell):
         print("Caution... Mapping between delta SCF supercell and phonon supercell did not succeed. ",len(mapping),"/",len(dSCF_spcell))
 
     return mapping
-
-

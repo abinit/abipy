@@ -179,7 +179,7 @@ class OncvPlotter(NotebookWriter):
                 s, marker = 10, "^"
                 ae_peaks = ae_wf.get_peaks()
                 style = dict(color=self.color_l[l], s=s, marker=marker)
-                
+
                 ax.scatter(ae_peaks.xs[-1], ae_peaks.ys[-1], color=self.color_l[l])
                 ps_peaks = ps_wf.get_peaks()
                 style = dict(color=self.color_l[l], s=s, marker=marker)
@@ -1125,7 +1125,10 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
         #aeval *= fact
         #psval *= fact
         #aecore *= fact
-        from scipy.integrate import simps
+        try:
+            from scipy.integrate import simpson as simps
+        except ImportError:
+            from scipy.integrate import simps
         r2 = rmesh ** 2
 
         meta = dict(

@@ -283,9 +283,9 @@ class Function1D:
         if stop is None: stop = len(self.values) + 1
         x, y = self.mesh[start:stop], self.values[start:stop]
         try :
-            from scipy.integrate import cumtrapz
-        except ImportError:
             from scipy.integrate import cumulative_trapezoid as cumtrapz
+        except ImportError:
+            from scipy.integrate import cumtrapz
 
         integ = cumtrapz(y, x=x, initial=0.0)
 

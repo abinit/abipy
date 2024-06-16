@@ -462,7 +462,7 @@ class GstoreRobot(Robot, RobotWithEbands):
 
         robot = GstoreRobot.from_files([
             "t04o_GSTORE.nc",
-            "foo_GSTORE.nc",
+            "t05o_GSTORE.nc",
             ])
 
         robot.neq(verbose=1)
@@ -523,8 +523,6 @@ class GstoreRobot(Robot, RobotWithEbands):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        #yield self.plot_lattice_convergence(show=False)
-        #yield self.plot_gsr_convergence(show=False)
         #for fig in self.get_ebands_plotter().yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None) -> str:

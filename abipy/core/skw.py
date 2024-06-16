@@ -218,9 +218,10 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
 
             # Compute IDOS
             try :
-                from scipy.integrate import cumtrapz
-            except ImportError:
                 from scipy.integrate import cumulative_trapezoid as cumtrapz
+            except ImportError:
+                from scipy.integrate import cumtrapz
+
             integral = cumtrapz(values, x=wmesh, initial=0.0)
 
         else:

@@ -16,13 +16,13 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 try:
-    from scipy.integrate import cumtrapz
-except ImportError:
     from scipy.integrate import cumulative_trapezoid as cumtrapz
-try:
-    from scipy.integrate import simps
 except ImportError:
+    from scipy.integrate import cumtrapz
+try:
     from scipy.integrate import simpson as simps
+except ImportError:
+    from scipy.integrate import simps
 #from typing import Any
 from monty.string import marquee, list_strings
 from monty.functools import lazy_property
