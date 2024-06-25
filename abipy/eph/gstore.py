@@ -292,7 +292,10 @@ class Gqk:
 
     def get_g_qpt_kpt(self, qpoint, kpoint, what) -> np.ndarray:
         """
-        Return numpy array with the |g(k,q)|^2 for the given (qpoint, kpoint) pair.
+        Return numpy array with e-ph matrix elements the for the given (qpoint, kpoint) pair.
+
+        Args:
+            what="g2" for |g(k,q)|^2, "g" for g(k,q)
         """
         # Find the internal indices of (qpoint, kpoint)
         iq_g, qpoint = self.gstore.r.find_iq_glob_qpoint(qpoint, self.spin)
@@ -310,9 +313,12 @@ class Gqk:
     def get_gdf_at_qpt_kpt(self, qpoint, kpoint, what="g2") -> pd.DataFrame:
         """
         Build and return a dataframe with the |g(k,q)|^2 for the given (qpoint, kpoint) pair.
+
+        Args:
+            what="g2" for |g(k,q)|^2, "g" for g(k,q)
         """
-        g2_slice = self.get_g2_qpt_kpt(qpoint, kpoint, )
-        df = nparr_to_df("g2", g2_slice, ["imode", "m_kq", "n_k"])
+        g2_slice = self.get_g_qpt_kpt(qpoint, kpoint, what)
+        df = nparr_to_df(what, g2_slice, ["imode", "m_kq", "n_k"])
         #df["m_kq"] += bstart_mkq
         #df["n_k"] += bstart_nk
 
