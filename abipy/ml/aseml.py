@@ -2172,12 +2172,13 @@ class MlMd(MlBase):
     Perform MD calculations with ASE and ML potential.
     """
 
-    def __init__(self, atoms: Atoms, temperature, timestep, steps, loginterval,
+    def __init__(self, atoms: Atoms, temperature, pressure, timestep, steps, loginterval,
                  ensemble, nn_name, verbose, workdir, prefix=None):
         """
         Args:
             atoms: ASE atoms.
             temperature: Temperature in K
+            pressure:
             timestep:
             steps: Number of steps.
             loginterval:
@@ -2190,6 +2191,7 @@ class MlMd(MlBase):
         super().__init__(workdir, prefix, exist_ok=True)
         self.atoms = atoms
         self.temperature = temperature
+        self.pressure = pressure
         self.timestep = timestep
         self.steps = steps
         self.loginterval = loginterval
@@ -2204,6 +2206,7 @@ class MlMd(MlBase):
 {self.__class__.__name__} parameters:
 
     temperature = {self.temperature} K
+    pressure    = {self.pressure}
     timestep    = {self.timestep} fs
     steps       = {self.steps}
     loginterval = {self.loginterval}
@@ -2228,6 +2231,7 @@ class MlMd(MlBase):
         md_dict = dict(
             temperature=self.temperature,
             timestep=self.timestep,
+            pressure=self.pressure,
             steps=self.steps,
             loginterval=self.loginterval,
             ensemble=self.ensemble,
@@ -2253,12 +2257,12 @@ class MlMd(MlBase):
         md = MolecularDynamics(
             atoms=self.atoms,
             ensemble=self.ensemble,
-            temperature=self.temperature,   # K
-            timestep=self.timestep,         # fs,
-            #pressure,
-            trajectory=str(traj_file),      # save trajectory to md.traj
-            logfile=str(logfile),           # log file for MD
-            loginterval=self.loginterval,   # interval for record the log
+            temperature=self.temperature,        # K
+            timestep=self.timestep,              # fs,
+            pressure=self.pressure,
+            trajectory=str(traj_file),           # save trajectory to md.traj
+            logfile=str(logfile),                # log file for MD
+            loginterval=self.loginterval,        # interval for record the log
             append_trajectory=append_trajectory, # If True, the new structures are appended to the trajectory
         )
 
@@ -2999,8 +3003,7 @@ class MolecularDynamics:
         """
         Args:
             atoms (Atoms): atoms to run the MD
-            ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested,
-                use with extra caution
+            ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested, use with extra caution
             temperature (float): temperature for MD simulation, in K
             timestep (float): time step in fs
             pressure (float): pressure in eV/A^3
@@ -3019,9 +3022,14 @@ class MolecularDynamics:
         if taup is None:
             taup = 1000 * timestep * units.fs
 
-        ensemble = ensemble.lower()
+        if compressibility_au is None:
+            # The compressibility of the material, water 4.57E-5 bar-1, in bar-1
+            compressibility_au = 4.57E-5 / (1e5 * units.Pascal)
 
-        if ensemble == "nvt":
+        self.ensemble = ensemble.lower()
+
+        if self.ensemble == "nvt":
+
             self.dyn = NVTBerendsen(
                 self.atoms,
                 timestep * units.fs,
@@ -3033,22 +3041,15 @@ class MolecularDynamics:
                 append_trajectory=append_trajectory,
             )
 
-        #elif ensemble == "npt":
-        #    self.dyn = NPT(self.atoms,
-        #                   timestep * units.fs,
-        #                   temperature_K=temperature,
-        #                   externalstrees=pressure,
-        #                   ttime=None,
-        #                   trajectory=trajectory,
-        #                   logfile=logfile,
-        #                   loginterval=loginterval,
-        #                   append_trajectory=append_trajectory,
-        #   )
-
-        #elif ensemble == "inhomo_npt_berendsen":
-        elif ensemble == "npt":
+        #elif self.ensemble == "npt":
+        elif self.ensemble == "inhomo_npt_berendsen":
             """
-            NPT ensemble default to Inhomogeneous_NPTBerendsen thermo/barostat
+            Berendsen (constant N, P, T) molecular dynamics.
+            This dynamics scale the velocities and volumes to maintain a constant
+            pressure and temperature.  The size of the unit cell is allowed to change
+            independently in the three directions, but the angles remain constant.
+
+            NPT with Inhomogeneous_NPTBerendsen thermo/barostat
             This is a more flexible scheme that fixes three angles of the unit
             cell but allows three lattice parameter to change independently.
             """
@@ -3070,8 +3071,13 @@ class MolecularDynamics:
                 # this option is not supported in ASE at this point (I have sent merge request there)
             )
 
-        elif ensemble == "npt_berendsen":
+        elif self.ensemble == "npt_berendsen":
             """
+            Berendsen (constant N, P, T) molecular dynamics.
+            This dynamics scale the velocities and volumes to maintain a constant
+            pressure and temperature.  The shape of the simulation cell is not
+            altered, if that is desired use Inhomogenous_NPTBerendsen.
+
             This is a similar scheme to the Inhomogeneous_NPTBerendsen.
             This is a less flexible scheme that fixes the shape of the
             cell - three angles are fixed and the ratios between the three lattice constants.
@@ -3090,8 +3096,56 @@ class MolecularDynamics:
                 append_trajectory=append_trajectory,
             )
 
+        elif self.ensemble == "npt":
+        #elif self.ensemble == "npt_nhpr":
+            """
+            Combined Nose-Hoover and Parrinello-Rahman dynamics, creating an NPT (or N,stress,T) ensemble.
+
+            IMPORTANT: the cell matrix must be upper triangle (lattice vectors as row-vectors).
+
+            * The ttime and pfactor are quite critical[4], too small values may
+              cause instabilites and/or wrong fluctuations in T / p.  Too
+              large values cause an oscillation which is slow to die.  Good
+              values for the characteristic times seem to be 25 fs for ttime,
+              and 75 fs for ptime (used to calculate pfactor), at least for
+              bulk copper with 15000-200000 atoms.  But this is not well
+              tested, it is IMPORTANT to monitor the temperature and
+              stress/pressure fluctuations.
+
+            pfactor: float
+                A constant in the barostat differential equation.  If
+                a characteristic barostat timescale of ptime is
+                desired, set pfactor to ptime^2 * B
+                (where ptime is in units matching
+                eV, Å, u; and B is the Bulk Modulus, given in eV/Å^3).
+                Set to None to disable the barostat.
+                Typical metallic bulk moduli are of the order of
+                100 GPa or 0.6 eV/A^3.
+
+                WARNING: Not specifying pfactor sets it to None, disabling the
+                barostat.
+            """
+            ttime = None
+            pfactor = None
+            if ttime is None:
+                ttime = 25
+            if pfactor is None:
+                pfactor = 75** 2 * 10
+
+            self.dyn = NPT(self.atoms,
+                           timestep * units.fs,
+                           temperature_K=temperature,
+                           externalstress=pressure,
+                           ttime=ttime,
+                           pfactor=pfactor,
+                           trajectory=trajectory,
+                           logfile=logfile,
+                           loginterval=loginterval,
+                           append_trajectory=append_trajectory,
+            )
+
         else:
-            raise ValueError(f"{ensemble=} not supported")
+            raise ValueError(f"{self.ensemble=} not supported")
 
         self.trajectory = trajectory
         self.logfile = logfile
@@ -3106,7 +3160,8 @@ class MolecularDynamics:
             steps (int): number of MD steps
         """
         from ase.md import MDLogger
-        self.dyn.attach(MDLogger(self.dyn, self.atoms, '-', header=True, stress=False,
+        stress = self.ensemble not in ("nvt", )
+        self.dyn.attach(MDLogger(self.dyn, self.atoms, '-', header=True, stress=stress,
                         peratom=True, mode="a"), interval=self.loginterval)
         self.dyn.run(steps)
 

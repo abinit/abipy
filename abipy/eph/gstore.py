@@ -15,8 +15,10 @@ from monty.string import marquee #, list_strings
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.structure import Structure
+from abipy.core.kpoints import kpoints_indices
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
 from abipy.tools.typing import PathLike
+from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
 #from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
 #    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
 #from abipy.tools import duck
@@ -62,7 +64,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
                 print(gqk)
 
                 # Get a Dataframe with g(k, q) for all modes and bands.
-                df = gqk.get_gd2f_at_qpt_kpt([1/2, 0, 0], [0, 0, 0])
+                df = gqk.get_gdf_at_qpt_kpt([1/2, 0, 0], [0, 0, 0])
                 print(df)
 
     .. rubric:: Inheritance Diagram
@@ -198,13 +200,13 @@ class Gqk:
 
         vk_cart_ibz, vkmat_cart_ibz = None, None
         if ncr.with_vk == 1:
-            # NCF_CHECK(nctk_def_arrays(spin_ncid, nctkarr_t("vk_cart_ibz", "dp", "three, nb, gstore_nkibz")))
+            # nctk_def_arrays(spin_ncid, nctkarr_t("vk_cart_ibz", "dp", "three, nb, gstore_nkibz"))
             vk_cart_ibz = ncr.read_value("vk_cart_ibz", path=path)
 
         if ncr.with_vk == 2:
             # Full (nb x nb) matrix.
             # Have to transpose (nb_kq, nb_k) submatrix written by Fortran.
-            # NCF_CHECK(nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb, nb, gstore_nkibz")))
+            # nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb, nb, gstore_nkibz"))
             vkmat_cart_ibz = ncr.read_value("vkmat_cart_ibz", path=path).transpose(0, 1, 3, 2, 4).copy()
             vkmat_cart_ibz = vkmat_cart_ibz[...,0] + 1j*vkmat_cart_ibz[...,1]
 
@@ -242,37 +244,26 @@ class Gqk:
         """
         if what == "g2":
             g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
-            shape, ndim = g2.shape, g2.ndim
-            # Flatten the array, get the indices and combine indices and values into a DataFrame
-            indices = np.indices(shape).reshape(ndim, -1).T
-            df = pd.DataFrame(indices, columns=["iq", "ik", "imode", "m_kq", "n_k"])
-            df["g2"] = g2.flatten()
-            #df["m_kq"] += bstart_mkq
-            #df["n_k"] += bstart_nk
+            df = nparr_to_df("g2", g2, ["iq", "ik", "imode", "m_kq", "n_k"])
 
         elif what == "v2":
             if self.vk_cart_ibz is None:
                 raise ValueError("vk_cart_ibz is not available in GSTORE!")
-
             # Compute the squared norm of each vector
             v2 = np.sum(self.vk_cart_ibz ** 2, axis=2)
-            shape, ndim = v2.shape, v2.ndim
-            # Flatten the array, get the indices and combine indices and values into a DataFrame
-            indices = np.indices(shape).reshape(ndim, -1).T
-            df = pd.DataFrame(indices, columns=["ik", "n_k"])
-            df["v2"] = v2.flatten()
-            #df["n_k"] += bstart_nk
+            df = nparr_to_df("v2", v2, ["ik", "n_k"])
 
         else:
             raise ValueError(f"Invalid {what=}")
+
+        #df["m_kq"] += bstart_mkq
+        #df["n_k"] += bstart_nk
 
         return df
 
     def get_g2q_interpolator_kpoint(self, kpoint, method="linear", check_mesh=1):
         """
         """
-        from abipy.core.kpoints import kpoints_indices
-        from abipy.tools.numtools import BzRegularGridInterpolator
         r = self.gstore.r
 
         # Find the index of the kpoint.
@@ -299,25 +290,29 @@ class Gqk:
 
         return BzRegularGridInterpolator(self.structure, shifts, g2_grid, method=method)
 
-    def get_g2_qpt_kpt(self, qpoint, kpoint) -> np.ndarray:
+    def get_g_qpt_kpt(self, qpoint, kpoint, what) -> np.ndarray:
         """
         Return numpy array with the |g(k,q)|^2 for the given (qpoint, kpoint) pair.
         """
         # Find the internal indices of (qpoint, kpoint)
         iq_g, qpoint = self.gstore.r.find_iq_glob_qpoint(qpoint, self.spin)
         ik_g, kpoint = self.gstore.r.find_ik_glob_kpoint(kpoint, self.spin)
-        g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
-        return g2[iq_g, ik_g]
+        if what == "g2":
+            g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
+            return g2[iq_g, ik_g]
+        if what == "g":
+            if self.cplex != 2:
+                raise ValueError("Gstore file stores g2 instead of complex g")
+            return self.gvals[iq_g, ik_g]
 
-    def get_gd2f_at_qpt_kpt(self, qpoint, kpoint) -> pd.DataFrame:
+        raise ValueError(f"Invalid {what=}")
+
+    def get_gdf_at_qpt_kpt(self, qpoint, kpoint, what="g2") -> pd.DataFrame:
         """
         Build and return a dataframe with the |g(k,q)|^2 for the given (qpoint, kpoint) pair.
         """
-        g2_slice = self.get_g2_qpt_kpt(qpoint, kpoint)
-        shape, ndim = g2_slice.shape, g2_slice.ndim
-        indices = np.indices(shape).reshape(ndim, -1).T
-        df = pd.DataFrame(indices, columns=["imode", "m_kq", "n_k"])
-        df["g2"] = g2_slice.flatten()
+        g2_slice = self.get_g2_qpt_kpt(qpoint, kpoint, )
+        df = nparr_to_df("g2", g2_slice, ["imode", "m_kq", "n_k"])
         #df["m_kq"] += bstart_mkq
         #df["n_k"] += bstart_nk
 
@@ -424,27 +419,30 @@ class GstoreReader(BaseEphReader):
         # nctkarr_t("gstore_kglob2bz", "i", "gstore_max_nk, number_of_spins") &
         self.qglob2bz = self.read_value("gstore_qglob2bz")
         self.qglob2bz -= 1
-
         self.kglob2bz = self.read_value("gstore_kglob2bz")
         self.kglob2bz -= 1
 
     def find_iq_glob_qpoint(self, qpoint, spin: int):
-        """Find the internal index of the qpoint needed to access the gvals array."""
+        """
+        Find the internal index of the qpoint needed to access the gvals array.
+        """
         qpoint = np.asarray(qpoint)
         for iq_g, iq_bz in enumerate(self.qglob2bz[spin]):
             if np.allclose(qpoint, self.qbz[iq_bz]):
+                #print(f"Found {qpoint = } with index {iq_g = }")
                 return iq_g, qpoint
 
-        raise ValueError(f"Cannot find {qpoint=} in GSTORE.nc")
+        raise ValueError(f"Cannot find {qpoint = } in GSTORE.nc")
 
     def find_ik_glob_kpoint(self, kpoint, spin: int):
         """Find the internal indices of the kpoint needed to access the gvals array."""
         kpoint = np.asarray(kpoint)
         for ik_g, ik_bz in enumerate(self.kglob2bz[spin]):
             if np.allclose(kpoint, self.kbz[ik_bz]):
+                #print(f"Found {kpoint = } with index {ik_g = }")
                 return ik_g, kpoint
 
-        raise ValueError(f"Cannot find {kpoint=} in GSTORE.nc")
+        raise ValueError(f"Cannot find {kpoint = } in GSTORE.nc")
 
     # TODO: This fix to read groups should be imported in pymatgen.
     @lazy_property

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 
 from monty.collections import dict2namedtuple
 from abipy.tools import duck
@@ -17,7 +18,6 @@ def print_stats_arr(arr: np.ndarray, take_abs=False) -> None:
     """
     if np.iscomplexobj(arr):
         arr = np.abs(arr)
-
     if take_abs:
         arr = np.abs(arr)
 
@@ -33,6 +33,26 @@ def print_stats_arr(arr: np.ndarray, take_abs=False) -> None:
     print("Maximum value:", arr[max_index])
     # Percentile (e.g., 25th percentile)
     print("25th Percentile:", np.percentile(arr, 25))
+
+
+def nparr_to_df(name: str, arr: np.ndarrays, columns: list[str]) -> pd.DataFrame:
+    """
+    Insert a numpy array in a DataFrame with columns giving the indices.
+
+    Args:
+        name: Name of column with the values of the numpy array.
+        arr: numpy array
+        columns: List with the name of columns with the indices.
+    """
+    shape, ndim = arr.shape, arr.ndim
+    if len(columns) != ndim:
+        raise ValueError(f"{len(columns)=} != {ndim=}")
+
+    indices = np.indices(shape).reshape(ndim, -1).T.copy()
+    df = pd.DataFrame(indices, columns=columns)
+    df[name] = arr.flatten()
+
+    return df
 
 
 def build_mesh(x0: float, num: int, step: float, direction: str) -> tuple[list, int]:
@@ -539,7 +559,6 @@ class BzRegularGridInterpolator:
     """
     This object interpolates quantities defined in the BZ.
     """
-
     def __init__(self, structure, shifts, datak, add_replicas=True, **kwargs):
         """
         Args:
@@ -650,3 +669,28 @@ class BzRegularGridInterpolator:
 
     #    return dict2namedtuple(site1=site1, site2=site2, points=line_points, dist=dist,
     #                           values=self.eval_kpoints(line_points))
+
+
+#class PolyExtrapolator:
+#
+#    def __init__(xs, ys):
+#        self.xs = np.array(xs)
+#        self.ys = np.array(ys)
+#
+#    def eval(self, xvals, deg):
+#        p = np.poly1d(np.polyfit(self.xs, self.ys, deg))
+#        return p[xvals]
+#
+#    def plot_ax(self, ax, kwargs**)
+#        xvals = np.linspace(0, 1.1 * self.xs.max(), 100)
+#
+#        from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+#        ax, fig, plt = get_ax_fig_plt(ax=ax)
+#        ax.scatter(xs, ys, marker="o")
+#        yvals = self.eval(xvals, deg=1)
+#        ax.plot(xvals, p[xvals], style="k--")
+#        ax.grid(True)
+#        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+#
+#        return fig
+

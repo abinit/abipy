@@ -165,7 +165,7 @@ class MsqDos(Has_Structure):
 
         jdoc = {
             "natom": len(self.structure),
-            "nomega": self.nw,             # Number of frequencies
+            "nomega": self.nw,              # Number of frequencies
             "ntemp": len(tmesh),            # Number of temperatures
             "tmesh": tmesh,                 # Temperature mesh in K
             "wmesh": self.wmesh,            # Frequency mesh in ??

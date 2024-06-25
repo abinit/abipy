@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import dataclasses
 import numpy as np
-import pandas as pd
+#import pandas as pd
 import abipy.core.abinit_units as abu
 
+from collections import defaultdict
 from monty.string import marquee #, list_strings
 from monty.functools import lazy_property
 from monty.termcolor import cprint
@@ -29,11 +30,18 @@ from abipy.tools.numtools import BzRegularGridInterpolator, gaussian
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
+ITER_LABELS = [
+    r'$E_{pol}$',
+    r'$E_{el}$',
+    r'$E_{ph}$',
+    r'$E_{elph}$',
+    r'$\varepsilon$'
+]
 
 
 class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    This file stores the results of a VARPEQ calculations: SCF cycle, A_nk, B_nk
+    This file stores the results of a VARPEQ calculations: SCF cycle, A_nk, B_qnu
     and provides methods to analyze and plot results.
 
     Usage example:
@@ -47,14 +55,6 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VarpeqFile
     """
-
-    ITER_LABELS = [
-        r'$E_{pol}$',
-        r'$E_{el}$',
-        r'$E_{ph}$',
-        r'$E_{elph}$',
-        r'$\varepsilon$'
-    ]
 
     @classmethod
     def from_file(cls, filepath: PathLike) -> VarpeqFile:
@@ -141,7 +141,7 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         nstep2cv = nstep2cv_spin[spin]
         last_iteration = iter_rec_spin[spin, nstep2cv-1, :] * abu.Ha_eV
 
-        return dict(zip(self.ITER_LABELS, last_iteration))
+        return dict(zip(ITER_LABELS, last_iteration))
 
     @add_fig_kwargs
     def plot_scf_cycle(self, ax_mat=None, fontsize=12, **kwargs) -> Figure:
@@ -167,7 +167,7 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             xs = np.arange(1, nstep2cv + 1)
 
             for iax, ax in enumerate(ax_mat[spin]):
-                for ilab, label in enumerate(self.ITER_LABELS):
+                for ilab, label in enumerate(ITER_LABELS):
                     ys = iterations[:,ilab]
                     if iax == 0:
                         # Plot energies in linear scale.
@@ -265,9 +265,9 @@ class Polaron:
         app(f"bstop: {self.bstop}")
         ksampling = self.ebands.kpoints.ksampling
         ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
-        #print(ksampling)
-        #ngqpt = self.varpeq.r.ngqpt
-        #print(ngqpt)
+        app(f"ksampling: {str(ksampling)}")
+        ngqpt = self.varpeq.r.ngqpt
+        app(f"q-mesh: {ngqpt}")
 
         #if verbose:
         norm = np.sum(np.abs(self.a_kn) ** 2) / self.nk
@@ -578,7 +578,6 @@ class VarpeqReader(BaseEphReader):
     #    raise ValueError(f"Cannot find {kpoint=} in GSTORE.nc")
 
 
-
 class VarpeqRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple VARPEQ.nc files.
@@ -646,7 +645,8 @@ class VarpeqRobot(Robot, RobotWithEbands):
         return ierr
 
     def get_kdata_spin(self, spin: int) -> dict:
-
+        """
+        """
         # First of all sort the files in reverse order using the total number of k-points in the mesh.
         def sort_func(abifile):
             ksampling = abifile.ebands.kpoints.ksampling
@@ -654,19 +654,21 @@ class VarpeqRobot(Robot, RobotWithEbands):
             return np.prod(ngkpt)
 
         labels, abifiles, nktot_list = self.sortby(sort_func, reverse=True, unpack=True)
+        data = defaultdict(list)
 
         # Now loop over the sorted files and extract the results of the final iteration.
         for i, (label, abifile, nktot) in zip(labels, abifiles, nktot_list):
-            if i == 0:
-                data = {k: [] for k in abifile.ITER_LABELS}
-                data["ngkpt"] = []
-
             for k, v in abifile.get_last_iteration_dict_ev(spin).items():
                 data[k].append(v)
 
             ksampling = abifile.ebands.kpoints.ksampling
             ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
+            minibz_vol = abifile.structure.reciprocal_lattice.volume / np.prod(ngkpt)
             data["ngkpt"].append(ngkpt)
+            data["minibz_vol"].append(minibz_vol)
+
+        for k in data:
+            data[k] = np.array(data[k])
 
         return data
 
@@ -691,16 +693,30 @@ class VarpeqRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_kconvergence(self, **kwargs) -> Figure:
+    def plot_kdata(self, fontsie=12, **kwargs) -> Figure:
+        """
+        """
         nsppol = self.getattr_alleq("nsppol")
 
         # Build grid of plots.
-        nrows, ncols = nsppol * len(self), 2
+        nrows, ncols = len(ITER_LABELS), nsppol
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=True, squeeze=False)
-
+        deg = 1
         for spin in range(nsppol):
             kdata = self.get_kdata_spin(spin)
+            xs = kdata["minibz_vol"]
+            xvals = np.linspace(0, 1.1 * xs.max(), 100)
+            for ix, label in enumerate(ITER_LABELS):
+                ys = kdata[label]
+                p = np.poly1d(np.polyfit(xs, ys, deg))
+                ax = ax_mat[ix,spin]
+                ax.scatter(xs, ys, marker="o")
+                ax.plot(xvals, p[xvals], style="k--")
+                ax.grid(True)
+                ax.legend(loc="best", shadow=True, fontsize=fontsize)
+                #ax.set_xlabel("Iteration", fontsize=fontsize)
+                #ax.set_ylabel("Energy (eV)" if iax == 0 else r"$|\Delta|$ Energy (eV)", fontsize=fontsize)
 
         return fig
 
@@ -726,3 +742,40 @@ class VarpeqRobot(Robot, RobotWithEbands):
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
+
+
+"""
+def plot_data(kleninv, energy, p, str_label):
+    xrange = np.linspace(0, 1/6, 100)
+    plt.plot(kleninv, energy, 's-', label=str_label)
+    plt.plot(xrange, p(xrange), 'k--')
+    plt.xlim(0, 0.6)
+    plt.xlabel('Inverse k-grid')
+
+def interp_data(kleninv, energy, n):
+    fit = np.polyfit(kleninv[-n:], energy[-n:], 1)
+    p = np.poly1d(fit)
+    return p
+
+def transform_data(klen, enpol, eps):
+    kleninv = 1/klen
+    enpol = (enpol - cbm)*ha_ev
+    eps = -(eps - cbm)*ha_ev
+    return kleninv, enpol, eps
+
+def analyze(filename, mode, label):
+    klen, enpol, eps = get_data(filename)
+    kleninv, enpol, eps = transform_data(klen, enpol, eps)
+    p_enpol = interp_data(kleninv, enpol, 3)
+    p_eps = interp_data(kleninv, eps, 3)
+
+    if mode == 'enpol':
+        plot_data(kleninv, enpol, p_enpol, label)
+    elif mode == 'eps':
+        plot_data(kleninv, eps, p_eps, label)
+
+analyze('energy.dat', 'enpol', 'no sym')
+analyze('energy_ksym.dat', 'enpol', r'$g(Sk,q) = g(k,S^{-1}q)$')
+plt.ylabel('Hole polaron formation energy (eV)')
+"""
+
