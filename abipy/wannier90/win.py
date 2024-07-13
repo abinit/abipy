@@ -11,8 +11,10 @@ from abipy.abio.variable import InputVariable
 from abipy.abio.inputs import AbstractInput
 #from abipy.tools.typing import Figure
 
+import abipy.core.abinit_units as abu
 
-def structure2wannier90(structure) -> str:
+
+def structure2wannier90(structure, units="Bohr") -> str:
     """
     Return string with stucture in wannier90 format.
     """
@@ -27,8 +29,17 @@ to build an appropriate supercell from partial occupancies or alternatively use 
     # Write lattice vectors.
     # Set small values to zero. This usually happens when the CIF file
     # does not give structure parameters with enough digits.
-    app("begin unit_cell_cart\nAng")
+    if units == "Bohr":
+        fact = abu.Ang_Bohr
+        app("begin unit_cell_cart\nBohr")
+    elif units == "Ang":
+        fact = 1.0
+        app("begin unit_cell_cart\nAng")
+    else:
+        raise ValueError(f"Invalid {units =}")
+
     for r in np.where(np.abs(structure.lattice.matrix) > 1e-8, structure.lattice.matrix, 0.0):
+        r = r * fact
         app("    %.10f %.10f %.10f" % (r[0], r[1], r[2]))
     app("end unit_cell_cart\n")
     app("begin atoms_frac")

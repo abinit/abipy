@@ -46,7 +46,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
     def close(self) -> None:
         """Close file. Required by abc protocol."""
 
-    def __str__(self) ->str:
+    def __str__(self) -> str:
         return self.to_string()
 
     def to_string(self, verbose=0) -> str:
@@ -337,7 +337,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
     def plot_centers_spread(self, fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of the Wannier centers and spread
-        as function of iteration number
+        as a function of the iteration number
 
         Args:
             fontsize: legend and label fontsize.

@@ -1266,7 +1266,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         """
         y_xmax = yvals[-1]
         span_style = dict(alpha=0.2, color="green", hatch=hatch)
-        ax1.axhspan(y_xmax - abs_conv, y_xmax + abs_conv, label=r"$|y-y(x_{max})}| \leq %s$" % abs_conv, **span_style)
+        ax1.axhspan(y_xmax - abs_conv, y_xmax + abs_conv, label=r"$|y-y(x_{max})| \leq %s$" % abs_conv, **span_style)
 
         # Plot |y - y_xmax| in log scale on ax2.
         ax2.plot(xs, np.abs(yvals - y_xmax), **kwargs)

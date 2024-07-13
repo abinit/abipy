@@ -351,6 +351,16 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                              occfacts, self.ebands.nelect, self.nspinor, self.nspden,
                              smearing=self.ebands.smearing)
 
+    @add_fig_kwargs
+    def plot_with_ebands(self, ebands, **kwargs):
+        """
+        Receiven an ab-initio electronic strucuture, interpolate the energies on the same list of k-points
+        and compare the two.
+        """
+        plotter = self.get_plotter_from_ebands(ebands)
+        linestyle_dict = {"Interpolated": dict(linewidth=0, color="red", marker="o")}
+        return plotter.combiplot(linestyle_dict=linestyle_dict, **kwargs)
+
     def get_plotter_from_ebands(self, ebands: ElectronBands) -> ElectronBandsPlotter:
         """
         Interpolate energies using the k-points given in input |ElectronBands| ebands.
@@ -608,7 +618,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
         diff_str = self.has_different_structures()
         if diff_str: cprint(diff_str, "yellow")
 
-        # Need KpointList object (assume same structures in Robot)
+        # Need KpointList object (assuming same structures in the Robot)
         nc0 = self.abifiles[0]
         if kpoints is None:
             if ngkpt is not None:
@@ -658,6 +668,6 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
         # Mixins
         #nb.cells.extend(self.get_baserobot_code_cells())
-        #nb.cells.extend(self.get_ebands_code_cells())
+        #nb.cells.extend(self.get_ebands_code_cells())wannier90.wout
 
         return self._write_nb_nbpath(nb, nbpath)

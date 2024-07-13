@@ -1011,8 +1011,24 @@ class AseRelaxation:
             raise RuntimeError("Cannot read ASE traj as traj_path is None")
         return read(self.traj_path, index=":")
 
-    #def __str__(self):
-    #def to_string(self, verbose=0)
+    def __str__(self) -> str:
+        return to_string()
+
+    def to_string(self, verbose: int = 0) -> str:
+        """
+        String representation with verbosity level verbose
+        """
+        lines = []
+        app = lines.append
+        app("Initial structure:")
+        s0 = Structure.as_structure(self.r0.atoms)
+        app(str(s0))
+        app("")
+        app("Relaxed structure:")
+        s1 = Structure.as_structure(self.r1.atoms)
+        app(str(s1))
+
+        return "\n".join(lines)
 
     def summarize(self, tags=None, mode="smart", stream=sys.stdout):
         """"""
@@ -2041,6 +2057,8 @@ class MlRelaxer(MlBase):
 
         relax = relax_atoms(self.atoms, **relax_kws)
         relax.summarize(tags=["unrelaxed", "relaxed"])
+
+        print(relax.to_string(verbose=self.verbose))
 
         # Write files with final structure and dynamics.
         formats = ["poscar",]
