@@ -147,6 +147,9 @@ def add_nn_name_opt(f):
     """Add CLI options to select the NN potential."""
     f = click.option("--nn-name", "-nn", default=DEFAULT_NN, show_default=True,
                      help=f"ML potential to be used. Supported values are: {aseml.CalcBuilder.ALL_NN_TYPES}")(f)
+    #f = click.option("--nn-name", "-nn", default=DEFAULT_NN, show_default=True,
+    #                 help=f"ML potential to be used.\n{aseml.CalcBuilder.DOC_NAME}")(f)
+    #f = click.option("--dftd3", , default="no", show_default=True, help=f"Activate DFD3.")(f)
     return f
 
 
@@ -218,15 +221,15 @@ def relax(ctx, filepath, nn_name,
     Usage example:
 
     \b
-        abiml.py.py relax FILE --fmax 0.01 -r cell --optimizer FIRE -w OUT_DIR
-        abiml.py.py relax FILE --fix-inds "0 3" --fix-symbols "Si O"
+        abiml.py relax FILE --fmax 0.01 -r cell --optimizer FIRE -w OUT_DIR
+        abiml.py relax FILE --fix-inds "0 3" --fix-symbols "Si O"
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
     or a string such as __mp-134 to fetch the structure from the MP database.
 
     To change the ML potential, use e.g.:
 
-        abiml.py.py relax -nn m3gnet [...]
+        abiml.py relax -nn m3gnet [...]
     """
     atoms = _get_atoms_from_filepath(filepath)
     aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
@@ -262,6 +265,7 @@ def abinit_relax(ctx, filepath,
 @click.argument("filepath", type=str)
 @add_nn_name_opt
 @click.option('--temperature', "-t", default=600, type=float, show_default=True, help='Temperature in Kelvin')
+@click.option('--pressure', "-p", default=1, type=float, show_default=True, help='Pressure in ???.')
 @click.option('--timestep', "-ts", default=1, type=float, show_default=True, help='Timestep in fs.')
 @click.option('--steps', "-s", default=1000, type=int, show_default=True, help='Number of timesteps.')
 @click.option('--loginterval', "-l", default=100, type=int, show_default=True, help='Interval for record the log.')
@@ -271,7 +275,7 @@ def abinit_relax(ctx, filepath,
 @add_workdir_verbose_opts
 @click.option('--config', default='abiml_md.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def md(ctx, filepath, nn_name,
-       temperature, timestep, steps, loginterval, ensemble,
+       temperature, pressure, timestep, steps, loginterval, ensemble,
        fix_inds, fix_symbols,
        workdir, verbose):
     """
@@ -280,14 +284,14 @@ def md(ctx, filepath, nn_name,
     Usage example:
 
     \b
-        abiml.py.py md FILE --temperature 1200 --timestep 2 --steps 5000 --workdir OUT_DIR
-        abiml.py.py md FILE --fix-inds "0 3" --fix-symbols "Si O"
+        abiml.py md FILE --temperature 1200 --timestep 2 --steps 5000 --workdir OUT_DIR
+        abiml.py md FILE --fix-inds "0 3" --fix-symbols "Si O"
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
 
     To change the ML potential, use e.g.:
 
-        abiml.py.py md -nn m3gnet [...]
+        abiml.py md -nn m3gnet [...]
 
     To restart a MD run, use --workdir to specify a pre-existent directory.
     """
@@ -295,7 +299,7 @@ def md(ctx, filepath, nn_name,
     atoms = aseml.get_atoms(filepath)
     aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
-    ml_md = aseml.MlMd(atoms, temperature, timestep, steps, loginterval, ensemble, nn_name, verbose,
+    ml_md = aseml.MlMd(atoms, temperature, pressure, timestep, steps, loginterval, ensemble, nn_name, verbose,
                        workdir, prefix="_abiml_md_")
     print(ml_md.to_string(verbose=verbose))
     ml_md.run()
@@ -322,15 +326,15 @@ def neb(ctx, filepaths, nn_name,
     Usage example:
 
     \b
-        abiml.py.py neb START_FILE END_FILE --nimages 6 --fmax=0.05 --optimizer FIRE -w OUT_DIR
-        abiml.py.py neb START_FILE END_FILE --neb-method improvedtangent --climb
-        abiml.py.py neb START_FILE END_FILE --fix-inds "0 3" --fix-symbols "Si O"
+        abiml.py neb START_FILE END_FILE --nimages 6 --fmax=0.05 --optimizer FIRE -w OUT_DIR
+        abiml.py neb START_FILE END_FILE --neb-method improvedtangent --climb
+        abiml.py neb START_FILE END_FILE --fix-inds "0 3" --fix-symbols "Si O"
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
 
     To change the ML potential, use e.g.:
 
-        abiml.py.py neb -nn m3gnet [...]
+        abiml.py neb -nn m3gnet [...]
     """
     initial_atoms = aseml.get_atoms(filepaths[0])
     aseml.fix_atoms(initial_atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
@@ -364,15 +368,15 @@ def mneb(ctx, filepaths, nn_name,
     Usage example:
 
     \b
-        abiml.py.py mneb FILE1 FILE2 FILE2 ... --nimages 6 --fmax=0.05 -w OUT_DIR
-        abiml.py.py mneb FILE1 FILE2 FILE2 ... --neb-method improvedtangent --climb
-        abiml.py.py mneb FILE1 FILE2 FILE2 ... --fix-inds "0 3" --fix-symbols "Si O"
+        abiml.py mneb FILE1 FILE2 FILE2 ... --nimages 6 --fmax=0.05 -w OUT_DIR
+        abiml.py mneb FILE1 FILE2 FILE2 ... --neb-method improvedtangent --climb
+        abiml.py mneb FILE1 FILE2 FILE2 ... --fix-inds "0 3" --fix-symbols "Si O"
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
 
     To change the ML potential, use e.g.:
 
-        abiml.py.py mneb -nn m3gnet [...]
+        abiml.py mneb -nn m3gnet [...]
     """
     # Fix atoms
     atoms_list = [aseml.get_atoms(p) for p in filepaths]
@@ -412,14 +416,14 @@ def ph(ctx, filepath, nn_names,
     Usage example:
 
     \b
-        abiml.py.py ph FILE --distance 0.03 --supercell 2 2 2
+        abiml.py ph FILE --distance 0.03 --supercell 2 2 2
 
     where `FILE` provides the crystalline structure
     or a string such as __mp-134 to fetch the structure from the MP database.
 
     To specify the list of ML potential, use e.g.:
 
-        abiml.py.py ddb -nn-names m3gnet --nn-names chgnet [...]
+        abiml.py ph -nn-names m3gnet --nn-names chgnet [...]
 
     To use all NN potentials supported, use:
 
@@ -467,14 +471,14 @@ def phddb(ctx, ddb_filepath, nn_names,
     Usage example:
 
     \b
-        abiml.py.py phddb DDB_FILE --distance 0.03 --dipdip 0 --supercell 2 2 2
+        abiml.py phddb DDB_FILE --distance 0.03 --dipdip 0 --supercell 2 2 2
 
     where `DDB_FILE` is an Abinit DDB file
     or a string such as __mp-134 to fetch the DDB from the MP database.
 
     To specify the list of ML potential, use e.g.:
 
-        abiml.py.py phddb -nn-names m3gnet --nn-names chgnet [...]
+        abiml.py phddb -nn-names m3gnet --nn-names chgnet [...]
 
     To use all NN potentials supported, use:
 
@@ -521,7 +525,7 @@ def order(ctx, filepath, nn_name,
     Usage example:
 
     \b
-        abiml.py.py order FILE --max-ns 10 --relax cell
+        abiml.py order FILE --max-ns 10 --relax cell
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
 
@@ -559,14 +563,14 @@ def scan_relax(ctx, filepath, nn_name,
     Usage example:
 
     \b
-        abiml.py.py scan-relax FILE -isite 0 --mesh 4  # Move first atom in the structure
-        abiml.py.py scan-relax FILE -isite H           # Add H to the structure read from FILE.
+        abiml.py scan-relax FILE -isite 0 --mesh 4  # Move first atom in the structure
+        abiml.py scan-relax FILE -isite H           # Add H to the structure read from FILE.
 
     where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
 
     To change the ML potential, use e.g.:
 
-        abiml.py.py scan-relax -nn m3gnet [...]
+        abiml.py scan-relax -nn m3gnet [...]
     """
     structure = Structure.from_file(filepath)
 
@@ -586,10 +590,10 @@ def scan_relax(ctx, filepath, nn_name,
 @click.argument('filepaths', type=str, nargs=-1)
 @add_nn_names_opt
 @click.option("--traj_range", type=str, show_default=True,
-              help="Trajectory range e.g. `5` to select the first 5 iterations, `1:4` to select steps 1,2,3.",
+              help="Trajectory range e.g. `5` to select the first 5 iterations, `1:4` to select steps 1,2,3. `1:4:2 for 1,3",
               default=None)
 @click.option("-e", '--exposer', default="mpl", show_default=True, type=click.Choice(["mpl", "panel"]),
-              help='Plotting backend: mpl for matplotlib, panel for web-based')
+              help='Plotting backend: mpl for matplotlib, panel for web-based, None to disable plotting')
 @add_nprocs_opt
 @add_workdir_verbose_opts
 @click.option('--config', default='abiml_validate.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
@@ -601,32 +605,43 @@ def validate(ctx, filepaths,
              workdir, verbose
             ):
     """
-    Compare ab-initio energies, forces, and stresses with ml-computed ones.
+    Compare ab-initio energies, forces, and stresses with ML-computed ones.
 
     usage example:
 
     \b
-        abiml.py.py validate FILE --nn-names matgl --nn-names chgnet
+        abiml.py validate FILE --nn-names matgl --nn-names chgnet
 
-    where `FILE` can be either a _HIST.nc or a vasprun.xml FILE.
+    where `FILE` can be a HIST.nc, a vasprun.xml or an ASE extended XYZ file.
     """
     traj_range = cli.range_from_str(traj_range)
     nn_names = _get_nn_names(nn_names)
-    ml_comp = aseml.MlValidateWithAbinitio(filepaths, nn_names, traj_range, verbose, workdir, prefix="_abiml_compare_")
+    ml_comp = aseml.MlValidateWithAbinitio(filepaths, nn_names, traj_range, verbose, workdir, prefix="_abiml_validate_")
     print(ml_comp)
     c = ml_comp.run(nprocs=nprocs)
 
-    with_stress = True
-    from abipy.tools.plotting import Exposer
-    with Exposer.as_exposer(exposer, title=" ".join(os.path.basename(p) for p in filepaths)) as e:
-        e(c.plot_energies(show=False))
-        e(c.plot_forces(delta_mode=True, show=False))
-        e(c.plot_energies_traj(delta_mode=True, show=False))
-        e(c.plot_energies_traj(delta_mode=False, show=False))
-        if with_stress:
-            e(c.plot_stresses(delta_mode=True, show=False))
-        e(c.plot_forces_traj(delta_mode=True, show=False))
-        e(c.plot_stress_traj(delta_mode=True, show=False))
+    if exposer != "None":
+        show = True
+        show = False
+        with_stress = True
+        with_stress = False
+        on_traj = True
+        from abipy.tools.plotting import Exposer
+        with Exposer.as_exposer(exposer, title=" ".join(os.path.basename(p) for p in filepaths)) as e:
+            e(c.plot_energies(show=show, savefig="energies.png"))
+            if on_traj:
+                e(c.plot_energies_traj(delta_mode=True, show=show, savefig="energies_traj.png"))
+                e(c.plot_energies_traj(delta_mode=False, show=show, savefig="energies_traj_delta_mode.png"))
+            symbol = None
+            #symbol = "Li"
+            e(c.plot_forces(delta_mode=False, symbol=symbol, show=show, savefig="forces.png"))
+            e(c.plot_forces(delta_mode=True, symbol=symbol, show=show, savefig="forces_delta.png"))
+            if on_traj:
+                e(c.plot_forces_traj(delta_mode=True, show=show, savefig="forces_traj_delta_mode.png"))
+            if with_stress:
+                e(c.plot_stresses(delta_mode=True, show=show, savefig="stresses_delta_mode.png"))
+                if on_traj:
+                    e(c.plot_stress_traj(delta_mode=True, show=show, savefig="stress_traj_delta_mode.png"))
 
     return 0
 
@@ -669,7 +684,7 @@ def install(ctx, nn_names, update, verbose):
 @click.option('--num-tests', "-n", default=20, type=int, show_default=True, help='Number of configurations to generate.')
 @click.option("--rattle", default=0.2, type=float, show_default=True, help="Displace atoms randomly with this stdev.")
 @click.option("-srv", "--stdev-rvol", default=0.1, type=float, show_default=True,
-              help="Scale volumes randomly around input v0 with stdev: v0*value")
+              help="Scale volumes randomly around input v0 with stdev: v0 * value")
 @add_workdir_verbose_opts
 @click.option('--config', default='abiml_compare.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def compare(ctx, filepath, nn_names,
@@ -681,7 +696,7 @@ def compare(ctx, filepath, nn_names,
     """
     atoms = _get_atoms_from_filepath(filepath)
     nn_names = _get_nn_names(nn_names)
-    ml_comp = aseml.MlCompareNNs(atoms, nn_names, num_tests, rattle, stdev_rvol, verbose, workdir, prefix="_abiml_comp_")
+    ml_comp = aseml.MlCompareNNs(atoms, nn_names, num_tests, rattle, stdev_rvol, verbose, workdir, prefix="_abiml_compare_")
     print(ml_comp.to_string(verbose=verbose))
     ase_comp = ml_comp.run()
     return 0
@@ -692,20 +707,17 @@ def compare(ctx, filepath, nn_names,
 @click.pass_context
 @click.argument("filepath", type=str)
 @add_nn_name_opt
+@add_workdir_verbose_opts
 @click.option('--config', default='abiml_gs.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
-def gs(ctx, filepath, nn_name):
+def gs(ctx, filepath, nn_name,
+       workdir, verbose,
+       ):
     """
-    Compute grounde-state properties and magnetic moments with ML potential.
+    Compute ground-state properties and magnetic moments with ML potential(s).
     """
     atoms = _get_atoms_from_filepath(filepath)
-    calc = aseml.CalcBuilder(nn_name).get_calculator()
-    #magmoms = atoms.get_magnetic_moments()
-    from abipy.ml.aseml import AseResults
-    res = AseResults.from_atoms(atoms, calc=calc)
-
-    for ia, (atom, magmoms) in enumerate(zip(res.atoms, res.magmoms)):
-        print(atom, magmoms)
-
+    gs = aseml.GsMl(atoms, nn_name, verbose, workdir, prefix="_abiml_gs_")
+    gs.run()
     return 0
 
 
@@ -733,43 +745,6 @@ def cwf_eos(ctx, elements, nn_names,
     print(ml_cwf_eos.to_string(verbose=verbose))
     ml_cwf_eos.run()
     return 0
-
-
-#@main.command()
-#@herald
-#@click.pass_context
-#@click.argument('filepaths', type=str, nargs=-1)
-#@add_nn_name_opt
-#@add_workdir_verbose_opts
-#@click.option('--config', default='abiml_train.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
-#def train(ctx, filepaths,
-#          nn_name,
-#          #nprocs,
-#          workdir, verbose
-#          ):
-#    """
-#    Train a ML potential using the trajectory stored on FILE.
-#
-#    usage example:
-#
-#    \b
-#        abiml.py.py train FILE --nn-names matgl
-#
-#    where `FILE` can be either a _HIST.nc or a vasprun.xml FILE.
-#    """
-#    if nn_name == "matgl":
-#        from abipy.ml.matgl import MatglSystem
-#        s = MatglSystem(filepaths, workdir, verbose)
-#
-#    elif nn_name == "chgnet":
-#        from abipy.ml.chgnet import ChgnetSystem
-#        s = ChgnetSystem(filepaths, workdir, verbose)
-#
-#    else:
-#        raise ValueError(f"Unsupported {nn_name=}")
-#
-#    s.train()
-#    return 0
 
 
 if __name__ == "__main__":

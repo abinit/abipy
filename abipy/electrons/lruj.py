@@ -109,7 +109,7 @@ class LrujResults:
           pert_name = r"$\alpha$"
           metric = r"N $(n^{\uparrow} + n^{\downarrow})$"
           parname = 'U'
-        
+
         chi0_coefficients = {}
         chi_coefficients = {}
         for k, v in data.items():
@@ -145,7 +145,7 @@ class LrujResults:
         -0.1500000676   8.6964981922   8.6520722003
 
        -OR-
- 
+
         Perturbations         Magnetizations
         --------------- -----------------------------
            beta [eV]     Unscreened      Screened
@@ -189,7 +189,9 @@ class LrujResults:
 #===============================================================================================================
 #===============================================================================================================
     @add_fig_kwargs
-    def plot(self, ax=None, degrees="all", inset=True, insetdegree=1, insetlocale="lower left", ptcolor0='k', ptcolor='k', gradcolor1='#3575D5',gradcolor2='#FDAE7B', ptitle="default", fontsize=12, **kwargs) -> Figure:
+    def plot(self, ax=None, degrees="all", inset=True, insetdegree=1, insetlocale="lower left",
+             ptcolor0='k', ptcolor='k', gradcolor1='#3575D5',gradcolor2='#FDAE7B',
+             ptitle="default", fontsize=12, **kwargs) -> Figure:
         """
         Plot
 
@@ -220,7 +222,7 @@ class LrujResults:
         xstart, xstop = 1.1 * self.alphas.min(), 1.1 * self.alphas.max()
         xs = np.arange(xstart, xstop, step=0.01)
 
-        #Prepare colors and coefficients for polynomials the use wants to plot
+        # Prepare colors and coefficients for polynomials the use wants to plot
         if degrees == "all":
           degrees = self.chi0_coefficients.keys()
 
@@ -288,6 +290,7 @@ class LrujResults:
           parambox.patch.set_edgecolor(insetcolor)
           parambox.patch.set_facecolor('white')
           ax.add_artist(parambox)
+
         return fig
 
 

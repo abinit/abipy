@@ -8,8 +8,10 @@ import numpy as np
 
 from scipy.special import spherical_jn
 from scipy.interpolate import UnivariateSpline
-from scipy.integrate import simps # cumtrapz, quad
-
+try:
+    from scipy.integrate import simpson as simps
+except ImportError:
+    from scipy.integrate import simps
 
 _DEFAULTS = {"numq": 3001, "numr": 3001}
 

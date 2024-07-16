@@ -9,17 +9,13 @@ import io
 import time
 import contextlib
 import json
-import pickle
-import warnings
 import dataclasses
 import stat
 import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
-try:
-    import ase
-except ImportError as exc:
-    raise ImportError("ase not installed. Try `pip install ase`.") from exc
+import ase
+
 from pathlib import Path
 from inspect import isclass
 from multiprocessing import Pool
@@ -40,20 +36,25 @@ from ase.optimize.optimize import Optimizer
 from ase.calculators.calculator import Calculator
 from ase.io.vasp import write_vasp_xdatcar, write_vasp
 from ase.neb import NEB
+from ase.md.npt import NPT
 from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from ase.md.velocitydistribution import (MaxwellBoltzmannDistribution, Stationary, ZeroRotation)
+from ase.stress import voigt_6_to_full_3x3_strain
+from ase.calculators.calculator import PropertyNotImplementedError
 from abipy.core import Structure
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
 from abipy.tools.typing import Figure, PathLike
 from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import HasPickleIO
 from abipy.tools.context_managers import Timer
+from abipy.tools.parallel import get_max_nprocs # , pool_nprocs_pmode
 from abipy.abio.enums import StrEnum, EnumMixin
-from abipy.core.mixins import TextFile, NotebookWriter
+from abipy.core.mixins import TextFile # , NotebookWriter
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
-    set_visible, set_ax_xylabels, linear_fit_ax)
-
+    set_ax_xylabels, linear_fit_ax)
+from abipy.ml.tools import get_energy_step
+from pymatgen.io.vasp.outputs import Vasprun
 
 _CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
 
@@ -65,7 +66,7 @@ class RX_MODE(EnumMixin, StrEnum):  # StrEnum added in 3.11
     """
     Relaxation mode string flags.
     """
-    no   = "no"
+    no = "no"
     ions = "ions"
     cell = "cell"
 
@@ -126,6 +127,7 @@ _FMT2FNAME = {
     "abinit": "run.abi",
     #"qe": "qe.in",
 }
+
 
 def write_atoms(atoms: Atoms, workdir, verbose: int,
                 formats=None, prefix=None, postfix=None) -> list[tuple[Path, str]]:
@@ -198,8 +200,157 @@ def diff_two_structures(label1, structure1, label2, structure2, fmt, file=sys.st
         print(l1.ljust(pad), " | ", l2, file=file)
 
 
+class AseTrajectoryPlotter:
+    """
+    Plot an ASE trajectory with matplotlib.
+    """
+    def __init__(self, traj: Trajectory):
+        self.traj = traj
+        self.natom = len(traj[0])
+        self.traj_size = len(traj)
+
+    @classmethod
+    def from_file(cls, filepath: PathLike) -> AseTrajectoryPlotter:
+        """Initialize an instance from file filepath"""
+        return cls(read(filepath, index=":"))
+
+    def __str__(self) -> str:
+        return self.to_string()
+
+    def to_string(self, verbose=0) -> str:
+        """String representation with verbosity level verbose."""
+        lines = [f"ASE trajectory with {len(self.traj)} configuration(s)."]
+        app = lines.append
+        if len(self.traj) == 1:
+            first = AseResults.from_atoms(self.traj[0])
+            app(first.to_string(verbose=verbose))
+        else:
+            first, last = AseResults.from_atoms(self.traj[0]), AseResults.from_atoms(self.traj[-1])
+            app("First configuration:")
+            app(first.to_string(verbose=verbose))
+            app("Last configuration:")
+            app(last.to_string(verbose=verbose))
+
+        return "\n".join(lines)
+
+    @add_fig_kwargs
+    def plot(self, fontsize=8, xlims=None, **kwargs) -> Figure:
+        """
+        Plot energies, force stats, and pressure as a function of the trajectory index.
+        """
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=3, ncols=1,
+                                                sharex=True, sharey=False, squeeze=True)
+
+        # Plot total energy in eV.
+        energies = [float(atoms.get_potential_energy()) for atoms in self.traj]
+        ax = ax_list[0]
+        marker = "o"
+        ax.plot(energies, marker=marker)
+        ax.set_ylabel('Energy (eV)')
+
+        # Plot Force stats.
+        forces_traj = np.reshape([atoms.get_forces() for atoms in self.traj], (self.traj_size, self.natom, 3))
+        fmin_steps, fmax_steps, fmean_steps, fstd_steps = [], [], [], []
+        for forces in forces_traj:
+            fmods = np.sqrt([np.dot(force, force) for force in forces])
+            fmean_steps.append(fmods.mean())
+            fstd_steps.append(fmods.std())
+            fmin_steps.append(fmods.min())
+            fmax_steps.append(fmods.max())
+
+        markers = ["o", "^", "v", "X"]
+        ax = ax_list[1]
+        ax.plot(fmin_steps, label="min |F|", marker=markers[0])
+        ax.plot(fmax_steps, label="max |F|", marker=markers[1])
+        ax.plot(fmean_steps, label="mean |F|", marker=markers[2])
+        #ax.plot(fstd_steps, label="std |F|", marker=markers[3])
+        ax.set_ylabel('F stats (eV/A)')
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+        # Plot pressure.
+        voigt_stresses_traj = np.reshape([atoms.get_stress() for atoms in self.traj], (self.traj_size, 6))
+        pressures = [-sum(vs[0:3])/3 for vs in voigt_stresses_traj]
+        ax = ax_list[2]
+        ax.plot(pressures, marker=marker)
+        ax.set_ylabel('Pressure (GPa)')
+
+        for ix, ax in enumerate(ax_list):
+            set_axlims(ax, xlims, "x")
+            ax.grid(True)
+            if ix == len(ax_list) - 1:
+                ax.set_xlabel('Trajectory index', fontsize=fontsize)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_lattice(self, ax_list=None, fontsize=8, xlims=None, **kwargs) -> Figure:
+        """
+        Plot lattice lengths/angles/volume as a function the of the trajectory index.
+
+        Args:
+            ax_list: List of axis or None if a new figure should be created.
+            fontsize: fontsize for legends and titles
+            xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
+        """
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=3, ncols=1,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        def cell_dict(atoms):
+            return dict(zip(_CELLPAR_KEYS, atoms.cell.cellpar()))
+
+        cellpar_list = [cell_dict(atoms) for atoms in self.traj]
+        df = pd.DataFrame(cellpar_list)
+        #print(df)
+
+        # plot lattice parameters.
+        ax = ax_list[0]
+        markers = ["o", "^", "v"]
+        for i, label in enumerate(["a", "b", "c"]):
+            ax.plot(df[label].values, label=label, marker=markers[i])
+        ax.set_ylabel("abc (A)")
+
+        # plot lattice angles.
+        ax = ax_list[1]
+        for i, label in enumerate(["angle(b,c)", "angle(a,c)", "angle(a,b)"]):
+            ax.plot(df[label].values, label=label, marker=markers[i])
+        ax.set_ylabel(r"$\alpha\beta\gamma$ (degree)")
+
+        # plot lattice volume.
+        ax = ax_list[2]
+        volumes = [atoms.get_volume() for atoms in self.traj]
+        marker = "o"
+        ax.plot(volumes, label="Volume", marker=marker)
+        ax.set_ylabel(r'$V\, (A^3)$')
+
+        for ix, ax in enumerate(ax_list):
+            set_axlims(ax, xlims, "x")
+            if ix == len(ax_list) - 1:
+                ax.set_xlabel('Trajectory index', fontsize=fontsize)
+            ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+        return fig
+
+
+def get_fstats(cart_forces: np.ndarray) -> dict:
+    """
+    Return dictionary with statistics on the Cartesian forces.
+    """
+    fmods = np.array([np.linalg.norm(f) for f in cart_forces])
+    #fmods = np.sqrt(np.einsum('ij, ij->i', cart_forces, cart_forces))
+    #return AttrDict(
+    return dict(
+        fmin=fmods.min(),
+        fmax=fmods.max(),
+        fmean=fmods.mean(),
+        fstd=fmods.std(),
+        drift=np.linalg.norm(cart_forces.sum(axis=0)),
+    )
+
+
 @dataclasses.dataclass
-class AseResults:
+class AseResults(HasPickleIO):
     """
     Container with the results produced by an ASE calculator.
     """
@@ -215,20 +366,25 @@ class AseResults:
         return [cls.from_atoms(trajectory[i]) for i in inds]
 
     @classmethod
-    def from_atoms(cls, atoms: Atoms, calc=None) -> AseResults:
+    def from_atoms(cls, atoms: Atoms, calc=None, with_stress=True, with_magmoms=True) -> AseResults:
         """Build the object from an atoms instance with a calculator."""
         if calc is not None:
             atoms.calc = calc
 
-        from ase.stress import voigt_6_to_full_3x3_strain
-        stress_voigt = atoms.get_stress()
-        stress = voigt_6_to_full_3x3_strain(stress_voigt)
+        stress = -np.eye(3)
+        if with_stress:
+            try:
+                stress_voigt = atoms.get_stress()
+                stress = voigt_6_to_full_3x3_strain(stress_voigt)
+            except PropertyNotImplementedError:
+                stress = -np.eye(3)
 
-        from ase.calculators.calculator import PropertyNotImplementedError
-        try:
-            magmoms = atoms.get_magnetic_moments()
-        except PropertyNotImplementedError:
-            magmoms = None
+        magmoms = None
+        if with_magmoms:
+            try:
+                magmoms = atoms.get_magnetic_moments()
+            except PropertyNotImplementedError:
+                pass
 
         results = cls(atoms=atoms.copy(),
                       ene=float(atoms.get_potential_energy()),
@@ -262,23 +418,34 @@ class AseResults:
         lines = []; app = lines.append
 
         app(f"Energy: {self.ene} (eV)")
-        app(f"Pressure: {self.pressure} ")
+        app(f"Pressure: {self.pressure} (Gpa)")
+
         fstats = self.get_fstats()
         for k, v in fstats.items():
-            app(f"{k} = {v}")
-        #app('Stress tensor:', r.stress)
-        if verbose:
+            app(f"{k} = {v} (eV/Ang)")
+
+        # if verbose:
+        if True:
             app('Forces (eV/Ang):')
             positions = self.atoms.get_positions()
-            df = pd.DataFrame(dict(
+            data = dict(
                 x=positions[:,0],
                 y=positions[:,1],
                 z=positions[:,2],
                 fx=self.forces[:,0],
                 fy=self.forces[:,1],
                 fz=self.forces[:,2],
-            ))
-            app(str(df))
+            )
+            # Add magmoms if available.
+            if self.magmoms is not None:
+                data["magmoms"] = self.magmoms
+
+            df = pd.DataFrame(data)
+            app(df.to_string())
+
+        app('Stress tensor:')
+        for row in self.stress:
+            app(str(row))
 
         return "\n".join(lines)
 
@@ -286,16 +453,7 @@ class AseResults:
         """
         Return dictionary with statistics on forces.
         """
-        fmods = np.array([np.linalg.norm(force) for force in self.forces])
-        #fmods = np.sqrt(np.einsum('ij, ij->i', forces, forces))
-        #return AttrDict(
-        return dict(
-            fmin=fmods.min(),
-            fmax=fmods.max(),
-            fmean=fmods.mean(),
-            #fstd=fmods.std(),
-            drift=np.linalg.norm(self.forces.sum(axis=0)),
-        )
+        return get_fstats(self.forces)
 
     def get_dict4pandas(self, with_geo=True, with_fstats=True) -> dict:
         """
@@ -323,19 +481,6 @@ def diff_stats(xs, ys):
        ADIFF_MAX=abs_diff.max(),
        ADIFF_STD=abs_diff.std(),
     )
-
-
-def make_square_axes(ax_mat):
-    """
-    Make an axes square in screen units.
-    Should be called after plotting.
-    """
-    return
-    for ax in ax_mat.flat:
-        #ax.set_aspect(1 / ax.get_data_ratio())
-        #ax.set(adjustable='box', aspect='equal')
-        ax.set(adjustable='datalim', aspect='equal')
-    #ax.set_aspect(1 / ax.get_data_ratio())
 
 
 class AseResultsComparator(HasPickleIO):
@@ -431,9 +576,11 @@ def main():
     with_stress = True
     from abipy.tools.plotting import Exposer
     exposer = "mpl" # or "panel"
+    symbol = None
     with Exposer.as_exposer(exposer) as e:
         e(c.plot_energies(show=False))
-        e(c.plot_forces(delta_mode=True, show=False))
+        e(c.plot_forces(delta_mode=False, symbol=symbol, show=False))
+        #e(c.plot_forces(delta_mode=True, symbol=symbol, show=False))
         e(c.plot_energies_traj(delta_mode=True, show=False))
         e(c.plot_energies_traj(delta_mode=False, show=False))
         if with_stress:
@@ -487,14 +634,35 @@ def main():
 
         return zip_sort(xs, ys) if sort else (xs, ys)
 
-    def xy_forces_for_keys(self, key1, key2, direction) -> tuple:
+    def xy_forces_for_keys(self, key1, key2, direction, symbol=None, site_inds=None) -> tuple:
         """
         Return (xs, ys), sorted arrays with forces along the cart direction for (key1, key2).
+
+        Args:
+            symbol: If not None, select only forces for this atomic specie.
+            site_inds: List of site indices to consider. None if all sites should be included.
         """
         idir = self.idir_from_direction(direction)
         ik1, ik2 = self.inds_of_keys(key1, key2)
-        xs = self.forces_list[ik1,:,:,idir].flatten()
-        ys = self.forces_list[ik2,:,:,idir].flatten()
+
+        if symbol is not None and site_inds is not None:
+            raise ValueError("symbol and site_inds are mutually exclusive!")
+
+        if symbol is not None:
+            inds = np.array(self.structure.indices_from_symbol(symbol))
+            if len(inds) == 0:
+                raise ValueError(f"Cannot find chemical {symbol=} in structure!")
+            xs = self.forces_list[ik1,:,inds,idir].flatten()
+            ys = self.forces_list[ik2,:,inds,idir].flatten()
+
+        elif site_inds is not None:
+            site_inds = np.array(site_inds)
+            xs = self.forces_list[ik1,:,site_inds,idir].flatten()
+            ys = self.forces_list[ik2,:,site_inds,idir].flatten()
+
+        else:
+            xs = self.forces_list[ik1,:,:,idir].flatten()
+            ys = self.forces_list[ik2,:,:,idir].flatten()
 
         return zip_sort(xs, ys)
 
@@ -582,26 +750,29 @@ def main():
                                                )
         irow = 0
         for icol, (key1, key2) in enumerate(key_pairs):
-           xs, ys = self.xy_energies_for_keys(key1, key2)
-           stats = diff_stats(xs, ys)
-           ax = ax_mat[irow, icol]
-           ax.scatter(xs, ys, marker="o")
-           ax.grid(True)
-           ax.set_xlabel(f"{key1} energy", fontsize=fontsize)
-           ax.set_ylabel(f"{key2} energy", fontsize=fontsize)
-           linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
-           ax.legend(loc="best", shadow=True, fontsize=fontsize)
-           if irow == 0:
-               ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
+            xs, ys = self.xy_energies_for_keys(key1, key2)
+            stats = diff_stats(xs, ys)
+            ax = ax_mat[irow, icol]
+            ax.scatter(xs, ys, marker="o")
+            ax.grid(True)
+            ax.set_xlabel(f"{key1} energy", fontsize=fontsize)
+            ax.set_ylabel(f"{key2} energy", fontsize=fontsize)
+            linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
+            ax.legend(loc="best", shadow=True, fontsize=fontsize)
+            if irow == 0:
+                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
         if "title" not in kwargs: fig.suptitle(f"Energies in eV for {self.structure.latex_formula}")
-        #make_square_axes(ax_mat)
         return fig
 
     @add_fig_kwargs
-    def plot_forces(self, fontsize=8, **kwargs):
+    def plot_forces(self, symbol=None, site_inds=None, fontsize=8, **kwargs):
         """
-        Compare forces.
+        Parity plot for forces.
+
+        Args:
+            symbol: If not None, select only forces for this atomic specie.
+            site_inds: List of site indices to consider. None if all sites should be included.
         """
         key_pairs = self.get_key_pairs()
         nrows, ncols = 3, len(key_pairs)
@@ -613,22 +784,24 @@ def main():
 
         for icol, (key1, key2) in enumerate(key_pairs):
             for irow, direction in enumerate(("x", "y", "z")):
-                xs, ys = self.xy_forces_for_keys(key1, key2, direction)
-                stats = diff_stats(xs, ys)
                 ax = ax_mat[irow, icol]
-                ax.scatter(xs, ys, marker="o")
                 ax.grid(True)
+
+                xs, ys = self.xy_forces_for_keys(key1, key2, direction, symbol=symbol, site_inds=site_inds)
+                stats = diff_stats(xs, ys)
+                ax.scatter(xs, ys, marker="o")
                 linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
+
                 ax.legend(loc="best", shadow=True, fontsize=fontsize)
                 f_tex = f"$F_{direction}$"
                 if icol == 0:
                     ax.set_ylabel(f"{key2} {f_tex}", fontsize=fontsize)
                 if irow == 2:
                     ax.set_xlabel(f"{key1} {f_tex}", fontsize=fontsize)
-                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
+                symb = "" if symbol is None else f"{symbol=}"
+                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f} {symb}", fontsize=fontsize)
 
-        if "title" not in kwargs: fig.suptitle(f"Cartesian forces in ev/Ang for {self.structure.latex_formula}")
-        #make_square_axes(ax_mat)
+        if "title" not in kwargs: fig.suptitle(f"Cartesian forces in eV/Ang for {self.structure.latex_formula}")
         return fig
 
     @add_fig_kwargs
@@ -660,8 +833,7 @@ def main():
                     ax.set_xlabel(f"{key1} {s_tex}", fontsize=fontsize)
                 ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
 
-        if "title" not in kwargs: fig.suptitle(f"Stresses in (eV/Ang^2) for {self.structure.latex_formula}")
-        #make_square_axes(ax_mat)
+        if "title" not in kwargs: fig.suptitle(f"Stresses in (eV/Ang$^3$) for {self.structure.latex_formula}")
         return fig
 
     @add_fig_kwargs
@@ -703,12 +875,13 @@ def main():
         return fig
 
     @add_fig_kwargs
-    def plot_forces_traj(self, delta_mode=True, fontsize=6, markersize=2, **kwargs):
+    def plot_forces_traj(self, delta_mode=True, symbol=None, fontsize=6, markersize=2, **kwargs):
         """
         Plot forces along the trajectory.
 
         Args:
             delta_mode: True to plot differences instead of absolute values.
+            symbol: If not None, select only forces for this atomic species
         """
         # Fx,Fy,Fx along rows, pairs along columns.
         key_pairs = self.get_key_pairs()
@@ -722,19 +895,27 @@ def main():
         atom2_cmap = plt.get_cmap("jet")
         marker_idir = {0: ">", 1: "<", 2: "^"}
 
+        if symbol is None:
+            inds = np.array(self.structure.indices_from_symbol(symbol))
+            if len(inds) == 0:
+                raise ValueError(f"Cannot find chemical {symbol=} in structure!")
+
         for icol, (key1, key2) in enumerate(key_pairs):
             # Arrays of shape: [nsteps, natom, 3]
             f1_tad, f2_tad = self.traj_forces_for_keys(key1, key2)
             for idir, direction in enumerate(("x", "y", "z")):
                 last_row = idir == 2
                 fp_tex = f"F_{direction}"
-                xs, ys = self.xy_forces_for_keys(key1, key2, direction)
+                xs, ys = self.xy_forces_for_keys(key1, key2, direction, symbol=symbol)
                 stats = diff_stats(xs, ys)
                 ax = ax_mat[idir, icol]
-                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
+                symb = "" if symbol is None else f"{symbol=}"
+                ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f} {symb}", fontsize=fontsize)
 
                 zero_values = False
                 for iatom in range(self.natom):
+                    # Select atoms by symbol
+                    if symbol is not None and iatom not in inds: continue
                     if delta_mode:
                         # Plot delta of forces along the trajectory.
                         style = dict(marker=marker_idir[idir], markersize=markersize,
@@ -808,7 +989,7 @@ def main():
                                 grid=True, legend=not delta_mode, legend_loc="upper left",
                                 ylabel=f"$|\Delta \sigma_{voigt_comp_tex}|$ " if delta_mode else "$\sigma$ ")
 
-        head = r"$\Delta \sigma$ (eV/Ang$^2$)" if delta_mode else "Stress tensor (eV/Ang$^2$)"
+        head = r"$\Delta \sigma$ (eV/Ang$^3$)" if delta_mode else "Stress tensor (eV/Ang$^3$)"
         if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
 
         return fig
@@ -830,8 +1011,24 @@ class AseRelaxation:
             raise RuntimeError("Cannot read ASE traj as traj_path is None")
         return read(self.traj_path, index=":")
 
-    #def __str__(self):
-    #def to_string(self, verbose=0)
+    def __str__(self) -> str:
+        return to_string()
+
+    def to_string(self, verbose: int = 0) -> str:
+        """
+        String representation with verbosity level verbose
+        """
+        lines = []
+        app = lines.append
+        app("Initial structure:")
+        s0 = Structure.as_structure(self.r0.atoms)
+        app(str(s0))
+        app("")
+        app("Relaxed structure:")
+        s1 = Structure.as_structure(self.r1.atoms)
+        app(str(s1))
+
+        return "\n".join(lines)
 
     def summarize(self, tags=None, mode="smart", stream=sys.stdout):
         """"""
@@ -905,6 +1102,7 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
         calculator:
     """
     from ase.constraints import ExpCellFilter
+    #from ase.filters import FrechetCellFilter
     RX_MODE.validate(relax_mode)
     if relax_mode == RX_MODE.no:
         raise ValueError(f"Invalid {relax_mode:}")
@@ -965,7 +1163,6 @@ def silence_tensorflow() -> None:
         pass
 
 
-
 class CORRALGO(IntEnum):
     """
     Enumerate the different algorithms used to correct the ML forces/stresses.
@@ -979,10 +1176,10 @@ class CORRALGO(IntEnum):
     def from_string(cls, string: str):
         """Build instance from string."""
         try:
-           enum = getattr(cls, string)
-           return enum
+            enum = getattr(cls, string)
+            return enum
         except AttributeError as exc:
-           raise ValueError(f'Error: {string} is not a valid value')
+            raise ValueError(f'Error: {string} is not a valid value')
 
 
 class _MyCalculator:
@@ -1048,6 +1245,8 @@ class _MyCalculator:
         self.reset()
         ml_forces = self.get_forces(atoms=atoms)
         ml_stress = self.get_stress(atoms=atoms)
+        if ml_stress.ndim == 1:
+            ml_stress = voigt_6_to_full_3x3_strain(ml_stress)
         self.reset()
         self.__ml_forces_list.append(ml_forces)
         self.__ml_stress_list.append(ml_stress)
@@ -1111,9 +1310,9 @@ class _MyCalculator:
                     forces += delta_forces
                     print(f"{delta_forces=}")
                     #AA: TODO: save the delta in list and call method...
-                    dict ={'delta_forces': delta_forces,}
+                    dict = {'delta_forces': delta_forces,}
                     with open('delta_forces.json', 'a') as outfile:
-                        json.dump(dict, outfile,indent=1,cls=MontyEncoder)
+                        json.dump(dict, outfile, indent=1, cls=MontyEncoder)
 
                 elif self.correct_forces_algo == CORRALGO.one_point:
                     forces += abi_forces
@@ -1223,7 +1422,7 @@ def install_nn_names(nn_names="all", update=False, verbose=0) -> None:
     installed, versions = get_installed_nn_names(verbose=verbose, printout=False)
 
     for name in nn_names:
-        #print(f"About to install nn_name={name}")
+        print(f"About to install nn_name={name} ...")
         if name in black_list:
             print("Cannot install {name} with pip!")
             continue
@@ -1247,7 +1446,8 @@ class CalcBuilder:
 
         1) nn_type e.g. m3gnet. See ALL_NN_TYPES for available keys.
         2) nn_type:model_name
-        3) nn_type@filepath
+        3) nn_type@model_path e.g.: mace:FILEPATH
+        4) nn_type@calc_kwargs.yaml e.g.: mace:calc_kwargs.yaml.
     """
 
     ALL_NN_TYPES = [
@@ -1256,24 +1456,42 @@ class CalcBuilder:
         "chgnet",
         "alignn",
         "mace",
+        "mace_mp",
         "pyace",
         "nequip",
         "metatensor",
+        "deepmd",
     ]
 
-    def __init__(self, name: str, **kwargs):
+    def __init__(self, name: str, dftd3_args=None, **kwargs):
         self.name = name
 
         # Extract nn_type and model_name from name
         self.nn_type, self.model_name, self.model_path = name, None, None
+        self.calc_kwargs = {}
 
         if ":" in name:
-            self.nn_type, self.model_name = name.split(":")
+            self.nn_type, last = name.split(":")
+            if last.endswith(".yaml") or last.endswith(".yml"):
+                self.calc_kwargs = yaml_safe_load_path(last)
+            else:
+                self.model_name = last
+
         elif "@" in name:
             self.nn_type, self.model_path = name.split("@")
+            self.model_path = os.path.expandvars(os.path.expanduser(self.model_path))
 
         if self.nn_type not in self.ALL_NN_TYPES:
             raise ValueError(f"Invalid {name=}, it should be in {self.ALL_NN_TYPES=}")
+
+        # Handle DFTD3.
+        self.dftd3_args = dftd3_args
+        if self.dftd3_args and not isinstance(dftd3_args, dict):
+            # Load parameters from Yaml file.
+            self.dftd3_args = yaml_safe_load_path(self.dftd3_args)
+
+        if self.dftd3_args:
+            print("Activating dftd3 with arguments:", self.dftd3_args)
 
         self._model = None
 
@@ -1302,7 +1520,8 @@ class CalcBuilder:
             with_delta: False if the calculator should not include delta corrections.
             reset: True if the internal cache for the model should be reset.
         """
-        if reset: self.reset()
+        #if reset: self.reset()
+        self.reset()
 
         if self.nn_type == "m3gnet":
             # m3gnet legacy version.
@@ -1320,10 +1539,12 @@ class CalcBuilder:
             class MyM3GNetCalculator(_MyCalculator, M3GNetCalculator):
                 """Add abi_forces and abi_stress"""
 
+            # Use same value of stress_weight as in Relaxer at:
+            # https://github.com/materialsvirtuallab/m3gnet/blob/main/m3gnet/models/_dynamics.py
             cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
-            return cls(potential=self._model)
+            calc = cls(potential=self._model, stress_weight=0.01, **self.calc_kwargs)
 
-        if self.nn_type == "matgl":
+        elif self.nn_type == "matgl":
             # See https://github.com/materialsvirtuallab/matgl
             try:
                 import matgl
@@ -1335,16 +1556,21 @@ class CalcBuilder:
                 if self.model_path is not None:
                     self._model = matgl.load_model(self.model_path)
                 else:
-                    model_name = "M3GNet-MP-2021.2.8-PES" if self.model_name is None else self.model_name
+                    #model_name = "M3GNet-MP-2021.2.8-PES" if self.model_name is None else self.model_name
+                    model_name = "M3GNet-MP-2021.2.8-DIRECT-PES" if self.model_name is None else self.model_name
+                    print("Using model_name:", model_name)
                     self._model = matgl.load_model(model_name)
 
             class MyM3GNetCalculator(_MyCalculator, M3GNetCalculator):
                 """Add abi_forces and abi_stress"""
 
             cls = MyM3GNetCalculator if with_delta else M3GNetCalculator
-            return cls(potential=self._model)
+            # stress_weight (float): conversion factor from GPa to eV/A^3, if it is set to 1.0, the unit is in GPa
+            # here we use  1 / 160.21766208 as in
+            # https://github.com/materialsvirtuallab/matgl/blob/main/src/matgl/ext/ase.py
+            calc = cls(potential=self._model, stress_weight=1/abu.eVA3_GPa, **self.calc_kwargs)
 
-        if self.nn_type == "chgnet":
+        elif self.nn_type == "chgnet":
             try:
                 from chgnet.model.dynamics import CHGNetCalculator
                 from chgnet.model.model import CHGNet
@@ -1364,26 +1590,41 @@ class CalcBuilder:
             class MyCHGNetCalculator(_MyCalculator, CHGNetCalculator):
                 """Add abi_forces and abi_stress"""
 
+            # This calculator by default returns stress in eV/Ang^3 as expected by ASE
+            # https://github.com/CederGroupHub/chgnet/blob/main/chgnet/model/dynamics.py
             cls = MyCHGNetCalculator if with_delta else CHGNetCalculator
-            return cls(model=self._model)
+            calc = cls(model=self._model, **self.calc_kwargs)
 
-        if self.nn_type == "alignn":
+        elif self.nn_type == "alignn":
             try:
-                from alignn.ff.ff import AlignnAtomwiseCalculator, default_path, get_figshare_model_ff
+                from alignn.ff.ff import AlignnAtomwiseCalculator, default_path # , get_figshare_model_ff
             except ImportError as exc:
                 raise ImportError("alignn not installed. See https://github.com/usnistgov/alignn") from exc
 
             class MyAlignnCalculator(_MyCalculator, AlignnAtomwiseCalculator):
                 """Add abi_forces and abi_stress"""
 
+                def get_forces(self, *args, **kwargs):
+                    """Path get_forces method of ALIGNN calculator so that we always return 2d array (natom, 3)"""
+                    forces = super().get_forces(*args, **kwargs)
+                    #print("alignn, forces.shape", forces.shape)
+                    forces = np.reshape(forces, (-1, 3))
+                    return forces
+
             #if self.model_path is not None:
             #    get_figshare_model_ff(model_name=self.model_path)
 
+            # This calculator by default uses
+            #   stress_wt=1.0,
+            #   force_multiplier=1.0,
+            # and it's therefore compatible with ASE. See ForceField
+            # https://github.com/usnistgov/alignn/blob/main/alignn/ff/ff.py
+
             model_name = default_path() if self.model_name is None else self.model_name
             cls = MyAlignnCalculator if with_delta else AlignnAtomwiseCalculator
-            return cls(path=model_name)
+            calc = cls(path=model_name, **self.calc_kwargs)
 
-        if self.nn_type == "pyace":
+        elif self.nn_type == "pyace":
             try:
                 from pyace import PyACECalculator
             except ImportError as exc:
@@ -1396,9 +1637,9 @@ class CalcBuilder:
                 raise RuntimeError("PyACECalculator requires model_path e.g. nn_name='pyace@FILEPATH'")
 
             cls = MyPyACECalculator if with_delta else PyACECalculator
-            return cls(basis_set=self.model_path)
+            calc = cls(basis_set=self.model_path, **self.calc_kwargs)
 
-        if self.nn_type == "mace":
+        elif self.nn_type == "mace":
             try:
                 from mace.calculators import MACECalculator
             except ImportError as exc:
@@ -1407,16 +1648,33 @@ class CalcBuilder:
             class MyMACECalculator(_MyCalculator, MACECalculator):
                 """Add abi_forces and abi_stress"""
 
-            self.model_path = os.path.expanduser("~/NN_MODELS/2023-08-14-mace-universal.model")
-            print("Using MACE model_path:", self.model_path)
-
+            #print("Using MACE model_path:", self.model_path)
             if self.model_path is None:
                 raise RuntimeError("MACECalculator requires model_path e.g. nn_name='mace@FILEPATH'")
 
             cls = MyMACECalculator if with_delta else MACECalculator
-            return cls(model_paths=self.model_path, device="cpu") #, default_dtype='float32')
+            calc = cls(model_paths=self.model_path, device="cpu", **self.calc_kwargs) #, default_dtype='float32')
 
-        if self.nn_type == "nequip":
+        elif self.nn_type == "mace_mp":
+            try:
+                from mace.calculators import MACECalculator
+                from mace.calculators import mace_mp
+            except ImportError as exc:
+                raise ImportError("mace not installed. See https://github.com/ACEsuit/mace") from exc
+
+            #class MyMACECalculator(_MyCalculator, MACECalculator):
+            #     """Add abi_forces and abi_stress"""
+
+            model = self.calc_kwargs.pop("model", "medium")
+
+            calc = mace_mp(model=model,
+                           #cls=MyMACECalculator,
+                           #dispersion=False, default_dtype="float32", device='cuda'
+                           **self.calc_kwargs
+                           )
+            #calc.__class__ = MyMACECalculator
+
+        elif self.nn_type == "nequip":
             try:
                 from nequip.ase.nequip_calculator import NequIPCalculator
             except ImportError as exc:
@@ -1429,9 +1687,9 @@ class CalcBuilder:
                 raise RuntimeError("NequIPCalculator requires model_path e.g. nn_name='nequip:FILEPATH'")
 
             cls = MyNequIPCalculator if with_delta else NequIPCalculator
-            return cls.from_deployed_model(modle_path=self.model_path, species_to_type_name=None)
+            calc = cls.from_deployed_model(model_path=self.model_path, species_to_type_name=None, **self.calc_kwargs)
 
-        if self.nn_type == "metatensor":
+        elif self.nn_type == "metatensor":
             try:
                 from metatensor.torch.atomistic.ase_calculator import MetatensorCalculator
             except ImportError as exc:
@@ -1443,10 +1701,33 @@ class CalcBuilder:
             if self.model_path is None:
                 raise RuntimeError("MetaTensorCalculator requires model_path e.g. nn_name='metatensor:FILEPATH'")
 
-            cls = MyMetaTensorCalculator if with_delta else MetatensorCalculator
-            return cls(self.model_path)
+            cls = MyMetatensorCalculator if with_delta else MetatensorCalculator
+            calc = cls(self.model_path, **self.calc_kwargs)
 
-        raise ValueError(f"Invalid {self.nn_type=}")
+        elif self.nn_type == "deepmd":
+            try:
+                from deepmd.calculator import DP
+            except ImportError as exc:
+                raise ImportError("deepmd not installed. See https://tutorials.deepmodeling.com/") from exc
+
+            class MyDpCalculator(_MyCalculator, DP):
+                """Add abi_forces and abi_stress"""
+
+            if self.model_path is None:
+                raise RuntimeError("DeepMD calculator requires model_path e.g. nn_name='deepmd:FILEPATH'")
+
+            cls = MyDpCalculator if with_delta else DP
+            calc = cls(self.model_path, **self.calc_kwargs)
+
+        else:
+            raise ValueError(f"Invalid {self.nn_type=}")
+
+        # Include DFTD3 vDW corrections on top of ML potential.
+        if self.dftd3_args is not None:
+            from ase.calculators.dftd3 import DFTD3
+            calc = DFTD3(dft=calc, **self.dftd3_args)
+
+        return calc
 
 
 class MlBase(HasPickleIO):
@@ -1777,6 +2058,8 @@ class MlRelaxer(MlBase):
         relax = relax_atoms(self.atoms, **relax_kws)
         relax.summarize(tags=["unrelaxed", "relaxed"])
 
+        print(relax.to_string(verbose=self.verbose))
+
         # Write files with final structure and dynamics.
         formats = ["poscar",]
         outpath_fmt = write_atoms(self.atoms, workdir, self.verbose, formats=formats)
@@ -1800,7 +2083,7 @@ def restart_md(traj_filepath, atoms, verbose) -> tuple[bool, int]:
     """
     traj_filepath = str(traj_filepath)
     if not os.path.exists(traj_filepath):
-        if verbose: print(f"Starting MD run from scratch.")
+        if verbose: print("Starting MD run from scratch.")
         return False, 0
 
     print(f"Restarting MD run from the last image of the trajectory file: {traj_filepath}")
@@ -1873,18 +2156,26 @@ class AseMdLog(TextFile):
     @add_fig_kwargs
     def plot(self, **kwargs) -> Figure:
         """
+        Plot all the keys in the dataframe.
         """
         ynames = [k for k in self.df.keys() if k != self.time_key]
-        axes = self.df.plot.line(x=self.time_key, y=ynames, subplots=True)
+        axes = self.df.plot.line(x=self.time_key, y=ynames, subplots=True, grid=True)
         return axes[0].get_figure()
 
     @add_fig_kwargs
     def histplot(self, **kwargs) -> Figure:
         """
+        Histogram plot.
         """
         ynames = [k for k in self.df.keys() if k != self.time_key]
-        axes = self.df.plot.hist(column=ynames, subplots=True)
-        return axes[0].get_figure()
+
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=len(ynames), ncols=1,
+                                                sharex=False, sharey=False, squeeze=True)
+
+        for yname, ax in zip(ynames, ax_list):
+            self.df.plot.hist(column=[yname], ax=ax, grid=True)
+
+        return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -1894,18 +2185,18 @@ class AseMdLog(TextFile):
         yield self.histplot(show=False)
 
 
-
 class MlMd(MlBase):
     """
     Perform MD calculations with ASE and ML potential.
     """
 
-    def __init__(self, atoms: Atoms, temperature, timestep, steps, loginterval,
+    def __init__(self, atoms: Atoms, temperature, pressure, timestep, steps, loginterval,
                  ensemble, nn_name, verbose, workdir, prefix=None):
         """
         Args:
             atoms: ASE atoms.
             temperature: Temperature in K
+            pressure:
             timestep:
             steps: Number of steps.
             loginterval:
@@ -1918,6 +2209,7 @@ class MlMd(MlBase):
         super().__init__(workdir, prefix, exist_ok=True)
         self.atoms = atoms
         self.temperature = temperature
+        self.pressure = pressure
         self.timestep = timestep
         self.steps = steps
         self.loginterval = loginterval
@@ -1932,6 +2224,7 @@ class MlMd(MlBase):
 {self.__class__.__name__} parameters:
 
     temperature = {self.temperature} K
+    pressure    = {self.pressure}
     timestep    = {self.timestep} fs
     steps       = {self.steps}
     loginterval = {self.loginterval}
@@ -1955,13 +2248,14 @@ class MlMd(MlBase):
         # Write JSON files with parameters.
         md_dict = dict(
             temperature=self.temperature,
-            timestep   =self.timestep,
-            steps      =self.steps,
+            timestep=self.timestep,
+            pressure=self.pressure,
+            steps=self.steps,
             loginterval=self.loginterval,
-            ensemble   =self.ensemble,
-            nn_name    =self.nn_name,
-            workdir    =str(self.workdir),
-            verbose    =self.verbose,
+            ensemble=self.ensemble,
+            nn_name=self.nn_name,
+            workdir=str(self.workdir),
+            verbose=self.verbose,
         )
         self.write_json("md.json", md_dict, info="JSON file with ASE MD parameters")
 
@@ -1981,12 +2275,12 @@ class MlMd(MlBase):
         md = MolecularDynamics(
             atoms=self.atoms,
             ensemble=self.ensemble,
-            temperature=self.temperature,   # K
-            timestep=self.timestep,         # fs,
-            #pressure,
-            trajectory=str(traj_file),      # save trajectory to md.traj
-            logfile=str(logfile),           # log file for MD
-            loginterval=self.loginterval,   # interval for record the log
+            temperature=self.temperature,        # K
+            timestep=self.timestep,              # fs,
+            pressure=self.pressure,
+            trajectory=str(traj_file),           # save trajectory to md.traj
+            logfile=str(logfile),                # log file for MD
+            loginterval=self.loginterval,        # interval for record the log
             append_trajectory=append_trajectory, # If True, the new structures are appended to the trajectory
         )
 
@@ -2058,7 +2352,6 @@ class _MlNebBase(MlBase):
             return json.load(fh)
 
 
-
 class MlGsList(_MlNebBase):
     """
     Perform ground-state calculations for a list of atoms with ASE and ML-potential.
@@ -2095,14 +2388,13 @@ class MlGsList(_MlNebBase):
         workdir = self.workdir
 
         results = []
-        calc = CalcBuilder(self.nn_name).get_calculator()
         for ind, atoms in enumerate(self.atoms_list):
             write_vasp(self.workdir / f"IND_{ind}_POSCAR", atoms, label=None)
-            atoms.calc = calc
+            atoms.calc = CalcBuilder(self.nn_name).get_calculator()
             results.append(AseResults.from_atoms(atoms))
 
         write_vasp_xdatcar(self.workdir / "XDATCAR", self.atoms_list,
-                           label=f"XDATCAR with list of atoms.")
+                           label="XDATCAR with list of atoms.")
 
         self.postprocess_images(self.atoms_list)
         self._finalize()
@@ -2177,9 +2469,8 @@ class MlNeb(_MlNebBase):
         if verbose:
             #s += scompare_two_atoms("initial image", self.initial_atoms, "final image", self.final_atoms)
             file = io.StringIO()
-            fmt = "poscar"
             diff_two_structures("initial image", self.initial_atoms,
-                                "final image", self.final_atoms, fmt, file=file)
+                                "final image", self.final_atoms, fmt="poscar", file=file)
             s += "\n" + file.getvalue()
         return s
 
@@ -2218,7 +2509,7 @@ class MlNeb(_MlNebBase):
                            method='linear', mic=False)
 
         write_vasp_xdatcar(workdir / "INITIAL_NEB_XDATCAR", neb.images,
-                           label=f"XDATCAR with initial NEB images.")
+                           label="XDATCAR with initial NEB images.")
 
         # Optimize
         opt_class = ase_optimizer_cls(self.optimizer)
@@ -2231,7 +2522,7 @@ class MlNeb(_MlNebBase):
         # To read the last nimages atoms e.g. 5: read('neb.traj@-5:')
         images = ase.io.read(f"{str(nebtraj_file)}@-{self.nimages}:")
         write_vasp_xdatcar(workdir / "FINAL_NEB_XDATCAR", images,
-                           label=f"XDATCAR with final NEB images.")
+                           label="XDATCAR with final NEB images.")
 
         # write vasp poscar files for each image in vasp_neb
         dirpath = self.mkdir("VASP_NEB", info="Directory with POSCAR files for each NEB image.")
@@ -2555,6 +2846,9 @@ class MlValidateWithAbinitio(_MlNebBase):
         super().__init__(workdir, prefix)
         self.filepaths = list_strings(filepaths)
         self.traj_range = traj_range
+        if self.traj_range is not None and not isinstance(self.traj_range, range):
+            raise TypeError(f"traj_range should be either None or range instance while got {type(traj_range)}")
+
         self.nn_names = list_strings(nn_names)
         self.verbose = verbose
 
@@ -2581,6 +2875,10 @@ class MlValidateWithAbinitio(_MlNebBase):
     def _get_results_filepath(self, filepath) -> list[AseResults]:
         """
         Extract ab-initio results from self.filepath according to the file extension.
+        Supports:
+            - ABINIT HIST.nc
+            - vasprun.xml
+            - ASE extended xyz.
         """
         basename = os.path.basename(filepath)
         abi_results = []
@@ -2592,36 +2890,50 @@ class MlValidateWithAbinitio(_MlNebBase):
             with HistFile(filepath) as hist:
                 # etotals in eV units.
                 etotals = hist.etotals
-                if self.traj_range is None: self.traj_range = range(0, len(hist.etotals), 1)
+                num_steps = len(hist.etotals)
+                if self.traj_range is None: self.traj_range = range(0, num_steps, 1)
+                print(f"Reading trajectory from {filepath=}, {num_steps=}, {self.traj_range=}")
                 forces_hist = hist.r.read_cart_forces(unit="eV ang^-1")
                 # GPa units.
                 stress_cart_tensors, pressures = hist.reader.read_cart_stress_tensors()
                 for istep, (structure, ene, stress, forces) in enumerate(zip(hist.structures, etotals, stress_cart_tensors, forces_hist)):
-                    if not istep in self.traj_range: continue
-                    r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress)
+                    if istep not in self.traj_range: continue
+                    magmoms = None
+                    r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress, magmoms=magmoms)
                     abi_results.append(r)
-                return abi_results
 
         elif fnmatch(basename, "vasprun*.xml*"):
             # Assume Vasprun file with structural relaxation or MD results.
-            from abipy.ml.tools import get_energy_step
-            from pymatgen.io.vasp.outputs import Vasprun
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                vasprun = Vasprun(filepath)
-
+            #with warnings.catch_warnings():
+            #warnings.simplefilter("ignore")
+            vasprun = Vasprun(filepath)
             num_steps = len(vasprun.ionic_steps)
-            if self.traj_range is None: self.traj_range = range(0, num_steps, 1)
+            print(f"Reading trajectory from {filepath=}, {num_steps=}, {self.traj_range=}")
+
             for istep, step in enumerate(vasprun.ionic_steps):
                 #print(step.keys())
-                if not istep in self.traj_range: continue
+                if istep not in self.traj_range: continue
                 structure, forces, stress = step["structure"], step["forces"], step["stress"]
                 ene = get_energy_step(step)
-                r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress)
+                magmoms = None
+                r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress, magmoms=magmoms)
                 abi_results.append(r)
-            return abi_results
 
-        raise ValueError(f"Don't know how to extract data from: {filepath=}")
+        elif fnmatch(basename, "*.xyz"):
+            # Assume ASE extended xyz file.
+            atoms_list = read(filepath, index=":")
+            num_steps = len(atoms_list)
+            if self.traj_range is None: self.traj_range = range(0, num_steps, 1)
+            print(f"Reading trajectory from {filepath=}, {num_steps=}, {self.traj_range=}")
+            for istep, atoms in enumerate(atoms_list):
+                if istep not in self.traj_range: continue
+                r = AseResults.from_atoms(atoms)
+                abi_results.append(r)
+
+        else:
+            raise ValueError(f"Don't know how to extract data from: {filepath=}")
+
+        return abi_results
 
     def run(self, nprocs, print_dataframes=True) -> AseResultsComparator:
         """
@@ -2632,21 +2944,27 @@ class MlValidateWithAbinitio(_MlNebBase):
         labels = ["abinitio"]
         abi_results = self.get_abinitio_results()
         results_list = [abi_results]
+        ntasks = len(results_list)
 
-        ntasks = len(abi_results)
-        nprocs = 1
+        if nprocs <= 0 or nprocs is None:
+            nprocs = get_max_nprocs()
+
+        #print(f"Using {nprocs=}")
+        #from abipy.relax_scanner import nprocs_for_ntasks
+        #nprocs = nprocs_for_ntasks(nprocs, ntasks, title="Begin relaxations")
+        #p = pool_nprocs_pmode(ntasks, pmode=pmode)
+        #using_msg = f"Reading {len(directories)} abiml directories {p.using_msg}"
 
         for nn_name in self.nn_names:
-            labels.append(nn_name)
             # Use ML to compute quantities with the same ab-initio trajectory.
+            labels.append(nn_name)
             if nprocs == 1:
                 calc = as_calculator(nn_name)
                 items = [AseResults.from_atoms(res.atoms, calc=calc) for res in abi_results]
             else:
-                raise NotImplementedError("run with multiprocessing!")
-                args_list = [(nn_name, res) for res in abi_results]
+                func = _GetAseResults(nn_name)
                 with Pool(processes=nprocs) as pool:
-                    items = pool.map(_map_run_compare, args_list)
+                    items = pool.map(func, abi_results)
 
             results_list.append(items)
 
@@ -2662,6 +2980,21 @@ class MlValidateWithAbinitio(_MlNebBase):
 
         self._finalize()
         return comp
+
+
+class _GetAseResults:
+    """
+    Callable class used to parallelize the computation of AseResults with multiprocessing
+    """
+
+    def __init__(self, nn_name):
+        self.nn_name = nn_name
+        self.calc = None
+
+    def __call__(self, abi_res):
+        if self.calc is None:
+            self.calc = as_calculator(self.nn_name)
+        return AseResults.from_atoms(abi_res.atoms, calc=self.calc)
 
 
 class MolecularDynamics:
@@ -2688,8 +3021,7 @@ class MolecularDynamics:
         """
         Args:
             atoms (Atoms): atoms to run the MD
-            ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested,
-                use with extra caution
+            ensemble (str): choose from 'nvt' or 'npt'. NPT is not tested, use with extra caution
             temperature (float): temperature for MD simulation, in K
             timestep (float): time step in fs
             pressure (float): pressure in eV/A^3
@@ -2708,8 +3040,14 @@ class MolecularDynamics:
         if taup is None:
             taup = 1000 * timestep * units.fs
 
-        ensemble = ensemble.lower()
-        if ensemble == "nvt":
+        if compressibility_au is None:
+            # The compressibility of the material, water 4.57E-5 bar-1, in bar-1
+            compressibility_au = 4.57E-5 / (1e5 * units.Pascal)
+
+        self.ensemble = ensemble.lower()
+
+        if self.ensemble == "nvt":
+
             self.dyn = NVTBerendsen(
                 self.atoms,
                 timestep * units.fs,
@@ -2721,9 +3059,15 @@ class MolecularDynamics:
                 append_trajectory=append_trajectory,
             )
 
-        elif ensemble == "npt":
+        #elif self.ensemble == "npt":
+        elif self.ensemble == "inhomo_npt_berendsen":
             """
-            NPT ensemble default to Inhomogeneous_NPTBerendsen thermo/barostat
+            Berendsen (constant N, P, T) molecular dynamics.
+            This dynamics scale the velocities and volumes to maintain a constant
+            pressure and temperature.  The size of the unit cell is allowed to change
+            independently in the three directions, but the angles remain constant.
+
+            NPT with Inhomogeneous_NPTBerendsen thermo/barostat
             This is a more flexible scheme that fixes three angles of the unit
             cell but allows three lattice parameter to change independently.
             """
@@ -2745,12 +3089,16 @@ class MolecularDynamics:
                 # this option is not supported in ASE at this point (I have sent merge request there)
             )
 
-        elif ensemble == "npt_berendsen":
+        elif self.ensemble == "npt_berendsen":
             """
+            Berendsen (constant N, P, T) molecular dynamics.
+            This dynamics scale the velocities and volumes to maintain a constant
+            pressure and temperature.  The shape of the simulation cell is not
+            altered, if that is desired use Inhomogenous_NPTBerendsen.
+
             This is a similar scheme to the Inhomogeneous_NPTBerendsen.
             This is a less flexible scheme that fixes the shape of the
-            cell - three angles are fixed and the ratios between the three
-            lattice constants.
+            cell - three angles are fixed and the ratios between the three lattice constants.
             """
             self.dyn = NPTBerendsen(
                 self.atoms,
@@ -2766,8 +3114,56 @@ class MolecularDynamics:
                 append_trajectory=append_trajectory,
             )
 
+        elif self.ensemble == "npt":
+        #elif self.ensemble == "npt_nhpr":
+            """
+            Combined Nose-Hoover and Parrinello-Rahman dynamics, creating an NPT (or N,stress,T) ensemble.
+
+            IMPORTANT: the cell matrix must be upper triangle (lattice vectors as row-vectors).
+
+            * The ttime and pfactor are quite critical[4], too small values may
+              cause instabilites and/or wrong fluctuations in T / p.  Too
+              large values cause an oscillation which is slow to die.  Good
+              values for the characteristic times seem to be 25 fs for ttime,
+              and 75 fs for ptime (used to calculate pfactor), at least for
+              bulk copper with 15000-200000 atoms.  But this is not well
+              tested, it is IMPORTANT to monitor the temperature and
+              stress/pressure fluctuations.
+
+            pfactor: float
+                A constant in the barostat differential equation.  If
+                a characteristic barostat timescale of ptime is
+                desired, set pfactor to ptime^2 * B
+                (where ptime is in units matching
+                eV, Å, u; and B is the Bulk Modulus, given in eV/Å^3).
+                Set to None to disable the barostat.
+                Typical metallic bulk moduli are of the order of
+                100 GPa or 0.6 eV/A^3.
+
+                WARNING: Not specifying pfactor sets it to None, disabling the
+                barostat.
+            """
+            ttime = None
+            pfactor = None
+            if ttime is None:
+                ttime = 25
+            if pfactor is None:
+                pfactor = 75** 2 * 10
+
+            self.dyn = NPT(self.atoms,
+                           timestep * units.fs,
+                           temperature_K=temperature,
+                           externalstress=pressure,
+                           ttime=ttime,
+                           pfactor=pfactor,
+                           trajectory=trajectory,
+                           logfile=logfile,
+                           loginterval=loginterval,
+                           append_trajectory=append_trajectory,
+            )
+
         else:
-            raise ValueError(f"{ensemble=} not supported")
+            raise ValueError(f"{self.ensemble=} not supported")
 
         self.trajectory = trajectory
         self.logfile = logfile
@@ -2782,9 +3178,47 @@ class MolecularDynamics:
             steps (int): number of MD steps
         """
         from ase.md import MDLogger
-        self.dyn.attach(MDLogger(self.dyn, self.atoms, '-', header=True, stress=False,
+        stress = self.ensemble not in ("nvt", )
+        self.dyn.attach(MDLogger(self.dyn, self.atoms, '-', header=True, stress=stress,
                         peratom=True, mode="a"), interval=self.loginterval)
         self.dyn.run(steps)
+
+
+class GsMl(MlBase):
+    """
+    Single point calculation of energy, forces and stress with ML potential.
+    """
+    def __init__(self, atoms, nn_name, verbose, workdir, prefix=None):
+        super().__init__(workdir, prefix)
+        self.atoms = atoms
+        self.nn_name = nn_name
+        self.verbose = verbose
+
+    def run(self):
+        calc = CalcBuilder(self.nn_name).get_calculator()
+        self.atoms.calc = calc
+        res = AseResults.from_atoms(self.atoms)
+        print(res.to_string(verbose=self.verbose))
+
+        # Write json file with GS results.
+        from abipy.tools.serialization import mjson_write
+        data = dict(
+            structure=Structure.as_structure(self.atoms),
+            ene=res.ene,
+            stress=res.stress,
+            forces=res.forces,
+        )
+        mjson_write(data, self.workdir / "gs.json", indent=4)
+
+        # To read the dictionary from json use:
+        #from abipy.tools.serialization import mjson_load
+        #data = mjson_load(self.workdir / "gs.json")
+
+        # Write ASE trajectory file with results.
+        with open(self.workdir / "gs.traj", "wb") as fd:
+            write_traj(fd, [self.atoms])
+
+        return 0
 
 
 class MlCompareNNs(MlBase):
@@ -2866,7 +3300,6 @@ class MlCompareNNs(MlBase):
 
         self._finalize()
         return comp
-
 
 
 class MlCwfEos(MlBase):

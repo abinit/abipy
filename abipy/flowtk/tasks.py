@@ -625,6 +625,11 @@ qadapters:
         if _USER_CONFIG_TASKMANAGER is not None:
             return _USER_CONFIG_TASKMANAGER
 
+        #manager_path = os.getenv("ABIPY_TASK_MANAGER_PATH")
+        #if manager_path is not None:
+        #    _USER_CONFIG_TASKMANAGER = TaskManager.from_file(manager_path)
+        #    return _USER_CONFIG_TASKMANAGER
+
         # Try in the current directory then in user configuration directory.
         path = os.path.join(os.getcwd(), cls.YAML_FILE)
         if not os.path.exists(path):
@@ -652,6 +657,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
 
         _USER_CONFIG_TASKMANAGER = cls.from_file(path)
         return _USER_CONFIG_TASKMANAGER
+
 
     @classmethod
     def from_file(cls, filepath: str) -> TaskManager:

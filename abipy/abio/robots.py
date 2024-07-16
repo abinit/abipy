@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import sys
 import os
-#import abc
 import inspect
 import itertools
 import json
@@ -22,6 +21,7 @@ from monty.termcolor import cprint
 from monty.json import MontyEncoder
 from abipy.tools.serialization import pmg_serialize
 from abipy.tools.iotools import make_executable
+from abipy.core.structure import Structure
 from abipy.core.mixins import NotebookWriter
 from abipy.tools.numtools import sort_and_groupby
 from abipy.tools import duck
@@ -30,7 +30,7 @@ from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_p
     rotate_ticklabels, set_visible, ConvergenceAnalyzer)
 
 
-class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
+class Robot(NotebookWriter):
     """
     This is the base class from which all Robot subclasses should derive.
     A Robot supports the `with` context manager:
@@ -183,7 +183,7 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
     def from_files(cls, filenames, labels=None, abspath=False) -> Robot:
         """
         Build a Robot from a list of `filenames`.
-        if labels is None, labels are automatically generated from absolute paths.
+        If labels is None, labels are automatically generated from absolute paths.
 
         Args:
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
@@ -333,6 +333,30 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
                 robot.add_extfile_of_node(task, nids=nids, task_class=task_class)
 
         return robot
+
+
+    def __len__(self):
+        return len(self._abifiles)
+
+    #def __iter__(self):
+    #    return iter(self._abifiles)
+
+    def __getitem__(self, key):
+        # self[key]
+        return self._abifiles.__getitem__(key)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Activated at the end of the with statement."""
+        self.close()
+
+    def keys(self):
+        return self._abifiles.keys()
+
+    def items(self):
+        return self._abifiles.items()
 
     def add_extfile_of_node(self, node, nids=None, task_class=None) -> None:
         """
@@ -548,32 +572,6 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
         """List of exceptions."""
         return self._exceptions
 
-    def __len__(self):
-        return len(self._abifiles)
-
-    #def __iter__(self):
-    #    return iter(self._abifiles)
-
-    #def __contains__(self, item):
-    #    return item in self._abifiles
-
-    def __getitem__(self, key):
-        # self[key]
-        return self._abifiles.__getitem__(key)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Activated at the end of the with statement."""
-        self.close()
-
-    def keys(self):
-        return self._abifiles.keys()
-
-    def items(self):
-        return self._abifiles.items()
-
     @property
     def labels(self) -> list[str]:
         """
@@ -615,14 +613,28 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
         """Integration with jupyter_ notebooks."""
         return '<ol start="0">\n{}\n</ol>'.format("\n".join("<li>%s</li>" % label for label, abifile in self.items()))
 
+    def getattr_alleq(self, aname : str):
+        """
+        Return the value of attribute aname.
+        Raises ValueError if value is not the same across all the files in the robot.
+        """
+        val1 = getattr(self.abifiles[0], aname)
+
+        for abifile in self.abifiles[1:]:
+            val2 = getattr(abifile, aname)
+            if isinstance(val1, (str, int, float)):
+                eq = val1 == val2
+            elif isinstance(val1, np.ndarray):
+                eq = np.allclose(val1, val2)
+            if not eq:
+                raise ValueError(f"Different values of {aname=}, {val1=}, {val2=}")
+
+        return val1
+
     @property
     def abifiles(self) -> list:
         """List of netcdf files."""
         return list(self._abifiles.values())
-
-    #@abc.abstractproperty
-    #def abifiles(self) -> list:
-    #    """List of netcdf files."""
 
     def has_different_structures(self, rtol=1e-05, atol=1e-08) -> str:
         """
@@ -644,22 +656,45 @@ class Robot(NotebookWriter): # metaclass=abc.ABCMeta)
 
         return "\n".join(lines)
 
-    #def apply(self, func_or_string, args=(), **kwargs):
-    #    """
-    #    Applies function to all ``abifiles`` available in the robot.
+    def _get_ref_abifile_from_basename(self, ref_basename: str | None):
+        """
+        Find reference abifile. If None, the first file in the robot is used.
+        """
+        ref_file = self.abifiles[0]
+        if ref_basename is None:
+            return ref_file
 
-    #    Args:
-    #        func_or_string: If callable, the output of func_or_string(abifile, ...) is used.
-    #            If string, the output of getattr(abifile, func_or_string)(...)
-    #        args (tuple): Positional arguments to pass to function in addition to the array/series
-    #        kwargs: Additional keyword arguments will be passed as keywords to the function
+        for i, abifile in enumerate(self.abifiles):
+            if abifile.basename == ref_basename:
+                return abifile
 
-    #    Return: List of results
-    #    """
-    #    if callable(func_or_string):
-    #        return [func_or_string(abifile, *args, *kwargs) for abifile in self.abifiles]
-    #    else:
-    #        return [duck.getattrd(abifile, func_or_string)(*args, **kwargs) for abifile in self.abifiles]
+        raise ValueError(f"Cannot find {ref_basename=}")
+
+    @staticmethod
+    def _compare_attr_name(aname: str, ref_abifile, other_abifile) -> None:
+        """
+        Compare the value of attribute `aname` in two files.
+        """
+        # Get attributes in abifile first, then in abifile.r, else raise.
+        if hasattr(ref_abifile, aname):
+            val1, val2 = getattr(ref_abifile, aname), getattr(other_abifile, aname)
+
+        elif hasattr(ref_abifile , "r") and hasattr(ref_abifile.r, aname):
+            val1, val2 = getattr(ref_abifile.r, aname), getattr(other_abifile.r, aname)
+
+        else:
+            raise AttributeError(f"Cannot find attribute `{aname =}`")
+
+        # Now compare val1 and val2 taking into account the type.
+        if isinstance(val1, (str, int, float, Structure)):
+            eq = val1 == val2
+        elif isinstance(val1, np.ndarray):
+            eq = np.allclose(val1, val2)
+        else:
+            raise TypeError(f"Don't know how to handle comparison for type: {type(val1)}")
+
+        if not eq:
+            raise ValueError(f"Different values of {aname=}, {val1=}, {val2=}")
 
     def is_sortable(self, aname: str, raise_exc: bool = False) -> bool:
         """
@@ -816,16 +851,6 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 except Exception as exc:
                     print("Exception while closing: ", abifile.filepath)
                     print(exc)
-
-    #def get_attributes(self, attr_name, obj=None, retdict=False):
-    #    od = OrderedDict()
-    #    for label, abifile in self.items():
-    #        obj = abifile if obj is None else getattr(abifile, obj)
-    #        od[label] = getattr(obj, attr_name)
-    #    if retdict:
-    #        return od
-    #    else:
-    #        return list(od.values())
 
     def _exec_funcs(self, funcs, arg) -> dict:
         """
@@ -1241,7 +1266,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         """
         y_xmax = yvals[-1]
         span_style = dict(alpha=0.2, color="green", hatch=hatch)
-        ax1.axhspan(y_xmax - abs_conv, y_xmax + abs_conv, label=r"$|y-y(x_{max})}| \leq %s$" % abs_conv, **span_style)
+        ax1.axhspan(y_xmax - abs_conv, y_xmax + abs_conv, label=r"$|y-y(x_{max})| \leq %s$" % abs_conv, **span_style)
 
         # Plot |y - y_xmax| in log scale on ax2.
         ax2.plot(xs, np.abs(yvals - y_xmax), **kwargs)

@@ -17,20 +17,21 @@ from scipy import optimize
 from matplotlib.offsetbox import AnchoredText
 from monty.functools import lazy_property
 from monty.bisect import find_le
-from monty.string import list_strings, is_string, marquee
+from monty.string import list_strings, marquee
 from monty.collections import AttrDict #, dict2namedtuple
+from monty.termcolor import cprint
 from pymatgen.util.string import latexify
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.composition import Composition
-from abipy.core.mixins import TextFile, NotebookWriter
+#from abipy.core.mixins import TextFile # , NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools.typing import Figure, PathLike
 from abipy.tools.serialization import HasPickleIO
-from abipy.tools.iotools import try_files, file_with_ext_indir
+from abipy.tools.iotools import try_files # , file_with_ext_indir
 from abipy.tools.context_managers import Timer
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, get_color_symbol,
                                   set_ticks_fontsize, set_logscale, linear_fit_ax)
-from abipy.tools.parallel import get_max_nprocs, pool_nprocs_pmode
+from abipy.tools.parallel import pool_nprocs_pmode #, get_max_nprocs
 from abipy.dynamics.cpx import parse_file_with_blocks, EvpFile
 
 
@@ -93,7 +94,7 @@ def read_structure_postac_ucmats(traj_filepath: PathLike, step_skip: int) -> tup
     return structure, pos_tac, ucmats, traj_len
 
 
-def parse_lammps_input(filepath: PathLike, verbose: int=0):
+def parse_lammps_input(filepath: PathLike, verbose: int = 0):
     """
     Extract parameters, atoms and structure from a LAMMPS input file.
     Returns namedtuple with results.
@@ -161,7 +162,7 @@ class MdAnalyzer(HasPickleIO):
     """
 
     @classmethod
-    def from_abiml_dir(cls, directory: PathLike, step_skip: int=1) -> MdAnalyzer:
+    def from_abiml_dir(cls, directory: PathLike, step_skip: int = 1) -> MdAnalyzer:
         """
         Build an instance from a directory containing an ASE trajectory file and
         a JSON file with the MD parameters as produced by the `abiml.py md` script.
@@ -197,7 +198,7 @@ class MdAnalyzer(HasPickleIO):
             structure = hist.structure.copy()
             #hist.r.read_dimvalue("time")
             pos_tac = hist.r.read_value("xcart") * units.bohr_to_ang
-            ucmat = hist.r.read_value("rprimd") * units.bohr_to_ang
+            ucmats = hist.r.read_value("rprimd") * units.bohr_to_ang
             #temperature = None
             #evp_df = None
 
@@ -377,7 +378,7 @@ class MdAnalyzer(HasPickleIO):
         return cls(structure, r.temperature, times, pos_tac, ucmats, "lammps", evp_df=evp_df)
 
     @classmethod
-    def from_lammpstrj(cls, traj_filepath: PathLike, input_filepath: PathLike, step_skip: int=1) -> MdAnalyzer:
+    def from_lammpstrj(cls, traj_filepath: PathLike, input_filepath: PathLike, step_skip: int = 1) -> MdAnalyzer:
         """
         Build an instance from a LAMMPS trajectory file and a log file.
 
@@ -408,7 +409,7 @@ class MdAnalyzer(HasPickleIO):
                 cart_positions: np.ndarray,
                 ucmats: np.ndarray,
                 engine: str,
-                pos_order: str="tac",
+                pos_order: str = "tac",
                 evp_df=None | pd.DataFrame,
                 ):
         """
@@ -428,18 +429,18 @@ class MdAnalyzer(HasPickleIO):
         self.engine = engine
 
         if pos_order == "tac":
-           self.pos_atc = cart_positions.transpose(1, 0, 2).copy()
+            self.pos_atc = cart_positions.transpose(1, 0, 2).copy()
         elif pos_order == "atc":
-           self.pos_atc = cart_positions
+            self.pos_atc = cart_positions
         else:
-           raise ValueError(f"Invalid {pos_order=}")
+            raise ValueError(f"Invalid {pos_order=}")
 
         self.evp_df = evp_df
 
         if np.all(ucmats[it] == ucmats[0] for it in range(len(ucmats))):
             self.lattices = None
         else:
-           self.lattices = np.array([Lattice(mat) for mat in ucmats])
+            self.lattices = np.array([Lattice(mat) for mat in ucmats])
 
         self.latex_formula = self.structure.latex_formula
         self.temperature = temperature
@@ -697,7 +698,7 @@ class MdAnalyzer(HasPickleIO):
         """
         return ((self.pos_atc[iatom,it0:] - self.pos_atc[iatom,it0]) ** 2).sum(axis=1)
 
-    def get_sqdt_symbol(self, symbol: str, it0: int=0, atom_inds=None) -> np.array:
+    def get_sqdt_symbol(self, symbol: str, it0: int = 0, atom_inds=None) -> np.array:
         """
         Compute the square displacement vs time averaged over atoms with the same chemical symbol
         starting from time index it0. atoms_inds adds an additional filter on the site index.
@@ -888,7 +889,7 @@ class MdAnalyzer(HasPickleIO):
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
         """
         if self.lattices is None:
-            print("MD simulation has been performed with fixed lattice!")
+            cprint("MD simulation has been performed with fixed lattice!", color="red")
             return None
 
         what_list = list_strings(what_list)
@@ -896,9 +897,12 @@ class MdAnalyzer(HasPickleIO):
                                                 sharex=True, sharey=False, squeeze=False)
         markers = ["o", "^", "v"]
 
+        cnt = -1
         if "abc" in what_list:
             # plot lattice parameters.
             for i, label in enumerate(["a", "b", "c"]):
+                cnt += 1
+                ax = ax_list[cnt]
                 ax.plot(self.times, [lattice.abc[i] for lattice in self.lattices],
                         label=label, marker=markers[i])
             ax.set_ylabel("abc (A)")
@@ -906,6 +910,8 @@ class MdAnalyzer(HasPickleIO):
         if "angles" in what_list:
             # plot lattice angles.
             for i, label in enumerate(["alpha", "beta", "gamma"]):
+                cnt += 1
+                ax = ax_list[cnt]
                 ax.plot(self.times, [lattice.angles[i] for lattice in self.lattices],
                         label=label, marker=markers[i])
             ax.set_ylabel(r"$\alpha\beta\gamma$ (degree)")
@@ -913,6 +919,8 @@ class MdAnalyzer(HasPickleIO):
         if "volume" in what_list:
             # plot lattice volume.
             marker = "o"
+            cnt += 1
+            ax = ax_list[cnt]
             ax.plot(self.times, [lattice.volume for lattice in self.lattices],
                     label="Volume", marker=marker)
             ax.set_ylabel(r'$V\, (A^3)$')
@@ -1392,7 +1400,7 @@ class DiffusionDataList(list):
 
         return fig
 
-    def get_arrhenius_nmtuples(self, df: pd.Dataframe, hue: str|None) -> list:
+    def get_arrhenius_nmtuples(self, df: pd.Dataframe, hue: str | None) -> list:
         """
         Return list of namedtuple objects.
 
@@ -1413,7 +1421,7 @@ class DiffusionDataList(list):
 
         nt_list = []
         for key, grp in df.groupby(hue):
-            grp = gpr.sort_values(["temperature"])
+            grp = grp.sort_values(["temperature"])
             if not grp["temperature"].is_unique:
                 raise ValueError(f"Found duplicated values in temperature column for {hue=}")
             nt = AttrDict(temps=grp["temperature"].values,
@@ -1762,7 +1770,7 @@ class ArrheniusEntry:
             def get_unique(col):
                 v0 = df[col].values[0]
                 if np.any(v0 != df[col].values):
-                    raise ValueError(f"All values for column: {k} should be unique while found:\n{df[col].values}")
+                    raise ValueError(f"All values for column: {col} should be unique while found:\n{df[col].values}")
                 return v0
 
             symbol = get_unique("symbol")
@@ -1841,7 +1849,7 @@ class ArrheniusEntry:
         #ncar = charge * self.composition[self.symbol]
 
         # NB: log10(x) = ln(x) log10(e) --> d_x log_10(x) = log10(e) / x
-        conds  = e2s/kbs * ncar * diffusions/volumes/temps * 1.e09
+        conds = e2s/kbs * ncar * diffusions/volumes/temps * 1.e09
         err_conds = e2s/kbs * ncar * err_diffusions/volumes/temps * 1.e09
         log10_conds = np.log10(conds)
         err_log10_conds = np.log10(np.e) * err_conds / conds
@@ -1954,7 +1962,7 @@ class ArrheniusPlotter:
     def append(self, entry: ArrheniusEntry) -> None:
         """Append new entry."""
         if entry.key in self.keys():
-            raise KeyError(f"{key=} is already present.")
+            raise KeyError(f"{entry.key=} is already present.")
         self.entries.append(entry)
 
     def set_style(self, key: str, mpl_style: dict) -> None:

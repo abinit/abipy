@@ -146,8 +146,7 @@ def cleanup():
 install_requires = [
     "monty",
     "tabulate",
-    #"apscheduler==2.1.0",
-    "apscheduler",
+    "apscheduler<=3.10.4",
     "pydispatcher>=2.0.5",
     "tqdm",
     "pyyaml>=3.11",
@@ -162,8 +161,11 @@ install_requires = [
     "plotly",
     "ipython",
     "chart-studio",
+    "click",
+    "phonopy",
+    "ase",
+    #"custodian",
     #pydantic,
-    #pymongo,
     #panel,
 ]
 
@@ -222,7 +224,7 @@ See also the HTML page:
 
 TIPS:
 
-    1) Issue `rehash` in the shell if the AbiPy scripts cannot be found after the installation
+    1) Issue `rehash` in the shell if the AbiPy scripts cannot be found after the installation (MacOs only)
     2) Use `abicheck.py --with-flow` to validate the final configuration before running large calculations.
 
 Have fun!

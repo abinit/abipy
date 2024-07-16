@@ -14,7 +14,6 @@ from monty.collections import AttrDict
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
 from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
-from pymatgen.io.vasp.outputs import Xdatcar
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, get_figs_plotly, \
     get_fig_plotly, add_plotly_fig_kwargs, plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc, plotly_set_lims, \
     latex_greek_2unicode
@@ -23,7 +22,6 @@ from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools.typing import Figure
-from abipy.core.structure import Structure
 
 
 class HistFile(AbinitNcFile, NotebookWriter):
@@ -172,7 +170,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """
         return RelaxationAnalyzer(self.initial_structure, self.final_structure)
 
-    def to_xdatcar(self, filepath=None, groupby_type=True, to_unit_cell=False, **kwargs) -> Xdatcar:
+    def to_xdatcar(self, filepath=None, groupby_type=True, to_unit_cell=False, **kwargs): #-> Xdatcar:
         """
         Return Xdatcar pymatgen object. See write_xdatcar for the meaning of arguments.
 
@@ -180,6 +178,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             to_unit_cell (bool): Whether to translate sites into the unit cell.
             kwargs: keywords arguments passed to Xdatcar constructor.
         """
+        from pymatgen.io.vasp.outputs import Xdatcar
         filepath = self.write_xdatcar(filepath=filepath, groupby_type=groupby_type,
                                       to_unit_cell=to_unit_cell, overwrite=True)
 
@@ -201,6 +200,9 @@ class HistFile(AbinitNcFile, NotebookWriter):
         Return:
             path to Xdatcar file.
         """
+        # This library takes 13s to import on HPC (07/02/24) so moved to class method instead of header
+        from pymatgen.io.vasp.outputs import Xdatcar
+
         if filepath is not None and os.path.exists(filepath) and not overwrite:
             raise RuntimeError("Cannot overwrite pre-existing file `%s`" % filepath)
 
@@ -428,7 +430,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             for i, label in enumerate(["α ", "β ", "ɣ"]):
                 fig.add_scatter(x=self.steps, y=[s.lattice.angles[i] for s in self.structures], mode='lines+markers',
                                 name=label, marker_symbol=markers[i], row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = "αβɣ (degree)"+ "  "
+            fig.layout['yaxis%u' % rcd.iax].title.text = "αβɣ (degree)" + "  "
             fig.layout['yaxis%u' % rcd.iax].tickformat = ".3r"
 
         elif what in ("alpha", "beta", "gamma"):

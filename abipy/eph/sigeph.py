@@ -560,7 +560,7 @@ class EphSelfEnergy:
 
     @add_fig_kwargs
     def plot_tdep(self, itemps="all", zero_energy="e0", colormap="jet", ax_list=None,
-                  what_list=("re", "im", "spfunc"), with_frohl=False, 
+                  what_list=("re", "im", "spfunc"), with_frohl=False,
                   xlims=None, ylims= None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the real/imaginary part of self-energy as well as the spectral function for
@@ -754,7 +754,11 @@ class EphSelfEnergy:
         if with_int_aw:
             # Instantiate a second ax sharing the same x-axis
             ax2 = ax1.twinx()
-            from scipy.integrate import cumtrapz
+            try :
+                from scipy.integrate import cumulative_trapezoid as cumtrapz
+            except ImportError:
+                from scipy.integrate import cumtrapz
+
             integral = cumtrapz(ys, x=xs, initial=0.0)
             color = "black"
             ax2.plot(xs, integral, color=color, ls="-.", lw=1)
@@ -1615,7 +1619,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                                  ks_ebands_kmesh, qp_ebands_kmesh_t, interpolators_t)
 
     @add_fig_kwargs
-    def plot_qpgaps_t(self, qp_kpoints=0, qp_type="qpz0", ax_list=None, plot_qpmks=True, 
+    def plot_qpgaps_t(self, qp_kpoints=0, qp_type="qpz0", ax_list=None, plot_qpmks=True,
                       fontsize=8, **kwargs) -> Figure:
         """
         Plot the KS and the QP(T) direct gaps for all the k-points available in the SIGEPH file.
@@ -2546,7 +2550,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         for nc in self.abifiles[1:]:
             for k0, k1 in zip(nc0.sigma_kpoints, nc.sigma_kpoints):
                 if k0 != k1:
-                    cprint("Files with different values of `sigma_kpoints`\n"+
+                    cprint("Files with different values of `sigma_kpoints`\n" +
                            "Specify the kpoint via reduced coordinates and not via the index", "yellow")
                     break
 
@@ -2679,7 +2683,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_qpgaps_t(self, qp_kpoints=0, qp_type="qpz0", plot_qpmks=True, sortby=None, hue=None, 
+    def plot_qpgaps_t(self, qp_kpoints=0, qp_type="qpz0", plot_qpmks=True, sortby=None, hue=None,
                       fontsize=8, **kwargs) -> Figure:
         """
         Compare the QP(T) direct gaps for all the k-points available in the robot.
@@ -2988,7 +2992,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_lws_vs_e0(self, rta_type="serta", itemp_list=None, colormap="jet", 
+    def plot_lws_vs_e0(self, rta_type="serta", itemp_list=None, colormap="jet",
                        fontsize=8, **kwargs) -> Figure:
         r"""
         Plot phonon-induced linewidths vs KS energy for different temperatures for all files in the robot.

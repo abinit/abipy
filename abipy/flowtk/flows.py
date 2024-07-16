@@ -2498,7 +2498,11 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         def any2bytes(s):
             """Convert string or number to memory in bytes."""
             if is_string(s):
-                return int(Memory.from_string(s).to("b"))
+                # Support for deprecated pymatgen API
+                try:
+                    mem = int(Memory.from_string(s).to("b"))
+                except Exception:
+                    mem = int(Memory.from_str(s).to("b"))
             else:
                 return int(s)
 
@@ -2576,7 +2580,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         def polish_doc(doc: str, node_type) -> str:
             """Remove all lines in black_list"""
             new_lines = [l for l in doc.splitlines() if not any(bad in l for bad in black_list)]
-            s =  "\n".join(new_lines)
+            s = "\n".join(new_lines)
             color_node = dict(work="green", task="magenta")
             s = colored(s, color=color_node[node_type])
             return s
@@ -2596,8 +2600,8 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 app(make_banner(s, mark="="))
                 app(polish_doc(work_cls.__doc__, "work"))
                 app("Works belonging to this class (%d):" % len(works))
-                for work  in works:
-                    app(4* " " + str(work) + ", status: " + work.status.colored)
+                for work in works:
+                    app(4 * " " + str(work) + ", status: " + work.status.colored)
 
         if explain_tasks:
             app("")
@@ -2608,7 +2612,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 app(make_banner(s, mark="="))
                 app(polish_doc(task_cls.__doc__, "task"))
                 app("Tasks belonging to this class (%s):" % len(tasks))
-                for task  in tasks:
+                for task in tasks:
                     app(4 * " " + str(task) + ", status: " + task.status.colored)
 
         return "\n".join(lines)

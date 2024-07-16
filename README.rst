@@ -74,12 +74,8 @@ The installation process is greatly simplified if you install the required
 python packages through `Anaconda <https://continuum.io/downloads>`_ (or conda).
 See `Installing conda`_ to install conda itself.
 We routinely use conda_ to test new developments with multiple Python versions and multiple virtual environments.
-The anaconda distribution already provides the most critical dependencies (matplotlib_, scipy_, numpy_, netcdf4-python_)
-in the form of pre-compiled packages that can be easily installed with e.g.::
 
-    conda install numpy scipy netcdf4
-
-Create a new conda_ environment (let's call it ``abienv``) with::
+Create a new conda_ environment based on python 3.11 (let's call it ``abienv``) with::
 
     conda create --name abienv python=3.11
 
@@ -89,15 +85,11 @@ and activate it with::
 
 You should see the name of the conda environment in the shell prompt.
 
-Now add ``conda-forge`` to your conda channels with::
-
-    conda config --add channels conda-forge
-
-This is the channel from which we will download pymatgen, abipy and abinit.
-
 Finally, install AbiPy with::
 
-    conda install abipy
+    conda install abipy -c conda-forge
+
+Please note that, at present, conda-forge does not provide executables 
 
 Additional information on the steps required to install AbiPy with anaconda are available
 in the `anaconda howto <http://abinit.github.io/abipy/installation#anaconda-howto>`_.
@@ -198,7 +190,6 @@ conda-forge channel with::
 Otherwise, follow the usual abinit installation instructions, and make sure abinit can be run with the command::
 
     abinit --version
-
 
 Configuration files for Abipy
 =============================
@@ -379,6 +370,7 @@ The following scripts can be invoked directly from the terminal:
 * ``abirun.py``     Execute AbiPy flow from terminal.
 * ``abidoc.py``     Document Abinit input variables and Abipy configuration files.
 * ``abinp.py``      Build input files (simplified interface for the AbiPy factory functions).
+* ``abipsp.py``     Download pseudopotential tables from the PseudoDojo.
 
 Use ``SCRIPT --help`` to get the list of supported commands and
 ``SCRIPT COMMAND --help`` to get the documentation for ``COMMAND``.
