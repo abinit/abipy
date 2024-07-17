@@ -1400,6 +1400,8 @@ class Kpath(KpointList):
             for line in self.lines:
                 vals_on_line = eigens[spin, line, band]
         """
+        if len(self) < 2:
+            return tuple()
         prev = self.versors[0]
         lines = [[0]]
 
