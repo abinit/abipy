@@ -30,6 +30,7 @@ from abipy.tools.numtools import BzRegularGridInterpolator, gaussian
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
+
 ITER_LABELS = [
     r'$E_{pol}$',
     r'$E_{el}$',
@@ -48,6 +49,7 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     .. code-block:: python
 
+        from abipy.eph.varpeq import VarpeqFile
         with VarpeqFile("out_VARPEQ.nc") as varpeq:
             print(varpeq)
             varpeq.plot_scf_cycle()
@@ -211,7 +213,7 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 class Polaron:
     """
     This object stores the polaron coefficients A_kn, B_qnu for a given spin.
-    Provides methods to plot |A_nk|^2 or |B_qnu|^2 together with band structures.
+    Provides methods to plot |A_nk|^2 or |B_qnu|^2 together with band structures (fatbands-like plots)
     """
     spin: int          # Spin index.
     nb: int            # Number of bands.
@@ -303,8 +305,7 @@ class Polaron:
                 ix, iy, iz = k_inds
                 a_data[ib, ix, iy, iz] = a_cplx
 
-        return BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data) ** 2,
-                                         method=method)
+        return BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data) ** 2, method=method)
 
     def get_b2_interpolator(self, method: str, check_mesh: int = 0) -> BzRegularGridInterpolator:
         """
@@ -353,7 +354,8 @@ class Polaron:
         Plot electronic energies with markers whose size is proportional to |A_nk|^2.
 
         Args:
-            ebands: ElectronBands or Abipy file providing an electronic band structure along a path.
+            ebands_path: ElectronBands or Abipy file providing an electronic band structure along a path.
+            ebands_kmehs: ElectronBands or Abipy file providing an electronic band structure in the IBZ.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             scale: Scaling factor for |A_nk|^2.
         """
@@ -439,6 +441,25 @@ class Polaron:
             ax.set_ylim(ymin, ymax)
 
         return fig
+
+    @add_fig_kwargs
+    def plot_bqnu_with_ddb(self, ddb, anaget_kwargs=None, **kwargs) -> Figure:
+        """
+        Plot phonon energies with markers whose size is proportional to |B_qnu|^2.
+
+        Args:
+            phbands_qpath: PhononBands or Abipy file providing a phonon band structure.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            scale: Scaling factor for |B_qnu|^2.
+        """
+        from abipy.dfpt.ddb import DdbFile
+        ddb = DdbFile.as_ddb(ddb)
+        anaget_kwargs = {} if anaget_kwargs is None else anaget_kwargs
+
+        with ddb.anaget_phbst_and_phdos_files(**anaget_kwargs) as g:
+            phbst_file, phdos_file = g[0], g[1]
+            phbands_qpath = phbst_file.phbands
+            return self.plot_bqnu_with_phbands(phbands_qpath, **kwargs)
 
     @add_fig_kwargs
     def plot_bqnu_with_phbands(self, phbands_qpath, ax=None, scale=10, **kwargs) -> Figure:

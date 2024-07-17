@@ -4053,6 +4053,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             #if mode == "html": vname = root + "#%s" % vname
             if mode == "html": vname = var_database[vname].html_link(label=vname)
             value = format_string_abivars(vname, value, "anaddb")
+            #print("vname:", vname, "value:", value)
             app(str(InputVariable(vname, value)))
 
         return "\n".join(lines) if mode == "text" else "\n".join(lines).replace("\n", "<br>")

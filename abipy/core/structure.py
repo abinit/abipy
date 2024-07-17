@@ -1273,6 +1273,51 @@ class Structure(pmg_Structure, NotebookWriter):
             print("")
 
     @lazy_property
+    def has_zero_dynamical_quadrupoles(self):
+        """
+        Dynamical quadrupoles are nonzero in all noncentrosymmetric crystals,
+        but also in centrosymmetric ones if one or more atoms are placed at noncentrosymmetric sites.
+        """
+        def create_image(s1, s2):
+            """
+            Creates the image of s2 through s1
+            This image is a fictitious atom in the structure
+            """
+            image = PeriodicSite.from_dict(s2.as_dict())
+            image.coords = s1.coords - (s2.coords - s1.coords)
+            image.frac_coords = s1.frac_coords - (s2.frac_coords - s1.frac_coords)
+
+            return image
+
+        def check_image(structure, site):
+            """
+            Checks if a fictitious site is an image of a site of the structure
+            """
+            for site in structure.sites:
+                if site.is_periodic_image(site):
+                    return True
+
+            return False
+
+        # If the centrosymmetry is broken at a given atomic site of the given structure,
+        # returns False. Else, return True
+
+        sites = self.sites
+
+        for s1 in sites:
+            for s2 in sites:
+                # Do not take s1 = s2 into account
+                if s2 != s1:
+                    # Create the image of s2 through s1 (fictitious atom)
+                    image = create_image(s1, s2)
+                    is_image = check_image(self, image)
+                    if not is_image:
+                        return False
+
+        return True
+
+
+    @lazy_property
     def hsym_kpath(self):
         """
         Returns an instance of :class:`pymatgen.symmetry.bandstructure.HighSymmKpath`.

@@ -575,6 +575,10 @@ def main():
     if options.verbose > 2:
         print(options)
 
+    #structure = abilab.Structure.from_file(options.filepath)
+    #print("structure.has_zero_dynamical_quadrupoles:", structure.has_zero_dynamical_quadrupoles)
+    #sys.exit(0)
+
     if options.command == "spglib":
         structure = abilab.Structure.from_file(options.filepath)
         print(structure.spget_summary(symprec=options.symprec, angle_tolerance=options.angle_tolerance,

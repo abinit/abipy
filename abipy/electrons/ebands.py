@@ -2435,9 +2435,64 @@ class ElectronBands(Has_Structure):
 
         return fig
 
+    @add_fig_kwargs
+    def plot_split(self, ylims_list: list,
+                   hspace: float = 0.1, ratio: float = 0.5, **kwargs) -> Figure:
+        """
+        Plot electronic bands with broken y-axis.
+
+        Based on: https://matplotlib.org/stable/gallery/subplots_axes_and_figures/broken_axis.html
+
+        Args:
+            ylims_list: List of tuples. Each tuple defines the y-limits for the subplot.
+            hspace: space between Axes.
+            ratio: proportion of vertical to horizontal extent of the slanted line.
+            kwargs: keyword arguments passed to self.plot method.
+        """
+        import matplotlib.pyplot as plt
+        num_axis = len(ylims_list)
+        fig, ax_list = plt.subplots(num_axis, 1, sharex=True)
+        ax_list = np.flip(ax_list)
+
+        # adjust space between Axes
+        fig.subplots_adjust(hspace=hspace)
+
+        for ix, (ax, ylims) in enumerate(zip(ax_list, ylims_list)):
+            # plot the same data on all Axes
+            self.plot(ax=ax, show=False, **kwargs)
+            # zoom-in / limit the view to different portions of the data.
+            ax.set_ylim(ylims[0], ylims[1])
+
+            # hide the spines between axis.
+            if ix == 0 or (num_axis > 2 and ix != num_axis - 1):
+                ax.spines.top.set_visible(False)
+                ax.xaxis.tick_bottom()
+                set_visible(ax, False, *["title"])
+
+            if ix == num_axis - 1 or (num_axis > 2 and ix != num_axis - 1):
+                ax.spines.bottom.set_visible(False)
+                ax.xaxis.tick_top()
+                ax.tick_params(labeltop=False)  # don't put tick labels at the top
+                set_visible(ax, False, *["legend", "xlabel", "yabel"])
+
+        # Now, let's turn towards the cut-out slanted lines.
+        # We create line objects in axes coordinates, in which (0,0), (0,1),
+        # (1,0), and (1,1) are the four corners of the Axes.
+        # The slanted lines themselves are markers at those locations, such that the
+        # lines keep their angle and position, independent of the Axes size or scale
+        # Finally, we need to disable clipping.
+        plt_kws = dict(marker=[(-1, -ratio), (1, ratio)], markersize=12,
+                       linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+
+        for ix, ax in enumerate(ax_list):
+            if ix == 0:
+                ax.plot([0, 1], [1, 1], transform=ax.transAxes, **plt_kws)
+            else:
+                ax.plot([0, 1], [0, 0], transform=ax.transAxes, **plt_kws)
+
+        return fig
 
     # TODO: Is this really useful?
-
     @add_fig_kwargs
     def plot_scatter3d(self, band, spin=0, e0="fermie", colormap="jet", ax=None, **kwargs) -> Figure:
         r"""
