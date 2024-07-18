@@ -246,7 +246,6 @@ class Structure(pmg_Structure, NotebookWriter):
 
         Returns: |Structure| object
         """
-        #zipped_exts = (".bz2", ".gz", ".z"):
         root, ext = os.path.splitext(filepath)
 
         if filepath.endswith("_HIST.nc"):
@@ -261,7 +260,9 @@ class Structure(pmg_Structure, NotebookWriter):
             ncfile, closeit = as_etsfreader(filepath)
 
             new = ncfile.read_structure(cls=cls)
-            new.set_abi_spacegroup(AbinitSpaceGroup.from_ncreader(ncfile))
+
+            if "space_group" in ncfile.rootgrp.variables:
+                new.set_abi_spacegroup(AbinitSpaceGroup.from_ncreader(ncfile))
 
             # Try to read indsym table from file (added in 8.9.x)
             indsym = ncfile.read_value("indsym", default=None)
@@ -293,7 +294,7 @@ class Structure(pmg_Structure, NotebookWriter):
             with open(filepath, "rt") as fh:
                 return cls.from_abistring(fh.read())
 
-        elif filepath.endswith("_DDB") or root.endswith("_DDB"):
+        elif filepath.endswith("_DDB") or root.endswith("_DDB") or filepath.endswith(".ddb"):
             # DDB file.
             from abipy.abilab import abiopen
             with abiopen(filepath) as abifile:
@@ -317,8 +318,8 @@ class Structure(pmg_Structure, NotebookWriter):
             # ASE extended xyz format.
             try:
                 from ase.io import read
-            except ImportError:
-                raise RuntimeError("ase is required to read xyz files. Use `pip install ase`")
+            except ImportError as exc:
+                raise RuntimeError("ase is required to read xyz files. Use `pip install ase`") from exc
             atoms = read(filepath)
             return cls.as_structure(atoms)
 
@@ -838,6 +839,38 @@ class Structure(pmg_Structure, NotebookWriter):
         standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
 
         return self.__class__.as_structure(standardized_structure)
+
+    def new_with_uptri_lattice(self, mode="uptri") -> Structure:
+        """
+        Build and return new structure with cell matrix in upper triangle form.
+        In the cell matrix, lattice vectors are along rows.
+
+        Args:
+            mode="lowtri" if lower triangle cell matrix is wanted.
+        """
+        a, b, c = self.lattice.abc
+        alpha, beta, gamma = self.lattice.angles
+
+        # vesta = True means that we have a lower triangle lattice matrix (row vectors)
+        from pymatgen.core.lattice import Lattice
+        lattice = Lattice.from_parameters(a, b, c, alpha, beta, gamma, vesta=True)
+
+        if mode == "lowtri":
+            a1, a2, a3 = lattice.matrix
+        elif mode =="uptri":
+            new_matrix = lattice.matrix.copy()
+            for i in range(3):
+                new_matrix[i,0] = lattice.matrix[i,2]
+                new_matrix[i,2] = lattice.matrix[i,0]
+            a1, a2, a3 = new_matrix[2], new_matrix[1], new_matrix[0]
+        else:
+            raise ValueError(f"Invalid {mode=}")
+
+        from ase.cell import Cell
+        atoms = self.to_ase_atoms()
+        atoms.set_cell(Cell([a1, a2, a3]), scale_atoms=True)
+
+        return Structure.from_ase_atoms(atoms)
 
     def refine(self, symprec=1e-3, angle_tolerance=5) -> Structure:
         """
@@ -1806,6 +1839,13 @@ class Structure(pmg_Structure, NotebookWriter):
                 return Poscar(self).get_str(significant_figures=12)
             except AttributeError:
                 return Poscar(self).get_string(significant_figures=12)
+
+        elif fmt.lower() == "lammps":
+            from pymatgen.io.lammps.data import LammpsData
+            # Convert the structure to a LAMMPS data file
+            lammps_data = LammpsData.from_structure(self)
+            return lammps_data.get_str()
+
         else:
             return super().to(fmt=fmt, **kwargs)
 

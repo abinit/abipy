@@ -2116,7 +2116,7 @@ class SigresRobot(Robot, RobotWithEbands):
         # Change label depending on plot_qpmks
         what = r"\Delta E_g" if plot_qpmks else r"E_g"
         ax.plot(xs, func(xs, *popt), 'b-',
-                label=f'fit: $B_3$=%5.3f, $B_5$=%5.3f, ${what} (\infty)$=%5.3f' % tuple(popt))
+                label=rf'fit: $B_3$=%5.3f, $B_5$=%5.3f, ${what} (\infty)$=%5.3f' % tuple(popt))
         ax.hlines(popt[-1], min_ecuteps, max_ecuteps, color="k")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
         ax.grid(True)

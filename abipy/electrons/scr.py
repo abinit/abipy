@@ -823,7 +823,7 @@ class InverseDielectricFunction(_AwggMatrix):
 #    def eval_em1(self, omegas, zcut):
 #        omegas = np.array(omegas)
 #
-#        wggmat = np.empty((len(omegas), self.ng, self.ng), dtype=np.complex)
+#        wggmat = np.empty((len(omegas), self.ng, self.ng), dtype=complex)
 #        for i, w in enumerate(omegas):
 #            # Add shift but only along the real axis.
 #            delta = 0.0 if w.imag != 0 else 1j * zcut

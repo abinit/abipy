@@ -261,7 +261,7 @@ def abicomp_png(options):
     """
     Use matplotlib to plot multiple png files on a grid.
     """
-    plotter = FilesPlotter(options.filepaths)
+    plotter = FilesPlotter(options.paths)
     plotter.plot()
     return 0
 
@@ -592,6 +592,25 @@ def abicomp_abiwan(options):
     return _invoke_robot(options)
 
 
+def abicomp_abiwan_ebands(options):
+    """
+    Compare Wannier-interpolated band structure with ab-initio results.
+    """
+    if len(options.paths) != 2:
+        raise ValueError("Two arguments with ABIWAN.nc and nc file with ElectronBands are required.")
+    from abipy.wannier90 import AbiwanFile
+    abiwan_path, ebands_path = options.paths[0], options.paths[1]
+    if not abiwan_path.endswith("ABIWAN.nc"):
+        abiwan_path, ebands_path = ebands_path, abiwan_path
+
+    abiwan = AbiwanFile(abiwan_path)
+    print(abiwan)
+    abiwan.hwan.plot()
+    abiwan.plot_with_ebands(ebands_path)
+
+    return 0
+
+
 def abicomp_pseudos(options):
     """"Compare multiple pseudos and print table to terminal."""
     # Make sure entries in index are unique.
@@ -841,6 +860,7 @@ Usage example:
   abicomp.py edos *_WFK.nc -nb                  => Compare electron DOS in the jupyter notebook.
   abicomp.py optic DIR -nb                      => Compare optic results in the jupyter notebook.
   abicomp.py abiwan *_ABIWAN.nc --expose        => Compare ABIWAN results, produce matplotlib figures.
+  abicomp.py abiwan_ebands out_ABIWAN.nc out_GSR.nc --expose  => Compare Wannier-interpolated band structure with ab-initio results.
 
 #########
 # Phonons
@@ -995,7 +1015,6 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 
     # Parent parser for commands supporting expose
     expose_parser = argparse.ArgumentParser(add_help=False)
-
     expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
             help='Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.')
     expose_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
@@ -1147,6 +1166,9 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     #p_wrmax = subparsers.add_parser('wrmax', parents=robot_parents, help=abicomp_wrmax.__doc__)
     p_abiwan = subparsers.add_parser('abiwan', parents=robot_parents, help=abicomp_abiwan.__doc__)
     p_gwr = subparsers.add_parser('gwr', parents=robot_parents, help=abicomp_gwr.__doc__)
+
+    # Subparser for abiwan_ebands command.
+    p_abiwan_ebands = subparsers.add_parser('abiwan_ebands', parents=[copts_parser], help=abicomp_abiwan_ebands.__doc__)
 
     # Subparser for pseudos command.
     p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)

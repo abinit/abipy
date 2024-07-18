@@ -28,7 +28,6 @@ ArrayWithUnit = units.ArrayWithUnit
 from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Flow, Work, TaskManager, AbinitBuild, flow_main
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
-#from abipy.core import restapi
 from abipy.core.structure import (Lattice, Structure, StructureModifier, dataframes_from_structures,
   mp_match_structure, mp_search, cod_search, display_structure)
 from abipy.core.mixins import TextFile, JsonFile, CubeFile
@@ -67,6 +66,7 @@ from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 from abipy.eph.cumulant import CumulantEPhFile
+from abipy.eph.varpeq import VarpeqFile
 from abipy.eph.eph_plotter import EphPlotter
 from abipy.eph.v1sym import V1symFile
 from abipy.eph.gkq import GkqFile, GkqRobot
@@ -74,6 +74,7 @@ from abipy.eph.v1qnu import V1qnuFile
 from abipy.eph.v1qavg import V1qAvgFile
 from abipy.eph.rta import RtaFile, RtaRobot
 from abipy.eph.transportfile import TransportFile
+from abipy.eph.gstore import GstoreFile
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
 from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
 
@@ -171,6 +172,7 @@ abiext2ncfile = collections.OrderedDict([
     ("OPTIC.nc", OpticNcFile),
     ("A2F.nc", A2fFile),
     ("SIGEPH.nc", SigEPhFile),
+    ("GSTORE.nc", GstoreFile),
     ("TRANSPORT.nc",TransportFile),
     ("RTA.nc",RtaFile),
     ("V1SYM.nc", V1symFile),
@@ -179,6 +181,7 @@ abiext2ncfile = collections.OrderedDict([
     ("V1QAVG.nc", V1qAvgFile),
     ("ABIWAN.nc", AbiwanFile),
     ("EPH_CUMULANT.nc", CumulantEPhFile),
+    ("VARPEQ.nc", VarpeqFile),
 ])
 
 
@@ -451,6 +454,11 @@ def abicheck(verbose: int = 0) -> str:
         print()
     except ImportError:
         app(_straceback())
+
+    import pprint
+    shell_vars = [os.environ.get(vname, "") for vname in ("PATH", "LD_LIBRARY_PATH", "TMPDIR")]
+    print("Important Shell Variables:")
+    pprint.pprint(shell_vars)
 
     return "\n".join(err_lines)
 

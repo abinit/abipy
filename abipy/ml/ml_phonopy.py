@@ -306,7 +306,7 @@ class MlPhonopyWithDDB(MlBase):
         print(mae_str)
         latex_formula = self.abi_phbands.structure.latex_formula
         ph_plotter.combiplot(show=show, title=f"{latex_formula}: {mae_str}", units="meV",
-                             savefig=str(workdir / f"combiplot_{nn_name}.png"))
+                             savefig=str(workdir / f"combiplot_{nn_name}.pdf"))
 
         data = dict(
             mabs_wdiff_ev=mabs_wdiff_ev,

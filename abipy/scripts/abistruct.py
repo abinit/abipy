@@ -75,6 +75,7 @@ Usage example:
                                               (Use convert --help to get list of formats supported)
   abistruct.py convert out_HIST.nc         => Read FINAL structure from the HIST file and
                                               print the corresponding ABINIT variables.
+  abistruct.py traj2xdatcar out.traj       => Convert ASE trajectory file `out.traj` into VASP XDATCAR.
   abistruct.py supercell FILE -s 2 2 1     => Read structure from FILE and build [2, 2, 1] supercell,
                                               print new structure using --format (default abivars).
 ################
@@ -199,7 +200,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
         group.add_argument('--primitive-standard', default=False, action='store_true',
                            help="Enforce primitive standard cell.")
 
-    supported_formats = "(abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)"
+    supported_formats = "(abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, lammps, fleur-inpgen, None)"
 
     def add_format_arg(parser, default, option=True, formats=None):
         """
@@ -238,6 +239,13 @@ file that does not have enough significant digits.""")
     p_convert = subparsers.add_parser('convert', parents=[copts_parser, path_selector],
         help="Convert structure to the specified format.")
     add_format_arg(p_convert, default="cif")
+
+    # Subparser for supercell command.
+    p_traj2xdatcar = subparsers.add_parser('traj2xdatcar', parents=[copts_parser, path_selector],
+        help="Generate XDATCAR file from ASE trajectory file.")
+    p_traj2xdatcar.add_argument("-o", "--output", type=str, default="XDATCAR", help="Name of output XDATCAR. Default: XDATCAR")
+
+    p_traj2xdatcar.add_argument("-f", "--force", default=False, action="store_true", help="Allow output file overwring")
 
     # Subparser for print command.
     p_print = subparsers.add_parser('print', parents=[copts_parser, path_selector],
@@ -605,6 +613,19 @@ def main():
         fmt = options.format
         if fmt == "cif" and options.filepath.endswith(".cif"): fmt = "abivars"
         print(abilab.Structure.from_file(options.filepath).convert(fmt=fmt))
+
+    elif options.command == "traj2xdatcar":
+        from ase.io import read
+        from ase.io.vasp import write_vasp_xdatcar
+
+        print(f"Converting ASE trajectory into XDATCAR format. Ouput file: {options.output}")
+        # Load the trajectory file using ASE
+        trajectory = read(options.filepath, index=':')
+        if not options.force and os.path.exists(options.output):
+            raise RuntimeError(f"Cannot overwrite pre-existent file: {options.output}! Use -f to force overwriting.")
+
+        # Write the trajectory to an XDATCAR file
+        write_vasp_xdatcar(options.output, trajectory)
 
     elif options.command == "print":
         print(abilab.Structure.from_file(options.filepath).to_string(verbose=options.verbose))
@@ -1045,7 +1066,6 @@ def main():
 
     elif options.command == "chemenv":
         # Based on https://matgenb.materialsvirtuallab.org/2018/01/01/ChemEnv-How-to-automatically-identify-coordination-environments-in-a-structure.html
-
         from pymatgen.analysis.chemenv.coordination_environments.chemenv_strategies import SimplestChemenvStrategy
         from pymatgen.analysis.chemenv.coordination_environments.coordination_geometry_finder import LocalGeometryFinder
         from pymatgen.analysis.chemenv.coordination_environments.structure_environments import LightStructureEnvironments
@@ -1131,7 +1151,7 @@ def main():
         print("\nFor the meaning of ce_symbol, see https://pubs.acs.org/doi/10.1021/acs.chemmater.7b02766")
 
     else:
-        raise ValueError("Unsupported command: %s" % options.command)
+        raise ValueError(f"Unsupported {options.command=}")
 
     return 0
 

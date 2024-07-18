@@ -198,6 +198,8 @@ class GsrRobotTest(AbipyTest):
         assert robot.is_sortable("ebands.nkpt")  # gsr.ebands.nkpt
         assert robot.is_sortable("ecut")         # in gsr.params
 
+        assert robot.getattr_alleq("nsppol") == 1
+
         dfs = robot.get_structure_dataframes()
         assert dfs.lattice is not None
         assert dfs.coords is not None

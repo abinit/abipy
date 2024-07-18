@@ -736,7 +736,11 @@ class OncvParser(BaseParser):
         max_ecut = max(self.kene_vs_ecut[l].energies[-1] for l in self.kene_vs_ecut)
 
         # Compute the l1 error in atag(logder) between AE and PS
-        from scipy.integrate import cumtrapz
+        try :
+            from scipy.integrate import cumulative_trapezoid as cumtrapz
+        except ImportError:
+            from scipy.integrate import cumtrapz
+
         max_l1err = 0.0
         for l in self.atan_logders.ae:
             f1, f2 = self.atan_logders.ae[l], self.atan_logders.ps[l]

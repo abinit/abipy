@@ -5,7 +5,7 @@ Works and Flows for GW calculations with the quartic-scaling implementation.
 from __future__ import annotations
 
 import os
-import numpy as np
+#import numpy as np
 
 from . import wrappers
 from .nodes import Node

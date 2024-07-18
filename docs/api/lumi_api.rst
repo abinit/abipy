@@ -21,3 +21,10 @@ lumi Package
    :show-inheritance:
 
 
+:mod:`lineshape` Module
+-----------------------
+
+.. automodule:: abipy.lumi.lineshape
+   :members:
+   :undoc-members:
+   :show-inheritance:

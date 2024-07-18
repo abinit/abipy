@@ -217,7 +217,12 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
                         values[spin] += wtk * gaussian(wmesh, width, center=eigens[spin, ik, band])
 
             # Compute IDOS
-            integral = scipy.integrate.cumtrapz(values, x=wmesh, initial=0.0)
+            try :
+                from scipy.integrate import cumulative_trapezoid as cumtrapz
+            except ImportError:
+                from scipy.integrate import cumtrapz
+
+            integral = cumtrapz(values, x=wmesh, initial=0.0)
 
         else:
             raise ValueError("Method %s is not supported" % method)

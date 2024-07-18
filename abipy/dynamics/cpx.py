@@ -1,5 +1,5 @@
 """
-Parser for the output files produced by CP code.
+Parser for the output files produced by the CP code.
 
 See: https://www.quantum-espresso.org/Doc/INPUT_CP.html
 
@@ -27,7 +27,7 @@ import abipy.core.abinit_units as abu
 
 from pathlib import Path
 from monty.functools import lazy_property
-from monty.bisect import find_le
+#from monty.bisect import find_le
 from abipy.core.mixins import TextFile, NotebookWriter
 from abipy.tools.typing import PathLike, Figure
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
@@ -336,7 +336,7 @@ Reading stresses from: {str_filepath=}
         with EvpFile(evp_filepath) as evp:
             self.energies = evp.df["etot"].values * (e_fact * abu.Ha_to_eV)
             if len(self.energies) != cell_nsteps:
-                raise RuntimeError(f"{len(energies)=} != {cell_nsteps=}")
+                raise RuntimeError(f"{len(self.energies)=} != {cell_nsteps=}")
 
         # Parse Cartesian positions (Bohr --> Ang).
         pos_nsteps, pos_cart, pos_headers = parse_file_with_blocks(pos_filepath, natom)

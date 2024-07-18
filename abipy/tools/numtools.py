@@ -3,9 +3,56 @@
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 
 from monty.collections import dict2namedtuple
 from abipy.tools import duck
+
+
+def print_stats_arr(arr: np.ndarray, take_abs=False) -> None:
+    """
+    Print statistics on a NumPy array.
+
+    Args:
+        take_abs: use abs(arr) if True.
+    """
+    if np.iscomplexobj(arr):
+        arr = np.abs(arr)
+    if take_abs:
+        arr = np.abs(arr)
+
+    print("Mean:", np.mean(arr))
+    print("Median:", np.median(arr))
+    print("Standard Deviation:", np.std(arr))
+    print("Variance:", np.var(arr))
+    min_index = np.argmin(arr)
+    print("Index of minimum value:", min_index)
+    print("Minimum value:", arr[min_index])
+    max_index = np.argmax(arr)
+    print("Index of maximum value:", max_index)
+    print("Maximum value:", arr[max_index])
+    # Percentile (e.g., 25th percentile)
+    print("25th Percentile:", np.percentile(arr, 25))
+
+
+def nparr_to_df(name: str, arr: np.ndarrays, columns: list[str]) -> pd.DataFrame:
+    """
+    Insert a numpy array in a DataFrame with columns giving the indices.
+
+    Args:
+        name: Name of column with the values of the numpy array.
+        arr: numpy array
+        columns: List with the name of columns with the indices.
+    """
+    shape, ndim = arr.shape, arr.ndim
+    if len(columns) != ndim:
+        raise ValueError(f"{len(columns)=} != {ndim=}")
+
+    indices = np.indices(shape).reshape(ndim, -1).T.copy()
+    df = pd.DataFrame(indices, columns=columns)
+    df[name] = arr.flatten()
+
+    return df
 
 
 def build_mesh(x0: float, num: int, step: float, direction: str) -> tuple[list, int]:
@@ -50,12 +97,12 @@ def add_periodic_replicas(arr: np.ndarray) -> np.ndarray:
     oshape = ishape.copy()
 
     if ndim == 1:
-        oarr = np.empty(ishape+1, dtype=arr.dtype)
+        oarr = np.empty(ishape + 1, dtype=arr.dtype)
         oarr[:-1] = arr
         oarr[-1] = arr[0]
 
     elif ndim == 2:
-        oarr = np.empty(oshape+1, dtype=arr.dtype)
+        oarr = np.empty(oshape + 1, dtype=arr.dtype)
         oarr[:-1,:-1] = arr
         oarr[-1,:-1] = arr[0,:]
         oarr[:-1,-1] = arr[:,0]
@@ -353,127 +400,6 @@ def find_convindex(values, tol, min_numpts=1, mode="abs", vinf=None):
     return i + 1
 
 
-class BlochRegularGridInterpolator:
-    """
-    This object interpolates the periodic part of a Bloch state in real space.
-    """
-
-    def __init__(self, structure, datar, add_replicas=True):
-        """
-        Args:
-            structure: :class:`Structure` object.
-            datar: [ndt, nx, ny, nz] array.
-            add_replicas: If True, data is padded with redundant data points.
-                in order to have a periodic 3D array of shape=[ndt, nx+1, ny+1, nz+1].
-        """
-        from scipy.interpolate import RegularGridInterpolator
-        self.structure = structure
-
-        if add_replicas:
-            datar = add_periodic_replicas(datar)
-
-        self.dtype = datar.dtype
-        # We want a 4d array (ndt arrays of shape (nx, ny, nz)
-        nx, ny, nz = datar.shape[-3:]
-        datar = np.reshape(datar, (-1,) + (nx, ny, nz))
-        self.ndt = len(datar)
-        x = np.linspace(0, 1, num=nx)
-        y = np.linspace(0, 1, num=ny)
-        z = np.linspace(0, 1, num=nz)
-
-        # Build `ndt` interpolators. Note that RegularGridInterpolator supports
-        # [nx, ny, nz, ...] arrays but then each call operates on the full set of
-        # ndt components and this complicates the declation of callbacks
-        # operating on a single component.
-        self._interpolators = [None] * self.ndt
-        for i in range(self.ndt):
-            self._interpolators[i] = RegularGridInterpolator((x, y, z), datar[i])
-
-    def eval_line(self, point1, point2, num=200, cartesian=False, kpoint=None):
-        """
-        Interpolate values along a line.
-
-        Args:
-            point1: First point of the line. Accepts 3d vector or integer.
-                The vector is in reduced coordinates unless `cartesian == True`.
-                If integer, the first point of the line is given by the i-th site of the structure
-                e.g. `point1=0, point2=1` gives the line passing through the first two atoms.
-            point2: Second point of the line. Same API as `point1`.
-            num: Number of points sampled along the line.
-            cartesian: By default, `point1` and `point1` are interpreted as points in fractional
-                coordinates (if not integers). Use True to pass points in cartesian coordinates.
-            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
-
-        Return: named tuple with
-            site1, site2: None if the points do not represent atomic sites.
-            points: Points in fractional coords.
-            dist: the distance of points along the line in Ang.
-            values: numpy array of shape [ndt, num] with interpolated values.
-        """
-        site1 = None
-        if duck.is_intlike(point1):
-            if point1 > len(self.structure):
-                raise ValueError("point1: %s > natom: %s" % (point1, len(self.structure)))
-            site1 = self.structure[point1]
-            point1 = site1.coords if cartesian else site1.frac_coords
-
-        site2 = None
-        if duck.is_intlike(point2):
-            if point2 > len(self.structure):
-                raise ValueError("point2: %s > natom: %s" % (point2, len(self.structure)))
-            site2 = self.structure[point2]
-            point2 = site2.coords if cartesian else site2.frac_coords
-
-        point1 = np.reshape(point1, (3,))
-        point2 = np.reshape(point2, (3,))
-        if cartesian:
-            red_from_cart = self.structure.lattice.inv_matrix.T
-            point1 = np.dot(red_from_cart, point1)
-            point2 = np.dot(red_from_cart, point2)
-
-        p21 = point2 - point1
-        line_points = np.reshape([alpha * p21 for alpha in np.linspace(0, 1, num=num)], (-1, 3))
-        dist = self.structure.lattice.norm(line_points)
-        line_points += point1
-
-        return dict2namedtuple(site1=site1, site2=site2, points=line_points, dist=dist,
-                               values=self.eval_points(line_points, kpoint=kpoint))
-
-    def eval_points(self, frac_coords, idt=None, cartesian=False, kpoint=None):
-        """
-        Interpolate values on an arbitrary list of points.
-
-        Args:
-            frac_coords: List of points in reduced coordinates unless `cartesian`.
-            idt: Index of the sub-array to interpolate. If None, all sub-arrays are interpolated.
-            cartesian: True if points are in cartesian coordinates.
-            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
-
-        Return:
-            [ndt, npoints] array or [1, npoints] if idt is not None
-        """
-        frac_coords = np.reshape(frac_coords, (-1, 3))
-        if cartesian:
-            red_from_cart = self.structure.lattice.inv_matrix.T
-            frac_coords = [np.dot(red_from_cart, v) for v in frac_coords]
-
-        uc_coords = np.reshape(frac_coords, (-1, 3)) % 1
-
-        if idt is None:
-            values = np.empty((self.ndt, len(uc_coords)), dtype=self.dtype)
-            for idt in range(self.ndt):
-                values[idt] = self._interpolators[idt](uc_coords)
-        else:
-            values = self._interpolators[idt](uc_coords)
-
-        if kpoint is not None:
-            if hasattr(kpoint, "frac_coords"): kpoint = kpoint.frac_coords
-            kpoint = np.reshape(kpoint, (3,))
-            values *= np.exp(2j * np.pi * np.dot(frac_coords, kpoint))
-
-        return values
-
-
 def find_degs_sk(enesb, atol):
     """
     Return list of lists with the indices of the degenerated bands.
@@ -505,3 +431,266 @@ def find_degs_sk(enesb, atol):
             degs[ndeg].append(ib)
 
     return degs
+
+
+class BlochRegularGridInterpolator:
+    """
+    This object interpolates the periodic part of a Bloch wavefunction in real space.
+    """
+
+    def __init__(self, structure, datar, add_replicas=True, **kwargs):
+        """
+        Args:
+            structure: :class:`Structure` object.
+            datar: [ndat, nx, ny, nz] array.
+            add_replicas: If True, data is padded with redundant data points.
+                in order to have a periodic 3D array of shape=[ndat, nx+1, ny+1, nz+1].
+            kwargs: Extra arguments are passed to RegularGridInterpolator.
+        """
+        self.structure = structure
+
+        if add_replicas:
+            datar = add_periodic_replicas(datar)
+
+        self.dtype = datar.dtype
+        # We want a 4d array (ndat arrays of shape (nx, ny, nz)
+        nx, ny, nz = datar.shape[-3:]
+        datar = np.reshape(datar, (-1,) + (nx, ny, nz))
+        self.ndat = len(datar)
+        x = np.linspace(0, 1, num=nx)
+        y = np.linspace(0, 1, num=ny)
+        z = np.linspace(0, 1, num=nz)
+
+        # Build `ndat` interpolators. Note that RegularGridInterpolator supports
+        # [nx, ny, nz, ...] arrays but then each call operates on the full set of
+        # ndat components and this complicates the declation of callbacks
+        # operating on a single component.
+        from scipy.interpolate import RegularGridInterpolator
+        self._interpolators = [None] * self.ndat
+        for i in range(self.ndat):
+            self._interpolators[i] = RegularGridInterpolator((x, y, z), datar[i], **kwargs)
+
+    def eval_points(self, frac_coords, idat=None, cartesian=False, kpoint=None, **kwargs) -> np.ndarray:
+        """
+        Interpolate values on an arbitrary list of points.
+
+        Args:
+            frac_coords: List of points in reduced coordinates unless `cartesian`.
+            idat: Index of the sub-array to interpolate. If None, all sub-arrays are interpolated.
+            cartesian: True if points are in cartesian coordinates.
+            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+
+        Return:
+            [ndat, npoints] array or [1, npoints] if idat is not None
+        """
+        frac_coords = np.reshape(frac_coords, (-1, 3))
+        if cartesian:
+            red_from_cart = self.structure.lattice.inv_matrix.T
+            frac_coords = [np.dot(red_from_cart, v) for v in frac_coords]
+
+        uc_coords = np.reshape(frac_coords, (-1, 3)) % 1
+
+        if idat is None:
+            values = np.empty((self.ndat, len(uc_coords)), dtype=self.dtype)
+            for idat in range(self.ndat):
+                values[idat] = self._interpolators[idat](uc_coords, **kwargs)
+        else:
+            values = self._interpolators[idat](uc_coords, **kwargs)
+
+        if kpoint is not None:
+            if hasattr(kpoint, "frac_coords"): kpoint = kpoint.frac_coords
+            kpoint = np.reshape(kpoint, (3,))
+            values *= np.exp(2j * np.pi * np.dot(frac_coords, kpoint))
+
+        return values
+
+    def eval_line(self, point1, point2, num=200, cartesian=False, kpoint=None, **kwargs):
+        """
+        Interpolate values along a line.
+
+        Args:
+            point1: First point of the line. Accepts 3d vector or integer.
+                The vector is in reduced coordinates unless `cartesian == True`.
+                If integer, the first point of the line is given by the i-th site of the structure
+                e.g. `point1=0, point2=1` gives the line passing through the first two atoms.
+            point2: Second point of the line. Same API as `point1`.
+            num: Number of points sampled along the line.
+            cartesian: By default, `point1` and `point1` are interpreted as points in fractional
+                coordinates (if not integers). Use True to pass points in cartesian coordinates.
+            kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+
+        Return: named tuple with
+            site1, site2: None if the points do not represent atomic sites.
+            points: Points in fractional coords.
+            dist: the distance of points along the line in Ang.
+            values: numpy array of shape [ndat, num] with interpolated values.
+        """
+        site1 = None
+        if duck.is_intlike(point1):
+            if point1 > len(self.structure):
+                raise ValueError("point1: %s > natom: %s" % (point1, len(self.structure)))
+            site1 = self.structure[point1]
+            point1 = site1.coords if cartesian else site1.frac_coords
+
+        site2 = None
+        if duck.is_intlike(point2):
+            if point2 > len(self.structure):
+                raise ValueError("point2: %s > natom: %s" % (point2, len(self.structure)))
+            site2 = self.structure[point2]
+            point2 = site2.coords if cartesian else site2.frac_coords
+
+        point1 = np.reshape(point1, (3,))
+        point2 = np.reshape(point2, (3,))
+        if cartesian:
+            red_from_cart = self.structure.lattice.inv_matrix.T
+            point1 = np.dot(red_from_cart, point1)
+            point2 = np.dot(red_from_cart, point2)
+
+        p21 = point2 - point1
+        line_points = np.reshape([alpha * p21 for alpha in np.linspace(0, 1, num=num)], (-1, 3))
+        dist = self.structure.lattice.norm(line_points)
+        line_points += point1
+
+        return dict2namedtuple(site1=site1, site2=site2, points=line_points, dist=dist,
+                               values=self.eval_points(line_points, kpoint=kpoint, **kwargs))
+
+
+class BzRegularGridInterpolator:
+    """
+    This object interpolates quantities defined in the BZ.
+    """
+    def __init__(self, structure, shifts, datak, add_replicas=True, **kwargs):
+        """
+        Args:
+            structure: :class:`Structure` object.
+            datak: [ndat, nx, ny, nz] array.
+            shifts: Shift of the mesh.
+            add_replicas: If True, data is padded with redundant data points.
+                in order to have a periodic 3D array of shape=[ndat, nx+1, ny+1, nz+1].
+            kwargs: Extra arguments are passed to RegularGridInterpolator.
+        """
+        self.structure = structure
+        self.shifts = shifts
+
+        if add_replicas:
+            datak = add_periodic_replicas(datak)
+
+        self.dtype = datak.dtype
+        # We want a 4d array (ndat arrays of shape (nx, ny, nz)
+        nx, ny, nz = datak.shape[-3:]
+        datak = np.reshape(datak, (-1,) + (nx, ny, nz))
+        self.ndat = len(datak)
+        x = np.linspace(0, 1, num=nx)
+        y = np.linspace(0, 1, num=ny)
+        z = np.linspace(0, 1, num=nz)
+
+        # Build `ndat` interpolators. Note that RegularGridInterpolator supports
+        # [nx, ny, nz, ...] arrays but then each call operates on the full set of
+        # ndat components and this complicates the declation of callbacks
+        # operating on a single component.
+        from scipy.interpolate import RegularGridInterpolator
+        self._interpolators = [None] * self.ndat
+        for i in range(self.ndat):
+            self._interpolators[i] = RegularGridInterpolator((x, y, z), datak[i], **kwargs)
+
+    def eval_kpoint(self, frac_coords, cartesian=False, **kwargs) -> np.ndarray:
+        """
+        Interpolate values at frac_coords
+
+        Args:
+            frac_coords: reduced coordinates of the k-point unless `cartesian`.
+            cartesian: True if k-point is in cartesian coordinates.
+
+        Return:
+            [ndat] array with interpolated data.
+        """
+        # Handle K-point object
+        if hasattr(frac_coords, "frac_coords"):
+            frac_coords = frac_coords.frac_coords
+
+        if cartesian:
+            red_from_cart = self.structure.reciprocal_lattice.inv_matrix.T
+            frac_coords = np.dot(red_from_cart, frac_coords)
+
+        uc_coords = np.reshape(frac_coords, (3,)) % 1
+
+        values = np.empty(self.ndat, dtype=self.dtype)
+        for idat in range(self.ndat):
+            values[idat] = self._interpolators[idat](uc_coords, **kwargs)
+
+        return values
+
+    #def eval_kline(self, point1, point2, num=200, cartesian=False, kpoint=None):
+    #    """
+    #    Interpolate values along a line.
+
+    #    Args:
+    #        point1: First point of the line. Accepts 3d vector or integer.
+    #            The vector is in reduced coordinates unless `cartesian == True`.
+    #            If integer, the first point of the line is given by the i-th site of the structure
+    #            e.g. `point1=0, point2=1` gives the line passing through the first two atoms.
+    #        point2: Second point of the line. Same API as `point1`.
+    #        num: Number of points sampled along the line.
+    #        cartesian: By default, `point1` and `point1` are interpreted as points in fractional
+    #            coordinates (if not integers). Use True to pass points in cartesian coordinates.
+    #        kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+
+    #    Return: named tuple with
+    #        site1, site2: None if the points do not represent atomic sites.
+    #        points: Points in fractional coords.
+    #        dist: the distance of points along the line in Ang.
+    #        values: numpy array of shape [ndat, num] with interpolated values.
+    #    """
+    #    site1 = None
+    #    if duck.is_intlike(point1):
+    #        if point1 > len(self.structure):
+    #            raise ValueError("point1: %s > natom: %s" % (point1, len(self.structure)))
+    #        site1 = self.structure[point1]
+    #        point1 = site1.coords if cartesian else site1.frac_coords
+
+    #    site2 = None
+    #    if duck.is_intlike(point2):
+    #        if point2 > len(self.structure):
+    #            raise ValueError("point2: %s > natom: %s" % (point2, len(self.structure)))
+    #        site2 = self.structure[point2]
+    #        point2 = site2.coords if cartesian else site2.frac_coords
+
+    #    point1 = np.reshape(point1, (3,))
+    #    point2 = np.reshape(point2, (3,))
+    #    if cartesian:
+    #        red_from_cart = self.structure.lattice.inv_matrix.T
+    #        point1 = np.dot(red_from_cart, point1)
+    #        point2 = np.dot(red_from_cart, point2)
+
+    #    p21 = point2 - point1
+    #    line_points = np.reshape([alpha * p21 for alpha in np.linspace(0, 1, num=num)], (-1, 3))
+    #    dist = self.structure.lattice.norm(line_points)
+    #    line_points += point1
+
+    #    return dict2namedtuple(site1=site1, site2=site2, points=line_points, dist=dist,
+    #                           values=self.eval_kpoints(line_points))
+
+
+#class PolyExtrapolator:
+#
+#    def __init__(xs, ys):
+#        self.xs = np.array(xs)
+#        self.ys = np.array(ys)
+#
+#    def eval(self, xvals, deg):
+#        p = np.poly1d(np.polyfit(self.xs, self.ys, deg))
+#        return p[xvals]
+#
+#    def plot_ax(self, ax, kwargs**)
+#        xvals = np.linspace(0, 1.1 * self.xs.max(), 100)
+#
+#        from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+#        ax, fig, plt = get_ax_fig_plt(ax=ax)
+#        ax.scatter(xs, ys, marker="o")
+#        yvals = self.eval(xvals, deg=1)
+#        ax.plot(xvals, p[xvals], style="k--")
+#        ax.grid(True)
+#        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+#
+#        return fig
+

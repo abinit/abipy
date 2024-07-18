@@ -176,7 +176,11 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
                     e = self.uf_eigens[spin, ik, band]
                     sfw[spin, ik] += self.uf_weights[spin, ik, band] * gaussian(mesh, width, center=e)
 
-        from scipy.integrate import cumtrapz
+        try :
+            from scipy.integrate import cumulative_trapezoid as cumtrapz
+        except ImportError:
+            from scipy.integrate import cumtrapz
+
         int_sfw = cumtrapz(sfw, x=mesh, initial=0.0)
 
         return dict2namedtuple(mesh=mesh, sfw=sfw, int_sfw=int_sfw)
