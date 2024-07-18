@@ -145,6 +145,7 @@ def cleanup():
 
 install_requires = [
     "monty",
+    "packaging",
     "tabulate",
     "apscheduler<=3.10.4",
     "pydispatcher>=2.0.5",
