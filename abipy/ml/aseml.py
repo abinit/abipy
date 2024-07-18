@@ -46,7 +46,7 @@ from abipy.core import Structure
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
 from abipy.tools.typing import Figure, PathLike
 from abipy.tools.printing import print_dataframe
-from abipy.tools.serialization import HasPickleIO
+from abipy.tools.serialization import HasPickleIO, mjson_write
 from abipy.tools.context_managers import Timer
 from abipy.tools.parallel import get_max_nprocs # , pool_nprocs_pmode
 from abipy.abio.enums import StrEnum, EnumMixin
@@ -3195,13 +3195,16 @@ class GsMl(MlBase):
         self.verbose = verbose
 
     def run(self):
+        """Run the calculation."""
         calc = CalcBuilder(self.nn_name).get_calculator()
         self.atoms.calc = calc
         res = AseResults.from_atoms(self.atoms)
         print(res.to_string(verbose=self.verbose))
 
-        # Write json file with GS results.
-        from abipy.tools.serialization import mjson_write
+        # Write json file GS results.
+        # To read the dictionary from json use:
+        #   from abipy.tools.serialization import mjson_load
+        #   data = mjson_load(self.workdir / "gs.json")
         data = dict(
             structure=Structure.as_structure(self.atoms),
             ene=res.ene,
@@ -3210,13 +3213,85 @@ class GsMl(MlBase):
         )
         mjson_write(data, self.workdir / "gs.json", indent=4)
 
-        # To read the dictionary from json use:
-        #from abipy.tools.serialization import mjson_load
-        #data = mjson_load(self.workdir / "gs.json")
-
         # Write ASE trajectory file with results.
         with open(self.workdir / "gs.traj", "wb") as fd:
             write_traj(fd, [self.atoms])
+
+        return 0
+
+
+class FrozenPhononMl(MlBase):
+    """
+    Frozen-phonon calculations with ML potential.
+    """
+
+    @classmethod
+    def from_ddb_file(cls, ddb_filepath, qpoint, eta_list, nn_name, verbose, workdir, prefix=None, **anaddb_kwargs):
+        """
+        """
+        from abipy.dfpt.ddb import DdbFile
+        with DdbFile(ddb_filepath) as ddb:
+            # Call anaddb to get all phonon modes for this q-point.
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, verbose=verbose, **anaddb_kwargs)
+
+        return cls(ddb.structure, qpoint, phbands.phdispl_cart, eta_list, nn_name, verbose, workdir, prefix=prefix)
+
+    def __init__(self, structure, qpoint, phdispl_cart, eta_list, nn_name, verbose, workdir, prefix=None):
+        """
+        Args:
+            qpoint: q-vector in reduced coordinate in reciprocal space.
+            displ_cart: displacement of the atoms in real space .
+            eta: pre-factor multiplying the displacement. Gives the value in Angstrom of the largest displacement.
+        """
+        super().__init__(workdir, prefix)
+        self.initial_structure = structure
+        natom = len(structure)
+        self.nn_name = nn_name
+        self.verbose = verbose
+        # TODO: Should check that qpoint is [1/Nx, 1/Ny, 1/Nz]
+        self.qpoint = np.array(qpoint)
+        self.phdispl_cart = phdispl_cart
+        #self.phdispl_cart = np.reshape(phdispl_cart, (-1, 3*natom, 3*natom))
+        self.eta_list = np.array(eta_list)
+
+    def run(self):
+        """Run the calculation."""
+        calc = CalcBuilder(self.nn_name).get_calculator()
+
+        max_sc = np.ones(3, dtype=int)
+        for i, qf in enumerate(self.qpoint):
+            if qf != 0: max_sc[i] = np.round(1 / qf)
+        print(f"{max_sc =}")
+
+        for displ_cart in self.phdispl_cart:
+            for eta in self.eta_list:
+                print(f"{eta=}")
+                print(f"{displ_cart.shape=}")
+                print(f"{displ_cart=}")
+                scell = self.initial_structure.frozen_phonon(self.qpoint, displ_cart, eta=eta, frac_coords=True, max_supercell=max_sc)
+                print(scell.scale_matrix)
+                print(scell.structure)
+
+                scell.structure.to_ase_atoms()
+                atoms.calc = calc
+                res = AseResults.from_atoms(atoms)
+                #print(res.to_string(verbose=self.verbose))
+
+        # Write json file GS results.
+        # To read the dictionary from json use:
+        #   from abipy.tools.serialization import mjson_load
+        #   data = mjson_load(self.workdir / "gs.json")
+        #data = dict(
+        #    structure=Structure.as_structure(self.atoms),
+        #    ene=res.ene,
+        #    stress=res.stress,
+        #    forces=res.forces,
+        #)
+        #mjson_write(data, self.workdir / "gs.json", indent=4)
+
+        ## Write ASE trajectory file with results.
+        #with open(self.workdir / "gs.traj", "wb") as fd:
+        #    write_traj(fd, [self.atoms])
 
         return 0
 

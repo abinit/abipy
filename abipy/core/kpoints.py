@@ -409,26 +409,27 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
 def kpoints_indices(frac_coords, ngkpt, check_mesh=0) -> np.ndarray:
     """
     This function is used when we need to insert k-dependent quantities in a (nx, ny, nz) array.
-    It compute the indices of the k-points assuming these points belong to
-    a mesh with ngkpt divisions.
+    It computes the indices of the k-points assuming these points belong to a mesh with ngkpt divisions.
 
     Args:
         frac_coords
         ngkpt:
-        check_mesh
+        check_mesh:
     """
     # Transforms kpt in its corresponding reduced number in the interval [0,1[
     k_indices = [np.round((kpt % 1) * ngkpt) for kpt in frac_coords]
-
     k_indices = np.array(k_indices, dtype=int)
-    #k_indices = np.array(list(map(tuple, k_indices)))
-    #k_indices = list(map(tuple, k_indices))
+
+    for kpt, inds in zip(frac_coords, k_indices):
+        if np.any(inds >= ngkpt):
+            print(f"{kpt=}, {np.round(kpt % 1)=} {inds=})")
+            #raise ValueError("")
 
     if check_mesh:
         print(f"kpoints_indices: Testing whether k-points belong to the {ngkpt =} mesh")
         ierr = 0
         for kpt, inds in zip(frac_coords, k_indices):
-            #print("kpt:", kpt, "inds:", inds)
+            if check_mesh > 1: print("kpt:", kpt, "inds:", inds)
             same_k = np.array((inds[0]/ngkpt[0], inds[1]/ngkpt[1], inds[2]/ngkpt[2]))
             if not issamek(kpt, same_k):
                 ierr += 1; print(kpt, "-->", same_k)
@@ -526,6 +527,7 @@ def kpath_from_bounds_and_ndivsm(bounds, ndivsm, structure):
         for j in range(ndivs[i]):
             p = bounds[i] + j * (bounds[i + 1] - bounds[i]) / ndivs[i]
             path.append(p)
+
     path.append(bounds[-1])
 
     return np.array(path)

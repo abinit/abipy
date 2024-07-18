@@ -14,6 +14,7 @@ import itertools
 import functools
 import numpy as np
 import pandas as pd
+import matplotlib.collections as mcoll
 
 from collections import namedtuple, OrderedDict
 from typing import Any, Callable, Iterator
@@ -23,8 +24,6 @@ from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
 from abipy.tools.numtools import data_from_cplx_mode
-
-import matplotlib.collections as mcoll
 from plotly.tools import mpl_to_plotly
 
 __all__ = [
@@ -80,7 +79,9 @@ class FilesPlotter:
 
     @add_fig_kwargs
     def plot(self, **kwargs) -> Figure:
-        """Loop through the PNG files and display them in subplots."""
+        """
+        Loop through the PNG files and display them in subplots.
+        """
         # Build grid of plots.
         num_plots, ncols, nrows = len(self.filepaths), 1, 1
         if num_plots > 1:
@@ -2492,10 +2493,8 @@ def plotly_points(points, lattice=None, coords_are_cartesian=False, fold=False, 
     from pymatgen.electronic_structure.plotter import fold_point
     vecs = []
     for p in points:
-
         if fold:
             p = fold_point(p, lattice, coords_are_cartesian=coords_are_cartesian)
-
         elif not coords_are_cartesian:
             p = lattice.get_cartesian_coords(p)
 
@@ -2666,8 +2665,11 @@ def add_colorscale_dropwdowns(fig):
 
     return fig
 
-def mpl_to_ply(fig, latex=False):
-    """Nasty workaround for plotly latex rendering in legend/breaking exception"""
+
+def mpl_to_ply(fig: Figure, latex: bool= False):
+    """
+    Nasty workaround for plotly latex rendering in legend/breaking exception
+    """
     if is_plotly_figure(fig):
         return fig
 
@@ -2748,3 +2750,44 @@ def mpl_to_ply(fig, latex=False):
         trace.name = new_label
 
     return plotly_fig
+
+
+
+class PolyfitPlotter:
+
+    def __init__(self, xs, ys):
+        self.xs, self.ys = xs, ys
+
+    @add_fig_kwargs
+    def plot(self, deg_list: list[int], num=100, ax=None, xlabel=None, ylabel=None,
+             fontsize=8, **kwargs) -> Figure:
+        """
+        Args:
+            deg_list: List with degrees of the fitting polynomial.
+            num: Number of samples to generate. Default is 100. Must be non-negative.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Legend fontsize.
+        """
+        xs, ys = self.xs, self.ys
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        for i, deg in enumerate(deg_list):
+            # Fit a ndeg polynomial to the data points and get the polynomial function.
+            coefficients = np.polyfit(xs, ys, deg)
+            polynomial = np.poly1d(coefficients)
+            #print("Coefficients:", coefficients); print("Polynomial:", polynomial)
+
+            if i == 0:
+                # Plot the original data points
+                ax.scatter(xs, ys, color='red', marker="o", label='Data Points')
+
+            # Generate (x, y) values for plotting the fit
+            x_fit = np.linspace(min(xs), max(xs), num)
+            y_fit = polynomial(x_fit)
+            ax.plot(x_fit, y_fit, label=f"{deg}-order fit")
+
+        if xlabel is not None: ax.set_xlabel(xlabel)
+        if ylabel is not None: ax.set_ylabel(ylabel)
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig

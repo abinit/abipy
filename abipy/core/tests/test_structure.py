@@ -397,7 +397,7 @@ xred_symbols
         f2p_data = structure.frozen_2phonon(qpoint, 0.05 * displ, 0.02*displ2, eta=0.5, frac_coords=False,
                                             max_supercell=mx_sc, scale_matrix=scale_matrix)
 
-        d_tot = 0.05*displ+0.02*displ2
+        d_tot = 0.05 *displ + 0.02 * displ2
         max_displ = np.linalg.norm(d_tot, axis=1).max()
         self.assert_almost_equal(f2p_data.structure[0].coords,
                                     structure[0].coords + 0.5*d_tot[0]/max_displ)

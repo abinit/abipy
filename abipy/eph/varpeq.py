@@ -213,8 +213,10 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 class Polaron:
     """
     This object stores the polaron coefficients A_kn, B_qnu for a given spin.
-    Provides methods to plot |A_nk|^2 or |B_qnu|^2 together with band structures (fatbands-like plots)
+    Provides methods to plot |A_nk|^2 or |B_qnu|^2 together with band structures
+    (fatbands-like plots)
     """
+
     spin: int          # Spin index.
     nb: int            # Number of bands.
     nk: int            # Number of k-points (including filtering if any)
@@ -287,7 +289,7 @@ class Polaron:
             method: String defining the interpolation method.
             check_mesh: Check whether k-points belong to the mesh ff !=0.
         """
-        # Neeed to know the size of the k-mesh.
+        # Need to know the size of the k-mesh.
         ksampling = self.ebands.kpoints.ksampling
         ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
 
@@ -307,7 +309,7 @@ class Polaron:
 
         return BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data) ** 2, method=method)
 
-    def get_b2_interpolator(self, method: str, check_mesh: int = 0) -> BzRegularGridInterpolator:
+    def get_b2_interpolator(self, method: str, check_mesh: int = 2) -> BzRegularGridInterpolator:
         """
         Build and return an interpolator for |B_qnu|^2.
 
@@ -315,8 +317,9 @@ class Polaron:
             method: String defining the interpolation method.
             check_mesh: Check whether k-points belong to the mesh ff !=0.
         """
-        # Neeed to know the size of the q-mesh (always Gamma-centered)
+        # Need to know the shape of the q-mesh (always Gamma-centered)
         ngqpt, shifts = self.varpeq.r.ngqpt, [0, 0, 0]
+        #print(ngqpt)
         q_indices = kpoints_indices(self.qpoints, ngqpt, check_mesh=check_mesh)
 
         natom3 = 3 * len(self.structure)
@@ -327,8 +330,7 @@ class Polaron:
                 ix, iy, iz = q_inds
                 b_data[nu, ix, iy, iz] = b_cplx
 
-        return BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data) ** 2,
-                                         method=method)
+        return BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data) ** 2, method=method)
 
     @add_fig_kwargs
     def plot_bz_sampling(self, what="kpoints", fold=False,
@@ -349,13 +351,14 @@ class Polaron:
 
     @add_fig_kwargs
     def plot_ank_with_ebands(self, ebands_kpath, ebands_kmesh=None,
-                             ax=None, scale=50, fontsize=12, **kwargs) -> Figure:
+                             lpratio: int =5, step: float = 0.1, width: float = 0.2,
+                             ax=None, scale=10, fontsize=12, **kwargs) -> Figure:
         """
         Plot electronic energies with markers whose size is proportional to |A_nk|^2.
 
         Args:
             ebands_path: ElectronBands or Abipy file providing an electronic band structure along a path.
-            ebands_kmehs: ElectronBands or Abipy file providing an electronic band structure in the IBZ.
+            ebands_kmesh: ElectronBands or Abipy file providing an electronic band structure in the IBZ.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             scale: Scaling factor for |A_nk|^2.
         """
@@ -382,6 +385,7 @@ class Polaron:
                 ymax = max(ymax, e)
 
         points = Marker(x, y, s)
+        points
 
         nrows, ncols = 1, 2
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
@@ -392,10 +396,7 @@ class Polaron:
         ebands_kpath.plot(ax=ax, points=points, show=False)
 
         vertices_names = [(k.frac_coords, k.name) for k in ebands_kpath.kpoints]
-        lpratio = 5
-        kmesh = np.array([12, 12, 12]) * 3
-        step = 0.1
-        width = 0.2
+        kmesh = 3 * np.array([12, 12, 12])
 
         if ebands_kmesh is None:
             # Compute ebands_kmesh with Star-function interpolation.
@@ -435,7 +436,7 @@ class Polaron:
         ank_dos.plot_ax(ax, exchange_xy=True, label=r"$A^2$(E)")
         ax.grid(True)
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
-        print("A2(E) integrates to", ank_dos.integral_value)
+        print("A2(E) integrates to:", ank_dos.integral_value, " It should be 1.")
 
         for ax in ax_list:
             ax.set_ylim(ymin, ymax)
@@ -488,6 +489,7 @@ class Polaron:
             assert len(omegas_nu) == len(b2_nu)
             for w, b2 in zip(omegas_nu, b2_nu):
                 x.append(iq); y.append(w); s.append(scale * b2)
+
         points = Marker(x, y, s)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)

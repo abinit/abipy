@@ -2440,30 +2440,29 @@ class ElectronBands(Has_Structure):
                    hspace: float = 0.1, ratio: float = 0.5, **kwargs) -> Figure:
         """
         Plot electronic bands with broken y-axis.
-
         Based on: https://matplotlib.org/stable/gallery/subplots_axes_and_figures/broken_axis.html
 
         Args:
-            ylims_list: List of tuples. Each tuple defines the y-limits for the subplot.
+            ylims_list: List of tuples. Each tuple defines the y-limits for the subplots.
             hspace: space between Axes.
             ratio: proportion of vertical to horizontal extent of the slanted line.
             kwargs: keyword arguments passed to self.plot method.
         """
         import matplotlib.pyplot as plt
         num_axis = len(ylims_list)
+
         fig, ax_list = plt.subplots(num_axis, 1, sharex=True)
         ax_list = np.flip(ax_list)
-
-        # adjust space between Axes
+        # Adjust space between Axes
         fig.subplots_adjust(hspace=hspace)
 
         for ix, (ax, ylims) in enumerate(zip(ax_list, ylims_list)):
-            # plot the same data on all Axes
+            # Plot the same data on all Axes
             self.plot(ax=ax, show=False, **kwargs)
-            # zoom-in / limit the view to different portions of the data.
+            # Zoom-in / limit the view to different portions of the data.
             ax.set_ylim(ylims[0], ylims[1])
 
-            # hide the spines between axis.
+            # Hide the spines between axis.
             if ix == 0 or (num_axis > 2 and ix != num_axis - 1):
                 ax.spines.top.set_visible(False)
                 ax.xaxis.tick_bottom()
@@ -2567,6 +2566,7 @@ class ElectronBands(Has_Structure):
         """
         Add q-labels and unit name to figure ``fig``.
         Use units="" to add k-labels without unit name.
+
         Args:
             klabels:
             klabel_size:
@@ -2594,7 +2594,7 @@ class ElectronBands(Has_Structure):
 
         Args:
             ax_or_axlist:
-            spin
+            spin:
             spand_dir:
         """
         ks_lumo = self.lumos[spin]
@@ -2643,7 +2643,7 @@ class ElectronBands(Has_Structure):
 
     def plot_ax(self, ax, e0, spin=None, band=None, **kwargs) -> list:
         """
-        Helper function to plot the energies for (spin, band) on the axis ax with matplotlib..
+        Helper function to plot the energies for (spin, band) on the axis ax with matplotlib.
 
         Args:
             ax: |matplotlib-Axes|.

@@ -429,10 +429,10 @@ class JthRepo(PseudosRepo):
 
     @classmethod
     def from_abinit_website(cls, xc_name: str, relativity_type: str, version: str) -> JthRepo:
-
         # https://www.abinit.org/ATOMICDATA/JTH-LDA-atomicdata.tar.gz
         # ATOMPAW-LDA-JTHv0.4
         url = f"https://www.abinit.org/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"
+        #url = f"https://abinit.github.io/abinit_web/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"
         return cls(cls.ps_generator, xc_name, relativity_type, cls.project_name, version, url)
 
     @property
