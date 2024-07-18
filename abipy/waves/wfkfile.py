@@ -2,7 +2,7 @@
 """Wavefunction file."""
 from __future__ import annotations
 
-#import numpy as np
+import numpy as np
 
 from monty.functools import lazy_property
 from monty.string import marquee
@@ -50,32 +50,29 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Initialize the object from a Netcdf file.
         """
         super().__init__(filepath)
-        self.reader = reader = WFK_Reader(filepath)
-        assert reader.has_pwbasis_set
+        self.reader = self.r = r = WFK_Reader(filepath)
+        assert r.has_pwbasis_set
 
         # Read the electron bands
-        self._ebands = reader.read_ebands()
+        self._ebands = r.read_ebands()
 
-        self.npwarr = reader.npwarr
-        self.nband_sk = reader.nband_sk
+        self.npwarr = r.npwarr
+        self.nband_sk = r.nband_sk
 
         # FFT mesh (augmented divisions reported in the WFK file)
-        self.fft_mesh = Mesh3D(reader.fft_divs, self.structure.lattice_vectors())
+        self.fft_mesh = Mesh3D(r.fft_divs, self.structure.lattice.matrix)
 
         # Build G-spheres for each k-point
         gspheres = len(self.kpoints) * [None]
-        ecut = reader.ecut
+        ecut = r.ecut
         for k, kpoint in enumerate(self.kpoints):
-            gvec_k, istwfk = reader.read_gvecs_istwfk(k)
+            gvec_k, istwfk = r.read_gvecs_istwfk(k)
             gspheres[k] = GSphere(ecut, self.structure.reciprocal_lattice, kpoint, gvec_k, istwfk=istwfk)
 
         self._gspheres = tuple(gspheres)
 
-        # Save reference to the reader.
-        self.reader = reader
-
     def close(self) -> None:
-        self.reader.close()
+        self.r.close()
 
     @lazy_property
     def params(self) -> dict:
@@ -129,7 +126,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def kindex(self, kpoint) -> int:
         """The index of the k-point in the file. Accepts :class:`Kpoint` object or int."""
-        return self.reader.kindex(kpoint)
+        return self.r.kindex(kpoint)
 
     def get_wave(self, spin, kpoint, band) -> PWWaveFunction:
         """
@@ -149,7 +146,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             band not in range(self.nband_sk[spin, ik])):
             raise ValueError("Wrong (spin, band, kpt) indices")
 
-        ug_skb = self.reader.read_ug(spin, kpoint, band)
+        ug_skb = self.r.read_ug(spin, kpoint, band)
 
         # Istantiate the wavefunction object and set the FFT mesh
         # using the divisions reported in the WFK file.
@@ -190,6 +187,20 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                 pass
         else:
             raise visu.Error("Don't know how to export data for visualizer %s" % appname)
+
+    def get_h1mat(self):
+        pertcase = self.r.read_value("pertcase")
+        #idir = mod(pertcase-1, 3) + 1
+        #ipert = (pertcase - idir) / 3 + 1
+
+        # Read h1 matrix elements
+        # Have to transpose the (nb_kq, nb_k) submatrix written by Fortran.
+        #nctkarr_t("h1_matrix_elements", "dp", "two, max_number_of_states, max_number_of_states, number_of_kpoints, number_of_spins")
+        h1mat = self.r.read_value("h1_matrix_elements", cmode="c").transpose(0, 1, 3, 2).copy()
+        qpt = self.r.read_value("qptn")
+        #pertcase = idir + (ipert-1)*3 where ipert=iatom in the interesting cases
+
+        return h1mat, qpt
 
     #def classify_states(self, spin, kpoint, band_range=None, energy_range=None, atol=1e-3):
     #    """
@@ -239,7 +250,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     #            op_waves = waves
 
     #            # Compute <u1|Op|u2>
-    #            cmat = np.empty((nb, nb), dtype=np.complex)
+    #            cmat = np.empty((nb, nb), dtype=complex)
     #            for i in range(nb):
     #                #print("int", waves[i].norm2())
     #                for j in range(nb):
@@ -384,3 +395,38 @@ class WFK_Reader(ElectronsReader):
         var = self.rootgrp.variables["coefficients_of_wavefunctions"]
         value = var[spin, ik, band, :, :npw_k, :]
         return value[..., 0] + 1j*value[..., 1]  # Build complex array
+
+
+
+def get_h1mat_same_qpt(prefix: str):
+    """
+    """
+    pertcase = 1
+    with WfkFile(f"{prefix}{pertcase}.nc") as wfk:
+        structure = wfk.structure
+        natom = len(wfk.structure)
+        natom3 = 3 * natom
+        nband = wfk.r.read_dimvalue("max_number_of_states")
+        nkpt =  wfk.r.read_dimvalue("number_of_kpoints")
+        nsppol = wfk.r.read_dimvalue("number_of_spins")
+        ref_qpt = wfk.r.read_value("qptn")
+
+    g_mnks = np.empty((nsppol, nkpt, natom3, nband, nband), dtype=complex)
+
+    print("pertcase, g2")
+    for ipc, pertcase in enumerate(range(1, 3*natom + 1)):
+        with WfkFile(f"{prefix}{pertcase}.nc") as wfk:
+            assert structure == wfk.structure
+            assert nband == wfk.r.read_dimvalue("max_number_of_states")
+            assert nkpt == wfk.r.read_dimvalue("number_of_kpoints")
+            assert nsppol == wfk.r.read_dimvalue("number_of_spins")
+
+            h1mat, qpt = wfk.get_h1mat()
+            assert np.allclose(qpt, ref_qpt)
+            #g_mnks[:,:,ipc,:,:] = h1mat
+            band = 4
+            g = h1mat[0, 0, band, band]
+            g2 = np.abs(g)**2
+            print(pertcase, f"{g2:.6e}")
+
+    return g_mnks, qpt

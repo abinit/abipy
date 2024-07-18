@@ -24,6 +24,7 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_f
 from abipy.tools.typing import Figure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader, ElectronBandsPlotter, RobotWithEbands
 
+
 class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     File produced by Abinit with the unitary matrices obtained by
@@ -42,20 +43,20 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     @classmethod
     def from_file(cls, filepath: str) -> AbiwanFile:
-        """Initialize the object from a netcdf_ file."""
+        """Initialize the object from a netcdf file."""
         return cls(filepath)
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = AbiwanReader(filepath)
+        self.reader = self.r = AbiwanReader(filepath)
 
         # Number of bands actually used to construct the Wannier functions
-        self.num_bands_spin = self.reader.read_value("num_bands")
+        self.num_bands_spin = self.r.read_value("num_bands")
 
     @lazy_property
     def nwan_spin(self) -> np.ndarray:
         """Number of Wannier functions for each spin."""
-        return self.reader.read_value("nwan")
+        return self.r.read_value("nwan")
 
     @lazy_property
     def mwan(self) -> int:
@@ -63,12 +64,12 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         Max number of Wannier functions over spins, i.e max(nwan_spin)
         Used to dimension arrays.
         """
-        return self.reader.read_dimvalue("mwan")
+        return self.r.read_dimvalue("mwan")
 
     @lazy_property
     def nntot(self) -> int:
         """Number of k-point neighbours."""
-        return int(self.reader.read_value("nntot"))
+        return int(self.r.read_value("nntot"))
 
     @lazy_property
     def bands_in(self) -> np.ndarray:
@@ -76,7 +77,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         [nsppol, mband] logical array. Set to True if (spin, band) is included
         in the calculation. Set by exclude_bands
         """
-        return self.reader.read_value("band_in_int").astype(bool)
+        return self.r.read_value("band_in_int").astype(bool)
 
     @lazy_property
     def lwindow(self) -> np.ndarray:
@@ -84,36 +85,36 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         [nsppol, nkpt, max_num_bands] array. Only if disentanglement.
         True if this band at this k-point lies within the outer window
         """
-        return self.reader.read_value("lwindow_int").astype(bool)
+        return self.r.read_value("lwindow_int").astype(bool)
 
     #@lazy_property
     #def ndimwin(self):
     #    """
     #    [nsppol, nkpt] array giving the number of bands inside the outer window for each k-point and spin.
     #    """
-    #    return self.reader.read_value("ndimwin")
+    #    return self.r.read_value("ndimwin")
 
     @lazy_property
     def have_disentangled_spin(self) -> np.ndarray:
         """[nsppol] bool array. Whether disentanglement has been performed."""
-        #return self.reader.read_value("have_disentangled_spin").astype(bool)
+        #return self.r.read_value("have_disentangled_spin").astype(bool)
         # TODO: Exclude bands
         return self.nwan_spin != self.num_bands_spin
 
     @lazy_property
     def wann_centers(self) -> np.ndarray:
         """[nsppol, mwan, 3] array with Wannier centers in Ang."""
-        return self.reader.read_value("wann_centres")
+        return self.r.read_value("wann_centres")
 
     @lazy_property
     def wann_spreads(self) -> np.ndarray:
         """[nsppol, mwan] array with spreads in Ang^2"""
-        return self.reader.read_value("wann_spreads")
+        return self.r.read_value("wann_spreads")
 
     #@lazy_property
     #def spread_spin(self):
     #    """[nsppol, 3] array with spread in Ang^2"""
-    #    return self.reader.read_value("spread")
+    #    return self.r.read_value("spread")
 
     @lazy_property
     def irvec(self) -> np.ndarray:
@@ -121,7 +122,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         [nrpts, 3] array with the lattice vectors in the Wigner-Seitz cell
         in the basis of the lattice vectors defining the unit cell
         """
-        return self.reader.read_value("irvec")
+        return self.r.read_value("irvec")
 
     @lazy_property
     def ndegen(self) -> np.ndarray:
@@ -129,7 +130,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         [nrpts] array with the degeneracy of each point.
         It will be weighted using 1 / ndegen[ir]
         """
-        return self.reader.read_value("ndegen")
+        return self.r.read_value("ndegen")
 
     @lazy_property
     def params(self) -> dict:
@@ -198,12 +199,12 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     def close(self) -> None:
         """Close file."""
-        self.reader.close()
+        self.r.close()
 
     @lazy_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
-        return self.reader.read_ebands()
+        return self.r.read_ebands()
 
     @property
     def structure(self) -> Structure:
@@ -229,11 +230,11 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         # Read unitary matrices from file.
         # Here be very careful with F --> C because we have to transpose.
         # complex U_matrix[nsppol, nkpt, mwan, mwan]
-        u_matrix = self.reader.read_value("U_matrix", cmode="c")
+        u_matrix = self.r.read_value("U_matrix", cmode="c")
 
         # complex U_matrix_opt[nsppol, mkpt, mwan, mband]
         if np.any(self.have_disentangled_spin):
-            u_matrix_opt = self.reader.read_value("U_matrix_opt", cmode="c")
+            u_matrix_opt = self.r.read_value("U_matrix_opt", cmode="c")
 
         for spin in range(self.nsppol):
             num_wan = self.nwan_spin[spin]
@@ -350,6 +351,16 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                              occfacts, self.ebands.nelect, self.nspinor, self.nspden,
                              smearing=self.ebands.smearing)
 
+    @add_fig_kwargs
+    def plot_with_ebands(self, ebands, **kwargs):
+        """
+        Receiven an ab-initio electronic strucuture, interpolate the energies on the same list of k-points
+        and compare the two.
+        """
+        plotter = self.get_plotter_from_ebands(ebands)
+        linestyle_dict = {"Interpolated": dict(linewidth=0, color="red", marker="o")}
+        return plotter.combiplot(linestyle_dict=linestyle_dict, **kwargs)
+
     def get_plotter_from_ebands(self, ebands: ElectronBands) -> ElectronBandsPlotter:
         """
         Interpolate energies using the k-points given in input |ElectronBands| ebands.
@@ -443,27 +454,12 @@ class HWanR(ElectronInterpolator):
 
         # O_ij(k) = sum_R e^{+ik.R}*O_ij(R)
         j2pi = 2.0j * np.pi
-        """
-        num_wan = self.nwan_spin[spin]
-        hk_ij = np.zeros((num_wan, num_wan), dtype=complex)
-        for ir in range(self.nrpts):
-            jrk = j2pi * np.dot(kpt, self.irvec[ir])
-            hk_ij += self.spin_rmn[spin][ir] * (np.exp(jrk) / self.ndegen[ir])
-        oeigs, _ = np.linalg.eigh(hk_ij)
-        """
-
-        # This is a bit faster.
         jrk = j2pi * np.dot(self.irvec, kpt)
         phases = np.exp(jrk) / self.ndegen
         hk_ij = (self.spin_rmn[spin] * phases[:, None, None]).sum(axis=0)
         oeigs, _ = np.linalg.eigh(hk_ij)
 
         return oeigs
-
-    # TODO
-    #def interpolate_omat(self, omat, kpoints):
-    #def interpolate_sigres(self, sigres):
-    #def interpolate_sigeph(self, sigeph):
 
     @add_fig_kwargs
     def plot(self, ax=None, fontsize=8, yscale="log", **kwargs) -> Figure:
@@ -475,8 +471,6 @@ class HWanR(ElectronInterpolator):
             fontsize: fontsize for legends and titles
             yscale: Define scale for y-axis. Passed to ax.set_yscale
             kwargs: options passed to ``ax.plot``.
-
-        Return: |matplotlib-Figure|
         """
         # Sort R-points by length and build sortmap.
         irs = [ir for ir in enumerate(self.structure.lattice.norm(self.irvec))]
@@ -624,7 +618,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
         diff_str = self.has_different_structures()
         if diff_str: cprint(diff_str, "yellow")
 
-        # Need KpointList object (assume same structures in Robot)
+        # Need KpointList object (assuming same structures in the Robot)
         nc0 = self.abifiles[0]
         if kpoints is None:
             if ngkpt is not None:
@@ -674,6 +668,6 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
         # Mixins
         #nb.cells.extend(self.get_baserobot_code_cells())
-        #nb.cells.extend(self.get_ebands_code_cells())
+        #nb.cells.extend(self.get_ebands_code_cells())wannier90.wout
 
         return self._write_nb_nbpath(nb, nbpath)

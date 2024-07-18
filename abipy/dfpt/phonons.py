@@ -148,8 +148,8 @@ class PhononBands:
             # does not contain all the directions required by AbiPy.
             # So we read NonAnalyticalPh only if we know that all directions are available.
             # The flag has_abipy_non_anal_ph is set at the Fortran level. See e.g ifc_mkphbs
-            if ("non_analytical_directions" in r.rootgrp.variables and
-                "has_abipy_non_anal_ph" in r.rootgrp.variables):
+            if ("non_analytical_directions" in r.rootgrp.variables and "has_abipy_non_anal_ph" in r.rootgrp.variables):
+            #if ("non_analytical_directions" in r.rootgrp.variables):
                 #print("Found non_anal_ph term compatible with AbiPy plotter.")
                 non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
@@ -182,6 +182,9 @@ class PhononBands:
             if obj.endswith(".pickle"):
                 with open(obj, "rb") as fh:
                     return cls.as_phbands(pickle.load(fh))
+
+            #print("Returning PhononBands.from_file(obj)")
+            #return PhononBands.from_file(obj)
 
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
@@ -1084,7 +1087,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @add_fig_kwargs
     def plot(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
-             fontsize=12, **kwargs) -> Figure:
+             points=None, fontsize=12, **kwargs) -> Figure:
         r"""
         Plot the phonon band structure with matplotlib.
 
@@ -1098,6 +1101,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             match_bands: if True the bands will be matched based on the scalar product between the eigenvectors.
             temp: Temperature in Kelvin. If not None, a scatter plot with the Bose-Einstein occupation factor
                 at temperature `temp` is added.
+            points: Marker object with the position and the size of the marker.
+                Used for plotting purpose e.g. QP energies, energy derivatives etc.
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
@@ -1116,6 +1121,9 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         # Plot the phonon branches.
         self.plot_ax(ax, branch_range, units=units, match_bands=match_bands, **kwargs)
+
+        if points is not None:
+            ax.scatter(points.x, np.array(points.y), s=np.abs(points.s), marker="o", c="b")
 
         if temp is not None:
             # Scatter plot with Bose-Einstein occupation factors for T = temp

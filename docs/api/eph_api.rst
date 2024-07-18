@@ -77,6 +77,16 @@ eph Package
    :undoc-members:
    :show-inheritance:
 
+
+:mod:`varpeq` Module
+---------------------
+
+.. automodule:: abipy.eph.varpeq
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 :mod:`v1sym` Module
 -------------------
 

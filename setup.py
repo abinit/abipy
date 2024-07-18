@@ -163,8 +163,8 @@ install_requires = [
     "chart-studio",
     "click",
     "phonopy",
-    "custodian",
     "ase",
+    #"custodian",
     #pydantic,
     #panel,
 ]

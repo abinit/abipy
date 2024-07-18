@@ -834,9 +834,9 @@ class ConvergenceAnalyzer:
                 ytol_string = str(ytol)
                 #print("ytol_string:", ytol_string, "pre_str:", pre_str, "ytol_string:", ytol_string, "xx:", xx)
                 if xx is not None:
-                    s = "x: %.1f for $\Delta$: %s" % (xx, ytol_string)
+                    s = r"x: %.1f for $\Delta$: %s" % (xx, ytol_string)
                 else:
-                    s = "x: ?? for $\Delta$: %s" % (ytol_string)
+                    s = r"x: ?? for $\Delta$: %s" % (ytol_string)
                 title += pre_str + s
 
             ax2.set_title(title, fontsize=fontsize)

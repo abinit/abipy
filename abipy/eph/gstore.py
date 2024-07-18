@@ -15,8 +15,10 @@ from monty.string import marquee #, list_strings
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.structure import Structure
+from abipy.core.kpoints import kpoints_indices
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
 from abipy.tools.typing import PathLike
+from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
 #from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
 #    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
 #from abipy.tools import duck
@@ -28,14 +30,15 @@ from abipy.eph.common import BaseEphReader
 
 def _allclose(arr_name, array1, array2, verbose: int, rtol=1e-5, atol=1e-8) -> bool:
     """
+    Wraps numpy allclose.
     """
     if np.allclose(array1, array2, rtol=rtol, atol=atol):
         if verbose:
-            cprint(f"The arrays for {arr_name} are almost equal within the given tolerance.", color="green")
+            cprint(f"The arrays for {arr_name} are almost equal within the tolerances {rtol=}, {atol=}", color="green")
         return True
 
     if verbose:
-        cprint(f"The arrays for {arr_name} are not almost equal within the given tolerance.", color="red")
+        cprint(f"The arrays for {arr_name} are not almost equal within the tolerances {rtol=}, {atol=}", color="red")
 
     #differing_indices = np.where(~np.isclose(array1, array2, atol=atol))
     #for index in zip(*differing_indices):
@@ -186,7 +189,7 @@ class Gqk:
 
         # Read e-ph matrix elements
         # nctkarr_t("gvals", "dp", "gstore_cplex, nb_kq, nb_k, natom3, glob_nk, glob_nq)
-        # Have to transpose (nb_kq, nb_k) submatrix written by Fortran.
+        # Have to transpose the (nb_kq, nb_k) submatrix written by Fortran.
         g2, gvals = None, None
         if cplex == 1:
             g2 = ncr.read_value("gvals", path=path).transpose(0, 1, 2, 4, 3, 5).copy()
@@ -197,13 +200,13 @@ class Gqk:
 
         vk_cart_ibz, vkmat_cart_ibz = None, None
         if ncr.with_vk == 1:
-            # NCF_CHECK(nctk_def_arrays(spin_ncid, nctkarr_t("vk_cart_ibz", "dp", "three, nb, gstore_nkibz")))
+            # nctk_def_arrays(spin_ncid, nctkarr_t("vk_cart_ibz", "dp", "three, nb, gstore_nkibz"))
             vk_cart_ibz = ncr.read_value("vk_cart_ibz", path=path)
 
         if ncr.with_vk == 2:
             # Full (nb x nb) matrix.
             # Have to transpose (nb_kq, nb_k) submatrix written by Fortran.
-            # NCF_CHECK(nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb, nb, gstore_nkibz")))
+            # nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb, nb, gstore_nkibz"))
             vkmat_cart_ibz = ncr.read_value("vkmat_cart_ibz", path=path).transpose(0, 1, 3, 2, 4).copy()
             vkmat_cart_ibz = vkmat_cart_ibz[...,0] + 1j*vkmat_cart_ibz[...,1]
 
@@ -221,7 +224,7 @@ class Gqk:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
 
-        app(marquee(f"Gqk for {self.spin=}", mark="="))
+        app(marquee(f"Gqk for spin: {self.spin}", mark="="))
         app(f"cplex: {self.cplex}")
         app(f"nb: {self.nb}")
         app(f"bstart: {self.bstart}")
@@ -230,55 +233,92 @@ class Gqk:
 
         return "\n".join(lines)
 
+    @property
+    def structure(self):
+        return self.gstore.structure
+
     def get_dataframe(self, what: str = "g2") -> pd.DataFrame:
         """
-        Build and return a dataframe with all the |g(k+q,k)|^2 if what == "g2" or
+        Build and return a dataframe with all the |g(k,q)|^2 if what == "g2" or
         all |v_nk|^2 if what == "v2".
         """
         if what == "g2":
             g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
-            shape, ndim = g2.shape, g2.ndim
-            # Flatten the array, get the indices and combine indices and values into a DataFrame
-            indices = np.indices(shape).reshape(ndim, -1).T
-            df = pd.DataFrame(indices, columns=["iq", "ik", "imode", "m_kq", "n_k"])
-            df["g2"] = g2.flatten()
-            #df["m_kq"] += bstart_mkq
-            #df["n_k"] += bstart_nk
+            df = nparr_to_df("g2", g2, ["iq", "ik", "imode", "m_kq", "n_k"])
 
         elif what == "v2":
             if self.vk_cart_ibz is None:
                 raise ValueError("vk_cart_ibz is not available in GSTORE!")
-
             # Compute the squared norm of each vector
             v2 = np.sum(self.vk_cart_ibz ** 2, axis=2)
-            shape, ndim = v2.shape, v2.ndim
-            # Flatten the array, get the indices and combine indices and values into a DataFrame
-            indices = np.indices(shape).reshape(ndim, -1).T
-            df = pd.DataFrame(indices, columns=["ik", "n_k"])
-            df["v2"] = v2.flatten()
-            #df["n_k"] += bstart_nk
+            df = nparr_to_df("v2", v2, ["ik", "n_k"])
 
         else:
             raise ValueError(f"Invalid {what=}")
 
+        #df["m_kq"] += bstart_mkq
+        #df["n_k"] += bstart_nk
+
         return df
 
-    def get_gdf_at_qpt_kpt(self, qpoint, kpoint) -> pd.DataFrame:
+    def get_g2q_interpolator_kpoint(self, kpoint, method="linear", check_mesh=1):
         """
-        Build and return a dataframe with the |g(k+q,k)|^2 for the given (qpoint, kpoint) pair.
         """
-        spin = self.spin
+        r = self.gstore.r
 
-        # Find the internal indices of (qpoint, kpoint)
-        iq_g, qpoint = self.gstore.r.find_iq_glob_qpoint(qpoint, spin)
-        ik_g, kpoint = self.gstore.r.find_ik_glob_kpoint(kpoint, spin)
+        # Find the index of the kpoint.
+        ik_g, kpoint = r.find_ik_glob_kpoint(kpoint, self.spin)
 
+        # Compute indices of qpoints in the ngqpt mesh.
+        ngqpt, shifts = r.ngqpt, [0, 0, 0]
+        q_indices = kpoints_indices(r.qbz, ngqpt, check_mesh=check_mesh)
+
+        natom3 = 3 * len(self.structure)
+        nb = self.nb
+        nx, ny, nz = ngqpt
+
+        # (glob_nq, glob_nk, natom3, m_kq, n_k)
         g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
-        g2_slice = g2[iq_g, ik_g]
-        shape, ndim = g2_slice.shape, g2_slice.ndim
-        indices = np.indices(shape).reshape(ndim, -1).T
-        df = pd.DataFrame(indices, columns=["imode", "m_kq", "n_k"])
-        df["g2"] = g2_slice.flatten()
+        g2_qph_mn = g2[:,ik_g]
+
+        # Insert g2 in g2_grid
+        g2_grid = np.empty((nb, nb, natom3, nx, ny, nz))
+        for nu in range(natom3):
+            for g2_mn, q_inds in zip(g2_qph_mn[:,nu], q_indices):
+                ix, iy, iz = q_inds
+                g2_grid[:, :, nu, ix, iy, iz] = g2_mn
+
+        return BzRegularGridInterpolator(self.structure, shifts, g2_grid, method=method)
+
+    def get_g_qpt_kpt(self, qpoint, kpoint, what) -> np.ndarray:
+        """
+        Return numpy array with e-ph matrix elements the for the given (qpoint, kpoint) pair.
+
+        Args:
+            what="g2" for |g(k,q)|^2, "g" for g(k,q)
+        """
+        # Find the internal indices of (qpoint, kpoint)
+        iq_g, qpoint = self.gstore.r.find_iq_glob_qpoint(qpoint, self.spin)
+        ik_g, kpoint = self.gstore.r.find_ik_glob_kpoint(kpoint, self.spin)
+        if what == "g2":
+            g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
+            return g2[iq_g, ik_g]
+        if what == "g":
+            if self.cplex != 2:
+                raise ValueError("Gstore file stores g2 instead of complex g")
+            return self.gvals[iq_g, ik_g]
+
+        raise ValueError(f"Invalid {what=}")
+
+    def get_gdf_at_qpt_kpt(self, qpoint, kpoint, what="g2") -> pd.DataFrame:
+        """
+        Build and return a dataframe with the |g(k,q)|^2 for the given (qpoint, kpoint) pair.
+
+        Args:
+            what="g2" for |g(k,q)|^2, "g" for g(k,q)
+        """
+        g2_slice = self.get_g_qpt_kpt(qpoint, kpoint, what)
+        df = nparr_to_df(what, g2_slice, ["imode", "m_kq", "n_k"])
         #df["m_kq"] += bstart_mkq
         #df["n_k"] += bstart_nk
 
@@ -354,7 +394,9 @@ class GstoreReader(BaseEphReader):
         self.kfilter = self.read_string("gstore_kfilter")
         self.gmode = self.read_string("gstore_gmode")
 
+        # Note conversion Fortran --> C for the isym index.
         self.brange_spin = self.read_value("gstore_brange_spin")
+        self.brange_spin[:,0] -= 1
         self.erange_spin = self.read_value("gstore_erange_spin")
         # Total number of k/q points for each spin after filtering (if any)
         self.glob_spin_nq = self.read_value("gstore_glob_nq_spin")
@@ -367,6 +409,7 @@ class GstoreReader(BaseEphReader):
         # K-points and q-points in the BZ
         self.kbz = self.read_value("gstore_kbz")
         self.qbz = self.read_value("gstore_qbz")
+        self.ngqpt = self.read_value("gstore_ngqpt")
 
         # Mapping BZ --> IBZ. Note conversion Fortran --> C for the isym index.
         # nctkarr_t("gstore_kbz2ibz", "i", "six, gstore_nkbz"), &
@@ -382,27 +425,30 @@ class GstoreReader(BaseEphReader):
         # nctkarr_t("gstore_kglob2bz", "i", "gstore_max_nk, number_of_spins") &
         self.qglob2bz = self.read_value("gstore_qglob2bz")
         self.qglob2bz -= 1
-
         self.kglob2bz = self.read_value("gstore_kglob2bz")
         self.kglob2bz -= 1
 
     def find_iq_glob_qpoint(self, qpoint, spin: int):
-        """Find the internal index of the qpoint needed to access the gvals array."""
-        qpoint = np.array(qpoint)
+        """
+        Find the internal index of the qpoint needed to access the gvals array.
+        """
+        qpoint = np.asarray(qpoint)
         for iq_g, iq_bz in enumerate(self.qglob2bz[spin]):
             if np.allclose(qpoint, self.qbz[iq_bz]):
+                #print(f"Found {qpoint = } with index {iq_g = }")
                 return iq_g, qpoint
 
-        raise ValueError(f"Cannot find {qpoint=} in GSTORE.nc")
+        raise ValueError(f"Cannot find {qpoint = } in GSTORE.nc")
 
     def find_ik_glob_kpoint(self, kpoint, spin: int):
         """Find the internal indices of the kpoint needed to access the gvals array."""
-        kpoint = np.array(kpoint)
+        kpoint = np.asarray(kpoint)
         for ik_g, ik_bz in enumerate(self.kglob2bz[spin]):
             if np.allclose(kpoint, self.kbz[ik_bz]):
+                #print(f"Found {kpoint = } with index {ik_g = }")
                 return ik_g, kpoint
 
-        raise ValueError(f"Cannot find {kpoint=} in GSTORE.nc")
+        raise ValueError(f"Cannot find {kpoint = } in GSTORE.nc")
 
     # TODO: This fix to read groups should be imported in pymatgen.
     @lazy_property
@@ -420,7 +466,7 @@ class GstoreRobot(Robot, RobotWithEbands):
 
         robot = GstoreRobot.from_files([
             "t04o_GSTORE.nc",
-            "foo_GSTORE.nc",
+            "t05o_GSTORE.nc",
             ])
 
         robot.neq(verbose=1)
@@ -430,27 +476,19 @@ class GstoreRobot(Robot, RobotWithEbands):
     """
     EXT = "GSTORE"
 
-    def neq(self, verbose: int, ref_basename: str | None) -> int:
+    def neq(self, ref_basename: str | None = None, verbose: int = 0) -> int:
         """
         Compare all GSTORE.nc files stored in the GstoreRobot
         """
-        exc_list = []
-
         # Find reference gstore. By default the first file in the robot is used.
-        ref_gstore = self.abifiles[0]
-        if ref_basename is not None:
-            for i, gstore in enumerate(self.abifiles):
-                if gstore.basename == ref_basename:
-                    ref_gstore = gstore
-                    break
-            else:
-                raise ValueError(f"Cannot find {ref_basename=}")
+        ref_gstore = self._get_ref_abifile_from_basename(ref_basename)
 
+        exc_list = []
         ierr = 0
         for other_gstore in self.abifiles:
             if ref_gstore.filepath == other_gstore.filepath:
                 continue
-            print("Comparing ", ref_gstore.basename, " with: ", other_gstore.basename)
+            print("Comparing: ", ref_gstore.basename, " with: ", other_gstore.basename)
             try:
                 ierr += self._neq_two_gstores(ref_gstore, other_gstore, verbose)
                 cprint("EQUAL", color="green")
@@ -474,30 +512,14 @@ class GstoreRobot(Robot, RobotWithEbands):
                      ]
 
         for aname in aname_list:
-            # Get attributes in gstore first, then in gstore.r, else raise.
-            if hasattr(gstore1, aname):
-                val1, val2 = getattr(gstore1, aname), getattr(gstore2, aname)
-            elif hasattr(gstore1.r, aname):
-                val1, val2 = getattr(gstore1.r, aname), getattr(gstore2.r, aname)
-            else:
-                raise AttributeError(f"Cannot find attribute `{aname=}` neither in gstore not in gstore.r")
-
-           # Now compare val1 and val2 taking into account the type.
-            if isinstance(val1, (str, int, float, Structure)):
-                eq = val1 == val2
-            elif isinstance(val1, np.ndarray):
-                eq = np.allclose(val1, val2)
-            else:
-                raise TypeError(f"Don't know how to handle comparison for type: {type(val1)}")
-
-            if not eq:
-                raise RuntimeError(f"Different values of {aname=}, {val1=}, {val2=}")
+            self._compare_attr_name(aname, gstore1, gstore2)
 
         # Now compare the gkq objects for each spin.
         ierr = 0
         for spin in range(gstore1.nsppol):
             gqk1, gqk2 = gstore1.gqk_spin[spin], gstore2.gqk_spin[spin]
             ierr += gqk1.neq(gqk2, verbose)
+
         return ierr
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -505,8 +527,6 @@ class GstoreRobot(Robot, RobotWithEbands):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        #yield self.plot_lattice_convergence(show=False)
-        #yield self.plot_gsr_convergence(show=False)
         #for fig in self.get_ebands_plotter().yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None) -> str:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import json
-import os, shutil 
+import os, shutil
 import pandas as pd
 
 from abipy.core.structure import Structure
@@ -11,7 +11,10 @@ import matplotlib.pyplot as plt
 #from mpl_toolkits.mplot3d import Axes3D
 import math
 from mpmath import coth
-from scipy.integrate import simps
+try:
+    from scipy.integrate import simpson as simps
+except ImportError:
+    from scipy.integrate import simps
 #from scipy.special import factorial
 from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs,get_axarray_fig_plt
 import abipy.core.abinit_units as abu
@@ -87,16 +90,16 @@ class DeltaSCF():
 
     @classmethod
     def from_four_points_file(cls,filepaths):
-        """ 
+        """
             Create the object from a list of netcdf files in the order (Ag,Agstar,Aestar,Ae).
-            Ag: Ground state at relaxed ground state atomic positions. 
+            Ag: Ground state at relaxed ground state atomic positions.
             Agstar: Excited state at relaxed ground state atomic positions.
             Aestar: Excited state at relaxed excited state atomic positions.
             Ae: Ground state at relaxed excited state atomic positions.
-    
+
         Args:
             filepaths: list of netcdf files in the order [Ag,Agstar,Aestar,Ae]
-        
+
         Returns:
             A DeltaSCF object
 
@@ -187,7 +190,7 @@ class DeltaSCF():
         Difference between gs and ex structures in Angström, (n_atoms,3) shape
         """
         return (self.structureex.cart_coords - self.structuregs.cart_coords)
-    
+
     def diff_pos_mass_weighted(self):
         """
         Difference between gs and ex structures in Angström, weighted by the squared atomic masses (n_atoms,3) shape
@@ -220,7 +223,7 @@ class DeltaSCF():
     def get_dataframe_atoms(self,defect_symbol):
         """
         Panda dataframe with relevant properties per atom.
-        Units : [ (mass,amu), (deltaR,Angstrom), (DeltaQ^2,amu.Angstrom^2), (DeltaF,eV/Angstrom) ] 
+        Units : [ (mass,amu), (deltaR,Angstrom), (DeltaQ^2,amu.Angstrom^2), (DeltaF,eV/Angstrom) ]
         """
         list_of_dict=[]
         for index,atom in enumerate(self.structuregs):
@@ -400,14 +403,14 @@ class DeltaSCF():
         """
         Compute the emission lineshape following the effective phonon 1D-CCM at T=0K.
         See eq. (9) of  https://doi.org/10.1002/adom.202100649.
-        
+
         Args:
             energy_range:  Energy range at which the intensities are computed, ex : [0.5,5]
             max_m: Maximal vibrational state m considered
             phonon_width: fwhm of each phonon peak, in eV
             with_omega_cube: Considered or not the omega^3 dependence of the intensity
             normalized: Normalisation procedure. 'Area' if Area under the curve = 1. 'Sum' if maximum of the curve = 1.
-                       
+
         Returns:
             E_x = Energies at which the intensities are computed
             I   = Intensities
@@ -494,17 +497,17 @@ class DeltaSCF():
         df=pd.DataFrame(rows,index=index)
 
         return df
-    
+
     def draw_displacements_vesta(self,in_path, mass_weighted = False,
                  scale_vector=20,width_vector=0.3,color_vector=[255,0,0],centered=True,
                  factor_keep_vectors=0.1,
                  out_path="VESTA_FILES",out_filename="gs_ex_relaxation"):
         """
-        Draw the ground state to excited state atomic relaxation on a vesta structure. 
+        Draw the ground state to excited state atomic relaxation on a vesta structure.
 
         Args:
-            in_path : path where the initial .vesta structure in stored, should correspond to the ground state relaxed structure. 
-            mass_weighted : If True, weight the displacements by the atomic masses. Draw the \Delta Q in that case.  
+            in_path : path where the initial .vesta structure in stored, should correspond to the ground state relaxed structure.
+            mass_weighted : If True, weight the displacements by the atomic masses. Draw the \Delta Q in that case.
             scale_vector : scaling factor of the vector modulus
             width_vector : vector width
             color_vector : color in rgb format
@@ -517,10 +520,10 @@ class DeltaSCF():
         natoms = len(self.structure_gs())
 
 
-        if os.path.isdir(out_path): 
+        if os.path.isdir(out_path):
             shutil.rmtree(out_path)
             os.mkdir(out_path)
-        else : 
+        else :
             os.mkdir(out_path)
 
         path=out_path
@@ -544,15 +547,15 @@ class DeltaSCF():
                 towrite += '%10.5f' %(displacements[iatom][2] * (scale_vector))
                 towrite += '\n'
                 towrite += '%5d' %(iatom + 1)  +  ' 0 0 0 0\n  0 0 0 0 0\n'
-    
-        towrite += '0 0 0 0 0\n' 
+
+        towrite += '0 0 0 0 0\n'
         towrite += 'VECTT\n'
 
         for atom in range(natoms) :
             towrite += '%5d' %(atom + 1)
             towrite += f'  {width_vector} {color_vector[0]}   {color_vector[1]}   {color_vector[2]} 0\n'
 
-        towrite += '0 0 0 0 0\n' 
+        towrite += '0 0 0 0 0\n'
         towrite += 'SPLAN'
         towrite += vesta.split('SPLAN')[1]
         towrite += 'VECTS 1.00000'
@@ -574,12 +577,10 @@ class DeltaSCF():
 
             with open(filename, 'w') as file:
                 file.write(updated_contents)
-                
+
         print(f"Vesta files created and stored in : \n {os.getcwd()}/{out_path}")
 
-        return 
-     
-
+        return
 
     @add_fig_kwargs
     def displacements_visu(self,a_g=10,**kwargs):

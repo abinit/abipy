@@ -1,18 +1,18 @@
 """Tests for lumi.lineshape module"""
 import abipy.data as abidata
-import phonopy 
+import phonopy
 
+from pymatgen.io.phonopy import get_pmg_structure
 from abipy.core.testing import AbipyTest
 from abipy.lumi.deltaSCF import DeltaSCF
 from abipy.embedding.embedding_ifc import Embedded_phonons
 from abipy.dfpt.ddb import DdbFile
 from abipy.lumi.lineshape import Lineshape
-from pymatgen.io.phonopy import get_pmg_structure
 from abipy.dfpt.converters import ddb_ucell_to_phonopy_supercell
 from abipy.core.kpoints import kmesh_from_mpdivs
 
 class DeltaSCFTest(AbipyTest):
-    
+
     def test_deltaSCF(self):
         """Testing DeltaSCF"""
 
@@ -20,7 +20,7 @@ class DeltaSCFTest(AbipyTest):
                                                   abidata.ref_file("A_g_starout_GSR.nc"),
                                                   abidata.ref_file("A_e_starout_GSR.nc"),
                                                   abidata.ref_file("A_e_out_GSR.nc"),])
-        
+
         # open initial DDB file
         ddb_pristine = DdbFile(abidata.ref_file("refs/embedding_ifc/SrCl2_DDB"))
 
@@ -60,10 +60,10 @@ class DeltaSCFTest(AbipyTest):
                             phonopy_defect=ph_defect,
                             structure_defect_wo_relax=structure_defect_wo_relax,
                             main_defect_coords_in_pristine=main_defect_coords_in_pristine,
-                            main_defect_coords_in_defect=main_defect_coords_in_defect, 
-                            substitutions_list=[[idefect_pristine_stru,"Eu"]], 
-                            vacancies_list=None,       
-                            interstitial_list=None,  
+                            main_defect_coords_in_defect=main_defect_coords_in_defect,
+                            substitutions_list=[[idefect_pristine_stru,"Eu"]],
+                            vacancies_list=None,
+                            interstitial_list=None,
                             cut_off_mode='auto',
                             rc_2=0,
                             rc_1=100000,
