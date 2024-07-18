@@ -358,6 +358,7 @@ class Structure(pmg_Structure, NotebookWriter):
         from abipy.core import restapi
         with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
             new = rest.get_structure_by_material_id(material_id, final=final)
+            #new = rest.get_structure_by_material_id(material_id)
             return cls.as_structure(new)
 
     @classmethod
@@ -1801,7 +1802,10 @@ class Structure(pmg_Structure, NotebookWriter):
             # Don't call super for poscar because we need more significant_figures to
             # avoid problems with abinit space group routines where the default numerical tolerance is tight.
             from pymatgen.io.vasp import Poscar
-            return Poscar(self).get_string(significant_figures=12)
+            try:
+                return Poscar(self).get_str(significant_figures=12)
+            except AttributeError:
+                return Poscar(self).get_string(significant_figures=12)
         else:
             return super().to(fmt=fmt, **kwargs)
 

@@ -170,8 +170,7 @@ def get_ax3d_fig_plt(ax=None, **kwargs):
 
 
 def get_axarray_fig_plt(
-    ax_array, nrows=1, ncols=1, sharex=False, sharey=False, squeeze=True, subplot_kw=None, gridspec_kw=None, **fig_kw
-):
+    ax_array, nrows=1, ncols=1, sharex=False, sharey=False, squeeze=True, subplot_kw=None, gridspec_kw=None, **fig_kw):
     """
     Helper function used in plot functions that accept an optional array of Axes
     as argument. If ax_array is None, we build the `matplotlib` figure and
@@ -2668,7 +2667,10 @@ def add_colorscale_dropwdowns(fig):
     return fig
 
 def mpl_to_ply(fig, latex=False):
-    # Nasty workaround for plotly latex rendering in legend/breaking exception
+    """Nasty workaround for plotly latex rendering in legend/breaking exception"""
+    if is_plotly_figure(fig):
+        return fig
+
     def parse_latex(label):
         # Remove latex symobols
         new_label = label.replace("$", "")

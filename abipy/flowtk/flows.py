@@ -2498,7 +2498,11 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         def any2bytes(s):
             """Convert string or number to memory in bytes."""
             if is_string(s):
-                return int(Memory.from_string(s).to("b"))
+                # Support for deprecated pymatgen API
+                try:
+                    mem = int(Memory.from_string(s).to("b"))
+                except:
+                    mem = int(Memory.from_str(s).to("b"))
             else:
                 return int(s)
 

@@ -9,6 +9,7 @@ import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_matplotlib
 
+import pytest
 
 def ion_relaxation(tvars, ntime=50):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
@@ -44,7 +45,7 @@ def ion_relaxation(tvars, ntime=50):
 
     return inp
 
-
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_atomic_relaxation(fwp, tvars):
     """Test atomic relaxation with automatic restart."""
     # Build the flow

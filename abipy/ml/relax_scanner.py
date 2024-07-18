@@ -338,15 +338,15 @@ def main():
     ediff_tol, dist_tol = (0, 1e-3), (0.5, 3.5)   # For ranges.
 
     # Find pairs and save them to file
-    rsa.pairs_enediff_dist(ediff_tol, dist_tol, neb_method=None)
+    rsa.pairs_enediff_dist(ediff_tol, dist_tol, neb_method=None, nprocs=-1)
 
     # Find pairs and compute static transition path.
     # NO NEB HERE, just linear interpolation between final and end points
     # followed by total energy calculations.
-    #rsa.pairs_enediff_dist(ediff_tol, dist_tol, neb_method="static")
+    #rsa.pairs_enediff_dist(ediff_tol, dist_tol, neb_method="static", nprocs=-1)
 
     # Find pairs and compute transition path with NEB.
-    #rsa.pairs_enediff_dist(ediff_tol, dist_tol, neb_method="aseneb")
+    #rsa.pairs_enediff_dist(ediff_tol, dist_tol, neb_method="aseneb", nprocs=-1)
 """).add_main()
 
         ntasks = self.nx * self.ny * self.nz
@@ -634,7 +634,7 @@ class RelaxScannerAnalyzer:
                 directory.mkdir()
                 atoms = initial_atoms if ip == 0 else final_atoms
                 write_vasp(directory / "POSCAR", atoms, label=None)
-                shutil.copyfile(self.jobsh_path, directory / "job.sh")
+                #shutil.copyfile(self.jobsh_path, directory / "job.sh")
                 (directory / "INCAR").symlink_to(self.incar_path)
                 (directory / "KPOINTS").symlink_to(self.kpoints_path)
                 (directory / "POTCAR").symlink_to(self.potcar_path)

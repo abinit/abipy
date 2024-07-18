@@ -215,11 +215,11 @@ class Hardware:
 
         # Convert memory to megabytes.
         m = str(kwargs.pop("mem_per_node"))
+        # Support for old pymatgen API
         try:
             self.mem_per_node = int(Memory.from_string(m).to("Mb"))
-        except AttributeError:
+        except:
             self.mem_per_node = int(Memory.from_str(m).to("Mb"))
-
 
         if self.mem_per_node <= 0 or self.sockets_per_node <= 0 or self.cores_per_socket <= 0:
             raise ValueError("invalid parameters: %s" % kwargs)
@@ -697,7 +697,7 @@ limits:
         self.qnodes = d.pop("qnodes", "standard")
         self.mail_type = d.pop("mail_type", "")
         self.mail_user = d.pop("mail_user", "")
-        
+
         if self.qnodes not in ["standard", "shared", "exclusive"]:
             raise ValueError("Nodes must be either in standard, shared or exclusive mode "
                              "while qnodes parameter was {}".format(self.qnodes))

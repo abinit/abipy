@@ -482,7 +482,14 @@ class OpticReader(ElectronsReader):
         od = OrderedDict([(comp, OrderedDict()) for comp in components])
         for chiname in ALL_CHIS[key]["terms"]:
             #print("About to read:", chiname)
-            var = self.read_variable(chiname)
+
+            try:
+                var = self.read_variable(chiname)
+            except self.Error as exc:
+                # This to support new terms added ina shg
+                if key != "shg":
+                    raise exc
+
             for comp in components:
                 try:
                     ijkp = self.computed_components[key].index(comp)
