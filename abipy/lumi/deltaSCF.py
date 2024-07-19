@@ -433,7 +433,7 @@ class DeltaSCF():
             A=A*E_x**3
 
         if normalized=="Area":
-            C = 1 / (simps(A, E_x))
+            C = 1 / (simps(y=A, x=E_x))
         if normalized=="Sum":
             C=1/(max(A))
 

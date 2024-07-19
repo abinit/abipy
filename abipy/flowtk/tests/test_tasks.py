@@ -28,7 +28,7 @@ qadapters:
         num_nodes: 10
         sockets_per_node: 1
         cores_per_socket: 2
-        mem_per_node: 4 Gb
+        mem_per_node: 4 GB
       job:
         modules:
             - intel/compilerpro/13.0.1.117

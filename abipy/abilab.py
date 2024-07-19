@@ -544,7 +544,7 @@ qadapters:
          num_nodes: 1
          sockets_per_node: 1
          cores_per_socket: 2
-         mem_per_node: 4 Gb
+         mem_per_node: 4 GB
 """
 
     # Write configuration files.

@@ -65,7 +65,7 @@ hardware:
    num_nodes: 3
    sockets_per_node: 2
    cores_per_socket: 4
-   mem_per_node: 8 Gb
+   mem_per_node: 8 GB
 """)
 
     def test_base(self):
@@ -123,7 +123,7 @@ hardware:
                 aequal(new_script, script)
 
             # Test can_run and distribute
-            # The hardware has num_nodes=3, sockets_per_node=2, cores_per_socket=4, mem_per_node="8 Gb"
+            # The hardware has num_nodes=3, sockets_per_node=2, cores_per_socket=4, mem_per_node="8 GB"
             afalse(qad.can_run_pconf(ParalConf(mpi_ncpus=hw.num_cores+1, omp_ncpus=1, mem_per_cpu=0.1)))
             afalse(qad.can_run_pconf(ParalConf(mpi_ncpus=4, omp_ncpus=9, mem_per_cpu=0.1)))
             afalse(qad.can_run_pconf(ParalConf(mpi_ncpus=4, omp_ncpus=1, mem_per_cpu=10 * giga)))
@@ -192,7 +192,7 @@ hardware:
     num_nodes: 1
     sockets_per_node: 1
     cores_per_socket: 1
-    mem_per_node: 4 Gb
+    mem_per_node: 4 GB
 """)
     def test_methods(self):
         qad = make_qadapter(**self.QDICT)
@@ -257,7 +257,7 @@ hardware:
    num_nodes: 2
    sockets_per_node: 2
    cores_per_socket: 4
-   mem_per_node: 8 Gb
+   mem_per_node: 8 GB
 """)
 
     def test_methods(self):
@@ -342,7 +342,7 @@ hardware:
     num_nodes: 100
     sockets_per_node: 2
     cores_per_socket: 4
-    mem_per_node: 8 Gb""")
+    mem_per_node: 8 GB""")
     QDICT_SHARED = safe_load("""\
 priority: 1
 queue:
@@ -363,7 +363,7 @@ hardware:
     num_nodes: 100
     sockets_per_node: 2
     cores_per_socket: 12
-    mem_per_node: 48000 Mb""")
+    mem_per_node: 48000 MB""")
     QDICT_EXCLUSIVE = safe_load("""\
 priority: 1
 queue:
@@ -384,7 +384,7 @@ hardware:
     num_nodes: 100
     sockets_per_node: 2
     cores_per_socket: 12
-    mem_per_node: 48000 Mb""")
+    mem_per_node: 48000 MB""")
 
     def test_methods(self):
         self.maxDiff = None

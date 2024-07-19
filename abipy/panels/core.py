@@ -1566,7 +1566,7 @@ class BaseRobotPanel(AbipyParameterized):
     def __init__(self, robot, **params):
         self.robot = robot
         self.compare_params_btn = pnw.Button(name="Compare structures", button_type='primary')
-        self.transpose_params = pnw.Checkbox(name='Transpose table', default=True)
+        self.transpose_params = pnw.Checkbox(name='Transpose table', value=True)
 
         super().__init__(**params)
 

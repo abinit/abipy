@@ -215,11 +215,13 @@ class Hardware:
 
         # Convert memory to megabytes.
         m = str(kwargs.pop("mem_per_node"))
+        # Convert to upper case for compatibility with pymatgen
+        m = m.upper()
         # Support for old pymatgen API
         try:
-            self.mem_per_node = int(Memory.from_string(m).to("Mb"))
+            self.mem_per_node = int(Memory.from_string(m).to("MB"))
         except:
-            self.mem_per_node = int(Memory.from_str(m).to("Mb"))
+            self.mem_per_node = int(Memory.from_str(m).to("MB"))
 
         if self.mem_per_node <= 0 or self.sockets_per_node <= 0 or self.cores_per_socket <= 0:
             raise ValueError("invalid parameters: %s" % kwargs)
@@ -262,7 +264,7 @@ class Hardware:
         return {'num_nodes': self.num_nodes,
                 'sockets_per_node': self.sockets_per_node,
                 'cores_per_socket': self.cores_per_socket,
-                'mem_per_node': str(Memory(val=self.mem_per_node, unit='Mb'))}
+                'mem_per_node': str(Memory(val=self.mem_per_node, unit='MB'))}
 
     @classmethod
     def from_dict(cls, d: dict) -> Hardware:
@@ -439,9 +441,9 @@ limits:
                              # it's the limit beyond which the scheduler will not accept the job (MANDATORY).
     hint_cores:              # The limit used in the initial setup of jobs.
                              # Fix_Critical method may increase this number until max_cores is reached
-    min_mem_per_proc:        # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
+    min_mem_per_proc:        # Minimum memory per MPI process in MB, units can be specified e.g. 1.4 GB
                              # (DEFAULT: hardware.mem_per_core)
-    max_mem_per_proc:        # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
+    max_mem_per_proc:        # Maximum memory per MPI process in MB, units can be specified e.g. `1.4GB`
                              # (DEFAULT: hardware.mem_per_node)
     timelimit:               # Initial time-limit. Accepts time according to slurm-syntax i.e:
                              # "days-hours" or "days-hours:minutes" or "days-hours:minutes:seconds" or
@@ -464,7 +466,7 @@ limits:
                              #
                              #     limits_for_task_class: {
                              #        NscfTask: {min_cores: 1, max_cores: 10},
-                             #        KerangeTask: {min_cores: 1, max_cores: 1, max_mem_per_proc: 1 Gb},
+                             #        KerangeTask: {min_cores: 1, max_cores: 1, max_mem_per_proc: 1 GB},
                              #     }
 """
 
@@ -901,7 +903,7 @@ limits:
     @property
     def total_mem(self) -> Memory:
         """Total memory required by the job in megabytes."""
-        return Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "Mb")
+        return Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "MB")
 
     @abc.abstractmethod
     def cancel(self, job_id: int) -> int:

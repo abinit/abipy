@@ -132,7 +132,12 @@ def timelimit_parser(s):
 def any2mb(s):
     """Convert string or number to memory in megabytes."""
     if is_string(s):
-        return int(Memory.from_str(s).to("Mb"))
+        s = s.upper()  # Convert in upper case for pymatgen compatibility
+        try:
+            mem = int(Memory.from_string(s).to("MB"))
+        except Exception:
+            mem = int(Memory.from_str(s).to("MB"))
+        return mem
     else:
         return int(s)
 

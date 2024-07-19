@@ -333,7 +333,7 @@ class Lineshape():
         """
 
         E_x, A = self.A_hw(T, lamb, w, model)
-        C = 1 / (simps(A * E_x ** 3, E_x))
+        C = 1 / (simps(y=A * E_x ** 3, x=E_x))
         I = C * A * E_x ** 3  # intensity prop to energy CUBE
         return (E_x, I)
 

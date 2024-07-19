@@ -2,7 +2,7 @@ hardware: &hardware
    num_nodes: 1
    sockets_per_node: 2
    cores_per_socket: 4
-   mem_per_node: 32Gb
+   mem_per_node: 32GB
 
 job: &job
     mpi_runner: ~/bin/mpirun.openmpi
