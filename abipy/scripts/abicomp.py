@@ -16,7 +16,7 @@ from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
-from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter, FilesPlotter
+from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter, FilesPlotter, Exposer
 
 
 def remove_disordered(structures, paths):
@@ -594,10 +594,10 @@ def abicomp_abiwan(options):
 
 def abicomp_abiwan_ebands(options):
     """
-    Compare Wannier-interpolated band structure with ab-initio results.
+    Compare Wannier-interpolated band structure with ab-initio data.
     """
     if len(options.paths) != 2:
-        raise ValueError("Two arguments with ABIWAN.nc and nc file with ElectronBands are required.")
+        raise ValueError("Two arguments with ABIWAN.nc and netcdf file with ElectronBands are required!")
     from abipy.wannier90 import AbiwanFile
     abiwan_path, ebands_path = options.paths[0], options.paths[1]
     if not abiwan_path.endswith("ABIWAN.nc"):
@@ -605,8 +605,11 @@ def abicomp_abiwan_ebands(options):
 
     abiwan = AbiwanFile(abiwan_path)
     print(abiwan)
-    abiwan.hwan.plot()
-    abiwan.plot_with_ebands(ebands_path)
+
+    with Exposer.as_exposer("mpl") as e:
+        plot_kws = dict(show=False)
+        e(abiwan.hwan.plot(**plot_kws))
+        e(abiwan.plot_with_ebands(ebands_path, **plot_kws))
 
     return 0
 

@@ -890,8 +890,8 @@ class SkwInterpolator(ElectronInterpolator):
         cprint("FIT vs input data: Mean Absolute Error= %.3e (meV)" % mae, color="red" if warn else "green")
         if warn:
             # Issue warning if error too large.
-            cprint("Large error in SKW interpolation!", "red")
-            cprint("MAE:", mae, "[meV]", "red")
+            cprint("Large error in SKW interpolation!", color="red")
+            cprint(f"MAE: {mae} [meV]", color="red")
 
         self.mae = mae
 

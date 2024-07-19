@@ -14,6 +14,7 @@ import itertools
 import functools
 import numpy as np
 import pandas as pd
+import matplotlib.collections as mcoll
 
 from collections import namedtuple, OrderedDict
 from typing import Any, Callable, Iterator
@@ -23,8 +24,6 @@ from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
 from abipy.tools.numtools import data_from_cplx_mode
-
-import matplotlib.collections as mcoll
 from plotly.tools import mpl_to_plotly
 
 __all__ = [
@@ -80,7 +79,9 @@ class FilesPlotter:
 
     @add_fig_kwargs
     def plot(self, **kwargs) -> Figure:
-        """Loop through the PNG files and display them in subplots."""
+        """
+        Loop through the PNG files and display them in subplots.
+        """
         # Build grid of plots.
         num_plots, ncols, nrows = len(self.filepaths), 1, 1
         if num_plots > 1:
@@ -942,9 +943,8 @@ class ArrayPlotter:
         return fig
 
 
-#TODO use object and introduce c for color, client code should be able to customize it.
-# Rename it to ScatterData
-class Marker(namedtuple("Marker", "x y s")):
+#TODO Rename it to ScatterData?
+class Marker:
     """
     Stores the position and the size of the marker.
     A marker is a list of tuple(x, y, s) where x, and y are the position
@@ -955,48 +955,24 @@ class Marker(namedtuple("Marker", "x y s")):
 
         x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
         marker = Marker(x, y, s)
-        marker.extend((x, y, s))
-
     """
-    def __new__(cls, *xys):
-        """Extends the base class adding consistency check."""
-        if not xys:
-            xys = ([], [], [])
-            return super().__new__(cls, *xys)
 
-        if len(xys) != 3:
-            raise TypeError("Expecting 3 entries in xys got %d" % len(xys))
+    def __init__(self, x, y, s, marker: str = "o", color: str = "y", alpha: float = 1.0):
+        self.x, self.y, self.s = np.array(x), np.array(y), np.array(s)
 
-        x = np.asarray(xys[0])
-        y = np.asarray(xys[1])
-        s = np.asarray(xys[2])
-        xys = (x, y, s)
+        if len(self.x) != len(self.y):
+            raise ValueError("len(self.x) != len(self.y)")
+        if len(self.y) != len(self.s):
+            raise ValueError("len(self.y) != len(self.s)")
 
-        for s in xys[-1]:
-            if np.iscomplex(s):
-                raise ValueError("Found ambiguous complex entry %s" % str(s))
-
-        return super().__new__(cls, *xys)
+        self.marker = marker
+        self.color = color
+        self.alpha = alpha
 
     def __bool__(self):
         return bool(len(self.s))
 
     __nonzero__ = __bool__
-
-    def extend(self, xys):
-        """
-        Extend the marker values.
-        """
-        if len(xys) != 3:
-            raise TypeError("Expecting 3 entries in xys got %d" % len(xys))
-
-        self.x.extend(xys[0])
-        self.y.extend(xys[1])
-        self.s.extend(xys[2])
-
-        lens = np.array((len(self.x), len(self.y), len(self.s)))
-        if np.any(lens != lens[0]):
-            raise TypeError("x, y, s vectors should have same lengths but got %s" % str(lens))
 
     def posneg_marker(self) -> tuple[Marker, Marker]:
         """
@@ -2492,10 +2468,8 @@ def plotly_points(points, lattice=None, coords_are_cartesian=False, fold=False, 
     from pymatgen.electronic_structure.plotter import fold_point
     vecs = []
     for p in points:
-
         if fold:
             p = fold_point(p, lattice, coords_are_cartesian=coords_are_cartesian)
-
         elif not coords_are_cartesian:
             p = lattice.get_cartesian_coords(p)
 
@@ -2666,8 +2640,11 @@ def add_colorscale_dropwdowns(fig):
 
     return fig
 
-def mpl_to_ply(fig, latex=False):
-    """Nasty workaround for plotly latex rendering in legend/breaking exception"""
+
+def mpl_to_ply(fig: Figure, latex: bool= False):
+    """
+    Nasty workaround for plotly latex rendering in legend/breaking exception
+    """
     if is_plotly_figure(fig):
         return fig
 
@@ -2748,3 +2725,46 @@ def mpl_to_ply(fig, latex=False):
         trace.name = new_label
 
     return plotly_fig
+
+
+class PolyfitPlotter:
+    """
+    Fit data with polynomals of different degrees and visualize the results.
+    """
+
+    def __init__(self, xs, ys):
+        self.xs, self.ys = xs, ys
+
+    @add_fig_kwargs
+    def plot(self, deg_list: list[int], num=100, ax=None, xlabel=None, ylabel=None,
+             fontsize=8, **kwargs) -> Figure:
+        """
+        Args:
+            deg_list: List with degrees of the fitting polynomial.
+            num: Number of samples to generate. Default is 100. Must be non-negative.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Legend fontsize.
+        """
+        xs, ys = self.xs, self.ys
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        for i, deg in enumerate(deg_list):
+            # Fit a ndeg polynomial to the data points and get the polynomial function.
+            coefficients = np.polyfit(xs, ys, deg)
+            polynomial = np.poly1d(coefficients)
+            #print("Coefficients:", coefficients); print("Polynomial:", polynomial)
+
+            if i == 0:
+                # Plot the original data points
+                ax.scatter(xs, ys, color='red', marker="o", label='Data Points')
+
+            # Generate (x, y) values for plotting the fit
+            x_fit = np.linspace(min(xs), max(xs), num)
+            y_fit = polynomial(x_fit)
+            ax.plot(x_fit, y_fit, label=f"{deg}-order fit")
+
+        if xlabel is not None: ax.set_xlabel(xlabel)
+        if ylabel is not None: ax.set_ylabel(ylabel)
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig

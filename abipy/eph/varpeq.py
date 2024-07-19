@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import dataclasses
 import numpy as np
-#import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import defaultdict
@@ -30,6 +29,7 @@ from abipy.tools.numtools import BzRegularGridInterpolator, gaussian
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
+
 ITER_LABELS = [
     r'$E_{pol}$',
     r'$E_{el}$',
@@ -48,6 +48,7 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     .. code-block:: python
 
+        from abipy.eph.varpeq import VarpeqFile
         with VarpeqFile("out_VARPEQ.nc") as varpeq:
             print(varpeq)
             varpeq.plot_scf_cycle()
@@ -109,7 +110,6 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         app(self.filestat(as_string=True))
         app("")
         app(self.structure.to_string(verbose=verbose, title="Structure"))
-
         app("")
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
         #if verbose > 1:
@@ -211,8 +211,10 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 class Polaron:
     """
     This object stores the polaron coefficients A_kn, B_qnu for a given spin.
-    Provides methods to plot |A_nk|^2 or |B_qnu|^2 together with band structures.
+    Provides methods to plot |A_nk|^2 or |B_qnu|^2 together with band structures
+    (fatbands-like plots)
     """
+
     spin: int          # Spin index.
     nb: int            # Number of bands.
     nk: int            # Number of k-points (including filtering if any)
@@ -254,7 +256,9 @@ class Polaron:
         return self.to_string()
 
     def to_string(self, verbose=0) -> str:
-        """String representation with verbosiy level ``verbose``."""
+        """
+        String representation with verbosiy level verbose.
+        """
         lines = []; app = lines.append
 
         app(marquee(f"Ank for spin: {self.spin}", mark="="))
@@ -277,7 +281,7 @@ class Polaron:
 
         return "\n".join(lines)
 
-    def get_a2_interpolator(self, method: str, check_mesh: int = 0) -> BzRegularGridInterpolator:
+    def get_a2_interpolator(self, method: str, check_mesh: int=0) -> BzRegularGridInterpolator:
         """
         Build and return an interpolator for |A_nk|^2
 
@@ -285,7 +289,7 @@ class Polaron:
             method: String defining the interpolation method.
             check_mesh: Check whether k-points belong to the mesh ff !=0.
         """
-        # Neeed to know the size of the k-mesh.
+        # Need to know the size of the k-mesh.
         ksampling = self.ebands.kpoints.ksampling
         ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
 
@@ -303,10 +307,9 @@ class Polaron:
                 ix, iy, iz = k_inds
                 a_data[ib, ix, iy, iz] = a_cplx
 
-        return BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data) ** 2,
-                                         method=method)
+        return BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data) ** 2, method=method)
 
-    def get_b2_interpolator(self, method: str, check_mesh: int = 0) -> BzRegularGridInterpolator:
+    def get_b2_interpolator(self, method: str, check_mesh: int=0) -> BzRegularGridInterpolator:
         """
         Build and return an interpolator for |B_qnu|^2.
 
@@ -314,7 +317,7 @@ class Polaron:
             method: String defining the interpolation method.
             check_mesh: Check whether k-points belong to the mesh ff !=0.
         """
-        # Neeed to know the size of the q-mesh (always Gamma-centered)
+        # Need to know the shape of the q-mesh (always Gamma-centered)
         ngqpt, shifts = self.varpeq.r.ngqpt, [0, 0, 0]
         q_indices = kpoints_indices(self.qpoints, ngqpt, check_mesh=check_mesh)
 
@@ -326,8 +329,7 @@ class Polaron:
                 ix, iy, iz = q_inds
                 b_data[nu, ix, iy, iz] = b_cplx
 
-        return BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data) ** 2,
-                                         method=method)
+        return BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data) ** 2, method=method)
 
     @add_fig_kwargs
     def plot_bz_sampling(self, what="kpoints", fold=False,
@@ -341,26 +343,31 @@ class Polaron:
                 Defaults to False.
         """
         bz_points = dict(kpoints=self.kpoints, qpoints=self.qpoints)[what]
-        kws = dict(ax=ax, pmg_path=pmg_path, with_labels=with_labels, fold=fold,
-                   kpoints=bz_points)
+        kws = dict(ax=ax, pmg_path=pmg_path, with_labels=with_labels, fold=fold, kpoints=bz_points)
 
         return self.structure.plot_bz(show=False, **kws)
 
     @add_fig_kwargs
-    def plot_ank_with_ebands(self, ebands_kpath, ebands_kmesh=None,
-                             ax=None, scale=50, fontsize=12, **kwargs) -> Figure:
+    def plot_ank_with_ebands(self, ebands_kpath, ebands_kmesh=None, nksmall: int = 20,
+                             lpratio: int = 5, step: float = 0.1, width: float = 0.2, method: str = "linear",
+                             ax_list=None, ylims=None, scale=10, fontsize=8, **kwargs) -> Figure:
         """
         Plot electronic energies with markers whose size is proportional to |A_nk|^2.
 
         Args:
-            ebands: ElectronBands or Abipy file providing an electronic band structure along a path.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
+            ebands_kpath: ElectronBands or Abipy file providing an electronic band structure along a path.
+            ebands_kmesh: ElectronBands or Abipy file providing an electronic band structure in the IBZ.
+            method=Interpolation method.
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             scale: Scaling factor for |A_nk|^2.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+                   or scalar e.g. ``left``. If left (right) is None, default values are used.
+            fontsize: fontsize for legends and titles
         """
         ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
 
         # Interpolate A_nk
-        a2_interp = self.get_a2_interpolator("linear")
+        a2_interp = self.get_a2_interpolator(method)
 
         # DEBUG SECTION
         #ref_kn = np.abs(self.a_kn) ** 2
@@ -382,7 +389,7 @@ class Polaron:
         points = Marker(x, y, s)
 
         nrows, ncols = 1, 2
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
                                                 sharex=False, sharey=True, squeeze=False)
         ax_list = ax_list.ravel()
 
@@ -390,34 +397,24 @@ class Polaron:
         ebands_kpath.plot(ax=ax, points=points, show=False)
 
         vertices_names = [(k.frac_coords, k.name) for k in ebands_kpath.kpoints]
-        lpratio = 5
-        kmesh = np.array([12, 12, 12]) * 3
-        step = 0.1
-        width = 0.2
 
         if ebands_kmesh is None:
-            # Compute ebands_kmesh with Star-function interpolation.
+            # Compute ebands_kmesh with star-function interpolation.
+            kmesh = self.structure.calc_ngkpt(nksmall)
             r = self.ebands.interpolate(lpratio=lpratio, vertices_names=vertices_names, kmesh=kmesh)
             ebands_kmesh = r.ebands_kmesh
 
         # Get electronic DOS.
         edos = ebands_kmesh.get_edos(step=step, width=width)
-
         mesh = edos.spin_dos[self.spin].mesh
         ank_dos = np.zeros(len(mesh))
         e0 = self.ebands.fermie
-
-        ymin -= 0.5 * abs(ymin)
-        ymin -= e0
-        ymax += 0.5 * abs(ymax)
-        ymax -= e0
-        #ymax = None
 
         #################
         # Compute Ank DOS
         #################
         # NB: This is just to sketch the ideas. I don't think the present version
-        # is correct as only k --> -k symmetry can be used.
+        # is correct as only the k --> -k symmetry can be used.
 
         for ik, kpoint in enumerate(ebands_kmesh.kpoints):
             weight = kpoint.weight
@@ -428,30 +425,64 @@ class Polaron:
 
         ax = ax_list[1]
         edos.plot_ax(ax, e0, spin=self.spin, exchange_xy=True, label="eDOS(E)")
+        ax.set_xlabel("arbitrary units", fontsize=fontsize)
 
         ank_dos = Function1D(mesh, ank_dos)
+        print("A2(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
         ank_dos.plot_ax(ax, exchange_xy=True, label=r"$A^2$(E)")
         ax.grid(True)
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
-        print("A2(E) integrates to", ank_dos.integral_value)
+
+        if ylims is None:
+            ymin -= 0.5 * abs(ymin)
+            ymin -= e0
+            ymax += 0.5 * abs(ymax)
+            ymax -= e0
+            ylims = [ymin, ymax]
 
         for ax in ax_list:
-            ax.set_ylim(ymin, ymax)
+            set_axlims(ax, ylims, "y")
 
         return fig
 
     @add_fig_kwargs
-    def plot_bqnu_with_phbands(self, phbands_qpath, ax=None, scale=10, **kwargs) -> Figure:
+    def plot_bqnu_with_ddb(self, ddb, with_phdos=True, anaget_kwargs=None, **kwargs) -> Figure:
+        """
+        High-level interface to plot phonon energies with markers whose size is proportional to |B_qnu|^2.
+        Similar to plot_bqnu_with_phbands but this function receives in input a DdbFile or a
+        path to a ddbfile and automates the computation of the phonon bands by invoking anaddb.
+
+        Args:
+            ddb:
+            anaget_kwargs:
+        """
+        from abipy.dfpt.ddb import DdbFile
+        ddb = DdbFile.as_ddb(ddb)
+        anaget_kwargs = {} if anaget_kwargs is None else anaget_kwargs
+
+        with ddb.anaget_phbst_and_phdos_files(**anaget_kwargs) as g:
+            phbst_file, phdos_file = g[0], g[1]
+            phbands_qpath = phbst_file.phbands
+            return self.plot_bqnu_with_phbands(phbands_qpath,
+                                               phdos_file=phdos_file if with_phdos else None,
+                                               **kwargs)
+
+    @add_fig_kwargs
+    def plot_bqnu_with_phbands(self, phbands_qpath, phdos_file=None,
+                               method="linear",
+                               ax=None, scale=10, **kwargs) -> Figure:
         """
         Plot phonon energies with markers whose size is proportional to |B_qnu|^2.
 
         Args:
             phbands_qpath: PhononBands or Abipy file providing a phonon band structure.
+            phdos_file:
+            method=Interpolation method.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             scale: Scaling factor for |B_qnu|^2.
         """
         phbands_qpath = PhononBands.as_phbands(phbands_qpath)
-        b2_interp = self.get_b2_interpolator("linear")
+        b2_interp = self.get_b2_interpolator(method)
 
         # DEBUG SECTION
         #ref_qnu = np.abs(self.b_qnu) ** 2
@@ -464,13 +495,42 @@ class Polaron:
         for iq, qpoint in enumerate(phbands_qpath.qpoints):
             omegas_nu = phbands_qpath.phfreqs[iq,:]
             b2_nu = b2_interp.eval_kpoint(qpoint.frac_coords)
-            assert len(omegas_nu) == len(b2_nu)
             for w, b2 in zip(omegas_nu, b2_nu):
                 x.append(iq); y.append(w); s.append(scale * b2)
+
         points = Marker(x, y, s)
 
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        phbands_qpath.plot(ax=ax, points=points, show=False)
+        nrows, ncols = 1, 1 if phdos_file is None else 2
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        phbands_qpath.plot(ax=ax_list[0], points=points, show=False)
+
+        if phdos_file is None:
+            return fig
+
+        # Add phdos and |B_qn| dos
+        # mesh is given in eV, values are in states/eV.
+        #phbands_qmesh = phdos_file.phbands
+        phdos = phdos_file.phdos
+        ngqpt = np.diagonal(phdos_file.qptrlatt)
+        mesh = phdos.mesh
+        bqnu_dos = np.zeros(len(mesh))
+
+        from abipy.core.kpoints import Ktables
+        qtabs = Ktables(self.structure, ngqpt, is_shift=False, has_timrev=True)
+        print(qtabs)
+
+        width = 0.2
+        for iq, qpoint in enumerate(phbands_qmesh.qpoints):
+            weight = qpoint.weight
+            #enes_n = phbands_qmesh.eigens[self.spin, iq, self.bstart:self.bstop]
+            b2_nu = b2_interp.eval_kpoint(qpoint.frac_coords)
+            for w, b2 in zip(enes_n, b2_nu):
+                bqnu_dos += weight * b2 * gaussian(mesh, width, center=w)
+
+        #ank_dos = Function1D(mesh, ank_dos)
 
         return fig
 

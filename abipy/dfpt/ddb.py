@@ -1966,9 +1966,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return task
 
-    def write(self, filepath, filter_blocks=None) -> None:
+    def write(self, filepath: str, filter_blocks=None) -> None:
         """
-        Writes the DDB file in filepath. Requires the blocks data.
+        Writes the DDB file to filepath. Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks
         are be used to produce the file
         """
@@ -2087,8 +2087,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def get_2nd_ord_dict(self) -> dict:
         """
-        Generates an ordered dictionary with the second order derivative of the form
-        {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
+        Generates an ordered dictionary with the second order derivatives in the form
+            {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
 
         Returns:
             OrderedDict: a dictionary with all the elements of a dynamical matrix
@@ -2106,8 +2106,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def set_2nd_ord_data(self, data, replace=True) -> None:
         """
-        Insert the blocks corresponding to the data provided for the second
-        order perturbations.
+        Insert the blocks corresponding to the data provided for the second order perturbations.
 
         Args:
             data: a dict of the form {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
@@ -2226,7 +2225,7 @@ if ifc is not None:
 
 class Becs(Has_Structure, MSONable):
     """
-    This object stores the Born effective charges and provides simple tools for data analysis.
+    This object stores the Born effective charges and provides tools for data analysis.
     """
 
     @pmg_serialize
@@ -2741,8 +2740,6 @@ class DielectricTensorGenerator(Has_Structure):
             with_phfreqs: True to show phonon frequencies with dots.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and label fontsize.
-
-        Return: |matplotlib-Figure|
         """
         wmesh = self._get_wmesh(gamma_ev, num, units, w_min, w_max)
         t = np.zeros((num, 3, 3), dtype=complex)
@@ -2830,7 +2827,7 @@ class DielectricTensorGenerator(Has_Structure):
     def reflectivity(self, qdir, w, gamma_ev=1e-4, units='eV'):
         """
         Calculates the reflectivity from the dielectric tensor along the specified direction
-        according to eq. (58) in :cite:`Gonze1997` PRB55, 10355 (1997).
+        according to Eq. (58) in :cite:`Gonze1997` PRB55, 10355 (1997).
 
         Args:
             qdir: a list with three components defining the direction.
@@ -2841,8 +2838,7 @@ class DielectricTensorGenerator(Has_Structure):
             units: string specifying the units used for phonon frequencies. Possible values in
                 ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
 
-        Returns:
-            the value of the reflectivity.
+        Returns: the value of the reflectivity.
         """
 
         qdir = np.array(qdir) / np.linalg.norm(qdir)
@@ -2874,8 +2870,6 @@ class DielectricTensorGenerator(Has_Structure):
             with_phfreqs: True to show phonon frequencies with dots.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and label fontsize.
-
-        Return: |matplotlib-Figure|
         """
         wmesh = self._get_wmesh(gamma_ev, num, units, w_min, w_max)
         t = np.zeros((num, 3, 3), dtype=complex)

@@ -198,7 +198,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         # (nsppol, nkpt, 3*natom, mband, mband) real array.
         absg = np.abs(self.read_all_gkq(mode="phonon")) * abu.Ha_meV
-        absg = absg[:,ik]
+        absgk = absg[:,ik].copy()
         absg_unsym = absg[:,ik].copy()
 
         # Average over phonons.
@@ -208,11 +208,10 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         natom3 = len(self.structure) * 3
         phfreqs_ha = self.phfreqs_ha
         nband = self.ebands.nband
-
-        absg_sym = np.empty_like(absg)
-        g2_mn = np.empty((nband,nband), dtype=float)
+        absg_sym = np.zeros_like(absgk)
 
         for spin in range(self.ebands.nsppol):
+            g2_mn = np.zeros((nband,nband), dtype=float)
             for nu in range(natom3):
                 w_1 = phfreqs_ha[nu]
                 g2_mn[:], nn = 0.0, 0
@@ -220,12 +219,12 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                     w_2 = phfreqs_ha[mu]
                     if abs(w_1 - w_2) >= eps_ha: continue
                     nn += 1
-                    g2_mn += absg[spin,mu,:,:] ** 2
+                    g2_mn += absgk[spin,mu,:,:] ** 2
                 absg_sym[spin,nu,:,:] = np.sqrt(g2_mn / nn)
 
         # Average over k electrons.
-        absg = absg_sym
-        g2_nu = np.empty((natom3), dtype=float)
+        absg = absg_sym.copy()
+        g2_nu = np.zeros((natom3), dtype=float)
         for spin in range(self.ebands.nsppol):
             for jbnd in range(nband):
                 for ibnd in range(nband):
@@ -235,23 +234,22 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                         w_2 = self.ebands.eigens[spin, ik, pbnd]
                         if abs(w_2 - w_1) >= eps_ev: continue
                         nn += 1
-                        g2_nu += absg[spin,:,jbnd,pbnd] ** 2
-                    absg_sym[spin,:,ibnd,jbnd] = np.sqrt(g2_nu / nn)
-
+                        g2_nu += absgk[spin,:,jbnd,pbnd] ** 2
+                    absg_sym[spin,:,jbnd,ibnd] = np.sqrt(g2_nu / nn)
         # Average over k+q electrons.
         eigens_kq = self.eigens_kq
-        absg = absg_sym
+        absgk = absg_sym.copy()
         for spin in range(self.ebands.nsppol):
-            for jbnd in range(nband):
-                for ibnd in range(nband):
-                    w_1 = eigens_kq[spin, ik, ibnd]
+            for ibnd in range(nband):
+                for jbnd in range(nband):
+                    w_1 = eigens_kq[spin, ik, jbnd]
                     g2_nu[:], nn = 0.0, 0
                     for pbnd in range(nband):
                         w_2 = eigens_kq[spin, ik, pbnd]
                         if abs(w_2 - w_1) >= eps_ev: continue
                         nn += 1
-                        g2_nu += absg[spin,:,jbnd,pbnd] ** 2
-                    absg_sym[spin,:,ibnd,jbnd] = np.sqrt(g2_nu / nn)
+                        g2_nu += absgk[spin,:,pbnd,ibnd] ** 2
+                    absg_sym[spin,:,jbnd,ibnd] = np.sqrt(g2_nu / nn)
 
         return absg_sym, absg_unsym, ik, kpoint
 

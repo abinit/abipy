@@ -1273,6 +1273,50 @@ class Structure(pmg_Structure, NotebookWriter):
             print("")
 
     @lazy_property
+    def has_zero_dynamical_quadrupoles(self):
+        """
+        Dynamical quadrupoles are nonzero in all noncentrosymmetric crystals,
+        but also in centrosymmetric ones if one or more atoms are placed at noncentrosymmetric sites.
+        """
+        def create_image(s1, s2):
+            """
+            Creates the image of s2 through s1
+            This image is a fictitious atom in the structure
+            """
+            image = PeriodicSite.from_dict(s2.as_dict())
+            image.coords = s1.coords - (s2.coords - s1.coords)
+            image.frac_coords = s1.frac_coords - (s2.frac_coords - s1.frac_coords)
+
+            return image
+
+        def check_image(structure, site):
+            """
+            Checks if a fictitious site is an image of a site of the structure
+            """
+            for site in structure.sites:
+                if site.is_periodic_image(site):
+                    return True
+
+            return False
+
+        # If the centrosymmetry is broken at a given atomic site of the given structure,
+        # returns False. Else, return True
+        sites = self.sites
+
+        for s1 in sites:
+            for s2 in sites:
+                # Do not take s1 = s2 into account
+                if s2 != s1:
+                    # Create the image of s2 through s1 (fictitious atom)
+                    image = create_image(s1, s2)
+                    is_image = check_image(self, image)
+                    if not is_image:
+                        return False
+
+        return True
+
+
+    @lazy_property
     def hsym_kpath(self):
         """
         Returns an instance of :class:`pymatgen.symmetry.bandstructure.HighSymmKpath`.
@@ -1892,8 +1936,7 @@ class Structure(pmg_Structure, NotebookWriter):
         Returns: the scaling matrix of the supercell
         """
         if np.allclose(qpoint, 0.0):
-            scale_matrix = np.eye(3, 3)
-            return scale_matrix
+            return np.eye(3, 3)
 
         l = max_supercell
 
@@ -1966,11 +2009,12 @@ class Structure(pmg_Structure, NotebookWriter):
             raise ValueError('max_supercell is not large enough for this q-point')
 
         # Fortran 2 python!!!
-        return scale_matrix.T
+        return scale_matrix.T.copy()
 
-    def make_doped_supercells(self,scaling_matrix,replaced_atom, dopant_atom):
+    def make_doped_supercells(self, scaling_matrix, replaced_atom, dopant_atom):
         """
         Returns a list doped supercell structures, one for each non-equivalent site of the replaced atom.
+
         Args:
             scaling_matrix: A scaling matrix for transforming the lattice vectors.
                 Has to be all integers. Several options are possible:
@@ -1985,18 +2029,18 @@ class Structure(pmg_Structure, NotebookWriter):
             dopant_atom : Symbol of the dopant_atom (ex: 'Eu')
         """
         ### list of positions of non-equivalent sites for the replaced atom. ###
-        irred=self.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
-        positions=self.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
+        irred = self.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
+        positions = self.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
 
-        index_non_eq_sites=[]
+        index_non_eq_sites = []
         for pos in positions:
             if len(irred[pos]) != 0:
                  index_non_eq_sites.append(irred[pos][0])
 
-        doped_supercell=self.copy()
+        doped_supercell = self.copy()
         doped_supercell.make_supercell(scaling_matrix)
 
-        doped_structure_list=[]
+        doped_structure_list = []
 
         for index in index_non_eq_sites:
             final_structure=doped_supercell.copy()
@@ -2004,8 +2048,6 @@ class Structure(pmg_Structure, NotebookWriter):
             doped_structure_list.append(final_structure)
 
         return doped_structure_list
-
-
 
     def get_trans_vect(self, scale_matrix):
         """
@@ -2038,8 +2080,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         # find the translation vectors (in terms of the initial lattice vectors)
         # that are inside the unit cell defined by the scale matrix
-        # we're using a slightly offset interval from 0 to 1 to avoid numerical
-        # precision issues
+        # we're using a slightly offset interval from 0 to 1 to avoid numerical precision issues
         #print(scale_matrix)
         inv_matrix = np.linalg.inv(scale_matrix)
 
@@ -2106,8 +2147,8 @@ class Structure(pmg_Structure, NotebookWriter):
     def frozen_2phonon(self, qpoint, displ1, displ2, eta=1, frac_coords=False, scale_matrix=None, max_supercell=None):
         """
         Creates the supercell needed for a given qpoint and adds the displacements.
-        The displacements are normalized so that the largest atomic displacement will correspond to the
-        value of eta in Angstrom.
+        The displacements are normalized so that the largest atomic displacement will correspond
+        to the value of eta in Angstrom.
 
         Args:
             qpoint: q vector in reduced coordinate in reciprocal space.
@@ -2182,15 +2223,14 @@ class Structure(pmg_Structure, NotebookWriter):
         value of eta in Angstrom.
 
         Args:
-            qpoint: q vector in reduced coordinate in reciprocal space.
+            qpoint: q-vector in reduced coordinate in reciprocal space.
             displ: displacement in real space of the atoms.
-            eta: pre-factor multiplying the displacement. Gives the value in Angstrom of the
-                largest displacement.
+            eta: pre-factor multiplying the displacement. Gives the value in Angstrom of the largest displacement.
             frac_coords: whether the displacements are given in fractional or cartesian coordinates
             scale_matrix: the scaling matrix of the supercell. If None a scaling matrix suitable for
                 the qpoint will be determined.
             max_supercell: mandatory if scale_matrix is None, ignored otherwise. Defines the largest
-                supercell in the search for a scaling matrix suitable for the q point.
+                supercell in the search for a scaling matrix suitable for the input q-point.
 
         Returns:
             A namedtuple with a Structure with the displaced atoms, a numpy array containing the
@@ -2199,35 +2239,34 @@ class Structure(pmg_Structure, NotebookWriter):
 
         if scale_matrix is None:
             if max_supercell is None:
-                raise ValueError("If scale_matrix is not provided, please provide max_supercell!")
-
+                raise ValueError("If scale_matrix is not provided in input, please provide max_supercell!")
             scale_matrix = self.get_smallest_supercell(qpoint, max_supercell=max_supercell)
 
         scale_matrix = np.array(scale_matrix, np.int16)
         if scale_matrix.shape != (3, 3):
             scale_matrix = np.array(scale_matrix * np.eye(3), np.int16)
-        print("scale_matrix:", scale_matrix)
+        #print("scale_matrix:\n", scale_matrix)
 
         old_lattice = self._lattice
         new_lattice = Lattice(np.dot(scale_matrix, old_lattice.matrix))
 
         tvects = self.get_trans_vect(scale_matrix)
-        print("tvects", tvects)
+        #print("tvects\n", tvects)
 
         if frac_coords:
-            displ = np.array((old_lattice.get_cartesian_coords(d) for d in displ))
+            displ = np.array([old_lattice.get_cartesian_coords(d) for d in displ])
         else:
             displ = np.array(displ)
-        # from here displ are in cartesian coordinates
 
+        # from here on, displ is in cartesian coordinates.
         displ = eta * displ / np.linalg.norm(displ, axis=1).max()
 
         new_displ = np.zeros(3, dtype=float)
         new_sites = []
         displ_list = []
-        for at, site in enumerate(self):
+        for iat, site in enumerate(self):
             for t in tvects:
-                new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
+                new_displ[:] = np.real(np.exp(2*1j*np.pi * (np.dot(qpoint, t))) * displ[iat,:])
                 displ_list.append(list(new_displ))
 
                 coords = site.coords + old_lattice.get_cartesian_coords(t) + new_displ
@@ -2699,7 +2738,7 @@ to build an appropriate supercell from partial occupancies or alternatively use 
     lines = []
     app = lines.append
     app("NumberOfAtoms %d" % len(structure))
-    app("NumberOfSpecies %d" % structure.ntypesp)
+    app("NumberOfSpecies %d" % structure.n_elems)
 
     if verbose:
         app("# The species number followed by the atomic number, and then by the desired label")
