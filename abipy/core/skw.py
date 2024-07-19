@@ -88,7 +88,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
             inds = np.where(uniq == ir_gp_id)
             #print("inds", inds, "inds[0]", inds[0])
             assert len(inds) == 1
-            bz2ibz[i] = inds[0]
+            bz2ibz[i] = int(inds[0])
             #print("%3d ->%3d %s" % (i, ir_gp_id, (gp + [0.5, 0.5, 0.5]) / mesh))
             #print("%3d ->%3d %s" % (i, ir_gp_id, (gp + kshift) / mesh))
 

@@ -142,7 +142,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,
     fdata = transpose_last3dims(data)
     fgrid = fdata.shape[-3:]
 
-    cell = structure.lattice_vectors(space="r")
+    cell = structure.lattice.matrix
     origin = np.zeros(3)
 
     fwrite('BEGIN_BLOCK_DATAGRID_3D\n')
@@ -227,7 +227,7 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="
     fw("0 0 0\n")                   # Unshifted meshes are not supported.
 
     # Reciprocal lattice vectors in Ang^{-1}
-    gcell = structure.lattice_vectors("g")
+    gcell = structure.lattice.reciprocal_lattice.matrix
     for i in range(3):
         fw('%f %f %f\n' % tuple(gcell[i]))
 

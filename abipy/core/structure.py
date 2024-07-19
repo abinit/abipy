@@ -391,6 +391,13 @@ class Structure(pmg_Structure, NotebookWriter):
         import pymatgen.io.ase as aio
         return aio.AseAtomsAdaptor.get_structure(atoms, cls=cls)
 
+    # FIXME: Temporary workaround to maintain compatbility with old pymatgen versions.
+    # m_elems was added in v2024.7.18
+    @property
+    def n_elems(self) -> int:
+        """Number of types of atoms."""
+
+        return len(self.types_of_species)
     def to_ase_atoms(self, calc=None):
         """
         Returns ASE Atoms object from structure and attach calculator calc.

@@ -1043,7 +1043,7 @@ class KpointList(collections.abc.Sequence):
 
         dist = np.empty(len(self))
         for i, kpt in enumerate(self):
-            dist[i] = kpt.lattice.norm(kpt.frac_coords - frac_coords)
+            dist[i] = float(kpt.lattice.norm(kpt.frac_coords - frac_coords))
 
         ind = dist.argmin()
         return ind, self[ind], np.copy(dist[ind])
@@ -1915,7 +1915,7 @@ class Ktables:
         for ik_bz, ir_gp_id in enumerate(mapping):
             inds = np.where(uniq == ir_gp_id)
             assert len(inds) == 1
-            self.bz2ibz[ik_bz] = inds[0]
+            self.bz2ibz[ik_bz] = int(inds[0])
 
     def __str__(self):
         return self.to_string()
