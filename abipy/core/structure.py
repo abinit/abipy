@@ -1301,7 +1301,6 @@ class Structure(pmg_Structure, NotebookWriter):
 
         # If the centrosymmetry is broken at a given atomic site of the given structure,
         # returns False. Else, return True
-
         sites = self.sites
 
         for s1 in sites:

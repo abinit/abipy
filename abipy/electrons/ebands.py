@@ -185,7 +185,7 @@ class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
             return _TIPS
 
 
-class ElectronTransition(object):
+class ElectronTransition:
     """
     This object describes an electronic transition between two single-particle states.
     """
@@ -516,8 +516,7 @@ class ElectronBands(Has_Structure):
         Args:
             structure: |Structure| object.
             kpoints: |KpointList| instance.
-            eigens: Array-like object with the eigenvalues (eV) stored as [s, k, b]
-                where s: spin , k: kpoint, b: band index
+            eigens: Array-like object with the eigenvalues (eV) stored as [s, k, b] where s: spin , k: kpoint, b: band index
             fermie: Fermi level in eV.
             occfacts: Occupation factors (same shape as eigens)
             nelect: Number of valence electrons in the unit cell.
@@ -798,8 +797,7 @@ class ElectronBands(Has_Structure):
             frac_bounds: [M, 3] array  with the vertexes of the k-path in reduced coordinates.
                 If None, the k-path is automatically selected from the structure.
             knames: List of strings with the k-point labels defining the k-path. It has precedence over frac_bounds.
-            dist_tol: A point is considered to be on the path if its distance from the line
-                is less than dist_tol.
+            dist_tol: A point is considered to be on the path if its distance from the line is less than dist_tol.
 
         Return:
             namedtuple with the following attributes::
@@ -2216,7 +2214,8 @@ class ElectronBands(Has_Structure):
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
 
         if points is not None:
-            ax.scatter(points.x, np.array(points.y) - e0, s=np.abs(points.s), marker="o", c="b")
+            ax.scatter(points.x, np.array(points.y) - e0, s=np.abs(points.s),
+                        marker=points.marker, c=points.color, alpha=points.alpha)
 
         if with_gaps and (self.mband > self.nspinor * self.nelect // 2):
             # Show fundamental and direct gaps for each spin.
@@ -2775,7 +2774,6 @@ class ElectronBands(Has_Structure):
                 * ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
                 *  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 *  None: Don't shift energies, equivalent to ``e0 = 0``
-
             points: Marker object with the position and the size of the marker.
                 Used for plotting purpose e.g. QP energies, energy derivatives...
             with_gaps: True to add markers and arrows showing the fundamental and the direct gap.
@@ -2854,7 +2852,6 @@ class ElectronBands(Has_Structure):
                 * ``edos_fermie``: Use the Fermi energy computed from the DOS to define the zero of energy in both subplots.
                 *  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 *  None: Don't shift energies, equivalent to ``e0 = 0``
-
             points: Marker object with the position and the size of the marker.
                 Used for plotting purpose e.g. QP energies, energy derivatives...
             with_gaps: True to add markers and arrows showing the fundamental and the direct gap.

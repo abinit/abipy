@@ -943,9 +943,8 @@ class ArrayPlotter:
         return fig
 
 
-#TODO use object and introduce c for color, client code should be able to customize it.
-# Rename it to ScatterData
-class Marker(namedtuple("Marker", "x y s")):
+#TODO Rename it to ScatterData?
+class Marker:
     """
     Stores the position and the size of the marker.
     A marker is a list of tuple(x, y, s) where x, and y are the position
@@ -956,48 +955,24 @@ class Marker(namedtuple("Marker", "x y s")):
 
         x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
         marker = Marker(x, y, s)
-        marker.extend((x, y, s))
-
     """
-    def __new__(cls, *xys):
-        """Extends the base class adding consistency check."""
-        if not xys:
-            xys = ([], [], [])
-            return super().__new__(cls, *xys)
 
-        if len(xys) != 3:
-            raise TypeError("Expecting 3 entries in xys got %d" % len(xys))
+    def __init__(self, x, y, s, marker: str = "o", color: str = "y", alpha: float = 1.0):
+        self.x, self.y, self.s = np.array(x), np.array(y), np.array(s)
 
-        x = np.asarray(xys[0])
-        y = np.asarray(xys[1])
-        s = np.asarray(xys[2])
-        xys = (x, y, s)
+        if len(self.x) != len(self.y):
+            raise ValueError("len(self.x) != len(self.y)")
+        if len(self.y) != len(self.s):
+            raise ValueError("len(self.y) != len(self.s)")
 
-        for s in xys[-1]:
-            if np.iscomplex(s):
-                raise ValueError("Found ambiguous complex entry %s" % str(s))
-
-        return super().__new__(cls, *xys)
+        self.marker = marker
+        self.color = color
+        self.alpha = alpha
 
     def __bool__(self):
         return bool(len(self.s))
 
     __nonzero__ = __bool__
-
-    def extend(self, xys):
-        """
-        Extend the marker values.
-        """
-        if len(xys) != 3:
-            raise TypeError("Expecting 3 entries in xys got %d" % len(xys))
-
-        self.x.extend(xys[0])
-        self.y.extend(xys[1])
-        self.s.extend(xys[2])
-
-        lens = np.array((len(self.x), len(self.y), len(self.s)))
-        if np.any(lens != lens[0]):
-            raise TypeError("x, y, s vectors should have same lengths but got %s" % str(lens))
 
     def posneg_marker(self) -> tuple[Marker, Marker]:
         """
@@ -2752,8 +2727,10 @@ def mpl_to_ply(fig: Figure, latex: bool= False):
     return plotly_fig
 
 
-
 class PolyfitPlotter:
+    """
+    Fit data with polynomals of different degrees and visualize the results.
+    """
 
     def __init__(self, xs, ys):
         self.xs, self.ys = xs, ys

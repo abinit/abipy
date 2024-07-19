@@ -814,7 +814,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 for name in names:
                     value = vars[name]
                     if mnemonics and value is not None:
-                        print(f"{name=}")
+                        #print(f"{name=}")
                         app(escape("#### <" + var_database[name].mnemonics + ">"))
 
                     # Build variable, convert to string and append it

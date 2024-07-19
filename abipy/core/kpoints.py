@@ -101,7 +101,6 @@ def issamek(k1, k2, atol=None):
     """
     k1 = np.asarray(k1)
     k2 = np.asarray(k2)
-    #if k1.shape != k2.shape:
 
     return is_integer(k1 - k2, atol=atol)
 
@@ -416,15 +415,12 @@ def kpoints_indices(frac_coords, ngkpt, check_mesh=0) -> np.ndarray:
         ngkpt:
         check_mesh:
     """
+
     # Transforms kpt in its corresponding reduced number in the interval [0,1[
     k_indices = [np.round((kpt % 1) * ngkpt) for kpt in frac_coords]
     k_indices = np.array(k_indices, dtype=int)
 
-    for kpt, inds in zip(frac_coords, k_indices):
-        if np.any(inds >= ngkpt):
-            print(f"{kpt=}, {np.round(kpt % 1)=} {inds=})")
-            #raise ValueError("")
-
+    # Debug secction.
     if check_mesh:
         print(f"kpoints_indices: Testing whether k-points belong to the {ngkpt =} mesh")
         ierr = 0
@@ -435,7 +431,12 @@ def kpoints_indices(frac_coords, ngkpt, check_mesh=0) -> np.ndarray:
                 ierr += 1; print(kpt, "-->", same_k)
         if ierr:
             raise ValueError("Wrong mapping")
-        print("Check succesful!")
+
+        #for kpt, inds in zip(frac_coords, k_indices):
+        #    if np.any(inds >= ngkpt):
+        #        raise ValueError(f"inds >= nkgpt for {kpt=}, {np.round(kpt % 1)=} {inds=})")
+
+        print("Check succesfull!")
 
     return k_indices
 

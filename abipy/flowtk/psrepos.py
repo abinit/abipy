@@ -432,7 +432,7 @@ class JthRepo(PseudosRepo):
         # https://www.abinit.org/ATOMICDATA/JTH-LDA-atomicdata.tar.gz
         # ATOMPAW-LDA-JTHv0.4
         url = f"https://www.abinit.org/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"
-        #url = f"https://abinit.github.io/abinit_web/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"
+        #url = f"https://abinit.github.io/abinit_web/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"  # TODO New url
         return cls(cls.ps_generator, xc_name, relativity_type, cls.project_name, version, url)
 
     @property
