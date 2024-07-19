@@ -631,8 +631,17 @@ qadapters:
         #    return _USER_CONFIG_TASKMANAGER
 
         # Try in the current directory then in user configuration directory.
-        path = os.path.join(os.getcwd(), cls.YAML_FILE)
-        if not os.path.exists(path):
+        try:
+            cwd = os.getcwd()
+        except FileNotFoundError:
+            # This error is triggered when running pytes with workers.
+            cwd = None
+
+        if cwd is not None:
+            path = os.path.join(cwd, cls.YAML_FILE)
+            if not os.path.exists(path):
+                path = os.path.join(cls.USER_CONFIG_DIR, cls.YAML_FILE)
+        else:
             path = os.path.join(cls.USER_CONFIG_DIR, cls.YAML_FILE)
 
         if not os.path.exists(path):

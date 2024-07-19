@@ -472,7 +472,7 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         if len(typat) != len(self.structure):
             raise ValueError("typat contains %d entries while it should be natom: %d" % (len(typat), len(self.structure)))
 
-        ntypat = self.structure.ntypesp
+        ntypat = self.structure.n_elems
         if len(znucl) != ntypat:
             raise ValueError("znucl contains %d entries while it should be ntypat: %d" % (len(znucl), ntypat))
 

@@ -1627,7 +1627,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         """
         lw = kwargs.pop("lw", 2)
         factor = abu.phfactor_ev2units(units)
-        ntypat = self.structure.ntypesp
+        ntypat = self.structure.n_elems
 
         # Prepare PJDOS.
         close_phdos_file = False
@@ -1768,7 +1768,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         """
         lw = kwargs.pop("lw", 2)
         factor = abu.phfactor_ev2units(units)
-        ntypat = self.structure.ntypesp
+        ntypat = self.structure.n_elems
 
         # Prepare PJDOS.
         close_phdos_file = False
@@ -2059,7 +2059,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
-        ntypat = self.structure.ntypesp
+        ntypat = self.structure.n_elems
 
         if is_non_analytical_direction:
             ax.set_title("q-direction = %s" % repr(qpoint), fontsize=fontsize)
@@ -3844,7 +3844,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Returns: |matplotlib-Figure|.
         """
         lw = kwargs.pop("lw", 2)
-        ntypat = self.structure.ntypesp
+        ntypat = self.structure.n_elems
         factor = abu.phfactor_ev2units(units)
 
         # Three rows for each direction.
@@ -3913,7 +3913,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         # Define num_plots and ax2atom depending on view.
         factor = abu.phfactor_ev2units(units)
-        #natom, ntypat = len(self.structure), self.structure.ntypesp
+        #natom, ntypat = len(self.structure), self.structure.n_elems
         lw = kwargs.pop("lw", 2)
 
         # Select atoms.
