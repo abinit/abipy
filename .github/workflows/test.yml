@@ -43,17 +43,23 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Set up micromamba
-        uses: mamba-org/setup-micromamba@main
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+            auto-update-conda: true
+            python-version: 3.8
 
-      - name: Create mamba environment
-        run: |
-          micromamba create -n abipy python=${{ matrix.config.python }} --yes
+      #- name: Set up micromamba
+      #  uses: mamba-org/setup-micromamba@main
+      #- name: Create mamba environment
+      #  run: |
+      #    micromamba create -n abipy python=${{ matrix.config.python }} --yes
 
       - name: Installing abinit from conda-forge
         run: | 
-            micromamba run -n abipy install abinit -c conda-forge 
-            micromamba activate abipy
+            conda create -n abipy python=${{ matrix.config.python }} --yes
+            conda activate abipy
+            conda install abinit -c conda-forge 
             abinit --version
             abinit --build
 
