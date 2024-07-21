@@ -7,11 +7,10 @@ tqdm
 pyyaml>=3.11
 ruamel.yaml>=0.16.12
 pandas
-numpy
+numpy<2.0.0
 scipy
 sympy
 spglib
-#pymatgen>=2023.3.23
 pymatgen==2023.7.17
 netCDF4
 matplotlib
@@ -21,8 +20,8 @@ ipython
 chart-studio
 click
 phonopy
-#custodian
 ase
 # TODO remove after https://github.com/materialsproject/emmet/issues/768 is fixed
 pydantic<2.0.0
+#custodian
 #python-daemon
