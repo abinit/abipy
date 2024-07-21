@@ -57,6 +57,10 @@ jobs:
       - name: pytest
         run: |
           conda activate abipy
-          #abicheck.py --with-flow
           pip install -r requirements-tests.txt
-          cd abipy && pytest -v 
+          pytest -v  .
+
+      - name: integration_tests
+          conda activate abipy
+          abicheck.py --with-flow
+          pytest -v abipy/integration_tests
