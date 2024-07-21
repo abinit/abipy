@@ -54,10 +54,11 @@ jobs:
             abinit --version
             abinit --build
             pip install . # --editable
-            cp -r abipy/data/managers/travis_manager.yml $HOME/.abinit/abipy/manager.yml
-            cp -r abipy/data/managers/simple_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
+            cp -rf abipy/data/managers/travis_manager.yml $HOME/.abinit/abipy/manager.yml
+            cp -rf abipy/data/managers/simple_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
 
       - name: pytest split ${{ matrix.split }}
         run: |
           conda activate abipy
+          abicheck.py --with-flow
           pytest --splits 10 --group ${{ matrix.split }} # --durations-path tests/files/.pytest-split-durations tests
