@@ -398,6 +398,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """Number of types of atoms."""
 
         return len(self.types_of_species)
+
     def to_ase_atoms(self, calc=None):
         """
         Returns ASE Atoms object from structure and attach calculator calc.

@@ -969,6 +969,12 @@ class Marker:
         self.color = color
         self.alpha = alpha
 
+        # Step 1: Normalize sizes to a suitable range for plotting
+        #min_size = 10  # Minimum size for points
+        #max_size = 100  # Maximum size for points
+        #normalized_s = min_size + (max_size - min_size) * (self.s - np.min(self.s)) / (np.max(self.s) - np.min(self.s))
+        #self.s = normalized_s
+
     def __bool__(self):
         return bool(len(self.s))
 
@@ -2731,13 +2737,12 @@ class PolyfitPlotter:
     """
     Fit data with polynomals of different degrees and visualize the results.
     """
-
     def __init__(self, xs, ys):
-        self.xs, self.ys = xs, ys
+        self.xs, self.ys = np.array(xs), np.array(ys)
 
     @add_fig_kwargs
-    def plot(self, deg_list: list[int], num=100, ax=None, xlabel=None, ylabel=None,
-             fontsize=8, **kwargs) -> Figure:
+    def plot(self, deg_list: list[int],
+             num=100, ax=None, xlabel=None, ylabel=None, fontsize=8, **kwargs) -> Figure:
         """
         Args:
             deg_list: List with degrees of the fitting polynomial.
@@ -2768,3 +2773,14 @@ class PolyfitPlotter:
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
+
+
+#class PolyExtrapolator:
+#    """
+#    Fit data with polynomals, extrapolate to zero and visualize the results.
+#    """
+#    def __init__(self, xs, ys):
+#        self.xs, self.ys = np.array(xs), np.array(ys)
+#
+#    def extrapolate_to_zero(self, deg: int):
+
