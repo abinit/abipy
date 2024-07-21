@@ -512,6 +512,43 @@ class OncvParser(BaseParser):
         )
 
     @lazy_property
+    def kin_densities(self) -> dict[str, RadialFunction]:
+        """
+        Dictionary with Kinetic energy densities on the radial mesh.
+        """
+        if not self.is_metapsp:
+            raise ValueEror("kin_densities are only available in pseudos generated with metapsp")
+
+        # Metagga taups and taumodps
+        #!t   0.0200249       2.9590E+02      6.4665E+02
+        rho_data = self._grep("!t").data
+
+        return dict(
+            tau_ps=RadialFunction("Tau Pseudo", rho_data[:, 0], rho_data[:, 1]),
+            tau_modps=RadialFunction("Tau Model + Pseudo", rho_data[:, 0], rho_data[:, 2]),
+        )
+
+    @lazy_property
+    def vtaus(self) -> dict[str, RadialFunction]:
+        """
+        Dictionary with Vtau pototentials on the radial mesh.
+        """
+        if not self.is_metapsp:
+            raise ValueEror("kin_densities are only available in pseudos generated with metapsp")
+
+        # plot    "<grep '!vt' t1" using 2:3 title "VtauAE" with lines ls 1,\
+        #         "<grep '!vt' t1" using 2:4 title "Vtau(M+PS)" with lines ls 9
+
+        # !vt   0.1000394       4.1827E-03      1.9061E-02
+        # !vt   0.1024657       4.5435E-03      1.9061E-02
+        rho_data = self._grep("!vt").data
+
+        return dict(
+            vtau_ae=RadialFunction("Vtau AE", rho_data[:, 0], rho_data[:, 1]),
+            vtau_modps=RadialFunction("VTau Model + Pseudo", rho_data[:, 0], rho_data[:, 2]),
+        )
+
+    @lazy_property
     def radial_wfs(self) -> AePsNamedTuple:
         """
         Read and set the radial wavefunctions for the bound states.

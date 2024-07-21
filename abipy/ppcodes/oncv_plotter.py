@@ -101,9 +101,9 @@ class OncvPlotter(NotebookWriter):
             ax._custom_rc_lines.append((self.parser.rc5, color))
 
     def plotly_atan_logders(self, *args, **kwargs):
-        mpl_fig = self.plot_atan_logders(*args, show=False, **kwargs)
+        """Generate plotly figure from matplotly."""
         from plotly.tools import mpl_to_plotly
-        return mpl_to_plotly(mpl_fig)
+        return mpl_to_plotly(self.plot_atan_logders(*args, show=False, **kwargs))
 
     @add_fig_kwargs
     def plot_atan_logders(self, ax=None, with_xlabel=True,
@@ -156,6 +156,10 @@ class OncvPlotter(NotebookWriter):
             raise ValueError(f"Invalid value for {what=}")
         return ae_wfs, ps_wfs
 
+    def plotly_radial_wfs(self, *args, **kwargs):
+        """Generate plotly figure from matplotly."""
+        from plotly.tools import mpl_to_plotly
+        return mpl_to_plotly(self.plot_radial_wfs(*args, show=False, **kwargs))
 
     @add_fig_kwargs
     def plot_radial_wfs(self, ax=None, what="bound_states",
@@ -175,7 +179,7 @@ class OncvPlotter(NotebookWriter):
             ps_wf, l, k = ps_wfs[nlk], nlk.l, nlk.k
 
             if what == "bound_states":
-        #         # Show position of the last peak.
+                # Show position of the last peak.
                 s, marker = 10, "^"
                 ae_peaks = ae_wf.get_peaks()
                 style = dict(color=self.color_l[l], s=s, marker=marker)
@@ -196,6 +200,11 @@ class OncvPlotter(NotebookWriter):
         self._add_rc_vlines_ax(ax)
 
         return fig
+
+    def plotly_projectors(self, *args, **kwargs):
+        """Generate plotly figure from matplotly."""
+        from plotly.tools import mpl_to_plotly
+        return mpl_to_plotly(self.plot_projects(*args, show=False, **kwargs))
 
     @add_fig_kwargs
     def plot_projectors(self, ax=None, fontsize: int = 8, **kwargs) -> Figure:
@@ -226,6 +235,11 @@ class OncvPlotter(NotebookWriter):
 
         return fig
 
+    def plotly_densities(self, *args, **kwargs):
+        """Generate plotly figure from matplotly."""
+        from plotly.tools import mpl_to_plotly
+        return mpl_to_plotly(self.plot_densities(*args, show=False, **kwargs))
+
     @add_fig_kwargs
     def plot_densities(self, ax=None, timesr2=False, fontsize: int = 8, **kwargs) -> Figure:
         """
@@ -247,6 +261,11 @@ class OncvPlotter(NotebookWriter):
                          fontsize=fontsize,
                          )
         return fig
+
+    def plotly_der_densities(self, *args, **kwargs):
+        """Generate plotly figure from matplotly."""
+        from plotly.tools import mpl_to_plotly
+        return mpl_to_plotly(self.plot_der_densities(*args, show=False, **kwargs))
 
     @add_fig_kwargs
     def plot_der_densities(self, ax=None, order=1, acc=4, fontsize=8, **kwargs) -> Figure:
@@ -276,6 +295,11 @@ class OncvPlotter(NotebookWriter):
                          )
         return fig
 
+    def plotly_potentials(self, *args, **kwargs):
+        """Generate plotly figure from matplotly."""
+        from plotly.tools import mpl_to_plotly
+        return mpl_to_plotly(self.plot_potentials(*args, show=False, **kwargs))
+
     @add_fig_kwargs
     def plot_potentials(self, ax=None, fontsize: int = 8, **kwargs) -> Figure:
         """
@@ -297,6 +321,65 @@ class OncvPlotter(NotebookWriter):
         self._add_rc_vlines_ax(ax, with_lloc=True)
 
         return fig
+
+    def plotly_vtau(self, *args, **kwargs):
+        """Generate plotly figure from matplotly."""
+        from plotly.tools import mpl_to_plotly
+        return mpl_to_plotly(self.plot_vtau(*args, show=False, **kwargs))
+
+    def plot_vtau(self, ax=None, fontsize: int = 8, **kwargs) -> Figure:
+        """
+        Plot v_tau and v_tau(model+pseudo) potentials on axis ax.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        for key, pot in self.parser.vtaus.items():
+            mode = "ae" if key == "vtau_ae" else "ps"
+            ax.plot(pot.rmesh, pot.values,
+                    label=pot.name,
+                    **self._mpl_opts_laeps(0, mode))
+
+        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="Vtaus (Ha / a_B)",
+                         #title="Ion Pseudopotentials",
+                         fontsize=fontsize,
+                         )
+        self._add_rc_vlines_ax(ax, with_lloc=True)
+
+    def plotly_tau(self, *args, **kwargs):
+        """Generate plotly figure from matplotly."""
+        from plotly.tools import mpl_to_plotly
+        return mpl_to_plotly(self.plot_tau(*args, show=False, **kwargs))
+
+    def plot_tau(self, ax=None, fontsize: int = 8, **kwargs) -> Figure:
+        """
+        Plot kinetic energy densities tauPS and tau(M+PS) on axis ax.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        for key, den in self.parser.kin_densities.items():
+            #mode = "ae" if key == "tau_ps" else "ps"
+            ax.plot(den.rmesh, den.values,
+                    label=den.name)
+                    #**self._mpl_opts_laeps(0, mode))
+
+        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="Kinetic energy densities",
+                         #title="Ion Pseudopotentials",
+                         fontsize=fontsize,
+                         )
+        self._add_rc_vlines_ax(ax, with_lloc=True)
+
+        return fig
+
+    def plotly_der_potentials(self, *args, **kwargs):
+        """Generate plotly figure from matplotly."""
+        from plotly.tools import mpl_to_plotly
+        return mpl_to_plotly(self.plot_der_potentials(*args, show=False, **kwargs))
 
     @add_fig_kwargs
     def plot_der_potentials(self, ax=None, order=1, acc=4, fontsize: int = 8, **kwargs) -> Figure:
@@ -329,6 +412,11 @@ class OncvPlotter(NotebookWriter):
 
         return fig
 
+    def plotly_kene_vs_ecut(self, *args, **kwargs):
+        """Generate plotly figure from matplotly."""
+        from plotly.tools import mpl_to_plotly
+        return mpl_to_plotly(self.plot_kene_vs_ecut(*args, show=False, **kwargs))
+
     @add_fig_kwargs
     def plot_kene_vs_ecut(self, ax=None, fontsize: int = 8, **kwargs) -> Figure:
         """
@@ -355,6 +443,11 @@ class OncvPlotter(NotebookWriter):
         ax.set_yscale("log")
 
         return fig
+
+    def plotly_atanlogder_econv(self, *args, **kwargs):
+        """Generate plotly figure from matplotly."""
+        from plotly.tools import mpl_to_plotly
+        return mpl_to_plotly(self.plot_atan_logder_econv(*args, show=False, **kwargs))
 
     @add_fig_kwargs
     def plot_atanlogder_econv(self, ax_list=None, fontsize: int = 6, **kwargs) -> Figure:
@@ -482,6 +575,10 @@ class OncvPlotter(NotebookWriter):
             #yield self.plot_der_potentials(show=False)
             for order in [1, 2, 3, 4]:
                 yield self.plot_der_densities(order=order, show=False)
+
+        if self.parser.is_metapsp:
+            yield self.plot_vtau(show=False)
+            yield self.plot_tau(show=False)
 
     def write_notebook(self, nbpath=None):
         return oncv_make_open_notebook(self.parser.filepath)
