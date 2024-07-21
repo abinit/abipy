@@ -21,19 +21,34 @@ jobs:
   build:
     # prevent this action from running on forks
     if: github.repository == 'abinit/abipy'
+    defaults:
+      run:
+        shell: bash -l {0} # enables conda/mamba env activation by reading bash profile
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Check out Abipy repo
         uses: actions/checkout@v4
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
 
-      - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./docs
-          destination: ./_site
+      - name: Installing abinit from conda-forge and abipy with python=${{ matrix.config.python }}
+        run: |
+            conda create -n abipy python=${{ matrix.config.python }} --yes
+            conda activate abipy
+            conda install abinit -c conda-forge --yes
+            abinit --version
+            abinit --build
+            pip install . # --editable
+            mkdir -p $HOME/.abinit/abipy/
+            cp abipy/data/managers/travis_manager.yml $HOME/.abinit/abipy/manager.yml
+            cp abipy/data/managers/simple_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
+
+      - name: Build docs with Sphinx
+        run: |
+            cd docs
+            pip install -r requirements.txt
+            make -j
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2

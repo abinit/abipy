@@ -597,7 +597,7 @@ Travis
 	      job:
 	        mpi_runner: mpirun
 	        pre_run:
-	            - source activate abinit-environment
+	            - conda activate abipy
 	      limits:
 	         min_cores: 1
 	         max_cores: 2
