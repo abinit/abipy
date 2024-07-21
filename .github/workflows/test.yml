@@ -1,13 +1,11 @@
-# Runs the complete test suite. 
+# Runs the Abipy test suite. 
 name: Tests
 
 on:
   push:
     branches: [develop]
-    paths-ignore: ["**/*.md", docs/**]
   pull_request:
     branches: [develop]
-    paths-ignore: ["**/*.md", docs/**]
   workflow_dispatch:
   workflow_call: # make this workflow reusable by release.yml
 
@@ -17,7 +15,7 @@ permissions:
 jobs:
   test:
     # prevent this action from running on forks
-    if: github.repository == 'abinit/abipy'
+    #if: github.repository == 'abinit/abipy'
     defaults:
       run:
         shell: bash -l {0} # enables conda/mamba env activation by reading bash profile
@@ -56,8 +54,8 @@ jobs:
             abinit --version
             abinit --build
             pip install . # --editable
-            cp -r data/managers/travis_manager.yml $HOME/.abinit/abipy/manager.yml
-            cp -r data/managers/simple_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
+            cp -r abipy/data/managers/travis_manager.yml $HOME/.abinit/abipy/manager.yml
+            cp -r abipy/data/managers/simple_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
 
       - name: pytest split ${{ matrix.split }}
         run: |
