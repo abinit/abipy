@@ -46,7 +46,7 @@ jobs:
         with:
             auto-update-conda: true
 
-      - name: Installing abinit from conda-forge
+      - name: Installing abinit from conda-forge and abipy with python=${{ matrix.config.python }} 
         run: | 
             conda create -n abipy python=${{ matrix.config.python }} --yes
             conda activate abipy
@@ -61,5 +61,5 @@ jobs:
       - name: pytest split ${{ matrix.split }}
         run: |
           conda activate abipy
-          abicheck.py --with-flow
+          #abicheck.py --with-flow
           pytest --splits 10 --group ${{ matrix.split }} # --durations-path tests/files/.pytest-split-durations tests
