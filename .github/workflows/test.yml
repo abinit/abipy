@@ -55,7 +55,7 @@ jobs:
             conda install abinit -c conda-forge --yes
             abinit --version
             abinit --build
-            pip install --editable
+            pip install . # --editable
             cp -r data/managers/travis_manager.yml $HOME/.abinit/abipy/manager.yml
             cp -r data/managers/simple_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
 
