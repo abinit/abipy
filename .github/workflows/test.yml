@@ -51,9 +51,9 @@ jobs:
 
       - name: Installing abinit from conda-forge
         run: | 
-               micromamba run -n abipy install abinit -c conda-forge 
-               abinit --version
-               abinit --build
+            micromamba run -n abipy install abinit -c conda-forge 
+            micromamba run -n abipy abinit --version
+            micromamba run -n abipy abinit --build
 
       - name: pytest split ${{ matrix.split }}
         run: |
