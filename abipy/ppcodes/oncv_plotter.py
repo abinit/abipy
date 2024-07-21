@@ -327,11 +327,12 @@ class OncvPlotter(NotebookWriter):
         from plotly.tools import mpl_to_plotly
         return mpl_to_plotly(self.plot_vtau(*args, show=False, **kwargs))
 
-    def plot_vtau(self, ax=None, fontsize: int = 8, **kwargs) -> Figure:
+    def plot_vtau(self, xscale="log", ax=None, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot v_tau and v_tau(model+pseudo) potentials on axis ax.
 
         Args:
+            xscale: "log" to plot vtau in log scale or "linear". For other options see matplotlib.
             ax: |matplotlib-Axes| or None if a new figure should be created.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
@@ -347,23 +348,26 @@ class OncvPlotter(NotebookWriter):
                          fontsize=fontsize,
                          )
         self._add_rc_vlines_ax(ax, with_lloc=True)
+        ax.set_xscale(xscale)
+
+        return fig
 
     def plotly_tau(self, *args, **kwargs):
         """Generate plotly figure from matplotly."""
         from plotly.tools import mpl_to_plotly
         return mpl_to_plotly(self.plot_tau(*args, show=False, **kwargs))
 
-    def plot_tau(self, ax=None, fontsize: int = 8, **kwargs) -> Figure:
+    def plot_tau(self, ax=None, yscale="log", fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot kinetic energy densities tauPS and tau(M+PS) on axis ax.
 
         Args:
+            yscale: "log" to plot tau in log scale or "linear". For other options see matplotlib.
             ax: |matplotlib-Axes| or None if a new figure should be created.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
         for key, den in self.parser.kin_densities.items():
-            #mode = "ae" if key == "tau_ps" else "ps"
             ax.plot(den.rmesh, den.values,
                     label=den.name)
                     #**self._mpl_opts_laeps(0, mode))
@@ -373,6 +377,7 @@ class OncvPlotter(NotebookWriter):
                          fontsize=fontsize,
                          )
         self._add_rc_vlines_ax(ax, with_lloc=True)
+        ax.set_yscale(yscale)
 
         return fig
 

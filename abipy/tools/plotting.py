@@ -19,12 +19,12 @@ import matplotlib.collections as mcoll
 from collections import namedtuple, OrderedDict
 from typing import Any, Callable, Iterator
 from monty.string import list_strings
-from pymatgen.util.plotting import add_fig_kwargs
+#from pymatgen.util.plotting import add_fig_kwargs
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
 from abipy.tools.numtools import data_from_cplx_mode
-from plotly.tools import mpl_to_plotly
+
 
 __all__ = [
     "set_axlims",
@@ -64,6 +64,115 @@ linestyles = OrderedDict(
      ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
      ('densely_dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))]
 )
+
+
+
+def add_fig_kwargs(func):
+    """Decorator that adds keyword arguments for functions returning matplotlib
+    figures.
+
+    The function should return either a matplotlib figure or None to signal
+    some sort of error/unexpected event.
+    See doc string below for the list of supported options.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        # pop the kwds used by the decorator.
+        title = kwargs.pop("title", None)
+        size_kwargs = kwargs.pop("size_kwargs", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
+        tight_layout = kwargs.pop("tight_layout", False)
+        ax_grid = kwargs.pop("ax_grid", None)
+        ax_annotate = kwargs.pop("ax_annotate", None)
+        fig_close = kwargs.pop("fig_close", False)
+        plotly = kwargs.pop("fig_close", False)
+
+        # Call func and return immediately if None is returned.
+        fig = func(*args, **kwargs)
+        if fig is None:
+            return fig
+
+        # Operate on matplotlib figure.
+        if title is not None:
+            fig.suptitle(title)
+
+        if size_kwargs is not None:
+            fig.set_size_inches(size_kwargs.pop("w"), size_kwargs.pop("h"), **size_kwargs)
+
+        if ax_grid is not None:
+            for ax in fig.axes:
+                ax.grid(bool(ax_grid))
+
+        if ax_annotate:
+            tags = ascii_letters
+            if len(fig.axes) > len(tags):
+                tags = (1 + len(ascii_letters) // len(fig.axes)) * ascii_letters
+            for ax, tag in zip(fig.axes, tags):
+                ax.annotate(f"({tag})", xy=(0.05, 0.95), xycoords="axes fraction")
+
+        if tight_layout:
+            try:
+                fig.tight_layout()
+            except Exception as exc:
+                # For some unknown reason, this problem shows up only on travis.
+                # https://stackoverflow.com/questions/22708888/valueerror-when-using-matplotlib-tight-layout
+                print("Ignoring Exception raised by fig.tight_layout\n", str(exc))
+
+        if savefig:
+            fig.savefig(savefig)
+
+        if plotly:
+            try:
+                plotly_fig = mpl_to_ply(fig, latex=False)
+                if show: plotly_fig.show()
+                return plotly_fig
+            except Exception as exc:
+                raise
+                #print(str(exc))
+                pass
+
+        import matplotlib.pyplot as plt
+        if show:
+            plt.show()
+
+        if fig_close:
+            plt.close(fig=fig)
+
+        return fig
+
+    # Add docstring to the decorated method.
+    doc_str = """\n\n
+        Keyword arguments controlling the display of the figure:
+
+        ================  ====================================================
+        kwargs            Meaning
+        ================  ====================================================
+        title             Title of the plot (Default: None).
+        show              True to show the figure (default: True).
+        savefig           "abc.png" or "abc.eps" to save the figure to a file.
+        size_kwargs       Dictionary with options passed to fig.set_size_inches
+                          e.g. size_kwargs=dict(w=3, h=4)
+        tight_layout      True to call fig.tight_layout (default: False)
+        ax_grid           True (False) to add (remove) grid from all axes in fig.
+                          Default: None i.e. fig is left unchanged.
+        ax_annotate       Add labels to  subplots e.g. (a), (b).
+                          Default: False
+        fig_close         Close figure. Default: False.
+        plotly            Try to convert mpl figure to plotly.
+        ================  ====================================================
+
+"""
+
+    if wrapper.__doc__ is not None:
+        # Add s at the end of the docstring.
+        wrapper.__doc__ += f"\n{doc_str}"
+    else:
+        # Use s
+        wrapper.__doc__ = doc_str
+
+    return wrapper
 
 
 class FilesPlotter:
@@ -1743,9 +1852,7 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
     sort of error/unexpected event.
     See doc string below for the list of supported options.
     """
-    from functools import wraps
-
-    @wraps(func)
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         # pop the kwds used by the decorator.
         title = kwargs.pop("title", None)
@@ -2647,6 +2754,8 @@ def add_colorscale_dropwdowns(fig):
     return fig
 
 
+#TODO: Add plotly option to add_fig_kwargs
+
 def mpl_to_ply(fig: Figure, latex: bool= False):
     """
     Nasty workaround for plotly latex rendering in legend/breaking exception
@@ -2699,6 +2808,7 @@ def mpl_to_ply(fig: Figure, latex: bool= False):
                 text.set_text(new_label)
 
     # Convert to plotly figure
+    from plotly.tools import mpl_to_plotly
     plotly_fig = mpl_to_plotly(fig)
 
     plotly_fig.update_layout(template  = "plotly_white", title = {
@@ -2726,7 +2836,6 @@ def mpl_to_ply(fig: Figure, latex: bool= False):
     for trace in plotly_fig.data:
         # Retrieve the current label and remove any $ signs
         new_label = trace.name.replace("$", "")
-
         # Update the trace's name (which is used for the legend label)
         trace.name = new_label
 
@@ -2783,4 +2892,6 @@ class PolyfitPlotter:
 #        self.xs, self.ys = np.array(xs), np.array(ys)
 #
 #    def extrapolate_to_zero(self, deg: int):
+
+
 

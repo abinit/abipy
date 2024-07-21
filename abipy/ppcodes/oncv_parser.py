@@ -531,7 +531,7 @@ class OncvParser(BaseParser):
     @lazy_property
     def vtaus(self) -> dict[str, RadialFunction]:
         """
-        Dictionary with Vtau pototentials on the radial mesh.
+        Dictionary with Vtau ptotentials on the radial mesh.
         """
         if not self.is_metapsp:
             raise ValueEror("kin_densities are only available in pseudos generated with metapsp")

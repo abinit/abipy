@@ -474,6 +474,10 @@ class OncvOutputParserTest(AbipyTest):
             assert plotter.plot_atanlogder_econv(show=False)
             assert plotter.plot_den_formfact(ecut=20, show=False)
 
+            if isinstance(plotter, OncvParser) and plotter.parser.is_metapsp:
+                assert plotter.plot_vtau(show=False)
+                assert plotter.plot_tau(show=False)
+
         #if self.has_plotly():
 
     def test_psp8_get_densities(self):
