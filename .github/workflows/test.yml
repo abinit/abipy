@@ -40,30 +40,26 @@ jobs:
     #  PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
 
     steps:
-      - name: Check out repo
+      - name: Check out Abipy repo
         uses: actions/checkout@v4
 
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v2
         with:
             auto-update-conda: true
-            python-version: 3.8
-
-      #- name: Set up micromamba
-      #  uses: mamba-org/setup-micromamba@main
-      #- name: Create mamba environment
-      #  run: |
-      #    micromamba create -n abipy python=${{ matrix.config.python }} --yes
 
       - name: Installing abinit from conda-forge
         run: | 
             conda create -n abipy python=${{ matrix.config.python }} --yes
             conda activate abipy
-            conda install abinit -c conda-forge 
+            conda install abinit -c conda-forge --yes
             abinit --version
             abinit --build
+            pip install --editable
+            cp -r data/managers/travis_manager.yml $HOME/.abinit/abipy/manager.yml
+            cp -r data/managers/simple_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
 
       - name: pytest split ${{ matrix.split }}
         run: |
-          micromamba activate abipy
+          conda activate abipy
           pytest --splits 10 --group ${{ matrix.split }} # --durations-path tests/files/.pytest-split-durations tests
