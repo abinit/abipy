@@ -63,5 +63,4 @@ jobs:
           conda activate abipy
           #abicheck.py --with-flow
           pip install -r requirements-tests.txt
-          cd abipy
           pytest -v # --splits 10 --group ${{ matrix.split }} # --durations-path tests/files/.pytest-split-durations tests
