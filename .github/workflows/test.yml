@@ -1,4 +1,4 @@
-# Runs the Abipy test suite. 
+# Runs the Abipy test suite.
 name: Tests
 
 on:
@@ -30,7 +30,7 @@ jobs:
 
         # pytest-split automatically distributes work load so parallel jobs finish in similar time
         # update durations file with `pytest --store-durations --durations-path tests/files/.pytest-split-durations`
-        split: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        #split: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     runs-on: ${{ matrix.config.os }}
 
@@ -46,21 +46,22 @@ jobs:
         with:
             auto-update-conda: true
 
-      - name: Installing abinit from conda-forge and abipy with python=${{ matrix.config.python }} 
-        run: | 
+      - name: Installing abinit from conda-forge and abipy with python=${{ matrix.config.python }}
+        run: |
             conda create -n abipy python=${{ matrix.config.python }} --yes
             conda activate abipy
             conda install abinit -c conda-forge --yes
             mpirun -n 1 abinit --version
             mpirun -n 1 abinit --build
-            pip install . 
+            pip install .
             mkdir -p $HOME/.abinit/abipy/
             cp abipy/data/managers/travis_manager.yml $HOME/.abinit/abipy/manager.yml
             cp abipy/data/managers/simple_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
 
-      - name: pytest split ${{ matrix.split }}
+      - name: pytest
         run: |
           conda activate abipy
           #abicheck.py --with-flow
           pip install -r requirements-tests.txt
-          pytest --splits 10 --group ${{ matrix.split }} # --durations-path tests/files/.pytest-split-durations tests
+          cd abipy
+          pytest -v # --splits 10 --group ${{ matrix.split }} # --durations-path tests/files/.pytest-split-durations tests
