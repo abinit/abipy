@@ -31,16 +31,13 @@ jobs:
         config:
           - os: windows-latest
             python: "3.9"
-            resolution: highest
-            extras: ci,optional
+            #extras: ci, optional
           - os: ubuntu-latest
             python: '>3.9'
-            resolution: highest
-            extras: ci,optional
+            #extras: ci, optional
           - os: macos-latest
             python: '3.10'
-            resolution: highest
-            extras: ci # test with only required dependencies installed
+            #extras: ci # test with only required dependencies installed
 
         # pytest-split automatically distributes work load so parallel jobs finish in similar time
         # update durations file with `pytest --store-durations --durations-path tests/files/.pytest-split-durations`
@@ -65,10 +62,10 @@ jobs:
       #- name: Install uv
       #  run: micromamba run -n abipy pip install uv
 
-      - name: Install pymatgen and dependencies
-        run: |
-          micromamba activate abipy
-          pip install --editable '.[${{ matrix.config.extras }}]' --resolution=${{ matrix.config.resolution }}
+      #- name: Install pymatgen and dependencies
+      #  run: |
+      #    micromamba activate abipy
+      #    pip install --editable '.[${{ matrix.config.extras }}]'
 
       - name: pytest split ${{ matrix.split }}
         run: |
