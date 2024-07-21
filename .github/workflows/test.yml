@@ -26,7 +26,8 @@ jobs:
       matrix:
         config:
           - os: ubuntu-latest
-            python: '>3.9'
+            python: '3.11'
+            #python: '>3.9'
             #extras: ci, optional
 
         # pytest-split automatically distributes work load so parallel jobs finish in similar time
@@ -52,10 +53,11 @@ jobs:
       - name: Installing abinit from conda-forge
         run: | 
             micromamba run -n abipy install abinit -c conda-forge 
-            micromamba run -n abipy abinit --version
-            micromamba run -n abipy abinit --build
+            micromamba activate abipy
+            abinit --version
+            abinit --build
 
       - name: pytest split ${{ matrix.split }}
         run: |
           micromamba activate abipy
-          pytest --splits 10 --group ${{ matrix.split }} --durations-path tests/files/.pytest-split-durations tests
+          pytest --splits 10 --group ${{ matrix.split }} # --durations-path tests/files/.pytest-split-durations tests
