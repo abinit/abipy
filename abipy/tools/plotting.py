@@ -19,7 +19,6 @@ import matplotlib.collections as mcoll
 from collections import namedtuple, OrderedDict
 from typing import Any, Callable, Iterator
 from monty.string import list_strings
-#from pymatgen.util.plotting import add_fig_kwargs
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
@@ -87,7 +86,7 @@ def add_fig_kwargs(func):
         ax_grid = kwargs.pop("ax_grid", None)
         ax_annotate = kwargs.pop("ax_annotate", None)
         fig_close = kwargs.pop("fig_close", False)
-        plotly = kwargs.pop("fig_close", False)
+        plotly = kwargs.pop("plotly", False)
 
         # Call func and return immediately if None is returned.
         fig = func(*args, **kwargs)
@@ -129,8 +128,8 @@ def add_fig_kwargs(func):
                 if show: plotly_fig.show()
                 return plotly_fig
             except Exception as exc:
-                raise
-                #print(str(exc))
+                print("Exception while convertig matplotlib figure to plotly. Returning mpl figure!")
+                print(str(exc))
                 pass
 
         import matplotlib.pyplot as plt
@@ -2751,8 +2750,6 @@ def add_colorscale_dropwdowns(fig):
 
     return fig
 
-
-#TODO: Add plotly option to add_fig_kwargs
 
 def mpl_to_ply(fig: Figure, latex: bool= False):
     """
