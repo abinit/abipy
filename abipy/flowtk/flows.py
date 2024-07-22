@@ -30,7 +30,6 @@ from monty.pprint import draw_tree
 from monty.termcolor import cprint, colored, cprint_map, get_terminal_size
 from monty.inspect import find_top_pyfile
 from monty.json import MSONable
-from pymatgen.core.units import Memory
 from abipy.tools.iotools import AtomicFile
 from abipy.tools.serialization import pmg_pickle_load, pmg_pickle_dump, pmg_serialize
 from abipy.tools.typing import Figure, TYPE_CHECKING
@@ -2478,90 +2477,6 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         """Lightweight tarball file. Mainly used for debugging. Return the name of the tarball file."""
         name = os.path.basename(self.workdir) + "-light.tar.gz" if name is None else name
         return self.make_tarfile(name=name, exclude_dirs=["outdata", "indata", "tmpdata"])
-
-    def make_tarfile(self, name=None, max_filesize=None, exclude_exts=None, exclude_dirs=None, verbose=0, **kwargs):
-        """
-        Create a tarball file.
-
-        Args:
-            name: Name of the tarball file. Set to os.path.basename(`flow.workdir`) + "tar.gz"` if name is None.
-            max_filesize (int or string with unit): a file is included in the tar file if its size <= max_filesize
-                Can be specified in bytes e.g. `max_files=1024` or with a string with unit e.g. `max_filesize="1 Mb"`.
-                No check is done if max_filesize is None.
-            exclude_exts: List of file extensions to be excluded from the tar file.
-            exclude_dirs: List of directory basenames to be excluded.
-            verbose (int): Verbosity level.
-            kwargs: keyword arguments passed to the :class:`TarFile` constructor.
-
-        Returns: The name of the tarfile.
-        """
-        def any2bytes(s):
-            """Convert string or number to memory in bytes."""
-            if is_string(s):
-                # Support for deprecated pymatgen API
-                try:
-                    mem = int(Memory.from_string(s).to("b"))
-                except Exception:
-                    mem = int(Memory.from_str(s).to("b"))
-            else:
-                return int(s)
-
-        if max_filesize is not None:
-            max_filesize = any2bytes(max_filesize)
-
-        if exclude_exts:
-            # Add/remove ".nc" so that we can simply pass "GSR" instead of "GSR.nc"
-            # Moreover this trick allows one to treat WFK.nc and WFK file on the same footing.
-            exts = []
-            for e in list_strings(exclude_exts):
-                exts.append(e)
-                if e.endswith(".nc"):
-                    exts.append(e.replace(".nc", ""))
-                else:
-                    exts.append(e + ".nc")
-            exclude_exts = exts
-
-        def filter(tarinfo):
-            """
-            Function that takes a TarInfo object argument and returns the changed TarInfo object.
-            If it instead returns None the TarInfo object will be excluded from the archive.
-            """
-            # Skip links.
-            if tarinfo.issym() or tarinfo.islnk():
-                if verbose: print("Excluding link: %s" % tarinfo.name)
-                return None
-
-            # Check size in bytes
-            if max_filesize is not None and tarinfo.size > max_filesize:
-                if verbose: print("Excluding %s due to max_filesize" % tarinfo.name)
-                return None
-
-            # Filter filenames.
-            if exclude_exts and any(tarinfo.name.endswith(ext) for ext in exclude_exts):
-                if verbose: print("Excluding %s due to extension" % tarinfo.name)
-                return None
-
-            # Exlude directories (use dir basenames).
-            if exclude_dirs and any(dir_name in exclude_dirs for dir_name in tarinfo.name.split(os.path.sep)):
-                if verbose: print("Excluding %s due to exclude_dirs" % tarinfo.name)
-                return None
-
-            return tarinfo
-
-        back = os.getcwd()
-        os.chdir(os.path.join(self.workdir, ".."))
-
-        import tarfile
-        name = os.path.basename(self.workdir) + ".tar.gz" if name is None else name
-        with tarfile.open(name=name, mode='w:gz', **kwargs) as tar:
-            tar.add(os.path.basename(self.workdir), arcname=None, recursive=True, filter=filter)
-
-            # Add the script used to generate the flow.
-            if self.pyfile is not None and os.path.exists(self.pyfile):
-                tar.add(self.pyfile)
-
-        os.chdir(back)
-        return name
 
     def explain(self, what="all", nids=None, verbose=0) -> str:
         """

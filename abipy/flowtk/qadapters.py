@@ -215,11 +215,19 @@ class Hardware:
 
         # Convert memory to megabytes.
         m = str(kwargs.pop("mem_per_node"))
-        # Support for old pymatgen API
+
         try:
-            self.mem_per_node = int(Memory.from_string(m).to("Mb"))
+            # Support for old pymatgen API
+            if hasattr(Memory, "from_string"):
+                self.mem_per_node = int(Memory.from_string(m).to("Mb"))
+            else:
+                self.mem_per_node = int(Memory.from_str(m).to("Mb"))
         except:
-            self.mem_per_node = int(Memory.from_str(m).to("Mb"))
+            d = {"Kb": "KB", "Mb": "MB", "Gb": "GB", "Tb": "TB"}
+            for old, new in d.items():
+                m = m.replace(old, new)
+
+            self.mem_per_node = int(Memory.from_str(m).to("MB"))
 
         if self.mem_per_node <= 0 or self.sockets_per_node <= 0 or self.cores_per_socket <= 0:
             raise ValueError("invalid parameters: %s" % kwargs)
@@ -259,10 +267,17 @@ class Hardware:
         return divmod(mpi_procs * omp_threads, self.cores_per_node)
 
     def as_dict(self) -> dict:
+
+        try:
+            # old pymatgen
+            mem_per_node = str(Memory(val=self.mem_per_node, unit='Mb'))
+        except:
+            mem_per_node = str(Memory(val=self.mem_per_node, unit='MB'))
+
         return {'num_nodes': self.num_nodes,
                 'sockets_per_node': self.sockets_per_node,
                 'cores_per_socket': self.cores_per_socket,
-                'mem_per_node': str(Memory(val=self.mem_per_node, unit='Mb'))}
+                'mem_per_node': mem_per_node}
 
     @classmethod
     def from_dict(cls, d: dict) -> Hardware:
@@ -901,7 +916,10 @@ limits:
     @property
     def total_mem(self) -> Memory:
         """Total memory required by the job in megabytes."""
-        return Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "Mb")
+        try:
+            return Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "Mb")
+        except:
+            return Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "MB")
 
     @abc.abstractmethod
     def cancel(self, job_id: int) -> int:
