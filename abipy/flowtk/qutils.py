@@ -12,7 +12,7 @@ import os
 
 from subprocess import Popen, PIPE, run
 from monty.string import is_string
-from pymatgen.core.units import Time, Memory
+from pymatgen.core.units import Time, Memory, UnitError
 from abipy.tools.typing import PathLike
 from abipy.tools import duck
 from abipy.tools.text import rm_multiple_spaces
@@ -132,11 +132,14 @@ def timelimit_parser(s):
 def any2mb(s):
     """Convert string or number to memory in megabytes."""
     if is_string(s):
-        s = s.upper()  # Convert in upper case for pymatgen compatibility
         try:
-            mem = int(Memory.from_string(s).to("MB"))
-        except Exception:
-            mem = int(Memory.from_str(s).to("MB"))
+            # latest pymatgen version (as of july 2024)
+            mem = int(Memory.from_str(s.upper()).to("MB"))
+        except (KeyError, UnitError):  # For backward compatibility with older pymatgen versions
+            try:
+                mem = int(Memory.from_str(s.replace("B", "b")).to("Mb"))
+            except AttributeError:  # For even older pymatgen versions
+                mem = int(Memory.from_string(s.replace("B", "b")).to("Mb"))
         return mem
     else:
         return int(s)

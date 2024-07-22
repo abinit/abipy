@@ -32,11 +32,12 @@ from monty.functools import lazy_property
 from monty.inspect import all_subclasses
 from monty.io import FileLock
 from monty.json import MSONable
-from pymatgen.core.units import Memory
+from pymatgen.core.units import Memory, UnitError
 from abipy.tools.iotools import AtomicFile
 from .utils import Condition
 from .launcher import ScriptEditor
 from .qjobs import QueueJob
+from .qutils import any2mb
 
 import logging
 logger = logging.getLogger(__name__)
@@ -215,13 +216,7 @@ class Hardware:
 
         # Convert memory to megabytes.
         m = str(kwargs.pop("mem_per_node"))
-        # Convert to upper case for compatibility with pymatgen
-        m = m.upper()
-        # Support for old pymatgen API
-        try:
-            self.mem_per_node = int(Memory.from_string(m).to("MB"))
-        except:
-            self.mem_per_node = int(Memory.from_str(m).to("MB"))
+        self.mem_per_node = any2mb(m)
 
         if self.mem_per_node <= 0 or self.sockets_per_node <= 0 or self.cores_per_socket <= 0:
             raise ValueError("invalid parameters: %s" % kwargs)
@@ -261,10 +256,21 @@ class Hardware:
         return divmod(mpi_procs * omp_threads, self.cores_per_node)
 
     def as_dict(self) -> dict:
-        return {'num_nodes': self.num_nodes,
+        try:
+            dct = {
+                'num_nodes': self.num_nodes,
                 'sockets_per_node': self.sockets_per_node,
                 'cores_per_socket': self.cores_per_socket,
-                'mem_per_node': str(Memory(val=self.mem_per_node, unit='MB'))}
+                'mem_per_node': str(Memory(val=self.mem_per_node, unit='MB'))
+            }
+        except UnitError:
+            dct = {
+                'num_nodes': self.num_nodes,
+                'sockets_per_node': self.sockets_per_node,
+                'cores_per_socket': self.cores_per_socket,
+                'mem_per_node': str(Memory(val=self.mem_per_node, unit='Mb'))
+            }
+        return dct
 
     @classmethod
     def from_dict(cls, d: dict) -> Hardware:
@@ -903,7 +909,11 @@ limits:
     @property
     def total_mem(self) -> Memory:
         """Total memory required by the job in megabytes."""
-        return Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "MB")
+        try:
+            mem = Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "MB")
+        except UnitError:
+            mem = Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "Mb")
+        return mem
 
     @abc.abstractmethod
     def cancel(self, job_id: int) -> int:

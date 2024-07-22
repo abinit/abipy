@@ -30,7 +30,7 @@ from monty.pprint import draw_tree
 from monty.termcolor import cprint, colored, cprint_map, get_terminal_size
 from monty.inspect import find_top_pyfile
 from monty.json import MSONable
-from pymatgen.core.units import Memory
+from pymatgen.core.units import Memory, UnitError
 from abipy.tools.iotools import AtomicFile
 from abipy.tools.serialization import pmg_pickle_load, pmg_pickle_dump, pmg_serialize
 from abipy.tools.typing import Figure, TYPE_CHECKING
@@ -1291,8 +1291,12 @@ class Flow(Node, NodeContainer, MSONable):
                 if report is not None:
                     events = '{:>4}|{:>3}'.format(*map(str, (report.num_warnings, report.num_comments)))
 
-                para_info = '{:>4}|{:>3}|{:>3}'.format(*map(str, (
-                   task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("GB"))))
+                try:
+                    para_info = '{:>4}|{:>3}|{:>3}'.format(*map(str, (
+                        task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("GB"))))
+                except (KeyError, UnitError):
+                    para_info = '{:>4}|{:>3}|{:>3}'.format(*map(str, (
+                       task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("Gb"))))
 
                 task_info = list(map(str, [task.__class__.__name__,
                                  (task.num_launches, task.num_restarts, task.num_corrections), stime, task.node_id]))
@@ -2498,12 +2502,14 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         def any2bytes(s):
             """Convert string or number to memory in bytes."""
             if is_string(s):
-                s = s.upper()  # Convert in upper case for pymatgen compatibility
-                # Support for deprecated pymatgen API
                 try:
-                    mem = int(Memory.from_string(s).to("B"))
-                except Exception:
-                    mem = int(Memory.from_str(s).to("B"))
+                    # latest pymatgen version (as of july 2024)
+                    mem = int(Memory.from_str(s.upper()).to("B"))
+                except (KeyError, UnitError):  # For backward compatibility with older pymatgen versions
+                    try:
+                        mem = int(Memory.from_str(s.replace("B", "b")).to("b"))
+                    except AttributeError:  # For even older pymatgen versions
+                        mem = int(Memory.from_string(s.replace("B", "b")).to("b"))
                 return mem
             else:
                 return int(s)
