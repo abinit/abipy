@@ -51,6 +51,7 @@ jobs:
 
       - name: Build docs with Sphinx
         run: |
+            conda activate abipy
             cd docs 
             source install.sh
             make
