@@ -3306,14 +3306,14 @@ class ElectronBands(Has_Structure):
         """
         Interpolate energies in k-space along a k-path and, optionally, in the IBZ for DOS calculations.
         Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
-        so it is recommended to call this method with energies obtained in the IBZ.
+        so it is highly recommended to call this method with energies obtained in the IBZ.
 
         Args:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
                 The default should be OK in many systems, larger values may be required for accurate derivatives.
             knames: List of strings with the k-point labels for the k-path. Has precedence over ``vertices_names``.
             vertices_names: Used to specify the k-path for the interpolated band structure
-                It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
+                It is a list of tuple, each tuple is of the form (kfrac_coords, kname) where
                 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
                 the k-point. Each point represents a vertex of the k-path. ``line_density`` defines
                 the density of the sampling. If None, the k-path is automatically generated according
@@ -4521,7 +4521,7 @@ class ElectronDos:
             # Assume number
             return float(e0)
 
-    def plot_ax(self, ax, e0, spin=None, what="dos", fact=1.0, exchange_xy=False, **kwargs) -> list:
+    def plot_ax(self, ax, e0, spin=None, what="dos", fact=1.0, normalize=False, exchange_xy=False, **kwargs) -> list:
         """
         Helper function to plot the DOS data on the matplotlib axis ``ax``.
 
@@ -4530,7 +4530,8 @@ class ElectronDos:
             e0: Option used to define the zero of energy in the band structure plot.
             spin: selects the spin component, None for total DOS, IDOS.
             what: string selecting what will be plotted. "dos" for DOS, "idos" for IDOS
-            fact: Multiplication factor for DOS/IDOS. Usually +-1 for spin DOS
+            fact: Multiplication factor for DOS/IDOS. Usually +-1 for spin DOS.
+            normalize: True if values should be normalized to one.
             exchange_xy: True to exchange x-y axis.
             kwargs: Options passed to matplotlib ``ax.plot``
 
@@ -4545,6 +4546,8 @@ class ElectronDos:
         f = w2f[what]
 
         xx, yy = f.mesh - e0, f.values * fact
+        if normalize: yy /= yy.max()
+
         if exchange_xy: xx, yy = yy, xx
         lines = []
         lines.extend(ax.plot(xx, yy, **kwargs))

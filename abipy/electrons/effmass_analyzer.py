@@ -24,7 +24,7 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig
 class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
     """
     This objects provides a high-level API to compute electronic effective masses
-    via finite differences starting from a netcdf file with an |ElectronBands| object.
+    with finite differences starting from a netcdf file with an |ElectronBands| object.
 
     Usage example:
 
@@ -44,7 +44,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
         #emana.select_kpoint_band(kpoint=[0, 0, 0], band=3)
 
-        #amana.summarize()
+        #emana.summarize()
         emana.plot_emass()
 
     .. rubric:: Inheritance Diagram
@@ -65,7 +65,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         Initialize the object from an ebands object with energies along segments.
         """
         if not ebands.kpoints.is_path:
-            raise ValueError("EffmassAnalyzer requires k-points along a path. Got:\n %s" % repr(ebands.kpoints))
+            raise ValueError("EffmassAnalyzer requires k-points along a k-path but got:\n %s" % repr(ebands.kpoints))
 
         # Copy ebands before changing fermie because we don't want side effects!
         self._ebands = ebands.deepcopy() if copy else ebands
@@ -228,7 +228,6 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
             title = "k: %s, spin: %s, nbands in segment: %d, step: %.3f Ang-1\n(reduced/cart) direction: %s\n" % (
                     repr(segment.k0), segment.spin, segment.nb, segment.dk, segment.kdir.tos(m="fracart", scale=True))
             print_dataframe(df, title=title)
-            #print("")
 
     @add_fig_kwargs
     def plot_emass(self, acc=4, units="eV", sharey=True, fontsize=6,

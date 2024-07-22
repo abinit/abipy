@@ -342,9 +342,9 @@ def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=Fals
         showLink=True,
         plotlyServerURL="https://chart-studio.plotly.com",
     )
-    
+
     plotly_fig = mpl_to_ply(fig)
-    
+
     plotly_pane = pn.pane.Plotly(plotly_fig, config=config)
     ca(plotly_pane)
 

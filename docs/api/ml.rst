@@ -45,15 +45,6 @@ ml Package
    :show-inheritance:
 
 
-:mod:`ml_relax` Package
------------------------
-
-.. automodule:: abipy.ml.ml_relax
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
 :mod:`relax_scanner` Package
 ----------------------------
 

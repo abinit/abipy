@@ -17,17 +17,64 @@ from monty.termcolor import cprint
 from abipy.core.func1d import Function1D
 from abipy.core.structure import Structure
 from abipy.core.kpoints import kpoints_indices
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.typing import PathLike
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles, Marker)
 #from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.dfpt.phonons import PhononBands
+from abipy.dfpt.ddb import DdbFile
 from abipy.tools.typing import Figure
 from abipy.tools.numtools import BzRegularGridInterpolator, gaussian
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
+
+
+from abipy.electrons.effmass_analyzer import EffMassAnalyzer
+
+class FrohlichAnalyzer:
+
+    def __init__(self, gsr_kpath, ddb, verbose = 0, **anaddb_kwargs):
+        """
+        """
+        ebands_kpath = ElectronBands.as_ebands(gsr_kpath)
+
+        self.ddb = DdbFile.as_ddb(ddb)
+        self.verbose = verbose
+
+        r = self.ddb.anaget_epsinf_and_becs(verbose=verbose, return_input=True, **anaddb_kwargs)
+        self.epsinf, self.becs = r.epsinf, r.becs
+
+        print("epsilon_infinity in Cartesian coordinates:\n", self.epsinf)
+        print("BECS:\n", self.becs)
+
+        self.diel_gen, diel_inp = self.ddb.anaget_dielectric_tensor_generator(verbose=verbose, return_input=True, **anaddb_kwargs)
+        self.eps0_tensor = self.diel_gen.tensor_at_frequency(0.0)
+        print("esp0 tensor:")
+        print(self.eps0_tensor)
+
+        # Spherical average of eps_inf and eps_0 (real part only)
+        einf_savg, e0_savg = self.epsinf.trace() / 3, self.eps0_tensor.real.trace() / 3
+
+        kappa = 1 / (1/einf_savg - 1/e0_savg)
+        print(f"{kappa =}")
+
+        self.emana = EffMassAnalyzer(ebands_kpath)
+
+        self.emana.select_band_edges()
+        self.emana.summarize()
+        self.emana.plot_emass()
+
+    #def __str__(self) -> str:
+    #    return self.to_string()
+
+    #def to_string(self, verbose: int = 0) -> str:
+    #    lines = []
+    #    app = lines.append
+    #    return "\n".join(lines)
+
+    #def analyze(self)
 
 
 ITER_LABELS = [
@@ -39,7 +86,7 @@ ITER_LABELS = [
 ]
 
 
-class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
+class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This file stores the results of a VARPEQ calculations: SCF cycle, A_nk, B_qnu
     and provides methods to analyze and plot results.
@@ -112,9 +159,6 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
-        #if verbose > 1:
-        #    app("")
-        #    app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
 
         app("")
         app("VARPEQ parameters:")
@@ -144,7 +188,7 @@ class VarpeqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return dict(zip(ITER_LABELS, last_iteration))
 
     @add_fig_kwargs
-    def plot_scf_cycle(self, ax_mat=None, fontsize=12, **kwargs) -> Figure:
+    def plot_scf_cycle(self, ax_mat=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the VARPEQ SCF cycle.
 
@@ -272,12 +316,9 @@ class Polaron:
         app(f"ksampling: {str(ksampling)}")
         ngqpt = self.varpeq.r.ngqpt
         app(f"q-mesh: {ngqpt}")
-
         #if verbose:
         norm = np.sum(np.abs(self.a_kn) ** 2) / self.nk
         app("1/N_k sum_{nk} |A_nk|^2: %f" % norm)
-        #norm = np.sum(np.abs(self.b_qnu) ** 2)
-        #app("sum_{qnu} |B_qnu|^2: %f" % norm)
 
         return "\n".join(lines)
 
@@ -294,7 +335,7 @@ class Polaron:
         ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
 
         if ngkpt is None:
-            raise ValueError("Non diagonal k-meshes are not supported")
+            raise ValueError("Non diagonal k-meshes are not supported!")
         if len(shifts) > 1:
             raise ValueError("Multiple k-shifts are not supported!")
 
@@ -386,7 +427,7 @@ class Polaron:
                 ymin = min(ymin, e)
                 ymax = max(ymax, e)
 
-        points = Marker(x, y, s)
+        points = Marker(x, y, s, color="y")
 
         nrows, ncols = 1, 2
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
@@ -421,22 +462,25 @@ class Polaron:
             enes_n = ebands_kmesh.eigens[self.spin, ik, self.bstart:self.bstop]
             a2_n = a2_interp.eval_kpoint(kpoint)
             for e, a2 in zip(enes_n, a2_n):
-                ank_dos += weight * a2 * gaussian(mesh, width, center=e-e0)
-
-        ax = ax_list[1]
-        edos.plot_ax(ax, e0, spin=self.spin, exchange_xy=True, label="eDOS(E)")
-        ax.set_xlabel("arbitrary units", fontsize=fontsize)
+                ank_dos += weight * a2 * gaussian(mesh, width, center=e - e0)
 
         ank_dos = Function1D(mesh, ank_dos)
         print("A2(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
-        ank_dos.plot_ax(ax, exchange_xy=True, label=r"$A^2$(E)")
+
+        # Rescale the two DOS to plot them on the same scale.
+        ank_dos = ank_dos / ank_dos.max
+
+        ax = ax_list[1]
+        edos.plot_ax(ax, e0, spin=self.spin, normalize=True, exchange_xy=True, label="eDOS(E)")
+        ax.set_xlabel("Arbitrary units", fontsize=fontsize)
+        ank_dos.plot_ax(ax, exchange_xy=True, label=r"$A^2$(E)", color=points.color)
         ax.grid(True)
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         if ylims is None:
-            ymin -= 0.5 * abs(ymin)
+            ymin -= 0.1 * abs(ymin)
             ymin -= e0
-            ymax += 0.5 * abs(ymax)
+            ymax += 0.1 * abs(ymax)
             ymax -= e0
             ylims = [ymin, ymax]
 
@@ -456,7 +500,6 @@ class Polaron:
             ddb:
             anaget_kwargs:
         """
-        from abipy.dfpt.ddb import DdbFile
         ddb = DdbFile.as_ddb(ddb)
         anaget_kwargs = {} if anaget_kwargs is None else anaget_kwargs
 
@@ -465,12 +508,13 @@ class Polaron:
             phbands_qpath = phbst_file.phbands
             return self.plot_bqnu_with_phbands(phbands_qpath,
                                                phdos_file=phdos_file if with_phdos else None,
+                                               ddb=ddb,
                                                **kwargs)
 
     @add_fig_kwargs
-    def plot_bqnu_with_phbands(self, phbands_qpath, phdos_file=None,
-                               method="linear",
-                               ax=None, scale=10, **kwargs) -> Figure:
+    def plot_bqnu_with_phbands(self, phbands_qpath, phdos_file=None, ddb=None, width = 0.001,
+                               method="linear", verbose=0, anaddb_kwargs=None,
+                               ax=None, scale=10, fontsize=12, **kwargs) -> Figure:
         """
         Plot phonon energies with markers whose size is proportional to |B_qnu|^2.
 
@@ -481,6 +525,13 @@ class Polaron:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             scale: Scaling factor for |B_qnu|^2.
         """
+        with_phdos = phdos_file is not None  and ddb is not None
+        nrows, ncols = 1, 2 if with_phdos else 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+
+
         phbands_qpath = PhononBands.as_phbands(phbands_qpath)
         b2_interp = self.get_b2_interpolator(method)
 
@@ -498,39 +549,42 @@ class Polaron:
             for w, b2 in zip(omegas_nu, b2_nu):
                 x.append(iq); y.append(w); s.append(scale * b2)
 
-        points = Marker(x, y, s)
-
-        nrows, ncols = 1, 1 if phdos_file is None else 2
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=True, squeeze=False)
-        ax_list = ax_list.ravel()
+        points = Marker(x, y, s, color="yellow")
 
         phbands_qpath.plot(ax=ax_list[0], points=points, show=False)
 
-        if phdos_file is None:
+        if not with_phdos:
             return fig
 
-        # Add phdos and |B_qn| dos
-        # mesh is given in eV, values are in states/eV.
-        #phbands_qmesh = phdos_file.phbands
+        # Add phdos and |B_qn| dos. mesh is given in eV, values are in states/eV.
         phdos = phdos_file.phdos
         ngqpt = np.diagonal(phdos_file.qptrlatt)
         mesh = phdos.mesh
         bqnu_dos = np.zeros(len(mesh))
 
-        from abipy.core.kpoints import Ktables
-        qtabs = Ktables(self.structure, ngqpt, is_shift=False, has_timrev=True)
-        print(qtabs)
+        # Call anaddb (again) to get phonons on the nqpt mesh.
+        anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
+        phbands_qmesh = ddb.anaget_phmodes_at_qpoints(ngqpt=ngqpt, verbose=verbose, **anaddb_kwargs)
 
-        width = 0.2
         for iq, qpoint in enumerate(phbands_qmesh.qpoints):
             weight = qpoint.weight
-            #enes_n = phbands_qmesh.eigens[self.spin, iq, self.bstart:self.bstop]
-            b2_nu = b2_interp.eval_kpoint(qpoint.frac_coords)
-            for w, b2 in zip(enes_n, b2_nu):
+            freqs_nu = phbands_qmesh.phfreqs[iq]
+            b2_nu = b2_interp.eval_kpoint(qpoint)
+            for w, b2 in zip(freqs_nu, b2_nu):
                 bqnu_dos += weight * b2 * gaussian(mesh, width, center=w)
 
-        #ank_dos = Function1D(mesh, ank_dos)
+        bqnu_dos = Function1D(mesh, bqnu_dos)
+
+        # Rescale the two DOS to plot them on the same scale.
+        phdos = phdos / phdos.max
+        bqnu_dos = bqnu_dos / bqnu_dos.max
+
+        ax = ax_list[1]
+        phdos.plot_ax(ax, exchange_xy=True, label="phDOS(E)")
+        bqnu_dos.plot_ax(ax, exchange_xy=True, label=r"$B^2$(E)", color=points.color)
+        ax.set_xlabel("Arbitrary units", fontsize=fontsize)
+        ax.grid(True)
+        ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
 

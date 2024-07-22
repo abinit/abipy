@@ -614,6 +614,37 @@ def abicomp_abiwan_ebands(options):
     return 0
 
 
+def abicomp_skw_ibz_kpath(options):
+    """
+    Compare star-function-interpolated band structure with ab-initio band structure computed along a k-path.
+    """
+    if len(options.paths) != 2:
+        raise ValueError("Two arguments with netcdf files providing ElectronBands are required!")
+
+    ebands_kpath = abilab.ElectronBands.from_file(options.paths[0])
+    ebands_kmesh = abilab.ElectronBands.from_file(options.paths[1])
+
+    if not ebands_kpath.kpoints.is_path:
+        ebands_kpath, ebands_kmesh = ebands_kmesh, ebands_kpath
+
+    # Be permissive: exchange k-path and k-mesh if nededed.
+    if not ebands_kpath.kpoints.is_path:
+        raise ValueError("Need k-points along a k-path.")
+    if not ebands_kmesh.kpoints.is_mpmesh:
+        raise ValueError("Need k-points belonging to a k-mesh.")
+
+    print("Interpolating band energies with lpratio:", options.lpratio)
+    print("If the fit is not optimal, try to increase lpratio")
+    vertices_names = [(k.frac_coords, k.name) for k in ebands_kpath.kpoints]
+    r = ebands_kmesh.interpolate(lpratio=options.lpratio, vertices_names=vertices_names, line_density=0)
+
+    plotter = abilab.ElectronBandsPlotter()
+    plotter.add_ebands("ab-initio", ebands_kpath)
+    plotter.add_ebands("SKW interpolated", r.ebands_kpath)
+    plotter.combiplot()
+
+    return 0
+
 def abicomp_pseudos(options):
     """"Compare multiple pseudos and print table to terminal."""
     # Make sure entries in index are unique.
@@ -1173,8 +1204,15 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     # Subparser for abiwan_ebands command.
     p_abiwan_ebands = subparsers.add_parser('abiwan_ebands', parents=[copts_parser], help=abicomp_abiwan_ebands.__doc__)
 
+    # Subparser for skw_ibz_kpath command.
+    p_skw_ibz_kpath = subparsers.add_parser('skw_ibz_kpath', parents=[copts_parser], help=abicomp_skw_ibz_kpath.__doc__)
+    p_skw_ibz_kpath.add_argument("-l", "--lpratio", default=5,
+                                help="Ratio between the number of star functions and the number of ab-initio k-points." +
+                                     "The default should be OK in many systems, larger values may be required for accurate derivatives.")
     # Subparser for pseudos command.
     p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)
+
+    # Subparser for psps command.
     p_pspsp = subparsers.add_parser('psps', parents=robot_parents, help=abicomp_psps.__doc__)
 
     # Subparser for time command.

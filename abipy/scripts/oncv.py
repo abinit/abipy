@@ -79,6 +79,7 @@ def oncv_plot(options) -> int:
 
     out_path = _find_oncv_output(options.filepath)
     plotter = OncvPlotter.from_file(out_path)
+
     #plotter.plotly_atan_logders().show()
     #return 0
 

@@ -257,20 +257,15 @@ class Hardware:
 
     def as_dict(self) -> dict:
         try:
-            dct = {
-                'num_nodes': self.num_nodes,
+            # old pymatgen
+            mem_per_node = str(Memory(val=self.mem_per_node, unit='Mb'))
+        except:
+            mem_per_node = str(Memory(val=self.mem_per_node, unit='MB'))
+
+        return {'num_nodes': self.num_nodes,
                 'sockets_per_node': self.sockets_per_node,
                 'cores_per_socket': self.cores_per_socket,
-                'mem_per_node': str(Memory(val=self.mem_per_node, unit='MB'))
-            }
-        except UnitError:
-            dct = {
-                'num_nodes': self.num_nodes,
-                'sockets_per_node': self.sockets_per_node,
-                'cores_per_socket': self.cores_per_socket,
-                'mem_per_node': str(Memory(val=self.mem_per_node, unit='Mb'))
-            }
-        return dct
+                'mem_per_node': mem_per_node}
 
     @classmethod
     def from_dict(cls, d: dict) -> Hardware:

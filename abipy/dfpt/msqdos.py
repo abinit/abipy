@@ -655,10 +655,10 @@ _atom_site_aniso_U_12""".splitlines()
             set_axlims(ax, ylims, "y")
             if what == "displ":
                 ylabel = r"$U_{iso}\;(\AA^2)$" if ix == 0 else \
-                         r"Anisotropy factor ($\dfrac{\epsilon_{max}}{\epsilon_{min}}}$)"
+                         r"Anisotropy factor ($\dfrac{\epsilon_{max}}{\epsilon_{min}}$)"
             elif what == "vel":
                 ylabel = r"$V_{iso}\;(m/s)^2$" if ix == 0 else \
-                         r"Anisotropy factor ($\dfrac{\epsilon_{max}}{\epsilon_{min}}}$)"
+                         r"Anisotropy factor ($\dfrac{\epsilon_{max}}{\epsilon_{min}$)"
             else:
                 raise ValueError("Unknown value for what: `%s`" % str(what))
             ax.set_ylabel(ylabel, fontsize=fontsize)

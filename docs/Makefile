@@ -2,7 +2,8 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    = -j2
+SPHINXOPTS    = -j6
+#SPHINXOPTS   = 
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
@@ -47,6 +48,7 @@ clean:
 
 html:
 	./generate_rst_files.py
+	rm -rf ../abipy/examples/flows/flow_*
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

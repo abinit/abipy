@@ -121,9 +121,10 @@ class PhonopyWork(Work):
         structure.to(filename=self.outdir.path_in("POSCAR"))
 
         # Write yaml file with displacements.
-        supercell = phonon.get_supercell()
-        displacements = phonon.get_displacements()
-        #directions = phonon.get_displacement_directions()
+        #supercell = phonon.get_supercell()
+        supercell = phonon.supercell
+        #displacements = phonon.get_displacements()
+        displacements = phonon.displacements
         file_IO.write_disp_yaml(displacements, supercell, # directions=directions,
                                 filename=self.outdir.path_in('disp.yaml'))
 

@@ -152,7 +152,7 @@ install_requires = [
     "tqdm",
     "pyyaml>=3.11",
     "pandas",
-    "numpy",
+    "numpy<2.0.0",
     "scipy",
     "spglib",
     "pymatgen>=2022.0.14",
