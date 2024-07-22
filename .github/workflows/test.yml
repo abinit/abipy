@@ -1,5 +1,4 @@
-# Runs the Abipy test suite.
-name: Tests
+name: Run the Abipy test suite.
 
 on:
   push:
