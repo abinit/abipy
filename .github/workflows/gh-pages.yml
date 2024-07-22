@@ -64,8 +64,8 @@ jobs:
             source install.sh
             make
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+      #- name: Upload artifact
+      #  uses: actions/upload-pages-artifact@v2
 
   #deploy:
   #  environment:
