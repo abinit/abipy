@@ -1929,46 +1929,44 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
         return fig
 
     # Add docstring to the decorated method.
-    s = (
-            "\n\n"
-            + """\
-                Keyword arguments controlling the display of the figure:
-                ================  ====================================================================
-                kwargs            Meaning
-                ================  ====================================================================
-                title             Title of the plot (Default: None).
-                show              True to show the figure (default: True).
-                hovermode         True to show the hover info (default: False)
-                savefig           "abc.png" , "abc.jpeg" or "abc.webp" to save the figure to a file.
-                write_json        Write plotly figure to `write_json` JSON file.
-                                  Inside jupyter-lab, one can right-click the `write_json` file from
-                                  the file menu and open with "Plotly Editor".
-                                  Make some changes to the figure, then use the file menu to save
-                                  the customized plotly plot.
-                                  Requires `jupyter labextension install jupyterlab-chart-editor`.
-                                  See https://github.com/plotly/jupyterlab-chart-editor
-                renderer          (str or None (default None)) –
-                                  A string containing the names of one or more registered renderers
-                                  (separated by ‘+’ characters) or None. If None, then the default
-                                  renderers specified in plotly.io.renderers.default are used.
-                                  See https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
-                config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-                chart_studio      True to push figure to chart_studio server. Requires authenticatios.
-                                  Default: False.
-                template          Plotly template. See https://plotly.com/python/templates/
-                                  ["plotly", "plotly_white", "plotly_dark", "ggplot2",
-                                   "seaborn", "simple_white", "none"]
-                                  Default is None that is the default template is used.
-                ================  ====================================================================
-        """
-    )
+    doc_str = """\n\n
+        Keyword arguments controlling the display of the figure:
+        ================  ====================================================================
+        kwargs            Meaning
+        ================  ====================================================================
+        title             Title of the plot (Default: None).
+        show              True to show the figure (default: True).
+        hovermode         True to show the hover info (default: False)
+        savefig           "abc.png" , "abc.jpeg" or "abc.webp" to save the figure to a file.
+        write_json        Write plotly figure to `write_json` JSON file.
+                          Inside jupyter-lab, one can right-click the `write_json` file from
+                          the file menu and open with "Plotly Editor".
+                          Make some changes to the figure, then use the file menu to save
+                          the customized plotly plot.
+                          Requires `jupyter labextension install jupyterlab-chart-editor`.
+                          See https://github.com/plotly/jupyterlab-chart-editor
+        renderer          (str or None (default None)) –
+                          A string containing the names of one or more registered renderers
+                          (separated by ‘+’ characters) or None. If None, then the default
+                          renderers specified in plotly.io.renderers.default are used.
+                          See https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
+        config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
+        chart_studio      True to push figure to chart_studio server. Requires authenticatios.
+                          Default: False.
+        template          Plotly template. See https://plotly.com/python/templates/
+                          ["plotly", "plotly_white", "plotly_dark", "ggplot2",
+                           "seaborn", "simple_white", "none"]
+                          Default is None that is the default template is used.
+        ================  ====================================================================
+
+"""
 
     if wrapper.__doc__ is not None:
         # Add s at the end of the docstring.
-        wrapper.__doc__ += "\n" + s
+        wrapper.__doc__ += f"\n{doc_str}"
     else:
         # Use s
-        wrapper.__doc__ = s
+        wrapper.__doc__ = doc_str
 
     return wrapper
 

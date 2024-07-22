@@ -967,7 +967,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 Accepts callable or string.
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of hue(abifile) is used.
-            abs_conv: If not None, plot f(x) and |f(x) - f(x_inf)| in log scale.
+            abs_conv: If not None, plot f(x) and abs(f(x) - f(x_inf)) in log scale.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and label fontsize.
             kwargs: keyword arguments passed to matplotlib plot method.
@@ -1044,7 +1044,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
                 If callable, the output of hue(abifile) is used.
-            abs_conv: If not None, plot f(x) and |f(x) - f(x_inf)| in log scale.
+            abs_conv: If not None, plot f(x) and abs(f(x) - f(x_inf)) in log scale.
                 Since we are plotting multiple quantities, abs_conv is a dict mapping the name of the item to
                 to the convergence.
             fontsize: legend and label fontsize.

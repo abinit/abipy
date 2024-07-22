@@ -2601,12 +2601,10 @@ class DielectricTensorGenerator(Has_Structure):
             num: number of values of the frequencies between w_min and w_max.
             component: determine which components of the tensor will be displayed. Can be a list/tuple of two
                 elements, indicating the indices [i, j] of the desired component or a string among::
-
                 * 'diag_av' to plot the average of the components on the diagonal
                 * 'diag' to plot the elements on diagonal
                 * 'all' to plot all the components in the upper triangle.
                 * 'offdiag' to plot the off-diagonal components in the upper triangle.
-
             reim: a string with "re" will plot the real part, with "im" selects the imaginary part.
             units: string specifying the units used for phonon frequencies. Possible values in
                 ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.

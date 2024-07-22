@@ -3088,11 +3088,10 @@ class ElectronBands(Has_Structure):
 
         Returns:
 
-        .. example::
+        example::
 
             r = ebands.get_ifermi_fs()
             r.fs_plotter.get_plot(plot_type="plotly").show()
-
         """
         r = self.get_ifermi_dense_bs(interpolation_factor, with_velocities)
 

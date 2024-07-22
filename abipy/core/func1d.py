@@ -540,7 +540,7 @@ class Function1D:
         Helper function to plot the function with plotly.
 
         Args:
-            fig: |plotly.graph_objects.Figure|.
+            fig: plotly.graph_objects.Figure.
             rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
             exchange_xy: True to exchange the x and y in the plot.
             xfactor, yfactor: xvalues and yvalues are multiplied by this factor before plotting.
@@ -594,7 +594,7 @@ class Function1D:
             rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col)
                 of the subplot in the grid.
 
-        Returns: |plotly-Figure|.
+        Returns: plotly-Figure
         """
         fig, _ = get_fig_plotly(fig=fig)
         rcd = PlotlyRowColDesc.from_object(rcd)

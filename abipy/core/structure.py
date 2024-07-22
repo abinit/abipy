@@ -1617,7 +1617,7 @@ class Structure(pmg_Structure, NotebookWriter):
             pmg_path (bool): True if the default path used in pymatgen should be show.
             with_labels (bool): True to plot k-point labels.
 
-        Returns: |plotly.graph_objects.Figure|
+        Returns: plotly.graph_objects.Figure
         """
         from abipy.tools.plotting import plotly_brillouin_zone_from_kpath, plotly_brillouin_zone
         labels = None if not with_labels else self.hsym_kpath.kpath["kpoints"]
@@ -2033,8 +2033,8 @@ class Structure(pmg_Structure, NotebookWriter):
                 b. A sequence of three scaling factors. e.g., [2, 1, 1]
                    specifies that the supercell should have dimensions 2a x b x c.
                 c. A number, which simply scales all lattice vectors by the same factor.
-            replaced atom : Symbol of the atom to be replaced (ex: 'Sr')
-            dopant_atom : Symbol of the dopant_atom (ex: 'Eu')
+            replaced atom: Symbol of the atom to be replaced (ex: 'Sr')
+            dopant_atom: Symbol of the dopant_atom (ex: 'Eu')
         """
         ### list of positions of non-equivalent sites for the replaced atom. ###
         irred = self.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites

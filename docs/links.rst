@@ -71,6 +71,8 @@
 .. _abiview.py: https://abinit.github.io/abipy/scripts/abiview.html
 .. _abicomp.py: https://abinit.github.io/abipy/scripts/abicomp.html
 .. _abicheck.py: https://abinit.github.io/abipy/scripts/abicheck.html
+.. _abips.py: https://abinit.github.io/abipy/scripts/abips.html
+.. _oncv.py: https://abinit.github.io/abipy/scripts/oncv.html
 
 .. Links to jupyter notebooks associated to AbiPy files:
 .. _AbipyStructure: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/structure.ipynb

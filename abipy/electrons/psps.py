@@ -666,10 +666,9 @@ class PspsReader(ETSF_Reader):
     def read_tcorespl(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Returns:
-            qmesh: Linear q-mesh in q-space
-            tcorespl: numpy array of shape [ntypat, 2, mqgrid_vl]
-                with the pseudo core density in reciprocal space on a regular grid.
-                Only if pseudo has_tcore
+            qmesh: Linear q-mesh in q-space.
+            tcorespl: array of shape [ntypat, 2, mqgrid_vl] with the pseudo core density in reciprocal space on a regular grid.
+            Only if pseudo has_tcore
         """
         return self.read_value("qgrid_vl"), self.read_value("nc_tcorespl")
 
@@ -677,8 +676,7 @@ class PspsReader(ETSF_Reader):
         """
         Returns:
             qmesh: Linear q-mesh in G-space
-            vlspl: numpy array of shape [ntypat, two, mqgrid_vl]
-                with the local part of each type of psp in q-space
+            vlspl: numpy array of shape [ntypat, two, mqgrid_vl] with the local part of each type of psp in q-space
         """
         return self.read_value("qgrid_vl"), self.read_value("vlspl")
 

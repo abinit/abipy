@@ -278,9 +278,9 @@ def oncv_gui(options):
     return pn.serve(build, **serve_kwargs)
 
 
-def main():
 
-    def str_examples():
+
+def get_epilog() -> str:
         return """\
 Usage example:
 
@@ -295,11 +295,8 @@ Usage example:
     oncv.py notebook H.out             ==> Generate jupyter notebook to plot oncvpsp results.
 """
 
-    def show_examples_and_exit(err_msg=None, error_code=1):
-        """Display the usage of the script."""
-        sys.stderr.write(str_examples())
-        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-        sys.exit(error_code)
+
+def get_parser(with_epilog=False):
 
     def get_copts_parser(multi=False):
         # Parent parser implementing common options.
@@ -324,7 +321,7 @@ Usage example:
     cli.add_expose_options_to_parser(plot_parser)
 
     # Build the main parser.
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=get_epilog(), formatter_class=argparse.RawDescriptionHelpFormatter)
     from abipy.core.release import __version__
     parser.add_argument('-V', '--version', action='version', version=__version__)
 
@@ -379,6 +376,19 @@ Usage example:
     #                    help="List of cutoff radii for vloc in Bohr.")
     #cli.add_expose_options_to_parser(p_hints)
 
+    return parser
+
+
+def main():
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(get_epilog())
+        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    parser = get_parser(with_epilog=True)
+
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -395,6 +405,7 @@ Usage example:
 
     # Dispatch
     return globals()["oncv_" + options.command](options)
+
 
 if __name__ == "__main__":
     sys.exit(main())

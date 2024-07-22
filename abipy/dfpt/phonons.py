@@ -4386,7 +4386,7 @@ class PhononBandsPlotter(NotebookWriter):
             width_ratios: Ratio between the width of the phonon bands plots and the DOS plots.
                 Used if plotter has DOSes.
             fontsize: fontsize for titles and legend.
-            linestyle_dict: Dictionary mapping labels to linestyle options passed to |plotly.graph_objects.scatter|.
+            linestyle_dict: Dictionary mapping labels to linestyle options passed to plotly.graph_objects.scatter.
 
         Returns: |plotly.graph_objects.Figure|
         """
