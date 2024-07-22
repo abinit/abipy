@@ -36,7 +36,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         #aw: [nwr, ntemp, max_nbcalc, nkcalc, nsppol] array
         #aw_meshes: [max_nbcalc, nkcalc, nsppol] array with energy mesh in eV
         from abipy.tools.numtools import lorentzian
-        try :
+        try:
             from scipy.integrate import cumulative_trapezoid as cumtrapz
         except ImportError:
             from scipy.integrate import cumtrapz

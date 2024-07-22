@@ -23,7 +23,7 @@ from monty.collections import AttrDict
 from monty.functools import lazy_property, return_none_if_raise
 from monty.json import MSONable
 from monty.fnmatch import WildCard
-from pymatgen.core.units import Memory
+from pymatgen.core.units import Memory, UnitError
 from abipy.core.globals import get_workdir
 from abipy.core.structure import Structure
 from abipy.tools.serialization import json_pretty_dump, pmg_serialize
@@ -209,7 +209,7 @@ class ParalConf(AttrDict):
 
     @property
     def tot_mem(self) -> float:
-        """Estimated total memory in Mbs (computed from mem_per_proc)"""
+        """Estimated total memory in MBs (computed from mem_per_proc)"""
         return self.mem_per_proc * self.mpi_procs
 
 
@@ -609,7 +609,7 @@ qadapters:
             num_nodes: 1
             sockets_per_node: 1
             cores_per_socket: 2
-            mem_per_node: 4 Gb
+            mem_per_node: 4 GB
 """
 
     @classmethod
@@ -1881,7 +1881,11 @@ class Task(Node, metaclass=abc.ABCMeta):
     @property
     def mem_per_proc(self) -> Memory:
         """Memory per MPI process."""
-        return Memory(self.manager.mem_per_proc, "Mb")
+        try:
+            mem = Memory(self.manager.mem_per_proc, "MB")
+        except UnitError:  # For older versions of pymatgen
+            mem = Memory(self.manager.mem_per_proc, "Mb")
+        return mem
 
     @property
     def status(self):
@@ -1947,8 +1951,12 @@ class Task(Node, metaclass=abc.ABCMeta):
         if changed:
             if status == self.S_SUB:
                 self.datetimes.submission = datetime.datetime.now()
-                self.history.info("Submitted with MPI=%s, Omp=%s, Memproc=%.1f [Gb] %s " % (
-                    self.mpi_procs, self.omp_threads, self.mem_per_proc.to("Gb"), msg))
+                try:
+                    self.history.info("Submitted with MPI=%s, Omp=%s, Memproc=%.1f [GB] %s " % (
+                        self.mpi_procs, self.omp_threads, self.mem_per_proc.to("GB"), msg))
+                except (KeyError, UnitError):
+                    self.history.info("Submitted with MPI=%s, Omp=%s, Memproc=%.1f [Gb] %s " % (
+                        self.mpi_procs, self.omp_threads, self.mem_per_proc.to("Gb"), msg))
 
             elif status == self.S_OK:
                 self.history.info("Task completed %s", msg)
