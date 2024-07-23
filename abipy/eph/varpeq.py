@@ -77,7 +77,7 @@ class FrohlichAnalyzer:
     #def analyze(self)
 
 
-ITER_LABELS = [
+_LABELS = [
     r'$E_{pol}$',
     r'$E_{el}$',
     r'$E_{ph}$',
@@ -185,7 +185,7 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         nstep2cv = nstep2cv_spin[spin]
         last_iteration = iter_rec_spin[spin, nstep2cv-1, :] * abu.Ha_eV
 
-        return dict(zip(ITER_LABELS, last_iteration))
+        return dict(zip(_LABELS, last_iteration))
 
     @add_fig_kwargs
     def plot_scf_cycle(self, ax_mat=None, fontsize=8, **kwargs) -> Figure:
@@ -211,7 +211,7 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             xs = np.arange(1, nstep2cv + 1)
 
             for iax, ax in enumerate(ax_mat[spin]):
-                for ilab, label in enumerate(ITER_LABELS):
+                for ilab, label in enumerate(_LABELS):
                     ys = iterations[:,ilab]
                     if iax == 0:
                         # Plot energies in linear scale.
@@ -389,15 +389,16 @@ class Polaron:
         return self.structure.plot_bz(show=False, **kws)
 
     @add_fig_kwargs
-    def plot_ank_with_ebands(self, ebands_kpath, ebands_kmesh=None, nksmall: int = 20,
+    def plot_ank_with_ebands(self, ebands_kpath, ebands_kmesh=None, nksmall: int = 20, normalize: bool = False,
                              lpratio: int = 5, step: float = 0.1, width: float = 0.2, method: str = "linear",
-                             ax_list=None, ylims=None, scale=10, fontsize=8, **kwargs) -> Figure:
+                             ax_list=None, ylims=None, scale=10, fontsize=12, **kwargs) -> Figure:
         """
         Plot electronic energies with markers whose size is proportional to |A_nk|^2.
 
         Args:
             ebands_kpath: ElectronBands or Abipy file providing an electronic band structure along a path.
             ebands_kmesh: ElectronBands or Abipy file providing an electronic band structure in the IBZ.
+            normalize: Rescale the two DOS to plot them on the same scale.
             method=Interpolation method.
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             scale: Scaling factor for |A_nk|^2.
@@ -427,11 +428,12 @@ class Polaron:
                 ymin = min(ymin, e)
                 ymax = max(ymax, e)
 
-        points = Marker(x, y, s, color="y")
+        points = Marker(x, y, s, color="orange")
 
         nrows, ncols = 1, 2
+        gridspec_kw = {'width_ratios': [2, 1]}
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=True, squeeze=False)
+                                                sharex=False, sharey=True, squeeze=False, gridspec_kw=gridspec_kw)
         ax_list = ax_list.ravel()
 
         ax = ax_list[0]
@@ -462,22 +464,20 @@ class Polaron:
             enes_n = ebands_kmesh.eigens[self.spin, ik, self.bstart:self.bstop]
             a2_n = a2_interp.eval_kpoint(kpoint)
             for e, a2 in zip(enes_n, a2_n):
-                ank_dos += weight * a2 * gaussian(mesh, width, center=e - e0)
+                ank_dos += weight * a2 * gaussian(mesh, width, center=e-e0)
 
         ank_dos = Function1D(mesh, ank_dos)
         print("A2(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
 
-        # Rescale the two DOS to plot them on the same scale.
-        ank_dos = ank_dos / ank_dos.max
-
         ax = ax_list[1]
-        edos.plot_ax(ax, e0, spin=self.spin, normalize=True, exchange_xy=True, label="eDOS(E)")
+        edos.plot_ax(ax, e0, spin=self.spin, normalize=normalize, exchange_xy=True, label="eDOS(E)")
+        ank_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$A^2$(E)", color=points.color)
         ax.set_xlabel("Arbitrary units", fontsize=fontsize)
-        ank_dos.plot_ax(ax, exchange_xy=True, label=r"$A^2$(E)", color=points.color)
         ax.grid(True)
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         if ylims is None:
+            # Automatic ylims.
             ymin -= 0.1 * abs(ymin)
             ymin -= e0
             ymax += 0.1 * abs(ymax)
@@ -512,7 +512,7 @@ class Polaron:
                                                **kwargs)
 
     @add_fig_kwargs
-    def plot_bqnu_with_phbands(self, phbands_qpath, phdos_file=None, ddb=None, width = 0.001,
+    def plot_bqnu_with_phbands(self, phbands_qpath, phdos_file=None, ddb=None, width = 0.001, normalize: bool=False,
                                method="linear", verbose=0, anaddb_kwargs=None,
                                ax=None, scale=10, fontsize=12, **kwargs) -> Figure:
         """
@@ -520,17 +520,21 @@ class Polaron:
 
         Args:
             phbands_qpath: PhononBands or Abipy file providing a phonon band structure.
+            normalize: Rescale the two DOS to plot them on the same scale.
             phdos_file:
             method=Interpolation method.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             scale: Scaling factor for |B_qnu|^2.
         """
         with_phdos = phdos_file is not None  and ddb is not None
-        nrows, ncols = 1, 2 if with_phdos else 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=True, squeeze=False)
-        ax_list = ax_list.ravel()
+        nrows, ncols = 1, 1
+        gridspec_kw = None
+        if with_phdos:
+            ncols, gridspec_kw = 2, {'width_ratios': [2, 1]}
 
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=True, squeeze=False, gridspec_kw=gridspec_kw)
+        ax_list = ax_list.ravel()
 
         phbands_qpath = PhononBands.as_phbands(phbands_qpath)
         b2_interp = self.get_b2_interpolator(method)
@@ -549,8 +553,7 @@ class Polaron:
             for w, b2 in zip(omegas_nu, b2_nu):
                 x.append(iq); y.append(w); s.append(scale * b2)
 
-        points = Marker(x, y, s, color="yellow")
-
+        points = Marker(x, y, s, color="orange")
         phbands_qpath.plot(ax=ax_list[0], points=points, show=False)
 
         if not with_phdos:
@@ -575,13 +578,10 @@ class Polaron:
 
         bqnu_dos = Function1D(mesh, bqnu_dos)
 
-        # Rescale the two DOS to plot them on the same scale.
-        phdos = phdos / phdos.max
-        bqnu_dos = bqnu_dos / bqnu_dos.max
-
         ax = ax_list[1]
-        phdos.plot_ax(ax, exchange_xy=True, label="phDOS(E)")
-        bqnu_dos.plot_ax(ax, exchange_xy=True, label=r"$B^2$(E)", color=points.color)
+        phdos.plot_ax(ax, exchange_xy=True, normalize=normalize, label="phDOS(E)")
+        bqnu_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$B^2$(E)", color=points.color)
+
         ax.set_xlabel("Arbitrary units", fontsize=fontsize)
         ax.grid(True)
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
@@ -771,7 +771,7 @@ class VarpeqRobot(Robot, RobotWithEbands):
         data = defaultdict(list)
 
         # Now loop over the sorted files and extract the results of the final iteration.
-        for i, (label, abifile, nktot) in zip(labels, abifiles, nktot_list):
+        for i, (label, abifile, nktot) in enumerate(zip(labels, abifiles, nktot_list)):
             for k, v in abifile.get_last_iteration_dict_ev(spin).items():
                 data[k].append(v)
 
@@ -807,13 +807,14 @@ class VarpeqRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_kdata(self, fontsie=12, **kwargs) -> Figure:
+    def plot_kconv(self, fontsize=12, **kwargs) -> Figure:
         """
+        Plot the convergence of the data wrt to the k-point sampling.
         """
         nsppol = self.getattr_alleq("nsppol")
 
         # Build grid of plots.
-        nrows, ncols = len(ITER_LABELS), nsppol
+        nrows, ncols = len(_LABELS), nsppol
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=True, squeeze=False)
         deg = 1
@@ -821,16 +822,21 @@ class VarpeqRobot(Robot, RobotWithEbands):
             kdata = self.get_kdata_spin(spin)
             xs = kdata["minibz_vol"]
             xvals = np.linspace(0, 1.1 * xs.max(), 100)
-            for ix, label in enumerate(ITER_LABELS):
+            for ix, label in enumerate(_LABELS):
+                ax = ax_mat[ix, spin]
+                color = "k"
                 ys = kdata[label]
+                # plot ab-initio points.
+                ax.scatter(xs, ys, color=color, marker="o")
+                # plot fit.
                 p = np.poly1d(np.polyfit(xs, ys, deg))
-                ax = ax_mat[ix,spin]
-                ax.scatter(xs, ys, marker="o")
-                ax.plot(xvals, p[xvals], style="k--")
+                ax.plot(xvals, p(xvals), color=color, ls="--")
+
                 ax.grid(True)
-                ax.legend(loc="best", shadow=True, fontsize=fontsize)
                 #ax.set_xlabel("Iteration", fontsize=fontsize)
-                #ax.set_ylabel("Energy (eV)" if iax == 0 else r"$|\Delta|$ Energy (eV)", fontsize=fontsize)
+                ax.set_ylabel(label, fontsize=fontsize)
+                #ax.legend(loc="right", shadow=True, fontsize=fontsize)
+                #print([(0, p(0)), (xs[0], ys[0]), (xs[1], ys[1])])
 
         return fig
 
