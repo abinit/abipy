@@ -37,7 +37,7 @@ ml Package
 
 
 :mod:`ml_phonopy` Package
--------------------------------
+-------------------------
 
 .. automodule:: abipy.ml.ml_phonopy
    :members:

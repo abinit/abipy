@@ -1,8 +1,9 @@
+# Manager used for github actions.
 qadapters:
     -
       priority: 1
       queue:
-        qname: travis
+        qname: github
         qtype: shell
       job:
         mpi_runner: mpirun

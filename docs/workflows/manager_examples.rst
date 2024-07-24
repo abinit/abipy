@@ -45,6 +45,34 @@ Dragon1
 	    job: *job
 
 
+Gh
+--
+
+.. code-block:: yaml
+
+
+	# Manager used for github actions.
+	qadapters:
+	    -
+	      priority: 1
+	      queue:
+	        qname: github
+	        qtype: shell
+	      job:
+	        mpi_runner: mpirun
+	        pre_run:
+	            - conda activate abipy
+	      limits:
+	         min_cores: 1
+	         max_cores: 2
+	         timelimit: 0:10:0
+	      hardware:
+	         num_nodes: 1
+	         sockets_per_node: 1
+	         cores_per_socket: 2
+	         mem_per_node: 4 GB
+
+
 Gmac
 ----
 
@@ -575,33 +603,6 @@ Shell_nompi
 	      limits:
 	        timelimit: 1:00:00
 	        max_cores: 1
-	      hardware:
-	         num_nodes: 1
-	         sockets_per_node: 1
-	         cores_per_socket: 2
-	         mem_per_node: 4 GB
-
-
-Travis
-------
-
-.. code-block:: yaml
-
-
-	qadapters:
-	    -
-	      priority: 1
-	      queue:
-	        qname: travis
-	        qtype: shell
-	      job:
-	        mpi_runner: mpirun
-	        pre_run:
-	            - conda activate abipy
-	      limits:
-	         min_cores: 1
-	         max_cores: 2
-	         timelimit: 0:10:0
 	      hardware:
 	         num_nodes: 1
 	         sockets_per_node: 1

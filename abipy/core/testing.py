@@ -340,7 +340,8 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def test_mprester():
         """Skip MP rester tests."""
-        raise unittest.SkipTest("MPRester tests have been disabled")
+        #raise unittest.SkipTest("MPRester tests have been disabled")
+        return True
 
     @staticmethod
     def has_matplotlib(version: Optional[str] = None, op: str = ">=") -> bool:

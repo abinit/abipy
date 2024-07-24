@@ -127,7 +127,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return cls(tmp_filepath)
 
     @classmethod
-    def from_mpid(cls, material_id, api_key=None, endpoint=None) -> DdbFile:
+    def from_mpid(cls, material_id) -> DdbFile:
         """
         Fetch DDB file corresponding to a materials project ``material_id``,
         save it to temporary file and return new DdbFile object.
@@ -136,17 +136,17 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Args:
             material_id (str): Materials Project material_id (e.g., mp-1234).
-            api_key (str): A String API key for accessing the MaterialsProject REST interface.
-                If None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
-            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
-                Defaults to the standard Materials Project REST address
         """
         material_id = str(material_id)
         if not material_id.startswith("mp-"):
             raise ValueError("Materials project ID should start with mp-")
 
         from abipy.core import restapi
-        with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+        with restapi.get_mprester() as rest:
+
+            if getattr(rest, "_make_request") is None:
+                raise RuntimeError("from_mpid requires mp-api, please install it with `pip install mp-api`")
+
             ddb_string = rest._make_request("/materials/%s/abinit_ddb" % material_id)
 
         _, tmpfile = tempfile.mkstemp(prefix=material_id, suffix='_DDB')
@@ -2926,16 +2926,12 @@ class DdbRobot(Robot):
         return filename.endswith("_" + cls.EXT)
 
     @classmethod
-    def from_mpid_list(cls, mpid_list, api_key=None, endpoint=None):
+    def from_mpid_list(cls, mpid_list):
         """
         Build a DdbRobot from list of materials-project ids.
 
         Args:
             mpid_list: List of Materials Project material_ids (e.g., ["mp-1234", "mp-1245"]).
-            api_key (str): A String API key for accessing the MaterialsProject REST interface.
-                If None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
-            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
-                Defaults to the standard Materials Project REST address
         """
         from abipy.core import restapi
         ddb_files = []
@@ -2943,10 +2939,15 @@ class DdbRobot(Robot):
 
         if not mpid_list:
             raise RuntimeError("No structure found in the MP database")
+
         if any(not s.startswith("mp-") for s in mpid_list):
             raise ValueError(f"Invalid mp-in in list:\n{mpid_list}")
 
-        with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+        with restapi.get_mprester() as rest:
+
+            if getattr(rest, "_make_request") is None:
+                raise RuntimeError("from_mpid_list requires mp-api, please install it with `pip install mp-api`")
+
             for mpid in mpid_list:
                 try:
                     ddb_string = rest._make_request("/materials/%s/abinit_ddb" % mpid)

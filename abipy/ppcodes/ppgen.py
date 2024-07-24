@@ -310,25 +310,34 @@ class OncvGenerator(_PseudoGenerator):
     """
 
     @classmethod
-    def from_file(cls, path: str, calc_type: str, workdir: Optional[str] = None) -> OncvGenerator:
+    def from_file(cls, path: str, calc_type: str, use_mgga: bool, workdir: Optional[str] = None) -> OncvGenerator:
         """
         Build the object from a file containing the input parameters.
         """
         with open(path, "rt") as fh:
             input_str = fh.read()
-            return cls(input_str, calc_type, workdir=workdir)
+            return cls(input_str, calc_type, use_mgga=use_mgga, workdir=workdir)
 
-    def __init__(self, input_str: str, calc_type: str, workdir: Optional[str] = None):
+    def __init__(self, input_str: str, calc_type: str, use_mgga: bool, workdir: Optional[str] = None):
         super().__init__(workdir=workdir)
 
         self._input_str = input_str
         self.calc_type = calc_type
+        self.use_mgga = use_mgga
 
-        self._executable = {
-            "non-relativistic": which("oncvpspnr.x"),
-            "scalar-relativistic": which("oncvpsp.x"),
-            "fully-relativistic": which("oncvpspr.x"),
-        }[calc_type]
+        if self.use_mgga:
+            if calc_type != "scalar-relativistic":
+                raise ValueError("Only scalar-relativistic pseudos are supported in metagga mode!")
+            self._executable = {
+                "scalar-relativistic": which("oncvpspm.x"),
+            }[calc_type]
+
+        else:
+            self._executable = {
+                "non-relativistic": which("oncvpspnr.x"),
+                "scalar-relativistic": which("oncvpsp.x"),
+                "fully-relativistic": which("oncvpspr.x"),
+            }[calc_type]
 
         if self._executable is None:
             msg = "Cannot find oncvpsp executable in $PATH. Use `export PATH=dir_with_oncvps_executable:$PATH`"

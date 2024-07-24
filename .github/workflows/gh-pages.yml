@@ -33,6 +33,11 @@ jobs:
             python: '3.11'
 
     runs-on: ubuntu-latest
+    env:
+      PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
+      # This is used in the flow scripts to generate the graph with graphviz.
+      READTHEDOCS: 1
+
     steps:
       - name: Check out Abipy repo
         uses: actions/checkout@v4
@@ -54,26 +59,28 @@ jobs:
             mpirun -n 1 abinit --build
             pip install --editable .
             mkdir -p $HOME/.abinit/abipy/
-            cp abipy/data/managers/travis_manager.yml $HOME/.abinit/abipy/manager.yml
-            cp abipy/data/managers/simple_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
+            cp abipy/data/managers/gh_manager.yml $HOME/.abinit/abipy/manager.yml
+            cp abipy/data/managers/gh_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
 
       - name: Build docs with Sphinx
         run: |
             conda activate abipy
-            cd docs 
+            cd docs
             source install.sh
             make
 
-      #- name: Upload artifact
-      #  uses: actions/upload-pages-artifact@v2
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: site/ # Important. Set to your output dir in MkDocs
 
-  #deploy:
-  #  environment:
-  #    name: github-pages
-  #    url: ${{ steps.deployment.outputs.page_url }}
-  #  runs-on: ubuntu-latest
-  #  needs: build
-  #  steps:
-  #    - name: Deploy to GitHub Pages
-  #      id: deployment
-  #      uses: actions/deploy-pages@v2
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v3

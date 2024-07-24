@@ -181,7 +181,7 @@ def oncv_run(options):
                          fr="fully-relativistic")[options.rel]
 
     # Build Generator and start generation.
-    psgen = OncvGenerator.from_file(in_path, calc_type, workdir=None)
+    psgen = OncvGenerator.from_file(in_path, calc_type, options.use_mgga, workdir=None)
 
     print(psgen.input_str)
     print("Using executable:\n\t", psgen.executable)
@@ -209,7 +209,7 @@ def oncv_run(options):
     # Transfer final output file.
     shutil.copy(psgen.stdout_path, out_path)
 
-    # Parse the output file
+    # Parse the output file.
     onc_parser = OncvParser(out_path).scan()
     if not onc_parser.run_completed:
         cprint("oncvpsp output is not completed. Exiting", "red")
@@ -332,6 +332,7 @@ def get_parser(with_epilog=False):
     p_run = subparsers.add_parser('run', parents=[copts_parser, plot_parser], help=oncv_run.__doc__)
     p_run.add_argument("--rel", default="from_file", help=("Relativistic treatment: `nor` for non-relativistic, "
         "`sr` for scalar-relativistic, `fr` for fully-relativistic. Default: `from_file` i.e. detected from file"))
+    p_run.add_argument("--use-mgga", action='store_true', default=False, help="Produce mega-gga pseudo with oncvpspm.x")
 
     # Subparser for print command.
     p_print = subparsers.add_parser('print', parents=[copts_parser], help=oncv_print.__doc__)

@@ -458,7 +458,7 @@ class ElectronBands(Has_Structure):
         raise TypeError("Don't know how to extract ebands from object `%s`" % type(obj))
 
     @classmethod
-    def from_mpid(cls, material_id, api_key=None, endpoint=None,
+    def from_mpid(cls, material_id,
                   nelect=None, has_timerev=True,
                   nspinor=1, nspden=None, line_mode=True) -> ElectronBands:
         """
@@ -467,16 +467,6 @@ class ElectronBands(Has_Structure):
 
         Args:
             material_id (str): Materials Project material_id (a string, e.g., mp-1234).
-            api_key (str): A String API key for accessing the MaterialsProject
-                REST interface. Please apply on the Materials Project website for one.
-                If this is None, the code will check if there is a `PMG_MAPI_KEY` in
-                your .pmgrc.yaml. If so, it will use that environment
-                This makes easier for heavy users to simply add
-                this environment variable to their setups and MPRester can
-                then be called without any arguments.
-            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
-                Defaults to the standard Materials Project REST address, but
-                can be changed to other urls implementing a similar interface.
             nelect: Number of electrons in the unit cell.
                 If None, this value is automatically computed using the Fermi level (if metal)
                 or the VBM indices reported in the JSON document sent by the MP database.
@@ -491,7 +481,11 @@ class ElectronBands(Has_Structure):
 
         # Get pytmatgen structure and convert it to an AbiPy structure
         from abipy.core import restapi
-        with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+        with restapi.get_mprester() as rest:
+
+            if getattr(rest, "get_structure_by_material_id") is None:
+                raise RuntimeError("from_mpid requires mp-api, please install it with `pip install mp-api`")
+
             pmgb = rest.get_bandstructure_by_material_id(material_id=material_id, line_mode=line_mode)
             if pmgb is None: return None
 
@@ -5487,9 +5481,9 @@ class Bands3D(Has_Structure):
         except ImportError:
             try:
                 from skimage.measure import marching_cubes
-            except ImportError:
+            except ImportError as exc:
                 raise ImportError("scikit-image not installed.\n"
-                    "Please install with it with `conda install scikit-image` or `pip install scikit-image`")
+                    "Please install with it with `conda install scikit-image` or `pip install scikit-image`") from exc
 
         e0 = self.get_e0(e0)
         isobands = self.get_isobands(e0)

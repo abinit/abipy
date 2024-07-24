@@ -206,8 +206,7 @@ class OncvParser(BaseParser):
         if self.rc5 is None:
             raise self.Error(f"Cannot find magic line starting with `{header}` in: {self.filepath}")
 
-        # Parse ATOM and Reference configuration
-        # Example:
+        # Parse ATOM and Reference configuration. Example:
         """
         #
         #   n    l    f        energy (Ha)

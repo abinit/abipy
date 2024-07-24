@@ -21,7 +21,7 @@ embedding Package
    :show-inheritance:
 
 :mod:`utils_ifc` Module
-----------------------
+-----------------------
 
 .. automodule:: abipy.embedding.utils_ifc
    :members:

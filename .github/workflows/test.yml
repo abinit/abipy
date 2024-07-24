@@ -25,12 +25,10 @@ jobs:
         config:
           - os: ubuntu-latest
             python: '3.11'
-            #python: '>3.9'
 
     runs-on: ${{ matrix.config.os }}
-
-    #env:
-    #  PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
+    env:
+      PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
 
     steps:
       - name: Check out Abipy repo
@@ -57,7 +55,7 @@ jobs:
         run: |
           conda activate abipy
           pip install -r requirements-tests.txt
-          pytest -v  .
+          pytest -v .
 
       - name: integration_tests
         run: |

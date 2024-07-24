@@ -41,14 +41,12 @@ __all__ = [
 ]
 
 
-def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
+def mp_match_structure(obj):
     """
     Finds matching structures on the Materials Project database.
 
     Args:
         obj: filename or |Structure| object.
-        api_key (str): A String API key for accessing the MaterialsProject REST interface.
-        endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
         final (bool): Whether to get the final structure, or the initial
             (pre-relaxation) structure. Defaults to True.
 
@@ -62,12 +60,14 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
 
     from abipy.core import restapi
     structures, mpids = [], []
-    with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+    with restapi.get_mprester() as rest:
         try:
+            if getattr(rest, "get_data") is None:
+                raise RuntimeError("mp_match_structure requires mp-api, please install it with `pip install mp-api`")
+
             mpids = rest.find_structure(structure)
             if mpids:
-                structures = [Structure.from_mpid(mid, final=final, api_key=api_key, endpoint=endpoint)
-                              for mid in mpids]
+                structures = [Structure.from_mpid(mid) for mid in mpids]
 
         except Exception as exc:
             cprint(str(exc), "red")
@@ -80,7 +80,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
             return restapi.MpStructures(structures=structures, ids=mpids)
 
 
-def mp_search(chemsys_formula_id, api_key=None, endpoint=None):
+def mp_search(chemsys_formula_id):
     """
     Connect to the materials project database.
     Get a list of structures corresponding to a chemical system, formula, or materials_id.
@@ -88,32 +88,32 @@ def mp_search(chemsys_formula_id, api_key=None, endpoint=None):
     Args:
         chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),
             or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).
-        api_key (str): A String API key for accessing the MaterialsProject REST interface.
-            If this is None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
-        endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
 
     Returns:
         :class:`MpStructures` object with
             List of Structure objects, Materials project ids associated to structures.
             and List of dictionaries with MP data (same order as structures).
 
-        Note that the attributes evalute to False if no match is found
+        Note that the attributes evalute to False if no match is found.
     """
     chemsys_formula_id = chemsys_formula_id.replace(" ", "")
 
     structures, mpids, data = [], [], None
     from abipy.core import restapi
-    with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+    from pymatgen.ext.matproj import MPRestError
+    with restapi.get_mprester() as rest:
         try:
+            if getattr(rest, "get_data") is None:
+                raise RuntimeError("mp_search requires mp-api, please install it with `pip install mp-api`")
+
             data = rest.get_data(chemsys_formula_id, prop="")
             if data:
-                structures = [Structure.from_str(d["cif"], fmt="cif", primitive=False, sort=False)
-                              for d in data]
+                structures = [Structure.from_str(d["cif"], fmt="cif", primitive=False, sort=False) for d in data]
                 mpids = [d["material_id"] for d in data]
                 # Want AbiPy structure.
                 structures = list(map(Structure.as_structure, structures))
 
-        except rest.Error as exc:
+        except MPRestError:
             cprint(str(exc), "magenta")
 
         return restapi.MpStructures(structures, mpids, data=data)
@@ -194,10 +194,13 @@ class Structure(pmg_Structure, NotebookWriter):
             - Objects with a ``structure`` attribute.
             - ASE atoms.
         """
-        if isinstance(obj, cls): return obj
+        if isinstance(obj, cls):
+            return obj
+
         if isinstance(obj, pmg_Structure):
             obj.__class__ = cls
             return obj
+
         if hasattr(obj, "ase_objtype"):
             # ASE Atoms.
             from pymatgen.io.ase import AseAtomsAdaptor
@@ -331,7 +334,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return new
 
     @classmethod
-    def from_mpid(cls, material_id: str, final=True, api_key=None, endpoint=None) -> Structure:
+    def from_mpid(cls, material_id: str) -> Structure:
         """
         Get a Structure corresponding to a material_id.
 
@@ -339,15 +342,6 @@ class Structure(pmg_Structure, NotebookWriter):
             material_id (str): Materials Project material_id (a string, e.g., mp-1234).
             final (bool): Whether to get the final structure, or the initial
                 (pre-relaxation) structure. Defaults to True.
-            api_key (str): A String API key for accessing the MaterialsProject
-                REST interface. Please apply on the Materials Project website for one.
-                If this is None, the code will check if there is a ``PMG_MAPI_KEY`` in your .pmgrc.yaml.
-                If so, it will use that environment
-                This makes easier for heavy users to simply add this environment variable
-                to their setups and MPRester can then be called without any arguments.
-            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
-                Defaults to the standard Materials Project REST address, but
-                can be changed to other urls implementing a similar interface.
 
         Returns: |Structure| object.
         """
@@ -357,9 +351,8 @@ class Structure(pmg_Structure, NotebookWriter):
 
         # Get pytmatgen structure and convert it to abipy structure
         from abipy.core import restapi
-        with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
-            new = rest.get_structure_by_material_id(material_id, final=final)
-            #new = rest.get_structure_by_material_id(material_id)
+        with restapi.get_mprester() as rest:
+            new = rest.get_structure_by_material_id(material_id)
             return cls.as_structure(new)
 
     @classmethod
@@ -841,8 +834,14 @@ class Structure(pmg_Structure, NotebookWriter):
         s = self.get_sorted_structure()
         ase_adaptor = AseAtomsAdaptor()
         ase_atoms = ase_adaptor.get_atoms(structure=s)
-        standardized = spglib.standardize_cell(ase_atoms, to_primitive=1, no_idealize=no_idealize,
+
+        #standardized = spglib.standardize_cell(ase_atoms, to_primitive=1, no_idealize=no_idealize,
+        #                                       symprec=symprec, angle_tolerance=angle_tolerance)
+
+        spglib_cell = (ase_atoms.cell, ase_atoms.get_scaled_positions(), ase_atoms.get_atomic_numbers())
+        standardized = spglib.standardize_cell(spglib_cell, to_primitive=1, no_idealize=no_idealize,
                                                symprec=symprec, angle_tolerance=angle_tolerance)
+
         standardized_ase_atoms = Atoms(scaled_positions=standardized[1], numbers=standardized[2], cell=standardized[0])
         standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
 
