@@ -14,6 +14,7 @@ import abc
 import logging
 import numpy as np
 
+from ruamel.yaml import YAML, yaml_object
 from typing import Union, Iterator
 from monty.string import indent, is_string
 from monty.fnmatch import WildCard
@@ -22,6 +23,7 @@ from monty.inspect import all_subclasses
 from monty.json import MontyDecoder, MSONable
 from pymatgen.core.structure import Structure
 from abipy.tools.serialization import pmg_serialize
+from abipy.tools.iotools import yaml_safe_load, yaml_unsafe_load
 from .abiinspect import YamlTokenizer
 
 logger = logging.getLogger(__name__)
@@ -38,6 +40,9 @@ __all__ = [
 ]
 
 
+__yaml = YAML()
+
+
 def straceback() -> str:
     """Returns a string with the traceback."""
     import traceback
@@ -45,6 +50,7 @@ def straceback() -> str:
 
 
 class AbinitEvent(yaml.YAMLObject):
+#class AbinitEvent(yaml.YAMLObject, MSONable):
     """
     Example (YAML syntax)::
 
@@ -106,6 +112,14 @@ class AbinitEvent(yaml.YAMLObject):
     @pmg_serialize
     def as_dict(self) -> dict:
         # This is needed because the events printed in the main output file do not define scr_file and src_line
+
+        #d = super().as_dict()
+        #if not d.get("src_file"):
+        #    d["src_file"] = "Unknown"
+        #if not d.get("src_line"):
+        #    d["src_line"] = 0
+        #return d
+
         src_file = getattr(self, "src_file", "Unknown")
         src_line = getattr(self, "src_line", 0)
         return dict(message=self.message, src_file=src_file, src_line=src_line, yaml_tag=self.yaml_tag)
@@ -165,12 +179,14 @@ class AbinitEvent(yaml.YAMLObject):
         return 0
 
 
+@yaml_object(__yaml)
 class AbinitComment(AbinitEvent):
     """Base class for Comment events"""
     yaml_tag = '!COMMENT'
     color = "blue"
 
 
+@yaml_object(__yaml)
 class AbinitError(AbinitEvent):
     """Base class for Error events"""
     yaml_tag = '!ERROR'
@@ -184,12 +200,14 @@ class AbinitYamlError(AbinitError):
     """
 
 
+@yaml_object(__yaml)
 class AbinitBug(AbinitEvent):
     """Base class for Bug events"""
     yaml_tag = '!BUG'
     color = "red"
 
 
+@yaml_object(__yaml)
 class AbinitWarning(AbinitEvent):
     """
     Base class for Warning events (the most important class).
@@ -214,16 +232,19 @@ class AbinitYamlWarning(AbinitCriticalWarning):
 ###############################
 
 
+@yaml_object(__yaml)
 class ScfConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the GS SCF cycle did not converge."""
     yaml_tag = '!ScfConvergenceWarning'
 
 
+@yaml_object(__yaml)
 class NscfConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the GS NSCF cycle did not converge."""
     yaml_tag = '!NscfConvergenceWarning'
 
 
+@yaml_object(__yaml)
 class RelaxConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the structural relaxation did not converge."""
     yaml_tag = '!RelaxConvergenceWarning'
@@ -235,11 +256,13 @@ class RelaxConvergenceWarning(AbinitCriticalWarning):
 #    yaml_tag = u'!PhononConvergenceWarning'
 
 
+@yaml_object(__yaml)
 class QPSConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the QPS iteration (GW) did not converge."""
     yaml_tag = '!QPSConvergenceWarning'
 
 
+@yaml_object(__yaml)
 class HaydockConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the Haydock method (BSE) did not converge."""
     yaml_tag = '!HaydockConvergenceWarning'
@@ -435,14 +458,18 @@ class EventsParser:
                     try:
                         doc.text  = doc.text.replace('\n    \n', '\n')
                         #print(doc.text)
-                        event = yaml.load(doc.text)   # Can't use ruamel safe_load!
+                        # OLD VERSION
+                        #event = yaml.load(doc.text)   # Can't use ruamel safe_load!
+
+                        #event = yaml_safe_load(doc.text)   # Can't use ruamel safe_load!
+                        event = yaml_unsafe_load(doc.text)   # Can't use ruamel safe_load!
                         # FIXME: This new (recommend) API does not reproduce yaml.load behavior. bug in ruamel?
                         #event = yaml.YAML(typ='unsafe', pure=True).load(dox.text)
                         #print(event.yaml_tag, type(event))
                     except Exception:
                         #raise
                         # Wrong YAML doc. Check tha doc tag and instantiate the proper event.
-                        message = "Malformatted YAML document at line: %d\n" % doc.lineno
+                        message = "In EventsParser.parse(): Malformatted YAML document at line: %d\n" % doc.lineno
                         message += doc.text
 
                         # This call is very expensive when we have many exceptions due to malformatted YAML docs.
@@ -768,6 +795,7 @@ class DilatmxErrorHandler(ErrorHandler):
             return None
 
 
+@yaml_object(__yaml)
 class TolSymError(AbinitError):
     """
     Class of errors raised by Abinit when it cannot detect the symmetries of the system.
@@ -822,6 +850,7 @@ class TolSymErrorHandler(ErrorHandler):
             return None
 
 
+@yaml_object(__yaml)
 class MemanaError(AbinitError):
     """
     Class of errors raised by the memory analyzer.
@@ -853,6 +882,7 @@ class MemanaErrorHandler(ErrorHandler):
             return None
 
 
+@yaml_object(__yaml)
 class MemoryError(AbinitError):
     """
     This error occurs when a checked allocation fails in Abinit

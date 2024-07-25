@@ -357,7 +357,8 @@ def software_stack(as_dataframe: bool = False):
     import platform
     system, node, release, version, machine, processor = platform.uname()
     # These packages are required
-    import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml, plotly
+    import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, plotly
+    import ruamel.yaml as yaml
 
     from importlib import import_module
 
@@ -383,7 +384,7 @@ def software_stack(as_dataframe: bool = False):
         ("netCDF4", netCDF4.__version__),
         ("apscheduler", apscheduler.version),
         ("pydispatch", pydispatch.__version__),
-        ("yaml", yaml.__version__),
+        ("ruamel.yaml", yaml.__version__),
         ("boken", get_version("bokeh")),
         ("panel", get_version("panel")),
         ("plotly", get_version("plotly")),

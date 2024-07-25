@@ -328,7 +328,7 @@ class Polaron:
 
         Args:
             method: String defining the interpolation method.
-            check_mesh: Check whether k-points belong to the mesh ff !=0.
+            check_mesh: Check whether k-points belong to the mesh if != 0.
         """
         # Need to know the size of the k-mesh.
         ksampling = self.ebands.kpoints.ksampling
@@ -356,7 +356,7 @@ class Polaron:
 
         Args
             method: String defining the interpolation method.
-            check_mesh: Check whether k-points belong to the mesh ff !=0.
+            check_mesh: Check whether k-points belong to the mesh if != 0.
         """
         # Need to know the shape of the q-mesh (always Gamma-centered)
         ngqpt, shifts = self.varpeq.r.ngqpt, [0, 0, 0]

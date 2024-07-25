@@ -629,7 +629,7 @@ class RtaRobot(Robot, RobotWithEbands):
     #def get_mobility_mu_dataframe(self, eh=0, component='xx', itemp=0, spin=0, **kwargs):
 
     @add_fig_kwargs
-    def plot_mobility_kconv(self, eh=0, bte=('serta', 'mrta', 'ibte'), mode="full", component='xx', itemp=0, 
+    def plot_mobility_kconv(self, eh=0, bte=('serta', 'mrta', 'ibte'), mode="full", component='xx', itemp=0,
                             spin=0, fontsize=14, ax=None, **kwargs) -> Figure:
         """
         Plot the convergence of the mobility as a function of the number of k-points,
@@ -639,7 +639,7 @@ class RtaRobot(Robot, RobotWithEbands):
             eh: 0 for electrons, 1 for holes.
             bte: list of transport formalism to plot (serta, mrta, ibte)
             mode: mode for the convergence plot. 'full': normal plot of the mobility
-                                                 'relative': plot of the mobility relative to 
+                                                 'relative': plot of the mobility relative to
                                                              the value obtained with the densest grid
             component: Cartesian component to plot ('xx', 'xy', ...)
             itemp: temperature index.

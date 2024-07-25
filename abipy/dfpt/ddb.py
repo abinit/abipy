@@ -143,7 +143,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         from abipy.core import restapi
         with restapi.get_mprester() as rest:
-
             if getattr(rest, "_make_request") is None:
                 raise RuntimeError("from_mpid requires mp-api, please install it with `pip install mp-api`")
 
@@ -949,7 +948,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return (df, index_list) if with_index_list else df
 
     @lru_cache(typed=True)
-    def has_quadrupole_terms(self, select: str ="all") -> bool:
+    def has_quadrupole_terms(self, select: str="all") -> bool:
         """
         True if the DDB file contains dynamical quadrupoles
         i.e the 3rd order derivatives wrt (electric_field, atomic_perturbation_gamma, q-wavevector)
