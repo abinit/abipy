@@ -447,7 +447,7 @@ class EventsParser:
         filename = os.path.abspath(filename)
         report = EventReport(filename)
 
-        #w = WildCard("*Error|*Warning|*Comment|*Bug|*ERROR|*WARNING|*COMMENT|*BUG")
+        w = WildCard("*Error|*Warning|*Comment|*Bug|*ERROR|*WARNING|*COMMENT|*BUG")
         #import warnings
         #warnings.simplefilter('ignore', yaml.error.UnsafeLoaderWarning)
 
