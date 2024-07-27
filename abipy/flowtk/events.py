@@ -40,7 +40,7 @@ __all__ = [
 ]
 
 
-__yaml = YAML()
+_yaml = YAML()
 
 
 def straceback() -> str:
@@ -179,14 +179,14 @@ class AbinitEvent(yaml.YAMLObject):
         return 0
 
 
-@yaml_object(__yaml)
+@yaml_object(_yaml)
 class AbinitComment(AbinitEvent):
     """Base class for Comment events"""
     yaml_tag = '!COMMENT'
     color = "blue"
 
 
-@yaml_object(__yaml)
+@yaml_object(_yaml)
 class AbinitError(AbinitEvent):
     """Base class for Error events"""
     yaml_tag = '!ERROR'
@@ -200,14 +200,14 @@ class AbinitYamlError(AbinitError):
     """
 
 
-@yaml_object(__yaml)
+@yaml_object(_yaml)
 class AbinitBug(AbinitEvent):
     """Base class for Bug events"""
     yaml_tag = '!BUG'
     color = "red"
 
 
-@yaml_object(__yaml)
+@yaml_object(_yaml)
 class AbinitWarning(AbinitEvent):
     """
     Base class for Warning events (the most important class).
@@ -232,19 +232,19 @@ class AbinitYamlWarning(AbinitCriticalWarning):
 ###############################
 
 
-@yaml_object(__yaml)
+@yaml_object(_yaml)
 class ScfConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the GS SCF cycle did not converge."""
     yaml_tag = '!ScfConvergenceWarning'
 
 
-@yaml_object(__yaml)
+@yaml_object(_yaml)
 class NscfConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the GS NSCF cycle did not converge."""
     yaml_tag = '!NscfConvergenceWarning'
 
 
-@yaml_object(__yaml)
+@yaml_object(_yaml)
 class RelaxConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the structural relaxation did not converge."""
     yaml_tag = '!RelaxConvergenceWarning'
@@ -256,13 +256,13 @@ class RelaxConvergenceWarning(AbinitCriticalWarning):
 #    yaml_tag = u'!PhononConvergenceWarning'
 
 
-@yaml_object(__yaml)
+@yaml_object(_yaml)
 class QPSConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the QPS iteration (GW) did not converge."""
     yaml_tag = '!QPSConvergenceWarning'
 
 
-@yaml_object(__yaml)
+@yaml_object(_yaml)
 class HaydockConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the Haydock method (BSE) did not converge."""
     yaml_tag = '!HaydockConvergenceWarning'
@@ -447,9 +447,9 @@ class EventsParser:
         filename = os.path.abspath(filename)
         report = EventReport(filename)
 
-        w = WildCard("*Error|*Warning|*Comment|*Bug|*ERROR|*WARNING|*COMMENT|*BUG")
-        import warnings
-        warnings.simplefilter('ignore', yaml.error.UnsafeLoaderWarning)
+        #w = WildCard("*Error|*Warning|*Comment|*Bug|*ERROR|*WARNING|*COMMENT|*BUG")
+        #import warnings
+        #warnings.simplefilter('ignore', yaml.error.UnsafeLoaderWarning)
 
         with YamlTokenizer(filename) as tokens:
             for doc in tokens:
@@ -780,22 +780,22 @@ class DilatmxErrorHandler(ErrorHandler):
 
         return self.FIXED
 
-    def handle_input_event(self, abiinput, outdir, event):
+    def handle_input_event(self, abi_input, outdir, event):
         try:
-            old_abiinput = abiinput.deepcopy()
+            old_abiinput = abi_input.deepcopy()
             # Read the last structure dumped by ABINIT before aborting.
             filepath = outdir.has_abiext("DILATMX_STRUCT.nc")
             last_structure = Structure.from_file(filepath)
-            abiinput.set_structure(last_structure)
+            abi_input.set_structure(last_structure)
             #FIXME restart from DEN files not always working with interpolation
-            return Correction(self, self.compare_inputs(abiinput, old_abiinput), event, reset=True)
-            # return Correction(self, self.compare_inputs(abiinput, old_abiinput), event, event=False)
+            return Correction(self, self.compare_inputs(abi_input, old_abiinput), event, reset=True)
+            # return Correction(self, self.compare_inputs(abi_input, old_abiinput), event, event=False)
         except Exception as exc:
             logger.warning('Error while trying to apply the handler {}.'.format(str(self)), exc)
             return None
 
 
-@yaml_object(__yaml)
+@yaml_object(_yaml)
 class TolSymError(AbinitError):
     """
     Class of errors raised by Abinit when it cannot detect the symmetries of the system.
@@ -838,19 +838,19 @@ class TolSymErrorHandler(ErrorHandler):
         task.log_correction(event, "Increasing tolsym from %s to %s" % (old_tolsym, new_tolsym))
         return self.FIXED
 
-    def handle_input_event(self, abiinput, outdir, event):
+    def handle_input_event(self, abi_input, outdir, event):
         try:
-            old_abiinput = abiinput.deepcopy()
-            old_tolsym = abiinput["tolsym"]
+            old_abiinput = abi_input.deepcopy()
+            old_tolsym = abi_input["tolsym"]
             new_tolsym = 1e-6 if old_tolsym is None else old_tolsym * 10
-            abiinput.set_vars(tolsym=new_tolsym)
-            return Correction(self, self.compare_inputs(abiinput, old_abiinput), event, reset=False)
+            abi_input.set_vars(tolsym=new_tolsym)
+            return Correction(self, self.compare_inputs(abi_input, old_abiinput), event, reset=False)
         except Exception as exc:
             logger.warning('Error while trying to apply the handler {}.'.format(str(self)), exc)
             return None
 
 
-@yaml_object(__yaml)
+@yaml_object(_yaml)
 class MemanaError(AbinitError):
     """
     Class of errors raised by the memory analyzer.
@@ -872,17 +872,17 @@ class MemanaErrorHandler(ErrorHandler):
         task.log_correction(event, "Find MemanaError. Setting mem_test to 0 in input file.")
         return self.FIXED
 
-    def handle_input_event(self, abiinput, outdir, event):
+    def handle_input_event(self, abi_input, outdir, event):
         try:
-            old_abiinput = abiinput.deepcopy()
-            abiinput.set_vars(mem_test=0)
-            return Correction(self, self.compare_inputs(abiinput, old_abiinput), event, reset=False)
+            old_abiinput = abi_input.deepcopy()
+            abi_input.set_vars(mem_test=0)
+            return Correction(self, self.compare_inputs(abi_input, old_abiinput), event, reset=False)
         except Exception as exc:
             logger.warning('Error while trying to apply the handler {}.'.format(str(self)), exc)
             return None
 
 
-@yaml_object(__yaml)
+@yaml_object(_yaml)
 class MemoryError(AbinitError):
     """
     This error occurs when a checked allocation fails in Abinit
@@ -903,7 +903,7 @@ class MemoryErrorHandler(ErrorHandler):
         task.manager.increase_resources()
         return self.FIXED
 
-    def handle_input_event(self, abiinput, outdir, event):
+    def handle_input_event(self, abi_input, outdir, event):
         """
         Shouldn't do anything on the input
         """
