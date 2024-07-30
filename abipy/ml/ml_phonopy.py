@@ -439,7 +439,6 @@ class MlPhonopy(MlBase):
         #from phonopy.file_IO import write_FORCE_CONSTANTS
         #write_FORCE_CONSTANTS(force_constants, filename=str(self.workdir / f"{nn_name}_FORCE_CONSTANTS"))
 
-        show = False
         #from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter
         #with Timer(header="Starting phonopy ph-bands computation...", footer=""):
         #    phonon.run_band_structure(self.py_qpoints, with_eigenvectors=True)
@@ -458,22 +457,20 @@ class MlPhonopy(MlBase):
               filename=workdir / f"{nn_name}_band.yml",
         )
         plt.savefig(workdir / f"phonopy_{nn_name}_phbands.png")
-        if show: plt.show()
         plt.close()
 
+        # Save phonopy object in Yaml format.
         phonon.save(filename=workdir / f"phonopy_params.yaml", settings={'force_constants': True})
 
-        #mesh = [20, 20, 20]
-        #phonon.run_mesh(mesh)
-        #mesh_dict = phonon.get_mesh_dict()
-        #qpoints = mesh_dict['qpoints']
-        #weights = mesh_dict['weights']
-        #frequencies = mesh_dict['frequencies']
-        #eigenvectors = mesh_dict['eigenvectors']
-        #group_velocities = mesh_dict['group_velocities']
+        # Compute phonon DOS and generate file with figure.
+        phonon.auto_total_dos(plot=True)
+        plt.savefig(workdir / f"phonopy_{nn_name}_phdos.png")
+        plt.close()
 
-        #phonon.auto_total_dos(plot=True).show()
-        #phonon.auto_projected_dos(plot=True).show()
+        # Compute site-project phonon DOS and generate file with figure.
+        #phonon.auto_projected_dos(plot=True)
+        #plt.savefig(workdir / f"phonopy_{nn_name}_pjdos.png")
+        #plt.close()
 
         #phon#on.run_mesh([20, 20, 20])
         #phonon.run_thermal_properties(t_step=10, t_max=1000, t_min=0)
