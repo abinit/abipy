@@ -2198,7 +2198,7 @@ class ElectronBands(Has_Structure):
         # Plot the band energies.
         for spin in spin_list:
             opts = {"color": "black", "linewidth": 2.0} if spin == 0 else \
-                   {"color": "red", "linewidth": 2.0}
+                   {"color": "red",   "linewidth": 2.0}
             # This to pass kwargs to plot_ax and avoid both lw and linewidth in opts
             if "lw" in kwargs: opts.pop("linewidth")
             opts.update(kwargs)
@@ -2208,8 +2208,7 @@ class ElectronBands(Has_Structure):
                 self.plot_ax(ax, e0, spin=spin, band=band, **opts)
 
         if points is not None:
-            ax.scatter(points.x, np.array(points.y) - e0, s=np.abs(points.s),
-                        marker=points.marker, c=points.color, alpha=points.alpha)
+            ax.scatter(points.x, np.array(points.y) - e0, s=np.abs(points.s), **points.scatter_kwargs)
 
         if with_gaps and (self.mband > self.nspinor * self.nelect // 2):
             # Show fundamental and direct gaps for each spin.

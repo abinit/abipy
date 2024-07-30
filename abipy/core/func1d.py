@@ -505,7 +505,7 @@ class Function1D:
             xx, yy = self.mesh, data_from_cplx_mode(c, self.values)
             if xfactor != 1: xx = xx * xfactor
             if yfactor != 1: yy = yy * yfactor
-            if normalize: yy = np.max(yy)
+            if normalize: yy = yy / np.max(yy)
 
             if exchange_xy:
                 xx, yy = yy, xx

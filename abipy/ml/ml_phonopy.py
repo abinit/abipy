@@ -435,7 +435,7 @@ class MlPhonopy(MlBase):
             #    print("Including dipolar term in phonopy using BECS and eps_inf taken from DDB.")
             #    phonon.nac_params = self.abi_nac_params
 
-        force_constants = phonon.get_force_constants()
+        #force_constants = phonon.get_force_constants()
         #from phonopy.file_IO import write_FORCE_CONSTANTS
         #write_FORCE_CONSTANTS(force_constants, filename=str(self.workdir / f"{nn_name}_FORCE_CONSTANTS"))
 
@@ -454,12 +454,14 @@ class MlPhonopy(MlBase):
               with_eigenvectors=False,
               with_group_velocities=False,
               plot=True,
-              write_yaml=False,
+              write_yaml=True,
               filename=workdir / f"{nn_name}_band.yml",
         )
         plt.savefig(workdir / f"phonopy_{nn_name}_phbands.png")
         if show: plt.show()
         plt.close()
+
+        phonon.save(filename=workdir / f"phonopy_params.yaml", settings={'force_constants': True})
 
         #mesh = [20, 20, 20]
         #phonon.run_mesh(mesh)
@@ -473,10 +475,8 @@ class MlPhonopy(MlBase):
         #phonon.auto_total_dos(plot=True).show()
         #phonon.auto_projected_dos(plot=True).show()
 
-        #phonon.run_mesh([20, 20, 20])
-        #phonon.run_thermal_properties(t_step=10,
-        #                              t_max=1000,
-        #                              t_min=0)
+        #phon#on.run_mesh([20, 20, 20])
+        #phonon.run_thermal_properties(t_step=10, t_max=1000, t_min=0)
         #tp_dict = phonon.get_thermal_properties_dict()
         #temperatures = tp_dict['temperatures']
         #free_energy = tp_dict['free_energy']

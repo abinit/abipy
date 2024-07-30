@@ -1123,8 +1123,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         self.plot_ax(ax, branch_range, units=units, match_bands=match_bands, **kwargs)
 
         if points is not None:
-            ax.scatter(points.x, np.array(points.y), s=np.abs(points.s),
-                        marker=points.marker, c=points.color, alpha=points.alpha)
+            ax.scatter(points.x, np.array(points.y), s=np.abs(points.s), **points.scatter_kwargs)
 
         if temp is not None:
             # Scatter plot with Bose-Einstein occupation factors for T = temp

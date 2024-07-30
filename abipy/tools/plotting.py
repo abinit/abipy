@@ -1065,7 +1065,8 @@ class Marker:
         marker = Marker(x, y, s)
     """
 
-    def __init__(self, x, y, s, marker: str = "o", color: str = "y", alpha: float = 1.0):
+    def __init__(self, x, y, s, **scatter_kwargs):
+                 #marker: str = "o", color: str = "y", alpha: float = 1.0, label=None, self.edgecolors=None):
         self.x, self.y, self.s = np.array(x), np.array(y), np.array(s)
 
         if len(self.x) != len(self.y):
@@ -1073,9 +1074,12 @@ class Marker:
         if len(self.y) != len(self.s):
             raise ValueError("len(self.y) != len(self.s)")
 
-        self.marker = marker
-        self.color = color
-        self.alpha = alpha
+        #self.marker = marker
+        #self.color = color
+        #self.alpha = alpha
+        #self.label = label
+        #self.edgecolors = edgecolors
+        self.scatter_kwargs = scatter_kwargs
 
         # Step 1: Normalize sizes to a suitable range for plotting
         #min_size = 10  # Minimum size for points
@@ -1224,7 +1228,8 @@ class MplExposer(Exposer): # pragma: no cover
                 timer.start()
 
             plt.show()
-            fig.clear()
+            if hasattr(fig, "clear"):
+                fig.clear()
 
     def expose(self) -> None:
         """
@@ -1235,7 +1240,8 @@ class MplExposer(Exposer): # pragma: no cover
             import matplotlib.pyplot as plt
             plt.show()
             for fig in self.figures:
-                fig.clear()
+                if hasattr(fig, "clear"):
+                    fig.clear()
 
 
 class PanelExposer(Exposer):  # pragma: no cover
