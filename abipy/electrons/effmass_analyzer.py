@@ -18,7 +18,7 @@ from abipy.tools.derivatives import finite_diff
 from abipy.tools.printing import print_dataframe
 from abipy.tools.typing import Figure
 from abipy.electrons.ebands import ElectronBands
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, set_grid_legend
 
 
 class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
@@ -35,16 +35,19 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         print(emana)
 
         emana.select_vbm()
+        emana.summarize()
+        emana.plot_emass()
 
         # Alternatively, one can use:
-        #emana.select_cbm()
-        #emana.select_band_edges()
+        emana.select_cbm()
+        emana.select_band_edges()
+        emana.summarize()
+        emana.plot_emass()
 
         or the most flexible API:
 
-        #emana.select_kpoint_band(kpoint=[0, 0, 0], band=3)
-
-        #emana.summarize()
+        emana.select_kpoint_band(kpoint=[0, 0, 0], band=3)
+        emana.summarize()
         emana.plot_emass()
 
     .. rubric:: Inheritance Diagram
@@ -56,9 +59,8 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         """
         Initialize the object from a netcdf file providing an |ElectronBands| object, usually a GSR file.
         """
-        from abipy.abilab import abiopen
-        with abiopen(filepath) as ncfile:
-            return cls(ncfile.ebands, copy=False)
+        ebands = ElectronBands.as_ebands(filepath)
+        return cls(ebands, copy=False)
 
     def __init__(self, ebands: ElectronBands, copy: bool = True):
         """
@@ -90,14 +92,14 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         return self.ebands.to_string(with_structure=True, with_kpoints=True, verbose=verbose)
 
     @property
-    def ebands(self) -> ElectronBands:
-        """|ElectronBands| object."""
-        return self._ebands
-
-    @property
     def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
+
+    @property
+    def ebands(self) -> ElectronBands:
+        """|ElectronBands| object."""
+        return self._ebands
 
     def select_kpoint_band(self, kpoint, band: int, spin: int = 0, degtol_ev: float = 1e-3) -> int:
         """
@@ -126,32 +128,29 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
     def select_cbm(self, spin: int = 0, degtol_ev: float = 1e-3) -> int:
         """
-        Select the conduction band minimum for the given spin.
-
-        Return: Number of segments.
+        Select the conduction band minimum for the given spin. Return: Number of segments.
         """
         ik_indices, band_inds_k = self._select(["cbm"], spin, degtol_ev)
         return self._build_segments(spin, ik_indices, band_inds_k)
 
     def select_vbm(self, spin: int = 0, degtol_ev: float = 1e-3) -> int:
         """
-        Select the valence band maximum for the given spin
-
-        Return: Number of segments.
+        Select the valence band maximum for the given spin, Return: Number of segments.
         """
         ik_indices, band_inds_k = self._select(["vbm"], spin, degtol_ev)
         return self._build_segments(spin, ik_indices, band_inds_k)
 
     def select_band_edges(self, spin: int = 0, degtol_ev: float = 1e-3) -> int:
         """
-        Select conduction band minimum and valence band maximum.
-
-        Return: Number of segments.
+        Select conduction band minimum and valence band maximum. Return: Number of segments.
         """
         ik_indices, band_inds_k = self._select(["cbm", "vbm"], spin, degtol_ev)
         return self._build_segments(spin, ik_indices, band_inds_k)
 
     def _select(self, what_list, spin, degtol_ev):
+        """
+        Low-level method to select the electronic states
+        """
         ik_indices, band_inds_k = [], []
 
         if "vbm" in what_list:
@@ -230,7 +229,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
             print_dataframe(df, title=title)
 
     @add_fig_kwargs
-    def plot_emass(self, acc=4, units="eV", sharey=True, fontsize=6,
+    def plot_emass(self, acc=4, units="eV", sharey=False, fontsize=6,
                    colormap="viridis", verbose=0, **kwargs) -> Figure:
         """
         Plot electronic dispersion and quadratic approximant based on the
@@ -260,6 +259,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
                 print(f"== SEGMENT NUMBER: {iseg}")
                 print(segment)
                 print(2 * "\n")
+
             irow, icol = divmod(iseg, ncols)
             segment.plot_emass(ax=ax, acc=acc, units=units, fontsize=fontsize, colormap=colormap, show=False)
             if iseg != 0: set_visible(ax, False, "ylabel")
@@ -277,8 +277,6 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         Args:
             colormap: matplotlib colormap
             fontsize: legend and title fontsize.
-
-        Return: |matplotlib-Figure|
         """
         self._consistency_check()
 
@@ -286,8 +284,6 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         cmap = plt.get_cmap(colormap)
         markers = ["o", "s", "x", "D", "+", "v", ">", "<"] * 8
 
-        ax.grid(True)
-        ax.set_ylabel('Energy (eV)')
         pad = 0
         for iseg, segment in enumerate(self.segments):
             color = cmap(float(iseg / len(self.segments)))
@@ -297,9 +293,8 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
                         label="direction: %s" % segment.kdir.tos(m="fracart", scale=True) if ib == 0 else None)
             pad += 10
 
-        ax.legend(loc="best", fontsize=fontsize, shadow=True)
         #title = "k: %s, spin: %s, nband: %d" % (repr(self.efm_kpoint), self.spin, segment.nb)
-        #ax.set_title(title, fontsize=fontsize)
+        set_grid_legend(ax, fontsize, ylabel='Energy (eV)', title=title)
 
         return fig
 
@@ -358,8 +353,7 @@ class Segment:
         return self.to_string()
 
     def get_fd_emass_d2(self, enes_kline, acc: int) -> tuple:
-        # Note the use of self.kpos so that the stencil is centered on the kpos index
-        # if we have points of both sides.
+        # Note the use of self.kpos so that the stencil is centered on the kpos index if we have points of both sides.
         d2 = finite_diff(enes_kline, self.dk, order=2, acc=acc, index=self.kpos)
         emass = 1. / (d2.value * (abu.eV_Ha / abu.Bohr_Ang ** 2))
         return emass, d2
@@ -403,11 +397,8 @@ class Segment:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
             colormap: matplotlib colormap
-
-        Return: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.grid(True)
         cmap = plt.get_cmap(colormap)
 
         ufact = {"ev": 1, "mev": 1000}[units.lower()]
@@ -432,10 +423,9 @@ class Segment:
             ax.plot(xs, ys * ufact, linestyle="--", color=cmap(float(ib) / self.nb), label=label)
 
         ax.axvline(self.kpos, c="r", ls=":", lw=2)
-        ax.legend(loc="best", fontsize=fontsize, shadow=True)
         title = r"${\bf k}_0$: %s, direction: %s, step: %.3f $\AA^{-1}$" % (
                 repr(self.k0), self.kdir.tos(m="fracart", scale=True), self.dk)
-        ax.set_title(title, fontsize=fontsize)
-        ax.set_ylabel(f'Energy ({units})')
+
+        set_grid_legend(ax, fontsize, ylabel=f'Energy ({units})', title=title)
 
         return fig

@@ -140,15 +140,13 @@ Use `abistruct.py --help` for help and `abistruct.py COMMAND --help` to get the 
 Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 """
 
-  #abistruct.py mp_pd FILE-or-elements      => Generate phase diagram with entries from the Materials Project.
-
 
 def get_parser(with_epilog=False):
 
     # Parent parser for commands that need to know the filepath
     path_selector = argparse.ArgumentParser(add_help=False)
     path_selector.add_argument('filepath', nargs="?",
-        help="File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR ...)")
+        help="File with the crystalline structure(s) (ABINIT Netcdf files, CIF, ABINIT input/output files, POSCAR, ASE trajectory ...)")
 
     # Parent parser for commands supporting (jupyter notebooks)
     nb_parser = argparse.ArgumentParser(add_help=False)
@@ -240,6 +238,9 @@ file that does not have enough significant digits.""")
     p_convert = subparsers.add_parser('convert', parents=[copts_parser, path_selector],
         help="Convert structure to the specified format.")
     add_format_arg(p_convert, default="cif")
+
+    p_has_quad = subparsers.add_parser('has_quad', parents=[copts_parser, path_selector],
+        help="Detect whether structure has non-zero dynamical quadrupoles.")
 
     # Subparser for supercell command.
     p_traj2xdatcar = subparsers.add_parser('traj2xdatcar', parents=[copts_parser, path_selector],
@@ -464,17 +465,6 @@ closest points in this particular structure. This is usually what you want in a 
         help="Select structures with this space group number.")
     add_format_arg(p_mpsearch, default="abivars")
 
-    # Subparser for mp_pd command.
-    #p_mp_pda = subparsers.add_parser('mp_pd', parents=[mp_rest_parser, copts_parser],
-    #    help=("Generate phase diagram with entries from the Materials Project. "
-    #          "Requires internet connection and PMG_MAPI_KEY"))
-    #p_mp_pda.add_argument("file_or_elements", type=str, default=None,
-    #    help="FILE with structure or elements e.g., Li-Fe-O).")
-    #p_mp_pda.add_argument("-u", "--show-unstable", type=int, default=0,
-    #    help="""Whether unstable phases will be plotted as
-#well as red crosses. If a number > 0 is entered, all phases with
-#ehull < show_unstable will be shown.""")
-
     # Subparser for mp_ebands command.
     p_mp_ebands = subparsers.add_parser('mp_ebands', parents=[copts_parser, mp_rest_parser],
         help="Get structure from the pymatgen database. Export to format. Requires internet connection and PMG_MAPI_KEY.")
@@ -573,10 +563,6 @@ def main():
     if options.verbose > 2:
         print(options)
 
-    #structure = abilab.Structure.from_file(options.filepath)
-    #print("structure.has_zero_dynamical_quadrupoles:", structure.has_zero_dynamical_quadrupoles)
-    #sys.exit(0)
-
     if options.command == "spglib":
         structure = abilab.Structure.from_file(options.filepath)
         print(structure.spget_summary(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
@@ -615,6 +601,10 @@ def main():
         fmt = options.format
         if fmt == "cif" and options.filepath.endswith(".cif"): fmt = "abivars"
         print(abilab.Structure.from_file(options.filepath).convert(fmt=fmt))
+
+    elif options.command == "has_quad":
+        structure = abilab.Structure.from_file(options.filepath)
+        print("has_dynamical_quadrupoles:", not structure.has_zero_dynamical_quadrupoles)
 
     elif options.command == "traj2xdatcar":
         from ase.io import read
@@ -986,19 +976,6 @@ def main():
 
         if options.browser:
             mp.open_browser(limit=None if options.verbose == 2 else 10)
-
-    #elif options.command == "mp_pd":
-    #    if os.path.exists(options.file_or_elements):
-    #        structure = abilab.Structure.from_file(options.file_or_elements)
-    #        elements = structure.symbol_set
-    #    else:
-    #        elements = options.file_or_elements.split("-")
-
-    #    if options.verbose > 1: print("Building phase-diagram for elements:", elements)
-    #    with abilab.restapi.get_mprester() as rest:
-    #        pdr = rest.get_phasediagram_results(elements)
-    #        pdr.print_dataframes(verbose=options.verbose)
-    #        pdr.plot(show_unstable=options.show_unstable)
 
     elif options.command == "mp_ebands":
         if os.path.exists(options.chemsys_formula_id):

@@ -99,6 +99,7 @@ class OncvParser(BaseParser):
         return self.generator_type == "ONCVPSP"
 
     def _scan(self, verbose: int = 0) -> OncvParser:
+
         if not os.path.exists(self.filepath):
             raise self.Error(f"File {self.filepath} does not exist")
 

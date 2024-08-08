@@ -129,17 +129,3 @@ def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):   # pragma: no c
     box = ipw.VBox(children=children)
 
     return display(box)
-
-
-
-
-
-
-
-
-
-
-
-
-
-

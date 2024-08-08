@@ -1830,7 +1830,7 @@ class ElectronBands(Has_Structure):
                 width=ipw.FloatSlider(value=0.2, min=1e-6, max=1, step=0.05, description="Gaussian broadening (eV)"),
             )
 
-    def get_edos(self, method="gaussian", step=0.1, width=0.2) -> ElectronDos:
+    def get_edos(self, method: str="gaussian", step: float=0.05, width: float=0.1) -> ElectronDos:
         """
         Compute the electronic DOS on a linear mesh.
 
@@ -1861,7 +1861,7 @@ class ElectronBands(Has_Structure):
                         dos[spin] += weight * gaussian(mesh, width, center=e)
 
         else:
-            raise NotImplementedError(f"{method} method is not supported")
+            raise NotImplementedError(f"{method=} is not supported")
 
         # Use fermie from Abinit if we are not using metallic scheme for occopt.
         fermie = None
@@ -1907,8 +1907,6 @@ class ElectronBands(Has_Structure):
                 or scalar e.g. `left`. If left (right) is None, default values are used
             alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         e0 = self.get_e0("fermie")
@@ -1949,8 +1947,8 @@ class ElectronBands(Has_Structure):
                         y = self.eigens[spin, ik, v_k] - e0
                         # http://matthiaseisen.com/matplotlib/shapes/arrow/
                         p = FancyArrowPatch((ik, y), (ik + dx, y + dy),
-                                connectionstyle='arc3', mutation_scale=20,
-                                alpha=alpha, **arrow_opts)
+                                            connectionstyle='arc3', mutation_scale=20,
+                                            alpha=alpha, **arrow_opts)
                         ax.add_patch(p)
         return fig
 
@@ -2919,8 +2917,6 @@ class ElectronBands(Has_Structure):
         e0mesh = np.array(e0mesh) - e0
 
         kw_linestyle = kwargs.pop("linestyle", "o")
-        #kw_lw = kwargs.pop("lw", 1)
-        #kw_lw = kwargs.pop("markersize", 5)
         kw_color = kwargs.pop("color", "red")
         kw_label = kwargs.pop("label", None)
 
@@ -3021,7 +3017,7 @@ class ElectronBands(Has_Structure):
             f.close()
 
     @memoized_method(maxsize=5, typed=False)
-    def get_ifermi_dense_bs(self, interpolation_factor, with_velocities):
+    def get_ifermi_dense_bs(self, interpolation_factor, with_velocities, nworkers=1):
         """
         Use ifermi and BoltzTraP2 to interpolate KS energies (assumes ebands in the IBZ).
 
@@ -3047,7 +3043,7 @@ class ElectronBands(Has_Structure):
         bs = self.to_pymatgen()
         interpolator = FourierInterpolator(bs)
 
-        nworkers = 1 # Use 1 worker because it does not seem to scale well on my Mac.
+        #nworkers = 1 # Use 1 worker because it does not seem to scale well on my Mac.
         with Timer(footer=f"BoltzTraP2 interpolation with {interpolation_factor=} and {with_velocities=}"):
             if with_velocities:
                 dense_bs, velocities = interpolator.interpolate_bands(interpolation_factor=interpolation_factor,
@@ -3062,7 +3058,7 @@ class ElectronBands(Has_Structure):
         return dict2namedtuple(dense_bs=dense_bs, velocities=velocities, interpolator=interpolator)
 
     def get_ifermi_fs(self, interpolation_factor=8, mu=0.0, eref="fermie", wigner_seitz=True,
-                      calculate_dimensionality=False, with_velocities=False):
+                      calculate_dimensionality=False, with_velocities=False, nworkers=1):
         """
         Use ifermi package to visualize the (interpolated) Fermi surface.
         Requires netcdf file with energies in the IBZ.
@@ -3086,7 +3082,7 @@ class ElectronBands(Has_Structure):
             r = ebands.get_ifermi_fs()
             r.fs_plotter.get_plot(plot_type="plotly").show()
         """
-        r = self.get_ifermi_dense_bs(interpolation_factor, with_velocities)
+        r = self.get_ifermi_dense_bs(interpolation_factor, with_velocities, nworkers=nworkers)
 
         from ifermi.surface import FermiSurface
         from ifermi.plot import FermiSurfacePlotter #, save_plot, show_plot FermiSlicePlotter,
@@ -3610,8 +3606,6 @@ class ElectronBandsPlotter(NotebookWriter):
                 Used when there are DOS stored in the plotter.
             fontsize: fontsize for legend.
             linestyle_dict: Dictionary mapping labels to matplotlib linestyle options.
-
-        Returns: |matplotlib-Figure|.
         """
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec

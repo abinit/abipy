@@ -48,7 +48,7 @@ def get_phonopy(structure: Structure,
         calculator: ASE calculator to be attached to the atoms.
         distance: Distance of finite displacements in Angstrom.
         primitive_matrix
-        remove_drift: True if the drift in the forces should be removed
+        remove_drift: True if the drift in the forces should be removed.
 
     Based on a similar implementation available at: https://github.com/modl-uclouvain/randomcarbon/blob/main/randomcarbon/run/phonon.py
     """
@@ -59,10 +59,9 @@ def get_phonopy(structure: Structure,
 
     forces_list = []
     nsc = len(phonon.supercells_with_displacements)
-    #print(f"Calculating forces for {nsc} supercell configurations ...")
+    print(f"Calculating forces for {nsc} supercell configurations ...")
 
     for i, sc in enumerate(phonon.supercells_with_displacements):
-        #print(f"{i+1} of {nsc}")
         a = Atoms(symbols=sc.symbols,
                   positions=sc.positions,
                   masses=sc.masses,
@@ -70,14 +69,18 @@ def get_phonopy(structure: Structure,
                   pbc=True,
                   calculator=calculator)
 
+
         forces = a.get_forces()
         if remove_drift:
             drift_force = forces.sum(axis=0)
             for force in forces:
                 force -= drift_force / forces.shape[0]
+
         forces_list.append(forces)
+        print(f"\t{i+1} of {nsc} completed ...")
 
     phonon.produce_force_constants(forces_list)
+
     return phonon
 
 
@@ -130,7 +133,7 @@ class MlPhonopyWithDDB(MlBase):
         with DdbFile(self.ddb_filepath) as ddb:
             self.initial_atoms = ddb.structure.to_ase_atoms()
             if self.supercell is None:
-                # Take supercell from the q-mesh used in the DDB
+                # Take supercell from the q-mesh used in the DDB.
                 self.supercell = np.eye(3) * ddb.guessed_ngqpt
 
         if self.supercell is None:
@@ -164,7 +167,9 @@ class MlPhonopyWithDDB(MlBase):
         return s
 
     def run(self) -> None:
-        """Run MlPhonopyWithDDB."""
+        """
+        Run MlPhonopyWithDDB.
+        """
         # Run anaddb computation and save results in self.
         with DdbFile(self.ddb_filepath) as ddb, Timer(header="Starting anaddb ph-bands computation...") as timer:
             if ddb.has_lo_to_data and self.dipdip != 0:
@@ -227,6 +232,7 @@ class MlPhonopyWithDDB(MlBase):
 
             relax = relax_atoms(atoms, **relax_kws)
             relax.summarize(["DDB_initial", "DDB_relaxed"])
+            #print(relax)
 
         # Call phonopy to compute phonons with finite difference and ML potential.
         # Include non-analytical term if dipoles are available in the DDB file.
@@ -237,42 +243,15 @@ class MlPhonopyWithDDB(MlBase):
                 print("Including dipolar term in phonopy using BECS and eps_inf taken from DDB.")
                 phonon.nac_params = self.abi_nac_params
 
-        force_constants = phonon.get_force_constants()
-        #from phonopy.file_IO import write_FORCE_CONSTANTS
-        #write_FORCE_CONSTANTS(force_constants, filename=str(self.workdir / f"{nn_name}_FORCE_CONSTANTS"))
+        # Save phonopy object in Yaml format.
+        phonon.save(filename=workdir / f"phonopy_params.yaml", settings={'force_constants': True})
 
-        """
-        from abipy.dfpt.converters import phonopy_to_abinit
-        with DdbFile(self.ddb_filepath) as ddb:
-            zion = ddb.header["zion"]
-            py_ddb = phonopy_to_abinit(unit_cell=Structure.as_structure(atoms.copy()),
-                                       supercell_matrix=self.supercell,
-                                       out_ddb_path=str(self.workdir / f"{nn_name}_DDB"),
-                                       ngqpt=ddb.guessed_ngqpt,
-                                       force_constants=force_constants,
-                                       born=None,
-                                       primitive_matrix=np.eye(3),
-                                       verbose=self.verbose,
-                                       )
-            # Call anaddb to compute ab-initio phonons from the DDB.
-            with py_ddb.anaget_phbst_and_phdos_files(
-                        qppa=self.qppa, line_density=self.line_density,
-                        asr=self.asr, dipdip=self.dipdip, verbose=self.verbose) as g:
-
-                phbst_file, phdos_file = g[0], g[1]
-                py_phbands = phbst_file.phbands
-
-            py_ddb.close()
-        """
-
-        show = False
         from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter
-        with Timer(header="Starting phonopy ph-bands computation...", footer=""):
+        with Timer(header="Starting phonopy ph-band computation...", footer=""):
             phonon.run_band_structure(self.py_qpoints, with_eigenvectors=True)
 
         plt = phonon.plot_band_structure()
-        plt.savefig(workdir / f"phonopy_{nn_name}_phbands.png")
-        if show: plt.show()
+        plt.savefig(workdir / f"phonopy_{nn_name}_phbands{self.fig_ext}")
         plt.close()
 
         bands_dict = phonon.get_band_structure_dict()
@@ -306,7 +285,7 @@ class MlPhonopyWithDDB(MlBase):
         mae_str = f"MAE {1000 * mabs_wdiff_ev:.3f} meV"
         print(mae_str)
         latex_formula = self.abi_phbands.structure.latex_formula
-        ph_plotter.combiplot(show=show, title=f"{latex_formula}: {mae_str}", units="meV",
+        ph_plotter.combiplot(show=False, title=f"{latex_formula}: {mae_str}", units="meV",
                              savefig=str(workdir / f"combiplot_{nn_name}.pdf"))
 
         data = dict(
@@ -314,16 +293,27 @@ class MlPhonopyWithDDB(MlBase):
             **py_phbands.get_phfreqs_stats_dict()
         )
 
-        return data
+        # Compute phonon DOS and generate file with figure.
+        #phonon.auto_total_dos(plot=True)
+        #plt.savefig(workdir / f"phonopy_{nn_name}_phdos{self.fig_ext}")
+        #plt.close()
 
+        # Compute site-project phonon DOS and generate file with figure.
+        #phonon.auto_projected_dos(plot=True)
+        #plt.savefig(workdir / f"phonopy_{nn_name}_pjdos{self.fig_ext}")
+        #plt.close()
+
+        #phonon.run_thermal_properties(t_step=10, t_max=1000, t_min=0)
+        #phonon.write_yaml_thermal_properties(filename=workdir / f"phonopy_{nn_name}_thermal_properties.yaml")
+
+        return data
 
 
 class MlPhonopy(MlBase):
     """
-    Compute phonons with phonopy and a ML potential.
+    Compute phonons with phonopy and ML potential.
     """
-    def __init__(self, structure, supercell,
-                 distance, line_density, qppa,
+    def __init__(self, structure, supercell, distance, line_density, qppa,
                  relax_mode, fmax, pressure, steps, optimizer, nn_names,
                  verbose, workdir, prefix=None):
         """
@@ -386,7 +376,7 @@ class MlPhonopy(MlBase):
         return s
 
     def run(self) -> None:
-        """Run MlPhonopy."""
+        """Run calculation."""
         data = {}
         d_nn = data["nn_names"] = {}
         for nn_name in self.nn_names:
@@ -426,15 +416,13 @@ class MlPhonopy(MlBase):
 
             relax = relax_atoms(atoms, **relax_kws)
             relax.summarize(["initial", "relaxed"])
+            print(relax)
 
         # Call phonopy to compute phonons with finite difference and ML potential.
         # Include non-analytical term if dipoles are available in the DDB file.
         with Timer(header=f"Calling get_phonopy with {nn_name=}", footer=""):
             phonon = get_phonopy(atoms, self.supercell, calculator,
                                  distance=self.distance, primitive_matrix=None, remove_drift=True)
-            #if self.abi_nac_params:
-            #    print("Including dipolar term in phonopy using BECS and eps_inf taken from DDB.")
-            #    phonon.nac_params = self.abi_nac_params
 
         plt = phonon.auto_band_structure(
               npoints=101,
@@ -444,7 +432,7 @@ class MlPhonopy(MlBase):
               write_yaml=True,
               filename=workdir / f"{nn_name}_band.yml",
         )
-        plt.savefig(workdir / f"phonopy_{nn_name}_phbands.png")
+        plt.savefig(workdir / f"phonopy_{nn_name}_phbands{self.fig_ext}")
         plt.close()
 
         # Save phonopy object in Yaml format.
@@ -452,23 +440,21 @@ class MlPhonopy(MlBase):
 
         # Compute phonon DOS and generate file with figure.
         phonon.auto_total_dos(plot=True)
-        plt.savefig(workdir / f"phonopy_{nn_name}_phdos.png")
+        plt.savefig(workdir / f"phonopy_{nn_name}_phdos{self.fig_ext}")
         plt.close()
 
         # Compute site-project phonon DOS and generate file with figure.
-        phonon.auto_projected_dos(plot=True)
-        plt.savefig(workdir / f"phonopy_{nn_name}_pjdos.png")
-        plt.close()
+        #phonon.auto_projected_dos(plot=True)
+        #plt.savefig(workdir / f"phonopy_{nn_name}_pjdos{self.fig_ext}")
+        #plt.close()
 
+        # Compute thermal properties.
         phonon.run_thermal_properties(t_step=10, t_max=1000, t_min=0)
         phonon.write_yaml_thermal_properties(filename=workdir / f"phonopy_{nn_name}_thermal_properties.yaml")
 
-        #data = phonon.get_thermal_properties_dict()
-        #for t, F, S, cv in zip(data["temperatures"], data["free_energy"], data["entropy"], data["heat_capacity"]):
-        #    print(("%12.3f " + "%15.7f" * 3) % ( t, F, S, cv ))
-
         phonon.plot_thermal_properties()
-        plt.savefig(workdir / f"phonopy_{nn_name}_thermal_properties.png")
+        plt.savefig(workdir / f"phonopy_{nn_name}_thermal_properties{self.fig_ext}")
         plt.close()
 
         return {}
+

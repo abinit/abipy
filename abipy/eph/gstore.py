@@ -148,7 +148,23 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
 
         return "\n".join(lines)
 
-    #def write_epw_hdf5(self, filepath: PathLike) -> None:
+    def check_unfilled_entries_in_gvals(self):
+        """
+        """
+        r = self.r
+        cplex = r.cplex
+        for spin in range(self.nsppol):
+            # nctkarr_t("gvals", "dp", "gstore_cplex, nb_kq, nb_k, natom3, glob_nk, glob_nq)
+            variable = r.read_variable("gvals", path=f"gqk_spin{spin+1}")
+            fill_value = variable._FillValue
+            # Read the data
+            data = variable[:]
+            missing_entries = np.where(data == fill_value)
+            # Print the indices of missing entries
+            print("Missing entries found at indices:", missing_entries)
+
+            if self.r.kfilter == "none":
+                raise ValueError("when kfilter == 'none' all the entries in gvals should have been written!")
 
 
 @dataclasses.dataclass(kw_only=True)

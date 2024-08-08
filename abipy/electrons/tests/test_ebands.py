@@ -95,7 +95,7 @@ class ElectronBandsTest(AbipyTest):
         assert same.structure == ni_ebands_kmesh.structure
         assert same.smearing.occopt == ni_ebands_kmesh.smearing.occopt
 
-        ni_edos = ni_ebands_kmesh.get_edos()
+        ni_edos = ni_ebands_kmesh.get_edos(step=0.1, width=0.2)
         repr(ni_edos); str(ni_edos)
         assert ni_edos.to_string(verbose=2)
         self.assert_almost_equal(ni_ebands_kmesh.get_collinear_mag(), 0.6501439036904575)
@@ -283,7 +283,7 @@ class ElectronBandsTest(AbipyTest):
         with self.assertRaises(NotImplementedError):
             si_ebands_kmesh.get_edos(method="tetrahedron")
 
-        si_edos = si_ebands_kmesh.get_edos()
+        si_edos = si_ebands_kmesh.get_edos(step=0.1, width=0.2)
         repr(si_edos); str(si_edos)
         assert ElectronDos.as_edos(si_edos, {}) is si_edos
         assert si_edos == si_edos and not (si_edos != si_edos)
@@ -579,7 +579,7 @@ class ElectronBandsFromRestApi(AbipyTest):
             assert new_fermie == r.ebands_kpath.fermie
             assert r.ebands_kpath.isnot_ibz_sampling()
 
-            edos = r.ebands_kmesh.get_edos()
+            edos = r.ebands_kmesh.get_edos(step=0.1, width=0.2)
             new_fermie = r.ebands_kpath.set_fermie_from_edos(edos)
             assert new_fermie == edos.fermie
 
@@ -675,7 +675,7 @@ class ElectronDosPlotterTest(AbipyTest):
             same_gsr_bands = ElectronBands.from_binary_string(fh.read())
             assert same_gsr_bands.structure == gs_bands.structure
 
-        si_edos = gs_bands.get_edos()
+        si_edos = gs_bands.get_edos(step=0.1, width=0.2)
 
         plotter = ElectronDosPlotter()
         plotter.add_edos("edos1", si_edos)

@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Pseudopotential Generators."""
+"""Interface for pseudopotential generators."""
 from __future__ import annotations
 
 import abc

@@ -1012,7 +1012,7 @@ class AseRelaxation:
         return read(self.traj_path, index=":")
 
     def __str__(self) -> str:
-        return to_string()
+        return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
         """
@@ -1020,26 +1020,31 @@ class AseRelaxation:
         """
         lines = []
         app = lines.append
-        app("Initial structure:")
+        app(">>> BEGIN INFO ON INITIAL STRUCTURE:")
         s0 = Structure.as_structure(self.r0.atoms)
         app(str(s0))
+        app(s0.spget_summary())
+        app("<<< END INFO ON INITIAL STRUCTURE")
         app("")
+        app("")
+        app(">>> BEGIN INFO ON FINAL STRUCTURE:")
         app("Relaxed structure:")
         s1 = Structure.as_structure(self.r1.atoms)
         app(str(s1))
+        app(s1.spget_summary())
+        app("<<< END INFO ON FINAL STRUCTURE")
 
         return "\n".join(lines)
 
     def summarize(self, tags=None, mode="smart", stream=sys.stdout):
-        """"""
+        """
+        """
         if self.traj_path is None: return
         r0, r1 = self.r0, self.r1
         #r0, r1 = AseResults.from_traj_inds(self.traj, 0, -1)
         if tags is None: tags = ["unrelaxed", "relaxed"],
         df = dataframe_from_results_list(tags, [r0, r1], mode=mode)
         print_dataframe(df, end="\n", file=stream)
-
-    #def plot(self, **kwargs):
 
 
 def dataframe_from_results_list(index: list, results_list: list[AseResults],
@@ -1464,6 +1469,10 @@ class CalcBuilder:
     ]
 
     def __init__(self, name: str, dftd3_args=None, **kwargs):
+        """
+            name: Model name.
+            kwargs: optional arguments are stored in calc_kwargs
+        """
         self.name = name
 
         # Extract nn_type and model_name from name
@@ -1494,6 +1503,7 @@ class CalcBuilder:
             print("Activating dftd3 with arguments:", self.dftd3_args)
 
         self._model = None
+        self.calc_kwargs.update(kwargs)
 
     def __str__(self):
         if self.model_name is not None:
@@ -1666,6 +1676,7 @@ class CalcBuilder:
             #     """Add abi_forces and abi_stress"""
 
             model = self.calc_kwargs.pop("model", "medium")
+            print("calc_kwargs:", self.calc_kwargs)
 
             calc = mace_mp(model=model,
                            #cls=MyMACECalculator,
@@ -1737,13 +1748,17 @@ class MlBase(HasPickleIO):
     and object persistence via pickle.
     """
 
-    def __init__(self, workdir, prefix=None, exist_ok=False):
+    def __init__(self, workdir, fig_ext: str = ".pdf", prefix=None, exist_ok=False):
         """
         Build directory with `prefix` if `workdir` is None else create it.
         If exist_ok is False (the default), a FileExistsError is raised if the target directory already exists.
+
+        Args:
+            fig_ext: File extension for matplotlib figures.
         """
         self.workdir = workdir_with_prefix(workdir, prefix, exist_ok=exist_ok)
         self.basename_info = []
+        self.fig_ext = fig_ext
 
     def __str__(self):
         # Delegated to the subclass.
@@ -1772,6 +1787,7 @@ class MlBase(HasPickleIO):
 
     def savefig(self, basename: str, fig, info: str) -> None:
         """Save matplotlib figure in workdir."""
+        basename = basename + self.fig_ext
         self.add_basename_info(basename, info)
         fig.savefig(self.workdir / basename)
 
@@ -1781,8 +1797,7 @@ class MlBase(HasPickleIO):
         with open(self.workdir / basename, "wb") as fd:
             write_traj(fd, traj)
 
-    def write_json(self, basename: str, data, info: str,
-                   indent=4, stream=None, **kwargs) -> None:
+    def write_json(self, basename: str, data, info: str, indent=4, stream=None, **kwargs) -> None:
         """Write data in JSON format and mirror output to `stream`."""
         self.add_basename_info(basename, info)
         with open(self.workdir / basename, "wt") as fh:
@@ -1821,7 +1836,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 """
-
         path = self.workdir / basename
         with path.open("wt") as fh:
             fh.write(f"""\
@@ -2341,7 +2355,7 @@ class _MlNebBase(MlBase):
                         stream=sys.stdout if self.verbose else None)
 
         # create a figure like that coming from ase-gui.
-        self.savefig("neb_barrier.png", nebtools.plot_band(), info="Figure with NEB barrier")
+        self.savefig("neb_barrier", nebtools.plot_band(), info="Figure with NEB barrier")
         return neb_data
 
     def read_neb_data(self) -> dict:
@@ -2393,8 +2407,7 @@ class MlGsList(_MlNebBase):
             atoms.calc = CalcBuilder(self.nn_name).get_calculator()
             results.append(AseResults.from_atoms(atoms))
 
-        write_vasp_xdatcar(self.workdir / "XDATCAR", self.atoms_list,
-                           label="XDATCAR with list of atoms.")
+        write_vasp_xdatcar(self.workdir / "XDATCAR", self.atoms_list, label="XDATCAR with list of atoms.")
 
         self.postprocess_images(self.atoms_list)
         self._finalize()
@@ -2637,7 +2650,7 @@ class MultiMlNeb(_MlNebBase):
         ax.set_title(r'$E_\mathrm{{f}} \approx$ {:.3f} eV; '
                      r'$E_\mathrm{{r}} \approx$ {:.3f} eV; '
                      r'$\Delta E$ = {:.3f} eV'.format(ef, er, de))
-        self.savefig("neb_barrier.png", fig, info="Figure with NEB barrier")
+        self.savefig("neb_barrier", fig, info="Figure with NEB barrier")
 
         self._finalize()
 
@@ -3035,9 +3048,9 @@ class MolecularDynamics:
         """
         self.atoms = atoms
 
-        if taut is None:
+        if taut is none:
             taut = 100 * timestep * units.fs
-        if taup is None:
+        if taup is none:
             taup = 1000 * timestep * units.fs
 
         if compressibility_au is None:

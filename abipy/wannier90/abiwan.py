@@ -9,8 +9,6 @@ import numpy as np
 import pandas as pd
 import time
 
-from collections import OrderedDict
-#from typing import List, Any
 from tabulate import tabulate
 from monty.string import marquee
 from monty.functools import lazy_property
@@ -20,15 +18,14 @@ from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_Elect
 from abipy.core.kpoints import Kpath, IrredZone
 from abipy.core.skw import ElectronInterpolator
 from abipy.abio.robots import Robot
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_grid_legend #, get_axarray_fig_plt
 from abipy.tools.typing import Figure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader, ElectronBandsPlotter, RobotWithEbands
 
 
 class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    File produced by Abinit with the unitary matrices obtained by
-    calling wannier90 in library mode.
+    File produced by Abinit with the unitary matrices obtained by calling wannier90 in library mode.
 
     Usage example:
 
@@ -111,11 +108,6 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """[nsppol, mwan] array with spreads in Ang^2"""
         return self.r.read_value("wann_spreads")
 
-    #@lazy_property
-    #def spread_spin(self):
-    #    """[nsppol, 3] array with spread in Ang^2"""
-    #    return self.r.read_value("spread")
-
     @lazy_property
     def irvec(self) -> np.ndarray:
         """
@@ -134,7 +126,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     @lazy_property
     def params(self) -> dict:
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         # TODO
         return od
@@ -191,9 +183,10 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         if verbose > 1:
             app("")
             app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
-            #app("irvec and ndegen")
-            #for r, n in zip(self.irvec, self.ndegen):
-            #    app("%s %s" % (r, n))
+            if verbose >= 2:
+                app("irvec and ndegen")
+                for r, n in zip(self.irvec, self.ndegen):
+                    app("%s %s" % (r, n))
 
         return "\n".join(lines)
 
@@ -310,8 +303,6 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             shiftk: Shifts for k-meshs. Used with ngkpt.
             kpoints: |KpointList| object taken e.g from a previous ElectronBands.
                 Has precedence over vertices_names and line_density.
-
-        Returns: |ElectronBands| object with Wannier-interpolated energies.
         """
         # Need KpointList object.
         if kpoints is None:
@@ -340,8 +331,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                     # Here I use the last value to fill eigens matrix (not very clean but oh well).
                     eigens[spin, ik, num_wan:self.mwan] = oeigs[-1]
                     if write_warning:
-                        cprint("Different number of wannier functions for spin. Filling last bands with oeigs[-1]",
-                               "yellow")
+                        cprint("Different number wannier functions for spin. Filling last bands with oeigs[-1]",
+                               color="yellow")
                         write_warning = False
 
         print("Interpolation completed in %.3f [s]" % (time.time() - start))
@@ -352,25 +343,55 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                              smearing=self.ebands.smearing)
 
     @add_fig_kwargs
-    def plot_with_ebands(self, ebands, **kwargs):
+    def plot_with_ebands(self, ebands_kpath,
+                         ebands_kmesh=None, method="gaussian", step: float=0.05, width: float=0.1, **kwargs) -> Figure:
         """
-        Receiven an ab-initio electronic strucuture, interpolate the energies on the same list of k-points
-        and compare the two.
+        Receive an ab-initio electronic strucuture, interpolate the energies on the same list of k-points
+        and compare the two band structures.
+
+        Args:
+            ebands_kpath: ab-initio band structure on a k-path (either ElectroBands object or object providing it).
+            ebands_kmesh: ab-initio band structure on a k-mesh (either ElectroBands object or object providing it).
+                If not None the ab-initio and the wannier-interpolated electron DOS are computed and plotted.
+            method: Integration scheme for DOS.
+            step: Energy step (eV) of the linear mesh for DOS computation.
+            width: Standard deviation (eV) of the gaussian for DOS computation.
         """
-        plotter = self.get_plotter_from_ebands(ebands)
-        linestyle_dict = {"Interpolated": dict(linewidth=0, color="red", marker="o")}
+        ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
+        wan_ebands_kpath = self.interpolate_ebands(kpoints=ebands_kpath.kpoints)
+
+        key_edos = None
+        if ebands_kmesh is not None:
+            # Compute ab-initio and interpolated e-DOS
+            ebands_kmesh = ElectronBands.as_ebands(ebands_kmesh)
+            if not ebands_kmesh.kpoints.is_ibz:
+                raise ValueError("ebands_kmesh should have k-points in the IBZ!")
+            ksampling = ebands_kmesh.kpoints.ksampling
+            ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
+            if ngkpt is None:
+                raise ValueError("Non diagonal k-meshes are not supported!")
+
+            wan_ebands_kmesh = self.interpolate_ebands(ngkpt=ngkpt, shiftk=shifts)
+
+            edos_kws = dict(method=method, step=step, width=width)
+            edos = ebands_kmesh.get_edos(**edos_kws)
+            wan_edos = wan_ebands_kmesh.get_edos(**edos_kws)
+            key_edos = [("ab-initio", edos), ("interpolated", wan_edos)]
+
+        key_ebands = [("ab-initio", ebands_kpath), ("interpolated", wan_ebands_kpath)]
+        plotter = ElectronBandsPlotter(key_ebands=key_ebands, key_edos=key_edos)
+
+        linestyle_dict = {
+            "ab-initio": dict(color="red", marker="o"),
+            "interpolated": dict(color="blue", ls="-"),
+        }
+        # Add common style options.
+        common_opts = dict(markersize=2, lw=1)
+
+        for d in linestyle_dict.values():
+            d.update(**common_opts)
+
         return plotter.combiplot(linestyle_dict=linestyle_dict, **kwargs)
-
-    def get_plotter_from_ebands(self, ebands: ElectronBands) -> ElectronBandsPlotter:
-        """
-        Interpolate energies using the k-points given in input |ElectronBands| ebands.
-
-        Return: |ElectronBandsPlotter| object.
-        """
-        ebands = ElectronBands.as_ebands(ebands)
-        wan_ebands = self.interpolate_ebands(kpoints=ebands.kpoints)
-
-        return ElectronBandsPlotter(key_ebands=[("Ab-initio", ebands), ("Interpolated", wan_ebands)])
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -378,11 +399,6 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """
         yield self.interpolate_ebands().plot(show=False)
         yield self.hwan.plot(show=False)
-        if kwargs.get("verbose"):
-            linestyle_dict = {"Interpolated": dict(linewidth=0, color="red", marker="o")}
-            yield self.get_plotter_from_ebands(self.ebands).combiplot(linestyle_dict=linestyle_dict, show=False)
-        else:
-            cprint("Use verbose option to compare ab-initio points with interpolated values", "yellow")
 
     def write_notebook(self, nbpath=None) -> str:
         """
@@ -397,7 +413,6 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             nbv.new_code_cell("abiwan.ebands.plot();"),
             nbv.new_code_cell("abiwan.ebands.kpoints.plot();"),
             nbv.new_code_cell("abiwan.hwan.plot();"),
-            nbv.new_code_cell("#abiwan.get_plotter_from_ebands(;file_with_abinitio_ebands').combiplot();"),
             nbv.new_code_cell("ebands_kpath = abiwan.interpolate_ebands()"),
             nbv.new_code_cell("ebands_kpath.plot();"),
             nbv.new_code_cell("ebands_kmesh = abiwan.interpolate_ebands(ngkpt=[8, 8, 8])"),
@@ -411,7 +426,7 @@ class HWanR(ElectronInterpolator):
     """
     This object represents the KS Hamiltonian in the wannier-gauge representation.
     It provides low-level methods to interpolate the KS eigenvalues, and a high-level API
-    to interpolate bandstructures and plot the decay of the matrix elements in real space <0n|H|Rm>.
+    to interpolate band structures and plot the decay of the matrix elements <0n|H|Rm> in real space.
     """
 
     def __init__(self, structure, nwan_spin, spin_vmatrix, spin_rmn, irvec, ndegen):
@@ -469,7 +484,7 @@ class HWanR(ElectronInterpolator):
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: fontsize for legends and titles
-            yscale: Define scale for y-axis. Passed to ax.set_yscale
+            yscale: Define scale for y-axis.
             kwargs: options passed to ``ax.plot``.
         """
         # Sort R-points by length and build sortmap.
@@ -479,19 +494,16 @@ class HWanR(ElectronInterpolator):
         rvals = np.array([item[1] for item in items])
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.grid(True)
-        ax.set_xlabel(r"$|R|$ (Ang)")
-        ax.set_ylabel(r"$Max |H^W_{ij}(R)|$")
 
         marker_spin = {0: "^", 1: "v"}
-        needs_legend = False
+        with_legend = False
         for spin in range(self.nsppol):
             amax_r = [np.abs(self.spin_rmn[spin][ir]).max() for ir in range(self.nrpts)]
             amax_r = [amax_r[i] for i in sortmap]
             label = kwargs.get("label", None)
             if label is not None:
                 label = "spin: %d" % spin if self.nsppol == 2 else None
-            if label: needs_legend = True
+            if label: with_legend = True
             ax.plot(rvals, amax_r, marker=marker_spin[spin],
                     lw=kwargs.get("lw", 2),
                     color=kwargs.get("color", "k"),
@@ -501,8 +513,7 @@ class HWanR(ElectronInterpolator):
 
             ax.set_yscale(yscale)
 
-        if needs_legend:
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        set_grid_legend(ax, fontsize, xlabel=r"$|R|$ (Ang)", ylabel=r"$Max |H^W_{ij}(R)|$", legend=with_legend)
 
         return fig
 
@@ -529,16 +540,14 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
     def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs) -> pd.DataFrame:
         """
-        Return a |pandas-DataFrame| with the most important Wannier90 results.
-        and the filenames as index.
+        Return a |pandas-DataFrame| with the most important Wannier90 results and the filenames as index.
 
         Args:
-            with_geo: True if structure info should be added to the dataframe
+            with_geo: True if structure info should be added to the dataframe.
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
 
         kwargs:
-            attrs:
-                List of additional attributes of the |GsrFile| to add to the DataFrame.
+            attrs: List of additional attributes of the |GsrFile| to add to the DataFrame.
             funcs: Function or list of functions to execute to add more data to the DataFrame.
                 Each function receives a |GsrFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
@@ -555,7 +564,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
         rows, row_names = [], []
         for label, abiwan in self.items():
             row_names.append(label)
-            d = OrderedDict()
+            d = {}
 
             # Add info on structure.
             if with_geo:
@@ -579,15 +588,12 @@ class AbiwanRobot(Robot, RobotWithEbands):
     @add_fig_kwargs
     def plot_hwanr(self, ax=None, colormap="jet", fontsize=8, **kwargs) -> Figure:
         """
-        Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
-        on the same Axes.
+        Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge on the same Axes.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             colormap: matplotlib color map.
             fontsize: fontsize for legends and titles
-
-        Return: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
@@ -597,7 +603,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
         return fig
 
     def get_interpolated_ebands_plotter(self, vertices_names=None, knames=None, line_density=20,
-            ngkpt=None, shiftk=(0, 0, 0), kpoints=None, **kwargs) -> ElectronBandsPlotter:
+                                        ngkpt=None, shiftk=(0, 0, 0), kpoints=None, **kwargs) -> ElectronBandsPlotter:
         """
         Args:
             vertices_names: Used to specify the k-path for the interpolated QP band structure
@@ -612,11 +618,9 @@ class AbiwanRobot(Robot, RobotWithEbands):
             shiftk: Shifts for k-meshs. Used with ngkpt.
             kpoints: |KpointList| object taken e.g from a previous ElectronBands.
                 Has precedence over vertices_names and line_density.
-
-        Return: |ElectronBandsPlotter| object.
         """
         diff_str = self.has_different_structures()
-        if diff_str: cprint(diff_str, "yellow")
+        if diff_str: cprint(diff_str, color="yellow")
 
         # Need KpointList object (assuming same structures in the Robot)
         nc0 = self.abifiles[0]
@@ -658,7 +662,6 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.AbiwanRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
             nbv.new_code_cell("robot.get_dataframe()"),
             nbv.new_code_cell("robot.plot_hwanr();"),

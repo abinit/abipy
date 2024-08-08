@@ -323,7 +323,7 @@ def abiopen(filepath: str):
         # Assume Abinit log file.
         return AbinitLogFile.from_file(filepath)
 
-    if os.path.basename(filepath) == "phonopy_params.yaml":
+    if os.path.basename(filepath).endswith("phonopy_params.yaml"):
         # Handle phonopy object.
         import phonopy
         return phonopy.load(filepath)
