@@ -3050,9 +3050,9 @@ class MolecularDynamics:
         """
         self.atoms = atoms
 
-        if taut is none:
+        if taut is None:
             taut = 100 * timestep * units.fs
-        if taup is none:
+        if taup is None:
             taup = 1000 * timestep * units.fs
 
         if compressibility_au is None:
