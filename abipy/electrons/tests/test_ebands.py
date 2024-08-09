@@ -283,13 +283,14 @@ class ElectronBandsTest(AbipyTest):
         with self.assertRaises(NotImplementedError):
             si_ebands_kmesh.get_edos(method="tetrahedron")
 
-        si_edos = si_ebands_kmesh.get_edos(step=0.1, width=0.2)
+        edos_kwargs = dict(step=0.1, width=0.2)
+        si_edos = si_ebands_kmesh.get_edos(**edos_kwargs)
         repr(si_edos); str(si_edos)
         assert ElectronDos.as_edos(si_edos, {}) is si_edos
         assert si_edos == si_edos and not (si_edos != si_edos)
-        edos_samevals = ElectronDos.as_edos(si_ebands_kmesh, {})
-        assert ElectronDos.as_edos(si_ebands_kmesh, {}) == si_edos
-        assert ElectronDos.as_edos(abidata.ref_file("si_scf_GSR.nc"), {}) == si_edos
+        edos_samevals = ElectronDos.as_edos(si_ebands_kmesh, edos_kwargs)
+        assert ElectronDos.as_edos(si_ebands_kmesh, edos_kwargs=edos_kwargs) == si_edos
+        assert ElectronDos.as_edos(abidata.ref_file("si_scf_GSR.nc"), edos_kwargs=edos_kwargs) == si_edos
         with self.assertRaises(TypeError):
             ElectronDos.as_edos({}, {})
 

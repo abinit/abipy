@@ -294,7 +294,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
             pad += 10
 
         #title = "k: %s, spin: %s, nband: %d" % (repr(self.efm_kpoint), self.spin, segment.nb)
-        set_grid_legend(ax, fontsize, ylabel='Energy (eV)', title=title)
+        set_grid_legend(ax, fontsize, ylabel='Energy (eV)') #, title=title)
 
         return fig
 

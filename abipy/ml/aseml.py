@@ -1482,7 +1482,9 @@ class CalcBuilder:
         if ":" in name:
             self.nn_type, last = name.split(":")
             if last.endswith(".yaml") or last.endswith(".yml"):
+                print("Reading Calculator kwargs from file:", last)
                 self.calc_kwargs = yaml_safe_load_path(last)
+                print("calc_kwargs:", self.calc_kwargs)
             else:
                 self.model_name = last
 
