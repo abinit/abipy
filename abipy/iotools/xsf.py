@@ -170,7 +170,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,
     fwrite('END_BLOCK_DATAGRID_3D\n')
 
 
-def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="eV") -> None:
+def bxsf_write(file, structure, nsppol, nband, ngkpt, ucdata_sbk, fermie, unit="eV") -> None:
     """
     Write band structure data in the Xcrysden format (XSF)
 
@@ -179,9 +179,9 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="
         structure: :class:`Structure` object.
         nsppol: Number of spins.
         nband: Number of bands.
-        ndivs: Number of divisions of the full k-mesh.
-        ucdata_sbk: Array [nsppol, nband, ndivs[0], ndivs[1], mpdvis[2]] with energies
-            in the unic cell mesh in unit `unit`.
+        ngkpt: Number of divisions of the full k-mesh.
+        ucdata_sbk: Array [nsppol, nband, ngkpt[0], ngkpt[1], ngkpt[2]] with energies
+            in the unit cell mesh in unit `unit`.
         fermie: Fermi energy.
         unit=Unit of input `ucdata_sbk` and `fermie`. Energies will be converted to Hartree before writing.
 
@@ -201,11 +201,11 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="
     ucdata_sbk = EnergyArray(ucdata_sbk, unit).to("Ha")
     fermie = Energy(fermie, unit).to("Ha")
 
-    ucdata_sbk = np.reshape(ucdata_sbk, (nsppol, nband, np.prod(ndivs)))
+    ucdata_sbk = np.reshape(ucdata_sbk, (nsppol, nband, np.prod(ngkpt)))
 
     close_it = False
     if not hasattr(file, "write"):
-        file = open(file, mode="w")
+        file = open(str(file), mode="wt")
         close_it = True
 
     fw = file.write
@@ -223,8 +223,8 @@ def bxsf_write(file, structure, nsppol, nband, ndivs, ucdata_sbk, fermie, unit="
     fw(' BEGIN_BANDGRID_3D\n')
 
     fw(str(nsppol * nband) + "\n")  # Number of bands written.
-    fw("%d %d %d\n" % tuple(ndivs)) # Number of division in the full BZ mesh.
-    fw("0 0 0\n")                   # Unshifted meshes are not supported.
+    fw("%d %d %d\n" % tuple(ngkpt)) # Number of division in the full BZ mesh.
+    fw("0 0 0\n")                   # NB: Unshifted meshes are not supported.
 
     # Reciprocal lattice vectors in Ang^{-1}
     gcell = structure.lattice.reciprocal_lattice.matrix

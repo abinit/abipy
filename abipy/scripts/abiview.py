@@ -528,6 +528,26 @@ def abiview_lobster(options) -> int:
     return 0
 
 
+def abiview_xrd_traj(options) -> int:
+    """
+    Compare XRD spectra using the first and the last structure read from a trajectory file.
+    """
+    from abipy.core.structure import get_first_and_last_structure_from_file
+    structures = get_first_and_last_structure_from_file(options.filepath)
+
+    dfs = abilab.dataframes_from_structures(structures, index=["first", "last"])
+    abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
+    if options.verbose:
+        abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
+
+    from pymatgen.analysis.diffraction.xrd import XRDCalculator
+    xrd = XRDCalculator(wavelength=options.wavelength, symprec=options.symprec)
+    two_theta_range = tuple(float(t) for t in options.two_theta_range)
+    xrd.plot_structures(structures, two_theta_range=two_theta_range, fontsize=6,
+                        annotate_peaks=not options.no_annotate_peaks, tight_layout=True)
+    return 0
+
+
 def get_epilog() -> str:
     return """\
 Usage example:
@@ -796,6 +816,21 @@ def get_parser(with_epilog=False):
     p_lobster = subparsers.add_parser('lobster', parents=[copts_parser, ipy_parser, nb_parser],
         help=abiview_lobster.__doc__)
     p_lobster.add_argument("--prefix", type=str, default="", help="Prefix for lobster output files. Default: ''")
+
+    # Subparser for xrd.
+    p_xrd = subparsers.add_parser('xrd_traj', parents=[copts_parser],
+        help="Compare X-ray diffraction for the first and the last structure in a trajectory file.")
+    p_xrd.add_argument("-w", "--wavelength", default="CuKa", type=str, help=(
+        "The wavelength can be specified as a string. It must be one of the "
+        "supported definitions in the WAVELENGTHS dict declared in pymatgen/analysis/diffraction/xrd.py."
+        "Defaults to 'CuKa', i.e, Cu K_alpha radiation."))
+    p_xrd.add_argument("-s", "--symprec", default=0, type=float, help=(
+        "Symmetry precision for structure refinement. "
+        "If set to 0, no refinement is done. Otherwise, refinement is performed using spglib with provided precision."))
+    p_xrd.add_argument("-t", "--two-theta-range", default=(0, 90), nargs=2, help=(
+        "Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90)."))
+    p_xrd.add_argument("-nap", "--no-annotate-peaks", default=False, action="store_true",
+        help="Whether to annotate the peaks with plane information.")
 
     # Subparser for denpot command.
     p_denpot = subparsers.add_parser('denpot', parents=[copts_parser], help=abiview_denpot.__doc__)

@@ -1535,7 +1535,15 @@ class CalcBuilder:
         #if reset: self.reset()
         self.reset()
 
-        if self.nn_type == "m3gnet":
+        if self.nn_type == "emt":
+            # Set the calculator (EMT for testing purposes)
+            from ase.calculators.emt import EMT
+            class MyEMTCalculator(_MyCalculator, EMTCalculator):
+                """Add abi_forces and abi_stress"""
+
+            return MyEMTCalculator(**self.calc_kwargs)
+
+        elif self.nn_type == "m3gnet":
             # m3gnet legacy version.
             if self._model is None:
                 silence_tensorflow()

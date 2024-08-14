@@ -28,7 +28,7 @@ from abipy.tools.serialization import pmg_serialize
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import Has_Structure, NotebookWriter
 from abipy.core.kpoints import (Kpoint, KpointList, Kpath, IrredZone, KSamplingInfo, KpointsReaderMixin,
-    Ktables, has_timrev_from_kptopt, map_grid2ibz) #, kmesh_from_mpdivs)
+    Ktables, has_timrev_from_kptopt, map_grid2ibz, kmesh_from_mpdivs)
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
@@ -970,6 +970,29 @@ class ElectronBands(Has_Structure):
     def has_timrev(self) -> bool:
         """True if time-reversal symmetry is used in the BZ sampling."""
         return has_timrev_from_kptopt(self.kptopt)
+
+    def get_bz2ibz_bz_points(self, require_gamma_centered=False):
+        """
+        Return mapping bz2ibz and the list of k-points in the BZ.
+
+        Args:
+            require_gamma_centered: True if the k-mesh should be Gamma-centered
+        """
+        err_msg = self.isnot_ibz_sampling(require_gamma_centered=require_gamma_centered)
+        if err_msg:
+            raise TypeError(err_msg)
+
+        if not self.kpoints.is_mpmesh:
+            raise ValueError("Only Monkhorst-Pack meshes are supported")
+
+        ngkpt, shifts = self.kpoints.mpdivs_shifts
+        print(f"{ngkpt = }, {shifts =}")
+        # TODO: Handle shifts
+
+        bz2ibz = map_grid2ibz(self.structure, self.kpoints.frac_coords, ngkpt, self.has_timrev)
+        bz_kpoints = kmesh_from_mpdivs(ngkpt, shifts)
+
+        return bz2ibz, bz_kpoints
 
     def isnot_ibz_sampling(self, require_gamma_centered=False) -> str:
         """
@@ -5414,7 +5437,7 @@ class Bands3D(Has_Structure):
         from abipy.iotools.visualizer import Xcrysden
         return Xcrysden(tmp_filepath)()
 
-    def to_bxsf(self, filepath, unit="eV") -> str:
+    def to_bxsf(self, filepath: str, unit: str="eV") -> str:
         """
         Export the full band structure to ``filepath`` in BXSF format
         suitable for the visualization of the Fermi surface with xcrysden_ (use ``xcrysden --bxsf FILE``).

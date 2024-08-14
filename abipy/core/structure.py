@@ -20,7 +20,7 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import is_string, marquee, list_strings
 from monty.termcolor import cprint
-from monty.dev import deprecated
+#from monty.dev import deprecated
 from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
@@ -29,7 +29,7 @@ from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, add_plotly_fig_kwargs
 from abipy.iotools import as_etsfreader, Visualizer
-
+from abipy.tools.typing import Figure
 
 
 __all__ = [
@@ -170,14 +170,48 @@ def display_structure(obj, **kwargs):
     return nbjsmol_display(structure.to(fmt="cif"), ext=".cif", **kwargs)
 
 
+def get_structures_from_file(filepath: PathLike, index) -> list[Structure]:
+    """
+    """
+    #if index is None:
+    #    index = -1
+
+    if filepath.endswith(".traj"):
+        # ASE trajectory file.
+        from ase.atoms import Atoms
+        from ase.io import read
+        atoms_list = read(filepath, index=index)
+        if not isinstance(atoms_list, list):
+            assert isinstance(atoms_list, Atoms)
+            atoms_list = [atoms_list]
+
+    # TODO: HIST.nc and XDATCAR
+    #elif filepath.endswith("_HIST.nc"):
+    #    from abipy.dynamics.hist import HistFile
+    #    with HistFile(filepath) as hist:
+    #        return hist.read_structures(index)
+
+    #elif filepath.endswith("XDATCAR"):
+
+    else:
+        raise NotImplementedError(f"Don't know how to extract structures with index from {filepath=}")
+
+    return [Structure.as_structure(atoms) for atoms in atoms_list]
+
+
+def get_first_and_last_structure_from_file(filepath: PathLike) -> tuple[Structure]:
+    """
+    Helper function to read the first and the last structure from a trajectory file.
+    Simplified wrapper around get_structures_from_file.
+    """
+    first_structure = get_structures_from_file(filepath, index=0)[0]
+    last_structure = get_structures_from_file(filepath, index=-1)[0]
+    return first_structure, last_structure
+
+
 class Structure(pmg_Structure, NotebookWriter):
     """
     Extends :class:`pymatgen.core.structure.Structure` with Abinit-specific methods.
-
-    A jupyter_ notebook documenting the usage of this object is available at
-    <https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/structure.ipynb>
-
-    For the pymatgen project see :cite:`Ong2013`.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Structure
@@ -277,8 +311,7 @@ class Structure(pmg_Structure, NotebookWriter):
             if closeit: ncfile.close()
 
         elif filepath.endswith(".abi") or filepath.endswith(".in"):
-            # Abinit input file.
-            # Here I assume that the input file contains a single structure.
+            # Abinit input file. Here I assume that the input file contains a single structure.
             from abipy.abio.abivars import AbinitInputFile
             return AbinitInputFile.from_file(filepath).structure
 
@@ -291,6 +324,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 #print("initial_structures:\n", out.initial_structures, "\nfinal_structures:\n", out.final_structures)
                 if out.final_structures: return out.final_structure
                 if out.initial_structures: return out.initial_structure
+
             raise ValueError("Cannot find structure in Abinit output file `%s`" % filepath)
 
         elif filepath.endswith(".abivars") or filepath.endswith(".ucell"):
@@ -323,8 +357,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 from ase.io import read
             except ImportError as exc:
                 raise RuntimeError("ase is required to read xyz files. Use `pip install ase`") from exc
-            atoms = read(filepath)
-            return cls.as_structure(atoms)
+            return cls.as_structure(read(filepath))
 
         else:
             # Invoke pymatgen and change class. Note that AbinitSpacegroup is missing here.
@@ -389,7 +422,6 @@ class Structure(pmg_Structure, NotebookWriter):
     @property
     def n_elems(self) -> int:
         """Number of types of atoms."""
-
         return len(self.types_of_species)
 
     def to_ase_atoms(self, calc=None):
@@ -508,7 +540,6 @@ class Structure(pmg_Structure, NotebookWriter):
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
 
         Example::
-
             Structure.zincblende(a, ["Zn", "S"])
         """
         a = pmg_units.Length(a, units).to("ang")
@@ -532,7 +563,6 @@ class Structure(pmg_Structure, NotebookWriter):
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
 
         Example::
-
             Structure.rocksalt(a, ["Na", "Cl"])
         """
         a = pmg_units.Length(a, units).to("ang")
@@ -570,10 +600,9 @@ class Structure(pmg_Structure, NotebookWriter):
     @classmethod
     def from_abistring(cls, string: str) -> Structure:
         """
-        Initialize Structure from string with Abinit input variables.
+        Initialize Structure from a string with Abinit input variables.
         """
         from abipy.abio.abivars import AbinitInputFile, structure_from_abistruct_fmt
-
         if "xred_symbols" not in string:
             # Standard (verbose) input file with znucl, typat etc.
             return AbinitInputFile.from_string(string).structure
@@ -679,12 +708,10 @@ class Structure(pmg_Structure, NotebookWriter):
             symprec (float): If not none, finds the symmetry of the structure
                 and writes the cif with symmetry information. Passes symprec
                 to the SpacegroupAnalyzer.
-            significant_figures (int): Specifies precision for formatting of floats.
-                Defaults to 8.
+            significant_figures (int): Specifies precision for formatting of floats. Defaults to 8.
             angle_tolerance (float): Angle tolerance for symmetry finding. Passes
-                angle_tolerance to the SpacegroupAnalyzer. Used only if symprec
-                is not None.
-            ret_string: True to return string
+                angle_tolerance to the SpacegroupAnalyzer. Used only if symprec is not None.
+            ret_string: True to return string.
         """
         from pymatgen.io.cif import CifWriter
         cif_str = str(CifWriter(self,
@@ -722,7 +749,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     @property
     def latex_formula(self) -> str:
-        """LaTeX formatted formula. E.g., Fe2O3 is transformed to Fe$_{2}$O$_{3}$."""
+        """LaTeX formatted formula: e.g., Fe2O3 is transformed to Fe$_{2}$O$_{3}$."""
         from pymatgen.util.string import latexify
         return latexify(self.formula)
 
@@ -743,7 +770,6 @@ class Structure(pmg_Structure, NotebookWriter):
         fmt="abicell" is the lightweight format that uses `xred_symbols`
         This format can be used to include the structure in the input via the structure "abivars:FILE" syntax.
         """
-
         lines = []
         app = lines.append
 
@@ -811,8 +837,8 @@ class Structure(pmg_Structure, NotebookWriter):
     def get_conventional_standard_structure(self, international_monoclinic=True,
                                            symprec=1e-3, angle_tolerance=5) -> Structure:
         """
-        Gives a structure with a conventional cell according to certain
-        standards. The standards are defined in :cite:`Setyawan2010`
+        Gives a structure with a conventional cell according to certain standards.
+        The standards are defined in :cite:`Setyawan2010`
         They basically enforce as much as possible norm(a1) < norm(a2) < norm(a3)
 
         Returns: The structure in a conventional standardized cell
@@ -822,8 +848,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return self.__class__.as_structure(new)
 
     def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0) -> Structure:
-        #TODO: this should be moved to pymatgen in the get_refined_structure or so ...
-        # to be considered in February 2016
+        #TODO: this should be moved to pymatgen in the get_refined_structure or so ... to be considered in February 2016
         import spglib
         from pymatgen.io.ase import AseAtomsAdaptor
         try:
@@ -943,11 +968,6 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return self.__class__.as_structure(structure)
 
-    #def relax(self, **kwargs) -> Structure:
-    #    new = super().relax(**kwargs)
-    #    new.__class__ = self.__class__
-    #    return new
-
     def get_oxi_state_decorated(self, **kwargs) -> Structure:
         """
         Use :class:`pymatgen.analysis.bond_valence.BVAnalyzer` to estimate oxidation states
@@ -976,24 +996,10 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         return self._lattice.reciprocal_lattice
 
-    @deprecated(message="lattice_vectors is deprecated and will be removed in abipy 1.0")
-    def lattice_vectors(self, space="r"):
-        """
-        Returns the vectors of the unit cell in Angstrom.
-
-        Args:
-            space: "r" for real space vectors, "g" for reciprocal space basis vectors.
-        """
-        if space.lower() == "r":
-            return self.lattice.matrix
-        if space.lower() == "g":
-            return self.lattice.reciprocal_lattice.matrix
-        raise ValueError("Wrong value for space: %s " % str(space))
-
     def spget_lattice_type(self, symprec=1e-3, angle_tolerance=5) -> str:
         """
         Call spglib to get the lattice for the structure, e.g., (triclinic,
-        orthorhombic, cubic, etc.).This is the same than the
+        orthorhombic, cubic, etc.). This is the same than the
         crystal system with the exception of the hexagonal/rhombohedral lattice
 
         Args:
@@ -1627,7 +1633,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_xrd(self, wavelength="CuKa", symprec=0, debye_waller_factors=None,
-                 two_theta_range=(0, 90), annotate_peaks=True, ax=None, **kwargs):
+                 two_theta_range=(0, 90), annotate_peaks=True, ax=None, **kwargs) -> Figure:
         """
         Use pymatgen :class:`XRDCalculator` to show the XRD plot.
 

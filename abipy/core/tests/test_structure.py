@@ -224,9 +224,9 @@ xred_symbols
 
         # Temporarily disables ad webserver is down.
         #if self.is_url_reachable("www.crystallography.net"):
-        #    mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
-        #    assert mgb2_cod.formula == "Mg1 B2"
-        #    assert mgb2_cod.spget_lattice_type() == "hexagonal"
+        mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
+        assert mgb2_cod.formula == "Mg1 B2"
+        assert mgb2_cod.spget_lattice_type() == "hexagonal"
 
         mgb2 = abidata.structure_from_ucell("MgB2")
         if self.has_ase():

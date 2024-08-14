@@ -176,7 +176,7 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
         mpdivs: The three MP divisions.
         shifts: Array-like object with the MP shift.
         pbc: If True, periodic images of the k-points will be included i.e. closed mesh.
-        order: "unit_cell" if the kpoint coordinates must be in [0,1)
+        order: "unit_cell" if the kpoint coordinates must be in [0, 1)
                "bz" if the kpoint coordinates must be in [-1/2, +1/2)
     """
     shifts = np.reshape(shifts, (-1, 3))
@@ -220,6 +220,7 @@ def map_grid2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
     if abispg is None:
         raise ValueError("Structure does not contain Abinit spacegroup info!")
 
+
     # Extract rotations in reciprocal space (FM part).
     symrec_fm = [o.rot_g for o in abispg.fm_symmops]
 
@@ -242,26 +243,14 @@ def map_grid2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
 
     if np.any(bzgrid2ibz == -1):
         #for ik_bz, ik_ibz in enumerate(self.bzgrid2ibz): print(ik_bz, ">>>", ik_ibz)
-        msg = "Found %s/%s invalid entries in bzgrid2ibz array" % ((bzgrid2ibz == -1).sum(), bzgrid2ibz.size)
-        msg += "This can happen if there an inconsistency between the input IBZ and ngkpt"
-        msg += "ngkpt: %s, has_timrev: %s" % (str(ngkpt), has_timrev)
+        msg =  " Found %s/%s invalid entries in bzgrid2ibz array\n" % ((bzgrid2ibz == -1).sum(), bzgrid2ibz.size)
+        msg += " This can happen if there is an inconsistency between the input IBZ and ngkpt\n"
+        msg += " ngkpt: %s, has_timrev: %s\n" % (str(ngkpt), has_timrev)
+        msg += f" {abispg=}\n"
         raise ValueError(msg)
 
     bz2ibz = bzgrid2ibz.flatten()
     return bz2ibz
-
-    """
-    for ik_bz, kbz in enumerate(bz):
-        found = False
-        for ik_ibz, kibz in enumerate(ibz):
-            if found: break
-            for symmop in structure.spacegroup:
-                krot = symmop.rotate_k(kibz)
-                if issamek(krot, kbz):
-                    bz2ibz[ik_bz] = ik_ibz
-                    found = True
-                    break
-    """
 
 
 def has_timrev_from_kptopt(kptopt):
