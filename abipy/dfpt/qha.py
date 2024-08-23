@@ -39,10 +39,18 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         self.structures = structures
         self.energies = np.array(energies)
         self.eos = EOS(eos_name)
+        self.eos_name = eos_name
         self.pressure = pressure
 
         self.volumes = np.array([s.volume for s in structures])
         self.iv0 = np.argmin(energies)
+        self.lattice_a = np.array([s.lattice.abc[0] for s in structures])
+        self.lattice_b = np.array([s.lattice.abc[1] for s in structures])
+        self.lattice_c = np.array([s.lattice.abc[2] for s in structures])
+
+        self.angles_alpha = np.array([s.lattice.angles[0] for s in structures])
+        self.angles_beta  = np.array([s.lattice.angles[1] for s in structures])
+        self.angles_gama  = np.array([s.lattice.angles[2] for s in structures])
 
     def fit_energies(self, tstart=0, tstop=800, num=100):
         """
@@ -94,6 +102,40 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         min_energies = np.array([fit.e0 for fit in fits])
 
         return dict2namedtuple(tot_en=tot_en, fits=fits, min_en=min_energies, min_vol=min_volumes, temp=tmesh)
+    def fit_free_energies(self, tstart, tstop, num):
+        """
+        Performs a fit of the energies as a function of the volume at different temperatures.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num: int, optional Number of samples to generate. Default is 100.
+
+        Returns:
+            F2D: Second derivative of free energy with respect to volume, based on the Vinet equation. 
+        """
+        tmesh = np.linspace(tstart, tstop, num)
+
+        # array with phonon energies and shape (n_vol, n_temp)
+
+        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        tot_en = self.energies[np.newaxis, :].T + ph_energies 
+
+        fits = [self.eos.fit(self.volumes, e) for e in tot_en.T]
+
+        # list of minimum volumes and energies, one for each temperature
+        v0 = np.array([fit.v0 for fit in fits])
+        e0 = np.array([fit.e0 for fit in fits])
+        b0 = np.array([fit.b0 for fit in fits])
+        b1 = np.array([fit.b1 for fit in fits])
+
+        #print (b0,b1,e0,v0)
+        v = np.array([fit.v0 for fit in fits])
+        eta = (v / v0) ** (1.0 / 3.0)
+        F2D=  b0 /v0 * ( -2.0 *(eta-1) * eta**-5.0 + (1 -3.0/2.0 *(b1-1) *(eta-1)) *eta**-4.0 )*(
+             np.exp(-3.0 * (b1 - 1.0) * (v**(1.0/3.0)/v0**(1/3.0) - 1.0) / 2.0))
+
+        return F2D 
 
     @abc.abstractmethod
     def get_vib_free_energies(self, tstart=0, tstop=800, num=100):
@@ -146,6 +188,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
         """
         self.eos = EOS(eos_name)
+        self.eos_name = eos_name
 
     @add_fig_kwargs
     def plot_energies(self, tstart=0, tstop=800, num=10, ax=None, **kwargs) -> Figure:
@@ -173,12 +216,12 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         ax.plot(f.min_vol, f.min_en - self.energies[self.iv0], color='r', lw=1, marker='x', ms=5)
 
         ax.set_xlabel(r'V (${\AA}^3$)')
-        ax.set_ylabel('E (eV)')
+        ax.set_ylabel('F (eV)')
         #ax.grid(True)
 
         return fig
 
-    def get_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100) -> Function1D:
+    def get_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100, tref=None) -> Function1D:
         """
         Calculates the thermal expansion coefficient as a function of temperature, using
         finite difference on the fitted values of the volume as a function of temperature.
@@ -186,25 +229,58 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
             tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
+
             num: int, optional Number of samples to generate. Default is 100.
 
         Returns: |Function1D|
         """
         f = self.fit_energies(tstart, tstop, num)
+        if (tref!= None):
+            f0 = self.fit_energies(tref, tref, 1)
 
         dt = f.temp[1] - f.temp[0]
-        alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f.min_vol[1:-1]
+        if (self.eos_name == 'vinet') : 
+            thermo = self.get_thermodynamic_properties(tstart=tstart, tstop=tstop, num=num)
+            entropy = thermo.entropy.T #* abu.e_Cb * abu.Avogadro
+            df_t = np.zeros((num,self.nvols))
+            df_t = - entropy
+            param = np.zeros((num,4))
+            param2 = np.zeros((num,3))
+            d2f_t_v = np.zeros(num)
+            gamma = np.zeros(num)
+
+            for j in range (1,num-1):
+                param[j]=np.polyfit(self.volumes,df_t[j] , 3)
+                param2[j] = np.array([3*param[j][0],2*param[j][1],param[j][2]])
+
+                p = np.poly1d(param2[j])
+                d2f_t_v[j]= p(f.min_vol[j]) 
+
+            F2D = self.fit_free_energies(tstart=tstart, tstop=tstop, num=num)
+            if (tref==None):
+                alpha= - 1/f.min_vol[1:-1] *d2f_t_v[1:-1] / F2D[1:-1] 
+            else :
+                alpha= - 1/f0.min_vol * d2f_t_v[1:-1] / F2D[1:-1]
+        else:
+            if (tref==None):
+                alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f.min_vol[1:-1]
+            else :
+                alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f0.min_vol
 
         return Function1D(f.temp[1:-1], alpha)
 
     @add_fig_kwargs
-    def plot_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100, ax=None, **kwargs) -> Figure:
+    def plot_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100, tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
             tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
 
@@ -218,7 +294,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         if "color" not in kwargs:
             kwargs["color"] = "b"
 
-        alpha = self.get_thermal_expansion_coeff(tstart, tstop, num)
+        alpha = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
 
         ax.plot(alpha.mesh, alpha.values, **kwargs)
         ax.set_xlabel(r'T (K)')
@@ -260,6 +336,177 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
 
         return fig
 
+    def get_abc(self, tstart=0, tstop=800 , num=100):
+        """
+        Plots the thermal expansion coefficient as a function of the temperature.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
+            num: int, optional Number of samples to generate. Default is 100.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
+        """
+        f =  self.fit_energies(tstart, tstop, num)
+        param = np.zeros((num,4))
+        param=np.polyfit(self.volumes, self.lattice_a , 3)
+        pa = np.poly1d(param)
+        aa_qha=pa(f.min_vol)
+        param=np.polyfit(self.volumes, self.lattice_b , 3)
+        pb = np.poly1d(param)
+        bb_qha=pb(f.min_vol)
+        param=np.polyfit(self.volumes, self.lattice_c , 3)
+        pc = np.poly1d(param)
+        cc_qha=pc(f.min_vol)
+
+        return aa_qha,bb_qha,cc_qha
+
+    def get_angles(self, tstart=0, tstop=800 , num=100):
+        """
+        Plots the thermal expansion coefficient as a function of the temperature.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
+            num: int, optional Number of samples to generate. Default is 100.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
+        """
+        f =  self.fit_energies(tstart, tstop, num)
+        param = np.zeros((num,4))
+        param=np.polyfit(self.volumes, self.angles_alpha, 3)
+        pa = np.poly1d(param)
+        gamma=pa(f.min_vol)
+        param=np.polyfit(self.volumes, self.angles_beta , 3)
+        pb = np.poly1d(param)
+        beta=pb(f.min_vol)
+        param=np.polyfit(self.volumes, self.angles_gama , 3)
+        pc = np.poly1d(param)
+        alpha=pc(f.min_vol)
+
+        return alpha,beta,gamma
+
+    @add_fig_kwargs
+    def plot_thermal_expansion_coeff_abc(self, tstart=0, tstop=800, num=100, tref=None, ax=None, **kwargs) -> Figure:
+        """
+        Plots the thermal expansion coefficient as a function of the temperature.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
+            num: int, optional Number of samples to generate. Default is 100.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        #alpha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
+        tmesh = np.linspace(tstart, tstop, num)
+        dt= tmesh[1] - tmesh[0]
+
+        aa_qha,bb_qha,cc_qha = self.get_abc(tstart, tstop, num)
+        if (tref!=None):
+            aa_tref,bb_tref,cc_tref = self.get_abc(tref, tref, 1)
+
+        alpha_qha_a = np.zeros( num-2)
+        alpha_qha_b = np.zeros( num-2)
+        alpha_qha_c = np.zeros( num-2)
+        if (tref==None):
+            alpha_qha_a = (aa_qha[2:] - aa_qha[:-2]) / (2 * dt) / aa_qha[1:-1]
+            alpha_qha_b = (bb_qha[2:] - bb_qha[:-2]) / (2 * dt) / bb_qha[1:-1]
+            alpha_qha_c = (cc_qha[2:] - cc_qha[:-2]) / (2 * dt) / cc_qha[1:-1]
+        else:
+            alpha_qha_a = (aa_qha[2:] - aa_qha[:-2]) / (2 * dt) / aa_tref
+            alpha_qha_b = (bb_qha[2:] - bb_qha[:-2]) / (2 * dt) / bb_tref
+            alpha_qha_c = (cc_qha[2:] - cc_qha[:-2]) / (2 * dt) / cc_tref
+
+        ax.plot(tmesh[1:-1] ,alpha_qha_a , color='r',lw=2 , **kwargs)
+        ax.plot(tmesh[1:-1] ,alpha_qha_b , color='b', lw=2 )
+        ax.plot(tmesh[1:-1] ,alpha_qha_c , color='m', lw=2 )
+        ax.set_xlabel(r'T (K)')
+        ax.set_ylabel(r'$\alpha$ (K$^{-1}$)')
+        ax.legend([r"$\alpha_a$",r"$\alpha_b$",r"$\alpha_c$"])
+        ax.grid(True)
+
+        ax.set_xlim(tstart, tstop)
+        ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_abc_vs_t(self, tstart=0 , tstop=800, num=100, tref=None, ax=None, **kwargs) -> Figure:
+        """
+        Plots the thermal expansion coefficient as a function of the temperature.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
+            num: int, optional Number of samples to generate. Default is 100.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        #alpha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
+        tmesh = np.linspace(tstart, tstop, num)
+        aa_qha,bb_qha,cc_qha = self.get_abc(tstart, tstop, num)
+
+        ax.plot(tmesh ,aa_qha , color='r',lw=2,  **kwargs )
+        ax.plot(tmesh ,bb_qha , color='b', lw=2 )
+        ax.plot(tmesh ,cc_qha , color='m', lw=2 )
+        ax.set_xlabel(r'T (K)')
+        ax.legend(["a(V(T))","b(V(T))","c(V(T))"])
+        ax.grid(True)
+
+        ax.set_xlim(tstart, tstop)
+        ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_angle_vs_t(self, tstart=0, tstop=800, num=100, tref=None, ax=None, **kwargs)-> Figure:
+        """
+        Plots the thermal expansion coefficient as a function of the temperature.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
+            num: int, optional Number of samples to generate. Default is 100.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        #alpha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
+        tmesh = np.linspace(tstart, tstop, num)
+        alpha,beta,gamma = self.get_angles(tstart, tstop, num)
+
+        ax.plot(tmesh ,alpha , color='r',lw=2,  **kwargs )
+        ax.plot(tmesh ,beta , color='b', lw=2 )
+        ax.plot(tmesh ,gamma , color='m', lw=2 )
+        ax.set_xlabel(r'T (K)')
+        ax.legend([r"$\alpha$(V(T))",r"$\beta$(V(T))",r"$\gamma$(V(T))"])
+        ax.grid(True)
+
+        ax.set_xlim(tstart, tstop)
+        ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
+
+        return fig
     @add_fig_kwargs
     def plot_phbs(self, phbands, temperatures=None, t_max=1000, colormap="plasma", **kwargs) -> Figure:
         """
