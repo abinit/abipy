@@ -973,7 +973,7 @@ class ElectronBands(Has_Structure):
 
     def get_bz2ibz_bz_points(self, require_gamma_centered=False):
         """
-        Return mapping bz2ibz and the list of k-points in the BZ.
+        Return named tupled with mapping bz2ibz and the list of k-points in the BZ.
 
         Args:
             require_gamma_centered: True if the k-mesh should be Gamma-centered
@@ -986,13 +986,13 @@ class ElectronBands(Has_Structure):
             raise ValueError("Only Monkhorst-Pack meshes are supported")
 
         ngkpt, shifts = self.kpoints.mpdivs_shifts
-        print(f"{ngkpt = }, {shifts =}")
+        #print(f"{ngkpt = }, {shifts =}")
         # TODO: Handle shifts
 
         bz2ibz = map_grid2ibz(self.structure, self.kpoints.frac_coords, ngkpt, self.has_timrev)
         bz_kpoints = kmesh_from_mpdivs(ngkpt, shifts)
 
-        return bz2ibz, bz_kpoints
+        return dict2namedtuple(bz2ibz=bz2ibz, ngkpt=ngkpt, shifts=shifts, bz_kpoints=bz_kpoints)
 
     def isnot_ibz_sampling(self, require_gamma_centered=False) -> str:
         """
@@ -1009,7 +1009,7 @@ class ElectronBands(Has_Structure):
             eapp("Expecting an IBZ sampling but got type `%s`" % type(self.kpoints))
 
         if not self.kpoints.is_mpmesh:
-            eapp("Note that homogeneous k-meshes are required for the FS.\nksampling:` %s`" % str(self.kpoints.ksampling))
+            eapp("Note that homogeneous k-meshes are required.\nksampling:` %s`" % str(self.kpoints.ksampling))
 
         if self.kpoints.is_mpmesh and require_gamma_centered:
             mpdivs, shifts = self.kpoints.mpdivs_shifts

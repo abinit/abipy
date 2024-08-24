@@ -17,12 +17,11 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.func1d import Function1D
 from abipy.core.structure import Structure
-from abipy.core.kpoints import kpoints_indices, map_grid2ibz, kmesh_from_mpdivs
+from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs, map_grid2ibz
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.typing import PathLike
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles, Marker, set_grid_legend)
-#from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.dfpt.phonons import PhononBands
 from abipy.dfpt.ddb import DdbFile
@@ -185,6 +184,7 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app("VARPEQ parameters:")
         app(f"varpeq_pkind: {self.r.varpeq_pkind}")
         #app(f"gstore_completed: {bool(self.r.completed)}")
+        #app(f"gstore_cplex: {self.r.nstates}")
         #app(f"gstore_cplex: {self.r.cplex}")
         #app(f"gstore_kzone: {self.r.kzone}")
         #app(f"gstore_kfilter: {self.r.kfilter}")
@@ -196,17 +196,17 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return "\n".join(lines)
 
-    def get_last_iteration_dict_ev(self, spin: int) -> dict:
-        """
-        Return dictionary mapping the latex label to the value of the last iteration
-        for the given spin. All energies are in eV.
-        """
-        nstep2cv_spin = self.r.read_value('nstep2cv')
-        iter_rec_spin = self.r.read_value('iter_rec')
-        nstep2cv = nstep2cv_spin[spin]
-        last_iteration = iter_rec_spin[spin, nstep2cv-1, :] * abu.Ha_eV
+    #def get_last_iteration_dict_ev(self, spin: int) -> dict:
+    #    """
+    #    Return dictionary mapping the latex label to the value of the last iteration
+    #    for the given spin. All energies are in eV.
+    #    """
+    #    nstep2cv_spin = self.r.read_value('nstep2cv_spin')
+    #    scf_hist_spin_spin = self.r.read_value('scf_hist_spin')
+    #    nstep2cv = nstep2cv_spin[spin]
+    #    last_iteration = scf_hist_spin_spin[spin, nstep2cv-1, :] * abu.Ha_eV
 
-        return dict(zip(_ALL_ENTRIES.keys(), last_iteration))
+    #    return dict(zip(_ALL_ENTRIES.keys(), last_iteration))
 
     def get_title_spin(self, spin: int) -> str:
         """
@@ -222,15 +222,19 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     @add_fig_kwargs
     def plot_scf_cycle(self, ax_mat=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot the VARPEQ SCF cycle.
+        Plot the SCF cycle.
 
         Args:
             ax_max: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: fontsize for legends and titles
         """
-        nsppol = self.r.nsppol
-        nstep2cv_spin = self.r.read_value('nstep2cv')
-        iter_rec_spin = self.r.read_value('iter_rec')
+        # FIXME
+        nstates, nsppol = self.r.nstates, self.r.nsppol
+
+        # int nstep2cv_spin(nsppol, nstates) ;
+        # double scf_hist_spin(nsppol, nstates, nstep, six) ;
+        nstep2cv_spin = self.r.read_value("nstep2cv_spin")
+        scf_hist_spin_spin = self.r.read_value("scf_hist_spin")
 
         #title = self.get_title() ??
         # Build grid of plots.
@@ -240,7 +244,7 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         for spin in range(nsppol):
             nstep2cv = nstep2cv_spin[spin]
-            iterations = iter_rec_spin[spin, :nstep2cv, :] * abu.Ha_eV
+            iterations = scf_hist_spin[spin, :, :nstep2cv] * abu.Ha_eV
             xs = np.arange(1, nstep2cv + 1)
 
             for iax, ax in enumerate(ax_mat[spin]):
@@ -285,21 +289,16 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 @dataclasses.dataclass(kw_only=True)
 class Polaron:
     """
-    This object stores the polaron coefficients A_kn, B_qnu for a given spin.
+    This object stores the polaron coefficients A_kn, B_qnu for a given spin and all the nstate polaron states.
     Provides methods to plot |A_nk|^2 or |B_qnu|^2 together with the band structures (fatbands-like plots).
     """
-
     spin: int          # Spin index.
+    nstates: int       # Number of polaronic states.
     nb: int            # Number of bands in A_kn,
     nk: int            # Number of k-points in A_kn, (including filtering if any)
     nq: int            # Number of q-points in B_qnu (including filtering if any)
     bstart: int        # First band starts at bstart
     bstop: int         # Last band (python convention)
-
-    kpoints: np.ndarray   # Reduced coordinates of the k-points
-    qpoints: np.ndarray   # Reduced coordinates of the q-points
-    a_kn: np.ndarray
-    b_qnu: np.ndarray
     varpeq: VarpeqFile
 
     @classmethod
@@ -308,14 +307,10 @@ class Polaron:
         Build an istance from a VarpeqFile and the spin index.
         """
         r = varpeq.r
-        nk, nq, nb = r.nk_spin[spin], r.nq_spin[spin], r.nb_spin[spin]
+        nstates, nk, nq, nb = r.nstates, r.nk_spin[spin], r.nq_spin[spin], r.nb_spin[spin]
         bstart, bstop = r.brange_spin[spin]
-        kpoints = r.read_value("kpts_spin")[spin, :nk]
-        qpoints = r.read_value("qpts_spin")[spin, :nq]
-        a_kn = r.read_value("a_spin", cmode="c")[spin, :nk, :nb]
-        b_qnu = r.read_value("b_spin", cmode="c")[spin, :nq]
-        data = locals()
 
+        data = locals()
         return cls(**{k: data[k] for k in [field.name for field in dataclasses.fields(Polaron)]})
 
     @property
@@ -328,16 +323,35 @@ class Polaron:
         """Electron bands."""
         return self.varpeq.ebands
 
+    @lazy_property
+    def kpoints(self) -> np.ndarray:
+        """Reduced coordinates of the k-points."""
+        return self.varpeq.r.read_value("kpts_spin")[self.spin, :self.nk]
+
+    @lazy_property
+    def qpoints(self) -> np.ndarray:
+        """Reduced coordinates of the q-points."""
+        return self.varpeq.r.read_value("qpts_spin")[self.spin, :self.nq]
+
+    @lazy_property
+    def a_kn(self) -> np.ndarray:
+        return self.varpeq.r.read_value("a_spin", cmode="c")[self.spin, :self.nstates, :self.nk, :self.nb]
+
+    @lazy_property
+    def b_qnu(self) -> np.ndarray:
+        return self.varpeq.r.read_value("b_spin", cmode="c")[self.spin, :self.nstates, :self.nq]
+
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int=0) -> str:
         """
         String representation with verbosiy level verbose.
         """
         lines = []; app = lines.append
 
         app(marquee(f"Ank for spin: {self.spin}", mark="="))
+        app(f"nstates: {self.nstates}")
         app(f"nb: {self.nb}")
         app(f"nk: {self.nk}")
         app(f"nq: {self.nq}")
@@ -349,8 +363,9 @@ class Polaron:
         ngqpt = self.varpeq.r.ngqpt
         app(f"q-mesh: {ngqpt}")
         #if verbose:
-        norm = np.sum(np.abs(self.a_kn) ** 2) / self.nk
-        app("1/N_k sum_{nk} |A_nk|^2: %f" % norm)
+        for ip in self.nstates:
+            norm = np.sum(np.abs(self.a_kn[ip]) ** 2) / self.nk
+            app(f"For state={ip} 1/N_k sum_nk |A_nk|^2: %f" % norm)
 
         return "\n".join(lines)
 
@@ -382,29 +397,31 @@ class Polaron:
 
         return ngkpt, shifts
 
-    def insert_a_inbox(self, fill_value=None):
+    def insert_a_inbox(self, fill_value=None) -> tuple:
         """
+        Return a_data, ngkpt, shifts where a_data is a
+        (nstates, nb, nkx, nky, nkz)) array with A_{pnk} with p the polaron index.
         """
-        # Need to know the size of the k-mesh.
+        # Need to know the shape of the k-mesh.
         ngkpt, shifts = self.ngkpt_and_shifts
         k_indices = kpoints_indices(self.kpoints, ngkpt)
         nx, ny, nz = ngkpt
 
-        shape = (self.nb, nx, ny, nz)
-        if fill_value is None:
-            a_data = np.empty(shape, dtype=complex)
-        else:
-            a_data = np.full(shape, fill_value, dtype=complex)
+        shape = (self.nstates, self.nb, nx, ny, nz)
+        a_data = np.empty(shape, dtype=complex) if fill_value is None else np.full(shape, fill_value, dtype=complex)
 
-        for ib in range(self.nb):
-            for a_cplx, k_inds in zip(self.a_kn[:,ib], k_indices):
-                ix, iy, iz = k_inds
-                a_data[ib, ix, iy, iz] = a_cplx
+        for ip in range(self.nstates):
+            for ib in range(self.nb):
+                for a_cplx, k_inds in zip(self.a_kn[ip,:,ib], k_indices, strict=True):
+                    ix, iy, iz = k_inds
+                    a_data[ip, ib, ix, iy, iz] = a_cplx
 
         return a_data, ngkpt, shifts
 
-    def insert_b_inbox(self, fill_value=None):
+    def insert_b_inbox(self, fill_value=None) -> tuple:
         """
+        Return b_data, ngqpt, shifts where b_data is a
+        (nstates, nb, nqx, nqy, nqz)) array with B_{pqnu} with p the polaron index.
         """
         # Need to know the shape of the q-mesh (always Gamma-centered)
         ngqpt, shifts = self.varpeq.r.ngqpt, [0, 0, 0]
@@ -413,67 +430,69 @@ class Polaron:
         natom3 = 3 * len(self.structure)
         nx, ny, nz = ngqpt
 
-        shape = (natom3, nx, ny, nz)
-        if fill_value is None:
-            b_data = np.empty(shape, dtype=complex)
-        else:
-            b_data = np.full(shape, fill_value, dtype=complex)
+        shape = (self.nstates, natom3, nx, ny, nz)
+        b_data = np.empty(shape, dtype=complex) if fill_value is None else np.full(shape, fill_value, dtype=complex)
 
-        for nu in range(natom3):
-            for b_cplx, q_inds in zip(self.b_qnu[:,nu], q_indices):
-                ix, iy, iz = q_inds
-                b_data[nu, ix, iy, iz] = b_cplx
+        for ip in range(self.nstates):
+            for nu in range(natom3):
+                for b_cplx, q_inds in zip(self.b_qnu[ip,:,nu], q_indices, strict=True):
+                    ix, iy, iz = q_inds
+                    b_data[ip, nu, ix, iy, iz] = b_cplx
 
         return b_data, ngqpt, shifts
 
-    def get_a2_interpolator(self) -> BzRegularGridInterpolator:
+    def get_a2_interpolator_state(self) -> BzRegularGridInterpolator:
         """
-        Build and return an interpolator for |A_nk|^2
+        Build and return an interpolator for |A_nk|^2 for each polaronic state.
         """
         a_data, ngkpt, shifts = self.insert_a_inbox()
 
-        return BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data) ** 2, method="linear")
+        return [BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data[istate]) ** 2, method="linear")
+                for istat in range(self.nstates)]
 
-    def get_b2_interpolator(self) -> BzRegularGridInterpolator:
+    def get_b2_interpolator_state(self) -> BzRegularGridInterpolator:
         """
-        Build and return an interpolator for |B_qnu|^2.
+        Build and return an interpolator for |B_qnu|^2 for each polaronic state.
         """
         b_data, ngqpt, shifts = self.insert_b_inbox()
 
-        return BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data) ** 2, method="linear")
+        return [BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data[istate]) ** 2, method="linear")
+                for istate in range(self.nstates)]
 
-    def write_a2_bxsf(self, filepath: PathLike) -> None:
-        """
-        Export |A_nk|^2 in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
-        Require gamma-centered k-mesh.
+    def write_a2_bxsf(self, filepath: PathLike. fill_value=0.0) -> None:
+        r"""
+        Export \sum_n |A_{pnk}|^2 in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
+        Requires gamma-centered k-mesh.
 
         Args:
             filepath: BXSF filename.
         """
-        # NB: kmesh must be gamma-centered, multiple shifts are not supported.
+        # NB: the kmesh must be gamma-centered, multiple shifts are not supported.
         # Init values with 0. This is relevant only if kfiltering is being used.
-        a_data, ngkpt, shifts = self.insert_a_inbox(fill_value=0.0)
-        nkbz = np.product(ngkpt)
-        a2_data = np.abs(a_data) ** 2
+        a_data, ngkpt, shifts = self.insert_a_inbox(fill_value=fill_value)
+
+        # Compute \sum_n A^2_{pnk}.
+        a2_data = (a_data.abs() ** 2).sum(index=1)
         fermie = a2_data.mean()
 
-        bxsf_write(filepath, self.structure, 1, num_states, ngkpt, a2_data, fermie, unit="Ha")
+        bxsf_write(filepath, self.structure, 1, self.nstates, ngkpt, a2_data, fermie, unit="Ha")
 
-    def write_b2_bxsf(self, filepath: PathLike) -> None:
-        """
-        Export |B_qnu|^2 in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
+    def write_b2_bxsf(self, filepath: PathLike, fill_value=0.0) -> None:
+        r"""
+        Export \sum_{\nu} |B_{q\nu}|^2 in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
 
         Args:
             filepath: BXSF filename.
         """
         # NB: qmesh must be gamma-centered, multiple shifts are not supported.
         # Init values with 0. This is relevant only if kfiltering is being used.
-        b_data, ngqpt, shifts = self.insert_b_inbox(fill_value=0.0)
-        nqbz = np.product(nqkpt)
-        b2_data = np.abs(b_data) ** 2
+        b_data, ngqpt, shifts = self.insert_b_inbox(fill_value=fill_value)
+
+        # Compute \sum_{\nu} B^2_{pq\nu}.
+        b2_data = (b_data.abs() ** 2).sum(index=1)
         fermie = b2_data.mean()
 
-        bxsf_write(filepath, self.structure, 1, num_states, ngqpt, b2_data, fermie, unit="Ha")
+        bxsf_write(filepath, self.structure, 1, self.nstates, ngqpt, b2_data, fermie, unit="Ha")
 
     #@add_fig_kwargs
     #def plot_bz_sampling(self, what="kpoints", fold=False,
@@ -495,7 +514,7 @@ class Polaron:
     def plot_ank_with_ebands(self, ebands_kpath, ebands_kmesh=None,
                              lpratio: int=5, method="gaussian", step: float=0.05, width: float=0.1,
                              nksmall: int=20, normalize: bool=False, with_title=True,
-                             ax_list=None, ylims=None, scale=10, fontsize=12, **kwargs) -> Figure:
+                             ax_mat=None, ylims=None, scale=10, marker_color="gold", fontsize=12, **kwargs) -> Figure:
         """
         Plot electron bands with markers whose size is proportional to |A_nk|^2.
 
@@ -510,99 +529,96 @@ class Polaron:
             step: Energy step (eV) of the linear mesh for DOS computation.
             width: Standard deviation (eV) of the gaussian for DOS computation.
             with_title: True to add title with chemical formula and gaps.
-            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            ax_mat: List of |matplotlib-Axes| or None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
             scale: Scaling factor for |A_nk|^2.
+            marker_color: Color for markers.
             fontsize: fontsize for legends and titles
         """
-        ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
-
+        nrows, ncols = self.nstates, 2
+        gridspec_kw = {'width_ratios': [2, 1]}
+        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
+                                               sharex=False, sharey=True, squeeze=False, gridspec_kw=gridspec_kw)
         # Interpolate A_nk
-        a2_interp = self.get_a2_interpolator()
+        a2_interp_state = self.get_a2_interpolator_state()
 
         # DEBUG SECTION
         #ref_kn = np.abs(self.a_kn) ** 2
         #for ik, kpoint in enumerate(self.kpoints):
-        #    interp = a2_interp.eval_kpoint(kpoint)
+        #    interp = a2_interp_state[0].eval_kpoint(kpoint)
         #    print("MAX (A2 ref - A2 interp) at qpoint", kpoint)
         #    print((np.abs(ref_kn[ik] - interp)).max())
 
+        ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
         ymin, ymax = +np.inf, -np.inf
-        x, y, s = [], [], []
-        for ik, kpoint in enumerate(ebands_kpath.kpoints):
-            enes_n = ebands_kpath.eigens[self.spin, ik, self.bstart:self.bstop]
-            a2_n = a2_interp.eval_kpoint(kpoint)
-            for e, a2 in zip(enes_n, a2_n):
-                x.append(ik); y.append(e); s.append(scale * a2)
-                ymin = min(ymin, e)
-                ymax = max(ymax, e)
+        for istate in range(self.nstates):
+            x, y, s = [], [], []
+            for ik, kpoint in enumerate(ebands_kpath.kpoints):
+                enes_n = ebands_kpath.eigens[self.spin, ik, self.bstart:self.bstop]
+                for e, a2 in zip(enes_n, a2_interp_state[istate].eval_kpoint(kpoint), strict=True):
+                    x.append(ik); y.append(e); s.append(scale * a2)
+                    ymin, ymax = min(ymin, e), max(ymax, e)
 
-        color = "gold"
-        points = Marker(x, y, s, color=color, edgecolors='gray', alpha=0.8, label=r'$|A_{n\mathbf{k}}|^2$')
-
-        nrows, ncols = 1, 2
-        gridspec_kw = {'width_ratios': [2, 1]}
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=True, squeeze=False, gridspec_kw=gridspec_kw)
-        ax_list = ax_list.ravel()
-
-        ax = ax_list[0]
-        ebands_kpath.plot(ax=ax, points=points, show=False)
-        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+            points = Marker(x, y, s, color=marker_color, edgecolors='gray', alpha=0.8, label=r'$|A_{n\mathbf{k}}|^2$')
+            ax = ax_mat[istate, 0]
+            ebands_kpath.plot(ax=ax, points=points, show=False)
+            ax.legend(loc="best", shadow=True, fontsize=fontsize)
+            #ax.suptitle()
 
         vertices_names = [(k.frac_coords, k.name) for k in ebands_kpath.kpoints]
 
         if ebands_kmesh is None:
             print(f"Computing ebands_kmesh with star-function interpolation and {nksmall=}")
-            this_ngkpt = self.structure.calc_ngkpt(nksmall)
-            r = self.ebands.interpolate(lpratio=lpratio, vertices_names=vertices_names, kmesh=this_ngkpt)
+            edos_ngkpt = self.structure.calc_ngkpt(nksmall)
+            r = self.ebands.interpolate(lpratio=lpratio, vertices_names=vertices_names, kmesh=edos_ngkpt)
             ebands_kmesh = r.ebands_kmesh
 
         # Get electronic DOS from ebands_kmesh.
         edos_kws = dict(method=method, step=step, width=width)
         edos = ebands_kmesh.get_edos(**edos_kws)
-        mesh = edos.spin_dos[self.spin].mesh
-        ank_dos = np.zeros(len(mesh))
+        emesh = edos.spin_dos[self.spin].mesh
         e0 = self.ebands.fermie
 
         ##################
         # Compute A_nk DOS
         ##################
-        # FIXME
-        # NB: This is just to sketch the ideas. I don't think the present version
-        # is correct as only the k --> -k symmetry can be used.
+        # NB: A_nk does not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
+        # Here we get the mapping BZ --> IBZ needed to obtain the KS eigenvalues e_nk from the IBZ for the DOS.
+        kmesh = ebands_kmesh.get_bz2ibz_bz_points()
 
-        for ik_ibz, kpoint in enumerate(ebands_kmesh.kpoints):
-            weight = kpoint.weight
-            enes_n = ebands_kmesh.eigens[self.spin, ik_ibz, self.bstart:self.bstop]
-            a2_n = a2_interp.eval_kpoint(kpoint)
-            for e, a2 in zip(enes_n, a2_n):
-                ank_dos += weight * a2 * gaussian(mesh, width, center=e-e0)
+        for istate in range(self.nstates):
 
-        # TODO New version using the BZ. Requires new VARPEQ.nc file with all symmetries
-        # The A_nk do not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
-        # Get mapping BZ --> IBZ needed to obtain the KS eigenvalues e_nk from the IBZ for the DOS
-        """
-        bz2ibz, bz_kpoints = ebands_kmesh.get_bz2ibz_bz_points()
+            ank_dos = np.zeros(len(emesh))
+            for ik_ibz, kpoint in zip(kmesh.bz2ibz, kmesh.bz_kpoints):
+                enes_n = ebands_kmesh.eigens[self.spin, ik_ibz, self.bstart:self.bstop]
+                a2_n = a2_interp_state[istate].eval_kpoint(kpoint)
+                for e, a2 in zip(enes_n, a2_n):
+                    ank_dos += a2 * gaussian(emesh, width, center=e-e0)
+            ank_dos /= np.product(kmesh.ngkpt)
+            ank_dos = Function1D(emesh, ank_dos)
+            print(f"For {istate=}, A^2(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
 
-        for ik_ibz, kpoint in zip(bz2ibz, bz_kpoints):
-            enes_n = ebands_kmesh.eigens[self.spin, ik_ibz, self.bstart:self.bstop]
-            a2_n = a2_interp.eval_kpoint(kpoint)
-            for e, a2 in zip(enes_n, a2_n):
-                ank_dos += a2 * gaussian(mesh, width, center=e-e0)
-        ank_dos /= np.product(ngkpt)
-        """
+            ax = ax_mat[istate, 1]
+            edos_opts = {"color": "black",} if self.spin == 0 else {"color": "red"}
+            edos.plot_ax(ax, e0, spin=self.spin, normalize=normalize, exchange_xy=True, label="eDOS(E)", **edos_opts)
+            ank_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$A^2$(E)", color=marker_color)
 
-        ank_dos = Function1D(mesh, ank_dos)
-        print("A2(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
+            # This section computes A2(E) using only k-points in the IBZ. This is just for testing.
+            # A2_IBZ(E) should be equal to A2(E) only if A_nk fullfills the lattice symmetries. See notes above.
+            with_ibz_a2dos = True
+            if with_ibz_a2dos:
+                ank_dos = np.zeros(len(emesh))
+                for ik_ibz, kpoint in enumerate(ebands_kmesh.kpoints):
+                    weight = kpoint.weight
+                    enes_n = ebands_kmesh.eigens[self.spin, ik_ibz, self.bstart:self.bstop]
+                    for e, a2 in zip(enes_n, a2_interp_state[istate].eval_kpoint(kpoint), strict=True):
+                        ank_dos += weight * a2 * gaussian(mesh, width, center=e-e0)
+                ank_dos = Function1D(emesh, ank_dos)
+                print(f"For {istate=}, A2_IBZ(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
+                ank_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$A^2_{IBZ}$(E)", color=marker_color, ls="--")
 
-        edos_opts = {"color": "black",} if self.spin == 0 else {"color": "red"}
-
-        ax = ax_list[1]
-        edos.plot_ax(ax, e0, spin=self.spin, normalize=normalize, exchange_xy=True, label="eDOS(E)", **edos_opts)
-        ank_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$A^2$(E)", color=color)
-        set_grid_legend(ax, fontsize, xlabel="arb. unit")
+            set_grid_legend(ax, fontsize, xlabel="Arb. unit")
 
         if ylims is None:
             # Automatic ylims.
@@ -612,7 +628,7 @@ class Polaron:
             ymax -= e0
             ylims = [ymin, ymax]
 
-        for ax in ax_list:
+        for ax in ax_mat.ravel():
             set_axlims(ax, ylims, "y")
 
         if with_title:
@@ -631,6 +647,7 @@ class Polaron:
             ddb: DdbFile or path to file.
             with_phdos: True if phonon DOS should be computed and plotter.
             anaddb_kwargs: Optional arguments passed to anaddb.
+            kwargs: Optional arguments passed to plot_bqnu_with_phbands.
         """
         ddb = DdbFile.as_ddb(ddb)
         anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
@@ -647,7 +664,7 @@ class Polaron:
     def plot_bqnu_with_phbands(self, phbands_qpath, phdos_file=None,
                                ddb=None, width=0.001, normalize: bool=True,
                                verbose=0, anaddb_kwargs=None, with_title=True,
-                               ax_list=None, scale=10, fontsize=12, **kwargs) -> Figure:
+                               ax_mat=None, scale=10, marker_color="gold", fontsize=12, **kwargs) -> Figure:
         """
         Plot phonon energies with markers whose size is proportional to |B_qnu|^2.
 
@@ -660,86 +677,91 @@ class Polaron:
             verbose:
             anaddb_kwargs: Optional arguments passed to anaddb.
             with_title: True to add title with chemical formula and gaps.
-            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            ax_mat: List of |matplotlib-Axes| or None if a new figure should be created.
             scale: Scaling factor for |B_qnu|^2.
+            marker_color: Color for markers.
             fontsize: fontsize for legends and titles.
         """
         with_phdos = phdos_file is not None  and ddb is not None
-        nrows, ncols, gridspec_kw = 1, 1, None
+        nrows, ncols, gridspec_kw = self.nstates, 1, None
         if with_phdos:
             ncols, gridspec_kw = 2, {'width_ratios': [2, 1]}
 
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=True, squeeze=False, gridspec_kw=gridspec_kw)
-        ax_list = ax_list.ravel()
+        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
+                                               sharex=False, sharey=True, squeeze=False, gridspec_kw=gridspec_kw)
 
         phbands_qpath = PhononBands.as_phbands(phbands_qpath)
-        b2_interp = self.get_b2_interpolator()
+        b2_interp_state = self.get_b2_interpolator_state()
 
-        x, y, s = [], [], []
-        for iq, qpoint in enumerate(phbands_qpath.qpoints):
-            omegas_nu = phbands_qpath.phfreqs[iq,:]
-            b2_nu = b2_interp.eval_kpoint(qpoint)
-            for w, b2 in zip(omegas_nu, b2_nu):
-                x.append(iq); y.append(w); s.append(scale * b2)
+        for istate in range(self.nstates):
+            x, y, s = [], [], []
+            for iq, qpoint in enumerate(phbands_qpath.qpoints):
+                omegas_nu = phbands_qpath.phfreqs[iq,:]
+                for w, b2 in zip(omegas_nu, b2_interp_state[istate].eval_kpoint(qpoint), strict=True):
+                    x.append(iq); y.append(w); s.append(scale * b2)
 
-        ax = ax_list[0]
-        color = "gold"
-        points = Marker(x, y, s, color=color, edgecolors='gray', alpha=0.8, label=r'$|B_{\nu\mathbf{q}}|^2$')
-
-        phbands_qpath.plot(ax=ax, points=points, show=False)
-        ax.legend(loc="best", shadow=True, fontsize=fontsize)
+            ax = ax_mat[istate, 0]
+            points = Marker(x, y, s, color=marker_color, edgecolors='gray', alpha=0.8, label=r'$|B_{\nu\mathbf{q}}|^2$')
+            phbands_qpath.plot(ax=ax, points=points, show=False)
+            ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         if not with_phdos:
-            if with_title:
-                fig.suptitle(self.get_title(with_gaps=True))
+            if with_title: fig.suptitle(self.get_title(with_gaps=True))
             return fig
 
-        ##################
+        ####################
         # Compute B_qnu DOS
-        ##################
-
+        ####################
+        # NB: The B_qnu do not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
         # Add phdos and |B_qn| dos. Mesh is given in eV, values are in states/eV.
         phdos = phdos_file.phdos
-        ngqpt = np.diagonal(phdos_file.qptrlatt)
-        mesh = phdos.mesh
-        bqnu_dos = np.zeros(len(mesh))
+        ngqpt = np.diagonal(phdos_file.qptrlatt) # Use same q-mesh as phdos
+        shifts = [0.0, 0.0, 0.0]
+        nqbz = np.product(ngqpt)
+        wmesh = phdos.mesh
+
+        # Here we get the mapping BZ --> IBZ needed to obtain the ph frequencies omega_qnu from the IBZ for the DOS.
+        bz_qpoints = kmesh_from_mpdivs(ngqpt, shifts)
+        #bz2ibz = map_grid2ibz(self.structure, ibz_qpoints, ngqpt, has_timrev=True)
 
         # Call anaddb (again) to get phonons on the nqpt mesh.
         anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
-        phbands_qmesh = ddb.anaget_phmodes_at_qpoints(ngqpt=ngqpt, verbose=verbose, **anaddb_kwargs)
+        phbands_qmesh = ddb.anaget_phmodes_at_qpoints(qpoints=bz_qpoints, ifcflag=1, verbose=verbose, **anaddb_kwargs)
+        assert len(phbands_qmesh.qpoints) == np.product(ngqpt)
+        #print(phbands_qmesh.qpoints)
 
-        # FIXME
-        # NB: This is just to sketch the ideas. I don't think the present version
-        # is correct as only the k --> -k symmetry can be used.
-        for iq, qpoint in enumerate(phbands_qmesh.qpoints):
-            weight = qpoint.weight
-            freqs_nu = phbands_qmesh.phfreqs[iq]
-            b2_nu = b2_interp.eval_kpoint(qpoint)
-            for w, b2 in zip(freqs_nu, b2_nu):
-                bqnu_dos += weight * b2 * gaussian(mesh, width, center=w)
+        for istate in range(self.nstates):
 
-        # TODO New version using the BZ. Requires new VARPEQ.nc file with all symmetries
-        # The B_qnu do not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
-        # Get mapping BZ --> IBZ needed to obtain the KS eigenvalues e_nk from the IBZ for the DOS
-        """
-        shifts = [0, 0, 0]
-        bz_qpoints = kmesh_from_mpdivs(ngqpt, shifts)
-        bz2ibz = map_grid2ibz(self.structure, phbands_qmesh.qpoints.frac_coords, ngqpt, has_timrev)
-        for iq_ibz, qpoint in zip(bz2ibz, bz_qpoints):
-            freqs_nu = phbands_qmesh.phfreqs[iq_ibz]
-            b2_nu = b2_interp.eval_kpoint(qpoint)
-            for w, b2 in zip(freqs_nu, b2_nu):
-                bqnu_dos += weight * b2 * gaussian(mesh, width, center=w)
-        bqnu_dos /= np.product(ngqpt)
-        """
+            # TODO New version using the BZ. Requires new VARPEQ.nc file with all symmetries
+            # The B_qnu do not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
+            # Get mapping BZ --> IBZ needed to obtain the KS eigenvalues e_nk from the IBZ for the DOS
+            """
+            bqnu_dos = np.zeros(len(wmesh))
+            for iq_ibz, qpoint in zip(bz2ibz, bz_qpoints):
+                freqs_nu = phbands_qmesh.phfreqs[iq_ibz]
+                for w, b2 in zip(freqs_nu, b2_interp_state[istate].eval_kpoint(qpoint), strict=True)
+                    bqnu_dos += b2 gaussian(wmesh, width, center=w)
+            bqnu_dos /= np.product(ngqpt)
+            """
 
-        bqnu_dos = Function1D(mesh, bqnu_dos)
+            # This section computes B2(E) using only q-points in the IBZ. This is just for testing.
+            # B2_IBZ(E) should be equal to B2(E) only if B_qnu fullfill the lattice symmetries. See notes above.
+            #with_ibz_b2dos = True
+            #if with_ibz_b2dos:
+            bqnu_dos = np.zeros(len(wmesh))
+            for iq, qpoint in enumerate(phbands_qmesh.qpoints):
+                weight = qpoint.weight
+                print(weight, 1.0/nqbz)
+                freqs_nu = phbands_qmesh.phfreqs[iq]
+                for w, b2 in zip(freqs_nu, b2_interp_state[istate].eval_kpoint(qpoint), strict=True):
+                    bqnu_dos += weight * b2 * gaussian(wmesh, width, center=w)
 
-        ax = ax_list[1]
-        phdos.plot_ax(ax, exchange_xy=True, normalize=normalize, label="phDOS(E)", color="black")
-        bqnu_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$B^2$(E)", color=color)
-        set_grid_legend(ax, fontsize, xlabel="arb. unit")
+            bqnu_dos = Function1D(wmesh, bqnu_dos)
+
+            ax = ax_mat[istate, 1]
+            phdos.plot_ax(ax, exchange_xy=True, normalize=normalize, label="phDOS(E)", color="black")
+            bqnu_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$B^2$(E)", color=marker_color)
+            set_grid_legend(ax, fontsize, xlabel="Arb. unit")
 
         if with_title:
             fig.suptitle(self.get_title(with_gaps=True))
@@ -760,25 +782,34 @@ class VarpeqReader(BaseEphReader):
         """
         Netcdf Variables
 
-        char input_string(input_len) ;
         int eph_task ;
-        int varpeq_nstep ;
         int nkbz ;
         int nqbz ;
-        double tolgrs ;
-        int nstep2cv(nsppol) ;
-        double iter_rec(nsppol, nstep, six) ;
+        int frohl_ntheta ;
+        double varpeq_tolgrs ;
+        double e_frohl ;
+        char varpeq_pkind(fnlen) ;
+        char varpeq_aseed(fnlen) ;
+        int ngkpt(three) ;
+        int gstore_ngqpt(three) ;
         int nk_spin(nsppol) ;
         int nq_spin(nsppol) ;
         int nb_spin(nsppol) ;
+        int brange_spin(nsppol, two) ;
+        int cvflag_spin(nsppol, nstates) ;
+        int nstep2cv_spin(nsppol, nstates) ;
+        double scf_hist_spin(nsppol, nstates, nstep, six) ;
         double kpts_spin(nsppol, max_nk, three) ;
         double qpts_spin(nsppol, max_nq, three) ;
-        double a_spin(nsppol, max_nk, max_nb, two) ;
-        double b_spin(nsppol, max_nq, natom3, two) ;
+        double cb_min_spin(nsppol) ;
+        double vb_max_spin(nsppol) ;
+        double a_spin(nsppol, nstates, max_nk, max_nb, two) ;
+        double b_spin(nsppol, nstates, max_nq, natom3, two) ;
         """
 
         # Read important dimensions.
         self.nsppol = self.read_dimvalue("nsppol")
+        self.nstates = self.read_dimvalue("nstates")
         self.nk_spin = self.read_value("nk_spin")
         self.nq_spin = self.read_value("nq_spin")
         #self.nb_spin = self.read_value("nb_spin")
@@ -787,6 +818,7 @@ class VarpeqReader(BaseEphReader):
         #self.nqbz = self.read_dimvalue("gstore_nqbz")
         #self.nqibz = self.read_dimvalue("gstore_nqibz")
         self.varpeq_pkind = self.read_string("varpeq_pkind")
+        #self.varpeq_aseed = self.read_string("varpeq_aseed")
         self.ngqpt = self.read_value("gstore_ngqpt")
 
         # Read important variables.
@@ -803,36 +835,11 @@ class VarpeqReader(BaseEphReader):
         self.brange_spin = self.read_value("brange_spin")
         self.brange_spin[:,0] -= 1
         self.nb_spin = self.brange_spin[:,1] - self.brange_spin[:,0]
+
         #self.erange_spin = self.read_value("gstore_erange_spin")
         # Total number of k/q points for each spin after filtering (if any)
         #self.glob_spin_nq = self.read_value("gstore_glob_nq_spin")
         #self.glob_nk_spin = self.read_value("gstore_glob_nk_spin")
-
-        # K-points and q-points in the IBZ
-        #self.kibz = self.read_value("reduced_coordinates_of_kpoints")
-        #self.qibz = self.read_value("gstore_qibz")
-
-        # K-points and q-points in the BZ
-        #self.kbz = self.read_value("gstore_kbz")
-        #self.qbz = self.read_value("gstore_qbz")
-
-        # Mapping BZ --> IBZ. Note conversion Fortran --> C for the isym index.
-        # nctkarr_t("gstore_kbz2ibz", "i", "six, gstore_nkbz"), &
-        # nctkarr_t("gstore_qbz2ibz", "i", "six, gstore_nqbz"), &
-        #self.kbz2ibz = self.read_value("gstore_kbz2ibz")
-        #self.kbz2ibz[:,0] -= 1
-
-        #self.qbz2ibz = self.read_value("gstore_qbz2ibz")
-        #self.qbz2ibz[:,0] -= 1
-
-        # Mapping q/k points in gqk --> BZ. Note conversion Fortran --> C for indexing.
-        # nctkarr_t("gstore_qglob2bz", "i", "gstore_max_nq, number_of_spins"), &
-        # nctkarr_t("gstore_kglob2bz", "i", "gstore_max_nk, number_of_spins") &
-        #self.qglob2bz = self.read_value("gstore_qglob2bz")
-        #self.qglob2bz -= 1
-
-        #self.kglob2bz = self.read_value("gstore_kglob2bz")
-        #self.kglob2bz -= 1
 
 
 class VarpeqRobot(Robot, RobotWithEbands):
@@ -873,7 +880,7 @@ class VarpeqRobot(Robot, RobotWithEbands):
 
         # Now loop over the sorted files and extract the results of the final iteration.
         data = defaultdict(list)
-        for i, (label, abifile, nktot) in enumerate(zip(labels, abifiles, nktot_list)):
+        for i, (label, abifile, nktot) in enumerate(zip(labels, abifiles, nktot_list), strict=True):
 
             for k, v in abifile.get_last_iteration_dict_ev(spin).items():
                 data[k].append(v)

@@ -23,7 +23,7 @@ from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos, PhononDos as PmgPhononDos
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
-from abipy.core.kpoints import Kpoint, Kpath, KpointList, kmesh_from_mpdivs
+from abipy.core.kpoints import Kpoint, Kpath, KpointList, kmesh_from_mpdivs, map_grid2ibz
 from abipy.core.structure import Structure
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
@@ -183,9 +183,6 @@ class PhononBands:
                 with open(obj, "rb") as fh:
                     return cls.as_phbands(pickle.load(fh))
 
-            #print("Returning PhononBands.from_file(obj)")
-            #return PhononBands.from_file(obj)
-
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
                 return abifile.phbands
@@ -253,13 +250,10 @@ class PhononBands:
                 None if contribution is not present.
             amu: dictionary that associates the atomic species present in the structure to the values of the atomic
                 mass units used for the calculation.
-            epsinf: [3,3] matrix with electronic dielectric tensor in Cartesian coordinates.
-                None if not avaiable.
-            zcart: [natom, 3, 3] matrix with Born effective charges in Cartesian coordinates.
-                None if not available.
+            epsinf: [3,3] matrix with electronic dielectric tensor in Cartesian coordinates. None if not avaiable.
+            zcart: [natom, 3, 3] matrix with Born effective charges in Cartesian coordinates. None if not available.
             linewidths: Array-like object with the linewidths (eV) stored as [q, num_modes]
-            phonopy_obj: an instance of a Phonopy object obtained from the same IFC used to generate the
-                band structure.
+            phonopy_obj: an instance of a Phonopy object obtained from the same IFC used to generate the band structure.
         """
         self.structure = structure
 
