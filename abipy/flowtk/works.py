@@ -1700,7 +1700,7 @@ class PhononWork(Work, MergeDdb):
                       qpoints, is_ngqpt=False, with_becs=False,
                       with_quad=False, with_flexoe=False, with_dvdb=True,
                       tolerance=None, ddk_tolerance=None, ndivsm=0, qptopt=1,
-                      prtwf=-1, manager=None) -> PhononWork:
+                      prtwf=-1, prepgkk=0, manager=None) -> PhononWork:
         """
         Construct a `PhononWork` from a |ScfTask| object.
         The input file for phonons is automatically generated from the input of the ScfTask.
@@ -1757,7 +1757,7 @@ class PhononWork(Work, MergeDdb):
         for qpt in qpoints:
             is_gamma = np.sum(qpt ** 2) < 1e-12
             if with_becs and is_gamma: continue
-            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance)
+            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance, prepgkk=prepgkk)
             for ph_inp in multi:
                 # Here we set the value of prtwf for the DFPT tasks if q != Gamma.
                 if not is_gamma: ph_inp.set_vars(prtwf=prtwf)
@@ -1773,7 +1773,7 @@ class PhononWork(Work, MergeDdb):
     def from_scf_input(cls, scf_input: AbinitInput, qpoints, is_ngqpt=False, with_becs=False,
                        with_quad=False, with_flexoe=False, with_dvdb=True, tolerance=None,
                        ddk_tolerance=None, ndivsm=0, qptopt=1,
-                       prtwf=-1, manager=None) -> PhononWork:
+                       prtwf=-1, prepgkk=0, manager=None) -> PhononWork:
         """
         Similar to `from_scf_task`, the difference is that this method requires
         an input for SCF calculation. A new |ScfTask| is created and added to the Work.
@@ -1802,7 +1802,8 @@ class PhononWork(Work, MergeDdb):
         for qpt in qpoints:
             is_gamma = np.sum(qpt ** 2) < 1e-12
             if with_becs and is_gamma: continue
-            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance)
+            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance,
+                                                         prepgkk=0)
             for ph_inp in multi:
                 # Here we set the value of prtwf for the DFPT tasks if q != Gamma.
                 if not is_gamma: ph_inp.set_vars(prtwf=prtwf)
