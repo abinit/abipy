@@ -1918,3 +1918,54 @@ class QHA_App(metaclass=abc.ABCMeta):
             zpe[i] = d.zero_point_energy
 
         return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy, zpe=zpe)
+#=======================================================================================================    
+    @classmethod
+    def from_files_app_ddb(cls, ddb_paths, phdos_paths):
+        """
+        Creates an instance of QHA from a list of GSR files and a list of PHDOS.nc files.
+        The list should have the same size and the volumes should match.
+
+        Args:
+            ddb_paths: list of paths to DDB files.
+            phdos_paths: list of paths to PHDOS.nc files.
+
+        Returns: A new instance of QHA
+        """
+        energies = []
+        structures = []
+        pressures = []
+        for gp in ddb_paths:
+            with DdbFile.from_file(gp) as g:
+                energies.append(g.total_energy)
+                structures.append(g.structure)
+                #pressures.append(g.pressure)
+
+        #doses = [PhononDos.as_phdos(dp) for dp in phdos_paths]
+
+        doses = []
+        structures_from_phdos = []
+        for path in phdos_paths:
+            with PhdosFile(path) as p:
+                doses.append(p.phdos)
+                structures_from_phdos.append(p.structure)
+
+       # cls._check_volumes_id(structures, structures_from_phdos)
+        vols1 = [s.volume for s in structures]
+        vols2 = [s.volume for s in structures_from_phdos]
+        dv=np.zeros((len(vols2)-1))
+        for j in range(len(vols2)-1):
+            dv[j]=vols2[j+1]-vols2[j]
+        tolerance = 1e-3
+        if (len(vols2)!=2):
+            max_difference = np.max(np.abs(dv - dv[0]))
+            if max_difference > tolerance:
+                raise RuntimeError("Expecting an equal volume change for structures from PDOS." )
+
+        index_list = [i for v2 in vols2 for i, v1 in enumerate(vols1) if abs(v2 - v1) < 1e-3]
+        if len(index_list) != len(vols2):
+            raise RuntimeError("Expecting the ground state files for all PDOS files!")
+        if len(index_list) not in (2, 3, 5):
+            raise RuntimeError("Expecting just 2, 3, or 5 PDOS files in the approximation method.")
+
+        return cls(structures,structures_from_phdos,index_list, doses, energies , pressures)
+
