@@ -154,7 +154,7 @@ def rc_list(mp, sh, pbc=False, order="bz"):
                     if c > xm1:
                         break
                 else:
-                    raise ValueError()
+                    raise ValueError("Error while inserting xm1")
 
                 rc.insert(i, xm1)
 
@@ -162,7 +162,7 @@ def rc_list(mp, sh, pbc=False, order="bz"):
             rc.append(rc[0] + 1.0)
 
     else:
-        raise ValueError("Wrong order %s" % order)
+        raise ValueError(f"Wrong {order=}")
 
     return np.array(rc)
 
@@ -498,7 +498,7 @@ def kpath_from_bounds_and_ndivsm(bounds, ndivsm, structure):
     bounds = np.reshape(bounds, (-1, 3))
     nbounds = len(bounds)
     if nbounds == 1:
-        raise ValueError("Need at least two points to define the k-path!")
+        raise ValueError("Need at least two points to define a k-path!")
 
     lens = []
     for i in range(nbounds - 1):
@@ -561,8 +561,8 @@ def as_kpoints(obj, lattice, weights=None, names=None):
         if names is None: names = nk * [None]
         return [Kpoint(rc, lattice, weight=w, name=l) for (rc, w, l) in zip(obj, weights, names)]
 
-    else:
-        raise ValueError("ndim > 2 is not supported")
+
+    raise ValueError(f"{ndim=} > 2 is not supported!")
 
 
 class Kpoint(SlotPickleMixin):
@@ -608,15 +608,6 @@ class Kpoint(SlotPickleMixin):
         self._lattice = lattice
         self.set_weight(weight)
         self.set_name(name)
-
-    #def __array__(self, **kwargs):
-    #    """np.array(self)"""
-    #    print(kwargs)
-    #    dtype = kwargs.pop("dtype", None)
-    #    if dtype is None:
-    #        return self._frac_coords
-    #    else:
-    #        return np.array(self._frac_coords, dtype=dtype)
 
     def __hash__(self):
         """
@@ -857,13 +848,13 @@ class KpointList(collections.abc.Sequence):
     Error = KpointsError
 
     @classmethod
-    def subclass_from_name(cls, name):
+    def subclass_from_name(cls, name: str):
         """Return the class with the given name."""
         if cls.__name__ == name: return cls
         for c in cls.__subclasses__():
             if c.__name__ == name: return c
 
-        raise ValueError("Cannot find subclass associated to name: %s" % name)
+        raise ValueError(f"Cannot find subclass associated to {name=}")
 
     @classmethod
     def from_dict(cls, d):
@@ -924,16 +915,14 @@ class KpointList(collections.abc.Sequence):
         """|Lattice| object defining the reciprocal lattice."""
         return self._reciprocal_lattice
 
-    def __repr__(self) -> str:
-        return self.to_string(func=repr)
-
     def __str__(self) -> str:
-        return self.to_string(func=str)
+        return self.to_string()
 
-    def to_string(self, func=str, title=None, verbose=0, pre_string="") -> str:
+    def to_string(self, title=None, verbose=0, pre_string="") -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
+        func = str
         lines.extend(["%s%d) %s" % (pre_string, i, func(kpoint)) for i, kpoint in enumerate(self)])
 
         return "\n".join(lines)
@@ -956,7 +945,7 @@ class KpointList(collections.abc.Sequence):
 
     def __add__(self, other):
         if self.reciprocal_lattice != other.reciprocal_lattice:
-            raise ValueError("Cannot merge k-points with different reciprocal lattice.")
+            raise ValueError("Cannot merge k-points with different reciprocal lattices.")
 
         return KpointList(self.reciprocal_lattice,
                           frac_coords=[k.frac_coords for k in self] + [k.frac_coords for k in other],
@@ -1467,7 +1456,8 @@ class Kpath(KpointList):
 class IrredZone(KpointList):
     """
     Immutable sequence of points in the irreducible wedge of the BZ.
-    Each point has a weight whose sum must equal 1 so that we can integrate quantities in the full Brillouin zone.
+    Each point has a weight whose sum must equal 1 so that we can integrate
+    quantities in the full Brillouin zone.
 
     .. note::
 
@@ -1491,19 +1481,11 @@ class IrredZone(KpointList):
 
     .. inheritance-diagram:: IrredZone
     """
-    #@classmethod
-    #def from_ngkpt_or_kppa(cls, structure, ngkpt, shiftk, kptopt=1, verbose=0):
-    #    from abipy.tools import duck
-    #    if duck.is_listlike(ngkpt):
-    #        return cls.from_ngkpt(structure, ngkpt, shiftk, kptopt=kptopt, verbose=verbose)
-    #    else:
-    #        return cls.from_kppa(structure, kppa, shiftk, kptopt=kptopt, verbose=verbose)
 
     @classmethod
     def from_ngkpt(cls, structure, ngkpt, shiftk, kptopt=1, spin_mode="unpolarized", verbose=0) -> IrredZone:
         """
-        Build an IrredZone object from (ngkpt, shift) by calling Abinit
-        to get the list of irreducible k-points.
+        Build an IrredZone instance from (ngkpt, shift) by calling Abinit to get the list of IBZ k-points.
         """
         from abipy.abio.factories import gs_input
         from abipy.data.hgh_pseudos import HGH_TABLE
@@ -1511,14 +1493,12 @@ class IrredZone(KpointList):
         ibz = gsinp.abiget_ibz(ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt, verbose=verbose)
         ksampling = KSamplingInfo.from_mpdivs(ngkpt, shiftk, kptopt)
 
-        return cls(structure.reciprocal_lattice, ibz.points, weights=ibz.weights,
-                   names=None, ksampling=ksampling)
+        return cls(structure.reciprocal_lattice, ibz.points, weights=ibz.weights, names=None, ksampling=ksampling)
 
     @classmethod
     def from_kppa(cls, structure, kppa, shiftk, kptopt=1, verbose=0) -> IrredZone:
         """
-        Build an IrredZone object from (kppa, shift) by calling Abinit
-        to get the list of irreducible k-points.
+        Build an IrredZone instance from (kppa, shift) by calling Abinit to get the list of IBZ k-points.
         """
         from abipy.abio.factories import gs_input
         from abipy.data.hgh_pseudos import HGH_TABLE
@@ -1526,8 +1506,7 @@ class IrredZone(KpointList):
         ibz = gsinp.abiget_ibz(ngkpt=None, shiftk=shiftk, kptopt=kptopt, verbose=verbose)
         ksampling = KSamplingInfo.from_mpdivs(gsinp["ngkpt"], shiftk, kptopt)
 
-        return cls(structure.reciprocal_lattice, ibz.points, weights=ibz.weights,
-                   names=None, ksampling=ksampling)
+        return cls(structure.reciprocal_lattice, ibz.points, weights=ibz.weights, names=None, ksampling=ksampling)
 
     def __init__(self, reciprocal_lattice, frac_coords, weights=None, names=None, ksampling=None):
         """
@@ -1538,8 +1517,7 @@ class IrredZone(KpointList):
             names: List with the name of the k-points.
             ksampling: Info on the k-point sampling
         """
-        super().__init__(reciprocal_lattice, frac_coords,
-                         weights=weights, names=names, ksampling=ksampling)
+        super().__init__(reciprocal_lattice, frac_coords, weights=weights, names=names, ksampling=ksampling)
 
         # Weights must be normalized to one.
         wsum = self.sum_weights()
@@ -1552,7 +1530,7 @@ class IrredZone(KpointList):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, func=str, verbose=0, title=None) -> str:
+    def to_string(self, verbose: int=0, title=None) -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
@@ -1575,44 +1553,6 @@ class IrredZone(KpointList):
             app("%6d) [%+.3f, %+.3f, %+.3f],  weight=%.3f" % (i, k[0], k[1], k[2], k.weight))
 
         return "\n".join(lines)
-
-    #@property
-    #def len_bz(self):
-    #    """Number of points in the full BZ."""
-    #    return self.mpdivs.prod() * self.num_shifts
-
-    #def iter_bz_coords(self):
-    #    """
-    #    Generates the fractional coordinates of the points in the BZ.
-    #    .. note:
-    #        points are ordered in blocks, one block for each shift.
-    #        Inside the block, points are ordered following the C convention.
-    #    """
-    #    for shift in self.shifts:
-    #        for i in range(mpdivs[0]):
-    #            x = (i + shift[0]) / mpdivs[0]
-    #            for j in range(mpdivs[1]):
-    #                y = (j + shift[1]) / mpdivs[1]
-    #                for k in range(mpdivs[2]):
-    #                    z = (k + shift[2]) / mpdivs[2]
-    #                    yield np.array((x, y, z))
-
-    #def plane_cut(self, values_ibz):
-    #    """
-    #    Symmetrize values in the IBZ to have them on the full BZ, then
-    #    select a slice along the specified plane E.g. plane = (1,1,0).
-    #    """
-    #    assert len(values_ibz) == len(self)
-    #    #indices =
-    #    z0 = 0
-    #    plane = np.empty((self.nx, self.ny))
-    #    kx, ky = range(self.nx), range(self.ny)
-    #    for x in kx:
-    #        for y in ky:
-    #            ibz_idx = self.map_xyz2ibz[x, y, z0]
-    #            plane[x, y] = values_ibz[ibz_idx]
-    #    kx, ky = np.meshgrid(kx, ky)
-    #    return kx, ky, plane
 
 
 class KSamplingInfo(AttrDict):
@@ -1691,9 +1631,9 @@ class KSamplingInfo(AttrDict):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for k in self:
-            if k not in self.KNOWN_KEYS:
-                raise ValueError("Unknow key %s" % k)
+        for key in self:
+            if key not in self.KNOWN_KEYS:
+                raise ValueError(f"Unknown {key=}")
 
         # FIXME: monkhorst_pack_folding is not written in e.g. DEN.nc files
         # so we get crazy results because of netCDF4._default_fillvals

@@ -2767,6 +2767,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False)
+        #print("-- log_file path:", task.log_file.path)
 
         # Parse the file to get the perturbations.
         try:

@@ -874,20 +874,20 @@ class ElectronBands(Has_Structure):
     def empty_with_ibz(cls, ngkpt, structure, fermie, nelect, nsppol, nspinor, nspden, mband,
                        shiftk=(0, 0, 0), kptopt=1,
                        smearing=None, linewidths=None) -> ElectronBands:
+        """Build an empty ElectronBands instance with k-points in the IBZ."""
 
         from abipy.abio.factories import gs_input
         from abipy.data.hgh_pseudos import HGH_TABLE
-        gsinp = gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
-        ibz = gsinp.abiget_ibz(ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt)
+        gs_inp = gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
+        ibz = gs_inp.abiget_ibz(ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt)
+
         ksampling = KSamplingInfo.from_mpdivs(ngkpt, shiftk, kptopt)
+        ibz_kpoints = IrredZone(structure.reciprocal_lattice, ibz.points, weights=ibz.weights, names=None, ksampling=ksampling)
 
-        kpoints = IrredZone(structure.reciprocal_lattice, ibz.points, weights=ibz.weights,
-                            names=None, ksampling=ksampling)
-
-        new_eigens = np.zeros((nsppol, len(kpoints), mband))
+        new_eigens = np.zeros((nsppol, len(ibz_kpoints), mband))
         new_occfacts = np.zeros_like(new_eigens)
 
-        return cls(structure, kpoints, new_eigens, fermie, new_occfacts,
+        return cls(structure, ibz_kpoints, new_eigens, fermie, new_occfacts,
                    nelect, nspinor, nspden,
                    smearing=smearing, linewidths=linewidths)
 
