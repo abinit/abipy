@@ -1456,6 +1456,7 @@ class CalcBuilder:
     """
 
     ALL_NN_TYPES = [
+        "emt",
         "m3gnet",
         "matgl",
         "chgnet",
