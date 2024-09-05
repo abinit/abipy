@@ -1488,7 +1488,7 @@ class TchimVsSus:
             if np.all(abs(tchi_qq - qpoint) < 1e-6):
                 return tchi_iq, tchi_qpoints
 
-        raise ValueError(f"Cannot find q-point: {qpoint} in TCHIM file")
+        raise ValueError(f"Cannot find {qpoint=} in TCHIM file")
 
     @add_fig_kwargs
     def plot_qpoint_gpairs(self, qpoint, gpairs,

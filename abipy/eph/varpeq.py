@@ -166,6 +166,7 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         od = dict([
             ("nkbz", nkbz),
             ("ngkpt", ngkpt),
+            ("invsc_size", 1.0 / (nkbz * ((abu.Ang_Bohr * self.structure.lattice.volume) ** (1/3)))),
             ("frohl_ntheta", r.frohl_ntheta),
         ])
         return od
@@ -943,127 +944,76 @@ class VarpeqRobot(Robot, RobotWithEbands):
 
         return "\n".join(lines)
 
-    def get_final_results_df(self, with_params: bool=True) -> pd.DataFrame:
+    def get_final_results_df(self, spin=None, sortby=None, with_params: bool=True) -> pd.DataFrame:
         """
         Return dataframe with the last iteration for all polaronic states.
         NB: Energies are in eV.
+
+        Args:
+            spin:
+            sortby: Name to sort by.
+            with_params:
         """
         df_list = []
         for abifile in self.abifiles:
-            for polaron in abifile.polaron_spin:
+            if spin is None:
+                for polaron in abifile.polaron_spin:
+                    df_list.append(polaron.get_final_results_df(with_params=with_params))
+            else:
+                polaron = abifile.polaron_spin[spin]
                 df_list.append(polaron.get_final_results_df(with_params=with_params))
 
-        return pd.concat(df_list)
+        df = pd.concat(df_list)
+        if sortby and sortby in df: df = df.sort_values(sortby)
+        return df
 
-    #def get_kdata_spin(self, spin: int) -> dict:
-    #    """
-    #    Build and return dictionary with the different terms of the polaron energy
-    #    Each entry in the dict is ordered ...
-    #    """
-    #    if warn_msg := self.has_different_structures():
-    #        cprint(warn_msg, color="yellow")
+    @add_fig_kwargs
+    def plot_kconv(self, colormap="jet", fontsize=12, **kwargs) -> Figure:
+        """
+        Plot the convergence of the results wrt to the k-point sampling.
 
-    #    # Sort the files in reverse order using the total number of k-points in the mesh.
-    #    def sort_func(abifile):
-    #        ksampling = abifile.ebands.kpoints.ksampling
-    #        ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
-    #        return np.prod(ngkpt)
+        Args:
+            colormap: Color map. Have a look at the colormaps here and decide which one you like:
+            fontsize: fontsize for legends and titles
+        """
+        nsppol = self.getattr_alleq("nsppol")
 
-    #    labels, abifiles, nktot_list = self.sortby(sort_func, reverse=True, unpack=True)
+        # Build grid of plots.
+        nrows, ncols = len(_ALL_ENTRIES), nsppol
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
+        cmap = plt.get_cmap(colormap)
+        for spin in range(nsppol):
+            df = self.get_final_results_df(spin=spin, sortby=None)
+            xs = df["invsc_size"]
+            xvals = np.linspace(0.0, 1.1 * xs.max(), 100)
 
-    #    # Now loop over the sorted files and extract the results of the final iteration.
-    #    data = defaultdict(list)
-    #    for i, (label, abifile, nktot) in enumerate(zip(labels, abifiles, nktot_list), strict=True):
+            for ix, ylabel in enumerate(_ALL_ENTRIES):
+                ax = ax_mat[ix, spin]
+                ys = df[ylabel]
 
-    #        for k, v in abifile.get_last_iteration_dict_ev(spin).items():
-    #            data[k].append(v)
+                # Plot ab-initio points.
+                ax.scatter(xs, ys, color="red", marker="o")
 
-    #        ksampling = abifile.ebands.kpoints.ksampling
-    #        ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
-    #        nkbz = np.prod(ngkpt)
-    #        data["ngkpt"].append(ngkpt)
-    #        data["nkbz"].append(nkbz)
-    #        vol_ang = abifile.structure.lattice.volume * (abu.Ang_Bohr ** 3)
-    #        x = 1.0 / (nkbz * abifile.structure.lattice.volume ** (1/3))
-    #        data["xs_inv_bohr"].append(x)
+                # Plot fit using the first nn points.
+                for nn in range(1, len(xs)):
+                    color = cmap((nn - 1) / len(xs))
+                    p = np.poly1d(np.polyfit(xs[:nn+1], ys[:nn+1], deg=1))
+                    ax.plot(xvals, p(xvals), color=color, ls="--")
 
-    #    # Convert to numpy arrays. NB: energies are already in eV.
-    #    return {k: np.array(v) for k, v in data.items()}
+                xlabel = "Inverse supercell size (Bohr$^-1$)" if ix == len(_ALL_ENTRIES) - 1 else None
+                set_grid_legend(ax, fontsize, xlabel=xlabel, ylabel=f"{ylabel} (eV)", legend=False)
+                ax.tick_params(axis='x', color='black', labelsize='20', pad=5, length=5, width=2)
 
-    #def get_makov_payne_df_spin(self, spin: int) -> pd.DataFrame:
-    #    """
-    #    Build and return dataframe with extrapolated quantities.
-    #    obtained using the firs npts points.
-    #    """
-    #    kdata = self.get_kdata_spin(spin)
+        return fig
 
-    #    xs = kdata["xs_inv_bohr"]
-    #    d = defaultdict(list)
-    #    for ix, ylabel in enumerate(_ALL_ENTRIES):
-    #        ys = kdata[ylabel]
-    #        # Fit data using the first nn points.
-    #        for nn in range(1, len(xs)):
-    #            p = np.poly1d(np.polyfit(xs[:nn+1], ys[:nn+1], deg=1))
-    #            d[ylabel].append(p(0))
-
-    #    df = pd.DataFrame(d, index=list(i + 1 for i in range(1, len(xs))))
-    #    df.index.name = 'npts'
-
-    #    return df
-
-    #@add_fig_kwargs
-    #def plot_kconv(self, colormap="jet", fontsize=12, **kwargs) -> Figure:
-    #    """
-    #    Plot the convergence of the data wrt to the k-point sampling.
-
-    #    Args:
-    #        colormap: Color map. Have a look at the colormaps here and decide which one you like:
-    #        fontsize: fontsize for legends and titles
-    #    """
-    #    nsppol = self.getattr_alleq("nsppol")
-
-    #    # Build grid of plots.
-    #    nrows, ncols = len(_ALL_ENTRIES), nsppol
-    #    ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-    #                                           sharex=True, sharey=False, squeeze=False)
-    #    cmap = plt.get_cmap(colormap)
-    #    rows = []
-    #    for spin in range(nsppol):
-    #        kdata = self.get_kdata_spin(spin)
-    #        xs = kdata["xs_inv_bohr"]
-    #        xvals = np.linspace(0.0, 1.1 * xs.max(), 100)
-
-    #        df = self.get_makov_payne_df_spin(spin)
-    #        print(df)
-
-    #        for ix, ylabel in enumerate(_ALL_ENTRIES):
-    #            ax = ax_mat[ix, spin]
-    #            ys = kdata[ylabel]
-
-    #            # Plot ab-initio points.
-    #            ax.scatter(xs, ys, color="red", marker="o")
-
-    #            # Plot fit using the first nn points.
-    #            for nn in range(1, len(xs)):
-    #                color = cmap((nn - 1) / len(xs))
-    #                p = np.poly1d(np.polyfit(xs[:nn+1], ys[:nn+1], deg=1))
-    #                ax.plot(xvals, p(xvals), color=color, ls="--")
-
-    #            xlabel = "Inverse supercell size (Bohr$^-1$)" if ix == len(_ALL_ENTRIES) - 1 else None
-    #            set_grid_legend(ax, fontsize, xlabel=xlabel, ylabel=f"{ylabel} (eV)", legend=False)
-    #            #ax.tick_params(axis='x', color='black', labelsize='20', pad=5, length=5, width=2)
-
-    #    #for ax in ax_mat.ravel():
-    #    #    set_axlims(ax, (xs[0]-1e-3, xs[-1]), "x")
-
-    #    return fig
-
-    #def yield_figs(self, **kwargs):  # pragma: no cover
-    #    """
-    #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-    #    Used in abiview.py to get a quick look at the results.
-    #    """
-    #    yield self.plot_scf_cycle(show=False)
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        Used in abiview.py to get a quick look at the results.
+        """
+        #yield self.plot_scf_cycle(show=False)
+        yield self.plot_kconv()
 
     def write_notebook(self, nbpath=None) -> str:
         """
@@ -1079,38 +1029,3 @@ class VarpeqRobot(Robot, RobotWithEbands):
         ])
 
         return self._write_nb_nbpath(nb, nbpath)
-
-
-#def plot_data(kleninv, energy, p, str_label):
-#    xrange = np.linspace(0, 1/6, 100)
-#    plt.plot(kleninv, energy, 's-', label=str_label)
-#    plt.plot(xrange, p(xrange), 'k--')
-#    plt.xlim(0, 0.6)
-#    plt.xlabel('Inverse k-grid')
-#
-#def interp_data(kleninv, energy, n):
-#    fit = np.polyfit(kleninv[-n:], energy[-n:], 1)
-#    p = np.poly1d(fit)
-#    return p
-#
-#def transform_data(klen, enpol, eps):
-#    kleninv = 1/klen
-#    enpol = (enpol - cbm)*ha_ev
-#    eps = -(eps - cbm)*ha_ev
-#    return kleninv, enpol, eps
-#
-#def analyze(filename, mode, label):
-#    klen, enpol, eps = get_data(filename)
-#    kleninv, enpol, eps = transform_data(klen, enpol, eps)
-#    p_enpol = interp_data(kleninv, enpol, 3)
-#    p_eps = interp_data(kleninv, eps, 3)
-#
-#    if mode == 'enpol':
-#        plot_data(kleninv, enpol, p_enpol, label)
-#    elif mode == 'eps':
-#        plot_data(kleninv, eps, p_eps, label)
-#
-#analyze('energy.dat', 'enpol', 'no sym')
-#analyze('energy_ksym.dat', 'enpol', r'$g(Sk,q) = g(k,S^{-1}q)$')
-#plt.ylabel('Hole polaron formation energy (eV)')
-
