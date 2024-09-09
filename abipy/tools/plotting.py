@@ -453,7 +453,11 @@ def set_grid_legend(ax_or_axlist, fontsize: int,
     if duck.is_listlike(ax_or_axlist):
         for ix, ax in enumerate(ax_or_axlist):
             ax.grid(grid)
-            if legend: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
+            # Check if there are artists with labels
+            handles, labels = ax.get_legend_handles_labels()
+            if legend and labels:
+                # print("There are artists with labels:", labels)
+                ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
             if xlabel:
                 doit = direction is None or (direction == "y" and ix == len(ax_or_axlist) -1)
                 if doit: ax.set_xlabel(xlabel)
@@ -464,7 +468,9 @@ def set_grid_legend(ax_or_axlist, fontsize: int,
     else:
         ax = ax_or_axlist
         ax.grid(grid)
-        if legend: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
+        # Check if there are artists with labels
+        handles, labels = ax.get_legend_handles_labels()
+        if legend and labels: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
         if xlabel: ax.set_xlabel(xlabel)
         if ylabel: ax.set_ylabel(ylabel)
         if title: ax.set_title(title, fontsize=fontsize)

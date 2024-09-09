@@ -186,8 +186,11 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         return gkq_nu
 
-    def get_absg_kpoint(self, kpoint) -> tuple[np.ndarray, np.ndarray, int, Kpoint]:
+    def get_absg_kpoint(self, kpoint, eps_mev: float=0.01) -> tuple[np.ndarray, np.ndarray, int, Kpoint]:
         """
+        Args:
+            kpoint: |Kpoint| object or list/tuple with reduced coordinates or integer with the index
+            eps_mev: Tolerance in mev used to detect degeneracies
         """
         if duck.is_intlike(kpoint):
             ik = kpoint
@@ -196,22 +199,26 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             kpoint = Kpoint.as_kpoint(kpoint, self.structure.reciprocal_lattice)
             ik = self.kpoints.index(kpoint)
 
+        eps_ha = eps_mev / abu.Ha_meV
+        eps_ev = eps_ha * abu.Ha_eV
+
+        nsppol = self.ebands.nsppol
+        natom3 = len(self.structure) * 3
+        nb = self.ebands.nband
+
+        phfreqs_ha = self.phfreqs_ha
+        eigens_k = self.ebands.eigens
+        eigens_kq = self.eigens_kq
+
         # (nsppol, nkpt, 3*natom, mband, mband) real array.
         absg = np.abs(self.read_all_gkq(mode="phonon")) * abu.Ha_meV
         absgk = absg[:,ik].copy()
         absg_unsym = absg[:,ik].copy()
-
-        # Average over phonons.
-        eps_ha = 0.01 / abu.Ha_meV
-        eps_ev = eps_ha * abu.Ha_eV
-
-        natom3 = len(self.structure) * 3
-        phfreqs_ha = self.phfreqs_ha
-        nband = self.ebands.nband
         absg_sym = np.zeros_like(absgk)
 
-        for spin in range(self.ebands.nsppol):
-            g2_mn = np.zeros((nband,nband), dtype=float)
+        # Average over phonons.
+        for spin in range(nsppol):
+            g2_mn = np.zeros((nb, nb), dtype=float)
             for nu in range(natom3):
                 w_1 = phfreqs_ha[nu]
                 g2_mn[:], nn = 0.0, 0
@@ -225,26 +232,27 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         # Average over k electrons.
         absg = absg_sym.copy()
         g2_nu = np.zeros((natom3), dtype=float)
-        for spin in range(self.ebands.nsppol):
-            for jbnd in range(nband):
-                for ibnd in range(nband):
-                    w_1 = self.ebands.eigens[spin, ik, ibnd]
+        for spin in range(nsppol):
+            for jbnd in range(nb):
+                for ibnd in range(nb):
+                    w_1 = eigens_k[spin, ik, ibnd]
                     g2_nu[:], nn = 0.0, 0
-                    for pbnd in range(nband):
-                        w_2 = self.ebands.eigens[spin, ik, pbnd]
+                    for pbnd in range(nb):
+                        w_2 = eigens_k[spin, ik, pbnd]
                         if abs(w_2 - w_1) >= eps_ev: continue
                         nn += 1
+                        # MG FIXME: Why absgk and not absg here as done below for k+q?
                         g2_nu += absgk[spin,:,jbnd,pbnd] ** 2
                     absg_sym[spin,:,jbnd,ibnd] = np.sqrt(g2_nu / nn)
+
         # Average over k+q electrons.
-        eigens_kq = self.eigens_kq
         absgk = absg_sym.copy()
-        for spin in range(self.ebands.nsppol):
-            for ibnd in range(nband):
-                for jbnd in range(nband):
+        for spin in range(nsppol):
+            for ibnd in range(nb):
+                for jbnd in range(nb):
                     w_1 = eigens_kq[spin, ik, jbnd]
                     g2_nu[:], nn = 0.0, 0
-                    for pbnd in range(nband):
+                    for pbnd in range(nb):
                         w_2 = eigens_kq[spin, ik, pbnd]
                         if abs(w_2 - w_1) >= eps_ev: continue
                         nn += 1

@@ -19,7 +19,7 @@ from abipy.iotools import ETSF_Reader
 def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None) -> np.ndarray:
     """
     Converts the phonon displacements to the orthonormal eigenvectors of the dynamical matrix.
-    Small discrepancies with the original values may be expected due to the different values 
+    Small discrepancies with the original values may be expected due to the different values
     of the atomic masses in abinit and pymatgen.
 
     .. note::
@@ -87,7 +87,7 @@ def match_eigenvectors(v1, v2) -> np.ndarray:
 class NonAnalyticalPh(Has_Structure):
     """
     Phonon data at gamma including non analytical contributions
-    Read from anaddb.nc
+    Usually read from anaddb.nc
     """
 
     def __init__(self, structure, directions, phfreqs, phdispl_cart, amu=None):
