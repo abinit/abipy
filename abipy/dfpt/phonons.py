@@ -1553,7 +1553,14 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             if np.allclose(cart_direction, d):
                 return self.non_anal_phfreqs[i]
 
-        raise ValueError("Non analytical contribution has not been calculated for reduced direction {0} ".format(frac_direction))
+        err_lines = [
+            f"Non analytical contribution has not been calculated for reduced direction: {frac_direction}",
+            "Available non_anal_directions:"
+        ]
+        for i, d in enumerate(self.non_anal_directions):
+            err_lines.append(f"{i} {d}")
+
+        raise ValueError("\n".join(err_lines))
 
     def _get_non_anal_phdispl(self, frac_direction):
         # directions for the qph2l in anaddb are given in cartesian coordinates

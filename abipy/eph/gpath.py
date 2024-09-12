@@ -14,7 +14,7 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.structure import Structure
 from abipy.core.kpoints import Kpath
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.typing import PathLike
 #from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
@@ -22,13 +22,13 @@ from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fi
 #from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.dfpt.phonons import PhononBands
+from abipy.dfpt.phtk import NonAnalyticalPh
 from abipy.tools.typing import Figure
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
 
-class GpathFile(AbinitNcFile, Has_Structure): # , NotebookWriter):
-#class GpathFile(AbinitNcFile, Has_Structure, Has_ElectronBands): # , NotebookWriter):
+class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
     This file stores the e-ph matrix elements along a k/q path
     and provides methods to analyze and plot results.
@@ -37,12 +37,13 @@ class GpathFile(AbinitNcFile, Has_Structure): # , NotebookWriter):
 
     .. code-block:: python
 
-        with GpathFile("out_GWAN.nc") as gpath:
-            print(gwan)
+        with GpathFile("out_GPATH.nc") as gpath:
+            print(gpath)
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GpathFile
     """
+
     @classmethod
     def from_file(cls, filepath: PathLike) -> GpathFile:
         """Initialize the object from a netcdf file."""
@@ -107,12 +108,13 @@ class GpathFile(AbinitNcFile, Has_Structure): # , NotebookWriter):
         return "\n".join(lines)
 
     @add_fig_kwargs
-    def plot_g_qpath(self, band_range, average_mode="all", ax_mat=None, fontsize=8, **kwargs) -> Figure:
+    def plot_g_qpath(self, band_range=None, with_q=False, average_mode="all", ax_mat=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot ...
 
         Args:
             band_range:
+            with_q
             average_mode:
             ax_mat: List of |matplotlib-Axes| or None if a new figure should be created.
             fontsize: fontsize for legends and titles
@@ -122,24 +124,26 @@ class GpathFile(AbinitNcFile, Has_Structure): # , NotebookWriter):
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
                                                sharex=False, sharey=False, squeeze=False)
 
+        qnorms = np.array([qpt.norm for qpt in self.phbands.qpoints]) if with_q else \
+                 np.ones(len(self.phbands.qpoints))
+        #band_range = (self.r.bstart, self.r.bstop) if band_range is None else band_range
+
         for spin in range(self.r.nsppol):
             g2_nuq, g2_nuq_unsym = self.r.get_g2nuq_average_spin(spin, band_range, average_mode)
 
             ax = ax_mat[0, spin]
-            #print(f"{g2_nuq_unsym.shape=}")
-            for nu in range(self.r.natom3):
-                ax.plot(g2_nuq[nu], label=f"sym {nu=}")
+            for mode in range(self.r.natom3):
+                ax.plot(g2_nuq[mode] * qnorms, label=f"sym {mode=}")
 
-            set_grid_legend(ax, fontsize, xlabel=r"$\mathbf{q}$ Wavevector", ylabel=r"$|g|$")
             self.phbands.decorate_ax(ax, units="meV")
-            #ax.set_ylabel(abu.wlabel_from_units(units))
-            #ax.set_xlabel("Wave Vector")
+            set_grid_legend(ax, fontsize, xlabel=r"Wavevector $\mathbf{q}$", ylabel=r"$|g|$")
 
             ax = ax_mat[1, spin]
-            for nu in range(self.r.natom3):
-                ax.plot(g2_nuq_unsym[nu], label=f"unsym {nu=}")
+            for mode in range(self.r.natom3):
+                ax.plot(g2_nuq_unsym[mode] * qnorms, label=f"unsym {mode=}")
+
             self.phbands.decorate_ax(ax, units="meV")
-            set_grid_legend(ax, fontsize, xlabel=r"$\mathbf{q}$ Wavevector", ylabel=r"$|g|$")
+            set_grid_legend(ax, fontsize, xlabel=r"Wavevector $\mathbf{q}$", ylabel=r"$|g|$")
 
             #ax.plot(self.r.phfreqs_ha * abu.Ha_meV) # , label=f"e_kq")
             #set_grid_legend(ax, fontsize, xlabel=r"$\mathbf{q}$ wavevector", ylabel=r"$\omega_{\mathbf{q}\nu}$ (meV)")
@@ -151,6 +155,36 @@ class GpathFile(AbinitNcFile, Has_Structure): # , NotebookWriter):
             #set_grid_legend(ax, fontsize, xlabel=r"$\mathbf{k+q}$  wavevector")
 
         return fig
+
+    #@add_fig_kwargs
+    #def plot_g_kpath(self, band_range=None, with_q=False, average_mode="all", ax_mat=None, fontsize=8, **kwargs) -> Figure:
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.ebands.plot(show=False)
+        if self.r.eph_fix_korq == "k":
+            yield self.phbands.plot(show=False)
+            yield self.plot_g_qpath()
+        #if self.r.eph_fix_korq == "q":
+        #    yield self.plot_g_kpath()
+
+    def write_notebook(self, nbpath=None) -> str:
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        nb.cells.extend([
+            nbv.new_code_cell("gpath = abilab.abiopen('%s')" % self.filepath),
+            nbv.new_code_cell("print(gpath)"),
+            nbv.new_code_cell("gpath.ebands.plot();"),
+            nbv.new_code_cell("gpath.phbands.plot();"),
+        ])
+
+        return self._write_nb_nbpath(nb, nbpath)
 
 
 class GpathReader(BaseEphReader):
@@ -181,10 +215,11 @@ class GpathReader(BaseEphReader):
         self.eph_fix_wavec = self.read_value("eph_fix_wavevec")
         #self.completed = self.read_value("gstore_completed")
 
-        # Note conversion Fortran --> C for the isym index.
+        # Note conversion Fortran --> C for the bstart index.
         nband = self.read_dimvalue("nband")
         self.bstart = self.read_value("bstart") - 1
-        self.band_range = [self.bstart, nband]
+        self.bstop = self.read_value("bstop")
+        self.band_range = [self.bstart, self.bstop]
 
     def read_ebands(self):
         """
@@ -231,9 +266,11 @@ class GpathReader(BaseEphReader):
 
         path_qq = Kpath(structure.lattice.reciprocal_lattice, qpath_frac_coords, weights=None, names=None, ksampling=None)
 
+        non_anal_ph = NonAnalyticalPh.from_ncreader(self) if "non_analytical_directions" in self.rootgrp.variables else None
+
         return PhononBands(structure=structure, qpoints=path_qq, phfreqs=phfreqs, phdispl_cart=phdispl_cart, amu=amu,
-                           # TODO
-                           #non_anal_ph=non_anal_ph,
+                           non_anal_ph=non_anal_ph,
+                           # TODO ?
                            #epsinf=epsinf,
                            #zcart=zcart,
                            )
@@ -246,7 +283,7 @@ class GpathReader(BaseEphReader):
             spin: Spin index
             band_range:
             average_mode:
-            eps_mev: Tolerance in mev used to detect degeneracies
+            eps_mev: Tolerance in meV used to detect degeneracies.
         """
         # Consistency check
         if self.nk_path != 1:
