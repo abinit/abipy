@@ -442,7 +442,7 @@ class Polaron:
         """
         a_data, ngkpt, shifts = self.insert_a_inbox()
 
-        return [BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data[pstate]) ** 2, method="linear")
+        return [BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data[pstate])**2, method="linear")
                 for pstate in range(self.nstates)]
 
     def get_b2_interpolator_state(self) -> BzRegularGridInterpolator:
@@ -451,10 +451,10 @@ class Polaron:
         """
         b_data, ngqpt, shifts = self.insert_b_inbox()
 
-        return [BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data[pstate]) ** 2, method="linear")
+        return [BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data[pstate])**2, method="linear")
                 for pstate in range(self.nstates)]
 
-    def write_a2_bxsf(self, filepath: PathLike. fill_value=0.0) -> None:
+    def write_a2_bxsf(self, filepath: PathLike, fill_value=0.0) -> None:
         r"""
         Export \sum_n |A_{pnk}|^2 in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
         Requires gamma-centered k-mesh.
@@ -467,7 +467,7 @@ class Polaron:
         a_data, ngkpt, shifts = self.insert_a_inbox(fill_value=fill_value)
 
         # Compute \sum_n A^2_{pnk}.
-        a2_data = (a_data.abs() ** 2).sum(index=1)
+        a2_data = np.sum(np.abs(a_data)**2, axis=1)
         fermie = a2_data.mean()
 
         bxsf_write(filepath, self.structure, 1, self.nstates, ngkpt, a2_data, fermie, unit="Ha")
@@ -484,7 +484,7 @@ class Polaron:
         b_data, ngqpt, shifts = self.insert_b_inbox(fill_value=fill_value)
 
         # Compute \sum_{\nu} B^2_{pq\nu}.
-        b2_data = (b_data.abs() ** 2).sum(index=1)
+        b2_data = np.sum((np.abs(b_data)**2), axis=1)
         fermie = b2_data.mean()
 
         bxsf_write(filepath, self.structure, 1, self.nstates, ngqpt, b2_data, fermie, unit="Ha")
@@ -723,8 +723,8 @@ class Polaron:
                                                ddb=ddb, **kwargs)
 
     @add_fig_kwargs
-    def plot_bqnu_with_phbands(self, phbands_qpath, phdos_file=None,
-                               ddb=None, width=0.001, normalize: bool=True,
+    def plot_bqnu_with_phbands(self, phbands_qpath,
+                               phdos_file=None, ddb=None, width=0.001, normalize: bool=True,
                                verbose=0, anaddb_kwargs=None, with_title=True,
                                ax_mat=None, scale=10, marker_color="gold", fontsize=12, **kwargs) -> Figure:
         """

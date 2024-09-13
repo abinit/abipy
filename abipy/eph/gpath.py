@@ -108,7 +108,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return "\n".join(lines)
 
     @add_fig_kwargs
-    def plot_g_qpath(self, band_range=None, with_q=False, average_mode="all", ax_mat=None, fontsize=8, **kwargs) -> Figure:
+    def plot_g_qpath(self, band_range=None, which_g="sym", with_q=False, scale=1, ax_mat=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot ...
 
@@ -129,35 +129,37 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         #band_range = (self.r.bstart, self.r.bstop) if band_range is None else band_range
 
         for spin in range(self.r.nsppol):
-            g2_nuq, g2_nuq_unsym = self.r.get_g2nuq_average_spin(spin, band_range, average_mode)
+            g_nuq_sym, g_nuq_unsym = self.r.get_gnuq_average_spin(spin, band_range)
+            g_nuq = g_nuq_sym if which_g == "sym" else g_nuq_unsym
 
             ax = ax_mat[0, spin]
             for mode in range(self.r.natom3):
-                ax.plot(g2_nuq[mode] * qnorms, label=f"sym {mode=}")
+                ax.plot(g_nuq[mode] * qnorms, label=f"{which_g} {mode=}")
 
             self.phbands.decorate_ax(ax, units="meV")
-            set_grid_legend(ax, fontsize, xlabel=r"Wavevector $\mathbf{q}$", ylabel=r"$|g|$")
+            set_grid_legend(ax, fontsize, xlabel=r"Wavevector $\mathbf{q}$", ylabel=r"$|g^{\text{avg}}| (meV)$")
+
+            marker_color = "gold"
+            x, y, s = [], [], []
+            for iq, qpoint in enumerate(self.phbands.qpoints):
+                omegas_nu = self.phbands.phfreqs[iq,:]
+                for w, g2 in zip(omegas_nu, g_nuq[:,iq], strict=True):
+                    x.append(iq); y.append(w); s.append(scale * g2)
+
+            points = Marker(x, y, s, color=marker_color, edgecolors='gray', alpha=0.8, label=r'$|g^{\text{avg}}(\mathbf{q})|$ (meV)')
 
             ax = ax_mat[1, spin]
-            for mode in range(self.r.natom3):
-                ax.plot(g2_nuq_unsym[mode] * qnorms, label=f"unsym {mode=}")
+            self.phbands.plot(ax=ax, points=points, show=False)
+            set_grid_legend(ax, fontsize, xlabel=r"Wavevector $\mathbf{q}$")
 
-            self.phbands.decorate_ax(ax, units="meV")
-            set_grid_legend(ax, fontsize, xlabel=r"Wavevector $\mathbf{q}$", ylabel=r"$|g|$")
-
-            #ax.plot(self.r.phfreqs_ha * abu.Ha_meV) # , label=f"e_kq")
-            #set_grid_legend(ax, fontsize, xlabel=r"$\mathbf{q}$ wavevector", ylabel=r"$\omega_{\mathbf{q}\nu}$ (meV)")
-
-            #ax = ax_mat[2, spin]
-            #self.phbands.plot(ax=ax, show=False)
-            #self.ebands.plot(ax=ax, show=False)
+            #self.ebands.plot(ax=ax, points=points, show=False)
             #ax.plot(self.r.all_eigens_kq[spin]) # .transpose()) #, label=f"
-            #set_grid_legend(ax, fontsize, xlabel=r"$\mathbf{k+q}$  wavevector")
+            #set_grid_legend(ax, fontsize, xlabel=r"$\mathbf{k+q}$  xlabel=r"Wavevector $\mathbf{k}$")
 
         return fig
 
     #@add_fig_kwargs
-    #def plot_g_kpath(self, band_range=None, with_q=False, average_mode="all", ax_mat=None, fontsize=8, **kwargs) -> Figure:
+    #def plot_g_kpath(self, band_range=None, which_g="sym", with_k=False, ax_mat=None, fontsize=8, **kwargs) -> Figure:
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -275,14 +277,13 @@ class GpathReader(BaseEphReader):
                            #zcart=zcart,
                            )
 
-    def get_g2nuq_average_spin(self, spin: int, band_range: list|tuple, average_mode: str, eps_mev: float=0.01):
+    def get_gnuq_average_spin(self, spin: int, band_range: list|tuple, eps_mev: float=0.01):
         """
         Average ...
 
         Args:
             spin: Spin index
             band_range:
-            average_mode:
             eps_mev: Tolerance in meV used to detect degeneracies.
         """
         # Consistency check
@@ -306,7 +307,7 @@ class GpathReader(BaseEphReader):
         # double gkq2_nu(nsppol, nk_path, nq_path, natom3, nb_in_g, nb_in_g) ;
 		#  gkq2_nu:_FillValue = -1. ;
         #
-        # with nk_path == 1
+        # in Ha^2 with nk_path == 1
         #                                      m-index, n-index
         # In memory we want: (nq_path, natom3, nb_in_g, nb_in_g)
 
@@ -381,14 +382,11 @@ class GpathReader(BaseEphReader):
         absg_unsym = absg_unsym.transpose(1, 0, 2, 3).copy()
         print(f"{absg_unsym.shape=}")
 
-        # Take the trace over the last two axes
-        #absg_sym = np.trace(absg_sym, axis1=-2, axis2=-1)
-        #absg_unsym = np.trace(absg_unsym, axis1=-2, axis2=-1)
-
-        # sum_{mn}
+        # Average over bands 1/ n_b_in**2 sum_{mn}
         absg_sym = np.sum(absg_sym, axis=(-2, -1)) / nb_in_g**2
         absg_unsym = np.sum(absg_unsym, axis=(-2, -1)) / nb_in_g**2
 
+        # [spin, nq_path]
         return absg_sym, absg_unsym
 
 
