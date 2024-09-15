@@ -613,23 +613,50 @@ class Robot(NotebookWriter):
         """Integration with jupyter_ notebooks."""
         return '<ol start="0">\n{}\n</ol>'.format("\n".join("<li>%s</li>" % label for label, abifile in self.items()))
 
-    def getattr_alleq(self, aname : str):
+    def getattrs_alleq(self, *aname_args) -> list:
         """
-        Return the value of attribute aname.
+        Return list of attribute values for each attribute name in *aname_args.
+        """
+        return [self.getattr_alleq(aname) for aname in aname_args]
+
+    def getattr_alleq(self, aname: str):
+        """
+        Return the value of attribute aname. Try firs in self then in self.r
         Raises ValueError if value is not the same across all the files in the robot.
         """
-        val1 = getattr(self.abifiles[0], aname)
 
-        for abifile in self.abifiles[1:]:
-            val2 = getattr(abifile, aname)
-            if isinstance(val1, (str, int, float)):
-                eq = val1 == val2
-            elif isinstance(val1, np.ndarray):
-                eq = np.allclose(val1, val2)
-            if not eq:
-                raise ValueError(f"Different values of {aname=}, {val1=}, {val2=}")
+        def get_obj_list(what: str):
+            if what == "abifiles":
+                return self.abifiles
+            elif what == "r":
+                return [abifile.r for abifile in self.abifiles]
 
-        return val1
+            raise ValueError(f"Invalid {what=}")
+
+        err_msg = []
+
+        for what in ["abifiles", "r"]:
+            objs = get_obj_list(what)
+
+            try:
+                val1 = getattr(objs[0], aname)
+            except AttributeError as exc:
+                err_msg.append(str(exc))
+                continue
+
+            for obj in objs[1:]:
+                val2 = getattr(obj, aname)
+                if isinstance(val1, (str, int, float)):
+                    eq = val1 == val2
+                elif isinstance(val1, np.ndarray):
+                    eq = np.allclose(val1, val2)
+                if not eq:
+                    raise ValueError(f"Different values of {aname=}, {val1=}, {val2=}")
+
+            return val1
+
+        if err_msg:
+            raise ValueError("\n".join(err_msg))
 
     @property
     def abifiles(self) -> list:
