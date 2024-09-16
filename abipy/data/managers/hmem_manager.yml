@@ -4,19 +4,19 @@ high: &high
    num_nodes: 2
    sockets_per_node: 4
    cores_per_socket: 12
-   mem_per_node: 512Gb
+   mem_per_node: 512GB
 
 middle: &middle
    num_nodes: 7
    sockets_per_node: 4
    cores_per_socket: 12
-   mem_per_node: 256Gb
+   mem_per_node: 256GB
 
 low: &low
    num_nodes: 7
    sockets_per_node: 4
    cores_per_socket: 12
-   mem_per_node: 128Gb
+   mem_per_node: 128GB
 
 job: &job
     mpi_runner: mpirun

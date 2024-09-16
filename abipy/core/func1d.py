@@ -11,9 +11,9 @@ from io import StringIO
 from typing import Tuple, Union
 from monty.functools import lazy_property
 from abipy.tools.typing import Figure
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, data_from_cplx_mode,
-    add_plotly_fig_kwargs, PlotlyRowColDesc, get_fig_plotly)
+from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, add_plotly_fig_kwargs, PlotlyRowColDesc, get_fig_plotly)
 from abipy.tools.derivatives import finite_diff
+from abipy.tools.numtools import data_from_cplx_mode
 
 __all__ = [
     "Function1D",
@@ -282,7 +282,11 @@ class Function1D:
         """
         if stop is None: stop = len(self.values) + 1
         x, y = self.mesh[start:stop], self.values[start:stop]
-        from scipy.integrate import cumtrapz
+        try :
+            from scipy.integrate import cumulative_trapezoid as cumtrapz
+        except ImportError:
+            from scipy.integrate import cumtrapz
+
         integ = cumtrapz(y, x=x, initial=0.0)
 
         return self.__class__(x, integ)
@@ -466,7 +470,7 @@ class Function1D:
 
     #    return self.__class__(self.mesh, -(2 / np.pi) * wmesh * kk_values)
 
-    def plot_ax(self, ax, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs) -> list:
+    def plot_ax(self, ax, exchange_xy=False, normalize=False, xfactor=1, yfactor=1, *args, **kwargs) -> list:
         """
         Helper function to plot self on axis ax.
 
@@ -474,6 +478,7 @@ class Function1D:
             ax: |matplotlib-Axes|.
             exchange_xy: True to exchange the axis in the plot.
             args: Positional arguments passed to ax.plot
+            normalize: Normalize the ydata to 1.
             xfactor, yfactor: xvalues and yvalues are multiplied by this factor before plotting.
             kwargs: Keyword arguments passed to ``matplotlib``. Accepts
 
@@ -500,6 +505,7 @@ class Function1D:
             xx, yy = self.mesh, data_from_cplx_mode(c, self.values)
             if xfactor != 1: xx = xx * xfactor
             if yfactor != 1: yy = yy * yfactor
+            if normalize: yy = yy / np.max(yy)
 
             if exchange_xy:
                 xx, yy = yy, xx
@@ -536,7 +542,7 @@ class Function1D:
         Helper function to plot the function with plotly.
 
         Args:
-            fig: |plotly.graph_objects.Figure|.
+            fig: plotly.graph_objects.Figure.
             rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
             exchange_xy: True to exchange the x and y in the plot.
             xfactor, yfactor: xvalues and yvalues are multiplied by this factor before plotting.
@@ -590,7 +596,7 @@ class Function1D:
             rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col)
                 of the subplot in the grid.
 
-        Returns: |plotly-Figure|.
+        Returns: plotly-Figure
         """
         fig, _ = get_fig_plotly(fig=fig)
         rcd = PlotlyRowColDesc.from_object(rcd)

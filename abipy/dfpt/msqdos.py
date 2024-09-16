@@ -9,6 +9,10 @@ import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
+try:
+    from scipy.integrate import simpson as simps
+except ImportError:
+    from scipy.integrate import simps
 from monty.string import list_strings, marquee
 from monty.collections import dict2namedtuple
 from monty.termcolor import cprint
@@ -119,7 +123,7 @@ class MsqDos(Has_Structure):
         app("")
         app(marquee(r"Fullfilment of \int dw g_ij(w) = \delta_ij", mark="="))
         app("")
-        from scipy.integrate import simps
+
         for iatom, site in enumerate(self.structure):
             d = simps(self.values[iatom], x=self.wmesh)
             app("For site: %s" % site)
@@ -161,7 +165,7 @@ class MsqDos(Has_Structure):
 
         jdoc = {
             "natom": len(self.structure),
-            "nomega": self.nw,             # Number of frequencies
+            "nomega": self.nw,              # Number of frequencies
             "ntemp": len(tmesh),            # Number of temperatures
             "tmesh": tmesh,                 # Temperature mesh in K
             "wmesh": self.wmesh,            # Frequency mesh in ??
@@ -212,7 +216,6 @@ class MsqDos(Has_Structure):
         what_list = list_strings(what_list)
 
         # Perform frequency integration to get tensor(T)
-        from scipy.integrate import simps
         if iatom_list is not None: iatom_list = set(iatom_list)
         for iatom in range(natom):
             if iatom_list is not None and iatom not in iatom_list: continue
@@ -652,10 +655,10 @@ _atom_site_aniso_U_12""".splitlines()
             set_axlims(ax, ylims, "y")
             if what == "displ":
                 ylabel = r"$U_{iso}\;(\AA^2)$" if ix == 0 else \
-                         r"Anisotropy factor ($\dfrac{\epsilon_{max}}{\epsilon_{min}}}$)"
+                         r"Anisotropy factor ($\dfrac{\epsilon_{max}}{\epsilon_{min}}$)"
             elif what == "vel":
                 ylabel = r"$V_{iso}\;(m/s)^2$" if ix == 0 else \
-                         r"Anisotropy factor ($\dfrac{\epsilon_{max}}{\epsilon_{min}}}$)"
+                         r"Anisotropy factor ($\dfrac{\epsilon_{max}}{\epsilon_{min}$)"
             else:
                 raise ValueError("Unknown value for what: `%s`" % str(what))
             ax.set_ylabel(ylabel, fontsize=fontsize)

@@ -7,6 +7,7 @@ import os
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as pmgu
+import typing
 
 from collections import OrderedDict
 from monty.collections import AttrDict
@@ -14,8 +15,6 @@ from monty.functools import lazy_property
 from monty.string import is_string, marquee
 from monty.termcolor import cprint
 from monty.inspect import all_subclasses
-from pymatgen.io.vasp.inputs import Poscar
-from pymatgen.io.vasp.outputs import Chgcar
 from pymatgen.core.units import bohr_to_angstrom
 from abipy.core.structure import Structure
 from abipy.core.mesh3d import Mesh3D
@@ -26,6 +25,9 @@ from abipy.tools.numtools import transpose_last3dims
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.typing import Figure
 from abipy.iotools import Visualizer, xsf, ETSF_Reader, cube
+
+if typing.TYPE_CHECKING:
+    from pymatgen.io.vasp.outputs import Chgcar
 
 
 __all__ = [
@@ -583,7 +585,7 @@ class Density(_DensityField):
     latex_label = "Density [$e/A^3$]"
 
     @classmethod
-    def ae_core_density_on_mesh(cls, valence_density, structure, rhoc, 
+    def ae_core_density_on_mesh(cls, valence_density, structure, rhoc,
                                 maxr=2.0, nelec=None, tol=0.01,
                                 method='get_sites_in_sphere', small_dist_mesh=(8, 8, 8), small_dist_factor=1.5):
         """
@@ -928,7 +930,7 @@ class Density(_DensityField):
         #"""Compute the kinetic energy density in real- and reciprocal-space."""
         #return kindr, kindgg
 
-    def to_chgcar(self, filename=None) -> Chgcar:
+    def to_chgcar(self, filename=None) -> 'Chgcar':
         """
         Convert a :class:`Density` object into a ``Chgar`` object.
         If ``filename`` is not None, density is written to this file in Chgar format
@@ -947,6 +949,9 @@ class Density(_DensityField):
             For non collinear calculations the CHGCAR file contains the total charge density
             and the magnetisation density in the x, y and z direction in this order.
         """
+        from pymatgen.io.vasp.inputs import Poscar
+        from pymatgen.io.vasp.outputs import Chgcar
+
         myrhor = self.datar * self.structure.volume
 
         if self.nspinor == 1:
@@ -979,6 +984,9 @@ class Density(_DensityField):
             The Chgcar object provided by pymatgen does not provided enough information
             to understand if the calculation is collinear or no.
         """
+        from pymatgen.io.vasp.inputs import Poscar
+        from pymatgen.io.vasp.outputs import Chgcar
+
         if is_string(chgcar):
             chgcar = Chgcar.from_file(chgcar)
         if is_string(poscar):

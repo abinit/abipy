@@ -9,17 +9,19 @@ import os
 import argparse
 import shutil
 import tempfile
+import abipy.tools.cli_parsers as cli
 
 from subprocess import call
 from abipy import __version__
 from abipy import flowtk
 
 
+
 def main():
     def str_examples():
         examples = """
           Usage example:\n\n
-          runall.py => Run all scripts.
+          _runflows.py => Run all scripts.
         """
         return examples
 
@@ -37,27 +39,14 @@ def main():
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     parser.add_argument('-m', '--mode', type=str, default="sequential", help="execution mode. Default is sequential.")
-
     parser.add_argument('-e', '--exclude', type=str, default="", help="Exclude scripts. Comma-separated names")
-
     parser.add_argument('-x', '--execute', default=False, action="store_true", help="Execute flows.")
-
-    parser.add_argument('--keep-dirs', action="store_true", default=False,
-                        help="Do not remove flowdirectories.")
-
+    parser.add_argument('--keep-dirs', action="store_true", default=False, help="Do not remove flow directories.")
     parser.add_argument('-b', '--bail-on-failure', default=False, help="Exit at the first error.")
-
-    #parser.add_argument("scripts", nargs="+",help="List of scripts to be executed")
 
     options = parser.parse_args()
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    cli.set_loglevel(options.loglevel)
 
     # Find scripts.
     if options.exclude:
@@ -85,7 +74,7 @@ def main():
             retcode += ret
 
             if ret != 0:
-                e = "python %s returned retcode !=0" % script
+                e = "python %s returned retcode != 0" % script
                 print(e)
                 errors.append(e)
                 if options.bail_on_failure:

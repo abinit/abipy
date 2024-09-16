@@ -11,7 +11,6 @@ from collections.abc import Iterable, Iterator, Mapping
 from typing import Union
 
 import numpy as np
-#import ruamel.yaml as yaml
 from monty.collections import AttrDict
 from monty.functools import lazy_property
 from tabulate import tabulate
@@ -118,7 +117,7 @@ class ScfCycle(Mapping):
     It essentially consists of a dictionary mapping string
     to list of floats containing the data at the different iterations.
 
-    .. attributes::
+    .. attribute::
 
         num_iterations: Number of iterations performed.
     """
@@ -374,7 +373,7 @@ class Relaxation(Iterable):
     """
     A list of :class:`GroundStateScfCycle` objects.
 
-    .. attributes::
+    .. attribute::
 
         num_iterations: Number of iterations performed.
 
@@ -700,7 +699,7 @@ class YamlTokenizer(Iterator):
 
         raise StopIteration("Cannot find next YAML document in %s" % self.filename)
 
-    def all_yaml_docs(self):
+    def all_yaml_docs(self) -> list:
         """
         Returns a list with all the YAML docs found in stream.
         Seek the stream before returning.

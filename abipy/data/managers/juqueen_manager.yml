@@ -2,7 +2,7 @@ batch: &batch
    num_nodes: 128
    sockets_per_node: 1
    cores_per_socket: 16
-   mem_per_node: 128Gb
+   mem_per_node: 128GB
 
 job: &job
     mpi_runner: runjob
@@ -48,7 +48,7 @@ qadapters:
        num_nodes: 1
        sockets_per_node: 1
        cores_per_socket: 1
-       mem_per_node: 12Gb
+       mem_per_node: 12GB
     job:
         #mpi_runner: runjob
         shell_env:

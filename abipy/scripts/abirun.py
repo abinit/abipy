@@ -683,7 +683,7 @@ Default: o
     # Subparser for tar.
     p_tar = subparsers.add_parser('tar', parents=[copts_parser], help="Create tarball file.")
     p_tar.add_argument("-s", "--max-filesize", default=None,
-        help="Exclude file whose size > max-filesize bytes. Accept integer or string e.g `1Mb`.")
+        help="Exclude file whose size > max-filesize bytes. Accept integer or string e.g `1MB`.")
     p_tar.add_argument("-e", "--exclude-exts", default=None, type=parse_strings,
         help="Exclude file extensions. Accept string or comma-separated strings. Ex: -eWFK or --exclude-exts=WFK,GSR")
     p_tar.add_argument("-d", "--exclude-dirs", default=None, type=parse_strings,
@@ -702,6 +702,10 @@ Default: o
 
     # Subparser for debug_reset.
     p_debug_reset = subparsers.add_parser('debug_reset', parents=[copts_parser, flow_selector_parser],
+        help="Analyze error files and log files produced by reset tasks for possible error messages.")
+
+    # Subparser for reset_jobids.
+    p_reset_jobids = subparsers.add_parser('reset_jobids', parents=[copts_parser, flow_selector_parser],
         help="Analyze error files and log files produced by reset tasks for possible error messages.")
 
     # Subparser for clone_task.
@@ -1035,7 +1039,6 @@ def main():
 
         nlaunch, excs = 0, []
         for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
-            #if options.verbose:
             print("Will try to restart %s, with status %s" % (task, task.status))
             try:
                 fired = task.restart()
@@ -1121,10 +1124,8 @@ def main():
         df = time_parser.summarize()
         abilab.print_dataframe(df, title="output of time_parse.summarize():")
 
-    #elif options.command == "qstat":
-    #    print("Warning: this option is still under development.")
-    #    #for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
-    #    for task in flow.iflat_tasks():
+    #elif options.command == "squeue":
+    #    for task in flow.select_tasks(nids=options.nids, wslice=options.wslice):
     #        if not task.qjob: continue
     #        print("qjob", task.qjob)
     #        print("info", task.qjob.get_info())
@@ -1284,6 +1285,26 @@ def main():
 
     elif options.command == "debug_reset":
         flow_debug_reset_tasks(flow, nids=select_nids(flow, options), verbose=options.verbose)
+
+    elif options.command == "reset_jobids":
+        # Make sure we have slurm.
+        qtype = flow[0][0].manager.qadapter.QTYPE.lower()
+        if qtype != "slurm":
+            cprint("reset_jobids is only available for slurm", color="magenta", end="", flush=True)
+            return 1
+
+        # Call squeue to get list of job infos and extract slurm_jobs
+        from abipy.flowtk.qutils import slurm_get_jobs
+        slurm_jobs = slurm_get_jobs()
+
+        for task in flow.iflat_tasks(status=options.task_status, nids=select_nids(flow, options)):
+            qid = task.queue_id
+            if qid is None: continue
+            if qid not in slurm_jobs and not task.is_completed:
+                print("Task:", task, "seeem to have been killed and will be automatically reset.")
+                task.reset()
+
+        return flow.build_and_pickle_dump()
 
     # TODO
     #elif options.command == "debug_restart":

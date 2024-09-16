@@ -3,19 +3,19 @@ Def: &Def
    num_nodes: 672
    sockets_per_node: 2
    cores_per_socket: 4
-   mem_per_node: 24 Gb
+   mem_per_node: 24 GB
 
 ObanAMD: &ObanAMD
    num_nodes: 6
    sockets_per_node: 4
    cores_per_socket: 8
-   mem_per_node: 128 Gb
+   mem_per_node: 128 GB
 
 ObanIntel: &ObanIntel
    num_nodes: 3
    sockets_per_node: 4
    cores_per_socket: 8
-   mem_per_node: 256 Gb
+   mem_per_node: 256 GB
 
 # Environment, modules, and parameters used to launch jobs.
 job: &job

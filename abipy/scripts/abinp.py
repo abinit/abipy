@@ -11,27 +11,55 @@ import os
 import argparse
 import abipy.tools.cli_parsers as cli
 
+from typing import Type
 from monty.termcolor import cprint
 from monty.functools import prof_main
+from pymatgen.io.vasp.sets import DictSet
 from abipy import abilab
 from abipy.abio import factories
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.ddb import DdbFile
 
 
-def get_structure(options):
+def vasp_dict_set_cls(s: str | DictSet) -> Type | list[str]:
+    """
+    Return a subclass of DictSect from string `s`.
+    If s == "__all__", return list with all DictSet subclasses supported by pymatgen.
+    """
+    from inspect import isclass
+    from pymatgen.io.vasp import sets
+    def is_dict_set(key: str) -> bool:
+        return isclass(obj := getattr(sets, key)) and issubclass(obj, DictSet)
+
+    valid_keys = [key for key in dir(sets) if is_dict_set(key)]
+
+    if s == "__all__":
+        return valid_keys
+
+    if isinstance(s, DictSet):
+        return s
+
+    if s not in valid_keys:
+        raise ValueError(f"Unknown DictSet {s}, must be one of {valid_keys}")
+
+    return getattr(sets, s)
+
+
+ALL_VASP_DICT_SETS = vasp_dict_set_cls("__all__")
+
+
+def _get_structure(options):
     """Return structure object either from file or from the material project database."""
     if os.path.exists(options.filepath):
         return abilab.Structure.from_file(options.filepath)
 
     elif options.filepath.startswith("mp-"):
-        return abilab.Structure.from_mpid(options.filepath, final=True,
-                                          api_key=options.mapi_key, endpoint=options.endpoint)
+        return abilab.Structure.from_mpid(options.filepath)
 
     raise TypeError("Don't know how to extract structure object from %s" % options.filepath)
 
 
-def get_pseudotable(options):
+def _get_pseudotable(options):
     """Return PseudoTable object."""
     if options.pseudos is not None:
         from abipy.flowtk import PseudoTable
@@ -39,7 +67,6 @@ def get_pseudotable(options):
 
     try:
         from pseudo_dojo import OfficialTables
-
         dojo_tables = OfficialTables()
         if options.usepaw:
             raise NotImplementedError("PAW table is missing")
@@ -55,7 +82,6 @@ def get_pseudotable(options):
         print("PseudoDojo package not installed. Please install it with `pip install pseudo_dojo`")
         print("or use `--pseudos FILE_LIST` to specify the pseudopotentials to use.")
         print("Using internal HGH_TABLE!!!!")
-        #raise exc
 
     return pseudos
 
@@ -78,13 +104,12 @@ def build_abinit_input_from_file(options, **abivars):
     """
     from abipy.abio.abivars import AbinitInputFile
     abifile = AbinitInputFile(options.filepath)
-    pseudos = get_pseudotable(options)
+    pseudos = _get_pseudotable(options)
     jdtset = options.jdtset
     # Get vars from input
     abi_kwargs = abifile.datasets[jdtset - 1].get_vars()
     if abifile.ndtset != 1:
-        cprint("# Input file contains %s datasets, will select jdtset index %s:" %
-               (abifile.ndtset, jdtset), "yellow")
+        cprint("# Input file contains %s datasets, will select jdtset index %s:" % (abifile.ndtset, jdtset), color="yellow")
         abi_kwargs["jdtset"] = jdtset
 
     # Add input abivars (if any).
@@ -173,7 +198,7 @@ def abinp_phperts(options):
 def abinp_gs(options):
     """Build Abinit input for ground-state calculation."""
     structure = abilab.Structure.from_file(options.filepath)
-    pseudos = get_pseudotable(options)
+    pseudos = _get_pseudotable(options)
     gsinp = factories.gs_input(structure, pseudos,
                                kppa=options.kppa, ecut=None, pawecutdg=None, scf_nband=None,
                                accuracy="normal", spin_mode=options.spin_mode,
@@ -184,8 +209,8 @@ def abinp_gs(options):
 
 def abinp_ebands(options):
     """Build Abinit input for band structure calculations."""
-    structure = get_structure(options)
-    pseudos = get_pseudotable(options)
+    structure = _get_structure(options)
+    pseudos = _get_pseudotable(options)
     multi = factories.ebands_input(structure, pseudos,
                  kppa=options.kppa, nscf_nband=None, ndivsm=15,
                  ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode=options.spin_mode,
@@ -200,8 +225,8 @@ def abinp_ebands(options):
 
 def abinp_phonons(options):
     """Build Abinit input for phonon calculations."""
-    structure = get_structure(options)
-    pseudos = get_pseudotable(options)
+    structure = _get_structure(options)
+    pseudos = _get_pseudotable(options)
 
     gs_inp = factories.gs_input(structure, pseudos,
                                kppa=options.kppa, ecut=None, pawecutdg=None, scf_nband=None,
@@ -220,8 +245,8 @@ def abinp_phonons(options):
 
 def abinp_g0w0(options):
     """Generate input files for G0W0 calculations."""
-    structure = get_structure(options)
-    pseudos = get_pseudotable(options)
+    structure = _get_structure(options)
+    pseudos = _get_pseudotable(options)
     nscf_nband, ecuteps, ecutsigx = 100, 4, 12
 
     multi = factories.g0w0_with_ppmodel_inputs(structure, pseudos,
@@ -250,10 +275,21 @@ def abinp_anaph(options):
     return finalize(inp, options)
 
 
+def abinp_vasp(options):
+    """
+    Build VASP input files from a FILE defining the structure.
+    """
+    structure = abilab.Structure.from_file(options.filepath)
+    cls = vasp_dict_set_cls(options.dict_set)
+    cprint(f"Generating VASP input using {cls}. Use -d option to change settings.", color="yellow")
+    cls(structure).write_input(".")
+    return 0
+
+
 def abinp_wannier90(options):
     """
     Build wannier90 template input file from Abinit input/output file.
-    possibly with electron bands
+    possibly with electron bands.
     """
     from abipy.wannier90.win import Wannier90Input
     inp = Wannier90Input.from_abinit_file(options.filepath)
@@ -268,6 +304,15 @@ def abinp_lobster(options):
     """
     lobinp = abilab.LobsterInput.from_dir(os.path.dirname(options.dirpath))
     print(lobinp)
+
+
+def abinp_slurm(options):
+    """
+    Print template for Slurm submmission script
+    """
+    from abipy.flowtk.qutils import get_slurm_template
+    body = "srun abinit run.abi > run.log 2> run.err"
+    print(get_slurm_template(body))
 
 
 def get_epilog():
@@ -308,8 +353,10 @@ Usage example:
 # Other Codes
 #############
 
-    abinp.py wannier90 FILE         # Build and print wannier90 input file from FILE with structure.
+    abinp.py vasp FILE              # Build and write Vasp input files starting from a FILE with structure.
+    abinp.py wannier90 FILE         # Build and print wannier90 input file starting from a FILE with structure.
     abinp.py lobster .              # Build and print lobster input file from directory.
+    abinp.py slurm                  # Print template for Slurm submission script
 
 
 Note that one can use pass any file providing a pymatgen structure
@@ -330,11 +377,6 @@ def get_parser(with_epilog=False):
         help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    copts_parser.add_argument("--mapi-key", default=None,
-        help="Pymatgen MAPI_KEY used if mp identifier is used to select structure.\n"
-             "Use value in .pmgrc.yaml if not specified.")
-    copts_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
-
     copts_parser.add_argument("-m", '--mnemonics', default=False, action="store_true",
         help="Print brief description of input variables in the input file.")
     copts_parser.add_argument('--usepaw', default=False, action="store_true",
@@ -413,11 +455,19 @@ def get_parser(with_epilog=False):
     # Subparser for anaph command.
     p_anaph = subparsers.add_parser('anaph', parents=inpgen_parsers, help=abinp_anaph.__doc__)
 
+    # Subparser for vasp command.
+    p_vasp = subparsers.add_parser('vasp', parents=[path_selector], help=abinp_vasp.__doc__)
+    p_vasp.add_argument('--dict-set', default="MPStaticSet", type=str,
+                        help="VaspDictSet. Default: MPStaticSet. For further info see pymatgen.io.vasp.sets",
+                        choices=ALL_VASP_DICT_SETS)
+
     # Subparser for wannier90 command.
     p_wannier90 = subparsers.add_parser('wannier90', parents=[path_selector], help=abinp_wannier90.__doc__)
 
     # Subparser for lobster command.
     p_lobster = subparsers.add_parser('lobster', parents=[dir_selector], help=abinp_lobster.__doc__)
+
+    p_slurm = subparsers.add_parser('slurm', help=abinp_slurm.__doc__)
 
     return parser
 

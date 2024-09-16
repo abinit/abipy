@@ -12,7 +12,8 @@ import panel.widgets as pnw
 
 from monty.termcolor import cprint
 from monty.string import list_strings
-from abipy.panels.core import AbipyParameterized, depends_on_btn_click, mpl, dfc, ButtonContext, Loading
+from abipy.panels.core import AbipyParameterized, depends_on_btn_click, mpl, dfc, ply, ButtonContext, Loading
+from abipy.tools.numtools import build_mesh
 from abipy.ppcodes.ppgen import OncvGenerator
 #from abipy.ppcodes.oncv_parser import OncvParser
 
@@ -481,28 +482,7 @@ def run_psgen(psgen: OncvGenerator, data: dict) -> dict:
     data.update(**d)
     return data
 
-
-
-def build_mesh(x0: float, num: int, step: float, direction: str) -> list:
-    """
-    Generate a linear mesh of step `step` that is centered on x0 if
-    directions == "centered" or a mesh that starts/ends at x0 if direction is `>`/`<`.
-    """
-
-    if direction == "centered":
-        start = x0 - num * step
-        return [start + i * step for i in range(2 * num + 1)]
-    elif direction in (">", "<"):
-        start = x0
-        if direction == "<": step = -abs(step)
-        return sorted([start + i * step for i in range(num)])
-    else:
-        raise ValueError(f"Invalid direction: `{direction}`")
-
-
-
 class OncvGui(AbipyParameterized):
-
     calc_type = param.ObjectSelector(default="scalar-relativistic",
                                      objects=["scalar-relativistic", "fully-relativistic", "non-relativistic"],
                                      label="Relativistic effects")
@@ -542,28 +522,28 @@ class OncvGui(AbipyParameterized):
     rcfact_dir = param.Selector(["centered", ">", "<"])
 
     ace_theme = param.ObjectSelector(default="chrome",
-                                     objects=pnw.Ace.param.theme.objects,
-                                     doc="Theme of the editor")
+                                    objects=pnw.CodeEditor.param.theme.objects,
+                                    doc="Theme of the editor")
 
     history_idx = param.Integer(default=-1, label="History index")
 
     @classmethod
-    def from_file(cls, path: str) -> OncvGui:
+    def from_file(cls, path: str, plotlyFlag: bool) -> OncvGui:
         """
         Build an instance from a file with the oncvpsp input variables.
         """
-        return cls(oncv_input=OncvInput.from_file(path), in_filepath=path)
+        return cls(oncv_input=OncvInput.from_file(path), plotlyFlag=plotlyFlag, in_filepath=path)
 
-    def __init__(self, oncv_input, in_filepath="", **params):
+    def __init__(self, oncv_input, plotlyFlag, in_filepath="", **params):
         super().__init__(**params)
 
         self.ace_kwargs = dict(sizing_mode='stretch_both', print_margin=False, language='text', height=600,
-                          theme="chrome",
-                          #theme="dracula",
-                          #max_length=150,
-                          )
+                            theme="chrome",
+                            #theme="dracula",
+                            #max_length=150,
+                            )
 
-        self.input_ace = pnw.Ace(value=str(oncv_input), **self.ace_kwargs)
+        self.input_ace = pnw.CodeEditor(value=str(oncv_input), **self.ace_kwargs)
 
         # Add annotated example for documentation purposes.
         self.annotated_example = pn.pane.HTML(f"<pre><code> {GE_ANNOTATED} </code></pre>")
@@ -586,6 +566,8 @@ class OncvGui(AbipyParameterized):
         #self.history_btn.on_click(self.on_history_btn)
 
         self.rc_qcut_btn = pnw.Button(name="Execute", button_type='primary')
+
+        self.plotlyFlag = plotlyFlag
 
     @param.depends("ace_theme")
     def change_ace_theme(self):
@@ -638,7 +620,7 @@ class OncvGui(AbipyParameterized):
         main = pn.Column(
             pn.Row(
                 self.pws_col(["calc_type", "max_nprocs",
-                              "dpi", "ace_theme", "execute_btn"]),
+                                "dpi", "ace_theme", "execute_btn"]),
                 self.input_ace,
             ),
             pn.Card(self.annotated_example, title='Annotated example', collapsed=True,
@@ -665,9 +647,9 @@ class OncvGui(AbipyParameterized):
     def get_history_view(self) -> pn.Row:
         return pn.Row(
             self.pws_col(["## History",
-                          "history_idx",
-                          "history_btn",
-                         ]),
+                            "history_idx",
+                            "history_btn",
+                            ]),
             self.on_history_btn
         )
 
@@ -679,7 +661,7 @@ class OncvGui(AbipyParameterized):
         if hist_len == 0 or idx >= hist_len:
             return pn.Column(f"hist_len == {hist_len}")
 
-        ace_hist = pnw.Ace(value=self.input_history[idx], **self.ace_kwargs)
+        ace_hist = pnw.CodeEditor(value=self.input_history[idx], **self.ace_kwargs)
 
         fromlines = self.input_history[idx].splitlines()
         tolines = self.input_ace.value.splitlines()
@@ -813,13 +795,13 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             i0, qcut0 = oncv_input.find_lparam(l, "qcut")
 
             # Define list of qc to be tested and build list of OncvGenerator.
-            qcut_values = build_mesh(qcut0, self.qcut_num, self.qcut_step, self.qcut_dir)
+            qcut_values, _ = build_mesh(qcut0, self.qcut_num, self.qcut_step, self.qcut_dir)
             psgens = []
 
             try:
                 for qcut in qcut_values:
                     oncv_input.lparams[i0].qcut = qcut
-                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
             finally:
                 # Restore the initial value.
                 oncv_input.lparams[i0].qcut = qcut0
@@ -881,13 +863,13 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             # Define list of qc to be tested and build list of OncvGenerator.
             i0, debl0 = oncv_input.find_lparam(l, "debl")
-            debl_values = build_mesh(debl0, self.debl_num, self.debl_step, self.debl_dir)
+            debl_values, _ = build_mesh(debl0, self.debl_num, self.debl_step, self.debl_dir)
             psgens = []
 
             try:
                 for debl in debl_values:
                     oncv_input.lparams[i0].debl = debl
-                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
             finally:
                 # Restore the initial value.
                 oncv_input.lparams[i0].debl = debl0
@@ -922,13 +904,13 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             # Define list of qc to be tested and build list of OncvGenerator.
             rc5 = oncv_input.rc5
-            rc5_values = build_mesh(rc5, self.rc5_num, self.rc5_step, self.rc5_dir)
+            rc5_values, _ = build_mesh(rc5, self.rc5_num, self.rc5_step, self.rc5_dir)
             psgens = []
 
             try:
                 for new_rc in rc5_values:
                     oncv_input.rc5 = new_rc
-                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
             finally:
                 # Restore the initial value.
                 oncv_input.rc5 = rc5
@@ -963,13 +945,13 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             # Define list of qc to be tested and build list of OncvGenerator.
             dvloc0 = oncv_input.dvloc0
-            dvloc_values = build_mesh(dvloc0, self.dvloc0_num, self.dvloc0_step, self.dvloc0_dir)
+            dvloc_values, _ = build_mesh(dvloc0, self.dvloc0_num, self.dvloc0_step, self.dvloc0_dir)
             psgens = []
 
             try:
                 for new_dvloc in dvloc_values:
                     oncv_input.dvloc0 = new_dvloc
-                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
             finally:
                 # Restore the initial value.
                 oncv_input.dvloc0 = dvloc0
@@ -1006,13 +988,13 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
 
             # Define list of qc to be tested and build list of OncvGenerator.
             i0, rc0 = oncv_input.find_lparam(l, "rc")
-            rc_values = build_mesh(rc0, self.rc_num, self.rc_step, self.rc_dir)
+            rc_values, _ = build_mesh(rc0, self.rc_num, self.rc_step, self.rc_dir)
             psgens = []
 
             try:
                 for rc in rc_values:
                     oncv_input.lparams[i0].rc = rc
-                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
             finally:
                 # Restore the initial value.
                 oncv_input.lparams[i0].rc = rc0
@@ -1051,8 +1033,8 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             rcfact0 =  oncv_input.rcfact
 
             # Define list of values to be tested and build list of OncvGenerator.
-            fcfact_values = build_mesh(fcfact0, self.fcfact_num, self.fcfact_step, self.fcfact_dir)
-            rcfact_values = build_mesh(rcfact0, self.rcfact_num, self.rcfact_step, self.rcfact_dir)
+            fcfact_values, _ = build_mesh(fcfact0, self.fcfact_num, self.fcfact_step, self.fcfact_dir)
+            rcfact_values, _ = build_mesh(rcfact0, self.rcfact_num, self.rcfact_step, self.rcfact_dir)
 
             psgens = []
             tasks = []
@@ -1064,7 +1046,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
                     try:
                         oncv_input.fcfact = fc
                         oncv_input.rcfact = rc
-                        psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                        psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
                         tasks.append((psgens[-1], {"fcfact": fc, "rcfact": rc}))
                         titles.append(f"fcfact: {fc}, rcfact: {rc}")
                     finally:
@@ -1077,7 +1059,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
                 for fc in fcfact_values:
                     try:
                         oncv_input.fcfact = fc
-                        psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                        psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
                         tasks.append((psgens[-1], {"fcfact": fc}))
                         titles.append(f"fcfact: {fc}")
                     finally:
@@ -1125,7 +1107,7 @@ The present values of rc_l are: {rc_l}
         wbox = pn.WidgetBox(menu_button,
                             *[self.param[k] for k in ("qcut_num", "qcut_step", "qcut_dir")],
                             *[self.param[k] for k in ("rc_num", "rc_step", "rc_dir")],
-                             help_str)
+                            help_str)
 
         return pn.Row(wbox, self.rc_qcut_out_area, sizing_mode="stretch_width")
 
@@ -1141,11 +1123,11 @@ The present values of rc_l are: {rc_l}
 
             # Define list of qc to be tested and build list of OncvGenerator.
             i0, rc0 = oncv_input.find_lparam(l, "rc")
-            rc_values = build_mesh(rc0, self.rc_num, self.rc_step, self.rc_dir)
+            rc_values, _ = build_mesh(rc0, self.rc_num, self.rc_step, self.rc_dir)
 
             # Define list of qc to be tested and build list of OncvGenerator.
             i0, qcut0 = oncv_input.find_lparam(l, "qcut")
-            qcut_values = build_mesh(qcut0, self.qcut_num, self.qcut_step, self.qcut_dir)
+            qcut_values, _ = build_mesh(qcut0, self.qcut_num, self.qcut_step, self.qcut_dir)
 
             def rq_prod():
                 return itertools.product(rc_values, qcut_values)
@@ -1155,7 +1137,7 @@ The present values of rc_l are: {rc_l}
                 for rc, qcut in rq_prod():
                     oncv_input.lparams[i0].rc = rc
                     oncv_input.lparams[i0].qcut = qcut
-                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
             finally:
                 # Restore the initial value.
                 oncv_input.lparams[i0].rc = rc0
@@ -1171,7 +1153,7 @@ The present values of rc_l are: {rc_l}
                             f"## Rc/qcut optimization for l: {l}. Click the icon to update the input",
                             dfw,
                             ),
-                         )
+                        )
 
             col = pn.Column(head, sizing_mode="stretch_width")
 
@@ -1189,7 +1171,7 @@ The present values of rc_l are: {rc_l}
         """
         with ButtonContext(event.obj), Loading(self.out_area):
             oncv_input = self.get_oncv_input()
-            psgen = OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type)
+            psgen = OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False)
             print("Running in workdir:", psgen.workdir)
             psgen.start()
             retcode = psgen.wait()
@@ -1217,7 +1199,6 @@ The present values of rc_l are: {rc_l}
             self._update_out_area(psgen, oncv_input)
 
     def _update_out_area(self, psgen, oncv_input: OncvInput) -> None:
-
         with Loading(self.out_area):
             #self.psgen_to_save = psgen
             plotter = psgen.parser.get_plotter()
@@ -1226,7 +1207,11 @@ The present values of rc_l are: {rc_l}
                 self.out_area.objects = pn.Column("## Plotter is None")
                 return
 
-            _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
+            if self.plotlyFlag:
+                _m = functools.partial(ply, with_divider=False)
+
+            else:
+                _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
 
             save_btn = pnw.Button(name="Save output", button_type='primary')
             save_btn.on_click(self.on_save_btn)
@@ -1236,26 +1221,26 @@ The present values of rc_l are: {rc_l}
                 pn.layout.Divider(),
                 "## Pseudized Wavefunctions",
                 pn.Row(_m(plotter.plot_radial_wfs(show=False)),
-                       self.get_rc_widgets(oncv_input)),
-                pn.Row(_m(plotter.plot_radial_wfs(what="scattering_states", show=False))),
+                    self.get_rc_widgets(oncv_input), height=600),
+                pn.Row(_m(plotter.plot_radial_wfs(what="scattering_states", show=False)), height=600),
                 pn.layout.Divider(),
                 "## Logder and convergence profile",
                 pn.Row(_m(plotter.plot_atanlogder_econv(show=False)),
-                       self.get_qcut_widgets(oncv_input),
-                       self.get_debl_widgets(oncv_input)),
+                    self.get_qcut_widgets(oncv_input), height=500),
+                pn.Row(pn.Spacer(), self.get_debl_widgets(oncv_input), align='end', height=300),
                 pn.layout.Divider(),
                 "## Pseudized local part",
                 pn.Row(_m(plotter.plot_potentials(show=False)),
-                       self.get_rc5_widgets(oncv_input),
-                       self.get_dvloc0_widgets(oncv_input)),
+                    self.get_rc5_widgets(oncv_input), height=400),
+                pn.Row(pn.Spacer(), self.get_dvloc0_widgets(oncv_input), align="end", height=300),
                 pn.layout.Divider(),
                 "## Model core charge",
                 pn.Row(_m(plotter.plot_densities(show=False)),
-                       self.get_rhomodel_widgets(oncv_input)),
-                pn.Row(_m(plotter.plot_den_formfact(show=False))),
+                    self.get_rhomodel_widgets(oncv_input), height=600),
+                pn.Row(_m(plotter.plot_den_formfact(show=False)), height=600),
                 pn.layout.Divider(),
                 "## Projectors",
-                pn.Row(_m(plotter.plot_projectors(show=False))),
+                pn.Row(_m(plotter.plot_projectors(show=False)), height=600),
                 pn.layout.Divider(),
             ]
 

@@ -15,20 +15,19 @@ from tabulate import tabulate
 from monty.string import marquee
 from monty.functools import prof_main
 from monty.termcolor import cprint
-from pymatgen.io.vasp.outputs import Xdatcar
-from abipy import abilab
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.kpoints import Ktables, Kpoint, IrredZone
 from abipy.core.structure import diff_structures
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.xsf import xsf_write_structure
 from abipy.abio import factories
+from abipy import abilab
 
 
-def save_structure(structure, options):
+def save_structure(structure, options) -> None:
     """Save structure to file."""
     if not options.savefile: return
-    print("Saving structure to %s" % options.savefile)
+    print("Saving structure to file:", options.savefile)
     if os.path.exists(options.savefile):
         backup = options.savefile + ".bkp"
         print("%s already exists. Saving backup copy to: %s" % (options.savefile, backup))
@@ -37,7 +36,7 @@ def save_structure(structure, options):
     structure.to(filename=options.savefile)
 
 
-def check_ordered_structure(structure):
+def check_ordered_structure(structure) -> None:
     """Print a warning and sys.exit 1 if structure is disordered."""
     if not structure.is_ordered:
         cprint("""
@@ -75,6 +74,7 @@ Usage example:
                                               (Use convert --help to get list of formats supported)
   abistruct.py convert out_HIST.nc         => Read FINAL structure from the HIST file and
                                               print the corresponding ABINIT variables.
+  abistruct.py traj2xdatcar out.traj       => Convert ASE trajectory file `out.traj` into VASP XDATCAR.
   abistruct.py supercell FILE -s 2 2 1     => Read structure from FILE and build [2, 2, 1] supercell,
                                               print new structure using --format (default abivars).
 ################
@@ -130,7 +130,7 @@ Usage example:
                                               `Ir-O-*` for wildcard pattern matching.
                                               Print info and Abinit input files. Use e.g. `-f POSCAR`
                                               to change output format. `-f None` to disable structure output.
-  abistruct.py mp_pd FILE-or-elements      => Generate phase diagram with entries from the Materials Project.
+
   abistruct.py mp_ebands FILE             => Fetch electron band structure from MP database. Print gaps.
                                              Accept FILE with structure if ebands from structure is wanted
                                              or mp id e.g. "mp-149 or list of elements e.g `Li-Fe-O` or chemical formula.
@@ -146,7 +146,7 @@ def get_parser(with_epilog=False):
     # Parent parser for commands that need to know the filepath
     path_selector = argparse.ArgumentParser(add_help=False)
     path_selector.add_argument('filepath', nargs="?",
-        help="File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR ...)")
+        help="File with the crystalline structure(s) (ABINIT Netcdf files, CIF, ABINIT input/output files, POSCAR, ASE trajectory ...)")
 
     # Parent parser for commands supporting (jupyter notebooks)
     nb_parser = argparse.ArgumentParser(add_help=False)
@@ -197,12 +197,14 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
         group = parser.add_mutually_exclusive_group()
         group.add_argument('--no-primitive', default=False, action='store_true', help="Do not enforce primitive cell.")
         group.add_argument('--primitive-standard', default=False, action='store_true',
-            help="Enforce primitive standard cell.")
+                           help="Enforce primitive standard cell.")
 
-    supported_formats = "(abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, None)"
+    supported_formats = "(abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, lammps, fleur-inpgen, None)"
 
     def add_format_arg(parser, default, option=True, formats=None):
-        """Add --format option to a parser with default value `default`."""
+        """
+        Add --format option to a parser with default value `default`.
+        """
         formats = supported_formats if formats is None else formats
         if option:
             parser.add_argument("-f", "--format", default=default, type=str,
@@ -237,6 +239,17 @@ file that does not have enough significant digits.""")
         help="Convert structure to the specified format.")
     add_format_arg(p_convert, default="cif")
 
+    p_has_quad = subparsers.add_parser('has_quad', parents=[copts_parser, path_selector],
+        help="Detect whether structure has non-zero dynamical quadrupoles.")
+
+    # Subparser for supercell command.
+    p_traj2xdatcar = subparsers.add_parser('traj2xdatcar', parents=[copts_parser, path_selector],
+        help="Generate XDATCAR file from ASE trajectory file.")
+    p_traj2xdatcar.add_argument("-o", "--output", type=str, default="XDATCAR", help="Name of output XDATCAR. Default: XDATCAR")
+
+    p_traj2xdatcar.add_argument("-f", "--force", default=False, action="store_true", help="Allow output file overwring")
+
+    # Subparser for print command.
     p_print = subparsers.add_parser('print', parents=[copts_parser, path_selector],
                                     help="Print Structure to terminal.")
 
@@ -364,6 +377,7 @@ closest points in this particular structure. This is usually what you want in a 
     p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
         help="Read structure from file, generate k-path for band-structure calculations.")
     add_format_arg(p_kpath, default="abinit", formats=["abinit", "wannier90", "siesta"])
+
     # Subparser for bz.
     p_bz = subparsers.add_parser('bz', parents=[copts_parser, path_selector],
         help="Read structure from file, plot Brillouin zone with matplotlib.")
@@ -428,9 +442,6 @@ closest points in this particular structure. This is usually what you want in a 
 
     # Options for commands accessing the materials project database.
     mp_rest_parser = argparse.ArgumentParser(add_help=False)
-    mp_rest_parser.add_argument("--mapi-key", default=None,
-        help="Pymatgen PMG_MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
-    mp_rest_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
     mp_rest_parser.add_argument("-b", "--browser", default=False, action='store_true',
         help="Open materials-project webpages in browser")
 
@@ -453,17 +464,6 @@ closest points in this particular structure. This is usually what you want in a 
     p_mpsearch.add_argument("-s", "--select-spgnum", type=int, default=None,
         help="Select structures with this space group number.")
     add_format_arg(p_mpsearch, default="abivars")
-
-    # Subparser for mp_pd command.
-    p_mp_pda = subparsers.add_parser('mp_pd', parents=[mp_rest_parser, copts_parser],
-        help=("Generate phase diagram with entries from the Materials Project. "
-              "Requires internet connection and PMG_MAPI_KEY"))
-    p_mp_pda.add_argument("file_or_elements", type=str, default=None,
-        help="FILE with structure or elements e.g., Li-Fe-O).")
-    p_mp_pda.add_argument("-u", "--show-unstable", type=int, default=0,
-        help="""Whether unstable phases will be plotted as
-well as red crosses. If a number > 0 is entered, all phases with
-ehull < show_unstable will be shown.""")
 
     # Subparser for mp_ebands command.
     p_mp_ebands = subparsers.add_parser('mp_ebands', parents=[copts_parser, mp_rest_parser],
@@ -493,12 +493,26 @@ ehull < show_unstable will be shown.""")
     p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
         help="Read structures from HIST.nc or XDATCAR. Print structures in Xcrysden AXSF format to stdout.")
 
+    # Subparser for chemenv command.
+    p_chemenv = subparsers.add_parser('chemenv', parents=[copts_parser, path_selector],
+        help="Use ChemEnv to analyze chemical coordination environments. " +
+             "See D. Waroquiers, at al. Acta Cryst B 2020, 76, 683–695.")
+    p_chemenv.add_argument("-mdf", '--maximum-distance-factor', default=1.41,
+                           type=float, help="Maximum distance factor. Default 1.41.")
+    p_chemenv.add_argument("-dc", '--distance-cutoff', default=1.4, type=float,
+                           help="Distance cutoff in Ang. Default: 1.4")
+    p_chemenv.add_argument("-ac", '--angle-cutoff', default=0.3, type=float,
+                           help="Angle cutoff. Default: 0.3")
+    p_chemenv.add_argument('-mw', '--multi-weights', default=False, action="store_true",
+                           help='Use MultiWeightsChemenvStrategy instead of SimplestChemenvStrategy.')
+    p_chemenv.add_argument("-i", "--only-indices", nargs="+", default=None, type=int,
+                           help="List of site indices to analyze e.g. `-i 0 2`. Default: None i.e. all sites.")
+    p_chemenv.add_argument("-s", "--only-atoms", nargs="+", default=None, type=str,
+                           help="List of atomic symbols to analyze e.g. `-s Si O`. Default: None i.e. all sites.")
     return parser
 
 
 def serve_kwargs_from_options(options) -> dict:
-
-    #address = "localhost"
     if options.no_browser:
         print("""
 Use:
@@ -588,6 +602,23 @@ def main():
         if fmt == "cif" and options.filepath.endswith(".cif"): fmt = "abivars"
         print(abilab.Structure.from_file(options.filepath).convert(fmt=fmt))
 
+    elif options.command == "has_quad":
+        structure = abilab.Structure.from_file(options.filepath)
+        print("has_dynamical_quadrupoles:", not structure.has_zero_dynamical_quadrupoles)
+
+    elif options.command == "traj2xdatcar":
+        from ase.io import read
+        from ase.io.vasp import write_vasp_xdatcar
+
+        print(f"Converting ASE trajectory into XDATCAR format. Ouput file: {options.output}")
+        # Load the trajectory file using ASE
+        trajectory = read(options.filepath, index=':')
+        if not options.force and os.path.exists(options.output):
+            raise RuntimeError(f"Cannot overwrite pre-existent file: {options.output}! Use -f to force overwriting.")
+
+        # Write the trajectory to an XDATCAR file
+        write_vasp_xdatcar(options.output, trajectory)
+
     elif options.command == "print":
         print(abilab.Structure.from_file(options.filepath).to_string(verbose=options.verbose))
 
@@ -617,9 +648,8 @@ def main():
                                            primitive=not options.no_primitive, primitive_standard=options.primitive_standard)
         index = [options.filepath, "abisanitized"]
         dfs = abilab.dataframes_from_structures([structure, sanitized], index=index, with_spglib=True)
-
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
-        abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
+        abilab.print_dataframe(dfs.coords, title="Atomic positions in frac. coords. (columns give the site index):")
 
         if not options.verbose:
             print("\nUse -v for more info")
@@ -638,8 +668,6 @@ def main():
                 print(sanitized)
 
         # Save file.
-        #print("sanitized structure\n", sanitized)
-        #print("lattice matrix:\n", sanitized.lattice.matrix)
         save_structure(sanitized, options)
 
     elif options.command == "primitive":
@@ -700,7 +728,7 @@ def main():
 
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
         if options.verbose:
-            abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
+            abilab.print_dataframe(dfs.coords, title="Atomic positions in frac. coords (columns give the site index):")
 
         if not options.verbose:
             print("\nUse -v for more info")
@@ -876,7 +904,7 @@ def main():
         print(structure.spget_summary(verbose=options.verbose))
         print("\n")
 
-        print(marquee("Little Group", mark="="))
+        print(marquee("Little group", mark="="))
         ltk = spgrp.find_little_group(kpoint=options.kpoint)
         print(ltk.to_string(verbose=options.verbose))
 
@@ -912,8 +940,7 @@ def main():
 
     elif options.command == "mp_id":
         # Get the Structure corresponding to material_id.
-        structure = abilab.Structure.from_mpid(options.mpid, final=True,
-                                               api_key=options.mapi_key, endpoint=options.endpoint)
+        structure = abilab.Structure.from_mpid(options.mpid)
         # Convert to format and print it.
         print(structure.convert(fmt=options.format))
 
@@ -950,30 +977,17 @@ def main():
         if options.browser:
             mp.open_browser(limit=None if options.verbose == 2 else 10)
 
-    elif options.command == "mp_pd":
-        if os.path.exists(options.file_or_elements):
-            structure = abilab.Structure.from_file(options.file_or_elements)
-            elements = structure.symbol_set
-        else:
-            elements = options.file_or_elements.split("-")
-
-        if options.verbose > 1: print("Building phase-diagram for elements:", elements)
-        with abilab.restapi.get_mprester(api_key=options.mapi_key, endpoint=options.endpoint) as rest:
-            pdr = rest.get_phasediagram_results(elements)
-            pdr.print_dataframes(verbose=options.verbose)
-            pdr.plot(show_unstable=options.show_unstable)
-
     elif options.command == "mp_ebands":
         if os.path.exists(options.chemsys_formula_id):
             mp = abilab.mp_match_structure(options.chemsys_formula_id)
             for mpid in mp.ids:
-                ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                ebands = abilab.ElectronBands.from_mpid(mpid)
                 print(ebands)
         else:
             if options.chemsys_formula_id.startswith("mp-"):
                 # Assume valid mp identifier.
                 mpid = options.chemsys_formula_id
-                ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                ebands = abilab.ElectronBands.from_mpid(mpid)
                 print(ebands)
             else:
                 mp = abilab.mp_search(options.chemsys_formula_id)
@@ -985,7 +999,7 @@ def main():
                     if structure is None:
                         cprint("ignoring mpid %s because cannot find structure" % mpid, "red")
                         continue
-                    ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                    ebands = abilab.ElectronBands.from_mpid(mpid)
                     if ebands is None:
                         cprint("Cannot get ebands for structure:\n%s" % str(structure), "red")
                     else:
@@ -1018,6 +1032,7 @@ def main():
                 structures = hist.structures
 
         elif "XDATCAR" in filepath:
+            from pymatgen.io.vasp.outputs import Xdatcar
             structures = Xdatcar(filepath).structures
             if not structures:
                 raise RuntimeError("Your Xdatcar contains only one structure. Due to a bug "
@@ -1028,8 +1043,94 @@ def main():
 
         xsf_write_structure(sys.stdout, structures)
 
+    elif options.command == "chemenv":
+        # Based on https://matgenb.materialsvirtuallab.org/2018/01/01/ChemEnv-How-to-automatically-identify-coordination-environments-in-a-structure.html
+        from pymatgen.analysis.chemenv.coordination_environments.chemenv_strategies import SimplestChemenvStrategy
+        from pymatgen.analysis.chemenv.coordination_environments.coordination_geometry_finder import LocalGeometryFinder
+        from pymatgen.analysis.chemenv.coordination_environments.structure_environments import LightStructureEnvironments
+        from pymatgen.analysis.chemenv.coordination_environments.chemenv_strategies import MultiWeightsChemenvStrategy
+
+        import logging
+        logging.basicConfig(
+            format="%(levelname)s:%(module)s:%(funcName)s:%(message)s", level=logging.DEBUG
+            # you can also save the logging to a file, just remove the comment
+            # filename='chemenv_structure_environments.log',
+        )
+
+        structure = abilab.Structure.from_file(options.filepath)
+        # Setup the local geometry finder
+        lgf = LocalGeometryFinder()
+        lgf.setup_structure(structure=structure)
+
+        # Get the StructureEnvironments
+        kws = dict(maximum_distance_factor=options.maximum_distance_factor,
+                   only_indices=options.only_indices,
+                   only_atoms=options.only_atoms,
+                   #excluded_atoms=None,
+                   #only_cations=True,
+                   )
+        print("Computing structure environments with:", kws)
+        se = lgf.compute_structure_environments(**kws)
+
+        if options.multi_weights:
+            print("Using MultiWeightsChemenvStrategy with stats_article_weights_parameters")
+            strategy = MultiWeightsChemenvStrategy.stats_article_weights_parameters()
+        else:
+            kws = dict(distance_cutoff=options.distance_cutoff, angle_cutoff=options.angle_cutoff)
+            print("Using SimplestChemenvStrategy with:", kws)
+            strategy = SimplestChemenvStrategy(**kws)
+
+        lse = LightStructureEnvironments.from_structure_environments(
+            strategy=strategy, structure_environments=se)
+
+        lenv_keys = ["ce_symbol", "ce_fraction", "csm"]
+        site_keys = ["site_index", "species", "xred1", "xred2", "xred3"]
+        import pandas as pd
+
+        if options.multi_weights:
+            # One dataframe per site as we can have multiple csm per site.
+            errored_isites = []
+            for isite, site in enumerate(structure):
+                if options.only_indices is not None and isite not in options.only_indices: continue
+                d_list = lse.coordination_environments[isite]
+                if d_list is None:
+                    errored_isites.append(isite)
+                    continue
+
+                for i, d in enumerate(d_list):
+                    d = {k: d[k] for k in lenv_keys}
+                    d.update(list(zip(site_keys, [isite, site.species, *site.frac_coords])))
+                    d_list[i] = d
+
+                df = pd.DataFrame(d_list).set_index("site_index")
+                print("")
+                print(df.to_string())
+
+        else:
+            # One dataframe with all sites and one csm per site.
+            d_list, errored_isites = [], []
+            for isite, site in enumerate(structure):
+                if options.only_indices is not None and isite not in options.only_indices: continue
+                dl = lse.coordination_environments[isite]
+                if dl is None:
+                    errored_isites.append(isite)
+                    continue
+                d = dl[0]
+                d = {k: d[k] for k in lenv_keys}
+                d.update(list(zip(site_keys, [isite, site.species, *site.frac_coords])))
+                d_list.append(d)
+
+            df = pd.DataFrame(d_list).set_index("site_index")
+            print("")
+            print(df.to_string())
+
+        if errored_isites:
+            print("\nNB: Couldn't detect local env for", len(errored_isites), "site indices: ", errored_isites)
+
+        print("\nFor the meaning of ce_symbol, see https://pubs.acs.org/doi/10.1021/acs.chemmater.7b02766")
+
     else:
-        raise ValueError("Unsupported command: %s" % options.command)
+        raise ValueError(f"Unsupported {options.command=}")
 
     return 0
 

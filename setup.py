@@ -91,7 +91,6 @@ def find_package_data():
             "sio2_screening/*",
             "znse_phonons/*",
         ],
-        #'abipy.gui.awx': ['images/*'],
     }
 
     return package_data
@@ -146,14 +145,15 @@ def cleanup():
 
 install_requires = [
     "monty",
+    "packaging",
     "tabulate",
-    #"apscheduler==2.1.0",
-    "apscheduler",
+    "apscheduler<=3.10.4",
     "pydispatcher>=2.0.5",
     "tqdm",
     "pyyaml>=3.11",
     "pandas",
-    "numpy",
+    #"numpy",
+    "numpy<2.0.0",
     "scipy",
     "spglib",
     "pymatgen>=2022.0.14",
@@ -163,18 +163,13 @@ install_requires = [
     "plotly",
     "ipython",
     "chart-studio",
+    "click",
+    "phonopy",
+    "ase",
+    #"custodian",
     #pydantic,
-    #pymongo,
     #panel,
 ]
-
-with_wxpython = False
-if with_wxpython:
-    install_requires += [
-        "wxmplot",
-        "wxpython",
-    ]
-
 
 #---------------------------------------------------------------------------
 # Find all the packages, package data, and data_files
@@ -223,7 +218,7 @@ See also the HTML page:
 
 TIPS:
 
-    1) Issue `rehash` in the shell if the AbiPy scripts cannot be found after the installation
+    1) Issue `rehash` in the shell if the AbiPy scripts cannot be found after the installation (MacOs only)
     2) Use `abicheck.py --with-flow` to validate the final configuration before running large calculations.
 
 Have fun!

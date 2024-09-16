@@ -13,6 +13,14 @@ dynamics Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`analyzer` Module
+----------------------
+
+.. automodule:: abipy.dynamics.analyzer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`hist` Module
 ------------------
 

@@ -147,7 +147,7 @@ Note this approach also allows you to safely use multiple versions.
 Copy this example and change the entries in the ``hardware`` and the ``limits`` section according to
 your machine, in particular make sure that ``max_cores`` is not greater than the number of physical cores
 available on your personal computer.
-Save the file in the current working directory and run the :ref:`abicheck.py` script provided by AbiPy.
+Save the file in the current working directory and run the abicheck.py_ script provided by AbiPy.
 If everything is configured properly, you should see something like this in the terminal.
 
 .. command-output:: abicheck.py --no-colors

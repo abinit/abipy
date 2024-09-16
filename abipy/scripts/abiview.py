@@ -15,7 +15,7 @@ from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 from abipy.iotools.visualizer import Visualizer
-from abipy.tools.plotting import MplExpose, PanelExpose, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
+from abipy.tools.plotting import MplExposer, PanelExposer, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
 
 
 def handle_overwrite(path, options):
@@ -39,14 +39,6 @@ def df_to_clipboard(options, df) -> None:
 class NegateAction(argparse.Action):
     def __call__(self, parser, ns, values, option):
         setattr(ns, self.dest, option[2:4] != 'no')
-
-
-#def abiview_fields(options):
-#    """Animate fields with Mayavi. Accept any file with density or potential ..."""
-#    from abipy.display.mvtk import MayaviFieldAnimator
-#    a = MayaviFieldAnimator(options.filepath)
-#    a.volume_animate()
-#    return 0
 
 
 def abiview_structure(options):
@@ -143,11 +135,26 @@ def abiview_ebands(options) -> int:
         return 0
 
 
+def abiview_effmass(options) -> int:
+    """
+    Compute electron effective masses with finite differences using energies along a k-path
+    Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, ...
+    """
+    from abipy.electrons.effmass_analyzer import EffMassAnalyzer
+    emana = EffMassAnalyzer.from_file(options.filepath)
+    print(emana)
+    emana.select_band_edges()
+    emana.summarize()
+    emana.plot_emass()
+
+    return 0
+
+
 def abiview_skw(options) -> int:
     """
-    Interpolate energies in k-space along a k-path with star-function methods
-    Note that the interpolation will likely fail if there are symmetrical k-points in the input set of k-points
-    so it's recommended to call this method with energies obtained in the IBZ.
+    Interpolate energies in k-space along a k-path with the star-function method.
+    Note that the interpolation will likely fail if there are symmetric k-points in the input set of k-points
+    so it is highly recommended to call this method with energies obtained in the IBZ.
     Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, ...
     """
     ebands = abilab.ElectronBands.as_ebands(options.filepath)
@@ -184,7 +191,6 @@ def abiview_ifermi_fs(options) -> int:
     See <https://fermisurfaces.github.io/IFermi/>
     """
     with abilab.abiopen(options.filepath) as abifile:
-
         kwargs = dict(
             interpolation_factor=options.interpolation_factor,
             mu=options.mu,
@@ -197,7 +203,6 @@ def abiview_ifermi_fs(options) -> int:
 
         r = abifile.ebands.get_ifermi_fs(**kwargs)
         r.fs_plotter.get_plot(plot_type=options.plot_type).show()
-
         #abifile.ebands.get_ifermi_slices(**kwargs)
 
         return 0
@@ -205,7 +210,7 @@ def abiview_ifermi_fs(options) -> int:
 
 def abiview_ddb(options) -> int:
     """
-    Invoke Anaddb to compute phonon bands and DOS from the DDB, plot the results.
+    Invoke anaddb to compute phonon bands and DOS from the DDB, plot the results.
     """
     with abilab.abiopen(options.filepath) as ddb:
         print(ddb.to_string(verbose=options.verbose))
@@ -244,7 +249,7 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
         elif options.plotly:
             # Plotly + Panel version.
             phdos = phdos_file.phdos
-            with PanelExpose(title=f"Vibrational properties of {phdos_file.structure.formula}") as e:
+            with PanelExposer(title=f"Vibrational properties of {phdos_file.structure.formula}") as e:
                 e(phbands.qpoints.plotly(show=False))
                 e(phbands.plotly_with_phdos(phdos, units=units, show=False))
                 e(phdos_file.plotly_pjdos_type(units=units, show=False))
@@ -260,10 +265,10 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
 
             if not options.expose_web:
                 # matplotlib figure and X-server.
-                e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+                e = MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
             else:
                 # panel version with matplotlib.
-                e = PanelExpose(title=f"Vibrational properties of {phdos_file.structure.formula}")
+                e = PanelExposer(title=f"Vibrational properties of {phdos_file.structure.formula}")
 
             with e:
                 e(phbands.qpoints.plot(show=False))
@@ -412,12 +417,6 @@ def abiview_ddb_qpt(options) -> int:
     Compute ph-frequencies at the selected q-point without passing through the
     Fourier interpolation of the interatomic force constants.
     """
-    #    asr = 2; chneut = 1; dipdip = 1
-    #    print("""
-    #Computing interatomic force constants with
-    #asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
-    #""".format(**locals()))
-
     with abilab.abiopen(options.filepath) as ddb:
         # Execute anaddb to compute phbands without Fourier interpolation.
         phbands, inp = ddb.anaget_phmodes_at_qpoint(qpoint=options.qpoint,
@@ -447,10 +446,10 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
 
         if not options.expose_web:
             # matplotlib figure and X-server.
-            e = MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
+            e = MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout)
         else:
             # panel version
-            e = PanelExpose(title=f"Interatomic force constants of {ddb.structure.formula}")
+            e = PanelExposer(title=f"Interatomic force constants of {ddb.structure.formula}")
 
         with e:
             e(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", show=False))
@@ -529,6 +528,26 @@ def abiview_lobster(options) -> int:
     return 0
 
 
+def abiview_xrd_traj(options) -> int:
+    """
+    Compare XRD spectra using the first and the last structure read from a trajectory file.
+    """
+    from abipy.core.structure import get_first_and_last_structure_from_file
+    structures = get_first_and_last_structure_from_file(options.filepath)
+
+    dfs = abilab.dataframes_from_structures(structures, index=["first", "last"])
+    abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
+    if options.verbose:
+        abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
+
+    from pymatgen.analysis.diffraction.xrd import XRDCalculator
+    xrd = XRDCalculator(wavelength=options.wavelength, symprec=options.symprec)
+    two_theta_range = tuple(float(t) for t in options.two_theta_range)
+    xrd.plot_structures(structures, two_theta_range=two_theta_range, fontsize=6,
+                        annotate_peaks=not options.no_annotate_peaks, tight_layout=True)
+    return 0
+
+
 def get_epilog() -> str:
     return """\
 Usage example:
@@ -555,10 +574,10 @@ Usage example:
 
     abiview.py ebands out_WFK.nc              ==>  Plot electrons bands (or DOS) with matplotlib.
     abiview.py ebands out_GSR.nc --xmgrace    ==>  Generate xmgrace file with electron bands.
+    abiview.py effmass out_GSR.nc
     abiview.py fs FILE_WITH_KMESH.nc          ==>  Visualize Fermi surface from netcdf file with electron energies
-                                                   on a k-mesh. Use -a xsf to change application e.g. Xcrysden.
-    abiview.py skw out_GSR.nc                 ==> Interpolate IBZ energies with star-functions and plot
-                                                  interpolated bands.
+                                                   on a k-mesh. Use `-a xsf` to change application e.g. Xcrysden.
+    abiview.py skw out_GSR.nc                 ==> Interpolate IBZ energies with star-functions and plot interpolated bands.
     abiview.py denpot out_DEN.nc              ==> Visualize DEN/POT file with Vesta. Use `-a xcrysden` to change app.
     abiview.py denpot out_DEN.nc --chgcar     ==> Convert DEN file to CHGCAR fileformat.
 
@@ -612,7 +631,7 @@ def get_parser(with_epilog=False):
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
 
-    # Parent parser for commands supporting MplExpose.
+    # Parent parser for commands supporting MplExposer.
     slide_parser = argparse.ArgumentParser(add_help=False)
     slide_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
             help="Iterate over figures. Expose all figures at once if not given on the CLI.")
@@ -711,6 +730,10 @@ def get_parser(with_epilog=False):
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, slide_parser], help=abiview_ebands.__doc__)
     add_args(p_ebands, "xmgrace", "bxsf", "force")
 
+    # Subparser for effmass command.
+    p_effmass = subparsers.add_parser('effmass', parents=[copts_parser, slide_parser], help=abiview_effmass.__doc__)
+    #add_args(p_ebands, "xmgrace", "bxsf", "force")
+
     # Subparser for skw command.
     p_skw = subparsers.add_parser('skw', parents=[copts_parser], help=abiview_skw.__doc__)
     p_skw.add_argument("-lp", "--lpratio", type=int, default=5,
@@ -793,6 +816,21 @@ def get_parser(with_epilog=False):
     p_lobster = subparsers.add_parser('lobster', parents=[copts_parser, ipy_parser, nb_parser],
         help=abiview_lobster.__doc__)
     p_lobster.add_argument("--prefix", type=str, default="", help="Prefix for lobster output files. Default: ''")
+
+    # Subparser for xrd.
+    p_xrd = subparsers.add_parser('xrd_traj', parents=[copts_parser],
+        help="Compare X-ray diffraction for the first and the last structure in a trajectory file.")
+    p_xrd.add_argument("-w", "--wavelength", default="CuKa", type=str, help=(
+        "The wavelength can be specified as a string. It must be one of the "
+        "supported definitions in the WAVELENGTHS dict declared in pymatgen/analysis/diffraction/xrd.py."
+        "Defaults to 'CuKa', i.e, Cu K_alpha radiation."))
+    p_xrd.add_argument("-s", "--symprec", default=0, type=float, help=(
+        "Symmetry precision for structure refinement. "
+        "If set to 0, no refinement is done. Otherwise, refinement is performed using spglib with provided precision."))
+    p_xrd.add_argument("-t", "--two-theta-range", default=(0, 90), nargs=2, help=(
+        "Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90)."))
+    p_xrd.add_argument("-nap", "--no-annotate-peaks", default=False, action="store_true",
+        help="Whether to annotate the peaks with plane information.")
 
     # Subparser for denpot command.
     p_denpot = subparsers.add_parser('denpot', parents=[copts_parser], help=abiview_denpot.__doc__)

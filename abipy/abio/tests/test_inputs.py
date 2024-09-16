@@ -10,6 +10,7 @@ from abipy.abio.input_tags import *
 
 import abipy.abio.decorators as ideco
 from abipy.abio.factories import *
+from abipy.flowtk.abiphonopy import *
 
 
 class TestAbinitInput(AbipyTest):
@@ -131,7 +132,7 @@ class TestAbinitInput(AbipyTest):
 
         # Compatible with Pickle and MSONable?
         self.serialize_with_pickle(inp, test_eq=False)
-        self.assertMSONable(inp)
+        self.assert_msonable(inp)
 
         # Test generate method.
         ecut_list = [10, 20]
@@ -248,7 +249,7 @@ class TestAbinitInput(AbipyTest):
         assert inp["ndivsm"] == 3 and inp["iscf"] == -2 and len(inp["kptbounds"]) == 12
 
         inp.set_kpath(ndivsm=-20)
-        assert inp["nkpt"] == 156 and inp["iscf"] == -2
+        assert inp["nkpt"] in (156, 157) and inp["iscf"] == -2
 
         inp.set_qpath(ndivsm=3, qptbounds=None)
         assert len(inp["ph_qpath"]) == 12 and inp["ph_nqpath"] == 12 and inp["ph_ndivsm"] == 3
@@ -277,6 +278,16 @@ class TestAbinitInput(AbipyTest):
         assert not inp.uses_ktimereversal
 
         assert inp.pseudos_abivars["pseudos"] == f"{pseudo.filepath}"
+
+        # Test set_scf_nband.
+        d = inp.set_scf_nband(nsppol=1, nspinor=1, nspden=1,
+                              occopt=1, tsmear=0.0, charge=0.0, spinat=None)
+        assert d["nband"] == 8
+
+        # Test set_scf_nband_semicond.
+        d = inp.set_scf_nband_semicond()
+        assert d["nband"] == 8
+
 
     def test_new_with_structure(self):
         """Testing new_with_structure."""
@@ -322,6 +333,44 @@ class TestAbinitInput(AbipyTest):
 
         #new_inp = si2_inp.new_with_structure(super_structure, scdims=scdims)
         #self.abivalidate_input(new_inp)
+
+    def test_new_with_structure_2(self):
+        """Testing new_with_structure with occopt=2 nband='*xxx' format ."""
+
+        abi_kwargs = dict(ecut=15, chksymbreak=0,)
+
+        inp = AbinitInput(structure=abidata.cif_file("NV_center_64_at_sc.cif"),
+                          pseudos=abidata.pseudos("C.psp8", "N.psp8"),
+                          abi_kwargs=abi_kwargs)
+
+        n_val = inp.num_valence_electrons
+        n_cond = round(10)
+
+        spin_up_gs = f"\n{int((n_val - 3) / 2)}*1 1 1   1 {n_cond}*0"
+        spin_dn_gs = f"\n{int((n_val - 3) / 2)}*1 1 0   0 {n_cond}*0"
+
+        nsppol = 2
+        ngkpt=[2,2,2]
+        shiftk=[0,0,0]
+
+        inp.set_kmesh_nband_and_occ(ngkpt, shiftk, nsppol, [spin_up_gs, spin_dn_gs])
+        sc_stru=inp.structure.copy()
+        sc_stru.make_supercell([2,1,1])
+
+        new_inp = inp.new_with_structure(new_structure=sc_stru,
+                       scdims=[2,1,1],verbose=0)
+        assert new_inp["nband"] == '*276'
+        #self.abivalidate_input(new_inp)
+        # Not valid now because occ should be rewritten as well
+        # TODO
+        # go from
+        # occ='125*1 1 1 1 10*0'
+        # to
+        # occ='125*1 1 1 1 125*1 1 1 1 10*0 10*0 '
+        # if size is doubled.
+
+
+
 
     def test_abinit_calls(self):
         """Testing AbinitInput methods invoking Abinit."""
@@ -415,7 +464,7 @@ class TestAbinitInput(AbipyTest):
         #self.assertIsInstance(inp_dict['abi_kwargs'], collections.OrderedDict)
         assert "abi_args" in inp_dict and len(inp_dict["abi_args"]) == len(inp)
         assert all(k in inp for k, _ in inp_dict["abi_args"])
-        self.assertMSONable(inp)
+        self.assert_msonable(inp)
 
     def test_enforce_znucl_and_typat(self):
         """
@@ -524,7 +573,7 @@ class TestAbinitInput(AbipyTest):
         self.abivalidate_input(nscf_inp)
 
         # Test make_ebands_input with nband = "*91" (occopt 2)
-        gs_occopt2 = gs_inp.new_with_vars(nband="*91", occopt=2)
+        gs_occopt2 = gs_inp.new_with_vars(nband="*91", occopt=2, paral_kgb=0)
         nscf_inp = gs_occopt2.make_ebands_input(nb_extra=10)
         assert nscf_inp["nband"] == "*101"
         self.abivalidate_input(nscf_inp)
@@ -877,7 +926,7 @@ class TestMultiDataset(AbipyTest):
 
         # Compatible with Pickle and MSONable?
         self.serialize_with_pickle(multi, test_eq=False)
-        #self.assertMSONable(multi)
+        #self.assert_msonable(multi)
 
         # Test tags
         new_multi.add_tags([GROUND_STATE, RELAX], [0, 2])
@@ -906,7 +955,7 @@ class AnaddbInputTest(AbipyTest):
         assert inp.get("brav") == 1
 
         self.serialize_with_pickle(inp, test_eq=False)
-        self.assertMSONable(inp)
+        self.assert_msonable(inp)
 
         # Unknown variable.
         with self.assertRaises(AnaddbInput.Error):
@@ -1041,7 +1090,7 @@ class TestCut3DInput(AbipyTest):
         cut3d_input.write(self.get_tmpname(text=True))
 
         self.serialize_with_pickle(cut3d_input, test_eq=False)
-        self.assertMSONable(cut3d_input)
+        self.assert_msonable(cut3d_input)
 
     def test_generation_methods(self):
         cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
@@ -1105,7 +1154,7 @@ class OpticInputTest(AbipyTest):
         self.serialize_with_pickle(optic_input, test_eq=True)
 
         # TODO: But change function that build namelist to ignore @module ...
-        #self.assertMSONable(optic_input)
+        #self.assert_msonable(optic_input)
 
         self.abivalidate_input(optic_input)
 

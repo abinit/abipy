@@ -50,7 +50,7 @@ PRIMCOORD 1
         xsf_string = \
 """BEGIN_BLOCK_DATAGRID_3D
  data
- BEGIN_DATAGRID_3Dgrid#1
+ BEGIN_DATAGRID_3D_UNKNOWN
 3 4 3
 0.000000 0.000000 0.000000
 2.672554 1.543000 0.000000
@@ -105,7 +105,7 @@ END_BLOCK_DATAGRID_3D
         tmp_file = tempfile.TemporaryFile(mode="w+")
 
         nsppol, nband, ndivs, fermie = 1, 2, (2,2,2), 0.0
-        energies = np.arange(nsppol * nband * np.product(ndivs))
+        energies = np.arange(nsppol * nband * np.prod(ndivs))
         bxsf_write(tmp_file, self.mgb2, nsppol, nband, ndivs, energies, fermie, unit="Ha")
 
         xsf_string = \

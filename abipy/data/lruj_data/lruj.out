@@ -1,0 +1,83 @@
+
+.Version 9.11.6 of LRUJ 
+.(MPI version, prepared for a x86_64_linux_intel18.0 computer) 
+
+.Copyright (C) 1998-2022 ABINIT group . 
+ LRUJ comes with ABSOLUTELY NO WARRANTY.
+ It is free software, and you are welcome to redistribute it
+ under certain conditions (GNU General Public License,
+ see ~abinit/COPYING or http://www.gnu.org/copyleft/gpl.txt).
+
+ ABINIT is a project of the Universite Catholique de Louvain,
+ Corning Inc. and other collaborators, see ~abinit/doc/developers/contributors.txt .
+ Please read https://docs.abinit.org/theory/acknowledgments for suggested
+ acknowledgments of the ABINIT effort.
+ For more information, see https://www.abinit.org .
+
+.Starting date : Wed 29 Nov 2023.
+- ( at 15h33 )
+  
+ Number of perturbations detected:  6
+ Including unperturbed state, we have  7 data points.
+ Hunds J determination, implemented by L. MacEnulty August 2021
+ Maximum degree of polynomials analyzed:  5
+ NOTE: Unlike the ujdet utility, lruj treats the 
+ response functions as scalars, not matrices!
+ See lruj tutorial for more information.
+ 
+ 
+*************************************************************************************************
+**************************************  Linear Response J  **************************************
+ 
+ Total number of atoms:    4
+ Index of perturbed atom:    1
+ Value of macro_uj:     4
+ Value of dmatpuopt:     3
+ Mixing constant factored out of Chi0:   0.450
+ Percentage of AE orbital within the PAW sphere of perturbed subspace:     90.46723%
+ 
+  Perturbations         Magnetizations
+ --------------- -----------------------------
+    beta [eV]     Unscreened      Screened
+ --------------- -----------------------------
+  -0.1500000676   1.3322568566   1.3664401054
+  -0.1000000451   1.3250447778   1.3485578255
+  -0.0500000225   1.3176770671   1.3298301923
+   0.0000000000   1.3101482092   1.3101482092
+   0.0500000225   1.3024514902   1.2893790961
+   0.1000000451   1.2945812190   1.2673571836
+   0.1500000676   1.2865306151   1.2438737113
+                                                                       RMS Errors
+                                                         ---------------------------------------
+ Regression   Chi0 [eV^-1]   Chi [eV^-1]      J [eV]    | Chi0 [eV^-1]  Chi [eV^-1]     J [eV]
+--------------------------------------------------------|---------------------------------------
+ Linear:        -0.3386211    -0.4075366     0.4993858  |    0.0006971    0.0020836    0.1364740
+ Quadratic:     -0.3386211    -0.4075366     0.4993858  |    0.0000137    0.0001529    0.0322580
+ Cubic:         -0.3383005    -0.4039797     0.4805799  |    0.0000002    0.0000120    0.0086817
+ Degree 4 :     -0.3383005    -0.4039797     0.4805799  |    0.0000001    0.0000009    0.0025307
+ Degree 5 :     -0.3383000    -0.4040198     0.4808302  |    0.0000001    0.0000000    0.0011046
+*************************************************************************************************
+*************************************************************************************************
+ 
+Linear Response UJ (LRUJ) program complete. Live long and prosper. ~LMac
+
+
+--- !LRUJ_Abipy_Plots
+natom: 4
+ndata: 7
+pawujat: 1
+macro_uj: 4
+diem_token: diemixmag
+diem:   4.50000000E-01
+chi0_coefficients_degree1: [  1.30981289E+00,  -1.52379516E-01, ]
+chi_coefficients_degree1: [  1.30794090E+00,  -4.07536646E-01, ]
+chi0_coefficients_degree2: [  1.31014818E+00,  -1.52379516E-01,  -3.35292571E-02, ]
+chi_coefficients_degree2: [  1.31016241E+00,  -4.07536646E-01,  -2.22150364E-01, ]
+chi0_coefficients_degree3: [  1.31014818E+00,  -1.52235216E-01,  -3.35292571E-02,  -8.24572223E-03, ]
+chi_coefficients_degree3: [  1.31016241E+00,  -4.03979653E-01,  -2.22150364E-01,  -2.03256604E-01, ]
+chi0_coefficients_degree4: [  1.31014812E+00,  -1.52235216E-01,  -3.35038810E-02,  -8.24572223E-03,  -1.06049292E-03, ]
+chi_coefficients_degree4: [  1.31014819E+00,  -4.03979653E-01,  -2.16856067E-01,  -2.03256604E-01,  -2.21254002E-01, ]
+chi0_coefficients_degree5: [  1.31014812E+00,  -1.52234989E-01,  -3.35038810E-02,  -8.28815298E-03,  -1.06049292E-03,   1.45476754E-03, ]
+chi_coefficients_degree5: [  1.31014819E+00,  -4.04019800E-01,  -2.16856067E-01,  -1.95748183E-01,  -2.21254002E-01,  -2.57431330E-01, ]
+...
+

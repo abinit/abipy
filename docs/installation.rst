@@ -63,7 +63,7 @@ Anaconda Howto
 --------------
 
 Download the anaconda installer from the `official web-site <https://www.continuum.io/downloads>`_.
-Choose the version that matches your OS and select python3.6.
+by choosing the version that matches your OS
 You may want to use the ``wget`` utility to download the anaconda script directly from the terminal
 (useful if you are installing anaconda on a cluster).
 

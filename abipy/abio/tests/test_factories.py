@@ -328,7 +328,7 @@ class FactoryTest(AbipyTest):
 
         factory_obj = PhononsFromGsFactory(ph_ngqpt=[4, 4, 4], with_ddk=True, with_dde=True, with_bec=False,
                                            ph_tol=None, ddk_tol=None, dde_tol=None)
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         multi_obj = factory_obj.build_input(gs_inp)
 
         inp_ddk_obj = multi_obj.filter_by_tags(DDK)[0]
@@ -347,7 +347,7 @@ class FactoryTest(AbipyTest):
         multi = piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
         self.abivalidate_multi(multi)
         factory_obj = PiezoElasticFromGsFactory(ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         multi_obj = factory_obj.build_input(gs_inp)
 
     def test_scf_piezo_elastic_inputs(self):
@@ -363,7 +363,7 @@ class FactoryTest(AbipyTest):
                                           scf_nband=None, accuracy="normal", spin_mode="polarized",
                                           smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
                                           ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False)
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         multi_obj = factory_obj.build_input()
 
     def test_scf_input(self):
@@ -387,7 +387,7 @@ class FactoryTest(AbipyTest):
         gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
 
         nscf_inp = nscf_from_gsinput(gs_inp, kppa=None, nband=120)
-        self.assertArrayEqual(gs_inp["ngkpt"], nscf_inp["ngkpt"])
+        self.assert_equal(gs_inp["ngkpt"], nscf_inp["ngkpt"])
         self.assertEqual(nscf_inp["nband"], 120)
 
         ebands_inp = ebands_from_gsinput(gs_inp, nband=None, ndivsm=15, accuracy="normal")
@@ -413,7 +413,7 @@ class FactoryTest(AbipyTest):
         self.assertNotIn("prtdosm", edos_inp)
 
         factory_obj = BandsFromGsFactory(nband=None, ndivsm=15, accuracy="normal")
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         ebands_input_obj = factory_obj.build_input(gs_inp)
 
     def test_ioncell_relax_from_gsinput(self):
@@ -424,7 +424,7 @@ class FactoryTest(AbipyTest):
         self.abivalidate_input(icrelax_input)
 
         factory_obj = IoncellRelaxFromGsFactory()
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         icrelax_input_obj = factory_obj.build_input(gs_inp)
 
     def test_hybrid_oneshot_input(self):
@@ -439,7 +439,7 @@ class FactoryTest(AbipyTest):
         self.assertNotIn('many_body', hyb_inp.runlevel)
 
         factory_obj = HybridOneShotFromGsFactory(functional="hse06", ecutsigx=None, gw_qprange=1)
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         hyb_inp_obj = factory_obj.build_input(gs_inp)
 
     def test_scf_for_phonons(self):
@@ -456,7 +456,7 @@ class FactoryTest(AbipyTest):
         self.assert_input_equality('scf_for_phonons.json', scf_inp)
 
         factory_obj = ScfForPhononsFactory(self.si_structure, self.si_pseudo, kppa=1000, ecut=3)
-        self.assertMSONable(factory_obj)
+        self.assert_msonable(factory_obj)
         scf_inp_obj = factory_obj.build_input(scf_inp)
 
         self.assert_input_equality('scf_for_phonons.json', scf_inp_obj)

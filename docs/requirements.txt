@@ -10,3 +10,11 @@ sphinxcontrib-bibtex
 jupyter-sphinx
 #graphviz or python-graphviz if conda
 graphviz
+scikit-image
+
+# For the time being:
+# solved the issue by matching jinja2 version and nb convert as follows
+#jinja2==3.0.3
+#nbconvert==6.4.4
+
+#See https://github.com/d2l-ai/d2l-book/issues/46

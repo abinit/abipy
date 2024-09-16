@@ -235,7 +235,7 @@ class CumulantPhReader(SigmaPhReader):
             # real(dp) :: time_mesh(nwr, ntemp, max_nbcalc, nkcalc, nsppol)
             # Time mesh (ps units)
             time_mesh = self.read_variable("time_mesh")[spin,ikc,ib,:,:]
-            
+
             # complex(dpc) :: ct_vals(complex, nwr, ntemp, max_nbcalc, nkcalc, nsppol)
             # Cumulant function with respect to time
             ct_vals = self.read_variable("ct_vals")[spin,ikc,ib,:,:,:]
@@ -293,12 +293,12 @@ class CumulantPhReader(SigmaPhReader):
 
 
 class CumulantSelfEnergy(EphSelfEnergy):
-    
 
-    def __init__(self, wmesh, qp, gw_vals, spfunccumul_wr, time_mesh = None, ct_vals = None, gt_vals = None, 
+
+    def __init__(self, wmesh, qp, gw_vals, spfunccumul_wr, time_mesh = None, ct_vals = None, gt_vals = None,
                  vals_e0ks=None, dvals_de0ks=None, dw_vals=None,
                  frohl_vals_e0ks=None, frohl_dvals_de0ks=None, frohl_spfunc_wr=None):
-        
+
         # Set dimensions
         ntemp = len(qp.tmesh)
         nwr = len(wmesh)
@@ -309,7 +309,7 @@ class CumulantSelfEnergy(EphSelfEnergy):
         self.ct_vals = ct_vals
         self.time_mesh = time_mesh
 
-        # Set Debye-Waller to zero, probably is the same as Dyson-Migdal since it is added 
+        # Set Debye-Waller to zero, probably is the same as Dyson-Migdal since it is added
         # separately from the cumulant calculation
         dw_vals = np.zeros((ntemp))
 
@@ -319,7 +319,7 @@ class CumulantSelfEnergy(EphSelfEnergy):
         self.gw = gw_vals
         vals_wr, vals_e0ks, dvals_de0ks = self.calculate_sigma_skb_fromgw(wmesh, qp, gw_vals)
 
-        # Setting spectral function and Gre 
+        # Setting spectral function and Gre
         self.spfunccumul_wr = spfunccumul_wr
 
         # Calculating QP energies
@@ -337,7 +337,7 @@ class CumulantSelfEnergy(EphSelfEnergy):
         sigma = np.zeros((ntemp,nwr),dtype=complex)
         e0ks = np.zeros((ntemp))
         de0ks = np.zeros((ntemp))
-        
+
         # Identify the index of the KS energy is located ( probably at nwr//2 )
         idx_e0 = np.argmin( np.abs(wmesh - qp.e0))
 
@@ -352,7 +352,7 @@ class CumulantSelfEnergy(EphSelfEnergy):
 
     @classmethod
     def calculate_gw_from_sigeph_skb(cls, sigeph, time_tol = 1e-4):
-        
+
         # Initialization
         wmesh_init = sigeph.wmesh
         sigma = sigeph.vals_wr
@@ -368,7 +368,7 @@ class CumulantSelfEnergy(EphSelfEnergy):
         qp = CumulantQpTempState(spin=sigeph.spin, kpoint=sigeph.kpoint, band=sigeph.band, tmesh=sigeph.tmesh,
                            e0=sigeph.qp.e0, qpe = qpe, ze0=ze0, fan0=fan0, dw=dw, qpe_oms = qpe_oms)
 
-       
+
         # Frequency mesh step
         w_step = wmesh_init[1] - wmesh_init[0]
         # Shift frequency mesh to set the KS energy close to 0.0, with principal value offseting the mesh slightly.
@@ -378,12 +378,12 @@ class CumulantSelfEnergy(EphSelfEnergy):
         # Time mesh step
         t_step = t[1] - t[0]
         gw = np.zeros((ntemp,nwr), dtype=complex)
-    
+
         for itemp in range(ntemp):
             #time_max = np.log(time_tol)/ ( -1.0 * np.abs(sigeph.vals_e0ks[itemp].imag))
             #Give warning if time_max < 2*np.pi/w_step
-            
-         
+
+
             beta = np.abs( sigma[itemp].imag)/np.pi
 
             # Calculate the part of the cumulant function that can be Fourier Transformed

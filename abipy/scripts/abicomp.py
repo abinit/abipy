@@ -16,7 +16,7 @@ from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
-from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter
+from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter, FilesPlotter, Exposer
 
 
 def remove_disordered(structures, paths):
@@ -229,7 +229,7 @@ def abicomp_xrd(options):
     Compare X-ray diffraction plots (requires FILES with structure).
     """
     if len(options.paths) < 2:
-        print("You need more than one structure to compare!")
+        print("You need more than one structures to compare!")
         return 1
 
     structures = [abilab.Structure.from_file(p) for p in options.paths]
@@ -254,6 +254,15 @@ def abicomp_data(options):
     plotter = GenericDataFilesPlotter.from_files(options.paths)
     print(plotter.to_string(verbose=options.verbose))
     plotter.plot(use_index=options.use_index)
+    return 0
+
+
+def abicomp_png(options):
+    """
+    Use matplotlib to plot multiple png files on a grid.
+    """
+    plotter = FilesPlotter(options.paths)
+    plotter.plot()
     return 0
 
 
@@ -583,8 +592,61 @@ def abicomp_abiwan(options):
     return _invoke_robot(options)
 
 
+def abicomp_abiwan_ebands(options):
+    """
+    Compare Wannier-interpolated band structure with ab-initio data.
+    """
+    if len(options.paths) != 2:
+        raise ValueError("Two arguments with ABIWAN.nc and netcdf file with ElectronBands are required!")
+    from abipy.wannier90 import AbiwanFile
+    abiwan_path, ebands_path = options.paths[0], options.paths[1]
+    if not abiwan_path.endswith("ABIWAN.nc"):
+        abiwan_path, ebands_path = ebands_path, abiwan_path
+
+    abiwan = AbiwanFile(abiwan_path)
+    print(abiwan)
+
+    with Exposer.as_exposer("mpl") as e:
+        plot_kws = dict(show=False)
+        e(abiwan.hwan.plot(**plot_kws))
+        e(abiwan.plot_with_ebands(ebands_path, **plot_kws))
+
+    return 0
+
+
+def abicomp_skw_ibz_kpath(options):
+    """
+    Compare star-function-interpolated band structure with ab-initio band structure computed along a k-path.
+    """
+    if len(options.paths) != 2:
+        raise ValueError("Two arguments with netcdf files providing ElectronBands are required!")
+
+    ebands_kpath = abilab.ElectronBands.from_file(options.paths[0])
+    ebands_kmesh = abilab.ElectronBands.from_file(options.paths[1])
+
+    if not ebands_kpath.kpoints.is_path:
+        ebands_kpath, ebands_kmesh = ebands_kmesh, ebands_kpath
+
+    # Be permissive: exchange k-path and k-mesh if nededed.
+    if not ebands_kpath.kpoints.is_path:
+        raise ValueError("Need k-points along a k-path.")
+    if not ebands_kmesh.kpoints.is_mpmesh:
+        raise ValueError("Need k-points belonging to a k-mesh.")
+
+    print("Interpolating band energies with lpratio:", options.lpratio)
+    print("If the fit is not optimal, try to increase lpratio")
+    vertices_names = [(k.frac_coords, k.name) for k in ebands_kpath.kpoints]
+    r = ebands_kmesh.interpolate(lpratio=options.lpratio, vertices_names=vertices_names, line_density=0)
+
+    plotter = abilab.ElectronBandsPlotter()
+    plotter.add_ebands("ab-initio", ebands_kpath)
+    plotter.add_ebands("SKW interpolated", r.ebands_kpath)
+    plotter.combiplot()
+
+    return 0
+
 def abicomp_pseudos(options):
-    """"Compare multiple pseudos Print table to terminal."""
+    """"Compare multiple pseudos and print table to terminal."""
     # Make sure entries in index are unique.
     index = [os.path.basename(p) for p in options.paths]
     if len(index) != len(set(index)): index = [os.path.relpath(p) for p in options.paths]
@@ -832,6 +894,7 @@ Usage example:
   abicomp.py edos *_WFK.nc -nb                  => Compare electron DOS in the jupyter notebook.
   abicomp.py optic DIR -nb                      => Compare optic results in the jupyter notebook.
   abicomp.py abiwan *_ABIWAN.nc --expose        => Compare ABIWAN results, produce matplotlib figures.
+  abicomp.py abiwan_ebands out_ABIWAN.nc out_GSR.nc --expose  => Compare Wannier-interpolated band structure with ab-initio results.
 
 #########
 # Phonons
@@ -986,7 +1049,6 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
 
     # Parent parser for commands supporting expose
     expose_parser = argparse.ArgumentParser(add_help=False)
-
     expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
             help='Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.')
     expose_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
@@ -1054,6 +1116,9 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_data = subparsers.add_parser('data', parents=[copts_parser, expose_parser], help=abicomp_data.__doc__)
     p_data.add_argument("-i", "--use-index", default=False, action="store_true",
         help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
+
+    # Subparser for png command.
+    p_png = subparsers.add_parser('png', parents=[copts_parser], help=abicomp_png.__doc__)
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser, pandas_parser],
@@ -1136,8 +1201,18 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_abiwan = subparsers.add_parser('abiwan', parents=robot_parents, help=abicomp_abiwan.__doc__)
     p_gwr = subparsers.add_parser('gwr', parents=robot_parents, help=abicomp_gwr.__doc__)
 
+    # Subparser for abiwan_ebands command.
+    p_abiwan_ebands = subparsers.add_parser('abiwan_ebands', parents=[copts_parser], help=abicomp_abiwan_ebands.__doc__)
+
+    # Subparser for skw_ibz_kpath command.
+    p_skw_ibz_kpath = subparsers.add_parser('skw_ibz_kpath', parents=[copts_parser], help=abicomp_skw_ibz_kpath.__doc__)
+    p_skw_ibz_kpath.add_argument("-l", "--lpratio", default=5,
+                                help="Ratio between the number of star functions and the number of ab-initio k-points." +
+                                     "The default should be OK in many systems, larger values may be required for accurate derivatives.")
     # Subparser for pseudos command.
     p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)
+
+    # Subparser for psps command.
     p_pspsp = subparsers.add_parser('psps', parents=robot_parents, help=abicomp_psps.__doc__)
 
     # Subparser for time command.

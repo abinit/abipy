@@ -12,6 +12,7 @@ import os
 import argparse
 import subprocess
 import abipy.tools.cli_parsers as cli
+from abipy.tools.plotting import Exposer
 
 from pprint import pprint
 from shutil import which
@@ -76,7 +77,7 @@ from abipy import abilab
         return 0
 
 
-def get_epilog():
+def get_epilog() -> str:
     s = """\
 ======================================================================================================
 Usage example:
@@ -143,8 +144,6 @@ def get_parser(with_epilog=False):
                              "Default: FastList"
                         )
     parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
-
-
     #add_expose_options_to_parser(parser)
 
     # Expose option.
@@ -155,7 +154,7 @@ def get_parser(with_epilog=False):
     parser.add_argument("-t", "--slide-timeout", type=int, default=None,
         help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
     parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
-        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
+            help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
     parser.add_argument('-mpl', "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
@@ -239,13 +238,21 @@ def main():
     if options.filepath.endswith(".json"):
         return handle_json(options)
 
+    if options.filepath.endswith(".csv"):
+        return handle_csv(options)
+
+    if options.filepath.endswith(".traj"):
+        return handle_ase_traj(options)
+
+    if options.filepath.endswith("md.aselog"):
+        return handle_ase_md_log(options)
+
     if os.path.basename(options.filepath) == "flows.db":
         from abipy.flowtk.launcher import print_flowsdb_file
         return print_flowsdb_file(options.filepath)
 
     if not options.notebook:
         abifile = abilab.abiopen(options.filepath)
-
         if options.print:
             # Print object to terminal.
             if hasattr(abifile, "to_string"):
@@ -277,9 +284,9 @@ def main():
             else:
                 if not hasattr(abifile, "yield_figs"):
                     raise TypeError("Object of type `%s` does not implement (expose or yield_figs methods" % type(abifile))
-                from abipy.tools.plotting import MplExpose
-                with MplExpose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                               verbose=options.verbose) as e:
+                from abipy.tools.plotting import MplExposer
+                with MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                                verbose=options.verbose) as e:
                     e(abifile.yield_figs())
 
             return 0
@@ -328,9 +335,83 @@ Use `print(abifile)` to print the object.
     return 0
 
 
+def handle_ase_traj(options):
+    """Handle ASE trajectory file."""
+    from abipy.ml.aseml import AseTrajectoryPlotter
+    plotter = AseTrajectoryPlotter.from_file(options.filepath)
+
+    print(plotter.to_string(verbose=options.verbose))
+    if options.expose:
+        if len(plotter.traj) > 1:
+            plot_kws = dict(show=False)
+            with Exposer.as_exposer("mpl") as e:
+                e(plotter.plot(**plot_kws))
+                e(plotter.plot_lattice(**plot_kws))
+
+    return 0
+
+
+def handle_ase_md_log(options):
+    """Handle ASE MD log file."""
+    from abipy.ml.aseml import AseMdLog
+    md_log = AseMdLog(options.filepath)
+    with Exposer.as_exposer("mpl") as e:
+        e.add_obj_with_yield_figs(md_log)
+    return 0
+
+
+def handle_csv(options):
+    """Handle CSV file."""
+    df = pd.read_csv(options.filepath)
+
+    def print_df():
+        print("=== Dataframe info ===")
+        print(df.info())
+        print("=== Dataframe describe ===")
+        print(df.describe())
+
+    if options.notebook:
+        raise NotImplementedError("")
+        # Visualize JSON document in jupyter
+        #cmd = "jupyter-lab %s" % options.filepath
+        #print("Executing:", cmd)
+        #process = subprocess.Popen(cmd.split(), shell=False) #, stdout=fd, stderr=fd)
+        #cprint("pid: %s" % str(process.pid), "yellow")
+        return 0
+
+    elif options.panel:
+        raise NotImplementedError("")
+        # Visualize JSON document in panel dashboard.
+        #pn = abilab.abipanel()
+        #with abilab.abiopen(options.filepath) as json_file:
+        #    app = json_file.get_panel()
+
+        #serve_kwargs = serve_kwargs_from_options(options)
+        #return pn.serve(app, **serve_kwargs)
+
+    else:
+        if options.print:
+            # Print python object to terminal.
+            print_df()
+            return 0
+        elif options.expose:
+            print_df()
+            raise NotImplementedError("")
+            return 0
+
+        # Start ipython shell with namespace
+        # Use embed because I don't know how to show a header with start_ipython.
+        print_df()
+        import IPython
+        IPython.embed(header="""
+The pandas DataFrame initialized from the csv file can be accesssed via the `df` python variable.
+""")
+
+    return 0
+
+
 def handle_json(options):
     """Handle JSON file."""
-
     if options.notebook:
         # Visualize JSON document in jupyter
         cmd = "jupyter-lab %s" % options.filepath

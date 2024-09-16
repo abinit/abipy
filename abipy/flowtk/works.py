@@ -28,7 +28,11 @@ from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, E
                     EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
                     DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
 from .utils import Directory
-from .netcdf import ETSF_Reader, NetcdfReader
+from .netcdf import NetcdfReader
+try:
+    from .netcdf import ETSF_Reader
+except ImportError:
+    from .netcdf import EtsfReader as ETSF_Reader
 from .abitimer import AbinitTimerParser
 
 if TYPE_CHECKING:  # needed to avoid circular imports
@@ -253,7 +257,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
                 returncode: 0 on success.
                 message: a string that should provide a human-readable description of what has been performed.
         """
-        return dict(returncode=0, message="Calling on_all_ok of the base class!")
+        return dict(returncode=0, message=f"Calling on_all_ok of {self.__class__.__name__}")
 
     def get_results(self, **kwargs):
         """
@@ -534,7 +538,7 @@ class NodeContainer(metaclass=abc.ABCMeta):
         return task
 
     def register_kerange_task(self, *args, **kwargs) -> KerangeTask:
-        """ Register a kerange task."""
+        """Register a kerange task."""
         kwargs["task_class"] = KerangeTask
         kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
         task = self.register_task(*args, **kwargs)
@@ -1030,7 +1034,7 @@ class Work(BaseWork, NodeContainer):
             gsr_path = task.outdir.has_abiext("GSR")
             etot = np.inf
             if gsr_path:
-                with ETSF_Reader(gsr_path) as r:
+                with EtsfReader(gsr_path) as r:
                     etot = r.read_value("etotal")
 
             etotals.append(etot)
@@ -1687,7 +1691,7 @@ class PhononWork(Work, MergeDdb):
     """
     This work consists of nirred Phonon tasks where nirred is
     the number of irreducible atomic perturbations for a given set of q-points.
-    It provides the callback method (on_all_ok) that calls mrgddb (mrgdv) to merge
+    It provides the callback method (on_all_ok) that calls mrgddb and mrgdv to merge
     all the partial DDB (POT) files produced.
     The two files are available in the output directory of the Work.
 
@@ -2260,7 +2264,19 @@ class DteWork(Work, MergeDdb):
         dte_deps = {scf_task: "WFK"}
         dte_deps.update({dde_task: "1WF 1DEN" for dde_task in dde_tasks})
 
-        multi_dte = scf_task.input.make_dte_inputs()
+        # VT: Taken from dte_from_gsinput factory fct
+        # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
+        # Do this as last, so not to interfere with the the generation of the other steps.
+        gs_inp = scf_task.input.deepcopy()
+        gs_inp.pop_irdvars()
+        nval = gs_inp.structure.num_valence_electrons(gs_inp.pseudos)
+        #nval -= gs_inp['charge'] # VT: commented out because KeyError
+        nband = int(round(nval / 2))
+        gs_inp.set_vars(nband=nband)
+        gs_inp.pop('nbdbuf', None)
+        multi_dte = gs_inp.make_dte_inputs()
+
+        #multi_dte = scf_task.input.make_dte_inputs()
         dte_tasks = []
         for dte_inp in multi_dte:
             dte_task = new.register_dte_task(dte_inp, deps=dte_deps)

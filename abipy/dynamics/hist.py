@@ -9,13 +9,11 @@ import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
-from typing import List, Tuple
 from monty.functools import lazy_property
 from monty.collections import AttrDict
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
 from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
-from pymatgen.io.vasp.outputs import Xdatcar
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, get_figs_plotly, \
     get_fig_plotly, add_plotly_fig_kwargs, plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc, plotly_set_lims, \
     latex_greek_2unicode
@@ -24,7 +22,6 @@ from abipy.core.mixins import AbinitNcFile, NotebookWriter
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 from abipy.tools.typing import Figure
-from abipy.core.structure import Structure
 
 
 class HistFile(AbinitNcFile, NotebookWriter):
@@ -48,11 +45,11 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = HistReader(filepath)
+        self.reader = self.r = HistReader(filepath)
 
     def close(self) -> None:
         """Close the file."""
-        self.reader.close()
+        self.r.close()
 
     @lazy_property
     def params(self) -> dict:
@@ -62,21 +59,23 @@ class HistFile(AbinitNcFile, NotebookWriter):
     def __str__(self) -> str:
         return self.to_string()
 
+    #def read_structures(self, index: str):
+
     # TODO: Add more metadata.
     #@lazy_property
     #def nsppol(self):
     #    """Number of independent spins."""
-    #    return self.reader.read_dimvalue("nsppol")
+    #    return self.r.read_dimvalue("nsppol")
 
     #@lazy_property
     #def nspden(self):
     #    """Number of independent spin densities."""
-    #    return self.reader.read_dimvalue("nspden")
+    #    return self.r.read_dimvalue("nspden")
 
     #@lazy_property
     #def nspinor(self):
     #    """Number of spinor components."""
-    #    return self.reader.read_dimvalue("nspinor")
+    #    return self.r.read_dimvalue("nspinor")
 
     @lazy_property
     def final_energy(self) -> float:
@@ -86,7 +85,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
     @lazy_property
     def final_pressure(self) -> float:
         """Final pressure in Gpa."""
-        cart_stress_tensors, pressures = self.reader.read_cart_stress_tensors()
+        cart_stress_tensors, pressures = self.r.read_cart_stress_tensors()
         return pressures[-1]
 
     #@lazy_property
@@ -97,7 +96,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         Return |AttrDict| with stats on the forces at the given ``step``.
         """
         # [time, natom, 3]
-        var = self.reader.read_variable("fcart")
+        var = self.r.read_variable("fcart")
         forces = units.ArrayWithUnit(var[step], "Ha bohr^-1").to("eV ang^-1")
         fmods = np.array([np.linalg.norm(force) for force in forces])
 
@@ -131,7 +130,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         #an.get_percentage_bond_dist_changes(max_radius=3.0)
         app("")
 
-        cart_stress_tensors, pressures = self.reader.read_cart_stress_tensors()
+        cart_stress_tensors, pressures = self.r.read_cart_stress_tensors()
         app("Stress tensor (Cartesian coordinates in GPa):\n%s" % cart_stress_tensors[-1])
         app("Pressure: %.3f [GPa]" % pressures[-1])
 
@@ -140,7 +139,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
     @property
     def num_steps(self) -> int:
         """Number of iterations performed."""
-        return self.reader.num_steps
+        return self.r.num_steps
 
     @lazy_property
     def steps(self) -> list:
@@ -158,14 +157,14 @@ class HistFile(AbinitNcFile, NotebookWriter):
         return self.structures[-1]
 
     @lazy_property
-    def structures(self) -> List[Structure]:
+    def structures(self) -> list[Structure]:
         """List of |Structure| objects at the different steps."""
-        return self.reader.read_all_structures()
+        return self.r.read_all_structures()
 
     @lazy_property
     def etotals(self) -> np.ndarray:
         """|numpy-array| with total energies in eV at the different steps."""
-        return self.reader.read_eterms().etotals
+        return self.r.read_eterms().etotals
 
     def get_relaxation_analyzer(self) -> RelaxationAnalyzer:
         """
@@ -173,7 +172,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """
         return RelaxationAnalyzer(self.initial_structure, self.final_structure)
 
-    def to_xdatcar(self, filepath=None, groupby_type=True, to_unit_cell=False, **kwargs) -> Xdatcar:
+    def to_xdatcar(self, filepath=None, groupby_type=True, to_unit_cell=False, **kwargs): #-> Xdatcar:
         """
         Return Xdatcar pymatgen object. See write_xdatcar for the meaning of arguments.
 
@@ -181,6 +180,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             to_unit_cell (bool): Whether to translate sites into the unit cell.
             kwargs: keywords arguments passed to Xdatcar constructor.
         """
+        from pymatgen.io.vasp.outputs import Xdatcar
         filepath = self.write_xdatcar(filepath=filepath, groupby_type=groupby_type,
                                       to_unit_cell=to_unit_cell, overwrite=True)
 
@@ -202,6 +202,9 @@ class HistFile(AbinitNcFile, NotebookWriter):
         Return:
             path to Xdatcar file.
         """
+        # This library takes 13s to import on HPC (07/02/24) so moved to class method instead of header
+        from pymatgen.io.vasp.outputs import Xdatcar
+
         if filepath is not None and os.path.exists(filepath) and not overwrite:
             raise RuntimeError("Cannot overwrite pre-existing file `%s`" % filepath)
 
@@ -211,10 +214,10 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         # int typat[natom], double znucl[npsp]
         # NB: typat is double in the HIST.nc file
-        typat = self.reader.read_value("typat").astype(int)
-        znucl = self.reader.read_value("znucl")
-        ntypat = self.reader.read_dimvalue("ntypat")
-        num_pseudos = self.reader.read_dimvalue("npsp")
+        typat = self.r.read_value("typat").astype(int)
+        znucl = self.r.read_value("znucl")
+        ntypat = self.r.read_dimvalue("ntypat")
+        num_pseudos = self.r.read_dimvalue("npsp")
         if num_pseudos != ntypat:
             raise NotImplementedError("Alchemical mixing is not supported, num_pseudos != ntypat")
         #print("znucl:", znucl, "\ntypat:", typat)
@@ -229,7 +232,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             symbols_atom.append(symbol)
 
         if not groupby_type:
-            group_ids = np.arange(self.reader.natom)
+            group_ids = np.arange(self.r.natom)
         else:
             group_ids = []
             for pos_list in symb2pos.values():
@@ -251,7 +254,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
                 fh.write(" ".join(str(len(p)) for p in symb2pos.values()) + "\n")
 
             # Write atomic positions in reduced coordinates.
-            xred_list = self.reader.read_value("xred")
+            xred_list = self.r.read_value("xred")
             if to_unit_cell:
                 xred_list = xred_list % 1
 
@@ -348,14 +351,14 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.set_ylabel(r'$V\, (A^3)$')
 
         elif what == "pressure":
-            stress_cart_tensors, pressures = self.reader.read_cart_stress_tensors()
+            stress_cart_tensors, pressures = self.r.read_cart_stress_tensors()
             marker = kwargs.pop("marker", "o")
             label = kwargs.pop("label", "P")
             ax.plot(self.steps, pressures, label=label, marker=marker, **kwargs)
             ax.set_ylabel('P (GPa)')
 
         elif what == "forces":
-            forces_hist = self.reader.read_cart_forces()
+            forces_hist = self.r.read_cart_forces()
             fmin_steps, fmax_steps, fmean_steps, fstd_steps = [], [], [], []
             for step in range(self.num_steps):
                 forces = forces_hist[step]
@@ -375,7 +378,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.set_ylabel('F stats (eV/A)')
 
         else:
-            raise ValueError("Invalid value for what: `%s`" % str(what))
+            raise ValueError(f"Invalid value for {what=}")
 
         ax.set_xlabel('Step')
         ax.grid(True)
@@ -429,7 +432,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             for i, label in enumerate(["α ", "β ", "ɣ"]):
                 fig.add_scatter(x=self.steps, y=[s.lattice.angles[i] for s in self.structures], mode='lines+markers',
                                 name=label, marker_symbol=markers[i], row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = "αβɣ (degree)"+ "  "
+            fig.layout['yaxis%u' % rcd.iax].title.text = "αβɣ (degree)" + "  "
             fig.layout['yaxis%u' % rcd.iax].tickformat = ".3r"
 
         elif what in ("alpha", "beta", "gamma"):
@@ -451,7 +454,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             fig.layout['yaxis%u' % rcd.iax].title.text = 'V (A³)'
 
         elif what == "pressure":
-            stress_cart_tensors, pressures = self.reader.read_cart_stress_tensors()
+            stress_cart_tensors, pressures = self.r.read_cart_stress_tensors()
             marker = kwargs.pop("marker", 0)
             label = kwargs.pop("label", "P")
             fig.add_scatter(x=self.steps, y=pressures, mode='lines+markers',
@@ -459,7 +462,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             fig.layout['yaxis%u' % rcd.iax].title.text = 'P (GPa)'
 
         elif what == "forces":
-            forces_hist = self.reader.read_cart_forces()
+            forces_hist = self.r.read_cart_forces()
             fmin_steps, fmax_steps, fmean_steps, fstd_steps = [], [], [], []
             for step in range(self.num_steps):
                 forces = forces_hist[step]
@@ -582,7 +585,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         # TODO max force and pressure
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        terms = self.reader.read_eterms()
+        terms = self.r.read_eterms()
         for key, values in terms.items():
             if np.all(values == 0.0): continue
             ax.plot(self.steps, values, marker="o", label=key)
@@ -621,8 +624,8 @@ class HistFile(AbinitNcFile, NotebookWriter):
         mvtk.plot_structure(self.final_structure, style=style, unit_cell_color=(0, 0, 0), figure=figure)
 
         steps = np.arange(start=0, stop=self.num_steps, step=sampling)
-        xcart_list = self.reader.read_value("xcart") * units.bohr_to_ang
-        for iatom in range(self.reader.natom):
+        xcart_list = self.r.read_value("xcart") * units.bohr_to_ang
+        for iatom in range(self.r.natom):
             x, y, z = xcart_list[::sampling, iatom, :].T
             #for i in zip(x, y, z): print(i)
             trajectory = mlab.plot3d(x, y, z, steps, colormap=colormap, tube_radius=None,
@@ -630,8 +633,8 @@ class HistFile(AbinitNcFile, NotebookWriter):
             mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
 
         if with_forces:
-            fcart_list = self.reader.read_cart_forces(unit="eV ang^-1")
-            for iatom in range(self.reader.natom):
+            fcart_list = self.r.read_cart_forces(unit="eV ang^-1")
+            for iatom in range(self.r.natom):
                 x, y, z = xcart_list[::sampling, iatom, :].T
                 u, v, w = fcart_list[::sampling, iatom, :].T
                 q = mlab.quiver3d(x, y, z, u, v, w, figure=figure, colormap=colormap,
@@ -648,10 +651,10 @@ class HistFile(AbinitNcFile, NotebookWriter):
         #mvtk.plot_structure(self.initial_structure, style=style, figure=figure)
         #mvtk.plot_structure(self.final_structure, style=style, figure=figure)
 
-        xcart_list = self.reader.read_value("xcart") * units.bohr_to_ang
+        xcart_list = self.r.read_value("xcart") * units.bohr_to_ang
         #t = np.arange(self.num_steps)
         #line_width = 2
-        #for iatom in range(self.reader.natom):
+        #for iatom in range(self.r.natom):
         #    x, y, z = xcart_list[:, iatom, :].T
         #    trajectory = mlab.plot3d(x, y, z, t, colormap=colormap, tube_radius=None, line_width=line_width, figure=figure)
         #mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
@@ -784,7 +787,7 @@ class HistRobot(Robot):
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
     @property
-    def what_list(self) -> List[str]:
+    def what_list(self) -> list[str]:
         """List with all quantities that can be plotted (what_list)."""
         return ["energy", "abc", "angles", "volume", "pressure", "forces"]
 
@@ -916,7 +919,7 @@ class HistReader(ETSF_Reader):
         """Number of atoms un the unit cell."""
         return self.read_dimvalue("natom")
 
-    def read_all_structures(self) -> List[Structure]:
+    def read_all_structures(self) -> list[Structure]:
         """Return the list of structures at the different iteration steps."""
         rprimd_list = self.read_value("rprimd")
         xred_list = self.read_value("xred")
@@ -969,7 +972,7 @@ class HistReader(ETSF_Reader):
         """
         return self.read_value("fred")
 
-    def read_cart_stress_tensors(self) -> Tuple[np.ndarray, np.ndarray]:
+    def read_cart_stress_tensors(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Return the stress tensors (nstep x 3 x 3) in cartesian coordinates (GPa)
         and the list of pressures in GPa unit.

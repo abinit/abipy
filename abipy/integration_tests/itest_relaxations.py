@@ -9,6 +9,7 @@ import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_matplotlib
 
+import pytest
 
 def ion_relaxation(tvars, ntime=50):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
@@ -44,7 +45,7 @@ def ion_relaxation(tvars, ntime=50):
 
     return inp
 
-
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_atomic_relaxation(fwp, tvars):
     """Test atomic relaxation with automatic restart."""
     # Build the flow
@@ -154,6 +155,7 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
     return ion_inp, ioncell_inp
 
 
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_relaxation_with_restart_from_den(fwp, tvars):
     """Test structural relaxations with automatic restart from DEN files."""
     # Build the flow
@@ -189,6 +191,7 @@ def itest_relaxation_with_restart_from_den(fwp, tvars):
     flow.rmtree()
 
 
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_dilatmx_error_handler(fwp, tvars):
     """
     Test cell relaxation with automatic restart in the presence of dilatmx error.
@@ -221,6 +224,7 @@ def itest_dilatmx_error_handler(fwp, tvars):
     assert t0.corrections[0]["event"]["@class"] == "DilatmxError"
 
 
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_relaxation_with_target_dilatmx(fwp, tvars):
     """Test structural relaxations with automatic restart from DEN files."""
     # Build the flow

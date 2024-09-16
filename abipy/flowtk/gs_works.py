@@ -42,7 +42,7 @@ class GsKmeshConvWork(Work):
 
         return work
 
-    def on_all_ok(self):
+    def on_all_ok(self): # pragma: no cover
         """
         This method is called when all tasks in the GsKmeshTsmearConvWork have reached S_OK.
         """
@@ -54,18 +54,14 @@ class GsKmeshConvWork(Work):
 
             with gsr_robot.get_pyscript(self.outdir.path_in("gsr_robot.py")) as script:
                 script.add_text("""
-#item = "energy_per_atom"
-#robot.plot_convergence(item, sortby="nkpt", abs_conv=1e-3)
-
-items = ["energy_per_atom", "pressure", "max_force"]
-robot.plot_convergence_items(items, sortby="nkpt")
-
+# Quantities that should be tested for convergence.
 abs_conv = {
 "energy_per_atom": 1e-3,
 "pressure": 1e-2,
 "max_force": 1e-4,
 }
 items = abs_conv.keys()
+
 robot.plot_convergence_items(items, sortby="nkpt", abs_conv=abs_conv)
 """)
 
@@ -103,7 +99,7 @@ class GsKmeshTsmearConvWork(Work):
 
         return work
 
-    def on_all_ok(self):
+    def on_all_ok(self): # pragma: no cover
         """
         This method is called when all tasks in the GsKmeshTsmearConvWork have reached S_OK.
         """
@@ -115,18 +111,14 @@ class GsKmeshTsmearConvWork(Work):
 
             with gsr_robot.get_pyscript(self.outdir.path_in("gsr_robot.py")) as script:
                 script.add_text("""
-#item = "energy_per_atom"
-#robot.plot_convergence(item, sortby="nkpt", abs_conv=1e-3)
-
-items = ["energy_per_atom", "pressure", "max_force"]
-robot.plot_convergence_items(items, sortby="nkpt")
-
+# Quantities that should be tested for convergence.
 abs_conv = {
 "energy_per_atom": 1e-3,
 "pressure": 1e-2,
 "max_force": 1e-4,
 }
 items = abs_conv.keys()
+
 robot.plot_convergence_items(items, sortby="nkpt", hue="tsmear", abs_conv=abs_conv)
 """)
 
@@ -211,7 +203,7 @@ class EosWork(Work):
         return new_work
 
     @classmethod
-    def from_inputs(cls, inputs: list, manager=None) -> EosWork:
+    def from_inputs(cls, inputs: list[AbinitInput], manager=None) -> EosWork:
         """
         Advanced interface to build an EosWork from an list of AbinitInputs.
         """
@@ -250,7 +242,7 @@ class EosWork(Work):
 
         return eos_data
 
-    def on_all_ok(self):
+    def on_all_ok(self): # pragma: no cover
         """
         This method is called when all tasks have reached S_OK.
         It reads the energies and the volumes from the GSR file, computes the EOS

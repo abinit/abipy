@@ -24,7 +24,7 @@ class BaderChargesTest(AbipyTest):
         si_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
         bc = BaderCharges([-4,-4], si_structure, [-4,-4])
         bc.structure
-        self.assertArrayAlmostEqual(bc.net_charges, [0,0])
+        self.assert_almost_equal(bc.net_charges, [0,0])
 
     def test_bader_generation(self):
         if not self.which("bader"):

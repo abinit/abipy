@@ -65,7 +65,7 @@ hardware:
    num_nodes: 3
    sockets_per_node: 2
    cores_per_socket: 4
-   mem_per_node: 8 Gb
+   mem_per_node: 8 GB
 """)
 
     def test_base(self):
@@ -123,7 +123,7 @@ hardware:
                 aequal(new_script, script)
 
             # Test can_run and distribute
-            # The hardware has num_nodes=3, sockets_per_node=2, cores_per_socket=4, mem_per_node="8 Gb"
+            # The hardware has num_nodes=3, sockets_per_node=2, cores_per_socket=4, mem_per_node="8 GB"
             afalse(qad.can_run_pconf(ParalConf(mpi_ncpus=hw.num_cores+1, omp_ncpus=1, mem_per_cpu=0.1)))
             afalse(qad.can_run_pconf(ParalConf(mpi_ncpus=4, omp_ncpus=9, mem_per_cpu=0.1)))
             afalse(qad.can_run_pconf(ParalConf(mpi_ncpus=4, omp_ncpus=1, mem_per_cpu=10 * giga)))
@@ -192,7 +192,7 @@ hardware:
     num_nodes: 1
     sockets_per_node: 1
     cores_per_socket: 1
-    mem_per_node: 4 Gb
+    mem_per_node: 4 GB
 """)
     def test_methods(self):
         qad = make_qadapter(**self.QDICT)
@@ -257,7 +257,7 @@ hardware:
    num_nodes: 2
    sockets_per_node: 2
    cores_per_socket: 4
-   mem_per_node: 8 Gb
+   mem_per_node: 8 GB
 """)
 
     def test_methods(self):
@@ -342,7 +342,7 @@ hardware:
     num_nodes: 100
     sockets_per_node: 2
     cores_per_socket: 4
-    mem_per_node: 8 Gb""")
+    mem_per_node: 8 GB""")
     QDICT_SHARED = safe_load("""\
 priority: 1
 queue:
@@ -363,7 +363,7 @@ hardware:
     num_nodes: 100
     sockets_per_node: 2
     cores_per_socket: 12
-    mem_per_node: 48000 Mb""")
+    mem_per_node: 48000 MB""")
     QDICT_EXCLUSIVE = safe_load("""\
 priority: 1
 queue:
@@ -384,14 +384,14 @@ hardware:
     num_nodes: 100
     sockets_per_node: 2
     cores_per_socket: 12
-    mem_per_node: 48000 Mb""")
+    mem_per_node: 48000 MB""")
 
     def test_methods(self):
         self.maxDiff = None
         aequal = self.assertEqual
 
         qad = make_qadapter(**self.QDICT)
-        self.assertMSONable(qad)
+        self.assert_msonable(qad)
         print(qad)
         print(qad.mpi_runner)
 
@@ -458,7 +458,7 @@ mpirun  -n 3 executable < stdin > stdout 2> stderr
         qad_shared.set_mpi_procs(64)
         qad_shared.set_mem_per_proc(3500)
         qad_shared.set_master_mem_overhead(4000)
-        self.assertMSONable(qad_shared)
+        self.assert_msonable(qad_shared)
         aequal(qad_shared.get_select(), '1:ncpus=1:mem=7500mb:mpiprocs=1+'
                                         '63:ncpus=1:mem=3500mb:mpiprocs=1')
 
@@ -468,7 +468,7 @@ mpirun  -n 3 executable < stdin > stdout 2> stderr
         qad_exclusive.set_mpi_procs(47)
         qad_exclusive.set_mem_per_proc(2000)
         qad_exclusive.set_master_mem_overhead(1)
-        self.assertMSONable(qad_exclusive)
+        self.assert_msonable(qad_exclusive)
         aequal(qad_exclusive.get_select(), '1:ncpus=23:mem=48000mb:mpiprocs=23+'
                                            '1:ncpus=24:mem=48000mb:mpiprocs=24')
         qad_exclusive.set_mpi_procs(48)

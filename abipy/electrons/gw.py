@@ -21,7 +21,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
-    set_axlims, set_visible, rotate_ticklabels, set_ax_xylabels)
+    set_axlims, set_visible, rotate_ticklabels, set_ax_xylabels, set_grid_legend)
 from abipy.tools.typing import Figure
 from abipy.tools import duck
 from abipy.abio.robots import Robot
@@ -443,22 +443,28 @@ class QPList(list):
 class SelfEnergy:
     """
     This object stores e-e self-energy along the real-axis frequency domain with
-    the associated spectral function A(w).
-    Optionally, one can have the values along the imaginary axis
+    the associated spectral function A(w) and, optionally, the values along
+    the imaginary axis. Energies are in eV.
     """
 
     # Symbols used in matplotlib plots.
     latex_symbols = dict(
-        re=r"$\Re{\Sigma(\omega)}$",
-        im=r"$\Im{\Sigma(\omega)}$",
-        spfunc=r"$A(\omega)}$",
+        re=r"$\Re{\Sigma_{nk}(\omega)}$",
+        im=r"$\Im{\Sigma_{nk}(\omega)}$",
+        spfunc=r"$A_{nk}(\omega)}$",
     )
 
-    def __init__(self, spin, kpoint, band, wmesh, sigmaxc_values, spfunc_values,
+    def __init__(self, spin, kpoint, band, wmesh, sigxc_values, spfunc_values,
                  iw_mesh=None, c_iw_values=None, tau_mp_mesh=None, c_tau_mp_values=None):
         """
         Args:
-            iw_mesh: Frequency mesh along the imag axis.
+            spin:
+            kpoint:
+            band:
+            wmesh:
+            sigxc_values
+            spfunc_values
+            iw_mesh: Frequency mesh along the imag axis in eV
             c_iw_values: Values of Sigma_c(iw)
             tau_mp_mesh
             c_tau_mp_values
@@ -466,9 +472,12 @@ class SelfEnergy:
         self.spin, self.kpoint, self.band = spin, kpoint, band
 
         self.wmesh = np.array(wmesh)
-        self.xc = Function1D(self.wmesh, sigmaxc_values)
+        self.xc = Function1D(self.wmesh, sigxc_values)
+
+        #self.spfunc = None
+        #if spfunc_values is not None:
         self.spfunc = Function1D(self.wmesh, spfunc_values)
-        assert len(sigmaxc_values) == len(spfunc_values)
+        assert len(sigxc_values) == len(spfunc_values)
 
         # Optionally, store Sigma(iw)
         self.c_iw = None
@@ -479,6 +488,14 @@ class SelfEnergy:
         self.c_tau = None
         if tau_mp_mesh is not None and c_tau_mp_values is not None:
             self.c_tau = Function1D(tau_mp_mesh, c_tau_mp_values)
+
+    #@property
+    #def has_c_iw(self) -> bool:
+    #    return self.c_iw is not None
+
+    #@property
+    #def has_c_tau(self) -> bool:
+    #    return self.c_tau is not None
 
     def __str__(self) -> str:
         return self.to_string()
@@ -512,21 +529,22 @@ class SelfEnergy:
             spfunc=self.spfunc.values,
         )[what]
 
-    def plot_ax(self, ax, what="a", fontsize=12, **kwargs) -> list:
+    def plot_ax(self, ax, what="a", fontsize=8, **kwargs) -> list:
         """
         Helper function to plot data on the axis ax with fontsize
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            what: "a" for spectral function, "s" for self-energy (Re-Im) on the same ax.
-                "sre" for Re(Sigma) only, "sim" for Im(Sigma) only
+            what: "a" for spectral function,
+                  "s" for self-energy i.e. Re/Im on the same ax.
+                  "sre" for Re(Sigma) only.
+                  "sim" for Im(Sigma) only.
             fontsize: legend and title fontsize.
 
         Return: List of lines.
         """
         lines = []
         extend = lines.extend
-        ax.grid(True)
 
         if what in {"s", "sre", "sim"}:
             f = self.xc
@@ -545,15 +563,17 @@ class SelfEnergy:
             raise ValueError("Don't know how to handle what option %s" % str(what))
 
         #ax.set_ylabel('Energy (eV)')
+        ax.grid(True)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return lines
 
     @add_fig_kwargs
     def plot(self, ax_list=None, what_list=("re", "im", "spfunc"), fermie=None,
-             xlims=None, fontsize=12, **kwargs) -> Figure:
+             xlims=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the real/imaginary part of the self-energy as well as the spectral function.
+        along the real frequency axis.
 
         Args:
             ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
@@ -646,6 +666,19 @@ class SelfEnergy:
 
         return [l0, l1]
 
+    #@add_fig_kwargs
+    #def plot_other(self, other: SelfEnergy, **kwargs) -> Figure:
+    #    """
+    #    """
+    #    what_list = ["re", "im", "spfunc"]
+    #    ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=len(what_list), ncols=1,
+    #                                            sharex=True, sharey=False, squeeze=False)
+    #    ax_list = np.array(ax_list).ravel()
+
+    #    #for i, (what, ax) in enumerate(zip(what_list, ax_list)):
+    #    return fig
+
+
 
 class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
@@ -663,6 +696,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     """
     # Markers used for up/down bands.
     marker_spin = {0: "^", 1: "v"}
+
     color_spin = {0: "k", 1: "r"}
 
     @classmethod
@@ -680,7 +714,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         self._structure = reader.read_structure()
         self.gwcalctyp = reader.gwcalctyp
         self.ibz = reader.ibz
-        self.sigma_kpoints = reader.sigma_kpoints
+        #self.sigma_kpoints = reader.sigma_kpoints
         self.nkcalc = len(self.sigma_kpoints)
 
         self.bstart_sk = reader.bstart_sk
@@ -700,10 +734,10 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         self.qpenes = reader.read_qpenes()
         self.ksgaps = reader.read_ksgaps()
 
-    #@property
-    #def sigma_kpoints(self):
-    #    """The k-points where QP corrections have been calculated."""
-    #    return self.sigma_kpoints
+    @property
+    def sigma_kpoints(self):
+        """The k-points where QP corrections have been calculated."""
+        return self.r.sigma_kpoints
 
     def get_marker(self, qpattr):
         """
@@ -742,7 +776,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
-        """String representation with verbosity level ``verbose``."""
+        """
+        String representation with verbosity level ``verbose``.
+        """
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
@@ -753,12 +789,13 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app(self.ebands.to_string(title="Kohn-Sham bands", with_structure=False))
         app("")
 
+        # GW Section.
         # TODO: Finalize the implementation: add GW metadata.
         app(marquee("QP direct gaps", mark="="))
-        for kgw in self.sigma_kpoints:
+        for kcalc in self.sigma_kpoints:
             for spin in range(self.nsppol):
-                qp_dirgap = self.get_qpgap(spin, kgw)
-                app("QP_dirgap: %.3f (eV) for K-point: %s, spin: %s" % (qp_dirgap, repr(kgw), spin))
+                qp_dirgap = self.get_qpgap(spin, kcalc)
+                app("QP_dirgap: %.3f (eV) for k-point: %s, spin: %s" % (qp_dirgap, repr(kcalc), spin))
                 #ks_dirgap =
         app("")
 
@@ -770,12 +807,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app(marquee("QP results for each k-point and spin (all in eV)", mark="="))
         app("".join(strio))
         app("")
-
-        # TODO: Fix header.
-        #if verbose > 1:
-        #    app("")
-        #    app(marquee("Abinit Header", mark="="))
-        #    app(self.hdr.to_string(verbose=verbose))
 
         return "\n".join(lines)
 
@@ -791,7 +822,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @property
     def has_spectral_function(self) -> bool:
-        """True if file contains spectral function data."""
+        """True if sigres file contains the spectral function."""
         return self.r.has_spfunc
 
     @lazy_property
@@ -816,7 +847,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         Return the QP gap in eV at the given (spin, kpoint)
         """
-        ik = self.r.kpt2fileindex(kpoint)
+        ik = self.r.kpt2ibz(kpoint)
         if not with_ksgap:
             return self.qpgaps[spin, ik]
         else:
@@ -824,14 +855,27 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     def read_sigee_skb(self, spin, kpoint, band) -> SelfEnergy:
         """"
-        Read self-energy(w) for (spin, kpoint, band)
+        Read self-energy for (spin, kpoint, band).
         """
-        ik = self.r.kpt2fileindex(kpoint)
-        kpoint = self.ibz[ik]
-        wmesh, sigxc_values = self.r.read_sigmaw(spin, ik, band)
-        wmesh, spf_values = self.r.read_spfunc(spin, ik, band)
+        ik_ibz = self.r.kpt2ibz(kpoint)
+        kpoint = self.ibz[ik_ibz]
+        wmesh, sigxc_values = self.r.read_sigmaw(spin, ik_ibz, band)
 
-        return SelfEnergy(spin, kpoint, band, wmesh, sigxc_values, spf_values)
+        spf_values = None
+        if self.r.has_spfunc:
+            _, spf_values = self.r.read_spfunc(spin, ik_ibz, band)
+
+        iw_mesh, c_iw_values = None, None
+        if self.r.nomega_i > 0:
+            # Read Sigma_c(iw) if available.
+            # sigcmesi(b1gw:b2gw, nkibz, nomega_i, nsppol*nsig_ab))
+            iw_mesh = self.r.read_value("omega_i")[:, 1]
+            ib_gw = band - self.min_bstart
+            var = self.r.read_variable("sigcmesi")
+            c_iw_values = var[spin, :, ik_ibz, ib_gw, 0] + 1j*var[spin, :, ik_ibz, ib_gw, 1]
+
+        return SelfEnergy(spin, kpoint, band, wmesh, sigxc_values, spf_values,
+                          iw_mesh=iw_mesh, c_iw_values=c_iw_values)
 
     def print_qps(self, precision=3, ignore_imag=True, file=sys.stdout) -> None:
         """
@@ -844,16 +888,17 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         from abipy.tools.printing import print_dataframe
         keys = "band e0 qpe qpe_diago vxcme sigxme sigcmee0 vUme ze0".split()
-        for gwkpoint in self.sigma_kpoints:
+        for kcalc in self.sigma_kpoints:
             for spin in range(self.nsppol):
-                df_sk = self.get_dataframe_sk(spin, gwkpoint, ignore_imag=ignore_imag)[keys]
-                print_dataframe(df_sk, title="K-point: %s, spin: %s" % (repr(gwkpoint), spin),
+                df_sk = self.get_dataframe_sk(spin, kcalc, ignore_imag=ignore_imag)[keys]
+                print_dataframe(df_sk, title="K-point: %s, spin: %s" % (repr(kcalc), spin),
                                 precision=precision, file=file)
 
-    def get_points_from_ebands(self, ebands_kpath, dist_tol=1e-12, size=24, verbose=0):
+    def get_points_from_ebands(self, ebands_kpath, dist_tol=1e-12, size=24, verbose=0) -> Marker:
         """
-        Generate object storing the QP energies lying on the k-path used by ebands_kpath.
-        Mainly used to plot the QP energies in ebands.plot when the QP energies are interpolated with the SKW method.
+        Generate Marker object storing the QP energies lying on the k-path used by ebands_kpath.
+        Mainly used to plot the QP energies in ebands.plot when the QP energies
+        are interpolated with the SKW method.
 
         Args:
             ebands_kpath: |ElectronBands| object with the QP energies along an arbitrary k-path.
@@ -861,8 +906,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 is less than dist_tol.
             size: The marker size in points**2
             verbose: Verbosity level
-
-        Return:
 
         Example::
 
@@ -886,7 +929,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # Construct the stars of the k-points for all k-points included in the GW calculation.
         # In principle, the input k-path is arbitrary and not necessarily in the IBZ used for GW
         # so we have to build the k-stars and find the k-points lying along the path and keep
-        # track of the mapping kpt --> star --> kgw
+        # track of the mapping kpt --> star --> kcalc
         gw_stars = [kpoint.compute_star(self.structure.abi_spacegroup.fm_symmops) for kpoint in self.sigma_kpoints]
         cart_coords, back2istar = [], []
         for istar, gw_star in enumerate(gw_stars):
@@ -912,8 +955,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             # The k-point used in the GW calculation.
             gwk = gw_stars[istar].base_point
             # Indices needed to access SIGRES arrays (we have to live with this format)
-            ik_ibz = self.r.kpt2fileindex(gwk)
-            ik_b = self.r.gwkpt2seqindex(gwk)
+            ik_ibz = self.r.kpt2ibz(gwk)
+            ik_b = self.r.kpt2ikcalc(gwk)
             for spin in range(self.nsppol):
                 # Need to select bands included in the GW calculation.
                 for qpe in qp_arr[spin, ik_ibz, self.bstart_sk[spin, ik_b]:self.bstop_sk[spin, ik_b]]:
@@ -947,7 +990,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         ax.set_xticklabels(tick_labels, fontdict=None, rotation=30, minor=False, size="x-small")
 
         for spin in range(self.nsppol):
-            qp_gaps, ks_gaps = map(np.array, zip(*[self.get_qpgap(spin, kgw, with_ksgap=True) for kgw in self.sigma_kpoints]))
+            qp_gaps, ks_gaps = map(np.array, zip(*[self.get_qpgap(spin, kcalc, with_ksgap=True)
+                                   for kcalc in self.sigma_kpoints]))
             if not plot_qpmks:
                 # Plot QP gaps
                 ax.plot(xs, qp_gaps, marker=self.marker_spin[spin],
@@ -965,7 +1009,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 ax.set_ylabel("QP-KS gap (eV)")
             else:
                 ax.set_ylabel("QP direct gap (eV)")
-            #ax.set_title("k:%s" % (repr(kgw)), fontsize=fontsize)
+            #ax.set_title("k:%s" % (repr(kcalc)), fontsize=fontsize)
             if label:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -1027,11 +1071,11 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = np.array(ax_list).ravel()
 
-        for ikcalc, (kgw, ax) in enumerate(zip(self.sigma_kpoints, ax_list)):
+        for ikcalc, (kcalc, ax) in enumerate(zip(self.sigma_kpoints, ax_list)):
             for spin in range(self.nsppol):
                 for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
                     if include_bands and band not in include_bands: continue
-                    sigw = self.read_sigee_skb(spin, kgw, band)
+                    sigw = self.read_sigee_skb(spin, kcalc, band)
                     label = r"$A(\omega)$: band: %d, spin: %d" % (band, spin)
                     sigw.plot_ax(ax, what="a", label=label, fontsize=fontsize, **kwargs)
 
@@ -1112,7 +1156,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             # Add (scattered) QP energies for the calculated k-points.
             for band in range(self.r.max_bstart, self.r.min_bstop):
                 ax.scatter(kcalc2ibz, yvals[:, band],
-                    color=cmap(band / nb), alpha=0.6, marker="o", s=20,
+                           color=cmap(band / nb), alpha=0.6, marker="o", s=20,
                 )
             set_axlims(ax, ylims, "y")
 
@@ -1161,14 +1205,14 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         df_list = []
         for spin in range(self.nsppol):
-            for gwkpoint in self.sigma_kpoints:
-                df_sk = self.get_dataframe_sk(spin, gwkpoint, ignore_imag=ignore_imag)
+            for kcalc in self.sigma_kpoints:
+                df_sk = self.get_dataframe_sk(spin, kcalc, ignore_imag=ignore_imag)
                 df_list.append(df_sk)
 
         return pd.concat(df_list)
 
     # FIXME: To maintain previous interface.
-    to_dataframe = get_dataframe
+    #to_dataframe = get_dataframe
 
     def get_dataframe_sk(self, spin, kpoint, index=None, ignore_imag=False, with_params=True) -> pd.Dataframe:
         """
@@ -1179,7 +1223,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             with_params: True to include convergence parameters.
         """
         rows, bands = [], []
-        ikcalc = self.r.gwkpt2seqindex(kpoint)
+        ikcalc = self.r.kpt2ikcalc(kpoint)
 
         # bstart and bstop depends on kpoint.
         for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
@@ -1196,53 +1240,54 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
-    def plot_sigma_imag_axis(self, kpoint, spin=0, ax=None, fontsize=8, **kwargs) -> Figure:
+    def plot_sigma_imag_axis(self, kpoint, spin=0, ax_list=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot ...
+        Plot the self-energy along the imaginary frequency axis.
+        Requires GW calculations with analytic continuation
 
         Args:
             kpoint:
             spin: Spin index.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
+            ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
         """
-        # sigcmesi(b1gw:b2gw, nkibz, nomega_i, nsppol*nsig_ab))
+        # On disk we have the following arrays:
+        # Matrix elements of $\Sigma_c$ along the imaginary axis.
+        # Only used in case of analytical continuation.
+        # NB: Values in the netcdf file are in eV
 
+        # sigcmesi(b1gw:b2gw, nkibz, nomega_i, nsppol*nsig_ab))
         # nctkarr_t('sigxcmesi', "dp", 'cplex, nbgw, number_of_kpoints, nomega_i, ndim_sig'),&
         # nctkarr_t('sigcmesi', "dp",'cplex, nbgw, number_of_kpoints, nomega_i, ndim_sig'),&
         # nctkarr_t('omega_i', "dp", 'cplex, nomega_i')])
-        # Matrix elements of $\Sigma_c$ along the imaginary axis.
-        # Only used in case of analytical continuation.
-        # Values in the netcdf file are in eV
 
         var = self.r.read_variable("sigcmesi")
         wmesh_ev = self.r.read_value("omega_i")[:, 1]
 
-        ikcalc = self.r.gwkpt2seqindex(kpoint)
-        ik_ibz = self.r.kpt2fileindex(kpoint)
+        ikcalc = self.r.kpt2ikcalc(kpoint)
+        ik_ibz = self.r.kpt2ibz(kpoint)
 
-        nrows, ncols = 1, 2
-        ax_list = None
+        #sigma_band = {}
+        #for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
+        #    sigma_band[band] = self.read_sigee_skb(spin, kpoint, band)
+
+        nrows, ncols = 2, 1
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = np.array(ax_list).ravel()
         re_ax, im_ax = ax_list
 
         for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
-            #print("band", band, "shape", var.shape)
             ib_gw = band - self.min_bstart
             sigma = var[spin, :, ik_ibz, ib_gw, 0] + 1j*var[spin, :, ik_ibz, ib_gw, 1]
-            re_ax.plot(wmesh_ev, sigma.real, label=f"Re band {band}")
-            im_ax.plot(wmesh_ev, sigma.imag, label=f"Im band {band}")
+            re_ax.plot(wmesh_ev, sigma.real, label=f"band: {band}")
+            im_ax.plot(wmesh_ev, sigma.imag, label=f"band: {band}")
 
-        re_ax.set_ylabel(r"$\Re{\Sigma_c}$ (eV)")
-        im_ax.set_ylabel(r"$\Im{\Sigma_c}$ (eV)")
-        for ax in ax_list:
-            ax.grid(True)
-            ax.set_xlabel(r"$i\omega$ (eV)")
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        re_ax.set_ylabel(r"$\Re{\Sigma_c}(i\omega)$ (eV)")
+        im_ax.set_ylabel(r"$\Im{\Sigma_c}(i\omega)$ (eV)")
+        set_grid_legend(ax_list, fontsize, xlabel=r"$i\omega$ (eV)")
 
         return fig
 
@@ -1354,7 +1399,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
         qpdata = np.empty(egw_rarr.shape)
         for gwk in self.sigma_kpoints:
-            ik_ibz = self.r.kpt2fileindex(gwk)
+            ik_ibz = self.r.kpt2ibz(gwk)
             for spin in range(self.nsppol):
                 qpdata[spin, ik_ibz, :] = egw_rarr[spin, ik_ibz, :]
 
@@ -1436,8 +1481,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         yield self.plot_qpgaps(show=False)
         yield self.plot_qps_vs_e0(show=False)
-        yield self.plot_qpbands_ibz(show=False)
-        yield self.plot_ksbands_with_qpmarkers(show=False)
+        #yield self.plot_qpbands_ibz(show=False)
+        #yield self.plot_ksbands_with_qpmarkers(show=False)
         if self.has_spectral_function:
             yield self.plot_spectral_functions(include_bands=None, show=False)
 
@@ -1473,6 +1518,7 @@ class SigresReader(ETSF_Reader):
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: SigresReader
+    """
 
     # See 70gw/m_sigma_results.F90
 
@@ -1488,150 +1534,154 @@ class SigresReader(ETSF_Reader):
     #    "ze0",
     #]
 
-    integer :: b1gw,b2gw      ! min and Max gw band indeces over spin and k-points (used to dimension)
-    integer :: gwcalctyp      ! Flag defining the calculation type.
-    integer :: nkptgw         ! No. of points calculated
-    integer :: nkibz          ! No. of irreducible k-points.
-    integer :: nbnds          ! Total number of bands
-    integer :: nomega_r       ! No. of real frequencies for the spectral function.
-    integer :: nomega_i       ! No. of frequencies along the imaginary axis.
-    integer :: nomega4sd      ! No. of real frequencies to evaluate the derivative of $\Sigma(E)$.
-    integer :: nsig_ab        ! 1 if nspinor=1,4 for noncollinear case.
-    integer :: nsppol         ! No. of spin polarizations.
-    integer :: usepawu        ! 1 if we are using LDA+U as starting point (only for PAW)
+    # integer :: b1gw,b2gw      ! min and Max gw band indeces over spin and k-points (used to dimension)
+    # integer :: gwcalctyp      ! Flag defining the calculation type.
+    # integer :: nkptgw         ! No. of points calculated
+    # integer :: nkibz          ! No. of irreducible k-points.
+    # integer :: nbnds          ! Total number of bands
+    # integer :: nomega_r       ! No. of real frequencies for the spectral function.
+    # integer :: nomega_i       ! No. of frequencies along the imaginary axis.
+    # integer :: nomega4sd      ! No. of real frequencies to evaluate the derivative of $\Sigma(E)$.
+    # integer :: nsig_ab        ! 1 if nspinor=1,4 for noncollinear case.
+    # integer :: nsppol         ! No. of spin polarizations.
+    # integer :: usepawu        ! 1 if we are using LDA+U as starting point (only for PAW)
 
-    real(dp) :: deltae       ! Frequency step for the calculation of d\Sigma/dE
-    real(dp) :: maxomega4sd  ! Max frequency around E_ks for d\Sigma/dE.
-    real(dp) :: maxomega_r   ! Max frequency for spectral function.
-    real(dp) :: scissor_ene  ! Scissor energy value. zero for None.
+    # real(dp) :: deltae       ! Frequency step for the calculation of d\Sigma/dE
+    # real(dp) :: maxomega4sd  ! Max frequency around E_ks for d\Sigma/dE.
+    # real(dp) :: maxomega_r   ! Max frequency for spectral function.
+    # real(dp) :: scissor_ene  ! Scissor energy value. zero for None.
 
-    integer,pointer :: maxbnd(:,:)
-    ! maxbnd(nkptgw,nsppol)
-    ! Max band index considered in GW for this k-point.
+    # integer,pointer :: maxbnd(:,:)
+    # ! maxbnd(nkptgw,nsppol)
+    # ! Max band index considered in GW for this k-point.
 
-    integer,pointer :: minbnd(:,:)
-    ! minbnd(nkptgw,nsppol)
-    ! Min band index considered in GW for this k-point.
+    # integer,pointer :: minbnd(:,:)
+    # ! minbnd(nkptgw,nsppol)
+    # ! Min band index considered in GW for this k-point.
 
-    real(dp),pointer :: degwgap(:,:)
-    ! degwgap(nkibz,nsppol)
-    ! Difference btw the QPState and the KS optical gap.
+    # real(dp),pointer :: degwgap(:,:)
+    # ! degwgap(nkibz,nsppol)
+    # ! Difference btw the QPState and the KS optical gap.
 
-    real(dp),pointer :: egwgap(:,:)
-    ! egwgap(nkibz,nsppol))
-    ! QPState optical gap at each k-point and spin.
+    # real(dp),pointer :: egwgap(:,:)
+    # ! egwgap(nkibz,nsppol))
+    # ! QPState optical gap at each k-point and spin.
 
-    real(dp),pointer :: en_qp_diago(:,:,:)
-    ! en_qp_diago(nbnds,nkibz,nsppol))
-    ! QPState energies obtained from the diagonalization of the Hermitian approximation to Sigma (QPSCGW)
+    # real(dp),pointer :: en_qp_diago(:,:,:)
+    # ! en_qp_diago(nbnds,nkibz,nsppol))
+    # ! QPState energies obtained from the diagonalization of the Hermitian approximation to Sigma (QPSCGW)
 
-    real(dp),pointer :: e0(:,:,:)
-    ! e0(nbnds,nkibz,nsppol)
-    ! KS eigenvalues for each band, k-point and spin. In case of self-consistent?
+    # real(dp),pointer :: e0(:,:,:)
+    # ! e0(nbnds,nkibz,nsppol)
+    # ! KS eigenvalues for each band, k-point and spin. In case of self-consistent?
 
-    real(dp),pointer :: e0gap(:,:)
-    ! e0gap(nkibz,nsppol),
-    ! KS gap at each k-point, for each spin.
+    # real(dp),pointer :: e0gap(:,:)
+    # ! e0gap(nkibz,nsppol),
+    # ! KS gap at each k-point, for each spin.
 
-    real(dp),pointer :: omega_r(:)
-    ! omega_r(nomega_r)
-    ! real frequencies used for the self energy.
+    # real(dp),pointer :: omega_r(:)
+    # ! omega_r(nomega_r)
+    # ! real frequencies used for the self energy.
 
-    real(dp),pointer :: kptgw(:,:)
-    ! kptgw(3,nkptgw)
-    ! ! TODO there is a similar array in sigma_parameters
-    ! List of calculated k-points.
+    # real(dp),pointer :: kptgw(:,:)
+    # ! kptgw(3,nkptgw)
+    # ! ! TODO there is a similar array in sigma_parameters
+    # ! List of calculated k-points.
 
-    real(dp),pointer :: sigxme(:,:,:)
-    ! sigxme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-    ! Diagonal matrix elements of $\Sigma_x$ i.e $\<nks|\Sigma_x|nks\>$
+    # real(dp),pointer :: sigxme(:,:,:)
+    # ! sigxme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    # ! Diagonal matrix elements of $\Sigma_x$ i.e $\<nks|\Sigma_x|nks\>$
 
-    real(dp),pointer :: vxcme(:,:,:)
-    ! vxcme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-    ! $\<nks|v_{xc}[n_val]|nks\>$ matrix elements of vxc (valence-only contribution).
+    # real(dp),pointer :: vxcme(:,:,:)
+    # ! vxcme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    # ! $\<nks|v_{xc}[n_val]|nks\>$ matrix elements of vxc (valence-only contribution).
 
-    real(dp),pointer :: vUme(:,:,:)
-    ! vUme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-    ! $\<nks|v_{U}|nks\>$ for LDA+U.
+    # real(dp),pointer :: vUme(:,:,:)
+    # ! vUme(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    # ! $\<nks|v_{U}|nks\>$ for LDA+U.
 
-    complex(dpc),pointer :: degw(:,:,:)
-    ! degw(b1gw:b2gw,nkibz,nsppol))
-    ! Difference between the QPState and the KS energies.
+    # complex(dpc),pointer :: degw(:,:,:)
+    # ! degw(b1gw:b2gw,nkibz,nsppol))
+    # ! Difference between the QPState and the KS energies.
 
-    complex(dpc),pointer :: dsigmee0(:,:,:)
-    ! dsigmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-    ! Derivative of $\Sigma_c(E)$ calculated at the KS eigenvalue.
+    # complex(dpc),pointer :: dsigmee0(:,:,:)
+    # ! dsigmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    # ! Derivative of $\Sigma_c(E)$ calculated at the KS eigenvalue.
 
-    complex(dpc),pointer :: egw(:,:,:)
-    ! egw(nbnds,nkibz,nsppol))
-    ! QPState energies, $\epsilon_{nks}^{QPState}$.
+    # complex(dpc),pointer :: egw(:,:,:)
+    # ! egw(nbnds,nkibz,nsppol))
+    # ! QPState energies, $\epsilon_{nks}^{QPState}$.
 
-    complex(dpc),pointer :: eigvec_qp(:,:,:,:)
-    ! eigvec_qp(nbnds,nbnds,nkibz,nsppol))
-    ! Expansion of the QPState amplitude in the KS basis set.
+    # complex(dpc),pointer :: eigvec_qp(:,:,:,:)
+    # ! eigvec_qp(nbnds,nbnds,nkibz,nsppol))
+    # ! Expansion of the QPState amplitude in the KS basis set.
 
-    complex(dpc),pointer :: hhartree(:,:,:,:)
-    ! hhartree(b1gw:b2gw,b1gw:b2gw,nkibz,nsppol*nsig_ab)
-    ! $\<nks|T+v_H+v_{loc}+v_{nl}|mks\>$
+    # complex(dpc),pointer :: hhartree(:,:,:,:)
+    # ! hhartree(b1gw:b2gw,b1gw:b2gw,nkibz,nsppol*nsig_ab)
+    # ! $\<nks|T+v_H+v_{loc}+v_{nl}|mks\>$
 
-    complex(dpc),pointer :: sigcme(:,:,:,:)
-    ! sigcme(b1gw:b2gw,nkibz,nomega_r,nsppol*nsig_ab))
-    ! $\<nks|\Sigma_{c}(E)|nks\>$ at each nomega_r frequency
+    # complex(dpc),pointer :: sigcme(:,:,:,:)
+    # ! sigcme(b1gw:b2gw,nkibz,nomega_r,nsppol*nsig_ab))
+    # ! $\<nks|\Sigma_{c}(E)|nks\>$ at each nomega_r frequency
 
-    complex(dpc),pointer :: sigmee(:,:,:)
-    ! sigmee(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-    ! $\Sigma_{xc}E_{KS} + (E_{QPState}- E_{KS})*dSigma/dE_KS
+    # complex(dpc),pointer :: sigmee(:,:,:)
+    # ! sigmee(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    # ! $\Sigma_{xc}E_{KS} + (E_{QPState}- E_{KS})*dSigma/dE_KS
 
-    complex(dpc),pointer :: sigcmee0(:,:,:)
-    ! sigcmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
-    ! Diagonal mat. elements of $\Sigma_c(E)$ calculated at the KS energy $E_{KS}$
+    # complex(dpc),pointer :: sigcmee0(:,:,:)
+    # ! sigcmee0(b1gw:b2gw,nkibz,nsppol*nsig_ab))
+    # ! Diagonal mat. elements of $\Sigma_c(E)$ calculated at the KS energy $E_{KS}$
 
-    complex(dpc),pointer :: sigcmesi(:,:,:,:)
-    ! sigcmesi(b1gw:b2gw,nkibz,nomega_i,nsppol*nsig_ab))
-    ! Matrix elements of $\Sigma_c$ along the imaginary axis.
-    ! Only used in case of analytical continuation.
+    # complex(dpc),pointer :: sigcmesi(:,:,:,:)
+    # ! sigcmesi(b1gw:b2gw,nkibz,nomega_i,nsppol*nsig_ab))
+    # ! Matrix elements of $\Sigma_c$ along the imaginary axis.
+    # ! Only used in case of analytical continuation.
 
-    complex(dpc),pointer :: sigcme4sd(:,:,:,:)
-    ! sigcme4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol*nsig_ab))
-    ! Diagonal matrix elements of \Sigma_c around the zeroth order eigenvalue (usually KS).
+    # complex(dpc),pointer :: sigcme4sd(:,:,:,:)
+    # ! sigcme4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol*nsig_ab))
+    # ! Diagonal matrix elements of \Sigma_c around the zeroth order eigenvalue (usually KS).
 
-    complex(dpc),pointer :: sigxcme(:,:,:,:)
-    ! sigxme(b1gw:b2gw,nkibz,nomega_r,nsppol*nsig_ab))
-    ! $\<nks|\Sigma_{xc}(E)|nks\>$ at each real frequency frequency.
+    # complex(dpc),pointer :: sigxcme(:,:,:,:)
+    # ! sigxme(b1gw:b2gw,nkibz,nomega_r,nsppol*nsig_ab))
+    # ! $\<nks|\Sigma_{xc}(E)|nks\>$ at each real frequency frequency.
 
-    complex(dpc),pointer :: sigxcmesi(:,:,:,:)
-    ! sigxcmesi(b1gw:b2gw,nkibz,nomega_i,nsppol*nsig_ab))
-    ! Matrix elements of $\Sigma_{xc}$ along the imaginary axis.
-    ! Only used in case of analytical continuation.
+    # complex(dpc),pointer :: sigxcmesi(:,:,:,:)
+    # ! sigxcmesi(b1gw:b2gw,nkibz,nomega_i,nsppol*nsig_ab))
+    # ! Matrix elements of $\Sigma_{xc}$ along the imaginary axis.
+    # ! Only used in case of analytical continuation.
 
-    complex(dpc),pointer :: sigxcme4sd(:,:,:,:)
-    ! sigxcme4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol*nsig_ab))
-    ! Diagonal matrix elements of \Sigma_xc for frequencies around the zeroth order eigenvalues.
+    # complex(dpc),pointer :: sigxcme4sd(:,:,:,:)
+    # ! sigxcme4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol*nsig_ab))
+    # ! Diagonal matrix elements of \Sigma_xc for frequencies around the zeroth order eigenvalues.
 
-    complex(dpc),pointer :: ze0(:,:,:)
-    ! ze0(b1gw:b2gw,nkibz,nsppol))
-    ! renormalization factor. $(1-\dfrac{\partial\Sigma_c} {\partial E_{KS}})^{-1}$
+    # complex(dpc),pointer :: ze0(:,:,:)
+    # ! ze0(b1gw:b2gw,nkibz,nsppol))
+    # ! renormalization factor. $(1-\dfrac{\partial\Sigma_c} {\partial E_{KS}})^{-1}$
 
-    complex(dpc),pointer :: omega_i(:)
-    ! omegasi(nomega_i)
-    ! Frequencies along the imaginary axis used for the analytical continuation.
+    # complex(dpc),pointer :: omega_i(:)
+    # ! omegasi(nomega_i)
+    # ! Frequencies along the imaginary axis used for the analytical continuation.
 
-    complex(dpc),pointer :: omega4sd(:,:,:,:)
-    ! omega4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol).
-    ! Frequencies used to evaluate the Derivative of Sigma.
-    """
+    # complex(dpc),pointer :: omega4sd(:,:,:,:)
+    # ! omega4sd(b1gw:b2gw,nkibz,nomega4sd,nsppol).
+    # ! Frequencies used to evaluate the Derivative of Sigma.
 
     def __init__(self, path: str):
         self.ks_bands = ElectronBands.from_file(path)
         self.nsppol = self.ks_bands.nsppol
         super().__init__(path)
 
+        # Read number of frequencies for Sigma along the real axis.
         try:
             self.nomega_r = self.read_dimvalue("nomega_r")
         except self.Error:
             self.nomega_r = 0
 
-        #self.nomega_i = self.read_dim("nomega_i")
+        # Read Number of frequencies for Sigma along the imag axis.
+        try:
+            self.nomega_i = self.read_dimvalue("nomega_i")
+        except self.Error:
+            self.nomega_i = 0
 
         # Save important quantities needed to simplify the API.
         self.structure = self.read_structure()
@@ -1686,17 +1736,14 @@ class SigresReader(ETSF_Reader):
         self._en_qp_diago = self.read_value("en_qp_diago")
         #self._mlda_to_qp
 
-    #def is_selfconsistent(self, mode):
-    #    return self.gwcalctyp
-
     @property
     def has_spfunc(self) -> bool:
         """True if self contains the spectral function."""
         return self.nomega_r > 0
 
-    def kpt2fileindex(self, kpoint) -> int:
+    def kpt2ibz(self, kpoint) -> int:
         """
-        Helper function that returns the index of kpoint in the netcdf file.
+        Helper function that returns the index of kpoint in the IBZ.
         Accepts |Kpoint| instance or integer
 
         Raise:
@@ -1710,15 +1757,23 @@ class SigresReader(ETSF_Reader):
         if duck.is_intlike(kpoint): return int(kpoint)
         return self.ibz.index(kpoint)
 
-    def gwkpt2seqindex(self, gwkpoint) -> int:
+    #def get_ikcalc_kpoint(self, kpoint) -> tuple(int, Kpoint):
+    #    """
+    #    Return the ikcalc index and the Kpoint
+    #    """
+    #    ikcalc = self.kpt2ikcalc(kpoint)
+    #    kpoint = self.sigma_kpoints[ikcalc]
+    #    return ikcalc, kpoint
+
+    def kpt2ikcalc(self, kpoint) -> int:
         """
         This function returns the index of the GW k-point in (0:nkptgw)
         Used to access data in the arrays that are dimensioned [0:nkptgw] e.g. minbnd.
         """
-        if duck.is_intlike(gwkpoint):
-            return int(gwkpoint)
+        if duck.is_intlike(kpoint):
+            return int(kpoint)
         else:
-            return self.sigma_kpoints.index(gwkpoint)
+            return self.sigma_kpoints.index(kpoint)
 
     #def read_redc_sigma_kpoints(self):
     #    return self.read_value("kptgw")
@@ -1734,10 +1789,10 @@ class SigresReader(ETSF_Reader):
 
         for spin in range(self.nsppol):
             qps = []
-            for gwkpoint in self.sigma_kpoints:
-                ikcalc = self.gwkpt2seqindex(gwkpoint)
+            for kcalc in self.sigma_kpoints:
+                ikcalc = self.kpt2ikcalc(kcalc)
                 for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
-                    qps.append(self.read_qp(spin, gwkpoint, band, ignore_imag=ignore_imag))
+                    qps.append(self.read_qp(spin, kcalc, band, ignore_imag=ignore_imag))
 
             qps_spin[spin] = QPList(qps)
 
@@ -1750,7 +1805,7 @@ class SigresReader(ETSF_Reader):
         Args:
             ignore_imag: Only real part is returned if ``ignore_imag``.
         """
-        ikcalc = self.gwkpt2seqindex(kpoint)
+        ikcalc = self.kpt2ikcalc(kpoint)
         bstart, bstop = self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]
 
         return QPList([self.read_qp(spin, kpoint, band, ignore_imag=ignore_imag)
@@ -1764,7 +1819,7 @@ class SigresReader(ETSF_Reader):
         Return QPState for the given (spin, kpoint, band).
         Only real part is returned if ``ignore_imag``.
         """
-        ik_file = self.kpt2fileindex(kpoint)
+        ik_file = self.kpt2ibz(kpoint)
         # Must shift band index (see fortran code that allocates with mdbgw)
         ib_gw = band - self.min_bstart
 
@@ -1798,32 +1853,34 @@ class SigresReader(ETSF_Reader):
         return self.ks_bands.eigens[spin, kfile, band]
 
     def read_sigmaw(self, spin, kpoint, band) -> tuple:
-        """Returns the real and the imaginary part of the self energy."""
+        """
+        Returns the real and the imaginary part of the self energy.
+        """
         if not self.has_spfunc:
             raise ValueError("%s does not contain spectral function data." % self.path)
 
-        ik = self.kpt2fileindex(kpoint)
+        ik = self.kpt2ibz(kpoint)
         # Must shift band index (see fortran code that allocates with mdbgw)
         ib_gw = band - self.min_bstart
-        #ib_gw = band - self.bstart_sk[spin, self.gwkpt2seqindex(kpoint)]
+        #ib_gw = band - self.bstart_sk[spin, self.kpt2ikcalc(kpoint)]
 
         return self._omega_r, self._sigxcme[spin,:, ik, ib_gw]
 
     def read_spfunc(self, spin, kpoint, band) -> tuple[np.ndarray]:
         """
-        Returns the spectral function.
+        Compute and return the mesh and the spectral function A(w).
 
          one/pi * ABS(AIMAG(Sr%sigcme(ib,ikibz,io,is))) /
          ( (REAL(Sr%omega_r(io)-Sr%hhartree(ib,ib,ikibz,is)-Sr%sigxcme(ib,ikibz,io,is)))**2 &
         +(AIMAG(Sr%sigcme(ib,ikibz,io,is)))**2) / Ha_eV,&
         """
         if not self.has_spfunc:
-            raise ValueError("%s does not contain spectral function data" % self.path)
+            raise ValueError("%s does not contain the spectral function" % self.path)
 
-        ik = self.kpt2fileindex(kpoint)
+        ik = self.kpt2ibz(kpoint)
         # Must shift band index (see fortran code that allocates with mdbgw)
         ib_gw = band - self.min_bstart
-        #ib_gw = band - self.bstart_sk[spin, self.gwkpt2seqindex(kpoint)]
+        #ib_gw = band - self.bstart_sk[spin, self.kpt2ikcalc(kpoint)]
 
         aim_sigc = np.abs(self._sigcme[spin,:,ik,ib_gw].imag)
         den = np.zeros(self.nomega_r)
@@ -1839,7 +1896,7 @@ class SigresReader(ETSF_Reader):
         Returns <KS|QPState> for the given spin, kpoint and band.
         If band is None, <KS_b|QP_{b'}> is returned.
         """
-        ik = self.kpt2fileindex(kpoint)
+        ik = self.kpt2ibz(kpoint)
         # <KS|QPState>
         # TODO
         #eigvec_qp = self.read_value("eigvec_qp", cmode="c")
@@ -1856,7 +1913,8 @@ class SigresReader(ETSF_Reader):
         Returns dict with the value of the parameters.
         """
         param_names = [
-            "ecutwfn", "ecuteps", "ecutsigx", "scr_nband", "sigma_nband",
+            "ecutwfn", "ecuteps", "ecutsigx",
+            "scr_nband", "sigma_nband",
             "gwcalctyp", "scissor_ene",
         ]
 
@@ -1874,7 +1932,7 @@ class SigresReader(ETSF_Reader):
 
     #def read_mlda_to_qp(self, spin, kpoint, band=None):
     #    """Returns the unitary transformation KS --> QPS"""
-    #    ik = self.kpt2fileindex(kpoint)
+    #    ik = self.kpt2ibz(kpoint)
     #    if band is not None:
     #        return self._mlda_to_qp[spin,ik,:,band]
     #    else:
@@ -2027,15 +2085,15 @@ class SigresRobot(Robot, RobotWithEbands):
         # Get dimensions and index of the k-point in the sigma_nk array.
         nc0 = self.abifiles[0]
         nsppol, sigma_kpoints = nc0.nsppol, nc0.sigma_kpoints
-        ik = nc0.r.gwkpt2seqindex(kpoint)
-        kgw = nc0.sigma_kpoints[ik]
+        ik = nc0.r.kpt2ikcalc(kpoint)
+        kcalc = nc0.sigma_kpoints[ik]
 
         # Order files by ecuteps
         labels, ncfiles, params = self.sortby("ecuteps", unpack=True)
         ecuteps_vals = np.array(params)
 
         # Get QP and KS gaps ordered by ecuteps_vals.
-        qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
+        qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kcalc, with_ksgap=True)
             for ncfile in ncfiles]))
         ydata = qp_gaps if not plot_qpmks else qp_gaps - ks_gaps
 
@@ -2058,7 +2116,7 @@ class SigresRobot(Robot, RobotWithEbands):
         # Change label depending on plot_qpmks
         what = r"\Delta E_g" if plot_qpmks else r"E_g"
         ax.plot(xs, func(xs, *popt), 'b-',
-                label=f'fit: $B_3$=%5.3f, $B_5$=%5.3f, ${what} (\infty)$=%5.3f' % tuple(popt))
+                label=rf'fit: $B_3$=%5.3f, $B_5$=%5.3f, ${what} (\infty)$=%5.3f' % tuple(popt))
         ax.hlines(popt[-1], min_ecuteps, max_ecuteps, color="k")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
         ax.grid(True)
@@ -2120,13 +2178,13 @@ class SigresRobot(Robot, RobotWithEbands):
         else:
             groups = self.group_and_sortby(hue, sortby)
 
-        for ik, (kgw, ax) in enumerate(zip(sigma_kpoints, ax_list)):
+        for ik, (kcalc, ax) in enumerate(zip(sigma_kpoints, ax_list)):
             for spin in range(nsppol):
-                ax.set_title("QP dirgap k:%s" % (repr(kgw)), fontsize=fontsize)
+                ax.set_title("QP dirgap k:%s" % (repr(kcalc)), fontsize=fontsize)
 
-                # Extract QP dirgap for [spin, kgw, itemp]
+                # Extract QP dirgap for [spin, ikcalc, itemp]
                 if hue is None:
-                    qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
+                    qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kcalc, with_ksgap=True)
                         for ncfile in ncfiles]))
                     yvals = qp_gaps if not plot_qpmks else qp_gaps - ks_gaps
 
@@ -2140,7 +2198,7 @@ class SigresRobot(Robot, RobotWithEbands):
                         ax.set_xticklabels(params, fontsize=fontsize)
                 else:
                     for g in groups:
-                        qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kgw, with_ksgap=True)
+                        qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kcalc, with_ksgap=True)
                             for ncfile in g.abifiles]))
                         yvals = qp_gaps if not plot_qpmks else qp_gaps - ks_gaps
                         label = "%s: %s" % (self._get_label(hue), g.hvalue)
@@ -2165,7 +2223,8 @@ class SigresRobot(Robot, RobotWithEbands):
     def plot_qpdata_conv_skb(self, spin, kpoint, band, sortby=None, hue=None,
                             fontsize=8, **kwargs) -> Figure:
         """
-        For each file in the robot, plot the convergence of the QP results for given (spin, kpoint, band)
+        For each file in the SIGRES robot, plot the convergence of the QP results
+        for given (spin, kpoint, band)
 
         Args:
             spin: Spin index.
@@ -2202,7 +2261,7 @@ class SigresRobot(Robot, RobotWithEbands):
         ax_list = ax_list.ravel()
 
         nc0 = self.abifiles[0]
-        ik = nc0.r.gwkpt2seqindex(kpoint)
+        ik = nc0.r.kpt2ikcalc(kpoint)
         kpoint = nc0.sigma_kpoints[ik]
 
         # Sort and read QP data.

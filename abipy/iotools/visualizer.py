@@ -100,7 +100,9 @@ class Visualizer(metaclass=abc.ABCMeta):
         """
         from subprocess import call
         if not self.is_macosx_app:
-            cprint("Executing: %s %s %s" % (self.binpath, self.cmdarg, self.filepath), "yellow")
+            cprint("Executing: binpath=%s, cmdarg=%s, filepath=%s" % (self.binpath, self.cmdarg, self.filepath), "yellow")
+            if self.binpath is None:
+                raise RuntimeError("binpath is None, please make sure that executable can be found in $PATH")
             return call([self.binpath, self.cmdarg, self.filepath])
 
         else:

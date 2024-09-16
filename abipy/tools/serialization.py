@@ -12,8 +12,10 @@ import pickle
 import json
 
 from typing import Any
+from pathlib import Path
 from monty.json import MontyDecoder, MontyEncoder
 from pymatgen.core.periodic_table import Element
+from abipy.tools.context_managers import Timer
 
 
 def pmg_serialize(method):
@@ -24,6 +26,8 @@ def pmg_serialize(method):
 
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
+        if not args:
+            return None
         self = args[0]
         d = method(*args, **kwargs)
         # Add @module and @class
@@ -50,8 +54,7 @@ class PmgPickler(pickle.Pickler):
     """
 
     def persistent_id(self, obj: Any):
-        """Instead of pickling as a regular class instance, we emit a
-        persistent ID."""
+        """Instead of pickling as a regular class instance, we emit a persistent ID."""
         if isinstance(obj, Element):
             # Here, our persistent ID is simply a tuple, containing a tag and
             # a key
@@ -106,8 +109,9 @@ def pmg_pickle_load(filobj, **kwargs) -> Any:
 def pmg_pickle_dump(obj: Any, filobj, **kwargs):
     """
     Dump an object to a pickle file using PmgPickler.
+
     Args:
-        obj : Object to dump.
+        obj: Object to dump.
         fileobj: File-like object
         **kwargs: Any of the keyword arguments supported by PmgPickler
     """
@@ -117,7 +121,6 @@ def pmg_pickle_dump(obj: Any, filobj, **kwargs):
 def mjson_load(filepath: str, **kwargs) -> Any:
     """
     Read JSON file in MSONable format with MontyDecoder.
-    Return dict with python object.
     """
     with open(filepath, "rt") as fh:
         return json.load(fh, cls=MontyDecoder, **kwargs)
@@ -126,14 +129,35 @@ def mjson_load(filepath: str, **kwargs) -> Any:
 def mjson_loads(string: str, **kwargs) -> Any:
     """
     Read JSON string in MSONable format with MontyDecoder.
-    Return python object
     """
     return json.loads(string, cls=MontyDecoder, **kwargs)
 
 
-def mjson_write(d: dict, filepath: str, **kwargs) -> None:
+def mjson_write(obj: Any, filepath: str, **kwargs) -> None:
     """
-    Write dictionary d to filepath in JSON format using MontyDecoder
+    Write object to filepath in JSON format using MontyDecoder.
     """
     with open(filepath, "wt") as fh:
-        json.dump(d, fh, cls=MontyEncoder, **kwargs)
+        json.dump(obj, fh, cls=MontyEncoder, **kwargs)
+
+
+class HasPickleIO:
+    """
+    Mixin class providing pickle IO methods.
+    """
+
+    @classmethod
+    def pickle_load(cls, workdir, basename=None):
+        """
+        Reconstruct the object from a pickle file located in workdir.
+        """
+        filepath = Path(workdir) / f"{cls.__name__}.pickle" if basename is None else Path(workdir) / basename
+        with open(filepath, "rb") as fh, Timer(header=f"Reconstructing {cls.__name__} instance from file: {str(filepath)}", footer="") as timer:
+            return pickle.load(fh)
+
+    def pickle_dump(self, workdir, basename=None) -> Path:
+        """Write pickle file. Return path to file"""
+        filepath = Path(workdir) / f"{self.__class__.__name__}.pickle" if basename is None else Path(workdir) / basename
+        with open(filepath, "wb") as fh, Timer(header=f"Saving {self.__class__.__name__} instance to file: {str(filepath)}", footer="") as timer:
+            pickle.dump(self, fh)
+        return filepath

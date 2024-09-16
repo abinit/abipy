@@ -33,7 +33,7 @@ class InputVariable:
     """
     An Abinit input variable.
     """
-    def __init__(self, name, value, units='', valperline=3):
+    def __init__(self, name: str, value: Any, units='', valperline=3):
         """
         Args:
             name: Name of the variable.
@@ -74,7 +74,7 @@ class InputVariable:
         return basename.rstrip(_DATASET_INDICES)
 
     @property
-    def dataset(self):
+    def dataset(self) -> str:
         """Return the dataset index in string form."""
         return self.name.split(self.basename)[-1]
 
@@ -98,6 +98,7 @@ class InputVariable:
         # For some inputs, enforce number of decimal points...
         if any(inp in var for inp in ('xred', 'xcart', 'rprim', 'qpt', 'kpt')):
             floatdecimal = 16
+            #floatdecimal = 32
 
         if var == 'qpt':
             floatdecimal = 22

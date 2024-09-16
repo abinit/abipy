@@ -13,10 +13,6 @@ import numpy
 import json
 import tempfile
 import unittest
-#import subprocess
-#import time
-#import atexit
-#import shutil
 try:
     import numpy.testing as nptu
 except ImportError:
@@ -43,7 +39,7 @@ def cmp_version(this: str, other: str, op: str = ">=") -> bool:
     Compare two version strings with the given operator ``op``
     >>> assert cmp_version("1.1.1", "1.1.0") and not cmp_version("1.1.1", "1.1.0", op="==")
     """
-    from pkg_resources import parse_version
+    from packaging.version import parse as parse_version
     from monty.operator import operator_from_str
     op = operator_from_str(op)
     return op(parse_version(this), parse_version(other))
@@ -340,6 +336,29 @@ class AbipyTest(PymatgenTest):
         op = ">="
         if not self.has_abinit(version, op=op):
             raise unittest.SkipTest("This test requires Abinit version %s %s" % (op, version))
+
+    @staticmethod
+    def test_mprester():
+        """Skip MP rester tests."""
+        #raise unittest.SkipTest("MPRester tests have been disabled")
+        return True
+
+    def is_url_reachable(url: str) -> bool:
+        """check if a URL is reachable:"""
+        import requests
+        try:
+            # Send a HEAD request to the URL
+            response = requests.head(url, timeout=5)
+
+            # Check if the response status code is 200 (OK)
+            if response.status_code == 200:
+                return True
+            else:
+                return False
+        except requests.exceptions.RequestException as e:
+            # Handle any request exceptions (e.g., connection errors)
+            #print(f"Error: {e}")
+            return False
 
     @staticmethod
     def has_matplotlib(version: Optional[str] = None, op: str = ">=") -> bool:

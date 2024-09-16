@@ -4,6 +4,7 @@ Objects to analyze and visualize the results of GWR calculations.
 """
 from __future__ import annotations
 
+import dataclasses
 import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
@@ -19,11 +20,13 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.typing import Figure, KptSelect
-from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
-    set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend)
+from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
+    set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line, Exposer)
+from abipy.tools.numtools import data_from_cplx_mode
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
-from abipy.electrons.gw import SelfEnergy, QPState, QPList
+from abipy.electrons.gw import SelfEnergy, QPState, QPList #, SigresFile, SigresRobot
 from abipy.abio.robots import Robot
+from abipy.abio.enums import GWR_TASK
 
 __all__ = [
     "GwrFile",
@@ -31,17 +34,102 @@ __all__ = [
     "TchimVsSus",
 ]
 
+
 class _MyQpkindsList(list):
     """Returned by find_qpkinds."""
 
 
+@dataclasses.dataclass(kw_only=True)
+class MinimaxMesh:
+    """
+    The minimax mesh reported in the GWR file.
+    """
+    ntau: int              # Number of points.
+    tau_mesh: np.ndarray   # tau points.
+    tau_wgs: np.ndarray    # tau weights for integration.
+    iw_mesh: np.ndarray    # omega points along the imag. axis.
+    iw_wgs: np.ndarray     # omega weights for integration.
+    cosft_wt: np.ndarray   # weights for cosine transform (tau --> omega).
+    cosft_tw: np.ndarray   # weights for cosine transform (omega --> tau).
+    sinft_wt: np.ndarray   # weights for sine transform (tau --> omega).
+
+    min_transition_energy_eV: float   # Minimum transition energy.
+    max_transition_energy_eV: float   # Maximum transition energy.
+    eratio: float
+    ft_max_err_t2w_cos: float
+    ft_max_err_w2t_cos: float
+    ft_max_err_t2w_sin: float
+    cosft_duality_error: float
+    regterm: float                    # Regularization term.
+
+    @classmethod
+    def from_ncreader(cls, reader: ETSF_Reader) -> MinimaxMesh:
+        """
+        Build minimax mesh from a netcdf reader.
+        """
+        d = {}
+        for field in dataclasses.fields(cls):
+            name = field.name
+            if name == "ntau":
+                value = reader.read_dimvalue(name)
+            else:
+                value = reader.read_value(name)
+                if field.type == "float":
+                    value = float(value)
+            d[name] = value
+
+        return cls(**d)
+
+    @add_fig_kwargs
+    def plot_ft_weights(self, other: MinimaxMesh, self_name="self", other_name="other",
+                        with_sinft=False, fontsize=6, **kwargs):
+        """
+        Plot the Fourier transformt weights of two minimax meshes (self and other)
+        """
+        if self.ntau != other.ntau:
+            raise ValueError("Cannot compare minimax meshes with different ntau")
+
+        import matplotlib.pyplot as plt
+        nrows, ncols = (4, 2) if with_sinft else (3, 2)
+        fig, ax_mat = plt.subplots(nrows=nrows, ncols=ncols,
+                                   sharex=False, sharey=False, squeeze=False,
+                                   figsize=(12, 8),
+                                   #subplot_kw={'xticks': [], 'yticks': []},
+        )
+
+        I_mat = np.eye(self.ntau)
+        select_irow = {
+            0: [(self.cosft_wt @ self.cosft_tw) - I_mat,
+                (other.cosft_wt @ other.cosft_tw) - I_mat], # , other.cosft_wt @ other.cosft_tw],
+            1: [self.cosft_wt, other.cosft_wt], # self.cosft_wt - other.cosft_wt],
+            2: [self.cosft_tw, other.cosft_tw], # self.cosft_tw - other.cosft_tw],
+            3: [self.sinft_tw, other.sinft_tw], # self.sinft_tw - other.sinft_tw],
+        }
+
+        label_irow = {
+            0: [f"(cosft_wt @ cosft_tw) - I ({self_name})", f"(cosft_wt @ cosft_tw) - I ({other_name})"],
+            1: [f"cosft_wt ({self_name})", f"cosft_wt ({other_name})"],
+            2: [f"cosft_tw ({self_name})", f"cosft_tw ({other_name})"],
+            3: [f"sinft_tw ({self_name})", f"sinft_tw ({other_name})"],
+        }
+
+        for irow in range(nrows):
+            for iax, (ax, data, label) in enumerate(zip(ax_mat[irow], select_irow[irow], label_irow[irow])):
+                im = ax.matshow(data, cmap='seismic')
+                fig.colorbar(im, ax=ax)
+                ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
+
 class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    High-level interface to the GWR.nc file
+    This object provides an high-level interface to the GWR.nc file produced by the GWR code.
     """
 
     # Markers used for up/down bands.
     marker_spin = {0: "^", 1: "v"}
+
     color_spin = {0: "k", 1: "r"}
 
     @classmethod
@@ -52,7 +140,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def __init__(self, filepath: str):
         """Read data from the netcdf filepath."""
         super().__init__(filepath)
-
         self.r = self.reader = GwrReader(self.filepath)
 
     @property
@@ -82,8 +169,16 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @lazy_property
     def qpz0_dirgaps(self) -> np.ndarray:
-       """QP direct gaps in eV. Shape: [nsppol, nkcalc]"""
+       """
+       QP direct gaps in eV computed with the Z factor at the KS energy
+       Shape: [nsppol, nkcalc]
+       """
        return self.r.read_value("qpz_gaps") * abu.Ha_eV
+
+    @lazy_property
+    def minimax_mesh(self) -> MinimaxMesh:
+        """Object storing minimax mesh and weights."""
+        return MinimaxMesh.from_ncreader(self.r)
 
     @lazy_property
     def qplist_spin(self) -> tuple[QPList]:
@@ -140,6 +235,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         dict with parameters that might be subject to convergence studies e.g ecuteps.
         """
+        minimax_mesh = self.minimax_mesh
         r = self.r
         return dict(
             gwr_ntau=r.read_dimvalue("ntau"),
@@ -151,6 +247,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             nkpt=self.ebands.nkpt,
             symchi=r.read_value("symchi"),
             symsigma=r.read_value("symsigma"),
+            regterm=minimax_mesh.regterm,
         )
 
     def close(self) -> None:
@@ -173,30 +270,30 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         app("")
 
         # GWR section.
+
         app(marquee("GWR parameters", mark="="))
         app("gwr_task: %s" % self.r.gwr_task)
-        app("Number of k-points in Sigma_{nk}: %d" % (len(self.r.sigma_kpoints)))
-        app("Number of bands included in e-e self-energy sum: %d" % (self.nband))
-        keys = self.params.keys() if verbose else ["ecuteps", "ecutsigx", "ecut", "gwr_boxcutmin"]
-        for k in keys:
-            app("%s: %s" % (k, self.params[k]))
-        if verbose:
-            app(marquee("k-points in Sigma_nk", mark="="))
-            app(self.r.sigma_kpoints.to_string(title=None, pre_string="\t"))
-        app("")
 
-        # These variables have added recently
-        #sigma_ngkpt = self.reader.read_value("sigma_ngkpt", default=None)
-        #app("sigma_ngkpt: %s, sigma_erange: %s" % (sigma_ngkpt, sigma_erange))
-        #app("Max bstart: %d, min bstop: %d" % (self.reader.max_bstart, self.reader.min_bstop))
-        #eph_ngqpt_fine = self.reader.read_value("eph_ngqpt_fine")
-        #app("q-mesh for self-energy integration (eph_ngqpt_fine): %s" % (str(eph_ngqpt_fine)))
-        #app("k-mesh for electrons:")
-        #app("\t" + self.ebands.kpoints.ksampling.to_string(verbose=verbose))
+        if self.r.gwr_task == GWR_TASK.RPA_ENERGY:
+            pass
+            #d = self.get_rpa_ene_dict()
 
-        app(marquee("QP direct gaps in eV", mark="="))
-        app(str(self.get_dirgaps_dataframe(with_params=False)))
-        app("")
+        else:
+            app("Number of k-points in Sigma_{nk}: %d" % (len(self.r.sigma_kpoints)))
+            app("Number of bands included in e-e self-energy sum: %d" % (self.nband))
+            keys = self.params.keys() if verbose else ["ecuteps", "ecutsigx", "ecut", "gwr_boxcutmin"]
+            for k in keys:
+                app("%s: %s" % (k, self.params[k]))
+            if verbose:
+                app(marquee("k-points in Sigma_nk", mark="="))
+                app(self.r.sigma_kpoints.to_string(title=None, pre_string="\t"))
+            app("")
+
+            app(marquee("QP direct gaps in eV", mark="="))
+            app(str(self.get_dirgaps_dataframe(with_params=False)))
+            app("")
+
+        #app(str(self.minimax_mesh))
 
         return "\n".join(lines)
 
@@ -210,9 +307,9 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     #    else:
     #        return self.qpgaps[spin, ik], self.ksgaps[spin, ik]
 
-    def get_dirgaps_dataframe(self, with_params: bool=True, with_geo=False) -> pd.DataFrame:
+    def get_dirgaps_dataframe(self, with_params: bool=True, with_geo: bool=False) -> pd.DataFrame:
         """
-        Build and return a pandas DataFrame with the QP direct gaps in eV.
+        Return a pandas DataFrame with the QP direct gaps in eV.
 
         Args:
             with_params: True if GWR parameters should be included.
@@ -290,16 +387,42 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         raise ValueError(f"Invalid value for include_bands: {include_bands}")
 
+    def get_rpa_ene_dict(self) -> dict:
+        """
+        Read RPA energies computed for different ecut_chi (all in Ha)
+        """
+        # nctkarr_t("ecut_chi", "dp", "ncut")
+        # nctkarr_t("ec_rpa_ecut", "dp", "ncut")
+        d = {}
+        for key in ("ecut_chi", "ec_rpa_ecut", "ec_mp2_ecut"):
+            d[key] = self.r.read_value(key)
+
+        # Extrapolate value for ecut --> oo.
+        xs = d["ecut_chi"] ** (-3/2.0)
+        for key in ("ec_rpa_ecut", "ec_mp2_ecut"):
+            ys = d[key]
+            coef = np.polyfit(xs, ys, 1)
+            # poly1d_fn is a function which takes in x and returns an estimate for y
+            poly1d_fn = np.poly1d(coef)
+            extrap_value = poly1d_fn(0.0)
+            #print(f"{extrap_value=}")
+            d[key + "_inf"] = extrap_value
+
+        #print(d)
+        return d
+
     @add_fig_kwargs
-    def plot_sigma_imag_axis(self, kpoint: KptSelect, spin=0,
-                             include_bands="gap", with_tau=True,
+    def plot_sigma_imag_axis(self, kpoint: KptSelect,
+                             spin=0, include_bands="gap", with_tau=True,
                              fontsize=8, ax_mat=None, **kwargs) -> Figure:
         """
-        Plot Sigma(iw) for given k-point, spin and list of bands.
+        Plot Sigma_nk(iw) along the imaginary axis for given k-point, spin and list of bands.
 
         Args:
             kpoint: k-point in self-energy. Accepts |Kpoint|, vector or index.
+            spin: Spin index.
             include_bands: List of bands to include. None means all.
+            with_tau:
             fontsize: Legend and title fontsize.
             ax_mat:
 
@@ -311,15 +434,15 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                                                sharey=False, squeeze=False)
         ax_mat = np.array(ax_mat)
 
-        # Read Sigma_nk in sigma_band
+        # Read Sigma_nk in sigma_of_band
         ikcalc, kpoint = self.r.get_ikcalc_kpoint(kpoint)
         include_bands = self._get_include_bands(include_bands, spin)
-        sigma_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands)
+        sigma_of_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands)
 
         # Plot Sigmac_nk(iw)
         re_ax, im_ax = ax_list = ax_mat[0]
         style = dict(marker="o")
-        for band, sigma in sigma_band.items():
+        for band, sigma in sigma_of_band.items():
             sigma.c_iw.plot_ax(re_ax, cplx_mode="re", label=f"Re band: {band}", **style)
             sigma.c_iw.plot_ax(im_ax, cplx_mode="im", label=f"Im band: {band}", **style)
 
@@ -331,7 +454,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             # Plot Sigmac_nk(itau)
             re_ax, im_ax = ax_list = ax_mat[1]
             style = dict(marker="o")
-            for band, sigma in sigma_band.items():
+            for band, sigma in sigma_of_band.items():
                 sigma.c_tau.plot_ax(re_ax, cplx_mode="re", label=f"Re band: {band}", **style)
                 sigma.c_tau.plot_ax(im_ax, cplx_mode="im", label=f"Im band: {band}", **style)
 
@@ -347,7 +470,14 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def plot_sigma_real_axis(self, kpoint: KptSelect, spin=0, include_bands="gap",
                              fontsize=8, ax_mat=None, **kwargs) -> Figure:
         """
-        Plot Sigma(w) along the real-axis.
+        Plot Sigma_nk(w) along the real-axis for given k-point, spin and set of bands.
+
+        Args:
+            kpoint: k-point in self-energy. Accepts |Kpoint|, vector or index.
+            spin: Spin index.
+            include_bands: List of bands to include. None means all.
+            fontsize: Legend and title fontsize.
+            ax_mat:
         """
         nrows, ncols = 1, 2
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
@@ -356,14 +486,14 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         ikcalc, kpoint = self.r.get_ikcalc_kpoint(kpoint)
         include_bands = self._get_include_bands(include_bands, spin)
-        sigma_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands)
+        sigma_of_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands)
         nwr = self.r.nwr
 
         ax_list = re_ax, im_ax = ax_mat[0]
         # Show KS gap as filled area.
         self.ebands.add_fundgap_span(ax_list, spin)
 
-        for band, sigma in sigma_band.items():
+        for band, sigma in sigma_of_band.items():
             ib = band - self.r.min_bstart
             e0 = self.r.e0_kcalc[spin, ikcalc, ib]
 
@@ -389,7 +519,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, e0="fermie",
                        xlims=None, sharey=False, ax_list=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot QP results in the GWR file as function of the KS energy.
+        Plot QP results stored in the GWR file as function of the KS energy.
 
         Args:
             with_fields: The names of the qp attributes to plot as function of eKS.
@@ -424,7 +554,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     @add_fig_kwargs
     def plot_spectral_functions(self, include_bands=None, ax_list=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot the spectral function for all k-points, bands and spins available in the GWR file.
+        Plot the spectral function A_{nk}(w) for all k-points, bands and
+        spins available in the GWR file.
 
         Args:
             include_bands: List of bands to include. None means all.
@@ -439,25 +570,37 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = np.array(ax_list).ravel()
 
-        for ikcalc, (kgw, ax) in enumerate(zip(self.sigma_kpoints, ax_list)):
+        for ikcalc, (kcalc, ax) in enumerate(zip(self.sigma_kpoints, ax_list)):
             for spin in range(self.nsppol):
                 include_bands_ks = self._get_include_bands(include_bands, spin)
-                sigma_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands_ks)
-                for band, sigma in sigma_band.items():
+                sigma_of_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands_ks)
+
+                for band, sigma in sigma_of_band.items():
                     label = r"$A(\omega)$: band: %d, spin: %d" % (band, spin)
                     l = sigma.plot_ax(ax, what="a", label=label, fontsize=fontsize)
                     # Show position of the KS energy as vertical line.
                     ib = band - self.r.min_bstart
-                    ax.axvline(self.r.e0_kcalc[spin, ikcalc, ib], lw=1, color=l[0].get_color(), ls="--")
+                    ax.axvline(self.r.e0_kcalc[spin, ikcalc, ib],
+                               lw=1, color=l[0].get_color(), ls="--")
 
             # Show KS gap as filled area.
             self.ebands.add_fundgap_span(ax, spin)
 
             ax.set_xlabel(r"$\omega$ (eV)")
             ax.set_ylabel(r"$A(\omega)$ (1/eV)")
-            ax.set_title("k-point: %s" % repr(kgw), fontsize=fontsize)
+            ax.set_title("k-point: %s" % repr(kcalc), fontsize=fontsize)
 
         return fig
+
+    #@add_fig_kwargs
+    #def plot_sparsity(self, what, origin="lower", **kwargs):
+    #   x_mat
+    #   ax.spy(mat, precision=0.1, markersize=5, origin=origin)
+
+    #@add_fig_kwargs
+    #def plot_mat(self, what, origin="lower", **kwargs):
+    #   x_mat
+    #   ax.spy(mat, precision=0.1, markersize=5, origin=origin)
 
     #def get_panel(self, **kwargs):
     #    """
@@ -500,7 +643,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
 class GwrReader(ETSF_Reader):
     r"""
-    This object provides method to read data from the GWR.nc file.
+    This object provides methods to read data from the GWR.nc file.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GwrReader
@@ -549,10 +692,12 @@ class GwrReader(ETSF_Reader):
 
     @lazy_property
     def tau_mesh(self) -> np.ndarray:
+        """Tau mesh in a.u."""
         return self.read_value("tau_mesh")
 
     @lazy_property
     def wr_step(self) -> float:
+        """Frequency-mesh along the real axis in eV."""
         return self.read_value("wr_step") * abu.Ha_eV
 
     @lazy_property
@@ -561,7 +706,9 @@ class GwrReader(ETSF_Reader):
         return self.read_value("e0_kcalc") * abu.Ha_eV
 
     def get_ikcalc_kpoint(self, kpoint) -> tuple(int, Kpoint):
-        """Return the ikcalc index and the Kpoint"""
+        """
+        Return the ikcalc index and the Kpoint
+        """
         ikcalc = self.kpt2ikcalc(kpoint)
         kpoint = self.sigma_kpoints[ikcalc]
         return ikcalc, kpoint
@@ -576,8 +723,6 @@ class GwrReader(ETSF_Reader):
         else:
             return self.sigma_kpoints.index(kpoint)
 
-    #gwkpt2seqindex = kpt2ikcalc
-
     def get_wr_mesh(self, e0: float) -> np.ndarray:
         """
         The frequency mesh in eV is linear and centered around KS e0.
@@ -588,7 +733,7 @@ class GwrReader(ETSF_Reader):
 
     def read_sigee_skb(self, spin, kpoint, band) -> SelfEnergy:
         """"
-        Read self-energy data for (spin, kpoint, band).
+        Read self-energy for (spin, kpoint, band).
         """
         ikcalc, kpoint = self.get_ikcalc_kpoint(kpoint)
         ib = band - self.min_bstart
@@ -620,13 +765,13 @@ class GwrReader(ETSF_Reader):
 
     def read_sigma_bdict_sikcalc(self, spin: int, ikcalc: int, include_bands) -> dict[int, SelfEnergy]:
         """
-        Return dict of self-energy objects for given (spin, ikcalc) indexed by band.
+        Return dict of self-energy objects for given (spin, ikcalc) indexed by the band index.
         """
-        sigma_band = {}
+        sigma_of_band = {}
         for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
             if include_bands and band not in include_bands: continue
-            sigma_band[band] = self.read_sigee_skb(spin, ikcalc, band)
-        return sigma_band
+            sigma_of_band[band] = self.read_sigee_skb(spin, ikcalc, band)
+        return sigma_of_band
 
     def read_allqps(self, ignore_imag=False) -> tuple[QPList]:
         """
@@ -649,7 +794,7 @@ class GwrReader(ETSF_Reader):
 
     def read_qplist_sk(self, spin, kpoint, ignore_imag=False) -> QPList:
         """
-        Read and return QPList object for the given spin, kpoint.
+        Read and return a QPList object for the given spin, kpoint.
 
         Args:
             ignore_imag: Only real part is returned if ``ignore_imag``.
@@ -692,129 +837,6 @@ class GwrReader(ETSF_Reader):
         return qp_list
 
 
-class TchimVsSus:
-
-    def __init__(self, tchim_filepath, sus_filepath):
-        from abipy.electrons.scr import SusFile
-        self.sus_file = SusFile(sus_filepath)
-        self.tchi_reader = ETSF_Reader(tchim_filepath)
-
-    @add_fig_kwargs
-    def plot_qpoint_gpairs(self, qpoint, gpairs, fontsize=8, spins=(0, 0), **kwargs) -> Figure:
-        gpairs = np.array(gpairs)
-
-        sus_reader = self.sus_file.reader
-        _, sus_iq = sus_reader.find_kpoint_fileindex(qpoint)
-
-        # int reduced_coordinates_plane_waves_dielectric_function(number_of_qpoints_dielectric_function,
-        # number_of_coefficients_dielectric_function, number_of_reduced_dimensions) ;
-
-        #reduced_coordinates_plane_waves_dielectric_function
-        susc_iwmesh = sus_reader.read_value("frequencies_dielectric_function", cmode="c").imag
-        # SUSC file uses Gamma-centered G-spere so read at iq = 0
-        susc_gvec = sus_reader.read_variable("reduced_coordinates_plane_waves_dielectric_function")[0]
-
-        tchi_qpoints = self.tchi_reader.read_variable("qibz")
-        for tchi_iq, tchi_qq in enumerate(tchi_qpoints):
-            if np.all(abs(tchi_qq - qpoint) < 1e-6):
-                break
-        else:
-            raise ValueError(f"Cannot find: {qpoint} in TCHIM file")
-
-        tchi_gvec = self.tchi_reader.read_variable("gvecs")[tchi_iq]
-        tchi_iwmesh = self.tchi_reader.read_variable("iw_mesh")
-
-        def _find_g(gg, gvec):
-            for ig, g_sus in enumerate(gvec):
-                if all(gg == g_sus):
-                    return ig
-            else:
-                raise ValueError(f"Cannot find: {gg}")
-
-        sus_inds = [(_find_g(g1, susc_gvec), _find_g(g2, susc_gvec)) for g1, g2 in gpairs]
-        chi_inds = [(_find_g(g1, tchi_gvec), _find_g(g2, tchi_gvec)) for g1, g2 in gpairs]
-
-        # Build grid of plots.
-        num_plots, ncols, nrows = 2 * len(gpairs), 1, 1
-        if num_plots > 1:
-            ncols = 2
-            nrows = (num_plots // ncols) + (num_plots % ncols)
-
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
-
-        for i, ((g1, g2), (sus_ig1, sus_ig2), (chi_ig1, chi_ig2)) in enumerate(zip(gpairs, sus_inds, chi_inds)):
-            #print(g1, g2)
-            ax_re, ax_im = ax_mat[i]
-
-            # number_of_qpoints_dielectric_function, number_of_frequencies_dielectric_function,
-            # number_of_spins, number_of_spins, number_of_coefficients_dielectric_function,
-            # number_of_coefficients_dielectric_function, complex)
-
-            if sus_reader.path.endswith("SUS.nc"):
-               sus_var_name = "polarizability"
-            elif sus_reader.path.endswith("SCR.nc"):
-                sus_var_name = "inverse_dielectric_function"
-            else:
-                raise ValueError(f"Cannot detect varname for file: {sus_reader.path}")
-
-            sus_data = sus_reader.read_variable(sus_var_name)[sus_iq, :, 0, 0, sus_ig2, sus_ig1]
-            sus_data = sus_data[:, 0] + 1j * sus_data[:, 1]
-
-            # nctkarr_t("mats", "dp", "two, mpw, mpw, ntau, nqibz, nsppol")
-            tchi_data = self.tchi_reader.read_variable("mats")[0, tchi_iq, :, chi_ig2, chi_ig1, :]
-            tchi_data = tchi_data[:, 0] + 1j * tchi_data[:, 1]
-
-            opts = dict(markersize=4)
-
-            ax_re.plot(susc_iwmesh[1:], sus_data[1:].real, ls="--", marker="o", label="AW Re", **opts)
-            ax_re.plot(tchi_iwmesh, tchi_data[0:].real, ls=":", marker="^", label="minimax Re", **opts)
-            ax_re.grid(True)
-
-            ax_im.plot(susc_iwmesh[1:], sus_data[1:].imag, ls="--", marker="o", label="AW Im", **opts)
-            ax_im.plot(tchi_iwmesh, tchi_data[0:].imag, ls=":", marker="^", label="minimax Im", **opts)
-            ax_im.grid(True)
-
-            tex_g1 = r"${\bf{G}}_1$"
-            tex_g2 = r"${\bf{G}}_2$"
-            tex_qpt = r"${\bf{q}}$"
-
-            ax_re.set_title(f"{tex_g1}: {g1}, {tex_g2}: {g2}, {tex_qpt}: {qpoint}", fontsize=fontsize)
-            ax_im.set_title(f"{tex_g1}: {g1}, {tex_g2}: {g2}, {tex_qpt}: {qpoint}", fontsize=fontsize)
-
-            ax_re.legend(loc="best", fontsize=fontsize, shadow=True)
-            ax_im.legend(loc="best", fontsize=fontsize, shadow=True)
-
-            #if i == 0:
-            if True:
-                ax_re.set_ylabel(r'$\Re{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
-                ax_im.set_ylabel(r'$\Im{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
-                #ax_im.yaxis.set_label_position("right")
-                #ax_im.yaxis.tick_right()
-
-            if i == len(gpairs) - 1:
-                ax_re.set_xlabel(r'$i \omega$ (Ha)')
-                ax_im.set_xlabel(r'$i \omega$ (Ha)')
-
-            # The two files may store chi on different meshes.
-            # Here we select the min value for comparison purposes.
-            w_max = min(susc_iwmesh[-1], tchi_iwmesh[-1]) + 5
-            xlims = [0, w_max]
-            xlims = [-0.2, 7]
-
-            set_axlims(ax_re, xlims, "x")
-            set_axlims(ax_im, xlims, "x")
-
-        with_title = False
-        if with_title:
-            tex1 = r"$\chi^0(i\omega)$"
-            tex2 = r"$\chi^0(i\tau) \rightarrow\chi^0(i\omega)$"
-            fig.suptitle(f"Comparison between Adler-Wiser {tex1} and minimax {tex2}\nLeft: real part. Right: imag part",
-                         fontsize=10)
-
-        return fig
-
-
 class GwrRobot(Robot, RobotWithEbands):
     """
     This robot analyzes the results contained in multiple GWR.nc files.
@@ -824,6 +846,9 @@ class GwrRobot(Robot, RobotWithEbands):
     """
     # Try to have API similar to SigresRobot
     EXT = "GWR"
+
+    # matplotlib option to fill convergence window.
+    HATCH = "/"
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -924,7 +949,7 @@ class GwrRobot(Robot, RobotWithEbands):
 
         Args:
             sortby: Name to sort by.
-            with_params:
+            with_params: True to add parameters.
             ignore_imag: only real part is returned if ``ignore_imag``.
         """
         df_list = []; app = df_list.append
@@ -936,6 +961,27 @@ class GwrRobot(Robot, RobotWithEbands):
 
         df = pd.concat(df_list)
         if sortby and sortby in df: df = df.sort_values(sortby)
+        return df
+
+    def get_rpa_ene_dataframe(self, with_params=True) -> pd.DataFrame:
+        """
+        Return |pandas-Dataframe| with RPA energies for all the files
+        treated by the GWR robot.
+
+        Args:
+            with_params: True to add parameters.
+        """
+        keys = ["ec_rpa_ecut_inf", "ec_mp2_ecut_inf"]
+        dict_list = []
+        for _, ncfile in self.items():
+            d = ncfile.get_rpa_ene_dict()
+            d = {k: d[k] for k in keys}
+            if with_params:
+                d.update(ncfile.params)
+            dict_list.append(d)
+
+        df = pd.DataFrame(dict_list)
+        #if sortby and sortby in df: df = df.sort_values(sortby)
         return df
 
     @add_fig_kwargs
@@ -971,11 +1017,12 @@ class GwrRobot(Robot, RobotWithEbands):
         import matplotlib.pyplot as plt
         cmap = plt.get_cmap(colormap)
 
-        # Make sure that nsppol and sigma_kpoints are consistent.
+        # Make sure nsppol and sigma_kpoints are consistent.
         self._check_dims_and_params()
         ebands0 = self.abifiles[0].ebands
 
         if hue is None:
+            # Build grid depends on axis.
             nrows = {"wreal": 3, "wimag": 2, "tau": 2}[axis]
             ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=1,
                                                     sharex=True, sharey=False, squeeze=False)
@@ -988,13 +1035,13 @@ class GwrRobot(Robot, RobotWithEbands):
                 sigma = ncfile.r.read_sigee_skb(spin, kpoint, band)
 
                 if axis == "wreal":
+                    # Plot Sigma(w) along the real axis.
                     sigma.plot_reima_rw(ax_list, **kws)
-
                 elif axis == "wimag":
                     # Plot Sigma(iw) along the imaginary axis.
                     sigma.plot_reimc_iw(ax_list, **kws)
-
                 elif axis == "tau":
+                    # Plot Sigma(itau) along the imaginary axis.
                     sigma.plot_reimc_tau(ax_list, **kws)
 
             if axis == "wreal": ebands0.add_fundgap_span(ax_list, spin)
@@ -1030,6 +1077,7 @@ class GwrRobot(Robot, RobotWithEbands):
                         sigma.plot_reimc_iw(ax_list, **kws)
 
                     elif axis == "tau":
+                        # Plot Sigma(itau) along the imaginary axis.
                         sigma.plot_reimc_tau(ax_list, **kws)
 
                 if axis == "wreal": ebands0.add_fundgap_span(ax_list, spin)
@@ -1047,7 +1095,7 @@ class GwrRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_qpgaps_convergence(self, qp_kpoints="all", qp_type="qpz0", sortby=None, hue=None,
+    def plot_qpgaps_convergence(self, qp_kpoints="all", qp_type="qpz0", sortby=None, hue=None, abs_conv=0.01,
                                 plot_qpmks=True, fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of the direct QP gaps for all the k-points and spins treated by the GWR robot.
@@ -1066,29 +1114,28 @@ class GwrRobot(Robot, RobotWithEbands):
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of hue(abifile) is used.
+            abs_conv: If not None, show absolute convergence window.
             plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
             fontsize: legend and label fontsize.
 
         Returns: |matplotlib-Figure|
         """
-        # Make sure that nsppol, sigma_kpoints are the same
+        # Make sure nsppol and sigma_kpoints are the same.
         self._check_dims_and_params()
 
         nc0 = self.abifiles[0]
         nsppol = nc0.nsppol
         qpkinds = nc0.find_qpkinds(qp_kpoints)
         if len(qpkinds) > 10:
-            cprint("More that 10 k-points in file. Only 10 k-points will be show. Specify kpt index expliclty", "yellow")
+            cprint("More that 10 k-points in file. Only 10 k-points will be shown. Specify kpt index expliclty", "yellow")
             qpkinds = qpkinds[:10]
 
         # Build grid with (nkpt, 1) plots.
         nrows, ncols = len(qpkinds), 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
-        ax_list = np.array(ax_list).ravel()
-
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
         if hue is None:
-            labels, ncfiles, params = self.sortby(sortby, unpack=True)
+            labels, ncfiles, xs = self.sortby(sortby, unpack=True)
         else:
             groups = self.group_and_sortby(hue, sortby)
 
@@ -1099,7 +1146,8 @@ class GwrRobot(Robot, RobotWithEbands):
         name = "QP dirgap" if not plot_qpmks else "QP - KS dirgap"
         name = "%s (%s)" % (name, qp_type.upper())
 
-        for ix, ((kpt, ikc), ax) in enumerate(zip(qpkinds, ax_list)):
+        for ix, ((kpt, ikc), ax_row) in enumerate(zip(qpkinds, ax_mat)):
+            ax = ax_row[0]
             for spin in range(nsppol):
                 ax.set_title("%s k:%s" % (name, repr(kpt)), fontsize=fontsize)
 
@@ -1110,14 +1158,9 @@ class GwrRobot(Robot, RobotWithEbands):
                     if plot_qpmks:
                         yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in ncfiles])
 
-                    if not duck.is_string(params[0]):
-                        ax.plot(params, yvals, marker=nc0.marker_spin[spin])
-                    else:
-                        # Must handle list of strings in a different way.
-                        xn = range(len(params))
-                        ax.plot(xn, yvals, marker=nc0.marker_spin[spin])
-                        ax.set_xticks(xn)
-                        ax.set_xticklabels(params, fontsize=fontsize)
+                    lines = self.plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, marker=nc0.marker_spin[spin],
+                                                       **kwargs)
+                    hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
 
                 else:
                     for g in groups:
@@ -1125,30 +1168,31 @@ class GwrRobot(Robot, RobotWithEbands):
                         #if qp_type == "otms": yvals = [ncfile.qp_dirgaps_otms_t[spin, ikc, itemp] for ncfile in g.abifiles]
                         if plot_qpmks:
                             yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in g.abifiles])
+
                         label = "%s: %s" % (self._get_label(hue), g.hvalue)
-                        ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
+                        lines = ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
+
+                        hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
 
             ax.grid(True)
             if ix == len(qpkinds) - 1:
                 ax.set_ylabel("%s (eV)" % name)
                 ax.set_xlabel("%s" % self._get_label(sortby))
                 if sortby is None: rotate_ticklabels(ax, 15)
-            if hue is not None:
-                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     @add_fig_kwargs
     def plot_qpdata_conv_skb(self, spin, kpoint, band,
-                             itemp=0, sortby=None, hue=None, fontsize=8, **kwargs) -> Figure:
+                             sortby=None, hue=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot the convergence of the QP results at the given temperature for given (spin, kpoint, band)
+        Plot the convergence of the QP results for given (spin, kpoint, band).
 
         Args:
             spin: Spin index.
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: Band index.
-            itemp: Temperature index.
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
@@ -1162,7 +1206,7 @@ class GwrRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
         """
-        # Make sure that nsppol, sigma_kpoints are consistent.
+        # Make sure that nsppol and sigma_kpoints are consistent.
         self._check_dims_and_params()
 
         # TODO: Add more quantities DW, Fan(0)
@@ -1196,7 +1240,7 @@ class GwrRobot(Robot, RobotWithEbands):
         for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
             if hue is None:
                 # Extract QP data.
-                yvals = [getattr(qp, what)[itemp] for qp in qplist]
+                #yvals = [getattr(qp, what)[itemp] for qp in qplist]
                 if not duck.is_string(params[0]):
                     ax.plot(params, yvals, marker=nc0.marker_spin[spin])
                 else:
@@ -1232,7 +1276,7 @@ class GwrRobot(Robot, RobotWithEbands):
     def plot_qpfield_vs_e0(self, field, reim="real", function=lambda x: x, sortby=None, hue=None,
                            fontsize=8, colormap="jet", e0="fermie", **kwargs) -> Figure:
         """
-        For each file in the robot, plot one of the attributes of :class:`QpTempStat
+        For each file in the GWR robot, plot one of the attributes of :class:`QpTempStat
         as a function of the KS energy.
 
         Args:
@@ -1345,3 +1389,305 @@ for spin in range(nc0.nsppol):
         nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
+
+
+
+#class GwrSigresComparator:
+#    """
+#    This object provides a high-level API to compare the results stored in
+#    a GWR.nc and a SIGRES.nc file (usually produced with the AC method).
+#    """
+#
+#    def __init__(self, gwr_filepaths, sigres_filepaths):
+#        """
+#        Args:
+#            gwr_filepaths: Path(s) of the GWR.nc file.
+#            sigres_filepaths: Path(s) of the SIGRES.nc file.
+#        """
+#        self.gwr_robot = GwrRobot.from_files(gwr_filepaths)
+#        self.sigres_robot = SigresRobot.from_files(sigres_filepaths)
+#
+#    def __enter__(self):
+#        return self
+#
+#    def __exit__(self, exc_type, exc_val, exc_tb):
+#        """
+#        Activated at the end of the with statement. It automatically closes the files.
+#        """
+#        self.gwr_robot.close()
+#        self.sigres_robot.close()
+#
+#    def __str__(self) -> str:
+#        return self.to_string()
+#
+#    def to_string(self, verbose: int = 0) -> str:
+#        """String representation with verbosity level ``verbose``."""
+#        lines = []; app = lines.append
+#        app(self.gwr_robot.to_string(verbose=verbose))
+#        app("")
+#        app(self.sigres_robot.to_string(verbose=verbose))
+#        return "\n".join(lines)
+
+
+def _find_g(gg, gvecs):
+    for ig, g_sus in enumerate(gvecs):
+        if all(gg == g_sus): return ig
+    raise ValueError(f"Cannot find g-vector: {gg}")
+
+
+
+class TchimVsSus:
+    """
+    Object used to compare the polarizability computed in the GWR code with the one
+    produced by the legacy algorithm based on the Adler-Wiser expression.
+
+    Example:
+
+        gpairs = [
+            ((0, 0, 0), (1, 0, 0)),
+            ((1, 0, 0), (0, 1, 0)),
+        ]
+        qpoint_list = [
+            [0, 0, 0],
+            [0.5, 0.5, 0],
+        ]
+
+        with TchimVsSus("runo_DS3_TCHIM.nc", "AW_CD/runo_DS3_SUS.nc") as o
+            o.expose_qpoints_gpairs(qpoint_list, gpairs, exposer="mpl")
+    """
+    def __init__(self, tchim_filepath: str, sus_filepath: str):
+        """
+        Args:
+            tchim_filepath: TCHIM filename.
+            sus_filepath: SUS filename.
+        """
+        from abipy.electrons.scr import SusFile
+        self.sus_file = SusFile(sus_filepath)
+        self.tchi_reader = ETSF_Reader(tchim_filepath)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Activated at the end of the with statement. It automatically closes the files.
+        """
+        self.sus_file.close()
+        self.tchi_reader.close()
+
+    def find_tchim_qpoint(self, qpoint) -> tuple[int, np.ndarray]:
+        """
+        Find the index of the q-point in the IBZ. Return index and q-points.
+        """
+        tchi_qpoints = self.tchi_reader.read_variable("qibz")
+
+        if duck.is_intlike(qpoint):
+            return qpoint, tchi_qpoints
+
+        for tchi_iq, tchi_qq in enumerate(tchi_qpoints):
+            if np.all(abs(tchi_qq - qpoint) < 1e-6):
+                return tchi_iq, tchi_qpoints
+
+        raise ValueError(f"Cannot find {qpoint=} in TCHIM file")
+
+    @add_fig_kwargs
+    def plot_qpoint_gpairs(self, qpoint, gpairs,
+                           fontsize=8, spins=(0, 0), with_title=True, **kwargs) -> Figure:
+        """
+        Plot the Fourier components of the polarizability for given q-point and list of (g, g') pairs.
+
+        Args:
+            qpoint: q-point or q-point index.
+            gpairs: List of (g,g') pairs
+        """
+        gpairs = np.array(gpairs)
+
+        sus_reader = self.sus_file.reader
+        _, sus_iq = sus_reader.find_kpoint_fileindex(qpoint)
+
+        # int reduced_coordinates_plane_waves_dielectric_function(number_of_qpoints_dielectric_function,
+        # number_of_coefficients_dielectric_function, number_of_reduced_dimensions) ;
+        # SUSC file uses Gamma-centered G-spere so read at iq = 0
+        susc_iwmesh = sus_reader.read_value("frequencies_dielectric_function", cmode="c").imag
+        susc_gvecs = sus_reader.read_variable("reduced_coordinates_plane_waves_dielectric_function")[0]
+
+        tchi_iq, _ = self.find_tchim_qpoint(qpoint)
+        tchi_iwmesh = self.tchi_reader.read_value("iw_mesh")
+        tchi_gvecs = self.tchi_reader.read_variable("gvecs")[tchi_iq]
+
+        # Find indices of gpairs in the two files
+        sus_inds = [(_find_g(g1, susc_gvecs), _find_g(g2, susc_gvecs)) for g1, g2 in gpairs]
+        chi_inds = [(_find_g(g1, tchi_gvecs), _find_g(g2, tchi_gvecs)) for g1, g2 in gpairs]
+
+        if sus_reader.path.endswith("SUS.nc"):
+            sus_var_name = "polarizability"
+        elif sus_reader.path.endswith("SCR.nc"):
+            sus_var_name = "inverse_dielectric_function"
+        else:
+            raise ValueError(f"Cannot detect varname for file: {sus_reader.path}")
+
+        # Build grid of plots.
+        num_plots, ncols, nrows = 2 * len(gpairs), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
+
+        for i, ((g1, g2), (sus_ig1, sus_ig2), (chi_ig1, chi_ig2)) in enumerate(zip(gpairs, sus_inds, chi_inds)):
+            ax_re, ax_im = ax_mat[i]
+
+            # number_of_qpoints_dielectric_function, number_of_frequencies_dielectric_function,
+            # number_of_spins, number_of_spins, number_of_coefficients_dielectric_function,
+            # number_of_coefficients_dielectric_function, complex)
+            sus_data = sus_reader.read_variable(sus_var_name)[sus_iq, :, 0, 0, sus_ig2, sus_ig1]
+            sus_data = sus_data[:, 0] + 1j * sus_data[:, 1]
+
+            # nctkarr_t("mats", "dp", "two, mpw, mpw, ntau, nqibz, nsppol")
+            tchi_data = self.tchi_reader.read_variable("mats")[0, tchi_iq, :, chi_ig2, chi_ig1, :]
+            tchi_data = tchi_data[:, 0] + 1j * tchi_data[:, 1]
+
+            style = dict(markersize=4)
+            ax_re.plot(susc_iwmesh[1:], sus_data[1:].real, ls="--", marker="o", label="AW Re", **style)
+            ax_re.plot(tchi_iwmesh, tchi_data[0:].real, ls=":", marker="^", label="minimax Re", **style)
+            ax_re.grid(True)
+
+            ax_im.plot(susc_iwmesh[1:], sus_data[1:].imag, ls="--", marker="o", label="AW Im", **style)
+            ax_im.plot(tchi_iwmesh, tchi_data[0:].imag, ls=":", marker="^", label="minimax Im", **style)
+            ax_im.grid(True)
+
+            tex_g1, tex_g2, tex_qpt = r"${\bf{G}}_1$", r"${\bf{G}}_2$", r"${\bf{q}}$"
+            ax_re.set_title(f"{tex_g1}: {g1}, {tex_g2}: {g2}, {tex_qpt}: {qpoint}", fontsize=fontsize)
+            ax_im.set_title(f"{tex_g1}: {g1}, {tex_g2}: {g2}, {tex_qpt}: {qpoint}", fontsize=fontsize)
+
+            ax_re.legend(loc="best", fontsize=fontsize, shadow=True)
+            ax_im.legend(loc="best", fontsize=fontsize, shadow=True)
+
+            #if i == 0:
+            ax_re.set_ylabel(r'$\Re{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
+            ax_im.set_ylabel(r'$\Im{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
+
+            if i == len(gpairs) - 1:
+                ax_re.set_xlabel(r'$i \omega$ (Ha)')
+                ax_im.set_xlabel(r'$i \omega$ (Ha)')
+
+            # The two files may store chi on different meshes.
+            # Here we select the min value for comparison purposes.
+            w_max = min(susc_iwmesh[-1], tchi_iwmesh[-1]) + 5
+            xlims = [0, w_max]
+            xlims = [-0.2, 7]
+
+            set_axlims(ax_re, xlims, "x")
+            set_axlims(ax_im, xlims, "x")
+
+        if with_title:
+            tex1 = r"$\chi^0(i\omega)$"
+            tex2 = r"$\chi^0(i\tau) \rightarrow\chi^0(i\omega)$"
+            fig.suptitle(f"Comparison between Adler-Wiser {tex1} and minimax {tex2}\nLeft: real part. Right: imag part",
+                         fontsize=fontsize)
+
+        return fig
+
+    def expose_qpoints_gpairs(self, qpoint_list, gpairs, exposer="mpl"):
+        """
+        Plot the Fourier components of the polarizability for a list of q-points and,
+        for each q-point, a list of (g, g') pairs.
+
+        Args:
+            qpoint_list: List of q-points to consider.
+            gpairs: List of (g,g') pairs.
+            exposer: "mpl" for matplotlib, "panel" for web interface.
+        """
+        with Exposer.as_exposer(exposer) as e:
+            for qpoint in qpoint_list:
+                e(self.plot_qpoint_gpairs(qpoint, gpairs, show=False))
+            return e
+
+    @add_fig_kwargs
+    def plot_matdiff(self, qpoint, iw_index: int, npwq=101, with_susmat=False,
+                     cmap="jet", fontsize=8, spins=(0, 0), **kwargs) -> Figure:
+        """
+        Plot G-G' matrix with the absolute value of chi_AW and chi_GWR for given q-point and omega index.
+
+        Args:
+            qpoint: q-point or q-point index.
+            iw_index: Frequency index.
+            with_susmat: True to add additional subplot with absolute value of susmat_{g,g'}.
+        """
+        sus_reader = self.sus_file.reader
+        _, sus_iq = sus_reader.find_kpoint_fileindex(qpoint)
+
+        # int reduced_coordinates_plane_waves_dielectric_function(number_of_qpoints_dielectric_function,
+        # number_of_coefficients_dielectric_function, number_of_reduced_dimensions) ;
+        # SUSC file uses Gamma-centered G-spere so read at iq = 0
+        susc_iwmesh = sus_reader.read_value("frequencies_dielectric_function", cmode="c").imag
+        susc_gvecs = sus_reader.read_variable("reduced_coordinates_plane_waves_dielectric_function")[0]
+
+        tchi_iq, qibz = self.find_tchim_qpoint(qpoint)
+        tchi_iwmesh = self.tchi_reader.read_value("iw_mesh")
+        tchi_gvecs = self.tchi_reader.read_variable("gvecs")[tchi_iq]
+        #FIXME: Requires new format
+        npwq = self.tchi_reader.read_variable("chinpw_qibz")[tchi_iq]
+        #npwq = min(npwq, len(tchi_gvecs))
+        tchi_gvecs = tchi_gvecs[:npwq]
+
+        # Find indices of tchi_gvecs in susc_gvecs to remap matrix
+        ig_tchi2sus = np.array([_find_g(g1, susc_gvecs) for g1 in tchi_gvecs])
+
+        if sus_reader.path.endswith("SUS.nc"):
+            sus_var_name = "polarizability"
+        elif sus_reader.path.endswith("SCR.nc"):
+            sus_var_name = "inverse_dielectric_function"
+        else:
+            raise ValueError(f"Cannot detect varname for file: {sus_reader.path}")
+
+        # Read full matrix from file, extract smaller submatrix using sus_index, chi_inds
+        #
+        # number_of_qpoints_dielectric_function, number_of_frequencies_dielectric_function,
+        # number_of_spins, number_of_spins, number_of_coefficients_dielectric_function,
+        # number_of_coefficients_dielectric_function, complex)
+        sus_data = sus_reader.read_variable(sus_var_name)[sus_iq, iw_index, 0, 0]
+        sus_data = (sus_data[:,:, 0] + 1j * sus_data[:,:,1]).T.copy()
+
+        # TODO: Very inefficient for large npwq.
+        sus_mat = np.zeros((npwq, npwq), dtype=complex)
+        for ig2 in range(npwq):
+            ig2_sus = ig_tchi2sus[ig2]
+            for ig1 in range(npwq):
+                ig1_sus = ig_tchi2sus[ig1]
+                sus_mat[ig1,ig2] = sus_data[ig1_sus,ig2_sus]
+        sus_data = sus_mat
+
+        # nctkarr_t("mats", "dp", "two, mpw, mpw, ntau, nqibz, nsppol")
+        tchi_data = self.tchi_reader.read_variable("mats")[0, tchi_iq, iw_index]
+        tchi_data = (tchi_data[:,:,0] + 1j * tchi_data[:,:,1]).T.copy()
+        tchi_data = tchi_data[:npwq,:npwq]
+
+        # compute and visualize diff mat
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=1, ncols=2 if with_susmat else 1,
+                                                squeeze=False)
+        ax_list = ax_list.ravel()
+
+        import matplotlib.colors as colors
+        mat = data_from_cplx_mode("abs", tchi_data - sus_data)
+        ax = ax_list[0]
+        im = ax.matshow(mat, cmap=cmap, norm=colors.LogNorm(vmin=mat.min(), vmax=mat.max()))
+        fig.colorbar(im, ax=ax)
+        qq = qibz[tchi_iq]
+        qq_str = "[%.2f, %.2f, %.2f]" % (qq[0], qq[1], qq[2])
+        q_info = r"at ${\bf{q}}: %s$" % qq_str
+        ww_ev = susc_iwmesh[iw_index] * abu.Ha_eV
+        w_info = r", $i\omega$: %.2f eV" % ww_ev
+        label = r"$|\chi^0_{AW}({\bf{G}}_1,{\bf{G}}_2) - \chi^0_{GWR}({\bf{G}}_1,{\bf{G}}_2))|$ " + q_info + w_info
+        ax.set_title(label, fontsize=10)
+
+        if with_susmat:
+            mat = data_from_cplx_mode("abs", sus_data)
+            ax = ax_list[1]
+            im = ax.matshow(mat, cmap=cmap, norm=colors.LogNorm(vmin=mat.min(), vmax=mat.max()))
+            fig.colorbar(im, ax=ax)
+            label = r"$|\chi^0_{AW}(\bf{G}_1,\bf{G}_2)|$"
+            ax.set_title(label, fontsize=10)
+
+        return fig

@@ -30,7 +30,7 @@ from monty.pprint import draw_tree
 from monty.termcolor import cprint, colored, cprint_map, get_terminal_size
 from monty.inspect import find_top_pyfile
 from monty.json import MSONable
-from pymatgen.core.units import Memory
+from pymatgen.core.units import Memory, UnitError
 from abipy.tools.iotools import AtomicFile
 from abipy.tools.serialization import pmg_pickle_load, pmg_pickle_dump, pmg_serialize
 from abipy.tools.typing import Figure, TYPE_CHECKING
@@ -268,7 +268,7 @@ class Flow(Node, NodeContainer, MSONable):
         return cls.pickle_load(d["workdir"], **kwargs)
 
     @classmethod
-    def temporary_flow(cls, manager=None, workdir=None) -> Flow:
+    def temporary_flow(cls, workdir=None, manager=None) -> Flow:
         """Return a Flow in a temporary directory. Useful for unit tests."""
         workdir = get_workdir(workdir)
         return cls(workdir=workdir, manager=manager)
@@ -1291,8 +1291,12 @@ class Flow(Node, NodeContainer, MSONable):
                 if report is not None:
                     events = '{:>4}|{:>3}'.format(*map(str, (report.num_warnings, report.num_comments)))
 
-                para_info = '{:>4}|{:>3}|{:>3}'.format(*map(str, (
-                   task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("Gb"))))
+                try:
+                    para_info = '{:>4}|{:>3}|{:>3}'.format(*map(str, (
+                        task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("GB"))))
+                except (KeyError, UnitError):
+                    para_info = '{:>4}|{:>3}|{:>3}'.format(*map(str, (
+                       task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("Gb"))))
 
                 task_info = list(map(str, [task.__class__.__name__,
                                  (task.num_launches, task.num_restarts, task.num_corrections), stime, task.node_id]))
@@ -2064,8 +2068,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
     def register_work(self, work: Work, deps=None, manager=None, workdir=None) -> Work:
         """
-        Register a new |Work| and add it to the internal list, taking into account
-        possible dependencies.
+        Register a new |Work| and add it to the internal list, taking into account possible dependencies.
 
         Args:
             work: |Work| object.
@@ -2088,6 +2091,9 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         if manager is not None:
             work.set_manager(manager)
+
+        if any(work.node_id == w.node_id for w in self):
+            raise ValueError(f"{work=} is already registered in the flow.")
 
         self.works.append(work)
 
@@ -2484,7 +2490,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         Args:
             name: Name of the tarball file. Set to os.path.basename(`flow.workdir`) + "tar.gz"` if name is None.
             max_filesize (int or string with unit): a file is included in the tar file if its size <= max_filesize
-                Can be specified in bytes e.g. `max_files=1024` or with a string with unit e.g. `max_filesize="1 Mb"`.
+                Can be specified in bytes e.g. `max_files=1024` or with a string with unit e.g. `max_filesize="1 MB"`.
                 No check is done if max_filesize is None.
             exclude_exts: List of file extensions to be excluded from the tar file.
             exclude_dirs: List of directory basenames to be excluded.
@@ -2496,7 +2502,15 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         def any2bytes(s):
             """Convert string or number to memory in bytes."""
             if is_string(s):
-                return int(Memory.from_string(s).to("b"))
+                try:
+                    # latest pymatgen version (as of july 2024)
+                    mem = int(Memory.from_str(s.upper()).to("B"))
+                except (KeyError, UnitError):  # For backward compatibility with older pymatgen versions
+                    try:
+                        mem = int(Memory.from_str(s.replace("B", "b")).to("b"))
+                    except AttributeError:  # For even older pymatgen versions
+                        mem = int(Memory.from_string(s.replace("B", "b")).to("b"))
+                return mem
             else:
                 return int(s)
 
@@ -2574,7 +2588,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         def polish_doc(doc: str, node_type) -> str:
             """Remove all lines in black_list"""
             new_lines = [l for l in doc.splitlines() if not any(bad in l for bad in black_list)]
-            s =  "\n".join(new_lines)
+            s = "\n".join(new_lines)
             color_node = dict(work="green", task="magenta")
             s = colored(s, color=color_node[node_type])
             return s
@@ -2594,8 +2608,8 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 app(make_banner(s, mark="="))
                 app(polish_doc(work_cls.__doc__, "work"))
                 app("Works belonging to this class (%d):" % len(works))
-                for work  in works:
-                    app(4* " " + str(work) + ", status: " + work.status.colored)
+                for work in works:
+                    app(4 * " " + str(work) + ", status: " + work.status.colored)
 
         if explain_tasks:
             app("")
@@ -2606,7 +2620,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 app(make_banner(s, mark="="))
                 app(polish_doc(task_cls.__doc__, "task"))
                 app("Tasks belonging to this class (%s):" % len(tasks))
-                for task  in tasks:
+                for task in tasks:
                     app(4 * " " + str(task) + ", status: " + task.status.colored)
 
         return "\n".join(lines)
