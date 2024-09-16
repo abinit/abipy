@@ -1757,7 +1757,8 @@ class PhononWork(Work, MergeDdb):
         for qpt in qpoints:
             is_gamma = np.sum(qpt ** 2) < 1e-12
             if with_becs and is_gamma: continue
-            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance, prepgkk=prepgkk)
+            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance,
+                                                         prepgkk=prepgkk)
             for ph_inp in multi:
                 # Here we set the value of prtwf for the DFPT tasks if q != Gamma.
                 if not is_gamma: ph_inp.set_vars(prtwf=prtwf)
