@@ -522,7 +522,7 @@ class OncvGui(AbipyParameterized):
     rcfact_dir = param.Selector(["centered", ">", "<"])
 
     ace_theme = param.ObjectSelector(default="chrome",
-                                    objects=pnw.Ace.param.theme.objects,
+                                    objects=pnw.CodeEditor.param.theme.objects,
                                     doc="Theme of the editor")
 
     history_idx = param.Integer(default=-1, label="History index")
@@ -543,7 +543,7 @@ class OncvGui(AbipyParameterized):
                             #max_length=150,
                             )
 
-        self.input_ace = pnw.Ace(value=str(oncv_input), **self.ace_kwargs)
+        self.input_ace = pnw.CodeEditor(value=str(oncv_input), **self.ace_kwargs)
 
         # Add annotated example for documentation purposes.
         self.annotated_example = pn.pane.HTML(f"<pre><code> {GE_ANNOTATED} </code></pre>")
@@ -566,7 +566,7 @@ class OncvGui(AbipyParameterized):
         #self.history_btn.on_click(self.on_history_btn)
 
         self.rc_qcut_btn = pnw.Button(name="Execute", button_type='primary')
-        
+
         self.plotlyFlag = plotlyFlag
 
     @param.depends("ace_theme")
@@ -661,7 +661,7 @@ class OncvGui(AbipyParameterized):
         if hist_len == 0 or idx >= hist_len:
             return pn.Column(f"hist_len == {hist_len}")
 
-        ace_hist = pnw.Ace(value=self.input_history[idx], **self.ace_kwargs)
+        ace_hist = pnw.CodeEditor(value=self.input_history[idx], **self.ace_kwargs)
 
         fromlines = self.input_history[idx].splitlines()
         tolines = self.input_ace.value.splitlines()
@@ -801,7 +801,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             try:
                 for qcut in qcut_values:
                     oncv_input.lparams[i0].qcut = qcut
-                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
             finally:
                 # Restore the initial value.
                 oncv_input.lparams[i0].qcut = qcut0
@@ -869,7 +869,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             try:
                 for debl in debl_values:
                     oncv_input.lparams[i0].debl = debl
-                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
             finally:
                 # Restore the initial value.
                 oncv_input.lparams[i0].debl = debl0
@@ -910,7 +910,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             try:
                 for new_rc in rc5_values:
                     oncv_input.rc5 = new_rc
-                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
             finally:
                 # Restore the initial value.
                 oncv_input.rc5 = rc5
@@ -951,7 +951,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             try:
                 for new_dvloc in dvloc_values:
                     oncv_input.dvloc0 = new_dvloc
-                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
             finally:
                 # Restore the initial value.
                 oncv_input.dvloc0 = dvloc0
@@ -994,7 +994,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             try:
                 for rc in rc_values:
                     oncv_input.lparams[i0].rc = rc
-                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
             finally:
                 # Restore the initial value.
                 oncv_input.lparams[i0].rc = rc0
@@ -1046,7 +1046,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
                     try:
                         oncv_input.fcfact = fc
                         oncv_input.rcfact = rc
-                        psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                        psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
                         tasks.append((psgens[-1], {"fcfact": fc, "rcfact": rc}))
                         titles.append(f"fcfact: {fc}, rcfact: {rc}")
                     finally:
@@ -1059,7 +1059,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
                 for fc in fcfact_values:
                     try:
                         oncv_input.fcfact = fc
-                        psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                        psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
                         tasks.append((psgens[-1], {"fcfact": fc}))
                         titles.append(f"fcfact: {fc}")
                     finally:
@@ -1137,7 +1137,7 @@ The present values of rc_l are: {rc_l}
                 for rc, qcut in rq_prod():
                     oncv_input.lparams[i0].rc = rc
                     oncv_input.lparams[i0].qcut = qcut
-                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type))
+                    psgens.append(OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False))
             finally:
                 # Restore the initial value.
                 oncv_input.lparams[i0].rc = rc0
@@ -1171,7 +1171,7 @@ The present values of rc_l are: {rc_l}
         """
         with ButtonContext(event.obj), Loading(self.out_area):
             oncv_input = self.get_oncv_input()
-            psgen = OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type)
+            psgen = OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False)
             print("Running in workdir:", psgen.workdir)
             psgen.start()
             retcode = psgen.wait()

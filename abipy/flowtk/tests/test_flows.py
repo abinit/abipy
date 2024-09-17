@@ -36,13 +36,13 @@ qadapters:
         #condition: {"$eq": {omp_threads: 2}}
         limits_for_task_class: {
            DdkTask: {min_cores: 2, max_cores: 30},
-           KerangeTask: {timelimit: 0:10:00, max_mem_per_proc: 1 Gb},
+           KerangeTask: {timelimit: 0:10:00, max_mem_per_proc: 1 GB},
         }
       hardware:
         num_nodes: 10
         sockets_per_node: 1
         cores_per_socket: 2
-        mem_per_node: 4 Gb
+        mem_per_node: 4 GB
       job:
         modules:
             - intel/compilerpro/13.0.1.117

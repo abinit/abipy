@@ -457,8 +457,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
 
 class QHA(AbstractQHA):
     """
-    Object to extract results in the quasi-harmonic approximation from electronic and phonon calculations
-    at different volumes.
+    Object to extract results in the quasi-harmonic approximation from electronic and phonon calculations at different volumes.
     Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
     generate an instance of phonopy.qha.core.QHA. These can be used to obtain other quantities and plots.
     Does not include electronic entropic contributions for metals.
@@ -938,7 +937,7 @@ def get_entropy(w, weights, t):
 
 class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
     """
-    Abstract class for the analysis of the convergence wrt to the q-mesh used to compute the phonon DOS. 
+    Abstract class for the analysis of the convergence wrt to the q-mesh used to compute the phonon DOS.
     Relies on abstract methods implemented in AbstractQHA.
     """
 

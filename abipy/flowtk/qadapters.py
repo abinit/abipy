@@ -32,11 +32,12 @@ from monty.functools import lazy_property
 from monty.inspect import all_subclasses
 from monty.io import FileLock
 from monty.json import MSONable
-from pymatgen.core.units import Memory
+from pymatgen.core.units import Memory, UnitError
 from abipy.tools.iotools import AtomicFile
 from .utils import Condition
 from .launcher import ScriptEditor
 from .qjobs import QueueJob
+from .qutils import any2mb
 
 import logging
 logger = logging.getLogger(__name__)
@@ -215,11 +216,7 @@ class Hardware:
 
         # Convert memory to megabytes.
         m = str(kwargs.pop("mem_per_node"))
-        # Support for old pymatgen API
-        try:
-            self.mem_per_node = int(Memory.from_string(m).to("Mb"))
-        except:
-            self.mem_per_node = int(Memory.from_str(m).to("Mb"))
+        self.mem_per_node = any2mb(m)
 
         if self.mem_per_node <= 0 or self.sockets_per_node <= 0 or self.cores_per_socket <= 0:
             raise ValueError("invalid parameters: %s" % kwargs)
@@ -259,10 +256,16 @@ class Hardware:
         return divmod(mpi_procs * omp_threads, self.cores_per_node)
 
     def as_dict(self) -> dict:
+        try:
+            # old pymatgen
+            mem_per_node = str(Memory(val=self.mem_per_node, unit='Mb'))
+        except:
+            mem_per_node = str(Memory(val=self.mem_per_node, unit='MB'))
+
         return {'num_nodes': self.num_nodes,
                 'sockets_per_node': self.sockets_per_node,
                 'cores_per_socket': self.cores_per_socket,
-                'mem_per_node': str(Memory(val=self.mem_per_node, unit='Mb'))}
+                'mem_per_node': mem_per_node}
 
     @classmethod
     def from_dict(cls, d: dict) -> Hardware:
@@ -439,9 +442,9 @@ limits:
                              # it's the limit beyond which the scheduler will not accept the job (MANDATORY).
     hint_cores:              # The limit used in the initial setup of jobs.
                              # Fix_Critical method may increase this number until max_cores is reached
-    min_mem_per_proc:        # Minimum memory per MPI process in Mb, units can be specified e.g. 1.4 Gb
+    min_mem_per_proc:        # Minimum memory per MPI process in MB, units can be specified e.g. 1.4 GB
                              # (DEFAULT: hardware.mem_per_core)
-    max_mem_per_proc:        # Maximum memory per MPI process in Mb, units can be specified e.g. `1.4Gb`
+    max_mem_per_proc:        # Maximum memory per MPI process in MB, units can be specified e.g. `1.4GB`
                              # (DEFAULT: hardware.mem_per_node)
     timelimit:               # Initial time-limit. Accepts time according to slurm-syntax i.e:
                              # "days-hours" or "days-hours:minutes" or "days-hours:minutes:seconds" or
@@ -464,7 +467,7 @@ limits:
                              #
                              #     limits_for_task_class: {
                              #        NscfTask: {min_cores: 1, max_cores: 10},
-                             #        KerangeTask: {min_cores: 1, max_cores: 1, max_mem_per_proc: 1 Gb},
+                             #        KerangeTask: {min_cores: 1, max_cores: 1, max_mem_per_proc: 1 GB},
                              #     }
 """
 
@@ -901,7 +904,11 @@ limits:
     @property
     def total_mem(self) -> Memory:
         """Total memory required by the job in megabytes."""
-        return Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "Mb")
+        try:
+            mem = Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "MB")
+        except UnitError:
+            mem = Memory(self.mem_per_proc * self.mpi_procs + self.master_mem_overhead, "Mb")
+        return mem
 
     @abc.abstractmethod
     def cancel(self, job_id: int) -> int:

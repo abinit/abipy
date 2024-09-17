@@ -1,11 +1,11 @@
 embedding Package
-============
+=================
 
 .. contents::
    :backlinks: top
 
 :mod:`embedding` Package
-----------------------
+------------------------
 
 .. automodule:: abipy.embedding
    :members:
@@ -13,7 +13,7 @@ embedding Package
    :show-inheritance:
 
 :mod:`embedding_ifc` Module
-----------------------
+---------------------------
 
 .. automodule:: abipy.embedding.embedding_ifc
    :members:
@@ -21,7 +21,7 @@ embedding Package
    :show-inheritance:
 
 :mod:`utils_ifc` Module
-----------------------
+-----------------------
 
 .. automodule:: abipy.embedding.utils_ifc
    :members:

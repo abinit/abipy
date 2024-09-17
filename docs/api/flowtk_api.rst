@@ -86,7 +86,7 @@ flowtk Package
    :show-inheritance:
 
 :mod:`gw_works` Module
-----------------
+----------------------
 
 .. automodule:: abipy.flowtk.gw_works
    :members:

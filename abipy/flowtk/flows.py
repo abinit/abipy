@@ -30,7 +30,7 @@ from monty.pprint import draw_tree
 from monty.termcolor import cprint, colored, cprint_map, get_terminal_size
 from monty.inspect import find_top_pyfile
 from monty.json import MSONable
-from pymatgen.core.units import Memory
+from pymatgen.core.units import Memory, UnitError
 from abipy.tools.iotools import AtomicFile
 from abipy.tools.serialization import pmg_pickle_load, pmg_pickle_dump, pmg_serialize
 from abipy.tools.typing import Figure, TYPE_CHECKING
@@ -1291,8 +1291,12 @@ class Flow(Node, NodeContainer, MSONable):
                 if report is not None:
                     events = '{:>4}|{:>3}'.format(*map(str, (report.num_warnings, report.num_comments)))
 
-                para_info = '{:>4}|{:>3}|{:>3}'.format(*map(str, (
-                   task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("Gb"))))
+                try:
+                    para_info = '{:>4}|{:>3}|{:>3}'.format(*map(str, (
+                        task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("GB"))))
+                except (KeyError, UnitError):
+                    para_info = '{:>4}|{:>3}|{:>3}'.format(*map(str, (
+                       task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("Gb"))))
 
                 task_info = list(map(str, [task.__class__.__name__,
                                  (task.num_launches, task.num_restarts, task.num_corrections), stime, task.node_id]))
@@ -2486,7 +2490,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         Args:
             name: Name of the tarball file. Set to os.path.basename(`flow.workdir`) + "tar.gz"` if name is None.
             max_filesize (int or string with unit): a file is included in the tar file if its size <= max_filesize
-                Can be specified in bytes e.g. `max_files=1024` or with a string with unit e.g. `max_filesize="1 Mb"`.
+                Can be specified in bytes e.g. `max_files=1024` or with a string with unit e.g. `max_filesize="1 MB"`.
                 No check is done if max_filesize is None.
             exclude_exts: List of file extensions to be excluded from the tar file.
             exclude_dirs: List of directory basenames to be excluded.
@@ -2498,11 +2502,15 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         def any2bytes(s):
             """Convert string or number to memory in bytes."""
             if is_string(s):
-                # Support for deprecated pymatgen API
                 try:
-                    mem = int(Memory.from_string(s).to("b"))
-                except Exception:
-                    mem = int(Memory.from_str(s).to("b"))
+                    # latest pymatgen version (as of july 2024)
+                    mem = int(Memory.from_str(s.upper()).to("B"))
+                except (KeyError, UnitError):  # For backward compatibility with older pymatgen versions
+                    try:
+                        mem = int(Memory.from_str(s.replace("B", "b")).to("b"))
+                    except AttributeError:  # For even older pymatgen versions
+                        mem = int(Memory.from_string(s.replace("B", "b")).to("b"))
+                return mem
             else:
                 return int(s)
 

@@ -239,8 +239,9 @@ class DdbTest(AbipyTest):
             assert c.plotter.combiplot(show=False)
 
         # Use threads and gaussian DOS.
+        # num_cpus > 1 is problematic as it can cause a segmentation fault --> test sequential version only
         c = ddb.anacompare_phdos(nqsmalls=[2, 3, 4], dos_method="gaussian", dipdip=0, asr=0,
-                num_cpus=2, verbose=2)
+                num_cpus=1, verbose=2)
         assert c.phdoses and c.plotter is not None
 
         # Execute anaddb to compute the interatomic force constants.

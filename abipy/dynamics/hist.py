@@ -59,6 +59,8 @@ class HistFile(AbinitNcFile, NotebookWriter):
     def __str__(self) -> str:
         return self.to_string()
 
+    #def read_structures(self, index: str):
+
     # TODO: Add more metadata.
     #@lazy_property
     #def nsppol(self):

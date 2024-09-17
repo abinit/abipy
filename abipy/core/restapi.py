@@ -17,7 +17,6 @@ from abipy.tools.printing import print_dataframe
 from abipy.core.mixins import NotebookWriter
 
 
-MP_DEFAULT_ENDPOINT = "https://materialsproject.org/rest/v2"
 
 MP_KEYS_FOR_DATAFRAME = (
     "pretty_formula", "e_above_hull", "energy_per_atom",
@@ -27,132 +26,113 @@ MP_KEYS_FOR_DATAFRAME = (
 )
 
 
-def get_mprester(api_key=None, endpoint=None) -> MyMPRester:
+def get_mprester():
     """
     Args:
-        api_key (str): A String API key for accessing the MaterialsProject
-            REST interface. Please apply on the Materials Project website for one.
-            If this is None, the code will check if there is a `PMG_MAPI_KEY` in
-            your .pmgrc.yaml. If so, it will use that environment
-            This makes easier for heavy users to simply add
-            this environment variable to their setups and MPRester can
-            then be called without any arguments.
-        endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
-            Defaults to the standard Materials Project REST address, but
-            can be changed to other urls implementing a similar interface.
     """
-    if api_key is None:
-        try:
-            from pymatgen.core import SETTINGS
-        except ImportError:
-            from pymatgen import SETTINGS
-
-        api_key = SETTINGS.get("PMG_MAPI_KEY")
-        if api_key is None:
-            raise RuntimeError("Cannot find PMG_MAPI_KEY in pymatgen settings. Add it to $HOME/.pmgrc.yaml")
-
-    if endpoint is None: endpoint = MP_DEFAULT_ENDPOINT
-    return MyMPRester(api_key=api_key, endpoint=endpoint)
+    rester = MPRester()
+    #print(f"{type(rester)=}")
+    return rester
 
 
-class MyMPRester(MPRester):
-    """
-    Subclass Materials project Rester.
-    See :cite:`Jain2013,Ong2015`.
+#class MyMPRester(MPRester):
+#    """
+#    Subclass Materials project Rester.
+#    See :cite:`Jain2013,Ong2015`.
+#
+#    .. rubric:: Inheritance Diagram
+#    .. inheritance-diagram:: MyMPRester
+#    """
+#    Error = MPRestError
+#
+#    def get_phasediagram_results(self, elements) -> PhaseDiagramResults:
+#        """
+#        Contact the materials project database, fetch entries and build :class:``PhaseDiagramResults`` instance.
+#
+#        Args:
+#            elements: List of chemical elements.
+#        """
+#        entries = self.get_entries_in_chemsys(elements, inc_structure="final")
+#        return PhaseDiagramResults(entries)
 
-    .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: MyMPRester
-    """
-    Error = MPRestError
 
-    def get_phasediagram_results(self, elements) -> PhaseDiagramResults:
-        """
-        Contact the materials project database, fetch entries and build :class:``PhaseDiagramResults`` instance.
-
-        Args:
-            elements: List of chemical elements.
-        """
-        entries = self.get_entries_in_chemsys(elements, inc_structure="final")
-        return PhaseDiagramResults(entries)
-
-
-class PhaseDiagramResults:
-    """
-    Simplified interface to phase-diagram pymatgen API.
-
-    Inspired to:
-
-        https://anaconda.org/matsci/plotting-and-analyzing-a-phase-diagram-using-the-materials-api/notebook
-
-    See also: :cite:`Ong2008,Ong2010`
-    """
-    def __init__(self, entries):
-        self.entries = entries
-        # Convert pymatgen structure to Abipy.
-        from abipy.core.structure import Structure
-        for e in entries:
-            e.structure.__class__ = Structure
-
-        self.structures = [e.structure for e in entries]
-        self.mpids = [e.entry_id for e in entries]
-
-        # Create phase diagram.
-        from pymatgen.analysis.phase_diagram import PhaseDiagram
-        self.phasediagram = PhaseDiagram(self.entries)
-
-    def plot(self, show_unstable=True, show=True):
-        """
-        Plot phase diagram.
-
-        Args:
-            show_unstable (float): Whether unstable phases will be plotted as
-                well as red crosses. If a number > 0 is entered, all phases with
-                ehull < show_unstable will be shown.
-            show: True to show plot.
-
-        Return: plotter object.
-        """
-        from pymatgen.analysis.phase_diagram import PDPlotter
-        plotter = PDPlotter(self.phasediagram, show_unstable=show_unstable)
-        if show:
-            plotter.show()
-        return plotter
-
-    @lazy_property
-    def dataframe(self) -> pd.DataFrame:
-        """Pandas dataframe with the most important results."""
-        rows = []
-        for e in self.entries:
-            d = e.structure.get_dict4pandas(with_spglib=True)
-            decomp, ehull = self.phasediagram.get_decomp_and_e_above_hull(e)
-
-            rows.append(OrderedDict([
-                ("Materials ID", e.entry_id),
-                ("spglib_symb", d["spglib_symb"]), ("spglib_num", d["spglib_num"]),
-                ("Composition", e.composition.reduced_formula),
-                ("Ehull", ehull), # ("Equilibrium_reaction_energy", pda.get_equilibrium_reaction_energy(e)),
-                ("Decomposition", " + ".join(["%.2f %s" % (v, k.composition.formula) for k, v in decomp.items()])),
-            ]))
-
-        import pandas as pd
-        return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
-
-    def print_dataframes(self, with_spglib=False, file=sys.stdout, verbose=0) -> None:
-        """
-        Print pandas dataframe to file `file`.
-
-        Args:
-            with_spglib: True to compute spacegroup with spglib.
-            file: Output stream.
-            verbose: Verbosity level.
-        """
-        print_dataframe(self.dataframe, file=file)
-        if verbose:
-            from abipy.core.structure import dataframes_from_structures
-            dfs = dataframes_from_structures(self.structures, index=self.mpids, with_spglib=with_spglib)
-            print_dataframe(dfs.lattice, title="Lattice parameters:", file=file)
-            if verbose > 1:
-                print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):", file=file)
+#class PhaseDiagramResults:
+#    """
+#    Simplified interface to phase-diagram pymatgen API.
+#
+#    Inspired to:
+#
+#        https://anaconda.org/matsci/plotting-and-analyzing-a-phase-diagram-using-the-materials-api/notebook
+#
+#    See also: :cite:`Ong2008,Ong2010`
+#    """
+#    def __init__(self, entries):
+#        self.entries = entries
+#        # Convert pymatgen structure to Abipy.
+#        from abipy.core.structure import Structure
+#        for e in entries:
+#            e.structure.__class__ = Structure
+#
+#        self.structures = [e.structure for e in entries]
+#        self.mpids = [e.entry_id for e in entries]
+#
+#        # Create phase diagram.
+#        from pymatgen.analysis.phase_diagram import PhaseDiagram
+#        self.phasediagram = PhaseDiagram(self.entries)
+#
+#    def plot(self, show_unstable=True, show=True):
+#        """
+#        Plot phase diagram.
+#
+#        Args:
+#            show_unstable (float): Whether unstable phases will be plotted as
+#                well as red crosses. If a number > 0 is entered, all phases with
+#                ehull < show_unstable will be shown.
+#            show: True to show plot.
+#
+#        Return: plotter object.
+#        """
+#        from pymatgen.analysis.phase_diagram import PDPlotter
+#        plotter = PDPlotter(self.phasediagram, show_unstable=show_unstable)
+#        if show:
+#            plotter.show()
+#        return plotter
+#
+#    @lazy_property
+#    def dataframe(self) -> pd.DataFrame:
+#        """Pandas dataframe with the most important results."""
+#        rows = []
+#        for e in self.entries:
+#            d = e.structure.get_dict4pandas(with_spglib=True)
+#            decomp, ehull = self.phasediagram.get_decomp_and_e_above_hull(e)
+#
+#            rows.append(OrderedDict([
+#                ("Materials ID", e.entry_id),
+#                ("spglib_symb", d["spglib_symb"]), ("spglib_num", d["spglib_num"]),
+#                ("Composition", e.composition.reduced_formula),
+#                ("Ehull", ehull), # ("Equilibrium_reaction_energy", pda.get_equilibrium_reaction_energy(e)),
+#                ("Decomposition", " + ".join(["%.2f %s" % (v, k.composition.formula) for k, v in decomp.items()])),
+#            ]))
+#
+#        import pandas as pd
+#        return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
+#
+#    def print_dataframes(self, with_spglib=False, file=sys.stdout, verbose=0) -> None:
+#        """
+#        Print pandas dataframe to file `file`.
+#
+#        Args:
+#            with_spglib: True to compute spacegroup with spglib.
+#            file: Output stream.
+#            verbose: Verbosity level.
+#        """
+#        print_dataframe(self.dataframe, file=file)
+#        if verbose:
+#            from abipy.core.structure import dataframes_from_structures
+#            dfs = dataframes_from_structures(self.structures, index=self.mpids, with_spglib=with_spglib)
+#            print_dataframe(dfs.lattice, title="Lattice parameters:", file=file)
+#            if verbose > 1:
+#                print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):", file=file)
 
 
 class DatabaseStructures(NotebookWriter):

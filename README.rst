@@ -447,7 +447,7 @@ AbiPy is released under the GNU GPL license. For more details see the LICENSE fi
 
 .. |download-with-anaconda| image:: https://anaconda.org/abinit/abipy/badges/installer/conda.svg
     :alt: Download with Anaconda
-    :target: https://conda.anaconda.org/abinit
+    :target: https://anaconda.org/conda-forge/abinit
 
 .. |launch-binder| image:: https://mybinder.org/badge.svg
     :alt: Launch binder

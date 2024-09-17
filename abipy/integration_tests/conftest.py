@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import os
 import pytest
-import yaml
+#import yaml
+import ruamel.yaml as yaml
+from abipy.tools.iotools import yaml_safe_load_path, yaml_dump
 import copy
 import abipy.flowtk as flowtk
 
@@ -23,8 +25,10 @@ USER_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
 #USER_CONFIG_DIR = os.path.dirname(__file__)
 
 # Read the base configuration from file
-with open(os.path.join(USER_CONFIG_DIR, "manager.yml")) as fh:
-    base_conf = yaml.safe_load(fh)
+#with open(os.path.join(USER_CONFIG_DIR, "manager.yml")) as fh:
+#    base_conf = yaml.safe_load(fh)
+
+base_conf = yaml_safe_load_path(os.path.join(USER_CONFIG_DIR, "manager.yml"))
 
 # Build list of configurations.
 _manager_confs = []
@@ -35,7 +39,7 @@ for autoparal in [1]: #, 1]:
     newd["policy"]["autoparal"] = autoparal
     _manager_confs.append(newd)
 
-_manager_confs = [yaml.dump(d) for d in _manager_confs]
+_manager_confs = [yaml_dump(d) for d in _manager_confs]
 #_manager_confs = [base_conf]
 
 

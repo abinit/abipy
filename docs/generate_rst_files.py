@@ -3,8 +3,6 @@
 This script generates RST files to be included in the AbiPy website.
 It is automatically executed by make
 """
-from __future__ import unicode_literals, division, print_function, absolute_import
-
 import sys
 import os
 

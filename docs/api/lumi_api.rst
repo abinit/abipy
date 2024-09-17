@@ -5,7 +5,7 @@ lumi Package
    :backlinks: top
 
 :mod:`lumi` Package
-----------------------
+-------------------
 
 .. automodule:: abipy.lumi
    :members:

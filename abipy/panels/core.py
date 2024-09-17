@@ -342,9 +342,9 @@ def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=Fals
         showLink=True,
         plotlyServerURL="https://chart-studio.plotly.com",
     )
-    
+
     plotly_fig = mpl_to_ply(fig)
-    
+
     plotly_pane = pn.pane.Plotly(plotly_fig, config=config)
     ca(plotly_pane)
 
@@ -1566,7 +1566,7 @@ class BaseRobotPanel(AbipyParameterized):
     def __init__(self, robot, **params):
         self.robot = robot
         self.compare_params_btn = pnw.Button(name="Compare structures", button_type='primary')
-        self.transpose_params = pnw.Checkbox(name='Transpose table', default=True)
+        self.transpose_params = pnw.Checkbox(name='Transpose table', value=True)
 
         super().__init__(**params)
 

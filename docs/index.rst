@@ -8,9 +8,9 @@
     * - Package
       - |pypi-version| |download-with-anaconda| |supported-versions|
     * - Continuous Integration
-      - |travis-status| |coverage-status| 
+      - |travis-status| |coverage-status|
     * - Documentation
-      - |docs-github| |launch-nbviewer| |launch-binder| 
+      - |docs-github| |launch-nbviewer| |launch-binder|
 
 
 Getting Started
@@ -31,8 +31,8 @@ Post-processing
    :maxdepth: 1
 
    scripts/index
-   graphical_interface
    gallery/index
+   graphical_interface
    postprocessing_howto
 
 Workflows
@@ -59,9 +59,9 @@ API
 Indices and tables
 ==================
 
-   :ref:`genindex` 
-   :ref:`modindex` 
-   :ref:`search` 
+   :ref:`genindex`
+   :ref:`modindex`
+   :ref:`search`
 
 License
 =======

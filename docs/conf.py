@@ -9,7 +9,6 @@ import sys
 import os
 import shutil
 
-
 # Remove matplotlib agg warnings from generated doc when using plt.show
 import warnings
 
@@ -53,14 +52,20 @@ extensions = [
     'sphinx.ext.napoleon',   # For Google Python Style Guide
     'sphinx.ext.inheritance_diagram',
     'sphinxcontrib.programoutput',
-    'sphinx_gallery.gen_gallery',
     "sphinxarg.ext",         # CLI doc
     'sphinxcontrib.bibtex',
     "jupyter_sphinx",
     #'nbsphinx',
     #"releases",
     #'sphinx.ext.coverage',
+    #'sphinx_gallery.gen_gallery',
 ]
+
+# Activate build of sphinx-gallery.
+with_gallery = True
+
+if with_gallery:
+    extensions.append('sphinx_gallery.gen_gallery')
 
 # Add any Sphinx extension module names here, as strings. They can
 # be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
@@ -91,7 +96,6 @@ extensions += [
 mpl = matplotlib
 mpl.use("Agg")
 mpl.rcParams['figure.dpi'] = 300
-
 
 #def reset_mpl(gallery_conf, fname):
 #    """reset matplotlib to always use the seaborn style."""
@@ -131,66 +135,68 @@ pio.renderers.default = 'sphinx_gallery'
 from abipy.tools.plotting import set_plotly_default_show
 set_plotly_default_show(False)
 
-from sphinx_gallery.sorting import ExampleTitleSortKey
+if with_gallery:
+    print("Will build sphinx-gallery")
+    from sphinx_gallery.sorting import ExampleTitleSortKey
 
-sphinx_gallery_conf = {
-    'only_warn_on_example_error': True,
-    #'abort_on_example_error': True,
-    'log_level': {'backreference_missing': 'warning'},
-    #
-    # path to your examples scripts
-    'examples_dirs': [
-        "../abipy/examples/plot",
-        "../abipy/examples/flows",
-    ],
-    # path where to save gallery generated examples
-    'gallery_dirs': [
-        "gallery",
-        "flow_gallery",
-    ],
-    'filename_pattern': "(/plot*|/run_*)",
-    'default_thumb_file': '_static/abipy_logo.png',
-    'within_subsection_order': ExampleTitleSortKey,
-    'backreferences_dir': None,
-    #'reset_modules': (reset_mpl,),
-    'reference_url': {
-        'abipy': None,  # The module you locally document uses None
-        'numpy': 'https://docs.scipy.org/doc/numpy/',
-        'matplotlib': 'https://matplotlib.org',
-        'pandas': "http://pandas.pydata.org/pandas-docs/stable/",
-        "pymatgen": "https://pymatgen.org/",
-    },
-    #'image_scrapers': ('matplotlib',),
-    #'image_scrapers': ('matplotlib', PNGScraper()),
-    #'image_scrapers': ('matplotlib', plotly),
+    sphinx_gallery_conf = {
+        #'only_warn_on_example_error': True,
+        'abort_on_example_error': True,
+        'log_level': {'backreference_missing': 'warning'},
+        #
+        # path to your examples scripts
+        'examples_dirs': [
+            "../abipy/examples/plot",
+            "../abipy/examples/flows",
+        ],
+        # path where to save gallery generated examples
+        'gallery_dirs': [
+            "gallery",
+            "flow_gallery",
+        ],
+        'filename_pattern': "(/plot*|/run_*)",
+        'default_thumb_file': '_static/abipy_logo.png',
+        'within_subsection_order': ExampleTitleSortKey,
+        'backreferences_dir': None,
+        #'reset_modules': (reset_mpl,),
+        'reference_url': {
+            'abipy': None,  # The module you locally document uses None
+            'numpy': 'https://docs.scipy.org/doc/numpy/',
+            'matplotlib': 'https://matplotlib.org',
+            'pandas': "http://pandas.pydata.org/pandas-docs/stable/",
+            "pymatgen": "https://pymatgen.org/",
+        },
+        #'image_scrapers': ('matplotlib',),
+        #'image_scrapers': ('matplotlib', PNGScraper()),
+        #'image_scrapers': ('matplotlib', plotly),
 
-    # capture raw HTML or, if not present, __repr__ of last expression in each code block
-    'capture_repr': (),
-    #'capture_repr': ('_repr_html_', '__repr__'),
-    #
-    # https://sphinx-gallery.github.io/stable/configuration.html#binder-links
+        # capture raw HTML or, if not present, __repr__ of last expression in each code block
+        'capture_repr': (),
+        #'capture_repr': ('_repr_html_', '__repr__'),
+        #
+        # https://sphinx-gallery.github.io/stable/configuration.html#binder-links
 
-    'binder': {
-        # Required keys
-         'org': 'abinit',
-         'repo': 'abipy',
-         # Can be any branch, tag, or commit hash. Use a branch that hosts your docs.
-         'branch': 'gh-pages',
-         #'ref': 'gh-pages',
-         # Any URL of a binderhub deployment. Must be full URL (e.g. https://mybinder.org).
-         'binderhub_url': 'https://mybinder.org',
-         #  A list of paths (relative to conf.py) to dependency files that Binder uses to infer
-         # the environment needed to run your examples
-         'dependencies': ["../binder/environment.yml", "../binder/postBuild"],
-         # Optional keys
-         # A prefix to prepend to any filepaths in Binder links.
-         #'filepath_prefix': '<prefix>'
-         # Jupyter notebooks for Binder will be copied to this directory (relative to built documentation root).
-         #'notebooks_dir': '<notebooks-directory-name>'
-         # Whether Binder links should start Jupyter Lab instead of the Jupyter Notebook interface.
-         #'use_jupyter_lab': False,
-     },
-}
+        #'binder': {
+        #    # Required keys
+        #     'org': 'abinit',
+        #     'repo': 'abipy',
+        #     # Can be any branch, tag, or commit hash. Use a branch that hosts your docs.
+        #     'branch': 'gh-pages',
+        #     #'ref': 'gh-pages',
+        #     # Any URL of a binderhub deployment. Must be full URL (e.g. https://mybinder.org).
+        #     'binderhub_url': 'https://mybinder.org',
+        #     #  A list of paths (relative to conf.py) to dependency files that Binder uses to infer
+        #     # the environment needed to run your examples
+        #     'dependencies': ["../binder/environment.yml", "../binder/postBuild"],
+        #     # Optional keys
+        #     # A prefix to prepend to any filepaths in Binder links.
+        #     #'filepath_prefix': '<prefix>'
+        #     # Jupyter notebooks for Binder will be copied to this directory (relative to built documentation root).
+        #     #'notebooks_dir': '<notebooks-directory-name>'
+        #     # Whether Binder links should start Jupyter Lab instead of the Jupyter Notebook interface.
+        #     #'use_jupyter_lab': False,
+        # },
+    }
 
 # Generate the API documentation when building
 autosummary_generate = True

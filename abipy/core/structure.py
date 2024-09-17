@@ -20,7 +20,7 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import is_string, marquee, list_strings
 from monty.termcolor import cprint
-from monty.dev import deprecated
+#from monty.dev import deprecated
 from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
@@ -29,7 +29,7 @@ from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, add_plotly_fig_kwargs
 from abipy.iotools import as_etsfreader, Visualizer
-
+from abipy.tools.typing import Figure
 
 
 __all__ = [
@@ -41,14 +41,12 @@ __all__ = [
 ]
 
 
-def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
+def mp_match_structure(obj):
     """
     Finds matching structures on the Materials Project database.
 
     Args:
         obj: filename or |Structure| object.
-        api_key (str): A String API key for accessing the MaterialsProject REST interface.
-        endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
         final (bool): Whether to get the final structure, or the initial
             (pre-relaxation) structure. Defaults to True.
 
@@ -62,12 +60,14 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
 
     from abipy.core import restapi
     structures, mpids = [], []
-    with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+    with restapi.get_mprester() as rest:
         try:
+            if getattr(rest, "get_data") is None:
+                raise RuntimeError("mp_match_structure requires mp-api, please install it with `pip install mp-api`")
+
             mpids = rest.find_structure(structure)
             if mpids:
-                structures = [Structure.from_mpid(mid, final=final, api_key=api_key, endpoint=endpoint)
-                              for mid in mpids]
+                structures = [Structure.from_mpid(mid) for mid in mpids]
 
         except Exception as exc:
             cprint(str(exc), "red")
@@ -80,7 +80,7 @@ def mp_match_structure(obj, api_key=None, endpoint=None, final=True):
             return restapi.MpStructures(structures=structures, ids=mpids)
 
 
-def mp_search(chemsys_formula_id, api_key=None, endpoint=None):
+def mp_search(chemsys_formula_id):
     """
     Connect to the materials project database.
     Get a list of structures corresponding to a chemical system, formula, or materials_id.
@@ -88,32 +88,32 @@ def mp_search(chemsys_formula_id, api_key=None, endpoint=None):
     Args:
         chemsys_formula_id (str): A chemical system (e.g., Li-Fe-O),
             or formula (e.g., Fe2O3) or materials_id (e.g., mp-1234).
-        api_key (str): A String API key for accessing the MaterialsProject REST interface.
-            If this is None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
-        endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
 
     Returns:
         :class:`MpStructures` object with
             List of Structure objects, Materials project ids associated to structures.
             and List of dictionaries with MP data (same order as structures).
 
-        Note that the attributes evalute to False if no match is found
+        Note that the attributes evalute to False if no match is found.
     """
     chemsys_formula_id = chemsys_formula_id.replace(" ", "")
 
     structures, mpids, data = [], [], None
     from abipy.core import restapi
-    with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+    from pymatgen.ext.matproj import MPRestError
+    with restapi.get_mprester() as rest:
         try:
+            if getattr(rest, "get_data") is None:
+                raise RuntimeError("mp_search requires mp-api, please install it with `pip install mp-api`")
+
             data = rest.get_data(chemsys_formula_id, prop="")
             if data:
-                structures = [Structure.from_str(d["cif"], fmt="cif", primitive=False, sort=False)
-                              for d in data]
+                structures = [Structure.from_str(d["cif"], fmt="cif", primitive=False, sort=False) for d in data]
                 mpids = [d["material_id"] for d in data]
                 # Want AbiPy structure.
                 structures = list(map(Structure.as_structure, structures))
 
-        except rest.Error as exc:
+        except MPRestError:
             cprint(str(exc), "magenta")
 
         return restapi.MpStructures(structures, mpids, data=data)
@@ -170,14 +170,48 @@ def display_structure(obj, **kwargs):
     return nbjsmol_display(structure.to(fmt="cif"), ext=".cif", **kwargs)
 
 
+def get_structures_from_file(filepath: PathLike, index) -> list[Structure]:
+    """
+    """
+    #if index is None:
+    #    index = -1
+
+    if filepath.endswith(".traj"):
+        # ASE trajectory file.
+        from ase.atoms import Atoms
+        from ase.io import read
+        atoms_list = read(filepath, index=index)
+        if not isinstance(atoms_list, list):
+            assert isinstance(atoms_list, Atoms)
+            atoms_list = [atoms_list]
+
+    # TODO: HIST.nc and XDATCAR
+    #elif filepath.endswith("_HIST.nc"):
+    #    from abipy.dynamics.hist import HistFile
+    #    with HistFile(filepath) as hist:
+    #        return hist.read_structures(index)
+
+    #elif filepath.endswith("XDATCAR"):
+
+    else:
+        raise NotImplementedError(f"Don't know how to extract structures with index from {filepath=}")
+
+    return [Structure.as_structure(atoms) for atoms in atoms_list]
+
+
+def get_first_and_last_structure_from_file(filepath: PathLike) -> tuple[Structure]:
+    """
+    Helper function to read the first and the last structure from a trajectory file.
+    Simplified wrapper around get_structures_from_file.
+    """
+    first_structure = get_structures_from_file(filepath, index=0)[0]
+    last_structure = get_structures_from_file(filepath, index=-1)[0]
+    return first_structure, last_structure
+
+
 class Structure(pmg_Structure, NotebookWriter):
     """
     Extends :class:`pymatgen.core.structure.Structure` with Abinit-specific methods.
-
-    A jupyter_ notebook documenting the usage of this object is available at
-    <https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/structure.ipynb>
-
-    For the pymatgen project see :cite:`Ong2013`.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Structure
@@ -194,10 +228,13 @@ class Structure(pmg_Structure, NotebookWriter):
             - Objects with a ``structure`` attribute.
             - ASE atoms.
         """
-        if isinstance(obj, cls): return obj
+        if isinstance(obj, cls):
+            return obj
+
         if isinstance(obj, pmg_Structure):
             obj.__class__ = cls
             return obj
+
         if hasattr(obj, "ase_objtype"):
             # ASE Atoms.
             from pymatgen.io.ase import AseAtomsAdaptor
@@ -274,8 +311,7 @@ class Structure(pmg_Structure, NotebookWriter):
             if closeit: ncfile.close()
 
         elif filepath.endswith(".abi") or filepath.endswith(".in"):
-            # Abinit input file.
-            # Here I assume that the input file contains a single structure.
+            # Abinit input file. Here I assume that the input file contains a single structure.
             from abipy.abio.abivars import AbinitInputFile
             return AbinitInputFile.from_file(filepath).structure
 
@@ -288,6 +324,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 #print("initial_structures:\n", out.initial_structures, "\nfinal_structures:\n", out.final_structures)
                 if out.final_structures: return out.final_structure
                 if out.initial_structures: return out.initial_structure
+
             raise ValueError("Cannot find structure in Abinit output file `%s`" % filepath)
 
         elif filepath.endswith(".abivars") or filepath.endswith(".ucell"):
@@ -320,8 +357,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 from ase.io import read
             except ImportError as exc:
                 raise RuntimeError("ase is required to read xyz files. Use `pip install ase`") from exc
-            atoms = read(filepath)
-            return cls.as_structure(atoms)
+            return cls.as_structure(read(filepath))
 
         else:
             # Invoke pymatgen and change class. Note that AbinitSpacegroup is missing here.
@@ -331,7 +367,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return new
 
     @classmethod
-    def from_mpid(cls, material_id: str, final=True, api_key=None, endpoint=None) -> Structure:
+    def from_mpid(cls, material_id: str) -> Structure:
         """
         Get a Structure corresponding to a material_id.
 
@@ -339,15 +375,6 @@ class Structure(pmg_Structure, NotebookWriter):
             material_id (str): Materials Project material_id (a string, e.g., mp-1234).
             final (bool): Whether to get the final structure, or the initial
                 (pre-relaxation) structure. Defaults to True.
-            api_key (str): A String API key for accessing the MaterialsProject
-                REST interface. Please apply on the Materials Project website for one.
-                If this is None, the code will check if there is a ``PMG_MAPI_KEY`` in your .pmgrc.yaml.
-                If so, it will use that environment
-                This makes easier for heavy users to simply add this environment variable
-                to their setups and MPRester can then be called without any arguments.
-            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
-                Defaults to the standard Materials Project REST address, but
-                can be changed to other urls implementing a similar interface.
 
         Returns: |Structure| object.
         """
@@ -357,9 +384,8 @@ class Structure(pmg_Structure, NotebookWriter):
 
         # Get pytmatgen structure and convert it to abipy structure
         from abipy.core import restapi
-        with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
-            new = rest.get_structure_by_material_id(material_id, final=final)
-            #new = rest.get_structure_by_material_id(material_id)
+        with restapi.get_mprester() as rest:
+            new = rest.get_structure_by_material_id(material_id)
             return cls.as_structure(new)
 
     @classmethod
@@ -390,6 +416,13 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         import pymatgen.io.ase as aio
         return aio.AseAtomsAdaptor.get_structure(atoms, cls=cls)
+
+    # FIXME: Temporary workaround to maintain compatbility with old pymatgen versions.
+    # m_elems was added in v2024.7.18
+    @property
+    def n_elems(self) -> int:
+        """Number of types of atoms."""
+        return len(self.types_of_species)
 
     def to_ase_atoms(self, calc=None):
         """
@@ -507,7 +540,6 @@ class Structure(pmg_Structure, NotebookWriter):
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
 
         Example::
-
             Structure.zincblende(a, ["Zn", "S"])
         """
         a = pmg_units.Length(a, units).to("ang")
@@ -531,7 +563,6 @@ class Structure(pmg_Structure, NotebookWriter):
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
 
         Example::
-
             Structure.rocksalt(a, ["Na", "Cl"])
         """
         a = pmg_units.Length(a, units).to("ang")
@@ -569,10 +600,9 @@ class Structure(pmg_Structure, NotebookWriter):
     @classmethod
     def from_abistring(cls, string: str) -> Structure:
         """
-        Initialize Structure from string with Abinit input variables.
+        Initialize Structure from a string with Abinit input variables.
         """
         from abipy.abio.abivars import AbinitInputFile, structure_from_abistruct_fmt
-
         if "xred_symbols" not in string:
             # Standard (verbose) input file with znucl, typat etc.
             return AbinitInputFile.from_string(string).structure
@@ -678,12 +708,10 @@ class Structure(pmg_Structure, NotebookWriter):
             symprec (float): If not none, finds the symmetry of the structure
                 and writes the cif with symmetry information. Passes symprec
                 to the SpacegroupAnalyzer.
-            significant_figures (int): Specifies precision for formatting of floats.
-                Defaults to 8.
+            significant_figures (int): Specifies precision for formatting of floats. Defaults to 8.
             angle_tolerance (float): Angle tolerance for symmetry finding. Passes
-                angle_tolerance to the SpacegroupAnalyzer. Used only if symprec
-                is not None.
-            ret_string: True to return string
+                angle_tolerance to the SpacegroupAnalyzer. Used only if symprec is not None.
+            ret_string: True to return string.
         """
         from pymatgen.io.cif import CifWriter
         cif_str = str(CifWriter(self,
@@ -721,7 +749,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     @property
     def latex_formula(self) -> str:
-        """LaTeX formatted formula. E.g., Fe2O3 is transformed to Fe$_{2}$O$_{3}$."""
+        """LaTeX formatted formula: e.g., Fe2O3 is transformed to Fe$_{2}$O$_{3}$."""
         from pymatgen.util.string import latexify
         return latexify(self.formula)
 
@@ -742,7 +770,6 @@ class Structure(pmg_Structure, NotebookWriter):
         fmt="abicell" is the lightweight format that uses `xred_symbols`
         This format can be used to include the structure in the input via the structure "abivars:FILE" syntax.
         """
-
         lines = []
         app = lines.append
 
@@ -810,8 +837,8 @@ class Structure(pmg_Structure, NotebookWriter):
     def get_conventional_standard_structure(self, international_monoclinic=True,
                                            symprec=1e-3, angle_tolerance=5) -> Structure:
         """
-        Gives a structure with a conventional cell according to certain
-        standards. The standards are defined in :cite:`Setyawan2010`
+        Gives a structure with a conventional cell according to certain standards.
+        The standards are defined in :cite:`Setyawan2010`
         They basically enforce as much as possible norm(a1) < norm(a2) < norm(a3)
 
         Returns: The structure in a conventional standardized cell
@@ -821,8 +848,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return self.__class__.as_structure(new)
 
     def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0) -> Structure:
-        #TODO: this should be moved to pymatgen in the get_refined_structure or so ...
-        # to be considered in February 2016
+        #TODO: this should be moved to pymatgen in the get_refined_structure or so ... to be considered in February 2016
         import spglib
         from pymatgen.io.ase import AseAtomsAdaptor
         try:
@@ -833,8 +859,14 @@ class Structure(pmg_Structure, NotebookWriter):
         s = self.get_sorted_structure()
         ase_adaptor = AseAtomsAdaptor()
         ase_atoms = ase_adaptor.get_atoms(structure=s)
-        standardized = spglib.standardize_cell(ase_atoms, to_primitive=1, no_idealize=no_idealize,
+
+        #standardized = spglib.standardize_cell(ase_atoms, to_primitive=1, no_idealize=no_idealize,
+        #                                       symprec=symprec, angle_tolerance=angle_tolerance)
+
+        spglib_cell = (ase_atoms.cell, ase_atoms.get_scaled_positions(), ase_atoms.get_atomic_numbers())
+        standardized = spglib.standardize_cell(spglib_cell, to_primitive=1, no_idealize=no_idealize,
                                                symprec=symprec, angle_tolerance=angle_tolerance)
+
         standardized_ase_atoms = Atoms(scaled_positions=standardized[1], numbers=standardized[2], cell=standardized[0])
         standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
 
@@ -936,11 +968,6 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return self.__class__.as_structure(structure)
 
-    #def relax(self, **kwargs) -> Structure:
-    #    new = super().relax(**kwargs)
-    #    new.__class__ = self.__class__
-    #    return new
-
     def get_oxi_state_decorated(self, **kwargs) -> Structure:
         """
         Use :class:`pymatgen.analysis.bond_valence.BVAnalyzer` to estimate oxidation states
@@ -969,24 +996,10 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         return self._lattice.reciprocal_lattice
 
-    @deprecated(message="lattice_vectors is deprecated and will be removed in abipy 1.0")
-    def lattice_vectors(self, space="r"):
-        """
-        Returns the vectors of the unit cell in Angstrom.
-
-        Args:
-            space: "r" for real space vectors, "g" for reciprocal space basis vectors.
-        """
-        if space.lower() == "r":
-            return self.lattice.matrix
-        if space.lower() == "g":
-            return self.lattice.reciprocal_lattice.matrix
-        raise ValueError("Wrong value for space: %s " % str(space))
-
     def spget_lattice_type(self, symprec=1e-3, angle_tolerance=5) -> str:
         """
         Call spglib to get the lattice for the structure, e.g., (triclinic,
-        orthorhombic, cubic, etc.).This is the same than the
+        orthorhombic, cubic, etc.). This is the same than the
         crystal system with the exception of the hexagonal/rhombohedral lattice
 
         Args:
@@ -1271,6 +1284,50 @@ class Structure(pmg_Structure, NotebookWriter):
             for s, dist in sorted(sited_list, key=lambda t: t[1]):
                 print("\t", repr(s), " at distance", dist)
             print("")
+
+    @lazy_property
+    def has_zero_dynamical_quadrupoles(self):
+        """
+        Dynamical quadrupoles are nonzero in all noncentrosymmetric crystals,
+        but also in centrosymmetric ones if one or more atoms are placed at noncentrosymmetric sites.
+        """
+        def create_image(s1, s2):
+            """
+            Creates the image of s2 through s1
+            This image is a fictitious atom in the structure
+            """
+            image = PeriodicSite.from_dict(s2.as_dict())
+            image.coords = s1.coords - (s2.coords - s1.coords)
+            image.frac_coords = s1.frac_coords - (s2.frac_coords - s1.frac_coords)
+
+            return image
+
+        def check_image(structure, site):
+            """
+            Checks if a fictitious site is an image of a site of the structure
+            """
+            for site in structure.sites:
+                if site.is_periodic_image(site):
+                    return True
+
+            return False
+
+        # If the centrosymmetry is broken at a given atomic site of the given structure,
+        # returns False. Else, return True
+        sites = self.sites
+
+        for s1 in sites:
+            for s2 in sites:
+                # Do not take s1 = s2 into account
+                if s2 != s1:
+                    # Create the image of s2 through s1 (fictitious atom)
+                    image = create_image(s1, s2)
+                    is_image = check_image(self, image)
+                    if not is_image:
+                        return False
+
+        return True
+
 
     @lazy_property
     def hsym_kpath(self):
@@ -1565,7 +1622,7 @@ class Structure(pmg_Structure, NotebookWriter):
             pmg_path (bool): True if the default path used in pymatgen should be show.
             with_labels (bool): True to plot k-point labels.
 
-        Returns: |plotly.graph_objects.Figure|
+        Returns: plotly.graph_objects.Figure
         """
         from abipy.tools.plotting import plotly_brillouin_zone_from_kpath, plotly_brillouin_zone
         labels = None if not with_labels else self.hsym_kpath.kpath["kpoints"]
@@ -1576,7 +1633,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_xrd(self, wavelength="CuKa", symprec=0, debye_waller_factors=None,
-                 two_theta_range=(0, 90), annotate_peaks=True, ax=None, **kwargs):
+                 two_theta_range=(0, 90), annotate_peaks=True, ax=None, **kwargs) -> Figure:
         """
         Use pymatgen :class:`XRDCalculator` to show the XRD plot.
 
@@ -1892,8 +1949,7 @@ class Structure(pmg_Structure, NotebookWriter):
         Returns: the scaling matrix of the supercell
         """
         if np.allclose(qpoint, 0.0):
-            scale_matrix = np.eye(3, 3)
-            return scale_matrix
+            return np.eye(3, 3)
 
         l = max_supercell
 
@@ -1966,11 +2022,12 @@ class Structure(pmg_Structure, NotebookWriter):
             raise ValueError('max_supercell is not large enough for this q-point')
 
         # Fortran 2 python!!!
-        return scale_matrix.T
+        return scale_matrix.T.copy()
 
-    def make_doped_supercells(self,scaling_matrix,replaced_atom, dopant_atom):
+    def make_doped_supercells(self, scaling_matrix, replaced_atom, dopant_atom):
         """
         Returns a list doped supercell structures, one for each non-equivalent site of the replaced atom.
+
         Args:
             scaling_matrix: A scaling matrix for transforming the lattice vectors.
                 Has to be all integers. Several options are possible:
@@ -1981,22 +2038,22 @@ class Structure(pmg_Structure, NotebookWriter):
                 b. A sequence of three scaling factors. e.g., [2, 1, 1]
                    specifies that the supercell should have dimensions 2a x b x c.
                 c. A number, which simply scales all lattice vectors by the same factor.
-            replaced atom : Symbol of the atom to be replaced (ex: 'Sr')
-            dopant_atom : Symbol of the dopant_atom (ex: 'Eu')
+            replaced atom: Symbol of the atom to be replaced (ex: 'Sr')
+            dopant_atom: Symbol of the dopant_atom (ex: 'Eu')
         """
         ### list of positions of non-equivalent sites for the replaced atom. ###
-        irred=self.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
-        positions=self.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
+        irred = self.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
+        positions = self.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
 
-        index_non_eq_sites=[]
+        index_non_eq_sites = []
         for pos in positions:
             if len(irred[pos]) != 0:
                  index_non_eq_sites.append(irred[pos][0])
 
-        doped_supercell=self.copy()
+        doped_supercell = self.copy()
         doped_supercell.make_supercell(scaling_matrix)
 
-        doped_structure_list=[]
+        doped_structure_list = []
 
         for index in index_non_eq_sites:
             final_structure=doped_supercell.copy()
@@ -2004,8 +2061,6 @@ class Structure(pmg_Structure, NotebookWriter):
             doped_structure_list.append(final_structure)
 
         return doped_structure_list
-
-
 
     def get_trans_vect(self, scale_matrix):
         """
@@ -2038,8 +2093,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         # find the translation vectors (in terms of the initial lattice vectors)
         # that are inside the unit cell defined by the scale matrix
-        # we're using a slightly offset interval from 0 to 1 to avoid numerical
-        # precision issues
+        # we're using a slightly offset interval from 0 to 1 to avoid numerical precision issues
         #print(scale_matrix)
         inv_matrix = np.linalg.inv(scale_matrix)
 
@@ -2106,8 +2160,8 @@ class Structure(pmg_Structure, NotebookWriter):
     def frozen_2phonon(self, qpoint, displ1, displ2, eta=1, frac_coords=False, scale_matrix=None, max_supercell=None):
         """
         Creates the supercell needed for a given qpoint and adds the displacements.
-        The displacements are normalized so that the largest atomic displacement will correspond to the
-        value of eta in Angstrom.
+        The displacements are normalized so that the largest atomic displacement will correspond
+        to the value of eta in Angstrom.
 
         Args:
             qpoint: q vector in reduced coordinate in reciprocal space.
@@ -2182,15 +2236,14 @@ class Structure(pmg_Structure, NotebookWriter):
         value of eta in Angstrom.
 
         Args:
-            qpoint: q vector in reduced coordinate in reciprocal space.
+            qpoint: q-vector in reduced coordinate in reciprocal space.
             displ: displacement in real space of the atoms.
-            eta: pre-factor multiplying the displacement. Gives the value in Angstrom of the
-                largest displacement.
+            eta: pre-factor multiplying the displacement. Gives the value in Angstrom of the largest displacement.
             frac_coords: whether the displacements are given in fractional or cartesian coordinates
             scale_matrix: the scaling matrix of the supercell. If None a scaling matrix suitable for
                 the qpoint will be determined.
             max_supercell: mandatory if scale_matrix is None, ignored otherwise. Defines the largest
-                supercell in the search for a scaling matrix suitable for the q point.
+                supercell in the search for a scaling matrix suitable for the input q-point.
 
         Returns:
             A namedtuple with a Structure with the displaced atoms, a numpy array containing the
@@ -2199,35 +2252,34 @@ class Structure(pmg_Structure, NotebookWriter):
 
         if scale_matrix is None:
             if max_supercell is None:
-                raise ValueError("If scale_matrix is not provided, please provide max_supercell!")
-
+                raise ValueError("If scale_matrix is not provided in input, please provide max_supercell!")
             scale_matrix = self.get_smallest_supercell(qpoint, max_supercell=max_supercell)
 
         scale_matrix = np.array(scale_matrix, np.int16)
         if scale_matrix.shape != (3, 3):
             scale_matrix = np.array(scale_matrix * np.eye(3), np.int16)
-        print("scale_matrix:", scale_matrix)
+        #print("scale_matrix:\n", scale_matrix)
 
         old_lattice = self._lattice
         new_lattice = Lattice(np.dot(scale_matrix, old_lattice.matrix))
 
         tvects = self.get_trans_vect(scale_matrix)
-        print("tvects", tvects)
+        #print("tvects\n", tvects)
 
         if frac_coords:
-            displ = np.array((old_lattice.get_cartesian_coords(d) for d in displ))
+            displ = np.array([old_lattice.get_cartesian_coords(d) for d in displ])
         else:
             displ = np.array(displ)
-        # from here displ are in cartesian coordinates
 
+        # from here on, displ is in cartesian coordinates.
         displ = eta * displ / np.linalg.norm(displ, axis=1).max()
 
         new_displ = np.zeros(3, dtype=float)
         new_sites = []
         displ_list = []
-        for at, site in enumerate(self):
+        for iat, site in enumerate(self):
             for t in tvects:
-                new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
+                new_displ[:] = np.real(np.exp(2*1j*np.pi * (np.dot(qpoint, t))) * displ[iat,:])
                 displ_list.append(list(new_displ))
 
                 coords = site.coords + old_lattice.get_cartesian_coords(t) + new_displ
@@ -2699,7 +2751,7 @@ to build an appropriate supercell from partial occupancies or alternatively use 
     lines = []
     app = lines.append
     app("NumberOfAtoms %d" % len(structure))
-    app("NumberOfSpecies %d" % structure.ntypesp)
+    app("NumberOfSpecies %d" % structure.n_elems)
 
     if verbose:
         app("# The species number followed by the atomic number, and then by the desired label")
