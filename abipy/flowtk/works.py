@@ -1738,6 +1738,8 @@ class PhononWork(Work, MergeDdb):
                 to restart the DFPT task if the calculation is not converged (worst case scenario)
                 but we avoid the output of the 1-st order WFK if the calculation converged successfully.
                 Non-linear DFPT tasks should not be affected since they assume q == 0.
+            prepgkk: option to compute only the irreducible preturbations or all perturbations
+                for the chosen set of q-point. Default: 0 (irred. pret. only)
             manager: |TaskManager| object.
         """
         if not isinstance(scf_task, ScfTask):
@@ -1808,7 +1810,7 @@ class PhononWork(Work, MergeDdb):
             is_gamma = np.sum(qpt ** 2) < 1e-12
             if with_becs and is_gamma: continue
             multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance,
-                                                         prepgkk=0)
+                                                         prepgkk=prepgkk)
             for ph_inp in multi:
                 # Here we set the value of prtwf for the DFPT tasks if q != Gamma.
                 if not is_gamma: ph_inp.set_vars(prtwf=prtwf)
