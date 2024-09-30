@@ -318,28 +318,26 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         Returns: |matplotlib-Figure|
         """
         f =  self.fit_energies(tstart, tstop, num)
-        param = np.zeros((num,4))
-        param = np.zeros((num,3))
         param=np.polyfit(self.volumes, self.lattice_a , 3)
         param0=[3*param[0],2*param[1],param[2]]
         pa = np.poly1d(param)
         dpa=np.poly1d(param0)
         aa_qha=pa(f.min_vol)
-        daa_qha=dpa(f.min_vol)
+        daa_dv_qha=dpa(f.min_vol)
         param=np.polyfit(self.volumes, self.lattice_b , 3)
         param0=[3*param[0],2*param[1],param[2]]
         pb = np.poly1d(param)
         dpb = np.poly1d(param0)
         bb_qha=pb(f.min_vol)
-        dbb_qha=dpb(f.min_vol)
+        dbb_dv_qha=dpb(f.min_vol)
         param=np.polyfit(self.volumes, self.lattice_c , 3)
         param0=[3*param[0],2*param[1],param[2]]
         pc = np.poly1d(param)
         dpc = np.poly1d(param0)
         cc_qha=pc(f.min_vol)
-        dcc_qha=dpc(f.min_vol)
+        dcc_dv_qha=dpc(f.min_vol)
 
-        return aa_qha,bb_qha,cc_qha, daa_qha,dbb_qha,dcc_qha
+        return aa_qha,bb_qha,cc_qha, daa_dv_qha,dbb_dv_qha,dcc_dv_qha
 
     def get_angles(self, tstart=0, tstop=800 , num=100):
         """
@@ -356,8 +354,6 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         Returns: |matplotlib-Figure|
         """
         f =  self.fit_energies(tstart, tstop, num)
-        param = np.zeros((num,4))
-        param0 = np.zeros((num,3))
         param=np.polyfit(self.volumes, self.angles_alpha, 3)
         pa = np.poly1d(param)
         alpha=pa(f.min_vol)
@@ -390,21 +386,21 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         tmesh = np.linspace(tstart, tstop, num)
 
         alpha_v = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
-        aa_qha,bb_qha,cc_qha, daa_qha,dbb_qha,dcc_qha = self.get_abc(tstart, tstop, num)
+        aa,bb,cc, daa_dv,dbb_dv,dcc_dv = self.get_abc(tstart, tstop, num)
 
         if tref is None:
             f = self.fit_energies(tstart, tstop, num)
             dv_dt=alpha_v*f.min_vol[1:-1]
-            alpha_qha_a =  dv_dt*daa_qha[1:-1]/ aa_qha[1:-1]
-            alpha_qha_b =  dv_dt*dbb_qha[1:-1]/ bb_qha[1:-1]
-            alpha_qha_c =  dv_dt*dcc_qha[1:-1]/ cc_qha[1:-1]
+            alpha_qha_a =  dv_dt*daa_dv[1:-1]/ aa[1:-1]
+            alpha_qha_b =  dv_dt*dbb_dv[1:-1]/ bb[1:-1]
+            alpha_qha_c =  dv_dt*dcc_dv[1:-1]/ cc[1:-1]
         else:
             f0 = self.fit_energies(tref, tref, num)
             dv_dt=alpha_v*f0.min_vol[1:-1]
-            aa_tref,bb_tref,cc_tref , daa_tref,dbb_tref,dcc_tref = self.get_abc(tref, tref, 1)
-            alpha_qha_a =  dv_dt*daa_qha[1:-1]/ aa_tref
-            alpha_qha_b =  dv_dt*dbb_qha[1:-1]/ bb_tref
-            alpha_qha_c =  dv_dt*dcc_qha[1:-1]/ cc_tref
+            aa_tref,bb_tref,cc_tref , daa_dv_tref,dbb_dv_tref,dcc_dv_tref = self.get_abc(tref, tref, 1)
+            alpha_qha_a =  dv_dt*daa_dv[1:-1]/ aa_tref
+            alpha_qha_b =  dv_dt*dbb_dv[1:-1]/ bb_tref
+            alpha_qha_c =  dv_dt*dcc_dv[1:-1]/ cc_tref
 
         ax.plot(tmesh[1:-1] ,alpha_qha_a , color='r',lw=2 , **kwargs)
         ax.plot(tmesh[1:-1] ,alpha_qha_b , color='b', lw=2 )
@@ -438,11 +434,11 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
 
         #alpha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
         tmesh = np.linspace(tstart, tstop, num)
-        aa_qha,bb_qha,cc_qha, daa_qha,dbb_qha,dcc_qha = self.get_abc(tstart, tstop, num)
+        aa,bb,cc, daa_dv,dbb_dv,dcc_dv = self.get_abc(tstart, tstop, num)
 
-        ax.plot(tmesh ,aa_qha , color='r',lw=2,  **kwargs )
-        ax.plot(tmesh ,bb_qha , color='b', lw=2 )
-        ax.plot(tmesh ,cc_qha , color='m', lw=2 )
+        ax.plot(tmesh ,aa , color='r',lw=2,  **kwargs )
+        ax.plot(tmesh ,bb , color='b', lw=2 )
+        ax.plot(tmesh ,cc , color='m', lw=2 )
         ax.set_xlabel(r'T (K)')
         ax.legend(["a(V(T))","b(V(T))","c(V(T))"])
         ax.grid(True)
