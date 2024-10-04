@@ -633,7 +633,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                         runlevel.add(atags.BANDS)
                 else:
                     runlevel.add(atags.SCF)
-            elif ionmov in (2, 3, 4, 5, 7, 10, 11, 20):
+            elif ionmov in (2, 3, 4, 5, 7, 10, 11, 20, 22):
                 runlevel.add(atags.RELAX)
                 if optcell == 0:
                     runlevel.add(atags.ION_RELAX)
