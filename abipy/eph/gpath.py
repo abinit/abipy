@@ -283,13 +283,15 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
         if self.r.eph_fix_korq == "k":
+            plt_kwargs = dict(with_phbands=True, with_ebands=True, show=False)
+            yield self.plot_g_qpath(with_qexp=1, **plt_kwargs)
+            yield self.plot_g_qpath(with_qexp=0, **plt_kwargs)
             #yield self.ebands_kq.plot(show=False)
             #yield self.phbands.plot(show=False)
-            yield self.plot_g_qpath()
 
         if self.r.eph_fix_korq == "q":
-            #yield self.ebands_k.plot(show=False)
-            yield self.plot_g_kpath()
+            plt_kwargs = dict(with_ebands=True, show=False)
+            yield self.plot_g_kpath(**plt_kwargs)
 
     def write_notebook(self, nbpath=None) -> str:
         """
@@ -365,10 +367,10 @@ class GpathReader(BaseEphReader):
         # eigens are in Ha
         if which_fixed == "k":
             frac_coords = kpath_frac_coords + qpath_frac_coords
-            all_eigens = self.read_value("all_eigens_kq") * abu.Ha_eV
+            all_eigens = self.all_eigens_kq * abu.Ha_eV
         elif which_fixed == "q":
             frac_coords = kpath_frac_coords
-            all_eigens = self.read_value("all_eigens_k") * abu.Ha_eV
+            all_eigens = self.all_eigens_k * abu.Ha_eV
         else:
             raise ValueError(f"Invalid value {which_fixed=}")
 
@@ -436,7 +438,7 @@ class GpathReader(BaseEphReader):
         # double all_eigens_k(nsppol, nk_path, nband) ;
         # double all_eigens_kq(nsppol, nq_path, nband) ;
         all_eigens_k, all_eigens_kq = self.all_eigens_k, self.all_eigens_kq  # eV units
-        phfreqs_ha = self.phfreqs_ha                                        # Ha units
+        phfreqs_ha = self.phfreqs_ha                                         # Ha units
 
         # Now read the e-ph matrix elements. On disk we have
         #                                                  n-index, m-index
