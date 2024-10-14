@@ -671,6 +671,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             else:
                 runlevel.update([atags.MANY_BODY, atags.SIGMA])
 
+        elif optdriver == 5:
+            # DTE run.
+            runlevel.add(atags.DFPT)
+            runlevel.add(atags.DTE)
+    
         elif optdriver == 99:
             # BSE run
             runlevel.update([atags.MANY_BODY, atags.BSE])
@@ -1921,6 +1926,65 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return ph_inputs
 
+    def make_ddkpert_input(self, perturbation, kptopt=2, only_vk=False, use_symmetries=False, tolerance=None, manager=None) -> AbinitInput:
+        """
+        Returns |AbinitInput| for the calculation of an electric field perturbation.
+        This function should be called with an input that represents a GS run and 
+        an electric field perturbation.
+
+        Args:
+            perturbation: dict with the Abinit variables defining the irreducible perturbation
+                Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
+            kptopt: 2 to take into account time-reversal symmetry. Note that kptopt 1 is not available.
+            only_vk: If only matrix elements of the velocity operator are needed.
+                First-order wavefunctions won't be converged --> not usable for other DFPT calculations.
+            use_symmetries: boolean that determines if the irreducible components of the perturbation are used.
+                Default to False. (TODO: Should be implemented)
+            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
+                Defaults to {"tolwfr": 1.0e-22}.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+        """
+        if tolerance is None:
+            tolerance = {"tolwfr": 1.0e-22}
+
+        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+
+        if "tolvrs" in tolerance:
+            raise self.Error("tolvrs should not be used in a DDK calculation")
+
+        inp = self.deepcopy()
+        inp.pop_irdvars()
+
+        rfdir = 3 * [0]
+        rfdir[perturbation['idir'] - 1] = 1
+
+        inp.set_vars(
+            rfelfd=2,             # Activate the calculation of the d/dk perturbation
+                                  # only the derivative of ground-state wavefunctions with respect to k
+            rfdir=rfdir,          # Direction of the ddk.
+            nqpt=1,               # One wavevector is to be considered
+            qpt=(0, 0, 0),        # q-wavevector.
+            kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
+            iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
+        )
+
+        inp.pop_vars("dfpt_sciss") # TODO: to add?
+
+        if only_vk:
+            inp.set_vars(nstep=1, nline=1)
+        
+        # TODO: to implement
+        #if not use_symmetries:
+        #    inp.set_vars(
+        #        comment="Input file for ddk calculation without symmetries.",
+        #    )
+
+        inp.pop_tolerances()
+        inp.set_vars(tolerance, comment="Input file for DDK calculation.")
+
+        return inp
+
     def make_ddk_inputs(self, tolerance=None, kptopt=2, only_vk=False, manager=None) -> MultiDataset:
         """
         Return inputs for performing DDK calculations.
@@ -2009,7 +2073,56 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         dkdk_input.set_vars(tolerance)
 
         return dkdk_input
+    
+    def make_ddepert_input(self, perturbation, use_symmetries=True, tolerance=None, manager=None) -> AbinitInput:
+        """
+        Returns |AbinitInput| for the calculation of an electric field perturbation.
+        This function should be called with an input that represents a GS run and 
+        an electric field perturbation.
 
+        Args:
+            perturbation: dict with the Abinit variables defining the irreducible perturbation
+                Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
+            use_symmetries: boolean that determines if the irreducible components of the perturbation are used.
+                Default to True. Should be set to False for nonlinear coefficients calculation.
+            tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
+                Defaults to {"tolvrs": 1.0e-22}.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+        """
+        if tolerance is None:
+            tolerance = {"tolvrs": 1.0e-22}
+
+        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
+            raise self.Error("Invalid tolerance: %s" % str(tolerance))
+
+        inp = self.deepcopy()
+        inp.pop_irdvars()
+
+        rfdir = 3 * [0]
+        rfdir[perturbation['idir'] - 1] = 1
+
+        inp.set_vars(
+            rfdir=rfdir,  # Direction of the dde perturbation.
+            comment="Input file for DDE calculation with symmetries.",
+            rfelfd=3,       # Activate the calculation of the electric field perturbation
+                            # Assuming the data on derivative of ground-state wavefunction with respect
+                            # to k (DDK) is available on disk and will be read with getddk/irddk
+            nqpt=1,         # One wavevector is to be considered
+            qpt=(0, 0, 0),  # q-wavevector.
+            kptopt=2,       # Take into account time-reversal symmetry.
+        )
+        
+        if not use_symmetries:
+            inp.set_vars(
+                comment="Input file for DDE calculation without symmetries.",
+                prepanl=1,
+            )
+
+        inp.pop_tolerances()
+        inp.set_vars(tolerance)
+
+        return inp
+    
     def make_dde_inputs(self, tolerance=None, use_symmetries=True, manager=None) -> MultiDataset:
         """
         Return |MultiDataset| inputs for the calculation of electric field perturbations.
@@ -2074,7 +2187,67 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return multi
 
-    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, ixc=7, manager=None) -> MultiDataset:
+    def make_dtepert_input(self, perturbation, ixc=None, manager=None) -> AbinitInput:
+        """
+        Return |AbinitInput| for DTE calculation for a given perturbation.
+        This functions should be called with an input that represents a GS run.
+
+        Args:
+            perturbation: dict with the Abinit variables defining the irreducible perturbation
+                Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
+            ixc: Value of ixc variable. Used to overwrite the default value read from pseudos.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+        """
+        inp = self.deepcopy()
+        # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
+        # Do this as last, so not to interfere with the the generation of the other steps.
+        nval = inp.structure.num_valence_electrons(inp.pseudos)
+        nval -= inp['charge']
+        nband = int(round(nval / 2))
+        inp.set_vars(nband=nband)
+        inp.pop('nbdbuf', None)
+
+        if ixc is not None:
+            inp.set_vars(ixc=int(ixc))
+
+        # See tutorespfn/Input/tnlo_2.in
+        na = len(self.structure)
+
+        rfdir1 = 3 * [0]
+        rfdir1[perturbation['i1dir'] - 1] = 1
+        rfdir2 = 3 * [0]
+        rfdir2[perturbation['i2dir'] - 1] = 1
+        rfdir3 = 3 * [0]
+        rfdir3[perturbation['i3dir'] - 1] = 1
+
+        # atpol if needed. Since there can be only one spatial perturbation
+        m = min(perturbation['i1pert'], perturbation['i2pert'], perturbation['i3pert'])
+        atpol = [m, m] if m <= na else None
+
+        inp.set_vars(
+            # Activate the calculation of the electric field perturbation
+            d3e_pert1_elfd=1 if perturbation['i1pert'] == na + 2 else 0,
+            d3e_pert2_elfd=1 if perturbation['i2pert'] == na + 2 else 0,
+            d3e_pert3_elfd=1 if perturbation['i3pert'] == na + 2 else 0,
+            d3e_pert1_dir=rfdir1,  # Direction of the dte perturbation.
+            d3e_pert2_dir=rfdir2,
+            d3e_pert3_dir=rfdir3,
+            d3e_pert1_phon=1 if perturbation['i1pert'] <= na else 0,
+            d3e_pert2_phon=1 if perturbation['i2pert'] <= na else 0,
+            d3e_pert3_phon=1 if perturbation['i3pert'] <= na else 0,
+            d3e_pert1_atpol=atpol,
+            nqpt=1,         # One wavevector is to be considered
+            qpt=(0, 0, 0),  # q-wavevector.
+            optdriver=5,    # non-linear response functions, using the 2n+1 theorem.
+            kptopt=2,       # Take into account time-reversal symmetry.
+            comment="Input file for DTE calculation.",
+        )
+
+        inp.pop_tolerances()
+
+        return inp
+
+    def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, ixc=None, manager=None) -> MultiDataset:
         """
         Return |MultiDataset| inputs for DTE calculation.
         This functions should be called with an input that represents a GS run.
