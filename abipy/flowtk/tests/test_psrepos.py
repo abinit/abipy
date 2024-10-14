@@ -16,6 +16,11 @@ class TestPsRepos(AbipyTest):
         repo = get_repo_from_name("ONCVPSP-PBEsol-SR-PDv0.4")
         if not repo.is_installed():
             raise self.SkipTest("ONCVPSP-PBEsol-SR-PDv0.4 should be installed")
+
+        #self.assert_msonable(repo, test_is_subclass=True)
+        #print(repo.as_dict())
+        #raise ValueError()
+
         filepath = os.path.join(repo.dirpath, "Ni/Ni-sp.psp8")
         encoded = encode_pseudopath(filepath)
         assert encoded == "@ONCVPSP-PBEsol-SR-PDv0.4/Ni/Ni-sp.psp8"

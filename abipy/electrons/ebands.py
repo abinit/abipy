@@ -2675,8 +2675,8 @@ class ElectronBands(Has_Structure):
             for band in band_range:
                 yy = self.eigens[spin, :, band] - e0
 
-                # Set label only at the first iteration
                 lines.extend(ax.plot(xx, yy, label=label, **kwargs))
+                # Set label only at the first iteration
                 label = None
 
                 if with_linewidths:
