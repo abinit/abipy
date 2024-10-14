@@ -68,9 +68,14 @@
 
 .. Links to abipy scripts.
 .. _abiopen.py: https://abinit.github.io/abipy/scripts/abiopen.html
+.. _abistruct.py: https://abinit.github.io/abipy/scripts/abistruct.html
+.. _abidoc.py: https://abinit.github.io/abipy/scripts/abidoc.html
 .. _abiview.py: https://abinit.github.io/abipy/scripts/abiview.html
 .. _abicomp.py: https://abinit.github.io/abipy/scripts/abicomp.html
+.. _abinp.py: https://abinit.github.io/abipy/scripts/abinp.html
 .. _abicheck.py: https://abinit.github.io/abipy/scripts/abicheck.html
+.. _abips.py: https://abinit.github.io/abipy/scripts/abips.html
+.. _oncv.py: https://abinit.github.io/abipy/scripts/oncv.html
 
 .. Links to jupyter notebooks associated to AbiPy files:
 .. _AbipyStructure: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/structure.ipynb
@@ -165,7 +170,7 @@
 
 .. |download-with-anaconda| image:: https://anaconda.org/abinit/abipy/badges/installer/conda.svg   
     :alt: Download with Anaconda
-    :target: https://conda.anaconda.org/abinit
+    :target: https://anaconda.org/conda-forge/abinit
 
 .. |abipy-license| image:: https://img.shields.io/badge/license-GPL-blue.svg
     :alt: AbiPy license

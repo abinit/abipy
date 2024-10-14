@@ -3,7 +3,7 @@ hardware: &hardware
    num_nodes: 120
    sockets_per_node: 2
    cores_per_socket: 8
-   mem_per_node: 64Gb
+   mem_per_node: 64GB
 
 job: &job
     mpi_runner: "mpirun"

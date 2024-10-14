@@ -15,14 +15,13 @@ from tabulate import tabulate
 from monty.string import marquee
 from monty.functools import prof_main
 from monty.termcolor import cprint
-from pymatgen.io.vasp.outputs import Xdatcar
-from abipy import abilab
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.kpoints import Ktables, Kpoint, IrredZone
 from abipy.core.structure import diff_structures
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.xsf import xsf_write_structure
 from abipy.abio import factories
+from abipy import abilab
 
 
 def save_structure(structure, options) -> None:
@@ -131,7 +130,7 @@ Usage example:
                                               `Ir-O-*` for wildcard pattern matching.
                                               Print info and Abinit input files. Use e.g. `-f POSCAR`
                                               to change output format. `-f None` to disable structure output.
-  abistruct.py mp_pd FILE-or-elements      => Generate phase diagram with entries from the Materials Project.
+
   abistruct.py mp_ebands FILE             => Fetch electron band structure from MP database. Print gaps.
                                              Accept FILE with structure if ebands from structure is wanted
                                              or mp id e.g. "mp-149 or list of elements e.g `Li-Fe-O` or chemical formula.
@@ -147,7 +146,7 @@ def get_parser(with_epilog=False):
     # Parent parser for commands that need to know the filepath
     path_selector = argparse.ArgumentParser(add_help=False)
     path_selector.add_argument('filepath', nargs="?",
-        help="File with the crystalline structure (Abinit Netcdf files, CIF, Abinit input/output files, POSCAR ...)")
+        help="File with the crystalline structure(s) (ABINIT Netcdf files, CIF, ABINIT input/output files, POSCAR, ASE trajectory ...)")
 
     # Parent parser for commands supporting (jupyter notebooks)
     nb_parser = argparse.ArgumentParser(add_help=False)
@@ -239,6 +238,9 @@ file that does not have enough significant digits.""")
     p_convert = subparsers.add_parser('convert', parents=[copts_parser, path_selector],
         help="Convert structure to the specified format.")
     add_format_arg(p_convert, default="cif")
+
+    p_has_quad = subparsers.add_parser('has_quad', parents=[copts_parser, path_selector],
+        help="Detect whether structure has non-zero dynamical quadrupoles.")
 
     # Subparser for supercell command.
     p_traj2xdatcar = subparsers.add_parser('traj2xdatcar', parents=[copts_parser, path_selector],
@@ -440,9 +442,6 @@ closest points in this particular structure. This is usually what you want in a 
 
     # Options for commands accessing the materials project database.
     mp_rest_parser = argparse.ArgumentParser(add_help=False)
-    mp_rest_parser.add_argument("--mapi-key", default=None,
-        help="Pymatgen PMG_MAPI_KEY. Use value in .pmgrc.yaml if not specified.")
-    mp_rest_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
     mp_rest_parser.add_argument("-b", "--browser", default=False, action='store_true',
         help="Open materials-project webpages in browser")
 
@@ -465,17 +464,6 @@ closest points in this particular structure. This is usually what you want in a 
     p_mpsearch.add_argument("-s", "--select-spgnum", type=int, default=None,
         help="Select structures with this space group number.")
     add_format_arg(p_mpsearch, default="abivars")
-
-    # Subparser for mp_pd command.
-    p_mp_pda = subparsers.add_parser('mp_pd', parents=[mp_rest_parser, copts_parser],
-        help=("Generate phase diagram with entries from the Materials Project. "
-              "Requires internet connection and PMG_MAPI_KEY"))
-    p_mp_pda.add_argument("file_or_elements", type=str, default=None,
-        help="FILE with structure or elements e.g., Li-Fe-O).")
-    p_mp_pda.add_argument("-u", "--show-unstable", type=int, default=0,
-        help="""Whether unstable phases will be plotted as
-well as red crosses. If a number > 0 is entered, all phases with
-ehull < show_unstable will be shown.""")
 
     # Subparser for mp_ebands command.
     p_mp_ebands = subparsers.add_parser('mp_ebands', parents=[copts_parser, mp_rest_parser],
@@ -613,6 +601,10 @@ def main():
         fmt = options.format
         if fmt == "cif" and options.filepath.endswith(".cif"): fmt = "abivars"
         print(abilab.Structure.from_file(options.filepath).convert(fmt=fmt))
+
+    elif options.command == "has_quad":
+        structure = abilab.Structure.from_file(options.filepath)
+        print("has_dynamical_quadrupoles:", not structure.has_zero_dynamical_quadrupoles)
 
     elif options.command == "traj2xdatcar":
         from ase.io import read
@@ -912,7 +904,7 @@ def main():
         print(structure.spget_summary(verbose=options.verbose))
         print("\n")
 
-        print(marquee("Little Group", mark="="))
+        print(marquee("Little group", mark="="))
         ltk = spgrp.find_little_group(kpoint=options.kpoint)
         print(ltk.to_string(verbose=options.verbose))
 
@@ -948,8 +940,7 @@ def main():
 
     elif options.command == "mp_id":
         # Get the Structure corresponding to material_id.
-        structure = abilab.Structure.from_mpid(options.mpid, final=True,
-                                               api_key=options.mapi_key, endpoint=options.endpoint)
+        structure = abilab.Structure.from_mpid(options.mpid)
         # Convert to format and print it.
         print(structure.convert(fmt=options.format))
 
@@ -986,30 +977,17 @@ def main():
         if options.browser:
             mp.open_browser(limit=None if options.verbose == 2 else 10)
 
-    elif options.command == "mp_pd":
-        if os.path.exists(options.file_or_elements):
-            structure = abilab.Structure.from_file(options.file_or_elements)
-            elements = structure.symbol_set
-        else:
-            elements = options.file_or_elements.split("-")
-
-        if options.verbose > 1: print("Building phase-diagram for elements:", elements)
-        with abilab.restapi.get_mprester(api_key=options.mapi_key, endpoint=options.endpoint) as rest:
-            pdr = rest.get_phasediagram_results(elements)
-            pdr.print_dataframes(verbose=options.verbose)
-            pdr.plot(show_unstable=options.show_unstable)
-
     elif options.command == "mp_ebands":
         if os.path.exists(options.chemsys_formula_id):
             mp = abilab.mp_match_structure(options.chemsys_formula_id)
             for mpid in mp.ids:
-                ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                ebands = abilab.ElectronBands.from_mpid(mpid)
                 print(ebands)
         else:
             if options.chemsys_formula_id.startswith("mp-"):
                 # Assume valid mp identifier.
                 mpid = options.chemsys_formula_id
-                ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                ebands = abilab.ElectronBands.from_mpid(mpid)
                 print(ebands)
             else:
                 mp = abilab.mp_search(options.chemsys_formula_id)
@@ -1021,7 +999,7 @@ def main():
                     if structure is None:
                         cprint("ignoring mpid %s because cannot find structure" % mpid, "red")
                         continue
-                    ebands = abilab.ElectronBands.from_mpid(mpid, api_key=options.mapi_key, endpoint=options.endpoint)
+                    ebands = abilab.ElectronBands.from_mpid(mpid)
                     if ebands is None:
                         cprint("Cannot get ebands for structure:\n%s" % str(structure), "red")
                     else:
@@ -1054,6 +1032,7 @@ def main():
                 structures = hist.structures
 
         elif "XDATCAR" in filepath:
+            from pymatgen.io.vasp.outputs import Xdatcar
             structures = Xdatcar(filepath).structures
             if not structures:
                 raise RuntimeError("Your Xdatcar contains only one structure. Due to a bug "

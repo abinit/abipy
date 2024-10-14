@@ -5,7 +5,7 @@ ppcodes Package
    :backlinks: top
 
 :mod:`ppcodes` Package
--------------------
+----------------------
 
 .. automodule:: abipy.ppcodes
    :members:

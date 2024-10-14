@@ -289,6 +289,7 @@ class OncvOutputParserTest(AbipyTest):
         p.scan(verbose=1)
         repr(p); str(p)
         assert p.run_completed
+        assert p.is_oncvpsp and not p.is_metapsp
 
         assert p.relativistic
         assert p.calc_type == "relativistic"
@@ -473,6 +474,10 @@ class OncvOutputParserTest(AbipyTest):
             assert plotter.plot_atanlogder_econv(show=False)
             assert plotter.plot_den_formfact(ecut=20, show=False)
 
+            if isinstance(plotter, OncvParser) and plotter.parser.is_metapsp:
+                assert plotter.plot_vtau(show=False)
+                assert plotter.plot_tau(show=False)
+
         #if self.has_plotly():
 
     def test_psp8_get_densities(self):
@@ -494,3 +499,99 @@ class OncvOutputParserTest(AbipyTest):
             psp8_get_densities(path, plot=False)
 
         # TODO: SOC
+
+    def test_scalar_relativistic_cooper_metagga(self):
+        """
+        Parsing the scalar-relativistic output file produced by metapsp-1.0.1
+        """
+        # Scalar relativistic output
+        p = OncvParser(filepath("29_Cu_m.out"))
+        p.scan(verbose=1)
+        repr(p); str(p)
+        assert p.run_completed
+        assert not p.is_oncvpsp and p.is_metapsp
+
+        assert not p.relativistic
+        assert p.calc_type == "scalar-relativistic"
+        assert p.version == "1.0.1"
+
+        assert p.atsym == "Cu"
+        assert p.z == 29.00
+        assert p.iexc == 5
+        assert p.nc == 3
+        assert p.nv == 4
+        assert p.lmax == 2
+        assert p.rc5 == 1.5
+        assert p.rc_l[0] == 1.90000
+        assert p.rc_l[1] == 2.10000
+        assert p.rc_l[2] == 2.10000
+
+        # In this output, psfile is none
+        #assert p.get_input_str()
+        #assert p.get_psp8_str()
+        #assert p.get_upf_str()
+
+        # Calculating optimized projector #   1
+        # for l=   0
+        nlk = NlkState(n=1, l=0, k=None)
+        ke = p.kinerr_nlk[nlk]
+        self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
+        self.assert_almost_equal(ke.ecuts, [12.99, 16.73, 19.91, 22.56])
+
+        #Calculating optimized projector #   2
+        # for l=   1
+        nlk = NlkState(n=2, l=1, k=None)
+        ke = p.kinerr_nlk[nlk]
+        self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
+        self.assert_almost_equal(ke.ecuts, [14.68, 20.8 , 25.39, 29.03])
+
+        # Test potentials
+        vloc = p.potentials[-1]
+        pl0 = {0: -29.089934, 1: -31.848153, 2: -34.020455, -1:  -27.027998}
+
+        for l, pot in p.potentials.items():
+            assert (pot.rmesh[0], pot.rmesh[-1]) == (0.009994, 3.088443)
+            str(l)
+            assert pot.values[0] == pl0[l]
+            assert all(pot.rmesh == vloc.rmesh)
+
+        # Test wavefunctions
+        ae_wfs, ps_wfs = p.radial_wfs.ae, p.radial_wfs.ps
+
+        nlk = (3, 2, None)
+        ae32, ps32 = ae_wfs[nlk], ps_wfs[nlk]
+        assert ae32[0] == (0.009994  , 0.000226)
+        assert ps32[0] == (0.009994  , 0.000007)
+        assert ae32[-1] == (5.987503 , 0.021621)
+        assert ps32[-1] == (5.987503 , 0.021621)
+
+        # Test projectors
+        prjs = p.projectors
+        assert prjs[(1, 2, None)][0] == (0.009994, 0.000020)
+        assert prjs[(2, 2, None)][0] == (0.009994, -0.000010)
+
+        # Test convergence data
+        c = p.kene_vs_ecut
+        assert c[0].energies[0] == 12.985434
+        assert c[0].values[0] == 0.010000
+        assert c[0].energies[-1] == 22.558500
+        assert c[0].values[-1] == 0.000010
+        assert c[1].energies[0] == 19.543935
+        assert c[1].values[0] == 0.010000
+
+        # Test log derivatives
+        ae0, ps0 = p.atan_logders.ae[0], p.atan_logders.ps[0]
+        assert (ae0.energies[0], ae0.values[0]) == (5.000000, 1.148959)
+        assert (ps0.energies[0], ps0.values[0]) == (5.000000, 1.089880)
+
+        assert (ae0.energies[-1], ae0.values[-1]) == (-4.980000, 7.624244)
+        assert (ps0.energies[-1], ps0.values[-1]) == (-4.980000, 7.624659)
+
+        ae1, ps1 = p.atan_logders.ae[1], p.atan_logders.ps[1]
+        assert (ae1.energies[0], ae1.values[0]) == (5.000000, 2.803894)
+        assert ps1.values[0] == 3.285840
+
+        # Build the plotter
+        plotter = p.get_plotter()
+        repr(plotter); str(plotter)
+        self._call_plotter_methods(plotter)

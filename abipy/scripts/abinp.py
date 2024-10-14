@@ -48,19 +48,18 @@ def vasp_dict_set_cls(s: str | DictSet) -> Type | list[str]:
 ALL_VASP_DICT_SETS = vasp_dict_set_cls("__all__")
 
 
-def get_structure(options):
+def _get_structure(options):
     """Return structure object either from file or from the material project database."""
     if os.path.exists(options.filepath):
         return abilab.Structure.from_file(options.filepath)
 
     elif options.filepath.startswith("mp-"):
-        return abilab.Structure.from_mpid(options.filepath, final=True,
-                                          api_key=options.mapi_key, endpoint=options.endpoint)
+        return abilab.Structure.from_mpid(options.filepath)
 
     raise TypeError("Don't know how to extract structure object from %s" % options.filepath)
 
 
-def get_pseudotable(options):
+def _get_pseudotable(options):
     """Return PseudoTable object."""
     if options.pseudos is not None:
         from abipy.flowtk import PseudoTable
@@ -68,7 +67,6 @@ def get_pseudotable(options):
 
     try:
         from pseudo_dojo import OfficialTables
-
         dojo_tables = OfficialTables()
         if options.usepaw:
             raise NotImplementedError("PAW table is missing")
@@ -84,7 +82,6 @@ def get_pseudotable(options):
         print("PseudoDojo package not installed. Please install it with `pip install pseudo_dojo`")
         print("or use `--pseudos FILE_LIST` to specify the pseudopotentials to use.")
         print("Using internal HGH_TABLE!!!!")
-        #raise exc
 
     return pseudos
 
@@ -107,13 +104,12 @@ def build_abinit_input_from_file(options, **abivars):
     """
     from abipy.abio.abivars import AbinitInputFile
     abifile = AbinitInputFile(options.filepath)
-    pseudos = get_pseudotable(options)
+    pseudos = _get_pseudotable(options)
     jdtset = options.jdtset
     # Get vars from input
     abi_kwargs = abifile.datasets[jdtset - 1].get_vars()
     if abifile.ndtset != 1:
-        cprint("# Input file contains %s datasets, will select jdtset index %s:" %
-               (abifile.ndtset, jdtset), "yellow")
+        cprint("# Input file contains %s datasets, will select jdtset index %s:" % (abifile.ndtset, jdtset), color="yellow")
         abi_kwargs["jdtset"] = jdtset
 
     # Add input abivars (if any).
@@ -202,7 +198,7 @@ def abinp_phperts(options):
 def abinp_gs(options):
     """Build Abinit input for ground-state calculation."""
     structure = abilab.Structure.from_file(options.filepath)
-    pseudos = get_pseudotable(options)
+    pseudos = _get_pseudotable(options)
     gsinp = factories.gs_input(structure, pseudos,
                                kppa=options.kppa, ecut=None, pawecutdg=None, scf_nband=None,
                                accuracy="normal", spin_mode=options.spin_mode,
@@ -213,8 +209,8 @@ def abinp_gs(options):
 
 def abinp_ebands(options):
     """Build Abinit input for band structure calculations."""
-    structure = get_structure(options)
-    pseudos = get_pseudotable(options)
+    structure = _get_structure(options)
+    pseudos = _get_pseudotable(options)
     multi = factories.ebands_input(structure, pseudos,
                  kppa=options.kppa, nscf_nband=None, ndivsm=15,
                  ecut=None, pawecutdg=None, scf_nband=None, accuracy="normal", spin_mode=options.spin_mode,
@@ -229,8 +225,8 @@ def abinp_ebands(options):
 
 def abinp_phonons(options):
     """Build Abinit input for phonon calculations."""
-    structure = get_structure(options)
-    pseudos = get_pseudotable(options)
+    structure = _get_structure(options)
+    pseudos = _get_pseudotable(options)
 
     gs_inp = factories.gs_input(structure, pseudos,
                                kppa=options.kppa, ecut=None, pawecutdg=None, scf_nband=None,
@@ -249,8 +245,8 @@ def abinp_phonons(options):
 
 def abinp_g0w0(options):
     """Generate input files for G0W0 calculations."""
-    structure = get_structure(options)
-    pseudos = get_pseudotable(options)
+    structure = _get_structure(options)
+    pseudos = _get_pseudotable(options)
     nscf_nband, ecuteps, ecutsigx = 100, 4, 12
 
     multi = factories.g0w0_with_ppmodel_inputs(structure, pseudos,
@@ -381,11 +377,6 @@ def get_parser(with_epilog=False):
         help='verbose, can be supplied multiple times to increase verbosity')
     copts_parser.add_argument('--loglevel', default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    copts_parser.add_argument("--mapi-key", default=None,
-        help="Pymatgen MAPI_KEY used if mp identifier is used to select structure.\n"
-             "Use value in .pmgrc.yaml if not specified.")
-    copts_parser.add_argument("--endpoint", help="Pymatgen database.", default="https://www.materialsproject.org/rest/v2")
-
     copts_parser.add_argument("-m", '--mnemonics', default=False, action="store_true",
         help="Print brief description of input variables in the input file.")
     copts_parser.add_argument('--usepaw', default=False, action="store_true",

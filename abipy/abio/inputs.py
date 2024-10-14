@@ -472,7 +472,7 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         if len(typat) != len(self.structure):
             raise ValueError("typat contains %d entries while it should be natom: %d" % (len(typat), len(self.structure)))
 
-        ntypat = self.structure.ntypesp
+        ntypat = self.structure.n_elems
         if len(znucl) != ntypat:
             raise ValueError("znucl contains %d entries while it should be ntypat: %d" % (len(znucl), ntypat))
 
@@ -633,7 +633,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                         runlevel.add(atags.BANDS)
                 else:
                     runlevel.add(atags.SCF)
-            elif ionmov in (2, 3, 4, 5, 7, 10, 11, 20):
+            elif ionmov in (2, 3, 4, 5, 7, 10, 11, 20, 22):
                 runlevel.add(atags.RELAX)
                 if optcell == 0:
                     runlevel.add(atags.ION_RELAX)
@@ -814,7 +814,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 for name in names:
                     value = vars[name]
                     if mnemonics and value is not None:
-                        print(f"{name=}")
+                        #print(f"{name=}")
                         app(escape("#### <" + var_database[name].mnemonics + ">"))
 
                     # Build variable, convert to string and append it
@@ -2767,6 +2767,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False)
+        #print("-- log_file path:", task.log_file.path)
 
         # Parse the file to get the perturbations.
         try:
@@ -4053,6 +4054,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             #if mode == "html": vname = root + "#%s" % vname
             if mode == "html": vname = var_database[vname].html_link(label=vname)
             value = format_string_abivars(vname, value, "anaddb")
+            #print("vname:", vname, "value:", value)
             app(str(InputVariable(vname, value)))
 
         return "\n".join(lines) if mode == "text" else "\n".join(lines).replace("\n", "<br>")

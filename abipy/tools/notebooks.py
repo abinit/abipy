@@ -85,7 +85,7 @@ def print_doc(function, **kwargs):  # pragma: no cover
 def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):   # pragma: no cover
     """
     Return an ipython widget listing all the files located within the directory ``top``
-    that can be inspected with :ref:`abiopen.py`. The user can select the file in the widget
+    that can be inspected with abiopen.py. The user can select the file in the widget
     and print info on the corresponding file inside the notebook.
 
     Args:
@@ -129,17 +129,3 @@ def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):   # pragma: no c
     box = ipw.VBox(children=children)
 
     return display(box)
-
-
-
-
-
-
-
-
-
-
-
-
-
-

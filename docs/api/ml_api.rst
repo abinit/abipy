@@ -37,18 +37,9 @@ ml Package
 
 
 :mod:`ml_phonopy` Package
--------------------------------
+-------------------------
 
 .. automodule:: abipy.ml.ml_phonopy
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-:mod:`ml_relax` Package
------------------------
-
-.. automodule:: abipy.ml.ml_relax
    :members:
    :undoc-members:
    :show-inheritance:

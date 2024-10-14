@@ -52,9 +52,27 @@ def file_with_ext_indir(ext: str, directory: PathLike) -> Path:
     raise RuntimeError(f"Cannot find file with extension {ext} in {directory=})")
 
 
+def yaml_dump(obj: Any):
+    """Dump object in Yaml format"""
+    import io
+
+    y = yaml.YAML(typ='unsafe')
+    stream = io.StringIO()
+    y.dump(obj, stream)
+    stream.seek(0)
+    s = stream.read()
+    #print(s)
+    return s
+
+
 def yaml_safe_load(string: str) -> Any:
     """Load Yaml string"""
     return yaml.YAML(typ='safe', pure=True).load(string)
+
+
+def yaml_unsafe_load(string: str) -> Any:
+    """Load Yaml string"""
+    return yaml.YAML(typ='unsafe').load(string)
 
 
 def yaml_safe_load_path(filepath: str) -> Any:

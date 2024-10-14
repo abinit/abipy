@@ -79,6 +79,7 @@ def oncv_plot(options) -> int:
 
     out_path = _find_oncv_output(options.filepath)
     plotter = OncvPlotter.from_file(out_path)
+
     #plotter.plotly_atan_logders().show()
     #return 0
 
@@ -180,7 +181,7 @@ def oncv_run(options):
                          fr="fully-relativistic")[options.rel]
 
     # Build Generator and start generation.
-    psgen = OncvGenerator.from_file(in_path, calc_type, workdir=None)
+    psgen = OncvGenerator.from_file(in_path, calc_type, options.use_mgga, workdir=None)
 
     print(psgen.input_str)
     print("Using executable:\n\t", psgen.executable)
@@ -208,7 +209,7 @@ def oncv_run(options):
     # Transfer final output file.
     shutil.copy(psgen.stdout_path, out_path)
 
-    # Parse the output file
+    # Parse the output file.
     onc_parser = OncvParser(out_path).scan()
     if not onc_parser.run_completed:
         cprint("oncvpsp output is not completed. Exiting", "red")
@@ -277,9 +278,9 @@ def oncv_gui(options):
     return pn.serve(build, **serve_kwargs)
 
 
-def main():
 
-    def str_examples():
+
+def get_epilog() -> str:
         return """\
 Usage example:
 
@@ -294,11 +295,8 @@ Usage example:
     oncv.py notebook H.out             ==> Generate jupyter notebook to plot oncvpsp results.
 """
 
-    def show_examples_and_exit(err_msg=None, error_code=1):
-        """Display the usage of the script."""
-        sys.stderr.write(str_examples())
-        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
-        sys.exit(error_code)
+
+def get_parser(with_epilog=False):
 
     def get_copts_parser(multi=False):
         # Parent parser implementing common options.
@@ -323,7 +321,7 @@ Usage example:
     cli.add_expose_options_to_parser(plot_parser)
 
     # Build the main parser.
-    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=get_epilog(), formatter_class=argparse.RawDescriptionHelpFormatter)
     from abipy.core.release import __version__
     parser.add_argument('-V', '--version', action='version', version=__version__)
 
@@ -334,6 +332,7 @@ Usage example:
     p_run = subparsers.add_parser('run', parents=[copts_parser, plot_parser], help=oncv_run.__doc__)
     p_run.add_argument("--rel", default="from_file", help=("Relativistic treatment: `nor` for non-relativistic, "
         "`sr` for scalar-relativistic, `fr` for fully-relativistic. Default: `from_file` i.e. detected from file"))
+    p_run.add_argument("--use-mgga", action='store_true', default=False, help="Produce mega-gga pseudo with oncvpspm.x")
 
     # Subparser for print command.
     p_print = subparsers.add_parser('print', parents=[copts_parser], help=oncv_print.__doc__)
@@ -378,6 +377,19 @@ Usage example:
     #                    help="List of cutoff radii for vloc in Bohr.")
     #cli.add_expose_options_to_parser(p_hints)
 
+    return parser
+
+
+def main():
+
+    def show_examples_and_exit(err_msg=None, error_code=1):
+        """Display the usage of the script."""
+        sys.stderr.write(get_epilog())
+        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        sys.exit(error_code)
+
+    parser = get_parser(with_epilog=True)
+
     # Parse command line.
     try:
         options = parser.parse_args()
@@ -394,6 +406,7 @@ Usage example:
 
     # Dispatch
     return globals()["oncv_" + options.command](options)
+
 
 if __name__ == "__main__":
     sys.exit(main())

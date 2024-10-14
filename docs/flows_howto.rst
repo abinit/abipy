@@ -4,7 +4,7 @@
 Flows How-To
 ************
 
-This is a list of FAQs about the AbiPy flows and the :ref:`abirun.py` script. 
+This is a list of FAQs about the AbiPy flows and the abirun.py_ script.
 Feel free to suggest new entries!
 
 .. important::
@@ -16,7 +16,7 @@ Feel free to suggest new entries!
 Suggestions:
 
 * Start with the examples available in examples/flows before embarking on large scale calculations.
-* Make sure the Abinit executable compiled on the machine can be executed both on the front end 
+* Make sure the Abinit executable compiled on the machine can be executed both on the front end
   and the compute node (ask your sysadmin)
 * If you are running on clusters in which the architecture of the compute node is completely different
   from the one available on the front end, use ``shell_runner``
@@ -25,8 +25,8 @@ Suggestions:
 Do not:
 
 * Change manually the input files and the submission scripts
-* Submit jobs manually when the scheduler is running 
-* Use a too small delay for the scheduler 
+* Submit jobs manually when the scheduler is running
+* Use a too small delay for the scheduler
 
 
 .. contents::
@@ -35,7 +35,7 @@ Do not:
 How to get all the TaskManager options
 --------------------------------------
 
-The :ref:`abidoc.py` script provides three commands to get the documentation
+The abidoc.py_ script provides three commands to get the documentation
 for the options supported in ``manager.yml`` and ``scheduler.yml``.
 
 Use::
@@ -84,10 +84,10 @@ Add the following options to scheduler.yml
     # Maximum number of cores that can be used by the scheduler.
     max_ncores_used: 4
 
-How to reduce the number of files produced by the Flow 
+How to reduce the number of files produced by the Flow
 ------------------------------------------------------
 
-When running many calculations, 
+When running many calculations,
 Use ``prtwf -1`` to tell Abinit to produce the wavefunction file only
 if SCF cycle didn't converged so that AbiPy can reuse the file to restart the calculation.
 
@@ -102,14 +102,14 @@ How to extend tasks/works with specialized code
 -----------------------------------------------
 
 Remember that pickle_ does not support classes defined inside scripts (`__main__`).
-This means that `abirun.py` will likely raise an exception when trying to 
+This means that `abirun.py` will likely raise an exception when trying to
 reconstruct the object from the pickle file:
 
 .. code-block:: python
 
-    AttributeError: Cannot get attribute 'MyWork' on <module '__main__' 
+    AttributeError: Cannot get attribute 'MyWork' on <module '__main__'
 
-If you need to subclass one of the AbiPy Tasks/Works/Flows, define the subclass 
+If you need to subclass one of the AbiPy Tasks/Works/Flows, define the subclass
 in a separated python module and import the module inside your script.
 We suggest to create a python module in the AbiPy package e.g. `abipy/flowtk/my_works.py`
 in order to have an absolute import that allows one to use
@@ -133,12 +133,12 @@ to cancel all jobs of the flow that are in queue and kill the scheduler.
 Compare multiple output files
 -----------------------------
 
-The :ref:`abicomp.py` script
+The abicomp.py_ script
 
 Try to understand why a task failed
 -----------------------------------
 
 There are several reasons why a task could fail.
-Some of these reasons could be related to hardware failure, disk quota, 
+Some of these reasons could be related to hardware failure, disk quota,
 OS errors or resource manager errors.
 Others are related to Abinit-specific errors.

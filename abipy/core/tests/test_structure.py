@@ -217,14 +217,16 @@ xred_symbols
             assert d["abi_spg_number"] == 227
             assert d["abi_bravais"] == "Bravais cF (face-center cubic)"
 
+            # Temporarily disables as webserver is down.
+            #if self.is_url_reachable("www.crystallography.net"):
+            mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
+            assert mgb2_cod.formula == "Mg1 B2"
+            assert mgb2_cod.spget_lattice_type() == "hexagonal"
+
         llzo = Structure.from_file(abidata.cif_file("LLZO_oxi.cif"))
         assert llzo.is_ordered
         d = llzo.abiget_spginfo(tolsym=0.001)
         assert d["spg_number"] == 142
-
-        mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
-        assert mgb2_cod.formula == "Mg1 B2"
-        assert mgb2_cod.spget_lattice_type() == "hexagonal"
 
         mgb2 = abidata.structure_from_ucell("MgB2")
         if self.has_ase():
@@ -397,7 +399,7 @@ xred_symbols
         f2p_data = structure.frozen_2phonon(qpoint, 0.05 * displ, 0.02*displ2, eta=0.5, frac_coords=False,
                                             max_supercell=mx_sc, scale_matrix=scale_matrix)
 
-        d_tot = 0.05*displ+0.02*displ2
+        d_tot = 0.05 *displ + 0.02 * displ2
         max_displ = np.linalg.norm(d_tot, axis=1).max()
         self.assert_almost_equal(f2p_data.structure[0].coords,
                                     structure[0].coords + 0.5*d_tot[0]/max_displ)

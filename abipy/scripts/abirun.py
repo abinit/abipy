@@ -683,7 +683,7 @@ Default: o
     # Subparser for tar.
     p_tar = subparsers.add_parser('tar', parents=[copts_parser], help="Create tarball file.")
     p_tar.add_argument("-s", "--max-filesize", default=None,
-        help="Exclude file whose size > max-filesize bytes. Accept integer or string e.g `1Mb`.")
+        help="Exclude file whose size > max-filesize bytes. Accept integer or string e.g `1MB`.")
     p_tar.add_argument("-e", "--exclude-exts", default=None, type=parse_strings,
         help="Exclude file extensions. Accept string or comma-separated strings. Ex: -eWFK or --exclude-exts=WFK,GSR")
     p_tar.add_argument("-d", "--exclude-dirs", default=None, type=parse_strings,

@@ -10,6 +10,7 @@ sphinxcontrib-bibtex
 jupyter-sphinx
 #graphviz or python-graphviz if conda
 graphviz
+scikit-image
 
 # For the time being:
 # solved the issue by matching jinja2 version and nb convert as follows

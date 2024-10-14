@@ -38,3 +38,5 @@ and use ``abirun.py`` to launch Abinit calculations.
    abidoc.rst
    abicheck.rst
    abirun.rst
+   abips.rst
+   oncv.rst

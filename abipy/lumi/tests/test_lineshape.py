@@ -29,7 +29,7 @@ class DeltaSCFTest(AbipyTest):
                 [3,3,3], # test same size dSCF scell than phonon scell
                 [4,4,4], # test same size dSCF scell smaller phonon scell
             ]
-        qpts_s=[kmesh_from_mpdivs(mpdivs=qgrid,shifts=[0,0,0],order="unit_cell") for qgrid in qgrids]
+        qpts_s=[kmesh_from_mpdivs(mpdivs=qgrid, shifts=[0,0,0], order="unit_cell") for qgrid in qgrids]
 
         ddb_pristine_s=[ddb_pristine.anaget_interpolated_ddb(qpt_list=qpts) for qpts in qpts_s]
 

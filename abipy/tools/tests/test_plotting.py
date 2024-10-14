@@ -102,11 +102,10 @@ class TestPlotting(AbipyTest):
 
     def test_marker(self):
         """Testing Marker."""
-        marker = Marker()
-        assert not marker
-        assert not marker.x
+
         x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
-        marker.extend((x, y, s))
+        marker = Marker(x, y, s)
+
         assert marker
         self.assert_equal(marker.x, x)
         self.assert_equal(marker.y, y)
@@ -116,13 +115,6 @@ class TestPlotting(AbipyTest):
         assert all(s >= 0 for s in pos_mark.s)
         assert all(s < 0 for s in neg_mark.s)
         assert len(neg_mark.s) == 1 and neg_mark.s[0] == -0.3
-
-        with self.assertRaises(TypeError):
-            marker.extend((x, y))
-
-        with self.assertRaises(TypeError):
-            x.append(-1)
-            marker.extend((x, y, s))
 
     def test_plot_cell_tools(self):
         """Testing plot_unit_cell."""

@@ -46,7 +46,7 @@ from abipy.core import Structure
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
 from abipy.tools.typing import Figure, PathLike
 from abipy.tools.printing import print_dataframe
-from abipy.tools.serialization import HasPickleIO
+from abipy.tools.serialization import HasPickleIO, mjson_write
 from abipy.tools.context_managers import Timer
 from abipy.tools.parallel import get_max_nprocs # , pool_nprocs_pmode
 from abipy.abio.enums import StrEnum, EnumMixin
@@ -1012,7 +1012,7 @@ class AseRelaxation:
         return read(self.traj_path, index=":")
 
     def __str__(self) -> str:
-        return to_string()
+        return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
         """
@@ -1020,26 +1020,31 @@ class AseRelaxation:
         """
         lines = []
         app = lines.append
-        app("Initial structure:")
+        app(">>> BEGIN INFO ON INITIAL STRUCTURE:")
         s0 = Structure.as_structure(self.r0.atoms)
         app(str(s0))
+        app(s0.spget_summary())
+        app("<<< END INFO ON INITIAL STRUCTURE")
         app("")
+        app("")
+        app(">>> BEGIN INFO ON FINAL STRUCTURE:")
         app("Relaxed structure:")
         s1 = Structure.as_structure(self.r1.atoms)
         app(str(s1))
+        app(s1.spget_summary())
+        app("<<< END INFO ON FINAL STRUCTURE")
 
         return "\n".join(lines)
 
     def summarize(self, tags=None, mode="smart", stream=sys.stdout):
-        """"""
+        """
+        """
         if self.traj_path is None: return
         r0, r1 = self.r0, self.r1
         #r0, r1 = AseResults.from_traj_inds(self.traj, 0, -1)
         if tags is None: tags = ["unrelaxed", "relaxed"],
         df = dataframe_from_results_list(tags, [r0, r1], mode=mode)
         print_dataframe(df, end="\n", file=stream)
-
-    #def plot(self, **kwargs):
 
 
 def dataframe_from_results_list(index: list, results_list: list[AseResults],
@@ -1451,6 +1456,7 @@ class CalcBuilder:
     """
 
     ALL_NN_TYPES = [
+        "emt",
         "m3gnet",
         "matgl",
         "chgnet",
@@ -1461,9 +1467,15 @@ class CalcBuilder:
         "nequip",
         "metatensor",
         "deepmd",
+        "orb",
+        "sevenn",
     ]
 
     def __init__(self, name: str, dftd3_args=None, **kwargs):
+        """
+            name: Model name.
+            kwargs: optional arguments are stored in calc_kwargs
+        """
         self.name = name
 
         # Extract nn_type and model_name from name
@@ -1473,7 +1485,9 @@ class CalcBuilder:
         if ":" in name:
             self.nn_type, last = name.split(":")
             if last.endswith(".yaml") or last.endswith(".yml"):
+                print("Reading Calculator kwargs from file:", last)
                 self.calc_kwargs = yaml_safe_load_path(last)
+                print("calc_kwargs:", self.calc_kwargs)
             else:
                 self.model_name = last
 
@@ -1494,6 +1508,7 @@ class CalcBuilder:
             print("Activating dftd3 with arguments:", self.dftd3_args)
 
         self._model = None
+        self.calc_kwargs.update(kwargs)
 
     def __str__(self):
         if self.model_name is not None:
@@ -1523,7 +1538,15 @@ class CalcBuilder:
         #if reset: self.reset()
         self.reset()
 
-        if self.nn_type == "m3gnet":
+        if self.nn_type == "emt":
+            # Set the calculator (EMT for testing purposes)
+            from ase.calculators.emt import EMT
+            class MyEMTCalculator(_MyCalculator, EMTCalculator):
+                """Add abi_forces and abi_stress"""
+
+            return MyEMTCalculator(**self.calc_kwargs)
+
+        elif self.nn_type == "m3gnet":
             # m3gnet legacy version.
             if self._model is None:
                 silence_tensorflow()
@@ -1666,6 +1689,7 @@ class CalcBuilder:
             #     """Add abi_forces and abi_stress"""
 
             model = self.calc_kwargs.pop("model", "medium")
+            print("calc_kwargs:", self.calc_kwargs)
 
             calc = mace_mp(model=model,
                            #cls=MyMACECalculator,
@@ -1719,6 +1743,45 @@ class CalcBuilder:
             cls = MyDpCalculator if with_delta else DP
             calc = cls(self.model_path, **self.calc_kwargs)
 
+        elif self.nn_type == "orb":
+            try:
+                from orb_models.forcefield import pretrained
+                from orb_models.forcefield.calculator import ORBCalculator
+            except ImportError as exc:
+                raise ImportError("orb not installed. See https://github.com/orbital-materials/orb-models") from exc
+
+
+            class MyOrbCalculator(_MyCalculator, ORBCalculator):
+                """Add abi_forces and abi_stress"""
+
+            model_name = "orb-v1" if self.model_name is None else self.model_name
+            # Mapping model_name --> function returning the model e.g. {"orb-v1": orb_v1}
+            f = pretrained.ORB_PRETRAINED_MODELS[model_name]
+            model = f()
+
+            cls = MyOrbCalculator if with_delta else OrbCalculator
+            calc = cls(model, **self.calc_kwargs)
+
+        elif self.nn_type == "sevenn":
+            try:
+                from sevenn.sevennet_calculator import SevenNetCalculator
+            except ImportError as exc:
+                raise ImportError("sevenn not installed. See https://github.com/MDIL-SNU/SevenNet") from exc
+
+            class MySevenNetCalculator(_MyCalculator, SevenNetCalculator):
+                """Add abi_forces and abi_stress"""
+
+            # 7net-0, SevenNet-0, 7net-0_22May2024, 7net-0_11July2024 ...
+            # model_name = "7net-0" if self.model_name is None else self.model_name
+            # SevenNet-0 (11July2024)
+            # This model was trained on MPtrj. We suggest starting with this model as we found that it performs better
+            # than the previous SevenNet-0 (22May2024).
+            # Check Matbench Discovery leaderborad for this model's performance on materials discovery. For more information, click here.
+
+            model_name = "SevenNet-0" if self.model_name is None else self.model_name
+            cls = MySevenNetCalculator if with_delta else SevenNetCalculator
+            calc = MySevenNetCalculator(model=model_name, **self.calc_kwargs)
+
         else:
             raise ValueError(f"Invalid {self.nn_type=}")
 
@@ -1737,13 +1800,17 @@ class MlBase(HasPickleIO):
     and object persistence via pickle.
     """
 
-    def __init__(self, workdir, prefix=None, exist_ok=False):
+    def __init__(self, workdir, fig_ext: str = ".pdf", prefix=None, exist_ok=False):
         """
         Build directory with `prefix` if `workdir` is None else create it.
         If exist_ok is False (the default), a FileExistsError is raised if the target directory already exists.
+
+        Args:
+            fig_ext: File extension for matplotlib figures.
         """
         self.workdir = workdir_with_prefix(workdir, prefix, exist_ok=exist_ok)
         self.basename_info = []
+        self.fig_ext = fig_ext
 
     def __str__(self):
         # Delegated to the subclass.
@@ -1772,6 +1839,7 @@ class MlBase(HasPickleIO):
 
     def savefig(self, basename: str, fig, info: str) -> None:
         """Save matplotlib figure in workdir."""
+        basename = basename + self.fig_ext
         self.add_basename_info(basename, info)
         fig.savefig(self.workdir / basename)
 
@@ -1781,8 +1849,7 @@ class MlBase(HasPickleIO):
         with open(self.workdir / basename, "wb") as fd:
             write_traj(fd, traj)
 
-    def write_json(self, basename: str, data, info: str,
-                   indent=4, stream=None, **kwargs) -> None:
+    def write_json(self, basename: str, data, info: str, indent=4, stream=None, **kwargs) -> None:
         """Write data in JSON format and mirror output to `stream`."""
         self.add_basename_info(basename, info)
         with open(self.workdir / basename, "wt") as fh:
@@ -1821,7 +1888,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 """
-
         path = self.workdir / basename
         with path.open("wt") as fh:
             fh.write(f"""\
@@ -2341,7 +2407,7 @@ class _MlNebBase(MlBase):
                         stream=sys.stdout if self.verbose else None)
 
         # create a figure like that coming from ase-gui.
-        self.savefig("neb_barrier.png", nebtools.plot_band(), info="Figure with NEB barrier")
+        self.savefig("neb_barrier", nebtools.plot_band(), info="Figure with NEB barrier")
         return neb_data
 
     def read_neb_data(self) -> dict:
@@ -2393,8 +2459,7 @@ class MlGsList(_MlNebBase):
             atoms.calc = CalcBuilder(self.nn_name).get_calculator()
             results.append(AseResults.from_atoms(atoms))
 
-        write_vasp_xdatcar(self.workdir / "XDATCAR", self.atoms_list,
-                           label="XDATCAR with list of atoms.")
+        write_vasp_xdatcar(self.workdir / "XDATCAR", self.atoms_list, label="XDATCAR with list of atoms.")
 
         self.postprocess_images(self.atoms_list)
         self._finalize()
@@ -2637,7 +2702,7 @@ class MultiMlNeb(_MlNebBase):
         ax.set_title(r'$E_\mathrm{{f}} \approx$ {:.3f} eV; '
                      r'$E_\mathrm{{r}} \approx$ {:.3f} eV; '
                      r'$\Delta E$ = {:.3f} eV'.format(ef, er, de))
-        self.savefig("neb_barrier.png", fig, info="Figure with NEB barrier")
+        self.savefig("neb_barrier", fig, info="Figure with NEB barrier")
 
         self._finalize()
 
@@ -3195,13 +3260,16 @@ class GsMl(MlBase):
         self.verbose = verbose
 
     def run(self):
+        """Run the calculation."""
         calc = CalcBuilder(self.nn_name).get_calculator()
         self.atoms.calc = calc
         res = AseResults.from_atoms(self.atoms)
         print(res.to_string(verbose=self.verbose))
 
-        # Write json file with GS results.
-        from abipy.tools.serialization import mjson_write
+        # Write json file GS results.
+        # To read the dictionary from json use:
+        #   from abipy.tools.serialization import mjson_load
+        #   data = mjson_load(self.workdir / "gs.json")
         data = dict(
             structure=Structure.as_structure(self.atoms),
             ene=res.ene,
@@ -3210,13 +3278,85 @@ class GsMl(MlBase):
         )
         mjson_write(data, self.workdir / "gs.json", indent=4)
 
-        # To read the dictionary from json use:
-        #from abipy.tools.serialization import mjson_load
-        #data = mjson_load(self.workdir / "gs.json")
-
         # Write ASE trajectory file with results.
         with open(self.workdir / "gs.traj", "wb") as fd:
             write_traj(fd, [self.atoms])
+
+        return 0
+
+
+class FrozenPhononMl(MlBase):
+    """
+    Frozen-phonon calculations with ML potential.
+    """
+
+    @classmethod
+    def from_ddb_file(cls, ddb_filepath, qpoint, eta_list, nn_name, verbose, workdir, prefix=None, **anaddb_kwargs):
+        """
+        """
+        from abipy.dfpt.ddb import DdbFile
+        with DdbFile(ddb_filepath) as ddb:
+            # Call anaddb to get all phonon modes for this q-point.
+            phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, verbose=verbose, **anaddb_kwargs)
+
+        return cls(ddb.structure, qpoint, phbands.phdispl_cart, eta_list, nn_name, verbose, workdir, prefix=prefix)
+
+    def __init__(self, structure, qpoint, phdispl_cart, eta_list, nn_name, verbose, workdir, prefix=None):
+        """
+        Args:
+            qpoint: q-vector in reduced coordinate in reciprocal space.
+            displ_cart: displacement of the atoms in real space .
+            eta: pre-factor multiplying the displacement. Gives the value in Angstrom of the largest displacement.
+        """
+        super().__init__(workdir, prefix)
+        self.initial_structure = structure
+        natom = len(structure)
+        self.nn_name = nn_name
+        self.verbose = verbose
+        # TODO: Should check that qpoint is [1/Nx, 1/Ny, 1/Nz]
+        self.qpoint = np.array(qpoint)
+        self.phdispl_cart = phdispl_cart
+        #self.phdispl_cart = np.reshape(phdispl_cart, (-1, 3*natom, 3*natom))
+        self.eta_list = np.array(eta_list)
+
+    def run(self):
+        """Run the calculation."""
+        calc = CalcBuilder(self.nn_name).get_calculator()
+
+        max_sc = np.ones(3, dtype=int)
+        for i, qf in enumerate(self.qpoint):
+            if qf != 0: max_sc[i] = np.round(1 / qf)
+        print(f"{max_sc =}")
+
+        for displ_cart in self.phdispl_cart:
+            for eta in self.eta_list:
+                print(f"{eta=}")
+                print(f"{displ_cart.shape=}")
+                print(f"{displ_cart=}")
+                scell = self.initial_structure.frozen_phonon(self.qpoint, displ_cart, eta=eta, frac_coords=True, max_supercell=max_sc)
+                print(scell.scale_matrix)
+                print(scell.structure)
+
+                scell.structure.to_ase_atoms()
+                atoms.calc = calc
+                res = AseResults.from_atoms(atoms)
+                #print(res.to_string(verbose=self.verbose))
+
+        # Write json file GS results.
+        # To read the dictionary from json use:
+        #   from abipy.tools.serialization import mjson_load
+        #   data = mjson_load(self.workdir / "gs.json")
+        #data = dict(
+        #    structure=Structure.as_structure(self.atoms),
+        #    ene=res.ene,
+        #    stress=res.stress,
+        #    forces=res.forces,
+        #)
+        #mjson_write(data, self.workdir / "gs.json", indent=4)
+
+        ## Write ASE trajectory file with results.
+        #with open(self.workdir / "gs.traj", "wb") as fd:
+        #    write_traj(fd, [self.atoms])
 
         return 0
 

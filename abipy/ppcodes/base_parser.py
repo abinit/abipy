@@ -28,6 +28,7 @@ class BaseParser(metaclass=abc.ABCMeta):
 
     def __init__(self, filepath: str) -> None:
         self.filepath = os.path.abspath(filepath)
+        self.workdir = os.path.abspath(os.path.dirname(filepath))
         self.run_completed = False
         self._errors = []
         self._warnings = []
