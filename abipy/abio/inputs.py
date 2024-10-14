@@ -1926,7 +1926,6 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return ph_inputs
 
-    # VT Addition Atomate2 for SHG WF
     def make_ddkpert_input(self, perturbation, kptopt=2, only_vk=False, use_symmetries=False, tolerance=None, manager=None) -> AbinitInput:
         """
         Returns |AbinitInput| for the calculation of an electric field perturbation.
@@ -2075,7 +2074,6 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return dkdk_input
     
-    # VT Addition Atomate2 for SHG WF
     def make_ddepert_input(self, perturbation, use_symmetries=True, tolerance=None, manager=None) -> AbinitInput:
         """
         Returns |AbinitInput| for the calculation of an electric field perturbation.
@@ -2189,7 +2187,6 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return multi
 
-    # VT Addition for Atomate2 SHG WF
     def make_dtepert_input(self, perturbation, ixc=None, manager=None) -> AbinitInput:
         """
         Return |AbinitInput| for DTE calculation for a given perturbation.

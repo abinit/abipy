@@ -1379,7 +1379,6 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
 
     return abiinput
 
-# VT Addition for Atomate2 SHG WF
 def ddkpert_from_gsinput(gs_input, ddk_pert, nband=None, use_symmetries=False, ddk_tol=None, manager=None) -> AbinitInput:
     """
     Returns an |AbinitInput| to perform a DDK calculations for a specific perturbation and based on a ground state |AbinitInput|.
@@ -1410,7 +1409,6 @@ def ddkpert_from_gsinput(gs_input, ddk_pert, nband=None, use_symmetries=False, d
 
     return ddk_inp
 
-# VT Addition for Atomate2 SHG WF
 def ddepert_from_gsinput(gs_input, dde_pert, use_symmetries=True, dde_tol=None, manager=None) -> AbinitInput:
     """
     Returns an |AbinitInput| to perform a DDE calculations for a specific perturbation and based on a ground state |AbinitInput|.
@@ -1436,7 +1434,6 @@ def ddepert_from_gsinput(gs_input, dde_pert, use_symmetries=True, dde_tol=None, 
 
     return dde_inp
 
-# VT Addition for Atomate2 SHG WF
 def dtepert_from_gsinput(gs_input, dte_pert, manager=None) -> AbinitInput:
     """
     Returns an |AbinitInput| to perform a DTE calculations for a specific perturbation and based on a ground state |AbinitInput|.
