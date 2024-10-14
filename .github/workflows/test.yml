@@ -1,0 +1,66 @@
+name: Run the Abipy test suite.
+
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+  workflow_call: # make this workflow reusable by release.yml
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # prevent this action from running on forks
+    #if: github.repository == 'abinit/abipy'
+    defaults:
+      run:
+        shell: bash -l {0} # enables conda/mamba env activation by reading bash profile
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - os: ubuntu-latest
+            python: '3.11'
+
+    runs-on: ${{ matrix.config.os }}
+    env:
+      PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
+
+    steps:
+      - name: Check out Abipy repo
+        uses: actions/checkout@v4
+
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+            auto-update-conda: true
+
+      - name: Installing abinit from conda-forge and abipy with python=${{ matrix.config.python }}
+        run: |
+            conda create -n abipy python=${{ matrix.config.python }} --yes
+            conda activate abipy
+            conda install abinit -c conda-forge --yes
+            mpirun -n 1 abinit --version
+            mpirun -n 1 abinit --build
+            pip install --editable .
+            mkdir -p $HOME/.abinit/abipy/
+            cp abipy/data/managers/gh_manager.yml $HOME/.abinit/abipy/manager.yml
+            cp abipy/data/managers/gh_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
+            # FIXME TEMPORARY HACK
+            pip install git+https://github.com/gmatteo/pymatgen.git@master -U
+
+      - name: pytest
+        run: |
+          conda activate abipy
+          pip install -r requirements-tests.txt
+          pytest -v .
+
+      - name: integration_tests
+        run: |
+          conda activate abipy
+          abicheck.py --with-flow
+          pytest -v abipy/integration_tests

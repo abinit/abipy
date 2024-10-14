@@ -53,7 +53,7 @@ def pn_serve_parser(**kwargs) -> argparse.ArgumentParser:
             help="Public hostnames which may connect to the Bokeh websocket.\n Syntax: " +
                   "HOST[:PORT] or *. Default: None")
     p.add_argument('--max_size_mb', default=150, type=int,
-                help="Maximum message size in Mb allowed by Bokeh and Tornado. Default: 150")
+                help="Maximum message size in MB allowed by Bokeh and Tornado. Default: 150")
 
     p.add_argument('--no-browser', action='store_true', default=False,
                    help=("Start the jupyter server to serve the notebook "

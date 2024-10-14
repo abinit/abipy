@@ -127,7 +127,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return cls(tmp_filepath)
 
     @classmethod
-    def from_mpid(cls, material_id, api_key=None, endpoint=None) -> DdbFile:
+    def from_mpid(cls, material_id) -> DdbFile:
         """
         Fetch DDB file corresponding to a materials project ``material_id``,
         save it to temporary file and return new DdbFile object.
@@ -136,17 +136,16 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Args:
             material_id (str): Materials Project material_id (e.g., mp-1234).
-            api_key (str): A String API key for accessing the MaterialsProject REST interface.
-                If None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
-            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
-                Defaults to the standard Materials Project REST address
         """
         material_id = str(material_id)
         if not material_id.startswith("mp-"):
             raise ValueError("Materials project ID should start with mp-")
 
         from abipy.core import restapi
-        with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+        with restapi.get_mprester() as rest:
+            if getattr(rest, "_make_request") is None:
+                raise RuntimeError("from_mpid requires mp-api, please install it with `pip install mp-api`")
+
             ddb_string = rest._make_request("/materials/%s/abinit_ddb" % material_id)
 
         _, tmpfile = tempfile.mkstemp(prefix=material_id, suffix='_DDB')
@@ -949,7 +948,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return (df, index_list) if with_index_list else df
 
     @lru_cache(typed=True)
-    def has_quadrupole_terms(self, select: str ="all") -> bool:
+    def has_quadrupole_terms(self, select: str="all") -> bool:
         """
         True if the DDB file contains dynamical quadrupoles
         i.e the 3rd order derivatives wrt (electric_field, atomic_perturbation_gamma, q-wavevector)
@@ -1110,6 +1109,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     qpoints, self.filepath, self.qpoints))
 
             qpoints = [self.qpoints[iq] for iq in iqs]
+
         else:
             rl = self.structure.lattice.reciprocal_lattice
             qpoints = [Kpoint(qc, rl) for qc in qpoints]
@@ -1966,9 +1966,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return task
 
-    def write(self, filepath, filter_blocks=None) -> None:
+    def write(self, filepath: str, filter_blocks=None) -> None:
         """
-        Writes the DDB file in filepath. Requires the blocks data.
+        Writes the DDB file to filepath. Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks
         are be used to produce the file
         """
@@ -2087,8 +2087,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def get_2nd_ord_dict(self) -> dict:
         """
-        Generates an ordered dictionary with the second order derivative of the form
-        {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
+        Generates an ordered dictionary with the second order derivatives in the form
+            {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
 
         Returns:
             OrderedDict: a dictionary with all the elements of a dynamical matrix
@@ -2106,8 +2106,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def set_2nd_ord_data(self, data, replace=True) -> None:
         """
-        Insert the blocks corresponding to the data provided for the second
-        order perturbations.
+        Insert the blocks corresponding to the data provided for the second order perturbations.
 
         Args:
             data: a dict of the form {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
@@ -2226,7 +2225,7 @@ if ifc is not None:
 
 class Becs(Has_Structure, MSONable):
     """
-    This object stores the Born effective charges and provides simple tools for data analysis.
+    This object stores the Born effective charges and provides tools for data analysis.
     """
 
     @pmg_serialize
@@ -2602,12 +2601,10 @@ class DielectricTensorGenerator(Has_Structure):
             num: number of values of the frequencies between w_min and w_max.
             component: determine which components of the tensor will be displayed. Can be a list/tuple of two
                 elements, indicating the indices [i, j] of the desired component or a string among::
-
                 * 'diag_av' to plot the average of the components on the diagonal
                 * 'diag' to plot the elements on diagonal
                 * 'all' to plot all the components in the upper triangle.
                 * 'offdiag' to plot the off-diagonal components in the upper triangle.
-
             reim: a string with "re" will plot the real part, with "im" selects the imaginary part.
             units: string specifying the units used for phonon frequencies. Possible values in
                 ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
@@ -2741,8 +2738,6 @@ class DielectricTensorGenerator(Has_Structure):
             with_phfreqs: True to show phonon frequencies with dots.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and label fontsize.
-
-        Return: |matplotlib-Figure|
         """
         wmesh = self._get_wmesh(gamma_ev, num, units, w_min, w_max)
         t = np.zeros((num, 3, 3), dtype=complex)
@@ -2830,7 +2825,7 @@ class DielectricTensorGenerator(Has_Structure):
     def reflectivity(self, qdir, w, gamma_ev=1e-4, units='eV'):
         """
         Calculates the reflectivity from the dielectric tensor along the specified direction
-        according to eq. (58) in :cite:`Gonze1997` PRB55, 10355 (1997).
+        according to Eq. (58) in :cite:`Gonze1997` PRB55, 10355 (1997).
 
         Args:
             qdir: a list with three components defining the direction.
@@ -2841,8 +2836,7 @@ class DielectricTensorGenerator(Has_Structure):
             units: string specifying the units used for phonon frequencies. Possible values in
                 ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
 
-        Returns:
-            the value of the reflectivity.
+        Returns: the value of the reflectivity.
         """
 
         qdir = np.array(qdir) / np.linalg.norm(qdir)
@@ -2874,8 +2868,6 @@ class DielectricTensorGenerator(Has_Structure):
             with_phfreqs: True to show phonon frequencies with dots.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and label fontsize.
-
-        Return: |matplotlib-Figure|
         """
         wmesh = self._get_wmesh(gamma_ev, num, units, w_min, w_max)
         t = np.zeros((num, 3, 3), dtype=complex)
@@ -2934,16 +2926,12 @@ class DdbRobot(Robot):
         return filename.endswith("_" + cls.EXT)
 
     @classmethod
-    def from_mpid_list(cls, mpid_list, api_key=None, endpoint=None):
+    def from_mpid_list(cls, mpid_list):
         """
         Build a DdbRobot from list of materials-project ids.
 
         Args:
             mpid_list: List of Materials Project material_ids (e.g., ["mp-1234", "mp-1245"]).
-            api_key (str): A String API key for accessing the MaterialsProject REST interface.
-                If None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
-            endpoint (str): Url of endpoint to access the MaterialsProject REST interface.
-                Defaults to the standard Materials Project REST address
         """
         from abipy.core import restapi
         ddb_files = []
@@ -2951,10 +2939,15 @@ class DdbRobot(Robot):
 
         if not mpid_list:
             raise RuntimeError("No structure found in the MP database")
+
         if any(not s.startswith("mp-") for s in mpid_list):
             raise ValueError(f"Invalid mp-in in list:\n{mpid_list}")
 
-        with restapi.get_mprester(api_key=api_key, endpoint=endpoint) as rest:
+        with restapi.get_mprester() as rest:
+
+            if getattr(rest, "_make_request") is None:
+                raise RuntimeError("from_mpid_list requires mp-api, please install it with `pip install mp-api`")
+
             for mpid in mpid_list:
                 try:
                     ddb_string = rest._make_request("/materials/%s/abinit_ddb" % mpid)

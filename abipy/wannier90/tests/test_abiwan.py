@@ -42,11 +42,10 @@ class TestAbiwanFile(AbipyTest):
 
             ebands_wan = abiwan.interpolate_ebands(line_density=5)
             assert ebands_wan.kpoints.is_path
-            plotter = abiwan.get_plotter_from_ebands(ebands_wan)
 
             if self.has_matplotlib():
                 assert abiwan.hwan.plot(show=False)
-                assert plotter.combiplot(show=False)
+                assert abiwan.plot_with_ebands(ebands_wan, show=False)
                 #assert abiwan.plot_centers_spread(show=False)
 
             if self.has_nbformat():
@@ -85,11 +84,10 @@ class TestAbiwanFile(AbipyTest):
                     self.assert_almost_equal(ews[:n], in_eigens[spin, ik, :n])
 
             ebands_wan = abiwan.interpolate_ebands(line_density=3)
-            plotter = abiwan.get_plotter_from_ebands(ebands_wan)
 
             if self.has_matplotlib():
                 assert abiwan.hwan.plot(show=False)
-                assert plotter.combiplot(show=False)
+                assert abiwan.plot_with_ebands(ebands_wan, show=False)
 
             if self.has_nbformat():
                 assert abiwan.write_notebook(nbpath=self.get_tmpname(text=True))

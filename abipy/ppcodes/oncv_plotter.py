@@ -100,11 +100,6 @@ class OncvPlotter(NotebookWriter):
             ax.axvline(self.parser.rc5, lw=2, color=color, ls="--")
             ax._custom_rc_lines.append((self.parser.rc5, color))
 
-    def plotly_atan_logders(self, *args, **kwargs):
-        mpl_fig = self.plot_atan_logders(*args, show=False, **kwargs)
-        from plotly.tools import mpl_to_plotly
-        return mpl_to_plotly(mpl_fig)
-
     @add_fig_kwargs
     def plot_atan_logders(self, ax=None, with_xlabel=True,
                           fontsize: int = 8, **kwargs) -> Figure:
@@ -156,7 +151,6 @@ class OncvPlotter(NotebookWriter):
             raise ValueError(f"Invalid value for {what=}")
         return ae_wfs, ps_wfs
 
-
     @add_fig_kwargs
     def plot_radial_wfs(self, ax=None, what="bound_states",
                         fontsize: int = 8, **kwargs) -> Figure:
@@ -175,7 +169,7 @@ class OncvPlotter(NotebookWriter):
             ps_wf, l, k = ps_wfs[nlk], nlk.l, nlk.k
 
             if what == "bound_states":
-        #         # Show position of the last peak.
+                # Show position of the last peak.
                 s, marker = 10, "^"
                 ae_peaks = ae_wf.get_peaks()
                 style = dict(color=self.color_l[l], s=s, marker=marker)
@@ -295,6 +289,55 @@ class OncvPlotter(NotebookWriter):
                          title="Ion Pseudopotentials", fontsize=fontsize,
                          )
         self._add_rc_vlines_ax(ax, with_lloc=True)
+
+        return fig
+
+    def plot_vtau(self, xscale="log", ax=None, fontsize: int = 8, **kwargs) -> Figure:
+        """
+        Plot v_tau and v_tau(model+pseudo) potentials on axis ax.
+
+        Args:
+            xscale: "log" to plot vtau in log scale or "linear". For other options see matplotlib.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        for key, pot in self.parser.vtaus.items():
+            mode = "ae" if key == "vtau_ae" else "ps"
+            ax.plot(pot.rmesh, pot.values,
+                    label=pot.name,
+                    **self._mpl_opts_laeps(0, mode))
+
+        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="Vtaus (Ha / a_B)",
+                         #title="Ion Pseudopotentials",
+                         fontsize=fontsize,
+                         )
+        self._add_rc_vlines_ax(ax, with_lloc=True)
+        ax.set_xscale(xscale)
+
+        return fig
+
+    def plot_tau(self, ax=None, yscale="log", fontsize: int = 8, **kwargs) -> Figure:
+        """
+        Plot kinetic energy densities tauPS and tau(M+PS) on axis ax.
+
+        Args:
+            yscale: "log" to plot tau in log scale or "linear". For other options see matplotlib.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        for key, den in self.parser.kin_densities.items():
+            ax.plot(den.rmesh, den.values,
+                    label=den.name)
+                    #**self._mpl_opts_laeps(0, mode))
+
+        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="Kinetic energy densities",
+                         #title="Ion Pseudopotentials",
+                         fontsize=fontsize,
+                         )
+        self._add_rc_vlines_ax(ax, with_lloc=True)
+        ax.set_yscale(yscale)
 
         return fig
 
@@ -482,6 +525,10 @@ class OncvPlotter(NotebookWriter):
             #yield self.plot_der_potentials(show=False)
             for order in [1, 2, 3, 4]:
                 yield self.plot_der_densities(order=order, show=False)
+
+        if self.parser.is_metapsp:
+            yield self.plot_vtau(show=False)
+            yield self.plot_tau(show=False)
 
     def write_notebook(self, nbpath=None):
         return oncv_make_open_notebook(self.parser.filepath)

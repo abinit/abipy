@@ -3,13 +3,13 @@ westmere: &westmere
    num_nodes: 274
    sockets_per_node: 2
    cores_per_socket: 6
-   mem_per_node: 24 Gb
+   mem_per_node: 24 GB
 
 ivybridge: &ivybridge
    num_nodes: 342
    sockets_per_node: 2
    cores_per_socket: 12
-   mem_per_node: 64 Gb
+   mem_per_node: 64 GB
 
 # Environment, modules, and parameters used to launch jobs.
 job: &job

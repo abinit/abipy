@@ -19,7 +19,7 @@ Dragon1
 	   num_nodes: 26
 	   sockets_per_node: 2
 	   cores_per_socket: 8
-	   mem_per_node: 112Gb
+	   mem_per_node: 112GB
 	
 	job: &job
 	    mpi_runner: mpirun
@@ -43,6 +43,34 @@ Dragon1
 	       max_num_launches: 10
 	    hardware: *hardware
 	    job: *job
+
+
+Gh
+--
+
+.. code-block:: yaml
+
+
+	# Manager used for github actions.
+	qadapters:
+	    -
+	      priority: 1
+	      queue:
+	        qname: github
+	        qtype: shell
+	      job:
+	        mpi_runner: mpirun
+	        pre_run:
+	            - conda activate abipy
+	      limits:
+	         min_cores: 1
+	         max_cores: 2
+	         timelimit: 0:10:0
+	      hardware:
+	         num_nodes: 1
+	         sockets_per_node: 1
+	         cores_per_socket: 2
+	         mem_per_node: 4 GB
 
 
 Gmac
@@ -69,7 +97,7 @@ Gmac
 	         num_nodes: 1
 	         sockets_per_node: 1
 	         cores_per_socket: 2
-	         mem_per_node: 4 Gb
+	         mem_per_node: 4 GB
 	         # Optional
 	         #condition: {"$eq": {omp_threads: 2}}
 	
@@ -87,7 +115,7 @@ Hercules
 	   num_nodes: 65
 	   sockets_per_node: 2
 	   cores_per_socket: 8
-	   mem_per_node: 54Gb
+	   mem_per_node: 54GB
 	
 	job: &job
 	    mpi_runner: mpirun
@@ -126,19 +154,19 @@ Hmem
 	   num_nodes: 2
 	   sockets_per_node: 4
 	   cores_per_socket: 12
-	   mem_per_node: 512Gb
+	   mem_per_node: 512GB
 	
 	middle: &middle
 	   num_nodes: 7
 	   sockets_per_node: 4
 	   cores_per_socket: 12
-	   mem_per_node: 256Gb
+	   mem_per_node: 256GB
 	
 	low: &low
 	   num_nodes: 7
 	   sockets_per_node: 4
 	   cores_per_socket: 12
-	   mem_per_node: 128Gb
+	   mem_per_node: 128GB
 	
 	job: &job
 	    mpi_runner: mpirun
@@ -194,7 +222,7 @@ Juqueen
 	   num_nodes: 128
 	   sockets_per_node: 1
 	   cores_per_socket: 16
-	   mem_per_node: 128Gb
+	   mem_per_node: 128GB
 	
 	job: &job
 	    mpi_runner: runjob
@@ -240,7 +268,7 @@ Juqueen
 	       num_nodes: 1
 	       sockets_per_node: 1
 	       cores_per_socket: 1
-	       mem_per_node: 12Gb
+	       mem_per_node: 12GB
 	    job:
 	        #mpi_runner: runjob
 	        shell_env:
@@ -262,13 +290,13 @@ Jureca
 	   num_nodes: 8
 	   sockets_per_node: 2
 	   cores_per_socket: 12
-	   mem_per_node: 128Gb
+	   mem_per_node: 128GB
 	
 	batch: &batch
 	   num_nodes: 128
 	   sockets_per_node: 2
 	   cores_per_socket: 12
-	   mem_per_node: 128Gb
+	   mem_per_node: 128GB
 	
 	job: &job
 	    # mpirun is not available on jureca.
@@ -308,7 +336,7 @@ Lemaitre2
 	   num_nodes: 112
 	   sockets_per_node: 2
 	   cores_per_socket: 6
-	   mem_per_node: 48Gb
+	   mem_per_node: 48GB
 	
 	job: &job
 	    mpi_runner: mpirun
@@ -347,7 +375,7 @@ Lemaitre3
 	   num_nodes: 80
 	   sockets_per_node: 2
 	   cores_per_socket: 12
-	   mem_per_node: 95Gb
+	   mem_per_node: 95GB
 	
 	job: &job
 	    mpi_runner: mpirun
@@ -387,7 +415,7 @@ Lumi
 	  num_nodes: 1376
 	  sockets_per_node: 2
 	  cores_per_socket: 64
-	  mem_per_node: 256Gb
+	  mem_per_node: 256GB
 	
 	job: &job
 	  mpi_runner: srun
@@ -433,19 +461,19 @@ Manneback
 	   num_nodes: 672
 	   sockets_per_node: 2
 	   cores_per_socket: 4
-	   mem_per_node: 24 Gb
+	   mem_per_node: 24 GB
 	
 	ObanAMD: &ObanAMD
 	   num_nodes: 6
 	   sockets_per_node: 4
 	   cores_per_socket: 8
-	   mem_per_node: 128 Gb
+	   mem_per_node: 128 GB
 	
 	ObanIntel: &ObanIntel
 	   num_nodes: 3
 	   sockets_per_node: 4
 	   cores_per_socket: 8
-	   mem_per_node: 256 Gb
+	   mem_per_node: 256 GB
 	
 	# Environment, modules, and parameters used to launch jobs.
 	job: &job
@@ -495,7 +523,7 @@ Nic4
 	   num_nodes: 120
 	   sockets_per_node: 2
 	   cores_per_socket: 8
-	   mem_per_node: 64Gb
+	   mem_per_node: 64GB
 	
 	job: &job
 	    mpi_runner: "mpirun"
@@ -553,7 +581,7 @@ Shell
 	         num_nodes: 1
 	         sockets_per_node: 1
 	         cores_per_socket: 2
-	         mem_per_node: 4 Gb
+	         mem_per_node: 4 GB
 
 
 Shell_nompi
@@ -579,34 +607,7 @@ Shell_nompi
 	         num_nodes: 1
 	         sockets_per_node: 1
 	         cores_per_socket: 2
-	         mem_per_node: 4 Gb
-
-
-Travis
-------
-
-.. code-block:: yaml
-
-
-	qadapters:
-	    -
-	      priority: 1
-	      queue:
-	        qname: travis
-	        qtype: shell
-	      job:
-	        mpi_runner: mpirun
-	        pre_run:
-	            - source activate abinit-environment
-	      limits:
-	         min_cores: 1
-	         max_cores: 2
-	         timelimit: 0:10:0
-	      hardware:
-	         num_nodes: 1
-	         sockets_per_node: 1
-	         cores_per_socket: 2
-	         mem_per_node: 4 Gb
+	         mem_per_node: 4 GB
 
 
 Ubu
@@ -634,7 +635,7 @@ Ubu
 	         num_nodes: 1
 	         sockets_per_node: 1
 	         cores_per_socket: 24
-	         mem_per_node: 4 Gb
+	         mem_per_node: 4 GB
 
 
 Vega
@@ -648,7 +649,7 @@ Vega
 	   num_nodes: 44
 	   sockets_per_node: 4
 	   cores_per_socket: 16
-	   mem_per_node: 256Gb
+	   mem_per_node: 256GB
 	
 	job: &job
 	    mpi_runner: mpirun
@@ -684,7 +685,7 @@ Viper
 	   num_nodes: 1
 	   sockets_per_node: 2
 	   cores_per_socket: 4
-	   mem_per_node: 32Gb
+	   mem_per_node: 32GB
 	
 	job: &job
 	    mpi_runner: ~/bin/mpirun.openmpi
@@ -719,13 +720,13 @@ Zenobe
 	   num_nodes: 274
 	   sockets_per_node: 2
 	   cores_per_socket: 6
-	   mem_per_node: 24 Gb
+	   mem_per_node: 24 GB
 	
 	ivybridge: &ivybridge
 	   num_nodes: 342
 	   sockets_per_node: 2
 	   cores_per_socket: 12
-	   mem_per_node: 64 Gb
+	   mem_per_node: 64 GB
 	
 	# Environment, modules, and parameters used to launch jobs.
 	job: &job

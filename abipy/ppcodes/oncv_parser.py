@@ -90,7 +90,16 @@ class OncvParser(BaseParser):
 
         return self
 
+    @property
+    def is_metapsp(self):
+        return self.generator_type == "METAPSP"
+
+    @property
+    def is_oncvpsp(self):
+        return self.generator_type == "ONCVPSP"
+
     def _scan(self, verbose: int = 0) -> OncvParser:
+
         if not os.path.exists(self.filepath):
             raise self.Error(f"File {self.filepath} does not exist")
 
@@ -100,6 +109,13 @@ class OncvParser(BaseParser):
         #with io.open(self.filepath, "rt") as fh:
         with io.open(self.filepath, "rt", encoding="latin-1") as fh:
             for i, line in enumerate(fh):
+                if i == 0:
+                    self.generator_type = line.split()[0]
+                    assert self.generator_type in ("ONCVPSP", "METAPSP")
+
+                if self.generator_type == "METAPSP":
+                    if i == 1: continue
+
                 #print(f"{i=}: {line=}")
                 line = line.strip()
                 self.lines.append(line)
@@ -138,9 +154,12 @@ class OncvParser(BaseParser):
         toks = self.lines[1].replace(",", " ").split()
         self.gendate = toks.pop(-1)
         self.calc_type, self.version = toks[0], toks[2]
+        if self.is_metapsp:
+            if self.calc_type == "alpha": self.calc_type = "scalar-relativistic"
 
         #print(self.version)
         self.major_version, self.minor_version, self.patch_level = tuple(map(int, self.version.split(".")))[:3]
+        #print(f"{self.major_version=}, {self.minor_version=}, {self.patch_level=}")
 
         # Read configuration (not very robust because we assume the user didn't change the template but oh well)
 
@@ -188,8 +207,7 @@ class OncvParser(BaseParser):
         if self.rc5 is None:
             raise self.Error(f"Cannot find magic line starting with `{header}` in: {self.filepath}")
 
-        # Parse ATOM and Reference configuration
-        # Example:
+        # Parse ATOM and Reference configuration. Example:
         """
         #
         #   n    l    f        energy (Ha)
@@ -209,10 +227,14 @@ class OncvParser(BaseParser):
             2    0    2.00    -4.2419865D+02
 
         """
-        if self.relativistic and self.major_version <= 3:
-            header = "#   n    l    f        l+1/2             l-1/2"
+        if self.is_metapsp:
+            header = "#   n    l    f      MGGA eval (Ha)         PBE         delta"
+
         else:
-            header = "#   n    l    f        energy (Ha)"
+            if self.relativistic and self.major_version <= 3:
+                header = "#   n    l    f        l+1/2             l-1/2"
+            else:
+                header = "#   n    l    f        energy (Ha)"
 
         nc, nv = self.nc, self.nv
 
@@ -371,7 +393,7 @@ class OncvParser(BaseParser):
 
         kinerr_nlk = {}
 
-        if self.major_version > 3:
+        if self.major_version > 3 or self.is_metapsp:
             # Calculating optimized projector #   1
             #
             #  for l=   0
@@ -392,7 +414,7 @@ class OncvParser(BaseParser):
             m = re_start.match(line)
             if m:
                 # Extract iproj and l.
-                if self.major_version > 3:
+                if self.major_version > 3 or self.is_metapsp:
                     # for l=   0
                     iproj = int(m.group("iproj"))
                     l = int(self.lines[i+2].split("=")[-1].strip())
@@ -487,6 +509,43 @@ class OncvParser(BaseParser):
             rhoV=RadialFunction("Valence charge", rho_data[:, 0], rho_data[:, 1]),
             rhoC=RadialFunction("Core charge", rho_data[:, 0], rho_data[:, 2]),
             rhoM=RadialFunction("Model charge", rho_data[:, 0], rho_data[:, 3])
+        )
+
+    @lazy_property
+    def kin_densities(self) -> dict[str, RadialFunction]:
+        """
+        Dictionary with Kinetic energy densities on the radial mesh.
+        """
+        if not self.is_metapsp:
+            raise ValueEror("kin_densities are only available in pseudos generated with metapsp")
+
+        # Metagga taups and taumodps
+        #!t   0.0200249       2.9590E+02      6.4665E+02
+        rho_data = self._grep("!t").data
+
+        return dict(
+            tau_ps=RadialFunction("Tau Pseudo", rho_data[:, 0], rho_data[:, 1]),
+            tau_modps=RadialFunction("Tau Model + Pseudo", rho_data[:, 0], rho_data[:, 2]),
+        )
+
+    @lazy_property
+    def vtaus(self) -> dict[str, RadialFunction]:
+        """
+        Dictionary with Vtau ptotentials on the radial mesh.
+        """
+        if not self.is_metapsp:
+            raise ValueEror("kin_densities are only available in pseudos generated with metapsp")
+
+        # plot    "<grep '!vt' t1" using 2:3 title "VtauAE" with lines ls 1,\
+        #         "<grep '!vt' t1" using 2:4 title "Vtau(M+PS)" with lines ls 9
+
+        # !vt   0.1000394       4.1827E-03      1.9061E-02
+        # !vt   0.1024657       4.5435E-03      1.9061E-02
+        rho_data = self._grep("!vt").data
+
+        return dict(
+            vtau_ae=RadialFunction("Vtau AE", rho_data[:, 0], rho_data[:, 1]),
+            vtau_modps=RadialFunction("VTau Model + Pseudo", rho_data[:, 0], rho_data[:, 2]),
         )
 
     @lazy_property
@@ -604,7 +663,7 @@ class OncvParser(BaseParser):
         #@     0    0.009945    0.015274   -0.009284
         beg = 0
         magic = "@"
-        if self.major_version > 3: magic = "!J"
+        if self.major_version > 3 or self.is_metapsp: magic = "!J"
 
         # if(ikap==1) then
         #   write(6,'(a,i6,6(f12.6,1x))') '!J',-ll,rr(ii), &
@@ -651,7 +710,8 @@ class OncvParser(BaseParser):
         ae_atan_logder_l, ps_atan_logder_l = {}, {}
 
         lstop = self.lmax + 1
-        if self.major_version > 3:
+        #if self.major_version > 3:
+        if self.major_version > 3 or self.is_metapsp:
             lstop = min(self.lmax + 2, 4)
 
         if not self.relativistic:
@@ -757,7 +817,10 @@ class OncvParser(BaseParser):
 
         for line in self.lines:
             i = line.find(herm_tag)
+            #print(line)
             if i != -1:
+                if self.is_metapsp and "Npairs" in line:
+                    continue
                 herm_err = float(line.split()[-1].replace("D", "E"))
 
             i = line.find(pspexc_tag)

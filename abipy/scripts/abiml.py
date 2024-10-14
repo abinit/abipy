@@ -17,6 +17,7 @@ from time import time
 from abipy.core.structure import Structure
 from abipy.tools.printing import print_dataframe
 
+
 ASE_OPTIMIZERS = aseml.ase_optimizer_cls("__all__")
 
 DEFAULT_NN = "chgnet"
@@ -718,6 +719,28 @@ def gs(ctx, filepath, nn_name,
     atoms = _get_atoms_from_filepath(filepath)
     gs = aseml.GsMl(atoms, nn_name, verbose, workdir, prefix="_abiml_gs_")
     gs.run()
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("filepath", type=str)
+@click.option("--qpoint", "-q", nargs=3, type=float, help="q-point in reduced coordinates.")
+@add_nn_name_opt
+@add_workdir_verbose_opts
+@click.option('--config', default='abiml_phfrozen.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def phddb_frozen(ctx, filepath, qpoint, nn_name,
+       workdir, verbose,
+       ):
+    """
+    Frozen-phonon calculation with ML potential.
+    """
+    qpoint = [0, 0, 0]
+    eta_list = [1, 2]
+    frozen_ph = aseml.FrozenPhononMl.from_ddb_file(filepath, qpoint, eta_list, nn_name, verbose, workdir, prefix="_abiml_phfrozen")
+    frozen_ph.run()
+
     return 0
 
 

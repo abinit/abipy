@@ -88,7 +88,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
             inds = np.where(uniq == ir_gp_id)
             #print("inds", inds, "inds[0]", inds[0])
             assert len(inds) == 1
-            bz2ibz[i] = inds[0]
+            bz2ibz[i] = int(inds[0])
             #print("%3d ->%3d %s" % (i, ir_gp_id, (gp + [0.5, 0.5, 0.5]) / mesh))
             #print("%3d ->%3d %s" % (i, ir_gp_id, (gp + kshift) / mesh))
 
@@ -890,8 +890,8 @@ class SkwInterpolator(ElectronInterpolator):
         cprint("FIT vs input data: Mean Absolute Error= %.3e (meV)" % mae, color="red" if warn else "green")
         if warn:
             # Issue warning if error too large.
-            cprint("Large error in SKW interpolation!", "red")
-            cprint("MAE:", mae, "[meV]", "red")
+            cprint("Large error in SKW interpolation!", color="red")
+            cprint(f"MAE: {mae} [meV]", color="red")
 
         self.mae = mae
 

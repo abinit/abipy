@@ -14,18 +14,16 @@ import itertools
 import functools
 import numpy as np
 import pandas as pd
+import matplotlib.collections as mcoll
 
 from collections import namedtuple, OrderedDict
 from typing import Any, Callable, Iterator
 from monty.string import list_strings
-from pymatgen.util.plotting import add_fig_kwargs
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
 from abipy.tools.numtools import data_from_cplx_mode
 
-import matplotlib.collections as mcoll
-from plotly.tools import mpl_to_plotly
 
 __all__ = [
     "set_axlims",
@@ -67,6 +65,115 @@ linestyles = OrderedDict(
 )
 
 
+
+def add_fig_kwargs(func):
+    """Decorator that adds keyword arguments for functions returning matplotlib
+    figures.
+
+    The function should return either a matplotlib figure or None to signal
+    some sort of error/unexpected event.
+    See doc string below for the list of supported options.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        # pop the kwds used by the decorator.
+        title = kwargs.pop("title", None)
+        size_kwargs = kwargs.pop("size_kwargs", None)
+        show = kwargs.pop("show", True)
+        savefig = kwargs.pop("savefig", None)
+        tight_layout = kwargs.pop("tight_layout", False)
+        ax_grid = kwargs.pop("ax_grid", None)
+        ax_annotate = kwargs.pop("ax_annotate", None)
+        fig_close = kwargs.pop("fig_close", False)
+        plotly = kwargs.pop("plotly", False)
+
+        # Call func and return immediately if None is returned.
+        fig = func(*args, **kwargs)
+        if fig is None:
+            return fig
+
+        # Operate on matplotlib figure.
+        if title is not None:
+            fig.suptitle(title)
+
+        if size_kwargs is not None:
+            fig.set_size_inches(size_kwargs.pop("w"), size_kwargs.pop("h"), **size_kwargs)
+
+        if ax_grid is not None:
+            for ax in fig.axes:
+                ax.grid(bool(ax_grid))
+
+        if ax_annotate:
+            tags = ascii_letters
+            if len(fig.axes) > len(tags):
+                tags = (1 + len(ascii_letters) // len(fig.axes)) * ascii_letters
+            for ax, tag in zip(fig.axes, tags):
+                ax.annotate(f"({tag})", xy=(0.05, 0.95), xycoords="axes fraction")
+
+        if tight_layout:
+            try:
+                fig.tight_layout()
+            except Exception as exc:
+                # For some unknown reason, this problem shows up only on travis.
+                # https://stackoverflow.com/questions/22708888/valueerror-when-using-matplotlib-tight-layout
+                print("Ignoring Exception raised by fig.tight_layout\n", str(exc))
+
+        if savefig:
+            fig.savefig(savefig)
+
+        if plotly:
+            try:
+                plotly_fig = mpl_to_ply(fig, latex=False)
+                if show: plotly_fig.show()
+                return plotly_fig
+            except Exception as exc:
+                print("Exception while convertig matplotlib figure to plotly. Returning mpl figure!")
+                print(str(exc))
+                pass
+
+        import matplotlib.pyplot as plt
+        if show:
+            plt.show()
+
+        if fig_close:
+            plt.close(fig=fig)
+
+        return fig
+
+    # Add docstring to the decorated method.
+    doc_str = """\n\n
+        Keyword arguments controlling the display of the figure:
+
+        ================  ====================================================
+        kwargs            Meaning
+        ================  ====================================================
+        title             Title of the plot (Default: None).
+        show              True to show the figure (default: True).
+        savefig           "abc.png" or "abc.eps" to save the figure to a file.
+        size_kwargs       Dictionary with options passed to fig.set_size_inches
+                          e.g. size_kwargs=dict(w=3, h=4)
+        tight_layout      True to call fig.tight_layout (default: False)
+        ax_grid           True (False) to add (remove) grid from all axes in fig.
+                          Default: None i.e. fig is left unchanged.
+        ax_annotate       Add labels to  subplots e.g. (a), (b).
+                          Default: False
+        fig_close         Close figure. Default: False.
+        plotly            Try to convert mpl figure to plotly.
+        ================  ====================================================
+
+"""
+
+    if wrapper.__doc__ is not None:
+        # Add s at the end of the docstring.
+        wrapper.__doc__ += f"\n{doc_str}"
+    else:
+        # Use s
+        wrapper.__doc__ = doc_str
+
+    return wrapper
+
+
 class FilesPlotter:
     """
     Use matplotlib to plot multiple png files on a grid.
@@ -80,7 +187,9 @@ class FilesPlotter:
 
     @add_fig_kwargs
     def plot(self, **kwargs) -> Figure:
-        """Loop through the PNG files and display them in subplots."""
+        """
+        Loop through the PNG files and display them in subplots.
+        """
         # Build grid of plots.
         num_plots, ncols, nrows = len(self.filepaths), 1, 1
         if num_plots > 1:
@@ -344,7 +453,11 @@ def set_grid_legend(ax_or_axlist, fontsize: int,
     if duck.is_listlike(ax_or_axlist):
         for ix, ax in enumerate(ax_or_axlist):
             ax.grid(grid)
-            if legend: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
+            # Check if there are artists with labels
+            handles, labels = ax.get_legend_handles_labels()
+            if legend and labels:
+                # print("There are artists with labels:", labels)
+                ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
             if xlabel:
                 doit = direction is None or (direction == "y" and ix == len(ax_or_axlist) -1)
                 if doit: ax.set_xlabel(xlabel)
@@ -355,7 +468,9 @@ def set_grid_legend(ax_or_axlist, fontsize: int,
     else:
         ax = ax_or_axlist
         ax.grid(grid)
-        if legend: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
+        # Check if there are artists with labels
+        handles, labels = ax.get_legend_handles_labels()
+        if legend and labels: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
         if xlabel: ax.set_xlabel(xlabel)
         if ylabel: ax.set_ylabel(ylabel)
         if title: ax.set_title(title, fontsize=fontsize)
@@ -942,9 +1057,8 @@ class ArrayPlotter:
         return fig
 
 
-#TODO use object and introduce c for color, client code should be able to customize it.
-# Rename it to ScatterData
-class Marker(namedtuple("Marker", "x y s")):
+#TODO Rename it to ScatterData?
+class Marker:
     """
     Stores the position and the size of the marker.
     A marker is a list of tuple(x, y, s) where x, and y are the position
@@ -955,48 +1069,34 @@ class Marker(namedtuple("Marker", "x y s")):
 
         x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
         marker = Marker(x, y, s)
-        marker.extend((x, y, s))
-
     """
-    def __new__(cls, *xys):
-        """Extends the base class adding consistency check."""
-        if not xys:
-            xys = ([], [], [])
-            return super().__new__(cls, *xys)
 
-        if len(xys) != 3:
-            raise TypeError("Expecting 3 entries in xys got %d" % len(xys))
+    def __init__(self, x, y, s, **scatter_kwargs):
+                 #marker: str = "o", color: str = "y", alpha: float = 1.0, label=None, self.edgecolors=None):
+        self.x, self.y, self.s = np.array(x), np.array(y), np.array(s)
 
-        x = np.asarray(xys[0])
-        y = np.asarray(xys[1])
-        s = np.asarray(xys[2])
-        xys = (x, y, s)
+        if len(self.x) != len(self.y):
+            raise ValueError("len(self.x) != len(self.y)")
+        if len(self.y) != len(self.s):
+            raise ValueError("len(self.y) != len(self.s)")
 
-        for s in xys[-1]:
-            if np.iscomplex(s):
-                raise ValueError("Found ambiguous complex entry %s" % str(s))
+        #self.marker = marker
+        #self.color = color
+        #self.alpha = alpha
+        #self.label = label
+        #self.edgecolors = edgecolors
+        self.scatter_kwargs = scatter_kwargs
 
-        return super().__new__(cls, *xys)
+        # Step 1: Normalize sizes to a suitable range for plotting
+        #min_size = 10  # Minimum size for points
+        #max_size = 100  # Maximum size for points
+        #normalized_s = min_size + (max_size - min_size) * (self.s - np.min(self.s)) / (np.max(self.s) - np.min(self.s))
+        #self.s = normalized_s
 
     def __bool__(self):
         return bool(len(self.s))
 
     __nonzero__ = __bool__
-
-    def extend(self, xys):
-        """
-        Extend the marker values.
-        """
-        if len(xys) != 3:
-            raise TypeError("Expecting 3 entries in xys got %d" % len(xys))
-
-        self.x.extend(xys[0])
-        self.y.extend(xys[1])
-        self.s.extend(xys[2])
-
-        lens = np.array((len(self.x), len(self.y), len(self.s)))
-        if np.any(lens != lens[0]):
-            raise TypeError("x, y, s vectors should have same lengths but got %s" % str(lens))
 
     def posneg_marker(self) -> tuple[Marker, Marker]:
         """
@@ -1134,7 +1234,8 @@ class MplExposer(Exposer): # pragma: no cover
                 timer.start()
 
             plt.show()
-            fig.clear()
+            if hasattr(fig, "clear"):
+                fig.clear()
 
     def expose(self) -> None:
         """
@@ -1145,7 +1246,8 @@ class MplExposer(Exposer): # pragma: no cover
             import matplotlib.pyplot as plt
             plt.show()
             for fig in self.figures:
-                fig.clear()
+                if hasattr(fig, "clear"):
+                    fig.clear()
 
 
 class PanelExposer(Exposer):  # pragma: no cover
@@ -1761,9 +1863,7 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
     sort of error/unexpected event.
     See doc string below for the list of supported options.
     """
-    from functools import wraps
-
-    @wraps(func)
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         # pop the kwds used by the decorator.
         title = kwargs.pop("title", None)
@@ -1840,46 +1940,44 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
         return fig
 
     # Add docstring to the decorated method.
-    s = (
-            "\n\n"
-            + """\
-                Keyword arguments controlling the display of the figure:
-                ================  ====================================================================
-                kwargs            Meaning
-                ================  ====================================================================
-                title             Title of the plot (Default: None).
-                show              True to show the figure (default: True).
-                hovermode         True to show the hover info (default: False)
-                savefig           "abc.png" , "abc.jpeg" or "abc.webp" to save the figure to a file.
-                write_json        Write plotly figure to `write_json` JSON file.
-                                  Inside jupyter-lab, one can right-click the `write_json` file from
-                                  the file menu and open with "Plotly Editor".
-                                  Make some changes to the figure, then use the file menu to save
-                                  the customized plotly plot.
-                                  Requires `jupyter labextension install jupyterlab-chart-editor`.
-                                  See https://github.com/plotly/jupyterlab-chart-editor
-                renderer          (str or None (default None)) –
-                                  A string containing the names of one or more registered renderers
-                                  (separated by ‘+’ characters) or None. If None, then the default
-                                  renderers specified in plotly.io.renderers.default are used.
-                                  See https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
-                config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-                chart_studio      True to push figure to chart_studio server. Requires authenticatios.
-                                  Default: False.
-                template          Plotly template. See https://plotly.com/python/templates/
-                                  ["plotly", "plotly_white", "plotly_dark", "ggplot2",
-                                   "seaborn", "simple_white", "none"]
-                                  Default is None that is the default template is used.
-                ================  ====================================================================
-        """
-    )
+    doc_str = """\n\n
+        Keyword arguments controlling the display of the figure:
+        ================  ====================================================================
+        kwargs            Meaning
+        ================  ====================================================================
+        title             Title of the plot (Default: None).
+        show              True to show the figure (default: True).
+        hovermode         True to show the hover info (default: False)
+        savefig           "abc.png" , "abc.jpeg" or "abc.webp" to save the figure to a file.
+        write_json        Write plotly figure to `write_json` JSON file.
+                          Inside jupyter-lab, one can right-click the `write_json` file from
+                          the file menu and open with "Plotly Editor".
+                          Make some changes to the figure, then use the file menu to save
+                          the customized plotly plot.
+                          Requires `jupyter labextension install jupyterlab-chart-editor`.
+                          See https://github.com/plotly/jupyterlab-chart-editor
+        renderer          (str or None (default None)) –
+                          A string containing the names of one or more registered renderers
+                          (separated by ‘+’ characters) or None. If None, then the default
+                          renderers specified in plotly.io.renderers.default are used.
+                          See https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
+        config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
+        chart_studio      True to push figure to chart_studio server. Requires authenticatios.
+                          Default: False.
+        template          Plotly template. See https://plotly.com/python/templates/
+                          ["plotly", "plotly_white", "plotly_dark", "ggplot2",
+                           "seaborn", "simple_white", "none"]
+                          Default is None that is the default template is used.
+        ================  ====================================================================
+
+"""
 
     if wrapper.__doc__ is not None:
         # Add s at the end of the docstring.
-        wrapper.__doc__ += "\n" + s
+        wrapper.__doc__ += f"\n{doc_str}"
     else:
         # Use s
-        wrapper.__doc__ = s
+        wrapper.__doc__ = doc_str
 
     return wrapper
 
@@ -2492,10 +2590,8 @@ def plotly_points(points, lattice=None, coords_are_cartesian=False, fold=False, 
     from pymatgen.electronic_structure.plotter import fold_point
     vecs = []
     for p in points:
-
         if fold:
             p = fold_point(p, lattice, coords_are_cartesian=coords_are_cartesian)
-
         elif not coords_are_cartesian:
             p = lattice.get_cartesian_coords(p)
 
@@ -2666,8 +2762,11 @@ def add_colorscale_dropwdowns(fig):
 
     return fig
 
-def mpl_to_ply(fig, latex=False):
-    """Nasty workaround for plotly latex rendering in legend/breaking exception"""
+
+def mpl_to_ply(fig: Figure, latex: bool= False):
+    """
+    Nasty workaround for plotly latex rendering in legend/breaking exception
+    """
     if is_plotly_figure(fig):
         return fig
 
@@ -2716,6 +2815,7 @@ def mpl_to_ply(fig, latex=False):
                 text.set_text(new_label)
 
     # Convert to plotly figure
+    from plotly.tools import mpl_to_plotly
     plotly_fig = mpl_to_plotly(fig)
 
     plotly_fig.update_layout(template  = "plotly_white", title = {
@@ -2743,8 +2843,62 @@ def mpl_to_ply(fig, latex=False):
     for trace in plotly_fig.data:
         # Retrieve the current label and remove any $ signs
         new_label = trace.name.replace("$", "")
-
         # Update the trace's name (which is used for the legend label)
         trace.name = new_label
 
     return plotly_fig
+
+
+class PolyfitPlotter:
+    """
+    Fit data with polynomals of different degrees and visualize the results.
+    """
+    def __init__(self, xs, ys):
+        self.xs, self.ys = np.array(xs), np.array(ys)
+
+    @add_fig_kwargs
+    def plot(self, deg_list: list[int],
+             num=100, ax=None, xlabel=None, ylabel=None, fontsize=8, **kwargs) -> Figure:
+        """
+        Args:
+            deg_list: List with degrees of the fitting polynomial.
+            num: Number of samples to generate. Default is 100. Must be non-negative.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Legend fontsize.
+        """
+        xs, ys = self.xs, self.ys
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        for i, deg in enumerate(deg_list):
+            # Fit a ndeg polynomial to the data points and get the polynomial function.
+            coefficients = np.polyfit(xs, ys, deg)
+            polynomial = np.poly1d(coefficients)
+            #print("Coefficients:", coefficients); print("Polynomial:", polynomial)
+
+            if i == 0:
+                # Plot the original data points
+                ax.scatter(xs, ys, color='red', marker="o", label='Data Points')
+
+            # Generate (x, y) values for plotting the fit
+            x_fit = np.linspace(min(xs), max(xs), num)
+            y_fit = polynomial(x_fit)
+            ax.plot(x_fit, y_fit, label=f"{deg}-order fit")
+
+        if xlabel is not None: ax.set_xlabel(xlabel)
+        if ylabel is not None: ax.set_ylabel(ylabel)
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+
+#class PolyExtrapolator:
+#    """
+#    Fit data with polynomals, extrapolate to zero and visualize the results.
+#    """
+#    def __init__(self, xs, ys):
+#        self.xs, self.ys = np.array(xs), np.array(ys)
+#
+#    def extrapolate_to_zero(self, deg: int):
+
+
+

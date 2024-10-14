@@ -771,7 +771,9 @@ class ICoxpFile(_LobsterFile):
         """Barplot with average values."""
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         import seaborn as sns
-        sns.barplot(x="average", y="pair", hue="spin", data=self.dataframe, ax=ax)
+        df = self.dataframe.copy()
+        df["pair"] = df["type0"] + "-" + df["type1"]
+        sns.barplot(x="average", y="pair", hue="spin", data=df, ax=ax)
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
