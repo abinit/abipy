@@ -1109,6 +1109,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     qpoints, self.filepath, self.qpoints))
 
             qpoints = [self.qpoints[iq] for iq in iqs]
+
         else:
             rl = self.structure.lattice.reciprocal_lattice
             qpoints = [Kpoint(qc, rl) for qc in qpoints]

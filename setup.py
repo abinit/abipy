@@ -152,6 +152,7 @@ install_requires = [
     "tqdm",
     "pyyaml>=3.11",
     "pandas",
+    #"numpy",
     "numpy<2.0.0",
     "scipy",
     "spglib",
@@ -169,14 +170,6 @@ install_requires = [
     #pydantic,
     #panel,
 ]
-
-with_wxpython = False
-if with_wxpython:
-    install_requires += [
-        "wxmplot",
-        "wxpython",
-    ]
-
 
 #---------------------------------------------------------------------------
 # Find all the packages, package data, and data_files

@@ -340,8 +340,8 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def test_mprester():
         """Skip MP rester tests."""
-        #raise unittest.SkipTest("MPRester tests have been disabled")
-        return True
+        raise unittest.SkipTest("MPRester tests have been disabled")
+        #return True
 
     def is_url_reachable(url: str) -> bool:
         """check if a URL is reachable:"""

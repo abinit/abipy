@@ -98,6 +98,7 @@ class InputVariable:
         # For some inputs, enforce number of decimal points...
         if any(inp in var for inp in ('xred', 'xcart', 'rprim', 'qpt', 'kpt')):
             floatdecimal = 16
+            #floatdecimal = 32
 
         if var == 'qpt':
             floatdecimal = 22

@@ -23,7 +23,7 @@ from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos, PhononDos as PmgPhononDos
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
-from abipy.core.kpoints import Kpoint, Kpath, KpointList, kmesh_from_mpdivs
+from abipy.core.kpoints import Kpoint, Kpath, KpointList, kmesh_from_mpdivs, map_grid2ibz
 from abipy.core.structure import Structure
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
@@ -159,6 +159,7 @@ class PhononBands:
                        qpoints=qpoints,
                        phfreqs=r.read_phfreqs(),
                        phdispl_cart=r.read_phdispl_cart(),
+                       phangmom=r.read_phangmom(),
                        amu=amu,
                        non_anal_ph=non_anal_ph,
                        epsinf=epsinf, zcart=zcart,
@@ -182,9 +183,6 @@ class PhononBands:
             if obj.endswith(".pickle"):
                 with open(obj, "rb") as fh:
                     return cls.as_phbands(pickle.load(fh))
-
-            #print("Returning PhononBands.from_file(obj)")
-            #return PhononBands.from_file(obj)
 
             from abipy.abilab import abiopen
             with abiopen(obj) as abifile:
@@ -240,8 +238,9 @@ class PhononBands:
                                    symprec=symprec, set_masses=set_masses)
         self.phonopy_obj = ph
 
-    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, non_anal_ph=None, amu=None,
-                 epsinf=None, zcart=None, linewidths=None, phonopy_obj=None):
+    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, phangmom=None,
+                 non_anal_ph=None, amu=None, epsinf=None, zcart=None, linewidths=None,
+                 phonopy_obj=None):
         """
         Args:
             structure: |Structure| object.
@@ -249,17 +248,15 @@ class PhononBands:
             phfreqs: Phonon frequencies in eV.
             phdispl_cart: [nqpt, 3*natom, 3*natom] array with displacement in Cartesian coordinates in Angstrom.
                 The last dimension stores the cartesian components.
+            phangmom: Phonon angular momentum in units of hbar.
             non_anal_ph: :class:`NonAnalyticalPh` with information of the non analytical contribution
                 None if contribution is not present.
             amu: dictionary that associates the atomic species present in the structure to the values of the atomic
                 mass units used for the calculation.
-            epsinf: [3,3] matrix with electronic dielectric tensor in Cartesian coordinates.
-                None if not avaiable.
-            zcart: [natom, 3, 3] matrix with Born effective charges in Cartesian coordinates.
-                None if not available.
+            epsinf: [3,3] matrix with electronic dielectric tensor in Cartesian coordinates. None if not avaiable.
+            zcart: [natom, 3, 3] matrix with Born effective charges in Cartesian coordinates. None if not available.
             linewidths: Array-like object with the linewidths (eV) stored as [q, num_modes]
-            phonopy_obj: an instance of a Phonopy object obtained from the same IFC used to generate the
-                band structure.
+            phonopy_obj: an instance of a Phonopy object obtained from the same IFC used to generate the band structure.
         """
         self.structure = structure
 
@@ -274,6 +271,10 @@ class PhononBands:
         # `ndarray` of shape (nqpt, 3*natom, 3*natom).
         # The last dimension stores the cartesian components.
         self.phdispl_cart = phdispl_cart
+
+        # phonon angular momentum in units of hbar
+        # ndarray of shape (nqpt, 3*natom, 3)
+        self.phangmom = phangmom
 
         # Handy variables used to loop.
         self.num_atoms = structure.num_sites
@@ -1326,6 +1327,66 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         return fig
 
     @add_fig_kwargs
+    def plot_phangmom(self, ax=None, pj_dir=[0, 0, 1], units="hbar",
+                      qlabels=None, branch_range=None, colormap="rainbow",
+                      max_colors=None, **kwargs):
+        r"""
+        Plot the phonon angular momentum with different colors for each line.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            pj_dir: direction along which the angular momentum is projected
+                in cartesian coordinates
+            units: Units for phonon plots. Only possible option: "hbar", maybe others to come ?
+                Case-insensitive.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            branch_range: Tuple specifying the minimum and maximum branch_i index to plot
+                (default: all branches are plotted).
+            colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a
+                sequential order to avoid difficulties in distinguishing the lines.
+                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+            max_colors: maximum number of colors to be used. If max_colors < num_braches the colors will be reapeated.
+                It may be useful to better distinguish close bands when the number of branches is large.
+
+        Returns: |matplotlib-Figure|
+        """
+        # Select the band range.
+        if branch_range is None:
+            branch_range = range(self.num_branches)
+        else:
+            branch_range = range(branch_range[0], branch_range[1], 1)
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        # Decorate the axis (e.g add ticks and labels).
+        self.decorate_ax(ax, units=units, qlabels=qlabels)
+
+        first_xx = 0
+        lines = []
+
+        if max_colors is None:
+            max_colors = len(branch_range)
+
+        colormap = plt.get_cmap(colormap)
+
+        sorted_phangmom = np.empty_like(self.phangmom)
+        for i, pam in enumerate(self.phangmom):
+            ind = self.split_matched_indices[0][i]
+            sorted_phangmom[i, :, :] = pam[ind, :]
+
+        pj_dir = np.array(pj_dir)
+        pj_dir = pj_dir / np.linalg.norm(pj_dir)
+        proj_phangmom = np.dot(sorted_phangmom, pj_dir)
+        colors = itertools.cycle(colormap(np.linspace(0, 1, max_colors)))
+        for branch_i in branch_range:
+            kwargs = dict(kwargs)
+            kwargs['color'] = next(colors)
+            lines.extend(ax.plot(proj_phangmom[:, branch_i], **kwargs))
+
+        return fig
+
+    @add_fig_kwargs
     def plot_lt_character(self, units="eV", qlabels=None, ax=None, xlims=None, ylims=None, scale_size=50,
                           use_becs=True, colormap="jet", fontsize=12, **kwargs) -> Figure:
         r"""
@@ -1559,7 +1620,14 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             if np.allclose(cart_direction, d):
                 return self.non_anal_phfreqs[i]
 
-        raise ValueError("Non analytical contribution has not been calculated for reduced direction {0} ".format(frac_direction))
+        err_lines = [
+            f"Non analytical contribution has not been calculated for reduced direction: {frac_direction}",
+            "Available non_anal_directions:"
+        ]
+        for i, d in enumerate(self.non_anal_directions):
+            err_lines.append(f"{i} {d}")
+
+        raise ValueError("\n".join(err_lines))
 
     def _get_non_anal_phdispl(self, frac_direction):
         # directions for the qph2l in anaddb are given in cartesian coordinates
@@ -2907,6 +2975,12 @@ class PHBST_Reader(ETSF_Reader):
         shape is [num_qpoints,  mu_mode,  cart_direction].
         """
         return self.read_value("phdispl_cart", cmode="c")
+
+    def read_phangmom(self):
+        """
+        Real array with the phonon angular momentum in units of hbar
+        """
+        return self.read_value("phangmom", default=None)
 
     def read_amu(self):
         """The atomic mass units"""

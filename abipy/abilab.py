@@ -75,6 +75,7 @@ from abipy.eph.v1qavg import V1qAvgFile
 from abipy.eph.rta import RtaFile, RtaRobot
 from abipy.eph.transportfile import TransportFile
 from abipy.eph.gstore import GstoreFile
+from abipy.eph.gpath import GpathFile
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
 from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
 
@@ -173,6 +174,7 @@ abiext2ncfile = collections.OrderedDict([
     ("A2F.nc", A2fFile),
     ("SIGEPH.nc", SigEPhFile),
     ("GSTORE.nc", GstoreFile),
+    ("GPATH.nc", GpathFile),
     ("TRANSPORT.nc",TransportFile),
     ("RTA.nc",RtaFile),
     ("V1SYM.nc", V1symFile),
