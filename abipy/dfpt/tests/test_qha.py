@@ -35,7 +35,7 @@ class QhaTest(AbipyTest):
         qha.set_eos("murnaghan")
         self.assert_equal(qha.eos._eos_name, "murnaghan")
 
-        te = qha.get_thermal_expansion_coeff(num=4)
+        te = qha.get_thermal_expansion_coeff(num=4,method="finite_difference")
         self.assert_almost_equal(te.values[1], 1.4676820862386381e-05)
 
         self.assert_almost_equal(qha.get_vol_at_t(200), 41.07441539803265, decimal=4)
@@ -118,7 +118,7 @@ class Qha3pfTest(AbipyTest):
         qha.set_eos("murnaghan")
         self.assert_equal(qha.eos._eos_name, "murnaghan")
 
-        te = qha.get_thermal_expansion_coeff(num=4)
+        te = qha.get_thermal_expansion_coeff(num=4,method="finite_difference")
         self.assert_almost_equal(te.values[1], 1.2773693323408941e-05)
 
         self.assert_almost_equal(qha.get_vol_at_t(200), 41.10212044734946, decimal=4)
@@ -172,7 +172,7 @@ class Qha3pTest(AbipyTest):
         qha.set_eos("murnaghan")
         self.assert_equal(qha.eos._eos_name, "murnaghan")
 
-        te = qha.get_thermal_expansion_coeff(num=4)
+        te = qha.get_thermal_expansion_coeff(num=4,method="finite_difference")
         self.assert_almost_equal(te.values[1], 1.2725767394824783e-05)
 
         self.assert_almost_equal(qha.get_vol_at_t(200), 41.1083743159003, decimal=4)
