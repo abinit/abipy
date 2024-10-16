@@ -496,7 +496,7 @@ class DeltaSCF():
                  scale_vector=20,width_vector=0.3,color_vector=[255,0,0],centered=True,
                  factor_keep_vectors=0.1,
                  out_path="VESTA_FILES",out_filename="gs_ex_relaxation"):
-        """
+        r"""
         Draw the ground state to excited state atomic relaxation on a vesta structure.
 
         Args:
@@ -613,7 +613,7 @@ class DeltaSCF():
 
     @add_fig_kwargs
     def plot_delta_R_distance(self, defect_symbol,colors=["k","r","g","b","c","m"],ax=None, **kwargs):
-        """
+        r"""
         Plot \DeltaR vs distance from defect for each atom, colored by species.
 
         Args:
@@ -646,7 +646,7 @@ class DeltaSCF():
 
     @add_fig_kwargs
     def plot_delta_F_distance(self, defect_symbol,colors=["k","r","g","b","c","m"],ax=None, **kwargs):
-        """
+        r"""
         Plot \DeltaF vs distance from defect for each atom, colored by species.
 
         Args:
