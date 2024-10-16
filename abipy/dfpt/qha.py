@@ -188,7 +188,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
 
         return fig
 
-    def get_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100, tref=None) -> Function1D:
+    def get_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100, tref=None, method=None) -> Function1D:
         """
         Calculates the thermal expansion coefficient as a function of temperature, using
         finite difference on the fitted values of the volume as a function of temperature.
@@ -209,33 +209,35 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         eos_list = [ 'taylor', 'murnaghan', 'birch', 'birch_murnaghan','pourier_tarantola', 'vinet', 'antonschmidt']
 
         dt = f.temp[1] - f.temp[0]
-        if (self.eos_name in eos_list) : 
-            thermo = self.get_thermodynamic_properties(tstart=tstart, tstop=tstop, num=num)
-            entropy = thermo.entropy.T #* abu.e_Cb * abu.Avogadro
-            df_t = np.zeros((num,self.nvols))
-            df_t = - entropy
-            param = np.zeros((num,4))
-            param2 = np.zeros((num,3))
-            d2f_t_v = np.zeros(num)
-            gamma = np.zeros(num)
-
-            for j in range (1,num-1):
-                param[j]=np.polyfit(self.volumes,df_t[j] , 3)
-                param2[j] = np.array([3*param[j][0],2*param[j][1],param[j][2]])
-
-                p = np.poly1d(param2[j])
-                d2f_t_v[j]= p(f.min_vol[j]) 
-
-            if tref is None:
-                alpha= - 1/f.min_vol[1:-1] *d2f_t_v[1:-1] / f.F2D[1:-1] 
-            else :
-                alpha= - 1/f0.min_vol * d2f_t_v[1:-1] / f.F2D[1:-1]
+        if (method=="finite_difference"): 
+            alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f.min_vol[1:-1]
         else :
-            if tref is None:
-                alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f.min_vol[1:-1]
-            else :
-                alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f0.min_vol
+            if (self.eos_name in eos_list) : 
+                thermo = self.get_thermodynamic_properties(tstart=tstart, tstop=tstop, num=num)
+                entropy = thermo.entropy.T #* abu.e_Cb * abu.Avogadro
+                df_t = np.zeros((num,self.nvols))
+                df_t = - entropy
+                param = np.zeros((num,4))
+                param2 = np.zeros((num,3))
+                d2f_t_v = np.zeros(num)
+                gamma = np.zeros(num)
 
+                for j in range (1,num-1):
+                    param[j]=np.polyfit(self.volumes,df_t[j] , 3)
+                    param2[j] = np.array([3*param[j][0],2*param[j][1],param[j][2]])
+
+                    p = np.poly1d(param2[j])
+                    d2f_t_v[j]= p(f.min_vol[j]) 
+
+                if tref is None:
+                    alpha= - 1/f.min_vol[1:-1] *d2f_t_v[1:-1] / f.F2D[1:-1] 
+                else :
+                    alpha= - 1/f0.min_vol * d2f_t_v[1:-1] / f.F2D[1:-1]
+            else :
+                if tref is None:
+                    alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f.min_vol[1:-1]
+                else :
+                    alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f0.min_vol
         return Function1D(f.temp[1:-1], alpha)
 
     @add_fig_kwargs
