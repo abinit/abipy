@@ -1439,7 +1439,7 @@ def ddepert_from_gsinput(gs_input, dde_pert, use_symmetries=True, dde_tol=None, 
 
 def dtepert_from_gsinput(gs_input, dte_pert, manager=None) -> AbinitInput:
     """
-    Returns an |AbinitInput| to perform a DTE calculations for a specific perturbation and based on a ground state |AbinitInput|.
+    Returns an |AbinitInput| to perform a DTE calculations for a specific perturbation based on a ground state |AbinitInput|.
 
     Args:
         gs_input: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.

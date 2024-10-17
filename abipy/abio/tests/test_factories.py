@@ -545,10 +545,16 @@ class FactoryTest(AbipyTest):
 
         ddk_pert = {'idir': 1, 'ipert': 3, 'qpt': [0.0, 0.0, 0.0]}
         ddk_input = ddkpert_from_gsinput(gs_inp, ddk_pert)
-        assert ddk_input["tolwfr"] == 1.0e-22
         assert "autoparal" not in ddk_input
         assert "npfft" not in ddk_input
+        assert ddk_input["tolwfr"] == 1.0e-22
         self.abivalidate_input(ddk_input)
+
+    def test_ddepert_from_gsinput(self):
+        gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
+        gs_inp["nband"] = 4
+        gs_inp["autoparal"] = 1
+        gs_inp["npfft"] = 10
 
         dde_pert = {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}
         dde_input = ddepert_from_gsinput(gs_inp, dde_pert)
@@ -557,14 +563,29 @@ class FactoryTest(AbipyTest):
         assert dde_input["tolvrs"] == 1.0e-22
         self.abivalidate_input(dde_input)
 
-        #dte_pert = {'i1dir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}
-        #dte_input = dtepert_from_gsinput(gs_inp, dte_pert)
-        #assert "autoparal" not in dte_input
-        #assert "npfft" not in dte_input
-        #assert dte_input["tolvrs"] == 1.0e-22
-        #self.abivalidate_input(dte_input)
+    def test_dtepert_from_gsinput(self):
+        gs_inp = scf_for_phonons(self.si_structure, self.si_pseudo, kppa=None, ecut=2, smearing="nosmearing", spin_mode="unpolarized")
+        gs_inp["nband"] = 4
+        gs_inp["autoparal"] = 1
+        gs_inp["npfft"] = 1
 
-    #def test_dte_from_gsinput(self):
-    #    gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
-    #    multi = dte_from_gsinput(gs_inp, use_phonons=True)
-    #    self.abivalidate_input(multi)
+        dte_pert = {'i1dir': 1, 'i1pert': 4, 'qpt': [0.0, 0.0, 0.0],
+                    'i2dir': 1, 'i2pert': 4,
+                    'i3dir': 1, 'i3pert': 4,}
+        dte_input = dtepert_from_gsinput(gs_inp, dte_pert)
+        dte_input["ixc"] = 7
+
+        assert "autoparal" not in dte_input
+        assert "npfft" not in dte_input
+        assert dte_input["optdriver"] == 5
+        assert dte_input["d3e_pert1_elfd"] == 1
+        assert dte_input["d3e_pert2_elfd"] == 1
+        assert dte_input["d3e_pert3_elfd"] == 1
+        assert dte_input["d3e_pert1_dir"] == [1,0,0]
+        assert dte_input["d3e_pert2_dir"] == [1,0,0]
+        assert dte_input["d3e_pert3_dir"] == [1,0,0]
+        assert dte_input["d3e_pert1_phon"] == 0
+        assert dte_input["d3e_pert2_phon"] == 0
+        assert dte_input["d3e_pert3_phon"] == 0
+        self.abivalidate_input(dte_input)
+
