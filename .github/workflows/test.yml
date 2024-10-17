@@ -25,6 +25,9 @@ jobs:
         config:
           - os: ubuntu-latest
             python: '3.11'
+        config:
+          - os: ubuntu-latest
+            python: '3.12'
 
     runs-on: ${{ matrix.config.os }}
     env:
@@ -51,7 +54,7 @@ jobs:
             cp abipy/data/managers/gh_manager.yml $HOME/.abinit/abipy/manager.yml
             cp abipy/data/managers/gh_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
             # FIXME TEMPORARY HACK
-            pip install git+https://github.com/gmatteo/pymatgen.git@master -U
+            #pip install git+https://github.com/gmatteo/pymatgen.git@master -U
 
       - name: pytest
         run: |

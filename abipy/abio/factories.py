@@ -1381,16 +1381,17 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
 
 def ddkpert_from_gsinput(gs_input, ddk_pert, nband=None, use_symmetries=False, ddk_tol=None, manager=None) -> AbinitInput:
     """
-    Returns an |AbinitInput| to perform a DDK calculations for a specific perturbation and based on a ground state |AbinitInput|.
+    Returns an |AbinitInput| to perform a DDK calculations for a specific perturbation based on a ground state |AbinitInput|.
 
     Args:
-        gs_input:   an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
+        gs_input: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         ddk_pert: dict with the Abinit variables defining the perturbation
                 Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
         use_symmetries: boolean that determines if the irreducible components of the perturbation are used.
             Default to False. (TODO: Should be implemented)
-        ddk_tol:  a dictionary with a single key defining the type of tolerance used for the DDK calculations and its value. Default: {"tolvrs": 1.0e-22}.
-        manager:  |TaskManager| of the task. If None, the manager is initialized from the config file.
+        ddk_tol: a dictionary with a single key defining the type of tolerance used for the DDK calculations and its value.
+            Default: {"tolvrs": 1.0e-22}.
+        manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
     gs_input = gs_input.deepcopy()
     gs_input.pop_irdvars()
@@ -1409,19 +1410,20 @@ def ddkpert_from_gsinput(gs_input, ddk_pert, nband=None, use_symmetries=False, d
 
     return ddk_inp
 
+
 def ddepert_from_gsinput(gs_input, dde_pert, use_symmetries=True, dde_tol=None, manager=None) -> AbinitInput:
     """
-    Returns an |AbinitInput| to perform a DDE calculations for a specific perturbation and based on a ground state |AbinitInput|.
+    Returns an |AbinitInput| to perform a DDE calculations for a specific perturbation based on a ground state |AbinitInput|.
 
     Args:
-        gs_input:   an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
+        gs_input: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         dde_pert: dict with the Abinit variables defining the perturbation
-                Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
+            Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
         use_symmetries: boolean that determines if the irreducible components of the perturbation are used.
             Default to True. Should be set to False for nonlinear coefficients calculation.
-        dde_tol:  a dictionary with a single key defining the type of tolerance used for the DDE calculations and
+        dde_tol: a dictionary with a single key defining the type of tolerance used for the DDE calculations and
             its value. Default: {"tolvrs": 1.0e-22}.
-        manager:  |TaskManager| of the task. If None, the manager is initialized from the config file.
+        manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
     gs_input = gs_input.deepcopy()
     gs_input.pop_irdvars()
@@ -1434,15 +1436,16 @@ def ddepert_from_gsinput(gs_input, dde_pert, use_symmetries=True, dde_tol=None, 
 
     return dde_inp
 
+
 def dtepert_from_gsinput(gs_input, dte_pert, manager=None) -> AbinitInput:
     """
     Returns an |AbinitInput| to perform a DTE calculations for a specific perturbation and based on a ground state |AbinitInput|.
 
     Args:
-        gs_input:   an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
+        gs_input: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         dte_pert: dict with the Abinit variables defining the perturbation
-                Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
-        manager:  |TaskManager| of the task. If None, the manager is initialized from the config file.
+            Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
+        manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
     gs_input = gs_input.deepcopy()
     gs_input.pop_irdvars()
@@ -1451,6 +1454,7 @@ def dtepert_from_gsinput(gs_input, dte_pert, manager=None) -> AbinitInput:
     dte_inp = gs_input.make_dtepert_input(perturbation=dte_pert, manager=manager)
 
     return dte_inp
+
 
 def dte_from_gsinput(gs_input, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None,
                      skip_dte_permutations=False, manager=None) -> MultiDataset:
@@ -1509,7 +1513,7 @@ def dte_from_gsinput(gs_input, use_phonons=True, ph_tol=None, ddk_tol=None, dde_
     gs_input.set_vars(nband=nband)
     gs_input.pop('nbdbuf', None)
     multi_dte = gs_input.make_dte_inputs(phonon_pert=use_phonons, skip_permutations=skip_dte_permutations,
-                                       manager=manager)
+                                         manager=manager)
     multi_dte.add_tags(atags.DTE)
     multi.extend(multi_dte)
 

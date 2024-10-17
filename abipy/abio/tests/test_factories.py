@@ -1,3 +1,4 @@
+import json
 import abipy.data as abidata
 import abipy.abilab as abilab
 
@@ -7,8 +8,9 @@ from abipy.abio.inputs import AbinitInput
 from abipy.abio.factories import *
 from abipy.abio.factories import (BandsFromGsFactory, IoncellRelaxFromGsFactory, HybridOneShotFromGsFactory,
     ScfForPhononsFactory, PhononsFromGsFactory, PiezoElasticFactory, PiezoElasticFromGsFactory, ShiftMode)
-from abipy.abio.factories import _find_nscf_nband_from_gsinput
-import json
+from abipy.abio.factories import _find_nscf_nband_from_gsinput, minimal_scf_input
+from abipy.abio.input_tags import DDK, DDE, PH_Q_PERT, STRAIN, DTE, PH_Q_PERT
+
 
 write_inputs_to_json = False
 
@@ -304,7 +306,6 @@ class FactoryTest(AbipyTest):
                                      with_bec=False, ph_tol=None, ddk_tol=None, dde_tol=None)
         self.abivalidate_multi(multi)
 
-        from abipy.abio.input_tags import DDK, DDE, PH_Q_PERT
         inp_ddk = multi.filter_by_tags(DDK)[0]
         inp_dde = multi.filter_by_tags(DDE)[0]
         inp_ph_q_pert_1 = multi.filter_by_tags(PH_Q_PERT)[0]
@@ -499,7 +500,7 @@ class FactoryTest(AbipyTest):
                                   do_dte=True, ph_tol=None, ddk_tol=None, dde_tol=None)
         self.abivalidate_multi(multi)
 
-        from abipy.abio.input_tags import DDK, DDE, PH_Q_PERT, STRAIN, DTE
+
         inp_ddk = multi.filter_by_tags(DDK)[0]
         inp_dde = multi.filter_by_tags(DDE)[0]
         inp_ph_q_pert_1 = multi.filter_by_tags(PH_Q_PERT)[0]
@@ -530,10 +531,40 @@ class FactoryTest(AbipyTest):
         self.assert_input_equality('dfpt_from_gsinput_dte.json', inp_dte)
 
     def test_minimal_scf_input(self):
-        from abipy.abio.factories import minimal_scf_input
         inp = minimal_scf_input(self.si_structure, self.si_pseudo)
 
         self.abivalidate_input(inp)
-
         self.assertEqual(inp["nband"], 1)
         self.assertEqual(inp["nstep"], 0)
+
+    def test_ddkpert_from_gsinput(self):
+        gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
+        gs_inp["nband"] = 4
+        gs_inp["autoparal"] = 1
+        gs_inp["npfft"] = 10
+
+        ddk_pert = {'idir': 1, 'ipert': 3, 'qpt': [0.0, 0.0, 0.0]}
+        ddk_input = ddkpert_from_gsinput(gs_inp, ddk_pert)
+        assert ddk_input["tolwfr"] == 1.0e-22
+        assert "autoparal" not in ddk_input
+        assert "npfft" not in ddk_input
+        self.abivalidate_input(ddk_input)
+
+        dde_pert = {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}
+        dde_input = ddepert_from_gsinput(gs_inp, dde_pert)
+        assert "autoparal" not in dde_input
+        assert "npfft" not in dde_input
+        assert dde_input["tolvrs"] == 1.0e-22
+        self.abivalidate_input(dde_input)
+
+        #dte_pert = {'i1dir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}
+        #dte_input = dtepert_from_gsinput(gs_inp, dte_pert)
+        #assert "autoparal" not in dte_input
+        #assert "npfft" not in dte_input
+        #assert dte_input["tolvrs"] == 1.0e-22
+        #self.abivalidate_input(dte_input)
+
+    #def test_dte_from_gsinput(self):
+    #    gs_inp = gs_input(self.si_structure, self.si_pseudo, kppa=None, ecut=2, spin_mode="unpolarized")
+    #    multi = dte_from_gsinput(gs_inp, use_phonons=True)
+    #    self.abivalidate_input(multi)

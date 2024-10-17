@@ -119,6 +119,7 @@ def wlabel_from_units(units: str, unicode=False) -> str:
          'cm-1': r'Frequency (cm$^{-1}$)',
          'cm^-1': r'Frequency (cm$^{-1}$)',
          'thz': r'Frequency (Thz)',
+         'hbar': r'Angular momentum ($\hbar$)',
     }
     try:
         s = d[units.lower().strip()]
