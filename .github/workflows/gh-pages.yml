@@ -62,7 +62,7 @@ jobs:
             cp abipy/data/managers/gh_manager.yml $HOME/.abinit/abipy/manager.yml
             cp abipy/data/managers/gh_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
             # FIXME TEMPORARY HACK
-            pip install git+https://github.com/gmatteo/pymatgen.git@master -U
+            #pip install git+https://github.com/gmatteo/pymatgen.git@master -U
 
       - name: Build docs with Sphinx
         run: |
@@ -74,7 +74,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
-          path: site/ # Important. Set to your output dir in MkDocs
+          path: _build/html/ # Important. Set to the website output dir
 
   deploy:
     environment:
