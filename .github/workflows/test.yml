@@ -3,8 +3,10 @@ name: Run the Abipy test suite.
 on:
   push:
     branches: [develop, master]
+    paths-ignore: ["**/*.md", docs/**]
   pull_request:
     branches: [develop]
+    paths-ignore: ["**/*.md", docs/**]
   workflow_dispatch:
   workflow_call: # make this workflow reusable by release.yml
 
@@ -14,21 +16,21 @@ permissions:
 jobs:
   test:
     # prevent this action from running on forks
-    #if: github.repository == 'abinit/abipy'
+    if: github.repository == 'abinit/abipy'
     defaults:
       run:
         shell: bash -l {0} # enables conda/mamba env activation by reading bash profile
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - os: ubuntu-latest
+            python: "3.11"
+        config:
+          - os: ubuntu-latest
+            python: "3.12"
 
-    #strategy:
-    #  fail-fast: false
-    #  matrix:
-    #    config:
-    #      - os: ubuntu-latest
-    #        python: '3.11'
-    #    config:
-    #      - os: ubuntu-latest
-    #        python: '3.12'
-    #runs-on: ${{ matrix.config.os }}
+    runs-on: ${{ matrix.config.os }}
 
     env:
       PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
