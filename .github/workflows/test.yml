@@ -28,8 +28,8 @@ jobs:
     #    config:
     #      - os: ubuntu-latest
     #        python: '3.12'
+    #runs-on: ${{ matrix.config.os }}
 
-    runs-on: ${{ matrix.config.os }}
     env:
       PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
 
