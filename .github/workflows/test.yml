@@ -51,12 +51,13 @@ jobs:
             conda install abinit -c conda-forge --yes
             mpirun -n 1 abinit --version
             mpirun -n 1 abinit --build
+            pip install -r requirements.txt
+            pip install -r requirements-optional.txt
+            pip install -r requirements-panel.txt
             pip install --editable .
             mkdir -p $HOME/.abinit/abipy/
             cp abipy/data/managers/gh_manager.yml $HOME/.abinit/abipy/manager.yml
             cp abipy/data/managers/gh_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
-            # FIXME TEMPORARY HACK
-            #pip install git+https://github.com/gmatteo/pymatgen.git@master -U
 
       - name: pytest
         run: |
