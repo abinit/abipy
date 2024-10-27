@@ -20,13 +20,13 @@ jobs:
     defaults:
       run:
         shell: bash -l {0} # enables conda/mamba env activation by reading bash profile
+
     strategy:
       fail-fast: false
       matrix:
         config:
           - os: ubuntu-latest
             python: "3.11"
-        config:
           - os: ubuntu-latest
             python: "3.12"
 
