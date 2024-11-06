@@ -55,7 +55,7 @@
 .. _slurm: https://slurm.schedmd.com/
 .. _pbspro: http://pbspro.org/
 .. _sge: http://gridscheduler.sourceforge.net/howto/GridEngineHowto.html
-.. _torque: http://www.adaptivecomputing.com/products/open-source/torque/
+.. _torque: https://github.com/adaptivecomputing/torque
 .. _moab: http://www.adaptivecomputing.com/products/hpc-products/moab-hpc-basic-edition/
 .. _loadleveler: https://www.ibm.com/support/knowledgecenter/en/SSFJTW
 
