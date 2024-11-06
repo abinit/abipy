@@ -43,7 +43,8 @@ AbiPy obtains the information needed to create the correct ``TaskManager`` for a
 from the ``manager.yml`` configuration file.
 The file is written in YAML_ a human-readable data serialization language commonly used for configuration files
 (a good introduction to the YAML syntax can be found `here <http://yaml.org/spec/1.1/#id857168>`_.
-See also this `reference card <http://www.yaml.org/refcard.html>`_)
+See also this `reference card <http://www.yaml.org/refcard.html>`_. Experiment with YAML syntax using a
+`YAML validator <https://yamline.com/validator/>`_)
 
 By default, AbiPy looks for a ``manager.yml`` file in the current working directory i.e.
 the directory in which you execute your script in first and then inside ``$HOME/.abinit/abipy``.
