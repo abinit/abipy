@@ -1536,8 +1536,12 @@ class MergeDdb:
         if not isinstance(scf_task, ScfTask):
             raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
 
+        scf_kptopt = self.get("kptopt", 1)
+        kptopt = 3
+        if scf_kptopt in (1, 2): kptopt = 2
         # DDK calculations (self-consistent to get electric field).
-        multi_ddk = scf_task.input.make_ddk_inputs(tolerance=ddk_tolerance)
+        multi_ddk = scf_task.input.make_ddk_inputs(tolerance=ddk_tolerance,
+                                                   kptopt=kptopt)
 
         ddk_tasks = []
         for ddk_inp in multi_ddk:
