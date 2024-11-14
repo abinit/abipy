@@ -2237,14 +2237,8 @@ class DteWork(Work, MergeDdb):
 
         new = cls(manager=manager)
 
-        # Use time-reversal symmetry oly if it is allowed by the scf kptopt
-        if any(scf_task.input.get("kptopt", 1) == [3,4]):
-            kptopt = 3
-        else
-            kptopt = 2
-
         # DDK calculations
-        multi_ddk = scf_task.input.make_ddk_inputs(tolerance=ddk_tolerance, kptopt=kptopt)
+        multi_ddk = scf_task.input.make_ddk_inputs(tolerance=ddk_tolerance)
 
         ddk_tasks = []
         for ddk_inp in multi_ddk:
