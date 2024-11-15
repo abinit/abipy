@@ -29,13 +29,13 @@ def build_flow(options):
 
     # Build input for GS calculation.
     scf_input = abilab.AbinitInput(structure, pseudos)
-    scf_input.set_vars(ecut=12, nband=8, tolvrs=1e-8)
-    scf_input.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
+    scf_input.set_vars(ecut=12, nband=4, tolvrs=1e-8)
+    scf_input.set_kmesh(ngkpt=[2, 2, 2], shiftk=[0, 0, 0])
 
-    v0 = scf_input.structure.volume
-    volumes = [0.08 * v0, v0, v0 * 1.02]
-    return QhaFlow.from_scf_input(options.workdir, scf_input, volumes,
-                                  ngqpt=[2, 2, 2], with_becs=False, edos_ngkpt=(4, 4, 4))
+    with_becs = False
+    ngqpt = [2, 2, 2]
+    return QhaFlow.from_scf_input(options.workdir, scf_input, ngqpt, with_becs, eps=0.005,
+                                  ) # , edos_ngkpt=(4, 4, 4))
 
 
 # This block generates the thumbnails in the Abipy gallery.

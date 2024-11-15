@@ -1253,7 +1253,9 @@ class Flow(Node, NodeContainer, MSONable):
         for i, work in enumerate(self):
             if nids and work.node_id not in nids: continue
             print("", file=stream)
-            cprint_map("Work #%d: %s, Finalized=%s" % (i, work, work.finalized), cmap={"True": "green"}, file=stream)
+            name = ""
+            if hasattr(work, "_name"): name = ", work_name=%s" % work._name
+            cprint_map("Work #%d: %s, Finalized=%s %s" % (i, work, work.finalized, name), cmap={"True": "green"}, file=stream)
             if wlist is not None and i in wlist: continue
             if verbose == 0 and work.finalized:
                 print("  Finalized works are not shown. Use verbose > 0 to force output.", file=stream)
@@ -2149,7 +2151,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         except AttributeError:
             return 0
 
-    def allocate(self, workdir=None, use_smartio=False):
+    def allocate(self, workdir=None, use_smartio: bool=False, build: bool=False) -> Flow:
         """
         Allocate the `Flow` i.e. assign the `workdir` and (optionally)
         the |TaskManager| to the different tasks in the Flow.
@@ -2157,9 +2159,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         Args:
             workdir: Working directory of the flow. Must be specified here
                 if we haven't initialized the workdir in the __init__.
-
-        Return:
-            self
+            build: True to build the flow and save status to pickle file.
         """
         if workdir is not None:
             # We set the workdir of the flow here
@@ -2185,6 +2185,9 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         if use_smartio:
             self.use_smartio()
+
+        if build:
+            self.build_and_pickle_dump()
 
         return self
 
@@ -2263,13 +2266,16 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             if self.on_all_ok_num_calls > 0: return True
             self.on_all_ok_num_calls += 1
 
-            `implement_logic_to_create_new_work`
+            #####################################
+            # implement_logic_to_create_new_work
+            #####################################
 
             self.register_work(work)
             self.allocate()
             self.build_and_pickle_dump()
 
-            return False # The scheduler will keep on running the flow.
+            # The scheduler will keep on running the flow.
+            return False
         """
         return True
 
@@ -3429,6 +3435,7 @@ def main():
         print("Writing new pickle file.")
 
         flow.build_and_pickle_dump()
+
     else:
         print(f"Dry run mode. {len(nids)} tasks have been modified in memory.")
 

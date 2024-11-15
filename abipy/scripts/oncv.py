@@ -60,7 +60,7 @@ def oncv_gnuplot(options):
 
 def oncv_print(options) -> int:
     """
-    Parse oncvps output and print results to terminal.
+    Parse oncvps output file and print results to terminal.
     """
     out_path = _find_oncv_output(options.filepath)
     p = OncvParser(out_path).scan()
@@ -248,6 +248,53 @@ def oncv_run(options):
     return 0
 
 
+def oncv_ghost(options) -> int:
+    """
+    Scan directories for oncvpsp output files and build dataframe with ghost position
+    """
+    #cli.customize_mpl(options)
+
+    # Walk through the directory tree and find all .out files.
+    root_dir = options.filepath
+    out_paths = []
+    for dirpath, _, filenames in os.walk(root_dir):
+        for filename in filenames:
+            if filename.endswith(".out"):
+                out_paths.append(os.path.join(dirpath, filename))
+    #print(out_paths)
+
+    # Parse the output file.
+    ierr = 0
+    rows = []
+    for out_path in out_paths:
+        onc_parser = OncvParser(out_path).scan()
+        if not onc_parser.run_completed:
+            cprint("oncvpsp output is not completed. Exiting", color="red")
+            ierr += 1
+            continue
+
+        hints = onc_parser.hints
+        rows.append(dict(
+            out_path=out_path,
+            z=onc_parser.z,
+            num_warnings=len(onc_parser.warnings),
+            num_errors=len(onc_parser.errors),
+            min_ghost_empty_ha=onc_parser.min_ghost_empty_ha,
+            #min_ghost_occ_ha=oncv_parser.min_ghost_occ_ha,
+            #ppgen_hint_low=hints["low"]["ecut"],
+            #ppgen_hint_normal=hints["normal"]["ecut"],
+            ppgen_hint_high=hints["high"]["ecut"],
+            ))
+
+    import pandas as pd
+    df = pd.DataFrame(rows)
+    df = df.sort_values(by='z')
+    from abipy.tools.printing import print_dataframe
+    print_dataframe(df)
+
+    return ierr
+
+
 def oncv_gui(options):
     """
     Start a panel web app to generate pseudopotentials.
@@ -276,8 +323,6 @@ def oncv_gui(options):
     serve_kwargs = cli.get_pn_serve_kwargs(options)
 
     return pn.serve(build, **serve_kwargs)
-
-
 
 
 def get_epilog() -> str:
@@ -315,6 +360,7 @@ def get_parser(with_epilog=False):
         return p
 
     copts_parser = get_copts_parser(multi=False)
+    copts_parser_multi = get_copts_parser(multi=True)
 
     # Parent parser for commands supporting MplExposer.
     plot_parser = argparse.ArgumentParser(add_help=False)
@@ -345,9 +391,12 @@ def get_parser(with_epilog=False):
                                           help=oncv_plot_pseudo.__doc__)
 
     # Subparser for compare command.
-    copts_parser_multi = get_copts_parser(multi=True)
     p_compare = subparsers.add_parser("compare", parents=[copts_parser_multi, plot_parser],
                                       help=oncv_compare.__doc__)
+
+    # Subparser for ghost command.
+    p_ghost = subparsers.add_parser("ghost", parents=[copts_parser],
+                                      help=oncv_ghost.__doc__)
 
     # notebook options.
     p_nb = subparsers.add_parser('notebook', parents=[copts_parser], help=oncv_notebook.__doc__)

@@ -28,8 +28,8 @@ def generate_deformations_volumic(structure, eps_V=0.02, scales=None):
 
     return structures_new
 
-def generate_deformations(structure , eps=0.005):
-    spgrp = AbinitSpaceGroup.from_structure(structure ) 
+def generate_deformations(structure, eps=0.005):
+    spgrp = AbinitSpaceGroup.from_structure(structure )
     print (spgrp)
     spgrp_number=spgrp.spgid
     rprim= structure.lattice.matrix
@@ -39,11 +39,11 @@ def generate_deformations(structure , eps=0.005):
     structures_new = {}
 
     if 1 <= spgrp_number <= 2:
-        disp=[[1,1,1,1,1,1],  [0,1,1,1,1,1],  [2,1,1,1,1,1],  [1,0,1,1,1,1],  [1,2,1,1,1,1],  [1,1,0,1,1,1],  
-              [1,1,2,1,1,1],  [1,1,1,0,1,1],  [1,1,1,2,1,1],  [1,1,1,1,0,1],  [1,1,1,1,2,1],  [1,1,1,1,1,0],  
-              [1,1,1,1,1,2],  [0,0,1,1,1,1],  [1,0,0,1,1,1],  [1,1,0,0,1,1],  [1,1,1,0,0,1],  [1,1,1,1,0,0],  
-              [0,1,0,1,1,1],  [0,1,1,0,1,1],  [0,1,1,1,0,1],  [0,1,1,1,1,0],  [1,0,1,0,1,1],  [1,0,1,1,0,1],  
-              [1,0,1,1,1,0],  [1,1,0,1,0,1],  [1,1,0,1,1,0],  [1,1,1,0,1,0] , [0 ,0,0,0,0,0]]  
+        disp=[[1,1,1,1,1,1],  [0,1,1,1,1,1],  [2,1,1,1,1,1],  [1,0,1,1,1,1],  [1,2,1,1,1,1],  [1,1,0,1,1,1],
+              [1,1,2,1,1,1],  [1,1,1,0,1,1],  [1,1,1,2,1,1],  [1,1,1,1,0,1],  [1,1,1,1,2,1],  [1,1,1,1,1,0],
+              [1,1,1,1,1,2],  [0,0,1,1,1,1],  [1,0,0,1,1,1],  [1,1,0,0,1,1],  [1,1,1,0,0,1],  [1,1,1,1,0,0],
+              [0,1,0,1,1,1],  [0,1,1,0,1,1],  [0,1,1,1,0,1],  [0,1,1,1,1,0],  [1,0,1,0,1,1],  [1,0,1,1,0,1],
+              [1,0,1,1,1,0],  [1,1,0,1,0,1],  [1,1,0,1,1,0],  [1,1,1,0,1,0] , [0 ,0,0,0,0,0]]
         if abs(rprim[1, 0]) > 1e-9 or abs(rprim[2, 0]) > 1e-9 or abs(rprim[2, 1]) > 1e-9:
             print("Warning: The lattice is oriented such that xz =xy =yz =0 .")
         rprim0 = np.copy(rprim)
@@ -59,12 +59,12 @@ def generate_deformations(structure , eps=0.005):
         cos_ac = np.dot(a, c) / (norm_a * norm_c)
         cos_bc = np.dot(b, c) / (norm_b * norm_c)
 
-        rprim0[0,0] = 1.0 
-        rprim0[0,1] = 0.0 
-        rprim0[0,2] = 0.0 
+        rprim0[0,0] = 1.0
+        rprim0[0,1] = 0.0
+        rprim0[0,2] = 0.0
         rprim0[1,0] = cos_ab
         rprim0[1,1] = np.sqrt(1-cos_ab**2)
-        rprim0[1,2] = 0.0 
+        rprim0[1,2] = 0.0
         rprim0[2,0] = cos_ac
         rprim0[2,1] = (cos_bc-rprim0[1,0]*rprim0[2,0])/rprim0[1,1]
         rprim0[2,2] = np.sqrt(1.0-rprim0[2,0]**2-rprim0[2,1]**2)
@@ -92,7 +92,7 @@ def generate_deformations(structure , eps=0.005):
 
             structure2=structure.copy()
             structure2.lattice=Lattice(rprim2)
-            structures_new[formatted_namei] = structure2 
+            structures_new[formatted_namei] = structure2
 
         return structures_new
     elif 3 <= spgrp_number <= 15:
@@ -116,7 +116,7 @@ def generate_deformations(structure , eps=0.005):
             cos_bc = np.dot(b, c) / (norm_b * norm_c)
 
             rprim0[0,0] = norm_a
-            rprim0[0,2] = 0.0 
+            rprim0[0,2] = 0.0
             rprim0[1,1] = norm_b
             rprim0[2,0] = norm_c*cos_ac
             rprim0[2,2] = norm_c*np.sqrt(1-cos_ac**2)
@@ -139,7 +139,7 @@ def generate_deformations(structure , eps=0.005):
 
             structure2=structure.copy()
             structure2.lattice=Lattice(rprim2)
-            structures_new[formatted_namei] = structure2 
+            structures_new[formatted_namei] = structure2
 
         return structures_new
     elif 16 <= spgrp_number <= 74:
@@ -157,7 +157,7 @@ def generate_deformations(structure , eps=0.005):
 
             structure2=structure.copy()
             structure2.lattice=Lattice(rprim2)
-            structures_new[formatted_namei] = structure2 
+            structures_new[formatted_namei] = structure2
 
         return structures_new
     elif 75 <= spgrp_number <= 194:
@@ -175,7 +175,7 @@ def generate_deformations(structure , eps=0.005):
 
             structure2=structure.copy()
             structure2.lattice=Lattice(rprim2)
-            structures_new[formatted_namei] = structure2 
+            structures_new[formatted_namei] = structure2
 
         return structures_new
     elif 195 <= spgrp_number <= 230:
@@ -188,6 +188,6 @@ def generate_deformations(structure , eps=0.005):
 
             structure2=structure.copy()
             structure2.lattice=Lattice(rprim2)
-            structures_new[formatted_namei] = structure2 
+            structures_new[formatted_namei] = structure2
         return structures_new
 

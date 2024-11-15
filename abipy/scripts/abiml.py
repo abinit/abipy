@@ -593,17 +593,29 @@ def scan_relax(ctx, filepath, nn_name,
 @click.option("--traj_range", type=str, show_default=True,
               help="Trajectory range e.g. `5` to select the first 5 iterations, `1:4` to select steps 1,2,3. `1:4:2 for 1,3",
               default=None)
+@click.option("--symbol", type=str, show_default=True,
+              help="Chemical symbol. If None all atoms are considered.",
+              default=None)
+@click.option('--stress/--no-stress', default=True, show_default=True, help="Show parity-plot for stress tensor")
+@click.option('--delta/--no-delta', default=False, show_default=True, help="Show parity-plot for delta mode")
+@click.option('--traj/--no-traj', default=False, show_default=True, help="Show results along trajectory")
 @click.option("-e", '--exposer', default="mpl", show_default=True, type=click.Choice(["mpl", "panel"]),
-              help='Plotting backend: mpl for matplotlib, panel for web-based, None to disable plotting')
+              help='Plotting backend: mpl for matplotlib, panel for web-based, None to disable plotting.')
 @add_nprocs_opt
 @add_workdir_verbose_opts
 @click.option('--config', default='abiml_validate.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
-def validate(ctx, filepaths,
+def validate(ctx,
+             filepaths,
              nn_names,
              traj_range,
+             symbol,
+             stress,
+             delta,
+             traj,
              exposer,
              nprocs,
-             workdir, verbose
+             workdir,
+             verbose
             ):
     """
     Compare ab-initio energies, forces, and stresses with ML-computed ones.
@@ -618,31 +630,37 @@ def validate(ctx, filepaths,
     traj_range = cli.range_from_str(traj_range)
     nn_names = _get_nn_names(nn_names)
     ml_comp = aseml.MlValidateWithAbinitio(filepaths, nn_names, traj_range, verbose, workdir, prefix="_abiml_validate_")
-    print(ml_comp)
+    #print(ml_comp)
     c = ml_comp.run(nprocs=nprocs)
 
+    show = False
     if exposer != "None":
-        show = True
-        show = False
-        with_stress = True
-        with_stress = False
-        on_traj = True
         from abipy.tools.plotting import Exposer
         with Exposer.as_exposer(exposer, title=" ".join(os.path.basename(p) for p in filepaths)) as e:
             e(c.plot_energies(show=show, savefig="energies.png"))
-            if on_traj:
+
+            if traj:
                 e(c.plot_energies_traj(delta_mode=True, show=show, savefig="energies_traj.png"))
-                e(c.plot_energies_traj(delta_mode=False, show=show, savefig="energies_traj_delta_mode.png"))
-            symbol = None
-            #symbol = "Li"
+                if delta:
+                    e(c.plot_energies_traj(delta_mode=False, show=show, savefig="energies_traj_delta_mode.png"))
+
             e(c.plot_forces(delta_mode=False, symbol=symbol, show=show, savefig="forces.png"))
-            e(c.plot_forces(delta_mode=True, symbol=symbol, show=show, savefig="forces_delta.png"))
-            if on_traj:
-                e(c.plot_forces_traj(delta_mode=True, show=show, savefig="forces_traj_delta_mode.png"))
-            if with_stress:
-                e(c.plot_stresses(delta_mode=True, show=show, savefig="stresses_delta_mode.png"))
-                if on_traj:
-                    e(c.plot_stress_traj(delta_mode=True, show=show, savefig="stress_traj_delta_mode.png"))
+            if delta:
+                e(c.plot_forces(delta_mode=True, symbol=symbol, show=show, savefig="forces_delta.png"))
+
+            if traj:
+                e(c.plot_forces_traj(delta_mode=False, show=show, savefig="forces_traj.png"))
+                if delta:
+                    e(c.plot_forces_traj(delta_mode=True, show=show, savefig="forces_traj_delta_mode.png"))
+
+            if stress:
+                e(c.plot_stresses(delta_mode=False, show=show, savefig="stresses.png"))
+                if delta:
+                    e(c.plot_stresses(delta_mode=True, show=show, savefig="stresses_delta_mode.png"))
+                if traj:
+                    e(c.plot_stress_traj(delta_mode=False, show=show, savefig="stress_traj.png"))
+                    if delta:
+                        e(c.plot_stress_traj(delta_mode=True, show=show, savefig="stress_traj_delta_mode.png"))
 
     return 0
 

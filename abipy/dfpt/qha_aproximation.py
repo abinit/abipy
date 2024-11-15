@@ -146,8 +146,8 @@ class QHA_App(metaclass=abc.ABCMeta):
         E2D_V = ( b0 / v0 * (-2.0 * (eta - 1) * eta ** -5.0 + (1 - 3.0 / 2.0 * (b1 - 1) * (eta - 1)) * eta ** -4.0) *
             np.exp(-3.0 * (b1 - 1.0) * (v ** (1.0 / 3.0) / v0 ** (1.0 / 3.0) - 1.0) / 2.0))
 
-        return E2D_V 
-#=============================================================================================    
+        return E2D_V
+#=============================================================================================
     def vol_E2Vib1(self, tstart=0, tstop=1000, num=101):
         """
         Compute the volume as a function of temperature using the E2Vib1 method with the Vinet equation of state.
@@ -190,7 +190,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         return vol, fits
 
-#=============================================================================================    
+#=============================================================================================
     def vol_Einf_Vib1(self, tstart=0, tstop=1000, num=101):
         """
         Compute the volume as a function of temperature using the EinfVib1 method with the Vinet equation of state.
@@ -235,7 +235,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         return vol, fits
 
-#=============================================================================================    
+#=============================================================================================
     def vol_Einf_Vib2(self, tstart=0, tstop=1000, num=101):
         """
         Compute the volume as a function of temperature using the EinfVib2 method with the Vinet equation of state.
@@ -276,7 +276,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         # Calculate total energies
         tot_en = ( self.energies[np.newaxis, :].T +fe_V0
-              +(self.volumes[np.newaxis, :].T - V0) * dfe_dV1 + 0.5 * (self.volumes[np.newaxis, :].T - V0)**2 * dfe_dV2) 
+              +(self.volumes[np.newaxis, :].T - V0) * dfe_dV1 + 0.5 * (self.volumes[np.newaxis, :].T - V0)**2 * dfe_dV2)
 
         # Fit the energies as a function of volume
         fits = [self.eos.fit(self.volumes, e) for e in tot_en.T]
@@ -322,12 +322,12 @@ class QHA_App(metaclass=abc.ABCMeta):
             dfe_dV3[i]=(e[iv0+2]-2*e[iv0+1]+2*e[iv0-1]-e[iv0-2])/(2*dV**3)
             dfe_dV4[i]=(e[iv0+2]-4*e[iv0+1]+6*e[iv0]-4*e[iv0-1]+e[iv0-2])/(dV**4)
 
-            fe_V0[i]= e[iv0] 
-        V0=volumes0[iv0] 
+            fe_V0[i]= e[iv0]
+        V0=volumes0[iv0]
 
         tot_en = (( volumes[np.newaxis, :].T -V0) * dfe_dV1  + 0.5* ( volumes[np.newaxis, :].T -V0)**2*(dfe_dV2)
                  +( volumes[np.newaxis, :].T -V0)**3 *dfe_dV3/6.0  + ( volumes[np.newaxis, :].T -V0)**4*(dfe_dV4/24.0)
-                 + fe_V0[:] +energies[np.newaxis, :].T  ) 
+                 + fe_V0[:] +energies[np.newaxis, :].T  )
 
         fits = [self.eos.fit(volumes, e) for e in tot_en.T]
         vol = np.array([fit.v0 for fit in fits])
@@ -356,7 +356,7 @@ class QHA_App(metaclass=abc.ABCMeta):
     @add_fig_kwargs
     def plot_energies(self, tstart=0, tstop=1000 ,num=1, ax=None, **kwargs):
         """
-        Plots the BO energy as a function of volume 
+        Plots the BO energy as a function of volume
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -556,21 +556,21 @@ class QHA_App(metaclass=abc.ABCMeta):
             data_to_save = np.column_stack((data_to_save,alpha_1))
             columns.append( 'E2vib1')
 
-        if (len(self.index_list)>=2): 
+        if (len(self.index_list)>=2):
             vol2 ,fits = self.vol_Einf_Vib1(num=num,tstop=tstop,tstart=tstart)
             E2D_V = self.second_derivative_energy_v(vol2)
             if (tref==None):
-                alpha_2 = - 1/vol2[:] * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:] 
+                alpha_2 = - 1/vol2[:] * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:]
             else:
                 vol2_ref,fits  = self.vol_Einf_Vib1(num=1,tstop=tref,tstart=tref)
                 b0 = np.array([fit.b0 for fit in fits])
                 print("B (Einfvib1) @ ",tref," K =",b0*160.21766208 ,"(GPa)" )
-                alpha_2 = - 1/vol2_ref * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:] 
+                alpha_2 = - 1/vol2_ref * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:]
             ax.plot(tmesh, alpha_2,color='gold', lw=2 ,  label=r"$E_\infty Vib1$")
             data_to_save = np.column_stack((data_to_save,alpha_2))
             columns.append( 'Einfvib1')
 
-        if (len(self.index_list)>=3): 
+        if (len(self.index_list)>=3):
             vol3,fits = self.vol_Einf_Vib2(num=num,tstop=tstop,tstart=tstart)
             E2D_V = self.second_derivative_energy_v(vol3)
             dfe_dV2= np.zeros( num)
@@ -580,17 +580,17 @@ class QHA_App(metaclass=abc.ABCMeta):
             ds_dv = (df_t[:,iv0+2]-df_t[:,iv0])/(2*dV)
             ds_dv = ds_dv+ (df_t[:,iv0+2]-2*df_t[:,iv0+1]+df_t[:,iv0])/dV**2 * (vol3[:]-volumes[iv0+1])
             if (tref==None):
-                alpha_3 = - 1/vol3[:] * ds_dv / (E2D_V[:]+dfe_dV2[:]) 
+                alpha_3 = - 1/vol3[:] * ds_dv / (E2D_V[:]+dfe_dV2[:])
             else:
                 vol3_ref,fits = self.vol_Einf_Vib2(num=1,tstop=tref,tstart=tref)
                 b0 = np.array([fit.b0 for fit in fits])
                 print("B (Einfvib2) @ ",tref," K =",b0*160.21766208 ,"(GPa)" )
-                alpha_3 = - 1/vol3_ref * ds_dv / (E2D_V[:]+dfe_dV2[:]) 
+                alpha_3 = - 1/vol3_ref * ds_dv / (E2D_V[:]+dfe_dV2[:])
             ax.plot(tmesh, alpha_3,color='m', lw=2 ,  label=r"$E_\infty Vib2$")
             data_to_save = np.column_stack((data_to_save,alpha_3))
             columns.append( 'Einfvib2')
 
-        if (len(self.index_list)==5): 
+        if (len(self.index_list)==5):
             alpha_qha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
             vol4,fits = self.vol_Einf_Vib4(num=num,tstop=tstop,tstart=tstart)
             E2D_V = self.second_derivative_energy_v(vol4)
@@ -609,12 +609,12 @@ class QHA_App(metaclass=abc.ABCMeta):
             ds_dv = ds_dv+ 1.0/6.0* (df_t[:,4]-4*df_t[:,3]+6*df_t[:,2]-4*df_t[:,1]+df_t[:,0])/(dV**4)* (vol4[:]-volumes[2])**3
             D2F=E2D_V[:]+d2fe_dV2[:]+ (vol4[:]-volumes[2])*d3fe_dV3[:]+0.5*(vol4[:]-volumes[2])**2*d4fe_dV4[:]
             if (tref==None):
-                alpha_4 = - 1/vol4[:] * ds_dv / D2F 
+                alpha_4 = - 1/vol4[:] * ds_dv / D2F
             else:
                 vol4_ref,fits = self.vol_Einf_Vib4(num=1,tstop=tref,tstart=tref)
                 b0 = np.array([fit.b0 for fit in fits])
                 print("B (Einfvib4) @ ",tref," K =",b0*160.21766208 ,"(GPa)" )
-                alpha_4 = - 1/vol4_ref * ds_dv / D2F 
+                alpha_4 = - 1/vol4_ref * ds_dv / D2F
 
             ax.plot(tmesh, alpha_4,color='c',linewidth=2 ,  label=r"$E_\infty Vib4$")
             ax.plot(alpha_qha.mesh, alpha_qha.values, color='k',linestyle='dashed', lw=1.5 ,label="QHA")
@@ -716,20 +716,20 @@ class QHA_App(metaclass=abc.ABCMeta):
             if (tref!=None):
                 vol2_tref,fits = self.vol_E2Vib1(num=1,tstop=tref,tstart=tref)
 
-        if (len(self.index_list)==2): 
+        if (len(self.index_list)==2):
             vol ,fits = self.vol_Einf_Vib1(num=num,tstop=tstop,tstart=tstart)
             if (tref!=None):
                 vol_tref,fits  = self.vol_Einf_Vib1(num=1,tstop=tref,tstart=tref)
             method =r"$ (E_\infty Vib1)$"
 
-        if (len(self.index_list)==3): 
+        if (len(self.index_list)==3):
             vol,fits = self.vol_Einf_Vib2(num=num,tstop=tstop,tstart=tstart)
             if (tref!=None):
                 vol_tref,fits = self.vol_Einf_Vib2(num=1,tstop=tref,tstart=tref)
             method =r"$ (E_\infty Vib2)$"
 
-        if (len(self.index_list)==5): 
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies 
+        if (len(self.index_list)==5):
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
             f0 = self.fit_tot_energies(tstart, tstop, num,tot_en , self.volumes_from_phdos)
             method =r"$ (E_\infty Vib4)$"
             vol,fits = self.vol_Einf_Vib4(num=num,tstop=tstop,tstart=tstart)
@@ -752,7 +752,7 @@ class QHA_App(metaclass=abc.ABCMeta):
             alpha_b = (bb[2:] - bb[:-2]) / (2 * dt) / bb[1:-1]
             alpha_c = (cc[2:] - cc[:-2]) / (2 * dt) / cc[1:-1]
         else:
-            alpha_a = (aa[2:] - aa[:-2]) / (2 * dt) / aa_tref 
+            alpha_a = (aa[2:] - aa[:-2]) / (2 * dt) / aa_tref
             alpha_b = (bb[2:] - bb[:-2]) / (2 * dt) / bb_tref
             alpha_c = (cc[2:] - cc[:-2]) / (2 * dt) / cc_tref
 
@@ -777,7 +777,7 @@ class QHA_App(metaclass=abc.ABCMeta):
                 alpha2_b = (bb2[2:] - bb2[:-2]) / (2 * dt) / bb2[1:-1]
                 alpha2_c = (cc2[2:] - cc2[:-2]) / (2 * dt) / cc2[1:-1]
             else:
-                alpha2_a = (aa2[2:] - aa2[:-2]) / (2 * dt) / aa2_tref 
+                alpha2_a = (aa2[2:] - aa2[:-2]) / (2 * dt) / aa2_tref
                 alpha2_b = (bb2[2:] - bb2[:-2]) / (2 * dt) / bb2_tref
                 alpha2_c = (cc2[2:] - cc2[:-2]) / (2 * dt) / cc2_tref
 
@@ -825,20 +825,20 @@ class QHA_App(metaclass=abc.ABCMeta):
             if (tref!=None):
                 vol2_tref,fits = self.vol_E2Vib1(num=1,tstop=tref,tstart=tref)
 
-        if (len(self.index_list)==2): 
+        if (len(self.index_list)==2):
             vol ,fits = self.vol_Einf_Vib1(num=num,tstop=tstop,tstart=tstart)
             if (tref!=None):
                 vol_tref,fits  = self.vol_Einf_Vib1(num=1,tstop=tref,tstart=tref)
             method =r"$ (E_\infty Vib1)$"
 
-        if (len(self.index_list)==3): 
+        if (len(self.index_list)==3):
             vol,fits = self.vol_Einf_Vib2(num=num,tstop=tstop,tstart=tstart)
             if (tref!=None):
                 vol_tref,fits = self.vol_Einf_Vib2(num=1,tstop=tref,tstart=tref)
             method =r"$ (E_\infty Vib2)$"
 
-        if (len(self.index_list)==5): 
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies 
+        if (len(self.index_list)==5):
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
             f0 = self.fit_tot_energies(tstart, tstop, num,tot_en , self.volumes_from_phdos)
             method =r"$ (E_\infty Vib4)$"
             vol,fits = self.vol_Einf_Vib4(num=num,tstop=tstop,tstart=tstart)
@@ -861,7 +861,7 @@ class QHA_App(metaclass=abc.ABCMeta):
             alpha_beta = (beta[2:] - beta[:-2]) / (2 * dt) / beta[1:-1]
             alpha_gamma = (cc[2:] - cc[:-2]) / (2 * dt) / cc[1:-1]
         else:
-            alpha_alpha = (alpha[2:] - alpha[:-2]) / (2 * dt) / alpha_tref 
+            alpha_alpha = (alpha[2:] - alpha[:-2]) / (2 * dt) / alpha_tref
             alpha_beta = (beta[2:] - beta[:-2]) / (2 * dt) / beta_tref
             alpha_gamma = (cc[2:] - cc[:-2]) / (2 * dt) / cc_tref
 
@@ -886,7 +886,7 @@ class QHA_App(metaclass=abc.ABCMeta):
                 alpha2_beta = (beta2[2:] - beta2[:-2]) / (2 * dt) / beta2[1:-1]
                 alpha2_gamma = (cc2[2:] - cc2[:-2]) / (2 * dt) / cc2[1:-1]
             else:
-                alpha2_alpha = (alpha2[2:] - alpha2[:-2]) / (2 * dt) / alpha2_tref 
+                alpha2_alpha = (alpha2[2:] - alpha2[:-2]) / (2 * dt) / alpha2_tref
                 alpha2_beta = (beta2[2:] - beta2[:-2]) / (2 * dt) / beta2_tref
                 alpha2_gamma = (cc2[2:] - cc2[:-2]) / (2 * dt) / cc2_tref
 
@@ -936,16 +936,16 @@ class QHA_App(metaclass=abc.ABCMeta):
             data_to_save = np.column_stack((data_to_save,aa2,bb2,cc2))
             columns.append( 'E2vib1 (a,b,c) |            ')
 
-        if (len(self.index_list)==2): 
+        if (len(self.index_list)==2):
             vol ,fits = self.vol_Einf_Vib1(num=num,tstop=tstop,tstart=tstart)
             method =r"$ (E_\infty Vib1)$"
 
-        if (len(self.index_list)==3): 
+        if (len(self.index_list)==3):
             vol,fits = self.vol_Einf_Vib2(num=num,tstop=tstop,tstart=tstart)
             method =r"$ (E_\infty Vib2)$"
 
-        if (len(self.index_list)==5): 
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies 
+        if (len(self.index_list)==5):
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
             f0 = self.fit_tot_energies(tstart, tstop, num,tot_en , self.volumes_from_phdos)
             method =r"$ (E_\infty Vib4)$"
             vol,fits = self.vol_Einf_Vib4(num=num,tstop=tstop,tstart=tstart)
@@ -1009,16 +1009,16 @@ class QHA_App(metaclass=abc.ABCMeta):
             data_to_save = np.column_stack((data_to_save,alpha2,beta2,gamma2))
             columns.append( 'E2vib1 (alpha,beta,gamma) |            ')
 
-        if (len(self.index_list)==2): 
+        if (len(self.index_list)==2):
             vol ,fits = self.vol_Einf_Vib1(num=num,tstop=tstop,tstart=tstart)
             method =r"$ (E_\infty Vib1)$"
 
-        if (len(self.index_list)==3): 
+        if (len(self.index_list)==3):
             vol,fits = self.vol_Einf_Vib2(num=num,tstop=tstop,tstart=tstart)
             method =r"$ (E_\infty Vib2)$"
 
-        if (len(self.index_list)==5): 
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies 
+        if (len(self.index_list)==5):
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
             f0 = self.fit_tot_energies(tstart, tstop, num,tot_en , self.volumes_from_phdos)
             method =r"$ (E_\infty Vib4)$"
             vol,fits = self.vol_Einf_Vib4(num=num,tstop=tstop,tstart=tstart)
@@ -1102,9 +1102,9 @@ class QHA_App(metaclass=abc.ABCMeta):
         iv1=self.iv1_vib
 
         dV=volumes0[iv1]-volumes0[iv0]
-        V0=self.volumes[self.iv0] 
+        V0=self.volumes[self.iv0]
 
-        energy = self.energies[np.newaxis, :].T 
+        energy = self.energies[np.newaxis, :].T
         f=self.fit_forth( tstart=0, tstop=0, num=1 ,energy=energy,volumes=self.volumes)
         param3 = np.zeros((num,3))
         param3=np.array([12*f.param[0][0],6*f.param[0][1],2*f.param[0][2]])
@@ -1118,7 +1118,7 @@ class QHA_App(metaclass=abc.ABCMeta):
             dfe_dV1=(e[iv1]-e[iv0])/dV
             vol[i]=V0-dfe_dV1*E2D**-1
 
-        return vol 
+        return vol
 
     def vol_EinfVib1_forth(self, tstart=0, tstop=1000, num=101):
         """
@@ -1133,7 +1133,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         dV=volumes0[iv1]-volumes0[iv0]
 
-        energy = self.energies[np.newaxis, :].T 
+        energy = self.energies[np.newaxis, :].T
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
         vol = np.zeros( num)
 
@@ -1167,18 +1167,18 @@ class QHA_App(metaclass=abc.ABCMeta):
         fe_V0= np.zeros( num)
         if (len(self.index_list)==5):
             iv0=2
-        else : 
+        else :
             iv0=1
         dV=volumes0[iv0]-volumes0[iv0-1]
-        V0=volumes0[iv0] 
+        V0=volumes0[iv0]
         for i,e in enumerate(ph_energies.T):
             dfe_dV[i]=(e[iv0+1]-e[iv0-1])/(2*dV)
             d2fe_dV2[i]=(e[iv0+1]-2.0*e[iv0]+e[iv0-1])/(dV)**2
-            fe_V0[i]= e[iv0] 
+            fe_V0[i]= e[iv0]
 
-        tot_en = self.energies[np.newaxis, :].T + ( self.volumes[np.newaxis, :].T -V0) * dfe_dV  
+        tot_en = self.energies[np.newaxis, :].T + ( self.volumes[np.newaxis, :].T -V0) * dfe_dV
         tot_en  = tot_en + 0.5* (( self.volumes[np.newaxis, :].T -V0))**2*(d2fe_dV2)
-        tot_en = tot_en+ fe_V0 
+        tot_en = tot_en+ fe_V0
         f=self.fit_forth( tstart, tstop, num ,tot_en,self.volumes)
         vol=f.min_vol
 
@@ -1214,12 +1214,12 @@ class QHA_App(metaclass=abc.ABCMeta):
             dfe_dV3[i]=(e[iv0+2]-2*e[iv0+1]+2*e[iv0-1]-e[iv0-2])/(2*dV**3)
             dfe_dV4[i]=(e[iv0+2]-4*e[iv0+1]+6*e[iv0]-4*e[iv0-1]+e[iv0-2])/(dV**4)
 
-            fe_V0[i]= e[iv0] 
-        V0=volumes0[iv0] 
+            fe_V0[i]= e[iv0]
+        V0=volumes0[iv0]
 
         tot_en = ( volumes[np.newaxis, :].T -V0) * dfe_dV1  + 0.5* ( volumes[np.newaxis, :].T -V0)**2*(dfe_dV2)
         tot_en =  tot_en+( volumes[np.newaxis, :].T -V0)**3 *dfe_dV3/6  +  ( volumes[np.newaxis, :].T -V0)**4*(dfe_dV4/24)
-        tot_en  = tot_en + fe_V0 +energies[np.newaxis, :].T   
+        tot_en  = tot_en + fe_V0 +energies[np.newaxis, :].T
 
         f=self.fit_forth( tstart, tstop, num ,tot_en,self.volumes)
         vol=f.min_vol
@@ -1254,20 +1254,20 @@ class QHA_App(metaclass=abc.ABCMeta):
             data_to_save = np.column_stack((data_to_save,vol_4th))
             columns.append( 'E2vib1')
 
-        if (len(self.index_list)>=2): 
+        if (len(self.index_list)>=2):
             vol2_4th = self.vol_EinfVib1_forth(num=num,tstop=tstop,tstart=tstart)
             ax.plot(tmesh, vol2_4th,color='gold', lw=2 ,  label=r"$E_\infty Vib1$")
             data_to_save = np.column_stack((data_to_save,vol2_4th))
             columns.append( 'Einfvib1')
 
-        if (len(self.index_list)>=3): 
+        if (len(self.index_list)>=3):
             vol3_4th = self.vol_Einf_Vib2_forth(num=num,tstop=tstop,tstart=tstart)
             ax.plot(tmesh, vol3_4th,color='m', lw=2 , label=r"$E_\infty Vib2$")
             data_to_save = np.column_stack((data_to_save,vol3_4th))
             columns.append( 'Einfvib2')
 
-        if (len(self.index_list)==5): 
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies 
+        if (len(self.index_list)==5):
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
             f0 = self.fit_forth( tstart, tstop, num ,tot_en,volumes)
             vol4_4th = self.vol_Einf_Vib4_forth(num=num,tstop=tstop,tstart=tstart)
             ax.plot(tmesh, vol4_4th,color='c', lw=2  ,label=r"$E_\infty Vib4$")
@@ -1301,11 +1301,11 @@ class QHA_App(metaclass=abc.ABCMeta):
         Returns: |Function1D|
         """
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
-        tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies 
+        tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
         f = self.fit_forth( tstart, tstop, num ,tot_en,self.volumes_from_phdos)
         if (tref!=None):
             ph_energies2 = self.get_vib_free_energies(tref, tref, 1)
-            tot_en2 = self.energies_pdos[np.newaxis, :].T + ph_energies2 
+            tot_en2 = self.energies_pdos[np.newaxis, :].T + ph_energies2
             f0 = self.fit_forth(tref, tref , 1 ,tot_en2 , self.volumes_from_phdos)
 
         dt = f.temp[1] - f.temp[0]
@@ -1324,12 +1324,12 @@ class QHA_App(metaclass=abc.ABCMeta):
             param2[j] = np.array([3*param[j][0],2*param[j][1],param[j][2]])
 
             p = np.poly1d(param2[j])
-            d2f_t_v[j]= p(f.min_vol[j]) 
+            d2f_t_v[j]= p(f.min_vol[j])
 
         F2D = f.F2D_V
         if (tref==None):
-            #alpha= - 1/f.min_vol[1:-1] *d2f_t_v[1:-1] / F2D[1:-1] 
-            alpha= - 1/f.min_vol *d2f_t_v / F2D 
+            #alpha= - 1/f.min_vol[1:-1] *d2f_t_v[1:-1] / F2D[1:-1]
+            alpha= - 1/f.min_vol *d2f_t_v / F2D
         else :
             #alpha= - 1/f0.min_vol * d2f_t_v[1:-1] / F2D[1:-1]
             alpha= - 1/f0.min_vol * d2f_t_v / F2D
@@ -1363,7 +1363,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         iv0=self.iv0_vib
         iv1=self.iv1_vib
         dV=volumes[iv0+1]-volumes[iv0]
-        energy = self.energies[np.newaxis, :].T 
+        energy = self.energies[np.newaxis, :].T
         f=self.fit_forth( tstart=0, tstop=0, num=1 ,energy=energy,volumes=self.volumes)
         param3 = np.zeros((num,3))
         param3=np.array([12*f.param[0][0],6*f.param[0][1],2*f.param[0][2]])
@@ -1381,20 +1381,20 @@ class QHA_App(metaclass=abc.ABCMeta):
             data_to_save = np.column_stack((data_to_save,alpha_1))
             columns.append( 'E2vib1')
 
-        if (len(self.index_list)>=2): 
+        if (len(self.index_list)>=2):
             vol2_4th = self.vol_EinfVib1_forth(num=num,tstop=tstop,tstart=tstart)
             #E2D_V = self.second_derivative_energy_v(vol2)
             E2D_V = p3(vol2_4th)
             if (tref==None):
-                alpha_2 = - 1/vol2_4th[:] * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:] 
+                alpha_2 = - 1/vol2_4th[:] * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:]
             else :
                 vol2_4th_ref = self.vol_EinfVib1_forth(num=1,tstop=tref,tstart=tref)
-                alpha_2 = - 1/vol2_4th_ref * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:] 
+                alpha_2 = - 1/vol2_4th_ref * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:]
             ax.plot(tmesh, alpha_2,color='gold', lw=2 ,  label=r"$E_\infty Vib1$")
             data_to_save = np.column_stack((data_to_save,alpha_2))
             columns.append( 'Einfvib1')
 
-        if (len(self.index_list)>=3): 
+        if (len(self.index_list)>=3):
             vol3_4th = self.vol_Einf_Vib2_forth(num=num,tstop=tstop,tstart=tstart)
             E2D_V = p3(vol3_4th)
             dfe_dV2= np.zeros( num)
@@ -1404,15 +1404,15 @@ class QHA_App(metaclass=abc.ABCMeta):
             ds_dv = (df_t[:,iv0+2]-df_t[:,iv0])/(2*dV)
             ds_dv = ds_dv+ (df_t[:,iv0+2]-2*df_t[:,iv0+1]+df_t[:,iv0])/dV**2 * (vol3_4th[:]-volumes[iv0+1])
             if (tref==None):
-                alpha_3 = - 1/vol3_4th[:] * ds_dv / (E2D_V[:]+dfe_dV2[:]) 
+                alpha_3 = - 1/vol3_4th[:] * ds_dv / (E2D_V[:]+dfe_dV2[:])
             else :
                 vol3_4th_ref = self.vol_Einf_Vib2_forth(num=1,tstop=tref,tstart=tref)
-                alpha_3 = - 1/vol3_4th_ref * ds_dv / (E2D_V[:]+dfe_dV2[:]) 
+                alpha_3 = - 1/vol3_4th_ref * ds_dv / (E2D_V[:]+dfe_dV2[:])
             ax.plot(tmesh, alpha_3,color='m', lw=2 ,  label=r"$E_\infty Vib2$")
             data_to_save = np.column_stack((data_to_save,alpha_3))
             columns.append( 'Einfvib2')
 
-        if (len(self.index_list)==5): 
+        if (len(self.index_list)==5):
             vol4_4th = self.vol_Einf_Vib4_forth(num=num,tstop=tstop,tstart=tstart)
             E2D_V = p3(vol4_4th)
 
@@ -1430,10 +1430,10 @@ class QHA_App(metaclass=abc.ABCMeta):
             ds_dv = ds_dv+ 1.0/6.0* (df_t[:,4]-4*df_t[:,3]+6*df_t[:,2]-4*df_t[:,1]+df_t[:,0])/(dV**4)* (vol4_4th[:]-volumes[2])**3
             D2F=E2D_V[:]+d2fe_dV2[:]+ (vol4_4th[:]-volumes[2])*d3fe_dV3[:]+0.5*(vol4_4th[:]-volumes[2])**2*d4fe_dV4[:]
             if (tref==None):
-                alpha_4 = - 1/vol4_4th[:] * ds_dv / D2F 
+                alpha_4 = - 1/vol4_4th[:] * ds_dv / D2F
             else :
                 vol4_4th_ref = self.vol_Einf_Vib4_forth(num=1,tstop=tref,tstart=tref)
-                alpha_4 = - 1/vol4_4th_ref * ds_dv / D2F 
+                alpha_4 = - 1/vol4_4th_ref * ds_dv / D2F
 
 
             ax.plot(tmesh, alpha_4,color='c',linewidth=2 ,  label=r"$E_\infty Vib4$")
@@ -1485,16 +1485,16 @@ class QHA_App(metaclass=abc.ABCMeta):
             data_to_save = np.column_stack((data_to_save,aa2,bb2,cc2))
             columns.append( 'E2vib1 (a,b,c) |            ')
 
-        if (len(self.index_list)==2): 
+        if (len(self.index_list)==2):
             vol = self.vol_EinfVib1_forth(num=num,tstop=tstop,tstart=tstart)
             method =r"$ (E_\infty Vib1)$"
 
-        if (len(self.index_list)==3): 
+        if (len(self.index_list)==3):
             vol = self.vol_Einf_Vib2_forth(num=num,tstop=tstop,tstart=tstart)
             method =r"$ (E_\infty Vib2)$"
 
-        if (len(self.index_list)==5): 
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies 
+        if (len(self.index_list)==5):
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
             f0 = self.fit_forth( tstart, tstop, num ,tot_en,volumes)
             method =r"$ (E_\infty Vib4)$"
             vol = self.vol_Einf_Vib4_forth(num=num,tstop=tstop,tstart=tstart)
@@ -1558,16 +1558,16 @@ class QHA_App(metaclass=abc.ABCMeta):
             data_to_save = np.column_stack((data_to_save,alpha2,beta2,gamma2))
             columns.append( 'E2vib1 (alpha,beta,gamma) |            ')
 
-        if (len(self.index_list)==2): 
+        if (len(self.index_list)==2):
             vol = self.vol_EinfVib1_forth(num=num,tstop=tstop,tstart=tstart)
             method =r"$ (E_\infty Vib1)$"
 
-        if (len(self.index_list)==3): 
+        if (len(self.index_list)==3):
             vol = self.vol_Einf_Vib2_forth(num=num,tstop=tstop,tstart=tstart)
             method =r"$ (E_\infty Vib2)$"
 
-        if (len(self.index_list)==5): 
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies 
+        if (len(self.index_list)==5):
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
             f0 = self.fit_forth( tstart, tstop, num ,tot_en,volumes)
             method =r"$ (E_\infty Vib4)$"
             vol = self.vol_Einf_Vib4_forth(num=num,tstop=tstop,tstart=tstart)
@@ -1630,20 +1630,20 @@ class QHA_App(metaclass=abc.ABCMeta):
             if (tref!=None):
                 vol2_tref = self.vol_E2Vib1_forth(num=1,tstop=tref,tstart=tref)
 
-        if (len(self.index_list)==2): 
+        if (len(self.index_list)==2):
             vol = self.vol_EinfVib1_forth(num=num,tstop=tstop,tstart=tstart)
             if (tref!=None):
                 vol_tref = self.vol_EinfVib1_forth(num=1,tstop=tref,tstart=tref)
             method =r"$ (E_\infty Vib1)$"
 
-        if (len(self.index_list)==3): 
+        if (len(self.index_list)==3):
             vol = self.vol_Einf_Vib2_forth(num=num,tstop=tstop,tstart=tstart)
             if (tref!=None):
                 vol_tref = self.vol_Einf_Vib2_forth(num=1,tstop=tref,tstart=tref)
             method =r"$ (E_\infty Vib2)$"
 
-        if (len(self.index_list)==5): 
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies 
+        if (len(self.index_list)==5):
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
             f0 = self.fit_forth( tstart, tstop, num ,tot_en,volumes)
             method =r"$ (E_\infty Vib4)$"
             vol = self.vol_Einf_Vib4_forth(num=num,tstop=tstop,tstart=tstart)
@@ -1666,7 +1666,7 @@ class QHA_App(metaclass=abc.ABCMeta):
             alpha_b = (bb[2:] - bb[:-2]) / (2 * dt) / bb[1:-1]
             alpha_c = (cc[2:] - cc[:-2]) / (2 * dt) / cc[1:-1]
         else:
-            alpha_a = (aa[2:] - aa[:-2]) / (2 * dt) / aa_tref 
+            alpha_a = (aa[2:] - aa[:-2]) / (2 * dt) / aa_tref
             alpha_b = (bb[2:] - bb[:-2]) / (2 * dt) / bb_tref
             alpha_c = (cc[2:] - cc[:-2]) / (2 * dt) / cc_tref
 
@@ -1691,7 +1691,7 @@ class QHA_App(metaclass=abc.ABCMeta):
                 alpha2_b = (bb2[2:] - bb2[:-2]) / (2 * dt) / bb2[1:-1]
                 alpha2_c = (cc2[2:] - cc2[:-2]) / (2 * dt) / cc2[1:-1]
             else:
-                alpha2_a = (aa2[2:] - aa2[:-2]) / (2 * dt) / aa2_tref 
+                alpha2_a = (aa2[2:] - aa2[:-2]) / (2 * dt) / aa2_tref
                 alpha2_b = (bb2[2:] - bb2[:-2]) / (2 * dt) / bb2_tref
                 alpha2_c = (cc2[2:] - cc2[:-2]) / (2 * dt) / cc2_tref
 
@@ -1739,20 +1739,20 @@ class QHA_App(metaclass=abc.ABCMeta):
             if (tref!=None):
                 vol2_tref = self.vol_E2Vib1_forth(num=1,tstop=tref,tstart=tref)
 
-        if (len(self.index_list)==2): 
+        if (len(self.index_list)==2):
             vol = self.vol_EinfVib1_forth(num=num,tstop=tstop,tstart=tstart)
             if (tref!=None):
                 vol_tref = self.vol_EinfVib1_forth(num=1,tstop=tref,tstart=tref)
             method =r"$ (E_\infty Vib1)$"
 
-        if (len(self.index_list)==3): 
+        if (len(self.index_list)==3):
             vol = self.vol_Einf_Vib2_forth(num=num,tstop=tstop,tstart=tstart)
             if (tref!=None):
                 vol_tref = self.vol_Einf_Vib2_forth(num=1,tstop=tref,tstart=tref)
             method =r"$ (E_\infty Vib2)$"
 
-        if (len(self.index_list)==5): 
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies 
+        if (len(self.index_list)==5):
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
             f0 = self.fit_forth( tstart, tstop, num ,tot_en,volumes)
             method =r"$ (E_\infty Vib4)$"
             vol = self.vol_Einf_Vib4_forth(num=num,tstop=tstop,tstart=tstart)
@@ -1774,7 +1774,7 @@ class QHA_App(metaclass=abc.ABCMeta):
             alpha_beta = (beta[2:] - beta[:-2]) / (2 * dt) / beta[1:-1]
             alpha_gamma = (gamma[2:] - gamma[:-2]) / (2 * dt) / gamma[1:-1]
         else:
-            alpha_alpha = (alpha[2:] - alpha[:-2]) / (2 * dt) / alpha_tref 
+            alpha_alpha = (alpha[2:] - alpha[:-2]) / (2 * dt) / alpha_tref
             alpha_beta = (beta[2:] - beta[:-2]) / (2 * dt) / beta_tref
             alpha_gamma = (gamma[2:] - gamma[:-2]) / (2 * dt) / gamma_tref
 
@@ -1799,7 +1799,7 @@ class QHA_App(metaclass=abc.ABCMeta):
                 alpha2_beta = (beta2[2:] - beta2[:-2]) / (2 * dt) / beta2[1:-1]
                 alpha2_gamma = (gamma2[2:] - gamma2[:-2]) / (2 * dt) / gamma2[1:-1]
             else:
-                alpha2_alpha = (alpha2[2:] - alpha2[:-2]) / (2 * dt) / alpha2_tref 
+                alpha2_alpha = (alpha2[2:] - alpha2[:-2]) / (2 * dt) / alpha2_tref
                 alpha2_beta = (beta2[2:] - beta2[:-2]) / (2 * dt) / beta2_tref
                 alpha2_gamma = (gamma2[2:] - gamma2[:-2]) / (2 * dt) / gamma2_tref
 
@@ -1918,7 +1918,7 @@ class QHA_App(metaclass=abc.ABCMeta):
             zpe[i] = d.zero_point_energy
 
         return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy, zpe=zpe)
-#=======================================================================================================    
+#=======================================================================================================
     @classmethod
     def from_files_app_ddb(cls, ddb_paths, phdos_paths):
         """

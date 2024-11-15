@@ -826,7 +826,7 @@ def main():
                 linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
                 ax.legend(loc="best", shadow=True, fontsize=fontsize)
                 ax.grid(True)
-                s_tex = "$\sigma_{%s}$" % voigt_comp
+                s_tex = r"$\sigma_{%s}$" % voigt_comp
                 if icol == 0:
                     ax.set_ylabel(f"{key2} {s_tex}", fontsize=fontsize)
                 if irow == (len(self.ALL_VOIGT_COMPS) - 1):
@@ -865,11 +865,11 @@ def main():
                 ax.plot(e2, marker="o", color="blue", label=key2, markersize=markersize)
 
             set_grid_legend(ax, fontsize, xlabel='trajectory',
-                            ylabel="$|\Delta_E|$" if delta_mode else "$E$",
+                            ylabel=r"$|\Delta_E|$" if delta_mode else "$E$",
                             grid=True, legend_loc="upper left",
                             title=f"{key1}/{key2} MAE: {stats.MAE:.6f} eV")
 
-        head = "$\Delta$-Energy in eV" if delta_mode else "Energy in eV"
+        head = r"$\Delta$-Energy in eV" if delta_mode else "Energy in eV"
         if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
 
         return fig
@@ -941,7 +941,7 @@ def main():
                                 grid=True, legend=not delta_mode, legend_loc="upper left",
                                 ylabel=f"$|\Delta {fp_tex}|$" if delta_mode else f"${fp_tex}$")
 
-        head = "$\Delta$-forces in eV/Ang" if delta_mode else "Forces in eV/Ang"
+        head = r"$\Delta$-forces in eV/Ang" if delta_mode else r"Forces in eV/Ang"
         if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
 
         return fig
@@ -987,7 +987,7 @@ def main():
 
                 set_grid_legend(ax, fontsize, xlabel='trajectory' if last_row else None,
                                 grid=True, legend=not delta_mode, legend_loc="upper left",
-                                ylabel=f"$|\Delta \sigma_{voigt_comp_tex}|$ " if delta_mode else "$\sigma$ ")
+                                ylabel=f"$|\Delta \sigma_{voigt_comp_tex}|$ " if delta_mode else r"$\sigma$ ")
 
         head = r"$\Delta \sigma$ (eV/Ang$^3$)" if delta_mode else "Stress tensor (eV/Ang$^3$)"
         if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")

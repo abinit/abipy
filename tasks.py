@@ -23,11 +23,11 @@ def make_doc(ctx):
         open_doc(ctx)
 
 
-@task
-def push_doc(ctx):
-    make_doc(ctx)
-    with cd(DOCS_DIR):
-        ctx.run("./ghp_import.py _build/html/ -n -p")
+#@task
+#def push_doc(ctx):
+#    make_doc(ctx)
+#    with cd(DOCS_DIR):
+#        ctx.run("./ghp_import.py _build/html/ -n -p")
 
 
 @task

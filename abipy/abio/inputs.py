@@ -675,7 +675,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             # DTE run.
             runlevel.add(atags.DFPT)
             runlevel.add(atags.DTE)
-    
+
         elif optdriver == 99:
             # BSE run
             runlevel.update([atags.MANY_BODY, atags.BSE])
@@ -1502,7 +1502,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         new.set_vars(*args, **kwargs)
         return new
 
-    def new_with_structure(self, new_structure, scdims=None, verbose=1) -> AbinitInput:
+    def new_with_structure(self, new_structure, scdims=None, verbose=1, **abi_vars) -> AbinitInput:
         """
         Return a new |AbinitInput| with a different structure.
         See notes below for the constraints that must be fulfilled by the new structure
@@ -1514,6 +1514,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 Must be used when `new_structure` represents a supercell of the initial structure defined
                 in the input file.
             verbose: Verbosity level.
+            abi_vars: Abinit variables added to the Abinit input.
 
         .. warning::
 
@@ -1522,11 +1523,15 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             When structure represents a supercell, `scdims` must be coherent with the `new_structure` passed
             as argument.
         """
+        new_structure = Structure.as_structure(new_structure)
+
         # Check structure
         if scdims is None:
             # Assume same value of natom and typat
             if len(self.structure) != len(new_structure):
-                raise ValueError("Structures must have same value of natom")
+                raise ValueError(f"Structures must have same value of natom." +
+                                 f"new_structure has {len(new_structure)} atoms." +
+                                 f"input.structure has {len(self.structure)}")
             errors = []
             for i, (site1, site2) in enumerate(zip(self.structure, new_structure)):
                 if site1.specie.symbol != site2.specie.symbol:
@@ -1609,6 +1614,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
             # Add chkprim if not yet done.
             new.set_vars_ifnotin(chkprim=0)
+
+        new.set_vars(**abi_vars)
 
         return new
 
@@ -1929,7 +1936,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
     def make_ddkpert_input(self, perturbation, kptopt=2, only_vk=False, use_symmetries=False, tolerance=None, manager=None) -> AbinitInput:
         """
         Returns |AbinitInput| for the calculation of an electric field perturbation.
-        This function should be called with an input that represents a GS run and 
+        This function should be called with an input that represents a GS run and
         an electric field perturbation.
 
         Args:
@@ -1973,7 +1980,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         if only_vk:
             inp.set_vars(nstep=1, nline=1)
-        
+
         # TODO: to implement
         #if not use_symmetries:
         #    inp.set_vars(
@@ -2073,11 +2080,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         dkdk_input.set_vars(tolerance)
 
         return dkdk_input
-    
+
     def make_ddepert_input(self, perturbation, use_symmetries=True, tolerance=None, manager=None) -> AbinitInput:
         """
         Returns |AbinitInput| for the calculation of an electric field perturbation.
-        This function should be called with an input that represents a GS run and 
+        This function should be called with an input that represents a GS run and
         an electric field perturbation.
 
         Args:
@@ -2111,7 +2118,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             qpt=(0, 0, 0),  # q-wavevector.
             kptopt=2,       # Take into account time-reversal symmetry.
         )
-        
+
         if not use_symmetries:
             inp.set_vars(
                 comment="Input file for DDE calculation without symmetries.",
@@ -2122,7 +2129,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         inp.set_vars(tolerance)
 
         return inp
-    
+
     def make_dde_inputs(self, tolerance=None, use_symmetries=True, manager=None) -> MultiDataset:
         """
         Return |MultiDataset| inputs for the calculation of electric field perturbations.
