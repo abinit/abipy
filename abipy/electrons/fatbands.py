@@ -762,7 +762,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_typeview(self, e0="fermie", fact=1.0, lmax=None, ax_mat=None, ylims=None,
+    def plot_fatbands_typeview(self, e0="fermie", fact=1.0, lmax=None, l_list=None, ax_mat=None, ylims=None,
                                blist=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the electronic fatbands grouped by atomic type with matplotlib.
@@ -774,6 +774,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 -  None: Don't shift energies, equivalent to ``e0 = 0``
             fact:  float used to scale the stripe size.
             lmax: Maximum L included in plot. None means full set available on file.
+            l_list: List of L values to plot. None to plot all L up to lmax.
             ax_mat: Matrix of axis. None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
@@ -812,6 +813,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     yup = ebands.eigens[spin, :, band] - e0
                     ydown = yup
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
+                        if l_list is not None and l not in l_list: continue
                         # Add width around each band.
                         w = wl_sbk[l, spin, band]
                         y1, y2 = yup + w, ydown - w
@@ -1451,7 +1453,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return fig
 
     @add_fig_kwargs
-    def plot_pjdos_typeview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
+    def plot_pjdos_typeview(self, e0="fermie", lmax=None, l_list=None, method="gaussian", step=0.1, width=0.2,
                             stacked=True, combined_spins=True, ax_mat=None, exchange_xy=False,
                             with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
         """
@@ -1463,6 +1465,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to ``e0 = 0``
             lmax: Maximum L included in plot. None means full set available on file.
+            l_list: List of L values to plot. None to plot all L up to lmax.
             method: String defining the method for the computation of the DOS.
             step: Energy step (eV) of the linear mesh.
             width: Standard deviation (eV) of the gaussian.
@@ -1529,6 +1532,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     ax.plot(x, y, color="k", label=label if with_info else None)
 
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
+                        if l_list is not None and l not in l_list: continue
                         # Plot PJ-DOS(l, spin)
                         x, y = mesh, spin_sign * symbols_lso[symbol][l, spin]
                         if exchange_xy: x, y = y, x
@@ -1558,6 +1562,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     # Plot cumulative PJ-DOS(l, spin)
                     stack = intg.get_lstack_symbol(symbol, spin) * spin_sign
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
+                        if l_list is not None and l not in l_list: continue
                         yup = stack[l]
                         ydown = stack[l-1] if l != 0 else zerodos
                         label = "%s (stacked)" % self.l2tex[l] if (isymb, spin) == (0, 0) else None
