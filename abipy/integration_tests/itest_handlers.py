@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 import pytest
 import abipy.data as abidata
@@ -19,6 +20,7 @@ def itest_tolsymerror_handler(fwp):
     at the level of the symmetry finder and autoparal fails
     because it cannot find the parallel configurations.
     """
+    pytest.xfail("tolsymerror_handler has been disabled because this problem has been fixed in v9.")
     structure = dict(
         acell=(1.0, 1.0, 1.0),
         xred=[
@@ -45,6 +47,7 @@ def itest_tolsymerror_handler(fwp):
          ecut=4,
          tolmxf=5e-05,
          nshiftk=1,
+         #tolsym=1e-10,
     )
 
     flow = flowtk.Flow(workdir=fwp.workdir, manager=fwp.manager)

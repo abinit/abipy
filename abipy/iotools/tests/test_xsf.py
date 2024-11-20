@@ -16,7 +16,6 @@ class TestXsfUtils(AbipyTest):
     def test_xsf_write_structure(self):
         """Testing crystalline structures in the XSF format."""
         tmp_file = tempfile.TemporaryFile(mode="w+")
-
         xsf_write_structure(tmp_file, self.mgb2)
 
         xsf_string = \
@@ -41,13 +40,17 @@ PRIMCOORD 1
         """Testing XSF file with datasets."""
         # 2 x 3 x 2 grid without pbc stored in fortran mode.
         data = np.reshape(np.arange(12), (2,3,2)).T
+
+        xsf_write_structure_and_data_to_path(self.get_tmpname(), self.mgb2, data, add_replicas=True)
+
         tmp_file = tempfile.TemporaryFile(mode="w+")
+
         xsf_write_data(tmp_file, self.mgb2, data, add_replicas=True)
 
         xsf_string = \
 """BEGIN_BLOCK_DATAGRID_3D
  data
- BEGIN_DATAGRID_3Dgrid#1
+ BEGIN_DATAGRID_3D_UNKNOWN
 3 4 3
 0.000000 0.000000 0.000000
 2.672554 1.543000 0.000000
@@ -75,7 +78,7 @@ END_BLOCK_DATAGRID_3D
         self.assertMultiLineEqual(tmp_file.read(), xsf_string)
 
         # Complex array will raise TypeError since we should specify the type.
-        cplx_data = np.array(data, dtype=np.complex)
+        cplx_data = np.array(data, dtype=complex)
 
         # cplx_mode must be specified when data is a complex array
         with self.assertRaises(TypeError):
@@ -102,7 +105,7 @@ END_BLOCK_DATAGRID_3D
         tmp_file = tempfile.TemporaryFile(mode="w+")
 
         nsppol, nband, ndivs, fermie = 1, 2, (2,2,2), 0.0
-        energies = np.arange(nsppol * nband * np.product(ndivs))
+        energies = np.arange(nsppol * nband * np.prod(ndivs))
         bxsf_write(tmp_file, self.mgb2, nsppol, nband, ndivs, energies, fermie, unit="Ha")
 
         xsf_string = \

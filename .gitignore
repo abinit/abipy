@@ -52,6 +52,9 @@ docs/flow_gallery
 # Pycharm
 .idea/
 
+# VSC
+.vscode/
+
 # vim files
 *.swp
 *.swo

@@ -1,5 +1,7 @@
 # coding: utf-8
-"""Release data for the AbiPy project."""
+"""
+Release data for the AbiPy project.
+"""
 
 from collections import OrderedDict
 
@@ -10,8 +12,8 @@ name = 'abipy'
 # version information.  An empty _version_extra corresponds to a full
 # release.  'dev' as a _version_extra string means this is a development version
 _version_major = 0
-_version_minor = 8
-_version_micro = '0'  # use '' for first of series, number for 1 and above
+_version_minor = 9
+_version_micro = 8  # use '' for first of series, number for 1 and above
 #_version_extra = 'dev'
 _version_extra = ''  # Uncomment this for full releases
 
@@ -25,7 +27,7 @@ __version__ = '.'.join(map(str, _ver))
 version = __version__  # backwards compatibility name
 
 # The minimum Abinit version compatible with AbiPy
-min_abinit_version = "8.0.8"
+min_abinit_version = "9.2.0"
 
 description = "Python package to automate ABINIT calculations and analyze the results."
 
@@ -68,9 +70,11 @@ download_url = "https://github.com/abinit/abipy"
 platforms = ['Linux', 'darwin']
 keywords = ["ABINIT", "ab-initio", "density-function-theory", "first-principles", "electronic-structure", "pymatgen"]
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",

@@ -1,72 +1,91 @@
-"""Panels for interacting with GSR files."""
-import param
+"""Panels to interact with GSR files."""
+from __future__ import annotations
+
+#import param
 import panel as pn
 import panel.widgets as pnw
-import bokeh.models.widgets as bkw
 
-from .core import PanelWithElectronBands, PanelWithEbandsRobot
+from abipy.electrons.gsr import GsrFile, GsrRobot
+from .core import (PanelWithElectronBands,
+  PanelWithEbandsRobot, ply, mpl, dfc, depends_on_btn_click)
 
 
 class GsrFilePanel(PanelWithElectronBands):
     """
     Panel with widgets to interact with a |GsrFile|.
     """
-    def __init__(self, gsr, **params):
-        super().__init__(**params)
-        self.gsr = gsr
+    def __init__(self, ncfile: GsrFile, **params):
+        PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
+        self.ncfile = ncfile
 
-    @property
-    def ebands(self):
-        """|ElectronBands|."""
-        return self.gsr.ebands
+    def get_panel(self, as_dict=False, **kwargs):
+        """Return tabs with widgets to interact with the GSR file."""
+        d = {}
 
-    def get_panel(self):
-        """Return tabs with widgets to interact with the DDB file."""
-        tabs = pn.Tabs(); app = tabs.append
-        app(("Summary", pn.Row(bkw.PreText(text=self.gsr.to_string(verbose=self.verbose),
-                               sizing_mode="scale_both"))))
-        app(("e-Bands", pn.Row(self.get_plot_ebands_widgets(), self.on_plot_ebands_btn)))
+        d["Summary"] = self.get_summary_view_for_abiobj(self.ncfile)
+        d["e-Bands"] = self.get_plot_ebands_view()
 
-        # Add DOS tab only if k-sampling.
-        kpoints = self.gsr.ebands.kpoints
+        kpoints = self.ncfile.ebands.kpoints
         if kpoints.is_ibz:
-            app(("e-DOS", pn.Row(self.get_plot_edos_widgets(), self.on_plot_edos_btn)))
+            # Add DOS tab but only if k-sampling.
+            d["e-DOS"] = self.get_plot_edos_view()
+            d["SKW"] = self.get_skw_view()
 
-            if self.gsr.ebands.supports_fermi_surface:
-                # Fermi surface requires gamma-centered k-mesh
-                app(("Fermi Surface", pn.Row(self.get_plot_fermi_surface_widgets(), self.on_plot_fermi_surface_btn)))
+            if not self.ncfile.ebands.isnot_ibz_sampling():
+                d["Ifermi"] = self.get_ifermi_view()
+                #d["fsviewer"] = self.get_fsviewer_view()
 
-        return tabs
+        if kpoints.is_path:
+            d["EffMass"] = self.get_effmass_view()
+
+        d["Structure"] = self.get_structure_view()
+        d["NcFile"] = self.ncfile.get_ncfile_view()
+
+        # TODO
+        #d["Global"] = pn.Row(
+        #    pn.Column("# Global options",
+        #              *self.pws("units", "mpi_procs", "verbose"),
+        #              ),
+        #    self.get_software_stack())
+        #))
+
+        if as_dict: return d
+        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
 
 
 class GsrRobotPanel(PanelWithEbandsRobot):
     """
-    A Panel to interoperate with multiple GSR files.
+    A Panel to interact with multiple GSR files.
     """
 
-    gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')
+    def __init__(self, robot: GsrRobot, **params):
+        PanelWithEbandsRobot.__init__(self, robot=robot, **params)
 
-    def __init__(self, robot, **params):
-        super().__init__(**params)
-        self.robot = robot
+        self.gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')
+        self.transpose_gsr_dataframe = pnw.Checkbox(name='Transpose GSR dataframe')
 
-    @param.depends("gsr_dataframe_btn.clicks")
-    def on_gsr_dataframe_btn(self):
-        if self.gsr_dataframe_btn.clicks == 0: return
+    @depends_on_btn_click('gsr_dataframe_btn')
+    def on_gsr_dataframe_btn(self) -> pn.Column:
         df = self.robot.get_dataframe(with_geo=True)
-        return pn.Column(self._df(df), sizing_mode='stretch_width')
+        transpose = self.transpose_gsr_dataframe.value
 
-    def get_panel(self):
+        return pn.Column(dfc(df, transpose=transpose), sizing_mode='stretch_width')
+
+    def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the |GsrRobot|."""
-        tabs = pn.Tabs(); app = tabs.append
-        app(("Summary", pn.Row(bkw.PreText(text=self.robot.to_string(verbose=self.verbose),
-                               sizing_mode="scale_both"))))
-        app(("e-Bands", pn.Row(self.get_ebands_plotter_widgets(), self.on_ebands_plotter_btn)))
+        d = {}
 
-        # Add e-DOS tab only if all ebands have k-sampling.
+        d["Summary"] = self.get_summary_view_for_abiobj(self.robot)
+        d["Plot-eBands"] = pn.Row(self.get_ebands_plotter_widgets(), self.on_ebands_plotter_btn)
+
+        # Add e-DOS tab but only if all ebands have k-sampling.
         if all(abifile.ebands.kpoints.is_ibz for abifile in self.robot.abifiles):
-            app(("e-DOS", pn.Row(self.get_edos_plotter_widgets(), self.on_edos_plotter_btn)))
+            d["Plot-eDOS"] = pn.Row(self.get_edos_plotter_widgets(), self.on_edos_plotter_btn)
 
-        app(("GSR-DataFrame", pn.Row(self.gsr_dataframe_btn, self.on_gsr_dataframe_btn)))
+        d["Dataframe"] = pn.Row(
+            pn.Column(self.transpose_gsr_dataframe, self.gsr_dataframe_btn),
+            self.on_gsr_dataframe_btn)
 
-        return tabs
+        if as_dict: return d
+
+        return self.get_template_from_tabs(d, template=kwargs.get("template", None))

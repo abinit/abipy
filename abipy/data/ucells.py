@@ -1,6 +1,8 @@
 """Database of unit cells in the ABINIT format."""
+from __future__ import annotations
 
-from abipy.abilab import Structure, ArrayWithUnit
+from pymatgen.core.units import ArrayWithUnit
+from abipy.core import Structure
 
 __all__ = [
     "ucell_names",
@@ -10,17 +12,17 @@ __all__ = [
 
 
 # Public API
-def ucell_names():
+def ucell_names() -> list[str]:
     """List with the name of the entries."""
     return list(_UCELLS.keys())
 
 
-def ucell(name):
+def ucell(name: str) -> dict:
     """Return the entry in the database with the given name."""
     return _UCELLS[name].copy()
 
 
-def structure_from_ucell(name):
+def structure_from_ucell(name: str) -> Structure:
     """Returns a `Structure` from the name of entry in the database."""
     try:
         return Structure.from_abivars(ucell(name))
@@ -162,7 +164,7 @@ _UCELLS = {
                          0.143,  -0.272,  -0.120             , #O
                          0.272,   0.415,   0.5466666666666666, #O
                         -0.415,  -0.143,   0.2133333333333333] #O
-             ),
+                  ),
 }
 
 #dict(natom=,

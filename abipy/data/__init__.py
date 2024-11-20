@@ -4,6 +4,8 @@ Preferred way to import the module is via the import syntax:
 
     import abipy.data as abidata
 """
+from __future__ import annotations
+
 import os
 
 from abipy.core.structure import Structure
@@ -31,10 +33,11 @@ _VARIABLES_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "va
 _MPDATA_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "mpdata"))
 
 _SCRIPTS_DIRPATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "examples"))
+
 _SCRIPTS = None
 
 
-def pyscript(basename):
+def pyscript(basename: str) -> str:
     """
     Return the absolute name of one of the scripts in the `examples` directory from its basename.
     """
@@ -49,23 +52,23 @@ def pyscript(basename):
             # Ignore e.g. __init__.py and private scripts.
             if k.startswith("_"): continue
             if k in _SCRIPTS:
-                raise ValueError("Fond duplicated basenames with name %s\nPrevious %s" % (k, _SCRIPTS[k]))
+                raise ValueError("Fond duplicated basenames with name %s\nActual:%s\nPrevious: %s" % (k, p, _SCRIPTS[k]))
             _SCRIPTS[k] = p
 
     return _SCRIPTS[basename]
 
 
-def cif_file(filename):
+def cif_file(filename: str) -> str:
     """Returns the absolute path of the CIF file in tests/data/cifs."""
     return os.path.join(_CIF_DIRPATH, filename)
 
 
-def cif_files(*filenames):
+def cif_files(*filenames) -> list[str]:
     """Returns the absolute path of the CIF files in tests/data/cifs."""
     return list(map(cif_file, filenames))
 
 
-def structure_from_cif(filename):
+def structure_from_cif(filename: str) -> Structure:
     """
     Returnn an Abipy structure from the basename of the cif file in data/cifs.
     """
@@ -75,24 +78,24 @@ def structure_from_cif(filename):
 pseudo_dir = _PSEUDOS_DIRPATH
 
 
-def pseudo(filename):
+def pseudo(filename: str) -> Pseudo:
     """Returns a `Pseudo` object."""
     filepath = os.path.join(_PSEUDOS_DIRPATH, filename)
     return Pseudo.from_file(filepath)
 
 
-def pseudos(*filenames):
-    """Returns a PseudoTable constructed from the input filenames  located in tests/data/pseudos."""
+def pseudos(*filenames: list[str]) -> PseudoTable:
+    """Returns a PseudoTable constructed from the input filenames located in tests/data/pseudos."""
     pseudos = list(map(pseudo, filenames))
     return PseudoTable(pseudos)
 
 
-def var_file(filename):
-    """Returns a yml file located in data/variables."""
+def var_file(filename: str) -> str:
+    """Returns a yaml file located in data/variables."""
     return os.path.join(_VARIABLES_DIRPATH, filename)
 
 
-def find_ncfiles(top, verbose=0):
+def find_ncfiles(top: str, verbose=0) -> dict:
     """
     Find all netcdf files starting from the top-level directory `top`.
     Filenames must be unique. Directories starting with "tmp_" are
@@ -126,7 +129,7 @@ def find_ncfiles(top, verbose=0):
 _DATA_NCFILES = find_ncfiles(top=os.path.join(os.path.dirname(__file__), "refs"))
 
 
-def ref_file(basename):
+def ref_file(basename: str) -> str:
     """Returns the absolute path of basename in tests/data directory."""
     if basename in _DATA_NCFILES:
         return _DATA_NCFILES[basename]
@@ -137,12 +140,12 @@ def ref_file(basename):
         return path
 
 
-def ref_files(*basenames):
+def ref_files(*basenames) -> list[str]:
     """List with the absolute path of basenames in tests/data directory."""
     return list(map(ref_file, basenames))
 
 
-def ncfiles_with_ext(ext):
+def ncfiles_with_ext(ext: str) -> list[str]:
     """Return a list with the absolute path of the files with extension ext."""
     ncfiles = []
     for basename, path in _DATA_NCFILES.items():
@@ -156,9 +159,9 @@ def ncfiles_with_ext(ext):
 _MP_STRUCT_DICT = None
 
 
-def get_mp_structures_dict():
+def get_mp_structures_dict() -> dict[str, Structure]:
     """
-    Returns a dictionary containing the structures stored in mpdata/mp_structures.
+    Returns a dictionary with the the structures stored in mpdata/mp_structures.
     """
     global _MP_STRUCT_DICT
     if _MP_STRUCT_DICT is not None:
@@ -175,7 +178,7 @@ def get_mp_structures_dict():
         return _MP_STRUCT_DICT
 
 
-def structure_from_mpid(mpid):
+def structure_from_mpid(mpid: int) -> Structure:
     """
     Return an Abipy Structure from the `mpid` identifier. See mpdata/mp_structure.json
     """
@@ -193,8 +196,10 @@ SIGRES_NCFILES = ncfiles_with_ext("SIGRES")
 ALL_NCFILES = list(_DATA_NCFILES.values())
 
 
-class FilesGenerator(object):
-    """This class generates the output files used in the unit tests and in the examples."""
+class FilesGenerator:
+    """
+    This class generates the output files used in the unit tests and in the examples.
+    """
 
     def __init__(self, **kwargs):
         """
@@ -213,16 +218,16 @@ class FilesGenerator(object):
         self.files_to_keep = set([os.path.basename(__file__), "run.abi", "run.abo"] +
                 list(self.files_to_save.keys()))
 
-    def __str__(self):
+    def __str__(self) -> str:
         lines = []
         app = lines.append
         app("%s: workdir:%s" % (self.__class__.__name__, self.workdir))
 
         return "\n".join(lines)
 
-    def run(self):
+    def run(self) -> int:
         """Run Abinit and rename output files. Return 0 if success"""
-        from monty.os.path import which
+        from shutil import which
         if which(self.executable) is None:
             raise RuntimeError("Cannot find %s in $PATH" % self.executable)
 
@@ -248,7 +253,7 @@ class FilesGenerator(object):
         cmd = self.executable + " < run.files > run.log"
         return Popen(cmd, shell=True, stderr=PIPE, stdout=PIPE, cwd=self.workdir)
 
-    def _finalize(self):
+    def _finalize(self) -> None:
         all_files = os.listdir(self.workdir)
 
         # Remove files
@@ -283,7 +288,7 @@ class AbinitFilesGenerator(FilesGenerator):
         #self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
         self.pseudos = [os.path.join(_PSEUDOS_DIRPATH, pname) for pname in self.pseudos]
 
-    def make_filesfile_str(self):
+    def make_filesfile_str(self) -> str:
         return "\n".join(["run.abi", "run.abo", "in", "out", "tmp"] + self.pseudos)
 
 

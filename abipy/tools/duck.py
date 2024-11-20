@@ -1,11 +1,15 @@
 # coding: utf-8
 """Duck-typing tests"""
+from __future__ import annotations
+
 import collections
 import warnings
 import numpy as np
 
+from typing import Any
 
-def is_string(s):
+
+def is_string(s: Any) -> bool:
     """True if s behaves like a string (duck typing test)."""
     try:
         s + " "
@@ -14,9 +18,9 @@ def is_string(s):
         return False
 
 
-def is_intlike(obj):
+def is_intlike(obj: Any) -> bool:
     """
-    True if obj represents an integer (float such as 1.0 are included as well).
+    True if obj represents an integer (floats such as 1.0 are included as well).
     """
     # isinstance(i, numbers.Integral)
     try:
@@ -26,15 +30,17 @@ def is_intlike(obj):
         else:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
+                #print("hello", int(obj) == obj)
                 return int(obj) == obj
 
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as exc:
+        #print(exc)
         return False
 
     return False
 
 
-def is_number_like(obj):
+def is_number_like(obj: Any) -> bool:
     """True if obj represents a number."""
     try:
         obj - 1
@@ -43,7 +49,8 @@ def is_number_like(obj):
         return False
 
 
-def is_listlike(obj):
+def is_listlike(obj: Any) -> bool:
+    """True if obj is list-like."""
     #if isinstance(branch, (list, tuple, np.ndarray)):
     if isinstance(obj, np.ndarray): return True
     if not isinstance(obj, collections.abc.Sequence): return False
@@ -56,7 +63,7 @@ def is_listlike(obj):
         return False
 
 
-def list_ints(arg):
+def list_ints(arg: Any) -> list:
     """
     Always return a list of int, given a int or list of integers as input.
 
@@ -65,11 +72,11 @@ def list_ints(arg):
     >>> list_ints(1)
     [1]
     """
-    l = np.array(arg, dtype=np.int)
+    l = np.array(arg, dtype=int)
     return [int(l)] if l.size == 1 else l.tolist()
 
 
-def torange(obj):
+def torange(obj: Any) -> range:
     """
     Convert obj into a range. Accepts integer, slice object  or any object
     with an __iter__ method. Note that an integer is converted into range(int, int+1)
@@ -96,7 +103,7 @@ def torange(obj):
             raise TypeError("Don't know how to convert %s into a range object" % str(obj))
 
 
-def as_slice(obj):
+def as_slice(obj: Any) -> slice:
     """
     Convert an integer, a string or a slice object into slice.
 
@@ -130,11 +137,11 @@ def as_slice(obj):
     raise ValueError("Cannot convert %s into a slice:\n%s" % (type(obj), obj))
 
 
-class NoDefaultProvided(object):
+class NoDefaultProvided:
     pass
 
 
-def hasattrd(obj, name):
+def hasattrd(obj: Any, name: str) -> bool:
     """
     The arguments are an object and a string.
     The result is True if the string is the name of one of the object’s attributes, False if not.
@@ -148,7 +155,7 @@ def hasattrd(obj, name):
         return False
 
 
-def getattrd(obj, name, default=NoDefaultProvided):
+def getattrd(obj: Any, name: str, default=NoDefaultProvided) -> Any:
     """
     Same as getattr(), but allows dot notation lookup e.g. getattrd(obj, "a.b")
 

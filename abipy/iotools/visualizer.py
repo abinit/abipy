@@ -1,11 +1,12 @@
 # coding: utf-8
 """Classes used to execute a visualizer within the Python interpreter."""
+from __future__ import annotations
 
 import sys
 import os
 import abc
 
-from monty.os.path import which
+from shutil import which
 from monty.termcolor import cprint
 from monty.functools import lazy_property
 
@@ -15,12 +16,12 @@ __all__ = [
 ]
 
 
-def is_macosx():
+def is_macosx() -> bool:
     """True if we are running on Mac."""
     return "darwin" in sys.platform
 
 
-def find_loc(app_name):
+def find_loc(app_name) -> str:
     """
     Returns the location of the application from its name. None if not found.
     """
@@ -30,7 +31,7 @@ def find_loc(app_name):
     return path
 
 
-def _find_loc(app_name):  # pragma: no cover
+def _find_loc(app_name) -> str:  # pragma: no cover
     # Try command line version
     path = which(app_name)
     if path is not None: return path
@@ -80,7 +81,7 @@ class Visualizer(metaclass=abc.ABCMeta):
 
     Error = VisualizerError
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         """
         Args:
             filepath: Name of the file to visualize
@@ -99,7 +100,9 @@ class Visualizer(metaclass=abc.ABCMeta):
         """
         from subprocess import call
         if not self.is_macosx_app:
-            cprint("Executing: %s %s %s" % (self.binpath, self.cmdarg, self.filepath), "yellow")
+            cprint("Executing: binpath=%s, cmdarg=%s, filepath=%s" % (self.binpath, self.cmdarg, self.filepath), "yellow")
+            if self.binpath is None:
+                raise RuntimeError("binpath is None, please make sure that executable can be found in $PATH")
             return call([self.binpath, self.cmdarg, self.filepath])
 
         else:
@@ -120,17 +123,17 @@ class Visualizer(metaclass=abc.ABCMeta):
         return " "
 
     @lazy_property
-    def binpath(self):
+    def binpath(self) -> str:
         """Absolute path of the binary. None if app is not found"""
         return find_loc(self.name)
 
     @property
-    def is_available(self):
+    def is_available(self) -> bool:
         """True is the visualizer is available on the local machine."""
         return self.binpath is not None
 
     @classmethod
-    def get_available(cls, ext=None):
+    def get_available(cls, ext=None) -> list:
         """
         List of visualizers available on the local host.
         If ext is not None, only the visualizers supporting this extension are returned.
@@ -140,13 +143,13 @@ class Visualizer(metaclass=abc.ABCMeta):
         return [v for v in visus if v.support_ext(ext)]
 
     @classmethod
-    def support_ext(cls, ext):
+    def support_ext(cls, ext) -> bool:
         """True if visualizer supports the extension ext."""
         if ext.startswith("."): ext = ext[1:]
         return any(e == ext for e, _ in cls.EXTS)
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str):
         """
         Initialize a subclass of :class:`Visualizer` from filepath, the application
         is chosen automatically depending on the file extension.
@@ -167,7 +170,7 @@ class Visualizer(metaclass=abc.ABCMeta):
         return avail_visus[0](filepath)
 
     @classmethod
-    def supported_extensions(cls):
+    def supported_extensions(cls) -> list:
         """List of file extensions supported by the visualizer."""
         return [e for (e, args) in cls.EXTS]
 

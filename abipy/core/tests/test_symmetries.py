@@ -18,13 +18,13 @@ class TestSymmetries(AbipyTest):
         with self.assertRaises(ValueError):
             mati3inv(np.zeros(3))
         with self.assertRaises(ValueError):
-            mati3inv(np.zeros((3, 3), dtype=np.int))
+            mati3inv(np.zeros((3, 3), dtype=int))
 
         mat = np.reshape([0, -1, 1, 0, -1, 0, 1, -1, 0], (3, 3))
         mat_it = mati3inv(mat)
-        self.assert_equal(np.dot(mat_it.T, mat), np.eye(3, dtype=np.int))
+        self.assert_equal(np.dot(mat_it.T, mat), np.eye(3, dtype=int))
         mat_it = mati3inv(mat, trans=False)
-        self.assert_equal(np.dot(mat_it, mat), np.eye(3, dtype=np.int))
+        self.assert_equal(np.dot(mat_it, mat), np.eye(3, dtype=int))
 
     def test_silicon(self):
         """Test silicon space group."""
@@ -62,12 +62,13 @@ class TestSymmetries(AbipyTest):
         assert spgrp.has_timerev
         assert len(spgrp) == 48 * 2
         assert spgrp.num_spatial_symmetries == 48
+        assert spgrp.get_spglib_hall_number() == 525
 
         assert spgrp.is_group()
         # TODO
         #si_symrel =
         si_tnons = np.reshape(24 * [0, 0, 0, 0.25, 0.25, 0.25], (48, 3))
-        si_symafm = np.ones(48, dtype=np.int)
+        si_symafm = np.ones(48, dtype=int)
 
         self.assert_almost_equal(si_tnons, spgrp.tnons)
         self.assert_almost_equal(si_symafm, spgrp.symafm)

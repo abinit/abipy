@@ -6,9 +6,10 @@ Common test support for all AbiPy test scripts.
 This single module should provide all the common functionality for abipy tests
 in a single location, so that test scripts can just import it and work right away.
 """
+from __future__ import annotations
+
 import os
 import numpy
-import subprocess
 import json
 import tempfile
 import unittest
@@ -18,13 +19,13 @@ except ImportError:
     import numpy.testing.utils as nptu
 import abipy.data as abidata
 
+from typing import Optional
 from functools import wraps
-from monty.os.path import which
+from shutil import which
 from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
-
-import logging
-logger = logging.getLogger(__file__)
+from abipy.core.structure import Structure
+from abipy.abio.inputs import AbinitInput, MultiDataset
 
 root = os.path.dirname(__file__)
 
@@ -33,18 +34,18 @@ __all__ = [
 ]
 
 
-def cmp_version(this, other, op=">="):
+def cmp_version(this: str, other: str, op: str = ">=") -> bool:
     """
     Compare two version strings with the given operator ``op``
     >>> assert cmp_version("1.1.1", "1.1.0") and not cmp_version("1.1.1", "1.1.0", op="==")
     """
-    from pkg_resources import parse_version
+    from packaging.version import parse as parse_version
     from monty.operator import operator_from_str
     op = operator_from_str(op)
     return op(parse_version(this), parse_version(other))
 
 
-def has_abinit(version=None, op=">=", manager=None):
+def has_abinit(version: Optional[str] = None, op: str = ">=", manager=None) -> bool:
     """
     True if abinit is available via TaskManager configuration options.
     If version is not None, `abinit_version op version` is evaluated and the result is returned.
@@ -61,7 +62,7 @@ def has_abinit(version=None, op=">=", manager=None):
 _HAS_MATPLOTLIB_CALLS = 0
 
 
-def has_matplotlib(version=None, op=">="):
+def has_matplotlib(version: Optional[str] = None, op: str = ">=") -> bool:
     """
     True if matplotlib_ is installed.
     If version is None, the result of matplotlib.__version__ `op` version is returned.
@@ -96,7 +97,23 @@ def has_matplotlib(version=None, op=">="):
     return cmp_version(matplotlib.__version__, version, op=op)
 
 
-def has_seaborn():
+def has_plotly(version: Optional[str] = None, op: str = ">=") -> bool:
+    """
+    True if plotly is installed.
+    If version is None, the result of plotly.__version__ `op` version is returned.
+    """
+    try:
+        import plotly
+        # have_display = "DISPLAY" in os.environ
+    except ImportError:
+        print("Skipping plotlyt test")
+        return False
+
+    if version is None: return True
+    return cmp_version(plotly.__version__, version, op=op)
+
+
+def has_seaborn() -> bool:
     """True if seaborn_ is installed."""
     try:
         import seaborn as sns
@@ -105,7 +122,7 @@ def has_seaborn():
         return False
 
 
-def has_phonopy(version=None, op=">="):
+def has_phonopy(version: Optional[str] = None, op: str = ">=") -> bool:
     """
     True if phonopy_ is installed.
     If version is None, the result of phonopy.__version__ `op` version is returned.
@@ -136,12 +153,11 @@ def get_mock_module():
     return mock
 
 
-def json_read_abinit_input_from_path(json_path):
+def json_read_abinit_input_from_path(json_path: str) -> AbinitInput:
     """
-    Read a json file from the absolute path ``json_path``, return |AbinitInput| instance.
+    Read a json file from the absolute path ``json_path``,
+    returns: |AbinitInput| instance.
     """
-    from abipy.abio.inputs import AbinitInput
-
     with open(json_path, "rt") as fh:
         d = json.load(fh)
 
@@ -277,7 +293,6 @@ def get_gsinput_alas_ngkpt(ngkpt, usepaw=0, as_task=False):
     pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
     structure = abidata.structure_from_ucell("AlAs")
 
-    from abipy.abio.inputs import AbinitInput
     scf_input = AbinitInput(structure, pseudos=pseudos)
 
     scf_input.set_vars(
@@ -307,31 +322,58 @@ class AbipyTest(PymatgenTest):
     SkipTest = unittest.SkipTest
 
     @staticmethod
-    def which(program):
+    def which(program: str) -> bool:
         """Returns full path to a executable. None if not found or not executable."""
         return which(program)
 
     @staticmethod
-    def has_abinit(version=None, op=">="):
+    def has_abinit(version: Optional[str] = None, op: str = ">=") -> bool:
         """Return True if abinit is in $PATH and version is op min_version."""
         return has_abinit(version=version, op=op)
 
-    def skip_if_abinit_not_ge(self, version):
+    def skip_if_abinit_not_ge(self, version: str) -> None:
         """Skip test if Abinit version is not >= `version`"""
         op = ">="
         if not self.has_abinit(version, op=op):
             raise unittest.SkipTest("This test requires Abinit version %s %s" % (op, version))
 
     @staticmethod
-    def has_matplotlib(version=None, op=">="):
+    def test_mprester():
+        """Skip MP rester tests."""
+        raise unittest.SkipTest("MPRester tests have been disabled")
+        #return True
+
+    def is_url_reachable(url: str) -> bool:
+        """check if a URL is reachable:"""
+        import requests
+        try:
+            # Send a HEAD request to the URL
+            response = requests.head(url, timeout=5)
+
+            # Check if the response status code is 200 (OK)
+            if response.status_code == 200:
+                return True
+            else:
+                return False
+        except requests.exceptions.RequestException as e:
+            # Handle any request exceptions (e.g., connection errors)
+            #print(f"Error: {e}")
+            return False
+
+    @staticmethod
+    def has_matplotlib(version: Optional[str] = None, op: str = ">=") -> bool:
         return has_matplotlib(version=version, op=op)
 
     @staticmethod
-    def has_seaborn():
+    def has_plotly(version: Optional[str] = None, op: str = ">=") -> bool:
+        return has_plotly(version=version, op=op)
+
+    @staticmethod
+    def has_seaborn() -> bool:
         return has_seaborn()
 
     @staticmethod
-    def has_ase(version=None, op=">="):
+    def has_ase(version: Optional[str] = None, op: str = ">=") -> bool:
         """True if ASE_ package is available."""
         try:
             import ase
@@ -342,7 +384,16 @@ class AbipyTest(PymatgenTest):
         return cmp_version(ase.__version__, version, op=op)
 
     @staticmethod
-    def has_skimage():
+    def has_ifermi() -> bool:
+        """True if ifermi package is available."""
+        try:
+            from ifermi.interpolate import FourierInterpolator
+            return True
+        except ImportError:
+            return False
+
+    @staticmethod
+    def has_skimage() -> bool:
         """True if skimage package is available."""
         try:
             from skimage import measure
@@ -351,7 +402,7 @@ class AbipyTest(PymatgenTest):
             return False
 
     @staticmethod
-    def has_python_graphviz(need_dotexec=True):
+    def has_python_graphviz(need_dotexec: bool = True) -> bool:
         """
         True if python-graphviz package is installed and dot executable in path.
         """
@@ -363,7 +414,7 @@ class AbipyTest(PymatgenTest):
         return which("dot") is not None if need_dotexec else True
 
     @staticmethod
-    def has_mayavi():
+    def has_mayavi() -> bool:
         """
         True if mayavi_ is available. Set also offscreen to True
         """
@@ -381,7 +432,7 @@ class AbipyTest(PymatgenTest):
         mlab.options.backend = "test"
         return True
 
-    def has_panel(self):
+    def has_panel(self) -> bool:
         """False if Panel library is not installed."""
         try:
             import param
@@ -391,7 +442,7 @@ class AbipyTest(PymatgenTest):
         except ImportError:
             return False
 
-    def has_networkx(self):
+    def has_networkx(self) -> bool:
         """False if networkx library is not installed."""
         try:
             import networkx as nx
@@ -399,7 +450,7 @@ class AbipyTest(PymatgenTest):
         except ImportError:
             return False
 
-    def has_graphviz(self):
+    def has_graphviz(self) -> bool:
         """True if graphviz library is installed and `dot` in $PATH"""
         try:
             from graphviz import Digraph
@@ -410,19 +461,26 @@ class AbipyTest(PymatgenTest):
         if self.which("dot") is None: return False
         return graphviz
 
+    def has_phonopy(self, version: Optional[str] = None, op: str = ">=") -> bool:
+        """
+        True if phonopy_ is installed.
+        If version is None, the result of phonopy.__version__ `op` version is returned.
+        """
+        return has_phonopy(version=version, op=op)
+
     @staticmethod
-    def get_abistructure_from_abiref(basename):
+    def get_abistructure_from_abiref(basename: str) -> Structure:
         """Return an Abipy |Structure| from the basename of one of the reference files."""
         from abipy.core.structure import Structure
         return Structure.as_structure(abidata.ref_file(basename))
 
     @staticmethod
-    def mkdtemp(**kwargs):
+    def mkdtemp(**kwargs) -> str:
         """Invoke mkdtep with kwargs, return the name of a temporary directory."""
         return tempfile.mkdtemp(**kwargs)
 
     @staticmethod
-    def tmpfileindir(basename, **kwargs):
+    def tmpfileindir(basename: str, **kwargs) -> str:
         """
         Return the absolute path of a temporary file with basename ``basename`` created in a temporary directory.
         """
@@ -430,13 +488,24 @@ class AbipyTest(PymatgenTest):
         return os.path.join(tmpdir, basename)
 
     @staticmethod
-    def get_tmpname(**kwargs):
+    def get_tmpname(**kwargs) -> str:
         """Invoke mkstep with kwargs, return the name of a temporary file."""
         _, tmpname = tempfile.mkstemp(**kwargs)
         return tmpname
 
+    def tmpfile_write(self, string: str) -> str:
+        """
+        Write string to a temporary file. Returns the name of the temporary file.
+        """
+        fd, tmpfile = tempfile.mkstemp(text=True)
+
+        with open(tmpfile, "wt") as fh:
+            fh.write(string)
+
+        return tmpfile
+
     @staticmethod
-    def has_nbformat():
+    def has_nbformat() -> bool:
         """Return True if nbformat is available and we can test the generation of jupyter_ notebooks."""
         try:
             import nbformat
@@ -444,10 +513,10 @@ class AbipyTest(PymatgenTest):
         except ImportError:
             return False
 
-    def run_nbpath(self, nbpath):
-        """Test that the notebook in question runs all cells correctly."""
-        nb, errors = notebook_run(nbpath)
-        return nb, errors
+    #def run_nbpath(self, nbpath: str):
+    #    """Test that the notebook in question runs all cells correctly."""
+    #    nb, errors = notebook_run(nbpath)
+    #    return nb, errors
 
     @staticmethod
     def has_ipywidgets():
@@ -464,26 +533,26 @@ class AbipyTest(PymatgenTest):
             return False
 
     @staticmethod
-    def assert_almost_equal(actual, desired, decimal=7, err_msg='', verbose=True):
+    def assert_almost_equal(actual, desired, decimal=7, err_msg='', verbose=True) -> None:
         """
         Alternative naming for assertArrayAlmostEqual.
         """
         return nptu.assert_almost_equal(actual, desired, decimal, err_msg, verbose)
 
     @staticmethod
-    def assert_equal(actual, desired, err_msg='', verbose=True):
+    def assert_equal(actual, desired, err_msg='', verbose=True) -> None:
         """
         Alternative naming for assertArrayEqual.
         """
         return nptu.assert_equal(actual, desired, err_msg=err_msg, verbose=verbose)
 
     @staticmethod
-    def json_read_abinit_input(json_basename):
+    def json_read_abinit_input(json_basename: str) -> AbinitInput:
         """Return an |AbinitInput| from the basename of the file in abipy/data/test_files."""
         return json_read_abinit_input_from_path(os.path.join(root, '..', 'test_files', json_basename))
 
     @staticmethod
-    def assert_input_equality(ref_basename, input_to_test, rtol=1e-05, atol=1e-08, equal_nan=False):
+    def assert_input_equality(ref_basename, input_to_test, rtol=1e-05, atol=1e-08, equal_nan=False) -> None:
         """
         Check equality between an input and a reference in test_files.
         only input variables and structure are compared.
@@ -508,7 +577,7 @@ class AbipyTest(PymatgenTest):
         return traceback.format_exc()
 
     @staticmethod
-    def skip_if_not_phonopy(version=None, op=">="):
+    def skip_if_not_phonopy(version: Optional[str] = None, op: str = ">=") -> None:
         """
         Raise SkipTest if phonopy_ is not installed.
         Use ``version`` and ``op`` to ask for a specific version
@@ -521,7 +590,7 @@ class AbipyTest(PymatgenTest):
             raise unittest.SkipTest(msg)
 
     @staticmethod
-    def skip_if_not_bolztrap2(version=None, op=">="):
+    def skip_if_not_bolztrap2(version: Optional[str] = None, op: str = ">=") -> None:
         """
         Raise SkipTest if bolztrap2 is not installed.
         Use ``version`` and ``op`` to ask for a specific version
@@ -536,7 +605,7 @@ class AbipyTest(PymatgenTest):
             msg = "This test requires bolztrap2 version %s %s" % (op, version)
             raise unittest.SkipTest(msg)
 
-    def skip_if_not_executable(self, executable):
+    def skip_if_not_executable(self, executable: str) -> None:
         """
         Raise SkipTest if executable is not installed.
         """
@@ -544,7 +613,7 @@ class AbipyTest(PymatgenTest):
             raise unittest.SkipTest("This test requires `%s` in PATH" % str(executable))
 
     @staticmethod
-    def skip_if_not_pseudodojo():
+    def skip_if_not_pseudodojo() -> None:
         """
         Raise SkipTest if pseudodojo package is not installed.
         """
@@ -560,14 +629,14 @@ class AbipyTest(PymatgenTest):
 
     def decode_with_MSON(self, obj):
         """
-        Convert obj into JSON assuming MSONable protocolo. Return new object decoded with MontyDecoder
+        Convert obj into JSON assuming MSONable protocol. Return new object decoded with MontyDecoder
         """
         from monty.json import MSONable, MontyDecoder
         self.assertIsInstance(obj, MSONable)
         return json.loads(obj.to_json(), cls=MontyDecoder)
 
     @staticmethod
-    def abivalidate_input(abinput, must_fail=False):
+    def abivalidate_input(abinput: AbinitInput, must_fail: bool = False) -> None:
         """
         Invoke Abinit to test validity of an |AbinitInput| object
         Print info to stdout if failure before raising AssertionError.
@@ -587,7 +656,7 @@ class AbipyTest(PymatgenTest):
             assert v.retcode == 0
 
     @staticmethod
-    def abivalidate_multi(multi):
+    def abivalidate_multi(multi: MultiDataset) -> None:
         """
         Invoke Abinit to test validity of a |MultiDataset| or a list of |AbinitInput| objects.
         """
@@ -606,7 +675,9 @@ class AbipyTest(PymatgenTest):
 
         if errors:
             for e in errors:
+                print(90 * "=")
                 print(e)
+                print(90 * "=")
 
         assert not errors
 
@@ -646,33 +717,131 @@ class AbipyTest(PymatgenTest):
         return get_gsinput_alas_ngkpt(*args, **kwargs)
 
 
-def notebook_run(path):
-    """
-    Execute a notebook via nbconvert and collect output.
+ABIPY_TESTDB_NAME = "abipy_unit_tests"
 
-    Taken from
-    https://blog.thedataincubator.com/2016/06/testing-jupyter-notebooks/
 
-    Args:
-        path (str): file path for the notebook object
+def abipy_has_mongodb(host='localhost', port=27017, name=ABIPY_TESTDB_NAME, username=None, password=None) -> bool:
+    try:
+        from pymongo import MongoClient
+        connection = MongoClient(host, port, j=True)
+        db = connection[name]
+        if username:
+            db.authenticate(username, password)
+        return True
+    except Exception:
+        return False
 
-    Returns: (parsed nb object, execution errors)
 
-    """
-    import nbformat
-    dirname, __ = os.path.split(path)
-    os.chdir(dirname)
-    with tempfile.NamedTemporaryFile(suffix=".ipynb") as fout:
-        args = ["jupyter", "nbconvert", "--to", "notebook", "--execute",
-                "--ExecutePreprocessor.timeout=300",
-                "--ExecutePreprocessor.allow_errors=True",
-                "--output", fout.name, path]
-        subprocess.check_call(args)
+class AbipyTestWithMongoDb(AbipyTest):
+    """A suite of tests requiring a MongoDB database."""
 
-        fout.seek(0)
-        nb = nbformat.read(fout, nbformat.current_nbformat)
+    #def has_mongodb(self):
+    #    """True if mongodb server is reachable."""
+    #    return abipy_has_mongodb()
 
-    errors = [output for cell in nb.cells if "outputs" in cell
-              for output in cell["outputs"] if output.output_type == "error"]
+    #@classmethod
+    #def setUpClass(cls):
 
-    return nb, errors
+    #@classmethod
+    #def tearDownClass(cls):
+
+    #@classmethod
+    #def setup_mongodb(cls):
+    #    try:
+    #        cls._connection = connect(db=TESTDB_NAME)
+    #        cls._connection.drop_database(TESTDB_NAME)
+    #        cls.db = get_db()
+    #    except Exception:
+    #        cls.db = None
+    #        cls._connection = None
+    #
+    #@classmethod
+    #def teardown_mongodb(cls):
+    #    if cls._connection:
+    #        cls._connection.drop_database(TESTDB_NAME)
+
+#class MongoTemporaryInstance:
+#    """Singleton to manage a temporary MongoDB instance
+#
+#    Use this for testing purpose only. The instance is automatically destroyed
+#    at the end of the program.
+#
+#    """
+#    _instance = None
+#
+#    @classmethod
+#    def get_instance(cls):
+#        if cls._instance is None:
+#            cls._instance = cls()
+#            atexit.register(cls._instance.shutdown)
+#        return cls._instance
+#
+#    def __init__(self):
+#        self._tmpdir = tempfile.mkdtemp()
+#        self._process = subprocess.Popen(['mongod', '--bind_ip', 'localhost',
+#                                          '--port', str(MONGODB_TEST_PORT),
+#                                          '--dbpath', self._tmpdir,
+#                                          '--nojournal', '--nohttpinterface',
+#                                          '--noauth', '--smallfiles',
+#                                          '--syncdelay', '0',
+#                                          '--maxConns', '10',
+#                                          '--nssize', '1', ],
+#                                         stdout=open(os.devnull, 'wb'),
+#                                         stderr=subprocess.STDOUT)
+#
+#        # wait for the instance to be ready
+#        # Mongo is ready in a glance, we just wait to be able to open a
+#        # Connection.
+#        import pymongo
+#        for i in range(3):
+#            time.sleep(0.1)
+#            try:
+#                self._conn = pymongo.Connection('localhost', MONGODB_TEST_PORT)
+#            except pymongo.errors.ConnectionFailure:
+#                continue
+#            else:
+#                break
+#        else:
+#            self.shutdown()
+#            assert False, 'Cannot connect to the mongodb test instance'
+#
+#    @property
+#    def conn(self):
+#        return self._conn
+#
+#    def shutdown(self):
+#        if self._process:
+#            self._process.terminate()
+#            self._process.wait()
+#            self._process = None
+#            shutil.rmtree(self._tmpdir, ignore_errors=True)
+
+
+#def notebook_run(path):
+#    """
+#    Execute a notebook via nbconvert and collect output.
+#
+#    Taken from: https://blog.thedataincubator.com/2016/06/testing-jupyter-notebooks/
+#
+#    Args:
+#        path (str): file path for the notebook object
+#
+#    Returns: (parsed nb object, execution errors)
+#    """
+#    import nbformat
+#    dirname, _ = os.path.split(path)
+#    os.chdir(dirname)
+#    with tempfile.NamedTemporaryFile(suffix=".ipynb") as fout:
+#        args = ["jupyter", "nbconvert", "--to", "notebook", "--execute",
+#                "--ExecutePreprocessor.timeout=300",
+#                "--ExecutePreprocessor.allow_errors=True",
+#                "--output", fout.name, path]
+#        subprocess.check_call(args)
+#
+#        fout.seek(0)
+#        nb = nbformat.read(fout, nbformat.current_nbformat)
+#
+#    errors = [output for cell in nb.cells if "outputs" in cell
+#              for output in cell["outputs"] if output.output_type == "error"]
+#
+#    return nb, errors

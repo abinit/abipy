@@ -2,8 +2,10 @@
 """
 AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.
 """
+from __future__ import annotations
+
 import pandas as pd
-import warnings
+#import warnings
 
 from collections import OrderedDict
 from monty.functools import lazy_property
@@ -12,6 +14,7 @@ from monty.termcolor import cprint
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
+from abipy.tools.typing import Figure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, rotate_ticklabels
 from abipy.tools.tensors import Tensor, DielectricTensor, NLOpticalSusceptibilityTensor
 from abipy.dfpt.ifc import InteratomicForceConstants
@@ -46,11 +49,11 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> AnaddbNcFile:
         """Initialize the object from file."""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = ETSF_Reader(filepath)
 
@@ -71,10 +74,10 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             ("symdynmat", int(self.reader.read_value("symdynmat", default=-666))),
         ])
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """
         String representation
 
@@ -149,14 +152,6 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             #print(exc, "Returning None", sep="\n")
             return None
 
-    # FIXME To maintain backward compatibility
-    @property
-    def emacro(self):
-        msg = "emacro is deprecated. It will removed in abipy 0.8. Use epsinf"
-        warnings.simplefilter('default')
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        return self.epsinf
-
     @lazy_property
     def eps0(self):
         """
@@ -169,14 +164,6 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             #print(exc, "Requires dieflag > 0", "Returning None", sep="\n")
             return None
 
-    # FIXME To maintain backward compatibility
-    @property
-    def emacro_rlx(self):
-        msg = "emacro_rlx is deprecated and will removed in abipy 0.8. Use eps0"
-        warnings.simplefilter('default')
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        return self.eps0
-
     @lazy_property
     def becs(self):
         """
@@ -186,7 +173,6 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             return Becs(self.reader.read_value("becs_cart"), self.structure, chneut=chneut, order="f")
         except Exception as exc:
-            #print(exc, "Returning None", sep="\n")
             return None
 
     @lazy_property
@@ -254,22 +240,36 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             return None
 
     @lazy_property
-    def has_elastic_data(self):
+    def has_elastic_data(self) -> bool:
         """True if elastic tensors have been computed."""
         return self.reader.read_value("elaflag", default=0) != 0
 
     @lazy_property
-    def has_piezoelectric_data(self):
+    def has_piezoelectric_data(self) -> bool:
         """True if piezoelectric tensors have been computed."""
         return self.reader.read_value("piezoflag", default=0) != 0
 
     @lazy_property
-    def elastic_data(self):
+    def elastic_data(self) -> ElasticData:
         """
         Container with the different (piezo)elastic tensors computed by anaddb.
         stored in pymatgen tensor objects.
         """
         return ElasticData.from_ncreader(self.reader)
+
+    @lazy_property
+    def amu(self):
+        """
+        Dictionary with atomic_number as keys and the atomic massu units as values.
+        """
+        amu_list = self.reader.read_value("atomic_mass_units", default=None)
+        if amu_list is not None:
+            atomic_numbers = self.reader.read_value("atomic_numbers")
+            amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
+        else:
+            amu = None
+
+        return amu
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -278,7 +278,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         yield None
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -303,7 +303,7 @@ class AnaddbNcRobot(Robot):
     EXT = "anaddb"
 
     @property
-    def has_elastic_data(self):
+    def has_elastic_data(self) -> bool:
         return all(ncfile.has_elastic_data for ncfile in self.abifiles)
 
     def get_dataframe(self):
@@ -311,7 +311,8 @@ class AnaddbNcRobot(Robot):
             return self.get_elastic_dataframe()
         return None
 
-    def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params=False, funcs=None, **kwargs):
+    def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params
+                              =False, funcs=None, **kwargs) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with properties derived from the elastic tensor
         and an associated structure. Filename is used as index.

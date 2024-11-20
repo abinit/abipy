@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # flake8: noqa
 """Setup script for AbiPy."""
+from __future__ import annotations
 
 import sys
 import os
@@ -58,6 +59,12 @@ def find_package_data():
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
+        'abipy.panels': [
+            "assets/img/*",
+        ],
+        'abipy.htc': [
+            "protocols/*.yml",
+        ],
         'abipy.data': [
             "cifs/*.cif",
             "pseudos/*",
@@ -84,7 +91,6 @@ def find_package_data():
             "sio2_screening/*",
             "znse_phonons/*",
         ],
-        'abipy.gui.awx': ['images/*'],
     }
 
     return package_data
@@ -139,29 +145,31 @@ def cleanup():
 
 install_requires = [
     "monty",
+    "packaging",
     "tabulate",
-    "apscheduler==2.1.0",
+    "apscheduler<=3.10.4",
     "pydispatcher>=2.0.5",
     "tqdm",
     "pyyaml>=3.11",
     "pandas",
-    "numpy",
+    #"numpy",
+    "numpy<2.0.0",
     "scipy",
     "spglib",
-    #"pymatgen>=2019.10.16",
-    "pymatgen>=2019.12.22",
+    "pymatgen>=2022.0.14",
     "netCDF4",
     "matplotlib",
     "seaborn",
+    "plotly",
+    "ipython",
+    "chart-studio",
+    "click",
+    "phonopy",
+    "ase",
+    #"custodian",
+    #pydantic,
+    #panel,
 ]
-
-with_wxpython = False
-if with_wxpython:
-    install_requires += [
-        "wxmplot",
-        "wxpython",
-    ]
-
 
 #---------------------------------------------------------------------------
 # Find all the packages, package data, and data_files
@@ -200,15 +208,18 @@ if __name__ == "__main__":
     print("""
 Please read the following if you are about to use AbiPy for the first time:
 
-Abipy needs to know about the cluster/computer you are running on. This information
-is provided via the manager.yml and scheduler.yml files.
-These files must be located in ~/.abinit/abipy or in the working directory in which you execute the flow.
+AbiPy needs to know about the cluster/computer you are running on.
+This information is provided via two Yaml configuration files: manager.yml and scheduler.yml.
+These files must be located either in ~/.abinit/abipy or in the working directory in which you execute the flow.
 Examples are provided in abipy/data/managers.
 See also the HTML page:
 
     http://abinit.github.io/abipy/workflows/manager_examples.html
 
-TIP: Use abicheck.py to validate the final configuration.
+TIPS:
+
+    1) Issue `rehash` in the shell if the AbiPy scripts cannot be found after the installation (MacOs only)
+    2) Use `abicheck.py --with-flow` to validate the final configuration before running large calculations.
 
 Have fun!
 """)

@@ -55,17 +55,29 @@
 .. _slurm: https://slurm.schedmd.com/
 .. _pbspro: http://pbspro.org/
 .. _sge: http://gridscheduler.sourceforge.net/howto/GridEngineHowto.html
-.. _torque: http://www.adaptivecomputing.com/products/open-source/torque/
+.. _torque: https://github.com/adaptivecomputing/torque
 .. _moab: http://www.adaptivecomputing.com/products/hpc-products/moab-hpc-basic-edition/
 .. _loadleveler: https://www.ibm.com/support/knowledgecenter/en/SSFJTW
 
 .. Links to important python objects.
-.. _POSCAR: http://cms.mpi.univie.ac.at/vasp/guide/node59.html
 .. _DataFrame: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html
 .. _DataFrames: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html
 
-.. Links to jupyter notebooks associated to AbiPy files available at
-   https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb?flush_cache=true
+.. Links to important pymatgen.
+.. _POSCAR: http://cms.mpi.univie.ac.at/vasp/guide/node59.html
+
+.. Links to abipy scripts.
+.. _abiopen.py: https://abinit.github.io/abipy/scripts/abiopen.html
+.. _abistruct.py: https://abinit.github.io/abipy/scripts/abistruct.html
+.. _abidoc.py: https://abinit.github.io/abipy/scripts/abidoc.html
+.. _abiview.py: https://abinit.github.io/abipy/scripts/abiview.html
+.. _abicomp.py: https://abinit.github.io/abipy/scripts/abicomp.html
+.. _abinp.py: https://abinit.github.io/abipy/scripts/abinp.html
+.. _abicheck.py: https://abinit.github.io/abipy/scripts/abicheck.html
+.. _abips.py: https://abinit.github.io/abipy/scripts/abips.html
+.. _oncv.py: https://abinit.github.io/abipy/scripts/oncv.html
+
+.. Links to jupyter notebooks associated to AbiPy files:
 .. _AbipyStructure: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/structure.ipynb
 .. _AbinitInput: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/abinit_input.ipynb
 .. _GSR.nc: https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/gsr.ipynb
@@ -115,6 +127,7 @@
 .. |DdbRobot| replace:: :class:`abipy.dfpt.ddb.DdbRobot`
 .. |AnaddbNcFile| replace:: :class:`abipy.dfpt.anaddb.AnaddbNcFile`
 .. |AbinitNcFile| replace:: :class:`abipy.core.mixins.AbinitNcFile`
+.. |SigEPhFile| replace:: :class:`abipy.eph.sigeph.SigEPhFile`
 .. |pmg-Tensor| replace:: :class:`pymatgen.core.tensors.Tensor` 
 .. |Stress| replace:: :class:`abipy.tools.tensors.Stress` 
 .. |DielectricTensor| replace:: :class:`abipy.tools.tensors.DielectricTensor` 
@@ -124,6 +137,7 @@
 .. |PhononDos| replace:: :class:`abipy.dfpt.phonons.PhononDos`
 .. |PhononBandsPlotter| replace:: :class:`abipy.dfpt.phonons.PhononBandsPlotter`
 .. |PhononDosPlotter| replace:: :class:`abipy.dfpt.phonons.PhononDosPlotter`
+.. |PhononWork| replace:: :class:`abipy.flowtk.works.PhononWork`
 .. |MsqDos| replace:: :class:`abipy.dfpt.msqdos.MsqDos`
 .. |Pseudo| replace:: :class:`pymatgen.io.abinit.pseudos.Pseudo`
 .. |PseudoTable| replace:: :class:`pymatgen.io.abinit.pseudos.PseudoTable`
@@ -138,6 +152,8 @@
 .. |pandas-DataFrame| replace:: :class:`pandas.DataFrame`
 .. |pandas-DataFrames| replace:: :class:`pandas.DataFrame`
 .. |numpy-array| replace:: :class:`numpy.ndarray`
+.. |plotly.graph_objects.Figure| replace:: :class:`plotly.graph_objects.Figure`
+.. |plotly-Figure| replace:: :class:`plotly.graph_objects.Figure`
 
 .. Badges
 .. |pypi-version| image:: https://badge.fury.io/py/abipy.svg
@@ -154,7 +170,7 @@
 
 .. |download-with-anaconda| image:: https://anaconda.org/abinit/abipy/badges/installer/conda.svg   
     :alt: Download with Anaconda
-    :target: https://conda.anaconda.org/abinit
+    :target: https://anaconda.org/conda-forge/abinit
 
 .. |abipy-license| image:: https://img.shields.io/badge/license-GPL-blue.svg
     :alt: AbiPy license

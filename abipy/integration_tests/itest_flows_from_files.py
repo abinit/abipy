@@ -1,6 +1,8 @@
 """
 Integration tests for flows/works/tasks that rely on external files e.g. DEN --> NscfTask.
 """
+from __future__ import annotations
+
 import os
 import abipy.data as abidata
 import abipy.abilab as abilab

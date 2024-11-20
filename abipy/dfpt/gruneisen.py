@@ -1,28 +1,34 @@
 # coding: utf-8
 """Objects to analyze the results stored in the GRUNS.nc file produced by anaddb."""
+from __future__ import annotations
 
 import numpy as np
 import os
 import abipy.core.abinit_units as abu
 import scipy.constants as const
+import pandas as pd
 
 from functools import lru_cache
 from collections import OrderedDict
+#from typing import List
 from monty.string import marquee, list_strings
 from monty.termcolor import cprint
 from monty.collections import AttrDict
 from monty.functools import lazy_property
+from pymatgen.core.units import amu_to_kg
+from pymatgen.core.periodic_table import Element
 from abipy.core.kpoints import Kpath, IrredZone, KSamplingInfo
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter, PhononDos, match_eigenvectors, get_dyn_mat_eigenvec
 from abipy.dfpt.ddb import DdbFile
 from abipy.iotools import ETSF_Reader
+from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
+from abipy.tools.typing import Figure
 from abipy.flowtk import AnaddbTask
 from abipy.tools.derivatives import finite_diff
-from pymatgen.core.units import amu_to_kg
-from pymatgen.core.periodic_table import Element
+
 
 # DOS name --> meta-data
 _ALL_DOS_NAMES = OrderedDict([
@@ -50,27 +56,27 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     .. inheritance-diagram:: GrunsNcFile
     """
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> GrunsNcFile:
         """Initialize the object from a netcdf_ file"""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = GrunsReader(filepath)
 
-    def close(self):
+    def close(self) -> None:
         """Close file."""
         self.reader.close()
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         return {}
 
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -87,7 +93,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return "\n".join(lines)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| corresponding to the central point V0."""
         return self.reader.structure
 
@@ -97,11 +103,11 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     #    return self.reader.volumes
 
     @property
-    def iv0(self):
+    def iv0(self) -> int:
         return self.reader.iv0
 
     @lazy_property
-    def doses(self):
+    def doses(self) -> dict:
         """Dictionary with the phonon doses."""
         return self.reader.read_doses()
 
@@ -129,17 +135,17 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_value("gruns_gvals_qibz")
 
     @lazy_property
-    def phbands_qpath_vol(self):
+    def phbands_qpath_vol(self) -> list[PhononBands]:
         """List of |PhononBands| objects corresponding to the different volumes."""
         return self.reader.read_phbands_on_qpath()
 
     @lazy_property
-    def structures(self):
+    def structures(self) -> list[Structure]:
         """List of structures"""
         return self.reader.read_structures()
 
     @lazy_property
-    def volumes(self):
+    def volumes(self) -> list[float]:
         """List of volumes"""
         return [s.volume for s in self.structures]
 
@@ -149,19 +155,19 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_value("gruns_phdispl_cart_qibz", cmode="c")
 
     @property
-    def nvols(self):
+    def nvols(self) -> int:
         """Number of volumes"""
         return len(self.structures)
 
     @lazy_property
-    def amu_symbol(self):
+    def amu_symbol(self) -> dict:
         """Atomic mass units"""
         amu_list = self.reader.read_value("atomic_mass_units")
         atomic_numbers = self.reader.read_value("atomic_numbers")
         amu = {Element.from_Z(at).symbol: a for at, a in zip(atomic_numbers, amu_list)}
         return amu
 
-    def to_dataframe(self):
+    def to_dataframe(self) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the following columns:
 
@@ -187,7 +193,6 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         dwdq = self.reader.read_value("gruns_dwdq_qibz")
         groupv = np.linalg.norm(dwdq, axis=-1)
 
-        import pandas as pd
         rows = []
         for iq in range(nqibz):
             for nu in range(natom3):
@@ -203,7 +208,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return pd.DataFrame(rows, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
-    def plot_doses(self, xlims=None, dos_names="all", with_idos=True, **kwargs):
+    def plot_doses(self, xlims=None, dos_names="all", with_idos=True, **kwargs) -> Figure:
         r"""
         Plot the different DOSes stored in the GRUNS.nc file.
 
@@ -244,7 +249,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return fig
 
-    def get_plotter(self):
+    def get_plotter(self) -> PhononBandsPlotter:
         """
         Return an instance of |PhononBandsPlotter| that can be use to plot
         multiple phonon bands or animate the bands
@@ -258,7 +263,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @add_fig_kwargs
     def plot_phbands_with_gruns(self, fill_with="gruns", gamma_fact=1, alpha=0.6, with_doses="all", units="eV",
-                                ylims=None, match_bands=False, qlabels=None, branch_range=None, **kwargs):
+                                ylims=None, match_bands=False, qlabels=None, branch_range=None, **kwargs) -> Figure:
         r"""
         Plot the phonon bands corresponding to ``V0`` (the central point) with markers
         showing the value and the sign of the Grunesein parameters.
@@ -369,7 +374,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_gruns_scatter(self, values="gruns", ax=None, units="eV", cmap="rainbow", **kwargs):
+    def plot_gruns_scatter(self, values="gruns", ax=None, units="eV", cmap="rainbow", **kwargs) -> Figure:
         """
         A scatter plot of the values of the Gruneisen parameters or group velocities as a function
         of the phonon frequencies.
@@ -447,7 +452,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return [np.array(v[indices[i]:indices[i + 1] + 1]) for i in range(len(indices) - 1)]
 
     @add_fig_kwargs
-    def plot_gruns_bs(self, values="gruns", ax=None, branch_range=None, qlabels=None, match_bands=False, **kwargs):
+    def plot_gruns_bs(self, values="gruns", ax=None, branch_range=None, qlabels=None, match_bands=False, **kwargs) -> Figure:
         r"""
         A plot of the values of the Gruneisen parameters or group velocities along the
         high symmetry path.
@@ -525,11 +530,11 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Used in abiview.py to get a quick look at the results.
         """
         yield self.plot_phbands_with_gruns(show=False)
-        yield self.plot_doses(show=False)
         yield self.plot_gruns_scatter(show=False)
+        yield self.plot_doses(show=False)
         yield self.plot_gruns_bs(show=False)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -556,7 +561,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self._write_nb_nbpath(nb, nbpath)
 
     @property
-    def phdos(self):
+    def phdos(self) -> PhononDos:
         """
         The |PhononDos| corresponding to iv0, if present in the file, None otherwise.
         """
@@ -617,7 +622,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return g
 
-    def thermal_conductivity_slack(self, squared=True, limit_frequencies=None, theta_d=None, t=None):
+    def thermal_conductivity_slack(self, squared=True, limit_frequencies=None, theta_d=None, t=None) -> float:
         """
         Calculates the thermal conductivity at the acoustic Debye temperature wit the Slack formula,
         using the average Gruneisen.
@@ -727,7 +732,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             q1shft=(0, 0, 0), qptbounds=qptbounds, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
             lo_to_splitting=lo_to_splitting, anaddb_kwargs=anaddb_kwargs)
 
-        inp["gruns_ddbs"] = ['"'+p+'"\n' for p in ddb_list]
+        inp["gruns_ddbs"] = ddb_list
         inp["gruns_nddbs"] = len(ddb_list)
 
         task = AnaddbTask.temp_shell_task(inp, ddb_node=ddb0.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
@@ -835,7 +840,7 @@ class GrunsReader(ETSF_Reader):
     #nctkarr_t("gruns_rprimd", "dp", "three, three, gruns_nvols"), &
     #nctkarr_t("gruns_xred", "dp", "three, number_of_atoms, gruns_nvols") &
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
 
         # Read and store important quantities.
@@ -845,7 +850,7 @@ class GrunsReader(ETSF_Reader):
         # The index of the volume used for the finite difference.
         self.iv0 = self.read_value("gruns_iv0") - 1  #  F --> C
 
-    def read_doses(self):
+    def read_doses(self) -> AttrDict:
         """
         Return a |AttrDict| with the DOSes available in the file. Empty dict if
         DOSes are not available.
@@ -874,7 +879,7 @@ class GrunsReader(ETSF_Reader):
 
         return d
 
-    def read_phbands_on_qpath(self):
+    def read_phbands_on_qpath(self) -> list[PhononBands]:
         """
         Return a list of |PhononBands| computed at the different volumes.
         The ``iv0`` entry corresponds to the central point used to compute Grunesein parameters
@@ -917,7 +922,7 @@ class GrunsReader(ETSF_Reader):
 
         return phbands_qpath_vol
 
-    def read_amuz_dict(self):
+    def read_amuz_dict(self) -> dict:
         """
         Dictionary that associates the atomic number to the values of the atomic
         mass units used for the calculation.
@@ -932,7 +937,7 @@ class GrunsReader(ETSF_Reader):
 
         return amuz
 
-    def read_structures(self):
+    def read_structures(self) -> list[Structure]:
         """
         Resturns a list of structures at the different volumes
         """
@@ -949,7 +954,7 @@ class GrunsReader(ETSF_Reader):
         return structures
 
 
-def calculate_gruns_finite_differences(phfreqs, eig, iv0, volume, dv):
+def calculate_gruns_finite_differences(phfreqs, eig, iv0, volume, dv) -> np.ndarray:
     """
     Calculates the Gruneisen parameters from finite differences on the phonon frequencies.
     Uses the eigenvectors to match the frequencies at different volumes.
@@ -989,7 +994,7 @@ def calculate_gruns_finite_differences(phfreqs, eig, iv0, volume, dv):
     return g
 
 
-def thermal_conductivity_slack(average_mass, volume, mean_g, theta_d, t=None):
+def thermal_conductivity_slack(average_mass, volume, mean_g, theta_d, t=None) -> float:
     """
     Generic function for the calculation of the thermal conductivity at the acoustic Debye
     temperature with the Slack formula, based on the quantities that can be calculated.

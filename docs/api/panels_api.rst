@@ -13,6 +13,14 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`a2f` Module
+------------------
+
+.. automodule:: abipy.panels.a2f
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`core` Module
 ------------------
 
@@ -25,6 +33,14 @@ panels Package
 -----------------
 
 .. automodule:: abipy.panels.ddb
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`fatbands` Module
+----------------------
+
+.. automodule:: abipy.panels.fatbands
    :members:
    :undoc-members:
    :show-inheritance:
@@ -45,6 +61,32 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`hist` Module
+------------------
+
+.. automodule:: abipy.panels.hist
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+:mod:`nodes` Module
+-------------------
+
+.. automodule:: abipy.panels.nodes
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+:mod:`outputs` Module
+---------------------
+
+.. automodule:: abipy.panels.outputs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`phonons` Module
 ---------------------
 
@@ -53,10 +95,42 @@ panels Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`sigeph` Module
+---------------------
+
+.. automodule:: abipy.panels.sigeph
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`structure` Module
 -----------------------
 
 .. automodule:: abipy.panels.structure
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`tasks` Module
+-------------------
+
+.. automodule:: abipy.panels.tasks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`viewers` Module
+---------------------
+
+.. automodule:: abipy.panels.viewers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`works` Module
+-------------------
+
+.. automodule:: abipy.panels.works
    :members:
    :undoc-members:
    :show-inheritance:

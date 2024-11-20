@@ -2,6 +2,8 @@
 """
 Phonon Toolkit: This module gathers low-level tools to operate on phonons.
 """
+from __future__ import annotations
+
 import warnings
 import sys
 import numpy as np
@@ -14,11 +16,11 @@ from abipy.iotools import ETSF_Reader
 
 
 # TODO: amu should become mandatory.
-def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None):
+def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None) -> np.ndarray:
     """
     Converts the phonon displacements to the orthonormal eigenvectors of the dynamical matrix.
-    Small discrepancies with the original values may be expected due to the different values of the atomic masses in
-    abinit and pymatgen.
+    Small discrepancies with the original values may be expected due to the different values
+    of the atomic masses in abinit and pymatgen.
 
     .. note::
 
@@ -41,7 +43,7 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None):
     Returns:
         A |numpy-array| of the same shape as phdispl containing the eigenvectors of the dynamical matrix
     """
-    eigvec = np.zeros(np.shape(phdispl), dtype=np.complex)
+    eigvec = np.zeros(np.shape(phdispl), dtype=complex)
 
     if amu is not None and amu_symbol is not None:
         raise ValueError("Only one between amu and amu_symbol should be provided!")
@@ -59,14 +61,14 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None):
     return eigvec
 
 
-def match_eigenvectors(v1, v2):
+def match_eigenvectors(v1, v2) -> np.ndarray:
     """
     Given two list of vectors, returns the pair matching based on the complex scalar product.
     Returns the indices of the second list that match the vectors of the first list in ascending order.
     """
     prod = np.absolute(np.dot(v1, v2.transpose().conjugate()))
 
-    indices = np.zeros(len(v1), dtype=np.int)
+    indices = np.zeros(len(v1), dtype=int)
     missing_v1 = [True] * len(v1)
     missing_v2 = [True] * len(v1)
     for m in reversed(np.argsort(prod, axis=None)):
@@ -85,7 +87,7 @@ def match_eigenvectors(v1, v2):
 class NonAnalyticalPh(Has_Structure):
     """
     Phonon data at gamma including non analytical contributions
-    Read from anaddb.nc
+    Usually read from anaddb.nc
     """
 
     def __init__(self, structure, directions, phfreqs, phdispl_cart, amu=None):
@@ -112,33 +114,41 @@ class NonAnalyticalPh(Has_Structure):
                 self.amu_symbol[el.symbol] = m
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> NonAnalyticalPh:
         """
-        Reads the non analytical directions, frequencies and displacements from the anaddb.nc file specified.
+        Reads the non analytical directions, frequencies and displacements from the nc file specified (usually anaddb.nc)
         Non existence of displacements is accepted for compatibility with abinit 8.0.6
-        Raises an error if the other values are not present in anaddb.nc.
+        Raises an error if the other values are not present in the netcdf file.
         """
         with ETSF_Reader(filepath) as r:
-            directions = r.read_value("non_analytical_directions")
-            phfreq = r.read_value("non_analytical_phonon_modes")
+            return cls.from_ncreader(r)
 
-            # need a default as the first abinit version including IFCs in the netcdf doesn't have this attribute
-            phdispl_cart = r.read_value("non_analytical_phdispl_cart", cmode="c", default=None)
+    @classmethod
+    def from_ncreader(cls, nc_reader) -> NonAnalyticalPh:
+        """
+        Build the object from a NetcdfReader.
+        """
+        r = nc_reader
+        directions = r.read_value("non_analytical_directions")
+        phfreq = r.read_value("non_analytical_phonon_modes")
 
-            structure = r.read_structure()
+        # need a default as the first abinit version including IFCs in the netcdf doesn't have this attribute
+        phdispl_cart = r.read_value("non_analytical_phdispl_cart", cmode="c", default=None)
+        structure = r.read_structure()
 
-            amu_list = r.read_value("atomic_mass_units", default=None)
-            if amu_list is not None:
-                # ntypat arrays
-                atomic_numbers = r.read_value("atomic_numbers")
-                amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
-            else:
-                amu = None
+        amu_list = r.read_value("atomic_mass_units", default=None)
 
-            return cls(structure=structure, directions=directions, phfreqs=phfreq, phdispl_cart=phdispl_cart, amu=amu)
+        if amu_list is not None:
+            # ntypat arrays
+            atomic_numbers = r.read_value("atomic_numbers")
+            amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
+        else:
+            amu = None
+
+        return cls(structure=structure, directions=directions, phfreqs=phfreq, phdispl_cart=phdispl_cart, amu=amu)
 
     @lazy_property
-    def dyn_mat_eigenvect(self):
+    def dyn_mat_eigenvect(self) -> np.ndarray:
         """
         [ndirection, 3*natom, 3*natom] array with the orthonormal eigenvectors of the dynamical matrix.
         in Cartesian coordinates.
@@ -150,7 +160,7 @@ class NonAnalyticalPh(Has_Structure):
         """|Structure| object."""
         return self._structure
 
-    def index_direction(self, direction, cartesian=False):
+    def index_direction(self, direction, cartesian=False) -> int:
         """
         Returns: the index of direction. Raises: `ValueError` if not found.
 
@@ -173,7 +183,7 @@ class NonAnalyticalPh(Has_Structure):
         raise ValueError("Cannot find direction: `%s` with cartesian: `%s` in non_analytical cartesian directions:\n%s" %
                 (str(direction), cartesian, str(self.directions)))
 
-    def has_direction(self, direction, cartesian=False):
+    def has_direction(self, direction, cartesian=False) -> bool:
         """
         Checks if the input direction is among those available.
 
@@ -240,8 +250,7 @@ def open_file_phononwebsite(filename, port=8000,
     # Create threads python
     server.url = 'http://{}:{}'.format(host, server.server_port)
     from threading import Thread
-    t = Thread(target=server.serve_forever)
-    t.daemon = True
+    t = Thread(target=server.serve_forever, daemon=True)
     t.start()
 
     # Open website with the file

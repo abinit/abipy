@@ -113,7 +113,8 @@ def build_flow(options):
     sigma_inputs = list(sig_inp.generate(ecuteps=ecuteps_list))
 
     for scr_task in scr_work:
-        sigma_conv = flowtk.SigmaConvWork(wfk_node=bands.nscf_task, scr_node=scr_task, sigma_inputs=sigma_inputs)
+        sigma_conv = flowtk.SigmaConvWork(wfk_node=bands.nscf_task, scr_node=scr_task,
+                                          sigma_inputs=sigma_inputs)
         flow.register_work(sigma_conv)
 
     return flow

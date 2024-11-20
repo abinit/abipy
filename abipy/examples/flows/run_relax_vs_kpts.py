@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 r"""
-Relaxation of GaN with different K-meshes
-=========================================
+Relaxation with different k-meshes
+==================================
 
 In this example, we employ the relaxation algorithms implemented in Abinit (``ionmov`` and ``optcell``)
 to find the equilibrium configuration of GaN (atomic positions and lattice vectors).
-The relaxation is done with different k-meshes to monitor the convergence of the results.
+The relaxation is performed with different k-meshes to monitor the convergence of the results.
 You will observe a change of the equilibrium parameters with respect to the k-point mesh.
 
 Note the we are using pseudopotentials generated with the GGA which tends to

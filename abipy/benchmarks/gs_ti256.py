@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Titanium with 256 atoms and k-point sampling.
-GS calculations with paralkgb==1 and wfoptalg in [default, 1]
+GS calculations with paralkgb == 1 and wfoptalg in [default, 1]
 """
 import sys
 import operator
@@ -17,8 +17,7 @@ from abipy.benchmarks import bench_main, BenchmarkFlow
 
 def make_input(paw=True):
     """
-    Titanium with 256 atoms.
-    GS calculations with paralkgb==1
+    Titanium with 256 atoms. GS calculations with paral_kgb == 1
     """
     pseudos = abidata.pseudos("ti.paw") if paw else abidata.pseudos("Ti-sp.psp8")
 
@@ -280,7 +279,7 @@ def make_input(paw=True):
 0.93254833333333 0.97751666666666 0.81711666666667
 0.91770833333333 0.93970666666666 0.99482666666667
 0.92680333333333 0.14577666666666 0.95922666666667
-""", sep=" ").reshape((-1,3))
+""", sep=" ").reshape((-1, 3))
 
     # Crystal structure.
     structure = abilab.Structure.from_abivars(
@@ -295,8 +294,8 @@ def make_input(paw=True):
     inp.set_vars(
         # SCF algorithm
         paral_kgb=1,
-        wfoptalg=1,
-        fftalg=402,
+        #wfoptalg=1,
+        #fftalg=402,
         #fftalg-302,  # To use FFTW instead of ABINIT FFT
 
         # Basis set
@@ -341,11 +340,11 @@ def build_flow(options):
 
     # Processor distribution.
     pconfs = [
-     dict(npkpt=2, npband=8 , npfft=8),   # 128
-     dict(npkpt=2, npband=8 , npfft=16),  # 256
-     dict(npkpt=2, npband=16, npfft=16),  # 512
-     dict(npkpt=2, npband=16, npfft=32),  # 1024
-     dict(npkpt=2, npband=32, npfft=32),  # 2048
+       dict(npkpt=2, npband=8 , npfft=8),   # 128
+       dict(npkpt=2, npband=8 , npfft=16),  # 256
+       dict(npkpt=2, npband=16, npfft=16),  # 512
+       dict(npkpt=2, npband=16, npfft=32),  # 1024
+       dict(npkpt=2, npband=32, npfft=32),  # 2048
     ]
 
     for wfoptalg in [None, 1]:

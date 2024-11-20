@@ -85,6 +85,22 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`gw_works` Module
+----------------------
+
+.. automodule:: abipy.flowtk.gw_works
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`gwr_works` Module
+-----------------------
+
+.. automodule:: abipy.flowtk.gwr_works
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`gruneisen` Module
 -----------------------
 
@@ -105,6 +121,14 @@ flowtk Package
 ----------------------
 
 .. automodule:: abipy.flowtk.launcher
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`lumi_works` Module
+------------------------
+
+.. automodule:: abipy.flowtk.lumi_works
    :members:
    :undoc-members:
    :show-inheritance:

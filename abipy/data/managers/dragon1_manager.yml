@@ -3,7 +3,7 @@ hardware: &hardware
    num_nodes: 26
    sockets_per_node: 2
    cores_per_socket: 8
-   mem_per_node: 112Gb
+   mem_per_node: 112GB
 
 job: &job
     mpi_runner: mpirun
@@ -11,9 +11,8 @@ job: &job
         PATH: "$HOME/git_repos/abinit/_build_dragon1-intel-mpich-mkl.ac/src/98_main:$PATH"
     modules:
         - mpich/3.0.4/intel-13.0.0
-    pre_run: "ulimit -s unlimited"
 
-# queues 
+# queues
 qadapters:
   - priority: 1
     queue:

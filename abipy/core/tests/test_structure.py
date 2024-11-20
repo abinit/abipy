@@ -2,6 +2,7 @@
 import numpy as np
 import sys
 import abipy.data as abidata
+import abipy.core.abinit_units as abu
 
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.units import bohr_to_ang
@@ -38,6 +39,8 @@ class TestStructure(AbipyTest):
 
             if self.has_ase():
                 assert structure == Structure.from_ase_atoms(structure.to_ase_atoms())
+                if self.has_matplotlib():
+                    assert structure.plot_atoms(show=False)
 
     def test_utils(self):
         """Test utilities for the generation of Abinit inputs."""
@@ -55,6 +58,13 @@ class TestStructure(AbipyTest):
         kfrac_coords = si.get_kcoords_from_names(["G", "X", "L", "Gamma"])
         self.assert_equal(kfrac_coords,
             ([[0. , 0. , 0. ], [0.5, 0. , 0.5], [0.5, 0.5, 0.5], [0. , 0. , 0. ]]))
+
+        d = si.get_symb2coords_dataframe(with_cart_coords=True)
+        assert "Si" in d
+        df =  d["Si"]
+        assert "frac_coords" in df and len(df.frac_coords) == 2
+        for i in range(2):
+            self.assert_equal(si.frac_coords[i], df.frac_coords.values[i])
 
         si_wfk = Structure.as_structure(abidata.ref_file("si_scf_WFK.nc"))
         assert si_wfk.formula == "Si2"
@@ -137,8 +147,8 @@ class TestStructure(AbipyTest):
                 assert si.plot_xrd(show=False)
 
         if self.has_mayavi():
-            #assert si.vtkview(show=False)  # Disabled due to (core dumped) on travis
-            assert si.mayaview(show=False)
+            #assert si.plot_vtk(show=False)  # Disabled due to (core dumped) on travis
+            assert si.plot_mayaview(show=False)
 
         if self.has_panel():
             assert hasattr(si.get_panel(), "show")
@@ -174,23 +184,49 @@ xred       0.0000000000    0.0000000000    0.0000000000
         same = Structure.rocksalt(7.7030079150, ["Li", "F"], units="ang")
         self.assert_almost_equal(lif.lattice.a,  same.lattice.a)
 
-        si = Structure.from_mpid("mp-149")
-        assert si.formula == "Si2"
+        # Test string with Abinit simplified format (structure variable in abivars format)
+        mgb2 = Structure.from_abistring("""
+# MgB2 lattice structure.
+natom   3
+acell   2*3.086  3.523 Angstrom
+rprim   0.866025403784439  0.5  0.0
+       -0.866025403784439  0.5  0.0
+        0.0                0.0  1.0
 
-        # Test abiget_spginfo
-        d = si.abiget_spginfo(tolsym=None, pre="abi_")
-        assert d["abi_spg_symbol"] == "Fd-3m"
-        assert d["abi_spg_number"] == 227
-        assert d["abi_bravais"] == "Bravais cF (face-center cubic)"
+# Atomic positions
+xred_symbols
+ 0.0  0.0  0.0 Mg
+ 1/3  2/3  0.5 B
+ 2/3  1/3  0.5 B
+""")
+        print(mgb2)
+        assert len(mgb2) == 3
+        assert mgb2.formula == "Mg1 B2"
+        self.assert_almost_equal(mgb2.lattice.angles, (90.0, 90.0, 120.00000000000001))
+        self.assert_almost_equal(mgb2.lattice.volume * abu.Ang_Bohr ** 3, 196.07928976151663)
+
+        if self.test_mprester():
+            si = Structure.from_mpid("mp-149")
+            assert si.formula == "Si2"
+            with self.assertRaises(ValueError):
+                Structure.from_mpid("foobar")
+
+            # Test abiget_spginfo
+            d = si.abiget_spginfo(tolsym=None, pre="abi_")
+            assert d["abi_spg_symbol"] == "Fd-3m"
+            assert d["abi_spg_number"] == 227
+            assert d["abi_bravais"] == "Bravais cF (face-center cubic)"
+
+            # Temporarily disables as webserver is down.
+            #if self.is_url_reachable("www.crystallography.net"):
+            mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
+            assert mgb2_cod.formula == "Mg1 B2"
+            assert mgb2_cod.spget_lattice_type() == "hexagonal"
 
         llzo = Structure.from_file(abidata.cif_file("LLZO_oxi.cif"))
         assert llzo.is_ordered
         d = llzo.abiget_spginfo(tolsym=0.001)
         assert d["spg_number"] == 142
-
-        mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
-        assert mgb2_cod.formula == "Mg1 B2"
-        assert mgb2_cod.spget_lattice_type() == "hexagonal"
 
         mgb2 = abidata.structure_from_ucell("MgB2")
         if self.has_ase():
@@ -216,7 +252,6 @@ xred       0.0000000000    0.0000000000    0.0000000000
         mgb2.get_conventional_standard_structure()
         assert len(mgb2.abi_string)
         assert len(mgb2.spget_summary(site_symmetry=True, verbose=10))
-        #print(structure._repr_html_())
 
         self.serialize_with_pickle(mgb2)
 
@@ -271,6 +306,38 @@ xred       0.0000000000    0.0000000000    0.0000000000
         if self.has_nbformat():
             assert mgb2.write_notebook(nbpath=self.get_tmpname(text=True))
 
+    def test_znucl_typat(self):
+        """Test the order of typat and znucl in the Abinit input and enforce_typat, enforce_znucl."""
+
+        # Ga  Ga1  1  0.33333333333333  0.666666666666667  0.500880  1.0
+        # Ga  Ga2  1  0.66666666666667  0.333333333333333  0.000880  1.0
+        # N  N3  1  0.333333333333333  0.666666666666667  0.124120  1.0
+        # N  N4  1  0.666666666666667  0.333333333333333  0.624120  1.0
+        gan2 = Structure.from_file(abidata.cif_file("gan2.cif"))
+
+        # By default, znucl is filled using the first new type found in sites.
+        def_vars = gan2.to_abivars()
+        def_znucl = def_vars["znucl"]
+        self.assert_equal(def_znucl, [31, 7])
+        def_typat = def_vars["typat"]
+        self.assert_equal(def_typat, [1, 1, 2, 2])
+
+        # But it's possible to enforce a particular value of typat and znucl.
+        enforce_znucl = [7 ,31]
+        enforce_typat = [2, 2, 1, 1]
+        enf_vars = gan2.to_abivars(enforce_znucl=enforce_znucl, enforce_typat=enforce_typat)
+        self.assert_equal(enf_vars["znucl"], enforce_znucl)
+        self.assert_equal(enf_vars["typat"], enforce_typat)
+        self.assert_equal(def_vars["xred"], enf_vars["xred"])
+
+        assert [s.symbol for s in gan2.species_by_znucl] == ["Ga", "N"]
+
+        for itype1, itype2 in zip(def_typat, enforce_typat):
+            assert def_znucl[itype1 - 1] == enforce_znucl[itype2 -1]
+
+        with self.assertRaises(Exception):
+            gan2.to_abivars(enforce_znucl=enforce_znucl, enforce_typat=None)
+
     def test_dataframes_from_structures(self):
         """Testing dataframes from structures."""
         mgb2 = abidata.structure_from_ucell("MgB2")
@@ -322,21 +389,21 @@ xred       0.0000000000    0.0000000000    0.0000000000
                                           max_supercell=mx_sc, scale_matrix=scale_matrix)
 
         max_displ = np.linalg.norm(displ, axis=1).max()
-        self.assertArrayAlmostEqual(fp_data.structure[0].coords,
+        self.assert_almost_equal(fp_data.structure[0].coords,
                                     structure[0].coords + 0.5*displ[0]/max_displ)
-        self.assertArrayAlmostEqual(fp_data.structure[8].coords,
+        self.assert_almost_equal(fp_data.structure[8].coords,
                                     structure[1].coords + 0.5*displ[1]/max_displ)
 
         displ2 = np.array([[1, 0, 0], [0, 1, 1]])
 
         f2p_data = structure.frozen_2phonon(qpoint, 0.05 * displ, 0.02*displ2, eta=0.5, frac_coords=False,
-                                           max_supercell=mx_sc, scale_matrix=scale_matrix)
+                                            max_supercell=mx_sc, scale_matrix=scale_matrix)
 
-        d_tot = 0.05*displ+0.02*displ2
+        d_tot = 0.05 *displ + 0.02 * displ2
         max_displ = np.linalg.norm(d_tot, axis=1).max()
-        self.assertArrayAlmostEqual(f2p_data.structure[0].coords,
+        self.assert_almost_equal(f2p_data.structure[0].coords,
                                     structure[0].coords + 0.5*d_tot[0]/max_displ)
-        self.assertArrayAlmostEqual(f2p_data.structure[8].coords,
+        self.assert_almost_equal(f2p_data.structure[8].coords,
                                     structure[1].coords + 0.5*d_tot[1]/max_displ)
 
         #print("Structure = ", structure)

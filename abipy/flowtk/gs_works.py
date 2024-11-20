@@ -1,14 +1,133 @@
 # coding: utf-8
 """Work subclasses related to GS calculations."""
+from __future__ import annotations
+
 import json
 
-from .works import Work
+from pymatgen.analysis.eos import EOS
 from abipy.core.structure import Structure
+from abipy.abio.inputs import AbinitInput
+from abipy.electrons.gsr import GsrRobot
+from .works import Work
+
+__all__ = [
+    "GsKmeshConvWork"
+    "GsKmeshTsmearConvWork",
+    "EosWork",
+]
+
+
+class GsKmeshConvWork(Work):
+    """
+    This work performs convergence studies of GS properties
+    with respect to the k-mesh
+
+    It produces ...
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: GsKmeshConvWork
+    """
+
+    @classmethod
+    def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list) -> GsKmeshConvWork:
+        """
+        Build the work from a `scf_input` for a GS SCF run and a list
+        with the smallest number of divisions for the k-mesh.
+        """
+        work = cls()
+        for nksmall in nksmall_list:
+            new_inp = scf_input.deepcopy()
+            new_inp.set_autokmesh(nksmall)
+            work.register_scf_task(new_inp)
+
+        return work
+
+    def on_all_ok(self): # pragma: no cover
+        """
+        This method is called when all tasks in the GsKmeshTsmearConvWork have reached S_OK.
+        """
+        with GsrRobot.from_work(self) as gsr_robot:
+            df = gsr_robot.get_dataframe(with_geo=False)
+            # Write excel file.
+            basename = self.__class__.__name__
+            df.to_excel(self.outdir.path_in(f"{basename}.xlsx"))
+
+            with gsr_robot.get_pyscript(self.outdir.path_in("gsr_robot.py")) as script:
+                script.add_text("""
+# Quantities that should be tested for convergence.
+abs_conv = {
+"energy_per_atom": 1e-3,
+"pressure": 1e-2,
+"max_force": 1e-4,
+}
+items = abs_conv.keys()
+
+robot.plot_convergence_items(items, sortby="nkpt", abs_conv=abs_conv)
+""")
+
+        return super().on_all_ok()
+
+
+
+class GsKmeshTsmearConvWork(Work):
+    """
+    This work performs convergence studies of GS properties
+    with respect to the k-mesh and the electronic smearing.
+
+    It produces ...
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: GsKmeshTsmearConvWork
+    """
+
+    @classmethod
+    def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list, tsmear_list: list) -> GsKmeshTsmearConvWork:
+        """
+        Build the work from a `scf_input` for a GS SCF run including `occopt`
+        and a list with the smallest number of divisions for the k-mesh.
+        """
+        occopt = scf_input.get("occopt", default=None)
+        if occopt is None or occopt <= 0:
+            raise ValueError(f"scf_input should define occopt but found: {occopt}")
+
+        work = cls()
+        for tsmear in tsmear_list:
+            for nksmall in nksmall_list:
+                new_inp = scf_input.new_with_vars(tsmear=tsmear)
+                new_inp.set_autokmesh(nksmall)
+                work.register_scf_task(new_inp)
+
+        return work
+
+    def on_all_ok(self): # pragma: no cover
+        """
+        This method is called when all tasks in the GsKmeshTsmearConvWork have reached S_OK.
+        """
+        with GsrRobot.from_work(self) as gsr_robot:
+            df = gsr_robot.get_dataframe(with_geo=False)
+            # Write excel file.
+            basename = self.__class__.__name__
+            df.to_excel(self.outdir.path_in(f"{basename}.xlsx"))
+
+            with gsr_robot.get_pyscript(self.outdir.path_in("gsr_robot.py")) as script:
+                script.add_text("""
+# Quantities that should be tested for convergence.
+abs_conv = {
+"energy_per_atom": 1e-3,
+"pressure": 1e-2,
+"max_force": 1e-4,
+}
+items = abs_conv.keys()
+
+robot.plot_convergence_items(items, sortby="nkpt", hue="tsmear", abs_conv=abs_conv)
+""")
+
+        return super().on_all_ok()
 
 
 class EosWork(Work):
     """
-    Work for the computation of the Equation of State
+    Work to compute the Equation of State.
     The EOS is obtained by computing E(V) for several volumes around the input V0,
     The initial volumes are obtained by rescaling the input lattice vectors so that
     length proportions and angles are preserved.
@@ -23,16 +142,20 @@ class EosWork(Work):
     `eos_data.json` file produced in the `outdata` directory.
     The file contains the energies, the volumes and the values of V0, B0, B1 obtained
     with different EOS models.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: EosWork
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, npoints=4, deltap_vol=0.25, ecutsm=0.5, move_atoms=True,
-                       manager=None):
+    def from_scf_input(cls, scf_input: AbinitInput,
+                       npoints=4, deltap_vol=0.25, ecutsm=0.5, move_atoms=True,
+                       manager=None) -> EosWork:
         """
-        Build a EosWork from an AbinitInput representing a SCF-GS calculation.
+        Build an EosWork from an AbinitInput for GS-SCF.
 
         Args:
-            scf_input: AbinitInput for SCF-GS used as template to generate the other inputs.
+            scf_input: AbinitInput for GS-SCF used as template to generate the other inputs.
             npoints: Number of volumes generated on the right (left) of the equilibrium volume
                 The total number of points is therefore 2 * n + 1.
             deltap_vol: Step of the linear mesh given in relative percentage of the equilibrium volume
@@ -42,8 +165,6 @@ class EosWork(Work):
             move_atoms: If True, a structural relaxation of ions is performed for each volume
                 This is needed if the atomic positions are non fixed by symmetry.
             manager: TaskManager instance. Use default if None.
-
-        Return: EosWork instance.
         """
         new_work = cls(manager=manager)
 
@@ -81,19 +202,28 @@ class EosWork(Work):
 
         return new_work
 
-    def getnwrite_eosdata(self, write_json=True):
+    @classmethod
+    def from_inputs(cls, inputs: list[AbinitInput], manager=None) -> EosWork:
         """
-        This method is called when all tasks reach S_OK. It reads the energies
-        and the volumes from the GSR file, computes the EOS and produce a
-        JSON file `eos_data.json` in outdata.
+        Advanced interface to build an EosWork from an list of AbinitInputs.
+        """
+        new_work = cls(manager=manager)
+        new_work.input_volumes = [inp.structure.lattice.volume for inp in inputs]
+        for scf_inp in inputs:
+            new_work.register_scf_task(scf_inp)
+
+        return new_work
+
+    def get_and_write_eosdata(self, write_json=True) -> dict:
+        """
+        Compute the EOS and produce a JSON file `eos_data.json` in outdata.
         """
         energies_ev, volumes = [], []
         for task in self:
             with task.open_gsr() as gsr:
-                volumes.append(float(gsr.structure.volume))
                 energies_ev.append(float(gsr.energy))
+                volumes.append(float(gsr.structure.volume))
 
-        from pymatgen.analysis.eos import EOS
         eos_data = {"input_volumes_ang3": self.input_volumes,
                     "volumes_ang3": volumes,
                     "energies_ev": energies_ev}
@@ -112,102 +242,11 @@ class EosWork(Work):
 
         return eos_data
 
-    def on_all_ok(self):
+    def on_all_ok(self): # pragma: no cover
         """
-        This method is called when all tasks reach S_OK. It reads the energies
-        and the volumes from the GSR file, computes the EOS and produce a
-        JSON file `eos_data.json` in outdata.
+        This method is called when all tasks have reached S_OK.
+        It reads the energies and the volumes from the GSR file, computes the EOS
+        and produce a JSON file `eos_data.json` in outdata.
         """
-        self.getnwrite_eosdata()
-        return dict(returncode=0, message="EOS computed and file written")
-
-
-#class FiniteDiffStressWork(Work):
-#    """
-#    Work for the computation of the stress tensor
-#    """
-#
-#    @classmethod
-#    def from_scf_input(cls, scf_input, delta=1e-4, ecutsm=0.5, manager=None):
-#        """
-#        Build a EosWork from an AbinitInput representing a SCF-GS calculation.
-#
-#        Args:
-#            scf_input: AbinitInput for SCF-GS used as template to generate the other inputs.
-#	    delta:
-#            ecutsm: Value of ecutsm input variable. If `scf_input` does not provide ecutsm, this
-#                value will be used else the vale in `scf_input`.
-#            manager: TaskManager instance. Use default if None.
-#
-#        Return: EosWork instance.
-#        """
-#	scf_input = scf_input.deepcopy()
-#
-#        if "ecutsm" not in scf_input:
-#            scf_input.set_vars(ecutsm=ecutsm)
-#            print("Input does not define ecutsm input variable.\n",
-#                  "A default value of %s will be added to all the EOS inputs" % ecutsm)
-#
-#        new_work = cls(manager=manager)
-#        self.unstrained_task = new_work.register_scf_task(scf_input)
-#
-#	voigt_inds = [(0, 0)]
-#
-#	self.delta = float(delta)
-#	self.tasks_voigt = {}
-#	for voigt in voigt_inds:
-#	    self.tasks_voigt[voigt] = defaultdict(list)
-#	    for isign in (-1, +1):
-#		# Apply strain to the lattice.
-#                strain = np.zeros((3, 3))
-#                strain[voigt] = float(isign) * delta
-#                new_structure = scf_input.structure.deepcopy()
-#                new_structure.apply_strain(strain)
-#                new_input = scf_input.new_with_structure(new_structure)
-#
-#                # Perform GS calculations with strained cell.
-#                task = new_work.register_scf_task(new_input)
-#                self.tasks_voigt[voigt].append(task)
-#
-#        return new_work
-#
-#    def compute_and_write_stress(self):
-#        """
-#        This method is called when all tasks reach S_OK.
-#	It reads the energies and the volumes from the GSR file, computes the EOS and produce a
-#        JSON file `eos_data.json` in outdata.
-#        """
-#	with self.unstrained_task.open_gsr() as gsr0:
-#	    e0, v0 = gsr0.energy, gsr0.structure.volume
-#	    cart_stress_tensor = gsr0.cart_stress_tensor
-#
-#	fd_tensor = np.empty((3, 3))
-#	for voigt in voigt_inds:
-#	    tasks = self.tasks_voigt[voigt]
-#	    energies_ev, volumes = np.empty(len(tasks), np.empty(len(tasks))
-#	    for i, task in enumerate(task):
-#                with task.open_gsr() as gsr:
-#                   energies_ev[i] = float(gsr.energy))
-#
-#	    d = (e_plus - e_minus) / (2 * self.delta * v0)
-#            fd_tensor[voigt] = d
-#            fd_tensor[voigt[1], voigt[0]] = d
-#
-#	data = {
-#             "dfpt_cart_stress_tensor": cart_stress_tensor,
-#             "finite_diff_cart_stress_tensor": fd_cart_stress_tensor,
-#        }
-#
-#        with open(self.outdir.path_in("stress.json"), "wt") as fh:
-#            json.dump(data, fh, indent=4, sort_keys=True)
-#
-#        return data
-#
-#    def on_all_ok(self):
-#        """
-#        This method is called when all tasks reach S_OK. It reads the energies
-#        and the volumes from the GSR file, computes the EOS and produce a
-#        JSON file `eos_data.json` in outdata.
-#        """
-#        self.compute_and_write_stress()
-#        return dict(returncode=0, message="EOS computed and file written")
+        self.get_and_write_eosdata()
+        return super().on_all_ok()

@@ -1,9 +1,13 @@
 # coding: utf-8
 """This module contains the class describing densities in real space on uniform 3D meshes."""
-import numpy as np
+from __future__ import annotations
+
 import collections
-import pymatgen.core.units as pmgu
 import os
+import numpy as np
+import pandas as pd
+import pymatgen.core.units as pmgu
+import typing
 
 from collections import OrderedDict
 from monty.collections import AttrDict
@@ -11,8 +15,6 @@ from monty.functools import lazy_property
 from monty.string import is_string, marquee
 from monty.termcolor import cprint
 from monty.inspect import all_subclasses
-from pymatgen.io.vasp.inputs import Poscar
-from pymatgen.io.vasp.outputs import Chgcar
 from pymatgen.core.units import bohr_to_angstrom
 from abipy.core.structure import Structure
 from abipy.core.mesh3d import Mesh3D
@@ -21,7 +23,11 @@ from abipy.core.mixins import Has_Structure
 from abipy.tools import duck
 from abipy.tools.numtools import transpose_last3dims
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.typing import Figure
 from abipy.iotools import Visualizer, xsf, ETSF_Reader, cube
+
+if typing.TYPE_CHECKING:
+    from pymatgen.io.vasp.outputs import Chgcar
 
 
 __all__ = [
@@ -33,7 +39,7 @@ __all__ = [
 ]
 
 
-def latexlabel_ispden(ispden, nspden):
+def latexlabel_ispden(ispden: int, nspden: int):
     """Return latexlabel from ``ispden`` with given ``nspden``."""
     if nspden == 1:
         return None
@@ -60,10 +66,11 @@ class _Field(Has_Structure):
         latex_label: String used in plot to set the axis label.
     """
     netcdf_name = "Unknown"
+
     latex_label = " "
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str):
         """Initialize the object from a netCDF file."""
         with FieldReader(filepath) as r:
             return r.read_denpot(varname=cls.netcdf_name, field_cls=cls)
@@ -87,7 +94,7 @@ class _Field(Has_Structure):
         assert iorder in ["f", "c"]
 
         if iorder == "f":
-            # (z,x,y) --> (x,y,z)
+            # (z,y,x) --> (x,y,z)
             datar = transpose_last3dims(datar)
 
         # Init Mesh3D
@@ -165,11 +172,11 @@ class _Field(Has_Structure):
                               structure=self.structure, iorder="c")
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self._structure
 
-    def to_string(self, verbose=0, title=None):
+    def to_string(self, verbose=0, title=None) -> str:
         """String representation"""
         lines = []; app = lines.append
         if title is not None: app(marquee(title), mark="=")
@@ -182,66 +189,66 @@ class _Field(Has_Structure):
         return "\n".join(lines)
 
     @property
-    def datar(self):
+    def datar(self) -> np.ndarray:
         """|numpy-array| with data in real space. shape: [nspden, nx, ny, nz]"""
         return self._datar
 
     @lazy_property
-    def datag(self):
+    def datag(self) -> np.ndarray:
         """|numpy-array| with data in reciprocal space. shape: [nspden, nx, ny, nz]"""
         # FFT R --> G.
         return self.mesh.fft_r2g(self.datar)
 
     @property
-    def mesh(self):
+    def mesh(self) -> Mesh3D:
         """|Mesh3D| object. datar and datag are defined on this mesh."""
         return self._mesh
 
     @property
-    def shape(self):
+    def shape(self) -> tuple:
         """Shape of the array."""
         assert self.datar.shape == self.datag.shape
         return self.datar.shape
 
     @property
-    def nx(self):
+    def nx(self) -> int:
         """Number of points along x."""
         return self.mesh.nx
 
     @property
-    def ny(self):
+    def ny(self) -> int:
         """Number of points along y."""
         return self.mesh.ny
 
     @property
-    def nz(self):
+    def nz(self) -> int:
         """Number of points along z."""
         return self.mesh.nz
 
     @property
-    def is_density_like(self):
+    def is_density_like(self) -> bool:
         """True if field is density-like."""
         return isinstance(self, _DensityField)
 
     @property
-    def is_potential_like(self):
+    def is_potential_like(self) -> bool:
         """True if field is potential-like."""
         return isinstance(self, _PotentialField)
 
     @property
-    def is_collinear(self):
+    def is_collinear(self) -> bool:
         """True if collinear i.e. nspinor==1."""
         return self.nspinor == 1
 
     @staticmethod
-    def _check_space(space):
+    def _check_space(space) -> str:
         """Helper function used in __add__ ... methods to check Consistency."""
         space = space.lower()
         if space not in ("r", "g"):
             raise ValueError("Wrong space %s" % space)
         return space
 
-    def mean(self, space="r", axis=0):
+    def mean(self, space="r", axis=0) -> np.ndarray:
         """
         Returns the average of the array elements along the given axis.
         """
@@ -307,7 +314,7 @@ class _Field(Has_Structure):
         else:
             return visu(filename)
 
-    def visualize(self, appname):
+    def visualize(self, appname: str):
         """
         Visualize data with visualizer.
 
@@ -351,7 +358,7 @@ class _Field(Has_Structure):
     #        raise NotImplementedError("nspinor != 1 not implenented")
 
     @add_fig_kwargs
-    def plot_line(self, point1, point2, num=200, cartesian=False, ax=None, fontsize=12, **kwargs):
+    def plot_line(self, point1, point2, num=200, cartesian=False, ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot (interpolated) density/potential in real space along a line defined by ``point1`` and ``point2``.
 
@@ -390,7 +397,7 @@ class _Field(Has_Structure):
         return fig
 
     @add_fig_kwargs
-    def plot_line_neighbors(self, site_index, radius, num=200, max_nn=10, fontsize=12, **kwargs):
+    def plot_line_neighbors(self, site_index, radius, num=200, max_nn=10, fontsize=12, **kwargs) -> Figure:
         """
         Plot (interpolated) density/potential in real space along the lines connecting
         an atom specified by ``site_index`` and all neighbors within a sphere of given ``radius``.
@@ -415,7 +422,7 @@ class _Field(Has_Structure):
             cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
             return None
         # Sorte sites by distance.
-        nn_list = list(sorted(nn_list, key=lambda t: t[1]))
+        nn_list = list(sorted(nn_list, key=lambda t: t.nn_distance))
 
         if max_nn is not None and len(nn_list) > max_nn:
             cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
@@ -431,7 +438,10 @@ class _Field(Has_Structure):
         interpolator = self.get_interpolator()
 
         for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
-            nn_site, nn_dist, nn_sc_index = nn
+            #nn_site, nn_dist, nn_sc_index = nn
+            nn_site = nn
+            nn_dist = nn.nn_distance
+            nn_sc_index = nn.index
             title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
 
             r = interpolator.eval_line(site.frac_coords, nn_site.frac_coords, num=num, kpoint=None)
@@ -451,7 +461,7 @@ class _Field(Has_Structure):
 
         return fig
 
-    def integrate_in_spheres(self, rcut_symbol=None, out=False):
+    def integrate_in_spheres(self, rcut_symbol=None, out=False) -> pd.DataFrame:
         """
         Integrate field (e.g. density/potential) inside atom-centered spheres of given radius.
         Can be used to get a rough estimate of the charge/magnetization associated to a given site.
@@ -514,7 +524,6 @@ class _Field(Has_Structure):
                 ("rsph_ang", rcut_symbol[symbol]), ("frac_coords", site.frac_coords),
             ]))
 
-        import pandas as pd
         df = pd.DataFrame(rows, columns=list(rows[0].keys()))
         # Use iatom as index and remove columns with None.
         df = df.set_index("iatom").dropna(axis="columns", how='any')
@@ -531,7 +540,7 @@ class _DensityField(_Field):
     """Base class for density-like fields."""
 
 
-def core_density_from_file(filepath):
+def core_density_from_file(filepath: str) -> np.ndarray:
     """
     Parses a file and extracts two numpy array, containing radii and the core densities, respectively.
     Can be used to provide the core densities to Density.ae_core_density_on_mesh
@@ -576,7 +585,8 @@ class Density(_DensityField):
     latex_label = "Density [$e/A^3$]"
 
     @classmethod
-    def ae_core_density_on_mesh(cls, valence_density, structure, rhoc, maxr=2.0, nelec=None, tol=0.01,
+    def ae_core_density_on_mesh(cls, valence_density, structure, rhoc,
+                                maxr=2.0, nelec=None, tol=0.01,
                                 method='get_sites_in_sphere', small_dist_mesh=(8, 8, 8), small_dist_factor=1.5):
         """
         Initialize the all electron core density of the structure from the pseudopotentials *rhoc* files.
@@ -739,7 +749,9 @@ class Density(_DensityField):
                     for iz in range(valence_density.mesh.nz):
                         rpoint = valence_density.mesh.rpoint(ix=ix, iy=iy, iz=iz)
                         sites = structure.get_sites_in_sphere(pt=rpoint, r=maxr, include_index=True)
-                        for site, dist, site_index in sites:
+                        #for site, dist, site_index in sites:
+                        for site in sites:
+                            dist, site_index = site.nn_distance, site.index
                             if dist > smallradius:
                                 core_den[0, ix, iy, iz] += rhoc_atom_splines[site_index](dist)
                             # For small distances, integrate over the small volume dv around the point as the core
@@ -780,7 +792,7 @@ class Density(_DensityField):
             return self.mesh.integrate(self.datar[0])
 
     @lazy_property
-    def total_rhor(self):
+    def total_rhor(self) -> np.ndarray:
         """
         |numpy-array| with the total density in real space on the FFT mesh.
         """
@@ -801,13 +813,13 @@ class Density(_DensityField):
                               structure=self.structure, iorder="c")
 
     @lazy_property
-    def total_rhog(self):
+    def total_rhog(self) -> np.ndarray:
         """|numpy-array| with the total density in G-space."""
         # FFT R --> G.
         return self.mesh.fft_r2g(self.total_rhor)
 
     @lazy_property
-    def magnetization_field(self):
+    def magnetization_field(self) -> np.ndarray:
         """
         |numpy-array| with the magnetization field in real space on the FFT mesh:
 
@@ -835,7 +847,7 @@ class Density(_DensityField):
         return self.mesh.integrate(self.magnetization_field)
 
     @lazy_property
-    def nelect_updown(self):
+    def nelect_updown(self) -> tuple:
         """
         Tuple with the number of electrons in the up/down channel.
         Return (None, None) if non-collinear.
@@ -853,7 +865,7 @@ class Density(_DensityField):
         return nup, ndown
 
     @lazy_property
-    def zeta(self):
+    def zeta(self) -> np.ndarray:
         """
         |numpy-array| with Magnetization(r) / total_density(r)
         """
@@ -890,7 +902,7 @@ class Density(_DensityField):
     #    vhr = self.mesh.fft_g2r(vhg, fg_ishifted=False)
     #    return vhr, vhg
 
-    def export_to_cube(self, filename, spin='total'):
+    def export_to_cube(self, filename, spin='total') -> None:
         """
         Export real space density to CUBE file ``filename``.
         """
@@ -910,7 +922,7 @@ class Density(_DensityField):
         if spin != 'total':
             raise ValueError('Argument "spin" should be "total"')
 
-        structure, mesh, datar = cube.cube_read_structure_mesh_data(file=filename)
+        structure, mesh, datar = cube.cube_read_structure_mesh_data(filepath=filename)
         return cls(nspinor=1, nsppol=1, nspden=1, datar=datar, structure=structure, iorder="c")
 
     #@lazy_property
@@ -918,7 +930,7 @@ class Density(_DensityField):
         #"""Compute the kinetic energy density in real- and reciprocal-space."""
         #return kindr, kindgg
 
-    def to_chgcar(self, filename=None):
+    def to_chgcar(self, filename=None) -> 'Chgcar':
         """
         Convert a :class:`Density` object into a ``Chgar`` object.
         If ``filename`` is not None, density is written to this file in Chgar format
@@ -937,6 +949,9 @@ class Density(_DensityField):
             For non collinear calculations the CHGCAR file contains the total charge density
             and the magnetisation density in the x, y and z direction in this order.
         """
+        from pymatgen.io.vasp.inputs import Poscar
+        from pymatgen.io.vasp.outputs import Chgcar
+
         myrhor = self.datar * self.structure.volume
 
         if self.nspinor == 1:
@@ -969,6 +984,9 @@ class Density(_DensityField):
             The Chgcar object provided by pymatgen does not provided enough information
             to understand if the calculation is collinear or no.
         """
+        from pymatgen.io.vasp.inputs import Poscar
+        from pymatgen.io.vasp.outputs import Chgcar
+
         if is_string(chgcar):
             chgcar = Chgcar.from_file(chgcar)
         if is_string(poscar):
@@ -1058,7 +1076,7 @@ class FieldReader(ETSF_Reader):
     .. inheritance-diagram:: FieldReader
     """
 
-    def read_den_dims(self):
+    def read_den_dims(self) -> AttrDict:
         """Returns a |AttrDict| dictionary with the basic dimensions."""
         return AttrDict(
             nspinor=self.read_dimvalue("number_of_spinor_components"),
@@ -1102,6 +1120,10 @@ class FieldReader(ETSF_Reader):
         """Read potential data. Return :class:`VksPotential` object."""
         return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
 
+    #def read_vks1(self, field_cls=Vks1Potential):
+    #    """Read potential data. Return :class:`Vks1Potential` object."""
+    #    return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
+
     def read_denpot(self, varname, field_cls):
         """
         Factory function to read den/pot data from netcdf_ files and instantiate :class:`_Field` objects.
@@ -1129,7 +1151,7 @@ class FieldReader(ETSF_Reader):
                 assert dims.nsppol == 1
 
             elif dims.nspden == 2:
-                assert dims.nsppol == 2
+                # assert dims.nsppol == 2
                 if issubclass(field_cls, _DensityField):
                     # If Density: store rho_up, rho_down instead of rho_total, rho_up.
                     total = datar[0].copy()
@@ -1164,7 +1186,7 @@ class FieldReader(ETSF_Reader):
 
         datar *= fact
 
-        # use iorder="f" to transpose the last 3 dimensions since ETSF
+        # use iorder = "f" to transpose the last 3 dimensions since ETSF
         # stores data in Fortran order while AbiPy uses C-ordering.
         if cplex == 1:
             return field_cls(dims.nspinor, dims.nsppol, dims.nspden, datar, structure, iorder="f")

@@ -1,14 +1,20 @@
 # coding: utf-8
 """Interface to the win input file used by Wannier90."""
+from __future__ import annotations
+
 import numpy as np
 
 from collections import OrderedDict
 from abipy.core.mixins import Has_Structure
+from abipy.core.structure import Structure
 from abipy.abio.variable import InputVariable
 from abipy.abio.inputs import AbstractInput
+#from abipy.tools.typing import Figure
+
+import abipy.core.abinit_units as abu
 
 
-def structure2wannier90(structure):
+def structure2wannier90(structure, units="Bohr") -> str:
     """
     Return string with stucture in wannier90 format.
     """
@@ -23,8 +29,17 @@ to build an appropriate supercell from partial occupancies or alternatively use 
     # Write lattice vectors.
     # Set small values to zero. This usually happens when the CIF file
     # does not give structure parameters with enough digits.
-    app("begin unit_cell_cart\nAng")
+    if units == "Bohr":
+        fact = abu.Ang_Bohr
+        app("begin unit_cell_cart\nBohr")
+    elif units == "Ang":
+        fact = 1.0
+        app("begin unit_cell_cart\nAng")
+    else:
+        raise ValueError(f"Invalid {units =}")
+
     for r in np.where(np.abs(structure.lattice.matrix) > 1e-8, structure.lattice.matrix, 0.0):
+        r = r * fact
         app("    %.10f %.10f %.10f" % (r[0], r[1], r[2]))
     app("end unit_cell_cart\n")
     app("begin atoms_frac")
@@ -44,7 +59,7 @@ class Wannier90Input(AbstractInput, Has_Structure):
     .. inheritance-diagram:: Wannier90Input
     """
     @classmethod
-    def from_abinit_file(cls, filepath):
+    def from_abinit_file(cls, filepath: str) -> Wannier90Input:
         """
         Build wannier90 template input file from Abinit input/output file.
         Possibly with electron bands.
@@ -108,23 +123,23 @@ class Wannier90Input(AbstractInput, Has_Structure):
         self._vars = OrderedDict(args)
 
     @property
-    def vars(self):
+    def vars(self) ->dict:
         return self._vars
 
     # This stufff should be moved to the ABC
-    def set_spell_check(self, false_or_true):
+    def set_spell_check(self, false_or_true) -> None:
         """Activate/Deactivate spell-checking"""
         self._spell_check = bool(false_or_true)
 
     @property
-    def spell_check(self):
+    def spell_check(self) -> bool:
         """True if spell checking is activated."""
         try:
             return self._spell_check
         except AttributeError: # This is to maintain compatibility with pickle
             return False
 
-    def _check_varname(self, key):
+    def _check_varname(self, key: str):
         return
         # TODO
         #if not is_wannier90_var(key) and self.spell_check:
@@ -133,11 +148,11 @@ class Wannier90Input(AbstractInput, Has_Structure):
         #                     "or use input.set_spell_check(False)\n" % key)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self._structure
 
-    def to_string(self, sortmode=None, mode="text", verbose=0):
+    def to_string(self, sortmode=None, mode="text", verbose=0) -> str:
         """
         String representation.
 

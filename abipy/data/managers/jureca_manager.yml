@@ -5,13 +5,13 @@ devel: &devel
    num_nodes: 8
    sockets_per_node: 2
    cores_per_socket: 12
-   mem_per_node: 128Gb
+   mem_per_node: 128GB
 
 batch: &batch
    num_nodes: 128
    sockets_per_node: 2
    cores_per_socket: 12
-   mem_per_node: 128Gb
+   mem_per_node: 128GB
 
 job: &job
     # mpirun is not available on jureca.
@@ -24,9 +24,8 @@ job: &job
         PATH: $HOME/abinit/801-private/jureca_mpi/src/98_main:$PATH
     modules:
         - intel-para/2015.07
-    pre_run: "ulimit -s unlimited"
 
-# queues 
+# queues
 qadapters:
   - priority: 1
     #max_num_launches: 20

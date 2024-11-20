@@ -1,5 +1,6 @@
 """Tests for core.restapi module"""
 import contextlib
+import pytest
 import abipy.data as abidata
 
 from abipy import abilab
@@ -10,18 +11,9 @@ from abipy.core import restapi
 class TestMpRestApi(AbipyTest):
     """Test interfaces with the Materials Project REST API."""
 
+    @pytest.mark.skip(reason="Interface with MP rester is broken")
     def test_mprester(self):
         """Testing MP Rest API wrappers."""
-
-        with restapi.get_mprester() as rest:
-            print(rest.Error)
-            #pdr = rest.get_phasediagram_results("Li-Fe-O".split("-"))
-            pdr = rest.get_phasediagram_results("Ga-Ge-As".split("-"))  # This one is faster.
-            repr(pdr); str(pdr)
-            pdr.print_dataframes(verbose=2)
-            if self.has_matplotlib():
-                plotter = pdr.plot(show_unstable=True, show=False)
-                assert hasattr(plotter, "show")
 
         # Test mp_search
         mp = abilab.mp_search("MgB2")

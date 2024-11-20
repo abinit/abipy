@@ -4,17 +4,19 @@ Script to analyze/compare results stored in multiple netcdf/output files.
 By default the script displays the results/plots in the shell.
 Use --ipython to start an ipython terminal or -nb to generate an ipython notebook.
 """
+from __future__ import annotations
 
 import sys
 import os
 import argparse
 import numpy as np
+import abipy.tools.cli_parsers as cli
 
 from pprint import pprint
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
-from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter
+from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter, FilesPlotter, Exposer
 
 
 def remove_disordered(structures, paths):
@@ -34,14 +36,6 @@ def df_to_clipboard(options, df):
         cprint("Copying dataframe to the system clipboard.", "green")
         cprint("This can be pasted into Excel, for example", "green")
         df.to_clipboard()
-
-
-def abiview_fields(options):
-    """Animate fields with Mayavi. Accept any file with density or potential ..."""
-    from abipy.display.mvtk import MayaviFieldAnimator
-    a = MayaviFieldAnimator(options.filepath)
-    a.volume_animate()
-    return 0
 
 
 def abicomp_structure(options):
@@ -235,7 +229,7 @@ def abicomp_xrd(options):
     Compare X-ray diffraction plots (requires FILES with structure).
     """
     if len(options.paths) < 2:
-        print("You need more than one structure to compare!")
+        print("You need more than one structures to compare!")
         return 1
 
     structures = [abilab.Structure.from_file(p) for p in options.paths]
@@ -260,6 +254,15 @@ def abicomp_data(options):
     plotter = GenericDataFilesPlotter.from_files(options.paths)
     print(plotter.to_string(verbose=options.verbose))
     plotter.plot(use_index=options.use_index)
+    return 0
+
+
+def abicomp_png(options):
+    """
+    Use matplotlib to plot multiple png files on a grid.
+    """
+    plotter = FilesPlotter(options.paths)
+    plotter.plot()
     return 0
 
 
@@ -320,8 +323,13 @@ def abicomp_edos(options):
                                        no_browser=options.no_browser)
 
     elif options.expose:
-        plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
+        if options.plotly:
+            # Plotly version.
+            plotter.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
+        else:
+            # Matplotlib version.
+            plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                           verbose=options.verbose)
 
     else:
         # Optionally, print info on gaps and their location
@@ -359,8 +367,14 @@ def abicomp_phbands(options):
                                        no_browser=options.no_browser)
 
     elif options.expose:
-        plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
+        if options.plotly:
+            # Plotly version.
+            plotter.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
+        else:
+            # Matplotlib version.
+            plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                            verbose=options.verbose)
+
     else:
         # Print pandas Dataframe.
         abilab.print_dataframe(plotter.get_phbands_frame())
@@ -374,7 +388,10 @@ def abicomp_phbands(options):
 
         # Select the plot method to call.
         if options.plot_mode == "panel":
-            plotter.get_panel().show()
+            pn = abilab.abipanel()
+            serve_kwargs = serve_kwargs_from_options(options)
+            app = plotter.get_panel(template=options.panel_template)
+            return pn.serve(app, **serve_kwargs)
 
         elif options.plot_mode != "None":
             plotfunc = getattr(plotter, options.plot_mode, None)
@@ -398,8 +415,13 @@ def abicomp_phdos(options):
                       plotter=plotter)
 
     elif options.expose:
-        plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                       verbose=options.verbose)
+        if options.plotly:
+            # Plotly version.
+            plotter.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
+        else:
+            # matplotlib version.
+            plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                           verbose=options.verbose)
 
     elif options.notebook:
         plotter.make_and_open_notebook(foreground=options.foreground,
@@ -537,17 +559,9 @@ def abicomp_gkq(options):
     """
     if options.diff:
         robot = _build_robot(options, trim_paths=True)
-
         robot.plot_gkq2_diff()
     else:
         return _invoke_robot(options)
-
-
-def abicomp_wrmax(options):
-    """
-    Compare multiple WRmax files with first order potential in real-space.
-    """
-    return _invoke_robot(options)
 
 
 def abicomp_v1qavg(options):
@@ -564,6 +578,13 @@ def abicomp_sigeph(options):
     return _invoke_robot(options)
 
 
+def abicomp_rta(options):
+    """
+    Compare multiple RTA files.
+    """
+    return _invoke_robot(options)
+
+
 def abicomp_abiwan(options):
     """
     Compare multiple ABIWAN files.
@@ -571,8 +592,61 @@ def abicomp_abiwan(options):
     return _invoke_robot(options)
 
 
+def abicomp_abiwan_ebands(options):
+    """
+    Compare Wannier-interpolated band structure with ab-initio data.
+    """
+    if len(options.paths) != 2:
+        raise ValueError("Two arguments with ABIWAN.nc and netcdf file with ElectronBands are required!")
+    from abipy.wannier90 import AbiwanFile
+    abiwan_path, ebands_path = options.paths[0], options.paths[1]
+    if not abiwan_path.endswith("ABIWAN.nc"):
+        abiwan_path, ebands_path = ebands_path, abiwan_path
+
+    abiwan = AbiwanFile(abiwan_path)
+    print(abiwan)
+
+    with Exposer.as_exposer("mpl") as e:
+        plot_kws = dict(show=False)
+        e(abiwan.hwan.plot(**plot_kws))
+        e(abiwan.plot_with_ebands(ebands_path, **plot_kws))
+
+    return 0
+
+
+def abicomp_skw_ibz_kpath(options):
+    """
+    Compare star-function-interpolated band structure with ab-initio band structure computed along a k-path.
+    """
+    if len(options.paths) != 2:
+        raise ValueError("Two arguments with netcdf files providing ElectronBands are required!")
+
+    ebands_kpath = abilab.ElectronBands.from_file(options.paths[0])
+    ebands_kmesh = abilab.ElectronBands.from_file(options.paths[1])
+
+    if not ebands_kpath.kpoints.is_path:
+        ebands_kpath, ebands_kmesh = ebands_kmesh, ebands_kpath
+
+    # Be permissive: exchange k-path and k-mesh if nededed.
+    if not ebands_kpath.kpoints.is_path:
+        raise ValueError("Need k-points along a k-path.")
+    if not ebands_kmesh.kpoints.is_mpmesh:
+        raise ValueError("Need k-points belonging to a k-mesh.")
+
+    print("Interpolating band energies with lpratio:", options.lpratio)
+    print("If the fit is not optimal, try to increase lpratio")
+    vertices_names = [(k.frac_coords, k.name) for k in ebands_kpath.kpoints]
+    r = ebands_kmesh.interpolate(lpratio=options.lpratio, vertices_names=vertices_names, line_density=0)
+
+    plotter = abilab.ElectronBandsPlotter()
+    plotter.add_ebands("ab-initio", ebands_kpath)
+    plotter.add_ebands("SKW interpolated", r.ebands_kpath)
+    plotter.combiplot()
+
+    return 0
+
 def abicomp_pseudos(options):
-    """"Compare multiple pseudos Print table to terminal."""
+    """"Compare multiple pseudos and print table to terminal."""
     # Make sure entries in index are unique.
     index = [os.path.basename(p) for p in options.paths]
     if len(index) != len(set(index)): index = [os.path.relpath(p) for p in options.paths]
@@ -582,7 +656,19 @@ def abicomp_pseudos(options):
     return 0
 
 
-def _build_robot(options, trim_paths=False):
+def abicomp_psps(options):
+    """"Compare multiple PSPS.nc files."""
+    return _invoke_robot(options)
+
+
+def abicomp_gwr(options):
+    """
+    Compare multiple GWR files.
+    """
+    return _invoke_robot(options)
+
+
+def _build_robot(options, trim_paths=True):
     """Build robot instance from CLI options."""
     robot_cls = abilab.Robot.class_for_ext(options.command.upper())
 
@@ -626,20 +712,24 @@ def _invoke_robot(options):
     """
     robot = _build_robot(options)
 
+    if options.expose_web:
+        options.expose = True
+
     if options.notebook:
         robot.make_and_open_notebook(foreground=options.foreground,
                                      classic_notebook=options.classic_notebook,
                                      no_browser=options.no_browser)
 
     elif options.panel:
-        try:
-            import panel  # noqa: F401
-        except ImportError as exc:
-            cprint("Use `conda install panel` or `pip install panel` to install the python package.", "red")
-            raise exc
+        if not hasattr(robot, "get_panel"):
+            cprint(f"`{type(robot)} does not provide get_panel method", color="red")
+            return 1
 
-        robot.get_panel().show()
-        return 0
+        pn = abilab.abipanel()
+
+        serve_kwargs = serve_kwargs_from_options(options)
+        app = robot.get_panel(template=options.panel_template)
+        return pn.serve(app, **serve_kwargs)
 
     elif options.print or options.expose:
         robot.trim_paths()
@@ -655,19 +745,27 @@ def _invoke_robot(options):
                 print(robot.to_string(verbose=options.verbose))
 
         else:
-            cprint("%s does not provide `get_dataframe` method. Using `to_string`" % (
-                    robot.__class__.__name__), "yellow")
+            cprint("%s does not provide `get_dataframe` method. Using `to_string`" % (robot.__class__.__name__), "yellow")
             print(robot.to_string(verbose=options.verbose))
 
         if not options.verbose:
             print("\nUse --verbose for more information")
 
-        if options.expose and hasattr(robot, "expose"):
-            robot.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                         verbose=options.verbose)
+        if options.expose:
 
-    #elif options.ipython:
+            if options.plotly:
+               # plotly version.
+               if hasattr(robot, "plotly_expose"):
+                    robot.plotly_expose(chart_studio=options.chart_studio, verbose=options.verbose)
+               else:
+                    cprint("<%s> does not implement plotly_expose method" % type(robot), color="red")
+
+            elif hasattr(robot, "expose"):
+                # matplotlib version.
+                robot.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                             verbose=options.verbose, use_web=options.expose_web)
     else:
+        # Default behaviour: use ipython
         import IPython
         robot.trim_paths()
         IPython.embed(header=repr(robot) + "\n\nType `robot` in the terminal and use <TAB> to list its methods",
@@ -796,6 +894,7 @@ Usage example:
   abicomp.py edos *_WFK.nc -nb                  => Compare electron DOS in the jupyter notebook.
   abicomp.py optic DIR -nb                      => Compare optic results in the jupyter notebook.
   abicomp.py abiwan *_ABIWAN.nc --expose        => Compare ABIWAN results, produce matplotlib figures.
+  abicomp.py abiwan_ebands out_ABIWAN.nc out_GSR.nc --expose  => Compare Wannier-interpolated band structure with ab-initio results.
 
 #########
 # Phonons
@@ -839,6 +938,7 @@ Usage example:
   abicomp.py getattr energy *_GSR.nc              => Extract the `energy` attribute from a list of GSR files
                                                      and print results. Use `--list` to get list of possible names.
   abicomp.py pseudos PSEUDO_FILES                 => Compare pseudopotential files.
+  abicomp.py psps *_PSPS.nc                       => Compare multiple PSPS.nc files produced with prtpsp 1.
 
 ############
 # Text files
@@ -950,11 +1050,16 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
     # Parent parser for commands supporting expose
     expose_parser = argparse.ArgumentParser(add_help=False)
     expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
-            help='Execute robot.expose to produce a pre-defined list of matplotlib figures.')
+            help='Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.')
     expose_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
             help="Used if --expose to iterate over figures. Expose all figures at once if not given on the CLI.")
     expose_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
             help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
+    expose_parser.add_argument("-ply", "--plotly", default=False, action="store_true",
+            help='Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.')
+    expose_parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
+            help="Push figure to plotly chart studio ." +
+                 "Requires --plotly option and user account at https://chart-studio.plotly.com.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
@@ -1012,6 +1117,9 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_data.add_argument("-i", "--use-index", default=False, action="store_true",
         help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
 
+    # Subparser for png command.
+    p_png = subparsers.add_parser('png', parents=[copts_parser], help=abicomp_png.__doc__)
+
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser, pandas_parser],
             help=abicomp_ebands.__doc__)
@@ -1062,8 +1170,17 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     # Parent parser for *robot* commands
     robot_parser = argparse.ArgumentParser(add_help=False)
     robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
-    robot_parser.add_argument('--panel', default=False, action="store_true",
+    robot_parser.add_argument("-pn", '--panel', default=False, action="store_true",
                               help="Open GUI in web browser, requires panel package. WARNING: Experimental")
+    robot_parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
+                              help="Specify template for panel dasboard." +
+                                   "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
+                                   "Default: FastList"
+                              )
+    robot_parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
+    robot_parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
+                              help="Generate matplotlib plots in $BROWSER instead of X-server.\n" +
+                                   "WARNING: Not all the features are supported.")
 
     robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser, pandas_parser]
     p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
@@ -1076,14 +1193,27 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     p_optic = subparsers.add_parser('optic', parents=robot_parents, help=abicomp_optic.__doc__)
     p_a2f = subparsers.add_parser('a2f', parents=robot_parents, help=abicomp_a2f.__doc__)
     p_sigeph = subparsers.add_parser('sigeph', parents=robot_parents, help=abicomp_sigeph.__doc__)
+    p_rta = subparsers.add_parser('rta', parents=robot_parents, help=abicomp_rta.__doc__)
     p_gkq = subparsers.add_parser('gkq', parents=robot_parents, help=abicomp_gkq.__doc__)
     p_gkq.add_argument('-d', '--diff', default=False, action="store_true", help='Plot difference between eph matrix elements.')
     p_v1qavg = subparsers.add_parser('v1qavg', parents=robot_parents, help=abicomp_v1qavg.__doc__)
-    p_wrmax = subparsers.add_parser('wrmax', parents=robot_parents, help=abicomp_wrmax.__doc__)
+    #p_wrmax = subparsers.add_parser('wrmax', parents=robot_parents, help=abicomp_wrmax.__doc__)
     p_abiwan = subparsers.add_parser('abiwan', parents=robot_parents, help=abicomp_abiwan.__doc__)
+    p_gwr = subparsers.add_parser('gwr', parents=robot_parents, help=abicomp_gwr.__doc__)
 
+    # Subparser for abiwan_ebands command.
+    p_abiwan_ebands = subparsers.add_parser('abiwan_ebands', parents=[copts_parser], help=abicomp_abiwan_ebands.__doc__)
+
+    # Subparser for skw_ibz_kpath command.
+    p_skw_ibz_kpath = subparsers.add_parser('skw_ibz_kpath', parents=[copts_parser], help=abicomp_skw_ibz_kpath.__doc__)
+    p_skw_ibz_kpath.add_argument("-l", "--lpratio", default=5,
+                                help="Ratio between the number of star functions and the number of ab-initio k-points." +
+                                     "The default should be OK in many systems, larger values may be required for accurate derivatives.")
     # Subparser for pseudos command.
     p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)
+
+    # Subparser for psps command.
+    p_pspsp = subparsers.add_parser('psps', parents=robot_parents, help=abicomp_psps.__doc__)
 
     # Subparser for time command.
     p_time = subparsers.add_parser('time', parents=[copts_parser, ipy_parser], help=abicomp_time.__doc__)
@@ -1104,6 +1234,31 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     return parser
 
 
+def serve_kwargs_from_options(options):
+
+    #address = "localhost"
+    if options.no_browser:
+        print("""
+Use:
+
+    ssh -N -f -L localhost:{port}:localhost:{port} username@your_remote_cluster
+
+for port forwarding.
+""")
+
+    import abipy.panels as mod
+    assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
+
+    return dict(
+        debug=options.verbose > 0,
+        show=not options.no_browser,
+        port=options.port,
+        static_dirs={"/assets": assets_path},
+        #address=address,
+        #websocket_origin="{address}:{port}",
+    )
+
+
 @prof_main
 def main():
 
@@ -1122,13 +1277,11 @@ def main():
     except Exception:
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    # Plotly automatically activate expose mode.
+    if getattr(options, "plotly", None): options.expose = True
+    if getattr(options, "classic_notebook", None): options.notebook = True
+
+    cli.set_loglevel(options.loglevel)
 
     if options.mpl_backend is not None:
         # Set matplotlib backend
@@ -1141,8 +1294,15 @@ def main():
         sns.set(context=options.seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
-    if options.verbose > 2:
-        print(options)
+    ##############################################################################################
+    # Handle meta options i.e. options that set other options.
+    # OK, it's not very clean but I haven't find any parse API to express this kind of dependency.
+    ##############################################################################################
+    #if options.plotly: options.expose = True
+    #if options.expose_web: options.expose = True
+    #if options.classic_notebook: options.notebook = True
+
+    if options.verbose > 2: print(options)
 
     # Dispatch
     return globals()["abicomp_" + options.command](options)

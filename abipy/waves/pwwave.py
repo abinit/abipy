@@ -1,14 +1,17 @@
 # coding: utf-8
 """This module contains the class describing a planewave wavefunction."""
+from __future__ import annotations
 #import copy
 import numpy as np
 
 from monty.termcolor import cprint
 from abipy.core import Mesh3D
-#from abipy.core.kpoints import Kpoint
+from abipy.core.structure import Structure
+from abipy.core.kpoints import Kpoint
 from abipy.iotools import Visualizer
 from abipy.iotools.xsf import xsf_write_structure, xsf_write_data
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.typing import Figure
 
 
 __all__ = [
@@ -16,17 +19,17 @@ __all__ = [
 ]
 
 
-def latex_label_ispinor(ispinor, nspinor):
+def latex_label_ispinor(ispinor: int, nspinor: int) -> str:
     if nspinor == 1:
         return ""
     elif nspinor == 2:
         return {k: v.replace("myuparrow", "uparrow") for k, v in
-            {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispinor]
+                    {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispinor]
     else:
         raise ValueError("Wrong value for nspinor: %s" % nspinor)
 
 
-class WaveFunction(object):
+class WaveFunction:
     """
     Abstract class defining base and abstract methods for wavefunction objects.
     """
@@ -52,7 +55,7 @@ class WaveFunction(object):
         return self.to_string()
 
     @property
-    def shape(self):
+    def shape(self) -> tuple[int, int]:
         """Shape of ug i.e. (nspinor, npw)"""
         return self.nspinor, self.npw
 
@@ -72,22 +75,22 @@ class WaveFunction(object):
         return self.gsphere.gvecs
 
     @property
-    def npw(self):
+    def npw(self) -> int:
         """Number of G-vectors."""
         return len(self.gsphere)
 
     @property
-    def ecut(self):
+    def ecut(self) -> float:
         """Cutoff energy in Hartree."""
         return self.gsphere.ecut
 
     @property
-    def isnc(self):
+    def isnc(self) -> bool:
         """True if norm-conserving wavefunction."""
         return isinstance(self, PWWaveFunction)
 
     @property
-    def ispaw(self):
+    def ispaw(self) -> bool:
         """True if PAW wavefunction."""
         return isinstance(self, PAW_WaveFunction)
 
@@ -112,7 +115,7 @@ class WaveFunction(object):
             self._ur = self.fft_ug()
             return self._ur
 
-    def delete_ur(self):
+    def delete_ur(self) -> None:
         """Delete _u(r) (if it has been computed)."""
         try:
             del self._ur
@@ -138,7 +141,7 @@ class WaveFunction(object):
         """The mesh used for the FFT."""
         return self._mesh
 
-    def set_mesh(self, mesh):
+    def set_mesh(self, mesh) -> None:
         """Change the FFT mesh. `u(r)` will be computed on this box."""
         assert isinstance(mesh, Mesh3D)
         self._mesh = mesh
@@ -186,7 +189,7 @@ class WaveFunction(object):
         ug_mesh = self.get_ug_mesh(mesh=mesh)
         return mesh.fft_g2r(ug_mesh, fg_ishifted=False)
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = []; app = lines.append
         app("%s: nspinor: %d, spin: %d, band: %d " % (
@@ -217,7 +220,7 @@ class PWWaveFunction(WaveFunction):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: PWWaveFunction
     """
-    def __init__(self, structure, nspinor, spin, band, gsphere, ug):
+    def __init__(self, structure: Structure, nspinor, spin, band, gsphere, ug):
         """
         Creation method.
 
@@ -244,7 +247,7 @@ class PWWaveFunction(WaveFunction):
     #    tug = -0.5 * self.gsphere.kpg2 * self.ug
     #    return np.vdot(self.ug, tug).sum()
 
-    def norm2(self, space="g"):
+    def norm2(self, space="g") -> float:
         r"""
         Return :math:`||\psi||^2` computed in G- or r-space.
 
@@ -263,7 +266,7 @@ class PWWaveFunction(WaveFunction):
         else:
             raise ValueError("Wrong space: %s" % str(space))
 
-    def braket(self, other, space="g"):
+    def braket(self, other, space="g") -> complex:
         """
         Returns the scalar product <u1|u2> of the periodic part of two wavefunctions
         computed in G-space or r-space, depending on the value of space.
@@ -374,7 +377,7 @@ class PWWaveFunction(WaveFunction):
 
     @add_fig_kwargs
     def plot_line(self, point1, point2, num=200, with_krphase=False, cartesian=False,
-                  ax=None, fontsize=12, **kwargs):
+                  ax=None, fontsize=12, **kwargs) -> Figure:
         """
         Plot (interpolated) wavefunction in real space along a line defined by ``point1`` and ``point2``.
 
@@ -414,7 +417,8 @@ class PWWaveFunction(WaveFunction):
         return fig
 
     @add_fig_kwargs
-    def plot_line_neighbors(self, site_index, radius, num=200, with_krphase=False, max_nn=10, fontsize=12, **kwargs):
+    def plot_line_neighbors(self, site_index, radius, num=200, with_krphase=False, 
+                            max_nn=10, fontsize=12, **kwargs) -> Figure:
         """
         Plot (interpolated) density/potential in real space along the lines connecting
         an atom specified by ``site_index`` and all neighbors within a sphere of given ``radius``.
@@ -459,7 +463,10 @@ class PWWaveFunction(WaveFunction):
 
         # For each neighbor, plot psi along the line connecting site to nn.
         for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
-            nn_site, nn_dist, nn_sc_index = nn
+            #nn_site, nn_dist, nn_sc_index = nn
+            nn_site = nn
+            nn_dist = nn.nn_distance
+            nn_sc_index = nn.index
             title = "%s, %s, dist=%.3f A" % (nn_site.species_string, str(nn_site.frac_coords), nn_dist)
 
             r = interpolator.eval_line(site.frac_coords, nn_site.frac_coords, num=num, kpoint=kpoint)

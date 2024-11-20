@@ -36,6 +36,12 @@ class TestElectronFatbands(AbipyTest):
             assert fbnc_kpath.plot_fatbands_siteview(e0=None, view="inequivalent",
                                                      fact=2.0, bdist=[1, 2, 3], show=False)
 
+        if self.has_plotly():
+            assert fbnc_kpath.plotly_fatbands_typeview(show=False)
+            assert fbnc_kpath.plotly_fatbands_lview(show=False)
+            #assert fbnc_kpath.plotly_fatbands_siteview(e0=None, view="inequivalent",
+            #                                          fact=2.0, bdist=[1, 2, 3], show=False)
+
         if self.has_nbformat():
             fbnc_kpath.write_notebook(nbpath=self.get_tmpname(text=True))
 
@@ -61,6 +67,14 @@ class TestElectronFatbands(AbipyTest):
             assert fbnc_kpath.plot_pawdos_terms() is None
             #assert fbnc_kpath.plot_pjdos_spinor() is None
             assert fbnc_kpath.plot_fatbands_mview(iatom=0) is None
+
+        if self.has_plotly():
+            assert fbnc_kmesh.plotly_pjdos_typeview(show=False)
+            assert fbnc_kmesh.plotly_pjdos_lview(stacked=True, show=False)
+            assert fbnc_kmesh.plotly_pjdos_lview(stacked=False, show=False)
+            assert fbnc_kpath.plotly_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, view="type", show=False)
+            assert fbnc_kpath.plotly_fatbands_with_pjdos(pjdosfile=fbnc_kmesh, view="lview", show=False)
+            #assert fbnc_kpath.plotly_spilling(e0=0, tight_layout=True, show=False)
 
         fbnc_kpath.close()
         fbnc_kmesh.close()

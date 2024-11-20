@@ -1,16 +1,13 @@
 # coding: utf-8
-"""Interface between phonopy and abipy workflow model."""
+"""Interface between phonopy and the AbiPy workflow model."""
+from __future__ import annotations
 
 import os
 import numpy as np
 
-try:
-    from phonopy import Phonopy, file_IO
-    from phonopy.interface.vasp import read_vasp_from_strings
-    from phonopy.interface.abinit import parse_set_of_forces
-except ImportError:
-    import warnings
-    warnings.warn("phonopy is required by abiphonopy. Install it with conda or pip install phonopy")
+from phonopy import Phonopy, file_IO
+from phonopy.interface.vasp import read_vasp_from_strings
+from phonopy.interface.abinit import parse_set_of_forces
 
 from abipy.core.structure import Structure
 from abipy.flowtk.works import Work
@@ -24,7 +21,7 @@ __all__ = [
 ]
 
 
-def atoms_from_structure(structure):
+def atoms_from_structure(structure: Structure):
     """
     Convert a pymatgen Structure into a phonopy Atoms object.
     """
@@ -32,9 +29,9 @@ def atoms_from_structure(structure):
     return read_vasp_from_strings(s, symbols=None)
 
 
-def structure_from_atoms(atoms):
+def structure_from_atoms(atoms) -> Structure:
     """
-    Convert a phonopy Atoms object into a pymatgen Structure.
+    Convert a phonopy Atoms object into a abipy Structure.
     """
     return Structure(lattice=atoms.cell,
                      species=atoms.symbols,
@@ -68,12 +65,12 @@ class PhonopyWork(Work):
     """
 
     @classmethod
-    def from_gs_input(cls, gsinp, scdims, phonopy_kwargs=None, displ_kwargs=None):
+    def from_gs_input(cls, gs_inp, scdims, phonopy_kwargs=None, displ_kwargs=None) -> PhonopyWork:
         """
         Build the work from an :class:`AbinitInput` object representing a GS calculations.
 
         Args:
-            gsinp::class:`AbinitInput` object representing a GS calculation in the initial unit cell.
+            gs_inp::class:`AbinitInput` object representing a GS calculation in the initial unit cell.
             scdims: Number of unit cell replicas along the three reduced directions.
             phonopy_kwargs: (Optional) dictionary with arguments passed to Phonopy constructor.
             displ_kwargs: (Optional) dictionary with arguments passed to generate_displacements.
@@ -85,7 +82,7 @@ class PhonopyWork(Work):
         new.cpdata2dst = None
 
         # Initialize phonon. Supercell matrix has (3, 3) shape.
-        unitcell = atoms_from_structure(gsinp.structure)
+        unitcell = atoms_from_structure(gs_inp.structure)
         new.scdims = scdims = np.array(scdims)
         if scdims.shape != (3,):
             raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
@@ -98,9 +95,9 @@ class PhonopyWork(Work):
         phonon.generate_displacements(**displ_kwargs)  # distance=0.01,
 
         # Obtain supercells containing respective displacements (list of Atoms objects).
-        for atoms in phonon.get_supercells_with_displacements():
+        for atoms in phonon.supercells_with_displacements:
             sc_struct = structure_from_atoms(atoms)
-            sc_gsinp = gsinp.new_with_structure(sc_struct, scdims=new.scdims)
+            sc_gsinp = gs_inp.new_with_structure(sc_struct, scdims=new.scdims)
             sc_gsinp.pop_tolerances()
             sc_gsinp.pop_vars(["ionmov", "optcell", "ntime"])
             sc_gsinp.set_vars(toldff=1.e-6)
@@ -124,9 +121,10 @@ class PhonopyWork(Work):
         structure.to(filename=self.outdir.path_in("POSCAR"))
 
         # Write yaml file with displacements.
-        supercell = phonon.get_supercell()
-        displacements = phonon.get_displacements()
-        #directions = phonon.get_displacement_directions()
+        #supercell = phonon.get_supercell()
+        supercell = phonon.supercell
+        #displacements = phonon.get_displacements()
+        displacements = phonon.displacements
         file_IO.write_disp_yaml(displacements, supercell, # directions=directions,
                                 filename=self.outdir.path_in('disp.yaml'))
 
@@ -202,14 +200,14 @@ class PhonopyGruneisenWork(Work):
         numpy arrays with the number of cells in the supercell along the three reduced directions.
     """
     @classmethod
-    def from_gs_input(cls, gsinp, voldelta, scdims, phonopy_kwargs=None, displ_kwargs=None):
+    def from_gs_input(cls, gs_inp, voldelta, scdims, phonopy_kwargs=None, displ_kwargs=None) -> PhonopyGruneisenWork:
         """
         Build the work from an :class:`AbinitInput` object representing a GS calculations.
 
         Args:
-            gsinp: :class:`AbinitInput` object representing a GS calculation in the initial unit cell.
+            gs_inp: :class:`AbinitInput` object representing a GS calculation in the initial unit cell.
             voldelta: Absolute increment for unit cell volume. The three volumes are:
-                [v0 - voldelta, v0, v0 + voldelta] where v0 is taken from gsinp.structure.
+                [v0 - voldelta, v0, v0 + voldelta] where v0 is taken from gs_inp.structure.
             scdims: Number of unit cell replicas along the three reduced directions.
             phonopy_kwargs: (Optional) dictionary with arguments passed to Phonopy constructor.
             displ_kwargs: (Optional) dictionary with arguments passed to generate_displacements.
@@ -227,7 +225,7 @@ class PhonopyGruneisenWork(Work):
         new.displ_kwargs = displ_kwargs if displ_kwargs is not None else {}
 
         # Build three tasks for structural optimization at constant volume.
-        v0 = gsinp.structure.volume
+        v0 = gs_inp.structure.volume
         if voldelta <= 0:
             raise ValueError("voldelta must be > 0 but got %s" % voldelta)
         volumes = [v0 - voldelta, v0, v0 + voldelta]
@@ -236,9 +234,9 @@ class PhonopyGruneisenWork(Work):
 
         for vol in volumes:
             # Build new structure
-            new_lattice = gsinp.structure.lattice.scale(vol)
-            new_structure = Structure(new_lattice, gsinp.structure.species, gsinp.structure.frac_coords)
-            new_input = gsinp.new_with_structure(new_structure)
+            new_lattice = gs_inp.structure.lattice.scale(vol)
+            new_structure = Structure(new_lattice, gs_inp.structure.species, gs_inp.structure.frac_coords)
+            new_input = gs_inp.new_with_structure(new_structure)
             # Set variables for structural optimization at constant volume.
             new_input.pop_tolerances()
             new_input.set_vars(optcell=3, ionmov=3, tolvrs=1e-10, toldff=1.e-6)
@@ -262,9 +260,9 @@ class PhonopyGruneisenWork(Work):
         """
         for i, task in enumerate(self):
             relaxed_structure = task.get_final_structure()
-            gsinp = task.input.new_with_structure(relaxed_structure)
+            gs_inp = task.input.new_with_structure(relaxed_structure)
 
-            work = PhonopyWork.from_gs_input(gsinp, self.scdims,
+            work = PhonopyWork.from_gs_input(gs_inp, self.scdims,
                                              phonopy_kwargs=self.phonopy_kwargs,
                                              displ_kwargs=self.displ_kwargs)
 

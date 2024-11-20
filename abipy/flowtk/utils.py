@@ -1,5 +1,7 @@
 # coding: utf-8
 """Tools and helper functions for abinit calculations"""
+from __future__ import annotations
+
 import os
 import re
 import collections
@@ -7,6 +9,7 @@ import shutil
 import operator
 import numpy as np
 
+from typing import Union, Optional
 from fnmatch import fnmatch
 from monty.collections import dict2namedtuple
 from monty.string import list_strings
@@ -18,9 +21,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def as_bool(s):
+def as_bool(s: Union[str, bool]) -> bool:
     """
-    Convert a string into a boolean.
+    Convert a string into a boolean value.
 
     >>> assert as_bool(True) is True and as_bool("Yes") is True and as_bool("false") is False
     """
@@ -35,12 +38,12 @@ def as_bool(s):
         raise ValueError("Don't know how to convert type %s: %s into a boolean" % (type(s), s))
 
 
-class File(object):
+class File:
     """
     Very simple class used to store file basenames, absolute paths and directory names.
     Provides wrappers for the most commonly used functions defined in os.path.
     """
-    def __init__(self, path):
+    def __init__(self, path: str):
         self._path = os.path.abspath(path)
 
     def __repr__(self):
@@ -56,17 +59,17 @@ class File(object):
         return not self.__eq__(other)
 
     @property
-    def path(self):
+    def path(self) -> str:
         """Absolute path of the file."""
         return self._path
 
     @property
-    def basename(self):
+    def basename(self) -> str:
         """File basename."""
         return os.path.basename(self.path)
 
     @property
-    def relpath(self):
+    def relpath(self) -> str:
         """Relative path."""
         try:
             return os.path.relpath(self.path)
@@ -75,35 +78,35 @@ class File(object):
             return self.path
 
     @property
-    def dirname(self):
+    def dirname(self) -> str:
         """Absolute path of the directory where the file is located."""
         return os.path.dirname(self.path)
 
     @property
-    def exists(self):
+    def exists(self) -> bool:
         """True if file exists."""
         return os.path.exists(self.path)
 
     @property
-    def isncfile(self):
+    def isncfile(self) -> bool:
         """True if self is a NetCDF file"""
         return self.basename.endswith(".nc")
 
-    def chmod(self, mode):
+    def chmod(self, mode: str) -> None:
         """Change the access permissions of a file."""
         os.chmod(self.path, mode)
 
-    def read(self):
+    def read(self) -> str:
         """Read data from file."""
         with open(self.path, "r") as f:
             return f.read()
 
-    def readlines(self):
+    def readlines(self) -> list[str]:
         """Read lines from files."""
         with open(self.path, "r") as f:
             return f.readlines()
 
-    def write(self, string):
+    def write(self, string: str):
         """Write string to file."""
         self.make_dir()
         with open(self.path, "w") as f:
@@ -112,28 +115,28 @@ class File(object):
             else:
                 return f.write(string)
 
-    def writelines(self, lines):
+    def writelines(self, lines: list[str]):
         """Write a list of strings to file."""
         self.make_dir()
         with open(self.path, "w") as f:
             return f.writelines(lines)
 
-    def make_dir(self):
+    def make_dir(self) -> None:
         """Make the directory where the file is located."""
         if not os.path.exists(self.dirname):
             os.makedirs(self.dirname)
 
-    def remove(self):
+    def remove(self) -> None:
         """Remove the file."""
         try:
             os.remove(self.path)
         except Exception:
             pass
 
-    def move(self, dst):
+    def move(self, dst: str) -> None:
         """
-        Recursively move a file or directory to another location. This is
-        similar to the Unix "mv" command.
+        Recursively move a file or directory to another location.
+        This is similar to the Unix "mv" command.
         """
         shutil.move(self.path, dst)
 
@@ -141,7 +144,7 @@ class File(object):
         """Results from os.stat"""
         return os.stat(self.path)
 
-    def getsize(self):
+    def getsize(self) -> int:
         """
         Return the size, in bytes, of path.
         Return 0 if the file is empty or it does not exist.
@@ -150,12 +153,12 @@ class File(object):
         return os.path.getsize(self.path)
 
 
-class Directory(object):
+class Directory:
     """
     Very simple class that provides helper functions
     wrapping the most commonly used functions defined in os.path.
     """
-    def __init__(self, path):
+    def __init__(self, path: str):
         self._path = os.path.abspath(path)
 
     def __repr__(self):
@@ -171,21 +174,21 @@ class Directory(object):
         return not self.__eq__(other)
 
     @property
-    def path(self):
+    def path(self) -> str:
         """Absolute path of the directory."""
         return self._path
 
     @property
-    def relpath(self):
+    def relpath(self) -> str:
         """Relative path."""
         return os.path.relpath(self.path)
 
     @property
-    def basename(self):
+    def basename(self) -> str:
         """Directory basename."""
         return os.path.basename(self.path)
 
-    def path_join(self, *p):
+    def path_join(self, *p) -> str:
         """
         Join two or more pathname components, inserting '/' as needed.
         If any component is an absolute path, all previous path components will be discarded.
@@ -193,11 +196,11 @@ class Directory(object):
         return os.path.join(self.path, *p)
 
     @property
-    def exists(self):
+    def exists(self) -> bool:
         """True if file exists."""
         return os.path.exists(self.path)
 
-    def makedirs(self):
+    def makedirs(self) -> None:
         """
         Super-mkdir; create a leaf directory and all intermediate ones.
         Works like mkdir, except that any intermediate path segment (not
@@ -206,17 +209,17 @@ class Directory(object):
         if not self.exists:
             os.makedirs(self.path)
 
-    def rmtree(self):
+    def rmtree(self) -> None:
         """Recursively delete the directory tree"""
         shutil.rmtree(self.path, ignore_errors=True)
 
-    def copy_r(self, dst):
+    def copy_r(self, dst: str) -> None:
         """
         Implements a recursive copy function similar to Unix's "cp -r" command.
         """
         return copy_r(self.path, dst)
 
-    def clean(self):
+    def clean(self) -> None:
         """Remove all files in the directory tree while preserving the directory"""
         for path in self.list_filepaths():
             try:
@@ -224,11 +227,11 @@ class Directory(object):
             except Exception:
                 pass
 
-    def path_in(self, file_basename):
+    def path_in(self, file_basename: str) -> str:
         """Return the absolute path of filename in the directory."""
         return os.path.join(self.path, file_basename)
 
-    def list_filepaths(self, wildcard=None):
+    def list_filepaths(self, wildcard: Optional[str] = None) -> list[str]:
         """
         Return the list of absolute filepaths in the directory.
 
@@ -241,7 +244,7 @@ class Directory(object):
         """
         # Select the files in the directory.
         fnames = [f for f in os.listdir(self.path)]
-        filepaths = filter(os.path.isfile, [os.path.join(self.path, f) for f in fnames])
+        filepaths = list(filter(os.path.isfile, [os.path.join(self.path, f) for f in fnames]))
 
         if wildcard is not None:
             # Filter using shell patterns.
@@ -249,17 +252,35 @@ class Directory(object):
             filepaths = [path for path in filepaths if w.match(os.path.basename(path))]
             #filepaths = WildCard(wildcard).filter(filepaths)
 
-        return filepaths
+        return sorted(filepaths)
 
-    def has_abiext(self, ext, single_file=True):
+    def need_abiext(self, ext: str) -> str:
         """
-        Returns the absolute path of the ABINIT file with extension ext.
+        Returns the absolute path of the ABINIT file with extension `ext`.
         Support both Fortran files and netcdf files. In the later case,
-        we check whether a file with extension ext + ".nc" is present
-        in the directory. Returns empty string is file is not present.
+        we check whether a file with extension ext + ".nc" is present in the directory.
+
+        Raises: FileNotFoundError if file cannot be found.
+        """
+        path = self.has_abiext(ext, single_file=True)
+        if not path:
+            raise FileNotFoundError(f"Cannot find file with extension: `{ext}` in directory `{repr(self)}`")
+
+        return path
+
+    def has_abiext(self, ext: str, single_file: bool = True) -> str:
+        """
+        Returns the absolute path of the ABINIT file with extension `ext`.
+        Support both Fortran files and netcdf files. In the later case,
+        we check whether a file with extension ext + ".nc" is present in the directory.
+        Returns empty string is file is not present.
+
+        Args:
+            ext: File extension. `.nc` is not needed unless you enforce netcdf format.
+            single_file: If None, allow for multiple matches and return the first one.
 
         Raises:
-            `ValueError` if multiple files with the given ext are found.
+            `ValueError` if multiple files with the given extention `ext` are found and `single_file` is True.
             This implies that this method is not compatible with multiple datasets.
         """
         if ext != "abo":
@@ -293,7 +314,7 @@ class Directory(object):
 
         return files[0] if single_file else files
 
-    def symlink_abiext(self, inext, outext):
+    def symlink_abiext(self, inext: str, outext: str) -> int:
         """
         Create a simbolic link (outext --> inext). The file names are implicitly
         given by the ABINIT file extension.
@@ -310,30 +331,33 @@ class Directory(object):
         """
         infile = self.has_abiext(inext)
         if not infile:
-            raise RuntimeError('no file with extension %s in %s' % (inext, self))
+            raise RuntimeError('no file with extension `%s` in `%s`' % (inext, self))
 
         for i in range(len(infile) - 1, -1, -1):
             if infile[i] == '_':
                 break
         else:
-            raise RuntimeError('Extension %s could not be detected in file %s' % (inext, infile))
+            raise RuntimeError('Extension `%s` could not be detected in file `%s`' % (inext, infile))
 
         outfile = infile[:i] + '_' + outext
+        if infile.endswith(".nc") and not outfile.endswith(".nc"):
+            outfile = outfile + ".nc"
 
         if os.path.exists(outfile):
             if os.path.islink(outfile):
                 if os.path.realpath(outfile) == infile:
-                    logger.debug("link %s already exists but it's ok because it points to the correct file" % outfile)
+                    logger.debug("Link `%s` already exists but it's OK because it points to the correct file" % outfile)
                     return 0
                 else:
-                    raise RuntimeError("Expecting link at %s already exists but it does not point to %s" % (outfile, infile))
+                    raise RuntimeError("Expecting link at `%s` already exists but it does not point to `%s`" % (outfile, infile))
             else:
-                raise RuntimeError('Expecting link at %s but found file.' % outfile)
+                raise RuntimeError('Expecting link at `%s` but found file.' % outfile)
 
         os.symlink(infile, outfile)
+
         return 0
 
-    def rename_abiext(self, inext, outext):
+    def rename_abiext(self, inext: str, outext: str) -> int:
         """Rename the Abinit file with extension inext with the new extension outext"""
         infile = self.has_abiext(inext)
         if not infile:
@@ -349,7 +373,7 @@ class Directory(object):
         shutil.move(infile, outfile)
         return 0
 
-    def copy_abiext(self, inext, outext):
+    def copy_abiext(self, inext: str, outext: str) -> int:
         """Copy the Abinit file with extension inext to a new file with the extension outext"""
         infile = self.has_abiext(inext)
         if not infile:
@@ -365,7 +389,7 @@ class Directory(object):
         shutil.copy(infile, outfile)
         return 0
 
-    def remove_exts(self, exts):
+    def remove_exts(self, exts: Union[str, list[str]]) -> list[str]:
         """
         Remove the files with the given extensions. Unlike rmtree, this function preserves the directory path.
         Return list with the absolute paths of the files that have been removed.
@@ -462,6 +486,11 @@ class Directory(object):
 # moving to the new approach requires some careful testing besides not all files support the get*_path syntax!
 
 _EXT2VARS = {
+    # File extension -> {varname: value}
+    # NB: Don't enforce the .nc file extension if Abinit supports both Fortran and netcdf files.
+    # For instance, use `in_POT` instead of `in_POT.nc` as this file can be produced in both formats.
+    # The in_POT syntax indeed can handle both cases as Abinit will first try to find a Fortran file
+    # with extension in_POT and then in_POT.nc if the file is not found.
     "DEN": {"irdden": 1},
     "WFK": {"irdwfk": 1},
     "WFQ": {"irdwfq": 1},
@@ -480,10 +509,17 @@ _EXT2VARS = {
     "EFMAS.nc": {"irdefmas": 1},
     # Abinit does not implement getkden and irdkden but relies on irden
     "KDEN": {},  #{"irdkden": 1},
+    "KERANGE.nc": {"getkerange_filepath": '"indata/in_KERANGE.nc"'},
+    "POT": {"getpot_filepath" : '"indata/in_POT"'},
+    "SIGEPH": {"getsigeph_filepath": '"indata/in_SIGEPH.nc"'},
+    "DKDK": {},  # irddkdk is not defined.
+    #"DKDE": {"getdkde": 1},
+    #"DELFD": {"getdelfd": 1},
+    "GSTORE": {"getgstore_filepath": '"indata/in_GSTORE.nc"'},
 }
 
 
-def irdvars_for_ext(ext):
+def irdvars_for_ext(ext) -> dict:
     """
     Returns a dictionary with the ABINIT variables
     that must be used to read the file with extension ext.
@@ -491,12 +527,12 @@ def irdvars_for_ext(ext):
     return _EXT2VARS[ext].copy()
 
 
-def abi_extensions():
+def abi_extensions() -> list:
     """List with all the ABINIT extensions that are registered."""
     return list(_EXT2VARS.keys())[:]
 
 
-def abi_splitext(filename):
+def abi_splitext(filename: str) -> tuple[str, str]:
     """
     Split the ABINIT extension from a filename.
     "Extension" are found by searching in an internal database.
@@ -515,7 +551,7 @@ def abi_splitext(filename):
 
     known_extensions = abi_extensions()
 
-    # This algorith fails if we have two files
+    # This algorithm fails if we have two files
     # e.g. HAYDR_SAVE, ANOTHER_HAYDR_SAVE
     for i in range(len(filename) - 1, -1, -1):
         ext = filename[i:]
@@ -531,7 +567,7 @@ def abi_splitext(filename):
     return root, ext
 
 
-class FilepathFixer(object):
+class FilepathFixer:
     """
     This object modifies the names of particular output files
     produced by ABINIT so that the file extension is preserved.
@@ -545,7 +581,7 @@ class FilepathFixer(object):
           the initialization of the `AbinitFlow`.
 
     Unfortunately, ABINIT developers like to append extra stuff
-    to the initial extension and therefore we have to call
+    to the initial extension therefore we have to call
     `FilepathFixer` to fix the output files produced by the run.
 
     Example:
@@ -565,18 +601,18 @@ class FilepathFixer(object):
         regs["1DEN"] = re.compile(r"(\w+_)1DEN(\d+)(\.nc)?$")
 
     @staticmethod
-    def _fix_1WF(match):
+    def _fix_1WF(match) -> str:
         root, pert, ncext = match.groups()
         if ncext is None: ncext = ""
         return root + "1WF" + ncext
 
     @staticmethod
-    def _fix_1DEN(match):
+    def _fix_1DEN(match) -> str:
         root, pert, ncext = match.groups()
         if ncext is None: ncext = ""
         return root + "1DEN" + ncext
 
-    def _fix_path(self, path):
+    def _fix_path(self, path: str) -> tuple:
         for ext, regex in self.regs.items():
             head, tail = os.path.split(path)
 
@@ -588,7 +624,7 @@ class FilepathFixer(object):
 
         return None, None
 
-    def fix_paths(self, paths):
+    def fix_paths(self, paths) -> dict:
         """
         Fix the filenames in the iterable paths
 
@@ -661,7 +697,7 @@ _ALL_OPS = list(_UNARY_OPS.keys()) + list(_BIN_OPS.keys())
 
 def map2rpn(map, obj):
     """
-    Convert a Mongodb-like dictionary to a RPN list of operands and operators.
+    Convert a Mongodb-like dictionary to an RPN list of operands and operators.
 
     Reverse Polish notation (RPN) is a mathematical notation in which every
     operator follows all of its operands, e.g.
@@ -756,7 +792,7 @@ def evaluate_rpn(rpn):
     return vals_stack[0]
 
 
-class Condition(object):
+class Condition:
     """
     This object receives a dictionary that defines a boolean condition whose syntax is similar
     to the one used in mongodb (albeit not all the operators available in mongodb are supported here).
@@ -809,7 +845,7 @@ class Condition(object):
             return False
 
 
-class Editor(object):
+class Editor:
     """
     Wrapper class that calls the editor specified by the user
     or the one specified in the $EDITOR env variable.
@@ -848,7 +884,7 @@ class Editor(object):
         return answer.lower().strip() in ["n", "no"]
 
 
-class SparseHistogram(object):
+class SparseHistogram:
 
     def __init__(self, items, key=None, num=None, step=None):
         if num is None and step is None:
@@ -890,7 +926,7 @@ class SparseHistogram(object):
         return fig
 
 
-class Dirviz(object):
+class Dirviz:
 
     #file_color = np.array((255, 0, 0)) / 255
     #dir_color = np.array((0, 0, 255)) / 255

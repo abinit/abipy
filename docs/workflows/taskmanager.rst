@@ -26,7 +26,7 @@ environment variables, load modules with ``module load``, run MPI applications w
 .. TIP::
 
     A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly 
-    from the abinit-channel_ on the anaconda cloud with::
+    from the conda-forge channel with::
 
         conda install abinit --channel abinit
 
@@ -43,7 +43,8 @@ AbiPy obtains the information needed to create the correct ``TaskManager`` for a
 from the ``manager.yml`` configuration file.
 The file is written in YAML_ a human-readable data serialization language commonly used for configuration files
 (a good introduction to the YAML syntax can be found `here <http://yaml.org/spec/1.1/#id857168>`_.
-See also this `reference card <http://www.yaml.org/refcard.html>`_)
+See also this `reference card <http://www.yaml.org/refcard.html>`_.
+Experiment with YAML syntax using a `YAML validator <https://yamline.com/validator/>`_)
 
 By default, AbiPy looks for a ``manager.yml`` file in the current working directory i.e.
 the directory in which you execute your script in first and then inside ``$HOME/.abinit/abipy``.
@@ -147,7 +148,7 @@ Note this approach also allows you to safely use multiple versions.
 Copy this example and change the entries in the ``hardware`` and the ``limits`` section according to
 your machine, in particular make sure that ``max_cores`` is not greater than the number of physical cores
 available on your personal computer.
-Save the file in the current working directory and run the :ref:`abicheck.py` script provided by AbiPy.
+Save the file in the current working directory and run the abicheck.py_ script provided by AbiPy.
 If everything is configured properly, you should see something like this in the terminal.
 
 .. command-output:: abicheck.py --no-colors

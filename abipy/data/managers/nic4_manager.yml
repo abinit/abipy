@@ -3,14 +3,13 @@ hardware: &hardware
    num_nodes: 120
    sockets_per_node: 2
    cores_per_socket: 8
-   mem_per_node: 64Gb
+   mem_per_node: 64GB
 
 job: &job
     mpi_runner: "mpirun"
     mpi_runner_options: "--bind-to none"
     shell_env:
         PATH: "$HOME/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH"
-    pre_run: "ulimit -s unlimited"
     modules:
         - shared
         - openmpi/1.7.5/intel2013_sp1.1.106
@@ -19,7 +18,7 @@ job: &job
         - netcdf/4.3.2/openmpi-1.7.5-intel2013_sp1.1.106
         - slurm/14.03.11
 
-# queues 
+# queues
 qadapters:
   - priority: 1
     queue:
@@ -27,7 +26,7 @@ qadapters:
        qname: defq
        qparams:
           mail_type: FAIL
-          #mail_user: # Othere slurm options ... 
+          #mail_user: # Othere slurm options ...
     limits:
        timelimit: 0:30:0
        min_cores: 1

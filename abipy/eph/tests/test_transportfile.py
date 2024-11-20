@@ -18,8 +18,8 @@ class TransportFileTest(AbipyTest):
             si_transport.get_mobility_mu(0, 0)
 
             if self.has_matplotlib():
-                assert si_transport.plot_dos(title="default values", show=False)
-                assert si_transport.plot_vvdos(colormap="viridis", component="yy", show=False)
+                assert si_transport.plot_edos(title="default values", show=False)
+                assert si_transport.plot_vvtau_dos(colormap="viridis", component="yy", show=False)
                 assert si_transport.plot_mobility(colormap="viridis", component="yy", show=False)
 
             if self.has_nbformat():

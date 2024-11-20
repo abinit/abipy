@@ -2,16 +2,19 @@
 """
 Objects to read and analyze optical properties stored in the optic.nc file produced by optic executable.
 """
+from __future__ import annotations
+
 import numpy as np
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from monty.string import marquee, list_strings
 from monty.functools import lazy_property
+from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, data_from_cplx_mode
 from abipy.abio.robots import Robot
-from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
+from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
 
 ALL_CHIS = OrderedDict([
     ("linopt", {
@@ -25,7 +28,10 @@ ALL_CHIS = OrderedDict([
         "longname": "Second Harmonic Generation",
         "rank": 3,
         "terms": ["shg_inter2w", "shg_inter1w", "shg_intra2w",
-                  "shg_intra1w", "shg_intra1wS", "shg_chi2tot"],
+                  "shg_intra1w", "shg_intra1wS", "shg_chi2tot",
+                  "shg_inter2w_AR", "shg_inter1w_AR", "shg_intra2w_AR",
+                  "shg_intra1w_AR", "shg_intra1wS_AR", "shg_chi2tot_AR",
+                  "shg_chi2full"],
         }
         #"latex": r"\chi(-2\omega, \omega, \omega)"
     ),
@@ -110,11 +116,11 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
     """
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> OpticNcFile:
         """Initialize the object from a netcdf file."""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = OpticReader(filepath)
 
@@ -127,6 +133,11 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         for key in keys:
             setattr(self, key, self.reader.read_value(key))
 
+        # Number of bands in sum over states
+        # This variable was added in Abinit v9.6.2.
+        # In previous version nband_sum was assumed to be the max number of bands found in the external files.
+        self.nband_sum = self.reader.read_value("nband_sum", default=self.ebands.nband)
+
     @lazy_property
     def wmesh(self):
         """
@@ -135,11 +146,11 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         """
         return self.reader.read_value("wmesh")
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation."""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -159,6 +170,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         app("domega: %s [Ha], %.3f (eV)" % (self.domega, self.domega * abu.Ha_eV))
         app("do_antiresonant %s, do_ep_renorm %s" % (self.do_antiresonant, self.do_ep_renorm))
         app("Number of temperatures: %d" % self.reader.ntemp)
+        app("Number of bands in sum-over-states: %d" % self.nband_sum)
 
         # Show available tensors and computed components.
         for key, info in ALL_CHIS.items():
@@ -173,27 +185,27 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         return "\n".join(lines)
 
     @lazy_property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.reader.read_ebands()
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
     @lazy_property
-    def has_linopt(self):
+    def has_linopt(self) -> bool:
         """True if the ncfile contains Second Harmonic Generation tensor."""
         return "linopt" in self.reader.computed_components
 
     @lazy_property
-    def has_shg(self):
+    def has_shg(self) -> bool:
         """True if the ncfile contains Second Harmonic Generation tensor."""
         return "shg" in self.reader.computed_components
 
     @lazy_property
-    def has_leo(self):
+    def has_leo(self) -> bool:
         """True if the ncfile contains the Linear Electro-optic tensor"""
         return "leo" in self.reader.computed_components
 
@@ -202,18 +214,18 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
     #    """:class:`XcFunc object with info on the exchange-correlation functional."""
     #    return self.reader.read_abinit_xcfunc()
 
-    def close(self):
+    def close(self) -> None:
         """Close the file."""
         self.reader.close()
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
     @staticmethod
-    def get_linopt_latex_label(what, comp):
+    def get_linopt_latex_label(what: str, comp: str) -> str:
         """
         Return latex label for linear-optic quantities. Used in plots.
         """
@@ -228,7 +240,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
             #eels:r"EELS_{%s}" % comp,
         )[what]
 
-    def get_chi2_latex_label(self, key, what, comp):
+    def get_chi2_latex_label(self, key: str, what: str, comp: str) -> str:
         """
         Build latex label for chi2-related quantities. Used in plots.
         """
@@ -402,7 +414,7 @@ class OpticReader(ElectronsReader):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: OpticReader
     """
-    def __init__(self, filepath):
+    def __init__(self, filepath: str) -> None:
         super().__init__(filepath)
         self.ntemp = self.read_dimvalue("ntemp")
 
@@ -470,7 +482,14 @@ class OpticReader(ElectronsReader):
         od = OrderedDict([(comp, OrderedDict()) for comp in components])
         for chiname in ALL_CHIS[key]["terms"]:
             #print("About to read:", chiname)
-            var = self.read_variable(chiname)
+
+            try:
+                var = self.read_variable(chiname)
+            except self.Error as exc:
+                # This to support new terms added ina shg
+                if key != "shg":
+                    raise exc
+
             for comp in components:
                 try:
                     ijkp = self.computed_components[key].index(comp)
@@ -519,7 +538,8 @@ class OpticRobot(Robot, RobotWithEbands):
                 "all" if all components available on file should be plotted on the same ax.
             what_list: List of quantities to plot. "re" for real part, "im" for imaginary.
                 Accepts also "abs", "angle".
-            sortby: Define the convergence parameter, sort files and produce plot labels. Can be None, string or function.
+            sortby: Define the convergence parameter, sort files and produce plot labels.
+                Can be None, string or function.
                 If None, no sorting is performed.
                 If string, it's assumed that the ncfile has an attribute with the same name and getattr is invoked.
                 If callable, the output of callable(ncfile) is used.

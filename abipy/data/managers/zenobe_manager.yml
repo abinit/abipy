@@ -3,13 +3,13 @@ westmere: &westmere
    num_nodes: 274
    sockets_per_node: 2
    cores_per_socket: 6
-   mem_per_node: 24 Gb
+   mem_per_node: 24 GB
 
 ivybridge: &ivybridge
    num_nodes: 342
    sockets_per_node: 2
    cores_per_socket: 12
-   mem_per_node: 64 Gb
+   mem_per_node: 64 GB
 
 # Environment, modules, and parameters used to launch jobs.
 job: &job
@@ -20,13 +20,12 @@ job: &job
         - compiler/intel/composerxe/2013_sp1.1.106
         - intelmpi
         - python/2.7
-    pre_run: "ulimit -s unlimited"
 
-# List of qdapters. 
+# List of qdapters.
 qadapters:
   # Westmere default.
   - priority: 99
-    queue: 
+    queue:
        qname: main
        qtype: pbspro
        qparams:
@@ -38,11 +37,11 @@ qadapters:
        min_cores: 1
        max_cores: 24
     job: *job
-    hardware: *westmere 
-  
+    hardware: *westmere
+
   # Ivybridge large.
   - priority: 1
-    queue: 
+    queue:
        qname: large
        qtype: pbspro
        qparams:

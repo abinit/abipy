@@ -1,21 +1,20 @@
 # coding: utf-8
-"""HirshfeldCharges."""
-from abipy.core.mixins import Has_Structure
-from abipy.core.fields import Density
-from abipy.electrons.denpot import DensityFortranFile
-from pymatgen.command_line.bader_caller import BaderAnalysis
-from pymatgen.io.abinit.pseudos import Pseudo
-from pymatgen.core.units import bohr_to_angstrom
-from monty.dev import requires
-from monty.os.path import which
+"""Hirshfeld Charges."""
+from __future__ import annotations
 
 import numpy as np
 import os
-import tempfile
 
-import logging
-logger = logging.getLogger(__name__)
-
+from shutil import which
+from monty.dev import requires
+from pymatgen.command_line.bader_caller import BaderAnalysis
+from pymatgen.io.abinit.pseudos import Pseudo
+from pymatgen.core.units import bohr_to_angstrom
+from abipy.core.structure import Structure
+from abipy.core.mixins import Has_Structure
+from abipy.core.fields import Density
+from abipy.core.globals import get_workdir
+from abipy.electrons.denpot import DensityFortranFile
 
 __all__ = [
     "HirshfeldCharges",
@@ -47,7 +46,7 @@ class Charges(Has_Structure):
         self.reference_charges = np.array(reference_charges)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         return self._structure
 
     @property
@@ -161,7 +160,7 @@ class BaderCharges(Charges):
                 r = psp8_get_densities(ppath)
                 rhoc[specie] = [r.rmesh * bohr_to_angstrom, r.aecore / (4.0 * np.pi) / (bohr_to_angstrom ** 3)]
 
-            workdir = tempfile.mkdtemp() if workdir is None else workdir
+            workdir = get_workdir(workdir)
 
             # extrapolate the core density on the density grid
             core_density = Density.ae_core_density_on_mesh(density, structure, rhoc, **kwargs)

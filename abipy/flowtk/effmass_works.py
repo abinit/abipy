@@ -1,17 +1,19 @@
 # coding: utf-8
 """Work subclasses related to effective mass calculations."""
+from __future__ import annotations
 
 import numpy as np
 import os
 
 from monty.json import jsanitize
 from abipy.core.kpoints import build_segments
+from abipy.abio.inputs import AbinitInput
 from .nodes import Node
 from .works import Work, PhononWork
 from .flows import Flow
 
 
-def _get_red_dirs_from_opts(red_dirs, cart_dirs, reciprocal_lattice):
+def _get_red_dirs_from_opts(red_dirs, cart_dirs, reciprocal_lattice) -> np.ndarray:
     """
     Helper function to compute the list of directions from user input. Return numpy array.
     """
@@ -30,16 +32,17 @@ class EffMassLineWork(Work):
     """
     Work for the computation of effective masses via finite differences along a k-line.
     Useful for cases such as NC+SOC where DFPT is not implemented or if one is interested
-    in non-parabolic behaviour.
+    in the non-parabolic behaviour of the energy dispersion.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: EffMassLineWork
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, k0_list, step=0.01, npts=15,
-                       red_dirs=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], cart_dirs=None,
-                       den_node=None, manager=None):
+    def from_scf_input(cls, scf_input: AbinitInput,
+                       k0_list, step=0.01, npts=15,
+                       red_dirs=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], ndivsm=-20,
+                       cart_dirs=None, den_node=None, manager=None) -> EffMassLineWork:
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -53,6 +56,9 @@ class EffMassLineWork(Work):
             den_node: Path to the DEN file or Task object producing a DEN file.
                 Can be used to avoid the initial SCF calculation if a DEN file is already available.
                 If None, a GS calculation is performed.
+            ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
             manager: |TaskManager| instance. Use default if None.
         """
         if npts < 3:
@@ -72,6 +78,11 @@ class EffMassLineWork(Work):
         scf_task = new.register_scf_task(scf_input) if den_node is None else Node.as_node(den_node)
 
         new.register_nscf_task(nscf_input, deps={scf_task: "DEN"})
+
+        if ndivsm != 0:
+            ebands_inp = scf_input.make_ebands_input(ndivsm=ndivsm)
+            new.register_nscf_task(ebands_inp, deps={scf_task: "DEN"})
+
         return new
 
 
@@ -85,7 +96,9 @@ class EffMassDFPTWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, k0_list, effmass_bands_f90, den_node=None, manager=None):
+    def from_scf_input(cls, scf_input: AbinitInput,
+                       k0_list, effmass_bands_f90,
+                       ngfft=None, den_node=None, manager=None) -> EffMassDFPTWork:
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -94,12 +107,13 @@ class EffMassDFPTWork(Work):
             k0_list: List with the reduced coordinates of the k-points where effective masses are wanted.
             effmass_bands_f90: (nkpt, 2) array with band range for effmas computation.
                 WARNING: Assumes Fortran convention with indices starting from 1.
+            ngfft: FFT divisions (3 integers). Used to enforce the same FFT mesh in the NSCF run as the one used for GS.
             den_node: Path to the DEN file or Task object producing a DEN file.
                 Can be used to avoid the initial SCF calculation if a DEN file is already available.
                 If None, a GS calculation is performed.
             manager: |TaskManager| instance. Use default if None.
         """
-        multi = scf_input.make_dfpt_effmass_input(k0_list, effmass_bands_f90)
+        multi = scf_input.make_dfpt_effmass_inputs(k0_list, effmass_bands_f90, ngfft=ngfft)
         nscf_input, effmass_input = multi[0], multi[1]
 
         new = cls(manager=manager)
@@ -112,6 +126,7 @@ class EffMassDFPTWork(Work):
 
         nscf_task = new.register_nscf_task(nscf_input, deps={scf_task: "DEN"})
         new.register_effmass_task(effmass_input, deps={scf_task: "DEN", nscf_task: "WFK"})
+
         return new
 
 
@@ -128,14 +143,22 @@ class EffMassAutoDFPTWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, ndivsm=15, tolwfr=1e-20, manager=None):
+    def from_scf_input(cls, scf_input: AbinitInput,
+                       ndivsm=15, tolwfr=1e-20, den_node=None, manager=None) -> EffMassAutoDFPTWork:
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
 
         Args:
             scf_input: |AbinitInput| for GS-SCF used as template to generate the other inputs.
-            ndivsm: Number of divisions used to sample the smallest segment of the k-path.
+            ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
+                This option is the recommended one if the k-path contains two high symmetry k-points that are very close
+                as ndivsm > 0 may produce a very large number of wavevectors.
             tolwfr: Tolerance on residuals for NSCF calculation
+            den_node: Path to the DEN file or Task object producing a DEN file.
+                Can be used to avoid the initial SCF calculation if a DEN file is already available.
+                If None, a GS calculation is performed.
             manager: |TaskManager| instance. Use default if None.
         """
         if scf_input.get("nsppol", 1) != 1:
@@ -146,11 +169,14 @@ class EffMassAutoDFPTWork(Work):
         new.scf_input = scf_input.deepcopy()
 
         # Need SCF run to get DEN file.
-        new.scf_task = new.register_scf_task(new.scf_input)
+        if den_node is None:
+            new.den_node = new.register_scf_task(new.scf_input)
+        else:
+            new.den_node = Node.as_node(den_node)
 
         # Perform NSCF run along k-path that will be used to find band extrema.
         bands_input = scf_input.make_ebands_input(ndivsm=ndivsm, tolwfr=tolwfr)
-        new.bands_task = new.register_nscf_task(bands_input, deps={new.scf_task: "DEN"})
+        new.bands_task = new.register_nscf_task(bands_input, deps={new.den_node: "DEN"})
 
         return new
 
@@ -167,10 +193,12 @@ class EffMassAutoDFPTWork(Work):
             ebands.set_fermie_to_vbm()
             # Find k0_list and effmass_bands_f90
             k0_list, effmass_bands_f90 = ebands.get_kpoints_and_band_range_for_edges()
+            den_ngfft = gsr.reader.read_ngfft3()
 
         # Create the work for effective mass computation with DFPT and add it to the flow.
         # Keep a reference in generated_effmass_dfpt_work.
-        work = EffMassDFPTWork.from_scf_input(self.scf_input, k0_list, effmass_bands_f90, den_node=self.scf_task)
+        work = EffMassDFPTWork.from_scf_input(self.scf_input, k0_list, effmass_bands_f90,
+                                              ngfft=den_ngfft, den_node=self.den_node)
 
         self.generated_effmass_dfpt_work = work
         self.flow.register_work(work)
@@ -188,9 +216,11 @@ class FrohlichZPRFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls, workdir, scf_input, ddb_node=None, ndivsm=15, tolwfr=1e-20, metadata=None, manager=None):
+    def from_scf_input(cls, workdir: str, scf_input: AbinitInput,
+                       ddb_node=None, ndivsm=15, tolwfr=1e-20,
+                       metadata=None, manager=None) -> FrohlichZPRFlow:
         """
-        Build the Work from an |AbinitInput| representing a GS-SCF calculation.
+        Build the Flow from an |AbinitInput| representing a GS-SCF calculation.
         Final results are stored in the "zprfrohl_results.json" in the outdata directory of the flow.
 
         Args:

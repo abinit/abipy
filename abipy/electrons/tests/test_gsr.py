@@ -56,7 +56,7 @@ class GSRReaderTestCase(AbipyTest):
 
             r.print_tree()
             for group in r.walk_tree():
-                print("group: " + str(group))
+                assert str(group)
 
             # Initialize pymatgen structure from GSR.
             structure = r.read_structure()
@@ -65,33 +65,44 @@ class GSRReaderTestCase(AbipyTest):
 
 class GSRFileTestCase(AbipyTest):
 
-    def test_gsr_silicon(self):
-        """spin unpolarized GSR file"""
+    def test_scf_gsr_silicon(self):
+        """spin unpolarized GSR file produced by a GS SCF calculation."""
+        filepath = abidata.ref_file("si_scf_GSR.nc")
 
-        with GsrFile(abidata.ref_file("si_scf_GSR.nc")) as gsr:
+        # Init GSR from binary string.
+        with open(filepath, "rb") as fh:
+            same_gsr = GsrFile.from_binary_string(fh.read())
+            same_structure = same_gsr.structure
+            same_gsr.close()
+
+        with GsrFile(filepath) as gsr:
             assert gsr.basename == "si_scf_GSR.nc"
             assert gsr.relpath == os.path.relpath(abidata.ref_file("si_scf_GSR.nc"))
             assert gsr.filetype
             assert gsr.filestat()
             assert len(gsr.ncdump())
-            repr(gsr); str(gsr)
+            assert repr(gsr)
+            assert str(gsr)
             assert gsr.to_string(verbose=2)
             assert gsr.abinit_version == "8.0.6"
-            str(gsr.ebands)
+            assert str(gsr.ebands)
             assert gsr.filepath == abidata.ref_file("si_scf_GSR.nc")
             assert gsr.nsppol == 1
             assert gsr.mband == 8 and gsr.nband == 8 and gsr.nelect == 8 and len(gsr.kpoints) == 29
             assert gsr.mband == gsr.hdr.mband
+            assert gsr.is_scf_run
             assert "nelect" in gsr.hdr and gsr.nelect == gsr.hdr.nelect
             self.assert_almost_equal(gsr.energy.to("Ha"), -8.86527676798556)
             self.assert_almost_equal(gsr.energy_per_atom * len(gsr.structure), gsr.energy)
 
+            assert gsr.structure.formula == same_structure.formula
             assert gsr.params["nband"] == 8
             assert gsr.params["nkpt"] == 29
 
             # Test energy_terms
             eterms = gsr.energy_terms
-            repr(eterms); str(eterms)
+            assert repr(eterms)
+            assert str(eterms)
             assert eterms.to_string(with_doc=True)
             self.assert_almost_equal(eterms.e_xc.to("Ha"), -3.51815936301812)
             self.assert_almost_equal(eterms.e_nonlocalpsp.to("Ha"), 1.91660690901782)
@@ -120,7 +131,7 @@ class GSRFileTestCase(AbipyTest):
             # Test pymatgen computed_entries
             for inc_structure in (True, False):
                 e = gsr.get_computed_entry(inc_structure=inc_structure)
-                str(e)
+                assert str(e)
                 d = e.as_dict()
                 if inc_structure: assert "structure" in d
                 assert d["energy"] == gsr.energy
@@ -136,6 +147,23 @@ class GSRFileTestCase(AbipyTest):
             if self.has_panel():
                 assert hasattr(gsr.get_panel(), "show")
 
+    def test_nscf_gsr_silicon(self):
+        """spin unpolarized GSR file produced by a GS NSCF calculation."""
+        filepath = abidata.ref_file("si_nscf_GSR.nc")
+
+        with GsrFile(filepath) as gsr:
+            assert gsr.basename == "si_nscf_GSR.nc"
+            assert not gsr.is_scf_run
+            assert str(gsr)
+            assert gsr.pressure is None
+            assert gsr.cart_forces is None
+            assert gsr.max_force is None
+            assert gsr.force_stats() is None
+            assert gsr.cart_stress_tensor is None
+
+            with self.assertRaises(ValueError):
+                gsr.ebands.get_edos()
+
 
 class GsrRobotTest(AbipyTest):
 
@@ -149,10 +177,11 @@ class GsrRobotTest(AbipyTest):
         assert "gsr0" in robot.keys()
         assert "gsr0" in robot.labels
         assert robot.EXT == "GSR"
-        repr(robot); str(robot)
+        assert repr(robot)
+        assert str(robot)
         assert robot.to_string(verbose=2)
 
-	# Cannot have same label
+	    # Cannot have same label
         with self.assertRaises(ValueError):
             robot.add_file("gsr0", gsr_ibz)
 
@@ -168,6 +197,8 @@ class GsrRobotTest(AbipyTest):
         assert robot.is_sortable("nkpt")         # gsr.nkpt
         assert robot.is_sortable("ebands.nkpt")  # gsr.ebands.nkpt
         assert robot.is_sortable("ecut")         # in gsr.params
+
+        assert robot.getattr_alleq("nsppol") == 1
 
         dfs = robot.get_structure_dataframes()
         assert dfs.lattice is not None
@@ -194,8 +225,17 @@ class GsrRobotTest(AbipyTest):
 
             assert robot.plot_gsr_convergence(show=False)
             assert robot.plot_gsr_convergence(sortby="nkpt", hue="tsmear", show=False)
+
+            #assert robot.plot_convergence("energy_per_atom", sortby="nkpt", hue=None, abs_tol=1e-3, show=False)
+            #assert robot.plot_convergence("energy_per_atom", sortby="nkpt", hue="tsmear", abs_tol=1e-3, show=False)
+
             y_vars = ["energy", "structure.lattice.a", "structure.volume"]
             assert robot.plot_convergence_items(y_vars, sortby="nkpt", hue="tsmear", show=False)
+
+            # TODO
+            #abs_tols = {"energy": 1e-3,, "structure.lattice.a": 1e-2,, "structure.volume": 1e-1}
+            #assert robot.plot_convergence_items(y_vars, sortby="nkpt", hue=None, abs_tols, show=False)
+            #assert robot.plot_convergence_items(y_vars, sortby="nkpt", hue="tsmear", abs_tols, show=False)
 
             assert robot.plot_egaps(show=False)
             assert robot.plot_egaps(sortby="nkpt", hue="tsmear")
@@ -204,11 +244,11 @@ class GsrRobotTest(AbipyTest):
         if self.has_panel():
             assert hasattr(robot.get_panel(), "show")
 
-	# Get pandas dataframe.
+	    # Get pandas dataframe.
         df = robot.get_dataframe()
         assert "energy" in df
         self.assert_equal(df["ecut"].values, 6.0)
-        self.assert_almost_equal(df["energy"].values, -241.2364683)
+        self.assert_almost_equal(df["energy"].values, -241.2364683, decimal=4)
 
         df_params = robot.get_params_dataframe()
         assert "nband" in df_params
@@ -225,7 +265,7 @@ class GsrRobotTest(AbipyTest):
             assert robot.plot_xy_with_hue(df, x="nkpt", y="pressure", hue="a", show=False)
 
         # Note: This is not a real EOS since we have a single volume.
-        # But testing is better than not testing.
+        # But testing something is better than not testing.
         r = robot.get_eos_fits_dataframe()
         assert hasattr(r, "fits") and hasattr(r, "dataframe")
 

@@ -3,6 +3,8 @@
 This module defines constants and conversion factors matching those present in abinit that can be used when
 it is important to preserve consistency with the results produced by abinit.
 """
+from __future__ import annotations
+
 import numpy as np
 
 # taken from abinit/10_defs/defs_basis.F90
@@ -15,6 +17,7 @@ Ha_cmm1 = 219474.6313705
 # 1 Hartree, in eV
 Ha_eV = 27.21138386
 Ha_to_eV = Ha_eV
+Ha_to_meV = Ha_eV * 1000
 # 1 eV in Hartree
 eV_Ha = 1. / Ha_eV
 # 1 eV in Rydberg
@@ -74,7 +77,7 @@ BField_Tesla = 4.254383e-6
 dipole_moment_debye = 0.393430307
 
 
-def phfactor_ev2units(units):
+def phfactor_ev2units(units: str) -> float:
     """
     Return conversion factor eV --> units for phonons (case-insensitive)
     """
@@ -88,20 +91,27 @@ def phfactor_ev2units(units):
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
 
-def phunit_tag(units):
+def phunit_tag(units: str, unicode=False) -> str:
     """
-    Return latex string from ``units`` (used for phonons)
+    Mainly used for phonons.
+    Return latex string from ``units``.
+    If unicode is True, replace Latex superscript with unitcode.
     """
     d = {"ev": "(eV)", "mev": "(meV)", "ha": '(Ha)',
          "cm-1": "(cm$^{-1}$)", 'cm^-1': "(cm$^{-1}$)", "thz": '(Thz)',
          }
     try:
-        return d[units.lower().strip()]
+        s = d[units.lower().strip()]
     except KeyError:
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
+    if unicode:
+        s = s.replace('$^{-1}$', '⁻¹')
 
-def wlabel_from_units(units):
+    return s
+
+
+def wlabel_from_units(units: str, unicode=False) -> str:
     """
     Return latex string for phonon frequencies in ``units``.
     """
@@ -109,14 +119,20 @@ def wlabel_from_units(units):
          'cm-1': r'Frequency (cm$^{-1}$)',
          'cm^-1': r'Frequency (cm$^{-1}$)',
          'thz': r'Frequency (Thz)',
+         'hbar': r'Angular momentum ($\hbar$)',
     }
     try:
-        return d[units.lower().strip()]
+        s = d[units.lower().strip()]
     except KeyError:
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
+    if unicode:
+        s = s.replace('$^{-1}$', '⁻¹')
 
-def phdos_label_from_units(units):
+    return s
+
+
+def phdos_label_from_units(units: str, unicode=False) -> str:
     """
     Return latex string for phonon DOS values in ``units``.
     """
@@ -125,12 +141,17 @@ def phdos_label_from_units(units):
          "thz": '(states/Thz)',
         }
     try:
-        return d[units.lower().strip()]
+        s = d[units.lower().strip()]
     except KeyError:
         raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
 
+    if unicode:
+        s = s.replace('$^{-1}$', '⁻¹')
 
-def s2itup(comp):
+    return s
+
+
+def s2itup(comp: str) -> tuple:
     """
     Convert string in the form ``xx``, ``xyz`` into tuple of two (three) indices
     that can be used to slice susceptibility tensors (numpy array).
@@ -148,7 +169,7 @@ def s2itup(comp):
         raise ValueError("Expecting component in the form `xy` or `xyz` but got `%s`" % comp)
 
 
-def itup2s(t):
+def itup2s(t: tuple) -> str:
     """
     Convert tuple of 2 (3) integers into string in the form ``xx`` (``xyz``).
     Assume C-indexing e.g. 0 --> x

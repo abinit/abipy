@@ -3,7 +3,7 @@ hardware: &hardware
    num_nodes: 44
    sockets_per_node: 4
    cores_per_socket: 16
-   mem_per_node: 256Gb
+   mem_per_node: 256GB
 
 job: &job
     mpi_runner: mpirun
@@ -11,9 +11,8 @@ job: &job
         PATH: "$HOME/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH"
     modules:
         - intel/2015a
-    #pre_run: "ulimit -s unlimited"
 
-# queues 
+# queues
 qadapters:
   - priority: 1
     queue:

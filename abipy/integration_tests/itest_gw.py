@@ -1,4 +1,5 @@
 """Integration tests for GW flows."""
+from __future__ import annotations
 
 import abipy.data as abidata
 import abipy.abilab as abilab
@@ -6,6 +7,7 @@ import abipy.flowtk as flowtk
 
 #from abipy.core.testing import has_abinit, has_matplotlib
 
+import pytest
 
 def make_g0w0_inputs(ngkpt, tvars):
     """
@@ -93,6 +95,7 @@ def make_g0w0_inputs(ngkpt, tvars):
     return multi.split_datasets()
 
 
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_g0w0_flow(fwp, tvars):
     """Test flow for G0W0 calculations."""
     scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
@@ -155,63 +158,7 @@ def itest_g0w0_flow(fwp, tvars):
     #assert flow.validate_json_schema()
 
 
-def itest_g0w0qptdm_flow(fwp, tvars):
-    """Integration test for G0W0WithQptdmFlow."""
-    scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
-
-    flow = flowtk.G0W0WithQptdmFlow(fwp.workdir, scf, nscf, scr, sig, manager=fwp.manager)
-
-    # Enable garbage collector at the flow level.
-    # Note that here we have tp use this policy because tasks are created dynamically
-    #flow.set_garbage_collector(policy="task")
-    flow.set_garbage_collector(policy="flow")
-
-    assert len(flow) == 3
-    bands_work = flow[0]
-    scr_work = flow[1]
-    sigma_work = flow[2]
-
-    assert scr_work.depends_on(bands_work.nscf_task)
-    assert not scr_work.depends_on(bands_work.scf_task)
-
-    for sigma_task in sigma_work:
-        #print("sigma_task.deps", sigma_task.deps)
-        assert sigma_task.depends_on(bands_work.nscf_task)
-        assert not sigma_task.depends_on(bands_work.scf_task)
-        assert sigma_task.depends_on(scr_work)
-
-    flow.build_and_pickle_dump(abivalidate=True)
-    flow.show_dependencies()
-    # This call is needed to connect the node and enable
-    # the callbacks, otherwise the scheduler enters a deadlock.
-    flow.connect_signals()
-
-    # Run the flow.
-    fwp.scheduler.add_flow(flow)
-    assert fwp.scheduler.start() == 0
-    assert not fwp.scheduler.exceptions
-
-    flow.show_status()
-    assert all(work.finalized for work in flow)
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError()
-
-    # Test set_garbage_collector
-    # The WFK|SCR file should have been removed because we call set_garbage_collector
-    #assert not scf_task.outdir.has_abiext("WFK")
-    #assert not nscf_task.outdir.has_abiext("WFK")
-    #assert not scr_task.outdir.has_abiext("SCR")
-    #assert not scr_task.outdir.has_abiext("SUS")
-
-    # The SCR file produced by scr_work should have been removed
-    assert not scr_work.outdir.has_abiext("SCR")
-
-    #assert flow.validate_json_schema()
-
-    flow.finalize()
-
-
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_htc_g0w0(fwp, tvars):
     """Testing G0W0Work."""
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))

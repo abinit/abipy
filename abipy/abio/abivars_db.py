@@ -1,8 +1,9 @@
 """Database with the names of the input variables used in Abinit and in other main programs."""
+from __future__ import annotations
+
 import sys
 
 from collections import OrderedDict
-
 
 ##############
 # Public API #
@@ -15,13 +16,19 @@ def get_abinit_variables():
     return get_codevars()["abinit"]
 
 
+def get_anaddb_variables():
+    """Returns the database with the description of the ANADDB variables."""
+    from abipy.abio.abivar_database.variables import get_codevars
+    return get_codevars()["anaddb"]
+
+
 def docvar(varname, executable="abinit"):
     """Return the `Variable` object associated to this name."""
     from abipy.abio.abivar_database.variables import get_codevars
     return get_codevars()[executable][varname]
 
 
-def abinit_help(varname, info=True, stream=sys.stdout):
+def abinit_help(varname: str, info=True, stream=sys.stdout) -> None:
     """
     Print the abinit documentation on the ABINIT input variable `varname`
     """
@@ -45,10 +52,11 @@ def abinit_help(varname, info=True, stream=sys.stdout):
     stream.write("\n")
 
 
-def repr_html_from_abinit_string(text):
+def repr_html_from_abinit_string(text: str) -> str:
     """
     Given a string `text` with an Abinit input file, replace all variables
-    with HTML links pointing to the official documentation. Return new string.
+    with HTML links pointing to the official documentation. 
+    Return new string.
     """
     var_database = get_abinit_variables()
 

@@ -3,17 +3,16 @@ language: python
 
 env:
   global:
-  - ABINIT_VERSION=8.10.1
+  - ABINIT_VERSION=9.0.4
   - ABIPY_PYTEST=yes
+  - ABIPY_SPHINX=no
+  - ABIPY_INSTALLER=pip
+  - ABIPY_COVERALLS=no
   - OPENBLAS_NUM_THREADS=1
   - OMP_NUM_THREADS=1
 
 matrix:
   include:
-    - os: linux
-      python: 3.6
-      env:
-        - ABIPY_INSTALLER=pip ABIPY_PYTEST=no
     - os: linux
       python: 3.7
       dist: xenial
@@ -25,10 +24,15 @@ matrix:
       sudo: true
       env:
         - ABIPY_INSTALLER=conda ABIPY_SPHINX=yes
-#- os: linux
-#  python: 3.8
-#  env:
-#    - ABIPY_INSTALLER=conda ABIPY_PYTEST=no
+    - os: linux
+      python: 3.8
+      env:
+        - ABIPY_INSTALLER=conda ABIPY_PYTEST=no
+    - os: linux
+      python: 3.9
+      env:
+        - ABIPY_INSTALLER=pip ABIPY_SPHINX=yes ABIPY_COVERALLS=yes
+
 
 install:
   #- set -ev  # exit on first error, print each command
@@ -55,7 +59,6 @@ install:
         conda uninstall -y pymatgen
       fi
 
-  - if [[ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]]; then conda install mock; fi
   - pip install coverage>=4.4 -U --upgrade-strategy=eager
 
   # Mayavi (optional requirement)

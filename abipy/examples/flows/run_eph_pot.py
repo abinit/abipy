@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 r"""
-Flow to compute e-ph scattering potentials
-==========================================
+e-ph scattering potentials
+==========================
 
 This example shows how to compute e-ph scattering potentials
-along a q-path, merge the POT files in the DVDB file and use the
+along a q-path, merge the POT files in the DVDB file and finally use the
 DVDB and the DDB file to analyze the average over the unit cell of the
 periodic part as a function of q
 """
@@ -43,6 +43,7 @@ def make_scf_input(ngkpt):
         shiftk=[0, 0, 0],
         tolvrs=1.0e-8,
         nstep=150,
+        paral_kgb=0,
     )
 
     return gs_inp
@@ -70,7 +71,7 @@ def build_flow(options):
     # corresponding to a [4, 4, 4] q-mesh.
     # Electric field and Born effective charges are also computed.
     from abipy.flowtk.eph_flows import EphPotFlow
-    ngqpt = (2, 2, 2)
+    ngqpt = [2, 2, 2]
 
     qpath_list = [
         +0.10000,  +0.10000,  +0.10000,  # L -> G
@@ -95,7 +96,7 @@ def build_flow(options):
     # Use small ndivsm to reduce computing time.
     flow = EphPotFlow.from_scf_input(options.workdir, scf_input,
                                      ngqpt, qpath_list, ndivsm=2, ddk_tolerance={"tolwfr": 1e-12},
-                                     with_becs=True)
+                                     with_becs=True, with_quad=False)
 
     return flow
 

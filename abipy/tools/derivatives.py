@@ -10,7 +10,7 @@ __all__ = [
 
 
 def rearr(array):
-    return np.array(array, dtype=np.float)
+    return np.array(array, dtype=float)
 
 # This table contains the coefficients of the central differences, for several order of accuracy: [1]
 # See http://en.wikipedia.org/wiki/Finite_difference_coefficients

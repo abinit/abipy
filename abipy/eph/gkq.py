@@ -2,39 +2,45 @@
 Interface to the GKQ.nc file storing the e-ph matrix elements
 in the atomic representation (idir, ipert) for a single q-point.
 This file is produced by the eph code with eph_task -4.
+
 To analyze the e-ph scattering potentials, use v1qavg and eph_task 15 or -15
 """
+from __future__ import annotations
+
 import numpy as np
+import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from monty.string import marquee
 from monty.functools import lazy_property
+from abipy.core.structure import Structure
 from abipy.core.kpoints import Kpoint
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools import duck
+from abipy.tools.typing import Figure, PathLike
 from abipy.abio.robots import Robot
-from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
+from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
 from abipy.eph.common import glr_frohlich, EPH_WTOL
 
 
 class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: PathLike):
         """Initialize the object from a netcdf_ file."""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: PathLike):
         super().__init__(filepath)
-        self.reader = GkqReader(filepath)
+        self.r = GkqReader(filepath)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation."""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -44,8 +50,10 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
-        app("qpoint: %s" % str(self.qpoint))
-        app("Macroscopic dielectric tensor in Cartesian coordinates")
+        app("qpoint in g(k,q): %s" % str(self.qpoint))
+        app("uses_interpolated_dvdb: %s" % str(self.uses_interpolated_dvdb))
+        app("phonon frequencies in Ha %s:" % str(self.phfreqs_ha))
+        app("Macroscopic dielectric tensor in Cartesian coordinates:")
         app(str(self.epsinf_cart))
         app("")
         app("Born effective charges in Cartesian coordinates:")
@@ -54,139 +62,236 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             app(str(bec))
             app("")
 
-        app(r"Fulfillment of charge neutrality, F_{ij} = \sum_{atom} Z^*_{ij,atom}")
+        app(r"Fulfillment of charge neutrality, F_{ij} = \sum_{atom} Z^*_{ij,atom}:")
         f = np.sum(self.becs_cart, axis=0)
         app(str(f) + "\n")
 
         return "\n".join(lines)
 
-    def close(self):
-        self.reader.close()
+    def close(self) -> None:
+        self.r.close()
 
     @lazy_property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
-        return self.reader.read_ebands()
+        return self.r.read_ebands()
 
     @lazy_property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
     @lazy_property
-    def uses_interpolated_dvdb(self):
+    def uses_interpolated_dvdb(self) -> bool:
         """True if the matrix elements have been computed with an interpolated potential."""
-        return int(self.reader.read_value("interpolated")) == 1
+        return int(self.r.read_value("interpolated")) == 1
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
     @lazy_property
-    def qpoint(self):
+    def qpoint(self) -> Kpoint:
         """Q-point object."""
-        return Kpoint(self.reader.read_value('qpoint'), self.structure.reciprocal_lattice)
+        return Kpoint(self.r.read_value('qpoint'), self.structure.reciprocal_lattice)
 
     @lazy_property
-    def phfreqs_ha(self):
+    def phfreqs_ha(self) -> np.ndarray:
         """(3 * natom) array with phonon frequencies in Ha."""
-        return self.reader.read_value("phfreqs")
+        return self.r.read_value("phfreqs")
 
     @lazy_property
-    def phdispl_cart_bohr(self):
-        """(natom3_nu, natom3) complex array with phonon displacement in cartesian coordinates in Bohr."""
-        return self.reader.read_value("phdispl_cart", cmode="c")
+    def phdispl_cart_bohr(self) -> np.ndarray:
+        """(natom3_nu, natom3) complex array with the phonon displacement in cartesian coordinates in Bohr."""
+        return self.r.read_value("phdispl_cart", cmode="c")
 
     @lazy_property
-    def phdispl_red(self):
-        """(natom3_nu, natom3) complex array with phonon displacement in reduced coordinates."""
-        return self.reader.read_value("phdispl_red", cmode="c")
+    def phdispl_red(self) -> np.ndarray:
+        """(natom3_nu, natom3) complex array with the phonon displacement in reduced coordinates."""
+        return self.r.read_value("phdispl_red", cmode="c")
 
     @lazy_property
-    def becs_cart(self):
+    def becs_cart(self) -> np.ndarray:
         """(natom, 3, 3) array with the Born effective charges in Cartesian coordinates."""
-        return self.reader.read_value("becs_cart").transpose(0, 2, 1).copy()
+        return self.r.read_value("becs_cart").transpose(0, 2, 1).copy()
 
     @lazy_property
-    def epsinf_cart(self):
+    def epsinf_cart(self) -> np.ndarray:
         """(3, 3) array with electronic macroscopic dielectric tensor in Cartesian coordinates."""
-        return self.reader.read_value("emacro_cart").T.copy()
+        return self.r.read_value("emacro_cart").T.copy()
 
     @lazy_property
-    def eigens_kq(self):
+    def eigens_kq(self) -> np.ndarray:
         """(spin, nkpt, mband) array with eigenvalues on the k+q grid in eV."""
-        return self.reader.read_value("eigenvalues_kq") * abu.Ha_eV
+        return self.r.read_value("eigenvalues_kq") * abu.Ha_eV
 
-    def read_all_gkq(self, mode="phonon"):
+    @staticmethod
+    def _check_mode(mode: str) -> None:
+        """Check whether mode is allowed."""
+        allowed_modes = ("atom", "phonon")
+        if mode not in allowed_modes:
+            raise ValueError(f"Invalid {mode=}, it should be in {allowed_modes=}")
+
+    def read_gkq_kpoint(self, kpoint, mode: str = "phonon") -> np.ndarray:
         """
-        Read all eph matrix stored on disk.
+        Read e-ph matrix stored on disk for all spins and the given k-point
 
         Args:
-            mode: "phonon" if for eph matrix elements in phonon representation,
-                  "atom" for perturbation along (idir, iatom).
+            kpoint:
+            mode: "phonon" for e-ph matrix elements in phonon representation,
+                  "atom" for e-ph matrix elements in the atomic representation (idir, iatom).
 
-        Return: (nsppol, nkpt, 3*natom, mband, mband) complex array.
+        Return: complex array with shape: (nsppol, 3*natom, mband, mband)
+                                                            m_kq, n_k    <-- band indices.
         """
-        if mode not in ("atom", "phonon"):
-            raise ValueError("Invalid mode: %s" % mode)
+        self._check_mode(mode)
 
-        # Read e-ph matrix element in the atomic representation (idir, ipert)
-        # Fortran array on disk has shape:
-        # nctkarr_t('gkq', "dp", &
-        # 'complex, max_number_of_states, max_number_of_states, number_of_phonon_modes, number_of_kpoints, number_of_spins')
-        gkq_atm = self.reader.read_value("gkq", cmode="c")
-        if mode == "atom": return gkq_atm
+    def read_all_gkq(self, mode: str = "phonon") -> np.ndarray:
+        """
+        Read all e-ph matrix stored on disk.
 
-        # Convert from atomic to phonon representation.
-        # May use np.einsum for better efficiency but oh well!
+        Args:
+            mode: "phonon" for e-ph matrix elements in phonon representation,
+                  "atom" for e-ph matrix elements in the atomic representation (idir, iatom).
+
+        Return: complex array with shape: (nsppol, nkpt, 3*natom, mband, mband)
+                                                                   m_kq, n_k    <-- band indices.
+        """
+        self._check_mode(mode)
+
+        # Read the e-ph matrix element in the atomic representation (idir, ipert). Fortran array on disk has shape:
+        # nctkarr_t('gkq', "dp",
+        #           'complex, max_number_of_states, max_number_of_states, number_of_phonon_modes, number_of_kpoints, number_of_spins')
+        # The first band index in Fortran refers to m_kq, the second one to n_k.
+        # hence we have to transpose the (nb_kq, nb_k) submatrix written by ABINIT.
+        gkq_atm = self.r.read_value("gkq", cmode="c").transpose(0, 1, 2, 4, 3).copy()
+        if mode == "atom":
+            return gkq_atm
+
+        # Convert from atomic to phonon representation. May use np.einsum for better efficiency but oh well!
         nband = gkq_atm.shape[-1]
-        nb2 = nband ** 2
         assert nband == gkq_atm.shape[-2] and nband == self.ebands.nband
-        natom = len(self.structure)
-        natom3 = natom * 3
+        nb2, natom3 = nband ** 2, 3 * len(self.structure)
         phfreqs_ha, phdispl_red = self.phfreqs_ha, self.phdispl_red
-        gkq_nu = np.empty_like(gkq_atm)
-        cwork = np.empty((natom3, nb2), dtype=np.complex)
+
+        gkq_nu, cwork = np.empty_like(gkq_atm), np.empty((natom3, nb2), dtype=complex)
         for spin in range(self.ebands.nsppol):
             for ik in range(self.ebands.nkpt):
-                g = np.reshape(gkq_atm[spin, ik], (-1, nb2))
+                gc = np.reshape(gkq_atm[spin, ik], (-1, nb2))
                 for nu in range(natom3):
-                    if phfreqs_ha[nu] > EPH_WTOL:
-                        cwork[nu] = np.dot(phdispl_red[nu], g) / np.sqrt(2.0 * phfreqs_ha[nu])
-                    else:
-                        cwork[nu] = 0.0
+                    cwork[nu] = np.dot(phdispl_red[nu], gc) / np.sqrt(2.0 * phfreqs_ha[nu]) if (phfreqs_ha[nu] > EPH_WTOL) else 0.0
                 gkq_nu[spin, ik] = np.reshape(cwork, (natom3, nband, nband))
 
         return gkq_nu
 
-    #def get_averaged_gkq(self, spin, ik, band_k, band_kq, tol_deg=1e-3):
-    #    natom3 = len(self.structure) * 3
-    #    e_k = self.ebands.eigens[spin, ik, band_k])
-    #    e_kq = self.eigens_kq[spin, ik, band_kq]
-    #    e_k, ndeg_k, bids_k = _find_deg(spin, ik, self.ebands.eigens)
-    #    e_kq, ndeg_kq, bids_kq = _find_deg(spin, ik, self.eigens_kq)
-    #
-    #    gkq2_nu = np.zeros(natom3))
-    #    ncvar = abifile.reader.read_variable("gkq")
-    #    for ib_k in bids_k:
-    #
-    #       for ib_kq in bids_kq:
-    #           gkq_atm = ncvar[spin, ik, :, ib_k, ib_kq]
-    #           gkq_atm = gkq_atm[:, 0] + 1j * gkq_atm[:, 1]
-    #
-    #           # Transform the gkk matrix elements from (atom, red_direction) basis to phonon-mode basis.
-    #           gkq_nu = np.zeros(natom3), dtype=np.complex)
-    #           for nu in range(natom3):
-    #               if self.phfreqs_ha[nu] < eph_wtol: continue
-    #               gkq_nu[nu] = np.dot(self.phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * self.phfreqs_ha[nu])
-    #        gkq2_nu += np.abs(gkq_nu[nu]) ** 2
-    #
-    #    return np.sqrt(gkq2_nu)
+    def get_absg_kpoint(self, kpoint, eps_mev: float=0.01) -> tuple[np.ndarray, np.ndarray, int, Kpoint]:
+        """
+        Args:
+            kpoint: |Kpoint| object or list/tuple with reduced coordinates or integer with the index
+            eps_mev: Tolerance in mev used to detect degeneracies
+        """
+        if duck.is_intlike(kpoint):
+            ik = kpoint
+            kpoint = self.kpoints[ik]
+        else:
+            kpoint = Kpoint.as_kpoint(kpoint, self.structure.reciprocal_lattice)
+            ik = self.kpoints.index(kpoint)
+
+        eps_ha = eps_mev / abu.Ha_meV
+        eps_ev = eps_ha * abu.Ha_eV
+
+        nsppol = self.ebands.nsppol
+        natom3 = len(self.structure) * 3
+        nb = self.ebands.nband
+
+        phfreqs_ha = self.phfreqs_ha
+        eigens_k = self.ebands.eigens
+        eigens_kq = self.eigens_kq
+
+        # (nsppol, nkpt, 3*natom, mband, mband) real array.
+        absg = np.abs(self.read_all_gkq(mode="phonon")) * abu.Ha_meV
+        absgk = absg[:,ik].copy()
+        absg_unsym = absg[:,ik].copy()
+        absg_sym = np.zeros_like(absgk)
+
+        # Average over phonons.
+        for spin in range(nsppol):
+            g2_mn = np.zeros((nb, nb), dtype=float)
+            for nu in range(natom3):
+                w_1 = phfreqs_ha[nu]
+                g2_mn[:], nn = 0.0, 0
+                for mu in range(natom3):
+                    w_2 = phfreqs_ha[mu]
+                    if abs(w_1 - w_2) >= eps_ha: continue
+                    nn += 1
+                    g2_mn += absgk[spin,mu,:,:] ** 2
+                absg_sym[spin,nu,:,:] = np.sqrt(g2_mn / nn)
+
+        # Average over k electrons.
+        absg = absg_sym.copy()
+        g2_nu = np.zeros((natom3), dtype=float)
+        for spin in range(nsppol):
+            for jbnd in range(nb):
+                for ibnd in range(nb):
+                    w_1 = eigens_k[spin, ik, ibnd]
+                    g2_nu[:], nn = 0.0, 0
+                    for pbnd in range(nb):
+                        w_2 = eigens_k[spin, ik, pbnd]
+                        if abs(w_2 - w_1) >= eps_ev: continue
+                        nn += 1
+                        # MG FIXME: Why absgk and not absg here as done below for k+q?
+                        g2_nu += absgk[spin,:,jbnd,pbnd] ** 2
+                    absg_sym[spin,:,jbnd,ibnd] = np.sqrt(g2_nu / nn)
+
+        # Average over k+q electrons.
+        absgk = absg_sym.copy()
+        for spin in range(nsppol):
+            for ibnd in range(nb):
+                for jbnd in range(nb):
+                    w_1 = eigens_kq[spin, ik, jbnd]
+                    g2_nu[:], nn = 0.0, 0
+                    for pbnd in range(nb):
+                        w_2 = eigens_kq[spin, ik, pbnd]
+                        if abs(w_2 - w_1) >= eps_ev: continue
+                        nn += 1
+                        g2_nu += absgk[spin,:,pbnd,ibnd] ** 2
+                    absg_sym[spin,:,jbnd,ibnd] = np.sqrt(g2_nu / nn)
+
+        return absg_sym, absg_unsym, ik, kpoint
+
+    def get_qe_dataframe(self, kpoint) -> pd.DataFrame:
+        """
+        Build and return a dataframe with |g(k,q)|^2 for the given k-point and all bands.
+
+        Args:
+            kpoint:
+        """
+        absg, absg_unsym, ik, kpoint = self.get_absg_kpoint(kpoint)
+
+        # Now insert absg array in a pandas dataframe.
+        # Flatten the array, get the indices and combine indices and values into a DataFrame
+        shape, ndim = absg.shape, absg.ndim
+        indices = np.indices(shape).reshape(ndim, -1).T
+        df = pd.DataFrame(indices, columns=["spin", "imode", "m_kq", "n_k"])
+        df["|g|[meV]"] = absg.flatten()
+        df["ik"] = ik
+
+        # Add columns with phonon frequencies and electron energies in meV at k and k+q.
+        imodes = df["imode"].to_numpy()
+        df["omega(q)[meV]"] = (self.phfreqs_ha * abu.Ha_meV)[imodes]
+        spin_inds, mkq_inds, nk_inds = df["spin"].to_numpy(), df["m_kq"].to_numpy(), df["n_k"].to_numpy()
+        #print(self.ebands.eigens[spin_inds,ik,nk_inds].shape)
+        df["e_nk[eV]"] = self.ebands.eigens[spin_inds, ik, nk_inds]
+        df["e_mkq[eV]"] = self.eigens_kq[spin_inds, ik, mkq_inds]
+
+        # Reorder the columns and drop the index
+        new_order = ["n_k", "m_kq", "spin", "imode", "e_nk[eV]", "e_mkq[eV]", "omega(q)[meV]", "|g|[meV]"]
+        return df[new_order].reset_index(drop=True)
 
     @add_fig_kwargs
-    def plot(self, mode="phonon", with_glr=True, fontsize=8, colormap="viridis", sharey=True, **kwargs):
+    def plot(self, mode="phonon", with_glr=True, fontsize=8, colormap="viridis", sharey=True, **kwargs) -> Figure:
         """
         Plot the gkq matrix elements for a given q-point.
 
@@ -215,7 +320,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         if with_glr and mode == "phonon":
             # Add horizontal bar with matrix elements computed from Verdi's model (only G = 0, \delta_nm in bands).
             dcart_bohr = self.phdispl_cart_bohr
-            #dcart_bohr = self.reader.read_value("phdispl_cart_qvers", cmode="c").real
+            #dcart_bohr = self.r.read_value("phdispl_cart_qvers", cmode="c").real
             gkq_lr = glr_frohlich(self.qpoint, self.becs_cart, self.epsinf_cart,
                                   dcart_bohr, self.phfreqs_ha, self.structure)
             # self.phdispl_cart_bohr, self.phfreqs_ha, self.structure)
@@ -256,7 +361,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return fig
 
     @add_fig_kwargs
-    def plot_diff_with_other(self, other, mode="phonon", ax_list=None, labels=None, fontsize=8, **kwargs):
+    def plot_diff_with_other(self, other, mode="phonon", ax_list=None, labels=None, fontsize=8, **kwargs) -> Figure:
         """
         Produce scatter plot and histogram to compare the gkq matrix elements stored in two files.
 
@@ -304,20 +409,17 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         xs = np.arange(len(data))
 
         ax = ax_list[0]
-        ax.scatter(xs, data, alpha=0.9, s=30, label=labels[0],
-                   facecolors='none', edgecolors='orange')
+        ax.scatter(xs, data, alpha=0.9, s=30, label=labels[0], facecolors='none', edgecolors='orange')
 
         data = other_gkq[absdiff_gkq > threshold].ravel()
-        ax.scatter(xs, data, alpha=0.3, s=10, marker="x", label=labels[1],
-                   facecolors="g", edgecolors="none")
+        ax.scatter(xs, data, alpha=0.3, s=10, marker="x", label=labels[1], facecolors="g", edgecolors="none")
 
         ax.grid(True)
         ax.set_xlabel("Matrix element index")
         ylabel = r"$|g^{atm}_{\bf q}|$" if mode == "atom" else r"$|g_{\bf q}|$ (meV)"
         ax.set_ylabel(ylabel)
         ax.set_title(r"qpt: %s, $\Delta$ > %.1E (%.1f %%)" % (
-                     repr(self.qpoint), threshold, 100 * nshown / ntot),
-                     fontsize=fontsize)
+                     repr(self.qpoint), threshold, 100 * nshown / ntot), fontsize=fontsize)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         ax = ax_list[1]
@@ -402,9 +504,16 @@ class GkqRobot(Robot, RobotWithEbands):
             if abifile.qpoint != ref_qpoint:
                 raise ValueError("Found different qpoint in %s" % str(abifile.filepath))
 
+    #@add_fig_kwargs
+    #def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
+    #                    ax=None, fontsize=8, eph_wtol=EPH_WTOL, **kwargs):
+    #    ncols, nrows = 2, len(self) - 1
+    #    num_plots = ncols * nrows
+    #    ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+
     @add_fig_kwargs
     def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
-                        ax=None, fontsize=8, eph_wtol=EPH_WTOL, **kwargs):
+                        ax=None, fontsize=8, eph_wtol=EPH_WTOL, kq_labels=False, **kwargs) -> Figure:
         r"""
         Plot the magnitude of the electron-phonon matrix elements <k+q, band_kq| Delta_{q\nu} V |k, band_k>
         for a given set of (band_kq, band, k) as a function of the q-point.
@@ -418,6 +527,7 @@ class GkqRobot(Robot, RobotWithEbands):
             nu_list: List of phonons modes to be selected (starts at 0). None to select all modes.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Label and title fontsize.
+            kq_labels: If True, use the label associated to k+q instead of q.
 
         Return: |matplotlib-Figure|
         """
@@ -428,32 +538,36 @@ class GkqRobot(Robot, RobotWithEbands):
             kpoint = Kpoint.as_kpoint(kpoint, self.abifiles[0].structure.reciprocal_lattice)
             ik = self.kpoints.index(kpoint)
 
-        # Assume abifiles are already ordered according to q-path.
+        # Assume abifiles in the robot are already ordered according to q-path.
         xs = list(range(len(self.abifiles)))
         natom3 = len(self.abifiles[0].structure) * 3
         nsppol = self.abifiles[0].nsppol
         nqpt = len(self.abifiles)
-        gkq_snuq = np.empty((nsppol, natom3, nqpt), dtype=np.complex)
-        if with_glr: gkq_lr = np.empty((nsppol, natom3, nqpt), dtype=np.complex)
+        gkq_snuq = np.empty((nsppol, natom3, nqpt), dtype=complex)
+        if with_glr: gkq_lr = np.empty((nsppol, natom3, nqpt), dtype=complex)
 
-        # TODO: Should take into account possible degeneracies in k and kq...
+        # TODO: Should take into account possible degeneracies in k and k+q and phonon modes.
         xticks, xlabels = [], []
         for iq, abifile in enumerate(self.abifiles):
             qpoint = abifile.qpoint
             #d3q_fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
 
-            name = qpoint.name if qpoint.name is not None else abifile.structure.findname_in_hsym_stars(qpoint)
-            if qpoint.name is not None:
+            if kq_labels:
+                name = abifile.structure.findname_in_hsym_stars(kpoint + qpoint)
+            else:
+                name = qpoint.name if qpoint.name is not None else abifile.structure.findname_in_hsym_stars(qpoint)
+
+            if name is not None:
                 xticks.append(iq)
                 xlabels.append(name)
 
             phfreqs_ha, phdispl_red = abifile.phfreqs_ha, abifile.phdispl_red
-            ncvar = abifile.reader.read_variable("gkq")
+            ncvar = abifile.r.read_variable("gkq")
             for spin in range(nsppol):
                 gkq_atm = ncvar[spin, ik, :, band_k, band_kq]
                 gkq_atm = gkq_atm[:, 0] + 1j * gkq_atm[:, 1]
 
-                # Transform the gkk matrix elements from (atom, red_direction) basis to phonon-mode basis.
+                # Transform the gkq matrix elements from (atom, red_direction) basis to phonon-mode basis.
                 gkq_snuq[spin, :, iq] = 0.0
                 for nu in range(natom3):
                     if phfreqs_ha[nu] < eph_wtol: continue
@@ -493,22 +607,8 @@ class GkqRobot(Robot, RobotWithEbands):
 
         return fig
 
-    #@add_fig_kwargs
-    #def plot_gkq2_qpath_with_robots(self, other_robots, all_labels, band_kq, band_k, kpoint=0, ax=None, **kwargs):
-    #    if not isinstance(other_robots, (list, tuple)):
-    #        raise TypeError("other_robots should be a list. Received: %s" % type(other_robots))
-    #    if len(all_labels) /= 1 + len(other_robots):
-    #        raise ValueError("len(all_labels) should be equal to 1 + len(other_robots)")
-
-    #    ax, fig, plt = get_ax_fig_plt(ax=ax)
-    #    #self.plot_gkq2_qpath(self, band_kq, band_k, kpoint=kpoint,
-    #    #                with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
-    #    #                ax=ax, fontsize=8, eph_wtol=EPH_WTOL, **kwargs):
-
-    #    return fig
-
     @add_fig_kwargs
-    def plot_gkq2_diff(self, iref=0, **kwargs):
+    def plot_gkq2_diff(self, iref=0, **kwargs) -> Figure:
         """
         Wraps gkq.plot_diff_with_other
         Produce scatter and histogram plot to compare the gkq matrix elements stored in all the files

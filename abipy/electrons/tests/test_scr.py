@@ -24,7 +24,7 @@ class AwggMatTest(AbipyTest):
 
         wpoints = [0, 1, 2, 3j, 4j]
         nw = len(wpoints)
-        data = np.empty((nw, ng, ng), dtype=np.complex)
+        data = np.empty((nw, ng, ng), dtype=complex)
 
         f = _AwggMatrix(wpoints, gsphere, data, inord="C")
         repr(f); str(f)

@@ -2,6 +2,32 @@ TODO list:
 
 ## High priority
 
+* Add new section to manager.yml that allows users to customize limits according
+  to task.__class__.__name__.
+  Possible Yaml syntax for `task_class_limits`:
+
+      limits:
+         min_cores: 1
+         max_cores: 1000
+         timelimit: 2:0:0
+
+         task_class_limits:
+            # TaskClassName --> dict with new limits
+            # Accept absolute values or `scale_name` syntax to scale `name` (mutually exclusive)
+            # If a new limit is not specified, the global value is used.
+            #
+            KerangeTask: {max_cores: 2, timelimit: 0:5:0}
+
+  You should be able to specify the Qadapter as well.
+
+* Recheck autoparal code in abinit. For the DFPT part, the computation of the weights is clearly 
+  wrong because with nkpt 128 Abinit suggests to use nprocs 130 !!!!!!
+
+* Implement Task modifier i.e. operations that change the input file if some condition occurs.
+  This extra logic is require to handle problematic cases in which for instance the ScfTask does not converge
+  and modification in the input file are required
+  For instance, one may need to increase nline and/or diemac before restarting.
+
 * Use angdeg instead of rprimd in structure_to_abivars if hex or rhomboedral lattice
   (tricky because input settings should be preserved)
 
@@ -17,7 +43,7 @@ TODO list:
 
 * Improve exception handling in NetcdfReader
 
-* Read forces in read_structure ? Fix problem  MSONable and ArrayWithUnit
+* Read forces in read_structure ? Fix problem with  MSONable and ArrayWithUnit/complex numbers
 
 * Automate CHANGELOG creation.
 
@@ -26,23 +52,45 @@ TODO list:
 * Refactor wrappers for mrgddb and mrgdvdb (problems with subprocess when
   merging large number of partial files (likely due to Popen with large stderr/stdout)
 
-* Move to new version of APSscheduler
-
 * BECS: 3x3 Tensor is not symmetric. Remove get_voigt_dataframe
+
+* Parse stderr to detect runtime errors such as
+
+    forrtl: severe (24): end-of-file during read, unit 5, file /proc/59090/fd/0
+    Image              PC                Routine            Line        Source
+    abinit             0000000008914AC2  for__io_return        Unknown  Unknown
+    abinit             000000000894378D  for_read_seq_fmt      Unknown  Unknown
+    abinit             000000000194409E  Unknown               Unknown  Unknown
+    abinit             000000000042C671  Unknown               Unknown  Unknown
+    abinit             000000000042C30E  Unknown               Unknown  Unknown
+    libc-2.17.so       00002AAAB5DD8505  __libc_start_main     Unknown  Unknown
+    abinit             000000000042C229  Unknown               Unknown  Unknown
+
+
+  and kill the scheduler else the code gets stuck here (issue reported on lemaitre3)
+
+* Remove/check the usage of line_density. Use ndivsm < 0 to activate line_density a la pymatgen.
+
+* Check whether it's possible to reduce the memory of the SIGRES file wihouth brealing backward compatibility.
+  eigvec_qp = self.read_variable("eigvec_qp") scales quite badly with nands
+
+* Migrate to pyproject.toml. Implement script to generate requirements.yml
+  Very likely `conda install --file requirements-optional.txt` is now broken to the introduction of `-r`.
+
 
 ## Medium priority
 
 * Add support for PSML/UPF format
 
 * Add support for new Abinit9 interface (getden_path, getwfk_path, pp_dirpath and pseudos)
-  but remember that strings in the input should not be too long. 
+  but remember that strings in the input should not be too long.
   Use common root for pseudos, what about getwfk_path? Need to refactor treatment of string lengths in Abinit!
 
-* Add DOS to GSR file (useful if tetra)  Create Dosfile ? Fortran exec?
+* Interface abitk with AbiPy to compute DOS with tetra.
 
 * videos in README (atom and hydrogen) or screenshot based on jupyterlab
 
-* Refactor/improve Visualizer
+* Refactor/improve Visualizer. See also jsmol, nglview and crystaltoolkit
 
 * add possibility of changing amu in anaddb/abinit and API to "mix" DDB files
   phonon group velocities (requires extension in netcdf files).
@@ -100,7 +148,7 @@ TODO list:
 * Add option max_num_launchers in scheduler.yml
 
 * Add extra metadata to netcdf files (try to propagate info on space group from parser to crystal_t
-  as well as Abinit input as string)
+  as well as Abinit input as string). Input file has been added in Abini9 (input_string)
 
 * Improvement in the dilatmx error handler:
 
@@ -120,11 +168,10 @@ TODO list:
 
 * Remove GUI code.
 
-* nbjsmol (build system, refactor API?)
-
 * fatbands with SOC (waiting for Matthieu's refactoring)
 
 * Improvements in SKW. Finalize baseclass for ElectronInterpolator
+  Average degenerate states.
 
 * context manager to change variables (e.g. autoparal)
 
@@ -132,7 +179,7 @@ TODO list:
 
 * Replace SIGRES with new fileformat based on SIGEPH (long-term project)
 
-* Update spack recipe, add support for EasyBuild, revamp homebrew (?)
+* Update spack recipe and EasyBuild
 
 * Classification of phonons/electrons
 

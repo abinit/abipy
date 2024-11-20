@@ -29,6 +29,8 @@ class DdbTest(AbipyTest):
                 assert same_ddb.qpoints[0] == ddb.qpoints[0]
                 assert same_ddb.structure == ddb.structure
 
+            #self.serialize_with_pickle(ddb, test_eq=False)
+
             # Test header
             h = ddb.header
             assert h.version == 100401 and h.ecut == 3
@@ -62,6 +64,9 @@ class DdbTest(AbipyTest):
             with self.assertRaises(ValueError):
                 ddb.anaget_phmodes_at_qpoint(qpoint=(0, 0, 0), verbose=1)
 
+            with self.assertRaises(ValueError):
+                ddb.anaget_phmodes_at_qpoints(qpoints=[[0.1, 0.2, 0.3]], ifcflag=0)
+
             # Wrong ngqpt
             with self.assertRaises(ddb.AnaddbError):
                 try:
@@ -84,6 +89,7 @@ class DdbTest(AbipyTest):
             assert len(blocks) == 1
             assert blocks[0]["qpt"] == [0.25, 0, 0]
             assert blocks[0]["dord"] == 2
+            assert blocks[0]["qpt3"] == None
 
             lines = blocks[0]["data"]
             assert lines[0].rstrip() == " 2nd derivatives (non-stat.)  - # elements :      36"
@@ -95,9 +101,27 @@ class DdbTest(AbipyTest):
                 assert ddb.get_block_for_qpoint(qpt.frac_coords)
 
             assert ddb.replace_block_for_qpoint(ddb.qpoints[0], blocks[0]["data"])
-
+            d_2ord = ddb.get_2nd_ord_dict()
+            assert ddb.qpoints[0] in d_2ord
+            new_qpt = [0.11, 0.22, 3.4]
+            new_block = {"data":
+                             [' 2nd derivatives (non-stat.)  - # elements :      1',
+                              ' qpt  1.10000000E-01  2.20000000E-01  3.40000000E+00   1.0',
+                              '   1   1   1   1  0.38964081001769D+01  0.51387831420710D-24'],
+                         "dord": 2, "qpt": new_qpt, "qpt3": None}
+            assert ddb.insert_block(new_block)
+            assert ddb.insert_block(new_block, replace=True)
+            assert not ddb.insert_block(new_block, replace=False)
             # Write new DDB file.
             tmp_file = self.get_tmpname(text=True)
+            ddb.write(tmp_file)
+            with DdbFile(tmp_file) as new_ddb:
+                # check that the new qpoint has been written to the file
+                assert new_qpt in new_ddb.qpoints
+
+            # remove the added block and write again to check that it is equivalent to the original
+            assert ddb.remove_block(dord=2, qpt=new_qpt)
+
             ddb.write(tmp_file)
             with DdbFile(tmp_file) as new_ddb:
                 assert ddb.qpoints == new_ddb.qpoints
@@ -128,13 +152,14 @@ class DdbTest(AbipyTest):
             assert qpoint in ddb.computed_dynmat
             assert len(ddb.computed_dynmat[qpoint].index[0]) == 4
 
-        assert ddb.has_bec_terms(select="at_least_one")
+        assert not ddb.has_bec_terms(select="at_least_one")
         assert not ddb.has_bec_terms(select="all")
         assert not ddb.has_epsinf_terms()
         assert not ddb.has_lo_to_data()
         assert not ddb.has_internalstrain_terms()
         assert not ddb.has_piezoelectric_terms()
         assert not ddb.has_strain_terms()
+        assert not ddb.has_quadrupole_terms()
         assert ddb.has_at_least_one_atomic_perturbation()
 
         ref_qpoints = np.reshape([
@@ -156,6 +181,14 @@ class DdbTest(AbipyTest):
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, verbose=1)
             assert phbands is not None and hasattr(phbands, "phfreqs")
 
+        phbands = ddb.anaget_phmodes_at_qpoints(verbose=1)
+        assert phbands is not None and hasattr(phbands, "phfreqs")
+
+        phbands = ddb.anaget_phmodes_at_qpoints(qpoints=[[0.1, 0.2, 0.3]], verbose=1, ifcflag=1)
+        assert phbands is not None and hasattr(phbands, "phfreqs")
+
+        assert ddb.anaget_interpolated_ddb(qpt_list=[[0.1, 0.2, 0.3]])
+
         assert np.all(ddb.guessed_ngqpt == [4, 4, 4])
 
         # Get bands and Dos
@@ -169,8 +202,17 @@ class DdbTest(AbipyTest):
                 title="Phonon bands and DOS of %s" % phbands.structure.formula)
             assert phbands_file.plot_phbands(show=False)
 
+        if self.has_plotly():
+            assert phbands.plotly_with_phdos(phdos, show=False,
+                title="Phonon bands and DOS of %s" % phbands.structure.formula)
+
         if self.has_panel():
             assert hasattr(ddb.get_panel(), "show")
+
+        if self.has_phonopy():
+            phbands_file_phonopy, _ = ddb.anaget_phbst_and_phdos_files(verbose=1, with_phonopy_obj=True)
+            phonopy_obj = phbands_file_phonopy.phbands.phonopy_obj
+            assert phonopy_obj is not None
 
         # Get epsinf and becs
         r = ddb.anaget_epsinf_and_becs(chneut=1, verbose=1)
@@ -197,21 +239,22 @@ class DdbTest(AbipyTest):
             assert c.plotter.combiplot(show=False)
 
         # Use threads and gaussian DOS.
+        # num_cpus > 1 is problematic as it can cause a segmentation fault --> test sequential version only
         c = ddb.anacompare_phdos(nqsmalls=[2, 3, 4], dos_method="gaussian", dipdip=0, asr=0,
-                num_cpus=2, verbose=2)
+                num_cpus=1, verbose=2)
         assert c.phdoses and c.plotter is not None
 
         # Execute anaddb to compute the interatomic force constants.
-        ifc = ddb.anaget_ifc()
+        ifc, inp = ddb.anaget_ifc(return_input=True)
         str(ifc); repr(ifc)
         assert ifc.to_string(verbose=2)
         assert ifc.structure == ddb.structure
         assert ifc.number_of_atoms == len(ddb.structure)
 
         if self.has_matplotlib():
-            assert ifc.plot_longitudinal_ifc(show=False)
-            assert ifc.plot_longitudinal_ifc_short_range(show=False)
-            assert ifc.plot_longitudinal_ifc_ewald(show=False)
+            assert ifc.plot_longitudinal_ifc(yscale="log", show=False)
+            assert ifc.plot_longitudinal_ifc_short_range(yscale="log", show=False)
+            assert ifc.plot_longitudinal_ifc_ewald(yscale="logit", show=False)
 
         # Test get_coarse.
         with ddb.get_coarse([2, 2, 2]) as coarse_ddb:
@@ -303,20 +346,22 @@ class DdbTest(AbipyTest):
             assert ddb.has_epsinf_terms(select="at_least_one_diagoterm")
             assert ddb.has_bec_terms()
 
-            if self.has_matplotlib():
-                plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
-                    nqsmall=2, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
-                str(plotter)
-                assert plotter.combiplot(show=False)
+            plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
+                nqsmall=2, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
+            str(plotter)
 
-                # Test nqsmall == 0
-                plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
-                    nqsmall=0, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
-                assert plotter.gridplot(show=False)
+            if self.has_matplotlib(): assert plotter.combiplot(show=False)
 
-                plotter = ddb.anacompare_dipdip(chneut_list=(0, 1), asr=1,
-                    nqsmall=0, ndivsm=5, dos_method="gaussian", ngqpt=None, verbose=2)
-                assert plotter.gridplot(show=False)
+            # Test nqsmall == 0
+            plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(0, 1), dipdip=1,
+                nqsmall=0, ndivsm=5, dos_method="tetra", ngqpt=None, verbose=2)
+
+            if self.has_matplotlib(): assert plotter.gridplot(show=False)
+
+            plotter = ddb.anacompare_dipdip(chneut_list=(0, 1), asr=1,
+                nqsmall=0, ndivsm=5, dos_method="gaussian", ngqpt=None, verbose=2)
+
+            if self.has_matplotlib(): assert plotter.gridplot(show=False)
 
     def test_mgb2_ddbs_ngkpt_tsmear(self):
         """Testing multiple DDB files and gridplot_with_hue."""
@@ -351,18 +396,22 @@ class DdbTest(AbipyTest):
 
     def test_ddb_from_mprester(self):
         """Test creation methods for DdbFile and DdbRobot from MP REST API."""
-        #ddb = abilab.DdbFile.from_mpid("mp-1138")
-        ddb = abilab.DdbFile.from_mpid("mp-149")
-        assert ddb.structure.formula == "Si2"
-        self.assert_equal(ddb.guessed_ngqpt, [9, 9, 9])
-        assert ddb.header["version"] == 100401
-        assert ddb.header["ixc"] == -116133
+        if self.test_mprester():
+            with self.assertRaises(ValueError):
+                abilab.DdbFile.from_mpid("foobar")
 
-        mpid_list = ["mp-149", "mp-1138"]
-        robot = abilab.DdbRobot.from_mpid_list(mpid_list)
-        assert len(robot) == len(mpid_list)
-        assert robot.abifiles[1].structure.formula == "Li1 F1"
-        assert robot.abifiles[1].header["ixc"] == -116133
+            #ddb = abilab.DdbFile.from_mpid("mp-1138")
+            ddb = abilab.DdbFile.from_mpid("mp-149")
+            assert ddb.structure.formula == "Si2"
+            self.assert_equal(ddb.guessed_ngqpt, [9, 9, 9])
+            assert ddb.header["version"] == 100401
+            assert ddb.header["ixc"] == -116133
+
+            mpid_list = ["mp-149", "mp-1138"]
+            robot = abilab.DdbRobot.from_mpid_list(mpid_list)
+            assert len(robot) == len(mpid_list)
+            assert robot.abifiles[1].structure.formula == "Li1 F1"
+            assert robot.abifiles[1].header["ixc"] == -116133
 
     def test_alas_with_third_order(self):
         """
@@ -388,8 +437,59 @@ class DdbTest(AbipyTest):
             for qpoint in ddb.qpoints:
                 assert qpoint in ddb.computed_dynmat
 
-            raman = ddb.anaget_raman()
-            self.assertAlmostEqual(raman.susceptibility[5, 0, 1], -0.0114683, places=5)
+            #assert ddb.has_raman_terms()
+            raman, inp = ddb.anaget_raman(return_input=True)
+            # take the mean to avoid potential changes in the order of degenerate modes.
+            sus_mean = raman.susceptibility[3:, 0, 1].mean()
+            self.assertAlmostEqual(sus_mean, -0.002829737, places=5)
+
+            # Test block parsing.
+            blocks = ddb._read_blocks()
+            assert len(blocks) == 4
+            assert blocks[3]["qpt"] == None
+            assert blocks[3]["dord"] == 3
+            assert blocks[3]["qpt3"] == [[0.,] * 3] * 3
+
+    def test_ddb_with_quad(self):
+        """
+        Testing DDB files with dynamical quadrupoles and flexoelectric tensor.
+        """
+        with abilab.abiopen(abidata.ref_file("refs/LW_DDBs/tlw_5.quad_DDB")) as ddb:
+            assert ddb.has_lo_to_data()
+            assert ddb.has_epsinf_terms()
+            assert ddb.has_bec_terms(select="all")
+            assert not ddb.has_strain_terms()
+            assert not ddb.has_piezoelectric_terms()
+
+            assert ddb.has_quadrupole_terms()
+            df = ddb.get_quadrupole_raw_dataframe()
+
+            assert df is not None
+
+            plotter = ddb.anacompare_quad(asr=2, chneut=1, dipdip=-1, lo_to_splitting="automatic",
+                                          nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
+                                          verbose=1, mpi_procs=1)
+            assert len(plotter) == 3
+
+    def test_ddb_with_flexoe(self):
+        """
+        Testing DDB files with flexoelectric tensor.
+        """
+        with abilab.abiopen(abidata.ref_file("refs/LW_DDBs/tlw_2.flexo_DDB")) as ddb:
+            assert ddb.has_lo_to_data()
+            assert ddb.has_epsinf_terms()
+            assert ddb.has_bec_terms(select="all")
+            assert ddb.has_strain_terms()
+            assert ddb.has_piezoelectric_terms()
+
+            assert ddb.has_quadrupole_terms()
+            df = ddb.get_quadrupole_raw_dataframe()
+
+            #assert ddb.has_flexoe_terms()
+            #df = ddb.get_frexoe_raw_dataframe()
+            #assert df is not None
+
+            # TODO: anaget interface --> requires modifications in anaddb
 
 
 class DielectricTensorGeneratorTest(AbipyTest):
@@ -417,6 +517,7 @@ class DielectricTensorGeneratorTest(AbipyTest):
                                                    AnaddbNcFile.from_file(anaddbnc_fname))
 
         self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha', gamma_ev=0.0)[0, 0], 11.917178540635028)
+        self.assertAlmostEqual(d.reflectivity([1, 0, 0], 0.045), 0.59389746, places=5)
 
         if self.has_matplotlib():
             assert d.plot_vs_w(w_min=0.0001, w_max=0.01, num=10, units="Ha", show=False)
@@ -424,6 +525,8 @@ class DielectricTensorGeneratorTest(AbipyTest):
             for comp in ["diag", "all", "diag_av"]:
                 assert d.plot_vs_w(num=10, component=comp, units="cm-1", show=False)
             assert d.plot_all(units="mev", show=False)
+            assert d.plot_e0w_qdirs(show=False)
+            assert d.plot_reflectivity(show=False)
 
 
 class DdbRobotTest(AbipyTest):
@@ -530,7 +633,7 @@ class PhononComputationTest(AbipyTest):
             self.assert_almost_equal(phdos.integral_value, natom3, decimal=1)
 
             # Test convertion to eigenvectors. Verify that they are orthonormal
-            cidentity = np.eye(natom3, dtype=np.complex)
+            cidentity = np.eye(natom3, dtype=complex)
             eig = phbands.dyn_mat_eigenvect
             for iq in range(phbands.nqpt):
                 #print("About to test iq", iq, np.dot(eig[iq].T.conjugate(), eig[iq]))

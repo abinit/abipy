@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 r"""
-Projected phonon DOS
-====================
+Debye-Waller and generalized phonon DOS
+=======================================
 
 This example shows how to plot the generalized phonon DOS with the mean square
 displacement tensor in cartesian coords and how to calculate Debye Waller factors
 as a function of temperature.
+
 See :cite:`Lee1995` for the further details about the internal implementation and
 :cite:`Trueblood1996` for the different conventions used by crystallographers.
 """
@@ -21,7 +22,8 @@ ddb = abilab.abiopen(filepath)
 # Invoke anaddb to compute phonon bands and dos.
 #dos_method = "gaussian"
 dos_method = "tetra"
-phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, dos_method=dos_method, ndivsm=1, mpi_procs=2)
+phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=4, dos_method=dos_method,
+                                                          ndivsm=1, mpi_procs=2)
 
 # Extract msqd_dos
 msqd_dos = phdos_file.msqd_dos

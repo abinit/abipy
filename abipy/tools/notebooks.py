@@ -1,4 +1,19 @@
 """Tools for ipython notebooks."""
+from __future__ import annotations
+
+
+def find_free_port():
+    """
+    Find and return free port
+
+    https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
+    """
+    import socket
+    from contextlib import closing
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        s.bind(('', 0))
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        return s.getsockname()[1]
 
 
 def print_source_in_module(function, module):  # pragma: no cover
@@ -70,7 +85,7 @@ def print_doc(function, **kwargs):  # pragma: no cover
 def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):   # pragma: no cover
     """
     Return an ipython widget listing all the files located within the directory ``top``
-    that can be inspected with :ref:`abiopen.py`. The user can select the file in the widget
+    that can be inspected with abiopen.py. The user can select the file in the widget
     and print info on the corresponding file inside the notebook.
 
     Args:

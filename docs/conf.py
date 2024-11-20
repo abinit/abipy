@@ -9,15 +9,22 @@ import sys
 import os
 import shutil
 
+# Remove matplotlib agg warnings from generated doc when using plt.show
+import warnings
+
+#warnings.filterwarnings("ignore", category=UserWarning,
+#                        message='Matplotlib is currently using agg, which is a'
+#                                ' non-GUI backend, so cannot show the figure.')
+
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 ABIPY_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-
 sys.path.insert(0, ABIPY_ROOT)
-
 
 import imp
 mod_name = os.path.join(ABIPY_ROOT, "abipy", "core", "release.py")
@@ -45,18 +52,30 @@ extensions = [
     'sphinx.ext.napoleon',   # For Google Python Style Guide
     'sphinx.ext.inheritance_diagram',
     'sphinxcontrib.programoutput',
-    'sphinx_gallery.gen_gallery',
     "sphinxarg.ext",         # CLI doc
     'sphinxcontrib.bibtex',
-    "jupyter_sphinx.execute",
+    "jupyter_sphinx",
     #'nbsphinx',
     #"releases",
     #'sphinx.ext.coverage',
+    #'sphinx_gallery.gen_gallery',
 ]
+
+# Activate build of sphinx-gallery.
+with_gallery = True
+
+if with_gallery:
+    extensions.append('sphinx_gallery.gen_gallery')
 
 # Add any Sphinx extension module names here, as strings. They can
 # be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 import matplotlib
+
+# Use seaborn settings.
+#import seaborn as sns
+#sns.set(context=options.seaborn, style='darkgrid', palette='deep',
+#        font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
 
 extensions += [
     'IPython.sphinxext.ipython_directive',
@@ -65,10 +84,10 @@ extensions += [
 ]
 
 # Add local extensions (not available on PyPi)
-sys.path.insert(0, os.path.join(ABIPY_ROOT, "docs", "my_extensions"))
-extensions += [
-    'youtube',
-]
+#sys.path.insert(0, os.path.join(ABIPY_ROOT, "docs", "my_extensions"))
+#extensions += [
+#    'youtube',
+#]
 
 #########################
 # Spinx Gallery Settings
@@ -77,7 +96,6 @@ extensions += [
 mpl = matplotlib
 mpl.use("Agg")
 mpl.rcParams['figure.dpi'] = 300
-
 
 #def reset_mpl(gallery_conf, fname):
 #    """reset matplotlib to always use the seaborn style."""
@@ -108,48 +126,77 @@ mpl.rcParams['figure.dpi'] = 300
 #        return figure_rst(image_names, gallery_conf['src_dir'])
 
 
-from sphinx_gallery.sorting import FileNameSortKey, NumberOfCodeLinesSortKey
+# Set plotly renderer to capture _repr_html_ for sphinx-gallery
+# https://sphinx-gallery.github.io/stable/auto_examples/plot_9_plotly.html
+import plotly.io as pio
+pio.renderers.default = 'sphinx_gallery'
 
-sphinx_gallery_conf = {
-    # path to your examples scripts
-    'examples_dirs': [
-        "../abipy/examples/plot",
-        "../abipy/examples/flows",
-    ],
-    #'examples_dirs': [],
-    # path where to save gallery generated examples
-    'gallery_dirs': [
-        "gallery",
-        "flow_gallery",
-    ],
-    'filename_pattern': "(/plot_*|/run_*)",
-    'default_thumb_file': '_static/abipy_logo.png',
-    'within_subsection_order': NumberOfCodeLinesSortKey,
-    'backreferences_dir': False,
-    #'reset_modules': (reset_mpl,),
-    #'find_mayavi_figures': True,
-    'reference_url': {
-        'abipy': None,  # The module you locally document uses None
-        'numpy': 'https://docs.scipy.org/doc/numpy/',
-        'matplotlib': 'https://matplotlib.org',
-        'pandas': "http://pandas-docs.github.io/pandas-docs-travis/",
-        "pymatgen": "http://pymatgen.org/",
-    },
-    #'image_scrapers': ('matplotlib',),
-    #'image_scrapers': ('matplotlib', 'mayavi'),
-    #'image_scrapers': ('matplotlib', PNGScraper()),
-    # TODO
-    #https://sphinx-gallery.github.io/advanced_configuration.html#generate-binder-links-for-gallery-notebooks-experimental
-    #'binder': {
-    #    'org': 'abinit',
-    #    #'repo': 'abipy',
-    #    #'repo': 'https://github.com/abinit/abipy',
-    #    "repo": "http://abinit.github.io/abipy/",
-    #    'url': 'https://mybinder.org', # URL serving binders (e.g. mybinder.org)
-    #    'branch': 'develop',  # Can also be a tag or commit hash
-    #    'dependencies': '../binder/environment.yml' # list_of_paths_to_dependency_files>'
-    # },
-}
+# Here we change the default value of show used in the plotly decorator.
+from abipy.tools.plotting import set_plotly_default_show
+set_plotly_default_show(False)
+
+if with_gallery:
+    print("Will build sphinx-gallery")
+    from sphinx_gallery.sorting import ExampleTitleSortKey
+
+    sphinx_gallery_conf = {
+        #'only_warn_on_example_error': True,
+        'abort_on_example_error': True,
+        'log_level': {'backreference_missing': 'warning'},
+        #
+        # path to your examples scripts
+        'examples_dirs': [
+            "../abipy/examples/plot",
+            "../abipy/examples/flows",
+        ],
+        # path where to save gallery generated examples
+        'gallery_dirs': [
+            "gallery",
+            "flow_gallery",
+        ],
+        'filename_pattern': "(/plot*|/run_*)",
+        'default_thumb_file': '_static/abipy_logo.png',
+        'within_subsection_order': ExampleTitleSortKey,
+        'backreferences_dir': None,
+        #'reset_modules': (reset_mpl,),
+        'reference_url': {
+            'abipy': None,  # The module you locally document uses None
+            'numpy': 'https://docs.scipy.org/doc/numpy/',
+            'matplotlib': 'https://matplotlib.org',
+            'pandas': "http://pandas.pydata.org/pandas-docs/stable/",
+            "pymatgen": "https://pymatgen.org/",
+        },
+        #'image_scrapers': ('matplotlib',),
+        #'image_scrapers': ('matplotlib', PNGScraper()),
+        #'image_scrapers': ('matplotlib', plotly),
+
+        # capture raw HTML or, if not present, __repr__ of last expression in each code block
+        'capture_repr': (),
+        #'capture_repr': ('_repr_html_', '__repr__'),
+        #
+        # https://sphinx-gallery.github.io/stable/configuration.html#binder-links
+
+        #'binder': {
+        #    # Required keys
+        #     'org': 'abinit',
+        #     'repo': 'abipy',
+        #     # Can be any branch, tag, or commit hash. Use a branch that hosts your docs.
+        #     'branch': 'gh-pages',
+        #     #'ref': 'gh-pages',
+        #     # Any URL of a binderhub deployment. Must be full URL (e.g. https://mybinder.org).
+        #     'binderhub_url': 'https://mybinder.org',
+        #     #  A list of paths (relative to conf.py) to dependency files that Binder uses to infer
+        #     # the environment needed to run your examples
+        #     'dependencies': ["../binder/environment.yml", "../binder/postBuild"],
+        #     # Optional keys
+        #     # A prefix to prepend to any filepaths in Binder links.
+        #     #'filepath_prefix': '<prefix>'
+        #     # Jupyter notebooks for Binder will be copied to this directory (relative to built documentation root).
+        #     #'notebooks_dir': '<notebooks-directory-name>'
+        #     # Whether Binder links should start Jupyter Lab instead of the Jupyter Notebook interface.
+        #     #'use_jupyter_lab': False,
+        # },
+    }
 
 # Generate the API documentation when building
 autosummary_generate = True
@@ -169,7 +216,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'abipy'
-copyright = '2018, ' + relmod.author
+copyright = '2023, ' + relmod.author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -177,6 +224,7 @@ copyright = '2018, ' + relmod.author
 #
 # The short X.Y version.
 version = relmod.__version__
+
 # The full version, including alpha/beta/rc tags.
 release = relmod.__version__
 
@@ -218,92 +266,25 @@ pygments_style = 'sphinx'
 # -- Options for HTML output ---------------------------------------------------
 
 # Activate the theme.
-import sphinx_bootstrap_theme
-html_theme = 'bootstrap'
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+
+import sphinx_rtd_theme
+html_theme = 'sphinx_rtd_theme'
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
 #html_logo = "my_logo.png"
-
-# Theme options are theme-specific and customize the look and feel of a
-# theme further.
-html_theme_options = {
-    # Navigation bar title. (Default: ``project`` value)
-    #'navbar_title': "Demo",
-
-    # Tab name for entire site. (Default: "Site")
-    'navbar_site_name': "Site",
-
-    # A list of tuples containing pages or urls to link to.
-    # Valid tuples should be in the following forms:
-    #    (name, page)                 # a link to a page
-    #    (name, "/aa/bb", 1)          # a link to an arbitrary relative url
-    #    (name, "http://example.com", True) # arbitrary absolute url
-    # Note the "1" or "True" value above as the third argument to indicate
-    # an arbitrary url.
-    #'navbar_links': [
-    #    ("Examples", "examples"),
-    #    ("Link", "http://example.com", True),
-    #],
-
-    # Render the next and previous page links in navbar. (Default: true)
-    'navbar_sidebarrel': True,
-
-    # Render the current pages TOC in the navbar. (Default: true)
-    'navbar_pagenav': True,
-
-    # Tab name for the current pages TOC. (Default: "Page")
-    'navbar_pagenav_name': "Page",
-
-    # Global TOC depth for "site" navbar tab. (Default: 1)
-    # Switching to -1 shows all levels.
-    'globaltoc_depth': 1,
-
-    # Include hidden TOCs in Site navbar?
-    #
-    # Note: If this is "false", you cannot have mixed ``:hidden:`` and
-    # non-hidden ``toctree`` directives in the same page, or else the build
-    # will break.
-    #
-    # Values: "true" (default) or "false"
-    'globaltoc_includehidden': "true",
-
-    # HTML navbar class (Default: "navbar") to attach to <div> element.
-    # For black navbar, do "navbar navbar-inverse"
-    #'navbar_class': "navbar navbar-inverse",
-
-    # Fix navigation bar to top of page?
-    # Values: "true" (default) or "false"
-    'navbar_fixed_top': "true",
-
-    # Location of link to source.
-    # Options are "nav" (default), "footer" or anything else to exclude.
-    'source_link_position': "nav",
-
-    # Bootswatch (http://bootswatch.com/) theme.
-    # Options are nothing (default) or the name of a valid theme
-    # such as "cosmo" or "sandstone".
-    #'bootswatch_theme': "united",
-    #'bootswatch_theme': "flatly",
-    #'bootswatch_theme': "litera",
-    #'bootswatch_theme': "simplex",
-    #'bootswatch_theme': "sandstone",
-
-    # Choose Bootstrap version.
-    # Values: "3" (default) or "2" (in quotes)
-    'bootstrap_version': "3",
-}
 
 
 def setup(app):
     """
     Sphinx automatically calls your setup function defined in "conf.py" during the build process for you.
     There is no need to, nor should you, call this function directly in your code.
-    http://www.sphinx-doc.org/en/stable/extdev/appapi.html
+    See http://www.sphinx-doc.org/en/stable/extdev/appapi.html
     """
     # Add custom css in _static
-    app.add_stylesheet("my_style.css")
+    #app.add_stylesheet("my_style.css")
+    app.add_css_file("my_style.css")
 
 
 # The name for this set of Sphinx documents.  If None, it defaults to
@@ -447,12 +428,12 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'python': ('https://docs.python.org/{.major}'.format(sys.version_info), None),
-    'numpy': ('https://docs.scipy.org/doc/numpy/', None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
-    'pandas': ("http://pandas-docs.github.io/pandas-docs-travis/", None),
-    'matplotlib': ('https://matplotlib.org/', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "pandas": ("http://pandas.pydata.org/pandas-docs/stable/", None),
+    'matplotlib': ('https://matplotlib.org/stable/', None),
     "monty": ("https://pythonhosted.org/monty/", None),
-    "pymatgen": ("http://pymatgen.org/", None),
+    "pymatgen": ("https://pymatgen.org/", None),
     'mayavi': ('http://docs.enthought.com/mayavi/mayavi', None),
 }
 
@@ -482,21 +463,23 @@ autodoc_member_order = "bysource"
 # pybtex provides a very powerful way to create and register new styles, using setuptools entry points,
 # as documented here: http://docs.pybtex.org/api/plugins.html
 
+bibtex_bibfiles = ['abiref.bib']
+
 from pybtex.style.formatting.plain import Style
 from pybtex.style.labels.alpha import LabelStyle
-
 
 class AbiPyLabelStyle(LabelStyle):
     def format_label(self, entry):
         return entry.key
 
+
 class AbiPyStyle(Style):
     default_label_style = 'abipy'
+
 
 from pybtex.plugin import register_plugin
 register_plugin('pybtex.style.labels', 'abipy', AbiPyLabelStyle)
 register_plugin('pybtex.style.formatting', 'abipystyle', AbiPyStyle)
-
 
 # This is for releases http://releases.readthedocs.io/en/latest/usage.html
 releases_github_path = "abinit/abipy"

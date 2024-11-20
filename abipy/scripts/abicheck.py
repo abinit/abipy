@@ -3,12 +3,14 @@
 This script checks that the options in ``manager.yml``, ``scheduler.yml``,
 and the environment on the local machine are properly configured.
 """
+from __future__ import annotations
 
 import sys
 import os
 import argparse
 import abipy.flowtk as flowtk
 import abipy.data as abidata
+import abipy.tools.cli_parsers as cli
 
 from monty import termcolor
 from monty.termcolor import cprint
@@ -34,7 +36,7 @@ def show_managers(options):
     return 0
 
 
-def get_epilog():
+def get_epilog() -> str:
     return """\
 Usage example:
     abicheck.py                ==> Test abipy installation and requirements.
@@ -56,6 +58,8 @@ def get_parser(with_epilog=False):
                         help='verbose, can be supplied multiple times to increase verbosity.')
     parser.add_argument('--no-colors', default=False, action="store_true", help='Disable ASCII colors.')
     parser.add_argument('--with-flow', default=False, action="store_true", help='Build and run small abipy flow for testing.')
+    parser.add_argument("-d", '--flow-dir', type=str, default=None,
+                        help='Create AbiPy flow in this directory. If None, a default directory is used,')
     parser.add_argument("-m", '--show-managers', default=False, action="store_true",
                         help="Print table with manager files provided by AbiPy.")
 
@@ -84,13 +88,7 @@ def main():
     except Exception:
         show_examples_and_exit(error_code=1)
 
-    # loglevel is bound to the string value obtained from the command line argument.
-    # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
-    import logging
-    numeric_level = getattr(logging, options.loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
-    logging.basicConfig(level=numeric_level)
+    cli.set_loglevel(options.loglevel)
 
     if options.no_colors:
         # Disable colors
@@ -169,7 +167,7 @@ def make_scf_nscf_inputs(paral_kgb=0):
 def run_flow(options):
     """Run test flow, return exit code."""
     import tempfile
-    workdir = tempfile.mkdtemp()
+    workdir = tempfile.mkdtemp(dir=options.flow_dir)
     cprint("Running small flow in workdir: %s" % workdir, "yellow")
     print()
 

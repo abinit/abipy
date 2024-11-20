@@ -2,19 +2,22 @@
 """
 Tools to analyze the V1QAVG file produced by the E-PH code (eph_task +15 or -15)
 """
+from __future__ import annotations
 import numpy as np
 
 from collections import OrderedDict
 from monty.string import list_strings, marquee
 from monty.functools import lazy_property
+from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.typing import Figure
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.core.kpoints import Kpath
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
 
 
-def _get_style(reim, what, marker=None, markersize=None, alpha=2.0):
+def _get_style(reim, what, marker=None, markersize=None, alpha=1.0) -> str:
     lw = 1
     symbol, linestyle, linewidth = {
         "v1scf_avg": (r"v1_{\bf q}", "-", lw),
@@ -50,7 +53,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     This option is usually used to visualize the ab-initio potentials and compare then with the model for the LR part.
     """
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
         # Read medadata
@@ -64,33 +67,33 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.qdamp = r.read_value("qdamp")
 
     @lazy_property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.reader.read_structure()
 
     @lazy_property
-    def qpoints(self):
-        """List of Q-points."""
+    def qpoints(self) -> Kpath:
+        """List of q-points."""
         frac_coords = self.reader.read_value('qpoints')
         return Kpath(self.structure.reciprocal_lattice, frac_coords, ksampling=None)
 
     @lazy_property
-    def has_maxw(self):
+    def has_maxw(self) -> bool:
         """True if ncfile contains Max_r |W(R, r)|"""
         return "maxw" in self.reader.rootgrp.variables
 
-    def close(self):
+    def close(self) -> None:
         self.reader.close()
 
     @lazy_property
-    def params(self):
+    def params(self) -> dict:
         """Dict with parameters that might be subject to convergence studies."""
         return {}
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = []; app = lines.append
         app(marquee("File Info", mark="="))
@@ -107,9 +110,10 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    def make_ticks_and_labels(self):
-        """Find the k-point names in the pymatgen database."""
-
+    def make_ticks_and_labels(self) -> tuple:
+        """
+        Find the k-point names in the pymatgen database.
+        """
         od = OrderedDict()
         # If the first or the last k-point are not recognized in findname_in_hsym_stars
         # matplotlib won't show the full band structure along the k-path
@@ -128,8 +132,37 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return list(od.keys()), list(od.values())
 
+    #def xsf_write(self, idir=0, ipert=0, ispden=0):
+    #    natom = len(self.structure)
+    #    ip = idir + 3 * ipert
+    #    r = self.reader
+    #    ngfft = r.read_value("ngfft")
+
+    #    from abipy.tools.numtools import transpose_last3dims
+    #    from abipy.iotools import xsf
+
+    #    def write(datar, filename):
+    #        with open(filename, mode="wt") as fh:
+    #            xsf.xsf_write_structure(fh, self.structure)
+    #            xsf.xsf_write_data(fh, self.structure, datar, add_replicas=True, cplx_mode="abs")
+
+    #    # nctkarr_t("v1r_interpolated", "dp", "two, nfft, nspden, natom3")
+    #    var = r.read_variable("v1r_interpolated")
+    #    datar = var[ip, ispden, :, 0] + 1j * var[ip, ispden, :, 1]
+    #    # Because we are reading Fortran data (z,y,x) and xsf_write_data expects (..., x, y, z)
+    #    #print(datar.shape)
+    #    datar = np.reshape(datar, np.flip(ngfft))
+    #    datar = transpose_last3dims(datar)
+    #    write(datar, "v1r_interp_idir%d_ipert%d.xsf" % (idir, ipert))
+
+    #    var = r.read_variable("v1r_lrmodel")
+    #    datar = var[ip, ispden, :, 0] + 1j * var[ip, ispden, :, 1]
+    #    datar = np.reshape(datar, np.flip(ngfft))
+    #    datar = transpose_last3dims(datar)
+    #    write(datar, "v1r_lr_idir%d_ipert%d.xsf" % (idir, ipert))
+
     @add_fig_kwargs
-    def plot(self, what_list="all", ispden=0, fontsize=6, sharey=False, **kwargs):
+    def plot(self, what_list="all", ispden=0, fontsize=6, sharey=False, **kwargs) -> Figure:
         """
         Plot
 
@@ -184,12 +217,12 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_gvec(self, gvec, ispden=0, fontsize=6, sharey=False, **kwargs):
+    def plot_gvec(self, gvec, ispden=0, fontsize=6, sharey=False, **kwargs) -> Figure:
         """
         Plot
 
         Args:
-            gvec
+            gvec: G vector in reduced coordinates.
             ispden: Spin density component to plot.
             fontsize: fontsize for legends and titles
             sharey: True to share y-axes.
@@ -229,7 +262,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
                 # plot difference.
                 ys = (data["v1scf_gsmall"][:, iat, idir, ispden, reim]
-                     -data["v1lr_gsmall"][:, iat, idir, ispden, reim]) # * 10
+                     - data["v1lr_gsmall"][:, iat, idir, ispden, reim]) # * 10
                 ax.plot(xs, ys, **_get_style(reim, "v1scfmlr_gsmall"))
 
             ax.grid(True)
@@ -253,7 +286,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_maxw(self, scale="semilogy", ax=None, fontsize=8, **kwargs):
+    def plot_maxw(self, scale="semilogy", ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the decay of max_{r,idir,ipert} |W(R,r,idir,ipert)|
 
@@ -268,8 +301,8 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         # Fortran array: nctkarr_t("maxw", "dp", "nrpt, natom3")
-        maxw = self.reader.read_value("maxw")
         rmod = self.reader.read_value("rmod")
+        maxw = self.reader.read_value("maxw")
         data = np.max(maxw, axis=0)
         f = {"plot": ax.plot, "semilogy": ax.semilogy, "loglog": ax.loglog}[scale]
         f(rmod, data, marker="o", ls=":", lw=0, **kwargs)
@@ -284,7 +317,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_maxw_perts(self, scale="semilogy", sharey=False, fontsize=8, **kwargs):
+    def plot_maxw_perts(self, scale="semilogy", sharey=False, fontsize=8, **kwargs) -> Figure:
         """
         Plot the decay of max_r |W(R,r,idir,ipert)| for the individual atomic perturbations.
 
@@ -306,8 +339,8 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         # Fortran array: nctkarr_t("maxw", "dp", "nrpt, natom3")
         nrpt = self.reader.read_dimvalue("nrpt")
-        maxw = np.reshape(self.reader.read_value("maxw"), (natom, 3, nrpt))
         rmod = self.reader.read_value("rmod")
+        maxw = np.reshape(self.reader.read_value("maxw"), (natom, 3, nrpt))
 
         for iatom, ax in enumerate(ax_list.ravel()):
             site = self.structure[iatom]
@@ -347,7 +380,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
             else:
                 print("Use verbose to print the decay of W(r,R)")
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
@@ -397,7 +430,7 @@ class V1qAvgRobot(Robot):
         return self.abifiles[0].qpoints
 
     @add_fig_kwargs
-    def plot(self, ispden=0, vname="v1scf_avg", sharey=False, fontsize=8, **kwargs):
+    def plot(self, ispden=0, vname="v1scf_avg", sharey=False, fontsize=8, **kwargs) -> Figure:
         """
         Plot
 
@@ -454,7 +487,7 @@ class V1qAvgRobot(Robot):
         return fig
 
     @add_fig_kwargs
-    def plot_maxw(self, ax=None, **kwargs):
+    def plot_maxw(self, ax=None, **kwargs) -> Figure:
         """
         Plot
 
@@ -481,7 +514,7 @@ class V1qAvgRobot(Robot):
         if all(abifile.has_maxw for abifile in self.abifiles):
             yield self.plot_maxw(self, show=False, **kwargs)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter notebook to `nbpath`. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.

@@ -5,7 +5,7 @@ hardware: &hardware
    num_nodes: 80
    sockets_per_node: 2
    cores_per_socket: 12
-   mem_per_node: 95Gb
+   mem_per_node: 95GB
 
 job: &job
     mpi_runner: mpirun
@@ -14,9 +14,8 @@ job: &job
     modules: # Abinit compiled with abiconfig settings
         - intel/2017b
         - netCDF-Fortran/4.4.4-intel-2017b
-    pre_run: "ulimit -s unlimited"
 
-# queues 
+# queues
 qadapters:
   - priority: 1
     queue:

@@ -1,4 +1,5 @@
 # coding: utf-8
+# flake8: noqa
 """
 Error handlers for errors originating from the Submission systems.
 """

@@ -6,11 +6,18 @@ import numpy as np
 from abipy import abilab
 import abipy.data as abidata
 from abipy.tools.plotting import *
+from abipy.tools.plotting import is_mpl_figure, is_plotly_figure, latex_greek_2unicode
 from abipy.core.testing import AbipyTest
 
 
 class TestPlotting(AbipyTest):
     """Test plotting module."""
+
+    def test_tools(self):
+        """Testing plotting tools"""
+        assert latex_greek_2unicode("alpha") == "α"
+        assert latex_greek_2unicode("$lambda $") == "λ"
+        assert latex_greek_2unicode(r"$ \lambda $") == "λ"
 
     def test_set_axlims(self):
         """Testing set_axlims."""
@@ -18,6 +25,8 @@ class TestPlotting(AbipyTest):
             raise self.SkipTest("This test requires matplotlib")
 
         ax, fig, plt = get_ax_fig_plt(ax=None)
+        assert is_mpl_figure(fig)
+        assert not is_plotly_figure(fig)
 
         left, right = set_axlims(ax, None, "x")
         assert left is None and right is None
@@ -33,10 +42,10 @@ class TestPlotting(AbipyTest):
 
     def test_data_from_cplx_mode(self):
         """Testing plot_array."""
-        carr = np.empty((2, 4), dtype=np.complex)
+        carr = np.empty((2, 4), dtype=complex)
         if self.has_matplotlib():
             assert plot_array(carr, cplx_mode="abs", show=False)
-            cvec = np.empty(10, dtype=np.complex)
+            cvec = np.empty(10, dtype=complex)
             assert plot_array(cvec, cplx_mode="im", show=False)
 
     def test_plot_xy_with_hue(self):
@@ -77,7 +86,7 @@ class TestPlotting(AbipyTest):
         """Testing array plotter."""
         plotter = ArrayPlotter()
         assert len(plotter) == 0
-        hello = np.ones((5, 2), dtype=np.complex)
+        hello = np.ones((5, 2), dtype=complex)
         plotter.add_array("hello", hello)
         assert "hello" in plotter.keys()
         with self.assertRaises(ValueError):
@@ -93,11 +102,10 @@ class TestPlotting(AbipyTest):
 
     def test_marker(self):
         """Testing Marker."""
-        marker = Marker()
-        assert not marker
-        assert not marker.x
+
         x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
-        marker.extend((x, y, s))
+        marker = Marker(x, y, s)
+
         assert marker
         self.assert_equal(marker.x, x)
         self.assert_equal(marker.y, y)
@@ -107,13 +115,6 @@ class TestPlotting(AbipyTest):
         assert all(s >= 0 for s in pos_mark.s)
         assert all(s < 0 for s in neg_mark.s)
         assert len(neg_mark.s) == 1 and neg_mark.s[0] == -0.3
-
-        with self.assertRaises(TypeError):
-            marker.extend((x, y))
-
-        with self.assertRaises(TypeError):
-            x.append(-1)
-            marker.extend((x, y, s))
 
     def test_plot_cell_tools(self):
         """Testing plot_unit_cell."""

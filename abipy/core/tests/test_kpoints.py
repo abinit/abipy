@@ -41,9 +41,9 @@ class TestHelperFunctions(AbipyTest):
     def test_is_diagonal(self):
         """Testing is_diagonal"""
         from abipy.core.kpoints import is_diagonal
-        assert is_diagonal(np.eye(3, dtype=np.int))
-        assert is_diagonal(np.eye(3, dtype=np.float))
-        a = np.eye(3, dtype=np.float)
+        assert is_diagonal(np.eye(3, dtype=int))
+        assert is_diagonal(np.eye(3, dtype=float))
+        a = np.eye(3, dtype=float)
         atol = 1e-12
         a[1, 2] = atol
         assert is_diagonal(a, atol=atol)
@@ -77,11 +77,12 @@ class TestHelperFunctions(AbipyTest):
                                  [0.4, 0.0, 0.0 ],
                                  [0.5, 0.0, 0.0 ]])
 
+
 class TestKpoint(AbipyTest):
     """Unit tests for Kpoint object."""
 
     def setUp(self):
-        self.lattice = Lattice([0.5,0.5,0,0,0.5,0,0,0,0.4])
+        self.lattice = Lattice([0.5, 0.5, 0, 0, 0.5, 0, 0, 0, 0.4])
 
         # Test API to set tolerances.
 
@@ -105,6 +106,8 @@ class TestKpoint(AbipyTest):
         X = Kpoint([0.5, 0, 0], lattice)
         K = Kpoint([1/3, 1/3, 1/3], lattice)
         repr(X); str(X)
+        assert X.to_string(verbose=0)
+        assert X.to_string(verbose=1)
         assert X.to_string(verbose=2)
         assert X.tos(m="fract")
         assert X.tos(m="cart")
@@ -190,7 +193,7 @@ class TestKpointList(AbipyTest):
         repr(klist); str(klist)
 
         self.serialize_with_pickle(klist, protocols=[-1])
-        self.assertMSONable(klist, test_if_subclass=False)
+        self.assert_msonable(klist, test_is_subclass=False)
 
         self.assert_equal(klist.frac_coords.flatten(), frac_coords)
         self.assert_equal(klist.get_cart_coords(), np.reshape([k.cart_coords for k in klist], (-1, 3)))
@@ -283,6 +286,14 @@ class TestKpath(AbipyTest):
         #assert kpath.ksampling.kptopt == 1
         #self.assert_equal(kpath.ksampling.mpdivs, [4, 4, 4])
 
+        df = kpath.get_highsym_datataframe(with_cart_coords=True)
+        #print(df)
+        assert "G" in df["name"].values
+        assert "cart_coords" in df
+        self.assert_equal(df["frac_coords"][0], [0.0, 0.0, 0.0])
+
+        assert Kpoint.from_name_and_structure("Gamma", structure) == kpath[0]
+
         assert len(kpath.ds) == len(kpath) - 1
         assert len(kpath.versors) == len(kpath) - 1
         assert len(kpath.lines) == len(knames) - 1
@@ -292,7 +303,7 @@ class TestKpath(AbipyTest):
         r = kpath.find_points_along_path(kpath.get_cart_coords())
         assert len(r.ikfound) == len(kpath)
         self.assert_equal(r.ikfound,
-            [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,  0])
+            [0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,  0])
 
         #kpath = IrredZone.from_kppa(structure, kppa=1000, shiftk=[0.5, 0.5, 0.5], kptopt=1, verbose=1)
         #assert not kpath.is_ibz and kpath.is_path
@@ -361,7 +372,7 @@ class TestKpointsReader(AbipyTest):
 
             # Test pickle and json
             self.serialize_with_pickle(kpoints)
-            self.assertMSONable(kpoints, test_if_subclass=False)
+            self.assert_msonable(kpoints, test_is_subclass=False)
 
 
 class KmeshTest(AbipyTest):

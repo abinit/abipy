@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 r"""
-Flow for Born effective charges and dielectric tensors with DFPT
-================================================================
+Born effective charges and dielectric tensors with DFPT
+=======================================================
 
 This example shows how to compute the Born effective charges and
 the dielectric tensors (e0, einf) of AlAs with AbiPy flows.
 We perform multiple calculations by varying the number of k-points
-to analyze the convergence of the results wrt nkpt
+in order to analyze the convergence of the results wrt nkpt.
 """
 import sys
 import os
@@ -37,8 +37,8 @@ def make_scf_input(ngkpt, paral_kgb=0):
         #shiftk=[0, 0, 0],
         paral_kgb=paral_kgb,
         tolvrs=1.0e-10,
-        ixc=1,
         diemac=9.0,
+        ixc=1,      # This is needed because the pseudos have been generated with different XC
         #iomode=3,
     )
 
@@ -62,7 +62,7 @@ def build_flow(options):
     flow = flowtk.Flow(workdir=options.workdir)
 
     for ngkpt in [(2, 2, 2), (4, 4, 4), (8, 8, 8)]:
-        # Build input for GS calculation
+        # Build input for GS calculation with different k-meshes
         scf_input = make_scf_input(ngkpt=ngkpt)
         flow.register_scf_task(scf_input, append=True)
 

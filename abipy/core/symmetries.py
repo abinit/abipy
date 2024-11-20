@@ -1,10 +1,13 @@
 # coding: utf-8
 """Objects used to deal with symmetry operations in crystals."""
+from __future__ import annotations
+
 import sys
 import abc
 import warnings
 import collections
 import numpy as np
+import pandas as pd
 import spglib
 
 from monty.string import is_string
@@ -13,8 +16,8 @@ from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.util.serialization import SlotPickleMixin
 from abipy.core.kpoints import wrap_to_ws, issamek, has_timrev_from_kptopt
+from abipy.core.mixins import SlotPickleMixin
 
 
 __all__ = [
@@ -30,7 +33,7 @@ def wrap_in_ucell(x):
     return x % 1
 
 
-def is_integer(x, atol=1e-08):
+def is_integer(x, atol=1e-08) -> bool:
     """
     True if all x is integer within the absolute tolerance atol.
 
@@ -61,9 +64,9 @@ def mati3inv(mat3, trans=True):
        Used for symmetry operations. This function applies to *ORTHOGONAL* matrices only.
        Since these form a group, inverses are also integer arrays.
     """
-    mat3 = np.reshape(np.array(mat3, dtype=np.int), (3, 3))
+    mat3 = np.reshape(np.array(mat3, dtype=int), (3, 3))
 
-    mit = np.empty((3, 3), dtype=np.int)
+    mit = np.empty((3, 3), dtype=int)
     mit[0,0] = mat3[1,1] * mat3[2,2] - mat3[2,1] * mat3[1,2]
     mit[1,0] = mat3[2,1] * mat3[0,2] - mat3[0,1] * mat3[2,2]
     mit[2,0] = mat3[0,1] * mat3[1,2] - mat3[1,1] * mat3[0,2]
@@ -87,7 +90,7 @@ def mati3inv(mat3, trans=True):
         return mit.T.copy()
 
 
-def _get_det(mat):
+def _get_det(mat) -> float:
     """
     Return the determinant of a 3x3 rotation matrix mat.
 
@@ -121,8 +124,6 @@ def indsym_from_symrel(symrel, tnons, structure, tolsym=1e-8):
         tnons: float (nsym, 3) array with nonsymmorphic translations for each symmetry.
         structure: |Structure| object.
         tolsym: tolerance for the symmetries
-
-    Returns:
     """
     natom = len(structure)
     nsym = len(symrel)
@@ -172,7 +173,7 @@ def indsym_from_symrel(symrel, tnons, structure, tolsym=1e-8):
         difmax = np.abs(difmin).max()
         err = max(err, difmax)
         if difmax > tolsym:
-            cprint("""
+            cprint(f"""
 Trouble finding symmetrically equivalent atoms.
 Applying inverse of symm number {isym} to atom number {iatom} of typat',typat(iatom) gives tratom=',tratom(1:3)
 This is further away from every atom in crystal than the allowed tolerance.
@@ -185,7 +186,7 @@ The nearest coordinate differs by',difmin(1:3) for indsym(nearest atom)=',indsym
 This indicates that when symatm attempts to find atoms symmetrically
 related to a given atom, the nearest candidate is further away than some tolerance.
 Should check atomic coordinates and symmetry group input data.
-""".format(), "red")
+""", color="red")
 
     if err > tolsym:
         raise ValueError("maximum err %s is larger than tolsym: %s" % (err, tolsym))
@@ -316,9 +317,9 @@ class SymmOp(Operation, SlotPickleMixin):
                               afm_sign=self.afm_sign)
 
     @lazy_property
-    def isE(self):
+    def isE(self) -> bool:
         """True if identity operator."""
-        return (np.all(self.rot_r == np.eye(3, dtype=np.int)) and
+        return (np.all(self.rot_r == np.eye(3, dtype=int)) and
                 is_integer(self.tau, atol=self._ATOL_TAU) and
                 self.time_sign == 1 and
                 self.afm_sign == 1)
@@ -342,7 +343,7 @@ class SymmOp(Operation, SlotPickleMixin):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         def vec2str(vec):
             return "%2d,%2d,%2d" % tuple(v for v in vec)
 
@@ -356,37 +357,37 @@ class SymmOp(Operation, SlotPickleMixin):
         return s
 
     @lazy_property
-    def is_symmorphic(self):
+    def is_symmorphic(self) -> bool:
         """True if the fractional translation is non-zero."""
         return np.any(np.abs(self.tau) > 0.0)
 
     @lazy_property
-    def det(self):
+    def det(self) -> int:
         """Determinant of the rotation matrix [-1, +1]."""
         return _get_det(self.rot_r)
 
     @lazy_property
-    def trace(self):
+    def trace(self) -> int:
         """Trace of the rotation matrix."""
         return self.rot_r.trace()
 
     @lazy_property
-    def is_proper(self):
+    def is_proper(self) -> bool:
         """True if the rotational part has determinant == 1."""
         return self.det == +1
 
     @lazy_property
-    def has_timerev(self):
+    def has_timerev(self) -> bool:
         """True if symmetry contains the time-reversal operator."""
         return self.time_sign == -1
 
     @lazy_property
-    def is_fm(self):
+    def is_fm(self) -> bool:
         """True if self if ferromagnetic symmetry."""
         return self.afm_sign == +1
 
     @lazy_property
-    def is_afm(self):
+    def is_afm(self) -> bool:
         """True if self if anti-ferromagnetic symmetry."""
         return self.afm_sign == -1
 
@@ -416,7 +417,7 @@ class SymmOp(Operation, SlotPickleMixin):
         sk = self.rotate_k(frac_coords, wrap_tows=False)
 
         if ret_g0:
-            return issamek(sk, frac_coords), np.array(np.round(sk - frac_coords), dtype=np.int)
+            return issamek(sk, frac_coords), np.array(np.round(sk - frac_coords), dtype=int)
         else:
             return issamek(sk, frac_coords)
 
@@ -481,15 +482,15 @@ class OpSequence(collections.abc.Sequence):
         lines = [str(op) for op in self]
         return "\n".join(lines)
 
-    def show_ops(self, stream=sys.stdout):
+    def show_ops(self, stream=sys.stdout) -> None:
         lines = [str(op) for op in self]
         stream.writelines("\n".join(lines))
 
-    def count(self, op):
+    def count(self, op) -> int:
         """Returns the number of occurences of operation op in self."""
         return self._ops.count(op)
 
-    def index(self, op):
+    def index(self, op) -> int:
         """
         Return the (first) index of operation op in self.
 
@@ -498,14 +499,14 @@ class OpSequence(collections.abc.Sequence):
         """
         return self._ops.index(op)
 
-    def find(self, op):
+    def find(self, op) -> int:
         """Return the (first) index of op in self. -1 if not found."""
         try:
             return self.index(op)
         except ValueError:
             return -1
 
-    def is_group(self):
+    def is_group(self) -> bool:
         """True if this set of operations represent a group."""
         check = 0
 
@@ -528,17 +529,17 @@ class OpSequence(collections.abc.Sequence):
 
         return check == 0
 
-    def is_commutative(self):
+    def is_commutative(self) -> bool:
         """True if all operations commute with each other."""
         for op1, op2 in iuptri(self, diago=False):
             if op1 * op2 != op2 * op1: return False
         return True
 
-    def is_abelian_group(self):
+    def is_abelian_group(self) -> bool:
         """True if commutative group."""
         return self.is_commutative() and self.is_group()
 
-    def asdict(self):
+    def asdict(self) -> dict:
         """
         Returns a dictionary where the keys are the symmetry operations and
         the values are the indices of the operations in the iterable.
@@ -555,13 +556,13 @@ class OpSequence(collections.abc.Sequence):
     #def is_superset(self, other)
 
     @lazy_property
-    def mult_table(self):
+    def mult_table(self) -> np.ndarray:
         """
         Given a set of nsym 3x3 operations which are supposed to form a group,
         this routine constructs the multiplication table of the group.
         mtable[i,j] gives the index of the product S_i * S_j.
         """
-        mtable = np.empty((len(self), len(self)), dtype=np.int)
+        mtable = np.empty((len(self), len(self)), dtype=int)
 
         d = self.asdict()
         for i, op1 in enumerate(self):
@@ -577,12 +578,12 @@ class OpSequence(collections.abc.Sequence):
         return mtable
 
     @property
-    def num_classes(self):
+    def num_classes(self) -> int:
         """Number of classes."""
         return len(self.class_indices)
 
     @lazy_property
-    def class_indices(self):
+    def class_indices(self) -> list:
         """
         A class is defined as the set of distinct elements obtained by
         considering for each element, S, of the group all its conjugate
@@ -739,14 +740,14 @@ class AbinitSpaceGroup(OpSequence):
                    has_timerev=has_timerev,
                    inord="C")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "spgid: %d, num_spatial_symmetries: %d, has_timerev: %s, symmorphic: %s" % (
             self.spgid, self.num_spatial_symmetries, self.has_timerev, self.is_symmorphic)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation."""
         lines = ["spgid: %d, num_spatial_symmetries: %d, has_timerev: %s, symmorphic: %s" % (
             self.spgid, self.num_spatial_symmetries, self.has_timerev, self.is_symmorphic)]
@@ -759,12 +760,12 @@ class AbinitSpaceGroup(OpSequence):
         return "\n".join(lines)
 
     @lazy_property
-    def is_symmorphic(self):
+    def is_symmorphic(self) -> bool:
         """True if there's at least one operation with non-zero fractional translation."""
         return any(op.is_symmorphic for op in self)
 
     @property
-    def has_timerev(self):
+    def has_timerev(self) -> bool:
         """True if time-reversal symmetry is present."""
         return self._has_timerev
 
@@ -795,7 +796,7 @@ class AbinitSpaceGroup(OpSequence):
         return self._symafm
 
     @property
-    def num_spatial_symmetries(self):
+    def num_spatial_symmetries(self) -> int:
         fact = 2 if self.has_timerev else 1
         return int(len(self) / fact)
 
@@ -886,6 +887,21 @@ class AbinitSpaceGroup(OpSequence):
         k_symmops = [self[i] for i in to_spgrp]
         return LittleGroup(kpoint, k_symmops, g0vecs)
 
+    def get_spglib_hall_number(self, symprec=1e-5):
+        """
+        Uses spglib.get_hall_number_from_symmetry to determine the hall number
+        based on the symmetry operations. Useful when the space group number
+        is not available, but the symmetries are (e.g. the DDB file)
+
+        Args:
+            symprec: distance tolerance in fractional coordinates (not the standard
+                in cartesian coordinates). See spglib docs for more details.
+
+        Returns:
+            int: the hall number.
+        """
+        return spglib.get_hall_number_from_symmetry(self.symrel, self.tnons, symprec=symprec)
+
 
 # FIXME To maintain backward compatibility.
 SpaceGroup = AbinitSpaceGroup
@@ -911,7 +927,7 @@ class LittleGroup(OpSequence):
         self.kgroup = LatticePointGroup(krots)
 
     @lazy_property
-    def is_symmorphic(self):
+    def is_symmorphic(self) -> bool:
         """True if there's at least one operation with non-zero fractional translation."""
         return any(op.is_symmorphic for op in self)
 
@@ -920,7 +936,7 @@ class LittleGroup(OpSequence):
         return self._ops
 
     @lazy_property
-    def on_bz_border(self):
+    def on_bz_border(self) -> bool:
         """
         True if the k-point is on the border of the BZ.
         """
@@ -939,7 +955,7 @@ class LittleGroup(OpSequence):
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """String representation of little group."""
         lines = ["Kpoint-group: %s, Kpoint: %s, Symmorphic: %s" % (self.kgroup, self.kpoint, self.is_symmorphic)]
         app = lines.append
@@ -986,12 +1002,12 @@ class LatticePointGroup(OpSequence):
         return "%s, %s (%d)" % (self.herm_symbol, self.sch_symbol, self.spgid)
 
     @property
-    def sch_symbol(self):
+    def sch_symbol(self) -> str:
         """Schoenflies symbol"""
         return herm2sch(self.herm_symbol)
 
     @property
-    def spgid(self):
+    def spgid(self) -> int:
         """ID in the space group table."""
         return sch2spgid(self.sch_symbol)
 
@@ -1009,10 +1025,10 @@ class LatticeRotation(Operation):
 
         This object is immutable and therefore we do not inherit from |numpy-array|.
     """
-    _E3D = np.identity(3,  np.int)
+    _E3D = np.identity(3,  int)
 
     def __init__(self, mat):
-        self.mat = np.asarray(mat, dtype=np.int)
+        self.mat = np.asarray(mat, dtype=int)
         self.mat.shape = (3, 3)
 
     def _find_order_and_rootinv(self):
@@ -1159,7 +1175,7 @@ class LatticeRotation(Operation):
 # TODO: Need to find an easy way to map classes in internal database
 # onto classes computed by client code when calculation has been done
 # with non-conventional settings (spglib?)
-class Irrep(object):
+class Irrep:
     """
     This object represents an irreducible representation.
 
@@ -1207,7 +1223,7 @@ class Irrep(object):
     #def dataframe(self):
 
 
-def bilbao_ptgroup(sch_symbol):
+def bilbao_ptgroup(sch_symbol: str):
     """
     Returns an instance of :class:`BilbaoPointGroup` from a string with the point group symbol
     or a number with the spacegroup ID.
@@ -1222,7 +1238,7 @@ def bilbao_ptgroup(sch_symbol):
     return BilbaoPointGroup(**entry)
 
 
-class BilbaoPointGroup(object):
+class BilbaoPointGroup:
     """
     A :class:`BilbaoPointGroup` is a :class:`Pointgroup` with irreducible representations
     """
@@ -1249,32 +1265,32 @@ class BilbaoPointGroup(object):
             self.irreps_by_name[name] = irrep
 
     @property
-    def herm_symbol(self):
+    def herm_symbol(self) -> str:
         """Hermann-Mauguin symbol."""
         return herm2sch(self.sch_symbol)
 
     @property
-    def spgid(self):
+    def spgid(self) -> int:
         """ID in the space group table."""
         return sch2spgid(self.sch_symbol)
 
     @property
-    def num_rots(self):
+    def num_rots(self) -> int:
         """Number of rotations."""
         return len(self.rotations)
 
     @property
-    def num_irreps(self):
+    def num_irreps(self) -> int:
         """Number of irreducible representations."""
         return len(self.irreps)
 
     @property
-    def irrep_names(self):
+    def irrep_names(self) -> list:
         """List with the names of the irreps."""
         return list(self.irreps_by_name.keys())
 
     @lazy_property
-    def character_table(self):
+    def character_table(self) -> pd.DataFrame:
         """
         Dataframe with irreps.
         """
@@ -1299,7 +1315,7 @@ class BilbaoPointGroup(object):
 
         return df
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose=0) -> str:
         """
         Return string with the character_table
         """

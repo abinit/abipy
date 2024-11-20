@@ -1,4 +1,6 @@
 # flake8: noqa
+from __future__ import annotations
+
 import collections
 
 from pymatgen.core.units import Energy
@@ -22,7 +24,7 @@ class LujForSpecie(collections.namedtuple("LdauForSpecie", "l u j unit")):
         return super().__new__(cls, l, u, j, unit)
 
 
-class LdauParams(object):
+class LdauParams:
     """
     This object stores the parameters for LDA+U calculations with the PAW method
     It facilitates the specification of the U-J parameters in the Abinit input file.
@@ -52,10 +54,10 @@ class LdauParams(object):
         self._params = {}
 
     @property
-    def symbols_by_typat(self):
-        return [specie.symbol for specie in self.structure.types_of_specie]
+    def symbols_by_typat(self) -> list:
+        return [specie.symbol for specie in self.structure.species_by_znucl]
 
-    def luj_for_symbol(self, symbol, l, u, j, unit="eV"):
+    def luj_for_symbol(self, symbol, l, u, j, unit="eV") -> None:
         """
         Args:
             symbol: Chemical symbol of the atoms on which LDA+U should be applied.
@@ -72,7 +74,7 @@ class LdauParams(object):
 
         self._params[symbol] = LujForSpecie(l=l, u=u, j=j, unit=unit)
 
-    def to_abivars(self):
+    def to_abivars(self) -> dict:
         """Returns a dict with the Abinit variables."""
         lpawu, upawu, jpawu = [], [], []
 
@@ -97,7 +99,7 @@ class LdauParams(object):
             jpawu=" ".join(map(str, jpawu)) + " eV")
 
 
-class LexxParams(object):
+class LexxParams:
     """
     This object stores the parameters for local exact exchange calculations with the PAW method
     It facilitates the specification of the LEXX parameters in the Abinit input file.
@@ -123,10 +125,10 @@ class LexxParams(object):
         self._lexx_for_symbol = {}
 
     @property
-    def symbols_by_typat(self):
-        return [specie.symbol for specie in self.structure.types_of_specie]
+    def symbols_by_typat(self) -> list:
+        return [specie.symbol for specie in self.structure.species_by_znucl]
 
-    def lexx_for_symbol(self, symbol, l):
+    def lexx_for_symbol(self, symbol, l) -> None:
         """
         Enable LEXX for the given chemical symbol and the angular momentum l
 
@@ -143,7 +145,7 @@ class LexxParams(object):
 
         self._lexx_for_symbol[symbol] = l
 
-    def to_abivars(self):
+    def to_abivars(self) -> dict:
         """Returns a dict with the Abinit variables."""
         lexx_typat = []
 

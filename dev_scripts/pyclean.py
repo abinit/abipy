@@ -2,15 +2,14 @@
 """
 This script remove all pyc files and all __pycache__ directory.
 """
-from __future__ import print_function, division, unicode_literals
-
+from __future__ import annotations
 
 import sys
 import os
 import shutil
 
 
-def rm_pycaches(top):
+def rm_pycaches(top: str) -> None:
     count = 0
     for dirpath, dirnames, filenames in os.walk(top):
         for d in dirnames:
@@ -23,7 +22,7 @@ def rm_pycaches(top):
     print("Removed %d __pycache__ directories" % count)
 
 
-def rm_pycfiles(top):
+def rm_pycfiles(top: str) -> int:
     count = 0
     for dirpath, dirnames, filenames in os.walk(top):
         for f in filenames:
@@ -35,6 +34,7 @@ def rm_pycfiles(top):
 
     print("Removed %d .pyc files" % count)
     return count
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

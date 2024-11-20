@@ -35,7 +35,7 @@ class TestGSphere(AbipyTest):
 
         assert np.all(gsphere.zeros() == 0)
         values = gsphere.czeros()
-        assert values.dtype == np.complex
+        assert values.dtype == complex
         assert np.all(values == 0)
 
         assert len(gsphere.empty()) == len(gsphere)
@@ -49,7 +49,7 @@ class TestGSphere(AbipyTest):
         mesh = Mesh3D( (12,3,5), rprimd)
 
         extra_dims = [(), 1, (2,), (3,4)]
-        types = [np.float, np.complex]
+        types = [float, complex]
 
         for exdim in extra_dims:
             for typ in types:

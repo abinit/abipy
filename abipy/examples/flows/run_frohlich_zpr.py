@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Estimate the ZPR at band edges with the generalized Frohlich model
-==================================================================
+e-ph ZPR at the band edges with the generalized Frohlich model
+==============================================================
 
 Flow to estimate the zero-point renormalization at the band edges
 using the generalized Frohlich model. The flow uses DFPT to compute

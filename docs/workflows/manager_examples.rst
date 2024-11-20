@@ -19,7 +19,7 @@ Dragon1
 	   num_nodes: 26
 	   sockets_per_node: 2
 	   cores_per_socket: 8
-	   mem_per_node: 112Gb
+	   mem_per_node: 112GB
 	
 	job: &job
 	    mpi_runner: mpirun
@@ -27,7 +27,6 @@ Dragon1
 	        PATH: "$HOME/git_repos/abinit/_build_dragon1-intel-mpich-mkl.ac/src/98_main:$PATH"
 	    modules:
 	        - mpich/3.0.4/intel-13.0.0
-	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -44,6 +43,34 @@ Dragon1
 	       max_num_launches: 10
 	    hardware: *hardware
 	    job: *job
+
+
+Gh
+--
+
+.. code-block:: yaml
+
+
+	# Manager used for github actions.
+	qadapters:
+	    -
+	      priority: 1
+	      queue:
+	        qname: github
+	        qtype: shell
+	      job:
+	        mpi_runner: mpirun
+	        pre_run:
+	            - conda activate abipy
+	      limits:
+	         min_cores: 1
+	         max_cores: 2
+	         timelimit: 0:10:0
+	      hardware:
+	         num_nodes: 1
+	         sockets_per_node: 1
+	         cores_per_socket: 2
+	         mem_per_node: 4 GB
 
 
 Gmac
@@ -70,7 +97,7 @@ Gmac
 	         num_nodes: 1
 	         sockets_per_node: 1
 	         cores_per_socket: 2
-	         mem_per_node: 4 Gb
+	         mem_per_node: 4 GB
 	         # Optional
 	         #condition: {"$eq": {omp_threads: 2}}
 	
@@ -88,7 +115,7 @@ Hercules
 	   num_nodes: 65
 	   sockets_per_node: 2
 	   cores_per_socket: 8
-	   mem_per_node: 54Gb
+	   mem_per_node: 54GB
 	
 	job: &job
 	    mpi_runner: mpirun
@@ -97,9 +124,6 @@ Hercules
 	    modules:
 	        - impi/5.1.3.181-iccifort-2016.3.210-GCC-5.4.0-2.26
 	        - imkl/11.3.3.210-iimpi-2016b
-	    # here pre_run is a string in verbatim mode (note |)
-	    pre_run: |
-	        ulimit -s unlimited
 	
 	# queues
 	qadapters:
@@ -130,19 +154,19 @@ Hmem
 	   num_nodes: 2
 	   sockets_per_node: 4
 	   cores_per_socket: 12
-	   mem_per_node: 512Gb
+	   mem_per_node: 512GB
 	
 	middle: &middle
 	   num_nodes: 7
 	   sockets_per_node: 4
 	   cores_per_socket: 12
-	   mem_per_node: 256Gb
+	   mem_per_node: 256GB
 	
 	low: &low
 	   num_nodes: 7
 	   sockets_per_node: 4
 	   cores_per_socket: 12
-	   mem_per_node: 128Gb
+	   mem_per_node: 128GB
 	
 	job: &job
 	    mpi_runner: mpirun
@@ -150,7 +174,6 @@ Hmem
 	        PATH: "$HOME/git_repos/abinit/_build_hmem_intel_openmpi-mkl.ac/src/98_main/:$PATH"
 	    modules:
 	        - openmpi/1.5.3/intel-12.0.0.084
-	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -199,7 +222,7 @@ Juqueen
 	   num_nodes: 128
 	   sockets_per_node: 1
 	   cores_per_socket: 16
-	   mem_per_node: 128Gb
+	   mem_per_node: 128GB
 	
 	job: &job
 	    mpi_runner: runjob
@@ -245,7 +268,7 @@ Juqueen
 	       num_nodes: 1
 	       sockets_per_node: 1
 	       cores_per_socket: 1
-	       mem_per_node: 12Gb
+	       mem_per_node: 12GB
 	    job:
 	        #mpi_runner: runjob
 	        shell_env:
@@ -267,13 +290,13 @@ Jureca
 	   num_nodes: 8
 	   sockets_per_node: 2
 	   cores_per_socket: 12
-	   mem_per_node: 128Gb
+	   mem_per_node: 128GB
 	
 	batch: &batch
 	   num_nodes: 128
 	   sockets_per_node: 2
 	   cores_per_socket: 12
-	   mem_per_node: 128Gb
+	   mem_per_node: 128GB
 	
 	job: &job
 	    # mpirun is not available on jureca.
@@ -286,7 +309,6 @@ Jureca
 	        PATH: $HOME/abinit/801-private/jureca_mpi/src/98_main:$PATH
 	    modules:
 	        - intel-para/2015.07
-	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -314,7 +336,7 @@ Lemaitre2
 	   num_nodes: 112
 	   sockets_per_node: 2
 	   cores_per_socket: 6
-	   mem_per_node: 48Gb
+	   mem_per_node: 48GB
 	
 	job: &job
 	    mpi_runner: mpirun
@@ -322,7 +344,6 @@ Lemaitre2
 	        PATH: "$HOME/git_repos/abinit/_build_lemaitre2-intel-openmpi-mkl.ac/src/98_main/:$PATH"
 	    modules: # Abinit compiled with abiconfig settings
 	        - openmpi/1.6.5/intel-13.0.1.117
-	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -354,7 +375,7 @@ Lemaitre3
 	   num_nodes: 80
 	   sockets_per_node: 2
 	   cores_per_socket: 12
-	   mem_per_node: 95Gb
+	   mem_per_node: 95GB
 	
 	job: &job
 	    mpi_runner: mpirun
@@ -363,7 +384,6 @@ Lemaitre3
 	    modules: # Abinit compiled with abiconfig settings
 	        - intel/2017b
 	        - netCDF-Fortran/4.4.4-intel-2017b
-	    pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -382,6 +402,54 @@ Lemaitre3
 	    job: *job
 
 
+Lumi
+----
+
+.. code-block:: yaml
+
+
+	# LUMI hardware: https://docs.lumi-supercomputer.eu/
+	# For the configuration file see:
+	# https://github.com/abinit/abiconfig/blob/master/abiconfig/clusters/lumi_XXXX.ac
+	hardware: &hardware
+	  num_nodes: 1376
+	  sockets_per_node: 2
+	  cores_per_socket: 64
+	  mem_per_node: 256GB
+	
+	job: &job
+	  mpi_runner: srun
+	  shell_runner: None
+	  shell_env: # Use your abinit exec
+	    PATH: "$HOME/program/abinit-9.6.2/build_gnu/src/98_main/:$PATH"
+	  modules: # Abinit compiled with abiconfig settings
+	    - LUMI/21.08
+	    - PrgEnv-gnu/8.1.0
+	    - cray-libsci/21.08.1.2
+	    - cray-mpich/8.1.8
+	    - cray-hdf5/1.12.0.6
+	    - cray-netcdf/4.7.4.6
+	    - cray-fftw/3.3.8.11
+	
+	# queues
+	qadapters:
+	    - priority: 1
+	      queue:
+	        qtype: slurm
+	        qname: small
+	        qparams:
+	          account: project_XXXXXX  # Your project here
+	          #mail_type: FAIL
+	          #mail_user: # Othere slurm options ...
+	      limits:
+	        timelimit: 0-12:00:00
+	        min_cores: 1
+	        max_cores: 128
+	        max_num_launches: 10
+	      hardware: *hardware
+	      job: *job
+
+
 Manneback
 ---------
 
@@ -393,19 +461,19 @@ Manneback
 	   num_nodes: 672
 	   sockets_per_node: 2
 	   cores_per_socket: 4
-	   mem_per_node: 24 Gb
+	   mem_per_node: 24 GB
 	
 	ObanAMD: &ObanAMD
 	   num_nodes: 6
 	   sockets_per_node: 4
 	   cores_per_socket: 8
-	   mem_per_node: 128 Gb
+	   mem_per_node: 128 GB
 	
 	ObanIntel: &ObanIntel
 	   num_nodes: 3
 	   sockets_per_node: 4
 	   cores_per_socket: 8
-	   mem_per_node: 256 Gb
+	   mem_per_node: 256 GB
 	
 	# Environment, modules, and parameters used to launch jobs.
 	job: &job
@@ -455,14 +523,13 @@ Nic4
 	   num_nodes: 120
 	   sockets_per_node: 2
 	   cores_per_socket: 8
-	   mem_per_node: 64Gb
+	   mem_per_node: 64GB
 	
 	job: &job
 	    mpi_runner: "mpirun"
 	    mpi_runner_options: "--bind-to none"
 	    shell_env:
 	        PATH: "$HOME/git_repos/abinit/_build_nic4-intel-openmpi-mkl-hdf5.ac/src/98_main:$PATH"
-	    pre_run: "ulimit -s unlimited"
 	    modules:
 	        - shared
 	        - openmpi/1.7.5/intel2013_sp1.1.106
@@ -514,7 +581,7 @@ Shell
 	         num_nodes: 1
 	         sockets_per_node: 1
 	         cores_per_socket: 2
-	         mem_per_node: 4 Gb
+	         mem_per_node: 4 GB
 
 
 Shell_nompi
@@ -540,35 +607,7 @@ Shell_nompi
 	         num_nodes: 1
 	         sockets_per_node: 1
 	         cores_per_socket: 2
-	         mem_per_node: 4 Gb
-
-
-Travis
-------
-
-.. code-block:: yaml
-
-
-	qadapters:
-	    -
-	      priority: 1
-	      queue:
-	        qname: travis
-	        qtype: shell
-	      job:
-	        mpi_runner: mpirun
-	        pre_run:
-	            - source activate abinit-environment
-	            - ulimit -s unlimited
-	      limits:
-	         min_cores: 1
-	         max_cores: 2
-	         timelimit: 0:10:0
-	      hardware:
-	         num_nodes: 1
-	         sockets_per_node: 1
-	         cores_per_socket: 2
-	         mem_per_node: 4 Gb
+	         mem_per_node: 4 GB
 
 
 Ubu
@@ -596,7 +635,7 @@ Ubu
 	         num_nodes: 1
 	         sockets_per_node: 1
 	         cores_per_socket: 24
-	         mem_per_node: 4 Gb
+	         mem_per_node: 4 GB
 
 
 Vega
@@ -610,7 +649,7 @@ Vega
 	   num_nodes: 44
 	   sockets_per_node: 4
 	   cores_per_socket: 16
-	   mem_per_node: 256Gb
+	   mem_per_node: 256GB
 	
 	job: &job
 	    mpi_runner: mpirun
@@ -618,7 +657,6 @@ Vega
 	        PATH: "$HOME/git_repos/abinit/_build_vega-intel-impi-mkl.ac/src/98_main/:$PATH"
 	    modules:
 	        - intel/2015a
-	    #pre_run: "ulimit -s unlimited"
 	
 	# queues
 	qadapters:
@@ -647,13 +685,12 @@ Viper
 	   num_nodes: 1
 	   sockets_per_node: 2
 	   cores_per_socket: 4
-	   mem_per_node: 32Gb
+	   mem_per_node: 32GB
 	
 	job: &job
 	    mpi_runner: ~/bin/mpirun.openmpi
 	    # pre_run is a string in verbatim mode (note |)
 	    pre_run:
-	        - "ulimit -s unlimited"
 	        - "source ~/.bashrc"
 	
 	# queues
@@ -683,13 +720,13 @@ Zenobe
 	   num_nodes: 274
 	   sockets_per_node: 2
 	   cores_per_socket: 6
-	   mem_per_node: 24 Gb
+	   mem_per_node: 24 GB
 	
 	ivybridge: &ivybridge
 	   num_nodes: 342
 	   sockets_per_node: 2
 	   cores_per_socket: 12
-	   mem_per_node: 64 Gb
+	   mem_per_node: 64 GB
 	
 	# Environment, modules, and parameters used to launch jobs.
 	job: &job
@@ -700,7 +737,6 @@ Zenobe
 	        - compiler/intel/composerxe/2013_sp1.1.106
 	        - intelmpi
 	        - python/2.7
-	    pre_run: "ulimit -s unlimited"
 	
 	# List of qdapters.
 	qadapters:

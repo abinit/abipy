@@ -1,4 +1,5 @@
 """Integration tests for structural relaxations."""
+from __future__ import annotations
 
 import numpy as np
 import pytest
@@ -8,6 +9,7 @@ import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_matplotlib
 
+import pytest
 
 def ion_relaxation(tvars, ntime=50):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
@@ -43,13 +45,14 @@ def ion_relaxation(tvars, ntime=50):
 
     return inp
 
-
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_atomic_relaxation(fwp, tvars):
     """Test atomic relaxation with automatic restart."""
     # Build the flow
     flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
 
     ion_input = ion_relaxation(tvars, ntime=2)
+    ion_input["chksymtnons"] = 0
     work = flow.register_task(ion_input, task_class=flowtk.RelaxTask)
 
     flow.allocate()
@@ -152,6 +155,7 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
     return ion_inp, ioncell_inp
 
 
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_relaxation_with_restart_from_den(fwp, tvars):
     """Test structural relaxations with automatic restart from DEN files."""
     # Build the flow
@@ -187,6 +191,7 @@ def itest_relaxation_with_restart_from_den(fwp, tvars):
     flow.rmtree()
 
 
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_dilatmx_error_handler(fwp, tvars):
     """
     Test cell relaxation with automatic restart in the presence of dilatmx error.
@@ -219,6 +224,7 @@ def itest_dilatmx_error_handler(fwp, tvars):
     assert t0.corrections[0]["event"]["@class"] == "DilatmxError"
 
 
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_relaxation_with_target_dilatmx(fwp, tvars):
     """Test structural relaxations with automatic restart from DEN files."""
     # Build the flow
@@ -247,5 +253,10 @@ def itest_relaxation_with_target_dilatmx(fwp, tvars):
         assert task.num_corrections == 0
 
     assert relax_work[1].input["dilatmx"] == 1.03
+
+    # check that when decreasing the dilatmx it actually takes the previously relaxed
+    # structure and does not start from scratch again: the lattice should not be the same.
+    assert not np.allclose(relax_work.ion_task.get_final_structure().lattice_vectors(),
+                           relax_work.ioncell_task.input.structure.lattice_vectors())
 
     flow.rmtree()

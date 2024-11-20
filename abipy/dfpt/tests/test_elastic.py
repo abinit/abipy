@@ -22,10 +22,12 @@ class ElasticDataFileTest(AbipyTest):
             assert ddb.has_internalstrain_terms(select="all")
             assert ddb.has_piezoelectric_terms(select="all")
             assert ddb.has_at_least_one_atomic_perturbation()
+            assert not ddb.has_quadrupole_terms()
 
             # Get ElasticData by calling anaddb.
-            e = ddb.anaget_elastic(verbose=2)
+            e, inp = ddb.anaget_elastic(verbose=2, return_input=True)
             assert e.params["elaflag"] == 3
+            assert e.params["elaflag"] == inp["elaflag"]
             assert e.params["piezoflag"] == 3
             assert e.params["instrflag"] == 1
             assert e.params["asr"] == 2 and e.params["chneut"] == 1
@@ -34,6 +36,9 @@ class ElasticDataFileTest(AbipyTest):
             assert e.elastic_clamped is not None
             assert e.elastic_stress_corr is None
             assert e.elastic_relaxed_fixed_D is None
+
+            html = e.elastic_clamped.get_elate_html()
+            assert "<!DOCTYPE" in html
 
             # Piezoelectric tensors.
             self.assert_almost_equal(e.piezo_relaxed[2,2,2], -0.041496005147475756)
@@ -58,7 +63,7 @@ class ElasticDataFileTest(AbipyTest):
             edata_ieee = e.convert_to_ieee()
             assert edata_ieee is not None
 
-            self.assertMSONable(e)
+            self.assert_msonable(e)
 
             df = e.get_elastic_tensor_dataframe(tensor_name="elastic_clamped", tol=1e-5)
             df = e.get_piezoelectric_tensor_dataframe(tensor_name="piezo_clamped", tol=1e-8)

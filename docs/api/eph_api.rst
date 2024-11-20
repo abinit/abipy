@@ -28,10 +28,42 @@ eph Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`common` Module
+--------------------
+
+.. automodule:: abipy.eph.cumulant
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`eph_plotter` Module
 -------------------------
 
 .. automodule:: abipy.eph.eph_plotter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`gpath` Module
+-------------------
+
+.. automodule:: abipy.eph.gpath
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`gstore` Module
+--------------------
+
+.. automodule:: abipy.eph.gstore
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`rta` Module
+-----------------
+
+.. automodule:: abipy.eph.rta
    :members:
    :undoc-members:
    :show-inheritance:
@@ -52,10 +84,28 @@ eph Package
    :undoc-members:
    :show-inheritance:
 
+
+:mod:`varpeq` Module
+---------------------
+
+.. automodule:: abipy.eph.varpeq
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 :mod:`v1sym` Module
 -------------------
 
 .. automodule:: abipy.eph.v1sym
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`wr` Module
+----------------
+
+.. automodule:: abipy.eph.wr
    :members:
    :undoc-members:
    :show-inheritance:

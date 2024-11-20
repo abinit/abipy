@@ -1,6 +1,8 @@
 """
 Integration tests for flows (require pytest, ABINIT and a properly configured environment)
 """
+from __future__ import annotations
+
 import pytest
 import os
 import numpy as np
@@ -10,6 +12,7 @@ import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_matplotlib
 
+import pytest
 
 def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     """
@@ -123,6 +126,8 @@ def itest_unconverged_scf(fwp, tvars):
         flow.debug()
         raise RuntimeError()
 
+    assert flow.explain(verbose=1)
+
     # Test inspect methods
     if has_matplotlib():
         assert t0.inspect(show=False)
@@ -150,7 +155,7 @@ def itest_unconverged_scf(fwp, tvars):
     #dt = t0.datetimes
     #assert (dt.submission, dt.start, dt.end) == (None, None, None)
 
-
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_bandstructure_flow(fwp, tvars):
     """
     Testing band-structure flow with one dependency: SCF -> NSCF.
@@ -397,7 +402,7 @@ def itest_htc_bandstructure(fwp, tvars):
                 assert not gsr.ebands.has_bzpath
                 gsr.ebands.get_edos()
 
-
+@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
 def itest_metagga_ebands_flow(fwp, tvars):
     """
     Test band structure calculation with meta-GGA

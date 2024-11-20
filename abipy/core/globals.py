@@ -1,6 +1,8 @@
 """
 Global variables used to initialize AbiPy environment in notebooks.
 """
+from __future__ import annotations
+
 from monty.termcolor import cprint
 
 import os
@@ -10,18 +12,18 @@ import tempfile
 __IN_NOTEBOOK = False
 
 
-def in_notebook():
+def in_notebook() -> bool:
     """True if we are running inside a jupyter notebook (and enable_notebook has been called)."""
     return __IN_NOTEBOOK
 
 
-def disable_notebook():
+def disable_notebook() -> None:
     """Set ``in_notebook`` flag to False."""
     global __IN_NOTEBOOK
     __IN_NOTEBOOK = False
 
 
-def enable_notebook(with_seaborn=True):
+def enable_notebook(with_seaborn=True) -> None:
     """
     Set ``in_notebook`` flag to True and activate seaborn settings for notebooks if ``with_seaborn``.
     """
@@ -35,7 +37,7 @@ def enable_notebook(with_seaborn=True):
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
 
-def get_abinb_workdir():
+def get_abinb_workdir() -> str:
     """
     Return the absolute path of the scratch directory used to produce
     and save temporary files when we are runnning inside a jupyter_ notebook.
@@ -49,7 +51,7 @@ def get_abinb_workdir():
     return wdir
 
 
-def abinb_mkstemp(force_abinb_workdir=False, use_relpath=False, **kwargs):
+def abinb_mkstemp(force_abinb_workdir=False, use_relpath=False, **kwargs) -> tuple:
     """
     Invoke mkstep with kwargs, return the (fd, name) of the temporary file.
     kwargs are passed to ``mkstemp`` except for ``dir`` if we are inside a jupyter notebook.
@@ -78,3 +80,16 @@ def abinb_mkstemp(force_abinb_workdir=False, use_relpath=False, **kwargs):
         path = os.path.relpath(path)
 
     return fd, path
+
+
+def get_workdir(workdir: str) -> str:
+    """
+    Return temporary directory if workdir is None else workdir.
+    Allow users to specify the temporary directory via ABIPY_TMPDIR env variable.
+    """
+    if workdir is None:
+        dir = os.getenv("ABIPY_TMPDIR", default=None)
+        import tempfile
+        workdir = tempfile.mkdtemp(dir=dir)
+
+    return workdir

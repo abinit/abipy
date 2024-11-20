@@ -1,10 +1,12 @@
 """Integration tests for phonon flows."""
+from __future__ import annotations
 
 import os
 import numpy as np
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
+
 from abipy.core.testing import has_matplotlib
 
 import logging
@@ -133,9 +135,9 @@ def itest_phonon_flow(fwp, tvars):
         assert atask.status == atask.S_OK
 
         # These output files should be produced in the task workdir.
-        # Actually they should be in outdir but anaddb uses different conventions.
-        assert len(atask.wdir.list_filepaths(wildcard="*PHBST.nc")) == 1
-        assert len(atask.wdir.list_filepaths(wildcard="*PHDOS.nc")) == 1
+        # Actually they should be in the outdir but anaddb uses different conventions.
+        assert len(atask.outdir.list_filepaths(wildcard="*PHBST.nc")) == 1
+        assert len(atask.outdir.list_filepaths(wildcard="*PHDOS.nc")) == 1
 
 
 def itest_phonon_restart(fwp):
@@ -160,7 +162,8 @@ def itest_phonon_restart(fwp):
         tolvrs=1.0e-5,
     )
 
-    multi = abilab.MultiDataset(structure=structure, pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"),
+    multi = abilab.MultiDataset(structure=structure,
+                                pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"),
                                 ndtset=1 + len(qpoints))
 
     multi.set_vars(global_vars)
@@ -179,7 +182,7 @@ def itest_phonon_restart(fwp):
         #kptopt   2      # Automatic generation of k points, taking
 
         # i == 0 --> restart from WFK
-        if i == 1: multi[i+1].set_vars(prtwf=-1, nstep=5)  # Restart with WFK and smart- io.
+        if i == 1: multi[i+1].set_vars(prtwf=-1, nstep=5)  # Restart with WFK and smart-io.
         if i == 2: multi[i+1].set_vars(prtwf=0, nstep=8)   # Restart from 1DEN. Too long --> disabled.
 
     all_inps = multi.split_datasets()
@@ -219,7 +222,6 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
     Returns:
         :class:`Flow` object
     """
-    logger.critical("phonon_flow is deprecated and could give wrong results")
     if with_dde:
         with_ddk = True
 
@@ -251,7 +253,8 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
         dde_input.set_vars(qpt=[0, 0, 0], rfddk=1, rfelfd=2)
         dde_input_idir = dde_input.deepcopy()
         dde_input_idir.set_vars(rfdir=[1, 1, 1])
-        dde_task = flow.register_task(dde_input, deps={scf_task: 'WFK', ddk_task: 'DDK'}, task_class=flowtk.DdeTask)[0]
+        dde_task = flow.register_task(dde_input, deps={scf_task: 'WFK', ddk_task: 'DDK'},
+                                      task_class=flowtk.DdeTask)[0]
 
     if not isinstance(ph_inputs, (list, tuple)):
         ph_inputs = [ph_inputs]
@@ -283,7 +286,6 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
             raise
 
         logger.info(irred_perts)
-
         w.rmtree()
 
         # Now we can build the final list of works:

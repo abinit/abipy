@@ -27,6 +27,7 @@ class AnaddbNcFileTest(AbipyTest):
             assert anc.oscillator_strength is not None
             assert anc.ifc is None
             assert anc.params["chneut"] == 1
+            assert anc.amu[13] == 26.981539
 
             if self.has_nbformat():
                 assert anc.write_notebook(nbpath=self.get_tmpname(text=True))

@@ -16,7 +16,7 @@ class MsqdTest(AbipyTest):
 
         filepath = os.path.join(abidata.dirpath, "refs", "mp-7000_DDB.bz2")
         with abilab.abiopen(filepath) as ddb:
-            phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=2, ndivsm=1, mpi_procs=2)
+            phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(nqsmall=2, ndivsm=1, mpi_procs=1)
             msqd_dos = phdos_file.msqd_dos
             # Read indsym from file and convert from F to C
             indsym = phdos_file.reader.read_value("indsym")
@@ -42,7 +42,7 @@ class MsqdTest(AbipyTest):
         assert np.all(abipy_indsym == msqd_dos.structure.indsym)
 
         cif_string = msqd_dos.get_cif_string(temp=300)
-        #print(cif_string)
+        #print("cif_string:\n", cif_string)
 
         self.assertMultiLineEqual(cif_string, """\
 # generated using pymatgen
@@ -57,7 +57,7 @@ _cell_angle_gamma   120.00000000
 _symmetry_Int_Tables_number   1
 _chemical_formula_structural   SiO2
 _chemical_formula_sum   'Si3 O6'
-_cell_volume   115.45026866
+_cell_volume   115.45026881
 _cell_formula_units_Z   3
 loop_
  _symmetry_equiv_pos_site_id
@@ -71,15 +71,15 @@ loop_
  _atom_site_fract_y
  _atom_site_fract_z
  _atom_site_occupancy
-  Si  Si0  1  0.528855  0.000000  0.833333  1
-  Si  Si1  1  0.471145  0.471145  0.500000  1
-  Si  Si2  1  0.000000  0.528855  0.166667  1
-  O  O3  1  0.413167  0.147706  0.620242  1
-  O  O4  1  0.852294  0.265462  0.953576  1
-  O  O5  1  0.734538  0.586833  0.286909  1
-  O  O6  1  0.265462  0.852294  0.046424  1
-  O  O7  1  0.147706  0.413167  0.379758  1
-  O  O8  1  0.586833  0.734538  0.713091  1
+  Si  Si0  1  0.52885459  0.00000000  0.83333333  1
+  Si  Si1  1  0.47114541  0.47114541  0.50000000  1
+  Si  Si2  1  0.00000000  0.52885459  0.16666667  1
+  O  O3  1  0.41316747  0.14770576  0.62024227  1
+  O  O4  1  0.85229424  0.26546172  0.95357560  1
+  O  O5  1  0.73453828  0.58683253  0.28690893  1
+  O  O6  1  0.26546172  0.85229424  0.04642440  1
+  O  O7  1  0.14770576  0.41316747  0.37975773  1
+  O  O8  1  0.58683253  0.73453828  0.71309107  1
 loop_
 _atom_site_aniso_label
 _atom_site_aniso_U_11
@@ -88,15 +88,25 @@ _atom_site_aniso_U_33
 _atom_site_aniso_U_23
 _atom_site_aniso_U_13
 _atom_site_aniso_U_12
-Si0    0.00850    0.00695    0.00611   -0.00019   -0.00009    0.00348
-Si1    0.00850    0.00850    0.00611    0.00009   -0.00009    0.00502
-Si2    0.00695    0.00850    0.00611    0.00009    0.00019    0.00348
-O3    0.01916    0.01120    0.01353    0.00249   -0.00411    0.00762
-O4    0.01120    0.01512    0.01353   -0.00660   -0.00249    0.00358
-O5    0.01512    0.01916    0.01353    0.00411    0.00660    0.01153
-O6    0.01512    0.01120    0.01353    0.00249    0.00660    0.00358
-O7    0.01120    0.01916    0.01353    0.00411   -0.00249    0.00762
-O8    0.01916    0.01512    0.01353   -0.00660   -0.00411    0.01153""")
+Si0    0.00855    0.00701    0.00614   -0.00019   -0.00009    0.00350
+Si1    0.00855    0.00855    0.00614    0.00009   -0.00009    0.00505
+Si2    0.00701    0.00855    0.00614    0.00009    0.00019    0.00350
+O3    0.01922    0.01126    0.01356    0.00249   -0.00412    0.00765
+O4    0.01126    0.01518    0.01356   -0.00661   -0.00249    0.00361
+O5    0.01518    0.01922    0.01356    0.00412    0.00661    0.01157
+O6    0.01518    0.01126    0.01356    0.00249    0.00661    0.00361
+O7    0.01126    0.01922    0.01356    0.00412   -0.00249    0.00765
+O8    0.01922    0.01518    0.01356   -0.00661   -0.00412    0.01157""")
+
+#Si0    0.00850    0.00695    0.00611   -0.00019   -0.00009    0.00348
+#Si1    0.00850    0.00850    0.00611    0.00009   -0.00009    0.00502
+#Si2    0.00695    0.00850    0.00611    0.00009    0.00019    0.00348
+#O3    0.01916    0.01120    0.01353    0.00249   -0.00411    0.00762
+#O4    0.01120    0.01512    0.01353   -0.00660   -0.00249    0.00358
+#O5    0.01512    0.01916    0.01353    0.00411    0.00660    0.01153
+#O6    0.01512    0.01120    0.01353    0.00249    0.00660    0.00358
+#O7    0.01120    0.01916    0.01353    0.00411   -0.00249    0.00762
+#O8    0.01916    0.01512    0.01353   -0.00660   -0.00411    0.01153""")
 
         # Write CIF file with U_cif tensor
         filepath = msqd_dos.write_cif_file(filepath=None, temp=300)

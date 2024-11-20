@@ -1,13 +1,17 @@
 """
 This module gathers the most important classes and helper functions used for scripting.
 """
+import sys
 import os
 import collections
+
+from itertools import chain
+from typing import ClassVar, Optional, List, Union
+from tabulate import tabulate
 
 ####################
 ### Monty import ###
 ####################
-from monty.os.path import which
 from monty.termcolor import cprint
 
 #######################
@@ -24,10 +28,9 @@ ArrayWithUnit = units.ArrayWithUnit
 from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Flow, Work, TaskManager, AbinitBuild, flow_main
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
-from abipy.core import restapi
 from abipy.core.structure import (Lattice, Structure, StructureModifier, dataframes_from_structures,
-  mp_match_structure, mp_search, cod_search)
-from abipy.core.mixins import CubeFile
+  mp_match_structure, mp_search, cod_search, display_structure)
+from abipy.core.mixins import TextFile, JsonFile, CubeFile
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.abio.robots import Robot
@@ -36,14 +39,15 @@ from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile, AboRobot
 from abipy.tools.printing import print_dataframe
 from abipy.tools.notebooks import print_source, print_doc
-from abipy.tools.plotting import get_ax_fig_plt, get_axarray_fig_plt, get_ax3d_fig_plt
+from abipy.tools.serialization import mjson_load, mjson_loads, mjson_write
 from abipy.abio.factories import *
 from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
-    dataframe_from_ebands)
+    dataframe_from_ebands, EdosFile)
 from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.eskw import EskwFile
-from abipy.electrons.psps import PspsFile
+from abipy.electrons.psps import PspsFile, PspsRobot
 from abipy.electrons.gw import SigresFile, SigresRobot
+from abipy.electrons.gwr import GwrFile
 from abipy.electrons.bse import MdfFile, MdfRobot
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
@@ -61,14 +65,27 @@ from abipy.dynamics.hist import HistFile, HistRobot
 from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
+from abipy.eph.cumulant import CumulantEPhFile
+from abipy.eph.varpeq import VarpeqFile
 from abipy.eph.eph_plotter import EphPlotter
 from abipy.eph.v1sym import V1symFile
 from abipy.eph.gkq import GkqFile, GkqRobot
 from abipy.eph.v1qnu import V1qnuFile
 from abipy.eph.v1qavg import V1qAvgFile
+from abipy.eph.rta import RtaFile, RtaRobot
 from abipy.eph.transportfile import TransportFile
+from abipy.eph.gstore import GstoreFile
+from abipy.eph.gpath import GpathFile
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
 from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
+
+from abipy.dynamics.cpx import EvpFile
+#try:
+#    from abipy.ml.aseml import AseMdLog
+#except ImportError:
+#    AseMdLog = None
+
+#from abipy.electrons.abitk import ZinvConvFile, TetraTestFile
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
@@ -82,27 +99,51 @@ def _straceback():
 
 # Abinit text files. Use OrderedDict for nice output in show_abiopen_exc2class.
 ext2file = collections.OrderedDict([
+    # ABINIT files
     (".abi", AbinitInputFile),
     (".in", AbinitInputFile),
     (".abo", AbinitOutputFile),
     (".out", AbinitOutputFile),
     (".log", AbinitLogFile),
     (".cif", Structure),
-    ("POSCAR", Structure),
+    (".abivars", Structure),
+    (".ucell", Structure),
     (".cssr", Structure),
+    (".json", JsonFile),
+    (".py", TextFile),
+    (".sh", TextFile),
+    (".stdin", TextFile),
+    (".stderr", TextFile),
+    (".err", TextFile),
+    (".files", TextFile),
+    (".stdout", TextFile),
     (".cube", CubeFile),
     ("anaddb.nc", AnaddbNcFile),
     ("DEN", DensityFortranFile),
+    (".wout", WoutFile),
+    ("EDOS", EdosFile),
+    # Pseudos
     (".psp8", Pseudo),
     (".pspnc", Pseudo),
     (".fhi", Pseudo),
     ("JTH.xml", Pseudo),
-    (".wout", WoutFile),
+    (".upf", Pseudo),
     # Lobster files.
     ("COHPCAR.lobster", CoxpFile),
     ("COOPCAR.lobster", CoxpFile),
     ("ICOHPLIST.lobster", ICoxpFile),
     ("DOSCAR.lobster", LobsterDoscarFile),
+    # Vasp files.
+    ("POSCAR", Structure),
+    (".vasp", Structure),
+    # ASE files
+    (".xyz", Structure),
+    #("ZINVCONV.nc", ZinvConvFile),
+    #("TETRATEST.nc", TetraTestFile),
+    # QE/CP files
+    (".evp", EvpFile),
+    # ASE files produced by Abipy.
+    #("md.aselog", AseMdLog),
 ])
 
 # Abinit files require a special treatment.
@@ -123,6 +164,7 @@ abiext2ncfile = collections.OrderedDict([
     ("PHDOS.nc", PhdosFile),
     ("SCR.nc", ScrFile),
     ("SIGRES.nc", SigresFile),
+    ("GWR.nc", GwrFile),
     ("GRUNS.nc", GrunsNcFile),
     ("MDF.nc", MdfFile),
     ("FATBANDS.nc", FatBandsFile),
@@ -131,12 +173,17 @@ abiext2ncfile = collections.OrderedDict([
     ("OPTIC.nc", OpticNcFile),
     ("A2F.nc", A2fFile),
     ("SIGEPH.nc", SigEPhFile),
+    ("GSTORE.nc", GstoreFile),
+    ("GPATH.nc", GpathFile),
     ("TRANSPORT.nc",TransportFile),
+    ("RTA.nc",RtaFile),
     ("V1SYM.nc", V1symFile),
     ("GKQ.nc", GkqFile),
     ("V1QNU.nc", V1qnuFile),
     ("V1QAVG.nc", V1qAvgFile),
     ("ABIWAN.nc", AbiwanFile),
+    ("EPH_CUMULANT.nc", CumulantEPhFile),
+    ("VARPEQ.nc", VarpeqFile),
 ])
 
 
@@ -144,17 +191,41 @@ def abiopen_ext2class_table():
     """
     Print the association table between file extensions and File classes.
     """
-    from itertools import chain
-    from tabulate import tabulate
     table = []
-
     for ext, cls in chain(ext2file.items(), abiext2ncfile.items()):
         table.append((ext, str(cls)))
 
     return tabulate(table, headers=["Extension", "Class"])
 
 
-def abifile_subclass_from_filename(filename):
+def extcls_supporting_panel(as_table=True, **tabulate_kwargs):
+    """
+    Return list of (ext, cls) tuples where ext is the file extension supporting the `get_panel` method
+    i.e files that can be integrated with the panel dashboard and `cls` the python class associated to it.
+    """
+    items = []
+
+    for ext, cls in chain(ext2file.items(), abiext2ncfile.items()):
+        if hasattr(cls, "get_panel"): items.append((ext, str(cls)))
+
+    if not as_table: return items
+
+    return tabulate(items, headers=["Extension", "Class"], **tabulate_kwargs)
+
+
+def abipanel(**kwargs):
+    """
+    Activate panel extensions used by AbiPy. Return panel module.
+    """
+    try:
+        from abipy.panels.core import abipanel
+        return abipanel(**kwargs)
+    except ImportError as exc:
+        cprint("use `conda install panel` or `pip install panel` to install the python package.", "red")
+        raise exc
+
+
+def abifile_subclass_from_filename(filename: str) -> ClassVar:
     """
     Returns the appropriate class associated to the given filename.
     """
@@ -174,12 +245,15 @@ def abifile_subclass_from_filename(filename):
         for ext, cls in abiext2ncfile.items():
             if filename.endswith(ext): return cls
 
-    msg = ("No class has been registered for file:\n\t%s\n\nFile extensions supported:\n\n%s" %
-        (filename, abiopen_ext2class_table()))
+    msg = f"""
+abiopen cannot handle this file as no phython class has been registered for file:\n`{filename}`\n\n
+This is the list of file extensions supported by abiopen:\n\n
+{abiopen_ext2class_table()}
+"""
     raise ValueError(msg)
 
 
-def dir2abifiles(top, recurse=True):
+def dir2abifiles(top: str, recurse: bool = True) -> dict:
     """
     Analyze the filesystem starting from directory `top` and
     return an ordered dictionary mapping the directory name to the list
@@ -203,7 +277,7 @@ def dir2abifiles(top, recurse=True):
     return collections.OrderedDict([(k, dl[k]) for k in sorted(dl.keys())])
 
 
-def isabifile(filepath):
+def isabifile(filepath: str) -> bool:
     """
     Return True if `filepath` can be opened with ``abiopen``.
     """
@@ -214,7 +288,7 @@ def isabifile(filepath):
         return False
 
 
-def abiopen(filepath):
+def abiopen(filepath: str):
     """
     Factory function that opens any file supported by abipy.
     File type is detected from the extension
@@ -251,70 +325,63 @@ def abiopen(filepath):
         # Assume Abinit log file.
         return AbinitLogFile.from_file(filepath)
 
+    if os.path.basename(filepath).endswith("phonopy_params.yaml"):
+        # Handle phonopy object.
+        import phonopy
+        return phonopy.load(filepath)
+
     cls = abifile_subclass_from_filename(filepath)
     return cls.from_file(filepath)
 
 
-def display_structure(obj, **kwargs):
+def abirobot(filepaths: Union[str, List[str]]) -> Robot:
     """
-    Use Jsmol to display a structure in the jupyter notebook.
-    Requires `nbjsmol` notebook extension installed on the local machine.
-    Install it with `pip install nbjsmol`. See also https://github.com/gmatteo/nbjsmol.
+    Factory function to create and return a Robot subclass from a list of filenames
+    The Robot subclass is detected from the extension of the first file hence
+    all files are assumed to have the same extension.
 
     Args:
-        obj: Structure object or file with a structure or python object with a `structure` attribute.
-        kwargs: Keyword arguments passed to `nbjsmol_display`
+        filepaths: List of strings with the filename.
     """
-    try:
-        from nbjsmol import nbjsmol_display
-    except ImportError as exc:
-        raise ImportError(str(exc) +
-                          "\ndisplay structure requires nbjsmol package\n."
-                          "Install it with `pip install nbjsmol.`\n"
-                          "See also https://github.com/gmatteo/nbjsmol.")
+    from monty.string import list_strings
+    filepaths = list_strings(filepaths)
+    path = filepaths[0]
+    idx = path.rfind("_")
+    if idx == -1:
+        raise ValueError("Cannot find `_` in the first string")
+    ext = path[idx+1:]
 
-    # Cast to structure, get string with cif data and pass it to nbjsmol.
-    structure = Structure.as_structure(obj)
-    return nbjsmol_display(structure.to(fmt="cif"), ext=".cif", **kwargs)
+    cls = Robot.class_for_ext(ext)
+    robot = cls.from_files(filepaths)
+    return robot
 
 
-def mjson_load(filepath, **kwargs):
+def software_stack(as_dataframe: bool = False):
     """
-    Read JSON file in MSONable format with MontyDecoder. Return dict with python objects.
-    """
-    import json
-    from monty.json import MontyDecoder
-    with open(filepath, "rt") as fh:
-        return json.load(fh, cls=MontyDecoder, **kwargs)
-
-
-def mjson_loads(string, **kwargs):
-    """
-    Read JSON string in MSONable format with MontyDecoder. Return dict with python objects.
-    """
-    import json
-    from monty.json import MontyDecoder
-    return json.loads(string, cls=MontyDecoder, **kwargs)
-
-
-def mjson_write(d, filepath, **kwargs):
-    """
-    Write dictionary d to filepath in JSON format using MontyDecoder
-    """
-    import json
-    from monty.json import MontyEncoder
-    with open(filepath, "wt") as fh:
-        json.dump(d, fh, cls=MontyEncoder, **kwargs)
-
-
-def software_stack():
-    """
-    Import all the hard dependencies. Returns ordered dict: package --> string with version info.
+    Import all the hard dependencies and some optional packages.
+    Returns ordered dict: package --> string with version info or pandas dataframe if as_dataframe.
     """
     import platform
     system, node, release, version, machine, processor = platform.uname()
     # These packages are required
-    import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, yaml
+    import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, plotly
+    import ruamel.yaml as yaml
+
+    from importlib import import_module
+
+    def get_version(pkg_name):
+        """Return version of package from string."""
+        try:
+            mod = import_module(pkg_name)
+            return mod.__version__
+        except Exception:
+            return None
+
+    try:
+        from pymatgen.core import __version__ as pmg_version
+        #from pymatgen.settings import __version__ as pmg_version
+    except AttributeError:
+        pmg_version = pymatgen.__version__
 
     d = collections.OrderedDict([
         ("system", system),
@@ -324,21 +391,23 @@ def software_stack():
         ("netCDF4", netCDF4.__version__),
         ("apscheduler", apscheduler.version),
         ("pydispatch", pydispatch.__version__),
-        ("yaml", yaml.__version__),
-        ("pymatgen", pymatgen.__version__),
+        ("ruamel.yaml", yaml.__version__),
+        ("boken", get_version("bokeh")),
+        ("panel", get_version("panel")),
+        ("plotly", get_version("plotly")),
+        ("ase", get_version("ase")),
+        ("phonopy", get_version("phonopy")),
+        ("monty", get_version("monty")),
+        ("pymatgen", pmg_version),
+        ("abipy", __version__),
     ])
 
-    # Optional but strongly suggested.
-    #try:
-    #    import matplotlib
-    #    d["matplotlib"] = "%s (backend: %s)" % (matplotlib.__version__, matplotlib.get_backend())
-    #except ImportError:
-    #    pass
-
-    return d
+    if not as_dataframe: return d
+    import pandas as pd
+    return pd.Series(data=d, name="version").to_frame().rename_axis("Package")
 
 
-def abicheck(verbose=0):
+def abicheck(verbose: int = 0) -> str:
     """
     This function tests if the most important ABINIT executables
     can be found in $PATH and whether the python modules needed
@@ -355,7 +424,18 @@ def abicheck(verbose=0):
         app(_straceback())
 
     # Get info on the Abinit build.
-    from abipy.core.testing import cmp_version
+    # This to avoid having to depend on pytest.
+    #from abipy.core.testing import cmp_version
+    def cmp_version(this: str, other: str, op: str = ">=") -> bool:
+        """
+        Compare two version strings with the given operator ``op``
+        >>> assert cmp_version("1.1.1", "1.1.0") and not cmp_version("1.1.1", "1.1.0", op="==")
+        """
+        from packaging.version import parse as parse_version
+        from monty.operator import operator_from_str
+        op = operator_from_str(op)
+        return op(parse_version(this), parse_version(other))
+
     from abipy.flowtk import PyFlowScheduler
 
     if manager is not None:
@@ -375,7 +455,6 @@ def abicheck(verbose=0):
     except Exception as exc:
         app(_straceback())
 
-    from tabulate import tabulate
     try:
         d = software_stack()
         cprint("Installed packages:", color="blue")
@@ -384,10 +463,15 @@ def abicheck(verbose=0):
     except ImportError:
         app(_straceback())
 
+    import pprint
+    shell_vars = [os.environ.get(vname, "") for vname in ("PATH", "LD_LIBRARY_PATH", "TMPDIR")]
+    print("Important Shell Variables:")
+    pprint.pprint(shell_vars)
+
     return "\n".join(err_lines)
 
 
-def install_config_files(workdir=None, force_reinstall=False):
+def install_config_files(workdir: Optional[str] = None, force_reinstall: Optional[bool] = False):
     """
     Install pre-defined configuration files for the TaskManager and the Scheduler
     in the workdir directory.
@@ -468,7 +552,7 @@ qadapters:
          num_nodes: 1
          sockets_per_node: 1
          cores_per_socket: 2
-         mem_per_node: 4 Gb
+         mem_per_node: 4 GB
 """
 
     # Write configuration files.
@@ -496,7 +580,7 @@ so that the abinit executable is in $PATH.
     return 0
 
 
-def abipy_logo1():
+def abipy_logo1() -> str:
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""
                  `:-                                                               -:`
@@ -514,7 +598,7 @@ def abipy_logo1():
 """
 
 
-def abipy_logo2():
+def abipy_logo2() -> str:
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""
 MMMMMMMMMMMMMMMMNhdMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMdhmMMMMMMMMMMMMMMM
@@ -532,7 +616,7 @@ MMMMMMMMMMMMMMMMmmNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 """
 
 
-def abipy_logo3():
+def abipy_logo3() -> str:
     """http://www.text-image.com/convert/pic2ascii.cgi"""
     return r"""\
              `-.                                                  `--`
@@ -545,4 +629,3 @@ o-  o/   oo`       ss    /y..y/    ss ss +y`   -y::y-    yo          -o/  .o- -o
    `  ..` `:-                            :+              /:         --` `-` `
             `.`                                                   ..`
 """
-

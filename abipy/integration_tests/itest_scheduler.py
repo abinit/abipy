@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Integration tests for the scheduler."""
+from __future__ import annotations
 
 import abipy.data as abidata
 import abipy.abilab as abilab
@@ -83,7 +84,7 @@ def itest_flow_with_deadlocks(fwp):
 
 def itest_flow_without_runnable_tasks(fwp):
     """
-    Test the behaviour of the scheduler when we ignore errrors and
+    Test the behaviour of the scheduler when we ignore errors and
     all the task that can be executed have been submitted.
     The scheduler should detect this condition and exit.
     """
@@ -112,4 +113,3 @@ def itest_flow_without_runnable_tasks(fwp):
 
     g = flow.find_deadlocks()
     assert not g.deadlocked and not g.runnables and not g.running
-    #assert 0

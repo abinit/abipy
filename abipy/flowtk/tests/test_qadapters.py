@@ -10,6 +10,10 @@ from abipy.flowtk.qadapters import QueueAdapter, SlurmAdapter, OmpEnv
 from abipy.flowtk import qutils as qu
 
 
+def safe_load(string):
+    return yaml.YAML(typ='safe', pure=True).load(string)
+
+
 class OmpEnvTest(AbipyTest):
     def test_base(self):
         assert OmpEnv(OMP_NUM_THREADS=1).OMP_NUM_THREADS == "1"
@@ -40,7 +44,7 @@ class ParseTimestr(AbipyTest):
 
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")
 class QadapterTest(AbipyTest):
-    QDICT = yaml.safe_load("""\
+    QDICT = safe_load("""\
 priority: 1
 queue:
     qtype: slurm
@@ -61,7 +65,7 @@ hardware:
    num_nodes: 3
    sockets_per_node: 2
    cores_per_socket: 4
-   mem_per_node: 8 Gb
+   mem_per_node: 8 GB
 """)
 
     def test_base(self):
@@ -119,7 +123,7 @@ hardware:
                 aequal(new_script, script)
 
             # Test can_run and distribute
-            # The hardware has num_nodes=3, sockets_per_node=2, cores_per_socket=4, mem_per_node="8 Gb"
+            # The hardware has num_nodes=3, sockets_per_node=2, cores_per_socket=4, mem_per_node="8 GB"
             afalse(qad.can_run_pconf(ParalConf(mpi_ncpus=hw.num_cores+1, omp_ncpus=1, mem_per_cpu=0.1)))
             afalse(qad.can_run_pconf(ParalConf(mpi_ncpus=4, omp_ncpus=9, mem_per_cpu=0.1)))
             afalse(qad.can_run_pconf(ParalConf(mpi_ncpus=4, omp_ncpus=1, mem_per_cpu=10 * giga)))
@@ -171,7 +175,7 @@ hardware:
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")
 class ShellAdapterTest(AbipyTest):
     """Test suite for Shell adapter."""
-    QDICT = yaml.safe_load("""\
+    QDICT = safe_load("""\
 priority: 1
 queue:
     qname: localhost
@@ -188,7 +192,7 @@ hardware:
     num_nodes: 1
     sockets_per_node: 1
     cores_per_socket: 1
-    mem_per_node: 4 Gb
+    mem_per_node: 4 GB
 """)
     def test_methods(self):
         qad = make_qadapter(**self.QDICT)
@@ -220,7 +224,7 @@ source ~/env1.sh
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")
 class SlurmAdapterTest(AbipyTest):
     """Test suite for Slurm adapter."""
-    QDICT = yaml.safe_load("""\
+    QDICT = safe_load("""\
 priority: 5
 queue:
   qtype: slurm
@@ -232,6 +236,10 @@ limits:
   timelimit: 10:00
   min_cores: 3
   max_cores: 16
+  limits_for_task_class: {
+    ScfTask: {min_cores: 1, max_cores: 1},
+    KerangeTask: {min_cores: 1, max_cores: 2},
+  }
 job:
   mpi_runner: mpirun
   mpi_runner_options: --bind-to None
@@ -249,7 +257,7 @@ hardware:
    num_nodes: 2
    sockets_per_node: 2
    cores_per_socket: 4
-   mem_per_node: 8 Gb
+   mem_per_node: 8 GB
 """)
 
     def test_methods(self):
@@ -263,6 +271,7 @@ hardware:
         assert qad.has_mpi and not qad.has_omp
         assert (qad.mpi_procs, qad.omp_threads) == (3, 1)
         assert qad.priority == 5 and qad.num_launches == 0 and qad.last_launch is None
+
 
         qad.set_mpi_procs(4)
 
@@ -287,7 +296,7 @@ echo ${SLURM_JOB_NODELIST}
 ulimit -s unlimited
 
 # Load Modules
-module purge
+module --force purge
 module load intel/compilerpro/13.0.1.117 2>> mods.err
 module load fftw3/intel/3.3 2>> mods.err
 
@@ -302,11 +311,21 @@ mpirun --bind-to None -n 4 executable < stdin > stdout 2> stderr
         #qad.set_omp_threads(1)
         #assert qad.has_omp
 
+        # Test limits_for_task_class and update limits API.
+        assert "ScfTask" in qad.limits_for_task_class
+        limits_for_task = qad.limits_for_task_class["KerangeTask"]
+        assert limits_for_task["min_cores"] == 1
+        assert limits_for_task["max_cores"] == 2
+        assert qad.max_cores == 16
+        qad.update_limits(limits_for_task)
+        assert qad.min_cores == limits_for_task["min_cores"]
+        assert qad.max_cores == limits_for_task["max_cores"]
+
 
 @unittest.skipIf(sys.platform.startswith("win"), "Skipping for Windows")
 class PbsProadapterTest(AbipyTest):
     """Test suite for PbsPro adapter."""
-    QDICT = yaml.safe_load("""\
+    QDICT = safe_load("""\
 priority: 1
 queue:
     qtype: pbspro
@@ -323,8 +342,8 @@ hardware:
     num_nodes: 100
     sockets_per_node: 2
     cores_per_socket: 4
-    mem_per_node: 8 Gb""")
-    QDICT_SHARED = yaml.safe_load("""\
+    mem_per_node: 8 GB""")
+    QDICT_SHARED = safe_load("""\
 priority: 1
 queue:
     qtype: pbspro
@@ -344,8 +363,8 @@ hardware:
     num_nodes: 100
     sockets_per_node: 2
     cores_per_socket: 12
-    mem_per_node: 48000 Mb""")
-    QDICT_EXCLUSIVE = yaml.safe_load("""\
+    mem_per_node: 48000 MB""")
+    QDICT_EXCLUSIVE = safe_load("""\
 priority: 1
 queue:
     qtype: pbspro
@@ -365,14 +384,14 @@ hardware:
     num_nodes: 100
     sockets_per_node: 2
     cores_per_socket: 12
-    mem_per_node: 48000 Mb""")
+    mem_per_node: 48000 MB""")
 
     def test_methods(self):
         self.maxDiff = None
         aequal = self.assertEqual
 
         qad = make_qadapter(**self.QDICT)
-        self.assertMSONable(qad)
+        self.assert_msonable(qad)
         print(qad)
         print(qad.mpi_runner)
 
@@ -439,7 +458,7 @@ mpirun  -n 3 executable < stdin > stdout 2> stderr
         qad_shared.set_mpi_procs(64)
         qad_shared.set_mem_per_proc(3500)
         qad_shared.set_master_mem_overhead(4000)
-        self.assertMSONable(qad_shared)
+        self.assert_msonable(qad_shared)
         aequal(qad_shared.get_select(), '1:ncpus=1:mem=7500mb:mpiprocs=1+'
                                         '63:ncpus=1:mem=3500mb:mpiprocs=1')
 
@@ -449,7 +468,7 @@ mpirun  -n 3 executable < stdin > stdout 2> stderr
         qad_exclusive.set_mpi_procs(47)
         qad_exclusive.set_mem_per_proc(2000)
         qad_exclusive.set_master_mem_overhead(1)
-        self.assertMSONable(qad_exclusive)
+        self.assert_msonable(qad_exclusive)
         aequal(qad_exclusive.get_select(), '1:ncpus=23:mem=48000mb:mpiprocs=23+'
                                            '1:ncpus=24:mem=48000mb:mpiprocs=24')
         qad_exclusive.set_mpi_procs(48)

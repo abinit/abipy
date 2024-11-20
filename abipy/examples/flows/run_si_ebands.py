@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Band structure Flow
+Band structure flow
 ===================
 
 Flow to compute the band structure of silicon.

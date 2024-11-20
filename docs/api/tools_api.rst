@@ -13,10 +13,29 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
+
 :mod:`bessel` Module
 --------------------
 
 .. automodule:: abipy.tools.bessel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+:mod:`cli_parsers` Module
+-------------------------
+
+.. automodule:: abipy.tools.cli_parsers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+:mod:`context_managers` Module
+------------------------------
+
+.. automodule:: abipy.tools.context_managers
    :members:
    :undoc-members:
    :show-inheritance:
@@ -85,10 +104,36 @@ tools Package
    :undoc-members:
    :show-inheritance:
 
+
+:mod:`parallel` Module
+----------------------
+
+.. automodule:: abipy.tools.parallel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 :mod:`plotting` Module
 ----------------------
 
 .. automodule:: abipy.tools.plotting
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`printing` Module
+----------------------
+
+.. automodule:: abipy.tools.printing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`serialization` Module
+---------------------------
+
+.. automodule:: abipy.tools.serialization
    :members:
    :undoc-members:
    :show-inheritance:
@@ -105,6 +150,14 @@ tools Package
 ------------------
 
 .. automodule:: abipy.tools.text
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`typing` Module
+--------------------
+
+.. automodule:: abipy.tools.typing
    :members:
    :undoc-members:
    :show-inheritance:

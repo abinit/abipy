@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-G0W0 Flow with convergence study wrt nband
+G0W0 flow with convergence study wrt nband
 ==========================================
 
 This script shows how to compute the G0W0 corrections in silicon.
@@ -13,6 +13,7 @@ import os
 import sys
 import abipy.data as data
 import abipy.abilab as abilab
+
 from abipy import flowtk
 
 
@@ -24,7 +25,8 @@ def make_inputs(ngkpt, paral_kgb=1):
     # Dataset 3: calculation of the screening
     # Dataset 4-5-6: Self-Energy matrix elements (GW corrections) with different values of nband
 
-    multi = abilab.MultiDataset(structure=data.cif_file("si.cif"), pseudos=data.pseudos("14si.pspnc"), ndtset=6)
+    multi = abilab.MultiDataset(structure=data.cif_file("si.cif"),
+                                pseudos=data.pseudos("14si.pspnc"), ndtset=6)
 
     # This grid is the most economical, but does not contain the Gamma point.
     scf_kmesh = dict(

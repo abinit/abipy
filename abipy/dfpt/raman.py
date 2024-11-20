@@ -1,10 +1,14 @@
+"""Objects for post-processing Raman results produced by anaddb."""
+from __future__ import annotations
+
 import numpy as np
 import abipy.core.abinit_units as abu
+
+from collections import namedtuple
 from abipy.iotools import ETSF_Reader
 from abipy.core.func1d import Function1D
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
-from collections import namedtuple
-
+from abipy.tools.typing import Figure
 
 PowderIntensity = namedtuple("PowderIntensity", ("paral", "perp", "tot"))
 
@@ -41,15 +45,14 @@ class Raman:
         self.non_anal_directions = non_anal_directions
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> Raman:
         """
         Create the object from an anaddb.nc netcdf file.
 
         Args:
             filepath: path to the netcdf file.
 
-        Returns:
-            An instance of Raman.
+        Returns: An instance of Raman.
         """
 
         with ETSF_Reader(filepath) as r:
@@ -72,7 +75,7 @@ class Raman:
                        non_anal_phfreqs=non_anal_phfreqs, non_anal_directions=non_anal_directions)
 
     def get_modes_intensities(self, temp, laser_freq, non_anal_dir=None, relative=False, units="eV",
-                              pol_in=None, pol_out=None):
+                              pol_in=None, pol_out=None) -> np.ndarray:
         """
         Calculates the Raman intensities for each mode in arbitrary units. It is possible to use the
         susceptibilities from the transverse modes only or to specify one of the directions with non
@@ -84,13 +87,13 @@ class Raman:
 
         Args:
             temp: temperature in K.
-            laser_freq: frequency of the incident laser. The units are determined the "units"
+            laser_freq: frequency of the incident laser. The units are determined by the "units"
                 argument.
             non_anal_dir: index of the direction along which the non analytical contribution
                 has been calculated. Corresponds to the indices in the non_anal_directions attribute.
             relative: if True the intensities will be rescaled so that the largest value is 1.
             units: the units in which the input and the output frequencies will be given.
-                Possible values in ("eV", "meV", "Ha", "cm-1", "Thz")
+                Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
             pol_in: the polarization of the incoming photon. If not None can be either either a string
                 with one of the cartesian components i.e. "x", "y", "z" or an array with 3 elements
                 representing the polarization direction. If not None pol_out can not be None.
@@ -119,7 +122,7 @@ class Raman:
             # this will make the indices of the i,j component such that the first
             # will refer to the polarization of the incoming photon and the second
             # to the polarization of the created one.
-            np.transpose(i, axes=(0, 2, 1))
+            i = np.transpose(i, axes=(0, 2, 1))
         else:
             if pol_in is None or pol_out is None:
                 raise ValueError("pol_in and pol_out should be either both None or both defined")
@@ -140,7 +143,7 @@ class Raman:
         return i
 
     @staticmethod
-    def _get_prefactor(w, temp, laser_freq):
+    def _get_prefactor(w, temp, laser_freq) -> np.array:
         """
         Helper method to calculate the coefficient for the Raman intensities.
 
@@ -162,7 +165,8 @@ class Raman:
 
         return c
 
-    def _get_lorentz_freqs_and_factor(self, intensity, non_anal_dir, min_freq, max_freq, num, width, units):
+    def _get_lorentz_freqs_and_factor(self, intensity, non_anal_dir, min_freq, max_freq, 
+                                      num, width, units) -> tuple:
         """
         Helper method to get the list of frequencies and the main spread factors to
         calculate the broadened Raman intensities with a Lorentz distribution.
@@ -249,7 +253,7 @@ class Raman:
 
         Returns:
             If pol_in==pol_out==None a 3x3 list with a Function1D corresponding to the different
-            components of the intensities. Otherwise a single Function1D with the  intensities of
+            components of the intensities. Otherwise a single Function1D with the intensities of
             the selected polarizations. Each Function1D has "num" points.
         """
 
@@ -283,7 +287,8 @@ class Raman:
 
             return li_func
 
-    def get_powder_intensity(self, temp, laser_freq, non_anal_dir=None, relative=False, units="eV"):
+    def get_powder_intensity(self, temp, laser_freq, non_anal_dir=None, 
+                             relative=False, units="eV") -> PowderIntensity:
         """
         Calculates the Raman intensities in arbitrary units for each mode integrated over all possible
         orientation to reproduce the powder measurements. It is possible to use the susceptibilities from
@@ -333,7 +338,7 @@ class Raman:
         return PowderIntensity(paral, perp, tot)
 
     def get_powder_lorentz_intensity(self, temp, laser_freq, width, non_anal_dir=None, min_freq=None,
-                                     max_freq=None, num=1000, relative=False, units="eV"):
+                                     max_freq=None, num=1000, relative=False, units="eV") -> PowderIntensity:
         """
         Calculates the broadened Raman intensities in arbitrary units integrated over all possible
         orientation to reproduce the powder measurements for frequencies in an interval. It is possible to
@@ -381,14 +386,15 @@ class Raman:
 
     @add_fig_kwargs
     def plot_intensity(self, temp, laser_freq, width, value, non_anal_dir=None, min_freq=None, max_freq=None,
-                       num=1000, relative=False, units="eV", ax=None, plot_phfreqs=False, **kwargs):
+                       num=1000, relative=False, units="eV", ax=None, 
+                       plot_phfreqs=False, **kwargs) -> Figure:
         """
         Plot one representation of the broadened Raman intensities.
 
         Args:
             temp: temperature in K.
-            laser_freq: frequency of the incident laser. The units are determined the "units"
-                argument.
+            laser_freq: frequency of the incident laser. The units are determined according to
+                the "units" argument.
             width: the width of the Lorentz distribution. The units are determined the "units"
                 argument. If None or 0 a plot of only the frequencies for each mode will be given.
             value: a string describing the value that should be plotted. Can be "powder" or
@@ -412,8 +418,7 @@ class Raman:
                 phonon modes.
             **kwargs: arguments passed to the plot function.
 
-        Returns:
-            |matplotlib-Figure|
+        Returns: |matplotlib-Figure|
         """
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -454,6 +459,8 @@ class Raman:
 
                 i = ri.tot
             else:
+                if len(value) != 2:
+                    raise ValueError("The value should contain the ingoing and outgoing polarizations.")
                 pol_in = value[0]
                 pol_out = value[1]
                 i = self.get_modes_intensities(temp=temp, laser_freq=laser_freq, non_anal_dir=non_anal_dir,

@@ -3,23 +3,30 @@
 Function1D describes a function of a single variable and provides an easy-to-use API
 for performing common tasks such as algebraic operations, integrations, differentiations, plots ...
 """
+from __future__ import annotations
+
 import numpy as np
 
 from io import StringIO
+from typing import Tuple, Union
 from monty.functools import lazy_property
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, data_from_cplx_mode
+from abipy.tools.typing import Figure
+from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, add_plotly_fig_kwargs, PlotlyRowColDesc, get_fig_plotly)
 from abipy.tools.derivatives import finite_diff
+from abipy.tools.numtools import data_from_cplx_mode
 
 __all__ = [
     "Function1D",
 ]
 
 
-class Function1D(object):
-    """Immutable object representing a (real|complex) function of real variable."""
+class Function1D:
+    """
+    Immutable object representing a real|complex function of real variable.
+    """
 
     @classmethod
-    def from_constant(cls, mesh, const):
+    def from_constant(cls, mesh, const) -> Function1D:
         """Build a constant function from the mesh and the scalar ``const``"""
         mesh = np.ascontiguousarray(mesh)
         return cls(mesh, np.ones(mesh.shape) * const)
@@ -36,51 +43,52 @@ class Function1D(object):
         assert len(self.mesh) == len(self.values)
 
     @property
-    def mesh(self):
+    def mesh(self) -> np.ndarray:
         """|numpy-array| with the mesh points"""
         return self._mesh
 
     @property
-    def values(self):
+    def values(self) -> np.ndarray:
         """Values of the functions."""
         return self._values
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.mesh)
 
     def __iter__(self):
         return zip(self.mesh, self.values)
 
-    def __getitem__(self, slice):
+    def __getitem__(self, slice) -> Tuple[float, float]:
         return self.mesh[slice], self.values[slice]
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if other is None: return False
         return (self.has_same_mesh(other) and
                 np.allclose(self.values, other.values))
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not (self == other)
 
-    def __neg__(self):
+    def __neg__(self) -> Function1D:
         return self.__class__(self.mesh, -self.values)
 
-    def __pos__(self):
+    def __pos__(self) -> Function1D:
         return self
 
-    def __abs__(self):
+    def __abs__(self) -> Function1D:
         return self.__class__(self.mesh, np.abs(self.values))
 
-    def __add__(self, other):
+    def __add__(self, other) -> Function1D:
         cls = self.__class__
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
             return cls(self.mesh, self.values+other.values)
         else:
-            return cls(self.mesh, self.values+np.array(other))
+            return cls(self.mesh, self.values + np.array(other))
+
     __radd__ = __add__
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> Function1D:
         cls = self.__class__
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
@@ -88,54 +96,56 @@ class Function1D(object):
         else:
             return cls(self.mesh, self.values-np.array(other))
 
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> Function1D:
         return -self + other
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> Function1D:
         cls = self.__class__
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
             return cls(self.mesh, self.values*other.values)
         else:
             return cls(self.mesh, self.values*other)
+
     __rmul__ = __mul__
 
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> Function1D:
         cls = self.__class__
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
             return cls(self.mesh, self.values/other.values)
         else:
             return cls(self.mesh, self.values/other)
+
     __rtruediv__ = __truediv__
 
-    def __pow__(self, other):
+    def __pow__(self, other) -> Function1D:
         return self.__class__(self.mesh, self.values**other)
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> Figure:
         """Integration with jupyter_ notebooks."""
         return self.plot(show=False)
 
     @property
-    def real(self):
+    def real(self) -> Function1D:
         """Return new :class:`Function1D` with the real part of self."""
         return self.__class__(self.mesh, self.values.real)
 
     @property
-    def imag(self):
+    def imag(self) -> Function1D:
         """Return new :class:`Function1D` with the imaginary part of self."""
         return self.__class__(self.mesh, self.values.real)
 
-    def conjugate(self):
+    def conjugate(self) -> Function1D:
         """Return new :class:`Function1D` with the complex conjugate."""
         return self.__class__(self.mesh, self.values.conjugate)
 
-    def abs(self):
+    def abs(self) -> Function1D:
         """Return :class:`Function1D` with the absolute value."""
         return self.__class__(self.mesh, np.abs(self.values))
 
     @classmethod
-    def from_func(cls, func, mesh):
+    def from_func(cls, func, mesh) -> Function1D:
         """
         Initialize the object from a callable.
 
@@ -146,7 +156,7 @@ class Function1D(object):
         return cls(mesh, np.vectorize(func)(mesh))
 
     @classmethod
-    def from_file(cls, path, comments="#", delimiter=None, usecols=(0, 1)):
+    def from_file(cls, path, comments="#", delimiter=None, usecols=(0, 1)) -> Function1D:
         """
         Initialize an instance by reading data from path (txt format)
         see also :func:`np.loadtxt`
@@ -162,7 +172,7 @@ class Function1D(object):
                                   usecols=usecols, unpack=True)
         return cls(mesh, values)
 
-    def to_file(self, path, fmt='%.18e', header=''):
+    def to_file(self, path, fmt='%.18e', header='') -> None:
         """
         Save data in a text file. Use format fmr. A header is added at the beginning.
         """
@@ -172,18 +182,18 @@ class Function1D(object):
             for x, y in zip(self.mesh, self.values):
                 fh.write(fmt % (x, y))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s at %s, size = %d" % (self.__class__.__name__, id(self), len(self))
 
-    def __str__(self):
+    def __str__(self) -> str:
         stream = StringIO()
         for x, y in zip(self.mesh, self.values):
             stream.write("%.18e %.18e\n" % (x, y))
         return "".join(stream.getvalue())
 
-    def has_same_mesh(self, other):
+    def has_same_mesh(self, other: Function1D) -> bool:
         """True if self and other have the same mesh."""
-        if (self.h, other.h) is (None, None):
+        if self.h is None and other.h is None:
             # Generic meshes.
             return np.allclose(self.mesh, other.mesh)
         else:
@@ -191,12 +201,12 @@ class Function1D(object):
             return len(self.mesh) == len(other.mesh) and self.h == other.h
 
     @property
-    def bma(self):
+    def bma(self) -> float:
         """Return b-a. f(x) is defined in [a,b]"""
         return self.mesh[-1] - self.mesh[0]
 
     @property
-    def max(self):
+    def max(self) -> float:
         """Max of f(x) if f is real, max of :math:`|f(x)|` if complex."""
         if not self.iscomplexobj:
             return self.values.max()
@@ -205,7 +215,7 @@ class Function1D(object):
             return np.max(np.abs(self.values))
 
     @property
-    def min(self):
+    def min(self) -> float:
         """Min of f(x) if f is real, min of :math:`|f(x)|` if complex."""
         if not self.iscomplexobj:
             return self.values.min()
@@ -213,7 +223,7 @@ class Function1D(object):
             return np.max(np.abs(self.values))
 
     @property
-    def iscomplexobj(self):
+    def iscomplexobj(self) -> bool:
         """
         Check if values is array of complex numbers.
         The type of the input is checked, not the value. Even if the input
@@ -222,12 +232,12 @@ class Function1D(object):
         return np.iscomplexobj(self.values)
 
     @lazy_property
-    def h(self):
+    def h(self) -> Union[float, None]:
         """The spacing of the mesh. None if mesh is not homogeneous."""
         return self.dx[0] if np.allclose(self.dx[0], self.dx) else None
 
     @lazy_property
-    def dx(self):
+    def dx(self) -> np.ndarray:
         """
         |numpy-array| of len(self) - 1 elements giving the distance between two
         consecutive points of the mesh, i.e. dx[i] = ||x[i+1] - x[i]||.
@@ -237,7 +247,7 @@ class Function1D(object):
             dx[i] = self.mesh[i+1] - x
         return dx
 
-    def find_mesh_index(self, value):
+    def find_mesh_index(self, value) -> int:
         """
         Return the index of the first point in the mesh whose value is >= value
         -1 if not found
@@ -247,7 +257,7 @@ class Function1D(object):
                 return i
         return -1
 
-    def finite_diff(self, order=1, acc=4):
+    def finite_diff(self, order: int = 1, acc: int = 4) -> Function1D:
         """
         Compute the derivatives by finite differences.
 
@@ -263,7 +273,7 @@ class Function1D(object):
 
         return self.__class__(self.mesh, finite_diff(self.values, self.h, order=order, acc=acc))
 
-    def integral(self, start=0, stop=None):
+    def integral(self, start=0, stop=None) -> Function1D:
         r"""
         Cumulatively integrate y(x) from start to stop using the composite trapezoidal rule.
 
@@ -272,12 +282,14 @@ class Function1D(object):
         """
         if stop is None: stop = len(self.values) + 1
         x, y = self.mesh[start:stop], self.values[start:stop]
-        from scipy.integrate import cumtrapz
-        integ = cumtrapz(y, x=x)
-        pad_intg = np.zeros(len(y))
-        pad_intg[1:] = integ
+        try :
+            from scipy.integrate import cumulative_trapezoid as cumtrapz
+        except ImportError:
+            from scipy.integrate import cumtrapz
 
-        return self.__class__(x, pad_intg)
+        integ = cumtrapz(y, x=x, initial=0.0)
+
+        return self.__class__(x, integ)
 
     @lazy_property
     def spline(self):
@@ -290,7 +302,7 @@ class Function1D(object):
         """Zeros of the spline."""
         return self.spline.roots()
 
-    def spline_on_mesh(self, mesh):
+    def spline_on_mesh(self, mesh) -> Function1D:
         """Spline the function on the given mesh, returns :class:`Function1D` object."""
         return self.__class__(mesh, self.spline(mesh))
 
@@ -316,16 +328,16 @@ class Function1D(object):
         return self.integral()[-1][1]
 
     @lazy_property
-    def l1_norm(self):
+    def l1_norm(self) -> float:
         r"""Compute :math:`\int |f(x)| dx`."""
         return abs(self).integral()[-1][1]
 
     @lazy_property
-    def l2_norm(self):
+    def l2_norm(self) -> float:
         r"""Compute :math:`\sqrt{\int |f(x)|^2 dx}`."""
         return np.sqrt((abs(self)**2).integral()[-1][1])
 
-    def fft(self):
+    def fft(self) -> Function1D:
         """Compute the FFT transform (negative sign)."""
         # Compute FFT and frequencies.
         from scipy import fftpack
@@ -339,7 +351,7 @@ class Function1D(object):
 
         return self.__class__(freqs, fft_vals)
 
-    def ifft(self, x0=None):
+    def ifft(self, x0=None) -> Function1D:
         r"""Compute the FFT transform :math:`\int e+i`"""
         # Rearrange values in the standard order then perform IFFT.
         from scipy import fftpack
@@ -378,87 +390,87 @@ class Function1D(object):
     #    smooth_vals = smooth(self.values, window_len=window_len, window=window)
     #    return self.__class__(self.mesh, smooth_vals)
 
-    def real_from_kk(self, with_div=True):
-        """
-        Compute the Kramers-Kronig transform of the imaginary part
-        to get the real part. Assume self represents the Fourier
-        transform of a response function.
+    #def real_from_kk(self, with_div=True):
+    #    """
+    #    Compute the Kramers-Kronig transform of the imaginary part
+    #    to get the real part. Assume self represents the Fourier
+    #    transform of a response function.
 
-        Args:
-            with_div: True if the divergence should be treated numerically.
-                If False, the divergence is ignored, results are less accurate
-                but the calculation is faster.
+    #    Args:
+    #        with_div: True if the divergence should be treated numerically.
+    #            If False, the divergence is ignored, results are less accurate
+    #            but the calculation is faster.
 
-        .. seealso:: <https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations>
-        """
-        from scipy.integrate import cumtrapz, quad
-        from scipy.interpolate import UnivariateSpline
-        wmesh = self.mesh
-        num = np.array(self.values.imag * wmesh, dtype=np.double)
+    #    .. seealso:: <https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations>
+    #    """
+    #    from scipy.integrate import cumtrapz, quad
+    #    from scipy.interpolate import UnivariateSpline
+    #    wmesh = self.mesh
+    #    num = np.array(self.values.imag * wmesh, dtype=np.double)
 
-        if with_div:
-            spline = UnivariateSpline(self.mesh, num, s=0)
+    #    if with_div:
+    #        spline = UnivariateSpline(self.mesh, num, s=0)
 
-        kk_values = np.empty(len(self))
-        for i, w in enumerate(wmesh):
-            den = wmesh**2 - w**2
-            # Singularity is treated below.
-            den[i] = 1
-            f = num / den
-            f[i] = 0
-            integ = cumtrapz(f, x=wmesh)
-            kk_values[i] = integ[-1]
+    #    kk_values = np.empty(len(self))
+    #    for i, w in enumerate(wmesh):
+    #        den = wmesh**2 - w**2
+    #        # Singularity is treated below.
+    #        den[i] = 1
+    #        f = num / den
+    #        f[i] = 0
+    #        integ = cumtrapz(f, x=wmesh)
+    #        kk_values[i] = integ[-1]
 
-            if with_div:
-                func = lambda x: spline(x) / (x**2 - w**2)
-                w0 = w - self.h
-                w1 = w + self.h
-                y, abserr = quad(func, w0, w1, points=[w])
-                kk_values[i] += y
+    #        if with_div:
+    #            func = lambda x: spline(x) / (x**2 - w**2)
+    #            w0 = w - self.h
+    #            w1 = w + self.h
+    #            y, abserr = quad(func, w0, w1, points=[w])
+    #            kk_values[i] += y
 
-        return self.__class__(self.mesh, (2 / np.pi) * kk_values)
+    #    return self.__class__(self.mesh, (2 / np.pi) * kk_values)
 
-    def imag_from_kk(self, with_div=True):
-        """
-        Compute the Kramers-Kronig transform of the real part
-        to get the imaginary part. Assume self represents the Fourier
-        transform of a response function.
+    #def imag_from_kk(self, with_div=True):
+    #    """
+    #    Compute the Kramers-Kronig transform of the real part
+    #    to get the imaginary part. Assume self represents the Fourier
+    #    transform of a response function.
 
-        Args:
-            with_div: True if the divergence should be treated numerically.
-                If False, the divergence is ignored, results are less accurate
-                but the calculation is faster.
+    #    Args:
+    #        with_div: True if the divergence should be treated numerically.
+    #            If False, the divergence is ignored, results are less accurate
+    #            but the calculation is faster.
 
-        .. seealso:: <https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations>
-        """
-        from scipy.integrate import cumtrapz, quad
-        from scipy.interpolate import UnivariateSpline
-        wmesh = self.mesh
-        num = np.array(self.values.real, dtype=np.double)
+    #    .. seealso:: <https://en.wikipedia.org/wiki/Kramers%E2%80%93Kronig_relations>
+    #    """
+    #    from scipy.integrate import cumtrapz, quad
+    #    from scipy.interpolate import UnivariateSpline
+    #    wmesh = self.mesh
+    #    num = np.array(self.values.real, dtype=np.double)
 
-        if with_div:
-            spline = UnivariateSpline(self.mesh, num, s=0)
+    #    if with_div:
+    #        spline = UnivariateSpline(self.mesh, num, s=0)
 
-        kk_values = np.empty(len(self))
-        for i, w in enumerate(wmesh):
-            den = wmesh**2 - w**2
-            # Singularity is treated below.
-            den[i] = 1
-            f = num / den
-            f[i] = 0
-            integ = cumtrapz(f, x=wmesh)
-            kk_values[i] = integ[-1]
+    #    kk_values = np.empty(len(self))
+    #    for i, w in enumerate(wmesh):
+    #        den = wmesh**2 - w**2
+    #        # Singularity is treated below.
+    #        den[i] = 1
+    #        f = num / den
+    #        f[i] = 0
+    #        integ = cumtrapz(f, x=wmesh)
+    #        kk_values[i] = integ[-1]
 
-            if with_div:
-                func = lambda x: spline(x) / (x**2 - w**2)
-                w0 = w - self.h
-                w1 = w + self.h
-                y, abserr = quad(func, w0, w1, points=[w])
-                kk_values[i] += y
+    #        if with_div:
+    #            func = lambda x: spline(x) / (x**2 - w**2)
+    #            w0 = w - self.h
+    #            w1 = w + self.h
+    #            y, abserr = quad(func, w0, w1, points=[w])
+    #            kk_values[i] += y
 
-        return self.__class__(self.mesh, -(2 / np.pi) * wmesh * kk_values)
+    #    return self.__class__(self.mesh, -(2 / np.pi) * wmesh * kk_values)
 
-    def plot_ax(self, ax, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs):
+    def plot_ax(self, ax, exchange_xy=False, normalize=False, xfactor=1, yfactor=1, *args, **kwargs) -> list:
         """
         Helper function to plot self on axis ax.
 
@@ -466,6 +478,7 @@ class Function1D(object):
             ax: |matplotlib-Axes|.
             exchange_xy: True to exchange the axis in the plot.
             args: Positional arguments passed to ax.plot
+            normalize: Normalize the ydata to 1.
             xfactor, yfactor: xvalues and yvalues are multiplied by this factor before plotting.
             kwargs: Keyword arguments passed to ``matplotlib``. Accepts
 
@@ -492,6 +505,7 @@ class Function1D(object):
             xx, yy = self.mesh, data_from_cplx_mode(c, self.values)
             if xfactor != 1: xx = xx * xfactor
             if yfactor != 1: yy = yy * yfactor
+            if normalize: yy = yy / np.max(yy)
 
             if exchange_xy:
                 xx, yy = yy, xx
@@ -501,9 +515,9 @@ class Function1D(object):
         return lines
 
     @add_fig_kwargs
-    def plot(self, ax=None, **kwargs):
+    def plot(self, ax=None, **kwargs) -> Figure:
         """
-        Plot the function.
+        Plot the function with matplotlib.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -520,5 +534,72 @@ class Function1D(object):
         ax.grid(True)
         exchange_xy = kwargs.pop("exchange_xy", False)
         self.plot_ax(ax, exchange_xy=exchange_xy, **kwargs)
+
+        return fig
+
+    def plotly_traces(self, fig, rcd=None, exchange_xy=False, xfactor=1, yfactor=1, *args, **kwargs):
+        """
+        Helper function to plot the function with plotly.
+
+        Args:
+            fig: plotly.graph_objects.Figure.
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
+            exchange_xy: True to exchange the x and y in the plot.
+            xfactor, yfactor: xvalues and yvalues are multiplied by this factor before plotting.
+            args: Positional arguments passed to 'plotly.graph_objects.Scatter'
+            kwargs: Keyword arguments passed to 'plotly.graph_objects.Scatter'.
+                Accepts also AbiPy specific kwargs:
+
+        ==============  ===============================================================
+        kwargs          Meaning
+        ==============  ===============================================================
+        cplx_mode       string defining the data to print.
+                        Possible choices are (case-insensitive): `re` for the real part
+                        "im" for the imaginary part, "abs" for the absolute value.
+                        "angle" to display the phase of the complex number in radians.
+                        Options can be concatenated with "-"
+        ==============  ===============================================================
+        """
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        ply_row, ply_col = rcd.ply_row, rcd.ply_col
+
+        import plotly.graph_objects as go
+
+        if self.iscomplexobj:
+            cplx_mode = kwargs.pop("cplx_mode", "re-im")
+        else:
+            cplx_mode = kwargs.pop("cplx_mode", "re")
+
+        showlegend = False
+        if "name" in kwargs: showlegend = True
+        showlegend = kwargs.pop("showlegend", showlegend)
+
+        for c in cplx_mode.lower().split("-"):
+            xx, yy = self.mesh, data_from_cplx_mode(c, self.values)
+            if xfactor != 1: xx = xx * xfactor
+            if yfactor != 1: yy = yy * yfactor
+
+            if exchange_xy:
+                xx, yy = yy, xx
+
+            fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=showlegend, *args, **kwargs),
+                          row=ply_row, col=ply_col)
+
+    @add_plotly_fig_kwargs
+    def plotly(self, exchange_xy=False, fig=None, rcd=None, **kwargs):
+        """
+        Plot the function with plotly.
+
+        Args:
+            exchange_xy: True to exchange x- and y-axis (default: False)
+            fig: plotly figure or None if a new figure should be created.
+            rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col)
+                of the subplot in the grid.
+
+        Returns: plotly-Figure
+        """
+        fig, _ = get_fig_plotly(fig=fig)
+        rcd = PlotlyRowColDesc.from_object(rcd)
+        self.plotly_traces(fig, rcd=rcd, exchange_xy=exchange_xy, **kwargs)
 
         return fig

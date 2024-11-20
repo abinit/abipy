@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 r"""
-Flow for E-PH calculations
-==========================
+Isotropic superconductivity
+============================
 
-This flow computes the phonon linewidths and the Eliashberg function in Al.
+This flow computes the phonon linewidths and the isotropic Eliashberg function in Al.
 """
 import sys
 import os

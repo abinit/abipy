@@ -3,6 +3,8 @@
 Shankland-Koelling-Wood Fourier interpolation scheme.
 For the theoretical background see :cite:`Euwema1969,Koelling1986,Pickett1988,Madsen2006`.
 """
+from __future__ import annotations
+
 import abc
 import itertools
 import pickle
@@ -11,6 +13,7 @@ import scipy
 import time
 
 from collections import deque, OrderedDict
+#from typing import
 from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
@@ -36,12 +39,12 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
     use_cache = True
 
     @classmethod
-    def pickle_load(cls, filepath):
+    def pickle_load(cls, filepath: str):
         """Loads the object from a pickle file."""
         with open(filepath, "rb") as fh:
             return pickle.load(fh)
 
-    def pickle_dump(self, filepath):
+    def pickle_dump(self, filepath: str) -> None:
         """Save the status of the object in pickle format."""
         with open(filepath, "wb") as fh:
             pickle.dump(self, fh)
@@ -70,7 +73,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
             is_shift=is_shift, is_time_reversal=self.has_timrev, symprec=self.symprec)
 
         uniq, weights = np.unique(mapping, return_counts=True)
-        weights = np.asarray(weights, dtype=np.float) / len(grid)
+        weights = np.asarray(weights, dtype=float) / len(grid)
         nkibz = len(uniq)
         ibz = grid[uniq] / mesh
         if self.verbose:
@@ -80,12 +83,12 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         bz = (grid + kshift) / mesh
 
         # All k-points and mapping to ir-grid points
-        bz2ibz = np.empty(len(bz), dtype=np.int)
+        bz2ibz = np.empty(len(bz), dtype=int)
         for i, (ir_gp_id, gp) in enumerate(zip(mapping, grid)):
             inds = np.where(uniq == ir_gp_id)
             #print("inds", inds, "inds[0]", inds[0])
             assert len(inds) == 1
-            bz2ibz[i] = inds[0]
+            bz2ibz[i] = int(inds[0])
             #print("%3d ->%3d %s" % (i, ir_gp_id, (gp + [0.5, 0.5, 0.5]) / mesh))
             #print("%3d ->%3d %s" % (i, ir_gp_id, (gp + kshift) / mesh))
 
@@ -105,7 +108,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
     #    return self.fermie
 
     @property
-    def val_ib(self):
+    def val_ib(self) -> int:
         """The index of the valence band."""
         if self.occtype != "insulator":
             print("Trying to access valence band index with occtype:", self.occtype)
@@ -214,7 +217,12 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
                         values[spin] += wtk * gaussian(wmesh, width, center=eigens[spin, ik, band])
 
             # Compute IDOS
-            integral = scipy.integrate.cumtrapz(values, x=wmesh, initial=0.0)
+            try :
+                from scipy.integrate import cumulative_trapezoid as cumtrapz
+            except ImportError:
+                from scipy.integrate import cumtrapz
+
+            integral = cumtrapz(values, x=wmesh, initial=0.0)
 
         else:
             raise ValueError("Method %s is not supported" % method)
@@ -453,7 +461,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
+        kmeshes = np.reshape(np.asarray(kmeshes, dtype=int), (-1, 3))
         for kmesh in kmeshes:
             edos = self.get_edos(kmesh, is_shift=is_shift, method=method, step=step, width=width)
             for spin in range(self.nsppol):
@@ -487,7 +495,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
     #    Returns: |matplotlib-Figure|
     #    """
     #    ax, fig, plt = get_ax_fig_plt(ax=ax)
-    #    kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
+    #    kmeshes = np.reshape(np.asarray(kmeshes, dtype=int), (-1, 3))
     #    for kmesh in kmeshes:
     #        jdos = self.get_jdos_q0(kmesh, is_shift=is_shift, method=method, step=step, width=width)
     #        for spin in range(self.nsppol):
@@ -560,7 +568,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
     #    ax, fig, plt = get_ax_fig_plt(ax=ax)
     #    qpoints = self._get_kpts_kticks_klabels(ax, qvertices_names, line_density)
 
-    #    kmeshes = np.reshape(np.asarray(kmeshes, dtype=np.int), (-1, 3))
+    #    kmeshes = np.reshape(np.asarray(kmeshes, dtype=int), (-1, 3))
     #    e0 = self.interpolated_fermie if e0 is None else e0
     #    for kmesh in kmeshes:
     #        nest_sq = self.get_nesting_at_e0(qpoints, kmesh, e0, width=width, is_shift=is_shift)
@@ -714,13 +722,6 @@ class SkwInterpolator(ElectronInterpolator):
     the names of the variables are chosen assuming we are interpolating electronic eigenvalues
     but the same object can be used to interpolate other quantities. Just set the first dimension to 1.
     """
-    #@class method
-    #def from_ncreader(cls, reader):
-    #    return cls(lpratio, kpts, eigens, fermie, nelect, cell, symrel, has_timrev,
-    #               filter_params=None, verbose=1)
-
-    #@class method
-    #def from_file(cls, filepath)
 
     def __init__(self, lpratio, kpts, eigens, fermie, nelect, cell, symrel, has_timrev,
                  filter_params=None, verbose=1):
@@ -779,8 +780,8 @@ class SkwInterpolator(ElectronInterpolator):
 
         nrwant = lpratio * self.nkpt
         fact = 1/2 if has_inversion else 1
-        rmax = int((1.0 + (lpratio * self.nkpt * self.ptg_nsym * fact) / 2.0) ** (1/3.)) * np.ones(3, dtype=np.int)
-        #rmax = int((1.0 + (lpratio * self.nkpt) / 2.0) ** (1/3.)) * np.ones(3, dtype=np.int)
+        rmax = int((1.0 + (lpratio * self.nkpt * self.ptg_nsym * fact) / 2.0) ** (1/3.)) * np.ones(3, dtype=int)
+        #rmax = int((1.0 + (lpratio * self.nkpt) / 2.0) ** (1/3.)) * np.ones(3, dtype=int)
 
         while True:
             self.rpts, r2vals, ok = self._find_rstar_gen(nrwant, rmax)
@@ -801,12 +802,12 @@ class SkwInterpolator(ElectronInterpolator):
 
         # Construct star functions for the ab-initio k-points.
         nsppol, nband, nkpt, nr = self.nsppol, self.nband, self.nkpt, self.nr
-        self.skr = np.empty((nkpt, nr), dtype=np.complex)
+        self.skr = np.empty((nkpt, nr), dtype=complex)
         for ik, kpt in enumerate(kpts):
             self.skr[ik] = self.get_stark(kpt)
 
         # Build H(k,k') matrix (Hermitian)
-        hmat = np.empty((nkpt-1, nkpt-1), dtype=np.complex)
+        hmat = np.empty((nkpt-1, nkpt-1), dtype=complex)
         for jk in range(nkpt-1):
             v_jkr = self.skr[jk, 1:] - self.skr[nkpt-1, 1:]
             #for ik in range(jk + 1):
@@ -816,7 +817,7 @@ class SkwInterpolator(ElectronInterpolator):
                 if ik == jk: hmat[ik, jk] = hmat[ik, jk].real
 
         # Solving system of linear equations to get lambda coeffients (eq. 10 of PRB 38 2721)..."
-        de_kbs = np.empty((nkpt-1, nband, nsppol), dtype=np.complex)
+        de_kbs = np.empty((nkpt-1, nband, nsppol), dtype=complex)
         for spin in range(nsppol):
             for ib in range(nband):
                 de_kbs[:, ib, spin] = eigens[spin, 0:nkpt-1, ib] - eigens[spin, nkpt-1, ib]
@@ -842,7 +843,7 @@ class SkwInterpolator(ElectronInterpolator):
         lmb_kbs = np.reshape(lmb_kbs, (-1, nband, nsppol))
 
         # Compute coefficients.
-        self.coefs = np.empty((nsppol, nband, nr), dtype=np.complex)
+        self.coefs = np.empty((nsppol, nband, nr), dtype=complex)
         for spin in range(nsppol):
             for ib in range(nband):
                 for ir in range(1, nr):
@@ -889,15 +890,15 @@ class SkwInterpolator(ElectronInterpolator):
         cprint("FIT vs input data: Mean Absolute Error= %.3e (meV)" % mae, color="red" if warn else "green")
         if warn:
             # Issue warning if error too large.
-            cprint("Large error in SKW interpolation!", "red")
-            cprint("MAE:", mae, "[meV]", "red")
+            cprint("Large error in SKW interpolation!", color="red")
+            cprint(f"MAE: {mae} [meV]", color="red")
 
         self.mae = mae
 
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []
         app = lines.append
@@ -911,7 +912,7 @@ class SkwInterpolator(ElectronInterpolator):
 
         return "\n".join(lines)
 
-    def eval_sk(self, spin, kpt, der1=None, der2=None):
+    def eval_sk(self, spin, kpt, der1=None, der2=None) -> np.ndarray:
         """
         Interpolate eigenvalues for all bands at a given (spin, k-point).
         Optionally compute gradients and Hessian matrices.
@@ -992,7 +993,7 @@ class SkwInterpolator(ElectronInterpolator):
 
     #    return oeig, der1, der2
 
-    def get_stark(self, kpt):
+    def get_stark(self, kpt) -> np.ndarray:
         """
         Return the star function for k-point `kpt`.
 
@@ -1003,7 +1004,7 @@ class SkwInterpolator(ElectronInterpolator):
             complex array of shape [self.nr]
         """
         two_pi = 2.0 * np.pi
-        skr = np.zeros(self.nr, dtype=np.complex)
+        skr = np.zeros(self.nr, dtype=complex)
         _np_exp = np.exp
         for omat in self.ptg_symrel:
             sk = two_pi * np.matmul(omat.T, kpt)
@@ -1012,7 +1013,7 @@ class SkwInterpolator(ElectronInterpolator):
 
         return skr
 
-    def get_stark_dk1(self, kpt):
+    def get_stark_dk1(self, kpt) -> np.ndarray:
         """
         Compute the 1st-order derivative of the star function wrt k
 
@@ -1023,7 +1024,7 @@ class SkwInterpolator(ElectronInterpolator):
             complex array [3, self.nr]  with the derivative of the
             star function wrt k in reduced coordinates.
         """
-        srk_dk1 = np.zeros((3, self.nr), dtype=np.complex)
+        srk_dk1 = np.zeros((3, self.nr), dtype=complex)
         two_pi = 2.0 * np.pi
         rpts_t = self.rpts.T
 
@@ -1038,7 +1039,7 @@ class SkwInterpolator(ElectronInterpolator):
         srk_dk1 *= 1.j / self.ptg_nsym
         return srk_dk1
 
-    def get_stark_dk2(self, kpt):
+    def get_stark_dk2(self, kpt) -> np.ndarray:
         """
         Compute the 2nd-order derivatives of the star function wrt k.
 
@@ -1049,7 +1050,7 @@ class SkwInterpolator(ElectronInterpolator):
             Complex numpy array of shape [3, 3, self.nr] with the 2nd-order derivatives
             of the star function wrt k in reduced coordinates.
         """
-        srk_dk2 = np.zeros((3, 3, self.nr), dtype=np.complex)
+        srk_dk2 = np.zeros((3, 3, self.nr), dtype=complex)
         raise NotImplementedError()
         #work = zero
         #do isym=1,self.ptg_nsym
@@ -1088,7 +1089,7 @@ class SkwInterpolator(ElectronInterpolator):
 
     #    return results
 
-    def _find_rstar_gen(self, nrwant, rmax):
+    def _find_rstar_gen(self, nrwant, rmax) -> tuple:
         """
         Find all lattice points generating the stars inside the supercell defined by `rmax`
 
@@ -1100,7 +1101,7 @@ class SkwInterpolator(ElectronInterpolator):
             tuple: (rpts, r2vals, ok)
         """
         msize = (2 * rmax + 1).prod()
-        rtmp = np.empty((msize, 3), dtype=np.int)
+        rtmp = np.empty((msize, 3), dtype=int)
         r2tmp = np.empty(msize)
         if self.verbose: print("rmax", rmax, "msize:", msize)
 
@@ -1121,14 +1122,14 @@ class SkwInterpolator(ElectronInterpolator):
         #return rtmp, r2tmp, True
 
         # Find shells
-        r2sh = np.empty(msize, dtype=np.int)    # Correspondence between R and shell index.
-        shlim = np.empty(msize, dtype=np.int)   # For each shell, the index of the initial G-vector.
+        r2sh = np.empty(msize, dtype=int)    # Correspondence between R and shell index.
+        shlim = np.empty(msize, dtype=int)   # For each shell, the index of the initial G-vector.
         nsh = 1
         r2sh[0] = 0
         shlim[0] = 0
         r2_prev = 0.0
         for ir in range(1, msize):
-            if (abs(r2tmp[ir] - r2_prev) > r2tmp[ir] * 1e-8):
+            if abs(r2tmp[ir] - r2_prev) > r2tmp[ir] * 1e-8:
                 r2_prev = r2tmp[ir]
                 shlim[nsh] = ir
                 nsh += 1
@@ -1173,7 +1174,7 @@ class SkwInterpolator(ElectronInterpolator):
         if self.verbose: print("stars", time.time() - start)
 
         start = time.time()
-        rgen = np.array(rgen, dtype=np.int)
+        rgen = np.array(rgen, dtype=int)
         nstars = len(rgen)
 
         # Store rpts and compute ||R||**2.
@@ -1195,7 +1196,7 @@ class SkwInterpolator(ElectronInterpolator):
         return rpts, r2vals, ok
 
 
-def extract_point_group(symrel, has_timrev):
+def extract_point_group(symrel, has_timrev) -> tuple:
     """
     Extract the point group rotations from the spacegroup. Add time-reversal
     if spatial inversion is not present and `has_timrev`.
@@ -1205,7 +1206,7 @@ def extract_point_group(symrel, has_timrev):
     """
     nsym = len(symrel)
     tmp_nsym = 1
-    work_symrel = np.empty((2*nsym, 3, 3), dtype=np.int)
+    work_symrel = np.empty((2*nsym, 3, 3), dtype=int)
     work_symrel[0] = symrel[0]
 
     for isym in range(1, nsym):
@@ -1214,13 +1215,13 @@ def extract_point_group(symrel, has_timrev):
             work_symrel[tmp_nsym] = symrel[isym]
             tmp_nsym += 1
 
-    inversion_3d = -np.eye(3, dtype=np.int)
+    inversion_3d = -np.eye(3, dtype=int)
     has_inversion = any(np.all(w == inversion_3d) for w in work_symrel[:tmp_nsym])
 
     # Now we know the symmetries of the point group.
     ptg_nsym = 2 * tmp_nsym if not has_inversion and has_timrev else tmp_nsym
-    ptg_symrel = np.empty((ptg_nsym, 3, 3), dtype=np.int)
-    ptg_symrec = np.empty((ptg_nsym, 3, 3), dtype=np.int)
+    ptg_symrel = np.empty((ptg_nsym, 3, 3), dtype=int)
+    ptg_symrec = np.empty((ptg_nsym, 3, 3), dtype=int)
 
     ptg_symrel[:tmp_nsym] = work_symrel[:tmp_nsym]
     for isym in range(tmp_nsym):

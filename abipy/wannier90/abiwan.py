@@ -3,27 +3,29 @@
 Interface to the ABIWAN netcdf file produced by abinit when calling wannier90 in library mode.
 Inspired to the Fortran version of wannier90.
 """
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import time
 
-from collections import OrderedDict
 from tabulate import tabulate
 from monty.string import marquee
 from monty.functools import lazy_property
 from monty.termcolor import cprint
+from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpath, IrredZone
-from abipy.abio.robots import Robot
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt
-from abipy.electrons.ebands import ElectronBands, ElectronsReader, ElectronBandsPlotter, RobotWithEbands
 from abipy.core.skw import ElectronInterpolator
+from abipy.abio.robots import Robot
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_grid_legend #, get_axarray_fig_plt
+from abipy.tools.typing import Figure
+from abipy.electrons.ebands import ElectronBands, ElectronsReader, ElectronBandsPlotter, RobotWithEbands
 
 
 class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    File produced by Abinit with the unitary matrices obtained by
-    calling wannier90 in library mode.
+    File produced by Abinit with the unitary matrices obtained by calling wannier90 in library mode.
 
     Usage example:
 
@@ -35,109 +37,105 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: AbiwanFile
     """
+
     @classmethod
-    def from_file(cls, filepath):
-        """Initialize the object from a netcdf_ file."""
+    def from_file(cls, filepath: str) -> AbiwanFile:
+        """Initialize the object from a netcdf file."""
         return cls(filepath)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = AbiwanReader(filepath)
+        self.reader = self.r = AbiwanReader(filepath)
 
         # Number of bands actually used to construct the Wannier functions
-        self.num_bands_spin = self.reader.read_value("num_bands")
+        self.num_bands_spin = self.r.read_value("num_bands")
 
     @lazy_property
-    def nwan_spin(self):
+    def nwan_spin(self) -> np.ndarray:
         """Number of Wannier functions for each spin."""
-        return self.reader.read_value("nwan")
+        return self.r.read_value("nwan")
 
     @lazy_property
-    def mwan(self):
+    def mwan(self) -> int:
         """
         Max number of Wannier functions over spins, i.e max(nwan_spin)
         Used to dimension arrays.
         """
-        return self.reader.read_dimvalue("mwan")
+        return self.r.read_dimvalue("mwan")
 
     @lazy_property
-    def nntot(self):
+    def nntot(self) -> int:
         """Number of k-point neighbours."""
-        return int(self.reader.read_value("nntot"))
+        return int(self.r.read_value("nntot"))
 
     @lazy_property
-    def bands_in(self):
+    def bands_in(self) -> np.ndarray:
         """
         [nsppol, mband] logical array. Set to True if (spin, band) is included
         in the calculation. Set by exclude_bands
         """
-        return self.reader.read_value("band_in_int").astype(np.bool)
+        return self.r.read_value("band_in_int").astype(bool)
 
     @lazy_property
-    def lwindow(self):
+    def lwindow(self) -> np.ndarray:
         """
         [nsppol, nkpt, max_num_bands] array. Only if disentanglement.
         True if this band at this k-point lies within the outer window
         """
-        return self.reader.read_value("lwindow_int").astype(np.bool)
+        return self.r.read_value("lwindow_int").astype(bool)
 
     #@lazy_property
     #def ndimwin(self):
     #    """
     #    [nsppol, nkpt] array giving the number of bands inside the outer window for each k-point and spin.
     #    """
-    #    return self.reader.read_value("ndimwin")
+    #    return self.r.read_value("ndimwin")
 
     @lazy_property
-    def have_disentangled_spin(self):
+    def have_disentangled_spin(self) -> np.ndarray:
         """[nsppol] bool array. Whether disentanglement has been performed."""
-        #return self.reader.read_value("have_disentangled_spin").astype(np.bool)
+        #return self.r.read_value("have_disentangled_spin").astype(bool)
         # TODO: Exclude bands
         return self.nwan_spin != self.num_bands_spin
 
     @lazy_property
-    def wann_centers(self):
+    def wann_centers(self) -> np.ndarray:
         """[nsppol, mwan, 3] array with Wannier centers in Ang."""
-        return self.reader.read_value("wann_centres")
+        return self.r.read_value("wann_centres")
 
     @lazy_property
-    def wann_spreads(self):
+    def wann_spreads(self) -> np.ndarray:
         """[nsppol, mwan] array with spreads in Ang^2"""
-        return self.reader.read_value("wann_spreads")
-
-    #@lazy_property
-    #def spread_spin(self):
-    #    """[nsppol, 3] array with spread in Ang^2"""
-    #    return self.reader.read_value("spread")
+        return self.r.read_value("wann_spreads")
 
     @lazy_property
-    def irvec(self):
+    def irvec(self) -> np.ndarray:
         """
         [nrpts, 3] array with the lattice vectors in the Wigner-Seitz cell
         in the basis of the lattice vectors defining the unit cell
         """
-        return self.reader.read_value("irvec")
+        return self.r.read_value("irvec")
 
     @lazy_property
-    def ndegen(self):
+    def ndegen(self) -> np.ndarray:
         """
         [nrpts] array with the degeneracy of each point.
         It will be weighted using 1 / ndegen[ir]
         """
-        return self.reader.read_value("ndegen")
+        return self.r.read_value("ndegen")
 
     @lazy_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+    def params(self) -> dict:
+        """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         # TODO
         return od
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation."""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose."""
         lines = []; app = lines.append
 
@@ -185,28 +183,29 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         if verbose > 1:
             app("")
             app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
-            #app("irvec and ndegen")
-            #for r, n in zip(self.irvec, self.ndegen):
-            #    app("%s %s" % (r, n))
+            if verbose >= 2:
+                app("irvec and ndegen")
+                for r, n in zip(self.irvec, self.ndegen):
+                    app("%s %s" % (r, n))
 
         return "\n".join(lines)
 
-    def close(self):
+    def close(self) -> None:
         """Close file."""
-        self.reader.close()
+        self.r.close()
 
     @lazy_property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
-        return self.reader.read_ebands()
+        return self.r.read_ebands()
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
     @lazy_property
-    def hwan(self):
+    def hwan(self) -> HWanR:
         """
         Construct the matrix elements of the KS Hamiltonian in real space
         """
@@ -224,18 +223,18 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         # Read unitary matrices from file.
         # Here be very careful with F --> C because we have to transpose.
         # complex U_matrix[nsppol, nkpt, mwan, mwan]
-        u_matrix = self.reader.read_value("U_matrix", cmode="c")
+        u_matrix = self.r.read_value("U_matrix", cmode="c")
 
         # complex U_matrix_opt[nsppol, mkpt, mwan, mband]
         if np.any(self.have_disentangled_spin):
-            u_matrix_opt = self.reader.read_value("U_matrix_opt", cmode="c")
+            u_matrix_opt = self.r.read_value("U_matrix_opt", cmode="c")
 
         for spin in range(self.nsppol):
             num_wan = self.nwan_spin[spin]
 
             # Real-space Hamiltonian H(R) is calculated by Fourier
             # transforming H(q) defined on the ab-initio reciprocal mesh
-            HH_q = np.zeros((num_kpts, num_wan, num_wan), dtype=np.complex)
+            HH_q = np.zeros((num_kpts, num_wan, num_wan), dtype=complex)
 
             for ik in range(num_kpts):
                 eigs_k = self.ebands.eigens[spin, ik]
@@ -264,7 +263,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
             # Fourier transform Hamiltonian in the wannier-gauge representation.
             # O_ij(R) = (1/N_kpts) sum_q e^{-iqR} O_ij(q)
-            rmn = np.zeros((nrpts, num_wan, num_wan), dtype=np.complex)
+            rmn = np.zeros((nrpts, num_wan, num_wan), dtype=complex)
             j2pi = 2.0j * np.pi
 
             #for ir in range(nrpts):
@@ -285,7 +284,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         print("HWanR built in %.3f (s)" % (time.time() - start))
         return HWanR(self.structure, self.nwan_spin, spin_vmatrix, spin_rmn, self.irvec, self.ndegen)
 
-    def interpolate_ebands(self, vertices_names=None, line_density=20, ngkpt=None, shiftk=(0, 0, 0), kpoints=None):
+    def interpolate_ebands(self, vertices_names=None, line_density=20,
+                           ngkpt=None, shiftk=(0, 0, 0), kpoints=None) -> ElectronBands:
         """
         Build new |ElectronBands| object by interpolating the KS Hamiltonian with Wannier functions.
         Supports k-path via (vertices_names, line_density), IBZ mesh defined by ngkpt and shiftk
@@ -303,8 +303,6 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             shiftk: Shifts for k-meshs. Used with ngkpt.
             kpoints: |KpointList| object taken e.g from a previous ElectronBands.
                 Has precedence over vertices_names and line_density.
-
-        Returns: |ElectronBands| object with Wannier-interpolated energies.
         """
         # Need KpointList object.
         if kpoints is None:
@@ -333,8 +331,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                     # Here I use the last value to fill eigens matrix (not very clean but oh well).
                     eigens[spin, ik, num_wan:self.mwan] = oeigs[-1]
                     if write_warning:
-                        cprint("Different number of wannier functions for spin. Filling last bands with oeigs[-1]",
-                               "yellow")
+                        cprint("Different number wannier functions for spin. Filling last bands with oeigs[-1]",
+                               color="yellow")
                         write_warning = False
 
         print("Interpolation completed in %.3f [s]" % (time.time() - start))
@@ -344,16 +342,56 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                              occfacts, self.ebands.nelect, self.nspinor, self.nspden,
                              smearing=self.ebands.smearing)
 
-    def get_plotter_from_ebands(self, ebands):
+    @add_fig_kwargs
+    def plot_with_ebands(self, ebands_kpath,
+                         ebands_kmesh=None, method="gaussian", step: float=0.05, width: float=0.1, **kwargs) -> Figure:
         """
-        Interpolate energies using the k-points given in input |ElectronBands| ebands.
+        Receive an ab-initio electronic strucuture, interpolate the energies on the same list of k-points
+        and compare the two band structures.
 
-        Return: |ElectronBandsPlotter| object.
+        Args:
+            ebands_kpath: ab-initio band structure on a k-path (either ElectroBands object or object providing it).
+            ebands_kmesh: ab-initio band structure on a k-mesh (either ElectroBands object or object providing it).
+                If not None the ab-initio and the wannier-interpolated electron DOS are computed and plotted.
+            method: Integration scheme for DOS.
+            step: Energy step (eV) of the linear mesh for DOS computation.
+            width: Standard deviation (eV) of the gaussian for DOS computation.
         """
-        ebands = ElectronBands.as_ebands(ebands)
-        wan_ebands = self.interpolate_ebands(kpoints=ebands.kpoints)
+        ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
+        wan_ebands_kpath = self.interpolate_ebands(kpoints=ebands_kpath.kpoints)
 
-        return ElectronBandsPlotter(key_ebands=[("Ab-initio", ebands), ("Interpolated", wan_ebands)])
+        key_edos = None
+        if ebands_kmesh is not None:
+            # Compute ab-initio and interpolated e-DOS
+            ebands_kmesh = ElectronBands.as_ebands(ebands_kmesh)
+            if not ebands_kmesh.kpoints.is_ibz:
+                raise ValueError("ebands_kmesh should have k-points in the IBZ!")
+            ksampling = ebands_kmesh.kpoints.ksampling
+            ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
+            if ngkpt is None:
+                raise ValueError("Non diagonal k-meshes are not supported!")
+
+            wan_ebands_kmesh = self.interpolate_ebands(ngkpt=ngkpt, shiftk=shifts)
+
+            edos_kws = dict(method=method, step=step, width=width)
+            edos = ebands_kmesh.get_edos(**edos_kws)
+            wan_edos = wan_ebands_kmesh.get_edos(**edos_kws)
+            key_edos = [("ab-initio", edos), ("interpolated", wan_edos)]
+
+        key_ebands = [("ab-initio", ebands_kpath), ("interpolated", wan_ebands_kpath)]
+        plotter = ElectronBandsPlotter(key_ebands=key_ebands, key_edos=key_edos)
+
+        linestyle_dict = {
+            "ab-initio": dict(color="red", marker="o"),
+            "interpolated": dict(color="blue", ls="-"),
+        }
+        # Add common style options.
+        common_opts = dict(markersize=2, lw=1)
+
+        for d in linestyle_dict.values():
+            d.update(**common_opts)
+
+        return plotter.combiplot(linestyle_dict=linestyle_dict, **kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -361,13 +399,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """
         yield self.interpolate_ebands().plot(show=False)
         yield self.hwan.plot(show=False)
-        if kwargs.get("verbose"):
-            linestyle_dict = {"Interpolated": dict(linewidth=0, color="red", marker="o")}
-            yield self.get_plotter_from_ebands(self.ebands).combiplot(linestyle_dict=linestyle_dict, show=False)
-        else:
-            cprint("Use verbose option to compare ab-initio points with interpolated values", "yellow")
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -380,7 +413,6 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             nbv.new_code_cell("abiwan.ebands.plot();"),
             nbv.new_code_cell("abiwan.ebands.kpoints.plot();"),
             nbv.new_code_cell("abiwan.hwan.plot();"),
-            nbv.new_code_cell("#abiwan.get_plotter_from_ebands(;file_with_abinitio_ebands').combiplot();"),
             nbv.new_code_cell("ebands_kpath = abiwan.interpolate_ebands()"),
             nbv.new_code_cell("ebands_kpath.plot();"),
             nbv.new_code_cell("ebands_kmesh = abiwan.interpolate_ebands(ngkpt=[8, 8, 8])"),
@@ -394,9 +426,7 @@ class HWanR(ElectronInterpolator):
     """
     This object represents the KS Hamiltonian in the wannier-gauge representation.
     It provides low-level methods to interpolate the KS eigenvalues, and a high-level API
-    to interpolate bandstructures and plot the decay of the matrix elements in real space.
-
-    # <0n|H|Rm>
+    to interpolate band structures and plot the decay of the matrix elements <0n|H|Rm> in real space.
     """
 
     def __init__(self, structure, nwan_spin, spin_vmatrix, spin_rmn, irvec, ndegen):
@@ -420,7 +450,7 @@ class HWanR(ElectronInterpolator):
         self.nband = nwan_spin[0]
         #self.nelect
 
-    def eval_sk(self, spin, kpt, der1=None, der2=None):
+    def eval_sk(self, spin, kpt, der1=None, der2=None) -> np.ndarray:
         """
         Interpolate eigenvalues for all bands at a given (spin, k-point).
         Optionally compute gradients and Hessian matrices.
@@ -439,16 +469,6 @@ class HWanR(ElectronInterpolator):
 
         # O_ij(k) = sum_R e^{+ik.R}*O_ij(R)
         j2pi = 2.0j * np.pi
-        """
-        num_wan = self.nwan_spin[spin]
-        hk_ij = np.zeros((num_wan, num_wan), dtype=np.complex)
-        for ir in range(self.nrpts):
-            jrk = j2pi * np.dot(kpt, self.irvec[ir])
-            hk_ij += self.spin_rmn[spin][ir] * (np.exp(jrk) / self.ndegen[ir])
-        oeigs, _ = np.linalg.eigh(hk_ij)
-        """
-
-        # This is a bit faster.
         jrk = j2pi * np.dot(self.irvec, kpt)
         phases = np.exp(jrk) / self.ndegen
         hk_ij = (self.spin_rmn[spin] * phases[:, None, None]).sum(axis=0)
@@ -456,23 +476,16 @@ class HWanR(ElectronInterpolator):
 
         return oeigs
 
-    # TODO
-    #def interpolate_omat(self, omat, kpoints):
-    #def interpolate_sigres(self, sigres):
-    #def interpolate_sigeph(self, sigeph):
-
     @add_fig_kwargs
-    def plot(self, ax=None, fontsize=12, yscale="log", **kwargs):
+    def plot(self, ax=None, fontsize=8, yscale="log", **kwargs) -> Figure:
         """
         Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: fontsize for legends and titles
-            yscale: Define scale for y-axis. Passed to ax.set_yscale
+            yscale: Define scale for y-axis.
             kwargs: options passed to ``ax.plot``.
-
-        Return: |matplotlib-Figure|
         """
         # Sort R-points by length and build sortmap.
         irs = [ir for ir in enumerate(self.structure.lattice.norm(self.irvec))]
@@ -481,19 +494,16 @@ class HWanR(ElectronInterpolator):
         rvals = np.array([item[1] for item in items])
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.grid(True)
-        ax.set_xlabel(r"$|R|$ (Ang)")
-        ax.set_ylabel(r"$Max |H^W_{ij}(R)|$")
 
         marker_spin = {0: "^", 1: "v"}
-        needs_legend = False
+        with_legend = False
         for spin in range(self.nsppol):
             amax_r = [np.abs(self.spin_rmn[spin][ir]).max() for ir in range(self.nrpts)]
             amax_r = [amax_r[i] for i in sortmap]
             label = kwargs.get("label", None)
             if label is not None:
                 label = "spin: %d" % spin if self.nsppol == 2 else None
-            if label: needs_legend = True
+            if label: with_legend = True
             ax.plot(rvals, amax_r, marker=marker_spin[spin],
                     lw=kwargs.get("lw", 2),
                     color=kwargs.get("color", "k"),
@@ -503,8 +513,7 @@ class HWanR(ElectronInterpolator):
 
             ax.set_yscale(yscale)
 
-        if needs_legend:
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        set_grid_legend(ax, fontsize, xlabel=r"$|R|$ (Ang)", ylabel=r"$Max |H^W_{ij}(R)|$", legend=with_legend)
 
         return fig
 
@@ -529,18 +538,16 @@ class AbiwanRobot(Robot, RobotWithEbands):
     """
     EXT = "ABIWAN"
 
-    def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs):
+    def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs) -> pd.DataFrame:
         """
-        Return a |pandas-DataFrame| with the most important Wannier90 results.
-        and the filenames as index.
+        Return a |pandas-DataFrame| with the most important Wannier90 results and the filenames as index.
 
         Args:
-            with_geo: True if structure info should be added to the dataframe
+            with_geo: True if structure info should be added to the dataframe.
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
 
         kwargs:
-            attrs:
-                List of additional attributes of the |GsrFile| to add to the DataFrame.
+            attrs: List of additional attributes of the |GsrFile| to add to the DataFrame.
             funcs: Function or list of functions to execute to add more data to the DataFrame.
                 Each function receives a |GsrFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
@@ -557,7 +564,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
         rows, row_names = [], []
         for label, abiwan in self.items():
             row_names.append(label)
-            d = OrderedDict()
+            d = {}
 
             # Add info on structure.
             if with_geo:
@@ -579,17 +586,14 @@ class AbiwanRobot(Robot, RobotWithEbands):
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
-    def plot_hwanr(self, ax=None, colormap="jet", fontsize=8, **kwargs):
+    def plot_hwanr(self, ax=None, colormap="jet", fontsize=8, **kwargs) -> Figure:
         """
-        Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge.
-        on the same Axes.
+        Plot the matrix elements of the KS Hamiltonian in real space in the Wannier Gauge on the same Axes.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             colormap: matplotlib color map.
             fontsize: fontsize for legends and titles
-
-        Return: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
@@ -599,7 +603,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
         return fig
 
     def get_interpolated_ebands_plotter(self, vertices_names=None, knames=None, line_density=20,
-            ngkpt=None, shiftk=(0, 0, 0), kpoints=None, **kwargs):
+                                        ngkpt=None, shiftk=(0, 0, 0), kpoints=None, **kwargs) -> ElectronBandsPlotter:
         """
         Args:
             vertices_names: Used to specify the k-path for the interpolated QP band structure
@@ -614,13 +618,11 @@ class AbiwanRobot(Robot, RobotWithEbands):
             shiftk: Shifts for k-meshs. Used with ngkpt.
             kpoints: |KpointList| object taken e.g from a previous ElectronBands.
                 Has precedence over vertices_names and line_density.
-
-        Return: |ElectronBandsPlotter| object.
         """
         diff_str = self.has_different_structures()
-        if diff_str: cprint(diff_str, "yellow")
+        if diff_str: cprint(diff_str, color="yellow")
 
-        # Need KpointList object (assume same structures in Robot)
+        # Need KpointList object (assuming same structures in the Robot)
         nc0 = self.abifiles[0]
         if kpoints is None:
             if ngkpt is not None:
@@ -651,7 +653,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
         yield p.gridplot(show=False)
         yield self.plot_hwanr(show=False)
 
-    def write_notebook(self, nbpath=None):
+    def write_notebook(self, nbpath=None) -> str:
         """
         Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
         working directory is created. Return path to the notebook.
@@ -660,7 +662,6 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.AbiwanRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
             nbv.new_code_cell("robot.get_dataframe()"),
             nbv.new_code_cell("robot.plot_hwanr();"),
@@ -670,6 +671,6 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
         # Mixins
         #nb.cells.extend(self.get_baserobot_code_cells())
-        #nb.cells.extend(self.get_ebands_code_cells())
+        #nb.cells.extend(self.get_ebands_code_cells())wannier90.wout
 
         return self._write_nb_nbpath(nb, nbpath)

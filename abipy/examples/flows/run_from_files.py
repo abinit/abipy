@@ -3,7 +3,7 @@ r"""
 Starting a Flow from external files
 ===================================
 
-This example shows how to build a flow for Nscf calculations
+This example shows how to build a flow for NSCF calculations
 in which the dependency is given by an external density file.
 """
 import sys
@@ -67,10 +67,9 @@ def build_flow(options):
     # Note that the file must exist when the work is created
     # Use the standard approach based on tasks and works if
     # there's a node who needs a file produced in the future.
-    work = flowtk.Work()
+    work = flow.new_work()
     den_filepath = abidata.ref_file("si_DEN.nc")
     work.register_nscf_task(nscf_input, deps={den_filepath: "DEN"})
-    flow.register_work(work)
 
     return flow
 
