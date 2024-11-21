@@ -525,7 +525,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_lview(self, e0="fermie", fact=1.0, ax_mat=None, lmax=None,
+    def plot_fatbands_lview(self, e0="fermie", fact=1.0, ax_mat=None, lmin=0, lmax=None,
                             ylims=None, blist=None, fontsize=12, **kwargs) -> Figure:
         """
         Plot the electronic fatbands grouped by L with matplotlib.
@@ -537,6 +537,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 -  None: Don't shift energies, equivalent to ``e0 = 0``
             fact: float used to scale the stripe size.
             ax_mat: Matrix of axes, if None a new figure is produced.
+            lmin: Minimum L included in plot.
             lmax: Maximum L included in plot. None means full set available on file.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
@@ -547,7 +548,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         """
         mylsize = self.lsize if lmax is None else lmax + 1
         # Build or get grid with (nsppol, mylsize) axis.
-        nrows, ncols = self.nsppol, mylsize
+        nrows, ncols = self.nsppol, mylsize - lmin
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=True, squeeze=False)
         ax_mat = np.reshape(ax_mat, (nrows, ncols))
@@ -558,7 +559,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         mybands = range(ebands.mband) if blist is None else blist
 
         for spin in range(self.nsppol):
-            for l in range(mylsize):
+            for l in range(lmin, mylsize):
                 ax = ax_mat[spin, l]
                 ebands.plot_ax(ax, e0, spin=spin, **self.eb_plotax_kwargs(spin))
                 title = "%s, %s" % (self.l2tex[l], self.spin2tex[spin]) if self.nsppol == 2 else "%s" % self.l2tex[l]

@@ -567,7 +567,9 @@ class BzRegularGridInterpolator:
             shifts: Shift of the mesh.
             add_replicas: If True, data is padded with redundant data points.
                 in order to have a periodic 3D array of shape=[ndat, nx+1, ny+1, nz+1].
-            kwargs: Extra arguments are passed to RegularGridInterpolator.
+            kwargs: Extra arguments are passed to RegularGridInterpolator e.g.: method
+                The method of interpolation to perform. Supported are “linear”, “nearest”,
+                    “slinear”, “cubic”, “quintic” and “pchip”.
         """
         self.structure = structure
         self.shifts = shifts

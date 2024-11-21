@@ -436,22 +436,31 @@ class Polaron:
 
         return b_data, ngqpt, shifts
 
-    def get_a2_interpolator_state(self) -> BzRegularGridInterpolator:
+    def get_a2_interpolator_state(self, interp_method) -> BzRegularGridInterpolator:
         """
         Build and return an interpolator for |A_nk|^2 for each polaronic state.
+
+        Args:
+
+            interp_method: The method of interpolation to perform. Supported are “linear”, “nearest”,
+                “slinear”, “cubic”, “quintic” and “pchip”.
         """
         a_data, ngkpt, shifts = self.insert_a_inbox()
 
-        return [BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data[pstate])**2, method="linear")
+        return [BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data[pstate])**2, method=interp_method)
                 for pstate in range(self.nstates)]
 
-    def get_b2_interpolator_state(self) -> BzRegularGridInterpolator:
+    def get_b2_interpolator_state(self, interp_method) -> BzRegularGridInterpolator:
         """
         Build and return an interpolator for |B_qnu|^2 for each polaronic state.
+
+        Args:
+            interp_method: The method of interpolation to perform. Supported are “linear”, “nearest”,
+                “slinear”, “cubic”, “quintic” and “pchip”.
         """
         b_data, ngqpt, shifts = self.insert_b_inbox()
 
-        return [BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data[pstate])**2, method="linear")
+        return [BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data[pstate])**2, method=interp_method)
                 for pstate in range(self.nstates)]
 
     def write_a2_bxsf(self, filepath: PathLike, fill_value=0.0) -> None:
@@ -562,8 +571,9 @@ class Polaron:
 
     @add_fig_kwargs
     def plot_ank_with_ebands(self, ebands_kpath,
-                             ebands_kmesh=None, lpratio: int=5, method="gaussian", step: float=0.05, width: float=0.1,
-                             nksmall: int=20, normalize: bool=False, with_title=True,
+                             ebands_kmesh=None, lpratio: int=5,
+                             with_ibz_a2dos=True, method="gaussian", step: float=0.05, width: float=0.1,
+                             nksmall: int=20, normalize: bool=False, with_title=True, interp_method="linear",
                              ax_mat=None, ylims=None, scale=10, marker_color="gold", fontsize=12, **kwargs) -> Figure:
         """
         Plot electron bands with markers with size proportional to |A_nk|^2.
@@ -575,10 +585,12 @@ class Polaron:
             normalize: Rescale the two DOS to plot them on the same scale.
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
                 The default should be OK in many systems, larger values may be required for accurate derivatives.
+            with_ibz_a2dos: True if A2_IBZ(E) should be computed.
             method: Integration scheme for DOS
             step: Energy step (eV) of the linear mesh for DOS computation.
             width: Standard deviation (eV) of the gaussian for DOS computation.
             with_title: True to add title with chemical formula and gaps.
+            interp_method: Interpolation method.
             ax_mat: List of |matplotlib-Axes| or None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
@@ -591,14 +603,14 @@ class Polaron:
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
                                                sharex=False, sharey=True, squeeze=False, gridspec_kw=gridspec_kw)
         # Get interpolators for A_nk
-        a2_interp_state = self.get_a2_interpolator_state()
+        a2_interp_state = self.get_a2_interpolator_state(interp_method)
 
         # DEBUG SECTION
-        #ref_kn = np.abs(self.a_kn) ** 2
+        #ref_akn = np.abs(self.a_kn) ** 2
         #for ik, kpoint in enumerate(self.kpoints):
         #    interp = a2_interp_state[0].eval_kpoint(kpoint)
         #    print("MAX (A2 ref - A2 interp) at qpoint", kpoint)
-        #    print((np.abs(ref_kn[ik] - interp)).max())
+        #    print((np.abs(ref_akn[ik] - interp)).max())
 
         df = self.get_final_results_df()
 
@@ -652,11 +664,21 @@ class Polaron:
         for pstate in range(self.nstates):
             # Compute A^2(E) DOS with A_nk in the full BZ
             ank_dos = np.zeros(len(edos_mesh))
-            for ik_ibz, kpoint in zip(kmesh.bz2ibz, kmesh.bz_kpoints):
+            #a2_max, kpoint_max, band_max, tol = None, None, None, 0.4
+            for ik_ibz, kpoint in zip(kmesh.bz2ibz, kmesh.bz_kpoints, strict=True):
                 enes_n = ebands_kmesh.eigens[self.spin, ik_ibz, self.bstart:self.bstop]
                 a2_n = a2_interp_state[pstate].eval_kpoint(kpoint)
-                for e, a2 in zip(enes_n, a2_n):
+                for band, (e, a2) in enumerate(zip(enes_n, a2_n, strict=True)):
                     ank_dos += a2 * gaussian(edos_mesh, width, center=e-e0)
+                    #print(float(e-e0), a2)
+                    #if a2_max is None and np.any(np.abs(kpoint) > tol):
+                    #    a2_max, kpoint_max, band_max = a2, kpoint, band
+                    #if a2_max is not None and a2 > a2_max and np.any(np.abs(kpoint) > tol):
+                    #    a2_max, kpoint_max, band_max = a2, kpoint, band
+
+            #band_max += self.bstart
+            #print(f"For {pstate=}, {a2_max=}, {kpoint_max=}, {band_max=}")
+
             ank_dos /= np.product(kmesh.ngkpt)
             ank_dos = Function1D(edos_mesh, ank_dos)
             print(f"For {pstate=}, A^2(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
@@ -668,13 +690,13 @@ class Polaron:
 
             # Computes A2(E) using only k-points in the IBZ. This is just for testing.
             # A2_IBZ(E) should be equal to A2(E) only if A_nk fullfills the lattice symmetries. See notes above.
-            with_ibz_a2dos = True
             if with_ibz_a2dos:
                 ank_dos = np.zeros(len(edos_mesh))
                 for ik_ibz, kpoint in enumerate(ebands_kmesh.kpoints):
                     weight = kpoint.weight
                     enes_n = ebands_kmesh.eigens[self.spin, ik_ibz, self.bstart:self.bstop]
                     for e, a2 in zip(enes_n, a2_interp_state[pstate].eval_kpoint(kpoint), strict=True):
+                        #print(float(e-e0), a2)
                         ank_dos += weight * a2 * gaussian(edos_mesh, width, center=e-e0)
                 ank_dos = Function1D(edos_mesh, ank_dos)
                 print(f"For {pstate=}, A2_IBZ(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
@@ -725,7 +747,7 @@ class Polaron:
     @add_fig_kwargs
     def plot_bqnu_with_phbands(self, phbands_qpath,
                                phdos_file=None, ddb=None, width=0.001, normalize: bool=True,
-                               verbose=0, anaddb_kwargs=None, with_title=True,
+                               verbose=0, anaddb_kwargs=None, with_title=True, interp_method="linear",
                                ax_mat=None, scale=10, marker_color="gold", fontsize=12, **kwargs) -> Figure:
         """
         Plot phonon energies with markers with size proportional to |B_qnu|^2.
@@ -739,6 +761,7 @@ class Polaron:
             verbose:
             anaddb_kwargs: Optional arguments passed to anaddb.
             with_title: True to add title with chemical formula and gaps.
+            interp_method: Interpolation method.
             ax_mat: List of |matplotlib-Axes| or None if a new figure should be created.
             scale: Scaling factor for |B_qnu|^2.
             marker_color: Color for markers.
@@ -755,7 +778,7 @@ class Polaron:
         phbands_qpath = PhononBands.as_phbands(phbands_qpath)
 
         # Get interpolators for B_qnu
-        b2_interp_state = self.get_b2_interpolator_state()
+        b2_interp_state = self.get_b2_interpolator_state(interp_method)
 
         for pstate in range(self.nstates):
             x, y, s = [], [], []
