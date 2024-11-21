@@ -1,22 +1,22 @@
 #!/usr/bin/env python
 r"""
-Delta SCF constrained occupation method calculation, to determine luminescent properties.
-=========================================================================================
+Delta SCF calculation: luminescence of an Eu-doped phosphor
+===========================================================
 
-This example shows how to compute the luminescent properties of Eu doped phosphor.
-It uses a 36 atoms cell of SrLiAl3N4. Two non-equivalent Sr sites are availabe for Eu, resulting
+This example shows how to compute the luminescent properties of an Eu-doped phosphor.
+It uses a 36 atoms cell of SrLiAl3N4. Two non-equivalent Sr sites are available for Eu, resulting
 in two independent LumiWork. The creation of the supercells is done with make_doped_supercell().
 
 Steps, for each structure:
-1) Relaxation in the ground state
-2) Relaxation in the excited state, starting from the relaxed ground state. Created at run-time
+1) Relaxation in the ground state.
+2) Relaxation in the excited state, starting from the relaxed ground state. Created at run-time.
 3) Scf computation in the relaxed/unrelaxed ground/excited state (4 computations).
 
 Even if we use minimal settings, the workflow takes around one hour to run on one core.
-Filepaths of the 6 runs are stored in outdata/lumi.json of each work
-A quick post-processing is automatically done at the end of a LumiWork
+Filepaths of the 6 runs are stored in outdata/lumi.json of each work.
+A quick post-processing is automatically done at the end of a LumiWork,
 and stored in outdata/Delta_SCF.json of each work, with relevant luminescent properties
-(ZPL energy, Stoke Shift, \Delta Q,...), see abipy/lumi/delta_scf.py
+(ZPL energy, Stoke Shift, \Delta Q,...), see abipy/lumi/delta_scf.py .
 """
 
 import sys
