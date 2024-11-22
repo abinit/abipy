@@ -662,22 +662,14 @@ class Polaron:
         kmesh = ebands_kmesh.get_bz2ibz_bz_points()
 
         for pstate in range(self.nstates):
-            # Compute A^2(E) DOS with A_nk in the full BZ
+
+            # Compute A^2(E) DOS with A_nk in the full BZ.
             ank_dos = np.zeros(len(edos_mesh))
-            #a2_max, kpoint_max, band_max, tol = None, None, None, 0.4
-            for ik_ibz, kpoint in zip(kmesh.bz2ibz, kmesh.bz_kpoints, strict=True):
+            for ik_ibz, bz_kpoint in zip(kmesh.bz2ibz, kmesh.bz_kpoints, strict=True):
                 enes_n = ebands_kmesh.eigens[self.spin, ik_ibz, self.bstart:self.bstop]
-                a2_n = a2_interp_state[pstate].eval_kpoint(kpoint)
+                a2_n = a2_interp_state[pstate].eval_kpoint(bz_kpoint)
                 for band, (e, a2) in enumerate(zip(enes_n, a2_n, strict=True)):
                     ank_dos += a2 * gaussian(edos_mesh, width, center=e-e0)
-                    #print(float(e-e0), a2)
-                    #if a2_max is None and np.any(np.abs(kpoint) > tol):
-                    #    a2_max, kpoint_max, band_max = a2, kpoint, band
-                    #if a2_max is not None and a2 > a2_max and np.any(np.abs(kpoint) > tol):
-                    #    a2_max, kpoint_max, band_max = a2, kpoint, band
-
-            #band_max += self.bstart
-            #print(f"For {pstate=}, {a2_max=}, {kpoint_max=}, {band_max=}")
 
             ank_dos /= np.product(kmesh.ngkpt)
             ank_dos = Function1D(edos_mesh, ank_dos)
@@ -692,18 +684,17 @@ class Polaron:
             # A2_IBZ(E) should be equal to A2(E) only if A_nk fullfills the lattice symmetries. See notes above.
             if with_ibz_a2dos:
                 ank_dos = np.zeros(len(edos_mesh))
-                for ik_ibz, kpoint in enumerate(ebands_kmesh.kpoints):
-                    weight = kpoint.weight
+                for ik_ibz, ibz_kpoint in enumerate(ebands_kmesh.kpoints):
+                    weight = ibz_kpoint.weight
                     enes_n = ebands_kmesh.eigens[self.spin, ik_ibz, self.bstart:self.bstop]
-                    for e, a2 in zip(enes_n, a2_interp_state[pstate].eval_kpoint(kpoint), strict=True):
-                        #print(float(e-e0), a2)
+                    for e, a2 in zip(enes_n, a2_interp_state[pstate].eval_kpoint(ibz_kpoint), strict=True):
                         ank_dos += weight * a2 * gaussian(edos_mesh, width, center=e-e0)
+
                 ank_dos = Function1D(edos_mesh, ank_dos)
                 print(f"For {pstate=}, A2_IBZ(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
                 ank_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$A^2_{IBZ}$(E)", color=marker_color, ls="--")
 
             set_grid_legend(ax, fontsize, xlabel="Arb. unit")
-
             if pstate != self.nstates - 1:
                 set_visible(ax, False, *["legend", "xlabel"])
 
