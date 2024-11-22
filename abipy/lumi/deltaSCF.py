@@ -15,6 +15,7 @@ except ImportError:
     from scipy.integrate import simps
 from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs,get_axarray_fig_plt
 import abipy.core.abinit_units as abu
+from abipy.lumi.utils_lumi import A_hw_help,L_hw_help,plot_emission_spectrum_help
 
 class DeltaSCF():
     """
@@ -39,7 +40,6 @@ class DeltaSCF():
 
         gs_relax_path=data["gs_relax_filepath"]
         ex_relax_path=data["ex_relax_filepath"]
-
         with abiopen(gs_relax_path) as gsr_file:
             structure_gs=gsr_file.structure
         with abiopen(ex_relax_path) as gsr_file:
@@ -394,12 +394,63 @@ class DeltaSCF():
         See eq. (9) of https://doi.org/10.1002/adom.202100649
         """
         return np.exp(self.S_em()) * self.S_em() ** n / math.factorial(n)
+    
+    def A_hw(self,T, lamb=3, w=3):
+        """
+        Lineshape function
+        Eq. (2) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537 
+        Returns (Energy in eV, Lineshape function )
+
+        Args:
+            T: Temperature in K
+            lamb: Lorentzian broadening applied to the vibronic peaks, in meV
+            w: Gaussian broadening applied to the vibronic peaks, in meV
+            model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
+        """     
+        S_nu=np.array([self.S_em()])
+        omega_nu=np.array([self.eff_freq_gs()])
+        eff_freq=self.eff_freq_gs()
+        E_zpl=self.E_zpl()
+        return A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w,)
+    
+    def L_hw(self, T, lamb=3, w=3, model='multi-D'):
+        """     
+        Normalized Luminescence intensity (area under the curve = 1)
+        Eq. (1) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537 
+        Returns (Energy in eV, Luminescence intensity)
+
+        Args:
+            T: Temperature in K
+            lamb: Lorentzian broadening applied to the vibronic peaks, in meV
+            w: Gaussian broadening applied to the vibronic peaks, in meV
+            model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
+        """     
+        E_x,A=self.A_hw(T,lamb,w)
+        E_x,I=L_hw_help(E_x, A)
+        return (E_x, I)
+    
+    @add_fig_kwargs
+    def plot_emission_spectrum(self,unit='eV',T=0,lamb=3,w=3,max_to_one=False,ax=None,**kwargs):
+        """     
+        Plot the Luminescence intensity, based on the generating function. 
+        
+        Args:
+            unit: 'eV', 'cm-1', or 'nm'
+            T: Temperature in K
+            lamb: Lorentzian broadening applied to the vibronic peaks, in meV
+            w: Gaussian broadening applied to the vibronic peaks, in meV
+        """  
+
+        x_eV,y_eV=self.L_hw(T=T,lamb=lamb,w=w)
+        plot_emission_spectrum_help(x_eV,y_eV,unit,max_to_one,ax,**kwargs)
+        return 
+    
 
     def lineshape_1D_zero_temp(self,energy_range=[0.5,5],max_m=25,phonon_width=0.01,with_omega_cube=True,normalized='Area'):
         """
         Compute the emission lineshape following the effective phonon 1D-CCM at T=0K.
-        See eq. (9) of  https://doi.org/10.1002/adom.202100649.
-
+        See eq. (9) of  https://doi.org/10.1002/adom.202100649. NOT based on the generating function. 
+        
         Args:
             energy_range:  Energy range at which the intensities are computed, ex : [0.5,5]
             max_m: Maximal vibrational state m considered
@@ -439,7 +490,8 @@ class DeltaSCF():
     def plot_lineshape_1D_zero_temp(self,energy_range=[0.5,5],max_m=25,phonon_width=0.01,with_omega_cube="True",
                                     normalized='Area', ax=None, **kwargs):
         """
-        Plot the the emission lineshape following the effective phonon 1D-CCM at T=0K.
+        Plot the the emission lineshape following the effective phonon 1D-CCM at T=0K. 
+        NOT based on the generating function. 
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -703,6 +755,58 @@ class DeltaSCF():
         ax_mat[0,1].set_ylabel("")
         ax_mat[0,2].set_ylabel("")
         ax_mat[0,3].set_ylabel("")
+
+        return fig
+    
+    @add_fig_kwargs
+    def plot_eigen_energies(self,scf_files,ax_mat=None,ylims=[-5,5],with_occ=True,
+                            titles = [r'$A_g$', r'$A_g^*$', r'$A_e^*$', r'$A_e$'],**kwargs):
+        """
+        plot the electronic eigenenergies,
+        scf_files is a list gsr file paths, typically Ag, Agstar, Aestar, Ae gsr file paths.
+        """ 
+        ebands_up=[]
+        ebands_dn=[]
+        fermies=[]
+        occs=[]
+        
+        for i,file in enumerate(scf_files):
+            with abiopen(file) as file:
+                ebands_up.append(file.ebands.eigens[0])
+                ebands_dn.append(file.ebands.eigens[1])
+                fermies.append(file.ebands.fermie)
+                occs.append(file.ebands.occfacts)
+        fermie=fermies[0]
+
+        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=1, ncols=len(scf_files),
+                                               sharex=True, sharey=True, squeeze=False,**kwargs)
+        for i,ax in enumerate(ax_mat[0]):
+            ax.hlines(y=ebands_up[i][0]-fermie,xmin=-0.8,xmax=-0.2,color="k",alpha=0.5)
+            ax.hlines(y=ebands_dn[i][0]-fermie,xmin=0.2,xmax=0.8,color="r",alpha=0.5)
+
+            if with_occ==True:
+                edge_colors=np.array([[1,0,0]]*len(occs[i][1][0]))
+                colors=edge_colors.copy()
+                for j,color in enumerate(colors):
+                    if occs[i][1][0][j]!=1:
+                        colors[j]=[1,1,1]
+                ax.scatter(x=[+0.5]*len(ebands_dn[i][0]),y=ebands_dn[i]-fermie,c=colors,edgecolors=edge_colors)
+
+                edge_colors=np.array([[0,0,0]]*len(occs[i][0][0]))
+                colors=edge_colors.copy()
+                for j,color in enumerate(colors):
+                    if occs[i][0][0][j]!=1:
+                        colors[j]=[1,1,1]
+                ax.scatter(x=[-0.5]*len(ebands_up[i][0]),y=ebands_up[i]-fermie,c=colors,edgecolors=edge_colors)
+
+
+            ax.xaxis.set_visible(False)
+            ax.grid()
+            ax.set_title(titles[i])
+            ax.set_xlim(-1.5,1.5)
+            ax.set_ylim(ylims)
+
+        ax_mat[0,0].set_ylabel("Energy (eV)")
 
         return fig
 
