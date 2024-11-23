@@ -808,7 +808,7 @@ class Polaron:
         bz_qpoints = kmesh_from_mpdivs(phdos_ngqpt, phdos_shifts)
         #bz2ibz, bz_qpoints = map_grid2ibz(self.structure, ibz_qpoints, phdos_ngqpt, shifts, has_timrev=True)
 
-        # Call anaddb (again) to get phonons on the nqpt mesh.
+        # Call anaddb (again) to get phonons on the FULL nqpt mesh.
         anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
         phbands_qmesh = ddb.anaget_phmodes_at_qpoints(qpoints=bz_qpoints, ifcflag=1, verbose=verbose, **anaddb_kwargs)
         if len(phbands_qmesh.qpoints) != np.product(phdos_ngqpt):

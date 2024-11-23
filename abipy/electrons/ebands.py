@@ -3725,7 +3725,7 @@ class ElectronBandsPlotter(NotebookWriter):
         if any(nk != nkpt_list[0] for nk in nkpt_list):
             cprint("WARNING: Bands have different number of k-points:\n%s" % str(nkpt_list), "yellow")
 
-        for (label, ebands), lineopt in zip(self.ebands_dict.items(), self.iter_lineopt_plotly(), strict=True):
+        for (label, ebands), lineopt in zip(self.ebands_dict.items(), self.iter_lineopt_plotly()):
             i += 1
             if linestyle_dict is not None and label in linestyle_dict:
                 my_kwargs.update(linestyle_dict[label])
@@ -3754,7 +3754,7 @@ class ElectronBandsPlotter(NotebookWriter):
         if self.edoses_dict:
             rcd = PlotlyRowColDesc(0, 1, nrows, ncols)
             for label, edos in self.edoses_dict.items():
-                print(label)
+                #print(label)
                 ebands = self.edoses_dict[label]
                 mye0 = ebands.get_e0(e0) if e0 != "edos_fermie" else edos.fermie
                 edos.plotly_traces(fig, mye0, rcd=rcd, exchange_xy=True, trace_name=label, **opts_label[label])
@@ -3819,7 +3819,7 @@ class ElectronBandsPlotter(NotebookWriter):
             # don't show the last ax if numeb is odd.
             if numeb % ncols != 0: ax_list[-1].axis("off")
 
-            for i, (ebands, ax) in enumerate(zip(ebands_list, ax_list), strict=True):
+            for i, (ebands, ax) in enumerate(zip(ebands_list, ax_list, strict=True)):
                 irow, icol = divmod(i, ncols)
                 ebands.plot(ax=ax, e0=e0, with_gaps=with_gaps, max_phfreq=max_phfreq, fontsize=fontsize, show=False)
                 set_axlims(ax, ylims, "y")
@@ -3835,7 +3835,7 @@ class ElectronBandsPlotter(NotebookWriter):
             fig = plt.figure()
             gspec = GridSpec(nrows, ncols)
 
-            for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list), strict=True):
+            for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list, strict=True)):
                 subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[i], width_ratios=[2, 1], wspace=0.05)
                 # Get axes and align bands and DOS.
                 ax0 = plt.subplot(subgrid[0])
@@ -5829,7 +5829,7 @@ class RobotWithEbands:
             groups = self.group_and_sortby(hue, sortby)
 
         marker_spin = {0: "^", 1: "v"}
-        for i, (ax, item) in enumerate(zip(ax_list, items), strict=True):
+        for i, (ax, item) in enumerate(zip(ax_list, items, strict=True)):
             for spin in range(max_nsppol):
                 if hue is None:
                     # Extract data.
