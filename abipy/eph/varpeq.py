@@ -667,15 +667,11 @@ class Polaron:
             for ik_ibz, bz_kpoint in zip(kdata.bz2ibz, kdata.bz_kpoints, strict=True):
                 # The check below excludes k-points that are not in the IBZ.
                 ibz_kpoint = ebands_kmesh.kpoints[ik_ibz].frac_coords
-                #if np.any(np.abs(bz_kpoint - ibz_kpoint) > 1e-3): continue
-                #print(bz_kpoint, "-->", ibz_kpoint)
-                #print(ibz_kpoint)
                 enes_n = ebands_kmesh.eigens[self.spin, ik_ibz, self.bstart:self.bstop]
                 a2_n = a2_interp_state[pstate].eval_kpoint(bz_kpoint)
                 for band, (e, a2) in enumerate(zip(enes_n, a2_n, strict=True)):
                     ank_dos += a2 * gaussian(edos_mesh, width, center=e-e0)
-                    if a2 > 10:
-                        print(f"{a2=} bz -> ibz", bz_kpoint, ibz_kpoint)
+                    #if a2 > 10: print(f"{a2=} bz -> ibz", bz_kpoint, ibz_kpoint)
 
             ank_dos /= np.product(kdata.ngkpt)
             ank_dos = Function1D(edos_mesh, ank_dos)
