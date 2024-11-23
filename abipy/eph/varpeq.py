@@ -12,7 +12,7 @@ import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import defaultdict
-from monty.string import marquee #, list_strings
+from monty.string import marquee
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.func1d import Function1D
@@ -576,11 +576,11 @@ class Polaron:
                              nksmall: int=20, normalize: bool=False, with_title=True, interp_method="linear",
                              ax_mat=None, ylims=None, scale=10, marker_color="gold", fontsize=12, **kwargs) -> Figure:
         """
-        Plot electron bands with markers with size proportional to |A_nk|^2.
+        Plot electron bands with markers whose size is proportional to |A_nk|^2.
 
         Args:
-            ebands_kpath: ElectronBands or Abipy file providing an electronic band structure along a k-path.
-            ebands_kmesh: ElectronBands or Abipy file providing an electronic band structure with k in the IBZ.
+            ebands_kpath: ElectronBands or nc file providing an electronic band structure along a k-path.
+            ebands_kmesh: ElectronBands or nc file providing an electronic band structure with k in the IBZ.
             nksmall:
             normalize: Rescale the two DOS to plot them on the same scale.
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
@@ -591,7 +591,7 @@ class Polaron:
             width: Standard deviation (eV) of the gaussian for DOS computation.
             with_title: True to add title with chemical formula and gaps.
             interp_method: Interpolation method.
-            ax_mat: List of |matplotlib-Axes| or None if a new figure should be created.
+            ax_mat: Matrix |matplotlib-Axes| or None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
             scale: Scaling factor for |A_nk|^2.
@@ -634,8 +634,7 @@ class Polaron:
             if with_info:
                 data = (df[df["pstate"] == pstate]).to_dict(orient="list")
                 e_pol_ev, converged = float(data["E_pol"][0]), bool(data["converged"][0])
-                title = f"Formation energy: {e_pol_ev:.3f} eV, {converged=}"
-                ax.set_title(title, fontsize=8)
+                ax.set_title(f"Formation energy: {e_pol_ev:.3f} eV, {converged=}" , fontsize=8)
 
             if pstate != self.nstates - 1:
                 set_visible(ax, False, *["legend", "xlabel"])
@@ -643,8 +642,8 @@ class Polaron:
         vertices_names = [(k.frac_coords, k.name) for k in ebands_kpath.kpoints]
 
         if ebands_kmesh is None:
-            print(f"Computing ebands_kmesh with star-function interpolation and {nksmall=} ...")
             edos_ngkpt = self.structure.calc_ngkpt(nksmall)
+            print(f"Computing ebands_kmesh with star-function interpolation and {nksmall=} --> {edos_ngkpt=} ...")
             r = self.ebands.interpolate(lpratio=lpratio, vertices_names=vertices_names, kmesh=edos_ngkpt)
             ebands_kmesh = r.ebands_kmesh
 
@@ -659,19 +658,26 @@ class Polaron:
         ##################
         # NB: A_nk does not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
         # Here we get the mapping BZ --> IBZ needed to obtain the KS eigenvalues e_nk from the IBZ for the DOS.
-        kmesh = ebands_kmesh.get_bz2ibz_bz_points()
+        kdata = ebands_kmesh.get_bz2ibz_bz_points()
 
         for pstate in range(self.nstates):
 
             # Compute A^2(E) DOS with A_nk in the full BZ.
             ank_dos = np.zeros(len(edos_mesh))
-            for ik_ibz, bz_kpoint in zip(kmesh.bz2ibz, kmesh.bz_kpoints, strict=True):
+            for ik_ibz, bz_kpoint in zip(kdata.bz2ibz, kdata.bz_kpoints, strict=True):
+                # The check below excludes k-points that are not in the IBZ.
+                ibz_kpoint = ebands_kmesh.kpoints[ik_ibz].frac_coords
+                #if np.any(np.abs(bz_kpoint - ibz_kpoint) > 1e-3): continue
+                #print(bz_kpoint, "-->", ibz_kpoint)
+                #print(ibz_kpoint)
                 enes_n = ebands_kmesh.eigens[self.spin, ik_ibz, self.bstart:self.bstop]
                 a2_n = a2_interp_state[pstate].eval_kpoint(bz_kpoint)
                 for band, (e, a2) in enumerate(zip(enes_n, a2_n, strict=True)):
                     ank_dos += a2 * gaussian(edos_mesh, width, center=e-e0)
+                    if a2 > 10:
+                        print(f"{a2=} bz -> ibz", bz_kpoint, ibz_kpoint)
 
-            ank_dos /= np.product(kmesh.ngkpt)
+            ank_dos /= np.product(kdata.ngkpt)
             ank_dos = Function1D(edos_mesh, ank_dos)
             print(f"For {pstate=}, A^2(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
 
@@ -685,6 +691,7 @@ class Polaron:
             if with_ibz_a2dos:
                 ank_dos = np.zeros(len(edos_mesh))
                 for ik_ibz, ibz_kpoint in enumerate(ebands_kmesh.kpoints):
+                    #print("ibz_kpoint:", ibz_kpoint)
                     weight = ibz_kpoint.weight
                     enes_n = ebands_kmesh.eigens[self.spin, ik_ibz, self.bstart:self.bstop]
                     for e, a2 in zip(enes_n, a2_interp_state[pstate].eval_kpoint(ibz_kpoint), strict=True):
@@ -715,7 +722,7 @@ class Polaron:
     @add_fig_kwargs
     def plot_bqnu_with_ddb(self, ddb, with_phdos=True, anaddb_kwargs=None, **kwargs) -> Figure:
         """
-        High-level interface to plot phonon energies with markers with size proportional to |B_qnu|^2.
+        High-level interface to plot phonon energies with markers whose size is proportional to |B_qnu|^2.
         Similar to plot_bqnu_with_phbands but this function receives in input a DdbFile or a
         path to a ddb file and automates the computation of the phonon bands by invoking anaddb.
 
@@ -741,7 +748,7 @@ class Polaron:
                                verbose=0, anaddb_kwargs=None, with_title=True, interp_method="linear",
                                ax_mat=None, scale=10, marker_color="gold", fontsize=12, **kwargs) -> Figure:
         """
-        Plot phonon energies with markers with size proportional to |B_qnu|^2.
+        Plot phonon energies with markers whose size is proportional to |B_qnu|^2.
 
         Args:
             phbands_qpath: PhononBands or Abipy file providing a phonon band structure.
@@ -803,9 +810,7 @@ class Polaron:
 
         # Here we get the mapping BZ --> IBZ needed to obtain the ph frequencies omega_qnu from the IBZ for the DOS.
         bz_qpoints = kmesh_from_mpdivs(phdos_ngqpt, phdos_shifts)
-        #bz2ibz = map_grid2ibz(self.structure, ibz_qpoints, phdos_ngqpt, has_timrev=True)
-
-        #ibz = IrredZone.from_ngkpt(self.structure, phdos_ngqpt, phdos_shifts, kptopt=1)
+        #bz2ibz, bz_qpoints = map_grid2ibz(self.structure, ibz_qpoints, phdos_ngqpt, shifts, has_timrev=True)
 
         # Call anaddb (again) to get phonons on the nqpt mesh.
         anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs

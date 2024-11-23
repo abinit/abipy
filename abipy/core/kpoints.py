@@ -189,58 +189,65 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
         rc1 = rc_list(mpdivs[1], shift[1], pbc=pbc, order=order)
         rc2 = rc_list(mpdivs[2], shift[2], pbc=pbc, order=order)
 
+        # NB: z is the fastest index in (x, y, z)
         for kxyz in product(rc0, rc1, rc2):
+            #print("kxyz", kxyz)
             kbz.append(kxyz)
 
+    #import sys; sys.exit(1)
     return np.array(kbz)
 
 
-def map_grid2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
+def map_grid2ibz(structure, ibz, ngkpt, shifts, has_timrev, pbc=False):
     """
     Compute the correspondence between a *grid* of k-points in the *unit cell*
     associated to the ``ngkpt`` mesh and the corresponding points in the IBZ.
     Requires structure with Abinit symmetries.
-    This routine is mainly used to symmetrize eigenvalues in the unit cell
-    e.g. to write BXSF files for electronic isosurfaces.
 
     Args:
-        structure: Structure with (Abinit) symmetry operations.
-        ibz: [*, 3] array with reduced coordinates in the in the IBZ.
+        structure: Structure with Abinit symmetry operations.
+        ibz: [*, 3] array with the reduced coordinates in the IBZ.
         ngkpt: Mesh divisions.
+        shifts:
         has_timrev: True if time-reversal can be used.
         pbc: True if the mesh should contain the periodic images (closed mesh).
 
     Returns:
         bz2ibz: 1d array with BZ --> IBZ mapping
     """
-    ngkpt = np.asarray(ngkpt, dtype=int)
-
-    # Extract (FM) symmetry operations in reciprocal space.
-    abispg = structure.abi_spacegroup
-    if abispg is None:
+    if (abispg := structure.abi_spacegroup) is None:
         raise ValueError("Structure does not contain Abinit spacegroup info!")
 
+    ngkpt = np.asarray(ngkpt, dtype=int)
+    shifts = np.reshape(shifts, (-1, 3))
+
+    # TODO: Handle multiple shifts
+    if np.any(np.abs(shifts) > 0):
+        raise ValueError("The k-mesh should be gamma-centered!")
+    if len(shifts) > 1:
+        raise ValueError("Multiple shifts are not supported!")
 
     # Extract rotations in reciprocal space (FM part).
     symrec_fm = [o.rot_g for o in abispg.fm_symmops]
 
-    # Compute TS k_ibz.
     bzgrid2ibz = -np.ones(ngkpt, dtype=int)
 
     for ik_ibz, kibz in enumerate(ibz):
         gp_ibz = np.array(np.rint(kibz * ngkpt), dtype=int)
         for rot in symrec_fm:
+            # Compute S k_ibz.
             rot_gp = np.matmul(rot, gp_ibz)
             gp_bz = rot_gp % ngkpt
             bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
             if has_timrev:
+                # Compute TS k_ibz.
                 gp_bz = (-rot_gp) % ngkpt
                 bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
-
     if pbc:
         # Add periodic replicas.
         bzgrid2ibz = add_periodic_replicas(bzgrid2ibz)
 
+    # Consistency check.
     if np.any(bzgrid2ibz == -1):
         #for ik_bz, ik_ibz in enumerate(self.bzgrid2ibz): print(ik_bz, ">>>", ik_ibz)
         msg =  " Found %s/%s invalid entries in bzgrid2ibz array\n" % ((bzgrid2ibz == -1).sum(), bzgrid2ibz.size)
@@ -249,8 +256,20 @@ def map_grid2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
         msg += f" {abispg=}\n"
         raise ValueError(msg)
 
-    bz2ibz = bzgrid2ibz.flatten()
-    return bz2ibz
+    # Generate k-points using numpy's meshgrid and stack for efficiency
+    nx, ny, nz = ngkpt[0], ngkpt[1], ngkpt[2]
+    if pbc:
+        nx, ny, nz = nx + 1, ny + 1, nz + 1
+
+    kx = (np.arange(nx) + shifts[0,0]) / ngkpt[0]
+    ky = (np.arange(ny) + shifts[0,1]) / ngkpt[1]
+    kz = (np.arange(nz) + shifts[0,2]) / ngkpt[2]
+
+    # Create the 3D grid of points
+    kx, ky, kz = np.meshgrid(kx, ky, kz, indexing="ij")
+    bz_kpoints = np.stack((kx.ravel(), ky.ravel(), kz.ravel()), axis=-1)
+
+    return bzgrid2ibz.flatten(), bz_kpoints
 
 
 def has_timrev_from_kptopt(kptopt):
@@ -560,7 +579,6 @@ def as_kpoints(obj, lattice, weights=None, names=None):
         if weights is None: weights = nk * [None]
         if names is None: names = nk * [None]
         return [Kpoint(rc, lattice, weight=w, name=l) for (rc, w, l) in zip(obj, weights, names)]
-
 
     raise ValueError(f"{ndim=} > 2 is not supported!")
 

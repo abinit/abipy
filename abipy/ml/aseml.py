@@ -3490,7 +3490,7 @@ class MlCwfEos(MlBase):
 
     def run_nn_name_set_name(self, nn_name: str, set_name: str) -> dict:
         print(f"Computing ML EOS with {nn_name=}, {set_name=} ...")
-        # This piece is taken from get_results.py
+        # This piece of code is taken from get_results.py
         try:
             from acwf_paper_plots.eosfit_31_adapted import BM, echarge
         except ImportError as exc:
