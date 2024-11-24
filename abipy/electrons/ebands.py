@@ -5913,7 +5913,7 @@ class RobotWithEbands:
             if any(nk != nkpt_list[0] for nk in nkpt_list):
                 cprint("WARNING: Bands have different number of k-points:\n%s" % str(nkpt_list), "yellow")
 
-            for i, (ebands, lineopts) in enumerate(zip(ebands_list, self.iter_lineopt(), strict=True)):
+            for i, (ebands, lineopts) in enumerate(zip(ebands_list, self.iter_lineopt())):
                 # Plot all branches with lineopts and set the label of the last line produced.
                 ebands.plot_ax(ax, e0, **lineopts)
                 ax.lines[-1].set_label("%s" % grp.labels[i])

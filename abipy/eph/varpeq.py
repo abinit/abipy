@@ -498,22 +498,6 @@ class Polaron:
 
         bxsf_write(filepath, self.structure, 1, self.nstates, ngqpt, b2_data, fermie, unit="Ha")
 
-    #@add_fig_kwargs
-    #def plot_bz_sampling(self, what="kpoints", fold=False,
-    #                     ax=None, pmg_path=True, with_labels=True, **kwargs) -> Figure:
-    #    """
-    #    Plots a 3D representation of the Brillouin zone with the sampling.
-
-    #    Args:
-    #        what: "kpoints" or "qpoints"
-    #        fold: whether the points should be folded inside the first Brillouin Zone.
-    #            Defaults to False.
-    #    """
-    #    bz_points = dict(kpoints=self.kpoints, qpoints=self.qpoints)[what]
-    #    kws = dict(ax=ax, pmg_path=pmg_path, with_labels=with_labels, fold=fold, kpoints=bz_points)
-
-    #    return self.structure.plot_bz(show=False, **kws)
-
     @add_fig_kwargs
     def plot_scf_cycle(self, ax_mat=None, fontsize=8, **kwargs) -> Figure:
         """
@@ -790,6 +774,7 @@ class Polaron:
                 set_visible(ax, False, *["legend", "xlabel"])
 
         if not with_phdos:
+            # Return immediately.
             if with_title: fig.suptitle(self.get_title(with_gaps=True))
             return fig
 
@@ -797,48 +782,39 @@ class Polaron:
         # Compute B_qnu DOS
         ####################
         # NB: The B_qnu do not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
-        # Add phdos and |B_qn| dos. Mesh is given in eV, values are in states/eV.
+        # Mesh is given in eV, values are in states/eV.
         phdos = phdos_file.phdos
         phdos_ngqpt = np.diagonal(phdos_file.qptrlatt) # Use same q-mesh as phdos
         phdos_shifts = [0.0, 0.0, 0.0]
         phdos_nqbz = np.product(phdos_ngqpt)
-        wmesh = phdos.mesh
+        phdos_mesh = phdos.mesh
 
         # Here we get the mapping BZ --> IBZ needed to obtain the ph frequencies omega_qnu from the IBZ for the DOS.
-        bz_qpoints = kmesh_from_mpdivs(phdos_ngqpt, phdos_shifts)
         #bz2ibz, bz_qpoints = map_grid2ibz(self.structure, ibz_qpoints, phdos_ngqpt, shifts, has_timrev=True)
 
-        # Call anaddb (again) to get phonons on the FULL nqpt mesh.
+        # Call anaddb to get phonons on the FULL ngqpt mesh.
+        # The B_qnu do not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
         anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
+        bz_qpoints = kmesh_from_mpdivs(phdos_ngqpt, phdos_shifts)
+
         phbands_qmesh = ddb.anaget_phmodes_at_qpoints(qpoints=bz_qpoints, ifcflag=1, verbose=verbose, **anaddb_kwargs)
         if len(phbands_qmesh.qpoints) != np.product(phdos_ngqpt):
             raise RuntimeError(f"{len(phbands_qmesh.qpoints)=} != {np.product(phdos_ngqpt)=}")
-        #print(phbands_qmesh.qpoints)
+
+        #with_ibz_b2dos = False
 
         for pstate in range(self.nstates):
-            # TODO New version using the BZ. Requires new VARPEQ.nc file with all symmetries
-            # The B_qnu do not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
-            # Get mapping BZ --> IBZ needed to obtain the KS eigenvalues e_nk from the IBZ for the DOS
-            """
-            bqnu_dos = np.zeros(len(wmesh))
-            for iq_ibz, qpoint in zip(bz2ibz, bz_qpoints):
-                freqs_nu = phbands_qmesh.phfreqs[iq_ibz]
-                for w, b2 in zip(freqs_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True)
-                    bqnu_dos += b2 gaussian(wmesh, width, center=w)
-            bqnu_dos /= np.product(phdos_ngqpt)
-            """
 
-            # Compute B2(E) using only q-points in the IBZ. This is just for testing.
-            # B2_IBZ(E) should be equal to B2(E) only if B_qnu fullfill the lattice symmetries. See notes above.
-            #with_ibz_b2dos = True
-            #if with_ibz_b2dos:
-            bqnu_dos = np.zeros(len(wmesh))
-            for iq, qpoint in enumerate(phbands_qmesh.qpoints):
-                weight = qpoint.weight
-                #print(weight, 1.0/phdos_nqbz)
-                freqs_nu = phbands_qmesh.phfreqs[iq]
+            # Compute B2(E) by looping over the full BZ.
+            bqnu_dos = np.zeros(len(phdos_mesh))
+            for iq_bz, qpoint in enumerate(phbands_qmesh.qpoints):
+                q_weight = qpoint.weight
+                if abs(q_weight - 1.0/phdos_nqbz) > 1e-6:
+                    raise RuntimeError(f"abs(q_weight - 1.0/phdos_nqbz) > 1e-6, {q_weight=}, {1.0/phdos_nqbz=}")
+
+                freqs_nu = phbands_qmesh.phfreqs[iq_bz]
                 for w, b2 in zip(freqs_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True):
-                    bqnu_dos += weight * b2 * gaussian(wmesh, width, center=w)
+                    bqnu_dos += q_weight * b2 * gaussian(phdos_mesh, width, center=w)
 
             bqnu_dos = Function1D(wmesh, bqnu_dos)
 
@@ -846,6 +822,18 @@ class Polaron:
             phdos.plot_ax(ax, exchange_xy=True, normalize=normalize, label="phDOS(E)", color="black")
             bqnu_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$B^2$(E)", color=marker_color)
             set_grid_legend(ax, fontsize, xlabel="Arb. unit")
+
+            # Get mapping BZ --> IBZ needed to obtain the KS eigenvalues e_nk from the IBZ for the DOS
+            # Compute B2(E) using only q-points in the IBZ. This is just for testing.
+            # B2_IBZ(E) should be equal to B2(E) only if B_qnu fullfill the lattice symmetries. See notes above.
+            """
+            bqnu_dos = np.zeros(len(phdos_mesh))
+            for iq_ibz, qpoint in zip(bz2ibz, bz_qpoints):
+                freqs_nu = phbands_qmesh.phfreqs[iq_ibz]
+                for w, b2 in zip(freqs_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True)
+                    bqnu_dos += b2 gaussian(phdos_mesh, width, center=w)
+            bqnu_dos /= np.product(phdos_ngqpt)
+            """
 
             if pstate != self.nstates - 1:
                 set_visible(ax, False, *["legend", "xlabel"])
