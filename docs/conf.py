@@ -26,9 +26,18 @@ if not sys.warnoptions:
 ABIPY_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 sys.path.insert(0, ABIPY_ROOT)
 
-import imp
+def load_mod(filepath):
+    """To maintain compatibility with py <= 3.12"""
+    try:
+        import imp
+        return imp.load_source(filepath, filepath)
+    except ModuleNotFoundError:
+        from importlib.machinery import SourceFileLoader
+        return SourceFileLoader(filepath, filepath).load_module()
+
+
 mod_name = os.path.join(ABIPY_ROOT, "abipy", "core", "release.py")
-relmod = imp.load_source(mod_name, mod_name)
+relmod = load_mod(mod_name)
 
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
 

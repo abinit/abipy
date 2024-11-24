@@ -3931,7 +3931,7 @@ class ElectronBandsPlotter(NotebookWriter):
                                      column_widths=[2, 1]*2, horizontal_spacing=0.02, sharex=False, sharey=True)
             # all sub_fig in the same row will share y
 
-            for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list), strict=True):
+            for i, (ebands, edos) in enumerate(zip(ebands_list, edos_list, strict=True)):
                 # Align bands and DOS.
                 irow, icol = divmod(i, 2)
                 band_rcd = PlotlyRowColDesc(irow, icol * 2, nrows, ncols)
@@ -5077,7 +5077,7 @@ class ElectronDosPlotter(NotebookWriter):
         # don't show the last ax if numeb is odd.
         if numeb % ncols != 0: ax_list[-1].axis("off")
 
-        for i, ((label, edos), ax) in enumerate(zip(self.edoses_dict.items(), ax_list, strict=True)):
+        for i, ((label, edos), ax) in enumerate(zip(self.edoses_dict.items(), ax_list, strict=False)):
             irow, icol = divmod(i, ncols)
 
             # Here I handle spin and spin_mode.
