@@ -563,16 +563,16 @@ class Polaron:
         Plot electron bands with markers whose size is proportional to |A_nk|^2.
 
         Args:
-            ebands_kpath: ElectronBands or nc file providing an electronic band structure along a k-path.
-            ebands_kmesh: ElectronBands or nc file providing an electronic band structure with k in the IBZ.
-            nksmall:
-            normalize: Rescale the two DOS to plot them on the same scale.
+            ebands_kpath: ElectronBands or netcdf file providing an electronic band structure along a k-path.
+            ebands_kmesh: ElectronBands or netcdf file providing an electronic band structure with k-points in the IBZ.
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
                 The default should be OK in many systems, larger values may be required for accurate derivatives.
             with_ibz_a2dos: True if A2_IBZ(E) should be computed.
             method: Integration scheme for DOS
             step: Energy step (eV) of the linear mesh for DOS computation.
             width: Standard deviation (eV) of the gaussian for DOS computation.
+            nksmall: Number of divisions to sample the smallest reciprocal lattice vector when computing electron DOS
+            normalize: Rescale the DOSes to plot them on the same scale.
             with_title: True to add title with chemical formula and gaps.
             interp_method: Interpolation method.
             ax_mat: Matrix |matplotlib-Axes| or None if a new figure should be created.
@@ -649,13 +649,10 @@ class Polaron:
             # Compute A^2(E) DOS with A_nk in the full BZ.
             ank_dos = np.zeros(len(edos_mesh))
             for ik_ibz, bz_kpoint in zip(kdata.bz2ibz, kdata.bz_kpoints, strict=True):
-                # The check below excludes k-points that are not in the IBZ.
-                ibz_kpoint = ebands_kmesh.kpoints[ik_ibz].frac_coords
                 enes_n = ebands_kmesh.eigens[self.spin, ik_ibz, self.bstart:self.bstop]
                 a2_n = a2_interp_state[pstate].eval_kpoint(bz_kpoint)
                 for band, (e, a2) in enumerate(zip(enes_n, a2_n, strict=True)):
                     ank_dos += a2 * gaussian(edos_mesh, width, center=e-e0)
-                    #if a2 > 10: print(f"{a2=} bz -> ibz", bz_kpoint, ibz_kpoint)
 
             ank_dos /= np.product(kdata.ngkpt)
             ank_dos = Function1D(edos_mesh, ank_dos)
@@ -731,7 +728,7 @@ class Polaron:
         Plot phonon energies with markers whose size is proportional to |B_qnu|^2.
 
         Args:
-            phbands_qpath: PhononBands or Abipy file providing a phonon band structure.
+            phbands_qpath: PhononBands or nc file providing a phonon band structure.
             phdos_file:
             ddb: DdbFile or path to file.
             width: Standard deviation (eV) of the gaussian.
@@ -745,7 +742,7 @@ class Polaron:
             marker_color: Color for markers.
             fontsize: fontsize for legends and titles.
         """
-        with_phdos = phdos_file is not None  and ddb is not None
+        with_phdos = phdos_file is not None and ddb is not None
         nrows, ncols, gridspec_kw = self.nstates, 1, None
         if with_phdos:
             ncols, gridspec_kw = 2, {'width_ratios': [2, 1]}
@@ -781,8 +778,8 @@ class Polaron:
         ####################
         # Compute B_qnu DOS
         ####################
-        # NB: The B_qnu do not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
-        # Mesh is given in eV, values are in states/eV.
+        # NB: B_qnu do not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
+        # The frequency mesh is in eV, values are in states/eV.
         phdos = phdos_file.phdos
         phdos_ngqpt = np.diagonal(phdos_file.qptrlatt) # Use same q-mesh as phdos
         phdos_shifts = [0.0, 0.0, 0.0]
