@@ -281,10 +281,10 @@ class QHA_2D:
             d2F_dA2= np.zeros( num)
             d2F_dC2= np.zeros( num)
             d2F_dAdC = np.zeros( num)
-            a0 = self.lattice_a[1,1]
-            c0 = self.lattice_c[1,1]
-            da=self.lattice_a[0,1]-self.lattice_a[1,1]
-            dc=self.lattice_c[1,0]-self.lattice_c[1,1]
+            a0 = self.lattice_a_from_phdos[1,1]
+            c0 = self.lattice_c_from_phdos[1,1]
+            da=self.lattice_a_from_phdos[0,1]-self.lattice_a_from_phdos[1,1]
+            dc=self.lattice_c_from_phdos[1,0]-self.lattice_c_from_phdos[1,1]
             for i,e in enumerate(ph_energies.T):
                 dF_dA[i]=(e[0,1]-e[2,1])/(2*da)
                 dF_dC[i]=(e[1,0]-e[1,2])/(2*dc)
