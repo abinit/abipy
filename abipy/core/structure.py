@@ -2763,8 +2763,8 @@ def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.st
             if headers: fromfile, tofile = headers[0], headers[i]
             diff = "\n".join(difflib.unified_diff(outs[0], outs[i], fromfile=fromfile, tofile=tofile))
             print(diff, file=file)
-
-    raise ValueError(f"Unsupported {mode=}")
+    else:
+        raise ValueError(f"Unsupported {mode=}")
 
 
 def structure2siesta(structure: Structure, verbose=0) -> str:
