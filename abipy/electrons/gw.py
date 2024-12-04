@@ -1798,7 +1798,7 @@ class SigresReader(ETSF_Reader):
 
         return tuple(qps_spin)
 
-    def read_qplist_sk(self, spin, kpoint, ignore_imag=False) -> QPList:
+    def read_qplist_sk(self, spin, kpoint, band=None, ignore_imag=False) -> QPList:
         """
         Read and return QPList object for the given spin, kpoint.
 
@@ -1808,8 +1808,11 @@ class SigresReader(ETSF_Reader):
         ikcalc = self.kpt2ikcalc(kpoint)
         bstart, bstop = self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]
 
+        band_list = list(range(bstart, bstop)) if band is None else \
+                    [b for b in range(bstart, bstop) if b != band]
+
         return QPList([self.read_qp(spin, kpoint, band, ignore_imag=ignore_imag)
-                      for band in range(bstart, bstop)])
+                      for band in band_list])
 
     def read_qpenes(self):
         return self._egw[:, :, :]

@@ -421,6 +421,7 @@ class Robot(NotebookWriter):
         """
         if is_string(abifile):
             from abipy.abilab import abiopen
+            print(f"{abifile=}")
             abifile = abiopen(abifile)
             if filter_abifile is not None and not filter_abifile(abifile):
                 abifile.close()
