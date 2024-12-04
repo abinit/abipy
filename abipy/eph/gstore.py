@@ -19,8 +19,8 @@ from abipy.core.kpoints import kpoints_indices
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
 from abipy.tools.typing import PathLike
 from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
-#from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-#    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
+from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
+    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
 #from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 #from abipy.tools.typing import Figure
@@ -192,7 +192,7 @@ class Gqk:
     vkmat_cart_ibz: np.ndarray | None
 
     @classmethod
-    def from_gstore(cls, gstore: GstoreFile, spin: int):
+    def from_gstore(cls, gstore: GstoreFile, spin: int) -> Gqk:
         """
         Build an istance from a GstoreFile and the spin index.
         """
@@ -277,8 +277,12 @@ class Gqk:
 
         return df
 
-    def get_g2q_interpolator_kpoint(self, kpoint, method="linear", check_mesh=1):
-        """
+    def get_g2q_interpolator_kpoint(self, kpoint, method="linear", check_mesh=1) -> BzRegularGridInterpolator:
+        r"""
+        Build and return an interpolator that can be used to interpolate g^2(q)
+
+        NB: Invoking the interpolation with an arbitrary q-point returns a numpy array
+        of shape (nb, nb, natom3) with g_{m_kq n_k, \nu}(q)
         """
         r = self.gstore.r
 
@@ -308,7 +312,7 @@ class Gqk:
 
     def get_g_qpt_kpt(self, qpoint, kpoint, what) -> np.ndarray:
         """
-        Return numpy array with e-ph matrix elements the for the given (qpoint, kpoint) pair.
+        Return numpy array with e-ph matrix elements for the given (qpoint, kpoint) pair.
 
         Args:
             what="g2" for |g(k,q)|^2, "g" for g(k,q)
@@ -379,6 +383,24 @@ class Gqk:
             if not _allclose("gvals", self.gvals, other.gvals, **kws): ierr += 1
 
         return ierr
+
+    #@add_fig_kwargs
+    #def plot_g2_hist(self, ax_list=None, **kwargs) -> Figure:
+
+    #    natom = len(self.structure)
+    #    nrows, ncols, gridspec_kw = natom, 3, None
+    #    ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+    #                                           sharex=True, sharey=True, squeeze=False, gridspec_kw=gridspec_kw)
+    #    ax_list = ax_list.ravel()
+
+    #    # (glob_nq, glob_nk, natom3, m_kq, n_k)
+    #    g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
+
+    #    for imode, ax in zip(range(natom * 3), ax_list):
+    #        data = g2[:,:,imode,:,:].flatten()
+    #        ax.hist(data)
+
+    #    return fig
 
 
 class GstoreReader(BaseEphReader):

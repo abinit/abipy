@@ -1915,15 +1915,15 @@ class Structure(pmg_Structure, NotebookWriter):
         all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
         Args:
-            displ: Displacement vector with 3*len(self) entries (fractional coordinates).
-            eta: Scaling factor.
-            frac_coords: Boolean stating whether the vector corresponds to fractional or cartesian coordinates.
+            displ: Displacement vector with 3*len(self) entries in fractional coordinates.
+            eta: Scaling factor in Ang
+            frac_coords: Boolean stating whether displ corresponds to fractional or cartesian coordinates.
         """
         # Get a copy since we are going to modify displ.
         displ = np.reshape(displ, (-1, 3)).copy()
 
         if len(displ) != len(self):
-            raise ValueError("Displ must contains 3 * natom entries")
+            raise ValueError("Displ array must contains 3 * natom entries")
         if np.iscomplexobj(displ):
             raise TypeError("Displacement cannot be complex")
 
@@ -1939,6 +1939,43 @@ class Structure(pmg_Structure, NotebookWriter):
         # Displace the sites.
         for i in range(len(self)):
             self.translate_sites(indices=i, vector=eta * displ[i, :], frac_coords=True)
+
+    def displace_one_site(self, index, displ, eta,
+                          frac_coords: bool = True,
+                          to_unit_cell: bool = False
+    ) -> Structure:
+        """
+        Displace one site of the structure along the displacement vector displ.
+
+        The displacement vector is first rescaled so that the maxium atomic displacement
+        is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
+        the site so that the maximum atomic displacement is 0.001 Angstrom.
+
+        Args:
+            index: Index of the site (starts at 0).
+            displ: Displacement vector in fractional coordinates.
+            eta: Scaling factor in Ang
+            frac_coords: Boolean stating whether displ corresponds to fractional or cartesian coordinates.
+            to_unit_cell (bool): Whether new sites are transformed to unit cell
+        """
+        # Get a copy since we are going to modify displ.
+        displ = 1.0 * np.reshape(displ, (3, )).copy()
+
+        if np.iscomplexobj(displ):
+            raise TypeError("Displacement cannot be complex")
+
+        if not frac_coords:
+            # Convert to fractional coordinates.
+            displ = self.lattice.get_fractional_coords(displ)
+
+        # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
+        dnorm = self.norm(displ, space="r")
+        displ /= np.max(np.abs(dnorm))
+
+        # Displace the site.
+        new_structure = self.copy()
+        new_structure.translate_sites(indices=index, vector=eta * displ, frac_coords=True, to_unit_cell=to_unit_cell)
+        return new_structure
 
     def get_smallest_supercell(self, qpoint, max_supercell):
         """
@@ -2727,8 +2764,7 @@ def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.st
             diff = "\n".join(difflib.unified_diff(outs[0], outs[i], fromfile=fromfile, tofile=tofile))
             print(diff, file=file)
 
-    else:
-        raise ValueError(f"Unsupported {mode=}")
+    raise ValueError(f"Unsupported {mode=}")
 
 
 def structure2siesta(structure: Structure, verbose=0) -> str:

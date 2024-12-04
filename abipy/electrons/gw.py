@@ -2454,3 +2454,92 @@ class SigresRobot(Robot, RobotWithEbands):
         nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
+
+
+class GwRobotWithDisplacedAtom(SigresRobot):
+    """
+    Specialized class to analyze GW or GWR calculations with displaced atom.
+    """
+    @classmethod
+    def from_displaced_atom(cls, site_index, reduced_dir, step_ang, gw_files):
+        """
+        Build an instance a list of SIG.nc or GWR.nc files.
+        """
+        #print(f"{gw_files}")
+        new = cls(*gw_files)
+        new.site_index = site_index
+        new.reduced_dir = reduced_dir
+        new.step_ang = step_ang
+        new.num_points = len(gw_files)
+
+        i0 = new.num_points // 2
+        origin_structure = new[i0].structure
+
+        # Consistency check:
+        # 1) Make sure lattice parameters and all sites other than i0 are equal.
+        fixed_site_indices = [i for i in range(len(origin_structure)) if i != site_index]
+        if err_str := new.has_different_structures(site_indices=fixed_site_indices):
+            #diff_structures(structures, fmt="abivars", mode="table", headers=(), file=sys.stdout)
+            raise ValueError(err_str)
+
+        # TODO
+        # 2) Make sure gw_files are ordered correctly.
+        #indices = np.array(range(-i0, +i0 + 1), dtype=int)
+        #for idx, ieta in enumerate(indices):
+        #    eta = ieta * step_ang
+        #    displaced_structure = origin_structure.displace_one_site(site_index, reduced_dir, eta=eta, frac_coords=True)
+        #    if displaced_structure != new[ieta].structure:
+        #        raise ValueError("displaced_structure != new[ieta].structure:")
+
+        site_list = [gwr.structure.sites[site_index] for gwr in new.abifiles]
+
+        coords_diff = np.reshape([site.coords - site_list[i0].coords for site in site_list], (-1, 3))
+        new.deltas = np.array([np.linalg.norm(coords) for coords in coords_diff])
+        new.deltas[:i0] = -new.deltas[:i0]
+        print(f"{new.deltas=}")
+
+        return new
+
+    @add_fig_kwargs
+    def plot_qpdata_vs_displ_skb(self, spin, kpoint, band,
+                                 what_list = ("e0", "qpe", "sigxme", "sigcmee0", "ze0"),
+                                 fontsize=8, **kwargs) -> Figure:
+        """
+        Plot QP data for a given spin, kpoint and band.
+
+        Args:
+            spin: Spin index.
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+            band: band index. If None all bands are considered.
+            what_list: Quantities to plot. See QPState for the list of supported attributes.
+            fontsize: legend and label fontsize.
+        """
+        # Create list of QPState for each GWR file.
+        qp_states = [gwr.r.read_qplist_sk(spin, kpoint, band=band)[0] for gwr in self.abifiles]
+
+        # Build grid plot.
+        nrows, ncols = len(what_list), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = np.array(ax_list).ravel()
+
+        xvals = self.deltas
+        #xvals = list(range(len(self)))
+        x_fit = np.linspace(xvals[0], xvals[-1], num=100)
+
+        for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
+            # Extract attribute from qp_states.
+            yvals = [getattr(qp, what) for qp in qp_states]
+            units = "" if what == "ze0" else "(eV)"
+            ylabel = f"{what} {units}"
+            ax.plot(xvals, yvals, ls="--", marker="o", label=ylabel)
+
+            if what not in ("ze0", ):
+                # Fit a quadratic polynomial (degree 2)
+                quadratic_function = np.poly1d(np.polyfit(xvals, yvals, 2))
+                y_fit = quadratic_function(x_fit)
+                ax.plot(x_fit, y_fit, ls="--", marker="x", label=ylabel)
+
+            set_grid_legend(ax, fontsize, xlabel=r"$\delta\, (\AA)$", ylabel=ylabel)
+
+        return fig

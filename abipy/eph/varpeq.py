@@ -598,6 +598,7 @@ class Polaron:
 
         df = self.get_final_results_df()
 
+        # Plot electron bands with markers.
         ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
         ymin, ymax = +np.inf, -np.inf
         for pstate in range(self.nstates):
@@ -755,6 +756,7 @@ class Polaron:
         # Get interpolators for B_qnu
         b2_interp_state = self.get_b2_interpolator_state(interp_method)
 
+        # Plot phonon bands with markers.
         for pstate in range(self.nstates):
             x, y, s = [], [], []
             for iq, qpoint in enumerate(phbands_qpath.qpoints):
@@ -780,8 +782,9 @@ class Polaron:
         ####################
         # NB: B_qnu do not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
         # The frequency mesh is in eV, values are in states/eV.
+        # Use same q-mesh as phdos
         phdos = phdos_file.phdos
-        phdos_ngqpt = np.diagonal(phdos_file.qptrlatt) # Use same q-mesh as phdos
+        phdos_ngqpt = np.diagonal(phdos_file.qptrlatt)
         phdos_shifts = [0.0, 0.0, 0.0]
         phdos_nqbz = np.product(phdos_ngqpt)
         phdos_mesh = phdos.mesh
