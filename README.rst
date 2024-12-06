@@ -468,3 +468,5 @@ AbiPy is released under the GNU GPL license. For more details see the LICENSE fi
 .. |docs-github| image:: https://img.shields.io/badge/docs-ff69b4.svg
      :alt: AbiPy Documentation
      :target: http://abinit.github.io/abipy
+
+# One line at the end
