@@ -469,4 +469,3 @@ AbiPy is released under the GNU GPL license. For more details see the LICENSE fi
      :alt: AbiPy Documentation
      :target: http://abinit.github.io/abipy
 
-# One line at the end
