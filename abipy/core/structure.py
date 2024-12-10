@@ -2351,7 +2351,7 @@ class Structure(pmg_Structure, NotebookWriter):
             app(" kptopt %d" % -(len(self.hsym_kpoints) - 1))
             app(" kptbounds")
             for k in self.hsym_kpoints:
-                app("    {:+.5f}  {:+.5f}  {:+.5f}  # {kname}".format(*k.frac_coords, kname=k.name))
+                app("    {:+.9f}  {:+.9f}  {:+.9f}  # {kname}".format(*k.frac_coords, kname=k.name))
 
         elif fmt in ("wannier90", "w90"):
             app("# Wannier90 structure")
