@@ -1,5 +1,5 @@
 """
-This module contains objects for postprocessing polaron calculations
+This module contains objects for post-processing polaron calculations
 using the results stored in the VARPEQ.nc file.
 
 For a theoretical introduction see ...
@@ -110,8 +110,8 @@ _ALL_ENTRIES = {e.name: e for e in _ALL_ENTRIES}
 
 class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    This file stores the results of a VARPEQ calculations: SCF cycle, A_nk, B_qnu
-    and provides methods to analyze and plot results.
+    This file stores the results of a VARPEQ calculations: SCF cycle, A_nk, B_qnu coefficients
+    It also provides methods to analyze and plot results.
 
     Usage example:
 
@@ -151,7 +151,7 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @lazy_property
     def polaron_spin(self) -> list[Polaron]:
-        """List of polaron objects, one for each spin (if any)."""
+        """List of Polaron objects, one for each spin (if any)."""
         return [Polaron.from_varpeq(self, spin) for spin in range(self.r.nsppol)]
 
     @lazy_property
@@ -174,7 +174,7 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int=0) -> str:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
 
@@ -232,11 +232,11 @@ class Polaron:
     Provides methods to plot |A_nk|^2 or |B_qnu|^2 together with the band structures (fatbands-like plots).
     """
     spin: int          # Spin index.
-    nstates: int       # Number of polaronic states.
-    nb: int            # Number of bands in A_kn,
-    nk: int            # Number of k-points in A_kn, (including filtering if any)
-    nq: int            # Number of q-points in B_qnu (including filtering if any)
-    bstart: int        # First band starts at bstart
+    nstates: int       # Number of polaronic states for this spin.
+    nb: int            # Number of bands in A_kn.
+    nk: int            # Number of k-points in A_kn, (including filtering if any).
+    nq: int            # Number of q-points in B_qnu (including filtering if any).
+    bstart: int        # First band starts at bstart.
     bstop: int         # Last band (python convention)
     varpeq: VarpeqFile
 
@@ -310,7 +310,7 @@ class Polaron:
                 return 1.0
             raise ValueError(f"Don't know how to convert {entry=}")
 
-        # Build list of dataframe.
+        # Build list of dataframes.
         df_list = []
         for pstate in range(self.nstates):
             n = nstep2cv[pstate]
@@ -441,8 +441,7 @@ class Polaron:
         Build and return an interpolator for |A_nk|^2 for each polaronic state.
 
         Args:
-
-            interp_method: The method of interpolation to perform. Supported are “linear”, “nearest”,
+            interp_method: The method of interpolation. Supported are “linear”, “nearest”,
                 “slinear”, “cubic”, “quintic” and “pchip”.
         """
         a_data, ngkpt, shifts = self.insert_a_inbox()
@@ -455,7 +454,7 @@ class Polaron:
         Build and return an interpolator for |B_qnu|^2 for each polaronic state.
 
         Args:
-            interp_method: The method of interpolation to perform. Supported are “linear”, “nearest”,
+            interp_method: The method of interpolation. Supported are “linear”, “nearest”,
                 “slinear”, “cubic”, “quintic” and “pchip”.
         """
         b_data, ngqpt, shifts = self.insert_b_inbox()
@@ -463,7 +462,7 @@ class Polaron:
         return [BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data[pstate])**2, method=interp_method)
                 for pstate in range(self.nstates)]
 
-    def write_a2_bxsf(self, filepath: PathLike, fill_value=0.0) -> None:
+    def write_a2_bxsf(self, filepath: PathLike, fill_value: float=0.0) -> None:
         r"""
         Export \sum_n |A_{pnk}|^2 in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
         Requires gamma-centered k-mesh.
@@ -481,7 +480,7 @@ class Polaron:
 
         bxsf_write(filepath, self.structure, 1, self.nstates, ngkpt, a2_data, fermie, unit="Ha")
 
-    def write_b2_bxsf(self, filepath: PathLike, fill_value=0.0) -> None:
+    def write_b2_bxsf(self, filepath: PathLike, fill_value: float=0.0) -> None:
         r"""
         Export \sum_{\nu} |B_{q\nu}|^2 in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
 
@@ -953,9 +952,9 @@ class VarpeqRobot(Robot, RobotWithEbands):
         NB: Energies are in eV.
 
         Args:
-            spin:
+            spin: Spin index, None if all spins should be included.
             sortby: Name to sort by.
-            with_params:
+            with_params: True if columns with convergence parameters should be added.
         """
         df_list = []
         for abifile in self.abifiles:
@@ -967,8 +966,24 @@ class VarpeqRobot(Robot, RobotWithEbands):
                 df_list.append(polaron.get_final_results_df(with_params=with_params))
 
         df = pd.concat(df_list)
-        if sortby and sortby in df: df = df.sort_values(sortby)
+        if sortby and sortby in df:
+            df = df.sort_values(sortby)
+
         return df
+
+    #@add_fig_kwargs
+    #def plot_erange_conv(self, fontsize=12, **kwargs) -> Figure:
+    #    """
+    #    Plot the convergence of the results wrt to the value of erange.
+
+    #    Args:
+    #        colormap: Color map. Have a look at the colormaps here and decide which one you like:
+    #        fontsize: fontsize for legends and titles
+    #    """
+    #    fig = self.plot_convergence(self, item: Union[str, Callable],
+    #                                sortby=None, hue=None, abs_conv=None,
+    #                                ax=None, fontsize=8, **kwargs)
+    #    return fig
 
     @add_fig_kwargs
     def plot_kconv(self, colormap="jet", fontsize=12, **kwargs) -> Figure:
@@ -976,7 +991,7 @@ class VarpeqRobot(Robot, RobotWithEbands):
         Plot the convergence of the results wrt to the k-point sampling.
 
         Args:
-            colormap: Color map. Have a look at the colormaps here and decide which one you like:
+            colormap: matplotlib color map.
             fontsize: fontsize for legends and titles
         """
         nsppol = self.getattr_alleq("nsppol")

@@ -1750,7 +1750,6 @@ class CalcBuilder:
             except ImportError as exc:
                 raise ImportError("orb not installed. See https://github.com/orbital-materials/orb-models") from exc
 
-
             class MyOrbCalculator(_MyCalculator, ORBCalculator):
                 """Add abi_forces and abi_stress"""
 
@@ -1781,6 +1780,22 @@ class CalcBuilder:
             model_name = "SevenNet-0" if self.model_name is None else self.model_name
             cls = MySevenNetCalculator if with_delta else SevenNetCalculator
             calc = MySevenNetCalculator(model=model_name, **self.calc_kwargs)
+
+        elif self.nn_type == "mattersim":
+            try:
+                from mattersim.forcefield import MatterSimCalculator
+            except ImportError as exc:
+                raise ImportError("mattersim not installed. See https://github.com/microsoft/mattersim") from exc
+
+            class _MatterSimCalculator(_MyCalculator, MatterSimCalculator):
+                """Add abi_forces and abi_stress"""
+
+            import torch
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            # In this release, we provide two checkpoints: MatterSim-v1.0.0-1M.pth and MatterSim-v1.0.0-5M.pth.
+            # By default, the 1M version is loaded.
+            load_path = "MatterSim-v1.0.0-1M.pth" if self.model_name is None else self.model_name
+            calc = _MatterSimCalculator(load_path="MatterSim-v1.0.0-5M.pth", device=device)
 
         else:
             raise ValueError(f"Invalid {self.nn_type=}")

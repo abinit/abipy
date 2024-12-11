@@ -788,7 +788,7 @@ class Kpoint(SlotPickleMixin):
         return self.__class__(self.frac_coords.copy(), self.lattice.copy(),
                               weight=self.weight, name=self.name)
 
-    def is_gamma(self, allow_umklapp=False, atol=None):
+    def is_gamma(self, allow_umklapp=False, atol=None) -> bool:
         """
         Return True if this the gamma point.
 
@@ -824,7 +824,7 @@ class Kpoint(SlotPickleMixin):
         return self.__class__(wrap_to_bz(self.frac_coords), self.lattice,
                               name=self.name, weight=self.weight)
 
-    def compute_star(self, symmops, wrap_tows=True):
+    def compute_star(self, symmops, wrap_tows=True) -> KpointStar:
         """Return the star of the kpoint (tuple of |Kpoint| objects)."""
         frac_coords = [self.frac_coords]
 
@@ -875,7 +875,7 @@ class KpointList(collections.abc.Sequence):
         raise ValueError(f"Cannot find subclass associated to {name=}")
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict):
         """
         Makes Kpoints obey the general json interface used in pymatgen for easier serialization.
         """
@@ -1045,12 +1045,12 @@ class KpointList(collections.abc.Sequence):
         return ind, self[ind], np.copy(dist[ind])
 
     @property
-    def is_path(self):
+    def is_path(self) -> bool:
         """True if self represents a path in the BZ."""
         return isinstance(self, Kpath)
 
     @property
-    def is_ibz(self):
+    def is_ibz(self) -> bool:
         """True if self represents a list of points in the IBZ."""
         return isinstance(self, IrredZone)
 
@@ -1067,7 +1067,7 @@ class KpointList(collections.abc.Sequence):
         return self.ksampling.kptrlatt.diagonal(), self.ksampling.shifts
 
     @property
-    def is_mpmesh(self):
+    def is_mpmesh(self) -> bool:
         """
         True if self represents a Monkhorst-Pack mesh.
         i.e if the sampling has been specified in terms of divisions
@@ -1085,12 +1085,12 @@ class KpointList(collections.abc.Sequence):
         return np.reshape([k.cart_coords for k in self], (-1, 3))
 
     @property
-    def names(self):
+    def names(self) -> list[str]:
         """List with the name of the k-points."""
         return [k.name for k in self]
 
     @property
-    def weights(self):
+    def weights(self) -> np.ndarray:
         """|numpy-array| with the weights of the k-points."""
         return np.array([kpoint.weight for kpoint in self])
 
@@ -1098,7 +1098,7 @@ class KpointList(collections.abc.Sequence):
         """Returns the sum of the weights."""
         return np.sum(self.weights)
 
-    def check_weights(self):
+    def check_weights(self) -> None:
         """
         Check if weights are normalized to one.
         Raises: `ValueError` if Weights are not normalized.
@@ -1167,7 +1167,7 @@ class KpointList(collections.abc.Sequence):
         """Returns a |numpy-array| [nkpy, 3] with the fractional coordinates."""
         return np.array(self.frac_coords.copy())
 
-    def to_json(self):
+    def to_json(self) -> str:
         """
         Returns a JSON_ string representation of the MSONable object.
         """
@@ -1389,7 +1389,7 @@ class Kpath(KpointList):
         return tuple(versors)
 
     @lazy_property
-    def lines(self):
+    def lines(self) -> list:
         """
         Nested list containing the indices of the points belonging to the same line.
         Used for extracting the eigenvalues while looping over the lines.
@@ -1468,7 +1468,6 @@ class Kpath(KpointList):
             ders_on_lines.append(der)
 
         return np.array(ders_on_lines, dtype=object)
-        #return np.array(ders_on_lines)
 
 
 class IrredZone(KpointList):

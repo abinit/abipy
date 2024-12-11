@@ -2499,7 +2499,7 @@ class GwRobotWithDisplacedAtom(SigresRobot):
         coords_diff = np.reshape([site.coords - site_list[i0].coords for site in site_list], (-1, 3))
         new.deltas = np.array([np.linalg.norm(coords) for coords in coords_diff])
         new.deltas[:i0] = -new.deltas[:i0]
-        print(f"{new.deltas=}")
+        #print(f"{new.deltas=}")
 
         return new
 
@@ -2525,7 +2525,7 @@ class GwRobotWithDisplacedAtom(SigresRobot):
                                  what_list=("e0", "qpe", "sigxme", "sigcmee0", "ze0"),
                                  fontsize=8, **kwargs) -> Figure:
         """
-        Plot QP data for a given spin, kpoint and band.
+        Plot QP results for a given spin, kpoint and band.
 
         Args:
             spin: Spin index.
