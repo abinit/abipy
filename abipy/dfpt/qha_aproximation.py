@@ -630,7 +630,8 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
-    def get_abc(self, tstart=0, tstop=1000, num=101,volumes="volumes"):
+
+    def get_abc(self, tstart=0, tstop=1000, num=101, volumes="volumes"):
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -655,9 +656,9 @@ class QHA_App(metaclass=abc.ABCMeta):
         pc = np.poly1d(param)
         cc_qha=pc(volumes)
 
-        return aa_qha,bb_qha,cc_qha
+        return aa_qha, bb_qha, cc_qha
 
-    def get_angles(self, tstart=0, tstop=1000, num=101,volumes="volumes"):
+    def get_angles(self, tstart=0, tstop=1000, num=101, volumes="volumes"):
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -682,7 +683,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         pc = np.poly1d(param)
         alpha=pc(volumes)
 
-        return alpha,beta,gamma
+        return alpha, beta, gamma
 
 ###################################################################################################
     @add_fig_kwargs
@@ -738,7 +739,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         tmesh = np.linspace(tstart, tstop, num)
         dt= tmesh[1] - tmesh[0]
 
-        aa,bb,cc = self.get_abc(tstart, tstop, num,vol)
+        aa,bb,cc = self.get_abc(tstart, tstop, num, vol)
         if (tref!=None):
             aa_tref,bb_tref,cc_tref = self.get_abc(tref, tref, 1,vol_tref)
 
@@ -794,6 +795,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
+
     @add_fig_kwargs
     def plot_thermal_expansion_coeff_angles(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs):
         """
@@ -976,6 +978,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
+
     @add_fig_kwargs
     def plot_angles_vs_t(self, tstart=0, tstop=1000, num=101, angle=None, tref=None, ax=None, **kwargs):
         """
@@ -1049,8 +1052,9 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
+
     #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-    def fit_forth(self, tstart=0, tstop=1000, num=1,energy="energy",volumes="volumes"):
+    def fit_forth(self, tstart=0, tstop=1000, num=1, energy="energy", volumes="volumes"):
         """
         Performs a fit of the energies as a function of the volume at different temperatures.
 
@@ -1145,6 +1149,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         vol=f.min_vol
 
         return vol
+
     def vol_Einf_Vib2_forth(self, tstart=0, tstop=1000, num=101):
         """
         Args:
@@ -1181,6 +1186,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         vol=f.min_vol
 
         return vol
+
     def vol_Einf_Vib4_forth(self, tstart=0, tstop=1000, num=101):
         """
 
@@ -1191,7 +1197,6 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         Returns: |Vol|
         """
-
         tmesh = np.linspace(tstart, tstop, num)
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
         energies = self.energies
@@ -1223,7 +1228,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         vol=f.min_vol
 
         return vol
-#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
     @add_fig_kwargs
     def plot_vol_vs_t_4th(self, tstart=0, tstop=1000, num=101, ax=None, **kwargs):
         """
@@ -1332,7 +1337,8 @@ class QHA_App(metaclass=abc.ABCMeta):
             #alpha= - 1/f0.min_vol * d2f_t_v[1:-1] / F2D[1:-1]
             alpha= - 1/f0.min_vol * d2f_t_v / F2D
 
-        return  alpha
+        return alpha
+
     @add_fig_kwargs
     def plot_thermal_expansion_coeff_4th(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs):
         """
@@ -1452,6 +1458,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
+
     @add_fig_kwargs
     def plot_abc_vs_t_4th(self, tstart=0, tstop=1000, num=101, lattice=None,tref=None, ax=None, **kwargs):
         """
@@ -1525,6 +1532,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
+
     @add_fig_kwargs
     def plot_angles_vs_t_4th(self, tstart=0, tstop=1000, num=101,angle=None,  tref=None, ax=None, **kwargs):
         """
@@ -1598,7 +1606,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
-###################################################################################################
+
     @add_fig_kwargs
     def plot_thermal_expansion_coeff_abc_4th(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs):
         """
@@ -1708,6 +1716,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
+
     @add_fig_kwargs
     def plot_thermal_expansion_coeff_angles_4th(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs):
         """
@@ -1816,7 +1825,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
-#*********************************************************************************************
+
     @classmethod
     def from_files_app(cls, gsr_paths, phdos_paths):
         """
@@ -1916,7 +1925,7 @@ class QHA_App(metaclass=abc.ABCMeta):
             zpe[i] = d.zero_point_energy
 
         return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy, zpe=zpe)
-#=======================================================================================================
+
     @classmethod
     def from_files_app_ddb(cls, ddb_paths, phdos_paths):
         """
