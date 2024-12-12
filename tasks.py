@@ -16,6 +16,23 @@ DOCS_DIR = os.path.join(ABIPY_ROOTDIR, "docs")
 
 
 @task
+def pull(ctx):
+    """"Execute `git stash && git pull --recurse-submodules && git stash apply && makemake`"""
+    ctx.run("git stash")
+    ctx.run("git pull --recurse-submodules")
+    ctx.run("git stash apply")
+
+
+@task
+def submodules(ctx):
+    """Update submodules."""
+    with cd(ABIPY_ROOTDIR):
+        # https://stackoverflow.com/questions/1030169/easy-way-to-pull-latest-of-all-git-submodules
+        ctx.run("git submodule update --remote --init", pty=True)
+        ctx.run("git submodule update --recursive --remote", pty=True)
+
+
+@task
 def make_doc(ctx):
     with cd(DOCS_DIR):
         ctx.run("make clean")

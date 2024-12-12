@@ -84,8 +84,8 @@ class QhaTest(AbipyTest):
         self.assert_almost_equal(data.entropy[0], [0., 0.0009788])
         self.assert_almost_equal(data.zpe, [0.1230556, 0.1214029, 0.1197632, 0.1181387, 0.1165311])
 
-        #if self.has_matplotlib():
-        if False:
+        if self.has_matplotlib():
+        #if False:
             assert qha.plot_energies(tstop=tstop, tstart=tstart, num=11, show=False)
             # Vinet
             assert qha.plot_vol_vs_t(tstop=tstop, tstart=tstart, num=101, show=False)

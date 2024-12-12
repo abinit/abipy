@@ -57,6 +57,11 @@ jobs:
             conda install abinit -c conda-forge --yes
             mpirun -n 1 abinit --version
             mpirun -n 1 abinit --build
+
+            # Update submodules with data.
+            git submodule update --remote --init
+            git submodule update --recursive --remote
+
             pip install --editable .
             mkdir -p $HOME/.abinit/abipy/
             cp abipy/data/managers/gh_manager.yml $HOME/.abinit/abipy/manager.yml

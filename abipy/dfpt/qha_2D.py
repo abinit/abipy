@@ -3,20 +3,15 @@ import abc
 import numpy as np
 import abipy.core.abinit_units as abu
 
-from scipy.interpolate import UnivariateSpline
-from monty.collections import dict2namedtuple
-from monty.functools import lazy_property
-from pymatgen.analysis.eos import EOS
-from abipy.core.func1d import Function1D
+#from scipy.interpolate import UnivariateSpline
+#from monty.collections import dict2namedtuple
+#from monty.functools import lazy_property
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
-from abipy.dfpt.phonons import PhononBandsPlotter, PhononDos, PhdosFile
-from abipy.dfpt.gruneisen import GrunsNcFile
-from scipy.interpolate import RectBivariateSpline, RegularGridInterpolator
+from abipy.dfpt.phonons import PhdosFile # PhononBandsPlotter, PhononDos,
+from scipy.interpolate import RectBivariateSpline #, RegularGridInterpolator
 
-import matplotlib.pyplot as plt
-from abipy.tools.plotting import get_ax_fig_plt
 
 class QHA_2D:
     """
@@ -56,14 +51,14 @@ class QHA_2D:
         # Find index of minimum energy
         self.min_energy_idx = np.unravel_index(np.nanargmin(self.energies), self.energies.shape)
 
-    def plot_energies(self, ax=None):
+    @add_fig_kwargs
+    def plot_energies(self, ax=None, **kwargs):
         """
         Plot energy surface and visualize minima in a 3D plot.
 
         Args:
             ax: Matplotlib axis for the plot. If None, creates a new figure.
         """
-
         a0 = self.lattice_a[:, 0]
         c0 = self.lattice_c[0, :]
 
@@ -74,7 +69,6 @@ class QHA_2D:
         c0=self.lattice_c[0,:]
 
         X, Y = np.meshgrid(c0,a0)
-
 
         # Plot the surface
         ax.plot_wireframe(X, Y, self.energies, cmap='viridis')
@@ -100,7 +94,6 @@ class QHA_2D:
         ax.set_ylabel('Lattice Parameter A (Å)')
         ax.set_zlabel('Energy (eV)')
         ax.set_title('Energy Surface in 3D')
-        plt.show()
 
         return fig
 
@@ -133,6 +126,7 @@ class QHA_2D:
         min_energy = f_interp(xy[0], xy[1])
         return xy[0], xy[1], min_energy
 
+    @add_fig_kwargs
     def plot_free_energies(self, tstart=800 , tstop=0 ,num=5, ax=None, **kwargs):
         """
         Plot free energy as a function of temperature in a 3D plot.
@@ -224,11 +218,10 @@ class QHA_2D:
         ax.set_zlabel('Energy (eV)')
         #ax.set_title('Energies as a 3D Plot')
         plt.savefig("energy.pdf", format="pdf", bbox_inches="tight")
-        plt.show()  # Display the plot
-
 
         return fig
 
+    @add_fig_kwargs
     def plot_thermal_expansion(self, tstart=800, tstop=0, num=81, ax=None, **kwargs):
         """
         Plots thermal expansion coefficients along the a-axis, c-axis, and volumetric alpha.
@@ -327,16 +320,15 @@ class QHA_2D:
         file_path = 'thermal-expansion_data.txt'
         np.savetxt(file_path, data_to_save, fmt='%4.6e', delimiter='\t\t',  header='\t\t\t'.join(columns), comments='')
 
-
         ax.grid(True)
         ax.legend()
         ax.set_xlabel('Temperature (K)')
         ax.set_ylabel(r'Thermal Expansion Coefficients ($\alpha$)')
         plt.savefig("thermal_expansion.pdf", format="pdf", bbox_inches="tight")
-        plt.show()
 
         return fig
 
+    @add_fig_kwargs
     def plot_lattice(self, tstart=800, tstop=0, num=81, ax=None, **kwargs):
         """
         Plots thermal expansion coefficients along the a-axis, c-axis, and volumetric alpha.
@@ -353,6 +345,7 @@ class QHA_2D:
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
         min_x, min_y = np.zeros(num), np.zeros(num)
         min_tot_energy = np.zeros(num)
+        import matplotlib.pyplot as plt
         fig, axs = plt.subplots(1, 3, figsize=(18, 6), sharex=True)
 
         if (len(self.lattice_a_from_phdos)==len(self.lattice_a) or  len(self.lattice_c_from_phdos)==len(self.lattice_c)):
@@ -417,10 +410,9 @@ class QHA_2D:
             min_volumes = min_x**2 * min_y * scale
 
             axs[0].plot(tmesh, min_x, color='c', label=r"$a$ (E$\infty$Vib2)", linewidth=2)
-            axs[1].set_title("Plots of a, c, and V (E$\infty$Vib2)")
+            axs[1].set_title(r"Plots of a, c, and V (E$\infty$Vib2)")
             axs[1].plot(tmesh, min_y, color='r', label=r"$c$ (E$\infty$Vib2)", linewidth=2)
             axs[2].plot(tmesh, min_volumes, color='b', label=r"$V$ (E$\infty$Vib2)", linewidth=2)
-
 
 
         axs[0].set_ylabel("a")
@@ -438,8 +430,6 @@ class QHA_2D:
 
         # Adjust layout and show the figure
         plt.tight_layout()
-        plt.show()
-
 
         return fig
 
@@ -534,5 +524,3 @@ class QHA_2D:
                 if dos is not None:
                     f[j][i] = dos.get_free_energy(tstart, tstop, num).values
         return f
-
-
