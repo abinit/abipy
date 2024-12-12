@@ -5,7 +5,10 @@
 #SPHINXOPTS    = -j6
 SPHINXOPTS   = 
 #SPHINXBUILD   = sphinx-build
-SPHINXBUILD   = sphinx-build -v
+# Verbose mode
+#SPHINXBUILD   = sphinx-build -v
+# Sphinx may treat warnings as errors, halting HTML generation.
+SPHINXBUILD   = sphinx-build -v -W --keep-going
 PAPER         =
 BUILDDIR      = _build
 

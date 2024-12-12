@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Quasi-harmonic approximation
-============================
+QHA_2D method
+=============
 
 This example shows how to use the GSR.nc and PHDOS.nc files computed with different volumes
 to compute thermodynamic properties within the quasi-harmonic approximation.

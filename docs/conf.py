@@ -71,9 +71,8 @@ extensions = [
 ]
 
 # Activate build of sphinx-gallery.
-with_gallery = True
-
-if with_gallery:
+if with_gallery := True:
+    print("sphinx-gallery will be built")
     extensions.append('sphinx_gallery.gen_gallery')
 
 # Add any Sphinx extension module names here, as strings. They can
@@ -91,12 +90,6 @@ extensions += [
     'IPython.sphinxext.ipython_console_highlighting',
     'matplotlib.sphinxext.plot_directive',
 ]
-
-# Add local extensions (not available on PyPi)
-#sys.path.insert(0, os.path.join(ABIPY_ROOT, "docs", "my_extensions"))
-#extensions += [
-#    'youtube',
-#]
 
 #########################
 # Spinx Gallery Settings
@@ -156,12 +149,12 @@ if with_gallery:
         # path to your examples scripts
         'examples_dirs': [
             "../abipy/examples/plot",
-            "../abipy/examples/flows",
+            #"../abipy/examples/flows",
         ],
         # path where to save gallery generated examples
         'gallery_dirs': [
             "gallery",
-            "flow_gallery",
+            #"flow_gallery",
         ],
         'filename_pattern': "(/plot*|/run_*)",
         'default_thumb_file': '_static/abipy_logo.png',
@@ -173,7 +166,7 @@ if with_gallery:
             'numpy': 'https://docs.scipy.org/doc/numpy/',
             'matplotlib': 'https://matplotlib.org',
             'pandas': "http://pandas.pydata.org/pandas-docs/stable/",
-            "pymatgen": "https://pymatgen.org/",
+            #"pymatgen": "https://pymatgen.org/",
         },
         #'image_scrapers': ('matplotlib',),
         #'image_scrapers': ('matplotlib', PNGScraper()),
@@ -441,8 +434,8 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "pandas": ("http://pandas.pydata.org/pandas-docs/stable/", None),
     'matplotlib': ('https://matplotlib.org/stable/', None),
-    "monty": ("https://pythonhosted.org/monty/", None),
-    "pymatgen": ("https://pymatgen.org/", None),
+    #"monty": ("https://pythonhosted.org/monty/", None),
+    #"pymatgen": ("https://pymatgen.org/", None),
     'mayavi': ('http://docs.enthought.com/mayavi/mayavi', None),
 }
 
