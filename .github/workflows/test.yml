@@ -63,8 +63,9 @@ jobs:
             mkdir -p $HOME/.abinit/abipy/
             cp abipy/data/managers/gh_manager.yml $HOME/.abinit/abipy/manager.yml
             cp abipy/data/managers/gh_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
+
             # TEMPORARY HACK THAT MIGHT BE NEEDED IF THE PYMATGEN GUYS BREAK STUFF
-            pip install git+https://github.com/gmatteo/pymatgen.git@master -U
+            #pip install git+https://github.com/gmatteo/pymatgen.git@master -U
 
       - name: pytest
         run: |
