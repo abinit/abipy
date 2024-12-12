@@ -35,7 +35,7 @@ class QHA_2D:
         """
         self.doses = doses
         self.structures = structures
-        self.structures_from_phdos = structures_from_phdos 
+        self.structures_from_phdos = structures_from_phdos
         self.energies = np.array(energies, dtype=np.float64)
         self.eos_name = eos_name
         self.pressure = pressure
@@ -138,7 +138,7 @@ class QHA_2D:
         Plot free energy as a function of temperature in a 3D plot.
 
         Args:
-            ax: Matplotlib axis for the plot. 
+            ax: Matplotlib axis for the plot.
         """
 
         ax, fig, plt = get_ax_fig_plt(ax, figsize=(10, 8))
@@ -228,7 +228,7 @@ class QHA_2D:
 
 
         return fig
- 
+
     def plot_thermal_expansion(self, tstart=800, tstop=0, num=81, ax=None, **kwargs):
         """
         Plots thermal expansion coefficients along the a-axis, c-axis, and volumetric alpha.
@@ -442,8 +442,17 @@ class QHA_2D:
 
 
         return fig
+
+    #@classmethod
+    #def from_ddb_files(cls, ddb_files):
+    #    for row in ddb_files:
+    #        for gp in row:
+    #            if os.path.exists(gp):
+
+    #    return cls.from_files(ddb_files, phdos_paths_2D, gsr_file="DDB")
+
     @classmethod
-    def from_files(cls, gsr_paths_2D, phdos_paths_2D , gsr_file="GSR.nc"):
+    def from_files(cls, gsr_paths_2D, phdos_paths_2D, gsr_file="GSR.nc"):
         """
         Creates an instance of QHA from 2D lists of GSR and PHDOS files.
 
@@ -470,7 +479,8 @@ class QHA_2D:
                         row_structures.append(None)
                 energies.append(row_energies)
                 structures.append(row_structures)
-        else:
+
+        elif gsr_file == "DDB":
             # Process DDB files
             for row in gsr_paths_2D:
                 row_energies, row_structures = [], []
@@ -484,6 +494,9 @@ class QHA_2D:
                         row_structures.append(None)
                 energies.append(row_energies)
                 structures.append(row_structures)
+
+        else:
+            raise ValueError("Invalid {gsr_file=}")
 
         # Process PHDOS files
         for row in phdos_paths_2D:

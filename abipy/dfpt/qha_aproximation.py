@@ -25,7 +25,7 @@ class QHA_App(metaclass=abc.ABCMeta):
     Does not include electronic entropic contributions for metals.
     """
 
-    def __init__(self, structures,structures_from_phdos,index_list, doses,energies, pressures, eos_name='vinet', pressure=0):
+    def __init__(self, structures, structures_from_phdos, index_list, doses,energies, pressures, eos_name='vinet', pressure=0):
         """
         Args:
             structures: list of structures at different volumes.
@@ -348,13 +348,11 @@ class QHA_App(metaclass=abc.ABCMeta):
         """
         self.eos = EOS(eos_name)
         self.eos_name = eos_name
-        if (eos_name!= "vinet"):
+        if eos_name != "vinet":
             raise RuntimeError("This approximation method is only developed for the Vinet equation of state.")
 
-
-
     @add_fig_kwargs
-    def plot_energies(self, tstart=0, tstop=1000 ,num=1, ax=None, **kwargs):
+    def plot_energies(self, tstart=0, tstop=1000, num=1, ax=None, **kwargs):
         """
         Plots the BO energy as a function of volume
 
@@ -1949,13 +1947,14 @@ class QHA_App(metaclass=abc.ABCMeta):
                 doses.append(p.phdos)
                 structures_from_phdos.append(p.structure)
 
-       # cls._check_volumes_id(structures, structures_from_phdos)
+        # cls._check_volumes_id(structures, structures_from_phdos)
         vols1 = [s.volume for s in structures]
         vols2 = [s.volume for s in structures_from_phdos]
         dv=np.zeros((len(vols2)-1))
         for j in range(len(vols2)-1):
             dv[j]=vols2[j+1]-vols2[j]
         tolerance = 1e-3
+
         if (len(vols2)!=2):
             max_difference = np.max(np.abs(dv - dv[0]))
             if max_difference > tolerance:
@@ -1967,5 +1966,5 @@ class QHA_App(metaclass=abc.ABCMeta):
         if len(index_list) not in (2, 3, 5):
             raise RuntimeError("Expecting just 2, 3, or 5 PDOS files in the approximation method.")
 
-        return cls(structures,structures_from_phdos,index_list, doses, energies , pressures)
+        return cls(structures, structures_from_phdos, index_list, doses, energies, pressures)
 
