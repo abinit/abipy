@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""
+r"""
 QHA_2D method
 =============
 
@@ -25,10 +25,14 @@ dos_paths = [[os.path.join(root, f"scale_{s1}_{s3}/out_PHDOS.nc") for s3 in stra
 
 qha = QHA_2D.from_files(gsr_paths, dos_paths, gsr_file="DDB")
 
+#%%
 qha.plot_energies()
 
+#%%
 qha.plot_free_energies(tstop=500, tstart=0, num=6)
 
+#%%
 qha.plot_thermal_expansion(tstop=1000, tstart=0, num=101)
 
+#%%
 qha.plot_lattice(tstop=1000, tstart=0, num=101)

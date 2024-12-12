@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""
+r"""
 Quasi-harmonic approximation with v-ZSISA
 =========================================
 
@@ -25,43 +25,57 @@ dos_paths = [os.path.join(root, "scale_{:d}_PHDOS.nc".format(s)) for s in strain
 
 qha = QHA_App.from_files_app_ddb(ddb_paths, dos_paths)
 tstart, tstop = 0, 800
+
+#%%
 qha.plot_energies(tstop=tstop, tstart=tstart, num=11,
                   title="Energies as a function of volume for different T")
 
-# Vinet
+#%%
 qha.plot_vol_vs_t(tstop=tstop, tstart=tstart, num=101,
                   title="Volume as a function of T")
 
+#%%
 qha.plot_abc_vs_t(tstop=tstop, tstart=tstart, num=101,
                   title="Lattice as a function of T")
 
+
+#%%
 qha.plot_abc_vs_t(tstop=tstop, tstart=tstart, num=101, lattice="b",
                   title="Lattice as a function of T")
 
+#%%
 qha.plot_thermal_expansion_coeff(tstop=tstop, tstart=tstart ,num=101,
                                  title="Volumetric thermal expansion coefficient as a function of T")
 
+#%%
 qha.plot_thermal_expansion_coeff_abc(tstop=tstop, tstart=tstart ,num=101,
                                      title="Thermal expansion coefficient as a function of T")
 
+#%%
 qha.plot_angles_vs_t(tstop=tstop, tstart=tstart, num=101,
                      title="Angles as a function of T")
 
+#%%
 # 4th order polinomial
 qha.plot_vol_vs_t_4th(tstop=tstop, tstart=tstart, num=101,
                       title="Volume as a function of T")
 
+#%%
 qha.plot_abc_vs_t_4th(tstop=tstop, tstart=tstart, num=101, lattice="a",
                       title="Lattice as a function of T")
 
+#%%
 qha.plot_abc_vs_t_4th(tstop=tstop, tstart=tstart,
                       title="Lattice as a function of T")
 
+#%%
 qha.plot_thermal_expansion_coeff_4th(tref=293,
                                      title="Volumetric thermal expansion coefficient as a function of T")
 
+#%%
 qha.plot_thermal_expansion_coeff_abc_4th(tstop=tstop, tstart=tstart ,num=101, tref=293,
                                          title="Thermal expansion coefficient as a function of T")
 
+#%%
 qha.plot_angles_vs_t_4th(tstop=tstop, tstart=tstart, num=101, angle=3,
                          title="Angles as a function of T")

@@ -1,12 +1,20 @@
+"""
+Added to compute ZSISA-QHA for systems with two degrees of freedom (2DOF).
+Capable of calculating anisotropic thermal expansion and lattice constants for uniaxial configurations.
+Requires PHDOS.nc and DDB files for GSR calculations or _GSR.nc files.
+If PHDOS.nc is available for all structures, normal interpolation for QHA will be applied.
+Supports the use of six PHDOS.nc files for specific structures to employ the E_infVib2 approximation.
+"""
+
 import os
 import abc
 import numpy as np
 import abipy.core.abinit_units as abu
 
-#from scipy.interpolate import UnivariateSpline
 #from monty.collections import dict2namedtuple
 #from monty.functools import lazy_property
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.typing import Figure
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhdosFile # PhononBandsPlotter, PhononDos,
@@ -52,7 +60,7 @@ class QHA_2D:
         self.min_energy_idx = np.unravel_index(np.nanargmin(self.energies), self.energies.shape)
 
     @add_fig_kwargs
-    def plot_energies(self, ax=None, **kwargs):
+    def plot_energies(self, ax=None, **kwargs) -> Figure:
         """
         Plot energy surface and visualize minima in a 3D plot.
 
@@ -127,14 +135,13 @@ class QHA_2D:
         return xy[0], xy[1], min_energy
 
     @add_fig_kwargs
-    def plot_free_energies(self, tstart=800 , tstop=0 ,num=5, ax=None, **kwargs):
+    def plot_free_energies(self, tstart=800 , tstop=0 ,num=5, ax=None, **kwargs) -> Figure:
         """
         Plot free energy as a function of temperature in a 3D plot.
 
         Args:
             ax: Matplotlib axis for the plot.
         """
-
         ax, fig, plt = get_ax_fig_plt(ax, figsize=(10, 8))
         ax = fig.add_subplot(111, projection='3d')  # Create a 3D subplot
 
@@ -222,7 +229,7 @@ class QHA_2D:
         return fig
 
     @add_fig_kwargs
-    def plot_thermal_expansion(self, tstart=800, tstop=0, num=81, ax=None, **kwargs):
+    def plot_thermal_expansion(self, tstart=800, tstop=0, num=81, ax=None, **kwargs) -> Figure:
         """
         Plots thermal expansion coefficients along the a-axis, c-axis, and volumetric alpha.
         Uses both QHA and a 9-point stencil for comparison.
@@ -234,7 +241,6 @@ class QHA_2D:
             ax: Matplotlib axis object for plotting.
             **kwargs: Additional arguments for customization.
         """
-
         tmesh = np.linspace(tstart, tstop, num)
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
         ax, fig, plt = get_ax_fig_plt(ax, figsize=(10, 8))  # Ensure a valid plot axis
@@ -321,7 +327,7 @@ class QHA_2D:
         np.savetxt(file_path, data_to_save, fmt='%4.6e', delimiter='\t\t',  header='\t\t\t'.join(columns), comments='')
 
         ax.grid(True)
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
         ax.set_xlabel('Temperature (K)')
         ax.set_ylabel(r'Thermal Expansion Coefficients ($\alpha$)')
         plt.savefig("thermal_expansion.pdf", format="pdf", bbox_inches="tight")
@@ -329,7 +335,7 @@ class QHA_2D:
         return fig
 
     @add_fig_kwargs
-    def plot_lattice(self, tstart=800, tstop=0, num=81, ax=None, **kwargs):
+    def plot_lattice(self, tstart=800, tstop=0, num=81, ax=None, **kwargs) -> Figure:
         """
         Plots thermal expansion coefficients along the a-axis, c-axis, and volumetric alpha.
         Uses both QHA and a 9-point stencil for comparison.
@@ -416,16 +422,16 @@ class QHA_2D:
 
 
         axs[0].set_ylabel("a")
-        axs[0].legend()
+        axs[0].legend(loc="best", shadow=True)
         axs[0].grid(True)
         axs[0].set_xlabel("Temperature (T)")
         axs[1].set_ylabel("c")
-        axs[1].legend()
+        axs[1].legend(loc="best", shadow=True)
         axs[1].grid(True)
         axs[1].set_xlabel("Temperature (T)")
         axs[2].set_xlabel("Temperature (T)")
         axs[2].set_ylabel("Volume")
-        axs[2].legend()
+        axs[2].legend(loc="best", shadow=True)
         axs[2].grid(True)
 
         # Adjust layout and show the figure

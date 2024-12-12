@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow for quasi-harmonic calculations
-====================================
-
+Flow for quasi-harmonic calculations under development
+=====================================================
 Warning: This code is still under development.
 """
 import sys

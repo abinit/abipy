@@ -1,4 +1,6 @@
 # coding: utf-8
+"""Classes for V-ZSISA approximation."""
+from __future__ import annotations
 
 import os
 import abc
@@ -11,6 +13,7 @@ from monty.functools import lazy_property
 from pymatgen.analysis.eos import EOS
 from abipy.core.func1d import Function1D
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.typing import Figure
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBandsPlotter, PhononDos, PhdosFile
@@ -25,7 +28,8 @@ class QHA_App(metaclass=abc.ABCMeta):
     Does not include electronic entropic contributions for metals.
     """
 
-    def __init__(self, structures, structures_from_phdos, index_list, doses,energies, pressures, eos_name='vinet', pressure=0):
+    def __init__(self, structures, structures_from_phdos, index_list, doses,energies, pressures,
+                 eos_name: str='vinet', pressure: float=0.0):
         """
         Args:
             structures: list of structures at different volumes.
@@ -55,6 +59,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         self.volumes_from_phdos = np.array([s.volume for s in structures_from_phdos])
         self.energies_pdos=self.energies[index_list]
         self.index_list = index_list
+
         if (len(self.index_list)==5):
             self.iv0_vib=1
             self.iv1_vib=3
@@ -67,13 +72,30 @@ class QHA_App(metaclass=abc.ABCMeta):
             self.iv0_vib=0
             self.iv1_vib=1
             self.V0_vib=0.5*(self.volumes_from_phdos[1]+self.volumes_from_phdos[0])
+
         if abs(self.volumes_from_phdos[self.iv0_vib]+self.volumes_from_phdos[self.iv1_vib]-2*self.volumes[self.iv0])<1e-3 :
             self.scale_points="S"  # Symmetry
         else:
             self.scale_points="D"  # Displaced
 
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    def fit_tot_energies(self, tstart=0, tstop=1000, num=101,tot_energies="energies" ,volumes="volumes"):
+    @property
+    def nvols(self) -> int:
+        """Number of volumes"""
+        return len(self.volumes_from_phdos)
+
+    def set_eos(self, eos_name: str) -> None:
+        """
+        Set the EOS model used for the fit.
+
+        Args:
+            eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
+        """
+        self.eos = EOS(eos_name)
+        self.eos_name = eos_name
+        if eos_name != "vinet":
+            raise RuntimeError("This approximation method is only developed for the Vinet equation of state.")
+
+    def fit_tot_energies(self, tstart=0, tstop=1000, num=101, tot_energies="energies", volumes="volumes"):
         """
         Performs a fit of the energies as a function of the volume at different temperatures.
 
@@ -81,6 +103,8 @@ class QHA_App(metaclass=abc.ABCMeta):
             tstart: The starting value (in Kelvin) of the temperature mesh.
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 100.
+            tot_energies:
+            volumes:
 
         Returns:
             `namedtuple` with the following attributes::
@@ -117,7 +141,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         return dict2namedtuple(tot_en=tot_energies, fits=fits, min_en=min_energies, min_vol=min_volumes, temp=tmesh , F2D=F2D)
 
-    def second_derivative_energy_v(self, vol="vol"):
+    def second_derivative_energy_v(self, vol="vol") -> np.ndarray:
         """
         Performs a fit of the energies as a function of the volume at different temperatures.
 
@@ -147,8 +171,8 @@ class QHA_App(metaclass=abc.ABCMeta):
             np.exp(-3.0 * (b1 - 1.0) * (v ** (1.0 / 3.0) / v0 ** (1.0 / 3.0) - 1.0) / 2.0))
 
         return E2D_V
-#=============================================================================================
-    def vol_E2Vib1(self, tstart=0, tstop=1000, num=101):
+
+    def vol_E2Vib1(self, tstart=0, tstop=1000, num=101) -> tuple:
         """
         Compute the volume as a function of temperature using the E2Vib1 method with the Vinet equation of state.
 
@@ -190,8 +214,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         return vol, fits
 
-#=============================================================================================
-    def vol_Einf_Vib1(self, tstart=0, tstop=1000, num=101):
+    def vol_Einf_Vib1(self, tstart=0, tstop=1000, num=101) -> tuple:
         """
         Compute the volume as a function of temperature using the EinfVib1 method with the Vinet equation of state.
 
@@ -235,8 +258,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         return vol, fits
 
-#=============================================================================================
-    def vol_Einf_Vib2(self, tstart=0, tstop=1000, num=101):
+    def vol_Einf_Vib2(self, tstart=0, tstop=1000, num=101) -> tuple:
         """
         Compute the volume as a function of temperature using the EinfVib2 method with the Vinet equation of state.
 
@@ -286,9 +308,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         return vol, fits
 
-#================================================================================================================
-
-    def vol_Einf_Vib4(self, tstart=0, tstop=1000, num=101):
+    def vol_Einf_Vib4(self, tstart=0, tstop=1000, num=101) -> tuple:
         """
         Compute the volume as a function of temperature using the EinfVib4 method with the Vinet equation of state.
 
@@ -323,6 +343,7 @@ class QHA_App(metaclass=abc.ABCMeta):
             dfe_dV4[i]=(e[iv0+2]-4*e[iv0+1]+6*e[iv0]-4*e[iv0-1]+e[iv0-2])/(dV**4)
 
             fe_V0[i]= e[iv0]
+
         V0=volumes0[iv0]
 
         tot_en = (( volumes[np.newaxis, :].T -V0) * dfe_dV1  + 0.5* ( volumes[np.newaxis, :].T -V0)**2*(dfe_dV2)
@@ -333,28 +354,11 @@ class QHA_App(metaclass=abc.ABCMeta):
         vol = np.array([fit.v0 for fit in fits])
 
         return vol , fits
-#*********************************************************************************************
-    @property
-    def nvols(self):
-        """Number of volumes"""
-        return len(self.volumes_from_phdos)
-
-    def set_eos(self, eos_name):
-        """
-        Set the EOS model used for the fit.
-
-        Args:
-            eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
-        """
-        self.eos = EOS(eos_name)
-        self.eos_name = eos_name
-        if eos_name != "vinet":
-            raise RuntimeError("This approximation method is only developed for the Vinet equation of state.")
 
     @add_fig_kwargs
-    def plot_energies(self, tstart=0, tstop=1000, num=1, ax=None, **kwargs):
+    def plot_energies(self, tstart=0, tstop=1000, num=1, ax=None, **kwargs) -> Figure:
         """
-        Plots the BO energy as a function of volume
+        Plots the BO energy as a function of volume.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -364,10 +368,9 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         Returns: |matplotlib-Figure|
         """
-
         tmesh = np.linspace(tstart, tstop, num)
 
-        f = self.fit_tot_energies(0, 0, 1 ,self.energies[np.newaxis, :].T,self.volumes)
+        f = self.fit_tot_energies(0, 0, 1 , self.energies[np.newaxis, :].T, self.volumes)
 
         ax, fig, plt = get_ax_fig_plt(ax)
         xmin, xmax = np.floor(self.volumes.min() * 0.97), np.ceil(self.volumes.max() * 1.03)
@@ -379,12 +382,14 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         ax.plot(f.min_vol, f.min_en - self.energies[self.iv0], color='r', linestyle='dashed' , lw=1, marker='o', ms=5)
 
+        ax.grid(True)
         ax.set_xlabel(r'V (${\AA}^3$)')
         ax.set_ylabel('E (eV)')
+
         return fig
 
     @add_fig_kwargs
-    def plot_vol_vs_t(self, tstart=0, tstop=1000, num=101, ax=None, **kwargs):
+    def plot_vol_vs_t(self, tstart=0, tstop=1000, num=101, ax=None, **kwargs) -> Figure:
         """
         Plot the volume as a function of temperature using various methods.
 
@@ -394,9 +399,6 @@ class QHA_App(metaclass=abc.ABCMeta):
             num: int, optional Number of samples to generate. Default is 101.
             ax: Matplotlib Axes object or None. If None, a new figure will be created.
             **kwargs: Additional keyword arguments to pass to plotting functions.
-
-        Returns:
-            fig: The Matplotlib Figure object.
         """
         # Get or create the matplotlib Axes and Figure
         ax, fig, plt = get_ax_fig_plt(ax)
@@ -455,11 +457,10 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.set_ylabel(r'V (${\AA}^3$)')
         ax.set_xlim(tstart, tstop)
         ax.grid(True)
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
 
         return fig
 
-###################################################################################################
     def get_thermal_expansion_coeff(self, tstart=0, tstop=1000, num=101, tref=None):
         """
         Calculates the thermal expansion coefficient as a function of temperature
@@ -510,7 +511,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         return Function1D(f.temp, alpha)
 
     @add_fig_kwargs
-    def plot_thermal_expansion_coeff(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs):
+    def plot_thermal_expansion_coeff(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -519,8 +520,6 @@ class QHA_App(metaclass=abc.ABCMeta):
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -624,26 +623,22 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.set_xlabel(r'T (K)')
         ax.set_ylabel(r'$\alpha$ (K$^{-1}$)')
         ax.grid(True)
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
 
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
 
-    def get_abc(self, tstart=0, tstop=1000, num=101, volumes="volumes"):
+    def get_abc(self, tstart=0, tstop=1000, num=101, volumes="volumes") -> tuple:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
             tstop: The end value (in Kelvin) of the mesh.
-            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
-                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
+            volumes:
         """
         param = np.zeros((num,4))
         param=np.polyfit(self.volumes, self.lattice_a , 3)
@@ -658,19 +653,14 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         return aa_qha, bb_qha, cc_qha
 
-    def get_angles(self, tstart=0, tstop=1000, num=101, volumes="volumes"):
+    def get_angles(self, tstart=0, tstop=1000, num=101, volumes="volumes") -> tuple:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
             tstop: The end value (in Kelvin) of the mesh.
-            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
-                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         param = np.zeros((num,4))
         param=np.polyfit(self.volumes, self.angles_alpha, 3)
@@ -685,9 +675,8 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         return alpha, beta, gamma
 
-###################################################################################################
     @add_fig_kwargs
-    def plot_thermal_expansion_coeff_abc(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs):
+    def plot_thermal_expansion_coeff_abc(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -698,8 +687,6 @@ class QHA_App(metaclass=abc.ABCMeta):
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         tmesh = np.linspace(tstart, tstop, num)
@@ -788,7 +775,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         ax.set_xlabel(r'T (K)')
         ax.set_ylabel(r'$\alpha$ (K$^{-1}$)')
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
         ax.grid(True)
 
         ax.set_xlim(tstart, tstop)
@@ -797,7 +784,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         return fig
 
     @add_fig_kwargs
-    def plot_thermal_expansion_coeff_angles(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs):
+    def plot_thermal_expansion_coeff_angles(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -808,8 +795,6 @@ class QHA_App(metaclass=abc.ABCMeta):
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         tmesh = np.linspace(tstart, tstop, num)
@@ -898,7 +883,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         ax.set_xlabel(r'T (K)')
         ax.set_ylabel(r'$\alpha$ (K$^{-1}$)')
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
         ax.grid(True)
 
         ax.set_xlim(tstart, tstop)
@@ -907,7 +892,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         return fig
 
     @add_fig_kwargs
-    def plot_abc_vs_t(self, tstart=0, tstop=1000, num=101, lattice=None, tref=None, ax=None, **kwargs):
+    def plot_abc_vs_t(self, tstart=0, tstop=1000, num=101, lattice=None, tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -918,8 +903,6 @@ class QHA_App(metaclass=abc.ABCMeta):
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         tmesh = np.linspace(tstart, tstop, num)
@@ -971,7 +954,7 @@ class QHA_App(metaclass=abc.ABCMeta):
                 ax.plot(tmesh ,cc2 ,  linestyle='dashed' , color='m', lw=2,label = r"$c(V(T))$""E2vib1" )
 
         ax.set_xlabel(r'T (K)')
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
         ax.grid(True)
 
         ax.set_xlim(tstart, tstop)
@@ -980,7 +963,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         return fig
 
     @add_fig_kwargs
-    def plot_angles_vs_t(self, tstart=0, tstop=1000, num=101, angle=None, tref=None, ax=None, **kwargs):
+    def plot_angles_vs_t(self, tstart=0, tstop=1000, num=101, angle=None, tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -991,8 +974,6 @@ class QHA_App(metaclass=abc.ABCMeta):
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         ax, fig, plt = get_ax_fig_plt(ax)
@@ -1045,7 +1026,7 @@ class QHA_App(metaclass=abc.ABCMeta):
                 ax.plot(tmesh ,gamma2 ,  linestyle='dashed' , color='m', lw=2,label = r"$gamma(V(T))$""E2vib1" )
 
         ax.set_xlabel(r'T (K)')
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
         ax.grid(True)
 
         ax.set_xlim(tstart, tstop)
@@ -1053,7 +1034,6 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         return fig
 
-    #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
     def fit_forth(self, tstart=0, tstop=1000, num=1, energy="energy", volumes="volumes"):
         """
         Performs a fit of the energies as a function of the volume at different temperatures.
@@ -1097,7 +1077,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         return dict2namedtuple(min_vol=min_vol, temp=tmesh , min_en=min_en , param=param , F2D_V=F2D_V)#, fits=fits)
 
-    def vol_E2Vib1_forth(self, tstart=0, tstop=1000, num=101):
+    def vol_E2Vib1_forth(self, tstart=0, tstop=1000, num=101) -> np.ndarray:
 
         volumes0= self.volumes_from_phdos
         iv0=self.iv0_vib
@@ -1124,10 +1104,8 @@ class QHA_App(metaclass=abc.ABCMeta):
 
     def vol_EinfVib1_forth(self, tstart=0, tstop=1000, num=101):
         """
-        Plot the volume as a function of the temperature.
-        Returns: |Vol|
+        Returns: Vol
         """
-
         volumes0= self.volumes_from_phdos
         iv0=self.iv0_vib
         iv1=self.iv1_vib
@@ -1157,7 +1135,7 @@ class QHA_App(metaclass=abc.ABCMeta):
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 100.
 
-        Returns: |Vol|
+        Returns: Vol
         """
         tmesh = np.linspace(tstart, tstop, num)
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
@@ -1195,7 +1173,7 @@ class QHA_App(metaclass=abc.ABCMeta):
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 100.
 
-        Returns: |Vol|
+        Returns: Vol
         """
         tmesh = np.linspace(tstart, tstop, num)
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
@@ -1230,7 +1208,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         return vol
 
     @add_fig_kwargs
-    def plot_vol_vs_t_4th(self, tstart=0, tstop=1000, num=101, ax=None, **kwargs):
+    def plot_vol_vs_t_4th(self, tstart=0, tstop=1000, num=101, ax=None, **kwargs) -> Figure:
         """
         Plot the volume as a function of the temperature.
 
@@ -1239,8 +1217,6 @@ class QHA_App(metaclass=abc.ABCMeta):
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         tmesh = np.linspace(tstart, tstop, num)
@@ -1284,11 +1260,11 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.set_ylabel(r'V (${\AA}^3$)')
         ax.set_xlim(tstart, tstop)
         ax.grid(True)
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
 
         return fig
 
-    def get_thermal_expansion_coeff_4th(self, tstart=0, tstop=1000, num=101 , tref=None):
+    def get_thermal_expansion_coeff_4th(self, tstart=0, tstop=1000, num=101 , tref=None) -> np.ndarray:
         """
         Calculates the thermal expansion coefficient as a function of temperature, using
         finite difference on the fitted values of the volume as a function of temperature.
@@ -1298,10 +1274,7 @@ class QHA_App(metaclass=abc.ABCMeta):
             tstop: The end value (in Kelvin) of the mesh.
             tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
-
             num: int, optional Number of samples to generate. Default is 100.
-
-        Returns: |Function1D|
         """
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
         tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
@@ -1340,7 +1313,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         return alpha
 
     @add_fig_kwargs
-    def plot_thermal_expansion_coeff_4th(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs):
+    def plot_thermal_expansion_coeff_4th(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -1349,8 +1322,6 @@ class QHA_App(metaclass=abc.ABCMeta):
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -1391,7 +1362,7 @@ class QHA_App(metaclass=abc.ABCMeta):
             E2D_V = p3(vol2_4th)
             if (tref==None):
                 alpha_2 = - 1/vol2_4th[:] * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:]
-            else :
+            else:
                 vol2_4th_ref = self.vol_EinfVib1_forth(num=1,tstop=tref,tstart=tref)
                 alpha_2 = - 1/vol2_4th_ref * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:]
             ax.plot(tmesh, alpha_2,color='gold', lw=2 ,  label=r"$E_\infty Vib1$")
@@ -1452,7 +1423,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         ax.set_xlabel(r'T (K)')
         ax.set_ylabel(r'$\alpha$ (K$^{-1}$)')
         ax.grid(True)
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
 
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
@@ -1460,7 +1431,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         return fig
 
     @add_fig_kwargs
-    def plot_abc_vs_t_4th(self, tstart=0, tstop=1000, num=101, lattice=None,tref=None, ax=None, **kwargs):
+    def plot_abc_vs_t_4th(self, tstart=0, tstop=1000, num=101, lattice=None,tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -1471,8 +1442,6 @@ class QHA_App(metaclass=abc.ABCMeta):
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         ax, fig, plt = get_ax_fig_plt(ax)
@@ -1525,7 +1494,7 @@ class QHA_App(metaclass=abc.ABCMeta):
                 ax.plot(tmesh ,cc2 ,  linestyle='dashed' , color='m', lw=2,label = r"$c(V(T))$""E2vib1" )
 
         ax.set_xlabel(r'T (K)')
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
         ax.grid(True)
 
         ax.set_xlim(tstart, tstop)
@@ -1534,7 +1503,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         return fig
 
     @add_fig_kwargs
-    def plot_angles_vs_t_4th(self, tstart=0, tstop=1000, num=101,angle=None,  tref=None, ax=None, **kwargs):
+    def plot_angles_vs_t_4th(self, tstart=0, tstop=1000, num=101,angle=None,  tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -1545,8 +1514,6 @@ class QHA_App(metaclass=abc.ABCMeta):
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         ax, fig, plt = get_ax_fig_plt(ax)
@@ -1599,7 +1566,7 @@ class QHA_App(metaclass=abc.ABCMeta):
                 ax.plot(tmesh ,gamma2 ,  linestyle='dashed' , color='m', lw=2,label = r"$gamma(V(T))$""E2vib1" )
 
         ax.set_xlabel(r'T (K)')
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
         ax.grid(True)
 
         ax.set_xlim(tstart, tstop)
@@ -1608,7 +1575,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         return fig
 
     @add_fig_kwargs
-    def plot_thermal_expansion_coeff_abc_4th(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs):
+    def plot_thermal_expansion_coeff_abc_4th(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -1619,8 +1586,6 @@ class QHA_App(metaclass=abc.ABCMeta):
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         tmesh = np.linspace(tstart, tstop, num)
@@ -1709,7 +1674,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         ax.set_xlabel(r'T (K)')
         ax.set_ylabel(r'$\alpha$ (K$^{-1}$)')
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
         ax.grid(True)
 
         ax.set_xlim(tstart, tstop)
@@ -1718,7 +1683,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         return fig
 
     @add_fig_kwargs
-    def plot_thermal_expansion_coeff_angles_4th(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs):
+    def plot_thermal_expansion_coeff_angles_4th(self, tstart=0, tstop=1000, num=101, tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -1729,8 +1694,6 @@ class QHA_App(metaclass=abc.ABCMeta):
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         ax, fig, plt = get_ax_fig_plt(ax)
         tmesh = np.linspace(tstart, tstop, num)
@@ -1818,7 +1781,7 @@ class QHA_App(metaclass=abc.ABCMeta):
 
         ax.set_xlabel(r'T (K)')
         ax.set_ylabel(r'$\alpha$ (K$^{-1}$)')
-        ax.legend()
+        ax.legend(loc="best", shadow=True)
         ax.grid(True)
 
         ax.set_xlim(tstart, tstop)
@@ -1827,7 +1790,7 @@ class QHA_App(metaclass=abc.ABCMeta):
         return fig
 
     @classmethod
-    def from_files_app(cls, gsr_paths, phdos_paths):
+    def from_files_app(cls, gsr_paths: list[str], phdos_paths: list[str]):
         """
         Creates an instance of QHA from a list of GSR files and a list of PHDOS.nc files.
         The list should have the same size and the volumes should match.
@@ -1856,7 +1819,7 @@ class QHA_App(metaclass=abc.ABCMeta):
                 doses.append(p.phdos)
                 structures_from_phdos.append(p.structure)
 
-       # cls._check_volumes_id(structures, structures_from_phdos)
+        # cls._check_volumes_id(structures, structures_from_phdos)
         vols1 = [s.volume for s in structures]
         vols2 = [s.volume for s in structures_from_phdos]
         dv=np.zeros((len(vols2)-1))

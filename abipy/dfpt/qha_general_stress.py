@@ -1,35 +1,30 @@
+"""
+Computes thermal stress using EinfVib2EinfVib2 for specific configurations
+across various crystallographic structures, from cubic to triclinic.
+"""
+from __future__ import annotations
+
 import numpy as np
 import os
 import abc
 import math
 import abipy.core.abinit_units as abu
 
-from scipy.interpolate import UnivariateSpline
-from monty.collections import dict2namedtuple
-from monty.functools import lazy_property
-from pymatgen.analysis.eos import EOS
-from abipy.core.func1d import Function1D
+#from monty.collections import dict2namedtuple
+#from monty.functools import lazy_property
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
-from abipy.dfpt.phonons import PhononBandsPlotter, PhononDos, PhdosFile
-from abipy.dfpt.gruneisen import GrunsNcFile
-#from numpy.polynomial.polynomial import polyfit2d
-from scipy.interpolate import interp2d
-#from scipy.optimize import minimize
-#from scipy.optimize import fsolve
-from scipy.interpolate import RectBivariateSpline, RegularGridInterpolator
-
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D  # Import Axes3D module
+from abipy.dfpt.phonons import PhdosFile
 from abipy.core.symmetries import AbinitSpaceGroup
 
 
-def extract_attribute(structures, attribute_func):
+def extract_attribute(structures, attribute_func) -> np.ndarray:
     return np.array([[[[[[attribute_func(s) if s is not None else None for s in col] for col in row] for row in d1]
                     for d1 in d2] for d2 in d3] for d3 in structures])
 
-class QHA_ZSISA():
+
+class QHA_ZSISA:
     """
     Abstract class for the quasi-harmonic approximation analysis.
     Provides some basic methods and plotting utils, plus a converter to write input files for phonopy-qha or to
@@ -37,7 +32,7 @@ class QHA_ZSISA():
     Does not include electronic entropic contributions for metals.
     """
 
-    def __init__(self, structures, doses,   dim , structure_guess , stress_guess ,case):
+    def __init__(self, structures, doses, dim, structure_guess, stress_guess, case):
         """
         Args:
             structures: list of structures at different volumes.
@@ -81,41 +76,40 @@ class QHA_ZSISA():
         self.ave_z[mask] = (abs(self.az[mask]) + abs(self.bz[mask]) + abs(self.cz[mask])) / 3.0
 
         self.structure_guess = structure_guess
-        self.volume_guess = structure_guess.volume 
-        self.lattice_a_guess = structure_guess.lattice.abc[0] 
-        self.lattice_b_guess = structure_guess.lattice.abc[1] 
+        self.volume_guess = structure_guess.volume
+        self.lattice_a_guess = structure_guess.lattice.abc[0]
+        self.lattice_b_guess = structure_guess.lattice.abc[1]
         self.lattice_c_guess = structure_guess.lattice.abc[2]
         self.matrix_guess = structure_guess.lattice.matrix
         self.stress_guess = stress_guess
         self.frac_coords_guess = structure_guess.frac_coords
         self.angles_guess = structure_guess.lattice.angles
-        self.ax_guess = structure_guess.lattice.matrix[0,0] 
-        self.ay_guess = structure_guess.lattice.matrix[0,1] 
-        self.az_guess = structure_guess.lattice.matrix[0,2] 
-        self.bx_guess = structure_guess.lattice.matrix[1,0] 
-        self.by_guess = structure_guess.lattice.matrix[1,1] 
-        self.bz_guess = structure_guess.lattice.matrix[1,2] 
-        self.cx_guess = structure_guess.lattice.matrix[2,0] 
-        self.cy_guess = structure_guess.lattice.matrix[2,1] 
-        self.cz_guess = structure_guess.lattice.matrix[2,2] 
-        self.ave_x_guess = (abs(self.ax_guess)+abs(self.bx_guess)+abs(self.cx_guess))/3. 
+        self.ax_guess = structure_guess.lattice.matrix[0,0]
+        self.ay_guess = structure_guess.lattice.matrix[0,1]
+        self.az_guess = structure_guess.lattice.matrix[0,2]
+        self.bx_guess = structure_guess.lattice.matrix[1,0]
+        self.by_guess = structure_guess.lattice.matrix[1,1]
+        self.bz_guess = structure_guess.lattice.matrix[1,2]
+        self.cx_guess = structure_guess.lattice.matrix[2,0]
+        self.cy_guess = structure_guess.lattice.matrix[2,1]
+        self.cz_guess = structure_guess.lattice.matrix[2,2]
+        self.ave_x_guess = (abs(self.ax_guess)+abs(self.bx_guess)+abs(self.cx_guess))/3.
         self.ave_y_guess = (abs(self.ay_guess)+abs(self.by_guess)+abs(self.cy_guess))/3.
         self.ave_z_guess = (abs(self.az_guess)+abs(self.bz_guess)+abs(self.cz_guess))/3.
 
-
-    def stress_v_ZSISA(self, temp,pressure):
+    def stress_v_ZSISA(self, temp, pressure):
 
         e,S = self.get_vib_free_energies(temp)
 
         v= self.volume_guess
-        dv=self.volumes[0,0,0,0,0,0]-self.volumes[1,0,0,0,0,0] 
+        dv=self.volumes[0,0,0,0,0,0]-self.volumes[1,0,0,0,0,0]
 
-        if (self.dim[0]==3):  
+        if (self.dim[0]==3):
             v0= self.volumes[1,0,0,0,0,0]
             dF_dV   = (e[0,0,0,0,0,0]-e[2,0,0,0,0,0])/(2*dv)
-            d2F_dV2 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+e[2,0,0,0,0,0])/(dv)**2  
+            d2F_dV2 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+e[2,0,0,0,0,0])/(dv)**2
             dfdv= dF_dV + (v-v0)*d2F_dV2
-        elif (self.dim[0]==5):  
+        elif (self.dim[0]==5):
             v0= self.volumes[2,0,0,0,0,0]
             dF_dV  =(-e[0,0,0,0,0,0]+ 8*e[1,0,0,0,0,0]-8*e[3,0,0,0,0,0]+e[4,0,0,0,0,0])/(12*dv)
             d2F_dV2=(-e[0,0,0,0,0,0]+16*e[1,0,0,0,0,0]-30*e[2,0,0,0,0,0]+16*e[3,0,0,0,0,0]-e[4,0,0,0,0,0])/(12*dv**2)
@@ -128,7 +122,7 @@ class QHA_ZSISA():
 
         stress_a = -dfdv* self.eVA3_HaBohr3
 
-        stress[0]=stress_a -pressure 
+        stress[0]=stress_a -pressure
         stress[1]=stress_a -pressure
         stress[2]=stress_a -pressure
 
@@ -137,25 +131,25 @@ class QHA_ZSISA():
         dtol[2]= abs(stress[2]-self.stress_guess[2,2])
 
         return  dtol, stress
-#*********************************************************************************************
+
     def stress_ZSISA_1DOF(self, temp ,pressure):
 
         e,S = self.get_vib_free_energies(temp)
 
-        X0 = self.ave_x[0,0,0,0,0,0]                                                   
+        X0 = self.ave_x[0,0,0,0,0,0]
         X1 = self.ave_x[1,0,0,0,0,0]
 
         dexx= (X0-X1)/X0
         exx0= X1/X0-1
 
         dF_dX   = (e[0,0,0,0,0,0]-e[2,0,0,0,0,0])/(2*dexx)
-        d2F_dX2 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+e[2,0,0,0,0,0])/(dexx)**2  
+        d2F_dX2 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+e[2,0,0,0,0,0])/(dexx)**2
 
         dF_dV   = (e[0,0,0,0,0,0]-e[2,0,0,0,0,0])/(2*(X0-X1)) /(3*X1**2)
         d2F_dV2 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+e[2,0,0,0,0,0])/(X0-X1)**2  /(3*X1**2)**2
 
         dS_dX   = (S[0,0,0,0,0,0]-S[2,0,0,0,0,0])/(2*dexx)
-        d2S_dX2 = (S[0,0,0,0,0,0]-2*S[1,0,0,0,0,0]+S[2,0,0,0,0,0])/(dexx)**2  
+        d2S_dX2 = (S[0,0,0,0,0,0]-2*S[1,0,0,0,0,0]+S[2,0,0,0,0,0])/(dexx)**2
 
         x= self.ave_x_guess
         v= self.volume_guess
@@ -168,7 +162,7 @@ class QHA_ZSISA():
         dtol   =np.zeros(6)
         stress =np.zeros(6)
 
-        stress_xx= -dfdx/v*(exx_n+1)/3.0 * self.eVA3_HaBohr3 
+        stress_xx= -dfdx/v*(exx_n+1)/3.0 * self.eVA3_HaBohr3
         print (x/X0, x/X0, x/X0)
         print (stress_xx , -dfdv* self.eVA3_HaBohr3 )
 
@@ -185,7 +179,7 @@ class QHA_ZSISA():
                           [0,0,0,0,0,0]])
             M = M + matrix_elastic
            # print ("bulk=", (M[0,0]+2*M[0,1])/3/v *160.21766531138545 , M[0,0]/v *160.21766531138545, M[0,1]/v *160.21766531138545)
-            S1= dsdx*(exx_n+1)/3 
+            S1= dsdx*(exx_n+1)/3
             S = np.array([S1,S1,S1,0,0,0])
             dstrain_dt = np.linalg.inv(M) @ S
             therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(exx_n+1),dstrain_dt[2]*(exx_n+1),0,0,0]
@@ -194,7 +188,7 @@ class QHA_ZSISA():
         else:
             therm = [0,0,0,0,0,0]
 
-        stress[0]=stress_xx -pressure 
+        stress[0]=stress_xx -pressure
         stress[1]=stress_xx -pressure
         stress[2]=stress_xx -pressure
 
@@ -203,13 +197,13 @@ class QHA_ZSISA():
         dtol[2]= abs(stress[2]-self.stress_guess[2,2])
 
         return  dtol, stress , therm
-#*********************************************************************************************
-    def stress_ZSISA_2DOF(self, temp,pressure ):
+
+    def stress_ZSISA_2DOF(self, temp, pressure):
 
         e,S = self.get_vib_free_energies(temp)
-                  
-        X0 =self.ave_x[0,1,0,0,0,0]                                                   
-        Z0 =self.ave_z[1,0,0,0,0,0]                                                   
+
+        X0 =self.ave_x[0,1,0,0,0,0]
+        Z0 =self.ave_z[1,0,0,0,0,0]
 
         X1 = self.ave_x[1,1,0,0,0,0]
         Z1 = self.ave_z[1,1,0,0,0,0]
@@ -225,18 +219,18 @@ class QHA_ZSISA():
         dF_dX = (e[0,1,0,0,0,0]-e[2,1,0,0,0,0])/(2*dexx)
         dF_dZ = (e[1,0,0,0,0,0]-e[1,2,0,0,0,0])/(2*dezz)
 
-        d2F_dX2 = (e[0,1,0,0,0,0]-2*e[1,1,0,0,0,0]+e[2,1,0,0,0,0])/(dexx)**2  
+        d2F_dX2 = (e[0,1,0,0,0,0]-2*e[1,1,0,0,0,0]+e[2,1,0,0,0,0])/(dexx)**2
         d2F_dZ2 = (e[1,0,0,0,0,0]-2*e[1,1,0,0,0,0]+e[1,2,0,0,0,0])/(dezz)**2
         d2F_dXdZ = (e[1,1,0,0,0,0] - e[0,1,0,0,0,0] - e[1,0,0,0,0,0] + e[0,0,0,0,0,0]) / (dexx *dezz)
         #print ("---->",dF_dX,dF_dZ)
 
         dS_dX = (S[0,1,0,0,0,0]-S[2,1,0,0,0,0])/(2*dexx)
         dS_dZ = (S[1,0,0,0,0,0]-S[1,2,0,0,0,0])/(2*dezz)
-        d2S_dX2 = (S[0,1,0,0,0,0]-2*S[1,1,0,0,0,0]+S[2,1,0,0,0,0])/(dexx)**2  
+        d2S_dX2 = (S[0,1,0,0,0,0]-2*S[1,1,0,0,0,0]+S[2,1,0,0,0,0])/(dexx)**2
         d2S_dZ2 = (S[1,0,0,0,0,0]-2*S[1,1,0,0,0,0]+S[1,2,0,0,0,0])/(dezz)**2
         d2S_dXdZ = (S[1,1,0,0,0,0] - S[0,1,0,0,0,0] - S[1,0,0,0,0,0] + S[0,0,0,0,0,0]) / (dexx *dezz)
 
-        x= self.ave_x_guess 
+        x= self.ave_x_guess
         z= self.ave_z_guess
         v= self.volume_guess
 
@@ -252,7 +246,7 @@ class QHA_ZSISA():
         dtol   =np.zeros(6)
         stress =np.zeros(6)
 
-        stress_xx= -dfdx/V*(exx_n+1)*0.5 * self.eVA3_HaBohr3 
+        stress_xx= -dfdx/V*(exx_n+1)*0.5 * self.eVA3_HaBohr3
         stress_zz= -dfdz/V*(ezz_n+1)     * self.eVA3_HaBohr3
         print (x/X0, x/X0, z/Z0)
         print ("stress")
@@ -275,7 +269,7 @@ class QHA_ZSISA():
                           [0,0,0,0,0,0],
                           [0,0,0,0,0,0]])
             M = M + matrix_elastic+P/self.eVA3_HaBohr3
-            S1= dsdx*(exx_n+1)*0.5 
+            S1= dsdx*(exx_n+1)*0.5
             S3= dsdz*(ezz_n+1)
             S = np.array([S1,S1,S3,0,0,0])
             dstrain_dt = np.linalg.inv(M) @ S
@@ -288,7 +282,7 @@ class QHA_ZSISA():
         else:
             therm = [0,0,0,0,0,0]
 
-        stress[0]=stress_xx -pressure 
+        stress[0]=stress_xx -pressure
         stress[1]=stress_xx -pressure
         stress[2]=stress_zz -pressure
 
@@ -297,8 +291,8 @@ class QHA_ZSISA():
         dtol[2]= abs(stress[2]-self.stress_guess[2,2])
 
         return  dtol, stress, therm
-#*********************************************************************************************
-    def stress_ZSISA_3DOF(self, temp,pressure ):
+
+    def stress_ZSISA_3DOF(self, temp, pressure):
 
         e,S = self.get_vib_free_energies(temp)
 
@@ -310,7 +304,7 @@ class QHA_ZSISA():
         Y1 = self.ave_y[1,1,1,0,0,0]
         Z1 = self.ave_z[1,1,1,0,0,0]
 
-        spgrp = AbinitSpaceGroup.from_structure(self.structures[1][1][1][0][0][0]) 
+        spgrp = AbinitSpaceGroup.from_structure(self.structures[1][1][1][0][0][0])
         spgrp_number=spgrp.spgid
 
         V= self.volume_guess
@@ -326,16 +320,16 @@ class QHA_ZSISA():
         exx0= scale_x1-1
         eyy0= scale_y1-1
         ezz0= scale_z1-1
-        dexx=-exx0 
-        deyy=-eyy0 
-        dezz=-ezz0 
+        dexx=-exx0
+        deyy=-eyy0
+        dezz=-ezz0
 
 
         dF_dX   = (e[0,1,1,0,0,0]-e[2,1,1,0,0,0])/(2*dexx)
         dF_dY   = (e[1,0,1,0,0,0]-e[1,2,1,0,0,0])/(2*deyy)
         dF_dZ   = (e[1,1,0,0,0,0]-e[1,1,2,0,0,0])/(2*dezz)
 
-        d2F_dX2 = (e[0,1,1,0,0,0]-2*e[1,1,1,0,0,0]+e[2,1,1,0,0,0])/(dexx)**2  
+        d2F_dX2 = (e[0,1,1,0,0,0]-2*e[1,1,1,0,0,0]+e[2,1,1,0,0,0])/(dexx)**2
         d2F_dY2 = (e[1,0,1,0,0,0]-2*e[1,1,1,0,0,0]+e[1,2,1,0,0,0])/(deyy)**2
         d2F_dZ2 = (e[1,1,0,0,0,0]-2*e[1,1,1,0,0,0]+e[1,1,2,0,0,0])/(dezz)**2
 
@@ -348,7 +342,7 @@ class QHA_ZSISA():
         dS_dY   = (S[1,0,1,0,0,0]-S[1,2,1,0,0,0])/(2*deyy)
         dS_dZ   = (S[1,1,0,0,0,0]-S[1,1,2,0,0,0])/(2*dezz)
 
-        d2S_dX2 = (S[0,1,1,0,0,0]-2*S[1,1,1,0,0,0]+S[2,1,1,0,0,0])/(dexx)**2  
+        d2S_dX2 = (S[0,1,1,0,0,0]-2*S[1,1,1,0,0,0]+S[2,1,1,0,0,0])/(dexx)**2
         d2S_dY2 = (S[1,0,1,0,0,0]-2*S[1,1,1,0,0,0]+S[1,2,1,0,0,0])/(deyy)**2
         d2S_dZ2 = (S[1,1,0,0,0,0]-2*S[1,1,1,0,0,0]+S[1,1,2,0,0,0])/(dezz)**2
 
@@ -356,9 +350,9 @@ class QHA_ZSISA():
         d2S_dXdZ = (S[1,1,1,0,0,0] - S[0,1,1,0,0,0] - S[1,1,0,0,0,0] + S[0,1,0,0,0,0]) / (dexx *dezz)
         d2S_dYdZ = (S[1,1,1,0,0,0] - S[1,0,1,0,0,0] - S[1,1,0,0,0,0] + S[1,0,0,0,0,0]) / (deyy *dezz)
 
-        x= self.ave_x_guess 
-        y= self.ave_y_guess 
-        z= self.ave_z_guess 
+        x= self.ave_x_guess
+        y= self.ave_y_guess
+        z= self.ave_z_guess
         v=self.volume_guess
 
 
@@ -383,7 +377,7 @@ class QHA_ZSISA():
         dtol   =np.zeros(6)
         stress =np.zeros(6)
 
-        stress_xx= -dfdx/V*(exx_n+1)* self.eVA3_HaBohr3 
+        stress_xx= -dfdx/V*(exx_n+1)* self.eVA3_HaBohr3
         stress_yy= -dfdy/V*(eyy_n+1)* self.eVA3_HaBohr3
         stress_zz= -dfdz/V*(ezz_n+1)* self.eVA3_HaBohr3
 
@@ -405,7 +399,7 @@ class QHA_ZSISA():
                           [0,0,0,0,0,0],
                           [0,0,0,0,0,0]])
             M = M + matrix_elastic+P/ self.eVA3_HaBohr3
-            S1= dsdx*(exx_n+1) 
+            S1= dsdx*(exx_n+1)
             S2= dsdy*(eyy_n+1)
             S3= dsdz*(ezz_n+1)
             S = np.array([S1,S2,S3,0,0,0])
@@ -424,7 +418,7 @@ class QHA_ZSISA():
         else:
             therm = [0,0,0,0,0,0]
 
-        stress[0]=stress_xx -pressure 
+        stress[0]=stress_xx -pressure
         stress[1]=stress_yy -pressure
         stress[2]=stress_zz -pressure
         print (scale_x_guess,scale_y_guess,scale_z_guess)
@@ -436,15 +430,15 @@ class QHA_ZSISA():
         dtol[2]= abs(stress[2]-self.stress_guess[2,2])
 
         return  dtol, stress,therm
-#*********************************************************************************************
-    def stress_ZSISA_monoclinic(self, temp ,pressure):
+
+    def stress_ZSISA_monoclinic(self, temp, pressure):
 
         e,S = self.get_vib_free_energies(temp)
 
-        Ax0 =self.ax[0,1,1,1,0,0]                                                   
-        By0 =self.by[1,0,1,1,0,0]                                                   
+        Ax0 =self.ax[0,1,1,1,0,0]
+        By0 =self.by[1,0,1,1,0,0]
         Cx0 =self.cx[0,1,1,0,0,0]
-        Cz0 =self.cz[1,1,0,1,0,0]                                                   
+        Cz0 =self.cz[1,1,0,1,0,0]
 
         Ax1 = self.ax[1,1,1,1,0,0]
         By1 = self.by[1,1,1,1,0,0]
@@ -468,7 +462,7 @@ class QHA_ZSISA():
         dF_dC3   = (e[1,1,0,1,0,0]-e[1,1,2,1,0,0])/(2*dezz)
         dF_dC1   = (e[1,1,1,0,0,0]-e[1,1,1,2,0,0])/(2*dezx)
 
-        d2F_dA12 = (e[0,1,1,1,0,0]-2*e[1,1,1,1,0,0]+e[2,1,1,1,0,0])/(dexx)**2  
+        d2F_dA12 = (e[0,1,1,1,0,0]-2*e[1,1,1,1,0,0]+e[2,1,1,1,0,0])/(dexx)**2
         d2F_dB22 = (e[1,0,1,1,0,0]-2*e[1,1,1,1,0,0]+e[1,2,1,1,0,0])/(deyy)**2
         d2F_dC32 = (e[1,1,0,1,0,0]-2*e[1,1,1,1,0,0]+e[1,1,2,1,0,0])/(dezz)**2
         d2F_dC12 = (e[1,1,1,0,0,0]-2*e[1,1,1,1,0,0]+e[1,1,1,2,0,0])/(dezx)**2
@@ -487,7 +481,7 @@ class QHA_ZSISA():
         dS_dC3   = (S[1,1,0,1,0,0]-S[1,1,2,1,0,0])/(2*dezz)
         dS_dC1   = (S[1,1,1,0,0,0]-S[1,1,1,2,0,0])/(2*dezx)
 
-        d2S_dA12 = (S[0,1,1,1,0,0]-2*S[1,1,1,1,0,0]+S[2,1,1,1,0,0])/(dexx)**2  
+        d2S_dA12 = (S[0,1,1,1,0,0]-2*S[1,1,1,1,0,0]+S[2,1,1,1,0,0])/(dexx)**2
         d2S_dB22 = (S[1,0,1,1,0,0]-2*S[1,1,1,1,0,0]+S[1,2,1,1,0,0])/(deyy)**2
         d2S_dC32 = (S[1,1,0,1,0,0]-2*S[1,1,1,1,0,0]+S[1,1,2,1,0,0])/(dezz)**2
         d2S_dC12 = (S[1,1,1,0,0,0]-2*S[1,1,1,1,0,0]+S[1,1,1,2,0,0])/(dezx)**2
@@ -505,7 +499,7 @@ class QHA_ZSISA():
         c=self.lattice_c_guess
         v=self.volume_guess
 
-        ax= a 
+        ax= a
         by= b
         cz= c*math.sin(math.pi*self.angles_guess[1]/180)
         cx= c*math.cos(math.pi*self.angles_guess[1]/180)
@@ -528,7 +522,7 @@ class QHA_ZSISA():
         dtol   =np.zeros(6)
         stress =np.zeros(6)
 
-        stress_a1= -dfda1/V*(exx_n+1)* self.eVA3_HaBohr3 
+        stress_a1= -dfda1/V*(exx_n+1)* self.eVA3_HaBohr3
         stress_b2= -dfdb2/V*(eyy_n+1)* self.eVA3_HaBohr3
         stress_c3= -dfdc3/V*(ezz_n+1)* self.eVA3_HaBohr3
         stress_c1= -1.0/V*(dfdc1*(ezz_n+1)+dfda1*ezx_n) * self.eVA3_HaBohr3
@@ -553,12 +547,12 @@ class QHA_ZSISA():
                           [0,0,0,0,0,0],
                           [0,0,0,0,0,0]])
             M = M + matrix_elastic+P/ self.eVA3_HaBohr3
-            S1= dsda1*(exx_n+1) 
+            S1= dsda1*(exx_n+1)
             S2= dsdb2*(eyy_n+1)
             S3= dsdc3*(ezz_n+1)
-            S4= 0.0 
+            S4= 0.0
             S5= dsdc1*(ezz_n+1)+dsda1*ezx_n
-            S6= 0.0 
+            S6= 0.0
             S = np.array([S1,S2,S3,S4,S5,S6])
             dstrain_dt = np.linalg.inv(M) @ S
             therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),0,dstrain_dt[4]*(ezx_n),0]
@@ -575,7 +569,7 @@ class QHA_ZSISA():
         else:
             therm = [0,0,0,0,0,0]
 
-        stress[0]=stress_a1 -pressure 
+        stress[0]=stress_a1 -pressure
         stress[1]=stress_b2 -pressure
         stress[2]=stress_c3 -pressure
         stress[4]=stress_c1
@@ -586,17 +580,17 @@ class QHA_ZSISA():
         dtol[4]= abs(stress[4]-self.stress_guess[2,0])
 
         return  dtol, stress , therm
-#*********************************************************************************************
-    def stress_ZSISA_triclinic(self, temp ,pressure):
+
+    def stress_ZSISA_triclinic(self, temp, pressure):
 
         e,S = self.get_vib_free_energies(temp)
 
-        Ax0 =self.ax[0,1,1,1,1,1]                                                   
-        Bx0 =self.bx[0,1,1,0,1,1]                                                   
-        By0 =self.by[1,0,1,1,1,1]                                                   
-        Cx0 =self.cx[0,1,1,0,1,1]+0.5*(self.cx[1,1,1,1,0,1]-self.cx[1,1,1,1,2,1]) 
-        Cy0 =self.cy[1,0,1,1,1,0]                                                   
-        Cz0 =self.cz[1,1,0,1,1,1]                                                   
+        Ax0 =self.ax[0,1,1,1,1,1]
+        Bx0 =self.bx[0,1,1,0,1,1]
+        By0 =self.by[1,0,1,1,1,1]
+        Cx0 =self.cx[0,1,1,0,1,1]+0.5*(self.cx[1,1,1,1,0,1]-self.cx[1,1,1,1,2,1])
+        Cy0 =self.cy[1,0,1,1,1,0]
+        Cz0 =self.cz[1,1,0,1,1,1]
 
         Ax1 = self.ax[1,1,1,1,1,1]
         Bx1 = self.bx[1,1,1,1,1,1]
@@ -628,7 +622,7 @@ class QHA_ZSISA():
         dF_dC1   = (e[1,1,1,1,0,1]-e[1,1,1,1,2,1])/(2*dezx)
         dF_dC2   = (e[1,1,1,1,1,0]-e[1,1,1,1,1,2])/(2*dezy)
 
-        d2F_dA12 = (e[0,1,1,1,1,1]-2*e[1,1,1,1,1,1]+e[2,1,1,1,1,1])/(dexx)**2  
+        d2F_dA12 = (e[0,1,1,1,1,1]-2*e[1,1,1,1,1,1]+e[2,1,1,1,1,1])/(dexx)**2
         d2F_dB22 = (e[1,0,1,1,1,1]-2*e[1,1,1,1,1,1]+e[1,2,1,1,1,1])/(deyy)**2
         d2F_dC32 = (e[1,1,0,1,1,1]-2*e[1,1,1,1,1,1]+e[1,1,2,1,1,1])/(dezz)**2
         d2F_dB12 = (e[1,1,1,0,1,1]-2*e[1,1,1,1,1,1]+e[1,1,1,2,1,1])/(deyx)**2
@@ -662,7 +656,7 @@ class QHA_ZSISA():
         dS_dC1   = (S[1,1,1,1,0,1]-S[1,1,1,1,2,1])/(2*dezx)
         dS_dC2   = (S[1,1,1,1,1,0]-S[1,1,1,1,1,2])/(2*dezy)
 
-        d2S_dA12 = (S[0,1,1,1,1,1]-2*S[1,1,1,1,1,1]+S[2,1,1,1,1,1])/(dexx)**2  
+        d2S_dA12 = (S[0,1,1,1,1,1]-2*S[1,1,1,1,1,1]+S[2,1,1,1,1,1])/(dexx)**2
         d2S_dB22 = (S[1,0,1,1,1,1]-2*S[1,1,1,1,1,1]+S[1,2,1,1,1,1])/(deyy)**2
         d2S_dC32 = (S[1,1,0,1,1,1]-2*S[1,1,1,1,1,1]+S[1,1,2,1,1,1])/(dezz)**2
         d2S_dB12 = (S[1,1,1,0,1,1]-2*S[1,1,1,1,1,1]+S[1,1,1,2,1,1])/(deyx)**2
@@ -697,15 +691,15 @@ class QHA_ZSISA():
         cos_ac=math.cos(math.pi*self.angles_guess[1]/180)
         cos_bc=math.cos(math.pi*self.angles_guess[0]/180)
 
-        ax = 1.0                                                 
-        ay = 0.0                                                   
-        az = 0.0                                                   
-        bx = cos_ab                                                
-        by = np.sqrt(1-cos_ab**2)                                  
-        bz = 0.0                                                   
-        cx = cos_ac                                                
-        cy = (cos_bc-bx*cx)/by             
-        cz = np.sqrt(1.0-cx**2-cy**2)              
+        ax = 1.0
+        ay = 0.0
+        az = 0.0
+        bx = cos_ab
+        by = np.sqrt(1-cos_ab**2)
+        bz = 0.0
+        cx = cos_ac
+        cy = (cos_bc-bx*cx)/by
+        cz = np.sqrt(1.0-cx**2-cy**2)
         ax = ax*a
         bx = bx*b
         by = by*b
@@ -721,14 +715,14 @@ class QHA_ZSISA():
         ezy_n= (By0*cy-by*Cy0)/(By0*Cz0)
         ezx_n= (Ax0*(By0*cx-bx*Cy0)-ax*(By0*Cx0-Bx0*Cy0))/(Ax0*By0*Cz0)
 
-        dfda1= dF_dA1 + (exx_n-exx0)*d2F_dA12+(eyy_n-eyy0)*d2F_dA1dB2+(ezz_n-ezz0)*d2F_dA1dC3+(eyx_n-eyx0)*d2F_dA1dB1+(ezx_n-ezx0)*d2F_dA1dC1+(ezy_n-ezy0)*d2F_dA1dC2 
+        dfda1= dF_dA1 + (exx_n-exx0)*d2F_dA12+(eyy_n-eyy0)*d2F_dA1dB2+(ezz_n-ezz0)*d2F_dA1dC3+(eyx_n-eyx0)*d2F_dA1dB1+(ezx_n-ezx0)*d2F_dA1dC1+(ezy_n-ezy0)*d2F_dA1dC2
         dfdb2= dF_dB2 + (eyy_n-eyy0)*d2F_dB22+(exx_n-exx0)*d2F_dA1dB2+(ezz_n-ezz0)*d2F_dB2dC3+(eyx_n-eyx0)*d2F_dB2dB1+(ezx_n-ezx0)*d2F_dB2dC1+(ezy_n-ezy0)*d2F_dB2dC2
         dfdc3= dF_dC3 + (ezz_n-ezz0)*d2F_dC32+(exx_n-exx0)*d2F_dA1dC3+(eyy_n-eyy0)*d2F_dB2dC3+(eyx_n-eyx0)*d2F_dC3dB1+(ezx_n-ezx0)*d2F_dC3dC1+(ezy_n-ezy0)*d2F_dC3dC2
         dfdb1= dF_dB1 + (eyx_n-eyx0)*d2F_dB12+(exx_n-exx0)*d2F_dA1dB1+(eyy_n-eyy0)*d2F_dB2dB1+(ezz_n-ezz0)*d2F_dC3dB1+(ezx_n-ezx0)*d2F_dB1dC1+(ezy_n-ezy0)*d2F_dB1dC2
         dfdc1= dF_dC1 + (ezx_n-ezx0)*d2F_dC12+(exx_n-exx0)*d2F_dA1dC1+(eyy_n-eyy0)*d2F_dB2dC1+(ezz_n-ezz0)*d2F_dC3dC1+(eyx_n-eyx0)*d2F_dB1dC1+(ezy_n-ezy0)*d2F_dC1dC2
         dfdc2= dF_dC2 + (ezy_n-ezy0)*d2F_dC22+(exx_n-exx0)*d2F_dA1dC2+(eyy_n-eyy0)*d2F_dB2dC2+(ezz_n-ezz0)*d2F_dC3dC2+(eyx_n-eyx0)*d2F_dB1dC2+(ezx_n-ezx0)*d2F_dC1dC2
 
-        dsda1= dS_dA1 + (exx_n-exx0)*d2S_dA12+(eyy_n-eyy0)*d2S_dA1dB2+(ezz_n-ezz0)*d2S_dA1dC3+(eyx_n-eyx0)*d2S_dA1dB1+(ezx_n-ezx0)*d2S_dA1dC1+(ezy_n-ezy0)*d2S_dA1dC2 
+        dsda1= dS_dA1 + (exx_n-exx0)*d2S_dA12+(eyy_n-eyy0)*d2S_dA1dB2+(ezz_n-ezz0)*d2S_dA1dC3+(eyx_n-eyx0)*d2S_dA1dB1+(ezx_n-ezx0)*d2S_dA1dC1+(ezy_n-ezy0)*d2S_dA1dC2
         dsdb2= dS_dB2 + (eyy_n-eyy0)*d2S_dB22+(exx_n-exx0)*d2S_dA1dB2+(ezz_n-ezz0)*d2S_dB2dC3+(eyx_n-eyx0)*d2S_dB2dB1+(ezx_n-ezx0)*d2S_dB2dC1+(ezy_n-ezy0)*d2S_dB2dC2
         dsdc3= dS_dC3 + (ezz_n-ezz0)*d2S_dC32+(exx_n-exx0)*d2S_dA1dC3+(eyy_n-eyy0)*d2S_dB2dC3+(eyx_n-eyx0)*d2S_dC3dB1+(ezx_n-ezx0)*d2S_dC3dC1+(ezy_n-ezy0)*d2S_dC3dC2
         dsdb1= dS_dB1 + (eyx_n-eyx0)*d2S_dB12+(exx_n-exx0)*d2S_dA1dB1+(eyy_n-eyy0)*d2S_dB2dB1+(ezz_n-ezz0)*d2S_dC3dB1+(ezx_n-ezx0)*d2S_dB1dC1+(ezy_n-ezy0)*d2S_dB1dC2
@@ -738,7 +732,7 @@ class QHA_ZSISA():
         dtol   =np.zeros(6)
         stress =np.zeros(6)
 
-        stress_a1= -dfda1/V*(exx_n+1) * self.eVA3_HaBohr3 
+        stress_a1= -dfda1/V*(exx_n+1) * self.eVA3_HaBohr3
         stress_b2= -dfdb2/V*(eyy_n+1) * self.eVA3_HaBohr3
         stress_c3= -dfdc3/V*(ezz_n+1) * self.eVA3_HaBohr3
         stress_b1= -1.0/V*(dfdb1*(eyy_n+1)+dfda1*eyx_n) * self.eVA3_HaBohr3
@@ -762,7 +756,7 @@ class QHA_ZSISA():
                           [0,0,0,0,0,0],
                           [0,0,0,0,0,0]])
             M = M + matrix_elastic+P/ self.eVA3_HaBohr3
-            S1= dsda1*(exx_n+1) 
+            S1= dsda1*(exx_n+1)
             S2= dsdb2*(eyy_n+1)
             S3= dsdc3*(ezz_n+1)
             S4= (dsdc2*(ezz_n+1)+dsdb2*ezy_n)
@@ -788,7 +782,7 @@ class QHA_ZSISA():
             therm = [0,0,0,0,0,0]
 
 
-        stress[0]=stress_a1 -pressure 
+        stress[0]=stress_a1 -pressure
         stress[1]=stress_b2 -pressure
         stress[2]=stress_c3 -pressure
         stress[3]=stress_c2
@@ -806,12 +800,12 @@ class QHA_ZSISA():
         dtol[4]= abs(stress[4]-self.stress_guess[2,0])
         dtol[5]= abs(stress[5]-self.stress_guess[1,0])
 
-        return dtol, stress , therm  
-    # **************************************************************************************
-    def stress_ZSISA_slab_1DOF(self, temp,pressure ):
+        return dtol, stress , therm
+
+    def stress_ZSISA_slab_1DOF(self, temp, pressure):
         e,S = self.get_vib_free_energies(temp)
 
-        X0 = self.ave_x[0,0,0,0,0,0]                                                   
+        X0 = self.ave_x[0,0,0,0,0,0]
         X1 = self.ave_x[1,0,0,0,0,0]
 
         V= self.volume_guess
@@ -820,7 +814,7 @@ class QHA_ZSISA():
         exx0= X1/X0-1
 
         dF_dX   = (e[0,0,0,0,0,0]-e[2,0,0,0,0,0])/(2*dexx)
-        d2F_dX2 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+e[2,0,0,0,0,0])/(dexx)**2  
+        d2F_dX2 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+e[2,0,0,0,0,0])/(dexx)**2
 
         x= self.ave_x_guess
         exx_n= x/X0-1
@@ -830,27 +824,23 @@ class QHA_ZSISA():
         dtol   =np.zeros(6)
         stress =np.zeros(6)
 
-        stress_xx= -dfdx/V*(exx_n+1)*0.5 * self.eVA3_HaBohr3 
+        stress_xx= -dfdx/V*(exx_n+1)*0.5 * self.eVA3_HaBohr3
         print (x/X0, x/X0, x/X0)
         print (stress_xx)
 
-        stress[0]=stress_xx -pressure 
+        stress[0]=stress_xx -pressure
         stress[1]=stress_xx -pressure
-                           
+
         dtol[0]= abs(stress[0]-self.stress_guess[0,0])
         dtol[1]= abs(stress[1]-self.stress_guess[1,1])
 
-
-
-
         return  dtol, stress
-#*********************************************************************************************
 
-    def stress_ZSISA_slab_2DOF(self, temp ,pressure):
+    def stress_ZSISA_slab_2DOF(self, temp, pressure):
         e,S = self.get_vib_free_energies(temp)
-                  
-        X0 =self.ave_x[0,1,0,0,0,0]                                                   
-        Y0 =self.ave_y[1,0,0,0,0,0]                                                   
+
+        X0 =self.ave_x[0,1,0,0,0,0]
+        Y0 =self.ave_y[1,0,0,0,0,0]
 
         X1 = self.ave_x[1,1,0,0,0,0]
         Y1 = self.ave_y[1,1,0,0,0,0]
@@ -866,11 +856,11 @@ class QHA_ZSISA():
         dF_dX = (e[0,1,0,0,0,0]-e[2,1,0,0,0,0])/(2*dexx)
         dF_dY = (e[1,0,0,0,0,0]-e[1,2,0,0,0,0])/(2*deyy)
 
-        d2F_dX2 = (e[0,1,0,0,0,0]-2*e[1,1,0,0,0,0]+e[2,1,0,0,0,0])/(dexx)**2  
+        d2F_dX2 = (e[0,1,0,0,0,0]-2*e[1,1,0,0,0,0]+e[2,1,0,0,0,0])/(dexx)**2
         d2F_dY2 = (e[1,0,0,0,0,0]-2*e[1,1,0,0,0,0]+e[1,2,0,0,0,0])/(deyy)**2
         d2F_dXdY = (e[1,1,0,0,0,0] - e[0,1,0,0,0,0] - e[1,0,0,0,0,0] + e[0,0,0,0,0,0]) / (dexx *deyy)
 
-        x= self.ave_x_guess 
+        x= self.ave_x_guess
         y= self.ave_y_guess
 
         exx_n= x/X0-1
@@ -882,28 +872,27 @@ class QHA_ZSISA():
         dtol   =np.zeros(6)
         stress =np.zeros(6)
 
-        stress_xx= -dfdx/V*(exx_n+1)* self.eVA3_HaBohr3 
+        stress_xx= -dfdx/V*(exx_n+1)* self.eVA3_HaBohr3
         stress_yy= -dfdy/V*(eyy_n+1)* self.eVA3_HaBohr3
         print (x/X0, x/X0, y/Y0)
         print (stress_xx,stress_yy)
 
-        stress[0]=stress_xx -pressure 
+        stress[0]=stress_xx -pressure
         stress[1]=stress_yy -pressure
 
         dtol[0]= abs(stress[0]-self.stress_guess[0,0])
         dtol[1]= abs(stress[1]-self.stress_guess[1,1])
 
-
         return  dtol, stress
-#*********************************************************************************************
-    def stress_ZSISA_slab_3DOF(self, temp ,pressure):
+
+    def stress_ZSISA_slab_3DOF(self, temp, pressure):
 
         e,S = self.get_vib_free_energies(temp)
 
-                  
-        Ax0 =self.ax[0,1,1,0,0,0]                                                   
-        Bx0 =self.bx[0,1,0,0,0,0]                                                   
-        By0 =self.by[1,0,1,0,0,0]                                                   
+
+        Ax0 =self.ax[0,1,1,0,0,0]
+        Bx0 =self.bx[0,1,0,0,0,0]
+        By0 =self.by[1,0,1,0,0,0]
 
         Ax1 = self.ax[1,1,1,0,0,0]
         Bx1 = self.bx[1,1,1,0,0,0]
@@ -923,7 +912,7 @@ class QHA_ZSISA():
         dF_dB2   = (e[1,0,1,0,0,0]-e[1,2,1,0,0,0])/(2*deyy)
         dF_dB1   = (e[1,1,0,0,0,0]-e[1,1,2,0,0,0])/(2*deyx)
 
-        d2F_dA12 = (e[0,1,1,0,0,0]-2*e[1,1,1,0,0,0]+e[2,1,1,0,0,0])/(dexx)**2  
+        d2F_dA12 = (e[0,1,1,0,0,0]-2*e[1,1,1,0,0,0]+e[2,1,1,0,0,0])/(dexx)**2
         d2F_dB22 = (e[1,0,1,0,0,0]-2*e[1,1,1,0,0,0]+e[1,2,1,0,0,0])/(deyy)**2
         d2F_dB12 = (e[1,1,0,0,0,0]-2*e[1,1,1,0,0,0]+e[1,1,2,0,0,0])/(deyx)**2
 
@@ -938,21 +927,21 @@ class QHA_ZSISA():
 
         cos_ab=math.cos(math.pi*self.angles_guess[2]/180)
 
-        ax = a                                                 
-        ay = 0.0                                                   
-        az = 0.0                                                   
-        bx = b*cos_ab                                                
-        by = b*np.sqrt(1-cos_ab**2)                                  
-        bz = 0.0                                                   
-        cx = 0.0 
-        cy = 0.0 
-        cz = c              
+        ax = a
+        ay = 0.0
+        az = 0.0
+        bx = b*cos_ab
+        by = b*np.sqrt(1-cos_ab**2)
+        bz = 0.0
+        cx = 0.0
+        cy = 0.0
+        cz = c
 
         exx_n= ax/Ax0-1
         eyy_n= by/By0-1
         eyx_n= (Ax0*bx-ax*Bx0)/(Ax0*By0)
 
-        dfda1= dF_dA1 + (exx_n-exx0)*d2F_dA12+(eyy_n-eyy0)*d2F_dA1dB2+(eyx_n-eyx0)*d2F_dA1dB1 
+        dfda1= dF_dA1 + (exx_n-exx0)*d2F_dA12+(eyy_n-eyy0)*d2F_dA1dB2+(eyx_n-eyx0)*d2F_dA1dB1
         dfdb2= dF_dB2 + (eyy_n-eyy0)*d2F_dB22+(exx_n-exx0)*d2F_dA1dB2+(eyx_n-eyx0)*d2F_dB2dB1
         dfdb1= dF_dB1 + (eyx_n-eyx0)*d2F_dB12+(exx_n-exx0)*d2F_dA1dB1+(eyy_n-eyy0)*d2F_dB2dB1
 
@@ -964,7 +953,7 @@ class QHA_ZSISA():
         stress_b1= -1.0/V*(dfdb1*(eyy_n+1)+dfda1*eyx_n) * self.eVA3_HaBohr3
         print (ax/Ax0, by/By0)
         print (stress_a1,stress_b2,stress_b1)
-        stress[0]=stress_a1 -pressure 
+        stress[0]=stress_a1 -pressure
         stress[1]=stress_b2 -pressure
         stress[5]=stress_b1
 
@@ -973,9 +962,8 @@ class QHA_ZSISA():
         dtol[5]= abs(stress[5]-self.stress_guess[1,0])
 
         return dtol, stress
-#*********************************************************************************************
 
-    def cal_stress(self, temp , pressure=0 ,case=None):
+    def cal_stress(self, temp, pressure=0, case=None):
         #Bohr2GPa=29421.033
         pressure_gpa=pressure
         #pressure=pressure/Bohr2GPa
@@ -1033,7 +1021,7 @@ class QHA_ZSISA():
             f.write(f"  {stress[0]:.12e}  {stress[1]:.12e}  {stress[2]:.12e} \n")
             f.write(f"  {stress[3]:.12e}  {stress[4]:.12e}  {stress[5]:.12e} \n")
         return condition
-#*********************************************************************************************
+
     @classmethod
     def from_files(cls, gsr_paths_6D, phdos_paths_6D, gsr_guess, model='ZSISA'):
         """
@@ -1109,7 +1097,7 @@ class QHA_ZSISA():
 
         if (dim[5]==dim[4] and dim[5]==3) :
             gsr_center=gsr_paths_6D[1,1,1,1,1,1]
-            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][1][1][1][1]) 
+            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][1][1][1][1])
             spgrp_number=spgrp.spgid
             print (spgrp)
             if 1 <= spgrp_number <= 2:
@@ -1118,9 +1106,10 @@ class QHA_ZSISA():
                 print ("Warning: ")
             case="ZSISA_triclinic"
             print ("method=",case )
+
         elif (dim[3]==3) :
             gsr_center=gsr_paths_6D[1,1,1,1,0,0]
-            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][1][1][0][0]) 
+            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][1][1][0][0])
             spgrp_number=spgrp.spgid
             print (spgrp)
             if 3 <= spgrp_number <= 15:
@@ -1129,9 +1118,10 @@ class QHA_ZSISA():
                 print ("Warning: ")
             case="ZSISA_monoclinic"
             print ("method=",case )
+
         elif (dim[2]==3) :
             gsr_center=gsr_paths_6D[1,1,1,0,0,0]
-            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][1][0][0][0]) 
+            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][1][0][0][0])
             spgrp_number=spgrp.spgid
             print (spgrp)
             if model=="ZSISA_slab":
@@ -1153,9 +1143,10 @@ class QHA_ZSISA():
                 case="ZSISA_3DOF"
                 print ("Warning: ")
                 print ("method=",case )
+
         elif (dim[1]==3) :
             gsr_center=gsr_paths_6D[1,1,0,0,0,0]
-            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][0][0][0][0]) 
+            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][0][0][0][0])
             spgrp_number=spgrp.spgid
             print (spgrp)
             if model=="ZSISA_slab":
@@ -1168,9 +1159,10 @@ class QHA_ZSISA():
                 case="ZSISA_2DOF"
                 print ("Warning: ")
                 print ("method=",case )
+
         elif (dim[0]==3) :
             gsr_center=gsr_paths_6D[1,0,0,0,0,0]
-            spgrp = AbinitSpaceGroup.from_structure(structures[1][0][0][0][0][0]) 
+            spgrp = AbinitSpaceGroup.from_structure(structures[1][0][0][0][0][0])
             spgrp_number=spgrp.spgid
             print (spgrp)
             if 195 <= spgrp_number <= 230:
@@ -1187,6 +1179,7 @@ class QHA_ZSISA():
                 case="ZSISA_1DOF"
                 print ("Warning:  ")
                 print ("method=",case )
+
         elif (dim[0]==5) :
             gsr_center=gsr_paths_6D[2,0,0,0,0,0]
             if model=="v_ZSISA":
@@ -1195,7 +1188,8 @@ class QHA_ZSISA():
                 print ("v_ZSISA with 5 points" )
             else:
                 raise RuntimeError("Only v_ZSISA is implemented for 5 points")
-        else : 
+
+        else :
             raise RuntimeError("unknown method")
 
         #for gp in gsr_guess:
@@ -1207,7 +1201,7 @@ class QHA_ZSISA():
         #        with GsrFile.from_file(gsr_center) as g:
         #            structure_guess=g.structure
         #            stress=g.cart_stress_tensor
-        #stress_guess=stress/29421.02648438959 
+        #stress_guess=stress/29421.02648438959
         for gp in gsr_guess:
             if os.path.exists(gp):
                 with GsrFile.from_file(gp) as g:
@@ -1217,12 +1211,12 @@ class QHA_ZSISA():
                 with DdbFile.from_file(gsr_center) as g:
                     structure_guess=g.structure
                     stress=g.cart_stress_tensor
-        stress_guess=stress/29421.02648438959 
+        stress_guess=stress/29421.02648438959
 
         return cls(structures,  doses, dim , structure_guess , stress_guess , case)
 
-    def get_vib_free_energies(self, temp ):
-        
+    def get_vib_free_energies(self, temp) -> tuple:
+
         f = np.zeros((self.dim[0],self.dim[1],self.dim[2],self.dim[3],self.dim[4],self.dim[5]))
         entropy= np.zeros((self.dim[0],self.dim[1],self.dim[2],self.dim[3],self.dim[4],self.dim[5]))
 
@@ -1236,11 +1230,12 @@ class QHA_ZSISA():
                                    f[i,j,k,l,m,n] = dos.get_free_energy(temp, temp, 1).values
                                    entropy[i,j,k,l,m,n] = dos.get_entropy(temp, temp, 1).values
                                else:
-                                   f[i,j,k,l,m,n] = None 
-                                   entropy[i,j,k,l,m,n] = None 
-        return f , entropy
-    def elastic_constants (self,file_name): 
-        with open(file_name, "r") as file:
+                                   f[i,j,k,l,m,n] = None
+                                   entropy[i,j,k,l,m,n] = None
+        return f, entropy
+
+    def elastic_constants(self, file_name):
+        with open(file_name, "rt") as file:
             lines = file.readlines()
 
         in_relaxed_section = False
