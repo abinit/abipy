@@ -20,7 +20,7 @@ plotly
 ipython
 chart-studio
 click
-phonopy<=2.32.0
+phonopy<=2.31.2
 ase
 # TODO remove after https://github.com/materialsproject/emmet/issues/768 is fixed
 pydantic<2.0.0
