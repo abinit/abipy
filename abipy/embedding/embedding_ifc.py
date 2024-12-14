@@ -16,7 +16,7 @@ class Embedded_phonons(Phonopy):
     """
     Defines a Phonopy object implementing the Interatomic Force Constants embedding method defined in:
 
-        https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537    
+        https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537
         https://iopscience.iop.org/article/10.1088/1367-2630/16/7/073026/meta
         https://journals.aps.org/prmaterials/abstract/10.1103/PhysRevMaterials.5.084603
     """
@@ -27,7 +27,7 @@ class Embedded_phonons(Phonopy):
         :param stru_defect: Supercell defect structure
         :param stru_emb: Supercell embedded structure
         :param ifc_emb: Interatomic force constant associated to the supercell embedded structure
-        :param nac_params : Non-analytical parameters associated to the supercell embedded structure, in phonopy format. 
+        :param nac_params : Non-analytical parameters associated to the supercell embedded structure, in phonopy format.
         """
         super().__init__(unitcell=get_phonopy_structure(stru_emb),
                        supercell_matrix=[1,1,1],
@@ -44,7 +44,7 @@ class Embedded_phonons(Phonopy):
                                phonopy_defect,
                                structure_defect_wo_relax,
                                main_defect_coords_in_pristine,
-                               main_defect_coords_in_defect, 
+                               main_defect_coords_in_defect,
                                substitutions_list:list=None,  #index in pristine,specie ex: [0,"Eu"]
                                vacancies_list:list=None,       # index in pristine ex: [13,14]
                                interstitial_list:list=None,  # species, cart_coord ex: [['Eu',[0,0,0]],['Ce','[0,0,3]']]
@@ -67,12 +67,12 @@ class Embedded_phonons(Phonopy):
             vacancies_list: List of indices where the vacancies are, ex: [13,14]
             interstitial_list: List of interstitial infos [specie, cart_coord], ex [['Eu',[0,0,0]],['Ce','[0,0,3]']]
             tol_mapping: Tolerance in angstrom for the mapping between structures
-            cut_off_mode: Cut off mode for the radii of the sphere centered around the defect (rc_2). if 'auto' : the code tries to find the largest sphere 
+            cut_off_mode: Cut off mode for the radii of the sphere centered around the defect (rc_2). if 'auto' : the code tries to find the largest sphere
                 inscribed in the defect supercell. If 'manual' :  rc_1 and rc_2 should be provided.
-            rc_1: Radii of the sphere centered around the defect outside which the IFCs are set to zero, allows to get sparse matrix. 
-            rc_2: Radii of the sphere centered around the defect where the IFCs of the defect computation are included 
-            factor_ifc: Multiply the IFCs inside the sphere of radii rc_2 by factor_ifc, usefull to introduce fictious high-frequency local mode 
-            verbose : Print explicitely all the IFCs replacements 
+            rc_1: Radii of the sphere centered around the defect outside which the IFCs are set to zero, allows to get sparse matrix.
+            rc_2: Radii of the sphere centered around the defect where the IFCs of the defect computation are included
+            factor_ifc: Multiply the IFCs inside the sphere of radii rc_2 by factor_ifc, usefull to introduce fictious high-frequency local mode
+            verbose : Print explicitely all the IFCs replacements
             asr: If True, re-enforce acoustic sum rule after IFCs embedding, following eq. (S4) of https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537
 
         Returns:
@@ -93,11 +93,11 @@ class Embedded_phonons(Phonopy):
             stru_emb.remove_sites(indices=vacancies_list)
 
         if substitutions_list is not None:
-            for sub in substitutions_list: 
+            for sub in substitutions_list:
                 stru_emb.replace(sub[0],sub[1])
 
         if interstitial_list is not None:
-            for inter in interstitial_list: 
+            for inter in interstitial_list:
                 stru_emb.append(species=inter[0],coords=inter[1],coords_are_cartesian=True)
 
         stru_emb=clean_structure(stru_emb,defect_coord=main_defect_coords_in_pristine)
@@ -157,8 +157,8 @@ class Embedded_phonons(Phonopy):
         ifc_emb=np.zeros(shape=np.shape(ifc_pristine))
 
         if cut_off_mode=='auto':
-            rc_1=100000 # very large value to include all the ifcs, no sparse matrix. 
-            rc_2=0.99*min(np.array(structure_defect_wo_relax.lattice.abc)/2) # largest sphere inscribed in defect supercell, 
+            rc_1=100000 # very large value to include all the ifcs, no sparse matrix.
+            rc_2=0.99*min(np.array(structure_defect_wo_relax.lattice.abc)/2) # largest sphere inscribed in defect supercell,
                                                                              # 0.99 to avoid problem with atoms at the border
         if cut_off_mode=='manual':
             rc_1=rc_1
@@ -175,7 +175,7 @@ class Embedded_phonons(Phonopy):
 
                 else:
                     ifc_emb[i][j]=ifc_pristine[i][j]
-                    
+
         # Set to doped phonons if 2 atoms are separated from defect by distance < R_c2
         print(f"\n Set IFC to explicit defect phonons calculations if both atoms are separated from defect by a distance < R_c2 = {round(rc_2,3)}")
 
@@ -197,7 +197,7 @@ class Embedded_phonons(Phonopy):
                         print(f"Diff IFC = \n {ifc_pristine[i][j]-ifc_defect[mapping.index(i)][mapping.index(j)]}" )
 
                     ifc_emb[i][j]=factor_ifc*ifc_defect[mapping.index(i)][mapping.index(j)]
-                    
+
                 # enforce ASR
         if asr==True:
             print(f"\n Enforce ASR")
@@ -205,11 +205,11 @@ class Embedded_phonons(Phonopy):
                 for beta in [0,1,2]:
                     for i,atom1 in enumerate(stru_emb):
                         ifc_emb[i][i][alpha,beta] = -(accoustic_sum(ifc_emb,i)[alpha,beta]-ifc_emb[i][i][alpha,beta])
-        
+
         ########################
         # change the nac params
         ########################
-        
+
         if phonopy_pristine.nac_params is not None:
             # Simply copy the nac params from the pristine
             nac_params_emb=phonopy_pristine.nac_params.copy()
@@ -229,7 +229,7 @@ class Embedded_phonons(Phonopy):
         """
         Compute with phonopy the Gamma phonons freq and vectors and returns them in abipy format
         such that ph_vec[iband][iatom] gives vector of iband,iatom
-        
+
         Returns:
             phonons frequencies, phonon eigenvectors
         """
@@ -237,17 +237,17 @@ class Embedded_phonons(Phonopy):
         ph_freq_phonopy,ph_vec_phonopy=self.get_frequencies_with_eigenvectors(q=[0,0,0])
 
         ph_freq = ph_freq_phonopy / (eV_to_THz)  # put it in eV
-        ph_vec = ph_vec_phonopy.transpose().reshape(3*len(self.supercell),len(self.supercell),3)  
-        
+        ph_vec = ph_vec_phonopy.transpose().reshape(3*len(self.supercell),len(self.supercell),3)
+
         return ph_freq, ph_vec
-    
-    def to_ddb(self,embedded_ddb_path='out_DDB',workdir=None):
+
+    def to_ddb(self, embedded_ddb_path='out_DDB', workdir=None):
         """
         Call the converter to go from phonopy to a DDB
 
         Args:
-            embedded_ddb_path: filepath where to save the DDB 
-            workdir: work directory for the conversion 
+            embedded_ddb_path: filepath where to save the DDB
+            workdir: work directory for the conversion
         """
         ddb_sc = phonopy_to_abinit(unit_cell=get_pmg_structure(self.supercell), supercell_matrix=[1,1,1], qpt_list=[[0,0,0]],
                                    out_ddb_path=embedded_ddb_path, force_constants=self.force_constants,
