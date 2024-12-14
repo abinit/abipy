@@ -45,17 +45,20 @@ class QhaTest(AbipyTest):
         self.assert_almost_equal(data.min_vol, 40.05665096)
         self.assert_almost_equal(data.temp, 0)
 
+        e2d_v = qha.second_derivative_energy_v(41)
+        self.assert_almost_equal(e2d_v, 0.0128727)
+
         f = qha.get_thermal_expansion_coeff(tstart=0, tstop=1000, num=7, tref=None)
         self.assert_almost_equal(f.values, [-0.0000000e+00,  5.1944952e-07,  7.0431284e-06,  9.4401141e-06,
                                              1.0630764e-05,  1.1414897e-05,  1.2035432e-05])
 
         vols, fits = qha.vol_Einf_Vib4(num=2, tstop=tstop, tstart=tstart)
-        aas, bbs, ccs = qha.get_abc(tstart=tstart, tstop=tstop, num=2, volumes=vols)
+        aas, bbs, ccs = qha.get_abc(volumes=vols, num=2)
         self.assert_almost_equal(aas, [3.8466098, 3.8530056])
         self.assert_almost_equal(bbs, [3.8466098, 3.8530056])
         self.assert_almost_equal(ccs, [3.8466098, 3.8530056])
 
-        alphas, betas, gammas = qha.get_angles(tstart=tstart, tstop=tstop, num=2, volumes=vols)
+        alphas, betas, gammas = qha.get_angles(vols, num=2)
         self.assert_almost_equal(alphas, [60., 60.])
         self.assert_almost_equal(betas, [60., 60.])
         self.assert_almost_equal(gammas, [60., 60.])

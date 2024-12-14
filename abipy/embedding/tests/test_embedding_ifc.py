@@ -157,11 +157,11 @@ class Embedding_ifcTest(AbipyTest):
         ########
         ### model of the split-interstitial as one vacancy + 2 inter.
 
-        stru=abiopen(abidata.ref_file("refs/embedding_ifc/C_sc.cif"))
+        stru= abiopen(abidata.ref_file("refs/embedding_ifc/C_sc.cif"))
         stru.remove_sites(indices=[14])
-        stru.append(species="C",coords=[0.600, 0.5000, 0.2500])
-        stru.append(species="C",coords=[0.400, 0.5000, 0.2500])
-        structure_defect_wo_relax=stru
+        stru.append(species="C", coords=[0.600, 0.5000, 0.2500])
+        stru.append(species="C", coords=[0.400, 0.5000, 0.2500])
+        structure_defect_wo_relax = stru
 
         # main defect is
         main_defect_coords_in_pristine=get_pmg_structure(ph_pristine.supercell)[31].coords
@@ -184,8 +184,7 @@ class Embedding_ifcTest(AbipyTest):
 
 
         freqs, vecs = ph_emb.get_gamma_freq_with_vec_abipy_fmt()
-
-        self.assert_almost_equal(freqs[-1],0.212826358519,decimal=5)
+        self.assert_almost_equal(freqs[-1], 0.212826358519, decimal=5)
 
         ratio = localization_ratio(vecs)
-        self.assert_almost_equal(ratio[650],78.76445591,decimal=5)
+        self.assert_almost_equal(ratio[650], 78.76445591, decimal=5)

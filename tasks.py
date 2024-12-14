@@ -2,8 +2,8 @@
 Deployment file to facilitate AbiPy releases.
 Use invoke --list to get list of tasks
 """
-
 import os
+import shutil
 
 from invoke import task
 from monty.os import cd
@@ -126,6 +126,53 @@ def update_vars(ctx, abinit_repo_path):
         cmd = f"vimdiff {source} {local_file}"
         print(f"Executing: {cmd}")
         os.system(cmd)
+
+
+@task
+def pyclean(ctx):
+    """remove all pyc files and all __pycache__ directory."""
+
+    def rm_pycaches(top: str) -> None:
+        """remove __pycache__ directory."""
+        count = 0
+        for dirpath, dirnames, filenames in os.walk(top):
+            for d in dirnames:
+                if not d ==  "__pycache__": continue
+                path = os.path.join(dirpath, d)
+                #print("Will remove %s" % path)
+                shutil.rmtree(path)
+                count += 1
+
+        print("Removed %d __pycache__ directories" % count)
+
+
+    def rm_pycfiles(top: str) -> int:
+        """remove all pyc files."""
+        count = 0
+        for dirpath, dirnames, filenames in os.walk(top):
+            for f in filenames:
+                if not f.endswith(".pyc"): continue
+                path = os.path.join(dirpath, f)
+                #print("Will remove %s" % path)
+                os.remove(path)
+                count += 1
+
+        print("Removed %d .pyc files" % count)
+        return count
+
+    top = ABIPY_ROOTDIR
+    rm_pycaches(top)
+    rm_pycfiles(top)
+
+
+@task
+def tuna(ctx):
+    """Execute tuna import profiler."""
+    cmd = 'python -X importtime -c "import abipy" 2> __abipy_import.log'
+    print("Executing:", cmd)
+    ctx.run(cmd, pty=True)
+    cmd = "tuna __abipy_import.log"
+    ctx.run(cmd, pty=True)
 
 
 #@task
