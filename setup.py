@@ -158,6 +158,7 @@ install_requires = [
     "spglib",
     #"pymatgen>=2022.0.14",
     "pymatgen==v2024.10.29",
+    "monty==v2024.10.21",
     "netCDF4",
     "matplotlib",
     "seaborn",
