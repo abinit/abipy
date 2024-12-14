@@ -1,5 +1,6 @@
 """Tests for frozen_phonons"""
 import os
+import numpy as np
 import abipy.data as abidata
 
 from abipy.dfpt.qha_aproximation import QHA_App
@@ -27,27 +28,44 @@ class QhaTest(AbipyTest):
 
         # Test basic properties and get methods of qha
         assert qha.nvols == 5
+
+        data = qha.fit_tot_energies(tstart=0, tstop=0, num=1,
+                                   tot_energies=qha.energies[np.newaxis, :].T, volumes=qha.volumes)
+
+        self.assert_almost_equal(data.tot_en,
+           [[-230.27531394],
+           [-230.28382933],
+           [-230.28659309],
+           [-230.28404059],
+           [-230.27657594],
+           [-230.26457428]])
+
+        assert data.fits
+        self.assert_almost_equal(data.min_en, -230.28659309)
+        self.assert_almost_equal(data.min_vol, 40.05665096)
+        self.assert_almost_equal(data.temp, 0)
+
         f = qha.get_thermal_expansion_coeff(tstart=0, tstop=1000, num=7, tref=None)
         self.assert_almost_equal(f.values, [-0.0000000e+00,  5.1944952e-07,  7.0431284e-06,  9.4401141e-06,
                                              1.0630764e-05,  1.1414897e-05,  1.2035432e-05])
 
-        # FIXME: Calling these functions directly raises:
-        #numpy.core._exceptions._UFuncNoLoopError: ufunc 'multiply' did not contain a loop with signature matching types (dtype('<U7'), dtype('<U7')) -> None
+        vols, fits = qha.vol_Einf_Vib4(num=2, tstop=tstop, tstart=tstart)
+        aas, bbs, ccs = qha.get_abc(tstart=tstart, tstop=tstop, num=2, volumes=vols)
+        self.assert_almost_equal(aas, [3.8466098, 3.8530056])
+        self.assert_almost_equal(bbs, [3.8466098, 3.8530056])
+        self.assert_almost_equal(ccs, [3.8466098, 3.8530056])
 
-        #aas, bbs, ccs = qha.get_abc(tstart=0, tstop=1000, num=7, volumes="volumes")
-        #self.assert_almost_equal(aas, [0])
-        #self.assert_almost_equal(bbs, [0])
-        #self.assert_almost_equal(ccs, [0])
+        alphas, betas, gammas = qha.get_angles(tstart=tstart, tstop=tstop, num=2, volumes=vols)
+        self.assert_almost_equal(alphas, [60., 60.])
+        self.assert_almost_equal(betas, [60., 60.])
+        self.assert_almost_equal(gammas, [60., 60.])
 
-        #alphas, betas, gammas = qha.get_angles(tstart=0, tstop=1000, num=7, volumes="volumes")
-        #self.assert_almost_equal(alphas, [0])
-        #self.assert_almost_equal(betas, [0])
-        #self.assert_almost_equal(gammas, [0])
-
-        #fit = qha.fit_forth(tstart=0, tstop=1000, num=1, energy="energy", volumes="volumes")
-        #self.assert_almost_equal(fit.min_vol, 0)
-        #self.assert_almost_equal(fit.min_en, 0)
-        #self.assert_almost_equal(fit.F2D_V, 0)
+        ph_energies = qha.get_vib_free_energies(tstart, tstop, num=2)
+        tot_en = qha.energies_pdos[np.newaxis, :].T + ph_energies
+        fit = qha.fit_forth(tstart=tstart, tstop=tstop, num=2, energy=tot_en, volumes=qha.volumes_from_phdos)
+        self.assert_almost_equal(fit.min_vol, [40.24570378, 40.44670049])
+        self.assert_almost_equal(fit.min_en, [-230.1654581, -230.5580189])
+        self.assert_almost_equal(fit.F2D_V, [0.01425036, 0.01312722])
 
         vols = qha.vol_E2Vib1_forth(tstart=0, tstop=1000, num=5)
         self.assert_almost_equal(vols, [40.2380458, 40.2411873, 40.3202008, 40.4207685, 40.5276663])
@@ -85,9 +103,7 @@ class QhaTest(AbipyTest):
         self.assert_almost_equal(data.zpe, [0.1230556, 0.1214029, 0.1197632, 0.1181387, 0.1165311])
 
         if self.has_matplotlib():
-        #if False:
             assert qha.plot_energies(tstop=tstop, tstart=tstart, num=11, show=False)
-            # Vinet
             assert qha.plot_vol_vs_t(tstop=tstop, tstart=tstart, num=101, show=False)
             assert qha.plot_abc_vs_t(tstop=tstop, tstart=tstart, num=101, show=False)
             assert qha.plot_abc_vs_t(tstop=tstop, tstart=tstart, num=101, lattice="b", show=False)

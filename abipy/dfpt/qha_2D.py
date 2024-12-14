@@ -5,7 +5,6 @@ Requires PHDOS.nc and DDB files for GSR calculations or _GSR.nc files.
 If PHDOS.nc is available for all structures, normal interpolation for QHA will be applied.
 Supports the use of six PHDOS.nc files for specific structures to employ the E_infVib2 approximation.
 """
-
 import os
 import abc
 import numpy as np
@@ -20,14 +19,13 @@ from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhdosFile # PhononBandsPlotter, PhononDos,
 from scipy.interpolate import RectBivariateSpline #, RegularGridInterpolator
 
-
 class QHA_2D:
     """
     Quasi-Harmonic Approximation (QHA) analysis in 2D.
     Provides methods for calculating and visualizing energy, free energy, and thermal expansion.
     """
-
-    def __init__(self, structures, doses, energies, structures_from_phdos, eos_name='vinet', pressure=0):
+    def __init__(self, structures, doses, energies, structures_from_phdos,
+                 eos_name: str='vinet', pressure: float=0):
         """
         Args:
             structures (list): List of structures at different volumes.
@@ -50,11 +48,11 @@ class QHA_2D:
         self.ix0,self.iy0= np.unravel_index(np.nanargmin(energies_array), energies_array.shape)
 
         # Extract lattice parameters and angles
-        self.lattice_a    = np.array([[s.lattice.abc[0] if s is not None else None for s in row] for row in structures])
-        self.lattice_c    = np.array([[s.lattice.abc[2] if s is not None else None for s in row] for row in structures])
+        self.lattice_a = np.array([[s.lattice.abc[0] if s is not None else None for s in row] for row in structures])
+        self.lattice_c = np.array([[s.lattice.abc[2] if s is not None else None for s in row] for row in structures])
 
-        self.lattice_a_from_phdos    = np.array([[s.lattice.abc[0] if s is not None else None for s in row] for row in structures_from_phdos])
-        self.lattice_c_from_phdos    = np.array([[s.lattice.abc[2] if s is not None else None for s in row] for row in structures_from_phdos])
+        self.lattice_a_from_phdos = np.array([[s.lattice.abc[0] if s is not None else None for s in row] for row in structures_from_phdos])
+        self.lattice_c_from_phdos = np.array([[s.lattice.abc[2] if s is not None else None for s in row] for row in structures_from_phdos])
 
         # Find index of minimum energy
         self.min_energy_idx = np.unravel_index(np.nanargmin(self.energies), self.energies.shape)
@@ -130,6 +128,8 @@ class QHA_2D:
             xy -= step_size * np.ravel(grad)
             if np.linalg.norm(grad) < tol:
                 break
+        else:
+            raise RuntimeError(f"Could not reach {tol=} after {max_iter=}")
 
         min_energy = f_interp(xy[0], xy[1])
         return xy[0], xy[1], min_energy
@@ -172,51 +172,49 @@ class QHA_2D:
             ax.plot(min_y,min_x,min_tot_en, color='c')
 
         elif (len(self.lattice_a_from_phdos)==3 or len(self.lattice_c_from_phdos)==3):
-            dF_dA  = np.zeros( num)
-            dF_dC  = np.zeros( num)
-            d2F_dA2= np.zeros( num)
-            d2F_dC2= np.zeros( num)
+            dF_dA = np.zeros(num)
+            dF_dC = np.zeros(num)
+            d2F_dA2 = np.zeros(num)
+            d2F_dC2 = np.zeros(num)
             d2F_dAdC = np.zeros( num)
             a0 = self.lattice_a[1,1]
             c0 = self.lattice_c[1,1]
-            da=self.lattice_a[0,1]-self.lattice_a[1,1]
-            dc=self.lattice_c[1,0]-self.lattice_c[1,1]
-            for i,e in enumerate(ph_energies.T):
+            da = self.lattice_a[0,1]-self.lattice_a[1,1]
+            dc = self.lattice_c[1,0]-self.lattice_c[1,1]
+            for i, e in enumerate(ph_energies.T):
                 dF_dA[i]=(e[0,1]-e[2,1])/(2*da)
                 dF_dC[i]=(e[1,0]-e[1,2])/(2*dc)
                 d2F_dA2[i]=(e[0,1]-2*e[1,1]+e[2,1])/(da)**2
                 d2F_dC2[i]=(e[1,0]-2*e[1,1]+e[1,2])/(dc)**2
                 d2F_dAdC[i] = (e[1,1] - e[1, 0] - e[0, 1] + e[0, 0]) / ( da * dc)
 
-
             tot_en2 = self.energies[np.newaxis, :].T + ph_energies[1,1] + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
             tot_en2 = tot_en2+ (self.lattice_a[np.newaxis, :].T - a0)*dF_dA + 0.5*(self.lattice_a[np.newaxis, :].T - a0)**2*d2F_dA2
             tot_en2 = tot_en2+ (self.lattice_c[np.newaxis, :].T - c0)*dF_dC + 0.5*(self.lattice_c[np.newaxis, :].T - c0)**2*d2F_dC2
             tot_en2 = tot_en2+ (self.lattice_c[np.newaxis, :].T - c0)*(self.lattice_a[np.newaxis, :].T - a0)*d2F_dAdC
 
-
             min_x = np.zeros(num)
             min_y = np.zeros(num)
             min_tot_en2 = np.zeros(num)
 
-            a=self.lattice_a[:,0]
-            c=self.lattice_c[0,:]
-            a_phdos=self.lattice_a[:,0]
-            c_phdos=self.lattice_c[0,:]
+            a = self.lattice_a[:,0]
+            c = self.lattice_c[0,:]
+            a_phdos = self.lattice_a[:,0]
+            c_phdos = self.lattice_c[0,:]
 
             initial_guess = [1.005*self.lattice_a[self.ix0,0], 1.005*self.lattice_c[0,self.iy0]]
             xy_init = np.array(initial_guess)
-            for j,e in enumerate(tot_en2.T):
+            for j, e in enumerate(tot_en2.T):
                 f_interp = RectBivariateSpline(a,c, e , kx=4, ky=4)
                 min_x[j],min_y[j],min_tot_en2[j]= self.find_minimum( f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
 
             X, Y = np.meshgrid(c, a)
-            for  e in ( tot_en2.T ):
-                ax.plot_wireframe(X, Y ,e, cmap='viridis')
+            for e in tot_en2.T:
+                ax.plot_wireframe(X, Y, e, cmap='viridis')
                 ax.plot_surface(X, Y ,e, cmap='viridis', alpha=0.7)
+
             ax.scatter(min_y,min_x,min_tot_en2, color='c', s=100)
             ax.plot(min_y,min_x,min_tot_en2, color='c')
-
 
         ax.scatter(self.lattice_c[0,self.iy0], self.lattice_a[self.ix0,0], self.energies[self.ix0, self.iy0], color='red', s=100)
 
@@ -345,7 +343,6 @@ class QHA_2D:
             tstop: Stop temperature.
             num: Number of temperature points.
             ax: Matplotlib axis object for plotting.
-            **kwargs: Additional arguments for customization.
         """
         tmesh = np.linspace(tstart, tstop, num)
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
@@ -354,7 +351,7 @@ class QHA_2D:
         import matplotlib.pyplot as plt
         fig, axs = plt.subplots(1, 3, figsize=(18, 6), sharex=True)
 
-        if (len(self.lattice_a_from_phdos)==len(self.lattice_a) or  len(self.lattice_c_from_phdos)==len(self.lattice_c)):
+        if (len(self.lattice_a_from_phdos)==len(self.lattice_a) or len(self.lattice_c_from_phdos)==len(self.lattice_c)):
             tot_energies = self.energies[np.newaxis, :].T + ph_energies+ self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
 
             # Initial guess for minimization
@@ -377,31 +374,27 @@ class QHA_2D:
             axs[1].plot(tmesh, min_y, color='r', label=r"$c$ (QHA)", linewidth=2)
             axs[2].plot(tmesh, min_volumes, color='b', label=r"$V$ (QHA)", linewidth=2)
 
-
         elif (len(self.lattice_a_from_phdos)==3 or len(self.lattice_c_from_phdos)==3):
-
-            dF_dA  = np.zeros( num)
-            dF_dC  = np.zeros( num)
+            dF_dA = np.zeros( num)
+            dF_dC = np.zeros( num)
             d2F_dA2= np.zeros( num)
             d2F_dC2= np.zeros( num)
             d2F_dAdC = np.zeros( num)
             a0 = self.lattice_a[1,1]
             c0 = self.lattice_c[1,1]
-            da=self.lattice_a[0,1]-self.lattice_a[1,1]
-            dc=self.lattice_c[1,0]-self.lattice_c[1,1]
-            for i,e in enumerate(ph_energies.T):
+            da =self.lattice_a[0,1]-self.lattice_a[1,1]
+            dc =self.lattice_c[1,0]-self.lattice_c[1,1]
+            for i, e in enumerate(ph_energies.T):
                 dF_dA[i]=(e[0,1]-e[2,1])/(2*da)
                 dF_dC[i]=(e[1,0]-e[1,2])/(2*dc)
                 d2F_dA2[i]=(e[0,1]-2*e[1,1]+e[2,1])/(da)**2
                 d2F_dC2[i]=(e[1,0]-2*e[1,1]+e[1,2])/(dc)**2
                 d2F_dAdC[i] = (e[1,1] - e[1, 0] - e[0, 1] + e[0, 0]) / ( da * dc)
 
-
             tot_en2 = self.energies[np.newaxis, :].T + ph_energies[1,1] + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
-            tot_en2 = tot_en2+ (self.lattice_a[np.newaxis, :].T - a0)*dF_dA + 0.5*(self.lattice_a[np.newaxis, :].T - a0)**2*d2F_dA2
-            tot_en2 = tot_en2+ (self.lattice_c[np.newaxis, :].T - c0)*dF_dC + 0.5*(self.lattice_c[np.newaxis, :].T - c0)**2*d2F_dC2
-            tot_en2 = tot_en2+ (self.lattice_c[np.newaxis, :].T - c0)*(self.lattice_a[np.newaxis, :].T - a0)*d2F_dAdC
-
+            tot_en2 = tot_en2 + (self.lattice_a[np.newaxis, :].T - a0)*dF_dA + 0.5*(self.lattice_a[np.newaxis, :].T - a0)**2*d2F_dA2
+            tot_en2 = tot_en2 + (self.lattice_c[np.newaxis, :].T - c0)*dF_dC + 0.5*(self.lattice_c[np.newaxis, :].T - c0)**2*d2F_dC2
+            tot_en2 = tot_en2 + (self.lattice_c[np.newaxis, :].T - c0)*(self.lattice_a[np.newaxis, :].T - a0)*d2F_dAdC
 
             # Initial guess for minimization
             initial_guess = [1.005*self.lattice_a[self.ix0,0], 1.005*self.lattice_c[0,self.iy0]]
@@ -419,7 +412,6 @@ class QHA_2D:
             axs[1].set_title(r"Plots of a, c, and V (E$\infty$Vib2)")
             axs[1].plot(tmesh, min_y, color='r', label=r"$c$ (E$\infty$Vib2)", linewidth=2)
             axs[2].plot(tmesh, min_volumes, color='b', label=r"$V$ (E$\infty$Vib2)", linewidth=2)
-
 
         axs[0].set_ylabel("a")
         axs[0].legend(loc="best", shadow=True)
@@ -461,7 +453,7 @@ class QHA_2D:
         """
         energies, structures, doses , structures_from_phdos = [], [], [],[]
 
-        if (gsr_file=="GSR.nc"):
+        if gsr_file == "GSR.nc":
             # Process GSR files
             for row in gsr_paths_2D:
                 row_energies, row_structures = [], []
@@ -492,7 +484,7 @@ class QHA_2D:
                 structures.append(row_structures)
 
         else:
-            raise ValueError("Invalid {gsr_file=}")
+            raise ValueError(f"Invalid {gsr_file=}")
 
         # Process PHDOS files
         for row in phdos_paths_2D:
@@ -505,12 +497,13 @@ class QHA_2D:
                 else:
                     row_doses.append(None)
                     row_structures.append(None)
+
             doses.append(row_doses)
             structures_from_phdos.append(row_structures)
 
         return cls(structures, doses, energies , structures_from_phdos)
 
-    def get_vib_free_energies(self, tstart, tstop, num):
+    def get_vib_free_energies(self, tstart: float, tstop: float, num: int) -> np.ndarray:
         """
         Computes the vibrational free energies from phonon density of states.
 
@@ -519,10 +512,8 @@ class QHA_2D:
             tstop: Stop temperature.
             num: Number of temperature points.
 
-        Returns:
-            A 3D array of vibrational free energies.
+        Return: A 3D array of vibrational free energies.
         """
-
         f = np.zeros((len(self.lattice_c_from_phdos[0]), len(self.lattice_a_from_phdos[:, 0]), num))
         for i in range(len(self.lattice_a_from_phdos[:, 0])):
             for j in range(len(self.lattice_c_from_phdos[0])):
