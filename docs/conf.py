@@ -142,19 +142,20 @@ if with_gallery:
     from sphinx_gallery.sorting import ExampleTitleSortKey
 
     sphinx_gallery_conf = {
-        #'only_warn_on_example_error': True,
-        'abort_on_example_error': True,
-        'log_level': {'backreference_missing': 'warning'},
+        'only_warn_on_example_error': True,
+        #'abort_on_example_error': True,
+        #'log_level': {'backreference_missing': 'warning'},
+        'log_level': {'backreference_missing': 'error'},
         #
         # path to your examples scripts
         'examples_dirs': [
-            "../abipy/examples/plot",
             "../abipy/examples/flows",
+            "../abipy/examples/plot",
         ],
         # path where to save gallery generated examples
         'gallery_dirs': [
-            "gallery",
             "flow_gallery",
+            "gallery",
         ],
         'filename_pattern': "(/plot*|/run_*)",
         'default_thumb_file': '_static/abipy_logo.png',

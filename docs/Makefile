@@ -2,13 +2,16 @@
 #
 
 # You can set these variables from the command line.
-#SPHINXOPTS    = -j6
-SPHINXOPTS   = 
-#SPHINXBUILD   = sphinx-build
+#SPHINXOPTS  = -j6
+#SPHINXOPTS   = -v -W --show-traceback --pdb
+#SPHINXOPTS   = -j1 -v -W --show-traceback --pdb
+SPHINXOPTS  = 
 # Verbose mode
 #SPHINXBUILD   = sphinx-build -v
 # Sphinx may treat warnings as errors, halting HTML generation.
-SPHINXBUILD   = sphinx-build -v -W --keep-going
+#SPHINXBUILD   = sphinx-build -v -W --keep-going
+#SPHINXBUILD   = sphinx-build -v -W --show-traceback --pdb
+SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
 
@@ -51,12 +54,16 @@ clean:
 	-rm -rf flow_gallery/*
 
 html:
-	./generate_rst_files.py
-	rm -rf ../abipy/examples/flows/flow_*
+	@echo "Generating RST files..."
+	./generate_rst_files.py || { echo "Error: Failed to generate RST files"; exit 1; }
+	@echo "Cleaning old flow examples..."
+	rm -rf ../abipy/examples/flows/flow_* || { echo "Error: Failed to clean old flows"; exit 1; }
 	export READTHEDOCS=1
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	#export READTHEDOCS=0
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html || { echo "Error: Sphinx build failed"; exit 1; }
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+	#open $(BUILDDIR)/html/index.html || { echo "Error: Failed to open index.html"; exit 1; }
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
