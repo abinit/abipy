@@ -52,7 +52,7 @@ class QhaTest(AbipyTest):
         self.assert_almost_equal(f.values, [-0.0000000e+00,  5.1944952e-07,  7.0431284e-06,  9.4401141e-06,
                                              1.0630764e-05,  1.1414897e-05,  1.2035432e-05])
 
-        vols, fits = qha.vol_Einf_Vib4(num=2, tstop=tstop, tstart=tstart)
+        vols, fits = qha.vol_Einf_Vib4(tstop=tstop, tstart=tstart, num=2)
         aas, bbs, ccs = qha.get_abc(volumes=vols, num=2)
         self.assert_almost_equal(aas, [3.8466098, 3.8530056])
         self.assert_almost_equal(bbs, [3.8466098, 3.8530056])
@@ -83,14 +83,14 @@ class QhaTest(AbipyTest):
         self.assert_almost_equal(alphas, [-0.0000000e+00,  4.6240312e-06,  9.4381513e-06,  1.1048456e-05, 1.2028183e-05])
 
         free_energies = qha.get_vib_free_energies(tstart=0, tstop=100, num=2)
-        ref_energies = [
+        ref_free_energies = [
            [0.12305556, 0.11944085],
            [0.12140287, 0.11786901],
            [0.11976321, 0.11629327],
            [0.11813874, 0.11471864],
            [0.11653109, 0.11314891]
         ]
-        self.assert_almost_equal(free_energies, ref_energies)
+        self.assert_almost_equal(free_energies, ref_free_energies)
 
         data = qha.get_thermodynamic_properties(tstart=0, tstop=1000, num=2)
         self.assert_almost_equal(data.tmesh, [   0., 1000.])
