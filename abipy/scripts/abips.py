@@ -12,7 +12,7 @@ import abipy.tools.cli_parsers as cli
 from monty.termcolor import cprint
 from pymatgen.core.periodic_table import Element
 from abipy.core.release import __version__
-from abipy.tools import duck
+#from abipy.tools import duck
 from abipy.flowtk.pseudos import PseudoTable
 from abipy.flowtk.psrepos import (tabulate_repos, repos_from_names,
                                   get_all_registered_repos, get_installed_repos_and_root)

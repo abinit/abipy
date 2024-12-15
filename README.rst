@@ -31,10 +31,7 @@ AbiPy can be used in conjunction with matplotlib_, pandas_, scipy_, seaborn_, ip
 thus providing a powerful and user-friendly environment for data analysis and visualization.
 
 To learn more about the integration between jupyter_ and AbiPy, visit `our collection of notebooks
-<https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb>`_
-or click the **Launch Binder** badge to start a Docker image with Abinit, AbiPy and all the other python dependencies
-required to run the code inside the jupyter notebooks.
-The notebook will be opened in your browser after building.
+<https://abinit.github.io/abipy_book/intro.html>`_
 
 AbiPy is free to use. However, we also welcome your help to improve this library by making your own contributions.
 Please report any bugs and issues at AbiPy's `Github page <https://github.com/abinit/abipy>`_.
@@ -75,9 +72,9 @@ python packages through `Anaconda <https://continuum.io/downloads>`_ (or conda).
 See `Installing conda`_ to install conda itself.
 We routinely use conda_ to test new developments with multiple Python versions and multiple virtual environments.
 
-Create a new conda_ environment based on python 3.11 (let's call it ``abienv``) with::
+Create a new conda_ environment based on python 3.12 (let's call it ``abienv``) with::
 
-    conda create --name abienv python=3.11
+    conda create --name abienv python=3.12
 
 and activate it with::
 
@@ -87,9 +84,11 @@ You should see the name of the conda environment in the shell prompt.
 
 Finally, install AbiPy with::
 
-    conda install abipy -c conda-forge
+    conda install abipy -c conda-forge --yes
 
-Please note that, at present, conda-forge does not provide executables 
+Please note that, it is also possible to install the abinit executables in the same enviroment using
+
+    conda install abinit -c conda-forge --yes
 
 Additional information on the steps required to install AbiPy with anaconda are available
 in the `anaconda howto <http://abinit.github.io/abipy/installation#anaconda-howto>`_.
@@ -113,7 +112,7 @@ For pip, use::
 
 If you are using conda_ (see `Installing conda`_ to install conda itself), create a new environment (``abienv``) with::
 
-    conda create -n abienv python=3.11
+    conda create -n abienv python=3.12
     source activate abienv
 
 Add ``conda-forge``, and ``abinit`` to your channels with::
