@@ -143,9 +143,12 @@ if with_gallery:
 
     sphinx_gallery_conf = {
         'only_warn_on_example_error': True,
-        #'abort_on_example_error': True,
-        #'log_level': {'backreference_missing': 'warning'},
-        'log_level': {'backreference_missing': 'error'},
+        'abort_on_example_error': False,
+        #'log_level': {'backreference_missing': 'debug'},
+        'log_level': {'backreference_missing': 'warning'},
+        #'log_level': {'backreference_missing': 'error'},
+        # Sphinx-Gallery can parse all your examples and build the gallery without executing any of the scripts
+        #'plot_gallery': 'False',
         #
         # path to your examples scripts
         'examples_dirs': [
@@ -272,7 +275,7 @@ pygments_style = 'sphinx'
 
 import sphinx_rtd_theme
 html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+#html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.

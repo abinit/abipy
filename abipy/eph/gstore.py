@@ -476,7 +476,7 @@ class GstoreReader(BaseEphReader):
                 #print(f"Found {qpoint = } with index {iq_g = }")
                 return iq_g, qpoint
 
-        raise ValueError(f"Cannot find {qpoint = } in GSTORE.nc")
+        raise ValueError(f"Cannot find {qpoint=} in GSTORE.nc")
 
     def find_ik_glob_kpoint(self, kpoint, spin: int):
         """Find the internal indices of the kpoint needed to access the gvals array."""
@@ -486,7 +486,7 @@ class GstoreReader(BaseEphReader):
                 #print(f"Found {kpoint = } with index {ik_g = }")
                 return ik_g, kpoint
 
-        raise ValueError(f"Cannot find {kpoint = } in GSTORE.nc")
+        raise ValueError(f"Cannot find {kpoint=} in GSTORE.nc")
 
     # TODO: This fix to read groups should be imported in pymatgen.
     @lazy_property
@@ -539,7 +539,7 @@ class GstoreRobot(Robot, RobotWithEbands):
         return ierr
 
     @staticmethod
-    def _neq_two_gstores(gstore1: GstoreFile, gstore2: GstoreFile, verbose: int) -> int:
+    def _neq_two_gstores(self: GstoreFile, gstore2: GstoreFile, verbose: int) -> int:
         """
         Helper function to compare two GSTORE files.
         """
@@ -550,12 +550,12 @@ class GstoreRobot(Robot, RobotWithEbands):
                      ]
 
         for aname in aname_list:
-            self._compare_attr_name(aname, gstore1, gstore2)
+            self._compare_attr_name(aname, self, gstore2)
 
         # Now compare the gkq objects for each spin.
         ierr = 0
-        for spin in range(gstore1.nsppol):
-            gqk1, gqk2 = gstore1.gqk_spin[spin], gstore2.gqk_spin[spin]
+        for spin in range(self.nsppol):
+            gqk1, gqk2 = self.gqk_spin[spin], gstore2.gqk_spin[spin]
             ierr += gqk1.neq(gqk2, verbose)
 
         return ierr

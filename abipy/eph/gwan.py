@@ -339,7 +339,7 @@ class Gqk:
         return ierr
 
 
-class GstoreReader(BaseEphReader):
+class GwanReader(BaseEphReader):
     """
     Reads data from file and constructs objects.
 

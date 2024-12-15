@@ -11,13 +11,12 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
-from collections import defaultdict
 from monty.string import marquee
 from monty.functools import lazy_property
-from monty.termcolor import cprint
+#from monty.termcolor import cprint
 from abipy.core.func1d import Function1D
 from abipy.core.structure import Structure
-from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs, map_grid2ibz, IrredZone
+from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs, map_grid2ibz #, IrredZone
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.typing import PathLike
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
@@ -107,7 +106,6 @@ _ALL_ENTRIES = [
 # Convert to dictionary: name --> Entry
 _ALL_ENTRIES = {e.name: e for e in _ALL_ENTRIES}
 
-
 class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This file stores the results of a VARPEQ calculations: SCF cycle, A_nk, B_qnu coefficients
@@ -174,7 +172,7 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose: int=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
 
@@ -197,7 +195,7 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         for spin in range(self.nsppol):
             polaron = self.polaron_spin[spin]
             df = polaron.get_final_results_df()
-            app(f"Last SCF iteration. Energies in eV units")
+            app("Last SCF iteration. Energies in eV units")
             app(str(df))
             app("")
 
@@ -322,7 +320,7 @@ class Polaron:
 
         return df_list
 
-    def get_final_results_df(self, with_params: bool=False) -> pd.DataFrame:
+    def get_final_results_df(self, with_params: bool = False) -> pd.DataFrame:
         """
         Return daframe with the last iteration for all polaronic states.
         NB: Energies are in eV.
@@ -342,7 +340,7 @@ class Polaron:
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose: int=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """
         String representation with verbosiy level verbose.
         """
@@ -380,7 +378,7 @@ class Polaron:
 
         return ngkpt, shifts
 
-    def get_title(self, with_gaps: bool=True) -> str:
+    def get_title(self, with_gaps: bool = True) -> str:
         """
         Return string with title for matplotlib plots.
         """
@@ -462,7 +460,7 @@ class Polaron:
         return [BzRegularGridInterpolator(self.structure, shifts, np.abs(b_data[pstate])**2, method=interp_method)
                 for pstate in range(self.nstates)]
 
-    def write_a2_bxsf(self, filepath: PathLike, fill_value: float=0.0) -> None:
+    def write_a2_bxsf(self, filepath: PathLike, fill_value: float = 0.0) -> None:
         r"""
         Export \sum_n |A_{pnk}|^2 in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
         Requires gamma-centered k-mesh.
@@ -480,7 +478,7 @@ class Polaron:
 
         bxsf_write(filepath, self.structure, 1, self.nstates, ngkpt, a2_data, fermie, unit="Ha")
 
-    def write_b2_bxsf(self, filepath: PathLike, fill_value: float=0.0) -> None:
+    def write_b2_bxsf(self, filepath: PathLike, fill_value: float = 0.0) -> None:
         r"""
         Export \sum_{\nu} |B_{q\nu}|^2 in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
 
@@ -554,9 +552,9 @@ class Polaron:
 
     @add_fig_kwargs
     def plot_ank_with_ebands(self, ebands_kpath,
-                             ebands_kmesh=None, lpratio: int=5,
-                             with_ibz_a2dos=True, method="gaussian", step: float=0.05, width: float=0.1,
-                             nksmall: int=20, normalize: bool=False, with_title=True, interp_method="linear",
+                             ebands_kmesh=None, lpratio: int = 5,
+                             with_ibz_a2dos=True, method="gaussian", step: float = 0.05, width: float = 0.1,
+                             nksmall: int = 20, normalize: bool = False, with_title=True, interp_method="linear",
                              ax_mat=None, ylims=None, scale=10, marker_color="gold", fontsize=12, **kwargs) -> Figure:
         """
         Plot electron bands with markers whose size is proportional to |A_nk|^2.
@@ -721,7 +719,7 @@ class Polaron:
 
     @add_fig_kwargs
     def plot_bqnu_with_phbands(self, phbands_qpath,
-                               phdos_file=None, ddb=None, width=0.001, normalize: bool=True,
+                               phdos_file=None, ddb=None, width=0.001, normalize: bool = True,
                                verbose=0, anaddb_kwargs=None, with_title=True, interp_method="linear",
                                ax_mat=None, scale=10, marker_color="gold", fontsize=12, **kwargs) -> Figure:
         """
@@ -773,7 +771,8 @@ class Polaron:
 
         if not with_phdos:
             # Return immediately.
-            if with_title: fig.suptitle(self.get_title(with_gaps=True))
+            if with_title: 
+                fig.suptitle(self.get_title(with_gaps=True))
             return fig
 
         ####################
@@ -803,7 +802,6 @@ class Polaron:
         #with_ibz_b2dos = False
 
         for pstate in range(self.nstates):
-
             # Compute B2(E) by looping over the full BZ.
             bqnu_dos = np.zeros(len(phdos_mesh))
             for iq_bz, qpoint in enumerate(phbands_qmesh.qpoints):
@@ -815,7 +813,7 @@ class Polaron:
                 for w, b2 in zip(freqs_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True):
                     bqnu_dos += q_weight * b2 * gaussian(phdos_mesh, width, center=w)
 
-            bqnu_dos = Function1D(wmesh, bqnu_dos)
+            bqnu_dos = Function1D(phdos_mesh, bqnu_dos)
 
             ax = ax_mat[pstate, 1]
             phdos.plot_ax(ax, exchange_xy=True, normalize=normalize, label="phDOS(E)", color="black")
@@ -946,7 +944,7 @@ class VarpeqRobot(Robot, RobotWithEbands):
 
         return "\n".join(lines)
 
-    def get_final_results_df(self, spin=None, sortby=None, with_params: bool=True) -> pd.DataFrame:
+    def get_final_results_df(self, spin=None, sortby=None, with_params: bool = True) -> pd.DataFrame:
         """
         Return dataframe with the last iteration for all polaronic states.
         NB: Energies are in eV.

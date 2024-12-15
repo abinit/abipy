@@ -10,13 +10,13 @@ import tempfile
 import numpy as np
 import pandas as pd
 
-from collections import namedtuple, defaultdict
-from typing import Union, Any
+from collections import namedtuple # , defaultdict
+from typing import Union
 from dataclasses import dataclass
 from monty.functools import lazy_property
 from monty.collections import AttrDict, dict2namedtuple
 from monty.termcolor import colored
-from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction, l2char
+from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction #, l2char
 from abipy.ppcodes.base_parser import BaseParser
 
 
@@ -40,7 +40,6 @@ class AtomicLevel:
     eig: float
     occ: float
     is_valence: bool
-
 
 
 class OncvParser(BaseParser):
@@ -91,11 +90,11 @@ class OncvParser(BaseParser):
         return self
 
     @property
-    def is_metapsp(self):
+    def is_metapsp(self) -> bool:
         return self.generator_type == "METAPSP"
 
     @property
-    def is_oncvpsp(self):
+    def is_oncvpsp(self) -> bool:
         return self.generator_type == "ONCVPSP"
 
     def _scan(self, verbose: int = 0) -> OncvParser:
@@ -178,12 +177,12 @@ class OncvParser(BaseParser):
             if line.startswith("# atsym"):
                 values = self.lines[i + 1].split()
                 if len(values) != 6:
-                  # Rf104.00   10    8       4      both
-                  l = values.pop(0)
-                  atmsym, z = l[0:2], l[2:]
-                  values.insert(0, z)
-                  values.insert(0, atmsym)
-                  #print(values)
+                    # Rf104.00   10    8       4      both
+                    l = values.pop(0)
+                    atmsym, z = l[0:2], l[2:]
+                    values.insert(0, z)
+                    values.insert(0, atmsym)
+                    #print(values)
 
                 keys = header[1:].split()
                 # assert len(keys) == len(values)
@@ -310,7 +309,7 @@ class OncvParser(BaseParser):
         else:
             raise self.Error(f"Cannot find line with `#lmax` in: {self.filepath}")
 
-    def to_string(self, verbose: int = 0 ) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """
         String representation.
         """
@@ -529,7 +528,7 @@ class OncvParser(BaseParser):
         Dictionary with Kinetic energy densities on the radial mesh.
         """
         if not self.is_metapsp:
-            raise ValueEror("kin_densities are only available in pseudos generated with metapsp")
+            raise ValueError("kin_densities are only available in pseudos generated with metapsp")
 
         # Metagga taups and taumodps
         #!t   0.0200249       2.9590E+02      6.4665E+02
@@ -546,7 +545,7 @@ class OncvParser(BaseParser):
         Dictionary with Vtau ptotentials on the radial mesh.
         """
         if not self.is_metapsp:
-            raise ValueEror("kin_densities are only available in pseudos generated with metapsp")
+            raise ValueError("kin_densities are only available in pseudos generated with metapsp")
 
         # plot    "<grep '!vt' t1" using 2:3 title "VtauAE" with lines ls 1,\
         #         "<grep '!vt' t1" using 2:4 title "Vtau(M+PS)" with lines ls 9
