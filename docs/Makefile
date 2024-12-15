@@ -66,7 +66,7 @@ html: check_dot
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html || { echo "Error: Sphinx build failed"; exit 1; }
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
-	open $(BUILDDIR)/html/index.html || { echo "Error: Failed to open index.html"; exit 1; }
+	#open $(BUILDDIR)/html/index.html || { echo "Error: Failed to open index.html"; exit 1; }
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml

@@ -15,7 +15,7 @@ import abipy.tools.cli_parsers as cli
 from functools import wraps
 from time import time
 from abipy.core.structure import Structure
-from abipy.tools.printing import print_dataframe
+#from abipy.tools.printing import print_dataframe
 
 
 ASE_OPTIMIZERS = aseml.ase_optimizer_cls("__all__")
@@ -319,8 +319,7 @@ def md(ctx, filepath, nn_name,
 def neb(ctx, filepaths, nn_name,
         nimages, relax_mode, fmax, pressure, optimizer, neb_method, climb,
         fix_inds, fix_symbols,
-        workdir, verbose
-    ):
+        workdir, verbose):
     """
     NEB calculation with ASE and ML potential.
 
