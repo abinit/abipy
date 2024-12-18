@@ -79,3 +79,8 @@ qha.plot_thermal_expansion_coeff_abc_4th(tstop=tstop, tstart=tstart ,num=101, tr
 #%%
 qha.plot_angles_vs_t_4th(tstop=tstop, tstart=tstart, num=101, angle=3,
                          title="Angles as a function of T")
+
+
+#%%
+phdos_plotter = qha.get_phdos_plotter()
+phdos_plotter.combiplot()

@@ -100,7 +100,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         # list of minimum volumes and energies, one for each temperature
         min_volumes = np.array([fit.v0 for fit in fits])
         min_energies = np.array([fit.e0 for fit in fits])
-        F2D=  np.array([fit.b0 for fit in fits]) /min_volumes 
+        F2D=  np.array([fit.b0 for fit in fits]) /min_volumes
 
         return dict2namedtuple(tot_en=tot_en, fits=fits, min_en=min_energies, min_vol=min_volumes, temp=tmesh , F2D=F2D)
 
@@ -209,10 +209,10 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         eos_list = [ 'taylor', 'murnaghan', 'birch', 'birch_murnaghan','pourier_tarantola', 'vinet', 'antonschmidt']
 
         dt = f.temp[1] - f.temp[0]
-        if (method=="finite_difference"): 
+        if (method=="finite_difference"):
             alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f.min_vol[1:-1]
         else :
-            if (self.eos_name in eos_list) : 
+            if (self.eos_name in eos_list) :
                 thermo = self.get_thermodynamic_properties(tstart=tstart, tstop=tstop, num=num)
                 entropy = thermo.entropy.T #* abu.e_Cb * abu.Avogadro
                 df_t = np.zeros((num,self.nvols))
@@ -227,10 +227,10 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
                     param2[j] = np.array([3*param[j][0],2*param[j][1],param[j][2]])
 
                     p = np.poly1d(param2[j])
-                    d2f_t_v[j]= p(f.min_vol[j]) 
+                    d2f_t_v[j]= p(f.min_vol[j])
 
                 if tref is None:
-                    alpha= - 1/f.min_vol[1:-1] *d2f_t_v[1:-1] / f.F2D[1:-1] 
+                    alpha= - 1/f.min_vol[1:-1] *d2f_t_v[1:-1] / f.F2D[1:-1]
                 else :
                     alpha= - 1/f0.min_vol * d2f_t_v[1:-1] / f.F2D[1:-1]
             else :
@@ -789,7 +789,6 @@ class QHA(AbstractQHA):
         cv = np.zeros((self.nvols, num))
         free_energy = np.zeros((self.nvols, num))
         entropy = np.zeros((self.nvols, num))
-        internal_energy = np.zeros((self.nvols, num))
         zpe = np.zeros(self.nvols)
 
         for i, d in enumerate(self.doses):

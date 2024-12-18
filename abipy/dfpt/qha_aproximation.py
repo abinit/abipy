@@ -1,5 +1,8 @@
 # coding: utf-8
-"""Classes for V-ZSISA approximation."""
+"""
+Classes for V-ZSISA approximation.
+See PHYSICAL REVIEW B 110, 014103 (2024)
+"""
 from __future__ import annotations
 
 import numpy as np
@@ -10,10 +13,10 @@ from monty.collections import dict2namedtuple
 from pymatgen.analysis.eos import EOS
 from abipy.core.func1d import Function1D
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_grid_legend #, get_axarray_fig_plt
-from abipy.tools.typing import Figure
+from abipy.tools.typing import Figure, PathLike
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
-from abipy.dfpt.phonons import PhdosFile
+from abipy.dfpt.phonons import PhdosFile, PhononDosPlotter
 
 
 class QHA_App:
@@ -24,8 +27,51 @@ class QHA_App:
     Does not include electronic entropic contributions for metals.
     """
 
+    def from_gsr_ddb_files(cls,
+                           gsr_paths: list[PathLike],
+                           ddb_paths: list[PathLike],
+                           verbose: int = 0,
+                           **extra_kwargs) -> QHA_App:
+        """
+        Creates an instance from a list of GSR files and a list of DDB files.
+        This is a simplified interface that computes the PHDOS.nc files automatically
+        from the DDB files by invoking anaddb
+
+        Args:
+            gsr_paths: list of paths to GSR files.
+            ddb_paths: list of paths to DDB files.
+        """
+        # From PHYSICAL REVIEW B110,014103(2024)
+        # The phonon density of states (PHDOS)was determined utilizing the Gaussian method,
+        # with a DOS smearing value set to 4.5×10−6 Hartree.
+        # Furthermore, a frequency grid step of 1.0×10−6 Hartree was employed for PHDOS calculations.
+        # These adjustments in numerical accuracy were imperative for versions of ABINIT preceding v9.10.
+        # Notably, in ABINIT versions v9.10 and after, these parameter values are preset as defaults for calculations.
+        phdos_paths = []
+        smear = "4.5 e−6 Hartree"
+        kwargs = dict(#nqsmall,
+                      qppa=100,
+                      dos_method=f"gaussian:{smear}",
+                      ndivsm=0,
+                      return_input=True,
+                     )
+
+        kwargs.update(extra_kwargs)
+        if verbose:
+            print(f"Calling anaget_phbst_and_phdos_files with {kwargs=}:")
+
+        for ddb_path in ddb_paths:
+            with DdbFile(ddb_path) as ddb:
+                with ddb.anaget_phbst_and_phdos_files(**kwargs) as g:
+                    if verbose:
+                        print(f"anaddb input file: {g.input=}")
+                    phbst_file, phdos_file = g[0], g[1]
+                    phdos_paths.append(phdos_file.filepath)
+
+        return cls.from_gsr_phdos_files(gsr_paths, phdos_paths)
+
     @classmethod
-    def from_files_app(cls, gsr_paths: list[str], phdos_paths: list[str]) -> QHA_App:
+    def from_gsr_phdos_files(cls, gsr_paths: list[str], phdos_paths: list[str]) -> QHA_App:
         """
         Creates an instance from a list of GSR files and a list of PHDOS.nc files.
 
@@ -66,8 +112,11 @@ class QHA_App:
 
         return cls(structures, structures_from_phdos, index_list, phdoses, energies, pressures)
 
+    # FIXME: This to maintain previous interface. It should be removed
+    from_files_app = from_gsr_phdos_files
+
     @classmethod
-    def from_files_app_ddb(cls, ddb_paths: list[str], phdos_paths: list[str]) -> QHA_App:
+    def from_ddb_phdos_files(cls, ddb_paths: list[str], phdos_paths: list[str]) -> QHA_App:
         """
         Creates an instance from a list of DDB files and a list of PHDOS.nc files.
 
@@ -109,15 +158,18 @@ class QHA_App:
 
         return cls(structures, structures_from_phdos, index_list, phdoses, energies, pressures)
 
+    # FIXME: This to maintain previous interface. It should be removed
+    from_files_app_ddb = from_ddb_phdos_files
+
     def __init__(self, structures, structures_from_phdos, index_list, phdoses, energies, pressures,
-                 eos_name: str='vinet', pressure: float=0.0):
+                 eos_name: str = 'vinet', pressure: float = 0.0):
         """
         Args:
-            structures: list of structures at different volumes.
-            structure_from_phdos:
-            index_list:
+            structures: list of structures at the different volumes for the BO energies.
+            structure_from_phdos: Structures used to compute phonon DOS
+            index_list: Index of each phdos in structures.
             phdoses: Phonon DOSes.
-            energies: list of SCF energies for the structures in eV.
+            energies: list of BO energies for the structures in eV.
             pressures: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure:
@@ -137,7 +189,7 @@ class QHA_App:
 
         self.angles_alpha = np.array([s.lattice.angles[0] for s in structures])
         self.angles_beta = np.array([s.lattice.angles[1] for s in structures])
-        self.angles_gama = np.array([s.lattice.angles[2] for s in structures])
+        self.angles_gamma = np.array([s.lattice.angles[2] for s in structures])
 
         self.phdoses = phdoses
         self.structures_from_phdos = np.array(structures_from_phdos)
@@ -167,6 +219,22 @@ class QHA_App:
     def nvols(self) -> int:
         """Number of volumes"""
         return len(self.volumes_from_phdos)
+
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level verbose:"""
+        lines = []
+        app = lines.append
+        #app(self.structure.to_string(verbose=verbose))
+        app(f"BO volumes: {self.volumes} Ang^3")
+        app(f"PHDOS volumes: {self.volumes_from_phdos} Ang^3")
+        app(f"eos_name: {self.eos_name}")
+        app(f"pressure: {self.pressure} GPa")
+        app(f"scale_points: {self.scale_points} GPa")
+
+        return "\n".join(lines)
+
+    def __str__(self) -> str:
+        return self.to_string()
 
     def set_eos(self, eos_name: str) -> None:
         """
@@ -426,7 +494,7 @@ class QHA_App:
         V0 = volumes0[iv0]
 
         tot_en = ( (volumes[np.newaxis, :].T - V0) * dfe_dV1 + 0.5 * ( volumes[np.newaxis, :].T - V0)**2*(dfe_dV2)
-                 + (volumes[np.newaxis, :].T - V0)**3 * dfe_dV3/6.0  + ( volumes[np.newaxis, :].T - V0)**4*(dfe_dV4/24.0)
+                 + (volumes[np.newaxis, :].T - V0)**3 * dfe_dV3/6.0 + ( volumes[np.newaxis, :].T - V0)**4*(dfe_dV4/24.0)
                  + fe_V0[:] + energies[np.newaxis, :].T)
 
         fits = [self.eos.fit(volumes, e) for e in tot_en.T]
@@ -462,6 +530,13 @@ class QHA_App:
         set_grid_legend(ax, fontsize, xlabel=r'V (${\AA}^3$)', ylabel='E (eV)', legend=False)
 
         return fig
+
+    def get_phdos_plotter(self) -> PhononDosPlotter:
+        """Build and return a PhononDosPlotter."""
+        plotter = PhononDosPlotter()
+        for volume, phdos in zip(self.volumes_from_phdos, self.phdoses):
+            plotter.add_phdos(f"V={volume:.2f}", phdos)
+        return plotter
 
     @add_fig_kwargs
     def plot_vol_vs_t(self, tstart=0, tstop=1000, num=101, fontsize=10, ax=None, **kwargs) -> Figure:
@@ -613,28 +688,28 @@ class QHA_App:
         dV = volumes[iv0+1]-volumes[iv0]
 
         if self.scale_points == "S":
-            vol,fits = self.vol_E2Vib1(num=num,tstop=tstop,tstart=tstart)
+            vol, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
             E2D = self.second_derivative_energy_v(self.volumes[self.iv0])
             #f = self.fit_tot_energies(0, 0, 1 ,self.energies[np.newaxis, :].T,self.volumes)
             #E2D = f.F2D
             if tref is None:
                 alpha_1 = - 1/vol[:] * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D
             else:
-                vol_ref,fits = self.vol_E2Vib1(num=1,tstop=tref,tstart=tref)
+                vol_ref, fits = self.vol_E2Vib1(num=1, tstop=tref, tstart=tref)
                 b0 = np.array([fit.b0 for fit in fits])
                 print("B (E2vib1)   @ ", tref, " K =", b0 * 160.21766208, "(GPa)" )
                 alpha_1 = - 1/vol_ref * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D
-            ax.plot(tmesh, alpha_1,color='b', lw=2, label="E2Vib1")
+            ax.plot(tmesh, alpha_1, color='b', lw=2, label="E2Vib1")
             data_to_save = np.column_stack((data_to_save,alpha_1))
             columns.append( 'E2vib1')
 
         if len(self.index_list) >= 2:
-            vol2, fits = self.vol_Einf_Vib1(num=num,tstop=tstop,tstart=tstart)
+            vol2, fits = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
             E2D_V = self.second_derivative_energy_v(vol2)
             if tref is None:
                 alpha_2 = - 1/vol2[:] * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:]
             else:
-                vol2_ref, fits = self.vol_Einf_Vib1(num=1,tstop=tref,tstart=tref)
+                vol2_ref, fits = self.vol_Einf_Vib1(num=1, tstop=tref, tstart=tref)
                 b0 = np.array([fit.b0 for fit in fits])
                 print("B (Einfvib1) @ ", tref," K =", b0 * 160.21766208, "(GPa)" )
                 alpha_2 = - 1/vol2_ref * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:]
@@ -644,7 +719,7 @@ class QHA_App:
             columns.append( 'Einfvib1')
 
         if len(self.index_list) >= 3:
-            vol3,fits = self.vol_Einf_Vib2(num=num,tstop=tstop,tstart=tstart)
+            vol3, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
             E2D_V = self.second_derivative_energy_v(vol3)
             dfe_dV2 = np.zeros( num)
             for i, e in enumerate(ph_energies.T):
@@ -655,23 +730,23 @@ class QHA_App:
             if tref is None:
                 alpha_3 = - 1/vol3[:] * ds_dv / (E2D_V[:]+dfe_dV2[:])
             else:
-                vol3_ref,fits = self.vol_Einf_Vib2(num=1,tstop=tref,tstart=tref)
+                vol3_ref,fits = self.vol_Einf_Vib2(num=1, tstop=tref, tstart=tref)
                 b0 = np.array([fit.b0 for fit in fits])
                 #print("B (Einfvib2) @ ",tref," K =", b0*160.21766208, "(GPa)" )
                 alpha_3 = - 1/vol3_ref * ds_dv / (E2D_V[:]+dfe_dV2[:])
 
             ax.plot(tmesh, alpha_3,color='m', lw=2 ,  label=r"$E_\infty Vib2$")
-            data_to_save = np.column_stack((data_to_save,alpha_3))
+            data_to_save = np.column_stack((data_to_save, alpha_3))
             columns.append( 'Einfvib2')
 
         if len(self.index_list) == 5:
             alpha_qha = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
-            vol4,fits = self.vol_Einf_Vib4(num=num,tstop=tstop,tstart=tstart)
+            vol4,fits = self.vol_Einf_Vib4(num=num, tstop=tstop, tstart=tstart)
             E2D_V = self.second_derivative_energy_v(vol4)
 
-            d2fe_dV2 = np.zeros( num)
-            d3fe_dV3 = np.zeros( num)
-            d4fe_dV4 = np.zeros( num)
+            d2fe_dV2 = np.zeros(num)
+            d3fe_dV3 = np.zeros(num)
+            d4fe_dV4 = np.zeros(num)
             for i,e in enumerate(ph_energies.T):
                 d2fe_dV2[i] = (-e[4]+16*e[3]-30*e[2]+16*e[1]-e[0])/(12*dV**2)
                 d3fe_dV3[i] = (e[4]-2*e[3]+2*e[1]-e[0])/(2*dV**3)
@@ -685,7 +760,7 @@ class QHA_App:
             if tref is None:
                 alpha_4 = - 1/vol4[:] * ds_dv / D2F
             else:
-                vol4_ref,fits = self.vol_Einf_Vib4(num=1,tstop=tref,tstart=tref)
+                vol4_ref,fits = self.vol_Einf_Vib4(num=1, tstop=tref, tstart=tref)
                 b0 = np.array([fit.b0 for fit in fits])
                 print("B (Einfvib4) @ ", tref, " K =", b0 * 160.21766208, "(GPa)" )
                 alpha_4 = - 1/vol4_ref * ds_dv / D2F
@@ -711,13 +786,13 @@ class QHA_App:
             volumes:
         """
         param = np.zeros((num, 4))
-        param = np.polyfit(self.volumes, self.lattice_a , 3)
+        param = np.polyfit(self.volumes, self.lattice_a, 3)
         pa = np.poly1d(param)
         aa_qha = pa(volumes)
-        param = np.polyfit(self.volumes, self.lattice_b , 3)
+        param = np.polyfit(self.volumes, self.lattice_b, 3)
         pb = np.poly1d(param)
         bb_qha = pb(volumes)
-        param = np.polyfit(self.volumes, self.lattice_c , 3)
+        param = np.polyfit(self.volumes, self.lattice_c, 3)
         pc = np.poly1d(param)
         cc_qha = pc(volumes)
 
@@ -730,14 +805,14 @@ class QHA_App:
         Args:
             num: int, optional Number of samples to generate.
         """
-        param = np.zeros((num,4))
+        param = np.zeros((num, 4))
         param = np.polyfit(self.volumes, self.angles_alpha, 3)
         pa = np.poly1d(param)
         gamma = pa(volumes)
-        param = np.polyfit(self.volumes, self.angles_beta , 3)
+        param = np.polyfit(self.volumes, self.angles_beta, 3)
         pb = np.poly1d(param)
         beta = pb(volumes)
-        param = np.polyfit(self.volumes, self.angles_gama , 3)
+        param = np.polyfit(self.volumes, self.angles_gamma, 3)
         pc = np.poly1d(param)
         alpha = pc(volumes)
 
@@ -770,29 +845,29 @@ class QHA_App:
         columns = ['#Tmesh']
 
         if self.scale_points == "S":
-            vol2 ,fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
+            vol2, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol2_tref, fits = self.vol_E2Vib1(num=1, tstop=tref, tstart=tref)
 
         if len(self.index_list) == 2:
             vol, fits = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
-                vol_tref, fits  = self.vol_Einf_Vib1(num=1, tstop=tref, tstart=tref)
+                vol_tref, fits = self.vol_Einf_Vib1(num=1, tstop=tref, tstart=tref)
             method = r"$ (E_\infty Vib1)$"
 
         if len(self.index_list) == 3:
-            vol,fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
+            vol, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref, fits = self.vol_Einf_Vib2(num=1, tstop=tref, tstart=tref)
             method = r"$ (E_\infty Vib2)$"
 
         if len(self.index_list) == 5:
             tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
-            f0 = self.fit_tot_energies(tstart, tstop, num,tot_en, self.volumes_from_phdos)
+            f0 = self.fit_tot_energies(tstart, tstop, num, tot_en, self.volumes_from_phdos)
             method = r"$ (E_\infty Vib4)$"
             vol, fits = self.vol_Einf_Vib4(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
-                vol_tref, fits = self.vol_Einf_Vib4(num=1,tstop=tref,tstart=tref)
+                vol_tref, fits = self.vol_Einf_Vib4(num=1, tstop=tref, tstart=tref)
 
         #alpha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
         tmesh = np.linspace(tstart, tstop, num)
@@ -839,9 +914,9 @@ class QHA_App:
                 alpha2_b = (bb2[2:] - bb2[:-2]) / (2 * dt) / bb2_tref
                 alpha2_c = (cc2[2:] - cc2[:-2]) / (2 * dt) / cc2_tref
 
-            ax.plot(tmesh[1:-1] ,alpha2_a ,  linestyle='dashed' ,  color='r', lw=2 ,label = r"$\alpha_a$"" (E2vib1)")
-            ax.plot(tmesh[1:-1] ,alpha2_b ,  linestyle='dashed' ,  color='b', lw=2 ,label = r"$\alpha_b$"" (E2vib1)")
-            ax.plot(tmesh[1:-1] ,alpha2_c ,  linestyle='dashed' ,  color='m', lw=2 ,label = r"$\alpha_c$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_a, linestyle='dashed', color='r', lw=2, label=r"$\alpha_a$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_b, linestyle='dashed', color='b', lw=2, label=r"$\alpha_b$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_c, linestyle='dashed', color='m', lw=2, label=r"$\alpha_c$"" (E2vib1)")
             data_to_save = np.column_stack((data_to_save,alpha2_a,alpha2_b,alpha2_c))
             columns.append( 'E2vib1 (alpha_a,alpha_b,alpha_c)   ')
 
@@ -910,9 +985,9 @@ class QHA_App:
         if tref is not None:
             alpha_tref, beta_tref, cc_tref = self.get_angles(vol_tref, num=1)
 
-        alpha_alpha = np.zeros( num-2)
-        alpha_beta = np.zeros( num-2)
-        alpha_gamma = np.zeros( num-2)
+        alpha_alpha = np.zeros(num-2)
+        alpha_beta = np.zeros(num-2)
+        alpha_gamma = np.zeros(num-2)
         if tref is None:
             alpha_alpha = (alpha[2:] - alpha[:-2]) / (2 * dt) / alpha[1:-1]
             alpha_beta = (beta[2:] - beta[:-2]) / (2 * dt) / beta[1:-1]
@@ -1008,7 +1083,7 @@ class QHA_App:
 
         aa, bb, cc = self.get_abc(vol, num=num)
 
-        method_header = method+"  (a,b,c) |"
+        method_header = method + "  (a,b,c) |"
         data_to_save = np.column_stack((data_to_save, aa, bb, cc))
         columns.append(method_header)
 
@@ -1083,7 +1158,7 @@ class QHA_App:
 
         alpha, beta, gamma = self.get_angles(vol, num=num)
 
-        method_header = method+"  (alpha,beta,gamm) |"
+        method_header = method + "  (alpha,beta,gamm) |"
         data_to_save = np.column_stack((data_to_save, alpha, beta, gamma))
         columns.append(method_header)
 
@@ -1103,7 +1178,6 @@ class QHA_App:
                 ax.plot(tmesh, gamma2, linestyle='dashed', color='m', lw=2, label=r"$gamma(V(T))$""E2vib1")
 
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=None)
-
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
@@ -1152,11 +1226,16 @@ class QHA_App:
             min_en[j] = p(min_vol[j])
             F2D_V[j] = p3(min_vol[j])
 
-        return dict2namedtuple(min_vol=min_vol, temp=tmesh , min_en=min_en , param=param , F2D_V=F2D_V) #, fits=fits)
+        return dict2namedtuple(min_vol=min_vol, temp=tmesh, min_en=min_en, param=param, F2D_V=F2D_V) #, fits=fits)
 
     def vol_E2Vib1_forth(self, tstart=0, tstop=1000, num=101) -> np.ndarray:
         """
-        Returns: Vol
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num: int, optional. Number of samples to generate.
+
+        Returns: array with num volumes
         """
         volumes0 = self.volumes_from_phdos
         iv0 = self.iv0_vib
@@ -1184,7 +1263,13 @@ class QHA_App:
 
     def vol_EinfVib1_forth(self, tstart=0, tstop=1000, num=101) -> np.ndarray:
         """
-        Returns: Vol
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            num: int, optional. Number of samples to generate.
+
+        Returns: array with num volumes
         """
         volumes0 = self.volumes_from_phdos
         iv0 = self.iv0_vib
@@ -1216,7 +1301,7 @@ class QHA_App:
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate.
 
-        Returns: Vol
+        Returns: array with num volumes
         """
         tmesh = np.linspace(tstart, tstop, num)
 
@@ -1225,10 +1310,10 @@ class QHA_App:
         energies = self.energies
         volumes0 = self.volumes_from_phdos
         volumes = self.volumes
-        vol = np.zeros( num)
-        dfe_dV = np.zeros( num)
-        d2fe_dV2 = np.zeros( num)
-        fe_V0 = np.zeros( num)
+        vol = np.zeros(num)
+        dfe_dV = np.zeros(num)
+        d2fe_dV2 = np.zeros(num)
+        fe_V0 = np.zeros(num)
         if len(self.index_list) == 5:
             iv0 = 2
         else:
@@ -1255,9 +1340,9 @@ class QHA_App:
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
             tstop: The end value (in Kelvin) of the mesh.
-            num: int, optional Number of samples to generate.
+            num: int, optional. Number of samples to generate.
 
-        Returns: Vol
+        Returns: array with num volumes
         """
         tmesh = np.linspace(tstart, tstop, num)
 
@@ -1319,19 +1404,19 @@ class QHA_App:
 
         if self.scale_points == "S":
             vol_4th = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
-            ax.plot(tmesh, vol_4th,color='b', lw=2, label="E2Vib1")
+            ax.plot(tmesh, vol_4th, color='b', lw=2, label="E2Vib1")
             data_to_save = np.column_stack((data_to_save, vol_4th))
             columns.append( 'E2vib1')
 
         if len(self.index_list) >= 2:
             vol2_4th = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
-            ax.plot(tmesh, vol2_4th,color='gold', lw=2 ,  label=r"$E_\infty Vib1$")
+            ax.plot(tmesh, vol2_4th, color='gold', lw=2, label=r"$E_\infty Vib1$")
             data_to_save = np.column_stack((data_to_save, vol2_4th))
             columns.append( 'Einfvib1')
 
         if len(self.index_list) >= 3:
             vol3_4th = self.vol_Einf_Vib2_forth(num=num,tstop=tstop,tstart=tstart)
-            ax.plot(tmesh, vol3_4th,color='m', lw=2 , label=r"$E_\infty Vib2$")
+            ax.plot(tmesh, vol3_4th, color='m', lw=2, label=r"$E_\infty Vib2$")
             data_to_save = np.column_stack((data_to_save, vol3_4th))
             columns.append( 'Einfvib2')
 
@@ -1340,12 +1425,12 @@ class QHA_App:
             f0 = self.fit_forth( tstart, tstop, num ,tot_en,volumes)
             vol4_4th = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
             ax.plot(tmesh, vol4_4th,color='c', lw=2  ,label=r"$E_\infty Vib4$")
-            ax.plot(tmesh, f0.min_vol, color='k', linestyle='dashed', lw=1.5 ,label="QHA")
+            ax.plot(tmesh, f0.min_vol, color='k', linestyle='dashed', lw=1.5, label="QHA")
             data_to_save = np.column_stack((data_to_save, vol4_4th, f0.min_vol))
             columns.append( 'Einfvib4')
             columns.append( 'QHA')
 
-        ax.plot(0, self.volumes[self.iv0], color='g', lw=0, marker='o', ms=10,label="V0")
+        ax.plot(0, self.volumes[self.iv0], color='g', lw=0, marker='o', ms=10, label="V0")
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'V (${\AA}^3$)')
         ax.set_xlim(tstart, tstop)
 
@@ -1383,8 +1468,8 @@ class QHA_App:
         gamma = np.zeros(num)
 
         for j in range(num):
-            param[j] = np.polyfit(self.volumes_from_phdos,df_t[j] , 3)
-            param2[j] = np.array([3*param[j][0],2*param[j][1],param[j][2]])
+            param[j] = np.polyfit(self.volumes_from_phdos, df_t[j], 3)
+            param2[j] = np.array([3*param[j][0], 2*param[j][1], param[j][2]])
             p = np.poly1d(param2[j])
             d2f_t_v[j] = p(f.min_vol[j])
 
@@ -1455,7 +1540,7 @@ class QHA_App:
             if tref is None:
                 alpha_2 = - 1/vol2_4th[:] * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:]
             else:
-                vol2_4th_ref = self.vol_EinfVib1_forth(num=1,tstop=tref,tstart=tref)
+                vol2_4th_ref = self.vol_EinfVib1_forth(num=1, tstop=tref, tstart=tref)
                 alpha_2 = - 1/vol2_4th_ref * (df_t[:,iv1]-df_t[:,iv0])/(volumes[iv1]-volumes[iv0]) / E2D_V[:]
 
             ax.plot(tmesh, alpha_2,color='gold', lw=2 ,  label=r"$E_\infty Vib1$")
@@ -1465,7 +1550,7 @@ class QHA_App:
         if len(self.index_list) >= 3:
             vol3_4th = self.vol_Einf_Vib2_forth(num=num, tstop=tstop, tstart=tstart)
             E2D_V = p3(vol3_4th)
-            dfe_dV2 = np.zeros( num)
+            dfe_dV2 = np.zeros(num)
             for i,e in enumerate(ph_energies.T):
                 dfe_dV2[i] = (e[iv0+2]-2.0*e[iv0+1]+e[iv0])/(dV)**2
 
@@ -1485,9 +1570,9 @@ class QHA_App:
             vol4_4th = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
             E2D_V = p3(vol4_4th)
 
-            d2fe_dV2 = np.zeros( num)
-            d3fe_dV3 = np.zeros( num)
-            d4fe_dV4 = np.zeros( num)
+            d2fe_dV2 = np.zeros(num)
+            d3fe_dV3 = np.zeros(num)
+            d4fe_dV4 = np.zeros(num)
             for i,e in enumerate(ph_energies.T):
                 d2fe_dV2[i] = (-e[4]+16*e[3]-30*e[2]+16*e[1]-e[0])/(12*dV**2)
                 d3fe_dV3[i] = (e[4]-2*e[3]+2*e[1]-e[0])/(2*dV**3)
@@ -1508,10 +1593,10 @@ class QHA_App:
             ax.plot(tmesh, alpha_4, color='c', linewidth=2, label=r"$E_\infty Vib4$")
 
             alpha_qha = self.get_thermal_expansion_coeff_4th(tstart, tstop, num, tref)
-            ax.plot(tmesh, alpha_qha, color='k',linestyle='dashed', lw=1.5 ,label="QHA")
+            ax.plot(tmesh, alpha_qha, color='k', linestyle='dashed', lw=1.5, label="QHA")
             data_to_save = np.column_stack((data_to_save, alpha_4, alpha_qha))
-            columns.append( 'Einfvib4')
-            columns.append( 'QHA')
+            columns.append('Einfvib4')
+            columns.append('QHA')
 
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'$\alpha$ (K$^{-1}$)')
         ax.set_xlim(tstart, tstop)
@@ -1562,7 +1647,7 @@ class QHA_App:
 
         if len(self.index_list) == 5:
             tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
-            f0 = self.fit_forth( tstart, tstop, num ,tot_en,volumes)
+            f0 = self.fit_forth(tstart, tstop, num, tot_en, volumes)
             method = r"$ (E_\infty Vib4)$"
             vol = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
 
@@ -1573,11 +1658,11 @@ class QHA_App:
         columns.append(method_header)
 
         if lattice is None or lattice == "a":
-            ax.plot(tmesh, aa , color='r', lw=2, label=r"$a(V(T))$" + method, **kwargs)
+            ax.plot(tmesh, aa, color='r', lw=2, label=r"$a(V(T))$" + method, **kwargs)
         if lattice is None or lattice == "b":
-            ax.plot(tmesh, bb , color='b', lw=2, label=r"$b(V(T))$" + method)
+            ax.plot(tmesh, bb, color='b', lw=2, label=r"$b(V(T))$" + method)
         if lattice is None or lattice == "c":
-            ax.plot(tmesh, cc , color='m', lw=2, label=r"$c(V(T))$" + method)
+            ax.plot(tmesh, cc, color='m', lw=2, label=r"$c(V(T))$" + method)
 
         if abs(abs(self.volumes[self.iv0]-volumes[iv0])-abs(volumes[iv1]-self.volumes[self.iv0])) < 1e-3 :
             if lattice is None or lattice == "a":
@@ -1636,13 +1721,13 @@ class QHA_App:
 
         if len(self.index_list) == 5:
             tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
-            f0 = self.fit_forth( tstart, tstop, num ,tot_en,volumes)
+            f0 = self.fit_forth(tstart, tstop, num, tot_en, volumes)
             method = r"$ (E_\infty Vib4)$"
             vol = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
 
         alpha, beta, gamma = self.get_angles(vol, num=num)
 
-        method_header = method+"  (alpha,beta,gamma) |"
+        method_header = method + "  (alpha,beta,gamma) |"
         data_to_save = np.column_stack((data_to_save, alpha, beta, gamma))
         columns.append(method_header)
 
@@ -1726,9 +1811,9 @@ class QHA_App:
         if tref is not None:
             aa_tref, bb_tref, cc_tref = self.get_abc(vol_tref, num=1)
 
-        alpha_a = np.zeros( num-2)
-        alpha_b = np.zeros( num-2)
-        alpha_c = np.zeros( num-2)
+        alpha_a = np.zeros(num-2)
+        alpha_b = np.zeros(num-2)
+        alpha_c = np.zeros(num-2)
         if tref is None:
             alpha_a = (aa[2:] - aa[:-2]) / (2 * dt) / aa[1:-1]
             alpha_b = (bb[2:] - bb[:-2]) / (2 * dt) / bb[1:-1]
@@ -1742,7 +1827,7 @@ class QHA_App:
         ax.plot(tmesh[1:-1], alpha_b, color='b', lw=2, label=r"$\alpha_b$" + method)
         ax.plot(tmesh[1:-1], alpha_c, color='m', lw=2, label=r"$\alpha_c$" + method)
 
-        method_header = method+"  (alpha_a,alpha_b,alpha_c) |"
+        method_header = method + "  (alpha_a,alpha_b,alpha_c) |"
         data_to_save = np.column_stack((data_to_save, alpha_a, alpha_b, alpha_c))
         columns.append(method_header)
 
@@ -1751,9 +1836,9 @@ class QHA_App:
             if tref is not None:
                 aa2_tref, bb2_tref, cc2_tref = self.get_abc(vol2_tref, num=1)
 
-            alpha2_a = np.zeros( num-2)
-            alpha2_b = np.zeros( num-2)
-            alpha2_c = np.zeros( num-2)
+            alpha2_a = np.zeros(num-2)
+            alpha2_b = np.zeros(num-2)
+            alpha2_c = np.zeros(num-2)
             if tref is None:
                 alpha2_a = (aa2[2:] - aa2[:-2]) / (2 * dt) / aa2[1:-1]
                 alpha2_b = (bb2[2:] - bb2[:-2]) / (2 * dt) / bb2[1:-1]

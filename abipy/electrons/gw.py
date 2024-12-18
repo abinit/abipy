@@ -2464,12 +2464,21 @@ class GwRobotWithDisplacedAtom(SigresRobot):
     Specialized class to analyze GW or GWR calculations with displaced atom.
     """
     @classmethod
-    def from_displaced_atom(cls, site_index, reduced_dir, step_ang, gw_files):
+    def from_displaced_atom(cls, site_index, reduced_dir, step_ang, gw_files) -> GwRobotWithDisplacedAtom:
         """
-        Build an instance a list of SIG.nc or GWR.nc files.
+        Build an instance from a list of SIGRES.nc or GWR.nc files.
+
+        Args:
+            site_index: Index of the site that has been displaced.
+            reduced_dir: Reduced direction of the displacement.
+            step_ang: Step used to displace structures in Angstrom.
+            gw_files: List of paths to either SIGRES.nc or GWR.nc files.
+                Files are assumed to be ordered according to the displacement.
         """
         #print(f"{gw_files}")
         new = cls(*gw_files)
+        print("new = cls(*gw_files) done!")
+
         new.site_index = site_index
         new.reduced_dir = reduced_dir
         new.step_ang = step_ang
@@ -2478,11 +2487,13 @@ class GwRobotWithDisplacedAtom(SigresRobot):
         i0 = new.num_points // 2
         origin_structure = new[i0].structure
 
-        # Consistency check:
+        ####################
+        # Consistency check
+        ####################
+
         # 1) Make sure lattice parameters and all sites other than i0 are equal.
         fixed_site_indices = [i for i in range(len(origin_structure)) if i != site_index]
         if err_str := new.has_different_structures(site_indices=fixed_site_indices):
-            #diff_structures(structures, fmt="abivars", mode="table", headers=(), file=sys.stdout)
             raise ValueError(err_str)
 
         # TODO
@@ -2503,9 +2514,15 @@ class GwRobotWithDisplacedAtom(SigresRobot):
 
         return new
 
-    def get_dataframe_skb(self, spin, kpoint, band, with_params: bool=True) -> pd.DataFrame:
+    def get_dataframe_skb(self, spin, kpoint, band, with_params: bool = True) -> pd.DataFrame:
         """
-        Return pandas dataframe with the most important results.
+        Return a pandas dataframe with the most important results.
+
+        Args:
+            spin: Spin index.
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+            band: band index.
+            with_params: True if metadata should be included.
         """
         # Create list of QPState for each file.
         qp_states = [ncfile.r.read_qplist_sk(spin, kpoint, band=band)[0] for ncfile in self.abifiles]

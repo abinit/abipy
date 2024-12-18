@@ -2105,7 +2105,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         return work
 
-    def register_work_from_cbk(self, cbk_name, cbk_data, deps, work_class, manager=None):
+    def register_work_from_cbk(self, cbk_name, cbk_data, deps, work_class, manager=None) -> Work:
         """
         Registers a callback function that will generate the :class:`Task` of the :class:`Work`.
 

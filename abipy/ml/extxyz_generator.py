@@ -25,6 +25,9 @@ from abipy.ml.tools import get_energy_step
 
 class ExtxyzIOWriter:
     """
+    This object converts output files produced by ab-initio codes such as ABINIT or VASP
+    to extended XYZ files that can be used to train ML models.
+
     Example:
 
         # To find all the vasprun.xml files starting from a top-level directory, use:
@@ -113,6 +116,7 @@ class ExtxyzIOWriter:
         Generate ASE atoms.
         """
         for filepath in self.filepaths:
+
             if self.ext == "vasprun.xml":
                 vasprun = Vasprun(filepath)
                 dirname = os.path.dirname(filepath)

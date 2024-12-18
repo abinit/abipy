@@ -666,8 +666,7 @@ class PyFlowScheduler(BaseScheduler):
                   len(list(flow.iflat_tasks(status=flow.S_SUB))))
 
         if nqjobs >= self.max_njobs_inqueue:
-            print(f"Too many jobs in the queue: {nqjobs} >= {self.max_njobs_inqueue}.\n",
-                  "No job will be submitted.")
+            print(f"Too many jobs in the queue: {nqjobs} >= {self.max_njobs_inqueue}. No job will be submitted.")
             flow.check_status(show=False)
             return
 

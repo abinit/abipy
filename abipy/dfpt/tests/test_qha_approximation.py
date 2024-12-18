@@ -9,8 +9,8 @@ from abipy.core.testing import AbipyTest
 
 class QhaTest(AbipyTest):
 
-    def test_v_ZSIZA(self):
-
+    def test_v_ZSISA(self):
+        """Testing v_SSISA postprocessing tools."""
         # Root points to the directory in the git submodule with the output results.
         root = os.path.join(abidata.dirpath, "data_v-ZSISA-QHA.git", "Si_v_ZSISA_approximation")
 
@@ -21,13 +21,17 @@ class QhaTest(AbipyTest):
 
         gsr_paths = [os.path.join(root, "scale_{:d}_GSR.nc".format(s)) for s in strains]
         ddb_paths = [os.path.join(root, "scale_{:d}_GSR_DDB".format(s)) for s in strains]
-        dos_paths = [os.path.join(root, "scale_{:d}_PHDOS.nc".format(s)) for s in strains2]
+        phdos_paths = [os.path.join(root, "scale_{:d}_PHDOS.nc".format(s)) for s in strains2]
 
-        qha = QHA_App.from_files_app_ddb(ddb_paths, dos_paths)
+        qha = QHA_App.from_ddb_phdos_files(ddb_paths, phdos_paths)
         tstart, tstop = 0, 800
 
         # Test basic properties and get methods of qha
         assert qha.nvols == 5
+        assert qha.eos_name == "vinet"
+        assert qha.scale_points == "D"
+        assert str(qha)
+        assert qha.to_string(verbose=1)
 
         data = qha.fit_tot_energies(tstart=0, tstop=0, num=1,
                                    tot_energies=qha.energies[np.newaxis, :].T, volumes=qha.volumes)
@@ -120,3 +124,6 @@ class QhaTest(AbipyTest):
             assert qha.plot_thermal_expansion_coeff_4th(tref=293, show=False)
             assert qha.plot_thermal_expansion_coeff_abc_4th(tstop=tstop, tstart=tstart ,num=101, tref=293, show=False)
             assert qha.plot_angles_vs_t_4th(tstop=tstop, tstart=tstart, num=101, angle=3, show=False)
+
+            plotter = qha.get_phdos_plotter()
+            plotter.combiplot(show=False)

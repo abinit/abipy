@@ -86,10 +86,10 @@ from abipy.eph.common import BaseEphReader
 
 @dataclasses.dataclass(kw_only=True)
 class Entry:
-    name: str
-    latex: str
-    info: str
-    utype: str
+    name: str   # Entry name
+    latex: str  # Latex label
+    info: str   # Description string
+    utype: str  # Unit type
     #color: str
 
 
@@ -771,7 +771,7 @@ class Polaron:
 
         if not with_phdos:
             # Return immediately.
-            if with_title: 
+            if with_title:
                 fig.suptitle(self.get_title(with_gaps=True))
             return fig
 

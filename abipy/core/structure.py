@@ -1328,7 +1328,6 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return True
 
-
     @lazy_property
     def hsym_kpath(self):
         """
@@ -2409,6 +2408,17 @@ class Structure(pmg_Structure, NotebookWriter):
                 ngkpt[i] = 1
 
         return ngkpt
+
+    #def any_to_ngkpt(self, any_var) -> np.ndarray:
+    #    any_var = np.array(any_var)
+    #    if len(any_var) == 3:
+    #        return any_var
+    #    if (nksmall := float(any_var)) > 0:
+    #        return self.calc_ngkpt(nksmall)
+
+    #    import pymatgen.io.abinit.abiobjects as aobj
+    #    ksampling = aobj.KSampling.automatic_density(self, kppa, chksymbreak=0, shifts=(0,0,0))
+    #    return ksampling.to_abivars()["ngkpt"]
 
     def calc_shiftk(self, symprec=0.01, angle_tolerance=5) -> np.ndarray:
         """

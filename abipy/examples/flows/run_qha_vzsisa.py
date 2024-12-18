@@ -10,7 +10,7 @@ import abipy.abilab as abilab
 import abipy.data as abidata
 
 from abipy import flowtk
-from abipy.flowtk.qha import QhaFlow
+from abipy.flowtk.qha import vZSISAFlow
 
 
 def build_flow(options):
@@ -19,7 +19,7 @@ def build_flow(options):
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        __file__ = os.path.join(os.getcwd(), "run_qha.py")
+        __file__ = os.path.join(os.getcwd(), "run_qha_vzsisa.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
     # Initialize structure and pseudos
@@ -27,14 +27,24 @@ def build_flow(options):
     pseudos = abidata.pseudos("14si.pspnc")
 
     # Build input for GS calculation.
-    scf_input = abilab.AbinitInput(structure, pseudos)
-    scf_input.set_vars(ecut=12, nband=4, tolvrs=1e-8)
-    scf_input.set_kmesh(ngkpt=[2, 2, 2], shiftk=[0, 0, 0])
-
+    #ngkpt = [2, 2, 2]; ngqpt = [2, 2, 2]
+    #ngkpt = [4, 4, 4]; ngqpt = [4, 4, 4]
+    ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
     with_becs = False
-    ngqpt = [2, 2, 2]
-    return QhaFlow.from_scf_input(options.workdir, scf_input, ngqpt, with_becs, eps=0.005,
-                                  ) # , edos_ngkpt=(4, 4, 4))
+    with_quad = False
+    #with_quad = not structure.has_zero_dynamical_quadrupoles
+
+    #bo_scales = [0.96, 0.98, 1.0, 1.02, 1.04, 1.06]
+    #ph_scales = [0.98, 1.0, 1.02, 1.04, 1.06] # EinfVib4(D)
+    bo_scales = [0.96, 0.98, 1, 1.02, 1.04] # EinfVib4(S)
+    ph_scales = [1, 1.02, 1.04]         # EinfVib2(D)
+
+    scf_input = abilab.AbinitInput(structure, pseudos)
+    scf_input.set_vars(ecut=8, nband=4, tolvrs=1e-8, nstep=50) #, paral_kgb=0)
+    scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
+
+    return vZSISAFlow.from_scf_input(options.workdir, scf_input, bo_scales, ph_scales, ngqpt,
+                                     with_becs, with_quad, edos_ngkpt=None)
 
 
 # This block generates the thumbnails in the Abipy gallery.
