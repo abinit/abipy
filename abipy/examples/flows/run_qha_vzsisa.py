@@ -10,7 +10,7 @@ import abipy.abilab as abilab
 import abipy.data as abidata
 
 from abipy import flowtk
-from abipy.flowtk.qha import vZSISAFlow
+from abipy.flowtk.qha import VzsisaFlow
 
 
 def build_flow(options):
@@ -26,24 +26,25 @@ def build_flow(options):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     pseudos = abidata.pseudos("14si.pspnc")
 
-    # Build input for GS calculation.
+    # Select k-mesh for electrons and q-mesh for phonons.
     #ngkpt = [2, 2, 2]; ngqpt = [2, 2, 2]
     #ngkpt = [4, 4, 4]; ngqpt = [4, 4, 4]
     ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
+
     with_becs = False
     with_quad = False
     #with_quad = not structure.has_zero_dynamical_quadrupoles
 
     #bo_scales = [0.96, 0.98, 1.0, 1.02, 1.04, 1.06]
     #ph_scales = [0.98, 1.0, 1.02, 1.04, 1.06] # EinfVib4(D)
-    bo_scales = [0.96, 0.98, 1, 1.02, 1.04] # EinfVib4(S)
-    ph_scales = [1, 1.02, 1.04]         # EinfVib2(D)
+    bo_scales = [0.96, 0.98, 1, 1.02, 1.04]    # EinfVib4(S)
+    ph_scales = [1, 1.02, 1.04]                # EinfVib2(D)
 
     scf_input = abilab.AbinitInput(structure, pseudos)
-    scf_input.set_vars(ecut=8, nband=4, tolvrs=1e-8, nstep=50) #, paral_kgb=0)
+    scf_input.set_vars(ecut=8, nband=4, tolvrs=1e-8, nstep=50)
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
-    return vZSISAFlow.from_scf_input(options.workdir, scf_input, bo_scales, ph_scales, ngqpt,
+    return VzsisaFlow.from_scf_input(options.workdir, scf_input, bo_scales, ph_scales, ngqpt,
                                      with_becs, with_quad, edos_ngkpt=None)
 
 

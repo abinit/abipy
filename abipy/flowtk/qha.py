@@ -13,25 +13,25 @@ from abipy.flowtk.tasks import RelaxTask
 from abipy.flowtk.flows import Flow
 
 
-class vZSISAFlow(Flow):
+class VzsisaFlow(Flow):
     """
-    Flow for QHA calculations with the vZSISA approach
+    Flow for QHA calculations with the VZSISA approach.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: vZSISAFlow
+    .. inheritance-diagram:: VzsisaFlow
     """
 
     @classmethod
     def from_scf_input(cls, workdir, scf_input, bo_scales, ph_scales, ngqpt, with_becs, with_quad,
-                       edos_ngkpt=None, manager=None) -> vZSISAFlow:
+                       edos_ngkpt=None, manager=None) -> VzsisaFlow:
         """
         Build a flow for QHA calculations from an |AbinitInput| for GS-SCF calculation.
 
         Args:
             workdir: Working directory of the flow.
             scf_input: |AbinitInput| for GS-SCF run used as template to generate the other inputs.
-            bo_scales:
-            ph_scales:
+            bo_scales: List of scaling factors for the BO volumes.
+            ph_scales: List of scaling factors for the BO volumes.
             ngqpt: Three integers defining the q-mesh for phonon calculation.
             with_becs: Activate calculation of Electric field and Born effective charges.
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
@@ -45,8 +45,9 @@ class vZSISAFlow(Flow):
         """
         flow = cls(workdir=workdir, manager=manager)
 
-        work = vZSISAWork.from_scf_input(scf_input, bo_scales, ph_scales, ngqpt, with_becs, with_quad,
-                                         optcell=2, ionmov=2, edos_ngkpt=edos_ngkpt)
+        # optcell = 3: constant-volume optimization of cell geometry
+        work = VzsisaWork.from_scf_input(scf_input, bo_scales, ph_scales, ngqpt, with_becs, with_quad,
+                                         optcell=3, ionmov=2, edos_ngkpt=edos_ngkpt)
 
         flow.register_work(work)
         return flow
@@ -61,47 +62,45 @@ class vZSISAFlow(Flow):
 
         # Build list of strings with path to the relevant output files ordered by V.
         data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_vol]
-        data["gsr_relax_volumes"] = [task.gsr_path for task in work.relax_tasks_vol]
+
+        entries, gsr_relax_volumes = [], []
+        for task in work.relax_tasks_vol:
+            with task.open_gsr() as gsr:
+                entries.append(dict(
+                    volume=gsr.structure.volume,
+                    energy_eV=float(gsr.energy),
+                    pressure_GPa=float(gsr.pressure),
+                    #structure=gsr.structure,
+                ))
+                gsr_relax_volumes.append(gsr.structure.volume)
+
+        data["gsr_entries"] = entries
+        data["gsr_relax_volumes"] = gsr_relax_volumes
+
         data["ddb_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in work.ph_works]
-        data["gsr_edos_path"] = []
-        if work.edos_work:
-            data["gsr_edos_paths"] = [task.gsr_path for task in work.edos_work]
+        data["ddb_relax_volumes"] = [ph_work[0].input.structure.volume for ph_work in work.ph_works]
 
-        #entries = []
-        #items = zip(self.relax_and_phonon_work.relax_tasks_vol, self.relax_and_phonon_work.ph_works_vol)
-        #for ivol, (relax_task, ph_work) in enumerate(items):
-        #    ddb_path = ph_work.outdir.has_abiext("DDB")
-        #    with relax_task.open_gsr() as gsr:
-        #        entries.append(dict(
-        #            volume=gsr.structure.volume,
-        #            energy_eV=float(gsr.energy),
-        #            pressure_GPa=float(gsr.pressure),
-        #            structure=gsr.structure,
-        #            gsr_edos_path=None,
-        #            ddb_path=ddb_path,
-        #        )
-
-        #data["entries_for_each_volume"] = entries
+        data["gsr_edos_path"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
 
         mjson_write(data, self.outdir.path_in("vzsisa.json"), indent=4)
 
         return super().finalize()
 
 
-class vZSISAWork(Work):
+class VzsisaWork(Work):
     """
     This work performs a structural relaxation of the initial structure, then a set of distorted
     structures is genenerated and the relaxed structures are used
     to compute phonons, BECS and the dielectric tensor with DFPT.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: vZSISAWork
+    .. inheritance-diagram:: VzsisaWork
     """
 
     @classmethod
     def from_scf_input(cls, scf_input, bo_scales, ph_scales, ngqpt,
                        with_becs: bool, with_quad: bool,
-                       optcell: int, ionmov: int, edos_ngkpt=None) -> vZSISAWork:
+                       optcell: int, ionmov: int, edos_ngkpt=None) -> VzsisaWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -172,9 +171,15 @@ class vZSISAWork(Work):
             if all(abs(bo_scale - self.ph_scales)) > 1e-3: continue
             relaxed_structure = task.get_final_structure()
             scf_input = self.initial_scf_input.new_with_structure(relaxed_structure)
+
             ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
                                                 with_becs=self.with_becs, with_quad=self.with_quad,
                                                 ddk_tolerance=None)
+
+            # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
+            prtvars = dict(prtwf=-1, prtden=0, prtpot=0)
+            for task in ph_work[1:]:
+                task.input.set_vars(**prtvars)
 
             self.flow.register_work(ph_work)
             self.ph_works.append(ph_work)

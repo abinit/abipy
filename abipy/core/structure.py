@@ -172,6 +172,7 @@ def display_structure(obj, **kwargs):
 
 def get_structures_from_file(filepath: PathLike, index) -> list[Structure]:
     """
+    Read and return list of structures from filepath
     """
     #if index is None:
     #    index = -1
@@ -2409,16 +2410,31 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return ngkpt
 
-    #def any_to_ngkpt(self, any_var) -> np.ndarray:
-    #    any_var = np.array(any_var)
-    #    if len(any_var) == 3:
-    #        return any_var
-    #    if (nksmall := float(any_var)) > 0:
-    #        return self.calc_ngkpt(nksmall)
+    def as_ngkpt(self, ngkpt) -> np.ndarray:
+        """
+        Flexible API to compute the ABINIT variable ``ngkpt`` using different approaches.
 
-    #    import pymatgen.io.abinit.abiobjects as aobj
-    #    ksampling = aobj.KSampling.automatic_density(self, kppa, chksymbreak=0, shifts=(0,0,0))
-    #    return ksampling.to_abivars()["ngkpt"]
+        The following cases are supported:
+            - If `ngkpt` is a 1D vector with 3 items, return `ngkpt` as-is.
+            - If `ngkpt` is a positive float, interpret it as `nksmall` (a scaling factor for the k-point grid).
+            - If `ngkpt` is a negative float, interpret it as the desired number of k-points per atom.
+
+        This method allows users to flexibly specify the k-point grid based on their preferred input format.
+        """
+        ngkpt = np.array(ngkpt)
+
+        if ngkpt.ndim == 1 and len(ngkpt) == 3:
+            return ngkpt
+
+        if (nksmall := float(ngkpt)) > 0:
+            return self.calc_ngkpt(nksmall)
+
+        if (kppa := -float(ngkpt)) > 0:
+            import pymatgen.io.abinit.abiobjects as aobj
+            ksampling = aobj.KSampling.automatic_density(self, kppa, chksymbreak=0, shifts=(0,0,0))
+            return ksampling.to_abivars()["ngkpt"]
+
+        raise ValueError(f"Don't know how to convert {type(ngkpt)=}, {ngkpt=} to k-mesh!")
 
     def calc_shiftk(self, symprec=0.01, angle_tolerance=5) -> np.ndarray:
         """
