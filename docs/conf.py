@@ -143,7 +143,7 @@ if with_gallery:
 
     sphinx_gallery_conf = {
         'only_warn_on_example_error': True,
-        'abort_on_example_error': False,
+        'abort_on_example_error': True,
         #'log_level': {'backreference_missing': 'debug'},
         'log_level': {'backreference_missing': 'warning'},
         #'log_level': {'backreference_missing': 'error'},

@@ -21,9 +21,9 @@ root = os.path.join(abidata.dirpath, "data_v-ZSISA-QHA.git", "ZnO_ZSISA_approxim
 
 #gsr_paths = [[f"scale_{s1}_{s3}/out_GSR.nc" for s3 in strains_c] for s1 in strains_a]
 gsr_paths = [[os.path.join(root, f"scale_{s1}_{s3}/out_GSR_DDB") for s3 in strains_c] for s1 in strains_a]
-dos_paths = [[os.path.join(root, f"scale_{s1}_{s3}/out_PHDOS.nc") for s3 in strains_c1] for s1 in strains_a1]
+phdos_paths = [[os.path.join(root, f"scale_{s1}_{s3}/out_PHDOS.nc") for s3 in strains_c1] for s1 in strains_a1]
 
-qha = QHA_2D.from_files(gsr_paths, dos_paths, gsr_file="DDB")
+qha = QHA_2D.from_files(gsr_paths, phdos_paths, gsr_file="DDB")
 
 #%%
 qha.plot_energies()

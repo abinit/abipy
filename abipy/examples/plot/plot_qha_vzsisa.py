@@ -21,9 +21,9 @@ strains2 = [98, 100, 102, 104, 106] # EinfVib4(D)
 
 gsr_paths = [os.path.join(root, "scale_{:d}_GSR.nc".format(s)) for s in strains]
 ddb_paths = [os.path.join(root, "scale_{:d}_GSR_DDB".format(s)) for s in strains]
-dos_paths = [os.path.join(root, "scale_{:d}_PHDOS.nc".format(s)) for s in strains2]
+phdos_paths = [os.path.join(root, "scale_{:d}_PHDOS.nc".format(s)) for s in strains2]
 
-qha = Vzsisa.from_files_app_ddb(ddb_paths, dos_paths)
+qha = Vzsisa.from_ddb_phdos_Files(ddb_paths, phdos_paths)
 tstart, tstop = 0, 800
 
 #%%
