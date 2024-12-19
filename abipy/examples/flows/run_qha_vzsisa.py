@@ -22,9 +22,11 @@ def build_flow(options):
         __file__ = os.path.join(os.getcwd(), "run_qha_vzsisa.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
+    from abipy.flowtk.psrepos import get_oncvpsp_pseudos
+    pseudos = get_oncvpsp_pseudos(xc_name="PBE", version="0.4")
+
     # Initialize structure and pseudos
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
-    pseudos = abidata.pseudos("14si.pspnc")
 
     # Select k-mesh for electrons and q-mesh for phonons.
     #ngkpt = [2, 2, 2]; ngqpt = [2, 2, 2]
@@ -41,7 +43,22 @@ def build_flow(options):
     ph_scales = [1, 1.02, 1.04]                # EinfVib2(D)
 
     scf_input = abilab.AbinitInput(structure, pseudos)
-    scf_input.set_vars(ecut=8, nband=4, tolvrs=1e-8, nstep=50)
+    #scf_input.set_vars(ecut=8, nband=4, tolvrs=1e-8, nstep=50)
+
+    # Set other important variables (consistent with tutorial)
+    # Aall the other DFPT runs will inherit these parameters.
+    scf_input.set_vars(
+        nband=4,
+        nline=10,
+        nbdbuf=0,
+        nstep=100,
+        ecut=8.0,
+        ecutsm=1.0,
+        #chksymbreak=1,
+        occopt=1,
+        tolvrs=1.0e-18,      # SCF stopping criterion (modify default)
+    )
+
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
     return VzsisaFlow.from_scf_input(options.workdir, scf_input, bo_scales, ph_scales, ngqpt,
