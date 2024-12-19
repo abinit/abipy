@@ -127,10 +127,10 @@ class ZsisaWork(Work):
         # Create input for relaxation and register the relaxation task.
         work.relax_template = relax_template = scf_input.deepcopy()
         relax_template.pop_tolerances()
-        # optcell = 2: full optimization of cell geometry (
+        # optcell = 2: full optimization of cell geometry
         relax_template.set_vars(optcell=2, ionmov=ionmov, tolvrs=1e-8, toldff=1.e-6)
         #if optcell is not None and optcell != 0:
-        relax_template.set_vars_ifnotin(ecutsm=0.5, dilatmx=1.05)
+        #relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
 
         work.initial_relax_task = work.register_relax_task(relax_template)
 

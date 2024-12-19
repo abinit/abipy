@@ -1,7 +1,7 @@
 """Tests for qha module."""
 
 from abipy.core.testing import AbipyTest
-from abipy.flowtk.qha import VzsisaFlow
+from abipy.flowtk.vzsisa import VzsisaFlow
 
 
 class TestVzsisa(AbipyTest):

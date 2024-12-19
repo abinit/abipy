@@ -3,14 +3,14 @@ import os
 import numpy as np
 import abipy.data as abidata
 
-from abipy.dfpt.qha_aproximation import QHA_App
+from abipy.dfpt.vzsisa import Vzsisa
 from abipy.core.testing import AbipyTest
 
 
 class QhaTest(AbipyTest):
 
-    def test_v_ZSISA(self):
-        """Testing v_SSISA postprocessing tools."""
+    def test_vzsisa(self):
+        """Testing Vzsisa postprocessing tools."""
         # Root points to the directory in the git submodule with the output results.
         root = os.path.join(abidata.dirpath, "data_v-ZSISA-QHA.git", "Si_v_ZSISA_approximation")
 
@@ -23,7 +23,7 @@ class QhaTest(AbipyTest):
         ddb_paths = [os.path.join(root, "scale_{:d}_GSR_DDB".format(s)) for s in strains]
         phdos_paths = [os.path.join(root, "scale_{:d}_PHDOS.nc".format(s)) for s in strains2]
 
-        qha = QHA_App.from_ddb_phdos_files(ddb_paths, phdos_paths)
+        qha = Vzsisa.from_ddb_phdos_files(ddb_paths, phdos_paths)
         tstart, tstop = 0, 800
 
         # Test basic properties and get methods of qha

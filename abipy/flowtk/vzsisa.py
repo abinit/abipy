@@ -128,7 +128,7 @@ class VzsisaWork(Work):
         relax_template.pop_tolerances()
         # optcell = 3: constant-volume optimization of cell geometry
         relax_template.set_vars(optcell=3, ionmov=ionmov, tolvrs=1e-8, toldff=1.e-6)
-        relax_template.set_vars_ifnotin(ecutsm=0.5, dilatmx=1.05)
+        #relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
 
         work.initial_relax_task = work.register_relax_task(relax_template)
 

@@ -23,7 +23,7 @@ gsr_paths = [os.path.join(root, "scale_{:d}_GSR.nc".format(s)) for s in strains]
 ddb_paths = [os.path.join(root, "scale_{:d}_GSR_DDB".format(s)) for s in strains]
 phdos_paths = [os.path.join(root, "scale_{:d}_PHDOS.nc".format(s)) for s in strains2]
 
-qha = Vzsisa.from_ddb_phdos_Files(ddb_paths, phdos_paths)
+qha = Vzsisa.from_ddb_phdos_files(ddb_paths, phdos_paths)
 tstart, tstop = 0, 800
 
 #%%
