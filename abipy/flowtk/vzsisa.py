@@ -7,7 +7,6 @@ from __future__ import annotations
 import numpy as np
 
 from abipy.tools.serialization import mjson_write
-from abipy.dfpt.deformation_utils import generate_deformations
 from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.tasks import RelaxTask
 from abipy.flowtk.flows import Flow
@@ -45,9 +44,8 @@ class VzsisaFlow(Flow):
         """
         flow = cls(workdir=workdir, manager=manager)
 
-        # optcell = 3: constant-volume optimization of cell geometry
         work = VzsisaWork.from_scf_input(scf_input, bo_scales, ph_scales, ngqpt, with_becs, with_quad,
-                                         optcell=3, ionmov=2, edos_ngkpt=edos_ngkpt)
+                                         ionmov=2, edos_ngkpt=edos_ngkpt)
 
         flow.register_work(work)
         return flow
@@ -100,7 +98,7 @@ class VzsisaWork(Work):
     @classmethod
     def from_scf_input(cls, scf_input, bo_scales, ph_scales, ngqpt,
                        with_becs: bool, with_quad: bool,
-                       optcell: int, ionmov: int, edos_ngkpt=None) -> VzsisaWork:
+                       ionmov: int, edos_ngkpt=None) -> VzsisaWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -109,7 +107,6 @@ class VzsisaWork(Work):
             bo_scales:
             ph_scales:
             with_becs: Activate calculation of Electric field and Born effective charges.
-            optcell, ionmov: Abinit input variables.
             edos_ngkpt: Three integers defining the the k-sampling for the computation of the
                 electron DOS with the relaxed structures. Useful for metals
                 in which the electronic contribution should be included.
@@ -129,9 +126,9 @@ class VzsisaWork(Work):
         # Create input for relaxation and register the relaxation task.
         work.relax_template = relax_template = scf_input.deepcopy()
         relax_template.pop_tolerances()
-        relax_template.set_vars(tolvrs=1e-8, toldff=1.e-6, optcell=optcell, ionmov=ionmov)
-        if optcell is not None and optcell != 0:
-            relax_template.set_vars_ifnotin(ecutsm=0.5, dilatmx=1.05)
+        # optcell = 3: constant-volume optimization of cell geometry
+        relax_template.set_vars(optcell=3, ionmov=ionmov, tolvrs=1e-8, toldff=1.e-6)
+        relax_template.set_vars_ifnotin(ecutsm=0.5, dilatmx=1.05)
 
         work.initial_relax_task = work.register_relax_task(relax_template)
 
@@ -192,48 +189,4 @@ class VzsisaWork(Work):
         if self.edos_ngkpt is not None: self.flow.register_work(self.edos_work)
         self.flow.allocate(build=True)
 
-        return super().on_all_ok()
-
-
-class ThermalRelaxTask(RelaxTask):
-
-    def _on_ok(self):
-        results = super()._on_ok()
-        # Check for convergence.
-        #if not self.collinear_done:
-        #    self.input.set_vars(strtarget=strtarget)
-        #    self.finalized = False
-        #    self.restart()
-
-        return results
-
-
-class ThermalRelaxWork(Work):
-    """
-    .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: ThermalRelaxWork
-    """
-
-    @classmethod
-    def from_relax_input(cls, relax_input, qha, temperatures, pressures):
-        """
-        """
-        work = cls()
-
-        work.temperatures = temperatures
-        work.pressures = pressures
-        #work.qha = qha
-
-        for pressure in pressures:
-            for temperature in temperatures:
-                strtarget = qha.get_strtarget(temperature, pressure)
-                new_input = relax_input.new_with_vars(strtarget=strtarget)
-                work.register_relax_task(new_input)
-
-        return work
-
-    def on_all_ok(self):
-        """
-        Implement the post-processing step at the end of the Work.
-        """
         return super().on_all_ok()

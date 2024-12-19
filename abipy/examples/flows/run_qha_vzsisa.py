@@ -10,7 +10,7 @@ import abipy.abilab as abilab
 import abipy.data as abidata
 
 from abipy import flowtk
-from abipy.flowtk.qha import VzsisaFlow
+from abipy.flowtk.vzsisa import VzsisaFlow
 
 
 def build_flow(options):

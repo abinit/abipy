@@ -1,11 +1,14 @@
 # deformation_utils.py
+from __future__ import annotations
 
 import numpy as np
-from pymatgen.core import Structure, Lattice, Element
+import re
+
+from pymatgen.core import Lattice, Element
+#from abipy.core.structure import Structure
 from abipy.core.symmetries import AbinitSpaceGroup
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.abio.inputs import AbinitInput
-import re
 
 
 def generate_deformations_volumic(structure, eps_V=0.02, scales=None):

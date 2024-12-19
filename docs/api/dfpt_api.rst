@@ -101,6 +101,15 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`vzsisa` Module
+--------------------
+
+.. automodule:: abipy.dfpt.vzsisa
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 :mod:`qha_2D` Module
 --------------------
 

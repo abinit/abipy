@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Classes for V-ZSISA approximation.
+Classes  for post-processing QHA results obtained with the V-ZSISA approximation.
 See PHYSICAL REVIEW B 110, 014103 (2024)
 """
 from __future__ import annotations
@@ -19,7 +19,7 @@ from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhdosFile, PhononDosPlotter
 
 
-class QHA_App:
+class Vzsisa:
     """
     Class for the approximations on QHA analysis.
     Provides some basic methods and plotting utils.
@@ -31,7 +31,7 @@ class QHA_App:
                            gsr_paths: list[PathLike],
                            ddb_paths: list[PathLike],
                            verbose: int = 0,
-                           **extra_kwargs) -> QHA_App:
+                           **extra_kwargs) -> Vzsisa:
         """
         Creates an instance from a list of GSR files and a list of DDB files.
         This is a simplified interface that computes the PHDOS.nc files automatically
@@ -71,7 +71,7 @@ class QHA_App:
         return cls.from_gsr_phdos_files(gsr_paths, phdos_paths)
 
     @classmethod
-    def from_gsr_phdos_files(cls, gsr_paths: list[str], phdos_paths: list[str]) -> QHA_App:
+    def from_gsr_phdos_files(cls, gsr_paths: list[str], phdos_paths: list[str]) -> Vzsisa:
         """
         Creates an instance from a list of GSR files and a list of PHDOS.nc files.
 
@@ -112,11 +112,8 @@ class QHA_App:
 
         return cls(structures, structures_from_phdos, index_list, phdoses, energies, pressures)
 
-    # FIXME: This to maintain previous interface. It should be removed
-    from_files_app = from_gsr_phdos_files
-
     @classmethod
-    def from_ddb_phdos_files(cls, ddb_paths: list[str], phdos_paths: list[str]) -> QHA_App:
+    def from_ddb_phdos_files(cls, ddb_paths: list[str], phdos_paths: list[str]) -> Vzsisa:
         """
         Creates an instance from a list of DDB files and a list of PHDOS.nc files.
 
@@ -157,9 +154,6 @@ class QHA_App:
             raise RuntimeError("Expecting just 2, 3, or 5 PHDOS files in the approximation method.")
 
         return cls(structures, structures_from_phdos, index_list, phdoses, energies, pressures)
-
-    # FIXME: This to maintain previous interface. It should be removed
-    from_files_app_ddb = from_ddb_phdos_files
 
     def __init__(self, structures, structures_from_phdos, index_list, phdoses, energies, pressures,
                  eos_name: str = 'vinet', pressure: float = 0.0):
@@ -529,6 +523,8 @@ class QHA_App:
         ax.plot(f.min_vol, f.min_en - self.energies[self.iv0], color='r', linestyle='dashed' , lw=1, marker='o', ms=5)
         set_grid_legend(ax, fontsize, xlabel=r'V (${\AA}^3$)', ylabel='E (eV)', legend=False)
 
+        fig.suptitle("Energies as a function of volume for different T")
+
         return fig
 
     def get_phdos_plotter(self) -> PhononDosPlotter:
@@ -604,6 +600,8 @@ class QHA_App:
 
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'V (${\AA}^3$)')
         ax.set_xlim(tstart, tstop)
+
+        fig.suptitle("Volume as a function of T")
 
         return fig
 
@@ -775,6 +773,8 @@ class QHA_App:
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
+        fig.suptitle("Volumetric thermal expansion coefficient as a function of T")
+
         return fig
 
     def get_abc(self, volumes, num=101) -> tuple:
@@ -923,6 +923,8 @@ class QHA_App:
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'$\alpha$ (K$^{-1}$)')
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
+
+        fig.suptitle("Thermal expansion coefficient as a function of T")
 
         return fig
 
@@ -1107,6 +1109,8 @@ class QHA_App:
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
+        fig.suptitle("Lattice as a function of T")
+
         return fig
 
     @add_fig_kwargs
@@ -1180,6 +1184,8 @@ class QHA_App:
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=None)
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
+
+        fig.suptitle("Angles as a function of T")
 
         return fig
 
@@ -1434,6 +1440,8 @@ class QHA_App:
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'V (${\AA}^3$)')
         ax.set_xlim(tstart, tstop)
 
+        fig.suptitle("Volume as a function of T")
+
         return fig
 
     def get_thermal_expansion_coeff_4th(self, tstart=0, tstop=1000, num=101, tref=None) -> np.ndarray:
@@ -1558,7 +1566,7 @@ class QHA_App:
             ds_dv = ds_dv + (df_t[:,iv0+2]-2*df_t[:,iv0+1]+df_t[:,iv0])/dV**2 * (vol3_4th[:]-volumes[iv0+1])
             if tref is None:
                 alpha_3 = - 1/vol3_4th[:] * ds_dv / (E2D_V[:]+dfe_dV2[:])
-            else :
+            else:
                 vol3_4th_ref = self.vol_Einf_Vib2_forth(num=1, tstop=tref, tstart=tref)
                 alpha_3 = - 1/vol3_4th_ref * ds_dv / (E2D_V[:]+dfe_dV2[:])
 
@@ -1601,6 +1609,8 @@ class QHA_App:
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'$\alpha$ (K$^{-1}$)')
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
+
+        fig.suptitle("Volumetric thermal expansion coefficient as a function of T")
 
         return fig
 
@@ -1676,6 +1686,8 @@ class QHA_App:
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
+        fig.suptitle("Lattice as a function of T")
+
         return fig
 
     @add_fig_kwargs
@@ -1749,6 +1761,8 @@ class QHA_App:
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=None)
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
+
+        fig.suptitle("Angles as a function of T")
 
         return fig
 
@@ -1857,6 +1871,8 @@ class QHA_App:
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'$\alpha$ (K$^{-1}$)')
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
+
+        fig.suptitle("Thermal expansion coefficient as a function of T")
 
         return fig
 
