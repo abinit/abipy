@@ -13,6 +13,7 @@ import abipy.core.abinit_units as abu
 #from monty.collections import dict2namedtuple
 #from monty.functools import lazy_property
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.serialization import mjson_load
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhdosFile
@@ -31,6 +32,206 @@ class QHA_ZSISA:
     generate an instance of phonopy.qha.QHA. These can be used to obtain other quantities and plots.
     Does not include electronic entropic contributions for metals.
     """
+
+    #@classmethod
+    #def from_json_file(filepath: str) -> QHA_ZSISA:
+    #    data = msjon_load(filepath)
+    #    gsr_paths_6d = np.reshape(data[gsr_paths], shape)
+    #    phdos_paths_6d = np.reshape(data[phdos_paths, shape0
+    #    return cls.from_files(gsr_paths_6D, phdos_paths_6D, gsr_guess, model='ZSISA'):
+
+    @classmethod
+    def from_files(cls, gsr_paths_6D, phdos_paths_6D, gsr_guess, model='ZSISA') -> QHA_ZSISA:
+        """
+        Creates an instance of QHA from 6D lists of GSR files and PHDOS.nc files.
+        The lists should have the same size and the volumes should match.
+
+        Args:
+            gsr_paths_6D: 6D list of paths to GSR files.
+            phdos_paths_6D: 6D list of paths to PHDOS.nc files.
+            gsr_guess: 6D list of paths to GSR files for initial guess.
+
+        Returns: A new instance of QHA
+        """
+        gsr_paths_6D = np.array(gsr_paths_6D)
+        phdos_paths_6D = np.array(phdos_paths_6D)
+
+        current_shape = phdos_paths_6D.shape
+        dims_to_add = 6 - len(current_shape)
+
+        if dims_to_add > 0:
+            new_shape = current_shape + (1,) * dims_to_add
+            gsr_paths_6D = gsr_paths_6D.reshape(new_shape)
+            phdos_paths_6D = phdos_paths_6D.reshape(new_shape)
+
+        dim=phdos_paths_6D.shape
+
+
+        structures = []
+        doses = []
+
+        # Looping through each element in the 6D matrix
+        for dim1_idx, dim1_list in enumerate(phdos_paths_6D):
+            dim1_doses = []
+            dim1_structures = []
+            dim1_energies = []
+            for dim2_idx, dim2_list in enumerate(dim1_list):
+                dim2_doses = []
+                dim2_structures = []
+                dim2_energies = []
+                for dim3_idx, dim3_list in enumerate(dim2_list):
+                    dim3_doses = []
+                    dim3_structures = []
+                    dim3_energies = []
+                    for dim4_idx, dim4_list in enumerate(dim3_list):
+                        dim4_doses = []
+                        dim4_structures = []
+                        dim4_energies = []
+                        for dim5_idx, dim5_list in enumerate(dim4_list):
+                            dim5_doses = []
+                            dim5_structures = []
+                            dim5_energies = []
+                            for path_idx, path in enumerate(dim5_list):
+                                if os.path.exists(path):
+                                    with PhdosFile(path) as p:
+                                        dim5_doses.append(p.phdos)
+                                        dim5_structures.append(p.structure)
+                                else:
+                                    # Handle the case when the file does not exist
+                                    dim5_doses.append(None)
+                                    dim5_structures.append(None)
+                            dim4_doses.append(dim5_doses)
+                            dim4_structures.append(dim5_structures)
+                        dim3_doses.append(dim4_doses)
+                        dim3_structures.append(dim4_structures)
+                    dim2_doses.append(dim3_doses)
+                    dim2_structures.append(dim3_structures)
+                dim1_doses.append(dim2_doses)
+                dim1_structures.append(dim2_structures)
+            doses.append(dim1_doses)
+            structures.append(dim1_structures)
+
+        print("dim=",dim)
+
+        if (dim[5]==dim[4] and dim[5]==3) :
+            gsr_center=gsr_paths_6D[1,1,1,1,1,1]
+            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][1][1][1][1])
+            spgrp_number=spgrp.spgid
+            print (spgrp)
+            if 1 <= spgrp_number <= 2:
+                print ("Triclinic")
+            else:
+                print ("Warning: ")
+            case="ZSISA_triclinic"
+            print ("method=",case )
+
+        elif (dim[3]==3) :
+            gsr_center=gsr_paths_6D[1,1,1,1,0,0]
+            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][1][1][0][0])
+            spgrp_number=spgrp.spgid
+            print (spgrp)
+            if 3 <= spgrp_number <= 15:
+                print ("Monoclinic")
+            else:
+                print ("Warning: ")
+            case="ZSISA_monoclinic"
+            print ("method=",case )
+
+        elif (dim[2]==3) :
+            gsr_center=gsr_paths_6D[1,1,1,0,0,0]
+            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][1][0][0][0])
+            spgrp_number=spgrp.spgid
+            print (spgrp)
+            if model=="ZSISA_slab":
+                case="ZSISA_slab_3DOF"
+                print ("method=",case )
+            elif 16 <= spgrp_number <= 74:
+                case="ZSISA_3DOF"
+                print ("method=",case )
+            elif 75 <= spgrp_number <= 194:
+                structures[1][0][0][0][0][0]=structures[0][1][0][0][0][0]
+                structures[1][0][1][0][0][0]=structures[0][1][1][0][0][0]
+                structures[1][2][1][0][0][0]=structures[2][1][1][0][0][0]
+                doses[1][0][0][0][0][0]=doses[0][1][0][0][0][0]
+                doses[1][0][1][0][0][0]=doses[0][1][1][0][0][0]
+                doses[1][2][1][0][0][0]=doses[2][1][1][0][0][0]
+                case="ZSISA_3DOF"
+                print ("method=",case )
+            else:
+                case="ZSISA_3DOF"
+                print ("Warning: ")
+                print ("method=",case )
+
+        elif (dim[1]==3) :
+            gsr_center=gsr_paths_6D[1,1,0,0,0,0]
+            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][0][0][0][0])
+            spgrp_number=spgrp.spgid
+            print (spgrp)
+            if model=="ZSISA_slab":
+                case="ZSISA_slab_2DOF"
+                print ("method=",case )
+            elif 75 <= spgrp_number <= 194:
+                case="ZSISA_2DOF"
+                print ("method=",case )
+            else:
+                case="ZSISA_2DOF"
+                print ("Warning: ")
+                print ("method=",case )
+
+        elif (dim[0]==3) :
+            gsr_center=gsr_paths_6D[1,0,0,0,0,0]
+            spgrp = AbinitSpaceGroup.from_structure(structures[1][0][0][0][0][0])
+            spgrp_number=spgrp.spgid
+            print (spgrp)
+            if 195 <= spgrp_number <= 230:
+                case="ZSISA_1DOF"
+                print ("method=",case )
+            elif model=="ZSISA_slab":
+                case="ZSISA_slab_1DOF"
+                print ("method=",case )
+            elif model=="v_ZSISA":
+                case="v_ZSISA"
+                print ("method=",case )
+            else:
+                #case="v_ZSISA"
+                case="ZSISA_1DOF"
+                print ("Warning:  ")
+                print ("method=",case )
+
+        elif (dim[0]==5) :
+            gsr_center=gsr_paths_6D[2,0,0,0,0,0]
+            if model=="v_ZSISA":
+                case="v_ZSISA"
+                print ("method=",case )
+                print ("v_ZSISA with 5 points" )
+            else:
+                raise RuntimeError("Only v_ZSISA is implemented for 5 points")
+
+        else :
+            raise RuntimeError("unknown method")
+
+        #for gp in gsr_guess:
+        #    if os.path.exists(gp):
+        #        with GsrFile.from_file(gp) as g:
+        #            structure_guess=g.structure
+        #            stress=g.cart_stress_tensor
+        #    else:
+        #        with GsrFile.from_file(gsr_center) as g:
+        #            structure_guess=g.structure
+        #            stress=g.cart_stress_tensor
+        #stress_guess=stress/29421.02648438959
+        for gp in gsr_guess:
+            if os.path.exists(gp):
+                with GsrFile.from_file(gp) as g:
+                    structure_guess=g.structure
+                    stress=g.cart_stress_tensor
+            else:
+                with DdbFile.from_file(gsr_center) as g:
+                    structure_guess=g.structure
+                    stress=g.cart_stress_tensor
+        stress_guess=stress/29421.02648438959
+
+        return cls(structures, doses, dim, structure_guess, stress_guess, case)
 
     def __init__(self, structures, doses, dim, structure_guess, stress_guess, case):
         """
@@ -1021,199 +1222,6 @@ class QHA_ZSISA:
             f.write(f"  {stress[0]:.12e}  {stress[1]:.12e}  {stress[2]:.12e} \n")
             f.write(f"  {stress[3]:.12e}  {stress[4]:.12e}  {stress[5]:.12e} \n")
         return condition
-
-    @classmethod
-    def from_files(cls, gsr_paths_6D, phdos_paths_6D, gsr_guess, model='ZSISA'):
-        """
-        Creates an instance of QHA from 6D lists of GSR files and PHDOS.nc files.
-        The lists should have the same size and the volumes should match.
-
-        Args:
-            gsr_paths_6D: 6D list of paths to GSR files.
-            phdos_paths_6D: 6D list of paths to PHDOS.nc files.
-            gsr_guess: 6D list of paths to GSR files for initial guess.
-
-        Returns: A new instance of QHA
-        """
-        gsr_paths_6D = np.array(gsr_paths_6D)
-        phdos_paths_6D = np.array(phdos_paths_6D)
-
-        current_shape = phdos_paths_6D.shape
-        dims_to_add = 6 - len(current_shape)
-
-        if dims_to_add > 0:
-            new_shape = current_shape + (1,) * dims_to_add
-            gsr_paths_6D = gsr_paths_6D.reshape(new_shape)
-            phdos_paths_6D = phdos_paths_6D.reshape(new_shape)
-
-        dim=phdos_paths_6D.shape
-
-
-        structures = []
-        doses = []
-
-        # Looping through each element in the 6D matrix
-        for dim1_idx, dim1_list in enumerate(phdos_paths_6D):
-            dim1_doses = []
-            dim1_structures = []
-            dim1_energies = []
-            for dim2_idx, dim2_list in enumerate(dim1_list):
-                dim2_doses = []
-                dim2_structures = []
-                dim2_energies = []
-                for dim3_idx, dim3_list in enumerate(dim2_list):
-                    dim3_doses = []
-                    dim3_structures = []
-                    dim3_energies = []
-                    for dim4_idx, dim4_list in enumerate(dim3_list):
-                        dim4_doses = []
-                        dim4_structures = []
-                        dim4_energies = []
-                        for dim5_idx, dim5_list in enumerate(dim4_list):
-                            dim5_doses = []
-                            dim5_structures = []
-                            dim5_energies = []
-                            for path_idx, path in enumerate(dim5_list):
-                                if os.path.exists(path):
-                                    with PhdosFile(path) as p:
-                                        dim5_doses.append(p.phdos)
-                                        dim5_structures.append(p.structure)
-                                else:
-                                    # Handle the case when the file does not exist
-                                    dim5_doses.append(None)
-                                    dim5_structures.append(None)
-                            dim4_doses.append(dim5_doses)
-                            dim4_structures.append(dim5_structures)
-                        dim3_doses.append(dim4_doses)
-                        dim3_structures.append(dim4_structures)
-                    dim2_doses.append(dim3_doses)
-                    dim2_structures.append(dim3_structures)
-                dim1_doses.append(dim2_doses)
-                dim1_structures.append(dim2_structures)
-            doses.append(dim1_doses)
-            structures.append(dim1_structures)
-
-        print("dim=",dim)
-
-        if (dim[5]==dim[4] and dim[5]==3) :
-            gsr_center=gsr_paths_6D[1,1,1,1,1,1]
-            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][1][1][1][1])
-            spgrp_number=spgrp.spgid
-            print (spgrp)
-            if 1 <= spgrp_number <= 2:
-                print ("Triclinic")
-            else:
-                print ("Warning: ")
-            case="ZSISA_triclinic"
-            print ("method=",case )
-
-        elif (dim[3]==3) :
-            gsr_center=gsr_paths_6D[1,1,1,1,0,0]
-            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][1][1][0][0])
-            spgrp_number=spgrp.spgid
-            print (spgrp)
-            if 3 <= spgrp_number <= 15:
-                print ("Monoclinic")
-            else:
-                print ("Warning: ")
-            case="ZSISA_monoclinic"
-            print ("method=",case )
-
-        elif (dim[2]==3) :
-            gsr_center=gsr_paths_6D[1,1,1,0,0,0]
-            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][1][0][0][0])
-            spgrp_number=spgrp.spgid
-            print (spgrp)
-            if model=="ZSISA_slab":
-                case="ZSISA_slab_3DOF"
-                print ("method=",case )
-            elif 16 <= spgrp_number <= 74:
-                case="ZSISA_3DOF"
-                print ("method=",case )
-            elif 75 <= spgrp_number <= 194:
-                structures[1][0][0][0][0][0]=structures[0][1][0][0][0][0]
-                structures[1][0][1][0][0][0]=structures[0][1][1][0][0][0]
-                structures[1][2][1][0][0][0]=structures[2][1][1][0][0][0]
-                doses[1][0][0][0][0][0]=doses[0][1][0][0][0][0]
-                doses[1][0][1][0][0][0]=doses[0][1][1][0][0][0]
-                doses[1][2][1][0][0][0]=doses[2][1][1][0][0][0]
-                case="ZSISA_3DOF"
-                print ("method=",case )
-            else:
-                case="ZSISA_3DOF"
-                print ("Warning: ")
-                print ("method=",case )
-
-        elif (dim[1]==3) :
-            gsr_center=gsr_paths_6D[1,1,0,0,0,0]
-            spgrp = AbinitSpaceGroup.from_structure(structures[1][1][0][0][0][0])
-            spgrp_number=spgrp.spgid
-            print (spgrp)
-            if model=="ZSISA_slab":
-                case="ZSISA_slab_2DOF"
-                print ("method=",case )
-            elif 75 <= spgrp_number <= 194:
-                case="ZSISA_2DOF"
-                print ("method=",case )
-            else:
-                case="ZSISA_2DOF"
-                print ("Warning: ")
-                print ("method=",case )
-
-        elif (dim[0]==3) :
-            gsr_center=gsr_paths_6D[1,0,0,0,0,0]
-            spgrp = AbinitSpaceGroup.from_structure(structures[1][0][0][0][0][0])
-            spgrp_number=spgrp.spgid
-            print (spgrp)
-            if 195 <= spgrp_number <= 230:
-                case="ZSISA_1DOF"
-                print ("method=",case )
-            elif model=="ZSISA_slab":
-                case="ZSISA_slab_1DOF"
-                print ("method=",case )
-            elif model=="v_ZSISA":
-                case="v_ZSISA"
-                print ("method=",case )
-            else:
-                #case="v_ZSISA"
-                case="ZSISA_1DOF"
-                print ("Warning:  ")
-                print ("method=",case )
-
-        elif (dim[0]==5) :
-            gsr_center=gsr_paths_6D[2,0,0,0,0,0]
-            if model=="v_ZSISA":
-                case="v_ZSISA"
-                print ("method=",case )
-                print ("v_ZSISA with 5 points" )
-            else:
-                raise RuntimeError("Only v_ZSISA is implemented for 5 points")
-
-        else :
-            raise RuntimeError("unknown method")
-
-        #for gp in gsr_guess:
-        #    if os.path.exists(gp):
-        #        with GsrFile.from_file(gp) as g:
-        #            structure_guess=g.structure
-        #            stress=g.cart_stress_tensor
-        #    else:
-        #        with GsrFile.from_file(gsr_center) as g:
-        #            structure_guess=g.structure
-        #            stress=g.cart_stress_tensor
-        #stress_guess=stress/29421.02648438959
-        for gp in gsr_guess:
-            if os.path.exists(gp):
-                with GsrFile.from_file(gp) as g:
-                    structure_guess=g.structure
-                    stress=g.cart_stress_tensor
-            else:
-                with DdbFile.from_file(gsr_center) as g:
-                    structure_guess=g.structure
-                    stress=g.cart_stress_tensor
-        stress_guess=stress/29421.02648438959
-
-        return cls(structures,  doses, dim , structure_guess , stress_guess , case)
 
     def get_vib_free_energies(self, temp) -> tuple:
 

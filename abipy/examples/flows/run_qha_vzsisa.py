@@ -54,12 +54,12 @@ def build_flow(options):
         nstep=100,
         ecut=8.0,
         ecutsm=1.0,
-        #chksymbreak=1,
         occopt=1,
-        tolvrs=1.0e-18,      # SCF stopping criterion (modify default)
+        tolvrs=1.0e-18,   # SCF stopping criterion (modify default)
     )
 
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
+    print("scf_input\n", scf_input)
 
     return VzsisaFlow.from_scf_input(options.workdir, scf_input, bo_scales, ph_scales, ngqpt,
                                      with_becs, with_quad, edos_ngkpt=None)

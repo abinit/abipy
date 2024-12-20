@@ -28,6 +28,7 @@ class Vzsisa:
     """
 
     def from_gsr_ddb_files(cls,
+                           nqsmall_or_qppa,
                            gsr_paths: list[PathLike],
                            ddb_paths: list[PathLike],
                            verbose: int = 0,
@@ -42,7 +43,7 @@ class Vzsisa:
             ddb_paths: list of paths to DDB files.
         """
         # From PHYSICAL REVIEW B110,014103(2024)
-        # The phonon density of states (PHDOS)was determined utilizing the Gaussian method,
+        # The phonon density of states (PHDOS) was determined utilizing the Gaussian method,
         # with a DOS smearing value set to 4.5×10−6 Hartree.
         # Furthermore, a frequency grid step of 1.0×10−6 Hartree was employed for PHDOS calculations.
         # These adjustments in numerical accuracy were imperative for versions of ABINIT preceding v9.10.
@@ -55,6 +56,12 @@ class Vzsisa:
                       ndivsm=0,
                       return_input=True,
                      )
+        if nqsmall_or_qppa > 0:
+            kwargs["nqsmall"] = nqsmall_or_qppa
+        else if nqsmall_or_qppa < 0:
+            kwargs["qppa"] = abs(nqsmall_or_qppa)
+        else:
+            raise ValueError(f"Invalid {nqsmall_or_qppa=}")
 
         kwargs.update(extra_kwargs)
         if verbose:
@@ -520,7 +527,7 @@ class Vzsisa:
             ax.scatter(self.volumes, e, label=t, color='b', marker='s', s=10)
             ax.plot(x, fit.func(x) - self.energies[self.iv0], color='b', lw=1)
 
-        ax.plot(f.min_vol, f.min_en - self.energies[self.iv0], color='r', linestyle='dashed' , lw=1, marker='o', ms=5)
+        ax.plot(f.min_vol, f.min_en - self.energies[self.iv0], color='r', linestyle='dashed', lw=1, marker='o', ms=5)
         set_grid_legend(ax, fontsize, xlabel=r'V (${\AA}^3$)', ylabel='E (eV)', legend=False)
 
         fig.suptitle("Energies as a function of volume for different T")
@@ -1994,7 +2001,7 @@ class Vzsisa:
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate.
 
-        Returns: A numpy array of `num` values of the vibrational contribution to the free energy
+        Returns: A numpy array of (nvols, num) values with the vibrational contribution to the free energy
         """
         f = np.zeros((self.nvols, num))
         for i, phdos in enumerate(self.phdoses):

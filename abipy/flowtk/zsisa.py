@@ -31,8 +31,6 @@ class ZsisaFlow(Flow):
             workdir: Working directory of the flow.
             eps:
             scf_input: |AbinitInput| for GS-SCF run used as template to generate the other inputs.
-            strains_a: List of scaling factors for the a and b lattice vectors.
-            strains_c: List of scaling factors for the c lattice vectors.
             ngqpt: Three integers defining the q-mesh for phonon calculation.
             with_becs: Activate calculation of Electric field and Born effective charges.
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
@@ -58,8 +56,8 @@ class ZsisaFlow(Flow):
         This method is called when the flow is completed.
         It performs some basic post-processing of the results to facilitate further analysis.
         """
-        #work = self[0]
-        #data = {}
+        work = self[0]
+        data = {"eps": work.eps}
 
         ## Build list of strings with path to the relevant output files ordered by V.
         #data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_vol]
@@ -81,9 +79,10 @@ class ZsisaFlow(Flow):
         #data["ddb_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in work.ph_works]
         #data["ddb_relax_volumes"] = [ph_work[0].input.structure.volume for ph_work in work.ph_works]
 
-        #data["gsr_edos_path"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
+        data["gsr_edos_path"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
 
-        #mjson_write(data, self.outdir.path_in("zsisa.json"), indent=4)
+        # Write json file
+        mjson_write(data, self.outdir.path_in("zsisa.json"), indent=4)
 
         return super().finalize()
 
@@ -144,13 +143,12 @@ class ZsisaWork(Work):
         if sender == self.initial_relax_task:
             # Get relaxed structure and build new task for structural relaxation at fixed volume.
             relaxed_structure = sender.get_final_structure()
-            v0 = relaxed_structure.volume
             self.deformed_structures_dict = generate_deformations(relaxed_structure, eps=self.eps)
 
             relax_template = self.relax_template
             self.relax_tasks_vol = []
             for structure in self.deformed_structures_dict.values():
-                # Relax at fixed unit cell.
+                # Relax deformed structure at fixed unit cell.
                 new_input = relax_template.new_with_structure(structure, optcell=0)
                 task = self.register_relax_task(new_input)
                 self.relax_tasks_vol.append(task)
@@ -164,98 +162,89 @@ class ZsisaWork(Work):
         This callback is called when all tasks in the Work reach status `S_OK`.
         Here we add a new PhononWork for each volume using the relaxed structure.
         """
-        self.edos_work = None if self.edos_ngkpt is None else Work()
+        self.edos_work = Work()
 
         # Build phonon works for the different relaxed structures.
         self.ph_works = []
 
         start = 1
-        for task, def_name in zip(self[start:], self.deformed_structures_dict.keys(), strict=True):
+        for task, deform_name in zip(self[start:], self.deformed_structures_dict.keys(), strict=True):
             relaxed_structure = task.get_final_structure()
             scf_input = self.initial_scf_input.new_with_structure(relaxed_structure)
             ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
                                                 with_becs=self.with_becs, ddk_tolerance=None)
 
-            ph_work.set_name(def_name)
+            # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
+            prtvars = dict(prtden=0, prtpot=0)
+            for task in ph_work[1:]:
+                task.input.set_vars(**prtvars)
+
+            ph_work.set_name(deform_name)
             self.ph_works.append(ph_work)
             self.flow.register_work(ph_work)
 
-            # Add electron DOS calculation.
+            # Add task for electron DOS calculation to edos_work
             if self.edos_ngkpt is not None:
                 edos_input = scf_input.make_edos_input(self.edos_ngkpt)
-                self.edos_work.register_nscf_task(edos_input, deps={ph_work[0]: "DEN"})
+                t = self.edos_work.register_nscf_task(edos_input, deps={ph_work[0]: "DEN"})
+                t.set_name(deform_name)
 
-        if self.edos_ngkpt is not None: self.flow.register_work(self.edos_work)
-        self.flow.allocate(build=True)
+        if self.edos_ngkpt is not None:
+            self.flow.register_work(self.edos_work)
 
-        # Build phonon works for the different relaxed structures.
-        #for task, bo_scale in zip(self.relax_tasks_vol, self.strains_a):
-        #    if all(abs(bo_scale - self.strains_c)) > 1e-3: continue
-        #    relaxed_structure = task.get_final_structure()
-        #    scf_input = self.initial_scf_input.new_with_structure(relaxed_structure)
-
-        #    ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
-        #                                        with_becs=self.with_becs, with_quad=self.with_quad,
-        #                                        ddk_tolerance=None)
-
-        #    # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
-        #    prtvars = dict(prtwf=-1, prtden=0, prtpot=0)
-        #    for task in ph_work[1:]:
-        #        task.input.set_vars(**prtvars)
-
-        #    self.flow.register_work(ph_work)
-        #    self.ph_works.append(ph_work)
-
-        #    # Add electron DOS calculation.
-        #    if self.edos_work is not None:
-        #        edos_input = scf_input.make_edos_input(self.edos_ngkpt)
-        #        self.edos_work.register_nscf_task(edos_input, deps={ph_work[0]: "DEN"})
-
-        #if self.edos_ngkpt is not None: self.flow.register_work(self.edos_work)
         self.flow.allocate(build=True)
 
         return super().on_all_ok()
 
 
-#class ThermalRelaxTask(RelaxTask):
-#
-#    def _on_ok(self):
-#        results = super()._on_ok()
-#        # Check for convergence.
-#        #if not self.collinear_done:
-#        #    self.input.set_vars(strtarget=strtarget)
-#        #    self.finalized = False
-#        #    self.restart()
-#
-#        return results
-#
-#
-#class ThermalRelaxWork(Work):
-#    """
-#    .. rubric:: Inheritance Diagram
-#    .. inheritance-diagram:: ThermalRelaxWork
-#    """
-#
-#    @classmethod
-#    def from_relax_input(cls, relax_input, qha, temperatures, pressures):
-#        """
-#        """
-#        work = cls()
-#
-#        work.temperatures = temperatures
-#        work.pressures = pressures
-#        #work.qha = qha
-#
-#        for pressure in pressures:
-#            for temperature in temperatures:
-#                strtarget = qha.get_strtarget(temperature, pressure)
-#                new_input = relax_input.new_with_vars(strtarget=strtarget)
-#                work.register_relax_task(new_input)
-#
-#        return work
-#
-#    def on_all_ok(self):
-#        """
-#        Implement the post-processing step at the end of the Work.
-#        """
-#        return super().on_all_ok()
+
+class ThermalRelaxWork(Work):
+    """
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: ThermalRelaxWork
+    """
+
+    @classmethod
+    def from_relax_input(cls, relax_input, zsisa, temperatures, pressures):
+        """
+        """
+        work = cls()
+
+        work.temperatures = np.array(temperatures)
+        work.pressures_gpa = np.array(pressures_gpa)
+        work.zsisa = zsisa
+
+        for pressure_gpa in work.pressures_gpa:
+            for temperature in work.temperatures:
+                strtarget = zsisa.get_strtarget(temperature, pressure)
+                new_input = relax_input.new_with_vars(strtarget=strtarget)
+                task = work.register_task(new_input, task_class=ThermalRelaxTask)
+                # Attach pressure and temperature
+                task.pressure_gpa = pressure_gpa
+                task.temperature = temperature
+
+        return work
+
+    def on_all_ok(self):
+        """
+        Implement the post-processing step at the end of the Work.
+        """
+        return super().on_all_ok()
+
+
+class ThermalRelaxTask(RelaxTask):
+
+    def _on_ok(self):
+        results = super()._on_ok()
+
+        zsisa = self.work.zsisa
+
+        # Check for convergence.
+        #if not self.collinear_done:
+        #    self.input.set_vars(strtarget=strtarget)
+        #    self.finalized = False
+        #    self.restart()
+
+        return results
+
+

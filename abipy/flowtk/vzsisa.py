@@ -56,7 +56,7 @@ class VzsisaFlow(Flow):
         It performs some basic post-processing of the results to facilitate further analysis.
         """
         work = self[0]
-        data = {}
+        data = {"bo_scales", work.bo_scales, "ph_scales": work.ph_scales}
 
         # Build list of strings with path to the relevant output files ordered by V.
         data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_vol]
@@ -73,13 +73,14 @@ class VzsisaFlow(Flow):
                 gsr_relax_volumes.append(gsr.structure.volume)
 
         data["gsr_entries"] = entries
-        data["gsr_relax_volumes"] = gsr_relax_volumes
+        data["gsr_relax_volumes_ang3"] = gsr_relax_volumes
 
         data["ddb_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in work.ph_works]
-        data["ddb_relax_volumes"] = [ph_work[0].input.structure.volume for ph_work in work.ph_works]
+        data["ddb_relax_volumes_ang3"] = [ph_work[0].input.structure.volume for ph_work in work.ph_works]
 
         data["gsr_edos_path"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
 
+        # Write json file.
         mjson_write(data, self.outdir.path_in("vzsisa.json"), indent=4)
 
         return super().finalize()
@@ -174,7 +175,7 @@ class VzsisaWork(Work):
                                                 ddk_tolerance=None)
 
             # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
-            prtvars = dict(prtwf=-1, prtden=0, prtpot=0)
+            prtvars = dict(prtden=0, prtpot=0)
             for task in ph_work[1:]:
                 task.input.set_vars(**prtvars)
 
