@@ -61,11 +61,11 @@ class ZsisaFlow(Flow):
         It performs some basic post-processing of the results to facilitate further analysis.
         """
         work = self[0]
-        data = {"eps": work.eps}
+        data = {"eps": work.eps, "spgrp_number": work.spgrp_number}
 
         # Build list of strings with path to the relevant output files ordered by V.
         data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_deformed]
-        data["cell6_inds"] = work.cell6_inds
+        data["strain_inds"] = work.strain_inds
 
         gsr_relax_entries, gsr_relax_volumes = [], []
         for task in work.relax_tasks_deformed:
@@ -143,8 +143,7 @@ class ZsisaWork(Work):
             # Get relaxed structure and build new task for structural relaxation at fixed volume.
             relaxed_structure = sender.get_final_structure()
 
-            self.deformed_structures_dict = generate_deformations(relaxed_structure, eps=self.eps)
-            self.cell6_inds
+            self.deformed_structures_dict, self.strain_inds, self.spgrp_number = generate_deformations(relaxed_structure, self.eps)
 
             relax_template = self.relax_template
             self.relax_tasks_deformed = []
@@ -206,7 +205,7 @@ class ThermalRelaxWork(Work):
                          relax_input: AbinitInput,
                          zsisa,
                          temperatures,
-                         pressures) -> ThermalRelaxWork
+                         pressures) -> ThermalRelaxWork:
         """
         Args:
             relax_input:

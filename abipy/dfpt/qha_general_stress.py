@@ -1217,7 +1217,7 @@ class QHA_ZSISA(HasPickleIO):
         elif self.case == "ZSISA_slab_3DOF":
             dtol, stress = self.stress_ZSISA_slab_3DOF(temp, pressure)
         else:
-            raise ValueError(f"Unknown case: {case}")
+            raise ValueError(f"Unknown {case=}")
 
         if all(dtol[i] < 1e-8 for i in range(6)):
             with open("cell.txt", "a") as f:
