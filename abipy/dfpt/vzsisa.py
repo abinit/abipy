@@ -1,12 +1,13 @@
 # coding: utf-8
 """
-Classes  for post-processing QHA results obtained with the V-ZSISA approximation.
-See PHYSICAL REVIEW B 110, 014103 (2024)
+Classes for post-processing QHA results obtained with the V-ZSISA approximation.
+
+See [Phys. Rev. B 110, 014103](https://doi.org/10.1103/PhysRevB.110.014103)
 """
 from __future__ import annotations
 
 import numpy as np
-#import abipy.core.abinit_units as abu
+import abipy.core.abinit_units as abu
 
 from monty.collections import dict2namedtuple
 #from monty.functools import lazy_property
@@ -14,12 +15,69 @@ from pymatgen.analysis.eos import EOS
 from abipy.core.func1d import Function1D
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_grid_legend #, get_axarray_fig_plt
 from abipy.tools.typing import Figure, PathLike
+from abipy.tools.serialization import HasPickleIO, mjson_load
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhdosFile, PhononDosPlotter
 
 
-class Vzsisa:
+def anaget_phdoses_with_gauss(nqsmall_or_qppa,
+                              smearing_ev: float | None,
+                              ddb_paths: list[PathLike],
+                              anaget_kwargs: dict | None,
+                              verbose: int) -> tuple(list[str]):
+    """
+    Args:
+        nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
+            if > 0, it is interpreted as nqsmall
+            if < 0, it is interpreted as qppa.
+        smearing_ev: Gaussian smearing in eV
+        ddb_paths: List of paths to the DDB files.
+        anaget_kwargs: Dict with extra arguments passed to anaget_phbst_and_phdos_files
+        verbose: Verbosity level.
+
+    Returns:
+    """
+    # From PHYSICAL REVIEW B110,014103 (2024)
+    # The phonon density of states (PHDOS) was determined utilizing the Gaussian method,
+    # with a DOS smearing value set to 4.5×10−6 Hartree.
+    # Furthermore, a frequency grid step of 1.0×10−6 Hartree was employed for PHDOS calculations.
+    # These adjustments in numerical accuracy were imperative for versions of ABINIT preceding v9.10.
+    # Notably, in ABINIT versions v9.10 and after, these parameter values are preset as defaults for calculations.
+    phdos_paths, phbands_paths = [], []
+
+    if smearing_ev is None:
+        smearing_ev = 4.5e-6 * abu.Ha_eV
+
+    my_kwargs = dict(dos_method=f"gaussian:{smearing_ev} eV",
+                    return_input=True)
+
+    if nqsmall_or_qppa > 0:
+        my_kwargs["nqsmall"] = nqsmall_or_qppa
+    elif nqsmall_or_qppa < 0:
+        my_kwargs["qppa"] = abs(nqsmall_or_qppa)
+    else:
+        raise ValueError(f"Invalid {nqsmall_or_qppa=}")
+
+    if anaget_kwargs:
+        my_kwargs.update(anaget_kwargs)
+
+    #if verbose:
+    #    print(f"Calling anaget_phbst_and_phdos_files with {my_kwargs=}:")
+
+    for ddb_path in ddb_paths:
+        with DdbFile(ddb_path) as ddb:
+            with ddb.anaget_phbst_and_phdos_files(**my_kwargs) as g:
+                if verbose:
+                    print(f"anaddb input file: {str(g.input)=}")
+                phbst_file, phdos_file = g[0], g[1]
+                phdos_paths.append(phdos_file.filepath)
+                phbands_paths.append(phbst_file.filepath)
+
+    return phdos_paths, phbands_paths
+
+
+class Vzsisa(HasPickleIO):
     """
     Class for the approximations on QHA analysis.
     Provides some basic methods and plotting utils.
@@ -27,58 +85,53 @@ class Vzsisa:
     Does not include electronic entropic contributions for metals.
     """
 
-    def from_gsr_ddb_files(cls,
-                           nqsmall_or_qppa,
+    @classmethod
+    def from_json_file(cls,
+                       filepath: PathLike,
+                       nqsmall_or_qppa: int,
+                       anaget_kwargs: dict | None = None,
+                       smearing_ev: float | None = None,
+                       verbose: int = 0) -> Vzsisa:
+        """
+        Build an instance from a json file `filepath` typically produced by an Abipy flow.
+        For the meaning of the other arguments see from_gsr_ddb_paths.
+        """
+        data = mjson_load(filepath)
+        return cls.from_gsr_ddb_paths(nqsmall_or_qppa, data["gsr_relax_paths"], data["ddb_relax_paths"],
+                                      anaget_kwargs, smearing_ev, verbose)
+
+    @classmethod
+    def from_gsr_ddb_paths(cls,
+                           nqsmall_or_qppa: int,
                            gsr_paths: list[PathLike],
                            ddb_paths: list[PathLike],
-                           verbose: int = 0,
-                           **extra_kwargs) -> Vzsisa:
+                           anaget_kwargs: dict | None = None,
+                           smearing_ev: float | None = None,
+                           verbose: int = 0) -> Vzsisa:
         """
         Creates an instance from a list of GSR files and a list of DDB files.
         This is a simplified interface that computes the PHDOS.nc files automatically
         from the DDB files by invoking anaddb
 
         Args:
+            nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
+                if > 0, it is interpreted as nqsmall
+                if < 0, it is interpreted as qppa.
             gsr_paths: list of paths to GSR files.
             ddb_paths: list of paths to DDB files.
+            anaget_kwargs: dict with extra arguments passed to anaget_phdoses_with_gauss
+            smearing_ev: Gaussian smearing in eV
+            verbose:
         """
-        # From PHYSICAL REVIEW B110,014103(2024)
-        # The phonon density of states (PHDOS) was determined utilizing the Gaussian method,
-        # with a DOS smearing value set to 4.5×10−6 Hartree.
-        # Furthermore, a frequency grid step of 1.0×10−6 Hartree was employed for PHDOS calculations.
-        # These adjustments in numerical accuracy were imperative for versions of ABINIT preceding v9.10.
-        # Notably, in ABINIT versions v9.10 and after, these parameter values are preset as defaults for calculations.
-        phdos_paths = []
-        smear = "4.5 e−6 Hartree"
-        kwargs = dict(#nqsmall,
-                      qppa=100,
-                      dos_method=f"gaussian:{smear}",
-                      ndivsm=0,
-                      return_input=True,
-                     )
-        if nqsmall_or_qppa > 0:
-            kwargs["nqsmall"] = nqsmall_or_qppa
-        else if nqsmall_or_qppa < 0:
-            kwargs["qppa"] = abs(nqsmall_or_qppa)
-        else:
-            raise ValueError(f"Invalid {nqsmall_or_qppa=}")
-
-        kwargs.update(extra_kwargs)
-        if verbose:
-            print(f"Calling anaget_phbst_and_phdos_files with {kwargs=}:")
-
-        for ddb_path in ddb_paths:
-            with DdbFile(ddb_path) as ddb:
-                with ddb.anaget_phbst_and_phdos_files(**kwargs) as g:
-                    if verbose:
-                        print(f"anaddb input file: {g.input=}")
-                    phbst_file, phdos_file = g[0], g[1]
-                    phdos_paths.append(phdos_file.filepath)
-
-        return cls.from_gsr_phdos_files(gsr_paths, phdos_paths)
+        phdos_paths, phbands_paths = anaget_phdoses_with_gauss(nqsmall_or_qppa, smearing_ev, ddb_paths, anaget_kwargs, verbose)
+        new = cls.from_gsr_phdos_files(gsr_paths, phdos_paths)
+        #new.pickle_dump(workdir, basename=None)
+        return new
 
     @classmethod
-    def from_gsr_phdos_files(cls, gsr_paths: list[str], phdos_paths: list[str]) -> Vzsisa:
+    def from_gsr_phdos_files(cls,
+                             gsr_paths: list[PathLike],
+                             phdos_paths: list[PathLike]) -> Vzsisa:
         """
         Creates an instance from a list of GSR files and a list of PHDOS.nc files.
 
@@ -120,7 +173,9 @@ class Vzsisa:
         return cls(structures, structures_from_phdos, index_list, phdoses, energies, pressures)
 
     @classmethod
-    def from_ddb_phdos_files(cls, ddb_paths: list[str], phdos_paths: list[str]) -> Vzsisa:
+    def from_ddb_phdos_files(cls,
+                             ddb_paths: list[PathLike],
+                             phdos_paths: list[PathLike]) -> Vzsisa:
         """
         Creates an instance from a list of DDB files and a list of PHDOS.nc files.
 
@@ -226,11 +281,11 @@ class Vzsisa:
         lines = []
         app = lines.append
         #app(self.structure.to_string(verbose=verbose))
-        app(f"BO volumes: {self.volumes} Ang^3")
+        app(f"Born-Oppenheimer volumes: {self.volumes} Ang^3")
         app(f"PHDOS volumes: {self.volumes_from_phdos} Ang^3")
         app(f"eos_name: {self.eos_name}")
         app(f"pressure: {self.pressure} GPa")
-        app(f"scale_points: {self.scale_points} GPa")
+        app(f"scale_points: {self.scale_points}")
 
         return "\n".join(lines)
 
@@ -540,6 +595,13 @@ class Vzsisa:
         for volume, phdos in zip(self.volumes_from_phdos, self.phdoses):
             plotter.add_phdos(f"V={volume:.2f}", phdos)
         return plotter
+
+    #def get_phbands_plotter(self) -> PhononBandsPlotter:
+    #    """Build and return a PhononBandsPlotter."""
+    #    plotter = PhononBandsPlotter()
+    #    for volume, phbands in zip(self.volumes_from_phdos, self.phbands):
+    #        plotter.add_phbands(f"V={volume:.2f}", phbands)
+    #    return plotter
 
     @add_fig_kwargs
     def plot_vol_vs_t(self, tstart=0, tstop=1000, num=101, fontsize=10, ax=None, **kwargs) -> Figure:

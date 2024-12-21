@@ -630,9 +630,10 @@ class Node(metaclass=abc.ABCMeta):
             # current working directory may not be defined!
             return self.workdir
 
-    def set_name(self, name: str) -> None:
+    def set_name(self, name: str) -> Node:
         """Set the name of the Node."""
         self._name = name
+        return self
 
     @property
     def node_id(self) -> int:
@@ -1309,7 +1310,7 @@ class NodeHistory(collections.deque):
 
 
 class NodeCorrections(list):
-    """Iterable storing the correctios performed by the :class:`EventHandler`"""
+    """Iterable storing the correctinos performed by the :class:`EventHandler`"""
     #TODO
     # Correction should have a human-readable message
     # and a list of operations in JSON format (Modder?) so that

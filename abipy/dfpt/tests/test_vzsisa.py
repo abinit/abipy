@@ -20,6 +20,13 @@ class QhaTest(AbipyTest):
         #strains2 = [100, 102, 104] # EinfVib2(D)
 
         gsr_paths = [os.path.join(root, "scale_{:d}_GSR.nc".format(s)) for s in strains]
+
+        ddb_paths = [os.path.join(root, "scale_{:d}_DDB".format(s)) for s in strains]
+        anaget_kwargs = {}
+        # FIXME
+        #FileNotFoundError: [Errno 2] No such file or directory: '/Users/giantomassi/git_repos/abipy/abipy/data/data_v-ZSISA-QHA.git/Si_v_ZSISA_approximation/scale_96_GSR.nc'
+        #qha = Vzsisa.from_gsr_ddb_paths(4, gsr_paths, ddb_paths, anaget_kwargs, verbose=1)
+
         ddb_paths = [os.path.join(root, "scale_{:d}_GSR_DDB".format(s)) for s in strains]
         phdos_paths = [os.path.join(root, "scale_{:d}_PHDOS.nc".format(s)) for s in strains2]
 

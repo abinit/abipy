@@ -24,22 +24,6 @@ def build_flow(options):
 
     # Initialize structure and pseudos for ZnO.
     structure = abilab.Structure.from_abistring("""
-#natom 4
-#ntypat 2
-#typat
-#1 1 2 2
-#znucl 30 8
-#xred
-#   0.0000000000    0.0000000000   9.0458517112d-04
-#   0.3333333333    0.6666666667    0.5009045852
-#   0.0000000000    0.0000000000    0.3801017769
-#   0.3333333333    0.6666666667    0.8801017769
-#acell    1.0    1.0    1.0
-#rprim
-#   6.1906323086    0.0000000000    0.0000000000
-#  -3.0953161544    5.3612448448    0.0000000000
-#   0.0000000000    0.0000000000    9.9876040936
-
 natom 4
 ntypat 2
 typat
@@ -58,6 +42,9 @@ rprim
    0.0000000000    0.0000000000    9.7234377918
 """)
 
+    # Initialize structure and pseudos
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+
     # Use NC PBE pseudos from pseudodojo v0.4
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
     pseudos = get_oncvpsp_pseudos(xc_name="PBE", version="0.4", accuracy="standard").get_pseudos_for_structure(structure)
@@ -66,10 +53,10 @@ rprim
     #print(ecut)
 
     # Select k-mesh for electrons and q-mesh for phonons.
-    ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
+    #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
     ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
 
-    with_becs = True
+    with_becs = False
     with_quad = False
     #with_quad = not structure.has_zero_dynamical_quadrupoles
     eps = 0.005
@@ -83,10 +70,12 @@ rprim
         nline=10,
         nbdbuf=0,
         nstep=100,
-        ecut=42.0,
+        #ecut=42.0,
+        ecut=12.0,
         ecutsm=1.0,
         occopt=1,
-        nband=26,
+        #nband=26,
+        nband=4,
         #tolvrs=1.0e-18,      # SCF stopping criterion (modify default)
         tolvrs=1.0e-6,      # SCF stopping criterion (modify default)
     )

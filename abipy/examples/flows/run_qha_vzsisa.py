@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 r"""
-Flow for quasi-harmonic calculations under development
-=====================================================
-Warning: This code is still under development.
+Flow for QHA calculations v-ZSISA-QHA
+=====================================
+
+See [Phys. Rev. B 110, 014103](https://doi.org/10.1103/PhysRevB.110.014103)
 """
 import sys
 import os
@@ -15,38 +16,37 @@ from abipy.flowtk.vzsisa import VzsisaFlow
 
 def build_flow(options):
     """
-    Create a `QhaFlow` for quasi-harmonic calculations.
+    Create a `VzsisaFlow`.
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
         __file__ = os.path.join(os.getcwd(), "run_qha_vzsisa.py")
         options.workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
+    # Initialize structure from cif file.
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+
+    # Get NC pseudos from pseudodojo.
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
     pseudos = get_oncvpsp_pseudos(xc_name="PBE", version="0.4")
 
-    # Initialize structure and pseudos
-    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
-
     # Select k-mesh for electrons and q-mesh for phonons.
-    #ngkpt = [2, 2, 2]; ngqpt = [2, 2, 2]
-    #ngkpt = [4, 4, 4]; ngqpt = [4, 4, 4]
     ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
+    #ngkpt = [4, 4, 4]; ngqpt = [4, 4, 4]
 
     with_becs = False
     with_quad = False
     #with_quad = not structure.has_zero_dynamical_quadrupoles
 
-    #bo_scales = [0.96, 0.98, 1.0, 1.02, 1.04, 1.06]
-    #ph_scales = [0.98, 1.0, 1.02, 1.04, 1.06] # EinfVib4(D)
-    bo_scales = [0.96, 0.98, 1, 1.02, 1.04]    # EinfVib4(S)
-    ph_scales = [1, 1.02, 1.04]                # EinfVib2(D)
+    #bo_vol_scales = [0.96, 0.98, 1.0, 1.02, 1.04, 1.06]
+    #ph_vol_scales = [0.98, 1.0, 1.02, 1.04, 1.06] # EinfVib4(D)
+    bo_vol_scales = [0.96, 0.98, 1, 1.02, 1.04]    # EinfVib4(S)
+    ph_vol_scales = [1, 1.02, 1.04]                # EinfVib2(D)
 
     scf_input = abilab.AbinitInput(structure, pseudos)
-    #scf_input.set_vars(ecut=8, nband=4, tolvrs=1e-8, nstep=50)
 
-    # Set other important variables (consistent with tutorial)
-    # Aall the other DFPT runs will inherit these parameters.
+    # Set other important variables
+    # All the other DFPT runs will inherit these parameters.
     scf_input.set_vars(
         nband=4,
         nline=10,
@@ -61,7 +61,7 @@ def build_flow(options):
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
     print("scf_input\n", scf_input)
 
-    return VzsisaFlow.from_scf_input(options.workdir, scf_input, bo_scales, ph_scales, ngqpt,
+    return VzsisaFlow.from_scf_input(options.workdir, scf_input, bo_vol_scales, ph_vol_scales, ngqpt,
                                      with_becs, with_quad, edos_ngkpt=None)
 
 

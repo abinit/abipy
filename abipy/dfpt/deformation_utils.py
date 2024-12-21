@@ -2,13 +2,11 @@
 from __future__ import annotations
 
 import numpy as np
-import re
 
-from pymatgen.core import Lattice, Element
+from pymatgen.core import Lattice
 #from abipy.core.structure import Structure
 from abipy.core.symmetries import AbinitSpaceGroup
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from abipy.abio.inputs import AbinitInput
+#from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 
 def generate_deformations_volumic(structure, eps_V=0.02, scales=None):
@@ -31,6 +29,7 @@ def generate_deformations_volumic(structure, eps_V=0.02, scales=None):
 
     return structures_new
 
+
 def generate_deformations(structure, eps=0.005):
     spgrp = AbinitSpaceGroup.from_structure(structure )
     print (spgrp)
@@ -48,7 +47,7 @@ def generate_deformations(structure, eps=0.005):
               [0,1,0,1,1,1],  [0,1,1,0,1,1],  [0,1,1,1,0,1],  [0,1,1,1,1,0],  [1,0,1,0,1,1],  [1,0,1,1,0,1],
               [1,0,1,1,1,0],  [1,1,0,1,0,1],  [1,1,0,1,1,0],  [1,1,1,0,1,0] , [0 ,0,0,0,0,0]]
         if abs(rprim[1, 0]) > 1e-9 or abs(rprim[2, 0]) > 1e-9 or abs(rprim[2, 1]) > 1e-9:
-            print("Warning: The lattice is oriented such that xz =xy =yz =0 .")
+            print("Warning: The lattice is oriented such that xz = xy = yz = 0.")
         rprim0 = np.copy(rprim)
         a=rprim[0, :]
         b=rprim[1, :]

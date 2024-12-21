@@ -707,30 +707,30 @@ class QHA(AbstractQHA):
                 energies.append(g.energy)
                 structures.append(g.structure)
 
-        #doses = [PhononDos.as_phdos(dp) for dp in phdos_paths]
+        #pndoses = [PhononDos.as_phdos(dp) for dp in phdos_paths]
 
-        doses = []
+        phdoses = []
         structures_from_phdos = []
         for path in phdos_paths:
             with PhdosFile(path) as p:
-                doses.append(p.phdos)
+                phdoses.append(p.phdos)
                 structures_from_phdos.append(p.structure)
 
         cls._check_volumes(structures, structures_from_phdos)
 
-        return cls(structures, doses, energies)
+        return cls(structures, phdoses, energies)
 
-    def __init__(self, structures, doses, energies, eos_name='vinet', pressure=0):
+    def __init__(self, structures, phdoses, energies, eos_name='vinet', pressure=0):
         """
         Args:
             structures: list of structures at different volumes.
-            doses: list of |PhononDos| at volumes corresponding to the structures.
+            phdoses: list of |PhononDos| at volumes corresponding to the structures.
             energies: list of SCF energies for the structures in eV.
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure: value of the pressure in GPa that will be considered in the p * V contribution to the energy.
         """
         super().__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
-        self.doses = doses
+        self.phdoses = phdoses
 
     @staticmethod
     def _check_volumes(struct_list1, struct_list2):
@@ -762,7 +762,7 @@ class QHA(AbstractQHA):
         """
         f = np.zeros((self.nvols, num))
 
-        for i, dos in enumerate(self.doses):
+        for i, dos in enumerate(self.phdoses):
             f[i] = dos.get_free_energy(tstart, tstop, num).values
 
         return f
@@ -791,7 +791,7 @@ class QHA(AbstractQHA):
         entropy = np.zeros((self.nvols, num))
         zpe = np.zeros(self.nvols)
 
-        for i, d in enumerate(self.doses):
+        for i, d in enumerate(self.phdoses):
             cv[i] = d.get_cv(tstart, tstop, num).values
             free_energy[i] = d.get_free_energy(tstart, tstop, num).values
             entropy[i] = d.get_entropy(tstart, tstop, num).values
@@ -822,7 +822,7 @@ class QHA3PF(AbstractQHA):
         Args:
             gsr_paths: list of paths to GSR files.
             phdos_paths: list of paths to three PHDOS.nc files.
-            ind_doses: list of three values indicating, for each of the three doses, the index of the
+            ind_doses: list of three values indicating, for each of the three phdoses, the index of the
                 corresponding gsr_file in "gsr_paths".
 
         Returns: A new instance of QHA3PF
@@ -834,23 +834,23 @@ class QHA3PF(AbstractQHA):
                 energies.append(g.energy)
                 structures.append(g.structure)
 
-        doses = [PhononDos.as_phdos(dp) for dp in phdos_paths]
+        phdoses = [PhononDos.as_phdos(dp) for dp in phdos_paths]
 
-        return cls(structures, doses, energies, ind_doses)
+        return cls(structures, phdoses, energies, ind_doses)
 
-    def __init__(self, structures, doses, energies, ind_doses, eos_name='vinet', pressure=0, fit_degree=2):
+    def __init__(self, structures, phdoses, energies, ind_doses, eos_name='vinet', pressure=0, fit_degree=2):
         """
         Args:
             structures: list of structures at different volumes.
-            doses: list of three |PhononDos| at different volumes corresponding to the some of the structures.
+            phdoses: list of three |PhononDos| at different volumes corresponding to the some of the structures.
             energies: list of SCF energies for the structures in eV.
-            ind_doses: list of three values indicating, for each of the three doses, the index of the
+            ind_doses: list of three values indicating, for each of the three phdoses, the index of the
                 corresponding structure in "structures".
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
         """
         super().__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
-        self.doses = doses
+        self.phdoses = phdoses
         self.ind_doses = ind_doses
         self.fit_degree = fit_degree
         self._ind_energy_only = [i for i in range(len(structures)) if i not in ind_doses]
@@ -879,7 +879,7 @@ class QHA3PF(AbstractQHA):
         entropy = self._get_thermodynamic_prop("entropy", tstart, tstop, num)
         zpe = np.zeros(self.nvols)
 
-        for i, dos in zip(self.ind_doses, self.doses):
+        for i, dos in zip(self.ind_doses, self.phdoses):
             zpe[i] = dos.zero_point_energy
 
         dos_vols = self.volumes[self.ind_doses]
@@ -906,7 +906,7 @@ class QHA3PF(AbstractQHA):
             Numpy array with the values of the thermodynamic properties at the different
             volumes with size (nvols, num).
         """
-        prop_doses = np.array([getattr(dos, "get_" + name)(tstart, tstop, num).values for dos in self.doses])
+        prop_doses = np.array([getattr(dos, "get_" + name)(tstart, tstop, num).values for dos in self.phdoses])
 
         p = np.zeros((self.nvols, num))
 
@@ -961,7 +961,7 @@ class QHA3P(AbstractQHA):
         Args:
             gsr_paths: list of paths to GSR files.
             phdos_paths: list of paths to three PHDOS.nc files.
-            ind_doses: list of three values indicating, for each of the three doses, the index of the
+            ind_doses: list of three values indicating, for each of the three phdoses, the index of the
                 corresponding gsr_file in "gsr_paths".
 
         Returns: A new instance of QHA3P
@@ -981,9 +981,9 @@ class QHA3P(AbstractQHA):
         """
         Args:
             structures: list of structures at different volumes.
-            doses: list of three |PhononDos| at different volumes corresponding to the some of the structures.
+            phdoses: list of three |PhononDos| at different volumes corresponding to the some of the structures.
             energies: list of SCF energies for the structures in eV.
-            ind_grun: list of three values indicating, for each of the three doses, the index of the
+            ind_grun: list of three values indicating, for each of the three phdoses, the index of the
                 corresponding structure in "structures".
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
@@ -1020,7 +1020,7 @@ class QHA3P(AbstractQHA):
         w = self.fitted_frequencies
 
         tmesh = np.linspace(tstart, tstop, num)
-        weights = self.grun.doses['qpoints'].weights
+        weights = self.grun.phdoses['qpoints'].weights
 
         free_energy = np.zeros((self.nvols, num))
         cv = np.zeros((self.nvols, num))
@@ -1078,7 +1078,7 @@ class QHA3P(AbstractQHA):
         w = self.fitted_frequencies
 
         tmesh = np.linspace(tstart, tstop, num)
-        weights = self.grun.doses['qpoints'].weights
+        weights = self.grun.phdoses['qpoints'].weights
 
         f = np.zeros((self.nvols, num))
 

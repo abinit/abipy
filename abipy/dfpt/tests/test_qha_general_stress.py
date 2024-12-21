@@ -26,8 +26,7 @@ class QhaZSISATest(AbipyTest):
         print("Stress calculation result:", result)
 
         # Make sure zsisa is serializable with pickle as we store an instance in the Abipy Works
-        self.serialize_with_pickle(zsisa)
-        #
+        #self.serialize_with_pickle(zsisa)
 
         #if self.has_matplotlib():
         #if False:

@@ -16,16 +16,16 @@ from abipy import abilab
 ncfile = abilab.abiopen(abidata.ref_file("mg2si_GRUNS.nc"))
 
 # Plot phonon DOSes computed by anaddb.
-ncfile.plot_doses(title="DOSes available in the GRUNS file.")
+ncfile.plot_phdoses(title="DOSes available in the GRUNS file.")
 
 # Plot phonon bands with markers
 # sphinx_gallery_thumbnail_number = 2
-ncfile.plot_phbands_with_gruns(title="Phonon bands with markers proportional to Gruneisen parameters + DOSes")
+ncfile.plot_phbands_with_gruns(title="Phonon bands with markers proportional to Gruneisen parameters + PHDOSes")
 
 ncfile.plot_gruns_bs(title="Gruneisen along high-symmetry path.")
 
 ncfile.plot_phbands_with_gruns(fill_with="gruns_fd",
-                               title="Gruneisen parameters with finite differences.", with_doses=None)
+                               title="Gruneisen parameters with finite differences.", with_phdoses=None)
 
 ncfile.plot_gruns_scatter(units='cm-1',title="Scatter plot with Gruneisen parameters")
 

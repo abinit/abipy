@@ -48,7 +48,7 @@ class QHA_2D:
         Returns:
             A new instance of QHA.
         """
-        energies, structures, doses , structures_from_phdos = [], [], [],[]
+        energies, structures, phdoses , structures_from_phdos = [], [], [],[]
 
         if gsr_file == "GSR.nc":
             # Process GSR files
@@ -95,22 +95,22 @@ class QHA_2D:
                     row_doses.append(None)
                     row_structures.append(None)
 
-            doses.append(row_doses)
+            phdoses.append(row_doses)
             structures_from_phdos.append(row_structures)
 
-        return cls(structures, doses, energies , structures_from_phdos)
+        return cls(structures, phdoses, energies , structures_from_phdos)
 
-    def __init__(self, structures, doses, energies, structures_from_phdos,
+    def __init__(self, structures, phdoses, energies, structures_from_phdos,
                  eos_name: str='vinet', pressure: float=0.0):
         """
         Args:
             structures (list): List of structures at different volumes.
-            doses (list): List of density of states (DOS) data for phonon calculations.
+            phdoses: List of density of states (DOS) data for phonon calculations.
             energies (list): SCF energies for the structures in eV.
             eos_name (str): Expression used to fit the energies (e.g., 'vinet').
             pressure (float): External pressure in GPa to include in p*V term.
         """
-        self.doses = doses
+        self.phdoses = phdoses
         self.structures = structures
         self.structures_from_phdos = structures_from_phdos
         self.energies = np.array(energies, dtype=np.float64)
@@ -514,7 +514,7 @@ class QHA_2D:
         f = np.zeros((len(self.lattice_c_from_phdos[0]), len(self.lattice_a_from_phdos[:, 0]), num))
         for i in range(len(self.lattice_a_from_phdos[:, 0])):
             for j in range(len(self.lattice_c_from_phdos[0])):
-                dos = self.doses[i][j]
+                dos = self.phdoses[i][j]
                 if dos is not None:
                     f[j][i] = dos.get_free_energy(tstart, tstop, num).values
         return f
