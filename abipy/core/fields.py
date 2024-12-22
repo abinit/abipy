@@ -6,7 +6,6 @@ import collections
 import os
 import numpy as np
 import pandas as pd
-import pymatgen.core.units as pmgu
 import typing
 
 from collections import OrderedDict
@@ -15,7 +14,7 @@ from monty.functools import lazy_property
 from monty.string import is_string, marquee
 from monty.termcolor import cprint
 from monty.inspect import all_subclasses
-from pymatgen.core.units import bohr_to_angstrom
+from pymatgen.core.units import bohr_to_angstrom, Ha_to_eV
 from abipy.core.structure import Structure
 from abipy.core.mesh3d import Mesh3D
 from abipy.core.func1d import Function1D
@@ -1180,9 +1179,9 @@ class FieldReader(ETSF_Reader):
 
         # Structure uses Angstrom. Abinit uses Bohr.
         if issubclass(field_cls, _DensityField):
-            fact = 1 / pmgu.bohr_to_angstrom ** 3
+            fact = 1 / bohr_to_angstrom ** 3
         if issubclass(field_cls, _PotentialField):
-            fact = pmgu.Ha_to_eV / pmgu.bohr_to_angstrom ** 3
+            fact = Ha_to_eV
 
         datar *= fact
 
