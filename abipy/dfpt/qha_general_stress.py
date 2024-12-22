@@ -46,20 +46,21 @@ class QHA_ZSISA(HasPickleIO):
             verbose: Verbosity level
         """
         data = mjson_load(filepath)
-        ddb_paths = data["ddb_relax_paths"]
-        gsr_path = data["gsr_relax_paths"]
+        ddb_relax_paths = data["ddb_relax_paths"]
+        gsr_relax_paths = data["gsr_relax_paths"]
 
         phdos_paths, phbands_paths = anaget_phdoses_with_gauss(nqsmall_or_qppa, smearing_ev,
-                                                               ddb_paths, anaget_kwargs, verbose)
+                                                               ddb_relax_paths, anaget_kwargs, verbose)
 
         # Create a 6D array with shape (3, 3, 3, 3, 3, 3) initialized with None.
         gsr_paths_6d = np.full((3, 3, 3, 3, 3, 3), None, dtype=object)
         phdos_paths_6d = np.full((3, 3, 3, 3, 3, 3), None, dtype=object)
 
-        cell6_inds = np.array(data["cell6_inds"], dtype=np.int)
-        for gsr_path, phdos_path, cell_ind in zip(gsr_paths, phdos_paths, cell6_inds, strict=True):
-            gsr_paths_6d[cell_ind] = gsr_path
-            phdos_paths_6d[cell_ind] = phdos_path
+        strain_inds = data["strain_inds"]
+        #print(strain_inds)
+        for gsr_path, phdos_path, inds in zip(gsr_relax_paths, phdos_paths, strain_inds, strict=True):
+            gsr_paths_6d[inds] = gsr_path
+            phdos_paths_6d[inds] = phdos_path
 
         new = cls.from_files(gsr_paths_6d, phdos_paths_6d, gsr_guess, model='ZSISA')
         #new.pickle_dump(workdir, basename=None)

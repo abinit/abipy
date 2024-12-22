@@ -119,9 +119,9 @@ class Vzsisa(HasPickleIO):
                 if < 0, it is interpreted as qppa.
             gsr_paths: list of paths to GSR files.
             ddb_paths: list of paths to DDB files.
-            anaget_kwargs: dict with extra arguments passed to anaget_phdoses_with_gauss
-            smearing_ev: Gaussian smearing in eV
-            verbose:
+            anaget_kwargs: dict with extra arguments passed to anaget_phdoses_with_gauss.
+            smearing_ev: Gaussian smearing in eV.
+            verbose: Verbosity level.
         """
         phdos_paths, phbands_paths = anaget_phdoses_with_gauss(nqsmall_or_qppa, smearing_ev, ddb_paths, anaget_kwargs, verbose)
         new = cls.from_gsr_phdos_files(gsr_paths, phdos_paths)

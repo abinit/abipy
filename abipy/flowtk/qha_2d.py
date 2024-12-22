@@ -14,31 +14,33 @@ from abipy.flowtk.tasks import RelaxTask
 from abipy.flowtk.flows import Flow
 
 
-class ZsisaFlow(Flow):
+class Qha2dFlow(Flow):
     """
-    Flow for QHA calculations with the VZSISA approach.
+    Flow for QHA calculations with two degrees of freedom.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: ZsisaFlow
+    .. inheritance-diagram:: Qha2dFlow
     """
 
     @classmethod
     def from_scf_input(cls,
                        workdir: PathLike,
                        scf_input: AbinitInput,
-                       eps: float,
+                       bo_strains_ac,
+                       phdos_strains_ac,
                        ngqpt,
                        with_becs: bool,
                        with_quad: bool,
                        edos_ngkpt=None,
-                       manager=None) -> ZsisaFlow:
+                       manager=None) -> Qha2dFlow:
         """
         Build a flow for QHA calculations from an |AbinitInput| for GS-SCF calculation.
 
         Args:
             workdir: Working directory of the flow.
             scf_input: |AbinitInput| for GS-SCF run used as template to generate the other inputs.
-            eps:
+            bo_strains_ac
+            phdos_strains_ac
             ngqpt: Three integers defining the q-mesh for phonon calculation.
             with_becs: Activate calculation of Electric field and Born effective charges.
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
@@ -51,7 +53,8 @@ class ZsisaFlow(Flow):
             manager: |TaskManager| instance. Use default if None.
         """
         flow = cls(workdir=workdir, manager=manager)
-        flow.register_work(ZsisaWork.from_scf_input(scf_input, eps, ngqpt, with_becs, with_quad,
+        flow.register_work(Qha2dWork.from_scf_input(scf_input, bo_strains_ac, phdos_strains_ac,
+                                                    ngqpt, with_becs, with_quad,
                                                     ionmov=2, edos_ngkpt=edos_ngkpt))
         return flow
 
@@ -61,11 +64,10 @@ class ZsisaFlow(Flow):
         It performs some basic post-processing of the results to facilitate further analysis.
         """
         work = self[0]
-        data = {"eps": work.eps, "spgrp_number": work.spgrp_number}
+        data = {"bo_strains_ac": work.bo_strains_ac, "phdos_strains_ac": work.phdos_strains_ac}
 
         # Build list of strings with path to the relevant output files ordered by V.
         data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_deformed]
-        data["strain_inds"] = work.strain_inds
 
         gsr_relax_entries, gsr_relax_volumes = [], []
         for task in work.relax_tasks_deformed:
@@ -84,39 +86,47 @@ class ZsisaFlow(Flow):
         data["gsr_relax_edos_paths"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
 
         # Write json file
-        mjson_write(data, self.outdir.path_in("zsisa.json"), indent=4)
+        mjson_write(data, self.outdir.path_in("qha_2d.json"), indent=4)
 
         return super().finalize()
 
 
-class ZsisaWork(Work):
+class Qha2dWork(Work):
     """
     This work performs a structural relaxation of the initial structure, then a set of distorted
     structures is genenerated and the relaxed structures are used
     to compute phonons, BECS and the dielectric tensor with DFPT.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: ZsisaWork
+    .. inheritance-diagram:: Qha2dWork
     """
 
     @classmethod
     def from_scf_input(cls,
                        scf_input: AbinitInput,
-                       eps: float,
+                       bo_strains_ac,
+                       phdos_strains_ac,
                        ngqpt,
                        with_becs: bool,
                        with_quad: bool,
                        ionmov: int,
-                       edos_ngkpt=None) -> ZsisaWork:
+                       edos_ngkpt=None) -> Qha2dWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
-        See ZsisaFlow for the meaning of the arguments.
+        See Qha2dFlow for the meaning of the arguments.
         """
         work = cls()
 
         # Save attributes in work
         work.initial_scf_input = scf_input
-        work.eps = float(eps)
+
+        work.bo_strains_ac = bo_strains_ac
+        work.phdos_strains_ac = phdos_strains_ac
+        # Make sure ench row is a numpy array.
+        for i in range(2):
+            work.bo_strains_ac[i] = np.array(bo_strains_ac[i])
+            work.phdos_strains_ac[i] = np.array(phdos_strains_ac[i])
+
         work.ngqpt = ngqpt
         work.with_becs = with_becs
         work.with_quad = with_quad
@@ -125,8 +135,8 @@ class ZsisaWork(Work):
         # Create input for relaxation and register the relaxation task.
         work.relax_template = relax_template = scf_input.deepcopy()
         relax_template.pop_tolerances()
-        # optcell = 2: full optimization of cell geometry
-        relax_template.set_vars(optcell=2, ionmov=ionmov, tolvrs=1e-8, toldff=1.e-6)
+        # optcell = 3: constant-volume optimization of cell geometry
+        relax_template.set_vars(optcell=3, ionmov=ionmov, tolvrs=1e-8, toldff=1.e-6)
         #if optcell is not None and optcell != 0:
         #relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
 
@@ -143,19 +153,23 @@ class ZsisaWork(Work):
             # Get relaxed structure and build new task for structural relaxation at fixed volume.
             relaxed_structure = sender.get_final_structure()
 
-            self.deformed_structures_dict, self.strain_inds, self.spgrp_number = generate_deformations(relaxed_structure, self.eps)
-
             relax_template = self.relax_template
             self.relax_tasks_deformed = []
-            for structure in self.deformed_structures_dict.values():
-                # Relax deformed structure with fixed unit cell.
-                task = self.register_relax_task(relax_template.new_with_structure(structure, optcell=0))
-                self.relax_tasks_deformed.append(task)
 
-            # Build work for elastic properties (clamped-ions)
-            # activate internal strain and piezoelectric part.
-            #from abipy.flowtk.dfpt import ElasticWork
-            #elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
+            import itertools
+            for s1, s3 in itertools.product(self.bo_strains_ac[0], self.bo_strains_ac[1]):
+                deformation_name = f"{s1=}, {s3=}"
+                # Apply strain to the structure
+                strain_tensor = np.diag([s1, s1, s3])
+                strained_structure = relaxed_structure.apply_strain(strain_tensor, inplace=False)
+                #print("strained_structure:", strained_structure)
+
+                # Relax deformed structure with fixed unit cell.
+                task = self.register_relax_task(relax_template.new_with_structure(strained_structure, optcell=0))
+                task.bo_strain = (s1, s3)
+                task.in_phdos_strains = np.any(np.abs(s1 - self.phdos_strains_ac[0]) < 1e-3) and \
+                                        np.any(np.abs(s3 - self.phdos_strains_ac[1]) < 1e-3)
+                self.relax_tasks_deformed.append(task)
 
             self.flow.allocate(build=True)
 
@@ -171,25 +185,30 @@ class ZsisaWork(Work):
         # Build phonon works for the different relaxed structures.
         self.ph_works = []
 
-        for task, deform_name in zip(self[1:], self.deformed_structures_dict.keys(), strict=True):
+        for task in self.relax_tasks_deformed:
+            s1, s3 = task.bo_strain
+            deformation_name = f"{s1=}, {s3=}"
+
             relaxed_structure = task.get_final_structure()
             scf_input = self.initial_scf_input.new_with_structure(relaxed_structure)
-            ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
-                                                with_becs=self.with_becs, ddk_tolerance=None)
 
-            # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
-            prtvars = dict(prtden=0, prtpot=0)
-            for task in ph_work[1:]:
-                task.input.set_vars(**prtvars)
+            if task.in_phdos_strains:
+                ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
+                                                    with_becs=self.with_becs, ddk_tolerance=None)
 
-            ph_work.set_name(deform_name)
-            self.ph_works.append(ph_work)
-            self.flow.register_work(ph_work)
+                # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
+                prtvars = dict(prtden=0, prtpot=0)
+                for task in ph_work[1:]:
+                    task.input.set_vars(**prtvars)
+
+                ph_work.set_name(deformation_name)
+                self.ph_works.append(ph_work)
+                self.flow.register_work(ph_work)
 
             # Add task for electron DOS calculation to edos_work
             if self.edos_ngkpt is not None:
                 edos_input = scf_input.make_edos_input(self.edos_ngkpt)
-                self.edos_work.register_nscf_task(edos_input, deps={ph_work[0]: "DEN"}).set_name(deform_name)
+                self.edos_work.register_nscf_task(edos_input, deps={ph_work[0]: "DEN"}).set_name(deformationname)
 
         if self.edos_ngkpt is not None:
             self.flow.register_work(self.edos_work)
@@ -197,61 +216,3 @@ class ZsisaWork(Work):
         self.flow.allocate(build=True)
 
         return super().on_all_ok()
-
-
-class ThermalRelaxWork(Work):
-    """
-    .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: ThermalRelaxWork
-    """
-
-    @classmethod
-    def from_relax_input(cls,
-                         relax_input: AbinitInput,
-                         zsisa,
-                         temperatures,
-                         pressures) -> ThermalRelaxWork:
-        """
-        Args:
-            relax_input:
-            zsisa:
-            temperatures:
-            pressures
-        """
-        work = cls()
-
-        work.temperatures = np.array(temperatures)
-        work.pressures_gpa = np.array(pressures_gpa)
-        work.zsisa = zsisa
-
-        for pressure_gpa in work.pressures_gpa:
-            for temperature in work.temperatures:
-                #strtarget = zsisa.get_strtarget(temperature, pressure)
-                new_input = relax_input.new_with_vars(strtarget=strtarget)
-                task = work.register_task(new_input, task_class=ThermalRelaxTask)
-                # Attach pressure and temperature
-                task.pressure_gpa = pressure_gpa
-                task.temperature = temperature
-
-        return work
-
-    def on_all_ok(self):
-        """
-        Implement the post-processing step at the end of the Work.
-        """
-        return super().on_all_ok()
-
-
-class ThermalRelaxTask(RelaxTask):
-
-    def _on_ok(self):
-        results = super()._on_ok()
-        zsisa = self.work.zsisa
-
-        # Check for convergence.
-        #if not self.collinear_done:
-        #    self.input.set_vars(strtarget=strtarget)
-        #    self.finalized = False
-        #    self.restart()
-
-        return results

@@ -51,7 +51,7 @@ def generate_deformations(structure, eps: float) -> tuple:
         structures_new[name] = new_structure
         strain_inds.append([i, j, k, l, m, n])
 
-    i, j, k, l, m, n = 6 * [None]
+    i, j, k, l, m, n = 6 * [0]
 
     if 1 <= spgrp_number <= 2:
         disp=[[1,1,1,1,1,1],  [0,1,1,1,1,1],  [2,1,1,1,1,1],  [1,0,1,1,1,1],  [1,2,1,1,1,1],  [1,1,0,1,1,1],
@@ -193,5 +193,5 @@ def generate_deformations(structure, eps: float) -> tuple:
     else:
         raise ValueError(f"Invalid {spgrp_number=}")
 
-    return structures_new, np.array(strain_inds, dtype=object), spgrp_number
+    return structures_new, np.array(strain_inds, dtype=int), spgrp_number
 

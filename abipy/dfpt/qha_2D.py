@@ -12,43 +12,95 @@ import abc
 import numpy as np
 import abipy.core.abinit_units as abu
 
+from scipy.interpolate import RectBivariateSpline #, RegularGridInterpolator
 #from monty.collections import dict2namedtuple
 #from monty.functools import lazy_property
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.typing import Figure
+from abipy.tools.serialization import HasPickleIO, mjson_load
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhdosFile # PhononBandsPlotter, PhononDos,
-from scipy.interpolate import RectBivariateSpline #, RegularGridInterpolator
+from abipy.dfpt.vzsisa import anaget_phdoses_with_gauss
 
 
-class QHA_2D:
+
+class QHA_2D(HasPickleIO):
     """
     Quasi-Harmonic Approximation (QHA) analysis in 2D.
     Provides methods for calculating and visualizing energy, free energy, and thermal expansion.
     """
 
-    #@classmethod
-    #def from_ddb_files(cls, ddb_files):
-    #    for row in ddb_files:
-    #        for gp in row:
-    #            if os.path.exists(gp):
+    @classmethod
+    def from_json_file(cls,
+                       filepath: PathLike,
+                       nqsmall_or_qppa: int,
+                       anaget_kwargs: dict | None = None,
+                       smearing_ev: float | None = None,
+                       verbose: int = 0) -> Vzsisa:
+        """
+        Build an instance from a json file `filepath` typically produced by an Abipy flow.
+        For the meaning of the other arguments see from_gsr_ddb_paths.
+        """
+        data = mjson_load(filepath)
 
-    #    return cls.from_files(ddb_files, phdos_paths_2D, gsr_file="DDB")
+        bo_strains_ac = [data["strains_a"], data["strains_c"]]
+        phdos_strains_ac = [data["strains_a"], data["strains_c"]]
+
+        return cls.from_gsr_ddb_paths(nqsmall_or_qppa,
+                                      data["gsr_relax_paths"], data["ddb_relax_paths"],
+                                      bo_strains_ac, phdos_strains_ac,
+                                      anaget_kwargs=anaget_kwargs, smearing_ev=smearing_ev, verbose=verbose)
 
     @classmethod
-    def from_files(cls, gsr_paths_2D, phdos_paths_2D, gsr_file="GSR.nc") -> QHA_2D:
+    def from_gsr_ddb_paths(cls,
+                           nqsmall_or_qppa: int,
+                           gsr_paths,
+                           ddb_paths,
+                           bo_strains_ac,
+                           phdos_strains_ac,
+                           anaget_kwargs: dict | None = None,
+                           smearing_ev: float | None = None,
+                           verbose: int = 0) -> QHA_2D:
+        """
+        Creates an instance from a list of GSR files and a list of DDB files.
+        This is a simplified interface that computes the PHDOS.nc files automatically
+        from the DDB files by invoking anaddb
+
+        Args:
+            nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
+                if > 0, it is interpreted as nqsmall
+                if < 0, it is interpreted as qppa.
+            gsr_paths: list of paths to GSR files.
+            ddb_paths: list of paths to DDB files.
+            bo_strains_ac: List of strains for the a and the c lattice vector.
+            phdos_strains_ac: List of strains for the a and the c lattice vector.
+            anaget_kwargs: dict with extra arguments passed to anaget_phdoses_with_gauss.
+            smearing_ev: Gaussian smearing in eV.
+            verbose: Verbosity level.
+        """
+        phdos_paths, phbands_paths = anaget_phdoses_with_gauss(nqsmall_or_qppa, smearing_ev, ddb_paths, anaget_kwargs, verbose)
+
+        new = cls.from_files(ddb_files, phdos_paths_2D, bo_strains_ac, phdos_strains_ac, gsr_file="GSR.nc")
+        #new.pickle_dump(workdir, basename=None)
+        return new
+
+    @classmethod
+    def from_files(cls, gsr_paths_2D, phdos_paths_2D, bo_strains_ac, phdos_strains_ac, gsr_file="GSR.nc") -> QHA_2D:
         """
         Creates an instance of QHA from 2D lists of GSR and PHDOS files.
 
         Args:
             gsr_paths_2D: 2D list of paths to GSR files.
             phdos_paths_2D: 2D list of paths to PHDOS.nc files.
-
-        Returns:
-            A new instance of QHA.
+            bo_strains_ac: List of strains for the a and the c lattice vector.
+            phdos_strains_ac: List of strains for the a and the c lattice vector.
         """
         energies, structures, phdoses , structures_from_phdos = [], [], [],[]
+
+        #shape = (len(strains_a), len(strains_c))
+        #gsr_paths_2d = np.reshape(gsr_paths_2D, shape)
+        #phdos_paths_2d = np.reshape(phdos_paths_2D, shape)
 
         if gsr_file == "GSR.nc":
             # Process GSR files
@@ -98,15 +150,18 @@ class QHA_2D:
             phdoses.append(row_doses)
             structures_from_phdos.append(row_structures)
 
-        return cls(structures, phdoses, energies , structures_from_phdos)
+        return cls(structures, phdoses, energies, structures_from_phdos, bo_strains_ac, phdos_strains_ac)
 
     def __init__(self, structures, phdoses, energies, structures_from_phdos,
+                 bo_strains_ac, phdos_strains_ac,
                  eos_name: str='vinet', pressure: float=0.0):
         """
         Args:
             structures (list): List of structures at different volumes.
             phdoses: List of density of states (DOS) data for phonon calculations.
             energies (list): SCF energies for the structures in eV.
+            bo_strains_ac: List of strains for the a and the c lattice vector.
+            phdos_strains_ac: List of strains for the a and the c lattice vector.
             eos_name (str): Expression used to fit the energies (e.g., 'vinet').
             pressure (float): External pressure in GPa to include in p*V term.
         """
@@ -114,6 +169,10 @@ class QHA_2D:
         self.structures = structures
         self.structures_from_phdos = structures_from_phdos
         self.energies = np.array(energies, dtype=np.float64)
+
+        self.bo_strains_ac = bo_strains_ac
+        self.phdos_strains_ac = phdos_strains_ac
+
         self.eos_name = eos_name
         self.pressure = pressure
         self.volumes = np.array([[s.volume if s else np.nan for s in row] for row in structures])
@@ -509,7 +568,7 @@ class QHA_2D:
             tstop: Stop temperature.
             num: Number of temperature points.
 
-        Return: A 3D array of vibrational free energies.
+        Return: A 3D array of vibrational free energies of shape (num_c, num_a, num_temp)
         """
         f = np.zeros((len(self.lattice_c_from_phdos[0]), len(self.lattice_a_from_phdos[:, 0]), num))
         for i in range(len(self.lattice_a_from_phdos[:, 0])):
