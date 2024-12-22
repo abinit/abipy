@@ -53,6 +53,15 @@ def abiview_structure(options):
     return 0
 
 
+def abiview_input(options):
+    """Read input file from netcdf file and print it to terminal."""
+    from abipy.iotools import ETSF_Reader
+    with ETSF_Reader(options.filepath) as r:
+        input_str = r.read_string("input_string")
+        print(input_str)
+    return 0
+
+
 def abiview_hist(options):
     """
     Visualize structural relaxation/molecular-dynamics run
@@ -700,6 +709,9 @@ def get_parser(with_epilog=False):
     p_structure.add_argument("-a", "--appname", nargs="?", type=str, default="vesta",
         help=("Application name. Default: vesta. "
               "Possible options: %s, mayavi, vtk" % ", ".join(Visualizer.all_visunames())))
+
+    # Subparser for input command.
+    p_input = subparsers.add_parser('input', parents=[copts_parser], help=abiview_input.__doc__)
 
     # Subparser for hist command.
     p_hist = subparsers.add_parser('hist', parents=[copts_parser], help=abiview_hist.__doc__)

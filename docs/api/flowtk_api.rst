@@ -173,10 +173,18 @@ flowtk Package
    :undoc-members:
    :show-inheritance:
 
-:mod:`qha` Module
------------------
+:mod:`vzsisa` Module
+--------------------
 
-.. automodule:: abipy.flowtk.qha
+.. automodule:: abipy.flowtk.vzsisa
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`zsisa` Module
+-------------------
+
+.. automodule:: abipy.flowtk.zsisa
    :members:
    :undoc-members:
    :show-inheritance:

@@ -22,6 +22,7 @@ from typing import Any, Union, Iterable, Iterator
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
 from monty.json import MontyDecoder, MSONable
+from monty.termcolor import cprint
 from pymatgen.core.units import Energy
 from pymatgen.symmetry.bandstructure import HighSymmKpath
 from abipy.tools.numtools import is_diagonal
@@ -3916,7 +3917,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             prtdos = 1
             i = dos_method.find(":")
             if i != -1:
-                value, eunit = dos_method[i+1:].split()
+                try:
+                    value, eunit = dos_method[i+1:].split()
+                except Exception as exc:
+                    raise ValueError(f"Invalid {dos_method=}") from exc
+
                 dossmear = Energy(float(value), eunit).to("Ha")
         else:
             raise NotImplementedError("Wrong value for dos_method: %s" % str(dos_method))
@@ -4234,8 +4239,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             #if mode == "html": vname = root + "#%s" % vname
             if mode == "html": vname = var_database[vname].html_link(label=vname)
             value = format_string_abivars(vname, value, "anaddb")
-            #print("vname:", vname, "value:", value)
-            app(str(InputVariable(vname, value)))
+
+            try:
+                app(str(InputVariable(vname, value)))
+            except Exception as exc:
+                cprint(f"{vname=}, {value=}", color="red")
+                raise exc
 
         return "\n".join(lines) if mode == "text" else "\n".join(lines).replace("\n", "<br>")
 

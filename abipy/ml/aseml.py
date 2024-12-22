@@ -586,8 +586,7 @@ def main():
         if with_stress:
             e(c.plot_stresses(delta_mode=True, show=False))
         e(c.plot_forces_traj(delta_mode=True, show=False))
-        e(c.plot_stress_traj(delta_mode=True, show=False))
-""").add_main()
+        e(c.plot_stress_traj(delta_mode=True, show=False))""").add_main()
 
     def get_key_pairs(self) -> list[tuple]:
         """
@@ -737,7 +736,7 @@ def main():
     #    )
 
     @add_fig_kwargs
-    def plot_energies(self, fontsize=8, **kwargs):
+    def plot_energies(self, fontsize=8, **kwargs) -> Figure:
         """
         Compare energies aligned wrt to self.iref entry
         """
@@ -766,7 +765,7 @@ def main():
         return fig
 
     @add_fig_kwargs
-    def plot_forces(self, symbol=None, site_inds=None, fontsize=8, **kwargs):
+    def plot_forces(self, symbol=None, site_inds=None, fontsize=8, **kwargs) -> Figure:
         """
         Parity plot for forces.
 
@@ -805,7 +804,7 @@ def main():
         return fig
 
     @add_fig_kwargs
-    def plot_stresses(self, fontsize=6, **kwargs):
+    def plot_stresses(self, fontsize=6, **kwargs) -> Figure:
         """
         Compare stress components.
         """
@@ -837,7 +836,7 @@ def main():
         return fig
 
     @add_fig_kwargs
-    def plot_energies_traj(self, delta_mode=True, fontsize=6, markersize=2, **kwargs):
+    def plot_energies_traj(self, delta_mode=True, fontsize=6, markersize=2, **kwargs) -> Figure:
         """
         Plot energies along the trajectory.
 
@@ -875,7 +874,7 @@ def main():
         return fig
 
     @add_fig_kwargs
-    def plot_forces_traj(self, delta_mode=True, symbol=None, fontsize=6, markersize=2, **kwargs):
+    def plot_forces_traj(self, delta_mode=True, symbol=None, fontsize=6, markersize=2, **kwargs) -> Figure:
         """
         Plot forces along the trajectory.
 
@@ -922,7 +921,7 @@ def main():
                                      color=atom1_cmap(float(iatom) / self.natom))
                         abs_delta = np.abs(f1_tad[:,iatom,idir] - f2_tad[:,iatom,idir])
                         zero_values = zero_values or np.any(abs_delta == 0.0)
-                        ax.plot(abs_delta, **style, label=f"$\Delta {fp_tex}$" if iatom == 0 else None)
+                        ax.plot(abs_delta, **style, label=f"$\\Delta {fp_tex}$" if iatom == 0 else None)
                     else:
                         f1_style = dict(marker=marker_idir[idir], markersize=markersize,
                                         color=atom1_cmap(float(iatom) / self.natom))
@@ -930,16 +929,16 @@ def main():
                                         color=atom2_cmap(float(iatom) / self.natom))
                         with_label = (iatom, idir) == (0,0)
                         ax.plot(f1_tad[:,iatom,idir], **f1_style,
-                                label=f"${key1}\, {fp_tex}$" if with_label else None)
+                                label=f"${key1}\\, {fp_tex}$" if with_label else None)
                         ax.plot(f2_tad[:,iatom,idir], **f2_style,
-                                label=f"${key2}\, {fp_tex}$" if with_label else None)
+                                label=f"${key2}\\, {fp_tex}$" if with_label else None)
 
                 if delta_mode:
                     ax.set_yscale("log" if not zero_values else "symlog")
 
                 set_grid_legend(ax, fontsize, xlabel='trajectory' if last_row else None,
                                 grid=True, legend=not delta_mode, legend_loc="upper left",
-                                ylabel=f"$|\Delta {fp_tex}|$" if delta_mode else f"${fp_tex}$")
+                                ylabel=f"$|\\Delta {fp_tex}|$" if delta_mode else f"${fp_tex}$")
 
         head = r"$\Delta$-forces in eV/Ang" if delta_mode else r"Forces in eV/Ang"
         if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
@@ -947,7 +946,7 @@ def main():
         return fig
 
     @add_fig_kwargs
-    def plot_stress_traj(self, delta_mode=True, markersize=2, fontsize=6, **kwargs):
+    def plot_stress_traj(self, delta_mode=True, markersize=2, fontsize=6, **kwargs) -> Figure:
         """
         Plot stresses along the trajectory.
 
@@ -978,16 +977,16 @@ def main():
 
                 if delta_mode:
                     abs_delta_stress = np.abs(s1 - s2)
-                    ax.plot(abs_delta_stress, **s_style, label=f"$|\Delta \sigma_{voigt_comp_tex}|$")
+                    ax.plot(abs_delta_stress, **s_style, label=f"$|\\Delta \\sigma_{voigt_comp_tex}|$")
                     ax.set_yscale("log")
                 else:
-                    ax.plot(s1, **s_style, label=f"${key1}\,\sigma_{voigt_comp_tex}$" if iv == 0 else None)
-                    ax.plot(s2, **s_style, label=f"${key2}\,\sigma_{voigt_comp_tex}$" if iv == 0 else None)
+                    ax.plot(s1, **s_style, label=f"${key1}\\,\\sigma_{voigt_comp_tex}$" if iv == 0 else None)
+                    ax.plot(s2, **s_style, label=f"${key2}\\,\\sigma_{voigt_comp_tex}$" if iv == 0 else None)
                     #ax.set_ylim(-1, +1)
 
                 set_grid_legend(ax, fontsize, xlabel='trajectory' if last_row else None,
                                 grid=True, legend=not delta_mode, legend_loc="upper left",
-                                ylabel=f"$|\Delta \sigma_{voigt_comp_tex}|$ " if delta_mode else r"$\sigma$ ")
+                                ylabel=f"$|\\Delta \\sigma_{voigt_comp_tex}|$ " if delta_mode else r"$\sigma$ ")
 
         head = r"$\Delta \sigma$ (eV/Ang$^3$)" if delta_mode else "Stress tensor (eV/Ang$^3$)"
         if "title" not in kwargs: fig.suptitle(f"{head} for {self.structure.latex_formula}")
@@ -1750,7 +1749,6 @@ class CalcBuilder:
             except ImportError as exc:
                 raise ImportError("orb not installed. See https://github.com/orbital-materials/orb-models") from exc
 
-
             class MyOrbCalculator(_MyCalculator, ORBCalculator):
                 """Add abi_forces and abi_stress"""
 
@@ -1781,6 +1779,22 @@ class CalcBuilder:
             model_name = "SevenNet-0" if self.model_name is None else self.model_name
             cls = MySevenNetCalculator if with_delta else SevenNetCalculator
             calc = MySevenNetCalculator(model=model_name, **self.calc_kwargs)
+
+        elif self.nn_type == "mattersim":
+            try:
+                from mattersim.forcefield import MatterSimCalculator
+            except ImportError as exc:
+                raise ImportError("mattersim not installed. See https://github.com/microsoft/mattersim") from exc
+
+            class _MatterSimCalculator(_MyCalculator, MatterSimCalculator):
+                """Add abi_forces and abi_stress"""
+
+            import torch
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            # In this release, we provide two checkpoints: MatterSim-v1.0.0-1M.pth and MatterSim-v1.0.0-5M.pth.
+            # By default, the 1M version is loaded.
+            load_path = "MatterSim-v1.0.0-1M.pth" if self.model_name is None else self.model_name
+            calc = _MatterSimCalculator(load_path="MatterSim-v1.0.0-5M.pth", device=device)
 
         else:
             raise ValueError(f"Invalid {self.nn_type=}")

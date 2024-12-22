@@ -1973,12 +1973,12 @@ class SigresRobot(Robot, RobotWithEbands):
 
         if same_nsppol and same_nkcalc:
             # FIXME
-            # Different values of bstart_ks are difficult to handle
+            # Different values of bstart_sk are difficult to handle
             # Because the high-level API assumes an absolute global index
             # Should decide how to treat this case: either raise or interpret band as an absolute band index.
-            if any(np.any(nc.bstart_sk != nc0.bstart_sk) for nc in self.abifiles):
+            if any(np.any(nc.r.bstart_sk != nc0.r.bstart_sk) for nc in self.abifiles):
                 wapp("Comparing ncfiles with different values of bstart_sk")
-            if any(np.any(nc.bstop_sk != nc0.bstop_sk) for nc in self.abifiles):
+            if any(np.any(nc.r.bstop_sk != nc0.r.bstop_sk) for nc in self.abifiles):
                 wapp("Comparing ncfiles with different values of bstop_sk")
 
         if warns:
@@ -2464,12 +2464,21 @@ class GwRobotWithDisplacedAtom(SigresRobot):
     Specialized class to analyze GW or GWR calculations with displaced atom.
     """
     @classmethod
-    def from_displaced_atom(cls, site_index, reduced_dir, step_ang, gw_files):
+    def from_displaced_atom(cls, site_index, reduced_dir, step_ang, gw_files) -> GwRobotWithDisplacedAtom:
         """
-        Build an instance a list of SIG.nc or GWR.nc files.
+        Build an instance from a list of SIGRES.nc or GWR.nc files.
+
+        Args:
+            site_index: Index of the site that has been displaced.
+            reduced_dir: Reduced direction of the displacement.
+            step_ang: Step used to displace structures in Angstrom.
+            gw_files: List of paths to either SIGRES.nc or GWR.nc files.
+                Files are assumed to be ordered according to the displacement.
         """
         #print(f"{gw_files}")
         new = cls(*gw_files)
+        print("new = cls(*gw_files) done!")
+
         new.site_index = site_index
         new.reduced_dir = reduced_dir
         new.step_ang = step_ang
@@ -2478,11 +2487,13 @@ class GwRobotWithDisplacedAtom(SigresRobot):
         i0 = new.num_points // 2
         origin_structure = new[i0].structure
 
-        # Consistency check:
+        ####################
+        # Consistency check
+        ####################
+
         # 1) Make sure lattice parameters and all sites other than i0 are equal.
         fixed_site_indices = [i for i in range(len(origin_structure)) if i != site_index]
         if err_str := new.has_different_structures(site_indices=fixed_site_indices):
-            #diff_structures(structures, fmt="abivars", mode="table", headers=(), file=sys.stdout)
             raise ValueError(err_str)
 
         # TODO
@@ -2494,21 +2505,44 @@ class GwRobotWithDisplacedAtom(SigresRobot):
         #    if displaced_structure != new[ieta].structure:
         #        raise ValueError("displaced_structure != new[ieta].structure:")
 
-        site_list = [gwr.structure.sites[site_index] for gwr in new.abifiles]
+        site_list = [ncfile.structure.sites[site_index] for ncfile in new.abifiles]
 
         coords_diff = np.reshape([site.coords - site_list[i0].coords for site in site_list], (-1, 3))
         new.deltas = np.array([np.linalg.norm(coords) for coords in coords_diff])
         new.deltas[:i0] = -new.deltas[:i0]
-        print(f"{new.deltas=}")
+        #print(f"{new.deltas=}")
 
         return new
 
+    def get_dataframe_skb(self, spin, kpoint, band, with_params: bool = True) -> pd.DataFrame:
+        """
+        Return a pandas dataframe with the most important results.
+
+        Args:
+            spin: Spin index.
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+            band: band index.
+            with_params: True if metadata should be included.
+        """
+        # Create list of QPState for each file.
+        qp_states = [ncfile.r.read_qplist_sk(spin, kpoint, band=band)[0] for ncfile in self.abifiles]
+
+        rows = []
+        for qp_state, ncfile in zip(qp_states, self.abifiles, strict=True):
+            d = qp_state.as_dict()
+            # Add other entries that may be useful when comparing different calculations.
+            if with_params:
+                d.update(ncfile.params)
+            rows.append(d)
+
+        return pd.DataFrame(rows)
+
     @add_fig_kwargs
     def plot_qpdata_vs_displ_skb(self, spin, kpoint, band,
-                                 what_list = ("e0", "qpe", "sigxme", "sigcmee0", "ze0"),
+                                 what_list=("e0", "qpe", "sigxme", "sigcmee0", "ze0"),
                                  fontsize=8, **kwargs) -> Figure:
         """
-        Plot QP data for a given spin, kpoint and band.
+        Plot QP results for a given spin, kpoint and band.
 
         Args:
             spin: Spin index.
@@ -2517,9 +2551,6 @@ class GwRobotWithDisplacedAtom(SigresRobot):
             what_list: Quantities to plot. See QPState for the list of supported attributes.
             fontsize: legend and label fontsize.
         """
-        # Create list of QPState for each GWR file.
-        qp_states = [gwr.r.read_qplist_sk(spin, kpoint, band=band)[0] for gwr in self.abifiles]
-
         # Build grid plot.
         nrows, ncols = len(what_list), 1
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
@@ -2528,13 +2559,14 @@ class GwRobotWithDisplacedAtom(SigresRobot):
 
         xvals = self.deltas
         #xvals = list(range(len(self)))
-        x_fit = np.linspace(xvals[0], xvals[-1], num=100)
+        x_fit = np.linspace(xvals[0], xvals[-1], num=50)
 
-        for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
-            # Extract attribute from qp_states.
-            yvals = [getattr(qp, what) for qp in qp_states]
+        df = self.get_dataframe_skb(spin, kpoint, band, with_params=False)
+
+        for iax, (ax, what) in enumerate(zip(ax_list, what_list)):
             units = "" if what == "ze0" else "(eV)"
             ylabel = f"{what} {units}"
+            yvals = df[what].values
             ax.plot(xvals, yvals, ls="--", marker="o", label=ylabel)
 
             if what not in ("ze0", ):
@@ -2543,6 +2575,8 @@ class GwRobotWithDisplacedAtom(SigresRobot):
                 y_fit = quadratic_function(x_fit)
                 ax.plot(x_fit, y_fit, ls="--", marker="x", label=ylabel)
 
-            set_grid_legend(ax, fontsize, xlabel=r"$\delta\, (\AA)$", ylabel=ylabel)
+            set_grid_legend(ax, fontsize,
+                            xlabel=r"$\delta\, (\AA)$" if iax == len(ax_list) - 1 else None, ylabel=ylabel)
 
+        fig.suptitle(f"{band=}, {kpoint=}, {spin=}")
         return fig

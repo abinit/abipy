@@ -1,4 +1,5 @@
 """
+Low-level tools used in abipy.ml
 """
 from __future__ import annotations
 
@@ -96,4 +97,3 @@ def get_structures_labels_from_files(filepaths) -> tuple[list[Structure], dict]:
     #for k, v in labels.items(): print(k, v)
 
     return structures, labels
-

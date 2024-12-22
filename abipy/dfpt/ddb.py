@@ -1194,7 +1194,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             |PhbstFile| with the phonon band structure.
             |PhdosFile| with the the phonon DOS.
         """
-        if ngqpt is None: ngqpt = self.guessed_ngqpt
+        if ngqpt is None:
+            ngqpt = self.guessed_ngqpt
+            if ngqpt is None:
+                raise RuntimeError(f"Not able to autodetect q-mesh associated to DDB file {self.filepath=}, {self.guessed_ngqpt=}")
 
         if lo_to_splitting == "automatic":
             lo_to_splitting = self.has_lo_to_data() and dipdip != 0
@@ -1240,13 +1243,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def get_coarse(self, ngqpt_coarse, filepath=None) -> DdbFile:
         """
-        Get a version of this file on a coarse mesh
+        Return a |DdbFile| on a coarse q-mesh
 
         Args:
             ngqpt_coarse: list of ngqpt indexes that must be a sub-mesh of the original ngqpt
             filepath: Filename for coarse DDB. If None, temporary filename is used.
-
-        Return: |DdbFile| on coarse mesh.
         """
         # Check if ngqpt is a sub-mesh of ngqpt
         ngqpt_fine = self.guessed_ngqpt
@@ -1339,6 +1340,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Invoke anaddb to compute the phonon band structure and the phonon DOS with different
         values of the ``dipdip`` input variable (dipole-dipole treatment).
         Build and return |PhononDosPlotter| object.
+        Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
 
         Args:
             chneut_list: List of ``chneut`` values to test (used for dipdip == 1).
@@ -1358,11 +1360,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             verbose: Verbosity level.
             mpi_procs: Number of MPI processes used by anaddb.
             pre_label: String to prepen to the default label used by the Plotter.
-
-        Return:
-            |PhononDosPlotter| object.
-
-            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
         """
         phbands_plotter = PhononBandsPlotter()
 
@@ -1484,6 +1481,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Invoke anaddb to compute the phonon band structure and the phonon DOS with different
         values of the ``asr`` input variable (acoustic sum rule treatment).
         Build and return |PhononBandsPlotter| object.
+        Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
 
         Args:
             rifcsph_list: List of rifcsph to analyze.
@@ -1498,11 +1496,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
             verbose: Verbosity level.
             mpi_procs: Number of MPI processes used by anaddb.
-
-        Return:
-            |PhononBandsPlotter| object.
-
-            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
         """
         phbands_plotter = PhononBandsPlotter()
 
@@ -1526,6 +1519,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Invoke anaddb to compute the phonon band structure and the phonon DOS by including
         dipole-quadrupole and quadrupole-quadrupole terms in the dynamical matrix
         Build and return |PhononBandsPlotter| object.
+        Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
 
         Args:
             asr: Acoustic sum rule input variable.
@@ -1544,11 +1538,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
             verbose: Verbosity level.
             mpi_procs: Number of MPI processes used by anaddb.
-
-        Return:
-            |PhononBandsPlotter| object.
-
-            Client code can use ``plotter.combiplot()`` or ``plotter.gridplot()`` to visualize the results.
         """
         phbands_plotter = PhononBandsPlotter()
 
@@ -1929,8 +1918,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             directions: list of 3D directions along which the non analytical contribution will be calculated.
                 If None the three cartesian direction will be used.
             anaddb_kwargs: additional kwargs for anaddb.
-
-        Return: Raman object.
         """
         #if not self.has_raman_terms():
         #    raise ValueError('The DDB file does not contain Raman terms.')
@@ -1997,7 +1984,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         with open(filepath, "wt") as f:
             f.write("\n".join(lines))
 
-    def get_block_for_qpoint(self, qpt):
+    def get_block_for_qpoint(self, qpt) -> list[str]:
         """
         Extracts the block data for the selected qpoint.
         Returns a list of lines containing the block information
@@ -2008,7 +1995,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             if b['qpt'] is not None and np.allclose(b['qpt'], qpt):
                 return b["data"]
 
-    def replace_block_for_qpoint(self, qpt, data):
+    def replace_block_for_qpoint(self, qpt, data) -> bool:
         """
         Change the block data for the selected qpoint. Object is modified in-place.
         Data should be a list of strings representing the whole data block.
@@ -2026,7 +2013,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return False
 
-    def insert_block(self, data, replace=True):
+    def insert_block(self, data, replace=True) -> bool:
         """
         Inserts a block in the list. Can replace a block if already present.
 
@@ -2038,8 +2025,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             replace: if True and an equivalent block is already present it will be replaced,
                 otherwise the block will not be inserted.
 
-        Returns:
-            bool: True if the block was inserted.
+        Returns: True if the block was inserted.
         """
         dord = data["dord"]
         for i, b in enumerate(self.blocks):
@@ -2056,7 +2042,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         self.blocks.append(data)
         return True
 
-    def remove_block(self, dord, qpt=None, qpt3=None):
+    def remove_block(self, dord, qpt=None, qpt3=None) -> bool:
         """
         Removes one block from the list of blocks in the ddb
 
@@ -2067,8 +2053,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             qpt3: a 3x3 matrix with the coordinates for the third order perturbations.
                 Should be present in dord=3.
 
-        Returns:
-            bool: True if a matching block was found and removed.
+        Returns: True if a matching block was found and removed.
         """
         if dord == 2 and qpt is None:
             raise ValueError("if dord==2 the qpt should be set")
@@ -2640,7 +2625,7 @@ class DielectricTensorGenerator(Has_Structure):
 
         for reimf, reims in reimfs:
             if isinstance(component, (list, tuple)):
-                label = reims % r'ε%s%s' % (SUBSCRIPT_UNICODE[str(component[0])],SUBSCRIPT_UNICODE[str(component[1])])
+                label = reims % r'ε%s%s' % (SUBSCRIPT_UNICODE[str(component[0])], SUBSCRIPT_UNICODE[str(component[1])])
                 fig.add_scatter(x=wmesh, y=reimf(t[:,component[0], component[1]]), mode='lines', showlegend=True,
                                 name=label, row=ply_row, col=ply_col, **kwargs)
             elif component == 'diag':

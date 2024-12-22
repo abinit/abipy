@@ -158,7 +158,7 @@ def oncv_run(options):
             cprint("FR calculation with input file without `_r` suffix. Will add `_r` to output files", color="yellow")
 
     elif options.rel == "from_file":
-        calc_type  = "scalar-relativistic"
+        calc_type = "scalar-relativistic"
         if root.endswith("_r"): calc_type = "fully-relativistic"
         if root.endswith("_nor"): calc_type = "non-relativistic"
 
@@ -326,7 +326,7 @@ def oncv_gui(options):
 
 
 def get_epilog() -> str:
-        return """\
+    return """\
 Usage example:
 
     oncv.py run H.in                   ==> Run oncvpsp input file (scalar relativistic mode).

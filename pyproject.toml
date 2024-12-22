@@ -1,0 +1,85 @@
+# See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+
+#[build-system]
+#requires = ["hatchling"]
+#build-backend = "hatchling.build"
+
+[build-system]
+requires = [
+    # pin NumPy version used in the build
+    #"oldest-supported-numpy",
+    "setuptools>=65.0.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "abipy"
+dynamic = ["version"]
+description = "Python package to automate ABINIT calculations and analyze the results."
+readme = "README.rst"
+license = { text = "GPL" }
+authors = [
+    { name = "M. Giantomassi and the AbiPy group", email = "matteo.giantomassi@uclouvain.be" },
+]
+maintainers = [
+    { name = "Matteo Giantomassi", email = "matteo.giantomassi@uclouvain.be" },
+]
+keywords = [
+    "ABINIT",
+    "ab-initio",
+    "density-function-theory",
+    "electronic-structure",
+    "first-principles",
+    "pymatgen",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "apscheduler<=3.10.4",
+    "ase",
+    "chart-studio",
+    "click",
+    "ipython",
+    "matplotlib",
+    "monty",
+    "netCDF4",
+    "numpy<2.0.0",
+    "packaging",
+    "pandas",
+    "phonopy<=2.31.2",
+    "plotly",
+    "pydispatcher>=2.0.5",
+    "pymatgen==v2024.10.29",
+    "monty==v2024.10.21",
+    "pyyaml>=3.11",
+    "scipy",
+    "seaborn",
+    "spglib",
+    "tabulate",
+    "tqdm",
+]
+
+[project.urls]
+Download = "https://github.com/abinit/abipy"
+Homepage = "https://github.com/abinit/abipy"
+
+#[tool.hatch.version]
+#path = "abipy/__init__.py"
+
+version = "0.9.8"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/abipy",
+]

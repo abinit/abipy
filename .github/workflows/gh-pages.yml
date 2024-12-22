@@ -57,11 +57,17 @@ jobs:
             conda install abinit -c conda-forge --yes
             mpirun -n 1 abinit --version
             mpirun -n 1 abinit --build
+
+            # Update submodules with data.
+            git submodule update --remote --init
+            git submodule update --recursive --remote
+
             pip install --editable .
             mkdir -p $HOME/.abinit/abipy/
             cp abipy/data/managers/gh_manager.yml $HOME/.abinit/abipy/manager.yml
             cp abipy/data/managers/gh_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
-            # FIXME TEMPORARY HACK
+
+            # TEMPORARY HACK THAT MIGHT BE NEEDED IF THE PYMATGEN GUYS BREAK STUFF
             #pip install git+https://github.com/gmatteo/pymatgen.git@master -U
 
       - name: Build docs with Sphinx
@@ -69,7 +75,7 @@ jobs:
             conda activate abipy
             cd docs
             source install.sh
-            make
+            make -j
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2

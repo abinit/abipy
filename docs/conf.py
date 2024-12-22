@@ -71,9 +71,8 @@ extensions = [
 ]
 
 # Activate build of sphinx-gallery.
-with_gallery = True
-
-if with_gallery:
+if with_gallery := True:
+    print("sphinx-gallery will be built")
     extensions.append('sphinx_gallery.gen_gallery')
 
 # Add any Sphinx extension module names here, as strings. They can
@@ -91,12 +90,6 @@ extensions += [
     'IPython.sphinxext.ipython_console_highlighting',
     'matplotlib.sphinxext.plot_directive',
 ]
-
-# Add local extensions (not available on PyPi)
-#sys.path.insert(0, os.path.join(ABIPY_ROOT, "docs", "my_extensions"))
-#extensions += [
-#    'youtube',
-#]
 
 #########################
 # Spinx Gallery Settings
@@ -149,19 +142,23 @@ if with_gallery:
     from sphinx_gallery.sorting import ExampleTitleSortKey
 
     sphinx_gallery_conf = {
-        #'only_warn_on_example_error': True,
+        'only_warn_on_example_error': True,
         'abort_on_example_error': True,
+        #'log_level': {'backreference_missing': 'debug'},
         'log_level': {'backreference_missing': 'warning'},
+        #'log_level': {'backreference_missing': 'error'},
+        # Sphinx-Gallery can parse all your examples and build the gallery without executing any of the scripts
+        #'plot_gallery': 'False',
         #
         # path to your examples scripts
         'examples_dirs': [
-            "../abipy/examples/plot",
             "../abipy/examples/flows",
+            "../abipy/examples/plot",
         ],
         # path where to save gallery generated examples
         'gallery_dirs': [
-            "gallery",
             "flow_gallery",
+            "gallery",
         ],
         'filename_pattern': "(/plot*|/run_*)",
         'default_thumb_file': '_static/abipy_logo.png',
@@ -173,7 +170,7 @@ if with_gallery:
             'numpy': 'https://docs.scipy.org/doc/numpy/',
             'matplotlib': 'https://matplotlib.org',
             'pandas': "http://pandas.pydata.org/pandas-docs/stable/",
-            "pymatgen": "https://pymatgen.org/",
+            #"pymatgen": "https://pymatgen.org/",
         },
         #'image_scrapers': ('matplotlib',),
         #'image_scrapers': ('matplotlib', PNGScraper()),
@@ -278,7 +275,7 @@ pygments_style = 'sphinx'
 
 import sphinx_rtd_theme
 html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+#html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
@@ -441,8 +438,8 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "pandas": ("http://pandas.pydata.org/pandas-docs/stable/", None),
     'matplotlib': ('https://matplotlib.org/stable/', None),
-    "monty": ("https://pythonhosted.org/monty/", None),
-    "pymatgen": ("https://pymatgen.org/", None),
+    #"monty": ("https://pythonhosted.org/monty/", None),
+    #"pymatgen": ("https://pymatgen.org/", None),
     'mayavi': ('http://docs.enthought.com/mayavi/mayavi', None),
 }
 

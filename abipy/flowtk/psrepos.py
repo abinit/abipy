@@ -56,7 +56,13 @@ def get_oncvpsp_pseudos(xc_name: str, version: str, relativity_type: str = "SR",
     ps_generator, project_name = OncvpspRepo.ps_generator, OncvpspRepo.project_name
     repo_name = f"{ps_generator}-{xc_name}-{relativity_type}-{project_name}v{version}"
 
-    return get_repo_from_name(repo_name).get_pseudos(accuracy)
+    repo = get_repo_from_name(repo_name)
+
+    # Istall it at runtime if needed.
+    if not repo.is_installed():
+        repo.install()
+
+    return repo.get_pseudos(accuracy)
 
 
 # Installation directory.
