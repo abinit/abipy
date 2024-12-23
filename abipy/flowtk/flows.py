@@ -753,7 +753,7 @@ class Flow(Node, NodeContainer, MSONable):
                         else:
                             yield task
 
-    def abivalidate_inputs(self) -> tuple:
+    def abivalidate_inputs(self, verbose: int = 1) -> tuple:
         """
         Run ABINIT in dry mode to validate all the inputs of the flow.
 
@@ -777,7 +777,11 @@ class Flow(Node, NodeContainer, MSONable):
         isok, tuples = True, []
         for task in self.iflat_tasks():
             t = task.input.abivalidate()
-            if t.retcode != 0: isok = False
+            if t.retcode != 0:
+                isok = False
+                if verbose:
+                    print(t.stderr_file.read())
+
             tuples.append(t)
 
         return isok, tuples

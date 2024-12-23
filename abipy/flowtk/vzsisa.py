@@ -171,9 +171,8 @@ class VzsisaWork(Work):
                                                 ddk_tolerance=None)
 
             # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
-            prtvars = dict(prtden=0, prtpot=0)
             for task in ph_work[1:]:
-                task.input.set_vars(**prtvars)
+                task.input.set_vars(prtden=0, prtpot=0)
 
             self.flow.register_work(ph_work)
             self.ph_works.append(ph_work)

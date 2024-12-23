@@ -64,11 +64,11 @@ class ZsisaFlow(Flow):
         data = {"eps": work.eps, "spgrp_number": work.spgrp_number}
 
         # Build list of strings with path to the relevant output files ordered by V.
-        data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_deformed]
+        data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_strained]
         data["strain_inds"] = work.strain_inds
 
         gsr_relax_entries, gsr_relax_volumes = [], []
-        for task in work.relax_tasks_deformed:
+        for task in work.relax_tasks_strained:
             with task.open_gsr() as gsr:
                 gsr_relax_entries.append(dict(
                     volume=gsr.structure.volume,
@@ -143,19 +143,13 @@ class ZsisaWork(Work):
             # Get relaxed structure and build new task for structural relaxation at fixed volume.
             relaxed_structure = sender.get_final_structure()
 
-            self.deformed_structures_dict, self.strain_inds, self.spgrp_number = generate_deformations(relaxed_structure, self.eps)
+            self.strained_structures_dict, self.strain_inds, self.spgrp_number = generate_deformations(relaxed_structure, self.eps)
 
-            relax_template = self.relax_template
-            self.relax_tasks_deformed = []
-            for structure in self.deformed_structures_dict.values():
+            self.relax_tasks_strained = []
+            for structure in self.strained_structures_dict.values():
                 # Relax deformed structure with fixed unit cell.
-                task = self.register_relax_task(relax_template.new_with_structure(structure, optcell=0))
-                self.relax_tasks_deformed.append(task)
-
-            # Build work for elastic properties (clamped-ions)
-            # activate internal strain and piezoelectric part.
-            #from abipy.flowtk.dfpt import ElasticWork
-            #elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
+                task = self.register_relax_task(self.relax_template.new_with_structure(structure, optcell=0))
+                self.relax_tasks_strained.append(task)
 
             self.flow.allocate(build=True)
 
@@ -171,25 +165,24 @@ class ZsisaWork(Work):
         # Build phonon works for the different relaxed structures.
         self.ph_works = []
 
-        for task, deform_name in zip(self[1:], self.deformed_structures_dict.keys(), strict=True):
+        for task, strain_name in zip(self[1:], self.strained_structures_dict.keys(), strict=True):
             relaxed_structure = task.get_final_structure()
             scf_input = self.initial_scf_input.new_with_structure(relaxed_structure)
             ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
                                                 with_becs=self.with_becs, ddk_tolerance=None)
 
             # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
-            prtvars = dict(prtden=0, prtpot=0)
             for task in ph_work[1:]:
-                task.input.set_vars(**prtvars)
+                task.input.set_vars(prtden=0, prtpot=0)
 
-            ph_work.set_name(deform_name)
+            ph_work.set_name(strain_name)
             self.ph_works.append(ph_work)
             self.flow.register_work(ph_work)
 
             # Add task for electron DOS calculation to edos_work
             if self.edos_ngkpt is not None:
                 edos_input = scf_input.make_edos_input(self.edos_ngkpt)
-                self.edos_work.register_nscf_task(edos_input, deps={ph_work[0]: "DEN"}).set_name(deform_name)
+                self.edos_work.register_nscf_task(edos_input, deps={ph_work[0]: "DEN"}).set_name(strain_name)
 
         if self.edos_ngkpt is not None:
             self.flow.register_work(self.edos_work)
@@ -227,6 +220,9 @@ class ThermalRelaxWork(Work):
         for pressure_gpa in work.pressures_gpa:
             for temperature in work.temperatures:
                 #strtarget = zsisa.get_strtarget(temperature, pressure)
+                #converged, new_structure, strtarget = zsisa.get_new_guess(relaxed_structure,
+                #    self.temperature, self.pressure_gpa, tolerance)
+
                 new_input = relax_input.new_with_vars(strtarget=strtarget)
                 task = work.register_task(new_input, task_class=ThermalRelaxTask)
                 # Attach pressure and temperature
@@ -239,6 +235,10 @@ class ThermalRelaxWork(Work):
         """
         Implement the post-processing step at the end of the Work.
         """
+        # Build work for elastic properties (clamped-ions)
+        # activate internal strain and piezoelectric part.
+        #from abipy.flowtk.dfpt import ElasticWork
+        #elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
         return super().on_all_ok()
 
 
@@ -248,10 +248,15 @@ class ThermalRelaxTask(RelaxTask):
         results = super()._on_ok()
         zsisa = self.work.zsisa
 
+        relaxed_structure = sender.get_final_structure()
+        converged, new_structure, strtarget = zsisa.get_new_guess(relaxed_structure,
+            self.temperature, self.pressure_gpa, tolerance)
+
         # Check for convergence.
-        #if not self.collinear_done:
-        #    self.input.set_vars(strtarget=strtarget)
-        #    self.finalized = False
-        #    self.restart()
+        if not converged:
+            #self.input.set_structure(new_structure)
+            self.input.set_vars(strtarget=strtarget)
+            self.finalized = False
+            self.restart()
 
         return results

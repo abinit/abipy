@@ -26,8 +26,8 @@ class Qha2dFlow(Flow):
     def from_scf_input(cls,
                        workdir: PathLike,
                        scf_input: AbinitInput,
-                       bo_strains_ac,
-                       phdos_strains_ac,
+                       bo_strains_ac: list[list],
+                       phdos_strains_ac: list[list]:,
                        ngqpt,
                        with_becs: bool,
                        with_quad: bool,
@@ -67,10 +67,10 @@ class Qha2dFlow(Flow):
         data = {"bo_strains_ac": work.bo_strains_ac, "phdos_strains_ac": work.phdos_strains_ac}
 
         # Build list of strings with path to the relevant output files ordered by V.
-        data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_deformed]
+        data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_strained]
 
         gsr_relax_entries, gsr_relax_volumes = [], []
-        for task in work.relax_tasks_deformed:
+        for task in work.relax_tasks_strained:
             with task.open_gsr() as gsr:
                 gsr_relax_entries.append(dict(
                     volume=gsr.structure.volume,
@@ -120,9 +120,9 @@ class Qha2dWork(Work):
         # Save attributes in work
         work.initial_scf_input = scf_input
 
+        # Make sure ench row is a numpy array.
         work.bo_strains_ac = bo_strains_ac
         work.phdos_strains_ac = phdos_strains_ac
-        # Make sure ench row is a numpy array.
         for i in range(2):
             work.bo_strains_ac[i] = np.array(bo_strains_ac[i])
             work.phdos_strains_ac[i] = np.array(phdos_strains_ac[i])
@@ -153,23 +153,23 @@ class Qha2dWork(Work):
             # Get relaxed structure and build new task for structural relaxation at fixed volume.
             relaxed_structure = sender.get_final_structure()
 
-            relax_template = self.relax_template
-            self.relax_tasks_deformed = []
+            self.relax_tasks_strained = []
 
             import itertools
             for s1, s3 in itertools.product(self.bo_strains_ac[0], self.bo_strains_ac[1]):
-                deformation_name = f"{s1=}, {s3=}"
+                strain_name = f"{s1=}, {s3=}"
                 # Apply strain to the structure
                 strain_tensor = np.diag([s1, s1, s3])
                 strained_structure = relaxed_structure.apply_strain(strain_tensor, inplace=False)
                 #print("strained_structure:", strained_structure)
 
                 # Relax deformed structure with fixed unit cell.
-                task = self.register_relax_task(relax_template.new_with_structure(strained_structure, optcell=0))
+                task = self.register_relax_task(self.relax_template.new_with_structure(strained_structure, optcell=0))
+
                 task.bo_strain = (s1, s3)
                 task.in_phdos_strains = np.any(np.abs(s1 - self.phdos_strains_ac[0]) < 1e-3) and \
                                         np.any(np.abs(s3 - self.phdos_strains_ac[1]) < 1e-3)
-                self.relax_tasks_deformed.append(task)
+                self.relax_tasks_strained.append(task)
 
             self.flow.allocate(build=True)
 
@@ -185,9 +185,9 @@ class Qha2dWork(Work):
         # Build phonon works for the different relaxed structures.
         self.ph_works = []
 
-        for task in self.relax_tasks_deformed:
+        for task in self.relax_tasks_strained:
             s1, s3 = task.bo_strain
-            deformation_name = f"{s1=}, {s3=}"
+            strain_name = f"{s1=}, {s3=}"
 
             relaxed_structure = task.get_final_structure()
             scf_input = self.initial_scf_input.new_with_structure(relaxed_structure)
@@ -197,11 +197,10 @@ class Qha2dWork(Work):
                                                     with_becs=self.with_becs, ddk_tolerance=None)
 
                 # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
-                prtvars = dict(prtden=0, prtpot=0)
                 for task in ph_work[1:]:
-                    task.input.set_vars(**prtvars)
+                    task.input.set_vars(prtden=0, prtpot=0)
 
-                ph_work.set_name(deformation_name)
+                ph_work.set_name(strain_name)
                 self.ph_works.append(ph_work)
                 self.flow.register_work(ph_work)
 

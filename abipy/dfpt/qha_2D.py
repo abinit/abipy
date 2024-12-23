@@ -43,13 +43,9 @@ class QHA_2D(HasPickleIO):
         For the meaning of the other arguments see from_gsr_ddb_paths.
         """
         data = mjson_load(filepath)
-
-        bo_strains_ac = [data["strains_a"], data["strains_c"]]
-        phdos_strains_ac = [data["strains_a"], data["strains_c"]]
-
         return cls.from_gsr_ddb_paths(nqsmall_or_qppa,
                                       data["gsr_relax_paths"], data["ddb_relax_paths"],
-                                      bo_strains_ac, phdos_strains_ac,
+                                      data["bo_strains_ac"], data["phdos_strains_ac"],
                                       anaget_kwargs=anaget_kwargs, smearing_ev=smearing_ev, verbose=verbose)
 
     @classmethod
@@ -203,8 +199,8 @@ class QHA_2D(HasPickleIO):
         ax, fig, plt = get_ax_fig_plt(ax, figsize=(10, 8))
         ax = fig.add_subplot(111, projection='3d')  # Create a 3D subplot
 
-        a0 =self.lattice_a[:,0]
-        c0 =self.lattice_c[0,:]
+        a0 = self.lattice_a[:,0]
+        c0 = self.lattice_c[0,:]
 
         X, Y = np.meshgrid(c0, a0)
 
@@ -216,7 +212,7 @@ class QHA_2D(HasPickleIO):
 
         initial_guess = [1.005*self.lattice_a[self.ix0,0], 1.005*self.lattice_c[0,self.iy0]]
         xy_init = np.array(initial_guess)
-        min_x0,min_y0,min_energy= self.find_minimum( f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+        min_x0, min_y0, min_energy= self.find_minimum( f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
 
         x_new = np.linspace(min(self.lattice_a[:,0]), max(self.lattice_a[:,0]), 100)
         y_new = np.linspace(min(self.lattice_c[0,:]), max(self.lattice_c[0,:]), 100)
@@ -227,10 +223,10 @@ class QHA_2D(HasPickleIO):
         ax.plot_surface(x_grid, y_grid, energy_interp, cmap='viridis', alpha=0.6)
 
         # Set labels
-        ax.set_xlabel('Lattice Parameter C (Å)')
-        ax.set_ylabel('Lattice Parameter A (Å)')
+        ax.set_xlabel('Lattice parameter C (Å)')
+        ax.set_ylabel('Lattice parameter A (Å)')
         ax.set_zlabel('Energy (eV)')
-        ax.set_title('Energy Surface in 3D')
+        ax.set_title('BO Energy Surface in 3D')
 
         return fig
 
@@ -266,7 +262,7 @@ class QHA_2D(HasPickleIO):
         return xy[0], xy[1], min_energy
 
     @add_fig_kwargs
-    def plot_free_energies(self, tstart=800 , tstop=0 ,num=5, ax=None, **kwargs) -> Figure:
+    def plot_free_energies(self, tstart=800, tstop=0, num=5, ax=None, **kwargs) -> Figure:
         """
         Plot free energy as a function of temperature in a 3D plot.
 
@@ -286,8 +282,8 @@ class QHA_2D(HasPickleIO):
 
             X, Y = np.meshgrid(self.lattice_c[0,:], self.lattice_a[:,0])
             for  e in ( tot_en.T ):
-                ax.plot_surface(X, Y ,e, cmap='viridis', alpha=0.7)
-                ax.plot_wireframe(X, Y ,e, cmap='viridis')
+                ax.plot_surface(X, Y, e, cmap='viridis', alpha=0.7)
+                ax.plot_wireframe(X, Y, e, cmap='viridis')
 
             min_x = np.zeros(num)
             min_y = np.zeros(num)
@@ -336,23 +332,23 @@ class QHA_2D(HasPickleIO):
             initial_guess = [1.005*self.lattice_a[self.ix0,0], 1.005*self.lattice_c[0,self.iy0]]
             xy_init = np.array(initial_guess)
             for j, e in enumerate(tot_en2.T):
-                f_interp = RectBivariateSpline(a,c, e , kx=4, ky=4)
-                min_x[j],min_y[j],min_tot_en2[j]= self.find_minimum( f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                f_interp = RectBivariateSpline(a, c, e, kx=4, ky=4)
+                min_x[j],min_y[j],min_tot_en2[j] = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
 
             X, Y = np.meshgrid(c, a)
             for e in tot_en2.T:
                 ax.plot_wireframe(X, Y, e, cmap='viridis')
-                ax.plot_surface(X, Y ,e, cmap='viridis', alpha=0.7)
+                ax.plot_surface(X, Y, e, cmap='viridis', alpha=0.7)
 
-            ax.scatter(min_y,min_x,min_tot_en2, color='c', s=100)
-            ax.plot(min_y,min_x,min_tot_en2, color='c')
+            ax.scatter(min_y, min_x, min_tot_en2, color='c', s=100)
+            ax.plot(min_y, min_x, min_tot_en2, color='c')
 
         ax.scatter(self.lattice_c[0,self.iy0], self.lattice_a[self.ix0,0], self.energies[self.ix0, self.iy0], color='red', s=100)
 
         ax.set_xlabel('C')
         ax.set_ylabel('A')
-        ax.set_zlabel('Energy (eV)')
-        #ax.set_title('Energies as a 3D Plot')
+        ax.set_zlabel('Free energy (eV)')
+        #ax.set_title('Free energies as a 3D Plot')
         plt.savefig("energy.pdf", format="pdf", bbox_inches="tight")
 
         return fig
@@ -403,11 +399,11 @@ class QHA_2D(HasPickleIO):
 
         elif (len(self.lattice_a_from_phdos)==3 or len(self.lattice_c_from_phdos)==3):
 
-            dF_dA  = np.zeros( num)
-            dF_dC  = np.zeros( num)
-            d2F_dA2= np.zeros( num)
-            d2F_dC2= np.zeros( num)
-            d2F_dAdC = np.zeros( num)
+            dF_dA = np.zeros(num)
+            dF_dC = np.zeros(num)
+            d2F_dA2 = np.zeros(num)
+            d2F_dC2 = np.zeros(num)
+            d2F_dAdC = np.zeros(num)
             a0 = self.lattice_a_from_phdos[1,1]
             c0 = self.lattice_c_from_phdos[1,1]
             da = self.lattice_a_from_phdos[0,1]-self.lattice_a_from_phdos[1,1]
@@ -436,7 +432,7 @@ class QHA_2D(HasPickleIO):
             A0 = self.lattice_a[self.ix0,self.iy0]
             C0 = self.lattice_c[self.ix0,self.iy0]
             scale= self.volumes[self.ix0,self.iy0]/A0**2/C0
-            min_v=min_x**2*min_y*scale
+            min_v = min_x**2*min_y*scale
 
             dt = tmesh[1] - tmesh[0]
             alpha_a = (min_x[2:] - min_x[:-2]) / (2 * dt) / min_x[1:-1]
@@ -447,9 +443,10 @@ class QHA_2D(HasPickleIO):
             #ax.plot(tmesh[1:-1], alpha_v, linestyle='--', color='darkorange', label=r"$\alpha_v$ E$\infty$Vib2")
 
         # Save the data
-        data_to_save = np.column_stack((tmesh[1:-1],alpha_v,alpha_a,alpha_c))
-        columns= [ '#Tmesh', 'alpha_v' ,  'alpha_a', 'alpha_c']
+        data_to_save = np.column_stack((tmesh[1:-1], alpha_v, alpha_a, alpha_c))
+        columns = ['#Tmesh', 'alpha_v', 'alpha_a', 'alpha_c']
         file_path = 'thermal-expansion_data.txt'
+        print(f"Writing thermal expansion data to: {file_path}"
         np.savetxt(file_path, data_to_save, fmt='%4.6e', delimiter='\t\t',  header='\t\t\t'.join(columns), comments='')
 
         ax.grid(True)
@@ -533,7 +530,7 @@ class QHA_2D(HasPickleIO):
 
             A0 = self.lattice_a[self.ix0,self.iy0]
             C0 = self.lattice_c[self.ix0,self.iy0]
-            scale= self.volumes[self.ix0,self.iy0]/A0**2/C0
+            scale = self.volumes[self.ix0,self.iy0]/A0**2/C0
             min_volumes = min_x**2 * min_y * scale
 
             axs[0].plot(tmesh, min_x, color='c', label=r"$a$ (E$\infty$Vib2)", linewidth=2)
@@ -571,9 +568,10 @@ class QHA_2D(HasPickleIO):
         Return: A 3D array of vibrational free energies of shape (num_c, num_a, num_temp)
         """
         f = np.zeros((len(self.lattice_c_from_phdos[0]), len(self.lattice_a_from_phdos[:, 0]), num))
+
         for i in range(len(self.lattice_a_from_phdos[:, 0])):
             for j in range(len(self.lattice_c_from_phdos[0])):
-                dos = self.phdoses[i][j]
-                if dos is not None:
-                    f[j][i] = dos.get_free_energy(tstart, tstop, num).values
+                phdos = self.phdoses[i][j]
+                if phdos is not None:
+                    f[j][i] = phdos.get_free_energy(tstart, tstop, num).values
         return f
