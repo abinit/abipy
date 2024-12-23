@@ -43,6 +43,11 @@ from abipy.tools.decorators import memoized_method
 from tqdm import tqdm
 
 
+# Installation directory.
+REPOS_ROOT = os.environ.get("ABIPY_PSREPOS_ROOT",
+                            default=os.path.join(os.path.expanduser("~"), ".abinit", "pseudos"))
+
+
 def get_oncvpsp_pseudos(xc_name: str, version: str, relativity_type: str = "SR", accuracy: str = "standard") -> PseudoTable:
     """
     High-level API that returns a PseudoTable of ONCVPSP pseudos for a given xc functional and version.
@@ -63,11 +68,6 @@ def get_oncvpsp_pseudos(xc_name: str, version: str, relativity_type: str = "SR",
         repo.install()
 
     return repo.get_pseudos(accuracy)
-
-
-# Installation directory.
-REPOS_ROOT = os.environ.get("ABIPY_PSREPOS_ROOT",
-                            default=os.path.join(os.path.expanduser("~"), ".abinit", "pseudos"))
 
 
 def get_repos_root() -> str:

@@ -77,7 +77,7 @@ class QHA_2D(HasPickleIO):
         """
         phdos_paths, phbands_paths = anaget_phdoses_with_gauss(nqsmall_or_qppa, smearing_ev, ddb_paths, anaget_kwargs, verbose)
 
-        new = cls.from_files(ddb_files, phdos_paths_2D, bo_strains_ac, phdos_strains_ac, gsr_file="GSR.nc")
+        new = cls.from_files(ddb_paths, phdos_paths_2D, bo_strains_ac, phdos_strains_ac, gsr_file="GSR.nc")
         #new.pickle_dump(workdir, basename=None)
         return new
 

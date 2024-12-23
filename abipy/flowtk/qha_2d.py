@@ -27,7 +27,7 @@ class Qha2dFlow(Flow):
                        workdir: PathLike,
                        scf_input: AbinitInput,
                        bo_strains_ac: list[list],
-                       phdos_strains_ac: list[list]:,
+                       phdos_strains_ac: list[list],
                        ngqpt,
                        with_becs: bool,
                        with_quad: bool,
