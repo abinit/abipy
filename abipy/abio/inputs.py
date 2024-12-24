@@ -1712,7 +1712,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return tolvar, value
 
     def make_ebands_input(self, ndivsm=15, tolwfr=1e-20, nscf_nband=None, nb_extra=10,
-                          nbdbuf=None, nstep=100) -> AbinitInput:
+                          nbdbuf=None, nstep=100, **extra_abivars) -> AbinitInput:
         """
         Generate an input file for a NSCF band structure calculation along k-path from a GS SCF input.
 
@@ -1727,6 +1727,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             nb_extra: Extra bands to to be added to input nband if nscf_nband is None.
             nbdbuf: Number of states in buffer
             nstep: Max number of NSCF iterations.
+            extra_abivars: Extra input variables.
         """
         nscf_input = self.deepcopy()
         nscf_input.pop_vars(["ngkpt", "nshiftk", "shiftk"])
@@ -1765,12 +1766,16 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                             tolwfr=tolwfr,
                             nbdbuf=nbdbuf,
                             nstep=nstep,
-                            comment="Input file for NSCF band structure calculation from a GS SCF input.")
+                            prtwf=-1,
+                            comment="Input file for NSCF band structure calculation from a GS SCF input.",
+                            )
+
+        nscf_input.set_vars(**extra_abivars)
 
         return nscf_input
 
     def make_edos_input(self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None,
-                        nb_extra=10, nstep=100) -> AbinitInput:
+                        nb_extra=10, nstep=100, **extra_abivars) -> AbinitInput:
         """
         Generate an input file for electron DOS calculation from a GS-SCF input.
 
@@ -1781,6 +1786,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             nscf_nband: Number of bands for NSCF calculation. If None, use nband + nb_extra
             nb_extra: Extra bands to to be added to input nband if nscf_nband is None.
             nstep: Max number of NSCF iterations.
+            extra_abivars: Extra input variables.
         """
         edos_input = self.deepcopy()
         edos_input.pop_tolerances()
@@ -1788,14 +1794,17 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         edos_input.set_vars(iscf=-2,
                             nband=nscf_nband,
                             tolwfr=tolwfr,
-                            nstep=nstep
+                            nstep=nstep,
+                            prtwf=-1,
+                            comment="Input file for electron DOS calculation from a GS SCF input (NSCF on kmesh)",
                             )
         edos_input.set_kmesh(ngkpt, shiftk)
-        edos_input.set_comment("Input file for electron DOS calculation from a GS SCF input (NSCF on kmesh)")
+
+        edos_input.set_vars(**extra_abivars)
 
         return edos_input
 
-    def make_nscf_kptopt0_input(self, kpts, tolwfr=1e-20, iscf=-2) -> AbinitInput:
+    def make_nscf_kptopt0_input(self, kpts, tolwfr=1e-20, iscf=-2, **extra_abivars) -> AbinitInput:
         """
         Build an input for NSCF calculation from a GS SCF one.
         Uses explicit list of k-points and kptopt 0.
@@ -1803,6 +1812,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Args:
             kpts: List of k-points in reduced coordinates.
             tolwfr: Tolerance on residuals.
+            extra_abivars: Extra input variables.
         """
         nscf_input = self.deepcopy()
         nscf_input.pop_vars(["ngkpt", "ngkpt", "shiftk"])
@@ -1810,6 +1820,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         kpts = np.reshape(kpts, (-1, 3))
         nscf_input.set_vars(tolwfr=tolwfr, kptopt=0, iscf=iscf, nkpt=len(kpts), kpt=kpts)
         nscf_input.set_comment("Input file for NSCF run from a GS SCF input with explicit list of k-points")
+
+        nscf_input.set_vars(**extra_abivars)
 
         return nscf_input
 

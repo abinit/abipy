@@ -24,9 +24,17 @@ class VzsisaFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls, workdir, scf_input, bo_vol_scales, ph_vol_scales, ngqpt,
-                       with_becs: bool, with_quad: bool,
-                       edos_ngkpt=None, manager=None) -> VzsisaFlow:
+    def from_scf_input(cls,
+                       workdir,
+                       scf_input,
+                       bo_vol_scales,
+                       ph_vol_scales,
+                       ngqpt,
+                       with_becs: bool,
+                       with_quad: bool,
+                       ndivsm=-20,
+                       edos_ngkpt=None,
+                       manager=None) -> VzsisaFlow:
         """
         Build a flow for QHA calculations from an |AbinitInput| for GS-SCF calculation.
 
@@ -40,6 +48,12 @@ class VzsisaFlow(Flow):
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
                 Note that only selected features are compatible with dynamical quadrupoles.
                 Please consult <https://docs.abinit.org/topics/longwave/>
+            ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
+                This option is the recommended one if the k-path contains two consecutive high symmetry k-points
+                that are very close as ndivsm > 0 may produce a very large number of wavevectors.
+                if 0, deactivate band structure calculation.
             edos_ngkpt: Three integers defining the the k-sampling for the computation of the
                 electron DOS with the relaxed structures. Useful for metals or small gap semiconductors
                 in which the electronic contribution should be included.
@@ -49,7 +63,7 @@ class VzsisaFlow(Flow):
         flow = cls(workdir=workdir, manager=manager)
 
         flow.register_work(VzsisaWork.from_scf_input(scf_input, bo_vol_scales, ph_vol_scales, ngqpt, with_becs, with_quad,
-                                                     ionmov=2, edos_ngkpt=edos_ngkpt))
+                                                     ndivsm, ionmov=2, edos_ngkpt=edos_ngkpt))
         return flow
 
     def finalize(self):
@@ -102,7 +116,7 @@ class VzsisaWork(Work):
 
     @classmethod
     def from_scf_input(cls, scf_input, bo_vol_scales, ph_vol_scales, ngqpt,
-                       with_becs: bool, with_quad: bool,
+                       with_becs: bool, with_quad: bool, ndivsm: int,
                        ionmov: int, edos_ngkpt=None) -> VzsisaWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
@@ -118,13 +132,15 @@ class VzsisaWork(Work):
         work.with_becs = with_becs
         work.with_quad = with_quad
         work.edos_ngkpt = edos_ngkpt if edos_ngkpt is None else np.reshape(edos_ngkpt, (3,))
+        work.ndivsm = ndivsm
 
         # Create input for relaxation and register the relaxation task.
         work.relax_template = relax_template = scf_input.deepcopy()
-        relax_template.pop_tolerances()
+
         # optcell = 3: constant-volume optimization of cell geometry
-        relax_template.set_vars(optcell=3, ionmov=ionmov, tolvrs=1e-8, toldff=1.e-6)
-        #relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
+        relax_template.pop_tolerances()
+        relax_template.set_vars(optcell=3, ionmov=ionmov, tolvrs=1e-8, tolmxf=1e-6)
+        relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
 
         work.initial_relax_task = work.register_relax_task(relax_template)
 
@@ -168,7 +184,7 @@ class VzsisaWork(Work):
 
             ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
                                                 with_becs=self.with_becs, with_quad=self.with_quad,
-                                                ddk_tolerance=None)
+                                                ndivsm=0 if bo_scale != 0.0 else self.ndivsm)
 
             # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
             for task in ph_work[1:]:
@@ -179,7 +195,7 @@ class VzsisaWork(Work):
 
             # Add task for electron DOS calculation to edos_work
             if self.edos_work is not None:
-                edos_input = scf_input.make_edos_input(self.edos_ngkpt)
+                edos_input = scf_input.make_edos_input(self.edos_ngkpt, prtwf=-1)
                 self.edos_work.register_nscf_task(edos_input, deps={ph_work[0]: "DEN"})
 
         if self.edos_ngkpt is not None:

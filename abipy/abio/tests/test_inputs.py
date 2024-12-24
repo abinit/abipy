@@ -570,23 +570,26 @@ class TestAbinitInput(AbipyTest):
         assert "ngkpt" not in nscf_inp and "shiftk" not in nscf_inp
         assert nscf_inp["iscf"] == -2 and nscf_inp["tolwfr"] == 1e-5
         assert nscf_inp["nkpt"] == 149
+        assert nscf_inp["prtwf"] == -1
         self.abivalidate_input(nscf_inp)
 
         # Test make_ebands_input with nband = "*91" (occopt 2)
         gs_occopt2 = gs_inp.new_with_vars(nband="*91", occopt=2, paral_kgb=0)
-        nscf_inp = gs_occopt2.make_ebands_input(nb_extra=10)
+        nscf_inp = gs_occopt2.make_ebands_input(nb_extra=10, prtwf=1)
         assert nscf_inp["nband"] == "*101"
+        assert nscf_inp["prtwf"] == 1
         self.abivalidate_input(nscf_inp)
 
         # Test make_edos_input
         ngkpt = [4, 4, 4]
         shiftk = [(0.5, 0.5, 0.5)]
-        dos_input = gs_inp.make_edos_input(ngkpt=ngkpt, shiftk=shiftk, nscf_nband=9)
+        dos_input = gs_inp.make_edos_input(ngkpt=ngkpt, shiftk=shiftk, nscf_nband=9, prtwf=1)
         self.assert_equal(dos_input["ngkpt"], ngkpt)
         self.assert_equal(dos_input["shiftk"], np.array(shiftk))
         assert dos_input["nshiftk"] == 1
         assert dos_input["iscf"] == -2 and dos_input["tolwfr"] == 1e-20
         assert dos_input["nband"] == 9
+        assert dos_input["prtwf"] == 1
 
         # Test make_dfpt_effmass_input
         multi =  gs_inp.make_dfpt_effmass_inputs(kpts=[0, 0, 0, 0.5, 0, 0], effmass_bands_f90=[1, 4, 5, 5])
