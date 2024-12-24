@@ -28,7 +28,7 @@ def build_flow(options):
 
     # Get NC pseudos from pseudodojo.
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
-    pseudos = get_oncvpsp_pseudos(xc_name="PBE", version="0.4")
+    pseudos = get_oncvpsp_pseudos(xc_name="PBEsol", version="0.4")
 
     # Select k-mesh for electrons and q-mesh for phonons.
     ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
@@ -48,13 +48,11 @@ def build_flow(options):
     # Set other important variables
     # All the other DFPT runs will inherit these parameters.
     scf_input.set_vars(
-        nband=4,
+        nband=scf_input.num_valence_electrons // 2,
         nline=10,
         nbdbuf=0,
         nstep=100,
-        ecut=8.0,
         ecutsm=1.0,
-        occopt=1,
         tolvrs=1.0e-18,   # SCF stopping criterion (modify default)
     )
 

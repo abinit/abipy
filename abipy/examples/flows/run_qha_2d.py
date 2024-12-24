@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
 Flow for quasi-harmonic calculations under development
-=====================================================
+======================================================
 Warning: This code is still under development.
 """
 import sys
@@ -45,10 +45,7 @@ rprim
 
     # Use NC PBE pseudos from pseudodojo v0.4
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
-    pseudos = get_oncvpsp_pseudos(xc_name="PBE", version="0.4", accuracy="standard").get_pseudos_for_structure(structure)
-
-    #ecut = max(p.hint_for_accuracy("normal").ecut for p in pseudos)
-    #print(ecut)
+    pseudos = get_oncvpsp_pseudos(xc_name="PBEsol", version="0.4")
 
     # Select k-mesh for electrons and q-mesh for phonons.
     #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
@@ -59,18 +56,14 @@ rprim
     #with_quad = not structure.has_zero_dynamical_quadrupoles
 
     scf_input = abilab.AbinitInput(structure, pseudos)
-    #scf_input.set_cutoffs_for_accuracy("standard")
 
-    # Set other important variables (consistent with tutorial)
-    # All the other DFPT runs will inherit these parameters.
+    # Set other important variables
     scf_input.set_vars(
+        nband=scf_input.num_valence_electrons // 2,
         nline=10,
         nbdbuf=0,
         nstep=100,
-        ecut=42.0,
         ecutsm=1.0,
-        occopt=1,
-        nband=26,
         #tolvrs=1.0e-18,      # SCF stopping criterion (modify default)
         tolvrs=1.0e-6,      # SCF stopping criterion (modify default)
     )

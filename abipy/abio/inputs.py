@@ -455,6 +455,12 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
 
         self._pseudos = ord_pseudos
 
+        # Init ecut from hints if available.
+        try:
+            self.set_cutoffs_for_accuracy("normal")
+        except self.Error:
+            pass
+
     def enforce_znucl_and_typat(self, znucl, typat):
         """
         These arrays are used to enforce a particular value of `znucl` and `typat` when writing the Abinit input file

@@ -41,8 +41,8 @@ class VzsisaFlow(Flow):
         Args:
             workdir: Working directory of the flow.
             scf_input: |AbinitInput| for GS-SCF run used as template to generate other inputs.
-            bo_vol_scales: List of scaling factors for the BO volumes.
-            ph_vol_scales: List of scaling factors for the BO volumes.
+            bo_vol_scales: List of volumetric scaling factors for the BO terms
+            ph_vol_scales: List of volumetric scaling factors for phonons.
             ngqpt: Three integers defining the q-mesh for phonon calculation.
             with_becs: Activate calculation of Electric field and Born effective charges.
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
