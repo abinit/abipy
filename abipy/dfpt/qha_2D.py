@@ -61,7 +61,7 @@ class QHA_2D(HasPickleIO):
         """
         Creates an instance from a list of GSR files and a list of DDB files.
         This is a simplified interface that computes the PHDOS.nc files automatically
-        from the DDB files by invoking anaddb
+        from the DDB files by invoking anaddb.
 
         Args:
             nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
@@ -84,7 +84,7 @@ class QHA_2D(HasPickleIO):
     @classmethod
     def from_files(cls, gsr_paths_2D, phdos_paths_2D, bo_strains_ac, phdos_strains_ac, gsr_file="GSR.nc") -> QHA_2D:
         """
-        Creates an instance of QHA from 2D lists of GSR and PHDOS files.
+        Creates an instance of QHA from a 2D array of GSR and PHDOS files.
 
         Args:
             gsr_paths_2D: 2D list of paths to GSR files.
@@ -205,7 +205,7 @@ class QHA_2D(HasPickleIO):
     @add_fig_kwargs
     def plot_energies(self, ax=None, **kwargs) -> Figure:
         """
-        Plot energy surface and visualize minima in a 3D plot.
+        Plot BO energy surface and visualize minimum in a 3D plot.
 
         Args:
             ax: Matplotlib axis for the plot. If None, creates a new figure.
@@ -246,7 +246,7 @@ class QHA_2D(HasPickleIO):
 
     def find_minimum(self, f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01) -> tuple:
         """
-        Gradient descent to find the minimum of the interpolated energy surface.
+        Gradient descent to find the minimum of the interpolated BO energy surface.
 
         Args:
             f_interp: Interpolating function for energy.
@@ -277,7 +277,7 @@ class QHA_2D(HasPickleIO):
         return xy[0], xy[1], min_energy
 
     @add_fig_kwargs
-    def plot_free_energies(self, tstart=800, tstop=0, num=5, ax=None, **kwargs) -> Figure:
+    def plot_free_energies(self, tstart=0, tstop=800, num=5, ax=None, **kwargs) -> Figure:
         """
         Plot free energy as a function of temperature in a 3D plot.
 
@@ -363,7 +363,7 @@ class QHA_2D(HasPickleIO):
         return fig
 
     @add_fig_kwargs
-    def plot_thermal_expansion(self, tstart=800, tstop=0, num=81, ax=None, **kwargs) -> Figure:
+    def plot_thermal_expansion(self, tstart=0, tstop=800, num=81, ax=None, **kwargs) -> Figure:
         """
         Plots thermal expansion coefficients along the a-axis, c-axis, and volumetric alpha.
         Uses both QHA and a 9-point stencil for comparison.
@@ -374,13 +374,14 @@ class QHA_2D(HasPickleIO):
             num: Number of temperature points.
             ax: Matplotlib axis object for plotting.
         """
+        ax, fig, plt = get_ax_fig_plt(ax, figsize=(10, 8))  # Ensure a valid plot axis
+
         tmesh = np.linspace(tstart, tstop, num)
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
-        ax, fig, plt = get_ax_fig_plt(ax, figsize=(10, 8))  # Ensure a valid plot axis
         min_x, min_y, min_tot_energy = np.zeros(num), np.zeros(num), np.zeros(num)
 
         if self.use_qha:
-            tot_energies = self.energies[np.newaxis, :].T + ph_energies+ self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
+            tot_energies = self.energies[np.newaxis, :].T + ph_energies + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
 
             # Initial guess for minimization
             xy_init = self.get_initial_guess_ac()
@@ -444,6 +445,7 @@ class QHA_2D(HasPickleIO):
             alpha_a = (min_x[2:] - min_x[:-2]) / (2 * dt) / min_x[1:-1]
             alpha_c = (min_y[2:] - min_y[:-2]) / (2 * dt) / min_y[1:-1]
             alpha_v = (min_v[2:] - min_v[:-2]) / (2 * dt) / min_v[1:-1]
+
             ax.plot(tmesh[1:-1], alpha_a, linestyle='--', color='gold', label=r"$\alpha_a$ E$\infty$Vib2")
             ax.plot(tmesh[1:-1], alpha_c, linestyle='--', color='teal', label=r"$\alpha_c$ E$\infty$Vib2")
             #ax.plot(tmesh[1:-1], alpha_v, linestyle='--', color='darkorange', label=r"$\alpha_v$ E$\infty$Vib2")
@@ -467,7 +469,7 @@ class QHA_2D(HasPickleIO):
         return fig
 
     @add_fig_kwargs
-    def plot_lattice(self, tstart=800, tstop=0, num=81, ax=None, **kwargs) -> Figure:
+    def plot_lattice(self, tstart=0, tstop=800, num=81, ax=None, **kwargs) -> Figure:
         """
         Plots thermal expansion coefficients along the a-axis, c-axis, and volumetric alpha.
         Uses both QHA and a 9-point stencil for comparison.
@@ -478,11 +480,13 @@ class QHA_2D(HasPickleIO):
             num: Number of temperature points.
             ax: Matplotlib axis object for plotting.
         """
+        import matplotlib.pyplot as plt
+        fig, axs = plt.subplots(1, 3, figsize=(18, 6), sharex=True)
+
+
         tmesh = np.linspace(tstart, tstop, num)
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
         min_x, min_y, min_tot_energy = np.zeros(num), np.zeros(num), np.zeros(num)
-        import matplotlib.pyplot as plt
-        fig, axs = plt.subplots(1, 3, figsize=(18, 6), sharex=True)
 
         if self.use_qha:
             tot_energies = self.energies[np.newaxis, :].T + ph_energies+ self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
@@ -549,17 +553,13 @@ class QHA_2D(HasPickleIO):
             raise RuntimeError("Invalid branch.")
 
         axs[0].set_ylabel("a")
-        axs[0].legend(loc="best", shadow=True)
-        axs[0].grid(True)
-        axs[0].set_xlabel("Temperature (T)")
         axs[1].set_ylabel("c")
-        axs[1].legend(loc="best", shadow=True)
-        axs[1].grid(True)
-        axs[1].set_xlabel("Temperature (T)")
-        axs[2].set_xlabel("Temperature (T)")
         axs[2].set_ylabel("Volume")
-        axs[2].legend(loc="best", shadow=True)
-        axs[2].grid(True)
+
+        for ax in axs:
+            ax.legend(loc="best", shadow=True)
+            ax.grid(True)
+            ax.set_xlabel("Temperature (T)")
 
         # Adjust layout and show the figure
         plt.tight_layout()

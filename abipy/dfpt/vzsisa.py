@@ -65,16 +65,21 @@ def anaget_phdoses_with_gauss(nqsmall_or_qppa,
     #if verbose:
     #    print(f"Calling anaget_phbst_and_phdos_files with {my_kwargs=}:")
 
-    for ddb_path in ddb_paths:
-        with DdbFile(ddb_path) as ddb:
-            with ddb.anaget_phbst_and_phdos_files(**my_kwargs) as g:
-                if verbose:
-                    print(f"anaddb input file: {str(g.input)=}")
-                phbst_file, phdos_file = g[0], g[1]
-                phdos_paths.append(phdos_file.filepath)
-                phbands_paths.append(phbst_file.filepath)
+    from abipy.dfpt.ddb import DdbRobot
+    with DdbRobot.from_files(ddb_paths) as robot:
+        r = robot.anaget_phonon_plotters(**my_kwargs)
+        return r.phdos_paths, r.phbands_paths
 
-    return phdos_paths, phbands_paths
+    #for ddb_path in ddb_paths:
+    #    with DdbFile(ddb_path) as ddb:
+    #        with ddb.anaget_phbst_and_phdos_files(**my_kwargs) as g:
+    #            if verbose:
+    #                print(f"anaddb input file: {str(g.input)=}")
+    #            phbst_file, phdos_file = g[0], g[1]
+    #            phdos_paths.append(phdos_file.filepath)
+    #            phbands_paths.append(phbst_file.filepath)
+
+    #return phdos_paths, phbands_paths
 
 
 class Vzsisa(HasPickleIO):
@@ -228,12 +233,11 @@ class Vzsisa(HasPickleIO):
             energies: list of BO energies for the structures in eV.
             pressures: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
-            pressure:
+            pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
         """
         self.structures = structures
         self.energies = np.array(energies)
-        self.eos = EOS(eos_name)
-        self.eos_name = eos_name
+        self.set_eos(eos_name)
         self.pressure = pressure
         self.pressures = np.array(pressures)
 
@@ -272,9 +276,14 @@ class Vzsisa(HasPickleIO):
             self.scale_points = "D"  # Displaced
 
     @property
-    def nvols(self) -> int:
-        """Number of volumes"""
+    def ph_nvols(self) -> int:
+        """Number of volumes for Phonons"""
         return len(self.volumes_from_phdos)
+
+    #@property
+    #def bo_nvols(self) -> int:
+    #    """Number of volumes for BO energies"""
+    #    return len(self.energies)
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose:"""
@@ -305,7 +314,7 @@ class Vzsisa(HasPickleIO):
             raise RuntimeError("This approximation method is only developed for the Vinet equation of state.")
 
     # FIXME: Arguments should be ordered as follows:
-    #def fit_tot_energies(self, volumes, tot_energies, tstart=0, tstop=1000, num=101):
+    #def fit_tot_energies(self, volumes, tot_energies):
     def fit_tot_energies(self, tstart=0, tstop=1000, num=101, tot_energies="energies", volumes="volumes"):
         """
         Performs a fit of the energies as a function of the volume at different temperatures.
@@ -354,7 +363,7 @@ class Vzsisa(HasPickleIO):
 
     def second_derivative_energy_v(self, vol) -> np.ndarray:
         """
-        Compute the second derivative of the energy with respect to volume.
+        Compute the second derivative of the BO energy with respect to volume.
 
         Args:
             vol: The volume at which to evaluate the second derivative of the energy.
@@ -744,7 +753,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
         thermo = self.get_thermodynamic_properties(tstart=tstart, tstop=tstop, num=num)
         entropy = thermo.entropy.T #* abu.e_Cb * abu.Avogadro
-        df_t = np.zeros((num,self.nvols))
+        df_t = np.zeros((num, self.ph_nvols))
         df_t = - entropy
         volumes = self.volumes_from_phdos
 
@@ -958,7 +967,7 @@ class Vzsisa(HasPickleIO):
             alpha_b = (bb[2:] - bb[:-2]) / (2 * dt) / bb_tref
             alpha_c = (cc[2:] - cc[:-2]) / (2 * dt) / cc_tref
 
-        ax.plot(tmesh[1:-1], alpha_a, color='r', lw=2, label=r"$\alpha_a$" + method, **kwargs)
+        ax.plot(tmesh[1:-1], alpha_a, color='r', lw=2, label=r"$\alpha_a$" + method)
         ax.plot(tmesh[1:-1], alpha_b, color='b', lw=2, label=r"$\alpha_b$" + method)
         ax.plot(tmesh[1:-1], alpha_c, color='m', lw=2, label=r"$\alpha_c$" + method)
 
@@ -1068,7 +1077,7 @@ class Vzsisa(HasPickleIO):
             alpha_beta = (beta[2:] - beta[:-2]) / (2 * dt) / beta_tref
             alpha_gamma = (cc[2:] - cc[:-2]) / (2 * dt) / cc_tref
 
-        ax.plot(tmesh[1:-1], alpha_alpha, color='r', lw=2, label= r"$\alpha_alpha$" + method, **kwargs)
+        ax.plot(tmesh[1:-1], alpha_alpha, color='r', lw=2, label= r"$\alpha_alpha$" + method)
         ax.plot(tmesh[1:-1], alpha_beta, color='b', lw=2, label=r"$\alpha_beta$" + method)
         ax.plot(tmesh[1:-1], alpha_gamma, color='m', lw=2, label=r"$\alpha_gamma$" + method)
 
@@ -1159,7 +1168,7 @@ class Vzsisa(HasPickleIO):
         columns.append(method_header)
 
         if lattice is None or lattice == "a":
-            ax.plot(tmesh, aa, color='r', lw=2, label=r"$a(V(T))$" + method, **kwargs)
+            ax.plot(tmesh, aa, color='r', lw=2, label=r"$a(V(T))$" + method)
         if lattice is None or lattice == "b":
             ax.plot(tmesh, bb, color='b', lw=2, label=r"$b(V(T))$" + method)
         if lattice is None or lattice == "c":
@@ -1236,7 +1245,7 @@ class Vzsisa(HasPickleIO):
         columns.append(method_header)
 
         if angle is None or angle == 1:
-            ax.plot(tmesh, alpha, color='r', lw=2, label=r"$alpha(V(T))$" + method, **kwargs)
+            ax.plot(tmesh, alpha, color='r', lw=2, label=r"$alpha(V(T))$" + method)
         if angle is None or angle == 2:
             ax.plot(tmesh, beta, color='b', lw=2, label=r"$beta(V(T))$" + method)
         if angle is None or angle == 3:
@@ -1537,7 +1546,7 @@ class Vzsisa(HasPickleIO):
         dt = f.temp[1] - f.temp[0]
         thermo = self.get_thermodynamic_properties(tstart=tstart, tstop=tstop, num=num)
         entropy = thermo.entropy.T #* abu.e_Cb * abu.Avogadro
-        df_t = np.zeros((num,self.nvols))
+        df_t = np.zeros((num, self.ph_nvols))
         df_t = - entropy
         param = np.zeros((num,4))
         param2 = np.zeros((num,3))
@@ -1582,7 +1591,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
         thermo = self.get_thermodynamic_properties(tstart=tstart, tstop=tstop, num=num)
         entropy = thermo.entropy.T #* abu.e_Cb * abu.Avogadro
-        df_t = np.zeros((num, self.nvols))
+        df_t = np.zeros((num, self.ph_nvols))
         df_t = - entropy
         volumes = self.volumes_from_phdos
 
@@ -1737,7 +1746,7 @@ class Vzsisa(HasPickleIO):
         columns.append(method_header)
 
         if lattice is None or lattice == "a":
-            ax.plot(tmesh, aa, color='r', lw=2, label=r"$a(V(T))$" + method, **kwargs)
+            ax.plot(tmesh, aa, color='r', lw=2, label=r"$a(V(T))$" + method)
         if lattice is None or lattice == "b":
             ax.plot(tmesh, bb, color='b', lw=2, label=r"$b(V(T))$" + method)
         if lattice is None or lattice == "c":
@@ -1813,7 +1822,7 @@ class Vzsisa(HasPickleIO):
         columns.append(method_header)
 
         if angle is None or angle == 1:
-            ax.plot(tmesh, alpha, color='r', lw=2, label=r"$alpha(V(T))$" + method, **kwargs)
+            ax.plot(tmesh, alpha, color='r', lw=2, label=r"$alpha(V(T))$" + method)
         if angle is None or angle == 2:
             ax.plot(tmesh, beta, color='b', lw=2, label=r"$beta(V(T))$" + method)
         if angle is None or angle == 3:
@@ -1821,11 +1830,11 @@ class Vzsisa(HasPickleIO):
 
         if abs(abs(self.volumes[self.iv0]-volumes[iv0])-abs(volumes[iv1]-self.volumes[self.iv0])) < 1e-3:
             if angle is None or angle == 1:
-                ax.plot(tmesh ,alpha2, linestyle='dashed', color='r', lw=2, label=r"$alpha(V(T))$""E2vib1")
+                ax.plot(tmesh, alpha2, linestyle='dashed', color='r', lw=2, label=r"$alpha(V(T))$""E2vib1")
             if angle is None or angle == 2:
                 ax.plot(tmesh, beta2, linestyle='dashed', color='b', lw=2, label=r"$beta(V(T))$""E2vib1")
             if angle is None or angle == 3:
-                ax.plot(tmesh ,gamma2, linestyle='dashed', color='m', lw=2, label=r"$gamma(V(T))$""E2vib1")
+                ax.plot(tmesh, gamma2, linestyle='dashed', color='m', lw=2, label=r"$gamma(V(T))$""E2vib1")
 
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=None)
         ax.set_xlim(tstart, tstop)
@@ -1906,7 +1915,7 @@ class Vzsisa(HasPickleIO):
             alpha_b = (bb[2:] - bb[:-2]) / (2 * dt) / bb_tref
             alpha_c = (cc[2:] - cc[:-2]) / (2 * dt) / cc_tref
 
-        ax.plot(tmesh[1:-1], alpha_a, color='r', lw=2, label=r"$\alpha_a$" + method, **kwargs)
+        ax.plot(tmesh[1:-1], alpha_a, color='r', lw=2, label=r"$\alpha_a$" + method)
         ax.plot(tmesh[1:-1], alpha_b, color='b', lw=2, label=r"$\alpha_b$" + method)
         ax.plot(tmesh[1:-1], alpha_c, color='m', lw=2, label=r"$\alpha_c$" + method)
 
@@ -2016,7 +2025,7 @@ class Vzsisa(HasPickleIO):
             alpha_beta = (beta[2:] - beta[:-2]) / (2 * dt) / beta_tref
             alpha_gamma = (gamma[2:] - gamma[:-2]) / (2 * dt) / gamma_tref
 
-        ax.plot(tmesh[1:-1], alpha_alpha, color='r', lw=2, label=r"$\alpha_alpha$" + method, **kwargs)
+        ax.plot(tmesh[1:-1], alpha_alpha, color='r', lw=2, label=r"$\alpha_alpha$" + method)
         ax.plot(tmesh[1:-1], alpha_beta, color='b', lw=2, label=r"$\alpha_beta$" + method)
         ax.plot(tmesh[1:-1], alpha_gamma, color='m', lw=2, label=r"$\alpha_gamma$" + method)
 
@@ -2063,9 +2072,9 @@ class Vzsisa(HasPickleIO):
             tstop: The end value (in Kelvin) of the mesh.
             num: int, optional Number of samples to generate.
 
-        Returns: A numpy array of (nvols, num) values with the vibrational contribution to the free energy
+        Returns: A numpy array of (ph_nvols, num) values with the vibrational contribution to the free energy
         """
-        f = np.zeros((self.nvols, num))
+        f = np.zeros((self.ph_nvols, num))
         for i, phdos in enumerate(self.phdoses):
             f[i] = phdos.get_free_energy(tstart, tstop, num).values
 
@@ -2084,16 +2093,16 @@ class Vzsisa(HasPickleIO):
             `namedtuple` with the following attributes for all the volumes:
 
                 tmesh: numpy array with the list of temperatures. Shape (num).
-                cv: constant-volume specific heat, in eV/K. Shape (nvols, num).
-                free_energy: free energy, in eV. Shape (nvols, num).
-                entropy: entropy, in eV/K. Shape (nvols, num).
-                zpe: zero point energy in eV. Shape (nvols).
+                cv: constant-volume specific heat, in eV/K. Shape (ph_nvols, num).
+                free_energy: free energy, in eV. Shape (ph_nvols, num).
+                entropy: entropy, in eV/K. Shape (ph_nvols, num).
+                zpe: zero point energy in eV. Shape (ph_nvols).
         """
         tmesh = np.linspace(tstart, tstop, num)
-        cv = np.zeros((self.nvols, num))
-        free_energy = np.zeros((self.nvols, num))
-        entropy = np.zeros((self.nvols, num))
-        zpe = np.zeros(self.nvols)
+        cv = np.zeros((self.ph_nvols, num))
+        free_energy = np.zeros((self.ph_nvols, num))
+        entropy = np.zeros((self.ph_nvols, num))
+        zpe = np.zeros(self.ph_nvols)
 
         for i, phdos in enumerate(self.phdoses):
             cv[i] = phdos.get_cv(tstart, tstop, num).values

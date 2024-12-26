@@ -9,15 +9,15 @@ from __future__ import annotations
 import numpy as np
 
 from abipy.tools.serialization import mjson_write
-from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.tasks import RelaxTask
+from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.flows import Flow
 
 
 class VzsisaFlow(Flow):
     """
-    Flow for QHA calculations with the VZSISA approach.
-    Main entry point for client code.
+    Flow for QHA calculations with the V-ZSISA approach.
+    This is the main entry point for client code.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VzsisaFlow
@@ -36,7 +36,7 @@ class VzsisaFlow(Flow):
                        edos_ngkpt=None,
                        manager=None) -> VzsisaFlow:
         """
-        Build a flow for QHA calculations from an |AbinitInput| for GS-SCF calculation.
+        Build a flow from an |AbinitInput| for GS-SCF calculation.
 
         Args:
             workdir: Working directory of the flow.
@@ -68,9 +68,17 @@ class VzsisaFlow(Flow):
 
     def finalize(self):
         """
-        This method is called by the scheduler when the flow is completed.
-        Here we write the vszisa.json file in the outdata directory of the flow.
-        This json file can be used to build the Vzsisa object used to post-process the data.
+        Finalize the flow after its completion.
+
+        This method is called by the scheduler when the flow finishes.
+        It generates a `vzsisa.json` file in the output directory, which can be used
+        to build the Vzsisa object for post-processing.
+
+        The JSON file contains:
+            - BO and phonon volumetric scaling factors.
+            - Paths to GSR files of relaxed structures and their corresponding volumes.
+            - Paths to DDB files for phonon calculations.
+            - Paths to electronic DOS data, if available.
         """
         work = self[0]
         data = {"bo_vol_scales": work.bo_vol_scales, "ph_vol_scales": work.ph_vol_scales}
@@ -106,8 +114,8 @@ class VzsisaFlow(Flow):
 
 class VzsisaWork(Work):
     """
-    This work performs a structural relaxation of the initial structure, then a set of distorted
-    structures is genenerated and the relaxed structures are used
+    This work performs the structural relaxation of the initial structure,
+    then a set of distorted structures is genenerated and the relaxed structures are used
     to compute phonons, BECS and the dielectric tensor with DFPT.
 
     .. rubric:: Inheritance Diagram
@@ -120,7 +128,7 @@ class VzsisaWork(Work):
                        ionmov: int, edos_ngkpt=None) -> VzsisaWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
-        See VzsisaFlow for rhe meaning of the arguments.
+        See VzsisaFlow for the meaning of the arguments.
         """
         work = cls()
 
@@ -176,7 +184,7 @@ class VzsisaWork(Work):
         self.edos_work = None if self.edos_ngkpt is None else Work()
         self.ph_works = []
 
-        # Build phonon works for the different relaxed structures.
+        # Build phonon works for the different relaxed structures associated to ph_vol_scales.
         for task, bo_scale in zip(self.relax_tasks_vol, self.bo_vol_scales):
             if all(abs(bo_scale - self.ph_vol_scales)) > 1e-3: continue
             relaxed_structure = task.get_final_structure()

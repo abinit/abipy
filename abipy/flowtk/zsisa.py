@@ -5,8 +5,9 @@ Workflows for calculations within the quasi-harmonic approximation.
 from __future__ import annotations
 
 import numpy as np
+import abipy.core.abinit_units as abu
 
-from abipy.tools.serialization import mjson_write
+from abipy.tools.serialization import mjson_write, mjson_load
 from abipy.dfpt.deformation_utils import generate_deformations
 from abipy.abio.inputs import AbinitInput
 from abipy.flowtk.works import Work, PhononWork
@@ -258,14 +259,42 @@ class ThermalRelaxTask(RelaxTask):
     def _on_ok(self):
         results = super()._on_ok()
         zsisa = self.work.zsisa
+        tol_gpa = 0.01
 
-        relaxed_structure = sender.get_final_structure()
-        converged, new_structure, strtarget = zsisa.get_new_guess(relaxed_structure,
-            self.temperature, self.pressure_gpa, tolerance)
+        json_path = self.outdir.path_in("thermal_history.json")
+        if os.path.exists(json_path):
+            thermal_hist = mjson_load(json_path)
+        else:
+            thermal_hist = {"initial_structure": self.input.structure, "tol_gpa": tol_gpa, "history": []}
+
+        with self.open_gsr() as gsr:
+            relaxed_structure = gsr.structure
+            # Stress tensor in GPa.
+            cart_therm_stress = zsisa.get_cart_thermal_stress(relaxed_structure, self.temperature, self.pressure_gpa)
+            converged = np.all(np.abs(cart_therm_stress - gsr.cart_stress_tensor)) < tol_gpa
+
+            thermal_hist["history"].append(dict
+                structure=relaxed_structure,
+                cart_therm_stress=cart_therm_stress,
+                cart_bo_stress=gsr.cart_stress_tensor,
+                converged=converged.
+            )
+
+        mjson_write(thermal_hist, json_path, indent=4)
 
         # Check for convergence.
         if not converged:
-            #self.input.set_structure(new_structure)
+            # In fortran notation The components of the stress tensor must be stored according to:
+            # (1,1) →1; (2,2) → 2; (3,3) → 3; (2,3) → 4; (3,1) → 5; (1,2) →6
+            # TODO: strtarget refers to Cartesian coords I suppose! Also, check sign!
+            strtarget = np.empty(6)
+            strtarget[0] = cart_therm_stress[0,0]
+            strtarget[1] = cart_therm_stress[1,1]
+            strtarget[2] = cart_therm_stress[2,2]
+            strtarget[3] = cart_therm_stress[1,2]
+            strtarget[4] = cart_therm_stress[2,0]
+            strtarget[5] = cart_therm_stress[0,1]
+            strtarget /= abu.HaBohr3_GPa
             self.input.set_vars(strtarget=strtarget)
             self.finalized = False
             self.restart()

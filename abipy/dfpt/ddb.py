@@ -3100,6 +3100,8 @@ class DdbRobot(Robot):
 
             phbands_plotter: |PhononBandsPlotter| object.
             phdos_plotter: |PhononDosPlotter| object.
+            phdos_paths: List of paths to the PHDOS files.
+            phbands_paths: List of paths to the PHBST files.
         """
         if "workdir" in kwargs:
             raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
@@ -3113,6 +3115,7 @@ class DdbRobot(Robot):
             return p
 
         phbands_plotter, phdos_plotter = PhononBandsPlotter(), PhononDosPlotter()
+        phdos_paths, phbands_paths = [], []
 
         for label, ddb in self.items():
             # Invoke anaddb to get phonon bands and DOS.
@@ -3128,12 +3131,16 @@ class DdbRobot(Robot):
                 phbst_file.phbands.read_non_anal_from_file(anaddb_path)
 
             phbands_plotter.add_phbands(label, phbst_file, phdos=phdos_file)
+            phbands_paths.append(phbst_file.filepath)
             phbst_file.close()
+
             if phdos_file is not None:
                 phdos_plotter.add_phdos(label, phdos=phdos_file.phdos)
+                phdos_paths.append(phdos_file.filepath)
                 phdos_file.close()
 
-        return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter)
+        return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter,
+                               phdos_paths=phdos_paths, phbands_paths=phbands_paths)
 
     def anacompare_elastic(self, ddb_header_keys=None, with_structure=True, with_spglib=True,
                            with_path=False, manager=None, verbose=0, **kwargs):

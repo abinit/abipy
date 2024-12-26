@@ -92,6 +92,14 @@ core Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`pauli` Module
+-------------------
+
+.. automodule:: abipy.core.pauli
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`restapi` Module
 ---------------------
 

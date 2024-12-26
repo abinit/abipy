@@ -361,12 +361,12 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         alpha=pa(f.min_vol)
         param=np.polyfit(self.volumes, self.angles_beta , 3)
         pb = np.poly1d(param)
-        beta=pb(f.min_vol)
-        param=np.polyfit(self.volumes, self.angles_gama , 3)
+        beta= pb(f.min_vol)
+        param = np.polyfit(self.volumes, self.angles_gama , 3)
         pc = np.poly1d(param)
-        gamma=pc(f.min_vol)
+        gamma = pc(f.min_vol)
 
-        return alpha,beta,gamma
+        return alpha, beta, gamma
 
     @add_fig_kwargs
     def plot_thermal_expansion_coeff_abc(self, tstart=0, tstop=800, num=100, tref=None, ax=None, **kwargs) -> Figure:
@@ -392,21 +392,21 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
 
         if tref is None:
             f = self.fit_energies(tstart, tstop, num)
-            dv_dt=alpha_v*f.min_vol[1:-1]
+            dv_dt = alpha_v*f.min_vol[1:-1]
             alpha_qha_a =  dv_dt*daa_dv[1:-1]/ aa[1:-1]
             alpha_qha_b =  dv_dt*dbb_dv[1:-1]/ bb[1:-1]
             alpha_qha_c =  dv_dt*dcc_dv[1:-1]/ cc[1:-1]
         else:
             f0 = self.fit_energies(tref, tref, num)
-            dv_dt=alpha_v*f0.min_vol[1:-1]
-            aa_tref,bb_tref,cc_tref , daa_dv_tref,dbb_dv_tref,dcc_dv_tref = self.get_abc(tref, tref, 1)
-            alpha_qha_a =  dv_dt*daa_dv[1:-1]/ aa_tref
-            alpha_qha_b =  dv_dt*dbb_dv[1:-1]/ bb_tref
-            alpha_qha_c =  dv_dt*dcc_dv[1:-1]/ cc_tref
+            dv_dt = alpha_v*f0.min_vol[1:-1]
+            aa_tref, bb_tref, cc_tref , daa_dv_tref,dbb_dv_tref,dcc_dv_tref = self.get_abc(tref, tref, 1)
+            alpha_qha_a = dv_dt*daa_dv[1:-1]/ aa_tref
+            alpha_qha_b = dv_dt*dbb_dv[1:-1]/ bb_tref
+            alpha_qha_c = dv_dt*dcc_dv[1:-1]/ cc_tref
 
-        ax.plot(tmesh[1:-1] ,alpha_qha_a , color='r',lw=2 , **kwargs)
-        ax.plot(tmesh[1:-1] ,alpha_qha_b , color='b', lw=2 )
-        ax.plot(tmesh[1:-1] ,alpha_qha_c , color='m', lw=2 )
+        ax.plot(tmesh[1:-1], alpha_qha_a, color='r', lw=2)
+        ax.plot(tmesh[1:-1], alpha_qha_b, color='b', lw=2)
+        ax.plot(tmesh[1:-1], alpha_qha_c, color='m', lw=2)
         ax.set_xlabel(r'T (K)')
         ax.set_ylabel(r'$\alpha$ (K$^{-1}$)')
         ax.legend([r"$\alpha_a$",r"$\alpha_b$",r"$\alpha_c$"])
@@ -438,9 +438,9 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         tmesh = np.linspace(tstart, tstop, num)
         aa,bb,cc, daa_dv,dbb_dv,dcc_dv = self.get_abc(tstart, tstop, num)
 
-        ax.plot(tmesh ,aa , color='r',lw=2,  **kwargs )
-        ax.plot(tmesh ,bb , color='b', lw=2 )
-        ax.plot(tmesh ,cc , color='m', lw=2 )
+        ax.plot(tmesh, aa, color='r', lw=2)
+        ax.plot(tmesh, bb, color='b', lw=2)
+        ax.plot(tmesh, cc, color='m', lw=2)
         ax.set_xlabel(r'T (K)')
         ax.legend(["a(V(T))","b(V(T))","c(V(T))"])
         ax.grid(True)
@@ -469,11 +469,11 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
 
         #alpha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
         tmesh = np.linspace(tstart, tstop, num)
-        alpha,beta,gamma = self.get_angles(tstart, tstop, num)
+        alpha, beta, gamma = self.get_angles(tstart, tstop, num)
 
-        ax.plot(tmesh ,alpha , color='r',lw=2,  **kwargs )
-        ax.plot(tmesh ,beta , color='b', lw=2 )
-        ax.plot(tmesh ,gamma , color='m', lw=2 )
+        ax.plot(tmesh, alpha, color='r', lw=2)
+        ax.plot(tmesh, beta, color='b', lw=2)
+        ax.plot(tmesh, gamma, color='m', lw=2)
         ax.set_xlabel(r'T (K)')
         ax.legend([r"$\alpha$(V(T))",r"$\beta$(V(T))",r"$\gamma$(V(T))"])
         ax.grid(True)
@@ -482,6 +482,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
+
     @add_fig_kwargs
     def plot_phbs(self, phbands, temperatures=None, t_max=1000, colormap="plasma", **kwargs) -> Figure:
         """
@@ -797,8 +798,7 @@ class QHA(AbstractQHA):
             entropy[i] = d.get_entropy(tstart, tstop, num).values
             zpe[i] = d.zero_point_energy
 
-        return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy,
-                               zpe=zpe)
+        return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy, zpe=zpe)
 
 
 class QHA3PF(AbstractQHA):
@@ -888,8 +888,7 @@ class QHA3PF(AbstractQHA):
         fit_params = np.polyfit(dos_vols, zpe[self.ind_doses], self.fit_degree)
         zpe[self._ind_energy_only] = np.poly1d(fit_params)(missing_vols)
 
-        return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy,
-                               zpe=zpe)
+        return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy, zpe=zpe)
 
     def _get_thermodynamic_prop(self, name, tstart, tstop, num):
         """
@@ -1033,8 +1032,7 @@ class QHA3P(AbstractQHA):
             entropy[i] = [get_entropy(w[i], weights, t) for t in tmesh]
             zpe[i] = get_zero_point_energy(w, weights)
 
-        return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy,
-                               zpe=zpe)
+        return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy, zpe=zpe)
 
     @lazy_property
     def fitted_frequencies(self) -> np.ndarray:
@@ -1163,10 +1161,9 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
     """
 
     fontsize = 8
-
     colormap = "viridis"
 
-    def _consistency_check(self):
+    def _consistency_check(self) -> None:
         if not hasattr(self, "qha_list") or not self.qha_list:
             raise RuntimeError("Please call the run method to compute the QHA!")
 
@@ -1196,6 +1193,7 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
         for qha, ngqpt, ax in zip(self.qha_list, self.ngqpt_list, ax_list):
             qha.plot_energies(ax=ax, show=False, **kwargs)
             ax.set_title("ngpqt: %s" % str(ngqpt), fontsize=self.fontsize)
+
         return fig
 
     @add_fig_kwargs

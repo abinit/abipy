@@ -14,21 +14,21 @@ class QhaTest(AbipyTest):
         # Root points to the directory in the git submodule with the output results.
         root = os.path.join(abidata.dirpath, "data_v-ZSISA-QHA.git", "Si_v_ZSISA_approximation")
 
-        strains = [96, 98, 100, 102, 104, 106]
-        strains2 = [98, 100, 102, 104, 106] # EinfVib4(D)
-        #strains2 = [96, 98, 100, 102, 104] # EinfVib4(S)
-        #strains2 = [100, 102, 104] # EinfVib2(D)
+        bo_strains = [96, 98, 100, 102, 104, 106]
+        ph_strains = [98, 100, 102, 104, 106] # EinfVib4(D)
+        #ph_strains = [96, 98, 100, 102, 104] # EinfVib4(S)
+        #ph_strains = [100, 102, 104] # EinfVib2(D)
 
-        gsr_paths = [os.path.join(root, "scale_{:d}_GSR.nc".format(s)) for s in strains]
+        gsr_paths = [os.path.join(root, "scale_{:d}_GSR.nc".format(s)) for s in bo_strains]
 
-        ddb_paths = [os.path.join(root, "scale_{:d}_DDB".format(s)) for s in strains]
+        ddb_paths = [os.path.join(root, "scale_{:d}_DDB".format(s)) for s in ph_strains]
         anaget_kwargs = {}
         # FIXME
         #FileNotFoundError: [Errno 2] No such file or directory: '/Users/giantomassi/git_repos/abipy/abipy/data/data_v-ZSISA-QHA.git/Si_v_ZSISA_approximation/scale_96_GSR.nc'
         #qha = Vzsisa.from_gsr_ddb_paths(4, gsr_paths, ddb_paths, anaget_kwargs, verbose=1)
 
-        ddb_paths = [os.path.join(root, "scale_{:d}_GSR_DDB".format(s)) for s in strains]
-        phdos_paths = [os.path.join(root, "scale_{:d}_PHDOS.nc".format(s)) for s in strains2]
+        ddb_paths = [os.path.join(root, "scale_{:d}_GSR_DDB".format(s)) for s in bo_strains]
+        phdos_paths = [os.path.join(root, "scale_{:d}_PHDOS.nc".format(s)) for s in ph_strains]
 
         qha = Vzsisa.from_ddb_phdos_files(ddb_paths, phdos_paths)
         tstart, tstop = 0, 800
@@ -41,7 +41,7 @@ class QhaTest(AbipyTest):
         assert qha.to_string(verbose=1)
 
         data = qha.fit_tot_energies(tstart=0, tstop=0, num=1,
-                                   tot_energies=qha.energies[np.newaxis, :].T, volumes=qha.volumes)
+                                    tot_energies=qha.energies[np.newaxis, :].T, volumes=qha.volumes)
 
         self.assert_almost_equal(data.tot_en,
            [[-230.27531394],
@@ -124,7 +124,6 @@ class QhaTest(AbipyTest):
             assert qha.plot_thermal_expansion_coeff(tstop=tstop, tstart=tstart ,num=101, show=False)
             assert qha.plot_thermal_expansion_coeff_abc(tstop=tstop, tstart=tstart ,num=101, show=False)
             assert qha.plot_angles_vs_t(tstop=tstop, tstart=tstart, num=101, show=False)
-            # 4th order polinomial
             assert qha.plot_vol_vs_t_4th(tstop=tstop, tstart=tstart, num=101, show=False)
             assert qha.plot_abc_vs_t_4th(tstop=tstop, tstart=tstart, num=101, lattice="a", show=False)
             assert qha.plot_abc_vs_t_4th(tstop=tstop, tstart=tstart, show=False)
