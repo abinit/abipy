@@ -1226,7 +1226,7 @@ class FieldReader(ETSF_Reader):
                     datar[1] = total - datar[0]
 
             else:
-                raise ValueError(f"Invalid {dims.nspinor}, {dims.nspden=} and {dims.nsppol}"
+                raise ValueError(f"Invalid {dims.nspinor}, {dims.nspden=} and {dims.nsppol}")
 
         else:
             if dims.nspden == 4:

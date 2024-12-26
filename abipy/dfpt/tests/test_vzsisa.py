@@ -34,7 +34,7 @@ class QhaTest(AbipyTest):
         tstart, tstop = 0, 800
 
         # Test basic properties and get methods of qha
-        assert qha.nvols == 5
+        assert qha.ph_nvols == 5
         assert qha.eos_name == "vinet"
         assert qha.scale_points == "D"
         assert str(qha)
@@ -76,7 +76,7 @@ class QhaTest(AbipyTest):
 
         ph_energies = qha.get_vib_free_energies(tstart, tstop, num=2)
         tot_en = qha.energies_pdos[np.newaxis, :].T + ph_energies
-        fit = qha.fit_forth(tstart=tstart, tstop=tstop, num=2, energy=tot_en, volumes=qha.volumes_from_phdos)
+        fit = qha.fit_forth(tstart=tstart, tstop=tstop, num=2, energy=tot_en, volumes=qha.ph_volumes)
         self.assert_almost_equal(fit.min_vol, [40.24570378, 40.44670049])
         self.assert_almost_equal(fit.min_en, [-230.1654581, -230.5580189])
         self.assert_almost_equal(fit.F2D_V, [0.01425036, 0.01312722])
