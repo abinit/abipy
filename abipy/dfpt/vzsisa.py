@@ -50,7 +50,7 @@ def anaget_phdoses_with_gauss(nqsmall_or_qppa,
         smearing_ev = 4.5e-6 * abu.Ha_eV
 
     my_kwargs = dict(dos_method=f"gaussian:{smearing_ev} eV",
-                    return_input=True)
+                    return_input=False)
 
     if nqsmall_or_qppa > 0:
         my_kwargs["nqsmall"] = nqsmall_or_qppa
@@ -144,11 +144,11 @@ class Vzsisa(HasPickleIO):
             gsr_paths: list of paths to GSR files.
             phdos_paths: list of paths to PHDOS.nc files.
         """
-        energies, structures, pressures = [], [], []
+        bo_energies, bo_structures, pressures = [], [], []
         for gp in gsr_paths:
             with GsrFile.from_file(gp) as g:
-                energies.append(g.energy)
-                structures.append(g.structure)
+                bo_energies.append(g.energy)
+                bo_structures.append(g.structure)
                 pressures.append(g.pressure)
 
         phdoses, structures_from_phdos = [], []
@@ -157,7 +157,7 @@ class Vzsisa(HasPickleIO):
                 phdoses.append(p.phdos)
                 structures_from_phdos.append(p.structure)
 
-        vols1 = [s.volume for s in structures]
+        vols1 = [s.volume for s in bo_structures]
         vols2 = [s.volume for s in structures_from_phdos]
         dv = np.zeros((len(vols2)-1))
         for j in range(len(vols2)-1):
@@ -175,7 +175,7 @@ class Vzsisa(HasPickleIO):
         if len(index_list) not in (2, 3, 5):
             raise RuntimeError("Expecting just 2, 3, or 5 PHDOS files in the approximation method.")
 
-        return cls(structures, structures_from_phdos, index_list, phdoses, energies, pressures)
+        return cls(bo_structures, structures_from_phdos, index_list, phdoses, bo_energies, pressures)
 
     @classmethod
     def from_ddb_phdos_files(cls,
@@ -188,11 +188,11 @@ class Vzsisa(HasPickleIO):
             ddb_paths: list of paths to DDB files.
             phdos_paths: list of paths to PHDOS.nc files.
         """
-        energies, structures, pressures = [], [], []
+        bo_energies, bo_structures, pressures = [], [], []
         for gp in ddb_paths:
             with DdbFile.from_file(gp) as g:
-                energies.append(g.total_energy)
-                structures.append(g.structure)
+                bo_energies.append(g.total_energy)
+                bo_structures.append(g.structure)
                 #pressures.append(g.pressure)
 
         phdoses, structures_from_phdos = [], []
@@ -201,7 +201,7 @@ class Vzsisa(HasPickleIO):
                 phdoses.append(p.phdos)
                 structures_from_phdos.append(p.structure)
 
-        vols1 = [s.volume for s in structures]
+        vols1 = [s.volume for s in bo_structures]
         vols2 = [s.volume for s in structures_from_phdos]
         dv = np.zeros((len(vols2)-1))
         for j in range(len(vols2)-1):
@@ -220,41 +220,41 @@ class Vzsisa(HasPickleIO):
         if len(index_list) not in (2, 3, 5):
             raise RuntimeError("Expecting just 2, 3, or 5 PHDOS files in the approximation method.")
 
-        return cls(structures, structures_from_phdos, index_list, phdoses, energies, pressures)
+        return cls(bo_structures, structures_from_phdos, index_list, phdoses, bo_energies, pressures)
 
-    def __init__(self, structures, structures_from_phdos, index_list, phdoses, energies, pressures,
+    def __init__(self, bo_structures, structures_from_phdos, index_list, phdoses, bo_energies, pressures,
                  eos_name: str = 'vinet', pressure: float = 0.0):
         """
         Args:
-            structures: list of structures at the different volumes for the BO energies.
+            bo_structures: list of structures at the different volumes for the BO bo_energies.
             structure_from_phdos: Structures used to compute phonon DOS
             index_list: Index of each phdos in structures.
             phdoses: Phonon DOSes.
-            energies: list of BO energies for the structures in eV.
+            bo_energies: list of BO energies for the structures in eV.
             pressures: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
         """
-        self.structures = structures
-        self.energies = np.array(energies)
+        self.bo_structures = bo_structures
+        self.bo_energies = np.array(bo_energies)
         self.set_eos(eos_name)
         self.pressure = pressure
         self.pressures = np.array(pressures)
 
-        self.volumes = np.array([s.volume for s in structures])
-        self.iv0 = np.argmin(energies)
-        self.lattice_a = np.array([s.lattice.abc[0] for s in structures])
-        self.lattice_b = np.array([s.lattice.abc[1] for s in structures])
-        self.lattice_c = np.array([s.lattice.abc[2] for s in structures])
+        self.bo_volumes = np.array([s.volume for s in bo_structures])
+        self.iv0 = np.argmin(self.bo_energies)
+        self.lattice_a = np.array([s.lattice.abc[0] for s in bo_structures])
+        self.lattice_b = np.array([s.lattice.abc[1] for s in bo_structures])
+        self.lattice_c = np.array([s.lattice.abc[2] for s in bo_structures])
 
-        self.angles_alpha = np.array([s.lattice.angles[0] for s in structures])
-        self.angles_beta = np.array([s.lattice.angles[1] for s in structures])
-        self.angles_gamma = np.array([s.lattice.angles[2] for s in structures])
+        self.angles_alpha = np.array([s.lattice.angles[0] for s in bo_structures])
+        self.angles_beta = np.array([s.lattice.angles[1] for s in bo_structures])
+        self.angles_gamma = np.array([s.lattice.angles[2] for s in bo_structures])
 
         self.phdoses = phdoses
         self.structures_from_phdos = np.array(structures_from_phdos)
         self.ph_volumes = np.array([s.volume for s in structures_from_phdos])
-        self.energies_pdos = self.energies[index_list]
+        self.energies_pdos = self.bo_energies[index_list]
         self.index_list = index_list
 
         if len(self.index_list) == 5:
@@ -270,7 +270,7 @@ class Vzsisa(HasPickleIO):
             self.iv1_vib = 1
             self.V0_vib = 0.5*(self.ph_volumes[1]+self.ph_volumes[0])
 
-        if abs(self.ph_volumes[self.iv0_vib]+self.ph_volumes[self.iv1_vib]-2*self.volumes[self.iv0])<1e-3 :
+        if abs(self.ph_volumes[self.iv0_vib]+self.ph_volumes[self.iv1_vib]-2*self.bo_volumes[self.iv0])<1e-3 :
             self.scale_points = "S"  # Symmetry
         else:
             self.scale_points = "D"  # Displaced
@@ -280,17 +280,17 @@ class Vzsisa(HasPickleIO):
         """Number of volumes for Phonons"""
         return len(self.ph_volumes)
 
-    #@property
-    #def bo_nvols(self) -> int:
-    #    """Number of volumes for BO energies"""
-    #    return len(self.energies)
+    @property
+    def bo_nvols(self) -> int:
+        """Number of volumes for BO energies"""
+        return len(self.bo_energies)
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose:"""
         lines = []
         app = lines.append
         #app(self.structure.to_string(verbose=verbose))
-        app(f"Born-Oppenheimer volumes: {self.volumes} Ang^3")
+        app(f"Born-Oppenheimer volumes: {self.bo_volumes} Ang^3")
         app(f"PHDOS volumes: {self.ph_volumes} Ang^3")
         app(f"eos_name: {self.eos_name}")
         app(f"pressure: {self.pressure} GPa")
@@ -368,8 +368,8 @@ class Vzsisa(HasPickleIO):
         Args:
             vol: The volume at which to evaluate the second derivative of the energy.
         """
-        tot_en = self.energies[np.newaxis, :].T
-        fits = [self.eos.fit(self.volumes, e) for e in tot_en.T]
+        tot_en = self.bo_energies[np.newaxis, :].T
+        fits = [self.eos.fit(self.bo_volumes, e) for e in tot_en.T]
 
         # Extract parameters from the fit objects
         v0 = np.array([fit.v0 for fit in fits])
@@ -386,7 +386,8 @@ class Vzsisa(HasPickleIO):
 
     def vol_E2Vib1(self, tstart=0, tstop=1000, num=101) -> tuple:
         """
-        Compute the volume as a function of temperature using the E2Vib1 method with the Vinet equation of state.
+        Compute the volume as a function of temperature using the E2Vib1 method:
+        E to second order and Fvib to the first order around V*.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -394,40 +395,42 @@ class Vzsisa(HasPickleIO):
             num: Number of samples to generate.
 
         Returns:
-            vol: The calculated volumes as a function of temperature.
+            vols: The calculated volumes as a function of temperature.
             fits: The list of fit objects for the energies as a function of volume.
         """
         # Generate temperature mesh
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
 
-        vol = np.zeros(num)
+        vols = np.zeros(num)
         dfe_dV1 = np.zeros(num)
-        volumes = self.volumes
+        bo_volumes = self.bo_volumes
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
         dV = self.ph_volumes[iv1] - self.ph_volumes[iv0]
-        V0 = volumes[self.iv0]
+        V0 = bo_volumes[self.iv0]
         E2D = self.second_derivative_energy_v(V0)
 
         # Calculate derivative of free energy with respect to volume and updated volumes
-        for i, e in enumerate(ph_energies.T):
+        for i, e in enumerate(ph_energies_vt.T):
             dfe_dV1[i] = (e[iv1] - e[iv0]) / dV
-            vol[i] = V0 - dfe_dV1[i] / E2D
+            vols[i] = V0 - dfe_dV1[i] / E2D
 
         # Calculate total energies
-        tot_en = self.energies[self.iv0] + 0.5*(volumes[np.newaxis, :].T - V0)**2*E2D +(volumes[np.newaxis, :].T - V0)*dfe_dV1
+        tot_en = self.bo_energies[self.iv0] + \
+                0.5 * (bo_volumes[np.newaxis, :].T - V0)**2*E2D + (bo_volumes[np.newaxis, :].T - V0) * dfe_dV1
 
         # Fit the energies as a function of volume
-        fits = [self.eos.fit(volumes, e) for e in tot_en.T]
+        fits = [self.eos.fit(bo_volumes, e) for e in tot_en.T]
 
-        return vol, fits
+        return vols, fits
 
     def vol_Einf_Vib1(self, tstart=0, tstop=1000, num=101) -> tuple:
         """
-        Compute the volume as a function of temperature using the EinfVib1 method with the Vinet equation of state.
+        Compute the volume as a function of temperature using the EinfVib1 method.
+        E_BO without approximation and Fvib to the first order around V*.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -435,42 +438,41 @@ class Vzsisa(HasPickleIO):
             num: Number of samples to generate.
 
         Returns:
-            vol: The calculated volumes as a function of temperature.
+            vols: The calculated volumes as a function of temperature.
             fits: The list of fit objects for the energies as a function of volume.
         """
         # Generate temperature mesh
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
 
-        vol = np.zeros(num)
-        dfe_dV1 = np.zeros(num)
-        volumes = self.volumes
+        bo_volumes = self.bo_volumes
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
         V0 = self.V0_vib
-
         dV = self.ph_volumes[iv1] - self.ph_volumes[iv0]
 
         # Calculate derivative of free energy with respect to volume
-        for i, e in enumerate(ph_energies.T):
+        dfe_dV1 = np.zeros(num)
+        for i, e in enumerate(ph_energies_vt.T):
             dfe_dV1[i] = (e[iv1] - e[iv0]) / dV
 
         # Calculate total energies
-        tot_en = self.energies[np.newaxis, :].T + (volumes[np.newaxis, :].T - V0) * dfe_dV1
+        tot_en = self.bo_energies[np.newaxis, :].T + (bo_volumes[np.newaxis, :].T - V0) * dfe_dV1
 
         # Fit the energies as a function of volume
-        fits = [self.eos.fit(volumes, e) for e in tot_en.T]
+        fits = [self.eos.fit(bo_volumes, gv) for gv in tot_en.T]
 
         # Extract minimum volumes from the fit objects
-        vol = np.array([fit.v0 for fit in fits])
+        vols = np.array([fit.v0 for fit in fits])
 
-        return vol, fits
+        return vols, fits
 
     def vol_Einf_Vib2(self, tstart=0, tstop=1000, num=101) -> tuple:
         """
-        Compute the volume as a function of temperature using the EinfVib2 method with the Vinet equation of state.
+        Compute the volume as a function of temperature using the EinfVib2 method.
+        E_BO without approximation and Fvib to the second order around V*.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -478,16 +480,15 @@ class Vzsisa(HasPickleIO):
             num: Number of samples to generate.
 
         Returns:
-            vol: The calculated volumes as a function of temperature.
+            vols: The calculated volumes as a function of temperature.
             fits: The list of fit objects for the energies as a function of volume.
         """
         # Generate temperature mesh
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
 
-        vol = np.zeros(num)
         dfe_dV1 = np.zeros(num)
         dfe_dV2 = np.zeros(num)
         fe_V0 = np.zeros(num)
@@ -498,7 +499,7 @@ class Vzsisa(HasPickleIO):
         dV = self.ph_volumes[iv0] - self.ph_volumes[iv0 - 1]
 
         # Compute derivatives of free energy with respect to volume
-        for i, e in enumerate(ph_energies.T):
+        for i, e in enumerate(ph_energies_vt.T):
             dfe_dV1[i] = (e[iv0 + 1] - e[iv0 - 1]) / (self.ph_volumes[iv0 + 1] - self.ph_volumes[iv0 - 1])
             dfe_dV2[i] = (e[iv0 + 1] - 2.0 * e[iv0] + e[iv0 - 1]) / (self.ph_volumes[iv0 + 1] - self.ph_volumes[iv0])**2
             fe_V0[i] = e[iv0]
@@ -507,20 +508,21 @@ class Vzsisa(HasPickleIO):
         V0 = self.ph_volumes[iv0]
 
         # Calculate total energies
-        tot_en = (self.energies[np.newaxis, :].T + fe_V0
-              + (self.volumes[np.newaxis, :].T - V0) * dfe_dV1 + 0.5 * (self.volumes[np.newaxis, :].T - V0)**2 * dfe_dV2)
+        tot_en = (self.bo_energies[np.newaxis, :].T + fe_V0
+              + (self.bo_volumes[np.newaxis, :].T - V0) * dfe_dV1 + 0.5 * (self.bo_volumes[np.newaxis, :].T - V0)**2 * dfe_dV2)
 
         # Fit the energies as a function of volume
-        fits = [self.eos.fit(self.volumes, e) for e in tot_en.T]
+        fits = [self.eos.fit(self.bo_volumes, gv) for gv in tot_en.T]
 
         # Extract minimum volumes from the fit objects
-        vol = np.array([fit.v0 for fit in fits])
+        vols = np.array([fit.v0 for fit in fits])
 
-        return vol, fits
+        return vols, fits
 
     def vol_Einf_Vib4(self, tstart=0, tstop=1000, num=101) -> tuple:
         """
-        Compute the volume as a function of temperature using the EinfVib4 method with the Vinet equation of state.
+        Compute the volume as a function of temperature using the EinfVib4 method.
+        E_BO without approximation and Fvib to the fourth order around V*.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -528,16 +530,15 @@ class Vzsisa(HasPickleIO):
             num: Number of samples to generate.
 
         Returns:
-            vol: The calculated volumes as a function of temperature.
+            vols: The calculated volumes as a function of temperature.
             fits: The list of fit objects for the energies as a function of volume.
         """
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
-        energies = self.energies
-        volumes = self.volumes
-        vol = np.zeros(num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
+        energies = self.bo_energies
+        bo_volumes = self.bo_volumes
         dfe_dV1 = np.zeros(num)
         dfe_dV2 = np.zeros(num)
         dfe_dV3 = np.zeros(num)
@@ -546,7 +547,7 @@ class Vzsisa(HasPickleIO):
         iv0 = 2
         dV = self.ph_volumes[2] - self.ph_volumes[1]
 
-        for i, e in enumerate(ph_energies.T):
+        for i, e in enumerate(ph_energies_vt.T):
             dfe_dV1[i] = (-e[iv0+2]+ 8*e[iv0+1]-8*e[iv0-1]+e[iv0-2])/(12*dV)
             dfe_dV2[i] = (-e[iv0+2]+16*e[iv0+1]-30*e[iv0]+16*e[iv0-1]-e[iv0-2])/(12*dV**2)
             dfe_dV3[i] = (e[iv0+2]-2*e[iv0+1]+2*e[iv0-1]-e[iv0-2])/(2*dV**3)
@@ -555,14 +556,14 @@ class Vzsisa(HasPickleIO):
 
         V0 = self.ph_volumes[iv0]
 
-        tot_en = ( (volumes[np.newaxis, :].T - V0) * dfe_dV1 + 0.5 * ( volumes[np.newaxis, :].T - V0)**2*(dfe_dV2)
-                 + (volumes[np.newaxis, :].T - V0)**3 * dfe_dV3/6.0 + ( volumes[np.newaxis, :].T - V0)**4*(dfe_dV4/24.0)
+        tot_en = ( (bo_volumes[np.newaxis, :].T - V0) * dfe_dV1 + 0.5 * (bo_volumes[np.newaxis, :].T - V0)**2*(dfe_dV2)
+                 + (bo_volumes[np.newaxis, :].T - V0)**3 * dfe_dV3/6.0 + (bo_volumes[np.newaxis, :].T - V0)**4*(dfe_dV4/24.0)
                  + fe_V0[:] + energies[np.newaxis, :].T)
 
-        fits = [self.eos.fit(volumes, e) for e in tot_en.T]
-        vol = np.array([fit.v0 for fit in fits])
+        fits = [self.eos.fit(bo_volumes, gv) for gv in tot_en.T]
+        vols = np.array([fit.v0 for fit in fits])
 
-        return vol, fits
+        return vols, fits
 
     @add_fig_kwargs
     def plot_energies(self, tstart=0, tstop=1000, num=1, ax=None, fontsize=10, **kwargs) -> Figure:
@@ -578,17 +579,17 @@ class Vzsisa(HasPickleIO):
         """
         tmesh = np.linspace(tstart, tstop, num)
 
-        f = self.fit_tot_energies(0, 0, 1, self.energies[np.newaxis, :].T, self.volumes)
+        f = self.fit_tot_energies(0, 0, 1, self.bo_energies[np.newaxis, :].T, self.bo_volumes)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        xmin, xmax = np.floor(self.volumes.min() * 0.97), np.ceil(self.volumes.max() * 1.03)
+        xmin, xmax = np.floor(self.bo_volumes.min() * 0.97), np.ceil(self.bo_volumes.max() * 1.03)
         x = np.linspace(xmin, xmax, 100)
 
-        for fit, e, t in zip(f.fits, f.tot_en.T - self.energies[self.iv0], f.temp, strict=True):
-            ax.scatter(self.volumes, e, label=t, color='b', marker='s', s=10)
-            ax.plot(x, fit.func(x) - self.energies[self.iv0], color='b', lw=1)
+        for fit, e, t in zip(f.fits, f.tot_en.T - self.bo_energies[self.iv0], f.temp, strict=True):
+            ax.scatter(self.bo_volumes, e, label=t, color='b', marker='s', s=10)
+            ax.plot(x, fit.func(x) - self.bo_energies[self.iv0], color='b', lw=1)
 
-        ax.plot(f.min_vol, f.min_en - self.energies[self.iv0], color='r', linestyle='dashed', lw=1, marker='o', ms=5)
+        ax.plot(f.min_vol, f.min_en - self.bo_energies[self.iv0], color='r', linestyle='dashed', lw=1, marker='o', ms=5)
         set_grid_legend(ax, fontsize, xlabel=r'V (${\AA}^3$)', ylabel='E (eV)', legend=False)
 
         fig.suptitle("Energies as a function of volume for different T")
@@ -628,50 +629,50 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV.
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
 
         # Initialize data storage
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
-        volumes = self.ph_volumes
+        bo_volumes = self.ph_volumes
 
         data_to_save = tmesh
         columns = ['#Tmesh']
 
         # Method 1: E2Vib1
         if self.scale_points == "S":
-            vol, _ = self.vol_E2Vib1(tstart=tstart, tstop=tstop, num=num)
-            ax.plot(tmesh, vol, color='b', lw=2, label="E2Vib1")
-            data_to_save = np.column_stack((data_to_save, vol))
+            vols, _ = self.vol_E2Vib1(tstart=tstart, tstop=tstop, num=num)
+            ax.plot(tmesh, vols, color='b', lw=2, label="E2Vib1")
+            data_to_save = np.column_stack((data_to_save, vols))
             columns.append('E2vib1')
 
         # Method 2: Einf_Vib1
         if len(self.index_list) >= 2:
-            vol2, _ = self.vol_Einf_Vib1(tstart=tstart, tstop=tstop, num=num)
-            ax.plot(tmesh, vol2, color='gold', lw=2, label=r"$E_\infty$ Vib1")
-            data_to_save = np.column_stack((data_to_save, vol2))
+            vols, _ = self.vol_Einf_Vib1(tstart=tstart, tstop=tstop, num=num)
+            ax.plot(tmesh, vols, color='gold', lw=2, label=r"$E_\infty$ Vib1")
+            data_to_save = np.column_stack((data_to_save, vols))
             columns.append('Einfvib1')
 
         # Method 3: Einf_Vib2
         if len(self.index_list) >= 3:
-            vol3, _ = self.vol_Einf_Vib2(tstart=tstart, tstop=tstop, num=num)
-            ax.plot(tmesh, vol3, color='m', lw=2, label=r"$E_\infty$ Vib2")
-            data_to_save = np.column_stack((data_to_save, vol3))
+            vols, _ = self.vol_Einf_Vib2(tstart=tstart, tstop=tstop, num=num)
+            ax.plot(tmesh, vols, color='m', lw=2, label=r"$E_\infty$ Vib2")
+            data_to_save = np.column_stack((data_to_save, vols))
             columns.append('Einfvib2')
 
         # Method 4: Einf_Vib4 and QHA
         if len(self.index_list) == 5:
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies_vt
             f0 = self.fit_tot_energies(tstart, tstop, num, tot_en, self.ph_volumes)
-            vol4, _ = self.vol_Einf_Vib4(tstart=tstart, tstop=tstop, num=num)
-            ax.plot(tmesh, vol4, color='c', lw=2, label=r"$E_\infty$ Vib4")
+            vols, _ = self.vol_Einf_Vib4(tstart=tstart, tstop=tstop, num=num)
+            ax.plot(tmesh, vols, color='c', lw=2, label=r"$E_\infty$ Vib4")
             ax.plot(tmesh, f0.min_vol, color='k', linestyle='dashed', lw=1.5, label="QHA")
-            data_to_save = np.column_stack((data_to_save, vol4, f0.min_vol))
+            data_to_save = np.column_stack((data_to_save, vols, f0.min_vol))
             columns.append('Einfvib4')
             columns.append('QHA')
 
         # Plot V0
-        ax.plot(0, self.volumes[self.iv0], color='g', lw=0, marker='o', ms=10, label="V0")
+        ax.plot(0, self.bo_volumes[self.iv0], color='g', lw=0, marker='o', ms=10, label="V0")
 
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'V (${\AA}^3$)')
         ax.set_xlim(tstart, tstop)
@@ -694,8 +695,8 @@ class Vzsisa(HasPickleIO):
         Returns: The thermal expansion coefficient as a function of temperature.
         """
         # Get phonon free energies in eV
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
-        tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
+        tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies_vt
         f = self.fit_tot_energies(tstart, tstop, num, tot_en, self.ph_volumes)
 
         if tref is not None:
@@ -746,7 +747,7 @@ class Vzsisa(HasPickleIO):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         # Get phonon free energies in eV
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
         tmesh = np.linspace(tstart, tstop, num)
         thermo = self.get_thermodynamic_properties(tstart=tstart, tstop=tstop, num=num)
         entropy = thermo.entropy.T #* abu.e_Cb * abu.Avogadro
@@ -761,12 +762,12 @@ class Vzsisa(HasPickleIO):
         dV = ph_volumes[iv0+1]-ph_volumes[iv0]
 
         if self.scale_points == "S":
-            vol, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
-            E2D = self.second_derivative_energy_v(self.volumes[self.iv0])
-            #f = self.fit_tot_energies(0, 0, 1 ,self.energies[np.newaxis, :].T,self.volumes)
+            vols, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
+            E2D = self.second_derivative_energy_v(self.bo_volumes[self.iv0])
+            #f = self.fit_tot_energies(0, 0, 1 ,self.bo_energies[np.newaxis, :].T,self.bo_volumes)
             #E2D = f.F2D
             if tref is None:
-                alpha_1 = - 1/vol[:] * (df_t[:,iv1]-df_t[:,iv0]) / (ph_volumes[iv1]-ph_volumes[iv0]) / E2D
+                alpha_1 = - 1/vols[:] * (df_t[:,iv1]-df_t[:,iv0]) / (ph_volumes[iv1]-ph_volumes[iv0]) / E2D
             else:
                 vol_ref, fits = self.vol_E2Vib1(num=1, tstop=tref, tstart=tref)
                 b0 = np.array([fit.b0 for fit in fits])
@@ -777,10 +778,10 @@ class Vzsisa(HasPickleIO):
             columns.append( 'E2vib1')
 
         if len(self.index_list) >= 2:
-            vol2, fits = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
-            E2D_V = self.second_derivative_energy_v(vol2)
+            vols, fits = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
+            E2D_V = self.second_derivative_energy_v(vols)
             if tref is None:
-                alpha_2 = - 1/vol2[:] * (df_t[:,iv1]-df_t[:,iv0])/(ph_volumes[iv1]-ph_volumes[iv0]) / E2D_V[:]
+                alpha_2 = - 1/vols[:] * (df_t[:,iv1]-df_t[:,iv0])/(ph_volumes[iv1]-ph_volumes[iv0]) / E2D_V[:]
             else:
                 vol2_ref, fits = self.vol_Einf_Vib1(num=1, tstop=tref, tstart=tref)
                 b0 = np.array([fit.b0 for fit in fits])
@@ -792,16 +793,16 @@ class Vzsisa(HasPickleIO):
             columns.append( 'Einfvib1')
 
         if len(self.index_list) >= 3:
-            vol3, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
-            E2D_V = self.second_derivative_energy_v(vol3)
+            vols, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
+            E2D_V = self.second_derivative_energy_v(vols)
             dfe_dV2 = np.zeros( num)
-            for i, e in enumerate(ph_energies.T):
+            for i, e in enumerate(ph_energies_vt.T):
                 dfe_dV2[i] = (e[iv0+2]-2.0*e[iv0+1]+e[iv0])/(dV)**2
 
             ds_dv = (df_t[:,iv0+2]-df_t[:,iv0])/(2*dV)
-            ds_dv = ds_dv + (df_t[:,iv0+2]-2*df_t[:,iv0+1]+df_t[:,iv0])/dV**2 * (vol3[:]-ph_volumes[iv0+1])
+            ds_dv = ds_dv + (df_t[:,iv0+2]-2*df_t[:,iv0+1]+df_t[:,iv0])/dV**2 * (vols[:]-ph_volumes[iv0+1])
             if tref is None:
-                alpha_3 = - 1/vol3[:] * ds_dv / (E2D_V[:]+dfe_dV2[:])
+                alpha_3 = - 1/vols[:] * ds_dv / (E2D_V[:]+dfe_dV2[:])
             else:
                 vol3_ref,fits = self.vol_Einf_Vib2(num=1, tstop=tref, tstart=tref)
                 b0 = np.array([fit.b0 for fit in fits])
@@ -814,24 +815,24 @@ class Vzsisa(HasPickleIO):
 
         if len(self.index_list) == 5:
             alpha_qha = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
-            vol4,fits = self.vol_Einf_Vib4(num=num, tstop=tstop, tstart=tstart)
-            E2D_V = self.second_derivative_energy_v(vol4)
+            vols, fits = self.vol_Einf_Vib4(num=num, tstop=tstop, tstart=tstart)
+            E2D_V = self.second_derivative_energy_v(vols)
 
             d2fe_dV2 = np.zeros(num)
             d3fe_dV3 = np.zeros(num)
             d4fe_dV4 = np.zeros(num)
-            for i,e in enumerate(ph_energies.T):
+            for i,e in enumerate(ph_energies_vt.T):
                 d2fe_dV2[i] = (-e[4]+16*e[3]-30*e[2]+16*e[1]-e[0])/(12*dV**2)
                 d3fe_dV3[i] = (e[4]-2*e[3]+2*e[1]-e[0])/(2*dV**3)
                 d4fe_dV4[i] = (e[4]-4*e[3]+6*e[2]-4*e[1]+e[0])/(dV**4)
 
             ds_dv = (-df_t[:,4] + 8*df_t[:,3]-8*df_t[:,1]+df_t[:,0])/(12*dV)
-            ds_dv = ds_dv + (-df_t[:,4]+16*df_t[:,3]-30*df_t[:,2]+16*df_t[:,1]-df_t[:,0])/(12*dV**2) * (vol4[:]-ph_volumes[2])
-            ds_dv = ds_dv + 1.0/2.0 *(df_t[:,4]-2*df_t[:,3]+2*df_t[:,1]-df_t[:,0])/(2*dV**3) * (vol4[:]-ph_volumes[2])**2
-            ds_dv = ds_dv + 1.0/6.0 * (df_t[:,4]-4*df_t[:,3]+6*df_t[:,2]-4*df_t[:,1]+df_t[:,0])/(dV**4)* (vol4[:]-ph_volumes[2])**3
-            D2F = E2D_V[:]+d2fe_dV2[:] + (vol4[:]-ph_volumes[2])*d3fe_dV3[:]+0.5*(vol4[:]-ph_volumes[2])**2*d4fe_dV4[:]
+            ds_dv = ds_dv + (-df_t[:,4]+16*df_t[:,3]-30*df_t[:,2]+16*df_t[:,1]-df_t[:,0])/(12*dV**2) * (vols[:]-ph_volumes[2])
+            ds_dv = ds_dv + 1.0/2.0 *(df_t[:,4]-2*df_t[:,3]+2*df_t[:,1]-df_t[:,0])/(2*dV**3) * (vols[:]-ph_volumes[2])**2
+            ds_dv = ds_dv + 1.0/6.0 * (df_t[:,4]-4*df_t[:,3]+6*df_t[:,2]-4*df_t[:,1]+df_t[:,0])/(dV**4)* (vols[:]-ph_volumes[2])**3
+            D2F = E2D_V[:]+d2fe_dV2[:] + (vols[:]-ph_volumes[2])*d3fe_dV3[:]+0.5*(vols[:]-ph_volumes[2])**2*d4fe_dV4[:]
             if tref is None:
-                alpha_4 = - 1/vol4[:] * ds_dv / D2F
+                alpha_4 = - 1/vols[:] * ds_dv / D2F
             else:
                 vol4_ref,fits = self.vol_Einf_Vib4(num=1, tstop=tref, tstart=tref)
                 b0 = np.array([fit.b0 for fit in fits])
@@ -861,13 +862,13 @@ class Vzsisa(HasPickleIO):
             volumes:
         """
         param = np.zeros((num, 4))
-        param = np.polyfit(self.volumes, self.lattice_a, 3)
+        param = np.polyfit(self.bo_volumes, self.lattice_a, 3)
         pa = np.poly1d(param)
         aa_qha = pa(volumes)
-        param = np.polyfit(self.volumes, self.lattice_b, 3)
+        param = np.polyfit(self.bo_volumes, self.lattice_b, 3)
         pb = np.poly1d(param)
         bb_qha = pb(volumes)
-        param = np.polyfit(self.volumes, self.lattice_c, 3)
+        param = np.polyfit(self.bo_volumes, self.lattice_c, 3)
         pc = np.poly1d(param)
         cc_qha = pc(volumes)
 
@@ -881,13 +882,13 @@ class Vzsisa(HasPickleIO):
             num: int, optional Number of samples to generate.
         """
         param = np.zeros((num, 4))
-        param = np.polyfit(self.volumes, self.angles_alpha, 3)
+        param = np.polyfit(self.bo_volumes, self.angles_alpha, 3)
         pa = np.poly1d(param)
         gamma = pa(volumes)
-        param = np.polyfit(self.volumes, self.angles_beta, 3)
+        param = np.polyfit(self.bo_volumes, self.angles_beta, 3)
         pb = np.poly1d(param)
         beta = pb(volumes)
-        param = np.polyfit(self.volumes, self.angles_gamma, 3)
+        param = np.polyfit(self.bo_volumes, self.angles_gamma, 3)
         pc = np.poly1d(param)
         alpha = pc(volumes)
 
@@ -912,7 +913,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
         ph_volumes = self.ph_volumes
@@ -920,27 +921,27 @@ class Vzsisa(HasPickleIO):
         columns = ['#Tmesh']
 
         if self.scale_points == "S":
-            vol2, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
+            vols2, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol2_tref, fits = self.vol_E2Vib1(num=1, tstop=tref, tstart=tref)
 
         if len(self.index_list) == 2:
-            vol, fits = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
+            vols, fits = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref, fits = self.vol_Einf_Vib1(num=1, tstop=tref, tstart=tref)
             method = r"$ (E_\infty Vib1)$"
 
         if len(self.index_list) == 3:
-            vol, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
+            vols, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref, fits = self.vol_Einf_Vib2(num=1, tstop=tref, tstart=tref)
             method = r"$ (E_\infty Vib2)$"
 
         if len(self.index_list) == 5:
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies_vt
             f0 = self.fit_tot_energies(tstart, tstop, num, tot_en, self.ph_volumes)
             method = r"$ (E_\infty Vib4)$"
-            vol, fits = self.vol_Einf_Vib4(num=num, tstop=tstop, tstart=tstart)
+            vols, fits = self.vol_Einf_Vib4(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref, fits = self.vol_Einf_Vib4(num=1, tstop=tref, tstart=tref)
 
@@ -948,7 +949,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
         dt = tmesh[1] - tmesh[0]
 
-        aa, bb, cc = self.get_abc(vol, num=num)
+        aa, bb, cc = self.get_abc(vols, num=num)
         if tref is not None:
             aa_tref, bb_tref, cc_tref = self.get_abc(vol_tref, num=1)
 
@@ -972,8 +973,8 @@ class Vzsisa(HasPickleIO):
         data_to_save = np.column_stack((data_to_save, alpha_a, alpha_b, alpha_c))
         columns.append( method_header)
 
-        if abs(abs(self.volumes[self.iv0] - ph_volumes[iv0]) - abs(ph_volumes[iv1] - self.volumes[self.iv0])) < 1e-3 :
-            aa2,bb2,cc2 = self.get_abc(vol2, num=num)
+        if abs(abs(self.bo_volumes[self.iv0] - ph_volumes[iv0]) - abs(ph_volumes[iv1] - self.bo_volumes[self.iv0])) < 1e-3 :
+            aa2,bb2,cc2 = self.get_abc(vols2, num=num)
             if tref is not None:
                 aa2_tref, bb2_tref, cc2_tref = self.get_abc(vol2_tref, num=1)
 
@@ -1022,7 +1023,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
         ph_volumes = self.ph_volumes
@@ -1030,27 +1031,27 @@ class Vzsisa(HasPickleIO):
         columns = ['#Tmesh']
 
         if self.scale_points == "S":
-            vol2, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
+            vols2, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol2_tref, fits = self.vol_E2Vib1(num=1, tstop=tref, tstart=tref)
 
         if len(self.index_list) == 2:
-            vol, fits = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
+            vols, fits = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref, fits = self.vol_Einf_Vib1(num=1, tstop=tref, tstart=tref)
             method = r"$ (E_\infty Vib1)$"
 
         if len(self.index_list) == 3:
-            vol, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
+            vols, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref, fits = self.vol_Einf_Vib2(num=1, tstop=tref, tstart=tref)
             method = r"$ (E_\infty Vib2)$"
 
         if len(self.index_list) == 5:
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies_vt
             f0 = self.fit_tot_energies(tstart, tstop, num, tot_en, self.ph_volumes)
             method = r"$ (E_\infty Vib4)$"
-            vol, fits = self.vol_Einf_Vib4(num=num, tstop=tstop, tstart=tstart)
+            vols, fits = self.vol_Einf_Vib4(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref, fits = self.vol_Einf_Vib4(num=1, tstop=tref, tstart=tref)
 
@@ -1058,7 +1059,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
         dt = tmesh[1] - tmesh[0]
 
-        alpha, beta, cc = self.get_angles(vol, num=1)
+        alpha, beta, cc = self.get_angles(vols, num=1)
         if tref is not None:
             alpha_tref, beta_tref, cc_tref = self.get_angles(vol_tref, num=1)
 
@@ -1082,8 +1083,8 @@ class Vzsisa(HasPickleIO):
         data_to_save = np.column_stack((data_to_save,alpha_alpha,alpha_beta,alpha_gamma))
         columns.append( method_header)
 
-        if abs(abs(self.volumes[self.iv0] - ph_volumes[iv0]) - abs(ph_volumes[iv1]-self.volumes[self.iv0]))<1e-3 :
-            alpha2,beta2,cc2 = self.get_angles(vol2, num=num)
+        if abs(abs(self.bo_volumes[self.iv0] - ph_volumes[iv0]) - abs(ph_volumes[iv1]-self.bo_volumes[self.iv0]))<1e-3 :
+            alpha2, beta2, cc2 = self.get_angles(vols2, num=num)
             if tref is not None:
                 alpha2_tref, beta2_tref, cc2_tref = self.get_angles(vol2_tref, num=1)
 
@@ -1106,7 +1107,6 @@ class Vzsisa(HasPickleIO):
             columns.append( 'E2vib1 (alpha_alpha,alpha_beta,alpha_gamma)   ')
 
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'$\alpha$ (K$^{-1}$)')
-
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
@@ -1131,7 +1131,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
         ph_volumes = self.ph_volumes
@@ -1139,26 +1139,26 @@ class Vzsisa(HasPickleIO):
         data_to_save = tmesh
         columns = ['#Tmesh']
         if self.scale_points == "S":
-            vol2, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
-            aa2, bb2, cc2 = self.get_abc(vol2, num=num)
+            vols2, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
+            aa2, bb2, cc2 = self.get_abc(vols2, num=num)
             data_to_save = np.column_stack((data_to_save, aa2, bb2, cc2))
             columns.append( 'E2vib1 (a,b,c) |            ')
 
         if len(self.index_list) == 2:
-            vol, fits = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
+            vols, fits = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
             method = r"$ (E_\infty Vib1)$"
 
         if len(self.index_list) == 3:
-            vol, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
+            vols, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
             method = r"$ (E_\infty Vib2)$"
 
         if len(self.index_list) == 5:
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies_vt
             f0 = self.fit_tot_energies(tstart, tstop, num, tot_en, self.ph_volumes)
             method = r"$ (E_\infty Vib4)$"
-            vol, fits = self.vol_Einf_Vib4(num=num, tstop=tstop, tstart=tstart)
+            vols, fits = self.vol_Einf_Vib4(num=num, tstop=tstop, tstart=tstart)
 
-        aa, bb, cc = self.get_abc(vol, num=num)
+        aa, bb, cc = self.get_abc(vols, num=num)
 
         method_header = method + "  (a,b,c) |"
         data_to_save = np.column_stack((data_to_save, aa, bb, cc))
@@ -1171,7 +1171,7 @@ class Vzsisa(HasPickleIO):
         if lattice is None or lattice == "c":
             ax.plot(tmesh, cc, color='m', lw=2, label=r"$c(V(T))$" + method)
 
-        if abs(abs(self.volumes[self.iv0] - ph_volumes[iv0]) - abs(ph_volumes[iv1]-self.volumes[self.iv0])) < 1e-3:
+        if abs(abs(self.bo_volumes[self.iv0] - ph_volumes[iv0]) - abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3:
             if lattice is None or lattice == "a":
                 ax.plot(tmesh, aa2, linestyle='dashed', color='r', lw=2, label=r"$a(V(T))$""E2vib1")
             if lattice is None or lattice == "b":
@@ -1208,7 +1208,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
         ph_volumes = self.ph_volumes
@@ -1216,26 +1216,26 @@ class Vzsisa(HasPickleIO):
         data_to_save = tmesh
         columns = ['#Tmesh']
         if self.scale_points == "S":
-            vol2, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
-            alpha2, beta2, gamma2 = self.get_angles(vol2, num=num)
+            vols2, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
+            alpha2, beta2, gamma2 = self.get_angles(vols2, num=num)
             data_to_save = np.column_stack((data_to_save, alpha2, beta2, gamma2))
             columns.append( 'E2vib1 (alpha,beta,gamma) |            ')
 
         if len(self.index_list) == 2:
-            vol, fits = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
+            vols, fits = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
             method = r"$ (E_\infty Vib1)$"
 
         if len(self.index_list) == 3:
-            vol, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
+            vols, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
             method = r"$ (E_\infty Vib2)$"
 
         if len(self.index_list) == 5:
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies_vt
             f0 = self.fit_tot_energies(tstart, tstop, num, tot_en, self.ph_volumes)
             method = r"$ (E_\infty Vib4)$"
-            vol, fits = self.vol_Einf_Vib4(num=num, tstop=tstop, tstart=tstart)
+            vols, fits = self.vol_Einf_Vib4(num=num, tstop=tstop, tstart=tstart)
 
-        alpha, beta, gamma = self.get_angles(vol, num=num)
+        alpha, beta, gamma = self.get_angles(vols, num=num)
 
         method_header = method + "  (alpha,beta,gamm) |"
         data_to_save = np.column_stack((data_to_save, alpha, beta, gamma))
@@ -1248,7 +1248,7 @@ class Vzsisa(HasPickleIO):
         if angle is None or angle == 3:
             ax.plot(tmesh, gamma, color='m', lw=2, label=r"$gamma(V(T))$" + method)
 
-        if abs(abs(self.volumes[self.iv0] - ph_volumes[iv0])-abs(ph_volumes[iv1]-self.volumes[self.iv0]))<1e-3 :
+        if abs(abs(self.bo_volumes[self.iv0] - ph_volumes[iv0])-abs(ph_volumes[iv1]-self.bo_volumes[self.iv0]))<1e-3 :
             if angle is None or angle == 1:
                 ax.plot(tmesh, alpha2, linestyle='dashed', color='r', lw=2, label=r"$alpha(V(T))$""E2vib1")
             if angle is None or angle == 2:
@@ -1299,8 +1299,8 @@ class Vzsisa(HasPickleIO):
             p = np.poly1d(param[j])
             p2 = np.poly1d(param2[j])
             p3 = np.poly1d(param3[j])
-            min_vol[j] = self.volumes[self.iv0]
-            vv = self.volumes[self.iv0]
+            min_vol[j] = self.bo_volumes[self.iv0]
+            vv = self.bo_volumes[self.iv0]
             while p2(min_vol[j])**2 > 1e-16:
                 min_vol[j] = min_vol[j]-p2(min_vol[j])*10
 
@@ -1322,24 +1322,24 @@ class Vzsisa(HasPickleIO):
         iv1 = self.iv1_vib
 
         dV = self.ph_volumes[iv1] - self.ph_volumes[iv0]
-        V0 = self.volumes[self.iv0]
+        V0 = self.bo_volumes[self.iv0]
 
-        energy = self.energies[np.newaxis, :].T
-        f = self.fit_forth(tstart=0, tstop=0, num=1, energy=energy, volumes=self.volumes)
+        energy = self.bo_energies[np.newaxis, :].T
+        f = self.fit_forth(tstart=0, tstop=0, num=1, energy=energy, volumes=self.bo_volumes)
         param3 = np.zeros((num,3))
         param3 = np.array([12*f.param[0][0],6*f.param[0][1],2*f.param[0][2]])
         p3 = np.poly1d(param3)
         E2D = p3(V0)
 
         # Get phonon free energies in eV.
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
-        vol = np.zeros(num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
 
-        for i, e in enumerate(ph_energies.T):
+        vols = np.zeros(num)
+        for i, e in enumerate(ph_energies_vt.T):
             dfe_dV1 = (e[iv1]-e[iv0])/dV
-            vol[i] = V0-dfe_dV1*E2D**-1
+            vols[i] = V0-dfe_dV1*E2D**-1
 
-        return vol
+        return vols
 
     def vol_EinfVib1_forth(self, tstart=0, tstop=1000, num=101) -> np.ndarray:
         """
@@ -1357,21 +1357,20 @@ class Vzsisa(HasPickleIO):
 
         dV = self.ph_volumes[iv1] - self.ph_volumes[iv0]
 
-        energy = self.energies[np.newaxis, :].T
+        energy = self.bo_energies[np.newaxis, :].T
         # Get phonon free energies in eV.
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
-        vol = np.zeros( num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
 
         dfe_dV = np.zeros( num)
 
-        for i, e in enumerate(ph_energies.T):
+        for i, e in enumerate(ph_energies_vt.T):
             dfe_dV[i] = (e[iv1]-e[iv0])/dV
 
-        tot_en = self.energies[np.newaxis, :].T + ( self.volumes[np.newaxis, :].T -V0) * dfe_dV
-        f = self.fit_forth(tstart, tstop, num, tot_en, self.volumes)
-        vol = f.min_vol
+        tot_en = self.bo_energies[np.newaxis, :].T + ( self.bo_volumes[np.newaxis, :].T -V0) * dfe_dV
+        f = self.fit_forth(tstart, tstop, num, tot_en, self.bo_volumes)
+        vols = f.min_vol
 
-        return vol
+        return vols
 
     def vol_Einf_Vib2_forth(self, tstart=0, tstop=1000, num=101) -> np.ndarray:
         """
@@ -1385,10 +1384,8 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV.
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
-        energies = self.energies
-        volumes = self.volumes
-        vol = np.zeros(num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
+        energies = self.bo_energies
         dfe_dV = np.zeros(num)
         d2fe_dV2 = np.zeros(num)
         fe_V0 = np.zeros(num)
@@ -1400,18 +1397,18 @@ class Vzsisa(HasPickleIO):
         dV = self.ph_volumes[iv0] - self.ph_volumes[iv0-1]
         V0 = self.ph_volumes[iv0]
 
-        for i, e in enumerate(ph_energies.T):
+        for i, e in enumerate(ph_energies_vt.T):
             dfe_dV[i] = (e[iv0+1]-e[iv0-1])/(2*dV)
             d2fe_dV2[i] = (e[iv0+1]-2.0*e[iv0]+e[iv0-1])/(dV)**2
             fe_V0[i] = e[iv0]
 
-        tot_en = self.energies[np.newaxis, :].T + ( self.volumes[np.newaxis, :].T - V0) * dfe_dV
-        tot_en = tot_en + 0.5 * ((self.volumes[np.newaxis, :].T - V0))**2 * (d2fe_dV2)
+        tot_en = self.bo_energies[np.newaxis, :].T + ( self.bo_volumes[np.newaxis, :].T - V0) * dfe_dV
+        tot_en = tot_en + 0.5 * ((self.bo_volumes[np.newaxis, :].T - V0))**2 * (d2fe_dV2)
         tot_en = tot_en + fe_V0
-        f = self.fit_forth(tstart, tstop, num, tot_en,self.volumes)
-        vol = f.min_vol
+        f = self.fit_forth(tstart, tstop, num, tot_en, self.bo_volumes)
+        vols = f.min_vol
 
-        return vol
+        return vols
 
     def vol_Einf_Vib4_forth(self, tstart=0, tstop=1000, num=101) -> np.ndarray:
         """
@@ -1426,10 +1423,9 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV.
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
-        energies = self.energies
-        volumes = self.volumes
-        vol = np.zeros(num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
+        energies = self.bo_energies
+        bo_volumes = self.bo_volumes
         dfe_dV1 = np.zeros(num)
         dfe_dV2 = np.zeros(num)
         dfe_dV3 = np.zeros(num)
@@ -1438,7 +1434,7 @@ class Vzsisa(HasPickleIO):
         iv0 = 2
         dV = self.ph_volumes[2] - self.ph_volumes[1]
 
-        for i,e in enumerate(ph_energies.T):
+        for i,e in enumerate(ph_energies_vt.T):
             dfe_dV1[i] = (-e[iv0+2]+ 8*e[iv0+1]-8*e[iv0-1]+e[iv0-2])/(12*dV)
             dfe_dV2[i] = (-e[iv0+2]+16*e[iv0+1]-30*e[iv0]+16*e[iv0-1]-e[iv0-2])/(12*dV**2)
             dfe_dV3[i] = (e[iv0+2]-2*e[iv0+1]+2*e[iv0-1]-e[iv0-2])/(2*dV**3)
@@ -1447,14 +1443,14 @@ class Vzsisa(HasPickleIO):
 
         V0 = self.ph_volumes[iv0]
 
-        tot_en = (volumes[np.newaxis, :].T - V0) * dfe_dV1 + 0.5 * (volumes[np.newaxis, :].T - V0)**2 * (dfe_dV2)
-        tot_en = tot_en+( volumes[np.newaxis, :].T -V0)**3 * dfe_dV3/6 + ( volumes[np.newaxis, :].T - V0)**4 * (dfe_dV4/24)
+        tot_en = (bo_volumes[np.newaxis, :].T - V0) * dfe_dV1 + 0.5 * (bo_volumes[np.newaxis, :].T - V0)**2 * (dfe_dV2)
+        tot_en = tot_en + (bo_volumes[np.newaxis, :].T -V0)**3 * dfe_dV3/6 + (bo_volumes[np.newaxis, :].T - V0)**4 * (dfe_dV4/24)
         tot_en = tot_en + fe_V0 + energies[np.newaxis, :].T
 
-        f = self.fit_forth(tstart, tstop, num, tot_en, self.volumes)
-        vol = f.min_vol
+        f = self.fit_forth(tstart, tstop, num, tot_en, self.bo_volumes)
+        vols = f.min_vol
 
-        return vol
+        return vols
 
     @add_fig_kwargs
     def plot_vol_vs_t_4th(self, tstart=0, tstop=1000, num=101, ax=None, fontsize=10, **kwargs) -> Figure:
@@ -1472,7 +1468,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV.
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
         ph_volumes = self.ph_volumes
@@ -1499,7 +1495,7 @@ class Vzsisa(HasPickleIO):
             columns.append( 'Einfvib2')
 
         if len(self.index_list) == 5:
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies_vt
             f0 = self.fit_forth( tstart, tstop, num ,tot_en, ph_volumes)
             vol4_4th = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
             ax.plot(tmesh, vol4_4th,color='c', lw=2  ,label=r"$E_\infty Vib4$")
@@ -1508,7 +1504,7 @@ class Vzsisa(HasPickleIO):
             columns.append( 'Einfvib4')
             columns.append( 'QHA')
 
-        ax.plot(0, self.volumes[self.iv0], color='g', lw=0, marker='o', ms=10, label="V0")
+        ax.plot(0, self.bo_volumes[self.iv0], color='g', lw=0, marker='o', ms=10, label="V0")
         set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'V (${\AA}^3$)')
         ax.set_xlim(tstart, tstop)
 
@@ -1529,8 +1525,8 @@ class Vzsisa(HasPickleIO):
                   If tref is None, it uses 1/V(T) * dV(T)/dT instead.
         """
         # Get phonon free energies in eV.
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
-        tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
+        tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies_vt
         f = self.fit_forth(tstart, tstop, num, tot_en, self.ph_volumes)
         if tref is not None:
             ph_energies2 = self.get_vib_free_energies(tref, tref, 1)
@@ -1540,12 +1536,10 @@ class Vzsisa(HasPickleIO):
         dt = f.temp[1] - f.temp[0]
         thermo = self.get_thermodynamic_properties(tstart=tstart, tstop=tstop, num=num)
         entropy = thermo.entropy.T #* abu.e_Cb * abu.Avogadro
-        df_t = np.zeros((num, self.ph_nvols))
         df_t = - entropy
         param = np.zeros((num,4))
         param2 = np.zeros((num,3))
         d2f_t_v = np.zeros(num)
-        gamma = np.zeros(num)
 
         for j in range(num):
             param[j] = np.polyfit(self.ph_volumes, df_t[j], 3)
@@ -1581,11 +1575,10 @@ class Vzsisa(HasPickleIO):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         # Get phonon free energies in eV.
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
         tmesh = np.linspace(tstart, tstop, num)
         thermo = self.get_thermodynamic_properties(tstart=tstart, tstop=tstop, num=num)
         entropy = thermo.entropy.T #* abu.e_Cb * abu.Avogadro
-        df_t = np.zeros((num, self.ph_nvols))
         df_t = - entropy
         ph_volumes = self.ph_volumes
 
@@ -1594,15 +1587,15 @@ class Vzsisa(HasPickleIO):
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
         dV = ph_volumes[iv0+1] - ph_volumes[iv0]
-        energy = self.energies[np.newaxis, :].T
-        f = self.fit_forth( tstart=0, tstop=0, num=1, energy=energy, volumes=self.volumes)
+        energy = self.bo_energies[np.newaxis, :].T
+        f = self.fit_forth( tstart=0, tstop=0, num=1, energy=energy, volumes=self.bo_volumes)
         param3 = np.zeros((num,3))
         param3 = np.array([12*f.param[0][0],6*f.param[0][1],2*f.param[0][2]])
         p3 = np.poly1d(param3)
 
         if self.scale_points == "S":
             vol_4th = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
-            E2D = p3(self.volumes[self.iv0])
+            E2D = p3(self.bo_volumes[self.iv0])
             if tref is None:
                 alpha_1 = - 1/vol_4th[:] * (df_t[:,iv1]-df_t[:,iv0])/(ph_volumes[iv1]-ph_volumes[iv0]) / E2D
             else :
@@ -1623,7 +1616,7 @@ class Vzsisa(HasPickleIO):
                 vol2_4th_ref = self.vol_EinfVib1_forth(num=1, tstop=tref, tstart=tref)
                 alpha_2 = - 1/vol2_4th_ref * (df_t[:,iv1]-df_t[:,iv0])/(ph_volumes[iv1]-ph_volumes[iv0]) / E2D_V[:]
 
-            ax.plot(tmesh, alpha_2,color='gold', lw=2 ,  label=r"$E_\infty Vib1$")
+            ax.plot(tmesh, alpha_2,color='gold', lw=2, label=r"$E_\infty Vib1$")
             data_to_save = np.column_stack((data_to_save, alpha_2))
             columns.append( 'Einfvib1')
 
@@ -1631,7 +1624,7 @@ class Vzsisa(HasPickleIO):
             vol3_4th = self.vol_Einf_Vib2_forth(num=num, tstop=tstop, tstart=tstart)
             E2D_V = p3(vol3_4th)
             dfe_dV2 = np.zeros(num)
-            for i,e in enumerate(ph_energies.T):
+            for i,e in enumerate(ph_energies_vt.T):
                 dfe_dV2[i] = (e[iv0+2]-2.0*e[iv0+1]+e[iv0])/(dV)**2
 
             ds_dv = (df_t[:,iv0+2]-df_t[:,iv0])/(2*dV)
@@ -1642,7 +1635,7 @@ class Vzsisa(HasPickleIO):
                 vol3_4th_ref = self.vol_Einf_Vib2_forth(num=1, tstop=tref, tstart=tref)
                 alpha_3 = - 1/vol3_4th_ref * ds_dv / (E2D_V[:]+dfe_dV2[:])
 
-            ax.plot(tmesh, alpha_3,color='m', lw=2 ,  label=r"$E_\infty Vib2$")
+            ax.plot(tmesh, alpha_3,color='m', lw=2, label=r"$E_\infty Vib2$")
             data_to_save = np.column_stack((data_to_save, alpha_3))
             columns.append( 'Einfvib2')
 
@@ -1653,7 +1646,7 @@ class Vzsisa(HasPickleIO):
             d2fe_dV2 = np.zeros(num)
             d3fe_dV3 = np.zeros(num)
             d4fe_dV4 = np.zeros(num)
-            for i,e in enumerate(ph_energies.T):
+            for i,e in enumerate(ph_energies_vt.T):
                 d2fe_dV2[i] = (-e[4]+16*e[3]-30*e[2]+16*e[1]-e[0])/(12*dV**2)
                 d3fe_dV3[i] = (e[4]-2*e[3]+2*e[1]-e[0])/(2*dV**3)
                 d4fe_dV4[i] = (e[4]-4*e[3]+6*e[2]-4*e[1]+e[0])/(dV**4)
@@ -1706,7 +1699,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV.
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
         ph_volumes = self.ph_volumes
@@ -1714,26 +1707,26 @@ class Vzsisa(HasPickleIO):
         data_to_save = tmesh
         columns = ['#Tmesh']
         if self.scale_points == "S":
-            vol2 = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
-            aa2, bb2, cc2 = self.get_abc(vol2, num=num)
+            vols2 = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
+            aa2, bb2, cc2 = self.get_abc(vols2, num=num)
             data_to_save = np.column_stack((data_to_save, aa2, bb2, cc2))
             columns.append( 'E2vib1 (a,b,c) |            ')
 
         if len(self.index_list) == 2:
-            vol = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
+            vols = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
             method = r"$ (E_\infty Vib1)$"
 
         if len(self.index_list) == 3:
-            vol = self.vol_Einf_Vib2_forth(num=num, tstop=tstop, tstart=tstart)
+            vols = self.vol_Einf_Vib2_forth(num=num, tstop=tstop, tstart=tstart)
             method = r"$ (E_\infty Vib2)$"
 
         if len(self.index_list) == 5:
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies_vt
             f0 = self.fit_forth(tstart, tstop, num, tot_en, ph_volumes)
             method = r"$ (E_\infty Vib4)$"
-            vol = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
+            vols = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
 
-        aa, bb, cc = self.get_abc(vol, num=num)
+        aa, bb, cc = self.get_abc(vols, num=num)
 
         method_header = method + "  (a,b,c) |"
         data_to_save = np.column_stack((data_to_save, aa, bb, cc))
@@ -1746,7 +1739,7 @@ class Vzsisa(HasPickleIO):
         if lattice is None or lattice == "c":
             ax.plot(tmesh, cc, color='m', lw=2, label=r"$c(V(T))$" + method)
 
-        if abs(abs(self.volumes[self.iv0] - ph_volumes[iv0])-abs(ph_volumes[iv1]-self.volumes[self.iv0])) < 1e-3 :
+        if abs(abs(self.bo_volumes[self.iv0] - ph_volumes[iv0])-abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3 :
             if lattice is None or lattice == "a":
                 ax.plot(tmesh, aa2, linestyle='dashed', color='r', lw=2, label=r"$a(V(T))$""E2vib1")
             if lattice is None or lattice == "b":
@@ -1782,7 +1775,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV.
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
         ph_volumes = self.ph_volumes
@@ -1790,26 +1783,26 @@ class Vzsisa(HasPickleIO):
         data_to_save = tmesh
         columns = ['#Tmesh']
         if self.scale_points == "S":
-            vol2 = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
-            alpha2, beta2, gamma2 = self.get_angles(vol2, num=num)
+            vols2 = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
+            alpha2, beta2, gamma2 = self.get_angles(vols2, num=num)
             data_to_save = np.column_stack((data_to_save, alpha2, beta2, gamma2))
             columns.append( 'E2vib1 (alpha,beta,gamma) |            ')
 
         if len(self.index_list) == 2:
-            vol = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
+            vols = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
             method = r"$ (E_\infty Vib1)$"
 
         if len(self.index_list) == 3:
-            vol = self.vol_Einf_Vib2_forth(num=num, tstop=tstop, tstart=tstart)
+            vols = self.vol_Einf_Vib2_forth(num=num, tstop=tstop, tstart=tstart)
             method = r"$ (E_\infty Vib2)$"
 
         if len(self.index_list) == 5:
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies_vt
             f0 = self.fit_forth(tstart, tstop, num, tot_en, ph_volumes)
             method = r"$ (E_\infty Vib4)$"
-            vol = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
+            vols = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
 
-        alpha, beta, gamma = self.get_angles(vol, num=num)
+        alpha, beta, gamma = self.get_angles(vols, num=num)
 
         method_header = method + "  (alpha,beta,gamma) |"
         data_to_save = np.column_stack((data_to_save, alpha, beta, gamma))
@@ -1822,7 +1815,7 @@ class Vzsisa(HasPickleIO):
         if angle is None or angle == 3:
             ax.plot(tmesh, gamma, color='m', lw=2, label=r"$gamma(V(T))$" + method)
 
-        if abs(abs(self.volumes[self.iv0]- ph_volumes[iv0])-abs(ph_volumes[iv1]-self.volumes[self.iv0])) < 1e-3:
+        if abs(abs(self.bo_volumes[self.iv0]- ph_volumes[iv0])-abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3:
             if angle is None or angle == 1:
                 ax.plot(tmesh, alpha2, linestyle='dashed', color='r', lw=2, label=r"$alpha(V(T))$""E2vib1")
             if angle is None or angle == 2:
@@ -1857,7 +1850,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV.
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
         ph_volumes = self.ph_volumes
@@ -1865,27 +1858,27 @@ class Vzsisa(HasPickleIO):
         data_to_save = tmesh[1:-1]
         columns = ['#Tmesh']
         if self.scale_points == "S":
-            vol2 = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
+            vols2 = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol2_tref = self.vol_E2Vib1_forth(num=1, tstop=tref, tstart=tref)
 
         if len(self.index_list) == 2:
-            vol = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
+            vols = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref = self.vol_EinfVib1_forth(num=1, tstop=tref, tstart=tref)
             method = r"$ (E_\infty Vib1)$"
 
         if len(self.index_list) == 3:
-            vol = self.vol_Einf_Vib2_forth(num=num, tstop=tstop, tstart=tstart)
+            vols = self.vol_Einf_Vib2_forth(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref = self.vol_Einf_Vib2_forth(num=1, tstop=tref, tstart=tref)
             method = r"$ (E_\infty Vib2)$"
 
         if len(self.index_list) == 5:
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies_vt
             f0 = self.fit_forth(tstart, tstop, num, tot_en, ph_volumes)
             method = r"$ (E_\infty Vib4)$"
-            vol = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
+            vols = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref = self.vol_Einf_Vib4_forth(num=1, tstop=tref, tstart=tref)
 
@@ -1893,7 +1886,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
         dt = tmesh[1] - tmesh[0]
 
-        aa,bb,cc = self.get_abc(vol, num=num)
+        aa,bb,cc = self.get_abc(vols, num=num)
         if tref is not None:
             aa_tref, bb_tref, cc_tref = self.get_abc(vol_tref, num=1)
 
@@ -1917,8 +1910,8 @@ class Vzsisa(HasPickleIO):
         data_to_save = np.column_stack((data_to_save, alpha_a, alpha_b, alpha_c))
         columns.append(method_header)
 
-        if abs(abs(self.volumes[self.iv0]-ph_volumes[iv0])-abs(ph_volumes[iv1]-self.volumes[self.iv0])) < 1e-3:
-            aa2, bb2, cc2 = self.get_abc(vol2, num=num)
+        if abs(abs(self.bo_volumes[self.iv0]-ph_volumes[iv0])-abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3:
+            aa2, bb2, cc2 = self.get_abc(vols2, num=num)
             if tref is not None:
                 aa2_tref, bb2_tref, cc2_tref = self.get_abc(vol2_tref, num=1)
 
@@ -1967,7 +1960,7 @@ class Vzsisa(HasPickleIO):
         tmesh = np.linspace(tstart, tstop, num)
 
         # Get phonon free energies in eV.
-        ph_energies = self.get_vib_free_energies(tstart, tstop, num)
+        ph_energies_vt = self.get_vib_free_energies(tstart, tstop, num)
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
         ph_volumes = self.ph_volumes
@@ -1975,34 +1968,34 @@ class Vzsisa(HasPickleIO):
         data_to_save = tmesh[1:-1]
         columns = ['#Tmesh']
         if self.scale_points == "S":
-            vol2 = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
+            vols2 = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol2_tref = self.vol_E2Vib1_forth(num=1, tstop=tref, tstart=tref)
 
         if len(self.index_list) == 2:
-            vol = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
+            vols = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref = self.vol_EinfVib1_forth(num=1, tstop=tref, tstart=tref)
             method = r"$ (E_\infty Vib1)$"
 
         if len(self.index_list) == 3:
-            vol = self.vol_Einf_Vib2_forth(num=num, tstop=tstop, tstart=tstart)
+            vols = self.vol_Einf_Vib2_forth(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref = self.vol_Einf_Vib2_forth(num=1, tstop=tref, tstart=tref)
             method = r"$ (E_\infty Vib2)$"
 
         if len(self.index_list) == 5:
-            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies
+            tot_en = self.energies_pdos[np.newaxis, :].T + ph_energies_vt
             f0 = self.fit_forth(tstart, tstop, num, tot_en, ph_volumes)
             method = r"$ (E_\infty Vib4)$"
-            vol = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
+            vols = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
                 vol_tref = self.vol_Einf_Vib4_forth(num=1, tstop=tref, tstart=tref)
 
         tmesh = np.linspace(tstart, tstop, num)
         dt = tmesh[1] - tmesh[0]
 
-        alpha, beta, gamma = self.get_angles(vol, num=num)
+        alpha, beta, gamma = self.get_angles(vols, num=num)
         if tref is not None:
             alpha_tref, beta_tref, gamma_tref = self.get_angles(vol_tref, num=1)
 
@@ -2027,8 +2020,8 @@ class Vzsisa(HasPickleIO):
         data_to_save = np.column_stack((data_to_save, alpha_alpha, alpha_beta, alpha_gamma))
         columns.append( method_header)
 
-        if abs(abs(self.volumes[self.iv0]-ph_volumes[iv0])-abs(ph_volumes[iv1]-self.volumes[self.iv0]))<1e-3 :
-            alpha2, beta2, gamma2 = self.get_angles(vol2, num=num)
+        if abs(abs(self.bo_volumes[self.iv0]-ph_volumes[iv0])-abs(ph_volumes[iv1]-self.bo_volumes[self.iv0]))<1e-3 :
+            alpha2, beta2, gamma2 = self.get_angles(vols2, num=num)
             if tref is not None:
                 alpha2_tref, beta2_tref, gamma2_tref = self.get_angles(vol2_tref, num=1)
 
@@ -2093,9 +2086,7 @@ class Vzsisa(HasPickleIO):
                 zpe: zero point energy in eV. Shape (ph_nvols).
         """
         tmesh = np.linspace(tstart, tstop, num)
-        cv = np.zeros((self.ph_nvols, num))
-        free_energy = np.zeros((self.ph_nvols, num))
-        entropy = np.zeros((self.ph_nvols, num))
+        cv, free_energy, entropy = (np.zeros((self.ph_nvols, num)) for _ in range(3))
         zpe = np.zeros(self.ph_nvols)
 
         for i, phdos in enumerate(self.phdoses):

@@ -1794,7 +1794,7 @@ class CalcBuilder:
             # In this release, we provide two checkpoints: MatterSim-v1.0.0-1M.pth and MatterSim-v1.0.0-5M.pth.
             # By default, the 1M version is loaded.
             load_path = "MatterSim-v1.0.0-1M.pth" if self.model_name is None else self.model_name
-            calc = _MatterSimCalculator(load_path="MatterSim-v1.0.0-5M.pth", device=device)
+            calc = _MatterSimCalculator(load_path=load_path, device=device)
 
         else:
             raise ValueError(f"Invalid {self.nn_type=}")

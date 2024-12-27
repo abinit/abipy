@@ -41,7 +41,7 @@ class QhaTest(AbipyTest):
         assert qha.to_string(verbose=1)
 
         data = qha.fit_tot_energies(tstart=0, tstop=0, num=1,
-                                    tot_energies=qha.energies[np.newaxis, :].T, volumes=qha.volumes)
+                                    tot_energies=qha.bo_energies[np.newaxis, :].T, volumes=qha.bo_volumes)
 
         self.assert_almost_equal(data.tot_en,
            [[-230.27531394],
