@@ -90,6 +90,7 @@ class ZsisaFlow(Flow):
 
         data["ddb_relax_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in work.ph_works]
         data["gsr_relax_edos_paths"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
+        data["gsr_relax_ebands_paths"] = [] if work.ndivsm == 0 else [ph_work.ebands_task.gsr_path for ph_work in work.ph_works]
 
         # Write json file
         mjson_write(data, self.outdir.path_in("zsisa.json"), indent=4)
@@ -214,8 +215,8 @@ class ThermalRelaxWork(Work):
     def from_relax_input(cls,
                          relax_input: AbinitInput,
                          zsisa,
-                         temperatures,
-                         pressures) -> ThermalRelaxWork:
+                         temperatures: list,
+                         pressures: list) -> ThermalRelaxWork:
         """
         Args:
             relax_input:
@@ -231,13 +232,9 @@ class ThermalRelaxWork(Work):
 
         for pressure_gpa in work.pressures_gpa:
             for temperature in work.temperatures:
-                #strtarget = zsisa.get_strtarget(temperature, pressure)
-                #converged, new_structure, strtarget = zsisa.get_new_guess(relaxed_structure,
-                #    self.temperature, self.pressure_gpa, tolerance)
-
                 new_input = relax_input.new_with_vars(strtarget=strtarget)
                 task = work.register_task(new_input, task_class=ThermalRelaxTask)
-                # Attach pressure and temperature
+                # Attach pressure and temperature to task.
                 task.pressure_gpa = pressure_gpa
                 task.temperature = temperature
 
@@ -269,7 +266,7 @@ class ThermalRelaxTask(RelaxTask):
 
         with self.open_gsr() as gsr:
             relaxed_structure = gsr.structure
-            # Stress tensor in GPa.
+            # Stress tensor is in GPa units
             cart_therm_stress = zsisa.get_cart_thermal_stress(relaxed_structure, self.temperature, self.pressure_gpa)
             converged = np.all(np.abs(cart_therm_stress - gsr.cart_stress_tensor)) < tol_gpa
 
@@ -285,7 +282,7 @@ class ThermalRelaxTask(RelaxTask):
         # Check for convergence.
         if not converged:
             # In fortran notation The components of the stress tensor must be stored according to:
-            # (1,1) →1; (2,2) → 2; (3,3) → 3; (2,3) → 4; (3,1) → 5; (1,2) →6
+            # (1,1) → 1; (2,2) → 2; (3,3) → 3; (2,3) → 4; (3,1) → 5; (1,2) → 6
             # TODO: strtarget refers to Cartesian coords I suppose! Also, check sign!
             strtarget = np.empty(6)
             strtarget[0] = cart_therm_stress[0,0]

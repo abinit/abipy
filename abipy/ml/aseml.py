@@ -34,13 +34,14 @@ from ase.io.trajectory import write_traj, Trajectory
 from ase.io import read
 from ase.optimize.optimize import Optimizer
 from ase.calculators.calculator import Calculator
+from ase.filters import ExpCellFilter
 from ase.io.vasp import write_vasp_xdatcar, write_vasp
 from ase.neb import NEB
 from ase.md.npt import NPT
 from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
 from ase.md.velocitydistribution import (MaxwellBoltzmannDistribution, Stationary, ZeroRotation)
-from ase.stress import voigt_6_to_full_3x3_strain
+from ase.stress import voigt_6_to_full_3x3_stress, full_3x3_to_voigt_6_stress
 from ase.calculators.calculator import PropertyNotImplementedError
 from abipy.core import Structure
 from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
@@ -55,6 +56,7 @@ from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, ge
     set_ax_xylabels, linear_fit_ax)
 from abipy.ml.tools import get_energy_step
 from pymatgen.io.vasp.outputs import Vasprun
+
 
 _CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
 
@@ -140,7 +142,6 @@ def write_atoms(atoms: Atoms, workdir, verbose: int,
         verbose: Verbosity level.
         formats: List of strings with file formats. If None all known formats are used.
         prefix: String to be prepended to filenames.
-        prefix: String to be appended to filenames.
     """
     workdir = Path(workdir)
     structure = Structure.as_structure(atoms)
@@ -217,7 +218,7 @@ class AseTrajectoryPlotter:
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose."""
         lines = [f"ASE trajectory with {len(self.traj)} configuration(s)."]
         app = lines.append
@@ -234,7 +235,7 @@ class AseTrajectoryPlotter:
         return "\n".join(lines)
 
     @add_fig_kwargs
-    def plot(self, fontsize=8, xlims=None, **kwargs) -> Figure:
+    def plot(self, fontsize=8, xlims=None, marker="o", **kwargs) -> Figure:
         """
         Plot energies, force stats, and pressure as a function of the trajectory index.
         """
@@ -244,7 +245,6 @@ class AseTrajectoryPlotter:
         # Plot total energy in eV.
         energies = [float(atoms.get_potential_energy()) for atoms in self.traj]
         ax = ax_list[0]
-        marker = "o"
         ax.plot(energies, marker=marker)
         ax.set_ylabel('Energy (eV)')
 
@@ -283,7 +283,7 @@ class AseTrajectoryPlotter:
         return fig
 
     @add_fig_kwargs
-    def plot_lattice(self, ax_list=None, fontsize=8, xlims=None, **kwargs) -> Figure:
+    def plot_lattice(self, ax_list=None, fontsize=8, marker="o", xlims=None, **kwargs) -> Figure:
         """
         Plot lattice lengths/angles/volume as a function the of the trajectory index.
 
@@ -320,7 +320,6 @@ class AseTrajectoryPlotter:
         # plot lattice volume.
         ax = ax_list[2]
         volumes = [atoms.get_volume() for atoms in self.traj]
-        marker = "o"
         ax.plot(volumes, label="Volume", marker=marker)
         ax.set_ylabel(r'$V\, (A^3)$')
 
@@ -361,7 +360,7 @@ class AseResults(HasPickleIO):
     magmoms: np.ndarray  # None if calculator does not provide magmoms.
 
     @classmethod
-    def from_traj_inds(cls, trajectory: Trajectory, *inds) -> AseResults:
+    def from_traj_inds(cls, trajectory: Trajectory, *inds) -> list[AseResults]:
         """Build list of AseResults from a trajectory and list of indices."""
         return [cls.from_atoms(trajectory[i]) for i in inds]
 
@@ -375,7 +374,7 @@ class AseResults(HasPickleIO):
         if with_stress:
             try:
                 stress_voigt = atoms.get_stress()
-                stress = voigt_6_to_full_3x3_strain(stress_voigt)
+                stress = voigt_6_to_full_3x3_stress(stress_voigt)
             except PropertyNotImplementedError:
                 stress = -np.eye(3)
 
@@ -383,7 +382,7 @@ class AseResults(HasPickleIO):
         if with_magmoms:
             try:
                 magmoms = atoms.get_magnetic_moments()
-            except PropertyNotImplementedError:
+            except (PropertyNotImplementedError, AttributeError):
                 pass
 
         results = cls(atoms=atoms.copy(),
@@ -402,7 +401,6 @@ class AseResults(HasPickleIO):
 
     def get_voigt_stress(self):
         """xx, yy, zz, yz, xz, xy"""
-        from ase.stress import full_3x3_to_voigt_6_stress
         return full_3x3_to_voigt_6_stress(self.stress)
 
     @property
@@ -1046,8 +1044,10 @@ class AseRelaxation:
         print_dataframe(df, end="\n", file=stream)
 
 
-def dataframe_from_results_list(index: list, results_list: list[AseResults],
-                                mode="smart") -> pd.DataFrame:
+def dataframe_from_results_list(index: list,
+                                results_list: list[AseResults],
+                                mode="smart"
+                                ) -> pd.DataFrame:
     assert len(index) == len(results_list)
     df = pd.DataFrame([r.get_dict4pandas() for r in results_list], index=index)
 
@@ -1087,9 +1087,17 @@ def ase_optimizer_cls(s: str | Optimizer) -> Type | list[str]:
     return getattr(optimize, s)
 
 
-def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pressure: float,
-                verbose: int, steps: int = 500,
-                opt_kwargs=None, traj_path=None, calculator=None) -> AseRelaxation:
+def relax_atoms(atoms: Atoms,
+                relax_mode: str,
+                optimizer: str,
+                fmax: float,
+                pressure: float,
+                verbose: int,
+                steps: int = 500,
+                opt_kwargs=None,
+                traj_path=None,
+                calculator=None
+                ) -> AseRelaxation:
     """
     Relax atoms using an ASE calculator and ASE algorithms.
 
@@ -1105,7 +1113,7 @@ def relax_atoms(atoms: Atoms, relax_mode: str, optimizer: str, fmax: float, pres
         traj_path:
         calculator:
     """
-    from ase.constraints import ExpCellFilter
+
     #from ase.filters import FrechetCellFilter
     RX_MODE.validate(relax_mode)
     if relax_mode == RX_MODE.no:
@@ -1250,7 +1258,7 @@ class _MyCalculator:
         ml_forces = self.get_forces(atoms=atoms)
         ml_stress = self.get_stress(atoms=atoms)
         if ml_stress.ndim == 1:
-            ml_stress = voigt_6_to_full_3x3_strain(ml_stress)
+            ml_stress = voigt_6_to_full_3x3_stress(ml_stress)
         self.reset()
         self.__ml_forces_list.append(ml_forces)
         self.__ml_stress_list.append(ml_stress)
@@ -1264,7 +1272,6 @@ class _MyCalculator:
             def fmt_vec6(vec6) -> str:
                 return "{:.6e} {:.6e} {:.6e} {:.6e} {:.6e} {:.6e}".format(*vec6)
 
-            from ase.stress import full_3x3_to_voigt_6_stress
             print("abi_stress6:", fmt_vec6(full_3x3_to_voigt_6_stress(abi_stress)))
             print("ml_stress6: ", fmt_vec6(full_3x3_to_voigt_6_stress(ml_stress)))
             for iat in range(len(atoms)):
@@ -1468,6 +1475,7 @@ class CalcBuilder:
         "deepmd",
         "orb",
         "sevenn",
+        "mattersim",
     ]
 
     def __init__(self, name: str, dftd3_args=None, **kwargs):
@@ -1540,7 +1548,7 @@ class CalcBuilder:
         if self.nn_type == "emt":
             # Set the calculator (EMT for testing purposes)
             from ase.calculators.emt import EMT
-            class MyEMTCalculator(_MyCalculator, EMTCalculator):
+            class MyEMTCalculator(_MyCalculator, EMT):
                 """Add abi_forces and abi_stress"""
 
             return MyEMTCalculator(**self.calc_kwargs)
@@ -1688,7 +1696,7 @@ class CalcBuilder:
             #     """Add abi_forces and abi_stress"""
 
             model = self.calc_kwargs.pop("model", "medium")
-            print("calc_kwargs:", self.calc_kwargs)
+            #print("calc_kwargs:", self.calc_kwargs)
 
             calc = mace_mp(model=model,
                            #cls=MyMACECalculator,
@@ -1791,9 +1799,10 @@ class CalcBuilder:
 
             import torch
             device = "cuda" if torch.cuda.is_available() else "cpu"
-            # In this release, we provide two checkpoints: MatterSim-v1.0.0-1M.pth and MatterSim-v1.0.0-5M.pth.
+            # In this release, we provide two checkpoints: MatterSim-v1.0.0-1M.pth and MatterSim-v1.0.0-5M.pth
             # By default, the 1M version is loaded.
             load_path = "MatterSim-v1.0.0-1M.pth" if self.model_name is None else self.model_name
+            #load_path = "MatterSim-v1.0.0-5M.pth"
             calc = _MatterSimCalculator(load_path=load_path, device=device)
 
         else:
@@ -1814,7 +1823,7 @@ class MlBase(HasPickleIO):
     and object persistence via pickle.
     """
 
-    def __init__(self, workdir, fig_ext: str = ".pdf", prefix=None, exist_ok=False):
+    def __init__(self, workdir, prefix=None, exist_ok=False, fig_ext: str = ".pdf"):
         """
         Build directory with `prefix` if `workdir` is None else create it.
         If exist_ok is False (the default), a FileExistsError is raised if the target directory already exists.
@@ -1845,6 +1854,11 @@ class MlBase(HasPickleIO):
         dirpath = self.workdir / basename
         dirpath.mkdir()
         return dirpath
+
+    def rmtree(self) -> None:
+        """Remove workdir."""
+        import shutil
+        shutil.rmtree(self.workdir)
 
     def get_path(self, basename: str, info: str) -> Path:
         """Return Path in workdir."""
@@ -1943,7 +1957,7 @@ import matplotlib.pyplot as plt
 
 class MlRelaxer(MlBase):
     """
-    Relax structure with ASE and ML-potential.
+    Relax a structure with ASE and ML-potential.
     """
 
     @classmethod
@@ -2073,14 +2087,23 @@ class MlRelaxer(MlBase):
 
         return filepath
 
-    def __init__(self, atoms: Atoms, relax_mode, fmax, pressure, steps, optimizer, nn_name, verbose,
-                 workdir, prefix=None):
+    def __init__(self,
+                 atoms: Atoms,
+                 relax_mode,
+                 fmax,
+                 pressure,
+                 steps,
+                 optimizer,
+                 nn_name,
+                 verbose,
+                 workdir,
+                 prefix=None):
         """
         Args:
             atoms: ASE atoms to relax.
-            relax_mode:
+            relax_mode: Relaxation mode.
             fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
-            pressure: Target pressure.
+            pressure: Target pressure in GPa.
             steps: max number of steps for relaxation.
             optimizer: name of the ASE optimizer to use for relaxation.
             nn_name: String defining the NN potential. See also CalcBuilder.
@@ -2137,7 +2160,6 @@ class MlRelaxer(MlBase):
 
         relax = relax_atoms(self.atoms, **relax_kws)
         relax.summarize(tags=["unrelaxed", "relaxed"])
-
         print(relax.to_string(verbose=self.verbose))
 
         # Write files with final structure and dynamics.
@@ -2270,8 +2292,19 @@ class MlMd(MlBase):
     Perform MD calculations with ASE and ML potential.
     """
 
-    def __init__(self, atoms: Atoms, temperature, pressure, timestep, steps, loginterval,
-                 ensemble, nn_name, verbose, workdir, prefix=None):
+    def __init__(self,
+                 atoms: Atoms,
+                 temperature,
+                 pressure,
+                 timestep,
+                 steps,
+                 loginterval,
+                 ensemble,
+                 nn_name,
+                 verbose,
+                 workdir,
+                 prefix=None
+                 ):
         """
         Args:
             atoms: ASE atoms.
@@ -2284,7 +2317,7 @@ class MlMd(MlBase):
             nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
             workdir: Working directory.
-            prefix:
+            prefix: String to be prepended to filenames.
         """
         super().__init__(workdir, prefix, exist_ok=True)
         self.atoms = atoms
@@ -2386,6 +2419,76 @@ log.plot(savefig=None)
         md.run(steps=self.steps)
 
 
+class MlRelaxerFromMdTraj(MlBase):
+    """
+    """
+    def __init__(self, traj_filepath, relax_mode, fmax, pressure, steps, optimizer, nn_name, verbose,
+                 workdir, prefix=None):
+        """
+        Args:
+            traj_filepath:
+            relax_mode:
+            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
+            pressure: Target pressure.
+            steps: max number of steps for relaxation.
+            optimizer: name of the ASE optimizer to use for relaxation.
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
+        """
+        super().__init__(workdir, prefix)
+        self.traj_filepath = traj_filepath
+        self.relax_mode = relax_mode
+        RX_MODE.validate(relax_mode)
+        self.fmax = fmax
+        self.steps = steps
+        self.optimizer = optimizer
+        self.pressure = pressure
+        self.nn_name = nn_name
+        self.verbose = verbose
+        self.initial_atoms = read(traj_filepath, index=0)
+
+    def to_string(self, verbose=0) -> str:
+        """String representation with verbosity level `verbose`."""
+        return f"""\
+
+{self.__class__.__name__} parameters:
+
+     relax_mode  = {self.relax_mode}
+     fmax        = {self.fmax}
+     steps       = {self.steps}
+     optimizer   = {self.optimizer}
+     pressure    = {self.pressure}
+     nn_name     = {self.nn_name}
+     workdir     = {self.workdir}
+     verbose     = {self.verbose}
+
+{self.initial_atoms}
+
+"""
+
+    def run(self):
+        """Run structural relaxation for selected configurations."""
+        workdir = self.workdir
+        calc = CalcBuilder(self.nn_name).get_calculator()
+        traj_step = 2
+        traj_index = slice(1, None, traj_step)
+        print(f"Relaxing structure with relax mode: {self.relax_mode} ...")
+        relax_kws = dict(optimizer=self.optimizer,
+                         relax_mode=self.relax_mode,
+                         fmax=self.fmax,
+                         pressure=self.pressure,
+                         steps=self.steps,
+                         #traj_path=self.get_path("relax.traj", "ASE relaxation trajectory"),
+                         verbose=self.verbose,
+                        )
+
+        for atoms in read(self.traj_filepath, index=traj_index):
+            relax = relax_atoms(atoms, **relax_kws)
+            #print(relax.to_string(verbose=self.verbose))
+
+        self._finalize()
+
+
 class _MlNebBase(MlBase):
     """
     Base class for Neb calculations
@@ -2451,7 +2554,7 @@ class MlGsList(_MlNebBase):
         self.nn_name = nn_name
         self.verbose = verbose
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
         return f"""\
 
@@ -2484,9 +2587,21 @@ class MlNeb(_MlNebBase):
     Perform NEB calculation with ASE and ML potential.
     """
 
-    def __init__(self, initial_atoms: Atoms, final_atoms: Atoms,
-                 nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
-                 nn_name, verbose, workdir, prefix=None):
+    def __init__(self,
+                 initial_atoms: Atoms,
+                 final_atoms: Atoms,
+                 nimages,
+                 neb_method,
+                 climb,
+                 optimizer,
+                 relax_mode,
+                 fmax,
+                 pressure,
+                 nn_name,
+                 verbose,
+                 workdir,
+                 prefix=None
+                 ):
         """
         Args:
             initial_atoms: initial ASE atoms.
@@ -2500,8 +2615,8 @@ class MlNeb(_MlNebBase):
             pressure: Target pressure
             nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
-            workdir:
-            prefix:
+            workdir: Working directory.
+            prefix: String to be prepended to filenames.
         """
         super().__init__(workdir, prefix)
         self.initial_atoms = get_atoms(initial_atoms)
@@ -2519,7 +2634,7 @@ class MlNeb(_MlNebBase):
         self.nn_name = nn_name
         self.verbose = verbose
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
         s = f"""\
 
@@ -2603,7 +2718,7 @@ class MlNeb(_MlNebBase):
         write_vasp_xdatcar(workdir / "FINAL_NEB_XDATCAR", images,
                            label="XDATCAR with final NEB images.")
 
-        # write vasp poscar files for each image in vasp_neb
+        # write VASP poscar files for each image in vasp_neb.
         dirpath = self.mkdir("VASP_NEB", info="Directory with POSCAR files for each NEB image.")
         for im, image in enumerate(images):
             subdir = dirpath / str(im).zfill(2)
@@ -2633,9 +2748,20 @@ class MultiMlNeb(_MlNebBase):
     """
     Perform a multi-NEB calculation with ASE and ML potential.
     """
-
-    def __init__(self, atoms_list: list[Atoms], nimages, neb_method, climb, optimizer, relax_mode, fmax, pressure,
-                 nn_name, verbose, workdir, prefix=None):
+    def __init__(self,
+                 atoms_list: list[Atoms],
+                 nimages,
+                 neb_method,
+                 climb,
+                 optimizer,
+                 relax_mode,
+                 fmax,
+                 pressure,
+                 nn_name,
+                 verbose,
+                 workdir,
+                 prefix=None
+                 ):
         """
         Args:
             atoms_list: List of ASE atoms.
@@ -2648,8 +2774,8 @@ class MultiMlNeb(_MlNebBase):
             pressure:
             nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
-            workdir:
-            prefix:
+            workdir: Working directory.
+            prefix: String to be prepended to filenames.
         """
         super().__init__(workdir, prefix)
         self.atoms_list = atoms_list
@@ -2664,7 +2790,7 @@ class MultiMlNeb(_MlNebBase):
         self.nn_name = nn_name
         self.verbose = verbose
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
         s = f"""\
 
@@ -2772,8 +2898,17 @@ class MlOrderer(MlBase):
     """
     Order a disordered structure using pymatgen and ML potential.
     """
-    def __init__(self, structure, max_ns, optimizer, relax_mode, fmax, pressure, steps, nn_name, verbose,
-                 workdir, prefix=None):
+    def __init__(self,
+                 structure,
+                 max_ns,
+                 optimizer,
+                 relax_mode,
+                 fmax, pressure,
+                 steps,
+                 nn_name,
+                 verbose,
+                 workdir,
+                 prefix=None):
         """
         Args:
             structure: Abipy Structure object or any object that can be converted to structure.
@@ -2785,8 +2920,8 @@ class MlOrderer(MlBase):
             steps:
             nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
-            workdir:
-            prefix:
+            workdir: Working directory.
+            prefix: String to be prepended to filenames.
         """
         super().__init__(workdir, prefix)
         self.structure = Structure.as_structure(structure)
@@ -2800,7 +2935,7 @@ class MlOrderer(MlBase):
         self.nn_name = nn_name
         self.verbose = verbose
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
         s = f"""\
 
@@ -2913,7 +3048,14 @@ class MlValidateWithAbinitio(_MlNebBase):
     Compare ab-initio energies, forces and stresses with ML results.
     """
 
-    def __init__(self, filepaths, nn_names, traj_range, verbose, workdir, prefix=None):
+    def __init__(self,
+                filepaths,
+                nn_names,
+                traj_range,
+                verbose,
+                workdir,
+                prefix=None
+                ):
         """
         Args:
             filepaths: List of file produced by the ab-initio code with energies, forces and stresses.
@@ -2931,7 +3073,7 @@ class MlValidateWithAbinitio(_MlNebBase):
         self.nn_names = list_strings(nn_names)
         self.verbose = verbose
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
         return f"""\
 
@@ -3299,14 +3441,148 @@ class GsMl(MlBase):
         return 0
 
 
+class MlEos(MlBase):
+    """
+    Compute the equation of state E(V) for a given structure with ASE and ML-potential.
+    """
+    def __init__(self,
+                 atoms: Atoms,
+                 vol_scales,
+                 relax_mode,
+                 fmax,
+                 pressure,
+                 steps,
+                 optimizer,
+                 nn_name,
+                 verbose,
+                 workdir,
+                 prefix=None
+        ):
+        """
+        Args:
+            atoms: ASE atoms to relax.
+            vol_scales: List of volumetric scaling factors.
+            relax_mode:
+            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
+            pressure: Target pressure.
+            steps: max number of steps for relaxation.
+            optimizer: name of the ASE optimizer to use for relaxation.
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
+        """
+        super().__init__(workdir, prefix)
+        self.atoms = atoms
+        self.vol_scales = np.array(vol_scales)
+        self.relax_mode = relax_mode
+        RX_MODE.validate(relax_mode)
+        self.fmax = fmax
+        self.steps = steps
+        self.optimizer = optimizer
+        self.pressure = pressure
+        self.nn_name = nn_name
+        self.verbose = verbose
+
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level `verbose`."""
+        return f"""\
+
+{self.__class__.__name__} parameters:
+
+     vol_scales  = {self.vol_scales}
+     relax_mode  = {self.relax_mode}
+     fmax        = {self.fmax}
+     steps       = {self.steps}
+     optimizer   = {self.optimizer}
+     pressure    = {self.pressure}
+     nn_name     = {self.nn_name}
+     workdir     = {self.workdir}
+     verbose     = {self.verbose}
+
+=== ATOMS ===
+
+{self.atoms}
+
+"""
+
+    def run(self):
+        """Run structural relaxation."""
+        workdir = self.workdir
+        calculator = CalcBuilder(self.nn_name).get_calculator()
+
+        # Relax input atoms (cell + ions)
+        relax_mode = RX_MODE.cell
+        print(f"Relaxing structure with relax mode: {self.relax_mode} ...")
+        self.atoms.calc = calculator
+        relax_kws = dict(optimizer=self.optimizer,
+                         relax_mode=relax_mode,
+                         fmax=self.fmax,
+                         pressure=self.pressure,
+                         steps=self.steps,
+                         traj_path=self.get_path("relax.traj", "ASE relaxation trajectory"),
+                         verbose=1,
+                        )
+
+        relax = relax_atoms(self.atoms, **relax_kws)
+        relax.summarize(tags=["unrelaxed", "relaxed"])
+        print(relax.to_string(verbose=self.verbose))
+
+        # Build new structures with different volumes accordin to vol_scales,
+        # relax them at fixed volume and collect energies for EOS fit.
+        v0 = self.atoms.get_volume()
+        volumes, energies = [], []
+
+        for vol_scale in self.vol_scales:
+            # Scale the cell
+            new_structure = Structure.as_structure(self.atoms.copy())
+            new_vol = v0 * vol_scale
+            new_atoms = new_structure.scale_lattice(new_vol).to_ase_atoms()
+            new_atoms.calc = calculator
+
+            relax_mode = RX_MODE.ions
+            print(f"Relaxing initial atoms at fixed volume with {relax_mode=}.")
+            new_ucf = ExpCellFilter(new_atoms, constant_volume=True)
+            relax_kws = dict(optimizer=self.optimizer,
+                             relax_mode=relax_mode,
+                             fmax=self.fmax,
+                             pressure=self.pressure,
+                             steps=self.steps,
+                             #traj_path=vol_workdir / "relax.traj",
+                             verbose=self.verbose,
+                            )
+
+            relax = relax_atoms(new_ucf, **relax_kws)
+            relax.summarize(["initial", "relaxed"])
+            print(relax)
+
+            volumes.append(new_ucf.atoms.get_volume())
+            energies.append(new_ucf.get_potential_energy())
+
+        # EOS fit.
+        #eos = EOS(eos_name='murnaghan')
+        #eos_fit = eos.fit(volumes, energies)
+        from pymatgen.analysis.eos import BirchMurnaghan
+        eos = BirchMurnaghan(volumes=volumes, energies=energies)
+        eos.fit()
+        eos.plot_ax(savefig=workdir / "eos.pdf", show=False)
+
+        #return {
+        #    "eos": {"volumes": volumes, "energies": energies},
+        #    "bulk_modulus_GPa": bm.b0_GPa,
+        #    "r2_score_bm": r2_score(energies, bm.func(volumes)),
+        #}
+        self._finalize()
+
+
+# TODO: Finalize the implementation
 class FrozenPhononMl(MlBase):
     """
-    Frozen-phonon calculations with ML potential.
+    Frozen-phonon calculation with ML potential.
     """
 
     @classmethod
     def from_ddb_file(cls, ddb_filepath, qpoint, eta_list, nn_name, verbose, workdir, prefix=None, **anaddb_kwargs):
         """
+        Initialize an instance from a DDB file and a q-point.
         """
         from abipy.dfpt.ddb import DdbFile
         with DdbFile(ddb_filepath) as ddb:
@@ -3318,13 +3594,18 @@ class FrozenPhononMl(MlBase):
     def __init__(self, structure, qpoint, phdispl_cart, eta_list, nn_name, verbose, workdir, prefix=None):
         """
         Args:
+            structure: Abipy Structure
             qpoint: q-vector in reduced coordinate in reciprocal space.
-            displ_cart: displacement of the atoms in real space .
+            phdispl_cart: phonon displacements in cartesian coordinates..
             eta: pre-factor multiplying the displacement. Gives the value in Angstrom of the largest displacement.
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
+            workdir: Working directory.
+            prefix: String to be prepended to filenames.
         """
         super().__init__(workdir, prefix)
-        self.initial_structure = structure
-        natom = len(structure)
+        self.initial_structure = Structure.as_structure(structure)
+        #natom = len(structure)
         self.nn_name = nn_name
         self.verbose = verbose
         # TODO: Should check that qpoint is [1/Nx, 1/Ny, 1/Nz]
@@ -3333,44 +3614,56 @@ class FrozenPhononMl(MlBase):
         #self.phdispl_cart = np.reshape(phdispl_cart, (-1, 3*natom, 3*natom))
         self.eta_list = np.array(eta_list)
 
-    def run(self):
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level `verbose`."""
+        return f"""\
+
+{self.__class__.__name__} parameters:
+
+     nn_name    = {self.nn_name}
+     qpoint     = {self.qpoint}
+     workdir    = {self.workdir}
+     verbose    = {self.verbose}
+
+=== ATOMS ===
+
+{self.initial_structure}
+
+"""
+
+    def run(self, select_imodes=None):
         """Run the calculation."""
         calc = CalcBuilder(self.nn_name).get_calculator()
 
+        # Compute max_supercell
         max_sc = np.ones(3, dtype=int)
         for i, qf in enumerate(self.qpoint):
             if qf != 0: max_sc[i] = np.round(1 / qf)
         print(f"{max_sc =}")
 
-        for displ_cart in self.phdispl_cart:
+        data = {}
+        for imode, displ_cart in enumerate(self.phdispl_cart):
+            if select_imodes is not None and imode not in select_imodes:
+                continue
             for eta in self.eta_list:
-                print(f"{eta=}")
-                print(f"{displ_cart.shape=}")
-                print(f"{displ_cart=}")
+                print(f"{eta=}, {displ_cart.shape=}, {displ_cart=}")
                 scell = self.initial_structure.frozen_phonon(self.qpoint, displ_cart, eta=eta, frac_coords=True, max_supercell=max_sc)
-                print(scell.scale_matrix)
-                print(scell.structure)
+                print(f"{scell.scale_matrix=}")
+                print(f"{scell.structure=}")
 
-                scell.structure.to_ase_atoms()
+                atoms = scell.structure.to_ase_atoms()
                 atoms.calc = calc
                 res = AseResults.from_atoms(atoms)
                 #print(res.to_string(verbose=self.verbose))
 
-        # Write json file GS results.
-        # To read the dictionary from json use:
-        #   from abipy.tools.serialization import mjson_load
-        #   data = mjson_load(self.workdir / "gs.json")
-        #data = dict(
-        #    structure=Structure.as_structure(self.atoms),
-        #    ene=res.ene,
-        #    stress=res.stress,
-        #    forces=res.forces,
-        #)
-        #mjson_write(data, self.workdir / "gs.json", indent=4)
+                #entry=dict(
+                #structure = scell.structure
+                #ene=res.ene,
+                #stress=res.stress,
+                #forces=res.forces,
+                #}
 
-        ## Write ASE trajectory file with results.
-        #with open(self.workdir / "gs.traj", "wb") as fd:
-        #    write_traj(fd, [self.atoms])
+        #mjson_write(data, self.workdir / "supercell.json", indent=4)
 
         return 0
 
@@ -3380,7 +3673,16 @@ class MlCompareNNs(MlBase):
     Compare energies, forces and stresses obtained with different ML potentials.
     Also profile the time required.
     """
-    def __init__(self, atoms, nn_names, num_tests, rattle, stdev_rvol, verbose, workdir, prefix=None):
+    def __init__(self,
+                 atoms,
+                 nn_names,
+                 num_tests,
+                 rattle,
+                 stdev_rvol,
+                 verbose,
+                 workdir,
+                 prefix=None
+                 ):
         """
         Args:
             atoms: ASE atoms
@@ -3399,7 +3701,7 @@ class MlCompareNNs(MlBase):
         self.stdev_rvol = stdev_rvol
         self.verbose = verbose
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
         return f"""\
 
@@ -3485,7 +3787,7 @@ class MlCwfEos(MlBase):
             "oxides-verification-PBE-v1": root / "oxides" / "xsfs-oxides-verification-PBE-v1",
         }
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
         return f"""\
 

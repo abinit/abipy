@@ -53,7 +53,8 @@ def build_flow(options):
         nbdbuf=0,
         nstep=100,
         ecutsm=1.0,
-        tolvrs=1.0e-18,   # SCF stopping criterion (modify default)
+        tolvrs=1.0e-8,   # SCF stopping criterion (modify default)
+        #tolvrs=1.0e-18,   # SCF stopping criterion (modify default)
     )
 
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])

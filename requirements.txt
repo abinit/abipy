@@ -11,7 +11,8 @@ pandas
 numpy<2.0.0
 sympy
 spglib
-pymatgen==v2024.10.29
+pymatgen
+#pymatgen==v2024.10.29
 monty==v2024.10.21
 netCDF4
 matplotlib
@@ -24,5 +25,3 @@ phonopy<=2.31.2
 ase
 # TODO remove after https://github.com/materialsproject/emmet/issues/768 is fixed
 pydantic<2.0.0
-#custodian
-#python-daemon

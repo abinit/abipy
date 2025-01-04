@@ -156,8 +156,8 @@ install_requires = [
     "numpy<2.0.0",
     "scipy",
     "spglib",
-    #"pymatgen>=2022.0.14",
-    "pymatgen==v2024.10.29",
+    "pymatgen",
+    #"pymatgen==v2024.10.29",
     "monty==v2024.10.21",
     "netCDF4",
     "matplotlib",
@@ -220,8 +220,7 @@ See also the HTML page:
 
 TIPS:
 
-    1) Issue `rehash` in the shell if the AbiPy scripts cannot be found after the installation (MacOs only)
-    2) Use `abicheck.py --with-flow` to validate the final configuration before running large calculations.
+    1) Use `abicheck.py --with-flow` to validate the final configuration before running large calculations.
 
 Have fun!
 """)

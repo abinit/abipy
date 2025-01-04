@@ -23,7 +23,7 @@ ASE_OPTIMIZERS = aseml.ase_optimizer_cls("__all__")
 DEFAULT_NN = "chgnet"
 
 
-def _get_atoms_from_filepath(filepath):
+def _get_atoms_from_filepath(filepath: str):
     if filepath.startswith("__mp-"):
         print(f"Fetching structure for mp-id {filepath[2:]} from the materials project database.")
         return aseml.get_atoms(Structure.from_mpid(filepath[2:]))
@@ -31,7 +31,7 @@ def _get_atoms_from_filepath(filepath):
     return aseml.get_atoms(filepath)
 
 
-def _get_structure_from_filepath(filepath) -> Structure:
+def _get_structure_from_filepath(filepath: str) -> Structure:
     if filepath.startswith("__mp-"):
         print(f"Fetching structure for mp-id {filepath[2:]} from the materials project database.")
         structure = Structure.from_mpid(filepath[2:])
@@ -109,6 +109,19 @@ def add_relax_opts(f):
                      help="Max number of steps for ASE relaxation.")(f)
     f = click.option("--optimizer", "-o", default="BFGS", show_default=True, type=click.Choice(ASE_OPTIMIZERS),
                      help="ASE optimizer class.")(f)
+    return f
+
+
+def add_phonopy_opts(f, supercell=(2, 2, 2)):
+    """Add CLI options for phonopy_calculations."""
+    f = click.option("--supercell", "-s", nargs=3, type=int, default=supercell, show_default=True,
+                     help="Supercell dimensions.")(f)
+    f = click.option("--distance", "-d", type=float, show_default=True, default=0.01,
+                     help="Displacement distance in Ang.")(f)
+    f = click.option('--line-density', "-ld", default=20, type=float, show_default=True,
+                     help="Line density to generate the q-path for PH bands.")(f)
+    f = click.option('--qppa', "-qppa", default=None, type=float, show_default=True,
+                     help="q-points per atom to generate the q-mesh for PH DOS.")(f)
     return f
 
 
@@ -202,6 +215,10 @@ def main(ctx, seaborn):
         sns.set(context=seaborn, style='darkgrid', palette='deep',
                 font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
+    # Suppress all DeprecationWarnings
+    #import warnings
+    #warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 
 @main.command()
 @herald
@@ -257,6 +274,45 @@ def abinit_relax(ctx, filepath,
     ml_relaxer = aseml.MlRelaxer.from_abinit_yaml_file(filepath)
     print(ml_relaxer.to_string(verbose=verbose))
     ml_relaxer.run()
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("filepath", type=str)
+@add_nn_name_opt
+@add_relax_opts
+@add_workdir_verbose_opts
+@click.option('--config', default='abiml_eos.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def eos(ctx, filepath, nn_name,
+        relax_mode, fmax, pressure, steps, optimizer,
+        workdir, verbose):
+    """
+    EOS computation with ASE and ML potential.
+
+    Usage example:
+
+    \b
+        abiml.py eos FILE --fmax 0.01 -r cell --optimizer FIRE -w OUT_DIR
+
+    where `FILE` is any file supported by abipy/pymatgen e.g. netcdf files, Abinit input, POSCAR, xsf, etc.
+    or a string such as __mp-134 to fetch the structure from the MP database.
+
+    To change the ML potential, use e.g.:
+
+        abiml.py eos -nn m3gnet [...]
+    """
+    atoms = _get_atoms_from_filepath(filepath)
+
+    vol_scales = np.arange(0.95, 1.06, 0.01)
+
+    ml_eos = aseml.MlEos(atoms, vol_scales,
+                         relax_mode, fmax, pressure, steps, optimizer,
+                         nn_name, verbose, workdir, prefix="_abiml_eos_")
+
+    print(ml_eos.to_string(verbose=verbose))
+    ml_eos.run()
     return 0
 
 
@@ -395,19 +451,12 @@ def mneb(ctx, filepaths, nn_name,
 @click.pass_context
 @click.argument("filepath", type=str)
 @add_nn_names_opt
-@click.option("--supercell", "-s", nargs=3, type=int, default=(2, 2, 2), show_default=True, help="Supercell dimensions.")
-@click.option("--distance", "-d", type=float, show_default=True, default=0.01, help="Displacement distance in Ang.")
-#@click.option('--asr', type=int, default=2, show_default=True, help="Restore the acoustic sum rule on the interatomic force constants.")
-#@click.option('--dipdip', type=int, default=1, show_default=True, help="Treatment of dipole-dipole interaction.")
-@click.option('--line-density', "-ld", default=20, type=float, show_default=True, help="Line density to generate the q-path for PH bands.")
-@click.option('--qppa', "-qppa", default=None, type=float, show_default=True, help="q-points per atom to generate the q-mesh for PH DOS.")
+@add_phonopy_opts
 @add_relax_opts
 @add_workdir_verbose_opts
 @click.option('--config', default='abiml_ph.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def ph(ctx, filepath, nn_names,
-       supercell, distance,
-       #asr, dipdip,
-       line_density, qppa,
+       supercell, distance, line_density, qppa,
        relax_mode, fmax, pressure, steps, optimizer,
        workdir, verbose):
     """
@@ -435,10 +484,8 @@ def ph(ctx, filepath, nn_names,
     supercell = np.eye(3) * np.array(supercell)
 
     nn_names = _get_nn_names(nn_names)
-    ml_ph = MlPhonopy(structure, supercell,
-                      distance,
-                      # asr, dipdip,
-                      line_density, qppa,
+    ml_ph = MlPhonopy(structure,
+                      supercell, distance, line_density, qppa,
                       relax_mode, fmax, pressure, steps, optimizer, nn_names,
                       verbose, workdir, prefix="_abiml_ph_",
                       )
@@ -447,22 +494,25 @@ def ph(ctx, filepath, nn_names,
     return 0
 
 
+def phddb_add_phonopy_opts(f):
+    """Change default value of supercell."""
+    return add_phonopy_opts(f, supercell=(-1, -1, -1))
+
+
 @main.command()
 @herald
 @click.pass_context
 @click.argument("ddb_filepath", type=str)
 @add_nn_names_opt
-@click.option("--supercell", "-s", nargs=3, type=int, default=(-1, -1, -1), show_default=True, help="Supercell. If < 0, supercell is taken from DDB ngqpt.")
-@click.option("--distance", "-d", type=float, show_default=True, default=0.01, help="Displacement distance in Ang.")
+@phddb_add_phonopy_opts
 @click.option('--asr', type=int, default=2, show_default=True, help="Restore the acoustic sum rule on the interatomic force constants.")
 @click.option('--dipdip', type=int, default=1, show_default=True, help="Treatment of dipole-dipole interaction.")
-@click.option('--line-density', "-ld", default=20, type=float, show_default=True, help="Line density to generate the q-path for PH bands.")
-@click.option('--qppa', "-qppa", default=None, type=float, show_default=True, help="q-points per atom to generate the q-mesh for PH DOS.")
 @add_relax_opts
 @add_workdir_verbose_opts
 @click.option('--config', default='abiml_phddb.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def phddb(ctx, ddb_filepath, nn_names,
-          supercell, distance, asr, dipdip, line_density, qppa,
+          supercell, distance, line_density, qppa,
+          asr, dipdip,
           relax_mode, fmax, pressure, steps, optimizer,
           workdir, verbose):
     """
@@ -505,6 +555,55 @@ def phddb(ctx, ddb_filepath, nn_names,
                                 )
     print(ml_phddb.to_string(verbose=verbose))
     ml_phddb.run()
+    return 0
+
+
+@main.command()
+@herald
+@click.pass_context
+@click.argument("filepath", type=str)
+@add_nn_name_opt
+@add_phonopy_opts
+@add_relax_opts
+@add_workdir_verbose_opts
+@click.option('--config', default='abiml_vqha.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+def vqha(ctx, filepath, nn_name,
+         supercell, distance, line_density, qppa,
+         relax_mode, fmax, pressure, steps, optimizer,
+         workdir, verbose):
+    """
+    Use phonopy and ML potential to perform VZSISA-QHA calculations.
+
+    Usage example:
+
+    \b
+        abiml.py vqha FILE --distance 0.03 --supercell 2 2 2
+
+    where `FILE` provides the crystalline structure
+    or a string such as __mp-134 to fetch the structure from the MP database.
+
+    To specify the list of ML potential, use e.g.:
+
+        abiml.py vqha -nn-name mace [...]
+    """
+    structure = _get_structure_from_filepath(filepath)
+
+    from abipy.ml.ml_phonopy import MlVZSISAQHAPhonopy
+    supercell = np.eye(3) * np.array(supercell)
+
+    #bo_vol_scales = [0.96, 0.98, 1.0, 1.02, 1.04, 1.06]
+    #ph_vol_scales = [0.98, 1.0, 1.02, 1.04, 1.06] # EinfVib4(D)
+    bo_vol_scales = [0.96, 0.98, 1, 1.02, 1.04]    # EinfVib4(S)
+    ph_vol_scales = [1, 1.02, 1.04]                # EinfVib2(D)
+    ph_vol_scales = bo_vol_scales
+
+    vqha = MlVZSISAQHAPhonopy(structure, bo_vol_scales,
+                              supercell, distance, line_density, qppa,
+                              relax_mode, fmax, pressure, steps, optimizer, nn_name,
+                              verbose, workdir, prefix="_abiml_vqha_",
+                             )
+    print(vqha.to_string(verbose=verbose))
+    vqha.run()
     return 0
 
 

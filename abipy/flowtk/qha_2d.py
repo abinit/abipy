@@ -4,6 +4,7 @@ Workflows for calculations within the quasi-harmonic approximation.
 """
 from __future__ import annotations
 
+import itertools
 import numpy as np
 
 from abipy.tools.serialization import mjson_write
@@ -91,6 +92,7 @@ class Qha2dFlow(Flow):
 
         data["ddb_relax_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in work.ph_works]
         data["gsr_relax_edos_paths"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
+        data["gsr_relax_ebands_paths"] = [] if work.ndivsm == 0 else [ph_work.ebands_task.gsr_path for ph_work in work.ph_works]
 
         # Write json file
         mjson_write(data, self.outdir.path_in("qha_2d.json"), indent=4)
@@ -164,7 +166,6 @@ class Qha2dWork(Work):
 
             self.relax_tasks_strained = []
 
-            import itertools
             for s1, s3 in itertools.product(self.bo_strains_ac[0], self.bo_strains_ac[1]):
                 strain_name = f"{s1=}, {s3=}"
                 # Apply strain to the structure

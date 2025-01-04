@@ -42,22 +42,21 @@ class VzsisaFlow(Flow):
             workdir: Working directory of the flow.
             scf_input: |AbinitInput| for GS-SCF run used as template to generate other inputs.
             bo_vol_scales: List of volumetric scaling factors for the BO terms
-            ph_vol_scales: List of volumetric scaling factors for phonons.
+            ph_vol_scales: List of volumetric scaling factors for the phonon terms (must be a subset of bo_vol_scales)
             ngqpt: Three integers defining the q-mesh for phonon calculation.
             with_becs: Activate calculation of Electric field and Born effective charges.
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
                 Note that only selected features are compatible with dynamical quadrupoles.
                 Please consult <https://docs.abinit.org/topics/longwave/>
-            ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
-                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+            ndivsm: if > 0, it is the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it is interpreted as the pymatgen `line_density` parameter in which the number of points
                 in the segment is proportional to its length. Typical value: -20.
                 This option is the recommended one if the k-path contains two consecutive high symmetry k-points
                 that are very close as ndivsm > 0 may produce a very large number of wavevectors.
-                if 0, deactivate band structure calculation.
+                if 0, deactivate band structure calculation for electrons.
             edos_ngkpt: Three integers defining the the k-sampling for the computation of the
                 electron DOS with the relaxed structures. Useful for metals or small gap semiconductors
-                in which the electronic contribution should be included.
-                None disables the computation of the e-DOS.
+                in which the electronic contribution should be included. None disables the computation of the e-DOS.
             manager: |TaskManager| instance. Use default if None.
         """
         flow = cls(workdir=workdir, manager=manager)
@@ -82,7 +81,7 @@ class VzsisaFlow(Flow):
         """
         work = self[0]
         data = {"bo_vol_scales": work.bo_vol_scales, "ph_vol_scales": work.ph_vol_scales}
-        #data["initial_structure"] = work.initial_scf_input.structure
+        data["initial_structure"] = work.initial_scf_input.structure
 
         # Build list of strings with path to the relevant output files ordered by V.
         data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_vol]
@@ -105,6 +104,9 @@ class VzsisaFlow(Flow):
         data["ddb_relax_volumes_ang3"] = [ph_work[0].input.structure.volume for ph_work in work.ph_works]
 
         data["gsr_relax_edos_paths"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
+        data["gsr_relax_ebands_paths"] = []
+        if work.ndivsm != 0:
+            data["gsr_relax_ebands_paths"] = [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
 
         # Write json file.
         mjson_write(data, self.outdir.path_in("vzsisa.json"), indent=4)
@@ -136,6 +138,10 @@ class VzsisaWork(Work):
         work.initial_scf_input = scf_input
         work.bo_vol_scales = np.array(bo_vol_scales)
         work.ph_vol_scales = np.array(ph_vol_scales)
+        for ph_scale in work.ph_vol_scales:
+            if ph_scale not in work.bo_vol_scales:
+                raise ValueError(f"Cannot find {ph_scale=} in {work.bo_vol_scales=}")
+
         work.ngqpt = ngqpt
         work.with_becs = with_becs
         work.with_quad = with_quad
@@ -192,7 +198,8 @@ class VzsisaWork(Work):
 
             ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
                                                 with_becs=self.with_becs, with_quad=self.with_quad,
-                                                ndivsm=0 if bo_scale != 0.0 else self.ndivsm)
+                                                ndivsm=0 if bo_scale != 1.0 else self.ndivsm)
+            ph_work.set_name(f"PH for {bo_scale=}"
 
             # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
             for task in ph_work[1:]:

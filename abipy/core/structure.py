@@ -261,6 +261,10 @@ class Structure(pmg_Structure, NotebookWriter):
             # This for HIST.nc file
             return cls.as_structure(obj.final_structure)
 
+        from phonopy.structure.atoms import PhonopyAtoms
+        if isinstance(obj, PhonopyAtoms):
+            return cls.from_phonopy_atoms(obj)
+
         raise TypeError("Don't know how to convert %s into a structure" % type(obj))
 
     @classmethod
@@ -406,6 +410,16 @@ class Structure(pmg_Structure, NotebookWriter):
         new = COD().get_structure_by_id(cod_id, **kwargs)
         if primitive: new = new.get_primitive_structure()
         return cls.as_structure(new)
+
+    @classmethod
+    def from_phonopy_atoms(cls, atoms) -> Structure:
+        """
+        Returns structure from phonopy Atoms.
+        """
+        from pymatgen.io.phonopy import get_pmg_structure
+        new = get_pmg_structure(atoms)
+        new.__class__ = cls
+        return new
 
     @classmethod
     def from_ase_atoms(cls, atoms) -> Structure:
