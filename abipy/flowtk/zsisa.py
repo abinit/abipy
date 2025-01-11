@@ -274,7 +274,7 @@ class ThermalRelaxTask(RelaxTask):
                 structure=relaxed_structure,
                 cart_therm_stress=cart_therm_stress,
                 cart_bo_stress=gsr.cart_stress_tensor,
-                converged=converged.
+                converged=converged,
             )
 
         mjson_write(thermal_hist, json_path, indent=4)

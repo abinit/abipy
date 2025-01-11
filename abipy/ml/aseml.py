@@ -754,7 +754,10 @@ def main():
             ax.grid(True)
             ax.set_xlabel(f"{key1} energy", fontsize=fontsize)
             ax.set_ylabel(f"{key2} energy", fontsize=fontsize)
-            linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
+            try:
+                linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
+            except ValueError as exc:
+                print(exc)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
             if irow == 0:
                 ax.set_title(f"{key1}/{key2} MAE: {stats.MAE:.6f}", fontsize=fontsize)
@@ -787,7 +790,10 @@ def main():
                 xs, ys = self.xy_forces_for_keys(key1, key2, direction, symbol=symbol, site_inds=site_inds)
                 stats = diff_stats(xs, ys)
                 ax.scatter(xs, ys, marker="o")
-                linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
+                try:
+                    linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
+                except ValueError as exc:
+                    print(exc)
 
                 ax.legend(loc="best", shadow=True, fontsize=fontsize)
                 f_tex = f"$F_{direction}$"
@@ -820,7 +826,11 @@ def main():
                 stats = diff_stats(xs, ys)
                 ax = ax_mat[irow, icol]
                 ax.scatter(xs, ys, marker="o")
-                linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
+                try:
+                    linear_fit_ax(ax, xs, ys, fontsize=fontsize, with_label=True)
+                except ValueError as exc:
+                    print(exc)
+
                 ax.legend(loc="best", shadow=True, fontsize=fontsize)
                 ax.grid(True)
                 s_tex = r"$\sigma_{%s}$" % voigt_comp
@@ -880,7 +890,7 @@ def main():
             delta_mode: True to plot differences instead of absolute values.
             symbol: If not None, select only forces for this atomic species
         """
-        # Fx,Fy,Fx along rows, pairs along columns.
+        # Fx, Fy, Fx along rows, pairs along columns.
         key_pairs = self.get_key_pairs()
         nrows, ncols = 3, len(key_pairs)
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
@@ -892,7 +902,7 @@ def main():
         atom2_cmap = plt.get_cmap("jet")
         marker_idir = {0: ">", 1: "<", 2: "^"}
 
-        if symbol is None:
+        if symbol is not None:
             inds = np.array(self.structure.indices_from_symbol(symbol))
             if len(inds) == 0:
                 raise ValueError(f"Cannot find chemical {symbol=} in structure!")
@@ -1104,9 +1114,9 @@ def relax_atoms(atoms: Atoms,
     Args:
         atoms: ASE atoms.
         relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
-        optimizer: name of the ASE optimizer to use.
+        optimizer: name of the ASE optimizer to use for relaxation.
         fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
-        pressure: Target pressure.
+        pressure: Target pressure in GPa.
         verbose: whether to print stdout.
         steps: max number of steps for relaxation.
         opt_kwargs (dict): kwargs for the ASE optimizer class.
@@ -2101,7 +2111,7 @@ class MlRelaxer(MlBase):
         """
         Args:
             atoms: ASE atoms to relax.
-            relax_mode: Relaxation mode.
+            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
             fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
             pressure: Target pressure in GPa.
             steps: max number of steps for relaxation.
@@ -2309,7 +2319,7 @@ class MlMd(MlBase):
         Args:
             atoms: ASE atoms.
             temperature: Temperature in K
-            pressure:
+            pressure: Target pressure in GPa.
             timestep:
             steps: Number of steps.
             loginterval:
@@ -2427,9 +2437,9 @@ class MlRelaxerFromMdTraj(MlBase):
         """
         Args:
             traj_filepath:
-            relax_mode:
+            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
             fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
-            pressure: Target pressure.
+            pressure: Target pressure in GPa.
             steps: max number of steps for relaxation.
             optimizer: name of the ASE optimizer to use for relaxation.
             nn_name: String defining the NN potential. See also CalcBuilder.
@@ -2612,7 +2622,7 @@ class MlNeb(_MlNebBase):
             optimizer: name of the ASE optimizer to use for relaxation.
             relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
             fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
-            pressure: Target pressure
+            pressure: Target pressure in GPa.
             nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
             workdir: Working directory.
@@ -2768,10 +2778,10 @@ class MultiMlNeb(_MlNebBase):
             nimages: Number of NEB images.
             neb_method:
             climb:
-            optimizer:
+            optimizer: name of the ASE optimizer to use for relaxation.
             relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
             fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
-            pressure:
+            pressure: Target pressure in GPa.
             nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
             workdir: Working directory.
@@ -2903,7 +2913,8 @@ class MlOrderer(MlBase):
                  max_ns,
                  optimizer,
                  relax_mode,
-                 fmax, pressure,
+                 fmax,
+                 pressure,
                  steps,
                  nn_name,
                  verbose,
@@ -2912,11 +2923,11 @@ class MlOrderer(MlBase):
         """
         Args:
             structure: Abipy Structure object or any object that can be converted to structure.
-            max_ns:
-            optimizer:
-            relax_mode:
-            fmax:
-            pressure:
+            max_ns: Maximum number of structures
+            optimizer: name of the ASE optimizer to use for relaxation.
+            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
+            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
+            pressure: Target pressure in GPa.
             steps:
             nn_name: String defining the NN potential. See also CalcBuilder.
             verbose: Verbosity level.
@@ -2964,10 +2975,10 @@ class MlOrderer(MlBase):
         Run MlOrderer.
         """
         workdir = self.workdir
-        from pymatgen.core import Lattice
-        specie = {"Cu0+": 0.5, "Au0+": 0.5}
-        structure = Structure.from_spacegroup("Fm-3m", Lattice.cubic(3.677), [specie], [[0, 0, 0]])
-        #structure = self.structure
+        #from pymatgen.core import Lattice
+        #specie = {"Cu0+": 0.5, "Au0+": 0.5}
+        #structure = Structure.from_spacegroup("Fm-3m", Lattice.cubic(3.677), [specie], [[0, 0, 0]])
+        structure = self.structure
         #print(structure)
 
         # Each dict in d_list contains the following entries:
@@ -3464,7 +3475,7 @@ class MlEos(MlBase):
             vol_scales: List of volumetric scaling factors.
             relax_mode:
             fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
-            pressure: Target pressure.
+            pressure: Target pressure in GPa.
             steps: max number of steps for relaxation.
             optimizer: name of the ASE optimizer to use for relaxation.
             nn_name: String defining the NN potential. See also CalcBuilder.

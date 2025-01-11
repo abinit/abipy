@@ -84,10 +84,9 @@ class AbimlTest(AbipyTest):
         final_atoms.positions += 0.2
 
         atoms_list = [initial_atoms, second_atoms, final_atoms]
-
         multi_neb = aseml.MultiMlNeb(atoms_list=atoms_list,
                                      nimages=3,
-                                     neb_method="improvedtangent",
+                                     neb_method="aseneb",
                                      climb=False,
                                      optimizer="FIRE",
                                      relax_mode="cell",
@@ -101,34 +100,66 @@ class AbimlTest(AbipyTest):
 
         assert multi_neb.to_string(verbose=1)
         print(multi_neb)
-        #multi_neb.run()
-        #multi_neb.rmtree()
+        multi_neb.run()
+        multi_neb.rmtree()
 
     # TODO
     #def test_mlordered(self):
     #    """Testing MlOrdered."""
+    #    from pymatgen.core import Lattice
+    #    specie = {"Cu0+": 0.5, "Au0+": 0.5}
+    #    structure = Structure.from_spacegroup("Fm-3m", Lattice.cubic(3.677), [specie], [[0, 0, 0]])
 
-    #def test_mlvalidate(self):
-    #    """Testing MlValidateWithAbinitio."""
-    #    filepaths = abidata.ref_file("sic_relax_HIST.nc")
+    #    mlord = aseml.MlOrderer(structure,
+    #                            max_ns=2,
+    #                            optimizer="FIRE",
+    #                            relax_mode="cell",
+    #                            fmax=0.1,
+    #                            pressure=0.0,
+    #                            steps=None,
+    #                            nn_name="emt",
+    #                            verbose=1,
+    #                            workdir=None,
+    #                            prefix=None
+    #                            )
 
-    #    validator = aseml.MlValidateWithAbinitio(filepaths,
-    #                                             nn_names="emt",
-    #                                             traj_range=range(0, 5, 2),
-    #                                             verbose=1,
-    #                                             workdir=None,
-    #                                             prefix=None
-    #                                             )
+    #    assert mlord.to_string(verbose=1)
+    #    print(mlord)
+    #    mlord.run()
+    #    mlord.rmtree()
 
-    #    assert validator.to_string(verbose=1)
-    #    print(validator)
-    #    validator.run(nprocs=1, print_dataframes=True)
-    #    validator.rmtree()
+    def test_mlvalidate(self):
+        """Testing MlValidateWithAbinitio."""
+        filepaths = abidata.ref_file("al_relax_HIST.nc")
+        validator = aseml.MlValidateWithAbinitio(filepaths,
+                                                 nn_names="emt",
+                                                 traj_range=range(0, 5, 2),
+                                                 verbose=1,
+                                                 workdir=None,
+                                                 prefix=None
+                                                 )
+
+        assert validator.to_string(verbose=1)
+        print(validator)
+        comp = validator.run(nprocs=1, print_dataframes=True)
+        assert len(comp) == 2
+        assert comp.nsteps == 2
+        assert comp.natom == 1
+
+        # Test plot methods
+        if self.has_matplotlib():
+           assert comp.plot_energies(show=False)
+           assert comp.plot_forces(show=False)
+           assert comp.plot_stresses(show=False)
+           assert comp.plot_energies_traj(show=False)
+           assert comp.plot_forces_traj(show=False)
+           assert comp.plot_stress_traj(show=False)
+
+        validator.rmtree()
 
     def test_mleos(self):
         """Testing MlEos."""
         atoms = Structure.as_structure(abidata.cif_file("al.cif")).to_ase_atoms()
-
         ml_eos = aseml.MlEos(atoms=atoms,
                              vol_scales=np.arange(0.95, 1.06, 0.01),
                              relax_mode="cell",
@@ -149,7 +180,6 @@ class AbimlTest(AbipyTest):
     def test_mlcompare_nns(self):
         """Testing MlEos."""
         atoms = Structure.as_structure(abidata.cif_file("al.cif")).to_ase_atoms()
-
         ml_compare = aseml.MlCompareNNs(atoms=atoms,
                                         nn_names=["emt", "emt"],
                                         num_tests=1,

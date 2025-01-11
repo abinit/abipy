@@ -1,4 +1,5 @@
 """Tests for ml_phonopy module"""
+import os
 import numpy as np
 import abipy.data as abidata
 
@@ -11,11 +12,12 @@ class AbimlTest(AbipyTest):
 
     def test_mlphonopy_with_ddb(self):
         """Testing MLPhonopyWithDDB"""
+        ddb_filepath = os.path.join(abidata.dirpath, "refs", "al_eph", "out_444q_DDB")
         ml = MlPhonopyWithDDB(
                  ddb_filepath,
                  distance=0.01,
                  asr=1,
-                 dipdip=1,
+                 dipdip=0,
                  line_density=10,
                  qppa=None,
                  relax_mode="cell",

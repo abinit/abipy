@@ -199,7 +199,7 @@ class VzsisaWork(Work):
             ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
                                                 with_becs=self.with_becs, with_quad=self.with_quad,
                                                 ndivsm=0 if bo_scale != 1.0 else self.ndivsm)
-            ph_work.set_name(f"PH for {bo_scale=}"
+            ph_work.set_name(f"PH for {bo_scale=}")
 
             # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
             for task in ph_work[1:]:

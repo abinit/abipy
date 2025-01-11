@@ -109,12 +109,14 @@ if __name__ == "__main__":
 
     rename_table = [
         #  src, dest
+        ("_runflow/w1/outdata/out_DDB",  "out_444q_DDB"),
         ("_runflow/w2/t0/outdata/out_A2F.nc", "al_888k_161616q_A2F.nc"),
         ("_runflow/w2/t1/outdata/out_A2F.nc", "al_888k_161616q_vinterp_A2F.nc"),
-	("_runflow/w2/t2/outdata/out_PHDOS.nc", "al_161616q_PHDOS.nc"),
+        ("_runflow/w2/t2/outdata/out_PHDOS.nc", "al_161616q_PHDOS.nc"),
     ]
     import shutil
     for old, new in rename_table:
+        #print(old, new)
         shutil.copyfile(old, new)
     #shutil.rmtree("_runflow")
     sys.exit(0)
