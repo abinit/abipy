@@ -106,7 +106,7 @@ class ExtxyzIOWriter:
     def __str__(self) -> str:
         return self.to_string()
 
-    def write(self, xyz_filepath: PathLike, traj_range=None, overwrite: bool = False):
+    def write(self, xyz_filepath: PathLike, traj_range=None, overwrite: bool = False) -> None:
         """
         Write data to xyz_filepath.
 
