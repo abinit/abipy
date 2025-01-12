@@ -3284,12 +3284,12 @@ class PhononDos(Function1D):
         return self.integral()
 
     @lazy_property
-    def zero_point_energy(self):
+    def zero_point_energy(self) -> Energy:
         """Zero point energy in eV per unit cell."""
         iw0 = self.iw0
         return Energy(0.5 * np.trapz(self.mesh[iw0:] * self.values[iw0:], x=self.mesh[iw0:]), "eV")
 
-    def plot_dos_idos(self, ax, what="d", exchange_xy=False, units="eV", **kwargs):
+    def plot_dos_idos(self, ax, what="d", exchange_xy=False, units="eV", **kwargs) -> list:
         """
         Helper function to plot DOS/IDOS on the axis ``ax``.
 

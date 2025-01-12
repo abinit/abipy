@@ -270,12 +270,12 @@ class ThermalRelaxTask(RelaxTask):
             cart_therm_stress = zsisa.get_cart_thermal_stress(relaxed_structure, self.temperature, self.pressure_gpa)
             converged = np.all(np.abs(cart_therm_stress - gsr.cart_stress_tensor)) < tol_gpa
 
-            thermal_hist["history"].append(dict
+            thermal_hist["history"].append(dict(
                 structure=relaxed_structure,
                 cart_therm_stress=cart_therm_stress,
                 cart_bo_stress=gsr.cart_stress_tensor,
                 converged=converged,
-            )
+            ))
 
         mjson_write(thermal_hist, json_path, indent=4)
 
