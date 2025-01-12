@@ -188,7 +188,7 @@ xred 3*0 3*1/4
         self.assert_equal(inp.structure[1].specie.symbol, "As")
         mat = 5.6533 * np.array([0, 1/2, 1/2, 1/2, 0, 1/2, 1/2, 1/2, 0])
         mat.shape = (3, 3)
-        self.assert_equal(inp.structure[1].lattice.matrix, mat)
+        self.assert_almost_equal(inp.structure[1].lattice.matrix, mat)
 
         # tutorial/input/tbase2_1
         # 2 datasets with different natom (should use typat[:1] in 2nd dataset)

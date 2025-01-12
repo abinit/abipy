@@ -23,6 +23,7 @@ ipython
 chart-studio
 click
 phonopy<=2.31.2
+seekpath
 ase
 # TODO remove after https://github.com/materialsproject/emmet/issues/768 is fixed
 pydantic<2.0.0

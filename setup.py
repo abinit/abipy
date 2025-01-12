@@ -168,6 +168,7 @@ install_requires = [
     "chart-studio",
     "click",
     "phonopy<=2.31.2",
+    "seekpath",
     "ase",
     #"custodian",
     #pydantic,

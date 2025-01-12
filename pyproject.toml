@@ -58,6 +58,7 @@ dependencies = [
     "packaging",
     "pandas",
     "phonopy<=2.31.2",
+    "seekpath",
     "plotly",
     "pydispatcher>=2.0.5",
     #"pymatgen==v2024.10.29",
