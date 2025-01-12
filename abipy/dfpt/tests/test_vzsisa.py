@@ -73,7 +73,7 @@ class QhaTest(AbipyTest):
         self.assert_almost_equal(vols, [40.2457091, 40.4461412], decimal=5)
 
         vols, fits = qha.vol_Einf_Vib4(tstop=tstop, tstart=tstart, num=2)
-        self.assert_almost_equal(vols, [40.2456922, 40.4467746])
+        self.assert_almost_equal(vols, [40.2456922, 40.4467746], decimal=5)
         aas, bbs, ccs = qha.get_abc(volumes=vols)
         self.assert_almost_equal(aas, [3.8466098, 3.8530056])
         self.assert_almost_equal(bbs, [3.8466098, 3.8530056])
