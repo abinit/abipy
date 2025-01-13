@@ -34,13 +34,14 @@ from ase.io.trajectory import write_traj, Trajectory
 from ase.io import read
 from ase.optimize.optimize import Optimizer
 from ase.calculators.calculator import Calculator
-from ase.filters import ExpCellFilter
+from ase.filters import FrechetCellFilter # ExpCellFilter,
 from ase.io.vasp import write_vasp_xdatcar, write_vasp
-from ase.neb import NEB
+from ase.mep import NEB
+#from ase.neb import NEB
 from ase.md.npt import NPT
 from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
-from ase.md.velocitydistribution import (MaxwellBoltzmannDistribution, Stationary, ZeroRotation)
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, Stationary, ZeroRotation
 from ase.stress import voigt_6_to_full_3x3_stress, full_3x3_to_voigt_6_stress
 from ase.calculators.calculator import PropertyNotImplementedError
 from abipy.core import Structure
@@ -49,9 +50,9 @@ from abipy.tools.typing import Figure, PathLike
 from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import HasPickleIO, mjson_write
 from abipy.tools.context_managers import Timer
-from abipy.tools.parallel import get_max_nprocs # , pool_nprocs_pmode
+from abipy.tools.parallel import get_max_nprocs #, pool_nprocs_pmode
 from abipy.abio.enums import StrEnum, EnumMixin
-from abipy.core.mixins import TextFile # , NotebookWriter
+from abipy.core.mixins import TextFile #, NotebookWriter
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
     set_ax_xylabels, linear_fit_ax)
 from abipy.ml.tools import get_energy_step
@@ -1153,7 +1154,7 @@ def relax_atoms(atoms: Atoms,
 
         r0 = AseResults.from_atoms(atoms)
 
-        dyn = opt_class(ExpCellFilter(atoms, scalar_pressure=pressure), **opt_kwargs) if relax_mode == RX_MODE.cell else \
+        dyn = opt_class(FrechetCellFilter(atoms, scalar_pressure=pressure), **opt_kwargs) if relax_mode == RX_MODE.cell else \
               opt_class(atoms, **opt_kwargs)
 
         t_start = time.time()
@@ -2509,7 +2510,8 @@ class _MlNebBase(MlBase):
         post-process ASE NEB calculation.
         See <https://wiki.fysik.dtu.dk/ase/tutorials/neb/diffusion.html>
         """
-        from ase.neb import NEBTools
+        #from ase.neb import NEBTools
+        from ase.mep import NEBTools
         nebtools = NEBTools(images)
 
         # get the actual maximum force at this point in the simulation.
@@ -3551,7 +3553,7 @@ class MlEos(MlBase):
 
             relax_mode = RX_MODE.ions
             print(f"Relaxing initial atoms at fixed volume with {relax_mode=}.")
-            new_ucf = ExpCellFilter(new_atoms, constant_volume=True)
+            new_ucf = FrechetCellFilter(new_atoms, constant_volume=True)
             relax_kws = dict(optimizer=self.optimizer,
                              relax_mode=relax_mode,
                              fmax=self.fmax,
