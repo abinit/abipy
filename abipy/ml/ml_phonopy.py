@@ -13,6 +13,7 @@ from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from ase.calculators.calculator import Calculator
 from ase.atoms import Atoms
+from ase.filters import FrechetCellFilter # ExpCellFilter,
 from pymatgen.io.phonopy import get_phonopy_structure
 from abipy.core.structure import Structure
 from abipy.dfpt.ddb import DdbFile
@@ -572,7 +573,6 @@ class MlVZSISAQHAPhonopy(MlBase):
         atoms = self.initial_atoms.copy()
         atoms.calc = calculator
 
-        from ase.filters import ExpCellFilter
         relax_mode = RX_MODE.cell
         print(f"Relaxing initial atoms with {relax_mode=}.")
         relax_kws = dict(optimizer=self.optimizer,
@@ -598,7 +598,7 @@ class MlVZSISAQHAPhonopy(MlBase):
             new_vol = v0 * bo_vol_scale
             new_atoms = new_structure.scale_lattice(new_vol).to_ase_atoms()
             new_atoms.calc = calculator
-            new_ucf = ExpCellFilter(new_atoms, constant_volume=True)
+            new_ucf = FrechetCellFilter(new_atoms, constant_volume=True)
 
             vol_workdir = self.get_path(f"VOL_{ivol}", info=f"Directory with phonopy results for {ivol=}, {new_vol=}")
             os.mkdir(vol_workdir)

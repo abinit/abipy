@@ -74,21 +74,12 @@ class RX_MODE(EnumMixin, StrEnum):  # StrEnum added in 3.11
     cell = "cell"
 
 
-def to_ase_atoms(structure: PmgStructure, calc=None) -> Atoms:
-    """Convert pymatgen structure to ASE atoms. Optionally, attach a calculator."""
-    structure = Structure.as_structure(structure)
-    atoms = AseAtomsAdaptor.get_atoms(structure)
-    if calc:
-        atoms.calc = calc
-    return atoms
-
-
 def get_atoms(obj: Any) -> Atoms:
     """Return ASE Atoms from object."""
     if isinstance(obj, str):
-        return to_ase_atoms(Structure.from_file(obj))
+        return Structure.from_file(obj).to_ase_atoms()
     if isinstance(obj, PmgStructure):
-        return to_ase_atoms(obj)
+        return Structure.as_structure(obj).to_ase_atoms()
     if isinstance(obj, Atoms):
         return obj
     raise TypeError(f"Don't know how to construct Atoms object from {type(obj)}")
@@ -100,7 +91,7 @@ def abisanitize_atoms(atoms: Atoms, **kwargs) -> Atoms:
     """
     structure = Structure.as_structure(atoms)
     new_structure = structure.abi_sanitize(**kwargs)
-    return to_ase_atoms(get_atoms(new_structure), calc=atoms.calc)
+    return new_structure.to_ase_atoms(calc=atoms.calc)
 
 
 def fix_atoms(atoms: Atoms,
@@ -3867,7 +3858,7 @@ class MlCwfEos(MlBase):
                     for volume in volumes:
                         #ase = structure.get_ase().copy()
                         #ase.set_cell(ase.get_cell() * float(scale_factor)**(1 / 3), scale_atoms=True)
-                        atoms = to_ase_atoms(Structure.as_structure(v0_atoms).scale_lattice(volume))
+                        atoms = Structure.as_structure(v0_atoms).scale_lattice(volume).to_ase_atoms()
                         r = AseResults.from_atoms(atoms, calc=calc)
                         energies.append(r.ene)
                         stresses.append(r.stress.tolist())

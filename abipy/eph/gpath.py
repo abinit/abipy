@@ -114,9 +114,6 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if self.r.eph_fix_korq == "q":
             app(self.ebands_k.to_string(with_structure=False, verbose=verbose, title="Electronic Bands (k)"))
 
-        #app(f"gstore_cplex: {self.r.cplex}")
-        #app(f"gstore_qptopt: {self.r.qptopt}")
-
         return "\n".join(lines)
 
     @staticmethod
@@ -134,16 +131,26 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return (self.r.bstart, self.r.bstop) if band_range is None else band_range
 
     @add_fig_kwargs
-    def plot_g_qpath(self, band_range=None, which_g="avg", with_qexp: int = 0, scale=1, gmax_mev=250,
-                     ph_modes=None, with_phbands=True, with_ebands=False,
-                     ax_mat=None, fontsize=8, **kwargs) -> Figure:
+    def plot_g_qpath(self,
+                     band_range=None,
+                     which_g="avg",
+                     with_qexp: int = 0,
+                     scale=1,
+                     gmax_mev=250,
+                     ph_modes=None,
+                     with_phbands=True,
+                     with_ebands=False,
+                     ax_mat=None,
+                     fontsize=8,
+                     **kwargs) -> Figure:
         """
-        Plot the averaged |g(k,q)| in meV units along the q-path
+        Plot the averaged |g(k,q)| in meV units along the q-path.
 
         Args:
             band_range: Band range that will be averaged over (python convention).
-            which_g: "avg" to plot the symmetrized |g|, "raw" for unsymmetrized |g|."all" for both.
-            with_qexp: Multiply |g(q)| by |q|^{with_qexp}.
+                If None all bands are considered.
+            which_g: "avg" to plot the symmetrized |g|, "raw" for unsymmetrized |g|. "all" for both.
+            with_qexp: Multiply |g(k, q)| by |q|^{with_qexp}.
             scale: Scaling factor for the marker size used when with_phbands is True.
             gmax_mev: Show results up to gmax in meV.
             ph_modes: List of ph branch indices to show (start from 0). If None all modes are shown.
@@ -221,8 +228,16 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_g_kpath(self, band_range=None, which_g="avg", scale=1, gmax_mev=250, ph_modes=None,
-                    with_ebands=True, ax_mat=None, fontsize=8, **kwargs) -> Figure:
+    def plot_g_kpath(self,
+                     band_range=None,
+                     which_g="avg",
+                     scale=1,
+                     gmax_mev=250,
+                     ph_modes=None,
+                     with_ebands=True,
+                     ax_mat=None,
+                     fontsize=8,
+                     **kwargs) -> Figure:
         """
         Plot the averaged |g(k,q)| in meV units along the k-path
 
@@ -339,8 +354,9 @@ class GpathReader(BaseEphReader):
         self.eph_fix_korq = self.read_string("eph_fix_korq")
         if self.eph_fix_korq not in {"k", "q"}:
             raise ValueError(f"Invalid value for {self.eph_fix_korq=}")
+
         self.eph_fix_wavec = self.read_value("eph_fix_wavevec")
-        self.dbdb_add_lr = self.read_value("dvdb_add_lr")
+        self.dvdb_add_lr = self.read_value("dvdb_add_lr")
         #self.used_ftinterp = self.read_value("used_ftinterp")
         #self.completed = self.read_value("gstore_completed")
 
@@ -621,10 +637,14 @@ class GpathRobot(Robot, RobotWithEbands):
     EXT = "GPATH"
 
     @add_fig_kwargs
-    def plot_g_qpath(self, which_g="avg", gmax_mev=250, ph_modes=None,
-                    colormap="jet", **kwargs) -> Figure:
+    def plot_g_qpath(self,
+                     which_g="avg",
+                     gmax_mev=250,
+                     ph_modes=None,
+                     colormap="jet",
+                     **kwargs) -> Figure:
         """
-        Compare the g-matrix along a q-path.
+        Compare the g-matrix stored in the Robot along a q-path.
 
         Args
             which_g: "avg" to plot the symmetrized |g|, "raw" for unsymmetrized |g|."all" for both.
@@ -677,6 +697,7 @@ class GpathRobot(Robot, RobotWithEbands):
 
     #@add_fig_kwargs
     #def plot_g_kpath(self, **kwargs) --> Figure
+    #   """Compare the g-matrix stored in the Robot along a q-path."""
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
