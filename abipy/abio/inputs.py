@@ -22,6 +22,7 @@ from typing import Any, Union, Iterable, Iterator
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
 from monty.json import MontyDecoder, MSONable
+from monty.termcolor import cprint
 from pymatgen.core.units import Energy
 from pymatgen.symmetry.bandstructure import HighSymmKpath
 from abipy.tools.numtools import is_diagonal
@@ -454,6 +455,12 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
 
         self._pseudos = ord_pseudos
 
+        # Init ecut from hints if available.
+        try:
+            self.set_cutoffs_for_accuracy("normal")
+        except self.Error:
+            pass
+
     def enforce_znucl_and_typat(self, znucl, typat):
         """
         These arrays are used to enforce a particular value of `znucl` and `typat` when writing the Abinit input file
@@ -675,7 +682,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             # DTE run.
             runlevel.add(atags.DFPT)
             runlevel.add(atags.DTE)
-    
+
         elif optdriver == 99:
             # BSE run
             runlevel.update([atags.MANY_BODY, atags.BSE])
@@ -1502,7 +1509,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         new.set_vars(*args, **kwargs)
         return new
 
-    def new_with_structure(self, new_structure, scdims=None, verbose=1) -> AbinitInput:
+    def new_with_structure(self, new_structure, scdims=None, verbose=1, **abi_vars) -> AbinitInput:
         """
         Return a new |AbinitInput| with a different structure.
         See notes below for the constraints that must be fulfilled by the new structure
@@ -1514,6 +1521,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 Must be used when `new_structure` represents a supercell of the initial structure defined
                 in the input file.
             verbose: Verbosity level.
+            abi_vars: Abinit variables added to the Abinit input.
 
         .. warning::
 
@@ -1522,11 +1530,15 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             When structure represents a supercell, `scdims` must be coherent with the `new_structure` passed
             as argument.
         """
+        new_structure = Structure.as_structure(new_structure)
+
         # Check structure
         if scdims is None:
             # Assume same value of natom and typat
             if len(self.structure) != len(new_structure):
-                raise ValueError("Structures must have same value of natom")
+                raise ValueError(f"Structures must have same value of natom." +
+                                 f"new_structure has {len(new_structure)} atoms." +
+                                 f"input.structure has {len(self.structure)}")
             errors = []
             for i, (site1, site2) in enumerate(zip(self.structure, new_structure)):
                 if site1.specie.symbol != site2.specie.symbol:
@@ -1609,6 +1621,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
             # Add chkprim if not yet done.
             new.set_vars_ifnotin(chkprim=0)
+
+        new.set_vars(**abi_vars)
 
         return new
 
@@ -1704,7 +1718,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return tolvar, value
 
     def make_ebands_input(self, ndivsm=15, tolwfr=1e-20, nscf_nband=None, nb_extra=10,
-                          nbdbuf=None, nstep=100) -> AbinitInput:
+                          nbdbuf=None, nstep=100, **extra_abivars) -> AbinitInput:
         """
         Generate an input file for a NSCF band structure calculation along k-path from a GS SCF input.
 
@@ -1719,6 +1733,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             nb_extra: Extra bands to to be added to input nband if nscf_nband is None.
             nbdbuf: Number of states in buffer
             nstep: Max number of NSCF iterations.
+            extra_abivars: Extra input variables.
         """
         nscf_input = self.deepcopy()
         nscf_input.pop_vars(["ngkpt", "nshiftk", "shiftk"])
@@ -1757,12 +1772,16 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                             tolwfr=tolwfr,
                             nbdbuf=nbdbuf,
                             nstep=nstep,
-                            comment="Input file for NSCF band structure calculation from a GS SCF input.")
+                            prtwf=-1,
+                            comment="Input file for NSCF band structure calculation from a GS SCF input.",
+                            )
+
+        nscf_input.set_vars(**extra_abivars)
 
         return nscf_input
 
     def make_edos_input(self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None,
-                        nb_extra=10, nstep=100) -> AbinitInput:
+                        nb_extra=10, nstep=100, **extra_abivars) -> AbinitInput:
         """
         Generate an input file for electron DOS calculation from a GS-SCF input.
 
@@ -1773,6 +1792,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             nscf_nband: Number of bands for NSCF calculation. If None, use nband + nb_extra
             nb_extra: Extra bands to to be added to input nband if nscf_nband is None.
             nstep: Max number of NSCF iterations.
+            extra_abivars: Extra input variables.
         """
         edos_input = self.deepcopy()
         edos_input.pop_tolerances()
@@ -1780,14 +1800,17 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         edos_input.set_vars(iscf=-2,
                             nband=nscf_nband,
                             tolwfr=tolwfr,
-                            nstep=nstep
+                            nstep=nstep,
+                            prtwf=-1,
+                            comment="Input file for electron DOS calculation from a GS SCF input (NSCF on kmesh)",
                             )
         edos_input.set_kmesh(ngkpt, shiftk)
-        edos_input.set_comment("Input file for electron DOS calculation from a GS SCF input (NSCF on kmesh)")
+
+        edos_input.set_vars(**extra_abivars)
 
         return edos_input
 
-    def make_nscf_kptopt0_input(self, kpts, tolwfr=1e-20, iscf=-2) -> AbinitInput:
+    def make_nscf_kptopt0_input(self, kpts, tolwfr=1e-20, iscf=-2, **extra_abivars) -> AbinitInput:
         """
         Build an input for NSCF calculation from a GS SCF one.
         Uses explicit list of k-points and kptopt 0.
@@ -1795,6 +1818,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Args:
             kpts: List of k-points in reduced coordinates.
             tolwfr: Tolerance on residuals.
+            extra_abivars: Extra input variables.
         """
         nscf_input = self.deepcopy()
         nscf_input.pop_vars(["ngkpt", "ngkpt", "shiftk"])
@@ -1802,6 +1826,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         kpts = np.reshape(kpts, (-1, 3))
         nscf_input.set_vars(tolwfr=tolwfr, kptopt=0, iscf=iscf, nkpt=len(kpts), kpt=kpts)
         nscf_input.set_comment("Input file for NSCF run from a GS SCF input with explicit list of k-points")
+
+        nscf_input.set_vars(**extra_abivars)
 
         return nscf_input
 
@@ -1929,7 +1955,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
     def make_ddkpert_input(self, perturbation, kptopt=2, only_vk=False, use_symmetries=False, tolerance=None, manager=None) -> AbinitInput:
         """
         Returns |AbinitInput| for the calculation of an electric field perturbation.
-        This function should be called with an input that represents a GS run and 
+        This function should be called with an input that represents a GS run and
         an electric field perturbation.
 
         Args:
@@ -1973,7 +1999,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         if only_vk:
             inp.set_vars(nstep=1, nline=1)
-        
+
         # TODO: to implement
         #if not use_symmetries:
         #    inp.set_vars(
@@ -2073,11 +2099,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         dkdk_input.set_vars(tolerance)
 
         return dkdk_input
-    
+
     def make_ddepert_input(self, perturbation, use_symmetries=True, tolerance=None, manager=None) -> AbinitInput:
         """
         Returns |AbinitInput| for the calculation of an electric field perturbation.
-        This function should be called with an input that represents a GS run and 
+        This function should be called with an input that represents a GS run and
         an electric field perturbation.
 
         Args:
@@ -2111,7 +2137,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             qpt=(0, 0, 0),  # q-wavevector.
             kptopt=2,       # Take into account time-reversal symmetry.
         )
-        
+
         if not use_symmetries:
             inp.set_vars(
                 comment="Input file for DDE calculation without symmetries.",
@@ -2122,7 +2148,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         inp.set_vars(tolerance)
 
         return inp
-    
+
     def make_dde_inputs(self, tolerance=None, use_symmetries=True, manager=None) -> MultiDataset:
         """
         Return |MultiDataset| inputs for the calculation of electric field perturbations.
@@ -3909,7 +3935,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             prtdos = 1
             i = dos_method.find(":")
             if i != -1:
-                value, eunit = dos_method[i+1:].split()
+                try:
+                    value, eunit = dos_method[i+1:].split()
+                except Exception as exc:
+                    raise ValueError(f"Invalid {dos_method=}") from exc
+
                 dossmear = Energy(float(value), eunit).to("Ha")
         else:
             raise NotImplementedError("Wrong value for dos_method: %s" % str(dos_method))
@@ -4227,8 +4257,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             #if mode == "html": vname = root + "#%s" % vname
             if mode == "html": vname = var_database[vname].html_link(label=vname)
             value = format_string_abivars(vname, value, "anaddb")
-            #print("vname:", vname, "value:", value)
-            app(str(InputVariable(vname, value)))
+
+            try:
+                app(str(InputVariable(vname, value)))
+            except Exception as exc:
+                cprint(f"{vname=}, {value=}", color="red")
+                raise exc
 
         return "\n".join(lines) if mode == "text" else "\n".join(lines).replace("\n", "<br>")
 

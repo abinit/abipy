@@ -13,6 +13,7 @@ from monty.functools import lazy_property
 from abipy.tools.typing import Figure
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, add_plotly_fig_kwargs, PlotlyRowColDesc, get_fig_plotly)
 from abipy.tools.derivatives import finite_diff
+from abipy.tools.serialization import pmg_serialize
 from abipy.tools.numtools import data_from_cplx_mode
 
 __all__ = [
@@ -30,6 +31,47 @@ class Function1D:
         """Build a constant function from the mesh and the scalar ``const``"""
         mesh = np.ascontiguousarray(mesh)
         return cls(mesh, np.ones(mesh.shape) * const)
+
+    @classmethod
+    def from_func(cls, func, mesh) -> Function1D:
+        """
+        Initialize the object from a callable.
+
+        :example:
+
+           Function1D.from_func(np.sin, mesh=np.arange(1,10))
+        """
+        return cls(mesh, np.vectorize(func)(mesh))
+
+    @pmg_serialize
+    def as_dict(self) -> dict:
+        """Makes Function1D obey the general json interface used in pymatgen for easier serialization."""
+        return {"mesh": self.mesh, "values": self.values}
+
+    @classmethod
+    def from_dict(cls, d: dict) -> Function1D:
+        """
+        Reconstruct object from the dictionary in MSONable format produced by as_dict.
+        """
+        return cls(d["mesh"], d["values"])
+
+    @classmethod
+    def from_file(cls, path, comments="#", delimiter=None, usecols=(0, 1)) -> Function1D:
+        """
+        Initialize an instance by reading data from path (txt format)
+        see also :func:`np.loadtxt`
+
+        Args:
+            path: Path to the file containing data.
+            comments: The character used to indicate the start of a comment; default: '#'.
+            delimiter: str, optional The string used to separate values. By default, this is any whitespace.
+            usecols: sequence, optional. Which columns to read, with 0 being the first.
+                For example, usecols = (1,4) will extract data from the 2nd, and 5th columns.
+        """
+        mesh, values = np.loadtxt(path, comments=comments, delimiter=delimiter,
+                                  usecols=usecols, unpack=True)
+        return cls(mesh, values)
+
 
     def __init__(self, mesh, values):
         """
@@ -143,34 +185,6 @@ class Function1D:
     def abs(self) -> Function1D:
         """Return :class:`Function1D` with the absolute value."""
         return self.__class__(self.mesh, np.abs(self.values))
-
-    @classmethod
-    def from_func(cls, func, mesh) -> Function1D:
-        """
-        Initialize the object from a callable.
-
-        :example:
-
-           Function1D.from_func(np.sin, mesh=np.arange(1,10))
-        """
-        return cls(mesh, np.vectorize(func)(mesh))
-
-    @classmethod
-    def from_file(cls, path, comments="#", delimiter=None, usecols=(0, 1)) -> Function1D:
-        """
-        Initialize an instance by reading data from path (txt format)
-        see also :func:`np.loadtxt`
-
-        Args:
-            path: Path to the file containing data.
-            comments: The character used to indicate the start of a comment; default: '#'.
-            delimiter: str, optional The string used to separate values. By default, this is any whitespace.
-            usecols: sequence, optional. Which columns to read, with 0 being the first.
-                For example, usecols = (1,4) will extract data from the 2nd, and 5th columns.
-        """
-        mesh, values = np.loadtxt(path, comments=comments, delimiter=delimiter,
-                                  usecols=usecols, unpack=True)
-        return cls(mesh, values)
 
     def to_file(self, path, fmt='%.18e', header='') -> None:
         """

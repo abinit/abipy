@@ -12,7 +12,7 @@ from abipy.core.release import __version__
 
 
 def get_epilog() -> str:
-   return """\
+    return """\
 Usage example:\n
 
     abislurm.py running                => Get info on all the running jobs

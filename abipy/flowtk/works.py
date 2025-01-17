@@ -1732,6 +1732,7 @@ class PhononWork(Work, MergeDdb):
                 in the segment is proportional to its length. Typical value: -20.
                 This option is the recommended one if the k-path contains two high symmetry k-points that are very close
                 as ndivsm > 0 may produce a very large number of wavevectors.
+                if 0, deactivate band structure calculation.
             qptopt: Option for the generation of q-points. Default: 1
             prtwf: Controls the output of the first-order WFK.
                 By default we set it to -1 when q != 0 so that AbiPy is still able
@@ -1817,7 +1818,7 @@ class PhononWork(Work, MergeDdb):
                 new.register_phonon_task(ph_inp, deps={scf_task: "WFK"})
 
         new.ebands_task = None
-        if ndivsm != 0:
+        if ndivsm is not None and ndivsm != 0:
             new.ebands_task = scf_task.add_ebands_task_to_work(new, ndivsm=ndivsm)
 
         return new

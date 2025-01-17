@@ -476,7 +476,7 @@ class AbipyTest(PymatgenTest):
 
     @staticmethod
     def mkdtemp(**kwargs) -> str:
-        """Invoke mkdtep with kwargs, return the name of a temporary directory."""
+        """Invoke mkdtemp with kwargs, return the name of a temporary directory."""
         return tempfile.mkdtemp(**kwargs)
 
     @staticmethod

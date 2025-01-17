@@ -42,9 +42,6 @@ Ang2PsTocm2S = 0.0001
 e2s = 1.602188**2 # electron charge in Coulomb scaled by 10.d-19**2
 kbs = 1.38066     # Boltzmann constant in Joule/K scaled by 10.d-23
 
-#bohr2a = 0.529177
-#kBoltzAng10m9 = 1.38066e-02
-#kBoltz = 1.38066e-23
 kBoltzEv = 8.617333e-05
 #nCar = 56  # FIXME: Harcoded
 
@@ -420,6 +417,7 @@ class MdAnalyzer(HasPickleIO):
             cart_positions: Cartesian positions in Ang. Default shape: (nt, natom, 3).
             ucmats: Array of lattice matrix of every step. Used for NPT.
                 For NVT-AIMD, the lattice at each time step is set to the lattice in the "structure" argument.
+            engine: String defining the engine used to produce the MD trajectory.
             pos_order: "tac" if cart_positions has shape (nt, natom, 3).
                        "atc" if cart_positions has shape (natom, nt, 3).
             evp_df:
@@ -1761,9 +1759,10 @@ class ArrheniusEntry:
 
     @classmethod
     def from_file(cls, filepath: PathLike, key, mpl_style) -> ArrheniusEntry:
-
-        # Read data in CSV format. Assuming header with at least the following entries:
-        #   temperature,diffusion,err_diffusion,volume,symbol,composition
+        """
+        Read data in CSV format. Assuming header with at least the following entries:
+        temperature,diffusion,err_diffusion,volume,symbol,composition
+        """
         try:
             df = pd.read_csv(filepath, skipinitialspace=True)
 
@@ -1993,7 +1992,7 @@ class ArrheniusPlotter:
             what: Selects the quantity to plot. Possibile values: "diffusion", "sigma", "tsigma".
             ncar: Number of carriers. Required if what is "sigma" or "tsigma".
             colormap: Colormap used to select the color if entry.mpl_style does not provide it.
-            with_t: True to dd a twin axes with the value of T
+            with_t: True to add a twin axes with the value of T
             text:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: fontsize for legends and titles.

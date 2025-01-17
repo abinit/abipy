@@ -189,58 +189,65 @@ def kmesh_from_mpdivs(mpdivs, shifts, pbc=False, order="bz"):
         rc1 = rc_list(mpdivs[1], shift[1], pbc=pbc, order=order)
         rc2 = rc_list(mpdivs[2], shift[2], pbc=pbc, order=order)
 
+        # NB: z is the fastest index in (x, y, z)
         for kxyz in product(rc0, rc1, rc2):
+            #print("kxyz", kxyz)
             kbz.append(kxyz)
 
+    #import sys; sys.exit(1)
     return np.array(kbz)
 
 
-def map_grid2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
+def map_grid2ibz(structure, ibz, ngkpt, shifts, has_timrev, pbc=False):
     """
     Compute the correspondence between a *grid* of k-points in the *unit cell*
     associated to the ``ngkpt`` mesh and the corresponding points in the IBZ.
     Requires structure with Abinit symmetries.
-    This routine is mainly used to symmetrize eigenvalues in the unit cell
-    e.g. to write BXSF files for electronic isosurfaces.
 
     Args:
-        structure: Structure with (Abinit) symmetry operations.
-        ibz: [*, 3] array with reduced coordinates in the in the IBZ.
+        structure: Structure with Abinit symmetry operations.
+        ibz: [*, 3] array with the reduced coordinates in the IBZ.
         ngkpt: Mesh divisions.
+        shifts:
         has_timrev: True if time-reversal can be used.
         pbc: True if the mesh should contain the periodic images (closed mesh).
 
     Returns:
         bz2ibz: 1d array with BZ --> IBZ mapping
     """
-    ngkpt = np.asarray(ngkpt, dtype=int)
-
-    # Extract (FM) symmetry operations in reciprocal space.
-    abispg = structure.abi_spacegroup
-    if abispg is None:
+    if (abispg := structure.abi_spacegroup) is None:
         raise ValueError("Structure does not contain Abinit spacegroup info!")
 
+    ngkpt = np.asarray(ngkpt, dtype=int)
+    shifts = np.reshape(shifts, (-1, 3))
+
+    # TODO: Handle multiple shifts
+    if np.any(np.abs(shifts) > 0):
+        raise ValueError("The k-mesh should be gamma-centered!")
+    if len(shifts) > 1:
+        raise ValueError("Multiple shifts are not supported!")
 
     # Extract rotations in reciprocal space (FM part).
     symrec_fm = [o.rot_g for o in abispg.fm_symmops]
 
-    # Compute TS k_ibz.
     bzgrid2ibz = -np.ones(ngkpt, dtype=int)
 
     for ik_ibz, kibz in enumerate(ibz):
         gp_ibz = np.array(np.rint(kibz * ngkpt), dtype=int)
         for rot in symrec_fm:
+            # Compute S k_ibz.
             rot_gp = np.matmul(rot, gp_ibz)
             gp_bz = rot_gp % ngkpt
             bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
             if has_timrev:
+                # Compute TS k_ibz.
                 gp_bz = (-rot_gp) % ngkpt
                 bzgrid2ibz[gp_bz[0], gp_bz[1], gp_bz[2]] = ik_ibz
-
     if pbc:
         # Add periodic replicas.
         bzgrid2ibz = add_periodic_replicas(bzgrid2ibz)
 
+    # Consistency check.
     if np.any(bzgrid2ibz == -1):
         #for ik_bz, ik_ibz in enumerate(self.bzgrid2ibz): print(ik_bz, ">>>", ik_ibz)
         msg =  " Found %s/%s invalid entries in bzgrid2ibz array\n" % ((bzgrid2ibz == -1).sum(), bzgrid2ibz.size)
@@ -249,8 +256,20 @@ def map_grid2ibz(structure, ibz, ngkpt, has_timrev, pbc=False):
         msg += f" {abispg=}\n"
         raise ValueError(msg)
 
-    bz2ibz = bzgrid2ibz.flatten()
-    return bz2ibz
+    # Generate k-points using numpy's meshgrid and stack for efficiency
+    nx, ny, nz = ngkpt[0], ngkpt[1], ngkpt[2]
+    if pbc:
+        nx, ny, nz = nx + 1, ny + 1, nz + 1
+
+    kx = (np.arange(nx) + shifts[0,0]) / ngkpt[0]
+    ky = (np.arange(ny) + shifts[0,1]) / ngkpt[1]
+    kz = (np.arange(nz) + shifts[0,2]) / ngkpt[2]
+
+    # Create the 3D grid of points
+    kx, ky, kz = np.meshgrid(kx, ky, kz, indexing="ij")
+    bz_kpoints = np.stack((kx.ravel(), ky.ravel(), kz.ravel()), axis=-1)
+
+    return bzgrid2ibz.flatten(), bz_kpoints
 
 
 def has_timrev_from_kptopt(kptopt):
@@ -561,7 +580,6 @@ def as_kpoints(obj, lattice, weights=None, names=None):
         if names is None: names = nk * [None]
         return [Kpoint(rc, lattice, weight=w, name=l) for (rc, w, l) in zip(obj, weights, names)]
 
-
     raise ValueError(f"{ndim=} > 2 is not supported!")
 
 
@@ -770,7 +788,7 @@ class Kpoint(SlotPickleMixin):
         return self.__class__(self.frac_coords.copy(), self.lattice.copy(),
                               weight=self.weight, name=self.name)
 
-    def is_gamma(self, allow_umklapp=False, atol=None):
+    def is_gamma(self, allow_umklapp=False, atol=None) -> bool:
         """
         Return True if this the gamma point.
 
@@ -806,7 +824,7 @@ class Kpoint(SlotPickleMixin):
         return self.__class__(wrap_to_bz(self.frac_coords), self.lattice,
                               name=self.name, weight=self.weight)
 
-    def compute_star(self, symmops, wrap_tows=True):
+    def compute_star(self, symmops, wrap_tows=True) -> KpointStar:
         """Return the star of the kpoint (tuple of |Kpoint| objects)."""
         frac_coords = [self.frac_coords]
 
@@ -857,7 +875,7 @@ class KpointList(collections.abc.Sequence):
         raise ValueError(f"Cannot find subclass associated to {name=}")
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict):
         """
         Makes Kpoints obey the general json interface used in pymatgen for easier serialization.
         """
@@ -1027,12 +1045,12 @@ class KpointList(collections.abc.Sequence):
         return ind, self[ind], np.copy(dist[ind])
 
     @property
-    def is_path(self):
+    def is_path(self) -> bool:
         """True if self represents a path in the BZ."""
         return isinstance(self, Kpath)
 
     @property
-    def is_ibz(self):
+    def is_ibz(self) -> bool:
         """True if self represents a list of points in the IBZ."""
         return isinstance(self, IrredZone)
 
@@ -1049,7 +1067,7 @@ class KpointList(collections.abc.Sequence):
         return self.ksampling.kptrlatt.diagonal(), self.ksampling.shifts
 
     @property
-    def is_mpmesh(self):
+    def is_mpmesh(self) -> bool:
         """
         True if self represents a Monkhorst-Pack mesh.
         i.e if the sampling has been specified in terms of divisions
@@ -1067,12 +1085,12 @@ class KpointList(collections.abc.Sequence):
         return np.reshape([k.cart_coords for k in self], (-1, 3))
 
     @property
-    def names(self):
+    def names(self) -> list[str]:
         """List with the name of the k-points."""
         return [k.name for k in self]
 
     @property
-    def weights(self):
+    def weights(self) -> np.ndarray:
         """|numpy-array| with the weights of the k-points."""
         return np.array([kpoint.weight for kpoint in self])
 
@@ -1080,7 +1098,7 @@ class KpointList(collections.abc.Sequence):
         """Returns the sum of the weights."""
         return np.sum(self.weights)
 
-    def check_weights(self):
+    def check_weights(self) -> None:
         """
         Check if weights are normalized to one.
         Raises: `ValueError` if Weights are not normalized.
@@ -1149,7 +1167,7 @@ class KpointList(collections.abc.Sequence):
         """Returns a |numpy-array| [nkpy, 3] with the fractional coordinates."""
         return np.array(self.frac_coords.copy())
 
-    def to_json(self):
+    def to_json(self) -> str:
         """
         Returns a JSON_ string representation of the MSONable object.
         """
@@ -1371,7 +1389,7 @@ class Kpath(KpointList):
         return tuple(versors)
 
     @lazy_property
-    def lines(self):
+    def lines(self) -> list:
         """
         Nested list containing the indices of the points belonging to the same line.
         Used for extracting the eigenvalues while looping over the lines.
@@ -1450,7 +1468,6 @@ class Kpath(KpointList):
             ders_on_lines.append(der)
 
         return np.array(ders_on_lines, dtype=object)
-        #return np.array(ders_on_lines)
 
 
 class IrredZone(KpointList):

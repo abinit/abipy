@@ -742,9 +742,9 @@ class HistRobot(Robot):
 
         kwargs:
             attrs:
-                List of additional attributes of the |GsrFile| to add to the |pandas-DataFrame|.
+                List of additional attributes of the |HistFile| to add to the |pandas-DataFrame|.
             funcs: Function or list of functions to execute to add more data to the DataFrame.
-                Each function receives a |GsrFile| object and returns a tuple (key, value)
+                Each function receives a |HistFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
         """
         # Add attributes specified by the users

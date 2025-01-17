@@ -10,7 +10,7 @@ import json
 import tempfile
 import numpy as np
 
-from typing import Any, Union, Optional
+from typing import Optional
 from shutil import which
 from monty.collections import dict2namedtuple
 from monty.termcolor import cprint

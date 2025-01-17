@@ -614,7 +614,8 @@ class TestKmappingTools(AbipyTest):
 
     def test_map_grid2ibz(self):
         """Testing map_grid2ibz."""
-        bz2ibz = map_grid2ibz(self.mgb2, self.kibz, self.ngkpt, self.has_timrev, pbc=False)
+        shifts = [0, 0, 0]
+        bz2ibz, bz_kpoints = map_grid2ibz(self.mgb2, self.kibz, self.ngkpt, shifts, self.has_timrev, pbc=False)
 
         bz = []
         nx, ny, nz = self.ngkpt

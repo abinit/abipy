@@ -4,9 +4,9 @@ the PATH.nc file with the e-ph matrix elements along a k/q path
 """
 from __future__ import annotations
 
-import dataclasses
+#import dataclasses
 import numpy as np
-import pandas as pd
+#import pandas as pd
 import abipy.core.abinit_units as abu
 
 from monty.string import marquee
@@ -27,7 +27,7 @@ from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
 
-def k2s(k_vector, fmt=".3f", threshold = 1e-8) -> str:
+def k2s(k_vector, fmt=".3f", threshold=1e-8) -> str:
     k_vector = np.asarray(k_vector)
     k_vector[np.abs(k_vector) < threshold] = 0
 
@@ -99,7 +99,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose: int=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
 
@@ -126,7 +126,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
             return all_choices
 
         if which_g not in all_choices:
-            raise ValueError(f"Invalid {which=}, should be in {all_choices=}")
+            raise ValueError(f"Invalid {which_g=}, should be in {all_choices=}")
 
         return [which_g]
 
@@ -134,7 +134,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return (self.r.bstart, self.r.bstop) if band_range is None else band_range
 
     @add_fig_kwargs
-    def plot_g_qpath(self, band_range=None, which_g="avg", with_qexp: int=0, scale=1, gmax_mev=250,
+    def plot_g_qpath(self, band_range=None, which_g="avg", with_qexp: int = 0, scale=1, gmax_mev=250,
                      ph_modes=None, with_phbands=True, with_ebands=False,
                      ax_mat=None, fontsize=8, **kwargs) -> Figure:
         """
@@ -481,16 +481,16 @@ class GpathReader(BaseEphReader):
         # Average over degenerate k+q electrons taking bstart into account.
         absg = absg_avg.copy()
         for iq in range(self.nq_path):
-          for n_k in range(nb_in_g):
-              for m_kq in range(nb_in_g):
-                  w_1 = all_eigens_kq[spin, iq, m_kq + bstart]
-                  g2_nu[:], nn = 0.0, 0
-                  for bsum_kq in range(nb_in_g):
-                      w_2 = all_eigens_kq[spin, iq, bsum_kq + bstart]
-                      if abs(w_2 - w_1) >= eps_ev: continue
-                      nn += 1
-                      g2_nu += absg[iq,:,bsum_kq,n_k] ** 2
-                  absg_avg[iq,:,m_kq,n_k] = np.sqrt(g2_nu / nn)
+            for n_k in range(nb_in_g):
+                for m_kq in range(nb_in_g):
+                    w_1 = all_eigens_kq[spin, iq, m_kq + bstart]
+                    g2_nu[:], nn = 0.0, 0
+                    for bsum_kq in range(nb_in_g):
+                        w_2 = all_eigens_kq[spin, iq, bsum_kq + bstart]
+                        if abs(w_2 - w_1) >= eps_ev: continue
+                        nn += 1
+                        g2_nu += absg[iq,:,bsum_kq,n_k] ** 2
+                    absg_avg[iq,:,m_kq,n_k] = np.sqrt(g2_nu / nn)
 
         # Transpose the data: (nq_path, natom3, nb_in_g, nb_in_g) -> (natom3, nq_path, nb_in_g, nb_in_g)
         absg_avg, absg_raw = absg_avg.transpose(1, 0, 2, 3).copy(), absg_raw.transpose(1, 0, 2, 3).copy()
@@ -553,11 +553,11 @@ class GpathReader(BaseEphReader):
         absg_avg = np.zeros_like(absg)
         for ik in range(self.nk_path):
             for nu in range(natom3):
-               # Sum the squared values of absg over the degenerate phonon mu indices.
-               mask_nu = np.abs(phfreqs_ha[iq, :] - phfreqs_ha[iq, nu]) < eps_ha
-               g2_mn = np.sum(absg[ik, mask_nu, :, :]**2, axis=0)
-               # Compute the symmetrized value and divide by the number of degenerate ph-modes for this iq.
-               absg_avg[ik, nu, :, :] = np.sqrt(g2_mn / np.sum(mask_nu))
+                # Sum the squared values of absg over the degenerate phonon mu indices.
+                mask_nu = np.abs(phfreqs_ha[iq, :] - phfreqs_ha[iq, nu]) < eps_ha
+                g2_mn = np.sum(absg[ik, mask_nu, :, :]**2, axis=0)
+                # Compute the symmetrized value and divide by the number of degenerate ph-modes for this iq.
+                absg_avg[ik, nu, :, :] = np.sqrt(g2_mn / np.sum(mask_nu))
 
         # MG FIXME: Note the difference with a similar function in gkq here I use absg and not absgk
         # Average over degenerate k electrons taking bstart into account.
@@ -645,7 +645,7 @@ class GpathRobot(Robot, RobotWithEbands):
 
         # TODO: Compute common band range.
         band_range = None
-        ref_ifile= 0
+        ref_ifile = 0
         #q_label = r"$|q|^{%d}$" % with_qexp if with_qexp else ""
         #g_units = "(meV)" if with_qexp == 0 else r"(meV $\AA^-{%s}$)" % with_qexp
 

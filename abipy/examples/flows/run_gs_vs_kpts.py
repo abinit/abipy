@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Convergence studiy with different k-meshes
+Convergence study with different k-meshes
 ==========================================
 
 In this example,

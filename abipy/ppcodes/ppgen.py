@@ -296,7 +296,6 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
 #    fr = "fully-relativistic"
 
 
-
 class OncvGenerator(_PseudoGenerator):
     """
     This object receives an input file for oncvpsp, a string

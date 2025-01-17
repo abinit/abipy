@@ -101,6 +101,31 @@ dfpt Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`vzsisa` Module
+--------------------
+
+.. automodule:: abipy.dfpt.vzsisa
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+:mod:`qha_2D` Module
+--------------------
+
+.. automodule:: abipy.dfpt.qha_2D
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`qha_general_stress` Module
+--------------------------------
+
+.. automodule:: abipy.dfpt.qha_general_stress
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 :mod:`raman` Module
 -------------------
 

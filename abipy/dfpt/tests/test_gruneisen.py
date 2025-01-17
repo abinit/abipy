@@ -19,8 +19,8 @@ class GrunsFileTest(AbipyTest):
             #assert len(ncfile.volumes) == 3
             assert not ncfile.params
 
-            d = ncfile.doses
-            assert d is ncfile.doses
+            d = ncfile.phdoses
+            assert d is ncfile.phdoses
             assert "wmesh" in d
             assert len(ncfile.phbands_qpath_vol) == 3
             assert d.qpoints.is_ibz
@@ -50,11 +50,11 @@ class GrunsFileTest(AbipyTest):
             ncfile.gvals_qibz_finite_differences(match_eigv=False)
 
             if self.has_matplotlib():
-                assert ncfile.plot_doses(title="DOSes", show=False)
-                assert ncfile.plot_doses(with_idos=False, xlims=None, show=False)
+                assert ncfile.plot_phdoses(title="PHDOSes", show=False)
+                assert ncfile.plot_phdoses(with_idos=False, xlims=None, show=False)
 
                 # Arrow up for positive values, down for negative values.
-                assert ncfile.plot_phbands_with_gruns(title="bands with gamma markers + DOSes", show=False)
+                assert ncfile.plot_phbands_with_gruns(title="bands with gamma markers + PHDOSes", show=False)
                 assert ncfile.plot_phbands_with_gruns(with_doses=None, gamma_fact=2, units="cm-1", show=False)
                 assert ncfile.plot_phbands_with_gruns(fill_with="groupv", gamma_fact=2, units="cm-1", show=False)
                 assert ncfile.plot_phbands_with_gruns(fill_with="gruns_fd", gamma_fact=2, units="cm-1", show=False)

@@ -286,13 +286,13 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
     Submit a job script to the queue with Slurm sbatch. Return Slurm JOB ID.
     """
     from monty.os import cd
-    dirpath = os.path.dirname(slurm_filepath)
+    dirpath = os.path.dirname(str(slurm_filepath))
     #print("dirpath", dirpath)
-    with cd(dirpath):
 
+    with cd(dirpath):
         # need string not bytes so must use universal_newlines
         slurm_filepath = str(slurm_filepath)
-        process = Popen(['sbatch', slurm_filepath], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        process = Popen(["sbatch", slurm_filepath], stdout=PIPE, stderr=PIPE, universal_newlines=True)
         out, err = process.communicate()
 
         # grab the returncode. SLURM returns 0 if the job was successful
@@ -320,7 +320,6 @@ def get_sacct_info():
     Run the sacct command to get the job information
     """
     try:
-
         result = run(['sacct', '--format=JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode', '--noheader'],
                       stdout=PIPE, stderr=PIPE, text=True)
 
@@ -331,7 +330,7 @@ def get_sacct_info():
 
         # Process the output
         jobs_info = result.stdout.strip().split('\n')
-        jobs = [dict(zip(['JobID', 'JobName', 'Partition', 'Account', 'AllocCPUS', 'State', 'ExitCode'], job.split())) 
+        jobs = [dict(zip(['JobID', 'JobName', 'Partition', 'Account', 'AllocCPUS', 'State', 'ExitCode'], job.split()))
                 for job in jobs_info]
         return jobs
 

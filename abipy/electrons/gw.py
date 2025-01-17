@@ -1798,7 +1798,7 @@ class SigresReader(ETSF_Reader):
 
         return tuple(qps_spin)
 
-    def read_qplist_sk(self, spin, kpoint, ignore_imag=False) -> QPList:
+    def read_qplist_sk(self, spin, kpoint, band=None, ignore_imag=False) -> QPList:
         """
         Read and return QPList object for the given spin, kpoint.
 
@@ -1808,8 +1808,11 @@ class SigresReader(ETSF_Reader):
         ikcalc = self.kpt2ikcalc(kpoint)
         bstart, bstop = self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]
 
+        band_list = list(range(bstart, bstop)) if band is None else \
+                    [b for b in range(bstart, bstop) if b != band]
+
         return QPList([self.read_qp(spin, kpoint, band, ignore_imag=ignore_imag)
-                      for band in range(bstart, bstop)])
+                      for band in band_list])
 
     def read_qpenes(self):
         return self._egw[:, :, :]
@@ -1970,12 +1973,12 @@ class SigresRobot(Robot, RobotWithEbands):
 
         if same_nsppol and same_nkcalc:
             # FIXME
-            # Different values of bstart_ks are difficult to handle
+            # Different values of bstart_sk are difficult to handle
             # Because the high-level API assumes an absolute global index
             # Should decide how to treat this case: either raise or interpret band as an absolute band index.
-            if any(np.any(nc.bstart_sk != nc0.bstart_sk) for nc in self.abifiles):
+            if any(np.any(nc.r.bstart_sk != nc0.r.bstart_sk) for nc in self.abifiles):
                 wapp("Comparing ncfiles with different values of bstart_sk")
-            if any(np.any(nc.bstop_sk != nc0.bstop_sk) for nc in self.abifiles):
+            if any(np.any(nc.r.bstop_sk != nc0.r.bstop_sk) for nc in self.abifiles):
                 wapp("Comparing ncfiles with different values of bstop_sk")
 
         if warns:
@@ -2454,3 +2457,126 @@ class SigresRobot(Robot, RobotWithEbands):
         nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
+
+
+class GwRobotWithDisplacedAtom(SigresRobot):
+    """
+    Specialized class to analyze GW or GWR calculations with displaced atom.
+    """
+    @classmethod
+    def from_displaced_atom(cls, site_index, reduced_dir, step_ang, gw_files) -> GwRobotWithDisplacedAtom:
+        """
+        Build an instance from a list of SIGRES.nc or GWR.nc files.
+
+        Args:
+            site_index: Index of the site that has been displaced.
+            reduced_dir: Reduced direction of the displacement.
+            step_ang: Step used to displace structures in Angstrom.
+            gw_files: List of paths to either SIGRES.nc or GWR.nc files.
+                Files are assumed to be ordered according to the displacement.
+        """
+        #print(f"{gw_files}")
+        new = cls(*gw_files)
+        print("new = cls(*gw_files) done!")
+
+        new.site_index = site_index
+        new.reduced_dir = reduced_dir
+        new.step_ang = step_ang
+        new.num_points = len(gw_files)
+
+        i0 = new.num_points // 2
+        origin_structure = new[i0].structure
+
+        ####################
+        # Consistency check
+        ####################
+
+        # 1) Make sure lattice parameters and all sites other than i0 are equal.
+        fixed_site_indices = [i for i in range(len(origin_structure)) if i != site_index]
+        if err_str := new.has_different_structures(site_indices=fixed_site_indices):
+            raise ValueError(err_str)
+
+        # TODO
+        # 2) Make sure gw_files are ordered correctly.
+        #indices = np.array(range(-i0, +i0 + 1), dtype=int)
+        #for idx, ieta in enumerate(indices):
+        #    eta = ieta * step_ang
+        #    displaced_structure = origin_structure.displace_one_site(site_index, reduced_dir, eta=eta, frac_coords=True)
+        #    if displaced_structure != new[ieta].structure:
+        #        raise ValueError("displaced_structure != new[ieta].structure:")
+
+        site_list = [ncfile.structure.sites[site_index] for ncfile in new.abifiles]
+
+        coords_diff = np.reshape([site.coords - site_list[i0].coords for site in site_list], (-1, 3))
+        new.deltas = np.array([np.linalg.norm(coords) for coords in coords_diff])
+        new.deltas[:i0] = -new.deltas[:i0]
+        #print(f"{new.deltas=}")
+
+        return new
+
+    def get_dataframe_skb(self, spin, kpoint, band, with_params: bool = True) -> pd.DataFrame:
+        """
+        Return a pandas dataframe with the most important results.
+
+        Args:
+            spin: Spin index.
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+            band: band index.
+            with_params: True if metadata should be included.
+        """
+        # Create list of QPState for each file.
+        qp_states = [ncfile.r.read_qplist_sk(spin, kpoint, band=band)[0] for ncfile in self.abifiles]
+
+        rows = []
+        for qp_state, ncfile in zip(qp_states, self.abifiles, strict=True):
+            d = qp_state.as_dict()
+            # Add other entries that may be useful when comparing different calculations.
+            if with_params:
+                d.update(ncfile.params)
+            rows.append(d)
+
+        return pd.DataFrame(rows)
+
+    @add_fig_kwargs
+    def plot_qpdata_vs_displ_skb(self, spin, kpoint, band,
+                                 what_list=("e0", "qpe", "sigxme", "sigcmee0", "ze0"),
+                                 fontsize=8, **kwargs) -> Figure:
+        """
+        Plot QP results for a given spin, kpoint and band.
+
+        Args:
+            spin: Spin index.
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+            band: band index. If None all bands are considered.
+            what_list: Quantities to plot. See QPState for the list of supported attributes.
+            fontsize: legend and label fontsize.
+        """
+        # Build grid plot.
+        nrows, ncols = len(what_list), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = np.array(ax_list).ravel()
+
+        xvals = self.deltas
+        #xvals = list(range(len(self)))
+        x_fit = np.linspace(xvals[0], xvals[-1], num=50)
+
+        df = self.get_dataframe_skb(spin, kpoint, band, with_params=False)
+
+        for iax, (ax, what) in enumerate(zip(ax_list, what_list)):
+            units = "" if what == "ze0" else "(eV)"
+            ylabel = f"{what} {units}"
+            yvals = df[what].values
+            ax.plot(xvals, yvals, ls="--", marker="o", label=ylabel)
+
+            if what not in ("ze0", ):
+                # Fit a quadratic polynomial (degree 2)
+                quadratic_function = np.poly1d(np.polyfit(xvals, yvals, 2))
+                y_fit = quadratic_function(x_fit)
+                ax.plot(x_fit, y_fit, ls="--", marker="x", label=ylabel)
+
+            set_grid_legend(ax, fontsize,
+                            xlabel=r"$\delta\, (\AA)$" if iax == len(ax_list) - 1 else None, ylabel=ylabel)
+
+        fig.suptitle(f"{band=}, {kpoint=}, {spin=}")
+        return fig

@@ -666,8 +666,7 @@ class PyFlowScheduler(BaseScheduler):
                   len(list(flow.iflat_tasks(status=flow.S_SUB))))
 
         if nqjobs >= self.max_njobs_inqueue:
-            print(f"Too many jobs in the queue: {nqjobs} >= {self.max_njobs_inqueue}.\n",
-                  "No job will be submitted.")
+            print(f"Too many jobs in the queue: {nqjobs} >= {self.max_njobs_inqueue}. No job will be submitted.")
             flow.check_status(show=False)
             return
 
@@ -753,12 +752,12 @@ class PyFlowScheduler(BaseScheduler):
 
         if delta_etime.total_seconds() > self.num_reminders * self.remindme_s:
             self.num_reminders += 1
-            msg = ("Just to remind you that the scheduler with pid %s, flow %s\n has been running for %s " %
+            msg = ("Just to remind you that the scheduler with pid %s, flow %s has been running for %s " %
                   (self.pid, flow, delta_etime))
             retcode = self.send_email(msg, tag="[REMINDER]")
 
             if retcode:
-                msg += ("\nThe scheduler tried to send an e-mail to remind the user\n" +
+                msg += ("\nThe scheduler tried to send an e-mail to remind the user," +
                         " but send_email returned %d. Error is not critical though!" % retcode)
                 print(msg)
 

@@ -32,7 +32,7 @@ from abipy.tools.typing import TYPE_CHECKING
 from abipy.abio.enums import GWR_TASK
 from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer, Condition, SparseHistogram
 from .qadapters import make_qadapter, QueueAdapter, QueueAdapterError
-from .nodes import Status, Node, NodeError, NodeResults, FileNode #, check_spectator
+from .nodes import Status, Node, NodeError, NodeResults, FileNode
 from .abitimer import AbinitTimerParser
 from . import qutils as qu
 from . import abiinspect
@@ -1462,7 +1462,6 @@ class Task(Node, metaclass=abc.ABCMeta):
         """
         return {k: v for k, v in self.__dict__.items() if k not in ["_process"]}
 
-    #@check_spectator
     def set_workdir(self, workdir: str, chroot=False):
         """
         Set the working directory. Cannot be set more than once unless chroot is True
@@ -1637,7 +1636,6 @@ class Task(Node, metaclass=abc.ABCMeta):
         all_ok = all(stat == self.S_OK for stat in self.deps_status)
         return self.status < self.S_SUB and self.status != self.S_LOCKED and all_ok
 
-    #@check_spectator
     def cancel(self) -> int:
         """Cancel the job. Returns 1 if job was cancelled."""
         if self.queue_id is None: return 0
@@ -1668,11 +1666,9 @@ class Task(Node, metaclass=abc.ABCMeta):
     #    new_manager = self.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
     #    self.set_manager(new_manager)
 
-    #@check_spectator
     def _on_done(self):
         self.fix_ofiles()
 
-    #@check_spectator
     def _on_ok(self):
         # Fix output file names.
         self.fix_ofiles()
@@ -1682,7 +1678,6 @@ class Task(Node, metaclass=abc.ABCMeta):
         results = self.on_ok()
         return results
 
-    #@check_spectator
     def on_ok(self):
         """
         This method is called once the `Task` has reached status S_OK.
@@ -1695,7 +1690,6 @@ class Task(Node, metaclass=abc.ABCMeta):
         """
         return dict(returncode=0, message="Calling on_all_ok of the base class!")
 
-    #@check_spectator
     def fix_ofiles(self) -> None:
         """
         This method is called when the task reaches S_OK.
@@ -1712,7 +1706,6 @@ class Task(Node, metaclass=abc.ABCMeta):
             self.history.info("will rename old %s to new %s" % (old, new))
             os.rename(old, new)
 
-    #@check_spectator
     def _restart(self, submit=True):
         """
         Called by restart once we have finished preparing the task for restarting.
@@ -1740,7 +1733,6 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         return fired
 
-    #@check_spectator
     def restart(self) -> int:
         """
         Restart the calculation.  Subclasses should provide a concrete version that
@@ -1913,7 +1905,6 @@ class Task(Node, metaclass=abc.ABCMeta):
         if check_status: self.check_status()
         self.history.info("Unlocked by %s", source_node)
 
-    #@check_spectator
     def set_status(self, status: Status, msg: str) -> Status:
         """
         Set and return the status of the task.
@@ -2387,7 +2378,6 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         os.rename(src, dest)
 
-    #@check_spectator
     def build(self, *args, **kwargs) -> None:
         """
         Creates the working directory and the input files of the |Task|.
@@ -2420,9 +2410,9 @@ class Task(Node, metaclass=abc.ABCMeta):
             data["_input"] = self.input.as_dict()
         else:
             print("WARNING: Input object does not provide as_dict method!")
+
         self.write_json_in_workdir("abipy_meta.json", data)
 
-    #@check_spectator
     def rmtree(self, exclude_wildcard: str = "") -> str:
         """
         Remove all files and directories in the working directory
@@ -2512,7 +2502,6 @@ class Task(Node, metaclass=abc.ABCMeta):
     def setup(self):  # noqa: E731,F811
         """Base class does not provide any hook."""
 
-    #@check_spectator
     def start(self, **kwargs) -> int:
         """
         Starts the calculation by performing the following steps:
@@ -3094,7 +3083,6 @@ class AbinitTask(Task):
         """
         return self._restart()
 
-    #@check_spectator
     def reset_from_scratch(self):
         """
         Restart from scratch, this is to be used if a job is restarted with more resources after a crash
@@ -3133,7 +3121,6 @@ class AbinitTask(Task):
 
         return self._restart(submit=False)
 
-    #@check_spectator
     def fix_abicritical(self) -> int:
         """
         method to fix crashes/error caused by abinit
@@ -3177,7 +3164,6 @@ class AbinitTask(Task):
         self.set_status(status=self.S_ERROR, msg='We encountered AbiCritical events that could not be fixed')
         return 0
 
-    #@check_spectator
     def fix_queue_critical(self) -> int:
         """
         This function tries to fix critical events originating from the queue submission system.
@@ -4036,7 +4022,6 @@ class DdkTask(DfptTask):
 
     color_rgb = np.array((0, 204, 204)) / 255
 
-    #@check_spectator
     def _on_ok(self):
         super()._on_ok()
         # Client code expects to find du/dk in DDK file.
@@ -4564,7 +4549,6 @@ class OpticTask(Task):
         """
         return 0
 
-    #@check_spectator
     def reset_from_scratch(self):
         """
         restart from scratch, this is to be used if a job is restarted with more resources after a crash

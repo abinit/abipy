@@ -18,6 +18,10 @@ import abipy.data as abidata
 
 fbnc_kpath = abilab.abiopen(abidata.ref_file("mgb2_kpath_FATBANDS.nc"))
 
+# To customize the matplotlib marker and its size, use:
+fbnc_kpath.marker_spin = {0: "o", 1: "v"}
+fbnc_kpath.marker_size = 2
+
 #%%
 # Print file info (dimensions, variables ...)
 # Note that prtdos = 3, so LM decomposition is not available.
@@ -26,7 +30,7 @@ print(fbnc_kpath)
 
 #%%
 # Plot the k-points belonging to the path.
-fbnc_kpath.ebands.kpoints.plotly()
+#fbnc_kpath.ebands.kpoints.plotly()
 
 #%%
 # NC files have contributions up to L=4 (g channel)
@@ -36,23 +40,24 @@ lmax = 2
 
 #%%
 # Plot the electronic fatbands grouped by atomic type.
+# Can use l_list to select only particular l-values
 
-fbnc_kpath.plot_fatbands_typeview(lmax=lmax, tight_layout=True)
+fbnc_kpath.plot_fatbands_typeview(lmax=lmax, tight_layout=True, l_list=None)
 
 #%%
 # For the plotly version use:
 
-fbnc_kpath.plotly_fatbands_typeview(lmax=lmax)
+#fbnc_kpath.plotly_fatbands_typeview(lmax=lmax)
 
 #%%
 # Plot the electronic fatbands grouped by L.
 
-fbnc_kpath.plot_fatbands_lview(lmax=lmax, tight_layout=True)
+#fbnc_kpath.plot_fatbands_lview(lmax=lmax, tight_layout=True)
 
 #%%
 # For the plotly version use:
 
-fbnc_kpath.plotly_fatbands_lview(lmax=lmax)
+#fbnc_kpath.plotly_fatbands_lview(lmax=lmax)
 
 #%%
 # Now we read another FATBANDS file produced on a 18x18x18 k-mesh

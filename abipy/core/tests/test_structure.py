@@ -159,6 +159,7 @@ class TestStructure(AbipyTest):
         assert len(si.abi_string)
         assert si.reciprocal_lattice == si.lattice.reciprocal_lattice
 
+        # Test k-sampling methods.
         kptbounds = si.calc_kptbounds()
         ksamp = si.calc_ksampling(nksmall=10)
 
@@ -167,6 +168,13 @@ class TestStructure(AbipyTest):
         self.assert_equal(si.calc_shiftk(), shiftk)
         self.assert_equal(ksamp.ngkpt, [10, 10, 10])
         self.assert_equal(ksamp.shiftk, shiftk)
+
+        # Test as_ngkpt API
+        self.assert_equal(si.as_ngkpt([1, 2, 3]), [1, 2, 3])
+        self.assert_equal(si.as_ngkpt(3), [3, 3, 3])
+        self.assert_equal(si.as_ngkpt(-1000), [8, 8, 8])
+        with self.assertRaises(ValueError):
+            si.as_ngkpt("foo")
 
         lif = Structure.from_abistring("""
 acell      7.7030079150    7.7030079150    7.7030079150 Angstrom

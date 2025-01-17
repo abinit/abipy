@@ -22,27 +22,27 @@ class BaseEphReader(ElectronsReader):
     """
 
     @lazy_property
-    def ddb_ngqpt(self):
+    def ddb_ngqpt(self) -> np.ndarray:
         """Q-Mesh for DDB file."""
         return self.read_value("ddb_ngqpt")
 
     @lazy_property
-    def ngqpt(self):
+    def ngqpt(self) -> np.ndarray:
         """Effective Q-mesh used in to compute integrals (ph_linewidts, e-ph self-energy)."""
         return self.read_value("ngqpt")
 
     @lazy_property
-    def ph_ngqpt(self):
+    def ph_ngqpt(self) -> np.ndarray:
         """Q-mesh for Phonon DOS, interpolated A2F ..."""
         return self.read_value("ph_ngqpt")
 
     @lazy_property
-    def eph_ngqpt_fine(self):
+    def eph_ngqpt_fine(self) -> np.ndarray:
         """Q-mesh for interpolated DFPT potentials"""
         return self.read_value("eph_ngqpt_fine")
 
     @lazy_property
-    def common_eph_params(self):
+    def common_eph_params(self) -> dict:
         """
         Read basic parameters (scalars) from the netcdf files produced by the EPH code and cache them
         """

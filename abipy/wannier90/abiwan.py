@@ -344,7 +344,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     @add_fig_kwargs
     def plot_with_ebands(self, ebands_kpath,
-                         ebands_kmesh=None, method="gaussian", step: float=0.05, width: float=0.1, **kwargs) -> Figure:
+                         ebands_kmesh=None, method="gaussian", step: float = 0.05, width: float = 0.1, **kwargs) -> Figure:
         """
         Receive an ab-initio electronic strucuture, interpolate the energies on the same list of k-points
         and compare the two band structures.

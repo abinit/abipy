@@ -67,8 +67,7 @@ linestyles = OrderedDict(
 
 
 def add_fig_kwargs(func):
-    """Decorator that adds keyword arguments for functions returning matplotlib
-    figures.
+    """Decorator that adds keyword arguments for functions returning matplotlib figures.
 
     The function should return either a matplotlib figure or None to signal
     some sort of error/unexpected event.

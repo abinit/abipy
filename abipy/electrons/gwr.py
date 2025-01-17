@@ -14,7 +14,7 @@ from typing import Union, Any
 from monty.functools import lazy_property
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
-from abipy.core.structure import Structure
+from abipy.core.structure import Structure, diff_structures
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
@@ -339,8 +339,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Returns |pandas-DataFrame| with the QP results for the given (spin, k-point).
 
         Args:
-            spin:
-            kpoint:
+            spin: Spin index
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             index:
             ignore_imag: Only real part is returned if ``ignore_imag``.
             with_params: True if GWR parameters should be included.
@@ -792,11 +792,14 @@ class GwrReader(ETSF_Reader):
 
         return tuple(qps_spin)
 
-    def read_qplist_sk(self, spin, kpoint, ignore_imag=False) -> QPList:
+    def read_qplist_sk(self, spin, kpoint, band=None, ignore_imag=False) -> QPList:
         """
         Read and return a QPList object for the given spin, kpoint.
 
         Args:
+            spin: Spin index
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+            band: band index. If None all bands are considered.
             ignore_imag: Only real part is returned if ``ignore_imag``.
         """
         ikcalc, kpoint = self.get_ikcalc_kpoint(kpoint)
@@ -809,8 +812,9 @@ class GwrReader(ETSF_Reader):
         sigxme = 0.0
         #self._sigxme[spin, ikcalc, ib],
         qp_list = QPList()
-        for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
-            ib = band - self.min_bstart
+        for sigma_band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
+            if band is not None and sigma_band != band: continue
+            ib = sigma_band - self.min_bstart
 
             qpe = self.read_variable("qpz_ene")[spin, ikcalc, ib] * abu.Ha_meV
             qpe = qpe[0] + 1j*qpe[1]
@@ -822,7 +826,7 @@ class GwrReader(ETSF_Reader):
             qp_list.append(QPState(
                 spin=spin,
                 kpoint=kpoint,
-                band=band,
+                band=sigma_band,
                 e0=self.e0_kcalc[spin, ikcalc, ib],
                 qpe=ri(qpe),
                 qpe_diago=0.0,
@@ -834,6 +838,7 @@ class GwrReader(ETSF_Reader):
                 vUme=0.0,
                 ze0=ri(ze0),
             ))
+
         return qp_list
 
 
@@ -1391,49 +1396,10 @@ for spin in range(nc0.nsppol):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-
-#class GwrSigresComparator:
-#    """
-#    This object provides a high-level API to compare the results stored in
-#    a GWR.nc and a SIGRES.nc file (usually produced with the AC method).
-#    """
-#
-#    def __init__(self, gwr_filepaths, sigres_filepaths):
-#        """
-#        Args:
-#            gwr_filepaths: Path(s) of the GWR.nc file.
-#            sigres_filepaths: Path(s) of the SIGRES.nc file.
-#        """
-#        self.gwr_robot = GwrRobot.from_files(gwr_filepaths)
-#        self.sigres_robot = SigresRobot.from_files(sigres_filepaths)
-#
-#    def __enter__(self):
-#        return self
-#
-#    def __exit__(self, exc_type, exc_val, exc_tb):
-#        """
-#        Activated at the end of the with statement. It automatically closes the files.
-#        """
-#        self.gwr_robot.close()
-#        self.sigres_robot.close()
-#
-#    def __str__(self) -> str:
-#        return self.to_string()
-#
-#    def to_string(self, verbose: int = 0) -> str:
-#        """String representation with verbosity level ``verbose``."""
-#        lines = []; app = lines.append
-#        app(self.gwr_robot.to_string(verbose=verbose))
-#        app("")
-#        app(self.sigres_robot.to_string(verbose=verbose))
-#        return "\n".join(lines)
-
-
 def _find_g(gg, gvecs):
     for ig, g_sus in enumerate(gvecs):
         if all(gg == g_sus): return ig
     raise ValueError(f"Cannot find g-vector: {gg}")
-
 
 
 class TchimVsSus:
