@@ -13,11 +13,7 @@ import numpy
 import json
 import tempfile
 import unittest
-try:
-    import numpy.testing as nptu
-except ImportError:
-    import numpy.testing.utils as nptu
-import abipy.data as abidata
+import numpy.testing as nptu
 
 from typing import Optional
 from functools import wraps
