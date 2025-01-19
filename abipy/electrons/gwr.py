@@ -10,12 +10,12 @@ import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections.abc import Iterable
-from typing import Union, Any
+from typing import Any
 from monty.functools import lazy_property
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
-from abipy.core.structure import Structure, diff_structures
-from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
+from abipy.core.structure import Structure
+from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
@@ -23,9 +23,9 @@ from abipy.tools.typing import Figure, KptSelect
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
     set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line, Exposer)
 from abipy.tools.numtools import data_from_cplx_mode
-from abipy.electrons.ebands import ElectronBands, RobotWithEbands
-from abipy.electrons.gw import SelfEnergy, QPState, QPList #, SigresFile, SigresRobot
 from abipy.abio.robots import Robot
+from abipy.electrons.ebands import ElectronBands, RobotWithEbands
+from abipy.electrons.gw import SelfEnergy, QPState, QPList
 from abipy.abio.enums import GWR_TASK
 
 __all__ = [
@@ -42,7 +42,7 @@ class _MyQpkindsList(list):
 @dataclasses.dataclass(kw_only=True)
 class MinimaxMesh:
     """
-    The minimax mesh reported in the GWR file.
+    The minimax mesh stored in the GWR file.
     """
     ntau: int              # Number of points.
     tau_mesh: np.ndarray   # tau points.
@@ -84,18 +84,17 @@ class MinimaxMesh:
     def plot_ft_weights(self, other: MinimaxMesh, self_name="self", other_name="other",
                         with_sinft=False, fontsize=6, **kwargs):
         """
-        Plot the Fourier transformt weights of two minimax meshes (self and other)
+        Plot the Fourier transform weights of two minimax meshes (self and other)
         """
         if self.ntau != other.ntau:
-            raise ValueError("Cannot compare minimax meshes with different ntau")
+            raise ValueError(f"Cannot compare minimax meshes with different ntau: {self.ntau=}, {other.ntau=}")
 
         import matplotlib.pyplot as plt
         nrows, ncols = (4, 2) if with_sinft else (3, 2)
         fig, ax_mat = plt.subplots(nrows=nrows, ncols=ncols,
                                    sharex=False, sharey=False, squeeze=False,
                                    figsize=(12, 8),
-                                   #subplot_kw={'xticks': [], 'yticks': []},
-        )
+                                  )
 
         I_mat = np.eye(self.ntau)
         select_irow = {
@@ -103,14 +102,14 @@ class MinimaxMesh:
                 (other.cosft_wt @ other.cosft_tw) - I_mat], # , other.cosft_wt @ other.cosft_tw],
             1: [self.cosft_wt, other.cosft_wt], # self.cosft_wt - other.cosft_wt],
             2: [self.cosft_tw, other.cosft_tw], # self.cosft_tw - other.cosft_tw],
-            3: [self.sinft_tw, other.sinft_tw], # self.sinft_tw - other.sinft_tw],
+            #3: [self.sinft_tw, other.sinft_tw], # self.sinft_tw - other.sinft_tw],
         }
 
         label_irow = {
             0: [f"(cosft_wt @ cosft_tw) - I ({self_name})", f"(cosft_wt @ cosft_tw) - I ({other_name})"],
             1: [f"cosft_wt ({self_name})", f"cosft_wt ({other_name})"],
             2: [f"cosft_tw ({self_name})", f"cosft_tw ({other_name})"],
-            3: [f"sinft_tw ({self_name})", f"sinft_tw ({other_name})"],
+            #3: [f"sinft_tw ({self_name})", f"sinft_tw ({other_name})"],
         }
 
         for irow in range(nrows):
@@ -125,6 +124,9 @@ class MinimaxMesh:
 class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This object provides an high-level interface to the GWR.nc file produced by the GWR code.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: GwrFile
     """
 
     # Markers used for up/down bands.
@@ -150,7 +152,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     @property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| with the KS energies."""
-        return self.r.bands
+        return self.r.ebands
 
     @property
     def sigma_kpoints(self) -> KpointList:
@@ -270,7 +272,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         app("")
 
         # GWR section.
-
         app(marquee("GWR parameters", mark="="))
         app("gwr_task: %s" % self.r.gwr_task)
 
@@ -333,8 +334,13 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return pd.DataFrame(d)
 
-    def get_dataframe_sk(self, spin: int, kpoint: KptSelect, index=None,
-                         ignore_imag=False, with_params=True, with_geo=False) -> pd.Dataframe:
+    def get_dataframe_sk(self,
+                         spin: int,
+                         kpoint: KptSelect,
+                         index=None,
+                         ignore_imag: bool = False,
+                         with_params: bool = True,
+                         with_geo: bool = False) -> pd.Dataframe:
         """
         Returns |pandas-DataFrame| with the QP results for the given (spin, k-point).
 
@@ -367,7 +373,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         index = len(bands) * [index] if index is not None else bands
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
-    def _get_include_bands(self, include_bands: Any, spin: int) -> Union[set, None]:
+    def _get_include_bands(self, include_bands: Any, spin: int) -> set | None:
         """
         Helper function to return include_bands for given spin.
         """
@@ -412,9 +418,14 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return d
 
     @add_fig_kwargs
-    def plot_sigma_imag_axis(self, kpoint: KptSelect,
-                             spin=0, include_bands="gap", with_tau=True,
-                             fontsize=8, ax_mat=None, **kwargs) -> Figure:
+    def plot_sigma_imag_axis(self,
+                             kpoint: KptSelect,
+                             spin: int = 0,
+                             include_bands="gap",
+                             with_tau: bool = True,
+                             fontsize: int = 8,
+                             ax_mat=None,
+                             **kwargs) -> Figure:
         """
         Plot Sigma_nk(iw) along the imaginary axis for given k-point, spin and list of bands.
 
@@ -425,8 +436,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             with_tau:
             fontsize: Legend and title fontsize.
             ax_mat:
-
-        Returns: |matplotlib-Figure|
         """
         nrows, ncols = (2, 2) if with_tau else (1, 2)
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
@@ -467,8 +476,13 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_sigma_real_axis(self, kpoint: KptSelect, spin=0, include_bands="gap",
-                             fontsize=8, ax_mat=None, **kwargs) -> Figure:
+    def plot_sigma_real_axis(self,
+                             kpoint: KptSelect,
+                             spin: int = 0,
+                             include_bands="gap",
+                             fontsize: int = 8,
+                             ax_mat=None,
+                             **kwargs) -> Figure:
         """
         Plot Sigma_nk(w) along the real-axis for given k-point, spin and set of bands.
 
@@ -516,8 +530,15 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_qps_vs_e0(self, with_fields="all", exclude_fields=None, e0="fermie",
-                       xlims=None, sharey=False, ax_list=None, fontsize=8, **kwargs) -> Figure:
+    def plot_qps_vs_e0(self,
+                       with_fields="all",
+                       exclude_fields=None,
+                       e0="fermie",
+                       xlims=None,
+                       sharey=False,
+                       ax_list=None,
+                       fontsize=8,
+                       **kwargs) -> Figure:
         """
         Plot QP results stored in the GWR file as function of the KS energy.
 
@@ -535,8 +556,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
             sharey: True if y-axis should be shared.
             fontsize: Legend and title fontsize.
-
-        Returns: |matplotlib-Figure|
         """
         with_fields = QPState.get_fields_for_plot(with_fields, exclude_fields)
 
@@ -552,7 +571,11 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_spectral_functions(self, include_bands=None, ax_list=None, fontsize=8, **kwargs) -> Figure:
+    def plot_spectral_functions(self,
+                                include_bands=None,
+                                ax_list=None,
+                                fontsize=8,
+                                **kwargs) -> Figure:
         """
         Plot the spectral function A_{nk}(w) for all k-points, bands and
         spins available in the GWR file.
@@ -561,8 +584,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             include_bands: List of bands to include. None means all.
             ax_list:
             fontsize: Legend and title fontsize.
-
-        Returns: |matplotlib-Figure|
         """
         # Build grid of plots.
         nrows, ncols = len(self.sigma_kpoints), 1
@@ -616,8 +637,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         verbose = kwargs.pop("verbose", 0)
 
-        include_bands = "all" if verbose else "gaps"
-        yield self.plot_spectral_functions(include_bands=include_bands, show=False)
+        #include_bands = "all" if verbose else "gaps"
+        #yield self.plot_spectral_functions(include_bands=include_bands, show=False)
 
         # TODO
         for spin in range(self.nsppol):
@@ -653,19 +674,15 @@ class GwrReader(ETSF_Reader):
         super().__init__(path)
 
         # Save important quantities needed to simplify the API.
-        self.bands = ElectronBands.from_file(path)
+        self.ebands = ElectronBands.from_file(path)
         self.structure = self.read_structure()
 
-        self.nsppol = self.bands.nsppol
+        self.nsppol = self.ebands.nsppol
         self.nwr = self.read_dimvalue("nwr")
         self.nkcalc = self.read_dimvalue("nkcalc")
         self.smat_bsize1 = self.read_dimvalue("smat_bsize1")
         self.smat_bsize2 = self.read_dimvalue("smat_bsize2")
-        char_list = self.read_value("gwr_task")
-        for i, ch in enumerate(reversed(char_list)):
-            if not ch: break
-        i = len(char_list) + i
-        self.gwr_task = "".join(c.decode("utf-8") for c in char_list[:i])
+        self.gwr_task = self.read_string("gwr_task")
         self.sig_diago = bool(self.read_value("sig_diago"))
 
         # The k-points where QP corrections have been calculated.
@@ -705,7 +722,7 @@ class GwrReader(ETSF_Reader):
         # nctkarr_t("e0_kcalc", "dp", "smat_bsize1, nkcalc, nsppol"), &
         return self.read_value("e0_kcalc") * abu.Ha_eV
 
-    def get_ikcalc_kpoint(self, kpoint) -> tuple(int, Kpoint):
+    def get_ikcalc_kpoint(self, kpoint) -> tuple[int, Kpoint]:
         """
         Return the ikcalc index and the Kpoint
         """
@@ -911,7 +928,11 @@ class GwrRobot(Robot, RobotWithEbands):
         if errors:
             raise ValueError("Cannot compare multiple GWR.nc files. Reason:\n %s" % "\n".join(errors))
 
-    def get_dataframe_sk(self, spin, kpoint, with_params=True, ignore_imag=False) -> pd.DataFrame:
+    def get_dataframe_sk(self,
+                         spin: int,
+                         kpoint: KptSelect,
+                         with_params: bool = True,
+                         ignore_imag: bool = False) -> pd.DataFrame:
         """
         Return |pandas-Dataframe| with QP results for this spin, k-point
 
@@ -990,8 +1011,17 @@ class GwrRobot(Robot, RobotWithEbands):
         return df
 
     @add_fig_kwargs
-    def plot_selfenergy_conv(self, spin, kpoint, band, axis="wreal", sortby=None, hue=None,
-                             colormap="viridis", xlims=None, fontsize=8, **kwargs) -> Figure:
+    def plot_selfenergy_conv(self,
+                             spin: int,
+                             kpoint: KptSelect,
+                             band: int,
+                             axis: str = "wreal",
+                             sortby=None,
+                             hue=None,
+                             colormap="viridis",
+                             xlims=None,
+                             fontsize: int = 8,
+                             **kwargs) -> Figure:
         """
         Plot the convergence of the e-e self-energy wrt to the ``sortby`` parameter.
         Values can be optionally grouped by `hue`.
@@ -1016,8 +1046,6 @@ class GwrRobot(Robot, RobotWithEbands):
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
             fontsize: Legend and title fontsize.
-
-        Returns: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
         cmap = plt.get_cmap(colormap)
@@ -1100,8 +1128,15 @@ class GwrRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_qpgaps_convergence(self, qp_kpoints="all", qp_type="qpz0", sortby=None, hue=None, abs_conv=0.01,
-                                plot_qpmks=True, fontsize=8, **kwargs) -> Figure:
+    def plot_qpgaps_convergence(self,
+                                qp_kpoints="all",
+                                qp_type="qpz0",
+                                sortby=None,
+                                hue=None,
+                                abs_conv=0.01,
+                                plot_qpmks=True,
+                                fontsize=8,
+                                **kwargs) -> Figure:
         """
         Plot the convergence of the direct QP gaps for all the k-points and spins treated by the GWR robot.
 
@@ -1122,8 +1157,6 @@ class GwrRobot(Robot, RobotWithEbands):
             abs_conv: If not None, show absolute convergence window.
             plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
             fontsize: legend and label fontsize.
-
-        Returns: |matplotlib-Figure|
         """
         # Make sure nsppol and sigma_kpoints are the same.
         self._check_dims_and_params()
@@ -1189,8 +1222,14 @@ class GwrRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_qpdata_conv_skb(self, spin, kpoint, band,
-                             sortby=None, hue=None, fontsize=8, **kwargs) -> Figure:
+    def plot_qpdata_conv_skb(self,
+                             spin: int,
+                             kpoint: KptSelect,
+                             band: int,
+                             sortby=None,
+                             hue=None,
+                             fontsize=8,
+                             **kwargs) -> Figure:
         """
         Plot the convergence of the QP results for given (spin, kpoint, band).
 
@@ -1208,8 +1247,6 @@ class GwrRobot(Robot, RobotWithEbands):
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of hue(abifile) is used.
             fontsize: legend and label fontsize.
-
-        Returns: |matplotlib-Figure|
         """
         # Make sure that nsppol and sigma_kpoints are consistent.
         self._check_dims_and_params()
@@ -1228,18 +1265,19 @@ class GwrRobot(Robot, RobotWithEbands):
         ax_list = np.array(ax_list).ravel()
 
         nc0: GwrFile = self.abifiles[0]
-        ikc = nc0.kpt2ikcalc(kpoint)
+        #ikc = nc0.kpt2ikcalc(kpoint)
+        ikc, kpoint = nc0.r.get_ikcalc_kpoint(kpoint)
         kpoint = nc0.sigma_kpoints[ikc]
 
         # Sort and read QP data.
         if hue is None:
             labels, ncfiles, params = self.sortby(sortby, unpack=True)
-            qplist = [ncfile.reader.read_qp(spin, kpoint, band) for ncfile in ncfiles]
+            qplist = [ncfile.r.read_qp(spin, kpoint, band) for ncfile in ncfiles]
         else:
             groups = self.group_and_sortby(hue, sortby)
             qplist_group = []
             for g in groups:
-                lst = [ncfile.reader.read_qp(spin, kpoint, band) for ncfile in g.abifiles]
+                lst = [ncfile.r.read_qp(spin, kpoint, band) for ncfile in g.abifiles]
                 qplist_group.append(lst)
 
         for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
@@ -1278,8 +1316,16 @@ class GwrRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_qpfield_vs_e0(self, field, reim="real", function=lambda x: x, sortby=None, hue=None,
-                           fontsize=8, colormap="jet", e0="fermie", **kwargs) -> Figure:
+    def plot_qpfield_vs_e0(self,
+                           field: str,
+                           reim: str = "real",
+                           function=lambda x: x,
+                           sortby=None,
+                           hue=None,
+                           fontsize: int = 8,
+                           colormap="jet",
+                           e0="fermie",
+                           **kwargs) -> Figure:
         """
         For each file in the GWR robot, plot one of the attributes of :class:`QpTempStat
         as a function of the KS energy.
@@ -1304,8 +1350,6 @@ class GwrRobot(Robot, RobotWithEbands):
         .. note::
 
             For the meaning of the other arguments, see other robot methods.
-
-        Returns: |matplotlib-Figure|
         """
         import matplotlib.pyplot as plt
         cmap = plt.get_cmap(colormap)
@@ -1571,8 +1615,15 @@ class TchimVsSus:
             return e
 
     @add_fig_kwargs
-    def plot_matdiff(self, qpoint, iw_index: int, npwq=101, with_susmat=False,
-                     cmap="jet", fontsize=8, spins=(0, 0), **kwargs) -> Figure:
+    def plot_matdiff(self,
+                     qpoint,
+                     iw_index: int,
+                     npwq: int = 101,
+                     with_susmat=False,
+                     cmap="jet",
+                     fontsize=8,
+                     spins=(0, 0),
+                     **kwargs) -> Figure:
         """
         Plot G-G' matrix with the absolute value of chi_AW and chi_GWR for given q-point and omega index.
 

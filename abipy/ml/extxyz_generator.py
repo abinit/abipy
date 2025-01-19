@@ -218,138 +218,138 @@ def check_vasp_success(vasprun: Vasprun, outcar: Outcar | None, verbose: int = 1
         return False
 
 
-class SinglePointRunner:
-    """
-
-    Usage example:
-
-    .. code-block:: python
-
-        traj_range = range(0, -1, 100)
-        runner = SinglePointRunner("out.traj", "outdir", traj_range)
-        runner.sbatch()
-        runner.collect_xyz("foo.xyz")
-    """
-    slurm_script_name = "run.sh"
-
-    custodian_script_name = "run_custodian.py"
-
-    def __init__(self, traj_path: PathLike, traj_range: range,
-                 topdir: PathLike = ".", code: str = "vasp",
-                 vasp_set_cls=MatPESStaticSet,
-                 verbose: int = 0):
-        """
-        Args:
-            traj_path: Path to ASE trajectory file.
-            traj_range:
-            topdir:
-            code:
-            verbose:
-        """
-        self.traj_path = traj_path
-        self.topdir = Path(str(topdir)).absolute()
-        self.traj_range = traj_range
-        if not isinstance(traj_range, range):
-            raise TypeError(f"Got {type(traj_range)} instead of range")
-        self.code = code
-
-        err_lines = []
-        slurm_body = ""
-
-        if code == "vasp":
-            self.vasp_set_cls = vasp_set_cls
-            slurm_body = f"python {self.custodian_script_name}"
-            if not os.path.exists(self.custodian_script_name):
-                open(self.custodian_script_name, "wt").write(qu.get_custodian_template())
-                err_lines.append(f"""\
-No custodian script: {self.custodian_script_name} has been found in {str(self.topdir)}.
-A template that requires customization has been generated for you!""")
-            else:
-                self.custodian_script_str = open(self.custodian_script_name, "rt").read()
-
-        if not os.path.exists(self.slurm_script_name):
-            open(self.slurm_script_name, "wt").write(qu.get_slurm_template(slurm_body))
-            err_lines.append(f"""\
-No slurm submission script: {self.slurm_script_name} has been found in {str(self.topdir)}.
-A template that requires customization has been generated for you!""")
-        else:
-            self.slurm_script_str = open(self.slurm_script_name, "rt").read()
-
-        if err_lines:
-            raise RuntimeError("\n".join(err_lines))
-
-        self.verbose = int(verbose)
-
-    def __str__(self) -> str:
-        return self.to_string()
-
-    def to_string(self, verbose: int = 0) -> str:
-        """String representation with verbosiy level ``verbose``."""
-        lines = []
-        app = lines.append
-
-        return "\n".join(lines)
-
-    def sbatch(self, max_jobs: int = 100) -> list[int]:
-        """
-        Submit max_jobs SinglePoint calculations with structures taken from the ASE trajectory file.
-        """
-        if not self.topdir.exists(): self.topdir.mkdir()
-
-        job_ids = []
-        for index in self.traj_range:
-            workdir = self.topdir / f"SINGLEPOINT_{index}"
-            if workdir.exists():
-                print(f"{str(workdir)} already exists. Ignoring it")
-                continue
-
-            try:
-                atoms = read(self.traj_path, index=index)
-            except StopIteration as exc:
-                print(f"ASE trajectory does not have more that {index+1} configurations. Exiting sbatch loop!")
-                break
-
-            structure = Structure.as_structure(atoms)
-            workdir.mkdir()
-
-            if self.code == "vasp":
-                # Generate VASP input files using the Materials Project settings for a single-point calculation
-
-                user_incar_settings = {
-                    "NCORE": 2,
-                    'LWAVE': False,       # Do not write WAVECAR
-                    'LCHARG': False,      # Do not Write CHGCAR
-                }
-                vasp_input_set = self.vasp_set_cls(structure, user_incar_settings=user_incar_settings)
-                vasp_input_set.write_input(workdir)
-                with open(workdir / self.custodian_script_name, "wt") as fh:
-                    fh.write(self.custodian_script_str)
-
-            else:
-                raise ValueError(f"Unsupported {self.code=}")
-
-            try:
-                job_id = qu.slurm_write_and_sbatch(workdir / "run.sh", self.slurm_script_str)
-
-            except Exception as exc:
-                cprint(exc, "red")
-                cprint("Job sumbission failed. Will remove directory and exit sbatch loop.", color="red")
-                shutil.rmtree(workdir)
-                break
-
-            job_ids.append(job_id)
-            if len(job_ids) == max_jobs:
-                print(f"Reached {max_jobs=}, will stop firing new jobs!")
-
-        return job_ids
-
-    def write_xyz(self, xyz_filepath: PathLike, dry_run=False) -> None:
-        """
-        """
-        ext = {
-            "vasp": "vasprun.xml",
-            "abinit": "GSR.nc",
-        }[self.code]
-
-        writer = ExtxyzIOWriter.from_top(self.topdir, ext)
-        writer.write(xyz_filepath)
+## class SinglePointRunner:
+##     """
+##
+##     Usage example:
+##
+##     .. code-block:: python
+##
+##         traj_range = range(0, -1, 100)
+##         runner = SinglePointRunner("out.traj", "outdir", traj_range)
+##         runner.sbatch()
+##         runner.collect_xyz("foo.xyz")
+##     """
+##     slurm_script_name = "run.sh"
+##
+##     custodian_script_name = "run_custodian.py"
+##
+##     def __init__(self, traj_path: PathLike, traj_range: range,
+##                  topdir: PathLike = ".", code: str = "vasp",
+##                  vasp_set_cls=MatPESStaticSet,
+##                  verbose: int = 0):
+##         """
+##         Args:
+##             traj_path: Path to ASE trajectory file.
+##             traj_range:
+##             topdir:
+##             code:
+##             verbose:
+##         """
+##         self.traj_path = traj_path
+##         self.topdir = Path(str(topdir)).absolute()
+##         self.traj_range = traj_range
+##         if not isinstance(traj_range, range):
+##             raise TypeError(f"Got {type(traj_range)} instead of range")
+##         self.code = code
+##
+##         err_lines = []
+##         slurm_body = ""
+##
+##         if code == "vasp":
+##             self.vasp_set_cls = vasp_set_cls
+##             slurm_body = f"python {self.custodian_script_name}"
+##             if not os.path.exists(self.custodian_script_name):
+##                 open(self.custodian_script_name, "wt").write(qu.get_custodian_template())
+##                 err_lines.append(f"""\
+## No custodian script: {self.custodian_script_name} has been found in {str(self.topdir)}.
+## A template that requires customization has been generated for you!""")
+##             else:
+##                 self.custodian_script_str = open(self.custodian_script_name, "rt").read()
+##
+##         if not os.path.exists(self.slurm_script_name):
+##             open(self.slurm_script_name, "wt").write(qu.get_slurm_template(slurm_body))
+##             err_lines.append(f"""\
+## No slurm submission script: {self.slurm_script_name} has been found in {str(self.topdir)}.
+## A template that requires customization has been generated for you!""")
+##         else:
+##             self.slurm_script_str = open(self.slurm_script_name, "rt").read()
+##
+##         if err_lines:
+##             raise RuntimeError("\n".join(err_lines))
+##
+##         self.verbose = int(verbose)
+##
+##     def __str__(self) -> str:
+##         return self.to_string()
+##
+##     def to_string(self, verbose: int = 0) -> str:
+##         """String representation with verbosiy level ``verbose``."""
+##         lines = []
+##         app = lines.append
+##
+##         return "\n".join(lines)
+##
+##     def sbatch(self, max_jobs: int = 100) -> list[int]:
+##         """
+##         Submit max_jobs SinglePoint calculations with structures taken from the ASE trajectory file.
+##         """
+##         if not self.topdir.exists(): self.topdir.mkdir()
+##
+##         job_ids = []
+##         for index in self.traj_range:
+##             workdir = self.topdir / f"SINGLEPOINT_{index}"
+##             if workdir.exists():
+##                 print(f"{str(workdir)} already exists. Ignoring it")
+##                 continue
+##
+##             try:
+##                 atoms = read(self.traj_path, index=index)
+##             except StopIteration as exc:
+##                 print(f"ASE trajectory does not have more that {index+1} configurations. Exiting sbatch loop!")
+##                 break
+##
+##             structure = Structure.as_structure(atoms)
+##             workdir.mkdir()
+##
+##             if self.code == "vasp":
+##                 # Generate VASP input files using the Materials Project settings for a single-point calculation
+##
+##                 user_incar_settings = {
+##                     "NCORE": 2,
+##                     'LWAVE': False,       # Do not write WAVECAR
+##                     'LCHARG': False,      # Do not Write CHGCAR
+##                 }
+##                 vasp_input_set = self.vasp_set_cls(structure, user_incar_settings=user_incar_settings)
+##                 vasp_input_set.write_input(workdir)
+##                 with open(workdir / self.custodian_script_name, "wt") as fh:
+##                     fh.write(self.custodian_script_str)
+##
+##             else:
+##                 raise ValueError(f"Unsupported {self.code=}")
+##
+##             try:
+##                 job_id = qu.slurm_write_and_sbatch(workdir / "run.sh", self.slurm_script_str)
+##
+##             except Exception as exc:
+##                 cprint(exc, "red")
+##                 cprint("Job sumbission failed. Will remove directory and exit sbatch loop.", color="red")
+##                 shutil.rmtree(workdir)
+##                 break
+##
+##             job_ids.append(job_id)
+##             if len(job_ids) == max_jobs:
+##                 print(f"Reached {max_jobs=}, will stop firing new jobs!")
+##
+##         return job_ids
+##
+##     def write_xyz(self, xyz_filepath: PathLike, dry_run=False) -> None:
+##         """
+##         """
+##         ext = {
+##             "vasp": "vasprun.xml",
+##             "abinit": "GSR.nc",
+##         }[self.code]
+##
+##         writer = ExtxyzIOWriter.from_top(self.topdir, ext)
+##         writer.write(xyz_filepath)
