@@ -93,6 +93,22 @@ electrons Package
    :undoc-members:
    :show-inheritance:
 
+:mod:`gwr` Module
+-----------------
+
+.. automodule:: abipy.electrons.gwr
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+:mod:`tchim` Module
+-------------------
+
+.. automodule:: abipy.electrons.tchim
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 :mod:`lruj` Module
 ------------------
