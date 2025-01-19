@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import shutil
 import json
+import sys
 import os
 import re
 import subprocess
@@ -188,13 +189,10 @@ def tuna(ctx: Context) -> None:
     ctx.run(cmd, pty=True)
 
 
-def generate_rst(package_path, output_dir):
+@task
+def generate_rst(ctx: Context) -> None:
     """
     Generate .rst files for all Python modules in a package.
-
-    Parameters:
-        package_path: Path to the root of the Python package.
-        output_dir: Directory where .rst files will be generated.
     """
     package_path = os.path.join(ABIPY_ROOTDIR, "abipy")
     output_dir = os.path.join(DOCS_DIR, "api")
