@@ -251,7 +251,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
 class Fit:
     """
-    Fit complex values along the imaginary axis.
+    Fit complex values along the imaginary axis, either in frequency or time domain.
     """
 
     def __init__(self, xs, ys, tau_wgs, iw_wgs, wt_space, verbose):
@@ -283,33 +283,34 @@ class Fit:
 
         raise ValueError(f"Invalida {self.wt_space=}")
 
-    def _minimize_loss(self, fit_with_second_ind, method):
+    def _minimize_loss(self, fit_with_second_index, method):
         """
-        Fit the signal by changing the second point. and select
+        Fit the signal by changing the second point, and select
         the one which minimizes the loss function.
         """
         # Select weights for the loss function.
         weights = self.iw_wgs if self.wt_space == "omega" else self.tau_wgs
 
-        # Compute loss functions for all possible values of second index.
+        # Compute loss functions for all possible values of second_index.
         losses = []
-        for second_ind in range(1, len(self.xs)):
-            ys_fit = fit_with_second_ind(second_ind, self.xs)
+        for second_index in range(1, len(self.xs)):
+            ys_fit = fit_with_second_index(second_index, self.xs)
             loss = np.sum(weights * np.abs(ys_fit - self.ys)**2)
-            losses.append((second_ind, loss))
+            losses.append((second_index, loss))
 
-        # Minimize losses.
+        # Fin min of losses.
         return min(losses, key=lambda t: t[1])
 
     def _eval_omega(self, fit_xs: np.ndarray, method: str) -> np.ndarray | None:
         """
-        Fit values in imaginary frequency using A/ (B^2 + omega^2).
+        Fit values in imaginary frequency using A/(B^2 + omega^2).
         """
-        def _fit_with_second_ind(second_ind, xs) -> np.ndarray:
-            # First and second_ind data points
+        def _fit_with_second_index(second_index, xs) -> np.ndarray:
+            # First and second_index data points
             w0, y0 = self.xs[0], self.ys[0]
-            wn, yn = self.xs[second_ind], self.ys[second_ind]
+            wn, yn = self.xs[second_index], self.ys[second_index]
 
+            # TODO: Check equations
             # Solve for B^2 using real part (assuming the same B^2 for real and imaginary parts)
             b2 = (y0.real * w0**2 - yn.real * wn**2) / (yn.real - y0.real)
             if b2 < 0.0:
@@ -326,25 +327,26 @@ class Fit:
             a = a_real + 1j * a_imag
             return a / (b**2 + xs**2)
 
-        second_ind, _ = self._minimize_loss(_fit_with_second_ind, method)
-        return _fit_with_second_ind(second_ind, fit_xs)
+        second_index, _ = self._minimize_loss(_fit_with_second_index, method)
+        return _fit_with_second_index(second_index, fit_xs)
 
     def _eval_tau(self, fit_xs: np.ndarray, method: str) -> np.ndarray:
         """
         Fit values in imaginary time using B exp^{-a t} with a > 0.
         """
-        def _fit_with_second_ind(second_ind, xs) -> np.ndarray:
-            # First and second_ind data points
+        def _fit_with_second_index(second_index, xs) -> np.ndarray:
+            # First and second_index data points
             w0, y0 = self.xs[0], self.ys[0]
-            wn, yn = self.xs[second_ind], self.ys[second_ind]
+            wn, yn = self.xs[second_index], self.ys[second_index]
+            # TODO: Check equations
             # Compute b and a
             b = y0
             a = -np.log(yn / y0) / (wn - w0)
             # Generate the fitted signal
             return b * np.exp(-a * (xs - w0))
 
-        second_ind, _ = self._minimize_loss(_fit_with_second_ind, method)
-        return _fit_with_second_ind(second_ind, fit_xs)
+        second_index, _ = self._minimize_loss(_fit_with_second_index, method)
+        return _fit_with_second_index(second_index, fit_xs)
 
 
 class TchimReader(ElectronsReader):
@@ -359,8 +361,8 @@ class TchimReader(ElectronsReader):
 
         # Read important dimensions.
         self.nsppol = self.read_dimvalue("number_of_spins")
-        self.nqibz =  self.read_dimvalue("nqibz")
-        self.ntau =  self.read_dimvalue("ntau")
+        self.nqibz = self.read_dimvalue("nqibz")
+        self.ntau = self.read_dimvalue("ntau")
 
         # Read important variables.
         self.iw_mesh = self.read_value("iw_mesh")
@@ -436,11 +438,6 @@ class TchimReader(ElectronsReader):
             spin: Spin index.
             wt_space:
         """
-        # Fortran arrays on disk.
-        # nctkarr_t("chinpw_qibz", "int", "nqibz")
-        # nctkarr_t("gvecs", "int", "three, mpw, nqibz")
-        # nctkarr_t("mats_w", "dp", "two, mpw, mpw, ntau, nqibz, nsppol")
-        # nctkarr_t("mats_tau", "dp", "two, mpw, mpw, ntau, nqibz, nsppol")
         iq_ibz, qpoint = self.find_qpoint(qpoint)
         npw_q = self.read_variable("chinpw_qibz")[iq_ibz]
         gvecs_q = self.read_variable("gvecs")[iq_ibz, 0:npw_q]

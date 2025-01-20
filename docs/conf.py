@@ -8,6 +8,9 @@
 import sys
 import os
 import shutil
+import typing
+
+typing.TYPE_CHECKING = True
 
 # Remove matplotlib agg warnings from generated doc when using plt.show
 import warnings
@@ -63,6 +66,7 @@ extensions = [
     'sphinxcontrib.programoutput',
     "sphinxarg.ext",         # CLI doc
     'sphinxcontrib.bibtex',
+    "sphinx_autodoc_typehints",  # Enables type hint support
     "jupyter_sphinx",
     #'nbsphinx',
     #"releases",

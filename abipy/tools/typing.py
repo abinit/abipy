@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING, Any, Union, Sequence
 from pymatgen.util.typing import PathLike
 
 
-if TYPE_CHECKING:  # needed to avoid circular imports
+if TYPE_CHECKING:
+    # needed to avoid circular imports
     from matplotlib.pyplot import Axes
     from matplotlib.figure import Figure
     from abipy.core.kpoints import Kpoint
@@ -23,7 +24,7 @@ VectorLike = Union[Sequence[float], np.ndarray]
 IVectorLike = Union[Sequence[int], np.ndarray]
 
 # matplotlib objects
-#AxList = list[Axes]
+AxList = list[Axes]
 
 # Abipy objects
 KptLike = Union["Kpoint", VectorLike]

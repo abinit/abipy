@@ -51,7 +51,10 @@ def make_doc(ctx):
     with cd(DOCS_DIR):
         ctx.run("touch api/index.rst", warn=True)
         #ctx.run("rm api/abipy*.rst", warn=True)
-        ctx.run("sphinx-apidoc --implicit-namespaces -M -d 7 -o api -f ../abipy ../**/tests/* ../abipy/benchmarks ../abipy/data ../abipy/integration_tests ../abipy/test_files ../abipy/examples")
+        ctx.run("sphinx-apidoc --implicit-namespaces -M -d 1 -o api -f ../abipy ../**/tests/* ../abipy/benchmarks ../abipy/data ../abipy/integration_tests ../abipy/test_files ../abipy/examples")
+
+        rst_files = [f for f in os.listdir(os.path.join(DOCS_DIR, "api")) if f.endswith(".rst")
+        print(rst_files)
 
         ctx.run("make clean")
         ctx.run("make", env=dict(READTHEDOCS="1"), pty=True)
