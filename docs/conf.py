@@ -8,9 +8,8 @@
 import sys
 import os
 import shutil
-import typing
 
-typing.TYPE_CHECKING = True
+
 
 # Remove matplotlib agg warnings from generated doc when using plt.show
 import warnings
@@ -67,6 +66,7 @@ extensions = [
     "sphinxarg.ext",         # CLI doc
     'sphinxcontrib.bibtex',
     "sphinx_autodoc_typehints",  # Enables type hint support
+    #'sphinx_click',
     "jupyter_sphinx",
     #'nbsphinx',
     #"releases",
@@ -136,6 +136,10 @@ mpl.rcParams['figure.dpi'] = 300
 # https://sphinx-gallery.github.io/stable/auto_examples/plot_9_plotly.html
 import plotly.io as pio
 pio.renderers.default = 'sphinx_gallery'
+
+
+#import typing
+#typing.TYPE_CHECKING = True
 
 # Here we change the default value of show used in the plotly decorator.
 from abipy.tools.plotting import set_plotly_default_show

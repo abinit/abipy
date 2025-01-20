@@ -1,28 +1,24 @@
-display Package
-===============
-
-.. contents::
-   :backlinks: top
-
-:mod:`display` Module
----------------------
+abipy.display package
+=====================
 
 .. automodule:: abipy.display
    :members:
    :undoc-members:
    :show-inheritance:
 
+Submodules
+----------
 
-:mod:`mvtk` Module
-------------------
+abipy.display.mvtk module
+-------------------------
 
 .. automodule:: abipy.display.mvtk
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`utils` Module
--------------------
+abipy.display.utils module
+--------------------------
 
 .. automodule:: abipy.display.utils
    :members:

@@ -1,143 +1,146 @@
-dfpt Package
-============
-
-.. contents::
-   :backlinks: top
-
-:mod:`dpft` Package
-----------------------
+abipy.dfpt package
+==================
 
 .. automodule:: abipy.dfpt
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`anaddbnc` Module
-----------------------
+Submodules
+----------
+
+abipy.dfpt.anaddbnc module
+--------------------------
 
 .. automodule:: abipy.dfpt.anaddbnc
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`converters` Module
-------------------------
+abipy.dfpt.converters module
+----------------------------
 
 .. automodule:: abipy.dfpt.converters
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`ddb` Module
------------------
+abipy.dfpt.ddb module
+---------------------
 
 .. automodule:: abipy.dfpt.ddb
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`elastic` Module
----------------------
+abipy.dfpt.deformation\_utils module
+------------------------------------
+
+.. automodule:: abipy.dfpt.deformation_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+abipy.dfpt.elastic module
+-------------------------
 
 .. automodule:: abipy.dfpt.elastic
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`frozen_phonons` Module
-----------------------------
+abipy.dfpt.frozen\_phonons module
+---------------------------------
 
 .. automodule:: abipy.dfpt.frozen_phonons
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-:mod:`gruneisen` Module
------------------------
+abipy.dfpt.gruneisen module
+---------------------------
 
 .. automodule:: abipy.dfpt.gruneisen
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`ifc` Module
------------------
+abipy.dfpt.ifc module
+---------------------
 
 .. automodule:: abipy.dfpt.ifc
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`msqdos` Module
---------------------
+abipy.dfpt.msqdos module
+------------------------
 
 .. automodule:: abipy.dfpt.msqdos
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`phonons` Module
----------------------
+abipy.dfpt.phonons module
+-------------------------
 
 .. automodule:: abipy.dfpt.phonons
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`phtk` Module
-------------------
+abipy.dfpt.phtk module
+----------------------
 
 .. automodule:: abipy.dfpt.phtk
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`qha` Module
------------------
+abipy.dfpt.qha module
+---------------------
 
 .. automodule:: abipy.dfpt.qha
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`vzsisa` Module
---------------------
-
-.. automodule:: abipy.dfpt.vzsisa
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-:mod:`qha_2D` Module
---------------------
+abipy.dfpt.qha\_2D module
+-------------------------
 
 .. automodule:: abipy.dfpt.qha_2D
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`qha_general_stress` Module
---------------------------------
+abipy.dfpt.qha\_general\_stress module
+--------------------------------------
 
 .. automodule:: abipy.dfpt.qha_general_stress
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`raman` Module
--------------------
+abipy.dfpt.raman module
+-----------------------
 
 .. automodule:: abipy.dfpt.raman
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`vsound` Module
---------------------
+abipy.dfpt.vsound module
+------------------------
 
 .. automodule:: abipy.dfpt.vsound
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+abipy.dfpt.vzsisa module
+------------------------
+
+.. automodule:: abipy.dfpt.vzsisa
    :members:
    :undoc-members:
    :show-inheritance:

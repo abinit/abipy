@@ -53,7 +53,6 @@ API
    :maxdepth: 1
 
    api/index
-   api/modules
    coding_guide
    README
 

@@ -1,100 +1,104 @@
-abio Package
-============
-
-.. contents::
-   :backlinks: top
-
-:mod:`abio` Package
--------------------
+abipy.abio package
+==================
 
 .. automodule:: abipy.abio
    :members:
    :undoc-members:
    :show-inheritance:
 
+Subpackages
+-----------
 
-:mod:`abivars` Module
----------------------
+.. toctree::
+   :maxdepth: 1
+
+   abipy.abio.abivar_database
+
+Submodules
+----------
+
+abipy.abio.abivars module
+-------------------------
 
 .. automodule:: abipy.abio.abivars
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`abivars_db` Module
-------------------------
+abipy.abio.abivars\_db module
+-----------------------------
 
 .. automodule:: abipy.abio.abivars_db
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`decorators` Module
-------------------------
+abipy.abio.decorators module
+----------------------------
 
 .. automodule:: abipy.abio.decorators
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`enums` Module
--------------------
+abipy.abio.enums module
+-----------------------
 
 .. automodule:: abipy.abio.enums
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`factories` Module
------------------------
+abipy.abio.factories module
+---------------------------
 
 .. automodule:: abipy.abio.factories
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`input_tags` Module
-------------------------
+abipy.abio.input\_tags module
+-----------------------------
 
 .. automodule:: abipy.abio.input_tags
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`inputs` Module
---------------------
+abipy.abio.inputs module
+------------------------
 
 .. automodule:: abipy.abio.inputs
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`outputs` Module
----------------------
+abipy.abio.outputs module
+-------------------------
 
 .. automodule:: abipy.abio.outputs
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`robots` Module
---------------------
+abipy.abio.robots module
+------------------------
 
 .. automodule:: abipy.abio.robots
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`timer` Module
--------------------
+abipy.abio.timer module
+-----------------------
 
 .. automodule:: abipy.abio.timer
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`variable` Module
-----------------------
+abipy.abio.variable module
+--------------------------
 
 .. automodule:: abipy.abio.variable
    :members:

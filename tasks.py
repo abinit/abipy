@@ -50,11 +50,26 @@ def make_doc(ctx):
     """Build the website"""
     with cd(DOCS_DIR):
         ctx.run("touch api/index.rst", warn=True)
-        #ctx.run("rm api/abipy*.rst", warn=True)
         ctx.run("sphinx-apidoc --implicit-namespaces -M -d 1 -o api -f ../abipy ../**/tests/* ../abipy/benchmarks ../abipy/data ../abipy/integration_tests ../abipy/test_files ../abipy/examples")
 
-        rst_files = [f for f in os.listdir(os.path.join(DOCS_DIR, "api")) if f.endswith(".rst")
-        print(rst_files)
+        rst_files = sorted([f for f in os.listdir(os.path.join(DOCS_DIR, "api")) if f.endswith(".rst") and f != "modules.rst"])
+        rst_files = [3 * " " + f for f in rst_files]
+        #print(rst_files)
+
+        header = """\
+.. _api-index:
+
+=================
+API documentation
+=================
+
+.. toctree::
+   :maxdepth: 1
+
+""" + "\n".join(rst_files)
+
+        with open(os.path.join(DOCS_DIR, "api", "index.rst"), "wt") as fh:
+            fh.write(header)
 
         ctx.run("make clean")
         ctx.run("make", env=dict(READTHEDOCS="1"), pty=True)
@@ -165,7 +180,7 @@ def pyclean(ctx):
                 shutil.rmtree(path)
                 count += 1
 
-        print("Removed %d __pycache__ directories" % count)
+        print(f"Removed {count} __pycache__ directories")
 
     def rm_pycfiles(top: str) -> int:
         """remove all pyc files."""
@@ -178,12 +193,11 @@ def pyclean(ctx):
                 os.remove(path)
                 count += 1
 
-        print("Removed %d .pyc files" % count)
+        print(f"Removed {count} .pyc files")
         return count
 
-    top = ABIPY_ROOTDIR
-    rm_pycaches(top)
-    rm_pycfiles(top)
+    rm_pycaches(ABIPY_ROOTDIR)
+    rm_pycfiles(ABIPY_ROOTDIR)
 
 
 @task
@@ -194,60 +208,3 @@ def tuna(ctx: Context) -> None:
     ctx.run(cmd, pty=True)
     cmd = "tuna __abipy_import.log"
     ctx.run(cmd, pty=True)
-
-
-@task
-def generate_rst(ctx: Context) -> None:
-    """
-    Generate .rst files for all Python modules in a package.
-    """
-    package_path = os.path.join(ABIPY_ROOTDIR, "abipy")
-    output_dir = os.path.join(DOCS_DIR, "api")
-    #if not os.path.exists(output_dir):
-    #    os.makedirs(output_dir)
-
-    for root, dirs, files in os.walk(package_path):
-        rel_dir = os.path.relpath(root, package_path)
-        if rel_dir == ".":
-            rel_dir = ""
-        rst_dir = os.path.join(output_dir, rel_dir)
-        #if not os.path.exists(rst_dir):
-        #    os.makedirs(rst_dir)
-
-        # Process Python modules and packages
-        for file in files:
-            if file.endswith(".py") and file != "__init__.py":
-                module_name = file[:-3]  # Remove .py extension
-                rst_file = os.path.join(rst_dir, f"{module_name}.rst")
-                #with open(rst_file, "w") as f:
-                f = sys.stdout
-                full_module = (
-                    f"{os.path.basename(package_path)}.{rel_dir.replace('/', '.')}.{module_name}"
-                    if rel_dir
-                    else f"{os.path.basename(package_path)}.{module_name}"
-                )
-                f.write(f"{module_name}\n{'=' * len(module_name)}\n\n")
-                f.write(f".. automodule:: {full_module}\n")
-                f.write("    :members:\n")
-                f.write("    :undoc-members:\n")
-                f.write("    :show-inheritance:\n")
-
-        # Process subpackages
-        for dir_ in dirs:
-            if os.path.isfile(os.path.join(root, dir_, "__init__.py")):
-                package_name = dir_
-                rst_file = os.path.join(rst_dir, f"{package_name}.rst")
-                #with open(rst_file, "w") as f:
-                f = sys.stdout
-                full_package = (
-                    f"{os.path.basename(package_path)}.{rel_dir.replace('/', '.')}.{package_name}"
-                    if rel_dir
-                    else f"{os.path.basename(package_path)}.{package_name}"
-                )
-                f.write(f"{package_name}\n{'=' * len(package_name)}\n\n")
-                f.write(f".. automodule:: {full_package}\n")
-                f.write("    :members:\n")
-                f.write("    :undoc-members:\n")
-                f.write("    :show-inheritance:\n")
-
-        print(f"Documentation files have been generated in '{output_dir}'.")

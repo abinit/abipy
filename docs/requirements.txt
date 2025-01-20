@@ -6,7 +6,8 @@ sphinx-gallery
 sphinx-argparse
 sphinx_rtd_theme
 sphinxcontrib-bibtex
-phinx-autodoc-typehints
+sphinx-autodoc-typehints
+#sphinx_click
 jupyter-sphinx
 #graphviz or python-graphviz if conda
 graphviz

@@ -1,36 +1,32 @@
-wannier90 Package
-=================
-
-.. contents::
-   :backlinks: top
-
-
-:mod:`wannier90` Module
------------------------
+abipy.wannier90 package
+=======================
 
 .. automodule:: abipy.wannier90
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`abiwan` Module
---------------------
+Submodules
+----------
+
+abipy.wannier90.abiwan module
+-----------------------------
 
 .. automodule:: abipy.wannier90.abiwan
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`win` Module
------------------
+abipy.wannier90.win module
+--------------------------
 
 .. automodule:: abipy.wannier90.win
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`wout` Module
-------------------
+abipy.wannier90.wout module
+---------------------------
 
 .. automodule:: abipy.wannier90.wout
    :members:

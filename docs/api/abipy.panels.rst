@@ -1,134 +1,144 @@
-
-panels Package
-==============
-
-.. contents::
-   :backlinks: top
-
-:mod:`panels` Package
----------------------
+abipy.panels package
+====================
 
 .. automodule:: abipy.panels
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`a2f` Module
-------------------
+Submodules
+----------
+
+abipy.panels.a2f module
+-----------------------
 
 .. automodule:: abipy.panels.a2f
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`core` Module
-------------------
+abipy.panels.core module
+------------------------
 
 .. automodule:: abipy.panels.core
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`ddb` Module
------------------
+abipy.panels.ddb module
+-----------------------
 
 .. automodule:: abipy.panels.ddb
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`fatbands` Module
-----------------------
+abipy.panels.electrons module
+-----------------------------
+
+.. automodule:: abipy.panels.electrons
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+abipy.panels.fatbands module
+----------------------------
 
 .. automodule:: abipy.panels.fatbands
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`flows` Module
--------------------
+abipy.panels.flows module
+-------------------------
 
 .. automodule:: abipy.panels.flows
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`gsr` Module
------------------
+abipy.panels.gsr module
+-----------------------
 
 .. automodule:: abipy.panels.gsr
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`hist` Module
-------------------
+abipy.panels.hist module
+------------------------
 
 .. automodule:: abipy.panels.hist
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-:mod:`nodes` Module
--------------------
+abipy.panels.nodes module
+-------------------------
 
 .. automodule:: abipy.panels.nodes
    :members:
    :undoc-members:
    :show-inheritance:
 
+abipy.panels.oncvpsp\_gui module
+--------------------------------
 
-:mod:`outputs` Module
----------------------
+.. automodule:: abipy.panels.oncvpsp_gui
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+abipy.panels.outputs module
+---------------------------
 
 .. automodule:: abipy.panels.outputs
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`phonons` Module
----------------------
+abipy.panels.phonons module
+---------------------------
 
 .. automodule:: abipy.panels.phonons
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`sigeph` Module
----------------------
+abipy.panels.sigeph module
+--------------------------
 
 .. automodule:: abipy.panels.sigeph
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`structure` Module
------------------------
+abipy.panels.structure module
+-----------------------------
 
 .. automodule:: abipy.panels.structure
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`tasks` Module
--------------------
+abipy.panels.tasks module
+-------------------------
 
 .. automodule:: abipy.panels.tasks
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`viewers` Module
----------------------
+abipy.panels.viewers module
+---------------------------
 
 .. automodule:: abipy.panels.viewers
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`works` Module
--------------------
+abipy.panels.works module
+-------------------------
 
 .. automodule:: abipy.panels.works
    :members:

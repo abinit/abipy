@@ -84,7 +84,7 @@ class MinimaxMesh:
                         other: MinimaxMesh,
                         self_name: str ="self",
                         other_name: str ="other",
-                        with_sinft: bool: False,
+                        with_sinft: bool= False,
                         fontsize: int = 6,
                         **kwargs) -> Figure:
         """
