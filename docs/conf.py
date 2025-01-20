@@ -160,7 +160,9 @@ if with_gallery:
             "flow_gallery",
             "gallery",
         ],
-        'filename_pattern': "(/plot*|/run_*)",
+        'filename_pattern': "(plot*|run*)",
+        #'filename_pattern': '(plot_|run_)/.*\.py$',
+        'ignore_pattern': '(^test_*|__init__*)',  # Regular expression to match ignored scripts
         'default_thumb_file': '_static/abipy_logo.png',
         'within_subsection_order': ExampleTitleSortKey,
         'backreferences_dir': None,

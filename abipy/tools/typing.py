@@ -20,11 +20,14 @@ else:
     Kpoint = Any
 
 VectorLike = Union[Sequence[float], np.ndarray]
+IVectorLike = Union[Sequence[int], np.ndarray]
 
 # matplotlib objects
 #AxList = list[Axes]
 
 # Abipy objects
 KptLike = Union["Kpoint", VectorLike]
+
 KptSelect = Union[int, "Kpoint", "VectorLike"]
 
+GvecSelect = Union[int, IVectorLike]

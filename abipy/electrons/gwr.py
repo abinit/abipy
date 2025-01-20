@@ -27,10 +27,10 @@ from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.electrons.gw import SelfEnergy, QPState, QPList
 from abipy.abio.enums import GWR_TASK
 
+
 __all__ = [
     "GwrFile",
     "GwrRobot",
-    "TchimVsSus",
 ]
 
 
@@ -80,8 +80,13 @@ class MinimaxMesh:
         return cls(**d)
 
     @add_fig_kwargs
-    def plot_ft_weights(self, other: MinimaxMesh, self_name="self", other_name="other",
-                        with_sinft=False, fontsize=6, **kwargs):
+    def plot_ft_weights(self,
+                        other: MinimaxMesh,
+                        self_name: str ="self",
+                        other_name: str ="other",
+                        with_sinft: bool: False,
+                        fontsize: int = 6,
+                        **kwargs) -> Figure:
         """
         Plot the Fourier transform weights of two minimax meshes (self and other)
         """

@@ -50,8 +50,8 @@ def make_doc(ctx):
     """Build the website"""
     with cd(DOCS_DIR):
         ctx.run("touch api/index.rst", warn=True)
-        ctx.run("rm pymatgen.*.rst", warn=True)
-        ctx.run("sphinx-apidoc --implicit-namespaces -M -d 7 -o api -f ../abipy ../**/tests/*")
+        #ctx.run("rm api/abipy*.rst", warn=True)
+        ctx.run("sphinx-apidoc --implicit-namespaces -M -d 7 -o api -f ../abipy ../**/tests/* ../abipy/benchmarks ../abipy/data ../abipy/integration_tests ../abipy/test_files ../abipy/examples")
 
         ctx.run("make clean")
         ctx.run("make", env=dict(READTHEDOCS="1"), pty=True)
