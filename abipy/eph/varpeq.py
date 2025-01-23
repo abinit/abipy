@@ -565,11 +565,11 @@ class Polaron:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
                 The default should be OK in many systems, larger values may be required for accurate derivatives.
             with_ibz_a2dos: True if A2_IBZ(E) should be computed.
-            method: Integration scheme for DOS
+            method: Integration scheme for electron DOS.
             step: Energy step (eV) of the linear mesh for DOS computation.
             width: Standard deviation (eV) of the gaussian for DOS computation.
             nksmall: Number of divisions to sample the smallest reciprocal lattice vector when computing electron DOS
-            normalize: Rescale the DOSes to plot them on the same scale.
+            normalize: Rescale electron and A2(E) DOSes to plot them on the same scale.
             with_title: True to add title with chemical formula and gaps.
             interp_method: Interpolation method.
             ax_mat: Matrix |matplotlib-Axes| or None if a new figure should be created.

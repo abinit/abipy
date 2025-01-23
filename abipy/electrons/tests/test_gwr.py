@@ -12,7 +12,7 @@ class GwrFileTest(AbipyTest):
 
     def test_gwr_file(self):
         """Testing GwrFile"""
-        path = "/Users/giantomassi/git_repos/abinit/_build/tests/Test_suite/gwr_t01/t01o_DS3_GWR.nc"
+        path = abidata.ref_file("t01o_DS3_GWR.nc")
         with GwrFile(abidata.ref_file(path)) as gwr:
             repr(gwr); str(gwr)
             gwr.to_string(verbose=1)
@@ -70,13 +70,11 @@ class GwrFileTest(AbipyTest):
 
     def test_gwr_robot(self):
         """Testing GwrRobot."""
-        path = "/Users/giantomassi/git_repos/abinit/_build/tests/Test_suite/gwr_t01/t01o_DS3_GWR.nc"
+        path = abidata.ref_file("t01o_DS3_GWR.nc")
         with GwrRobot() as robot:
             robot.add_file("one", path)
             robot.add_file("two", path)
-            spin = 0
-            kpoint = 0
-            band = 4
+            spin, kpoint, band = 0, 0, 4
 
             df_sk = robot.get_dataframe_sk(spin, kpoint, with_params=True, ignore_imag=False)
             gaps_df = robot.get_dirgaps_dataframe(sortby="kname", with_params=True)

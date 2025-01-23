@@ -85,9 +85,6 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         #app(f"nsppol: {self.r.nsppol}")
         #app(f"nqibz: {self.r.nqibz}")
-        #app(f"gstore_with_vk: {self.r.with_vk}")
-        #app(f"gstore_kptopt: {self.r.kptopt}")
-        #app(f"gstore_qptopt: {self.r.qptopt}")
 
         return "\n".join(lines)
 
@@ -182,6 +179,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         Args:
             spin: Spin index.
+            take_every:
             wt_space:
             method:
             verbose: Verbosity level.
@@ -285,8 +283,8 @@ class Fit:
 
     def _minimize_loss(self, fit_with_second_index, method):
         """
-        Fit the signal by changing the second point, and select
-        the one which minimizes the loss function.
+        Fit the signal by changing the second point, finally select
+        the point that minimizes the loss function.
         """
         # Select weights for the loss function.
         weights = self.iw_wgs if self.wt_space == "omega" else self.tau_wgs
@@ -303,47 +301,38 @@ class Fit:
 
     def _eval_omega(self, fit_xs: np.ndarray, method: str) -> np.ndarray | None:
         """
-        Fit values in imaginary frequency using A/(B^2 + omega^2).
+        Fit values in imaginary frequency using A/(B^2 + omega^2) with B^2 real and A complex.
         """
         def _fit_with_second_index(second_index, xs) -> np.ndarray:
             # First and second_index data points
-            w0, y0 = self.xs[0], self.ys[0]
-            wn, yn = self.xs[second_index], self.ys[second_index]
+            w0, f0 = self.xs[0], self.ys[0]
+            wn, fn = self.xs[second_index], self.ys[second_index]
 
-            # TODO: Check equations
             # Solve for B^2 using real part (assuming the same B^2 for real and imaginary parts)
-            b2 = (y0.real * w0**2 - yn.real * wn**2) / (yn.real - y0.real)
-            if b2 < 0.0:
-                a, b = 0.0, 0.0
-                return a / (b**2 + xs**2)
-                #b2 = 0
+            b2 = (f0.real * w0**2 - fn.real * wn**2) / (fn.real - f0.real)
+            if b2 < 1e-12:
+                a, b2 = 0.0, 0.0
+                return a / (b2 + xs**2)
 
-            b = np.sqrt(b2)
-            #print(f"{b2=}, {b=}")
-            # Solve for Re[A] and Im[A]
-            a_real = y0.real * (b2 + w0**2)
-            a_imag = y0.imag * (b2 + w0**2)
-            # Generate the fitted signal
-            a = a_real + 1j * a_imag
-            return a / (b**2 + xs**2)
+            a = f0 * (b2 + w0**2)
+            return a / (b2 + xs**2)
 
         second_index, _ = self._minimize_loss(_fit_with_second_index, method)
         return _fit_with_second_index(second_index, fit_xs)
 
     def _eval_tau(self, fit_xs: np.ndarray, method: str) -> np.ndarray:
         """
-        Fit values in imaginary time using B exp^{-a t} with a > 0.
+        Fit values in imaginary time using B exp^{-a t} with B complex and a real and > 0.
         """
         def _fit_with_second_index(second_index, xs) -> np.ndarray:
-            # First and second_index data points
-            w0, y0 = self.xs[0], self.ys[0]
-            wn, yn = self.xs[second_index], self.ys[second_index]
-            # TODO: Check equations
-            # Compute b and a
-            b = y0
-            a = -np.log(yn / y0) / (wn - w0)
-            # Generate the fitted signal
-            return b * np.exp(-a * (xs - w0))
+            w0, f0 = self.xs[0], self.ys[0]
+            wn, fn = self.xs[second_index], self.ys[second_index]
+            # Note that we take the real part of the log to avoid oscillatory behaviour in the exp.
+            a = -np.log(fn / f0) / (wn - w0)
+            a = a.real
+            # If something goes wrong, disable the fit.
+            if a <= 1e-12: f0 = 0.0
+            return f0 * np.exp(-a * (xs - w0))
 
         second_index, _ = self._minimize_loss(_fit_with_second_index, method)
         return _fit_with_second_index(second_index, fit_xs)

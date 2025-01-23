@@ -4,9 +4,7 @@ the PATH.nc file with the e-ph matrix elements along a k/q path
 """
 from __future__ import annotations
 
-#import dataclasses
 import numpy as np
-#import pandas as pd
 import abipy.core.abinit_units as abu
 
 from monty.string import marquee
@@ -342,7 +340,6 @@ class GpathReader(BaseEphReader):
         self.nb_in_g = self.read_dimvalue("nb_in_g")
         self.nk_path = self.read_dimvalue("nk_path")
         self.nq_path = self.read_dimvalue("nq_path")
-
         self.structure = self.read_structure()
 
         # eigens are in Ha, phfreq are in eV for historical reason

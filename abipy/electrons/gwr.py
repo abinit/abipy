@@ -11,6 +11,7 @@ import abipy.core.abinit_units as abu
 
 from collections.abc import Iterable
 from typing import Any
+from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
@@ -63,9 +64,7 @@ class MinimaxMesh:
 
     @classmethod
     def from_ncreader(cls, reader: ETSF_Reader) -> MinimaxMesh:
-        """
-        Build minimax mesh from a netcdf reader.
-        """
+        """Build a minimax mesh from a netcdf reader."""
         d = {}
         for field in dataclasses.fields(cls):
             name = field.name
@@ -79,6 +78,34 @@ class MinimaxMesh:
 
         return cls(**d)
 
+    def __str__(self) -> str:
+        return self.to_string()
+
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level `verbose`."""
+        lines = []
+        app = lines.append
+        app(super().__str__())
+        return "\n".join(lines)
+
+    #def ft_w2t_even(self, f_w: np.ndarray) -> np.ndarray:
+    #def ft_t2w_even(self, f_t: np.ndarray) -> np.ndarray:
+
+    def ft_pmt(self, f_pmt: np.ndarray) -> np.ndarray:
+        """
+        Transform a signal in imaginary time to imaginary frequency with inhomogeneous FT.
+
+        Args:
+            f_pmt: numpy array of shape [2, ntau] where [0,:] corresponds to positive taus
+            and [1,:] to negative taus.
+        """
+        # f(t) = E(t) + O(t) = (f(t) + f(-t)) / 2  + (f(t) - f(-t)) / 2
+        even_t = (f_pmt[0] + f_pmt[1]) / 2.0
+        odd_t = (f_pmt[0] - f_pmt[1]) / 2.0
+        return self.cosft_wt @ even_t + 1j * self.sinft_wt @ odd_t
+
+
+
     @add_fig_kwargs
     def plot_ft_weights(self,
                         other: MinimaxMesh,
@@ -89,6 +116,13 @@ class MinimaxMesh:
                         **kwargs) -> Figure:
         """
         Plot the Fourier transform weights of two minimax meshes (self and other)
+
+        Args:
+            other:
+            self_name:
+            other_name:
+            with_sinft:
+            fontsize:
         """
         if self.ntau != other.ntau:
             raise ValueError(f"Cannot compare minimax meshes with different ntau: {self.ntau=}, {other.ntau=}")
@@ -121,6 +155,79 @@ class MinimaxMesh:
                 im = ax.matshow(data, cmap='seismic')
                 fig.colorbar(im, ax=ax)
                 ax.set_title(label, fontsize=fontsize)
+
+        return fig
+
+
+@dataclasses.dataclass(kw_only=True)
+class PadeData:
+    sigc_rw: np.ndarray
+    aw: np.ndarray
+    ze0: float
+
+
+class GwrSelfEnergy(SelfEnergy):
+    """
+    Extends SelfEnergy by composing it with a MinimaxMesh instance.
+    """
+
+    PADE_METHODS = [
+      "abinit_pade",  # Pade results produced by ABINIT
+      "abipy_pade",   # Pade results produced by Abipy (should be equal to abinit_pade)
+      "tau_fit",      # Fit Sigma_c(tau) and apply pade to the difference.
+    ]
+
+    def __init__(self, *args, **kwargs):
+        mx_mesh = kwargs.pop("mx_mesh")
+        super().__init__(*args, **kwargs)
+        self.mx_mesh = mx_mesh
+
+    def get_pade_data(self, rw_vals, pade_method: str) -> PadeData:
+        """
+        Use the Pade' method to obtain the self-energy on the real axis,
+        the renormalization factor at the KS energy and the spectral function A(w)
+
+        Args:
+            rw_vals:
+            pade_method:
+
+        Return: namedtuple with .sigxc, .aw, and ze0.
+        """
+        #if pade_method == "abinit_pade":
+        #    sigc_rw =
+        #    aw = aw
+        #    ze0 = ze0
+
+        #elif pade_method == "abipy_pade":
+        #    from abipy.tools.pade import pade, dpade
+        #    #pade(z, f, zz)
+        #    #dpade(z, f, zz)
+
+        #elif pade_method == "tau_fit":
+        #    sigc_rw =
+        #    aw = aw
+        #    ze0 = ze0
+
+        #else:
+        #    raise ValueError(f"Invalid {pade_method=}, should be in {self.PADE_METHODS=}")
+
+        return PadeData(sigxc_rw=sigxc_rw, aw=aw, ze0=ze0)
+
+    @add_fig_kwargs
+    def plot_pade(self,
+                  pade_methods: list[str],
+                  w_mesh: None | np.ndarray,
+                  ax=None,
+                  **kwargs) -> Figure:
+        """
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        for pade_method in list_strings(pade_methods):
+           p = self.get_pade_data(rw_vals, pade_method)
+           #p.sigxc_rw
+           #p.aw
+           #p.ze0
 
         return fig
 
@@ -298,7 +405,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             app(str(self.get_dirgaps_dataframe(with_params=False)))
             app("")
 
-        #app(str(self.minimax_mesh))
+        if verbose:
+            app(self.minimax_mesh.to_string(verbose=verbose))
 
         return "\n".join(lines)
 
@@ -726,7 +834,7 @@ class GwrReader(ETSF_Reader):
         # nctkarr_t("e0_kcalc", "dp", "smat_bsize1, nkcalc, nsppol"), &
         return self.read_value("e0_kcalc") * abu.Ha_eV
 
-    def get_ikcalc_kpoint(self, kpoint) -> tuple[int, Kpoint]:
+    def get_ikcalc_kpoint(self, kpoint: KptSelect) -> tuple[int, Kpoint]:
         """
         Return the ikcalc index and the Kpoint
         """
@@ -734,7 +842,7 @@ class GwrReader(ETSF_Reader):
         kpoint = self.sigma_kpoints[ikcalc]
         return ikcalc, kpoint
 
-    def kpt2ikcalc(self, kpoint) -> int:
+    def kpt2ikcalc(self, kpoint: KptSelect) -> int:
         """
         Returns the index of the k-point in the sigma_kpoints array.
         Used to access data in the arrays that are dimensioned [0:nkcalc]
@@ -752,7 +860,7 @@ class GwrReader(ETSF_Reader):
         return np.linspace(start=e0 - self.wr_step * (nwr // 2),
                            stop=e0 + self.wr_step * (nwr // 2),  num=nwr)
 
-    def read_sigee_skb(self, spin, kpoint, band) -> SelfEnergy:
+    def read_sigee_skb(self, spin: int, kpoint: KptSelect, band: int) -> GwrSelfEnergy:
         """"
         Read self-energy for (spin, kpoint, band).
         """
@@ -780,11 +888,15 @@ class GwrReader(ETSF_Reader):
         tau_mp_mesh = np.concatenate((-self.tau_mesh[::-1], self.tau_mesh))
         c_tau_mp_values = np.concatenate((c_tau_pm[::-1,1], c_tau_pm[:,0]))
 
-        return SelfEnergy(spin, kpoint, band, wmesh, sigxc_values, spf_values,
-                          iw_mesh=self.iw_mesh, c_iw_values=c_iw_values,
-                          tau_mp_mesh=tau_mp_mesh, c_tau_mp_values=c_tau_mp_values)
+        mx_mesh = MinimaxMesh.from_ncreader(self)
 
-    def read_sigma_bdict_sikcalc(self, spin: int, ikcalc: int, include_bands) -> dict[int, SelfEnergy]:
+        return GwrSelfEnergy(spin, kpoint, band, wmesh, sigxc_values, spf_values,
+                             iw_mesh=self.iw_mesh, c_iw_values=c_iw_values,
+                             tau_mp_mesh=tau_mp_mesh, c_tau_mp_values=c_tau_mp_values,
+                             mx_mesh=mx_mesh,
+                             )
+
+    def read_sigma_bdict_sikcalc(self, spin: int, ikcalc: int, include_bands: bool) -> dict[int, GwrSelfEnergy]:
         """
         Return dict of self-energy objects for given (spin, ikcalc) indexed by the band index.
         """
@@ -794,7 +906,7 @@ class GwrReader(ETSF_Reader):
             sigma_of_band[band] = self.read_sigee_skb(spin, ikcalc, band)
         return sigma_of_band
 
-    def read_allqps(self, ignore_imag=False) -> tuple[QPList]:
+    def read_allqps(self, ignore_imag: bool = False) -> tuple[QPList]:
         """
         Return list with ``nsppol`` items. Each item is a :class:`QPList` with the QP results
 
@@ -813,7 +925,7 @@ class GwrReader(ETSF_Reader):
 
         return tuple(qps_spin)
 
-    def read_qplist_sk(self, spin, kpoint, band=None, ignore_imag=False) -> QPList:
+    def read_qplist_sk(self, spin: int, kpoint: KptSelect, band: int = None, ignore_imag: bool = False) -> QPList:
         """
         Read and return a QPList object for the given spin, kpoint.
 
