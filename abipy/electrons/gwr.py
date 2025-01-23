@@ -755,7 +755,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         # TODO
         for spin in range(self.nsppol):
             for ik, kpoint in enumerate(self.sigma_kpoints):
-                kws = dict(spin=spin, include_bands = "gaps", show=False)
+                kws = dict(spin=spin, include_bands="gap", show=False)
                 yield self.plot_sigma_imag_axis(ik, **kws)
                 yield self.plot_sigma_real_axis(ik, **kws)
 
