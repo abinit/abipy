@@ -47,7 +47,6 @@ class ScriptTest(AbipyTest):
         env = TestFileEnvironment()
 
         # Use Agg backend for plots.
-        #if not os.path.exists(env.base_path): os.makedirs(env.base_path)
         with open(os.path.join(env.base_path, "matplotlibrc"), "wt") as fh:
             fh.write("backend: Agg\n")
 

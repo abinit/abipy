@@ -442,56 +442,62 @@ class QPList(list):
 
 class SelfEnergy:
     """
-    This object stores e-e self-energy along the real-axis frequency domain with
-    the associated spectral function A(w) and, optionally, the values along
-    the imaginary axis. Energies are in eV.
+    This object stores the e-e self-energy along the real-axis frequency domain with
+    the associated spectral function A(w) and, optionally, the values along the imaginary axis.
+    All energies are in eV.
     """
 
-    # Symbols used in matplotlib plots.
+    # Latex symbols used in matplotlib plots.
     latex_symbols = dict(
         re=r"$\Re{\Sigma_{nk}(\omega)}$",
         im=r"$\Im{\Sigma_{nk}(\omega)}$",
-        spfunc=r"$A_{nk}(\omega)}$",
+        aw=r"$A_{nk}(\omega)}$",
     )
 
     def __init__(self,
                  spin: int,
                  kpoint: KptSelect,
                  band: int,
-                 wmesh,
-                 sigxc_values,
-                 spfunc_values,
-                 iw_mesh=None,
-                 c_iw_values=None,
-                 tau_mp_mesh=None,
-                 c_tau_mp_values=None):
+                 wmesh: np.ndarray,
+                 xc_vals: np.ndarray,
+                 x_val: float,
+                 ze0: complex,
+                 aw_vals: np.ndarray,
+                 iw_mesh: np.ndarray | None = None,
+                 c_iw_values: np.ndarray | None = None,
+                 tau_mp_mesh: np.ndarray | None = None,
+                 c_tau_mp_values: np.ndarray | None = None):
         """
         Args:
             spin: Spin index
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: band index
             wmesh: Frequency mesh along the real-axis in eV
-            sigxc_values: Matrix elements of sigxc on wmesh.
-            spfunc_values: Spectral function A(w) on wmesh
+            xc_vals: Matrix elements of sigma_xc on wmesh.
+            x_val: Matrix element of sigma_x.
+            ze0: Renormalization factor at the bare energy.
+            aw_vals: Spectral function A(w) on wmesh
             iw_mesh: Frequency mesh along the imag axis in eV. Optional
             c_iw_values: Values of Sigma_c(iw) on iw_mesh. Optional
             tau_mp_mesh: Mesh for imaginary time in a.u. (negative and positive values)
-            c_tau_mp_values: Values of Sigma_c(i tau)
+            c_tau_mp_values: Values of Sigma_c(i tau) (negative and positive values)
         """
         self.spin, self.kpoint, self.band = spin, kpoint, band
 
         self.wmesh = np.array(wmesh)
-        self.xc = Function1D(self.wmesh, sigxc_values)
-
-        self.spfunc = Function1D(self.wmesh, spfunc_values)
-        assert len(sigxc_values) == len(spfunc_values)
+        self.xc = Function1D(self.wmesh, xc_vals)
+        self.x_val = x_val
+        self.ze0 = ze0
+        self.aw = Function1D(self.wmesh, aw_vals)
+        if len(xc_vals) != len(aw_vals):
+            raise ValueError(f"{len(xc_vals)=} != {len(aw_vals)=}")
 
         # Optionally, store Sigma(iw)
-        self.c_iw = None
+        self.c_iw= None
         if iw_mesh is not None and c_iw_values is not None:
             self.c_iw = Function1D(iw_mesh, c_iw_values)
 
-        # Optionally, store Sigma(itau) for positive and negative imag times.
+        # Optionally, store Sigma(itau) for positive and negative imaginary times.
         self.c_tau = None
         if tau_mp_mesh is not None and c_tau_mp_values is not None:
             self.c_tau = Function1D(tau_mp_mesh, c_tau_mp_values)
@@ -529,18 +535,16 @@ class SelfEnergy:
         return "\n".join(lines)
 
     def _get_ys(self, what: str) -> dict:
-        """
-        Return the name of the array to plot from what.
-        """
+        """Return the name of the array to plot from what."""
         return dict(
             re=self.xc.values.real,
             im=self.xc.values.imag,
-            spfunc=self.spfunc.values,
+            aw=self.aw.values,
         )[what]
 
     def plot_ax(self, ax, what="a", fontsize=8, **kwargs) -> list:
         """
-        Helper function to plot data on the axis ax with fontsize
+        Helper function to plot data on the axis ax.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -564,12 +568,11 @@ class SelfEnergy:
                 extend(f.plot_ax(ax, cplx_mode="im", label="Im " + label))
 
         elif what == "a":
-            f = self.spfunc
             label = kwargs.get("label", r"$A(\omega)$")
-            extend(f.plot_ax(ax, label=label))
+            extend(self.aw.plot_ax(ax, label=label))
 
         else:
-            raise ValueError("Don't know how to handle what option %s" % str(what))
+            raise ValueError(f"Don't know how to handle {what=}")
 
         #ax.set_ylabel('Energy (eV)')
         ax.grid(True)
@@ -578,8 +581,13 @@ class SelfEnergy:
         return lines
 
     @add_fig_kwargs
-    def plot(self, ax_list=None, what_list=("re", "im", "spfunc"), fermie=None,
-             xlims=None, fontsize=8, **kwargs) -> Figure:
+    def plot(self,
+             ax_list=None,
+             what_list=("re", "im", "aw"),
+             fermie=None,
+             xlims=None,
+             fontsize=8,
+             **kwargs) -> Figure:
         """
         Plot the real/imaginary part of the self-energy as well as the spectral function.
         along the real frequency axis.
@@ -622,7 +630,7 @@ class SelfEnergy:
 
         return fig
 
-    def plot_reima_rw(self, ax_list, with_xlabels=False, **kwargs) -> list:
+    def plot_reima_rw(self, ax_list: list, with_xlabels: bool = False, **kwargs) -> list:
         """
         Plot Re/Im (Sigma(w)) and the spectral function A(w) on `ax_list` with w on the real-axis.
 
@@ -640,12 +648,12 @@ class SelfEnergy:
         set_ax_xylabels(ax_list[1], xlabel, r"$\Im{\Sigma}(\omega)$ (eV)")
 
         # Plot A(w)
-        l2 = self.spfunc.plot_ax(ax_list[2], **kwargs)
+        l2 = self.aw.plot_ax(ax_list[2], **kwargs)
         set_ax_xylabels(ax_list[2], r"$\omega$ (eV)", r"$A(\omega)$ (1/eV)")
 
         return [l0, l1, l2]
 
-    def plot_reimc_iw(self, ax_list, with_xlabels=False, **kwargs) -> list:
+    def plot_reimc_iw(self, ax_list: list, with_xlabels: bool = False, **kwargs) -> list:
         """
         Plot Re/Im (Sigma_c(iw)) of the correlated part on the imaginary-axis on `ax_list`.
 
@@ -663,7 +671,7 @@ class SelfEnergy:
 
         return [l0, l1]
 
-    def plot_reimc_tau(self, ax_list, with_xlabels=False, **kwargs) -> list:
+    def plot_reimc_tau(self, ax_list: list, with_xlabels: bool = False, **kwargs) -> list:
         """
         Plot Re/Im (Sigma_c(i tau)) of the correlated part on the imaginary-axis on `ax_list`.
 
@@ -685,7 +693,7 @@ class SelfEnergy:
     #def plot_with_other(self, other: SelfEnergy, **kwargs) -> Figure:
     #    """
     #    """
-    #    what_list = ["re", "im", "spfunc"]
+    #    what_list = ["re", "im", "aw"]
     #    ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=len(what_list), ncols=1,
     #                                            sharex=True, sharey=False, squeeze=False)
     #    ax_list = np.array(ax_list).ravel()
@@ -845,11 +853,11 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """Tuple of :class:`QPList` objects indexed by spin."""
         return self.r.read_allqps()
 
-    def get_qplist(self, spin, kpoint, ignore_imag=False) -> QPList:
+    def get_qplist(self, spin: int, kpoint: KptSelect, ignore_imag: bool = False) -> QPList:
         """Return :class`QPList` for the given (spin, kpoint)"""
         return self.r.read_qplist_sk(spin, kpoint, ignore_imag=ignore_imag)
 
-    def get_qpcorr(self, spin, kpoint, band, ignore_imag=False) -> QPState:
+    def get_qpcorr(self, spin: int, kpoint: KptSelect, band: int, ignore_imag: bool = False) -> QPState:
         """Returns the :class:`QPState` object for the given (s, k, b)"""
         return self.r.read_qp(spin, kpoint, band, ignore_imag=ignore_imag)
 
@@ -858,7 +866,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """|numpy-array| of shape [nsppol, nkibz] with the QP direct gaps in eV."""
         return self.r.read_qpgaps()
 
-    def get_qpgap(self, spin, kpoint, with_ksgap=False):
+    def get_qpgap(self, spin: int, kpoint: KptSelect, with_ksgap: bool = False):
         """
         Return the QP gap in eV at the given (spin, kpoint)
         """
@@ -868,28 +876,35 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         else:
             return self.qpgaps[spin, ik], self.ksgaps[spin, ik]
 
-    def read_sigee_skb(self, spin, kpoint, band) -> SelfEnergy:
+    def read_sigee_skb(self, spin: int, kpoint: KptSelect, band: int) -> SelfEnergy:
         """"
         Read self-energy for (spin, kpoint, band).
         """
         ik_ibz = self.r.kpt2ibz(kpoint)
         kpoint = self.ibz[ik_ibz]
-        wmesh, sigxc_values = self.r.read_sigmaw(spin, ik_ibz, band)
+        wmesh, xc_vals = self.r.read_sigmaw(spin, ik_ibz, band)
 
-        spf_values = None
+        aw_vals = None
         if self.r.has_spfunc:
-            _, spf_values = self.r.read_spfunc(spin, ik_ibz, band)
+            _, aw_vals = self.r.read_spfunc(spin, ik_ibz, band)
 
+        # Values along the imag axis are available only if AC has been used.
         iw_mesh, c_iw_values = None, None
+        ib_gw = band - self.min_bstart
         if self.r.nomega_i > 0:
             # Read Sigma_c(iw) if available.
             # sigcmesi(b1gw:b2gw, nkibz, nomega_i, nsppol*nsig_ab))
             iw_mesh = self.r.read_value("omega_i")[:, 1]
-            ib_gw = band - self.min_bstart
             var = self.r.read_variable("sigcmesi")
             c_iw_values = var[spin, :, ik_ibz, ib_gw, 0] + 1j*var[spin, :, ik_ibz, ib_gw, 1]
 
-        return SelfEnergy(spin, kpoint, band, wmesh, sigxc_values, spf_values,
+        # nctkarr_t('sigxme', "dp", 'nbgw, number_of_kpoints, ndim_sig')
+        x_val = self.r._sigxme[spin, ik_ibz, ib_gw]
+        # nctkarr_t('ze0',"dp", 'cplex, nbgw, number_of_kpoints, number_of_spins')
+        ze0 =  self.r.read_variable("ze0")[spin, ik_ibz, ib_gw]
+        ze0 = ze0[0] + 1j*ze0[1]
+
+        return SelfEnergy(spin, kpoint, band, wmesh, xc_vals, x_val, ze0, aw_vals,
                           iw_mesh=iw_mesh, c_iw_values=c_iw_values)
 
     def print_qps(self, precision=3, ignore_imag=True, file=sys.stdout) -> None:
@@ -1229,7 +1244,12 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     # FIXME: To maintain previous interface.
     #to_dataframe = get_dataframe
 
-    def get_dataframe_sk(self, spin, kpoint, index=None, ignore_imag=False, with_params=True) -> pd.Dataframe:
+    def get_dataframe_sk(self,
+                         spin: int,
+                         kpoint: KptSelect,
+                         index=None,
+                         ignore_imag=False,
+                         with_params=True) -> pd.Dataframe:
         """
         Returns |pandas-DataFrame| with the QP results for the given (spin, k-point).
 
@@ -1255,7 +1275,12 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
     @add_fig_kwargs
-    def plot_sigma_imag_axis(self, kpoint, spin=0, ax_list=None, fontsize=8, **kwargs) -> Figure:
+    def plot_sigma_imag_axis(self,
+                             kpoint: KptSelect,
+                             spin: int = 0,
+                             ax_list=None,
+                             fontsize: int = 8,
+                             **kwargs) -> Figure:
         """
         Plot the self-energy along the imaginary frequency axis.
         Requires GW calculations with analytic continuation
@@ -1310,8 +1335,16 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     #    matrix = self.r.read_mlda_to_qps(spin, kpoint)
     #    return plot_matrix(matrix, *args, **kwargs)
 
-    def interpolate(self, lpratio=5, ks_ebands_kpath=None, ks_ebands_kmesh=None, ks_degatol=1e-4,
-                    vertices_names=None, line_density=20, filter_params=None, only_corrections=False, verbose=0):
+    def interpolate(self,
+                    lpratio=5,
+                    ks_ebands_kpath=None,
+                    ks_ebands_kmesh=None,
+                    ks_degatol=1e-4,
+                    vertices_names=None,
+                    line_density=20,
+                    filter_params=None,
+                    only_corrections=False,
+                    verbose=0):
         """
         Interpolate the GW corrections in k-space on a k-path and, optionally, on a k-mesh.
 
@@ -1867,15 +1900,15 @@ class SigresReader(ETSF_Reader):
         """Read the KS gaps. Returns [nsppol, nkibz] array with KS gaps in eV."""
         return self.read_value("e0gap")
 
-    def read_e0(self, spin, kfile, band) -> float:
+    def read_e0(self, spin: int, kfile: int, band: int) -> float:
         return self.ks_bands.eigens[spin, kfile, band]
 
-    def read_sigmaw(self, spin, kpoint, band) -> tuple:
+    def read_sigmaw(self, spin: int, kpoint: KptSelect, band: int) -> tuple:
         """
         Returns the real and the imaginary part of the self energy.
         """
         if not self.has_spfunc:
-            raise ValueError("%s does not contain spectral function data." % self.path)
+            raise ValueError(f"{self.path} does not contain spectral function data.")
 
         ik = self.kpt2ibz(kpoint)
         # Must shift band index (see fortran code that allocates with mdbgw)
@@ -2478,6 +2511,7 @@ class GwRobotWithDisplacedAtom(SigresRobot):
     """
     Specialized class to analyze GW or GWR calculations with displaced atom.
     """
+
     @classmethod
     def from_displaced_atom(cls, site_index, reduced_dir, step_ang, gw_files) -> GwRobotWithDisplacedAtom:
         """
@@ -2529,12 +2563,12 @@ class GwRobotWithDisplacedAtom(SigresRobot):
 
         return new
 
-    def get_dataframe_skb(self, spin, kpoint, band, with_params: bool = True) -> pd.DataFrame:
+    def get_dataframe_skb(self, spin: int, kpoint: KptSelect, band: int, with_params: bool = True) -> pd.DataFrame:
         """
         Return a pandas dataframe with the most important results.
 
         Args:
-            spin: Spin index.
+            spin: spin index.
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: band index.
             with_params: True if metadata should be included.
@@ -2553,9 +2587,12 @@ class GwRobotWithDisplacedAtom(SigresRobot):
         return pd.DataFrame(rows)
 
     @add_fig_kwargs
-    def plot_qpdata_vs_displ_skb(self, spin, kpoint, band,
+    def plot_qpdata_vs_displ_skb(self, spin: int,
+                                 kpoint: KptSelect,
+                                 band: int,
                                  what_list=("e0", "qpe", "sigxme", "sigcmee0", "ze0"),
-                                 fontsize=8, **kwargs) -> Figure:
+                                 fontsize=8,
+                                 **kwargs) -> Figure:
         """
         Plot QP results for a given spin, kpoint and band.
 

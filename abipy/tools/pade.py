@@ -8,24 +8,69 @@ from __future__ import annotations
 
 import numpy as np
 
-
-def pade(z, f, zz) -> complex:
+class SigmaPade:
     """
-    Calculate the Pade approximant of the function f at zz.
+    High-level interface to perform the analytic continuation of the self-energy with the Pade' method.
+    """
+    def __init__(self, zs, f_zs):
+        """
+        Args:
+            zs: Complex z-values.
+            f_zs: Values of f(zs).
+        """
+        self.zs, self.f_zs = zs, f_zs
+        if len(zs) != len(f_zs):
+            raise ValueError(f"{len(zs)=} != {len(f_zs)=}")
+
+    def eval(self, z_evals: np.ndarray) -> tuple[np.ndarray, np.np.ndarray]:
+        """
+        Compute the Pade fit for a list of zz points
+        """
+        nn = len(z_evals)
+        sws = np.zeros(nn, dtype=complex)
+        dsdws = np.zeros(nn, dtype=complex)
+
+        for iz, z_eval in enumerate(z_evals):
+            sw, dsw = self._eval_one(z_eval)
+            sws[iz] = sw
+            dsdws[iz] = dsw
+
+        return sws, dsdws
+
+    def _eval_one(self, z_eval) -> tuple[np.ndarray, np.ndarray]:
+        """
+        """
+        # if z_eval is in 2 or 3 quadrant, avoid the branch cut in the complex plane using Sigma(-iw) = Sigma(iw)*.
+        # See also sigma_pade_eval in m_dyson_solver.F90
+        if z_eval.real > 0.0:
+            cval = pade(self.zs, self.f_zs, z_eval)
+            dz_cval = dpade(self.zs, self.f_zs, z_eval)
+        else:
+            cval = pade(-self.zs, self.f_zs.conj(), z_eval)
+            dz_cval = dpade(-self.zs, self.f_zs.conj(), z_eval)
+
+        return cval, dz_cval
+
+
+def pade(zs: np.ndarray, f_zs: np.ndarray, z_eval) -> complex:
+    """
+    Calculate the Pade approximant of the function f_zs at z_eval.
 
     Args
-      z (numpy.ndarray): Input array of complex numbers (shape: n).
-      f (numpy.ndarray): Input array of complex numbers (shape: n).
-      zz (complex): Point at which to evaluate the Pade approximant.
+      zs: Input array of complex numbers.
+      f_zs: Input array of complex numbers.
+      z_eval: Point at which to evaluate the Pade approximant.
 
-    Returns:
-        complex: The Pade approximant value at zz.
+    Returns: The Pade approximant value at z_eval.
     """
-    if (n := len(z)) != len(f):
-        raise ValueError(f"{len(z)=} != {len(f)=}")
+    if (n := len(zs)) != len(f_zs):
+        raise ValueError(f"{len(zs)=} != {len(f_zs)=}")
+
+    if not np.iscomplexobj(zs):
+        raise TypeError(f"zs should be complex, but got {zs.dtype=}")
 
     # Calculate Pade coefficients
-    a = calculate_pade_a(z, f)
+    a = calculate_pade_a(zs, f_zs)
 
     # Initialize Az and Bz arrays
     Az = np.zeros(n + 1, dtype=complex)
@@ -37,8 +82,8 @@ def pade(z, f, zz) -> complex:
 
     # Calculate Az and Bz recursively
     for i in range(1, n):
-        Az[i + 1] = Az[i] + (zz - z[i - 1]) * a[i] * Az[i - 1]
-        Bz[i + 1] = Bz[i] + (zz - z[i - 1]) * a[i] * Bz[i - 1]
+        Az[i + 1] = Az[i] + (z_eval - zs[i - 1]) * a[i] * Az[i - 1]
+        Bz[i + 1] = Bz[i] + (z_eval - zs[i - 1]) * a[i] * Bz[i - 1]
 
     # Compute the Pade approximant
     pade_value = Az[n] / Bz[n]
@@ -52,21 +97,25 @@ def pade(z, f, zz) -> complex:
     return pade_value
 
 
-def dpade(z, f, zz) -> complex
+def dpade(zs: np.ndarray, f_zs: np.ndarray, z_eval: complex) -> complex:
     """
-    Calculate the derivative of the Pade approximant of the function f at zz.
+    Calculate the derivative of the Pade approximant of the function f_zs at z_eval.
 
-    Parameters:
-    z (numpy.ndarray): Input array of complex numbers (shape: n).
-    f (numpy.ndarray): Input array of complex numbers (shape: n).
-    zz (complex): Point at which to evaluate the derivative of the Pade approximant.
+    Args:
+        zs: Input array of complex numbers.
+        f_zs: Input array of complex numbers.
+        z_eval: Point at which to evaluate the derivative of the Pade approximant.
 
-    Returns:
-        complex: The derivative of the Pade approximant value at zz.
+    Returns: The derivative of the Pade approximant value at z_eval.
     """
-    n = len(z)
+    if (n := len(zs)) != len(f_zs):
+        raise ValueError(f"{len(zs)=} != {len(f_zs)=}")
+
+    if not np.iscomplexobj(zs):
+        raise TypeError(f"zs should be complex, but got {zs.dtype=}")
+
     # Calculate Pade coefficients
-    a = calculate_pade_a(z, f)
+    a = calculate_pade_a(zs, f_zs)
 
     # Initialize Az, Bz, dAz, dBz arrays
     Az = np.zeros(n + 1, dtype=complex)
@@ -85,10 +134,10 @@ def dpade(z, f, zz) -> complex
 
     # Calculate Az, Bz, dAz, and dBz recursively
     for i in range(1, n):
-        Az[i + 1] = Az[i] + (zz - z[i - 1]) * a[i] * Az[i - 1]
-        Bz[i + 1] = Bz[i] + (zz - z[i - 1]) * a[i] * Bz[i - 1]
-        dAz[i + 1] = dAz[i] + a[i] * Az[i - 1] + (zz - z[i - 1]) * a[i] * dAz[i - 1]
-        dBz[i + 1] = dBz[i] + a[i] * Bz[i - 1] + (zz - z[i - 1]) * a[i] * dBz[i - 1]
+        Az[i + 1] = Az[i] + (z_eval - zs[i - 1]) * a[i] * Az[i - 1]
+        Bz[i + 1] = Bz[i] + (z_eval - zs[i - 1]) * a[i] * Bz[i - 1]
+        dAz[i + 1] = dAz[i] + a[i] * Az[i - 1] + (z_eval - zs[i - 1]) * a[i] * dAz[i - 1]
+        dBz[i + 1] = dBz[i] + a[i] * Bz[i - 1] + (z_eval - zs[i - 1]) * a[i] * dBz[i - 1]
 
     # Compute the derivative of the Pade approximant
     dpade_value = dAz[n] / Bz[n] - Az[n] * dBz[n] / (Bz[n] * Bz[n])
@@ -99,31 +148,29 @@ def dpade(z, f, zz) -> complex
     #     print("Warning: Bz(n) is close to zero:",
 
 
-def calculate_pade_a(z, f) -> np.ndarray:
+def calculate_pade_a(zs: np.ndarray, f_zs: np.ndarray) -> np.ndarray:
     """
     Calculate Pade coefficients.
 
-    Parameters:
-    n (int): Number of points.
-    z (numpy.ndarray): Input array of complex numbers (shape: n).
-    f (numpy.ndarray): Input array of complex numbers (shape: n).
+    Args:
+        zs: Input array of complex numbers.
+        f_zs: Input array of complex numbers.
 
-    Returns:
-        numpy.ndarray: Array of complex Pade coefficients (shape: n).
+    Returns: Array of complex Pade coefficients
     """
-    if (n := len(z)) != len(f):
-        raise ValueError(f"{len(z)=} != {len(f)=}")
+    if (n := len(zs)) != len(f_zs):
+        raise ValueError(f"{len(zs)=} != {len(f_zs)=}")
 
     # Initialize the g array
     g = np.zeros((n, n), dtype=complex)
-    g[0, :n] = f[:n]
+    g[0, :n] = f_zs[:n]
 
     # Compute the divided differences
     for i in range(1, n):
         for j in range(i, n):
             #if np.real(g[i-1, j]) == 0.0 and np.imag(g[i-1, j]) == 0.0:
             #    print(f"g_i(z_j): i={i+1}, j={j+1}, g={g[i, j]}")
-            g[i, j] = (g[i-1, i-1] - g[i-1, j]) / ((z[j] - z[i-1]) * g[i-1, j])
+            g[i, j] = (g[i-1, i-1] - g[i-1, j]) / ((zs[j] - zs[i-1]) * g[i-1, j])
 
     # Extract the coefficients a(i)
     a = np.diag(g[:n, :n])

@@ -155,7 +155,7 @@ class TestSigresFile(AbipyTest):
             assert sigma.to_string(verbose=2)
 
             if self.has_matplotlib():
-                assert sigma.plot(what_list="spfunc", xlims=(-10, 10), fontsize=12, show=False)
+                assert sigma.plot(what_list="aw", xlims=(-10, 10), fontsize=12, show=False)
                 assert sigres.plot_spectral_functions(show=False)
                 assert sigres.plot_spectral_functions(include_bands=range(0, 4), show=False)
 
