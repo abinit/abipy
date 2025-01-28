@@ -552,10 +552,11 @@ class Polaron:
 
     @add_fig_kwargs
     def plot_ank_with_ebands(self, ebands_kpath,
-                             ebands_kmesh=None, lpratio: int = 5,
+                             ebands_kmesh=None, lpratio: int = 5, with_info = True,
                              with_ibz_a2dos=True, method="gaussian", step: float = 0.05, width: float = 0.1,
                              nksmall: int = 20, normalize: bool = False, with_title=True, interp_method="linear",
-                             ax_mat=None, ylims=None, scale=10, marker_color="gold", fontsize=12, **kwargs) -> Figure:
+                             ax_mat=None, ylims=None, scale=10, marker_color="gold", marker_edgecolor="gray",
+                             marker_alpha=0.8, fontsize=12, lw=1.0, **kwargs) -> Figure:
         """
         Plot electron bands with markers whose size is proportional to |A_nk|^2.
 
@@ -606,13 +607,13 @@ class Polaron:
                     x.append(ik); y.append(e); s.append(scale * a2)
                     ymin, ymax = min(ymin, e), max(ymax, e)
 
-            points = Marker(x, y, s, color=marker_color, edgecolors='gray', alpha=0.8, label=r'$|A_{n\mathbf{k}}|^2$')
+            points = Marker(x, y, s, color=marker_color, edgecolors=marker_edgecolor,
+                            alpha=marker_alpha, label=r'$|A_{n\mathbf{k}}|^2$')
             ax = ax_mat[pstate, 0]
-            ebands_kpath.plot(ax=ax, points=points, show=False)
+            ebands_kpath.plot(ax=ax, points=points, show=False, linewidth=lw)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
             # Add energy and convergence status
-            with_info = True
             if with_info:
                 data = (df[df["pstate"] == pstate]).to_dict(orient="list")
                 e_pol_ev, converged = float(data["E_pol"][0]), bool(data["converged"][0])
@@ -623,11 +624,14 @@ class Polaron:
 
         vertices_names = [(k.frac_coords, k.name) for k in ebands_kpath.kpoints]
 
+        # DOS visualization: code stuck here
         if ebands_kmesh is None:
             edos_ngkpt = self.structure.calc_ngkpt(nksmall)
             print(f"Computing ebands_kmesh with star-function interpolation and {nksmall=} --> {edos_ngkpt=} ...")
             r = self.ebands.interpolate(lpratio=lpratio, vertices_names=vertices_names, kmesh=edos_ngkpt)
             ebands_kmesh = r.ebands_kmesh
+        else:
+            ebands_kmesh = ElectronBands.as_ebands(ebands_kmesh)
 
         # Get electronic DOS from ebands_kmesh.
         edos_kws = dict(method=method, step=step, width=width)
@@ -658,8 +662,10 @@ class Polaron:
 
             ax = ax_mat[pstate, 1]
             edos_opts = {"color": "black",} if self.spin == 0 else {"color": "red"}
-            edos.plot_ax(ax, e0, spin=self.spin, normalize=normalize, exchange_xy=True, label="eDOS(E)", **edos_opts)
-            ank_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$A^2$(E)", color=marker_color)
+            edos.plot_ax(ax, e0, spin=self.spin, normalize=normalize, exchange_xy=True, label="eDOS(E)", **edos_opts,
+                         linewidth=lw)
+            ank_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$A^2$(E)", color=marker_color,
+                            linewidth=lw)
 
             # Computes A2(E) using only k-points in the IBZ. This is just for testing.
             # A2_IBZ(E) should be equal to A2(E) only if A_nk fullfills the lattice symmetries. See notes above.
@@ -674,7 +680,8 @@ class Polaron:
 
                 ank_dos = Function1D(edos_mesh, ank_dos)
                 print(f"For {pstate=}, A2_IBZ(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
-                ank_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$A^2_{IBZ}$(E)", color=marker_color, ls="--")
+                ank_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$A^2_{IBZ}$(E)", color=marker_color, ls="--",
+                                linewidth=lw)
 
             set_grid_legend(ax, fontsize, xlabel="Arb. unit")
             if pstate != self.nstates - 1:
@@ -718,10 +725,11 @@ class Polaron:
                                                ddb=ddb, **kwargs)
 
     @add_fig_kwargs
-    def plot_bqnu_with_phbands(self, phbands_qpath,
+    def plot_bqnu_with_phbands(self, phbands_qpath, anaddb_file=None,
                                phdos_file=None, ddb=None, width=0.001, normalize: bool = True,
                                verbose=0, anaddb_kwargs=None, with_title=True, interp_method="linear",
-                               ax_mat=None, scale=10, marker_color="gold", fontsize=12, **kwargs) -> Figure:
+                               ax_mat=None, scale=10, marker_color="gold", marker_edgecolor='gray',
+                               marker_alpha=0.8, fontsize=12, lw=1.0, **kwargs) -> Figure:
         """
         Plot phonon energies with markers whose size is proportional to |B_qnu|^2.
 
@@ -750,6 +758,10 @@ class Polaron:
 
         phbands_qpath = PhononBands.as_phbands(phbands_qpath)
 
+        # maybe this is unnecessary
+        if anaddb_file:
+            phbands_qpath.read_non_anal_from_file(anaddb_file)
+
         # Get interpolators for B_qnu
         b2_interp_state = self.get_b2_interpolator_state(interp_method)
 
@@ -762,8 +774,9 @@ class Polaron:
                     x.append(iq); y.append(w); s.append(scale * b2)
 
             ax = ax_mat[pstate, 0]
-            points = Marker(x, y, s, color=marker_color, edgecolors='gray', alpha=0.8, label=r'$|B_{\nu\mathbf{q}}|^2$')
-            phbands_qpath.plot(ax=ax, points=points, show=False)
+            points = Marker(x, y, s, color=marker_color, edgecolors=marker_edgecolor,
+                            alpha=marker_alpha, label=r'$|B_{\nu\mathbf{q}}|^2$')
+            phbands_qpath.plot(ax=ax, points=points, show=False, linewidth=lw)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
             if pstate != self.nstates - 1:
@@ -816,8 +829,10 @@ class Polaron:
             bqnu_dos = Function1D(phdos_mesh, bqnu_dos)
 
             ax = ax_mat[pstate, 1]
-            phdos.plot_ax(ax, exchange_xy=True, normalize=normalize, label="phDOS(E)", color="black")
-            bqnu_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$B^2$(E)", color=marker_color)
+            phdos.plot_ax(ax, exchange_xy=True, normalize=normalize, label="phDOS(E)", color="black",
+                          linewidth=lw)
+            bqnu_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$B^2$(E)", color=marker_color,
+                             linewidth=lw)
             set_grid_legend(ax, fontsize, xlabel="Arb. unit")
 
             # Get mapping BZ --> IBZ needed to obtain the KS eigenvalues e_nk from the IBZ for the DOS
