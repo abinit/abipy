@@ -166,6 +166,43 @@ class PhononBands:
                        )
 
     @classmethod
+    def from_phonopy_phonon(cls, phonon) -> PhononBands:
+        """
+        Build an Abipy PhononBands from a phonopy Phonon instance.
+        """
+        structure = Structure.from_phonopy_atoms(phonon.unitcell)
+        natom = len(structure)
+        bands_dict = phonon.get_band_structure_dict()
+
+        nac_params = phonon.nac_params
+        epsinf, zcart = None, None
+        if nac_params is not None:
+            epsinf = nac_params["dielectric"]
+            zcart = nac_params["born"]
+
+        nqpt = 0
+        py_phfreqs, py_displ_cart = [], []
+        for q_list, w_list, eig_list in zip(bands_dict['qpoints'], bands_dict['frequencies'], bands_dict['eigenvectors'], strict=True):
+            nqpt += len(q_list)
+            py_phfreqs.extend(w_list)
+            py_displ_cart.extend(eig_list)
+
+        py_phfreqs = np.reshape(py_phfreqs, (nqpt, 3*natom)) / abu.eV_to_THz
+        py_displ_cart = np.reshape(py_displ_cart, (nqpt, 3*natom, 3*natom))
+
+        # Build abipy phonon bands from phonopy results.
+        return cls(structure,
+                   self.abi_phbands.qpoints,
+                   py_phfreqs,
+                   # FIXME: Use phononopy displacement
+                   self.abi_phbands.phdispl_cart,
+                   non_anal_ph=None,
+                   #amu=self.abi_phbands.amu,
+                   epsinf=self.abi_phbands.epsinf,
+                   zcart=self.abi_phbands.zcart,
+                   )
+
+    @classmethod
     def as_phbands(cls, obj: Any) -> PhononBands:
         """
         Return an instance of |PhononBands| from a generic object ``obj``.
@@ -3235,18 +3272,24 @@ class PhononDos(Function1D):
             raise ValueError("Cannot find zero in energy mesh")
         return iw0
 
+    #def is_unstable(self, rel_tolerance: float = 0.01) -> bool:
+    #    # Integrate phononon DOS up to w=0
+    #    integ = self.integral(start=0, stop=self.iw0).values[-1]
+    #    natom3 = self.idos().values[-1]
+    #    return (integ / natom3) > rel_tolerance
+
     @lazy_property
     def idos(self):
         """Integrated DOS."""
         return self.integral()
 
     @lazy_property
-    def zero_point_energy(self):
+    def zero_point_energy(self) -> Energy:
         """Zero point energy in eV per unit cell."""
         iw0 = self.iw0
         return Energy(0.5 * np.trapz(self.mesh[iw0:] * self.values[iw0:], x=self.mesh[iw0:]), "eV")
 
-    def plot_dos_idos(self, ax, what="d", exchange_xy=False, units="eV", **kwargs):
+    def plot_dos_idos(self, ax, what="d", exchange_xy=False, units="eV", **kwargs) -> list:
         """
         Helper function to plot DOS/IDOS on the axis ``ax``.
 

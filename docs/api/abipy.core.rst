@@ -1,149 +1,162 @@
-core Package
-============
-
-.. contents::
-   :backlinks: top
-
-:mod:`core` Package
--------------------
+abipy.core package
+==================
 
 .. automodule:: abipy.core
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`abinit_units` Module
---------------------------
+Submodules
+----------
+
+abipy.core.abinit\_units module
+-------------------------------
 
 .. automodule:: abipy.core.abinit_units
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`atom` Module
-------------------
+abipy.core.atom module
+----------------------
 
 .. automodule:: abipy.core.atom
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`fields` Module
---------------------
+abipy.core.fields module
+------------------------
 
 .. automodule:: abipy.core.fields
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`func1d` Module
---------------------
+abipy.core.func1d module
+------------------------
 
 .. automodule:: abipy.core.func1d
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`globals` Module
----------------------
+abipy.core.globals module
+-------------------------
 
 .. automodule:: abipy.core.globals
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`gsphere` Module
----------------------
+abipy.core.gsphere module
+-------------------------
 
 .. automodule:: abipy.core.gsphere
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`irrepsdb` Module
-----------------------
+abipy.core.irrepsdb module
+--------------------------
 
 .. automodule:: abipy.core.irrepsdb
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`kpoints` Module
----------------------
+abipy.core.kpoints module
+-------------------------
 
 .. automodule:: abipy.core.kpoints
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`mesh3d` Module
---------------------
+abipy.core.mesh3d module
+------------------------
 
 .. automodule:: abipy.core.mesh3d
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`mixins` Module
---------------------
+abipy.core.mixins module
+------------------------
 
 .. automodule:: abipy.core.mixins
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`pauli` Module
--------------------
+abipy.core.pauli module
+-----------------------
 
 .. automodule:: abipy.core.pauli
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`restapi` Module
----------------------
+abipy.core.perl module
+----------------------
+
+.. automodule:: abipy.core.perl
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+abipy.core.release module
+-------------------------
+
+.. automodule:: abipy.core.release
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+abipy.core.restapi module
+-------------------------
 
 .. automodule:: abipy.core.restapi
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`skw` Module
------------------
+abipy.core.site\_symmetries module
+----------------------------------
+
+.. automodule:: abipy.core.site_symmetries
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+abipy.core.skw module
+---------------------
 
 .. automodule:: abipy.core.skw
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`structure` Module
------------------------
+abipy.core.structure module
+---------------------------
 
 .. automodule:: abipy.core.structure
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`symmetries` Module
-------------------------
+abipy.core.symmetries module
+----------------------------
 
 .. automodule:: abipy.core.symmetries
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`testing` Module
----------------------
+abipy.core.testing module
+-------------------------
 
 .. automodule:: abipy.core.testing
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-:mod:`site_symmetries` Module
------------------------------
-
-.. automodule:: abipy.core.site_symmetries
    :members:
    :undoc-members:
    :show-inheritance:

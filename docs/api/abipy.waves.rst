@@ -1,32 +1,26 @@
-waves Package
-=============
-
-.. contents::
-   :backlinks: top
-
-:mod:`waves` Package
---------------------
+abipy.waves package
+===================
 
 .. automodule:: abipy.waves
    :members:
    :undoc-members:
    :show-inheritance:
 
+Submodules
+----------
 
-:mod:`pwwave` Module
---------------------
+abipy.waves.pwwave module
+-------------------------
 
 .. automodule:: abipy.waves.pwwave
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`wfkfile` Module
----------------------
+abipy.waves.wfkfile module
+--------------------------
 
 .. automodule:: abipy.waves.wfkfile
    :members:
    :undoc-members:
    :show-inheritance:
-
-

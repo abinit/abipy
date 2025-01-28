@@ -27,8 +27,8 @@ qha = Vzsisa.from_ddb_phdos_files(ddb_paths, phdos_paths)
 tstart, tstop = 0, 800
 
 #%%
-# Plot Energies as a function of volume for different T
-qha.plot_energies(tstop=tstop, tstart=tstart, num=11)
+# Plot BO Energies as a function of volume for different T
+qha.plot_bo_energies(tstop=tstop, tstart=tstart, num=11)
 
 #%%
 # Plot Volume as a function of T

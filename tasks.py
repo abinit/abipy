@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import shutil
 import json
+import sys
 import os
 import re
 import subprocess
@@ -48,6 +49,28 @@ def submodules(ctx):
 def make_doc(ctx):
     """Build the website"""
     with cd(DOCS_DIR):
+        ctx.run("touch api/index.rst", warn=True)
+        ctx.run("sphinx-apidoc --implicit-namespaces -M -d 1 -o api -f ../abipy ../**/tests/* ../abipy/benchmarks ../abipy/data ../abipy/integration_tests ../abipy/test_files ../abipy/examples")
+
+        rst_files = sorted([f for f in os.listdir(os.path.join(DOCS_DIR, "api")) if f.endswith(".rst") and f != "modules.rst"])
+        rst_files = [3 * " " + f for f in rst_files]
+        #print(rst_files)
+
+        header = """\
+.. _api-index:
+
+=================
+API documentation
+=================
+
+.. toctree::
+   :maxdepth: 1
+
+""" + "\n".join(rst_files)
+
+        with open(os.path.join(DOCS_DIR, "api", "index.rst"), "wt") as fh:
+            fh.write(header)
+
         ctx.run("make clean")
         ctx.run("make", env=dict(READTHEDOCS="1"), pty=True)
         open_doc(ctx)
@@ -157,7 +180,7 @@ def pyclean(ctx):
                 shutil.rmtree(path)
                 count += 1
 
-        print("Removed %d __pycache__ directories" % count)
+        print(f"Removed {count} __pycache__ directories")
 
     def rm_pycfiles(top: str) -> int:
         """remove all pyc files."""
@@ -170,12 +193,11 @@ def pyclean(ctx):
                 os.remove(path)
                 count += 1
 
-        print("Removed %d .pyc files" % count)
+        print(f"Removed {count} .pyc files")
         return count
 
-    top = ABIPY_ROOTDIR
-    rm_pycaches(top)
-    rm_pycfiles(top)
+    rm_pycaches(ABIPY_ROOTDIR)
+    rm_pycfiles(ABIPY_ROOTDIR)
 
 
 @task

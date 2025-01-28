@@ -13,11 +13,7 @@ import numpy
 import json
 import tempfile
 import unittest
-try:
-    import numpy.testing as nptu
-except ImportError:
-    import numpy.testing.utils as nptu
-import abipy.data as abidata
+import numpy.testing as nptu
 
 from typing import Optional
 from functools import wraps
@@ -476,7 +472,7 @@ class AbipyTest(PymatgenTest):
 
     @staticmethod
     def mkdtemp(**kwargs) -> str:
-        """Invoke mkdtep with kwargs, return the name of a temporary directory."""
+        """Invoke mkdtemp with kwargs, return the name of a temporary directory."""
         return tempfile.mkdtemp(**kwargs)
 
     @staticmethod

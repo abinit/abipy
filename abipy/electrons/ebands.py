@@ -4512,6 +4512,42 @@ class ElectronDos:
             # Assume number
             return float(e0)
 
+    #def get_free_energy(self, tstart=5, tstop=300, num=50) -> Function1D:
+    #    """
+    #    Returns the electronic free energy in eV
+
+    #    Args:
+    #        tstart: The starting value (in Kelvin) of the temperature mesh.
+    #        tstop: The end value (in Kelvin) of the mesh.
+    #        num: Number of samples to generate.
+
+    #    Return: |Function1D| object with F(T) = U(T) + ZPE - T x S(T)
+    #    """
+    #    return Function1D(uz.mesh, uz.values - s.mesh * s.values)
+
+    #def get_cv(self, tstart=5, tstop=300, num=50) -> Function1D:
+    #    """
+    #    Returns the constant-volume specific heat C_v(T), in eV/K
+    #    for different temperatures
+
+    #    Args:
+    #        tstart: The starting value (in Kelvin) of the temperature mesh.
+    #        tstop: The end value (in Kelvin) of the mesh.
+    #        num: Number of samples to generate. Default is 50.
+    #    """
+
+    #def get_entropy(self, tstart=5, tstop=300, num=50) -> Function1D:
+    #    """
+    #    Returns the entropy, in eV/K for different temperatures
+
+    #    Args:
+    #        tstart: The starting value (in Kelvin) of the temperature mesh.
+    #        tstop: The end value (in Kelvin) of the mesh.
+    #        num: optional Number of samples to generate. Default is 50.
+
+    #    Return: |Function1D| object with S(T).
+    #    """
+
     def plot_ax(self, ax, e0, spin=None, what="dos", fact=1.0, normalize=False, exchange_xy=False, **kwargs) -> list:
         """
         Helper function to plot the DOS data on the matplotlib axis ``ax``.

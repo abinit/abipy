@@ -1,161 +1,160 @@
-tools Package
-=============
-
-.. contents::
-   :backlinks: top
-
-
-:mod:`tools` Module
--------------------
+abipy.tools package
+===================
 
 .. automodule:: abipy.tools
    :members:
    :undoc-members:
    :show-inheritance:
 
+Subpackages
+-----------
 
-:mod:`bessel` Module
---------------------
+.. toctree::
+   :maxdepth: 1
+
+   abipy.tools.elate
+
+Submodules
+----------
+
+abipy.tools.bessel module
+-------------------------
 
 .. automodule:: abipy.tools.bessel
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-:mod:`cli_parsers` Module
--------------------------
+abipy.tools.cli\_parsers module
+-------------------------------
 
 .. automodule:: abipy.tools.cli_parsers
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-:mod:`context_managers` Module
-------------------------------
+abipy.tools.context\_managers module
+------------------------------------
 
 .. automodule:: abipy.tools.context_managers
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`decorators` Module
-------------------------
+abipy.tools.decorators module
+-----------------------------
 
 .. automodule:: abipy.tools.decorators
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`derivatives` Module
--------------------------
+abipy.tools.derivatives module
+------------------------------
 
 .. automodule:: abipy.tools.derivatives
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`devtools` Module
-----------------------
+abipy.tools.devtools module
+---------------------------
 
 .. automodule:: abipy.tools.devtools
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`duck` Module
-------------------
+abipy.tools.duck module
+-----------------------
 
 .. automodule:: abipy.tools.duck
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`fftprof` Module
----------------------
+abipy.tools.fftprof module
+--------------------------
 
 .. automodule:: abipy.tools.fftprof
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`iotools` Module
----------------------
+abipy.tools.iotools module
+--------------------------
 
 .. automodule:: abipy.tools.iotools
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`notebooks` Module
------------------------
+abipy.tools.notebooks module
+----------------------------
 
 .. automodule:: abipy.tools.notebooks
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`numtools` Module
-----------------------
+abipy.tools.numtools module
+---------------------------
 
 .. automodule:: abipy.tools.numtools
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-:mod:`parallel` Module
-----------------------
+abipy.tools.parallel module
+---------------------------
 
 .. automodule:: abipy.tools.parallel
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-:mod:`plotting` Module
-----------------------
+abipy.tools.plotting module
+---------------------------
 
 .. automodule:: abipy.tools.plotting
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`printing` Module
-----------------------
+abipy.tools.printing module
+---------------------------
 
 .. automodule:: abipy.tools.printing
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`serialization` Module
----------------------------
+abipy.tools.serialization module
+--------------------------------
 
 .. automodule:: abipy.tools.serialization
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`tensors` Module
----------------------
+abipy.tools.tensors module
+--------------------------
 
 .. automodule:: abipy.tools.tensors
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`text` Module
-------------------
+abipy.tools.text module
+-----------------------
 
 .. automodule:: abipy.tools.text
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`typing` Module
---------------------
+abipy.tools.typing module
+-------------------------
 
 .. automodule:: abipy.tools.typing
    :members:

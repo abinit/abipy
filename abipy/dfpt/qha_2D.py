@@ -176,7 +176,7 @@ class QHA_2D(HasPickleIO):
         energies_array[energies_array == None] = np.nan
 
         # Find the indices of the minimum values
-        self.ix0,self.iy0= np.unravel_index(np.nanargmin(energies_array), energies_array.shape)
+        self.ix0, self.iy0 = np.unravel_index(np.nanargmin(energies_array), energies_array.shape)
 
         # Extract lattice parameters and angles
         self.lattice_a = np.array([[s.lattice.abc[0] if s is not None else None for s in row] for row in structures])
@@ -199,7 +199,7 @@ class QHA_2D(HasPickleIO):
 
     def get_initial_guess_ac(self) -> np.array:
         """Return the initial guess for (a, c):"""
-        initial_guess = [1.005*self.lattice_a[self.ix0, 0], 1.005 * self.lattice_c[0,self.iy0]]
+        initial_guess = [1.005 * self.lattice_a[self.ix0, 0], 1.005 * self.lattice_c[0,self.iy0]]
         return np.array(initial_guess)
 
     @add_fig_kwargs
@@ -226,7 +226,7 @@ class QHA_2D(HasPickleIO):
 
         xy_init = self.get_initial_guess_ac()
 
-        min_x0, min_y0, min_energy= self.find_minimum( f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+        min_x0, min_y0, min_energy = self.find_minimum( f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
 
         x_new = np.linspace(min(self.lattice_a[:,0]), max(self.lattice_a[:,0]), 100)
         y_new = np.linspace(min(self.lattice_c[0,:]), max(self.lattice_c[0,:]), 100)
@@ -307,8 +307,8 @@ class QHA_2D(HasPickleIO):
                 min_x[j], min_y[j], min_tot_en[j]= self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
                 xy_init = min_x[j], min_y[j]
 
-            ax.scatter(min_y,min_x,min_tot_en, color='c', s=100)
-            ax.plot(min_y,min_x,min_tot_en, color='c')
+            ax.scatter(min_y, min_x, min_tot_en, color='c', s=100)
+            ax.plot(min_y, min_x, min_tot_en, color='c')
 
         elif self.use_einfvib2:
             a0 = self.lattice_a[1,1]
@@ -438,7 +438,7 @@ class QHA_2D(HasPickleIO):
 
             A0 = self.lattice_a[self.ix0,self.iy0]
             C0 = self.lattice_c[self.ix0,self.iy0]
-            scale= self.volumes[self.ix0,self.iy0]/A0**2/C0
+            scale = self.volumes[self.ix0,self.iy0]/A0**2/C0
             min_v = min_x**2*min_y*scale
 
             dt = tmesh[1] - tmesh[0]
@@ -482,7 +482,6 @@ class QHA_2D(HasPickleIO):
         """
         import matplotlib.pyplot as plt
         fig, axs = plt.subplots(1, 3, figsize=(18, 6), sharex=True)
-
 
         tmesh = np.linspace(tstart, tstop, num)
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)

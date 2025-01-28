@@ -22,7 +22,7 @@ from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
     set_axlims, set_visible, rotate_ticklabels, set_ax_xylabels, set_grid_legend)
-from abipy.tools.typing import Figure
+from abipy.tools.typing import Figure, KptSelect
 from abipy.tools import duck
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
@@ -454,28 +454,35 @@ class SelfEnergy:
         spfunc=r"$A_{nk}(\omega)}$",
     )
 
-    def __init__(self, spin, kpoint, band, wmesh, sigxc_values, spfunc_values,
-                 iw_mesh=None, c_iw_values=None, tau_mp_mesh=None, c_tau_mp_values=None):
+    def __init__(self,
+                 spin: int,
+                 kpoint: KptSelect,
+                 band: int,
+                 wmesh,
+                 sigxc_values,
+                 spfunc_values,
+                 iw_mesh=None,
+                 c_iw_values=None,
+                 tau_mp_mesh=None,
+                 c_tau_mp_values=None):
         """
         Args:
-            spin:
-            kpoint:
-            band:
-            wmesh:
-            sigxc_values
-            spfunc_values
-            iw_mesh: Frequency mesh along the imag axis in eV
-            c_iw_values: Values of Sigma_c(iw)
-            tau_mp_mesh
-            c_tau_mp_values
+            spin: Spin index
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+            band: band index
+            wmesh: Frequency mesh along the real-axis in eV
+            sigxc_values: Matrix elements of sigxc on wmesh.
+            spfunc_values: Spectral function A(w) on wmesh
+            iw_mesh: Frequency mesh along the imag axis in eV. Optional
+            c_iw_values: Values of Sigma_c(iw) on iw_mesh. Optional
+            tau_mp_mesh: Mesh for imaginary time in a.u. (negative and positive values)
+            c_tau_mp_values: Values of Sigma_c(i tau)
         """
         self.spin, self.kpoint, self.band = spin, kpoint, band
 
         self.wmesh = np.array(wmesh)
         self.xc = Function1D(self.wmesh, sigxc_values)
 
-        #self.spfunc = None
-        #if spfunc_values is not None:
         self.spfunc = Function1D(self.wmesh, spfunc_values)
         assert len(sigxc_values) == len(spfunc_values)
 
@@ -489,30 +496,32 @@ class SelfEnergy:
         if tau_mp_mesh is not None and c_tau_mp_values is not None:
             self.c_tau = Function1D(tau_mp_mesh, c_tau_mp_values)
 
-    #@property
-    #def has_c_iw(self) -> bool:
-    #    return self.c_iw is not None
+    @property
+    def has_c_iw(self) -> bool:
+        """True if Sigma_c(i w) is available."""
+        return self.c_iw is not None
 
-    #@property
-    #def has_c_tau(self) -> bool:
-    #    return self.c_tau is not None
+    @property
+    def has_c_tau(self) -> bool:
+        """True if Sigma_c(i tau) is available."""
+        return self.c_tau is not None
 
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0, title=None) -> str:
+    def to_string(self, verbose: int=0, title=None) -> str:
         """
-        String representation.
+        String representation with verbosity level `verbose`.
         """
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
         app("K-point: %s, band: %d, spin: %d" % (repr(self.kpoint), self.band, self.spin))
         app("Number of real frequencies: %d, from %.1f to %.1f (eV)" % (len(self.wmesh), self.wmesh[0], self.wmesh[-1]))
-        if self.c_iw is not None:
+        if self.has_c_iw:
             iw_mesh = self.c_iw.mesh
             app("Number of imaginary frequencies: %d, from %.1f to %.1f (eV)" % (
                 len(iw_mesh), iw_mesh[0], iw_mesh[-1]))
-        if self.c_tau is not None:
+        if self.has_c_tau:
             tau_mesh = self.c_tau.mesh
             app("Number of imaginary times: %d, from %.1f to %.1f (a.u.)" % (
                 len(tau_mesh), tau_mesh[0], tau_mesh[-1]))
@@ -541,7 +550,7 @@ class SelfEnergy:
                   "sim" for Im(Sigma) only.
             fontsize: legend and title fontsize.
 
-        Return: List of lines.
+        Return: List of matplotlib lines.
         """
         lines = []
         extend = lines.extend
@@ -616,6 +625,8 @@ class SelfEnergy:
     def plot_reima_rw(self, ax_list, with_xlabels=False, **kwargs) -> list:
         """
         Plot Re/Im (Sigma(w)) and the spectral function A(w) on `ax_list` with w on the real-axis.
+
+        Return: list of matplotlib lines.
         """
         if len(ax_list) != 3:
             raise ValueError(f"Expecting ax_list of len = 3, got: {len(ax_list)}")
@@ -637,6 +648,8 @@ class SelfEnergy:
     def plot_reimc_iw(self, ax_list, with_xlabels=False, **kwargs) -> list:
         """
         Plot Re/Im (Sigma_c(iw)) of the correlated part on the imaginary-axis on `ax_list`.
+
+        Return: list of matplotlib lines.
         """
         if len(ax_list) != 2:
             raise ValueError(f"Expecting ax_list of len = 2, got: {len(ax_list)}")
@@ -653,6 +666,8 @@ class SelfEnergy:
     def plot_reimc_tau(self, ax_list, with_xlabels=False, **kwargs) -> list:
         """
         Plot Re/Im (Sigma_c(i tau)) of the correlated part on the imaginary-axis on `ax_list`.
+
+        Return: list of matplotlib lines.
         """
         if len(ax_list) != 2:
             raise ValueError(f"Expecting ax_list of len = 2, got: {len(ax_list)}")
@@ -667,7 +682,7 @@ class SelfEnergy:
         return [l0, l1]
 
     #@add_fig_kwargs
-    #def plot_other(self, other: SelfEnergy, **kwargs) -> Figure:
+    #def plot_with_other(self, other: SelfEnergy, **kwargs) -> Figure:
     #    """
     #    """
     #    what_list = ["re", "im", "spfunc"]
@@ -1246,7 +1261,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Requires GW calculations with analytic continuation
 
         Args:
-            kpoint:
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             spin: Spin index.
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.

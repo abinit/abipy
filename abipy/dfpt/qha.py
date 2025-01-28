@@ -316,8 +316,6 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-
-        Returns: |matplotlib-Figure|
         """
         f =  self.fit_energies(tstart, tstop, num)
         param=np.polyfit(self.volumes, self.lattice_a , 3)

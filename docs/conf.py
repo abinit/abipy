@@ -9,6 +9,8 @@ import sys
 import os
 import shutil
 
+
+
 # Remove matplotlib agg warnings from generated doc when using plt.show
 import warnings
 
@@ -63,6 +65,8 @@ extensions = [
     'sphinxcontrib.programoutput',
     "sphinxarg.ext",         # CLI doc
     'sphinxcontrib.bibtex',
+    "sphinx_autodoc_typehints",  # Enables type hint support
+    #'sphinx_click',
     "jupyter_sphinx",
     #'nbsphinx',
     #"releases",
@@ -133,6 +137,10 @@ mpl.rcParams['figure.dpi'] = 300
 import plotly.io as pio
 pio.renderers.default = 'sphinx_gallery'
 
+
+#import typing
+#typing.TYPE_CHECKING = True
+
 # Here we change the default value of show used in the plotly decorator.
 from abipy.tools.plotting import set_plotly_default_show
 set_plotly_default_show(False)
@@ -160,7 +168,9 @@ if with_gallery:
             "flow_gallery",
             "gallery",
         ],
-        'filename_pattern': "(/plot*|/run_*)",
+        'filename_pattern': "(plot*|run*)",
+        #'filename_pattern': '(plot_|run_)/.*\.py$',
+        'ignore_pattern': '(^test_*|__init__*)',  # Regular expression to match ignored scripts
         'default_thumb_file': '_static/abipy_logo.png',
         'within_subsection_order': ExampleTitleSortKey,
         'backreferences_dir': None,

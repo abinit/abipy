@@ -1,28 +1,24 @@
-lumi Package
-============
-
-.. contents::
-   :backlinks: top
-
-:mod:`lumi` Package
--------------------
+abipy.lumi package
+==================
 
 .. automodule:: abipy.lumi
    :members:
    :undoc-members:
    :show-inheritance:
 
-:mod:`deltaSCF` Module
-----------------------
+Submodules
+----------
+
+abipy.lumi.deltaSCF module
+--------------------------
 
 .. automodule:: abipy.lumi.deltaSCF
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-:mod:`lineshape` Module
------------------------
+abipy.lumi.lineshape module
+---------------------------
 
 .. automodule:: abipy.lumi.lineshape
    :members:
