@@ -14,6 +14,7 @@ import json
 import tempfile
 import unittest
 import numpy.testing as nptu
+import abipy.data as abidata
 
 from typing import Optional
 from functools import wraps

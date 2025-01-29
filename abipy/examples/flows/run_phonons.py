@@ -32,7 +32,7 @@ def make_scf_input(paral_kgb=0):
         nband=4,
         ecut=2.0,
         ngkpt=[4, 4, 4],
-        nshiftk=4
+        nshiftk=4,
         shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
                 0.0, 0.5, 0.0,
                 0.5, 0.0, 0.0,
