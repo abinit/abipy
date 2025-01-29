@@ -12,7 +12,7 @@ import collections
 import numpy as np
 import pandas as pd
 
-from typing import Iterator, Union # Any
+from typing import Iterator # Any
 from monty.collections import AttrDict
 from monty.itertools import chunks
 from monty.functools import lazy_property
@@ -158,7 +158,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         """
         return sum(task.manager.num_cores for task in self if task.status == task.S_RUN)
 
-    def fetch_task_to_run(self) -> Union[Task, None]:
+    def fetch_task_to_run(self) -> Task | None:
         """
         Returns the first task that is ready to run or
         None if no task can be submitted at present"
@@ -659,7 +659,7 @@ class Work(BaseWork, NodeContainer):
     def __iter__(self) -> Iterator[Task]:
         return self._tasks.__iter__()
 
-    def __getitem__(self, slice) -> Union[Task, list[Task]]:
+    def __getitem__(self, slice) -> Task | list[Task]:
         return self._tasks[slice]
 
     def postpone_on_all_ok(self):
@@ -769,7 +769,7 @@ class Work(BaseWork, NodeContainer):
                 if task.workdir != task_workdir:
                     raise ValueError("task.workdir != task_workdir: %s, %s" % (task.workdir, task_workdir))
 
-    def register(self, obj: Union[AbinitInput, Task],
+    def register(self, obj: AbinitInput | Task,
                  deps=None, required_files=None, manager=None, task_class=None) -> Task:
         """
         Registers a new |Task| and add it to the internal list, taking into account possible dependencies.
@@ -1641,7 +1641,7 @@ class MergeDdb:
 
         return out_ddb
 
-    def merge_pot1_files(self, delete_source=False) -> Union[str, None]:
+    def merge_pot1_files(self, delete_source=False) -> str | None:
         """
         This method is called when all the q-points have been computed.
         It runs `mrgdvdb` in sequential on the local machine to produce
@@ -1744,7 +1744,7 @@ class PhononWork(Work, MergeDdb):
             manager: |TaskManager| object.
         """
         if not isinstance(scf_task, ScfTask):
-            raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
+            raise TypeError(f"task {scf_task} does not inherit from ScfTask")
 
         if is_ngqpt:
             qpoints = scf_task.input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=qptopt).points
@@ -1893,7 +1893,7 @@ class PhononWfkqWork(Work, MergeDdb):
             to decrease the number of WFQ files to be computed.
         """
         if not isinstance(scf_task, ScfTask):
-            raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
+            raise TypeError(f"task {scf_task} does not inherit from ScfTask")
 
         shiftq = np.reshape(shiftq, (3, ))
         #print("ngqpt", ngqpt, "\nshiftq", shiftq)
@@ -2234,7 +2234,7 @@ class DteWork(Work, MergeDdb):
             manager: |TaskManager| object.
         """
         if not isinstance(scf_task, ScfTask):
-            raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
+            raise TypeError(f"task {scf_task} does not inherit from ScfTask")
 
         new = cls(manager=manager)
 
@@ -2338,7 +2338,7 @@ class ConducWork(Work):
         """
         # Verify phwork
         if not isinstance(phwork, PhononWork):
-            raise TypeError("Work `%s` does not inherit from PhononWork" % phwork)
+            raise TypeError(f"Work {phwork} does not inherit from PhononWork")
 
         # Verify Multi
         if (not with_kerange) and (multi.ndtset != 3): #Without kerange, multi should contain 3 datasets
@@ -2406,10 +2406,10 @@ class ConducWork(Work):
                                 multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
         # Make sure both file exists
         if not os.path.exists(ddb_path):
-            raise ValueError("The DDB file doesn't exists : `%s`" % ddb_path)
+            raise ValueError(f"The DDB file {ddb_path} does not exist")
 
         if not os.path.exists(dvdb_path):
-            raise ValueError("The DVDB file doesn't exists : `%s`" % dvdb_path)
+            raise ValueError(f"The DVDB file {dvdb_path} does not exist")
 
         # Verify nbr_proc and flow are defined if with_kerange
         if with_kerange and (flow is None or nbr_proc is None):
