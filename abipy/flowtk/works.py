@@ -1733,7 +1733,7 @@ class PhononWork(Work, MergeDdb):
                 This option is the recommended one if the k-path contains two high symmetry k-points that are very close
                 as ndivsm > 0 may produce a very large number of wavevectors.
                 if 0, deactivate band structure calculation.
-            qptopt: Option for the generation of q-points. Default: 1
+            qptopt: Option for the generation of q-points. Default: 1 i.e. use msym spatial symmetries + TR.
             prtwf: Controls the output of the first-order WFK.
                 By default we set it to -1 when q != 0 so that AbiPy is still able
                 to restart the DFPT task if the calculation is not converged (worst case scenario)
