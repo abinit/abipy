@@ -199,7 +199,7 @@ class Embedded_phonons(Phonopy):
                     ifc_emb[i][j]=factor_ifc*ifc_defect[mapping.index(i)][mapping.index(j)]
                     
         # enforce ASR
-        if asr==True:
+        if asr:
             print(f"\n Enforce ASR")
             sum_ac=np.sum(ifc_emb,axis=1)
             for i,atom1 in enumerate(stru_emb):

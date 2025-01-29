@@ -13,12 +13,7 @@ from abipy.core.kpoints import kmesh_from_mpdivs
 from abipy.embedding.utils_ifc import localization_ratio
 from abipy.embedding.embedding_ifc import Embedded_phonons
 from pymatgen.io.phonopy import get_pmg_structure,get_phonopy_structure
-
-
-try:
-    import phonopy 
-except ImportError:
-    Phonopy = None
+import phonopy
 
 
 class Embedding_ifcTest(AbipyTest):

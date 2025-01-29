@@ -62,7 +62,7 @@ def get_G_t(T, S_nu, omega_nu):
 
     G_t = np.exp(S-S_0+C_plus+C_minus-2*C_0)
 
-    return (t, G_t)
+    return t, G_t
 
 
 
@@ -177,4 +177,4 @@ def plot_emission_spectrum_help(x_eV,y_eV,unit,max_to_one,ax,**kwargs):
         ax.set_xlabel(r'Photon wavelength (nm))')
         ax.set_ylabel(r'Intensity (a.u.)')
 
-    return 
+    return fig

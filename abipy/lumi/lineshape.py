@@ -293,10 +293,10 @@ class Lineshape():
         omega_nu=self.ph_eigfreq
         S_x,S_y=self.S_hbarOmega(broadening=broadening)
 
-
         local_ratio=localization_ratio(self.ph_eigvec)
 
-        if with_local_ratio==True:
+        if with_local_ratio:
+            with_S_nu=False # such that the plot is fine even if both with_local_ratio and with_S_nu are set to True. 
             # reorder for better plot visualisation
             idx_order =  np.argsort(local_ratio)#[::-1]
             local_ratio=local_ratio[idx_order]
@@ -319,7 +319,7 @@ class Lineshape():
             cbar = plt.colorbar(sm,ax=ax2,location="top",shrink=0.6,label=r'$\beta_{\nu}$')
             ax2.set_ylabel(r'$S_{\nu}$')
 
-        if with_S_nu==True:
+        if with_S_nu:
             ax2=ax.twinx()
             ax2.vlines(x=omega_nu, ymin=0, ymax=S_nu,linestyles="solid",alpha=0.6)
             ax2.scatter(omega_nu,S_nu,alpha=0.6)
@@ -329,7 +329,7 @@ class Lineshape():
         ax.set_xlabel('Phonon energy (eV)')
         ax.set_ylabel(r'$S(\hbar\omega)$  (1/eV)')
 
-        return 
+        return fig
     
 
     @add_fig_kwargs
@@ -346,8 +346,7 @@ class Lineshape():
         """  
 
         x_eV,y_eV=self.L_hw(T=T,lamb=lamb,w=w)
-        plot_emission_spectrum_help(x_eV,y_eV,unit,max_to_one,ax,**kwargs)
-        return 
+        return plot_emission_spectrum_help(x_eV,y_eV,unit,max_to_one,ax,**kwargs)
 
 
 
