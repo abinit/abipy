@@ -800,19 +800,16 @@ class Polaron:
             raise RuntimeError(f"{len(phbands_qmesh.qpoints)=} != {np.product(phdos_ngqpt)=}")
 
         #with_ibz_b2dos = False
-
         for pstate in range(self.nstates):
             # Compute B2(E) by looping over the full BZ.
             bqnu_dos = np.zeros(len(phdos_mesh))
             for iq_bz, qpoint in enumerate(phbands_qmesh.qpoints):
-                q_weight = qpoint.weight
-                if abs(q_weight - 1.0/phdos_nqbz) > 1e-6:
-                    raise RuntimeError(f"abs(q_weight - 1.0/phdos_nqbz) > 1e-6, {q_weight=}, {1.0/phdos_nqbz=}")
-
                 freqs_nu = phbands_qmesh.phfreqs[iq_bz]
                 for w, b2 in zip(freqs_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True):
-                    bqnu_dos += q_weight * b2 * gaussian(phdos_mesh, width, center=w)
+                    bqnu_dos += b2 * gaussian(phdos_mesh, width, center=w)
 
+            # NB: all the q-weights in PHBST.nc are set to 1.
+            bqnu_dos /= phdos_nqbz
             bqnu_dos = Function1D(phdos_mesh, bqnu_dos)
 
             ax = ax_mat[pstate, 1]
