@@ -489,7 +489,7 @@ class Vzsisa(HasPickleIO):
             vols[i] = V0 - (dfe_dV1[i] + self.pressure / abu.eVA3_GPa) / E2D
 
         # Calculate total energies (Eq 15, 16)
-        # FIXME The consntant term F_V0(T) is missing
+        # FIXME The constant term F_V0(T) is missing
         gibbs_vt = (self.bo_energies[self.iv0]
                   + 0.5 * (bo_volumes[np.newaxis, :].T - V0)**2 * E2D
                   + (bo_volumes[np.newaxis, :].T - V0) * dfe_dV1

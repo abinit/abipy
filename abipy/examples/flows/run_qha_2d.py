@@ -75,7 +75,10 @@ rprim
     bo_strains_c = [-5, 0, 5, 10, 15]
     #bo_strains_a = [0, 5, 10, 15, 20]
     #bo_strains_c = [0, 5, 10, 15, 20]
-    bo_strains_a = [0, 5]
+    # This is just for testing purposes
+    #bo_strains_a = [0, 5]
+    #bo_strains_c = [0, 5]
+    bo_strains_a = [0, ]
     bo_strains_c = [0, 5]
     bo_strains_a = np.array(bo_strains_a) / 100
     bo_strains_c = np.array(bo_strains_c) / 100

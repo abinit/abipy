@@ -17,7 +17,7 @@ from abipy.flowtk.flows import Flow
 
 class ZsisaFlow(Flow):
     """
-    Flow for QHA calculations with the VZSISA approach.
+    Flow for QHA calculations with the ZSISA approach.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ZsisaFlow
