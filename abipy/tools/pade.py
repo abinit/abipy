@@ -1,12 +1,13 @@
 # coding: utf-8
 """
 Functions to perform analytic continuation with Pade'
-Some of these routines have been directly translated from the Fortran versions
+Some of these routines have been directly translated from the Fortran version
 implemented in ABINIT.
 """
 from __future__ import annotations
 
 import numpy as np
+
 
 class SigmaPade:
     """
@@ -24,7 +25,8 @@ class SigmaPade:
 
     def eval(self, z_evals: np.ndarray) -> tuple[np.ndarray, np.np.ndarray]:
         """
-        Compute the Pade fit for a list of zz points
+        Compute the Pade fit for a list of zz points.
+        Return f(z_evals) and f'(z_evals)
         """
         nn = len(z_evals)
         sws = np.zeros(nn, dtype=complex)
@@ -37,8 +39,9 @@ class SigmaPade:
 
         return sws, dsdws
 
-    def _eval_one(self, z_eval) -> tuple[np.ndarray, np.ndarray]:
+    def _eval_one(self, z_eval) -> tuple:
         """
+        Pade for a single point z_eval.
         """
         # if z_eval is in 2 or 3 quadrant, avoid the branch cut in the complex plane using Sigma(-iw) = Sigma(iw)*.
         # See also sigma_pade_eval in m_dyson_solver.F90
@@ -146,6 +149,7 @@ def dpade(zs: np.ndarray, f_zs: np.ndarray, z_eval: complex) -> complex:
     # print("Bz(n):", Bz[n])
     # if np.isclose(Bz[n].real, 0.0) and np.isclose(Bz[n].imag, 0.0):
     #     print("Warning: Bz(n) is close to zero:",
+    return dpade_value
 
 
 def calculate_pade_a(zs: np.ndarray, f_zs: np.ndarray) -> np.ndarray:

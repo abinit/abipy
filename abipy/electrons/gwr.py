@@ -175,6 +175,7 @@ class PadeData:
 
 @dataclasses.dataclass(kw_only=True)
 class SigmaTauFit:
+    """Stores the fit for Sigma(i tau)"""
 
     tau_mesh: np.ndarray
     values: np.ndarray
@@ -220,6 +221,7 @@ class GwrSelfEnergy(SelfEnergy):
 
     def tau_fit(self, first, last, xs) -> tuple[np.ndarray, complex, float]:
         """
+        Performs the exponential fit in imaginary time.
         """
         mp_taus = self.c_tau.mesh
         vals_mptaus = self.c_tau.values

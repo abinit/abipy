@@ -83,7 +83,7 @@ class VzsisaFlow(Flow):
         data = {"bo_vol_scales": work.bo_vol_scales, "ph_vol_scales": work.ph_vol_scales}
         data["initial_structure"] = work.initial_scf_input.structure
 
-        # Build list of strings with path to the relevant output files ordered by V.
+        # Build list of strings with path to the relevant output files ordered by volume.
         data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_vol]
 
         gsr_relax_entries, gsr_relax_volumes = [], []
@@ -208,7 +208,7 @@ class VzsisaWork(Work):
             self.flow.register_work(ph_work)
             self.ph_works.append(ph_work)
 
-            # Add task for electron DOS calculation to edos_work
+            # Add task for electron DOS calculation to edos_work.
             if self.edos_work is not None:
                 edos_input = scf_input.make_edos_input(self.edos_ngkpt, prtwf=-1)
                 self.edos_work.register_nscf_task(edos_input, deps={ph_work[0]: "DEN"})
