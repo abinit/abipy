@@ -106,6 +106,7 @@ _ALL_ENTRIES = [
 # Convert to dictionary: name --> Entry
 _ALL_ENTRIES = {e.name: e for e in _ALL_ENTRIES}
 
+
 class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This file stores the results of a VARPEQ calculations: SCF cycle, A_nk, B_qnu coefficients
@@ -118,7 +119,9 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         from abipy.eph.varpeq import VarpeqFile
         with VarpeqFile("out_VARPEQ.nc") as varpeq:
             print(varpeq)
-            varpeq.plot_scf_cycle()
+            for polaron in varpeq.polaron_spin:
+                print(polaron)
+                polaron.plot_scf_cycle()
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VarpeqFile

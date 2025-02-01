@@ -1,5 +1,7 @@
 # coding: utf-8
-"""History file with structural relaxation results."""
+"""
+Interface with the HIST.nc file containing ABINIT structural relaxation results or MD
+"""
 from __future__ import annotations
 
 import os
@@ -206,7 +208,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         from pymatgen.io.vasp.outputs import Xdatcar
 
         if filepath is not None and os.path.exists(filepath) and not overwrite:
-            raise RuntimeError("Cannot overwrite pre-existing file `%s`" % filepath)
+            raise RuntimeError(f"Cannot overwrite pre-existing file: {filepath}")
 
         if filepath is None:
             import tempfile
@@ -219,7 +221,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         ntypat = self.r.read_dimvalue("ntypat")
         num_pseudos = self.r.read_dimvalue("npsp")
         if num_pseudos != ntypat:
-            raise NotImplementedError("Alchemical mixing is not supported, num_pseudos != ntypat")
+            raise NotImplementedError("Alchemical mixing is not supported, {num_pseudos=} != {ntypat=}")
         #print("znucl:", znucl, "\ntypat:", typat)
 
         symb2pos = OrderedDict()
@@ -280,7 +282,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         from abipy.iotools import Visualizer
         visu = Visualizer.from_name(appname)
         if visu.name != "ovito":
-            raise NotImplementedError("visualizer: %s" % visu.name)
+            raise NotImplementedError(f"{visu.name=} is not supported")
 
         filepath = self.write_xdatcar(filepath=None, groupby_type=True, to_unit_cell=to_unit_cell)
 
@@ -486,7 +488,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             fig.layout['yaxis%u' % rcd.iax].title.text = 'F stats (eV/A)'
 
         else:
-            raise ValueError("Invalid value for what: `%s`" % str(what))
+            raise ValueError(f"Invalid value for {what=}")
 
         fig.layout.legend.font.size = fontsize
 
@@ -928,7 +930,7 @@ class HistReader(ETSF_Reader):
         num_pseudos = self.read_dimvalue("npsp")
         ntypat = self.read_dimvalue("ntypat")
         if num_pseudos != ntypat:
-            raise NotImplementedError("Alchemical mixing is not supported, num_pseudos != ntypat")
+            raise NotImplementedError("Alchemical mixing is not supported, {num_pseudos=} != {ntypat=}")
 
         znucl, typat = self.read_value("znucl"), self.read_value("typat").astype(int)
         #print(znucl.dtype, typat)

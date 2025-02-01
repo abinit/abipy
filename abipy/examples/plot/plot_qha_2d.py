@@ -34,14 +34,16 @@ phdos_strains_ac = [phdos_strains_a, phdos_strains_c]
 
 qha = QHA_2D.from_files(gsr_paths, phdos_paths, bo_strains_ac, phdos_strains_ac, gsr_file="DDB")
 
+tstart, tstop, num = 0, 1000, 101
+
 #%%
 qha.plot_energies()
 
 #%%
-qha.plot_free_energies(tstop=500, tstart=0, num=6)
+qha.plot_free_energies(tstart=tstart, tstop=500, num=6)
 
 #%%
-qha.plot_thermal_expansion(tstop=1000, tstart=0, num=101)
+qha.plot_thermal_expansion(tstart=tstart, tstop=tstop, num=num)
 
 #%%
-qha.plot_lattice(tstop=1000, tstart=0, num=101)
+qha.plot_lattice(tstart=tstart, tstop=tstop, num=num)

@@ -54,7 +54,7 @@ class VzsisaFlow(Flow):
                 This option is the recommended one if the k-path contains two consecutive high symmetry k-points
                 that are very close as ndivsm > 0 may produce a very large number of wavevectors.
                 if 0, deactivate band structure calculation for electrons.
-            edos_ngkpt: Three integers defining the the k-sampling for the computation of the
+            edos_ngkpt: Three integers defining the k-sampling for the computation of the
                 electron DOS with the relaxed structures. Useful for metals or small gap semiconductors
                 in which the electronic contribution should be included. None disables the computation of the e-DOS.
             manager: |TaskManager| instance. Use default if None.

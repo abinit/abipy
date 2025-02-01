@@ -27,7 +27,7 @@ def anaget_phdoses_with_gauss(nqsmall_or_qppa,
                               smearing_ev: float | None,
                               ddb_paths: list[PathLike],
                               anaget_kwargs: dict | None,
-                              verbose: int) -> tuple(list[str]) -> tuple[list[str], list[str]]:
+                              verbose: int) -> tuple[list[str], list[str]]:
     """
     Invoke anaddb to compute PHDOSes from a list of DDB filepaths with the gaussian method.
 
@@ -70,17 +70,6 @@ def anaget_phdoses_with_gauss(nqsmall_or_qppa,
     with DdbRobot.from_files(ddb_paths) as robot:
         r = robot.anaget_phonon_plotters(**my_kwargs)
         return r.phdos_paths, r.phbands_paths
-
-    #for ddb_path in ddb_paths:
-    #    with DdbFile(ddb_path) as ddb:
-    #        with ddb.anaget_phbst_and_phdos_files(**my_kwargs) as g:
-    #            if verbose:
-    #                print(f"anaddb input file: {str(g.input)=}")
-    #            phbst_file, phdos_file = g[0], g[1]
-    #            phdos_paths.append(phdos_file.filepath)
-    #            phbands_paths.append(phbst_file.filepath)
-
-    #return phdos_paths, phbands_paths
 
 
 class Vzsisa(HasPickleIO):
@@ -656,7 +645,7 @@ class Vzsisa(HasPickleIO):
         return plotter
 
     def get_edos_plotter(self) -> ElectronDosPlotter:
-        """Build and return a ElectronDosPlotter with electron doses indexed by volume"""
+        """Build and return a ElectronDosPlotter with electron DOSEs indexed by volume"""
         if self.edoses[0] is None:
             raise ValueError("edoses_list is not available")
         plotter = ElectronDosPlotter()
@@ -1876,7 +1865,7 @@ class Vzsisa(HasPickleIO):
         if angle is None or angle == 3:
             ax.plot(tmesh, gamma, color='m', lw=2, label=r"$gamma(V(T))$" + method)
 
-        if abs(abs(self.bo_volumes[self.iv0]- ph_volumes[iv0])-abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3:
+        if abs(abs(self.bo_volumes[self.iv0]- ph_volumes[iv0]) - abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3:
             if angle is None or angle == 1:
                 ax.plot(tmesh, alpha2, linestyle='dashed', color='r', lw=2, label=r"$alpha(V(T))$""E2vib1")
             if angle is None or angle == 2:

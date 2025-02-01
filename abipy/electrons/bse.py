@@ -33,7 +33,7 @@ __all__ = [
 
 
 # Deprecated: should be rewritten from scratch.
-class _DielectricTensor(object):
+class _DielectricTensor:
     """
     This object stores the frequency-dependent macroscopic dielectric tensor
     obtained from the dielectric functions for different q-directions.
@@ -152,7 +152,7 @@ class _DielectricTensor(object):
         if duck.is_intlike(what):
             f = self.to_func1d(red_coords)[int(what)]
         else:
-            raise ValueError("Don't know how to handle %s" % str(what))
+            raise ValueError(f"Don't know how to handle {what=}")
 
         return f.plot_ax(ax, *args, **kwargs)
 
@@ -301,7 +301,7 @@ class DielectricFunction:
             f = self.emacro_avg
 
         else:
-            raise ValueError("Don't know how to handle %s" % str(qpoint))
+            raise ValueError(f"Don't know how to handle {qpoint=}")
 
         return f.plot_ax(ax, **kwargs)
 
@@ -326,7 +326,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = MdfReader(filepath)
+        self.r = MdfReader(filepath)
 
         # TODO Add electron Bands.
         #self._ebands = r.read_ebands()
@@ -351,32 +351,32 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def close(self) -> None:
         """Close the file."""
-        self.reader.close()
+        self.r.close()
 
     @lazy_property
     def structure(self) -> Structure:
         """|Structure| object."""
-        return self.reader.read_structure()
+        return self.r.read_structure()
 
     @lazy_property
     def exc_mdf(self):
         "Excitonic macroscopic dieletric function."""
-        return self.reader.read_exc_mdf()
+        return self.r.read_exc_mdf()
 
     @lazy_property
     def rpanlf_mdf(self):
         """RPA dielectric function without local-field effects."""
-        return self.reader.read_rpanlf_mdf()
+        return self.r.read_rpanlf_mdf()
 
     @lazy_property
     def gwnlf_mdf(self):
         """RPA-GW dielectric function without local-field effects."""
-        return self.reader.read_gwnlf_mdf()
+        return self.r.read_gwnlf_mdf()
 
     @property
     def qpoints(self):
         """List of q-points."""
-        return self.reader.qpoints
+        return self.r.qpoints
 
     @property
     def qfrac_coords(self) -> np.ndarray:
@@ -389,7 +389,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Dictionary with the parameters that are usually tested for convergence.
         Used to build Pandas dataframes in Robots.
         """
-        return self.reader.read_params()
+        return self.r.read_params()
 
     def get_mdf(self, mdf_type="exc"):
         """"
@@ -552,7 +552,7 @@ class MdfReader(ETSF_Reader): #ElectronsReader
 
 class MdfPlotter:
     """
-    Class for plotting Macroscopic dielectric functions.
+    Class for plotting macroscopic dielectric functions.
 
     Usage example:
 
@@ -580,7 +580,7 @@ class MdfPlotter:
         self._mdfs[label] = mdf
 
     @add_fig_kwargs
-    def plot(self, ax=None, cplx_mode="Im", qpoint=None, xlims=None, ylims=None, 
+    def plot(self, ax=None, cplx_mode="Im", qpoint=None, xlims=None, ylims=None,
              fontsize=8, **kwargs) -> Figure:
         """
         Get a matplotlib plot showing the MDFs.
@@ -620,21 +620,6 @@ class MdfPlotter:
         set_axlims(ax, ylims, "y")
 
         return fig
-
-    #def ipw_plot(self) # pragma: no cover
-    #    """
-    #    Return an ipython widget with controllers to select the plot.
-    #    """
-    #    def plot_callback(plot_type, qpoint):
-    #        if qpoint == "None": qpoint = None
-    #        return self.plot(cplx_type=cplx_type, qpoint=qpoint)
-
-    #    import ipywidgets as ipw
-    #    return ipw.interact_manual(
-    #            plot_callback,
-    #            cplx_type=["re", "im", "abs"],
-    #            qpoint=["None"] + list(range(self.,
-    #        )
 
 
 class MultipleMdfPlotter:
@@ -711,7 +696,7 @@ class MultipleMdfPlotter:
                 self._mdfs[label][mdf_type] = obj.get_mdf(mdf_type=mdf_type)
 
     @add_fig_kwargs
-    def plot(self, mdf_type="exc", qview="avg", xlims=None, ylims=None, 
+    def plot(self, mdf_type="exc", qview="avg", xlims=None, ylims=None,
              fontsize=8, **kwargs) -> Figure:
         """
         Plot all macroscopic dielectric functions (MDF) stored in the plotter
@@ -736,7 +721,7 @@ class MultipleMdfPlotter:
             qpoints = self._get_qpoints()
             ncols, nrows = 2, len(qpoints)
         else:
-            raise ValueError("Invalid value of qview: %s" % str(qview))
+            raise ValueError(f"Invalid value of {qview=}")
 
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=True, squeeze=False)
@@ -747,6 +732,7 @@ class MultipleMdfPlotter:
                                    fontsize=fontsize, with_legend=True, show=False)
             self.plot_mdftype_cplx(mdf_type, "Im", ax=ax_mat[0, 1], xlims=xlims, ylims=ylims,
                                    fontsize=fontsize, with_legend=False, show=False)
+
         elif qview == "all":
             # Plot MDF(q)
             nqpt = len(qpoints)
@@ -758,14 +744,14 @@ class MultipleMdfPlotter:
                     fontsize=fontsize, with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)
 
         else:
-            raise ValueError("Invalid value of qview: `%s`" % str(qview))
+            raise ValueError(f"Invalid value of {qview=}")
 
         #ax_mat[0, 0].legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
     #@add_fig_kwargs
-    #def plot_mdftypes(self, qview="avg", xlims=None, ylims=None, **kwargs):
+    #def plot_mdf_types(self, qview="avg", xlims=None, ylims=None, **kwargs):
     #    """
     #    Args:
     #        qview:
@@ -808,7 +794,7 @@ class MultipleMdfPlotter:
 
     @add_fig_kwargs
     def plot_mdftype_cplx(self, mdf_type, cplx_mode, qpoint=None, ax=None, xlims=None, ylims=None,
-                          with_legend=True, with_xlabel=True, with_ylabel=True, 
+                          with_legend=True, with_xlabel=True, with_ylabel=True,
                           fontsize=8, **kwargs) -> Figure:
         """
         Helper function to plot data corresponds to ``mdf_type``, ``cplx_mode``, ``qpoint``.
@@ -1028,7 +1014,7 @@ def _from_cart_to_red(cartesian_tensor,lattice):
 
 
 # TODO Remove
-class _Tensor(object):
+class _Tensor:
     """Representation of a 3x3 tensor"""
 
     def __init__(self, red_tensor, lattice, space="r"):
@@ -1049,7 +1035,7 @@ class _Tensor(object):
         elif space == "r":
             self._is_real_space = True
         else:
-            raise ValueError("space should be either 'g' or 'r'")
+            raise ValueError(f"space should be either 'g' or 'r' but got {space=}")
 
     def __eq__(self, other):
         if other is None: return False

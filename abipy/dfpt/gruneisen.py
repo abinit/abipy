@@ -10,7 +10,6 @@ import pandas as pd
 
 from functools import lru_cache
 from collections import OrderedDict
-#from typing import List
 from monty.string import marquee, list_strings
 from monty.termcolor import cprint
 from monty.collections import AttrDict
@@ -77,7 +76,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
-        """String representation."""
+        """String representation with verbosite level `verbose`."""
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
@@ -185,7 +184,6 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         freq            Phonon frequency in eV.
         ==============  ==========================
         """
-
         grun_vals = self.gvals_qibz
         nqibz, natom3 = grun_vals.shape
         phfreqs = self.reader.rootgrp.variables["gruns_wvols_qibz"][:, self.iv0, :] * abu.Ha_eV
@@ -323,7 +321,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             max_gamma = np.abs(self.grun_vals_finite_differences(match_eigv=True)).max()
             values = self.grun_vals_finite_differences(match_eigv=True)
         else:
-            raise ValueError("Unsupported fill_with: `%s`" % fill_with)
+            raise ValueError(f"Unsupported {fill_with=}")
 
         # Plot gruneisen markers on top of band structure.
         xvals = np.arange(len(phbands.phfreqs))
@@ -399,7 +397,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         elif values == "gruns_fd":
             y = self.gvals_qibz_finite_differences(match_eigv=True)
         else:
-            raise ValueError("Unsupported values: `%s`" % values)
+            raise ValueError(f"Unsupported {values=}")
 
         w = self.wvols_qibz[:, self.iv0, :] * abu.phfactor_ev2units(units)
 
@@ -481,7 +479,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         elif values == "gruns_fd":
             y = self.split_gruns_finite_differences(match_eigv=True)
         else:
-            raise ValueError("Unsupported values: `%s`" % values)
+            raise ValueError(f"Unsupported {values=}")
 
         phbands = self.phbands_qpath_vol[self.iv0]
 
@@ -673,9 +671,11 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.phdos.get_acoustic_debye_temp(len(self.structure))
 
     @classmethod
-    def from_ddb_list(cls, ddb_list, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1, dipdip=1,
-                     dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None, anaddb_kwargs=None,
-                     verbose=0, mpi_procs=1, workdir=None, manager=None):
+    def from_ddb_list(cls, ddb_list, nqsmall=10, qppa=None, ndivsm=20, line_density=None,
+                      asr=2, chneut=1, dipdip=1,
+                      dos_method="tetra", lo_to_splitting="automatic",
+                      ngqpt=None, qptbounds=None, anaddb_kwargs=None,
+                      verbose=0, mpi_procs=1, workdir=None, manager=None):
         """
         Execute anaddb to compute generate the object from a list of ddbs.
 
@@ -748,9 +748,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if not report.run_completed:
             raise ddb0.AnaddbError(task=task, report=report)
 
-        gruns = cls.from_file(os.path.join(task.workdir, "run.abo_GRUNS.nc"))
-
-        return gruns
+        return cls.from_file(os.path.join(task.workdir, "run.abo_GRUNS.nc"))
 
     @lru_cache()
     def grun_vals_finite_differences(self, match_eigv=True):

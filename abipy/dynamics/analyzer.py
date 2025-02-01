@@ -621,7 +621,7 @@ class MdAnalyzer(HasPickleIO):
 
     @property
     def latex_avg_volume(self) -> str:
-        return "V$_{\mathrm{ave}}$ = " + f"{self.avg_volume:.2f}" + '$\mathrm{{\AA}^3}$'
+        return r"V$_{\mathrm{ave}}$ = " + f"{self.avg_volume:.2f}" + r'$\mathrm{{\AA}^3}$'
 
     @property
     def avg_volume(self) -> float:
@@ -819,7 +819,7 @@ class MdAnalyzer(HasPickleIO):
 
         ax.legend(fontsize=fontsize, loc="upper left")
         ax.set_xlabel('t (ps)', fontsize=fontsize)
-        ax.set_ylabel('mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+        ax.set_ylabel(r'mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
         set_axlims(ax, xlims, "x")
         #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
@@ -857,14 +857,14 @@ class MdAnalyzer(HasPickleIO):
             ts = self.times[t_start:] - self.times[t_start]
 
             ax.plot(ts, msd_t,
-                    label=symbol + " <msd($t$, $t_0$)>$\{$t_0$\}$, $t$ = [0, " + str(int(self.times[index_tmax])) + " ps]",
+                    label=symbol + r" <msd($t$, $t_0$)>$\{$t_0$\}$, $t$ = [0, " + str(int(self.times[index_tmax])) + " ps]",
                     color=self.color_symbol[symbol],
                     )
 
         set_axlims(ax, xlims, "x")
         ax.legend(fontsize=fontsize, loc="upper left")
         ax.set_xlabel('t (ps)', fontsize=fontsize)
-        ax.set_ylabel('average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+        ax.set_ylabel(r'average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
         #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
         ax.add_artist(AnchoredText(f"{self.latex_formula_n_temp}\n{self.latex_avg_volume}",
@@ -1001,7 +1001,7 @@ class Msdtt0:
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.plot(ts, self.msd_t,
-                label=self.symbol + " <msd($t, t_0$)>$\{$t_0$\}$, t = [0, " + str(int(self.times[index_tmax])) + " ps]",
+                label=self.symbol + r" <msd($t, t_0$)>$\{$t_0$\}$, t = [0, " + str(int(self.times[index_tmax])) + " ps]",
                 color=self.mda.color_symbol[self.symbol],
                 )
 
@@ -1191,7 +1191,6 @@ class Msdtt0List(list):
         return fig
 
 
-
 @dataclasses.dataclass(kw_only=True)
 class SigmaBerend:
     """
@@ -1231,7 +1230,7 @@ class SigmaBerend:
                               self.latex_formula + ', '+ 'T = %4.0f' % self.temperature + 'K')
             ax.legend(fontsize=fontsize, loc="lower right")
             ax.set_xlabel('N. of data in block', fontsize=fontsize)
-            ax.set_ylabel('$\sigma$ ($\AA^2$)', fontsize=fontsize)
+            ax.set_ylabel(r'$\sigma$ ($\AA^2$)', fontsize=fontsize)
             ax.grid(True)
 
         fig.suptitle("Variance of correlated data as function of block number")
@@ -1444,7 +1443,7 @@ class DiffusionDataList(list):
 
 class MultiMdAnalyzer(HasPickleIO):
     """
-    High-level interface to analyze multiple MD trajectories
+    High-level interface to analyze multiple MD trajectories.
     """
 
     @classmethod
@@ -1618,7 +1617,7 @@ class MultiMdAnalyzer(HasPickleIO):
             set_axlims(ax, xlims, "x")
             ax.legend(fontsize=fontsize, loc="upper left")
             ax.set_xlabel('t (ps)', fontsize=fontsize)
-            ax.set_ylabel('average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+            ax.set_ylabel(r'average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
             #set_ticks_fontsize(ax, fontsize)
             set_logscale(ax, xy_log)
 
@@ -1982,7 +1981,8 @@ class ArrheniusPlotter:
         self.append(ArrheniusEntry.from_file(filepath, key, mpl_style))
 
     @add_fig_kwargs
-    def plot(self, thinvt_arange=None, what="diffusion", ncar=None, colormap="jet", with_t=True, text=None,
+    def plot(self, thinvt_arange=None, what="diffusion", ncar=None,
+             colormap="jet", with_t=True, text=None,
              ax=None, fontsize=8, xlims=None, ylims=None, **kwargs) -> Figure:
         """
         Arrhenius plot.

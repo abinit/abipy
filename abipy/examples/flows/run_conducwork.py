@@ -15,7 +15,7 @@ from abipy import flowtk
 from abipy.abio.factories import conduc_kerange_from_inputs
 
 
-def make_scf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0), **variables):
+def make_scf_input(structure, pseudos, ngkpt=(2, 2, 2), shiftk=(0, 0, 0), **variables):
     """Build and return SCF input given the structure and pseudopotentials"""
 
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)

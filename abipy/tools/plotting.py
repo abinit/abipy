@@ -751,7 +751,7 @@ class ConvergenceAnalyzer:
             if not duck.is_listlike(ytols): ytols = [ytols]
 
             if any(yt <= 0 for yt in ytols):
-                raise ValueError(f"tolerances cannot be negative: {ytols}")
+                raise ValueError(f"tolerances cannot be negative: {ytols=}")
 
             # Sort input tolerances just to be on the safe side.
             self.ytols_dict[ykey] = np.sort(np.array(ytols))[::-1]
@@ -841,7 +841,7 @@ class ConvergenceAnalyzer:
             #rows.append(dict(ytol=ytol, ix=ix, xx=xx), xx_best=xx_best, ykey=ykey)
         return pd.DataFrame(rows)
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """
         String representation with verbosity level `verbose`.
         """
@@ -1131,9 +1131,9 @@ class Exposer:
     """
 
     @classmethod
-    def as_exposer(cls, exposer, **kwargs) -> Exposer:
+    def as_exposer(cls, exposer: str | Exposer, **kwargs) -> Exposer:
         """
-        Return an instance of Exposer, usually from a string with then name.
+        Return an instance of Exposer, usually from a string with the name.
 
         Args:
             exposer: "mpl" for MplExposer, "panel" for PanelExposer.
@@ -1741,9 +1741,9 @@ class PlotlyRowColDesc:
         self.iax = 1 + self.py_col + self.py_row * self.ncols
         # Note that plotly col and row start from 1.
         if nrows == 1 and ncols == 1:
-            self.ply_row, self.ply_col = (None, None)
+            self.ply_row, self.ply_col = None, None
         else:
-            self.ply_row, self.ply_col = (self.py_row + 1, self.py_col + 1)
+            self.ply_row, self.ply_col = self.py_row + 1, self.py_col + 1
 
     def __str__(self) -> str:
         lines = []
@@ -2888,16 +2888,3 @@ class PolyfitPlotter:
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
-
-
-#class PolyExtrapolator:
-#    """
-#    Fit data with polynomals, extrapolate to zero and visualize the results.
-#    """
-#    def __init__(self, xs, ys):
-#        self.xs, self.ys = np.array(xs), np.array(ys)
-#
-#    def extrapolate_to_zero(self, deg: int):
-
-
-

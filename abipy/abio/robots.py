@@ -1,7 +1,9 @@
 # coding: utf-8
 """
-This module defines the Robot BaseClass. Robots operates on multiple files and provide helper
-functions to plot the data e.g. convergence studies and to build pandas dataframes from the output files.
+This module defines the Robot BaseClass.
+Robots operates on multiple files and provide helper
+functions to plot the data e.g. convergence studies
+and to build pandas dataframes from the output files.
 """
 from __future__ import annotations
 
@@ -150,7 +152,7 @@ class Robot(NotebookWriter):
         Open files in directory tree starting from `top`. Return list of Abinit files.
         """
         if not os.path.isdir(top):
-            raise ValueError("%s: no such directory" % str(top))
+            raise ValueError(f"{top=}: no such directory")
         from abipy.abilab import abiopen
         items = []
         if walk:
@@ -431,7 +433,7 @@ class Robot(NotebookWriter):
             self._do_close[abifile.filepath] = True
 
         if label in self._abifiles:
-            raise ValueError("label %s is already present!" % label)
+            raise ValueError(f"{label=} is already present!")
 
         self._abifiles[label] = abifile
 
@@ -773,7 +775,7 @@ class Robot(NotebookWriter):
     %s
 
 Note that this list is automatically generated.
-Not all entries are sortable (Please select number-like quantities)""" % (self.__class__.__name__, aname, str(attrs)))
+Not all entries are sortable (please select number-like quantities)""" % (self.__class__.__name__, aname, str(attrs)))
 
     def _sortby_labelfile_list(self, labelfile_list, func_or_string, reverse=False, unpack=False):
         """

@@ -476,7 +476,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     @lazy_property
     def qpz0_dirgaps(self) -> np.ndarray:
        """
-       QP direct gaps in eV computed with the Z factor at the KS energy
+       QP direct gaps in eV computed with the renormalization Z factor at the KS energy
        Shape: [nsppol, nkcalc]
        """
        return self.r.read_value("qpz_gaps") * abu.Ha_eV
@@ -523,14 +523,14 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                 qp_kpoints = [self.sigma_kpoints[ikc] for ikc in ik_list]
                 items = qp_kpoints, ik_list
         else:
-            raise TypeError("Don't know how to interpret `%s`" % (type(qp_kpoints)))
+            raise TypeError(f"Don't know how to interpret {type(qp_kpoints)}")
 
         # Check indices
         errors = []
         eapp = errors.append
         for ikc in items[1]:
             if ikc >= self.nkcalc:
-                eapp("K-point index %d >= nkcalc %d, check input qp_kpoints" % (ikc, self.nkcalc))
+                eapp(f"K-point index {ikc} >= {self.nkcalc=}. Please check input qp_kpoints")
         if errors:
             raise ValueError("\n".join(errors))
 
@@ -577,7 +577,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         # GWR section.
         app(marquee("GWR parameters", mark="="))
-        app("gwr_task: %s" % self.r.gwr_task)
+        app(f"gwr_task: {self.r.gwr_task}")
 
         if self.r.gwr_task == GWR_TASK.RPA_ENERGY:
             pass
