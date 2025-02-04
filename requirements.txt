@@ -22,7 +22,7 @@ plotly
 ipython
 chart-studio
 click
-phonopy<=2.31.2
+phonopy
 seekpath
 ase
 # TODO remove after https://github.com/materialsproject/emmet/issues/768 is fixed

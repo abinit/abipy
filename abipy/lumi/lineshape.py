@@ -11,6 +11,11 @@ except ImportError:
 from pymatgen.io.phonopy import get_pmg_structure
 from abipy.tools.plotting import get_ax_fig_plt,add_fig_kwargs
 from abipy.embedding.utils_ifc import clean_structure
+import abipy.core.abinit_units as abu
+from abipy.lumi.utils_lumi import A_hw_help,L_hw_help,plot_emission_spectrum_help
+from abipy.embedding.utils_ifc import localization_ratio
+
+
 
 class Lineshape():
     """
@@ -36,12 +41,12 @@ class Lineshape():
     """
 
     @classmethod
-    def from_phonopy_phonons(cls,E_zpl,phonopy_ph,dSCF_structure,
-                             use_forces=True,dSCF_displacements=None,dSCF_forces=None,coords_defect_dSCF=None,tol=0.3):
-        r"""
-        Different levels of approximations for the phonons and force/displacements:
-        See discussion in the supplementary informations of
-        https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537, section (1).
+    def from_phonopy_phonons(cls,E_zpl,phonopy_ph,dSCF_structure,use_forces=True,dSCF_displacements=None,dSCF_forces=None,coords_defect_dSCF=None,
+                             coords_defect_phonons=None,tol=0.3):
+
+        """ 
+       Different levels of approximations for the phonons and force/displacements: 
+       See discussion in the supplementary informations of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537, section (1).
 
         - size_supercell deltaSCF = size_supercell phonons (phonons of the bulk structure or phonons of defect structure).
           Use of the forces or the displacemements is allowed.
@@ -78,7 +83,7 @@ class Lineshape():
         dSCF_structure=clean_structure(dSCF_structure,coords_defect_dSCF)
 
         phonon_supercell=get_pmg_structure(phonopy_ph.supercell)
-        phonon_supercell=clean_structure(phonon_supercell,coords_defect_dSCF)
+        phonon_supercell=clean_structure(phonon_supercell,coords_defect_phonons)
 
         if use_forces==False:
             forces=None
@@ -184,11 +189,17 @@ class Lineshape():
         """
         return (np.sum(self.S_nu()))
 
-    def Delta_Q(self):
+    def Delta_Q(self, unit="SI"):
         """
-        Total Delta_Q
+        Total Delta_Q, "SI" or "atomic" unit. 
         """
-        return (np.sqrt(np.sum(self.Delta_Q_nu() ** 2)))
+        dQ=np.sqrt(np.sum(self.Delta_Q_nu() ** 2))
+        if unit=="SI":
+            return (dQ)
+        if unit=="atomic":
+            kgm2_amuAng2=6.0221366516752*1e26*1e20
+            dQ=dQ*np.sqrt(kgm2_amuAng2)
+            return (dQ)
 
     def p_nu(self):
         """
@@ -198,7 +209,7 @@ class Lineshape():
 
     def eff_freq_multiD(self):
         """
-        Effective coupling frequency, eq. (13) of  https://doi.org/10.1002/adom.202100649
+        Effective coupling frequency, eq. (13) of  https://doi.org/10.1002/adom.202100649, in eV
         """
         w = np.sqrt(np.sum(self.p_nu() * self.ph_eigfreq ** 2))
         return (w)
@@ -220,60 +231,17 @@ class Lineshape():
         for k in np.arange(self.n_modes()):
             S += S_nu[k] * (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-((omega - freq_eV[k]) ** 2 / (2 * sigma ** 2)))
         return (omega, S)
+    
+    def localization_ratio(self):
+        """
+        array of the phonon mode localisation, see equation (10) of https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537   
+        """
+        return localization_ratio(self.ph_eigvec)
 
     #### Generating function ####
 
-    def Bose_einstein(self, T, freq):
-        """
-        Bose Einstein average occupation number
 
-        Args:
-            T: Temperature in K
-            freq: frequency in eV
-        """
-        k_b = abu.kb_eVK  # in eV/K
-
-        if T == 0:
-            n = 0
-        else:
-            n = 1 / (np.exp(freq / (k_b * T)) - 1)
-
-        return n
-
-    def G_t(self, T, S_nu, omega_nu):
-        """
-        Generation function.
-        Eq. (3) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
-
-        Args:
-            T: Temperature in K
-            S_nu: Parial Huang-Rhys factors
-            omega_nu: phonon frequencies
-        """
-        n_step = 10001
-        t = np.linspace(-1e-11, +1e-11, n_step)  # time in the fourier domain
-
-        freq = omega_nu
-        freq_SI = freq * (abu.eV_s) # in SI rad/sec
-
-        S=np.zeros(n_step, dtype=complex)
-        C_plus=np.zeros(n_step, dtype=complex)
-        C_minus=np.zeros(n_step, dtype=complex)
-
-        for i in range(len(S_nu)):
-            S +=  S_nu[i] * np.exp(-1j * freq_SI[i] * t)
-            C_plus += self.Bose_einstein(T, freq[i]) * S_nu[i] * np.exp(+1j * freq_SI[i] * t)
-            C_minus += self.Bose_einstein(T, freq[i]) * S_nu[i] * np.exp(-1j * freq_SI[i] * t)
-
-        index_0 = int((len(t) - 1) / 2)
-        C_0=2*C_plus[index_0]
-        S_0=S[index_0]
-
-        G_t = np.exp(S-S_0+C_plus+C_minus-2*C_0)
-
-        return (t, G_t)
-
-    def A_hw(self, T, lamb=5, w=1, model='multi-D'):
+    def A_hw(self,T, lamb=3, w=3, model='multi-D'):
         """
         Lineshape function
         Eq. (2) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
@@ -284,43 +252,16 @@ class Lineshape():
             lamb: Lorentzian broadening applied to the vibronic peaks, in meV
             w: Gaussian broadening applied to the vibronic peaks, in meV
             model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
-        """
-        if model == 'multi-D':
-            t, G_t = self.G_t(T, S_nu=self.S_nu(), omega_nu=self.ph_eigfreq)
+        """     
+        S_nu=self.S_nu()
+        omega_nu=self.ph_eigfreq
+        eff_freq=self.eff_freq_multiD()
+        E_zpl=self.E_zpl
+        return A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w, model='multi-D')
+    
 
-        elif model == 'one-D':
-            t, G_t = self.G_t(T, S_nu=np.array([np.sum(self.S_nu())]), omega_nu=np.array([self.eff_freq_multiD()]))
-
-        n_step = len(t)
-        Lambda = abu.eV_s*0.001/(np.pi*2) * lamb  # meV to Hz
-        delta_t = t[-1] - t[0]
-
-        fourier = fft.fft(G_t * np.exp(-Lambda * np.abs(t)))
-        freq = 2 * np.pi * n_step * fft.fftfreq(G_t.size) / delta_t
-        # freq change
-        freq_2 = np.zeros(n_step)
-        fourier_2 = np.zeros(n_step, dtype=complex)
-
-        freq_2[0:n_step // 2] = freq[n_step // 2 + 1:]
-        freq_2[n_step // 2] = freq[0]
-        freq_2[n_step // 2 + 1:] = freq[1:n_step // 2 + 1]
-
-        fourier_2[0:n_step // 2] = fourier[n_step // 2 + 1:]
-        fourier_2[n_step // 2] = fourier[0]
-        fourier_2[n_step // 2 + 1:] = fourier[1:n_step // 2 + 1]
-
-        hbar_eV = abu.hbar_eVs  # in eV*s
-        En = hbar_eV * freq_2
-        E_x = En + self.E_zpl
-
-        sigma = w / (2.35482 * 1000)
-        gaussian = (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-((En) ** 2 / (2 * (sigma) ** 2)))
-        A_conv = signal.fftconvolve(np.abs(fourier_2), gaussian, mode='same')
-
-        return (E_x, A_conv)
-
-    def L_hw(self, T=0, lamb=5, w=1, model='multi-D'):
-        """
+    def L_hw(self, T=0,lamb=3, w=3, model='multi-D'):
+        """     
         Normalized Luminescence intensity (area under the curve = 1)
         Eq. (1) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
         Returns (Energy in eV, Luminescence intensity)
@@ -330,48 +271,70 @@ class Lineshape():
             lamb: Lorentzian broadening applied to the vibronic peaks, in meV
             w: Gaussian broadening applied to the vibronic peaks, in meV
             model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
-        """
+        """     
+        E_x,A=self.A_hw(T,lamb,w,model)
+        E_x,I=L_hw_help(E_x, A)
+        return (E_x, I)
 
-        E_x, A = self.A_hw(T, lamb, w, model)
-        C = 1 / (simps(A * E_x ** 3, x=E_x))
-        I = C * A * E_x ** 3  # intensity prop to energy CUBE
-        return E_x, I
 
-    ##### Plot functions ######
-
-    @add_fig_kwargs
-    def plot_spectral_function(self,broadening=1,ax=None,with_S_nu=False,**kwargs):
-        """
+##### Plot functions ######
+    
+    def plot_spectral_function(self,broadening=1,ax=None,with_S_nu=False,with_local_ratio=False,**kwargs):
+        """     
         Plot the Huang-Rhys spectral function S_hbarOmega
 
         Args:
             broadening: fwhm of the gaussian broadening in meV
             with_S_nu: True to add stem lines associated to the individuals partial Huang-Rhys factors
-        """
-
-
+            with_local_ratio: True to add stem lines with colored based on the mode localisation. 
+        """     
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         S_nu=self.S_nu()
         omega_nu=self.ph_eigfreq
         S_x,S_y=self.S_hbarOmega(broadening=broadening)
 
+        local_ratio=localization_ratio(self.ph_eigvec)
+
+        if with_local_ratio:
+            with_S_nu=False # such that the plot is fine even if both with_local_ratio and with_S_nu are set to True. 
+            # reorder for better plot visualisation
+            idx_order =  np.argsort(local_ratio)#[::-1]
+            local_ratio=local_ratio[idx_order]
+            omega_nu=omega_nu[idx_order]
+            S_nu=S_nu[idx_order]
+
+            import matplotlib as mpl
+            cmap = mpl.colormaps["plasma"]
+            #norm = mpl.colors.Normalize(vmin=np.min(local_ratio),vmax=np.max(local_ratio))
+            norm = mpl.colors.LogNorm(1,vmax=np.max(local_ratio))
+            sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+
+            log_local_ratio=np.log(local_ratio)
+            local_ratio_normalized=(log_local_ratio-min(log_local_ratio))/max((log_local_ratio)-min(log_local_ratio))
+            color_list=cmap(local_ratio_normalized)
+
+            ax2=ax.twinx()
+            ax2.scatter(omega_nu,S_nu,c=color_list,norm=norm,alpha=0.6)
+            ax2.vlines(x=omega_nu, ymin=0, ymax=S_nu,colors=color_list,linestyles="solid",alpha=0.6,norm=norm)
+            cbar = plt.colorbar(sm,ax=ax2,location="top",shrink=0.6,label=r'$\beta_{\nu}$')
+            ax2.set_ylabel(r'$S_{\nu}$')
+
+        if with_S_nu:
+            ax2=ax.twinx()
+            ax2.vlines(x=omega_nu, ymin=0, ymax=S_nu,linestyles="solid",alpha=0.6)
+            ax2.scatter(omega_nu,S_nu,alpha=0.6)
+            ax2.set_ylabel(r'$S_{\nu}$')
+
         ax.plot(S_x,S_y,**kwargs)
         ax.set_xlabel('Phonon energy (eV)')
         ax.set_ylabel(r'$S(\hbar\omega)$  (1/eV)')
 
-        if with_S_nu==True:
-            ax2=ax.twinx()
-            markerline, stemlines, baseline = ax2.stem(omega_nu,S_nu,markerfmt='o',basefmt="k")
-            plt.setp(markerline,'color',color)
-            plt.setp(stemlines, 'color', plt.getp(markerline, 'color'))
-            plt.setp(stemlines, 'linestyle', 'dotted')
-            ax2.set_ylabel(r'$S_{\nu}$')
-
         return fig
+    
 
     @add_fig_kwargs
-    def plot_emission_spectrum(self,unit='eV',T=0,lamb=3,w=3,ax=None,**kwargs):
-        """
+    def plot_emission_spectrum(self,unit='eV',T=0,lamb=3,w=3,max_to_one=False,ax=None,**kwargs):
+        """     
         Plot the Luminescence intensity
 
         Args:
@@ -379,36 +342,12 @@ class Lineshape():
             T: Temperature in K
             lamb: Lorentzian broadening applied to the vibronic peaks, in meV
             w: Gaussian broadening applied to the vibronic peaks, in meV
-        """
+            max_to_one: True if max of the curve is normalized to 1. 
+        """  
 
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        x_eV,y_eV=self.L_hw(T=T,lamb=lamb,w=w)
+        return plot_emission_spectrum_help(x_eV,y_eV,unit,max_to_one,ax,**kwargs)
 
-        x_eV,y_eV=self.L_hw(T=T,lamb=lamb,w=w) # in eV
-
-        x_cm=x_eV*8065.73
-        y_cm=y_eV/8065.73
-
-        x_nm=1239.84193/x_eV
-        y_nm=y_eV*(x_eV**2/1239.84193)
-
-
-        if unit=='eV':
-            ax.plot(x_eV,y_eV,**kwargs)
-            ax.set_xlabel('Photon energy (eV)')
-            ax.set_ylabel(r'$L(\hbar\omega)$  (1/eV)')
-
-
-        elif unit=='cm-1':
-            ax.plot(x_cm,y_cm,**kwargs)
-            ax.set_xlabel(r'Photon energy ($cm^{-1}$)')
-            ax.set_ylabel(r'$L(\hbar\omega)$  (1/$cm^{-1}$)')
-
-        elif unit=='nm':
-            ax.plot(x_nm,y_nm,**kwargs)
-            ax.set_xlabel(r'Photon wavelength (nm))')
-            ax.set_ylabel(r'Intensity (a.u.)')
-
-        return fig
 
 
 def get_forces_on_phonon_supercell(dSCF_supercell,phonon_supercell,forces_dSCF,tol):
