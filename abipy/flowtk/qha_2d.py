@@ -1,6 +1,7 @@
 # coding: utf-8
 """
-Workflows for calculations within the quasi-harmonic approximation.
+Workflows for calculations within the quasi-harmonic approximation
+with two degrees of freedom. The main entry point is Qha2dFlow.
 """
 from __future__ import annotations
 
@@ -89,10 +90,10 @@ class Qha2dFlow(Flow):
                 gsr_relax_volumes.append(gsr.structure.volume)
 
         data["gsr_relax_entries"] = gsr_relax_entries
-
         data["ddb_relax_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in work.ph_works]
         data["gsr_relax_edos_paths"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
-        data["gsr_relax_ebands_paths"] = [] if work.ndivsm == 0 else [ph_work.ebands_task.gsr_path for ph_work in work.ph_works]
+        data["gsr_relax_ebands_paths"] = [] if work.ndivsm == 0 else \
+            [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
 
         # Write json file
         mjson_write(data, self.outdir.path_in("qha_2d.json"), indent=4)
@@ -146,7 +147,7 @@ class Qha2dWork(Work):
         # Create input for relaxation and register the relaxation task.
         work.relax_template = relax_template = scf_input.deepcopy()
 
-        # optcell = 3: constant-volume optimization of cell geometry
+        # optcell = 3 --> constant-volume optimization of cell geometry.
         relax_template.pop_tolerances()
         relax_template.set_vars(optcell=3, ionmov=ionmov, tolvrs=1e-8, tolmxf=1e-6)
         relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
@@ -215,7 +216,7 @@ class Qha2dWork(Work):
                 self.ph_works.append(ph_work)
                 self.flow.register_work(ph_work)
 
-            # Add task for electron DOS calculation to edos_work
+            # Add task for electron DOS calculation to edos_work.
             if self.edos_ngkpt is not None:
                 edos_input = scf_input.make_edos_input(self.edos_ngkpt)
                 self.edos_work.register_nscf_task(edos_input, deps={ph_work[0]: "DEN"}).set_name(deformationname)

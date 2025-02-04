@@ -68,7 +68,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
 
@@ -76,7 +76,6 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         app(self.filestat(as_string=True))
         app("")
         app(self.structure.to_string(verbose=verbose, title="Structure"))
-
         app("")
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
         if verbose > 1:
@@ -112,18 +111,16 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
                       g2: GvecSelect,
                       spin: int = 0,
                       wt_space: str = "omega",
-                      method: str = "scan",
                       verbose: int = 0,
                       fontsize: int = 6,
                       **kwargs) -> Figure:
         """
-        Plot the matrix elements for the given (g1, g2) and all the q-points in the IBZ  along the imaginary axis
+        Plot the matrix elements for the given (g1, g2) and all the q-points in the IBZ along the imaginary axis.
 
         Args:
             g1, g2: g-vector or index.
             spin: Spin index.
-            wt_space:
-            method:
+            wt_space: "omega" for imag frequency data, "tau" for data in imaginary time.
             verbose: Verbosity level.
             fontsize:
         """
@@ -144,7 +141,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             gvec1, gvec2, qpoint, cvals = self.r.read_mat_ggp_at_qpt(iq_ibz, g1, g2, spin, wt_space)
             # Fit data.
             fit_xs = xs
-            fit_ys = Fit(xs, cvals, self.r.tau_wgs, self.r.iw_wgs, wt_space, verbose).eval(fit_xs, method)
+            fit_ys = ChiFit(xs, cvals, self.r.tau_wgs, self.r.iw_wgs, wt_space, verbose).eval(fit_xs)
 
             # Plot results.
             re_ax, im_ax = ax_mat[iq_ibz, :]
@@ -170,18 +167,17 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
                           spin: int = 0,
                           take_every: int = 10,
                           wt_space: str = "omega",
-                          method: str = "scan",
                           verbose: int = 0,
                           fontsize: int = 6,
                           **kwargs) -> Figure:
         """
-        Plot the matrix elements for the given (g1, g2) and all the q-points in the IBZ  along the imaginary axis
+        Plot the matrix elements for the given (g1, g2) and all the q-points
+        in the IBZ  along the imaginary axis.
 
         Args:
             spin: Spin index.
             take_every:
-            wt_space:
-            method:
+            wt_space: "omega" for imag frequency data, "tau" for data in imaginary time.
             verbose: Verbosity level.
             fontsize:
         """
@@ -228,7 +224,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
                 cvals = cmat_g1g2[ig1, ig2]
                 # Fit data.
-                fit_ys = Fit(xs, cvals, self.r.tau_wgs, self.r.iw_wgs, wt_space, verbose).eval(fit_xs, method)
+                fit_ys = ChiFit(xs, cvals, self.r.tau_wgs, self.r.iw_wgs, wt_space, verbose).eval(fit_xs)
 
                 # Plot results.
                 ys = get_error(cvals.real, fit_ys.real, mode)
@@ -236,8 +232,8 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
                 ys = get_error(cvals.imag, fit_ys.imag, mode)
                 im_ax.plot(xs, ys, **style)
 
-            set_grid_legend(re_ax, fontsize, title=f"Real part qpt={qpoint}, {spin=}")
-            set_grid_legend(im_ax, fontsize, title=f"Imag part qpt={qpoint}, {spin=}")
+            set_grid_legend(re_ax, fontsize, title=f"Real part qpt={qpoint=}, {spin=}")
+            set_grid_legend(im_ax, fontsize, title=f"Imag part qpt={qpoint=}, {spin=}")
 
             if iq_ibz == len(qibz) -1:
                 xlabel = r"$i\omega$ (eV)" if wt_space == "omega" else r"$i\tau$ (a.u.)"
@@ -247,9 +243,10 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return fig
 
 
-class Fit:
+class ChiFit:
     """
-    Fit complex values along the imaginary axis, either in frequency or time domain.
+    Fit complex values of tchi, W, along the imaginary axis,
+    either in frequency or time domain.
     """
 
     def __init__(self, xs, ys, tau_wgs, iw_wgs, wt_space, verbose):
@@ -257,9 +254,9 @@ class Fit:
         Args:
             xs:
             ys:
-            tau_wgs:
-            iw_wgs:
-            wt_space:
+            tau_wgs: Minimax weights in tau domain
+            iw_wgs:  Minimax weights in imaginary frequency domain.
+            wt_space: "omega" if initial data is in imaginary frequency, "tau" for imaginary time.
             verbose: Verbosity level.
         """
         self.xs, self.ys = xs, ys
@@ -270,40 +267,61 @@ class Fit:
         if wt_space not in ("omega", "tau"):
             raise ValueError(f"Invalid {wt_space=}")
 
-    def eval(self, fit_xs: np.ndarray, method: str) -> np.ndarray:
+    def eval(self, fit_xs: np.ndarray) -> np.ndarray:
         """
-        Fit data and evaluate the fit on `fit_xs` points.
+        Fit data and evaluate the fit on `the fit_xs` points.
         """
         if self.wt_space == "omega":
-            return self._eval_omega(fit_xs, method)
-        if self.wt_space == "tau":
-            return self._eval_tau(fit_xs, method)
+            vals, aa, bb = self._eval_omega(fit_xs)
+        elif self.wt_space == "tau":
+            vals, aa, bb = self._eval_tau(fit_xs)
+        else:
+            raise ValueError(f"Invalid {self.wt_space=}")
 
-        raise ValueError(f"Invalida {self.wt_space=}")
+        return vals
 
-    def _minimize_loss(self, fit_with_second_index, method):
+    def _minimize_loss(self, fit_with_second_index):
         """
         Fit the signal by changing the second point, finally select
         the point that minimizes the loss function.
         """
         # Select weights for the loss function.
         weights = self.iw_wgs if self.wt_space == "omega" else self.tau_wgs
-
         # Compute loss functions for all possible values of second_index.
         losses = []
         for second_index in range(1, len(self.xs)):
-            ys_fit = fit_with_second_index(second_index, self.xs)
-            loss = np.sum(weights * np.abs(ys_fit - self.ys)**2)
-            losses.append((second_index, loss))
+            ys_fit, aa, bb = fit_with_second_index(second_index, self.xs)
+            losses.append((second_index, np.sum(weights * np.abs(ys_fit - self.ys)**2), aa, bb))
 
-        # Fin min of losses.
+        # Find min of losses.
         return min(losses, key=lambda t: t[1])
 
-    def _eval_omega(self, fit_xs: np.ndarray, method: str) -> np.ndarray | None:
+    def _eval_tau(self, fit_xs: np.ndarray) -> np.ndarray:
+        """
+        Fit values in imaginary time using A exp^{-b t} with A complex and b real and > 0.
+        """
+        def fit_with_second_index(second_index, xs):
+            w0, f0 = self.xs[0], self.ys[0]
+            wn, fn = self.xs[second_index], self.ys[second_index]
+            # NB: take the real part of the log to avoid oscillatory behaviour in the exp.
+            bb = -np.log(fn / f0) / (wn - w0)
+            bb = bb.real
+            if bb <= 1e-12:
+                # If something goes wrong, disable the fit.
+                aa, bb = 0.0j, 0.0
+            else:
+                aa = (f0 + fn) / (np.exp(-bb * w0) + np.exp(-bb * wn))
+
+            return aa * np.exp(-bb * xs), aa, bb
+
+        second_index, _, aa, bb = self._minimize_loss(fit_with_second_index)
+        return fit_with_second_index(second_index, fit_xs)
+
+    def _eval_omega(self, fit_xs: np.ndarray) -> np.ndarray:
         """
         Fit values in imaginary frequency using A/(B^2 + omega^2) with B^2 real and A complex.
         """
-        def _fit_with_second_index(second_index, xs) -> np.ndarray:
+        def fit_with_second_index(second_index, xs):
             # First and second_index data points
             w0, f0 = self.xs[0], self.ys[0]
             wn, fn = self.xs[second_index], self.ys[second_index]
@@ -311,31 +329,14 @@ class Fit:
             # Solve for B^2 using real part (assuming the same B^2 for real and imaginary parts)
             b2 = (f0.real * w0**2 - fn.real * wn**2) / (fn.real - f0.real)
             if b2 < 1e-12:
-                a, b2 = 0.0, 0.0
-                return a / (b2 + xs**2)
+                aa, b2 = 0.0, 0.0
+                return aa / (b2 + xs**2)
 
-            a = f0 * (b2 + w0**2)
-            return a / (b2 + xs**2)
+            aa = f0 * (b2 + w0**2)
+            return aa / (b2 + xs**2), aa, b2
 
-        second_index, _ = self._minimize_loss(_fit_with_second_index, method)
-        return _fit_with_second_index(second_index, fit_xs)
-
-    def _eval_tau(self, fit_xs: np.ndarray, method: str) -> np.ndarray:
-        """
-        Fit values in imaginary time using B exp^{-a t} with B complex and a real and > 0.
-        """
-        def _fit_with_second_index(second_index, xs) -> np.ndarray:
-            w0, f0 = self.xs[0], self.ys[0]
-            wn, fn = self.xs[second_index], self.ys[second_index]
-            # Note that we take the real part of the log to avoid oscillatory behaviour in the exp.
-            a = -np.log(fn / f0) / (wn - w0)
-            a = a.real
-            # If something goes wrong, disable the fit.
-            if a <= 1e-12: f0 = 0.0
-            return f0 * np.exp(-a * (xs - w0))
-
-        second_index, _ = self._minimize_loss(_fit_with_second_index, method)
-        return _fit_with_second_index(second_index, fit_xs)
+        second_index, _, aa, bb = self._minimize_loss(fit_with_second_index)
+        return fit_with_second_index(second_index, fit_xs)
 
 
 class TchimReader(ElectronsReader):
@@ -360,9 +361,13 @@ class TchimReader(ElectronsReader):
         self.tau_wgs = self.read_value("tau_wgs")
         self.qibz = self.read_value("qibz")
 
-    def find_qpoint(self, qpoint, tol=1e-6):
+    def find_qpoint(self, qpoint: KptSelect, tol=1e-6):
         """
         Find the index of the q-point in the IBZ. Return index and q-point.
+
+        Args:
+            qpoint: q-point or q-point index.
+            tol: tolerance for q-point comparison
         """
         if duck.is_intlike(qpoint):
             iq_ibz = qpoint
@@ -376,7 +381,7 @@ class TchimReader(ElectronsReader):
 
     @staticmethod
     def _find_ig_g(gg, gvecs):
-        """Return the idex of gg in gvecs and the g-vector."""
+        """Return the idnex of gg in gvecs and the g-vector."""
         if duck.is_intlike(gg):
             return gg, gvecs[gg]
 
@@ -391,10 +396,10 @@ class TchimReader(ElectronsReader):
                             wt_space: str):
         """
         Args:
-            qpoint:
+            qpoint: q-point or q-point index.
             g1, g2: g-vector or index.
             spin: Spin index.
-            wt_space:
+            wt_space: "omega" for imag frequency data, "tau" for data in imaginary time.
         """
         # Fortran arrays on disk.
         # nctkarr_t("chinpw_qibz", "int", "nqibz")
@@ -423,9 +428,9 @@ class TchimReader(ElectronsReader):
                                 ):
         """
         Args:
-            qpoint:
+            qpoint: q-point or q-point index.
             spin: Spin index.
-            wt_space:
+            wt_space: "omega" for imag frequency data, "tau" for data in imaginary time.
         """
         iq_ibz, qpoint = self.find_qpoint(qpoint)
         npw_q = self.read_variable("chinpw_qibz")[iq_ibz]
@@ -459,7 +464,7 @@ class TchimVsSus:
             [0.5, 0.5, 0],
         ]
 
-        with TchimVsSus("runo_DS3_TCHIM.nc", "AW_CD/runo_DS3_SUS.nc") as o
+        with TchimVsSus("runo_DS3_TCHIM.nc", "AW_CD/runo_DS3_SUS.nc") as o:
             o.expose_qpoints_gpairs(qpoint_list, gpairs, exposer="mpl")
     """
     def __init__(self, tchim_filepath: str, sus_filepath: str):
@@ -482,9 +487,10 @@ class TchimVsSus:
         self.sus_file.close()
         self.tchi_reader.close()
 
-    def find_tchim_qpoint(self, qpoint, tol=1e-6) -> tuple[int, np.ndarray]:
+    def find_tchim_qpoint(self, qpoint: KptSelect, tol=1e-6) -> tuple[int, np.ndarray]:
         """
-        Find the index of the q-point in the IBZ. Return index and q-points.
+        Find the index of the q-point in the IBZ.
+        Return index and q-point as numpy array.
         """
         tchi_qpoints = self.tchi_reader.read_variable("qibz")
 
@@ -510,7 +516,7 @@ class TchimVsSus:
 
         Args:
             qpoint: q-point or q-point index.
-            gpairs: List of (g,g') pairs
+            gpairs: List of (g, g') pairs.
         """
         gpairs = np.array(gpairs)
 

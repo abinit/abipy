@@ -65,8 +65,8 @@ class QHA_2D(HasPickleIO):
 
         Args:
             nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
-                if > 0, it is interpreted as nqsmall
-                if < 0, it is interpreted as qppa.
+                if > 0, it is interpreted as nqsmall.
+                if < 0, it is interpreted as q-point per atom qppa.
             gsr_paths: list of paths to GSR files.
             ddb_paths: list of paths to DDB files.
             bo_strains_ac: List of strains for the a and the c lattice vector.

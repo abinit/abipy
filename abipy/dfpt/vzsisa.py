@@ -27,32 +27,34 @@ def anaget_phdoses_with_gauss(nqsmall_or_qppa,
                               smearing_ev: float | None,
                               ddb_paths: list[PathLike],
                               anaget_kwargs: dict | None,
-                              verbose: int) -> tuple(list[str]):
+                              verbose: int) -> tuple[list[str], list[str]]:
     """
+    Invoke anaddb to compute PHDOSes from a list of DDB filepaths with the gaussian method.
+
+    From PHYSICAL REVIEW B110,014103 (2024)
+    The phonon density of states (PHDOS) was determined utilizing the Gaussian method,
+    with a DOS smearing value set to 4.5×10−6 Hartree.
+    Furthermore, a frequency grid step of 1.0×10−6 Hartree was employed for PHDOS calculations.
+    These adjustments in numerical accuracy were imperative for versions of ABINIT preceding v9.10.
+    Notably, in ABINIT versions v9.10 and after, these parameter values are preset as defaults for calculations.
+
     Args:
         nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
             if > 0, it is interpreted as nqsmall
             if < 0, it is interpreted as qppa.
-        smearing_ev: Gaussian smearing in eV
+        smearing_ev: Gaussian smearing in eV.
         ddb_paths: List of paths to the DDB files.
-        anaget_kwargs: Dict with extra arguments passed to anaget_phbst_and_phdos_files
+        anaget_kwargs: dictionary with extra arguments passed to anaget_phbst_and_phdos_files.
         verbose: Verbosity level.
 
-    Returns:
+    Returns: tuple with the list of filepaths for phdos and phbands.
     """
-    # From PHYSICAL REVIEW B110,014103 (2024)
-    # The phonon density of states (PHDOS) was determined utilizing the Gaussian method,
-    # with a DOS smearing value set to 4.5×10−6 Hartree.
-    # Furthermore, a frequency grid step of 1.0×10−6 Hartree was employed for PHDOS calculations.
-    # These adjustments in numerical accuracy were imperative for versions of ABINIT preceding v9.10.
-    # Notably, in ABINIT versions v9.10 and after, these parameter values are preset as defaults for calculations.
     phdos_paths, phbands_paths = [], []
 
     if smearing_ev is None:
         smearing_ev = 4.5e-6 * abu.Ha_eV
 
-    my_kwargs = dict(dos_method=f"gaussian:{smearing_ev} eV",
-                    return_input=False)
+    my_kwargs = dict(dos_method=f"gaussian:{smearing_ev} eV", return_input=False)
 
     if nqsmall_or_qppa > 0:
         my_kwargs["nqsmall"] = nqsmall_or_qppa
@@ -64,24 +66,10 @@ def anaget_phdoses_with_gauss(nqsmall_or_qppa,
     if anaget_kwargs:
         my_kwargs.update(anaget_kwargs)
 
-    #if verbose:
-    #    print(f"Calling anaget_phbst_and_phdos_files with {my_kwargs=}:")
-
     from abipy.dfpt.ddb import DdbRobot
     with DdbRobot.from_files(ddb_paths) as robot:
         r = robot.anaget_phonon_plotters(**my_kwargs)
         return r.phdos_paths, r.phbands_paths
-
-    #for ddb_path in ddb_paths:
-    #    with DdbFile(ddb_path) as ddb:
-    #        with ddb.anaget_phbst_and_phdos_files(**my_kwargs) as g:
-    #            if verbose:
-    #                print(f"anaddb input file: {str(g.input)=}")
-    #            phbst_file, phdos_file = g[0], g[1]
-    #            phdos_paths.append(phdos_file.filepath)
-    #            phbands_paths.append(phbst_file.filepath)
-
-    #return phdos_paths, phbands_paths
 
 
 class Vzsisa(HasPickleIO):
@@ -94,7 +82,9 @@ class Vzsisa(HasPickleIO):
 
     @classmethod
     def from_phonopy_files(cls, filepaths: list, bo_energies, phdos_kwargs=None):
-
+        """
+        Build an instance from a phonopy calculation.
+        """
         import phonopy
         bo_structures, ph_structures, phdoses = [], [], []
 
@@ -139,7 +129,7 @@ class Vzsisa(HasPickleIO):
                        smearing_ev: float | None = None,
                        verbose: int = 0) -> Vzsisa:
         """
-        Build an instance from a json file `filepath` typically produced by an Abipy flow.
+        Build an instance from a json file `filepath` typically produced by an AbiPy flow.
         For the meaning of the other arguments see from_gsr_ddb_paths.
         """
         data = mjson_load(filepath)
@@ -155,9 +145,9 @@ class Vzsisa(HasPickleIO):
                            smearing_ev: float | None = None,
                            verbose: int = 0) -> Vzsisa:
         """
-        Creates an instance from a list of GSR files and a list of DDB files.
+        Create an instance from a list of GSR files and a list of DDB files.
         This is a simplified interface that computes the PHDOS.nc files automatically
-        from the DDB files by invoking anaddb
+        from the DDB files by invoking anaddb.
 
         Args:
             nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
@@ -239,7 +229,7 @@ class Vzsisa(HasPickleIO):
         """
         Args:
             bo_structures: list of structures at the different volumes for the BO bo_energies.
-            structure_from_phdos: Structures used to compute phonon DOS
+            ph_structures: Structures used to compute phonon DOSes.
             bo_energies: list of BO energies for the structures in eV.
             phdoses: Phonon DOSes.
             edoses: Electron DOSes. None if electronic contribution should not be considered.
@@ -364,7 +354,7 @@ class Vzsisa(HasPickleIO):
     def get_gibbs_phvol(self, tstart, tstop, num) -> np.array:
         """
         Compute the Gibbs free energy in eV for all the ph_volumes and the list of temperatures
-        specified in input. Returnd array of shape [ph_nvol, num]
+        specified in input. Return array of shape [ph_nvol, num]
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
@@ -489,7 +479,7 @@ class Vzsisa(HasPickleIO):
             vols[i] = V0 - (dfe_dV1[i] + self.pressure / abu.eVA3_GPa) / E2D
 
         # Calculate total energies (Eq 15, 16)
-        # FIXME The consntant term F_V0(T) is missing
+        # FIXME The constant term F_V0(T) is missing
         gibbs_vt = (self.bo_energies[self.iv0]
                   + 0.5 * (bo_volumes[np.newaxis, :].T - V0)**2 * E2D
                   + (bo_volumes[np.newaxis, :].T - V0) * dfe_dV1
@@ -655,9 +645,9 @@ class Vzsisa(HasPickleIO):
         return plotter
 
     def get_edos_plotter(self) -> ElectronDosPlotter:
-        """Build and return a ElectronDosPlotter with electron doses indexed by volume"""
+        """Build and return a ElectronDosPlotter with electron DOSEs indexed by volume"""
         if self.edoses[0] is None:
-            raise ValueError("edoes_list is not available")
+            raise ValueError("edoses_list is not available")
         plotter = ElectronDosPlotter()
         for volume, edos in zip(self.ph_volumes, self.edoses, strict=True):
             plotter.add_edos(f"V={volume:.2f} Å³", edos)
@@ -856,7 +846,7 @@ class Vzsisa(HasPickleIO):
         data = {"tmesh": tmesh}
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
-        dV = ph_volumes[iv0+1]-ph_volumes[iv0]
+        dV = ph_volumes[iv0+1] - ph_volumes[iv0]
 
         if self.scale_points == "S":
             vols, fits = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
@@ -1799,7 +1789,7 @@ class Vzsisa(HasPickleIO):
         if lattice is None or lattice == "c":
             ax.plot(tmesh, cc, color='m', lw=2, label=r"$c(V(T))$" + method)
 
-        if abs(abs(self.bo_volumes[self.iv0] - ph_volumes[iv0])-abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3 :
+        if abs(abs(self.bo_volumes[self.iv0] - ph_volumes[iv0])-abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3:
             if lattice is None or lattice == "a":
                 ax.plot(tmesh, aa2, linestyle='dashed', color='r', lw=2, label=r"$a(V(T))$""E2vib1")
             if lattice is None or lattice == "b":
@@ -1875,7 +1865,7 @@ class Vzsisa(HasPickleIO):
         if angle is None or angle == 3:
             ax.plot(tmesh, gamma, color='m', lw=2, label=r"$gamma(V(T))$" + method)
 
-        if abs(abs(self.bo_volumes[self.iv0]- ph_volumes[iv0])-abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3:
+        if abs(abs(self.bo_volumes[self.iv0]- ph_volumes[iv0]) - abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3:
             if angle is None or angle == 1:
                 ax.plot(tmesh, alpha2, linestyle='dashed', color='r', lw=2, label=r"$alpha(V(T))$""E2vib1")
             if angle is None or angle == 2:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow for quasi-harmonic calculations under development
-======================================================
+Flow for QHA calculations with 2 DOFs
+=====================================
 Warning: This code is still under development.
 """
 import sys
@@ -16,7 +16,7 @@ from abipy.flowtk.qha_2d import Qha2dFlow
 
 def build_flow(options):
     """
-    Create a `QhaFlow` for quasi-harmonic calculations.
+    Create a `Qha2dFlow` for quasi-harmonic calculations with 2 DOFs
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
@@ -43,7 +43,7 @@ rprim
    0.0000000000    0.0000000000    9.7234377918
 """)
 
-    # Use NC PBE pseudos from pseudodojo v0.4
+    # Use NC PBEsol pseudos from pseudodojo v0.4
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
     pseudos = get_oncvpsp_pseudos(xc_name="PBEsol", version="0.4")
 
@@ -75,7 +75,10 @@ rprim
     bo_strains_c = [-5, 0, 5, 10, 15]
     #bo_strains_a = [0, 5, 10, 15, 20]
     #bo_strains_c = [0, 5, 10, 15, 20]
-    bo_strains_a = [0, 5]
+    # This is just for testing purposes
+    #bo_strains_a = [0, 5]
+    #bo_strains_c = [0, 5]
+    bo_strains_a = [0, ]
     bo_strains_c = [0, 5]
     bo_strains_a = np.array(bo_strains_a) / 100
     bo_strains_c = np.array(bo_strains_c) / 100

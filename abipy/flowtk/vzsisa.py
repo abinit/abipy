@@ -54,7 +54,7 @@ class VzsisaFlow(Flow):
                 This option is the recommended one if the k-path contains two consecutive high symmetry k-points
                 that are very close as ndivsm > 0 may produce a very large number of wavevectors.
                 if 0, deactivate band structure calculation for electrons.
-            edos_ngkpt: Three integers defining the the k-sampling for the computation of the
+            edos_ngkpt: Three integers defining the k-sampling for the computation of the
                 electron DOS with the relaxed structures. Useful for metals or small gap semiconductors
                 in which the electronic contribution should be included. None disables the computation of the e-DOS.
             manager: |TaskManager| instance. Use default if None.
@@ -83,7 +83,7 @@ class VzsisaFlow(Flow):
         data = {"bo_vol_scales": work.bo_vol_scales, "ph_vol_scales": work.ph_vol_scales}
         data["initial_structure"] = work.initial_scf_input.structure
 
-        # Build list of strings with path to the relevant output files ordered by V.
+        # Build list of strings with path to the relevant output files ordered by volume.
         data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_vol]
 
         gsr_relax_entries, gsr_relax_volumes = [], []
@@ -208,7 +208,7 @@ class VzsisaWork(Work):
             self.flow.register_work(ph_work)
             self.ph_works.append(ph_work)
 
-            # Add task for electron DOS calculation to edos_work
+            # Add task for electron DOS calculation to edos_work.
             if self.edos_work is not None:
                 edos_input = scf_input.make_edos_input(self.edos_ngkpt, prtwf=-1)
                 self.edos_work.register_nscf_task(edos_input, deps={ph_work[0]: "DEN"})

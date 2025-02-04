@@ -3202,8 +3202,8 @@ class PhononFlow(Flow):
     """
     @classmethod
     def from_scf_input(cls, workdir: str, scf_input: AbinitInput, ph_ngqpt,
-                       with_becs=True, with_quad=False, with_flexoe=False,
-                       manager=None, allocate=True) -> PhononFlow:
+                       qptopt=1, with_becs=True, with_quad=False, with_flexoe=False,
+                       manager=None, allocate=True, **kwargs) -> PhononFlow:
         """
         Create a `PhononFlow` for phonon calculations from an `AbinitInput` defining a ground-state run.
 
@@ -3213,6 +3213,7 @@ class PhononFlow(Flow):
             ph_ngqpt: q-mesh for phonons. Must be a sub-mesh of the k-mesh used for
                 electrons. e.g if ngkpt = (8, 8, 8). ph_ngqpt = (4, 4, 4) is a valid choice
                 whereas ph_ngqpt = (3, 3, 3) is not!
+            qptopt: Option for the generation of q-points. Default: 1 i.e. use nsym spatial symmetries + TR.
             with_becs: True if Born effective charges are wanted.
             with_quad: Activate calculation of dynamical quadrupoles.
                 Note that only selected features are compatible with dynamical quadrupoles.
@@ -3220,6 +3221,8 @@ class PhononFlow(Flow):
             with_flexoe: True to activate computation of flexoelectric tensor.
             manager: |TaskManager| object. Read from `manager.yml` if None.
             allocate: True if the flow should be allocated before returning.
+            kwargs: Extra optional arguments passed to PhononWork.from_scf_task.
+                See doc string for possible kwargs.
 
         Return:
             :class:`PhononFlow` object.
@@ -3236,8 +3239,8 @@ class PhononFlow(Flow):
         if any(scf_ngkpt % ph_ngqpt != 0):
             raise ValueError("ph_ngqpt %s should be a sub-mesh of scf_ngkpt %s" % (ph_ngqpt, scf_ngkpt))
 
-        ph_work = PhononWork.from_scf_task(scf_task, ph_ngqpt, is_ngqpt=True, with_becs=with_becs,
-                                           with_quad=with_quad, with_flexoe=with_flexoe)
+        ph_work = PhononWork.from_scf_task(scf_task, ph_ngqpt, is_ngqpt=True, qptopt=qptopt, with_becs=with_becs,
+                                           with_quad=with_quad, with_flexoe=with_flexoe, **kwargs)
         flow.register_work(ph_work)
 
         if allocate: flow.allocate()

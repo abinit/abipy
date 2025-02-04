@@ -119,8 +119,6 @@ _DATA_PREFIX = {
 #        raise ValueError("Don't know how to reallocate variable %s" % str(name))
 
 
-
-
 class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
     """
     Abstract class defining the methods that must be implemented by Input classes.
@@ -421,7 +419,8 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
 
         if pseudo_dir:
             pseudo_dir = os.path.abspath(pseudo_dir)
-            if not os.path.exists(pseudo_dir): raise self.Error("Directory `%s` does not exist" % pseudo_dir)
+            if not os.path.exists(pseudo_dir):
+                raise self.Error(f"Directory `{pseudo_dir}` does not exist")
             pseudos = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
 
         try:
@@ -610,7 +609,7 @@ Cannot find variable `%s` in the internal database. If you believe this is not a
     input.set_spell_check(False)
 
 to disable spell checking. Perhaps the internal database is not in synch
-with the Abinit version you are using. Please contact the AbiPy developers.""" % key)
+with the Abinit version you are using? Please contact the AbiPy developers.""" % key)
 
     @property
     def runlevel(self):
@@ -850,7 +849,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                     app(str(InputVariable(vname, value)))
 
         else:
-            raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
+            raise ValueError(f"Unsupported value for {sortmode=}")
 
         def to_html(string):
             string = string.replace("\n", "<br>")
@@ -1804,8 +1803,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                             prtwf=-1,
                             comment="Input file for electron DOS calculation from a GS SCF input (NSCF on kmesh)",
                             )
-        edos_input.set_kmesh(ngkpt, shiftk)
 
+        edos_input.set_kmesh(ngkpt, shiftk)
         edos_input.set_vars(**extra_abivars)
 
         return edos_input
@@ -1952,7 +1951,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return ph_inputs
 
-    def make_ddkpert_input(self, perturbation, kptopt=2, only_vk=False, use_symmetries=False, tolerance=None, manager=None) -> AbinitInput:
+    def make_ddkpert_input(self, perturbation, kptopt=2, only_vk=False,
+                           use_symmetries=False, tolerance=None, manager=None) -> AbinitInput:
         """
         Returns |AbinitInput| for the calculation of an electric field perturbation.
         This function should be called with an input that represents a GS run and
@@ -2657,16 +2657,19 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     #    return new
 
-    def make_gwr_qprange_input(self, gwr_ntau, nband, ecuteps, gw_qprange=0, gwr_task=GWR_TASK.G0W0,
+    def make_gwr_qprange_input(self, gwr_ntau: int, nband: int, ecuteps: float,
+                               gw_qprange: int = 0,
+                               gwr_task=GWR_TASK.G0W0,
                                **kwargs) -> AbinitInput:
         """
         Build and return an input file to compute QP corrections with the GWR code.
 
         Args:
             gwr_ntau: Number of minimax points.
-            nband: Number of bands in Green's function
-            ecuteps: Cutoff energy for chi0
-            gw_qprange = 0 to compute the QP corrections only for the fundamental and the direct gap.
+            nband: Number of bands in Green's function.
+            ecuteps: Cutoff energy for chi0 in Ha.
+            gw_qprange: 0 to compute the QP corrections only for the fundamental and the direct gap.
+                For other values see Abinit docs.
             gwr_task: String defining the GWR task
         """
         new = self.new_with_vars(
@@ -2725,7 +2728,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     def abiget_spacegroup(self, tolsym=None, retdict=False, workdir=None, manager=None, verbose=0):
         """
-        This function invokes Abinit to get the space group (as detected by Abinit, not by spglib)
+        This function invokes Abinit to get the space group as detected by Abinit, and not by spglib.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
 
         Args:
@@ -2764,18 +2767,6 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 return dims_dataset[1], spginfo_dataset[1]
         except Exception as exc:
             self._handle_task_exception(task, exc)
-
-    #def get_qptopt(self) -> int:
-    #    """Helper function that returns"""
-    #    if "qptopt" in self:
-    #        return self["qptopt"]
-
-    #    kptopt = self.get("kptopt", 1)
-    #    nspinor = self.get("nspinor", 1)
-    #    nsppol = self.get("nsppol", 1)
-    #    nspden = self.get("nspden", 1)
-    #    qptopt = 1
-    #    return qptopt
 
     def abiget_ibz(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None, verbose=0):
         """
@@ -2860,7 +2851,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if verbose:
             print("Computing qptdms with input:\n", str(inp))
 
-        # Build a Task to run Abinit in a shell subprocess
+        # Build a Task to run Abinit in a shell subprocess.
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False)
 
@@ -3068,7 +3059,6 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
             [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
              {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
-
         """
         dteperts_vars = dict(d3e_pert1_phon=1 if phonon_pert else 0,  # phonon-type perturbation
                              d3e_pert2_phon=0,
@@ -3142,7 +3132,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         """
         Remove all the variables associated to parallelism from the input file.
         Useful in case of a restart when we need to remove the parallel variables
-        before rerunning autoparal
+        before rerunning with autoparal.
         """
         parvars = ['npkpt', 'npfft', 'npband', 'npspinor', 'npimage']
         if all:
@@ -3465,7 +3455,11 @@ class MultiDataset:
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, mode="text", verbose=0, with_pseudos=True, files_file=False) -> str:
+    def to_string(self,
+                  mode: str = "text",
+                  verbose: int =0,
+                  with_pseudos: bool = True,
+                  files_file: bool = False) -> str:
         """
         String representation i.e. the ABINIT input file.
 
@@ -3803,7 +3797,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         qpoint = qpoint.frac_coords if hasattr(qpoint, "frac_coords") else np.array(qpoint)
 
         if len(qpoint) != 3:
-            raise ValueError("Wrong q-point %s" % qpoint)
+            raise ValueError(f"Wrong {qpoint=}")
 
         return cls.modes_at_qpoints(structure=structure, qpoints=[qpoint], asr=asr, chneut=chneut, dipdip=dipdip,
                                     dipquad=dipquad, quadquad=quadquad,
@@ -3942,7 +3936,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
                 dossmear = Energy(float(value), eunit).to("Ha")
         else:
-            raise NotImplementedError("Wrong value for dos_method: %s" % str(dos_method))
+            raise NotImplementedError(f"Wrong value for {dos_method=}")
 
         new = cls(structure, comment="ANADDB input for phonon bands and DOS generated by AbiPy" if not comment else comment,
                   anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
@@ -4240,7 +4234,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             # alphabetical order.
             keys = sorted(self.keys())
         else:
-            raise ValueError("Unsupported value for sortmode %s" % str(sortmode))
+            raise ValueError(f"Unsupported value for {sortmode=}")
 
         if mode == "html":
             var_database = get_anaddb_variables()
@@ -4448,7 +4442,7 @@ class OpticInput(AbiAbstractInput, MSONable):
             value = self.vars.get(name)
             if value is None: value = self.get_default(name)
             if value is None:
-                raise self.Error("Variable %s is missing" % name)
+                raise self.Error(f"Variable {name=} is missing")
 
             var = self._NAME2VAR[name]
             grp = var.group
@@ -4465,7 +4459,7 @@ class OpticInput(AbiAbstractInput, MSONable):
             value = self.vars.get(name)
             if value is None: value = self.get_default(name)
             if value is None:
-                raise self.Error("Variable %s is missing" % name)
+                raise self.Error(f"Variable {name=} is missing")
 
             # One line per variable --> valperline set to None
             variable = InputVariable("", value, valperline=None)

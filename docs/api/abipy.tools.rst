@@ -105,6 +105,14 @@ abipy.tools.numtools module
    :undoc-members:
    :show-inheritance:
 
+abipy.tools.pade module
+-----------------------
+
+.. automodule:: abipy.tools.pade
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 abipy.tools.parallel module
 ---------------------------
 

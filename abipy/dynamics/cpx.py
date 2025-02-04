@@ -158,7 +158,7 @@ class EvpFile(TextFile, NotebookWriter):
         """Array with times in ps units."""
         return np.array(self.df["tps(ps)"].values, dtype=float)
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose."""
         lines = []; app = lines.append
         app(self.df.describe(percentiles=None).to_string())
@@ -419,4 +419,3 @@ def downsample_xyz(input_xyz, take_every, output_xyz, skip_head=None, verbose=1)
 
     if verbose: print(f"Wrote {count=} configurations to {output_xyz=} with {take_every=} and {skip_head=}")
     return count
-

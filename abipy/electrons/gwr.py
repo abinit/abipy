@@ -15,6 +15,7 @@ from monty.collections import dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
+from abipy.core.func1d import Function1D
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList
@@ -27,6 +28,7 @@ from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.electrons.gw import SelfEnergy, QPState, QPList
 from abipy.abio.enums import GWR_TASK
+from abipy.tools.pade import pade, dpade, SigmaPade
 
 
 __all__ = [
@@ -64,7 +66,7 @@ class MinimaxMesh:
 
     @classmethod
     def from_ncreader(cls, reader: ETSF_Reader) -> MinimaxMesh:
-        """Build a minimax mesh from a netcdf reader."""
+        """Build a minimax mesh instance from a netcdf reader."""
         d = {}
         for field in dataclasses.fields(cls):
             name = field.name
@@ -91,20 +93,22 @@ class MinimaxMesh:
     #def ft_w2t_even(self, f_w: np.ndarray) -> np.ndarray:
     #def ft_t2w_even(self, f_t: np.ndarray) -> np.ndarray:
 
-    def ft_pmt(self, f_pmt: np.ndarray) -> np.ndarray:
+    def get_ft_mptau(self, f_mpt: np.ndarray) -> np.ndarray:
         """
         Transform a signal in imaginary time to imaginary frequency with inhomogeneous FT.
 
         Args:
-            f_pmt: numpy array of shape [2, ntau] where [0,:] corresponds to positive taus
-            and [1,:] to negative taus.
+            f_mpt: numpy array of shape [2, ntau] or [2*ntau] where
+            [0,:] corresponds to negative taus and [1,:] to positive taus.
         """
+        if (ntau := len(f_mpt)) % 2 != 0:
+            raise ValueError("Expecting an even number of points but got {ntau=}")
+        f_mpt = np.reshape(f_mpt, (2, ntau // 2))
+
         # f(t) = E(t) + O(t) = (f(t) + f(-t)) / 2  + (f(t) - f(-t)) / 2
-        even_t = (f_pmt[0] + f_pmt[1]) / 2.0
-        odd_t = (f_pmt[0] - f_pmt[1]) / 2.0
+        even_t = (f_mpt[1] + f_mpt[0]) / 2.0
+        odd_t = (f_mpt[1] - f_mpt[0]) / 2.0
         return self.cosft_wt @ even_t + 1j * self.sinft_wt @ odd_t
-
-
 
     @add_fig_kwargs
     def plot_ft_weights(self,
@@ -161,9 +165,42 @@ class MinimaxMesh:
 
 @dataclasses.dataclass(kw_only=True)
 class PadeData:
-    sigc_rw: np.ndarray
+    """Container for the Pade' results."""
+    w_vals: np.ndarray
+    sigxc_w: np.ndarray
     aw: np.ndarray
+    e0: float
     ze0: float
+
+
+@dataclasses.dataclass(kw_only=True)
+class SigmaTauFit:
+    """Stores the fit for Sigma(i tau)"""
+
+    tau_mesh: np.ndarray
+    values: np.ndarray
+    a_mtau: complex   # Coefficient
+    beta_mtau: float  # exp(beta tau)
+    a_ptau: complex
+    beta_ptau: float  # exp(-beta tau)
+
+    def eval_omega(self, ws: np.ndarray) -> np.ndarray:
+        r"""
+        Compute the Fourier transform of the piecewise function.
+
+            e^{-a t}, & t > 0 \quad (a > 0) \\
+            e^{b t}, & t < 0 \quad (b > 0),
+
+        that is:
+
+            F(\omega) = \frac{1}{b - i \omega} + \frac{1}{a + i \omega}.
+        """
+        # TODO: Enforce time-ordering with zcut.
+        cvals = np.empty(len(ws), dtype=complex)
+        zcut = 1j * 0.1
+        for iw, ww in enumerate(ws):
+            cvals[iw] = self.a_mtau / (self.beta_mtau - ww - zcut) + self.a_ptau / (self.beta_ptau + ww + zcut)
+        return cvals
 
 
 class GwrSelfEnergy(SelfEnergy):
@@ -173,7 +210,7 @@ class GwrSelfEnergy(SelfEnergy):
 
     PADE_METHODS = [
       "abinit_pade",  # Pade results produced by ABINIT
-      "abipy_pade",   # Pade results produced by Abipy (should be equal to abinit_pade)
+      "abipy_pade",   # Pade results produced by AbiPy (should be equal to abinit_pade).
       "tau_fit",      # Fit Sigma_c(tau) and apply pade to the difference.
     ]
 
@@ -182,59 +219,215 @@ class GwrSelfEnergy(SelfEnergy):
         super().__init__(*args, **kwargs)
         self.mx_mesh = mx_mesh
 
-    def get_pade_data(self, rw_vals, pade_method: str) -> PadeData:
+    def tau_fit(self, first, last, xs) -> tuple[np.ndarray, complex, float]:
         """
-        Use the Pade' method to obtain the self-energy on the real axis,
-        the renormalization factor at the KS energy and the spectral function A(w)
+        Performs the exponential fit in imaginary time.
+        """
+        mp_taus = self.c_tau.mesh
+        vals_mptaus = self.c_tau.values
+        w0, f0 = mp_taus[first], vals_mptaus[first]
+        wn, fn = mp_taus[last], vals_mptaus[last]
+        # NB: take the real part of the log to avoid oscillatory behaviour in the exp.
+        a = -np.log(fn / f0) / (wn - w0)
+        a = a.real
+        # If something goes wrong, disable the fit.
+        # Note that the sign of a depends whether as we working with positive or negative tau.
+        if wn >= 0 and a <= 1e-12: f0 = 0.0j
+        if wn < 0 and a >= -1e-12: f0 = 0.0j
+        #print(f"{f0=}")
+        return f0 * np.exp(-a * (xs - w0)), f0, a
+
+    def _minimize_loss_tau(self, tau_fit, zone: str):
+        """
+        Compute loss functions for all possible values of second_index.
+        """
+        mp_taus, vals_mptaus = self.c_tau.mesh, self.c_tau.values
+        ntau = len(mp_taus) // 2
+        if len(mp_taus) % 2 != 0:
+            raise ValueError("Expecting an even number of points but got {len(mp_taus)=}")
+
+        # Note weighted sum with minimax weights tau_wgs.
+        losses = []
+        if zone == "+":
+            xs, ys = mp_taus[ntau:], vals_mptaus[ntau:]
+            first = ntau
+            for last in range(first+1, len(mp_taus)):
+                ys_fit, alpha, beta = tau_fit(first, last, xs)
+                losses.append((last, np.sum(self.mx_mesh.tau_wgs * np.abs(ys_fit - ys)**2), ys_fit, alpha, beta))
+
+        elif zone == "-":
+            xs, ys = mp_taus[:ntau], vals_mptaus[:ntau]
+            first = ntau - 1
+            for last in range(first):
+                ys_fit, alpha, beta = tau_fit(first, last, xs)
+                losses.append((last, np.sum(self.mx_mesh.tau_wgs * np.abs(ys_fit - ys)**2), ys_fit, alpha, beta))
+
+        else:
+            raise ValueError(f"Invalid {zone=} should be in (-, +)")
+
+        # Find min of losses.
+        min_loss = min(losses, key=lambda t: t[1])
+        return dict2namedtuple(imin=min_loss[0], loss=min_loss[1], values=min_loss[2],
+                               alpha=min_loss[3], beta=min_loss[4])
+
+    def get_exp_tau_fit(self) -> SigmaTauFit:
+        """
+        Fit Sigma_c(i tau) values for tau < 0 and tau > 0 with two different exponentials.
+        """
+        fit_m = self._minimize_loss_tau(self.tau_fit, "-")
+        fit_p = self._minimize_loss_tau(self.tau_fit, "+")
+
+        return SigmaTauFit(tau_mesh=self.c_tau.mesh,
+                           values=np.concatenate((fit_m.values, fit_p.values), axis=0),
+                           a_mtau=fit_m.alpha,
+                           beta_mtau=fit_m.beta,
+                           a_ptau=fit_p.alpha,
+                           beta_ptau=fit_p.beta)
+
+    def get_pade_data(self, w_vals: np.ndarray, e0: float, pade_method: str) -> PadeData:
+        """
+        Use the Pade' method to get the self-energy on the real axis,
+        the renormalization factor ze0 at the KS energy and the spectral function A(w).
 
         Args:
-            rw_vals:
-            pade_method:
-
-        Return: namedtuple with .sigxc, .aw, and ze0.
+            w_vals: Energy values in eV. Ignored if pade_method == "abinit_pade".
+            e0: bare KS energy used to compute ze0 (eV units)
+            pade_method: String defining the Pade' algorithm.
         """
-        #if pade_method == "abinit_pade":
-        #    sigc_rw =
-        #    aw = aw
-        #    ze0 = ze0
+        if pade_method == "abinit_pade":
+            # Get data from the file produced by ABINIT.
+            sigc_w = self.xc.values - self.x_val
+            aw = self.aw.values
+            ze0 = self.ze0
 
-        #elif pade_method == "abipy_pade":
-        #    from abipy.tools.pade import pade, dpade
-        #    #pade(z, f, zz)
-        #    #dpade(z, f, zz)
+        elif pade_method == "abipy_pade":
+            # Compute the AC using the python version implemented in Abipy.
+            # It should give the same results as abinit_pade as these functions
+            # have been translated from Fortran to python.
+            if not self.has_c_iw:
+                raise ValueError("GwrSelfEnergy instance does not have data on the imaginary axis!")
 
-        #elif pade_method == "tau_fit":
-        #    sigc_rw =
-        #    aw = aw
-        #    ze0 = ze0
+            # if z_eval in 2 or 3 quadrant, avoid the branch cut in the complex plane using Sigma(-iw) = Sigma(iw)*.
+            # See also sigma_pade_eval in m_dyson_solver.F90
+            zs, f_zs = 1j * self.c_iw.mesh, self.c_iw.values
+            spade = SigmaPade(zs, f_zs)
+            sigc_w, dsigc_dw = spade.eval(w_vals)
+            #ze0 = sigc_w = spade.eval_dz(e0)
 
-        #else:
-        #    raise ValueError(f"Invalid {pade_method=}, should be in {self.PADE_METHODS=}")
+            # FIXME
+            ze0 = dpade(zs, f_zs, e0)
+            aw = f_zs
 
-        return PadeData(sigxc_rw=sigxc_rw, aw=aw, ze0=ze0)
+            from pprint import pprint as p
+            print("zs:\n", p(zs.tolist()))
+            print("f_zs:\n", p(f_zs.tolist()))
+            print("w_vals\n", p(w_vals.tolist()[:4]))
+            print("sigc_w:\n", p(sigc_w.tolist()))
+            import sys
+            sys.exit(0)
+
+        elif pade_method == "tau_fit":
+            # Fit values for tau < 0, tau > 0 with two exponentials with real argument
+            # and remove them from the signal.
+            # Use Pade' to perform the AC of the difference and add analytic transform.
+            # Trasform F(i tau) --> F(i ww) using minimax_mesh and inhomogeneous FT.
+            # Ordering is first negative then positive tau values.
+            fit = self.get_exp_tau_fit()
+            diff_tau = self.c_tau.values - fit.values
+            diff_iw = self.mx_mesh.get_ft_mptau(diff_tau)
+            zs = 1j * self.c_iw.mesh
+            spade = SigmaPade(zs, diff_iw)
+            diff_sigc_w, diff_dsigc_dw = spade.eval(w_vals)
+
+            sigc_w = diff_sigc_w + fit.eval_omega(w_vals)
+            sigc_w = fit.eval_omega(w_vals)
+
+            # FIXME
+            aw = sigc_w
+            ze0 = 0
+            #raise NotImplementedError()
+
+        else:
+            raise ValueError(f"Invalid {pade_method=}, should be in {self.PADE_METHODS=}")
+
+        # Add the static exchange part.
+        sigxc_w = sigc_w + self.x_val
+        return PadeData(w_vals=w_vals, sigxc_w=sigxc_w, aw=aw, e0=e0, ze0=ze0)
 
     @add_fig_kwargs
     def plot_pade(self,
                   pade_methods: list[str],
-                  w_mesh: None | np.ndarray,
-                  ax=None,
+                  wmesh: None | np.ndarray = None,
+                  ref_data: PadeData | None = None,
+                  ax_mat=None,
+                  fontsize: int = 8,
                   **kwargs) -> Figure:
         """
+        Args:
+            pade_methods: string or list of strings defining the Pade' algorithm.
+            wmesh: Real frequency mesh. If None the internal mesh is used.
+            ref_data: Reference data to compare with.
+            ax_mat: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Legend and title fontsize.
         """
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        nrows, ncols = (3, 1)
+        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols)
+        ax_list = np.array(ax_mat).flatten()
+        ax_re, ax_im, ax_aw = ax_list
 
+        if wmesh is None:
+            wmesh = self.wmesh
+
+        # FIXME
+        e0 = 0.0
         for pade_method in list_strings(pade_methods):
-           p = self.get_pade_data(rw_vals, pade_method)
-           #p.sigxc_rw
-           #p.aw
-           #p.ze0
+           pdata = self.get_pade_data(wmesh, e0, pade_method)
+           #print(pdata)
+           ax_re.plot(pdata.w_vals, pdata.sigxc_w.real, label=pade_method)
+           ax_im.plot(pdata.w_vals, pdata.sigxc_w.imag, label=pade_method)
+           #ax_aw.plot(pdata.w_vals, pdata.aw, label=pade_method)
+
+        if ref_data is not None:
+           ax_re.plot(ref_data.w_vals, ref_data.sigxc_w.real, label="Ref")
+           ax_im.plot(ref_data.w_vals, ref_data.sifxc_w.imag, lable="Ref")
+           #ax_aw.plot(ref_data.w_vals, ref_data.aw, label="Ref")
+
+        for ax in ax_list:
+            set_grid_legend(ax, fontsize) #, xlabel="Iteration") #, ylabel=ylabel)
+
+        ax_re.set_ylabel(r"$\Re\Sigma(\omega)$ (eV)")
+        ax_im.set_ylabel(r"$\Im\Sigma(\omega)$ (eV)")
+        ax_aw.set_ylabel(r"$A(\omega)$")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_tau_fit(self, ax_list=None, fontsize: int = 8, **kwargs) -> Figure:
+        """
+        Plot Sig(i tau) and the exponential fit.
+
+        Args:
+            ax_list: List of |matplotlib-Axes| for plot. If None, new figure is produced.
+            fontsize: Legend and title fontsize.
+        """
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=2, ncols=1)
+        ax_list = ax_re, ax_im = np.ravel(ax_list)
+        fit = self.get_exp_tau_fit()
+
+        # Plot data.
+        self.plot_reimc_tau(ax_list, marker="o")
+        ax_re.plot(fit.tau_mesh, fit.values.real)
+        ax_im.plot(fit.tau_mesh, fit.values.imag)
+
+        for ax in ax_list:
+            set_grid_legend(ax, fontsize=fontsize)
 
         return fig
 
 
 class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    This object provides an high-level interface to the GWR.nc file produced by the GWR code.
+    This object provides a high-level interface to the GWR.nc file produced by the GWR code.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GwrFile
@@ -283,7 +476,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     @lazy_property
     def qpz0_dirgaps(self) -> np.ndarray:
        """
-       QP direct gaps in eV computed with the Z factor at the KS energy
+       QP direct gaps in eV computed with the renormalization Z factor at the KS energy
        Shape: [nsppol, nkcalc]
        """
        return self.r.read_value("qpz_gaps") * abu.Ha_eV
@@ -330,14 +523,14 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                 qp_kpoints = [self.sigma_kpoints[ikc] for ikc in ik_list]
                 items = qp_kpoints, ik_list
         else:
-            raise TypeError("Don't know how to interpret `%s`" % (type(qp_kpoints)))
+            raise TypeError(f"Don't know how to interpret {type(qp_kpoints)}")
 
         # Check indices
         errors = []
         eapp = errors.append
         for ikc in items[1]:
             if ikc >= self.nkcalc:
-                eapp("K-point index %d >= nkcalc %d, check input qp_kpoints" % (ikc, self.nkcalc))
+                eapp(f"K-point index {ikc} >= {self.nkcalc=}. Please check input qp_kpoints")
         if errors:
             raise ValueError("\n".join(errors))
 
@@ -384,7 +577,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         # GWR section.
         app(marquee("GWR parameters", mark="="))
-        app("gwr_task: %s" % self.r.gwr_task)
+        app(f"gwr_task: {self.r.gwr_task}")
 
         if self.r.gwr_task == GWR_TASK.RPA_ENERGY:
             pass
@@ -725,13 +918,36 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return fig
 
-    #@add_fig_kwargs
-    #def plot_sparsity(self, what, origin="lower", **kwargs):
-    #   x_mat
-    #   ax.spy(mat, precision=0.1, markersize=5, origin=origin)
+    @add_fig_kwargs
+    def plot_tau_fit_sk(self,
+                        spin: int,
+                        kpoint: KptSelect,
+                        fontsize: int = 8,
+                        **kwargs) -> Figure:
+        """
+        Plot the ab-initio results and the fit in imaginary-time
+        for all bands at the given kpoint and spin index.
+
+        Args
+            spin: Spin index.
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+            fontsize: Legend and title fontsize.
+        """
+        ikcalc, kpoint = self.r.get_ikcalc_kpoint(kpoint)
+        band_range = range(self.r.bstart_sk[spin, ikcalc], self.r.bstop_sk[spin, ikcalc])
+        nrows, ncols = len(band_range), 2
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols)
+        for ib, band in enumerate(band_range):
+            ax_list = ax_mat[ib]
+            sigma = self.r.read_sigee_skb(spin=spin, kpoint=kpoint, band=band)
+            sigma.plot_tau_fit(ax_list=ax_list, show=False)
+
+        fig.suptitle(r"$\Sigma_{nk}$" + f" at k-point: {kpoint}, spin: {spin}", fontsize=fontsize)
+
+        return fig
 
     #@add_fig_kwargs
-    #def plot_mat(self, what, origin="lower", **kwargs):
+    #def plot_sig_mat(self, what, origin="lower", **kwargs):
     #   x_mat
     #   ax.spy(mat, precision=0.1, markersize=5, origin=origin)
 
@@ -748,6 +964,18 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Used in abiview.py to get a quick look at the results.
         """
         verbose = kwargs.pop("verbose", 0)
+
+        """
+        print("In hacked yield_figs")
+        sigma = self.r.read_sigee_skb(spin=0, kpoint=0, band=4)
+        return sigma.plot_pade(["abinit_pade", "tau_fit"], show=False)
+        #return sigma.plot_pade(["abinit_pade", "abipy_pade"], show=False)
+        return None
+
+        for ik in range(len(self.sigma_kpoints)):
+            yield self.plot_tau_fit_sk(spin=0, kpoint=ik, show=False)
+        return None
+        """
 
         #include_bands = "all" if verbose else "gaps"
         #yield self.plot_spectral_functions(include_bands=include_bands, show=False)
@@ -844,8 +1072,8 @@ class GwrReader(ETSF_Reader):
 
     def kpt2ikcalc(self, kpoint: KptSelect) -> int:
         """
-        Returns the index of the k-point in the sigma_kpoints array.
-        Used to access data in the arrays that are dimensioned [0:nkcalc]
+        Return the index of the k-point in the sigma_kpoints array.
+        Used to access data in the arrays that are dimensioned as [0:nkcalc].
         """
         if duck.is_intlike(kpoint):
             return int(kpoint)
@@ -862,48 +1090,52 @@ class GwrReader(ETSF_Reader):
 
     def read_sigee_skb(self, spin: int, kpoint: KptSelect, band: int) -> GwrSelfEnergy:
         """"
-        Read self-energy for (spin, kpoint, band).
+        Read self-energy for the given (spin, kpoint, band).
         """
         ikcalc, kpoint = self.get_ikcalc_kpoint(kpoint)
         ib = band - self.min_bstart
         ib2 = 0 if self.sig_diago else ib
-
         e0 = self.e0_kcalc[spin, ikcalc, ib]
         wmesh = self.get_wr_mesh(e0)
 
         # nctkarr_t("sigxc_rw_diag", "dp", "two, nwr, smat_bsize1, nkcalc, nsppol"), &
-        sigxc_values = self.read_variable("sigxc_rw_diag")[spin,ikcalc,ib,:,:] * abu.Ha_eV
-        sigxc_values = sigxc_values[:,0] + 1j *sigxc_values[:,1]
+        xc_vals = self.read_variable("sigxc_rw_diag")[spin,ikcalc,ib,:,:] * abu.Ha_eV
+        xc_vals = xc_vals[:,0] + 1j *xc_vals[:,1]
 
         # nctkarr_t("spfunc_diag", "dp", "nwr, smat_bsize1, nkcalc, nsppol") &
-        spf_values = self.read_variable("spfunc_diag")[spin,ikcalc,ib,:] / abu.Ha_eV
+        aw_vals = self.read_variable("spfunc_diag")[spin,ikcalc,ib,:] / abu.Ha_eV
 
         # nctkarr_t("sigc_iw_mat", "dp", "two, ntau, smat_bsize1, smat_bsize2, nkcalc, nsppol"), &
         sigc_iw = self.read_value("sigc_iw_mat", cmode="c") * abu.Ha_eV
-        c_iw_values = sigc_iw[spin,ikcalc,ib2,ib]
+        c_iw_values = sigc_iw[spin, ikcalc, ib2, ib]
 
-        # nctkarr_t("sigc_it_mat", "dp", "two, two, ntau, smat_bsize1, smat_bsize2, nkcalc, nsppol"), &
+        # nctkarr_t("sigc_it_mat", "dp", "two, two, ntau, smat_bsize1, smat_bsize2, nkcalc, nsppol")
         sigc_tau = self.read_value("sigc_it_mat", cmode="c") * abu.Ha_eV
         c_tau_pm = sigc_tau[spin,ikcalc,ib2,ib]
         tau_mp_mesh = np.concatenate((-self.tau_mesh[::-1], self.tau_mesh))
         c_tau_mp_values = np.concatenate((c_tau_pm[::-1,1], c_tau_pm[:,0]))
 
+        # nctkarr_t("sigx_mat", "dp", "two, smat_bsize1, smat_bsize2, nkcalc, nsppol")
+        x_val = self.read_variable("sigx_mat")[spin, ikcalc, ib2, ib, 0] * abu.Ha_eV
         mx_mesh = MinimaxMesh.from_ncreader(self)
+        # nctkarr_t("ze0_kcalc", "dp", "two, smat_bsize1, nkcalc, nsppol")
+        ze0 = self.read_variable("ze0_kcalc")[spin, ikcalc, ib]
+        ze0 = ze0[0] + 1j*ze0[1]
 
-        return GwrSelfEnergy(spin, kpoint, band, wmesh, sigxc_values, spf_values,
+        return GwrSelfEnergy(spin, kpoint, band, wmesh, xc_vals, x_val, ze0, aw_vals,
                              iw_mesh=self.iw_mesh, c_iw_values=c_iw_values,
                              tau_mp_mesh=tau_mp_mesh, c_tau_mp_values=c_tau_mp_values,
-                             mx_mesh=mx_mesh,
-                             )
+                             mx_mesh=mx_mesh)
 
     def read_sigma_bdict_sikcalc(self, spin: int, ikcalc: int, include_bands: bool) -> dict[int, GwrSelfEnergy]:
         """
-        Return dict of self-energy objects for given (spin, ikcalc) indexed by the band index.
+        Return dictionary of self-energy objects for the given (spin, ikcalc) indexed by the band index.
         """
         sigma_of_band = {}
         for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
             if include_bands and band not in include_bands: continue
             sigma_of_band[band] = self.read_sigee_skb(spin, ikcalc, band)
+
         return sigma_of_band
 
     def read_allqps(self, ignore_imag: bool = False) -> tuple[QPList]:

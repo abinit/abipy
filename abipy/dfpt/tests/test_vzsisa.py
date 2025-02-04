@@ -138,7 +138,7 @@ class QhaTest(AbipyTest):
             assert qha.plot_abc_vs_t_4th(tstop=tstop, tstart=tstart, num=101, lattice="a", show=False)
             assert qha.plot_abc_vs_t_4th(tstop=tstop, tstart=tstart, show=False)
             assert qha.plot_thermal_expansion_coeff_4th(tref=293, show=False)
-            assert qha.plot_thermal_expansion_coeff_abc_4th(tstop=tstop, tstart=tstart ,num=101, tref=293, show=False)
+            assert qha.plot_thermal_expansion_coeff_abc_4th(tstop=tstop, tstart=tstart, num=101, tref=293, show=False)
             assert qha.plot_angles_vs_t_4th(tstop=tstop, tstart=tstart, num=101, angle=3, show=False)
 
             plotter = qha.get_phdos_plotter()

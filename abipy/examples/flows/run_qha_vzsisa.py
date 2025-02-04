@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow for QHA calculations v-ZSISA-QHA
-=====================================
+Flow for v-ZSISA-QHA calculations
+================================
 
 See [Phys. Rev. B 110, 014103](https://doi.org/10.1103/PhysRevB.110.014103)
 """
@@ -30,14 +30,17 @@ def build_flow(options):
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
     pseudos = get_oncvpsp_pseudos(xc_name="PBEsol", version="0.4")
 
-    # Select k-mesh for electrons and q-mesh for phonons.
-    ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
-    #ngkpt = [4, 4, 4]; ngqpt = [4, 4, 4]
+    # Select k-mesh for electrons and q-mesh for phonons. NB: ngqpt should be a divisor of ngkpt.
+    # These values are clearly UNDERCONVERGED, just for testing.
+    ngkpt = [2, 2, 2]
+    ngqpt = [1, 1, 1]
 
+    # BECS are not needed for Si. quadrupoles require pseudos without non-linear core correction.
     with_becs = False
     with_quad = False
     #with_quad = not structure.has_zero_dynamical_quadrupoles
 
+    # List of volumetric scaling factors for the BO energies and the phonon part.
     #bo_vol_scales = [0.96, 0.98, 1.0, 1.02, 1.04, 1.06]
     #ph_vol_scales = [0.98, 1.0, 1.02, 1.04, 1.06] # EinfVib4(D)
     bo_vol_scales = [0.96, 0.98, 1, 1.02, 1.04]    # EinfVib4(S)
@@ -45,7 +48,7 @@ def build_flow(options):
 
     scf_input = abilab.AbinitInput(structure, pseudos)
 
-    # Set other important variables
+    # Set other important variables assuming a spin unpolarized semiconductor (nsppol 1, nspinor 1).
     # All the other DFPT runs will inherit these parameters.
     scf_input.set_vars(
         nband=scf_input.num_valence_electrons // 2,
@@ -54,7 +57,7 @@ def build_flow(options):
         nstep=100,
         ecutsm=1.0,
         tolvrs=1.0e-8,   # SCF stopping criterion (modify default)
-        #tolvrs=1.0e-18,   # SCF stopping criterion (modify default)
+        #tolvrs=1.0e-18, # SCF stopping criterion (modify default)
     )
 
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])

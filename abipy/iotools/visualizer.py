@@ -21,7 +21,7 @@ def is_macosx() -> bool:
     return "darwin" in sys.platform
 
 
-def find_loc(app_name) -> str:
+def find_loc(app_name: str) -> str:
     """
     Returns the location of the application from its name. None if not found.
     """
@@ -31,7 +31,7 @@ def find_loc(app_name) -> str:
     return path
 
 
-def _find_loc(app_name) -> str:  # pragma: no cover
+def _find_loc(app_name: str) -> str:  # pragma: no cover
     # Try command line version
     path = which(app_name)
     if path is not None: return path
@@ -92,11 +92,11 @@ class Visualizer(metaclass=abc.ABCMeta):
         return "%s: %s, is_macosx_app %s, filepath: %s" % (
             self.__class__.__name__, self.binpath, self.is_macosx_app, self.filepath)
 
-    def __call__(self):  # pragma: no cover
+    def __call__(self) -> int:  # pragma: no cover
         """
         Call the visualizer in a subprocess.
 
-        Returns: exit status of the subprocess.
+        Return: exit status of the subprocess.
         """
         from subprocess import call
         if not self.is_macosx_app:
@@ -160,12 +160,12 @@ class Visualizer(metaclass=abc.ABCMeta):
         # Get the file extension.
         root, ext = os.path.splitext(filepath)
         if not ext:
-            raise ValueError("Cannot detect file extension in %s " % filepath)
+            raise ValueError(f"Cannot detect file extension in {filepath}")
 
         avail_visus = cls.get_available(ext=ext)
 
         if not avail_visus:
-            raise cls.Error("Cannot find available visualizer for extension %s " % ext)
+            raise cls.Error(f"Cannot find available visualizer for extension {ext}")
 
         return avail_visus[0](filepath)
 
@@ -180,7 +180,7 @@ class Visualizer(metaclass=abc.ABCMeta):
         for visu in cls.__subclasses__():
             if visu.name == appname: return visu
 
-        raise cls.Error("`%s` is not among the list of supported visualizers" % appname)
+        raise cls.Error(f"{appname=} is not among the list of supported visualizers")
 
     @classmethod
     def all_visunames(cls):
