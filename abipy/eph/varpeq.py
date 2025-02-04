@@ -558,7 +558,7 @@ class Polaron:
     @add_fig_kwargs
     def plot_ank_with_ebands(self, ebands_kpath,
                              ebands_kmesh=None, lpratio: int = 5, with_info = True, with_legend=True,
-                             with_ibz_a2dos=True, method="gaussian", step: float = 0.05, width: float = 0.1,
+                             with_ibz_a2dos=True, method="gaussian", step="auto", width="auto",
                              nksmall: int = 20, normalize: bool = False, with_title=True, interp_method="linear",
                              ax_mat=None, ylims=None, scale=50, marker_color="gold", marker_edgecolor="gray",
                              marker_alpha=0.5, fontsize=12, lw_bands=1.0, lw_dos=1.0,
@@ -671,6 +671,14 @@ class Polaron:
             ebands_kmesh = ElectronBands.as_ebands(ebands_kmesh)
 
         # Get electronic DOS from ebands_kmesh.
+        # Maybe it's better to set N bandwidth divisions & width factor instead of
+        # the step and width arguments themselves?
+        bandwidth = ylims[1] - ylims[0] if ylims else 1.2*(ymax - ymin)
+        if step == "auto":
+            step = bandwidth / 200
+        if width == "auto":
+            width = 2.0 * step
+
         edos_kws = dict(method=method, step=step, width=width)
         edos = ebands_kmesh.get_edos(**edos_kws)
         edos_mesh = edos.spin_dos[self.spin].mesh
@@ -792,10 +800,12 @@ class Polaron:
                 elif pkind == "electron":
                     fill_from, fill_to = shifted_bm, shifted_bm + filter_value
 
+                ax.axhline(fill_from, c='k', zorder=0, lw=lw_dos)
+                ax.axhline(fill_to, c='k', zorder=0, lw=lw_dos)
                 ax.fill_between(xrange, ylims[0], fill_from,
-                                color='gray', linewidth=lw_dos, alpha=0.5, zorder=0)
+                                color='lightgray', linewidth=0, alpha=0.5, zorder=0)
                 ax.fill_between(xrange, fill_to, ylims[1],
-                                color='gray', linewidth=lw_dos, alpha=0.5, zorder=0)
+                                color='lightgray', linewidth=0, alpha=0.5, zorder=0)
 
         if with_title:
             fig.suptitle(self.get_title(with_gaps=True))
