@@ -1,3 +1,6 @@
+# coding: utf-8
+from __future__ import annotations
+
 import numpy as np
 import abipy.core.abinit_units as abu
 
@@ -7,17 +10,18 @@ try:
     from scipy.integrate import simpson as simps
 except ImportError:
     from scipy.integrate import simps
+import abipy.core.abinit_units as abu
 
 from pymatgen.io.phonopy import get_pmg_structure
 from abipy.tools.plotting import get_ax_fig_plt,add_fig_kwargs
+from abipy.tools.typing import Figure
 from abipy.embedding.utils_ifc import clean_structure
-import abipy.core.abinit_units as abu
 from abipy.lumi.utils_lumi import A_hw_help,L_hw_help,plot_emission_spectrum_help
 from abipy.embedding.utils_ifc import localization_ratio
 
 
 
-class Lineshape():
+class Lineshape:
     """
 
     Object representing a luminescent lineshape, following a multi-phonon mode model (multiD-CCM).
@@ -44,8 +48,8 @@ class Lineshape():
     def from_phonopy_phonons(cls,E_zpl,phonopy_ph,dSCF_structure,use_forces=True,dSCF_displacements=None,dSCF_forces=None,coords_defect_dSCF=None,
                              coords_defect_phonons=None,tol=0.3):
 
-        """ 
-       Different levels of approximations for the phonons and force/displacements: 
+        """
+       Different levels of approximations for the phonons and force/displacements:
        See discussion in the supplementary informations of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537, section (1).
 
         - size_supercell deltaSCF = size_supercell phonons (phonons of the bulk structure or phonons of defect structure).
@@ -191,7 +195,7 @@ class Lineshape():
 
     def Delta_Q(self, unit="SI"):
         """
-        Total Delta_Q, "SI" or "atomic" unit. 
+        Total Delta_Q, "SI" or "atomic" unit.
         """
         dQ=np.sqrt(np.sum(self.Delta_Q_nu() ** 2))
         if unit=="SI":
@@ -231,10 +235,10 @@ class Lineshape():
         for k in np.arange(self.n_modes()):
             S += S_nu[k] * (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-((omega - freq_eV[k]) ** 2 / (2 * sigma ** 2)))
         return (omega, S)
-    
+
     def localization_ratio(self):
         """
-        array of the phonon mode localisation, see equation (10) of https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537   
+        array of the phonon mode localisation, see equation (10) of https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537
         """
         return localization_ratio(self.ph_eigvec)
 
@@ -252,16 +256,16 @@ class Lineshape():
             lamb: Lorentzian broadening applied to the vibronic peaks, in meV
             w: Gaussian broadening applied to the vibronic peaks, in meV
             model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
-        """     
+        """
         S_nu=self.S_nu()
         omega_nu=self.ph_eigfreq
         eff_freq=self.eff_freq_multiD()
         E_zpl=self.E_zpl
         return A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w, model='multi-D')
-    
+
 
     def L_hw(self, T=0,lamb=3, w=3, model='multi-D'):
-        """     
+        """
         Normalized Luminescence intensity (area under the curve = 1)
         Eq. (1) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
         Returns (Energy in eV, Luminescence intensity)
@@ -271,23 +275,24 @@ class Lineshape():
             lamb: Lorentzian broadening applied to the vibronic peaks, in meV
             w: Gaussian broadening applied to the vibronic peaks, in meV
             model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
-        """     
+        """
         E_x,A=self.A_hw(T,lamb,w,model)
         E_x,I=L_hw_help(E_x, A)
         return (E_x, I)
 
 
 ##### Plot functions ######
-    
-    def plot_spectral_function(self,broadening=1,ax=None,with_S_nu=False,with_local_ratio=False,**kwargs):
-        """     
+
+    @add_fig_kwargs
+    def plot_spectral_function(self,broadening=1,ax=None,with_S_nu=False,with_local_ratio=False,**kwargs) -> Figure:
+        """
         Plot the Huang-Rhys spectral function S_hbarOmega
 
         Args:
             broadening: fwhm of the gaussian broadening in meV
             with_S_nu: True to add stem lines associated to the individuals partial Huang-Rhys factors
-            with_local_ratio: True to add stem lines with colored based on the mode localisation. 
-        """     
+            with_local_ratio: True to add stem lines with colored based on the mode localisation.
+        """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         S_nu=self.S_nu()
         omega_nu=self.ph_eigfreq
@@ -296,7 +301,7 @@ class Lineshape():
         local_ratio=localization_ratio(self.ph_eigvec)
 
         if with_local_ratio:
-            with_S_nu=False # such that the plot is fine even if both with_local_ratio and with_S_nu are set to True. 
+            with_S_nu=False # such that the plot is fine even if both with_local_ratio and with_S_nu are set to True.
             # reorder for better plot visualisation
             idx_order =  np.argsort(local_ratio)#[::-1]
             local_ratio=local_ratio[idx_order]
@@ -330,11 +335,10 @@ class Lineshape():
         ax.set_ylabel(r'$S(\hbar\omega)$  (1/eV)')
 
         return fig
-    
 
     @add_fig_kwargs
     def plot_emission_spectrum(self,unit='eV',T=0,lamb=3,w=3,max_to_one=False,ax=None,**kwargs):
-        """     
+        """
         Plot the Luminescence intensity
 
         Args:
@@ -342,8 +346,8 @@ class Lineshape():
             T: Temperature in K
             lamb: Lorentzian broadening applied to the vibronic peaks, in meV
             w: Gaussian broadening applied to the vibronic peaks, in meV
-            max_to_one: True if max of the curve is normalized to 1. 
-        """  
+            max_to_one: True if max of the curve is normalized to 1.
+        """
 
         x_eV,y_eV=self.L_hw(T=T,lamb=lamb,w=w)
         return plot_emission_spectrum_help(x_eV,y_eV,unit,max_to_one,ax,**kwargs)
@@ -358,6 +362,7 @@ def get_forces_on_phonon_supercell(dSCF_supercell,phonon_supercell,forces_dSCF,t
 
     return forces_in_supercell
 
+
 def get_displacements_on_phonon_supercell(dSCF_supercell,phonon_supercell,displacements_dSCF,tol):
     displacements_in_supercell=np.zeros(shape=(len(phonon_supercell), 3))
     mapping=get_matching_dSCF_phonon_spcell(dSCF_supercell,phonon_supercell,tol)
@@ -365,6 +370,7 @@ def get_displacements_on_phonon_supercell(dSCF_supercell,phonon_supercell,displa
         displacements_in_supercell[mapping[i]]=displacements_dSCF[i]
 
     return displacements_in_supercell
+
 
 def get_matching_dSCF_phonon_spcell(dSCF_spcell,phonon_spcell,tol):
     dSCF_spcell_cart=dSCF_spcell.cart_coords

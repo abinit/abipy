@@ -16,12 +16,12 @@ from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs,get_axarray_fig_
 
 def Bose_einstein(T, freq):
     """
-    Bose Einstein average occupation number 
+    Bose Einstein average occupation number
 
     Args:
         T: Temperature in K
         freq: frequency in eV
-    """        
+    """
     k_b = abu.kb_eVK  # in eV/K
 
     if T == 0:
@@ -34,19 +34,19 @@ def Bose_einstein(T, freq):
 def get_G_t(T, S_nu, omega_nu):
     """
     Generation function
-    Eq. (3) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537 
+    Eq. (3) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
 
     Args:
         T: Temperature in K
         S_nu: Parial Huang-Rhys factors
         omega_nu: phonon frequencies
-    """        
+    """
     n_step = 100001
     t = np.linspace(-1e-11, +1e-11, n_step)  # time in the fourier domain
 
     freq = np.array(omega_nu)
     freq_SI = freq * (abu.eV_s) # in SI rad/sec
-    
+
     S=np.zeros(n_step, dtype=complex)
     C_plus=np.zeros(n_step, dtype=complex)
     C_minus=np.zeros(n_step, dtype=complex)
@@ -55,7 +55,7 @@ def get_G_t(T, S_nu, omega_nu):
         S +=  S_nu[i] * np.exp(-1j * freq_SI[i] * t)
         C_plus += Bose_einstein(T, freq[i]) * S_nu[i] * np.exp(+1j * freq_SI[i] * t)
         C_minus += Bose_einstein(T, freq[i]) * S_nu[i] * np.exp(-1j * freq_SI[i] * t)
-    
+
     index_0 = int((len(t) - 1) / 2)
     C_0=2*C_plus[index_0]
     S_0=S[index_0]
@@ -69,7 +69,7 @@ def get_G_t(T, S_nu, omega_nu):
 def A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w, model='multi-D'):
     """
     Lineshape function
-    Eq. (2) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537 
+    Eq. (2) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
     Returns (Energy in eV, Lineshape function )
 
     Args:
@@ -77,7 +77,7 @@ def A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w, model='multi-D'):
         lamb: Lorentzian broadening applied to the vibronic peaks, in meV
         w: Gaussian broadening applied to the vibronic peaks, in meV
         model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
-    """     
+    """
     if model == 'multi-D':
         t, G_t = get_G_t(T, S_nu, omega_nu)
 
@@ -114,9 +114,9 @@ def A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w, model='multi-D'):
 
 
 def L_hw_help(E_x, A):
-    """     
+    """
     Normalized Luminescence intensity (area under the curve = 1)
-    Eq. (1) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537 
+    Eq. (1) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
     Returns (Energy in eV, Luminescence intensity)
 
     Args:
@@ -124,7 +124,7 @@ def L_hw_help(E_x, A):
         lamb: Lorentzian broadening applied to the vibronic peaks, in meV
         w: Gaussian broadening applied to the vibronic peaks, in meV
         model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
-    """     
+    """
     C = 1 / (simps(y=A * E_x ** 3, x=E_x))
     I = C * A * E_x ** 3  # intensity prop to energy CUBE
     return (E_x, I)
@@ -135,20 +135,20 @@ def L_hw_help(E_x, A):
 
 @add_fig_kwargs
 def plot_emission_spectrum_help(x_eV,y_eV,unit,max_to_one,ax,**kwargs):
-    """     
-    Plot the Luminescence intensity, computed from the generating fct approach. 
-    
+    """
+    Plot the Luminescence intensity, computed from the generating fct approach.
+
     Args:
         unit: 'eV', 'cm-1', or 'nm'
         T: Temperature in K
         lamb: Lorentzian broadening applied to the vibronic peaks, in meV
         w: Gaussian broadening applied to the vibronic peaks, in meV
-    """     
+    """
 
     ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-#   x_eV,y_eV=self.L_hw(T=T,lamb=lamb,w=w) # in eV
-    
+    #x_eV,y_eV=self.L_hw(T=T,lamb=lamb,w=w) # in eV
+
     x_cm=x_eV*8065.73
     y_cm=y_eV/8065.73
 
