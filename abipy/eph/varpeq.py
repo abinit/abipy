@@ -623,7 +623,7 @@ class Polaron:
             x, y, s = [], [], []
 
             a2_max = np.max(np.abs(a_data[pstate]))**2
-            scale *= 1./a2_max
+            scale *= 1. / a2_max
 
             for ik, kpoint in enumerate(ebands_kpath.kpoints):
                 enes_n = ebands_kpath.eigens[self.spin, ik, self.bstart:self.bstop]
@@ -836,11 +836,11 @@ class Polaron:
                                                ddb=ddb, **kwargs)
 
     @add_fig_kwargs
-    def plot_bqnu_with_phbands(self, phbands_qpath, anaddb_file=None,
+    def plot_bqnu_with_phbands(self, phbands_qpath, with_legend=True,
                                phdos_file=None, ddb=None, width=0.001, normalize: bool = True,
                                verbose=0, anaddb_kwargs=None, with_title=True, interp_method="linear",
-                               ax_mat=None, scale=10, marker_color="gold", marker_edgecolor='gray',
-                               marker_alpha=0.8, fontsize=12, lw_bands=1.0, lw_dos=1.0, **kwargs) -> Figure:
+                               ax_mat=None, scale=50, marker_color="gold", marker_edgecolor='gray',
+                               marker_alpha=0.5, fontsize=12, lw_bands=1.0, lw_dos=1.0, **kwargs) -> Figure:
         """
         Plot phonon energies with markers whose size is proportional to |B_qnu|^2.
 
@@ -869,29 +869,50 @@ class Polaron:
 
         phbands_qpath = PhononBands.as_phbands(phbands_qpath)
 
-        # maybe this is unnecessary
-        if anaddb_file:
-            phbands_qpath.read_non_anal_from_file(anaddb_file)
-
         # Get interpolators for B_qnu
         b2_interp_state = self.get_b2_interpolator_state(interp_method)
 
+        b_data, *_ = self.insert_b_inbox(fill_value=0)
+
+        units = 'meV'
+        units_scale = 1e3 if units == 'meV' else 1
         # Plot phonon bands with markers.
+        ymin, ymax = +np.inf, -np.inf
         for pstate in range(self.nstates):
             x, y, s = [], [], []
+
+            b2_max = np.max(np.abs(b_data[pstate]))**2
+            scale *= 1. / b2_max
+
             for iq, qpoint in enumerate(phbands_qpath.qpoints):
                 omegas_nu = phbands_qpath.phfreqs[iq,:]
+                #omegas_nu *= 1e3 if units == 'meV' else 1
+
                 for w, b2 in zip(omegas_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True):
+                    w *= units_scale
                     x.append(iq); y.append(w); s.append(scale * b2)
+                    ymin, ymax = min(ymin, w), max(ymax, w)
 
             ax = ax_mat[pstate, 0]
             points = Marker(x, y, s, color=marker_color, edgecolors=marker_edgecolor,
                             alpha=marker_alpha, label=r'$|B_{\nu\mathbf{q}}|^2$')
-            phbands_qpath.plot(ax=ax, points=points, show=False, linewidth=lw_bands)
+            phbands_qpath.plot(ax=ax, points=points, show=False, linewidth=lw_bands, units=units)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
-            if pstate != self.nstates - 1:
+            if pstate != self.nstates - 1 or not with_legend:
                 set_visible(ax, False, *["legend", "xlabel"])
+
+        # determine bandwidth and set ylims
+        # if no negative freqs, set ymin exactly to 0
+        if ymin > -1e-6:
+            ymin = 0
+        bandwidth = ymax - ymin
+        ymin -= 0.1*bandwidth if ymin != 0 else 0
+        ymax += 0.1*bandwidth
+
+        for ax in ax_mat.ravel():
+            ax.set_ylim(ymin, ymax)
+
 
         if not with_phdos:
             # Return immediately.
@@ -956,7 +977,7 @@ class Polaron:
             bqnu_dos /= np.product(phdos_ngqpt)
             """
 
-            if pstate != self.nstates - 1:
+            if pstate != self.nstates - 1 or not with_legend:
                 set_visible(ax, False, *["legend", "xlabel"])
 
         if with_title:
