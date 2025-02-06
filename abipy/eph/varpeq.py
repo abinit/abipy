@@ -868,10 +868,6 @@ class Polaron:
 
         phbands_qpath = PhononBands.as_phbands(phbands_qpath)
 
-        # maybe this is unnecessary
-        if anaddb_file:
-            phbands_qpath.read_non_anal_from_file(anaddb_file)
-
         # Get interpolators for B_qnu
         b2_interp_state = self.get_b2_interpolator_state(interp_method)
 
