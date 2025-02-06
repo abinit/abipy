@@ -557,16 +557,8 @@ class Polaron:
 
     @add_fig_kwargs
     def plot_ank_with_ebands(self, ebands_kpath,
-<<<<<<< HEAD
                              ebands_kmesh=None, lpratio: int = 5, with_info = True, with_legend=True,
                              with_ibz_a2dos=True, method="gaussian", step="auto", width="auto",
-||||||| 54d7e18c
-                             ebands_kmesh=None, lpratio: int = 5,
-                             with_ibz_a2dos=True, method="gaussian", step: float = 0.05, width: float = 0.1,
-=======
-                             ebands_kmesh=None, lpratio: int = 5, with_info = True, with_legend=True,
-                             with_ibz_a2dos=True, method="gaussian", step: float = 0.05, width: float = 0.1,
->>>>>>> abipy/develop
                              nksmall: int = 20, normalize: bool = False, with_title=True, interp_method="linear",
                              ax_mat=None, ylims=None, scale=50, marker_color="gold", marker_edgecolor="gray",
                              marker_alpha=0.5, fontsize=12, lw_bands=1.0, lw_dos=1.0,
@@ -629,18 +621,10 @@ class Polaron:
 
         for pstate in range(self.nstates):
             x, y, s = [], [], []
-<<<<<<< HEAD
 
             a2_max = np.max(np.abs(a_data[pstate]))**2
             scale *= 1. / a2_max
 
-||||||| 54d7e18c
-=======
-
-            a2_max = np.max(np.abs(a_data[pstate]))**2
-            scale *= 1./a2_max
-
->>>>>>> abipy/develop
             for ik, kpoint in enumerate(ebands_kpath.kpoints):
                 enes_n = ebands_kpath.eigens[self.spin, ik, self.bstart:self.bstop]
                 for e, a2 in zip(enes_n, a2_interp_state[pstate].eval_kpoint(kpoint), strict=True):
@@ -804,8 +788,6 @@ class Polaron:
         for ax in ax_mat.ravel():
             set_axlims(ax, ylims, "y")
 
-<<<<<<< HEAD
-
         # if filtering is used, show the filtering region
         for ax in ax_mat.ravel():
             xmin, xmax = ax.get_xlim()
@@ -824,26 +806,6 @@ class Polaron:
                 ax.fill_between(xrange, fill_to, ylims[1],
                                 color='lightgray', linewidth=0, alpha=0.5, zorder=0)
 
-||||||| 54d7e18c
-=======
-
-        # if filtering is used, show the filtering region
-        for ax in ax_mat.ravel():
-            xmin, xmax = ax.get_xlim()
-            xrange = np.linspace(xmin,xmax,100)
-            shifted_bm = bm - e0
-            if filter_value:
-                if pkind == "hole":
-                    fill_from, fill_to = shifted_bm - filter_value, shifted_bm
-                elif pkind == "electron":
-                    fill_from, fill_to = shifted_bm, shifted_bm + filter_value
-
-                ax.fill_between(xrange, ylims[0], fill_from,
-                                color='gray', linewidth=lw_dos, alpha=0.5, zorder=0)
-                ax.fill_between(xrange, fill_to, ylims[1],
-                                color='gray', linewidth=lw_dos, alpha=0.5, zorder=0)
-
->>>>>>> abipy/develop
         if with_title:
             fig.suptitle(self.get_title(with_gaps=True))
 
