@@ -30,6 +30,8 @@ from abipy.iotools import bxsf_write
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
+from abipy.dfpt.vzsisa import anaget_phdoses_with_gauss
+
 from scipy.interpolate import interp1d
 
 
@@ -813,7 +815,8 @@ class Polaron:
         return fig
 
     @add_fig_kwargs
-    def plot_bqnu_with_ddb(self, ddb, with_phdos=True, anaddb_kwargs=None, **kwargs) -> Figure:
+    def plot_bqnu_with_ddb(self, ddb, smearing_ev=0.001,
+                           with_phdos=True, anaddb_kwargs=None, **kwargs) -> Figure:
         """
         High-level interface to plot phonon energies with markers whose size is proportional to |B_qnu|^2.
         Similar to plot_bqnu_with_phbands but this function receives in input a DdbFile or a
@@ -827,6 +830,7 @@ class Polaron:
         """
         ddb = DdbFile.as_ddb(ddb)
         anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
+        anaddb_kwargs["dos_method"] = f"gaussian:{smearing_ev} eV"
 
         with ddb.anaget_phbst_and_phdos_files(**anaddb_kwargs) as g:
             phbst_file, phdos_file = g[0], g[1]
