@@ -788,6 +788,7 @@ class Polaron:
         for ax in ax_mat.ravel():
             set_axlims(ax, ylims, "y")
 
+
         # if filtering is used, show the filtering region
         for ax in ax_mat.ravel():
             xmin, xmax = ax.get_xlim()
@@ -837,6 +838,7 @@ class Polaron:
     @add_fig_kwargs
     def plot_bqnu_with_phbands(self, phbands_qpath, with_legend=True,
                                phdos_file=None, ddb=None, width=0.001, normalize: bool = True,
+                               verbose=0, anaddb_kwargs=None, with_title=True, interp_method="linear",
                                ax_mat=None, scale=50, marker_color="gold", marker_edgecolor='gray',
                                marker_alpha=0.5, fontsize=12, lw_bands=1.0, lw_dos=1.0,
                                fill_dos=True, **kwargs) -> Figure:

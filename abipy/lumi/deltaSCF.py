@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import numpy as np
@@ -16,23 +15,21 @@ except ImportError:
     from scipy.integrate import simps
 from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs,get_axarray_fig_plt
 import abipy.core.abinit_units as abu
-from abipy.lumi.utils_lumi import A_hw_help,L_hw_help,plot_emission_spectrum_help
-
 
 class DeltaSCF():
     """
     Object to post-process the results from a LumiWork, following a one-effective phonon mode model (1D-CCM).
-    For equations, notations and formalism, please refer to:
-
-        https://doi.org/10.1103/PhysRevB.96.125132
-        https://doi.org/10.1002/adom.202100649
+    For equations, notations and formalism, please refer to :
+     https://doi.org/10.1103/PhysRevB.96.125132
+     https://doi.org/10.1002/adom.202100649
     """
 
     @classmethod
-    def from_json_file(cls, json_path) -> DeltaSCF:
+    def from_json_file(cls,json_path):
         """ Create the object from a json file containing the path to netcdf files, produced at the end of a LumiWork"""
 
         with open(json_path) as f:
+
             data = json.load(f)
 
         if 'meta' in data:
@@ -42,6 +39,7 @@ class DeltaSCF():
 
         gs_relax_path=data["gs_relax_filepath"]
         ex_relax_path=data["ex_relax_filepath"]
+
         with abiopen(gs_relax_path) as gsr_file:
             structure_gs=gsr_file.structure
         with abiopen(ex_relax_path) as gsr_file:
@@ -88,7 +86,7 @@ class DeltaSCF():
                    meta=meta)
 
     @classmethod
-    def from_four_points_file(cls, filepaths) -> DeltaSCF:
+    def from_four_points_file(cls,filepaths):
         """
             Create the object from a list of netcdf files in the order (Ag,Agstar,Aestar,Ae).
             Ag: Ground state at relaxed ground state atomic positions.
@@ -121,7 +119,7 @@ class DeltaSCF():
                    ae_energy=energies[3],)
 
     @classmethod
-    def from_relax_file(cls, filepaths) -> DeltaSCF:
+    def from_relax_file(cls,filepaths):
         """ Create the object from the two relaxation files (relax_gs, relax_ex).
             Give only acccess to structural relaxation induced by the transition
             and to E_zpl
@@ -148,16 +146,15 @@ class DeltaSCF():
     def __init__(self,structuregs,structureex,forces_gs,forces_ex,
                  ag_energy,ag_star_energy,ae_star_energy,ae_energy,meta=None):
         """
-        Args:
-            structuregs: relaxed ground state structure
-            structureex: relaxed excited state structure
-            forces_gs: forces in the gs
-            forces_ex: forces in the ex
-            ag_energy:
-            ag_star_energy:
-            ae_star_energy:
-            ae_energy:
-            meta: dict. of meta data of the lumiwork (can be the supercell size, ecut,...)
+        :param structuregs: relaxed ground state structure
+        :param structureex: relaxed excited state structure
+        :param forces_gs: forces in the gs
+        :param forces_ex: forces in the ex
+        :param ag_energy
+        :param ag_star_energy
+        :param ae_star_energy
+        :param ae_energy
+        :param meta : dict. of meta data of the lumiwork (can be the supercell size, ecut,...)
         """
 
         self.structuregs=structuregs
@@ -171,15 +168,17 @@ class DeltaSCF():
         self.meta=meta
 
 
-    def structure_gs(self) -> Structure:
+    def structure_gs(self):
         """ Ground state relaxed structure """
+
         return self.structuregs
 
-    def structure_ex(self) -> Structure:
+    def structure_ex(self):
         """ Excited state relaxed structure """
+
         return self.structureex
 
-    def natom(self) -> int:
+    def natom(self):
         """Number of atoms in the structure."""
         return len(self.structuregs)
 
@@ -202,7 +201,7 @@ class DeltaSCF():
         index=self.structuregs.get_symbol2indices()[defect_symbol][0]
         return index
 
-    def get_dict_per_atom(self,index,defect_symbol) -> dict:
+    def get_dict_per_atom(self,index,defect_symbol):
         """"
         Dict. with relevant properties per atom.
         """
@@ -218,10 +217,10 @@ class DeltaSCF():
 
         return d
 
-    def get_dataframe_atoms(self,defect_symbol) -> pd.DataFrame:
+    def get_dataframe_atoms(self,defect_symbol):
         """
         Panda dataframe with relevant properties per atom.
-        Units: [ (mass,amu), (deltaR,Angstrom), (DeltaQ^2,amu.Angstrom^2), (DeltaF,eV/Angstrom) ]
+        Units : [ (mass,amu), (deltaR,Angstrom), (DeltaQ^2,amu.Angstrom^2), (DeltaF,eV/Angstrom) ]
         """
         list_of_dict=[]
         for index,atom in enumerate(self.structuregs):
@@ -230,7 +229,7 @@ class DeltaSCF():
 
         return pd.DataFrame(list_of_dict)
 
-    def get_dict_per_specie(self,specie) -> dict:
+    def get_dict_per_specie(self,specie):
         stru=self.structuregs
         indices=stru.indices_from_symbol(specie.name)
         dr_sp=[]
@@ -244,7 +243,7 @@ class DeltaSCF():
 
         return d
 
-    def get_dataframe_species(self) -> pd.DataFrame:
+    def get_dataframe_species(self):
         """
         Panda dataframe with relevant properties per species.
         """
@@ -255,12 +254,13 @@ class DeltaSCF():
 
         return pd.DataFrame(list_of_dict)
 
+
     def delta_r(self):
         """
         Total Delta_R (Angstrom)
         """
         d_r_squared=np.sum(self.diff_pos()**2)
-        return np.sqrt(d_r_squared)
+        return(np.sqrt(d_r_squared))
 
     def amu_list(self):
         """
@@ -269,7 +269,7 @@ class DeltaSCF():
         amu_list=[]
         for atom in self.structuregs.species:
             amu_list.append(atom.atomic_mass)
-        return amu_list
+        return(amu_list)
 
     def delta_q(self,unit='atomic'):
         """
@@ -277,6 +277,7 @@ class DeltaSCF():
 
         Args:
             unit: amu^1/2.Angstrom if unit = 'atomic', kg^1/2.m if 'SI'
+
         """
         sq_Q_matrix = np.zeros((self.natom(), 3))
         for a in np.arange(self.natom()):
@@ -361,14 +362,14 @@ class DeltaSCF():
         Total Huang-Rhys factor for emission following the 1D-CCM
         """
         S = (self.E_FC_gs()) / (self.eff_freq_gs())
-        return S
+        return (S)
 
     def S_abs(self):
         """
         Total Huang-Rhys factor for absorption following the 1D-CCM
         """
         S = (self.E_FC_ex()) / (self.eff_freq_ex())
-        return S
+        return (S)
 
     def FWHM_1D(self,T=0):
         """
@@ -394,61 +395,10 @@ class DeltaSCF():
         """
         return np.exp(self.S_em()) * self.S_em() ** n / math.factorial(n)
 
-    def A_hw(self,T, lamb=3, w=3):
-        """
-        Lineshape function
-        Eq. (2) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
-        Returns (Energy in eV, Lineshape function )
-
-        Args:
-            T: Temperature in K
-            lamb: Lorentzian broadening applied to the vibronic peaks, in meV
-            w: Gaussian broadening applied to the vibronic peaks, in meV
-            model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
-        """
-        S_nu=np.array([self.S_em()])
-        omega_nu=np.array([self.eff_freq_gs()])
-        eff_freq=self.eff_freq_gs()
-        E_zpl=self.E_zpl()
-        return A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w,)
-
-    def L_hw(self, T, lamb=3, w=3, model='multi-D'):
-        """
-        Normalized Luminescence intensity (area under the curve = 1)
-        Eq. (1) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
-        Returns (Energy in eV, Luminescence intensity)
-
-        Args:
-            T: Temperature in K
-            lamb: Lorentzian broadening applied to the vibronic peaks, in meV
-            w: Gaussian broadening applied to the vibronic peaks, in meV
-            model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
-        """
-        E_x,A=self.A_hw(T,lamb,w)
-        E_x,I=L_hw_help(E_x, A)
-        return (E_x, I)
-
-    @add_fig_kwargs
-    def plot_emission_spectrum(self,unit='eV',T=0,lamb=3,w=3,max_to_one=False,ax=None,**kwargs) -> Figure:
-        """
-        Plot the Luminescence intensity, based on the generating function.
-
-        Args:
-            unit: 'eV', 'cm-1', or 'nm'
-            T: Temperature in K
-            lamb: Lorentzian broadening applied to the vibronic peaks, in meV
-            w: Gaussian broadening applied to the vibronic peaks, in meV
-        """
-
-        x_eV,y_eV=self.L_hw(T=T,lamb=lamb,w=w)
-        fig = plot_emission_spectrum_help(x_eV,y_eV,unit,max_to_one,ax, show=False, **kwargs)
-        return fig
-
-
-    def lineshape_1D_zero_temp(self,energy_range=(0.5,5),max_m=25,phonon_width=0.01,with_omega_cube=True,normalized='Area'):
+    def lineshape_1D_zero_temp(self,energy_range=[0.5,5],max_m=25,phonon_width=0.01,with_omega_cube=True,normalized='Area'):
         """
         Compute the emission lineshape following the effective phonon 1D-CCM at T=0K.
-        See eq. (9) of  https://doi.org/10.1002/adom.202100649. NOT based on the generating function.
+        See eq. (9) of  https://doi.org/10.1002/adom.202100649.
 
         Args:
             energy_range:  Energy range at which the intensities are computed, ex : [0.5,5]
@@ -487,10 +437,9 @@ class DeltaSCF():
 
     @add_fig_kwargs
     def plot_lineshape_1D_zero_temp(self,energy_range=[0.5,5],max_m=25,phonon_width=0.01,with_omega_cube="True",
-                                    normalized='Area', ax=None, **kwargs) -> Figure:
+                                    normalized='Area', ax=None, **kwargs):
         """
         Plot the the emission lineshape following the effective phonon 1D-CCM at T=0K.
-        NOT based on the generating function.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -512,7 +461,7 @@ class DeltaSCF():
         return fig
 
 
-    def get_dict_results(self) -> dict:
+    def get_dict_results(self):
         d=dict([
             (r'E_em',self.E_em()),
             (r'E_abs' ,self.E_abs()),
@@ -529,7 +478,7 @@ class DeltaSCF():
         ])
         return d
 
-    def get_dataframe(self, label=None) -> pd.DataFrame:
+    def get_dataframe(self,label=None):
         """
         Panda dataframe with the main results of a LumiWork : transition energies, delta Q, Huang Rhys factor,...
         Units used are Angstrom, eV, amu.
@@ -544,7 +493,7 @@ class DeltaSCF():
         return pd.DataFrame(rows,index=index)
 
     def draw_displacements_vesta(self,in_path, mass_weighted = False,
-                 scale_vector=20,width_vector=0.3,color_vector=(255,0,0),centered=True,
+                 scale_vector=20,width_vector=0.3,color_vector=[255,0,0],centered=True,
                  factor_keep_vectors=0.1,
                  out_path="VESTA_FILES",out_filename="gs_ex_relaxation"):
         r"""
@@ -626,7 +575,7 @@ class DeltaSCF():
         print(f"Vesta files created and stored in : \n {os.getcwd()}/{out_path}")
 
     @add_fig_kwargs
-    def displacements_visu(self, a_g=10, **kwargs) -> Figure:
+    def displacements_visu(self, a_g=10, **kwargs):
         """
         Make a 3d visualisation of the displacements induced by the electronic transition =
         Difference between ground state and excited state atomic positions.
@@ -663,7 +612,7 @@ class DeltaSCF():
         return fig
 
     @add_fig_kwargs
-    def plot_delta_R_distance(self, defect_symbol,colors=["k","r","g","b","c","m"],ax=None, **kwargs) -> Figure:
+    def plot_delta_R_distance(self, defect_symbol,colors=["k","r","g","b","c","m"],ax=None, **kwargs):
         r"""
         Plot \DeltaR vs distance from defect for each atom, colored by species.
 
@@ -696,7 +645,7 @@ class DeltaSCF():
         return fig
 
     @add_fig_kwargs
-    def plot_delta_F_distance(self, defect_symbol,colors=("k","r","g","b","c","m"), ax=None, **kwargs) -> Figure:
+    def plot_delta_F_distance(self, defect_symbol,colors=["k","r","g","b","c","m"],ax=None, **kwargs):
         r"""
         Plot \DeltaF vs distance from defect for each atom, colored by species.
 
@@ -729,7 +678,7 @@ class DeltaSCF():
         return fig
 
     @add_fig_kwargs
-    def plot_four_BandStructures(self, nscf_files, ax_mat=None, ylims=(-5, 5), **kwargs) -> Figure:
+    def plot_four_BandStructures(self, nscf_files, ax_mat=None, ylims=(-5, 5), **kwargs):
         """
         plot the 4 band structures.
         nscf_files is the list of Ag, Agstar, Aestar, Ae nscf gsr file paths.
@@ -758,59 +707,7 @@ class DeltaSCF():
         return fig
 
     @add_fig_kwargs
-    def plot_eigen_energies(self,scf_files,ax_mat=None, ylims=(-5,5), with_occ=True,
-                            titles = (r'$A_g$', r'$A_g^*$', r'$A_e^*$', r'$A_e$'), **kwargs) -> Figure:
-        """
-        plot the electronic eigenenergies,
-        scf_files is a list gsr file paths, typically Ag, Agstar, Aestar, Ae gsr file paths.
-        """
-        ebands_up=[]
-        ebands_dn=[]
-        fermies=[]
-        occs=[]
-
-        for i,file in enumerate(scf_files):
-            with abiopen(file) as file:
-                ebands_up.append(file.ebands.eigens[0])
-                ebands_dn.append(file.ebands.eigens[1])
-                fermies.append(file.ebands.fermie)
-                occs.append(file.ebands.occfacts)
-        fermie=fermies[0]
-
-        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=1, ncols=len(scf_files),
-                                               sharex=True, sharey=True, squeeze=False,**kwargs)
-        for i,ax in enumerate(ax_mat[0]):
-            ax.hlines(y=ebands_up[i][0]-fermie,xmin=-0.8,xmax=-0.2,color="k",alpha=0.5)
-            ax.hlines(y=ebands_dn[i][0]-fermie,xmin=0.2,xmax=0.8,color="r",alpha=0.5)
-
-            if with_occ==True:
-                edge_colors=np.array([[1,0,0]]*len(occs[i][1][0]))
-                colors=edge_colors.copy()
-                for j,color in enumerate(colors):
-                    if occs[i][1][0][j]!=1:
-                        colors[j]=[1,1,1]
-                ax.scatter(x=[+0.5]*len(ebands_dn[i][0]),y=ebands_dn[i]-fermie,c=colors,edgecolors=edge_colors)
-
-                edge_colors=np.array([[0,0,0]]*len(occs[i][0][0]))
-                colors=edge_colors.copy()
-                for j,color in enumerate(colors):
-                    if occs[i][0][0][j]!=1:
-                        colors[j]=[1,1,1]
-                ax.scatter(x=[-0.5]*len(ebands_up[i][0]),y=ebands_up[i]-fermie,c=colors,edgecolors=edge_colors)
-
-
-            ax.xaxis.set_visible(False)
-            ax.grid()
-            ax.set_title(titles[i])
-            ax.set_xlim(-1.5,1.5)
-            ax.set_ylim(ylims)
-
-        ax_mat[0,0].set_ylabel("Energy (eV)")
-
-        return fig
-
-    @add_fig_kwargs
-    def draw_displaced_parabolas(self,ax=None,scale_eff_freq=4,font_size=8, **kwargs) -> Figure:
+    def draw_displaced_parabolas(self,ax=None,scale_eff_freq=4,font_size=8, **kwargs):
         """
         Draw the four points diagram with relevant transition energies.
 

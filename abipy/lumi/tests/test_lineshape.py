@@ -11,7 +11,6 @@ from abipy.lumi.lineshape import Lineshape
 from abipy.dfpt.converters import ddb_ucell_to_phonopy_supercell
 from abipy.core.kpoints import kmesh_from_mpdivs
 
-
 class DeltaSCFTest(AbipyTest):
 
     def test_deltaSCF(self):
@@ -80,15 +79,12 @@ class DeltaSCFTest(AbipyTest):
                                                 use_forces=True,
                                                 dSCF_displacements=Delta_333.diff_pos(),
                                                 dSCF_forces=Delta_333.forces_gs,
-                                                coords_defect_dSCF=coords_defect_dSCF,
-                                                coords_defect_phonons=coords_defect_dSCF) for ph in ph_emb_s]
+                                                coords_defect_dSCF=coords_defect_dSCF) for ph in ph_emb_s]
 
 
-        self.assert_almost_equal(lineshapes[0].S_tot(),4.695317635378137, decimal=5)
-        self.assert_almost_equal(lineshapes[1].S_tot(),5.128880728125355, decimal=5)
+        self.assert_almost_equal(lineshapes[0].S_tot(),4.697242297808644, decimal=5)
+        self.assert_almost_equal(lineshapes[1].S_tot(),5.030138903884942, decimal=5)
 
         if self.has_matplotlib():
-            ls = lineshapes[0]
-            assert ls.plot_spectral_function(show=False)
-            assert ls.plot_emission_spectrum(show=False)
+            assert lineshapes[0].plot_emission_spectrum(show=False)
 

@@ -197,15 +197,15 @@ class Embedded_phonons(Phonopy):
                         print(f"Diff IFC = \n {ifc_pristine[i][j]-ifc_defect[mapping.index(i)][mapping.index(j)]}" )
 
                     ifc_emb[i][j]=factor_ifc*ifc_defect[mapping.index(i)][mapping.index(j)]
-                    
-        # enforce ASR
-        if asr:
+
+                # enforce ASR
+        if asr==True:
             print(f"\n Enforce ASR")
-            sum_ac=np.sum(ifc_emb,axis=1)
-            for i,atom1 in enumerate(stru_emb):
-                for alpha in [0,1,2]:
-                    ifc_emb[i][i][alpha][alpha] = - (sum_ac[i][alpha][alpha]-ifc_emb[i][i][alpha][alpha])
-        
+            for alpha in [0,1,2]:
+                for beta in [0,1,2]:
+                    for i,atom1 in enumerate(stru_emb):
+                        ifc_emb[i][i][alpha,beta] = -(accoustic_sum(ifc_emb,i)[alpha,beta]-ifc_emb[i][i][alpha,beta])
+
         ########################
         # change the nac params
         ########################
@@ -216,11 +216,6 @@ class Embedded_phonons(Phonopy):
 
             if vacancies_list is not None:
                 nac_params_emb["born"]=np.delete(nac_params_emb["born"],vacancies_list,0)
-            if interstitial_list is not None:
-                for interstial in interstitial_list:
-                    nac=np.append(nac_params_emb["born"],(stru_emb[-1].specie.common_oxidation_states[0])*np.eye(3))
-
-                    nac_params_emb["born"]=nac.reshape(len(stru_emb),3,3)
         else:
             nac_params_emb=None
 
