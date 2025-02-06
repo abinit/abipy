@@ -771,11 +771,17 @@ def ddb_ucell_to_phonopy_supercell(unit_ddb=None,unit_ddb_filepath=None,nac=True
     phonopy_ucell= unit_ddb.anaget_phonopy_ifc(ngqpt=ngqpt, asr=1, dipdip=0, chneut=1,
                                           set_masses=True)
 
-    # fc from (uc_size x sc_size) to (sc_size x sc_size)
 
-    full_fc = force_constants.compact_fc_to_full_fc(phonon=phonopy_ucell,
+    # fc from (uc_size x sc_size) to (sc_size x sc_size)
+    try:
+        full_fc = force_constants.compact_fc_to_full_fc(primitive=phonopy_ucell.primitive,
+                                                    compact_fc=phonopy_ucell.force_constants)
+    
+    except TypeError: #old compact_fc_to_full_fc function (phonopy <= 2.32)
+        full_fc = force_constants.compact_fc_to_full_fc(phonon=phonopy_ucell,  
                                                     compact_fc=phonopy_ucell.force_constants)
 
+    
     # create a phonopy object with supercell structure
     phonopy_supercell = Phonopy(unitcell=phonopy_ucell.supercell,# the new unit cell is the 'old' supercell
                                 supercell_matrix=[1, 1, 1],  # sup_size= unit_size, gamma only
