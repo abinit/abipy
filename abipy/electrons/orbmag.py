@@ -16,16 +16,46 @@ from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader
 #from abipy.tools.numtools import gaussian
 from abipy.tools.typing import Figure
-from abipy.tools.plotting import set_axlims, get_axarray_fig_plt, add_fig_kwargs
+from abipy.tools.plotting import set_axlims, get_ax_fig_plt, get_axarray_fig_plt, add_fig_kwargs
+#from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
+#    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly,
+#    get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
+
+def print_options_decorator(**kwargs):
+    """
+    A decorator to temporarily set np.printoptions inside a function.
+    Use the decorator to apply print settings inside the function.
+
+    @print_options_decorator(precision=2, suppress=True)
+    def print_array():
+        print(np.array([1.234567, 7.891234, 3.456789]))
+    """
+    def decorator(func):
+        import functools
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs_inner):
+            with np.printoptions(**kwargs):
+                return func(*args, **kwargs_inner)
+        return wrapper
+    return decorator
+
 
 
 class OrbmagAnalyzer:
+    """
+    """
 
     def __init__(self, filepaths):
         self.orb_files = [OrbmagFile(path) for path in filepaths]
 
+        # Consistency check
+        structure0 = self.orb_files[0].structure
+        if any(orb_file.structure != structure0 for orb_file in self.orb_files[1:]):
+            raise RuntimeError("ORBMAG.nc files have different structures")
+
         # This piece of code is taken from merge_orbmag_mesh
-        # the main difference is that ncroots[0] is replaced by the ElectronsReader of the first OrbmagFile
+        # the main difference is that here ncroots[0] is replaced by
+        # the reader instance of the first OrbmagFile.
         r0 = self.orb_files[0].r
 
         mband = r0.read_dimvalue('mband')
@@ -57,13 +87,12 @@ class OrbmagAnalyzer:
                                 omtmp = np.matmul(rprimd, r.read_variable('orbmag_mesh')[iterm,0:ndir,isppol,ikpt,iband])
                             self.orbmag_merge_mesh[iterm,idir,0:ndir,isppol,ikpt,iband] = omtmp
 
-
         # This piace of code has been taken from orbmag_sigij_mesh
         wtk = r0.read_value('kpoint_weights')
         occ = r0.read_value('occupations')
         orbmag_nterms = r0.read_dimvalue('orbmag_nterms')
 
-        self.orbmag_merge_sigij_mesh = np.zeros((orbmag_nterms,nsppol,nkpt,mband,ndir,ndir))
+        self.orbmag_merge_sigij_mesh = np.zeros((orbmag_nterms, nsppol, nkpt, mband, ndir, ndir))
 
         for iband in range(mband):
             for isppol in range(nsppol):
@@ -77,52 +106,84 @@ class OrbmagAnalyzer:
                         self.orbmag_merge_sigij_mesh[iterm,isppol,ikpt,iband,0:ndir,0:ndir]= \
                         ucvol*trnrm*self.orbmag_merge_mesh[iterm,0:ndir,0:ndir,isppol,ikpt,iband]
 
+    #def __str__(self) -> str:
+    #    """String representation"""
+    #    return self.to_string()
+
+    #def to_string(self, verbose: int = 0) -> str:
+    #    lines = []; app = lines.append
+    #    return "\n".join(lines)
+
+    #@print_options_decorator(precision=2, suppress=True)
     def report_eigvals(self, report_type):
-
+        """
+        """
         np.set_printoptions(precision=2)
-        terms=['CC   ','VV1  ','VV2  ','NL   ','LR   ','A0An ']
 
+        terms = ['CC   ','VV1  ','VV2  ','NL   ','LR   ','A0An ']
         orbmag_merge_sigij_mesh = self.orbmag_merge_sigij_mesh
 
-        total_sigij=orbmag_merge_sigij_mesh.sum(axis=(0,1,2,3))
-        eigenvalues=-1.0E6*np.real(eigvals(total_sigij))
-        isotropic=eigenvalues.sum()/3.0
-        span=eigenvalues.max()-eigenvalues.min()
-        skew=3.0*(eigenvalues.sum()-eigenvalues.max()-eigenvalues.min()-isotropic)/span
+        total_sigij = orbmag_merge_sigij_mesh.sum(axis=(0,1,2,3))
+        eigenvalues = -1.0E6 * np.real(eigvals(total_sigij))
+        isotropic = eigenvalues.sum() / 3.0
+        span = eigenvalues.max() - eigenvalues.min()
+        skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() -eigenvalues.min() -isotropic) / span
 
-        print('\nShielding tensor eigenvalues, ppm : ',eigenvalues)
-        print('Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n'%(isotropic,span,skew))
+        print('\nShielding tensor eigenvalues, ppm : ', eigenvalues)
+        print('Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n' % (isotropic,span,skew))
 
         if report_type == 'T':
             print('Term totals')
-            term_sigij=orbmag_merge_sigij_mesh.sum(axis=(1,2,3))
-            for iterm in range(np.size(orbmag_merge_sigij_mesh,axis=0)):
-                eigenvalues=-1.0E6*np.real(eigvals(term_sigij[iterm]))
-                print(terms[iterm]+': ',eigenvalues)
+            term_sigij = orbmag_merge_sigij_mesh.sum(axis=(1, 2, 3))
+            for iterm in range(np.size(orbmag_merge_sigij_mesh, axis=0)):
+                eigenvalues = -1.0E6 * np.real(eigvals(term_sigij[iterm]))
+                print(terms[iterm] + ': ', eigenvalues)
             print('\n')
 
-        if report_type == 'B':
+        elif report_type == 'B':
             print('Band totals')
-            band_sigij=orbmag_merge_sigij_mesh.sum(axis=(0,1,2))
-            for iband in range(np.size(orbmag_merge_sigij_mesh,axis=3)):
-                eigenvalues=-1.0E6*np.real(eigvals(band_sigij[iband]))
-                print('band '+str(iband)+' : ',eigenvalues)
+            band_sigij = orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2))
+            for iband in range(np.size(orbmag_merge_sigij_mesh, axis=3)):
+                eigenvalues = -1.0E6 * np.real(eigvals(band_sigij[iband]))
+                print('band ' + str(iband) + ' : ', eigenvalues)
             print('\n')
 
-        if report_type == 'TB':
+        elif report_type == 'TB':
             print('Terms in each band')
-            tband_sigij=orbmag_merge_sigij_mesh.sum(axis=(1,2))
-            for iband in range(np.size(orbmag_merge_sigij_mesh,axis=3)):
-                print('band '+str(iband)+' : ')
-                for iterm in range(np.size(orbmag_merge_sigij_mesh,axis=0)):
-                    eigenvalues=-1.0E6*np.real(eigvals(tband_sigij[iterm,iband]))
-                    print('   '+terms[iterm]+': ',eigenvalues)
+            tband_sigij = orbmag_merge_sigij_mesh.sum(axis=(1,2))
+            for iband in range(np.size(orbmag_merge_sigij_mesh, axis=3)):
+                print('band ' + str(iband) + ' : ')
+                for iterm in range(np.size(orbmag_merge_sigij_mesh, axis=0)):
+                    eigenvalues = -1.0E6 * np.real(eigvals(tband_sigij[iterm, iband]))
+                    print('   ' + terms[iterm] + ': ', eigenvalues)
                 print('\n')
             print('\n')
 
 
+    @add_fig_kwargs
+    def plot_fatbands(self, ebands_kpath, ax=None, **kwargs) -> Figure:
+        """
+        Plot fatbands.
 
+        Args:
+            ebands_kpath
+        """
+        ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
 
+        # TODO: Use SKW to interpolate ...
+        # I'd start by weighting each band and kpt by trace(sigij)/3.0, the isotropic part of sigij,
+        # both as a term-by-term plot and as a single weighting produced by summing over all 6 terms.
+        ebands_kpath.plot(ax=ax, show=False)
+
+        #from abipy.core.skw import SkwInterpolator
+        #skw = SkwInterpolator(lpratio, kpts, eigens, fermie, nelect, cell, symrel, has_timrev,
+        #                      filter_params=None, verbose=1)
+        #print(skw)
+        #skw.eval_sk(spin, kpt, der1=None, der2=None) -> np.ndarray:
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        return fig
 
 
 class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
@@ -133,13 +194,13 @@ class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
     """
 
     @classmethod
-    def from_file(cls, filepath: str) -> OrbMagFile:
+    def from_file(cls, filepath: str) -> OrbmagFile:
         """Initialize the object from a netcdf_ file"""
         return cls(filepath)
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.r = r = ElectronsReader(filepath)
+        self.r = ElectronsReader(filepath)
 
         # Initialize the electron bands from file
         self.natom = len(self.structure)
@@ -184,20 +245,6 @@ class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         #    self.prtdos, self.prtdosm, self.mbesslang, self.pawprtdos, self.usepaw))
         app("nsppol: %d, nkpt: %d, mband: %d" % (self.nsppol, self.nkpt, self.mband))
         app("")
-
-        #if self.prtdos == 3:
-        #    # Print table with info on atoms.
-        #    table = [["Idx", "Symbol", "Reduced_Coords", "Lmax", "Ratsph [Bohr]", "Has_Atom"]]
-        #    for iatom, site in enumerate(self.structure):
-        #        table.append([
-        #            iatom,
-        #            site.specie.symbol,
-        #            "%.5f %.5f %.5f" % tuple(site.frac_coords),
-        #            self.lmax_atom[iatom],
-        #            self.ratsph_type[self.typat[iatom]],
-        #            "Yes" if self.has_atom[iatom] else "No",
-        #        ])
-        #    app(tabulate(table, headers="firstrow"))
 
         if verbose > 1:
             app("")
