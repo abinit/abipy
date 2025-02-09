@@ -183,8 +183,8 @@ Here, it is described how to set up a virtual environment with AbiPy on a cluste
 
 One first needs Conda on the cluster with internet access. If it is not available by default, follow the installation instructions for installing Conda at the bottom of this page. Next, set up a conda virtual environment with a designated Python version, for example 3.12::
 
-    conda create --name my_env python=3.12
-    conda activate my_env
+    conda create --name abienv python=3.12
+    conda activate abienv
 
 We then install AbiPy in this virtual environment, followed by creating requirements.txt, and creating a folder packages/ containing all the wheels (.whl format)::
 
@@ -195,12 +195,12 @@ Next, the .txt file, the folder, and the miniconda installer must be forwarded t
 
     scp -r connected_cluster:/file/and/folder/location/* .
     wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    scp -r requirements.txt packages/ Miniconda3-latest-Linux-x86_64.sh disconnected_cluster:/my/desired_location/
+    scp -r requirements.txt packages/ Miniconda3-latest-Linux-x86_64.sh disconnected_cluster:/desired/location/
 	
 If conda is not available on the cluster that cannot access the internet, follow the instructions on the bottom of this page to install it. Next, one can set up an **offline** virtual environment on the cluster without internet access::
 
-    conda create --name my_env --offline python=3.12
-    conda activate my_env
+    conda create --name abienv --offline python=3.12
+    conda activate abienv
 
 At this step, AbiPy might fail to install due to missing/incompatible packages. Some of these issues may be solved by repeating the above steps (excluding the environment creation) for packages that are listed as missing/incompatible during the installation procedure, by updating the requirements.txt and packages/ and trying to install again. Upon reading::
 	
