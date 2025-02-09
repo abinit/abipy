@@ -187,6 +187,7 @@ Next, set up a conda virtual environment with a designated Python version, for e
 
 We then install AbiPy in this virtual environment, followed by creating requirements.txt, and creating a folder packages/ containing all the wheels (.whl format)::
 
+    pip install abipy
     pip list --format=freeze > requirements.txt
     pip download -r requirements.txt -d packages/
 
