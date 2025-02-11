@@ -13,6 +13,7 @@ import abipy.core.abinit_units as abu
 
 from monty.string import marquee
 from monty.functools import lazy_property
+from scipy.interpolate import interp1d
 #from monty.termcolor import cprint
 from abipy.core.func1d import Function1D
 from abipy.core.structure import Structure
@@ -29,8 +30,6 @@ from abipy.tools.numtools import BzRegularGridInterpolator, gaussian
 from abipy.iotools import bxsf_write
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
-
-from scipy.interpolate import interp1d
 
 
 #TODO Finalize the implementation. Look at Pedro's implementation for GFR

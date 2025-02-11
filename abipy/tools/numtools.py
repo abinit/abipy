@@ -588,8 +588,7 @@ class BzRegularGridInterpolator:
 
         # Build `ndat` interpolators. Note that RegularGridInterpolator supports
         # [nx, ny, nz, ...] arrays but then each call operates on the full set of
-        # ndat components and this complicates the declation of callbacks
-        # operating on a single component.
+        # ndat components and this complicates the declaration of callbacks operating on a single component.
         from scipy.interpolate import RegularGridInterpolator
         self._interpolators = [None] * self.ndat
         for i in range(self.ndat):
@@ -622,56 +621,6 @@ class BzRegularGridInterpolator:
 
         return values
 
-    #def eval_kline(self, point1, point2, num=200, cartesian=False, kpoint=None):
-    #    """
-    #    Interpolate values along a line.
-
-    #    Args:
-    #        point1: First point of the line. Accepts 3d vector or integer.
-    #            The vector is in reduced coordinates unless `cartesian == True`.
-    #            If integer, the first point of the line is given by the i-th site of the structure
-    #            e.g. `point1=0, point2=1` gives the line passing through the first two atoms.
-    #        point2: Second point of the line. Same API as `point1`.
-    #        num: Number of points sampled along the line.
-    #        cartesian: By default, `point1` and `point1` are interpreted as points in fractional
-    #            coordinates (if not integers). Use True to pass points in cartesian coordinates.
-    #        kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
-
-    #    Return: named tuple with
-    #        site1, site2: None if the points do not represent atomic sites.
-    #        points: Points in fractional coords.
-    #        dist: the distance of points along the line in Ang.
-    #        values: numpy array of shape [ndat, num] with interpolated values.
-    #    """
-    #    site1 = None
-    #    if duck.is_intlike(point1):
-    #        if point1 > len(self.structure):
-    #            raise ValueError("point1: %s > natom: %s" % (point1, len(self.structure)))
-    #        site1 = self.structure[point1]
-    #        point1 = site1.coords if cartesian else site1.frac_coords
-
-    #    site2 = None
-    #    if duck.is_intlike(point2):
-    #        if point2 > len(self.structure):
-    #            raise ValueError("point2: %s > natom: %s" % (point2, len(self.structure)))
-    #        site2 = self.structure[point2]
-    #        point2 = site2.coords if cartesian else site2.frac_coords
-
-    #    point1 = np.reshape(point1, (3,))
-    #    point2 = np.reshape(point2, (3,))
-    #    if cartesian:
-    #        red_from_cart = self.structure.lattice.inv_matrix.T
-    #        point1 = np.dot(red_from_cart, point1)
-    #        point2 = np.dot(red_from_cart, point2)
-
-    #    p21 = point2 - point1
-    #    line_points = np.reshape([alpha * p21 for alpha in np.linspace(0, 1, num=num)], (-1, 3))
-    #    dist = self.structure.lattice.norm(line_points)
-    #    line_points += point1
-
-    #    return dict2namedtuple(site1=site1, site2=site2, points=line_points, dist=dist,
-    #                           values=self.eval_kpoints(line_points))
-
 
 #class PolyExtrapolator:
 #
@@ -695,4 +644,3 @@ class BzRegularGridInterpolator:
 #        ax.legend(loc="best", shadow=True, fontsize=fontsize)
 #
 #        return fig
-

@@ -21,6 +21,7 @@ from abipy.tools.plotting import set_axlims, get_ax_fig_plt, get_axarray_fig_plt
 #    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly,
 #    get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
 
+
 def print_options_decorator(**kwargs):
     """
     A decorator to temporarily set np.printoptions inside a function.
@@ -43,9 +44,14 @@ def print_options_decorator(**kwargs):
 
 class OrbmagAnalyzer:
     """
+    TODO
     """
 
     def __init__(self, filepaths):
+        """
+        Args:
+            filepaths:
+        """
         self.orb_files = [OrbmagFile(path) for path in filepaths]
 
         # Consistency check
@@ -87,7 +93,7 @@ class OrbmagAnalyzer:
                                 omtmp = np.matmul(rprimd, r.read_variable('orbmag_mesh')[iterm,0:ndir,isppol,ikpt,iband])
                             self.orbmag_merge_mesh[iterm,idir,0:ndir,isppol,ikpt,iband] = omtmp
 
-        # This piace of code has been taken from orbmag_sigij_mesh
+        # This piece of code has been taken from orbmag_sigij_mesh
         wtk = r0.read_value('kpoint_weights')
         occ = r0.read_value('occupations')
         orbmag_nterms = r0.read_dimvalue('orbmag_nterms')
@@ -123,7 +129,7 @@ class OrbmagAnalyzer:
         terms = ['CC   ','VV1  ','VV2  ','NL   ','LR   ','A0An ']
         orbmag_merge_sigij_mesh = self.orbmag_merge_sigij_mesh
 
-        total_sigij = orbmag_merge_sigij_mesh.sum(axis=(0,1,2,3))
+        total_sigij = orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2, 3))
         eigenvalues = -1.0E6 * np.real(eigvals(total_sigij))
         isotropic = eigenvalues.sum() / 3.0
         span = eigenvalues.max() - eigenvalues.min()
@@ -150,7 +156,7 @@ class OrbmagAnalyzer:
 
         elif report_type == 'TB':
             print('Terms in each band')
-            tband_sigij = orbmag_merge_sigij_mesh.sum(axis=(1,2))
+            tband_sigij = orbmag_merge_sigij_mesh.sum(axis=(1, 2))
             for iband in range(np.size(orbmag_merge_sigij_mesh, axis=3)):
                 print('band ' + str(iband) + ' : ')
                 for iterm in range(np.size(orbmag_merge_sigij_mesh, axis=0)):
@@ -159,6 +165,28 @@ class OrbmagAnalyzer:
                 print('\n')
             print('\n')
 
+    def get_bz_interpolator(self):
+        from abipy.tools.numtools import BzRegularGridInterpolator
+        a_data, ngkpt, shifts = self.insert_a_inbox(fill_value=0)
+        return [BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data[pstate])**2, method=interp_method)
+                for pstate in range(self.nstates)]
+
+    def get_skw_interpolator(self):
+
+        # Get symmetries from abinit spacegroup (read from file).
+        if (abispg := self.structure.abi_spacegroup) is None:
+            abispg = self.structure.spgset_abi_spacegroup(has_timerev=self.has_timrev)
+
+        fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm, strict=True) if afm == 1]
+        from abipy.core.skw import SkwInterpolator
+
+        cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
+
+        skw = SkwInterpolator(lpratio, self.kpoints.frac_coords, self.eigens[:,:,bstart:bstop], self.fermie, self.nelect,
+                              cell, fm_symrel, self.has_timrev,
+                              filter_params=filter_params, verbose=verbose)
+        #skw.eval_sk(spin, kpt, der1=None, der2=None) -> np.ndarray:
+        return skw
 
     @add_fig_kwargs
     def plot_fatbands(self, ebands_kpath, ax=None, **kwargs) -> Figure:
@@ -173,15 +201,8 @@ class OrbmagAnalyzer:
         # TODO: Use SKW to interpolate ...
         # I'd start by weighting each band and kpt by trace(sigij)/3.0, the isotropic part of sigij,
         # both as a term-by-term plot and as a single weighting produced by summing over all 6 terms.
-        ebands_kpath.plot(ax=ax, show=False)
-
-        #from abipy.core.skw import SkwInterpolator
-        #skw = SkwInterpolator(lpratio, kpts, eigens, fermie, nelect, cell, symrel, has_timrev,
-        #                      filter_params=None, verbose=1)
-        #print(skw)
-        #skw.eval_sk(spin, kpt, der1=None, der2=None) -> np.ndarray:
-
         ax, fig, plt = get_ax_fig_plt(ax=ax)
+        ebands_kpath.plot(ax=ax, show=False)
 
         return fig
 
