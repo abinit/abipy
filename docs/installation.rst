@@ -193,6 +193,7 @@ We then install AbiPy in this virtual environment, followed by creating requirem
 
 Next, the .txt file, the folder, and the miniconda installer must be forwarded to the cluster without internet access.
 You may have to use a computer that has access to both locations with the scp command.
+If the offline cluster does not have Conda preinstalled, the Miniconda executable must be ported so that an offline Conda installation can be performed.
 Thus, from a computer that can access both locations, execute::
 
     scp -r connected_cluster:/file/and/folder/location/* .
