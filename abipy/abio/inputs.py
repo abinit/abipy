@@ -31,8 +31,8 @@ from abipy.core.mixins import Has_Structure
 from abipy.core.kpoints import has_timrev_from_kptopt
 from abipy.tools.serialization import pmg_serialize
 from abipy.abio.variable import InputVariable
-from abipy.abio.abivars import is_abivar, is_anaddb_var, format_string_abivars
-from abipy.abio.abivars_db import get_abinit_variables, get_anaddb_variables
+from abipy.abio.abivars import is_abivar, is_anaddb_var, is_atdep_var, format_string_abivars
+from abipy.abio.abivars_db import get_abinit_variables, get_anaddb_variables, get_atdep_variables
 from abipy.tools import duck
 from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, AnaddbTask, ParalHintsParser, NetcdfReader
 from abipy.flowtk.abiinspect import yaml_read_irred_perts
@@ -4751,6 +4751,481 @@ class Cut3DInput(MSONable):
         """
         return cls(infile_path=d.get('infile_path', None), output_filepath=d.get('output_filepath', None),
                    options=d.get('options', None))
+
+
+class AtdepInputError(Exception):
+    """Error class raised by AtdepInput."""
+
+
+class AtdepInput(AbiAbstractInput, MSONable, Has_Structure):
+    """
+    This object stores the anaddb variables.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: AnaddbInput
+    """
+
+    Error = AtdepInputError
+
+    @pmg_serialize
+    def as_dict(self) -> dict:
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
+        atdep_args = []
+        for key, value in self.items():
+            if isinstance(value, np.ndarray): value = value.tolist()
+            atdep_args.append((key, value))
+
+        return dict(structure=self.structure.as_dict(),
+                    comment=self.comment,
+                    atdep_args=atdep_args,
+                    spell_check=self.spell_check,
+                    )
+
+    @classmethod
+    def from_dict(cls, d: dict) -> AtdepInput:
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
+        return cls(d["structure"],
+                   comment=d["comment"],
+                   atdep_args=d["atdep_args"],
+                   spell_check=d["spell_check"],
+                   )
+
+    def __init__(self,
+                 structure: Structure,
+                 comment: str = "",
+                 atdep_args=None,
+                 atdep_kwargs=None,
+                 spell_check: bool = False):
+
+        """
+        Args:
+            structure: |Structure| object
+            comment: Optional string with a comment that will be placed at the beginning of the file.
+            atdep_args: List of tuples (key, value) with atdep input variables (default: empty)
+            atdep_kwargs: Dictionary with atdep input variables (default: empty)
+            spell_check: False to disable spell checking for input variables.
+        """
+        self.set_spell_check(spell_check)
+        self._structure = Structure.as_structure(structure)
+        self.comment = "" if comment is None else str(comment)
+
+        atdep_args = [] if atdep_args is None else atdep_args
+        for key, value in atdep_args:
+            self._check_varname(key)
+
+        atdep_kwargs = {} if atdep_kwargs is None else atdep_kwargs
+        for key in atdep_kwargs:
+            self._check_varname(key)
+
+        args = list(atdep_args)[:]
+        args.extend(list(atdep_kwargs.items()))
+
+        self._vars = OrderedDict(args)
+
+    @property
+    def vars(self) -> dict:
+        return self._vars
+
+    def set_spell_check(self, false_or_true: bool) -> None:
+        """Activate/Deactivate spell-checking"""
+        self._spell_check = bool(false_or_true)
+
+    @property
+    def spell_check(self) -> bool:
+        """True if spell checking is activated."""
+        try:
+            return self._spell_check
+        except AttributeError: # This is to maintain compatibility with pickle
+            return False
+
+    def _check_varname(self, key: str) -> None:
+        if self.spell_check:
+            if not is_atdep_var(key):
+                raise self.Error("""
+Cannot find variable `%s` in the internal database. If you think this is not a typo, use:
+
+    input.set_spell_check(False)
+
+to disable spell checking. Perhaps the internal database is not in synch
+with the Abinit version you are using. Please contact the AbiPy developers.""" % key)
+
+    @property
+    def structure(self) -> Structure:
+        """|Structure| object."""
+        return self._structure
+
+    @staticmethod
+    def get_atdep_brav(structure):
+        """
+        Get the two integers defining the bravais lattice
+        according to the 'brav' variable from atdep.
+        """
+        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+        spa = SpacegroupAnalyzer(structure)
+        family = spa.get_crystal_system()
+    
+        symbol = spa.get_space_group_symbol()
+        n = spa.get_space_group_number()
+    
+        if 0 < n < 3:
+            # triclinic
+            iholohedry = 1
+        if n < 16:
+            # monoclinic
+            iholohedry = 2
+            #icentering = 0
+        if n < 75:
+            # orthorhombic
+            iholohedry = 3
+        if n < 143:
+            # tetragonal
+            iholohedry = 4
+        if n < 168:
+            # trigonal
+            iholohedry = 5
+        if n < 195:
+            # hexagonal
+            iholohedry = 6
+        else:
+            # cubic
+            iholohedry = 7
+    
+        if symbol.startswith('P'):
+            # No centering
+            icentering = 0
+        elif symbol.startswith('I'):
+            # Body centered
+            icentering = -1
+        elif symbol.startswith('F'):
+            # Face centered
+            icentering = -3
+        elif symbol.startswith('A'):
+            # A-face centered
+            icentering = 1
+        elif symbol.startswith('C'):
+            # B-face centered
+            icentering = 3
+        else:
+            # Rhombrohedral
+            icentering = 0
+    
+        return [iholohedry, icentering]
+
+    _unitcell_keys = ['brav', 'natom_unitcell',
+                      'xred_unitcell', 'typat_unitcell']
+    _supercell_keys = ['multiplicity', 'temperature']
+    _computational_details_keys = ['nstep_max', 'nstep_min', 'rcut']
+    _mandatory_keys = (
+        _unitcell_keys + _supercell_keys + _computational_details_keys)
+
+    def has_mandatory_variables(self):
+        """True if all mandatory variables been specified."""
+        for key in self._supercell_keys + self._computational_details_keys:
+            if key not in self.vars:
+                return False
+        return True
+
+    def to_string(self, mode="text", verbose=0) -> str:
+        """
+        String representation.
+
+        Args:
+            sortmode: "a" for alphabetical order, None if no sorting is wanted
+            mode: Either `text` or `html` if HTML output with links is wanted.
+        """
+        lines = []
+        app = lines.append
+
+        if mode == "html":
+            var_database = get_atdep_variables()
+
+        def addvars(keys):
+            for vname in keys:
+                value = self[vname]
+                if mode == "html":
+                    vname = var_database[vname].html_link(label=vname)
+                value = format_string_abivars(vname, value)
+
+                try:
+                    app(str(InputVariable(vname, value)))
+                except Exception as exc:
+                    cprint(f"{vname=}, {value=}", color="red")
+                    raise exc
+
+        optional_keys = []
+        for key in self.vars.keys():
+            if key not in self._mandatory_keys:
+                optional_keys.append(key)
+
+        structure_abivars = self.structure.to_abivars()
+        self['brav'] = self.get_atdep_brav(self.structure)
+        self['natom_unitcell'] = structure_abivars['natom']
+        self['xred_unitcell'] = structure_abivars['xred']
+        self['typat_unitcell'] = structure_abivars['typat']
+
+        app('NormalMode')
+        app('#DEFINE_UNITCELL')
+        addvars(self._unitcell_keys)
+        app('#DEFINE_SUPERCELL')
+        addvars(self._supercell_keys)
+        app('#DEFINE_COMPUTATIONAL_DETAILS')
+        addvars(self._computational_details_keys)
+        app('#OPTIONAL_INPUT_VARIABLES')
+        addvars(optional_keys)
+        app('TheEnd')
+        app('')
+
+        if self.comment:
+            app("# " + self.comment.replace("\n", "\n#"))
+
+        if mode == "text":
+            return "\n".join(lines)
+        else:
+            return "\n".join(lines).replace("\n", "<br>")
+
+    def _repr_html_(self) -> str:
+        """Integration with jupyter_ notebooks."""
+        return self.to_string(mode="html")
+
+    def abivalidate(self, workdir=None, manager=None):
+        pass
+
+class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
+
+    def __str__(self):
+        sval = str(self.default)
+        return (4*" ").join([sval, "!" + self.help])
+
+    @property
+    def url(self) -> str:
+        """The url associated to the variable."""
+        root = "https://docs.abinit.org/variables/optic/"
+        return root + "#%s" % self.name
+
+    def html_link(self, label=None) -> str:
+        """String with the URL of the web page."""
+        return '<a href="%s" target="_blank">%s</a>' % (self.url, self.name if label is None else label)
+
+
+class OpticError(Exception):
+    """Error class raised by OpticInput."""
+
+
+class OpticInput(AbiAbstractInput, MSONable):
+    """
+    Input file for optic executable
+    """
+    Error = OpticError
+
+    # variable name --> default value.
+    _VARIABLES = [
+        #OpticVar(name="ddkfile_x", default=None, help="Name of the first d/dk response wavefunction file"),
+        #OpticVar(name="ddkfile_y", default=None, help="Name of the second d/dk response wavefunction file"),
+        #OpticVar(name="ddkfile_z", default=None, help="Name of the third d/dk response wavefunction file"),
+        #OpticVar(name="wfkfile",   default=None, help="Name of the ground-state wavefunction file"),
+
+        # PARAMETERS section:
+        OpticVar(name="broadening", default=0.01, group='PARAMETERS',
+                 help="Value of the smearing factor, in Hartree"),
+        OpticVar(name="domega", default=0.010, group='PARAMETERS',
+                 help="Frequency step (Ha)"),
+        OpticVar(name="maxomega", default=1, group='PARAMETERS',
+                 help="Maximum frequency (Ha)"),
+        OpticVar(name="scissor", default=0.000, group='PARAMETERS',
+                 help="Scissor shift if needed, in Hartree"),
+        OpticVar(name="tolerance", default=0.001, group='PARAMETERS',
+                 help="Tolerance on closeness of singularities (in Hartree)"),
+        OpticVar(name="autoparal", default=0, group='PARAMETERS',
+                 help="Autoparal option"),
+        OpticVar(name="max_ncpus", default=0, group='PARAMETERS',
+                 help="Max number of CPUs considered in autoparal mode"),
+
+        # COMPUTATIONS section:
+        OpticVar(name="num_lin_comp", default=0, group='COMPUTATIONS',
+                 help="Number of components of linear optic tensor to be computed"),
+        OpticVar(name="lin_comp", default=0, group='COMPUTATIONS',
+                 help="Linear coefficients to be computed (x=1, y=2, z=3)"),
+        OpticVar(name="num_nonlin_comp", default=0, group='COMPUTATIONS',
+                 help="Number of components of nonlinear optic tensor to be computed"),
+        OpticVar(name="nonlin_comp", default=0, group='COMPUTATIONS',
+                 help="Non-linear coefficients to be computed"),
+        OpticVar(name="num_linel_comp", default=0, group='COMPUTATIONS',
+                 help="Number of components of linear electro-optic tensor to be computed"),
+        OpticVar(name="linel_comp", default=0, group='COMPUTATIONS',
+                 help="Linear electro-optic coefficients to be computed"),
+        OpticVar(name="num_nonlin2_comp", default=0, group='COMPUTATIONS',
+                 help="Number of components of nonlinear optic tensor v2 to be computed"),
+        OpticVar(name="nonlin2_comp", default=0, group='COMPUTATIONS',
+                 help="Non-linear coefficients v2 to be computed"),
+    ]
+
+    _GROUPS = ['PARAMETERS','COMPUTATIONS']
+
+    # Variable names supported
+    _VARNAMES = [v.name for v in _VARIABLES]
+
+    # Mapping name --> var object.
+    _NAME2VAR = {v.name: v for v in _VARIABLES}
+
+    def __init__(self, **kwargs):
+        # Initialize with default values.
+        self._vars = collections.OrderedDict((v.name, v.default) for v in self._VARIABLES)
+
+        # Update the variables with the values passed by the user
+        for k, v in kwargs.items():
+            if k not in self._VARNAMES:
+                raise self.Error("varname %s not in %s" % (k, str(self._VARNAMES)))
+            self[k] = v
+
+    def __str__(self):
+        return self.to_string()
+
+    @property
+    def vars(self) -> dict:
+        return self._vars
+
+    def _check_varname(self, key: str) -> None:
+        if key not in self._VARNAMES:
+            raise self.Error("%s is not a valid optic variable.\n"
+                             "If you are sure the name is correct, please change the _VARIABLES list in:\n%s" %
+                             (key, __file__))
+
+    def get_default(self, key: str):
+        """Return the default value of variable `key`."""
+        for var in self._VARIABLES:
+            if var.name == key: return var.default
+        raise self.Error("Cannot find %s in _VARIABLES" % str(key))
+
+    @classmethod
+    def from_dict(cls, d: dict) -> OpticInput:
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
+        kwargs = {}
+        for grp, section in d.items():
+            if grp in ("@module", "@class"): continue
+            kwargs.update(**section)
+        return cls(**kwargs)
+
+    # TODO
+    #@pmg_serialize
+    def as_dict(self) -> dict:
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
+        my_dict = OrderedDict()
+        for grp in self._GROUPS:
+            my_dict[grp] = OrderedDict()
+
+        for name in self._VARNAMES:
+            value = self.vars.get(name)
+            if value is None: value = self.get_default(name)
+            if value is None:
+                raise self.Error(f"Variable {name=} is missing")
+
+            var = self._NAME2VAR[name]
+            grp = var.group
+            my_dict[grp].update({name: value})
+
+        return my_dict
+
+    def to_string(self, verbose: int = 0, files_file: bool = False) -> str:
+        """String representation."""
+        table = []
+        app = table.append
+
+        for name in self._VARNAMES:
+            value = self.vars.get(name)
+            if value is None: value = self.get_default(name)
+            if value is None:
+                raise self.Error(f"Variable {name=} is missing")
+
+            # One line per variable --> valperline set to None
+            variable = InputVariable("", value, valperline=None)
+            app([str(variable).strip(), "! " + self._NAME2VAR[name].help])
+
+        # Align
+        width = max(len(row[0]) for row in table)
+        lines = []
+        for row in table:
+            s = row[0].ljust(width) + "\t" + row[1]
+            lines.append(s)
+
+        return "\n".join(lines)
+
+    def only_independent_chi_components(self, structure, assume_symmetric_tensor=False,
+                                        symprec=1e-3, angle_tolerance=5):
+        """
+        Use the crystal system returned by spglib to find the independent components
+        of the linear susceptibility tensor and set the appropriate variables.
+
+        Args:
+            structure: Crystalline structure
+            assume_symmetric_tensor: True if tensor can be assumed symmetric.
+                Note that the tensor is symmetric only for a lossless and non-optically active material.
+            symprec, angle_tolerance: Parameters passed to spglib.
+
+        Return:
+            Set internal variables and return list of components to compute.
+        """
+        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+        spgan = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
+        system = spgan.get_crystal_system()
+
+        # Table 1.5.1 of https://booksite.elsevier.com/samplechapters/9780123694706/Sample_Chapters/02~Chapter_1.pdf.
+        # Note that the tensor is symmetric only for a lossless and non-optically active material.
+        components_for_system = {
+            "triclinic": "xx yy zz xy yx xz zx yz zy",
+            "monoclinic": "xx yy zz xz zx",
+            "orthorhombic": "xx yy zz",
+            "tetragonal": "xx zz",
+            "cubic": "xx",
+        }
+
+        if assume_symmetric_tensor:
+            components_for_system["triclinic"] = "xx yy zz xy xz yz"
+            components_for_system["monoclinic"] = "xx yy zz xz"
+
+        components_for_system["trigonal"] = components_for_system["tetragonal"]
+        components_for_system["hexagonal"] = components_for_system["tetragonal"]
+
+        for k, v in components_for_system.items():
+            components_for_system[k] = v.split()
+
+        ind_comps = components_for_system[system]
+        d = {"x": 1, "y": 2, "z": 3}
+        self["num_lin_comp"] = len(ind_comps)
+        self["lin_comp"] = [10 * d[comp[0]] + d[comp[1]] for comp in ind_comps]
+
+        return ind_comps
+
+    def abivalidate(self, workdir=None, manager=None):
+        """
+        Run OPTIC in dry-run mode to validate the input file.
+        Note: This method is a stub, it always return retcode 0
+
+        Args:
+            workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+
+        Return:
+            `namedtuple` with the following attributes:
+
+                retcode: Return code. 0 if OK.
+                output_file: output file of the run.
+                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
+                task: Task object
+        """
+        # TODO: Optic does not support --dry-run
+        #task = OpticTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
+        #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
+        return dict2namedtuple(retcode=0, output_file=None, log_file=None,
+                               stderr_file=None, task=None)
 
 
 def product_dict(d: dict):
