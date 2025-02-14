@@ -3,7 +3,8 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 executable = "atdep"
 
-from abimkdocs.variables import ValueWithUnit, MultipleValue, Range
+#from abimkdocs.variables import ValueWithUnit, MultipleValue, Range
+from abipy.abio.abivar_database.variables import ValueWithUnit, MultipleValue, Range, ValueWithConditions
 ValueWithConditions = dict
 
 Variable=dict
