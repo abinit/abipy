@@ -1,6 +1,6 @@
 """
 This module contains objects for post-processing polaron calculations
-using the results stored in the VARPEQ.nc file.
+using the results stored in the VPQ.nc file.
 
 For a theoretical introduction see ...
 """
@@ -108,34 +108,34 @@ _ALL_ENTRIES = [
 _ALL_ENTRIES = {e.name: e for e in _ALL_ENTRIES}
 
 
-class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    This file stores the results of a VARPEQ calculations: SCF cycle, A_nk, B_qnu coefficients
+    This file stores the results of a VPQ calculations: SCF cycle, A_nk, B_qnu coefficients
     It also provides methods to analyze and plot results.
 
     Usage example:
 
     .. code-block:: python
 
-        from abipy.eph.varpeq import VarpeqFile
-        with VarpeqFile("out_VARPEQ.nc") as varpeq:
+        from abipy.eph.varpeq import VpqFile
+        with VpqFile("out_VPQ.nc") as varpeq:
             print(varpeq)
             for polaron in varpeq.polaron_spin:
                 print(polaron)
                 polaron.plot_scf_cycle()
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: VarpeqFile
+    .. inheritance-diagram:: VpqFile
     """
 
     @classmethod
-    def from_file(cls, filepath: PathLike) -> VarpeqFile:
+    def from_file(cls, filepath: PathLike) -> VpqFile:
         """Initialize the object from a netcdf file."""
         return cls(filepath)
 
     def __init__(self, filepath: PathLike):
         super().__init__(filepath)
-        self.r = VarpeqReader(filepath)
+        self.r = VpqReader(filepath)
 
     @lazy_property
     def ebands(self) -> ElectronBands:
@@ -188,8 +188,8 @@ class VarpeqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
 
         app("")
-        app("VARPEQ parameters:")
-        app(f"varpeq_pkind: {self.r.varpeq_pkind}")
+        app("VPQ parameters:")
+        app(f"vpq_pkind: {self.r.vpq_pkind}")
         #app(f"gstore_cplex: {self.r.cplex}")
         #app(f"gstore_kzone: {self.r.kzone}")
         #app(f"gstore_kfilter: {self.r.kfilter}")
@@ -240,12 +240,12 @@ class Polaron:
     nq: int            # Number of q-points in B_qnu (including filtering if any).
     bstart: int        # First band starts at bstart.
     bstop: int         # Last band (python convention)
-    varpeq: VarpeqFile
+    varpeq: VpqFile
 
     @classmethod
-    def from_varpeq(cls, varpeq: VarpeqFile, spin: int) -> Polaron:
+    def from_varpeq(cls, varpeq: VpqFile, spin: int) -> Polaron:
         """
-        Build an istance from a VarpeqFile and the spin index.
+        Build an istance from a VpqFile and the spin index.
         """
         r = varpeq.r
         nstates, nk, nq, nb = r.nstates, r.nk_spin[spin], r.nq_spin[spin], r.nb_spin[spin]
@@ -389,10 +389,10 @@ class Polaron:
         varpeq = self.varpeq
         pre = "" if varpeq.ebands.nsppol == 1 else f"spin={self.spin}"
         if not with_gaps:
-            return f"{pre}{varpeq.r.varpeq_pkind} polaron"
+            return f"{pre}{varpeq.r.vpq_pkind} polaron"
         else:
             gaps_string = varpeq.ebands.get_gaps_string()
-            return f"{pre}{varpeq.r.varpeq_pkind} polaron, {gaps_string}"
+            return f"{pre}{varpeq.r.vpq_pkind} polaron, {gaps_string}"
 
     def insert_a_inbox(self, fill_value=None) -> tuple:
         """
@@ -613,7 +613,7 @@ class Polaron:
 
         a_data, *_ = self.insert_a_inbox(fill_value=0)
 
-        pkind = self.varpeq.r.varpeq_pkind
+        pkind = self.varpeq.r.vpq_pkind
         vbm_or_cbm = "vbm" if pkind == "hole" else "cbm"
         bm = self.ebands.get_edge_state(vbm_or_cbm, self.spin).eig
         e0 = self.ebands.fermie
@@ -701,7 +701,7 @@ class Polaron:
                 for band, (e, a2) in enumerate(zip(enes_n, a2_n, strict=True)):
                     ank_dos += a2 * gaussian(edos_mesh, width, center=e-e0)
 
-            ank_dos /= np.product(kdata.ngkpt)
+            ank_dos /= np.prod(kdata.ngkpt)
             ank_dos = Function1D(edos_mesh, ank_dos)
             print(f"For {pstate=}, A^2(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
 
@@ -731,7 +731,7 @@ class Polaron:
                 ibz_dos_opts = {"color": "darkred",}
                 print(f"For {pstate=}, A2_IBZ(E) integrates to:", ank_dos.integral_value, " Ideally, it should be 1.")
                 lines_ados_ibz = ank_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$A^2_{IBZ}$(E)", ls="--",
-                                linewidth=lw_dos, **ibz_dos_opts, zorder=1)
+                                                 linewidth=lw_dos, **ibz_dos_opts, zorder=1)
 
             set_grid_legend(ax, fontsize, xlabel="Arb. unit")
             if pstate != self.nstates - 1 or not with_legend:
@@ -745,6 +745,7 @@ class Polaron:
             if with_ibz_a2dos:
                 dos_lines.append(lines_ados_ibz)
                 colors.append(ibz_dos_opts["color"])
+
             # determine max x value for auto xlims
             for dos, c in zip(dos_lines, colors):
                 for line in dos:
@@ -766,8 +767,7 @@ class Polaron:
                         mask = (xright - xleft) > 0
                         y, x0, x1 = y_common[mask], xleft[mask], xright[mask]
 
-                        ax.fill_betweenx(y, x0, x1,
-                                         alpha=marker_alpha, color=c, linewidth=0)
+                        ax.fill_betweenx(y, x0, x1, alpha=marker_alpha, color=c, linewidth=0)
                         xleft = xright
 
         # Auto xlims for DOS
@@ -910,12 +910,11 @@ class Polaron:
         if ymin > -1e-6:
             ymin = 0
         bandwidth = ymax - ymin
-        ymin -= 0.1*bandwidth if ymin != 0 else 0
-        ymax += 0.1*bandwidth
+        ymin -= 0.1 * bandwidth if ymin != 0 else 0
+        ymax += 0.1 * bandwidth
 
         for ax in ax_mat.ravel():
             ax.set_ylim(ymin, ymax)
-
 
         if not with_phdos:
             # Return immediately.
@@ -933,7 +932,7 @@ class Polaron:
         phdos = phdos_file.phdos
         phdos_ngqpt = np.diagonal(phdos_file.qptrlatt)
         phdos_shifts = [0.0, 0.0, 0.0]
-        phdos_nqbz = np.product(phdos_ngqpt)
+        phdos_nqbz = np.prod(phdos_ngqpt)
         phdos_mesh = phdos.mesh
 
         # Here we get the mapping BZ --> IBZ needed to obtain the ph frequencies omega_qnu from the IBZ for the DOS.
@@ -945,8 +944,8 @@ class Polaron:
         bz_qpoints = kmesh_from_mpdivs(phdos_ngqpt, phdos_shifts)
 
         phbands_qmesh = ddb.anaget_phmodes_at_qpoints(qpoints=bz_qpoints, ifcflag=1, verbose=verbose, **anaddb_kwargs)
-        if len(phbands_qmesh.qpoints) != np.product(phdos_ngqpt):
-            raise RuntimeError(f"{len(phbands_qmesh.qpoints)=} != {np.product(phdos_ngqpt)=}")
+        if len(phbands_qmesh.qpoints) != np.prod(phdos_ngqpt):
+            raise RuntimeError(f"{len(phbands_qmesh.qpoints)=} != {np.prod(phdos_ngqpt)=}")
 
         #with_ibz_b2dos = False
         xmax = -np.inf
@@ -985,10 +984,9 @@ class Polaron:
                 freqs_nu = phbands_qmesh.phfreqs[iq_ibz]
                 for w, b2 in zip(freqs_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True)
                     bqnu_dos += b2 gaussian(phdos_mesh, width, center=w)
-            bqnu_dos /= np.product(phdos_ngqpt)
+            bqnu_dos /= np.prod(phdos_ngqpt)
             """
             lines_bdos_ibz = None
-
 
             dos_lines = [lines_pdos, lines_bdos]
             colors = [pdos_opts["color"], marker_color]
@@ -997,6 +995,7 @@ class Polaron:
             if with_ibz_b2dos:
                 dos_lines.append(lines_bdos_ibz)
                 colors.append(ibz_dos_opts["color"])
+
             # determine max x value for auto xlims
             for dos, c in zip(dos_lines, colors):
                 for line in dos:
@@ -1018,8 +1017,7 @@ class Polaron:
                         mask = (xright - xleft) > 0
                         y, x0, x1 = y_common[mask], xleft[mask], xright[mask]
 
-                        ax.fill_betweenx(y, x0, x1,
-                                         alpha=marker_alpha, color=c, linewidth=0)
+                        ax.fill_betweenx(y, x0, x1, alpha=marker_alpha, color=c, linewidth=0)
                         xleft = xright
 
         # Auto xlims for DOS
@@ -1037,12 +1035,12 @@ class Polaron:
         return fig
 
 
-class VarpeqReader(BaseEphReader):
+class VpqReader(BaseEphReader):
     """
     Reads data from file and constructs objects.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: VarpeqReader
+    .. inheritance-diagram:: VpqReader
     """
 
     def __init__(self, filepath: PathLike):
@@ -1054,10 +1052,10 @@ class VarpeqReader(BaseEphReader):
         # int nkbz ;
         # int nqbz ;
         # int frohl_ntheta ;
-        # double varpeq_tolgrs ;
+        # double vpq_tolgrs ;
         # double e_frohl ;
-        # char varpeq_pkind(fnlen) ;
-        # char varpeq_aseed(fnlen) ;
+        # char vpq_pkind(fnlen) ;
+        # char vpq_aseed(fnlen) ;
         # int ngkpt(three) ;
         # int gstore_ngqpt(three) ;
         # int nk_spin(nsppol) ;
@@ -1081,8 +1079,8 @@ class VarpeqReader(BaseEphReader):
         self.nq_spin = self.read_value("nq_spin")
         #self.nkbz = self.read_dimvalue("nkbz")
         #self.nqbz = self.read_dimvalue("nqbz")
-        self.varpeq_pkind = self.read_string("varpeq_pkind")
-        #self.varpeq_aseed = self.read_string("varpeq_aseed")
+        self.vpq_pkind = self.read_string("vpq_pkind")
+        #self.vpq_aseed = self.read_string("vpq_aseed")
         self.ngqpt = self.read_value("gstore_ngqpt")
         self.frohl_ntheta = self.read_value("frohl_ntheta")
 
@@ -1107,24 +1105,24 @@ class VarpeqReader(BaseEphReader):
         #self.glob_nk_spin = self.read_value("gstore_glob_nk_spin")
 
 
-class VarpeqRobot(Robot, RobotWithEbands):
+class VpqRobot(Robot, RobotWithEbands):
     """
-    This robot analyzes the results contained in multiple VARPEQ.nc files.
+    This robot analyzes the results contained in multiple VPQ.nc files.
 
     Usage example:
 
     .. code-block:: python
 
-        robot = VarpeqRobot.from_files([
-            "out1_VARPEQ.nc",
-            "out2_VARPEQ.nc",
-            ])
+        robot = VpqRobot.from_files([
+            "out1_VPQ.nc",
+            "out2_VPQ.nc",
+        ])
 
         print(robot)
         df = robot.get_final_results_df()
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: VarpeqRobot
+    .. inheritance-diagram:: VpqRobot
     """
 
     EXT = "VARPEQ"
@@ -1236,7 +1234,7 @@ class VarpeqRobot(Robot, RobotWithEbands):
 
         args = [(l, f.filepath) for l, f in self.items()]
         nb.cells.extend([
-            nbv.new_code_cell("robot = abilab.VarpeqRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("robot = abilab.VpqRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
             #nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
         ])
 

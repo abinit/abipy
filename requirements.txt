@@ -7,12 +7,9 @@ tqdm
 pyyaml>=3.11
 ruamel.yaml>=0.16.12
 pandas
-#numpy
-numpy<2.0.0
+numpy
 sympy
 spglib
-#pymatgen==v2024.10.29
-#monty==v2024.10.21
 pymatgen
 monty
 netCDF4
