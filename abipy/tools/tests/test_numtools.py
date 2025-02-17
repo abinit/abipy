@@ -1,11 +1,29 @@
 import numpy as np
+import pytest
 
-from abipy.tools.numtools import *
+from pymatgen.core.lattice import Lattice
 from abipy.core.testing import AbipyTest
+from abipy.core.structure import Structure
+from abipy.tools.numtools import *
 
 
 class TestNumTools(AbipyTest):
     """Test numtools."""
+
+    def test_print_stats_arr(self):
+        arr = np.array([1, 2, 3, 4, 5])
+        print_stats_arr(arr)
+
+    def test_nparr_to_df(self):
+        arr = np.array([[1, 2], [3, 4]])
+        df = nparr_to_df("values", arr, ["x", "y"])
+        assert len(df) == 4
+        assert df.columns.tolist() == ["x", "y", "values"]
+
+    def test_build_mesh(self):
+        mesh, index = build_mesh(0.0, 5, 1.0, "centered")
+        assert len(mesh) == 11
+        assert index, 5
 
     def test_transpose_last3dims(self):
         """Testing transpose_last3dims"""
@@ -61,9 +79,98 @@ class TestNumTools(AbipyTest):
         rarr = np.ones((2, 4), dtype=float)
         self.assert_equal(data_from_cplx_mode("re", rarr, tol=1.1), np.zeros_like(rarr))
 
+    def test_is_diagonal(self):
+        diag_matrix = np.diag([1, 2, 3])
+        non_diag_matrix = np.array([[1, 1], [0, 1]])
+        assert is_diagonal(diag_matrix)
+        assert not is_diagonal(non_diag_matrix)
+
     def test_special_functions(self):
         """Testing special functions."""
         assert gaussian(x=0.0, width=1.0, center=0.0, height=1.0) == 1.0
 
         assert lorentzian(x=0.0, width=1.0, center=0.0, height=1.0) == 1.0
         self.assert_almost_equal(lorentzian(x=0.0, width=1.0, center=0.0, height=None), 1/np.pi)
+
+    def test_iflat(self):
+        nested_list = [[0], [1, 2, [3, 4]]]
+        assert list(iflat(nested_list)) == [0, 1, 2, 3, 4]
+
+    def test_grouper(self):
+        assert grouper(3, "ABCDEFG", "x") == [('A', 'B', 'C'), ('D', 'E', 'F'), ('G', 'x', 'x')]
+
+    def test_sort_and_groupby(self):
+        keys, groups = sort_and_groupby([1, 2, 1], ret_lists=True)
+        assert keys, [1, 2]
+        assert groups, [[1, 1], [2]]
+
+    def test_prune_ord(self):
+        assert prune_ord([1, 1, 2, 3, 3]) == [1, 2, 3]
+
+    def test_smooth(self):
+        x = np.linspace(-2, 2, 50)
+        y = np.sin(x)
+        smoothed = smooth(y, window_len=11, window='hanning')
+        assert len(smoothed) == len(y)
+
+    def test_find_convindex(self):
+        values = [1, 1.1, 1.01, 1.001, 1.0001]
+        assert find_convindex(values, tol=0.01) == 2
+
+    def test_find_degs_sk(self):
+        energies = [1, 1, 2, 3.4, 3.401]
+        deg_sets = find_degs_sk(energies, atol=0.01)
+        assert deg_sets == [[0, 1], [2], [3, 4]]
+
+
+class TestBzRegularGridInterpolator(AbipyTest):
+
+    def test_api(self):
+        # Creates a simple cubic structure for testing.
+        lattice = Lattice.cubic(1.0)  # Simple cubic lattice with a=1
+        structure = Structure(lattice, species=["Si"], coords=[[0, 0, 0]])
+
+        # Test that BzRegularGridInterpolator initializes correctly.
+        shifts = [0, 0, 0]
+        datak = np.zeros((1, 4, 4, 4))  # All zeros except one point # (ndat=1, nx=4, ny=4, nz=4)
+        datak[0, 2, 2, 2] = 1.0         # Set one known value
+
+        # Multiple shifts should raise an error
+        with pytest.raises(ValueError, match="Multiple shifts are not supported"):
+            BzRegularGridInterpolator(structure, [[0, 0, 0], [0.5, 0.5, 0.5]], datak)
+
+        # Non-zero shift should raise an error
+        with pytest.raises(ValueError, match="Shift should be zero"):
+            BzRegularGridInterpolator(structure, [0.1, 0.2, 0.3], datak)
+
+        interp = BzRegularGridInterpolator(structure, shifts, datak)
+        assert interp.ndat == 1
+        assert interp.dtype == datak.dtype
+
+        # Test interpolation at known fractional coordinates."""
+        result = interp.eval_kpoint([0.5, 0.5, 0.5])  # Middle of the grid
+
+        assert isinstance(result, np.ndarray)
+        assert result.shape == (1,)
+        assert 0 <= result[0] <= 1  # Ensure interpolation is reasonable
+
+        # Test interpolation with Cartesian coordinates.
+        cart_coords = structure.reciprocal_lattice.matrix @ [0.5, 0.5, 0.5]  # Convert to Cartesian
+
+        result = interp.eval_kpoint(cart_coords, cartesian=True)
+        assert isinstance(result, np.ndarray)
+        assert result.shape == (1,)
+        assert 0 <= result[0] <= 1
+
+        # Test that interpolation handles periodic boundaries correctly."""
+        result1 = interp.eval_kpoint([1.0, 1.0, 1.0])
+        result2 = interp.eval_kpoint([0.0, 0.0, 0.0])
+
+        np.testing.assert_allclose(result1, result2, atol=1e-6)
+
+        # DEBUG SECTION
+        #ref_akn = np.abs(self.a_kn) ** 2
+        #for ik, kpoint in enumerate(self.kpoints):
+        #    interp = a2_interp_state[0].eval_kpoint(kpoint)
+        #    print("MAX (A2 ref - A2 interp) at qpoint", kpoint)
+        #    print((np.abs(ref_akn[ik] - interp)).max())

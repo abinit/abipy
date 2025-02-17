@@ -9,17 +9,18 @@ import numpy as np
 from numpy.linalg import inv, det, eigvals
 from monty.termcolor import cprint
 from monty.functools import lazy_property
-from monty.string import marquee
+from monty.string import is_string, list_strings, marquee
 #from pymatgen.core.periodic_table import Element
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.structure import Structure
+from abipy.tools.numtools import BzRegularGridInterpolator
 from abipy.electrons.ebands import ElectronBands, ElectronsReader
+from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs, map_grid2ibz #, IrredZone
 #from abipy.tools.numtools import gaussian
 from abipy.tools.typing import Figure
-from abipy.tools.plotting import set_axlims, get_ax_fig_plt, get_axarray_fig_plt, add_fig_kwargs
+from abipy.tools.plotting import set_axlims, get_ax_fig_plt, get_axarray_fig_plt, add_fig_kwargs, Marker
 #from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-#    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly,
-#    get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
+#    rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels
 
 
 def print_options_decorator(**kwargs):
@@ -54,21 +55,17 @@ class OrbmagAnalyzer:
         """
         self.orb_files = [OrbmagFile(path) for path in filepaths]
 
-        # Consistency check
-        structure0 = self.orb_files[0].structure
-        if any(orb_file.structure != structure0 for orb_file in self.orb_files[1:]):
-            raise RuntimeError("ORBMAG.nc files have different structures")
-
         # This piece of code is taken from merge_orbmag_mesh
         # the main difference is that here ncroots[0] is replaced by
         # the reader instance of the first OrbmagFile.
         r0 = self.orb_files[0].r
 
-        mband = r0.read_dimvalue('mband')
-        nkpt = r0.read_dimvalue('nkpt')
-        nsppol = r0.read_dimvalue('nsppol')
-        ndir = r0.read_dimvalue('ndir')
+        self.mband = mband = r0.read_dimvalue('mband')
+        self.nkpt = nkpt = r0.read_dimvalue('nkpt')
+        self.nsppol = nsppol = r0.read_dimvalue('nsppol')
+        self.ndir = ndir = r0.read_dimvalue('ndir')
         orbmag_nterms = r0.read_dimvalue('orbmag_nterms')
+
         rprimd = r0.read_value('primitive_vectors')
         gprimd = inv(rprimd)
         ucvol = det(rprimd)
@@ -91,6 +88,7 @@ class OrbmagAnalyzer:
                                 omtmp = ucvol*np.matmul(gprimd, r.read_variable('orbmag_mesh')[iterm,0:ndir,isppol,ikpt,iband])
                             else:
                                 omtmp = np.matmul(rprimd, r.read_variable('orbmag_mesh')[iterm,0:ndir,isppol,ikpt,iband])
+
                             self.orbmag_merge_mesh[iterm,idir,0:ndir,isppol,ikpt,iband] = omtmp
 
         # This piece of code has been taken from orbmag_sigij_mesh
@@ -104,13 +102,13 @@ class OrbmagAnalyzer:
             for isppol in range(nsppol):
                 for ikpt in range(nkpt):
                     # weight factor for each band and k point
-                    trnrm=occ[0,ikpt,iband]*wtk[ikpt]/ucvol
+                    trnrm = occ[0,ikpt,iband] * wtk[ikpt] / ucvol
                     for iterm in range(orbmag_nterms):
                         # sigij = \sigma_ij the 3x3 shielding tensor term for each sppol, kpt, and band
                         # additional ucvol factor converts to induced dipole moment (was dipole moment density,
                         # that is, magnetization)
-                        self.orbmag_merge_sigij_mesh[iterm,isppol,ikpt,iband,0:ndir,0:ndir]= \
-                        ucvol*trnrm*self.orbmag_merge_mesh[iterm,0:ndir,0:ndir,isppol,ikpt,iband]
+                        self.orbmag_merge_sigij_mesh[iterm,isppol,ikpt,iband,0:ndir,0:ndir] = \
+                            ucvol * trnrm * self.orbmag_merge_mesh[iterm,0:ndir,0:ndir,isppol,ikpt,iband]
 
     #def __str__(self) -> str:
     #    """String representation"""
@@ -120,6 +118,15 @@ class OrbmagAnalyzer:
     #    lines = []; app = lines.append
     #    return "\n".join(lines)
 
+    @lazy_property
+    def structure(self):
+        """Structure object."""
+        # Perform consistency check
+        structure = self.orb_files[0].structure
+        if any(orb_file.structure != structure for orb_file in self.orb_files[1:]):
+            raise RuntimeError("ORBMAG.nc files have different structures")
+        return structure
+
     #@print_options_decorator(precision=2, suppress=True)
     def report_eigvals(self, report_type):
         """
@@ -127,6 +134,7 @@ class OrbmagAnalyzer:
         np.set_printoptions(precision=2)
 
         terms = ['CC   ','VV1  ','VV2  ','NL   ','LR   ','A0An ']
+        # Shape: (orbmag_nterms, nsppol, nkpt, mband, ndir, ndir)
         orbmag_merge_sigij_mesh = self.orbmag_merge_sigij_mesh
 
         total_sigij = orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2, 3))
@@ -165,44 +173,145 @@ class OrbmagAnalyzer:
                 print('\n')
             print('\n')
 
-    def get_bz_interpolator(self):
-        from abipy.tools.numtools import BzRegularGridInterpolator
-        a_data, ngkpt, shifts = self.insert_a_inbox(fill_value=0)
-        return [BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data[pstate])**2, method=interp_method)
-                for pstate in range(self.nstates)]
+    @lazy_property
+    def ngkpt_and_shifts(self) -> tuple:
+        """
+        Return k-mesh divisions and shifts.
+        """
+        for ifile, orb in enumerate(self.orb_files):
+            ksampling = orb.ebands.kpoints.ksampling
+            ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
 
-    def get_skw_interpolator(self):
+            if ngkpt is None:
+                raise ValueError("Non diagonal k-meshes are not supported!")
+            if len(shifts) > 1:
+                raise ValueError("Multiple k-shifts are not supported!")
 
-        # Get symmetries from abinit spacegroup (read from file).
-        if (abispg := self.structure.abi_spacegroup) is None:
-            abispg = self.structure.spgset_abi_spacegroup(has_timerev=self.has_timrev)
+            # check that all files have the same value.
+            if ifile == 0:
+                _ngkpt, _shifts = ngkpt, shifts
+            else:
+                if np.any(ngkpt != _ngkpt) or np.any(shifts != _shifts):
+                    raise ValueError(f"ORBMAG files have different values of ngkpt: {ngkpt=} {_ngkpt=} or shifts {shifts=}, {_shifts=}")
 
-        fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm, strict=True) if afm == 1]
-        from abipy.core.skw import SkwInterpolator
+        return ngkpt, shifts
 
-        cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
+    def insert_inbox(self, spin: int, what: str) -> tuple:
+        """
+        Return data, ngkpt, shifts where data is a
+        (mband, nkx, nky, nkz)) array with A_{pnk} with p the polaron index.
 
-        skw = SkwInterpolator(lpratio, self.kpoints.frac_coords, self.eigens[:,:,bstart:bstop], self.fermie, self.nelect,
-                              cell, fm_symrel, self.has_timrev,
-                              filter_params=filter_params, verbose=verbose)
-        #skw.eval_sk(spin, kpt, der1=None, der2=None) -> np.ndarray:
-        return skw
+        Args:
+            spin: Spin index.
+            what:
+        """
+        # Need to know the shape of the k-mesh.
+        ngkpt, shifts = self.ngkpt_and_shifts
+        orb = self.orb_files[0]
+        k_indices = kpoints_indices(orb.kpoints.frac_coords, ngkpt)
+        nx, ny, nz = ngkpt
+
+        # I'd start by weighting each band and kpt by trace(sigij)/3.0, the isotropic part of sigij,
+        # both as a term-by-term plot and as a single weighting produced by summing over all 6 terms.
+        #self.orbmag_merge_sigij_mesh = np.zeros((orbmag_nterms, nsppol, nkpt, mband, ndir, ndir))
+
+        shape = (self.mband, nx, ny, nz)
+        data = np.empty(shape, dtype=float)
+
+        for iband in range(self.mband):
+            for ikpt, k_inds in zip(range(self.nkpt),  k_indices, strict=True):
+                ix, iy, iz = k_inds
+                vals = self.orbmag_merge_sigij_mesh[:, spin, ikpt, iband].sum(axis=0)
+
+                if what == "isotropic":
+                    eigenvalues = -1.0E6 * vals
+                    value = eigenvalues.sum() / 3.0
+                    #span = eigenvalues.max() - eigenvalues.min()
+                    #skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() -eigenvalues.min() -isotropic) / span
+                else:
+                    raise ValueError(f"Invalid {what=}")
+
+                data[iband, ix, iy, iz] = value
+
+        return data, ngkpt, shifts
+
+    def get_bz_interpolator_spin(self, what: str, interp_method: str) -> list[BzRegularGridInterpolator]:
+        """
+        Build and return an interpolator for
+
+        Args:
+            interp_method: The method of interpolation. Supported are “linear”, “nearest”,
+                “slinear”, “cubic”, “quintic” and “pchip”.
+        """
+        interp_spin = [None for _ in range(self.nsppol)]
+        for spin in range(self.nsppol):
+            data, ngkpt, shifts = self.insert_inbox(spin, what)
+            interp_spin[spin] = BzRegularGridInterpolator(self.structure, shifts, data, method=interp_method)
+
+        return interp_spin
 
     @add_fig_kwargs
-    def plot_fatbands(self, ebands_kpath, ax=None, **kwargs) -> Figure:
+    def plot_fatbands(self, ebands_kpath,
+                      what_list="isotropic",
+                      ylims=None, scale=50, marker_color="gold", marker_edgecolor="gray",
+                      marker_alpha=0.5, fontsize=12, interp_method="linear",
+                      ax_mat=None, **kwargs) -> Figure:
         """
         Plot fatbands.
 
         Args:
             ebands_kpath
+            what_list: string or list of strings defining the quantity to compute and show.
+            ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
+            scale: Scaling factor for
+            marker_color: Color for markers
+            marker_edgecolor: Color for marker edges.
+            marker_edgecolor: Marker transparency.
+            fontsize: fontsize for legends and titles
+            interp_method: Interpolation method.
+            ax_mat: matrix of |matplotlib-Axes| or None if a new figure should be created.
         """
+        what_list = list_strings(what_list)
+
+        # Build the grid of plots.
+        num_plots, ncols, nrows = len(what_list), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
+        ax_list, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=True, squeeze=False)
+        ax_list = ax_list.ravel()
+        # don't show the last ax if num_plots is odd.
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
+
         ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
 
-        # TODO: Use SKW to interpolate ...
-        # I'd start by weighting each band and kpt by trace(sigij)/3.0, the isotropic part of sigij,
-        # both as a term-by-term plot and as a single weighting produced by summing over all 6 terms.
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ebands_kpath.plot(ax=ax, show=False)
+        for what, ax in zip(what_list, ax_list, strict=True):
+            # Get interpolator for `what` quantity.
+            interp_spin = self.get_bz_interpolator_spin(what, interp_method)
+
+            #a2_max = np.max(np.abs(data[pstate]))**2
+            #a2_max = max((interp.get_max_abs_data2() for interp in interp_spin))
+            #scale *= 1. / a2_max
+            scale = 1e-1
+
+            ymin, ymax = +np.inf, -np.inf
+            x, y, s = [], [], []
+
+            for spin in range(self.nsppol):
+                for ik, kpoint in enumerate(ebands_kpath.kpoints):
+                    enes_n = ebands_kpath.eigens[spin, ik]
+                    for e, a2 in zip(enes_n, interp_spin[spin].eval_kpoint(kpoint), strict=True):
+                        x.append(ik); y.append(e); s.append(scale * a2)
+                        ymin, ymax = min(ymin, e), max(ymax, e)
+
+            # Plot electron bands with markers.
+            points = Marker(x, y, s, color=marker_color, edgecolors=marker_edgecolor,
+                            alpha=marker_alpha, label=what)
+
+            ebands_kpath.plot(ax=ax, points=points, show=False, linewidth=1.0)
+            ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
 

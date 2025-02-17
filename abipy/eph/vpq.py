@@ -438,7 +438,7 @@ class Polaron:
 
         return b_data, ngqpt, shifts
 
-    def get_a2_interpolator_state(self, interp_method) -> BzRegularGridInterpolator:
+    def get_a2_interpolator_state(self, interp_method: str) -> BzRegularGridInterpolator:
         """
         Build and return an interpolator for |A_nk|^2 for each polaronic state.
 
@@ -451,7 +451,7 @@ class Polaron:
         return [BzRegularGridInterpolator(self.structure, shifts, np.abs(a_data[pstate])**2, method=interp_method)
                 for pstate in range(self.nstates)]
 
-    def get_b2_interpolator_state(self, interp_method) -> BzRegularGridInterpolator:
+    def get_b2_interpolator_state(self, interp_method: str) -> BzRegularGridInterpolator:
         """
         Build and return an interpolator for |B_qnu|^2 for each polaronic state.
 
@@ -598,16 +598,8 @@ class Polaron:
         # Get interpolators for A_nk
         a2_interp_state = self.get_a2_interpolator_state(interp_method)
 
-        # DEBUG SECTION
-        #ref_akn = np.abs(self.a_kn) ** 2
-        #for ik, kpoint in enumerate(self.kpoints):
-        #    interp = a2_interp_state[0].eval_kpoint(kpoint)
-        #    print("MAX (A2 ref - A2 interp) at qpoint", kpoint)
-        #    print((np.abs(ref_akn[ik] - interp)).max())
-
         df = self.get_final_results_df()
 
-        # Plot electron bands with markers.
         ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
         ymin, ymax = +np.inf, -np.inf
 
@@ -640,6 +632,7 @@ class Polaron:
                         x.append(ik); y.append(e); s.append(scale * a2)
                         ymin, ymax = min(ymin, e), max(ymax, e)
 
+            # Plot electron bands with markers.
             ax = ax_mat[pstate, 0]
 
             points = Marker(x, y, s, color=marker_color, edgecolors=marker_edgecolor,
@@ -659,7 +652,6 @@ class Polaron:
                 set_visible(ax, False, *["legend", "xlabel"])
 
         vertices_names = [(k.frac_coords, k.name) for k in ebands_kpath.kpoints]
-
 
         if ebands_kmesh is None:
             edos_ngkpt = self.structure.calc_ngkpt(nksmall)
@@ -708,12 +700,10 @@ class Polaron:
             ax = ax_mat[pstate, 1]
             edos_opts = {"color": "black",} if self.spin == 0 else {"color": "red"}
             lines_edos = edos.plot_ax(ax, e0, spin=self.spin, normalize=normalize, exchange_xy=True, label="eDOS(E)", **edos_opts,
-                         linewidth=lw_dos, zorder=3)
-
+                                      linewidth=lw_dos, zorder=3)
 
             lines_ados = ank_dos.plot_ax(ax, exchange_xy=True, normalize=normalize, label=r"$A^2$(E)", color=marker_color,
-                            linewidth=lw_dos, zorder=2)
-
+                                         linewidth=lw_dos, zorder=2)
 
             # Computes A2(E) using only k-points in the IBZ. This is just for testing.
             # A2_IBZ(E) should be equal to A2(E) only if A_nk fullfills the lattice symmetries. See notes above.
@@ -736,7 +726,6 @@ class Polaron:
             set_grid_legend(ax, fontsize, xlabel="Arb. unit")
             if pstate != self.nstates - 1 or not with_legend:
                 set_visible(ax, False, *["legend", "xlabel"])
-
 
             dos_lines = [lines_edos, lines_ados]
             colors = [edos_opts["color"], marker_color]
@@ -783,10 +772,8 @@ class Polaron:
             ymax += 0.1 * span
             ylims = [ymin - e0, ymax - e0]
 
-
         for ax in ax_mat.ravel():
             set_axlims(ax, ylims, "y")
-
 
         # if filtering is used, show the filtering region
         for ax in ax_mat.ravel():
@@ -817,7 +804,7 @@ class Polaron:
         """
         High-level interface to plot phonon energies with markers whose size is proportional to |B_qnu|^2.
         Similar to plot_bqnu_with_phbands but this function receives in input a DdbFile or a
-        path to a ddb file and automates the computation of the phonon bands by invoking anaddb.
+        path to a DDB file and automates the computation of the phonon bands by invoking anaddb.
 
         Args:
             ddb: DdbFile or path to file.

@@ -572,13 +572,18 @@ class BzRegularGridInterpolator:
                     “slinear”, “cubic”, “quintic” and “pchip”.
         """
         self.structure = structure
-        self.shifts = shifts
+        self.shifts = np.reshape(shifts, (-1, 3))
+
+        if self.shifts.shape[0] != 1:
+            raise ValueError(f"Multiple shifts are not supported! {self.shifts.shape[0]=}")
+        if np.any(self.shifts[0] != 0):
+            raise ValueError(f"Shift should be zero but got: {self.shifts=}")
 
         if add_replicas:
             datak = add_periodic_replicas(datak)
 
         self.dtype = datak.dtype
-        # We want a 4d array (ndat arrays of shape (nx, ny, nz)
+        # We want a 4d array of shape (ndat, nx, ny, nz)
         nx, ny, nz = datak.shape[-3:]
         datak = np.reshape(datak, (-1,) + (nx, ny, nz))
         self.ndat = len(datak)
@@ -591,8 +596,21 @@ class BzRegularGridInterpolator:
         # ndat components and this complicates the declaration of callbacks operating on a single component.
         from scipy.interpolate import RegularGridInterpolator
         self._interpolators = [None] * self.ndat
-        for i in range(self.ndat):
-            self._interpolators[i] = RegularGridInterpolator((x, y, z), datak[i], **kwargs)
+
+        self.abs_data2_min_idat = np.empty(self.ndat)
+        self.abs_data2_max_idat = np.empty(self.ndat)
+
+        for idat in range(self.ndat):
+            self._interpolators[idat] = RegularGridInterpolator((x, y, z), datak[idat], **kwargs)
+
+            # Compute min and max of |f|^2 to be used to scale markers in matplotlib plots.
+            self.abs_data2_min_idat[idat] = np.min(np.abs(datak[idat])) ** 2
+            self.abs_data2_max_idat[idat] = np.max(np.abs(datak[idat])) ** 2
+
+    def get_max_abs_data2(self, idat=None) -> tuple:
+        if idat is None:
+            return self.abs_data2_max_idat.max()
+        return self.abs_data2_max_idat[idat]
 
     def eval_kpoint(self, frac_coords, cartesian=False, **kwargs) -> np.ndarray:
         """
