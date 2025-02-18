@@ -413,7 +413,7 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
 #    #return irred_map
 
 
-def kpoints_indices(frac_coords, ngkpt, check_mesh=0) -> np.ndarray:
+def kpoints_indices(frac_coords, ngkpt, shift, check_mesh=0) -> np.ndarray:
     """
     This function is used when we need to insert k-dependent quantities in a (nx, ny, nz) array.
     It computes and returns the indices of the k-points assuming these points
@@ -422,15 +422,21 @@ def kpoints_indices(frac_coords, ngkpt, check_mesh=0) -> np.ndarray:
     Args:
         frac_coords: array with the fractional coordinates of the k-points.
         ngkpt: Number of divisions of the mesh.
+        shift: Grid shift (only one shift is supported here)
         check_mesh: > 0 to activate debugging sections.
     """
+    shift = np.reshape(shift, (3,))
+    if np.any(np.abs(shift) > 1e-6):
+        # Unshift the points
+        frac_coords = np.array(frac_coords) - shift
+
     # Transforms kpt in its corresponding reduced number in the interval [0,1[
     k_indices = [np.round((kpt % 1) * ngkpt) for kpt in frac_coords]
     k_indices = np.array(k_indices, dtype=int)
 
     # Debug secction.
     if check_mesh:
-        print(f"kpoints_indices: Testing whether k-points belong to the {ngkpt =} mesh")
+        print(f"kpoints_indices: Testing whether k-points belong to the {ngkpt=} mesh")
         ierr = 0
         for kpt, inds in zip(frac_coords, k_indices):
             if check_mesh > 1: print("kpt:", kpt, "inds:", inds)
@@ -438,12 +444,12 @@ def kpoints_indices(frac_coords, ngkpt, check_mesh=0) -> np.ndarray:
             if not issamek(kpt, same_k):
                 ierr += 1; print(kpt, "-->", same_k)
         if ierr:
-            raise ValueError("Wrong mapping")
+            raise ValueError(f"Wrong mapping, {ierr=}")
 
         #for kpt, inds in zip(frac_coords, k_indices):
         #    if np.any(inds >= ngkpt):
         #        raise ValueError(f"inds >= nkgpt for {kpt=}, {np.round(kpt % 1)=} {inds=})")
-        print("Check succesfull!")
+        print("check_mesh succesfull!")
 
     return k_indices
 

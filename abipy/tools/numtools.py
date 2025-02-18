@@ -564,7 +564,7 @@ class BzRegularGridInterpolator:
         Args:
             structure: :class:`Structure` object.
             datak: [ndat, nx, ny, nz] array.
-            shifts: Shift of the mesh.
+            shifts: Shifts of the mesh (only one shift is supported here)
             add_replicas: If True, data is padded with redundant data points.
                 in order to have a periodic 3D array of shape=[ndat, nx+1, ny+1, nz+1].
             kwargs: Extra arguments are passed to RegularGridInterpolator e.g.: method
@@ -576,6 +576,7 @@ class BzRegularGridInterpolator:
 
         if self.shifts.shape[0] != 1:
             raise ValueError(f"Multiple shifts are not supported! {self.shifts.shape[0]=}")
+
         if np.any(self.shifts[0] != 0):
             raise ValueError(f"Shift should be zero but got: {self.shifts=}")
 
@@ -608,6 +609,8 @@ class BzRegularGridInterpolator:
             self.abs_data_max_idat[idat] = np.max(np.abs(datak[idat]))
 
     def get_max_abs_data(self, idat=None) -> tuple:
+        """
+        """
         if idat is None:
             return self.abs_data_max_idat.max()
         return self.abs_data_max_idat[idat]
@@ -630,6 +633,9 @@ class BzRegularGridInterpolator:
         if cartesian:
             red_from_cart = self.structure.reciprocal_lattice.inv_matrix.T
             frac_coords = np.dot(red_from_cart, frac_coords)
+
+        # Remove the shift here
+        frac_coords -= self.shifts[0]
 
         uc_coords = np.reshape(frac_coords, (3,)) % 1
 

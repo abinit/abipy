@@ -401,7 +401,8 @@ class Polaron:
         """
         # Need to know the shape of the k-mesh.
         ngkpt, shifts = self.ngkpt_and_shifts
-        k_indices = kpoints_indices(self.kpoints, ngkpt)
+        k_indices = kpoints_indices(self.kpoints, ngkpt, shifts)
+        #print(f"{k_indices=}")
         nx, ny, nz = ngkpt
 
         shape = (self.nstates, self.nb, nx, ny, nz)
@@ -422,7 +423,7 @@ class Polaron:
         """
         # Need to know the shape of the q-mesh (always Gamma-centered)
         ngqpt, shifts = self.varpeq.r.ngqpt, [0, 0, 0]
-        q_indices = kpoints_indices(self.qpoints, ngqpt)
+        q_indices = kpoints_indices(self.qpoints, ngqpt, shifts)
 
         natom3 = 3 * len(self.structure)
         nx, ny, nz = ngqpt
@@ -595,15 +596,13 @@ class Polaron:
         gridspec_kw = {'width_ratios': [2, 1]}
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
                                                sharex=False, sharey=True, squeeze=False, gridspec_kw=gridspec_kw)
-        # Get interpolators for A_nk
+        # Get interpolators for |A_nk|^2
         a2_interp_state = self.get_a2_interpolator_state(interp_method)
 
         df = self.get_final_results_df()
 
         ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
         ymin, ymax = +np.inf, -np.inf
-
-        a_data, *_ = self.insert_a_inbox(fill_value=0)
 
         pkind = self.varpeq.r.vpq_pkind
         vbm_or_cbm = "vbm" if pkind == "hole" else "cbm"
@@ -613,7 +612,7 @@ class Polaron:
         for pstate in range(self.nstates):
             x, y, s = [], [], []
 
-            a2_max = np.max(np.abs(a_data[pstate]))**2
+            a2_max = a2_interp_state[pstate].get_max_abs_data()
             scale *= 1. / a2_max
 
             for ik, kpoint in enumerate(ebands_kpath.kpoints):
@@ -858,10 +857,8 @@ class Polaron:
 
         phbands_qpath = PhononBands.as_phbands(phbands_qpath)
 
-        # Get interpolators for B_qnu
+        # Get interpolators for |B_qnu|^2
         b2_interp_state = self.get_b2_interpolator_state(interp_method)
-
-        b_data, *_ = self.insert_b_inbox(fill_value=0)
 
         # TODO: need to fix this hardcoded representation
         units = 'meV'
@@ -872,7 +869,7 @@ class Polaron:
         for pstate in range(self.nstates):
             x, y, s = [], [], []
 
-            b2_max = np.max(np.abs(b_data[pstate]))**2
+            b2_max = b2_interp_state[pstate].get_max_abs_data()
             scale *= 1. / b2_max
 
             for iq, qpoint in enumerate(phbands_qpath.qpoints):

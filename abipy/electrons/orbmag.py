@@ -62,11 +62,13 @@ class OrbmagAnalyzer:
         Args:
             filepaths: List of filepaths to ORBMAG.nc files
         """
-        if not isinstance(filepaths, (list, tuple):
-            raise TypeError(f"Expecting list or tuple with paths but got {type(filepaths)")
+        if not isinstance(filepaths, (list, tuple)):
+            raise TypeError(f"Expecting list or tuple with paths but got {type(filepaths)=}")
         if len(filepaths) != 3:
             raise ValueError(f"{len(filepaths)=} != 3")
 
+        # TODO: One should store the direction in the netcdf file
+        # so that we can check that the files are given in the right order.
         self.orb_files = [OrbmagFile(path) for path in filepaths]
 
         # This piece of code is taken from merge_orbmag_mesh. The main difference
@@ -220,7 +222,7 @@ class OrbmagAnalyzer:
         # Need to know the shape of the k-mesh.
         ngkpt, shifts = self.ngkpt_and_shifts
         orb = self.orb_files[0]
-        k_indices = kpoints_indices(orb.kpoints.frac_coords, ngkpt)
+        k_indices = kpoints_indices(orb.kpoints.frac_coords, ngkpt, shifts)
         nx, ny, nz = ngkpt
 
         # I'd start by weighting each band and kpt by trace(sigij)/3.0, the isotropic part of sigij,

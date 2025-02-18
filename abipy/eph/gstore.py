@@ -291,7 +291,7 @@ class Gqk:
 
         # Compute indices of qpoints in the ngqpt mesh.
         ngqpt, shifts = r.ngqpt, [0, 0, 0]
-        q_indices = kpoints_indices(r.qbz, ngqpt, check_mesh=check_mesh)
+        q_indices = kpoints_indices(r.qbz, ngqpt, shifts, check_mesh=check_mesh)
 
         natom3 = 3 * len(self.structure)
         nb = self.nb
