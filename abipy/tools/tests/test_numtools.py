@@ -1,3 +1,4 @@
+import itertools
 import numpy as np
 import pytest
 
@@ -131,9 +132,12 @@ class TestBzRegularGridInterpolator(AbipyTest):
         structure = Structure(lattice, species=["Si"], coords=[[0, 0, 0]])
 
         # Test that BzRegularGridInterpolator initializes correctly.
+        ndat, nx, ny, nz = 2, 4, 5, 6
         shifts = [0, 0, 0]
-        datak = np.zeros((1, 4, 4, 4))  # All zeros except one point # (ndat=1, nx=4, ny=4, nz=4)
-        datak[0, 2, 2, 2] = 1.0         # Set one known value
+        shape = (ndat, nx, ny ,nz)     # (ndat=1, nx=4, ny=4, nz=4)
+        datak = np.zeros(shape)  # All zeros except one point
+        datak[0, 2, 2, 2] = 1.0  # Set one known value
+        datak[1, 2, 2, 2] = 2.0  # Set one known value
 
         # Multiple shifts should raise an error
         with pytest.raises(ValueError, match="Multiple shifts are not supported"):
@@ -144,33 +148,35 @@ class TestBzRegularGridInterpolator(AbipyTest):
             BzRegularGridInterpolator(structure, [0.1, 0.2, 0.3], datak)
 
         interp = BzRegularGridInterpolator(structure, shifts, datak)
-        assert interp.ndat == 1
+        assert interp.ndat == ndat
         assert interp.dtype == datak.dtype
 
         # Test interpolation at known fractional coordinates."""
-        result = interp.eval_kpoint([0.5, 0.5, 0.5])  # Middle of the grid
+        values = interp.eval_kpoint([0.5, 0.5, 0.5])  # Middle of the grid
 
-        assert isinstance(result, np.ndarray)
-        assert result.shape == (1,)
-        assert 0 <= result[0] <= 1  # Ensure interpolation is reasonable
+        assert isinstance(values, np.ndarray)
+        assert values.shape == (ndat,)
+        assert 0 <= values[0] <= 1  # Ensure interpolation is reasonable
+        assert 0 <= values[1] <= 2  # Ensure interpolation is reasonable
 
         # Test interpolation with Cartesian coordinates.
         cart_coords = structure.reciprocal_lattice.matrix @ [0.5, 0.5, 0.5]  # Convert to Cartesian
 
-        result = interp.eval_kpoint(cart_coords, cartesian=True)
-        assert isinstance(result, np.ndarray)
-        assert result.shape == (1,)
-        assert 0 <= result[0] <= 1
+        values = interp.eval_kpoint(cart_coords, cartesian=True)
+        assert isinstance(values, np.ndarray)
+        assert values.shape == (ndat,)
+        assert 0 <= values[0] <= 1
+        assert 0 <= values[1] <= 2
 
         # Test that interpolation handles periodic boundaries correctly."""
-        result1 = interp.eval_kpoint([1.0, 1.0, 1.0])
-        result2 = interp.eval_kpoint([0.0, 0.0, 0.0])
+        values1 = interp.eval_kpoint([1.0, 1.0, 1.0])
+        values2 = interp.eval_kpoint([0.0, 0.0, 0.0])
 
-        np.testing.assert_allclose(result1, result2, atol=1e-6)
+        np.testing.assert_allclose(values1, values2, atol=1e-6)
 
-        # DEBUG SECTION
-        #ref_akn = np.abs(self.a_kn) ** 2
-        #for ik, kpoint in enumerate(self.kpoints):
-        #    interp = a2_interp_state[0].eval_kpoint(kpoint)
-        #    print("MAX (A2 ref - A2 interp) at qpoint", kpoint)
-        #    print((np.abs(ref_akn[ik] - interp)).max())
+        # Compare interpolated and initial reference value.
+        for ix, iy, iz in itertools.product(range(nx), range(ny), range(nz)):
+            kpoint = [ix/nx, iy/ny, iz/nz]
+            values = interp.eval_kpoint(kpoint)
+            ref_values = datak[:, ix, iy, iz]
+            self.assert_almost_equal(values, ref_values)

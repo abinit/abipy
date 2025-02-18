@@ -622,7 +622,7 @@ class Polaron:
                     # Handle filtering
                     allowed = True
                     if filter_value:
-                        energy_window = filter_value*1.1
+                        energy_window = filter_value * 1.1
                         if pkind == "hole" and bm - e > energy_window:
                             allowed = False
                         elif pkind == "electron" and e - bm > energy_window:

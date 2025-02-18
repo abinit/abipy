@@ -597,20 +597,20 @@ class BzRegularGridInterpolator:
         from scipy.interpolate import RegularGridInterpolator
         self._interpolators = [None] * self.ndat
 
-        self.abs_data2_min_idat = np.empty(self.ndat)
-        self.abs_data2_max_idat = np.empty(self.ndat)
+        self.abs_data_min_idat = np.empty(self.ndat)
+        self.abs_data_max_idat = np.empty(self.ndat)
 
         for idat in range(self.ndat):
             self._interpolators[idat] = RegularGridInterpolator((x, y, z), datak[idat], **kwargs)
 
-            # Compute min and max of |f|^2 to be used to scale markers in matplotlib plots.
-            self.abs_data2_min_idat[idat] = np.min(np.abs(datak[idat])) ** 2
-            self.abs_data2_max_idat[idat] = np.max(np.abs(datak[idat])) ** 2
+            # Compute min and max of |f| to be used to scale markers in matplotlib plots.
+            self.abs_data_min_idat[idat] = np.min(np.abs(datak[idat]))
+            self.abs_data_max_idat[idat] = np.max(np.abs(datak[idat]))
 
-    def get_max_abs_data2(self, idat=None) -> tuple:
+    def get_max_abs_data(self, idat=None) -> tuple:
         if idat is None:
-            return self.abs_data2_max_idat.max()
-        return self.abs_data2_max_idat[idat]
+            return self.abs_data_max_idat.max()
+        return self.abs_data_max_idat[idat]
 
     def eval_kpoint(self, frac_coords, cartesian=False, **kwargs) -> np.ndarray:
         """

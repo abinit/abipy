@@ -2,15 +2,12 @@
 """Classes for the analysis of electronic fatbands and projected DOSes."""
 from __future__ import annotations
 
-import traceback
 import numpy as np
 
-#from tabulate import tabulate
 from numpy.linalg import inv, det, eigvals
-from monty.termcolor import cprint
+#from monty.termcolor import cprint
 from monty.functools import lazy_property
-from monty.string import is_string, list_strings, marquee
-#from pymatgen.core.periodic_table import Element
+from monty.string import list_strings, marquee
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools.numtools import BzRegularGridInterpolator
@@ -19,8 +16,8 @@ from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs, map_grid2ibz 
 #from abipy.tools.numtools import gaussian
 from abipy.tools.typing import Figure
 from abipy.tools.plotting import set_axlims, get_ax_fig_plt, get_axarray_fig_plt, add_fig_kwargs, Marker
-#from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-#    rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels
+#from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt
+#    rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels)
 
 
 def print_options_decorator(**kwargs):
@@ -45,19 +42,35 @@ def print_options_decorator(**kwargs):
 
 class OrbmagAnalyzer:
     """
-    TODO
+    This object gather three ORBMAG.nc files, post-process the data and
+    provides tools to analyze/plot the results.
+
+    Usage example:
+
+    .. code-block:: python
+
+        from abipy.electrons.orbmag import OrbmagAnalyzer
+        orban = OrbmagAnalyzer(["gso_DS1_ORBMAG.nc", "gso_DS2_ORBMAG.nc", "gso_DS3_ORBMAG.nc"])
+
+        print(orban)
+        orban.report_eigvals(report_type="S")
+        orban.plot_fatbands("bands_GSR.nc")
     """
 
-    def __init__(self, filepaths):
+    def __init__(self, filepaths: list):
         """
         Args:
-            filepaths:
+            filepaths: List of filepaths to ORBMAG.nc files
         """
+        if not isinstance(filepaths, (list, tuple):
+            raise TypeError(f"Expecting list or tuple with paths but got {type(filepaths)")
+        if len(filepaths) != 3:
+            raise ValueError(f"{len(filepaths)=} != 3")
+
         self.orb_files = [OrbmagFile(path) for path in filepaths]
 
-        # This piece of code is taken from merge_orbmag_mesh
-        # the main difference is that here ncroots[0] is replaced by
-        # the reader instance of the first OrbmagFile.
+        # This piece of code is taken from merge_orbmag_mesh. The main difference
+        # is that here ncroots[0] is replaced by the reader instance of the first OrbmagFile.
         r0 = self.orb_files[0].r
 
         self.mband = mband = r0.read_dimvalue('mband')
@@ -85,7 +98,7 @@ class OrbmagAnalyzer:
                             # convert terms to Cart coords; formulae differ depending on term. First
                             # four were in k space, remaining two already in real space
                             if iterm < 4:
-                                omtmp = ucvol*np.matmul(gprimd, r.read_variable('orbmag_mesh')[iterm,0:ndir,isppol,ikpt,iband])
+                                omtmp = ucvol * np.matmul(gprimd, r.read_variable('orbmag_mesh')[iterm,0:ndir,isppol,ikpt,iband])
                             else:
                                 omtmp = np.matmul(rprimd, r.read_variable('orbmag_mesh')[iterm,0:ndir,isppol,ikpt,iband])
 
@@ -102,7 +115,7 @@ class OrbmagAnalyzer:
             for isppol in range(nsppol):
                 for ikpt in range(nkpt):
                     # weight factor for each band and k point
-                    trnrm = occ[0,ikpt,iband] * wtk[ikpt] / ucvol
+                    trnrm = occ[isppol,ikpt,iband] * wtk[ikpt] / ucvol
                     for iterm in range(orbmag_nterms):
                         # sigij = \sigma_ij the 3x3 shielding tensor term for each sppol, kpt, and band
                         # additional ucvol factor converts to induced dipole moment (was dipole moment density,
@@ -141,7 +154,7 @@ class OrbmagAnalyzer:
         eigenvalues = -1.0E6 * np.real(eigvals(total_sigij))
         isotropic = eigenvalues.sum() / 3.0
         span = eigenvalues.max() - eigenvalues.min()
-        skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() -eigenvalues.min() -isotropic) / span
+        skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() - eigenvalues.min() - isotropic) / span
 
         print('\nShielding tensor eigenvalues, ppm : ', eigenvalues)
         print('Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n' % (isotropic,span,skew))
@@ -185,25 +198,24 @@ class OrbmagAnalyzer:
             if ngkpt is None:
                 raise ValueError("Non diagonal k-meshes are not supported!")
             if len(shifts) > 1:
-                raise ValueError("Multiple k-shifts are not supported!")
+                raise ValueError("Multiple shifts are not supported!")
 
-            # check that all files have the same value.
             if ifile == 0:
                 _ngkpt, _shifts = ngkpt, shifts
             else:
+                # check that all files have the same value.
                 if np.any(ngkpt != _ngkpt) or np.any(shifts != _shifts):
                     raise ValueError(f"ORBMAG files have different values of ngkpt: {ngkpt=} {_ngkpt=} or shifts {shifts=}, {_shifts=}")
 
         return ngkpt, shifts
 
-    def insert_inbox(self, spin: int, what: str) -> tuple:
+    def insert_inbox(self, what: str, spin: int) -> tuple:
         """
-        Return data, ngkpt, shifts where data is a
-        (mband, nkx, nky, nkz)) array with A_{pnk} with p the polaron index.
+        Return data, ngkpt, shifts where data is a (mband, nkx, nky, nkz)) array
 
         Args:
             spin: Spin index.
-            what:
+            what: Strings defining the quantity to insert in the box
         """
         # Need to know the shape of the k-mesh.
         ngkpt, shifts = self.ngkpt_and_shifts
@@ -227,7 +239,7 @@ class OrbmagAnalyzer:
                     eigenvalues = -1.0E6 * vals
                     value = eigenvalues.sum() / 3.0
                     #span = eigenvalues.max() - eigenvalues.min()
-                    #skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() -eigenvalues.min() -isotropic) / span
+                    #skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() - eigenvalues.min() - isotropic) / span
                 else:
                     raise ValueError(f"Invalid {what=}")
 
@@ -240,12 +252,13 @@ class OrbmagAnalyzer:
         Build and return an interpolator for
 
         Args:
+            what: Strings defining the quantity to insert in the box.
             interp_method: The method of interpolation. Supported are “linear”, “nearest”,
                 “slinear”, “cubic”, “quintic” and “pchip”.
         """
         interp_spin = [None for _ in range(self.nsppol)]
         for spin in range(self.nsppol):
-            data, ngkpt, shifts = self.insert_inbox(spin, what)
+            data, ngkpt, shifts = self.insert_inbox(what, spin)
             interp_spin[spin] = BzRegularGridInterpolator(self.structure, shifts, data, method=interp_method)
 
         return interp_spin
@@ -260,15 +273,17 @@ class OrbmagAnalyzer:
         Plot fatbands.
 
         Args:
-            ebands_kpath
-            what_list: string or list of strings defining the quantity to compute and show.
+            ebands_kpath: ElectronBands instance with energies along a k-path
+                or path to a netcdf file providing it.
+            what_list: string or list of strings defining the quantity to show.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
-            scale: Scaling factor for
+            scale: Scaling factor for fatbands.
             marker_color: Color for markers
             marker_edgecolor: Color for marker edges.
             marker_edgecolor: Marker transparency.
             fontsize: fontsize for legends and titles
-            interp_method: Interpolation method.
+            interp_method: The method of interpolation. Supported are “linear”, “nearest”,
+                “slinear”, “cubic”, “quintic” and “pchip”.
             ax_mat: matrix of |matplotlib-Axes| or None if a new figure should be created.
         """
         what_list = list_strings(what_list)
@@ -291,10 +306,8 @@ class OrbmagAnalyzer:
             # Get interpolator for `what` quantity.
             interp_spin = self.get_bz_interpolator_spin(what, interp_method)
 
-            #a2_max = np.max(np.abs(data[pstate]))**2
-            #a2_max = max((interp.get_max_abs_data2() for interp in interp_spin))
-            #scale *= 1. / a2_max
-            scale = 1e-1
+            abs_max = max((interp.get_max_abs_data() for interp in interp_spin))
+            scale *= 1. / abs_max
 
             ymin, ymax = +np.inf, -np.inf
             x, y, s = [], [], []
@@ -303,7 +316,7 @@ class OrbmagAnalyzer:
                 for ik, kpoint in enumerate(ebands_kpath.kpoints):
                     enes_n = ebands_kpath.eigens[spin, ik]
                     for e, a2 in zip(enes_n, interp_spin[spin].eval_kpoint(kpoint), strict=True):
-                        x.append(ik); y.append(e); s.append(scale * a2)
+                        x.append(ik); y.append(e); s.append(scale * abs(a2))
                         ymin, ymax = min(ymin, e), max(ymax, e)
 
             # Plot electron bands with markers.
@@ -313,11 +326,23 @@ class OrbmagAnalyzer:
             ebands_kpath.plot(ax=ax, points=points, show=False, linewidth=1.0)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
+        e0 = self.orb_files[0].ebands.fermie
+        if ylims is None:
+            # Automatic ylims.
+            span = ymax - ymin
+            ymin -= 0.1 * span
+            ymax += 0.1 * span
+            ylims = [ymin - e0, ymax - e0]
+
+        for ax in ax_list:
+            set_axlims(ax, ylims, "y")
+
         return fig
 
 
 class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
     """
+    Interface to the ORBMAG.nc file.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram::
