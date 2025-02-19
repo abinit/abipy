@@ -129,6 +129,14 @@ abipy.electrons.optic module
    :undoc-members:
    :show-inheritance:
 
+abipy.electrons.orbmag module
+-----------------------------
+
+.. automodule:: abipy.electrons.orbmag
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 abipy.electrons.psps module
 ---------------------------
 

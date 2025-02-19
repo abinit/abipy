@@ -117,10 +117,10 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     .. code-block:: python
 
-        from abipy.eph.varpeq import VpqFile
-        with VpqFile("out_VPQ.nc") as varpeq:
-            print(varpeq)
-            for polaron in varpeq.polaron_spin:
+        from abipy.eph.vpq import VpqFile
+        with VpqFile("out_VPQ.nc") as vpq:
+            print(vpq)
+            for polaron in vpq.polaron_spin:
                 print(polaron)
                 polaron.plot_scf_cycle()
 
@@ -154,7 +154,7 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     @lazy_property
     def polaron_spin(self) -> list[Polaron]:
         """List of Polaron objects, one for each spin (if any)."""
-        return [Polaron.from_varpeq(self, spin) for spin in range(self.r.nsppol)]
+        return [Polaron.from_vpq(self, spin) for spin in range(self.r.nsppol)]
 
     @lazy_property
     def params(self) -> dict:
@@ -236,14 +236,14 @@ class Polaron:
     spin: int          # Spin index.
     nstates: int       # Number of polaronic states for this spin.
     nb: int            # Number of bands in A_kn.
-    nk: int            # Number of k-points in A_kn, (including filtering if any).
+    nk: int            # Number of k-points in A_kn (including filtering if any).
     nq: int            # Number of q-points in B_qnu (including filtering if any).
     bstart: int        # First band starts at bstart.
     bstop: int         # Last band (python convention)
     varpeq: VpqFile
 
     @classmethod
-    def from_varpeq(cls, varpeq: VpqFile, spin: int) -> Polaron:
+    def from_vpq(cls, varpeq: VpqFile, spin: int) -> Polaron:
         """
         Build an istance from a VpqFile and the spin index.
         """

@@ -168,6 +168,11 @@ if with_gallery:
             "flow_gallery",
             "gallery",
         ],
+        # FIXME: Remove it when we enter production.
+        'expected_failing_examples': [
+            '../abipy/examples/plot_vpq.py',
+            '../abipy/examples/plot_orbmag.py',
+        ],
         'filename_pattern': "(plot*|run*)",
         #'filename_pattern': '(plot_|run_)/.*\.py$',
         'ignore_pattern': '(^test_*|__init__*)',  # Regular expression to match ignored scripts

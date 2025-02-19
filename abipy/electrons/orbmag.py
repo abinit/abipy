@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Classes for the analysis of electronic fatbands and projected DOSes."""
+"""Post-processing tools to analyze orbital magnetism."""
 from __future__ import annotations
 
 import numpy as np
@@ -12,12 +12,10 @@ from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_Elect
 from abipy.core.structure import Structure
 from abipy.tools.numtools import BzRegularGridInterpolator
 from abipy.electrons.ebands import ElectronBands, ElectronsReader
-from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs, map_grid2ibz #, IrredZone
+from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs, map_grid2ibz
 #from abipy.tools.numtools import gaussian
 from abipy.tools.typing import Figure
 from abipy.tools.plotting import set_axlims, get_ax_fig_plt, get_axarray_fig_plt, add_fig_kwargs, Marker
-#from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt
-#    rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels)
 
 
 def print_options_decorator(**kwargs):
@@ -39,10 +37,9 @@ def print_options_decorator(**kwargs):
     return decorator
 
 
-
 class OrbmagAnalyzer:
     """
-    This object gather three ORBMAG.nc files, post-process the data and
+    This object gathers three ORBMAG.nc files, post-processes the data and
     provides tools to analyze/plot the results.
 
     Usage example:
@@ -51,7 +48,6 @@ class OrbmagAnalyzer:
 
         from abipy.electrons.orbmag import OrbmagAnalyzer
         orban = OrbmagAnalyzer(["gso_DS1_ORBMAG.nc", "gso_DS2_ORBMAG.nc", "gso_DS3_ORBMAG.nc"])
-
         print(orban)
         orban.report_eigvals(report_type="S")
         orban.plot_fatbands("bands_GSR.nc")
@@ -64,12 +60,14 @@ class OrbmagAnalyzer:
         """
         if not isinstance(filepaths, (list, tuple)):
             raise TypeError(f"Expecting list or tuple with paths but got {type(filepaths)=}")
+
         if len(filepaths) != 3:
             raise ValueError(f"{len(filepaths)=} != 3")
 
-        # TODO: One should store the direction in the netcdf file
+        # @JOE TODO: One should store the direction in the netcdf file
         # so that we can check that the files are given in the right order.
         self.orb_files = [OrbmagFile(path) for path in filepaths]
+        self.verbose = 0
 
         # This piece of code is taken from merge_orbmag_mesh. The main difference
         # is that here ncroots[0] is replaced by the reader instance of the first OrbmagFile.
@@ -133,6 +131,18 @@ class OrbmagAnalyzer:
     #    lines = []; app = lines.append
     #    return "\n".join(lines)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Activated at the end of the with statement. It automatically closes all the files."""
+        self.close()
+
+    def close(self):
+        """Close all the files."""
+        for orb in self.orb_files:
+            orb.close()
+
     @lazy_property
     def structure(self):
         """Structure object."""
@@ -142,11 +152,18 @@ class OrbmagAnalyzer:
             raise RuntimeError("ORBMAG.nc files have different structures")
         return structure
 
-    #@print_options_decorator(precision=2, suppress=True)
+    @lazy_property
+    def has_timrev(self):
+        """True if time-reversal symmetry is used in the BZ sampling."""
+        has_timrev = self.orb_files[0].ebands.has_timrev
+        if any(orb_file.ebands.has_timrev != has_timrev for orb_file in self.orb_files[1:]):
+            raise RuntimeError("ORBMAG.nc files have different values of timrev")
+
+    @print_options_decorator(precision=2, suppress=True)
     def report_eigvals(self, report_type):
         """
         """
-        np.set_printoptions(precision=2)
+        #np.set_printoptions(precision=2)
 
         terms = ['CC   ','VV1  ','VV2  ','NL   ','LR   ','A0An ']
         # Shape: (orbmag_nterms, nsppol, nkpt, mband, ndir, ndir)
@@ -199,6 +216,7 @@ class OrbmagAnalyzer:
 
             if ngkpt is None:
                 raise ValueError("Non diagonal k-meshes are not supported!")
+
             if len(shifts) > 1:
                 raise ValueError("Multiple shifts are not supported!")
 
@@ -210,6 +228,21 @@ class OrbmagAnalyzer:
                     raise ValueError(f"ORBMAG files have different values of ngkpt: {ngkpt=} {_ngkpt=} or shifts {shifts=}, {_shifts=}")
 
         return ngkpt, shifts
+
+    def get_value(self, what: str, spin: int, ikpt: int, band: int) -> float:
+        """
+        Postprocess orbmag_merge_sigij_mesh to compute the quantity associated
+        to `what` for the given (spin, ikpt, band).
+        """
+        if what == "isotropic":
+            vals = self.orbmag_merge_sigij_mesh[:, spin, ikpt, band].sum(axis=0)
+            eigenvalues = -1.0E6 * vals
+            return eigenvalues.sum() / 3.0
+            #span = eigenvalues.max() - eigenvalues.min()
+            #skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() - eigenvalues.min() - isotropic) / span
+        #elif what == "foobar":
+
+        raise ValueError(f"Invalid {what=}")
 
     def insert_inbox(self, what: str, spin: int) -> tuple:
         """
@@ -233,35 +266,79 @@ class OrbmagAnalyzer:
         data = np.empty(shape, dtype=float)
 
         for iband in range(self.mband):
-            for ikpt, k_inds in zip(range(self.nkpt),  k_indices, strict=True):
+            for ikpt, k_inds in zip(range(self.nkpt), k_indices, strict=True):
                 ix, iy, iz = k_inds
-                vals = self.orbmag_merge_sigij_mesh[:, spin, ikpt, iband].sum(axis=0)
-
-                if what == "isotropic":
-                    eigenvalues = -1.0E6 * vals
-                    value = eigenvalues.sum() / 3.0
-                    #span = eigenvalues.max() - eigenvalues.min()
-                    #skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() - eigenvalues.min() - isotropic) / span
-                else:
-                    raise ValueError(f"Invalid {what=}")
-
+                value = self.get_value(what, spin, ikpt, iband)
                 data[iband, ix, iy, iz] = value
 
         return data, ngkpt, shifts
 
+    def get_skw_interpolator(self, what: str, lpratio: int, filter_params: None):
+        """
+        """
+        orb = self.orb_files[0]
+        ebands = orb.ebands.kpoints
+        kpoints = orb.ebands.kpoints
+
+        # Get symmetries from abinit spacegroup (read from file).
+        if (abispg := self.structure.abi_spacegroup) is None:
+            abispg = self.structure.spgset_abi_spacegroup(has_timerev=self.has_timrev)
+        fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm, strict=True) if afm == 1]
+
+        from abipy.core.skw import SkwInterpolator
+        cell = (self.structure.lattice.matrix, self.structure.frac_coords, self.structure.atomic_numbers)
+
+        interp_spin = [None for _ in range(self.nsppol)]
+
+        for spin in range(self.nsppol):
+            values_kb = np.empty((self.nkpt, self.mband))
+            for ikpt in range(self.nkpt):
+                for iband in range(self.mband):
+                    values_kb[ikpt, iband] = self.get_value(what, spin, ikpt, band)
+
+            skw = SkwInterpolator(lpratio, kpoints.frac_coords, self.eigens[:,:,bstart:bstop], ebands.fermie, ebands.nelect,
+                                  cell, fm_symrel, self.has_timrev,
+                                  filter_params=filter_params, verbose=self.verbose)
+            interp_spin[spin] = skw
+            #skw.eval_sk(spin, kpt, der1=None, der2=None) -> np.ndarray:
+
+        return interp_spin
+
+    @lazy_property
+    def has_full_bz(self) -> bool:
+        """True if k-points cover the full BZ."""
+        ngkpt, shifts = self.ngkpt_and_shifts
+        return np.product(ngkpt) * len(shifts) == self.nkpt
+
     def get_bz_interpolator_spin(self, what: str, interp_method: str) -> list[BzRegularGridInterpolator]:
         """
-        Build and return an interpolator for
+        Build and return a list with nsppol interpolators.
 
         Args:
             what: Strings defining the quantity to insert in the box.
             interp_method: The method of interpolation. Supported are “linear”, “nearest”,
                 “slinear”, “cubic”, “quintic” and “pchip”.
         """
+        # This part is tricky as we have to handle different cases:
+        #
+        # 1) k-mesh defined in terms of ngkpt and one shift.
+        #    In this case we can interpolate easily although we have to take into account
+        #    if the k-points have been reduced by symmetry or not.
+        #    If we have the full BZ, we can use BzRegularGridInterpolator
+        #    else we have to resort to StarFunction interpolation
+        #
+        # 2) k-mesh defined in terms of ngkpt and multiple shifts.
+        #    If we have the IBZ, we have to resort to StarFunction interpolation
+        #    Handling the full BZ is not yet possible due to an internal limitation of BzRegularGridInterpolator
+
         interp_spin = [None for _ in range(self.nsppol)]
-        for spin in range(self.nsppol):
-            data, ngkpt, shifts = self.insert_inbox(what, spin)
-            interp_spin[spin] = BzRegularGridInterpolator(self.structure, shifts, data, method=interp_method)
+
+        if self.has_full_bz:
+            for spin in range(self.nsppol):
+                data, ngkpt, shifts = self.insert_inbox(what, spin)
+                interp_spin[spin] = BzRegularGridInterpolator(self.structure, shifts, data, method=interp_method)
+        else:
+            raise NotImplementedError("k-points must cover the full BZ.")
 
         return interp_spin
 
@@ -272,7 +349,7 @@ class OrbmagAnalyzer:
                       marker_alpha=0.5, fontsize=12, interp_method="linear",
                       ax_mat=None, **kwargs) -> Figure:
         """
-        Plot fatbands.
+        Plot fatbands ...
 
         Args:
             ebands_kpath: ElectronBands instance with energies along a k-path
@@ -358,9 +435,6 @@ class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
     def __init__(self, filepath: str):
         super().__init__(filepath)
         self.r = ElectronsReader(filepath)
-
-        # Initialize the electron bands from file
-        self.natom = len(self.structure)
 
     @lazy_property
     def ebands(self) -> ElectronBands:

@@ -24,3 +24,11 @@ abipy.lumi.lineshape module
    :members:
    :undoc-members:
    :show-inheritance:
+
+abipy.lumi.utils\_lumi module
+-----------------------------
+
+.. automodule:: abipy.lumi.utils_lumi
+   :members:
+   :undoc-members:
+   :show-inheritance:
