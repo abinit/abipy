@@ -889,8 +889,7 @@ class Polaron:
             if pstate != self.nstates - 1 or not with_legend:
                 set_visible(ax, False, *["legend", "xlabel"])
 
-        # determine bandwidth and set ylims
-        # if no negative freqs, set ymin exactly to 0
+        # determine bandwidth and set ylims. if no negative freqs, set ymin exactly to 0
         if ymin > -1e-6:
             ymin = 0
         bandwidth = ymax - ymin

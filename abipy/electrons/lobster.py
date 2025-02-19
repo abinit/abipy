@@ -208,7 +208,7 @@ class CoxpFile(_LobsterFile):
 
         new = cls(filepath)
 
-        with zopen(filepath, "rt") as f:
+        with zopen(filepath, mode="rt", encoding="utf-8") as f:
             # Find the header
             for line in f:
                 match = header_patt.match(line.rstrip())
@@ -712,7 +712,7 @@ class ICoxpFile(_LobsterFile):
         spin = None
         avg_num_bonds = False
         new.type_of_index = {}
-        with zopen(filepath, "rt") as f:
+        with zopen(filepath, mode="rt", encoding="utf-8") as f:
             for line in f:
                 match = header_patt.match(line.rstrip())
                 if match:
@@ -833,7 +833,7 @@ class LobsterDoscarFile(_LobsterFile):
         Returns:
             A LobsterDoscarFile.
         """
-        with zopen(filepath, "rt") as f:
+        with zopen(filepath, mode="rt", encoding="utf-8") as f:
             dos_data = f.readlines()
 
         new = cls(filepath)

@@ -302,7 +302,7 @@ def abiopen(filepath: str):
     root, ext = os.path.splitext(filepath)
     if ext in (".bz2", ".gz", ".z"):
         from monty.io import zopen
-        with zopen(filepath, "rt") as f:
+        with zopen(filepath, mode="rt", encoding="utf-8") as f:
             import tempfile
             _, tmp_path = tempfile.mkstemp(suffix=os.path.basename(root), text=True)
             cprint("Creating temporary file: %s" % tmp_path, "yellow")

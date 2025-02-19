@@ -306,7 +306,7 @@ class OrbmagAnalyzer:
 
     @lazy_property
     def has_full_bz(self) -> bool:
-        """True if k-points cover the full BZ."""
+        """True if the list of k-points cover the full BZ."""
         ngkpt, shifts = self.ngkpt_and_shifts
         return np.product(ngkpt) * len(shifts) == self.nkpt
 

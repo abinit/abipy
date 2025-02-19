@@ -154,14 +154,15 @@ def update_vars(ctx, abinit_repo_path):
     """Update the database of Abinit variables."""
     abinit_repo_path = os.path.abspath(abinit_repo_path)
     dir_with_pyfiles = os.path.join(ABIPY_ROOTDIR, "abipy", "abio", "abivar_database")
+    print(f"{abinit_repo_path=}")
 
     with cd(ABIPY_ROOTDIR):
         local_files = [f for f in os.listdir(dir_with_pyfiles) if f.startswith("variables_")]
         for local_file in local_files:
-            local_file = os.path.join(dir_with_pyfiles, local_file)
+            target_file = os.path.join(dir_with_pyfiles, local_file)
             # "vimdiff $ABINIT_REPOPATH/abimkdocs/variables_abinit.py variables_abinit.py
             source = os.path.join(abinit_repo_path, "abimkdocs", local_file)
-            cmd = f"vimdiff {source} {local_file}"
+            cmd = f"vimdiff {source} {target_file}"
             print(f"Executing: {cmd}")
             os.system(cmd)
 

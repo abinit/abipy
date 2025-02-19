@@ -208,7 +208,7 @@ def map_grid2ibz(structure, ibz, ngkpt, shifts, has_timrev, pbc=False):
         structure: Structure with Abinit symmetry operations.
         ibz: [*, 3] array with the reduced coordinates in the IBZ.
         ngkpt: Mesh divisions.
-        shifts:
+        shifts: List of shifts.
         has_timrev: True if time-reversal can be used.
         pbc: True if the mesh should contain the periodic images (closed mesh).
 
