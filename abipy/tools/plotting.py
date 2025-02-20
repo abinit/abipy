@@ -1056,12 +1056,11 @@ class ArrayPlotter:
         return fig
 
 
-#TODO Rename it to ScatterData?
 class Marker:
     """
-    Stores the position and the size of the marker.
+    Stores the position and the size of the markers.
     A marker is a list of tuple(x, y, s) where x, and y are the position
-    in the graph and s is the size of the marker.
+    in the plot and s is the size of the marker.
     Used for plotting purpose e.g. QP data, energy derivatives...
 
     Example::
@@ -1071,33 +1070,22 @@ class Marker:
     """
 
     def __init__(self, x, y, s, **scatter_kwargs):
-                 #marker: str = "o", color: str = "y", alpha: float = 1.0, label=None, self.edgecolors=None):
         self.x, self.y, self.s = np.array(x), np.array(y), np.array(s)
 
         if len(self.x) != len(self.y):
-            raise ValueError("len(self.x) != len(self.y)")
+            raise ValueError(f"{len(self.x)=} != {len(self.y)=}")
+
         if len(self.y) != len(self.s):
-            raise ValueError("len(self.y) != len(self.s)")
+            raise ValueError(f"{len(self.y)=} != {len(self.s)=}")
 
-        #self.marker = marker
-        #self.color = color
-        #self.alpha = alpha
-        #self.label = label
-        #self.edgecolors = edgecolors
         self.scatter_kwargs = scatter_kwargs
-
-        # Step 1: Normalize sizes to a suitable range for plotting
-        #min_size = 10  # Minimum size for points
-        #max_size = 100  # Maximum size for points
-        #normalized_s = min_size + (max_size - min_size) * (self.s - np.min(self.s)) / (np.max(self.s) - np.min(self.s))
-        #self.s = normalized_s
 
     def __bool__(self):
         return bool(len(self.s))
 
     __nonzero__ = __bool__
 
-    def posneg_marker(self) -> tuple[Marker, Marker]:
+    def posneg_marker(self, threshold: float = 0.0) -> tuple[Marker, Marker]:
         """
         Split data into two sets: the first one contains all the points with positive size.
         The first set contains all the points with negative size.
@@ -1106,7 +1094,7 @@ class Marker:
         neg_x, neg_y, neg_s = [], [], []
 
         for x, y, s in zip(self.x, self.y, self.s):
-            if s >= 0.0:
+            if s >= threshold:
                 pos_x.append(x)
                 pos_y.append(y)
                 pos_s.append(s)

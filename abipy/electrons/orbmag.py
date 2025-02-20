@@ -138,13 +138,13 @@ class OrbmagAnalyzer:
         """Activated at the end of the with statement. It automatically closes all the files."""
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         """Close all the files."""
         for orb in self.orb_files:
             orb.close()
 
     @lazy_property
-    def structure(self):
+    def structure(self) -> Structure:
         """Structure object."""
         # Perform consistency check
         structure = self.orb_files[0].structure
@@ -153,14 +153,14 @@ class OrbmagAnalyzer:
         return structure
 
     @lazy_property
-    def has_timrev(self):
+    def has_timrev(self) -> bool:
         """True if time-reversal symmetry is used in the BZ sampling."""
         has_timrev = self.orb_files[0].ebands.has_timrev
         if any(orb_file.ebands.has_timrev != has_timrev for orb_file in self.orb_files[1:]):
             raise RuntimeError("ORBMAG.nc files have different values of timrev")
 
     @print_options_decorator(precision=2, suppress=True)
-    def report_eigvals(self, report_type):
+    def report_eigvals(self, report_type) -> None:
         """
         """
         #np.set_printoptions(precision=2)
@@ -249,8 +249,8 @@ class OrbmagAnalyzer:
         Return data, ngkpt, shifts where data is a (mband, nkx, nky, nkz)) array
 
         Args:
-            spin: Spin index.
             what: Strings defining the quantity to insert in the box
+            spin: Spin index.
         """
         # Need to know the shape of the k-mesh.
         ngkpt, shifts = self.ngkpt_and_shifts
@@ -339,6 +339,14 @@ class OrbmagAnalyzer:
                 interp_spin[spin] = BzRegularGridInterpolator(self.structure, shifts, data, method=interp_method)
         else:
             raise NotImplementedError("k-points must cover the full BZ.")
+            ngkpt, shifts = self.ngkpt_and_shifts
+            orb = self.orb_files[0]
+            ibz = orb.kpoints.frac_coords
+            bz2ibz = map_grid2ibz(self.structure, ibz, ngkpt, shifts, self.has_timrev, pbc=True)
+
+            # Compute values in the IBZ
+            #self.get_value(self, what: str, spin: int, ikpt: int, band: int) -> float:
+            # Reconstruct BZ from IBZ
 
         return interp_spin
 
@@ -349,12 +357,12 @@ class OrbmagAnalyzer:
                       marker_alpha=0.5, fontsize=12, interp_method="linear",
                       ax_mat=None, **kwargs) -> Figure:
         """
-        Plot fatbands ...
+        Plot fatbands FIXME ...
 
         Args:
             ebands_kpath: ElectronBands instance with energies along a k-path
                 or path to a netcdf file providing it.
-            what_list: string or list of strings defining the quantity to show.
+            what_list: string or list of strings defining the quantities to show.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
             scale: Scaling factor for fatbands.
             marker_color: Color for markers
@@ -394,14 +402,21 @@ class OrbmagAnalyzer:
             for spin in range(self.nsppol):
                 for ik, kpoint in enumerate(ebands_kpath.kpoints):
                     enes_n = ebands_kpath.eigens[spin, ik]
-                    for e, a2 in zip(enes_n, interp_spin[spin].eval_kpoint(kpoint), strict=True):
-                        x.append(ik); y.append(e); s.append(scale * abs(a2))
+                    for e, value in zip(enes_n, interp_spin[spin].eval_kpoint(kpoint), strict=True):
+                        x.append(ik); y.append(e); s.append(scale * value)
                         ymin, ymax = min(ymin, e), max(ymax, e)
 
-            # Plot electron bands with markers.
-            points = Marker(x, y, s, color=marker_color, edgecolors=marker_edgecolor,
+
+            # Compute colors based on sign (e.g., red for positive, blue for negative)
+            y = np.array(y)
+            c = np.where(y >= 0, "red", "blue")
+
+            points = Marker(x, y, s,
+                            c=c,
+                            #color=marker_color,edgecolors=marker_edgecolor,
                             alpha=marker_alpha, label=what)
 
+            # Plot electron bands with markers.
             ebands_kpath.plot(ax=ax, points=points, show=False, linewidth=1.0)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 

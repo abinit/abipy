@@ -2261,8 +2261,7 @@ class ElectronBands(Has_Structure):
             if ylims is None:
                 set_axlims(ax, (-mgap - 5, +mgap + 5), "y")
 
-            gaps_string = self.get_gaps_string()
-            if gaps_string:
+            if gaps_string := self.get_gaps_string():
                 ax.set_title(gaps_string, fontsize=fontsize)
 
         if max_phfreq is not None and (self.mband > self.nspinor * self.nelect // 2):

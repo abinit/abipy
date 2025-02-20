@@ -165,13 +165,19 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
         nkbz = np.prod(ngkpt)
 
-        od = dict([
-            ("nkbz", nkbz),
-            ("ngkpt", ngkpt),
-            ("invsc_size", 1.0 / (nkbz * ((abu.Ang_Bohr * self.structure.lattice.volume) ** (1/3)))),
-            ("frohl_ntheta", r.frohl_ntheta),
-        ])
-        return od
+        d = dict(
+            nkbz=nkbz,
+            ngkpt=ngkpt,
+            nksmall=min(ngkpt),
+            cbrt_ngkpt=np.cbrt(np.prod(ngkpt)),
+            frohl_ntheta=r.frohl_ntheta,
+            #("invsc_size", 1.0 / (nkbz * ((abu.Ang_Bohr * self.structure.lattice.volume) ** (1/3)))),
+        )
+
+        #keys = ["e_pol", "e_el", "e_ph", "e_elph", "eps"]
+        #energies = np.array(scf[nstep - 1], dtype=float) * HA2EV
+
+        return d
 
     def __str__(self) -> str:
         return self.to_string()
@@ -1113,7 +1119,7 @@ class VpqRobot(Robot, RobotWithEbands):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
         df = self.get_final_results_df()
@@ -1121,7 +1127,7 @@ class VpqRobot(Robot, RobotWithEbands):
 
         return "\n".join(lines)
 
-    def get_final_results_df(self, spin=None, sortby=None, with_params: bool = True) -> pd.DataFrame:
+    def get_final_results_df(self, spin: int = None, sortby: str = None, with_params: bool = True) -> pd.DataFrame:
         """
         Return dataframe with the last iteration for all polaronic states.
         NB: Energies are in eV.
@@ -1160,53 +1166,53 @@ class VpqRobot(Robot, RobotWithEbands):
     #                                ax=None, fontsize=8, **kwargs)
     #    return fig
 
-    @add_fig_kwargs
-    def plot_kconv(self, colormap="jet", fontsize=12, **kwargs) -> Figure:
-        """
-        Plot the convergence of the results wrt to the k-point sampling.
+    #@add_fig_kwargs
+    #def plot_kconv(self, colormap="jet", fontsize=12, **kwargs) -> Figure:
+    #    """
+    #    Plot the convergence of the results wrt to the k-point sampling.
 
-        Args:
-            colormap: matplotlib color map.
-            fontsize: fontsize for legends and titles
-        """
-        nsppol = self.getattr_alleq("nsppol")
+    #    Args:
+    #        colormap: matplotlib color map.
+    #        fontsize: fontsize for legends and titles
+    #    """
+    #    nsppol = self.getattr_alleq("nsppol")
 
-        # Build grid of plots.
-        nrows, ncols = len(_ALL_ENTRIES), nsppol
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
-        cmap = plt.get_cmap(colormap)
-        for spin in range(nsppol):
-            df = self.get_final_results_df(spin=spin, sortby=None)
-            xs = df["invsc_size"]
-            xvals = np.linspace(0.0, 1.1 * xs.max(), 100)
+    #    # Build grid of plots.
+    #    nrows, ncols = len(_ALL_ENTRIES), nsppol
+    #    ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+    #                                           sharex=True, sharey=False, squeeze=False)
+    #    cmap = plt.get_cmap(colormap)
+    #    for spin in range(nsppol):
+    #        df = self.get_final_results_df(spin=spin, sortby=None)
+    #        xs = df["invsc_size"]
+    #        xvals = np.linspace(0.0, 1.1 * xs.max(), 100)
 
-            for ix, ylabel in enumerate(_ALL_ENTRIES):
-                ax = ax_mat[ix, spin]
-                ys = df[ylabel]
+    #        for ix, ylabel in enumerate(_ALL_ENTRIES):
+    #            ax = ax_mat[ix, spin]
+    #            ys = df[ylabel]
 
-                # Plot ab-initio points.
-                ax.scatter(xs, ys, color="red", marker="o")
+    #            # Plot ab-initio points.
+    #            ax.scatter(xs, ys, color="red", marker="o")
 
-                # Plot fit using the first nn points.
-                for nn in range(1, len(xs)):
-                    color = cmap((nn - 1) / len(xs))
-                    p = np.poly1d(np.polyfit(xs[:nn+1], ys[:nn+1], deg=1))
-                    ax.plot(xvals, p(xvals), color=color, ls="--")
+    #            # Plot fit using the first nn points.
+    #            for nn in range(1, len(xs)):
+    #                color = cmap((nn - 1) / len(xs))
+    #                p = np.poly1d(np.polyfit(xs[:nn+1], ys[:nn+1], deg=1))
+    #                ax.plot(xvals, p(xvals), color=color, ls="--")
 
-                xlabel = "Inverse supercell size (Bohr$^-1$)" if ix == len(_ALL_ENTRIES) - 1 else None
-                set_grid_legend(ax, fontsize, xlabel=xlabel, ylabel=f"{ylabel} (eV)", legend=False)
-                ax.tick_params(axis='x', color='black', labelsize='20', pad=5, length=5, width=2)
+    #            xlabel = "Inverse supercell size (Bohr$^-1$)" if ix == len(_ALL_ENTRIES) - 1 else None
+    #            set_grid_legend(ax, fontsize, xlabel=xlabel, ylabel=f"{ylabel} (eV)", legend=False)
+    #            ax.tick_params(axis='x', color='black', labelsize='20', pad=5, length=5, width=2)
 
-        return fig
+    #    return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        #yield self.plot_scf_cycle(show=False)
-        yield self.plot_kconv()
+        yield self.plot_scf_cycle(show=False)
+        #yield self.plot_kconv()
 
     def write_notebook(self, nbpath=None) -> str:
         """
