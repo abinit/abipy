@@ -91,8 +91,8 @@ class ExecWrapper:
         )
 
         # Write the script.
-        script_file = os.path.join(workdir, "run" + self.name + ".sh")
-        with open(script_file, "w") as fh:
+        script_file = os.path.join(workdir, "run_" + self.name + ".sh")
+        with open(script_file, "wt") as fh:
             fh.write(script)
             os.chmod(script_file, 0o740)
 
@@ -371,6 +371,35 @@ class Lruj(ExecWrapper):
             print(self.stdout_data)
             print("stderr:")
             print(self.stderr_data)
-            raise RuntimeError("Error while running lruj in %s" % workdir)
+            raise RuntimeError(f"Error while running lruj in {workdir}")
+
+        return retcode
+
+
+class Abitk(ExecWrapper):
+    """
+    Wraps the abitk Fortran executable.
+    """
+    _name = "abitk"
+
+    stdin_fname = None
+
+    def run(self, exec_args: list, workdir=None) -> int:
+        """
+        Execute abitk inside directory `workdir`.
+        """
+        workdir = get_workdir(workdir)
+        #print("workdir", workdir)
+
+        self.stdout_fname, self.stderr_fname = \
+            map(os.path.join, 2 * [workdir], ["abitk.stdout", "abitk.stderr"])
+
+        retcode = self.execute(workdir, exec_args=exec_args)
+        if retcode != 0:
+            print("stdout:")
+            print(self.stdout_data)
+            print("stderr:")
+            print(self.stderr_data)
+            raise RuntimeError(f"Error while running abitk in {workdir}")
 
         return retcode
