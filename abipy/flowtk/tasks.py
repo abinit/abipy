@@ -67,6 +67,7 @@ __all__ = [
     "OpticTask",
     "AnaddbTask",
     "GwrTask",
+    "AtdepTask",
     "set_user_config_taskmanager",
 ]
 
@@ -5005,3 +5006,80 @@ class AnaddbTask(Task):
 #            self.restart()
 #
 #        return results
+
+
+class AtdepTask(Task):
+    """
+    Task for atdep runs: computation of
+    temperature-dependent effective potentials (TDEP)
+    for anharmonic phonons, using a HIST file from MD.
+    """
+
+    color_rgb = np.array((55, 70, 100)) / 255
+
+    # ========================== CODING LINE ================================ #
+
+    def __init__(self, atdep_input, hist_node, workdir=None, manager=None):
+        """
+        Create an instance of AtdepTask from a string containing the input.
+
+        Args:
+            atdep_input: |AtdepInput| object.
+            hist_node: The node that will produce the HIST file.
+                       Accept |Task|, |Work| or filepath.
+            workdir: Path to the working directory (optional).
+            manager: |TaskManager| object (optional).
+        """
+        # Keep a reference to the nodes.
+        self.hist_node = Node.as_node(hist_node)
+        deps = {self.hist_node: "HIST"}
+
+        super().__init__(input=atdep_input, workdir=workdir,
+                         manager=manager, deps=deps)
+
+    @property
+    def executable(self) -> str:
+        """Path to the executable required for running the |AtdepTask|."""
+        try:
+            return self._executable
+        except AttributeError:
+            return "atdep"
+
+    @property
+    def hist_filepath(self) -> str:
+        """Returns (at runtime) the absolute path of the input HIST file."""
+        if isinstance(self.hist_node, FileNode): return self.hist_node.filepath
+        path = self.hist_node.outdir.has_abiext("HIST.nc")
+        return path if path else None
+
+    def setup(self):
+        """Public method called before submitting the task."""
+        pass
+
+    def make_links(self):
+        self.inlink_file(self.hist_filepath)
+
+    def outpath_from_ext(self, ext):
+        path = self.outdir.has_abiext(ext)
+        if not path:
+            raise RuntimeError("Atdep task `%s` didn't produce file with extension: `%s`" % (self, ext))
+        return path
+
+    def open_ddb(self):
+        """Open DDB file produced by atdep and returns |DdbFile| object."""
+        from abipy.dfpt.ddb import DdbFile
+        ddb_path = self.outpath_from_ext("DDB")
+        return DdbFile(s_path)
+
+    def make_input(self, with_header=False) -> str:
+        """return string the input file of the calculation."""
+        inp = self.input.deepcopy()
+
+        inp['output_file'] = str(self.output_file.path)
+        inp['indata_prefix'] = self.indir.path_in('in')
+        inp['outdata_prefix'] = self.outdir.path_in('out')
+
+        s = str(inp)
+        if with_header: s = str(self) + "\n" + s
+        return s
+

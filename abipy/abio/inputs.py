@@ -4917,8 +4917,9 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     _unitcell_keys = ['brav', 'natom_unitcell',
                       'xred_unitcell', 'typat_unitcell']
-    _supercell_keys = ['multiplicity', 'temperature']
-    _computational_details_keys = ['nstep_max', 'nstep_min', 'rcut']
+    _supercell_keys = ['multiplicity']
+    _computational_details_keys = ['nstep_max', 'nstep_min',
+                                   'rcut', 'temperature']
     _mandatory_keys = (
         _unitcell_keys + _supercell_keys + _computational_details_keys)
 
@@ -4967,16 +4968,17 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         self['xred_unitcell'] = structure_abivars['xred']
         self['typat_unitcell'] = structure_abivars['typat']
 
-        app('NormalMode')
         app('#DEFINE_UNITCELL')
         addvars(self._unitcell_keys)
+        app('')
         app('#DEFINE_SUPERCELL')
         addvars(self._supercell_keys)
+        app('')
         app('#DEFINE_COMPUTATIONAL_DETAILS')
         addvars(self._computational_details_keys)
+        app('')
         app('#OPTIONAL_INPUT_VARIABLES')
         addvars(optional_keys)
-        app('TheEnd')
         app('')
 
         if self.comment:
