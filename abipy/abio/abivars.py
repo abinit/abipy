@@ -17,6 +17,8 @@ from abipy.abio.abivar_database.variables import get_codevars
 
 __all__ = [
     "is_abivar",
+    "is_anaddb_var",
+    "is_atdep_var",
     "is_abiunit",
     "AbinitInputFile",
     "AbinitInputParser",
@@ -28,6 +30,9 @@ def is_anaddb_var(varname: str) -> bool:
     """True if varname is a valid Anaddb variable."""
     return varname in get_codevars()["anaddb"]
 
+def is_atdep_var(varname: str) -> bool:
+    """True if varname is a valid atdep variable."""
+    return varname in get_codevars()["atdep"]
 
 def is_abivar(varname: str) -> bool:
     """True if s is an ABINIT variable."""

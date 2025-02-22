@@ -31,8 +31,8 @@ from abipy.core.mixins import Has_Structure
 from abipy.core.kpoints import has_timrev_from_kptopt
 from abipy.tools.serialization import pmg_serialize
 from abipy.abio.variable import InputVariable
-from abipy.abio.abivars import is_abivar, is_anaddb_var, format_string_abivars
-from abipy.abio.abivars_db import get_abinit_variables, get_anaddb_variables
+from abipy.abio.abivars import is_abivar, is_anaddb_var, is_atdep_var, format_string_abivars
+from abipy.abio.abivars_db import get_abinit_variables, get_anaddb_variables, get_atdep_variables
 from abipy.tools import duck
 from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, AnaddbTask, ParalHintsParser, NetcdfReader
 from abipy.flowtk.abiinspect import yaml_read_irred_perts
@@ -4751,6 +4751,250 @@ class Cut3DInput(MSONable):
         """
         return cls(infile_path=d.get('infile_path', None), output_filepath=d.get('output_filepath', None),
                    options=d.get('options', None))
+
+
+class AtdepInputError(Exception):
+    """Error class raised by AtdepInput."""
+
+
+class AtdepInput(AbiAbstractInput, MSONable, Has_Structure):
+    """
+    This object stores the anaddb variables.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: AnaddbInput
+    """
+
+    Error = AtdepInputError
+
+    @pmg_serialize
+    def as_dict(self) -> dict:
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
+        atdep_args = []
+        for key, value in self.items():
+            if isinstance(value, np.ndarray): value = value.tolist()
+            atdep_args.append((key, value))
+
+        return dict(structure=self.structure.as_dict(),
+                    comment=self.comment,
+                    atdep_args=atdep_args,
+                    spell_check=self.spell_check,
+                    )
+
+    @classmethod
+    def from_dict(cls, d: dict) -> AtdepInput:
+        """
+        JSON interface used in pymatgen for easier serialization.
+        """
+        return cls(d["structure"],
+                   comment=d["comment"],
+                   atdep_args=d["atdep_args"],
+                   spell_check=d["spell_check"],
+                   )
+
+    def __init__(self,
+                 structure: Structure,
+                 comment: str = "",
+                 atdep_args=None,
+                 atdep_kwargs=None,
+                 spell_check: bool = False):
+
+        """
+        Args:
+            structure: |Structure| object
+            comment: Optional string with a comment that will be placed at the beginning of the file.
+            atdep_args: List of tuples (key, value) with atdep input variables (default: empty)
+            atdep_kwargs: Dictionary with atdep input variables (default: empty)
+            spell_check: False to disable spell checking for input variables.
+        """
+        self.set_spell_check(spell_check)
+        self._structure = Structure.as_structure(structure)
+        self.comment = "" if comment is None else str(comment)
+
+        atdep_args = [] if atdep_args is None else atdep_args
+        for key, value in atdep_args:
+            self._check_varname(key)
+
+        atdep_kwargs = {} if atdep_kwargs is None else atdep_kwargs
+        for key in atdep_kwargs:
+            self._check_varname(key)
+
+        args = list(atdep_args)[:]
+        args.extend(list(atdep_kwargs.items()))
+
+        self._vars = OrderedDict(args)
+
+    @property
+    def vars(self) -> dict:
+        return self._vars
+
+    def set_spell_check(self, false_or_true: bool) -> None:
+        """Activate/Deactivate spell-checking"""
+        self._spell_check = bool(false_or_true)
+
+    @property
+    def spell_check(self) -> bool:
+        """True if spell checking is activated."""
+        try:
+            return self._spell_check
+        except AttributeError: # This is to maintain compatibility with pickle
+            return False
+
+    def _check_varname(self, key: str) -> None:
+        if self.spell_check:
+            if not is_atdep_var(key):
+                raise self.Error("""
+Cannot find variable `%s` in the internal database. If you think this is not a typo, use:
+
+    input.set_spell_check(False)
+
+to disable spell checking. Perhaps the internal database is not in synch
+with the Abinit version you are using. Please contact the AbiPy developers.""" % key)
+
+    @property
+    def structure(self) -> Structure:
+        """|Structure| object."""
+        return self._structure
+
+    @staticmethod
+    def get_atdep_brav(structure):
+        """
+        Get the two integers defining the bravais lattice
+        according to the 'brav' variable from atdep.
+        """
+        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+        spa = SpacegroupAnalyzer(structure)
+        family = spa.get_crystal_system()
+    
+        symbol = spa.get_space_group_symbol()
+        n = spa.get_space_group_number()
+    
+        if 0 < n < 3:
+            # triclinic
+            iholohedry = 1
+        if n < 16:
+            # monoclinic
+            iholohedry = 2
+            #icentering = 0
+        if n < 75:
+            # orthorhombic
+            iholohedry = 3
+        if n < 143:
+            # tetragonal
+            iholohedry = 4
+        if n < 168:
+            # trigonal
+            iholohedry = 5
+        if n < 195:
+            # hexagonal
+            iholohedry = 6
+        else:
+            # cubic
+            iholohedry = 7
+    
+        if symbol.startswith('P'):
+            # No centering
+            icentering = 0
+        elif symbol.startswith('I'):
+            # Body centered
+            icentering = -1
+        elif symbol.startswith('F'):
+            # Face centered
+            icentering = -3
+        elif symbol.startswith('A'):
+            # A-face centered
+            icentering = 1
+        elif symbol.startswith('C'):
+            # B-face centered
+            icentering = 3
+        else:
+            # Rhombrohedral
+            icentering = 0
+    
+        return [iholohedry, icentering]
+
+    _unitcell_keys = ['brav', 'natom_unitcell',
+                      'xred_unitcell', 'typat_unitcell']
+    _supercell_keys = ['multiplicity']
+    _computational_details_keys = ['nstep_max', 'nstep_min',
+                                   'rcut', 'temperature']
+    _mandatory_keys = (
+        _unitcell_keys + _supercell_keys + _computational_details_keys)
+
+    def has_mandatory_variables(self):
+        """True if all mandatory variables been specified."""
+        for key in self._supercell_keys + self._computational_details_keys:
+            if key not in self.vars:
+                return False
+        return True
+
+    def to_string(self, mode="text", verbose=0) -> str:
+        """
+        String representation.
+
+        Args:
+            sortmode: "a" for alphabetical order, None if no sorting is wanted
+            mode: Either `text` or `html` if HTML output with links is wanted.
+        """
+        lines = []
+        app = lines.append
+
+        if mode == "html":
+            var_database = get_atdep_variables()
+
+        def addvars(keys):
+            for vname in keys:
+                value = self[vname]
+                if mode == "html":
+                    vname = var_database[vname].html_link(label=vname)
+                value = format_string_abivars(vname, value)
+
+                try:
+                    app(str(InputVariable(vname, value)))
+                except Exception as exc:
+                    cprint(f"{vname=}, {value=}", color="red")
+                    raise exc
+
+        optional_keys = []
+        for key in self.vars.keys():
+            if key not in self._mandatory_keys:
+                optional_keys.append(key)
+
+        structure_abivars = self.structure.to_abivars()
+        self['brav'] = self.get_atdep_brav(self.structure)
+        self['natom_unitcell'] = structure_abivars['natom']
+        self['xred_unitcell'] = structure_abivars['xred']
+        self['typat_unitcell'] = structure_abivars['typat']
+
+        app('#DEFINE_UNITCELL')
+        addvars(self._unitcell_keys)
+        app('')
+        app('#DEFINE_SUPERCELL')
+        addvars(self._supercell_keys)
+        app('')
+        app('#DEFINE_COMPUTATIONAL_DETAILS')
+        addvars(self._computational_details_keys)
+        app('')
+        app('#OPTIONAL_INPUT_VARIABLES')
+        addvars(optional_keys)
+        app('')
+
+        if self.comment:
+            app("# " + self.comment.replace("\n", "\n#"))
+
+        if mode == "text":
+            return "\n".join(lines)
+        else:
+            return "\n".join(lines).replace("\n", "<br>")
+
+    def _repr_html_(self) -> str:
+        """Integration with jupyter_ notebooks."""
+        return self.to_string(mode="html")
+
+    def abivalidate(self, workdir=None, manager=None):
+        pass
 
 
 def product_dict(d: dict):

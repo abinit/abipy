@@ -34,7 +34,7 @@ from abipy.core.mixins import TextFile, JsonFile, CubeFile
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.abio.robots import Robot
-from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
+from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput, AtdepInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile, AboRobot
 from abipy.tools.printing import print_dataframe
