@@ -2021,13 +2021,13 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                         protocol=self.pickle_protocol if protocol is None else protocol)
         return strio.getvalue()
 
-    def register_task(self, input: AbinitInput,
+    def register_task(self, input: AbinitInput | Task,
                       deps=None, manager=None, task_class=None, append=False) -> Work:
         """
         Utility function that generates a `Work` made of a single task
 
         Args:
-            input: |AbinitInput|
+            input: |AbinitInput| instance or |Task| object.
             deps: List of :class:`Dependency` objects specifying the dependency of this node.
                   An empy list of deps implies that this node has no dependencies.
             manager: The |TaskManager| responsible for the submission of the task.

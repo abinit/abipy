@@ -3,8 +3,12 @@ from __future__ import print_function, division, unicode_literals, absolute_impo
 
 executable = "abinit"
 
-#from abimkdocs.variables import ValueWithUnit, MultipleValue, Range, ValueWithConditions
-from abipy.abio.abivar_database.variables import ValueWithUnit, MultipleValue, Range, ValueWithConditions
+try:
+    from abimkdocs.variables import ValueWithUnit, MultipleValue, Range, ValueWithConditions
+except ImportError:
+    # This is needed for importing this module within Abipy
+    from abipy.abio.abivar_database.variables import ValueWithUnit, MultipleValue, Range, ValueWithConditions
+
 Variable = dict
 
 variables = [
@@ -175,9 +179,9 @@ Variable(
     text=r"""
 Gives the masses in atomic mass units for each kind of atom in the input cell. These
 masses are used in performing molecular dynamical atomic motion if
-[[ionmov]] = 1, 6, 7 or 8. They are also used in phonon calculations during the
-diagonalization of the dynamical matrix. Note that one may set all masses to 1
-for certain cases in which merely structural relaxation is desired and not
+[[geoopt]] = "viscous" or "quenched" (corresponding to [[ionmov]] = 1 or 7) or if [[moldyn]] /= "none".
+They are also used in phonon calculations during the diagonalization of the dynamical matrix.
+Note that one may set all masses to 1 for certain cases in which merely structural relaxation is desired and not
 actual molecular dynamics.
 
 Using the recommended values of [[cite:Martin1987]], 1 atomic mass unit = 1.6605402e-27 kg. In this
@@ -704,7 +708,7 @@ Variable(
     mnemonics="Barostat MASS",
     added_in_version="before_v9",
     text=r"""
-bmass is the mass of the barostat when [[ionmov]] = 13 (constant pressure molecular dynamics)
+bmass is the mass of the barostat when [[moldyn]] = "npt_martyna", "nst_martyna" or "npt_langevin" (corresponding to [[ionmov]] = 13 and 16).
 """,
 ),
 
@@ -1515,6 +1519,66 @@ It is still read during a transitional period, likely up to the end of v9 life c
 """,
 ),
 
+Variable(
+    abivarname="chebfi_oracle",
+    varset="gstate",
+    vartype="integer",
+    topics=['TuningSpeedMem_expert'],
+    dimensions="scalar",
+    defaultval="0",
+    mnemonics="CHEByshev FIltering algorithm ORACLE",
+    characteristics=['[[DEVELOP]]'],
+    added_in_version="10.3.4",
+    requires='[[wfoptalg]] == 111',
+    text=r"""
+For the Chebyshev Filtering algorithm, it is possible to estimate the degree of the polynom needed to reach a given precision on the wave-functions.
+Indeed, as explained in [[cite:Levitt2015]], after the application of the Chebyshev polynomial of order $n$ (noted $T_n(x)$) followed by a Rayleigh-Ritz procedure,
+the residual $r_i^n$ of the band $i$ can be estimated as :
+
+  $\|r_i^n\| \approx \|r_i\| \ / \ T_n(\lambda_i^{eff})$
+
+where $r_i$ is the residual before applying the Chebyshev polynomial, and $\lambda_i^{eff}=(\lambda_i - c)/r$ where $\lambda_i$ is the Rayleigh quotient of the band $i$, $r$ the filter radius and $c$ filter center.
+There are two possible scenarii :
+
+  * [[chebfi_oracle]] = 0 : the default value. The order of the polynom, or degree, is equal to [[mdeg_filter]] (or [[nline]],
+  depending on which one is used in the input) for every SCF step.
+
+  * [[chebfi_oracle]] > 0 : the square residuals $\|r_i\|^2$ are computed at the beginning of the algorithm, which adds a small time overhead (which could be negligible).
+  The degree of the polynom $n_i$ is estimated individually for every band, as explained below.
+  Then the maximum value over all bands is taken.
+  Indeed, for an efficient parallelism it is necessary to apply the same degree to every bands.
+
+The individual polynom degree $n_i$ of each band can be computed in two different ways:
+
+  * if [[chebfi_oracle]] = 1, $n_i$ is the minimum value between [[mdeg_filter]] and the degree $n_{tolwfr}$ estimated to insure $\|r_i^{n_{tolwfr}}\|^2 <$ [[tolwfr_diago]].
+  This option could be useful to reduce the polynomial degree for SCF iterations close to convergence.
+
+  * if [[chebfi_oracle]] = 2, $n_i$ is the minimum value between $n_{tolwfr}$ and the degree estimated to insure $\|r_i^n\|^2 < \alpha \|r_i\|^2$,
+  where $\alpha$ is equal to [[oracle_factor]].
+  This option could be useful to insure that the convergence rate of wave-fonctions is constant at every SCF iteration, until the convergence criteria [[tolwfr_diago]] is reached.
+  Note that in this case [[mdeg_filter]] (or [[nline]]) is not used.
+
+In some cases, $n_i$ is set to 0:
+
+  * if the square residual $\|r_i\|^2$ is below [[tolwfr_diago]]
+
+  * if the band $i$ is in the buffer (see [[nbdbuf]])
+
+  * if [[nbdbuf]] = -101 and the band occupancy is below [[oracle_minocc]]
+
+The resulting degree applied to all bands could be 0, for example if the wave-functions are already converged.
+In that case no filter is applied, but the Rayleigh-Ritz procedure is done anyway.
+
+At last, a global maximal degree $n_{max}$ is estimated (without using the residuals) to avoid some numerical instabilities (see section 5.3 in [[cite:Levitt2015]]).
+In practice $n_{max}$ is about 20 or more, but is not bigger than 40.
+This is a hard-coded limit in the code.
+$n_{max}$ is used even if [[chebfi_oracle]] is 0.
+
+[[chebfi_oracle]] > 0 is implemented for [[wfoptalg]] = 111, but not for [[wfoptalg]] = 1.
+It is not implemented for GPUs either (i.e. [[gpu_option]] must be 0 or DISABLE).
+""",
+),
+
 
 Variable(
     abivarname="chempot",
@@ -1888,7 +1952,7 @@ Variable(
     defaultval="0",
     mnemonics="C-PRoJectors IN MEMORY",
     characteristics=['[[DEVELOP]]'],
-    added_in_version="",
+    added_in_version="10.2.0",
     text=r"""
 For systems with many atoms, non-local operations are the most time-consuming part of the computation.
 The non-local contribution of the wavefunction $\psi$ to the energy writes:
@@ -2714,7 +2778,7 @@ Variable(
     text=r"""
 [[dilatmx]] is an auxiliary variable used to book additional memory (see detailed description later) for possible
 on-the-flight enlargement of the plane wave basis set, due to cell volume increase during geometry optimization by ABINIT.
-Useful only when doing cell optimization, e.g. [[optcell]]/=0, usually with [[ionmov]] == 2 or 22.
+Useful only when doing cell optimization, e.g. [[optcell]]/=0, usually with [[geoopt]] = "bfgs" or "lbfgs" ([[ionmov]] == 2 or 22).
 Supposing that the starting (estimated) lattice parameters are already rather accurate (or likely to be too large),
 then the recommended value of [[dilatmx]] is 1.05.
 When you have no idea of evolution of the lattice parameters, and suspect that a large increase during geometry optimization is possible, while
@@ -2728,6 +2792,8 @@ ABINIT will rescale uniformly the
 tentative new primitive vectors to a value that leads at most to 90% of the
 maximal allowed [[dilatmx]] deviation from 1. It will do this three times (to
 prevent the geometry optimization algorithms to have taken a too large trial
+step), but afterwards will stop and exit.
+
 Setting [[chkdilatmx]] == 0 allows one to
 book a larger planewave basis (if [[dilatmx]] is set to be bigger than 1), but will not rescale the tentative new primitive vectors
 nor lead to an exit when the [[dilatmx]] threshold is exceeded.
@@ -3586,12 +3652,13 @@ Variable(
     mnemonics="Delta Time for IONs",
     added_in_version="before_v9",
     text=r"""
-Used for controlling ion time steps. If [[ionmov]] is set to 1, 6, 7 and 15, then
+Used for controlling ion time steps. If [[geoopt]] is set to "viscous", "quenched" or "fire"
+([[ionmov]] is set to 1, 7 or 15), or if [[moldyn]] /= "none", then
 molecular dynamics is  used to update atomic positions in response to forces.
 The parameter [[dtion]] is a time step in atomic units of time. (One atomic
 time unit is 2.418884e-17 seconds, which is the value of Planck's constant in
 hartree*sec.) In this case the atomic masses, in amu (given in array " [[amu]]
-"), are used in Newton's equation and the viscosity (for [[ionmov]] =1) and
+"), are used in Newton's equation and the viscosity (for [[geoopt]] = "viscous") and
 number of time steps are provided to the code using input variables "[[vis]]"
 and "[[ntime]]". The code actually converts from masses in amu to masses in
 atomic units (in units of electron masses) but the user enters masses in
@@ -3601,10 +3668,10 @@ atomic units (in units of electron masses) but the user enters masses in
 A typical good value for [[dtion]] is about 100. The user must try several
 values for [[dtion]] in order to establish the stable and efficient choice for
 the accompanying amu, atom types and positions, and [[vis]] (viscosity).
-For quenched dynamics ([[ionmov]] = 7), a larger time step might be taken, for
+For quenched dynamics ([[geoopt]] = "quenched"), a larger time step might be taken, for
 example 200. No meaning for RF calculations.
 It is also used in geometric relaxation calculation with the FIRE algorithm
-([[ionmov]]=15), where the time is virtual. A small dtion should be set, for example 0.03.
+([[geoopt]] = "fire"), where the time is virtual. A small dtion should be set, for example 0.03.
 """,
 ),
 
@@ -5046,19 +5113,36 @@ Variable(
     abivarname="friction",
     varset="rlx",
     vartype="real",
-    topics=['MolecularDynamics_useful'],
+    topics=['PIMD_basic','MolecularDynamics_useful'],
     dimensions="scalar",
     defaultval=0.001,
     mnemonics="internal FRICTION coefficient",
     added_in_version="before_v9",
     text=r"""
 Gives the internal friction coefficient (atomic units) for Langevin dynamics
-(when [[ionmov]] = 9): fixed temperature simulations with random forces.
+(when [[moldyn]] = "nvt_langevin" or "npt_langevin" or [[ionmov]] = 16 or [[imgmov]] = 9): fixed temperature simulations with random forces.
 
-The equation of motion is:
+The equations of motion are:
 $M_I \frac{d^2 R_I}{dt^2}= F_I -$[[friction]]$*M_I \frac{d R_I}{dt} - F_{random,I}$,
-where $F_{random,I}$ is a Gaussian random force with average zero and variance [[friction]]$*2M_IkT$.
-The atomic unit of [[friction]] is Hartree*Electronic mass*(atomic unit of Time)/Bohr^2. See [[cite:Chelikowsky2000]] for additional information.
+where $F_{random,I}$ is a Gaussian random force with average zero and variance [[friction]]$*2M_IkT/$[[dtion]].
+The atomic unit of [[friction]] is Hartree*Electronic mass*(atomic unit of Time)/Bohr^2. See [[cite:Chelikowsky2000]] and [[cite:Quigley2004]] for additional information.
+""",
+),
+
+Variable(
+    abivarname="frictionbar",
+    varset="rlx",
+    vartype="real",
+    topics=['MolecularDynamics_useful'],
+    dimensions="scalar",
+    defaultval=0.001,
+    mnemonics="internal FRICTION coefficient of the BARostat",
+    added_in_version="v10.2",
+    text=r"""
+Gives the internal friction coefficient (atomic units) of the barostat for Langevin dynamics
+(when [[moldyn]] = "npt_langevin" ([[ionmov]] = 16 and [[optcell]] = 2).
+The mass of the barostat ([[bmass]]) must be given in addition.
+See [[cite:Quigley2004]] and [[cite:Quigley2005]] for additional information.
 """,
 ),
 
@@ -5090,7 +5174,7 @@ Variable(
     text=r"""
 The forces multiplied by [[fxcartfactor]] will be treated like difference in
 cartesian coordinates in the process of optimization. This is a simple preconditioner.
-TO BE UPDATED See ([[ionmov]] = 2 or 22, non-zero [[optcell]]). For example, the
+TO BE UPDATED See ([[geoopt]] = "bfgs" or "lbfgs", non-zero [[optcell]]). For example, the
 stopping criterion defined by [[tolmxf]] relates to these scaled stresses.
 """,
 ),
@@ -5206,6 +5290,75 @@ precisely this translation, in reduced coordinates (like [[xred]])
 Thus, one way to specify a Shubnikov IV magnetic space group, is to define
 both [[spgroup]] and [[genafm]]. Alternatively, one might define [[spgroup]]
 and [[spgroupma]], or define by hand the set of symmetries, using [[symrel]], [[tnons]] and [[symafm]].
+""",
+),
+
+Variable(
+    abivarname="geoopt",
+    varset="rlx",
+    vartype="string",
+    topics=['GeoOpt_compulsory'],
+    dimensions="scalar",
+    defaultval="none",
+    mnemonics="GEOmetry OPTimization",
+    added_in_version="10.3",
+    text=r"""
+Choice of algorithm to control the displacements of ions for geometry optimization, and possibly changes of cell shape and size (see [[optcell]]).
+No meaning for RF calculations.
+
+  * "none" --> Do not move ions (**default behaviour**)
+
+  * "viscous" --> Move atoms using molecular dynamics with optional viscous damping (friction linearly proportional to velocity).
+  The viscous damping is controlled by the [[vis]] parameter.
+  If undamped molecular dynamics is desired, set [[vis]] to 0.
+  The implemented algorithm is the generalisation of the Numerov technique (6th order), but is NOT invariant upon time-reversal,
+  so that the energy is not conserved.
+  The time step is governed by [[dtion]].
+  **Purpose:** Molecular dynamics (if [[vis]] = 0), Structural optimization (if [[vis]] >0)
+  **Cell optimization:** No (Use [[optcell]] = 0 only)
+  **Related variables:** Viscous parameter [[vis]], time step [[dtion]], index of atoms fixed [[iatfix]]
+
+  * "bfgs" --> Conduct structural optimization using the Broyden-Fletcher-Goldfarb-Shanno minimization (BFGS).
+  This is much more efficient for structural optimization than viscous damping, when there are
+  less than about 10 degrees of freedom to optimize.
+  **Purpose:** Structural optimization
+  **Cell optimization:** Yes (if [[optcell]]/=0)
+
+  * "mdmin" --> Simple relaxation of ionic positions according to (converged) forces.
+  Equivalent to **geoopt** = "viscous" with zero masses, albeit the relaxation coefficient is not [[vis]], but [[iprcfc]].
+  **Purpose:** Structural optimization
+  **Cell optimization:** No (Use [[optcell]] = 0 only)
+
+  * "quenched" --> Quenched Molecular dynamics using the Verlet algorithm, and stopping each atom for which
+  the scalar product of velocity and force is negative. The only related parameter is the time step ([[dtion]]).
+  The goal is not to produce a realistic dynamics, but to go as fast as possible to the minimum.
+  For this purpose, it is advised to set all the masses to the same value
+  (for example, use the Carbon mass, i.e. set [[amu]] to 12 for all type of atoms).
+  **Purpose:** Structural optimization
+  **Cell optimization:** No (Use [[optcell]] = 0 only)
+  **Related variables:** time step [[dtion]], index of atoms fixed [[iatfix]]
+
+  * "fire" --> Fast inertial relaxation engine (FIRE) algorithm proposed by Erik Bitzek, Pekka Koskinen, Franz Gähler,
+    Michael Moseler, and Peter Gumbsch in [[cite:Bitzek2006]].
+    According to the authors, the efficiency of this method is nearly the same as L-bfgs (**ionmov** = 22).
+    It is based on conventional molecular dynamics with additional velocity modifications and adaptive time steps.
+    The initial time step is set with [[dtion]]. Note that the physical meaning and unit of [[dtion]] are different
+    from the default ones.
+    The purpose of this algorithm is relaxation, not molecular dynamics. [[dtion]] governs the ion position changes,
+    but the cell parameter changes as well.
+    The positions are in reduced coordinates instead of in cartesian coordinates.
+    The suggested first guess of dtion is 0.03.
+    **Purpose:** Relaxation
+    **Cell optimization:** Yes (if [[optcell]]/=0)
+    **Related variables:** The initial time step [[dtion]]
+
+  * "lbfgs" --> Conduct structural optimization using the Limited-memory
+    Broyden-Fletcher-Goldfarb-Shanno minimization (L-BFGS) [[cite:Nocedal1980]].
+    The routines are based on the original implementation by J. Nocedal available on netlib.org.
+    This algorithm can be much better than the native implementation of BFGS in ABINIT (**ionmov** = 2)
+    when one approaches convergence, perhaps because of better treatment of numerical details.
+    **Purpose:** Structural optimization
+    **Cell optimization:** Yes (if [[optcell]]/=0)
 """,
 ),
 
@@ -5518,7 +5671,7 @@ which is a frequently occurring case.
   * If [[getden]] is a negative number, it indicates the number of datasets to go
 backward to find the needed file. Going back beyond the first dataset is equivalent to using zero for the get variable.
 
-Be careful: the output density file of a run with non-zero [[ionmov]] does
+Be careful: the output density file of a run with [[geoopt]] /= "none" or [[moldyn]] /= "none" ([[ionmov]] /= 0) does
 not have the proper name (it has a "TIM" indication) for use as an input of an [[iscf]]<0 calculation.
 One should use the output density of a [[ionmov]] == 0 run.
 """,
@@ -6505,9 +6658,9 @@ vectors of the reciprocal lattice and the three Cartesian axis).
 
 Variable(
     abivarname="gwr_nstep",
-    varset="gw",
+    varset="gwr",
     vartype="integer",
-    topics=['GW_basic'],
+    topics=['GWR_basic'],
     dimensions="scalar",
     defaultval=50,
     mnemonics="GWR Number of self-consistent STEPs",
@@ -6517,6 +6670,22 @@ Variable(
 Maximum number of self-consistent iterations in which G and/or W are be updated
 until the quasi-particle energies are converged within [[gwr_tolqpe]].
 [[gwr_task]] defines the self-consistency type.
+""",
+),
+
+Variable(
+    abivarname="gwr_fit",
+    varset="gwr",
+    vartype="integer",
+    topics=['GWR_basic'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="GWR FIT",
+    requires="[[optdriver]] == 6",
+    added_in_version="10.3.4",
+    text=r"""
+A non-zero value activates the fit of the polarizabily and of the inverse dielectric matrix
+in order to accelerate the convergence of the GWR results wrt the number of points in the minimax mesh.
 """,
 ),
 
@@ -6615,9 +6784,9 @@ contribution to sigma.
 
 Variable(
     abivarname="gwr_tolqpe",
-    varset="gw",
+    varset="gwr",
     vartype="real",
-    topics=['GW_basic'],
+    topics=['GWR_basic'],
     dimensions="scalar",
     defaultval=ValueWithUnit(units='eV', value=0.01),
     mnemonics="GWR TOLerance on the difference of the QP Energies",
@@ -6818,8 +6987,7 @@ Variable(
 Governs the use of a dielectric model (as explained in Sec. V of
 [[cite:Laflamme2015]] and the use of the Lanczos scheme to solve Eqs. (30) and
 (35) of the same reference at all external [[gw_freqsp]] and integration (as
-generated from [[gwls_npt_gauss_quad]]) frequencies. The different choices
-are:
+generated from [[gwls_npt_gauss_quad]]) frequencies. The different choices are:
 
   * [[gwls_correlation]] == 1: GWLS calculation **with** the dielectric model and **without** the shift Lanczos technique,
   * [[gwls_correlation]] == 2: GWLS calculation **without** the dielectric model and **without** the shift Lanczos technique,
@@ -7403,9 +7571,10 @@ fixed for structural optimization or molecular dynamics. The variable
 [[iatfixx]], [[iatfixy]], and [[iatfixz]], allow to fix some atoms along x, y
 or z directions, or a combination of these.
 
-WARNING: The implementation is inconsistent !! For [[ionmov]] ==1, the fixing
-of directions was done in cartesian coordinates, while for the other values of
-[[ionmov]], it was done in reduced coordinates. Sorry for this.
+WARNING: The implementation is inconsistent !! For [[geoopt]] set to "viscous" (or [[ionmov]] = 1),
+the fixing of directions was done in cartesian coordinates, while for the other values of
+[[geoopt]] or for any value of [[moldyn]] ([[ionmov]] /= 1), it was done in reduced coordinates.
+Sorry for this.
 
 There is no harm in fixing one atom in the three directions using [[iatfix]],
 then fixing it again in other directions by mentioning it in **iatfixx**,
@@ -7699,7 +7868,7 @@ variables, as well as with the parallelism (see input variable [[npimage]]).
     algorithms for MD or geometry optimization are allowed, using [[ionmov]] (instead of [[imgmov]], this is the exception to the rule)
     and related variables.
   * = 9 or 13 --> **Path-Integral Molecular Dynamics** (see e.g. [[cite:Marx1996]]).
-    Will use 9 for **Langevin thermostat** (associated friction coefficient given by [[vis]])
+    Will use 9 for **Langevin thermostat** (associated friction coefficient given by [[friction]])
     and 13 for **Nose-Hoover thermostat chains** (associated input variables are the number of thermostats in the chains,
     [[nnos]], and the masses of these thermostats [[qmass]]). [[nimage]] is the Trotter number
     (no use of [[dynimage]]); possible transformations of coordinates are defined by [[pitransform]];
@@ -7864,12 +8033,13 @@ See ~abinit/doc/build/config-examples/ubu_intel_17.0_openmpi.ac for a typical co
 
 Variable(
     abivarname="ionmov",
-    varset="rlx",
+    varset="dev",
     vartype="integer",
-    topics=['MolecularDynamics_compulsory', 'GeoOpt_compulsory'],
+    topics=['MolecularDynamics_expert', 'GeoOpt_expert'],
     dimensions="scalar",
     defaultval=0,
     mnemonics="IONic MOVEs",
+    characteristics=['[[DEVELOP]]'],
     added_in_version="before_v9",
     text=r"""
 Choice of algorithm to control the displacements of ions, and possibly changes of cell shape and size (see [[optcell]]).
@@ -7891,8 +8061,6 @@ No meaning for RF calculations.
   * 2 --> Conduct structural optimization using the Broyden-Fletcher-Goldfarb-Shanno minimization (BFGS).
   This is much more efficient for structural optimization than viscous damping, when there are
   less than about 10 degrees of freedom to optimize.
-  Another version of the BFGS is available with **ionmov** == 22, and is apparently more robust and
-  efficient than **ionmov** == 2.
   **Purpose:** Structural optimization
   **Cell optimization:** Yes (if [[optcell]]/=0)
 
@@ -7948,7 +8116,7 @@ No meaning for RF calculations.
   **Cell optimization:** No (Use [[optcell]] = 0 only)
 
   * 12 --> Isokinetic ensemble molecular dynamics.
-    The equation of motion of the ions in contact with a thermostat are solved with the
+    The equations of motion of the ions in contact with a thermostat are solved with the
     algorithm proposed in [[cite:Zhang1997]], as worked out in [[cite:Minary2003]].
     The conservation of the kinetic energy is obtained within machine precision at each step.
     As in [[cite:Evans1983]], when there is no fixing of atoms, the number of degrees of freedom in which the
@@ -7966,7 +8134,7 @@ No meaning for RF calculations.
     **Related variables:** time step ([[dtion]]) and the first temperature in [[mdtemp]] in case
     the velocities [[vel]] are not initialized, or all initialized to zero.
 
-  * 13 --> Isothermal/isenthalpic ensemble. The equation of motion of the ions in contact with a thermostat
+  * 13 --> The equations of motion of the ions in contact with a thermostat
     and a barostat are solved with the algorithm proposed in [[cite:Martyna1996]].
     If optcell=1 or 2, the mass of the barostat ([[bmass]]) must be given in addition.
     **Purpose:** Molecular dynamics
@@ -7996,6 +8164,13 @@ No meaning for RF calculations.
     **Purpose:** Relaxation
     **Cell optimization:** Yes (if [[optcell]]/=0)
     **Related variables:** The initial time step [[dtion]]
+
+  * 16 --> Langevin molecular dynamics. The equations of motion of the ions are described
+    with the algorithms proposed in [[cite:Quigley2004]] and [[cite:Quigley2005]].
+    **Purpose:** Molecular dynamics
+    **Cell optimization:** Yes (Use [[optcell]] = 2 only)
+    **Related variables:** time step ([[dtion]]), temperatures ([[mdtemp]]), friction coefficient ([[friction]]).
+    If [[optcell]]/=0, friction coefficient of the barostat ([[frictionbar]]), and the mass of the barostat ([[bmass]]).
 
   * 20 --> Direct inversion of the iterative subspace.
     Given a starting point [[xred]] that is a vector of length 3*[[natom]] (reduced nuclei coordinates),
@@ -8055,8 +8230,6 @@ No meaning for RF calculations.
   **Purpose:** Monte Carlo sampling
   **Cell optimization:** No (Use [[optcell]] = 0 only)
   **Related variables:** time step [[dtion]], thermostat temperature [[mdtemp]],
-
-  * 27 --> TO BE DOCUMENTED
 
   * 28 --> Update atomic positions and unit cell parameters using the i-pi client-server protocol
    as described in [[cite:Kapil2019]].
@@ -8176,14 +8349,16 @@ Variable(
     abivarname="irandom",
     varset="dev",
     vartype="integer",
-    topics=['PIMD_expert'],
+    topics=['PIMD_expert','MolecularDynamics_expert'],
     dimensions="scalar",
     defaultval=3,
     mnemonics="Integer for the choice of the RANDOM number generator",
     characteristics=['[[DEVELOP]]'],
     added_in_version="before_v9",
     text=r"""
-For the time being, only used when [[imgmov]] = 9 (Langevin Path-Integral Molecular Dynamics).
+For the time being, only used when [[imgmov]] = 9 (Langevin Path-Integral Molecular Dynamics),
+or [[moldyn]] = "nvt_langevin" or "npt_langevin" ([[ionmov]] = 16).
+
 [[irandom]] defines the random number generator.
 
 Supported values:
@@ -10357,6 +10532,34 @@ it mimics a second iteration self-consistent GW calculation.
 ),
 
 Variable(
+    abivarname="mdeg_filter",
+    varset="gstate",
+    vartype="integer",
+    topics=['SCFControl_expert'],
+    dimensions="scalar",
+    defaultval=ValueWithConditions({'[[wfoptalg]] == 1 or 111 ': 6, 'defaultval': 6}),
+    mnemonics="Maximum DEGree of the polynomial for spectrum FILTERing algorithms",
+    commentdefault="6 for chebyshev filtering algorithm",
+    added_in_version="v10",
+    text=r"""
+For spectrum-filtering based algorithms (e.g. Chebyshev filtering ([[wfoptalg]]=1 or 11) or spectrum slicing ([[wfoptalg]]=TODO).
+The parameter [[mdeg_filter]] defines the maximum degree of the Chebyshev polynomial used in spectrum-filtering algorithms, such as Chebyshev filtering or spectrum slicing. These algorithms are employed to optimize the wavefunctions during the self-consistent cycle.
+Increasing the degree improves the effectiveness of the filtering, reducing the number of self-consistent iterations required. However, a high polynomial degree is computationally expensive. Conversely, using a degree that is too low (e.g., <5) often leads to inefficient convergence or even incorrect results.
+The value of [[mdeg_filter]] serves as a maximum threshold: the degree may be automatically reduced to meet the required tolerance specified by [[tolwfr_diago]].
+
+> Notes:
+>
+> * The default value ([[mdeg_filter]] = 6) provides sufficient filtering quality for most cases.
+>
+> * Combined with the input variable [[nnsclo]], [[mdeg_filter]] controls the convergence of wavefunctions for a fixed potential.
+>
+> * On GPUs, the polynomial degree can be increased with minimal impact on computational cost.
+>
+> * Previously, [[nline]] was used to adjust the degree of the filtering polynomial. In the absence of [[mdeg_filter]], the value of [[nline]], if specified, is still used.”
+""",
+),
+
+Variable(
     abivarname="mdf_epsinf",
     varset="gw",
     vartype="real",
@@ -10384,13 +10587,16 @@ Variable(
     mnemonics="Molecular Dynamics TEMPeratures",
     added_in_version="before_v9",
     text=r"""
-Give the initial and final temperature of the Nose-Hoover thermostat
-([[ionmov]] = 8) and Langevin dynamics ([[ionmov]] = 9), in Kelvin. This
+Give the initial and final temperature of the Nose-Hoover thermostat [[moldyn]] = "nvt_nose"
+([[ionmov]] = 8), Langevin dynamics [[moldyn]] = "nvt_langevin" ([[ionmov]] = 16),
+Martyna thermostats [[moldyn]] = "npt_martyna" or "nst_martyna" ([[ionmov]] = 13), in Kelvin. This
 temperature will change linearly from the initial temperature **mdtemp(1)** at
 itime=1 to the final temperature **mdtemp(2)** at the end of the [[ntime]] timesteps.
 
-In the case of the isokinetic molecular dynamics ([[ionmov]] = 12), **mdtemp(1)** allows ABINIT
-to generate velocities ([[vel]]) to start the run if they are not provided by the user or if they all vanish. However **mdtemp(2)** is not used (even if it must be defined to please the parser). If some velocities are non-zero, **mdtemp** is not used, the kinetic energy computed from the velocities is kept constant during the run.
+In the case of the isokinetic molecular dynamics [[moldyn]] = "nvt_isokin" ([[ionmov]] = 12), **mdtemp(1)** allows ABINIT
+to generate velocities ([[vel]]) to start the run if they are not provided by the user or if they all vanish.
+However **mdtemp(2)** is not used (even if it must be defined to please the parser). If some velocities are non-zero,
+**mdtemp** is not used, the kinetic energy computed from the velocities is kept constant during the run.
 """,
 ),
 
@@ -10406,8 +10612,8 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 Gives the location (atomic units) of walls on which the atoms will bounce
-back when [[ionmov]] = 6, 7, 8 or 9. For each cartesian direction idir=1, 2 or
-3, there is a pair of walls with coordinates xcart(idir)=-wall and
+back when [[geoopt]] = "quenched" or [[moldyn]] = "nve_verlet" (also when [[ionmov]] = 6, 7, 8 or 9).
+For each cartesian direction idir=1, 2 or 3, there is a pair of walls with coordinates xcart(idir)=-wall and
 xcart(idir)=rprimd(idir,idir)+wall. Supposing the particle will cross the
 wall, its velocity normal to the wall is reversed, so that it bounces back.
 By default, given in Bohr atomic units (1 Bohr=0.5291772108 Angstroms),
@@ -10635,6 +10841,93 @@ Used in the algorithm Linear Combination of Constrained DFT Energies, that is, w
 This array gives, for each one of the [[nimage]] images, the factor
 by which the total energies for systems with same geometry but different electronic structures (occupation numbers) are linearly combined.
 The sum of these factors must equal 1.
+""",
+),
+
+Variable(
+    abivarname="moldyn",
+    varset="rlx",
+    vartype="string",
+    topics=['MolecularDynamics_compulsory'],
+    dimensions="scalar",
+    defaultval="none",
+    mnemonics="MOLecular DYNamics",
+    added_in_version="10.3",
+    text=r"""
+Choice of algorithm for the molecular dynamics simulation, and possibly changes of cell shape and size (see [[optcell]]).
+
+  * "none" --> Do not move ions (**default behaviour**)
+
+  * "nve_verlet" --> Molecular dynamics using the Verlet algorithm, see [[cite:Allen1987a]] p 81].
+    The only related parameter is the time step ([[dtion]]).
+    **Purpose:** Molecular dynamics
+    **Cell optimization:** No (Use [[optcell]] = 0 only)
+    **Related variables:** time step [[dtion]], index of atoms fixed [[iatfix]]
+
+  * "nvt_isokin" --> Isokinetic ensemble molecular dynamics.
+    The equations of motion of the ions in contact with a thermostat are solved with the
+    algorithm proposed in [[cite:Zhang1997]], as worked out in [[cite:Minary2003]].
+    The conservation of the kinetic energy is obtained within machine precision at each step.
+    As in [[cite:Evans1983]], when there is no fixing of atoms, the number of degrees of freedom in which the
+    microscopic kinetic energy is hosted is 3*[[natom]] - 4.
+    Indeed, the total kinetic energy is constrained, which accounts for
+    minus one degree of freedom (also mentioned in [[cite:Minary2003]]), but also there are three degrees of freedom
+    related to the total momentum in each direction, that cannot be counted as microscopic degrees of freedom, since the
+    total momentum is also preserved (but this is not mentioned in [[cite:Minary2003]]).
+    When some atom is fixed in one or more direction,
+    e.g. using [[natfix]], [[natfixx]], [[natfixy]], or [[natfixz]], the number of degrees of freedom is decreased accordingly,
+    albeit taking into account that the total momentum is not preserved
+    anymore (e.g. fixing the position of one atom gives 3*natom-4, like in the non-fixed case).
+    **Purpose:** Molecular dynamics
+    **Cell optimization:** No (Use [[optcell]] = 0 only)
+    **Related variables:** time step ([[dtion]]) and the first temperature in [[mdtemp]] in case
+    the velocities [[vel]] are not initialized, or all initialized to zero.
+
+  * "nvt_nose" --> Isothermal/isochoric ensemble. The equations of motion of the ions in contact with a thermostat
+    with the algorithm proposed in [[cite:Martyna1996]].
+    **Purpose:** Molecular dynamics
+    **Cell optimization:** No (Use [[optcell]] = 0 only)
+    **Related variables:** The time step ([[dtion]]), the temperatures ([[mdtemp]]),
+    the number of thermostats ([[nnos]]), and the masses of thermostats ([[qmass]]).
+
+  * "nvt_langevin" --> Langevin molecular dynamics. The equations of motion of the ions are described
+    with the algorithms proposed in [[cite:Quigley2004]] and [[cite:Quigley2005]].
+    **Purpose:** Molecular dynamics
+    **Cell optimization:** No (Use [[optcell]] = 0 only)
+    **Related variables:** time step ([[dtion]]), temperatures ([[mdtemp]]) and friction coefficient ([[friction]]).
+
+  * "npt_langevin" --> Langevin molecular dynamics at constant pressure. The equations of motion of the ions are described
+    with the algorithms proposed in [[cite:Quigley2004]] and [[cite:Quigley2005]].
+    The mass of the barostat ([[bmass]]) must be given in addition.
+    **Purpose:** Molecular dynamics
+    **Cell optimization:** Yes (Use [[optcell]] = 2 only)
+    **Related variables:** time step ([[dtion]]), temperatures ([[mdtemp]]), friction coefficient ([[friction]]),
+    friction coefficient of the barostat ([[frictionbar]]), and the mass of the barostat ([[bmass]]).
+
+  * "npt_martyna" --> Isothermal/isobaric ensemble. The equations of motion of the ions in contact with a thermostat
+    and a barostat are solved with the algorithm proposed in [[cite:Martyna1996]].
+    The mass of the barostat ([[bmass]]) must be given in addition.
+    **Purpose:** Molecular dynamics
+    **Cell optimization:** Yes (Use [[optcell]] = 1 only)
+    **Related variables:** The time step ([[dtion]]), the temperatures ([[mdtemp]]),
+    the number of thermostats ([[nnos]]), and the masses of thermostats ([[qmass]]),
+    and the mass of the barostat ([[bmass]]).
+
+  * "nst_martyna" --> Isothermal/isobaric ensemble. The equations of motion of the ions in contact with a thermostat
+    and a barostat are solved with the algorithm proposed in [[cite:Martyna1996]].
+    The mass of the barostat ([[bmass]]) must be given in addition.
+    **Purpose:** Molecular dynamics
+    **Cell optimization:** Yes (Use [[optcell]] = 2 only)
+    **Related variables:** The time step ([[dtion]]), the temperatures ([[mdtemp]]),
+    the number of thermostats ([[nnos]]), and the masses of thermostats ([[qmass]]),
+    and the mass of the barostat ([[bmass]]).
+
+  * "nve_velverlet" --> Simple constant energy molecular dynamics using
+    the velocity Verlet symplectic algorithm (second order), see [[cite:Hairer2003]].
+    The only related parameter is the time step ([[dtion]]).
+    **Purpose:** Molecular dynamics
+    **Cell optimization:** No (Use [[optcell]] = 0 only)
+    **Related variables:** time step [[dtion]]
 """,
 ),
 
@@ -11726,9 +12019,9 @@ the image number 4:
 It is notably possible to specify the starting point and the end point of the
 path (of images), while specifying intermediate points.
 
-It usually happen that the images do not have the same symmetries and space
-group. ABINIT has not been designed to use different set of symmetries for
-different images. ABINIT will use the symmetry and space group of the image
+It usually happens that the images do not have the same symmetries and space
+groups. ABINIT has not been designed to use different sets of symmetries for
+different images. ABINIT will use the symmetry set and space group of the image
 number 2, that is expected to have a low number of symmetries. This might lead
 to erroneous calculations, in case some image has even less symmetry. By
 contrast, there is no problem if some other image has more symmetries than
@@ -11836,28 +12129,29 @@ Variable(
     vartype="integer",
     topics=['SCFControl_expert'],
     dimensions="scalar",
-    defaultval=ValueWithConditions({'[[wfoptalg]] == 1 or 11 ': 6, 'defaultval': 4}),
+    defaultval=ValueWithConditions({'[[wfoptalg]] == 1 or 111 ': '[[mdeg_filter]]', 'defaultval': 4}),
     mnemonics="Number of LINE minimizations",
-    commentdefault="4 for conjugate-gradient-based algorithm, 6 for spectrum-filtering-based algorithms",
+    commentdefault="Default is 4 line minimizations for conjugate-gradient-based algorithms, the degree of the polynomial filter for spectrum-filtering-based algorithms",
     added_in_version="before_v9",
     text=r"""
-For conjugate-gradient based algorithms (conjugate gradient or LOBPCG):
 
+Allows one to adjust the number of "iterations" used to optimize the wavefunctions.
+With the input variable [[nnsclo]], [[nline]] governs the convergence of the
+wavefunctions for fixed potential.
+
+- For **conjugate-gradient based algorithms** (e.g. conjugate gradient or LOBPCG):
 [[nline]] gives the maximum number of line minimizations allowed in preconditioned conjugate
 gradient minimization for each band. The default, 4, is fine.
 Special cases, with degeneracies or near-degeneracies of levels at the Fermi
 energy may require a larger value of [[nline]] (5 or 6 ?). Line minimizations
 will be stopped anyway when improvement gets small (governed by [[tolrde]]).
-Note that [[nline]] = 0 can be used to diagonalize the Hamiltonian matrix in the
+> Note that [[nline]] **= 0** can be used to diagonalize the Hamiltonian matrix in the
 subspace spanned by the input wavefunctions.
 
-For algorithms using spectrum filtering (f.i. Chebyshev filtering, [[wfoptalg]]=1 or 111):
-
+- For **spectrum filtering algorithms** (e.g. Chebyshev filtering, spectrum slicing):
 [[nline]] gives the maximum degree of the Chebyshev polynomial used as filtering function.
-The default is 6 to ensure a good quality of the filtering.
-
-With the input variable [[nnsclo]], [[nline]] governs the convergence of the
-wavefunctions for fixed potential.
+The default value ([[nline]] = 6) provides sufficient filtering quality for most cases.
+> Note however that the use of [[nline]] is **outdated**, replaced by [[mdeg_filter]].
 """,
 ),
 
@@ -11983,9 +12277,9 @@ Variable(
     mnemonics="Number of NOSe masses",
     added_in_version="before_v9",
     text=r"""
-Gives the number of thermostats in the chain of oscillators
-thermostats as proposed in [[cite:Martyna1996]]. The thermostat chains can be used either to perform Molecular Dynamics (MD) ([[ionmov]] = 13) or to perform Path Integral Molecular Dynamics
-(PIMD) ([[imgmov]] = 13).
+Gives the number of thermostats in the chain of oscillators thermostats as proposed in [[cite:Martyna1996]].
+The thermostat chains can be used either to performMolecular Dynamics (MD) ([[moldyn]] = "nvt_nose", "npt_martyna" or "nst_martyna")
+or to perform Path Integral Molecular Dynamics (PIMD) ([[imgmov]] = 13).
 The mass of these thermostats is given by [[qmass]].
 """,
 ),
@@ -12972,8 +13266,8 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 Gives the maximum number of molecular dynamics time steps or structural
-optimization steps to be done if [[ionmov]] is non-zero.
-Starting with Abinit9, ntime is automatically set to 1000 if [[ionmov]] is non-zero,
+optimization steps to be done if [[geoopt]] or [[moldyn]] are not "none".
+Starting with Abinit9, ntime is automatically set to 1000,
 [[ntimimage]] is zero and [[ntime]] is not specified in the input file.
 Users are encouraged to pass a **timelimit** to Abinit using the command line and the syntax:
 
@@ -12982,10 +13276,10 @@ Users are encouraged to pass a **timelimit** to Abinit using the command line an
 so that the code will try to stop smoothly before the timelimit and produce the DEN and the WFK files
 that may be used to restart the calculation.
 
-Note that at the present the option [[ionmov]] = 1 is initialized with four
+Note that at the present the option [[geoopt]] = "viscous" ([[ionmov]] = 1) is initialized with four
 Runge-Kutta steps which costs some overhead in the startup. By contrast, the
-initialisation of other [[ionmov]] values is only one SCF call.
-Note that **ntime** is ignored if [[ionmov]] = 0.
+initialisation of other [[geoopt]] or [[moldyn]] values is only one SCF call.
+Note that **ntime** is ignored if [[geoopt]] or [[moldyn]] are set to "none" ([[ionmov]] = 0).
 """,
 ),
 
@@ -13671,15 +13965,15 @@ Variable(
     mnemonics="OPTimize the CELL shape and dimensions",
     added_in_version="before_v9",
     text=r"""
-Allows one to optimize the unit cell shape and dimensions, when [[ionmov]] >= 2 or
-3. The configuration for which the stress almost vanishes is iteratively
+Allows one to optimize the unit cell shape and dimensions (for [[ionmov]] >=2).
+The configuration for which the stress almost vanishes is iteratively
 determined, by using the same algorithms as for the nuclei positions.
 May modify [[acell]] and/or [[rprim]]. The ionic positions are ALWAYS
 updated, according to the forces. A target stress tensor might be defined, see [[strtarget]].
 In most cell relaxations ([[optcell]]/=0), the user should define [[ecutsm]], [[dilatmx]], and [[tolrff]], because the default values
 are NOT aimed at cell relaxation runs. The user should also be aware that convergence studies might need to modify the value of [[tolmxf]], the default being decent, but possibly not sufficiently stringent.
 
-  * **optcell** = 0: modify nuclear positions, since [[ionmov]] = 2 or 3, but no cell shape and dimension optimisation.
+  * **optcell** = 0: modify nuclear positions, but no cell shape and dimension optimisation.
   * **optcell** = 1: optimisation of volume only (do not modify [[rprim]], and allow an homogeneous dilatation of the three components of [[acell]])
   * **optcell** = 2: full optimization of cell geometry (modify [[acell]] and [[rprim]] \- normalize the vectors of [[rprim]] to generate the [[acell]]). This is the usual mode for cell shape and volume optimization. It takes into account the symmetry of the system, so that only the effectively relevant degrees of freedom are optimized.
   * **optcell** = 3: constant-volume optimization of cell geometry (modify [[acell]] and [[rprim]] under constraint \- normalize the vectors of [[rprim]] to generate the [[acell]])
@@ -13794,7 +14088,7 @@ Variable(
     text=r"""
 If set to 1, the computation of stresses is done, in the SCF case (under the
 conditions [[iscf]] > 0, [[prtstm]] == 0, [[positron]] == 0, and either
-[[nstep]] >0, or [[usepaw]] == 0 or [[irdwfk]] == 1).
+[[nstep]] >0 or [[irdwfk]] == 1).
 Otherwise, to save CPU time, if no optimization of the cell is required, one
 can skip the computation of stresses. The CPU time saving might be interesting
 for some PAW calculations.
@@ -14007,7 +14301,7 @@ Variable(
     vartype="integer",
     topics=['PAW_expert'],
     dimensions="scalar",
-    defaultval=ValueWithConditions({'[[optdriver]] == 0 and [[ionmov]] < 6 and [[pawspnorb]] == 1 and [[iscf]] >= 10 and ([[kptopt]] !=1 or [[kptopt]]!=2) and [[usepaw]] == 1': 2,
+    defaultval=ValueWithConditions({'[[optdriver]] == 0 and [[moldyn]] /= "none" and [[pawspnorb]] == 1 and [[iscf]] >= 10 and ([[kptopt]] !=1 or [[kptopt]]!=2) and [[usepaw]] == 1': 2,
  'defaultval': 1}),
     mnemonics="PAW - use ComPleX rhoij OCCupancies",
     requires="[[usepaw]] == 1",
@@ -14019,7 +14313,7 @@ printed out.
 When [[pawcpxocc]] == 2, PAW augmentation occupancies are treated as
 COMPLEX; else they are considered as REAL.
 This is needed when time-reversal symmetry is broken (typically when spin-
-orbit coupling is activated).
+orbit coupling is activated or nuclear magnetic dipole moments are present).
 
 Note for ground-state calculations ([[optdriver]] == 0):
 The imaginary part of PAW augmentation occupancies is only used for the
@@ -14028,7 +14322,7 @@ when SCF mixing on potential is chosen ([[iscf]] <10).
 When SCF mixing on density is chosen ([[iscf]] >= 10), the "direct"
 decomposition of energy is only printed out without being used. It is thus
 possible to use [[pawcpxocc]] = 1 in the latter case.
-In order to save CPU time, when molecular dynamics is selected ([[ionmov]] >= 6)
+In order to save CPU time, when molecular dynamics is selected ([[moldyn]] is not "none").
 and SCF mixing done on density ([[iscf]] >= 10), [[pawcpxocc]] = 2 is (by default) set to **1**.
 """,
 ),
@@ -14351,9 +14645,9 @@ The following values are permitted for **pawovlp**:
 - **pawovlp** = 0 --> no overlap is allowed
 - **pawovlp** > 0 and < 100 --> overlap is allowed only if it is less than **pawovlp** %
 
-Note that ABINIT will not stop at the first time a too large overlap is identified, in case of [[ionmov]]/=0
+Note that ABINIT will not stop at the first time a too large overlap is identified, in case of [[geoopt]] not "none" or [[moldyn]] not "none"
 or [[imgmov]]/=0, but only at the second time in the same dataset. Indeed, such trespassing might only be transient.
-However, a second trespassing in the same dataset, or if both [[ionmov]]=0 and [[imgmov]]=0, will induce stop.
+However, a second trespassing in the same dataset, or if both [[geoopt]] or [[moldyn]] are set to "none" and [[imgmov]]=0, will induce stop.
 """,
 ),
 
@@ -14514,9 +14808,13 @@ Variable(
     requires="[[usepaw]] == 1",
     added_in_version="before_v9",
     text=r"""
-When PAW is activated, the **spin-orbit coupling** can be added without the
-use of specific PAW datasets (pseudopotentials).
-If [[pawspnorb]] = 1, spin-orbit will be added.
+When PAW is activated, the **spin-orbit coupling** as derived from the
+zero-order regular approximation to relativistic effects (ZORA)
+can be added without the
+use of specific PAW datasets (pseudopotentials).  If in addition, a
+nuclear magnetic dipole moment (see [[nucdipmom]]) is present, ZORA terms due
+to the electron-nuclear spin interactions are added as well.
+If [[pawspnorb]] = 1, spin-orbit (and nuclear-electron spin) interactions will be added.
 If the wavefunction is spinorial (that is, if [[nspinor]] = 2), there is no
 reason not to include the spin-orbit interaction, so that the default value of
 [[pawspnorb]] becomes 1 when [[nspinor]] = 2.
@@ -15709,9 +16007,9 @@ Variable(
     text=r"""
 If set to 1 or a larger value, provide output of electron density in real
 space rho(r), in units of electrons/Bohr^3.
-If [[ionmov]] == 0, the name of the density file will be the root output name,
+If [[geoopt]] or [[moldyn]] are set to "none", the name of the density file will be the root output name,
 followed by _DEN.
-If [[ionmov]] /= 0, density files will be output at each time step, with
+If [[geoopt]] or [[moldyn]] /= "none" ([[ionmov]] /= 0), density files will be output at each time step, with
 the name being made of
 
   * the root output name,
@@ -15872,10 +16170,10 @@ shifted grids, for the same grid spacing. There is no need to take care of the
 into account for insulators. The computation can be done in the self-
 consistent case as well as in the non-self-consistent case, using [[iscf]] = -3.
 This allows one to refine the DOS at fixed starting density.
-In that case, if [[ionmov]] == 0, the name of the potential file will be the
-root output name, followed by _DOS (like in the [[prtdos]] = 1 case).
-However, if [[ionmov]] /= 0, potential files will be output at each time
-step, with the name being made of
+In that case, if [[geoopt]] or [[moldyn]] are set to "none", the name of the potential
+file will be the root output name, followed by _DOS (like in the [[prtdos]] = 1 case).
+However, if [[geoopt]] or [[moldyn]] /= "none" ([[ionmov]] /= 0),
+potential files will be output at each time step, with the name being made of
 
   * the root output name,
   * followed by _TIMx, where x is related to the time step (see later)
@@ -15976,7 +16274,7 @@ Variable(
     text=r"""
 If set to 1, a file *_EIG, containing the k-points and one-electron eigenvalues is printed.
 
-If set to 2, with [[ionmov]] /= 0, eigenenergies file will be output at each time step, with
+If set to 2, with [[geoopt]] or [[moldyn]] /= "none" ([[ionmov]] /= 0), eigenenergies file will be output at each time step, with
 the name being made of
 
   * the root output name,
@@ -16113,8 +16411,8 @@ the maximum coordination number of atoms in the system.
 It will deduce a maximum number of "nearest" and "next-nearest" neighbors
 accordingly, and compute corresponding bond lengths.
 It will compute bond angles for the "nearest" neighbours only.
-If [[ionmov]] == 0, the name of the file will be the root output name, followed by _GEO.
-If [[ionmov]] /= 0, one file will be output at each time step, with the
+If [[geoopt]] or [[moldyn]] are set to "none", the name of the file will be the root output name, followed by _GEO.
+If [[geoopt]] or [[moldyn]] /= "none", one file will be output at each time step, with the
 name being made of
 
   * the root output name,
@@ -16385,9 +16683,9 @@ Variable(
 If set >=1, provide output of the total (Kohn-Sham) potential (sum of local
 pseudo-potential, Hartree potential, and xc potential).
 
-If [[ionmov]] == 0, the name of the potential file will be the root output name,
+If [[geoopt]] or [[moldyn]] are set to "none", the name of the potential file will be the root output name,
 followed by _POT.
-If [[ionmov]] /= 0, potential file will be output at each time step, with
+If [[geoopt]] or [[moldyn]] /= "none", potential file will be output at each time step, with
 the name being made of
 
   * the root output name,
@@ -16501,7 +16799,7 @@ In the run with positive [[prtstm]], one has to use:
   * [[occopt]] = 7, with specification of [[tsmear]]
   * [[nstep]] = 1
   * the [[tolwfr]] convergence criterion
-  * [[ionmov]] = 0 (this is the default value)
+  * [[geoopt]] or [[moldyn]] = "none" or [[ionmov]] = 0 (this is the default value)
   * [[optdriver]] = 0 (this is the default value)
 
 Note that you might have to adjust the value of [[nband]] as well, for the
@@ -16575,9 +16873,9 @@ Variable(
     text=r"""
 If set >=1, provide output of the Hartree potential.
 
-If [[ionmov]] == 0, the name of the potential file will be the root output name,
+If [[geoopt]] or [[moldyn]] are set to "none", the name of the potential file will be the root output name,
 followed by _VHA.
-If [[ionmov]] /= 0, potential files will be output at each time step, with
+If [[geoopt]] or [[moldyn]] /= "none", potential files will be output at each time step, with
 the name being made of
 
   * the root output name,
@@ -16601,9 +16899,9 @@ Variable(
     text=r"""
 If set >=1, provide output of the sum of the Hartree potential and xc potential.
 
-If [[ionmov]] == 0, the name of the potential file will be the root output name,
+If [[geoopt]] or [[moldyn]] are set to "none", the name of the potential file will be the root output name,
 followed by _VHXC.
-If [[ionmov]] /= 0, potential files will be output at each time step, with
+If [[geoopt]] or [[moldyn]] /= "none", potential files will be output at each time step, with
 the name being made of
 
   * the root output name,
@@ -16693,8 +16991,8 @@ Variable(
     text=r"""
 If set >=1, provide output of the local pseudo potential.
 
-If [[ionmov]] == 0, the name of the potential file will be the root output name, followed by _VPSP.
-If [[ionmov]] /= 0, potential files will be output at each time step, with the name being made of
+If [[geoopt]] or [[moldyn]] are set to "none", the name of the potential file will be the root output name, followed by _VPSP.
+If [[geoopt]] or [[moldyn]] /= "none", potential files will be output at each time step, with the name being made of
 
   * the root output name,
   * followed by _TIMx, where x is related to the timestep (see later)
@@ -16717,9 +17015,9 @@ Variable(
     text=r"""
 If set >=1, provide output of the exchange-correlation potential.
 
-If [[ionmov]] == 0, the name of the potential file will be the root output name,
+If [[geoopt]] or [[moldyn]] are set to "none", the name of the potential file will be the root output name,
 followed by _VXC.
-If [[ionmov]] /= 0, potential files will be output at each time step, with
+If [[geoopt]] or [[moldyn]] /= "none", potential files will be output at each time step, with
 the name being made of
 
   * the root output name,
@@ -17065,10 +17363,10 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 This are the masses of the chains of [[nnos]] thermostats to be used when
-[[ionmov]] = 13 (Molecular Dynamics) or [[imgmov]] = 13 (Path Integral Molecular
+[[moldyn]] = "nvt_nose" or "npt_martyna" or "nst_martyna" (Molecular Dynamics) or [[imgmov]] = 13 (Path Integral Molecular
 Dynamics).
 
-If [[ionmov]] = 13 (Molecular Dynamics), this temperature control can be used
+If [[moldyn]] = "nvt_nose" or "npt_martyna" or "nst_martyna" (Molecular Dynamics), this temperature control can be used
 with  [[optcell]] =0, 1 (homogeneous cell deformation) or 2 (full cell deformation).
 If [[imgmov]] = 13 (Path Integral Molecular Dynamics), this temperature control
 can be used with  [[optcell]] =0 (NVT ensemble) or 2 (fully flexible NPT
@@ -18039,7 +18337,7 @@ Give the three dimensionless primitive translations in
 real space, to be rescaled by [[acell]] and [[scalecart]].
 The three first numbers are the coordinates of the first vector, the next three numbers are the coordinates
 of the second, and the last three the coordinates of the third.
-It is [[EVOLVING]] only if [[ionmov]] == 2 or 22 and [[optcell]]/=0, otherwise it is fixed.
+It is [[EVOLVING]] only if [[geoopt]] == "bfgs" or "lbfgs" and [[optcell]]/=0, otherwise it is fixed.
 
 If the Default is used, that is, **rprim** is the unity matrix, the three
 dimensionless primitive vectors are three unit vectors in cartesian
@@ -18166,7 +18464,7 @@ computed from [[acell]], [[scalecart]], and [[rprim]].
   * R2p(i) = [[rprimd]](i,2) = [[scalecart]](i) x [[rprim]](i,2) x [[acell]](2) for i=1,2,3
   * R3p(i) = [[rprimd]](i,3) = [[scalecart]](i) x [[rprim]](i,3) x [[acell]](3) for i=1,2,3
 
-It is [[EVOLVING]] only if [[ionmov]] == 2 or 22 and [[optcell]]/=0, otherwise it is fixed.
+It is [[EVOLVING]] only if [[geoopt]] == "bfgs" or "lbfgs" and [[optcell]]/=0, otherwise it is fixed.
 """,
 ),
 
@@ -18885,7 +19183,7 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 The stresses (in atomic units) multiplied by [[strfact]] will be treated like forces (in atomic units) in the
-algorithms for optimization ([[ionmov]] = 2 or 22, non-zero [[optcell]]).
+algorithms for optimization ([[geoopt]] == "bfgs" or "lbfgs", non-zero [[optcell]]).
 For example, the stopping criterion defined by [[tolmxf]] relates to these
 scaled stresses.
 """,
@@ -19473,7 +19771,7 @@ If set to zero, this stopping condition is ignored.
 Effective only when SCF cycles are done ([[iscf]]>0). This tolerance applies
 to any particular cartesian component of any atom, INCLUDING fixed ones. This
 is to be used when trying to equilibrate a structure to its lowest energy
-configuration (select [[ionmov]]), or in case of molecular dynamics ([[ionmov]] = 1)
+configuration (select [[geoopt]]), or in case of molecular dynamics (select [[moldyn]])
 A value ten times smaller than [[tolmxf]] is suggested (for example 5.0d-6
 hartree/Bohr).
 This stopping criterion is not allowed for RF calculations.
@@ -19547,7 +19845,7 @@ structural relaxation iterations will stop.
 Can also control tolerance on stresses, when [[optcell]] /=0, using the
 conversion factor [[strfact]]. This tolerance applies to any particular
 cartesian component of any atom, excluding fixed ones. See the parameter
-[[ionmov]].
+[[geoopt]].
 This is to be used when trying to equilibrate a structure to its lowest energy
 configuration.
 A value of about 5.0d-5 hartree/Bohr or smaller is suggested (this corresponds
@@ -19596,7 +19894,7 @@ If set to zero, this stopping condition is ignored.
 Effective only when SCF cycles are done ([[iscf]]>0). This tolerance applies
 to any particular cartesian component of any atom, INCLUDING fixed ones. This
 is to be used when trying to equilibrate a structure to its lowest energy
-configuration (select [[ionmov]]), or in case of molecular dynamics ([[ionmov]] = 1)
+configuration (select [[geoopt]]), or in case of molecular dynamics (select [[moldyn]])
 A value of 0.02 is suggested.
 This stopping criterion is not allowed for RF calculations.
 Since [[toldfe]], [[toldff]], [[tolrff]] and [[tolvrs]] are aimed
@@ -19708,8 +20006,8 @@ eigenstate. With the squared residual expressed in Hartrees^2  (Hartrees
 squared), the largest squared residual (called *residm* in the code) encountered over all
 bands and k-points must be less than **tolwfr** for iterations to halt due to successful convergence.
 Note that if [[iscf]] > 0, this criterion should be replaced by those based on
-[[toldfe]] (preferred for [[ionmov]] == 0), [[toldff]] [[tolrff]] (preferred for
-[[ionmov]] /= 0), or [[tolvrs]] (preferred for theoretical reasons!).
+[[toldfe]] (preferred for [[geoopt]] or [[moldyn]] = "none"), [[toldff]] [[tolrff]] (preferred for
+[[geoopt]] or [[moldyn]] /= "none"), or [[tolvrs]] (preferred for theoretical reasons!).
 When **tolwfr** is 0.0, this criterion is ignored, and a finite value of
 [[toldfe]], [[toldff]], [[tolrff]] or [[tolvrs]] must be specified. This also imposes a
 restriction on taking an ion step; ion steps are not permitted unless the
@@ -19751,11 +20049,12 @@ In practice it is used to reduce the number of "lines" done at the diagonalizati
 If the squared residual becomes lower than **tolwfr_diago**, the remaining "lines" to be done are skipped.
 For LOBPCG, "lines" are skipped if the biggest squared residual of the block is less than **tolwfr_diago**.
 If **tolwfr_diago**=0, [[nline]] "lines" are done at every self-consistent step.
+
 By default **tolwfr_diago** is equal to [[tolwfr]], but can be used independently.
 One can use [[tolvrs]] (or any other tolerance) to define a criterion for SCF cycles, and use **tolwfr_diago** to save computational time.
 However, when [[tolwfr]]>0, **tolwfr_diago**>[[tolwfr]] is forbidden as the SCF cycles cannot converge in that case.
 
-For [[wfoptalg]]=114 only (LOBPCG), if **tolwfr_diago**=0 then it is set to 1e-20 internally.
+For [[wfoptalg]]=114 (LOBPCG) and [[wfoptalg]]=111 (Chebyshev filtering), if **tolwfr_diago**=0 (default value if [[tolwfr]] is not specified in the input) then it is set to 1e-20 internally.
 As a consequence, to ensure that no lines are skipped one has to set **tolwfr_diago**=1e-30 in the input (instead of 0) in this particular case.
 """,
 ),
@@ -20099,7 +20398,7 @@ Note also that the density matrix has to respect some symmetry rules
 determined by the space group. If the symmetry is not respected in the input,
 the matrix is however automatically symmetrised.
 
-The sign of [[usedmatpu]] has influence only when [[ionmov]] /= 0 (dynamics or relaxation):
+The sign of [[usedmatpu]] has influence only when [[geoopt]] or [[moldyn]] are not set to "none" (dynamics or relaxation):
 
 - When [[usedmatpu]]>0, the density matrix is kept constant only at first ionic step
 - When [[usedmatpu]]<0, the density matrix is kept constant at each ionic step
@@ -20543,8 +20842,7 @@ manually to the strict number need for an isolator system ( _i.e._ number of
 electron over two). The cut-off is not relevant in the wavelet case, use
 [[wvl_hgrid]] instead.
 In wavelet case, the system must be isolated systems (molecules or clusters).
-All geometry optimization are available (see [[ionmov]], especially the
-geometry optimisation and the molecular dynamics).
+All geometry optimization and molecular dynamics are available (see [[geoopt]] and [[moldyn]])
 The spin computation is not currently possible with wavelets and metallic
 systems may be slow to converge.
 """,
@@ -21295,13 +21593,13 @@ Variable(
     abivarname="vel",
     varset="rlx",
     vartype="real",
-    topics=['PIMD_useful', 'MolecularDynamics_basic'],
+    topics=['PIMD_useful', 'MolecularDynamics_basic', 'GeoOpt_basic'],
     dimensions=[3, '[[natom]]'],
     defaultval=MultipleValue(number=None, value=0),
     mnemonics="VELocity",
     characteristics=['[[EVOLVING]]'],
     commentdims="It is represented internally as [[vel]](3,[[natom]],[[nimage]])",
-    requires="[[ionmov]] > 0",
+    requires="[[geoopt]] or [[moldyn]] /= none ([[ionmov]] > 0)",
     added_in_version="before_v9",
     text=r"""
 Gives the starting velocities of atoms, in cartesian coordinates, in
@@ -21311,7 +21609,7 @@ initial velocity giving the right kinetic energy will be generated.
 If the atom manipulator is used, [[vel]] will be related to the preprocessed
 set of atoms, generated by the atom manipulator. The user must thus foresee
 the effect of this atom manipulator (see [[objarf]]).
-Velocities evolve is [[ionmov]] == 1.
+Velocities evolve is [[geoopt]] == "viscous" ([[ionmov]] == 1).
 """,
 ),
 
@@ -21340,13 +21638,13 @@ Variable(
     abivarname="vis",
     varset="rlx",
     vartype="real",
-    topics=['PIMD_basic', 'MolecularDynamics_basic'],
+    topics=['MolecularDynamics_basic'],
     dimensions="scalar",
     defaultval=100,
     mnemonics="VIScosity",
     added_in_version="before_v9",
     text=r"""
-The equation of motion is:
+The equations of motion are:
 
 M  I  d  2  R  I  /dt  2  = F  I  - [[vis]] dR  I  /dt
 
@@ -21355,10 +21653,6 @@ are not critical as this is a fictitious damping used to relax structures. A
 typical value for silicon is 400 with [[dtion]] of 350 and atomic mass 28
 [[amu]]. Critical damping is most desirable and is found only by optimizing
 [[vis]] for a given situation.
-
-In the case of Path-Integral Molecular Dynamics using the Langevin Thermostat
-([[imgmov]] = 9), [[vis]] defines the friction coefficient, in atomic units.
-Typical value range is 0.00001-0.001.
 """,
 ),
 
@@ -21550,35 +21844,36 @@ Variable(
 Allows one to choose the algorithm for the optimisation of the wavefunctions.
 The different possibilities are:
 
-  * [[wfoptalg]] = 0: standard state-by-state conjugate gradient algorithm, with no possibility to parallelize over the states;
+  * [[wfoptalg]] = 0: The standard **state-by-state conjugate gradient** algorithm, which does not allow for parallelization over states. A detailed description of this algorithm can be found in [[cite:Payne1992]].
 
-  * [[wfoptalg]] = 2: minimisation of the residual with respect to different shifts, in order to cover the whole set of occupied bands,
-  with possibility to parallelize over blocks of states (or bands). The number of states in a block is defined in [[nbdblock]]. THIS IS STILL IN DEVELOPMENT.
+  * [[wfoptalg]] = 10:  (For PAW) The standard **state-by-state conjugate gradient** algorithm (as described in [[cite:Payne1992]]) with no parallelization over states. This version includes **modifications** described in [[cite:Kresse1996]], such as a modified kinetic energy, improved preconditioning, minimal orthogonalization, etc.
 
-  * [[wfoptalg]] = 3: minimisation of the residual with respect to a shift. Available only in the non-self-consistent case [[iscf]] = -2,
-  in order to find eigenvalues and wavefunctions close to a prescribed value.
+  * [[wfoptalg]] = 2: **Minimization of the residual** with respect to different shifts to cover the entire set of occupied bands. This allows for parallelization over blocks of states (or bands), with the number of states per block defined by [[nbdblock]].
+> Note: This algorithm is experimental and possibly obsolete.
 
-  * [[wfoptalg]] = 4: (see also [[wfoptalg]] = 14), a parallel code based on the Locally Optimal Block Preconditioned Conjugate Gradient (LOBPCG)
-  method of [[cite:Knyazev2001 ]].
-  The implementation rests on the [matlab program by Knyazev](http://www.mathworks.com/matlabcentral/fileexchange/48-lobpcg-m) [[cite:Knyazev2007]].
-  For more information see [[cite:Bottin2008]]
+  * [[wfoptalg]] = 3: **Residual minimization** with respect to a shift. This is available only in the non-self-consistent case ([[iscf]] = -2) and is used to find eigenvalues and wavefunctions near a prescribed value.
 
-  * [[wfoptalg]] = 10: (for PAW) standard state-by-state conjugate gradient algorithm, with no possibility to parallelize over the states,
-  but modified scheme described in [[cite:Kresse1996]] (modified kinetic energy, modified preconditionning, minimal orthogonalization, ...);
+  * [[wfoptalg]] = 4 (see also [[wfoptalg]] = 14 or 114): A parallel implementation of the **Locally Optimal Block Preconditioned Conjugate Gradient (LOBPCG)** method, based on [[cite:Knyazev2001]]. This implementation relies on the Matlab program by Knyazev [[cite:Knyazev2007]]. For further details, see [[cite:Bottin2008]].
+> Recommendation: use [[wfoptalg]] = 114, which is the modern and improved version of this algorithm.
 
-  * [[wfoptalg]] = 14: the recommended for parallel code, the same as [[wfoptalg]] = 4 except that the preconditioning of the block vectors does not
-  depend on the kinetic energy of each band, and the orthogonalization after the LOBPCG algorithm is no longer performed. The first modification increases the convergence and the second one the efficiency.
+  * [[wfoptalg]] = 14: Similar to [[wfoptalg]] = 4, **Locally Optimal Block Preconditioned Conjugate Gradient (LOBPCG)**, but with two key differences: (1) the preconditioning of block vectors is independent of the kinetic energy of each band, which improves convergence; and (2) orthogonalization after the LOBPCG algorithm is no longer performed, enhancing efficiency.
+> Recommendation: use [[wfoptalg]] = 114 for a more modern and optimized version of this algorithm.
 
-  * [[wfoptalg]] = 114: A new version of [[wfoptalg]] = 14 which is more efficient for few blocks and can take advantage of OpenMP if abinit is compiled with a multithreaded linear algebra library.
-  With more than 1 thread [[npfft]] shoud NOT be used for the time being.
+  * [[wfoptalg]] = 114: A modern and highly efficient version of [[wfoptalg]] = 14 (**Locally Optimal Block Preconditioned Conjugate Gradient**), particularly suited for parallel computations. It performs well with a small number of blocks and can utilize OpenMP if ABINIT is compiled with a multithreaded linear algebra library.
+> Note: When using more than one thread, [[npfft]] cannot be used.
 
-  * [[wfoptalg]] = 1: new algorithm based on Chebyshev filtering, designed for very large number of processors, in the regime
-  where LOBPCG does not scale anymore. It is not able to use preconditionning and therefore might converge slower than other algorithms.
-  By design, it will **not** converge the last bands: it is recommended to use slightly more bands than necessary.
-  For usage with [[tolwfr_diago]], it is imperative to use [[nbdbuf]]. For more performance, try [[use_gemm_nonlop]].
-  For more information, see the [performance guide](/theory/howto_chebfi.pdf) and the [[cite:Levitt2015]]. Status: experimental but usable.
-  Questions and bug reports should be sent to antoine (dot) levitt (at) gmail.com.
-""",
+  * [[wfoptalg]] = 1: A spectrum filtering algorithm based on **Chebyshev filtering**, designed for use with a large number of processors. It is suitable when the LOBPCG algorithm no longer scales efficiently. The degree of the polynomial filter can be adjusted with [[mdeg_filter]] (formerly [[nline]]). For more information, see the [performance guide](/theory/howto_chebfi.pdf) and [[cite:Levitt2015]].
+> Recommendation: use [[wfoptalg]] = 111, which is the modern and improved version of this algorithm.
+> See **notes** in the "[[wfoptalg]] = 111" section.
+
+* [[wfoptalg]] = 111: A **modern and highly efficient version** of [[wfoptalg]] = 1, a spectrum filtering algorithm based on **Chebyshev filtering**, designed for use with a large number of processors. The degree of the polynomial filter can be adjusted with [[mdeg_filter]] (formerly [[nline]]). For more information, see the [performance guide](/theory/howto_chebfi.pdf) and [[cite:Levitt2015]].
+> **Notes**:
+>
+> * For more performance, try enabling [[use_gemm_nonlop]] (default on [[GPU]]).
+>
+> * This algorithm struggles to converge the last bands, so it is advisable to use slightly more bands than required. When using [[tolwfr_diago]], it is mandatory to set [[nbdbuf]].
+>
+> * By design, this algorithm cannot use preconditioning and, therefore, cannot handle [[ecutsm]]. Consequently, _Pulay stresses_ are not corrected. If stresses are important for the calculation (e.g., when pressure is required), it is necessary to slightly increase the plane-wave cutoff ([[ecut]]). """,
 ),
 
 Variable(
@@ -21947,7 +22242,7 @@ provided, then the values of [[xred]] will be computed from the provided
 [[xcart]] (i.e. the user may use [[xcart]] instead of [[xred]]
 to provide starting coordinates).
 One and only one of [[xred]] or [[xcart]] must be provided.
-Atomic positions evolve if [[ionmov]]/=0.
+Atomic positions evolve if [[geoopt]] or [[moldyn]] /= "none".
 """,
 ),
 
@@ -21996,7 +22291,7 @@ If you prefer to work only with cartesian coordinates, you may work entirely
 with "[[xcart]]" and ignore [[xred]], in which case [[xred]]
 must be absent from the input file.
 One and only one of [[xred]] or [[xcart]] must be provided.
-Atomic positions evolve if [[ionmov]]/=0.
+Atomic positions evolve if [[geoopt]] or [[moldyn]] /= "none".
 
 The echo of [[xcart]] in the main output file is accompanied by its echo in Angstrom,
 named `xangst`.
@@ -22603,7 +22898,7 @@ In the first case, the code will look for a **pre-existing** SIGEPH.nc file and 
 Note that the restart in done **in-place** that is the output SIGEPH.nc is used as input of the calculation so there is no
 need to specify getsigeph or irdsigeph input variables.
 
-In the second case, the code will look for a **pre-existing** VARPEQ.nc file and continue the optimization
+In the second case, the code will look for a **pre-existing** VPQ.nc file and continue the optimization
 process from the last iteration available in the netcdf file.
 
 !!! note
@@ -24049,7 +24344,7 @@ Note that [[gstore_erange]] is not compatible with [[gstore_brange]].
 
 Variable(
     abivarname="gwr_np_kgts",
-    varset="gw",
+    varset="gwr",
     vartype="integer",
     topics=['GWR_expert'],
     dimensions=[4],
@@ -24075,7 +24370,7 @@ and the basic dimensions of the job computed at runtime.
 
 Variable(
     abivarname="gwr_ucsc_batch",
-    varset="gw",
+    varset="gwr",
     vartype="integer",
     topics=['GWR_expert'],
     dimensions=[2],
@@ -24092,7 +24387,7 @@ to find a good compromise betweeen memory and performance.
 
 Variable(
     abivarname="gwr_task",
-    varset="gw",
+    varset="gwr",
     vartype="string",
     topics=['GWR_basic'],
     dimensions=[1],
@@ -24124,7 +24419,7 @@ The choice is among:
 
 Variable(
     abivarname="gwr_ntau",
-    varset="gw",
+    varset="gwr",
     vartype="integer",
     topics=['GWR_basic'],
     dimensions=[1],
@@ -24139,7 +24434,7 @@ This variable defines the number of imaginary-time points in the minimax mesh.
 
 Variable(
     abivarname="gwr_chi_algo",
-    varset="gw",
+    varset="gwr",
     vartype="integer",
     topics=['GWR_basic'],
     dimensions=[1],
@@ -24159,7 +24454,7 @@ Possible values are
 
 Variable(
     abivarname="gwr_rpa_ncut",
-    varset="gw",
+    varset="gwr",
     vartype="integer",
     topics=['GWR_basic'],
     dimensions=[1],
@@ -24174,7 +24469,7 @@ Number of cutoff energies for extrapolating RPA correlation energy.
 
 Variable(
     abivarname="gwr_sigma_algo",
-    varset="gw",
+    varset="gwr",
     vartype="integer",
     topics=['GWR_basic'],
     dimensions=[1],
@@ -24194,7 +24489,7 @@ Possible values are
 
 Variable(
     abivarname="gwr_boxcutmin",
-    varset="gw",
+    varset="gwr",
     vartype="real",
     topics=['GWR_useful'],
     dimensions=[1],
@@ -24209,7 +24504,7 @@ See the corresponding input variable for the usual GS grid [[boxcutmin]].
 
 Variable(
     abivarname="gwr_max_hwtene",
-    varset="gw",
+    varset="gwr",
     vartype="real",
     topics=['GWR_useful'],
     dimensions=[1],
@@ -24225,7 +24520,7 @@ Energy window in Hartree for the empty states used in the computation of the hea
 
 Variable(
     abivarname="gwr_regterm",
-    varset="gw",
+    varset="gwr",
     vartype="real",
     topics=['GWR_expert'],
     dimensions=[1],
@@ -24368,54 +24663,55 @@ Set to 1, an *input* DRHODB file will be read. See also [[getdrhodb]]
 ),
 
 Variable(
-    abivarname="getvarpeq_filepath",
+    abivarname="getvpq_filepath",
     varset="eph",
     vartype="string",
     topics=['Polaron_basic'],
     dimensions="scalar",
     defaultval=None,
-    mnemonics="GET the VARPEQ.nc from FILEPATH",
+    mnemonics="GET the VPQ.nc from FILEPATH",
     requires="[[eph_task]] in [13, -13]",
     added_in_version="10.1.4",
     text=r"""
-This variable defines the path of the VARPEQ.nc file with the variational polaron
+This variable defines the path of the VPQ.nc file with the variational polaron
 equations optimization results.
 
 This variable can be used when [[eph_task]] == 13 i.e. when we solve the variational
 polaron equations.
-In this case, if [[eph_restart]] / [[varpeq_interp]] == 1, the code assumes we want to
+In this case, if [[eph_restart]] / [[vpq_interp]] == 1, the code assumes we want to
 initialize the solution by restarting/interpolating from the solution available in
-the VARPEQ.nc file.
+the VPQ.nc file.
 
 If [[eph_task]] == -13, the variable is required to produce *.xsf files containing
-polaronic wavefunction and induced displacements that can be visualized with VESTA or Xcrysden.
+polaronic wavefunction and induced displacements that can be visualized with a crystal
+visualisation software like VESTA or Xcrysden.
 """,
 ),
 
 Variable(
-    abivarname="getvarpeq",
+    abivarname="getvpq",
     varset="eph",
     vartype="int",
     topics=['Polaron_basic'],
     dimensions="scalar",
     defaultval=None,
-    mnemonics="GET the VARPEQ.nc from dataset",
+    mnemonics="GET the VPQ.nc from dataset",
     requires="[[eph_task]] in [13, -13]",
     added_in_version="10.1.4",
     text=r"""
-This variable is similar in spirit to [[getvarpeq_filepath]] but uses the dataset index
+This variable is similar in spirit to [[getvpq_filepath]] but uses the dataset index
 instead of the filepath.
 """,
 ),
 
 Variable(
-    abivarname="varpeq_aseed",
+    abivarname="vpq_aseed",
     varset="eph",
     vartype="string",
     topics=['Polaron_basic'],
     dimensions="scalar",
     defaultval="gau_energy",
-    mnemonics="VARiational Polaron EQuations: A_nk-coefficients SEED",
+    mnemonics="Variational Polaron eQuations: A_nk-coefficients SEED",
     requires="[[eph_task]] == 13",
     added_in_version="10.1.4",
     text=r"""
@@ -24425,21 +24721,20 @@ equations.
 
 Possible values:
 
-- "gau_energy" --> Gaussian based on the electronic eigenergies
+- "gau_energy" --> Gaussian based on the electronic eigenenergies
   $\varepsilon_{n\mathbf{k}}$:
 
-    $$A_{n\mathbf{k}} \sim e^{-\frac{(\varepsilon_{n\mathbf{k}} - \mu)^2}{2\sigma^2}}.$$
+    $$A_{n\mathbf{k}} \sim e^{\displaystyle -\frac{(\varepsilon_{n\mathbf{k}} - \mu)^2}{2\sigma^2}}.$$
 
   The mean value $\mu$ and the standard deviation $\sigma$ are defined by the
-  [[varpeq_gpr_energy]] variable.
+  [[vpq_gpr_energy]] variable.
 
 - "gau_length" --> Gaussian based on the user-defined polaron localization lengths
   $a_x$, $a_y$, $a_z$:
 
-    $$A_{n\mathbf{k}} \sim e^{-\frac{1}{2}(a^2_x k^2_x + a^2_y k^2_y + a^2_z k^2_z)}.$$
+    $$A_{n\mathbf{k}} \sim e^{\displaystyle -\frac{1}{2}(a^2_x k^2_x + a^2_y k^2_y + a^2_z k^2_z)}.$$
 
-  The value of the localization lenghts are defined by the [[varpeq_gpr_length]] variable.
-  This option is still under development.
+  The values of the localization lengths are defined by the [[vpq_gpr_length]] variable.
 
 - "random" --> Random initialization.
 
@@ -24450,11 +24745,13 @@ Possible values:
 
 
 Variable(
-    abivarname="varpeq_pkind",
+    abivarname="vpq_pkind",
     varset="eph",
     vartype="string",
-    topics=['Polaron_basic'],
+    topics=['Polaron_compulsory'],
     dimensions="scalar",
+    defaultval="None",
+    mnemonics="Variational Polaron eQuations: Polaron KIND",
     requires="[[eph_task]] == 13",
     added_in_version="10.1.4",
     text=r"""
@@ -24470,7 +24767,7 @@ Possible values:
 !!! important
 
     The "electron"/"hole" option requires exclusively conduction/valence manifold
-    provided in the GSTORE.nc file required to setup the variational polaron
+    provided in the GSTORE.nc file required to set up the variational polaron
     equations calculation.
     Intermixing conduction and valence states will lead to erroneous results.
 
@@ -24479,124 +24776,123 @@ Possible values:
     If the "hole" option is chosen, valence states are flipped, so one always
     deals with the minimization problem, regardless of the polaron kind.
 
-    Also, the polaron binding and localized state energy $E_p$ and $\varepsilon$
-    are positive in case of a hole polaron, and negatie in case of an electron
-    polaron.
 """,
 ),
 
 
 Variable(
-    abivarname="varpeq_avg_g",
+    abivarname="vpq_avg_g",
     varset="eph",
     vartype="integer",
     topics=['Polaron_basic'],
     dimensions="scalar",
     defaultval=0,
-    mnemonics="VARiational Polaron EQuations: AVeraGe matrix-elements at Gamma",
+    mnemonics="Variational Polaron eQuations: AVeraGe matrix-elements at Gamma",
     requires="[[eph_task]] == 13",
     added_in_version="10.1.4",
     text=r"""
-If non-zero, this variable activates the correction to the the electron-phonon
+If non-zero, this variable activates the correction to the electron-phonon
 matrix elements' Fröhlich divergence.
-In this sense correction terms $g^\mathrm{avg}_\nu(0)$ are added to the matrix
+In this sense, correction terms $g^\mathrm{avg}_\nu(0)$ are added to the matrix
 elements at $\mathbf{q} = \Gamma$:
 
 $$ g^\mathrm{corr}_{nn\nu}(\mathbf{k}, 0) = g_{nn\nu}(\mathbf{k}, 0) + g^\mathrm{avg}_\nu(0). $$
 
 These correction terms are computed from spherical integration of the long-range
-electron-phonon contribution to the polaron enregy around $\Gamma$-point.
+electron-phonon contribution to the polaron energy around the $\Gamma$-point.
 The spherical mesh for the integration is controlled by the [[eph_frohl_ntheta]] variable.
 
 Three scenarios are possible:
 
-- [[eph_frohl_ntheta]] == 0, [[varpeq_avg_g]] == 0
+- eph_frohl_ntheta == 0, [[vpq_avg_g]] == 0
 
-No integration of the electron-phonon energy, and variational polaron equations
-are solved without $g^\mathrm{avg}_\nu(0)$ corrections.
+  No integration of the electron-phonon energy, and variational polaron equations
+  are solved without $g^\mathrm{avg}_\nu(0)$ corrections.
 
-- [[eph_frohl_ntheta]] > 0, [[varpeq_avg_g]] == 0
+- eph_frohl_ntheta > 0, [[vpq_avg_g]] == 0
 
-Integration of the electron-phonon energy is performed, and variational polaron
-equations are solved without $g^\mathrm{avg}_\nu(0)$ corrections.
-In this scenario, the integrated energy can be added a posteriori to the optimized
-polaron binding energy to account for the long-range effects.
+  Integration of the electron-phonon energy is performed, and variational polaron
+  equations are solved without $g^\mathrm{avg}_\nu(0)$ corrections.
+  In this scenario, the integrated energy can be added *a posteriori* to the optimized
+  polaron binding energy to account for long-range effects.
 
-- [[eph_frohl_ntheta]] > 0, [[varpeq_avg_g]] != 0
+- eph_frohl_ntheta > 0, [[vpq_avg_g]] != 0
 
-Integration of the electron-phonon energy is performed, and variational polaron
-equations are solved with $g^\mathrm{avg}_\nu(0)$ corrections.
-This option is expected to accelerate the convergence of the optimization process.
+  Integration of the electron-phonon energy is performed, and variational polaron
+  equations are solved with $g^\mathrm{avg}_\nu(0)$ corrections.
+  This option is expected to accelerate the convergence of the optimization process.
 
 """,
 ),
 
 
 Variable(
-    abivarname="varpeq_interp",
+    abivarname="vpq_interp",
     varset="eph",
     vartype="integer",
     topics=['Polaron_basic'],
     dimensions="scalar",
     defaultval=0,
-    mnemonics="VARiational Polaron EQuations: INTERPolation",
+    mnemonics="Variational Polaron eQuations: INTERPolation",
     requires="[[eph_task]] == 13",
     added_in_version="10.1.4",
     text=r"""
 If non-zero, this variable activates the interpolation of the initial guess for
 the electronic vector in the variational polaron equations.
-In this case, the code reads a pre-existing VARPEQ.nc file and performs a linear
-interpolation of $A_{n\mathbf{k}}$ provided the metadata found in the netcdf file
+In this case, the code reads a pre-existing VPQ.nc file and performs a linear
+interpolation of $A_{n\mathbf{k}}$, provided the metadata found in the NetCDF file
 is compatible with the input file.
 
-With this feature, if a polaronic solution is obtained for a certain $\mathbf{k}$-grid,
-it can then be read and interpolated to be used as a starting point for different grids.
-This option is expected to lead the optimization proccess to the same polaronic configuration
-and accelarate the convergence.
+!!! note
+
+    With this feature, if a polaronic solution is obtained for a certain $\mathbf{k}$-grid,
+    it can then be read and interpolated to be used as a starting point for different grids.
+    This option is expected to lead the optimization process to the same polaronic configuration
+    and accelerate the convergence.
 """,
 ),
 
 
 Variable(
-    abivarname="varpeq_nstates",
+    abivarname="vpq_nstates",
     varset="eph",
     vartype="integer",
     topics=['Polaron_basic'],
     dimensions="scalar",
     defaultval=1,
-    mnemonics="VARiational Polaron EQuations: Number of polaronic STATES",
+    mnemonics="Variational Polaron eQuations: Number of polaronic STATES",
     requires="[[optdriver]] == 7 and [[eph_task]] == 13",
     added_in_version="10.1.4",
     text=r"""
-This variables specifies the number of polaronic states to be found by solving the
+This variable specifies the number of polaronic states to be found by solving the
 variational polaron equations.
-Each new state if found by imposing the orthogonalisation constraint to the all
+Each new state is found by imposing the orthogonalization constraint to all
 previously found states during the optimization process.
 
 !!! important
 
-    Since polaronic solutions are not necessarly orthogonal to each other, only the
+    Since polaronic solutions are not necessarily orthogonal to each other, only the
     first solution is expected to reach the required tolerance during optimization.
-    Imposing the orthogonalisation constraint, however, helps to find "metastable"
+    Imposing the orthogonalization constraint, however, helps to find "metastable"
     polarons that are far away from the obtained polaronic configurations.
-    One then can use other features, e.g. [[varpeq_select]] or [[varpeq_nstep_ort]]
+    One can then use other features, e.g., [[vpq_select]] or [[vpq_nstep_ort]],
     to fully converge a "metastable" state without any constraints.
 
-    Also, a single polaronic solution is invariant by primitive translations in a
+    Also, a single polaronic solution is invariant under primitive translations in a
     supercell.
-    In order to eliminiate such trivial solutions, [[varpeq_translate]] variable
+    In order to eliminate such trivial solutions, the [[vpq_translate]] variable
     can be used.
 """,
 ),
 
 Variable(
-    abivarname="varpeq_nstep",
+    abivarname="vpq_nstep",
     varset="eph",
     vartype="integer",
     topics=['Polaron_basic'],
     dimensions="scalar",
     defaultval=50,
-    mnemonics="VARiational Polaron EQuations: Number of iteration STEPs",
+    mnemonics="Variational Polaron eQuations: Number of iteration STEPs",
     requires="[[optdriver]] == 7 and [[eph_task]] == 13",
     added_in_version="10.1.4",
     text=r"""
@@ -24607,116 +24903,175 @@ variational polaron equations.
 
 
 Variable(
-    abivarname="varpeq_select",
+    abivarname="vpq_select",
     varset="eph",
     vartype="integer",
     topics=['Polaron_basic'],
     dimensions="scalar",
     defaultval=-1,
-    mnemonics="VARiational Polaron EQuations: SELECT polaronic state",
+    mnemonics="Variational Polaron eQuations: SELECT polaronic state",
     requires="[[eph_task]] == 13",
     added_in_version="10.1.4",
     text=r"""
 If non-zero, this variable selects a single polaronic state to be optimized from
-a **pre-existing** VARPEQ.nc file.
-Requires [[eph_restart]] == 1 or [[varpeq_interp]] == 1.
-Also, since a single polaronic state is selected, [[varpeq_nstates]] must be 1 in the
-input file.
+a **pre-existing** VPQ.nc file.
+It requires [[eph_restart]] == 1 or [[vpq_interp]] == 1.
+Additionally, since a single polaronic state is selected, [[vpq_nstates]] must be 1
+in the input file.
 """,
 ),
 
+Variable(
+    abivarname="vpq_mesh_fact",
+    varset="eph",
+    vartype="integer",
+    topics=['Polaron_basic'],
+    dimensions="scalar",
+    defaultval=1,
+    mnemonics="Variational Polaron eQuations: SCALE MESH for polaron wavefunction",
+    requires="[[eph_task]] == -13",
+    added_in_version="10.1.4",
+    text=r"""
+This variable can used to reduce the density of the real-space mesh used to represent the
+polaron wavefunction and generate the XSF file when [[eph_task]] == -13.
+This is especially useful when computing the variational polaron equations on extra-dense k-meshes in conjunction with the
+the KERANGE trick.
+The size of the array with polaron wavefunction is indeed proportional to nkbz * nfft where
+nkbz is the number of points in the full BZ and nfft is the number of FFT points in the unit.
+This is the default behaviour when [[vpq_mesh_fact]] is 1.
+If [[vpq_mesh_fact]] is greater the one, the mesh in real space will be downsampled by this value along the three reduced
+direction with a significant decrease in the memory requirements.
+""",
+),
 
 Variable(
-    abivarname="varpeq_tolgrs",
+    abivarname="vpq_tolgrs",
     varset="eph",
     vartype="real",
     topics=['Polaron_basic'],
     dimensions="scalar",
     defaultval=1e-6,
-    mnemonics="VARiational Polaron EQuations: TOLerance on the Gradient ReSidual",
+    mnemonics="Variational Polaron eQuations: TOLerance on the Gradient ReSidual",
     requires="[[eph_task]] == 13",
     added_in_version="10.1.4",
     text=r"""
 This variable sets a tolerance for the electronic gradient residual in the optimization
-of the varitional polaron equations.
-When reached, the iterative process will finish for a current polaronic state and move
-to the next one, up to [[varpeq_nstates]].
+of the variational polaron equations.
+When reached, the iterative process will terminate for the current polaronic state and move
+to the next one, up to [[vpq_nstates]]
 """,
 ),
 
 
 Variable(
-    abivarname="varpeq_gpr_energy",
+    abivarname="vpq_gpr_energy",
     varset="eph",
     vartype="real",
     topics=['Polaron_basic'],
     dimensions="(2)",
     defaultval=[0, 1],
-    mnemonics="VARiational Polaron EQuations: Gaussian PaRameters -- electronic ENERGY",
-    requires='[[eph_task]] == 13 and [[varpeq_aseed]] == "gau_energy"',
+    mnemonics="Variational Polaron eQuations: Gaussian PaRameters -- electronic ENERGY",
+    requires='[[eph_task]] == 13 and [[vpq_aseed]] == "gau_energy"',
     added_in_version="10.1.4",
     text=r"""
-If [[varpeq_aseed]] == "gau_energy", this variable defines the mean value and the
-standard deviation [[varpeq_gpr_energy]](:) = $\mu$, $\sigma$ for the Gaussian function to
-be used as initial seed for the vector electronic coefficients.
-See [[varpeq_aseed]] for details.
+If [[vpq_aseed]] == "gau_energy", this variable defines the mean value and the
+standard deviation as [[vpq_gpr_energy]](:) = $\mu$, $\sigma$ for the Gaussian function to
+be used as the initial seed for the electronic vector coefficients.
+See [[vpq_aseed]] for details.
+""",
+),
+
+Variable(
+    abivarname="vpq_trvec",
+    varset="eph",
+    vartype="real",
+    topics=['Polaron_basic'],
+    dimensions="(3)",
+    defaultval=[0, 0, 0],
+    mnemonics="Variational Polaron eQuations: TRanslation VECtor",
+    requires='[[eph_task]] == -13',
+    added_in_version="10.1.4",
+    text=r"""
+This variable specifies the translation vector (in unit cell basis) to be applied
+to the polaronic solution before visualisation with [[eph_task]] == -13.
 """,
 ),
 
 
 Variable(
-    abivarname="varpeq_gpr_length",
+    abivarname="vpq_gpr_length",
     varset="eph",
     vartype="real",
     topics=['Polaron_basic'],
     dimensions="(3)",
     defaultval=[1, 1, 1],
-    mnemonics="VARiational Polaron EQuations: Gaussian PaRameters -- localization LENGTH",
-    requires='[[eph_task]] == 13 and [[varpeq_aseed]] == "gau_length"',
+    mnemonics="Variational Polaron eQuations: Gaussian PaRameters -- localization LENGTH",
+    requires='[[eph_task]] == 13 and [[vpq_aseed]] == "gau_length"',
     added_in_version="10.1.4",
     text=r"""
-If [[varpeq_aseed]] == "gau_length", this variable defines the estimated polaron
-localization lengths $a_x$, $a_y$, $a_z$ for the spread of gaussian function to be used
-as initial seed for the vector electronic coefficients.
-See [[varpeq_aseed]] for details.
+If [[vpq_aseed]] == "gau_length", this variable defines the estimated polaron
+localization lengths $a_x$, $a_y$, $a_z$ for the spread of the Gaussian function to be used
+as the initial seed for the electronic vector coefficients.
+See [[vpq_aseed]] for details.
 """,
 ),
 
 Variable(
-    abivarname="varpeq_translate",
+    abivarname="vpq_translate",
     varset="eph",
     vartype="integer",
     topics=['Polaron_basic'],
     dimensions="scalar",
     defaultval=0,
-    mnemonics="VARiational Polaron EQuations: TRANSLATE solutions",
-    requires='[[eph_task]] == 13 and [[varpeq_nstates]] > 1',
+    mnemonics="Variational Polaron eQuations: TRANSLATE solutions",
+    requires='[[eph_task]] == 13 and [[vpq_nstates]] > 1',
     added_in_version="10.1.4",
     text=r"""
-If non-zero and [[varpeq_nstates]] > 1, this variable activates the translation
-of previously obtained polaronic solutions prior to solving variational polaron
+If non-zero and [[vpq_nstates]] > 1, this variable activates the translation
+of previously obtained polaronic solutions prior to solving the variational polaron
 equations for a new one.
-This helps to eliminate trivial states that are invariant by primitie translations.
-See also [[varpeq_nstates]].
+This helps to eliminate trivial states that are invariant under primitive translations.
+See also [[vpq_nstates]].
 """,
 ),
 
 Variable(
-    abivarname="varpeq_nstep_ort",
+    abivarname="vpq_nstep_ort",
     varset="eph",
     vartype="integer",
     topics=['Polaron_basic'],
     dimensions="scalar",
     defaultval=50,
-    mnemonics="VARiational Polaron EQuations: Number of STEPs with ORThogonalisation",
-    requires='[[eph_task]] == 13 and [[varpeq_nstates]] > 1',
+    mnemonics="Variational Polaron eQuations: Number of STEPs with ORThogonalisation",
+    requires='[[eph_task]] == 13 and [[vpq_nstates]] > 1',
     added_in_version="10.1.4",
     text=r"""
-This variable defines the number of optimization steps, up to which the orthogonalization
-to previous polaronic solutions is performed.
-After [[varpeq_nstep_ort]] the orthogonalization constraint is lifted, which helps to
-fully relax the polaron, while keeping it far from the previously obtained states.
-See also [[varpeq_nstates]].
+This variable defines the number of optimization steps up to which the orthogonalization
+to previous polaronic solutions is enforced.
+After [[vpq_nstep_ort]], the orthogonalization constraint is lifted, allowing the
+polaron to fully relax while maintaining a distance from the previously obtained states.
+See also [[vpq_nstates]]
+""",
+),
+
+Variable(
+    abivarname="vpq_mix_fact",
+    varset="eph",
+    vartype="real",
+    topics=['Polaron_expert'],
+    dimensions="scalar",
+    defaultval=0.,
+    mnemonics="Variational Polaron eQuations: MIXing FACTor",
+    requires='[[eph_task]] == 13',
+    added_in_version="10.1.4",
+    text=r"""
+This variable defines the mixing factor $\alpha$ for vibrational coefficients
+$B_{\mathbf{q}\nu}$ during the optimization process, i.e., for the $n$-th step:
+
+$$ B^{(n)}_{\mathbf{q}\nu} \leftarrow (1 - \alpha) B^{(n)}_{\mathbf{q}\nu} + \alpha B^{(n-1)}_{\mathbf{q}\nu}. $$
+
+In certain cases, mixing may be useful to facilitate the convergence of optimization.
+
 """,
 ),
 
@@ -24821,6 +25176,38 @@ g(k,q) along either a q-path or k-path ([[eph_task]] == 18].
 One can use these two variables to select the band range of interest and skip, for instance, low-energy states.
 If not specied all bands from 1 up to [[nband]] are included,
 If specified in input, eph_path_brange(2) must be <= [[nband]].
+""",
+),
+
+Variable(
+    abivarname="oracle_factor",
+    varset="gstate",
+    vartype="real",
+    topics=['TuningSpeedMem_expert'],
+    dimensions="scalar",
+    defaultval="0.1",
+    mnemonics="ORACLE in chebyshev filtering algorithm : FACTOR",
+    characteristics=['[[DEVELOP]]'],
+    added_in_version="10.3.4",
+    requires="[[wfoptalg]] == 111 and [[chebfi_oracle]] == 2",
+    text=r"""
+This parameter controls the convergence rate of the wave-functions when using the oracle in the Chebyshev algorithm. See [[chebfi_oracle]] for more information.
+""",
+),
+
+Variable(
+    abivarname="oracle_minocc",
+    varset="gstate",
+    vartype="real",
+    topics=['TuningSpeedMem_expert'],
+    dimensions="scalar",
+    defaultval="0.0001",
+    mnemonics="ORACLE in chebyshev filtering algorithm : MINimal OCCupancy",
+    characteristics=['[[DEVELOP]]'],
+    added_in_version="10.3.4",
+    requires="[[wfoptalg]] == 111 and [[chebfi_oracle]] > 0 and [[nbdbuf]] = -101",
+    text=r"""
+This parameter controls the minimal occupancy when using the oracle in the Chebyshev algorithm. See [[chebfi_oracle]] for more information.
 """,
 ),
 

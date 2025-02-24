@@ -86,7 +86,7 @@ Finally, install AbiPy with::
 
     conda install abipy -c conda-forge --yes
 
-Please note that, it is also possible to install the abinit executables in the same enviroment using
+Please note that, it is also possible to install the abinit executables in the same environment using::
 
     conda install abinit -c conda-forge --yes
 
@@ -176,6 +176,48 @@ AbiPy uses the `Git Flow <http://nvie.com/posts/a-successful-git-branching-model
 The ``develop`` branch contains the latest contributions, and ``master`` is always tagged and points
 to the latest stable release.
 
+Installing without internet access
+----------------------------------
+
+Here, it is described how to set up a virtual environment with AbiPy on a cluster that cannot reach out to the internet.
+One first creates a virtual environment with AbiPy on a cluster/computer with access, then ports the required files to the cluster without access, and performs an offline installation.
+We use Conda for the Python installation and pip for the packages, as the former reduces the odds that incompatibilities arise, while the latter provides convenient syntax for offline package installation.
+
+One first needs Conda on the cluster with access.
+If not available by default, follow the instructions for installing Conda at the bottom of this page.
+Next, set up a conda virtual environment with a designated Python version, for example 3.12::
+
+    conda create --name abienv python=3.12
+    conda activate abienv
+
+We then install AbiPy in this virtual environment, followed by creating requirements.txt, and creating a folder packages/ containing all the wheels (.whl format)::
+
+    pip install abipy
+    pip list --format=freeze > requirements.txt
+    pip download -r requirements.txt -d packages/
+
+Next, the .txt file, the folder, and the miniconda installer must be forwarded to the cluster without internet access.
+You may have to use a computer that has access to both locations with the scp command.
+If the offline cluster does not have Conda preinstalled, the Miniconda executable must be ported so that an offline Conda installation can be performed.
+Thus, from a computer that can access both locations, execute::
+
+    scp -r connected_cluster:/file/and/folder/location/* .
+    wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    scp -r requirements.txt packages/ Miniconda3-latest-Linux-x86_64.sh disconnected_cluster:/desired/location/
+
+If conda is not available on the cluster that cannot access the internet, follow the instructions on the bottom of this page to install it.
+Next, one can set up an **offline** virtual environment on the cluster without internet access::
+
+    conda create --name abienv --offline python=3.12
+    conda activate abienv
+
+At this step, AbiPy might fail to install due to missing/incompatible packages.
+Some of these issues may be solved by repeating the above steps (excluding the environment creation) for packages that are listed as missing/incompatible during the installation procedure, by updating the requirements.txt and packages/ and trying to install again.
+Upon reading::
+
+	Successfully installed abipy-x.y.z
+
+You can quickly test your installation by running ``python`` followed by ``import abipy``.
 
 Installing Abinit
 =================

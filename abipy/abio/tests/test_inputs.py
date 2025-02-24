@@ -615,11 +615,7 @@ class TestAbinitInput(AbipyTest):
             gs_inp.abiget_irred_phperts()
 
         with self.assertRaises(gs_inp.Error):
-            try:
-                ddk_inputs = gs_inp.make_ddk_inputs(tolerance={"tolfoo": 1e10})
-            except Exception as exc:
-                print(exc)
-                raise
+            ddk_inputs = gs_inp.make_ddk_inputs(tolerance={"tolfoo": 1e10})
 
         phg_inputs = gs_inp.make_ph_inputs_qpoint(qpt=(0, 0, 0), tolerance=None)
         #print("phonon inputs at Gamma\n", phg_inputs)

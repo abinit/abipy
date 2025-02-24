@@ -1,26 +1,31 @@
 """Tests for varpeq module."""
+import pytest
+import os
 import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
-from abipy.eph.varpeq import VarpeqFile
+from abipy.eph.vpq import VpqFile
+
+filepath = "/Users/giantomassi/git_repos/abinit/_build/tests/POLARON/varpeq6/out_VPQ.nc"
 
 
 class VarpeqTest(AbipyTest):
 
+    @pytest.mark.xfail(condition=not os.path.exists(filepath), reason=f"{filepath=} does not exist")
     def test_varpeq_file(self):
-        """Testing VarpeqFile."""
-        varpeq_filepath = "/Users/giantomassi/git_repos/abinit/_build/tests/POLARON/varpeq6/out_VARPEQ.nc"
-        with VarpeqFile(varpeq_filepath) as varpeq:
-            repr(varpeq)
-            str(varpeq)
-            assert varpeq.to_string(verbose=2)
-            assert varpeq.structure.formula == "Li1 F1" and len(varpeq.structure) == 2
-            params = varpeq.params
+        """Testing VpqFile."""
+
+        with VpqFile(filepath) as vpq:
+            repr(vpq)
+            str(vpq)
+            assert vpq.to_string(verbose=2)
+            assert vpq.structure.formula == "Li1 F1" and len(vpq.structure) == 2
+            params = vpq.params
             #assert params["nkbz"] ==
             #assert params["ngkpt"] ==
 
-            #print(varpeq.ebands.kpoints.ksampling)
-            for polaron in varpeq.polaron_spin:
+            #print(vpq.ebands.kpoints.ksampling)
+            for polaron in vpq.polaron_spin:
                 print(polaron)
                 #assert polaron.spin == 0
                 #assert polaron.nstates == 0
@@ -40,20 +45,20 @@ class VarpeqTest(AbipyTest):
 
             # Test jupyter notebook creation
             #if self.has_nbformat():
-            #    varpeq.write_notebook(nbpath=self.get_tmpname(text=True))
+            #    vpq.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
 #class VarpeqRobotTest(AbipyTest):
 #
 #    def test_varpeq_robot(self):
 #        """Testing VarpeqRobot."""
-#        files = abidata.ref_files(
+#        filepaths = abidata.ref_files(
 #            "abinitio_qpath_V1QAVG.nc",
 #            "interpolated_qpath_V1QAVG.nc",
 #        )
 #
-#        with VarpeqRobot.from_files(files[0]) as robot:
-#            robot.add_file("interpolated_v1qavg", files[1])
+#        with VarpeqRobot.from_files(filepaths[0]) as robot:
+#            robot.add_file("interpolated_v1qavg", filepaths[1])
 #            assert len(robot) == 2
 #            repr(robot); str(robot)
 #            robot.to_string(verbose=2)

@@ -121,10 +121,10 @@ abipy.eph.v1sym module
    :undoc-members:
    :show-inheritance:
 
-abipy.eph.varpeq module
------------------------
+abipy.eph.vpq module
+--------------------
 
-.. automodule:: abipy.eph.varpeq
+.. automodule:: abipy.eph.vpq
    :members:
    :undoc-members:
    :show-inheritance:
