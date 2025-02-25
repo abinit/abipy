@@ -165,17 +165,19 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
         nkbz = np.prod(ngkpt)
 
+        avg_g = r.read_variable("vpq_avg_g")[:]
+        e_frohl = r.read_variable("e_frohl")[:] # in Ha
+
         d = dict(
             nkbz=nkbz,
             ngkpt=ngkpt,
             nksmall=min(ngkpt),
-            cbrt_ngkpt=np.cbrt(np.prod(ngkpt)),
-            frohl_ntheta=r.frohl_ntheta,
-            #("invsc_size", 1.0 / (nkbz * ((abu.Ang_Bohr * self.structure.lattice.volume) ** (1/3)))),
+            cbrt_nkbz=np.cbrt(nkbz),
+            #frohl_ntheta=r.frohl_ntheta,
+            invsc_linsize = 1. / np.cbrt(nkbz * self.structure.lattice.volume),
+            avg_g = bool(avg_g),
+            e_frohl = e_frohl * abu.Ha_eV
         )
-
-        #keys = ["e_pol", "e_el", "e_ph", "e_elph", "eps"]
-        #energies = np.array(scf[nstep - 1], dtype=float) * HA2EV
 
         return d
 
@@ -303,11 +305,15 @@ class Polaron:
         # int cvflag_spin(nsppol, nstates) ;
         #   0 --> calculation is not converged
         #   1 --> calculation is converged
+        # double erange_spin(nsppol) ;
+        #   Energy filtering value for each spin (in Ha)
+
         spin = self.spin
         r = self.varpeq.r
         nstep2cv = r.read_variable("nstep2cv_spin")[spin]
         scf_hist = r.read_variable("scf_hist_spin")[spin]
         cvflag = r.read_variable("cvflag_spin")[spin]
+        erange = r.read_variable("erange_spin")[spin]
 
         def ufact_k(k):
             """Convert energies to eV"""
@@ -326,6 +332,8 @@ class Polaron:
             df = pd.DataFrame(dct)
             # Add metadata to the attrs dictionary
             df.attrs["converged"] = bool(cvflag[pstate])
+            df.attrs["use_filter"] = bool(abs(erange) > 1e-8)
+            df.attrs["filter_value"] = erange * abu.Ha_eV
             df_list.append(df)
 
         return df_list
@@ -341,6 +349,8 @@ class Polaron:
             row = {"pstate": pstate, "spin": self.spin}
             row.update(df.iloc[-1].to_dict())
             row["converged"] = df.attrs["converged"]
+            row["use_filter"] = df.attrs["use_filter"]
+            row["filter_value"] = df.attrs["filter_value"]
             if with_params:
                 row.update(self.varpeq.params)
             row_list.append(row)
@@ -539,15 +549,23 @@ class Polaron:
                             ax.plot(xs, ys, label=entry.latex, c='k')
                             ax.set_yscale("log")
                     else:
+                        if entry.name == "E_pol":
+                        # Solid line for the *variational* quantity, also put it on top
+                            ls, zord = '-', 10
+                        else:
+                        # Dashed lines for non-variational, put them below
+                            ls, zord = '--', 0
+
                         if iax == 1:
                             energy_like =True
                             # Plot values linear scale.
-                            ax.plot(xs, ys, label=entry.latex)
+                            ax.plot(xs, ys, label=entry.latex, linestyle=ls, zorder=zord)
                         elif iax == 2:
                             energy_like = True
                             # Plot deltas in logscale.
                             # (remove the last point for pretty-plotting)
-                            ax.plot(xs[:-1], np.abs(ys - ys[-1])[:-1], label=entry.latex)
+                            ax.plot(xs[:-1], np.abs(ys - ys[-1])[:-1], label=entry.latex,
+                                    linestyle=ls, zorder=zord)
                             ax.set_yscale("log")
 
                 ax.set_xlim(1, niter)
@@ -1085,7 +1103,7 @@ class VpqReader(BaseEphReader):
         self.vpq_pkind = self.read_string("vpq_pkind")
         #self.vpq_aseed = self.read_string("vpq_aseed")
         self.ngqpt = self.read_value("gstore_ngqpt")
-        self.frohl_ntheta = self.read_value("frohl_ntheta")
+        #self.frohl_ntheta = self.read_value("frohl_ntheta")
 
         # Read important variables.
         #self.completed = self.read_value("gstore_completed")
@@ -1101,8 +1119,7 @@ class VpqReader(BaseEphReader):
         self.brange_spin = self.read_value("brange_spin")
         self.brange_spin[:,0] -= 1
         self.nb_spin = self.brange_spin[:,1] - self.brange_spin[:,0]
-
-        #self.erange_spin = self.read_value("gstore_erange_spin")
+        self.erange_spin = self.read_value("erange_spin")
         # Total number of k/q points for each spin after filtering (if any)
         #self.glob_spin_nq = self.read_value("gstore_glob_nq_spin")
         #self.glob_nk_spin = self.read_value("gstore_glob_nk_spin")
@@ -1128,7 +1145,7 @@ class VpqRobot(Robot, RobotWithEbands):
     .. inheritance-diagram:: VpqRobot
     """
 
-    EXT = "VARPEQ"
+    EXT = "VPQ"
 
     def __str__(self) -> str:
         return self.to_string()
