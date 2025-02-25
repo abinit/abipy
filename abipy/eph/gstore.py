@@ -46,7 +46,7 @@ def _allclose(arr_name, array1, array2, verbose: int, rtol=1e-5, atol=1e-8) -> b
     return False
 
 
-class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , NotebookWriter):
+class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
     """
     This file stores the e-ph matrix elements produced by the EPH code of Abinit
     and provides methods to analyze and plot results.
@@ -116,7 +116,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
 
@@ -236,7 +236,7 @@ class Gqk:
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
 
@@ -250,7 +250,7 @@ class Gqk:
         return "\n".join(lines)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         return self.gstore.structure
 
     def get_dataframe(self, what: str = "g2") -> pd.DataFrame:

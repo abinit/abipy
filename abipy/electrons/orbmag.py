@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from numpy.linalg import inv, det, eigvals
+from numpy.linalg import inv, det, eig, eigvals, norm
 #from monty.termcolor import cprint
 from monty.functools import lazy_property
 from monty.string import list_strings, marquee
@@ -35,6 +35,34 @@ def print_options_decorator(**kwargs):
                 return func(*args, **kwargs_inner)
         return wrapper
     return decorator
+
+
+def filter_sigma(sigma, atol):
+    """from raw sigma_ij output, convert to ppm shielding and remove small parts"""
+    filtered_sigma = -1.0E6 * sigma
+    for row in range(3):
+        for col in range(3):
+            if abs(filtered_sigma[row,col]) < atol:
+                filtered_sigma[row,col] = 0.0
+    return filtered_sigma
+
+
+def make_U_from_sigma(gprimd, sigma, atol=0.01):
+    """
+    """
+    fsigma = filter_sigma(sigma, atol)
+    sigma_eigs, sigma_evecs = eig(fsigma)
+    Dmat = np.array([[norm(gprimd[0]), 0, 0], [0, norm(gprimd[1]), 0], [0, 0, norm(gprimd[2])]])
+    intmat=np.matmul(np.transpose(sigma_evecs), gprimd)
+
+    Cmat = np.zeros((3,3))
+    for col in range(3):
+        for row in range(3):
+            Cmat[row,col] = intmat[row,col] / Dmat[col,col]
+
+    Umat= np.matmul(np.transpose(Cmat), np.matmul(fsigma,Cmat))
+    Umat = Umat/np.max(Umat)
+    return Umat
 
 
 class OrbmagAnalyzer:
@@ -69,6 +97,17 @@ class OrbmagAnalyzer:
         self.orb_files = [OrbmagFile(path) for path in filepaths]
         self.verbose = verbose
 
+        inds = np.array([o.target_atom for o in self.orb_files], dtype=int)
+        if not np.all(inds == inds[0]):
+            raise RuntimeError(f"ORBMAG.nc files have dipoles on different atoms: {inds}")
+        self.target_atom = inds[0]
+
+        # check that the three dipole vectors form a right-handed set
+        target_atom_list = [o.target_atom for o in self.orb_files]
+        vec_a, vec_b, vec_c = [o.nucdipmom_atom for o in self.orb_files]
+        if np.dot(np.cross(vec_a, vec_b), vec_c) < 0.0:
+            raise RuntimeError(f"nuclear dipoles do not form a right handed set:\n{vec_a=}\n{vec_b=}\n{vec_c=} ")
+
         # This piece of code is taken from merge_orbmag_mesh. The main difference
         # is that here ncroots[0] is replaced by the reader instance of the first OrbmagFile.
         r0 = self.orb_files[0].r
@@ -79,9 +118,9 @@ class OrbmagAnalyzer:
         self.ndir = ndir = r0.read_dimvalue('ndir')
         orbmag_nterms = r0.read_dimvalue('orbmag_nterms')
 
-        rprimd = r0.read_value('primitive_vectors')
-        gprimd = inv(rprimd)
-        ucvol = det(rprimd)
+        self.rprimd = rprimd = r0.read_value('primitive_vectors')
+        self.gprimd = gprimd = inv(rprimd)
+        self.ucvol = ucvol = det(rprimd)
 
         # merging here means combine the 3 files: each delivers a 3-vector (ndir = 3),
         # output is a 3x3 matrix (ndir x ndir) for each term, sppol, kpt, band
@@ -147,6 +186,10 @@ class OrbmagAnalyzer:
             orb.close()
 
     @lazy_property
+    def natom(self)  -> int:
+        return len(self.structure)
+
+    @lazy_property
     def structure(self) -> Structure:
         """Structure object."""
         # Perform consistency check
@@ -182,15 +225,19 @@ class OrbmagAnalyzer:
         span = eigenvalues.max() - eigenvalues.min()
         skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() - eigenvalues.min() - isotropic) / span
 
-        print('\nShielding tensor eigenvalues, ppm : ', eigenvalues)
-        print('Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n' % (isotropic,span,skew))
+        if report_type=='S':
+            print('\nShielding tensor eigenvalues, ppm : ', eigenvalues)
+            print('Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n' % (isotropic, span, skew))
 
         if report_type == 'T':
+            print('\nShielding tensor eigenvalues, ppm : ',eigenvalues)
+            print('Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n'%(isotropic, span, skew))
             print('Term totals')
             term_sigij = orbmag_merge_sigij_mesh.sum(axis=(1, 2, 3))
             for iterm in range(np.size(orbmag_merge_sigij_mesh, axis=0)):
                 eigenvalues = -1.0E6 * np.real(eigvals(term_sigij[iterm]))
                 print(terms[iterm] + ': ', eigenvalues)
+            print('Lamb  : ', -1.0E6 * np.real(eigvals(omlamb)))
             print('\n')
 
         elif report_type == 'B':
@@ -235,6 +282,22 @@ class OrbmagAnalyzer:
                     raise ValueError(f"ORBMAG files have different values of ngkpt: {ngkpt=} {_ngkpt=} or shifts {shifts=}, {_shifts=}")
 
         return ngkpt, shifts
+
+    def get_omlamb(self) -> np.ndarray:
+        """
+        """
+        omlamb = np.zeros((3, 3))
+
+        for idir, orb in enumerate(self.orb_files):
+            typat = orb.r.read_value("atom_species")
+            lambsig = orb.r.read_value('lambsig')
+            nucdipmom = orb.r.read_value('nucdipmom')
+            for iat in range(self.natom):
+                itypat = typat[iat]
+                omlamb[idir,0:3] += lambsig[itypat-1] * nucdipmom[iat]
+
+        # negative sign to convert to dipole moment, like other quantities
+        return -omlamb
 
     def get_value(self, what: str, spin: int, ikpt: int, band: int) -> float:
         """
@@ -285,6 +348,46 @@ class OrbmagAnalyzer:
         ngkpt, shifts = self.ngkpt_and_shifts
         return np.product(ngkpt) * len(shifts) == self.nkpt
 
+    def get_cif_string(self, symprec=None) -> str
+        """
+        Return string with structure and anisotropic U tensor in CIF format.
+
+        Args:
+            symprec (float): If not none, finds the symmetry of the structure
+                and writes the cif with symmetry information. Passes symprec
+                to the SpacegroupAnalyzer
+
+        """
+        # Get string with structure in CIF format.
+        # Don't use symprec because it changes the order of the sites
+        # and we must be consistent with site_labels when writing aniso_U terms!
+        from pymatgen.io.cif import CifWriter
+        cif = CifWriter(self.structure, symprec=symprec)
+
+        aniso_u = """loop_
+_atom_site_aniso_label
+_atom_site_aniso_U_11
+_atom_site_aniso_U_22
+_atom_site_aniso_U_33
+_atom_site_aniso_U_23
+_atom_site_aniso_U_13
+_atom_site_aniso_U_12""".splitlines()
+
+        # TODO: Compute ucif in reduced coords
+        # NB: In JOE's script, ucif is called Uaniso
+        raise NotImplementedError("Ucif should be computed.")
+
+        #Uaniso = make_U_from_sigma(gprimd, total_sigij)
+
+        # Add matrix elements. Use 0 based index
+        for iatom, site in enumerate(self.structure):
+            site_label = "%s%d" % (site.specie.symbol, iatom)
+            #m = ucif[iatom]
+            aniso_u.append("%s %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f" %
+                    (site_label, m[0, 0], m[1, 1], m[2, 2], m[1, 2], m[0, 2], m[0, 1]))
+
+        return str(cif) + "\n".join(aniso_u)
+
     def get_bz_interpolator_spin(self, what: str, interp_method: str) -> list[BzRegularGridInterpolator]:
         """
         Build and return a list with nsppol interpolators.
@@ -314,8 +417,8 @@ class OrbmagAnalyzer:
         for spin in range(self.nsppol):
             data, ngkpt, shifts = self.insert_inbox(what, spin)
             interp_spin[spin] = BzRegularGridInterpolator(self.structure, shifts, data, method=interp_method)
-        return interp_spin
 
+        return interp_spin
 
     @add_fig_kwargs
     def plot_fatbands(self, ebands_kpath,
@@ -373,7 +476,6 @@ class OrbmagAnalyzer:
                         x.append(ik); y.append(e); s.append(scale * value)
                         ymin, ymax = min(ymin, e), max(ymax, e)
 
-
             # Compute colors based on sign (e.g., red for positive, blue for negative)
             y = np.array(y)
             c = np.where(y >= 0, "red", "blue")
@@ -427,6 +529,35 @@ class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
     def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
+
+    @lazy_property
+    def target_atom(self) -> tuple:
+        return self.target_atom_nucdipmom[0]
+
+    @lazy_property
+    def nucdipmom_atom(self) -> tuple:
+        return self.target_atom_nucdipmom[1]
+
+    @lazy_property
+    def target_atom_nucdipmom(self) -> tuple:
+        """
+        Return the index of the atom with non-zero nuclear magnetic dipole moment and its values.
+        """
+        # in C: nucdipmom(natom, ndir)
+        nucdipmom = self.r.read_value('nucdipmom')
+        target_atom, nfound = -1, 0
+        for iat in range(len(self.structure)):
+            if np.any(nucdipmom[iat] != 0):
+                target_atom = iat
+                nfound += 1
+
+        if target_atom == -1:
+            raise RuntimeError(f"no dipole found in {self.filepath}")
+
+        if nfound != 1:
+            raise RuntimeError(f"Found multiple atoms with nuclear magnetic dipole in {self.filepath}")
+
+        return target_atom, nucdipmom[target_atom].copy()
 
     @lazy_property
     def params(self) -> dict:

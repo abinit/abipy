@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
 Flow for v-ZSISA-QHA calculations
-================================
+=================================
 
 See [Phys. Rev. B 110, 014103](https://doi.org/10.1103/PhysRevB.110.014103)
 """

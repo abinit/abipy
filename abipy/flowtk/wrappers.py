@@ -389,10 +389,8 @@ class Abitk(ExecWrapper):
         Execute abitk inside directory `workdir`.
         """
         workdir = get_workdir(workdir)
-        #print("workdir", workdir)
 
-        self.stdout_fname, self.stderr_fname = \
-            map(os.path.join, 2 * [workdir], ["abitk.stdout", "abitk.stderr"])
+        self.stdout_fname, self.stderr_fname = map(os.path.join, 2 * [workdir], ["abitk.stdout", "abitk.stderr"])
 
         retcode = self.execute(workdir, exec_args=exec_args)
         if retcode != 0:

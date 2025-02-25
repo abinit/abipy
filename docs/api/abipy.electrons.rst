@@ -105,6 +105,14 @@ abipy.electrons.gwr module
    :undoc-members:
    :show-inheritance:
 
+abipy.electrons.kmesh module
+----------------------------
+
+.. automodule:: abipy.electrons.kmesh
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 abipy.electrons.lobster module
 ------------------------------
 
