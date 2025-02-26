@@ -1283,6 +1283,7 @@ class VpqRobot(Robot, RobotWithEbands):
 
                     for icol in range(ncols):
                         ax_mat[iax,icol].set_xlim(0)
+                        ax_mat[iax,icol].grid()
 
 
             ax_mat[0,0].set_title("Energy convergence")
