@@ -1244,12 +1244,12 @@ class VpqRobot(Robot, RobotWithEbands):
                           (df["spgroup"] == spg) &
                           (df["polaron"] == pol)]
 
-            nrows, ncols = len(scell_list), 2
-            ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                   sharex=True, sharey=False, squeeze=False)
-
-            for iax, scell in enumerate(scell_list):
+            for scell in scell_list:
                 scell_df = entry_df[entry_df["ngkpt"] == scell]
+
+                nrows, ncols = 2, 2
+                ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                       sharex=True, sharey=False, squeeze=False)
 
                 frohich_correction = [True, False]
 
@@ -1263,39 +1263,39 @@ class VpqRobot(Robot, RobotWithEbands):
                     eps = _df["epsilon"].to_numpy()
                     filter = _df["filter_value"].to_numpy()
 
-                    frohlich_label = " + LR correction" if avg_g else ""
+                    frohlich_label = " + LR" if avg_g else ""
 
                     # Convergence
-                    ax_mat[iax,0].plot(filter, epol, 's-', **kwargs)
-                    ax_mat[iax,0].plot(filter, eps, 's-', **kwargs)
+                    ax_mat[0,0].plot(filter, epol, 's-', label=r'$E_{pol}$' + frohlich_label, **kwargs) # E_pol
+                    ax_mat[1,0].plot(filter, eps, 's-', label=r"$\varepsilon$" + frohlich_label,**kwargs) # eps
 
                     # Relative error
-                    ax_mat[iax,1].plot(filter[:-1], np.abs((epol - epol[-1])/epol[-1])[:-1]*100, 's-',
+                    ax_mat[0,1].plot(filter[:-1], np.abs((epol - epol[-1])/epol[-1])[:-1], 's-',
                                        label=r'$E_{pol}$' + frohlich_label, **kwargs)
-                    ax_mat[iax,1].plot(filter[:-1], np.abs((eps - eps[-1])/eps[-1])[:-1]*100, 's-',
+                    ax_mat[1,1].plot(filter[:-1], np.abs((eps - eps[-1])/eps[-1])[:-1], 's-',
                                        label=r"$\varepsilon$" + frohlich_label, **kwargs)
-                    ax_mat[iax,1].set_yscale("log")
 
-                    ax_mat[iax,0].set_ylabel("Energy (eV)")
-                    ax_mat[iax,1].set_ylabel("Relative error (%)")
-
-                    ax_mat[iax,1].legend(title=f"k-mesh = {scell}")
+                    for irow in range(nrows):
+                        ax_mat[irow,1].set_yscale("log")
+                        ax_mat[irow,1].set_ylabel("Relative error (-)")
+                        ax_mat[irow,0].set_ylabel("Energy (eV)")
 
                     for icol in range(ncols):
-                        ax_mat[iax,icol].set_xlim(0)
-                        ax_mat[iax,icol].grid()
+                        ax_mat[1,icol].set_xlabel("Filter value (eV)")
+                        ax_mat[0,icol].set_title("Binding energy")
+                        ax_mat[1,icol].set_title("Polaron eigenvalue")
+
+                    for ax in np.ravel(ax_mat):
+                        ax.set_xlim(0)
+                        ax.grid()
+                        ax.legend()
 
 
-            ax_mat[0,0].set_title("Energy convergence")
-            ax_mat[0,1].set_title("Relative error")
-            for icol in range(ncols):
-                ax_mat[nrows-1,icol].set_xlabel("Filter value (eV)")
+                title = f"{formula}, space group {spg}, {pol} polaron, k-mesh: {'x'.join(str(x) for x in scell)}"
+                fig.suptitle(title)
+                fig.tight_layout()
 
-            title = f"{formula}, space group {spg}, {pol} polaron"
-            fig.suptitle(title)
-            fig.tight_layout()
-
-            fig_list.append(fig)
+                fig_list.append(fig)
 
         return fig_list
 
