@@ -169,14 +169,14 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         e_frohl = r.read_variable("e_frohl")[:] # in Ha
 
         d = dict(
-            nkbz=nkbz,
-            ngkpt=ngkpt,
-            nksmall=min(ngkpt),
-            cbrt_nkbz=np.cbrt(nkbz),
+            #nkbz=nkbz,
+            #nksmall=min(ngkpt),
+            #cbrt_nkbz=np.cbrt(nkbz),
             #frohl_ntheta=r.frohl_ntheta,
-            invsc_linsize = 1. / np.cbrt(nkbz * self.structure.lattice.volume),
             avg_g = bool(avg_g),
-            e_frohl = e_frohl * abu.Ha_eV
+            e_frohl = e_frohl * abu.Ha_eV,
+            ngkpt=tuple(ngkpt),
+            invsc_linsize = 1. / np.cbrt(nkbz * self.structure.lattice.volume),
         )
 
         return d
@@ -248,6 +248,7 @@ class Polaron:
     nq: int            # Number of q-points in B_qnu (including filtering if any).
     bstart: int        # First band starts at bstart.
     bstop: int         # Last band (python convention)
+    erange: double     # Filtering value (in Ha)
     varpeq: VpqFile
 
     @classmethod
@@ -258,6 +259,7 @@ class Polaron:
         r = varpeq.r
         nstates, nk, nq, nb = r.nstates, r.nk_spin[spin], r.nq_spin[spin], r.nb_spin[spin]
         bstart, bstop = r.brange_spin[spin]
+        erange = r.erange_spin[spin]
 
         data = locals()
         return cls(**{k: data[k] for k in [field.name for field in dataclasses.fields(Polaron)]})
@@ -305,15 +307,12 @@ class Polaron:
         # int cvflag_spin(nsppol, nstates) ;
         #   0 --> calculation is not converged
         #   1 --> calculation is converged
-        # double erange_spin(nsppol) ;
-        #   Energy filtering value for each spin (in Ha)
 
         spin = self.spin
         r = self.varpeq.r
         nstep2cv = r.read_variable("nstep2cv_spin")[spin]
         scf_hist = r.read_variable("scf_hist_spin")[spin]
         cvflag = r.read_variable("cvflag_spin")[spin]
-        erange = r.read_variable("erange_spin")[spin]
 
         def ufact_k(k):
             """Convert energies to eV"""
@@ -332,8 +331,8 @@ class Polaron:
             df = pd.DataFrame(dct)
             # Add metadata to the attrs dictionary
             df.attrs["converged"] = bool(cvflag[pstate])
-            df.attrs["use_filter"] = bool(abs(erange) > 1e-8)
-            df.attrs["filter_value"] = erange * abu.Ha_eV
+            df.attrs["use_filter"] = bool(abs(self.erange) > 1e-8)
+            df.attrs["filter_value"] = self.erange * abu.Ha_eV
             df_list.append(df)
 
         return df_list
@@ -346,7 +345,10 @@ class Polaron:
         row_list = []
         for pstate in range(self.nstates):
             df = self.scf_df_state[pstate]
-            row = {"pstate": pstate, "spin": self.spin}
+            row = {"formula": self.structure.reduced_formula,
+                   "spgroup": self.structure.get_space_group_info()[1],
+                   "polaron": self.varpeq.r.vpq_pkind,
+                   "pstate": pstate, "spin": self.spin}
             row.update(df.iloc[-1].to_dict())
             row["converged"] = df.attrs["converged"]
             row["use_filter"] = df.attrs["use_filter"]
@@ -1184,14 +1186,120 @@ class VpqRobot(Robot, RobotWithEbands):
         return df
 
     #@add_fig_kwargs
-    #def plot_erange_conv(self, fontsize=12, **kwargs) -> Figure:
-    #    """
-    #    Plot the convergence of the results wrt to the value of erange.
+    def plot_erange_conv(self, ax_mat=None, spin: int = 0, pstate: int = 0,
+                         **kwargs) -> List(Figure):
+        """
+        Plot the convergence of the results wrt to the value of erange.
 
-    #    Args:
-    #        colormap: Color map. Have a look at the colormaps here and decide which one you like:
-    #        fontsize: fontsize for legends and titles
-    #    """
+        Args:
+            fontsize: fontsize for legends and titles
+        """
+
+        df = self.get_final_results_df(spin)
+
+        # check if dataframe contains entries with efilter
+        df = df[df["use_filter"] & (df["pstate"] == pstate)]
+        if df.empty:
+            raise RuntimeError("No entries with energy filtering.")
+
+
+        # Check if df contains information about multuple systems, polarons, etc
+        systems = set(df["formula"])
+        spgroups = set(df["spgroup"])
+        polarons = set(df["polaron"])
+
+        # For each system, spgroup and polaron type, we will plot convergence at a fixed ngkpt
+        # Entries with single filtering value for a fixed ngkpt are skipped
+
+        # count number of plots
+        entries = {}
+        for sys in systems:
+            for spg in spgroups:
+                for pol in polarons:
+                    filtered_df = df[(df["formula"] == sys) &
+                                     (df["spgroup"] == spg) &
+                                     (df["polaron"] == pol)]
+                    entry_keys = (sys, spg, pol)
+
+                    for scell in set(filtered_df["ngkpt"]):
+
+                        count = (df["ngkpt"] == scell).sum()
+                        # only if we ecnounter multiple entries for single scell (for convergence)
+                        if count > 1:
+                            if entry_keys in entries:
+                                entries[entry_keys].append(scell)
+                            else:
+                                entries[entry_keys] = [scell]
+
+        if not entries:
+            raise RuntimeError("Not enough data for convergence with energy filteing.")
+
+        # For each entry, plot convergence wrt erange for each ngkpt
+        fig_list = []
+        for system_keys, scell_list in entries.items():
+
+            formula, spg, pol = system_keys
+
+            entry_df = df[(df["formula"] == formula) &
+                          (df["spgroup"] == spg) &
+                          (df["polaron"] == pol)]
+
+            nrows, ncols = len(scell_list), 2
+            ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                   sharex=True, sharey=False, squeeze=False)
+
+            for iax, scell in enumerate(scell_list):
+                scell_df = entry_df[entry_df["ngkpt"] == scell]
+
+                frohich_correction = [True, False]
+
+                for avg_g in frohich_correction:
+                    _df = scell_df[scell_df["avg_g"] == avg_g].sort_values("filter_value")
+
+                    if _df.empty:
+                        continue
+
+                    epol = _df["E_pol"].to_numpy()
+                    eps = _df["epsilon"].to_numpy()
+                    filter = _df["filter_value"].to_numpy()
+
+                    frohlich_label = " + LR correction" if avg_g else ""
+
+                    # Convergence
+                    ax_mat[iax,0].plot(filter, epol, 's-', **kwargs)
+                    ax_mat[iax,0].plot(filter, eps, 's-', **kwargs)
+
+                    # Relative error
+                    ax_mat[iax,1].plot(filter[:-1], np.abs((epol - epol[-1])/epol[-1])[:-1]*100, 's-',
+                                       label=r'$E_{pol}$' + frohlich_label, **kwargs)
+                    ax_mat[iax,1].plot(filter[:-1], np.abs((eps - eps[-1])/eps[-1])[:-1]*100, 's-',
+                                       label=r"$\varepsilon$" + frohlich_label, **kwargs)
+                    ax_mat[iax,1].set_yscale("log")
+
+                    ax_mat[iax,0].set_ylabel("Energy (eV)")
+                    ax_mat[iax,1].set_ylabel("Relative error (%)")
+
+                    ax_mat[iax,1].legend(title=f"k-mesh = {scell}")
+
+                    for icol in range(ncols):
+                        ax_mat[iax,icol].set_xlim(0)
+
+
+            ax_mat[0,0].set_title("Energy convergence")
+            ax_mat[0,1].set_title("Relative error")
+            for icol in range(ncols):
+                ax_mat[nrows-1,icol].set_xlabel("Filter value (eV)")
+
+            title = f"{formula}, space group {spg}, {pol} polaron"
+            fig.suptitle(title)
+            fig.tight_layout()
+
+            fig_list.append(fig)
+
+        return fig_list
+
+
+
     #    fig = self.plot_convergence(self, item: Union[str, Callable],
     #                                sortby=None, hue=None, abs_conv=None,
     #                                ax=None, fontsize=8, **kwargs)
