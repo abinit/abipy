@@ -169,10 +169,6 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         e_frohl = r.read_variable("e_frohl")[:] # in Ha
 
         d = dict(
-            #nkbz=nkbz,
-            #nksmall=min(ngkpt),
-            #cbrt_nkbz=np.cbrt(nkbz),
-            #frohl_ntheta=r.frohl_ntheta,
             avg_g = bool(avg_g),
             e_frohl = e_frohl * abu.Ha_eV,
             ngkpt=tuple(ngkpt),
@@ -1186,12 +1182,9 @@ class VpqRobot(Robot, RobotWithEbands):
 
         return df
 
-
     @add_fig_kwargs
     def plot_erange_conv(self, spin: int = 0, pstate: int = 0, **kwargs) -> list[Figure]:
         """
-        Plot the convergence of the results wrt to the value of erange.
-
         Args:
             spin (int, optional): Spin index. Defaults to 0.
             pstate (int, optional): Index of a polaronic state. Defaults to 0.
@@ -1315,7 +1308,8 @@ class VpqRobot(Robot, RobotWithEbands):
                 params = subgroup[convby].to_numpy()
                 e_pol = subgroup["E_pol"].to_numpy()
                 eps = subgroup["epsilon"].to_numpy()
-                frohlich_label = " + LR" if avg_g else ""
+                frohlich_label = "+ LR" if avg_g else ""
+                filter_label = f"filter {filter_value:.2f} eV," if filter_value > 0 else ""
 
                 # Apply LR correction if needed
                 if not avg_g and add_lr:
@@ -1333,11 +1327,11 @@ class VpqRobot(Robot, RobotWithEbands):
                 # Plot energy data & extrapolation
                 line1, = ax_mat[0, 0].plot(params, e_pol, 'o', **kwargs)
                 ax_mat[0, 0].plot(xrange, epol_extr_line(xrange), '--', color=line1.get_color(),
-                                  label=rf'$E_{{pol}}$ {frohlich_label}: {epol_extr_line(0):.3f} eV')
+                                  label=rf'{filter_label} $E_{{pol}}$ {frohlich_label}: {epol_extr_line(0):.3f} eV')
 
                 line2, = ax_mat[1, 0].plot(params, eps, 'o', **kwargs)
                 ax_mat[1, 0].plot(xrange, eps_extr_line(xrange), '--', color=line2.get_color(),
-                                  label=rf'$\varepsilon$ {frohlich_label}: {eps_extr_line(0):.3f} eV')
+                                  label=rf'{filter_label} $\varepsilon$ {frohlich_label}: {eps_extr_line(0):.3f} eV')
 
             # Set axis labels and formatting
             xlabel_map = {
