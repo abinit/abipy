@@ -176,6 +176,7 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             avg_g = bool(avg_g),
             e_frohl = e_frohl * abu.Ha_eV,
             ngkpt=tuple(ngkpt),
+            inv_k = 1. / np.cbrt(nkbz),
             invsc_linsize = 1. / np.cbrt(nkbz * self.structure.lattice.volume),
         )
 
@@ -1185,14 +1186,19 @@ class VpqRobot(Robot, RobotWithEbands):
 
         return df
 
-    #@add_fig_kwargs
-    def plot_erange_conv(self, ax_mat=None, spin: int = 0, pstate: int = 0,
-                         **kwargs) -> List(Figure):
+
+    @add_fig_kwargs
+    def plot_erange_conv(self, spin: int = 0, pstate: int = 0, **kwargs) -> list[Figure]:
         """
         Plot the convergence of the results wrt to the value of erange.
 
         Args:
-            fontsize: fontsize for legends and titles
+            spin (int, optional): Spin index. Defaults to 0.
+            pstate (int, optional): Index of a polaronic state. Defaults to 0.
+            **kwargs: Additional arguemtns for plottins functions.
+
+        Returns:
+            list: A list of figure objects.
         """
 
         df = self.get_final_results_df(spin)
@@ -1202,149 +1208,160 @@ class VpqRobot(Robot, RobotWithEbands):
         if df.empty:
             raise RuntimeError("No entries with energy filtering.")
 
-
-        # Check if df contains information about multuple systems, polarons, etc
-        systems = set(df["formula"])
-        spgroups = set(df["spgroup"])
-        polarons = set(df["polaron"])
-
-        # For each system, spgroup and polaron type, we will plot convergence at a fixed ngkpt
-        # Entries with single filtering value for a fixed ngkpt are skipped
-
-        # count number of plots
-        entries = {}
-        for sys in systems:
-            for spg in spgroups:
-                for pol in polarons:
-                    filtered_df = df[(df["formula"] == sys) &
-                                     (df["spgroup"] == spg) &
-                                     (df["polaron"] == pol)]
-                    entry_keys = (sys, spg, pol)
-
-                    for scell in set(filtered_df["ngkpt"]):
-
-                        count = (df["ngkpt"] == scell).sum()
-                        # only if we ecnounter multiple entries for single scell (for convergence)
-                        if count > 1:
-                            if entry_keys in entries:
-                                entries[entry_keys].append(scell)
-                            else:
-                                entries[entry_keys] = [scell]
-
-        if not entries:
-            raise RuntimeError("Not enough data for convergence with energy filteing.")
-
-        # For each entry, plot convergence wrt erange for each ngkpt
         fig_list = []
-        for system_keys, scell_list in entries.items():
+        grouped_entries = df.groupby(["formula", "spgroup", "polaron", "ngkpt"])
 
-            formula, spg, pol = system_keys
+        # here we iterate over each polaronic group & generate separate figures
+        for (formula, spg, pol, ngkpt), group in grouped_entries:
 
-            entry_df = df[(df["formula"] == formula) &
-                          (df["spgroup"] == spg) &
-                          (df["polaron"] == pol)]
+            # check if we have enough filtering values for convergence
+            if group["filter_value"].nunique() == 1:
+                continue
 
-            for scell in scell_list:
-                scell_df = entry_df[entry_df["ngkpt"] == scell]
+            group = group.sort_values("filter_value")
+            nrows, ncols = 2, 2
+            ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                   sharex=True, sharey=False, squeeze=False)
 
-                nrows, ncols = 2, 2
-                ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                       sharex=True, sharey=False, squeeze=False)
+            for avg_g in [True, False]:
+                _df = group[group["avg_g"] == avg_g]
+                if _df.empty:
+                    continue
 
-                frohich_correction = [True, False]
+                filter_values = _df["filter_value"].to_numpy()
+                epol = _df["E_pol"].to_numpy()
+                eps = _df["epsilon"].to_numpy()
+                frohlich_label = " + LR" if avg_g else ""
 
-                for avg_g in frohich_correction:
-                    _df = scell_df[scell_df["avg_g"] == avg_g].sort_values("filter_value")
+                # Convergence
+                ax_mat[0,0].plot(filter_values, epol, 's-', label=r'$E_{pol}$' + frohlich_label,
+                                 **kwargs)
+                ax_mat[1,0].plot(filter_values, eps, 's-', label=r"$\varepsilon$" + frohlich_label,
+                                 **kwargs)
 
-                    if _df.empty:
-                        continue
+                # Relative error
+                ax_mat[0,1].plot(filter_values[:-1], np.abs((epol - epol[-1])/epol[-1])[:-1], 's-',
+                                   label=r'$E_{pol}$' + frohlich_label, **kwargs)
+                ax_mat[1,1].plot(filter_values[:-1], np.abs((eps - eps[-1])/eps[-1])[:-1], 's-',
+                                   label=r"$\varepsilon$" + frohlich_label, **kwargs)
 
-                    epol = _df["E_pol"].to_numpy()
-                    eps = _df["epsilon"].to_numpy()
-                    filter = _df["filter_value"].to_numpy()
+            for i, ax_row in enumerate(ax_mat):
+                ax_row[1].set_yscale("log")
+                ax_row[1].set_ylabel("Relative error (-)")
+                ax_row[0].set_ylabel("Energy (eV)")
 
-                    frohlich_label = " + LR" if avg_g else ""
+            for j in range(ncols):
+                ax_mat[1, j].set_xlabel("Filter value (eV)")
+                ax_mat[0, j].set_title("Binding energy")
+                ax_mat[1, j].set_title("Polaron eigenvalue")
 
-                    # Convergence
-                    ax_mat[0,0].plot(filter, epol, 's-', label=r'$E_{pol}$' + frohlich_label, **kwargs) # E_pol
-                    ax_mat[1,0].plot(filter, eps, 's-', label=r"$\varepsilon$" + frohlich_label,**kwargs) # eps
+            for ax in np.ravel(ax_mat):
+                ax.set_xlim(0)
+                ax.grid()
+                ax.legend()
 
-                    # Relative error
-                    ax_mat[0,1].plot(filter[:-1], np.abs((epol - epol[-1])/epol[-1])[:-1], 's-',
-                                       label=r'$E_{pol}$' + frohlich_label, **kwargs)
-                    ax_mat[1,1].plot(filter[:-1], np.abs((eps - eps[-1])/eps[-1])[:-1], 's-',
-                                       label=r"$\varepsilon$" + frohlich_label, **kwargs)
+            fig.suptitle(f"{formula}, space group {spg}, {pol} polaron, k-mesh: {'x'.join(map(str, ngkpt))}")
+            fig.tight_layout()
 
-                    for irow in range(nrows):
-                        ax_mat[irow,1].set_yscale("log")
-                        ax_mat[irow,1].set_ylabel("Relative error (-)")
-                        ax_mat[irow,0].set_ylabel("Energy (eV)")
+            fig_list.append(fig)
 
-                    for icol in range(ncols):
-                        ax_mat[1,icol].set_xlabel("Filter value (eV)")
-                        ax_mat[0,icol].set_title("Binding energy")
-                        ax_mat[1,icol].set_title("Polaron eigenvalue")
-
-                    for ax in np.ravel(ax_mat):
-                        ax.set_xlim(0)
-                        ax.grid()
-                        ax.legend()
-
-
-                title = f"{formula}, space group {spg}, {pol} polaron, k-mesh: {'x'.join(str(x) for x in scell)}"
-                fig.suptitle(title)
-                fig.tight_layout()
-
-                fig_list.append(fig)
+        if not fig_list:
+            print("plot_erange_conv: not enough data fro convergence wrt erange")
 
         return fig_list
 
 
+    @add_fig_kwargs
+    def plot_kconv(self, nfit: int = 3, spin: int = 0, pstate: int = 0, convby: str = "invsc_linsize",
+                   add_lr: bool = False, **kwargs) -> list[Figure]:
+        """
+        Plot the convergence of the results with respect to k-point sampling.
 
-    #    fig = self.plot_convergence(self, item: Union[str, Callable],
-    #                                sortby=None, hue=None, abs_conv=None,
-    #                                ax=None, fontsize=8, **kwargs)
-    #    return fig
+        Args:
+            nfit (int, optional): Number of points used in linear extrapolation. Defaults to 3.
+            spin (int, optional): Spin index. Defaults to 0.
+            pstate (int, optional): Index of a polaronic state. Defaults to 0.
+            convby (str, optional): Convergence parameter.
+                Possible values are:
+                    - `"invsc_linsize"`: Inverse linear size of a supercell (inverse Angstrom).
+                    - `"inv_k"`: Inverse linear size of a k-grid (arbitrary units).
+                Defaults to `"invsc_linsize"`.
+            add_lr (bool, optional): Specifies if LR correction should be added a-posteriori.
+                Relevant when LR correction to the matrix elements is not used. Defaults to False.
+            **kwargs: Additional arguments for plotting functions.
 
-    #@add_fig_kwargs
-    #def plot_kconv(self, colormap="jet", fontsize=12, **kwargs) -> Figure:
-    #    """
-    #    Plot the convergence of the results wrt to the k-point sampling.
+        Returns:
+            list[Figure]: A list of figure objects.
+        """
 
-    #    Args:
-    #        colormap: matplotlib color map.
-    #        fontsize: fontsize for legends and titles
-    #    """
-    #    nsppol = self.getattr_alleq("nsppol")
+        if convby not in {"invsc_linsize", "inv_k"}:
+            raise ValueError(f"Invalid convby value '{convby}'. Choose 'invsc_linsize' or 'inv_k'.")
 
-    #    # Build grid of plots.
-    #    nrows, ncols = len(_ALL_ENTRIES), nsppol
-    #    ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-    #                                           sharex=True, sharey=False, squeeze=False)
-    #    cmap = plt.get_cmap(colormap)
-    #    for spin in range(nsppol):
-    #        df = self.get_final_results_df(spin=spin, sortby=None)
-    #        xs = df["invsc_size"]
-    #        xvals = np.linspace(0.0, 1.1 * xs.max(), 100)
+        df = self.get_final_results_df(spin)
+        fig_list = []
+        grouped_entries = df.groupby(["formula", "spgroup", "polaron"])
 
-    #        for ix, ylabel in enumerate(_ALL_ENTRIES):
-    #            ax = ax_mat[ix, spin]
-    #            ys = df[ylabel]
+        # Iterate over each polaronic group and generate figures
+        for (formula, spg, pol), group in grouped_entries:
+            ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=2, ncols=1, sharex=True, sharey=False, squeeze=False)
+            sub_entries = group.groupby(["filter_value", "avg_g"])
 
-    #            # Plot ab-initio points.
-    #            ax.scatter(xs, ys, color="red", marker="o")
+            for (filter_value, avg_g), subgroup in sub_entries:
+                if subgroup.empty:
+                    continue
 
-    #            # Plot fit using the first nn points.
-    #            for nn in range(1, len(xs)):
-    #                color = cmap((nn - 1) / len(xs))
-    #                p = np.poly1d(np.polyfit(xs[:nn+1], ys[:nn+1], deg=1))
-    #                ax.plot(xvals, p(xvals), color=color, ls="--")
+                # Sort values for consistent plotting
+                subgroup = subgroup.sort_values("invsc_linsize")
+                params = subgroup[convby].to_numpy()
+                e_pol = subgroup["E_pol"].to_numpy()
+                eps = subgroup["epsilon"].to_numpy()
+                frohlich_label = " + LR" if avg_g else ""
 
-    #            xlabel = "Inverse supercell size (Bohr$^-1$)" if ix == len(_ALL_ENTRIES) - 1 else None
-    #            set_grid_legend(ax, fontsize, xlabel=xlabel, ylabel=f"{ylabel} (eV)", legend=False)
-    #            ax.tick_params(axis='x', color='black', labelsize='20', pad=5, length=5, width=2)
+                # Apply LR correction if needed
+                if not avg_g and add_lr:
+                    eps_sign = -1 if pol == "hole" else 1
+                    e_frohl = subgroup["E_pol"].to_numpy()
+                    e_pol += e_frohl
+                    eps += e_frohl * eps_sign
 
-    #    return fig
+                # Compute extrapolation lines
+                local_nfit = min(nfit, len(params))
+                epol_extr_line = np.poly1d(np.polyfit(params[:local_nfit], e_pol[:local_nfit], 1))
+                eps_extr_line = np.poly1d(np.polyfit(params[:local_nfit], eps[:local_nfit], 1))
+                xrange = np.linspace(0, np.max(params[:local_nfit]))
+
+                # Plot energy data & extrapolation
+                line1, = ax_mat[0, 0].plot(params, e_pol, 'o', **kwargs)
+                ax_mat[0, 0].plot(xrange, epol_extr_line(xrange), '--', color=line1.get_color(),
+                                  label=rf'$E_{{pol}}$ {frohlich_label}: {epol_extr_line(0):.3f} eV')
+
+                line2, = ax_mat[1, 0].plot(params, eps, 'o', **kwargs)
+                ax_mat[1, 0].plot(xrange, eps_extr_line(xrange), '--', color=line2.get_color(),
+                                  label=rf'$\varepsilon$ {frohlich_label}: {eps_extr_line(0):.3f} eV')
+
+            # Set axis labels and formatting
+            xlabel_map = {
+                "invsc_linsize": r"$V_\mathrm{supercell}^{-1/3}$ ($\AA^{-1}$)",
+                "inv_k": r"$N_p^{-1/3}$ (-)"
+            }
+            ax_mat[1, 0].set_xlabel(xlabel_map[convby])
+
+            ax_mat[0, 0].set_title("Binding Energy")
+            ax_mat[1, 0].set_title("Polaron Eigenvalue")
+
+            for ax in ax_mat.ravel():
+                ax.set_ylabel("Energy (eV)")
+                ax.axhline(0, color='k', linestyle='-')
+                ax.axvline(0, color='k', linestyle='-')
+                ax.grid()
+                ax.legend(title="Extrapolation")
+
+            # Set figure title and layout
+            fig.suptitle(f"{formula}, space group {spg}, {pol} polaron")
+            fig.tight_layout()
+            fig_list.append(fig)
+
+        return fig_list
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
