@@ -47,7 +47,7 @@ class OrbmagTest(AbipyTest):
             #assert params["orban_ntau"] == 6
             target_atom, nucdipmom = orb.target_atom_nucdipmom
             assert target_atom == 0
-            self.assert_almost_equal(nucdipmom, [1,0,0])
+            self.assert_almost_equal(nucdipmom, [1, 0, 0])
 
             if self.has_matplotlib():
                 orban.plot_fatbands(os.path.join(root, "bandso_DS1_GSR.nc"), show=False)

@@ -6,23 +6,25 @@ import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.eph.vpq import VpqFile
 
-filepath = "/Users/giantomassi/git_repos/abinit/_build/tests/POLARON/varpeq6/out_VPQ.nc"
+root = "/Users/giantomassi/git_repos/abinit/_build/tests/tutorespfn_teph4vpq_1-teph4vpq_2-teph4vpq_3-teph4vpq_4-teph4vpq_5-teph4vpq_6-teph4vpq_7-teph4vpq_8-teph4vpq_9-teph4vpq_10"
+
 
 
 class VarpeqTest(AbipyTest):
 
-    @pytest.mark.xfail(condition=not os.path.exists(filepath), reason=f"{filepath=} does not exist")
+    @pytest.mark.xfail(condition=not os.path.exists(root), reason=f"{root=} does not exist")
     def test_varpeq_file(self):
         """Testing VpqFile."""
 
+        filepath = os.path.join(root, "teph4vpq_9o_VPQ.nc")
         with VpqFile(filepath) as vpq:
             repr(vpq)
             str(vpq)
             assert vpq.to_string(verbose=2)
             assert vpq.structure.formula == "Li1 F1" and len(vpq.structure) == 2
             params = vpq.params
-            #assert params["nkbz"] ==
-            #assert params["ngkpt"] ==
+            assert params["avg_g"]
+            assert params["e_frohl"] == -0.21380923340128977
 
             #print(vpq.ebands.kpoints.ksampling)
             for polaron in vpq.polaron_spin:
@@ -35,8 +37,17 @@ class VarpeqTest(AbipyTest):
                 #assert polaron.bstart == 0
                 #assert polaron.bstop == 0
                 df = polaron.get_final_results_df(with_params=True)
-                #polaron.write_a2_bxsf(self, filepath: PathLike, fill_value: float = 0.0) -> None:
-                #polaron.write_b2_bxsf(self, filepath: PathLike, fill_value: float = 0.0) -> None:
+                print(df)
+
+                assert df["spgroup"][0] == 225
+                self.assert_almost_equal(df["e_frohl"].values, -0.2138092)
+                self.assert_equal(df["filter_value"].values, 1)
+
+                # output of bxsf files
+                tmp_filepath = self.tmpfileindir("foo.xsf")
+                polaron.write_a2_bxsf(tmp_filepath)
+                polaron.write_b2_bxsf(tmp_filepath)
+
                 if self.has_matplotlib():
                     polaron.plot_scf_cycle(show=False)
                     #polaron.plot_ank_with_ebands(ebands_kpath, ebands_kmesh=None)

@@ -1366,7 +1366,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     @add_fig_kwargs
     def plot_phangmom(self, ax=None, pj_dir=[0, 0, 1], units="hbar",
                       qlabels=None, branch_range=None, colormap="rainbow",
-                      max_colors=None, **kwargs):
+                      max_colors=None, **kwargs) -> Figure:
         r"""
         Plot the phonon angular momentum with different colors for each line.
 
@@ -1522,9 +1522,11 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @property
     def split_phdispl_cart(self):
-        # prepare the splitted phdispl_cart as a separate internal variable only when explicitely requested and
-        # not at the same time as split_qpoints and split_phfreqs as it requires a larger array and not used
-        # most of the times.
+        """
+        prepare the splitted phdispl_cart as a separate internal variable only when explicitely requested and
+        not at the same time as split_qpoints and split_phfreqs as it requires a larger array and not used
+        most of the times.
+        """
         try:
             return self._split_phdispl_cart
         except AttributeError:

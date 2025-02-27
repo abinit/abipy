@@ -165,8 +165,8 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
         nkbz = np.prod(ngkpt)
 
-        avg_g = r.read_variable("vpq_avg_g")[:]
-        e_frohl = r.read_variable("e_frohl")[:] # in Ha
+        avg_g = r.read_value("vpq_avg_g")
+        e_frohl = r.read_value("e_frohl") # in Ha
 
         d = dict(
             #nkbz=nkbz,

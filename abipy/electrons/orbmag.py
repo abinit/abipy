@@ -112,15 +112,33 @@ class OrbmagAnalyzer:
         # is that here ncroots[0] is replaced by the reader instance of the first OrbmagFile.
         r0 = self.orb_files[0].r
 
-        self.mband = mband = r0.read_dimvalue('mband')
-        self.nkpt = nkpt = r0.read_dimvalue('nkpt')
-        self.nsppol = nsppol = r0.read_dimvalue('nsppol')
-        self.ndir = ndir = r0.read_dimvalue('ndir')
-        orbmag_nterms = r0.read_dimvalue('orbmag_nterms')
+        def _read_dim(dimname):
+            """Read dimension dimname from files and check for equality."""
+            dims = np.array([o.r.read_dimvalue(dimname) for o in self.orb_files], dtype=int)
+            if not np.all(dims == dims[0]):
+                raise RuntimeError(f"For {dimname=}, files have different dimensions {dims=}")
+            return int(dims[0])
+
+        def _read_var(varname):
+            """Read variable varname from files and check if they are almost equal."""
+            import numpy.testing as nptu
+            vals_list = np.array([o.r.read_value(varname) for o in self.orb_files])
+            for vals in vals_list[1:]:
+                nptu.assert_almost_equal(vals, vals_list[0]) # , decimal, err_msg, verbose)
+            return vals_list[0].copy()
+
+        self.mband = mband = _read_dim('mband')
+        self.nkpt = nkpt = _read_dim('nkpt')
+        self.nsppol = nsppol = _read_dim('nsppol')
+        self.ndir = ndir = _read_dim('ndir')
+        orbmag_nterms = _read_dim('orbmag_nterms')
 
         self.rprimd = rprimd = r0.read_value('primitive_vectors')
         self.gprimd = gprimd = inv(rprimd)
         self.ucvol = ucvol = det(rprimd)
+
+        wtk = r0.read_value('kpoint_weights')
+        occ = r0.read_value('occupations')
 
         # merging here means combine the 3 files: each delivers a 3-vector (ndir = 3),
         # output is a 3x3 matrix (ndir x ndir) for each term, sppol, kpt, band
@@ -145,10 +163,6 @@ class OrbmagAnalyzer:
                             self.orbmag_merge_mesh[iterm,idir,0:ndir,isppol,ikpt,iband] = omtmp
 
         # This piece of code has been taken from orbmag_sigij_mesh
-        wtk = r0.read_value('kpoint_weights')
-        occ = r0.read_value('occupations')
-        orbmag_nterms = r0.read_dimvalue('orbmag_nterms')
-
         self.orbmag_merge_sigij_mesh = np.zeros((orbmag_nterms, nsppol, nkpt, mband, ndir, ndir))
 
         for isppol in range(nsppol):
@@ -198,6 +212,15 @@ class OrbmagAnalyzer:
             raise RuntimeError("ORBMAG.nc files have different structures")
         return structure
 
+    def atom_has_nucdipmom(self, iatom, ncroots):
+        # return true if atom number iatom has a dipole, return false else
+        for ncroot in ncroots:
+            nucdipmom=ncroot.variables['nucdipmom'][iatom]
+            for idir in range(len(nucdipmom)):
+                if abs(nucdipmom[idir]) > 1E-8:
+                    return True
+        return False
+
     #@lazy_property
     #def has_timrev(self) -> bool:
     #    """True if time-reversal symmetry is used in the BZ sampling."""
@@ -220,6 +243,9 @@ class OrbmagAnalyzer:
         orbmag_merge_sigij_mesh = self.orbmag_merge_sigij_mesh
 
         total_sigij = orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2, 3))
+        omlamb = self.get_omlamb()
+        total_sigij = total_sigij + omlamb
+        # note use of -1.0E6 here, we convert from dipole moment (from abinit) to shielding in ppm
         eigenvalues = -1.0E6 * np.real(eigvals(total_sigij))
         isotropic = eigenvalues.sum() / 3.0
         span = eigenvalues.max() - eigenvalues.min()
@@ -285,6 +311,7 @@ class OrbmagAnalyzer:
 
     def get_omlamb(self) -> np.ndarray:
         """
+        Compute and return ...
         """
         omlamb = np.zeros((3, 3))
 
@@ -348,7 +375,7 @@ class OrbmagAnalyzer:
         ngkpt, shifts = self.ngkpt_and_shifts
         return np.product(ngkpt) * len(shifts) == self.nkpt
 
-    def get_cif_string(self, symprec=None) -> str
+    def get_cif_string(self, symprec=None) -> str:
         """
         Return string with structure and anisotropic U tensor in CIF format.
 
@@ -356,7 +383,6 @@ class OrbmagAnalyzer:
             symprec (float): If not none, finds the symmetry of the structure
                 and writes the cif with symmetry information. Passes symprec
                 to the SpacegroupAnalyzer
-
         """
         # Get string with structure in CIF format.
         # Don't use symprec because it changes the order of the sites
@@ -364,6 +390,7 @@ class OrbmagAnalyzer:
         from pymatgen.io.cif import CifWriter
         cif = CifWriter(self.structure, symprec=symprec)
 
+        # @JOE: Note different order of U_ij terms wrt omnc.py
         aniso_u = """loop_
 _atom_site_aniso_label
 _atom_site_aniso_U_11
@@ -377,14 +404,21 @@ _atom_site_aniso_U_12""".splitlines()
         # NB: In JOE's script, ucif is called Uaniso
         raise NotImplementedError("Ucif should be computed.")
 
-        #Uaniso = make_U_from_sigma(gprimd, total_sigij)
+        omlamb = self.get_omlamb()
+        total_sigij = self.orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2, 3))
+        total_sigij = total_sigij + omlamb
+
+        Uaniso = make_U_from_sigma(self.gprimd, total_sigij)
 
         # Add matrix elements. Use 0 based index
         for iatom, site in enumerate(self.structure):
             site_label = "%s%d" % (site.specie.symbol, iatom)
-            #m = ucif[iatom]
-            aniso_u.append("%s %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f" %
-                    (site_label, m[0, 0], m[1, 1], m[2, 2], m[1, 2], m[0, 2], m[0, 1]))
+            if atom_has_nucdipmom(iat,ncroots):
+                m = Uaniso
+                aniso_u.append("%s %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f" %
+                        (site_label, m[0, 0], m[1, 1], m[2, 2], m[1, 2], m[0, 2], m[0, 1]))
+            else:
+                aniso_u.append("%s %s" % (site_label, " . . . . . . "))
 
         return str(cif) + "\n".join(aniso_u)
 
@@ -432,7 +466,7 @@ _atom_site_aniso_U_12""".splitlines()
         Args:
             ebands_kpath: ElectronBands instance with energies along a k-path
                 or path to a netcdf file providing it.
-            what_list: string or list of strings defining the quantities to show.
+            what_list: string or list of strings defining the quantities to plot as fatbands.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
             scale: Scaling factor for fatbands.
             marker_color: Color for markers
