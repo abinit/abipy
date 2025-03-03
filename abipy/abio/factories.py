@@ -1356,10 +1356,9 @@ def hybrid_scf_input(gs_input: AbinitInput,
 
 def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
                     spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                    shift_mode="Symmetric") -> AbinitInput:
+                    shift_mode="Symmetric", nbdbuf=4) -> AbinitInput:
 
     # add the band for nbdbuf, if needed
-    nbdbuf = 4
     if nband is not None:
         nband += nbdbuf
 
@@ -1368,7 +1367,7 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
                          scf_algorithm=scf_algorithm, shift_mode=shift_mode)
 
     # with no bands set and no smearing the minimum number of bands plus some nbdbuf
-    if nband is None and smearing is None:
+    if nband is None and (smearing is None or smearing == "nosmearing"):
         nval = structure.num_valence_electrons(pseudos)
         nval -= abiinput['charge']
         nband = int(round(nval / 2) + nbdbuf)
