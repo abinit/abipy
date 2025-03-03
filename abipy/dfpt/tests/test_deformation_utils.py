@@ -10,7 +10,7 @@ class DeformationUtilsTest(AbipyTest):
 
     def test_generate_deformations(self):
         """Testing generate_deformations"""
-        eps = 0.005
+        eps = 0.005/1.005
         si = self.get_structure("Si")
         structures_dict, strain_inds, spgrp_number = generate_deformations(si, eps)
         assert len(structures_dict) == 3
