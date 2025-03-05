@@ -150,6 +150,33 @@ class QHA_ZSISA(HasPickleIO):
             structures.append(dim1_structures)
 
         print("dim = ",dim)
+        if list(dim) == [3, 3, 1, 1, 1, 1]:
+            new_shape = (3, 3, 3, 1, 1, 1)
+            dim=[3,3,3,1,1,1]
+            structures2 = np.empty(new_shape, dtype=object)  # Use dtype=object for lists
+            phdoses2 = np.empty(new_shape, dtype=object)
+
+            # Copy data: Fill the new dim3 by copying dim2 data
+            for i in range(3):  # Loop over dim1
+                for j in range(3):  # Loop over dim2
+                    structures2[i][i][j][0][0][0] = structures[i][j][0][0][0][0]
+                    phdoses2[i][i][j][0][0][0] = phdoses[i][j][0][0][0][0]
+
+            structures = structures2
+            phdoses = phdoses2
+        if list(dim) == [3, 1, 1, 1, 1, 1]:
+            new_shape = (3, 3, 3, 1, 1, 1)
+            dim=[3,3,3,1,1,1]
+            structures2 = np.empty(new_shape, dtype=object)  # Use dtype=object for lists
+            phdoses2 = np.empty(new_shape, dtype=object)
+
+            # Copy data: Fill the new dim3 by copying dim2 data
+            for i in range(3):  # Loop over dim1
+                structures2[i][i][i][0][0][0] = structures[i][0][0][0][0][0]
+                phdoses2[i][i][i][0][0][0] = phdoses[i][0][0][0][0][0]
+
+            structures = structures2
+            phdoses = phdoses2
 
         gsr_center = structure_bo
         spgrp = AbinitSpaceGroup.from_structure(structure_bo)
@@ -335,6 +362,7 @@ class QHA_ZSISA(HasPickleIO):
         dtol[1] = abs(stress[1]-self.stress_guess[1,1])
         dtol[2] = abs(stress[2]-self.stress_guess[2,2])
 
+        therm = [0,0,0,0,0,0]
         if all(dtol[i] < 1e-8 for i in range(6)):
             if os.path.exists("elastic_constant.txt"):
                 matrix_elastic = self.elastic_constants("elastic_constant.txt")
@@ -353,8 +381,6 @@ class QHA_ZSISA(HasPickleIO):
                 therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(exx_n+1),dstrain_dt[2]*(exx_n+1),0,0,0]
                 print ("therm")
                 print (therm)
-        else:
-            therm = [0,0,0,0,0,0]
 
         return dtol, stress, therm
 
@@ -425,6 +451,7 @@ class QHA_ZSISA(HasPickleIO):
         dtol[1] = abs(stress[1]-self.stress_guess[1,1])
         dtol[2] = abs(stress[2]-self.stress_guess[2,2])
 
+        therm = [0,0,0,0,0,0]
         if all(dtol[i] < 1e-8 for i in range(6)):
             if os.path.exists("elastic_constant.txt"):
                 matrix_elastic = self.elastic_constants("elastic_constant.txt")
@@ -449,8 +476,6 @@ class QHA_ZSISA(HasPickleIO):
                 dstrain_dt = np.linalg.inv(M) @ S
                 therm = [dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(exx_n+1),dstrain_dt[2]*(ezz_n+1),0,0,0]
                 print (therm)
-        else:
-            therm = [0,0,0,0,0,0]
 
 
         return dtol, stress, therm

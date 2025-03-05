@@ -22,9 +22,9 @@ class QhaZSISATest(AbipyTest):
         guess_path = ["Relax2o_GSR.nc"]
         gsr_BO_paths = [os.path.join(root, f"scale_1000_1000/out_GSR_DDB")]
 
-        #zsisa = QHA_ZSISA.from_files(gsr_paths, dos_paths, guess_path, gsr_BO_paths )
-        #result = zsisa.cal_stress(0.0, pressure=0.0)
-        #print("Stress calculation result:", result)
+        zsisa = QHA_ZSISA.from_files(gsr_paths, dos_paths, guess_path, gsr_BO_paths )
+        result = zsisa.cal_stress(0.0, pressure=0.0)
+        print("Stress calculation result:", result)
 
         # Make sure zsisa is serializable with pickle as we store an instance in the Abipy Works
         #self.serialize_with_pickle(zsisa)
