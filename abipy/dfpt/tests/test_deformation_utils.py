@@ -16,5 +16,5 @@ class DeformationUtilsTest(AbipyTest):
         assert len(structures_dict) == 3
         assert spgrp_number == 227
         assert strain_inds.shape == (3, 6)
-        self.assert_equal(strain_inds[:, 0], [0, 1, 2])
-        assert np.all(strain_inds[1:, 1] == 0)
+        self.assert_equal(strain_inds[:, 0], [0, -1, 1])
+        assert np.all(strain_inds[3:, 1] == 0)
