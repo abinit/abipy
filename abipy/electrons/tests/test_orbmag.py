@@ -48,6 +48,17 @@ class OrbmagTest(AbipyTest):
             target_atom, nucdipmom = orb.target_atom_nucdipmom
             assert target_atom == 0
             self.assert_almost_equal(nucdipmom, [1, 0, 0])
+            self.assert_equal(orban.has_nucdipmom, [True, False])
+
+            cif_string = orban.get_cif_string()
+            #print("cif_string:\n", cif_string)
+
+            ref_string = """\
+# generated using pymatgen
+data_SiO2
+"""
+            # FIXME: This is not portable
+            #self.assertMultiLineEqual(cif_string, ref_string)
 
             if self.has_matplotlib():
                 orban.plot_fatbands(os.path.join(root, "bandso_DS1_GSR.nc"), show=False)

@@ -18,25 +18,6 @@ from abipy.tools.typing import Figure
 from abipy.tools.plotting import set_axlims, get_ax_fig_plt, get_axarray_fig_plt, add_fig_kwargs, Marker
 
 
-def print_options_decorator(**kwargs):
-    """
-    A decorator to temporarily set np.printoptions inside a function.
-    Use the decorator to apply print settings inside the function.
-
-    @print_options_decorator(precision=2, suppress=True)
-    def print_array():
-        print(np.array([1.234567, 7.891234, 3.456789]))
-    """
-    def decorator(func):
-        import functools
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs_inner):
-            with np.printoptions(**kwargs):
-                return func(*args, **kwargs_inner)
-        return wrapper
-    return decorator
-
-
 def filter_sigma(sigma, atol):
     """from raw sigma_ij output, convert to ppm shielding and remove small parts"""
     filtered_sigma = -1.0E6 * sigma
@@ -119,7 +100,7 @@ class OrbmagAnalyzer:
                 raise RuntimeError(f"For {dimname=}, files have different dimensions {dims=}")
             return int(dims[0])
 
-        def _read_var(varname):
+        def _read_value(varname):
             """Read variable varname from files and check if they are almost equal."""
             import numpy.testing as nptu
             vals_list = np.array([o.r.read_value(varname) for o in self.orb_files])
@@ -133,12 +114,9 @@ class OrbmagAnalyzer:
         self.ndir = ndir = _read_dim('ndir')
         orbmag_nterms = _read_dim('orbmag_nterms')
 
-        self.rprimd = rprimd = r0.read_value('primitive_vectors')
+        self.rprimd = rprimd = _read_value('primitive_vectors')
         self.gprimd = gprimd = inv(rprimd)
         self.ucvol = ucvol = det(rprimd)
-
-        wtk = r0.read_value('kpoint_weights')
-        occ = r0.read_value('occupations')
 
         # merging here means combine the 3 files: each delivers a 3-vector (ndir = 3),
         # output is a 3x3 matrix (ndir x ndir) for each term, sppol, kpt, band
@@ -163,6 +141,9 @@ class OrbmagAnalyzer:
                             self.orbmag_merge_mesh[iterm,idir,0:ndir,isppol,ikpt,iband] = omtmp
 
         # This piece of code has been taken from orbmag_sigij_mesh
+        wtk = _read_value('kpoint_weights')
+        occ = _read_value('occupations')
+
         self.orbmag_merge_sigij_mesh = np.zeros((orbmag_nterms, nsppol, nkpt, mband, ndir, ndir))
 
         for isppol in range(nsppol):
@@ -201,6 +182,7 @@ class OrbmagAnalyzer:
 
     @lazy_property
     def natom(self)  -> int:
+        """Number of atoms in the unit cell."""
         return len(self.structure)
 
     @lazy_property
@@ -212,14 +194,22 @@ class OrbmagAnalyzer:
             raise RuntimeError("ORBMAG.nc files have different structures")
         return structure
 
-    def atom_has_nucdipmom(self, iatom, ncroots):
-        # return true if atom number iatom has a dipole, return false else
-        for ncroot in ncroots:
-            nucdipmom=ncroot.variables['nucdipmom'][iatom]
-            for idir in range(len(nucdipmom)):
-                if abs(nucdipmom[idir]) > 1E-8:
-                    return True
-        return False
+    @lazy_property
+    def has_nucdipmom(self) -> np.ndarray:
+        """
+        """
+        has_nucdipmom = np.zeros(self.natom, dtype=int)
+        for orb in self.orb_files:
+            # nctkarr_t("nucdipmom", "dp", "ndir, natom")
+            nucdipmom = orb.r.read_value('nucdipmom')
+            for iat in range(self.natom):
+                if np.any(np.abs(nucdipmom[iat]) > 1e-8):
+                    has_nucdipmom[iat] += 1
+
+        if np.count_nonzero(has_nucdipmom) != 1:
+            raise RuntimeError(f"Only one site should have nucdipmom activated! {has_nucdipmom=}")
+
+        return has_nucdipmom.astype(bool)
 
     #@lazy_property
     #def has_timrev(self) -> bool:
@@ -228,62 +218,61 @@ class OrbmagAnalyzer:
     #    if any(orb_file.ebands.has_timrev != has_timrev for orb_file in self.orb_files[1:]):
     #        raise RuntimeError("ORBMAG.nc files have different values of timrev")
 
-    @print_options_decorator(precision=2, suppress=True)
-    def report_eigvals(self, report_type) -> None:
+    def report_eigvals(self, report_type, precision=2) -> None:
         """
         FIXME
 
         Args:
-            report_type
+            report_type:
+            precision:
         """
-        #np.set_printoptions(precision=2)
+        with np.set_printoptions(precision=precision):
 
-        terms = ['CC   ','VV1  ','VV2  ','NL   ','LR   ','A0An ']
-        # Shape: (orbmag_nterms, nsppol, nkpt, mband, ndir, ndir)
-        orbmag_merge_sigij_mesh = self.orbmag_merge_sigij_mesh
+            terms = ['CC   ','VV1  ','VV2  ','NL   ','LR   ','A0An ']
+            # Shape: (orbmag_nterms, nsppol, nkpt, mband, ndir, ndir)
 
-        total_sigij = orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2, 3))
-        omlamb = self.get_omlamb()
-        total_sigij = total_sigij + omlamb
-        # note use of -1.0E6 here, we convert from dipole moment (from abinit) to shielding in ppm
-        eigenvalues = -1.0E6 * np.real(eigvals(total_sigij))
-        isotropic = eigenvalues.sum() / 3.0
-        span = eigenvalues.max() - eigenvalues.min()
-        skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() - eigenvalues.min() - isotropic) / span
+            total_sigij = self.orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2, 3))
+            omlamb = self.get_omlamb()
+            total_sigij = total_sigij + omlamb
+            # note use of -1.0E6 here, we convert from dipole moment (from abinit) to shielding in ppm
+            eigenvalues = -1.0E6 * np.real(eigvals(total_sigij))
+            isotropic = eigenvalues.sum() / 3.0
+            span = eigenvalues.max() - eigenvalues.min()
+            skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() - eigenvalues.min() - isotropic) / span
 
-        if report_type=='S':
-            print('\nShielding tensor eigenvalues, ppm : ', eigenvalues)
-            print('Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n' % (isotropic, span, skew))
+            if report_type=='S':
+                print('\nShielding tensor eigenvalues, ppm : ', eigenvalues)
+                print('Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n' % (isotropic, span, skew))
 
-        if report_type == 'T':
-            print('\nShielding tensor eigenvalues, ppm : ',eigenvalues)
-            print('Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n'%(isotropic, span, skew))
-            print('Term totals')
-            term_sigij = orbmag_merge_sigij_mesh.sum(axis=(1, 2, 3))
-            for iterm in range(np.size(orbmag_merge_sigij_mesh, axis=0)):
-                eigenvalues = -1.0E6 * np.real(eigvals(term_sigij[iterm]))
-                print(terms[iterm] + ': ', eigenvalues)
-            print('Lamb  : ', -1.0E6 * np.real(eigvals(omlamb)))
-            print('\n')
-
-        elif report_type == 'B':
-            print('Band totals')
-            band_sigij = orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2))
-            for iband in range(np.size(orbmag_merge_sigij_mesh, axis=3)):
-                eigenvalues = -1.0E6 * np.real(eigvals(band_sigij[iband]))
-                print('band ' + str(iband) + ' : ', eigenvalues)
-            print('\n')
-
-        elif report_type == 'TB':
-            print('Terms in each band')
-            tband_sigij = orbmag_merge_sigij_mesh.sum(axis=(1, 2))
-            for iband in range(np.size(orbmag_merge_sigij_mesh, axis=3)):
-                print('band ' + str(iband) + ' : ')
-                for iterm in range(np.size(orbmag_merge_sigij_mesh, axis=0)):
-                    eigenvalues = -1.0E6 * np.real(eigvals(tband_sigij[iterm, iband]))
-                    print('   ' + terms[iterm] + ': ', eigenvalues)
+            if report_type == 'T':
+                print('\nShielding tensor eigenvalues, ppm : ',eigenvalues)
+                print('Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n'%(isotropic, span, skew))
+                print('Term totals')
+                term_sigij = self.orbmag_merge_sigij_mesh.sum(axis=(1, 2, 3))
+                for iterm in range(np.size(self.orbmag_merge_sigij_mesh, axis=0)):
+                    eigenvalues = -1.0E6 * np.real(eigvals(term_sigij[iterm]))
+                    print(terms[iterm] + ': ', eigenvalues)
+                print('Lamb  : ', -1.0E6 * np.real(eigvals(omlamb)))
                 print('\n')
-            print('\n')
+
+            elif report_type == 'B':
+                print('Band totals')
+                band_sigij = self.orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2))
+                for iband in range(np.size(self.orbmag_merge_sigij_mesh, axis=3)):
+                    eigenvalues = -1.0E6 * np.real(eigvals(band_sigij[iband]))
+                    print('band ' + str(iband) + ' : ', eigenvalues)
+                print('\n')
+
+            elif report_type == 'TB':
+                print('Terms in each band')
+                tband_sigij = self.orbmag_merge_sigij_mesh.sum(axis=(1, 2))
+                for iband in range(np.size(self.orbmag_merge_sigij_mesh, axis=3)):
+                    print('band ' + str(iband) + ' : ')
+                    for iterm in range(np.size(self.orbmag_merge_sigij_mesh, axis=0)):
+                        eigenvalues = -1.0E6 * np.real(eigvals(tband_sigij[iterm, iband]))
+                        print('   ' + terms[iterm] + ': ', eigenvalues)
+                    print('\n')
+                print('\n')
 
     @lazy_property
     def ngkpt_and_shifts(self) -> tuple:
@@ -321,7 +310,7 @@ class OrbmagAnalyzer:
             nucdipmom = orb.r.read_value('nucdipmom')
             for iat in range(self.natom):
                 itypat = typat[iat]
-                omlamb[idir,0:3] += lambsig[itypat-1] * nucdipmom[iat]
+                omlamb[idir] += lambsig[itypat-1] * nucdipmom[iat]
 
         # negative sign to convert to dipole moment, like other quantities
         return -omlamb
@@ -337,6 +326,7 @@ class OrbmagAnalyzer:
             return eigenvalues.sum() / 3.0
             #span = eigenvalues.max() - eigenvalues.min()
             #skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() - eigenvalues.min() - isotropic) / span
+
         #elif what == "foobar":
 
         raise ValueError(f"Invalid {what=}")
@@ -371,13 +361,17 @@ class OrbmagAnalyzer:
 
     @lazy_property
     def has_full_bz(self) -> bool:
-        """True if the list of k-points cover the full BZ."""
+        """True if the list of k-points covers the full BZ."""
         ngkpt, shifts = self.ngkpt_and_shifts
         return np.product(ngkpt) * len(shifts) == self.nkpt
 
     def get_cif_string(self, symprec=None) -> str:
         """
         Return string with structure and anisotropic U tensor in CIF format.
+
+        print a very minimalisic cif file for use in VESTA,
+        where the thermal ellipsoid parameters have been hijacked to
+        to show the shielding tensor instead.
 
         Args:
             symprec (float): If not none, finds the symmetry of the structure
@@ -402,18 +396,17 @@ _atom_site_aniso_U_12""".splitlines()
 
         # TODO: Compute ucif in reduced coords
         # NB: In JOE's script, ucif is called Uaniso
-        raise NotImplementedError("Ucif should be computed.")
+        #raise NotImplementedError("Ucif should be computed.")
 
         omlamb = self.get_omlamb()
         total_sigij = self.orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2, 3))
         total_sigij = total_sigij + omlamb
-
         Uaniso = make_U_from_sigma(self.gprimd, total_sigij)
 
         # Add matrix elements. Use 0 based index
-        for iatom, site in enumerate(self.structure):
-            site_label = "%s%d" % (site.specie.symbol, iatom)
-            if atom_has_nucdipmom(iat,ncroots):
+        for iat, site in enumerate(self.structure):
+            site_label = "%s%d" % (site.specie.symbol, iat)
+            if self.has_nucdipmom[iat]:
                 m = Uaniso
                 aniso_u.append("%s %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f" %
                         (site_label, m[0, 0], m[1, 1], m[2, 2], m[1, 2], m[0, 2], m[0, 1]))
@@ -421,6 +414,94 @@ _atom_site_aniso_U_12""".splitlines()
                 aniso_u.append("%s %s" % (site_label, " . . . . . . "))
 
         return str(cif) + "\n".join(aniso_u)
+
+    #def vesta_open(self, temp=300): # pragma: no cover
+    #    """
+    #    Visualize termal displacement ellipsoids at temperature `temp` (Kelvin) with Vesta_ application.
+    #    """
+    #    filepath = self.write_cif_file(filepath=None, temp=temp)
+    #    cprint("Writing structure + Debye-Waller tensor in CIF format for T = %s (K) to file: %s" % (temp, filepath), "green")
+    #    cprint("In the Vesta GUI, select: Properties -> Atoms -> Show as displament ellipsoids.", "green")
+    #    from abipy.iotools import Visualizer
+    #    visu = Visualizer.from_name("vesta")
+
+    #    return visu(filepath)()
+
+    def write_magres(self, gsr_file=None, filepath="tmp.magres") -> None:
+        """
+        """
+        #def output_magres(ncfiles,gsrroot=None,omroots=None,orbmag_merge_sigij_mesh=None,omlamb=None):
+
+        def get_sig_array(total_sigij, omroots):
+            natoms=len(omroots[0].dimensions['number_of_atoms'])
+            sigij_array=np.zeros((natoms,3,3))
+            for iat in range(natoms):
+                 if len(np.nonzero(omroots[0].variables['nucdipmom'][iat])[0]) > 0:
+                     sigij_array[iat]=total_sigij
+            return sigij_array
+
+        def get_indices_and_labels(ncroot):
+            natoms = len(ncroot.dimensions['number_of_atoms'])
+            ntypat = len(ncroot.dimensions['ntypat'])
+            type_count = np.zeros(ntypat, dtype=int)
+            indices = np.zeros(natoms, dtype=int)
+            labels = np.empty(natoms, dtype=np.dtype('U2'))
+            from netCDF4 import chartostring
+            for iat in range(natoms):
+                itypat = ncroot.variables['atom_species'][iat]
+                type_count[itypat-1] = type_count[itypat-1] + 1
+                indices[iat] = type_count[itypat-1]
+                labels[iat] = chartostring(ncroot.variables['atom_species_names'][itypat-1])
+
+            return indices, labels
+
+        if not gsrroot and not omroots:
+            print("output_magres received no netcdf files, nothing to do.")
+            return
+
+        if omroots and not np.any(self.orbmag_merge_sigij_mesh):
+            print("magres output for shielding requested but orbmag_merge not provided.")
+            return
+
+        if omroots and not np.any(omlamb):
+            print("magres output for shielding requested but Lamb shielding not provided.")
+            return
+
+        from ase.spacegroup import Spacegroup
+        import ase.io.magres as magres
+
+        ase_atoms = self.structure.to_ase_atoms()
+        ase_atoms.info.update({'spacegroup': Spacegroup(1, setting=1)})
+        if gsrroot:
+            indices, labels = get_indices_and_labels(gsrroot[0])
+        else:
+            indices, labels = get_indices_and_labels(omroots[0])
+
+        ase_atoms.new_array('indices', indices)
+        ase_atoms.new_array('labels', labels)
+
+        #if 'magres_units' not in ase_atoms.info.keys():
+        ase_atoms.info.update({'magres_units':{'ms':'ppm'}})
+        #else:
+        #    ase_atoms.info['magres_units'].update({'ms':'ppm'})
+
+        omlamb = self.get_omlamb()
+        total_sigij = self.orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2, 3))
+        total_sigij = -1.0E6 * (total_sigij + omlamb)
+        sig_array = get_sig_array(total_sigij, omroots)
+        ase_atoms.new_array('ms',sig_array)
+
+        if gsrroot:
+            if 'efg' in gsrroot[0].variables:
+                if 'magres_units' not in ase_atoms.info.keys():
+                    ase_atoms.info.update({'magres_units': {'efg':'au'}})
+                else:
+                    ase_atoms.info['magres_units'].update({'efg':'au'})
+                efg = gsrroot[0].variables['efg'][:]
+                ase_atoms.new_array('efg', efg)
+
+        with open(str(filepath), 'wt') as mout:
+            magres.write_magres(mout, ase_atoms)
 
     def get_bz_interpolator_spin(self, what: str, interp_method: str) -> list[BzRegularGridInterpolator]:
         """
