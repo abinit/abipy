@@ -1537,7 +1537,14 @@ class MergeDdb:
             raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
 
         # DDK calculations (self-consistent to get electric field).
-        multi_ddk = scf_task.input.make_ddk_inputs(tolerance=ddk_tolerance)
+        # Use time-reversal symmetry for DDK (ddk_kptopt 2) except when
+        # the SCF run has disabled all symmetries (3) or just TR (4).
+        ddk_kptopt = 2
+        if "kptopt" in scf_task.input:
+            if scf_task.input["kptopt"] in (3, 4):
+                ddk_kptopt = 3
+
+        multi_ddk = scf_task.input.make_ddk_inputs(kptopt=ddk_kptopt, tolerance=ddk_tolerance)
 
         ddk_tasks = []
         for ddk_inp in multi_ddk:
