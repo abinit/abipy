@@ -4874,20 +4874,20 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if 0 < n < 3:
             # triclinic
             iholohedry = 1
-        if n < 16:
+        elif n < 16:
             # monoclinic
             iholohedry = 2
             #icentering = 0
-        if n < 75:
+        elif n < 75:
             # orthorhombic
             iholohedry = 3
-        if n < 143:
+        elif n < 143:
             # tetragonal
             iholohedry = 4
-        if n < 168:
+        elif n < 168:
             # trigonal
             iholohedry = 5
-        if n < 195:
+        elif n < 195:
             # hexagonal
             iholohedry = 6
         else:
