@@ -17,6 +17,7 @@ from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs, map_grid2ibz
 from abipy.tools.typing import Figure
 from abipy.tools.plotting import set_axlims, get_ax_fig_plt, get_axarray_fig_plt, add_fig_kwargs, Marker
 
+import matplotlib.patches as mpatches
 
 def filter_sigma(sigma, atol):
     """from raw sigma_ij output, convert to ppm shielding and remove small parts"""
@@ -592,17 +593,20 @@ _atom_site_aniso_U_12""".splitlines()
                         ymin, ymax = min(ymin, e), max(ymax, e)
 
             # Compute colors based on sign (e.g., red for positive, blue for negative)
-            y = np.array(y)
-            c = np.where(y >= 0, "red", "blue")
+            c=["red" if value >= 0 else "blue" for value in s]
 
             points = Marker(x, y, s,
-                            c=c,
+                            c=c,marker='s',
                             #color=marker_color,edgecolors=marker_edgecolor,
                             alpha=marker_alpha, label=what)
 
             # Plot electron bands with markers.
             ebands_kpath.plot(ax=ax, points=points, show=False, linewidth=1.0)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
+
+            shielding_color=mpatches.Patch(color="red",label="Shielding")
+            deshielding_color=mpatches.Patch(color="blue",label="Deshielding")
+            ax.legend(handles=[shielding_color,deshielding_color])
 
         e0 = self.orb_files[0].ebands.fermie
         if ylims is None:
