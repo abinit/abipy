@@ -364,7 +364,7 @@ class OrbmagAnalyzer:
     def has_full_bz(self) -> bool:
         """True if the list of k-points covers the full BZ."""
         ngkpt, shifts = self.ngkpt_and_shifts
-        return np.product(ngkpt) * len(shifts) == self.nkpt
+        return np.prod(ngkpt) * len(shifts) == self.nkpt
 
     def get_cif_string(self, symprec=None) -> str:
         """
