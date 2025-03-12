@@ -450,6 +450,35 @@ Source your ``.bashrc`` file to activate the changes done by ``miniconda`` to yo
 
 .. _troubleshooting:
 
+
+How to contribute
+=================
+
+To contribute to Abipy, the standard procedure is as follows:
+
+1.	Fork the repository by clicking the fork button at the top of the screen.
+
+2.	Clone your repository locally using::
+
+        git clone https://github.com/USERNAME/abipy.git
+
+    where USERNAME is your GitHub username.
+
+3.	Register the upstream repository with::
+
+        git remote add trunk https://github.com/abinit/abipy.git
+
+4.  Pull the latest commit from the develop branch of trunk with::
+
+        git pull trunk develop
+
+5. Modify the code and commit your changes to your fork using::
+
+    git commit -a -m "Message describing the modifications"
+    git push
+
+6. Use the graphical interface provided by GitHub to open pull requests from your branch to trunk develop.
+
 License
 =======
 
