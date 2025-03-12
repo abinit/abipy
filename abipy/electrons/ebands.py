@@ -787,6 +787,30 @@ class ElectronBands(Has_Structure):
         # TODO change occfacts
         return self.fermie
 
+    def select_kinds(self, kinds) -> ElectronBands:
+        """
+        Build and return a new ElectronBands instance that retains only the k-points
+        and their associated energies corresponding to the specified list of indices.
+
+        Args:
+            kinds (list of int): List of k-point indices to retain (e.g., [0, 1, 2, 3, 8, 9]).
+        """
+        kinds = np.array(kinds)
+
+        # Build new set of k-points
+        new_kcoords = self.kpoints.frac_coords[kinds].copy()
+        weights = self.kpoints.weights[kinds]
+        new_kpoints = KpointList(self.structure.reciprocal_lattice, new_kcoords,
+                                 weights=weights, names=None, ksampling=self.kpoints.ksampling)
+
+        new_eigens = self.eigens[:,kinds,:].copy()
+        new_occfacts = self.occfacts[:,kinds,:].copy()
+        new_linewidths = None if self.linewidths is None else self.linewidths[:,kinds,:].copy()
+
+        return self.__class__(self.structure, new_kpoints, new_eigens, self.fermie, new_occfacts,
+                              self.nelect, self.nspinor, self.nspden,
+                              nband_sk=None, smearing=self.smearing, linewidths=new_linewidths)
+
     def with_points_along_path(self, frac_bounds=None, knames=None, dist_tol=1e-12):
         """
         Build new |ElectronBands| object containing the k-points along the
