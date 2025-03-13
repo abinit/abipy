@@ -60,45 +60,110 @@ class QHA_ZSISA(HasPickleIO):
             gsr_paths_6d[inds] = gsr_path
             phdos_paths_6d[inds] = phdos_path
 
-        new = cls.from_files(gsr_paths_6d, phdos_paths_6d, gsr_guess, model='ZSISA')
+        new = cls.from_files(gsr_paths_6d, phdos_paths_6d, gsr_guess, model='zsisa')
         #new.pickle_dump(workdir, basename=None)
         return new
 
     @classmethod
-    def from_files(cls, gsr_path_ref, phdos_paths_6D, gsr_path_guess, gsr_path_bo, model = 'ZSISA'):
+    def from_files(cls, phdos_paths_6D, gsr_path_guess, gsr_path_bo, model = 'zsisa'):
         """
-        Creates an instance of QHA from 6D lists of GSR files and PHDOS.nc files.
-        The lists should have the same size and the volumes should match.
+        Creates an instance of QHA from a 6D list of PHDOS.nc files and a Born-Oppenheimer (BO) GSR file.
 
         Args:
-            gsr_paths_ref: 6D list of paths to GSR files.
-            phdos_paths_6D: 6D list of paths to PHDOS.nc files.
-            gsr_path_guess: 6D list of paths to GSR files for initial guess.
+            phdos_paths_6D: 
+                A 6D list of paths to PHDOS.nc files.
+                The PHDOS files must be provided according to the deformations
+                defined in Table IV of the paper.
+                 - For the 'zsisa' model:
+                     - A 6D array of PHDOS files is required, but the array does not need to be completely filled.
+                     - Only the necessary deformations from Table IV need to exist.
+                     - For cubic cases, a 1D or 3D array is also accepted for the TEC case.
+                     - For uniaxial cases (hexagonal, trigonal, and tetragonal), a 2D or 3D
+                       array is also accepted for the TEC case.
+            gsr_path_guess: 
+                Path to the GSR file used for the initial guess.
+            gsr_path_bo: 
+                Path to the GSR file for the Born-Oppenheimer structure,
+                or the reference structure used to build deformations.
+                This is needed to reconstruct strains from Eqs. (24) and (25) in the paper.
+                and find the crystallographic symmetry of the structure.
+            model: 
+                Specifies the QHA model type. Options are:
+                  - 'zsisa': Standard ZSISA model.
+                  - 'v_zsisa': v-ZSISA model.
+                  - 'zsisa_slab': ZSISA model adapted for slab geometries.
 
-        Returns: A new instance of QHA
+        Returns:
+            structures: List of structures at different strains.
+            phdoses: List of phonon density of states (PHDOS) objects at different strains.
+            dim: Shape of the 6D dataset.
+            structure_guess: Initial structure used as a guess.
+            stress_guess: Stress tensor corresponding to the initial guess structure.
+            structure_bo: Born-Oppenheimer reference structure.
+            sym: Crystallographic symmetry of the reference structure.
         """
-        for gp in gsr_path_guess:
-            if os.path.exists(gp):
-                with GsrFile.from_file(gp) as g:
-                    structure_guess = g.structure
-                    stress = g.cart_stress_tensor
-            else:
-                for gp in gsr_path_ref:
-                    with DdbFile.from_file(gp) as g:
-                        structure_guess = g.structure
-                        stress = g.cart_stress_tensor
-        stress_guess = stress/29421.02648438959
-
-        for gp in gsr_path_bo:
-            if os.path.exists(gp):
-                with DdbFile.from_file(gp) as g:
+        #If the BO GSR file exists, read the structure and stress tensor
+        if os.path.exists(gsr_path_bo):
+            if gsr_path_bo.endswith("DDB"):
+                with DdbFile.from_file(gsr_path_bo) as g:
                     structure_bo = g.structure
+                    stress_bo = g.cart_stress_tensor /29421.02648438959
+            elif gsr_path_bo.endswith("GSR.nc"):
+                with GsrFile.from_file(gsr_path_bo) as g:
+                    structure_bo = g.structure
+                    stress_bo = g.cart_stress_tensor /29421.02648438959
+            else:
+                print(f"Unknown file type: {gsr_path_bo}")
+        else:
+             raise FileNotFoundError(f"Error: Born-Oppenheimer GSR file at {gsr_path_bo} does not exist. Exiting.")
+        # if the GSR file for the initial guess exists, read the structure and stress tensor
+        if os.path.exists(gsr_path_guess):
+            with GsrFile.from_file(gsr_path_guess) as g:
+                structure_guess = g.structure
+                stress_guess = g.cart_stress_tensor /29421.02648438959
+        else:
+            # If the initial guess GSR file is missing, fall back to the BO structure and stress
+            structure_guess = structure_bo
+            stress_guess = stress_bo
+
+        spgrp = AbinitSpaceGroup.from_structure(structure_bo)
+        spgrp_number = spgrp.spgid
+        print (spgrp)
+        sym='unknown'
+
+        # Find the crystallographic symmetry from BO structure.
+        if model == 'zsisa' :
+            if 1 <= spgrp_number <= 2: # Check for triclinic crystal systems
+                print ("Triclinic")
+                sym = "triclinic"
+            elif 3 <= spgrp_number <= 15: # Check for monoclinic crystal systems
+                print ("Monoclinic")
+                sym = "monoclinic"
+            elif 16 <= spgrp_number <= 74: # Check for orthorhombic crystal systems
+                print ("Orthorhombic")
+                sym = "orthorhombic"
+            elif 75  <= spgrp_number <= 142: # Check for Tetragonal crystal systems
+                print ("Tetragonal")
+                sym = "tetragonal"
+            elif 143 <= spgrp_number <= 167: # Check for trigonal systems
+                print ("Trigonal")
+                sym = "trigonal"
+            elif  168 <= spgrp_number <= 194: # Check for hexagonal crystal systems
+                print ("Hexagonal")
+                sym = "hexagonal"
+            elif 195 <= spgrp_number <= 230: # Check for cubic crystal systems
+                print ("Cubic")
+                sym = "cubic"
+            else :
+                raise RuntimeError("unknown symmetry")
+
 
         phdos_paths_6D = np.array(phdos_paths_6D)
 
         current_shape = phdos_paths_6D.shape
         dims_to_add = 6 - len(current_shape)
 
+        # If the array has fewer than 6 dimensions, reshape it to have 6 dimensions
         if dims_to_add > 0:
             new_shape = current_shape + (1,) * dims_to_add
             phdos_paths_6D = phdos_paths_6D.reshape(new_shape)
@@ -108,7 +173,9 @@ class QHA_ZSISA(HasPickleIO):
         structures = []
         phdoses = []
 
-        # Looping through each element in the 6D matrix
+        # Loop through each dimension of the 6D matrix (phdos_paths_6D) to read PHDOS 
+        # data and structures from the given file paths,
+        # handling missing files by appending None if the file does not exist.
         for dim1_idx, dim1_list in enumerate(phdos_paths_6D):
             dim1_doses = []
             dim1_structures = []
@@ -150,9 +217,14 @@ class QHA_ZSISA(HasPickleIO):
             structures.append(dim1_structures)
 
         print("dim = ",dim)
-        if list(dim) == [3, 3, 1, 1, 1, 1]:
+
+
+        # If the structure is uniaxial and the input PHDOS data is 2D, expand it to a 3D format.
+        if list(dim) == [3, 3, 1, 1, 1, 1] and model == 'zsisa':
+            if not (sym =='hexagonal' or sym =='trigonal' or sym =='tetragonal') :
+                raise RuntimeError("Only uniaxial structures (e.g., hexagonal, trigonal, tetragonal) are allowed to have 2D PHDOS data.")
             new_shape = (3, 3, 3, 1, 1, 1)
-            dim=[3,3,3,1,1,1]
+            dim = [3,3,3,1,1,1]
             structures2 = np.empty(new_shape, dtype=object)  # Use dtype=object for lists
             phdoses2 = np.empty(new_shape, dtype=object)
 
@@ -161,58 +233,37 @@ class QHA_ZSISA(HasPickleIO):
                 for j in range(3):  # Loop over dim2
                     structures2[i][i][j][0][0][0] = structures[i][j][0][0][0][0]
                     phdoses2[i][i][j][0][0][0] = phdoses[i][j][0][0][0][0]
-
             structures = structures2
             phdoses = phdoses2
-        if list(dim) == [3, 1, 1, 1, 1, 1]:
+
+        # If the structure is cubic and the input PHDOS data is 1D, expand it to a 3D format.
+        if list(dim) == [3, 1, 1, 1, 1, 1] and model == 'zsisa':
+            if sym !='cubic' :
+                raise RuntimeError("Only cubic structure is allowed to have 1D PHDOS data.")
             new_shape = (3, 3, 3, 1, 1, 1)
-            dim=[3,3,3,1,1,1]
+            dim = [3,3,3,1,1,1]
             structures2 = np.empty(new_shape, dtype=object)  # Use dtype=object for lists
             phdoses2 = np.empty(new_shape, dtype=object)
 
-            # Copy data: Fill the new dim3 by copying dim2 data
+            # Copy data: Fill the new dim3 by copying dim1 data
             for i in range(3):  # Loop over dim1
                 structures2[i][i][i][0][0][0] = structures[i][0][0][0][0][0]
                 phdoses2[i][i][i][0][0][0] = phdoses[i][0][0][0][0][0]
-
             structures = structures2
             phdoses = phdoses2
-
-        gsr_center = structure_bo
-        spgrp = AbinitSpaceGroup.from_structure(structure_bo)
-        spgrp_number = spgrp.spgid
-        print (spgrp)
-        if 1 <= spgrp_number <= 2:
-            print ("Triclinic")
-            case = "ZSISA_triclinic"
-            sym = "triclinic"
-        elif 3 <= spgrp_number <= 15: # Check for triclinic crystal systems
-            print ("Monoclinic")
-            sym = "monoclinic"
-        elif 16 <= spgrp_number <= 74: # Check for orthorhombic crystal systems
-            print ("Orthorhombic")
-            sym = "orthorhombic"
-        elif 75  <= spgrp_number <= 142: # Check for Tetragonal crystal systems
-            print ("Tetragonal")
-            sym = "tetragonal"
-        elif 143 <= spgrp_number <= 167: # Check for trigonal systems
-            print ("Trigonal")
-            sym = "trigonal"
-        elif  168 <= spgrp_number <= 194: # Check for hexagonal crystal systems
-            print ("Hexagonal")
-            sym = "hexagonal"
-        elif 195 <= spgrp_number <= 230: # Check for cubic crystal systems
-            print ("Cubic")
-            sym = "cubic"
-        else :
-            raise RuntimeError("unknown method")
 
         return cls(structures, phdoses, dim, structure_guess, stress_guess, structure_bo, sym)
 
     def __init__(self, structures, phdoses, dim, structure_guess, stress_guess, structure_bo, sym):
         """
         Args:
-            structures: list of structures at different volumes.
+            structures: List of structures at different strains.
+            phdoses: List of phonon density of states (PHDOS) objects at different strains.
+            dim: Shape of the 6D dataset.
+            structure_guess: Initial structure used as a guess.
+            stress_guess: Stress tensor corresponding to the initial guess structure.
+            structure_bo: Born-Oppenheimer reference structure.
+            sym: Crystallographic symmetry of the reference structure.
         """
         self.structures = structures
         self.sym = sym
@@ -225,13 +276,22 @@ class QHA_ZSISA(HasPickleIO):
             return np.array([[[[[[attribute_func(s) if s is not None else None for s in col] for col in row] for row in d1]
                             for d1 in d2] for d2 in d3] for d3 in structures])
 
+        # Extract lattice volume for each structure
         self.volumes = extract_attribute(structures, lambda s: s.volume)
+        # Extract lattice parameters a, b, and c
         self.lattice_a = extract_attribute(structures, lambda s: s.lattice.abc[0])
         self.lattice_b = extract_attribute(structures, lambda s: s.lattice.abc[1])
         self.lattice_c = extract_attribute(structures, lambda s: s.lattice.abc[2])
+        # Extract lattice angle
         self.alpha = extract_attribute(structures, lambda s: s.lattice.angles[0])
         self.beta = extract_attribute(structures, lambda s: s.lattice.angles[1])
         self.gamma = extract_attribute(structures, lambda s: s.lattice.angles[2])
+        # Lattice vectors from the lattice matrix
+        # Eq(17) from the paper:
+        # R1 = (ax, ay, az) corresponds to (R1x, R1y, R1z)
+        # R2 = (bx, by, bz) corresponds to (R2x, R2y, R2z)
+        # R3 = (cx, cy, cz) corresponds to (R3x, R3y, R3z)
+
         self.ax = extract_attribute(structures, lambda s: s.lattice.matrix[0, 0])
         self.ay = extract_attribute(structures, lambda s: s.lattice.matrix[0, 1])
         self.az = extract_attribute(structures, lambda s: s.lattice.matrix[0, 2])
@@ -241,17 +301,22 @@ class QHA_ZSISA(HasPickleIO):
         self.cx = extract_attribute(structures, lambda s: s.lattice.matrix[2, 0])
         self.cy = extract_attribute(structures, lambda s: s.lattice.matrix[2, 1])
         self.cz = extract_attribute(structures, lambda s: s.lattice.matrix[2, 2])
-        self.ave_x = np.zeros(dim)
-        self.ave_y = np.zeros(dim)
-        self.ave_z = np.zeros(dim)
+        self.ave_x = np.zeros_like(self.volumes)
+        self.ave_y = np.zeros_like(self.volumes)
+        self.ave_z = np.zeros_like(self.volumes)
 
         mask = self.ax != None  # Create a mask where self.ax is not None
 
-        # Compute averages using the mask
-        self.ave_x[mask] = (abs(self.ax[mask]) + abs(self.bx[mask]) + abs(self.cx[mask])) / 3.0
-        self.ave_y[mask] = (abs(self.ay[mask]) + abs(self.by[mask]) + abs(self.cy[mask])) / 3.0
-        self.ave_z[mask] = (abs(self.az[mask]) + abs(self.bz[mask]) + abs(self.cz[mask])) / 3.0
+        # Compute averages  
+        # Eq(43) from the paper:
+        # ave_x corresponds to A_x in the paper
+        # ave_y corresponds to B_y in the paper
+        # ave_z corresponds to C_z in the paper
+        self.ave_x[mask] = (abs(self.ax[mask]) + abs(self.bx[mask]) + abs(self.cx[mask])) 
+        self.ave_y[mask] = (abs(self.ay[mask]) + abs(self.by[mask]) + abs(self.cy[mask])) 
+        self.ave_z[mask] = (abs(self.az[mask]) + abs(self.bz[mask]) + abs(self.cz[mask])) 
 
+        # Store structure parameters for initial guess
         self.structure_guess = structure_guess
         self.volume_guess = structure_guess.volume
         self.lattice_a_guess = structure_guess.lattice.abc[0]
@@ -270,9 +335,13 @@ class QHA_ZSISA(HasPickleIO):
         self.cx_guess = structure_guess.lattice.matrix[2,0]
         self.cy_guess = structure_guess.lattice.matrix[2,1]
         self.cz_guess = structure_guess.lattice.matrix[2,2]
-        self.ave_x_guess = (abs(self.ax_guess)+abs(self.bx_guess)+abs(self.cx_guess))/3.
-        self.ave_y_guess = (abs(self.ay_guess)+abs(self.by_guess)+abs(self.cy_guess))/3.
-        self.ave_z_guess = (abs(self.az_guess)+abs(self.bz_guess)+abs(self.cz_guess))/3.
+
+        # Eq(43)
+        self.ave_x_guess = (abs(self.ax_guess)+abs(self.bx_guess)+abs(self.cx_guess))
+        self.ave_y_guess = (abs(self.ay_guess)+abs(self.by_guess)+abs(self.cy_guess))
+        self.ave_z_guess = (abs(self.az_guess)+abs(self.bz_guess)+abs(self.cz_guess))
+
+        # Store structure parameters for BO
         self.ax_bo = structure_bo.lattice.matrix[0,0]
         self.ay_bo = structure_bo.lattice.matrix[0,1]
         self.az_bo = structure_bo.lattice.matrix[0,2]
@@ -282,9 +351,11 @@ class QHA_ZSISA(HasPickleIO):
         self.cx_bo = structure_bo.lattice.matrix[2,0]
         self.cy_bo = structure_bo.lattice.matrix[2,1]
         self.cz_bo = structure_bo.lattice.matrix[2,2]
-        self.ave_x_bo = (abs(self.ax_bo)+abs(self.bx_bo)+abs(self.cx_bo))/3.
-        self.ave_y_bo = (abs(self.ay_bo)+abs(self.by_bo)+abs(self.cy_bo))/3.
-        self.ave_z_bo = (abs(self.az_bo)+abs(self.bz_bo)+abs(self.cz_bo))/3.
+
+        # Eq(43)
+        self.ave_x_bo = (abs(self.ax_bo)+abs(self.bx_bo)+abs(self.cx_bo))
+        self.ave_y_bo = (abs(self.ay_bo)+abs(self.by_bo)+abs(self.cy_bo))
+        self.ave_z_bo = (abs(self.az_bo)+abs(self.bz_bo)+abs(self.cz_bo))
 
     def stress_v_ZSISA(self, temp, pressure) -> tuple:
 
@@ -322,62 +393,92 @@ class QHA_ZSISA(HasPickleIO):
         return  dtol, stress
 
     def stress_ZSISA_1DOF(self, temp, pressure) -> tuple:
+        """
+        Compute thermal stress and thermal expansion for cubic structures,
+        given temperature and pressure. If self-consistent convergence is achieved
+        and BO-elastic constants exist, the thermal expansion is computed.
+        """
 
+        # Get vibrational free energy and entropy at a specific temperature
+        # e = Vibrational free energy (F_vib)
+        # S = Entropy (S)
         e,S = self.get_vib_free_energies(temp)
 
-        X0 = self.ave_x[0,0,0,0,0,0]
-        X1 = self.ave_x[1,1,1,0,0,0]
         XBO = self.ave_x_bo
+        X0 = self.ave_x[0,0,0,0,0,0] # slightly deformed structure: referance structure - exx0 -eyy0 -ezz0
+        X1 = self.ave_x[1,1,1,0,0,0] # Reference structure 
 
-        dexx = (X0-X1)/XBO
-        exx0 = X1/XBO-1
+        # Compute strain-related quantities. Eq (50)
+        dexx = (X0 - X1) / XBO  # Strain step
+        exx0 = X1 / XBO - 1  # Reference strain
 
+        # Compute first and second derivatives of free energy w.r.t. strain
         dF_dX = (e[0,0,0,0,0,0]-e[2,2,2,0,0,0])/(2*dexx)
         d2F_dX2 = (e[0,0,0,0,0,0]-2*e[1,1,1,0,0,0]+e[2,2,2,0,0,0])/(dexx)**2
 
-        dF_dV = (e[0,0,0,0,0,0]-e[2,2,2,0,0,0])/(2*(X0-X1)) /(3*X1**2)
-        d2F_dV2 = (e[0,0,0,0,0,0]-2*e[1,1,1,0,0,0]+e[2,2,2,0,0,0])/(X0-X1)**2  /(3*X1**2)**2
-
+        # Compute first and second derivatives of entropy w.r.t. strain
         dS_dX = (S[0,0,0,0,0,0]-S[2,2,2,0,0,0])/(2*dexx)
         d2S_dX2 = (S[0,0,0,0,0,0]-2*S[1,1,1,0,0,0]+S[2,2,2,0,0,0])/(dexx)**2
 
         x = self.ave_x_guess
         v = self.volume_guess
+        # compute BO strain at guess, Eq(50)
         exx_n = x/XBO-1
 
+        # Free energy and entropy derivative at guess structure
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2
         dsdx = dS_dX + (exx_n-exx0)*d2S_dX2
 
         dtol = np.zeros(6)
         stress = np.zeros(6)
 
+        # Compute thermal stress . Eq (51)
         stress_xx = -dfdx/v*(exx_n+1)/3.0 * self.eVA3_HaBohr3
         print (x/XBO, x/XBO, x/XBO)
         print (stress_xx , stress_xx,stress_xx )
+        # Apply external pressure
         stress[0] = stress_xx -pressure
         stress[1] = stress_xx -pressure
         stress[2] = stress_xx -pressure
 
+        # Calculate the absolute difference (tolerance) between the current stress and the guessed stress
+        # This is used to check the convergence of the stress values during the optimization process
         dtol[0] = abs(stress[0]-self.stress_guess[0,0])
         dtol[1] = abs(stress[1]-self.stress_guess[1,1])
         dtol[2] = abs(stress[2]-self.stress_guess[2,2])
 
-        therm = [0,0,0,0,0,0]
-        if all(dtol[i] < 1e-8 for i in range(6)):
-            if os.path.exists("elastic_constant.txt"):
-                matrix_elastic = self.elastic_constants("elastic_constant.txt")
+        therm = None
+        # Check if the stress has converged (all tolerances below 1e-8)
+        if all(dtol[i] < 1e-8 for i in range(6)): # Check convergence 
+            #if os.path.exists("elastic_constant.txt"):
+            if os.path.exists(self.elastic_path):
+                # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
+                matrix_elastic = self.elastic_constants(self.elastic_path)
                 matrix_elastic = np.array(matrix_elastic)
+                # Convert elastic constants to second derivative of BO energy (Eq. 39)
                 matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
+                # Initialize second derivative matrix M using free energy second derivatives.
                 M = np.array([[ d2F_dX2/3*(exx0+1)**2  , 0          , 0         ,0,0,0],
                               [    0       , d2F_dX2/3*(exx0+1)**2  , 0         ,0,0,0],
                               [    0       , 0          , d2F_dX2/3*(exx0+1)**2 ,0,0,0],
                               [0,0,0,0,0,0],
                               [0,0,0,0,0,0],
                               [0,0,0,0,0,0]])
-                M = M + matrix_elastic
+                # Contribution of pressure to the second derivative matrix
+                P = np.array([[0.0 ,pressure*v,pressure*v  ,0,0,0],
+                              [pressure*v ,0.0,pressure*v  ,0,0,0],
+                              [pressure*v ,pressure*v,0.0  ,0,0,0],
+                              [0,0,0,0,0,0],
+                              [0,0,0,0,0,0],
+                              [0,0,0,0,0,0]])
+                # Compute the final second derivative matrix M, including elastic and pressure contributions
+                M = M + matrix_elastic+P/self.eVA3_HaBohr3
+                # Scale the first derivative of entropy 
                 S1 = dsdx*(exx_n+1)/3
-                S = np.array([S1,S1,S1,0,0,0])
-                dstrain_dt = np.linalg.inv(M) @ S
+                dSde = np.array([S1,S1,S1,0,0,0])
+                # Compute thermal expansion using Eq. (37)
+                dstrain_dt = np.linalg.inv(M) @ dSde
+                # Scale the thermal expansion  
                 therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(exx_n+1),dstrain_dt[2]*(exx_n+1),0,0,0]
                 print ("therm")
                 print (therm)
@@ -386,28 +487,31 @@ class QHA_ZSISA(HasPickleIO):
 
     def stress_ZSISA_2DOF(self, temp, pressure) -> tuple:
 
+        # Get vibrational free energy and entropy at a specific temperature
+        # e = Vibrational free energy (F_vib)
+        # S = Entropy (S)
         e,S = self.get_vib_free_energies(temp)
 
-        X0 = self.ave_x[0,0,1,0,0,0]
-        Z0 = self.ave_z[1,1,0,0,0,0]
+        # A_x and C_z from deformed structures based on table IV and eq(52)
+        X0 = self.ave_x[0,0,1,0,0,0] #referance structure - exx0 -eyy0 
+        Z0 = self.ave_z[1,1,0,0,0,0] #referance structure - ezz0
 
+        #  A_x and C_z from reference structure 
         X1 = self.ave_x[1,1,1,0,0,0]
         Z1 = self.ave_z[1,1,1,0,0,0]
-
-        X2 = self.ave_x[2,2,1,0,0,0]
-        Z2 = self.ave_z[1,1,2,0,0,0]
 
         XBO = self.ave_x_bo
         ZBO = self.ave_z_bo
 
-        V = self.volume_guess
-
+        # Compute strain-related quantities. Eq (53)
+        # Strain steps
         dexx = (X0-X1)/XBO
         dezz = (Z0-Z1)/ZBO
-
+        # Reference strains
         exx0 = X1/XBO-1
         ezz0 = Z1/ZBO-1
 
+        # Compute first and second derivatives of free energy w.r.t. strain
         dF_dX = (e[0,0,1,0,0,0]-e[2,2,1,0,0,0])/(2*dexx)
         dF_dZ = (e[1,1,0,0,0,0]-e[1,1,2,0,0,0])/(2*dezz)
 
@@ -415,6 +519,7 @@ class QHA_ZSISA(HasPickleIO):
         d2F_dZ2 = (e[1,1,0,0,0,0]-2*e[1,1,1,0,0,0]+e[1,1,2,0,0,0])/(dezz)**2
         d2F_dXdZ = (e[1,1,1,0,0,0] - e[0,0,1,0,0,0] - e[1,1,0,0,0,0] + e[0,0,0,0,0,0]) / (dexx *dezz)
 
+        # Compute first and second derivatives of entropy w.r.t. strain
         dS_dX = (S[0,0,1,0,0,0]-S[2,2,1,0,0,0])/(2*dexx)
         dS_dZ = (S[1,1,0,0,0,0]-S[1,1,2,0,0,0])/(2*dezz)
         d2S_dX2 = (S[0,0,1,0,0,0]-2*S[1,1,1,0,0,0]+S[2,2,1,0,0,0])/(dexx)**2
@@ -424,10 +529,11 @@ class QHA_ZSISA(HasPickleIO):
         x = self.ave_x_guess
         z = self.ave_z_guess
         v = self.volume_guess
-
+        # compute BO strain at guess, Eq(53)
         exx_n = x/XBO-1
         ezz_n = z/ZBO-1
 
+        # Free energy and entropy derivative at guess structure
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2+(ezz_n-ezz0)*d2F_dXdZ
         dfdz = dF_dZ + (ezz_n-ezz0)*d2F_dZ2+(exx_n-exx0)*d2F_dXdZ
 
@@ -437,9 +543,11 @@ class QHA_ZSISA(HasPickleIO):
         dtol = np.zeros(6)
         stress = np.zeros(6)
 
-        stress_xx = -dfdx/V*(exx_n+1)*0.5 * self.eVA3_HaBohr3
-        stress_zz = -dfdz/V*(ezz_n+1)     * self.eVA3_HaBohr3
+        # Compute thermal stresses . Eq (54)
+        stress_xx = -dfdx/v*(exx_n+1)*0.5 * self.eVA3_HaBohr3
+        stress_zz = -dfdz/v*(ezz_n+1)     * self.eVA3_HaBohr3
 
+        # Apply external pressure
         stress[0] = stress_xx -pressure
         stress[1] = stress_xx -pressure
         stress[2] = stress_zz -pressure
@@ -447,33 +555,44 @@ class QHA_ZSISA(HasPickleIO):
         print ("stress",pressure)
         print (stress[0],stress[2])
 
+        # Calculate the absolute difference (tolerance) between the current stress and the guessed stress
+        # This is used to check the convergence of the stress values during the optimization process
         dtol[0] = abs(stress[0]-self.stress_guess[0,0])
         dtol[1] = abs(stress[1]-self.stress_guess[1,1])
         dtol[2] = abs(stress[2]-self.stress_guess[2,2])
 
-        therm = [0,0,0,0,0,0]
+        therm = None
+        # Check if the stress has converged (all tolerances below 1e-8)
         if all(dtol[i] < 1e-8 for i in range(6)):
-            if os.path.exists("elastic_constant.txt"):
-                matrix_elastic = self.elastic_constants("elastic_constant.txt")
+            if os.path.exists(self.elastic_path):
+                # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
+                matrix_elastic = self.elastic_constants(self.elastic_path)
                 matrix_elastic = np.array(matrix_elastic)
+                # Convert elastic constants to second derivative of BO energy (Eq. 39)
                 matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
+                # Initialize second derivative matrix M using free energy second derivatives.
                 M = np.array([[ d2F_dX2/2 *(exx0+1)**2       , 0                            , d2F_dXdZ/2*(exx0+1)*(ezz0+1) ,0,0,0],
                               [    0                         , d2F_dX2/2 *(exx0+1)**2       , d2F_dXdZ/2*(exx0+1)*(ezz0+1) ,0,0,0],
                               [ d2F_dXdZ/2*(exx0+1)*(ezz0+1) , d2F_dXdZ/2*(exx0+1)*(ezz0+1) , d2F_dZ2*(ezz0+1)**2          ,0,0,0],
                               [0,0,0,0,0,0],
                               [0,0,0,0,0,0],
                               [0,0,0,0,0,0]])
+                # Contribution of pressure to the second derivative matrix
                 P = np.array([[0.0 ,pressure*v,pressure*v  ,0,0,0],
                               [pressure*v ,0.0,pressure*v  ,0,0,0],
                               [pressure*v ,pressure*v,0.0  ,0,0,0],
                               [0,0,0,0,0,0],
                               [0,0,0,0,0,0],
                               [0,0,0,0,0,0]])
+                # Compute the final second derivative matrix M, including elastic and pressure contributions
                 M = M + matrix_elastic+P/self.eVA3_HaBohr3
+                # Scale the first derivative of entropy 
                 S1 = dsdx*(exx_n+1)*0.5
                 S3 = dsdz*(ezz_n+1)
-                S = np.array([S1,S1,S3,0,0,0])
-                dstrain_dt = np.linalg.inv(M) @ S
+                dSde = np.array([S1,S1,S3,0,0,0])
+                # Compute thermal expansion using Eq. (37)
+                dstrain_dt = np.linalg.inv(M) @ dSde
+                # Scale the thermal expansion  
                 therm = [dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(exx_n+1),dstrain_dt[2]*(ezz_n+1),0,0,0]
                 print (therm)
 
@@ -482,12 +601,17 @@ class QHA_ZSISA(HasPickleIO):
 
     def stress_ZSISA_3DOF(self, temp, pressure, mode) -> tuple:
 
+        # Get vibrational free energy and entropy at a specific temperature
+        # e = Vibrational free energy (F_vib)
+        # S = Entropy (S)
         e,S = self.get_vib_free_energies(temp)
 
-        X0 = self.ave_x[0,1,1,0,0,0]
-        Y0 = self.ave_y[1,0,1,0,0,0]
-        Z0 = self.ave_z[1,1,0,0,0,0]
+        # A_x, B_y and C_z from deformed structures based on table IV and eq(42)
+        X0 = self.ave_x[0,1,1,0,0,0] #referance structure - exx0 
+        Y0 = self.ave_y[1,0,1,0,0,0] #referance structure - eyy0 
+        Z0 = self.ave_z[1,1,0,0,0,0] #referance structure - ezz0 
 
+        # A_x, B_y and C_z from reference structure 
         X1 = self.ave_x[1,1,1,0,0,0]
         Y1 = self.ave_y[1,1,1,0,0,0]
         Z1 = self.ave_z[1,1,1,0,0,0]
@@ -496,8 +620,11 @@ class QHA_ZSISA(HasPickleIO):
         YBO = self.ave_y_bo
         ZBO = self.ave_z_bo
 
+        # Compute strain-related quantities. Eq (44)
+        # Strain steps and reference strains
         dexx = (X0-X1)/XBO
         exx0 = X1/XBO-1
+        # Apply symmetries for cubic and uniaxial cases.
         if (self.sym == "cubic"):
             deyy = dezz = dexx
             eyy0 = ezz0 = exx0
@@ -509,14 +636,13 @@ class QHA_ZSISA(HasPickleIO):
         else :
             dexx = (X0-X1)/XBO
             dezz = (Z0-Z1)/ZBO
-            deyy = (Y0-y1)/YBO
+            deyy = (Y0-Y1)/YBO
 
             exx0 = X1/XBO-1
             eyy0 = Y1/YBO-1
             ezz0 = Z1/ZBO-1
 
-
-
+        # Compute first and second derivatives of free energy w.r.t. strains (symmetries are applied)
         dF_dX = (e[0,1,1,0,0,0]-e[2,1,1,0,0,0])/(2*dexx)
         d2F_dX2 = (e[0,1,1,0,0,0]-2*e[1,1,1,0,0,0]+e[2,1,1,0,0,0])/(dexx)**2
         dS_dX = (S[0,1,1,0,0,0]-S[2,1,1,0,0,0])/(2*dexx)
@@ -531,7 +657,6 @@ class QHA_ZSISA(HasPickleIO):
             dS_dZ = (S[1,1,0,0,0,0]-S[1,1,2,0,0,0])/(2*dezz)
             d2S_dZ2 = (S[1,1,0,0,0,0]-2*S[1,1,1,0,0,0]+S[1,1,2,0,0,0])/(dezz)**2
             d2S_dXdZ = (S[1,1,1,0,0,0] - S[0,1,1,0,0,0] - S[1,1,0,0,0,0] + S[0,1,0,0,0,0]) / (dexx *dezz)
-
 
         if (self.sym == "cubic"):
             dF_dY = dF_dX
@@ -567,9 +692,12 @@ class QHA_ZSISA(HasPickleIO):
         d2F_dXdYZ = 0.0
         d2F_dYZ2  = 0.0
         d2F_dXZ2  = 0.0
+        # If elastic constants are requested, compute shear strain steps and their related second derivatives
+        # by fitting a  quadratic curve fitting . section G in APPENDIX.
+        # the nessecery derivative are related to the symmetries. table II.  
         if mode == 'ECs':
-            deyz= (self.ave_y[1,1,1,0,0,0] - self.ave_y[1,1,1,1,0,0])/ZBO
-            #deyz= (self.ave_x[1,1,1,0,0,0] - self.ave_x[1,1,1,1,0,0])/ZBO
+            #deyz= (self.ave_y[1,1,1,0,0,0] - self.ave_y[1,1,1,1,0,0])/ZBO
+            deyz= (self.ave_x[1,1,1,0,0,0] - self.ave_x[1,1,1,1,0,0])/ZBO
             Fyz=[e[1,1,1,2,0,0],e[1,1,1,1,0,0],e[1,1,1,1,0,0],e[1,1,1,2,0,0]]
             Dyz=[2*deyz,deyz,-deyz,-2*deyz]
             param = np.polyfit(Dyz,Fyz,2)
@@ -595,14 +723,12 @@ class QHA_ZSISA(HasPickleIO):
         z = self.ave_z_guess
         v = self.volume_guess
 
-        scale_x_guess = x/XBO
-        scale_y_guess = y/YBO
-        scale_z_guess = z/ZBO
+        # compute BO strain at guess, Eq(44)
+        exx_n = x/XBO-1
+        eyy_n = y/YBO-1
+        ezz_n = z/ZBO-1
 
-        exx_n = scale_x_guess-1
-        eyy_n = scale_y_guess-1
-        ezz_n = scale_z_guess-1
-
+        # Free energy and entropy derivative at guess structure
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2+(eyy_n-eyy0)*d2F_dXdY+(ezz_n-ezz0)*d2F_dXdZ
         dfdy = dF_dY + (eyy_n-eyy0)*d2F_dY2+(exx_n-exx0)*d2F_dXdY+(ezz_n-ezz0)*d2F_dYdZ
         dfdz = dF_dZ + (ezz_n-ezz0)*d2F_dZ2+(exx_n-exx0)*d2F_dXdZ+(eyy_n-eyy0)*d2F_dYdZ
@@ -614,71 +740,15 @@ class QHA_ZSISA(HasPickleIO):
         dtol = np.zeros(6)
         stress = np.zeros(6)
 
+        # Compute thermal stresses . Eq (45)
         stress_xx = -dfdx/v*(exx_n+1)* self.eVA3_HaBohr3
         stress_yy = -dfdy/v*(eyy_n+1)* self.eVA3_HaBohr3
         stress_zz = -dfdz/v*(ezz_n+1)* self.eVA3_HaBohr3
 
-        if os.path.exists("elastic_constant.txt"):
-            matrix_elastic = self.elastic_constants("elastic_constant.txt")
-            matrix_elastic = np.array(matrix_elastic)
-            matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
-            scale_xx=(exx0+1)*(exx0+1)
-            scale_yy=(eyy0+1)*(eyy0+1)
-            scale_zz=(ezz0+1)*(ezz0+1)
-            scale_xz=(exx0+1)*(ezz0+1)
-            scale_yz=(eyy0+1)*(ezz0+1)
-            scale_xy=(exx0+1)*(eyy0+1)
-            M = np.array([[ d2F_dX2*scale_xx, d2F_dXdY*scale_xy ,d2F_dXdZ*scale_xz ,d2F_dXdYZ*scale_xz  ,0.0               ,0.0              ],
-                          [d2F_dXdY*scale_xy, d2F_dY2 *scale_yy ,d2F_dYdZ*scale_yz ,0.0                 ,0.0               ,0.0              ],
-                          [d2F_dXdZ*scale_xz, d2F_dYdZ*scale_yz ,d2F_dZ2 *scale_zz ,0.0                 ,0.0               ,0.0              ],
-                          [d2F_dXdYZ*scale_xz,0.0               ,0.0               ,d2F_dYZ2*scale_zz   ,0.0               ,0.0              ],
-                          [0.0              , 0.0               ,0.0               ,0.0                 ,d2F_dXZ2*scale_zz ,0.0              ],
-                          [0.0              , 0.0               ,0.0               ,0.0                 ,0.0               ,d2F_dXY2*scale_yy]])
-            P = np.array([[0.0 ,pressure*v,pressure*v  ,0,0,0],
-                          [pressure*v ,0.0,pressure*v  ,0,0,0],
-                          [pressure*v ,pressure*v,0.0  ,0,0,0],
-                          [0,0,0,0,0,0],
-                          [0,0,0,0,0,0],
-                          [0,0,0,0,0,0]])
-            M = M + matrix_elastic+P/ self.eVA3_HaBohr3
-            S1 = dsdx*(exx_n+1)
-            S2 = dsdy*(eyy_n+1)
-            S3 = dsdz*(ezz_n+1)
-            S = np.array([S1,S2,S3,0,0,0])
-            dstrain_dt = np.linalg.inv(M) @ S
-            therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),0,0,0]
-            print ("therm")
-            print (therm)
-            M=M/v*abu.eVA3_GPa
-
-            with open("elastic.txt", "w") as f:
-                f.write("Elastic [GPa] \n")
-                if mode == 'ECs':
-                    if self.sym == "cubic":
-                        f.write(f"    {'C11':12s} {'C12':12s} {'C44':12s}\n")
-                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[3,3]:12.6f} \n")
-                    elif self.sym == "hexagonal":
-                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s}\n")
-                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} \n")
-                    elif self.sym == "trigonal":
-                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C14':12s} {'C44':12s}\n")
-                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[0,3]:12.6f} {M[3,3]:12.6f} \n")
-                    elif self.sym == "tetragonal":
-                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s} {'C66':12s}\n")
-                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[5,5]:12.6f} \n")
-                    if  self.sym == "orthorhombic":
-                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} {'C44':12s} {'C55':12s} {'C66':12s}\n")
-                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[4,4]:12.6f} {M[5,5]:12.6f} \n")
-                else:
-                    f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} \n")
-                    f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f}  \n")
-        else:
-            therm = [0,0,0,0,0,0]
-
         stress[0] = stress_xx -pressure
         stress[1] = stress_yy -pressure
         stress[2] = stress_zz -pressure
-        print (scale_x_guess,scale_y_guess,scale_z_guess)
+        print (x/XBO,y/YBO, z/ZBO)
         print ("stress")
         print (stress[0],stress[1],stress[2])
 
@@ -686,10 +756,83 @@ class QHA_ZSISA(HasPickleIO):
         dtol[1] = abs(stress[1]-self.stress_guess[1,1])
         dtol[2] = abs(stress[2]-self.stress_guess[2,2])
 
+        therm = None
+        # Check if the stress has converged (all tolerances below 1e-8)
+        if all(dtol[i] < 1e-8 for i in range(6)):
+            if os.path.exists(self.elastic_path):
+                matrix_elastic = self.elastic_constants(self.elastic_path)
+                # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
+                matrix_elastic = np.array(matrix_elastic)
+                # Convert elastic constants to second derivative of BO energy (Eq. 39)
+                matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
+                scale_xx=(exx0+1)*(exx0+1)
+                scale_yy=(eyy0+1)*(eyy0+1)
+                scale_zz=(ezz0+1)*(ezz0+1)
+                scale_xz=(exx0+1)*(ezz0+1)
+                scale_yz=(eyy0+1)*(ezz0+1)
+                scale_xy=(exx0+1)*(eyy0+1)
+                # Initialize the second derivative matrix M using free energy second derivatives.
+                # For 'TEC' mode or certain symmetries, the terms d2F_dXdYZ, d2F_dYZ2, d2F_dXZ2, d2F_dXY2 are zero.
+                # These terms don't contribute to thermal expansion calculations because, due to the structure symmetries,
+                # the first derivatives of free energy and entropy are zero for shear strains.
+                M = np.array([[ d2F_dX2*scale_xx, d2F_dXdY*scale_xy ,d2F_dXdZ*scale_xz ,d2F_dXdYZ*scale_xz  ,0.0               ,0.0              ],
+                              [d2F_dXdY*scale_xy, d2F_dY2 *scale_yy ,d2F_dYdZ*scale_yz ,0.0                 ,0.0               ,0.0              ],
+                              [d2F_dXdZ*scale_xz, d2F_dYdZ*scale_yz ,d2F_dZ2 *scale_zz ,0.0                 ,0.0               ,0.0              ],
+                              [d2F_dXdYZ*scale_xz,0.0               ,0.0               ,d2F_dYZ2*scale_zz   ,0.0               ,0.0              ],
+                              [0.0              , 0.0               ,0.0               ,0.0                 ,d2F_dXZ2*scale_zz ,0.0              ],
+                              [0.0              , 0.0               ,0.0               ,0.0                 ,0.0               ,d2F_dXY2*scale_yy]])
+                # Contribution of pressure to the second derivative matrix
+                P = np.array([[0.0 ,pressure*v,pressure*v  ,0,0,0],
+                              [pressure*v ,0.0,pressure*v  ,0,0,0],
+                              [pressure*v ,pressure*v,0.0  ,0,0,0],
+                              [0,0,0,0,0,0],
+                              [0,0,0,0,0,0],
+                              [0,0,0,0,0,0]])
+                # Compute the final second derivative matrix M, including elastic and pressure contributions
+                M = M + matrix_elastic+P/ self.eVA3_HaBohr3
+                # Scale the first derivative of entropy 
+                S1 = dsdx*(exx_n+1)
+                S2 = dsdy*(eyy_n+1)
+                S3 = dsdz*(ezz_n+1)
+                dSde = np.array([S1,S2,S3,0,0,0])
+                # Compute thermal expansion using Eq. (37)
+                dstrain_dt = np.linalg.inv(M) @ dSde
+                # Scale the thermal expansion  
+                therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),0,0,0]
+                print ("therm")
+                print (therm)
+                M=M/v*abu.eVA3_GPa
+
+                # Write elastic constants in a file for each symmetries
+                with open("elastic.txt", "w") as f:
+                    f.write("Elastic [GPa] \n")
+                    if mode == 'ECs':
+                        if self.sym == "cubic":
+                            f.write(f"    {'C11':12s} {'C12':12s} {'C44':12s}\n")
+                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[3,3]:12.6f} \n")
+                        elif self.sym == "hexagonal":
+                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s}\n")
+                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} \n")
+                        elif self.sym == "trigonal":
+                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C14':12s} {'C44':12s}\n")
+                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[0,3]:12.6f} {M[3,3]:12.6f} \n")
+                        elif self.sym == "tetragonal":
+                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s} {'C66':12s}\n")
+                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[5,5]:12.6f} \n")
+                        if  self.sym == "orthorhombic":
+                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} {'C44':12s} {'C55':12s} {'C66':12s}\n")
+                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[4,4]:12.6f} {M[5,5]:12.6f} \n")
+                    else:
+                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} \n")
+                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} \n")
+
         return dtol, stress, therm
 
     def stress_ZSISA_monoclinic(self, temp, pressure, mode) -> tuple:
 
+        # Get vibrational free energy and entropy at a specific temperature
+        # e = Vibrational free energy (F_vib)
+        # S = Entropy (S)
         e,S = self.get_vib_free_energies(temp)
         AxBO =self.ax_bo
         ByBO =self.by_bo
@@ -698,6 +841,7 @@ class QHA_ZSISA(HasPickleIO):
         CxBO =self.cx_bo
         CyBO =self.cy_bo
 
+        # Reference structure 
         Ax1 = self.ax[1,1,1,1,1,1]
         Bx1 = self.bx[1,1,1,1,1,1]
         By1 = self.by[1,1,1,1,1,1]
@@ -705,24 +849,31 @@ class QHA_ZSISA(HasPickleIO):
         Cy1 = self.cy[1,1,1,1,1,1]
         Cz1 = self.cz[1,1,1,1,1,1]
 
-        Ax0 =self.ax[0,1,1,1,1,1]
-        By0 =self.by[1,0,1,1,1,1]
-        Cz0 =self.cz[1,1,0,1,1,1]
-        Bx0 =self.bx[1,1,1,1,1,0]
-        Cx0 =self.cx[0,1,1,1,0,1]
-        Cy0 =self.cy[1,1,1,0,1,1]
+        # Adjust lattice variation from deformed structures based on table IV and eq(46)
+        Ax0 =self.ax[0,1,1,1,1,1] #referance structure - exx0 
+        By0 =self.by[1,0,1,1,1,1] #referance structure - eyy0
+        Cz0 =self.cz[1,1,0,1,1,1] #referance structure - ezz0
+        Bx0 =self.bx[1,1,1,1,1,0] #referance structure - exy0
+        Cx0 =self.cx[1,1,1,1,0,1] #referance structure - exz0 
+        Cy0 =self.cy[1,1,1,0,1,1] #referance structure - eyz0
 
+        # Compute strain-related quantities. Eq (47)
+        # Strain steps and 
         dexx= (Ax0-Ax1)/AxBO
         deyy= (By0-By1)/ByBO
         dezz= (Cz0-Cz1)/CzBO
-        dexz= (AxBO*(Cx0-Cx1)-(Ax0-Ax1)*CxBO)/(AxBO*CzBO)
+        #dexz= (AxBO*(Cx0-Cx1)-(Ax0-Ax1)*CxBO)/(AxBO*CzBO)
+        dexz= (Cx0-Cx1)/CzBO
 
+        #Reference strains
         exx0= Ax1/AxBO-1
         eyy0= By1/ByBO-1
         ezz0= Cz1/CzBO-1
         exz0= (AxBO*Cx1-Ax1*CxBO)/(AxBO*CzBO)
+        print(dexx, deyy, dezz, dexz)
+        print(exx0, eyy0, ezz0, exz0)
 
-
+        # Compute first and second derivatives of free energy w.r.t. strains 
         dF_dA1   = (e[0,1,1,1,1,1]-e[2,1,1,1,1,1])/(2*dexx)
         dF_dB2   = (e[1,0,1,1,1,1]-e[1,2,1,1,1,1])/(2*deyy)
         dF_dC3   = (e[1,1,0,1,1,1]-e[1,1,2,1,1,1])/(2*dezz)
@@ -768,16 +919,19 @@ class QHA_ZSISA(HasPickleIO):
         c = self.lattice_c_guess
         v = self.volume_guess
 
+        # Reconstruct the latice vectores to find the standard lattice vector of monoclinic
         ax= a
         by= b
         cz= c*math.sin(math.pi*self.angles_guess[1]/180)
         cx= c*math.cos(math.pi*self.angles_guess[1]/180)
 
+        # compute BO strain at guess, Eq(47)
         exx_n= ax/AxBO-1
         eyy_n= by/ByBO-1
         ezz_n= cz/CzBO-1
         exz_n= (AxBO*cx-ax*CxBO)/(AxBO*CzBO)
 
+        # Free energy and entropy derivative at guess structure
         dfda1= dF_dA1 + (exx_n-exx0)*d2F_dA12+(eyy_n-eyy0)*d2F_dA1dB2+(ezz_n-ezz0)*d2F_dA1dC3+(exz_n-exz0)*d2F_dA1dC1
         dfdb2= dF_dB2 + (eyy_n-eyy0)*d2F_dB22+(exx_n-exx0)*d2F_dA1dB2+(ezz_n-ezz0)*d2F_dB2dC3+(exz_n-exz0)*d2F_dB2dC1
         dfdc3= dF_dC3 + (ezz_n-ezz0)*d2F_dC32+(exx_n-exx0)*d2F_dA1dC3+(eyy_n-eyy0)*d2F_dB2dC3+(exz_n-exz0)*d2F_dC3dC1
@@ -791,6 +945,7 @@ class QHA_ZSISA(HasPickleIO):
         dtol   =np.zeros(6)
         stress =np.zeros(6)
 
+        # Compute thermal stresses . Eq (47)
         stress_a1= -dfda1/v*(exx_n+1)* self.eVA3_HaBohr3
         stress_b2= -dfdb2/v*(eyy_n+1)* self.eVA3_HaBohr3
         stress_c3= -dfdc3/v*(ezz_n+1)* self.eVA3_HaBohr3
@@ -798,66 +953,7 @@ class QHA_ZSISA(HasPickleIO):
         print (ax/AxBO, by/ByBO, cz/CzBO)
         print (stress_a1,stress_b2,stress_c3,stress_c1)
 
-        if os.path.exists("elastic_constant.txt"):
-            if mode == 'ECs':
-                dexy= (Bx0-Bx1)/(ByBO)
-                deyz= (Cy0-Cy1)/(CzBO)
-                d2F_dB12 = (e[1,1,1,1,1,0]-2*e[1,1,1,1,1,1]+e[1,1,1,1,1,0])/(deyz)**2
-                d2F_dC22 = (e[1,1,1,0,1,1]-2*e[1,1,1,1,1,1]+e[1,1,1,0,1,1])/(dexy)**2
-                d2F_dB1dC2 = (e[1,1,1,1,1,1] - e[1,1,1,0,1,1] - e[1,1,1,1,1,0] + e[1,1,1,0,1,0]) / (dexy *deyz)
-            else:
-                d2F_dB12 =  0.0
-                d2F_dC22 =  0.0
-                d2F_dB1dC2= 0.0
-            matrix_elastic=self.elastic_constants("elastic_constant.txt")
-            matrix_elastic = np.array(matrix_elastic)
-            matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
-            scale_xx=(exx0+1)*(exx0+1)
-            scale_yy=(eyy0+1)*(eyy0+1)
-            scale_zz=(ezz0+1)*(ezz0+1)
-            scale_xz=(exx0+1)*(ezz0+1)
-            scale_yz=(eyy0+1)*(ezz0+1)
-            scale_xy=(exx0+1)*(eyy0+1)
-            M = np.array([[ d2F_dA12 *scale_xx, d2F_dA1dB2*scale_xy ,d2F_dA1dC3*scale_xz ,0.0                 ,d2F_dA1dC1*scale_xz ,0.0                ],
-                          [d2F_dA1dB2*scale_xy, d2F_dB22  *scale_yy ,d2F_dB2dC3*scale_yz ,0.0                 ,d2F_dB2dC1*scale_yz ,0.0                ],
-                          [d2F_dA1dC3*scale_xz, d2F_dB2dC3*scale_yz ,d2F_dC32  *scale_zz ,0.0                 ,d2F_dC3dC1*scale_zz ,0.0                ],
-                          [0.0                , 0.0                 ,0.0                 ,d2F_dC22  *scale_zz ,0.0                 ,d2F_dB1dC2*scale_yz],
-                          [d2F_dA1dC1*scale_xz, d2F_dB2dC1*scale_yz ,d2F_dC3dC1*scale_zz ,0.0                 ,d2F_dC12  *scale_zz ,0.0                ],
-                          [0.0                , 0.0                 ,0.0                 ,d2F_dB1dC2*scale_yz ,0.0                 ,d2F_dB12  *scale_yy]])
-            P = np.array([[0.0 ,pressure*v,pressure*v  ,0,0,0],
-                          [pressure*v ,0.0,pressure*v  ,0,0,0],
-                          [pressure*v ,pressure*v,0.0  ,0,0,0],
-                          [0,0,0,0,0,0],
-                          [0,0,0,0,0,0],
-                          [0,0,0,0,0,0]])
-            M = M + matrix_elastic+P/ self.eVA3_HaBohr3
-            S1= dsda1*(exx_n+1)
-            S2= dsdb2*(eyy_n+1)
-            S3= dsdc3*(ezz_n+1)
-            S4= 0.0
-            S5= dsdc1*(ezz_n+1)+dsda1*exz_n
-            S6= 0.0
-            S = np.array([S1,S2,S3,S4,S5,S6])
-            dstrain_dt = np.linalg.inv(M) @ S
-            #therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),0,dstrain_dt[4]*(ezz_n+1)+dstrain_dt[0]*exz_n,0]
-            therm=[dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1)-(dstrain_dt[4]*(ezz_n+1)+dstrain_dt[0]*exz_n)/cz,0,-dstrain_dt[4],0]
-
-            M=M/v*abu.eVA3_GPa
-            with open("elastic.txt", "w") as f:
-                f.write("Elastic [GPa] \n")
-                if mode != 'ECs':
-                    f.write(f" Warning: C44, C46, and C66 do not include the free energy contribution (only BO energy).\n")
-                f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
-                f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
-                f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
-                f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
-                f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
-                f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
-                f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
-            print ("therm")
-            print (therm)
-        else:
-            therm = [0,0,0,0,0,0]
+        therm = None
 
         stress[0] = stress_a1 -pressure
         stress[1] = stress_b2 -pressure
@@ -868,11 +964,85 @@ class QHA_ZSISA(HasPickleIO):
         dtol[1] = abs(stress[1]-self.stress_guess[1,1])
         dtol[2] = abs(stress[2]-self.stress_guess[2,2])
         dtol[4] = abs(stress[4]-self.stress_guess[2,0])
+        # Check if the stress has converged (all tolerances below 1e-8)
+        if all(dtol[i] < 1e-8 for i in range(6)):
+            if os.path.exists(self.elastic_path):
+                # If elastic constants are requested, compute the second derivatives for C44, C66, and C46
+                if mode == 'ECs':
+                    dexy= (Bx0-Bx1)/(ByBO)
+                    deyz= (Cy0-Cy1)/(CzBO)
+                    d2F_dB12 = (e[1,1,1,1,1,0]-2*e[1,1,1,1,1,1]+e[1,1,1,1,1,0])/(deyz)**2
+                    d2F_dC22 = (e[1,1,1,0,1,1]-2*e[1,1,1,1,1,1]+e[1,1,1,0,1,1])/(dexy)**2
+                    d2F_dB1dC2 = (e[1,1,1,1,1,1] - e[1,1,1,0,1,1] - e[1,1,1,1,1,0] + e[1,1,1,0,1,0]) / (dexy *deyz)
+                else:
+                    d2F_dB12 =  0.0
+                    d2F_dC22 =  0.0
+                    d2F_dB1dC2= 0.0
+                matrix_elastic=self.elastic_constants(self.elastic_path)
+                # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
+                matrix_elastic = np.array(matrix_elastic)
+                # Convert elastic constants to second derivative of BO energy (Eq. 39)
+                matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
+                scale_xx=(exx0+1)*(exx0+1)
+                scale_yy=(eyy0+1)*(eyy0+1)
+                scale_zz=(ezz0+1)*(ezz0+1)
+                scale_xz=(exx0+1)*(ezz0+1)
+                scale_yz=(eyy0+1)*(ezz0+1)
+                scale_xy=(exx0+1)*(eyy0+1)
+                # Initialize the second derivative matrix M using free energy second derivatives.
+                # d2F_dC22, d2F_dB1dC2, d2F_dB12 are zero in 'TEC' mode and do not contribute to thermal expansion calculations
+                # due to monoclinic symmetry, where the first derivatives of free energy and entropy in the yz and xy directions are zero.
+                M = np.array([[ d2F_dA12 *scale_xx, d2F_dA1dB2*scale_xy ,d2F_dA1dC3*scale_xz ,0.0                 ,d2F_dA1dC1*scale_xz ,0.0                ],
+                              [d2F_dA1dB2*scale_xy, d2F_dB22  *scale_yy ,d2F_dB2dC3*scale_yz ,0.0                 ,d2F_dB2dC1*scale_yz ,0.0                ],
+                              [d2F_dA1dC3*scale_xz, d2F_dB2dC3*scale_yz ,d2F_dC32  *scale_zz ,0.0                 ,d2F_dC3dC1*scale_zz ,0.0                ],
+                              [0.0                , 0.0                 ,0.0                 ,d2F_dC22  *scale_zz ,0.0                 ,d2F_dB1dC2*scale_yz],
+                              [d2F_dA1dC1*scale_xz, d2F_dB2dC1*scale_yz ,d2F_dC3dC1*scale_zz ,0.0                 ,d2F_dC12  *scale_zz ,0.0                ],
+                              [0.0                , 0.0                 ,0.0                 ,d2F_dB1dC2*scale_yz ,0.0                 ,d2F_dB12  *scale_yy]])
+                # Contribution of pressure to the second derivative matrix
+                P = np.array([[0.0 ,pressure*v,pressure*v  ,0,0,0],
+                              [pressure*v ,0.0,pressure*v  ,0,0,0],
+                              [pressure*v ,pressure*v,0.0  ,0,0,0],
+                              [0,0,0,0,0,0],
+                              [0,0,0,0,0,0],
+                              [0,0,0,0,0,0]])
+                # Compute the final second derivative matrix M, including elastic and pressure contributions
+                M = M + matrix_elastic+P/ self.eVA3_HaBohr3
+                # Scale the first derivative of entropy 
+                S1= dsda1*(exx_n+1)
+                S2= dsdb2*(eyy_n+1)
+                S3= dsdc3*(ezz_n+1)
+                S4= 0.0
+                S5= dsdc1*(ezz_n+1)+dsda1*exz_n
+                S6= 0.0
+                dSde = np.array([S1,S2,S3,S4,S5,S6])
+                # Compute thermal expansion using Eq. (37)
+                dstrain_dt = np.linalg.inv(M) @ dSde
+                # Scale the thermal expansion (TOFIX) 
+                #therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),0,dstrain_dt[4]*(ezz_n+1)+dstrain_dt[0]*exz_n,0]
+                therm=[dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1)-(dstrain_dt[4]*(ezz_n+1)+dstrain_dt[0]*exz_n)/cz,0,-dstrain_dt[4],0]
+                M=M/v*abu.eVA3_GPa
+                # Write elastic constants in a file for each symmetries
+                with open("elastic.txt", "w") as f:
+                    f.write("Elastic [GPa] \n")
+                    if mode != 'ECs':
+                        f.write(f" Warning: C44, C46, and C66 do not include the free energy contribution (only BO energy).\n")
+                    f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
+                    f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
+                    f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
+                    f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
+                    f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
+                    f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
+                    f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
+                print ("therm")
+                print (therm)
 
         return dtol, stress , therm
 
     def stress_ZSISA_triclinic(self, temp, pressure, mode) -> tuple:
 
+        # Get vibrational free energy and entropy at a specific temperature
+        # e = Vibrational free energy (F_vib)
+        # S = Entropy (S)
         e,S = self.get_vib_free_energies(temp)
 
         AxBO =self.ax_bo
@@ -882,13 +1052,15 @@ class QHA_ZSISA(HasPickleIO):
         CxBO =self.cx_bo
         CyBO =self.cy_bo
 
-        Ax0 = self.ax[0,1,1,1,1,1]
-        Bx0 = self.bx[0,1,1,1,1,0]
-        By0 = self.by[1,0,1,1,1,1]
-        Cx0 = self.cx[0,1,1,1,1,0]+0.5*(self.cx[1,1,1,1,0,1]-self.cx[1,1,1,1,2,1])
-        Cy0 = self.cy[1,0,1,0,1,1]
-        Cz0 = self.cz[1,1,0,1,1,1]
+        # Adjust lattice variation from deformed structures based on table IV and eq(55)
+        Ax0 = self.ax[0,1,1,1,1,1] #referance structure - exx0 
+        Bx0 = self.bx[1,1,1,1,1,0] #referance structure - exy0
+        By0 = self.by[1,0,1,1,1,1] #referance structure - eyy0
+        Cx0 = self.cx[1,1,1,1,0,1] #referance structure - exz0
+        Cy0 = self.cy[1,1,1,0,1,1] #referance structure - eyz0 
+        Cz0 = self.cz[1,1,0,1,1,1] #referance structure - ezz0
 
+        # Reference structure 
         Ax1 = self.ax[1,1,1,1,1,1]
         Bx1 = self.bx[1,1,1,1,1,1]
         By1 = self.by[1,1,1,1,1,1]
@@ -896,22 +1068,26 @@ class QHA_ZSISA(HasPickleIO):
         Cy1 = self.cy[1,1,1,1,1,1]
         Cz1 = self.cz[1,1,1,1,1,1]
 
-        V = self.volume_guess
-
+        # Compute strain-related quantities. Eq (56)
+        # Strain steps and 
         dexx = (Ax0-Ax1)/AxBO
         deyy = (By0-By1)/ByBO
         dezz = (Cz0-Cz1)/CzBO
-        dexy = (AxBO*(Bx0-Bx1)-(Ax0-Ax1)*BxBO)/(AxBO*ByBO)
-        deyz = (ByBO*(Cy0-Cy1)-(By0-By1)*CyBO)/(ByBO*CzBO)
-        dexz = (AxBO*(ByBO*(Cx0-Cx1)-(Bx0-Bx1)*CyBO)-(Ax0-Ax1)*(ByBO*CxBO-BxBO*CyBO))/(AxBO*ByBO*CzBO)
+        dexy = (Bx0-Bx1)/ByBO
+        deyz = (Cy0-Cy1)/CzBO
+        dexz = (Cx0-Cx1)/CzBO
 
+        #Reference strains
         exx0 = Ax1/AxBO-1
         eyy0 = By1/ByBO-1
         ezz0 = Cz1/CzBO-1
-        exy0 = (Ax0*Bx1-Ax1*Bx0)/(AxBO*ByBO)
-        eyz0 = (By0*Cy1-By1*Cy0)/(ByBO*CzBO)
+        exy0 = (AxBO*Bx1-Ax1*BxBO)/(AxBO*ByBO)
+        eyz0 = (ByBO*Cy1-By1*CyBO)/(ByBO*CzBO)
         exz0 = (AxBO*(ByBO*Cx1-Bx1*CyBO)-Ax1*(ByBO*CxBO-BxBO*CyBO))/(AxBO*ByBO*CzBO)
+       # print(dexx, deyy, dezz, dexz ,deyz ,dexz)
+       # print(exx0, eyy0, ezz0, exz0, eyz0, exz0)
 
+        # Compute first and second derivatives of free energy w.r.t. strains 
         dF_dA1 = (e[0,1,1,1,1,1]-e[2,1,1,1,1,1])/(2*dexx)
         dF_dB2 = (e[1,0,1,1,1,1]-e[1,2,1,1,1,1])/(2*deyy)
         dF_dC3 = (e[1,1,0,1,1,1]-e[1,1,2,1,1,1])/(2*dezz)
@@ -980,6 +1156,7 @@ class QHA_ZSISA(HasPickleIO):
 
         d2S_dB1dC1 = (S[1,1,1,1,1,1] - S[1,1,1,1,0,1] - S[1,1,1,1,1,0] + S[1,1,1,1,0,0]) / (dexz *dexy)
 
+        # Reconstruct the latice vectores to find the standard lattice vector of monoclinic
         a = self.lattice_a_guess
         b = self.lattice_b_guess
         c = self.lattice_c_guess
@@ -989,11 +1166,11 @@ class QHA_ZSISA(HasPickleIO):
         cos_bc = math.cos(math.pi*self.angles_guess[0]/180)
 
         ax = 1.0
-        ay = 0.0
-        az = 0.0
+        #ay = 0.0
+        #az = 0.0
         bx = cos_ab
         by = np.sqrt(1-cos_ab**2)
-        bz = 0.0
+        #bz = 0.0
         cx = cos_ac
         cy = (cos_bc-bx*cx)/by
         cz = np.sqrt(1.0-cx**2-cy**2)
@@ -1005,12 +1182,13 @@ class QHA_ZSISA(HasPickleIO):
         cz = cz*c
         v = self.volume_guess
 
+        # Compute BO strain at guess, Eq(56)
         exx_n = ax/Ax0-1
         eyy_n = by/By0-1
         ezz_n = cz/Cz0-1
-        exy_n = (Ax0*bx-ax*Bx0)/(Ax0*By0)
-        eyz_n = (By0*cy-by*Cy0)/(By0*Cz0)
-        exz_n = (Ax0*(By0*cx-bx*Cy0)-ax*(By0*Cx0-Bx0*Cy0))/(Ax0*By0*Cz0)
+        exy_n = (AxBO*bx-ax*BxBO)/(AxBO*ByBO)
+        eyz_n = (ByBO*cy-by*CyBO)/(ByBO*CzBO)
+        exz_n = (AxBO*(ByBO*cx-bx*CyBO)-ax*(ByBO*CxBO-BxBO*CyBO))/(AxBO*ByBO*CzBO)
 
         dfda1 = dF_dA1 + (exx_n-exx0)*d2F_dA12+(eyy_n-eyy0)*d2F_dA1dB2+(ezz_n-ezz0)*d2F_dA1dC3+(exy_n-exy0)*d2F_dA1dB1+(exz_n-exz0)*d2F_dA1dC1+(eyz_n-eyz0)*d2F_dA1dC2
         dfdb2 = dF_dB2 + (eyy_n-eyy0)*d2F_dB22+(exx_n-exx0)*d2F_dA1dB2+(ezz_n-ezz0)*d2F_dB2dC3+(exy_n-exy0)*d2F_dB2dB1+(exz_n-exz0)*d2F_dB2dC1+(eyz_n-eyz0)*d2F_dB2dC2
@@ -1029,52 +1207,13 @@ class QHA_ZSISA(HasPickleIO):
         dtol = np.zeros(6)
         stress = np.zeros(6)
 
-        stress_a1 = -dfda1/V*(exx_n+1) * self.eVA3_HaBohr3
-        stress_b2 = -dfdb2/V*(eyy_n+1) * self.eVA3_HaBohr3
-        stress_c3 = -dfdc3/V*(ezz_n+1) * self.eVA3_HaBohr3
-        stress_b1 = -1.0/V*(dfdb1*(eyy_n+1)+dfda1*exy_n) * self.eVA3_HaBohr3
-        stress_c2 = -1.0/V*(dfdc2*(ezz_n+1)+dfdb2*eyz_n) * self.eVA3_HaBohr3
-        stress_c1 = -1.0/V*(dfdc1*(ezz_n+1)+dfdb1*eyz_n+dfda1*exz_n) * self.eVA3_HaBohr3
-
-        if os.path.exists("elastic_constant.txt"):
-            matrix_elastic = self.elastic_constants("elastic_constant.txt")
-            matrix_elastic = np.array(matrix_elastic)
-            matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
-            M = np.array([[ d2F_dA12, d2F_dA1dB2, d2F_dA1dC3 , d2F_dA1dC2, d2F_dA1dC1, d2F_dA1dB1],
-                          [d2F_dA1dB2, d2F_dB22, d2F_dB2dC3 , d2F_dB2dC2, d2F_dB2dC1, d2F_dB2dB1],
-                          [d2F_dA1dC3, d2F_dB2dC3, d2F_dC32  , d2F_dC3dC2, d2F_dC3dC1, d2F_dC3dB1],
-                          [d2F_dA1dC2, d2F_dB2dC2, d2F_dC3dC2, d2F_dC22 , d2F_dC1dC2, d2F_dB1dC2],
-                          [d2F_dA1dC1, d2F_dB2dC1, d2F_dC3dC1, d2F_dC1dC2, d2F_dC12  , d2F_dB1dC1],
-                          [d2F_dA1dB1, d2F_dB2dB1, d2F_dC3dB1, d2F_dB1dC2, d2F_dB1dC1, d2F_dB12  ]])
-            P = np.array([[0.0,pressure*v,pressure*v,0,0,0],
-                          [pressure*v,0.0,pressure*v,0,0,0],
-                          [pressure*v,pressure*v,0.0,0,0,0],
-                          [0,0,0,0,0,0],
-                          [0,0,0,0,0,0],
-                          [0,0,0,0,0,0]])
-            M = M + matrix_elastic+P/ self.eVA3_HaBohr3
-            S1 = dsda1*(exx_n+1)
-            S2 = dsdb2*(eyy_n+1)
-            S3 = dsdc3*(ezz_n+1)
-            S4 = (dsdc2*(ezz_n+1)+dsdb2*eyz_n)
-            S5 = (dsdc1*(ezz_n+1)+dsdb1*eyz_n+dsda1*exz_n)
-            S6 = (dsdb1*(eyy_n+1)+dsda1*exy_n)
-
-            S = np.array([S1,S2,S3,S4,S5,S6])
-            dstrain_dt = np.linalg.inv(M) @ S
-            M=M/v*abu.eVA3_GPa
-            with open("elastic.txt", "w") as f:
-                f.write("Elastic [GPa] \n")
-                f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
-                f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
-                f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
-                f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
-                f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
-                f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
-                f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
-            therm = [dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),dstrain_dt[3]*(eyz_n),dstrain_dt[4]*(exz_n),dstrain_dt[5]*(exy_n)]
-        else:
-            therm = [0,0,0,0,0,0]
+        # Compute thermal stresses . Eq (57)
+        stress_a1 = -dfda1/v*(exx_n+1) * self.eVA3_HaBohr3
+        stress_b2 = -dfdb2/v*(eyy_n+1) * self.eVA3_HaBohr3
+        stress_c3 = -dfdc3/v*(ezz_n+1) * self.eVA3_HaBohr3
+        stress_b1 = -1.0/v*(dfdb1*(eyy_n+1)+dfda1*exy_n) * self.eVA3_HaBohr3
+        stress_c2 = -1.0/v*(dfdc2*(ezz_n+1)+dfdb2*eyz_n) * self.eVA3_HaBohr3
+        stress_c1 = -1.0/v*(dfdc1*(ezz_n+1)+dfdb1*eyz_n+dfda1*exz_n) * self.eVA3_HaBohr3
 
 
         stress[0] = stress_a1 -pressure
@@ -1094,6 +1233,62 @@ class QHA_ZSISA(HasPickleIO):
         dtol[3] = abs(stress[3]-self.stress_guess[2,1])
         dtol[4] = abs(stress[4]-self.stress_guess[2,0])
         dtol[5] = abs(stress[5]-self.stress_guess[1,0])
+        therm = None
+
+        # Check if the stress has converged (all tolerances below 1e-8)
+        if all(dtol[i] < 1e-8 for i in range(6)):
+            if os.path.exists(self.elastic_path):
+                # If elastic constants are requested, compute the second derivatives for C44, C66, and C46
+                matrix_elastic = self.elastic_constants(self.elastic_path)
+                # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
+                matrix_elastic = np.array(matrix_elastic)
+                # Convert elastic constants to second derivative of BO energy (Eq. 39)
+                matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
+                scale_xx=(exx0+1)*(exx0+1)
+                scale_yy=(eyy0+1)*(eyy0+1)
+                scale_zz=(ezz0+1)*(ezz0+1)
+                scale_xz=(exx0+1)*(ezz0+1)
+                scale_yz=(eyy0+1)*(ezz0+1)
+                scale_xy=(exx0+1)*(eyy0+1)
+                # Initialize the second derivative matrix M using free energy second derivatives.
+                M = np.array([[ d2F_dA12 *scale_xx, d2F_dA1dB2*scale_xy ,d2F_dA1dC3*scale_xz ,d2F_dA1dC2*scale_xz ,d2F_dA1dC1*scale_xz ,d2F_dA1dB1*scale_xy],
+                              [d2F_dA1dB2*scale_xy, d2F_dB22  *scale_yy ,d2F_dB2dC3*scale_yz ,d2F_dB2dC2*scale_yz ,d2F_dB2dC1*scale_yz ,d2F_dB2dB1*scale_yy],
+                              [d2F_dA1dC3*scale_xz, d2F_dB2dC3*scale_yz ,d2F_dC32  *scale_zz ,d2F_dC3dC2*scale_zz ,d2F_dC3dC1*scale_zz ,d2F_dC3dB1*scale_yz],
+                              [d2F_dA1dC2*scale_xz, d2F_dB2dC2*scale_yz ,d2F_dC3dC2*scale_zz ,d2F_dC22  *scale_zz ,d2F_dC1dC2*scale_zz ,d2F_dB1dC2*scale_yz],
+                              [d2F_dA1dC1*scale_xz, d2F_dB2dC1*scale_yz ,d2F_dC3dC1*scale_zz ,d2F_dC1dC2*scale_zz ,d2F_dC12  *scale_zz ,d2F_dB1dC1*scale_yz],
+                              [d2F_dA1dB1*scale_xy, d2F_dB2dB1*scale_yy ,d2F_dC3dB1*scale_yz ,d2F_dB1dC2*scale_yz ,d2F_dB1dC1*scale_yz ,d2F_dB12  *scale_yy]])
+                # Contribution of pressure to the second derivative matrix
+                P = np.array([[0.0 ,pressure*v,pressure*v  ,0,0,0],
+                              [pressure*v ,0.0,pressure*v  ,0,0,0],
+                              [pressure*v ,pressure*v,0.0  ,0,0,0],
+                              [0,0,0,0,0,0],
+                              [0,0,0,0,0,0],
+                              [0,0,0,0,0,0]])
+                # Compute the final second derivative matrix M, including elastic and pressure contributions
+                M = M + matrix_elastic+P/ self.eVA3_HaBohr3
+                # Scale the first derivative of entropy 
+                S1 = dsda1*(exx_n+1)
+                S2 = dsdb2*(eyy_n+1)
+                S3 = dsdc3*(ezz_n+1)
+                S4 = (dsdc2*(ezz_n+1)+dsdb2*eyz_n)
+                S5 = (dsdc1*(ezz_n+1)+dsdb1*eyz_n+dsda1*exz_n)
+                S6 = (dsdb1*(eyy_n+1)+dsda1*exy_n)
+
+                dSde = np.array([S1,S2,S3,S4,S5,S6])
+                # Compute thermal expansion using Eq. (37)
+                dstrain_dt = np.linalg.inv(M) @ dSde
+                #therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),0,dstrain_dt[4]*(ezz_n+1)+dstrain_dt[0]*exz_n,0]
+                therm = [dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),dstrain_dt[3]*(eyz_n),dstrain_dt[4]*(exz_n),dstrain_dt[5]*(exy_n)]
+                M=M/v*abu.eVA3_GPa
+                with open("elastic.txt", "w") as f:
+                    f.write("Elastic [GPa] \n")
+                    f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
+                    f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
+                    f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
+                    f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
+                    f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
+                    f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
+                    f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
 
         return dtol, stress, therm
     # **************************************************************************************
@@ -1223,13 +1418,13 @@ class QHA_ZSISA(HasPickleIO):
         cos_ab = math.cos(math.pi*self.angles_guess[2]/180)
 
         ax = a
-        ay = 0.0
-        az = 0.0
+        #ay = 0.0
+        #az = 0.0
         bx = b*cos_ab
         by = b*np.sqrt(1-cos_ab**2)
-        bz = 0.0
-        cx = 0.0
-        cy = 0.0
+        #bz = 0.0
+        #cx = 0.0
+        #cy = 0.0
         cz = c
 
         exx_n = ax/Ax0-1
@@ -1258,7 +1453,8 @@ class QHA_ZSISA(HasPickleIO):
 
         return dtol, stress
 
-    def cal_stress(self, temp, pressure = 0, mode = "TEC"):
+    def cal_stress(self, temp, pressure = 0, mode = "TEC" , elastic_path = "elastic_constant.txt" ):
+        self.elastic_path = elastic_path
         #Bohr2GPa = 29421.033
         pressure_gpa = pressure
         #pressure = pressure/Bohr2GPa
@@ -1299,11 +1495,27 @@ class QHA_ZSISA(HasPickleIO):
             raise ValueError(f"Unknown {sym=}")
 
         if all(dtol[i] < 1e-8 for i in range(6)):
-            with open("cell.txt", "a") as f:
-                f.write(f"{temp} {pressure_gpa:.2f} {self.lattice_a_guess:.12f} {self.lattice_b_guess:.12f} {self.lattice_c_guess:.12f} {self.angles_guess[0]:.5f} {self.angles_guess[1]:.5f} {self.angles_guess[2]:.5f} {self.volume_guess:.12f} {self.ave_x_guess:.12f} {self.ave_y_guess:.12f} {self.ave_z_guess:.12f} \n")
+            #with open("cell.txt", "w") as f:
+            filename = f"cell_{temp:04.0f}_{pressure_gpa:03.0f}.txt"
+            with open(filename, "w") as f:
+                f.write(f"{'#T':<8} {'P':<8} {'lattice_a':<13} {'lattice_b':<13} {'lattice_c':<13} "
+                        f"{'alpha':<10} {'beta':<10} {'gamma':<10} {'volume':<13} {'ave_x':<13} "
+                        f"{'ave_y':<13} {'ave_z':<13}\n")
+
+                f.write(f"{temp:<8} {pressure_gpa:<8.2f} {self.lattice_a_guess:<13.10f} {self.lattice_b_guess:<13.10f} "
+                        f"{self.lattice_c_guess:<13.10f} {self.angles_guess[0]:<10.5f} {self.angles_guess[1]:<10.5f} "
+                        f"{self.angles_guess[2]:<10.5f} {self.volume_guess:<13.10f} {self.ave_x_guess:<13.10f} "
+                        f"{self.ave_y_guess:<13.10f} {self.ave_z_guess:<13.10f} \n")
+
             print("Converged !!!")
-            with open("thermal.txt", "a") as f:
-                f.write(f"{temp} {pressure_gpa:.2f} {therm[0]:.12e} {therm[1]:.12e} {therm[2]:.12e}  {therm[3]:.12e}  {therm[4]:.12e}  {therm[5]:.12e} \n")
+            if therm is not None:
+                filename = f"TEC_{temp:04.0f}_{pressure_gpa:03.0f}.txt"
+                with open(filename, "w") as f:
+                #with open("thermal.txt", "w") as f:
+                    f.write(f"{'#T':<8} {'P':<8} {'alpha_xx':<15} {'alpha_yy':<15} {'alpha_zz':<15} {'alpha_yz':<15} {'alpha_xz':<15} {'alpha_xy':<15}\n")
+                    f.write(f"{temp:<8} {pressure_gpa:<8.2f} {therm[0]:<15.8e} {therm[1]:<15.8e} {therm[2]:<15.8e} "
+                            f"{therm[3]:<15.8e} {therm[4]:<15.8e} {therm[5]:<15.8e}\n")
+
             condition = True
         else :
             condition = False
