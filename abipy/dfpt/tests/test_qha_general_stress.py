@@ -17,12 +17,11 @@ class QhaZSISATest(AbipyTest):
         strains_a = [1000, 1005, 1010]
         strains_c = [1000, 1005, 1010]
 
-        gsr_paths = [os.path.join(root, f"scale_1005_1005/out_GSR_DDB")]
         dos_paths = [[os.path.join(root, f"scale_{s1}_{s3}/out_PHDOS.nc") for s3 in strains_c] for s1 in strains_a]
-        guess_path = ["Relax2o_GSR.nc"]
-        gsr_BO_paths = [os.path.join(root, f"scale_1000_1000/out_GSR_DDB")]
+        guess_path = "Relax2o_GSR.nc"
+        gsr_BO_paths = os.path.join(root, f"scale_1000_1000/out_GSR_DDB")
 
-        zsisa = QHA_ZSISA.from_files(gsr_paths, dos_paths, guess_path, gsr_BO_paths )
+        zsisa = QHA_ZSISA.from_files(dos_paths, guess_path, gsr_BO_paths )
         result = zsisa.cal_stress(0.0, pressure=0.0)
         print("Stress calculation result:", result)
 

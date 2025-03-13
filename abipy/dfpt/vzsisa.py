@@ -479,7 +479,10 @@ class Vzsisa(HasPickleIO):
             vols[i] = V0 - (dfe_dV1[i] + self.pressure / abu.eVA3_GPa) / E2D
 
         # Calculate total energies (Eq 15, 16)
-        # FIXME The constant term F_V0(T) is missing
+        # The constant term F_V0(T) is missing in the Gibbs free energy because it is not available in the vib1 model.
+        # As a result, the Gibbs free energy is not suitable for comparing energies
+        # across different phases, which is essential for phase transition computations.
+
         gibbs_vt = (self.bo_energies[self.iv0]
                   + 0.5 * (bo_volumes[np.newaxis, :].T - V0)**2 * E2D
                   + (bo_volumes[np.newaxis, :].T - V0) * dfe_dV1
@@ -520,7 +523,10 @@ class Vzsisa(HasPickleIO):
             dfe_dV1[i] = (e[iv1] - e[iv0]) / dV
 
         # Calculate total energies
-        # Eq. 27 of paper. FIXME The constant term F_vb(V*) is missing.
+        # Eq. 27 of paper. 
+        # The constant term F_V0(T) is missing in the Gibbs free energy because it is not available in the vib1 model.
+        # As a result, the Gibbs free energy is not suitable for comparing energies
+        # across different phases, which is essential for phase transition computations.
         gibbs_vt = ( self.bo_energies[np.newaxis, :].T
                  + (bo_volumes[np.newaxis, :].T - V0) * dfe_dV1
                  + self.bo_volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa)
