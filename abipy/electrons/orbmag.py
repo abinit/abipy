@@ -589,7 +589,10 @@ _atom_site_aniso_U_12""".splitlines()
                 for ik, kpoint in enumerate(ebands_kpath.kpoints):
                     enes_n = ebands_kpath.eigens[spin, ik]
                     for e, value in zip(enes_n, interp_spin[spin].eval_kpoint(kpoint), strict=True):
-                        x.append(ik); y.append(e); s.append(scale * value)
+                        # note use of -value: the abinit calculation returns the induced magnetic moment,
+                        # but the plot should show shielding, which is -moment by convention
+                        # this mimics use of -1.0E6 in all the eigval reports below
+                        x.append(ik); y.append(e); s.append(scale * (-value))
                         ymin, ymax = min(ymin, e), max(ymax, e)
 
             # Compute colors based on sign (e.g., red for positive, blue for negative)
