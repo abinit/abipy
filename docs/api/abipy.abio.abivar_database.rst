@@ -41,6 +41,14 @@ abipy.abio.abivar\_database.variables\_anaddb module
    :undoc-members:
    :show-inheritance:
 
+abipy.abio.abivar\_database.variables\_atdep module
+---------------------------------------------------
+
+.. automodule:: abipy.abio.abivar_database.variables_atdep
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 abipy.abio.abivar\_database.variables\_multibinit module
 --------------------------------------------------------
 

@@ -226,7 +226,7 @@ class OrbmagAnalyzer:
             report_type:
             precision:
         """
-        with np.set_printoptions(precision=precision):
+        with np.printoptions(precision=precision):
 
             terms = ['CC   ','VV1  ','VV2  ','NL   ','LR   ','A0An ']
             # Shape: (orbmag_nterms, nsppol, nkpt, mband, ndir, ndir)
