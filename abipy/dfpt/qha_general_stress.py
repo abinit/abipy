@@ -434,8 +434,8 @@ class QHA_ZSISA(HasPickleIO):
 
         # Compute thermal stress . Eq (51)
         stress_xx = -dfdx/v*(exx_n+1)/3.0 * self.eVA3_HaBohr3
-        print (x/XBO, x/XBO, x/XBO)
-        print (stress_xx , stress_xx,stress_xx )
+        #print (x/XBO, x/XBO, x/XBO)
+        #print (stress_xx , stress_xx,stress_xx )
         # Apply external pressure
         stress[0] = stress_xx -pressure
         stress[1] = stress_xx -pressure
@@ -480,8 +480,8 @@ class QHA_ZSISA(HasPickleIO):
                 dstrain_dt = np.linalg.inv(M) @ dSde
                 # Scale the thermal expansion  
                 therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(exx_n+1),dstrain_dt[2]*(exx_n+1),0,0,0]
-                print ("therm")
-                print (therm)
+                #print ("therm")
+                #print (therm)
 
         return dtol, stress, therm
 
@@ -551,9 +551,9 @@ class QHA_ZSISA(HasPickleIO):
         stress[0] = stress_xx -pressure
         stress[1] = stress_xx -pressure
         stress[2] = stress_zz -pressure
-        print (x/XBO, x/XBO, z/ZBO)
-        print ("stress",pressure)
-        print (stress[0],stress[2])
+        #print (x/XBO, x/XBO, z/ZBO)
+        #print ("stress",pressure)
+        #print (stress[0],stress[2])
 
         # Calculate the absolute difference (tolerance) between the current stress and the guessed stress
         # This is used to check the convergence of the stress values during the optimization process
@@ -594,7 +594,7 @@ class QHA_ZSISA(HasPickleIO):
                 dstrain_dt = np.linalg.inv(M) @ dSde
                 # Scale the thermal expansion  
                 therm = [dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(exx_n+1),dstrain_dt[2]*(ezz_n+1),0,0,0]
-                print (therm)
+                #print (therm)
 
 
         return dtol, stress, therm
@@ -696,8 +696,8 @@ class QHA_ZSISA(HasPickleIO):
         # by fitting a  quadratic curve fitting . section G in APPENDIX.
         # the nessecery derivative are related to the symmetries. table II.  
         if mode == 'ECs':
-            #deyz= (self.ave_y[1,1,1,0,0,0] - self.ave_y[1,1,1,1,0,0])/ZBO
-            deyz= (self.ave_x[1,1,1,0,0,0] - self.ave_x[1,1,1,1,0,0])/ZBO
+            deyz= (self.ave_y[1,1,1,0,0,0] - self.ave_y[1,1,1,1,0,0])/ZBO
+            #deyz= (self.ave_x[1,1,1,0,0,0] - self.ave_x[1,1,1,1,0,0])/ZBO
             Fyz=[e[1,1,1,2,0,0],e[1,1,1,1,0,0],e[1,1,1,1,0,0],e[1,1,1,2,0,0]]
             Dyz=[2*deyz,deyz,-deyz,-2*deyz]
             param = np.polyfit(Dyz,Fyz,2)
@@ -748,9 +748,9 @@ class QHA_ZSISA(HasPickleIO):
         stress[0] = stress_xx -pressure
         stress[1] = stress_yy -pressure
         stress[2] = stress_zz -pressure
-        print (x/XBO,y/YBO, z/ZBO)
-        print ("stress")
-        print (stress[0],stress[1],stress[2])
+        #print (x/XBO,y/YBO, z/ZBO)
+        #print ("stress")
+        #print (stress[0],stress[1],stress[2])
 
         dtol[0] = abs(stress[0]-self.stress_guess[0,0])
         dtol[1] = abs(stress[1]-self.stress_guess[1,1])
@@ -799,9 +799,9 @@ class QHA_ZSISA(HasPickleIO):
                 dstrain_dt = np.linalg.inv(M) @ dSde
                 # Scale the thermal expansion  
                 therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),0,0,0]
-                print ("therm")
-                print (therm)
-                M=M/v*abu.eVA3_GPa
+                #print ("therm")
+                #print (therm)
+                elastic=M/v*abu.eVA3_GPa
 
                 # Write elastic constants in a file for each symmetries
                 with open("elastic.txt", "w") as f:
@@ -826,7 +826,7 @@ class QHA_ZSISA(HasPickleIO):
                         f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} \n")
                         f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} \n")
 
-        return dtol, stress, therm
+        return dtol, stress, therm, elastic
 
     def stress_ZSISA_monoclinic(self, temp, pressure, mode) -> tuple:
 
@@ -870,8 +870,8 @@ class QHA_ZSISA(HasPickleIO):
         eyy0= By1/ByBO-1
         ezz0= Cz1/CzBO-1
         exz0= (AxBO*Cx1-Ax1*CxBO)/(AxBO*CzBO)
-        print(dexx, deyy, dezz, dexz)
-        print(exx0, eyy0, ezz0, exz0)
+        #print(dexx, deyy, dezz, dexz)
+        #print(exx0, eyy0, ezz0, exz0)
 
         # Compute first and second derivatives of free energy w.r.t. strains 
         dF_dA1   = (e[0,1,1,1,1,1]-e[2,1,1,1,1,1])/(2*dexx)
@@ -950,8 +950,8 @@ class QHA_ZSISA(HasPickleIO):
         stress_b2= -dfdb2/v*(eyy_n+1)* self.eVA3_HaBohr3
         stress_c3= -dfdc3/v*(ezz_n+1)* self.eVA3_HaBohr3
         stress_c1= -1.0/v*(dfdc1*(ezz_n+1)+dfda1*exz_n) * self.eVA3_HaBohr3
-        print (ax/AxBO, by/ByBO, cz/CzBO)
-        print (stress_a1,stress_b2,stress_c3,stress_c1)
+        #print (ax/AxBO, by/ByBO, cz/CzBO)
+        #print (stress_a1,stress_b2,stress_c3,stress_c1)
 
         therm = None
 
@@ -1020,7 +1020,7 @@ class QHA_ZSISA(HasPickleIO):
                 # Scale the thermal expansion (TOFIX) 
                 #therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),0,dstrain_dt[4]*(ezz_n+1)+dstrain_dt[0]*exz_n,0]
                 therm=[dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1)-(dstrain_dt[4]*(ezz_n+1)+dstrain_dt[0]*exz_n)/cz,0,-dstrain_dt[4],0]
-                M=M/v*abu.eVA3_GPa
+                elastic=M/v*abu.eVA3_GPa
                 # Write elastic constants in a file for each symmetries
                 with open("elastic.txt", "w") as f:
                     f.write("Elastic [GPa] \n")
@@ -1033,10 +1033,10 @@ class QHA_ZSISA(HasPickleIO):
                     f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
                     f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
                     f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
-                print ("therm")
-                print (therm)
+                #print ("therm")
+                #print (therm)
 
-        return dtol, stress , therm
+        return dtol, stress , therm, elastic
 
     def stress_ZSISA_triclinic(self, temp, pressure, mode) -> tuple:
 
@@ -1223,9 +1223,9 @@ class QHA_ZSISA(HasPickleIO):
         stress[4] = stress_c1
         stress[5] = stress_b1
 
-        print ("stress")
-        print (ax/Ax0, by/By0, cz/Cz0)
-        print (stress)
+        #print ("stress")
+        #print (ax/Ax0, by/By0, cz/Cz0)
+        #print (stress)
 
         dtol[0] = abs(stress[0]-self.stress_guess[0,0])
         dtol[1] = abs(stress[1]-self.stress_guess[1,1])
@@ -1279,7 +1279,7 @@ class QHA_ZSISA(HasPickleIO):
                 dstrain_dt = np.linalg.inv(M) @ dSde
                 #therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),0,dstrain_dt[4]*(ezz_n+1)+dstrain_dt[0]*exz_n,0]
                 therm = [dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),dstrain_dt[3]*(eyz_n),dstrain_dt[4]*(exz_n),dstrain_dt[5]*(exy_n)]
-                M=M/v*abu.eVA3_GPa
+                elastic=M/v*abu.eVA3_GPa
                 with open("elastic.txt", "w") as f:
                     f.write("Elastic [GPa] \n")
                     f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
@@ -1290,7 +1290,7 @@ class QHA_ZSISA(HasPickleIO):
                     f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
                     f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
 
-        return dtol, stress, therm
+        return dtol, stress, therm, elastic
     # **************************************************************************************
     def stress_ZSISA_slab_1DOF(self, temp,pressure ):
         e,S = self.get_vib_free_energies(temp)
@@ -1315,8 +1315,8 @@ class QHA_ZSISA(HasPickleIO):
         stress = np.zeros(6)
 
         stress_xx = -dfdx/V*(exx_n+1)*0.5 * self.eVA3_HaBohr3
-        print (x/X0, x/X0, x/X0)
-        print (stress_xx)
+        #print (x/X0, x/X0, x/X0)
+        #print (stress_xx)
 
         stress[0] = stress_xx -pressure
         stress[1] = stress_xx -pressure
@@ -1364,8 +1364,8 @@ class QHA_ZSISA(HasPickleIO):
 
         stress_xx = -dfdx/V*(exx_n+1)* self.eVA3_HaBohr3
         stress_yy = -dfdy/V*(eyy_n+1)* self.eVA3_HaBohr3
-        print (x/X0, x/X0, y/Y0)
-        print (stress_xx,stress_yy)
+        #print (x/X0, x/X0, y/Y0)
+        #print (stress_xx,stress_yy)
 
         stress[0] = stress_xx -pressure
         stress[1] = stress_yy -pressure
@@ -1441,8 +1441,8 @@ class QHA_ZSISA(HasPickleIO):
         stress_a1 = -dfda1/V*(exx_n+1) * self.eVA3_HaBohr3
         stress_b2 = -dfdb2/V*(eyy_n+1) * self.eVA3_HaBohr3
         stress_b1 = -1.0/V*(dfdb1*(eyy_n+1)+dfda1*exy_n) * self.eVA3_HaBohr3
-        print (ax/Ax0, by/By0)
-        print (stress_a1,stress_b2,stress_b1)
+        #print (ax/Ax0, by/By0)
+        #print (stress_a1,stress_b2,stress_b1)
         stress[0] = stress_a1 -pressure
         stress[1] = stress_b2 -pressure
         stress[5] = stress_b1
@@ -1471,16 +1471,16 @@ class QHA_ZSISA(HasPickleIO):
             dtol,stress,therm = self.stress_ZSISA_2DOF(temp,pressure)
 
         elif (self.sym == "cubic" or self.sym == "trigonal" or self.sym == "hexagonal" or self.sym == "tetragonal") and mode == "ECs":
-            dtol,stress,therm = self.stress_ZSISA_3DOF(temp,pressure,mode)
+            dtol,stress,therm, elastic = self.stress_ZSISA_3DOF(temp,pressure,mode)
 
         elif (self.sym == "orthorhombic"):
-            dtol,stress,therm = self.stress_ZSISA_3DOF(temp,pressure,mode)
+            dtol,stress,therm, elastic = self.stress_ZSISA_3DOF(temp,pressure,mode)
 
         elif (self.sym == "monoclinic"):
-            dtol,stress,therm = self.stress_ZSISA_monoclinic(temp,pressure,mode)
+            dtol,stress,therm, elastic = self.stress_ZSISA_monoclinic(temp,pressure,mode)
 
         elif (self.sym == "triclinic"):
-            dtol,stress,therm = self.stress_ZSISA_triclinic(temp,pressure,mode)
+            dtol,stress,therm, elastic = self.stress_ZSISA_triclinic(temp,pressure,mode)
 
         elif (self.sym == "ZSISA_slab_1DOF"):
             dtol,stress = self.stress_ZSISA_slab_1DOF(temp,pressure)
