@@ -428,6 +428,8 @@ class GwrSelfEnergy(SelfEnergy):
 class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This object provides a high-level interface to the GWR.nc file produced by the GWR code.
+    This file stores the QP energies, the self-energy along the imaginary/real frequency axis
+    as well as metadata useful for performing convergence studies.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GwrFile
@@ -436,7 +438,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     # Markers used for up/down bands.
     marker_spin = {0: "^", 1: "v"}
 
-    color_spin = {0: "k", 1: "r"}
+    #color_spin = {0: "k", 1: "r"}
 
     @classmethod
     def from_file(cls, filepath: str) -> GwrFile:
@@ -460,7 +462,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @property
     def sigma_kpoints(self) -> KpointList:
-        """The k-points where QP corrections have been calculated."""
+        """The k-points where the QP corrections have been calculated."""
         return self.r.sigma_kpoints
 
     @property
@@ -483,7 +485,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @lazy_property
     def minimax_mesh(self) -> MinimaxMesh:
-        """Object storing minimax mesh and weights."""
+        """Object storing the minimax mesh and weights."""
         return MinimaxMesh.from_ncreader(self.r)
 
     @lazy_property
@@ -531,6 +533,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         for ikc in items[1]:
             if ikc >= self.nkcalc:
                 eapp(f"K-point index {ikc} >= {self.nkcalc=}. Please check input qp_kpoints")
+
         if errors:
             raise ValueError("\n".join(errors))
 
@@ -845,7 +848,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                        fontsize=8,
                        **kwargs) -> Figure:
         """
-        Plot QP results stored in the GWR file as function of the KS energy.
+        Plot the QP results stored in the GWR file as function of the KS energy.
 
         Args:
             with_fields: The names of the qp attributes to plot as function of eKS.
@@ -1565,6 +1568,7 @@ class GwrRobot(Robot, RobotWithEbands):
                 ax.set_ylabel("%s (eV)" % name)
                 ax.set_xlabel("%s" % self._get_label(sortby))
                 if sortby is None: rotate_ticklabels(ax, 15)
+
             ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
@@ -1740,8 +1744,7 @@ class GwrRobot(Robot, RobotWithEbands):
         verbose = kwargs.pop("verbose", 0)
         yield self.plot_qpgaps_convergence(qp_kpoints="all", show=False)
 
-        # Visualize the convergence of the self-energy for
-        # all the k-points and the most important bands.
+        # Visualize the convergence of the self-energy for all the k-points and the most important bands.
         nc0: GwrFile = self.abifiles[0]
 
         for spin in range(nc0.nsppol):
