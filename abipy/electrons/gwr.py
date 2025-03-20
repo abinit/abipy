@@ -838,6 +838,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         #   smat_bsize1 = gwr%b2gw - gwr%b1gw + 1
         #   smat_bsize2 = merge(1, gwr%b2gw - gwr%b1gw + 1, gwr%sig_diago)
 
+        # FIXME
         varname = "qpz_ene"
         egw_rarr = self.r.read_value(varname, cmode="c").real # * abu.Ha_eV
         if ks_ebands_kpath is not None:
@@ -1081,45 +1082,70 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_spectral_functions(self,
-                                include_bands=None,
-                                ax_list=None,
-                                fontsize=8,
-                                **kwargs) -> Figure:
+    def plot_all_spectral_functions(self,
+                                    include_bands=None,
+                                    ax_mat=None,
+                                    fontsize=8,
+                                    **kwargs) -> Figure:
         """
         Plot the spectral function A_{nk}(w) for all k-points, bands and
         spins available in the GWR file.
 
         Args:
             include_bands: List of bands to include. None means all.
-            ax_list:
+            ax_mat:
             fontsize: Legend and title fontsize.
         """
         # Build grid of plots.
-        nrows, ncols = len(self.sigma_kpoints), 1
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
-        ax_list = np.array(ax_list).ravel()
+        nrows, ncols = len(self.sigma_kpoints), self.nsppol
+        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
 
-        for ikcalc, (kcalc, ax) in enumerate(zip(self.sigma_kpoints, ax_list)):
+        for ikcalc, kcalc in enumerate(self.sigma_kpoints):
             for spin in range(self.nsppol):
-                include_bands_ks = self._get_include_bands(include_bands, spin)
-                sigma_of_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands_ks)
+                ax = ax_mat[ikcalc, spin]
+                self.plot_spectral_function(ikcalc, spin=spin, include_bands=include_bands,
+                                            ax=ax, fontsize=fontsize, show=False)
 
-                for band, sigma in sigma_of_band.items():
-                    label = r"$A(\omega)$: band: %d, spin: %d" % (band, spin)
-                    l = sigma.plot_ax(ax, what="a", label=label, fontsize=fontsize)
-                    # Show position of the KS energy as vertical line.
-                    ib = band - self.r.min_bstart
-                    ax.axvline(self.r.e0_kcalc[spin, ikcalc, ib],
-                               lw=1, color=l[0].get_color(), ls="--")
+        return fig
+
+    @add_fig_kwargs
+    def plot_spectral_function(self,
+                               kpoint: KptSelect,
+                               spin: int = 0,
+                               include_bands=None,
+                               ax=None,
+                               fontsize=8,
+                               **kwargs) -> Figure:
+        """
+        Plot the spectral function A_{nk}(w) for the given k-point, spin and bands
+
+        Args:
+            include_bands: List of bands to include. None means all.
+            ax:
+            fontsize: Legend and title fontsize.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        ikcalc, kpoint = self.r.get_ikcalc_kpoint(kpoint)
+
+        include_bands_ks = self._get_include_bands(include_bands, spin)
+        sigma_of_band = self.r.read_sigma_bdict_sikcalc(spin, ikcalc, include_bands_ks)
+
+        for band, sigma in sigma_of_band.items():
+            label = r"$A(\omega)$: band: %d, spin: %d" % (band, spin)
+            l = sigma.plot_ax(ax, what="a", label=label, fontsize=fontsize)
+            # Show position of the KS energy as vertical line.
+            ib = band - self.r.min_bstart
+            ax.axvline(self.r.e0_kcalc[spin, ikcalc, ib],
+                       lw=1, color=l[0].get_color(), ls="--")
 
             # Show KS gap as filled area.
             self.ebands.add_fundgap_span(ax, spin)
 
             ax.set_xlabel(r"$\omega$ (eV)")
             ax.set_ylabel(r"$A(\omega)$ (1/eV)")
-            ax.set_title("k-point: %s" % repr(kcalc), fontsize=fontsize)
+            ax.set_title("k-point: %s" % repr(kpoint), fontsize=fontsize)
 
         return fig
 
