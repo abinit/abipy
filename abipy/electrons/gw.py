@@ -1336,17 +1336,18 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     #    return plot_matrix(matrix, *args, **kwargs)
 
     def interpolate(self,
-                    lpratio=5,
-                    ks_ebands_kpath=None,
-                    ks_ebands_kmesh=None,
-                    ks_degatol=1e-4,
-                    vertices_names=None,
-                    line_density=20,
-                    filter_params=None,
-                    only_corrections=False,
-                    verbose=0):
+                    lpratio: int = 5,
+                    ks_ebands_kpath: ElectronBands | None = None,
+                    ks_ebands_kmesh: ElectronBands | None = None,
+                    ks_degatol: float = 1e-4,
+                    vertices_names: list[tuple] | None = None,
+                    line_density: int = 20,
+                    filter_params: list | None = None,
+                    only_corrections: bool = False,
+                    verbose: int = 0):
         """
-        Interpolate the GW corrections in k-space on a k-path and, optionally, on a k-mesh.
+        Interpolate the QP corrections in k-space on a k-path and, optionally, on a k-mesh
+        using the star-functions method.
 
         Args:
             lpratio: Ratio between the number of star functions and the number of ab-initio k-points.
@@ -1366,16 +1367,17 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 A negative value disables this ad-hoc symmetrization.
             vertices_names: Used to specify the k-path for the interpolated QP band structure
                 when ``ks_ebands_kpath`` is None.
-                It's a list of tuple, each tuple is of the form (kfrac_coords, kname) where
+                It is a list of tuple, each tuple is of the form (kfrac_coords, kname) where
                 kfrac_coords are the reduced coordinates of the k-point and kname is a string with the name of
                 the k-point. Each point represents a vertex of the k-path. ``line_density`` defines
                 the density of the sampling. If None, the k-path is automatically generated according
                 to the point group of the system.
             line_density: Number of points in the smallest segment of the k-path. Used with ``vertices_names``.
-            filter_params: TO BE DESCRIBED
+            filter_params: List with parameters used to filter high-frequency components (Eq 9 of PhysRevB.61.1639)
+                First item gives rcut, second item sigma. Ignored if None.
             only_corrections: If True, the output contains the interpolated QP corrections instead of the QP energies.
                 Available only if ks_ebands_kpath and/or ks_ebands_kmesh are used.
-            verbose: Verbosity level
+            verbose: Verbosity level.
 
         Returns:
 

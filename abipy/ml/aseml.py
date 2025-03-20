@@ -1463,6 +1463,7 @@ class CalcBuilder:
         4) nn_type@calc_kwargs.yaml e.g.: mace:calc_kwargs.yaml.
     """
 
+    # List of supported ML calculators
     ALL_NN_TYPES = [
         "emt",
         "m3gnet",
