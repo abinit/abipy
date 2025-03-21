@@ -650,7 +650,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                          with_params: bool = True,
                          with_geo: bool = False) -> pd.Dataframe:
         """
-        Returns |pandas-DataFrame| with the QP results for the given (spin, k-point).
+        Returns a |pandas-DataFrame| with the QP results for the given (spin, k-point).
 
         Args:
             spin: Spin index
@@ -838,13 +838,14 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         #   smat_bsize1 = gwr%b2gw - gwr%b1gw + 1
         #   smat_bsize2 = merge(1, gwr%b2gw - gwr%b1gw + 1, gwr%sig_diago)
 
-        # FIXME
+        # Read QP energies
         varname = "qpz_ene"
-        egw_rarr = self.r.read_value(varname, cmode="c").real # * abu.Ha_eV
+        egw_rarr = self.r.read_value(varname, cmode="c").real * abu.Ha_eV
         if ks_ebands_kpath is not None:
             if ks_ebands_kpath.structure != self.structure:
                 cprint("sigres.structure and ks_ebands_kpath.structures differ. Check your files!", "red")
-            #egw_rarr -= self.r.read_value("e0")
+            # Compute QP corrections
+            egw_rarr -= (self.r.read_value("e0_kcalc") * abu.Ha_eV)
 
         # Note there's no guarantee that the sigma_kpoints and the corrections have the same k-point index.
         # Be careful because the order of the k-points and the band range stored in the SIGRES file may differ ...
@@ -1118,11 +1119,11 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                                fontsize=8,
                                **kwargs) -> Figure:
         """
-        Plot the spectral function A_{nk}(w) for the given k-point, spin and bands
+        Plot the spectral function A_{nk}(w) for the given k-point, spin and bands.
 
         Args:
             include_bands: List of bands to include. None means all.
-            ax:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: Legend and title fontsize.
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
