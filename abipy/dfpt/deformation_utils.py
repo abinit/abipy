@@ -4,9 +4,8 @@ from __future__ import annotations
 import numpy as np
 
 from pymatgen.core import Lattice
-#from abipy.core.structure import Structure
 from abipy.core.symmetries import AbinitSpaceGroup
-#from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from abipy import abilab
 
 
 def generate_deformations_volumic(structure, eps_V=0.02, scales=None):
@@ -31,7 +30,7 @@ def generate_deformations_volumic(structure, eps_V=0.02, scales=None):
 
 
 #def generate_deformations(structure, eps=0.005) -> tuple:
-def generate_deformations(structure, eps: float, str_type = 'BO', eps_ref = [0.005, 0.005 ,0.005], mode = "TEC" )-> tuple:
+def generate_deformations(structure, eps: float, str_type ='BO', eps_ref = [0.005, 0.005 ,0.005], mode = "TEC" )-> tuple:
     """
     Generates deformed structures by applying strain to the input structure's lattice.
 
@@ -39,7 +38,7 @@ def generate_deformations(structure, eps: float, str_type = 'BO', eps_ref = [0.0
     structure : pymatgen.Structure
         The input crystal structure.
     eps : float
-        Strain magnitude to be applied to the lattice
+        Strain magnitude to be applied to the lattice. Strains will be applied to the reference lattice. 
     str_type : str, optional
         Structure types :
         -  ref': The reference structure for the Taylor expansion method.
@@ -47,27 +46,70 @@ def generate_deformations(structure, eps: float, str_type = 'BO', eps_ref = [0.0
                 deformed reference structure for the Taylor expansion method.
     eps_ref : list of float, optional
         A list of strain values corresponding to normal strains along xx, yy, and zz
-        directions ([eps_xx, eps_yy, eps_zz]). Default: [0.005, 0.005, 0.005](not used in 'reference' mode).
+        directions ([eps_xx, eps_yy, eps_zz]). Default: [0.005, 0.005, 0.005](not used in 'ref' structure type).
     mode : str, optional
         Determines the purpose of deformation:
         - 'TEC': Generates new structures needed to compute the thermal expansion coefficient.
         - 'ECs': Generates structures for both elastic constants and thermal expansion coefficient calculations.
 
     Returns:
-
-    Returns:
     tuple
         A tuple containing the modified structures and associated strain indices.
     """
     spgrp = AbinitSpaceGroup.from_structure(structure)
-    #print(spgrp)
 
     spgrp_number = spgrp.spgid
     rprim = np.copy(structure.lattice.matrix)
+    #TOFIX: The primitive lattice is not a standard one. 
+    #primitive_structure = structure.get_primitive_structure(tolerance=0.01, use_site_props=False, constrain_latt=False)
+    #spgrp = AbinitSpaceGroup.from_structure(primitive_structure)
+    #print(spgrp)
+
+    angdeg    = structure.lattice.angles
+    lattice_a = structure.lattice.abc[0]
+    lattice_b = structure.lattice.abc[1]
+    lattice_c = structure.lattice.abc[2]
+    tol8 = 1.0e-8
+    # Rotate lattice parameters to follow Abinit conventions.
+    # Keep the angles unchanged if the lattice is orthogonal (90°)
+    # or if it belongs to a cubic system with a primitive cell having 60° angles.
+    if (not((abs(angdeg[0] - 60) + abs(angdeg[1] - 60) + abs(angdeg[2] - 60)) < tol8 ) and 
+        not((abs(angdeg[0] - 90) + abs(angdeg[1] - 90) + abs(angdeg[2] - 90)) < tol8 )):
+        if (abs(angdeg[0] - angdeg[1]) < tol8 and abs(angdeg[1] - angdeg[2]) < tol8):
+            # Trigonal symmetry case
+            cosang = np.cos(np.pi * angdeg[0] / 180.0)
+            a2 = (2.0 / 3.0) * (1.0 - cosang)
+            aa = np.sqrt(a2)
+            cc = np.sqrt(1.0 - a2)
+
+            rprim0 = np.array([
+                [ aa,          0.0,          cc],
+                [-0.5 * aa,  np.sqrt(3.0) * 0.5 * aa, cc],
+                [-0.5 * aa, -np.sqrt(3.0) * 0.5 * aa, cc]
+            ])
+        else:
+            # General case
+            rprim0 = np.zeros((3, 3))
+            rprim0[0, 0] = 1.0
+            rprim0[1, 0] = np.cos(np.pi * angdeg[2] / 180.0)
+            rprim0[1, 1] = np.sin(np.pi * angdeg[2] / 180.0)
+            rprim0[2, 0] = np.cos(np.pi * angdeg[1] / 180.0)
+            rprim0[2, 1] = (np.cos(np.pi * angdeg[0] / 180.0) - rprim0[1, 0] * rprim0[2, 0]) / rprim0[1, 1]
+            rprim0[2, 2] = np.sqrt(1.0 - rprim0[2, 0]**2 - rprim0[2, 1]**2)
+        rprim0[0,:] = rprim0[0,:]*lattice_a
+        rprim0[1,:] = rprim0[1,:]*lattice_b
+        rprim0[2,:] = rprim0[2,:]*lattice_c
+        print("Old rprim:")
+        print(rprim)
+        print("New rprim:")
+        print(rprim0)
+    else:
+        rprim0=rprim
 
     if str_type == 'BO':
         rprim_BO = np.copy(rprim)
-        # Apply strain scaling to each lattice vector
+        # Scale each lattice vector by the corresponding strain component
+        # to generate the reference structure.
         rprim[ :,0] *= (1.00 + eps_ref[0])
         rprim[ :,1] *= (1.00 + eps_ref[1])
         rprim[ :,2] *= (1.00 + eps_ref[2])
@@ -78,6 +120,7 @@ def generate_deformations(structure, eps: float, str_type = 'BO', eps_ref = [0.0
     structures_new = {}
     strain_inds = []
     rprim0 = np.copy(rprim)
+    rprim=rprim0
 
     def _add(name, new_rprim, i, j, k, l, m, n) -> None:
         """Helper function to register a new structure in internal dict."""
@@ -96,37 +139,6 @@ def generate_deformations(structure, eps: float, str_type = 'BO', eps_ref = [0.0
               [0,0,0,0,0,1], [-1,-1,0,0,0,0], [0,-1,-1,0,0,0], [0,0,-1,-1,0,0], [0,0,0,-1,-1,0], [0,0,0,0,-1,-1],
               [-1,0,-1,0,0,0], [-1,0,0,-1,0,0], [-1,0,0,0,-1,0], [-1,0,0,0,0,-1], [0,-1,0,-1,0,0], [0,-1,0,0,-1,0],
               [0,-1,0,0,0,-1], [0,0,-1,0,-1,0], [0,0,-1,0,0,-1], [0,0,0,-1,0,-1]]
-        # Check if the lattice is properly aligned with the standard triclinic definition.
-        if abs(rprim[0, 1]) > 1e-9 or abs(rprim[0, 2]) > 1e-9 or abs(rprim[1, 2]) > 1e-9:
-            print("Warning: The lattice is oriented such that xz = xy = yz = 0.")
-            a=rprim[0, :]
-            b=rprim[1, :]
-            c=rprim[2, :]
-            norm_a = np.linalg.norm(a)
-            norm_b = np.linalg.norm(b)
-            norm_c = np.linalg.norm(c)
-
-            # Compute angles between vectors
-            cos_ab = np.dot(a, b) / (norm_a * norm_b)
-            cos_ac = np.dot(a, c) / (norm_a * norm_c)
-            cos_bc = np.dot(b, c) / (norm_b * norm_c)
-
-            rprim0[0,0] = 1.0
-            rprim0[0,1] = 0.0
-            rprim0[0,2] = 0.0
-            rprim0[1,0] = cos_ab
-            rprim0[1,1] = np.sqrt(1-cos_ab**2)
-            rprim0[1,2] = 0.0
-            rprim0[2,0] = cos_ac
-            rprim0[2,1] = (cos_bc-rprim0[1,0]*rprim0[2,0])/rprim0[1,1]
-            rprim0[2,2] = np.sqrt(1.0-rprim0[2,0]**2-rprim0[2,1]**2)
-            rprim0[0,:] = rprim0[0,:]*norm_a
-            rprim0[1,:] = rprim0[1,:]*norm_b
-            rprim0[2,:] = rprim0[2,:]*norm_c
-            print("Old rprim:")
-            print(rprim)
-            print("New rprim:")
-            print(rprim0)
 
     elif 3 <= spgrp_number <= 15: # Check for triclinic crystal systems
         # Define strain configurations in Voigt notation
@@ -135,33 +147,6 @@ def generate_deformations(structure, eps: float, str_type = 'BO', eps_ref = [0.0
               [-1,0,-1,0,0,0], [0,-1,0,0,-1,0], [-1,0,0,0,-1,0]]
         if mode=="ECs":
             disp.extend([[0,0,0,-1,0,0], [0,0,0,0,0,-1], [0,0,0,-1,0,-1]])
-
-        # Check if the lattice is properly aligned with the standard monoclinic definition.
-        if abs(rprim[1, 0]) > 1e-9 or abs(rprim[0, 1]) > 1e-9 or abs(rprim[2, 1]) > 1e-9 or abs(rprim[1, 2]) > 1e-9:
-            raise ValueError("Error: Monoclinic structure with yx=xy=0 and yz=zy=0 lattice required.")
-        elif abs(rprim[0, 2]) > 1e-9 :
-            print("Warning: The lattice is oriented such that xz = 0.")
-            a=rprim[0, :]
-            b=rprim[1, :]
-            c=rprim[2, :]
-            norm_a = np.linalg.norm(a)
-            norm_b = np.linalg.norm(b)
-            norm_c = np.linalg.norm(c)
-
-            # Compute angles between vectors
-            cos_ab = np.dot(a, b) / (norm_a * norm_b)
-            cos_ac = np.dot(a, c) / (norm_a * norm_c)
-            cos_bc = np.dot(b, c) / (norm_b * norm_c)
-
-            rprim0[0,0] = norm_a
-            rprim0[0,2] = 0.0
-            rprim0[1,1] = norm_b
-            rprim0[2,0] = norm_c*cos_ac
-            rprim0[2,2] = norm_c*np.sqrt(1-cos_ac**2)
-            print("Old rprim:")
-            print(rprim)
-            print("New rprim:")
-            print(rprim0)
 
     elif 16 <= spgrp_number <= 74: # Check for orthorhombic crystal systems
         disp=[[0,0,0,0,0,0], [-1,0,0,0,0,0], [1,0,0,0,0,0], [0,-1,0,0,0,0], [0,1,0,0,0,0], [0,0,-1,0,0,0],

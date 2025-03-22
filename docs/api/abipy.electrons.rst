@@ -9,6 +9,14 @@ abipy.electrons package
 Submodules
 ----------
 
+abipy.electrons.abitk module
+----------------------------
+
+.. automodule:: abipy.electrons.abitk
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 abipy.electrons.arpes module
 ----------------------------
 
@@ -101,14 +109,6 @@ abipy.electrons.gwr module
 --------------------------
 
 .. automodule:: abipy.electrons.gwr
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-abipy.electrons.kmesh module
-----------------------------
-
-.. automodule:: abipy.electrons.kmesh
    :members:
    :undoc-members:
    :show-inheritance:

@@ -723,8 +723,17 @@ class SkwInterpolator(ElectronInterpolator):
     but the same object can be used to interpolate other quantities. Just set the first dimension to 1.
     """
 
-    def __init__(self, lpratio, kpts, eigens, fermie, nelect, cell, symrel, has_timrev,
-                 filter_params=None, verbose=1):
+    def __init__(self,
+                 lpratio,
+                 kpts,
+                 eigens,
+                 fermie,
+                 nelect,
+                 cell,
+                 symrel,
+                 has_timrev,
+                 filter_params=None,
+                 verbose=1):
         """
         Args:
             lpratio: Ratio between the number of star-functions and the number of ab-initio k-points.
