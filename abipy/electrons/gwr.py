@@ -606,21 +606,18 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return "\n".join(lines)
 
-    #def get_qpgap(self, spin, kpoint, with_ksgap=False):
-    #    """
-    #    Return the QP gap in eV at the given (spin, kpoint)
-    #    """
-    #    ik = self.reader.kpt2fileindex(kpoint)
-    #    if not with_ksgap:
-    #        return self.qpgaps[spin, ik]
-    #    else:
-    #        return self.qpgaps[spin, ik], self.ksgaps[spin, ik]
-
-    def get_dirgaps_dataframe(self, with_params: bool=True, with_geo: bool=False) -> pd.DataFrame:
+    def get_dirgaps_dataframe(self,
+                              kpoint: KptSelect | None = None,
+                              spin: int | None = None,
+                              with_params: bool = True,
+                              with_geo: bool = False) -> pd.DataFrame:
         """
         Return a pandas DataFrame with the QP direct gaps in eV.
 
         Args:
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+                None, to select all k-points.
+            spin: Spin index. None, to select all spins.
             with_params: True if GWR parameters should be included.
             with_geo: True if geometry info should be included.
         """
@@ -640,7 +637,17 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         if with_geo:
             d.update(**self.structure.get_dict4pandas(with_spglib=True))
 
-        return pd.DataFrame(d)
+        df = pd.DataFrame(d)
+
+        # Optionally, select spin and k-point.
+        if spin is not None:
+            df = df[df["spin"] == spin]
+
+        if kpoint is not None:
+            ikcalc, kpoint = self.r.get_ikcalc_kpoint(kpoint)
+            df = df[df['kpoint'].apply(lambda x: np.all(x == kpoint.frac_coords))]
+
+        return df
 
     def get_dataframe_sk(self,
                          spin: int,
@@ -653,7 +660,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Returns a |pandas-DataFrame| with the QP results for the given (spin, k-point).
 
         Args:
-            spin: Spin index
+            spin: Spin index.
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             index:
             ignore_imag: Only real part is returned if ``ignore_imag``.
@@ -800,7 +807,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
 
         if ks_ebands_kpath is None:
-            # Generate k-points for interpolation. Will interpolate all bands available in the sigres file.
+            # Generate k-points for interpolation. Will interpolate all bands available in the GWR file.
             bstart, bstop = 0, -1
             if vertices_names is None:
                 vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
@@ -1178,11 +1185,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return fig
 
-    #@add_fig_kwargs
-    #def plot_sig_mat(self, what, origin="lower", **kwargs):
-    #   x_mat
-    #   ax.spy(mat, precision=0.1, markersize=5, origin=origin)
-
     #def get_panel(self, **kwargs):
     #    """
     #    Build panel with widgets to interact with the GWR.nc either in a notebook or in panel app.
@@ -1531,19 +1533,28 @@ class GwrRobot(Robot, RobotWithEbands):
 
         return pd.concat(df_list)
 
-    def get_dirgaps_dataframe(self, sortby="kname", with_params=True) -> pd.DataFrame:
+    def get_dirgaps_dataframe(self,
+                              kpoint: KptSelect | None = None,
+                              spin: int | None = None,
+                              sortby="kname",
+                              with_params: bool = True,
+                              with_geo: bool = False) -> pd.DataFrame:
         """
-        Returns |pandas-DataFrame| with QP direct gaps for all the files treated by the GWR robot.
+        Returns a |pandas-DataFrame| with QP direct gaps for all the files treated by the GWR robot.
 
         Args:
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+                None, to select all k-points.
+            spin: Spin index. None, to select all spins.
             sortby: Name to sort by.
             with_params: False to exclude calculation parameters from the dataframe.
         """
-        with_geo = self.has_different_structures()
+        #with_geo = self.has_different_structures()
 
         df_list = []; app = df_list.append
         for _, ncfile in self.items():
-            app(ncfile.get_dirgaps_dataframe(with_params=with_params, with_geo=with_geo))
+            app(ncfile.get_dirgaps_dataframe(kpoint=kpoint, spin=spin,
+                                             with_params=with_params, with_geo=with_geo))
 
         df = pd.concat(df_list)
         if sortby and sortby in df: df = df.sort_values(sortby)
@@ -1551,7 +1562,7 @@ class GwrRobot(Robot, RobotWithEbands):
 
     def get_dataframe(self, sortby="kname", with_params=True, ignore_imag=False) -> pd.DataFrame:
         """
-        Return |pandas-Dataframe| with QP results for all k-points, bands and spins
+        Return a |pandas-Dataframe| with QP results for all k-points, bands and spins
         present in the files treated by the GWR robot.
 
         Args:
@@ -1612,7 +1623,7 @@ class GwrRobot(Robot, RobotWithEbands):
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: Band index.
             axis: "wreal": to plot Sigma(w) and A(w) along the real axis.
-                  "wimag": to plot Sigma(iw)
+                  "wimag": to plot Sigma(iw).
                   "tau": to plot Sigma(itau)) along the imag axis.
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
@@ -1724,7 +1735,7 @@ class GwrRobot(Robot, RobotWithEbands):
         Args:
             qp_kpoints: List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
                 or "all" to plot all k-points.
-            qp_type: "qpz0" for linear qp equation with Z factor computed at KS e0,
+            qp_type: "qpz0" for linear qp equation with Z factor computed at the KS e0,
                      "otms" for on-the-mass-shell values.
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
@@ -1790,7 +1801,6 @@ class GwrRobot(Robot, RobotWithEbands):
 
                         label = "%s: %s" % (self._get_label(hue), g.hvalue)
                         lines = ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
-
                         hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
 
             ax.grid(True)
