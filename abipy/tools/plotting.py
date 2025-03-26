@@ -67,7 +67,8 @@ linestyles = OrderedDict(
 
 
 def add_fig_kwargs(func):
-    """Decorator that adds keyword arguments for functions returning matplotlib figures.
+    """
+    Decorator that adds keyword arguments for functions returning matplotlib figures.
 
     The function should return either a matplotlib figure or None to signal
     some sort of error/unexpected event.
@@ -209,7 +210,7 @@ class FilesPlotter:
 
 
 @functools.cache
-def get_color_symbol(style: str="VESTA") -> dict:
+def get_color_symbol(style: str = "VESTA") -> dict:
     """
     Dictionary mapping chemical symbols to RGB color.
 
@@ -277,8 +278,15 @@ def get_ax3d_fig_plt(ax=None, **kwargs):
     return ax, fig, plt
 
 
-def get_axarray_fig_plt(
-    ax_array, nrows=1, ncols=1, sharex=False, sharey=False, squeeze=True, subplot_kw=None, gridspec_kw=None, **fig_kw):
+def get_axarray_fig_plt(ax_array,
+                        nrows: int = 1,
+                        ncols: int = 1,
+                        sharex: bool = False,
+                        sharey: bool = False,
+                        squeeze: bool = True,
+                        subplot_kw: dict | None = None,
+                        gridspec_kw: dict | None = None,
+                        **fig_kw):
     """
     Helper function used in plot functions that accept an optional array of Axes
     as argument. If ax_array is None, we build the `matplotlib` figure and
@@ -321,7 +329,7 @@ def is_mpl_figure(obj: Any) -> bool:
     return isinstance(obj, plt.Figure)
 
 
-def ax_append_title(ax, title, loc="center", fontsize=None) -> str:
+def ax_append_title(ax, title: str , loc: str = "center", fontsize: int | None = None) -> str:
     """Add title to previous ax.title. Return new title."""
     prev_title = ax.get_title(loc=loc)
     new_title = prev_title + title
@@ -386,7 +394,10 @@ def set_axlims(ax, lims: tuple, axname: str) -> tuple:
     return left, right
 
 
-def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> None:
+def set_ax_xylabels(ax,
+                    xlabel: str,
+                    ylabel: str,
+                    exchange_xy: bool = False) -> None:
     """
     Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy.
     """
@@ -395,7 +406,7 @@ def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> 
     ax.set_ylabel(ylabel)
 
 
-def set_logscale(ax_or_axlist, xy_log) -> None:
+def set_logscale(ax_or_axlist, xy_log: str | None) -> None:
     """
     Activate logscale
 
@@ -420,7 +431,10 @@ def set_logscale(ax_or_axlist, xy_log) -> None:
             ax.set_yscale(log_type)
 
 
-def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string="xy", **kwargs) -> None:
+def set_ticks_fontsize(ax_or_axlist,
+                       fontsize: int,
+                       xy_string: str = "xy",
+                       **kwargs) -> None:
     """
     Set tick properties for one axis or a list of axis.
 
@@ -439,7 +453,13 @@ def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string="xy", **kwargs) ->
 
 
 def set_grid_legend(ax_or_axlist, fontsize: int,
-                    xlabel=None, ylabel=None, grid=True, legend=True, direction=None, title=None, legend_loc="best") -> None:
+                    xlabel: str | None = None,
+                    ylabel: str | None = None,
+                    grid: bool = True,
+                    legend: bool = True,
+                    direction: str | None = None,
+                    title: str | None = None,
+                    legend_loc: str = "best") -> None:
     """
     Activate grid and legend for one axis or a list of axis.
 
@@ -505,17 +525,25 @@ def set_visible(ax, boolean: bool, *args) -> None:
             label.set_visible(boolean)
 
 
-def rotate_ticklabels(ax, rotation: float, axname: str ="x") -> None:
+def rotate_ticklabels(ax,
+                      rotation: float,
+                      axname: str = "x") -> None:
     """Rotate the ticklables of axis ``ax``"""
     if "x" in axname:
         for tick in ax.get_xticklabels():
             tick.set_rotation(rotation)
+
     if "y" in axname:
         for tick in ax.get_yticklabels():
             tick.set_rotation(rotation)
 
 
-def hspan_ax_line(ax, line, abs_conv, hatch, alpha=0.2, with_label=True) -> None:
+def hspan_ax_line(ax,
+                  line,
+                  abs_conv: float,
+                  hatch: str,
+                  alpha: float = 0.2,
+                  with_label: bool = True) -> None:
     """
     Add hspan to ax showing the convergence region of width `abs_conv`.
     Use same color as line. Return immediately if abs_conv is None or x-values are strings.
@@ -539,23 +567,35 @@ def hspan_ax_line(ax, line, abs_conv, hatch, alpha=0.2, with_label=True) -> None
 
 
 @add_fig_kwargs
-def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
-                     decimals=None, ax=None, xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
+def plot_xy_with_hue(data: pd.DataFrame,
+                     x: str,
+                     y: str,
+                     hue: str,
+                     decimals=None,
+                     abs_conv: float | None = None,
+                     span_style: dict | None = None,
+                     ax=None,
+                     xlims: tuple | None = None,
+                     ylims: tuple | None = None ,
+                     fontsize: int = 8,
+                     **kwargs) -> Figure:
     """
     Plot y = f(x) relation for different values of `hue`.
     Useful for convergence tests done wrt two parameters.
 
     Args:
         data: |pandas-DataFrame| containing columns `x`, `y`, and `hue`.
-        x: Name of the column used as x-value
-        y: Name of the column(s) used as y-value
+        x: Name of the column used as x-value.
+        y: Name of the column(s) used as y-value.
         hue: Variable that define subsets of the data, which will be drawn on separate lines
         decimals: Number of decimal places to round `hue` columns. Ignore if None
+        abs_conv: If not None, show absolute convergence window.
+        span_style: dictionary with options passed to ax.axhspan.
         ax: |matplotlib-Axes| or None if a new figure should be created.
         xlims, ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
             or scalar e.g. `left`. If left (right) is None, default values are used
         fontsize: Legend fontsize.
-        kwargs: Keyword arguments are passed to ax.plot method.
+        kwargs: Keyword arguments passed to ax.plot method.
 
     Returns: |matplotlib-Figure|
     """
@@ -590,13 +630,27 @@ def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
     for key, grp in data.groupby(by=hue):
         # Sort xs and rearrange ys
         xy = np.array(sorted(zip(grp[x], grp[y]), key=lambda t: t[0]))
-        xvals, yvals = xy[:, 0], xy[:, 1]
+        xs, ys = xy[:, 0], xy[:, 1]
 
-        label = "%s" % (str(key))
+        label = f"{hue}: {str(key)}"
         if not kwargs:
-            ax.plot(xvals, yvals, 'o-', label=label)
+            line = ax.plot(xs, ys, 'o-', label=label)[0]
         else:
-            ax.plot(xvals, yvals, label=label, **kwargs)
+            line = ax.plot(xs, ys, label=label, **kwargs)[0]
+
+        if abs_conv is not None:
+            span_style = span_style or dict(alpha=0.2, hatch="/")
+            span_style["color"] = line.get_color()
+
+            x_max, y_xmax = xs[-1], ys[-1]
+            x_inds = np.where(xs == x_max)[0]
+
+            # This to support the case in which we have multiple ys for the same x_max
+            for i, ix in enumerate(x_inds):
+                y_xmax = ys[ix]
+                ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv,
+                           #label=r"$|y-y(x_{max})| \leq %s$" % abs_conv if (with_label and i == 0) else None,
+                           **span_style)
 
     ax.grid(True)
     ax.set_xlabel(x)
