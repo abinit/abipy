@@ -1861,6 +1861,7 @@ class GwrRobot(Robot, RobotWithEbands):
                                                   spin=spin,
                                                   with_params=True,
                                                   with_geo=False)
+                #print(f"{x=}, {y=}, {hue=}")
                 plot_xy_with_hue(data,
                                  x=x,
                                  y=y,

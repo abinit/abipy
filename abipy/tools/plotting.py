@@ -570,7 +570,7 @@ def hspan_ax_line(ax,
 def plot_xy_with_hue(data: pd.DataFrame,
                      x: str,
                      y: str,
-                     hue: str,
+                     hue: str | None,
                      decimals=None,
                      abs_conv: float | None = None,
                      span_style: dict | None = None,
@@ -587,7 +587,8 @@ def plot_xy_with_hue(data: pd.DataFrame,
         data: |pandas-DataFrame| containing columns `x`, `y`, and `hue`.
         x: Name of the column used as x-value.
         y: Name of the column(s) used as y-value.
-        hue: Variable that define subsets of the data, which will be drawn on separate lines
+        hue: Variable that define subsets of the data, which will be drawn on separate lines.
+            None to disable grouping.
         decimals: Number of decimal places to round `hue` columns. Ignore if None
         abs_conv: If not None, show absolute convergence window.
         span_style: dictionary with options passed to ax.axhspan.
@@ -618,46 +619,52 @@ def plot_xy_with_hue(data: pd.DataFrame,
         return fig
 
     # Check here because pandas error messages are a bit criptic.
-    miss = [k for k in (x, y, hue) if k not in data]
+    if hue is not None:
+        miss = [k for k in (x, y, hue) if k not in data]
+    else:
+        miss = [k for k in (x, y) if k not in data]
     if miss:
         raise ValueError("Cannot find `%s` in dataframe.\nAvailable keys are: %s" % (str(miss), str(data.keys())))
 
     # Truncate values in hue column so that we can group.
-    if decimals is not None:
+    if hue and decimals is not None:
         data = data.round({hue: decimals})
 
     ax, fig, plt = get_ax_fig_plt(ax=ax)
-    for key, grp in data.groupby(by=hue):
+
+    def _plot_key_grp(key, grp, span_style):
         # Sort xs and rearrange ys
         xy = np.array(sorted(zip(grp[x], grp[y]), key=lambda t: t[0]))
         xs, ys = xy[:, 0], xy[:, 1]
 
-        label = f"{hue}: {str(key)}"
-        if not kwargs:
-            line = ax.plot(xs, ys, 'o-', label=label)[0]
-        else:
-            line = ax.plot(xs, ys, label=label, **kwargs)[0]
+        label = f"{hue}: {str(key)}" if hue is not None else ""
+        line = ax.plot(xs, ys, label=label, **kwargs)[0]
 
         if abs_conv is not None:
             span_style = span_style or dict(alpha=0.2, hatch="/")
             span_style["color"] = line.get_color()
-
+            # This to support the case in which we have multiple ys for the same x_max
             x_max, y_xmax = xs[-1], ys[-1]
             x_inds = np.where(xs == x_max)[0]
-
-            # This to support the case in which we have multiple ys for the same x_max
             for i, ix in enumerate(x_inds):
                 y_xmax = ys[ix]
                 ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv,
                            #label=r"$|y-y(x_{max})| \leq %s$" % abs_conv if (with_label and i == 0) else None,
                            **span_style)
 
+    if hue is not None:
+        for key, grp in data.groupby(by=hue):
+            _plot_key_grp(key, grp, span_style)
+    else:
+        _plot_key_grp("nohue", data, span_style)
+
     ax.grid(True)
     ax.set_xlabel(x)
     ax.set_ylabel(y)
     set_axlims(ax, xlims, "x")
     set_axlims(ax, ylims, "y")
-    ax.legend(loc="best", fontsize=fontsize, shadow=True)
+    if hue:
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
     return fig
 
