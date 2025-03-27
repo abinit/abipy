@@ -216,7 +216,7 @@ class QHA_ZSISA(HasPickleIO):
             phdoses.append(dim1_doses)
             structures.append(dim1_structures)
 
-        print("dim = ",dim)
+        #print("dim = ",dim)
 
 
         # If the structure is uniaxial and the input PHDOS data is 2D, expand it to a 3D format.
@@ -758,6 +758,7 @@ class QHA_ZSISA(HasPickleIO):
 
         therm = None
         # Check if the stress has converged (all tolerances below 1e-8)
+        elastic=None
         if all(dtol[i] < 1e-8 for i in range(6)):
             if os.path.exists(self.elastic_path):
                 matrix_elastic = self.elastic_constants(self.elastic_path)
@@ -802,29 +803,6 @@ class QHA_ZSISA(HasPickleIO):
                 #print ("therm")
                 #print (therm)
                 elastic=M/v*abu.eVA3_GPa
-
-                # Write elastic constants in a file for each symmetries
-                with open("elastic.txt", "w") as f:
-                    f.write("Elastic [GPa] \n")
-                    if mode == 'ECs':
-                        if self.sym == "cubic":
-                            f.write(f"    {'C11':12s} {'C12':12s} {'C44':12s}\n")
-                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[3,3]:12.6f} \n")
-                        elif self.sym == "hexagonal":
-                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s}\n")
-                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} \n")
-                        elif self.sym == "trigonal":
-                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C14':12s} {'C44':12s}\n")
-                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[0,3]:12.6f} {M[3,3]:12.6f} \n")
-                        elif self.sym == "tetragonal":
-                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s} {'C66':12s}\n")
-                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[5,5]:12.6f} \n")
-                        if  self.sym == "orthorhombic":
-                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} {'C44':12s} {'C55':12s} {'C66':12s}\n")
-                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[4,4]:12.6f} {M[5,5]:12.6f} \n")
-                    else:
-                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} \n")
-                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} \n")
 
         return dtol, stress, therm, elastic
 
@@ -965,6 +943,7 @@ class QHA_ZSISA(HasPickleIO):
         dtol[2] = abs(stress[2]-self.stress_guess[2,2])
         dtol[4] = abs(stress[4]-self.stress_guess[2,0])
         # Check if the stress has converged (all tolerances below 1e-8)
+        elastic=None
         if all(dtol[i] < 1e-8 for i in range(6)):
             if os.path.exists(self.elastic_path):
                 # If elastic constants are requested, compute the second derivatives for C44, C66, and C46
@@ -1021,20 +1000,6 @@ class QHA_ZSISA(HasPickleIO):
                 #therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),0,dstrain_dt[4]*(ezz_n+1)+dstrain_dt[0]*exz_n,0]
                 therm=[dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1)-(dstrain_dt[4]*(ezz_n+1)+dstrain_dt[0]*exz_n)/cz,0,-dstrain_dt[4],0]
                 elastic=M/v*abu.eVA3_GPa
-                # Write elastic constants in a file for each symmetries
-                with open("elastic.txt", "w") as f:
-                    f.write("Elastic [GPa] \n")
-                    if mode != 'ECs':
-                        f.write(f" Warning: C44, C46, and C66 do not include the free energy contribution (only BO energy).\n")
-                    f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
-                    f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
-                    f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
-                    f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
-                    f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
-                    f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
-                    f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
-                #print ("therm")
-                #print (therm)
 
         return dtol, stress , therm, elastic
 
@@ -1236,6 +1201,7 @@ class QHA_ZSISA(HasPickleIO):
         therm = None
 
         # Check if the stress has converged (all tolerances below 1e-8)
+        elastic=None
         if all(dtol[i] < 1e-8 for i in range(6)):
             if os.path.exists(self.elastic_path):
                 # If elastic constants are requested, compute the second derivatives for C44, C66, and C46
@@ -1280,15 +1246,6 @@ class QHA_ZSISA(HasPickleIO):
                 #therm=[dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),0,dstrain_dt[4]*(ezz_n+1)+dstrain_dt[0]*exz_n,0]
                 therm = [dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1),dstrain_dt[3]*(eyz_n),dstrain_dt[4]*(exz_n),dstrain_dt[5]*(exy_n)]
                 elastic=M/v*abu.eVA3_GPa
-                with open("elastic.txt", "w") as f:
-                    f.write("Elastic [GPa] \n")
-                    f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
-                    f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
-                    f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
-                    f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
-                    f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
-                    f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
-                    f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
 
         return dtol, stress, therm, elastic
     # **************************************************************************************
@@ -1461,6 +1418,9 @@ class QHA_ZSISA(HasPickleIO):
         pressure = pressure/abu.HaBohr3_GPa
         print ("Pressure = ", pressure_gpa,"GPa")
         print ("Temperature = ", temp,"K")
+        print ("Mode = ", mode)
+        elastic = None
+        therm = None
 
         if (self.sym == "v_ZSISA"):
             dtol,stress = self.stress_v_ZSISA(temp,pressure)
@@ -1495,50 +1455,13 @@ class QHA_ZSISA(HasPickleIO):
             raise ValueError(f"Unknown {sym=}")
 
         if all(dtol[i] < 1e-8 for i in range(6)):
-            #with open("cell.txt", "w") as f:
-            filename = f"cell_{temp:04.0f}_{pressure_gpa:03.0f}.txt"
-            with open(filename, "w") as f:
-                f.write(f"{'#T':<8} {'P':<8} {'lattice_a':<13} {'lattice_b':<13} {'lattice_c':<13} "
-                        f"{'alpha':<10} {'beta':<10} {'gamma':<10} {'volume':<13} {'ave_x':<13} "
-                        f"{'ave_y':<13} {'ave_z':<13}\n")
-
-                f.write(f"{temp:<8} {pressure_gpa:<8.2f} {self.lattice_a_guess:<13.10f} {self.lattice_b_guess:<13.10f} "
-                        f"{self.lattice_c_guess:<13.10f} {self.angles_guess[0]:<10.5f} {self.angles_guess[1]:<10.5f} "
-                        f"{self.angles_guess[2]:<10.5f} {self.volume_guess:<13.10f} {self.ave_x_guess:<13.10f} "
-                        f"{self.ave_y_guess:<13.10f} {self.ave_z_guess:<13.10f} \n")
-
+            self.print_data(temp,pressure_gpa,therm,stress,elastic,mode)
             print("Converged !!!")
-            if therm is not None:
-                filename = f"TEC_{temp:04.0f}_{pressure_gpa:03.0f}.txt"
-                with open(filename, "w") as f:
-                #with open("thermal.txt", "w") as f:
-                    f.write(f"{'#T':<8} {'P':<8} {'alpha_xx':<15} {'alpha_yy':<15} {'alpha_zz':<15} {'alpha_yz':<15} {'alpha_xz':<15} {'alpha_xy':<15}\n")
-                    f.write(f"{temp:<8} {pressure_gpa:<8.2f} {therm[0]:<15.8e} {therm[1]:<15.8e} {therm[2]:<15.8e} "
-                            f"{therm[3]:<15.8e} {therm[4]:<15.8e} {therm[5]:<15.8e}\n")
-
             condition = True
         else :
             condition = False
 
-        ang2bohr = 0.529177249
-        with open("lat_info.txt", "w") as f:
-            f.write("xred\n")
-            for i in range(len(self.frac_coords_guess)):
-                f.write(f"  {self.frac_coords_guess[i,0]:.12e}  {self.frac_coords_guess[i,1]:.12e}  {self.frac_coords_guess[i,2]:.12e}\n")
-            f.write(f"#angdeg\n")
-            f.write(f"#  {self.angles_guess[0]:.8e}  {self.angles_guess[1]:.8e}  {self.angles_guess[2]:.8e}\n")
-            f.write(f"#acell \n")
-            f.write(f"#  {self.lattice_a_guess/ang2bohr:.12e}  {self.lattice_b_guess/ang2bohr:.12e}  {self.lattice_c_guess/ang2bohr:.12e}\n")
-            f.write(f"acell \n")
-            f.write(f"  1.00 1.00 1.00\n")
-            f.write(f"rprim \n")
-            f.write(f"  {self.matrix_guess[0,0]/ang2bohr:.12e}  {self.matrix_guess[0,1]/ang2bohr:.12e}  {self.matrix_guess[0,2]/ang2bohr:.12e} \n")
-            f.write(f"  {self.matrix_guess[1,0]/ang2bohr:.12e}  {self.matrix_guess[1,1]/ang2bohr:.12e}  {self.matrix_guess[1,2]/ang2bohr:.12e} \n")
-            f.write(f"  {self.matrix_guess[2,0]/ang2bohr:.12e}  {self.matrix_guess[2,1]/ang2bohr:.12e}  {self.matrix_guess[2,2]/ang2bohr:.12e} \n")
-            f.write(f"strtarget \n")
-            f.write(f"  {stress[0]:.12e}  {stress[1]:.12e}  {stress[2]:.12e} \n")
-            f.write(f"  {stress[3]:.12e}  {stress[4]:.12e}  {stress[5]:.12e} \n")
-        return condition
+        return condition, stress
 
     def get_vib_free_energies(self, temp) -> tuple:
 
@@ -1586,3 +1509,68 @@ class QHA_ZSISA(HasPickleIO):
 
         # Extract the desired values
         return matrix_elastic
+    def print_data(self,temp,pressure,therm,stress,elastic,mode):
+        M=elastic
+        filename = f"cell_{temp:04.0f}_{pressure:03.0f}.txt"
+        with open(filename, "w") as f:
+            f.write(f"{'#T':<8} {'P':<8} {'lattice_a':<13} {'lattice_b':<13} {'lattice_c':<13} "
+                    f"{'alpha':<10} {'beta':<10} {'gamma':<10} {'volume':<13} {'ave_x':<13} "
+                    f"{'ave_y':<13} {'ave_z':<13}\n")
+
+            f.write(f"{temp:<8} {pressure:<8.2f} {self.lattice_a_guess:<13.10f} {self.lattice_b_guess:<13.10f} "
+                    f"{self.lattice_c_guess:<13.10f} {self.angles_guess[0]:<10.5f} {self.angles_guess[1]:<10.5f} "
+                    f"{self.angles_guess[2]:<10.5f} {self.volume_guess:<13.10f} {self.ave_x_guess:<13.10f} "
+                    f"{self.ave_y_guess:<13.10f} {self.ave_z_guess:<13.10f} \n")
+
+        if therm is not None:
+            filename = f"TEC_{temp:04.0f}_{pressure:03.0f}.txt"
+            with open(filename, "w") as f:
+            #with open("thermal.txt", "w") as f:
+                f.write(f"{'#T':<8} {'P':<8} {'alpha_xx':<15} {'alpha_yy':<15} {'alpha_zz':<15} {'alpha_yz':<15} {'alpha_xz':<15} {'alpha_xy':<15}\n")
+                f.write(f"{temp:<8} {pressure:<8.2f} {therm[0]:<15.8e} {therm[1]:<15.8e} {therm[2]:<15.8e} "
+                        f"{therm[3]:<15.8e} {therm[4]:<15.8e} {therm[5]:<15.8e}\n")
+
+        if elastic is not None:
+            filename = f"ECs_{temp:04.0f}_{pressure:03.0f}.txt"
+            with open(filename, "w") as f:
+                f.write("Elastic [GPa] \n")
+                if (self.sym == "cubic" or self.sym == "trigonal" or self.sym == "hexagonal" or self.sym == "tetragonal" or self.sym == "orthorhombic") :
+                    if mode == 'ECs':
+                        if self.sym == "cubic":
+                            f.write(f"    {'C11':12s} {'C12':12s} {'C44':12s}\n")
+                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[3,3]:12.6f} \n")
+                        elif self.sym == "hexagonal":
+                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s}\n")
+                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} \n")
+                        elif self.sym == "trigonal":
+                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C14':12s} {'C44':12s}\n")
+                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[0,3]:12.6f} {M[3,3]:12.6f} \n")
+                        elif self.sym == "tetragonal":
+                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s} {'C66':12s}\n")
+                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[5,5]:12.6f} \n")
+                        if  self.sym == "orthorhombic":
+                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} {'C44':12s} {'C55':12s} {'C66':12s}\n")
+                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[4,4]:12.6f} {M[5,5]:12.6f} \n")
+                    else:
+                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} \n")
+                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} \n")
+
+                elif (self.sym == "monoclinic"):
+                    if mode != 'ECs':
+                        f.write(f" Warning: C44, C46, and C66 do not include the free energy contribution (only BO energy).\n")
+                    f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
+                    f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
+                    f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
+                    f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
+                    f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
+                    f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
+                    f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
+
+                elif (self.sym == "triclinic"):
+                    f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
+                    f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
+                    f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
+                    f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
+                    f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
+                    f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
+                    f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
