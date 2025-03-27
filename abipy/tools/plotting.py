@@ -638,7 +638,9 @@ def plot_xy_with_hue(data: pd.DataFrame,
         xs, ys = xy[:, 0], xy[:, 1]
 
         label = f"{hue}: {str(key)}" if hue is not None else ""
-        line = ax.plot(xs, ys, label=label, **kwargs)[0]
+        style_kws = dict(marker="o")
+        style_kws.update(kwargs)
+        line = ax.plot(xs, ys, label=label, **style_kws)[0]
 
         if abs_conv is not None:
             span_style = span_style or dict(alpha=0.2, hatch="/")
