@@ -596,7 +596,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         else:
             app("Number of k-points in Sigma_{nk}: %d" % (len(self.r.sigma_kpoints)))
             app("Number of bands included in e-e self-energy sum: %d" % (self.nband))
-            keys = self.params.keys() if verbose else ["ecuteps", "ecutsigx", "ecut", "gwr_boxcutmin"]
+            keys = self.params.keys() if verbose else ["ecut", "ecutwfn", "ecutsigx", "ecuteps", "gwr_boxcutmin"]
             for k in keys:
                 app("%s: %s" % (k, self.params[k]))
             if verbose:
@@ -1729,111 +1729,111 @@ class GwrRobot(Robot, RobotWithEbands):
 
         return fig
 
+    #@add_fig_kwargs
+    #def plot_qpgaps_convergence_old(self,
+    #                            qp_kpoints="all",
+    #                            qp_type="qpz0",
+    #                            sortby=None,
+    #                            hue=None,
+    #                            abs_conv=0.01,
+    #                            plot_qpmks=True,
+    #                            fontsize=8,
+    #                            **kwargs) -> Figure:
+    #    """
+    #    Plot the convergence of the direct QP gaps for all the k-points and spins treated by the GWR robot.
+
+    #    Args:
+    #        qp_kpoints: List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
+    #            or "all" to plot all k-points.
+    #        qp_type: "qpz0" for linear qp equation with Z factor computed at the KS e0,
+    #                 "otms" for on-the-mass-shell values.
+    #        sortby: Define the convergence parameter, sort files and produce plot labels.
+    #            Can be None, string or function. If None, no sorting is performed.
+    #            If string and not empty it's assumed that the abifile has an attribute
+    #            with the same name and `getattr` is invoked.
+    #            If callable, the output of sortby(abifile) is used.
+    #        hue: Variable that define subsets of the data, which will be drawn on separate lines.
+    #            Accepts callable or string
+    #            If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+    #            If callable, the output of hue(abifile) is used.
+    #        abs_conv: If not None, show absolute convergence window.
+    #        plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
+    #        fontsize: legend and label fontsize.
+    #    """
+    #    # Make sure nsppol and sigma_kpoints are the same.
+    #    self._check_dims_and_params()
+
+    #    nc0 = self.abifiles[0]
+    #    nsppol = nc0.nsppol
+    #    qpkinds = nc0.find_qpkinds(qp_kpoints)
+
+    #    #if len(qpkinds) > 10:
+    #    #    cprint("More that 10 k-points in file. Only 10 k-points will be shown. Specify kpt index expliclty", "yellow")
+    #    #    qpkinds = qpkinds[:10]
+
+    #    # Build grid with (nkpt, 1) plots.
+    #    nrows, ncols = len(qpkinds), 1
+    #    ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+    #                                           sharex=True, sharey=False, squeeze=False)
+    #    if hue is None:
+    #        labels, ncfiles, xs = self.sortby(sortby, unpack=True)
+    #    else:
+    #        groups = self.group_and_sortby(hue, sortby)
+
+    #    #if qp_type not in {"qpz0", "otms"}:
+    #    if qp_type not in {"qpz0", }:
+    #        raise ValueError("Invalid qp_type: %s" % qp_type)
+
+    #    name = "QP dirgap" if not plot_qpmks else "QP - KS dirgap"
+    #    name = "%s (%s)" % (name, qp_type.upper())
+
+    #    for ix, ((kpt, ikc), ax_row) in enumerate(zip(qpkinds, ax_mat)):
+    #        ax = ax_row[0]
+    #        for spin in range(nsppol):
+    #            ax.set_title("%s k:%s" % (name, repr(kpt)), fontsize=fontsize)
+
+    #            # Extract QP dirgap for [spin, ikcalc]
+    #            if hue is None:
+    #                if qp_type == "qpz0": yvals = [ncfile.qpz0_dirgaps[spin, ikc] for ncfile in ncfiles]
+    #                #if qp_type == "otms": yvals = [ncfile.qp_dirgaps_otms_t[spin, ikc, itemp] for ncfile in ncfiles]
+    #                if plot_qpmks:
+    #                    yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in ncfiles])
+
+    #                lines = self.plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, marker=nc0.marker_spin[spin], **kwargs)
+    #                hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
+
+    #            else:
+    #                for g in groups:
+    #                    if qp_type == "qpz0": yvals = [ncfile.qpz0_dirgaps[spin, ikc] for ncfile in g.abifiles]
+    #                    #if qp_type == "otms": yvals = [ncfile.qp_dirgaps_otms_t[spin, ikc, itemp] for ncfile in g.abifiles]
+    #                    if plot_qpmks:
+    #                        yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in g.abifiles])
+
+    #                    label = "%s: %s" % (self._get_label(hue), g.hvalue)
+    #                    lines = ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
+    #                    hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
+
+    #        ax.grid(True)
+    #        if ix == len(qpkinds) - 1:
+    #            ax.set_ylabel("%s (eV)" % name)
+    #            ax.set_xlabel("%s" % self._get_label(sortby))
+    #            if sortby is None: rotate_ticklabels(ax, 15)
+
+    #        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+    #    return fig
+
     @add_fig_kwargs
     def plot_qpgaps_convergence(self,
-                                qp_kpoints="all",
-                                qp_type="qpz0",
-                                sortby=None,
-                                hue=None,
-                                abs_conv=0.01,
-                                plot_qpmks=True,
-                                fontsize=8,
+                                x: str,
+                                abs_conv: float,
+                                y: str = "qpz0_dirgaps",
+                                hue: str | None = None,
+                                qp_kpoints: str = "all",
+                                qp_type: str = "qpz0",
+                                span_style: dict | None = None,
+                                fontsize: int = 8,
                                 **kwargs) -> Figure:
-        """
-        Plot the convergence of the direct QP gaps for all the k-points and spins treated by the GWR robot.
-
-        Args:
-            qp_kpoints: List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
-                or "all" to plot all k-points.
-            qp_type: "qpz0" for linear qp equation with Z factor computed at the KS e0,
-                     "otms" for on-the-mass-shell values.
-            sortby: Define the convergence parameter, sort files and produce plot labels.
-                Can be None, string or function. If None, no sorting is performed.
-                If string and not empty it's assumed that the abifile has an attribute
-                with the same name and `getattr` is invoked.
-                If callable, the output of sortby(abifile) is used.
-            hue: Variable that define subsets of the data, which will be drawn on separate lines.
-                Accepts callable or string
-                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
-                If callable, the output of hue(abifile) is used.
-            abs_conv: If not None, show absolute convergence window.
-            plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
-            fontsize: legend and label fontsize.
-        """
-        # Make sure nsppol and sigma_kpoints are the same.
-        self._check_dims_and_params()
-
-        nc0 = self.abifiles[0]
-        nsppol = nc0.nsppol
-        qpkinds = nc0.find_qpkinds(qp_kpoints)
-
-        #if len(qpkinds) > 10:
-        #    cprint("More that 10 k-points in file. Only 10 k-points will be shown. Specify kpt index expliclty", "yellow")
-        #    qpkinds = qpkinds[:10]
-
-        # Build grid with (nkpt, 1) plots.
-        nrows, ncols = len(qpkinds), 1
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
-        if hue is None:
-            labels, ncfiles, xs = self.sortby(sortby, unpack=True)
-        else:
-            groups = self.group_and_sortby(hue, sortby)
-
-        #if qp_type not in {"qpz0", "otms"}:
-        if qp_type not in {"qpz0", }:
-            raise ValueError("Invalid qp_type: %s" % qp_type)
-
-        name = "QP dirgap" if not plot_qpmks else "QP - KS dirgap"
-        name = "%s (%s)" % (name, qp_type.upper())
-
-        for ix, ((kpt, ikc), ax_row) in enumerate(zip(qpkinds, ax_mat)):
-            ax = ax_row[0]
-            for spin in range(nsppol):
-                ax.set_title("%s k:%s" % (name, repr(kpt)), fontsize=fontsize)
-
-                # Extract QP dirgap for [spin, ikcalc]
-                if hue is None:
-                    if qp_type == "qpz0": yvals = [ncfile.qpz0_dirgaps[spin, ikc] for ncfile in ncfiles]
-                    #if qp_type == "otms": yvals = [ncfile.qp_dirgaps_otms_t[spin, ikc, itemp] for ncfile in ncfiles]
-                    if plot_qpmks:
-                        yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in ncfiles])
-
-                    lines = self.plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, marker=nc0.marker_spin[spin], **kwargs)
-                    hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
-
-                else:
-                    for g in groups:
-                        if qp_type == "qpz0": yvals = [ncfile.qpz0_dirgaps[spin, ikc] for ncfile in g.abifiles]
-                        #if qp_type == "otms": yvals = [ncfile.qp_dirgaps_otms_t[spin, ikc, itemp] for ncfile in g.abifiles]
-                        if plot_qpmks:
-                            yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in g.abifiles])
-
-                        label = "%s: %s" % (self._get_label(hue), g.hvalue)
-                        lines = ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
-                        hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
-
-            ax.grid(True)
-            if ix == len(qpkinds) - 1:
-                ax.set_ylabel("%s (eV)" % name)
-                ax.set_xlabel("%s" % self._get_label(sortby))
-                if sortby is None: rotate_ticklabels(ax, 15)
-
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
-
-        return fig
-
-    @add_fig_kwargs
-    def plot_qpgaps_convergence_new(self,
-                                    x: str,
-                                    y: str,
-                                    abs_conv: float,
-                                    hue: str | None = None,
-                                    qp_kpoints: str = "all",
-                                    qp_type: str = "qpz0",
-                                    span_style: dict | None = None,
-                                    fontsize: int = 8,
-                                    **kwargs) -> Figure:
         """
         Plot the convergence of the direct QP gaps for all the k-points and spins treated by the GWR robot.
 
