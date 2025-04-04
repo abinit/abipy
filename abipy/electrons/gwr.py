@@ -177,14 +177,14 @@ class PadeData:
 class SigmaTauFit:
     """Stores the fit for Sigma(i tau)"""
 
-    tau_mesh: np.ndarray
-    values: np.ndarray
-    a_mtau: complex   # Coefficient
-    beta_mtau: float  # exp(beta tau)
-    a_ptau: complex
-    beta_ptau: float  # exp(-beta tau)
+    tau_mesh: np.ndarray   # tau mesh in a.u.
+    values: np.ndarray     # values on the mesh.
+    a_mtau: complex        # A coefficient for negative imaginary times.
+    beta_mtau: float       # exp(beta tau) for negative imaginary times.
+    a_ptau: complex        # A coefficient for positive imaginary times.
+    beta_ptau: float       # exp(-beta tau) for positive imaginary times.
 
-    def eval_omega(self, ws: np.ndarray) -> np.ndarray:
+    def eval_real_omega(self, ws: np.ndarray, zcut=None) -> np.ndarray:
         r"""
         Compute the Fourier transform of the piecewise function.
 
@@ -220,22 +220,27 @@ class GwrSelfEnergy(SelfEnergy):
         self.mx_mesh = mx_mesh
 
     def tau_fit(self, first, last, xs) -> tuple[np.ndarray, complex, float]:
-        """
+        r"""
         Performs the exponential fit in imaginary time.
+        using A exp^{-b t} with A complex and b real and > 0.
+
+        b = -\frac{\ln(y_n / y_0)}{\tau_n - \tau_0}, \quad A = y_0 e^{a \tau_n}
         """
         mp_taus = self.c_tau.mesh
         vals_mptaus = self.c_tau.values
         w0, f0 = mp_taus[first], vals_mptaus[first]
         wn, fn = mp_taus[last], vals_mptaus[last]
         # NB: take the real part of the log to avoid oscillatory behaviour in the exp.
-        a = -np.log(fn / f0) / (wn - w0)
-        a = a.real
+        bb = -np.log(fn / f0) / (wn - w0)
+        bb = bb.real
         # If something goes wrong, disable the fit.
         # Note that the sign of a depends whether as we working with positive or negative tau.
-        if wn >= 0 and a <= 1e-12: f0 = 0.0j
-        if wn < 0 and a >= -1e-12: f0 = 0.0j
+        if wn >= 0 and bb <= 1e-12: f0 = 0.0j
+        if wn < 0 and bb >= -1e-12: f0 = 0.0j
+        aa =  f0 * exp(b * w0)
+        #aa = (f0 + fn) / (np.exp(-bb * w0) + np.exp(-bb * wn))
         #print(f"{f0=}")
-        return f0 * np.exp(-a * (xs - w0)), f0, a
+        return aa * np.exp(-bb * xs), aa, bb
 
     def _minimize_loss_tau(self, tau_fit, zone: str):
         """
@@ -260,7 +265,7 @@ class GwrSelfEnergy(SelfEnergy):
             first = ntau - 1
             for last in range(first):
                 ys_fit, alpha, beta = tau_fit(first, last, xs)
-                losses.append((last, np.sum(self.mx_mesh.tau_wgs * np.abs(ys_fit - ys)**2), ys_fit, alpha, beta))
+                losses.append((last, np.sum(self.mx_mesh.tau_wgs * np.abs(ys_fit - ys)**2), ys_fit, beta, alpha))
 
         else:
             raise ValueError(f"Invalid {zone=} should be in (-, +)")
@@ -268,7 +273,7 @@ class GwrSelfEnergy(SelfEnergy):
         # Find min of losses.
         min_loss = min(losses, key=lambda t: t[1])
         return dict2namedtuple(imin=min_loss[0], loss=min_loss[1], values=min_loss[2],
-                               alpha=min_loss[3], beta=min_loss[4])
+                               alpha=min_loss[4], beta=min_loss[3])
 
     def get_exp_tau_fit(self) -> SigmaTauFit:
         """
@@ -282,7 +287,8 @@ class GwrSelfEnergy(SelfEnergy):
                            a_mtau=fit_m.alpha,
                            beta_mtau=fit_m.beta,
                            a_ptau=fit_p.alpha,
-                           beta_ptau=fit_p.beta)
+                           beta_ptau=fit_p.beta,
+                           )
 
     def get_pade_data(self, w_vals: np.ndarray, e0: float, pade_method: str) -> PadeData:
         """
@@ -550,6 +556,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             gwr_ntau=r.read_dimvalue("ntau"),
             nband=self.ebands.nband,
             ecuteps=float(r.read_value("ecuteps")),
+            ecutwfn=float(r.read_value("ecutwfn")),
             ecutsigx=float(r.read_value("ecutsigx")),
             ecut=float(r.read_value("ecut")),
             gwr_boxcutmin=float(r.read_value("gwr_boxcutmin")),
