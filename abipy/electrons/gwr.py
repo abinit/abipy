@@ -1863,7 +1863,7 @@ class GwrRobot(Robot, RobotWithEbands):
 
         for spin in range(nsppol):
             for ix, (sigma_kpt, ikcalc) in enumerate(qpkinds):
-                ax = ax_mat[ikcalc, spin]
+                ax = ax_mat[ix, spin]
                 data = self.get_dirgaps_dataframe(kpoint=ikcalc,
                                                   spin=spin,
                                                   with_params=True,
