@@ -4032,6 +4032,14 @@ class DdkTask(DfptTask):
         self.outdir.symlink_abiext('1WF', 'DDK')
 
 
+class EfieldTask(DfptTask):
+    """
+    Task for the computation of the response to the Electric field.
+    """
+
+    color_rgb = np.array((0, 122, 204)) / 255
+
+
 class DkdkTask(DfptTask):
     """
     Task for the computation of d2/dkdk wave functions
