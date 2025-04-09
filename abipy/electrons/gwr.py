@@ -552,13 +552,16 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         minimax_mesh = self.minimax_mesh
         r = self.r
+        ecut = float(r.read_value("ecut"))
+        ecutwfn = float(r.read_value("ecutwfn", default=ecut))
+
         return dict(
             gwr_ntau=r.read_dimvalue("ntau"),
             nband=self.ebands.nband,
             ecuteps=float(r.read_value("ecuteps")),
-            ecutwfn=float(r.read_value("ecutwfn")),
+            ecutwfn=ecutwfn,
             ecutsigx=float(r.read_value("ecutsigx")),
-            ecut=float(r.read_value("ecut")),
+            ecut=ecut,
             gwr_boxcutmin=float(r.read_value("gwr_boxcutmin")),
             nkpt=self.ebands.nkpt,
             symchi=int(r.read_value("symchi")),
@@ -1844,13 +1847,25 @@ class GwrRobot(Robot, RobotWithEbands):
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
             qp_kpoints: List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
                 or "all" to plot all k-points.
-            qp_type: "qpz0" for linear qp equation with Z factor computed at the KS e0,
-                     "otms" for on-the-mass-shell values.
+            qp_type: "qpz0_dirgaps" for linear qp equation with Z factor computed at the KS e0,
+                     "otms_dirgaps" for on-the-mass-shell values.
             span_style: dictionary with options passed to ax.axhspan.
             fontsize: legend and label fontsize.
         """
         # Make sure nsppol and sigma_kpoints are the same.
         self._check_dims_and_params()
+
+        # Get labels from x and y and add units.
+        xlabel = {
+            "ecut": "ecut (Ha)",
+            "ecutwfn": "ecutwfn (Ha)",
+            "ecuteps": "ecuteps (Ha)",
+        }.get(x, x)
+
+        ylabel = {
+            "qpz0_dirgaps": r"$\text{QP}^{Z_0}_{\text{gap}}$ (eV)",
+            "otm_dirgaps": r"$\text{QP}^{\text{otms}}_{\text{gap}}$ (eV)",
+        }.get(y, y)
 
         nc0: GwrFile = self.abifiles[0]
         nsppol = nc0.nsppol
@@ -1879,6 +1894,8 @@ class GwrRobot(Robot, RobotWithEbands):
                                  show=False,
                                  )
                 ax.set_title("k-point: %s" % repr(sigma_kpt), fontsize=fontsize)
+                ax.set_xlabel(xlabel)
+                ax.set_ylabel(ylabel)
 
         return fig
 
