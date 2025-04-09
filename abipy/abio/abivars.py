@@ -498,7 +498,8 @@ for dataset in abinp.datasets:
                 if self_dataset_dict[k] != other_dataset_dict[k]:
                     diffs.append(f"The variable '{k}' is different in the two files:\n"
                                  f" - this file:  '{self_dataset_dict[k]}'\n"
-                                 f" - other file: '{other_dataset_dict[k]}'")
+                                 f" - other file: '{other_dataset_dict[k]}'\n"
+                                 f"{type(other_dataset_dict[k])}\n")
         return diffs
 
 
