@@ -638,9 +638,15 @@ def plot_xy_with_hue(data: pd.DataFrame,
         xs, ys = xy[:, 0], xy[:, 1]
 
         label = f"{hue}: {str(key)}" if hue is not None else ""
-        style_kws = dict(marker="o")
+        style_kws = dict()
         style_kws.update(kwargs)
         line = ax.plot(xs, ys, label=label, **style_kws)[0]
+        # Plot points with different color if y reach convergence.
+        if abs_conv is not None:
+            color = line.get_color()
+            for i in range(len(ys)):
+                ax.plot(xs[i], ys[i], marker="o", color="r" if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else color, linestyle="")
+
 
         if abs_conv is not None:
             span_style = span_style or dict(alpha=0.2, hatch="/")
