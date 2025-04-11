@@ -1463,6 +1463,7 @@ class CalcBuilder:
         4) nn_type@calc_kwargs.yaml e.g.: mace:calc_kwargs.yaml.
     """
 
+    # List of supported ML calculators
     ALL_NN_TYPES = [
         "emt",
         "m3gnet",
@@ -1478,6 +1479,7 @@ class CalcBuilder:
         "orb",
         "sevenn",
         "mattersim",
+        "pet-mad",
     ]
 
     def __init__(self, name: str, dftd3_args=None, **kwargs):
@@ -1806,6 +1808,17 @@ class CalcBuilder:
             load_path = "MatterSim-v1.0.0-1M.pth" if self.model_name is None else self.model_name
             #load_path = "MatterSim-v1.0.0-5M.pth"
             calc = _MatterSimCalculator(load_path=load_path, device=device)
+
+        elif self.nn_type == "pet-mad":
+            try:
+                from pet_mad.calculator import PETMADCalculator
+            except ImportError as exc:
+                raise ImportError("pet-mad not installed. See https://github.com/lab-cosmo/pet-mad") from exc
+
+            class _PETMADCalculator(_MyCalculator, PETMADCalculator):
+                """Add abi_forces and abi_stress"""
+
+            calc = _PETMADCalculator(version="latest") #, device="cpu")
 
         else:
             raise ValueError(f"Invalid {self.nn_type=}")

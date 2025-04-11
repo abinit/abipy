@@ -59,7 +59,6 @@ class CumulantQpTempState(QpTempState):
         Energies are in eV.
     """
 
-
     def set_energies(self, wmesh, vals_wr, vals_e0ks, ntemp, nwr):
         # Determination of the QP energies
         for it in range(ntemp):
@@ -73,7 +72,8 @@ class CumulantQpTempState(QpTempState):
 
 class CumulantEPhFile(SigEPhFile):
     """
-    This file contains the Green's Function using the cumulant expansion from a self-energy eph calculation, the |ElectronBands| on the k-mesh.
+    This file contains the Green's Function using the cumulant expansion from
+    a self-energy eph calculation, the |ElectronBands| on the k-mesh.
     Provides methods to analyze and plot results.
 
     Usage example:
@@ -103,16 +103,13 @@ class CumulantEPhFile(SigEPhFile):
         self.nqbz = r.nqbz
         self.nqibz = r.nqibz
         self.ngqpt = r.ngqpt
-
-
         self.symsigma = -1
-
 
     def __str__(self):
         """String representation."""
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -206,7 +203,7 @@ class CumulantPhReader(SigmaPhReader):
         else:
             self.ct_vals_exists = False
 
-    def read_cumulant_skb(self, spin, kpoint, band):
+    def read_cumulant_skb(self, spin, kpoint, band) -> CumulantSelfEnergy:
         """
         Returns the e-ph self energy for the given (spin, k-point, band).
 
@@ -214,8 +211,6 @@ class CumulantPhReader(SigmaPhReader):
             spin: Spin index
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: band index.
-
-        Return: :class:`EphSelfEnergy` object.
         """
         if self.nwr == 0:
             raise ValueError("%s does not contain spectral function data." % self.path)
@@ -257,10 +252,11 @@ class CumulantPhReader(SigmaPhReader):
         # Read QP data. Note band instead of ib index.
         qp = self.read_qp(spin, ikc, band)
 
-        return CumulantSelfEnergy(wmesh, qp, gw_vals, spfunccumul_wr, time_mesh = time_mesh, ct_vals= ct_vals, gt_vals= gt_vals)
+        return CumulantSelfEnergy(wmesh, qp, gw_vals, spfunccumul_wr,
+                                 time_mesh=time_mesh, ct_vals= ct_vals, gt_vals= gt_vals)
 
 
-    def read_qp(self, spin, kpoint, band, ignore_imag=False):
+    def read_qp(self, spin, kpoint, band, ignore_imag=False) -> CumulantQpTempState:
         """
         Return :class:`QpTempState` for the given (spin, kpoint, band)
         (NB: band is a global index i.e. unshifted)
@@ -283,19 +279,15 @@ class CumulantPhReader(SigmaPhReader):
         # Kohn-Sham eigenvalues
         e0 = self.read_variable("ks_enes")[spin, ikc, ibc] * abu.Ha_eV
 
-
         return CumulantQpTempState(spin=spin, kpoint=kpoint, band=band, tmesh=self.tmesh,
-                           e0=e0, qpe = qpe, ze0=ze0, fan0=fan0, dw=dw, qpe_oms = qpe_oms)
-
-
-
-
+                                   e0=e0, qpe=qpe, ze0=ze0, fan0=fan0, dw=dw, qpe_oms=qpe_oms)
 
 
 class CumulantSelfEnergy(EphSelfEnergy):
 
 
-    def __init__(self, wmesh, qp, gw_vals, spfunccumul_wr, time_mesh = None, ct_vals = None, gt_vals = None,
+    def __init__(self, wmesh, qp, gw_vals, spfunccumul_wr,
+                 time_mesh=None, ct_vals=None, gt_vals=None,
                  vals_e0ks=None, dvals_de0ks=None, dw_vals=None,
                  frohl_vals_e0ks=None, frohl_dvals_de0ks=None, frohl_spfunc_wr=None):
 
@@ -348,10 +340,11 @@ class CumulantSelfEnergy(EphSelfEnergy):
             e0ks[it] = sigma[it,idx_e0].real
             # The derivative of the self-energy evaluated at the KS energy.
             de0ks[it] = np.gradient(sigma[it,:].real, wmesh[1]-wmesh[0])[idx_e0]
+
         return sigma, e0ks, de0ks
 
     @classmethod
-    def calculate_gw_from_sigeph_skb(cls, sigeph, time_tol = 1e-4):
+    def calculate_gw_from_sigeph_skb(cls, sigeph, time_tol=1e-4) -> CumulantQpTempState:
 
         # Initialization
         wmesh_init = sigeph.wmesh
@@ -368,7 +361,6 @@ class CumulantSelfEnergy(EphSelfEnergy):
         qp = CumulantQpTempState(spin=sigeph.spin, kpoint=sigeph.kpoint, band=sigeph.band, tmesh=sigeph.tmesh,
                            e0=sigeph.qp.e0, qpe = qpe, ze0=ze0, fan0=fan0, dw=dw, qpe_oms = qpe_oms)
 
-
         # Frequency mesh step
         w_step = wmesh_init[1] - wmesh_init[0]
         # Shift frequency mesh to set the KS energy close to 0.0, with principal value offseting the mesh slightly.
@@ -382,7 +374,6 @@ class CumulantSelfEnergy(EphSelfEnergy):
         for itemp in range(ntemp):
             #time_max = np.log(time_tol)/ ( -1.0 * np.abs(sigeph.vals_e0ks[itemp].imag))
             #Give warning if time_max < 2*np.pi/w_step
-
 
             beta = np.abs( sigma[itemp].imag)/np.pi
 
@@ -410,7 +401,4 @@ class CumulantSelfEnergy(EphSelfEnergy):
         # Spectral Function
         spfunc = -1.0 * gw.imag / np.pi
 
-
         return cls( wmesh_init, qp, gw, spfunc, time_mesh = t, ct_vals = c1+c2+c3, gt_vals = Gt )
-
-

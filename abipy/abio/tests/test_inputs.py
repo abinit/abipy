@@ -684,7 +684,7 @@ class TestAbinitInput(AbipyTest):
         #############
         # DKDK methods
         #############
-        dkdk_input = gs_inp.make_dkdk_input()
+        dkdk_input = gs_inp.make_dkdk_input(rf2_dkdk=1)
         assert dkdk_input["kptopt"] == 2
         assert dkdk_input["rf2_dkdk"] == 1
         assert dkdk_input["useylm"] == 1

@@ -24,7 +24,7 @@ from abipy.tools.typing import TYPE_CHECKING, Figure
 from abipy.flowtk import wrappers
 from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status
 from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask,
-                    DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask,
+                    DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask, EfieldTask,
                     EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
                     DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
 from .utils import Directory
@@ -487,6 +487,11 @@ class NodeContainer(metaclass=abc.ABCMeta):
         max_cores = manager.qadapter.max_cores
         new_manager = manager.new_with_fixed_mpi_omp(max_cores, 1)
         kwargs.update({"manager": new_manager})
+        return self.register_task(*args, **kwargs)
+
+    def register_efield_task(self, *args, **kwargs) -> EfieldTask:
+        """Register an Efield task."""
+        kwargs["task_class"] = EfieldTask
         return self.register_task(*args, **kwargs)
 
     def register_bec_task(self, *args, **kwargs) -> BecTask:
@@ -1537,7 +1542,14 @@ class MergeDdb:
             raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
 
         # DDK calculations (self-consistent to get electric field).
-        multi_ddk = scf_task.input.make_ddk_inputs(tolerance=ddk_tolerance)
+        # Use time-reversal symmetry for DDK (ddk_kptopt 2) except when
+        # the SCF run has disabled all symmetries (3) or just TR (4).
+        ddk_kptopt = 2
+        if "kptopt" in scf_task.input:
+            if scf_task.input["kptopt"] in (3, 4):
+                ddk_kptopt = 3
+
+        multi_ddk = scf_task.input.make_ddk_inputs(kptopt=ddk_kptopt, tolerance=ddk_tolerance)
 
         ddk_tasks = []
         for ddk_inp in multi_ddk:
@@ -1553,10 +1565,10 @@ class MergeDdb:
             bec_inputs = scf_task.input.make_strain_perts_inputs(tolerance=ph_tolerance,
                                                                  phonon_pert=True, efield_pert=True,
                                                                  prepalw=1)
-
         else:
+            # Dataset 4 in <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
             bec_inputs = scf_task.input.make_bec_inputs(tolerance=ph_tolerance,
-                                                        prepalw=1 if with_quad else 0)
+                                                        prepalw=2 if with_quad else 0)
 
         bec_tasks = []
         for bec_inp in bec_inputs:
@@ -1565,16 +1577,30 @@ class MergeDdb:
 
         if with_quad or with_flexoe:
             # Response function calculation of d2/dkdk wave function.
-            # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
-            dkdk_inp = scf_task.input.make_dkdk_input(tolerance=ddk_tolerance)
+            # Dataset 3 in <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+            dkdk_inp = scf_task.input.make_dkdk_input(rf2_dkdk=3, tolerance=ddk_tolerance)
             dkdk_task = self.register_dkdk_task(dkdk_inp, deps=bec_deps)
+
+            # Add electric field perturbations.
+            # FIXME: In principle, one can have it via BECS but make_bec_inputs uses symmetries
+            # but dyn. qaudrupoles requires all three directions so we do it explicitly.
+            e_tasks = []
+            for idir in range(3):
+                rfdir = np.zeros(3, dtype=int)
+                rfdir[idir] = 1
+                d = dict(rfelfd=3, kptopt=2, prepalw=2, rfdir=rfdir)
+                efield_input = scf_task.input.new_with_vars(**d)
+                e_tasks.append(self.register_efield_task(efield_input, deps=bec_deps))
 
             quad_deps = bec_deps.copy()
             quad_deps.update({dkdk_task: "DKDK"})
             quad_deps.update({bec_task: ["1DEN", "1WF"] for bec_task in bec_tasks})
+            # Add the electric field dependencies.
+            quad_deps.update({e_task: ["1DEN", "1WF"] for e_task in e_tasks})
 
             if with_quad:
-                # Dynamic Quadrupoles calculation
+                # Dynamical quadrupoles calculation
+                # See Dataset 5 in <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
                 quad_inp = scf_task.input.make_quad_input(tolerance=ph_tolerance)
                 quad_task = self.register_quad_task(quad_inp, deps=quad_deps)
 

@@ -2063,12 +2063,13 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return ddk_inputs
 
-    def make_dkdk_input(self, tolerance=None, kptopt=2, manager=None) -> AbinitInput:
+    def make_dkdk_input(self, rf2_dkdk, tolerance=None, kptopt=2, manager=None) -> AbinitInput:
         """
         Return an input for performing d2/dkdk calculations.
         This functions should be called with an input the represents a GS run.
 
         Args:
+            rf2_dkdk: Abinit input variable.
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolwfr": 1.0e-22}.
             kptopt: 2 to take into account time-reversal symmetry. Note that kptopt 1 is not available.
@@ -2089,8 +2090,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             qpt=(0, 0, 0),        # q-wavevector.
             kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
             iscf=-3,              # The d2/dk perturbation is treated in a non-self-consistent way
-            rf2_dkdk=1,
-            #rf2_dkdk=3,
+            rf2_dkdk=rf2_dkdk,
             useylm=1,
             comment="Input file for DKDK calculation.",
         )
@@ -2351,7 +2351,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         Args:
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolvrs": 1.0e-10}.
-            prepalw: 1 to activate computation of all 3*natom perts. Used to prepare longwave-limit calculation.
+            prepalw: Abinit input variable. See doc.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
@@ -2992,7 +2992,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Returns:
-            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            List of dictionaries with the Abinit variables defining the irreducible perturbations.
 
         Example:
 
@@ -3005,6 +3005,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                             prepgkk=prepgkk,
                             prepalw=prepalw,
                             )
+        #if prepalw == 2:
+        #    phperts_vars["rfelfd"] = 3
 
         return self._abiget_irred_perts(phperts_vars, qpt=qpt, ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
@@ -4867,33 +4869,33 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
         spa = SpacegroupAnalyzer(structure)
         family = spa.get_crystal_system()
-    
+
         symbol = spa.get_space_group_symbol()
         n = spa.get_space_group_number()
-    
+
         if 0 < n < 3:
             # triclinic
             iholohedry = 1
-        if n < 16:
+        elif n < 16:
             # monoclinic
             iholohedry = 2
             #icentering = 0
-        if n < 75:
+        elif n < 75:
             # orthorhombic
             iholohedry = 3
-        if n < 143:
+        elif n < 143:
             # tetragonal
             iholohedry = 4
-        if n < 168:
+        elif n < 168:
             # trigonal
             iholohedry = 5
-        if n < 195:
+        elif n < 195:
             # hexagonal
             iholohedry = 6
         else:
             # cubic
             iholohedry = 7
-    
+
         if symbol.startswith('P'):
             # No centering
             icentering = 0
@@ -4912,7 +4914,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         else:
             # Rhombrohedral
             icentering = 0
-    
+
         return [iholohedry, icentering]
 
     _unitcell_keys = ['brav', 'natom_unitcell',

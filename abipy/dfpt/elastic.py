@@ -281,7 +281,7 @@ class ElasticData(Has_Structure, MSONable):
                     meta = self.TENSOR_META[name]
                     is_fit = tensor.is_fit_to_structure(self.structure, tol=1e-2)
                     tol = dict(elastic=1e-3, piezoelectric=1e-5)[tensor_type]
-                    app("[%s]" % name.upper())
+                    app("[%s] in Cartesian coordinates" % name.upper())
                     app("%s" % meta.info)
                     app("Units: %s, set to zero below: %s, fit_to_structure: %s" % (meta.units, tol, is_fit))
                     app("")

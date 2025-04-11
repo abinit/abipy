@@ -17,11 +17,11 @@ from scipy.interpolate import interp1d
 #from monty.termcolor import cprint
 from abipy.core.func1d import Function1D
 from abipy.core.structure import Structure
-from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs, map_grid2ibz #, IrredZone
+from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs, map_grid2ibz
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.typing import PathLike
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles, Marker, set_grid_legend)
+from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt, set_axlims, set_visible,
+    Marker, set_grid_legend)
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.dfpt.phonons import PhononBands
 from abipy.dfpt.ddb import DdbFile
@@ -165,8 +165,8 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
         nkbz = np.prod(ngkpt)
 
-        avg_g = r.read_variable("vpq_avg_g")[:]
-        e_frohl = r.read_variable("e_frohl")[:] # in Ha
+        avg_g = r.read_value("vpq_avg_g")
+        e_frohl = r.read_value("e_frohl") # in Ha
 
         d = dict(
             avg_g = bool(avg_g),
@@ -955,26 +955,31 @@ class Polaron:
         phdos_nqbz = np.prod(phdos_ngqpt)
         phdos_mesh = phdos.mesh
 
-        # Here we get the mapping BZ --> IBZ needed to obtain the ph frequencies omega_qnu from the IBZ for the DOS.
-        #bz2ibz, bz_qpoints = map_grid2ibz(self.structure, ibz_qpoints, phdos_ngqpt, shifts, has_timrev=True)
+        with_ibz_b2dos = False
 
         # Call anaddb to get phonons on the FULL ngqpt mesh.
         # The B_qnu do not necessarily have the symmetry of the lattice so we have to loop over the full BZ.
         anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
+
         bz_qpoints = kmesh_from_mpdivs(phdos_ngqpt, phdos_shifts)
+        phbands_bz = ddb.anaget_phmodes_at_qpoints(qpoints=bz_qpoints, ifcflag=1, verbose=verbose, **anaddb_kwargs)
+        if len(phbands_bz.qpoints) != np.prod(phdos_ngqpt):
+            raise RuntimeError(f"{len(phbands_bz.qpoints)=} != {np.prod(phdos_ngqpt)=}")
 
-        phbands_qmesh = ddb.anaget_phmodes_at_qpoints(qpoints=bz_qpoints, ifcflag=1, verbose=verbose, **anaddb_kwargs)
-        if len(phbands_qmesh.qpoints) != np.prod(phdos_ngqpt):
-            raise RuntimeError(f"{len(phbands_qmesh.qpoints)=} != {np.prod(phdos_ngqpt)=}")
+        # TODO: Use this new approach so that we can reduce everything to the IBZ:
+        #with KmeshFile.from_ngkpt_shifts(structure, phdos_ngqpt, phdos_shifts, kptopt=3, chksymbreak=0) as qmesh:
+        #    qibz = qmesh.ibz
+        #    qbz2ibz = qmesh.bz2ibz
+        #phbands_ibz = ddb.anaget_phmodes_at_qpoints(qpoints=qibz, ifcflag=1, verbose=verbose, **anaddb_kwargs)
 
-        #with_ibz_b2dos = False
         xmax = -np.inf
+
         for pstate in range(self.nstates):
             # Compute B2(E) by looping over the full BZ.
             bqnu_dos = np.zeros(len(phdos_mesh))
-            for iq_bz, qpoint in enumerate(phbands_qmesh.qpoints):
-                q_weight = 1./phdos_nqbz
-                freqs_nu = phbands_qmesh.phfreqs[iq_bz]
+            for iq_bz, qpoint in enumerate(phbands_bz.qpoints):
+                #q_weight = 1./phdos_nqbz
+                freqs_nu = phbands_bz.phfreqs[iq_bz]
                 for w, b2 in zip(freqs_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True):
                     bqnu_dos += b2 * gaussian(phdos_mesh, width, center=w)
 
@@ -996,16 +1001,7 @@ class Polaron:
             # Get mapping BZ --> IBZ needed to obtain the KS eigenvalues e_nk from the IBZ for the DOS
             # Compute B2(E) using only q-points in the IBZ. This is just for testing.
             # B2_IBZ(E) should be equal to B2(E) only if B_qnu fullfill the lattice symmetries. See notes above.
-            with_ibz_b2dos = False
             ibz_dos_opts = {"color": "darkred"}
-            """
-            bqnu_dos = np.zeros(len(phdos_mesh))
-            for iq_ibz, qpoint in zip(bz2ibz, bz_qpoints):
-                freqs_nu = phbands_qmesh.phfreqs[iq_ibz]
-                for w, b2 in zip(freqs_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True)
-                    bqnu_dos += b2 gaussian(phdos_mesh, width, center=w)
-            bqnu_dos /= np.prod(phdos_ngqpt)
-            """
             lines_bdos_ibz = None
 
             dos_lines = [lines_pdos, lines_bdos]

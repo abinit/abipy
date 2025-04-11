@@ -63,7 +63,8 @@ class GwrFileTest(AbipyTest):
                 assert gwr.plot_sigma_imag_axis(kpoint=0, show=False)
                 assert gwr.plot_sigma_real_axis(kpoint=0, show=False)
                 assert gwr.plot_qps_vs_e0(show=False)
-                assert gwr.plot_spectral_functions(show=False)
+                assert gwr.plot_spectral_function(kpoint=0, show=False)
+                assert gwr.plot_all_spectral_functions(show=False)
 
             if self.has_nbformat():
                 assert gwr.write_notebook(nbpath=self.get_tmpname(text=True))
@@ -82,7 +83,7 @@ class GwrFileTest(AbipyTest):
 
             if self.has_matplotlib():
                 assert robot.plot_selfenergy_conv(spin, kpoint, band, show=False)
-                assert robot.plot_qpgaps_convergence(show=False)
+                assert robot.plot_qpgaps_convergence(x="gwr_ntau", show=False)
                 # FIXME
                 #assert robot.plot_qpfield_vs_e0("qpe", show=False)
                 #assert robot.plot_qpdata_conv_skb(spin, kpoint, band, show=False)

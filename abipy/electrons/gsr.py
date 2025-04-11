@@ -4,6 +4,7 @@ Interface to the GSR.nc_ file storing the Ground-state results and the electron 
 """
 from __future__ import annotations
 
+import sys
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
@@ -262,6 +263,44 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             return ComputedEntry(self.structure.composition, self.energy,
                                  parameters=parameters, data=data)
 
+    def print_efg_results(self, precision=4, file=sys.stdout) -> None:
+        """
+        @JOE: Can you please describe the goal of this method?
+
+        Args:
+            precision: print options precision.
+            file: File handle for output.
+        """
+        # This code has been taken from efg_results.
+        def _p(*args, **kwargs):
+            return print(*args, file=file, **kwargs)
+
+        scale_factor = 234.9599245
+
+        if (efg := self.r.read_value("efg", default=None)) is None:
+            raise ValueError(f"GSR file {self.filepath} does not contain EFG data!")
+
+        if (quadmom := self.r.read_value("quadmom", default=None)) is None:
+            _p("Found no quadrupole moment data, using 0.0 for all atoms")
+
+        from numpy.linalg import eigvals
+        atom_species = self.r.read_value('atom_species')
+        atom_species_names = self.r.read_value('atom_species_names')
+
+        #with np.set_printoptions(precision=precision):
+        _p("Field gradient data")
+        for iat in range(len(self.structure)):
+            itypat = atom_species[iat]
+            vpas = eigvals(efg[iat])
+            vzz = vpas[np.argmax(np.abs(vpas))]
+            vxx = vpas[np.argmin(np.abs(vpas))]
+            vyy = -vzz -vxx
+
+            eta = (vxx - vyy) / vzz if abs(vzz) > 1.0E-8 else 0.0
+
+            cq = vzz * quadmom[itypat-1] * scale_factor
+            _p('atom type '+ str(atom_species[iat]) + ' Cq(MHz): %7.3f   eta: %4.3f' % (cq, eta))
+
     def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the |GsrFile| either in a notebook or in panel app.
@@ -420,7 +459,8 @@ class GsrReader(ElectronsReader):
             # NSCF
             tensor.fill(_INVALID_STRESS_TENSOR)
         else:
-            for i in range(3): tensor[i, i] = c[i]
+            for i in range(3):
+                tensor[i, i] = c[i]
             for p, (i, j) in enumerate(((2, 1), (2, 0), (1, 0))):
                 tensor[i, j] = c[3 + p]
                 tensor[j, i] = c[3 + p]
@@ -429,7 +469,7 @@ class GsrReader(ElectronsReader):
         from abipy.tools.tensors import Stress
         return Stress(tensor)
 
-    def read_energy_terms(self, unit="eV"):
+    def read_energy_terms(self, unit: str ="eV") -> EnergyTerms:
         """
         Return a dictionary with the different contributions to the total electronic energy.
         """
@@ -502,6 +542,7 @@ class GsrRobot(Robot, RobotWithEbands):
         index = None
         if with_paths:
             index = row_names if not abspath else self._to_relpaths(row_names)
+
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()))
 
     def get_eos_fits_dataframe(self, eos_names="murnaghan"):
