@@ -780,7 +780,7 @@ class Polaron:
 
             # fill Ank dos in order
             if fill_dos:
-                y_common = np.linspace(ymin-e0-span*0.1, ymax-e0+span*0.1, 100)
+                y_common = np.linspace(ymin-e0-span*0.1, ymax-e0+span*0.1, 2000)
                 xleft = np.zeros_like(y_common)
                 # skip eDOS, fill only ADOS
                 for dos, c in zip(dos_lines[1:], colors[1:]):
@@ -814,7 +814,7 @@ class Polaron:
         # if filtering is used, show the filtering region
         for ax in ax_mat.ravel():
             xmin, xmax = ax.get_xlim()
-            xrange = np.linspace(xmin,xmax,100)
+            xrange = np.linspace(xmin,xmax,200)
             shifted_bm = bm - e0
             if filter_value:
                 if pkind == "hole":
@@ -1016,6 +1016,7 @@ class Polaron:
                                           xfactor=units_scale, yfactor=1/units_scale)
             set_grid_legend(ax, fontsize, xlabel="Arb. unit")
 
+
             # Get mapping BZ --> IBZ needed to obtain the KS eigenvalues e_nk from the IBZ for the DOS
             # Compute B2(E) using only q-points in the IBZ. This is just for testing.
             # B2_IBZ(E) should be equal to B2(E) only if B_qnu fullfill the lattice symmetries. See notes above.
@@ -1039,7 +1040,10 @@ class Polaron:
 
             # fill Bqnu dos in order
             if fill_dos:
-                y_common = np.linspace(ymin, ymax+span*0.1, 100)
+                # FIXME: nasty hack
+                y_common = np.linspace(0, np.max(phbands_bz.phfreqs)*units_scale, 2000)
+
+                #y_common = np.linspace(ymin, ymax+span*0.1, 2000)
                 xleft = np.zeros_like(y_common)
                 # skip phDOS, fill only BDOS
                 for dos, c in zip(dos_lines[1:], colors[1:]):
