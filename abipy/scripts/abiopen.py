@@ -251,6 +251,29 @@ def main():
         from abipy.flowtk.launcher import print_flowsdb_file
         return print_flowsdb_file(options.filepath)
 
+    if os.path.basename(options.filepath) == "phonopy_params.yaml":
+        import phonopy
+        phonon = phonopy.load("phonopy_params.yaml")
+        # Start ipython shell with namespace
+        import IPython
+        IPython.embed(header="""
+The Phonopy object
+The Abinit file object is associated to the `phonon` python variable.
+Use `phonon.<TAB>` to list available methods.
+
+#phonon.set_irreps(
+#  (0.0, 0.0, 0),
+#  is_little_cogroup=False
+#  nac_q_direction=False,
+#  #nac_q_direction=settings.nac_q_direction,
+#  degeneracy_tolerance=
+#)
+
+#phonon.show_irreps(show_irreps=True)
+#phonon.write_yaml_irreps(show_irreps=True)
+""")
+        return 0
+
     if not options.notebook:
         abifile = abilab.abiopen(options.filepath)
         if options.print:

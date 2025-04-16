@@ -236,7 +236,8 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
         print("Invoking anaddb ...  ", end="")
         phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(
             nqsmall=nqsmall, ndivsm=ndivsm, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
-            lo_to_splitting=lo_to_splitting, verbose=options.verbose, mpi_procs=1)
+            lo_to_splitting=lo_to_splitting, with_phonopy_obj=options.with_phonopy,
+            verbose=options.verbose, mpi_procs=1)
         print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
         phbands = phbst_file.phbands
@@ -292,7 +293,15 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
         phbst_file.close()
         phdos_file.close()
 
+        if options.with_phonopy:
+            phonon = phbands.phonopy_obj
+            # Save phonopy object in Yaml format.
+            filename = "phonopy_params.yaml"
+            print(f"Saving phonopy object to {filename}")
+            phonon.save(filename="phonopy_params.yaml", settings={'force_constants': True})
+
     return 0
+
 
 
 def abiview_ddb_vs(options) -> int:
@@ -781,6 +790,8 @@ def get_parser(with_epilog=False):
 
     # Subparser for ddb command.
     p_ddb = subparsers.add_parser('ddb', parents=[copts_parser, slide_parser, plotly_parser], help=abiview_ddb.__doc__)
+    p_ddb.add_argument("--with-phonopy", default=False, action="store_true",
+        help="Produce phonopy.yaml file. Use e.g. `abiopen.py  phonopy.yaml` to load the phonon object in the ipython terminal.")
     add_args(p_ddb, "xmgrace", "phononweb", "browser", "force")
 
     # Subparser for ddb_vs command.

@@ -1465,6 +1465,19 @@ class GwrRobot(Robot, RobotWithEbands):
     # matplotlib option to fill convergence window.
     HATCH = "/"
 
+    # labels with units for plots.
+    XLABELS = {
+        "ecut": "ecut (Ha)",
+        "ecutwfn": "ecutwfn (Ha)",
+        "ecuteps": "ecuteps (Ha)",
+        "ecutsigx": "ecutsigx (Ha)",
+    }
+
+    YLABELS = {
+        "qpz0_dirgaps": r"$\text{QP}^{Z_0}_{\text{gap}}$ (eV)",
+        "otm_dirgaps": r"$\text{QP}^{\text{otms}}_{\text{gap}}$ (eV)",
+    }
+
     def __init__(self, *args):
         super().__init__(*args)
         if len(self.abifiles) in (0, 1): return
@@ -1685,6 +1698,9 @@ class GwrRobot(Robot, RobotWithEbands):
             if axis == "wreal": ebands0.add_fundgap_span(ax_list, spin)
             set_grid_legend(ax_list, fontsize)
 
+            for ax in ax_list:
+                set_axlims(ax, xlims, "x")
+
         else:
             # group_and_sortby and build (3, ngroups) subplots
             groups = self.group_and_sortby(hue, sortby)
@@ -1732,100 +1748,6 @@ class GwrRobot(Robot, RobotWithEbands):
 
         return fig
 
-    #@add_fig_kwargs
-    #def plot_qpgaps_convergence_old(self,
-    #                            qp_kpoints="all",
-    #                            qp_type="qpz0",
-    #                            sortby=None,
-    #                            hue=None,
-    #                            abs_conv=0.01,
-    #                            plot_qpmks=True,
-    #                            fontsize=8,
-    #                            **kwargs) -> Figure:
-    #    """
-    #    Plot the convergence of the direct QP gaps for all the k-points and spins treated by the GWR robot.
-
-    #    Args:
-    #        qp_kpoints: List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
-    #            or "all" to plot all k-points.
-    #        qp_type: "qpz0" for linear qp equation with Z factor computed at the KS e0,
-    #                 "otms" for on-the-mass-shell values.
-    #        sortby: Define the convergence parameter, sort files and produce plot labels.
-    #            Can be None, string or function. If None, no sorting is performed.
-    #            If string and not empty it's assumed that the abifile has an attribute
-    #            with the same name and `getattr` is invoked.
-    #            If callable, the output of sortby(abifile) is used.
-    #        hue: Variable that define subsets of the data, which will be drawn on separate lines.
-    #            Accepts callable or string
-    #            If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
-    #            If callable, the output of hue(abifile) is used.
-    #        abs_conv: If not None, show absolute convergence window.
-    #        plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
-    #        fontsize: legend and label fontsize.
-    #    """
-    #    # Make sure nsppol and sigma_kpoints are the same.
-    #    self._check_dims_and_params()
-
-    #    nc0 = self.abifiles[0]
-    #    nsppol = nc0.nsppol
-    #    qpkinds = nc0.find_qpkinds(qp_kpoints)
-
-    #    #if len(qpkinds) > 10:
-    #    #    cprint("More that 10 k-points in file. Only 10 k-points will be shown. Specify kpt index expliclty", "yellow")
-    #    #    qpkinds = qpkinds[:10]
-
-    #    # Build grid with (nkpt, 1) plots.
-    #    nrows, ncols = len(qpkinds), 1
-    #    ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-    #                                           sharex=True, sharey=False, squeeze=False)
-    #    if hue is None:
-    #        labels, ncfiles, xs = self.sortby(sortby, unpack=True)
-    #    else:
-    #        groups = self.group_and_sortby(hue, sortby)
-
-    #    #if qp_type not in {"qpz0", "otms"}:
-    #    if qp_type not in {"qpz0", }:
-    #        raise ValueError("Invalid qp_type: %s" % qp_type)
-
-    #    name = "QP dirgap" if not plot_qpmks else "QP - KS dirgap"
-    #    name = "%s (%s)" % (name, qp_type.upper())
-
-    #    for ix, ((kpt, ikc), ax_row) in enumerate(zip(qpkinds, ax_mat)):
-    #        ax = ax_row[0]
-    #        for spin in range(nsppol):
-    #            ax.set_title("%s k:%s" % (name, repr(kpt)), fontsize=fontsize)
-
-    #            # Extract QP dirgap for [spin, ikcalc]
-    #            if hue is None:
-    #                if qp_type == "qpz0": yvals = [ncfile.qpz0_dirgaps[spin, ikc] for ncfile in ncfiles]
-    #                #if qp_type == "otms": yvals = [ncfile.qp_dirgaps_otms_t[spin, ikc, itemp] for ncfile in ncfiles]
-    #                if plot_qpmks:
-    #                    yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in ncfiles])
-
-    #                lines = self.plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, marker=nc0.marker_spin[spin], **kwargs)
-    #                hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
-
-    #            else:
-    #                for g in groups:
-    #                    if qp_type == "qpz0": yvals = [ncfile.qpz0_dirgaps[spin, ikc] for ncfile in g.abifiles]
-    #                    #if qp_type == "otms": yvals = [ncfile.qp_dirgaps_otms_t[spin, ikc, itemp] for ncfile in g.abifiles]
-    #                    if plot_qpmks:
-    #                        yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in g.abifiles])
-
-    #                    label = "%s: %s" % (self._get_label(hue), g.hvalue)
-    #                    lines = ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
-    #                    hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
-
-    #        ax.grid(True)
-    #        if ix == len(qpkinds) - 1:
-    #            ax.set_ylabel("%s (eV)" % name)
-    #            ax.set_xlabel("%s" % self._get_label(sortby))
-    #            if sortby is None: rotate_ticklabels(ax, 15)
-
-    #        ax.legend(loc="best", fontsize=fontsize, shadow=True)
-
-    #    return fig
-
     @add_fig_kwargs
     def plot_qpgaps_convergence(self,
                                 x: str,
@@ -1856,16 +1778,8 @@ class GwrRobot(Robot, RobotWithEbands):
         self._check_dims_and_params()
 
         # Get labels from x and y and add units.
-        xlabel = {
-            "ecut": "ecut (Ha)",
-            "ecutwfn": "ecutwfn (Ha)",
-            "ecuteps": "ecuteps (Ha)",
-        }.get(x, x)
-
-        ylabel = {
-            "qpz0_dirgaps": r"$\text{QP}^{Z_0}_{\text{gap}}$ (eV)",
-            "otm_dirgaps": r"$\text{QP}^{\text{otms}}_{\text{gap}}$ (eV)",
-        }.get(y, y)
+        xlabel = self.XLABELS.get(x, x)
+        ylabel = self.YLABELS.get(y, y)
 
         nc0: GwrFile = self.abifiles[0]
         nsppol = nc0.nsppol
@@ -1893,9 +1807,12 @@ class GwrRobot(Robot, RobotWithEbands):
                                  fontsize=fontsize,
                                  show=False,
                                  )
+
+                if ix == len(qpkinds) - 1:
+                    ax.set_xlabel(xlabel)
+                if ix == 0:
+                    ax.set_ylabel(ylabel)
                 ax.set_title("k-point: %s" % repr(sigma_kpt), fontsize=fontsize)
-                ax.set_xlabel(xlabel)
-                ax.set_ylabel(ylabel)
 
         return fig
 
