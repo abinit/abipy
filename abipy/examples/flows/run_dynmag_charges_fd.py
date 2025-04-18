@@ -3,7 +3,8 @@ r"""
 Dynamical magnetic charges
 ==========================
 
-Flow to compute dynamical magnetic charges with finite difference
+Crystalline Cr2O3 with magnetic field (zeemanfield)
+Flow to compute dynamical magnetic charges with finite differences.
 
 Z_jv^m=Ω_0 (∂M_v)/(∂u_j ) = (∂F_j)/(∂H_v ) = Ω_0 (∂^2 E)/(∂H_β ∂u_i ).
 """
@@ -103,7 +104,7 @@ rprim     5.2802747870E-01  0.0000000000E+00  8.4922728509E-01
 
     work = FdDynMagneticChargeWork.from_scf_input(
         scf_input,
-        berryopt=-1,
+        #berryopt=-1,
         num_points=3,
         delta_h=0.01,
         relax_opts=None

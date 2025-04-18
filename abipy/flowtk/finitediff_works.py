@@ -250,7 +250,7 @@ class FdDynMagneticChargeWork(Work):
     @classmethod
     def from_scf_input(cls,
                        scf_input: AbinitInput,
-                       berryopt: int,
+                       #berryopt: int,
                        num_points: int,
                        delta_h: float = 0.01,
                        relax_opts: dict | None = None,
@@ -271,7 +271,7 @@ class FdDynMagneticChargeWork(Work):
             raise ValueError("Invalid {num_points=}. It should be in {allowed_num_points}")
 
         work = cls(manager=manager)
-        work.berryopt = berryopt
+        #work.berryopt = berryopt
         work.num_points = num_points
         work.delta_h = delta_h
         work.h_values, work.ib0 = build_mesh(0.0, num_points, delta_h, "centered")
@@ -303,7 +303,7 @@ class FdDynMagneticChargeWork(Work):
             # Get relaxed structure
             self.relaxed_structure = sender.get_final_structure()
             scf_input = self.scf_input_template.new_with_structure(self.relaxed_structure)
-            scf_input["berryopt"] = self.berryopt
+            #scf_input["berryopt"] = self.berryopt
 
             # Build new GS tasks with zeemanfield.
             shape = len(self.h_cart_dirs), len(self.h_values)
@@ -314,7 +314,7 @@ class FdDynMagneticChargeWork(Work):
                     is_h0 = abs(h_val) < 1e-16
                     new_inp = scf_input.new_with_vars(zeemanfield=h_val * h_cart_dir)
                     if is_h0:
-                        new_inp["berryopt"] = 0
+                        #new_inp["berryopt"] = 0
                         # Avoid computing H=0 3 times.
                         if task_h0 is None:
                             task_h0 = self.register_scf_task(new_inp)
@@ -325,6 +325,11 @@ class FdDynMagneticChargeWork(Work):
             self.flow.allocate(build=True)
 
         return super().on_ok(sender)
+
+    def on_all_ok(self):
+        data = self.get_data()
+        data.pickle_dump(self.outdir.path)
+        return super().on_all_ok()
 
     def get_data(self):
         """
@@ -362,12 +367,10 @@ class FdDynMagneticChargeWork(Work):
             data["zm_adh_npts"][len(weights)] = zm_adh
 
         return DynMagCharges(**data)
-        #return data
-        #mjson_write(data, self.outdir.path_in("dynmag_charges.json"))
 
 
 @dataclasses.dataclass(kw_only=True)
-class DynMagCharges:
+class DynMagCharges(HasPickleIO):
 
     input_structure: Structure
     relaxed_structure: Structure
