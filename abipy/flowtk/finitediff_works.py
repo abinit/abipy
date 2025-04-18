@@ -306,7 +306,8 @@ class FdDynMagneticChargeWork(Work):
             scf_input["berryopt"] = self.berryopt
 
             # Build new GS tasks with zeemanfield.
-            self.tasks_hdir_h = np.array((len(self.h_cart_dirs), len(self.h_values)), dtype=object)
+            shape = len(self.h_cart_dirs), len(self.h_values)
+            self.tasks_hdir_h = np.empty(shape, dtype=object)
             task_h0 = None
             for hdir, h_cart_dir in enumerate(self.h_cart_dirs):
                 for ih, h_val in enumerate(self.h_values):

@@ -85,6 +85,7 @@ rprim     5.2802747870E-01  0.0000000000E+00  8.4922728509E-01
         nstep=800,         # Maximal number of SCF cycles
         diemac=12.0,       # Although this is not mandatory, it is worth to
         #so_psp=??
+        paral_kgb=0,
     )
 
     scf_input.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
