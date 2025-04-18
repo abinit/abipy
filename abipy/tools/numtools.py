@@ -308,16 +308,12 @@ def smooth(x, window_len=11, window='hanning'):
     Taken from http://www.scipy.org/Cookbook/SignalSmooth
 
     Args:
-        x:
-            the input signal
-        window_len:
-            the dimension of the smoothing window. it should be an odd integer
-        window:
-            the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'.
+        x: the input signal
+        window_len: the dimension of the smoothing window. it should be an odd integer
+        window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'.
             'flat' window will produce a moving average smoothing.
 
-    Returns:
-        the smoothed signal.
+    Returns: the smoothed signal.
 
     example::
 
@@ -325,7 +321,7 @@ def smooth(x, window_len=11, window='hanning'):
         x = sin(t)+randn(len(t))*0.1
         y = smooth(x)
 
-    see also:
+    See also:
 
     numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve scipy.signal.lfilter
 

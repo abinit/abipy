@@ -222,7 +222,7 @@ class GwrSelfEnergy(SelfEnergy):
     def tau_fit(self, first, last, xs) -> tuple[np.ndarray, complex, float]:
         r"""
         Performs the exponential fit in imaginary time.
-        using A exp^{-b t} with A complex and b real and > 0.
+        using A exp^{-b t} with A complex, b real and > 0.
 
         b = -\frac{\ln(y_n / y_0)}{\tau_n - \tau_0}, \quad A = y_0 e^{a \tau_n}
         """
@@ -237,7 +237,7 @@ class GwrSelfEnergy(SelfEnergy):
         # Note that the sign of a depends whether as we working with positive or negative tau.
         if wn >= 0 and bb <= 1e-12: f0 = 0.0j
         if wn < 0 and bb >= -1e-12: f0 = 0.0j
-        aa =  f0 * exp(b * w0)
+        aa =  f0 * np.exp(bb * w0)
         #aa = (f0 + fn) / (np.exp(-bb * w0) + np.exp(-bb * wn))
         #print(f"{f0=}")
         return aa * np.exp(-bb * xs), aa, bb
@@ -1671,6 +1671,7 @@ class GwrRobot(Robot, RobotWithEbands):
         # Make sure nsppol and sigma_kpoints are consistent.
         self._check_dims_and_params()
         ebands0 = self.abifiles[0].ebands
+        style = {} if axis == "wreal" else dict(marker="o", markersize=4.0)
 
         if hue is None:
             # Build grid depends on axis.
@@ -1683,6 +1684,7 @@ class GwrRobot(Robot, RobotWithEbands):
             for ix, (nclabel, ncfile, param) in enumerate(lnp_list):
                 label = "%s: %s" % (self._get_label(sortby), param)
                 kws = dict(label=label or nclabel, color=cmap(ix / len(lnp_list)))
+                kws.update(style)
                 sigma = ncfile.r.read_sigee_skb(spin, kpoint, band)
 
                 if axis == "wreal":
@@ -1715,6 +1717,7 @@ class GwrRobot(Robot, RobotWithEbands):
 
                 for ix, (nclabel, ncfile, param) in enumerate(g):
                     kws = dict(label="%s: %s" % (self._get_label(sortby), param), color=cmap(ix / len(g)))
+                    kws.update(style)
                     sigma = ncfile.r.read_sigee_skb(spin, kpoint, band)
 
                     if axis == "wreal":
