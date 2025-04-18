@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 r"""
-Dynamical magnetic charges with finite difference
+Dynamical magnetic charges
 ==========================
 
 Flow to compute dynamical magnetic charges with finite difference
+
+Z_jv^m=Ω_0 (∂M_v)/(∂u_j ) = (∂F_j)/(∂H_v ) = Ω_0 (∂^2 E)/(∂H_β ∂u_i ).
 """
 
 import sys
 import os
-#import abipy.data as abidata
-#import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
 from abipy.core.structure import Structure

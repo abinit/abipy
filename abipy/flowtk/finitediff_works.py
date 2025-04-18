@@ -261,21 +261,33 @@ class FdDynMagneticChargeWork(Work):
         Args:
             scf_input: AbinitInput for GS SCF calculation used as template to generate the other inputs.
             berryopt: Abinit input variable.
-            num_points:
+            num_points: Number of points for finite difference
             delta_h: Finite difference step for the magnetic field in a.u.
             relax_opts: optional dictionary with relaxation options.
             manager: TaskManager instance. Use default manager if None.
         """
+        allowed_num_points = [len(weights) for weights in central_fdiff_weights[1].values()]
+        if num_points not in allowed_num_points:
+            raise ValueError("Invalid {num_points=}. It should be in {allowed_num_points}")
+
         work = cls(manager=manager)
         work.berryopt = berryopt
         work.num_points = num_points
         work.delta_h = delta_h
         work.h_values, work.ib0 = build_mesh(0.0, num_points, delta_h, "centered")
-        work.h_cart_dirs = np.array([
-            (1, 0, 0),
-            (0, 1, 0),
-            (0, 0, 1),
-        ])
+
+        # The directions depend on the value of nspinor
+        nspinor = scf_input.get("nspinor", 1)
+        if nspinor == 2:
+            work.h_cart_dirs = np.array([
+                (1, 0, 0),
+                (0, 1, 0),
+                (0, 0, 1),
+            ])
+        else:
+            work.h_cart_dirs = np.array([
+                (0, 0, 1),
+            ])
 
         work.scf_input_template = scf_input.deepcopy()
         relax_input = scf_input.make_relax_input()

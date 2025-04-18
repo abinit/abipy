@@ -1830,14 +1830,14 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return nscf_input
 
-    def make_relax_input(self, optcell=2, ionmov=2, tolvrs=1e-8, tolmxf=1e-6, **extra_abivars) -> AbinitInput:
+    def make_relax_input(self, optcell=2, ionmov=2, tolvrs=1e-8, tolmxf=1e-6, ntime=100, **extra_abivars) -> AbinitInput:
         """
         Build an input for structural relaxations from a GS one.
         extra_abivars are added to the input at the end.
         """
         relax_input = self.deepcopy()
         relax_input.pop_tolerances()
-        relax_input.set_vars(optcell=optcell, ionmov=ionmov, tolvrs=tolvrs, tolmxf=tolmxf)
+        relax_input.set_vars(optcell=optcell, ionmov=ionmov, tolvrs=tolvrs, tolmxf=tolmxf, ntime=ntime)
         relax_input.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
         relax_input.set_vars(**extra_abivars)
 
