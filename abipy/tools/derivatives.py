@@ -41,7 +41,6 @@ central_fdiff_weights = {
     },
 }
 
-
 # Derivative  Accuracy   0 1 2 3 4 5 6 7 8
 forward_fdiff_weights = {
 1: {
@@ -87,6 +86,29 @@ for ord, v in forward_fdiff_weights.items():
     d[ord] = {}
     for accuracy, weights in v.items():
         d[ord][accuracy] = ((-1)**ord) * weights[-1::-1]
+
+
+def check_num_points_for_order(num_points: int, order: int, kind: str) -> None:
+    """
+    Check if num_points is compatible with the stencil. Raises ValueError if invalid.
+
+    Args
+        num_points: Number of points for finite difference.
+        order: Derivative order.
+        kind: "=" for central-difference, ">" for forward, "<" for backward.
+    """
+    dct = {
+        "=": central_fdiff_weights,
+        ">": forward_fdiff_weights,
+        "<": backward_fdiff_weights,
+    }[kind]
+
+    if order not in dct:
+        raise ValueError(f"Invalid {order=}. It should be in {dct.keys()}")
+
+    allowed_num_points = [len(wgs) for wgs in dct[order].values()]
+    if num_points not in allowed_num_points:
+        raise ValueError(f"Invalid {num_points=}. It should be in {allowed_num_points}")
 
 
 def finite_diff(arr, h, order=1, acc=4, index=None):

@@ -226,6 +226,12 @@ class TestAbinitInput(AbipyTest):
         assert ngkpt.tolist() == [1, 2, 3]
         assert len(shiftk) == 2 and shiftk.ravel().tolist() == [1, 2, 3, 4, 5, 6]
 
+        # kptopt=4 i.e. NO TR if non-collinear magnetic
+        new_inp = inp.deepcopy()
+        new_inp.set_vars(nspinor=2, nspden=4)
+        with self.assertRaises(ValueError):
+            new_inp.set_kmesh(ngkpt=(1, 2, 3), shiftk=(0,0,0), kptopt=1)
+
         inp.pop("ngkpt")
         kptrlatt = [1, 0, 0, 0, 4, 0, 0, 0, 8]
         shiftk = (0.5, 0.0, 0.0)

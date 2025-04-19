@@ -13,12 +13,19 @@ import numpy as np
 from pymatgen.analysis.eos import EOS
 from abipy.core.structure import Structure
 from abipy.tools.numtools import build_mesh
-from abipy.tools.derivatives import central_fdiff_weights # finite_diff
+from abipy.tools.derivatives import central_fdiff_weights, check_num_points_for_order # finite_diff
 from abipy.abio.inputs import AbinitInput
 from abipy.tools.serialization import HasPickleIO
 #from abipy.electrons.gsr import GsrRobot
 #from abipy.tools.serialization import mjson_write, pmg_serialize
 from .works import Work
+
+def centered_indices(n):
+    half = n // 2
+    if n % 2 == 0:
+        return list(range(-half, half))
+    else:
+        return list(range(-half, half + 1))
 
 
 class FiniteDiffForcesData(HasPickleIO):
@@ -155,16 +162,14 @@ class FiniteDiffForcesWork(Work):
 #    @classmethod
 #    def from_scf_input(cls, scf_input, delta=1e-4, ecutsm=0.5, manager=None):
 #        """
-#        Build a EosWork from an AbinitInput representing a GS SCF calculation.
+#        Build a Work from an AbinitInput representing a GS SCF calculation.
 #
 #        Args:
-#            scf_input: AbinitInput for GS SCF used as template to generate the other inputs.
+#           scf_input: AbinitInput for GS SCF used as template to generate the other inputs.
 #	        delta:
-#            ecutsm: Value of ecutsm input variable. If `scf_input` does not provide ecutsm, this
-#                value will be used else the vale in `scf_input`.
-#            manager: TaskManager instance. Use default if None.
-#
-#        Return: EosWork instance.
+#           ecutsm: Value of ecutsm input variable. If `scf_input` does not provide ecutsm, this
+#               value will be used else the vale in `scf_input`.
+#           manager: TaskManager instance. Use default if None.
 #        """
 #	    scf_input = scf_input.deepcopy()
 #
@@ -244,7 +249,10 @@ class FdDynMagneticChargeWork(Work):
 
     The dynamical magnetic charges are defined as:
 
-        Z_jv^m=Ω_0 (∂M_v)/(∂u_j ) = (∂F_j)/(∂H_v ) = Ω_0 (∂^2 E)/(∂H_β ∂u_i ).#(6)
+        Z_jv^m=Ω_0 (∂M_v)/(∂u_j ) = (∂F_j)/(∂H_v ) = Ω_0 (∂^2 E)/(∂H_β ∂u_i).
+
+    Here we compute them as derivatives of forces wrt to the Zeeman magnetic field.
+    Non collinear calculations with SOC are required to have non-zero results.
     """
 
     @classmethod
@@ -253,6 +261,7 @@ class FdDynMagneticChargeWork(Work):
                        #berryopt: int,
                        num_points: int,
                        delta_h: float = 0.01,
+                       relax: bool = True,
                        relax_opts: dict | None = None,
                        manager=None) -> FdDynMagneticChargeWork:
         """
@@ -263,65 +272,66 @@ class FdDynMagneticChargeWork(Work):
             berryopt: Abinit input variable.
             num_points: Number of points for finite difference
             delta_h: Finite difference step for the magnetic field in a.u.
+            relax: False if the initial structural relaxation should not be performed.
             relax_opts: optional dictionary with relaxation options.
             manager: TaskManager instance. Use default manager if None.
         """
-        allowed_num_points = [len(weights) for weights in central_fdiff_weights[1].values()]
-        if num_points not in allowed_num_points:
-            raise ValueError("Invalid {num_points=}. It should be in {allowed_num_points}")
-
         work = cls(manager=manager)
         #work.berryopt = berryopt
-        work.num_points = num_points
         work.delta_h = delta_h
-        work.h_values, work.ib0 = build_mesh(0.0, num_points, delta_h, "centered")
+        work.h_values, work.ih0 = build_mesh(0.0, num_points, delta_h, "centered")
+        work.num_points = len(work.h_values)
+        check_num_points_for_order(num_points=work.num_points, order=1, kind="=")
 
-        # The directions depend on the value of nspinor
         nspinor = scf_input.get("nspinor", 1)
-        if nspinor == 2:
-            work.h_cart_dirs = np.array([
-                (1, 0, 0),
-                (0, 1, 0),
-                (0, 0, 1),
-            ])
-        else:
-            work.h_cart_dirs = np.array([
-                (0, 0, 1),
-            ])
+        if nspinor != 2:
+            raise ValueError("nspinor should be 2 to have non-zero dyn magnetic charges while it is {nspinor}")
 
+        work.h_cart_dirs = np.array([
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1),
+        ])
         work.scf_input_template = scf_input.deepcopy()
-        relax_input = scf_input.make_relax_input()
-        work.initial_relax_task = work.register_relax_task(relax_input)
+
+        work.relax = relax
+        if work.relax:
+            relax_input = scf_input.make_relax_input()
+            work.initial_relax_task = work.register_relax_task(relax_input)
+        else:
+            work._add_tasks_with_zeemanfield(scf_input.structure)
+            work.relaxed_structure = scf_input.structure
 
         return work
+
+    def _add_tasks_with_zeemanfield(self, structure: Structure) -> None:
+        """Build new GS tasks with zeemanfield."""
+        scf_input = self.scf_input_template.new_with_structure(structure)
+        #scf_input["berryopt"] = self.berryopt
+
+        self.tasks_hdir_h = np.empty((len(self.h_cart_dirs), len(self.h_values)), dtype=object)
+        task_h0 = None
+        for hdir, h_cart_dir in enumerate(self.h_cart_dirs):
+            for ih, h_val in enumerate(self.h_values):
+                is_h0 = abs(h_val) < 1e-16
+                new_inp = scf_input.new_with_vars(zeemanfield=h_val * h_cart_dir)
+                if is_h0:
+                    #new_inp["berryopt"] = 0
+                    # Avoid computing H=0 multiple times.
+                    if task_h0 is None:
+                        task_h0 = self.register_scf_task(new_inp)
+                    self.tasks_hdir_h[hdir, ih] = task_h0
+                else:
+                    self.tasks_hdir_h[hdir, ih] = self.register_scf_task(new_inp)
 
     def on_ok(self, sender):
         """
         This method is called when one task reaches status `S_OK`.
         """
-        if sender == self.initial_relax_task:
-            # Get relaxed structure
+        if self.relax and sender == self.initial_relax_task:
+            # Get relaxed structure from GSR file.
             self.relaxed_structure = sender.get_final_structure()
-            scf_input = self.scf_input_template.new_with_structure(self.relaxed_structure)
-            #scf_input["berryopt"] = self.berryopt
-
-            # Build new GS tasks with zeemanfield.
-            shape = len(self.h_cart_dirs), len(self.h_values)
-            self.tasks_hdir_h = np.empty(shape, dtype=object)
-            task_h0 = None
-            for hdir, h_cart_dir in enumerate(self.h_cart_dirs):
-                for ih, h_val in enumerate(self.h_values):
-                    is_h0 = abs(h_val) < 1e-16
-                    new_inp = scf_input.new_with_vars(zeemanfield=h_val * h_cart_dir)
-                    if is_h0:
-                        #new_inp["berryopt"] = 0
-                        # Avoid computing H=0 3 times.
-                        if task_h0 is None:
-                            task_h0 = self.register_scf_task(new_inp)
-                        self.tasks_hdir_h[hdir, ih] = task_h0
-                    else:
-                        self.tasks_hdir_h[hdir, ih] = self.register_scf_task(new_inp)
-
+            self._add_tasks_with_zeemanfield(self.relaxed_structure)
             self.flow.allocate(build=True)
 
         return super().on_ok(sender)
@@ -331,12 +341,11 @@ class FdDynMagneticChargeWork(Work):
         data.pickle_dump(self.outdir.path)
         return super().on_all_ok()
 
-    def get_data(self):
+    def get_data(self) -> DynMagCharges:
         """
-	    Read data from the GSR files, and produce a JSON file in the outdata directory of the work.
+	    Read data from the GSR files, and compute Zm with finite differences.
         """
         natom = len(self[0].input.structure)
-
         data = {
             "input_structure": self[0].input.structure,
             "relaxed_structure": self.relaxed_structure,
@@ -346,37 +355,38 @@ class FdDynMagneticChargeWork(Work):
         }
 
         # Read forces from the GSR files.
-        ndirs = len(self.h_cart_dirs)
-        cart_forces_dh = np.empty((ndirs, self.num_points, natom, 3))
+        cart_forces_dh = np.empty((len(self.h_cart_dirs), len(self.h_values), natom, 3))
         for hdir, h_cart_dir in enumerate(self.h_cart_dirs):
             for ih, h_val in enumerate(self.h_values):
-                with work.tasks_hdir_h[hdir, ih].open_gsr() as gsr:
+                with self.tasks_hdir_h[hdir, ih].open_gsr() as gsr:
                     cart_forces_dh[hdir, ih] = gsr.r.read_value("cartesian_forces") # Ha/Bohr units.
         data["cart_forces_dh"] = cart_forces_dh
 
         # Finite difference: ∂F_i/∂H_β
         # Use all stencils compatible with input num_points so that we can monitor the convergence.
-        data["zm_adh_npts"] = {}
+        data["zm_npts_had"] = {}
         for acc, weights in central_fdiff_weights[1].items():
             if self.num_points < len(weights): continue
-            np = acc // 2
-            zm_adh = np.zeros((natom, 3, 3))
-            for hdir, iat_idir, iat in itertools.product(range(3), range(3), range(len(natom))):
+            nn = acc // 2
+            zm_had = np.zeros((3, natom, 3))
+            for hdir, iat_dir, iat in itertools.product(range(3), range(3), range(natom)):
                 fvals_h = cart_forces_dh[hdir, :, iat, iat_dir]
-                zm_adh[iat, iat_dir, hdir] = np.sum(fvals_h[self.ib0-np:self.ib0+np] * weights) / self.delta_h
-            data["zm_adh_npts"][len(weights)] = zm_adh
+                zm_had[hdir, iat, iat_dir] = np.sum(fvals_h[self.ih0-nn:self.ih0+nn+1] * weights) / self.delta_h
+            data["zm_npts_had"][len(weights)] = zm_had
 
         return DynMagCharges(**data)
 
 
 @dataclasses.dataclass(kw_only=True)
 class DynMagCharges(HasPickleIO):
-
+    """
+    This object stores the dynamical magnetic charges computed with finite differences.
+    """
     input_structure: Structure
     relaxed_structure: Structure
     delta_h: float
     h_values: np.ndarray
     h_cart_dirs: np.ndarray
-    cart_forces: np.ndarray
-    zm_adh_npts: np.array
+    cart_forces_dh: np.ndarray
+    zm_npts_had: dict[np.array]
 

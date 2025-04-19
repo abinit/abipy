@@ -52,44 +52,41 @@ rprim     5.2802747870E-01  0.0000000000E+00  8.4922728509E-01
     # Get NC pseudos from pseudodojo.
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
     pseudos = get_oncvpsp_pseudos(xc_name="PBEsol", version="0.4",
-                                  relativity_type="SR", accuracy="standard")
-                                  #relativity_type="FR", accuracy="standard")
-
-
-    # This is a calculation with spin-up and spin-down wavefunctions,         ... nsppol=  2
-    # in which the occupation numbers are to be determined automatically.     ... occopt=  1
-    # However, in this case, the target total spin magnetization
-    # must be specified, while the default value is observed.                 ... spinmagntarget= -99.99
-    # Action: if you are doing an antiferromagnetic calculation, please use nsppol=1 with nspden=2;
-    # on the other hand, if you are doing a ferromagnetic calculation, either specify your own spinmagntarget,
-    # or let the code determine the total spin-polarization, by using a metallic value for occopt (e.g. 7 or 4 ...).
-
-    nspinor = 1
-    nsppol, nspden = 1, 4
-    if nspinor == 1:
-        nsppol, nspden  = 2, 2
+                                  relativity_type="FR", accuracy="standard")
+                                  #relativity_type="SR", accuracy="standard")
+    #nspinor = 1
+    #nsppol, nspden = 1, 4
+    #if nspinor == 1:
+    #    nsppol, nspden  = 2, 2
 
     scf_input = AbinitInput(structure, pseudos)
+    num_ele = scf_input.num_valence_electrons
     #scf_input.set_spin_mode(self, spin_mode)
     # AFM
-    nspinor, nsppol, nspden  = 1, 1, 2
+    #nspinor, nsppol, nspden  = 1, 1, 2
+    nspinor, nsppol, nspden  = 2, 1, 4
+
+    nband = num_ele,
 
     scf_input.set_vars(
-        ecut=43,
-        #ecut=12,
-        nband=60,          #Cr.psp8:14; O.psp8:6; (14*6+6*4)/2=54;54(occupied)+6(unoccupied)=60
+        #ecut=43,
+        ecut=12,
+        #nband=60,          # Cr.psp8:14; O.psp8:6; (14*6+6*4)/2=54;54(occupied)+6(unoccupied)=60
+        nband=num_ele,
+        #toldfe=1e-2,
         tolvrs=1e-8,       # SCF stopping criterion
-        #tolvrs=1e-2,       # SCF stopping criterion
         nspinor=nspinor,
         nsppol=nsppol,
         nspden=nspden,
-        nstep=800,         # Maximal number of SCF cycles
-        diemac=12.0,       # Although this is not mandatory, it is worth to
-        #so_psp=??
-        paral_kgb=0,
+        #nstep=800,         # Maximal number of SCF cycles
+        nstep=0,         # Maximal number of SCF cycles
+        diemac=12.0,
+        paral_kgb=0,       # The system is too small to use paral_kgb = 1
     )
 
-    scf_input.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
+    # kptopt=4,          # NO TR.
+    scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0], kptopt=4)
+    #scf_input.set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0], kptopt=4)
 
     scf_input["spinat"] = """
         0.0 0.0  -4.0
@@ -107,10 +104,11 @@ rprim     5.2802747870E-01  0.0000000000E+00  8.4922728509E-01
         #berryopt=-1,
         num_points=3,
         delta_h=0.01,
-        relax_opts=None
+        relax=False,
+        relax_opts=None,
     )
 
-    # Add the work to the flow
+    # Add the work to the flow.
     flow.register_work(work)
 
     return flow

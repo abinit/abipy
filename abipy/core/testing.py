@@ -21,6 +21,8 @@ from functools import wraps
 from shutil import which
 from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
+# TODO
+#from pymatgen.util.testing import MatSciTest
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 
@@ -309,9 +311,10 @@ def get_gsinput_alas_ngkpt(ngkpt, usepaw=0, as_task=False):
         return ScfTask(scf_input)
 
 
+#class AbipyTest(MatSciTest):
 class AbipyTest(PymatgenTest):
     """
-    Extends PymatgenTest with Abinit-specific methods.
+    Extends MatSciTest with Abinit-specific methods.
     Several helper functions are implemented as static methods so that we
     can easily reuse the code in the pytest integration tests.
     """
