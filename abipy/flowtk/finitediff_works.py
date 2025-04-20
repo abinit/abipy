@@ -16,8 +16,12 @@ from pymatgen.analysis.eos import EOS
 from abipy.core.structure import Structure
 from abipy.tools.numtools import build_mesh
 from abipy.tools.derivatives import central_fdiff_weights, check_num_points_for_order # finite_diff
+from abipy.tools.typing import Figure
 from abipy.abio.inputs import AbinitInput
 from abipy.tools.serialization import HasPickleIO
+from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
+    get_ax3d_fig_plt, rotate_ticklabels, set_visible, set_ax_xylabels)
+
 #from abipy.electrons.gsr import GsrRobot
 #from abipy.tools.serialization import mjson_write, pmg_serialize
 from .works import Work
@@ -281,8 +285,8 @@ class FdDynMagneticChargeWork(Work):
         check_num_points_for_order(num_points=work.num_points, order=1, kind="=")
 
         nspinor = scf_input.get("nspinor", 1)
-        if nspinor != 2:
-            raise ValueError("nspinor should be 2 to have non-zero dyn magnetic charges while it is {nspinor}")
+        #if nspinor != 2:
+        #    raise ValueError("nspinor should be 2 to have non-zero dyn magnetic charges while it is {nspinor}")
 
         work.h_cart_dirs = np.array([
             (1, 0, 0),
@@ -386,13 +390,15 @@ class DynMagCharges(HasPickleIO):
     cart_forces_dh: np.ndarray
     zm_npts_ahd: dict[np.array]  # Mapping npts -> Zm[iatom, hdir, 3]
 
-    def get_df_iatom(self, iatom: int) -> pd.Dataframe:
-        """Return dataframe with Zm values for the given atom index."""
+    def get_dataframe_iatom(self, iatom: int) -> pd.Dataframe:
+        """
+        Return dataframe with Zm values for the given atom index.
+        """
         components = "xx xy xz yx yy yz zx zy zz".split()
         site = self.relaxed_structure[iatom]
         rows = []
-        for npt, zm_ahd in self.zm_npts_ahd.items():
-            d = {"npt": npt}
+        for npts, zm_ahd in self.zm_npts_ahd.items():
+            d = {"npts": npts}
             d.update({c: v for c, v in zip(components, zm_ahd[iatom].flatten(), strict=True)})
             d["trace"] = np.trace(zm_ahd[iatom])
             d["det"] = np.linalg.det(zm_ahd[iatom])
@@ -404,13 +410,38 @@ class DynMagCharges(HasPickleIO):
         """
         Print Zm to `file`. Show only elements in `elements` if not None.
         """
-        if elements is not None:
-            elements = list_strings(elements)
+        def _p(*args, **kwargs):
+            print(*args, file=file, **kwargs)
+
+        if elements is not None: elements = list_strings(elements)
+
+        _p("Input structure:")
+        _p(self.input_structure)
+        _p("")
+        _p("Relaxed structure:")
+        _p(self.relaxed_structure)
+        _p("")
 
         for iatom, site in enumerate(self.relaxed_structure):
             if elements is not None and site.species_string not in elements: continue
-            df = self.get_df_iatom(iatom)
-            print(f"Zm[H_dir, atom_dir] in Cart. coords for {iatom=}: element: {site.species_string}, frac_coords: {site.frac_coords}", file=file)
-            print(df, file=file)
-            print("", file=file)
+            df = self.get_dataframe_iatom(iatom)
+            _p(f"Zm[H_dir, atom_dir] in Cart. coords for {iatom=}: element: {site.species_string}, frac_coords: {site.frac_coords}")
+            _p(df)
+            _p("")
 
+    @add_fig_kwargs
+    def plot_forces(self, elements=None, **kwargs) -> Figure:
+        """Plot forces as function of H."""
+        if elements is not None: elements = list_strings(elements)
+        nrows, ncols = 3, 3
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+
+        for iat_dir in range(3):
+            for hdir, h_cart_dir in enumerate(self.h_cart_dirs):
+              ax = ax_mat[iat_dir, hdir]
+              for iat, site in enumerate(self.relaxed_structure):
+                    if elements is not None and site.species_string not in elements: continue
+                    ax.plot(self.hvaues, self.h_cart_dirs[hdir, :, iat, iat_dir])
+              #ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
