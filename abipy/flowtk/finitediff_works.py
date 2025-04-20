@@ -2,14 +2,16 @@
 """Work subclasses related to GS calculations."""
 from __future__ import annotations
 
+import sys
 import json
 import itertools
 #import pickle
 import dataclasses
 import numpy as np
+import pandas as pd
 
 #from monty.json import MSONable
-#from monty.string import list_strings #, marquee
+from monty.string import list_strings #, marquee
 from pymatgen.analysis.eos import EOS
 from abipy.core.structure import Structure
 from abipy.tools.numtools import build_mesh
@@ -23,9 +25,9 @@ from .works import Work
 def centered_indices(n):
     half = n // 2
     if n % 2 == 0:
-        return list(range(-half, half))
-    else:
-        return list(range(-half, half + 1))
+        return list(range(-half, half)), half
+    #else:
+    #return list(range(-half, half + 1)),
 
 
 class FiniteDiffForcesData(HasPickleIO):
@@ -84,7 +86,7 @@ class FiniteDiffForcesWork(Work):
 
     @classmethod
     def from_scf_input(cls, scf_input, iatom, direction,
-                       frac_coords=True, num_points=5, step=0.01, mesh_type="centered", manager=None):
+                       frac_coords=True, num_points=5, step=0.01, manager=None):
         """
         Build the work from an AbinitInput representing a GS SCF calculation.
 
@@ -96,8 +98,6 @@ class FiniteDiffForcesWork(Work):
                 Cartesian coordinates.
             num_points:
             step:
-            mesh_type: Generate a linear mesh of step `step` that is centered on x0 if
-                mesh_type == "centered" or a mesh that starts/ends at x0 if mesh_type is `>`/`<`.
             manager: TaskManager instance. Use default manager if None.
         """
         work = cls(manager=manager)
@@ -105,7 +105,7 @@ class FiniteDiffForcesWork(Work):
         work.iatom = int(iatom)
         work.step = float(step)
         work.mesh_type = mesh_type
-        work.deltas, work.ix0 = build_mesh(0.0, num_points, step, mesh_type)
+        work.deltas, work.ix0 = build_mesh(0.0, num_points, step, "=")
 
         structure = scf_input.structure
         norm = structure.lattice.norm(direction, frac_coords=frac_coords)
@@ -258,7 +258,6 @@ class FdDynMagneticChargeWork(Work):
     @classmethod
     def from_scf_input(cls,
                        scf_input: AbinitInput,
-                       #berryopt: int,
                        num_points: int,
                        delta_h: float = 0.01,
                        relax: bool = True,
@@ -269,7 +268,6 @@ class FdDynMagneticChargeWork(Work):
 
         Args:
             scf_input: AbinitInput for GS SCF calculation used as template to generate the other inputs.
-            berryopt: Abinit input variable.
             num_points: Number of points for finite difference
             delta_h: Finite difference step for the magnetic field in a.u.
             relax: False if the initial structural relaxation should not be performed.
@@ -277,9 +275,8 @@ class FdDynMagneticChargeWork(Work):
             manager: TaskManager instance. Use default manager if None.
         """
         work = cls(manager=manager)
-        #work.berryopt = berryopt
         work.delta_h = delta_h
-        work.h_values, work.ih0 = build_mesh(0.0, num_points, delta_h, "centered")
+        work.h_values, work.ih0 = build_mesh(0.0, num_points, delta_h, "=")
         work.num_points = len(work.h_values)
         check_num_points_for_order(num_points=work.num_points, order=1, kind="=")
 
@@ -307,7 +304,6 @@ class FdDynMagneticChargeWork(Work):
     def _add_tasks_with_zeemanfield(self, structure: Structure) -> None:
         """Build new GS tasks with zeemanfield."""
         scf_input = self.scf_input_template.new_with_structure(structure)
-        #scf_input["berryopt"] = self.berryopt
 
         self.tasks_hdir_h = np.empty((len(self.h_cart_dirs), len(self.h_values)), dtype=object)
         task_h0 = None
@@ -316,7 +312,6 @@ class FdDynMagneticChargeWork(Work):
                 is_h0 = abs(h_val) < 1e-16
                 new_inp = scf_input.new_with_vars(zeemanfield=h_val * h_cart_dir)
                 if is_h0:
-                    #new_inp["berryopt"] = 0
                     # Avoid computing H=0 multiple times.
                     if task_h0 is None:
                         task_h0 = self.register_scf_task(new_inp)
@@ -364,15 +359,15 @@ class FdDynMagneticChargeWork(Work):
 
         # Finite difference: ∂F_i/∂H_β
         # Use all stencils compatible with input num_points so that we can monitor the convergence.
-        data["zm_npts_had"] = {}
+        data["zm_npts_ahd"] = {}
         for acc, weights in central_fdiff_weights[1].items():
             if self.num_points < len(weights): continue
             nn = acc // 2
-            zm_had = np.zeros((3, natom, 3))
-            for hdir, iat_dir, iat in itertools.product(range(3), range(3), range(natom)):
+            zm_ahd = np.zeros((natom, 3, 3))
+            for iat, hdir, iat_dir, in itertools.product(range(natom), range(3), range(3)):
                 fvals_h = cart_forces_dh[hdir, :, iat, iat_dir]
-                zm_had[hdir, iat, iat_dir] = np.sum(fvals_h[self.ih0-nn:self.ih0+nn+1] * weights) / self.delta_h
-            data["zm_npts_had"][len(weights)] = zm_had
+                zm_ahd[iat, hdir, iat_dir] = np.sum(fvals_h[self.ih0-nn:self.ih0+nn+1] * weights) / self.delta_h
+            data["zm_npts_ahd"][len(weights)] = zm_ahd
 
         return DynMagCharges(**data)
 
@@ -380,7 +375,8 @@ class FdDynMagneticChargeWork(Work):
 @dataclasses.dataclass(kw_only=True)
 class DynMagCharges(HasPickleIO):
     """
-    This object stores the dynamical magnetic charges computed with finite differences.
+    This object stores the dynamical magnetic charges Zm computed with finite differences.
+    All values are in a.u. and Zm are in Cartesian coordinates.
     """
     input_structure: Structure
     relaxed_structure: Structure
@@ -388,5 +384,33 @@ class DynMagCharges(HasPickleIO):
     h_values: np.ndarray
     h_cart_dirs: np.ndarray
     cart_forces_dh: np.ndarray
-    zm_npts_had: dict[np.array]
+    zm_npts_ahd: dict[np.array]  # Mapping npts -> Zm[iatom, hdir, 3]
+
+    def get_df_iatom(self, iatom: int) -> pd.Dataframe:
+        """Return dataframe with Zm values for the given atom index."""
+        components = "xx xy xz yx yy yz zx zy zz".split()
+        site = self.relaxed_structure[iatom]
+        rows = []
+        for npt, zm_ahd in self.zm_npts_ahd.items():
+            d = {"npt": npt}
+            d.update({c: v for c, v in zip(components, zm_ahd[iatom].flatten(), strict=True)})
+            d["trace"] = np.trace(zm_ahd[iatom])
+            d["det"] = np.linalg.det(zm_ahd[iatom])
+            rows.append(d)
+
+        return pd.DataFrame(rows)
+
+    def print(self, elements: None | list[str] = None, file=sys.stdout) -> None:
+        """
+        Print Zm to `file`. Show only elements in `elements` if not None.
+        """
+        if elements is not None:
+            elements = list_strings(elements)
+
+        for iatom, site in enumerate(self.relaxed_structure):
+            if elements is not None and site.species_string not in elements: continue
+            df = self.get_df_iatom(iatom)
+            print(f"Zm[H_dir, atom_dir] in Cart. coords for {iatom=}: element: {site.species_string}, frac_coords: {site.frac_coords}", file=file)
+            print(df, file=file)
+            print("", file=file)
 

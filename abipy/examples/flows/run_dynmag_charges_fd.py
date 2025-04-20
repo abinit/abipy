@@ -66,21 +66,25 @@ rprim     5.2802747870E-01  0.0000000000E+00  8.4922728509E-01
     #nspinor, nsppol, nspden  = 1, 1, 2
     nspinor, nsppol, nspden  = 2, 1, 4
 
-    nband = num_ele,
+    nband = int(1.1 * num_ele)
+    nband += nband % 2
 
     scf_input.set_vars(
         #ecut=43,
         ecut=12,
         #nband=60,          # Cr.psp8:14; O.psp8:6; (14*6+6*4)/2=54;54(occupied)+6(unoccupied)=60
-        nband=num_ele,
-        #toldfe=1e-2,
-        tolvrs=1e-8,       # SCF stopping criterion
+        nband=nband,
+        tolvrs=1e-3,       # SCF stopping criterion
+        #tolvrs=1e-8,       # SCF stopping criterion
         nspinor=nspinor,
         nsppol=nsppol,
         nspden=nspden,
-        #nstep=800,         # Maximal number of SCF cycles
-        nstep=0,         # Maximal number of SCF cycles
+        nstep=800,         # Maximal number of SCF cycles
+        #nstep=0,         # Maximal number of SCF cycles
         diemac=12.0,
+        occopt=7,
+        tsmear=0.01,
+        ixc=7,
         paral_kgb=0,       # The system is too small to use paral_kgb = 1
     )
 
@@ -101,8 +105,7 @@ rprim     5.2802747870E-01  0.0000000000E+00  8.4922728509E-01
 
     work = FdDynMagneticChargeWork.from_scf_input(
         scf_input,
-        #berryopt=-1,
-        num_points=3,
+        num_points=1,
         delta_h=0.01,
         relax=False,
         relax_opts=None,

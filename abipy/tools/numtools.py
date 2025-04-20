@@ -61,7 +61,7 @@ def build_mesh(x0: float, num: int, step: float, direction: str) -> tuple[list, 
     directions == "centered" or a mesh that starts/ends at x0 if direction is `>`/`<`.
     Return mesh and index of x0.
     """
-    if direction == "centered":
+    if direction in  ("centered", "="):
         start = x0 - num * step
         return [start + i * step for i in range(2 * num + 1)], num
 

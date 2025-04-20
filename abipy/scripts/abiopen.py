@@ -247,6 +247,19 @@ def main():
     if options.filepath.endswith("md.aselog"):
         return handle_ase_md_log(options)
 
+    if options.filepath.endswith(".pickle") and not options.filepath.endswith("__AbinitFlow__.pickle"):
+        import pickle
+        with open(options.filepath, "rb") as fh:
+            obj = pickle.load(fh)
+
+        # Start ipython shell with namespace
+        import IPython
+        IPython.embed(header="""
+The python object is associated to the `obj` python variable.
+Use `phonon.<TAB>` to list available methods.
+""")
+        return 0
+
     if os.path.basename(options.filepath) == "flows.db":
         from abipy.flowtk.launcher import print_flowsdb_file
         return print_flowsdb_file(options.filepath)
@@ -257,8 +270,7 @@ def main():
         # Start ipython shell with namespace
         import IPython
         IPython.embed(header="""
-The Phonopy object
-The Abinit file object is associated to the `phonon` python variable.
+The Phonopy object is associated to the `phonon` python variable.
 Use `phonon.<TAB>` to list available methods.
 
 #phonon.set_irreps(
