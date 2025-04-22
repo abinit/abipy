@@ -445,7 +445,7 @@ class GsrReader(ElectronsReader):
         """
         return ArrayWithUnit(self.read_value("cartesian_forces"), "Ha bohr^-1").to(unit)
 
-    def read_cart_stress_tensor(self):
+    def read_cart_stress_tensor(self, units="GPa")
         """
         Return the stress tensor (3x3 matrix) in cartesian coordinates in GPa.
         If MaskedArray (i.e. tensor was not computed  e.g. Nscf run) set it to _INVALID_STRESS_TENSOR
@@ -456,7 +456,7 @@ class GsrReader(ElectronsReader):
         tensor = np.empty((3, 3), dtype=float)
 
         if np.ma.is_masked(c[()]):
-            # NSCF
+            # NSCF run
             tensor.fill(_INVALID_STRESS_TENSOR)
         else:
             for i in range(3):
@@ -464,7 +464,13 @@ class GsrReader(ElectronsReader):
             for p, (i, j) in enumerate(((2, 1), (2, 0), (1, 0))):
                 tensor[i, j] = c[3 + p]
                 tensor[j, i] = c[3 + p]
-            tensor *= abu.HaBohr3_GPa
+
+            if units == "GPa":
+                tensor *= abu.HaBohr3_GPa
+            elif units == "au":
+                pass
+            else:
+                raise ValueError(f"Invalid {units=}")
 
         from abipy.tools.tensors import Stress
         return Stress(tensor)

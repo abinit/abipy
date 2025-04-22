@@ -230,7 +230,7 @@ def get_color_symbol(style: str = "VESTA") -> dict:
 # Matplotlib tools
 ###################
 
-def get_ax_fig_plt(ax=None, **kwargs):
+def get_ax_fig_plt(ax=None, grid: bool = False, **kwargs):
     """
     Helper function used in plot functions supporting an optional Axes argument.
     If ax is None, we build the `matplotlib` figure and create the Axes else
@@ -238,6 +238,7 @@ def get_ax_fig_plt(ax=None, **kwargs):
 
     Args:
         ax (Axes, optional): Axes object. Defaults to None.
+        grid: True to add grid to ax.
         kwargs: keyword arguments are passed to plt.figure if ax is not None.
 
       Returns:
@@ -249,8 +250,10 @@ def get_ax_fig_plt(ax=None, **kwargs):
     if ax is None:
         fig = plt.figure(**kwargs)
         ax = fig.gca()
+        if grid: ax.grid(grid)
     else:
         fig = plt.gcf()
+        if grid: ax.grid(grid)
 
     return ax, fig, plt
 
@@ -286,6 +289,7 @@ def get_axarray_fig_plt(ax_array,
                         squeeze: bool = True,
                         subplot_kw: dict | None = None,
                         gridspec_kw: dict | None = None,
+                        grid: bool = True,
                         **fig_kw):
     """
     Helper function used in plot functions that accept an optional array of Axes
@@ -311,6 +315,7 @@ def get_axarray_fig_plt(ax_array,
             gridspec_kw=gridspec_kw,
             **fig_kw,
         )
+
     else:
         fig = plt.gcf()
         ax_array = np.reshape(np.array(ax_array), (nrows, ncols))
@@ -319,6 +324,14 @@ def get_axarray_fig_plt(ax_array,
                 ax_array = ax_array[0]
             elif any(s == 1 for s in ax_array.shape):
                 ax_array = ax_array.ravel()
+
+    if grid:
+      if hasattr(ax_array, "ravel"):
+          for ax in ax_array.ravel():
+              ax.grid(grid)
+      else:
+          for ax in ax_array:
+              ax.grid(grid)
 
     return ax_array, fig, plt
 

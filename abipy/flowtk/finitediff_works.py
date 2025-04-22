@@ -272,7 +272,7 @@ class FdDynMagneticChargeWork(Work):
 
         Args:
             scf_input: AbinitInput for GS SCF calculation used as template to generate the other inputs.
-            num_points: Number of points for finite difference
+            num_points: Number of points for finite difference.
             delta_h: Finite difference step for the magnetic field in a.u.
             relax: False if the initial structural relaxation should not be performed.
             relax_opts: optional dictionary with relaxation options.
@@ -340,11 +340,10 @@ class FdDynMagneticChargeWork(Work):
         data.pickle_dump(self.outdir.path)
         return super().on_all_ok()
 
-    def get_data(self) -> DynMagCharges:
+    def get_data(self) -> ZeemanData:
         """
 	    Read data from the GSR files, and compute Zm with finite differences.
         """
-        natom = len(self[0].input.structure)
         data = {
             "input_structure": self[0].input.structure,
             "relaxed_structure": self.relaxed_structure,
@@ -353,31 +352,59 @@ class FdDynMagneticChargeWork(Work):
             "h_cart_dirs": self.h_cart_dirs,
         }
 
-        # Read forces from the GSR files.
-        cart_forces_dh = np.empty((len(self.h_cart_dirs), len(self.h_values), natom, 3))
+        # Read forces and stresses from the GSR files.
+        natom = len(self[0].input.structure)
+        nh_dirs, nh_vals = self.nh_dirs, len(self.h_values)
+
+        etotals_dh = np.empty((nh_dirs, nh_vals)
+        eterms_dh = np.empty((nh_dirs, nh_vals), dtype=object)
+        cart_forces_dh = np.empty((nh_dirs, nh_vals, natom, 3))
+        cart_stresses_dh np.empty((nh_dirs, nh_vals, 3, 3))
+
         for hdir, h_cart_dir in enumerate(self.h_cart_dirs):
             for ih, h_val in enumerate(self.h_values):
                 with self.tasks_hdir_h[hdir, ih].open_gsr() as gsr:
+                    etotals_dh[hdir, ih] = gsr.r.read_value("etotal")
+                    eterms_dh[hdir, ih] = gsr.read_energy_terms(unit="Ha")
                     cart_forces_dh[hdir, ih] = gsr.r.read_value("cartesian_forces") # Ha/Bohr units.
+                    cart_stresses_dh[hdir, ih] = gsr.r.read_cart_stress_tensor(units="au")
+
+        data["etotals_dh"] = etotals_dh
+        data["eterms_dh"] = eterms_dh
         data["cart_forces_dh"] = cart_forces_dh
+        data["cart_stresses_dh"] = cart_stresses_dh
 
         # Finite difference: ∂F_i/∂H_β
         # Use all stencils compatible with input num_points so that we can monitor the convergence.
-        data["zm_npts_ahd"] = {}
+        data["zm_npts_adh"] = {}
+        data["piezom_npts_hij"] = {}
         for acc, weights in central_fdiff_weights[1].items():
             if self.num_points < len(weights): continue
             nn = acc // 2
-            zm_ahd = np.zeros((natom, 3, 3))
-            for iat, hdir, iat_dir, in itertools.product(range(natom), range(3), range(3)):
+            zm_adh = np.zeros((natom, 3, 3))
+            for iat, iat_dir, hdir in itertools.product(range(natom), range(3), range(3)):
                 fvals_h = cart_forces_dh[hdir, :, iat, iat_dir]
-                zm_ahd[iat, hdir, iat_dir] = np.sum(fvals_h[self.ih0-nn:self.ih0+nn+1] * weights) / self.delta_h
-            data["zm_npts_ahd"][len(weights)] = zm_ahd
+                zm_adh[iat, iat_dir, hdir] = np.sum(fvals_h[self.ih0-nn:self.ih0+nn+1] * weights) / self.delta_h
+            data["zm_npts_adh"][len(weights)] = zm_adh
 
-        return DynMagCharges(**data)
+            # Now the stresses compute the piezomagnetic tensor.
+            # e_ijk=(∂M_i)/(∂ε_jk )=(∂^2 E)/(∂ε_jk ∂H_i )
+            piezom_hij = np.zeros((nh_dirs, 3, 3))
+            for ii, jj, hdir in itertools.product(range(3), range(3), range(nh_dirs)):
+                svals_h = cart_stresses_dh[hdir, :, ii, jj] * self.relaxed_structure.volume # * abu.Angs2Bohr ** 3
+                piezom_hij[hdir, ii, jj] = np.sum(svals_h[self.ih0-nn:self.ih0+nn+1] * weights) / self.delta_h
+            data["piezom_npts_hij"][len(weights)] = piezom_hij
+
+        return ZeemanData(**data)
+
+
+def idir2s(idir: int):
+    """Convert direction index to string."""
+    return {0: "x", 1: "y", 2: "z"}[idir]
 
 
 @dataclasses.dataclass(kw_only=True)
-class DynMagCharges(HasPickleIO):
+class ZeemanData(HasPickleIO):
     """
     This object stores the dynamical magnetic charges Zm computed with finite differences.
     All values are in a.u. and Zm are in Cartesian coordinates.
@@ -387,21 +414,30 @@ class DynMagCharges(HasPickleIO):
     delta_h: float
     h_values: np.ndarray
     h_cart_dirs: np.ndarray
+    etotals_dh: np.ndarray
+    eterms_dh: np.ndarray
     cart_forces_dh: np.ndarray
-    zm_npts_ahd: dict[np.array]  # Mapping npts -> Zm[iatom, hdir, 3]
+    cart_stresses_dh: np.ndarray
+    zm_npts_adh: dict[np.array]      # Mapping npts -> Zm[iat, iat_dir, hdir] in Cart. coords.
+    piezom_npts_hij: dict[np.array]  # Mapping npts -> Zm[iat, iat_dir, hdir] in Cart. coords.
 
-    def get_dataframe_iatom(self, iatom: int) -> pd.Dataframe:
+    @propery
+    def nh_dirs(self) -> int:
+        """Number of field directions."""
+        return len(self.h_cart_dirs)
+
+    def get_zmdf_iatom(self, iatom: int) -> pd.Dataframe:
         """
         Return dataframe with Zm values for the given atom index.
         """
         components = "xx xy xz yx yy yz zx zy zz".split()
         site = self.relaxed_structure[iatom]
         rows = []
-        for npts, zm_ahd in self.zm_npts_ahd.items():
+        for npts, zm_adh in self.zm_npts_adh.items():
             d = {"npts": npts}
-            d.update({c: v for c, v in zip(components, zm_ahd[iatom].flatten(), strict=True)})
-            d["trace"] = np.trace(zm_ahd[iatom])
-            d["det"] = np.linalg.det(zm_ahd[iatom])
+            d.update({c: v for c, v in zip(components, zm_adh[iatom].flatten(), strict=True)})
+            d["trace"] = np.trace(zm_adh[iatom])
+            d["det"] = np.linalg.det(zm_adh[iatom])
             rows.append(d)
 
         return pd.DataFrame(rows)
@@ -424,24 +460,54 @@ class DynMagCharges(HasPickleIO):
 
         for iatom, site in enumerate(self.relaxed_structure):
             if elements is not None and site.species_string not in elements: continue
-            df = self.get_dataframe_iatom(iatom)
-            _p(f"Zm[H_dir, atom_dir] in Cart. coords for {iatom=}: element: {site.species_string}, frac_coords: {site.frac_coords}")
+            df = self.get_zmdf_iatom(iatom)
+            _p(f"Zm[atom_dir, H_dir] in Cart. coords for {iatom=}: element: {site.species_string}, frac_coords: {site.frac_coords}")
             _p(df)
             _p("")
 
     @add_fig_kwargs
-    def plot_forces(self, elements=None, **kwargs) -> Figure:
-        """Plot forces as function of H."""
-        if elements is not None: elements = list_strings(elements)
-        nrows, ncols = 3, 3
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+    def plot_etotal(self, ax=None, fontsize=8, **kwargs) -> Figure:
+        """Plot energies as a function of H."""
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        for hdir, h_cart_dir in enumerate(self.h_cart_dirs):
+            ax.plot(self.delta_h, self.etotals[hdir], marker="o", label=f"H_dir: {idir2s(hdir)}")
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
+        return fig
+
+    @add_fig_kwargs
+    def plot_forces(self, elements=None, fontsize=8, **kwargs) -> Figure:
+        """Plot Cartesian forces as a function of H."""
+        if elements is not None: elements = list_strings(elements)
+        nrows, ncols = 3, self.nh_dirs
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
         for iat_dir in range(3):
             for hdir, h_cart_dir in enumerate(self.h_cart_dirs):
-              ax = ax_mat[iat_dir, hdir]
-              for iat, site in enumerate(self.relaxed_structure):
+                ax = ax_mat[iat_dir, hdir]
+                ax.set_title(f"H_dir: {idir2s(hdir)}, Atom_dir: {idir2s(iat_dir)}", fontsize=fontsize)
+                for iat, site in enumerate(self.relaxed_structure):
                     if elements is not None and site.species_string not in elements: continue
-                    ax.plot(self.hvaues, self.h_cart_dirs[hdir, :, iat, iat_dir])
-              #ax.legend(loc="best", fontsize=fontsize, shadow=True)
+                    ax.plot(self.h_values, self.cart_forces_dh[hdir, :, iat, iat_dir], marker="o",
+                            label=site.species_string} + r"$_{\text{%s}}$" % iat,
+                    )
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_stresses(self, fontsize=8, **kwargs) -> Figure:
+        """Plot Cartesian stresses as a function of H."""
+        nrows, ncols = self.nh_dirs, 1
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
+        for hdir, h_cart_dir in enumerate(self.h_cart_dirs):
+            ax = ax_mat[hdir]
+            ax.set_title(f"H_dir: {idir2s(hdir)}", fontsize=fontsize)
+            for ii, jj in itertools.product(range(3), range(3)):
+                ax.plot(self.h_values, self.cart_stresses_dh[hdir, :, ii, jj], marker="o",
+                        label="$\sigma_{%s}$" % (f"{ii}, {jj}"),
+                        )
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
