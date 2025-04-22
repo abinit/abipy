@@ -4,6 +4,7 @@ Objects used to extract and plot results from output files in text format.
 from __future__ import annotations
 
 import os
+import dataclasses
 import numpy as np
 import pandas as pd
 
@@ -23,6 +24,60 @@ from abipy.abio.inputs import GEOVARS
 from abipy.abio.timer import AbinitTimerParser
 from abipy.abio.robots import Robot
 from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DEScfCycle
+
+
+@dataclasses.dataclass(kw_only=True)
+class BerryPhasePolarization:
+    """
+    All tersm are in atomic units, including the stresses.
+    """
+
+    electronic: float
+    ionic: float
+    total: float
+
+    #stress: np.ndarray
+    #maxwell_stress: np.ndarray
+
+    def from_abo_file(self, filepath: str) -> BerryPhasePolarization:
+        """Build object from the main Abinit output file."""
+
+        # We have to parse the following section:
+
+        # Polarization in cartesian coordinates (a.u.):
+        # (the sum of the electronic and ionic Berry phase has been folded into [-1, 1])
+        #     Electronic berry phase:        0.343282648E-04   0.343282618E-04   0.343282498E-04
+        #     Ionic:                        -0.283583666E-01  -0.283583666E-01  -0.283583666E-01
+        #     Total:                        -0.283240383E-01  -0.283240383E-01  -0.283240383E-01
+
+        magic_start = " Polarization in cartesian coordinates (a.u.):"
+
+        electronic, ionic, total = [np.empty((3, )) for _ in range(3)]
+        keys = [
+          (None, None),
+          ("Electronic berry phase", electronic),
+          ("Ionic", ionic),
+          ("Total", total),
+        ]
+
+        with open(filepath, "rt") as fh:
+            for line in fh:
+                if line.startswith(magic_start):
+                    break
+            else:
+                raise ValueError(f"Cannot find {magic_start=} in {self.filepath}")
+
+            for ik, line in enumerate(fh):
+                if key is None: continue
+                key, vals = line.split(":")
+                ref_key, arr = keys[ik]
+                if key != ref_key:
+                    raise ValueError(f"Expecting {ref_key=} but found {key}")
+                arr[:] = np.array([float(v) for v in vals.split()])
+
+        #stress, maxwell_stress = [np.empty((3, 3)) for _ in range(2)]
+
+        return cls(electronic=electronic, ionic=ionic, total=total)
 
 
 class AbinitTextFile(TextFile):
@@ -995,6 +1050,9 @@ class AboRobot(Robot):
 
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
+
+    #def get_berry_phase_pol(self):
+    #    return BerryPhasePolarization.from_abofile(self.filepath)
 
     def get_time_dataframe(self) -> pd.DataFrame:
         """

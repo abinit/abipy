@@ -23,7 +23,7 @@ from pymatgen.core.units import EnergyArray
 from abipy.tools.typing import TYPE_CHECKING, Figure
 from abipy.flowtk import wrappers
 from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status
-from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask,
+from .tasks import (Task, AbinitTask, ScfTask, NscfTask, BerryTask, DfptTask, PhononTask, ElasticTask, DdkTask,
                     DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask, EfieldTask,
                     EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
                     DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
@@ -415,6 +415,10 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_relax_task(self, *args, **kwargs) -> RelaxTask:
         """Register a task for structural optimization."""
         kwargs["task_class"] = RelaxTask
+        return self.register_task(*args, **kwargs)
+
+    def register_berry_task(self, *args, **kwargs) -> BerryTask:
+        kwargs["task_class"] = BerryTask
         return self.register_task(*args, **kwargs)
 
     def register_phonon_task(self, *args, **kwargs) -> PhononTask:

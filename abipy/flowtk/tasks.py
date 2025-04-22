@@ -3769,6 +3769,11 @@ class RelaxTask(GsTask, ProduceHist):
         os.rename(last_timden.path, ofile)
 
 
+class BerryTask(ScfTask):
+    """Task for Berry phase calculations."""
+
+
+
 class DfptTask(AbinitTask):
     """
     Base class for DFPT tasks (Phonons, DdeTask, DdkTask, ElasticTask ...)

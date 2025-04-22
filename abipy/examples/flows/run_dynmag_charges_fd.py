@@ -15,7 +15,7 @@ import abipy.flowtk as flowtk
 
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput
-from abipy.flowtk.finitediff_works import FdDynMagneticChargeWork
+from abipy.flowtk.finitediff_works import FiniteHfieldWork
 
 
 def build_flow(options):
@@ -103,7 +103,7 @@ rprim     5.2802747870E-01  0.0000000000E+00  8.4922728509E-01
     # Initialize the flow
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
-    work = FdDynMagneticChargeWork.from_scf_input(
+    work = FinitHfieldWork.from_scf_input(
         scf_input,
         num_points=1,
         delta_h=0.01,

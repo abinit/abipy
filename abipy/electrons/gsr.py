@@ -445,10 +445,13 @@ class GsrReader(ElectronsReader):
         """
         return ArrayWithUnit(self.read_value("cartesian_forces"), "Ha bohr^-1").to(unit)
 
-    def read_cart_stress_tensor(self, units="GPa")
+    def read_cart_stress_tensor(self, units: str = "GPa"):
         """
         Return the stress tensor (3x3 matrix) in cartesian coordinates in GPa.
         If MaskedArray (i.e. tensor was not computed  e.g. Nscf run) set it to _INVALID_STRESS_TENSOR
+
+        Args:
+            units: "GPa" for Gpa units or "au" for atomic units (Ha/Bohr^3)
         """
         # Abinit stores 6 unique components of this symmetric 3x3 tensor:
         # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).
