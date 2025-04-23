@@ -106,7 +106,7 @@ rprim     5.2802747870E-01  0.0000000000E+00  8.4922728509E-01
     work = FiniteHfieldWork.from_scf_input(
         scf_input,
         num_points=1,
-        delta=0.01,
+        step_au=0.01,
         relax=False,
         relax_opts=None,
     )
