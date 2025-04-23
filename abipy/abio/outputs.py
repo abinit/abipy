@@ -29,9 +29,8 @@ from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DESc
 @dataclasses.dataclass(kw_only=True)
 class BerryPhasePolarization:
     """
-    All tersm are in atomic units, including the stresses.
+    All terms are in atomic units, including the stresses.
     """
-
     electronic: float
     ionic: float
     total: float
@@ -39,7 +38,8 @@ class BerryPhasePolarization:
     #stress: np.ndarray
     #maxwell_stress: np.ndarray
 
-    def from_abo_file(self, filepath: str) -> BerryPhasePolarization:
+    @classmethod
+    def from_abo_file(cls, filepath: str) -> BerryPhasePolarization:
         """Build object from the main Abinit output file."""
 
         # We have to parse the following section:
@@ -53,7 +53,7 @@ class BerryPhasePolarization:
         magic_start = " Polarization in cartesian coordinates (a.u.):"
 
         electronic, ionic, total = [np.empty((3, )) for _ in range(3)]
-        keys = [
+        key_arr = [
           (None, None),
           ("Electronic berry phase", electronic),
           ("Ionic", ionic),
@@ -68,13 +68,16 @@ class BerryPhasePolarization:
                 raise ValueError(f"Cannot find {magic_start=} in {self.filepath}")
 
             for ik, line in enumerate(fh):
-                if key is None: continue
+                if key_arr[ik][0] is None: continue
                 key, vals = line.split(":")
-                ref_key, arr = keys[ik]
+                key = key.lstrip()
+                ref_key, arr = key_arr[ik]
                 if key != ref_key:
-                    raise ValueError(f"Expecting {ref_key=} but found {key}")
+                    raise ValueError(f"Expecting `{ref_key=}` but found `{key}`")
                 arr[:] = np.array([float(v) for v in vals.split()])
+                if key == "Total": break
 
+        # TODO: Parse stress
         #stress, maxwell_stress = [np.empty((3, 3)) for _ in range(2)]
 
         return cls(electronic=electronic, ionic=ionic, total=total)
@@ -750,6 +753,9 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             cycles.append(cycle)
         return cycles
 
+    def get_berry_phase_polarization(self) -> BerryPhasePolarization:
+        return BerryPhasePolarization.from_abo_file(self.filepath)
+
     def plot(self, tight_layout=True, with_timer=False, show=True):
         """
         Plot GS/DFPT SCF cycles and timer data found in the output file.
@@ -1050,9 +1056,6 @@ class AboRobot(Robot):
 
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
-
-    #def get_berry_phase_pol(self):
-    #    return BerryPhasePolarization.from_abofile(self.filepath)
 
     def get_time_dataframe(self) -> pd.DataFrame:
         """

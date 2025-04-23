@@ -467,23 +467,23 @@ def handle_json(options):
     else:
         if options.print:
             # Print python object to terminal.
-            data = abilab.mjson_load(options.filepath)
-            pprint(data, indent=4)
+            obj = abilab.mjson_load(options.filepath)
+            pprint(obj, indent=4)
             return 0
         elif options.expose:
             # Pretty-print dict to terminal.
             import json
             with open(options.filepath, "rt") as fh:
-                data = json.load(fh)
-            pprint(data, indent=4)
+                obj = json.load(fh)
+                pprint(obj, indent=4)
             return 0
 
-        data = abilab.mjson_load(options.filepath)
+        obj = abilab.mjson_load(options.filepath)
         # Start ipython shell with namespace
         # Use embed because I don't know how to show a header with start_ipython.
         import IPython
         IPython.embed(header="""
-The object initialized from JSON (MSONable) is associated to the `data` python variable.
+The object initialized from JSON (MSONable) is associated to the `obj` python variable.
 """)
 
     return 0

@@ -3314,17 +3314,20 @@ class AbinitTask(Task):
             return parser
         return None
 
-    def get_output_file(self):
+    def open_abo(self):
         """
         Parse the main output file in text format, return AbinitOutputFile object.
 
         example:
 
-            with task.get_output_file() as out:
-                dims_dataset, spginfo_dataset = out.get_dims_spginfo_dataset(verbose=0)
+            with task.open_abo() as abo:
+                dims_dataset, spginfo_dataset = abo.get_dims_spginfo_dataset(verbose=0)
         """
         from abipy.abio.outputs import AbinitOutputFile
         return AbinitOutputFile(self.output_file.path)
+
+    # This to maintain Backward compatibility
+    get_output_file = open_abo
 
 
 class ProduceHist:

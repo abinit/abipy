@@ -19,12 +19,11 @@ from abipy.tools.numtools import build_mesh
 from abipy.tools.derivatives import central_fdiff_weights, check_num_points_for_order # finite_diff
 from abipy.tools.typing import Figure
 from abipy.abio.inputs import AbinitInput
+from abipy.abio.outputs import BerryPhasePolarization
 from abipy.tools.serialization import HasPickleIO
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
     rotate_ticklabels, set_visible, set_ax_xylabels)
-
-#from abipy.electrons.gsr import GsrRobot
-#from abipy.tools.serialization import mjson_write, pmg_serialize
+#from abipy.tools.serialization import mjson_write #, pmg_serialize
 from .works import Work
 
 #def centered_indices(n):
@@ -37,10 +36,14 @@ from .works import Work
 
 def dir2str(coeffs, variables='xyz'):
     """
-    print(dir2str((1, 2, 3)))      # Output: x + 2y + 3z
-    print(dir2str((0, -1, 4)))     # Output: -y + 4z
-    print(dir2str((1, 0, 0)))      # Output: x
-    print(dir2str((0, 0, 0)))      # Output: (empty string)
+    >>> dir2str((1, 2, 3)))
+    "x + 2y + 3z"
+    >>> dir2str((0, -1, 4)))
+    "-y + 4z"
+    >>> dir2str((1, 0, 0)))
+    "x"
+    >>> dir2str((0, 0, 0)))   # Output: (empty string)
+    ""
     """
     terms = []
     for coeff, var in zip(coeffs, variables, strict=True):
@@ -263,6 +266,7 @@ class FiniteDiffForcesWork(Work):
 
 
 class _FieldWork(Work):
+    """Base class for finite field + finite difference Work."""
 
     def get_data(self) -> dict:
         natom = len(self[0].input.structure)
@@ -277,37 +281,70 @@ class _FieldWork(Work):
             "if0": self.if0,
         }
 
+        data["params_f"] = []
         data["etotals_fv"] = etotals_fv = np.empty((nf_dirs, nf_vals))
         data["eterms_fv"] = eterms_fv = np.empty((nf_dirs, nf_vals), dtype=object)
         data["cart_forces_fv"] = cart_forces_fv = np.empty((nf_dirs, nf_vals, natom, 3))
         data["cart_stresses_fv"] = cart_stresses_fv = np.empty((nf_dirs, nf_vals, 3, 3))
 
+        if has_pol := any("berryopt" in task.input for task in self):
+            data["cart_pol_fv"] = cart_pol_fv = np.empty((nf_dirs, nf_vals, 3), dtype=object)
+            data["cart_pole_fv"] = cart_pole_fv = np.empty((nf_dirs, nf_vals, 3), dtype=object)
+            data["cart_poli_fv"] = cart_poli_fv = np.empty((nf_dirs, nf_vals, 3), dtype=object)
+
         # Read forces and stresses from the GSR files.
         for fdir, f_cart_dir in enumerate(self.field_cart_dirs):
-            for iff, f_val in enumerate(self.field_values):
-                with self.tasks_fdir_f[fdir, iff].open_gsr() as gsr:
-                    etotals_fv[fdir, iff] = gsr.r.read_value("etotal")
-                    eterms_fv[fdir, iff] = gsr.r.read_energy_terms(unit="Ha")
-                    cart_forces_fv[fdir, iff] = gsr.r.read_value("cartesian_forces") # Ha/Bohr units.
-                    cart_stresses_fv[fdir, iff] = gsr.r.read_cart_stress_tensor(units="au")
+            for ifv, f_val in enumerate(self.field_values):
+                task = self.tasks_fdir_f[fdir, ifv]
+                with task.open_gsr() as gsr:
+                    etotals_fv[fdir, ifv] = gsr.r.read_value("etotal")
+                    eterms_fv[fdir, ifv] = gsr.r.read_energy_terms(unit="Ha")
+                    cart_forces_fv[fdir, ifv] = gsr.r.read_value("cartesian_forces") # Ha/Bohr units.
+                    cart_stresses_fv[fdir, ifv] = gsr.r.read_cart_stress_tensor(units="au")
+                    # Add parameters that might be used for convergence studies.
+                    data["params_f"].append(gsr.params)
+
+                if has_pol:
+                    with task.open_abo() as abo:
+                        pol = abo.get_berry_phase_polarization()
+                        cart_pol_fv[fdir, ifv] = pol.total
+                        cart_pole_fv[fdir, ifv] = pol.electronic
+                        cart_poli_fv[fdir, ifv] = pol.ionic
 
         # Use all stencils compatible with input num_points so that we can monitor the convergence afterwards.
         data["dforces_dfield_npts"] = {}
         data["dstress_dfield_npts"] = {}
+        if has_pol:
+            data["dpol_dfield_npts"] = {}
+
         for acc, weights in central_fdiff_weights[1].items():
             if self.num_points < len(weights): continue
             nn = acc // 2
-            dforce_dfield = np.zeros((natom, 3, nf_dirs))
+            fd_slice = slice(self.if0-nn, self.if0+nn+1)
+            npts = len(weights)
+
+            # FD for forces.
+            dforce_dfield = np.empty((natom, 3, nf_dirs))
             for iat, iat_dir, fdir in itertools.product(range(natom), range(3), range(nf_dirs)):
                 fvals_f = cart_forces_fv[fdir, :, iat, iat_dir]
-                dforce_dfield[iat, iat_dir, fdir] = np.sum(fvals_f[self.if0-nn:self.if0+nn+1] * weights) / self.delta
-            data["dforces_dfield_npts"][len(weights)] = dforce_dfield
+                dforce_dfield[iat, iat_dir, fdir] = np.sum(fvals_f[fd_slice] * weights) / self.delta
+            data["dforces_dfield_npts"][npts] = dforce_dfield
 
-            dstress_dfield = np.zeros((3, 3, nf_dirs))
+            # FD for stresses.
+            dstress_dfield = np.empty((3, 3, nf_dirs))
             for ii, jj, fdir in itertools.product(range(3), range(3), range(nf_dirs)):
                 svals_f = cart_stresses_fv[fdir, :, ii, jj] * self.relaxed_structure.volume # * abu.Angs2Bohr ** 3
-                dstress_dfield[ii, jj, fdir] = np.sum(svals_f[self.if0-nn:self.if0+nn+1] * weights) / self.delta
-            data["dstress_dfield_npts"][len(weights)] = dstress_dfield
+                dstress_dfield[ii, jj, fdir] = np.sum(svals_f[fd_slice] * weights) / self.delta
+            data["dstress_dfield_npts"][npts] = dstress_dfield
+
+            # FD for polarizations (if available)
+            if has_pol:
+                dpol_dfield = np.empty((3, nf_dirs))
+                for fdir, ii in itertools.product(range(nf_dirs), range(3)):
+                    dpol_dfield[ii, fdir] = np.sum(cart_pol_fv[fdir, fd_slice, ii] * weights) / self.delta
+                data["dpol_dfield_npts"][npts] = dpol_dfield
+                #data["dpole_dfield_npts"][npts] = dpole_dfield  TODO ?
+                #data["dpoli_dfield_npts"][npts] = dpoli_dfield  TODO ?
 
         return data
 
@@ -321,7 +358,6 @@ class FiniteHfieldWork(_FieldWork):
         Z_jv^m=Ω_0 (∂M_v)/(∂u_j ) = (∂F_j)/(∂H_v ) = Ω_0 (∂^2 E)/(∂H_β ∂u_i).
 
     Here we compute them as derivatives of forces wrt to the Zeeman magnetic field.
-    Non collinear calculations with SOC are required to have non-zero results.
     """
 
     @classmethod
@@ -331,7 +367,7 @@ class FiniteHfieldWork(_FieldWork):
                        delta: float = 0.01,
                        relax: bool = True,
                        relax_opts: dict | None = None,
-                       manager=None) -> FdDynMagneticChargeWork:
+                       manager=None) -> FiniteHfieldWork:
         """
         Build the work from an AbinitInput representing a GS SCF calculation.
 
@@ -377,16 +413,16 @@ class FiniteHfieldWork(_FieldWork):
         self.tasks_fdir_f = np.empty((len(self.field_cart_dirs), len(self.field_values)), dtype=object)
         task_f0 = None
         for fdir, f_cart_dir in enumerate(self.field_cart_dirs):
-            for iff, f_val in enumerate(self.field_values):
+            for ifv, f_val in enumerate(self.field_values):
                 is_f0 = abs(f_val) < 1e-16
                 new_inp = scf_input.new_with_vars(zeemanfield=f_val * f_cart_dir)
                 if is_f0:
                     # Avoid computing H=0 multiple times.
                     if task_f0 is None:
                         task_f0 = self.register_scf_task(new_inp)
-                    self.tasks_fdir_f[fdir, iff] = task_f0
+                    self.tasks_fdir_f[fdir, ifv] = task_f0
                 else:
-                    self.tasks_fdir_f[fdir, iff] = self.register_scf_task(new_inp)
+                    self.tasks_fdir_f[fdir, ifv] = self.register_scf_task(new_inp)
 
     def on_ok(self, sender):
         """This method is called when one task reaches status `S_OK`."""
@@ -430,8 +466,9 @@ class _FiniteFieldDataMixin(HasPickleIO):
     eterms_fv: np.ndarray
     cart_forces_fv: np.ndarray
     cart_stresses_fv: np.ndarray
-    dforces_dfield_npts: dict[np.array]  # Mapping npts -> dForce/dField  [iat, 3, fdir] in Cart. coords.
-    dstress_dfield_npts: dict[np.array]  # Mapping npts -> dStress/dField [3, 3, fdir] in Cart. coords.
+    dforces_dfield_npts: dict[int, np.array]  # Mapping npts -> dForce/dField  [iat, 3, fdir] in Cart. coords.
+    dstress_dfield_npts: dict[int, np.array]  # Mapping npts -> dStress/dField [3, 3, fdir] in Cart. coords.
+    params_f: list[dict]
 
     # Redefined in the subclasses.
     field_type: str = "None"
@@ -448,11 +485,9 @@ class _FiniteFieldDataMixin(HasPickleIO):
         """Numbef of atoms in the unit cell."""
         return len(self.input_structure)
 
-    def get_field_label(self, fdir: int) -> str:
+    def label_for_fdir(self, fdir: int) -> str:
         fdir_str = dir2str(self.field_cart_dirs[fdir])
         return "$%s_{%s}$ (a.u.)" % (self.field_tex, fdir_str)
-
-    #def get_field_dir_to_str(self, cart_field_dir: np.ndarray) -> str:
 
     @add_fig_kwargs
     def plot_etotal(self, mode="diff", ax=None, fontsize=8, **kwargs) -> Figure:
@@ -467,7 +502,7 @@ class _FiniteFieldDataMixin(HasPickleIO):
             ax.plot(self.field_values, e_values, marker="o", label=f"H_dir: {idir2s(fdir)}")
 
         set_grid_legend(ax, fontsize, xlabel=f"${self.field_tex}$ (a.u.)",
-                        ylabel="$\Delta$ Energy/atom (meV)" if mode == "diff" else "Energy/atom (meV)")
+                        ylabel=r"$\Delta$ Energy/atom (meV)" if mode == "diff" else "Energy/atom (meV)")
 
         return fig
 
@@ -497,7 +532,9 @@ class _FiniteFieldDataMixin(HasPickleIO):
 
     @add_fig_kwargs
     def plot_stresses(self, fontsize=8, **kwargs) -> Figure:
-        """Plot Cartesian stresses as a function of the finite external field for all the directions."""
+        """
+        Plot Cartesian stresses as a function of the finite external field for all the directions.
+        """
         nrows, ncols = self.nf_dirs, 1
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
@@ -515,19 +552,18 @@ class _FiniteFieldDataMixin(HasPickleIO):
 
     def get_df_iatom(self, iatom: int) -> pd.Dataframe:
         """
-        Return dataframe with Zeff values for the given atom index.
+        Return dataframe with effective charges for the given atom index and all the FD points.
         """
         force_comps = "x y z".split()
         field_comps = [dir2str(cart_dir) for cart_dir in self.field_cart_dirs]
-        components = list(itertools.product(force_comps, field_comps))
+        comps = list(itertools.product(force_comps, field_comps))
         rows = []
         for npts, dforces_dfield in self.dforces_dfield_npts.items():
             zeff = dforces_dfield[iatom]
             d = {"npts": npts}
-            d.update({c: v for c, v in zip(components, zeff.flatten(), strict=True)})
+            d.update({c: v for c, v in zip(comps, zeff.flatten(), strict=True)})
             if zeff.shape == (3, 3):
-                d["trace"], d["det"] = np.trace(zeff), np.linalg.det(zeff)
-
+                d["isoavg"], d["det"] = np.trace(zeff) / 3, np.linalg.det(zeff)
             rows.append(d)
 
         return pd.DataFrame(rows)
@@ -565,9 +601,58 @@ class ElectricFieldData(_FiniteFieldDataMixin):
 
     _df stands for Direction, Field
     """
+    cart_pol_fv: np.ndarray
+    cart_pole_fv: np.ndarray
+    cart_poli_fv: np.ndarray
+    dpol_dfield_npts: dict[int, np.array]
+
     field_type: str = "E"
     field_name: str = "Electric field"
     field_tex: str = r"\mathcal{E}"
+
+    def get_eps_df(self) -> pd.Dataframe:
+        """
+        Return dataframe with eps_infinity obtained with different FD points.
+        """
+        comps = "x y z".split()
+        comps = list(itertools.product(comps, comps))
+        rows = []
+        for npts, eps in self.dpol_dfield_npts.items():
+            eps = 4 * np.pi * eps
+            eps[np.diag_indices_from(eps)] += 1.0
+            d = {"npts": npts}
+            d.update({c: v for c, v in zip(comps, eps.flatten(), strict=True)})
+            if eps.shape == (3, 3):
+                d["isoavg"], d["det"] = np.trace(eps) / 3 , np.linalg.det(eps)
+            rows.append(d)
+
+        return pd.DataFrame(rows)
+
+    @add_fig_kwargs
+    def plot_polarization(self, what="total", **kwargs) -> Figure:
+        """
+        Plot the polarization as a function of the Electric field.
+        """
+        nrows, ncols = 3, 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=False, squeeze=True)
+
+        # Select the quantity to plot depending on `what`.
+        vals_fv = {
+            "total": self.cart_pol_fv,
+            "electronic": self.cart_pole_fv,
+            "ionic": self.cart_poli_fv,
+        }[what]
+
+        for pol_dir in range(3):
+            ax = ax_list[pol_dir]
+            #ax.set_title(f"H_dir: {idir2s(fdir)}, Atom_dir: {idir2s(iat_dir)}", fontsize=fontsize)
+            for fdir, f_cart_dir in enumerate(self.field_cart_dirs):
+                ax.plot(self.field_values, vals_fv[fdir, :, pol_dir], marker="o")
+                        #label=site.species_string + r"$_{\text{%s}}$" % iat)
+            #set_grid_legend(ax, fontsize, xlabel=, ylabel=)
+
+        return fig
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -592,7 +677,7 @@ class FiniteEfieldWork(_FieldWork):
                        delta: float = 0.0001,
                        relax: bool = True,
                        relax_opts: dict | None = None,
-                       manager=None) -> FdDynMagneticChargeWork:
+                       manager=None) -> FiniteEfieldWork:
         """
         Build the work from an AbinitInput representing a GS SCF calculation.
 
@@ -609,10 +694,6 @@ class FiniteEfieldWork(_FieldWork):
         work.field_values, work.if0 = build_mesh(0.0, num_points, delta, "=")
         work.num_points = len(work.field_values)
         check_num_points_for_order(num_points=work.num_points, order=1, kind="=")
-
-        #nspinor = scf_input.get("nspinor", 1)
-        #if nspinor != 2:
-        #    raise ValueError("nspinor should be 2 to have non-zero dyn magnetic charges while it is {nspinor}")
 
         work.field_cart_dirs = np.array([
             #(1, 1, 1),  # This is the direction used in the tutorial.
@@ -639,7 +720,7 @@ class FiniteEfieldWork(_FieldWork):
         self.tasks_fdir_f = np.empty((len(self.field_cart_dirs), len(self.field_values)), dtype=object)
         task_f0 = None
         for fdir, f_cart_dir in enumerate(self.field_cart_dirs):
-            for iff, f_val in enumerate(self.field_values):
+            for ifv, f_val in enumerate(self.field_values):
                 is_f0 = abs(f_val) < 1e-16
                 new_inp = scf_input.new_with_vars(efield=f_val * f_cart_dir)
                 if is_f0:
@@ -648,20 +729,20 @@ class FiniteEfieldWork(_FieldWork):
                     if task_f0 is None:
                         new_inp.set_vars(berryopt=-1)
                         task_f0 = self.register_berry_task(new_inp)
-                    self.tasks_fdir_f[fdir, iff] = task_f0
+                    self.tasks_fdir_f[fdir, ifv] = task_f0
                 else:
                     new_inp.set_vars(berryopt=4)
-                    self.tasks_fdir_f[fdir, iff] = self.register_berry_task(new_inp)
+                    self.tasks_fdir_f[fdir, ifv] = self.register_berry_task(new_inp)
 
         # Now add dependencies to the tasks.
         for fdir, f_cart_dir in enumerate(self.field_cart_dirs):
             ntasks = len(self.tasks_fdir_f[fdir])
-            for iff in range(0, self.if0):
-                deps = {self.tasks_fdir_f[fdir, iff+1]: "WFK"}
-                self.tasks_fdir_f[fdir, iff].add_deps(deps)
-            for iff in range(self.if0+1, ntasks):
-                deps = {self.tasks_fdir_f[fdir, iff-1]: "WFK"}
-                self.tasks_fdir_f[fdir, iff].add_deps(deps)
+            for ifv in range(0, self.if0):
+                deps = {self.tasks_fdir_f[fdir, ifv+1]: "WFK"}
+                self.tasks_fdir_f[fdir, ifv].add_deps(deps)
+            for ifv in range(self.if0+1, ntasks):
+                deps = {self.tasks_fdir_f[fdir, ifv-1]: "WFK"}
+                self.tasks_fdir_f[fdir, ifv].add_deps(deps)
 
     def on_ok(self, sender):
         """This method is called when one task reaches status `S_OK`."""
@@ -675,6 +756,7 @@ class FiniteEfieldWork(_FieldWork):
 
     def get_data(self) -> ElectricFieldData:
         data = super().get_data()
+        #print(data.keys())
         return ElectricFieldData(**data)
 
     def on_all_ok(self):

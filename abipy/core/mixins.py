@@ -423,7 +423,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         return self.ebands.smearing.tsmear_ev.to("Ha")
 
     def get_ebands_params(self) -> dict:
-        """:class:`OrderedDict` with the convergence parameters."""
+        """dictionary with the convergence parameters."""
         return collections.OrderedDict([
             ("nsppol", self.nsppol),
             ("nspinor", self.nspinor),

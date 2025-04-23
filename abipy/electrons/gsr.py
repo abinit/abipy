@@ -222,10 +222,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @lazy_property
     def params(self) -> dict:
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         od["ecut"] = float(self.ecut)
-        #if self.usepaw == 1
+        #if self.hdr.usepaw == 1
         #    od["pawecutdg"] = float(self.pawecutdg)
         return od
 
