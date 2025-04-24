@@ -96,6 +96,8 @@ xred
     # Initialize the flow.
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
+    #pert_cart_dits = (1, 1, 1)  # This is the direction used in the tutorial.
+
     work = FiniteEfieldWork.from_scf_input(
         scf_input,
         num_points=1,

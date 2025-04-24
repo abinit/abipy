@@ -11,11 +11,11 @@ work = flow[0]
 data = work.get_data()
 
 print(data.get_epsinf_df())
-data.plot_polarization(what="total")
-#sys.exit(0)
-
 data.print_eff_charges()
+print(data.get_piezo_df())
+
+sys.exit(0)
+#data.plot_polarization(what="total")
 data.plot_etotal()
 data.plot_forces()
 data.plot_stresses()
-

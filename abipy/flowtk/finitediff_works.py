@@ -18,12 +18,14 @@ from typing import Optional
 #from monty.json import MSONable
 from monty.string import list_strings #, marquee
 from monty.functools import lazy_property
+from pymatgen.analysis.elasticity.strain import Strain
 from abipy.core.structure import Structure
 from abipy.tools.numtools import build_mesh
 from abipy.tools.derivatives import central_fdiff_weights, check_num_points_for_order # finite_diff
 from abipy.tools.typing import Figure
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.outputs import BerryPhasePolarization
+from abipy.abio.enums import StrEnum
 from abipy.tools.serialization import HasPickleIO
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
     rotate_ticklabels, set_visible, set_ax_xylabels)
@@ -68,23 +70,100 @@ def dir2str(coeffs, variables='xyz'):
     return ' + '.join(terms).replace('+ -', '- ')
 
 
+def mat33_to_voigt(mat: np.ndarray, engineering_strain: bool = False) -> np.ndarray:
+    """
+    Convert a 3x3 symmetric mat to a Voigt vector (6x1).
+
+    Parameters:
+        mat (np.ndarray): 3x3 symmetric matrix (stress/strain mat)
+        engineering_strain (bool): If True, shear components are multiplied by 2 (engineering strain convention)
+
+    Returns: np.ndarray: 6-element Voigt vector
+    """
+    v = np.zeros(6)
+    v[0] = mat[0, 0]
+    v[1] = mat[1, 1]
+    v[2] = mat[2, 2]
+    factor = 2 if engineering_strain else 1
+    v[3] = factor * mat[1, 2]
+    v[4] = factor * mat[0, 2]
+    v[5] = factor * mat[0, 1]
+    return v
+
+
+def voigt_to_mat33(voigt: np.ndarray, engineering_strain: bool = True) -> np.ndarray:
+    """
+    Convert a Voigt vector (6x1) to a 3x3 symmetric tensor.
+
+    Parameters:
+        voigt (np.ndarray): 6-element vector
+        engineering_strain (bool): If True, shear components are divided by 2 (engineering strain convention)
+
+    Returns: np.ndarray: 3x3 symmetric matrix
+    """
+    mat = np.zeros((3, 3))
+    mat[0, 0] = voigt[0]
+    mat[1, 1] = voigt[1]
+    mat[2, 2] = voigt[2]
+    factor = 0.5 if engineering_strain else 1
+    mat[1, 2] = mat[2, 1] = factor * voigt[3]
+    mat[0, 2] = mat[2, 0] = factor * voigt[4]
+    mat[0, 1] = mat[1, 0] = factor * voigt[5]
+    return
+
+
+def _dict_from_mat_npts(mat: np.ndarray, mat_comps: list[str], npts: int) -> dict:
+    d = {"npts": npts}
+    d.update({c: v for c, v in zip(mat_comps, mat.flatten(), strict=True)})
+    if mat.shape[0] == mat.shape[1]:
+        d["iso_avg"], d["det"] = np.trace(mat) / mat.shape[0] , np.linalg.det(mat)
+    return d
+
+
+class PertKind(StrEnum):
+    DISPL = "displ"
+    E = "E"
+    H = "H"
+    STRAIN = "strain"
+
+
 @dataclasses.dataclass
 class Perturbation:
     """
     Stores info on the perturbation.
     """
     kind: str
+    #values: np.ndarray
+    #ip0: int
     cart_dir: np.ndarray | None = None
     iatom: int | None = None
     strain: np.ndarray | None = None
 
     def __post_init__(self):
-        """Validation logic."""
-        #if self.kind == "Displ":
-        #if not self.name:
-        #    raise ValueError("Name cannot be empty")
-        #if self.age < 0:
-        #    raise ValueError("Age cannot be negative")
+        """
+        Validation logic.
+        """
+        if self.kind not in PertKind:
+            raise ValueError(f"Invalid {self.kind=}")
+
+        if self.kind == PertKind.DISPL:
+            if self.iatom is None or self.cart_dir is None:
+                raise ValueError("iatom and cart_dir must be specified for a `displ` perturbation.")
+
+        if self.kind in (PertKind.E, PertKind.H):
+            if self.cart_dir is None:
+                raise ValueError("cart_dir must be specified for a `E` or `H` perturbations.")
+
+        if self.kind == PertKind.STRAIN:
+            if self.strain is None:
+                raise ValueError("strain matrix must be specified for a `strain` perturbation.")
+
+    #@lazy_property
+    #def step(self) -> float:
+    #    dx = np.zeros(len(self)-1)
+    #    for (i, x) in enumerate(self.mesh[:-1]):
+    #        dx[i] = self.mesh[i+1] - x
+    #    return self.dx[0] if np.allclose(self.dx[0], self.dx) else None
 
     @lazy_property
     def label(self) -> str:
@@ -97,17 +176,19 @@ class Perturbation:
     @lazy_property
     def tex(self) -> str:
         return {
-            "E": r"\mathcal{E}",
-            "H": r"\mathcal{H}",
-            "Displ": r"\Delta\tau",
+            PertKind.E: r"{\mathcal{E}}",
+            PertKind.H: r"{\mathcal{H}}",
+            PertKind.DISPL: r"{\Delta\tau}",
+            PertKind.STRAIN: r"{\varepsilon}",
         }[self.kind]
 
     @lazy_property
     def name(self) -> str:
         return {
-            "E": "Electric field",
-            "H": "Magnetic field",
-            "Displ": "Atomic displacement",
+            PertKind.E: "Electric field",
+            PertKind.H: "Magnetic field",
+            PertKind.DISPL: "Atomic displacement",
+            PertKind.STRAIN: "Strain",
         }[self.kind]
 
 
@@ -115,7 +196,7 @@ class _BaseFdWork(Work):
 
     def get_data_dict(self) -> dict:
         """
-        Note: The suffix `_pv` stands for Field-direction and field-Value.
+        Note: The suffix `_pv` stands for Field-direction and Field-Value.
         """
         natom = len(self[0].input.structure)
         npert, np_vals = len(self.perts), len(self.pert_values)
@@ -190,7 +271,6 @@ class FiniteDisplWork(_BaseFdWork):
         Args:
             scf_input: AbinitInput for GS SCF used as template to generate the other inputs.
             num_points:
-            pert_cart_dirs:
             step_au: Finite difference step for the displacement in Bohr (a.u.)
             pert_cart_dirs:
             mask_iatom:
@@ -209,9 +289,9 @@ class FiniteDisplWork(_BaseFdWork):
 
         # Here we normalize the directions to 1. NB: pymatgen structures uses Ang and not Bohr.
         if pert_cart_dirs is not None:
-            work.pert_cart_dirs = np.reshape(pert_cart_dirs, (-1, 3))
-        else:
             work.pert_cart_dirs = np.eye(3)
+
+        work.pert_cart_dirs = np.reshape(work.pert_cart_dirs, (-1, 3))
 
         for idir, cart_dir in enumerate(work.pert_cart_dirs):
             norm = structure.lattice.norm(cart_dir, frac_coords=False)
@@ -231,7 +311,7 @@ class FiniteDisplWork(_BaseFdWork):
         for iatom, mask in zip(range(natom), work.mask_iatom, strict=True):
             if not mask: continue
             for cart_dir in work.pert_cart_dirs:
-                work.perts.append(Perturbation(kind="Displ", cart_dir=cart_dir, iatom=iatom))
+                work.perts.append(Perturbation(kind=PertKind.DISPL, cart_dir=cart_dir, iatom=iatom))
 
         work.relax = relax
         if work.relax:
@@ -284,7 +364,7 @@ class FiniteDisplWork(_BaseFdWork):
         return super().on_all_ok()
 
 
-class FiniteStrainWork(_BaseFdWork)
+class FiniteStrainWork(_BaseFdWork):
     """
     Work for the computation at finite Strain with finite differences.
     """
@@ -293,10 +373,9 @@ class FiniteStrainWork(_BaseFdWork)
     def from_scf_input(cls,
                        scf_input,
                        num_points: int,
-                       norm_step_au: float,
-                       shear_step_au: float,
-                       strains=None,
-                       ecutsm=0.5,
+                       norm_step: float,
+                       shear_step: float,
+                       voigt_inds=None,
                        relax: bool = False,
                        relax_opts: dict | None = None,
                        manager=None):
@@ -308,47 +387,39 @@ class FiniteStrainWork(_BaseFdWork)
             num_points: Number of points for finite difference.
             norm_step: Finite difference step for normal strain.
             shear_step: Finite difference step for shear strain.
-            strains:
+            voigt_inds:
             relax: False if the initial structural relaxation should not be performed.
             relax_opts: optional dictionary with relaxation options.
-            ecutsm: Value of ecutsm input variable. If `scf_input` does not provide ecutsm, this
-                value will be used else the valus in `scf_input`.
             manager: TaskManager instance. Use default if None.
         """
         work = cls(manager=manager)
-	    work.scf_input = scf_input.deepcopy()
+        work.scf_input = scf_input.deepcopy()
 
         if "ecutsm" not in scf_input:
+            ecutsm = 0.5
             work.scf_input.set_vars(ecutsm=ecutsm)
-            print("Input does not define ecutsm.\n A default value of %s will be added" % ecutsm)
+            print("AbinitInput does not define ecutsm.\n A default value of %s will be added" % ecutsm)
 
-        #work.unstrained_task = work.register_scf_task(work.scf_input)
-
-        if strains is None:
+        if voigt_inds is None:
             strains = []
             # Normal strain.
-            for ii in range(3):
-                sm = np.zero(3)
-                sm[ii] = 1
-                strains.append(sm)
+            for ind in [(0, 0), (1, 1), (2, 2)]:
+                strains.append(Strain.from_index_amount(ind, amount=1))
+            # Shear strain.
+            for ind in [(0, 1), (0, 2), (1, 2)]:
+                strains.append(Strain.from_index_amount(ind, amount=1))
 
-            # Shear strain
-            for ii in range(3):
-
-        strains = np.reshape((-1, 3, 3))
-
+        strains = np.reshape(strains, (-1, 3, 3))
         for strain in strains:
             if not np.array_equal(strain, strain.T):
                 raise ValueError(f"The strain matrix should be symmetric but got: {strain}")
 
-        work.strains = strains
-        work.pert_values, work.ipv0 = build_mesh(0.0, num_points, step_au, "=")
+        work.pert_values, work.ipv0 = build_mesh(0.0, num_points, step, "=")
         work.num_points = len(work.pert_values)
         check_num_points_for_order(num_points=work.num_points, order=1, kind="=")
 
         # Build list of perturbations.
-        work.perts = []
-        work.perts = [Perturbation(kind="strain", strain=strain) for strain in work.strains]
+        work.perts = [Perturbation(kind=PertKind.STRAIN, strain=strain) for strain in work.strains]
 
         #from pymatgen.analysis.elasticity.strain import DeformedStructureSet
         #DeformedStructureSet(structure: Structure,
@@ -356,21 +427,14 @@ class FiniteStrainWork(_BaseFdWork)
         #                     shear_strains: Sequence[float] = (-0.06, -0.03, 0.03, 0.06),
         #                     symmetry=False,
 
-        #self.tasks_pv = np.empty((npert, len(self.pert_values)), dtype=object)
-        #work.tasks_voigt = {}
-        #for voigt in voigt_inds:
-        #    work.tasks_voigt[voigt] = defaultdict(list)
-        #    for isign in (-1, +1):
-        #    for delta in work.pert_values:
-        #        # Apply strain to the lattice.
-        #        strain = np.zeros((3, 3))
-        #        strain[voigt] = float(isign) * delta
-        #        new_structure = scf_input.structure.deepcopy()
-        #        new_structure.apply_strain(strain)
-        #        new_input = scf_input.new_with_structure(new_structure)
-        #        # Perform GS calculations with strained cell.
-        #        task = work.register_scf_task(new_input)
-        #        work.tasks_voigt[voigt].append(task)
+        # FIXME Different pert_values for normal and shear strain
+        npert = len(work.perts)
+        work.tasks_pv = np.empty((npert, len(work.pert_values)), dtype=object)
+        for ip, pert in enumerate(work.perts):
+            for ipv, pert_value in enumerate(work.pert_values):
+                # Apply strain to the lattice.
+                new_structure = scf_input.structure.apply_strain(pert_value * pert.strain, inplace=False)
+                work.tasks_pv[ip, ipv] = work.register_scf_task(scf_input.new_with_structure(new_structure))
 
         return work
 
@@ -389,6 +453,7 @@ class _FieldWork(_BaseFdWork):
                        scf_input: AbinitInput,
                        num_points: int,
                        step_au: float,
+                       pert_cart_dirs: np.ndarray | None = None,
                        relax: bool = False,
                        relax_opts: dict | None = None,
                        manager=None):
@@ -399,6 +464,7 @@ class _FieldWork(_BaseFdWork):
             scf_input: AbinitInput for GS SCF calculation used as template to generate the other inputs.
             num_points: Number of points for finite difference.
             step_au: Finite difference step for the magnetic field in a.u.
+            pert_cart_dirs:
             relax: False if the initial structural relaxation should not be performed.
             relax_opts: optional dictionary with relaxation options.
             manager: TaskManager instance. Use default manager if None.
@@ -409,18 +475,17 @@ class _FieldWork(_BaseFdWork):
         work.num_points = len(work.pert_values)
         check_num_points_for_order(num_points=work.num_points, order=1, kind="=")
 
-        work.pert_cart_dirs = np.array([
-            #(1, 1, 1),  # This is the direction used in the tutorial.
-            (1, 0, 0),
-            (0, 1, 0),
-            (0, 0, 1),
-        ])
+        if pert_cart_dirs is None:
+            work.pert_cart_dirs = np.eye(3)
+
+        work.pert_cart_dirs = np.reshape(work.pert_cart_dirs, (-1, 3))
+
         work.scf_input_template = scf_input.deepcopy()
 
         if isinstance(work, FiniteEfieldWork):
-            work.pert_kind = "E"
+            work.pert_kind = PertKind.E
         elif isinstance(work, FiniteHfieldWork):
-            work.pert_kind = "H"
+            work.pert_kind = PertKind.H
         else:
             raise TypeError(f"Don't know how to handle {type(work)=}")
 
@@ -432,12 +497,12 @@ class _FieldWork(_BaseFdWork):
             relax_input = scf_input.make_relax_input(**relax_opts)
             work.initial_relax_task = work.register_relax_task(relax_input)
         else:
-            if work.pert_kind == "E":
+            if work.pert_kind == PertKind.E:
                 work._add_tasks_with_efield(scf_input.structure)
-            elif work.pert_kind == "H":
+            elif work.pert_kind == PertKind.H:
                 work._add_tasks_with_zeemanfield(scf_input.structure)
             else:
-                raise TypeError(f"Don't know how to handle {work.pert_kind}")
+                raise TypeError(f"Don't know how to handle {work.pert_kind=}")
 
             work.relaxed_structure = scf_input.structure
 
@@ -449,9 +514,9 @@ class _FieldWork(_BaseFdWork):
             # Get relaxed structure from GSR file.
             self.relaxed_structure = sender.get_final_structure()
 
-            if work.pert_kind == "E":
+            if work.pert_kind == PertKind.E:
                 self._add_tasks_with_efield(self.relaxed_structure)
-            elif work.pert_kind == "H":
+            elif work.pert_kind == PertKind.H:
                 self._add_tasks_with_zeemanfield(self.relaxed_structure)
             else:
                 raise TypeError(f"Don't know how to handle {work.pert_kind}")
@@ -513,8 +578,8 @@ class FiniteEfieldWork(_FieldWork):
         """Build new GS tasks with finite electric field."""
         scf_input = self.scf_input_template.new_with_structure(structure)
 
-        npert, np_vals = self.npert, len(self.pert_values)
-        self.tasks_pv = np.empty((npert, np_vals)), dtype=object)
+        npert, np_vals = len(self.perts), len(self.pert_values)
+        self.tasks_pv = np.empty((npert, np_vals), dtype=object)
         task_pv0 = None
 
         for ip, pert in enumerate(self.perts):
@@ -523,12 +588,13 @@ class FiniteEfieldWork(_FieldWork):
                 new_inp = scf_input.new_with_vars(efield=p_val * pert.cart_dir)
                 if is_pv0:
                     # Avoid computing the zero-field case multiple times.
-                    # Also the task at zero field uses berryopt -1.
+                    # Also the task at zero field uses berryopt -1 to get the polarization.
                     if task_pv0 is None:
                         new_inp.set_vars(berryopt=-1)
                         task_pv0 = self.register_berry_task(new_inp)
                     self.tasks_pv[ip, ipv] = task_pv0
                 else:
+                    # Finite E-field.
                     new_inp.set_vars(berryopt=4)
                     self.tasks_pv[ip, ipv] = self.register_berry_task(new_inp)
 
@@ -551,7 +617,7 @@ class _FdData(HasPickleIO):
     """
     All values are in a.u.
 
-    _pv stands for Perturbation, Perturbation Value.
+    _pv stands for perturbation and perturbation Value.
     """
     input_structure: Structure
     relaxed_structure: Structure
@@ -573,10 +639,10 @@ class _FdData(HasPickleIO):
     cart_pole_pv: Optional[np.ndarray] = None
     cart_poli_pv: Optional[np.ndarray] = None
 
-    # Mapping npts -> dForce/dPert  [iat, 3, ip] in Cart. coords.
+    # npts -> dForce/dPert with shape [iat, 3, ip] in Cart. coords.
     dforces_dpert_npts: dict[int, np.array] = field(init=False)
 
-    # Mapping npts -> dStress/dPert [3, 3, ip] in Cart. coords.
+    # npts -> dStress/dPert with shape [3, 3, ip] in Cart. coords.
     dstress_dpert_npts: dict[int, np.array] = field(init=False)
 
     dpol_dpert_npts: dict[int, np.array] = field(init=False)
@@ -585,8 +651,7 @@ class _FdData(HasPickleIO):
         """
         Compute quantities with finite differences.
         """
-        natom = len(self.input_structure)
-        npert, np_vals = self.npert, len(self.pert_values)
+        natom, npert, np_vals = len(self.input_structure), self.npert, len(self.pert_values)
 
         # Use all stencils compatible with input num_points so that we can monitor the convergence afterwards.
         self.dforces_dpert_npts = {}
@@ -649,6 +714,15 @@ class _FdData(HasPickleIO):
         pdir_str = dir2str(self.pert_cart_dirs[pdir])
         return "$%s_{%s}$ (a.u.)" % (self.pert_tex, pdir_str)
 
+    @lazy_property
+    def pert_dir_comps(self) -> list[str]:
+        """
+        """
+        if any(pert.cart_dir is None for pert in self.perts):
+            raise TypeError("pert_dir_comps requires perturbation with directions!")
+
+        return [dir2str(pert.cart_dir) for pert in self.perts]
+
     @add_fig_kwargs
     def plot_etotal(self, mode="diff", ax=None, fontsize=8, **kwargs) -> Figure:
         """
@@ -697,7 +771,7 @@ class _FdData(HasPickleIO):
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
         for ip, pert in enumerate(self.perts):
-            ax = ax_mat[ip, 0]
+            ax = ax_mat[ip]
             ax.set_title(pert.label, fontsize=fontsize)
             for ii, jj in itertools.product(range(3), range(3)):
                 ax.plot(self.pert_values, self.carts_stresses_pv[ip, :, ii, jj], marker="o",
@@ -712,10 +786,12 @@ class _FdData(HasPickleIO):
         """
         Return dataframe with effective charges for the given atom index and all the FD points.
         """
-        field2zeff = {"E": "Ze", "H": "Zm"}
+        field2zeff = {PertKind.E: "Ze", PertKind.H: "Zm"}
+
         if self.pert_kind in field2zeff:
             zeff_name, what_to_diff = [self.pert_kind], "forces"
-        elif self.pert_kind == "Displ":
+
+        elif self.pert_kind == PertKind.DISPL:
             if self.has_pol:
                 zeff_name, what_to_diff = "Ze", "polarization"
             #elif self.has_mag:
@@ -723,21 +799,14 @@ class _FdData(HasPickleIO):
         else:
             raise ValueError(f"Don't know how to compute eff_charges with {self.pert_kind=}")
 
-        def zeffatm2dict(zeff, zeff_comps):
-            d = {"npts": npts}
-            d.update({c: v for c, v in zip(zeff_comps, zeff.flatten(), strict=True)})
-            if zeff.shape == (3, 3):
-                d["isoavg"], d["det"] = np.trace(zeff) / 3, np.linalg.det(zeff)
-            return d
-
         xyz_comps = "x y z".split()
         rows = []
 
         if what_to_diff == "forces":
-            zeff_comps = list(itertools.product(xyz_comps, [pert.dir_str for pert in self.perts]))
+            zeff_comps = list(itertools.product(xyz_comps, self.pert_dir_comps))
             for npts, dforces_dpert in self.dforces_dpert_npts.items():
                 zeff_atm = dforces_dpert[iatom]
-                rows.append(zeffatm2dict(zeff_atm, zeff_comps))
+                rows.append(_dict_from_mat_npts(zeff_atm, zeff_comps, npts))
 
         if what_to_diff == "polarization":
             for npts, dpol_dpert in self.dpol_dpert_npts.items():
@@ -756,12 +825,12 @@ class _FdData(HasPickleIO):
 
                 zeff_comps = list(itertools.product(atom_comps, xyz_comps))
                 zeff_atm *= self.relaxed_structure.volume * abu.Ang_Bohr ** 3
-                rows.append(zeffatm2dict(zeff_atm, zeff_comps))
+                rows.append(_dict_from_mat_npts(zeff_atm, zeff_comps, npts))
 
         if what_to_diff == "magnetization":
             raise NotImplementedError("Zm from magnetization")
 
-        # Build dataframe and attach metadata.
+        # Build dataframe and add metadata.
         df = pd.DataFrame(rows)
         df.attrs["zeff_name"] = zeff_name
 
@@ -777,12 +846,12 @@ class _FdData(HasPickleIO):
             print(*args, file=file, **kwargs)
 
         if verbose:
-          _p("Input structure:")
-          _p(self.input_structure)
-          _p("")
-          _p("Relaxed structure:")
-          _p(self.relaxed_structure)
-          _p("")
+            _p("Input structure:")
+            _p(self.input_structure)
+            _p("")
+            _p("Relaxed structure:")
+            _p(self.relaxed_structure)
+            _p("")
 
         for iatom, site in enumerate(self.relaxed_structure):
             if elements is not None and site.species_string not in elements: continue
@@ -794,26 +863,53 @@ class _FdData(HasPickleIO):
 
 
 @dataclasses.dataclass(kw_only=True)
+class DisplData(_FdData):
+    """
+    """
+    # TODO
+    #def get_force_constant_df(self):
+
+
+@dataclasses.dataclass(kw_only=True)
+class StrainData(_FdData):
+    """
+    """
+    # TODO
+    #def get_elastic_df(self):
+
+
+@dataclasses.dataclass(kw_only=True)
 class ElectricFieldData(_FdData):
     """
     This object stores the dynamical magnetic charges Zm computed with finite differences.
-    All values are in a.u. and Ze are in Cartesian coordinates.
+    All values are in a.u. and tensors are in Cartesian coordinates.
     """
     def get_epsinf_df(self) -> pd.Dataframe:
         """
-        Return dataframe with eps_infinity obtained with different FD points.
+        Return dataframe with the eps_infinity tensor obtained with different FD points.
         """
-        comps = "x y z".split()
-        comps = list(itertools.product(comps, comps))
+        eps_comps = list(itertools.product(self.pert_dir_comps, self.pert_dir_comps))
         rows = []
         for npts, eps in self.dpol_dpert_npts.items():
-            eps = 4 * np.pi * eps
+            eps = 4.0 * np.pi * eps
             eps[np.diag_indices_from(eps)] += 1.0
-            d = {"npts": npts}
-            d.update({c: v for c, v in zip(comps, eps.flatten(), strict=True)})
-            if eps.shape == (3, 3):
-                d["isoavg"], d["det"] = np.trace(eps) / 3 , np.linalg.det(eps)
-            rows.append(d)
+            rows.append(_dict_from_mat_npts(eps, eps_comps, npts))
+
+        return pd.DataFrame(rows)
+
+    def get_piezo_df(self) -> pd.Dataframe:
+        """
+        Return dataframe with the piezo-electric tensor obtained with different FD points.
+        """
+        voigt_comps = [str(i) for i in range(1, 7)]
+        piezo_comps = list(itertools.product(voigt_comps, self.pert_dir_comps))
+        rows = []
+        for npts, dstress_dpert in self.dstress_dpert_npts.items():
+            # dStress/dPert has shape [3, 3, ip] in Cart. coords.
+            piezo = np.empty((3, 6))
+            for ip, pert in enumerate(self.perts):
+                piezo[ip] = mat33_to_voigt(dstress_dpert[:,:,ip])
+            rows.append(_dict_from_mat_npts(piezo, piezo_comps, npts))
 
         return pd.DataFrame(rows)
 
@@ -848,17 +944,5 @@ class ElectricFieldData(_FdData):
 class ZeemanData(_FdData):
     """
     This object stores the dynamical magnetic charges Zm computed with finite differences.
-    All values are in a.u. and Ze are in Cartesian coordinates.
+    All values are in a.u. and tensors are in Cartesian coordinates.
     """
-
-@dataclasses.dataclass(kw_only=True)
-class DisplData(_FdData):
-    """
-    """
-    # TODO
-    #def get_dynmat(self):
-
-@dataclasses.dataclass(kw_only=True)
- class StrainData(_FdData):
-     """
-     """
