@@ -12,7 +12,7 @@ data = work.get_data()
 
 print(data.get_epsinf_df())
 data.plot_polarization(what="total")
-sys.exit(0)
+#sys.exit(0)
 
 data.print_eff_charges()
 data.plot_etotal()

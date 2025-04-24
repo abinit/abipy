@@ -97,13 +97,13 @@ xred
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
     mask_iatom = [True, False]
-    displ_cart_dirs = [[1, 0, 0],]
+    pert_cart_dirs = [[1, 0, 0],]
 
     work = FiniteDisplWork.from_scf_input(
         scf_input,
         num_points=1,
         step_au=0.01,
-        displ_cart_dirs=displ_cart_dirs,
+        pert_cart_dirs=pert_cart_dirs,
         mask_iatom=mask_iatom,
         #relax=False,
         #relax_opts=None,
