@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
+from dataclasses import field
 #from monty.json import MSONable
 from monty.string import list_strings #, marquee
 from monty.functools import lazy_property
@@ -59,16 +60,20 @@ def dir2str(coeffs, variables='xyz'):
     return ' + '.join(terms).replace('+ -', '- ')
 
 
-#@dataclasses.dataclass(kw_only=True)
-#class FiniteDisplData(HasPickleIO):
-#
-#    #deltas: np.ndarray
-#    ix0: int
+@dataclasses.dataclass
+class PertInfo:
+    """
+    Stores info on the perturbation.
+    """
+    kind: str
+    cart_dir: np.ndarray
+    iatom: int | None = None
+    voigt_idx: tuple | None = None
 
 
 class FiniteDisplWork(Work):
     """
-    Work for the computation of forces with finite differences.
+    Work for the computation ... finite differences.
     """
 
     @classmethod
@@ -87,6 +92,7 @@ class FiniteDisplWork(Work):
             num_points:
             displ_cart_dirs:
             step_au: Finite difference step for the displacement in Bohr (a.u.)
+            displ_cart_dirs:
             mask_iatom:
             manager: TaskManager instance. Use default manager if None.
         """
@@ -99,7 +105,7 @@ class FiniteDisplWork(Work):
         work.displ_values, work.ix0 = build_mesh(0.0, num_points, step_au, "=")
         work.num_deltas = len(work.displ_values)
 
-        # Here we normalize the directions to 1 (NB: pymatgen structures uses Ang and not Bohr.
+        # Here we normalize the directions to 1. NB: pymatgen structures uses Ang and not Bohr.
         if displ_cart_dirs is not None:
             work.displ_cart_dirs = np.reshape(displ_cart_dirs, (-1, 3))
         else:
@@ -117,19 +123,19 @@ class FiniteDisplWork(Work):
             raise ValueError(f"{len(work.mask_iatom)=} != {natom=}")
 
         work.num_dirs = len(work.displ_cart_dirs)
-        work.scf_tasks_dav = np.empty((work.num_dirs, natom, work.num_deltas), dtype=object)
+        work.scf_tasks_adv = np.empty((natom, work.num_dirs, work.num_deltas), dtype=object)
 
         for iatom, mask in zip(range(natom), work.mask_iatom, strict=True):
             if not mask: continue
             for idir, cart_dir in enumerate(work.displ_cart_dirs):
                 for iv, delta_au in enumerate(work.displ_values):
                     new_structure = structure.copy()
-                    # Note Bohr --> Ang.
+                    # Note Bohr --> Ang conversion.
                     new_structure.translate_sites([iatom], delta_au * abu.Bohr_Ang * cart_dir,
                                                    frac_coords=False, to_unit_cell=False)
                     new_input = scf_input.new_with_structure(new_structure)
                     task = work.register_scf_task(new_input)
-                    work.scf_tasks_dav[idir, iatom, iv] = task
+                    work.scf_tasks_adv[iatom, idir, iv] = task
 
         return work
 
@@ -143,6 +149,7 @@ class FiniteDisplWork(Work):
         Read data from the GSR files
         """
         natom, np_dirs, np_vals = self.natom, len(self.pert_cart_dirs), len(self.pert_values)
+        has_pol = any(task.input.get("berryopt", 0) != 0 for task in self)
 
         data = {
             #"input_structure": self[0].input.structure,
@@ -151,15 +158,16 @@ class FiniteDisplWork(Work):
             "pert_values": self.pert_values,
             "pert_cart_dirs": self.pert_cart_dirs,
             "ipv0": self.ipv0,
+            "has_pol": has_pol,
+            "params_p": [],
         }
 
-        data["params_f"] = []
         data["etotals_pdv"] = etotals_pdv = np.empty((np_dirs, np_vals))
         data["eterms_pdv"] = eterms_pdv = np.empty((np_dirs, np_vals), dtype=object)
         data["cart_forces_pdv"] = cart_forces_pdv = np.empty((np_dirs, np_vals, natom, 3))
         data["carts_stresses_pdv"] = carts_stresses_pdv = np.empty((np_dirs, np_vals, 3, 3))
 
-        if has_pol := any(task.input.get("berryopt", 0) != 0 for task in self):
+        if has_pol:
             data["cart_pol_pdv"] = cart_pol_pdv = np.empty((np_dirs, np_vals, 3), dtype=object)
             data["cart_pole_pdv"] = cart_pole_pdv = np.empty((np_dirs, np_vals, 3), dtype=object)
             data["cart_poli_pdv"] = cart_poli_pdv = np.empty((np_dirs, np_vals, 3), dtype=object)
@@ -169,14 +177,14 @@ class FiniteDisplWork(Work):
             if not mask: continue
             for idir, cart_dir in enumerate(work.cart_dirs):
                for ipv, delta in enumerate(work.deltas):
-                   task = work.scf_tasks_dav[idir, iatom, ipv]
+                   task = work.scf_tasks_adv[iatom, idir, ipv]
                    with task.open_gsr() as gsr:
                        etotals_pdv[pdir, ipv] = gsr.r.read_value("etotal")
                        #eterms_pdv[pdir, ipv] = gsr.r.read_energy_terms(unit="Ha")
                        #cart_forces_pdv[pdir, ipv] = gsr.r.read_value("cartesian_forces") # Ha/Bohr units.
                        #carts_stresses_pdv[pdir, ipv] = gsr.r.read_cart_stress_tensor(units="au")
                        ## Add parameters that might be used for convergence studies.
-                       #data["params_f"].append(gsr.params)
+                       #data["params_p"].append(gsr.params)
 
                        #if has_pol:
                        #    with task.open_abo() as abo:
@@ -184,41 +192,6 @@ class FiniteDisplWork(Work):
                        #        cart_pol_pdv[pdir, ipv] = pol.total
                        #        cart_pole_pdv[pdir, ipv] = pol.electronic
                        #        cart_poli_pdv[pdir, ipv] = pol.ionic
-
-        # Use all stencils compatible with input num_points so that we can monitor the convergence afterwards.
-        data["dforces_dpert_npts"] = {}
-        data["dstress_dpert_npts"] = {}
-        if has_pol:
-            data["dpol_dpert_npts"] = {}
-
-        for acc, weights in central_fdiff_weights[1].items():
-            if self.num_points < len(weights): continue
-            nn = acc // 2
-            fd_slice = slice(self.ipv0-nn, self.ipv0+nn+1)
-            npts = len(weights)
-
-            # FD for forces.
-            dforce_dpert = np.empty((natom, 3, np_dirs))
-            for iat, iat_dir, pdir in itertools.product(range(natom), range(3), range(np_dirs)):
-                fvals_f = cart_forces_pdv[pdir, :, iat, iat_dir]
-                dforce_dpert[iat, iat_dir, pdir] = np.sum(fvals_f[fd_slice] * weights) / self.step_au
-            data["dforces_dpert_npts"][npts] = dforce_dpert
-
-            # FD for stresses.
-            dstress_dpert = np.empty((3, 3, np_dirs))
-            for ii, jj, pdir in itertools.product(range(3), range(3), range(np_dirs)):
-                svals_f = carts_stresses_pdv[pdir, :, ii, jj] * self.relaxed_structure.volume # * abu.Angs2Bohr ** 3
-                dstress_dpert[ii, jj, pdir] = np.sum(svals_f[fd_slice] * weights) / self.step_au
-            data["dstress_dpert_npts"][npts] = dstress_dpert
-
-            # FD for polarizations (if available)
-            if has_pol:
-                dpol_dpert = np.empty((3, np_dirs))
-                for pdir, ii in itertools.product(range(np_dirs), range(3)):
-                    dpol_dpert[ii, pdir] = np.sum(cart_pol_pdv[pdir, fd_slice, ii] * weights) / self.step_au
-                data["dpol_dpert_npts"][npts] = dpol_dpert
-                #data["dpole_dpert_npts"][npts] = dpole_dpert  TODO ?
-                #data["dpoli_dpert_npts"][npts] = dpoli_dpert  TODO ?
 
         #return FiniteDisplData(**data)
         return data
@@ -232,7 +205,7 @@ class FiniteDisplWork(Work):
 
 #class FiniteStrainWork(Work):
 #    """
-#    Work for the computation of the stress tensor with finite differences
+#    Work for the computation at finite Strain with finite differences.
 #    """
 #    @classmethod
 #    def from_scf_input(cls, scf_input, delta=1e-4, voigt_inds=None, ecutsm=0.5, manager=None):
@@ -247,24 +220,25 @@ class FiniteDisplWork(Work):
 #           manager: TaskManager instance. Use default if None.
 #        """
 #        work = cls(manager=manager)
-#
 #	     work.scf_input = scf_input.deepcopy()
 #
 #        if "ecutsm" not in scf_input:
 #            work.scf_input.set_vars(ecutsm=ecutsm)
 #            print("Input does not define ecutsm.\n",
 #                  "A default value of %s will be added to all the EOS inputs" % ecutsm)
+
 #        work.unstrained_task = work.register_scf_task(work.scf_input)
 #
 #        if voigt_inds is None:
 #           voigt_inds = [(0, 0)]
 
-#        work.delta = float(delta)
+#        work.pert_values, work.ipv0 = build_mesh(0.0, num_points, step_au, "=")
 #        work.tasks_voigt = {}
 #
 #        for voigt in voigt_inds:
 #           work.tasks_voigt[voigt] = defaultdict(list)
 #           for isign in (-1, +1):
+#           for delta in work.pert_values:
 #               # Apply strain to the lattice.
 #               strain = np.zeros((3, 3))
 #               strain[voigt] = float(isign) * delta
@@ -314,7 +288,6 @@ class FiniteDisplWork(Work):
 #        return super().on_all_ok()
 
 
-
 class _FieldWork(Work):
     """Base class for finite field + finite difference Work."""
 
@@ -342,10 +315,6 @@ class _FieldWork(Work):
         work.pert_values, work.ipv0 = build_mesh(0.0, num_points, step_au, "=")
         work.num_points = len(work.pert_values)
         check_num_points_for_order(num_points=work.num_points, order=1, kind="=")
-
-        #nspinor = scf_input.get("nspinor", 1)
-        #if nspinor != 2:
-        #    raise ValueError("nspinor should be 2 to have non-zero dyn magnetic charges while it is {nspinor}")
 
         work.pert_cart_dirs = np.array([
             #(1, 1, 1),  # This is the direction used in the tutorial.
@@ -396,11 +365,11 @@ class _FieldWork(Work):
 
     def get_data_dict(self) -> dict:
         """
-
         Note: The suffix `_pdv` stands for Field-direction and field-Value.
         """
         natom = len(self[0].input.structure)
         np_dirs, np_vals = len(self.pert_cart_dirs), len(self.pert_values)
+        has_pol = any(task.input.get("berryopt", 0) != 0 for task in self)
 
         data = {
             "input_structure": self[0].input.structure,
@@ -409,15 +378,16 @@ class _FieldWork(Work):
             "pert_values": self.pert_values,
             "pert_cart_dirs": self.pert_cart_dirs,
             "ipv0": self.ipv0,
+            "params_p": [],
+            "has_pol": has_pol,
         }
 
-        data["params_f"] = []
         data["etotals_pdv"] = etotals_pdv = np.empty((np_dirs, np_vals))
         data["eterms_pdv"] = eterms_pdv = np.empty((np_dirs, np_vals), dtype=object)
         data["cart_forces_pdv"] = cart_forces_pdv = np.empty((np_dirs, np_vals, natom, 3))
         data["carts_stresses_pdv"] = carts_stresses_pdv = np.empty((np_dirs, np_vals, 3, 3))
 
-        if has_pol := any(task.input.get("berryopt", 0) != 0 for task in self):
+        if has_pol:
             data["cart_pol_pdv"] = cart_pol_pdv = np.empty((np_dirs, np_vals, 3))
             data["cart_pole_pdv"] = cart_pole_pdv = np.empty((np_dirs, np_vals, 3))
             data["cart_poli_pdv"] = cart_poli_pdv = np.empty((np_dirs, np_vals, 3))
@@ -432,7 +402,7 @@ class _FieldWork(Work):
                     cart_forces_pdv[pdir, ipv] = gsr.r.read_value("cartesian_forces") # Ha/Bohr units.
                     carts_stresses_pdv[pdir, ipv] = gsr.r.read_cart_stress_tensor(units="au")
                     # Add parameters that might be used for convergence studies.
-                    data["params_f"].append(gsr.params)
+                    data["params_p"].append(gsr.params)
 
                 if has_pol:
                     with task.open_abo() as abo:
@@ -440,41 +410,6 @@ class _FieldWork(Work):
                         cart_pol_pdv[pdir, ipv] = pol.total
                         cart_pole_pdv[pdir, ipv] = pol.electronic
                         cart_poli_pdv[pdir, ipv] = pol.ionic
-
-        # Use all stencils compatible with input num_points so that we can monitor the convergence afterwards.
-        data["dforces_dpert_npts"] = {}
-        data["dstress_dpert_npts"] = {}
-        if has_pol:
-            data["dpol_dpert_npts"] = {}
-
-        for acc, weights in central_fdiff_weights[1].items():
-            if self.num_points < len(weights): continue
-            nn = acc // 2
-            fd_slice = slice(self.ipv0-nn, self.ipv0+nn+1)
-            npts = len(weights)
-
-            # FD for forces.
-            dforce_dpert = np.empty((natom, 3, np_dirs))
-            for iat, iat_dir, pdir in itertools.product(range(natom), range(3), range(np_dirs)):
-                fvals_f = cart_forces_pdv[pdir, :, iat, iat_dir]
-                dforce_dpert[iat, iat_dir, pdir] = np.sum(fvals_f[fd_slice] * weights) / self.step_au
-            data["dforces_dpert_npts"][npts] = dforce_dpert
-
-            # FD for stresses.
-            dstress_dpert = np.empty((3, 3, np_dirs))
-            for ii, jj, pdir in itertools.product(range(3), range(3), range(np_dirs)):
-                svals_f = carts_stresses_pdv[pdir, :, ii, jj] * self.relaxed_structure.volume # * abu.Angs2Bohr ** 3  TODO?
-                dstress_dpert[ii, jj, pdir] = np.sum(svals_f[fd_slice] * weights) / self.step_au
-            data["dstress_dpert_npts"][npts] = dstress_dpert
-
-            # FD for polarizations (if available)
-            if has_pol:
-                dpol_dpert = np.empty((3, np_dirs))
-                for pdir, ii in itertools.product(range(np_dirs), range(3)):
-                    dpol_dpert[ii, pdir] = np.sum(cart_pol_pdv[pdir, fd_slice, ii] * weights) / self.step_au
-                data["dpol_dpert_npts"][npts] = dpol_dpert
-                #data["dpole_dpert_npts"][npts] = dpole_dpert  TODO ?
-                #data["dpoli_dpert_npts"][npts] = dpoli_dpert  TODO ?
 
         return data
 
@@ -516,6 +451,45 @@ class FiniteHfieldWork(_FieldWork):
         return ZeemanData(**d)
 
 
+class FiniteEfieldWork(_FieldWork):
+    r"""
+    """
+
+    def _add_tasks_with_efield(self, structure: Structure) -> None:
+        """Build new GS tasks with finite electric field."""
+        scf_input = self.scf_input_template.new_with_structure(structure)
+
+        self.tasks_pdv = np.empty((len(self.pert_cart_dirs), len(self.pert_values)), dtype=object)
+        task_pv0 = None
+        for pdir, p_cart_dir in enumerate(self.pert_cart_dirs):
+            for ipv, p_val in enumerate(self.pert_values):
+                is_pv0 = abs(p_val) < 1e-16
+                new_inp = scf_input.new_with_vars(efield=p_val * p_cart_dir)
+                if is_pv0:
+                    # Avoid computing the zero-field case multiple times.
+                    # Also the task at zero field uses berryopt -1.
+                    if task_pv0 is None:
+                        new_inp.set_vars(berryopt=-1)
+                        task_pv0 = self.register_berry_task(new_inp)
+                    self.tasks_pdv[pdir, ipv] = task_pv0
+                else:
+                    new_inp.set_vars(berryopt=4)
+                    self.tasks_pdv[pdir, ipv] = self.register_berry_task(new_inp)
+
+        # Now add dependencies to the tasks.
+        for pdir, p_cart_dir in enumerate(self.pert_cart_dirs):
+            for ipv in range(0, self.ipv0):
+                self.tasks_pdv[pdir, ipv].add_deps({self.tasks_pdv[pdir, ipv+1]: "WFK"})
+            ntasks = len(self.tasks_pdv[pdir])
+            for ipv in range(self.ipv0+1, ntasks):
+                self.tasks_pdv[pdir, ipv].add_deps({self.tasks_pdv[pdir, ipv-1]: "WFK"})
+
+    def get_data(self) -> ElectricFieldData:
+        d = self.get_data_dict()
+        return ElectricFieldData(**d)
+
+
+
 def idir2s(idir: int):
     """Convert direction index to string."""
     return {0: "x", 1: "y", 2: "z"}[idir]
@@ -528,20 +502,68 @@ class _FiniteFieldDataMixin(HasPickleIO):
     relaxed_structure: Structure
     step_au: float
     ipv0: int
+    has_pol: bool
+
     pert_values: np.ndarray
     pert_cart_dirs: np.ndarray
     etotals_pdv: np.ndarray
     eterms_pdv: np.ndarray
     cart_forces_pdv: np.ndarray
     carts_stresses_pdv: np.ndarray
-    dforces_dpert_npts: dict[int, np.array]  # Mapping npts -> dForce/dPert  [iat, 3, pdir] in Cart. coords.
-    dstress_dpert_npts: dict[int, np.array]  # Mapping npts -> dStress/dPert [3, 3, pdir] in Cart. coords.
-    params_f: list[dict]
+    params_p: list[dict]
+
+    # Mapping npts -> dForce/dPert  [iat, 3, pdir] in Cart. coords.
+    dforces_dpert_npts: dict[int, np.array] = field(init=False)
+    # Mapping npts -> dStress/dPert [3, 3, pdir] in Cart. coords.
+    dstress_dpert_npts: dict[int, np.array] = field(init=False)
 
     # Redefined in the subclasses.
     pert_type: str = "None"
     pert_name: str = "None"
     pert_tex: str = "None"
+
+    def __post_init__(self):
+        """
+        Compute quantities with finite differences.
+        """
+        #print("In __post_init__")
+        natom = len(self.input_structure)
+        np_dirs, np_vals = len(self.pert_cart_dirs), len(self.pert_values)
+
+        # Use all stencils compatible with input num_points so that we can monitor the convergence afterwards.
+        self.dforces_dpert_npts = {}
+        self.dstress_dpert_npts = {}
+        if self.has_pol:
+            self.dpol_dpert_npts = {}
+
+        for acc, weights in central_fdiff_weights[1].items():
+            if np_vals < len(weights): continue
+            nn = acc // 2
+            fd_slice = slice(self.ipv0 - nn, self.ipv0 + nn + 1)
+            npts = len(weights)
+
+            # Finite differences for forces.
+            dforce_dpert = np.empty((natom, 3, np_dirs))
+            for iat, iat_dir, pdir in itertools.product(range(natom), range(3), range(np_dirs)):
+                fvals_f = self.cart_forces_pdv[pdir, :, iat, iat_dir]
+                dforce_dpert[iat, iat_dir, pdir] = np.sum(fvals_f[fd_slice] * weights) / self.step_au
+            self.dforces_dpert_npts[npts] = dforce_dpert
+
+            # Finit differences for stresses.
+            dstress_dpert = np.empty((3, 3, np_dirs))
+            for ii, jj, pdir in itertools.product(range(3), range(3), range(np_dirs)):
+                svals_f = self.carts_stresses_pdv[pdir, :, ii, jj] * self.relaxed_structure.volume # * abu.Angs2Bohr ** 3  TODO?
+                dstress_dpert[ii, jj, pdir] = np.sum(svals_f[fd_slice] * weights) / self.step_au
+            self.dstress_dpert_npts[npts] = dstress_dpert
+
+            # Finite differences for polarizations (if available).
+            if self.has_pol:
+                dpol_dpert = np.empty((3, np_dirs))
+                for pdir, ii in itertools.product(range(np_dirs), range(3)):
+                    dpol_dpert[ii, pdir] = np.sum(self.cart_pol_pdv[pdir, fd_slice, ii] * weights) / self.step_au
+                self.dpol_dpert_npts[npts] = dpol_dpert
+                #self.dpole_dpert_npts[npts] = dpole_dpert  TODO ?
+                #self.dpoli_dpert_npts[npts] = dpoli_dpert  TODO ?
 
     @lazy_property
     def np_dirs(self) -> int:
@@ -671,13 +693,13 @@ class ElectricFieldData(_FiniteFieldDataMixin):
     cart_pol_pdv: np.ndarray
     cart_pole_pdv: np.ndarray
     cart_poli_pdv: np.ndarray
-    dpol_dpert_npts: dict[int, np.array]
+    dpol_dpert_npts: dict[int, np.array] = field(init=False)
 
     pert_type: str = "E"
     pert_name: str = "Electric field"
     pert_tex: str = r"\mathcal{E}"
 
-    def get_eps_df(self) -> pd.Dataframe:
+    def get_epsinf_df(self) -> pd.Dataframe:
         """
         Return dataframe with eps_infinity obtained with different FD points.
         """
@@ -696,7 +718,7 @@ class ElectricFieldData(_FiniteFieldDataMixin):
         return pd.DataFrame(rows)
 
     @add_fig_kwargs
-    def plot_polarization(self, what="total", **kwargs) -> Figure:
+    def plot_polarization(self, what: str = "total", **kwargs) -> Figure:
         """
         Plot the polarization as a function of the Electric field.
         """
@@ -731,43 +753,3 @@ class ZeemanData(_FiniteFieldDataMixin):
     pert_type: str = "H"
     pert_name: str = "Magnetic field"
     pert_tex: str = r"\mathcal{H}"
-
-
-class FiniteEfieldWork(_FieldWork):
-    r"""
-    """
-
-    def _add_tasks_with_efield(self, structure: Structure) -> None:
-        """Build new GS tasks with finite electric field."""
-        scf_input = self.scf_input_template.new_with_structure(structure)
-
-        self.tasks_pdv = np.empty((len(self.pert_cart_dirs), len(self.pert_values)), dtype=object)
-        task_pv0 = None
-        for pdir, p_cart_dir in enumerate(self.pert_cart_dirs):
-            for ipv, p_val in enumerate(self.pert_values):
-                is_pv0 = abs(p_val) < 1e-16
-                new_inp = scf_input.new_with_vars(efield=p_val * p_cart_dir)
-                if is_pv0:
-                    # Avoid computing the zero-field case multiple times.
-                    # Also the task at zero field uses berryopt -1.
-                    if task_pv0 is None:
-                        new_inp.set_vars(berryopt=-1)
-                        task_pv0 = self.register_berry_task(new_inp)
-                    self.tasks_pdv[pdir, ipv] = task_pv0
-                else:
-                    new_inp.set_vars(berryopt=4)
-                    self.tasks_pdv[pdir, ipv] = self.register_berry_task(new_inp)
-
-        # Now add dependencies to the tasks.
-        for pdir, p_cart_dir in enumerate(self.pert_cart_dirs):
-            ntasks = len(self.tasks_pdv[pdir])
-            for ipv in range(0, self.ipv0):
-                deps = {self.tasks_pdv[pdir, ipv+1]: "WFK"}
-                self.tasks_pdv[pdir, ipv].add_deps(deps)
-            for ipv in range(self.ipv0+1, ntasks):
-                deps = {self.tasks_pdv[pdir, ipv-1]: "WFK"}
-                self.tasks_pdv[pdir, ipv].add_deps(deps)
-
-    def get_data(self) -> ElectricFieldData:
-        d = self.get_data_dict()
-        return ElectricFieldData(**d)

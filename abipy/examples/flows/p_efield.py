@@ -10,7 +10,7 @@ flow = abilab.abiopen("flow_fd_efield/__AbinitFlow__.pickle")
 work = flow[0]
 data = work.get_data()
 
-print(data.get_eps_df())
+print(data.get_epsinf_df())
 data.plot_polarization(what="total")
 sys.exit(0)
 
