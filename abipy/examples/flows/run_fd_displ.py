@@ -82,6 +82,7 @@ xred
         nstep=50,         # Maximal number of SCF cycles
         ecutsm=0.5,
         dilatmx=1.05,
+        berryopt=-1,      # This to get the polarization.
     )
 
     shiftk = [0.5, 0.5, 0.5,
@@ -98,6 +99,9 @@ xred
 
     mask_iatom = [True, False]
     pert_cart_dirs = [[1, 0, 0],]
+
+    mask_iatom = None
+    pert_cart_dirs = None
 
     work = FiniteDisplWork.from_scf_input(
         scf_input,
