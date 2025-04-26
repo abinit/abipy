@@ -138,7 +138,7 @@ def finite_diff(arr, h, order=1, acc=4, index=None):
     try:
         centr_ws = central_fdiff_weights[order][acc]
     except KeyError:
-        raise ValueError("Centeral diff weights for order: %s, and accuracy: %s are missing!" % (order, acc))
+        raise ValueError(f"Centeral diff weights for {order=}, and {acc=} are missing!")
 
     npsum = np.sum
     ders = np.empty(arr.shape)

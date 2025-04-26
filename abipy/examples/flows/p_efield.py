@@ -1,21 +1,18 @@
 #!/usr/bin/env python
 import sys
-from abipy import abilab
-from abipy.abio.outputs import BerryPhasePolarization
 
-#pol = BerryPhasePolarization.from_abo_file("flow_fd_efield/w0/t0/run.abo")
-#print(pol)
+from abipy import abilab
 
 flow = abilab.abiopen("flow_fd_efield/__AbinitFlow__.pickle")
 work = flow[0]
 data = work.get_data()
 
-print(data.get_epsinf_df())
+print("epsilon_inf tensor in Cartesian coords:\n", data.get_epsinf_df(), end=2*"\n")
+print("piezoelectric tensor in Cartesian coords:\n", data.get_piezoel_df(), end=2*"\n")
 data.print_eff_charges()
-print(data.get_piezo_df())
 
-sys.exit(0)
-#data.plot_polarization(what="total")
+#print("Exiting now, no plots"); sys.exit(0)
 data.plot_etotal()
+data.plot_polarization(what="total")
 data.plot_forces()
 data.plot_stresses()

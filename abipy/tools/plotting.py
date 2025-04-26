@@ -690,10 +690,25 @@ def plot_xy_with_hue(data: pd.DataFrame,
     return fig
 
 
-def linear_fit_ax(ax, xs, ys, fontsize, with_label=True, with_ideal_line=False, **kwargs) -> tuple[float]:
+def linear_fit_ax(ax, xs, ys,
+                  fontsize: int,
+                  with_label: bool = True,
+                  with_ideal_line: bool = False,
+                  **kwargs) -> tuple[float]:
     """
     Calculate a linear least-squares regression for two sets of measurements.
-    kwargs are passed to ax.plot.
+
+
+    Args:
+        ax: |matplotlib-Axes|.
+        xs: X-values.
+        ys: Y-values.
+        fontsize: fontsize for legends and titles
+        with_label: True to add lable to the plot.
+        with_ideal_line: True to show ideal linear behaviour.
+        kwargs: keyword arguments passed to ax.plot.
+
+    Return: fit values.
     """
     from scipy.stats import linregress
     fit = linregress(xs, ys)
@@ -702,6 +717,7 @@ def linear_fit_ax(ax, xs, ys, fontsize, with_label=True, with_ideal_line=False, 
         kwargs["color"] = "r"
 
     ax.plot(xs, fit.slope*xs + fit.intercept, label=label if with_label else None, **kwargs)
+
     if with_ideal_line:
         # Plot y = x line
         ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-',
@@ -709,10 +725,50 @@ def linear_fit_ax(ax, xs, ys, fontsize, with_label=True, with_ideal_line=False, 
     return fit
 
 
+def quadratic_fit_ax(ax, xs, ys,
+                     fontsize: int,
+                     with_label: bool = True,
+                     num_pts: int = 100,
+                     **kwargs) -> tuple:
+    """
+    Quadratic fit: y = ax^2 + bx + c
+
+    Args:
+        ax: |matplotlib-Axes|.
+        xs: X-values.
+        ys: Y-values.
+        fontsize: fontsize for legends and titles.
+        with_label: True to add label to the plot.
+        kwargs: keyword arguments passed to ax.plot.
+
+    Return: (params, covariance)
+    """
+    # Define quadratic function
+    def quadratic(x, a, b, c):
+        return a * x**2 + b * x + c
+
+    from scipy.optimize import curve_fit
+    params, covariance = curve_fit(quadratic, xs, ys)
+    a, b, c = params
+
+    # Predict values
+    x_fit = np.linspace(min(xs), max(xs), num_pts)
+    y_fit = quadratic(x_fit, *params)
+
+    #label = r"Quad fit $a={:.2f}$, $b={:.2f}$ $c={:.2f}$ $\text{cov}$={:.2f}".format(a, b, c, covariance)
+    label = r"Quad fit $a={:.2f}$, $b={:.2f}$ $c={:.2f}$".format(a, b, c)
+    if "color" not in kwargs:
+        kwargs["color"] = "r"
+
+    ax.plot(x_fit, quadratic(x_fit, a, b, c), label=label if with_label else None, **kwargs)
+
+    return params, covariance
+
+
 @add_fig_kwargs
 def plot_array(array, color_map=None, cplx_mode="abs", **kwargs) -> Figure:
     """
-    Use imshow for plotting 2D or 1D arrays. Return: |matplotlib-Figure|
+    Use imshow for plotting 2D or 1D arrays.
 
     Example::
 
@@ -978,7 +1034,7 @@ class ConvergenceAnalyzer:
                 elif yscale == "log":
                     ax.axhspan(y0_log, y1_log, label=label, **span_style)
                 else:
-                    raise ValueError(f"Invalid yscale: {yscale}")
+                    raise ValueError(f"Invalid {yscale=}")
             else:
                 # Use limits of the next window to avoid overlapping patches.
                 if yscale == "linear":
@@ -988,7 +1044,7 @@ class ConvergenceAnalyzer:
                     ax.axhspan(y0_log, ylims_log[il+1,0], label=label, **span_style)
                     ax.axhspan(ylims_log[il+1,1], y1_log, **span_style)
                 else:
-                    raise ValueError(f"Invalid yscale: {yscale}")
+                    raise ValueError(f"Invalid {yscale=}")
 
             # Add vertical line to show best_xx.
             best_xx = self.ykey_best_xs[ykey][il]
@@ -999,7 +1055,7 @@ class ConvergenceAnalyzer:
     @add_fig_kwargs
     def plot(self, ax_mat=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot convergence profile. A new grid is build if `ax_mat` is None:
+        Plot convergence profile. A new grid is built if `ax_mat` is None:
         """
         nrows, ncols = len(self.yvals_dict), 2
 
@@ -1146,7 +1202,6 @@ class Marker:
     Used for plotting purpose e.g. QP data, energy derivatives...
 
     Example::
-
         x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
         marker = Marker(x, y, s)
     """

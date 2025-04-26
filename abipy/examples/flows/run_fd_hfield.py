@@ -65,9 +65,12 @@ rprim     5.2802747870E-01  0.0000000000E+00  8.4922728509E-01
     # AFM
     #nspinor, nsppol, nspden  = 1, 1, 2
     nspinor, nsppol, nspden  = 2, 1, 4
+    metallic = False
 
-    nband = int(1.1 * num_ele)
+    nband = int(1.1 * num_ele) if metallic else num_ele
     nband += nband % 2
+
+    nband /= nsppol
 
     scf_input.set_vars(
         #ecut=43,

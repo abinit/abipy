@@ -731,7 +731,7 @@ class ElectronBands(Has_Structure):
         if self.smearing:
             return self.smearing.has_metallic_scheme
         else:
-            cprint("ebands.smearing is not defined, assuming has_metallic_scheme = False", "red")
+            cprint("ebands.smearing is not defined, assuming has_metallic_scheme = False", color="red")
             return False
 
     def set_fermie_to_vbm(self) -> float:

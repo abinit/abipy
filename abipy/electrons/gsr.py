@@ -221,6 +221,24 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return self.r.read_energy_terms(unit="eV")
 
     @lazy_property
+    def magnetization(self) -> np.ndarray:
+        """
+        Magnetization in Cartesian directions in atomic units.
+        """
+        rhomag = self.r.read_value("rhomag", default=None)
+        if rhomag is None:
+            raise RuntimeError("You GSR file does not contain the rhomag variable. Please use Abinit version >= 10.4")
+
+        # rhomag(2, nspden) (Fortran array)
+        #   in collinear case component 1 is total density and 2 is _magnetization_ up-down
+        #   in non collinear case component 1 is total density, and 2:4 are the magnetization vector
+        rhomag = rhomag[:,0]
+        mag = np.zero(3)
+        if self.ebands.nspden == 2: mag[2] = rhomag[1]
+        if self.ebands.nspden == 4: mag = rhomag[1:]
+        return mag
+
+    @lazy_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
