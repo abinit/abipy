@@ -220,8 +220,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """:class:`EnergyTerms` with the different contributions to the total energy in eV."""
         return self.r.read_energy_terms(unit="eV")
 
-    @lazy_property
-    def magnetization(self) -> np.ndarray:
+    def get_magnetization(self) -> np.ndarray:
         """
         Magnetization in Cartesian directions in atomic units.
         """

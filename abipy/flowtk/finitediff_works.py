@@ -288,7 +288,7 @@ class _BaseFdWork(Work):
                     data["params_p"].append(gsr.params)
                     if has_mag:
                         # Get magnetization from the GSR file
-                        cart_mag_pv[ip, ipv] = gsr.magnetization.copy()
+                        cart_mag_pv[ip, ipv] = gsr.get_magnetization()
 
                 if has_pol:
                     # Read polarization from the abo file.
@@ -384,7 +384,7 @@ class FiniteDisplWork(_BaseFdWork):
     def _add_tasks_with_displacements(self, structure: Structure):
         """
         """
-        nperts, num_deltas = len(self.perts), len(work.pert_values)
+        nperts, num_deltas = len(self.perts), len(self.pert_values)
         self.tasks_pv = np.empty((nperts, num_deltas), dtype=object)
 
         for ip, pert in enumerate(self.perts):

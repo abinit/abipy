@@ -1066,7 +1066,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         if nspinor == 2:
             nspden = self.get("nspden", 4)
             if nspden == 4 and kptopt != 4:
-                raise ValueError("nspinor 2 with nspden 4 requires kptopt 4")
+                cprint("nspinor 2 with nspden 4 requires kptopt 4", color="red")
+                #raise ValueError("nspinor 2 with nspden 4 requires kptopt 4")
 
         shiftk = np.reshape(shiftk, (-1, 3))
         return self.set_vars(ngkpt=ngkpt, kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)

@@ -1,13 +1,13 @@
 # coding: utf-8
 from __future__ import print_function, division, unicode_literals, absolute_import
 
+executable = "atdep"
+
 try:
     from abimkdocs.variables import ValueWithUnit, MultipleValue, Range
 except ImportError:
-    # This is needed for importing this module within Abipy.
+    # This is needed for importing this module within Abipy
     from abipy.abio.abivar_database.variables import ValueWithUnit, MultipleValue, Range
-
-executable = "atdep"
 
 ValueWithConditions = dict
 
@@ -508,7 +508,7 @@ Variable(
     mnemonics="DEBUG MODE",
     added_in_version="10.4",
     text="""
-OPTIONAL: A non-zero value activates debug mode for atdep. 
+OPTIONAL: A non-zero value activates debug mode for atdep.
 """,
 ),
 

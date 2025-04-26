@@ -553,7 +553,9 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         minimax_mesh = self.minimax_mesh
         r = self.r
         ecut = float(r.read_value("ecut"))
+        # These variables were added in Abinit v10.4.0
         ecutwfn = float(r.read_value("ecutwfn", default=ecut))
+        gwr_max_hwtene = float(r.read_value("gwr_max_hwtene", default=-666))
 
         return dict(
             gwr_ntau=r.read_dimvalue("ntau"),
@@ -563,7 +565,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             ecutsigx=float(r.read_value("ecutsigx")),
             ecut=ecut,
             gwr_boxcutmin=float(r.read_value("gwr_boxcutmin")),
-            gwr_max_hwtene=float(r.read_value("gwr_max_hwtene")),
+            gwr_max_hwtene=gwr_max_hwtene,
             nkpt=self.ebands.nkpt,
             symchi=int(r.read_value("symchi")),
             symsigma=int(r.read_value("symsigma")),

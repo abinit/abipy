@@ -83,7 +83,7 @@ class GwrFileTest(AbipyTest):
 
             if self.has_matplotlib():
                 assert robot.plot_selfenergy_conv(spin, kpoint, band, show=False)
-                assert robot.plot_qpgaps_convergence(x="gwr_ntau", show=False)
+                assert robot.plot_qpgaps_convergence(x="gwr_ntau", abs_conv=0.05, show=False)
                 # FIXME
                 #assert robot.plot_qpfield_vs_e0("qpe", show=False)
                 #assert robot.plot_qpdata_conv_skb(spin, kpoint, band, show=False)

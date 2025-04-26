@@ -326,12 +326,15 @@ def get_axarray_fig_plt(ax_array,
                 ax_array = ax_array.ravel()
 
     if grid:
-      if hasattr(ax_array, "ravel"):
-          for ax in ax_array.ravel():
-              ax.grid(grid)
-      else:
-          for ax in ax_array:
-              ax.grid(grid)
+        if hasattr(ax_array, "ravel"):
+            for ax in ax_array.ravel():
+                ax.grid(grid)
+        else:
+            if hasattr(ax_array, "grid"):
+                ax_array.grid(grid)
+            else:
+                for ax in ax_array:
+                    ax.grid(grid)
 
     return ax_array, fig, plt
 
