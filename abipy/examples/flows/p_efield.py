@@ -12,6 +12,7 @@ print("piezoelectric tensor in Cartesian coords:\n", data.get_piezoel_df(), end=
 data.print_eff_charges()
 
 #print("Exiting now, no plots"); sys.exit(0)
+data.plot_forces_vs_field([1, 0, 0], elements="Al")
 data.plot_etotal()
 data.plot_polarization(what="total")
 data.plot_forces()

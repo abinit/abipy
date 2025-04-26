@@ -20,7 +20,8 @@ from monty.termcolor import cprint
 from pymatgen.analysis.elasticity.strain import Strain
 from abipy.core.structure import Structure
 from abipy.tools.numtools import build_mesh
-from abipy.tools.derivatives import central_fdiff_weights, check_num_points_for_order # finite_diff
+from abipy.tools.derivatives import central_fdiff_weights #, check_num_points_for_order
+from abipy.tools import duck
 from abipy.tools.typing import Figure
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.enums import StrEnum
@@ -57,6 +58,12 @@ ALL_STRAIN_INDS = NORMAL_STRAIN_INDS + SHEAR_STRAIN_INDS
 #def idir2s(idir: int) -> str:
 #    """Convert direction index to string."""
 #    return {0: "x", 1: "y", 2: "z"}[idir]
+
+
+def _mesh_for_acc(acc, order, step) -> tuple:
+    num_points = len(central_fdiff_weights[order][acc]) // 2
+    values, ip0 = build_mesh(0.0, num_points, step, "=")
+    return num_points, values, ip0
 
 
 def dir2str(coeffs, variables: str = 'xyz') -> str:
@@ -169,7 +176,7 @@ class Perturbation:
 
     @lazy_property
     def step(self) -> float:
-        """Return the step of the linear mesh. Raises ValueError if mesh is not linear."""
+        """Step of the linear mesh. Raises ValueError if mesh is not linear."""
         dx = np.zeros(len(self.values) - 1)
         for i, x in enumerate(self.values[:-1]):
             dx[i] = self.values[i+1] - x
@@ -239,6 +246,7 @@ class _BaseFdWork(Work):
         has_mag = False
         if all(task.input.get("nsppol", 1) == 2 for task in self):
             has_mag = True
+
         if all(task.input.get("nspinor", 1) == 2 for task in self):
             if all(task.input.get("nspden", 4) == 4 for task in self):
                 has_mag = True
@@ -280,7 +288,7 @@ class _BaseFdWork(Work):
                     data["params_p"].append(gsr.params)
                     if has_mag:
                         # Get magnetization from the GSR file
-                        self.cart_mag_pv[ip, ipv] = gsr.cart_mag.copy()
+                        cart_mag_pv[ip, ipv] = gsr.magnetization.copy()
 
                 if has_pol:
                     # Read polarization from the abo file.
@@ -307,7 +315,7 @@ class FiniteDisplWork(_BaseFdWork):
     @classmethod
     def from_scf_input(cls,
                        scf_input: AbinitInput,
-                       num_points: int,
+                       accuracy: int,
                        step_au: float = 0.01,
                        pert_cart_dirs=None,
                        mask_iatom=None,
@@ -319,7 +327,7 @@ class FiniteDisplWork(_BaseFdWork):
 
         Args:
             scf_input: AbinitInput for GS SCF used as template to generate the other inputs.
-            num_points:
+            accuracy:
             step_au: Finite difference step for the displacement in Bohr (a.u.)
             pert_cart_dirs:
             mask_iatom:
@@ -332,7 +340,7 @@ class FiniteDisplWork(_BaseFdWork):
         structure = scf_input.structure
         natom = len(structure)
 
-        work.pert_values, _ipv0 = build_mesh(0.0, num_points, step_au, "=")
+        num_points, work.pert_values, _ipv0 = _mesh_for_acc(accuracy, 1, step_au)
 
         # Here we normalize the directions to 1. NB: pymatgen structures uses Ang and not Bohr.
         if pert_cart_dirs is None:
@@ -411,7 +419,7 @@ class FiniteStrainWork(_BaseFdWork):
     @classmethod
     def from_scf_input(cls,
                        scf_input,
-                       num_points: int,
+                       accuracy: int,
                        norm_step: float,
                        shear_step: float,
                        voigt_inds=None,
@@ -423,7 +431,7 @@ class FiniteStrainWork(_BaseFdWork):
 
         Args:
             scf_input: AbinitInput for GS SCF used as template to generate the other inputs.
-            num_points: Number of points for finite difference.
+            accuracy:
             norm_step: Finite difference step for normal strain.
             shear_step: Finite difference step for shear strain.
             voigt_inds:
@@ -453,9 +461,8 @@ class FiniteStrainWork(_BaseFdWork):
                 raise ValueError(f"The strain matrix should be symmetric but got: {strain}")
 
         # Different pert_values for normal and shear strain.
-        norm_values, _ipv0 = build_mesh(0.0, num_points, norm_step, "=")
-        shear_values, _ipv0 = build_mesh(0.0, num_points, norm_step, "=")
-        check_num_points_for_order(num_points=len(norm_values), order=1, kind="=")
+        num_points, norm_values, _ipv0 = _mesh_for_acc(accuracy, 1, norm_step)
+        num_points, shear_values, _ipv0 = _mesh_for_acc(accuracy, 1, shear_step)
 
         # Build list of perturbations.
         work.perts = []
@@ -511,7 +518,7 @@ class _FieldWork(_BaseFdWork):
     @classmethod
     def from_scf_input(cls,
                        scf_input: AbinitInput,
-                       num_points: int,
+                       accuracy: int,
                        step_au: float,
                        pert_cart_dirs: np.ndarray | None = None,
                        relax: bool = False,
@@ -522,7 +529,7 @@ class _FieldWork(_BaseFdWork):
 
         Args:
             scf_input: AbinitInput for GS SCF calculation used as template to generate the other inputs.
-            num_points: Number of points for finite difference.
+            accuracy:
             step_au: Finite difference step for the magnetic field in a.u.
             pert_cart_dirs:
             relax: False if the initial structural relaxation should not be performed.
@@ -530,9 +537,7 @@ class _FieldWork(_BaseFdWork):
             manager: TaskManager instance. Use default manager if None.
         """
         work = cls(manager=manager)
-        work.pert_values, _ipv0 = build_mesh(0.0, num_points, step_au, "=")
-        work.num_points = len(work.pert_values)
-        check_num_points_for_order(num_points=work.num_points, order=1, kind="=")
+        num_points, work.pert_values, _ipv0 = _mesh_for_acc(accuracy, 1, step_au)
 
         if pert_cart_dirs is None:
             work.pert_cart_dirs = np.eye(3)
@@ -776,7 +781,7 @@ class _FdData(HasPickleIO):
 
     @lazy_property
     def pert_kind(self) -> str:
-        """Return the kind of perturbation treated."""
+        """Kind of perturbation treated."""
         pert_kind = self.perts[0].kind
         all_kinds = [p.kind for p in self.perts]
         if any(k != pert_kind for k in all_kinds):
@@ -792,9 +797,20 @@ class _FdData(HasPickleIO):
 
         return [dir2str(pert.cart_dir) for pert in self.perts]
 
+    #def __str__(self) -> str:
+    #    return self.to_string()
+
+    #def to_string(self, verbose: int = 0) -> str:
+    #    lines = []
+    #    app = lines.append
+    #    #for pert in self.perts:
+    #    #    pert
+
+    #    return "\n.".join(lines)
+
     def get_df_zeff_iatom(self, iatom: int) -> pd.Dataframe:
         """
-        Return dataframe with the effective charges for the given atom index and all the FD points.
+        Dataframe with the effective charges for the given atom index and all the FD points.
         """
         field2zeff = {PertKind.E: "Ze", PertKind.H: "Zm"}
 
@@ -917,12 +933,13 @@ class _FdData(HasPickleIO):
             iat_list: List of atom indices to shown. None to select all.
         """
         if elements is not None: elements = list_strings(elements)
+        if iat_list is not None: iat_list = set(iat_list)
+        if elements is not None and iat_list is not None:
+            raise ValueError("elements and iat_list are mutually exclusive.")
+
         nrows, ncols = 3, self.npert
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=sharey, squeeze=False)
-
-        if iat_list is not None:
-            iat_list = set(iat_list)
 
         for iat_dir in range(3):
             for ip, pert in enumerate(self.perts):
@@ -1023,6 +1040,7 @@ class _FdData(HasPickleIO):
 @dataclasses.dataclass(kw_only=True)
 class DisplData(_FdData):
     """
+    Specialized class to handle finite diff. wrt atomic displacements at q = 0.
     """
     #def get_force_constant_df(self) -> pd.DataFrame:
     #    for npts, dforces_dpert in self.dforces_dpert_npts.items():
@@ -1038,11 +1056,12 @@ class DisplData(_FdData):
 @dataclasses.dataclass(kw_only=True)
 class StrainData(_FdData):
     """
+    Specialized class to handle finite diff. wrt strain.
     """
     # TODO
     #def get_elastic_df(self) -> pd.DataFrame:
     #    """
-    #    Return dataframe with the elastic constant tensor obtained with different FD points.
+    #    Dataframe with the elastic constant tensor obtained with different FD points.
     #    """
     #    voigt_comps = [str(i) for i in range(1, 7)]
     #    cmat_comps = list(itertools.product(voigt_comps, voigt_comps))
@@ -1058,10 +1077,80 @@ class StrainData(_FdData):
     #    return pd.DataFrame(rows)
 
 
+class HasExternalField:
+    """Mixin class for calculations in which the perturbatio is an external field."""
+
+    def find_ip_pert(self, field_cart_dir) -> tuple[int, Perturbation]:
+        """
+        Find perturbation from field_cart_dir that can be either a vector or an integer.
+        """
+        if duck.is_intlike(field_cart_dir):
+            ip = int(field_cart_dir)
+            return ip, self.perts[ip]
+
+        field_cart_dir = np.array(field_cart_dir)
+        for ip, pert in enumerate(self.perts):
+            if np.all(np.abs(pert.cart_dir - field_cart_dir) < 1e-6):
+                return ip, pert
+
+        raise ValueError(f"Cannot find perturbation with {field_cart_dir=}")
+
+    @add_fig_kwargs
+    def plot_forces_vs_field(self,
+                             field_cart_dir,
+                             elements: None | list[str] = None,
+                             iat_list: None | list[int] = None,
+                             fontsize=8, sharey=False,
+                             **kwargs) -> Figure:
+        """
+        Plot Cartesian forces as a function of the of the amplitude of the perturbation.
+
+        Args:
+            elements: String or list of strings with the chemical elements to select. None to select all.
+            iat_list: List of atom indices to shown. None to select all.
+        """
+        nrows = self.natom
+        if elements is not None:
+            elements = list_strings(elements)
+            nrows = len(elements)
+        if iat_list is not None:
+            iat_list = set(iat_list)
+            nrows = len(iat_list)
+
+        if elements is not None and iat_list is not None:
+            raise ValueError("elements and iat_list are mutually exclusive.")
+
+        ip, pert = self.find_ip_pert(field_cart_dir)
+
+        nrows, ncols = nrows, 3
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=sharey, squeeze=False)
+
+        irow = -1
+        for iat, site in enumerate(self.relaxed_structure):
+            if elements is not None and site.species_string not in elements: continue
+            if iat_list is not None and iat not in iat_list: continue
+            irow += 1
+            for iat_dir in range(3):
+                ax = ax_mat[irow, iat_dir]
+                #ax.set_title(f"{pert.label}, Atom_dir: {pert.dir_str}", fontsize=fontsize)
+                ys = self.cart_forces_pv[ip, :, iat, iat_dir]
+                ax.plot(pert.values, ys, marker="o", label=site.species_string + r"$_{\text{%s}}$" % iat)
+                quadratic_fit_ax(ax, pert.values, ys, fontsize)
+
+                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+                #set_grid_legend(ax, fontsize,
+                #                xlabel=f"${pert.tex}$ (a.u.)" if ip == len(self.perts) - 1 else None,
+                #                ylabel=ylabel if ip == 0 else None,
+                #                )
+
+        return fig
+
+
 @dataclasses.dataclass(kw_only=True)
-class ElectricFieldData(_FdData):
+class ElectricFieldData(_FdData, HasExternalField):
     """
-    This object stores the dynamical magnetic charges Zm computed with finite differences.
+    Specialized class to handle finite diff. wrt the electric field.
     """
 
     def get_epsinf_df(self) -> pd.Dataframe:
@@ -1095,9 +1184,9 @@ class ElectricFieldData(_FdData):
 
 
 @dataclasses.dataclass(kw_only=True)
-class ZeemanData(_FdData):
+class ZeemanData(_FdData, HasExternalField):
     """
-    This object stores the dynamical magnetic charges Zm computed with finite differences.
+    Specialized class to handle finite diff. wrt the zeeman magnetic field.
     """
 
     #def get_piezomag_df(self) -> pd.Dataframe:

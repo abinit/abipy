@@ -233,7 +233,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         #   in collinear case component 1 is total density and 2 is _magnetization_ up-down
         #   in non collinear case component 1 is total density, and 2:4 are the magnetization vector
         rhomag = rhomag[:,0]
-        mag = np.zero(3)
+        mag = np.zeros(3)
         if self.ebands.nspden == 2: mag[2] = rhomag[1]
         if self.ebands.nspden == 4: mag = rhomag[1:]
         return mag

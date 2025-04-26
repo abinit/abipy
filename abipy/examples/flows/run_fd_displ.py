@@ -105,7 +105,7 @@ xred
 
     work = FiniteDisplWork.from_scf_input(
         scf_input,
-        num_points=1,
+        accuracy=2,
         step_au=0.01,
         pert_cart_dirs=pert_cart_dirs,
         mask_iatom=mask_iatom,

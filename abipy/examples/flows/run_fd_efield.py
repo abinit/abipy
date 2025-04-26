@@ -100,7 +100,7 @@ xred
 
     work = FiniteEfieldWork.from_scf_input(
         scf_input,
-        num_points=1,
+        accuracy=4,
         step_au=0.0001,
         relax=False,
         relax_opts=None,
