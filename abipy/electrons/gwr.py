@@ -563,6 +563,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             ecutsigx=float(r.read_value("ecutsigx")),
             ecut=ecut,
             gwr_boxcutmin=float(r.read_value("gwr_boxcutmin")),
+            gwr_max_hwtene=float(r.read_value("gwr_max_hwtene")),
             nkpt=self.ebands.nkpt,
             symchi=int(r.read_value("symchi")),
             symsigma=int(r.read_value("symsigma")),
@@ -599,7 +600,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         else:
             app("Number of k-points in Sigma_{nk}: %d" % (len(self.r.sigma_kpoints)))
             app("Number of bands included in e-e self-energy sum: %d" % (self.nband))
-            keys = self.params.keys() if verbose else ["ecut", "ecutwfn", "ecutsigx", "ecuteps", "gwr_boxcutmin"]
+            keys = self.params.keys() if verbose else ["ecut", "ecutwfn", "ecutsigx", "ecuteps", "gwr_boxcutmin", "gwr_max_hwtene"]
             for k in keys:
                 app("%s: %s" % (k, self.params[k]))
             if verbose:
