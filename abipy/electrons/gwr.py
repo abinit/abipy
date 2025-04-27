@@ -1474,6 +1474,7 @@ class GwrRobot(Robot, RobotWithEbands):
         "ecutwfn": "ecutwfn (Ha)",
         "ecuteps": "ecuteps (Ha)",
         "ecutsigx": "ecutsigx (Ha)",
+        "gwr_max_hwtene": "gwr_max_hwtene (Ha)",
     }
 
     YLABELS = {
@@ -1816,8 +1817,14 @@ class GwrRobot(Robot, RobotWithEbands):
 
                 if ix == len(qpkinds) - 1:
                     ax.set_xlabel(xlabel)
+                else:
+                    set_visible(ax, False, "xlabel")
+
                 if ix == 0:
                     ax.set_ylabel(ylabel)
+                else:
+                    set_visible(ax, False, "ylabel")
+
                 ax.set_title("k-point: %s" % repr(sigma_kpt), fontsize=fontsize)
 
         return fig
@@ -1908,10 +1915,10 @@ class GwrRobot(Robot, RobotWithEbands):
             if ix == 0 and hue is not None:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-        if "title" not in kwargs:
-            title = "QP results spin: %s, k:%s, band: %s, T = %.1f K" % (
-                    spin, repr(kpoint), band, nc0.tmesh[itemp])
-            fig.suptitle(title, fontsize=fontsize)
+        #if "title" not in kwargs:
+        #    title = "QP results spin: %s, k:%s, band: %s, T = %.1f K" % (
+        #            spin, repr(kpoint), band, nc0.tmesh[itemp])
+        #    fig.suptitle(title, fontsize=fontsize)
 
         return fig
 

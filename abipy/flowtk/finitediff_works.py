@@ -1,12 +1,12 @@
 # coding: utf-8
-"""Works for finite difference calculations and post-processing tools."""
+"""This module provide Works for finite difference calculations and related post-processing tools."""
 from __future__ import annotations
 # TODO: Should we allow for relax and relax_opts?
 
+# IMPORTANT: In Abinit Stress is equal to dE/d_strain * (1/ucvol) See m_forstr
+
 import sys
 import itertools
-#import json
-#import pickle
 import dataclasses
 import numpy as np
 import pandas as pd
@@ -20,7 +20,7 @@ from monty.termcolor import cprint
 from pymatgen.analysis.elasticity.strain import Strain
 from abipy.core.structure import Structure
 from abipy.tools.numtools import build_mesh
-from abipy.tools.derivatives import central_fdiff_weights #, check_num_points_for_order
+from abipy.tools.derivatives import central_fdiff_weights
 from abipy.tools import duck
 from abipy.tools.typing import Figure
 from abipy.abio.inputs import AbinitInput
@@ -30,6 +30,7 @@ from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, ge
     rotate_ticklabels, set_visible, set_ax_xylabels, linear_fit_ax, quadratic_fit_ax)
 #from abipy.tools.serialization import mjson_write #, pmg_serialize
 from .works import Work
+#from .flows import Flow
 
 #def centered_indices(n):
 #    half = n // 2
@@ -55,12 +56,7 @@ SHEAR_STRAIN_INDS = [(0, 1), (0, 2), (1, 2)]
 ALL_STRAIN_INDS = NORMAL_STRAIN_INDS + SHEAR_STRAIN_INDS
 
 
-#def idir2s(idir: int) -> str:
-#    """Convert direction index to string."""
-#    return {0: "x", 1: "y", 2: "z"}[idir]
-
-
-def _mesh_for_acc(acc, order, step) -> tuple:
+def _mesh_for_accuracy(acc, order, step) -> tuple:
     num_points = len(central_fdiff_weights[order][acc]) // 2
     values, ip0 = build_mesh(0.0, num_points, step, "=")
     return num_points, values, ip0
@@ -134,7 +130,7 @@ def voigt_to_mat33(voigt: np.ndarray, engineering_strain: bool = True) -> np.nda
 
 
 class PertKind(StrEnum):
-    """String enumerator with the perturbation kind."""
+    """String enumerator for the different kind of perturbations."""
     DISPL = "displ"
     E = "E"
     H = "H"
@@ -156,7 +152,7 @@ class Perturbation:
     strain: np.ndarray | None = None
 
     def __post_init__(self):
-        """Implement Validation logic."""
+        """Implement validation logic."""
         if self.kind not in PertKind:
             raise ValueError(f"Invalid {self.kind=}")
 
@@ -211,7 +207,7 @@ class Perturbation:
         return {
             PertKind.E: r"{\mathcal{E}}",
             PertKind.H: r"{\mathcal{H}}",
-            PertKind.DISPL: r"{\Delta\tau}",
+            PertKind.DISPL: r"{u}",
             PertKind.STRAIN: r"{\varepsilon}",
         }[self.kind]
 
@@ -235,7 +231,10 @@ class _BaseFdWork(Work):
 
     def get_data_dict(self) -> dict:
         """
-        Note: The suffix `_pv` stands for perturbation index and perturbation value.
+        This method is shared by all the Finite difference works.
+        It reads energies, forces, stresses, polarization and magnetization from the GSR.nc files
+        and the main output files of the FD calculations and builds a dictionary that can be used
+        to instanciate the appropriate subclass of _FdData.
         """
         natom = len(self[0].input.structure)
         npert, np_vals = len(self.perts), max(len(pert.values) for pert in self.perts)
@@ -260,6 +259,7 @@ class _BaseFdWork(Work):
             "has_mag": has_mag,
         }
 
+        # The suffix `_pv` stands for perturbation index and perturbation value.
         data["etotals_pv"] = etotals_pv = np.empty((npert, np_vals))
         data["eterms_pv"] = eterms_pv = np.empty((npert, np_vals), dtype=object)
         data["cart_forces_pv"] = cart_forces_pv = np.empty((npert, np_vals, natom, 3))
@@ -274,6 +274,7 @@ class _BaseFdWork(Work):
             data["cart_mag_pv"] = cart_mag_pv = np.empty((npert, np_vals, 3))
 
         # Read energy, forces and stress from the GSR files.
+        # TODO: Use voigt stress everywhere
         for ip, pert in enumerate(self.perts):
             for ipv, p_val in enumerate(pert.values):
                 task = self.tasks_pv[ip, ipv]
@@ -284,7 +285,7 @@ class _BaseFdWork(Work):
                     eterms_pv[ip, ipv] = gsr.r.read_energy_terms(unit="Ha")
                     cart_forces_pv[ip, ipv] = gsr.r.read_value("cartesian_forces") # Ha/Bohr units.
                     carts_stresses_pv[ip, ipv] = gsr.r.read_cart_stress_tensor(units="au")
-                    # Add parameters that might be used for convergence studies.
+                    # Add parameters that might be used for convergence studies afterwards.
                     data["params_p"].append(gsr.params)
                     if has_mag:
                         # Get magnetization from the GSR file
@@ -340,7 +341,7 @@ class FiniteDisplWork(_BaseFdWork):
         structure = scf_input.structure
         natom = len(structure)
 
-        num_points, work.pert_values, _ipv0 = _mesh_for_acc(accuracy, 1, step_au)
+        num_points, work.pert_values, _ipv0 = _mesh_for_accuracy(accuracy, 1, step_au)
 
         # Here we normalize the directions to 1. NB: pymatgen structures uses Ang and not Bohr.
         if pert_cart_dirs is None:
@@ -461,8 +462,8 @@ class FiniteStrainWork(_BaseFdWork):
                 raise ValueError(f"The strain matrix should be symmetric but got: {strain}")
 
         # Different pert_values for normal and shear strain.
-        num_points, norm_values, _ipv0 = _mesh_for_acc(accuracy, 1, norm_step)
-        num_points, shear_values, _ipv0 = _mesh_for_acc(accuracy, 1, shear_step)
+        num_points, norm_values, _ipv0 = _mesh_for_accuracy(accuracy, 1, norm_step)
+        num_points, shear_values, _ipv0 = _mesh_for_accuracy(accuracy, 1, shear_step)
 
         # Build list of perturbations.
         work.perts = []
@@ -492,7 +493,7 @@ class FiniteStrainWork(_BaseFdWork):
         npert, np_vals = len(self.perts), max(len(pert.values) for pert in self.perts)
         self.tasks_pv = np.empty((npert, np_vals), dtype=object)
 
-        # Apply strain to the lattice and build new SCF task.
+        # Apply strain to the lattice and build new SCF tasks.
         for ip, pert in enumerate(self.perts):
             for ipv, pert_value in enumerate(pert.values):
                 new_structure = scf_input.structure.apply_strain(pert_value * pert.strain, inplace=False)
@@ -537,7 +538,7 @@ class _FieldWork(_BaseFdWork):
             manager: TaskManager instance. Use default manager if None.
         """
         work = cls(manager=manager)
-        num_points, work.pert_values, _ipv0 = _mesh_for_acc(accuracy, 1, step_au)
+        num_points, work.pert_values, _ipv0 = _mesh_for_accuracy(accuracy, 1, step_au)
 
         if pert_cart_dirs is None:
             work.pert_cart_dirs = np.eye(3)
@@ -564,7 +565,7 @@ class _FieldWork(_BaseFdWork):
             if work.pert_kind == PertKind.E:
                 work._add_tasks_with_efield(scf_input.structure)
             elif work.pert_kind == PertKind.H:
-                work._add_tasks_with_zeemanfield(scf_input.structure)
+                work._add_tasks_with_zeeman_field(scf_input.structure)
             else:
                 raise TypeError(f"Don't know how to handle {work.pert_kind=}")
 
@@ -581,7 +582,7 @@ class _FieldWork(_BaseFdWork):
             if work.pert_kind == PertKind.E:
                 self._add_tasks_with_efield(self.relaxed_structure)
             elif work.pert_kind == PertKind.H:
-                self._add_tasks_with_zeemanfield(self.relaxed_structure)
+                self._add_tasks_with_zeeman_field(self.relaxed_structure)
             else:
                 raise TypeError(f"Don't know how to handle {work.pert_kind}")
 
@@ -601,7 +602,7 @@ class FiniteHfieldWork(_FieldWork):
     Here we compute them as derivatives of forces wrt to the Zeeman magnetic field.
     """
 
-    def _add_tasks_with_zeemanfield(self, structure: Structure) -> None:
+    def _add_tasks_with_zeeman_field(self, structure: Structure) -> None:
         """Build new GS tasks with zeemanfield."""
         scf_input = self.scf_input_template.new_with_structure(structure)
 
@@ -672,7 +673,8 @@ class _FdData(HasPickleIO):
     """
     Base class storing energies, forces, stresses for the different perturbed configurations.
     Provides methods to visualize the results and compute tensors.
-    All values are in a.u. and tensors are in Cartesian coordinates.
+    Except for the Structure that uses Angstrom, all values are in a.u. and tensors
+    are given in Cartesian coordinates.
     """
     input_structure: Structure
     relaxed_structure: Structure
@@ -680,13 +682,15 @@ class _FdData(HasPickleIO):
     has_pol: bool                     # True if polarization has been computed with Berry phase.
     has_mag: bool                     # True if magnetization has been computed.
     perts: list[Perturbation]         # List of perturbations.
-    params_p: list[dict]
+    params_p: list[dict]              # Parameters used for each perturbation.
 
     # The `_pv` suffix stands for perturbation and perturbation value.
     etotals_pv: np.ndarray            # (npert, np_vals)
     eterms_pv: np.ndarray             # (npert, np_vals)
     cart_forces_pv: np.ndarray        # (npert, np_vals, natom, 3)
     carts_stresses_pv: np.ndarray     # (npert, np_vals, 3, 3)
+
+    #structures_pv: np.ndarray
 
     # Polarization computed with Berry phase approach.
     cart_pol_pv: Optional[np.ndarray] = None      # (npert, np_vals, 3)
@@ -730,7 +734,7 @@ class _FdData(HasPickleIO):
             if np_vals < len(weights): continue
             nn = acc // 2
             npts = len(weights)
-            # fd_slice is used to select the values for the FD in the initial array.
+            # fd_slice is used to select the values for the Finite difference.
             fd_slice = slice(ipv0 - nn, ipv0 + nn + 1)
 
             # Finite difference for forces.
@@ -827,8 +831,7 @@ class _FdData(HasPickleIO):
         else:
             raise ValueError(f"Don't know how to compute eff_charges with {self.pert_kind=}")
 
-        xyz_comps = "x y z".split()
-        rows = []
+        rows, xyz_comps = [], "x y z".split()
 
         if what_to_diff == "forces":
             zeff_comps = list(itertools.product(xyz_comps, self.pert_dir_comps))
@@ -926,7 +929,7 @@ class _FdData(HasPickleIO):
                     fontsize=8, sharey=False,
                     **kwargs) -> Figure:
         """
-        Plot Cartesian forces as a function of the of the amplitude of the perturbation.
+        Plot Cartesian forces as a function of the amplitude of the perturbation.
 
         Args:
             elements: String or list of strings with the chemical elements to select. None to select all.
@@ -993,7 +996,7 @@ class _FdData(HasPickleIO):
 
         nrows, ncols = len(self.perts), 3
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=sharey, squeeze=False)
+                                               sharex=True, sharey=sharey, squeeze=False)
 
         for ip, pert in enumerate(self.perts):
             for pol_dir in range(3):
@@ -1042,15 +1045,20 @@ class DisplData(_FdData):
     """
     Specialized class to handle finite diff. wrt atomic displacements at q = 0.
     """
-    #def get_force_constant_df(self) -> pd.DataFrame:
-    #    for npts, dforces_dpert in self.dforces_dpert_npts.items():
-    #        # K_mn = d2E/{du_m du_n} = -dF_m/ du_n
-    #        # dforces_dpert has shape (natom, 3, npert)
-    #        kmn = np.empty(self.natom, 3, self.natom, 3)
-    #        for ip, pert in enumerate(self.perts):
-    #            idir = ip % 3
-    #            kmn[pert.iatom, idir] = - dforces_dpert
-    #    # TODO: Singular value decomposition to check stability at Gamma.
+
+    def get_force_constants(self, npts: int) -> np.ndarray:
+        # K_mn = d2E/{du_m du_n} = -dF_m/ du_n
+        # dforces_dpert has shape (natom, 3, npert)
+        # TODO: Singular value decomposition
+        dforces_dpert = self.dforces_dpert_npts[npts]
+        kmn = np.empty(self.natom, 3, self.natom, 3)
+        for ip, pert in enumerate(self.perts):
+            idir = ip % 3
+            kmn[pert.iatom, idir] = - dforces_dpert[:,:,ip]
+        return kmn
+
+
+# WVH
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -1058,31 +1066,43 @@ class StrainData(_FdData):
     """
     Specialized class to handle finite diff. wrt strain.
     """
-    # TODO
+
+    #def get_elastic(self, npts: int) -> np.ndarray:
+    #    """
+    #    Elastic tensor obtained with npts FD points. Eq 5 of WVH.
+    #    """
+    #    # dStress/dPert has shape (3, 3, npert) in Cart. coords.
+    #    dstress_dpert = self.dstress_dpert_npts[npts]
+    #    cmat = np.empty((6, 6))
+    #    for ip, pert in enumerate(self.perts):
+    #        iv1 = pert.voigt_ind
+    #        cmat[iv1] = mat33_to_voigt(dstress_dpert[:,:,ip])
+
+    #    return cmat
+
     #def get_elastic_df(self) -> pd.DataFrame:
     #    """
-    #    Dataframe with the elastic constant tensor obtained with different FD points.
+    #    Dataframe with the elastic tensor obtained with different FD points.
     #    """
     #    voigt_comps = [str(i) for i in range(1, 7)]
     #    cmat_comps = list(itertools.product(voigt_comps, voigt_comps))
     #    rows = []
-    #    for npts, dstress_dpert in self.dstress_dpert_npts.items():
-    #        # dStress/dPert has shape (3, 3, npert) in Cart. coords.
-    #        cmat = np.empty((6, 6))
-    #        for ip, pert in enumerate(self.perts):
-    #            iv1 = pert.voigt_ind
-    #            cmat[iv1] = mat33_to_voigt(dstress_dpert[:,:,ip])
+    #    for npts in self.dstress_dpert_npts:
+    #        cmat = self.get_elastic(npts)
     #        rows.append(_dict_from_mat_npts(cmat, cmat_comps, npts))
 
     #    return pd.DataFrame(rows)
 
 
-class HasExternalField:
-    """Mixin class for calculations in which the perturbatio is an external field."""
+class _HasExternalField:
+    """
+    Mixin class for calculations in which the perturbation is an external field.
+    """
 
-    def find_ip_pert(self, field_cart_dir) -> tuple[int, Perturbation]:
+    def find_ip_pert_from_cart_dir(self, field_cart_dir) -> tuple[int, Perturbation]:
         """
-        Find perturbation from field_cart_dir that can be either a vector or an integer.
+        Find the perturbation from field_cart_dir that can be either a vector or an integer.
+        Return perturbation index and perturbation.
         """
         if duck.is_intlike(field_cart_dir):
             ip = int(field_cart_dir)
@@ -1103,7 +1123,7 @@ class HasExternalField:
                              fontsize=8, sharey=False,
                              **kwargs) -> Figure:
         """
-        Plot Cartesian forces as a function of the of the amplitude of the perturbation.
+        Plot Cartesian forces as a function of the amplitude of the perturbation.
 
         Args:
             elements: String or list of strings with the chemical elements to select. None to select all.
@@ -1120,7 +1140,7 @@ class HasExternalField:
         if elements is not None and iat_list is not None:
             raise ValueError("elements and iat_list are mutually exclusive.")
 
-        ip, pert = self.find_ip_pert(field_cart_dir)
+        ip, pert = self.find_ip_pert_from_cart_dir(field_cart_dir)
 
         nrows, ncols = nrows, 3
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
@@ -1148,70 +1168,95 @@ class HasExternalField:
 
 
 @dataclasses.dataclass(kw_only=True)
-class ElectricFieldData(_FdData, HasExternalField):
+class ElectricFieldData(_FdData, _HasExternalField):
     """
     Specialized class to handle finite diff. wrt the electric field.
     """
+
+    def get_epsinf(self, npts: int) -> np.ndarray:
+        """eps_infinity obtained with npts FD points."""
+        eps = self.dpol_dpert_npts[npts] * 4.0 * np.pi
+        eps[np.diag_indices_from(eps)] += 1.0
+        return eps
 
     def get_epsinf_df(self) -> pd.Dataframe:
         """
         Dataframe with the components of eps_infinity obtained with different FD points.
         """
-        eps_comps = list(itertools.product(self.pert_dir_comps, self.pert_dir_comps))
+        eps_inf_comps = list(itertools.product(self.pert_dir_comps, self.pert_dir_comps))
         rows = []
-        for npts, eps in self.dpol_dpert_npts.items():
-            eps = 4.0 * np.pi * eps
-            eps[np.diag_indices_from(eps)] += 1.0
-            rows.append(_dict_from_mat_npts(eps, eps_comps, npts))
+        for npts in self.dpol_dpert_npts:
+            eps_inf = self.get_epsinf(npts)
+            rows.append(_dict_from_mat_npts(eps_inf, eps_inf_comps, npts))
 
         return pd.DataFrame(rows)
+
+    def get_piezoel(self, npts: int) -> np.ndarray:
+        """Piezo-electric tensor obtained with npts FD points."""
+        # dstress_dpert has shape (3, 3, npert) in Cart. coords.
+        dstress_dpert = self.dstress_dpert_npts[npts]
+        piezoel = np.empty((3, 6))
+        for ip, pert in enumerate(self.perts):
+            piezoel[ip] = -mat33_to_voigt(dstress_dpert[:,:,ip])
+        return piezoel
 
     def get_piezoel_df(self) -> pd.Dataframe:
         """
         Dataframe with the components of the piezo-electric tensor obtained with different FD points.
         """
         voigt_comps = [str(i) for i in range(1, 7)]
-        piezo_comps = list(itertools.product(voigt_comps, self.pert_dir_comps))
+        piezoel_comps = list(itertools.product(self.pert_dir_comps, voigt_comps))
         rows = []
-        for npts, dstress_dpert in self.dstress_dpert_npts.items():
-            # dstress_dpert has shape (3, 3, npert) in Cart. coords.
-            piezo = np.empty((3, 6))
-            for ip, pert in enumerate(self.perts):
-                piezo[ip] = mat33_to_voigt(dstress_dpert[:,:,ip])
-            rows.append(_dict_from_mat_npts(piezo, piezo_comps, npts))
+        for npts in self.dpol_dpert_npts:
+            piezoel = self.get_piezoel(npts)
+            rows.append(_dict_from_mat_npts(piezoel, piezoel_comps, npts))
 
         return pd.DataFrame(rows)
 
 
 @dataclasses.dataclass(kw_only=True)
-class ZeemanData(_FdData, HasExternalField):
+class ZeemanData(_FdData, _HasExternalField):
     """
-    Specialized class to handle finite diff. wrt the zeeman magnetic field.
+    Specialized class to handle finite diff. wrt the Zeeman magnetic field.
     """
 
-    #def get_piezomag_df(self) -> pd.Dataframe:
-    #    """
-    #    Dataframe with the components of the piezo-magnetic tensor obtained with different FD points.
-    #    """
-    #    voigt_comps = [str(i) for i in range(1, 7)]
-    #    piezo_comps = list(itertools.product(voigt_comps, self.pert_dir_comps))
-    #    rows = []
-    #    for npts, dstress_dpert in self.dstress_dpert_npts.items():
-    #        dstress_dpert has shape (3, 3, npert) in Cart. coords.
-    #        piezo = np.empty((3, 6))
-    #        for ip, pert in enumerate(self.perts):
-    #            piezo[ip] = mat33_to_voigt(dstress_dpert[:,:,ip])
-    #        rows.append(_dict_from_mat_npts(piezo, piezo_comps, npts))
+    def get_piezomag(self, npts: int) -> np.ndarray:
+        """Piezo-magnetic tensor obtained with npts FD points."""
+        # dstress_dpert has shape (3, 3, npert) in Cart. coords.
+        dstress_dpert = self.dstress_dpert_npts[npts]
+        piezomag = np.empty((3, 6))
+        for ip, pert in enumerate(self.perts):
+            piezomag[ip] = -mat33_to_voigt(dstress_dpert[:,:,ip])
+        return piezomag
 
-    #    return pd.DataFrame(rows)
+    def get_piezomag_df(self) -> pd.Dataframe:
+        """
+        Dataframe with the components of the piezo-magnetic tensor obtained with different FD points.
+        """
+        voigt_comps = [str(i) for i in range(1, 7)]
+        piezomag_comps = list(itertools.product(self.pert_dir_comps, voigt_comps))
+        rows = []
+        for npts in self.dstress_dpert_npts:
+            piezomag = self.get_piezomag(npts)
+            rows.append(_dict_from_mat_npts(piezomag, piezomag_comps, npts))
+
+        return pd.DataFrame(rows)
 
 
-def _dict_from_mat_npts(mat: np.ndarray, mat_comps: list[str], npts: int, with_det=True) -> dict:
+def _dict_from_mat_npts(mat: np.ndarray, mat_comps: list[str], npts: int, with_info: bool = True) -> dict:
     """
     Convert a numpy array to a dict that can be used to construct a pandas DataFrame.
     """
     d = {"npts": npts}
     d.update({c: v for c, v in zip(mat_comps, mat.flatten(), strict=True)})
-    if with_det and mat.shape[0] == mat.shape[1]:
-        d["iso_avg"], d["det"] = np.trace(mat) / mat.shape[0] , np.linalg.det(mat)
+
+    if with_info and mat.shape[0] == mat.shape[1]:
+        d["iso_avg"]= np.trace(mat) / mat.shape[0]
+        #d["det"] = np.linalg.det(mat)
+        tmp_mat = (mat + mat.T) / 2.0
+        eigvals = np.linalg.eigvalsh(mat)  # Assuming Hermitian matrix
+        d["det"] = np.prod(eigvals)
+        d["posdef"] = np.all(eigvals > 0)
+        #d["min_eig"] = np.min(eigvals)
+
     return d
