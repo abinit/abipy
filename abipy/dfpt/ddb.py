@@ -1829,8 +1829,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         By default, this method sets the anaddb input variables automatically
         by looking at the 2nd-order derivatives available in the DDB file.
-        This behaviour can be changed by setting explicitly the value of:
-        `relaxed_ion` and `piezo`.
+        This behaviour can be changed by setting explicitly the value of `relaxed_ion` and `piezo`.
 
         Args:
             relaxed_ion: Activate computation of relaxed-ion tensors.

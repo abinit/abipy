@@ -5,6 +5,9 @@ from __future__ import annotations
 
 # IMPORTANT: In Abinit Stress is equal to dE/d_strain * (1/ucvol) See m_forstr
 
+# Handle
+#=   KILLED BY SIGNAL: 9 (Killed)
+
 import sys
 import itertools
 import dataclasses

@@ -227,11 +227,11 @@ def abiview_ddb(options) -> int:
         # Don't need PHDOS if phononwebsite
         nqsmall = 0 if options.phononwebsite else 10
         ndivsm = 20; asr = 2; chneut = 1; dipdip = 1; dos_method = "tetra"; lo_to_splitting = "automatic"
-        print("""
+        print(f"""
 Computing phonon bands and DOS from DDB file with:
-nqsmall: {nqsmall}, ndivsm: {ndivsm},
-asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splitting}, dos_method: {dos_method}
-""".format(**locals()))
+{nqsmall=}, {ndivsm=},
+{asr=}, {chneut=}, {dipdip=}, {lo_to_splitting=}, {dos_method=}
+""")
 
         print("Invoking anaddb ...  ", end="")
         phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(
@@ -316,11 +316,11 @@ Calling anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
 and the Born effective charges in Cartesian coordinates.
 
 chneut: {chneut}
-""".format(**locals()))
-
+""")
         r = ddb.anaget_epsinf_and_becs(chneut=chneut, verbose=options.verbose)
         print("epsilon_inf:\n", r.epsinf, end=2*"\n")
         print(r.becs)
+        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -330,11 +330,10 @@ def abiview_ddb_vs(options) -> int:
     Compute speed of sound by fitting phonon frequencies along selected directions.
     """
     num_points = 20; asr = 2; chneut = 1; dipdip = 1
-    print("""
+    print(f"""
 Computing phonon frequencies for linear least-squares with:
-num_points: {num_points}, asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
-""".format(**locals()))
-
+{num_points=}, {asr=}, {chneut=}, {dipdip=}
+""")
     print("Invoking anaddb ...  ")
     sv = abilab.SoundVelocity.from_ddb(options.filepath, num_points=num_points,
                                        asr=asr, chneut=chneut, dipdip=dipdip, verbose=options.verbose)
@@ -353,10 +352,10 @@ def abiview_ddb_ir(options) -> int:
     Compute infra-red spectrum from DDB. Plot results.
     """
     asr = 2; chneut = 1; dipdip = 1
-    print("""
+    print(f"""
 Computing phonon frequencies for infra-red spectrum with:
-asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
-""".format(**locals()))
+{asr=}, {chneut=}, {dipdip=}
+""")
 
     with abilab.abiopen(options.filepath) as ddb:
         tgen = ddb.anaget_dielectric_tensor_generator(asr=asr, chneut=chneut, dipdip=dipdip, verbose=options.verbose)
@@ -368,6 +367,7 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
             tgen.plotly_all(gamma_ev=gamma_ev)
         else:
             tgen.plot_all(gamma_ev=gamma_ev)
+        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -386,6 +386,7 @@ def abiview_ddb_asr(options) -> int:
         title = ddb.structure.formula
         renderer = "browser" if not options.chart_studio else "chart_studio"
         plotter.combiplotly(renderer=renderer, title=title) if options.plotly else plotter.plot(title=title)
+        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -404,6 +405,7 @@ def abiview_ddb_dipdip(options) -> int:
         title = ddb.structure.formula
         renderer = "browser" if not options.chart_studio else "chart_studio"
         plotter.combiplotly(renderer=renderer, title=title) if options.plotly else plotter.plot(title=title)
+        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -422,6 +424,7 @@ def abiview_ddb_quad(options) -> int:
         title = ddb.structure.formula
         renderer = "browser" if not options.chart_studio else "chart_studio"
         plotter.combiplotly(renderer=renderer, title=title) if options.plotly else plotter.plot(title=title)
+        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -436,17 +439,18 @@ def abiview_ddb_isodistort_ph(options) -> int:
         print(ddb.to_string(verbose=options.verbose))
         qpoint = options.qpoint
         asr = 2; chneut = 1; dipdip = 1; lo_to_splitting = False
-        print("""
+        print(f"""
 Computing phonon frequencies and eigenvectors with:
-asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splitting}
-qpoint = {qpoint}
-""".format(**locals()))
+{asr=}, {chneut=}, {dipdip=}, {lo_to_splitting=}
+{qpoint=}
+""")
 
         print("Invoking anaddb ...  ", end="")
         phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
                                                verbose=options.verbose, lo_to_splitting=False)
 
         phbands.make_isodistort_ph_dir(qpoint, select_modes=None, eta=1, workdir=None)
+        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -464,6 +468,7 @@ def abiview_ddb_qpt(options) -> int:
         df = phbands.get_dataframe()
         abilab.print_dataframe(df, title="Phonon frequencies:")
         df_to_clipboard(options, df)
+        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -473,10 +478,10 @@ def abiview_ddb_ifc(options) -> int:
     Visualize interatomic force constants in real space.
     """
     asr = 2; chneut = 1; dipdip = 1
-    print("""
+    print(f"""
 Computing interatomic force constants with
-asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
-""".format(**locals()))
+{asr=}, {chneut=}, {dipdip=}
+""")
 
     with abilab.abiopen(options.filepath) as ddb:
         # Execute anaddb to compute the interatomic force constants.
@@ -494,6 +499,38 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}
             e(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", show=False))
             e(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", show=False))
             e(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", show=False))
+        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
+
+    return 0
+
+
+def abiview_ddb_elastic(options) -> int:
+    """Invoke anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms."""
+    with abilab.abiopen(options.filepath) as ddb:
+        print(ddb.to_string(verbose=options.verbose))
+
+        asr = 2; chneut = 1
+        relaxed_ion = "automatic",
+        piezo = "automatic",
+        dde = False,
+        stress_correction = False,
+
+        print(f"""
+Calling anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.
+{asr=}, {chneut=}
+{relaxed_ion=}, {piezo=}, {dde=}, {stress_correction=}
+""")
+
+        el_data = ddb.anaget_elastic(relaxed_ion=relaxed_ion,
+                                     piezo=piezo,
+                                     dde=dde,
+                                     stress_correction=stress_correction,
+                                     asr=asr,
+                                     chneut=chneut,
+                                     verbose=options.verbose,
+                                     retpath=False, return_input=False)
+        print(el_data)
+        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -516,6 +553,7 @@ def abiview_phbands(options) -> int:
             print(abifile.to_string(verbose=options.verbose))
             abifile.expose_phbands(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                                     verbose=options.verbose, units="mev")
+        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
         return 0
 
@@ -625,22 +663,25 @@ Usage example:
 #########
 
     abiview.py ddb in_DDB                 ==>  Compute ph-bands and DOS from DDB, plot results.
-    abiview.py ddb_becs                   ==>  Ccompute eps_inf and Born effective charges. Print results.
-    abiview.py ddb_vs                     ==>  Compute speed of sound from DDB by fitting phonon frequencies.
-    abiview.py ddb_ir                     ==>  Compute infra-red spectrum from DDB. Plot results.
-    abiview.py ddb_asr                    ==>  Compute ph-bands from DDB with/wo acoustic rule.
+    abiview.py ddb_becs in_DDB            ==>  Ccompute eps_inf and Born effective charges. Print results.
+    abiview.py ddb_vs in_DDB              ==>  Compute speed of sound from DDB by fitting phonon frequencies.
+    abiview.py ddb_ir in_DDB              ==>  Compute infra-red spectrum from DDB. Plot results.
+    abiview.py ddb_asr in_DDB             ==>  Compute ph-bands from DDB with/wo acoustic rule.
                                                Plot results with matplotlib (default) or plotly (--plotly)
-    abiview.py ddb_asr --plotly -cs       ==>  Compute ph-bands from DDB with/wo acoustic rule.
-                                               Plot results with plotly and push figure
-                                               to plotly chart studio cloud. See: https://chart-studio.plotly.com
-    abiview.py ddb_dipdip                 ==>  Compute ph-bands from DDB with/wo dipole-dipole treatment.
+    abiview.py ddb_dipdip in_DDB          ==>  Compute ph-bands from DDB with/wo dipole-dipole treatment.
                                                Plot results with matplotlib (default) or plotly (--plotly)
-    abiview.py ddb_quad                   ==>  Compute ph-bands from DDB with/wo dipole-quadrupole terms.
+    abiview.py ddb_quad in_DDB            ==>  Compute ph-bands from DDB with/wo dipole-quadrupole terms.
                                                Plot results with matplotlib (default) or plotly (--plotly)
-    abiview.py ddb_qpt -q 0 0.5 0         ==>  Compute ph-frequencies at the selected q-point without passing
+    abiview.py ddb_qpt in_DDB -q 0 0.5 0  ==>  Compute ph-frequencies at the selected q-point without passing
                                                through the Fourier interpolation of the interatomic force constants.
-    abiview.py ddb_ifc                    ==>  Visualize interatomic force constants in real space.
+    abiview.py ddb_ifc in_DDB             ==>  Visualize interatomic force constants in real space.
     abiview.py phbands out_PHBST.nc -web  ==>  Visualize ph-bands and displacements with phononwebsite.
+
+#########
+# Elastic
+#########
+    abiview.py ddb_elastic in_DDB        ==> Compute elastic and piezoelectric tensors.
+                                             Require DDB with strain terms.
 
 ###############
 # Miscelleanous
@@ -849,6 +890,10 @@ def get_parser(with_epilog=False):
     # Subparser for ddb_ifc command.
     p_ddb_ifc = subparsers.add_parser('ddb_ifc', parents=[copts_parser, pandas_parser, slide_parser],
                                       help=abiview_ddb_ifc.__doc__)
+
+    # Subparser for ddb_ifc command.
+    p_ddb_elastic = subparsers.add_parser('ddb_elastic', parents=[copts_parser, pandas_parser, slide_parser],
+                                      help=abiview_ddb_elastic.__doc__)
 
     # Subparser for ddb_qpt command.
     p_ddb_qpt = subparsers.add_parser('ddb_qpt', parents=[copts_parser, pandas_parser, slide_parser],

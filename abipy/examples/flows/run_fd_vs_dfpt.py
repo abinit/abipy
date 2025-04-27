@@ -15,7 +15,6 @@ the efield variable sets the strength (in atomic units) and direction of the fie
 
 Based on tutorespfn/Input/tpolarization_6.abi
 """
-
 import sys
 import os
 import abipy.flowtk as flowtk
@@ -23,6 +22,7 @@ import abipy.flowtk as flowtk
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput
 from abipy.flowtk.works import PhononWork
+from abipy.flowtk.dfpt_works import ElasticWork
 from abipy.flowtk.finitediff_works import FiniteEfieldWork, FiniteDisplWork, FiniteStrainWork, FiniteHfieldWork
 
 
@@ -86,14 +86,15 @@ xred
 
     # Initialize the flow.
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
-    accuracy = 4
+
+    accuracy = 2  # 3 points
+    #accuracy = 4  # 5 points
 
     work = FiniteEfieldWork.from_scf_input(
         scf_input,
         accuracy=accuracy,
         step_au=0.0001,
     )
-    # Add the work to the flow.
     flow.register_work(work)
 
     work = FiniteDisplWork.from_scf_input(
@@ -101,7 +102,6 @@ xred
         accuracy=accuracy,
         step_au=0.01,
     )
-    # Add the work to the flow.
     flow.register_work(work)
 
     #work = FiniteStrainWork.from_scf_input(
@@ -110,7 +110,6 @@ xred
     #    norm_step=0.005,
     #    shear_step=0.03,
     #)
-    # Add the work to the flow.
     #flow.register_work(work)
 
     #work = FiniteHfieldWork.from_scf_input(
@@ -118,7 +117,6 @@ xred
     #    accuracy=accuracy,
     #    step_au=0.01,
     #)
-    # Add the work to the flow.
     #flow.register_work(work)
 
     work = PhononWork.from_scf_input(scf_input,
@@ -130,7 +128,13 @@ xred
                                      with_dvdb=False,
                                      tolerance=None,
                                      ddk_tolerance=None)
-    # Add the work to the flow.
+    flow.register_work(work)
+
+    work = ElasticWork.from_scf_input(scf_input,
+                                      with_relaxed_ion=True,
+                                      with_piezo=True,
+                                      with_dde=False,
+                                      tolerances=None)
     flow.register_work(work)
 
     return flow
