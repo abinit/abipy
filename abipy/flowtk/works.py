@@ -1808,10 +1808,21 @@ class PhononWork(Work, MergeDdb):
         return new
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, qpoints, is_ngqpt=False, with_becs=False,
-                       with_quad=False, with_flexoe=False, with_dvdb=True, tolerance=None,
-                       ddk_tolerance=None, ndivsm=0, qptopt=1,
-                       prtwf=-1, prepgkk=0, manager=None) -> PhononWork:
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       qpoints,
+                       is_ngqpt=False,
+                       with_becs=False,
+                       with_quad=False,
+                       with_flexoe=False,
+                       with_dvdb=True,
+                       tolerance=None,
+                       ddk_tolerance=None,
+                       ndivsm=0,
+                       qptopt=1,
+                       prtwf=-1,
+                       prepgkk=0,
+                       manager=None) -> PhononWork:
         """
         Similar to `from_scf_task`, the difference is that this method requires
         an input for SCF calculation. A new |ScfTask| is created and added to the Work.

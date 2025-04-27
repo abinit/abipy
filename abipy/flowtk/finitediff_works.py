@@ -49,10 +49,8 @@ from .works import Work
 #}
 
 
-NORMAL_STRAIN_INDS = [(0, 0), (1, 1), (2, 2)]
-
-SHEAR_STRAIN_INDS = [(0, 1), (0, 2), (1, 2)]
-
+NORMAL_STRAIN_INDS = [0, 1, 2]
+SHEAR_STRAIN_INDS = [3, 4, 5]
 ALL_STRAIN_INDS = NORMAL_STRAIN_INDS + SHEAR_STRAIN_INDS
 
 
@@ -148,7 +146,7 @@ class Perturbation:
     # Optional arguments.
     cart_dir: np.ndarray | None = None
     iatom: int | None = None
-    voigt_ind: tuple | None = None
+    voigt_ind: int | None = None
     strain: np.ndarray | None = None
 
     def __post_init__(self):
@@ -263,7 +261,7 @@ class _BaseFdWork(Work):
         data["etotals_pv"] = etotals_pv = np.empty((npert, np_vals))
         data["eterms_pv"] = eterms_pv = np.empty((npert, np_vals), dtype=object)
         data["cart_forces_pv"] = cart_forces_pv = np.empty((npert, np_vals, natom, 3))
-        data["carts_stresses_pv"] = carts_stresses_pv = np.empty((npert, np_vals, 3, 3))
+        data["carts_stresses_pv"] = carts_stresses_pv = np.empty((npert, np_vals, 6))
 
         if has_pol:
             data["cart_pol_pv"] = cart_pol_pv = np.empty((npert, np_vals, 3))
@@ -274,7 +272,6 @@ class _BaseFdWork(Work):
             data["cart_mag_pv"] = cart_mag_pv = np.empty((npert, np_vals, 3))
 
         # Read energy, forces and stress from the GSR files.
-        # TODO: Use voigt stress everywhere
         for ip, pert in enumerate(self.perts):
             for ipv, p_val in enumerate(pert.values):
                 task = self.tasks_pv[ip, ipv]
@@ -284,7 +281,9 @@ class _BaseFdWork(Work):
                     etotals_pv[ip, ipv] = gsr.r.read_value("etotal")
                     eterms_pv[ip, ipv] = gsr.r.read_energy_terms(unit="Ha")
                     cart_forces_pv[ip, ipv] = gsr.r.read_value("cartesian_forces") # Ha/Bohr units.
-                    carts_stresses_pv[ip, ipv] = gsr.r.read_cart_stress_tensor(units="au")
+                    # Abinit stores 6 unique components of this symmetric 3x3 tensor:
+                    # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).
+                    carts_stresses_pv[ip, ipv] = gsr.r.read_value("cartesian_stress_tensor")
                     # Add parameters that might be used for convergence studies afterwards.
                     data["params_p"].append(gsr.params)
                     if has_mag:
@@ -450,11 +449,11 @@ class FiniteStrainWork(_BaseFdWork):
 
         # Build list of strain matrices.
         if voigt_inds is None:
-            voigt_inds = NORMAL_STRAIN_INDS + SHEAR_STRAIN_INDS
+            voigt_inds = list(range(6))
 
         strains = []
-        for ind in voigt_inds:
-            strains.append(Strain.from_index_amount(ind, amount=1.0))
+        for vind in voigt_inds:
+            strains.append(Strain.from_index_amount(vind, amount=1.0))
         strains = np.reshape(strains, (-1, 3, 3))
 
         for strain in strains:
@@ -467,9 +466,9 @@ class FiniteStrainWork(_BaseFdWork):
 
         # Build list of perturbations.
         work.perts = []
-        for ind, strain in zip(voigt_inds, strains, strict=True):
-            work.perts.append(Perturbation(kind=PertKind.STRAIN, voigt_ind=ind, strain=strain,
-                              values=norm_values if ind in NORMAL_STRAIN_INDS else shear_values))
+        for vind, strain in zip(voigt_inds, strains, strict=True):
+            work.perts.append(Perturbation(kind=PertKind.STRAIN, voigt_ind=vind, strain=strain,
+                              values=norm_values if vind in NORMAL_STRAIN_INDS else shear_values))
 
         work.relax = relax
         if work.relax:
@@ -593,13 +592,7 @@ class _FieldWork(_BaseFdWork):
 
 class FiniteHfieldWork(_FieldWork):
     r"""
-    Work for the computation of the dynamical magnetic charges with finite differences.
-
-    The dynamical magnetic charges are defined as:
-
-        Z_jv^m=Ω_0 (∂M_v)/(∂u_j ) = (∂F_j)/(∂H_v ) = Ω_0 (∂^2 E)/(∂H_β ∂u_i).
-
-    Here we compute them as derivatives of forces wrt to the Zeeman magnetic field.
+    Work for finite-difference computations wrt to the Zeeman magnetic field.
     """
 
     def _add_tasks_with_zeeman_field(self, structure: Structure) -> None:
@@ -688,7 +681,7 @@ class _FdData(HasPickleIO):
     etotals_pv: np.ndarray            # (npert, np_vals)
     eterms_pv: np.ndarray             # (npert, np_vals)
     cart_forces_pv: np.ndarray        # (npert, np_vals, natom, 3)
-    carts_stresses_pv: np.ndarray     # (npert, np_vals, 3, 3)
+    carts_stresses_pv: np.ndarray     # (npert, np_vals, 6) Voigt form
 
     #structures_pv: np.ndarray
 
@@ -703,7 +696,7 @@ class _FdData(HasPickleIO):
     # npts -> dForce/dPert with shape (natom, 3, npert) in Cart. coords.
     dforces_dpert_npts: dict[int, np.array] = field(init=False)
 
-    # npts -> dStress/dPert with shape (3, 3, npert) in Cart. coords.
+    # npts -> dStress/dPert with shape (6, npert) in Cart. coords (Voigt shape)
     dstress_dpert_npts: dict[int, np.array] = field(init=False)
 
     # npts -> dPol/dPert with shape (3, npert) in Cart. coords.
@@ -745,12 +738,12 @@ class _FdData(HasPickleIO):
                 dforce_dpert[iat, iat_dir, ip] = np.sum(fvals_f[fd_slice] * weights) / pert.step
             self.dforces_dpert_npts[npts] = dforce_dpert
 
-            # Finite difference for stresses.
-            dstress_dpert = np.empty((3, 3, npert))
-            for ii, jj, ip in itertools.product(range(3), range(3), range(npert)):
+            # Finite difference for stresses (Voigt form)
+            dstress_dpert = np.empty((6, npert))
+            for ivoigt, ip in itertools.product(range(6), range(npert)):
                 pert = self.perts[ip]
-                svals_f = self.carts_stresses_pv[ip, :, ii, jj]
-                dstress_dpert[ii, jj, ip] = np.sum(svals_f[fd_slice] * weights) / pert.step
+                svals_f = self.carts_stresses_pv[ip, :, ivoigt]
+                dstress_dpert[ivoigt, ip] = np.sum(svals_f[fd_slice] * weights) / pert.step
             self.dstress_dpert_npts[npts] = dstress_dpert
 
             # Finite difference for polarization (if available).
@@ -970,9 +963,9 @@ class _FdData(HasPickleIO):
         for ip, pert in enumerate(self.perts):
             ax = ax_mat[ip, 0]
             ax.set_title(pert.label, fontsize=fontsize)
-            for ii, jj in itertools.product(range(3), range(3)):
-                ys = self.carts_stresses_pv[ip, :, ii, jj]
-                ax.plot(pert.values, ys, marker="o", label=r"$\sigma_{%s}$" % (f"{ii}{jj}"))
+            for ivoigt in range(6):
+                ys = self.carts_stresses_pv[ip, :, ivoigt]
+                ax.plot(pert.values, ys, marker="o", label=r"$\sigma_{%s}$" % (f"{ivoigt}"))
 
             ax.legend(loc="best", fontsize=fontsize, shadow=True)
             #set_grid_legend(ax, fontsize, xlabel=f"${pert.tex}$ (a.u.)", ylabel=)
@@ -1067,32 +1060,44 @@ class StrainData(_FdData):
     Specialized class to handle finite diff. wrt strain.
     """
 
-    #def get_elastic(self, npts: int) -> np.ndarray:
-    #    """
-    #    Elastic tensor obtained with npts FD points. Eq 5 of WVH.
-    #    """
-    #    # dStress/dPert has shape (3, 3, npert) in Cart. coords.
-    #    dstress_dpert = self.dstress_dpert_npts[npts]
-    #    cmat = np.empty((6, 6))
-    #    for ip, pert in enumerate(self.perts):
-    #        iv1 = pert.voigt_ind
-    #        cmat[iv1] = mat33_to_voigt(dstress_dpert[:,:,ip])
+    def get_elastic(self, npts: int) -> np.ndarray:
+        """
+        Elastic tensor obtained with npts FD points. Eq (5) of WVH.
+        """
+        # dStress/dPert has shape (6, npert) in Cart. coords.
+        dstress_dpert = self.dstress_dpert_npts[npts]
+        cmat = np.empty((6, 6))
+        for ip, pert in enumerate(self.perts):
+            iv1 = pert.voigt_ind
+            cmat[iv1] = dstress_dpert[:,ip]
 
-    #    return cmat
+        return cmat
 
-    #def get_elastic_df(self) -> pd.DataFrame:
-    #    """
-    #    Dataframe with the elastic tensor obtained with different FD points.
-    #    """
-    #    voigt_comps = [str(i) for i in range(1, 7)]
-    #    cmat_comps = list(itertools.product(voigt_comps, voigt_comps))
-    #    rows = []
-    #    for npts in self.dstress_dpert_npts:
-    #        cmat = self.get_elastic(npts)
-    #        rows.append(_dict_from_mat_npts(cmat, cmat_comps, npts))
+    def get_elastic_df(self) -> pd.DataFrame:
+        """
+        Dataframe with the elastic tensor obtained with different FD points.
+        """
+        voigt_comps = [str(i) for i in range(1, 7)]
+        cmat_comps = list(itertools.product(voigt_comps, voigt_comps))
+        rows = []
+        for npts in self.dstress_dpert_npts:
+            cmat = self.get_elastic(npts)
+            rows.append(_dict_from_mat_npts(cmat, cmat_comps, npts))
 
-    #    return pd.DataFrame(rows)
+        return pd.DataFrame(rows)
 
+    def get_internal_strain(self, npts: int) -> np.ndarray:
+        """
+        Internal-strain tensor obtained with npts FD points. Eq (7) of WVH.
+        """
+        # dForces/dPert has shape (natom, 3, npert) in Cart. coords.
+        dforces_dpert = self.dforces_dpert_npts[npts]
+        lmat = np.empty((self.natom, 3, 6))
+        for ip, pert in enumerate(self.perts):
+            iv1 = pert.voigt_ind
+            lmat[:,:iv1] = dforces_dpert[:,ip]
+
+        return np.reshape(lmat, (self.natom*3, 6))
 
 class _HasExternalField:
     """
@@ -1192,12 +1197,12 @@ class ElectricFieldData(_FdData, _HasExternalField):
         return pd.DataFrame(rows)
 
     def get_piezoel(self, npts: int) -> np.ndarray:
-        """Piezo-electric tensor obtained with npts FD points."""
-        # dstress_dpert has shape (3, 3, npert) in Cart. coords.
+        """Piezo-electric tensor obtained with npts FD points. Eq (8) of WVH."""
+        # dstress_dpert has shape (6, npert) in Cart. coords.
         dstress_dpert = self.dstress_dpert_npts[npts]
         piezoel = np.empty((3, 6))
         for ip, pert in enumerate(self.perts):
-            piezoel[ip] = -mat33_to_voigt(dstress_dpert[:,:,ip])
+            piezoel[ip] = -dstress_dpert[:,ip]
         return piezoel
 
     def get_piezoel_df(self) -> pd.Dataframe:
@@ -1222,11 +1227,11 @@ class ZeemanData(_FdData, _HasExternalField):
 
     def get_piezomag(self, npts: int) -> np.ndarray:
         """Piezo-magnetic tensor obtained with npts FD points."""
-        # dstress_dpert has shape (3, 3, npert) in Cart. coords.
+        # dstress_dpert has shape (6, npert) in Cart. coords.
         dstress_dpert = self.dstress_dpert_npts[npts]
         piezomag = np.empty((3, 6))
         for ip, pert in enumerate(self.perts):
-            piezomag[ip] = -mat33_to_voigt(dstress_dpert[:,:,ip])
+            piezomag[ip] = -dstress_dpert[:,ip]
         return piezomag
 
     def get_piezomag_df(self) -> pd.Dataframe:

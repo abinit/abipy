@@ -14,7 +14,7 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from functools import lru_cache
-from typing import Any, Union, Tuple #, List, Optional
+from typing import Any, Union, Tuple
 from monty.string import marquee, list_strings
 from monty.json import MSONable
 from monty.collections import AttrDict, dict2namedtuple

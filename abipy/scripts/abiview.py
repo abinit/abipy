@@ -303,6 +303,27 @@ asr: {asr}, chneut: {chneut}, dipdip: {dipdip}, lo_to_splitting: {lo_to_splittin
     return 0
 
 
+def abiview_ddb_becs(options) -> int:
+    """
+    Invoke anaddb to compute eps_inf and Born effective charges.
+    """
+    with abilab.abiopen(options.filepath) as ddb:
+        print(ddb.to_string(verbose=options.verbose))
+
+        chneut = 1
+        print(f"""
+Calling anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
+and the Born effective charges in Cartesian coordinates.
+
+chneut: {chneut}
+""".format(**locals()))
+
+        r = ddb.anaget_epsinf_and_becs(chneut=chneut, verbose=options.verbose)
+        print("epsilon_inf:\n", r.epsinf, end=2*"\n")
+        print(r.becs)
+
+    return 0
+
 
 def abiview_ddb_vs(options) -> int:
     """
@@ -604,6 +625,7 @@ Usage example:
 #########
 
     abiview.py ddb in_DDB                 ==>  Compute ph-bands and DOS from DDB, plot results.
+    abiview.py ddb_becs                   ==>  Ccompute eps_inf and Born effective charges. Print results.
     abiview.py ddb_vs                     ==>  Compute speed of sound from DDB by fitting phonon frequencies.
     abiview.py ddb_ir                     ==>  Compute infra-red spectrum from DDB. Plot results.
     abiview.py ddb_asr                    ==>  Compute ph-bands from DDB with/wo acoustic rule.
@@ -797,6 +819,10 @@ def get_parser(with_epilog=False):
     # Subparser for ddb_vs command.
     p_ddb_vs = subparsers.add_parser('ddb_vs', parents=[copts_parser, pandas_parser, slide_parser],
                                      help=abiview_ddb_vs.__doc__)
+
+    # Subparser for ddb_ir command.
+    p_ddb_becs = subparsers.add_parser('ddb_becs', parents=[copts_parser, pandas_parser],
+                                       help=abiview_ddb_becs.__doc__)
 
     # Subparser for ddb_ir command.
     p_ddb_ir = subparsers.add_parser('ddb_ir', parents=[copts_parser, pandas_parser, slide_parser],
