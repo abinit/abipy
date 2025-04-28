@@ -105,12 +105,12 @@ xred
 
     work = FiniteDisplWork.from_scf_input(
         scf_input,
-        accuracy=2,
+        fd_accuracy=2,
         step_au=0.01,
         pert_cart_dirs=pert_cart_dirs,
         mask_iatom=mask_iatom,
-        #relax=False,
-        #relax_opts=None,
+        #relax_ions=False,
+        #relax_ions_opts=None,
     )
 
     # Add the work to the flow.

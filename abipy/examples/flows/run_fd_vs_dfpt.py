@@ -88,25 +88,25 @@ xred
     # Initialize the flow.
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
-    accuracy = 2  # 3 points
-    #accuracy = 4  # 5 points
+    fd_accuracy = 2  # 3 points
+    #fd_accuracy = 4  # 5 points
 
     flow.register_work(FiniteEfieldWork.from_scf_input(
         scf_input,
-        accuracy=accuracy,
+        fd_accuracy=fd_accuracy,
         step_au=0.0001,
     ))
 
     flow.register_work(FiniteDisplWork.from_scf_input(
         scf_input,
-        accuracy=accuracy,
+        fd_accuracy=fd_accuracy,
         step_au=0.01,
         extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
     ))
 
     #flow.register_work(FiniteStrainWork.from_scf_input(
     #    scf_input,
-    #    accuracy=accuracy,
+    #    fd_accuracy=fd_accuracy,
     #    norm_step=0.005,
     #    shear_step=0.03,
     #    extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
@@ -114,7 +114,7 @@ xred
 
     #flow.register_work(FiniteHfieldWork.from_scf_input(
     #    scf_input,
-    #    accuracy=accuracy,
+    #    fd_accuracy=fd_accuracy,
     #    step_au=0.01,
     #))
 

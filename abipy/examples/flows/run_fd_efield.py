@@ -100,10 +100,11 @@ xred
 
     work = FiniteEfieldWork.from_scf_input(
         scf_input,
-        accuracy=4,
+        fd_accuracy=2,
+        #fd_accuracy=4,
         step_au=0.0001,
-        relax=False,
-        relax_opts=None,
+        relax_ions=True,
+        relax_ions_opts=None,
     )
 
     # Add the work to the flow.

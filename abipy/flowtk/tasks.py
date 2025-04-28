@@ -3401,6 +3401,14 @@ class GsTask(AbinitTask):
             self.history.critical("Exception while reading GSR file at %s:\n%s" % (gsr_path, str(exc)))
             return None
 
+    def get_final_structure(self) -> Structure:
+        """Read the final structure from the GSR file."""
+        try:
+            with self.open_gsr() as gsr:
+                return gsr.structure.copy()
+        except AttributeError:
+            raise RuntimeError("Cannot find the GSR file with the final structure to restart from.")
+
     def change_ks_solver_params_if_needed(self, is_scf_cycle: bool) -> None:
         """
         This method is called every time we perform a restart of the Task.
@@ -3636,14 +3644,6 @@ class RelaxTask(GsTask, ProduceHist):
     ]
 
     color_rgb = np.array((255, 61, 255)) / 255
-
-    def get_final_structure(self) -> Structure:
-        """Read the final structure from the GSR file."""
-        try:
-            with self.open_gsr() as gsr:
-                return gsr.structure
-        except AttributeError:
-            raise RuntimeError("Cannot find the GSR file with the final structure to restart from.")
 
     def restart(self):
         """

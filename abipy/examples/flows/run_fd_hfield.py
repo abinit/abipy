@@ -106,10 +106,10 @@ rprim     5.2802747870E-01  0.0000000000E+00  8.4922728509E-01
 
     work = FiniteHfieldWork.from_scf_input(
         scf_input,
-        accuracy=4,
+        fd_accuracy=4,
         step_au=0.01,
-        relax=False,
-        relax_opts=None,
+        relax_ions=False,
+        relax_ions_opts=None,
     )
 
     # Add the work to the flow.
