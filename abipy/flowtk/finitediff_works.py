@@ -434,6 +434,7 @@ class FiniteStrainWork(_BaseFdWork):
                        norm_step: float,
                        shear_step: float,
                        voigt_inds=None,
+                       extra_abivars: dict | None = None,
                        relax: bool = False,
                        relax_opts: dict | None = None,
                        manager=None):
@@ -446,14 +447,17 @@ class FiniteStrainWork(_BaseFdWork):
             norm_step: Finite difference step for normal strain.
             shear_step: Finite difference step for shear strain.
             voigt_inds:
+            extra_abivars: dictionary with extra Abinit variables to be added to scf_input.
             relax: False if the initial structural relaxation should not be performed.
             relax_opts: optional dictionary with relaxation options.
             manager: TaskManager instance. Use default if None.
         """
         work = cls(manager=manager)
-        work.scf_input_template = scf_input = scf_input.deepcopy()
+        work.scf_input = scf_input.deepcopy()
+        if extra_abivars is not None:
+            work.scf_input.set_vars(**extra_abivars)
 
-        if "ecutsm" not in scf_input:
+        if "ecutsm" not in work.scf_input:
             ecutsm = 0.5
             work.scf_input.set_vars(ecutsm=ecutsm)
             cprint("AbinitInput does not define ecutsm.\nA default value of %s will be added" % ecutsm, color="yellow")
@@ -483,11 +487,11 @@ class FiniteStrainWork(_BaseFdWork):
 
         work.relax = relax
         if work.relax:
-            relax_input = scf_input.make_relax_input(**relax_opts)
+            relax_input = work.scf_input.make_relax_input(**relax_opts)
             work.initial_relax_task = work.register_relax_task(relax_input)
         else:
-            work._add_tasks_with_strains(scf_input.structure)
-            work.relaxed_structure = scf_input.structure
+            work._add_tasks_with_strains(work.scf_input.structure)
+            work.relaxed_structure = work.scf_input.structure
 
         return work
 
@@ -499,7 +503,7 @@ class FiniteStrainWork(_BaseFdWork):
 
     def _add_tasks_with_strains(self, structure: Structure) -> None:
         """Build new GS tasks with strained cells."""
-        scf_input = self.scf_input_template
+        scf_input = self.scf_input
         npert, np_vals = len(self.perts), max(len(pert.values) for pert in self.perts)
         self.tasks_pv = np.empty((npert, np_vals), dtype=object)
 
@@ -532,6 +536,7 @@ class _FieldWork(_BaseFdWork):
                        accuracy: int,
                        step_au: float,
                        pert_cart_dirs: np.ndarray | None = None,
+                       extra_abivars: dict | None = None,
                        relax: bool = False,
                        relax_opts: dict | None = None,
                        manager=None):
@@ -543,6 +548,7 @@ class _FieldWork(_BaseFdWork):
             accuracy:
             step_au: Finite difference step for the magnetic field in a.u.
             pert_cart_dirs:
+            extra_abivars: dictionary with extra Abinit variables to be added to scf_input.
             relax: False if the initial structural relaxation should not be performed.
             relax_opts: optional dictionary with relaxation options.
             manager: TaskManager instance. Use default manager if None.
@@ -554,7 +560,9 @@ class _FieldWork(_BaseFdWork):
             work.pert_cart_dirs = np.eye(3)
 
         work.pert_cart_dirs = np.reshape(work.pert_cart_dirs, (-1, 3))
-        work.scf_input_template = scf_input.deepcopy()
+        work.scf_input = scf_input.deepcopy()
+        if extra_abivars is not None:
+            work.scf_input.set_vars(**extra_abivars)
 
         if isinstance(work, FiniteEfieldWork):
             work.pert_kind = PertKind.E
@@ -569,17 +577,17 @@ class _FieldWork(_BaseFdWork):
 
         work.relax = relax
         if work.relax:
-            relax_input = scf_input.make_relax_input(**relax_opts)
+            relax_input = work.scf_input.make_relax_input(**relax_opts)
             work.initial_relax_task = work.register_relax_task(relax_input)
         else:
             if work.pert_kind == PertKind.E:
-                work._add_tasks_with_efield(scf_input.structure)
+                work._add_tasks_with_efield(work.scf_input.structure)
             elif work.pert_kind == PertKind.H:
                 work._add_tasks_with_zeeman_field(scf_input.structure)
             else:
                 raise TypeError(f"Don't know how to handle {work.pert_kind=}")
 
-            work.relaxed_structure = scf_input.structure
+            work.relaxed_structure = work.scf_input.structure
 
         return work
 
@@ -608,7 +616,7 @@ class FiniteHfieldWork(_FieldWork):
 
     def _add_tasks_with_zeeman_field(self, structure: Structure) -> None:
         """Build new GS tasks with zeemanfield."""
-        scf_input = self.scf_input_template.new_with_structure(structure)
+        scf_input = self.scf_input.new_with_structure(structure)
 
         np_vals = max(len(pert.values) for pert in self.perts)
         self.tasks_pv = np.empty((self.npert, np_vals), dtype=object)
@@ -638,7 +646,7 @@ class FiniteEfieldWork(_FieldWork):
     """
     def _add_tasks_with_efield(self, structure: Structure) -> None:
         """Build new GS tasks with finite electric field."""
-        scf_input = self.scf_input_template.new_with_structure(structure)
+        scf_input = self.scf_input.new_with_structure(structure)
 
         np_vals = max(len(pert.values) for pert in self.perts)
         self.tasks_pv = np.empty((self.npert, np_vals), dtype=object)

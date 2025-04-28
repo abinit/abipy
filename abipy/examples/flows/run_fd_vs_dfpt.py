@@ -109,6 +109,7 @@ xred
     #    accuracy=accuracy,
     #    norm_step=0.005,
     #    shear_step=0.03,
+    #    extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
     #))
 
     #flow.register_work(FiniteHfieldWork.from_scf_input(
