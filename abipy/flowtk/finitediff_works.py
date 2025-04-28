@@ -899,7 +899,7 @@ class _BaseFdWork(Work):
         return len(self.perts)
 
     @lazy_property
-    def all_ions_modes(self):
+    def all_ions_modes(self) -> list[str]:
         return [IonsMode.CLAMPED, IonsMode.RELAXED] if self.relax_ions else [IonsMode.CLAMPED]
 
     @lazy_property
@@ -1170,6 +1170,9 @@ class FiniteStrainWork(_BaseFdWork):
         work.allocate_tasks_pv(relax_ions, relax_ions_opts)
         raise NotImplementedError()
 
+        for ip, pert in enumerate(work.perts):
+            self._add_tasks_with_strains_ipv(ip, None, work.scf_input.structure, IonsMode.CLAMPED)
+
         return work
 
         #from pymatgen.analysis.elasticity.strain import DeformedStructureSet
@@ -1178,26 +1181,51 @@ class FiniteStrainWork(_BaseFdWork):
         #                     shear_strains: Sequence[float] = (-0.06, -0.03, 0.03, 0.06),
         #                     symmetry=False,
 
-    def _add_tasks_with_strains(self, structure: Structure) -> None:
+    def _add_tasks_with_strains_ipv(self, ip:int, ipv_select: int | None,
+                                    structure: Structure, ionds_mode: str) -> None:
         """Build new GS tasks with strained cells."""
         scf_input = self.scf_input
-        npert, np_vals = len(self.perts), max(len(pert.values) for pert in self.perts)
-        self.gs_tasks_pv = np.empty((npert, np_vals), dtype=object)
+        pert = self.perts[ip]
+        task_pv0 = None
+
+        if ions_mode == IonsMode.CLAMPED:
+            tasks_pv = self.gs_tasks_pv
+            relax_ions_opts = {}
+            if ipv_select is not None:
+                raise ValueError(f"ipv_select should be None if {ions_mode=} but got {ipv_select=}")
+
+        elif ions_mode == IonsMode.RELAXED:
+            tasks_pv = self.relax_tasks_pv
+            relax_ions_opts = self.relax_ions_opts
+        else:
+            raise ValueError(f"Invalid {ions_mode=}")
 
         # Apply strain to the lattice and build new SCF tasks.
-        for ip, pert in enumerate(self.perts):
-            for ipv, pert_value in enumerate(pert.values):
-                new_structure = scf_input.structure.apply_strain(pert_value * pert.strain, inplace=False)
-                self.gs_tasks_pv[ip, ipv] = self.register_scf_task(scf_input.new_with_structure(new_structure))
+        for ipv, pert_value in enumerate(pert.values):
+            if ipv_select is not None and ipv != ipv_select: continue
+            is_pv0 = abs(p_val) < 1e-16
+
+            if ions_mode == IonsMode.CLAMPED:
+                strained_structure = scf_input.structure.apply_strain(pert_value * pert.strain, inplace=False)
+                self.gs_tasks_pv[ip, ipv] = self.register_scf_task(
+                    scf_input.new_with_structure(strained_structure))
+            else:
+                relax_inp = self.scf_task[ip,ipv].input.new_with_vars(**self.relax_ions_opts)
+                task = self.register_relax_task(relax_inp)
+                task.add_deps({self.gs_tasks_pv[ip,ipv]: "WFK"})
+                self.relax_tasks_pv[ip, ipv] = task
 
     def on_ok(self, sender):
         """This method is called when one task reaches status `S_OK`."""
-        if self.relax_ions and sender == self.initial_relax_task:
-            raise NotImplementedError()
-            # Get relaxed structure from the GSR file.
-            #relaxed_structure = sender.get_final_structure()
-            #self._add_tasks_with_strain(relaxed_structure)
-            #self.flow.allocate(build=True)
+
+        # NB: Only gs tasks should trigger relaxed ions calculations.
+
+        if self.relax_ions and sender.node_id in self.gs_tasks_ids:
+            # Get structure from the GSR file.
+            relaxed_structure = sender.get_final_structure()
+            ip, iv = sender.attrs["ip_ipv"]
+            self._add_tasks_with_strains_ipv(ip, iv, relaxed_structure, IonsMode.RELAXED)
+            self.flow.allocate(build=True)
 
         return super().on_ok(sender)
 
@@ -1268,7 +1296,8 @@ class _FieldWork(_BaseFdWork):
         # NB: Only gs tasks should trigger relaxed ions calculations.
 
         if self.relax_ions and sender.node_id in self.gs_tasks_ids:
-            # Get relaxed structure from the GSR file.
+            # Get structure from the GSR file.
+            # FIXME: Do we really need get_final_structure eventhough this is GS?
             relaxed_structure = sender.get_final_structure()
             ip, iv = sender.attrs["ip_ipv"]
 
