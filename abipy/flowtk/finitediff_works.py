@@ -1067,13 +1067,14 @@ class DisplData(_FdData):
             kmn[pert.iatom, idir] = - dforces_dpert[:,:,ip]
         return kmn
 
-    #def to_string(self, verbose: int = 0) -> str:
-    #    """String representation with verbosity level verbose"""
-    #    strio = StringIO()
-    #    print("piezoelectric tensor in Cartesian coords:\n", self.get_piezoel_df(), end=2*"\n", file=strio)
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level verbose"""
+        strio = StringIO()
+        self.print_eff_charges(file=strio)
+        #print("piezoelectric tensor in Cartesian coords:\n", self.get_piezoel_df(), end=2*"\n", file=strio)
 
-    #    strio.seek(0)
-    #    return strio.read()
+        strio.seek(0)
+        return strio.read()
 
 
 # WVH
