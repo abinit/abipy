@@ -2225,7 +2225,9 @@ class Becs(Has_Structure, MSONable):
             chneut: Option used for the treatment of the Charge Neutrality (anaddb input variable)
             order: "f" if becs_arr is in Fortran order.
         """
-        assert len(becs_arr) == len(structure)
+        if len(becs_arr) != len(structure):
+            raise ValueError(f"{len(becs_arr)=} != {len(structure)=}")
+
         self._structure = structure
         self.chneut = chneut
 
@@ -2480,7 +2482,8 @@ class DielectricTensorGenerator(Has_Structure):
         # the possible imaginary parts of degenerate modes will cancel.
         if duck.is_listlike(gamma_ev):
             gammas = np.asarray(gamma_ev)
-            assert len(gammas) == len(self.phfreqs)
+            if len(gammas) != len(self.phfreqs):
+                raise ValueError(f"{len(gammas)=} != {len(self.phfreqs)=}")
         else:
             gammas = np.ones(len(self.phfreqs)) * float(gamma_ev)
 

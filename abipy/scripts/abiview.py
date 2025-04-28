@@ -229,8 +229,9 @@ def abiview_ddb(options) -> int:
         ndivsm = 20; asr = 2; chneut = 1; dipdip = 1; dos_method = "tetra"; lo_to_splitting = "automatic"
         print(f"""
 Computing phonon bands and DOS from DDB file with:
-{nqsmall=}, {ndivsm=},
-{asr=}, {chneut=}, {dipdip=}, {lo_to_splitting=}, {dos_method=}
+
+    {nqsmall=}, {ndivsm=},
+    {asr=}, {chneut=}, {dipdip=}, {lo_to_splitting=}, {dos_method=}
 """)
 
         print("Invoking anaddb ...  ", end="")
@@ -315,7 +316,7 @@ def abiview_ddb_becs(options) -> int:
 Calling anaddb to compute the macroscopic electronic dielectric tensor (e_inf)
 and the Born effective charges in Cartesian coordinates.
 
-chneut: {chneut}
+    chneut: {chneut}
 """)
         r = ddb.anaget_epsinf_and_becs(chneut=chneut, verbose=options.verbose)
         print("epsilon_inf:\n", r.epsinf, end=2*"\n")
@@ -332,7 +333,8 @@ def abiview_ddb_vs(options) -> int:
     num_points = 20; asr = 2; chneut = 1; dipdip = 1
     print(f"""
 Computing phonon frequencies for linear least-squares with:
-{num_points=}, {asr=}, {chneut=}, {dipdip=}
+
+    {num_points=}, {asr=}, {chneut=}, {dipdip=}
 """)
     print("Invoking anaddb ...  ")
     sv = abilab.SoundVelocity.from_ddb(options.filepath, num_points=num_points,
@@ -354,7 +356,8 @@ def abiview_ddb_ir(options) -> int:
     asr = 2; chneut = 1; dipdip = 1
     print(f"""
 Computing phonon frequencies for infra-red spectrum with:
-{asr=}, {chneut=}, {dipdip=}
+
+    {asr=}, {chneut=}, {dipdip=}
 """)
 
     with abilab.abiopen(options.filepath) as ddb:
@@ -395,7 +398,7 @@ def abiview_ddb_dipdip(options) -> int:
     """
     Compute phonon band structure from DDB with/without dipole-dipole interaction. Plot results.
     """
-    print("Computing phonon frequencies with/without dipdip")
+    print("Computing phonon frequencies with/without dipdip.")
 
     with abilab.abiopen(options.filepath) as ddb:
         plotter = ddb.anacompare_dipdip(chneut_list=(1,), asr=2, lo_to_splitting="automatic",
@@ -441,8 +444,9 @@ def abiview_ddb_isodistort_ph(options) -> int:
         asr = 2; chneut = 1; dipdip = 1; lo_to_splitting = False
         print(f"""
 Computing phonon frequencies and eigenvectors with:
-{asr=}, {chneut=}, {dipdip=}, {lo_to_splitting=}
-{qpoint=}
+
+    {asr=}, {chneut=}, {dipdip=}, {lo_to_splitting=}
+    {qpoint=}
 """)
 
         print("Invoking anaddb ...  ", end="")
@@ -479,8 +483,9 @@ def abiview_ddb_ifc(options) -> int:
     """
     asr = 2; chneut = 1; dipdip = 1
     print(f"""
-Computing interatomic force constants with
-{asr=}, {chneut=}, {dipdip=}
+Computing interatomic force constants with:
+
+    {asr=}, {chneut=}, {dipdip=}
 """)
 
     with abilab.abiopen(options.filepath) as ddb:
@@ -517,8 +522,9 @@ def abiview_ddb_elastic(options) -> int:
 
         print(f"""
 Calling anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.
-{asr=}, {chneut=}
-{relaxed_ion=}, {piezo=}, {dde=}, {stress_correction=}
+
+    {asr=}, {chneut=}
+    {relaxed_ion=}, {piezo=}, {dde=}, {stress_correction=}
 """)
 
         el_data = ddb.anaget_elastic(relaxed_ion=relaxed_ion,

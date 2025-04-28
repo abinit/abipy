@@ -325,6 +325,7 @@ class FiniteDisplWork(_BaseFdWork):
                        step_au: float = 0.01,
                        pert_cart_dirs=None,
                        mask_iatom=None,
+                       extra_abivars: dict | None = None,
                        relax: bool = False,
                        relax_opts: dict | None = None,
                        manager=None):
@@ -337,12 +338,16 @@ class FiniteDisplWork(_BaseFdWork):
             step_au: Finite difference step for the displacement in Bohr (a.u.)
             pert_cart_dirs:
             mask_iatom:
+            extra_abivars: dictionary with extra Abinit variables to be added to scf_input.
             relax: False if the initial structural relaxation should not be performed.
             relax_opts: optional dictionary with relaxation options.
             manager: TaskManager instance. Use default manager if None.
         """
         work = cls(manager=manager)
         work.scf_input = scf_input.deepcopy()
+        if extra_abivars is not None:
+            work.scf_input.set_vars(**extra_abivars)
+
         structure = scf_input.structure
         natom = len(structure)
 
@@ -374,11 +379,11 @@ class FiniteDisplWork(_BaseFdWork):
 
         work.relax = relax
         if work.relax:
-            relax_input = scf_input.make_relax_input(**relax_opts)
+            relax_input = work.scf_input.make_relax_input(**relax_opts)
             work.initial_relax_task = work.register_relax_task(relax_input)
         else:
-            work._add_tasks_with_displacements(scf_input.structure)
-            work.relaxed_structure = scf_input.structure
+            work._add_tasks_with_displacements(work.scf_input.structure)
+            work.relaxed_structure = work.scf_input.structure
 
         return work
 
@@ -858,6 +863,9 @@ class _FdData(HasPickleIO):
         df.attrs["zeff_name"] = zeff_name
 
         return df
+
+        # TODO
+        #Becs(becs_arr, self.relaxed_structure, chneut=0, order="c"):
 
     def print_eff_charges(self, elements: None | list[str] = None, file=sys.stdout, verbose: int = 0) -> None:
         """

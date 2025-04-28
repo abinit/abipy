@@ -253,8 +253,7 @@ def main():
         with open(options.filepath, "rb") as fh:
             obj = pickle.load(fh)
 
-        handle_object(obj, options)
-        return 0
+        return handle_object(obj, options)
 
     if os.path.basename(options.filepath) == "flows.db":
         from abipy.flowtk.launcher import print_flowsdb_file
@@ -284,8 +283,7 @@ Use `phonon.<TAB>` to list available methods.
 
     if not options.notebook:
         abifile = abilab.abiopen(options.filepath)
-        handle_object(abifile, options)
-        return 0
+        return handle_object(abifile, options)
 
     else:
         # Call specialized method if the object is a NotebookWriter
@@ -468,26 +466,8 @@ def handle_json(options):
         return pn.serve(app, **serve_kwargs)
 
     else:
-        if options.print:
-            # Print python object to terminal.
-            obj = abilab.mjson_load(options.filepath)
-            pprint(obj, indent=4)
-            return 0
-        elif options.expose:
-            # Pretty-print dict to terminal.
-            import json
-            with open(options.filepath, "rt") as fh:
-                obj = json.load(fh)
-                pprint(obj, indent=4)
-            return 0
-
         obj = abilab.mjson_load(options.filepath)
-        # Start ipython shell with namespace
-        # Use embed because I don't know how to show a header with start_ipython.
-        import IPython
-        IPython.embed(header="""
-The object initialized from JSON (MSONable) is associated to the `obj` python variable.
-""")
+        handle_object(obj, options)
 
     return 0
 
