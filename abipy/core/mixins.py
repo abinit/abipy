@@ -840,7 +840,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-        Used in abiview.py to get a quick look at the results.
+        Used in abiopen.py or abiview.py to get a quick look at the results.
         """
 
     #@abc.abstractmethod

@@ -248,16 +248,12 @@ def main():
         return handle_ase_md_log(options)
 
     if options.filepath.endswith(".pickle") and not options.filepath.endswith("__AbinitFlow__.pickle"):
+        # Handle pickle file.
         import pickle
         with open(options.filepath, "rb") as fh:
             obj = pickle.load(fh)
 
-        # Start ipython shell with namespace
-        import IPython
-        IPython.embed(header="""
-The python object is associated to the `obj` python variable.
-Use `phonon.<TAB>` to list available methods.
-""")
+        handle_object(obj, options)
         return 0
 
     if os.path.basename(options.filepath) == "flows.db":
@@ -288,66 +284,8 @@ Use `phonon.<TAB>` to list available methods.
 
     if not options.notebook:
         abifile = abilab.abiopen(options.filepath)
-        if options.print:
-            # Print object to terminal.
-            if hasattr(abifile, "to_string"):
-                #print(f"Calling {abifile.__class__}.to_string with verbose: {verbose}")
-                print(abifile.to_string(verbose=options.verbose))
-            else:
-                print(abifile)
-            return 0
-
-        elif options.expose:
-            # Print info to terminal
-            if hasattr(abifile, "to_string"):
-                print(abifile.to_string(verbose=options.verbose))
-            else:
-                print(abifile)
-
-            # Generate plots automatically.
-            if options.plotly:
-                # plotly version
-                if hasattr(abifile, "plotly_expose"):
-                    abifile.plotly_expose(verbose=options.verbose)
-                else:
-                    cprint("`%s` does not implement plotly_expose method" % type(abifile), "red")
-
-            elif hasattr(abifile, "expose"):
-                # matplotlib version
-                abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                               use_web=options.expose_web, verbose=options.verbose)
-            else:
-                if not hasattr(abifile, "yield_figs"):
-                    raise TypeError("Object of type `%s` does not implement (expose or yield_figs methods" % type(abifile))
-                from abipy.tools.plotting import MplExposer
-                with MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                                verbose=options.verbose) as e:
-                    e(abifile.yield_figs())
-
-            return 0
-
-        elif options.panel:
-            if not hasattr(abifile, "get_panel"):
-                raise TypeError("Object of type `%s` does not implement get_panel method" % type(abifile))
-
-            import matplotlib
-            matplotlib.use("Agg")
-            pn = abilab.abipanel()
-
-            app = abifile.get_panel(template=options.panel_template)
-            serve_kwargs = serve_kwargs_from_options(options)
-
-            return pn.serve(app, **serve_kwargs)
-
-        # Start ipython shell with namespace
-        # Use embed because I don't know how to show a header with start_ipython.
-        import IPython
-        IPython.embed(header="""
-The Abinit file object is associated to the `abifile` python variable.
-Use `abifile.<TAB>` to list available methods.
-Use e.g. `abifile.plot?` to access docstring and `abifile.plot??` to visualize source.
-Use `print(abifile)` to print the object.
-""")
+        handle_object(abifile, options)
+        return 0
 
     else:
         # Call specialized method if the object is a NotebookWriter
@@ -370,7 +308,72 @@ Use `print(abifile)` to print the object.
     return 0
 
 
-def handle_ase_traj(options):
+def handle_object(obj, options):
+    """
+    Postprocess/visualize object according to CLI options.
+    """
+    if options.print:
+        # Print object to terminal.
+        if hasattr(obj, "to_string"):
+            print(obj.to_string(verbose=options.verbose))
+        else:
+            print(obj)
+        return 0
+
+    elif options.expose:
+        # Print info to terminal
+        if hasattr(obj, "to_string"):
+            print(obj.to_string(verbose=options.verbose))
+        else:
+            print(obj)
+
+        # Generate plots automatically.
+        if options.plotly:
+            # plotly version
+            if hasattr(obj, "plotly_expose"):
+                obj.plotly_expose(verbose=options.verbose)
+            else:
+                cprint("`%s` does not implement plotly_expose method" % type(obj), "red")
+
+        elif hasattr(obj, "expose"):
+            # matplotlib version
+            obj.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                       use_web=options.expose_web, verbose=options.verbose)
+        else:
+            if not hasattr(obj, "yield_figs"):
+                raise TypeError("Object of type `%s` does not implement (expose or yield_figs methods" % type(obj))
+            from abipy.tools.plotting import MplExposer
+            with MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                            verbose=options.verbose) as e:
+                e(obj.yield_figs())
+
+    elif options.panel:
+        if not hasattr(obj, "get_panel"):
+            raise TypeError("Object of type `%s` does not implement get_panel method" % type(obj))
+
+        import matplotlib
+        matplotlib.use("Agg")
+        pn = abilab.abipanel()
+
+        app = obj.get_panel(template=options.panel_template)
+        serve_kwargs = serve_kwargs_from_options(options)
+
+        return pn.serve(app, **serve_kwargs)
+
+    else:
+        # Start ipython shell with namespace
+        # Use embed because I don't know how to show a header with start_ipython.
+        import IPython
+        IPython.embed(header="""
+The AbiPy object is associated to the `obj` python variable.
+Use `obj.<TAB>` to list all available methods.
+Use e.g. `obj.plot?` to access docstring and `obj.plot??` to visualize source code.
+Use `print(obj)` to print the object.
+""")
+
+
+
+def handle_ase_traj(obj, options):
     """Handle ASE trajectory file."""
     from abipy.ml.aseml import AseTrajectoryPlotter
     plotter = AseTrajectoryPlotter.from_file(options.filepath)

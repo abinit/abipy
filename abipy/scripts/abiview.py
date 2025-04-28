@@ -510,10 +510,10 @@ def abiview_ddb_elastic(options) -> int:
         print(ddb.to_string(verbose=options.verbose))
 
         asr = 2; chneut = 1
-        relaxed_ion = "automatic",
-        piezo = "automatic",
-        dde = False,
-        stress_correction = False,
+        relaxed_ion = "automatic"
+        piezo = "automatic"
+        dde = False
+        stress_correction = False
 
         print(f"""
 Calling anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.

@@ -17,11 +17,13 @@ import abipy.core.abinit_units as abu
 
 from dataclasses import field
 from typing import Optional
+from io import StringIO
 from monty.string import list_strings #, marquee
 from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.analysis.elasticity.strain import Strain
 from abipy.core.structure import Structure
+#from abipy.core.mixins import NotebookWriter #
 from abipy.tools.numtools import build_mesh
 from abipy.tools.derivatives import central_fdiff_weights
 from abipy.tools import duck
@@ -54,6 +56,7 @@ from .works import Work
 
 NORMAL_STRAIN_INDS = [0, 1, 2]
 SHEAR_STRAIN_INDS = [3, 4, 5]
+
 ALL_STRAIN_INDS = NORMAL_STRAIN_INDS + SHEAR_STRAIN_INDS
 
 
@@ -797,16 +800,8 @@ class _FdData(HasPickleIO):
 
         return [dir2str(pert.cart_dir) for pert in self.perts]
 
-    #def __str__(self) -> str:
-    #    return self.to_string()
-
-    #def to_string(self, verbose: int = 0) -> str:
-    #    lines = []
-    #    app = lines.append
-    #    #for pert in self.perts:
-    #    #    pert
-
-    #    return "\n.".join(lines)
+    def __str__(self) -> str:
+        return self.to_string()
 
     def get_df_zeff_iatom(self, iatom: int) -> pd.Dataframe:
         """
@@ -1035,6 +1030,17 @@ class _FdData(HasPickleIO):
                                 )
         return fig
 
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """Generates figures common to the different subclasses."""
+        yield self.plot_etotal(show=False)
+        yield self.plot_forces(show=False)
+        yield self.plot_stresses(show=False)
+        if self.cart_pol_pv is not None:
+            yield self.plot_polarization(show=False)
+        if self.cart_mag_pv is not None:
+            yield self.plot_magnetization(show=False)
+
+
 
 @dataclasses.dataclass(kw_only=True)
 class DisplData(_FdData):
@@ -1052,6 +1058,14 @@ class DisplData(_FdData):
             idir = ip % 3
             kmn[pert.iatom, idir] = - dforces_dpert[:,:,ip]
         return kmn
+
+    #def to_string(self, verbose: int = 0) -> str:
+    #    """String representation with verbosity level verbose"""
+    #    strio = StringIO()
+    #    print("piezoelectric tensor in Cartesian coords:\n", self.get_piezoel_df(), end=2*"\n", file=strio)
+
+    #    strio.seek(0)
+    #    return strio.read()
 
 
 # WVH
@@ -1098,9 +1112,22 @@ class StrainData(_FdData):
         lmat = np.empty((self.natom, 3, 6))
         for ip, pert in enumerate(self.perts):
             iv1 = pert.voigt_ind
+            print(iv1)
             lmat[:,:iv1] = dforces_dpert[:,ip]
 
         return np.reshape(lmat, (self.natom*3, 6))
+
+    #def get_internal_strain_df(self) -> pd.DataFrame:
+
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level verbose"""
+        strio = StringIO()
+        #print("internal-strain tensor in Cartesian coords:\n", self.get_internal_strain_df(), end=2*"\n", file=strio)
+        print("elastic tensor in Cartesian coords:\n", self.get_elastic_df(), end=2*"\n", file=strio)
+
+        strio.seek(0)
+        return strio.read()
+
 
 class _HasExternalField:
     """
@@ -1221,6 +1248,24 @@ class ElectricFieldData(_FdData, _HasExternalField):
 
         return pd.DataFrame(rows)
 
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level verbose"""
+        strio = StringIO()
+        print("epsilon_inf tensor in Cartesian coords:\n", self.get_epsinf_df(), end=2*"\n", file=strio)
+        print("piezoelectric tensor in Cartesian coords:\n", self.get_piezoel_df(), end=2*"\n", file=strio)
+        self.print_eff_charges(file=strio)
+
+        strio.seek(0)
+        return strio.read()
+
+    #def yield_figs(self, **kwargs):  # pragma: no cover
+    #    """This function *generates* a predefined list of matplotlib figures with minimal input from the user."""
+    #    # First, yield everything from the superclass
+    #    yield from super().yield_figs()
+    #    #self.plot_forces_vs_field([1, 0, 0], elements="Al")
+    #    yield self.plot_polarization(show=False)
+
+
 
 @dataclasses.dataclass(kw_only=True)
 class ZeemanData(_FdData, _HasExternalField):
@@ -1249,6 +1294,16 @@ class ZeemanData(_FdData, _HasExternalField):
             rows.append(_dict_from_mat_npts(piezomag, piezomag_comps, npts))
 
         return pd.DataFrame(rows)
+
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level verbose"""
+        strio = StringIO()
+        print("piezomagnetic tensor in Cartesian coords:\n", self.get_piezomag_df(), end=2*"\n", file=strio)
+        self.print_eff_charges(file=strio)
+
+        strio.seek(0)
+        return strio.read()
+
 
 
 def _dict_from_mat_npts(mat: np.ndarray, mat_comps: list[str], npts: int, with_info: bool = True) -> dict:

@@ -2222,8 +2222,7 @@ class Becs(Has_Structure, MSONable):
         Args:
             becs_arr: [3, 3, natom] array with the Born effective charges in Cartesian coordinates.
             structure: |Structure| object.
-            chneut: Option used for the treatment of the Charge Neutrality.
-                for the effective charges (anaddb input variable)
+            chneut: Option used for the treatment of the Charge Neutrality (anaddb input variable)
             order: "f" if becs_arr is in Fortran order.
         """
         assert len(becs_arr) == len(structure)
@@ -2323,7 +2322,7 @@ class Becs(Has_Structure, MSONable):
 
 class DielectricTensorGenerator(Has_Structure):
     """
-    Object used to generate frequency dependent dielectric tensors as obtained
+    Object used to generate the frequency dependent dielectric tensors obtained
     from DFPT calculations. The values are calculated on the fly
     based on the phonon frequencies at gamma and oscillator strengths.
     The first three frequencies would be considered as acoustic modes and

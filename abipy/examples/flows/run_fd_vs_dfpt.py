@@ -90,52 +90,49 @@ xred
     accuracy = 2  # 3 points
     #accuracy = 4  # 5 points
 
-    work = FiniteEfieldWork.from_scf_input(
-        scf_input,
-        accuracy=accuracy,
-        step_au=0.0001,
-    )
-    flow.register_work(work)
-
-    work = FiniteDisplWork.from_scf_input(
-        scf_input,
-        accuracy=accuracy,
-        step_au=0.01,
-    )
-    flow.register_work(work)
-
-    #work = FiniteStrainWork.from_scf_input(
+    #flow.register_work(FiniteEfieldWork.from_scf_input(
     #    scf_input,
     #    accuracy=accuracy,
-    #    norm_step=0.005,
-    #    shear_step=0.03,
-    #)
-    #flow.register_work(work)
+    #    step_au=0.0001,
+    #))
 
-    #work = FiniteHfieldWork.from_scf_input(
+
+    #flow.register_work(FiniteDisplWork.from_scf_input(
     #    scf_input,
     #    accuracy=accuracy,
     #    step_au=0.01,
-    #)
-    #flow.register_work(work)
+    #))
 
-    work = PhononWork.from_scf_input(scf_input,
-                                     qpoints=[0, 0, 0],
-                                     is_ngqpt=False,
-                                     with_becs=True,
-                                     with_quad=False,
-                                     with_flexoe=False,
-                                     with_dvdb=False,
-                                     tolerance=None,
-                                     ddk_tolerance=None)
-    flow.register_work(work)
+    flow.register_work(FiniteStrainWork.from_scf_input(
+        scf_input,
+        accuracy=accuracy,
+        norm_step=0.005,
+        shear_step=0.03,
+    ))
 
-    work = ElasticWork.from_scf_input(scf_input,
-                                      with_relaxed_ion=True,
-                                      with_piezo=True,
-                                      with_dde=False,
-                                      tolerances=None)
-    flow.register_work(work)
+    #flow.register_work(FiniteHfieldWork.from_scf_input(
+    #    scf_input,
+    #    accuracy=accuracy,
+    #    step_au=0.01,
+    #))
+
+    #flow.register_work(PhononWork.from_scf_input(scf_input,
+    #   qpoints=[0, 0, 0],
+    #   is_ngqpt=False,
+    #   with_becs=True,
+    #   with_quad=False,
+    #   with_flexoe=False,
+    #   with_dvdb=False,
+    #   tolerance=None,
+    #   ddk_tolerance=None
+    #))
+
+    flow.register_work(ElasticWork.from_scf_input(scf_input,
+        with_relaxed_ion=True,
+        with_piezo=True,
+        with_dde=False,
+        tolerances=None
+    ))
 
     return flow
 
