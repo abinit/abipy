@@ -74,15 +74,9 @@ xred
         ecut=5,
         nband=4,
         tolvrs=1.0e-8,
-        #toldfe=1.0e-15,
-        #nspinor=nspinor,
-        #nsppol=nsppol,
-        #nspden=nspden,
-        #nstep=7,         # Maximal number of SCF cycles from the tutorial
         nstep=50,         # Maximal number of SCF cycles
         ecutsm=0.5,
         dilatmx=1.05,
-        berryopt=-1,      # This to get the polarization.
     )
 
     shiftk = [0.5, 0.5, 0.5,
@@ -109,8 +103,7 @@ xred
         step_au=0.01,
         pert_cart_dirs=pert_cart_dirs,
         mask_iatom=mask_iatom,
-        #relax_ions=False,
-        #relax_ions_opts=None,
+        #extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
     )
 
     # Add the work to the flow.

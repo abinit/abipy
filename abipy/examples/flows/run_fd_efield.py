@@ -90,21 +90,22 @@ xred
               0.0, 0.5, 0.0,
               0.0, 0.0, 0.5,
     ]
-    scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
-    #scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
+    #scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
+    scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
 
     # Initialize the flow.
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
-    #pert_cart_dits = (1, 1, 1)  # This is the direction used in the tutorial.
+    fd_accuracy = 2
+    relax_ions = True
+    relax_ions_opts = None
 
     work = FiniteEfieldWork.from_scf_input(
         scf_input,
-        fd_accuracy=2,
-        #fd_accuracy=4,
+        fd_accuracy=fd_accuracy,
         step_au=0.0001,
-        relax_ions=True,
-        relax_ions_opts=None,
+        relax_ions=relax_ions,
+        relax_ions_opts=relax_ions_opts,
     )
 
     # Add the work to the flow.

@@ -55,6 +55,7 @@ from .works import Work
 
 
 NORMAL_STRAIN_INDS = [0, 1, 2]
+
 SHEAR_STRAIN_INDS = [3, 4, 5]
 
 ALL_STRAIN_INDS = NORMAL_STRAIN_INDS + SHEAR_STRAIN_INDS
@@ -66,19 +67,19 @@ def _mesh_for_fd_accuracy(acc, order, step) -> tuple:
     return num_points, values, ip0
 
 
-def dir2str(coeffs, variables: str = 'xyz') -> str:
+def vec2str(vec, variables: str = 'xyz') -> str:
     """
-    >>> dir2str((1, 2, 3)))
+    >>> vec2str((1, 2, 3)))
     "x + 2y + 3z"
-    >>> dir2str((0, -1, 4)))
+    >>> vec2str((0, -1, 4)))
     "-y + 4z"
-    >>> dir2str((1, 0, 0)))
+    >>> vec2str((1, 0, 0)))
     "x"
-    >>> dir2str((0, 0, 0)))   # Output: (empty string)
+    >>> vec2str((0, 0, 0)))   # Output: (empty string)
     ""
     """
     terms = []
-    for coeff, var in zip(coeffs, variables, strict=True):
+    for coeff, var in zip(vec, variables, strict=True):
         if coeff == 0:
             continue  # Skip terms with a coefficient of 0
         elif coeff == 1:
@@ -144,7 +145,6 @@ class _FdData(HasPickleIO):
     """
     ions_mode: str
     initial_structure: Structure
-    #relaxed_structure: Structure
 
     has_pol: bool                     # True if polarization has been computed with Berry phase.
     has_mag: bool                     # True if magnetization has been computed.
@@ -158,7 +158,7 @@ class _FdData(HasPickleIO):
     cart_forces_pv: np.ndarray        # (npert, np_vals, natom, 3)
     carts_stresses_pv: np.ndarray     # (npert, np_vals, 6) Voigt form
 
-    # Polarization computed with Berry phase approach.
+    # Macro Polarization computed with Berry phase
     cart_pol_pv: Optional[np.ndarray] = None      # (npert, np_vals, 3)
     cart_pole_pv: Optional[np.ndarray] = None     # (npert, np_vals, 3)
     cart_poli_pv: Optional[np.ndarray] = None     # (npert, np_vals, 3)
@@ -182,15 +182,14 @@ class _FdData(HasPickleIO):
         """
         Compute derivatives wrt perturbations using finite differences.
         """
-        natom, npert = len(self.initial_structure), self.npert
+        npert = self.npert
         np_vals = max(len(pert.values) for pert in self.perts)
 
         # Use all stencils compatible with input num_points so that we can monitor the convergence afterwards.
         self.dforces_dpert_npts = {}
         self.dstress_dpert_npts = {}
-
-        if self.has_pol: self.dpol_dpert_npts = {}
-        if self.has_mag: self.dmag_dpert_npts = {}
+        self.dpol_dpert_npts = {}
+        self.dmag_dpert_npts = {}
 
         # FIXME Is this safe?
         # Do we want to allow for non-linear meshes.
@@ -203,15 +202,15 @@ class _FdData(HasPickleIO):
             # fd_slice is used to select the values for the Finite difference.
             fd_slice = slice(ipv0 - nn, ipv0 + nn + 1)
 
-            # Finite difference for forces.
-            dforce_dpert = np.empty((natom, 3, npert))
-            for iat, iat_dir, ip in itertools.product(range(natom), range(3), range(npert)):
+            # Finite differences for forces.
+            dforce_dpert = np.empty((self.natom, 3, npert))
+            for iat, iat_dir, ip in itertools.product(range(self.natom), range(3), range(npert)):
                 pert = self.perts[ip]
                 fvals_f = self.cart_forces_pv[ip, :, iat, iat_dir]
                 dforce_dpert[iat, iat_dir, ip] = np.sum(fvals_f[fd_slice] * weights) / pert.step
             self.dforces_dpert_npts[npts] = dforce_dpert
 
-            # Finite difference for stresses (Voigt form)
+            # Finite difference for stresses (Voigt form).
             dstress_dpert = np.empty((6, npert))
             for ivoigt, ip in itertools.product(range(6), range(npert)):
                 pert = self.perts[ip]
@@ -219,7 +218,7 @@ class _FdData(HasPickleIO):
                 dstress_dpert[ivoigt, ip] = np.sum(svals_f[fd_slice] * weights) / pert.step
             self.dstress_dpert_npts[npts] = dstress_dpert
 
-            # Finite difference for polarization (if available).
+            # Finite differences for polarization (if available).
             if self.has_pol:
                 dpol_dpert = np.empty((3, npert))
                 for ii, ip in itertools.product(range(3), range(npert)):
@@ -230,7 +229,7 @@ class _FdData(HasPickleIO):
                 #self.dpole_dpert_npts[npts] = dpole_dpert  TODO ?
                 #self.dpoli_dpert_npts[npts] = dpoli_dpert  TODO ?
 
-            # Finite difference for magnetization (if available).
+            # Finite differences for magnetization (if available).
             if self.has_mag:
                 dmag_dpert = np.empty((3, npert))
                 for ii, ip in itertools.product(range(3), range(npert)):
@@ -261,14 +260,48 @@ class _FdData(HasPickleIO):
     @lazy_property
     def pert_dir_comps(self) -> list[str]:
         """
+        List with the compononents associated to self.perts
         """
         if any(pert.cart_dir is None for pert in self.perts):
             raise TypeError("pert_dir_comps requires perturbation with directions!")
 
-        return [dir2str(pert.cart_dir) for pert in self.perts]
+        return [vec2str(pert.cart_dir) for pert in self.perts]
 
     def __str__(self) -> str:
         return self.to_string()
+
+    def get_elements_iatom_set(self, elements, iat_list) -> tuple:
+        """
+        Helper functions to convert elements and iat_list provided by users.
+        """
+        if elements is not None: elements = list_strings(elements)
+        if iat_list is not None: iat_list = set(iat_list)
+        if elements is not None and iat_list is not None:
+            raise ValueError("elements and iat_list are mutually exclusive.")
+        return elements, iat_list
+
+    def print_relaxed_coords(self,
+                             elements: list[str] | None = None,
+                             iat_list: int | None = None) -> None:
+        """
+        Print relaxed atomic coordinates for each perturbation.
+
+        Args:
+            elements: String or list of strings with the chemical elements to select. None to select all.
+            iat_list: List of atom indices to shown. None to select all.
+        """
+        elements, iat_set = self.get_elements_iatom_set(elements, iat_list)
+
+        for iatom in range(self.natom):
+            init_site = self.initial_structure[iatom]
+            if elements is not None and init_site.species_string not in elements: continue
+            if iat_set is not None and iatom not in iat_set: continue
+            for ip, pert in enumerate(self.perts):
+                print(init_site, "Initial site")
+                for ipv, p_val in enumerate(pert.values):
+                    site = self.structures_pv[ip, ipv][iatom]
+                    print(site, f"{ip=}, {ipv=} value={pert.values[ipv]} {pert.name}")
+                print("\n")
 
     def get_df_zeff_iatom(self, iatom: int) -> pd.Dataframe:
         """
@@ -285,7 +318,7 @@ class _FdData(HasPickleIO):
             elif self.has_mag:
                 zeff_name, what_to_diff = "Zm", "magnetization"
             else:
-                raise ValueError(f"Has {self.pert_kind=} but neither polarization nor magnetization are available!")
+                raise ValueError(f"{self.pert_kind=} but neither polarization nor magnetization are available!")
         else:
             raise ValueError(f"Don't know how to compute eff_charges with {self.pert_kind=}")
 
@@ -316,7 +349,7 @@ class _FdData(HasPickleIO):
                 if cnt != 3:
                     raise RuntimeError(f"Need all 3 directions for {iatom=} to compute Zeff!")
 
-                zeff_atm *= self.relaxed_structure.volume * abu.Ang_Bohr ** 3
+                zeff_atm *= self.initial_structure.volume * abu.Ang_Bohr ** 3
                 zeff_comps = list(itertools.product(atom_comps, xyz_comps))
                 rows.append(_dict_from_mat_npts(zeff_atm, zeff_comps, npts))
 
@@ -325,18 +358,22 @@ class _FdData(HasPickleIO):
         df.attrs["zeff_name"] = zeff_name
 
         return df
-
         # TODO
-        #Becs(becs_arr, self.relaxed_structure, chneut=0, order="c"):
+        #Becs(becs_arr, relaxed_structure, chneut=0, order="c"):
 
-    def print_eff_charges(self, elements: None | list[str] = None, file=sys.stdout, verbose: int = 0) -> None:
+    def print_eff_charges(self,
+                          elements: None | list[str] = None,
+                          iat_list: None | list[int] = None,
+                          file=sys.stdout,
+                          verbose: int = 0) -> None:
         """
         Print effective charges to `file`.
 
         Args:
             elements: String or list of strings with the chemical elements to select. Default: All atoms are shown.
+            iat_list: List of atom indices to shown. None to select all.
         """
-        if elements is not None: elements = list_strings(elements)
+        elements, iat_set = self.get_elements_iatom_set(elements, iat_list)
 
         def _p(*args, **kwargs):
             print(*args, file=file, **kwargs)
@@ -348,9 +385,11 @@ class _FdData(HasPickleIO):
 
         for iatom, site in enumerate(self.initial_structure):
             if elements is not None and site.species_string not in elements: continue
+            if iat_set is not None and iatom not in iat_set: continue
             df = self.get_df_zeff_iatom(iatom)
             zeff_name = df.attrs["zeff_name"]
-            _p(f"{zeff_name}[atom_dir, {self.pert_kind}_dir] in Cart. coords for {iatom=}: element: {site.species_string}, frac_coords: {site.frac_coords}")
+            _p(f"{zeff_name}[atom_dir, {self.pert_kind}_dir] in Cart. coords for {iatom=} ({self.ions_mode}) " +
+               f"element: {site.species_string}, frac_coords: {site.frac_coords}")
             _p(df)
             _p("")
 
@@ -393,10 +432,7 @@ class _FdData(HasPickleIO):
             elements: String or list of strings with the chemical elements to select. None to select all.
             iat_list: List of atom indices to shown. None to select all.
         """
-        if elements is not None: elements = list_strings(elements)
-        if iat_list is not None: iat_list = set(iat_list)
-        if elements is not None and iat_list is not None:
-            raise ValueError("elements and iat_list are mutually exclusive.")
+        elements, iat_set = self.get_elements_iat_set(elements, iat_list)
 
         nrows, ncols = 3, self.npert
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
@@ -408,7 +444,7 @@ class _FdData(HasPickleIO):
                 ax.set_title(f"{pert.label}, Atom_dir: {pert.dir_str}", fontsize=fontsize)
                 for iat, site in enumerate(self.initial_structure):
                     if elements is not None and site.species_string not in elements: continue
-                    if iat_list is not None and iat not in iat_list: continue
+                    if iat_set is not None and iat not in iat_set: continue
                     ys = self.cart_forces_pv[ip, :, iat, iat_dir]
                     ax.plot(pert.values, ys, marker="o", label=site.species_string + r"$_{\text{%s}}$" % iat)
 
@@ -591,7 +627,8 @@ class StrainData(_FdData):
         """String representation with verbosity level verbose"""
         strio = StringIO()
         #print("internal-strain tensor in Cartesian coords:\n", self.get_internal_strain_df(), end=2*"\n", file=strio)
-        print("elastic tensor in Cartesian coords:\n", self.get_elastic_df(), end=2*"\n", file=strio)
+        print("Elastic tensor in Cartesian coords and a.u. ({self.ions_mods}):\n",
+               self.get_elastic_df(), end=2*"\n", file=strio)
 
         strio.seek(0)
         return strio.read()
@@ -632,16 +669,12 @@ class _HasExternalField:
             elements: String or list of strings with the chemical elements to select. None to select all.
             iat_list: List of atom indices to shown. None to select all.
         """
+        elements, iat_set = self.get_elements_iatom_set(elements, iat_list)
         nrows = self.natom
         if elements is not None:
-            elements = list_strings(elements)
             nrows = len(elements)
-        if iat_list is not None:
-            iat_list = set(iat_list)
-            nrows = len(iat_list)
-
-        if elements is not None and iat_list is not None:
-            raise ValueError("elements and iat_list are mutually exclusive.")
+        if iat_set is not None:
+            nrows = len(iat_set)
 
         ip, pert = self.find_ip_pert_from_cart_dir(field_cart_dir)
 
@@ -652,7 +685,7 @@ class _HasExternalField:
         irow = -1
         for iat, site in enumerate(self.initial_structure):
             if elements is not None and site.species_string not in elements: continue
-            if iat_list is not None and iat not in iat_list: continue
+            if iat_set is not None and iat not in iat_set: continue
             irow += 1
             for iat_dir in range(3):
                 ax = ax_mat[irow, iat_dir]
@@ -719,8 +752,10 @@ class ElectricFieldData(_FdData, _HasExternalField):
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose"""
         strio = StringIO()
-        print("epsilon_inf tensor in Cartesian coords:\n", self.get_epsinf_df(), end=2*"\n", file=strio)
-        print("piezoelectric tensor in Cartesian coords:\n", self.get_piezoel_df(), end=2*"\n", file=strio)
+        print(f"Epsilon_inf tensor in Cartesian coords and a.u. ({self.ions_mode}):\n",
+              self.get_epsinf_df(), end=2*"\n", file=strio)
+        print(f"Piezoelectric tensor in Cartesian coords and a.u. ({self.ions_mode}):\n",
+              self.get_piezoel_df(), end=2*"\n", file=strio)
         self.print_eff_charges(file=strio)
 
         strio.seek(0)
@@ -766,7 +801,8 @@ class ZeemanData(_FdData, _HasExternalField):
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose"""
         strio = StringIO()
-        print("piezomagnetic tensor in Cartesian coords:\n", self.get_piezomag_df(), end=2*"\n", file=strio)
+        print(f"Piezomagnetic tensor in Cartesian coords and a.u. ({self.ions_mode}):\n",
+              self.get_piezomag_df(), end=2*"\n", file=strio)
         self.print_eff_charges(file=strio)
 
         strio.seek(0)
@@ -800,6 +836,7 @@ class PertKind(StrEnum):
     E = "E"
     H = "H"
     STRAIN = "strain"
+
 
 class IonsMode(StrEnum):
     CLAMPED = "clamped_ions"
@@ -863,12 +900,12 @@ class Perturbation:
         if self.kind == PertKind.STRAIN:
             return "${%s}_{%s}$" % (self.tex, self.voigt_ind)
 
-        return "${%s}_{%s}$" % (self.tex, dir2str(self.cart_dir))
+        return "${%s}_{%s}$" % (self.tex, vec2str(self.cart_dir))
 
     @lazy_property
     def dir_str(self) -> str:
         """String with the direction of the perturbation."""
-        return "" if self.kind == PertKind.STRAIN else f"{dir2str(self.cart_dir)}"
+        return "" if self.kind == PertKind.STRAIN else f"{vec2str(self.cart_dir)}"
 
     @lazy_property
     def tex(self) -> str:
@@ -892,6 +929,11 @@ class Perturbation:
 
 
 class _BaseFdWork(Work):
+    """Base class for Finite difference Works."""
+
+    @lazy_property
+    def natom(self) -> int:
+        return len(self[0].input.structure)
 
     @lazy_property
     def npert(self) -> int:
@@ -909,7 +951,7 @@ class _BaseFdWork(Work):
     def allocate_tasks_pv(self, relax_ions: bool, relax_ions_opts) -> None:
         """
         """
-        # Provide default values for relaxation algorithm.
+        # Provide default values for relaxation algorithm the allow use to override settings.
         self.relax_ions = relax_ions
         self.relax_ions_opts = {"ionmov": 2, "tolmxf": 1e-6}
         if relax_ions_opts:
@@ -922,11 +964,10 @@ class _BaseFdWork(Work):
     def get_data_dict(self, ions_mode: str) -> dict:
         """
         This method is shared by all the Finite difference works.
-        It reads energies, forces, stresses, polarization and magnetization from the GSR.nc files
-        and the main output files of the FD calculations and builds a dictionary that can be used
+        It reads energies, forces, stresses, polarizations and magnetizations from the GSR.nc files
+        and the main output files of the tasks and builds a dictionary that can be used
         to instanciate the appropriate subclass of _FdData.
         """
-        natom = len(self[0].input.structure)
         npert, np_vals = len(self.perts), max(len(pert.values) for pert in self.perts)
 
         has_pol = all(task.input.get("berryopt", 0) != 0 for task in self)
@@ -952,7 +993,7 @@ class _BaseFdWork(Work):
         # The suffix `_pv` stands for perturbation index and perturbation value.
         data["etotals_pv"] = etotals_pv = np.empty((npert, np_vals))
         data["eterms_pv"] = eterms_pv = np.empty((npert, np_vals), dtype=object)
-        data["cart_forces_pv"] = cart_forces_pv = np.empty((npert, np_vals, natom, 3))
+        data["cart_forces_pv"] = cart_forces_pv = np.empty((npert, np_vals, self.natom, 3))
         data["carts_stresses_pv"] = carts_stresses_pv = np.empty((npert, np_vals, 6))
 
         if has_pol:
@@ -968,12 +1009,17 @@ class _BaseFdWork(Work):
         # Read energy, forces and stress from the GSR files.
         for ip, pert in enumerate(self.perts):
             for ipv, p_val in enumerate(pert.values):
+
+                # Select the appropriate task.
                 if ions_mode == IonsMode.CLAMPED:
                     task = self.gs_tasks_pv[ip, ipv]
                 elif ions_mode == IonsMode.RELAXED:
                     task = self.relax_tasks_pv[ip, ipv]
                 else:
                     raise ValueError(f"Invalid {ions_mode=}")
+
+                if task is None:
+                    raise RuntimeError(f"Got None task for {ip=}, {ipv=}, {ions_mode=} and work type: {type(self)}")
                 #print(f"{task=}")
 
                 with task.open_gsr() as gsr:
@@ -987,7 +1033,7 @@ class _BaseFdWork(Work):
                     # Add parameters that might be used for convergence studies afterwards.
                     data["params_p"].append(gsr.params)
                     if has_mag:
-                        # Get magnetization from the GSR file
+                        # Get magnetization from the GSR file.
                         cart_mag_pv[ip, ipv] = gsr.get_magnetization()
 
                 if has_pol:
@@ -1009,7 +1055,7 @@ class _BaseFdWork(Work):
         for ions_mode, obj in data.items():
             with open(Path(self.outdir.path ) / f"{ions_mode}_{obj.__class__.__name__}.pickle", "wb") as fh:
                 pickle.dump(obj, fh)
-
+            #mjson_write(obj, Path(self.outdir.path ) / f"{ions_mode}_{obj.__class__.__name__}.json")
 
         return super().on_all_ok()
 
@@ -1081,26 +1127,19 @@ class FiniteDisplWork(_BaseFdWork):
 
         return work
 
-    @lazy_property
-    def natom(self) -> int:
-        """Number of atoms in the unit cell."""
-        return len(self.scf_input.structure)
-
     def _add_tasks_with_displacements(self, structure: Structure):
         """
         """
         for ip, pert in enumerate(self.perts):
             iatom, cart_dir = pert.iatom, pert.cart_dir
             for iv, delta_au in enumerate(pert.values):
-                new_structure = structure.copy()
                 # Note Bohr --> Ang conversion.
+                new_structure = structure.copy()
                 new_structure.translate_sites([iatom], delta_au * abu.Bohr_Ang * cart_dir,
                                                frac_coords=False, to_unit_cell=False)
                 new_input = self.scf_input.new_with_structure(new_structure)
                 task = self.register_scf_task(new_input)
                 self.gs_tasks_pv[ip, iv] = task
-
-
 
 
 class FiniteStrainWork(_BaseFdWork):
@@ -1168,10 +1207,8 @@ class FiniteStrainWork(_BaseFdWork):
                               values=norm_values if vind in NORMAL_STRAIN_INDS else shear_values))
 
         work.allocate_tasks_pv(relax_ions, relax_ions_opts)
-        raise NotImplementedError()
-
         for ip, pert in enumerate(work.perts):
-            self._add_tasks_with_strains_ipv(ip, None, work.scf_input.structure, IonsMode.CLAMPED)
+            work._add_tasks_with_strains_ipv(ip, None, work.scf_input.structure, IonsMode.CLAMPED)
 
         return work
 
@@ -1181,39 +1218,40 @@ class FiniteStrainWork(_BaseFdWork):
         #                     shear_strains: Sequence[float] = (-0.06, -0.03, 0.03, 0.06),
         #                     symmetry=False,
 
-    def _add_tasks_with_strains_ipv(self, ip:int, ipv_select: int | None,
-                                    structure: Structure, ionds_mode: str) -> None:
+    def _add_tasks_with_strains_ipv(self, ip: int, ipv_select: int | None,
+                                    structure: Structure, ions_mode: str) -> None:
         """Build new GS tasks with strained cells."""
         scf_input = self.scf_input
         pert = self.perts[ip]
-        task_pv0 = None
+        task_pv0 = None # TODO
 
         if ions_mode == IonsMode.CLAMPED:
-            tasks_pv = self.gs_tasks_pv
-            relax_ions_opts = {}
             if ipv_select is not None:
                 raise ValueError(f"ipv_select should be None if {ions_mode=} but got {ipv_select=}")
 
-        elif ions_mode == IonsMode.RELAXED:
-            tasks_pv = self.relax_tasks_pv
-            relax_ions_opts = self.relax_ions_opts
-        else:
-            raise ValueError(f"Invalid {ions_mode=}")
-
-        # Apply strain to the lattice and build new SCF tasks.
-        for ipv, pert_value in enumerate(pert.values):
+        for ipv, p_val in enumerate(pert.values):
             if ipv_select is not None and ipv != ipv_select: continue
             is_pv0 = abs(p_val) < 1e-16
 
             if ions_mode == IonsMode.CLAMPED:
-                strained_structure = scf_input.structure.apply_strain(pert_value * pert.strain, inplace=False)
-                self.gs_tasks_pv[ip, ipv] = self.register_scf_task(
-                    scf_input.new_with_structure(strained_structure))
-            else:
-                relax_inp = self.scf_task[ip,ipv].input.new_with_vars(**self.relax_ions_opts)
+                # Apply strain to the lattice and build new SCF tasks.
+                strained_structure = scf_input.structure.apply_strain(p_val * pert.strain, inplace=False)
+                task = self.register_scf_task(scf_input.new_with_structure(strained_structure))
+                # Add the (ip, iv) indices as attribute of the task.
+                task.attrs["ip_ipv"] = (ip, ipv)
+                self.gs_tasks_pv[ip, ipv] = task
+
+            elif ions_mode == IonsMode.RELAXED:
+                # Get strained structure from gs_tasks_pv and relax atoms.
+                relax_inp = self.gs_tasks_pv[ip,ipv].input.new_with_vars(**self.relax_ions_opts)
                 task = self.register_relax_task(relax_inp)
                 task.add_deps({self.gs_tasks_pv[ip,ipv]: "WFK"})
+                # Add the (ip, iv) indices as attribute of the task.
+                task.attrs["ip_ipv"] = (ip, ipv)
                 self.relax_tasks_pv[ip, ipv] = task
+            else:
+                raise ValueError(f"Invalid {ions_mode=}")
+
 
     def on_ok(self, sender):
         """This method is called when one task reaches status `S_OK`."""
@@ -1281,12 +1319,12 @@ class _FieldWork(_BaseFdWork):
         work.allocate_tasks_pv(relax_ions, relax_ions_opts)
 
         for ip, pert in enumerate(work.perts):
-          if work.pert_kind == PertKind.E:
-              work._add_tasks_with_efield_ipv(ip, None, work.scf_input.structure, IonsMode.CLAMPED)
-          elif work.pert_kind == PertKind.H:
-              work._add_tasks_with_zeeman_field_ipv(ip, None, work.scf_input.structure, IonsMode.CLAMPED)
-          else:
-              raise TypeError(f"Don't know how to handle {work.pert_kind=}")
+            if work.pert_kind == PertKind.E:
+                work._add_tasks_with_efield_ipv(ip, None, work.scf_input.structure, IonsMode.CLAMPED)
+            elif work.pert_kind == PertKind.H:
+                work._add_tasks_with_zeeman_field_ipv(ip, None, work.scf_input.structure, IonsMode.CLAMPED)
+            else:
+                raise TypeError(f"Don't know how to handle {work.pert_kind=}")
 
         return work
 
@@ -1319,7 +1357,8 @@ class FiniteHfieldWork(_FieldWork):
     """
     DataCls = ZeemanData
 
-    def _add_tasks_with_zeeman_field(self, ip: int, structure: Structure, ions_mode: str) -> None:
+    def _add_tasks_with_zeeman_field_ipv(self, ip: int, ipv_select: int | None,
+                                         structure: Structure, ions_mode: str) -> None:
         """Build new GS tasks with zeemanfield."""
         scf_input = self.scf_input.new_with_structure(structure)
         pert = self.perts[ip]
@@ -1329,6 +1368,9 @@ class FiniteHfieldWork(_FieldWork):
             register_func = self.register_scf_task
             tasks_pv = self.gs_tasks_pv
             relax_ions_opts = {}
+            if ipv_select is not None:
+                raise ValueError(f"ipv_select should be None if {ions_mode=} but got {ipv_select=}")
+
         elif ions_mode == IonsMode.RELAXED:
             register_func = self.register_relax_task
             tasks_pv = self.relax_tasks_pv
@@ -1337,7 +1379,9 @@ class FiniteHfieldWork(_FieldWork):
             raise ValueError(f"Invalid {ions_mode=}")
 
         for ipv, p_val in enumerate(pert.values):
+            if ipv_select is not None and ipv != ipv_select: continue
             is_pv0 = abs(p_val) < 1e-16
+
             new_inp = scf_input.new_with_vars(zeemanfield=p_val * pert.cart_dir, **relax_ions_opts)
             if is_pv0:
                 # Avoid computing the zero-field case multiple times.
@@ -1392,7 +1436,7 @@ class FiniteEfieldWork(_FieldWork):
                     task_pv0 = register_func(new_inp)
                 tasks_pv[ip, ipv] = task_pv0
             else:
-                # Finite electric field E computation
+                # Finite electric field E computation.
                 new_inp.set_vars(berryopt=4)
                 tasks_pv[ip, ipv] = register_func(new_inp)
 
@@ -1403,7 +1447,7 @@ class FiniteEfieldWork(_FieldWork):
             # Add the (ip, iv) indices as attributes of the task
             tasks_pv[ip, ipv].attrs["ip_ipv"] = (ip, ipv)
 
-        # Now add dependencies for GS tasks (Connect tasks with +E and -E starting from E = 0
+        # Now add dependencies for GS tasks: connect tasks with +E and -E starting from E = 0.
         if ions_mode == IonsMode.CLAMPED:
             for ipv in range(0, pert.ipv0):
                 tasks_pv[ip, ipv].add_deps({tasks_pv[ip, ipv+1]: "WFK"})

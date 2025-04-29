@@ -82,27 +82,31 @@ xred
               0.0, 0.5, 0.0,
               0.0, 0.0, 0.5,
     ]
-    scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
-    #scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
+    #scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
+    scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
 
     # Initialize the flow.
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
-    fd_accuracy = 2  # 3 points
+    fd_accuracy = 2   # 3 points
     #fd_accuracy = 4  # 5 points
+    relax_ions = True
+    relax_ions_opts = None
 
     flow.register_work(FiniteEfieldWork.from_scf_input(
         scf_input,
         fd_accuracy=fd_accuracy,
         step_au=0.0001,
+        relax_ions=relax_ions,
+        relax_ions_opts=relax_ions_opts,
     ))
 
-    flow.register_work(FiniteDisplWork.from_scf_input(
-        scf_input,
-        fd_accuracy=fd_accuracy,
-        step_au=0.01,
-        extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
-    ))
+    #flow.register_work(FiniteDisplWork.from_scf_input(
+    #    scf_input,
+    #    fd_accuracy=fd_accuracy,
+    #    step_au=0.01,
+    #    extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
+    #))
 
     #flow.register_work(FiniteStrainWork.from_scf_input(
     #    scf_input,
@@ -110,31 +114,35 @@ xred
     #    norm_step=0.005,
     #    shear_step=0.03,
     #    extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
+    #    relax_ions=relax_ions,
+    #    relax_ions_opts=relax_ions_opts,
     #))
 
     #flow.register_work(FiniteHfieldWork.from_scf_input(
     #    scf_input,
     #    fd_accuracy=fd_accuracy,
     #    step_au=0.01,
+    #    relax_ions=relax_ions,
+    #    relax_ions_opts=relax_ions_opts,
     #))
 
-    flow.register_work(PhononWork.from_scf_input(scf_input,
-       qpoints=[0, 0, 0],
-       is_ngqpt=False,
-       with_becs=True,
-       with_quad=False,
-       with_flexoe=False,
-       with_dvdb=False,
-       tolerance=None,
-       ddk_tolerance=None
+    #flow.register_work(PhononWork.from_scf_input(scf_input,
+    #   qpoints=[0, 0, 0],
+    #   is_ngqpt=False,
+    #   with_becs=True,
+    #   with_quad=False,
+    #   with_flexoe=False,
+    #   with_dvdb=False,
+    #   tolerance=None,
+    #   ddk_tolerance=None
+    #))
+
+    flow.register_work(ElasticWork.from_scf_input(scf_input,
+        with_relaxed_ion=True,
+        with_piezo=True,
+        with_dde=False,
+        tolerances=None
     ))
-
-    #flow.register_work(ElasticWork.from_scf_input(scf_input,
-    #    with_relaxed_ion=True,
-    #    with_piezo=True,
-    #    with_dde=False,
-    #    tolerances=None
-    #))
 
     return flow
 

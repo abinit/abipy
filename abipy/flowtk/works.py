@@ -384,7 +384,8 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_scf_task(self, *args, **kwargs) -> ScfTask:
         """Register a SCF task."""
         kwargs["task_class"] = ScfTask
-        if self.input.get("berryopt", 0) != 0:
+        input = args[0]
+        if input.get("berryopt", 0) != 0:
             kwargs["task_class"] = BerryTask
 
         return self.register_task(*args, **kwargs)

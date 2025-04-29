@@ -104,12 +104,17 @@ rprim     5.2802747870E-01  0.0000000000E+00  8.4922728509E-01
     # Initialize the flow
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
+    fd_accuracy = 2
+    relax_ions = True
+    relax_ions_opts = None
+
     work = FiniteHfieldWork.from_scf_input(
         scf_input,
-        fd_accuracy=4,
+        fd_accuracy=fd_accuracy,
         step_au=0.01,
-        relax_ions=False,
-        relax_ions_opts=None,
+        relax_ions=relax_ions,
+        relax_ions_opts=relax_ions_opts,
+        #extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
     )
 
     # Add the work to the flow.

@@ -3540,11 +3540,11 @@ class ScfTask(GsTask):
 class CollinearThenNonCollinearScfTask(ScfTask):
     """
     A specialized ScfTaks that performs an initial SCF run with nsppol = 2.
-    The spin polarized WFK file is then used to start a non-collinear SCF run (nspinor == 2)
-    initialized from the previous WFK file.
+    The spin polarized WFK file is then used to start a non-collinear SCF run with nspinor == 2
+    that starts from the previous WFK file.
     """
-    def __init__(self, input, workdir=None, manager=None, deps=None):
-        super().__init__(input, workdir=workdir, manager=manager, deps=deps)
+    def __init__(self, abinit_input, workdir=None, manager=None, deps=None):
+        super().__init__(abinit_input, workdir=workdir, manager=manager, deps=deps)
         # Enforce nspinor = 1, nsppol = 2 and prtwf = 1.
         self._input = self.input.deepcopy()
         self.input.set_spin_mode("polarized")
@@ -4188,7 +4188,7 @@ class ScrTask(ManyBodyTask):
 
     def open_scr(self):
         """
-        Open the SIGRES file located in the in self.outdir.
+        Open the SIGRES file located in self.outdir.
         Returns |ScrFile| object, None if file could not be found or file is not readable.
         """
         scr_path = self.scr_path
@@ -4235,9 +4235,6 @@ class SigmaTask(ManyBodyTask):
         self.history.info("Will restart from %s", restart_file)
         return self._restart()
 
-    #def inspect(self, **kwargs):
-    #    """Plot graph showing the number of k-points computed and the wall-time used"""
-
     @property
     def sigres_path(self) -> str:
         """Absolute path of the SIGRES.nc file. Empty string if file is not present."""
@@ -4251,7 +4248,7 @@ class SigmaTask(ManyBodyTask):
 
     def open_sigres(self):
         """
-        Open the SIGRES file located in the in self.outdir.
+        Open the SIGRES file located in self.outdir.
         Returns |SigresFile| object, None if file could not be found or file is not readable.
         """
         sigres_path = self.sigres_path
@@ -4376,7 +4373,7 @@ class BseTask(ManyBodyTask):
 
     def open_mdf(self):
         """
-        Open the MDF file located in the in self.outdir.
+        Open the MDF file located in self.outdir.
         Returns |MdfFile| object, None if file could not be found or file is not readable.
         """
         mdf_path = self.mdf_path
@@ -4396,7 +4393,7 @@ class BseTask(ManyBodyTask):
 class GwrTask(AbinitTask):
     """
     Class for calculations with the GWR code.
-    Provide `open_gwr` method to open GWR.nc
+    Provide `open_gwr` method to open the GWR.nc file.
     """
 
     color_rgb = np.array((255, 128, 0)) / 255
@@ -4943,7 +4940,7 @@ class AnaddbTask(Task):
         hence we don't need to create symbolic links.
         """
 
-    def outpath_from_ext(self, ext):
+    def outpath_from_ext(self, ext: str) -> str:
         if ext == "anaddb.nc":
             path = os.path.join(self.outdir.path, "anaddb.nc")
             if os.path.isfile(path): return path
@@ -4966,7 +4963,7 @@ class AnaddbTask(Task):
         phdos_path = self.outpath_from_ext("PHDOS.nc")
         return PhdosFile(phdos_path)
 
-    def make_input(self, with_header=False) -> str:
+    def make_input(self, with_header: bool = False) -> str:
         """return string the input file of the calculation."""
         inp = self.input.deepcopy()
 
