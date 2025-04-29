@@ -1985,11 +1985,11 @@ class Task(Node, metaclass=abc.ABCMeta):
         This function checks the status of the task by inspecting the output and the
         error files produced by the application and by the queue manager.
         """
-        # 1) see it the job is blocked
-        # 2) see if an error occured at submitting the job the job was submitted, TODO these problems can be solved
-        # 3) see if there is output
-        # 4) see if abinit reports problems
-        # 5) see if both err files exist and are empty
+        # 1) check it the job is blocked.
+        # 2) check if an error occured when the job was submitted, TODO these problems can be solved
+        # 3) check if main output file has been produced.
+        # 4) check if abinit reports problems.
+        # 5) check if both err files exist and are empty.
         # 6) no output and no err files, the job must still be running
         # 7) try to find out what caused the problems
         # 8) there is a problem but we did not figure out what ...
@@ -2007,7 +2007,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         # If we have an abort file produced by Abinit
         if self.mpiabort_file.exists:
-            return self.set_status(self.S_ABICRITICAL, msg="Found ABINIT abort file")
+            return self.set_status(self.S_ABICRITICAL, msg="Found ABINIT MPI abort file. This means Abinit run aborted!")
 
         # Analyze the stderr file for Fortran runtime errors.
         # getsize is 0 if the file is empty or it does not exist.
@@ -2122,7 +2122,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         # 8) analyzing the err files and abinit output did not identify a problem
         # but if the files are not empty we do have a problem but no way of solving it:
-        # The job is killed or crashed but we don't know what happend
+        # The job got killed or crashed but we don't know what happend
         # it is set to QCritical, we will attempt to fix it by running on more resources
         if err_msg:
             msg = 'Found error message:\n %s' % str(err_msg)
@@ -2284,7 +2284,6 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         try:
             report = parser.parse(ofile.path)
-            #self._prev_reports[source] = report
 
             # Add events found in the ABI_MPIABORTFILE.
             if self.mpiabort_file.exists:

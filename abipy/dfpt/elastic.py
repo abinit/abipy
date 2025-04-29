@@ -25,11 +25,11 @@ class MyElasticTensor(ElasticTensor):
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, tol=1e-5):
+    def get_voigt_dataframe(self, tol: float = 1e-5) -> pd.DataFrame
         """
         Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
-        Elements below tol are set to zero.
+        Elements below `tol` are set to zero.
         """
         tensor = self.zeroed(tol=tol)
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
@@ -67,11 +67,11 @@ class MyPiezoTensor(PiezoTensor):
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, tol=1e-5):
+    def get_voigt_dataframe(self, tol: float = 1e-5) -> pd.DataFrame:
         """
         Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
-        Elements below tol are set to zero.
+        Elements below `to`l are set to zero.
         """
         tensor = self.zeroed(tol=tol)
         index = ["Px", "Py", "Pz"]
@@ -150,9 +150,18 @@ class ElasticData(Has_Structure, MSONable):
             units="GN/c", latex=r"${h}$"),
     }
 
-    def __init__(self, structure, params, elastic_clamped=None, elastic_relaxed=None, elastic_stress_corr=None,
-                 elastic_relaxed_fixed_D=None, piezo_clamped=None, piezo_relaxed=None, d_piezo_relaxed=None,
-                 g_piezo_relaxed=None, h_piezo_relaxed=None):
+    def __init__(self,
+                 structure: Structure,
+                 params: dict,
+                 elastic_clamped=None,
+                 elastic_relaxed=None,
+                 elastic_stress_corr=None,
+                 elastic_relaxed_fixed_D=None,
+                 piezo_clamped=None,
+                 piezo_relaxed=None,
+                 d_piezo_relaxed=None,
+                 g_piezo_relaxed=None,
+                 h_piezo_relaxed=None):
         """
         Args:
             structure: |Structure| object.
@@ -263,7 +272,7 @@ class ElasticData(Has_Structure, MSONable):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String represention with verbosity level `verbose`."""
         lines = []; app = lines.append
         app(self.structure.to_string(verbose=verbose, title="Structure"))
@@ -303,7 +312,7 @@ class ElasticData(Has_Structure, MSONable):
         if tol is not None: tensor = tensor.zeroed(tol=tol)
         return tensor
 
-    def name_tensor_list(self, tensor_names=None, tensor_type="all", tol=None):
+    def name_tensor_list(self, tensor_names=None, tensor_type="all", tol=None) -> list:
         """
         List of (name, tensor) tuples. Only tensors stored in the object are returned.
 
@@ -345,7 +354,10 @@ class ElasticData(Has_Structure, MSONable):
 
         return self.__class__(structure, self.params, **kwargs)
 
-    def convert_to_ieee(self, structure=None, initial_fit=True, refine_rotation=True) -> ElasticData:
+    def convert_to_ieee(self,
+                        structure=None,
+                        initial_fit=True,
+                        refine_rotation=True) -> ElasticData:
         """
         Return new set of tensors in IEEE format according to the 1987 IEEE standards.
 
@@ -445,8 +457,13 @@ class ElasticData(Has_Structure, MSONable):
         else:
             return df
 
-    def get_elastic_properties_dataframe(self, tensor_names="all", properties_as_index=False,
-            include_base_props=True, ignore_errors=False, fit_to_structure=False, symprec=0.1) -> pd.DataFrame:
+    def get_elastic_properties_dataframe(self,
+                                        tensor_names="all",
+                                        properties_as_index=False,
+                                        include_base_props=True,
+                                        ignore_errors=False,
+                                        fit_to_structure=False,
+                                        symprec=0.1) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with properties derived from the elastic tensor
         and the associated structure

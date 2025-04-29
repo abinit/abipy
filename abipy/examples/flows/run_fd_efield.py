@@ -83,6 +83,7 @@ xred
         nstep=50,         # Maximal number of SCF cycles
         ecutsm=0.5,
         dilatmx=1.05,
+        paral_kgb=0,
     )
 
     shiftk = [0.5, 0.5, 0.5,

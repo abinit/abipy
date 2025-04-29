@@ -115,7 +115,7 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
     .. inheritance-diagram:: AbinitLogFile
     """
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose : int = 0) -> str:
         """String representation with verbosity level verbose."""
         return str(self.events)
 
