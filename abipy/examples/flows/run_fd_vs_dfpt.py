@@ -82,8 +82,8 @@ xred
               0.0, 0.5, 0.0,
               0.0, 0.0, 0.5,
     ]
-    #scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
-    scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
+    scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
+    #scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
 
     # Initialize the flow.
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
@@ -108,15 +108,15 @@ xred
     #    extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
     #))
 
-    #flow.register_work(FiniteStrainWork.from_scf_input(
-    #    scf_input,
-    #    fd_accuracy=fd_accuracy,
-    #    norm_step=0.005,
-    #    shear_step=0.03,
-    #    extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
-    #    relax_ions=relax_ions,
-    #    relax_ions_opts=relax_ions_opts,
-    #))
+    flow.register_work(FiniteStrainWork.from_scf_input(
+        scf_input,
+        fd_accuracy=fd_accuracy,
+        norm_step=0.005,
+        shear_step=0.03,
+        extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
+        relax_ions=relax_ions,
+        relax_ions_opts=relax_ions_opts,
+    ))
 
     #flow.register_work(FiniteHfieldWork.from_scf_input(
     #    scf_input,

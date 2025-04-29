@@ -91,8 +91,8 @@ xred
               0.0, 0.5, 0.0,
               0.0, 0.0, 0.5,
     ]
-    #scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
-    scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
+    scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
+    #scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
 
     # Initialize the flow.
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
