@@ -83,6 +83,7 @@ xred
         nstep=50,         # Maximal number of SCF cycles
         ecutsm=0.5,
         dilatmx=1.05,
+        paral_kgb=0,
     )
 
     shiftk = [0.5, 0.5, 0.5,
@@ -90,8 +91,8 @@ xred
               0.0, 0.5, 0.0,
               0.0, 0.0, 0.5,
     ]
-    #scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
-    scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
+    scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
+    #scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
 
     # Initialize the flow.
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
