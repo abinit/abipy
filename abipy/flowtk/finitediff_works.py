@@ -1,7 +1,10 @@
 # coding: utf-8
-"""This module provide Works for finite difference calculations and related post-processing tools."""
+"""
+This module provide Works for finite difference calculations and related post-processing tools.
+
+IMPORTANT: In Abinit Stress is equal to dE/d_strain * (1/ucvol) See m_forstr
+"""
 from __future__ import annotations
-# IMPORTANT: In Abinit Stress is equal to dE/d_strain * (1/ucvol) See m_forstr
 
 # Handle
 #=   KILLED BY SIGNAL: 9 (Killed)
@@ -357,9 +360,10 @@ class _FdData(HasPickleIO):
         df = pd.DataFrame(rows)
         df.attrs["zeff_name"] = zeff_name
 
-        return df
         # TODO
+        from abipy.dfpt.ddb import Becs
         #Becs(becs_arr, relaxed_structure, chneut=0, order="c"):
+        return df
 
     def print_eff_charges(self,
                           elements: None | list[str] = None,
@@ -565,7 +569,8 @@ class DisplData(_FdData):
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose"""
         strio = StringIO()
-        self.print_eff_charges(file=strio)
+        if self.has_pol or self.has_mag:
+            self.print_eff_charges(file=strio)
         #print("piezoelectric tensor in Cartesian coords:\n", self.get_piezoel_df(), end=2*"\n", file=strio)
 
         strio.seek(0)
@@ -728,7 +733,7 @@ class ElectricFieldData(_FdData, _HasExternalField):
         return pd.DataFrame(rows)
 
     def get_piezoel(self, npts: int) -> np.ndarray:
-        """Piezo-electric tensor obtained with npts FD points. Eq (8) of WVH."""
+        """Improper piezo-electric tensor obtained with npts FD points. Eq (8) of WVH."""
         # dstress_dpert has shape (6, npert) in Cart. coords.
         dstress_dpert = self.dstress_dpert_npts[npts]
         piezoel = np.empty((3, 6))
@@ -1062,7 +1067,8 @@ class _BaseFdWork(Work):
 
 class FiniteDisplWork(_BaseFdWork):
     """
-    Work for the computation ... finite differences.
+    This work displaces the atoms in unit cell by a finite amout and performs
+    GS calculations to get forces and stresses.
     """
     DataCls = DisplData
 
@@ -1121,7 +1127,7 @@ class FiniteDisplWork(_BaseFdWork):
             for cart_dir in work.pert_cart_dirs:
                 work.perts.append(Perturbation(kind=PertKind.DISPL, values=work.pert_values, cart_dir=cart_dir, iatom=iatom))
 
-        work.relax_ions = IonsMode.CLAMPED
+        work.relax_ions = False
         work.allocate_tasks_pv(work.relax_ions, {})
         work._add_tasks_with_displacements(work.scf_input.structure)
 
@@ -1144,7 +1150,8 @@ class FiniteDisplWork(_BaseFdWork):
 
 class FiniteStrainWork(_BaseFdWork):
     """
-    Work for the computation at finite strain with finite differences.
+    This work deforms the initial unit cell by a finite amout and performs
+    GS calculations to get forces and stresses.
     """
     DataCls = StrainData
 
@@ -1353,7 +1360,7 @@ class _FieldWork(_BaseFdWork):
 
 class FiniteHfieldWork(_FieldWork):
     r"""
-    Work for finite-difference computations wrt to the Zeeman magnetic field.
+    This work performs GS calculations with a finite Zeeman field.
     """
     DataCls = ZeemanData
 
@@ -1395,6 +1402,7 @@ class FiniteHfieldWork(_FieldWork):
 
 class FiniteEfieldWork(_FieldWork):
     r"""
+    This work performs GS calculations with a finite Electric field.
     """
     DataCls = ElectricFieldData
 

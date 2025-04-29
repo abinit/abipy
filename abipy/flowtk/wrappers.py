@@ -23,6 +23,8 @@ __all__ = [
     "Mrgdvdb",
     "Cut3D",
     "Fold2Bloch",
+    "Lruj",
+    "Abitk",
 ]
 
 
@@ -292,9 +294,7 @@ class Cut3D(ExecWrapper):
 
         cut3d_input.write(self.stdin_fname)
 
-        retcode = self._execute(workdir, with_mpirun=False)
-
-        if retcode != 0:
+        if retcode := self._execute(workdir, with_mpirun=False):
             raise RuntimeError("Error while running cut3d in %s" % workdir)
 
         output_filepath = cut3d_input.output_filepath
@@ -331,12 +331,9 @@ class Fold2Bloch(ExecWrapper):
             raise RuntimeError("WFK file `%s` does not exist in %s" % (wfkpath, workdir))
 
         # Usage: $ fold2Bloch file_WFK x:y:z (folds)
-        retcode = self.execute(workdir, exec_args=[wfkpath, fold_arg])
-        if retcode:
-            print("stdout:")
-            print(self.stdout_data)
-            print("stderr:")
-            print(self.stderr_data)
+        if retcode := self.execute(workdir, exec_args=[wfkpath, fold_arg]):
+            print("stdout:\n", self.stdout_data)
+            print("stderr:\n", self.stderr_data)
             raise RuntimeError("fold2bloch returned %s in %s" % (retcode, workdir))
 
         filepaths = [f for f in os.listdir(workdir) if f.endswith("_FOLD2BLOCH.nc")]
@@ -365,12 +362,9 @@ class Lruj(ExecWrapper):
         # We work with absolute paths.
         nc_paths = [os.path.abspath(s) for s in list_strings(nc_paths)]
 
-        retcode = self.execute(workdir, exec_args=nc_paths)
-        if retcode != 0:
-            print("stdout:")
-            print(self.stdout_data)
-            print("stderr:")
-            print(self.stderr_data)
+        if retcode := self.execute(workdir, exec_args=nc_paths):
+            print("stdout:\n", self.stdout_data)
+            print("stderr:\n", self.stderr_data)
             raise RuntimeError(f"Error while running lruj in {workdir}")
 
         return retcode
@@ -392,12 +386,9 @@ class Abitk(ExecWrapper):
 
         self.stdout_fname, self.stderr_fname = map(os.path.join, 2 * [workdir], ["abitk.stdout", "abitk.stderr"])
 
-        retcode = self.execute(workdir, exec_args=exec_args)
-        if retcode != 0:
-            print("stdout:")
-            print(self.stdout_data)
-            print("stderr:")
-            print(self.stderr_data)
+        if retcode := self.execute(workdir, exec_args=exec_args):
+            print("stdout:\n", self.stdout_data)
+            print("stderr:\n", self.stderr_data)
             raise RuntimeError(f"Error while running abitk in {workdir}")
 
         return retcode

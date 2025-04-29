@@ -1592,6 +1592,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         anaddbnc_path = task.outpath_from_ext("anaddb.nc")
 
         # Read data from the netcdf output file produced by anaddb.
+        # In Abinit we have
+        # zeff(3,3,natom)=effective charge on each atom, versus electric
+        #  field and atomic displacement. Note the following convention:
+        #  zeff(electric field direction, atomic direction, atom index)
+
         with ETSF_Reader(anaddbnc_path) as r:
             epsinf = DielectricTensor(r.read_value("emacro_cart").T.copy())
             structure = r.read_structure()
@@ -2217,10 +2222,15 @@ class Becs(Has_Structure, MSONable):
         """Return dictionary with JSON serialization in MSONable format."""
         return dict(becs_arr=self.values, structure=self.structure, chneut=self.chneut, order="c")
 
-    def __init__(self, becs_arr, structure, chneut, order="c"):
+    def __init__(self,
+                 becs_arr: np.ndarray,
+                 structure: Structure,
+                 chneut: int,
+                 order: str = "c"):
         """
         Args:
-            becs_arr: [3, 3, natom] array with the Born effective charges in Cartesian coordinates.
+            becs_arr: [natom, 3, 3] array with the Born effective charges in Cartesian coordinates.
+                First axis is E-electric field. Then atom direction.
             structure: |Structure| object.
             chneut: Option used for the treatment of the Charge Neutrality (anaddb input variable)
             order: "f" if becs_arr is in Fortran order.
@@ -2233,10 +2243,10 @@ class Becs(Has_Structure, MSONable):
 
         # Values is a numpy array while zstars is a list of Tensor objects.
         self.values = np.empty((len(structure), 3, 3))
-        for i, bec in enumerate(becs_arr):
-            mat = becs_arr[i]
+        for iat, bec in enumerate(becs_arr):
+            mat = becs_arr[iat]
             if order.lower() == "f": mat = mat.T.copy()
-            self.values[i] = mat
+            self.values[iat] = mat
 
         self.zstars = [ZstarTensor(mat) for mat in self.values]
 

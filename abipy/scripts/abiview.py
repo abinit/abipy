@@ -108,6 +108,17 @@ def abiview_data(options):
 #    return 0
 
 
+#def abiview_logmem(options):
+#    """
+#    """
+#    with abilab.abiopen(options.filepath) as abilog:
+#        print(abilog.to_string(verbose=options.verbose))
+#        abilog.plot()
+#        #timer = abilog.get_timer()
+#    return 0
+
+
+
 def abiview_dirviz(options) -> int:
     """
     Visualize directory tree with graphviz.
@@ -808,6 +819,8 @@ def get_parser(with_epilog=False):
 
     # Subparser for abo command.
     #p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
+
+    #p_logmem = subparsers.add_parser('logmem', parents=[copts_parser], help=abiview_logmem.__doc__)
 
     # Subparser for dirviz command.
     p_dirviz = subparsers.add_parser('dirviz', parents=[copts_parser], help=abiview_dirviz.__doc__)

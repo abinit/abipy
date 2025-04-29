@@ -1375,7 +1375,6 @@ def get_newnode_id() -> int:
     """
     #import uuid
     #return uuid.uuid4()
-
     init_counter()
 
     global _COUNTER
@@ -1392,6 +1391,6 @@ def save_lastnode_id() -> None:
             fh.write("%d\n" % _COUNTER)
 
 
-# Register function atexit
+# IMPORTANT: Register function atexit
 import atexit
 atexit.register(save_lastnode_id)

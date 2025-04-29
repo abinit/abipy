@@ -466,6 +466,11 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """|ElectronBands| with the KS energies."""
         return self.r.ebands
 
+    @lazy_property
+    def completed(self) -> bool:
+        """True if GWR calculation completed."""
+        return bool(self.r.read_value("gwr_completed", default=1))
+
     @property
     def sigma_kpoints(self) -> KpointList:
         """The k-points where the QP corrections have been calculated."""
@@ -1485,6 +1490,11 @@ class GwrRobot(Robot, RobotWithEbands):
     def __init__(self, *args):
         super().__init__(*args)
         if len(self.abifiles) in (0, 1): return
+
+        for label, gwr_file in self.abifiles.items():
+            if gwr_files.completed: continue
+            cprint("Ignoring {label} as GWR file is not completed", color="yellow")
+            self.pop_label(label)
 
         # Check dimensions and self-energy states and issue warning.
         warns = []; wapp = warns.append

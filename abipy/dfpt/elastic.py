@@ -4,6 +4,7 @@ Objects to analyze elastic and piezoelectric tensors computed by anaddb.
 """
 from __future__ import annotations
 
+import json
 import pandas as pd
 
 from collections import OrderedDict
@@ -25,7 +26,7 @@ class MyElasticTensor(ElasticTensor):
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, tol: float = 1e-5) -> pd.DataFrame
+    def get_voigt_dataframe(self, tol: float = 1e-5) -> pd.DataFrame:
         """
         Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
@@ -278,7 +279,6 @@ class ElasticData(Has_Structure, MSONable):
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         app(marquee("Anaddb Variables", mark="="))
-        import json
         app(json.dumps(self.params, indent=2, sort_keys=True))
 
         for tensor_type in ("elastic", "piezoelectric"):
