@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.collections as mcoll
 
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 from typing import Any, Callable, Iterator
 from monty.string import list_strings
 from abipy.tools import duck
@@ -65,7 +65,6 @@ linestyles = OrderedDict(
 )
 
 
-
 def add_fig_kwargs(func):
     """
     Decorator that adds keyword arguments for functions returning matplotlib figures.
@@ -105,6 +104,7 @@ def add_fig_kwargs(func):
                 ax.grid(bool(ax_grid))
 
         if ax_annotate:
+            from string import ascii_letters
             tags = ascii_letters
             if len(fig.axes) > len(tags):
                 tags = (1 + len(ascii_letters) // len(fig.axes)) * ascii_letters
@@ -494,10 +494,10 @@ def set_grid_legend(ax_or_axlist, fontsize: int,
                 # print("There are artists with labels:", labels)
                 ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
             if xlabel:
-                doit = direction is None or (direction == "y" and ix == len(ax_or_axlist) -1)
+                doit = direction is None or (direction == "y" and ix == len(ax_or_axlist) - 1)
                 if doit: ax.set_xlabel(xlabel)
             if ylabel:
-                doit = direction is None or (direction == "x" and ix == len(ax_or_axlist) -1)
+                doit = direction is None or (direction == "x" and ix == len(ax_or_axlist) - 1)
                 if doit: ax.set_ylabel(ylabel)
             if title: ax.set_title(title, fontsize=fontsize)
     else:
@@ -662,7 +662,6 @@ def plot_xy_with_hue(data: pd.DataFrame,
             color = line.get_color()
             for i in range(len(ys)):
                 ax.plot(xs[i], ys[i], marker="o", color="r" if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else color, linestyle="")
-
 
         if abs_conv is not None:
             span_style = span_style or dict(alpha=0.2, hatch="/")
@@ -934,7 +933,7 @@ class ConvergenceAnalyzer:
                         # y(x) = alpha * (x - x0) + y0
                         #print("best_xx 1", best_xx)
                         if (y0 - y_xmax) >= 0: best_xx = x0 + ( ytol + y_xmax - y0) / alpha
-                        if (y0 - y_xmax) <  0: best_xx = x0 + (-ytol + y_xmax - y0) / alpha
+                        if (y0 - y_xmax) < 0: best_xx = x0 + (-ytol + y_xmax - y0) / alpha
                         #print("best_xx 2", best_xx)
 
                     self.ykey_best_xs[ykey][il] = best_xx
@@ -1966,7 +1965,7 @@ def plotly_set_lims(fig, lims, axname, iax=None) -> tuple:
     # Example: fig.update_layout(yaxis_range=[-4,4])
     k = dict(x="xaxis", y="yaxis")[axname]
     if iax:
-        k= k + str(iax)
+        k = k + str(iax)
     fig.layout[k].range = [left, right]
 
     return left, right
@@ -2287,7 +2286,7 @@ def go_line(v1, v2, color="black", width=2, mode="lines", **kwargs):
 
 
 def go_lines(V, name=None, color="black", width=2, **kwargs):
-    import plotly.graph_objects as go
+    #import plotly.graph_objects as go
     gen = ((v1, v2) for (v1, v2) in V)
     v1, v2 = next(gen)
     out = [
@@ -2890,7 +2889,7 @@ def add_colorscale_dropwdowns(fig):
     return fig
 
 
-def mpl_to_ply(fig: Figure, latex: bool= False):
+def mpl_to_ply(fig: Figure, latex: bool = False):
     """
     Nasty workaround for plotly latex rendering in legend/breaking exception
     """
@@ -2945,7 +2944,7 @@ def mpl_to_ply(fig: Figure, latex: bool= False):
     from plotly.tools import mpl_to_plotly
     plotly_fig = mpl_to_plotly(fig)
 
-    plotly_fig.update_layout(template  = "plotly_white", title = {
+    plotly_fig.update_layout(template="plotly_white", title={
                                 "xanchor": "center",
                                 "yanchor": "top",
                                 "x": 0.5,

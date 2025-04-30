@@ -14,7 +14,7 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from functools import lru_cache
-from typing import Any, Union, Tuple
+from typing import Any
 from monty.string import marquee, list_strings
 from monty.json import MSONable
 from monty.collections import AttrDict, dict2namedtuple
@@ -29,7 +29,12 @@ from abipy.core.structure import Structure
 from abipy.core.kpoints import KpointList, Kpoint
 from abipy.iotools import ETSF_Reader
 from abipy.tools.numtools import data_from_cplx_mode
+from abipy.tools import duck
+from abipy.tools.typing import Figure
+from abipy.tools.iotools import ExitStackWithFiles
+from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
 from abipy.abio.inputs import AnaddbInput
+from abipy.abio.robots import Robot
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter
 from abipy.dfpt.ifc import InteratomicForceConstants
 from abipy.dfpt.elastic import ElasticData
@@ -37,11 +42,6 @@ from abipy.dfpt.raman import Raman
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, get_figs_plotly, get_fig_plotly,
                                   add_plotly_fig_kwargs, PlotlyRowColDesc, plotlyfigs_to_browser, push_to_chart_studio)
-from abipy.tools import duck
-from abipy.tools.typing import Figure
-from abipy.tools.iotools import ExitStackWithFiles
-from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
-from abipy.abio.robots import Robot
 
 
 SUBSCRIPT_UNICODE = {
@@ -1613,7 +1613,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None,
                    mpi_procs=1, workdir=None, manager=None, verbose=0,  anaddb_kwargs=None, return_input=False
-                   ) -> Union[InteratomicForceConstants, Tuple[InteratomicForceConstants, AnaddbInput]]:
+                   ) -> InteratomicForceConstants | tuple[InteratomicForceConstants, AnaddbInput]:
         """
         Execute anaddb to compute the interatomic forces.
 
@@ -1962,7 +1962,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         Writes the DDB file to filepath. Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks
-        are be used to produce the file
+        are used to produce the file
         """
         lines = list(self.header.lines)
 

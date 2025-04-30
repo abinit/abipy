@@ -60,7 +60,7 @@ ALL_CHIS = OrderedDict([
 
 def reflectivity(eps):
     """Reflectivity(w) from vacuum, at normal incidence"""
-    return np.sqrt(0.5 * (np.abs(eps) + eps.real))
+    return np.power(np.abs((np.sqrt(eps) - 1) / (np.sqrt(eps) + 1)), 2)
 
 
 #def abs_coeff(eps):

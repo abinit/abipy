@@ -306,10 +306,12 @@ class _FdData(HasPickleIO):
                     print(site, f"{ip=}, {ipv=} value={pert.values[ipv]} {pert.name}")
                 print("\n")
 
-    def get_zeffs_list(self) -> pd.Dataframe:
+    def get_zeffs_list(self):
         """
         Dataframe with the effective charges for the given atom index and all the FD points.
         """
+        # Zeff can be computed in different ways.
+        # Here we find the kind of Zeff and the quantity to differentiate.
         field2zeff = {PertKind.E: "Ze", PertKind.H: "Zm"}
 
         if self.pert_kind in field2zeff:
@@ -386,7 +388,6 @@ class _FdData(HasPickleIO):
             _p("")
 
         #_p(f"{zeff_name}[atom_dir, {self.pert_kind}_dir] in Cart. coords for {iatom=} ({self.ions_mode}) " +
-
         zeffs_list = self.get_zeffs_list()
         df = zeffs_list.concat(elements=elements)
         _p(df)
@@ -547,6 +548,8 @@ class _FdData(HasPickleIO):
 class DisplData(_FdData):
     """
     Specialized class to handle finite diff. wrt atomic displacements at q = 0.
+
+    Ze and Zm are implemented in get_zeffs_list of the super class.
     """
 
     def get_force_constants(self, npts: int) -> np.ndarray:
@@ -580,6 +583,19 @@ class StrainData(_FdData):
     Specialized class to handle finite diff. wrt strain.
     """
     # TODO: Use ElasticData from dfpt.elastic module
+    #from abipy.dfpt.elastic import ElasticData
+    #el_data = ElasticData(
+    #             structure,
+    #             params
+    #             elastic_clamped=None,
+    #             elastic_relaxed=None,
+    #             elastic_stress_corr=None,
+    #             elastic_relaxed_fixed_D=None,
+    #             piezo_clamped=None,
+    #             piezo_relaxed=None,
+    #             d_piezo_relaxed=None,
+    #             g_piezo_relaxed=None,
+    #             h_piezo_relaxed=None)
 
     def get_elastic(self, npts: int) -> np.ndarray:
         """
@@ -627,7 +643,7 @@ class StrainData(_FdData):
         """String representation with verbosity level verbose"""
         strio = StringIO()
         #print("internal-strain tensor in Cartesian coords:\n", self.get_internal_strain_df(), end=2*"\n", file=strio)
-        print("Elastic tensor in Cartesian coords and a.u. ({self.ions_mods}):\n",
+        print(f"Elastic tensor in Cartesian coords and a.u. ({self.ions_mods}):\n",
                self.get_elastic_df(), end=2*"\n", file=strio)
 
         strio.seek(0)
@@ -711,6 +727,7 @@ class ElectricFieldData(_FdData, _HasExternalField):
 
     def get_epsinf(self, npts: int) -> np.ndarray:
         """eps_infinity obtained with npts FD points."""
+        # FIXME: FD and DFPT do not agree here!
         eps = self.dpol_dpert_npts[npts] * 4.0 * np.pi
         eps[np.diag_indices_from(eps)] += 1.0
         return eps
