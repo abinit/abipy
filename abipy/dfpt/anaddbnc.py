@@ -18,7 +18,7 @@ from abipy.tools.typing import Figure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, rotate_ticklabels
 from abipy.tools.tensors import Tensor, DielectricTensor, NLOpticalSusceptibilityTensor
 from abipy.dfpt.ifc import InteratomicForceConstants
-from abipy.dfpt.ddb import Becs
+from abipy.dfpt.ddb import Zeffs
 from abipy.dfpt.elastic import ElasticData
 
 
@@ -123,8 +123,6 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             app(self.eps0.get_dataframe(tol=tol).to_string())
             app("")
 
-        #if self.becs is not None:
-
         if self.dchide is not None:
             app("Non-linear optical susceptibility tensor.")
             app(str(self.dchide))
@@ -169,9 +167,9 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         Born effective charges. None if the file does not contain this information.
         """
-        chneut = self.params["chneut"]
+        params = {k: self.params[k] for k in ("chneut", )}
         try:
-            return Becs(self.reader.read_value("becs_cart"), self.structure, chneut=chneut, order="f")
+            return Zeffs("Ze", self.reader.read_value("becs_cart"), self.structure, params)
         except Exception as exc:
             return None
 

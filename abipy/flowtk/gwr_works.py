@@ -233,8 +233,8 @@ class GWRRPAConvWork(_BaseGWRWork):
                              ecuteps: float,
                              den_node: Node,
                              wfk_node: Node,
-                             gwr_kwargs: dict | None = None
-                             manager: TaskManager=None):
+                             gwr_kwargs: dict | None = None,
+                             manager: TaskManager = None):
         """
         Build Work from an input for GS-SCF calculation
 

@@ -324,10 +324,10 @@ class DdbTest(AbipyTest):
             assert becs.to_string(verbose=2)
             for arr, z in zip(becs.values, becs.zstars):
                 self.assert_equal(arr, z)
-            df = becs.get_voigt_dataframe(view="all", select_symbols="O", verbose=1)
+            df = becs.get_dataframe(view="all", elements="O", verbose=1)
             assert len(df) == 2
             # Equivalent atoms should have same determinant.
-            self.assert_almost_equal(df["determinant"].values, df["determinant"].values[0])
+            self.assert_almost_equal(df["det"].values, df["det"].values[0])
 
             # get the dielectric tensor generator from anaddb
             dtg = ddb.anaget_dielectric_tensor_generator(verbose=2)
@@ -597,7 +597,7 @@ class DdbRobotTest(AbipyTest):
             assert "ddb_path" in r0.df
 
             # Test anacompare_becs
-            rb = robot.anacompare_becs(ddb_header_keys=["nkpt", "tsmear"], chneut=0, tol=1e-5, with_path=True, verbose=2)
+            rb = robot.anacompare_becs(ddb_header_keys=["nkpt", "tsmear"], chneut=0, with_path=True, verbose=2)
             assert len(rb.becs_list) == len(robot)
             for k in ["nkpt", "tsmear", "ddb_path"]:
                 assert k in rb.df

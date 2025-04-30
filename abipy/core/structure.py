@@ -1055,8 +1055,8 @@ class Structure(pmg_Structure, NotebookWriter):
         natom = len(self)
         spgan = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         spgdata = spgan.get_symmetry_dataset()
-        equivalent_atoms = spgdata["equivalent_atoms"]
-        wyckoffs = np.array(spgdata["wyckoffs"])
+        equivalent_atoms = spgdata.equivalent_atoms
+        wyckoffs = np.array(spgdata.wyckoffs)
 
         wyck_mult = [np.count_nonzero(equivalent_atoms == equivalent_atoms[i]) for i in range(natom)]
         wyck_mult = np.array(wyck_mult, dtype=int)
@@ -1126,7 +1126,7 @@ class Structure(pmg_Structure, NotebookWriter):
             spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group_symbol()))
         app("")
 
-        wickoffs, equivalent_atoms = spgdata["wyckoffs"], spgdata["equivalent_atoms"]
+        wickoffs, equivalent_atoms = spgdata.wyckoffs, spgdata.equivalent_atoms
         header = ["Idx", "Symbol", "Reduced_Coords", "Wyckoff", "EqIdx"]
 
         if site_symmetry:

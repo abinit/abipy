@@ -306,7 +306,7 @@ class _FdData(HasPickleIO):
                     print(site, f"{ip=}, {ipv=} value={pert.values[ipv]} {pert.name}")
                 print("\n")
 
-    def get_df_zeff_iatom(self, iatom: int) -> pd.Dataframe:
+    def get_zeffs_list(self) -> pd.Dataframe:
         """
         Dataframe with the effective charges for the given atom index and all the FD points.
         """
@@ -325,13 +325,20 @@ class _FdData(HasPickleIO):
         else:
             raise ValueError(f"Don't know how to compute eff_charges with {self.pert_kind=}")
 
+        # ade stands from atom, direction and electric field.
+        from abipy.dfpt.ddb import Zeffs, ZeffsList
+        zeffs_list = ZeffsList()
+
         rows, xyz_comps = [], "x y z".split()
+        natom = len(self.initial_structure)
 
         if what_to_diff == "forces":
             zeff_comps = list(itertools.product(xyz_comps, self.pert_dir_comps))
             for npts, dforces_dpert in self.dforces_dpert_npts.items():
-                zeff_atm = dforces_dpert[iatom]
-                rows.append(_dict_from_mat_npts(zeff_atm, zeff_comps, npts))
+                z_ade = dforces_dpert.copy()
+                params = {"npts": npts}
+                zeffs = Zeffs(zeff_name, z_ade, self.initial_structure, params=params)
+                zeffs_list.append(zeffs)
 
         if what_to_diff in ("polarization", "magnetization"):
             if what_to_diff == "polarization":
@@ -339,31 +346,22 @@ class _FdData(HasPickleIO):
             if what_to_diff == "magnetization":
                 dvec_dpert_npts = self.dmag_dpert_npts
 
-            # dpol_dpert has shape (3, npert) where npert is 3*natom atomic displacements.
+            # dvec_dpert has shape (3, npert) where npert is 3*natom atomic displacements.
             for npts, dpol_dpert in dvec_dpert_npts.items():
-                zeff_atm, atom_comps, cnt = np.empty((3, 3)), [], 0
+                z_ade, atom_comps, cnt = np.empty((natom, 3, 3)), [], 0
+                params = {"npts": npts}
                 for ip, pert in enumerate(self.perts):
-                    if pert.iatom != iatom: continue
                     cnt += 1
                     iat_dir = ip % 3
-                    zeff_atm[iat_dir,:] = dpol_dpert[:, ip]
+                    z_ade[pert.iatom, iat_dir,:] = dpol_dpert[:, ip]
                     atom_comps.append(pert.dir_str)
 
-                if cnt != 3:
-                    raise RuntimeError(f"Need all 3 directions for {iatom=} to compute Zeff!")
-
-                zeff_atm *= self.initial_structure.volume * abu.Ang_Bohr ** 3
+                z_ade *= self.initial_structure.volume * abu.Ang_Bohr ** 3
                 zeff_comps = list(itertools.product(atom_comps, xyz_comps))
-                rows.append(_dict_from_mat_npts(zeff_atm, zeff_comps, npts))
+                zeffs = Zeffs(zeff_name, z_ade, self.initial_structure, params=params)
+                zeffs_list.append(zeffs)
 
-        # Build dataframe and add metadata.
-        df = pd.DataFrame(rows)
-        df.attrs["zeff_name"] = zeff_name
-
-        # TODO
-        from abipy.dfpt.ddb import Becs
-        #Becs(becs_arr, relaxed_structure, chneut=0, order="c"):
-        return df
+        return zeffs_list
 
     def print_eff_charges(self,
                           elements: None | list[str] = None,
@@ -387,15 +385,11 @@ class _FdData(HasPickleIO):
             _p(self.initial_structure)
             _p("")
 
-        for iatom, site in enumerate(self.initial_structure):
-            if elements is not None and site.species_string not in elements: continue
-            if iat_set is not None and iatom not in iat_set: continue
-            df = self.get_df_zeff_iatom(iatom)
-            zeff_name = df.attrs["zeff_name"]
-            _p(f"{zeff_name}[atom_dir, {self.pert_kind}_dir] in Cart. coords for {iatom=} ({self.ions_mode}) " +
-               f"element: {site.species_string}, frac_coords: {site.frac_coords}")
-            _p(df)
-            _p("")
+        #_p(f"{zeff_name}[atom_dir, {self.pert_kind}_dir] in Cart. coords for {iatom=} ({self.ions_mode}) " +
+
+        zeffs_list = self.get_zeffs_list()
+        df = zeffs_list.concat(elements=elements)
+        _p(df)
 
     @add_fig_kwargs
     def plot_etotal(self, mode="diff", fontsize=8, sharey=False, **kwargs) -> Figure:

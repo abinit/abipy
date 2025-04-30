@@ -14,7 +14,7 @@ work = flow[0]
 data = work.get_data()
 data = data["clamped_ions"]
 print(data)
-data.print_relaxed_coords()
+#data.print_relaxed_coords()
 
 print("Exiting now, no plots"); sys.exit(0)
 data.plot_forces_vs_field([1, 0, 0], elements="Al")
