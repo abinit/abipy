@@ -65,6 +65,9 @@ def build_flow(options):
     #   ("ecuteps", [2, 4]),
     #]
 
+    # Can also use strings with path to files for den_node and wfk_node
+    # so that one does not need to recompute these files.
+
     gwr_work = GWRSigmaConvWork.from_varname_values(
             varname_values,
             gwr_template,

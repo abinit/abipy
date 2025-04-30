@@ -579,6 +579,7 @@ class StrainData(_FdData):
     """
     Specialized class to handle finite diff. wrt strain.
     """
+    # TODO: Use ElasticData from dfpt.elastic module
 
     def get_elastic(self, npts: int) -> np.ndarray:
         """

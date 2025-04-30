@@ -22,7 +22,7 @@ import abipy.flowtk as flowtk
 
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput
-from abipy.flowtk.finitediff import FiniteDisplWork
+from abipy.flowtk.finitediff import FiniteStrainWork
 
 
 def build_flow(options):
@@ -44,6 +44,7 @@ typat 1 2 # type 1 is Phosphorous, type 2 is Aluminum (order defined by znucl ab
 # Definition of the atom types and pseudopotentials
 ntypat 2 # two types of atoms
 znucl 15 13 # the atom types are Phosphorous and Aluminum
+
 
 #atomic positions, given in units of the cell vectors. Thus as the cell vectors
 #change due to strain the atoms will move as well.
@@ -74,6 +75,11 @@ xred
         ecut=5,
         nband=4,
         tolvrs=1.0e-8,
+        #toldfe=1.0e-15,
+        #nspinor=nspinor,
+        #nsppol=nsppol,
+        #nspden=nspden,
+        #nstep=7,         # Maximal number of SCF cycles from the tutorial
         nstep=50,         # Maximal number of SCF cycles
         ecutsm=0.5,
         dilatmx=1.05,
@@ -85,25 +91,23 @@ xred
               0.0, 0.5, 0.0,
               0.0, 0.0, 0.5,
     ]
-
     #scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
     scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
 
     # Initialize the flow.
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
-    mask_iatom = [True, False]
-    pert_cart_dirs = [[1, 0, 0],]
+    fd_accuracy = 2
+    relax_ions = True
+    relax_ions_opts = None
 
-    mask_iatom = None
-    pert_cart_dirs = None
-
-    work = FiniteDisplWork.from_scf_input(
+    work = FiniteStrainWork.from_scf_input(
         scf_input,
-        fd_accuracy=2,
-        step_au=0.01,
-        pert_cart_dirs=pert_cart_dirs,
-        mask_iatom=mask_iatom,
+        fd_accuracy=fd_accuracy,
+        norm_step=0.005,
+        shear_step=0.03,
+        relax_ions=relax_ions,
+        relax_ions_opts=relax_ions_opts,
         #extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
     )
 

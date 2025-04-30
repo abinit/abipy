@@ -22,7 +22,7 @@ import abipy.flowtk as flowtk
 
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput
-from abipy.flowtk.finitediff_works import FiniteEfieldWork
+from abipy.flowtk.finitediff import FiniteEfieldWork
 
 
 def build_flow(options):

@@ -90,8 +90,8 @@ class MyPiezoTensor(PiezoTensor):
 
 class ElasticData(Has_Structure, MSONable):
     """
-    Container with the different elastic and piezoelectric tensors
-    computed by anaddb. Data is stored in pymatgen tensor objects.
+    Container with the different elastic and piezoelectric tensors computed by anaddb.
+    Data is stored in pymatgen tensor objects.
 
     Provides methods to analyze/tabulate data
     See also http://progs.coudert.name/elate/mp?query=mp-2172 for a web interface.

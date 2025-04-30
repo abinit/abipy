@@ -23,7 +23,7 @@ from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput
 from abipy.flowtk.works import PhononWork
 from abipy.flowtk.dfpt_works import ElasticWork
-from abipy.flowtk.finitediff_works import FiniteEfieldWork, FiniteDisplWork, FiniteStrainWork, FiniteHfieldWork
+from abipy.flowtk.finitediff import FiniteEfieldWork, FiniteDisplWork, FiniteStrainWork, FiniteHfieldWork
 
 
 def build_flow(options):

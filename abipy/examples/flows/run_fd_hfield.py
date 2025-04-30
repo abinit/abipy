@@ -15,7 +15,7 @@ import abipy.flowtk as flowtk
 
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput
-from abipy.flowtk.finitediff_works import FiniteHfieldWork
+from abipy.flowtk.finitediff import FiniteHfieldWork
 
 
 def build_flow(options):
