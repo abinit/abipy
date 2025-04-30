@@ -2011,7 +2011,7 @@ class GwrRobot(Robot, RobotWithEbands):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
         verbose = kwargs.pop("verbose", 0)
-        yield self.plot_qpgaps_convergence(qp_kpoints="all", show=False)
+        #yield self.plot_qpgaps_convergence(qp_kpoints="all", show=False)
 
         # Visualize the convergence of the self-energy for all the k-points and the most important bands.
         nc0: GwrFile = self.abifiles[0]
