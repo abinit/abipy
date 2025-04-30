@@ -1491,8 +1491,8 @@ class GwrRobot(Robot, RobotWithEbands):
         super().__init__(*args)
         if len(self.abifiles) in (0, 1): return
 
-        for label, gwr_file in self.abifiles.items():
-            if gwr_files.completed: continue
+        for label, gwr_file in self.items():
+            if gwr_file.completed: continue
             cprint("Ignoring {label} as GWR file is not completed", color="yellow")
             self.pop_label(label)
 
@@ -1600,6 +1600,7 @@ class GwrRobot(Robot, RobotWithEbands):
     def get_dataframe(self,
                       sortby: str = "kname",
                       with_params: bool = True,
+                      with_geo: bool = False,
                       ignore_imag: bool = False) -> pd.DataFrame:
         """
         Return a |pandas-Dataframe| with the QP results for all k-points, bands and spins
@@ -1608,13 +1609,16 @@ class GwrRobot(Robot, RobotWithEbands):
         Args:
             sortby: Name to sort by.
             with_params: True to add parameters.
+            with_geo: True if structure info should be added to the dataframe
             ignore_imag: only real part is returned if ``ignore_imag``.
         """
         df_list = []; app = df_list.append
         for _, ncfile in self.items():
             for spin in range(ncfile.nsppol):
                 for ikc, _ in enumerate(ncfile.sigma_kpoints):
-                    app(ncfile.get_dataframe_sk(spin, ikc, with_params=with_params,
+                    app(ncfile.get_dataframe_sk(spin, ikc,
+                                                with_params=with_params,
+                                                with_geo=with_geo,
                                                 ignore_imag=ignore_imag))
 
         df = pd.concat(df_list)

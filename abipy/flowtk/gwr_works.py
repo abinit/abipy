@@ -113,8 +113,8 @@ class GWRSigmaConvWork(_BaseGWRWork):
 
             with gwr_robot.get_pyscript(self.outdir.path_in("gwr_robot.py")) as script:
                 script.add_text("""
-#robot.plot_selfenergy_conv(spin=0, kpoint=?, band=?, axis="wreal", sortby=None, hue=None)
-#robot.plot_qpgaps_convergence(qp_kpoints="all", qp_type="qpz0", sortby=None, hue=None)
+#robot.plot_selfenergy_conv(spin=0, kpoint=0, band=?, axis="wreal", sortby=None, hue=None)
+#robot.plot_qpgaps_convergence(x="foobar", abs_conv=0.010 , hue=None)
 """)
 
         return super().on_all_ok()
@@ -227,7 +227,8 @@ class GWRRPAConvWork(_BaseGWRWork):
     """
 
     @classmethod
-    def from_scf_input_ntaus(cls, scf_input: AbinitInput,
+    def from_scf_input_ntaus(cls,
+                             scf_input: AbinitInput,
                              gwr_ntau_list: list,
                              nband: int,
                              ecuteps: float,

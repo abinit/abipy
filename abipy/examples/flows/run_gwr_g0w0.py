@@ -30,17 +30,18 @@ def build_flow(options):
 
     scf_input = abilab.AbinitInput(structure=data.cif_file("si.cif"), pseudos=pseudos)
 
+    num_ele = scf_input.num_valence_electrons
+
     # Global variables.
     scf_input.set_vars(
         ecut=6,
+        nband=num_ele // 2,
         tolvrs=1e-8,
-        nband=4,
         paral_kgb=1,
     )
-    scf_input.set_kmesh(
-        ngkpt=[2, 2, 2],
-        shiftk=[0.0, 0.0, 0.0], # IMPORTANT: k-grid for GWR must be Gamma-centered.
-    )
+
+    # IMPORTANT: k-grid for GWR must be Gamma-centered.
+    scf_input.set_kmesh(ngkpt=[2, 2, 2], shiftk=[0.0, 0.0, 0.0])
 
     flow = flowtk.Flow(workdir=options.workdir)
 
@@ -50,7 +51,7 @@ def build_flow(options):
     flow.register_work(diago_work)
 
     # Build template for GWR.
-    gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=8, ecuteps=4)
+    gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=8, ecuteps=4, ecutwfn=2)
 
     # Two possibilities:
     # 1) To change the value of one variable, use:
@@ -60,15 +61,15 @@ def build_flow(options):
     # 2) To take the Cartesian product of two or more variables use e.g.:
     #
     #varname_values = [
-    #   ("gwr_ntau", [6, 8]),
+    #   ("nband", [50, 100]),
     #   ("ecuteps", [2, 4]),
     #]
 
     gwr_work = GWRSigmaConvWork.from_varname_values(
             varname_values,
             gwr_template,
-            den_node=diago_work[0],
-            wfk_node=diago_work[1],
+            den_node=diago_work.scf_task,
+            wfk_node=diago_work.diago_task,
     )
     flow.register_work(gwr_work)
 
