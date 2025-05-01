@@ -52,6 +52,11 @@ def straceback() -> str:
     return traceback.format_exc()
 
 
+#class PstatData(yaml.YAMLObject):
+#    yaml_tag = '!PstatData'
+
+
+
 class AbinitEvent(yaml.YAMLObject):
 #class AbinitEvent(yaml.YAMLObject, MSONable):
     """
@@ -934,10 +939,11 @@ class LogMemParser:
 
         self.docs = []
         _yaml = YAML(typ='safe', pure=True)
+        pstat_tag = "!PstatData"
         with YamlTokenizer(filepath) as tokens:
             for doc in tokens:
-                if doc.tag != "!PstatData": continue
-                doc = _yaml.load(doc.text)
+                if doc.tag != pstat_tag: continue
+                doc = _yaml.load(doc.text.replace(pstat_tag, ""))
                 self.docs.append(doc)
 
         # Extract lines with MEM or TIME info. Examples:
@@ -998,7 +1004,7 @@ class LogMemParser:
         """
         data = collections.defaultdict(list)
         for doc in self.docs:
-            data["file"].append(data[what])
+            data[doc["file"]].append(data[what])
 
         nrows, ncols = len(data), 1
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
