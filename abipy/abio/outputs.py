@@ -1149,3 +1149,4 @@ class OutNcFile(AbinitNcFile):
             if v is not None: continue
             self._varscache[k] = self.reader.read_value(k)
         return self._varscache
+

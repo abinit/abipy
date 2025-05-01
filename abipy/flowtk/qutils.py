@@ -12,6 +12,7 @@ import os
 
 from subprocess import Popen, PIPE, run
 from monty.string import is_string
+from monty.os import cd
 from pymatgen.core.units import Time, Memory, UnitError
 from abipy.tools.typing import PathLike
 from abipy.tools import duck
@@ -31,8 +32,7 @@ def slurm_parse_timestr(s: str) -> Time:
 
     Returns: Time in seconds.
 
-    Raises:
-        `ValueError` if string is not valid.
+    Raises: `ValueError` if string is not valid.
     """
     days, hours, minutes, seconds = 0, 0, 0, 0
 
@@ -141,8 +141,8 @@ def any2mb(s):
             except AttributeError:  # For even older pymatgen versions
                 mem = int(Memory.from_string(s.replace("B", "b")).to("Mb"))
         return mem
-    else:
-        return int(s)
+
+    return int(s)
 
 
 def slurm_get_jobs() -> dict[int, dict]:
@@ -151,7 +151,7 @@ def slurm_get_jobs() -> dict[int, dict]:
     """
     # Based on https://gist.github.com/stevekm/7831fac98473ea17d781330baa0dd7aa
     process = Popen(["squeue", "--me", "-o", '%all'],
-                       stdout=PIPE, stderr=PIPE, shell=False, universal_newlines=True)
+                     stdout=PIPE, stderr=PIPE, shell=False, universal_newlines=True)
     proc_stdout, proc_stderr = process.communicate()
 
     lines = proc_stdout.split('\n')
@@ -285,7 +285,6 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
     """
     Submit a job script to the queue with Slurm sbatch. Return Slurm JOB ID.
     """
-    from monty.os import cd
     dirpath = os.path.dirname(str(slurm_filepath))
     #print("dirpath", dirpath)
 

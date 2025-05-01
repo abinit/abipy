@@ -547,9 +547,9 @@ class _FdData(HasPickleIO):
 @dataclasses.dataclass(kw_only=True)
 class DisplData(_FdData):
     """
-    Specialized class to handle finite diff. wrt atomic displacements at q = 0.
+    Specialized class to handle finite differences wrt atomic displacement at q = 0.
 
-    Ze and Zm are implemented in get_zeffs_list of the super class.
+    NB: Ze and Zm are implemented in get_zeffs_list of the super class.
     """
 
     def get_force_constants(self, npts: int) -> np.ndarray:
@@ -582,20 +582,6 @@ class StrainData(_FdData):
     """
     Specialized class to handle finite diff. wrt strain.
     """
-    # TODO: Use ElasticData from dfpt.elastic module
-    #from abipy.dfpt.elastic import ElasticData
-    #el_data = ElasticData(
-    #             structure,
-    #             params
-    #             elastic_clamped=None,
-    #             elastic_relaxed=None,
-    #             elastic_stress_corr=None,
-    #             elastic_relaxed_fixed_D=None,
-    #             piezo_clamped=None,
-    #             piezo_relaxed=None,
-    #             d_piezo_relaxed=None,
-    #             g_piezo_relaxed=None,
-    #             h_piezo_relaxed=None)
 
     def get_elastic(self, npts: int) -> np.ndarray:
         """
@@ -640,7 +626,7 @@ class StrainData(_FdData):
     #def get_internal_strain_df(self) -> pd.DataFrame:
 
     def to_string(self, verbose: int = 0) -> str:
-        """String representation with verbosity level verbose"""
+        """String representation with verbosity level `verbose`"""
         strio = StringIO()
         #print("internal-strain tensor in Cartesian coords:\n", self.get_internal_strain_df(), end=2*"\n", file=strio)
         print(f"Elastic tensor in Cartesian coords and a.u. ({self.ions_mods}):\n",
@@ -946,10 +932,13 @@ class Perturbation:
 
 
 class _BaseFdWork(Work):
-    """Base class for Finite difference Works."""
+    """
+    Base class for finite difference Works.
+    """
 
     @lazy_property
     def natom(self) -> int:
+        """Number of atoms in the unit cell."""
         return len(self[0].input.structure)
 
     @lazy_property
@@ -963,12 +952,14 @@ class _BaseFdWork(Work):
 
     @lazy_property
     def gs_tasks_ids(self) -> set:
+        """Set with the ids of the gs tasks."""
         return {task.node_id for task in self.gs_tasks_pv.flat}
 
     def allocate_tasks_pv(self, relax_ions: bool, relax_ions_opts) -> None:
         """
+        Allocate arrays with GS tasks and relax tasks. Also, set input variables for ionic relaxations.
         """
-        # Provide default values for relaxation algorithm the allow use to override settings.
+        # Provide default values for relaxation algorithm, and allow user to override settings.
         self.relax_ions = relax_ions
         self.relax_ions_opts = {"ionmov": 2, "tolmxf": 1e-6}
         if relax_ions_opts:
@@ -1036,7 +1027,7 @@ class _BaseFdWork(Work):
                     raise ValueError(f"Invalid {ions_mode=}")
 
                 if task is None:
-                    raise RuntimeError(f"Got None task for {ip=}, {ipv=}, {ions_mode=} and work type: {type(self)}")
+                    raise RuntimeError(f"Got None instead of task for {ip=}, {ipv=}, {ions_mode=} and work type: {type(self)}")
                 #print(f"{task=}")
 
                 with task.open_gsr() as gsr:
@@ -1079,7 +1070,7 @@ class _BaseFdWork(Work):
 
 class FiniteDisplWork(_BaseFdWork):
     """
-    This work displaces the atoms in unit cell by a finite amout and performs
+    This work displaces the atoms in unit cell by a finite amount and performs
     GS calculations to get forces and stresses.
     """
     DataCls = DisplData
@@ -1215,7 +1206,7 @@ class FiniteStrainWork(_BaseFdWork):
             if not np.array_equal(strain, strain.T):
                 raise ValueError(f"The strain matrix should be symmetric but got: {strain}")
 
-        # Different pert_values for normal and shear strain.
+        # Use different list of pert_values for normal and shear strain.
         num_points, norm_values, _ipv0 = _mesh_for_fd_accuracy(fd_accuracy, 1, norm_step)
         num_points, shear_values, _ipv0 = _mesh_for_fd_accuracy(fd_accuracy, 1, shear_step)
 
@@ -1237,8 +1228,10 @@ class FiniteStrainWork(_BaseFdWork):
         #                     shear_strains: Sequence[float] = (-0.06, -0.03, 0.03, 0.06),
         #                     symmetry=False,
 
-    def _add_tasks_with_strains_ipv(self, ip: int, ipv_select: int | None,
-                                    structure: Structure, ions_mode: str) -> None:
+    def _add_tasks_with_strains_ipv(self,
+                                    ip: int, ipv_select: int | None,
+                                    structure: Structure,
+                                    ions_mode: str) -> None:
         """Build new GS tasks with strained cells."""
         scf_input = self.scf_input
         pert = self.perts[ip]
@@ -1274,7 +1267,6 @@ class FiniteStrainWork(_BaseFdWork):
 
     def on_ok(self, sender):
         """This method is called when one task reaches status `S_OK`."""
-
         # NB: Only gs tasks should trigger relaxed ions calculations.
 
         if self.relax_ions and sender.node_id in self.gs_tasks_ids:
@@ -1285,6 +1277,22 @@ class FiniteStrainWork(_BaseFdWork):
             self.flow.allocate(build=True)
 
         return super().on_ok(sender)
+
+# TODO: Use ElasticData from dfpt.elastic module
+#from abipy.dfpt.elastic import ElasticData
+#el_data = ElasticData(
+#             structure,
+#             params
+#             elastic_clamped=None,
+#             elastic_relaxed=None,
+#             elastic_stress_corr=None,
+#             elastic_relaxed_fixed_D=None,
+#             piezo_clamped=None,
+#             piezo_relaxed=None,
+#             d_piezo_relaxed=None,
+#             g_piezo_relaxed=None,
+#             h_piezo_relaxed=None)
+
 
 
 class _FieldWork(_BaseFdWork):
@@ -1349,7 +1357,6 @@ class _FieldWork(_BaseFdWork):
 
     def on_ok(self, sender):
         """This method is called when one task reaches status `S_OK`."""
-
         # NB: Only gs tasks should trigger relaxed ions calculations.
 
         if self.relax_ions and sender.node_id in self.gs_tasks_ids:
@@ -1418,11 +1425,12 @@ class FiniteEfieldWork(_FieldWork):
     """
     DataCls = ElectricFieldData
 
-    def _add_tasks_with_efield_ipv(self, ip: int, ipv_select: int | None,
+    def _add_tasks_with_efield_ipv(self,
+                                   ip: int,
+                                   ipv_select: int | None,
                                    structure: Structure, ions_mode: str) -> None:
         """Build new GS tasks with finite electric field."""
         scf_input = self.scf_input.new_with_structure(structure)
-        #print(f"{ip=}")
         pert = self.perts[ip]
         task_pv0 = None
 

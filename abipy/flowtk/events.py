@@ -14,16 +14,19 @@ import abc
 import logging
 import numpy as np
 
-from ruamel.yaml import YAML, yaml_object
+from io import StringIO
 from typing import Union, Iterator
+from ruamel.yaml import YAML, yaml_object
 from monty.string import indent, is_string
 from monty.fnmatch import WildCard
 from monty.termcolor import colored
 from monty.inspect import all_subclasses
 from monty.json import MontyDecoder, MSONable
 from pymatgen.core.structure import Structure
+from abipy.tools.typing import Figure
 from abipy.tools.serialization import pmg_serialize
 from abipy.tools.iotools import yaml_safe_load, yaml_unsafe_load
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend
 from .abiinspect import YamlTokenizer
 
 logger = logging.getLogger(__name__)
@@ -908,3 +911,78 @@ class MemoryErrorHandler(ErrorHandler):
         Shouldn't do anything on the input
         """
         return None
+
+
+class LogMemParser:
+    """
+    This object parses the ABINIT log file to extract info on memory allocations.
+    """
+
+    def __init__(self, filepath: str):
+        self.filepath = filepath
+
+        # NB: pstat is only supported by Linux.
+        #real(dp) :: vmrss_mb = -one
+        #! Actual physical RAM used.
+        #! It contains the three following parts (VmRSS = RssAnon + RssFile + RssShmem)
+
+        #real(dp) :: vmpeak_mb = -one
+        #! Peak virtual memory size
+
+        #real(dp) :: vmstk_mb = -one
+        #! Size of stack segments
+
+        w = WildCard("*Error") # FIXME
+        self.docs = []
+        with YamlTokenizer(filepath) as tokens:
+            for doc in tokens:
+                if not w.match(doc.tag): continue
+                self.docs.append(doc)
+
+        # Extract lines with MEM or TIME info. Examples:
+        #
+        # Local memory for chi_q(g',r) matrices: 63.5  [Mb] <<< MEM
+        # Chi my_ir [500/3375] (tot: 3375) , wall:  0.00 [s] , cpu:  0.00 [s] <<< TIME
+
+        self.mem_lines, self.time_lines = [], []
+        with open(self.filepath, "rt") as fh:
+            for line in fh:
+                line = line.strip()
+                if line.endswith("<<< MEM"):
+                    self.mem_lines.append(line)
+                if line.endswith("<<< TIME"):
+                    self.time_lines.append(line)
+
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level `verbose`."""
+        strio = StringIO()
+        for i, doc in enumerate(self.docs):
+            print(doc, file=strio)
+
+        if verbose:
+            for line in self.time_lines:
+                print(line)
+            print(2 * "\n")
+            for line in self.mem_lines:
+                print(line)
+
+        strio.seek(0)
+        return strio.read()
+
+    @add_fig_kwargs
+    def plot_mem(self, what="vmrss_mb", ax=None, fontsize=8, **kwargs) -> Figure:
+        """
+        Plot memory requirements.
+
+        Args:
+            what: `vmrss_mb` for actual physical RAM used.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        yvals = [float(doc[what]) for doc in self.docs]
+        ax.plot(yvals, marker="o")
+        set_grid_legend(ax, fontsize, ylabel=what) #, xlabel="Iteration") ,
+
+        return fig

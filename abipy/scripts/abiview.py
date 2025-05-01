@@ -14,6 +14,7 @@ from pprint import pformat
 from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
+from abipy.abio.outputs import AbinitOutputFile
 from abipy.iotools.visualizer import Visualizer
 from abipy.tools.plotting import MplExposer, PanelExposer, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
 
@@ -108,15 +109,38 @@ def abiview_data(options):
 #    return 0
 
 
-#def abiview_logmem(options):
-#    """
-#    """
-#    with abilab.abiopen(options.filepath) as abilog:
-#        print(abilog.to_string(verbose=options.verbose))
-#        abilog.plot()
-#        #timer = abilog.get_timer()
-#    return 0
+def abiview_timer(options):
+    """
+    Plot the ABINIT timer reported in the main output file. Requires timopt != 0.
+    """
+    key = "wall_time"
+    nmax = 5
+    from abipy.tools.plotting import MplExposer
+    with AbinitOutputFile(options.filepath) as abo:
+        timer = abo.get_timer()
+        #print(timer.to_string(verbose=options.verbose))
 
+        with MplExposer(slide_mode=options.slide_mode,
+                        slide_timeout=options.slide_timeout,
+                        expose_web=options.expose_web,
+                        verbose=options.verbose) as e:
+
+            #e(timer.plot_efficiency(key=key, what="good+bad", nmax=nmax))
+            e(timer.plot_pie(key=key, minfract=0.05, show=False))
+            e(timer.plot_stacked_hist(key=key, nmax=nmax, show=False))
+
+    return 0
+
+
+def abiview_logmem(options):
+    """
+    Analyze the ABINIT log file to extract virtual memory info (requires Linux).
+    """
+    from abipy.flowtk.events import LogMemParser
+    parser = LogMemParser(options.filepath)
+    print(parser.to_string(verbose=options.verbose))
+    parser.plot_mem()
+    return 0
 
 
 def abiview_dirviz(options) -> int:
@@ -149,8 +173,10 @@ def abiview_ebands(options) -> int:
         #    print(abifile.to_string(verbose=options.verbose))
         else:
             print(abifile.to_string(verbose=options.verbose))
-            abifile.expose_ebands(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                                  expose_web=options.expose_web, verbose=options.verbose)
+            abifile.expose_ebands(slide_mode=options.slide_mode,
+                                  slide_timeout=options.slide_timeout,
+                                  expose_web=options.expose_web,
+                                  verbose=options.verbose)
 
         return 0
 
@@ -298,7 +324,7 @@ Computing phonon bands and DOS from DDB file with:
                 e(phdos_file.plot_pjdos_type(units=units, show=False))
                 e(phbands.plot_colored_matched(units=units, show=False))
                 e(phdos.plot_harmonic_thermo(tstart=5, tstop=300, num=50, units="eV", formula_units=1,
-                             quantities="all", show=False))
+                                             quantities="all", show=False))
                 e(phdos.plot(units=units, show=False))
                 e(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
 
@@ -756,7 +782,7 @@ def get_parser(with_epilog=False):
     # Parent parser for commands supporting plotly plots
     plotly_parser = argparse.ArgumentParser(add_help=False)
     plotly_parser.add_argument("-ply", '--plotly', default=False, action="store_true",
-        help='Generate plotly plots in browser instead of matplotlib.')
+        help='Generate plotly plots in the browser instead of matplotlib.')
     plotly_parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
         help="Push figure to plotly chart studio. " +
              "Requires --plotly and user account at https://chart-studio.plotly.com.")
@@ -820,7 +846,9 @@ def get_parser(with_epilog=False):
     # Subparser for abo command.
     #p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
 
-    #p_logmem = subparsers.add_parser('logmem', parents=[copts_parser], help=abiview_logmem.__doc__)
+    p_timer = subparsers.add_parser('timer', parents=[copts_parser, slide_parser], help=abiview_timer.__doc__)
+
+    p_logmem = subparsers.add_parser('logmem', parents=[copts_parser], help=abiview_logmem.__doc__)
 
     # Subparser for dirviz command.
     p_dirviz = subparsers.add_parser('dirviz', parents=[copts_parser], help=abiview_dirviz.__doc__)

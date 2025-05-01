@@ -72,7 +72,7 @@ class MyPiezoTensor(PiezoTensor):
         """
         Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
-        Elements below `to`l are set to zero.
+        Elements below `tol` are set to zero.
         """
         tensor = self.zeroed(tol=tol)
         index = ["Px", "Py", "Pz"]
