@@ -935,7 +935,7 @@ class LogMemParser:
         self.docs = []
         with YamlTokenizer(filepath) as tokens:
             for doc in tokens:
-                if doc.tag ! "!PstatData": continue
+                if doc.tag != "!PstatData": continue
                 self.docs.append(doc)
 
         # Extract lines with MEM or TIME info. Examples:
