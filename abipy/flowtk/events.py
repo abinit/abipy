@@ -933,9 +933,11 @@ class LogMemParser:
         #! Size of stack segments
 
         self.docs = []
+        _yaml = YAML(typ='safe', pure=True)
         with YamlTokenizer(filepath) as tokens:
             for doc in tokens:
                 if doc.tag != "!PstatData": continue
+                doc = _yaml.load(doc.text)
                 self.docs.append(doc)
 
         # Extract lines with MEM or TIME info. Examples:
@@ -1005,7 +1007,6 @@ class LogMemParser:
 
         for ax, (file_name, yvals) in zip(ax_list, data.items(), strict=True):
             ax.plot(yvals, marker="o")
-
             set_grid_legend(ax, fontsize, ylabel=what, title=file_name) #, xlabel="Iteration") ,
 
         return fig
