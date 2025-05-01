@@ -2307,10 +2307,8 @@ class Zeffs(Has_Structure, MSONable):
         """
         aview = self._get_atomview(view, select_symbols=elements, verbose=verbose)
 
-        cols2inds = {"xx": (0,0), "yy": (1,1), "zz": (2,2),
-                     "xy": (0, 1), "xz": (0, 2),
-                     "yx": (1, 0), "yz": (1, 2),
-                     "zx": (2, 0), "zy": (2, 1)}
+        comps2inds = {"xx": (0,0), "yy": (1,1), "zz": (2,2),
+                     "xy": (0, 1), "xz": (0, 2), "yx": (1, 0), "yz": (1, 2), "zx": (2, 0), "zy": (2, 1)}
         rows = []
         for iatom, wlabel in zip(aview.iatom_list, aview.wyck_labels, strict=True):
             site = self.structure[iatom]
@@ -2321,7 +2319,7 @@ class Zeffs(Has_Structure, MSONable):
             d["frac_coords"] = site.frac_coords
             #d["cart_coords"] = site.coords
             d["wyckoff"] = wlabel
-            for k, ind in cols2inds.items():
+            for k, ind in comps2inds.items():
                 d[k] = zstar[ind]
 
             if with_geo:
@@ -3261,7 +3259,7 @@ class DdbRobot(Robot):
     def anacompare_becs(self, ddb_header_keys=None, chneut=1, with_path=False, verbose=0):
         """
         Compute Born effective charges for all DDBs in the robot and build DataFrame.
-        with Voigt indices as columns + metadata. Useful for convergence studies.
+        with values and metadata. Useful for convergence studies.
 
         Args:
             ddb_header_keys: List of keywords in the header of the DDB file
@@ -3272,7 +3270,7 @@ class DdbRobot(Robot):
 
         Return: ``namedtuple`` with the following attributes::
 
-            df: DataFrame with Voigt as columns.
+            df: DataFrame.
             becs_list: list of Zeffs objects.
         """
         ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)

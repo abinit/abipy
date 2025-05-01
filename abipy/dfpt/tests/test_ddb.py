@@ -228,6 +228,23 @@ class DdbTest(AbipyTest):
         #print(max_err)
         assert max_err == 0
 
+        # Test DielectricDataList
+        from abipy.tools.tensors import DielectricDataList
+        diel_data = DielectricDataList()
+        diel_data.append((epsinf, ddb.structure, {"nkpt": 10}))
+        diel_data.append([epsinf, ddb.structure, {"nkpt": 20}])
+        diel_data.append((np.eye(3), ddb.structure, {"nkpt": 30}))
+        assert diel_data.has_same_structure()
+        df = diel_data.get_dataframe(with_geo=True)
+        print(diel_data)
+
+        with self.assertRaises(TypeError):
+            diel_data.append((ddb.structure, epsinf, {"nkpt": 10}))
+        with self.assertRaises(TypeError):
+            diel_data.append([epsinf, ddb.structure])
+
+        df = diel_data.get_dataframe()
+
         self.assert_almost_equal(phdos.idos.values[-1], 3 * len(ddb.structure), decimal=1)
         phbands_file.close()
         phdos_file.close()

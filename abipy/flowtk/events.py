@@ -932,11 +932,10 @@ class LogMemParser:
         #real(dp) :: vmstk_mb = -one
         #! Size of stack segments
 
-        w = WildCard("*Error") # FIXME
         self.docs = []
         with YamlTokenizer(filepath) as tokens:
             for doc in tokens:
-                if not w.match(doc.tag): continue
+                if doc.tag ! "!PstatData": continue
                 self.docs.append(doc)
 
         # Extract lines with MEM or TIME info. Examples:
@@ -973,7 +972,7 @@ class LogMemParser:
         return strio.read()
 
     @add_fig_kwargs
-    def plot_mem(self, what="vmrss_mb", ax=None, fontsize=8, **kwargs) -> Figure:
+    def plot(self, what="vmrss_mb", ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot memory requirements.
 
@@ -984,5 +983,29 @@ class LogMemParser:
         yvals = [float(doc[what]) for doc in self.docs]
         ax.plot(yvals, marker="o")
         set_grid_legend(ax, fontsize, ylabel=what) #, xlabel="Iteration") ,
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_by_file(self, what="vmrss_mb", fontsize=8, **kwargs) -> Figure:
+        """
+        Plot memory requirements. One plot for file.
+
+        Args:
+            what: `vmrss_mb` for actual physical RAM used.
+        """
+        data = collections.defaultdict(list)
+        for doc in self.docs:
+            data["file"].append(data[what])
+
+        nrows, ncols = len(data), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=False, sharey=True, squeeze=True)
+        ax_list = ax_list.ravel()
+
+        for ax, (file_name, yvals) in zip(ax_list, data.items(), strict=True):
+            ax.plot(yvals, marker="o")
+
+            set_grid_legend(ax, fontsize, ylabel=what, title=file_name) #, xlabel="Iteration") ,
 
         return fig

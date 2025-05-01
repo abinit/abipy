@@ -29,6 +29,7 @@ from abipy.core.structure import Structure
 #from abipy.core.mixins import NotebookWriter #
 from abipy.tools.numtools import build_mesh
 from abipy.tools.derivatives import central_fdiff_weights
+from abipy.tools.tensors import DielectricDataList
 from abipy.tools import duck
 from abipy.tools.typing import Figure
 from abipy.abio.inputs import AbinitInput
@@ -152,7 +153,7 @@ class _FdData(HasPickleIO):
     has_pol: bool                     # True if polarization has been computed with Berry phase.
     has_mag: bool                     # True if magnetization has been computed.
     perts: list[Perturbation]         # List of perturbations.
-    params_p: list[dict]              # Parameters used for each perturbation.
+    params_pv: np.ndarray             # Parameters used for each perturbation. Each entry is a dict.
 
     # The `_pv` suffix stands for perturbation and perturbation value.
     structures_pv: np.ndarray         # Array with structures: shape (npert, np_vals)
@@ -283,6 +284,18 @@ class _FdData(HasPickleIO):
             raise ValueError("elements and iat_list are mutually exclusive.")
         return elements, iat_list
 
+    def add_geo_and_params(self, dct: dict, with_geo: bool, with_params: bool, with_spglib: bool = False, **kwargs):
+        """
+        Add info on structure and computational parameters to dct
+        """
+        # Add info on structure.
+        if with_geo:
+            geo_dict = self.structure.get_dict4pandas(with_geo=with_geo, with_spglib=with_spglib, **kwargs)
+            dct.update(geo_dict)
+
+        if with_params:
+            dic.update(self.params)
+
     def print_relaxed_coords(self,
                              elements: list[str] | None = None,
                              iat_list: int | None = None) -> None:
@@ -315,7 +328,7 @@ class _FdData(HasPickleIO):
         field2zeff = {PertKind.E: "Ze", PertKind.H: "Zm"}
 
         if self.pert_kind in field2zeff:
-            zeff_name, what_to_diff = [self.pert_kind], "forces"
+            zeff_name, what_to_diff = field2zeff[self.pert_kind], "forces"
 
         elif self.pert_kind == PertKind.DISPL:
             if self.has_pol:
@@ -387,8 +400,9 @@ class _FdData(HasPickleIO):
             _p(self.initial_structure)
             _p("")
 
-        #_p(f"{zeff_name}[atom_dir, {self.pert_kind}_dir] in Cart. coords for {iatom=} ({self.ions_mode}) " +
         zeffs_list = self.get_zeffs_list()
+        zeff_name = zeffs_list[0].name
+        _p(f"{zeff_name}[atom_dir, {self.pert_kind}_dir] in Cart. coords and a.u.")
         df = zeffs_list.concat(elements=elements)
         _p(df)
 
@@ -605,7 +619,8 @@ class StrainData(_FdData):
         rows = []
         for npts in self.dstress_dpert_npts:
             cmat = self.get_elastic(npts)
-            rows.append(_dict_from_mat_npts(cmat, cmat_comps, npts))
+            d = _dict_from_mat_npts(cmat, cmat_comps, npts)
+            rows.append(d)
 
         return pd.DataFrame(rows)
 
@@ -643,7 +658,7 @@ class _HasExternalField:
 
     def find_ip_pert_from_cart_dir(self, field_cart_dir) -> tuple[int, Perturbation]:
         """
-        Find the perturbation from field_cart_dir that can be either a vector or an integer.
+        Find the perturbation from `field_cart_dir` that can be either a vector or an integer.
         Return perturbation index and perturbation.
         """
         if duck.is_intlike(field_cart_dir):
@@ -718,37 +733,69 @@ class ElectricFieldData(_FdData, _HasExternalField):
         eps[np.diag_indices_from(eps)] += 1.0
         return eps
 
-    def get_epsinf_df(self) -> pd.Dataframe:
+    def get_epsinf_data(self, with_geo=False, with_params=False) -> DielectricDataList:
         """
         Dataframe with the components of eps_infinity obtained with different FD points.
+
+        Args:
+            with_geo: True to add info on structure.
+            with_params: True to add calculations parameters.
         """
-        eps_inf_comps = list(itertools.product(self.pert_dir_comps, self.pert_dir_comps))
-        rows = []
+        #comps2inds = {"xx": (0,0), "yy": (1,1), "zz": (2,2),
+        #              "xy": (0, 1), "xz": (0, 2), "yx": (1, 0), "yz": (1, 2), "zx": (2, 0), "zy": (2, 1)}
+
+        #eps_inf_comps = list(itertools.product(self.pert_dir_comps, self.pert_dir_comps))
+
+        diel_data = DielectricDataList()
         for npts in self.dpol_dpert_npts:
             eps_inf = self.get_epsinf(npts)
-            rows.append(_dict_from_mat_npts(eps_inf, eps_inf_comps, npts))
+            meta = {"npts": npts}
+            if with_params:
+                meta.update(self.params)
+            diel_data.append((eps_inf, self.initial_structure, meta))
 
-        return pd.DataFrame(rows)
+        return diel_data
 
-    def get_piezoel(self, npts: int) -> np.ndarray:
+    def get_piezoel(self, npts: int, proper: bool) -> np.ndarray:
         """Improper piezo-electric tensor obtained with npts FD points. Eq (8) of WVH."""
         # dstress_dpert has shape (6, npert) in Cart. coords.
         dstress_dpert = self.dstress_dpert_npts[npts]
         piezoel = np.empty((3, 6))
         for ip, pert in enumerate(self.perts):
             piezoel[ip] = -dstress_dpert[:,ip]
+
+        if proper:
+            # Compute proper tensor. Eq (A9) of WVH.
+            if not self.has_pol:
+                raise RuntimeError("Polarization is needed to compute the proper piezoelectric tensor.")
+            raise NotImplementedError()
+            # Go from Voigt to (3,3)
+            # Add polarization terms
+            # Shape: (npert, np_vals, 3)
+            cart_pol = self.cart_pol_pv[ip, ipv0]
+            # From (3, 3) to Voigt.
+
         return piezoel
 
-    def get_piezoel_df(self) -> pd.Dataframe:
+    def get_piezoel_df(self, proper, with_geo=False, with_params=False, **kwargs) -> pd.Dataframe:
         """
         Dataframe with the components of the piezo-electric tensor obtained with different FD points.
+
+        Args:
+            proper
+            with_geo: True to add info on structure.
+            with_params: True to add calculations parameters.
+            kwargs: Optional kwargs passed to add_geo_and_params.
         """
         voigt_comps = [str(i) for i in range(1, 7)]
         piezoel_comps = list(itertools.product(self.pert_dir_comps, voigt_comps))
         rows = []
         for npts in self.dpol_dpert_npts:
-            piezoel = self.get_piezoel(npts)
-            rows.append(_dict_from_mat_npts(piezoel, piezoel_comps, npts))
+            piezoel = self.get_piezoel(npts, proper)
+            d = _dict_from_mat_npts(piezoel, piezoel_comps, npts)
+            self.add_geo_and_params(d, with_geo, with_params, **kwargs)
+            d["proper"] = proper
+            rows.append(d)
 
         return pd.DataFrame(rows)
 
@@ -756,9 +803,10 @@ class ElectricFieldData(_FdData, _HasExternalField):
         """String representation with verbosity level verbose"""
         strio = StringIO()
         print(f"Epsilon_inf tensor in Cartesian coords and a.u. ({self.ions_mode}):\n",
-              self.get_epsinf_df(), end=2*"\n", file=strio)
+              self.get_epsinf_data(), end=2*"\n", file=strio)
+        proper = False
         print(f"Piezoelectric tensor in Cartesian coords and a.u. ({self.ions_mode}):\n",
-              self.get_piezoel_df(), end=2*"\n", file=strio)
+              self.get_piezoel_df(proper), end=2*"\n", file=strio)
         self.print_eff_charges(file=strio)
 
         strio.seek(0)
@@ -788,16 +836,23 @@ class ZeemanData(_FdData, _HasExternalField):
             piezomag[ip] = -dstress_dpert[:,ip]
         return piezomag
 
-    def get_piezomag_df(self) -> pd.Dataframe:
+    def get_piezomag_df(self, with_geo=False, with_params=False, **kwargs) -> pd.Dataframe:
         """
         Dataframe with the components of the piezo-magnetic tensor obtained with different FD points.
+
+        Args:
+            with_geo: True to add info on structure.
+            with_params: True to add calculations parameters.
+            kwargs: Optional kwargs passed to add_geo_and_params.
         """
         voigt_comps = [str(i) for i in range(1, 7)]
         piezomag_comps = list(itertools.product(self.pert_dir_comps, voigt_comps))
         rows = []
         for npts in self.dstress_dpert_npts:
             piezomag = self.get_piezomag(npts)
-            rows.append(_dict_from_mat_npts(piezomag, piezomag_comps, npts))
+            d = _dict_from_mat_npts(piezomag, piezomag_comps, npts)
+            self.add_geo_and_params(d, with_geo, with_params, **kwargs)
+            rows.append(d)
 
         return pd.DataFrame(rows)
 
@@ -813,12 +868,17 @@ class ZeemanData(_FdData, _HasExternalField):
 
 
 
-def _dict_from_mat_npts(mat: np.ndarray, mat_comps: list[str], npts: int, with_info: bool = True) -> dict:
+def _dict_from_mat_npts(mat: np.ndarray, mat_comps: list[str], npts: int, with_info: bool = True,
+                        comps2inds: dict | None = None) -> dict:
     """
     Convert a numpy array to a dict that can be used to construct a pandas DataFrame.
     """
     d = {"npts": npts}
-    d.update({c: v for c, v in zip(mat_comps, mat.flatten(), strict=True)})
+    if comps2inds is None:
+        d.update({c: v for c, v in zip(mat_comps, mat.flatten(), strict=True)})
+    else:
+        for k, ind in comps2inds.items():
+            d[k] = mat[ind]
 
     if with_info and mat.shape[0] == mat.shape[1]:
         d["iso_avg"]= np.trace(mat) / mat.shape[0]
@@ -993,7 +1053,6 @@ class _BaseFdWork(Work):
             "initial_structure": self[0].input.structure,
             "ions_mode": ions_mode,
             "perts": self.perts,
-            "params_p": [],
             "has_pol": has_pol,
             "has_mag": has_mag,
         }
@@ -1003,6 +1062,7 @@ class _BaseFdWork(Work):
         data["eterms_pv"] = eterms_pv = np.empty((npert, np_vals), dtype=object)
         data["cart_forces_pv"] = cart_forces_pv = np.empty((npert, np_vals, self.natom, 3))
         data["carts_stresses_pv"] = carts_stresses_pv = np.empty((npert, np_vals, 6))
+        data["params_pv"] = params_pv = np.empty((npert, np_vals), dtype=object)
 
         if has_pol:
             data["cart_pol_pv"] = cart_pol_pv = np.empty((npert, np_vals, 3))
@@ -1039,7 +1099,7 @@ class _BaseFdWork(Work):
                     # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).
                     carts_stresses_pv[ip, ipv] = gsr.r.read_value("cartesian_stress_tensor")
                     # Add parameters that might be used for convergence studies afterwards.
-                    data["params_p"].append(gsr.params)
+                    params_pv[ip, ipv] = gsr.params.copy()
                     if has_mag:
                         # Get magnetization from the GSR file.
                         cart_mag_pv[ip, ipv] = gsr.get_magnetization()
@@ -1061,7 +1121,7 @@ class _BaseFdWork(Work):
         """This method is called when all tasks have reached S_OK."""
         data = self.get_data()
         for ions_mode, obj in data.items():
-            with open(Path(self.outdir.path ) / f"{ions_mode}_{obj.__class__.__name__}.pickle", "wb") as fh:
+            with open(Path(self.outdir.path) / f"{ions_mode}_{obj.__class__.__name__}.pickle", "wb") as fh:
                 pickle.dump(obj, fh)
             #mjson_write(obj, Path(self.outdir.path ) / f"{ions_mode}_{obj.__class__.__name__}.json")
 
@@ -1264,7 +1324,6 @@ class FiniteStrainWork(_BaseFdWork):
             else:
                 raise ValueError(f"Invalid {ions_mode=}")
 
-
     def on_ok(self, sender):
         """This method is called when one task reaches status `S_OK`."""
         # NB: Only gs tasks should trigger relaxed ions calculations.
@@ -1278,20 +1337,30 @@ class FiniteStrainWork(_BaseFdWork):
 
         return super().on_ok(sender)
 
-# TODO: Use ElasticData from dfpt.elastic module
-#from abipy.dfpt.elastic import ElasticData
-#el_data = ElasticData(
-#             structure,
-#             params
-#             elastic_clamped=None,
-#             elastic_relaxed=None,
-#             elastic_stress_corr=None,
-#             elastic_relaxed_fixed_D=None,
-#             piezo_clamped=None,
-#             piezo_relaxed=None,
-#             d_piezo_relaxed=None,
-#             g_piezo_relaxed=None,
-#             h_piezo_relaxed=None)
+    def on_all_ok(self):
+        """This method is called when all tasks have reached S_OK."""
+        data = self.get_data()
+        for ions_mode, obj in data.items():
+            with open(Path(self.outdir.path) / f"{ions_mode}_{obj.__class__.__name__}.pickle", "wb") as fh:
+                pickle.dump(obj, fh)
+            #mjson_write(obj, Path(self.outdir.path ) / f"{ions_mode}_{obj.__class__.__name__}.json")
+
+        # TODO: Use ElasticData from dfpt.elastic module
+        #from abipy.dfpt.elastic import ElasticData
+        #el_data = ElasticData(
+        #             self.initial_structure,
+        #             params=self.params_pv[0,0]
+        #             elastic_clamped=None,
+        #             elastic_relaxed=None,
+        #             elastic_stress_corr=None,
+        #             elastic_relaxed_fixed_D=None,
+        #             piezo_clamped=None,
+        #             piezo_relaxed=None,
+        #             d_piezo_relaxed=None,
+        #             g_piezo_relaxed=None,
+        #             h_piezo_relaxed=None)
+
+        return super().on_all_ok()
 
 
 

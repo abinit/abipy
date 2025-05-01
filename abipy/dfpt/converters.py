@@ -94,7 +94,7 @@ def abinit_to_phonopy(anaddbnc, supercell_matrix, symmetrize_tensors=False, outp
     supercell = get_pmg_structure(phon_supercell)
 
     abi_hall_num = s.abi_spacegroup.get_spglib_hall_number()
-    spglib_hall_num = phonon.symmetry.dataset["hall_number"]
+    spglib_hall_num = phonon.symmetry.dataset.hall_number
     if abi_hall_num != spglib_hall_num:
         warnings.warn("The hall number obtained based on the DDB symmetries differs "
                       f"from the one calculated with spglib: {abi_hall_num} versus "

@@ -139,7 +139,8 @@ def abiview_logmem(options):
     from abipy.flowtk.events import LogMemParser
     parser = LogMemParser(options.filepath)
     print(parser.to_string(verbose=options.verbose))
-    parser.plot_mem()
+    parser.plot()
+    parser.plot_by_file()
     return 0
 
 

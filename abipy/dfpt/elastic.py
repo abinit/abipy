@@ -506,3 +506,35 @@ class ElasticData(Has_Structure, MSONable):
             return df.reset_index()
         else:
             return df
+
+
+# TODO
+#class ElasticDataList(list):
+#    """
+#    A list of ElasticData objects associated to a list of structures or the same structure.
+#    Useful for convergence studies.
+#    """
+#
+#    def append(self, obj) -> None:
+#        """Extend append method with validation logic."""
+#        if not isinstance(obj, ElasticData):
+#            raise TypeError(f"Expecting ElasticData instance but got {type(obj)=}")
+#
+#        return super().append(obj)
+#
+#    def has_same_structure(self) -> bool:
+#        """True if all structures are equal."""
+#        if len(self) in (0, 1): return True
+#        structure0 = self[0].structure
+#        return all(structure0 == z.structure for z in self[1:])
+#
+#    def concat(self, tensor_name: str **kwargs) -> pd.DataFrame:
+#        """
+#        Concatenate all the dataframes in the list, kwargs are passed to get_dataframe.
+#        """
+#        df_list = []
+#        for el_data in self:
+#            df = el_data.get_elastic_tensor_dataframe(**kwargs)
+#            df_list.append(df)
+#
+#        return pd.concat(df_list)
