@@ -132,15 +132,22 @@ def abiview_timer(options):
     return 0
 
 
-def abiview_logmem(options):
+def abiview_memlog(options):
     """
     Analyze the ABINIT log file to extract virtual memory info (requires Linux).
     """
-    from abipy.flowtk.events import LogMemParser
-    parser = LogMemParser(options.filepath)
+    from abipy.flowtk.events import MemLogParser
+    parser = MemLogParser(options.filepath)
     print(parser.to_string(verbose=options.verbose))
-    parser.plot()
-    parser.plot_by_file()
+
+    with MplExposer(slide_mode=options.slide_mode,
+                    slide_timeout=options.slide_timeout,
+                    expose_web=options.expose_web,
+                    verbose=options.verbose) as e:
+
+        e(parser.plot(show=False))
+        e(parser.plot_by_file(show=False))
+
     return 0
 
 
@@ -849,7 +856,7 @@ def get_parser(with_epilog=False):
 
     p_timer = subparsers.add_parser('timer', parents=[copts_parser, slide_parser], help=abiview_timer.__doc__)
 
-    p_logmem = subparsers.add_parser('logmem', parents=[copts_parser], help=abiview_logmem.__doc__)
+    p_memlog = subparsers.add_parser('memlog', parents=[copts_parser, slide_parser], help=abiview_memlog.__doc__)
 
     # Subparser for dirviz command.
     p_dirviz = subparsers.add_parser('dirviz', parents=[copts_parser], help=abiview_dirviz.__doc__)

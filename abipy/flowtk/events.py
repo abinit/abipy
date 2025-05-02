@@ -9,15 +9,17 @@ import sys
 import os.path
 import datetime
 import collections
-import ruamel.yaml as yaml
+import dataclasses
 import abc
 import logging
 import numpy as np
+import pandas as pd
+import ruamel.yaml as yaml
 
 from io import StringIO
 from typing import Union, Iterator
 from ruamel.yaml import YAML, yaml_object
-from monty.string import indent, is_string
+from monty.string import indent, is_string, list_strings
 from monty.fnmatch import WildCard
 from monty.termcolor import colored
 from monty.inspect import all_subclasses
@@ -26,7 +28,7 @@ from pymatgen.core.structure import Structure
 from abipy.tools.typing import Figure
 from abipy.tools.serialization import pmg_serialize
 from abipy.tools.iotools import yaml_safe_load, yaml_unsafe_load
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend, rotate_ticklabels
 from .abiinspect import YamlTokenizer
 
 logger = logging.getLogger(__name__)
@@ -918,25 +920,58 @@ class MemoryErrorHandler(ErrorHandler):
         return None
 
 
-class LogMemParser:
+
+@dataclasses.dataclass(kw_only=True)
+class _MemRecord:
+    label: str
+    mem_mb: float
+
+
+@dataclasses.dataclass(kw_only=True)
+class _TimeRecord:
+    label: str
+    wall_time: float  # time is in seconds here!
+    cpu_time: float
+
+
+def str2sec(time_str: str) -> float:
+    import re
+    time_str = time_str.strip()
+
+    # [days] format: e.g., 1-02:03:04 [days]
+    if m := re.match(r"(\d+)-(\d+):(\d+):(\d+)\s+\[days\]", time_str):
+        days, hours, minutes, seconds = map(int, m.groups())
+        return days * 86400 + hours * 3600 + minutes * 60 + seconds
+
+    # [hours] format: e.g., 02:03:04 [hours]
+    if m := re.match(r"(\d+):(\d+):(\d+)\s+\[hours\]", time_str):
+        hours, minutes, seconds = map(int, m.groups())
+        return hours * 3600 + minutes * 60 + seconds
+
+    # [minutes] format: e.g., 03:04 [minutes]
+    if m := re.match(r"(\d+):(\d+)\s+\[minutes\]", time_str):
+        minutes, seconds = map(int, m.groups())
+        return minutes * 60 + seconds
+
+    # [s] format: e.g., 12.34 [s]
+    if m := re.match(r"([\d.]+)\s+\[s\]", time_str):
+        return float(m.group(1))
+
+    raise ValueError(f"Unrecognized time format: {time_str}")
+
+
+class MemLogParser:
     """
     This object parses the ABINIT log file to extract info on memory allocations.
     """
+
+    MEM_TAG = "<<< MEM"
+    TIME_TAG = "<<< TIME"
 
     def __init__(self, filepath: str):
         self.filepath = filepath
 
         # NB: pstat is only supported by Linux.
-        #real(dp) :: vmrss_mb = -one
-        #! Actual physical RAM used.
-        #! It contains the three following parts (VmRSS = RssAnon + RssFile + RssShmem)
-
-        #real(dp) :: vmpeak_mb = -one
-        #! Peak virtual memory size
-
-        #real(dp) :: vmstk_mb = -one
-        #! Size of stack segments
-
         self.docs = []
         _yaml = YAML(typ='safe', pure=True)
         pstat_tag = "!PstatData"
@@ -946,73 +981,101 @@ class LogMemParser:
                 doc = _yaml.load(doc.text.replace(pstat_tag, ""))
                 self.docs.append(doc)
 
-        # Extract lines with MEM or TIME info. Examples:
-        #
-        # Local memory for chi_q(g',r) matrices: 63.5  [Mb] <<< MEM
-        # Chi my_ir [500/3375] (tot: 3375) , wall:  0.00 [s] , cpu:  0.00 [s] <<< TIME
-
-        self.mem_lines, self.time_lines = [], []
+        # Extract lines with MEM or TIME info.
+        # TODO: Standardize output in Abinit
+        self.mem_records, self.time_records = [], []
         with open(self.filepath, "rt") as fh:
             for line in fh:
                 line = line.strip()
-                if line.endswith("<<< MEM"):
-                    self.mem_lines.append(line)
-                if line.endswith("<<< TIME"):
-                    self.time_lines.append(line)
+                if line.endswith(self.MEM_TAG):
+                    self._parse_mem_line(line)
+                #if line.endswith(self.TIME_TAG):
+                #    self._parse_time_line(line)
 
-    def __str__(self):
-        return self.to_string()
+    def _parse_mem_line(self, line) -> None:
+        # Parse line in the form.
+        # `Local memory for chi_q(g',r) matrices: 63.5  [Mb] <<< MEM`
+        line = line.replace(self.MEM_TAG, "")
+        tokens = line.split()
+        units = tokens.pop().replace("[", "").replace("]", "").strip()
+        if units == "Mb":
+            fact = 1
+        else:
+            raise ValueError(f"Too lazy to implement conversion for {units}")
+        mem_mb = fact * float(tokens.pop())
+        self.mem_records.append(_MemRecord(label=" ".join(tokens), mem_mb=mem_mb))
+
+    #def _parse_time_line(self, line) -> None
+    #    # Parse line in the form.
+    #    #   `Chi my_ir [500/3375] (tot: 3375) , wall:  0.00 [s] , cpu:  0.00 [s] <<< TIME`
+    #    line = line.replace(self.TIME_TAG, "")
+    #    tokens = line.split()
+
+    def get_dataframe(self) -> pd.DataFrame:
+        """Build dataframe from list of dictionaries."""
+        return pd.DataFrame(self.docs)
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
         strio = StringIO()
-        for i, doc in enumerate(self.docs):
-            print(doc, file=strio)
+        def _p(*args, **kwargs):
+            print(*args, file=strio, **kwargs)
 
-        if verbose:
-            for line in self.time_lines:
-                print(line)
-            print(2 * "\n")
-            for line in self.mem_lines:
-                print(line)
+        df = self.get_dataframe()
+        _p(df)
 
         strio.seek(0)
         return strio.read()
 
+    def __str__(self):
+        return self.to_string()
+
     @add_fig_kwargs
     def plot(self, what="vmrss_mb", ax=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot memory requirements.
+        Plot physical RAM used.
 
         Args:
             what: `vmrss_mb` for actual physical RAM used.
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        yvals = [float(doc[what]) for doc in self.docs]
-        ax.plot(yvals, marker="o")
-        set_grid_legend(ax, fontsize, ylabel=what) #, xlabel="Iteration") ,
+        xs = ["%s@%s" % (doc["file"], doc["line"]) for doc in self.docs]
+        ys = [float(doc[what]) for doc in self.docs]
+        ax.plot(xs, ys, marker="o")
+        rotate_ticklabels(ax, 15)
+        set_grid_legend(ax, fontsize, ylabel=what)
 
         return fig
 
     @add_fig_kwargs
-    def plot_by_file(self, what="vmrss_mb", fontsize=8, **kwargs) -> Figure:
+    def plot_by_file(self, what="vmrss_mb", filenames=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot memory requirements. One plot for file.
+        Plot physical RAM used. One subplot for file.
 
         Args:
             what: `vmrss_mb` for actual physical RAM used.
         """
-        data = collections.defaultdict(list)
-        for doc in self.docs:
-            data[doc["file"]].append(data[what])
+        xs_file = collections.defaultdict(list)
+        ys_file = collections.defaultdict(list)
+        if filenames is not None:
+            filenames = list_strings(filenames)
 
-        nrows, ncols = len(data), 1
+        for doc in self.docs:
+            filename = doc["file"]
+            if filenames is not None and filename not in filenames: continue
+            ys_file[filename].append(float(doc[what]))
+            xs_file[filename].append("@%s" % (doc["line"]))
+
+        nrows, ncols = len(ys_file), 1
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=False, sharey=True, squeeze=True)
         ax_list = ax_list.ravel()
 
-        for ax, (file_name, yvals) in zip(ax_list, data.items(), strict=True):
-            ax.plot(yvals, marker="o")
-            set_grid_legend(ax, fontsize, ylabel=what, title=file_name) #, xlabel="Iteration") ,
+        for ix, (ax, (file_name, ys)) in enumerate(zip(ax_list, ys_file.items(), strict=True)):
+            xs = xs_file[file_name]
+            ax.plot(xs, ys, marker="o")
+            #rotate_ticklabels(ax, 15)
+            set_grid_legend(ax, fontsize, ylabel=what if ix == 0 else None,
+                            title=file_name)
 
         return fig
