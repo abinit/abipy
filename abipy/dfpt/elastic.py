@@ -4,6 +4,7 @@ Objects to analyze elastic and piezoelectric tensors computed by anaddb.
 """
 from __future__ import annotations
 
+import json
 import pandas as pd
 
 from collections import OrderedDict
@@ -25,11 +26,11 @@ class MyElasticTensor(ElasticTensor):
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, tol=1e-5):
+    def get_voigt_dataframe(self, tol: float = 1e-5) -> pd.DataFrame:
         """
         Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
-        Elements below tol are set to zero.
+        Elements below `tol` are set to zero.
         """
         tensor = self.zeroed(tol=tol)
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
@@ -67,11 +68,11 @@ class MyPiezoTensor(PiezoTensor):
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, tol=1e-5):
+    def get_voigt_dataframe(self, tol: float = 1e-5) -> pd.DataFrame:
         """
         Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
-        Elements below tol are set to zero.
+        Elements below `tol` are set to zero.
         """
         tensor = self.zeroed(tol=tol)
         index = ["Px", "Py", "Pz"]
@@ -89,8 +90,8 @@ class MyPiezoTensor(PiezoTensor):
 
 class ElasticData(Has_Structure, MSONable):
     """
-    Container with the different elastic and piezoelectric tensors
-    computed by anaddb. Data is stored in pymatgen tensor objects.
+    Container with the different elastic and piezoelectric tensors computed by anaddb.
+    Data is stored in pymatgen tensor objects.
 
     Provides methods to analyze/tabulate data
     See also http://progs.coudert.name/elate/mp?query=mp-2172 for a web interface.
@@ -150,9 +151,18 @@ class ElasticData(Has_Structure, MSONable):
             units="GN/c", latex=r"${h}$"),
     }
 
-    def __init__(self, structure, params, elastic_clamped=None, elastic_relaxed=None, elastic_stress_corr=None,
-                 elastic_relaxed_fixed_D=None, piezo_clamped=None, piezo_relaxed=None, d_piezo_relaxed=None,
-                 g_piezo_relaxed=None, h_piezo_relaxed=None):
+    def __init__(self,
+                 structure: Structure,
+                 params: dict,
+                 elastic_clamped=None,
+                 elastic_relaxed=None,
+                 elastic_stress_corr=None,
+                 elastic_relaxed_fixed_D=None,
+                 piezo_clamped=None,
+                 piezo_relaxed=None,
+                 d_piezo_relaxed=None,
+                 g_piezo_relaxed=None,
+                 h_piezo_relaxed=None):
         """
         Args:
             structure: |Structure| object.
@@ -263,13 +273,12 @@ class ElasticData(Has_Structure, MSONable):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String represention with verbosity level `verbose`."""
         lines = []; app = lines.append
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         app(marquee("Anaddb Variables", mark="="))
-        import json
         app(json.dumps(self.params, indent=2, sort_keys=True))
 
         for tensor_type in ("elastic", "piezoelectric"):
@@ -303,7 +312,7 @@ class ElasticData(Has_Structure, MSONable):
         if tol is not None: tensor = tensor.zeroed(tol=tol)
         return tensor
 
-    def name_tensor_list(self, tensor_names=None, tensor_type="all", tol=None):
+    def name_tensor_list(self, tensor_names=None, tensor_type="all", tol=None) -> list:
         """
         List of (name, tensor) tuples. Only tensors stored in the object are returned.
 
@@ -345,7 +354,10 @@ class ElasticData(Has_Structure, MSONable):
 
         return self.__class__(structure, self.params, **kwargs)
 
-    def convert_to_ieee(self, structure=None, initial_fit=True, refine_rotation=True) -> ElasticData:
+    def convert_to_ieee(self,
+                        structure=None,
+                        initial_fit=True,
+                        refine_rotation=True) -> ElasticData:
         """
         Return new set of tensors in IEEE format according to the 1987 IEEE standards.
 
@@ -445,8 +457,13 @@ class ElasticData(Has_Structure, MSONable):
         else:
             return df
 
-    def get_elastic_properties_dataframe(self, tensor_names="all", properties_as_index=False,
-            include_base_props=True, ignore_errors=False, fit_to_structure=False, symprec=0.1) -> pd.DataFrame:
+    def get_elastic_properties_dataframe(self,
+                                        tensor_names="all",
+                                        properties_as_index=False,
+                                        include_base_props=True,
+                                        ignore_errors=False,
+                                        fit_to_structure=False,
+                                        symprec=0.1) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with properties derived from the elastic tensor
         and the associated structure
@@ -489,3 +506,35 @@ class ElasticData(Has_Structure, MSONable):
             return df.reset_index()
         else:
             return df
+
+
+# TODO
+#class ElasticDataList(list):
+#    """
+#    A list of ElasticData objects associated to a list of structures or the same structure.
+#    Useful for convergence studies.
+#    """
+#
+#    def append(self, obj) -> None:
+#        """Extend append method with validation logic."""
+#        if not isinstance(obj, ElasticData):
+#            raise TypeError(f"Expecting ElasticData instance but got {type(obj)=}")
+#
+#        return super().append(obj)
+#
+#    def has_same_structure(self) -> bool:
+#        """True if all structures are equal."""
+#        if len(self) in (0, 1): return True
+#        structure0 = self[0].structure
+#        return all(structure0 == z.structure for z in self[1:])
+#
+#    def concat(self, tensor_name: str **kwargs) -> pd.DataFrame:
+#        """
+#        Concatenate all the dataframes in the list, kwargs are passed to get_dataframe.
+#        """
+#        df_list = []
+#        for el_data in self:
+#            df = el_data.get_elastic_tensor_dataframe(**kwargs)
+#            df_list.append(df)
+#
+#        return pd.concat(df_list)

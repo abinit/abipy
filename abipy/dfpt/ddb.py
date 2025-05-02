@@ -14,7 +14,7 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from functools import lru_cache
-from typing import Any, Union, Tuple #, List, Optional
+from typing import Any
 from monty.string import marquee, list_strings
 from monty.json import MSONable
 from monty.collections import AttrDict, dict2namedtuple
@@ -29,7 +29,12 @@ from abipy.core.structure import Structure
 from abipy.core.kpoints import KpointList, Kpoint
 from abipy.iotools import ETSF_Reader
 from abipy.tools.numtools import data_from_cplx_mode
+from abipy.tools import duck
+from abipy.tools.typing import Figure
+from abipy.tools.iotools import ExitStackWithFiles
+from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
 from abipy.abio.inputs import AnaddbInput
+from abipy.abio.robots import Robot
 from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter
 from abipy.dfpt.ifc import InteratomicForceConstants
 from abipy.dfpt.elastic import ElasticData
@@ -37,11 +42,6 @@ from abipy.dfpt.raman import Raman
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, get_figs_plotly, get_fig_plotly,
                                   add_plotly_fig_kwargs, PlotlyRowColDesc, plotlyfigs_to_browser, push_to_chart_studio)
-from abipy.tools import duck
-from abipy.tools.typing import Figure
-from abipy.tools.iotools import ExitStackWithFiles
-from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
-from abipy.abio.robots import Robot
 
 
 SUBSCRIPT_UNICODE = {
@@ -1580,7 +1580,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Return: ``namedtuple`` with the following attributes::
             epsinf: |DielectricTensor| object.
-            becs: Becs objects.
+            becs: Zeff objects.
             anaddb_input: |AnaddbInput| object.
         """
         if not self.has_lo_to_data():
@@ -1592,10 +1592,16 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         anaddbnc_path = task.outpath_from_ext("anaddb.nc")
 
         # Read data from the netcdf output file produced by anaddb.
+        # In Abinit we have
+        # zeff(3,3,natom)=effective charge on each atom, versus electric
+        #  field and atomic displacement. Note the following convention:
+        #  zeff(electric field direction, atomic direction, atom index)
+
         with ETSF_Reader(anaddbnc_path) as r:
             epsinf = DielectricTensor(r.read_value("emacro_cart").T.copy())
             structure = r.read_structure()
-            becs = Becs(r.read_value("becs_cart"), structure, chneut=inp["chneut"], order="f")
+            params = {k: inp[k] for k in ("chneut", )}
+            becs = Zeffs("Ze", r.read_value("becs_cart"), structure, params=params)
 
             # I'm doing this because there are several examples with:
             #       epsinf, becs = ddb.anaget_epsinf_and_becs()
@@ -1607,7 +1613,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None,
                    mpi_procs=1, workdir=None, manager=None, verbose=0,  anaddb_kwargs=None, return_input=False
-                   ) -> Union[InteratomicForceConstants, Tuple[InteratomicForceConstants, AnaddbInput]]:
+                   ) -> InteratomicForceConstants | tuple[InteratomicForceConstants, AnaddbInput]:
         """
         Execute anaddb to compute the interatomic forces.
 
@@ -1829,8 +1835,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         By default, this method sets the anaddb input variables automatically
         by looking at the 2nd-order derivatives available in the DDB file.
-        This behaviour can be changed by setting explicitly the value of:
-        `relaxed_ion` and `piezo`.
+        This behaviour can be changed by setting explicitly the value of `relaxed_ion` and `piezo`.
 
         Args:
             relaxed_ion: Activate computation of relaxed-ion tensors.
@@ -1957,7 +1962,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         Writes the DDB file to filepath. Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks
-        are be used to produce the file
+        are used to produce the file
         """
         lines = list(self.header.lines)
 
@@ -2208,35 +2213,40 @@ if ifc is not None:
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class Becs(Has_Structure, MSONable):
+class Zeffs(Has_Structure, MSONable):
     """
-    This object stores the Born effective charges and provides tools for data analysis.
+    This object stores effective charges and provides tools for data analysis.
     """
 
     @pmg_serialize
     def as_dict(self) -> dict:
         """Return dictionary with JSON serialization in MSONable format."""
-        return dict(becs_arr=self.values, structure=self.structure, chneut=self.chneut, order="c")
+        return dict(name=self.name, zeff_adf=self.values, structure=self.structure, params=self.params)
 
-    def __init__(self, becs_arr, structure, chneut, order="c"):
+    def __init__(self,
+                 name: str,
+                 zeff_adf: np.ndarray,
+                 structure: Structure,
+                 params: dict | None = None):
         """
         Args:
-            becs_arr: [3, 3, natom] array with the Born effective charges in Cartesian coordinates.
+            name: Name of the effective charge e.g. Ze for Becs, Zm for magnetic effective charges.
+            zeff_adf: [natom, 3, 3] array with the effective charges in Cartesian coordinates.
+                Last axis is the external field (electric or magnetic).
             structure: |Structure| object.
-            chneut: Option used for the treatment of the Charge Neutrality.
-                for the effective charges (anaddb input variable)
-            order: "f" if becs_arr is in Fortran order.
+            params: Dictionary with parameters associated to the computation.
         """
-        assert len(becs_arr) == len(structure)
+        if len(zeff_adf) != len(structure):
+            raise ValueError(f"{len(zeff_adf)=} != {len(structure)=}")
+
         self._structure = structure
-        self.chneut = chneut
+        self.name = name
+        self.params = params if params is not None else {}
 
         # Values is a numpy array while zstars is a list of Tensor objects.
         self.values = np.empty((len(structure), 3, 3))
-        for i, bec in enumerate(becs_arr):
-            mat = becs_arr[i]
-            if order.lower() == "f": mat = mat.T.copy()
-            self.values[i] = mat
+        for iat, bec in enumerate(zeff_adf):
+            self.values[iat] = zeff_adf[iat]
 
         self.zstars = [ZstarTensor(mat) for mat in self.values]
 
@@ -2245,26 +2255,26 @@ class Becs(Has_Structure, MSONable):
         """|Structure| object."""
         return self._structure
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
-        """String representation."""
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level `verbose`"""
         lines = []; app = lines.append
-        app("Born effective charges in Cartesian coordinates (Voigt notation)")
-        app(self.get_voigt_dataframe().to_string())
+        app(f"{self.name} effective charges in Cartesian coordinates:")
+        app(self.get_dataframe().to_string())
         app("")
 
         if verbose:
-            app("Born effective charges (full tensor)")
+            app(f"{self.name} effective charges (full tensor)")
             for site, bec in zip(self.structure, self.values):
                 app("Z* at site: %s" % repr(site))
                 app(str(bec))
                 app("")
 
         # Add info on the bec sum rule.
-        app("Born effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
-        app(str(self.sumrule))
+        #app(f"{self.name} effective charge neutrality sum-rule with chneut: %d\n" % self.chneut)
+        #app(str(self.sumrule))
 
         return "\n".join(lines)
 
@@ -2275,56 +2285,105 @@ class Becs(Has_Structure, MSONable):
 
     def _repr_html_(self) -> str:
         """Integration with jupyter notebooks."""
-        return self.get_voigt_dataframe()._repr_html_()
+        return self.get_dataframe()._repr_html_()
 
-    def get_voigt_dataframe(self, view="inequivalent", tol=1e-3,
-                            select_symbols=None, decimals=5, verbose=0) -> pd.DataFrame:
+    def get_dataframe(self,
+                      view="all",
+                      elements=None,
+                      with_geo: bool = False,
+                      with_spglib: bool = True,
+                      with_params: bool = False,
+                      verbose: int = 0) -> pd.DataFrame:
         """
-        Return |pandas-DataFrame| with Voigt indices as columns and natom rows.
+        Return |pandas-DataFrame| with Zeff values as columns and natom rows.
 
         Args:
             view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
-            tol: Entries are set to zero below this value
-            select_symbols: String or list of strings with chemical symbols.
-                Used to select only atoms of this type.
-            decimals: Number of decimal places to round to.
-                If decimals is negative, it specifies the number of positions to the left of the decimal point.
+            elements: String or list of strings with chemical symbols. Used to select atoms of this type.
+            with_geo: True if structure info should be added to the dataframe
+            with_spglib: If True, spglib_ is invoked to get the spacegroup symbol and number.
+            with_params: True if parameters should be added to the dataframe.
             verbose: Verbosity level.
         """
-        aview = self._get_atomview(view, select_symbols=select_symbols, verbose=verbose)
+        aview = self._get_atomview(view, select_symbols=elements, verbose=verbose)
 
-        columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
+        comps2inds = {"xx": (0,0), "yy": (1,1), "zz": (2,2),
+                     "xy": (0, 1), "xz": (0, 2), "yx": (1, 0), "yz": (1, 2), "zx": (2, 0), "zy": (2, 1)}
         rows = []
-        for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels):
+        for iatom, wlabel in zip(aview.iatom_list, aview.wyck_labels, strict=True):
             site = self.structure[iatom]
             zstar = self.zstars[iatom]
-            d = OrderedDict()
+            d = {}
             d["element"] = site.specie.symbol
             d["site_index"] = iatom
-            d["frac_coords"] = np.round(site.frac_coords, decimals=decimals)
-            d["cart_coords"] = np.round(site.coords, decimals=decimals)
+            d["frac_coords"] = site.frac_coords
+            #d["cart_coords"] = site.coords
             d["wyckoff"] = wlabel
-            zstar = zstar.zeroed(tol=tol)
-            for k, v in zip(columns, zstar.voigt):
-                d[k] = v
-            if verbose:
-                d["determinant"] = np.linalg.det(zstar)
-                d["iso"] = zstar.trace() / 3
+            for k, ind in comps2inds.items():
+                d[k] = zstar[ind]
+
+            if with_geo:
+                d.update(self.structure.get_dict4pandas(with_spglib=with_spglib))
+
+            if with_params:
+                d.update(self.params)
+
+            if verbose or with_params:
+                d["det"] = np.linalg.det(zstar)
+                d["iso_avg"] = zstar.trace() / 3
+
             rows.append(d)
 
         return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
 
-    def check_site_symmetries(self, verbose=0):
+    def check_site_symmetries(self, verbose: int = 0) -> float:
         """
-        Check site symmetries of the Born effective charges. Print output to terminal.
+        Check site symmetries of the effective charges. Print output to terminal.
         Return: max_err
         """
         return self.structure.site_symmetries.check_site_symmetries(self.values, verbose=verbose)
 
 
+class ZeffsList(list):
+    """
+    A list of effective charges associated to a list of structures or the same structure.
+    Each structure shall have the same number of atoms, same element for site and the same chemical formula.
+    """
+
+    def append(self, obj) -> None:
+        """Extend append method with validation logic."""
+        if not isinstance(obj, Zeffs):
+            raise TypeError(f"Expecting Zeffs instance but got {type(obj)=}")
+
+        if self:
+            if len(obj.structure) != len(self[0].structure):
+                raise ValueError(f"{len(obj.structure)=} != {len(self[0].structure)=}")
+            if len(obj.structure.formula) != len(self[0].structure.formula):
+                raise ValueError(f"{len(obj.structure.formula)=} != {len(self[0].structure.formula)=}")
+
+        return super().append(obj)
+
+    def has_same_structure(self) -> bool:
+        """True if all structures are equal."""
+        if len(self) in (0, 1): return True
+        structure0 = self[0].structure
+        return all(structure0 == z.structure for z in self[1:])
+
+    def concat(self, **kwargs) -> pd.DataFrame:
+        """
+        Concatenate all the dataframes in the list, kwargs are passed to get_dataframe.
+        """
+        df_list = []
+        for zeffs in self:
+            df = zeffs.get_dataframe(with_params=True, **kwargs)
+            df_list.append(df)
+
+        return pd.concat(df_list)
+
+
 class DielectricTensorGenerator(Has_Structure):
     """
-    Object used to generate frequency dependent dielectric tensors as obtained
+    Object used to generate the frequency dependent dielectric tensors obtained
     from DFPT calculations. The values are calculated on the fly
     based on the phonon frequencies at gamma and oscillator strengths.
     The first three frequencies would be considered as acoustic modes and
@@ -2482,7 +2541,8 @@ class DielectricTensorGenerator(Has_Structure):
         # the possible imaginary parts of degenerate modes will cancel.
         if duck.is_listlike(gamma_ev):
             gammas = np.asarray(gamma_ev)
-            assert len(gammas) == len(self.phfreqs)
+            if len(gammas) != len(self.phfreqs):
+                raise ValueError(f"{len(gammas)=} != {len(self.phfreqs)=}")
         else:
             gammas = np.ones(len(self.phfreqs)) * float(gamma_ev)
 
@@ -2549,10 +2609,12 @@ class DielectricTensorGenerator(Has_Structure):
             if isinstance(component, (list, tuple)):
                 label = reims % r'$\epsilon_{%d%d}$' % tuple(component)
                 ax.plot(wmesh, reimf(t[:,component[0], component[1]]), label=label, **kwargs)
+
             elif component == 'diag':
                 for i in range(3):
                     label = reims % r'$\epsilon_{%d%d}$' % (i, i)
                     ax.plot(wmesh, reimf(t[:, i, i]), label=label, **kwargs)
+
             elif component in ('all', "offdiag"):
                 for i in range(3):
                     for j in range(3):
@@ -2560,14 +2622,15 @@ class DielectricTensorGenerator(Has_Structure):
                         if component == "offdiag" and i >= j: continue
                         label = reims % r'$\epsilon_{%d%d}$' % (i, j)
                         ax.plot(wmesh, reimf(t[:, i, j]), label=label, **kwargs)
+
             elif component == 'diag_av':
                 label = r'Average %s' % (reims % r'$\epsilon_{ii}$')
                 ax.plot(wmesh, np.trace(reimf(t), axis1=1, axis2=2)/3, label=label, **kwargs)
+
             else:
-                raise ValueError('Unkwnown component {}'.format(component))
+                raise ValueError(f"Unkwnown {component=}")
 
         self._add_phfreqs(ax, units, with_phfreqs)
-
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
@@ -2646,7 +2709,7 @@ class DielectricTensorGenerator(Has_Structure):
                 fig.add_scatter(x=wmesh, y=np.trace(reimf(t), axis1=1, axis2=2)/3, mode='lines', name=label,
                                 row=ply_row, col=ply_col, **kwargs)
             else:
-                raise ValueError('Unkwnown component {}'.format(component))
+                raise ValueError(f"Unkwnown {component=}")
 
         self._add_phfreqs_plotly(fig, rcd, units, with_phfreqs)
         fig.layout.legend.font.size = fontsize
@@ -2911,7 +2974,7 @@ class DdbRobot(Robot):
         return filename.endswith("_" + cls.EXT)
 
     @classmethod
-    def from_mpid_list(cls, mpid_list):
+    def from_mpid_list(cls, mpid_list: list):
         """
         Build a DdbRobot from list of materials-project ids.
 
@@ -3142,14 +3205,19 @@ class DdbRobot(Robot):
         return dict2namedtuple(phbands_plotter=phbands_plotter, phdos_plotter=phdos_plotter,
                                phdos_paths=phdos_paths, phbands_paths=phbands_paths)
 
-    def anacompare_elastic(self, ddb_header_keys=None, with_structure=True, with_spglib=True,
-                           with_path=False, manager=None, verbose=0, **kwargs):
+    def anacompare_elastic(self,
+                           ddb_header_keys=None,
+                           with_structure=True,
+                           with_spglib=True,
+                           with_path=False,
+                           manager=None,
+                           verbose=0,
+                           **kwargs):
         """
         Compute elastic and piezoelectric properties for all DDBs in the robot and build DataFrame.
 
         Args:
-            ddb_header_keys: List of keywords in the header of the DDB file
-                whose value will be added to the Dataframe.
+            ddb_header_keys: List of keywords in the header of the DDB file whose value will be added to the Dataframe.
             with_structure: True to add structure parameters to the DataFrame.
             with_spglib: True to compute spglib space group and add it to the DataFrame.
             with_path: True to add DDB path to dataframe
@@ -3188,23 +3256,22 @@ class DdbRobot(Robot):
         return dict2namedtuple(df=pd.concat(df_list, ignore_index=True),
                                elastdata_list=elastdata_list)
 
-    def anacompare_becs(self, ddb_header_keys=None, chneut=1, tol=1e-3, with_path=False, verbose=0):
+    def anacompare_becs(self, ddb_header_keys=None, chneut=1, with_path=False, verbose=0):
         """
         Compute Born effective charges for all DDBs in the robot and build DataFrame.
-        with Voigt indices as columns + metadata. Useful for convergence studies.
+        with values and metadata. Useful for convergence studies.
 
         Args:
             ddb_header_keys: List of keywords in the header of the DDB file
                 whose value will be added to the Dataframe.
             chneut: Anaddb input variable. See official documentation.
-            tol: Elements below this value are set to zero.
             with_path: True to add DDB path to dataframe
             verbose: verbosity level. Set it to a value > 0 to get more information
 
         Return: ``namedtuple`` with the following attributes::
 
-            df: DataFrame with Voigt as columns.
-            becs_list: list of Becs objects.
+            df: DataFrame.
+            becs_list: list of Zeffs objects.
         """
         ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
         df_list, becs_list = [], []
@@ -3212,7 +3279,7 @@ class DdbRobot(Robot):
             # Invoke anaddb to compute Becs
             _, becs = ddb.anaget_epsinf_and_becs(chneut=chneut, verbose=verbose)
             becs_list.append(becs)
-            df = becs.get_voigt_dataframe(tol=tol)
+            df = becs.get_dataframe()
 
             # Add metadata to the dataframe.
             df["formula"] = ddb.structure.formula
@@ -3229,18 +3296,22 @@ class DdbRobot(Robot):
         return dict2namedtuple(df=pd.concat(df_list, ignore_index=True).sort_values(by="site_index"),
                                becs_list=becs_list)
 
-    def anacompare_epsinf(self, ddb_header_keys=None, chneut=1, tol=1e-3, with_path=False, verbose=0):
+    def anacompare_epsinf(self,
+                          ddb_header_keys: list[str] | None = None,
+                          chneut: int = 1,
+                          tol: float = 1e-3,
+                          with_path: bool = False,
+                          verbose: int = 0):
         r"""
         Compute (eps^\inf) electronic dielectric tensor for all DDBs in the robot and build DataFrame.
         with Voigt indices as columns + metadata. Useful for convergence studies.
 
         Args:
-            ddb_header_keys: List of keywords in the header of the DDB file
-                whose value will be added to the Dataframe.
+            ddb_header_keys: List of keywords in the header of the DDB file whose value will be added to the Dataframe.
             chneut: Anaddb input variable. See official documentation.
-            tol: Elements below this value are set to zero.
+            tol: entries below this value are set to zero.
             with_path: True to add DDB path to dataframe
-            verbose: verbosity level. Set it to a value > 0 to get more information
+            verbose: verbosity level. Set it to a value > 0 to get more information.
 
         Return: ``namedtuple`` with the following attributes::
 
@@ -3274,8 +3345,7 @@ class DdbRobot(Robot):
         with Voigt indices as columns + metadata. Useful for convergence studies.
 
         Args:
-            ddb_header_keys: List of keywords in the header of the DDB file
-                whose value will be added to the Dataframe.
+            ddb_header_keys: List of keywords in the header of the DDB file whose value will be added to the Dataframe.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             tol: Elements below this value are set to zero.
             with_path: True to add DDB path to dataframe
@@ -3368,17 +3438,16 @@ class DdbRobot(Robot):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-def get_2nd_ord_block_string(qpt, data) -> list:
+def get_2nd_ord_block_string(qpt, data: dict) -> list:
     """
-    Helper function providing the lines required in a DDB file for a given
-    q-point and second order derivatives.
+    Helper function providing the lines required in a DDB file for a given q-point and second order derivatives.
 
     Args:
         qpt: the fractional coordinates of the q point.
         data: a dictionary of the form {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}
             with the data that should be given in the string.
 
-    Returns: list of str: the lines that can be added to the DDB file.
+    Returns: list of str with the lines that can be added to the DDB file.
     """
     lines = []
     lines.append(f" 2nd derivatives (non-stat.)  - # elements :{len(data):12}")

@@ -4,6 +4,7 @@ Objects used to extract and plot results from output files in text format.
 from __future__ import annotations
 
 import os
+import dataclasses
 import numpy as np
 import pandas as pd
 
@@ -23,6 +24,63 @@ from abipy.abio.inputs import GEOVARS
 from abipy.abio.timer import AbinitTimerParser
 from abipy.abio.robots import Robot
 from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DEScfCycle
+
+
+@dataclasses.dataclass(kw_only=True)
+class BerryPhasePolarization:
+    """
+    All terms are in atomic units, including the stresses.
+    """
+    electronic: float
+    ionic: float
+    total: float
+
+    #stress: np.ndarray
+    #maxwell_stress: np.ndarray
+
+    @classmethod
+    def from_abo_file(cls, filepath: str) -> BerryPhasePolarization:
+        """Build object from the main Abinit output file."""
+
+        # We have to parse the following section:
+
+        # Polarization in cartesian coordinates (a.u.):
+        # (the sum of the electronic and ionic Berry phase has been folded into [-1, 1])
+        #     Electronic berry phase:        0.343282648E-04   0.343282618E-04   0.343282498E-04
+        #     Ionic:                        -0.283583666E-01  -0.283583666E-01  -0.283583666E-01
+        #     Total:                        -0.283240383E-01  -0.283240383E-01  -0.283240383E-01
+
+        magic_start = " Polarization in cartesian coordinates (a.u.):"
+
+        electronic, ionic, total = [np.empty((3, )) for _ in range(3)]
+        key_arr = [
+          (None, None),
+          ("Electronic berry phase", electronic),
+          ("Ionic", ionic),
+          ("Total", total),
+        ]
+
+        with open(filepath, "rt") as fh:
+            for line in fh:
+                if line.startswith(magic_start):
+                    break
+            else:
+                raise ValueError(f"Cannot find {magic_start=} in {self.filepath}")
+
+            for ik, line in enumerate(fh):
+                if key_arr[ik][0] is None: continue
+                key, vals = line.split(":")
+                key = key.lstrip()
+                ref_key, arr = key_arr[ik]
+                if key != ref_key:
+                    raise ValueError(f"Expecting `{ref_key=}` but found `{key}`")
+                arr[:] = np.array([float(v) for v in vals.split()])
+                if key == "Total": break
+
+        # TODO: Parse stress
+        #stress, maxwell_stress = [np.empty((3, 3)) for _ in range(2)]
+
+        return cls(electronic=electronic, ionic=ionic, total=total)
 
 
 class AbinitTextFile(TextFile):
@@ -57,7 +115,7 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
     .. inheritance-diagram:: AbinitLogFile
     """
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose : int = 0) -> str:
         """String representation with verbosity level verbose."""
         return str(self.events)
 
@@ -695,6 +753,9 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             cycles.append(cycle)
         return cycles
 
+    def get_berry_phase_polarization(self) -> BerryPhasePolarization:
+        return BerryPhasePolarization.from_abo_file(self.filepath)
+
     def plot(self, tight_layout=True, with_timer=False, show=True):
         """
         Plot GS/DFPT SCF cycles and timer data found in the output file.
@@ -1088,3 +1149,4 @@ class OutNcFile(AbinitNcFile):
             if v is not None: continue
             self._varscache[k] = self.reader.read_value(k)
         return self._varscache
+

@@ -1062,6 +1062,13 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             shiftk: List of shifts.
             kptopt: Option for the generation of the mesh.
         """
+        nspinor = self.get("nspinor", 1)
+        if nspinor == 2:
+            nspden = self.get("nspden", 4)
+            if nspden == 4 and kptopt != 4:
+                cprint("nspinor 2 with nspden 4 requires kptopt 4", color="red")
+                #raise ValueError("nspinor 2 with nspden 4 requires kptopt 4")
+
         shiftk = np.reshape(shiftk, (-1, 3))
         return self.set_vars(ngkpt=ngkpt, kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
 
@@ -1830,6 +1837,19 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return nscf_input
 
+    def make_relax_input(self, optcell=2, ionmov=2, tolvrs=1e-8, tolmxf=1e-6, ntime=100, **extra_abivars) -> AbinitInput:
+        """
+        Build an input for structural relaxations from a GS one.
+        extra_abivars are added to the input at the end.
+        """
+        relax_input = self.deepcopy()
+        relax_input.pop_tolerances()
+        relax_input.set_vars(optcell=optcell, ionmov=ionmov, tolvrs=tolvrs, tolmxf=tolmxf, ntime=ntime)
+        relax_input.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
+        relax_input.set_vars(**extra_abivars)
+
+        return relax_input
+
     def make_dfpt_effmass_inputs(self, kpts, effmass_bands_f90, ngfft=None,
                                  tolwfr=1e-20, iscf=-2) -> MultiDataset:
         """
@@ -2063,12 +2083,13 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return ddk_inputs
 
-    def make_dkdk_input(self, tolerance=None, kptopt=2, manager=None) -> AbinitInput:
+    def make_dkdk_input(self, rf2_dkdk, tolerance=None, kptopt=2, manager=None) -> AbinitInput:
         """
         Return an input for performing d2/dkdk calculations.
         This functions should be called with an input the represents a GS run.
 
         Args:
+            rf2_dkdk: Abinit input variable.
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolwfr": 1.0e-22}.
             kptopt: 2 to take into account time-reversal symmetry. Note that kptopt 1 is not available.
@@ -2089,8 +2110,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             qpt=(0, 0, 0),        # q-wavevector.
             kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
             iscf=-3,              # The d2/dk perturbation is treated in a non-self-consistent way
-            rf2_dkdk=1,
-            #rf2_dkdk=3,
+            rf2_dkdk=rf2_dkdk,
             useylm=1,
             comment="Input file for DKDK calculation.",
         )
@@ -2351,7 +2371,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         Args:
             tolerance: dict {varname: value} with the tolerance to be used in the DFPT run.
                 Defaults to {"tolvrs": 1.0e-10}.
-            prepalw: 1 to activate computation of all 3*natom perts. Used to prepare longwave-limit calculation.
+            prepalw: Abinit input variable. See doc.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
@@ -2657,7 +2677,11 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
     #    return new
 
-    def make_gwr_qprange_input(self, gwr_ntau: int, nband: int, ecuteps: float,
+    def make_gwr_qprange_input(self,
+                               gwr_ntau: int,
+                               nband: int,
+                               ecuteps: float,
+                               ecutwfn: float,
                                gw_qprange: int = 0,
                                gwr_task=GWR_TASK.G0W0,
                                **kwargs) -> AbinitInput:
@@ -2672,18 +2696,28 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                 For other values see Abinit docs.
             gwr_task: String defining the GWR task
         """
+        ecut = float(self["ecut"])
+
+        if ecutwfn > ecut or ecutwfn < 0:
+            raise ValueError(f"Invalid {ecutwfn=}")
+
         new = self.new_with_vars(
             optdriver=RUNL.GWR,
             gwr_task=gwr_task,
             gwr_ntau=gwr_ntau,
             nband=nband,
             ecuteps=ecuteps,
-            ecutsigx=4 * self["ecut"], # Exact, perhaps a bit overkilling.
+            ecutsigx=4 * ecut, # Exact, perhaps a bit overkilling.
             nkptgw=0,
+            #gwr_boxcutmin=1.0
             gw_qprange=gw_qprange,
+            gwr_sigma_algo=2,          # This algo is more efficient if 1-2 kpoints are computed in sigma_k
             comment="Input file for GWR QP calculations generated by AbiPy",
-            **kwargs
         )
+
+        if kwargs:
+            new.set_vars(**kwargs)
+
         return new
 
     def abivalidate(self, workdir=None, manager=None):
@@ -2717,6 +2751,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         inp = self.new_with_vars(
             chksymbreak=0,   # Bypass Abinit check as we always want to return results.
             mem_test=0,      # Disable memory check.
+            chkparal=0,     # Disable check on autoparal, paral_kgb etc.
         )
         if extra_vars:
             inp.set_vars(**extra_vars)
@@ -2791,6 +2826,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             prtkpt=-2,          # The magic value that makes ABINIT print the IBZ and then stop.
             chksymbreak=0,      # Bypass Abinit check as we always want to return results.
             mem_test=0,         # Disable memory check.
+            chkparal=0,         # Disable check on autoparal, paral_kgb etc.
         )
 
         if ngkpt is not None: inp["ngkpt"] = ngkpt
@@ -2840,6 +2876,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             nqptdm=-1,          # The magic value that makes ABINIT print the q-points
             chksymbreak=0,      # Bypass Abinit check as we always want to return results.
             mem_test=0,         # Disable memory check.
+            chkparal=0,         # Disable check on autoparal, paral_kgb etc.
         )
 
         if ngkpt is not None: inp["ngkpt"] = ngkpt
@@ -2992,7 +3029,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         Returns:
-            List of dictionaries with the Abinit variables defining the irreducible perturbation
+            List of dictionaries with the Abinit variables defining the irreducible perturbations.
 
         Example:
 
@@ -3005,6 +3042,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                             prepgkk=prepgkk,
                             prepalw=prepalw,
                             )
+        #if prepalw == 2:
+        #    phperts_vars["rfelfd"] = 3
 
         return self._abiget_irred_perts(phperts_vars, qpt=qpt, ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
                                         workdir=workdir, manager=manager)
@@ -3154,6 +3193,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             max_ncpus=max_ncpus,
             chksymbreak=0,  # Bypass Abinit check as we always want to return results.
             mem_test=0,     # Disable memory check.
+            chkparal=0,     # Disable check on autoparal, paral_kgb etc.
         )
 
         # Run the job in a shell subprocess with mpi_procs = 1
@@ -4867,10 +4907,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
         spa = SpacegroupAnalyzer(structure)
         family = spa.get_crystal_system()
-    
+
         symbol = spa.get_space_group_symbol()
         n = spa.get_space_group_number()
-    
+
         if 0 < n < 3:
             # triclinic
             iholohedry = 1
@@ -4893,7 +4933,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         else:
             # cubic
             iholohedry = 7
-    
+
         if symbol.startswith('P'):
             # No centering
             icentering = 0
@@ -4912,7 +4952,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         else:
             # Rhombrohedral
             icentering = 0
-    
+
         return [iholohedry, icentering]
 
     _unitcell_keys = ['brav', 'natom_unitcell',

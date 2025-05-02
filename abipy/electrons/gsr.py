@@ -220,12 +220,29 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """:class:`EnergyTerms` with the different contributions to the total energy in eV."""
         return self.r.read_energy_terms(unit="eV")
 
+    def get_magnetization(self) -> np.ndarray:
+        """
+        Magnetization in Cartesian directions in atomic units.
+        """
+        rhomag = self.r.read_value("rhomag", default=None)
+        if rhomag is None:
+            raise RuntimeError("You GSR file does not contain the rhomag variable. Please use Abinit version >= 10.4")
+
+        # rhomag(2, nspden) (Fortran array)
+        #   in collinear case component 1 is total density and 2 is _magnetization_ up-down
+        #   in non collinear case component 1 is total density, and 2:4 are the magnetization vector
+        rhomag = rhomag[:,0]
+        mag = np.zeros(3)
+        if self.ebands.nspden == 2: mag[2] = rhomag[1]
+        if self.ebands.nspden == 4: mag = rhomag[1:]
+        return mag
+
     @lazy_property
     def params(self) -> dict:
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         od["ecut"] = float(self.ecut)
-        #if self.usepaw == 1
+        #if self.hdr.usepaw == 1
         #    od["pawecutdg"] = float(self.pawecutdg)
         return od
 
@@ -445,10 +462,13 @@ class GsrReader(ElectronsReader):
         """
         return ArrayWithUnit(self.read_value("cartesian_forces"), "Ha bohr^-1").to(unit)
 
-    def read_cart_stress_tensor(self):
+    def read_cart_stress_tensor(self, units: str = "GPa"):
         """
         Return the stress tensor (3x3 matrix) in cartesian coordinates in GPa.
         If MaskedArray (i.e. tensor was not computed  e.g. Nscf run) set it to _INVALID_STRESS_TENSOR
+
+        Args:
+            units: "GPa" for Gpa units or "au" for atomic units (Ha/Bohr^3)
         """
         # Abinit stores 6 unique components of this symmetric 3x3 tensor:
         # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).
@@ -456,7 +476,7 @@ class GsrReader(ElectronsReader):
         tensor = np.empty((3, 3), dtype=float)
 
         if np.ma.is_masked(c[()]):
-            # NSCF
+            # NSCF run
             tensor.fill(_INVALID_STRESS_TENSOR)
         else:
             for i in range(3):
@@ -464,7 +484,13 @@ class GsrReader(ElectronsReader):
             for p, (i, j) in enumerate(((2, 1), (2, 0), (1, 0))):
                 tensor[i, j] = c[3 + p]
                 tensor[j, i] = c[3 + p]
-            tensor *= abu.HaBohr3_GPa
+
+            if units == "GPa":
+                tensor *= abu.HaBohr3_GPa
+            elif units == "au":
+                pass
+            else:
+                raise ValueError(f"Invalid {units=}")
 
         from abipy.tools.tensors import Stress
         return Stress(tensor)

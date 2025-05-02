@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 r"""
-Delta SCF calculation: luminescence of the NV- center in diamond.
-=========================================================================================
+Delta SCF calculation: luminescence of the NV- center in diamond
+================================================================
 
 This example shows how to compute the luminescent properties of the NV- center in diamond.
-It uses a 64-atom supercell, where one C atom was replaced by one N atom and one vacancy was created.
+It uses a 64-atom supercell, where one C atom is replaced by one N atom and one vacancy was created.
 See Fig.3 of https://doi.org/10.1103/PhysRevB.104.045303 for the setting of electron occupation
 in the ground/excited state.
+
 Steps:
 1) Relaxation in the ground state.
 2) Relaxation in the excited state, starting from the relaxed ground state. Created at run-time.
@@ -14,6 +15,7 @@ Steps:
 
 Even if we use minimal settings, the workflow takes a few minutes to run on one core.
 Filepaths of the 6 runs are stored in /w0/outdata/lumi.json
+
 A quick post-processing is automatically done at the end of a LumiWork
 and stored in /w0/outdata/Delta_SCF.json, with relevant luminescent properties
 (ZPL energy, Stoke Shift, \Delta Q,...), see abipy/lumi/delta_scf.py

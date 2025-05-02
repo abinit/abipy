@@ -73,10 +73,10 @@ abipy.flowtk.events module
    :undoc-members:
    :show-inheritance:
 
-abipy.flowtk.finitediff\_works module
--------------------------------------
+abipy.flowtk.finitediff module
+------------------------------
 
-.. automodule:: abipy.flowtk.finitediff_works
+.. automodule:: abipy.flowtk.finitediff
    :members:
    :undoc-members:
    :show-inheritance:

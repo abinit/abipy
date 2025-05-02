@@ -650,7 +650,7 @@ class Polaron:
             x, y, s = [], [], []
 
             a2_max = a2_interp_state[pstate].get_max_abs_data()
-            scale *= 1. / a2_max
+            _scale = scale * 1. / a2_max
 
             for ik, kpoint in enumerate(ebands_kpath.kpoints):
                 enes_n = ebands_kpath.eigens[self.spin, ik, self.bstart:self.bstop]
@@ -665,7 +665,7 @@ class Polaron:
                             allowed = False
 
                     if allowed:
-                        x.append(ik); y.append(e); s.append(scale * a2)
+                        x.append(ik); y.append(e); s.append(_scale * a2)
                         ymin, ymax = min(ymin, e), max(ymax, e)
 
             # Plot electron bands with markers.
@@ -780,7 +780,7 @@ class Polaron:
 
             # fill Ank dos in order
             if fill_dos:
-                y_common = np.linspace(ymin-e0-span*0.1, ymax-e0+span*0.1, 100)
+                y_common = np.linspace(ymin-e0-span*0.1, ymax-e0+span*0.1, 2000)
                 xleft = np.zeros_like(y_common)
                 # skip eDOS, fill only ADOS
                 for dos, c in zip(dos_lines[1:], colors[1:]):
@@ -814,7 +814,7 @@ class Polaron:
         # if filtering is used, show the filtering region
         for ax in ax_mat.ravel():
             xmin, xmax = ax.get_xlim()
-            xrange = np.linspace(xmin,xmax,100)
+            xrange = np.linspace(xmin,xmax,200)
             shifted_bm = bm - e0
             if filter_value:
                 if pkind == "hole":
@@ -907,15 +907,28 @@ class Polaron:
             x, y, s = [], [], []
 
             b2_max = b2_interp_state[pstate].get_max_abs_data()
-            scale *= 1. / b2_max
-
+            _scale = scale * 1. / b2_max
+    
+            # handle LO-TO splitting
+            prev_qpoint = None
             for iq, qpoint in enumerate(phbands_qpath.qpoints):
                 omegas_nu = phbands_qpath.phfreqs[iq,:]
 
+                if np.all(np.abs(qpoint._frac_coords) < 1e-12):
+                    if prev_qpoint:
+                        nana_dir = prev_qpoint._frac_coords
+                    else:
+                        nana_dir = phbands_qpath.qpoints[iq+1]._frac_coords
+
+                    omegas_nu = phbands_qpath._get_non_anal_freqs(nana_dir)
+
+
                 for w, b2 in zip(omegas_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True):
                     w *= units_scale
-                    x.append(iq); y.append(w); s.append(scale * b2)
+                    x.append(iq); y.append(w); s.append(_scale * b2)
                     ymin, ymax = min(ymin, w), max(ymax, w)
+
+                prev_qpoint = qpoint
 
             ax = ax_mat[pstate, 0]
             points = Marker(x, y, s, color=marker_color, edgecolors=marker_edgecolor,
@@ -962,7 +975,7 @@ class Polaron:
         anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
 
         bz_qpoints = kmesh_from_mpdivs(phdos_ngqpt, phdos_shifts)
-        phbands_bz = ddb.anaget_phmodes_at_qpoints(qpoints=bz_qpoints, ifcflag=1, verbose=verbose, **anaddb_kwargs)
+        phbands_bz = ddb.anaget_phmodes_at_qpoints(qpoints=bz_qpoints, ifcflag=1, verbose=verbose, lo_to_splitting=True, **anaddb_kwargs)
         if len(phbands_bz.qpoints) != np.prod(phdos_ngqpt):
             raise RuntimeError(f"{len(phbands_bz.qpoints)=} != {np.prod(phdos_ngqpt)=}")
 
@@ -980,6 +993,11 @@ class Polaron:
             for iq_bz, qpoint in enumerate(phbands_bz.qpoints):
                 #q_weight = 1./phdos_nqbz
                 freqs_nu = phbands_bz.phfreqs[iq_bz]
+
+                # handle LO-TO splitting
+                if np.all(np.abs(qpoint._frac_coords) < 1e-12):
+                    freqs_nu = phbands_bz.non_anal_phfreqs[0]
+
                 for w, b2 in zip(freqs_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True):
                     bqnu_dos += b2 * gaussian(phdos_mesh, width, center=w)
 
@@ -997,6 +1015,7 @@ class Polaron:
                                           label=r"$B^2$(E)", color=marker_color, linewidth=lw_dos,
                                           xfactor=units_scale, yfactor=1/units_scale)
             set_grid_legend(ax, fontsize, xlabel="Arb. unit")
+
 
             # Get mapping BZ --> IBZ needed to obtain the KS eigenvalues e_nk from the IBZ for the DOS
             # Compute B2(E) using only q-points in the IBZ. This is just for testing.
@@ -1021,7 +1040,10 @@ class Polaron:
 
             # fill Bqnu dos in order
             if fill_dos:
-                y_common = np.linspace(ymin, ymax+span*0.1, 100)
+                # FIXME: nasty hack
+                y_common = np.linspace(0, np.max(phbands_bz.phfreqs)*units_scale, 2000)
+
+                #y_common = np.linspace(ymin, ymax+span*0.1, 2000)
                 xleft = np.zeros_like(y_common)
                 # skip phDOS, fill only BDOS
                 for dos, c in zip(dos_lines[1:], colors[1:]):

@@ -22,7 +22,7 @@ from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.typing import Figure, KptSelect
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
+from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker, plot_xy_with_hue,
     set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line, Exposer)
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
@@ -177,14 +177,14 @@ class PadeData:
 class SigmaTauFit:
     """Stores the fit for Sigma(i tau)"""
 
-    tau_mesh: np.ndarray
-    values: np.ndarray
-    a_mtau: complex   # Coefficient
-    beta_mtau: float  # exp(beta tau)
-    a_ptau: complex
-    beta_ptau: float  # exp(-beta tau)
+    tau_mesh: np.ndarray   # tau mesh in a.u.
+    values: np.ndarray     # values on the mesh.
+    a_mtau: complex        # A coefficient for negative imaginary times.
+    beta_mtau: float       # exp(beta tau) for negative imaginary times.
+    a_ptau: complex        # A coefficient for positive imaginary times.
+    beta_ptau: float       # exp(-beta tau) for positive imaginary times.
 
-    def eval_omega(self, ws: np.ndarray) -> np.ndarray:
+    def eval_real_omega(self, ws: np.ndarray, zcut=None) -> np.ndarray:
         r"""
         Compute the Fourier transform of the piecewise function.
 
@@ -220,22 +220,27 @@ class GwrSelfEnergy(SelfEnergy):
         self.mx_mesh = mx_mesh
 
     def tau_fit(self, first, last, xs) -> tuple[np.ndarray, complex, float]:
-        """
+        r"""
         Performs the exponential fit in imaginary time.
+        using A exp^{-b t} with A complex, b real and > 0.
+
+        b = -\frac{\ln(y_n / y_0)}{\tau_n - \tau_0}, \quad A = y_0 e^{a \tau_n}
         """
         mp_taus = self.c_tau.mesh
         vals_mptaus = self.c_tau.values
         w0, f0 = mp_taus[first], vals_mptaus[first]
         wn, fn = mp_taus[last], vals_mptaus[last]
         # NB: take the real part of the log to avoid oscillatory behaviour in the exp.
-        a = -np.log(fn / f0) / (wn - w0)
-        a = a.real
+        bb = -np.log(fn / f0) / (wn - w0)
+        bb = bb.real
         # If something goes wrong, disable the fit.
         # Note that the sign of a depends whether as we working with positive or negative tau.
-        if wn >= 0 and a <= 1e-12: f0 = 0.0j
-        if wn < 0 and a >= -1e-12: f0 = 0.0j
+        if wn >= 0 and bb <= 1e-12: f0 = 0.0j
+        if wn < 0 and bb >= -1e-12: f0 = 0.0j
+        aa =  f0 * np.exp(bb * w0)
+        #aa = (f0 + fn) / (np.exp(-bb * w0) + np.exp(-bb * wn))
         #print(f"{f0=}")
-        return f0 * np.exp(-a * (xs - w0)), f0, a
+        return aa * np.exp(-bb * xs), aa, bb
 
     def _minimize_loss_tau(self, tau_fit, zone: str):
         """
@@ -260,7 +265,7 @@ class GwrSelfEnergy(SelfEnergy):
             first = ntau - 1
             for last in range(first):
                 ys_fit, alpha, beta = tau_fit(first, last, xs)
-                losses.append((last, np.sum(self.mx_mesh.tau_wgs * np.abs(ys_fit - ys)**2), ys_fit, alpha, beta))
+                losses.append((last, np.sum(self.mx_mesh.tau_wgs * np.abs(ys_fit - ys)**2), ys_fit, beta, alpha))
 
         else:
             raise ValueError(f"Invalid {zone=} should be in (-, +)")
@@ -268,7 +273,7 @@ class GwrSelfEnergy(SelfEnergy):
         # Find min of losses.
         min_loss = min(losses, key=lambda t: t[1])
         return dict2namedtuple(imin=min_loss[0], loss=min_loss[1], values=min_loss[2],
-                               alpha=min_loss[3], beta=min_loss[4])
+                               alpha=min_loss[4], beta=min_loss[3])
 
     def get_exp_tau_fit(self) -> SigmaTauFit:
         """
@@ -282,7 +287,8 @@ class GwrSelfEnergy(SelfEnergy):
                            a_mtau=fit_m.alpha,
                            beta_mtau=fit_m.beta,
                            a_ptau=fit_p.alpha,
-                           beta_ptau=fit_p.beta)
+                           beta_ptau=fit_p.beta,
+                           )
 
     def get_pade_data(self, w_vals: np.ndarray, e0: float, pade_method: str) -> PadeData:
         """
@@ -460,6 +466,11 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """|ElectronBands| with the KS energies."""
         return self.r.ebands
 
+    @lazy_property
+    def completed(self) -> bool:
+        """True if GWR calculation completed."""
+        return bool(self.r.read_value("gwr_completed", default=1))
+
     @property
     def sigma_kpoints(self) -> KpointList:
         """The k-points where the QP corrections have been calculated."""
@@ -546,16 +557,23 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         minimax_mesh = self.minimax_mesh
         r = self.r
+        ecut = float(r.read_value("ecut"))
+        # These variables were added in Abinit v10.4.0
+        ecutwfn = float(r.read_value("ecutwfn", default=ecut))
+        gwr_max_hwtene = float(r.read_value("gwr_max_hwtene", default=-666))
+
         return dict(
             gwr_ntau=r.read_dimvalue("ntau"),
             nband=self.ebands.nband,
-            ecuteps=r.read_value("ecuteps"),
-            ecutsigx=r.read_value("ecutsigx"),
-            ecut=r.read_value("ecut"),
-            gwr_boxcutmin=r.read_value("gwr_boxcutmin"),
+            ecuteps=float(r.read_value("ecuteps")),
+            ecutwfn=ecutwfn,
+            ecutsigx=float(r.read_value("ecutsigx")),
+            ecut=ecut,
+            gwr_boxcutmin=float(r.read_value("gwr_boxcutmin")),
+            gwr_max_hwtene=gwr_max_hwtene,
             nkpt=self.ebands.nkpt,
-            symchi=r.read_value("symchi"),
-            symsigma=r.read_value("symsigma"),
+            symchi=int(r.read_value("symchi")),
+            symsigma=int(r.read_value("symsigma")),
             regterm=minimax_mesh.regterm,
         )
 
@@ -589,7 +607,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         else:
             app("Number of k-points in Sigma_{nk}: %d" % (len(self.r.sigma_kpoints)))
             app("Number of bands included in e-e self-energy sum: %d" % (self.nband))
-            keys = self.params.keys() if verbose else ["ecuteps", "ecutsigx", "ecut", "gwr_boxcutmin"]
+            keys = self.params.keys() if verbose else ["ecut", "ecutwfn", "ecutsigx", "ecuteps", "gwr_boxcutmin", "gwr_max_hwtene"]
             for k in keys:
                 app("%s: %s" % (k, self.params[k]))
             if verbose:
@@ -606,21 +624,18 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return "\n".join(lines)
 
-    #def get_qpgap(self, spin, kpoint, with_ksgap=False):
-    #    """
-    #    Return the QP gap in eV at the given (spin, kpoint)
-    #    """
-    #    ik = self.reader.kpt2fileindex(kpoint)
-    #    if not with_ksgap:
-    #        return self.qpgaps[spin, ik]
-    #    else:
-    #        return self.qpgaps[spin, ik], self.ksgaps[spin, ik]
-
-    def get_dirgaps_dataframe(self, with_params: bool=True, with_geo: bool=False) -> pd.DataFrame:
+    def get_dirgaps_dataframe(self,
+                              kpoint: KptSelect | None = None,
+                              spin: int | None = None,
+                              with_params: bool = True,
+                              with_geo: bool = False) -> pd.DataFrame:
         """
         Return a pandas DataFrame with the QP direct gaps in eV.
 
         Args:
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+                None, to select all k-points.
+            spin: Spin index. None, to select all spins.
             with_params: True if GWR parameters should be included.
             with_geo: True if geometry info should be included.
         """
@@ -640,7 +655,17 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         if with_geo:
             d.update(**self.structure.get_dict4pandas(with_spglib=True))
 
-        return pd.DataFrame(d)
+        df = pd.DataFrame(d)
+
+        # Optionally, select spin and k-point.
+        if spin is not None:
+            df = df[df["spin"] == spin]
+
+        if kpoint is not None:
+            ikcalc, kpoint = self.r.get_ikcalc_kpoint(kpoint)
+            df = df[df['kpoint'].apply(lambda x: np.all(x == kpoint.frac_coords))]
+
+        return df
 
     def get_dataframe_sk(self,
                          spin: int,
@@ -653,7 +678,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Returns a |pandas-DataFrame| with the QP results for the given (spin, k-point).
 
         Args:
-            spin: Spin index
+            spin: Spin index.
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             index:
             ignore_imag: Only real part is returned if ``ignore_imag``.
@@ -800,7 +825,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
 
         if ks_ebands_kpath is None:
-            # Generate k-points for interpolation. Will interpolate all bands available in the sigres file.
+            # Generate k-points for interpolation. Will interpolate all bands available in the GWR file.
             bstart, bstop = 0, -1
             if vertices_names is None:
                 vertices_names = [(k.frac_coords, k.name) for k in self.structure.hsym_kpoints]
@@ -1178,11 +1203,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return fig
 
-    #@add_fig_kwargs
-    #def plot_sig_mat(self, what, origin="lower", **kwargs):
-    #   x_mat
-    #   ax.spy(mat, precision=0.1, markersize=5, origin=origin)
-
     #def get_panel(self, **kwargs):
     #    """
     #    Build panel with widgets to interact with the GWR.nc either in a notebook or in panel app.
@@ -1453,9 +1473,28 @@ class GwrRobot(Robot, RobotWithEbands):
     # matplotlib option to fill convergence window.
     HATCH = "/"
 
+    # labels with units for plots.
+    XLABELS = {
+        "ecut": "ecut (Ha)",
+        "ecutwfn": "ecutwfn (Ha)",
+        "ecuteps": "ecuteps (Ha)",
+        "ecutsigx": "ecutsigx (Ha)",
+        "gwr_max_hwtene": "gwr_max_hwtene (Ha)",
+    }
+
+    YLABELS = {
+        "qpz0_dirgaps": r"$\text{QP}^{Z_0}_{\text{gap}}$ (eV)",
+        "otm_dirgaps": r"$\text{QP}^{\text{otms}}_{\text{gap}}$ (eV)",
+    }
+
     def __init__(self, *args):
         super().__init__(*args)
         if len(self.abifiles) in (0, 1): return
+
+        for label, gwr_file in self.items():
+            if gwr_file.completed: continue
+            cprint("Ignoring {label} as GWR file is not completed", color="yellow")
+            self.pop_label(label)
 
         # Check dimensions and self-energy states and issue warning.
         warns = []; wapp = warns.append
@@ -1531,46 +1570,62 @@ class GwrRobot(Robot, RobotWithEbands):
 
         return pd.concat(df_list)
 
-    def get_dirgaps_dataframe(self, sortby="kname", with_params=True) -> pd.DataFrame:
+    def get_dirgaps_dataframe(self,
+                              kpoint: KptSelect | None = None,
+                              spin: int | None = None,
+                              sortby: str = "kname",
+                              with_params: bool = True,
+                              with_geo: bool = False) -> pd.DataFrame:
         """
-        Returns |pandas-DataFrame| with QP direct gaps for all the files treated by the GWR robot.
+        Returns a |pandas-DataFrame| with QP direct gaps for all the files treated by the GWR robot.
 
         Args:
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+                None, to select all k-points.
+            spin: Spin index. None, to select all spins.
             sortby: Name to sort by.
             with_params: False to exclude calculation parameters from the dataframe.
         """
-        with_geo = self.has_different_structures()
+        #with_geo = self.has_different_structures()
 
         df_list = []; app = df_list.append
         for _, ncfile in self.items():
-            app(ncfile.get_dirgaps_dataframe(with_params=with_params, with_geo=with_geo))
+            app(ncfile.get_dirgaps_dataframe(kpoint=kpoint, spin=spin,
+                                             with_params=with_params, with_geo=with_geo))
 
         df = pd.concat(df_list)
         if sortby and sortby in df: df = df.sort_values(sortby)
         return df
 
-    def get_dataframe(self, sortby="kname", with_params=True, ignore_imag=False) -> pd.DataFrame:
+    def get_dataframe(self,
+                      sortby: str = "kname",
+                      with_params: bool = True,
+                      with_geo: bool = False,
+                      ignore_imag: bool = False) -> pd.DataFrame:
         """
-        Return |pandas-Dataframe| with QP results for all k-points, bands and spins
+        Return a |pandas-Dataframe| with the QP results for all k-points, bands and spins
         present in the files treated by the GWR robot.
 
         Args:
             sortby: Name to sort by.
             with_params: True to add parameters.
+            with_geo: True if structure info should be added to the dataframe
             ignore_imag: only real part is returned if ``ignore_imag``.
         """
         df_list = []; app = df_list.append
         for _, ncfile in self.items():
             for spin in range(ncfile.nsppol):
                 for ikc, _ in enumerate(ncfile.sigma_kpoints):
-                    app(ncfile.get_dataframe_sk(spin, ikc, with_params=with_params,
+                    app(ncfile.get_dataframe_sk(spin, ikc,
+                                                with_params=with_params,
+                                                with_geo=with_geo,
                                                 ignore_imag=ignore_imag))
 
         df = pd.concat(df_list)
         if sortby and sortby in df: df = df.sort_values(sortby)
         return df
 
-    def get_rpa_ene_dataframe(self, with_params=True) -> pd.DataFrame:
+    def get_rpa_ene_dataframe(self, with_params: bool = True) -> pd.DataFrame:
         """
         Return |pandas-Dataframe| with RPA energies for all the files
         treated by the GWR robot.
@@ -1612,7 +1667,7 @@ class GwrRobot(Robot, RobotWithEbands):
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: Band index.
             axis: "wreal": to plot Sigma(w) and A(w) along the real axis.
-                  "wimag": to plot Sigma(iw)
+                  "wimag": to plot Sigma(iw).
                   "tau": to plot Sigma(itau)) along the imag axis.
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
@@ -1634,6 +1689,7 @@ class GwrRobot(Robot, RobotWithEbands):
         # Make sure nsppol and sigma_kpoints are consistent.
         self._check_dims_and_params()
         ebands0 = self.abifiles[0].ebands
+        style = {} if axis == "wreal" else dict(marker="o", markersize=4.0)
 
         if hue is None:
             # Build grid depends on axis.
@@ -1646,6 +1702,7 @@ class GwrRobot(Robot, RobotWithEbands):
             for ix, (nclabel, ncfile, param) in enumerate(lnp_list):
                 label = "%s: %s" % (self._get_label(sortby), param)
                 kws = dict(label=label or nclabel, color=cmap(ix / len(lnp_list)))
+                kws.update(style)
                 sigma = ncfile.r.read_sigee_skb(spin, kpoint, band)
 
                 if axis == "wreal":
@@ -1661,6 +1718,9 @@ class GwrRobot(Robot, RobotWithEbands):
             if axis == "wreal": ebands0.add_fundgap_span(ax_list, spin)
             set_grid_legend(ax_list, fontsize)
 
+            for ax in ax_list:
+                set_axlims(ax, xlims, "x")
+
         else:
             # group_and_sortby and build (3, ngroups) subplots
             groups = self.group_and_sortby(hue, sortby)
@@ -1675,6 +1735,7 @@ class GwrRobot(Robot, RobotWithEbands):
 
                 for ix, (nclabel, ncfile, param) in enumerate(g):
                     kws = dict(label="%s: %s" % (self._get_label(sortby), param), color=cmap(ix / len(g)))
+                    kws.update(style)
                     sigma = ncfile.r.read_sigee_skb(spin, kpoint, band)
 
                     if axis == "wreal":
@@ -1710,96 +1771,75 @@ class GwrRobot(Robot, RobotWithEbands):
 
     @add_fig_kwargs
     def plot_qpgaps_convergence(self,
-                                qp_kpoints="all",
-                                qp_type="qpz0",
-                                sortby=None,
-                                hue=None,
-                                abs_conv=0.01,
-                                plot_qpmks=True,
-                                fontsize=8,
+                                x: str,
+                                abs_conv: float,
+                                y: str = "qpz0_dirgaps",
+                                hue: str | None = None,
+                                qp_kpoints: str = "all",
+                                qp_type: str = "qpz0",
+                                span_style: dict | None = None,
+                                fontsize: int = 8,
                                 **kwargs) -> Figure:
         """
         Plot the convergence of the direct QP gaps for all the k-points and spins treated by the GWR robot.
 
         Args:
+            x: Name of the column used as x-value.
+            y: Name of the column used as y-value.
+            abs_conv: If not None, show absolute convergence window.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
             qp_kpoints: List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
                 or "all" to plot all k-points.
-            qp_type: "qpz0" for linear qp equation with Z factor computed at KS e0,
-                     "otms" for on-the-mass-shell values.
-            sortby: Define the convergence parameter, sort files and produce plot labels.
-                Can be None, string or function. If None, no sorting is performed.
-                If string and not empty it's assumed that the abifile has an attribute
-                with the same name and `getattr` is invoked.
-                If callable, the output of sortby(abifile) is used.
-            hue: Variable that define subsets of the data, which will be drawn on separate lines.
-                Accepts callable or string
-                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
-                If callable, the output of hue(abifile) is used.
-            abs_conv: If not None, show absolute convergence window.
-            plot_qpmks: If False, plot QP_gap, KS_gap else (QP_gap - KS_gap)
+            qp_type: "qpz0_dirgaps" for linear qp equation with Z factor computed at the KS e0,
+                     "otms_dirgaps" for on-the-mass-shell values.
+            span_style: dictionary with options passed to ax.axhspan.
             fontsize: legend and label fontsize.
         """
         # Make sure nsppol and sigma_kpoints are the same.
         self._check_dims_and_params()
 
-        nc0 = self.abifiles[0]
+        # Get labels from x and y and add units.
+        xlabel = self.XLABELS.get(x, x)
+        ylabel = self.YLABELS.get(y, y)
+
+        nc0: GwrFile = self.abifiles[0]
         nsppol = nc0.nsppol
         qpkinds = nc0.find_qpkinds(qp_kpoints)
-        if len(qpkinds) > 10:
-            cprint("More that 10 k-points in file. Only 10 k-points will be shown. Specify kpt index expliclty", "yellow")
-            qpkinds = qpkinds[:10]
 
-        # Build grid with (nkpt, 1) plots.
-        nrows, ncols = len(qpkinds), 1
+        # Build grid with (nkpt, nsppol) plots.
+        nrows, ncols = len(qpkinds), nsppol
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
-        if hue is None:
-            labels, ncfiles, xs = self.sortby(sortby, unpack=True)
-        else:
-            groups = self.group_and_sortby(hue, sortby)
 
-        #if qp_type not in {"qpz0", "otms"}:
-        if qp_type not in {"qpz0", }:
-            raise ValueError("Invalid qp_type: %s" % qp_type)
+        for spin in range(nsppol):
+            for ix, (sigma_kpt, ikcalc) in enumerate(qpkinds):
+                ax = ax_mat[ix, spin]
+                data = self.get_dirgaps_dataframe(kpoint=ikcalc,
+                                                  spin=spin,
+                                                  with_params=True,
+                                                  with_geo=False)
+                plot_xy_with_hue(data,
+                                 x=x,
+                                 y=y,
+                                 hue=hue,
+                                 abs_conv=abs_conv,
+                                 span_style=span_style,
+                                 ax=ax,
+                                 fontsize=fontsize,
+                                 show=False,
+                                 )
 
-        name = "QP dirgap" if not plot_qpmks else "QP - KS dirgap"
-        name = "%s (%s)" % (name, qp_type.upper())
-
-        for ix, ((kpt, ikc), ax_row) in enumerate(zip(qpkinds, ax_mat)):
-            ax = ax_row[0]
-            for spin in range(nsppol):
-                ax.set_title("%s k:%s" % (name, repr(kpt)), fontsize=fontsize)
-
-                # Extract QP dirgap for [spin, ikcalc]
-                if hue is None:
-                    if qp_type == "qpz0": yvals = [ncfile.qpz0_dirgaps[spin, ikc] for ncfile in ncfiles]
-                    #if qp_type == "otms": yvals = [ncfile.qp_dirgaps_otms_t[spin, ikc, itemp] for ncfile in ncfiles]
-                    if plot_qpmks:
-                        yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in ncfiles])
-
-                    lines = self.plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, marker=nc0.marker_spin[spin],
-                                                       **kwargs)
-                    hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
-
+                if ix == len(qpkinds) - 1:
+                    ax.set_xlabel(xlabel)
                 else:
-                    for g in groups:
-                        if qp_type == "qpz0": yvals = [ncfile.qpz0_dirgaps[spin, ikc] for ncfile in g.abifiles]
-                        #if qp_type == "otms": yvals = [ncfile.qp_dirgaps_otms_t[spin, ikc, itemp] for ncfile in g.abifiles]
-                        if plot_qpmks:
-                            yvals = np.array(yvals) - np.array([ncfile.ks_dirgaps[spin, ikc] for ncfile in g.abifiles])
+                    set_visible(ax, False, "xlabel")
 
-                        label = "%s: %s" % (self._get_label(hue), g.hvalue)
-                        lines = ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label)
+                if ix == 0:
+                    ax.set_ylabel(ylabel)
+                else:
+                    set_visible(ax, False, "ylabel")
 
-                        hspan_ax_line(ax, lines[0], abs_conv, self.HATCH)
-
-            ax.grid(True)
-            if ix == len(qpkinds) - 1:
-                ax.set_ylabel("%s (eV)" % name)
-                ax.set_xlabel("%s" % self._get_label(sortby))
-                if sortby is None: rotate_ticklabels(ax, 15)
-
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+                ax.set_title("k-point: %s" % repr(sigma_kpt), fontsize=fontsize)
 
         return fig
 
@@ -1824,7 +1864,7 @@ class GwrRobot(Robot, RobotWithEbands):
                 If string and not empty it's assumed that the abifile has an attribute
                 with the same name and `getattr` is invoked.
                 If callable, the output of sortby(abifile) is used.
-            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+            hue: Variable defining the subset of the data which will be drawn on separate lines.
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of hue(abifile) is used.
@@ -1879,8 +1919,7 @@ class GwrRobot(Robot, RobotWithEbands):
                     # Extract QP data.
                     yvals = [getattr(qp, what)[itemp] for qp in qplist]
                     label = "%s: %s" % (self._get_label(hue), g.hvalue)
-                    ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin],
-                            label=label if ix == 0 else None)
+                    ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label if ix == 0 else None)
 
             ax.grid(True)
             ax.set_ylabel(what)
@@ -1890,10 +1929,10 @@ class GwrRobot(Robot, RobotWithEbands):
             if ix == 0 and hue is not None:
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-        if "title" not in kwargs:
-            title = "QP results spin: %s, k:%s, band: %s, T = %.1f K" % (
-                    spin, repr(kpoint), band, nc0.tmesh[itemp])
-            fig.suptitle(title, fontsize=fontsize)
+        #if "title" not in kwargs:
+        #    title = "QP results spin: %s, k:%s, band: %s, T = %.1f K" % (
+        #            spin, repr(kpoint), band, nc0.tmesh[itemp])
+        #    fig.suptitle(title, fontsize=fontsize)
 
         return fig
 
@@ -1972,7 +2011,7 @@ class GwrRobot(Robot, RobotWithEbands):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
         verbose = kwargs.pop("verbose", 0)
-        yield self.plot_qpgaps_convergence(qp_kpoints="all", show=False)
+        #yield self.plot_qpgaps_convergence(qp_kpoints="all", show=False)
 
         # Visualize the convergence of the self-energy for all the k-points and the most important bands.
         nc0: GwrFile = self.abifiles[0]

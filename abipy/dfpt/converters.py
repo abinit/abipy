@@ -34,7 +34,7 @@ except ImportError:
 def abinit_to_phonopy(anaddbnc, supercell_matrix, symmetrize_tensors=False, output_dir_path=None,
                       prefix_outfiles="", symprec=1e-5, set_masses=False):
     """
-    Converts the interatomic force constants(IFC), born effective charges(BEC) and dielectric
+    Converts the interatomic force constants(IFC), Born effective charges (BEC) and dielectric
     tensor obtained from anaddb to the phonopy format. Optionally writes the
     standard phonopy files to a selected directory: FORCE_CONSTANTS, BORN (if BECs are available)
     POSCAR of the unit cell, POSCAR of the supercell.
@@ -94,7 +94,7 @@ def abinit_to_phonopy(anaddbnc, supercell_matrix, symmetrize_tensors=False, outp
     supercell = get_pmg_structure(phon_supercell)
 
     abi_hall_num = s.abi_spacegroup.get_spglib_hall_number()
-    spglib_hall_num = phonon.symmetry.dataset["hall_number"]
+    spglib_hall_num = phonon.symmetry.dataset.hall_number
     if abi_hall_num != spglib_hall_num:
         warnings.warn("The hall number obtained based on the DDB symmetries differs "
                       f"from the one calculated with spglib: {abi_hall_num} versus "
@@ -776,12 +776,11 @@ def ddb_ucell_to_phonopy_supercell(unit_ddb=None,unit_ddb_filepath=None,nac=True
     try:
         full_fc = force_constants.compact_fc_to_full_fc(primitive=phonopy_ucell.primitive,
                                                     compact_fc=phonopy_ucell.force_constants)
-    
+
     except TypeError: #old compact_fc_to_full_fc function (phonopy <= 2.32)
-        full_fc = force_constants.compact_fc_to_full_fc(phonon=phonopy_ucell,  
+        full_fc = force_constants.compact_fc_to_full_fc(phonon=phonopy_ucell,
                                                     compact_fc=phonopy_ucell.force_constants)
 
-    
     # create a phonopy object with supercell structure
     phonopy_supercell = Phonopy(unitcell=phonopy_ucell.supercell,# the new unit cell is the 'old' supercell
                                 supercell_matrix=[1, 1, 1],  # sup_size= unit_size, gamma only

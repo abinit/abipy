@@ -532,6 +532,8 @@ class Node(metaclass=abc.ABCMeta):
         # The content will be saved in json format in the working directory of the node.
         self.abipy_meta_json = None
 
+        self._attrs = {}
+
         # Set to true if the node has been finalized.
         self._finalized = False
         self._status = self.S_INIT
@@ -567,6 +569,11 @@ class Node(metaclass=abc.ABCMeta):
 
         r, g, b = np.trunc(self.color_rgb * 255)
         return "#{0:02x}{1:02x}{2:02x}".format(clamp(r), clamp(g), clamp(b))
+
+    @property
+    def attrs(self) -> dict:
+        """Dictionary with attributes attached to the node."""
+        return self._attrs
 
     def isinstance(self, class_or_string):
         """
@@ -1368,7 +1375,6 @@ def get_newnode_id() -> int:
     """
     #import uuid
     #return uuid.uuid4()
-
     init_counter()
 
     global _COUNTER
@@ -1385,6 +1391,6 @@ def save_lastnode_id() -> None:
             fh.write("%d\n" % _COUNTER)
 
 
-# Register function atexit
+# IMPORTANT: Register function atexit
 import atexit
 atexit.register(save_lastnode_id)

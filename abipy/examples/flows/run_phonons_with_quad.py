@@ -87,8 +87,8 @@ def build_flow(options):
         # print(pseudo)
         if not pseudo.isnc:
             raise RuntimeError("Only NC pseudos are compatible with Q*")
-        if pseudo.has_nlcc:
-            raise RuntimeError("NLCC is not compatible with Q*")
+        #if pseudo.has_nlcc:
+        #    raise RuntimeError("NLCC is not compatible with Q*")
 
     # Initialize the flow
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)

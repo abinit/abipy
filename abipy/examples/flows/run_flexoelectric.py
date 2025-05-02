@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
 Flexoelectric Tensor
-=====================
+====================
 
 This example shows how to compute the dynamical matrix of GaP on a user-defined q-mesh
 including Born effective charges, the macroscopic dielectric matric and the dynamical quadrupoles Q*.

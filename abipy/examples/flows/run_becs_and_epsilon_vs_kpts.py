@@ -6,7 +6,7 @@ Born effective charges and dielectric tensors with DFPT
 This example shows how to compute the Born effective charges and
 the dielectric tensors (e0, einf) of AlAs with AbiPy flows.
 We perform multiple calculations by varying the number of k-points
-in order to analyze the convergence of the results wrt nkpt.
+to analyze the convergence of the results wrt nkpt.
 """
 import sys
 import os

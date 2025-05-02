@@ -12,6 +12,7 @@ from itertools import product
 from tabulate import tabulate
 from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
+from monty.termcolor import cprint
 from monty.string import marquee
 from abipy.tools.serialization import pmg_serialize
 from abipy.iotools import ETSF_Reader
@@ -683,7 +684,7 @@ class Kpoint(SlotPickleMixin):
         """Name of the k-point. None if not available."""
         return self._name
 
-    def set_name(self, name):
+    def set_name(self, name: str | None) -> None:
         """Set the name of the k-point."""
         # Fix typo in Latex syntax (if any).
         if name is not None and name.startswith("\\"): name = "$" + name + "$"
@@ -1739,8 +1740,15 @@ class KpointsReaderMixin:
         if ksampling.kptopt < 0 or np.all(weights == 1):
             # We have a path in the BZ.
             kpath = Kpath(structure.reciprocal_lattice, frac_coords, ksampling=ksampling)
+            from pymatgen.symmetry.analyzer import SymmetryUndeterminedError
             for kpoint in kpath:
-                kpoint.set_name(structure.findname_in_hsym_stars(kpoint))
+                try:
+                    name = structure.findname_in_hsym_stars(kpoint)
+                    kpoint.set_name(name)
+                except SymmetryUndeterminedError as exc:
+                    cprint(f"Cannot find name for {kpoint=} due to {exc=}", color="red")
+                    break
+
             return kpath
 
         # FIXME

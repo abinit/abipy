@@ -1985,11 +1985,11 @@ class Task(Node, metaclass=abc.ABCMeta):
         This function checks the status of the task by inspecting the output and the
         error files produced by the application and by the queue manager.
         """
-        # 1) see it the job is blocked
-        # 2) see if an error occured at submitting the job the job was submitted, TODO these problems can be solved
-        # 3) see if there is output
-        # 4) see if abinit reports problems
-        # 5) see if both err files exist and are empty
+        # 1) check it the job is blocked.
+        # 2) check if an error occured when the job was submitted, TODO these problems can be solved
+        # 3) check if main output file has been produced.
+        # 4) check if abinit reports problems.
+        # 5) check if both err files exist and are empty.
         # 6) no output and no err files, the job must still be running
         # 7) try to find out what caused the problems
         # 8) there is a problem but we did not figure out what ...
@@ -2007,7 +2007,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         # If we have an abort file produced by Abinit
         if self.mpiabort_file.exists:
-            return self.set_status(self.S_ABICRITICAL, msg="Found ABINIT abort file")
+            return self.set_status(self.S_ABICRITICAL, msg="Found ABINIT MPI abort file. This means Abinit run aborted!")
 
         # Analyze the stderr file for Fortran runtime errors.
         # getsize is 0 if the file is empty or it does not exist.
@@ -2122,7 +2122,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         # 8) analyzing the err files and abinit output did not identify a problem
         # but if the files are not empty we do have a problem but no way of solving it:
-        # The job is killed or crashed but we don't know what happend
+        # The job got killed or crashed but we don't know what happend
         # it is set to QCritical, we will attempt to fix it by running on more resources
         if err_msg:
             msg = 'Found error message:\n %s' % str(err_msg)
@@ -2284,7 +2284,6 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         try:
             report = parser.parse(ofile.path)
-            #self._prev_reports[source] = report
 
             # Add events found in the ABI_MPIABORTFILE.
             if self.mpiabort_file.exists:
@@ -2965,7 +2964,7 @@ class AbinitTask(Task):
         max_ncpus = self.manager.max_cores
         if max_ncpus == 1: return 0
 
-        autoparal_vars = dict(autoparal=policy.autoparal, max_ncpus=max_ncpus, mem_test=0)
+        autoparal_vars = dict(autoparal=policy.autoparal, max_ncpus=max_ncpus, mem_test=0, chkparal=0)
         self.set_vars(autoparal_vars)
 
         # Run the job in a shell subprocess with mpi_procs = 1
@@ -3314,17 +3313,20 @@ class AbinitTask(Task):
             return parser
         return None
 
-    def get_output_file(self):
+    def open_abo(self):
         """
         Parse the main output file in text format, return AbinitOutputFile object.
 
         example:
 
-            with task.get_output_file() as out:
-                dims_dataset, spginfo_dataset = out.get_dims_spginfo_dataset(verbose=0)
+            with task.open_abo() as abo:
+                dims_dataset, spginfo_dataset = abo.get_dims_spginfo_dataset(verbose=0)
         """
         from abipy.abio.outputs import AbinitOutputFile
         return AbinitOutputFile(self.output_file.path)
+
+    # This to maintain Backward compatibility
+    get_output_file = open_abo
 
 
 class ProduceHist:
@@ -3397,6 +3399,14 @@ class GsTask(AbinitTask):
         except Exception as exc:
             self.history.critical("Exception while reading GSR file at %s:\n%s" % (gsr_path, str(exc)))
             return None
+
+    def get_final_structure(self) -> Structure:
+        """Read the final structure from the GSR file."""
+        try:
+            with self.open_gsr() as gsr:
+                return gsr.structure.copy()
+        except AttributeError:
+            raise RuntimeError("Cannot find the GSR file with the final structure to restart from.")
 
     def change_ks_solver_params_if_needed(self, is_scf_cycle: bool) -> None:
         """
@@ -3529,11 +3539,11 @@ class ScfTask(GsTask):
 class CollinearThenNonCollinearScfTask(ScfTask):
     """
     A specialized ScfTaks that performs an initial SCF run with nsppol = 2.
-    The spin polarized WFK file is then used to start a non-collinear SCF run (nspinor == 2)
-    initialized from the previous WFK file.
+    The spin polarized WFK file is then used to start a non-collinear SCF run with nspinor == 2
+    that starts from the previous WFK file.
     """
-    def __init__(self, input, workdir=None, manager=None, deps=None):
-        super().__init__(input, workdir=workdir, manager=manager, deps=deps)
+    def __init__(self, abinit_input, workdir=None, manager=None, deps=None):
+        super().__init__(abinit_input, workdir=workdir, manager=manager, deps=deps)
         # Enforce nspinor = 1, nsppol = 2 and prtwf = 1.
         self._input = self.input.deepcopy()
         self.input.set_spin_mode("polarized")
@@ -3633,14 +3643,6 @@ class RelaxTask(GsTask, ProduceHist):
     ]
 
     color_rgb = np.array((255, 61, 255)) / 255
-
-    def get_final_structure(self) -> Structure:
-        """Read the final structure from the GSR file."""
-        try:
-            with self.open_gsr() as gsr:
-                return gsr.structure
-        except AttributeError:
-            raise RuntimeError("Cannot find the GSR file with the final structure to restart from.")
 
     def restart(self):
         """
@@ -3767,6 +3769,11 @@ class RelaxTask(GsTask, ProduceHist):
         if last_timden.path.endswith(".nc"): ofile += ".nc"
         self.history.info("Renaming last_denfile %s --> %s" % (last_timden.path, ofile))
         os.rename(last_timden.path, ofile)
+
+
+class BerryTask(ScfTask):
+    """Task for Berry phase calculations."""
+
 
 
 class DfptTask(AbinitTask):
@@ -4032,6 +4039,14 @@ class DdkTask(DfptTask):
         self.outdir.symlink_abiext('1WF', 'DDK')
 
 
+class EfieldTask(DfptTask):
+    """
+    Task for the computation of the response to the Electric field.
+    """
+
+    color_rgb = np.array((0, 122, 204)) / 255
+
+
 class DkdkTask(DfptTask):
     """
     Task for the computation of d2/dkdk wave functions
@@ -4172,7 +4187,7 @@ class ScrTask(ManyBodyTask):
 
     def open_scr(self):
         """
-        Open the SIGRES file located in the in self.outdir.
+        Open the SIGRES file located in self.outdir.
         Returns |ScrFile| object, None if file could not be found or file is not readable.
         """
         scr_path = self.scr_path
@@ -4219,9 +4234,6 @@ class SigmaTask(ManyBodyTask):
         self.history.info("Will restart from %s", restart_file)
         return self._restart()
 
-    #def inspect(self, **kwargs):
-    #    """Plot graph showing the number of k-points computed and the wall-time used"""
-
     @property
     def sigres_path(self) -> str:
         """Absolute path of the SIGRES.nc file. Empty string if file is not present."""
@@ -4235,7 +4247,7 @@ class SigmaTask(ManyBodyTask):
 
     def open_sigres(self):
         """
-        Open the SIGRES file located in the in self.outdir.
+        Open the SIGRES file located in self.outdir.
         Returns |SigresFile| object, None if file could not be found or file is not readable.
         """
         sigres_path = self.sigres_path
@@ -4360,7 +4372,7 @@ class BseTask(ManyBodyTask):
 
     def open_mdf(self):
         """
-        Open the MDF file located in the in self.outdir.
+        Open the MDF file located in self.outdir.
         Returns |MdfFile| object, None if file could not be found or file is not readable.
         """
         mdf_path = self.mdf_path
@@ -4380,7 +4392,7 @@ class BseTask(ManyBodyTask):
 class GwrTask(AbinitTask):
     """
     Class for calculations with the GWR code.
-    Provide `open_gwr` method to open GWR.nc
+    Provide `open_gwr` method to open the GWR.nc file.
     """
 
     color_rgb = np.array((255, 128, 0)) / 255
@@ -4927,7 +4939,7 @@ class AnaddbTask(Task):
         hence we don't need to create symbolic links.
         """
 
-    def outpath_from_ext(self, ext):
+    def outpath_from_ext(self, ext: str) -> str:
         if ext == "anaddb.nc":
             path = os.path.join(self.outdir.path, "anaddb.nc")
             if os.path.isfile(path): return path
@@ -4950,7 +4962,7 @@ class AnaddbTask(Task):
         phdos_path = self.outpath_from_ext("PHDOS.nc")
         return PhdosFile(phdos_path)
 
-    def make_input(self, with_header=False) -> str:
+    def make_input(self, with_header: bool = False) -> str:
         """return string the input file of the calculation."""
         inp = self.input.deepcopy()
 
