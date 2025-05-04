@@ -661,7 +661,12 @@ def plot_xy_with_hue(data: pd.DataFrame,
         if abs_conv is not None:
             color = line.get_color()
             for i in range(len(ys)):
-                ax.plot(xs[i], ys[i], marker="o", color="r" if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else color, linestyle="")
+                ax.plot(xs[i], ys[i], 
+                        marker="*" if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else "o", 
+                        markersize=10 if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else 5,
+                        color=color,
+                        alpha = 1 if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else 0.5,
+                        linestyle="")
 
         if abs_conv is not None:
             span_style = span_style or dict(alpha=0.2, hatch="/")
