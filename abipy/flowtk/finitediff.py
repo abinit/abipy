@@ -2,12 +2,14 @@
 """
 This module provide Works for finite difference calculations and related post-processing tools.
 
-IMPORTANT: In Abinit Stress is equal to dE/d_strain * (1/ucvol) See m_forstr
+IMPORTANT: In Abinit Stress is equal to dE/d_strain * (1/ucvol) See m_forstr.F90.
 """
 from __future__ import annotations
 
 # Handle
 #=   KILLED BY SIGNAL: 9 (Killed)
+# slurmstepd: error: Detected 1 oom_kill event in StepId=8214672.0. Some of the step tasks have been OOM Killed.
+#srun: error: cns264: task 1: Out Of Memory
 
 import sys
 import pickle

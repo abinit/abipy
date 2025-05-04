@@ -139,6 +139,7 @@ def abiview_memlog(options):
     from abipy.flowtk.events import MemLogParser
     parser = MemLogParser(options.filepath)
     print(parser.to_string(verbose=options.verbose))
+    #return 0
 
     with MplExposer(slide_mode=options.slide_mode,
                     slide_timeout=options.slide_timeout,
