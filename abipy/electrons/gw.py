@@ -2247,7 +2247,7 @@ class SigresRobot(Robot, RobotWithEbands):
 
         for ik, (kcalc, ax) in enumerate(zip(sigma_kpoints, ax_list)):
             for spin in range(nsppol):
-                ax.set_title("QP dirgap k:%s" % (repr(kcalc)), fontsize=fontsize)
+                ax.set_title("k-point: %s" % (repr(kcalc)), fontsize=fontsize)
 
                 data = self.get_qpgaps_dataframe(spin=spin, kpoint=kcalc, with_geo=False, with_ksgap=True)
                 if plot_qpmks:
@@ -2257,28 +2257,6 @@ class SigresRobot(Robot, RobotWithEbands):
                     # Sort by filename
                     data["filename"] = data.index
                     sortby = "filename"
-
-                # # Extract QP dirgap for [spin, ikcalc, itemp]
-                # if hue is None:
-                #     qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kcalc, with_ksgap=True)
-                #         for ncfile in ncfiles]))
-                #     yvals = qp_gaps if not plot_qpmks else qp_gaps - ks_gaps
-
-                #     if not is_string(params[0]):
-                #         ax.plot(params, yvals, marker=nc0.marker_spin[spin])
-                #     else:
-                #         # Must handle list of strings in a different way.
-                #         xn = range(len(params))
-                #         ax.plot(xn, yvals, marker=nc0.marker_spin[spin])
-                #         ax.set_xticks(xn)
-                #         ax.set_xticklabels(params, fontsize=fontsize)
-                # else:
-                #     for g in groups:
-                #         qp_gaps, ks_gaps = map(np.array, zip(*[ncfile.get_qpgap(spin, kcalc, with_ksgap=True)
-                #             for ncfile in g.abifiles]))
-                #         yvals = qp_gaps if not plot_qpmks else qp_gaps - ks_gaps
-                #         label = "%s: %s" % (self._get_label(hue), g.hvalue)
-                #         ax.plot(g.xvalues, qp_gaps, marker=nc0.marker_spin[spin], label=label)
 
                 plot_xy_with_hue(data,
                                  x= sortby,
@@ -2295,14 +2273,15 @@ class SigresRobot(Robot, RobotWithEbands):
             if ik == len(sigma_kpoints) - 1:
                 ax.set_xlabel("%s" % self._get_label(sortby))
                 if sortby is None: rotate_ticklabels(ax, 15)
+            else:
+                set_visible(ax, False, "xlabel")
             if ik == 0:
                 if plot_qpmks:
-                    ax.set_ylabel("QP-KS direct gap (eV)", fontsize=fontsize)
+                    ax.set_ylabel(r"$\text{QP}^{Z_0}_{\text{gap}} - \text{KS}_{\text{gap}}$ (eV)")
                 else:
-                    ax.set_ylabel("QP direct gap (eV)", fontsize=fontsize)
-
-            if hue is not None:
-                ax.legend(loc="best", fontsize=fontsize, shadow=True)
+                    ax.set_ylabel(r"$\text{QP}^{Z_0}_{\text{gap}}$ (eV)")
+            else:
+                 set_visible(ax, False, "ylabel")
 
         return fig
 
