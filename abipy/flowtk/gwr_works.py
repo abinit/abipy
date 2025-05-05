@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Works and Flows for GWR calculations (GW with supercells).
+Works and Flows for GWR calculations (GW in supercells).
 
 NB: An Abinit build with Scalapack is required to run GWR.
 """
@@ -19,7 +19,7 @@ from .works import Work
 class DirectDiagoWork(Work):
     """
     This work performs the direct diagonalization of the KS Hamiltonian
-    using the density produced by a GS-SCF run and produces a WFK file with
+    using the density produced by a GS run and produces a WFK file with
     empty states in the outdir of the second task.
 
     .. rubric:: Inheritance Diagram
@@ -27,7 +27,9 @@ class DirectDiagoWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, green_nband: int,
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       green_nband: int,
                        manager: TaskManager=None) -> DirectDiagoWork:
         """
         Build object from an input representing a GS-SCF calculation.
@@ -35,8 +37,8 @@ class DirectDiagoWork(Work):
         Args:
             scf_input: Input for the GS-SCF calculation.
             green_nband: Number of bands to compute in the direct diagonalization.
-                A negative value activate full diagonalization with nband equal to
-                the number of PWs.
+                A negative value activate the full diagonalization with nband
+                equal to the number of PWs.
         """
         work = cls(manager=manager)
         work.green_nband = green_nband
@@ -49,10 +51,14 @@ class DirectDiagoWork(Work):
 
 
 class _BaseGWRWork(Work):
+    """Base class for GWR works."""
 
     @classmethod
-    def from_varname_values(cls, varname_values: tuple, gwr_template: AbinitInput,
-                            den_node: Node, wfk_node: Node,
+    def from_varname_values(cls,
+                            varname_values: tuple,
+                            gwr_template: AbinitInput,
+                            den_node: Node,
+                            wfk_node: Node,
                             manager: TaskManager = None):
         """
         Generate the work by changing the values of selected variables in a template for GWR calculations.
@@ -87,7 +93,7 @@ class _BaseGWRWork(Work):
 
 class GWRSigmaConvWork(_BaseGWRWork):
     """
-    This work performs multiple QP calculations with the GWR code
+    This work performs multiple GW calculations with the GWR code
     and produces `xlsx` files in its `outdata` directory
     with the QP results obtained with the different parameters.
 
@@ -107,8 +113,8 @@ class GWRSigmaConvWork(_BaseGWRWork):
 
             with gwr_robot.get_pyscript(self.outdir.path_in("gwr_robot.py")) as script:
                 script.add_text("""
-#robot.plot_selfenergy_conv(spin=0, kpoint=?, band=?, axis="wreal", sortby=None, hue=None)
-#robot.plot_qpgaps_convergence(qp_kpoints="all", qp_type="qpz0", sortby=None, hue=None)
+#robot.plot_selfenergy_conv(spin=0, kpoint=0, band=?, axis="wreal", sortby=None, hue=None)
+#robot.plot_qpgaps_convergence(x="foobar", abs_conv=0.010 , hue=None)
 """)
 
         return super().on_all_ok()
@@ -126,9 +132,15 @@ class GWRChiCompareWork(_BaseGWRWork):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, gwr_ntau, nband, ecuteps,
-                       den_node: Node, wfk_node: Node,
-                       gwr_kwargs=None, scr_kwargs=None,
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       gwr_ntau: int,
+                       nband: int,
+                       ecuteps: float,
+                       den_node: Node,
+                       wfk_node: Node,
+                       gwr_kwargs: dict | None = None,
+                       scr_kwargs: dict | None = None,
                        manager: TaskManager = None):
         """
         Build Work from an input for GS-SCF calculation
@@ -215,9 +227,15 @@ class GWRRPAConvWork(_BaseGWRWork):
     """
 
     @classmethod
-    def from_scf_input_ntaus(cls, scf_input: AbinitInput, gwr_ntau_list, nband, ecuteps,
-                             den_node: Node, wfk_node: Node,
-                             gwr_kwargs=None, manager: TaskManager=None):
+    def from_scf_input_ntaus(cls,
+                             scf_input: AbinitInput,
+                             gwr_ntau_list: list,
+                             nband: int,
+                             ecuteps: float,
+                             den_node: Node,
+                             wfk_node: Node,
+                             gwr_kwargs: dict | None = None,
+                             manager: TaskManager = None):
         """
         Build Work from an input for GS-SCF calculation
 

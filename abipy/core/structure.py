@@ -20,7 +20,6 @@ from monty.collections import AttrDict, dict2namedtuple
 from monty.functools import lazy_property
 from monty.string import is_string, marquee, list_strings
 from monty.termcolor import cprint
-#from monty.dev import deprecated
 from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
@@ -172,6 +171,7 @@ def display_structure(obj, **kwargs):
 
 def get_structures_from_file(filepath: PathLike, index) -> list[Structure]:
     """
+    Read and return list of structures from filepath
     """
     #if index is None:
     #    index = -1
@@ -259,6 +259,10 @@ class Structure(pmg_Structure, NotebookWriter):
         elif hasattr(obj, "final_structure"):
             # This for HIST.nc file
             return cls.as_structure(obj.final_structure)
+
+        from phonopy.structure.atoms import PhonopyAtoms
+        if isinstance(obj, PhonopyAtoms):
+            return cls.from_phonopy_atoms(obj)
 
         raise TypeError("Don't know how to convert %s into a structure" % type(obj))
 
@@ -405,6 +409,16 @@ class Structure(pmg_Structure, NotebookWriter):
         new = COD().get_structure_by_id(cod_id, **kwargs)
         if primitive: new = new.get_primitive_structure()
         return cls.as_structure(new)
+
+    @classmethod
+    def from_phonopy_atoms(cls, atoms) -> Structure:
+        """
+        Returns structure from phonopy Atoms.
+        """
+        from pymatgen.io.phonopy import get_pmg_structure
+        new = get_pmg_structure(atoms)
+        new.__class__ = cls
+        return new
 
     @classmethod
     def from_ase_atoms(cls, atoms) -> Structure:
@@ -1041,8 +1055,8 @@ class Structure(pmg_Structure, NotebookWriter):
         natom = len(self)
         spgan = SpacegroupAnalyzer(self, symprec=symprec, angle_tolerance=angle_tolerance)
         spgdata = spgan.get_symmetry_dataset()
-        equivalent_atoms = spgdata["equivalent_atoms"]
-        wyckoffs = np.array(spgdata["wyckoffs"])
+        equivalent_atoms = spgdata.equivalent_atoms
+        wyckoffs = np.array(spgdata.wyckoffs)
 
         wyck_mult = [np.count_nonzero(equivalent_atoms == equivalent_atoms[i]) for i in range(natom)]
         wyck_mult = np.array(wyck_mult, dtype=int)
@@ -1112,7 +1126,7 @@ class Structure(pmg_Structure, NotebookWriter):
             spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group_symbol()))
         app("")
 
-        wickoffs, equivalent_atoms = spgdata["wyckoffs"], spgdata["equivalent_atoms"]
+        wickoffs, equivalent_atoms = spgdata.wyckoffs, spgdata.equivalent_atoms
         header = ["Idx", "Symbol", "Reduced_Coords", "Wyckoff", "EqIdx"]
 
         if site_symmetry:
@@ -1327,7 +1341,6 @@ class Structure(pmg_Structure, NotebookWriter):
                         return False
 
         return True
-
 
     @lazy_property
     def hsym_kpath(self):
@@ -1915,15 +1928,15 @@ class Structure(pmg_Structure, NotebookWriter):
         all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
         Args:
-            displ: Displacement vector with 3*len(self) entries (fractional coordinates).
-            eta: Scaling factor.
-            frac_coords: Boolean stating whether the vector corresponds to fractional or cartesian coordinates.
+            displ: Displacement vector with 3*len(self) entries in fractional coordinates.
+            eta: Scaling factor in Ang
+            frac_coords: Boolean stating whether displ corresponds to fractional or cartesian coordinates.
         """
         # Get a copy since we are going to modify displ.
         displ = np.reshape(displ, (-1, 3)).copy()
 
         if len(displ) != len(self):
-            raise ValueError("Displ must contains 3 * natom entries")
+            raise ValueError("Displ array must contains 3 * natom entries")
         if np.iscomplexobj(displ):
             raise TypeError("Displacement cannot be complex")
 
@@ -1939,6 +1952,43 @@ class Structure(pmg_Structure, NotebookWriter):
         # Displace the sites.
         for i in range(len(self)):
             self.translate_sites(indices=i, vector=eta * displ[i, :], frac_coords=True)
+
+    def displace_one_site(self, index, displ, eta,
+                          frac_coords: bool = True,
+                          to_unit_cell: bool = False
+    ) -> Structure:
+        """
+        Displace one site of the structure along the displacement vector displ.
+
+        The displacement vector is first rescaled so that the maxium atomic displacement
+        is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
+        the site so that the maximum atomic displacement is 0.001 Angstrom.
+
+        Args:
+            index: Index of the site (starts at 0).
+            displ: Displacement vector in fractional coordinates.
+            eta: Scaling factor in Ang
+            frac_coords: Boolean stating whether displ corresponds to fractional or cartesian coordinates.
+            to_unit_cell (bool): Whether new sites are transformed to unit cell
+        """
+        # Get a copy since we are going to modify displ.
+        displ = 1.0 * np.reshape(displ, (3, )).copy()
+
+        if np.iscomplexobj(displ):
+            raise TypeError("Displacement cannot be complex")
+
+        if not frac_coords:
+            # Convert to fractional coordinates.
+            displ = self.lattice.get_fractional_coords(displ)
+
+        # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
+        dnorm = self.norm(displ, space="r")
+        displ /= np.max(np.abs(dnorm))
+
+        # Displace the site.
+        new_structure = self.copy()
+        new_structure.translate_sites(indices=index, vector=eta * displ, frac_coords=True, to_unit_cell=to_unit_cell)
+        return new_structure
 
     def get_smallest_supercell(self, qpoint, max_supercell):
         """
@@ -2314,7 +2364,7 @@ class Structure(pmg_Structure, NotebookWriter):
             app(" kptopt %d" % -(len(self.hsym_kpoints) - 1))
             app(" kptbounds")
             for k in self.hsym_kpoints:
-                app("    {:+.5f}  {:+.5f}  {:+.5f}  # {kname}".format(*k.frac_coords, kname=k.name))
+                app("    {:+.9f}  {:+.9f}  {:+.9f}  # {kname}".format(*k.frac_coords, kname=k.name))
 
         elif fmt in ("wannier90", "w90"):
             app("# Wannier90 structure")
@@ -2372,6 +2422,32 @@ class Structure(pmg_Structure, NotebookWriter):
                 ngkpt[i] = 1
 
         return ngkpt
+
+    def as_ngkpt(self, ngkpt) -> np.ndarray:
+        """
+        Flexible API to compute the ABINIT variable ``ngkpt`` using different approaches.
+
+        The following cases are supported:
+            - If `ngkpt` is a 1D vector with 3 items, return `ngkpt` as-is.
+            - If `ngkpt` is a positive float, interpret it as `nksmall` (a scaling factor for the k-point grid).
+            - If `ngkpt` is a negative float, interpret it as the desired number of k-points per atom.
+
+        This method allows users to flexibly specify the k-point grid based on their preferred input format.
+        """
+        ngkpt = np.array(ngkpt)
+
+        if ngkpt.ndim == 1 and len(ngkpt) == 3:
+            return ngkpt
+
+        if (nksmall := float(ngkpt)) > 0:
+            return self.calc_ngkpt(nksmall)
+
+        if (kppa := -float(ngkpt)) > 0:
+            import pymatgen.io.abinit.abiobjects as aobj
+            ksampling = aobj.KSampling.automatic_density(self, kppa, chksymbreak=0, shifts=(0,0,0))
+            return ksampling.to_abivars()["ngkpt"]
+
+        raise ValueError(f"Don't know how to convert {type(ngkpt)=}, {ngkpt=} to k-mesh!")
 
     def calc_shiftk(self, symprec=0.01, angle_tolerance=5) -> np.ndarray:
         """
@@ -2726,7 +2802,6 @@ def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.st
             if headers: fromfile, tofile = headers[0], headers[i]
             diff = "\n".join(difflib.unified_diff(outs[0], outs[i], fromfile=fromfile, tofile=tofile))
             print(diff, file=file)
-
     else:
         raise ValueError(f"Unsupported {mode=}")
 

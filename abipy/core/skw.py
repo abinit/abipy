@@ -13,17 +13,18 @@ import scipy
 import time
 
 from collections import deque, OrderedDict
-#from typing import
 from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.numtools import gaussian, find_degs_sk
 from abipy.core.kpoints import Kpath
 from abipy.core.symmetries import mati3inv
+#from abipy.tools.typing import Figure, KptSelect
 
 
 class ElectronInterpolator(metaclass=abc.ABCMeta):
     """
+    Abstract class for band structure interpolator.
     """
     # Tolerances passed to spglib.
     symprec = 1e-5
@@ -652,7 +653,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         gradients and Hessian matrices.
 
         Args:
-            kfrac_coords: K-points in reduced coordinates.
+            kfrac_coords: k-points in reduced coordinates.
             dk1 (bool): True if gradient is wanted.
             dk2 (bool): True to compute 2nd order derivatives.
 
@@ -661,7 +662,6 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
             interpolated energies in eigens[nsppol, len(kfrac_coords), nband]
             gradient in dedk[self.nsppol, len(kfrac_coords), self.nband, 3))
             hessian in dedk2[self.nsppol, len(kfrac_coords), self.nband, 3, 3))
-
             gradient and hessian are set to None if not computed.
         """
         start = time.time()
@@ -723,8 +723,17 @@ class SkwInterpolator(ElectronInterpolator):
     but the same object can be used to interpolate other quantities. Just set the first dimension to 1.
     """
 
-    def __init__(self, lpratio, kpts, eigens, fermie, nelect, cell, symrel, has_timrev,
-                 filter_params=None, verbose=1):
+    def __init__(self,
+                 lpratio,
+                 kpts,
+                 eigens,
+                 fermie,
+                 nelect,
+                 cell,
+                 symrel,
+                 has_timrev,
+                 filter_params=None,
+                 verbose=1):
         """
         Args:
             lpratio: Ratio between the number of star-functions and the number of ab-initio k-points.

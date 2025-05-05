@@ -31,10 +31,7 @@ AbiPy can be used in conjunction with matplotlib_, pandas_, scipy_, seaborn_, ip
 thus providing a powerful and user-friendly environment for data analysis and visualization.
 
 To learn more about the integration between jupyter_ and AbiPy, visit `our collection of notebooks
-<https://nbviewer.jupyter.org/github/abinit/abitutorials/blob/master/abitutorials/index.ipynb>`_
-or click the **Launch Binder** badge to start a Docker image with Abinit, AbiPy and all the other python dependencies
-required to run the code inside the jupyter notebooks.
-The notebook will be opened in your browser after building.
+<https://abinit.github.io/abipy_book/intro.html>`_
 
 AbiPy is free to use. However, we also welcome your help to improve this library by making your own contributions.
 Please report any bugs and issues at AbiPy's `Github page <https://github.com/abinit/abipy>`_.
@@ -75,9 +72,9 @@ python packages through `Anaconda <https://continuum.io/downloads>`_ (or conda).
 See `Installing conda`_ to install conda itself.
 We routinely use conda_ to test new developments with multiple Python versions and multiple virtual environments.
 
-Create a new conda_ environment based on python 3.11 (let's call it ``abienv``) with::
+Create a new conda_ environment based on python 3.12 (let's call it ``abienv``) with::
 
-    conda create --name abienv python=3.11
+    conda create --name abienv python=3.12
 
 and activate it with::
 
@@ -87,9 +84,11 @@ You should see the name of the conda environment in the shell prompt.
 
 Finally, install AbiPy with::
 
-    conda install abipy -c conda-forge
+    conda install abipy -c conda-forge --yes
 
-Please note that, at present, conda-forge does not provide executables 
+Please note that, it is also possible to install the abinit executables in the same environment using::
+
+    conda install abinit -c conda-forge --yes
 
 Additional information on the steps required to install AbiPy with anaconda are available
 in the `anaconda howto <http://abinit.github.io/abipy/installation#anaconda-howto>`_.
@@ -113,7 +112,7 @@ For pip, use::
 
 If you are using conda_ (see `Installing conda`_ to install conda itself), create a new environment (``abienv``) with::
 
-    conda create -n abienv python=3.11
+    conda create -n abienv python=3.12
     source activate abienv
 
 Add ``conda-forge``, and ``abinit`` to your channels with::
@@ -177,6 +176,48 @@ AbiPy uses the `Git Flow <http://nvie.com/posts/a-successful-git-branching-model
 The ``develop`` branch contains the latest contributions, and ``master`` is always tagged and points
 to the latest stable release.
 
+Installing without internet access
+----------------------------------
+
+Here, it is described how to set up a virtual environment with AbiPy on a cluster that cannot reach out to the internet.
+One first creates a virtual environment with AbiPy on a cluster/computer with access, then ports the required files to the cluster without access, and performs an offline installation.
+We use Conda for the Python installation and pip for the packages, as the former reduces the odds that incompatibilities arise, while the latter provides convenient syntax for offline package installation.
+
+One first needs Conda on the cluster with access.
+If not available by default, follow the instructions for installing Conda at the bottom of this page.
+Next, set up a conda virtual environment with a designated Python version, for example 3.12::
+
+    conda create --name abienv python=3.12
+    conda activate abienv
+
+We then install AbiPy in this virtual environment, followed by creating requirements.txt, and creating a folder packages/ containing all the wheels (.whl format)::
+
+    pip install abipy
+    pip list --format=freeze > requirements.txt
+    pip download -r requirements.txt -d packages/
+
+Next, the .txt file, the folder, and the miniconda installer must be forwarded to the cluster without internet access.
+You may have to use a computer that has access to both locations with the scp command.
+If the offline cluster does not have Conda preinstalled, the Miniconda executable must be ported so that an offline Conda installation can be performed.
+Thus, from a computer that can access both locations, execute::
+
+    scp -r connected_cluster:/file/and/folder/location/* .
+    wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    scp -r requirements.txt packages/ Miniconda3-latest-Linux-x86_64.sh disconnected_cluster:/desired/location/
+
+If conda is not available on the cluster that cannot access the internet, follow the instructions on the bottom of this page to install it.
+Next, one can set up an **offline** virtual environment on the cluster without internet access::
+
+    conda create --name abienv --offline python=3.12
+    conda activate abienv
+
+At this step, AbiPy might fail to install due to missing/incompatible packages.
+Some of these issues may be solved by repeating the above steps (excluding the environment creation) for packages that are listed as missing/incompatible during the installation procedure, by updating the requirements.txt and packages/ and trying to install again.
+Upon reading::
+
+	Successfully installed abipy-x.y.z
+
+You can quickly test your installation by running ``python`` followed by ``import abipy``.
 
 Installing Abinit
 =================
@@ -408,6 +449,35 @@ Source your ``.bashrc`` file to activate the changes done by ``miniconda`` to yo
     source ~/.bashrc
 
 .. _troubleshooting:
+
+
+How to contribute
+=================
+
+To contribute to Abipy, the standard procedure is as follows:
+
+1.	Fork the repository by clicking the fork button at the top of the screen.
+
+2.	Clone your repository locally using::
+
+        git clone https://github.com/USERNAME/abipy.git
+
+    where USERNAME is your GitHub username.
+
+3.	Register the upstream repository with::
+
+        git remote add trunk https://github.com/abinit/abipy.git
+
+4.  Pull the latest commit from the develop branch of trunk with::
+
+        git pull trunk develop
+
+5. Modify the code and commit your changes to your fork using::
+
+    git commit -a -m "Message describing the modifications"
+    git push
+
+6. Use the graphical interface provided by GitHub to open pull requests from your branch to trunk develop.
 
 License
 =======

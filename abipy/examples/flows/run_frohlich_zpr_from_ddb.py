@@ -5,6 +5,7 @@ e-ph ZPR of band edges with generalized Frohlich model
 
 Flow to estimate the zero-point renormalization at the band edges
 using the generalized Frohlich model. The flow uses DFPT to compute
+
 the effective masses at the band edges (automatically detected by performing a NSCF run with a k-path),
 and uses an external DDB file providing BECS, eps_inf and phonon frequencies at Gamma.
 """

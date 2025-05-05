@@ -3,8 +3,10 @@ name: Run the Abipy test suite.
 on:
   push:
     branches: [develop, master]
+    paths-ignore: ["**/*.md", docs/**]
   pull_request:
     branches: [develop]
+    paths-ignore: ["**/*.md", docs/**]
   workflow_dispatch:
   workflow_call: # make this workflow reusable by release.yml
 
@@ -14,7 +16,7 @@ permissions:
 jobs:
   test:
     # prevent this action from running on forks
-    #if: github.repository == 'abinit/abipy'
+    if: github.repository == 'abinit/abipy'
     defaults:
       run:
         shell: bash -l {0} # enables conda/mamba env activation by reading bash profile
@@ -24,14 +26,17 @@ jobs:
       matrix:
         config:
           - os: ubuntu-latest
-            python: '3.11'
+            python: "3.11"
+          - os: ubuntu-latest
+            python: "3.12"
 
     runs-on: ${{ matrix.config.os }}
+
     env:
       PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
 
     steps:
-      - name: Check out Abipy repo
+      - name: Checkout Abipy repo
         uses: actions/checkout@v4
 
       - name: Set up Miniconda
@@ -46,12 +51,21 @@ jobs:
             conda install abinit -c conda-forge --yes
             mpirun -n 1 abinit --version
             mpirun -n 1 abinit --build
+
+            # Update submodules with data.
+            git submodule update --remote --init
+            git submodule update --recursive --remote
+
+            pip install -r requirements.txt
+            pip install -r requirements-optional.txt
+            pip install -r requirements-panel.txt
             pip install --editable .
             mkdir -p $HOME/.abinit/abipy/
             cp abipy/data/managers/gh_manager.yml $HOME/.abinit/abipy/manager.yml
             cp abipy/data/managers/gh_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
-            # FIXME TEMPORARY HACK
-            pip install git+https://github.com/gmatteo/pymatgen.git@master -U
+
+            # TEMPORARY HACK THAT MIGHT BE NEEDED IF THE PYMATGEN GUYS BREAK STUFF
+            #pip install git+https://github.com/gmatteo/pymatgen.git@master -U
 
       - name: pytest
         run: |

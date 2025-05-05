@@ -12,7 +12,7 @@ import collections
 import numpy as np
 import pandas as pd
 
-from typing import Iterator, Union # Any
+from typing import Iterator # Any
 from monty.collections import AttrDict
 from monty.itertools import chunks
 from monty.functools import lazy_property
@@ -23,8 +23,8 @@ from pymatgen.core.units import EnergyArray
 from abipy.tools.typing import TYPE_CHECKING, Figure
 from abipy.flowtk import wrappers
 from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status
-from .tasks import (Task, AbinitTask, ScfTask, NscfTask, DfptTask, PhononTask, ElasticTask, DdkTask,
-                    DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask,
+from .tasks import (Task, AbinitTask, ScfTask, NscfTask, BerryTask, DfptTask, PhononTask, ElasticTask, DdkTask,
+                    DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask, EfieldTask,
                     EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
                     DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
 from .utils import Directory
@@ -158,7 +158,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         """
         return sum(task.manager.num_cores for task in self if task.status == task.S_RUN)
 
-    def fetch_task_to_run(self) -> Union[Task, None]:
+    def fetch_task_to_run(self) -> Task | None:
         """
         Returns the first task that is ready to run or
         None if no task can be submitted at present"
@@ -384,6 +384,10 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_scf_task(self, *args, **kwargs) -> ScfTask:
         """Register a SCF task."""
         kwargs["task_class"] = ScfTask
+        input = args[0]
+        if input.get("berryopt", 0) != 0:
+            kwargs["task_class"] = BerryTask
+
         return self.register_task(*args, **kwargs)
 
     def register_collinear_then_noncollinear_scf_task(self, *args, **kwargs):
@@ -415,6 +419,10 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_relax_task(self, *args, **kwargs) -> RelaxTask:
         """Register a task for structural optimization."""
         kwargs["task_class"] = RelaxTask
+        return self.register_task(*args, **kwargs)
+
+    def register_berry_task(self, *args, **kwargs) -> BerryTask:
+        kwargs["task_class"] = BerryTask
         return self.register_task(*args, **kwargs)
 
     def register_phonon_task(self, *args, **kwargs) -> PhononTask:
@@ -487,6 +495,11 @@ class NodeContainer(metaclass=abc.ABCMeta):
         max_cores = manager.qadapter.max_cores
         new_manager = manager.new_with_fixed_mpi_omp(max_cores, 1)
         kwargs.update({"manager": new_manager})
+        return self.register_task(*args, **kwargs)
+
+    def register_efield_task(self, *args, **kwargs) -> EfieldTask:
+        """Register an Efield task."""
+        kwargs["task_class"] = EfieldTask
         return self.register_task(*args, **kwargs)
 
     def register_bec_task(self, *args, **kwargs) -> BecTask:
@@ -659,7 +672,7 @@ class Work(BaseWork, NodeContainer):
     def __iter__(self) -> Iterator[Task]:
         return self._tasks.__iter__()
 
-    def __getitem__(self, slice) -> Union[Task, list[Task]]:
+    def __getitem__(self, slice) -> Task | list[Task]:
         return self._tasks[slice]
 
     def postpone_on_all_ok(self):
@@ -769,7 +782,7 @@ class Work(BaseWork, NodeContainer):
                 if task.workdir != task_workdir:
                     raise ValueError("task.workdir != task_workdir: %s, %s" % (task.workdir, task_workdir))
 
-    def register(self, obj: Union[AbinitInput, Task],
+    def register(self, obj: AbinitInput | Task,
                  deps=None, required_files=None, manager=None, task_class=None) -> Task:
         """
         Registers a new |Task| and add it to the internal list, taking into account possible dependencies.
@@ -1536,12 +1549,15 @@ class MergeDdb:
         if not isinstance(scf_task, ScfTask):
             raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
 
-        scf_kptopt = scf_task.input.get("kptopt", 1)
-        kptopt = 3
-        if scf_kptopt in (1, 2): kptopt = 2
         # DDK calculations (self-consistent to get electric field).
-        multi_ddk = scf_task.input.make_ddk_inputs(tolerance=ddk_tolerance,
-                                                   kptopt=kptopt)
+        # Use time-reversal symmetry for DDK (ddk_kptopt 2) except when
+        # the SCF run has disabled all symmetries (3) or just TR (4).
+        ddk_kptopt = 2
+        if "kptopt" in scf_task.input:
+            if scf_task.input["kptopt"] in (3, 4):
+                ddk_kptopt = 3
+
+        multi_ddk = scf_task.input.make_ddk_inputs(kptopt=ddk_kptopt, tolerance=ddk_tolerance)
 
         ddk_tasks = []
         for ddk_inp in multi_ddk:
@@ -1557,10 +1573,10 @@ class MergeDdb:
             bec_inputs = scf_task.input.make_strain_perts_inputs(tolerance=ph_tolerance,
                                                                  phonon_pert=True, efield_pert=True,
                                                                  prepalw=1)
-
         else:
+            # Dataset 4 in <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
             bec_inputs = scf_task.input.make_bec_inputs(tolerance=ph_tolerance,
-                                                        prepalw=1 if with_quad else 0)
+                                                        prepalw=2 if with_quad else 0)
 
         bec_tasks = []
         for bec_inp in bec_inputs:
@@ -1569,16 +1585,30 @@ class MergeDdb:
 
         if with_quad or with_flexoe:
             # Response function calculation of d2/dkdk wave function.
-            # See <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
-            dkdk_inp = scf_task.input.make_dkdk_input(tolerance=ddk_tolerance)
+            # Dataset 3 in <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+            dkdk_inp = scf_task.input.make_dkdk_input(rf2_dkdk=3, tolerance=ddk_tolerance)
             dkdk_task = self.register_dkdk_task(dkdk_inp, deps=bec_deps)
+
+            # Add electric field perturbations.
+            # FIXME: In principle, one can have it via BECS but make_bec_inputs uses symmetries
+            # but dyn. qaudrupoles requires all three directions so we do it explicitly.
+            e_tasks = []
+            for idir in range(3):
+                rfdir = np.zeros(3, dtype=int)
+                rfdir[idir] = 1
+                d = dict(rfelfd=3, kptopt=2, prepalw=2, rfdir=rfdir)
+                efield_input = scf_task.input.new_with_vars(**d)
+                e_tasks.append(self.register_efield_task(efield_input, deps=bec_deps))
 
             quad_deps = bec_deps.copy()
             quad_deps.update({dkdk_task: "DKDK"})
             quad_deps.update({bec_task: ["1DEN", "1WF"] for bec_task in bec_tasks})
+            # Add the electric field dependencies.
+            quad_deps.update({e_task: ["1DEN", "1WF"] for e_task in e_tasks})
 
             if with_quad:
-                # Dynamic Quadrupoles calculation
+                # Dynamical quadrupoles calculation
+                # See Dataset 5 in <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
                 quad_inp = scf_task.input.make_quad_input(tolerance=ph_tolerance)
                 quad_task = self.register_quad_task(quad_inp, deps=quad_deps)
 
@@ -1645,7 +1675,7 @@ class MergeDdb:
 
         return out_ddb
 
-    def merge_pot1_files(self, delete_source=False) -> Union[str, None]:
+    def merge_pot1_files(self, delete_source=False) -> str | None:
         """
         This method is called when all the q-points have been computed.
         It runs `mrgdvdb` in sequential on the local machine to produce
@@ -1736,7 +1766,8 @@ class PhononWork(Work, MergeDdb):
                 in the segment is proportional to its length. Typical value: -20.
                 This option is the recommended one if the k-path contains two high symmetry k-points that are very close
                 as ndivsm > 0 may produce a very large number of wavevectors.
-            qptopt: Option for the generation of q-points. Default: 1
+                if 0, deactivate band structure calculation.
+            qptopt: Option for the generation of q-points. Default: 1 i.e. use msym spatial symmetries + TR.
             prtwf: Controls the output of the first-order WFK.
                 By default we set it to -1 when q != 0 so that AbiPy is still able
                 to restart the DFPT task if the calculation is not converged (worst case scenario)
@@ -1747,7 +1778,7 @@ class PhononWork(Work, MergeDdb):
             manager: |TaskManager| object.
         """
         if not isinstance(scf_task, ScfTask):
-            raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
+            raise TypeError(f"task {scf_task} does not inherit from ScfTask")
 
         if is_ngqpt:
             qpoints = scf_task.input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=qptopt).points
@@ -1781,10 +1812,21 @@ class PhononWork(Work, MergeDdb):
         return new
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, qpoints, is_ngqpt=False, with_becs=False,
-                       with_quad=False, with_flexoe=False, with_dvdb=True, tolerance=None,
-                       ddk_tolerance=None, ndivsm=0, qptopt=1,
-                       prtwf=-1, prepgkk=0, manager=None) -> PhononWork:
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       qpoints,
+                       is_ngqpt=False,
+                       with_becs=False,
+                       with_quad=False,
+                       with_flexoe=False,
+                       with_dvdb=True,
+                       tolerance=None,
+                       ddk_tolerance=None,
+                       ndivsm=0,
+                       qptopt=1,
+                       prtwf=-1,
+                       prepgkk=0,
+                       manager=None) -> PhononWork:
         """
         Similar to `from_scf_task`, the difference is that this method requires
         an input for SCF calculation. A new |ScfTask| is created and added to the Work.
@@ -1821,7 +1863,7 @@ class PhononWork(Work, MergeDdb):
                 new.register_phonon_task(ph_inp, deps={scf_task: "WFK"})
 
         new.ebands_task = None
-        if ndivsm != 0:
+        if ndivsm is not None and ndivsm != 0:
             new.ebands_task = scf_task.add_ebands_task_to_work(new, ndivsm=ndivsm)
 
         return new
@@ -1896,7 +1938,7 @@ class PhononWfkqWork(Work, MergeDdb):
             to decrease the number of WFQ files to be computed.
         """
         if not isinstance(scf_task, ScfTask):
-            raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
+            raise TypeError(f"task {scf_task} does not inherit from ScfTask")
 
         shiftq = np.reshape(shiftq, (3, ))
         #print("ngqpt", ngqpt, "\nshiftq", shiftq)
@@ -2237,7 +2279,7 @@ class DteWork(Work, MergeDdb):
             manager: |TaskManager| object.
         """
         if not isinstance(scf_task, ScfTask):
-            raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
+            raise TypeError(f"task {scf_task} does not inherit from ScfTask")
 
         new = cls(manager=manager)
 
@@ -2341,7 +2383,7 @@ class ConducWork(Work):
         """
         # Verify phwork
         if not isinstance(phwork, PhononWork):
-            raise TypeError("Work `%s` does not inherit from PhononWork" % phwork)
+            raise TypeError(f"Work {phwork} does not inherit from PhononWork")
 
         # Verify Multi
         if (not with_kerange) and (multi.ndtset != 3): #Without kerange, multi should contain 3 datasets
@@ -2409,10 +2451,10 @@ class ConducWork(Work):
                                 multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
         # Make sure both file exists
         if not os.path.exists(ddb_path):
-            raise ValueError("The DDB file doesn't exists : `%s`" % ddb_path)
+            raise ValueError(f"The DDB file {ddb_path} does not exist")
 
         if not os.path.exists(dvdb_path):
-            raise ValueError("The DVDB file doesn't exists : `%s`" % dvdb_path)
+            raise ValueError(f"The DVDB file {dvdb_path} does not exist")
 
         # Verify nbr_proc and flow are defined if with_kerange
         if with_kerange and (flow is None or nbr_proc is None):

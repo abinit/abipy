@@ -34,9 +34,14 @@ class ElasticWork(Work, MergeDdb):
     The Phonon tasks and the elastic task will read the DDK produced at the beginning
     """
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput,
-                       with_relaxed_ion=True, with_piezo=False, with_dde=False,
-                       tolerances=None, den_deps=None, manager=None) -> ElasticWork:
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       with_relaxed_ion=True,
+                       with_piezo=False,
+                       with_dde=False,
+                       tolerances=None,
+                       den_deps=None,
+                       manager=None) -> ElasticWork:
         """
         Args:
             scf_input:

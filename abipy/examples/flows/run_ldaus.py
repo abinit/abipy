@@ -4,7 +4,7 @@ LDA+U calculations
 ==================
 
 This example shows how to compute the LDA+U band structure of NiO
-with PAW for several values of U-J.
+with PAW for several values of U and J.
 """
 
 import sys

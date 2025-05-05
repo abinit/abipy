@@ -199,9 +199,11 @@ class NonAnalyticalPh(Has_Structure):
             return False
 
 
-def open_file_phononwebsite(filename, port=8000,
+def open_file_phononwebsite(filename,
+                            port=8000,
                             website="http://henriquemiranda.github.io/phononwebsite",
-                            host="localhost", browser=None): # pragma: no cover
+                            host="localhost",
+                            browser=None): # pragma: no cover
     """
     Take a file, detect the type and open it on the phonon website
     Based on a similar function in <https://github.com/henriquemiranda/phononwebsite/phononweb.py>

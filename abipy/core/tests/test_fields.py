@@ -6,8 +6,7 @@ import pymatgen.core.units as pmgu
 import abipy.data as abidata
 
 from pymatgen.core.units import bohr_to_angstrom
-from abipy.core.fields import _Field, FieldReader, Density, VxcPotential, VhartreePotential, VhxcPotential
-from abipy.core.fields import core_density_from_file
+from abipy.core.fields import _Field, FieldReader, Density, VxcPotential, VhartreePotential, VhxcPotential, core_density_from_file
 from abipy.core.testing import AbipyTest
 from abipy.iotools import *
 
@@ -132,9 +131,20 @@ class TestScalarField(AbipyTest):
         self.assert_almost_equal(df["rsph_ang"].values, 2 * [1.11])
         df = si_den.integrate_in_spheres(rcut_symbol=2, out=False)
 
+        # Test get_planar_average: make sure that results do not dipend on the direction.
+        dist_a, avg_a = si_den.get_planar_average(direction="a", spin=0)
+        dist_b, avg_b = si_den.get_planar_average(direction="b", spin=0)
+        dist_c, avg_c = si_den.get_planar_average(direction="c", spin=0)
+
+        self.assert_almost_equal(dist_a, dist_b)
+        self.assert_almost_equal(dist_a, dist_c)
+        self.assert_almost_equal(avg_a, avg_b)
+        self.assert_almost_equal(avg_a, avg_c)
+
         if self.has_matplotlib():
             assert si_den.plot_line(0, 1, num=1000, show=False)
             assert si_den.plot_line([0, 0, 0], [1, 0, 0], num=1000, cartesian=True, show=False)
+            assert si_den.plot_planar_average(direction="a", show=True)
 
         # Export to chgcar and re-read it.
         chgcar_path = self.get_tmpname(text=True)
@@ -171,7 +181,6 @@ class TestScalarField(AbipyTest):
         with self.assertRaises(ValueError):
             Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1, nelec=20, tol=0.001,
                                             method='get_sites_in_sphere', small_dist_mesh=(2, 2, 2))
-
 
     def test_ni_density(self):
         """Testing density object (spin polarized, collinear)."""
@@ -221,10 +230,21 @@ class TestScalarField(AbipyTest):
         self.assert_almost_equal(df["rsph_ang"].values, 1.24)
         self.assert_almost_equal(df["nup"].values + df["ndown"].values, df["ntot"].values)
 
+        # Test get_planar_average: make sure that results do not dipend on the direction.
+        dist_a, avg_a = ni_den.get_planar_average(direction="a", spin=1)
+        dist_b, avg_b = ni_den.get_planar_average(direction="b", spin=1)
+        dist_c, avg_c = ni_den.get_planar_average(direction="c", spin=1)
+
+        self.assert_almost_equal(dist_a, dist_b)
+        self.assert_almost_equal(dist_a, dist_c)
+        self.assert_almost_equal(avg_a, avg_b)
+        self.assert_almost_equal(avg_a, avg_c)
+
         if self.has_matplotlib():
             assert ni_den.plot_line([0, 0, 0],  [1, 1, 1], num=1000, show=False)
             assert ni_den.plot_line_neighbors(site_index=0, radius=1, num=50, max_nn=10) is None
             assert ni_den.plot_line_neighbors(site_index=0, radius=3, num=50, max_nn=10, show=False)
+            assert ni_den.plot_planar_average(direction="a", spin=1, show=True)
 
         # Export data in xsf format.
         visu = ni_den.export(".xsf")
@@ -259,7 +279,7 @@ class TestScalarField(AbipyTest):
         assert not vxc.is_density_like
         assert vxc.is_potential_like
         #assert vxc.datar.dtype == np.float
-        fact = pmgu.Ha_to_eV / pmgu.bohr_to_angstrom ** 3
+        fact = pmgu.Ha_to_eV
         self.assert_almost_equal(vxc.datar[0, 0, 0, 0], -2.40411892342838 * fact)
         self.assert_almost_equal(vxc.datar[0, 0, 0, 1], -2.31753083824603 * fact)
 

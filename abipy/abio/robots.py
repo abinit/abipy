@@ -1,7 +1,9 @@
 # coding: utf-8
 """
-This module defines the Robot BaseClass. Robots operates on multiple files and provide helper
-functions to plot the data e.g. convergence studies and to build pandas dataframes from the output files.
+This module defines the Robot BaseClass.
+Robots operates on multiple files and provide helper
+functions to plot the data e.g. convergence studies
+and to build pandas dataframes from the output files.
 """
 from __future__ import annotations
 
@@ -150,7 +152,7 @@ class Robot(NotebookWriter):
         Open files in directory tree starting from `top`. Return list of Abinit files.
         """
         if not os.path.isdir(top):
-            raise ValueError("%s: no such directory" % str(top))
+            raise ValueError(f"{top=}: no such directory")
         from abipy.abilab import abiopen
         items = []
         if walk:
@@ -421,6 +423,7 @@ class Robot(NotebookWriter):
         """
         if is_string(abifile):
             from abipy.abilab import abiopen
+            print(f"{abifile=}")
             abifile = abiopen(abifile)
             if filter_abifile is not None and not filter_abifile(abifile):
                 abifile.close()
@@ -430,7 +433,7 @@ class Robot(NotebookWriter):
             self._do_close[abifile.filepath] = True
 
         if label in self._abifiles:
-            raise ValueError("label %s is already present!" % label)
+            raise ValueError(f"{label=} is already present!")
 
         self._abifiles[label] = abifile
 
@@ -663,9 +666,15 @@ class Robot(NotebookWriter):
         """List of netcdf files."""
         return list(self._abifiles.values())
 
-    def has_different_structures(self, rtol=1e-05, atol=1e-08) -> str:
+    def has_different_structures(self, rtol=1e-05, atol=1e-08, site_indices=None) -> str:
         """
         Check if structures are equivalent, return string with info about differences (if any).
+
+        Args:
+            rtol: relative tolerance
+            atol: absolute tolerance
+            site_indices: List of site indices that are supposed to be equal.
+                None to compare all sites.
         """
         if len(self) <= 1: return ""
         formulas = set([af.structure.composition.formula for af in self.abifiles])
@@ -678,8 +687,14 @@ class Robot(NotebookWriter):
             s1 = abifile.structure
             if not np.allclose(s0.lattice.matrix, s1.lattice.matrix, rtol=rtol, atol=atol):
                 lines.append("Structures have different lattice:")
-            if not np.allclose(s0.frac_coords, s1.frac_coords, rtol=rtol, atol=atol):
-                lines.append("Structures have different atomic positions:")
+            if site_indices is None:
+                # Compare all sites
+                if not np.allclose(s0.frac_coords, s1.frac_coords, rtol=rtol, atol=atol):
+                    lines.append("Structures have different atomic positions:")
+            else:
+                site_indices = np.array(site_indices)
+                if not np.allclose(s0.frac_coords[site_indices], s1.frac_coords[site_indices], rtol=rtol, atol=atol):
+                    lines.append(f"Structures have different atomic positions with {site_indices=}")
 
         return "\n".join(lines)
 
@@ -760,7 +775,7 @@ class Robot(NotebookWriter):
     %s
 
 Note that this list is automatically generated.
-Not all entries are sortable (Please select number-like quantities)""" % (self.__class__.__name__, aname, str(attrs)))
+Not all entries are sortable (please select number-like quantities)""" % (self.__class__.__name__, aname, str(attrs)))
 
     def _sortby_labelfile_list(self, labelfile_list, func_or_string, reverse=False, unpack=False):
         """
@@ -1004,8 +1019,11 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         Example:
 
              robot.plot_convergence("energy")
+
              robot.plot_convergence("energy", sortby="nkpt")
+
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear")
+
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear", abs_conv=1e-3)
         """
         if "marker" not in kwargs:

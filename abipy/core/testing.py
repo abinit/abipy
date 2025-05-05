@@ -13,10 +13,7 @@ import numpy
 import json
 import tempfile
 import unittest
-try:
-    import numpy.testing as nptu
-except ImportError:
-    import numpy.testing.utils as nptu
+import numpy.testing as nptu
 import abipy.data as abidata
 
 from typing import Optional
@@ -24,6 +21,8 @@ from functools import wraps
 from shutil import which
 from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
+# TODO
+#from pymatgen.util.testing import MatSciTest
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 
@@ -312,9 +311,10 @@ def get_gsinput_alas_ngkpt(ngkpt, usepaw=0, as_task=False):
         return ScfTask(scf_input)
 
 
+#class AbipyTest(MatSciTest):
 class AbipyTest(PymatgenTest):
     """
-    Extends PymatgenTest with Abinit-specific methods.
+    Extends MatSciTest with Abinit-specific methods.
     Several helper functions are implemented as static methods so that we
     can easily reuse the code in the pytest integration tests.
     """
@@ -340,8 +340,8 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def test_mprester():
         """Skip MP rester tests."""
-        #raise unittest.SkipTest("MPRester tests have been disabled")
-        return True
+        raise unittest.SkipTest("MPRester tests have been disabled")
+        #return True
 
     def is_url_reachable(url: str) -> bool:
         """check if a URL is reachable:"""
@@ -476,7 +476,7 @@ class AbipyTest(PymatgenTest):
 
     @staticmethod
     def mkdtemp(**kwargs) -> str:
-        """Invoke mkdtep with kwargs, return the name of a temporary directory."""
+        """Invoke mkdtemp with kwargs, return the name of a temporary directory."""
         return tempfile.mkdtemp(**kwargs)
 
     @staticmethod

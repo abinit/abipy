@@ -2,7 +2,7 @@ name: Deploy documentation with GitHub Pages dependencies preinstalled
 
 on:
   push:
-    branches: ["develop"]
+    branches: ["develop", "master"]
   workflow_dispatch: # enable manual workflow execution
 
 # Set permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -57,24 +57,31 @@ jobs:
             conda install abinit -c conda-forge --yes
             mpirun -n 1 abinit --version
             mpirun -n 1 abinit --build
+
+            # Update submodules with data.
+            git submodule update --remote --init
+            git submodule update --recursive --remote
+
             pip install --editable .
             mkdir -p $HOME/.abinit/abipy/
             cp abipy/data/managers/gh_manager.yml $HOME/.abinit/abipy/manager.yml
             cp abipy/data/managers/gh_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
-            # FIXME TEMPORARY HACK
-            pip install git+https://github.com/gmatteo/pymatgen.git@master -U
+
+            # TEMPORARY HACK THAT MIGHT BE NEEDED IF THE PYMATGEN GUYS BREAK STUFF
+            #pip install git+https://github.com/gmatteo/pymatgen.git@master -U
 
       - name: Build docs with Sphinx
         run: |
             conda activate abipy
+            #pip install invoke
             cd docs
             source install.sh
-            make
+            make -j
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: site/ # Important. Set to your output dir in MkDocs
+          path: docs/_build/html/ # Important. Set to the website output dir
 
   deploy:
     environment:

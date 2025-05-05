@@ -423,7 +423,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         return self.ebands.smearing.tsmear_ev.to("Ha")
 
     def get_ebands_params(self) -> dict:
-        """:class:`OrderedDict` with the convergence parameters."""
+        """dictionary with the convergence parameters."""
         return collections.OrderedDict([
             ("nsppol", self.nsppol),
             ("nspinor", self.nspinor),
@@ -840,7 +840,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-        Used in abiview.py to get a quick look at the results.
+        Used in abiopen.py or abiview.py to get a quick look at the results.
         """
 
     #@abc.abstractmethod

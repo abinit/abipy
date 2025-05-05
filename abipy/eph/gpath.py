@@ -4,9 +4,7 @@ the PATH.nc file with the e-ph matrix elements along a k/q path
 """
 from __future__ import annotations
 
-import dataclasses
 import numpy as np
-import pandas as pd
 import abipy.core.abinit_units as abu
 
 from monty.string import marquee
@@ -27,7 +25,7 @@ from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
 
 
-def k2s(k_vector, fmt=".3f", threshold = 1e-8) -> str:
+def k2s(k_vector, fmt=".3f", threshold=1e-8) -> str:
     k_vector = np.asarray(k_vector)
     k_vector[np.abs(k_vector) < threshold] = 0
 
@@ -99,7 +97,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose: int=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
 
@@ -114,9 +112,6 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if self.r.eph_fix_korq == "q":
             app(self.ebands_k.to_string(with_structure=False, verbose=verbose, title="Electronic Bands (k)"))
 
-        #app(f"gstore_cplex: {self.r.cplex}")
-        #app(f"gstore_qptopt: {self.r.qptopt}")
-
         return "\n".join(lines)
 
     @staticmethod
@@ -126,7 +121,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
             return all_choices
 
         if which_g not in all_choices:
-            raise ValueError(f"Invalid {which=}, should be in {all_choices=}")
+            raise ValueError(f"Invalid {which_g=}, should be in {all_choices=}")
 
         return [which_g]
 
@@ -134,16 +129,26 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return (self.r.bstart, self.r.bstop) if band_range is None else band_range
 
     @add_fig_kwargs
-    def plot_g_qpath(self, band_range=None, which_g="avg", with_qexp: int=0, scale=1, gmax_mev=250,
-                     ph_modes=None, with_phbands=True, with_ebands=False,
-                     ax_mat=None, fontsize=8, **kwargs) -> Figure:
+    def plot_g_qpath(self,
+                     band_range=None,
+                     which_g="avg",
+                     with_qexp: int = 0,
+                     scale=1,
+                     gmax_mev=250,
+                     ph_modes=None,
+                     with_phbands=True,
+                     with_ebands=False,
+                     ax_mat=None,
+                     fontsize=8,
+                     **kwargs) -> Figure:
         """
-        Plot the averaged |g(k,q)| in meV units along the q-path
+        Plot the averaged |g(k,q)| in meV units along the q-path.
 
         Args:
             band_range: Band range that will be averaged over (python convention).
-            which_g: "avg" to plot the symmetrized |g|, "raw" for unsymmetrized |g|."all" for both.
-            with_qexp: Multiply |g(q)| by |q|^{with_qexp}.
+                If None all bands are considered.
+            which_g: "avg" to plot the symmetrized |g|, "raw" for unsymmetrized |g|. "all" for both.
+            with_qexp: Multiply |g(k, q)| by |q|^{with_qexp}.
             scale: Scaling factor for the marker size used when with_phbands is True.
             gmax_mev: Show results up to gmax in meV.
             ph_modes: List of ph branch indices to show (start from 0). If None all modes are shown.
@@ -221,8 +226,16 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_g_kpath(self, band_range=None, which_g="avg", scale=1, gmax_mev=250, ph_modes=None,
-                    with_ebands=True, ax_mat=None, fontsize=8, **kwargs) -> Figure:
+    def plot_g_kpath(self,
+                     band_range=None,
+                     which_g="avg",
+                     scale=1,
+                     gmax_mev=250,
+                     ph_modes=None,
+                     with_ebands=True,
+                     ax_mat=None,
+                     fontsize=8,
+                     **kwargs) -> Figure:
         """
         Plot the averaged |g(k,q)| in meV units along the k-path
 
@@ -283,13 +296,15 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
         if self.r.eph_fix_korq == "k":
+            plt_kwargs = dict(with_phbands=True, with_ebands=True, show=False)
+            yield self.plot_g_qpath(with_qexp=1, **plt_kwargs)
+            yield self.plot_g_qpath(with_qexp=0, **plt_kwargs)
             #yield self.ebands_kq.plot(show=False)
             #yield self.phbands.plot(show=False)
-            yield self.plot_g_qpath()
 
         if self.r.eph_fix_korq == "q":
-            #yield self.ebands_k.plot(show=False)
-            yield self.plot_g_kpath()
+            plt_kwargs = dict(with_ebands=True, show=False)
+            yield self.plot_g_kpath(**plt_kwargs)
 
     def write_notebook(self, nbpath=None) -> str:
         """
@@ -325,7 +340,6 @@ class GpathReader(BaseEphReader):
         self.nb_in_g = self.read_dimvalue("nb_in_g")
         self.nk_path = self.read_dimvalue("nk_path")
         self.nq_path = self.read_dimvalue("nq_path")
-
         self.structure = self.read_structure()
 
         # eigens are in Ha, phfreq are in eV for historical reason
@@ -337,8 +351,9 @@ class GpathReader(BaseEphReader):
         self.eph_fix_korq = self.read_string("eph_fix_korq")
         if self.eph_fix_korq not in {"k", "q"}:
             raise ValueError(f"Invalid value for {self.eph_fix_korq=}")
+
         self.eph_fix_wavec = self.read_value("eph_fix_wavevec")
-        self.dbdb_add_lr = self.read_value("dvdb_add_lr")
+        self.dvdb_add_lr = self.read_value("dvdb_add_lr")
         #self.used_ftinterp = self.read_value("used_ftinterp")
         #self.completed = self.read_value("gstore_completed")
 
@@ -365,10 +380,10 @@ class GpathReader(BaseEphReader):
         # eigens are in Ha
         if which_fixed == "k":
             frac_coords = kpath_frac_coords + qpath_frac_coords
-            all_eigens = self.read_value("all_eigens_kq") * abu.Ha_eV
+            all_eigens = self.all_eigens_kq * abu.Ha_eV
         elif which_fixed == "q":
             frac_coords = kpath_frac_coords
-            all_eigens = self.read_value("all_eigens_k") * abu.Ha_eV
+            all_eigens = self.all_eigens_k * abu.Ha_eV
         else:
             raise ValueError(f"Invalid value {which_fixed=}")
 
@@ -436,7 +451,7 @@ class GpathReader(BaseEphReader):
         # double all_eigens_k(nsppol, nk_path, nband) ;
         # double all_eigens_kq(nsppol, nq_path, nband) ;
         all_eigens_k, all_eigens_kq = self.all_eigens_k, self.all_eigens_kq  # eV units
-        phfreqs_ha = self.phfreqs_ha                                        # Ha units
+        phfreqs_ha = self.phfreqs_ha                                         # Ha units
 
         # Now read the e-ph matrix elements. On disk we have
         #                                                  n-index, m-index
@@ -479,16 +494,16 @@ class GpathReader(BaseEphReader):
         # Average over degenerate k+q electrons taking bstart into account.
         absg = absg_avg.copy()
         for iq in range(self.nq_path):
-          for n_k in range(nb_in_g):
-              for m_kq in range(nb_in_g):
-                  w_1 = all_eigens_kq[spin, iq, m_kq + bstart]
-                  g2_nu[:], nn = 0.0, 0
-                  for bsum_kq in range(nb_in_g):
-                      w_2 = all_eigens_kq[spin, iq, bsum_kq + bstart]
-                      if abs(w_2 - w_1) >= eps_ev: continue
-                      nn += 1
-                      g2_nu += absg[iq,:,bsum_kq,n_k] ** 2
-                  absg_avg[iq,:,m_kq,n_k] = np.sqrt(g2_nu / nn)
+            for n_k in range(nb_in_g):
+                for m_kq in range(nb_in_g):
+                    w_1 = all_eigens_kq[spin, iq, m_kq + bstart]
+                    g2_nu[:], nn = 0.0, 0
+                    for bsum_kq in range(nb_in_g):
+                        w_2 = all_eigens_kq[spin, iq, bsum_kq + bstart]
+                        if abs(w_2 - w_1) >= eps_ev: continue
+                        nn += 1
+                        g2_nu += absg[iq,:,bsum_kq,n_k] ** 2
+                    absg_avg[iq,:,m_kq,n_k] = np.sqrt(g2_nu / nn)
 
         # Transpose the data: (nq_path, natom3, nb_in_g, nb_in_g) -> (natom3, nq_path, nb_in_g, nb_in_g)
         absg_avg, absg_raw = absg_avg.transpose(1, 0, 2, 3).copy(), absg_raw.transpose(1, 0, 2, 3).copy()
@@ -551,11 +566,11 @@ class GpathReader(BaseEphReader):
         absg_avg = np.zeros_like(absg)
         for ik in range(self.nk_path):
             for nu in range(natom3):
-               # Sum the squared values of absg over the degenerate phonon mu indices.
-               mask_nu = np.abs(phfreqs_ha[iq, :] - phfreqs_ha[iq, nu]) < eps_ha
-               g2_mn = np.sum(absg[ik, mask_nu, :, :]**2, axis=0)
-               # Compute the symmetrized value and divide by the number of degenerate ph-modes for this iq.
-               absg_avg[ik, nu, :, :] = np.sqrt(g2_mn / np.sum(mask_nu))
+                # Sum the squared values of absg over the degenerate phonon mu indices.
+                mask_nu = np.abs(phfreqs_ha[iq, :] - phfreqs_ha[iq, nu]) < eps_ha
+                g2_mn = np.sum(absg[ik, mask_nu, :, :]**2, axis=0)
+                # Compute the symmetrized value and divide by the number of degenerate ph-modes for this iq.
+                absg_avg[ik, nu, :, :] = np.sqrt(g2_mn / np.sum(mask_nu))
 
         # MG FIXME: Note the difference with a similar function in gkq here I use absg and not absgk
         # Average over degenerate k electrons taking bstart into account.
@@ -619,10 +634,14 @@ class GpathRobot(Robot, RobotWithEbands):
     EXT = "GPATH"
 
     @add_fig_kwargs
-    def plot_g_qpath(self, which_g="avg", gmax_mev=250, ph_modes=None,
-                    colormap="jet", **kwargs) -> Figure:
+    def plot_g_qpath(self,
+                     which_g="avg",
+                     gmax_mev=250,
+                     ph_modes=None,
+                     colormap="jet",
+                     **kwargs) -> Figure:
         """
-        Compare the g-matrix along a q-path.
+        Compare the g-matrix stored in the Robot along a q-path.
 
         Args
             which_g: "avg" to plot the symmetrized |g|, "raw" for unsymmetrized |g|."all" for both.
@@ -643,7 +662,7 @@ class GpathRobot(Robot, RobotWithEbands):
 
         # TODO: Compute common band range.
         band_range = None
-        ref_ifile= 0
+        ref_ifile = 0
         #q_label = r"$|q|^{%d}$" % with_qexp if with_qexp else ""
         #g_units = "(meV)" if with_qexp == 0 else r"(meV $\AA^-{%s}$)" % with_qexp
 
@@ -675,6 +694,7 @@ class GpathRobot(Robot, RobotWithEbands):
 
     #@add_fig_kwargs
     #def plot_g_kpath(self, **kwargs) --> Figure
+    #   """Compare the g-matrix stored in the Robot along a q-path."""
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """

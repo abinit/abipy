@@ -9,6 +9,7 @@ from phonopy import Phonopy, file_IO
 from phonopy.interface.vasp import read_vasp_from_strings
 from phonopy.interface.abinit import parse_set_of_forces
 
+from abipy.abio.inputs import AbinitInput
 from abipy.core.structure import Structure
 from abipy.flowtk.works import Work
 
@@ -65,17 +66,19 @@ class PhonopyWork(Work):
     """
 
     @classmethod
-    def from_gs_input(cls, gs_inp, scdims, phonopy_kwargs=None, displ_kwargs=None) -> PhonopyWork:
+    def from_gs_input(cls,
+                      gs_inp: AbinitInput,
+                      scdims,
+                      phonopy_kwargs=None,
+                      displ_kwargs=None) -> PhonopyWork:
         """
-        Build the work from an :class:`AbinitInput` object representing a GS calculations.
+        Build the work from an AbinitInput object representing a GS calculations.
 
         Args:
-            gs_inp::class:`AbinitInput` object representing a GS calculation in the initial unit cell.
+            gs_inp: AbinitInput object representing a GS calculation in the initial unit cell.
             scdims: Number of unit cell replicas along the three reduced directions.
             phonopy_kwargs: (Optional) dictionary with arguments passed to Phonopy constructor.
             displ_kwargs: (Optional) dictionary with arguments passed to generate_displacements.
-
-        Return: PhonopyWork instance.
         """
         new = cls()
         new.phonopy_tasks, new.bec_tasks = [], []
@@ -117,13 +120,11 @@ class PhonopyWork(Work):
         phonon = self.phonon
 
         # Write POSCAR with initial unit cell.
-        structure = structure_from_atoms(phonon.get_primitive())
+        structure = structure_from_atoms(phonon.primitive)
         structure.to(filename=self.outdir.path_in("POSCAR"))
 
         # Write yaml file with displacements.
-        #supercell = phonon.get_supercell()
         supercell = phonon.supercell
-        #displacements = phonon.get_displacements()
         displacements = phonon.displacements
         file_IO.write_disp_yaml(displacements, supercell, # directions=directions,
                                 filename=self.outdir.path_in('disp.yaml'))
@@ -200,9 +201,14 @@ class PhonopyGruneisenWork(Work):
         numpy arrays with the number of cells in the supercell along the three reduced directions.
     """
     @classmethod
-    def from_gs_input(cls, gs_inp, voldelta, scdims, phonopy_kwargs=None, displ_kwargs=None) -> PhonopyGruneisenWork:
+    def from_gs_input(cls,
+                      gs_inp: AbinitInput,
+                      voldelta,
+                      scdims,
+                      phonopy_kwargs=None,
+                      displ_kwargs=None) -> PhonopyGruneisenWork:
         """
-        Build the work from an :class:`AbinitInput` object representing a GS calculations.
+        Build the work from an AbinitInput object representing a GS calculations.
 
         Args:
             gs_inp: :class:`AbinitInput` object representing a GS calculation in the initial unit cell.
@@ -211,8 +217,6 @@ class PhonopyGruneisenWork(Work):
             scdims: Number of unit cell replicas along the three reduced directions.
             phonopy_kwargs: (Optional) dictionary with arguments passed to Phonopy constructor.
             displ_kwargs: (Optional) dictionary with arguments passed to generate_displacements.
-
-        Return: `PhonopyGruneisenWork` instance.
         """
         new = cls()
 
@@ -253,7 +257,7 @@ class PhonopyGruneisenWork(Work):
         self.add_phonopy_works_and_build()
         return super().on_all_ok()
 
-    def add_phonopy_works_and_build(self):
+    def add_phonopy_works_and_build(self) -> None:
         """
         Get relaxed structures from the tasks, build Phonopy works with supercells
         constructed from the new structures, add them to the flow and build new directories.

@@ -55,7 +55,7 @@
 .. _slurm: https://slurm.schedmd.com/
 .. _pbspro: http://pbspro.org/
 .. _sge: http://gridscheduler.sourceforge.net/howto/GridEngineHowto.html
-.. _torque: http://www.adaptivecomputing.com/products/open-source/torque/
+.. _torque: https://github.com/adaptivecomputing/torque
 .. _moab: http://www.adaptivecomputing.com/products/hpc-products/moab-hpc-basic-edition/
 .. _loadleveler: https://www.ibm.com/support/knowledgecenter/en/SSFJTW
 
@@ -168,9 +168,9 @@
     :alt: Coverage status
     :target: https://coveralls.io/github/abinit/abipy?branch=develop
 
-.. |download-with-anaconda| image:: https://anaconda.org/abinit/abipy/badges/installer/conda.svg   
+.. |download-with-anaconda| image:: https://anaconda.org/conda-forge/abipy/badges/downloads.svg   
+    :target: https://anaconda.org/conda-forge/abipy
     :alt: Download with Anaconda
-    :target: https://anaconda.org/conda-forge/abinit
 
 .. |abipy-license| image:: https://img.shields.io/badge/license-GPL-blue.svg
     :alt: AbiPy license
