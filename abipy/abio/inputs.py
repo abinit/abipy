@@ -3320,6 +3320,7 @@ class MultiDataset:
         multi = cls(input.structure, input.pseudos, ndtset=ndtset)
 
         for inp in multi:
+            inp.set_spell_check(input.spell_check)
             inp.set_vars({k: v for k, v in input.items()})
             if input.comment:
                 inp.set_comment(input.comment)
