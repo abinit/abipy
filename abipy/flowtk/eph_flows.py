@@ -18,19 +18,29 @@ class EphPotFlow(Flow):
     This flow computes the e-ph scattering potentials on a q-mesh defined by ngqpt
     and a list of q-points (usually a q-path) specified by the user.
     The DFPT potentials on the q-mesh are merged in the DVDB located in the outdata
-    of the second work while the DFPT potentials on the q-path are merged in the DVDB
+    of the second work while the DFPT potentials on the q-path are merged in the DVDB file
     located in the outdata of the third work.
+
     These DVDB files are then passed to the EPH code to compute the average over the unit
     cell of the periodic part of the scattering potentials as a function of q.
     Results are stored in the V1QAVG.nc files of the outdata of the tasks in the fourth work.
     """
 
     @classmethod
-    def from_scf_input(cls, workdir: str, scf_input: AbinitInput,
-                       ngqpt, qbounds,
-                       ndivsm=5, with_becs=True, with_quad=True, dvdb_add_lr_list=(0, 1, 2),
-                       ddb_filepath=None, dvdb_filepath=None,
-                       ddk_tolerance=None, prepgkk=0, manager=None) -> EphPotFlow:
+    def from_scf_input(cls, workdir: str,
+                       scf_input: AbinitInput,
+                       ngqpt,
+                       qbounds,
+                       ndivsm=5,
+                       what_to_compute: str = "v1qavg",
+                       with_becs=True,
+                       with_quad=True,
+                       dvdb_add_lr_list=(0, 1, 2),
+                       ddb_filepath=None,
+                       dvdb_filepath=None,
+                       ddk_tolerance=None,
+                       prepgkk=0,
+                       manager=None) -> EphPotFlow:
         """
         Build the flow from an input file representing a GS calculation.
 
@@ -57,11 +67,15 @@ class EphPotFlow(Flow):
         """
         flow = cls(workdir=workdir, manager=manager)
 
-        # First work with GS run.
-        scf_task = flow.register_scf_task(scf_input)[0]
+        # First work with the GS run.
+        # Make sure that WFK and POT files are produced
+        scf_task = flow.register_scf_task(scf_input.new_with_vars(
+            prtwf=1,
+            prtpot=1,
+        )[0]
 
         if dvdb_filepath or ddb_filepath:
-            # Use input files to bypass computation of work_qmesh.
+            # Use input files to bypass the computation of work_qmesh.
             if not (dvdb_filepath and ddb_filepath):
                 raise ValueError("Both dvdb_filepath and ddb_filepath must be specified.")
             work_qmesh = None
@@ -83,49 +97,88 @@ class EphPotFlow(Flow):
             # Use input list of q-points.
             qpath_list = np.reshape(qbounds, (-1, 3))
         else:
-            raise ValueError("ndivsm cannot be negative. Received ndivsm: %s" % ndivsm)
+            raise ValueError(f"ndivsm cannot be negative. Received {ndivsm=}")
 
         # Third Work: compute WFK/WFQ and phonons for qpt in qpath_list.
         # Don't include BECS because they have been already computed in the previous work.
         work_qpath = PhononWfkqWork.from_scf_task(
                        scf_task, qpath_list, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
-                       with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=False, remove_wfkq=True,
-                       prepgkk=prepgkk, manager=manager)
+                       with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=False,
+                       remove_wfkq=True, prepgkk=prepgkk, manager=manager)
 
         flow.register_work(work_qpath)
 
-        # Now we compute matrix elements fully ab-initio for each q-point.
         eph_work = Work()
 
-        for eph_task in (-15, 15):
-            eph_inp = scf_input.new_with_vars(
-                optdriver=7,
-                ddb_ngqpt=ngqpt,    # q-mesh associated to the DDB file.
-                #dvdb_ngqpt=ngqpt,  # q-mesh associated to the DDVDB file.
-                prtphdos=0,
-                eph_task=eph_task
-            )
+        if what_to_compute == "v1qavg":
 
-            if eph_task == -15:
-                # Use DVDB with ab-initio POTS along q-path to produce V1QAVG
-                if work_qmesh is not None:
-                    deps = {work_qmesh: "DDB", work_qpath: "DVDB"}
-                else:
-                    deps = {ddb_node: "DDB", work_qpath: "DVDB"}
+            # Here we compute the e-ph matrix elements fully ab-initio for each q-point.
+            for eph_task in (-15, 15):
+                eph_inp = scf_input.new_with_vars(
+                    optdriver=7,
+                    ddb_ngqpt=ngqpt,    # q-mesh associated to the DDB file.
+                    #dvdb_ngqpt=ngqpt,  # q-mesh associated to the DDVDB file.
+                    prtphdos=0,
+                    eph_task=eph_task
+                )
+
+                if eph_task == -15:
+                    # Use DVDB with ab-initio POTS along the q-path to produce V1QAVG
+                    ddb_producer = work_qmesh if work_qmesh is not None else ddb_node
+                    deps = {ddb_producer: "DDB", work_qpath: "DVDB"}
+                    eph_work.register_eph_task(eph_inp, deps=deps)
+
+                elif eph_task == 15:
+                    # Use q-mesh to interpolate along the same q-path as above.
+                    # use dvdb_add_lr to deactivate/activate the treatment of the LR part.
+                    if work_qmesh is not None:
+                        deps = {work_qmesh: ["DDB", "DVDB"]}
+                    else:
+                        deps = {ddb_node: "DDB", dvdb_node: "DVDB"}
+
+                    for dvdb_add_lr in dvdb_add_lr_list:
+                        new_inp = eph_inp.new_with_vars(dvdb_add_lr=dvdb_add_lr, ph_qpath=qpath_list)
+                        eph_work.register_eph_task(new_inp, deps=deps)
+
+        elif what_to_compute == "gkq_qpath":
+
+            # Here we compute the e-ph matrix elements fully ab-initio for each q-point.
+            for ii in range(2):
+                eph_inp = scf_input.new_with_vars(
+                    optdriver=7,                        # EPH driver
+                    eph_task=18,                        # Activate computation of g(k,q) along high-symmetry path.
+                    ddb_ngqpt=ngqpt,                    # q-mesh associated to the DDB file.
+                    #dvdb_ngqpt=ngqpt,                  # q-mesh associated to the DDVDB file.
+                    eph_fix_korq='"k"',                 # Fix k
+                    eph_fix_wavevec=[0.0, 0.0, 0.0],
+                    ph_ndivsm=5,
+                    ph_nqpath=len(qpath_list),
+                    ph_qpath=qpath_list,
+                    tolwfr=1e-20,                       # Stopping criterion for NSCF computation
+                    nstep=100,
+                    prtphdos=0,
+                )
+
+                if ii == 0:
+                    # Use DVDB with ab-initio POTS along the q-path to compute gkq
+                    ddb_producer = work_qmesh if work_qmesh is not None else ddb_node
+                    deps = {ddb_producer: "DDB", work_qpath: "DVDB"}
+
+                if ii == 1:
+                    # Use q-mesh to interpolate along the same q-path as above.
+                    if work_qmesh is not None:
+                        deps = {work_qmesh: ["DDB", "DVDB"]}
+                    else:
+                        deps = {ddb_node: "DDB", dvdb_node: "DVDB"}
+
+                # Need GS potential to start NSCF.
+                # Also, read GS WFK file to accelerate the NSCF computation of psi_k
+                deps.update({scf_task : ["POT", "WFK"]})
 
                 eph_work.register_eph_task(eph_inp, deps=deps)
 
-            elif eph_task == 15:
-                # Use q-mesh to interpolate along the same q-path as above.
-                # use dvdb_add_lr to deactivate/activate the treatment of the LR part.
-                if work_qmesh is not None:
-                    deps = {work_qmesh: ["DDB", "DVDB"]}
-                else:
-                    deps = {ddb_node: "DDB", dvdb_node: "DVDB"}
-
-                for dvdb_add_lr in dvdb_add_lr_list:
-                    new_inp = eph_inp.new_with_vars(dvdb_add_lr=dvdb_add_lr, ph_qpath=qpath_list)
-                    eph_work.register_eph_task(new_inp, deps=deps)
+        else:
+            raise ValueError(f"Invalid {what_to_compute=}")
 
         flow.register_work(eph_work)
 
@@ -142,11 +195,21 @@ class GkqPathFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls, workdir: str, scf_input: AbinitInput,
-                       ngqpt, qbounds,
-                       ndivsm=5, with_becs=True, with_quad=True, dvdb_add_lr_list=(0, 1, 2),
-                       ddb_filepath=None, dvdb_filepath=None,
-                       ddk_tolerance=None, test_ft_interpolation=False, prepgkk=0, manager=None) -> GkqPathFlow:
+    def from_scf_input(cls,
+                       workdir: str,
+                       scf_input: AbinitInput,
+                       ngqpt,
+                       qbounds,
+                       ndivsm=5,
+                       with_becs=True,
+                       with_quad=True,
+                       dvdb_add_lr_list=(0, 1, 2),
+                       ddb_filepath=None,
+                       dvdb_filepath=None,
+                       ddk_tolerance=None,
+                       test_ft_interpolation=False,
+                       prepgkk=0,
+                       manager=None) -> GkqPathFlow:
         """
         Build the flow from an input file representing a GS calculation.
 
