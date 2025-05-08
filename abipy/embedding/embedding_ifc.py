@@ -139,7 +139,7 @@ class Embedded_phonons(Phonopy):
                 print(f"       {sub[0]}, {stru_pristine[sub[0]].coords}, {stru_pristine[sub[0]].species} replaced by {sub[1]}")
 
         if vacancies_list is not None:
-            print("    Vacancies:" )
+            print("    Vacancies:")
             for vac in vacancies_list:
                 print(f"       {vac}, {stru_pristine[vac].coords}, {stru_pristine[vac].species} removed")
 
@@ -192,7 +192,7 @@ class Embedded_phonons(Phonopy):
                         print(f"atom1 : Dist. from. defect = {dist_1_from_defect}")
                         print(f"atom2 : Dist. from. defect = {dist_2_from_defect}")
 
-                        print(f"Replacing pristine cell IFC = \n {ifc_pristine[i][j]}" )
+                        print(f"Replacing pristine cell IFC = \n {ifc_pristine[i][j]}")
                         print(f"by defect cell IFC = \n {ifc_defect[mapping.index(i)][mapping.index(j)]}")
                         print(f"Diff IFC = \n {ifc_pristine[i][j]-ifc_defect[mapping.index(i)][mapping.index(j)]}")
 

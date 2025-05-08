@@ -1,6 +1,6 @@
 """
-This module contains objects for analyzing
-the PATH.nc file with the e-ph matrix elements along a k/q path
+This module contains objects for analyzing the PATH.nc file storing 
+the e-ph matrix elements along a k/q path
 """
 from __future__ import annotations
 
@@ -15,8 +15,7 @@ from abipy.core.kpoints import Kpath
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.tools.typing import PathLike
 #from abipy.tools.numtools import nparr_to_df
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles, Marker, set_grid_legend, set_axlims)
+from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt, set_axlims, Marker, set_grid_legend)
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.dfpt.phonons import PhononBands
 from abipy.dfpt.phtk import NonAnalyticalPh
@@ -422,7 +421,7 @@ class GpathReader(BaseEphReader):
                            #zcart=zcart,
                            )
 
-    def get_gnuq_average_spin(self, spin: int, band_range: list|tuple|None, eps_mev: float=0.01) -> tuple:
+    def get_gnuq_average_spin(self, spin: int, band_range: list | tuple | None, eps_mev: float = 0.01) -> tuple:
         """
         Average e-matrix elements over phonon modes, and k- k+q electrons when the matrix elements
         have been computed along a q-path.
@@ -456,7 +455,7 @@ class GpathReader(BaseEphReader):
         # Now read the e-ph matrix elements. On disk we have
         #                                                  n-index, m-index
         # double gkq2_nu(nsppol, nk_path, nq_path, natom3, nb_in_g, nb_in_g) ;
-		#  gkq2_nu:_FillValue = -1. ;
+        #  gkq2_nu:_FillValue = -1. ;
         #
         # in Ha^2 with nk_path == 1
         #                                      m-index, n-index
@@ -518,7 +517,7 @@ class GpathReader(BaseEphReader):
         # Average over bands 1/n_b**2 sum_{mn}
         return np.sum(absg_avg, axis=(-2, -1)) / nb**2, np.sum(absg_raw, axis=(-2, -1)) / nb**2
 
-    def get_gnuk_average_spin(self, spin: int, band_range: list|tuple|None, eps_mev: float=0.01) -> tuple:
+    def get_gnuk_average_spin(self, spin: int, band_range: list | tuple | None, eps_mev: float = 0.01) -> tuple:
         """
         Average g elements over phonon modes, and k- k+q electrons when the matrix elements
         have been computed along a k-path.
@@ -552,7 +551,7 @@ class GpathReader(BaseEphReader):
         # Now read the e-ph matrix elements. On disk we have
         #                                                  n-index, m-index
         # double gkq2_nu(nsppol, nk_path, nq_path, natom3, nb_in_g, nb_in_g) ;
-		#  gkq2_nu:_FillValue = -1. ;
+        #  gkq2_nu:_FillValue = -1. ;
         #
         # in Ha^2 with nq_path == 1
         #                                      m-index, n-index

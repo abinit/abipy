@@ -1,14 +1,16 @@
 # help script containing functions implementing the T-dep generating function approach, to be used in both 1D and multi-D case
 # and plotting fcts common to 1D and multi-D case
+from __future__ import annotations
 
 import numpy as np
+import abipy.core.abinit_units as abu
+
 from numpy import fft
 from scipy import signal
 try:
     from scipy.integrate import simpson as simps
 except ImportError:
     from scipy.integrate import simps
-import abipy.core.abinit_units as abu
 from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs #, get_axarray_fig_plt
 
 

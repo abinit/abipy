@@ -15,11 +15,11 @@ import functools
 import numpy as np
 import pandas as pd
 import matplotlib.collections as mcoll
-from matplotlib.ticker import StrMethodFormatter
 
 from collections import OrderedDict
 from typing import Any, Callable, Iterator
 from monty.string import list_strings
+from matplotlib.ticker import StrMethodFormatter
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
@@ -66,7 +66,7 @@ linestyles = OrderedDict(
 )
 
 
-def add_fig_kwargs(func):
+def add_fig_kwargs(func: Callable) -> Callable:
     """
     Decorator that adds keyword arguments for functions returning matplotlib figures.
 
@@ -682,8 +682,8 @@ def plot_xy_with_hue(data: pd.DataFrame,
         if abs_conv is not None:
             color = line.get_color()
             for i in range(len(ys)):
-                ax.plot(xs[i], ys[i], 
-                        marker="*" if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else "o", 
+                ax.plot(xs[i], ys[i],
+                        marker="*" if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else "o",
                         markersize=10 if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else 5,
                         color=color,
                         alpha = 1 if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else 0.5,
@@ -2094,6 +2094,7 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
     # Add docstring to the decorated method.
     doc_str = """\n\n
         Keyword arguments controlling the display of the figure:
+
         ================  ====================================================================
         kwargs            Meaning
         ================  ====================================================================

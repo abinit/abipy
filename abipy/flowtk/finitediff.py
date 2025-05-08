@@ -2,7 +2,7 @@
 """
 This module provide Works for finite difference calculations and related post-processing tools.
 
-IMPORTANT: In Abinit Stress is equal to dE/d_strain * (1/ucvol) See m_forstr.F90.
+IMPORTANT: In Abinit, the  stress is equal to dE/d_strain * (1/ucvol). See m_forstr.F90.
 """
 from __future__ import annotations
 
@@ -779,12 +779,12 @@ class ElectricFieldData(_FdData, _HasExternalField):
 
         return piezoel
 
-    def get_piezoel_df(self, proper, with_geo=False, with_params=False, **kwargs) -> pd.Dataframe:
+    def get_piezoel_df(self, proper: bool, with_geo=False, with_params=False, **kwargs) -> pd.Dataframe:
         """
         Dataframe with the components of the piezo-electric tensor obtained with different FD points.
 
         Args:
-            proper
+            proper: True if the proper tensor should be computed.
             with_geo: True to add info on structure.
             with_params: True to add calculations parameters.
             kwargs: Optional kwargs passed to add_geo_and_params.
@@ -1540,7 +1540,7 @@ class FiniteEfieldWork(_FieldWork):
                 tasks_pv[ip, ipv] = register_func(new_inp)
 
             if ions_mode == IonsMode.RELAXED:
-                # Will relaxed ions at finite E using the WFK(E) of the gs_task
+                # Will relaxed ions at finite E using the WFK(E) file of the gs_task
                 tasks_pv[ip, ipv].add_deps({self.gs_tasks_pv[ip, ipv]: "WFK"})
 
             # Add the (ip, iv) indices as attributes of the task

@@ -561,7 +561,7 @@ class EphSelfEnergy:
     @add_fig_kwargs
     def plot_tdep(self, itemps="all", zero_energy="e0", colormap="jet", ax_list=None,
                   what_list=("re", "im", "spfunc"), with_frohl=False,
-                  xlims=None, ylims= None, fontsize=8, **kwargs) -> Figure:
+                  xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the real/imaginary part of self-energy as well as the spectral function for
         the different temperatures with a colormap.

@@ -179,7 +179,7 @@ class OncvPlotter(NotebookWriter):
                 style = dict(color=self.color_l[l], s=s, marker=marker)
                 ax.scatter(ps_peaks.xs[-1], ps_peaks.ys[-1], color=self.color_l[l])
 
-            ax.plot(ae_wf.rmesh, ae_wf.values, label=fr"AE { nlk.latex }", **self._mpl_opts_laeps(l, "ae"))
+            ax.plot(ae_wf.rmesh, ae_wf.values, label=fr"AE {nlk.latex}", **self._mpl_opts_laeps(l, "ae"))
             ax.plot(ps_wf.rmesh, ps_wf.values, label=fr"PS {nlk.latex}", **self._mpl_opts_laeps(l, "ps"))
 
         self.decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$\phi(r)$",
@@ -897,7 +897,7 @@ class MultiOncvPlotter(NotebookWriter):
         for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
             plotter.plot_potentials(ax=ax, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
-            if i !=  len(ax_list) - 1:
+            if i != len(ax_list) - 1:
                 set_visible(ax, False, "legend", "xlabel", "ylabel")
 
         return fig

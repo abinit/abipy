@@ -1,9 +1,9 @@
 # coding: utf-8
 """
-This module defines the Robot BaseClass.
-Robots operates on multiple files and provide helper
-functions to plot the data e.g. convergence studies
-and to build pandas dataframes from the output files.
+This module defines the Robot base xlass.
+Robots operate on multiple files and provide helper
+functions to plot data, perform convergence studies
+and build pandas dataframes.
 """
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ class Robot(NotebookWriter):
     .. code-block:: python
 
         with Robot([("label1", "file1"), (label2, "file2")]) as robot:
-            # Do something with robot. files are automatically closed when we exit.
+            # Do something with robot. Files are automatically closed when we exit.
             for label, abifile in self.items():
                 print(label)
     """
@@ -100,7 +100,7 @@ class Robot(NotebookWriter):
             robot = GsrRobot.from_dir(".")
 
         Args:
-            top: Root directory
+            top: Root directory.
             walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
@@ -127,7 +127,7 @@ class Robot(NotebookWriter):
     @classmethod
     def from_dir_glob(cls, pattern: str, walk: bool = True, abspath: bool = False) -> Robot:
         """
-        This class method builds a robot by scanning all files located within the directories
+        Build a robot by scanning all files located within the directories
         matching `pattern` as implemented by glob.glob
         This method should be invoked with a concrete robot class, for example:
 
