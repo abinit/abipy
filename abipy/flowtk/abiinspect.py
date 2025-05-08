@@ -6,13 +6,13 @@ by extracting information from the main output file (text format).
 from __future__ import annotations
 
 import os
+import numpy as np
+
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Mapping
 from typing import Union
-
-import numpy as np
+from functools import cached_property
 from monty.collections import AttrDict
-from monty.functools import lazy_property
 from tabulate import tabulate
 from abipy.tools.iotools import yaml_safe_load
 from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt,
@@ -436,7 +436,7 @@ class Relaxation(Iterable):
 
         return cls(cycles) if cycles else None
 
-    @lazy_property
+    @cached_property
     def history(self) -> dict:
         """
         dictionary of lists with the evolution of

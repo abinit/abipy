@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import marquee, is_string
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.core.func1d import Function1D
@@ -353,22 +353,22 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """|Structure| object."""
         return self.r.read_structure()
 
-    @lazy_property
+    @cached_property
     def exc_mdf(self):
         "Excitonic macroscopic dieletric function."""
         return self.r.read_exc_mdf()
 
-    @lazy_property
+    @cached_property
     def rpanlf_mdf(self):
         """RPA dielectric function without local-field effects."""
         return self.r.read_rpanlf_mdf()
 
-    @lazy_property
+    @cached_property
     def gwnlf_mdf(self):
         """RPA-GW dielectric function without local-field effects."""
         return self.r.read_gwnlf_mdf()
@@ -383,7 +383,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """|numpy-array| with the fractional coordinates of the q-points."""
         return self.qpoints.frac_coords
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """
         Dictionary with the parameters that are usually tested for convergence.
@@ -505,13 +505,13 @@ class MdfReader(ETSF_Reader): #ElectronsReader
         """|Structure| object."""
         return self._structure
 
-    @lazy_property
+    @cached_property
     def qpoints(self) -> KpointList:
         """List of q-points (ndarray)."""
         # Read the fractional coordinates and convert them to KpointList.
         return KpointList(self.structure.reciprocal_lattice, frac_coords=self.read_value("qpoints"))
 
-    @lazy_property
+    @cached_property
     def wmesh(self) -> np.ndarray:
         """The frequency mesh in eV."""
         return self.read_value("wmesh")

@@ -16,10 +16,11 @@ from io import StringIO
 from pprint import pprint
 from itertools import product
 from typing import Any, Union
+from functools import cached_property
 from monty.string import is_string, list_strings
 from monty.termcolor import colored, cprint
 from monty.collections import AttrDict
-from monty.functools import lazy_property, return_none_if_raise
+from monty.functools import return_none_if_raise
 from monty.json import MSONable
 from monty.fnmatch import WildCard
 from pymatgen.core.units import Memory, UnitError
@@ -287,22 +288,22 @@ class ParalHints(collections.abc.Iterable):
     def __str__(self) -> str:
         return repr(self)
 
-    @lazy_property
+    @cached_property
     def max_cores(self) -> int:
         """Maximum number of cores."""
         return max(c.mpi_procs * c.omp_threads for c in self)
 
-    @lazy_property
+    @cached_property
     def max_mem_per_proc(self) -> float:
         """Maximum memory per MPI process."""
         return max(c.mem_per_proc for c in self)
 
-    @lazy_property
+    @cached_property
     def max_speedup(self) -> float:
         """Maximum speedup."""
         return max(c.speedup for c in self)
 
-    @lazy_property
+    @cached_property
     def max_efficiency(self) -> float:
         """Maximum parallel efficiency."""
         return max(c.efficiency for c in self)
@@ -753,7 +754,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         if kwargs:
             raise ValueError("Found invalid keywords in the taskmanager file:\n %s" % str(list(kwargs.keys())))
 
-    @lazy_property
+    @cached_property
     def abinit_build(self) -> AbinitBuild:
         """:class:`AbinitBuild` object with Abinit version and options used to build the code"""
         return AbinitBuild(manager=self)
@@ -1522,7 +1523,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         """The |Flow| containing this |Task|."""
         return self.work.flow
 
-    @lazy_property
+    @cached_property
     def pos(self) -> int:
         """The position of the task inside the |Flow|"""
         for i, task in enumerate(self.work):
@@ -2827,7 +2828,7 @@ class AbinitTask(Task):
         """True if task is a DftpTask subclass."""
         return isinstance(self, DfptTask)
 
-    @lazy_property
+    @cached_property
     def cycle_class(self):
         """
         Return the subclass of ScfCycle associated to the task or

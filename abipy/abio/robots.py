@@ -336,7 +336,6 @@ class Robot(NotebookWriter):
 
         return robot
 
-
     def __len__(self):
         return len(self._abifiles)
 
@@ -725,7 +724,7 @@ class Robot(NotebookWriter):
             val1, val2 = getattr(ref_abifile.r, aname), getattr(other_abifile.r, aname)
 
         else:
-            raise AttributeError(f"Cannot find attribute `{aname =}`")
+            raise AttributeError(f"Cannot find attribute `{aname=}`")
 
         # Now compare val1 and val2 taking into account the type.
         if isinstance(val1, (str, int, float, Structure)):
@@ -1323,7 +1322,6 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             ax2.set_xlabel("%s" % xlabel)
 
 
-
 class HueGroup:
     """
     This small object is used by ``group_and_sortby`` to store information about the group.
@@ -1353,7 +1351,6 @@ class HueGroup:
         return zip(self.labels, self.abifiles, self.xvalues)
 
 
-
 class RobotPythonScript:
     """
     Small object used to generate a python script that reconstructs the
@@ -1363,7 +1360,9 @@ class RobotPythonScript:
     This object is typically used in the `on_all_ok` method of Works
     to generate ready-to-use python scripts to post-process/visualize the results.
 
-    Example:
+    **Example:**
+
+    .. code-block:: python
 
         with gsr_robot.get_pyscript(work.outdir.path_in("gsr_robot.py")) as script:
             script.add_text("a = 1")

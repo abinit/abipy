@@ -8,13 +8,14 @@ import numpy as np
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
+from functools import cached_property
 from monty.string import marquee, list_strings
-from monty.functools import lazy_property
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, data_from_cplx_mode
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
+
 
 ALL_CHIS = OrderedDict([
     ("linopt", {
@@ -138,7 +139,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         # In previous version nband_sum was assumed to be the max number of bands found in the external files.
         self.nband_sum = self.reader.read_value("nband_sum", default=self.ebands.nband)
 
-    @lazy_property
+    @cached_property
     def wmesh(self):
         """
         Frequency mesh in eV. Note that the same frequency-mesh is used
@@ -184,7 +185,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.reader.read_ebands()
@@ -194,22 +195,22 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def has_linopt(self) -> bool:
         """True if the ncfile contains Second Harmonic Generation tensor."""
         return "linopt" in self.reader.computed_components
 
-    @lazy_property
+    @cached_property
     def has_shg(self) -> bool:
         """True if the ncfile contains Second Harmonic Generation tensor."""
         return "shg" in self.reader.computed_components
 
-    @lazy_property
+    @cached_property
     def has_leo(self) -> bool:
         """True if the ncfile contains the Linear Electro-optic tensor"""
         return "leo" in self.reader.computed_components
 
-    #@lazy_property
+    #@cached_property
     #def xc(self):
     #    """:class:`XcFunc object with info on the exchange-correlation functional."""
     #    return self.reader.read_abinit_xcfunc()
@@ -218,7 +219,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         """Close the file."""
         self.reader.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
@@ -509,7 +510,7 @@ class OpticRobot(Robot, RobotWithEbands):
     """
     EXT = "OPTIC"
 
-    @lazy_property
+    @cached_property
     def computed_components_intersection(self):
         """
         Dictionary with the list of cartesian tensor components

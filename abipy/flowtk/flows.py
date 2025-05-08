@@ -1957,7 +1957,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 fh.write(readme_md)
 
         # Add abipy_meta.json file if set
-        if data := getattr(self, "abipy_meta_json", None) is not None:
+        if (data := getattr(self, "abipy_meta_json", None)) is not None:
             self.write_json_in_workdir("abipy_meta.json", data)
 
         # Write fix_flow.py script for advanced users.

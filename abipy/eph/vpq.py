@@ -11,8 +11,8 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
+from functools import cached_property
 from monty.string import marquee
-from monty.functools import lazy_property
 from scipy.interpolate import interp1d
 #from monty.termcolor import cprint
 from abipy.core.func1d import Function1D
@@ -137,7 +137,7 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         super().__init__(filepath)
         self.r = VpqReader(filepath)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.r.read_ebands()
@@ -151,12 +151,12 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def polaron_spin(self) -> list[Polaron]:
         """List of Polaron objects, one for each spin (if any)."""
         return [Polaron.from_vpq(self, spin) for spin in range(self.r.nsppol)]
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with the convergence parameters, e.g. ``nbsum``."""
         r = self.r
@@ -271,27 +271,27 @@ class Polaron:
         """Electron bands."""
         return self.varpeq.ebands
 
-    @lazy_property
+    @cached_property
     def kpoints(self) -> np.ndarray:
         """Reduced coordinates of the k-points."""
         return self.varpeq.r.read_value("kpts_spin")[self.spin, :self.nk]
 
-    @lazy_property
+    @cached_property
     def qpoints(self) -> np.ndarray:
         """Reduced coordinates of the q-points."""
         return self.varpeq.r.read_value("qpts_spin")[self.spin, :self.nq]
 
-    @lazy_property
+    @cached_property
     def a_kn(self) -> np.ndarray:
         """A_{pnk} coefficients for this spin."""
         return self.varpeq.r.read_value("a_spin", cmode="c")[self.spin, :self.nstates, :self.nk, :self.nb]
 
-    @lazy_property
+    @cached_property
     def b_qnu(self) -> np.ndarray:
         """B_{pqnu} coefficients for this spin."""
         return self.varpeq.r.read_value("b_spin", cmode="c")[self.spin, :self.nstates, :self.nq]
 
-    @lazy_property
+    @cached_property
     def scf_df_state(self) -> list[pd.DataFrame]:
         """
         List of dataframes with the SCF iterations. One dataframe for each polaron.
@@ -382,7 +382,7 @@ class Polaron:
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def ngkpt_and_shifts(self) -> tuple:
         """
         Return k-mesh divisions and shifts.
@@ -908,7 +908,7 @@ class Polaron:
 
             b2_max = b2_interp_state[pstate].get_max_abs_data()
             _scale = scale * 1. / b2_max
-    
+
             # handle LO-TO splitting
             prev_qpoint = None
             for iq, qpoint in enumerate(phbands_qpath.qpoints):

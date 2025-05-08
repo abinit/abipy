@@ -15,6 +15,7 @@ import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
+from functools import cached_property
 try:
     from scipy.integrate import cumulative_trapezoid as cumtrapz
 except ImportError:
@@ -25,7 +26,6 @@ except ImportError:
     from scipy.integrate import simps
 #from typing import Any
 from monty.string import marquee, list_strings
-from monty.functools import lazy_property
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpath
@@ -92,7 +92,7 @@ class A2f:
         self.values_spin_nu = values_spin_nu
         #self.lambdaw ?
 
-    @lazy_property
+    @cached_property
     def iw0(self) -> int:
         """
         Index of the first point in the mesh whose value is >= 0
@@ -133,12 +133,12 @@ class A2f:
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def lambda_iso(self) -> float:
         """Isotropic lambda."""
         return self.get_moment(n=0)
 
-    @lazy_property
+    @cached_property
     def omega_log(self) -> float:
         r"""
         Logarithmic moment of alpha^2F: exp((2/\lambda) \int dw a2F(w) ln(w)/w)
@@ -462,7 +462,7 @@ class A2Ftr:
         """
         self.mesh = mesh
 
-    @lazy_property
+    @cached_property
     def iw0(self) -> int:
         """
         Index of the first point in the mesh whose value is >= 0
@@ -546,12 +546,12 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.reader.read_ebands()
 
-    @lazy_property
+    @cached_property
     def edos(self) -> ElectronDos:
         """|ElectronDos| object with e-DOS computed by Abinit."""
         return self.reader.read_edos()
@@ -569,7 +569,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         return self.reader.read_phbands_qpath()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
@@ -578,14 +578,14 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return od
 
-    @lazy_property
+    @cached_property
     def a2f_qcoarse(self):
         """
         :class:`A2f` with the Eliashberg function a2F(w) computed on the (coarse) ab-initio q-mesh.
         """
         return self.reader.read_a2f(qsamp="qcoarse")
 
-    @lazy_property
+    @cached_property
     def a2f_qintp(self):
         """
         :class:`A2f` with the Eliashberg function a2F(w) computed on the dense q-mesh by Fourier interpolation.
@@ -598,12 +598,12 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         if qsamp == "qintp": return self.a2f_qintp
         raise ValueError("Invalid value for qsamp `%s`" % str(qsamp))
 
-    @lazy_property
+    @cached_property
     def has_a2ftr(self) -> bool:
         """True if the netcdf file contains transport data."""
         return "a2ftr_qcoarse" in self.reader.rootgrp.variables
 
-    @lazy_property
+    @cached_property
     def a2ftr_qcoarse(self):
         """
         :class:`A2ftr` with the Eliashberg transport spectral function a2F_tr(w, x, x')
@@ -612,7 +612,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         if not self.has_a2ftr: return None
         return self.reader.read_a2ftr(qsamp="qcoarse")
 
-    @lazy_property
+    @cached_property
     def a2ftr_qintp(self):
         """
         :class:`A2ftr` with the Eliashberg transport spectral function a2F_tr(w, x, x')

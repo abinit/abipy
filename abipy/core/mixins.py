@@ -12,10 +12,10 @@ import pandas as pd
 
 from time import ctime
 from shutil import which
+from functools import cached_property
 from monty.termcolor import cprint
 from monty.string import list_strings
 from monty.collections import dict2namedtuple
-from monty.functools import lazy_property
 from abipy.tools.typing import Figure
 
 
@@ -116,7 +116,7 @@ class TextFile(BaseFile):
     def __iter__(self):
         return iter(self._file)
 
-    @lazy_property
+    @cached_property
     def _file(self):
         """File object open in read-only mode."""
         return open(self.filepath, mode="rt")
@@ -193,7 +193,7 @@ class AbinitNcFile(BaseFile):
         """Returns a string with the output of ncdump."""
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
 
-    @lazy_property
+    @cached_property
     def abinit_version(self) -> str:
         """String with the abinit version: three digits separated by comma."""
         return self.reader.rootgrp.getncattr("abinit_version")
@@ -418,7 +418,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         """Iterable with the Kpoints."""
         return self.ebands.kpoints
 
-    @lazy_property
+    @cached_property
     def tsmear(self):
         return self.ebands.smearing.tsmear_ev.to("Ha")
 
@@ -940,7 +940,7 @@ class Has_Header:
     Mixin class for netcdf files containing the Abinit header.
     """
 
-    @lazy_property
+    @cached_property
     def hdr(self):
         """|AttrDict| with the Abinit header e.g. hdr.ecut."""
         if hasattr(self, "reader"):

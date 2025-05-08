@@ -6,9 +6,9 @@ import os
 #import tempfile
 #import numpy as np
 
+from functools import cached_property
 from monty.string import marquee
 from monty.termcolor import cprint
-from monty.functools import lazy_property
 from abipy.core.globals import get_workdir
 from abipy.core.mixins import (AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter,
     AbinitFortranFile, CubeFile)
@@ -52,7 +52,7 @@ class Cut3dDenPotNcFile(AbinitNcFile, Has_Structure):
         """Close the file."""
         self.reader.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         return {}
@@ -77,7 +77,7 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         super().__init__(filepath)
         self.reader = _DenPotNcReader(filepath)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.reader.read_ebands()
@@ -87,18 +87,18 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def xc(self):
         """:class:`XcFunc` object with info on the exchange-correlation functional."""
         return self.reader.read_abinit_xcfunc()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
-    @lazy_property
+    @cached_property
     def field(self):
         """
         The field object provided by the subclass.
@@ -183,7 +183,7 @@ class DensityNcFile(_NcFileWithField):
     """
     field_name = "density"
 
-    @lazy_property
+    @cached_property
     def density(self):
         """Density object."""
         return self.reader.read_density()
@@ -238,7 +238,7 @@ class VhartreeNcFile(_NcFileWithField):
     """
     field_name = "vh"
 
-    @lazy_property
+    @cached_property
     def vh(self):
         """Hartree potential."""
         return self.reader.read_vh()
@@ -251,7 +251,7 @@ class VxcNcFile(_NcFileWithField):
     """
     field_name = "vxc"
 
-    @lazy_property
+    @cached_property
     def vxc(self):
         """XC potential."""
         return self.reader.read_vxc()
@@ -264,7 +264,7 @@ class VhxcNcFile(_NcFileWithField):
     """
     field_name = "vhxc"
 
-    @lazy_property
+    @cached_property
     def vhxc(self):
         """Hartree + XC potential."""
         return self.reader.read_vhxc()
@@ -279,7 +279,7 @@ class PotNcFile(_NcFileWithField):
     """
     field_name = "vks"
 
-    @lazy_property
+    @cached_property
     def vks(self):
         """Hartree + XC potential + sum of local pseudo-potential terms."""
         return self.reader.read_vks()
@@ -295,7 +295,7 @@ class DfptPotNcFile(_NcFileWithField):
     """
     field_name = "first_order_potential"
 
-    #@lazy_property
+    #@cached_property
     #def vk1s(self):
     #    """
     #    First order derivative of KS potential.

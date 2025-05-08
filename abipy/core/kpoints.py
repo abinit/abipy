@@ -10,8 +10,8 @@ import numpy as np
 
 from itertools import product
 from tabulate import tabulate
+from functools import cached_property
 from monty.collections import AttrDict, dict2namedtuple
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.string import marquee
 from abipy.tools.serialization import pmg_serialize
@@ -674,7 +674,7 @@ class Kpoint(SlotPickleMixin):
         """Set the weight of the k-point."""
         self._weight = weight
 
-    @lazy_property
+    @cached_property
     def cart_coords(self):
         """Cartesian coordinates of the k-point."""
         return self.lattice.get_cartesian_coords(self.frac_coords)
@@ -690,7 +690,7 @@ class Kpoint(SlotPickleMixin):
         if name is not None and name.startswith("\\"): name = "$" + name + "$"
         self._name = name
 
-    @lazy_property
+    @cached_property
     def on_border(self):
         """
         True if the k-point is on the border of the BZ (lattice translations are taken into account).
@@ -807,7 +807,7 @@ class Kpoint(SlotPickleMixin):
         else:
             return issamek(self.frac_coords, [0, 0, 0], atol=atol)
 
-    @lazy_property
+    @cached_property
     def norm(self):
         """Norm of the kpoint."""
         return np.sqrt(np.dot(self.cart_coords, self.cart_coords))
@@ -1060,7 +1060,7 @@ class KpointList(collections.abc.Sequence):
         """True if self represents a list of points in the IBZ."""
         return isinstance(self, IrredZone)
 
-    @lazy_property
+    @cached_property
     def mpdivs_shifts(self):
         """
         The Monkhorst-Pack (MP) divisions and shifts.
@@ -1373,7 +1373,7 @@ class Kpath(KpointList):
 
         return "\n".join([header, " ", tabulate(table, headers="firstrow")])
 
-    @lazy_property
+    @cached_property
     def ds(self):
         """
         |numpy-array| of len(self)-1 elements giving the distance between two
@@ -1384,7 +1384,7 @@ class Kpath(KpointList):
             ds[i] = (self[i + 1] - kpoint).norm
         return ds
 
-    @lazy_property
+    @cached_property
     def versors(self):
         """
         Tuple of len(self) - 1 elements with the versors connecting k[i] to k[i+1].
@@ -1394,7 +1394,7 @@ class Kpath(KpointList):
             versors[i] = (self[i + 1] - kpt).versor()
         return tuple(versors)
 
-    @lazy_property
+    @cached_property
     def lines(self) -> list:
         """
         Nested list containing the indices of the points belonging to the same line.
@@ -1424,14 +1424,14 @@ class Kpath(KpointList):
         lines[-1].append(len(self)-1)
         return tuple(lines)
 
-    @lazy_property
+    @cached_property
     def frac_bounds(self):
         """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
         frac_bounds = [self[line[0]].frac_coords for line in self.lines]
         frac_bounds.append(self[self.lines[-1][-1]].frac_coords)
         return np.reshape(frac_bounds, (-1, 3))
 
-    @lazy_property
+    @cached_property
     def cart_bounds(self):
         """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
         cart_bounds = [self[line[0]].cart_coords for line in self.lines]

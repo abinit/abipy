@@ -4,8 +4,8 @@ Object to analyze the results stored in the WR.nc file
 """
 import numpy as np
 
+from functools import cached_property
 from monty.string import marquee
-from monty.functools import lazy_property
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.iotools import ETSF_Reader
@@ -154,7 +154,7 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         dump_xsf("foo_lr.xsf", data_lr)
         dump_xsf("foo_sr.xsf", data_sr)
 
-    @lazy_property
+    @cached_property
     def structure(self):
         """|Structure| object."""
         return self.reader.read_structure()
@@ -162,7 +162,7 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def close(self):
         self.reader.close()
 
-    @lazy_property
+    @cached_property
     def params(self):
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         return {}

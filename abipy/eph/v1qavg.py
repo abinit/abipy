@@ -6,8 +6,8 @@ from __future__ import annotations
 import numpy as np
 
 from collections import OrderedDict
+from functools import cached_property
 from monty.string import list_strings, marquee
-from monty.functools import lazy_property
 from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.typing import Figure
@@ -66,18 +66,18 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.interpolated = bool(r.read_value("interpolated"))
         self.qdamp = r.read_value("qdamp")
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """|Structure| object."""
         return self.reader.read_structure()
 
-    @lazy_property
+    @cached_property
     def qpoints(self) -> Kpath:
         """List of q-points."""
         frac_coords = self.reader.read_value('qpoints')
         return Kpath(self.structure.reciprocal_lattice, frac_coords, ksampling=None)
 
-    @lazy_property
+    @cached_property
     def has_maxw(self) -> bool:
         """True if ncfile contains Max_r |W(R, r)|"""
         return "maxw" in self.reader.rootgrp.variables
@@ -85,7 +85,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def close(self) -> None:
         self.reader.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """Dict with parameters that might be subject to convergence studies."""
         return {}
@@ -412,7 +412,7 @@ class V1qAvgRobot(Robot):
     # Absolute tolerance used to compare q-points.
     atol = 1e-2
 
-    @lazy_property
+    @cached_property
     def qpoints(self):
         """List of q-points."""
         if len(self) == 1: return self.abifiles[0].qpoints

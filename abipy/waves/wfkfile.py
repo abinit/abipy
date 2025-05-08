@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import marquee
 from abipy.core import Mesh3D, GSphere
 from abipy.core.structure import Structure
@@ -74,7 +74,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     def close(self) -> None:
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
@@ -348,7 +348,7 @@ class WFK_Reader(ElectronsReader):
         # Store G-vectors
         self._kg = self.read_value("reduced_coordinates_of_plane_waves")
 
-    @lazy_property
+    @cached_property
     def basis_set(self) -> str:
         """String defining the basis set."""
         basis_set = self.read_value("basis_set")

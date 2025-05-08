@@ -9,8 +9,8 @@ import pandas as pd
 import typing
 
 from collections import OrderedDict
+from functools import cached_property
 from monty.collections import AttrDict
-from monty.functools import lazy_property
 from monty.string import is_string, marquee
 from monty.termcolor import cprint
 from monty.inspect import all_subclasses
@@ -192,7 +192,7 @@ class _Field(Has_Structure):
         """|numpy-array| with data in real space. shape: [nspden, nx, ny, nz]"""
         return self._datar
 
-    @lazy_property
+    @cached_property
     def datag(self) -> np.ndarray:
         """|numpy-array| with data in reciprocal space. shape: [nspden, nx, ny, nz]"""
         # FFT R --> G.
@@ -850,7 +850,7 @@ class Density(_DensityField):
             raise NotImplementedError()
             return self.mesh.integrate(self.datar[0])
 
-    @lazy_property
+    @cached_property
     def total_rhor(self) -> np.ndarray:
         """
         |numpy-array| with the total density in real space on the FFT mesh.
@@ -871,13 +871,13 @@ class Density(_DensityField):
         return self.__class__(nspinor=1, nsppol=1, nspden=1, datar=self.total_rhor,
                               structure=self.structure, iorder="c")
 
-    @lazy_property
+    @cached_property
     def total_rhog(self) -> np.ndarray:
         """|numpy-array| with the total density in G-space."""
         # FFT R --> G.
         return self.mesh.fft_r2g(self.total_rhor)
 
-    @lazy_property
+    @cached_property
     def magnetization_field(self) -> np.ndarray:
         """
         |numpy-array| with the magnetization field in real space on the FFT mesh:
@@ -897,7 +897,7 @@ class Density(_DensityField):
             # mx, my, mz
             return self.datar[1:]
 
-    @lazy_property
+    @cached_property
     def magnetization(self):
         """
         Magnetization field integrated over the unit cell.
@@ -905,7 +905,7 @@ class Density(_DensityField):
         """
         return self.mesh.integrate(self.magnetization_field)
 
-    @lazy_property
+    @cached_property
     def nelect_updown(self) -> tuple:
         """
         Tuple with the number of electrons in the up/down channel.
@@ -923,7 +923,7 @@ class Density(_DensityField):
 
         return nup, ndown
 
-    @lazy_property
+    @cached_property
     def zeta(self) -> np.ndarray:
         """
         |numpy-array| with Magnetization(r) / total_density(r)
@@ -984,7 +984,7 @@ class Density(_DensityField):
         structure, mesh, datar = cube.cube_read_structure_mesh_data(filepath=filename)
         return cls(nspinor=1, nsppol=1, nspden=1, datar=datar, structure=structure, iorder="c")
 
-    #@lazy_property
+    #@cached_property
     #def kinden(self):
         #"""Compute the kinetic energy density in real- and reciprocal-space."""
         #return kindr, kindgg
