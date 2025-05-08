@@ -11,8 +11,8 @@ import pandas as pd
 from collections import OrderedDict
 from io import StringIO
 from typing import Union
+from functools import cached_property
 from monty.string import is_string, marquee
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.symmetries import AbinitSpaceGroup
@@ -431,7 +431,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         return structures
 
-    @lazy_property
+    @cached_property
     def initial_structures(self) -> list[Structure]:
         """List of initial |Structure|."""
         return self._get_structures("header")
@@ -441,7 +441,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """True if all initial structures are equal."""
         return all(self.initial_structures[0] == s for s in self.initial_structures)
 
-    @lazy_property
+    @cached_property
     def final_structures(self) -> list[Structure]:
         """List of final |Structure|."""
         if self.run_completed:
@@ -450,7 +450,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             cprint("Cannot extract final structures from file.\n %s" % self.filepath, "red")
             return []
 
-    @lazy_property
+    @cached_property
     def initial_structure(self) -> Structure:
         """
         The |Structure| defined in the output file.
@@ -474,7 +474,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """True if all initial structures are equal."""
         return all(self.final_structures[0] == s for s in self.final_structures)
 
-    @lazy_property
+    @cached_property
     def final_structure(self) -> Union[Structure, None]:
         """
         The |Structure| defined in the output file.
@@ -1131,7 +1131,7 @@ class OutNcFile(AbinitNcFile):
                 varscache[name] = reader.read_value(name)
             return varscache[name]
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         return {}

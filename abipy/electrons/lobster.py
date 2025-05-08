@@ -8,11 +8,11 @@ import glob
 import numpy as np
 
 from collections import defaultdict, OrderedDict
+from functools import cached_property
 from monty.string import marquee
 from monty.collections import tree
 from monty.io import zopen
 from monty.termcolor import cprint
-from monty.functools import lazy_property
 from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import OrbitalType
 from pymatgen.io.abinit.pseudos import Pseudo
@@ -289,7 +289,7 @@ class CoxpFile(_LobsterFile):
 
         return new
 
-    @lazy_property
+    @cached_property
     def functions_pair_lorbitals(self):
         """
         Extracts a dictionary with keys pair, orbital, spin and containing a |Function1D| object resolved
@@ -318,7 +318,7 @@ class CoxpFile(_LobsterFile):
 
         return results
 
-    @lazy_property
+    @cached_property
     def functions_pair_morbitals(self):
         """
         Extracts a dictionary with keys pair, orbital, spin and containing a |Function1D| object resolved
@@ -334,7 +334,7 @@ class CoxpFile(_LobsterFile):
                     results[pair][orbs][spin] = Function1D(self.energies, orbs_data[spin]['single'])
         return results
 
-    @lazy_property
+    @cached_property
     def functions_pair(self):
         """
         Extracts a dictionary with keys pair, spin and containing a |Function1D| object for the total COP.
@@ -744,7 +744,7 @@ class ICoxpFile(_LobsterFile):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def dataframe(self):
         """|pandas-DataFrame| with results."""
         # self.values[pair][spin]

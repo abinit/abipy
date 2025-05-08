@@ -9,7 +9,7 @@ import numpy as np
 
 from io import StringIO
 from typing import Tuple, Union
-from monty.functools import lazy_property
+from functools import cached_property
 from abipy.tools.typing import Figure
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, add_plotly_fig_kwargs, PlotlyRowColDesc, get_fig_plotly)
 from abipy.tools.derivatives import finite_diff
@@ -245,12 +245,12 @@ class Function1D:
         """
         return np.iscomplexobj(self.values)
 
-    @lazy_property
+    @cached_property
     def h(self) -> Union[float, None]:
         """The spacing of the mesh. None if mesh is not homogeneous."""
         return self.dx[0] if np.allclose(self.dx[0], self.dx) else None
 
-    @lazy_property
+    @cached_property
     def dx(self) -> np.ndarray:
         """
         |numpy-array| of len(self) - 1 elements giving the distance between two
@@ -305,7 +305,7 @@ class Function1D:
 
         return self.__class__(x, integ)
 
-    @lazy_property
+    @cached_property
     def spline(self):
         """Cubic spline with s=0"""
         from scipy.interpolate import UnivariateSpline
@@ -336,17 +336,17 @@ class Function1D:
         b = self.mesh[-1] if b is None else b
         return self.spline.integral(a, b)
 
-    @lazy_property
+    @cached_property
     def integral_value(self):
         r"""Compute :math:`\int f(x) dx`."""
         return self.integral()[-1][1]
 
-    @lazy_property
+    @cached_property
     def l1_norm(self) -> float:
         r"""Compute :math:`\int |f(x)| dx`."""
         return abs(self).integral()[-1][1]
 
-    @lazy_property
+    @cached_property
     def l2_norm(self) -> float:
         r"""Compute :math:`\sqrt{\int |f(x)|^2 dx}`."""
         return np.sqrt((abs(self)**2).integral()[-1][1])

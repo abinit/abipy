@@ -6,9 +6,9 @@ import abc
 import numpy as np
 import abipy.core.abinit_units as abu
 
+from functools import cached_property
 from scipy.interpolate import UnivariateSpline
 from monty.collections import dict2namedtuple
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.analysis.eos import EOS
 from abipy.core.func1d import Function1D
@@ -1032,7 +1032,7 @@ class QHA3P(AbstractQHA):
 
         return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy, zpe=zpe)
 
-    @lazy_property
+    @cached_property
     def fitted_frequencies(self) -> np.ndarray:
         """
         A numpy array with size (nvols, nqpts_ibz, 3*natoms) containing the phonon frequencies

@@ -21,9 +21,9 @@ from inspect import isclass
 from multiprocessing import Pool
 from typing import Type, Any, Optional, Union
 from enum import IntEnum
+from functools import cached_property
 from tabulate import tabulate
 from monty.string import marquee, list_strings
-from monty.functools import lazy_property
 from monty.json import MontyEncoder
 from monty.collections import AttrDict
 from pymatgen.core import Structure as PmgStructure
@@ -539,12 +539,12 @@ class AseResultsComparator(HasPickleIO):
     def __len__(self):
         return len(self.keys)
 
-    @lazy_property
+    @cached_property
     def nsteps(self) -> int:
         """Number of steps in the trajectory."""
         return self.forces_list.shape[1]
 
-    @lazy_property
+    @cached_property
     def natom(self) -> int:
         """Number of atoms."""
         return len(self.structure)
@@ -1003,7 +1003,7 @@ class AseRelaxation:
         self.r0, self.r1 = r0, r1
         self.traj_path = str(traj_path)
 
-    @lazy_property
+    @cached_property
     def traj(self):
         """ASE trajectory."""
         if self.traj_path is None:
@@ -2231,7 +2231,7 @@ class AseMdLog(TextFile):
 
     time_key = "Time[ps]"
 
-    @lazy_property
+    @cached_property
     def df(self) -> pd.DataFrame:
         """
         DataFrame with the results.

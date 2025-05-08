@@ -17,7 +17,7 @@ from pprint import pformat
 from collections import OrderedDict
 from typing import Any
 from monty.collections import AttrDict, dict2namedtuple
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import is_string, marquee, list_strings
 from monty.termcolor import cprint
 from pymatgen.core.structure import Structure as pmg_Structure
@@ -46,8 +46,6 @@ def mp_match_structure(obj):
 
     Args:
         obj: filename or |Structure| object.
-        final (bool): Whether to get the final structure, or the initial
-            (pre-relaxation) structure. Defaults to True.
 
     Returns:
         :class:`MpStructures` object with
@@ -93,7 +91,7 @@ def mp_search(chemsys_formula_id):
             List of Structure objects, Materials project ids associated to structures.
             and List of dictionaries with MP data (same order as structures).
 
-        Note that the attributes evalute to False if no match is found.
+        Note that the attributes evaluate to False if no match is found.
     """
     chemsys_formula_id = chemsys_formula_id.replace(" ", "")
 
@@ -1240,7 +1238,7 @@ class Structure(pmg_Structure, NotebookWriter):
             cprint("structure.indsym is already set!", "yellow")
         self._indsym = indsym
 
-    @lazy_property
+    @cached_property
     def site_symmetries(self):
         """Object with SiteSymmetries."""
         from abipy.core.site_symmetries import SiteSymmetries
@@ -1299,7 +1297,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 print("\t", repr(s), " at distance", dist)
             print("")
 
-    @lazy_property
+    @cached_property
     def has_zero_dynamical_quadrupoles(self):
         """
         Dynamical quadrupoles are nonzero in all noncentrosymmetric crystals,
@@ -1342,7 +1340,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return True
 
-    @lazy_property
+    @cached_property
     def hsym_kpath(self):
         """
         Returns an instance of :class:`pymatgen.symmetry.bandstructure.HighSymmKpath`.
@@ -1351,7 +1349,7 @@ class Structure(pmg_Structure, NotebookWriter):
         from pymatgen.symmetry.bandstructure import HighSymmKpath
         return HighSymmKpath(self)
 
-    @lazy_property
+    @cached_property
     def hsym_kpoints(self):
         """|KpointList| object with the high-symmetry K-points."""
         # Get mapping name --> frac_coords for the special k-points in the database.
@@ -1396,7 +1394,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return kcoords
 
-    @lazy_property
+    @cached_property
     def hsym_stars(self) -> list:
         """
         List of |KpointStar| objects. Each star is associated to one of the special k-points

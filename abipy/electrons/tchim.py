@@ -10,7 +10,7 @@ import numpy as np
 import abipy.core.abinit_units as abu
 
 from typing import Any
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import list_strings, marquee
 #from monty.termcolor import cprint
 from abipy.core.structure import Structure
@@ -56,7 +56,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| with the KS energies."""
         return self.r.read_ebands()
@@ -87,7 +87,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """
         dict with parameters that might be subject to convergence studies e.g ecuteps.

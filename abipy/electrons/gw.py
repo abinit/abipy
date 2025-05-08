@@ -9,10 +9,10 @@ import pandas as pd
 
 from collections import namedtuple, OrderedDict
 from io import StringIO
+from functools import cached_property
 from tabulate import tabulate
 from monty.string import list_strings, is_string, marquee
 from monty.collections import dict2namedtuple
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.bisect import find_le, find_ge
 from abipy.core.func1d import Function1D
@@ -782,7 +782,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return Marker(*(x, y, s))
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """
         dictionary with parameters that might be subject to convergence studies e.g ecuteps
@@ -848,7 +848,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """True if sigres file contains the spectral function."""
         return self.r.has_spfunc
 
-    @lazy_property
+    @cached_property
     def qplist_spin(self) -> tuple:
         """Tuple of :class:`QPList` objects indexed by spin."""
         return self.r.read_allqps()
@@ -861,7 +861,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """Returns the :class:`QPState` object for the given (s, k, b)"""
         return self.r.read_qp(spin, kpoint, band, ignore_imag=ignore_imag)
 
-    @lazy_property
+    @cached_property
     def qpgaps(self) -> np.ndarray:
         """|numpy-array| of shape [nsppol, nkibz] with the QP direct gaps in eV."""
         return self.r.read_qpgaps()

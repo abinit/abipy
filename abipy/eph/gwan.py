@@ -11,8 +11,8 @@ import numpy as np
 import pandas as pd
 #import abipy.core.abinit_units as abu
 
+from functools import cached_property
 from monty.string import marquee #, list_strings
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.structure import Structure
 from abipy.core.kpoints import kpoints_indices
@@ -61,7 +61,7 @@ class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , 
         super().__init__(filepath)
         self.r = GwanReader(filepath)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.r.read_ebands()
@@ -75,11 +75,11 @@ class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , 
         """Close the file."""
         self.r.close()
 
-    #@lazy_property
+    #@cached_property
     #def gqk_spin(self) -> list:
     #    return [Gqk.from_gstore(self, spin) for spin in range(self.nsppol)]
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with the convergence parameters, e.g. ``nbsum``."""
         #od = OrderedDict([
@@ -425,7 +425,7 @@ class GwanReader(BaseEphReader):
         raise ValueError(f"Cannot find {kpoint = } in GSTORE.nc")
 
     # TODO: This fix to read groups should be imported in pymatgen.
-    @lazy_property
+    @cached_property
     def path2group(self) -> dict:
         return self.rootgrp.groups
 

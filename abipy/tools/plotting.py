@@ -1880,7 +1880,7 @@ class PlotlyRowColDesc:
 
         return "\n".join(lines)
 
-    #@lazy_property
+    #@cached_property
     #def rowcol_dict(self):
     #    if self.nrows == 1 and self.ncols == 1: return {}
     #    return dict(row=self.ply_row, col=self.ply_col)

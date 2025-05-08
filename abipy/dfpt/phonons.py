@@ -13,9 +13,9 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from typing import Any
+from functools import cached_property
 from monty.string import is_string, list_strings, marquee
 from monty.collections import dict2namedtuple
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import eV_to_Ha, Energy
 from pymatgen.core.periodic_table import Element
@@ -402,7 +402,7 @@ class PhononBands:
 
     __radd__ = __add__
 
-    @lazy_property
+    @cached_property
     def _auto_qlabels(self):
         # Find the q-point names in the pymatgen database.
         # We'll use _auto_qlabels to label the point in the matplotlib plot
@@ -488,7 +488,7 @@ class PhononBands:
         """True if bands with linewidths."""
         return getattr(self, "_linewidths", None) is not None
 
-    @lazy_property
+    @cached_property
     def dyn_mat_eigenvect(self) -> np.ndarray:
         """
         [nqpt, 3*natom, 3*natom] array with the orthonormal eigenvectors of the dynamical matrix.
@@ -3097,7 +3097,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_phbands_params()
@@ -3264,7 +3264,7 @@ class PhononDos(Function1D):
 
         raise TypeError("Don't know how to create PhononDos object from type: `%s`" % type(obj))
 
-    @lazy_property
+    @cached_property
     def iw0(self) -> int:
         """
         Index of the first point in the mesh whose value is >= 0
@@ -3280,12 +3280,12 @@ class PhononDos(Function1D):
     #    natom3 = self.idos().values[-1]
     #    return (integ / natom3) > rel_tolerance
 
-    @lazy_property
+    @cached_property
     def idos(self):
         """Integrated DOS."""
         return self.integral()
 
-    @lazy_property
+    @cached_property
     def zero_point_energy(self) -> Energy:
         """Zero point energy in eV per unit cell."""
         iw0 = self.iw0
@@ -3650,12 +3650,12 @@ class PhdosReader(ETSF_Reader):
 
             Frequencies are in eV, DOSes are in states/eV per unit cell.
     """
-    @lazy_property
+    @cached_property
     def structure(self):
         """|Structure| object."""
         return self.read_structure()
 
-    @lazy_property
+    @cached_property
     def wmesh(self):
         """The frequency mesh for the PH-DOS in eV."""
         return self.read_value("wmesh")
@@ -3749,11 +3749,11 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def qptrlatt(self):
         return self.r.read_value("qptrlatt")
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """
         :class:`OrderedDict` with the convergence parameters
@@ -3786,17 +3786,17 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """|Structure| object."""
         return self.r.structure
 
-    @lazy_property
+    @cached_property
     def phdos(self) -> PhononDos:
         """|PhononDos| object."""
         return self.r.read_phdos()
 
-    @lazy_property
+    @cached_property
     def pjdos_symbol(self):
         """
         Ordered dictionary mapping element symbol --> `PhononDos`
@@ -3805,7 +3805,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         return self.r.read_pjdos_symbol_dict()
 
-    @lazy_property
+    @cached_property
     def msqd_dos(self):
         """
         |MsqDos| object with Mean square displacement tensor in cartesian coords.

@@ -13,9 +13,9 @@ import numpy as np
 import pandas as pd
 
 from typing import Iterator # Any
+from functools import cached_property
 from monty.collections import AttrDict
 from monty.itertools import chunks
-from monty.functools import lazy_property
 from monty.fnmatch import WildCard
 from monty.dev import deprecated
 from pydispatch import dispatcher
@@ -630,7 +630,7 @@ class Work(BaseWork, NodeContainer):
             if self._flow != flow:
                 raise ValueError("self._flow != flow")
 
-    @lazy_property
+    @cached_property
     def pos(self) -> int:
         """The position of work in the |Flow|"""
         for i, work in enumerate(self.flow):

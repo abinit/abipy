@@ -10,10 +10,10 @@ import pandas as pd
 
 from functools import lru_cache
 from collections import OrderedDict
+from functools import cached_property
 from monty.string import marquee, list_strings
 from monty.termcolor import cprint
 from monty.collections import AttrDict
-from monty.functools import lazy_property
 from pymatgen.core.units import amu_to_kg
 from pymatgen.core.periodic_table import Element
 from abipy.core.kpoints import Kpath, IrredZone, KSamplingInfo
@@ -67,7 +67,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Close file."""
         self.reader.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         return {}
@@ -105,12 +105,12 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def iv0(self) -> int:
         return self.reader.iv0
 
-    @lazy_property
+    @cached_property
     def phdoses(self) -> dict:
         """Dictionary with the phonon doses."""
         return self.reader.read_phdoses()
 
-    @lazy_property
+    @cached_property
     def wvols_qibz(self):
         """Phonon frequencies on regular grid for the different volumes in eV """
         w = self.reader.read_value("gruns_wvols_qibz", default=None)
@@ -119,12 +119,12 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         else:
             return w * abu.Ha_eV
 
-    @lazy_property
+    @cached_property
     def qibz(self):
         """q-points in the irreducible brillouin zone"""
         return self.reader.read_value("gruns_qibz", default=None)
 
-    @lazy_property
+    @cached_property
     def gvals_qibz(self):
         """Gruneisen parameters in the irreducible brillouin zone"""
         if "gruns_gvals_qibz" not in self.reader.rootgrp.variables:
@@ -133,22 +133,22 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return self.reader.read_value("gruns_gvals_qibz")
 
-    @lazy_property
+    @cached_property
     def phbands_qpath_vol(self) -> list[PhononBands]:
         """List of |PhononBands| objects corresponding to the different volumes."""
         return self.reader.read_phbands_on_qpath()
 
-    @lazy_property
+    @cached_property
     def structures(self) -> list[Structure]:
         """List of structures"""
         return self.reader.read_structures()
 
-    @lazy_property
+    @cached_property
     def volumes(self) -> list[float]:
         """List of volumes"""
         return [s.volume for s in self.structures]
 
-    @lazy_property
+    @cached_property
     def phdispl_cart_qibz(self):
         """Eigendisplacements for the modes on the qibz"""
         return self.reader.read_value("gruns_phdispl_cart_qibz", cmode="c")
@@ -158,7 +158,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Number of volumes"""
         return len(self.structures)
 
-    @lazy_property
+    @cached_property
     def amu_symbol(self) -> dict:
         """Atomic mass units"""
         amu_list = self.reader.read_value("atomic_mass_units")
@@ -425,7 +425,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return fig
 
-    @lazy_property
+    @cached_property
     def split_gruns(self):
         """
         Splits the values of the gruneisen along a path like for the phonon bands
@@ -437,7 +437,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         g = self.phbands_qpath_vol[self.iv0].grun_vals
         return [np.array(g[indices[i]:indices[i + 1] + 1]) for i in range(len(indices) - 1)]
 
-    @lazy_property
+    @cached_property
     def split_dwdq(self):
         """
         Splits the values of the group velocities along a path like for the phonon bands

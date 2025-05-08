@@ -7,8 +7,8 @@ from __future__ import annotations
 import numpy as np
 import abipy.core.abinit_units as abu
 
+from functools import cached_property
 from monty.string import marquee
-from monty.functools import lazy_property
 #from monty.termcolor import cprint
 from abipy.core.structure import Structure
 from abipy.core.kpoints import Kpath
@@ -62,17 +62,17 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """|Structure| object."""
         return self.r.structure
 
-    @lazy_property
+    @cached_property
     def ebands_k(self) -> ElectronBands:
         """Electron bands along the k path."""
         return self.r.read_ebands_which_fixed("q")
 
-    @lazy_property
+    @cached_property
     def ebands_kq(self) -> ElectronBands:
         """Electron bands along the k+q path as a function of q."""
         return self.r.read_ebands_which_fixed("k")
 
-    @lazy_property
+    @cached_property
     def phbands(self) -> PhononBands:
         """Phonon bands along the q-path (nq_path points)."""
         return self.r.read_phbands()
@@ -81,7 +81,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with the convergence parameters, e.g. ``nbsum``."""
         #od = OrderedDict([

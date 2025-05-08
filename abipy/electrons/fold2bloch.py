@@ -6,8 +6,8 @@ import os
 import numpy as np
 import pymatgen.core.units as units
 
+from functools import cached_property
 from monty.string import marquee
-from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 from monty.termcolor import cprint
 from pymatgen.core.lattice import Lattice
@@ -121,7 +121,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object with folded band energies."""
         return self.r.read_ebands()
@@ -135,19 +135,19 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
-    @lazy_property
+    @cached_property
     def uf_eigens(self) -> np.ndarray:
         """[nsppol, nk_unfolded, nband] |numpy-array| with unfolded eigenvalues in eV."""
         # nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")
         return self.r.read_value("unfolded_eigenvalues") * units.Ha_to_eV
 
-    @lazy_property
+    @cached_property
     def uf_weights(self) -> np.ndarray:
         """[nss, nk_unfolded, nband] array with spectral weights. nss = max(nspinor, nsppol)."""
         # nctkarr_t("spectral_weights", "dp", "max_number_of_states, nk_unfolded, nsppol_times_nspinor")

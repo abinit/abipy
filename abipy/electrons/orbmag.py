@@ -6,7 +6,7 @@ import numpy as np
 
 from numpy.linalg import inv, det, eig, eigvals, norm
 #from monty.termcolor import cprint
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import list_strings, marquee
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.structure import Structure
@@ -180,12 +180,12 @@ class OrbmagAnalyzer:
         for orb in self.orb_files:
             orb.close()
 
-    @lazy_property
+    @cached_property
     def natom(self)  -> int:
         """Number of atoms in the unit cell."""
         return len(self.structure)
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """Structure object."""
         # Perform consistency check
@@ -194,7 +194,7 @@ class OrbmagAnalyzer:
             raise RuntimeError("ORBMAG.nc files have different structures")
         return structure
 
-    @lazy_property
+    @cached_property
     def has_nucdipmom(self) -> np.ndarray:
         """
         """
@@ -211,7 +211,7 @@ class OrbmagAnalyzer:
 
         return has_nucdipmom.astype(bool)
 
-    #@lazy_property
+    #@cached_property
     #def has_timrev(self) -> bool:
     #    """True if time-reversal symmetry is used in the BZ sampling."""
     #    has_timrev = self.orb_files[0].ebands.has_timrev
@@ -274,7 +274,7 @@ class OrbmagAnalyzer:
                     print('\n')
                 print('\n')
 
-    @lazy_property
+    @cached_property
     def ngkpt_and_shifts(self) -> tuple:
         """
         Return k-mesh divisions and shifts.
@@ -359,7 +359,7 @@ class OrbmagAnalyzer:
 
         return data, ngkpt, shifts
 
-    @lazy_property
+    @cached_property
     def has_full_bz(self) -> bool:
         """True if the list of k-points covers the full BZ."""
         ngkpt, shifts = self.ngkpt_and_shifts
@@ -635,7 +635,7 @@ class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         super().__init__(filepath)
         self.r = ElectronsReader(filepath)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.r.read_ebands()
@@ -645,15 +645,15 @@ class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def target_atom(self) -> tuple:
         return self.target_atom_nucdipmom[0]
 
-    @lazy_property
+    @cached_property
     def nucdipmom_atom(self) -> tuple:
         return self.target_atom_nucdipmom[1]
 
-    @lazy_property
+    @cached_property
     def target_atom_nucdipmom(self) -> tuple:
         """
         Return the index of the atom with non-zero nuclear magnetic dipole moment and its values.
@@ -674,7 +674,7 @@ class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
         return target_atom, nucdipmom[target_atom].copy()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()

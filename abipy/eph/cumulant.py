@@ -12,9 +12,9 @@ import abipy.core.abinit_units as abu
 from scipy.fft import fft, fftfreq,fftshift,ifft
 from collections import OrderedDict, namedtuple
 from collections.abc import Iterable
+from functools import cached_property
 from tabulate import tabulate
 from monty.string import marquee, list_strings
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt, find_points_along_path

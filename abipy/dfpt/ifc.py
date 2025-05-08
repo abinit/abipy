@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from typing import Union
-from monty.functools import lazy_property
+from functools import cached_property
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
 from abipy.tools.typing import Figure
@@ -112,7 +112,7 @@ class InteratomicForceConstants(Has_Structure):
         """Number of neighbouring atoms for which the ifc are present. ifcout in anaddb."""
         return np.shape(self.neighbours_indices)[1]
 
-    @lazy_property
+    @cached_property
     def ifc_cart_coord_ewald(self) -> Union[None, np.ndarray]:
         """Ewald part of the IFCs in cartesian coordinates."""
         if self.ifc_cart_coord_short_range is None:
@@ -120,7 +120,7 @@ class InteratomicForceConstants(Has_Structure):
         else:
             return self.ifc_cart_coord - self.ifc_cart_coord_short_range
 
-    @lazy_property
+    @cached_property
     def ifc_local_coord(self) -> Union[None, np.ndarray]:
         """IFCs in local coordinates."""
         if self.local_vectors is None:
@@ -128,7 +128,7 @@ class InteratomicForceConstants(Has_Structure):
         else:
             return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord, self.local_vectors)
 
-    @lazy_property
+    @cached_property
     def ifc_local_coord_short_range(self) -> Union[None, np.ndarray]:
         """Short range part of the IFCs in cartesian coordinates."""
         if self.local_vectors is None:
@@ -136,7 +136,7 @@ class InteratomicForceConstants(Has_Structure):
         else:
             return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord_short_range, self.local_vectors)
 
-    @lazy_property
+    @cached_property
     def ifc_local_coord_ewald(self) -> np.ndarray:
         """Ewald part of the IFCs in local coordinates."""
         return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord_ewald, self.local_vectors)
