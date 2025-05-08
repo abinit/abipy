@@ -263,6 +263,7 @@ class SigresRobotTest(AbipyTest):
             if self.has_matplotlib():
                 assert robot.plot_qpgaps_convergence(plot_qpmks=False, sortby=None, hue=None, show=False)
                 assert robot.plot_qpgaps_convergence(plot_qpmks=True, sortby="nband", hue="ecuteps", show=False)
+                assert robot.plot_qpgaps_convergence(plot_qpmks=True, sortby="nband", hue="ecuteps", show=False, abs_conv=5E-3, qp_kpoints=[(0, 0, 0), (0.5, 0, 0)])
 
                 assert robot.plot_qpdata_conv_skb(spin=0, kpoint=(0, 0, 0), band=3, show=False)
                 assert robot.plot_qpdata_conv_skb(spin=0, kpoint=(0, 0, 0), band=5,
