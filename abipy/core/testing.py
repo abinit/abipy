@@ -13,7 +13,6 @@ import numpy
 import json
 import tempfile
 import unittest
-import pytest
 import numpy.testing as nptu
 import abipy.data as abidata
 
