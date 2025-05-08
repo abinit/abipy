@@ -21,9 +21,18 @@ class EphPotFlow(Flow):
     of the second work while the DFPT potentials on the q-path are merged in the DVDB file
     located in the outdata of the third work.
 
-    These DVDB files are then passed to the EPH code to compute the average over the unit
-    cell of the periodic part of the scattering potentials as a function of q.
-    Results are stored in the V1QAVG.nc files of the outdata of the tasks in the fourth work.
+    These DVDB files are then passed to the EPH code to compute e-ph quantities depending on `what_to_compute`
+
+    If "v1qavg":
+
+        The average over the unit cell of the periodic part of the scattering potentials
+        as a function of q is computed. Results are stored in the V1QAVG.nc files of the outdata
+        of the tasks in the fourth work.
+
+    If "gkq_qpath":
+
+        The g(k,q) for qpt in `qbounds` are computed in two ways: using fully ab-abinito DFPT potentials
+        explicilty computed for each q-point or Fourier-interpolated potentials.
     """
 
     @classmethod
@@ -66,22 +75,24 @@ class EphPotFlow(Flow):
             manager: |TaskManager| object.
         """
         flow = cls(workdir=workdir, manager=manager)
+        ngqpt = np.array(ngqpt)
 
-        # First work with the GS run.
-        # Make sure that WFK and POT files are produced
+        # Build the first work with the GS run. Make sure that WFK and POT files are produced.
         scf_task = flow.register_scf_task(scf_input.new_with_vars(
             prtwf=1,
             prtpot=1,
-        )[0]
+        ))[0]
 
         if dvdb_filepath or ddb_filepath:
             # Use input files to bypass the computation of work_qmesh.
             if not (dvdb_filepath and ddb_filepath):
                 raise ValueError("Both dvdb_filepath and ddb_filepath must be specified.")
             work_qmesh = None
-            # TODO Should check that ddb.qmesh == ngqpt
             ddb_node = Node.as_node(ddb_filepath)
             dvdb_node = Node.as_node(dvdb_filepath)
+            # Check that ddb.qmesh == ngqpt
+            if np.any(ddb_node.guessed_ngqpt != ngqpt):
+                raise ValueError(f"{ddb_node.guessed_ngqpt=} != {ngqpt=}")
 
         else:
             # Second work to compute phonons on the input nqgpt q-mesh.
@@ -97,9 +108,9 @@ class EphPotFlow(Flow):
             # Use input list of q-points.
             qpath_list = np.reshape(qbounds, (-1, 3))
         else:
-            raise ValueError(f"ndivsm cannot be negative. Received {ndivsm=}")
+            raise ValueError(f"ndivsm cannot be negative but received {ndivsm=}")
 
-        # Third Work: compute WFK/WFQ and phonons for qpt in qpath_list.
+        # Third Work: compute WFK/WFQ and phonons for each qpt in qpath_list.
         # Don't include BECS because they have been already computed in the previous work.
         work_qpath = PhononWfkqWork.from_scf_task(
                        scf_task, qpath_list, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
@@ -108,12 +119,14 @@ class EphPotFlow(Flow):
 
         flow.register_work(work_qpath)
 
+        # Now build the last work with the EPH tasks according to `what_to_compute`
         eph_work = Work()
 
         if what_to_compute == "v1qavg":
 
-            # Here we compute the e-ph matrix elements fully ab-initio for each q-point.
+            # Compute average of v1.
             for eph_task in (-15, 15):
+
                 eph_inp = scf_input.new_with_vars(
                     optdriver=7,
                     ddb_ngqpt=ngqpt,    # q-mesh associated to the DDB file.
@@ -142,16 +155,16 @@ class EphPotFlow(Flow):
 
         elif what_to_compute == "gkq_qpath":
 
-            # Here we compute the e-ph matrix elements fully ab-initio for each q-point.
+            # Compute the e-ph matrix for each q-point.
             for ii in range(2):
                 eph_inp = scf_input.new_with_vars(
                     optdriver=7,                        # EPH driver
                     eph_task=18,                        # Activate computation of g(k,q) along high-symmetry path.
                     ddb_ngqpt=ngqpt,                    # q-mesh associated to the DDB file.
                     #dvdb_ngqpt=ngqpt,                  # q-mesh associated to the DDVDB file.
-                    eph_fix_korq='"k"',                 # Fix k
-                    eph_fix_wavevec=[0.0, 0.0, 0.0],
-                    ph_ndivsm=5,
+                    eph_fix_korq='"k"',                 # Fix k-point and change q in k+q
+                    eph_fix_wavevec=[0.0, 0.0, 0.0],    # Value of the fixed k-point.
+                    ph_ndivsm=-1,                       # ph_qpath provides full list of q-points.
                     ph_nqpath=len(qpath_list),
                     ph_qpath=qpath_list,
                     tolwfr=1e-20,                       # Stopping criterion for NSCF computation
@@ -160,7 +173,7 @@ class EphPotFlow(Flow):
                 )
 
                 if ii == 0:
-                    # Use DVDB with ab-initio POTS along the q-path to compute gkq
+                    # Use DVDB with ab-initio POTS along the q-path to compute gkq.
                     ddb_producer = work_qmesh if work_qmesh is not None else ddb_node
                     deps = {ddb_producer: "DDB", work_qpath: "DVDB"}
 
@@ -172,9 +185,8 @@ class EphPotFlow(Flow):
                         deps = {ddb_node: "DDB", dvdb_node: "DVDB"}
 
                 # Need GS potential to start NSCF.
-                # Also, read GS WFK file to accelerate the NSCF computation of psi_k
+                # Also, read the GS WFK file to accelerate the NSCF computation of psi_k and psi_kq
                 deps.update({scf_task : ["POT", "WFK"]})
-
                 eph_work.register_eph_task(eph_inp, deps=deps)
 
         else:
@@ -244,7 +256,7 @@ class GkqPathFlow(Flow):
         scf_task = flow.register_scf_task(scf_input)[0]
 
         if dvdb_filepath or ddb_filepath:
-            # Use input files to bypass computation of work_qmesh.
+            # Use input files to bypass the computation of work_qmesh.
             if not (dvdb_filepath and ddb_filepath):
                 raise ValueError("Both dvdb_filepath and ddb_filepath must be specified.")
             work_qmesh = None
