@@ -1952,7 +1952,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             shutil.copy(self.pyfile, self.workdir)
 
         # Add README.md file if set
-        if readme_md := getattr(self, "readme_md", None) is not None:
+        if (readme_md := getattr(self, "readme_md", None)) is not None:
             with open(os.path.join(self.workdir, "README.md"), "wt") as fh:
                 fh.write(readme_md)
 
