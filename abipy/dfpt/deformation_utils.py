@@ -25,12 +25,11 @@ def generate_deformations_volumic(structure, eps_V=0.02, scales=None):
         formatted_namei = f"{namei:04d}"
         structures_new[formatted_namei] = structure2
 
-
     return structures_new
 
 
 #def generate_deformations(structure, eps=0.005) -> tuple:
-def generate_deformations(structure, eps: float, str_type ='BO', eps_ref = [0.005, 0.005 ,0.005], mode = "TEC" )-> tuple:
+def generate_deformations(structure, eps: float, str_type='BO', eps_ref=[0.005, 0.005 ,0.005], mode="TEC") -> tuple:
     """
     Generates deformed structures by applying strain to the input structure's lattice.
 
@@ -104,7 +103,7 @@ def generate_deformations(structure, eps: float, str_type ='BO', eps_ref = [0.00
         print("New rprim:")
         print(rprim0)
     else:
-        rprim0=rprim
+        rprim0 = rprim
 
     if str_type == 'BO':
         rprim_BO = np.copy(rprim)
@@ -120,7 +119,7 @@ def generate_deformations(structure, eps: float, str_type ='BO', eps_ref = [0.00
     structures_new = {}
     strain_inds = []
     rprim0 = np.copy(rprim)
-    rprim=rprim0
+    rprim = rprim0
 
     def _add(name, new_rprim, i, j, k, l, m, n) -> None:
         """Helper function to register a new structure in internal dict."""
@@ -134,7 +133,7 @@ def generate_deformations(structure, eps: float, str_type ='BO', eps_ref = [0.00
 
     if 1 <= spgrp_number <= 2: # Check for triclinic crystal systems
         # Define strain configurations in Voigt notation
-        disp=[[0,0,0,0,0,0], [-1,0,0,0,0,0], [1,0,0,0,0,0], [0,-1,0,0,0,0], [0,1,0,0,0,0], [0,0,-1,0,0,0],
+        disp = [[0,0,0,0,0,0], [-1,0,0,0,0,0], [1,0,0,0,0,0], [0,-1,0,0,0,0], [0,1,0,0,0,0], [0,0,-1,0,0,0],
               [0,0,1,0,0,0], [0,0,0,-1,0,0], [0,0,0,1,0,0], [0,0,0,0,-1,0], [0,0,0,0,1,0], [0,0,0,0,0,-1],
               [0,0,0,0,0,1], [-1,-1,0,0,0,0], [0,-1,-1,0,0,0], [0,0,-1,-1,0,0], [0,0,0,-1,-1,0], [0,0,0,0,-1,-1],
               [-1,0,-1,0,0,0], [-1,0,0,-1,0,0], [-1,0,0,0,-1,0], [-1,0,0,0,0,-1], [0,-1,0,-1,0,0], [0,-1,0,0,-1,0],

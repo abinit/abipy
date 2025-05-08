@@ -9,7 +9,7 @@ try:
 except ImportError:
     from scipy.integrate import simps
 import abipy.core.abinit_units as abu
-from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs,get_axarray_fig_plt
+from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs #, get_axarray_fig_plt
 
 
 #### Generating function ####
@@ -31,6 +31,7 @@ def Bose_einstein(T, freq):
 
     return n
 
+
 def get_G_t(T, S_nu, omega_nu):
     """
     Generation function
@@ -47,23 +48,22 @@ def get_G_t(T, S_nu, omega_nu):
     freq = np.array(omega_nu)
     freq_SI = freq * (abu.eV_s) # in SI rad/sec
 
-    S=np.zeros(n_step, dtype=complex)
-    C_plus=np.zeros(n_step, dtype=complex)
-    C_minus=np.zeros(n_step, dtype=complex)
+    S = np.zeros(n_step, dtype=complex)
+    C_plus = np.zeros(n_step, dtype=complex)
+    C_minus = np.zeros(n_step, dtype=complex)
 
     for i in range(len(S_nu)):
-        S +=  S_nu[i] * np.exp(-1j * freq_SI[i] * t)
+        S += S_nu[i] * np.exp(-1j * freq_SI[i] * t)
         C_plus += Bose_einstein(T, freq[i]) * S_nu[i] * np.exp(+1j * freq_SI[i] * t)
         C_minus += Bose_einstein(T, freq[i]) * S_nu[i] * np.exp(-1j * freq_SI[i] * t)
 
     index_0 = int((len(t) - 1) / 2)
-    C_0=2*C_plus[index_0]
-    S_0=S[index_0]
+    C_0 = 2*C_plus[index_0]
+    S_0 = S[index_0]
 
     G_t = np.exp(S-S_0+C_plus+C_minus-2*C_0)
 
     return t, G_t
-
 
 
 def A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w, model='multi-D'):
@@ -134,7 +134,7 @@ def L_hw_help(E_x, A):
 
 
 @add_fig_kwargs
-def plot_emission_spectrum_help(x_eV,y_eV,unit,max_to_one,ax,**kwargs):
+def plot_emission_spectrum_help(x_eV, y_eV, unit, max_to_one, ax, **kwargs):
     """
     Plot the Luminescence intensity, computed from the generating fct approach.
 
@@ -149,32 +149,33 @@ def plot_emission_spectrum_help(x_eV,y_eV,unit,max_to_one,ax,**kwargs):
 
     #x_eV,y_eV=self.L_hw(T=T,lamb=lamb,w=w) # in eV
 
-    x_cm=x_eV*8065.73
-    y_cm=y_eV/8065.73
+    x_cm = x_eV*8065.73
+    y_cm = y_eV/8065.73
 
-    x_nm=1239.84193/x_eV
-    y_nm=y_eV*(x_eV**2/1239.84193)
+    x_nm = 1239.84193/x_eV
+    y_nm = y_eV*(x_eV**2/1239.84193)
 
-    if max_to_one==True:
+    if max_to_one:
         y_eV = y_eV/max(y_eV)
         y_cm = y_cm/max(y_cm)
         y_nm = y_nm/max(y_nm)
 
-
-    if unit=='eV':
+    if unit == 'eV':
         ax.plot(x_eV,y_eV,**kwargs)
         ax.set_xlabel('Photon energy (eV)')
         ax.set_ylabel(r'$L(\hbar\omega)$  (1/eV)')
 
-
-    elif unit=='cm-1':
+    elif unit == 'cm-1':
         ax.plot(x_cm,y_cm,**kwargs)
         ax.set_xlabel(r'Photon energy ($cm^{-1}$)')
         ax.set_ylabel(r'$L(\hbar\omega)$  (1/$cm^{-1}$)')
 
-    elif unit=='nm':
+    elif unit == 'nm':
         ax.plot(x_nm,y_nm,**kwargs)
         ax.set_xlabel(r'Photon wavelength (nm))')
         ax.set_ylabel(r'Intensity (a.u.)')
+
+    else:
+        raise ValueError(f"Invalid {unit=}, must be 'eV', 'cm-1', or 'nm'")
 
     return fig

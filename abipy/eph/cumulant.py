@@ -6,7 +6,7 @@ using the results stored in the out_EPH_CUMULANT.nc file.
 from __future__ import annotations
 
 import numpy as np
-import pandas as pd
+#import pandas as pd
 import abipy.core.abinit_units as abu
 
 from scipy.fft import fft, fftfreq,fftshift,ifft
@@ -23,8 +23,7 @@ from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fi
 from abipy.tools import duck
 from abipy.tools.numtools import gaussian
 from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
-from abipy.abio.robots import Robot
-from abipy.eph.common import BaseEphReader
+#from abipy.abio.robots import Robot
 from abipy.eph.sigeph import SigEPhFile,EphSelfEnergy, SigmaPhReader, QpTempState
 
 
@@ -69,7 +68,6 @@ class CumulantQpTempState(QpTempState):
             self.qpe_oms[it] = self.e0 + vals_e0ks[it]
 
 
-
 class CumulantEPhFile(SigEPhFile):
     """
     This file contains the Green's Function using the cumulant expansion from
@@ -93,7 +91,6 @@ class CumulantEPhFile(SigEPhFile):
     def from_file(cls, filepath: str) -> CumulantEPhFile:
         """Initialize the object from a netcdf file."""
         return cls(filepath)
-
 
     def __init__(self, filepath):
         self._filepath = filepath
@@ -181,8 +178,6 @@ class CumulantEPhFile(SigEPhFile):
         return self.reader.read_cumulant_skb(spin, kpoint, band)
 
 
-
-
 class CumulantPhReader(SigmaPhReader):
     """
     Reads data from file and constructs objects.
@@ -223,7 +218,7 @@ class CumulantPhReader(SigmaPhReader):
         wmesh = self.read_variable("wrmesh_b")[spin, ikc, ib, :] * abu.Ha_eV
 
         # Set time mesh, cumulant function and green's function in time domain as None ( default )
-        time_mesh =ct_vals = gt_vals = None
+        time_mesh = ct_vals = gt_vals = None
         if self.ct_vals_exists:
             # For debugging proposes read time mesh, cumulant function and green's function in time domain
 
@@ -234,7 +229,7 @@ class CumulantPhReader(SigmaPhReader):
             # complex(dpc) :: ct_vals(complex, nwr, ntemp, max_nbcalc, nkcalc, nsppol)
             # Cumulant function with respect to time
             ct_vals = self.read_variable("ct_vals")[spin,ikc,ib,:,:,:]
-            ct_vals = ct_vals[:, :, 0] + 1j* ct_vals[:, :, 1]
+            ct_vals = ct_vals[:, :, 0] + 1j * ct_vals[:, :, 1]
 
             # complex(dpc) :: gt_vals(complex, nwr, ntemp, max_nbcalc, nkcalc, nsppol)
             # Green's function with respect to time
@@ -253,8 +248,7 @@ class CumulantPhReader(SigmaPhReader):
         qp = self.read_qp(spin, ikc, band)
 
         return CumulantSelfEnergy(wmesh, qp, gw_vals, spfunccumul_wr,
-                                 time_mesh=time_mesh, ct_vals= ct_vals, gt_vals= gt_vals)
-
+                                 time_mesh=time_mesh, ct_vals=ct_vals, gt_vals=gt_vals)
 
     def read_qp(self, spin, kpoint, band, ignore_imag=False) -> CumulantQpTempState:
         """
@@ -265,11 +259,11 @@ class CumulantPhReader(SigmaPhReader):
         spin, ikc, ibc, kpoint = self.get_sigma_skb_kpoint(spin, kpoint, band)
 
         # Quasi-particle energies set initially to zero
-        qpe = np.zeros((self.ntemp),dtype = complex)
+        qpe = np.zeros((self.ntemp), dtype=complex)
         qpe_oms = np.zeros((self.ntemp))
 
         # Fan and Debbye-Waller self-energies set to zero
-        fan0 = np.zeros((self.ntemp),dtype = complex)
+        fan0 = np.zeros((self.ntemp), dtype=complex)
         dw = np.zeros((self.ntemp))
 
         # Renormalization of the Quasi-Particle set to zero
@@ -284,7 +278,6 @@ class CumulantPhReader(SigmaPhReader):
 
 
 class CumulantSelfEnergy(EphSelfEnergy):
-
 
     def __init__(self, wmesh, qp, gw_vals, spfunccumul_wr,
                  time_mesh=None, ct_vals=None, gt_vals=None,
@@ -320,7 +313,6 @@ class CumulantSelfEnergy(EphSelfEnergy):
         super().__init__(wmesh, qp, vals_e0ks, dvals_de0ks, dw_vals, vals_wr, spfunccumul_wr,
                    frohl_vals_e0ks=None, frohl_dvals_de0ks=None, frohl_spfunc_wr=None)
 
-
     def calculate_sigma_skb_fromgw(self, wmesh, qp, gw_vals):
 
         # Initial setting
@@ -335,7 +327,7 @@ class CumulantSelfEnergy(EphSelfEnergy):
 
         for it in range(ntemp):
             # Use Dyson equations to determine self-energy, only good for energies close to KS
-            sigma[it,:] = wmesh[:]- qp.e0 - 1/gw_vals[it,:]
+            sigma[it,:] = wmesh[:] - qp.e0 - 1/gw_vals[it,:]
             # Evaluate the self-energy at KS energy
             e0ks[it] = sigma[it,idx_e0].real
             # The derivative of the self-energy evaluated at the KS energy.
@@ -353,13 +345,13 @@ class CumulantSelfEnergy(EphSelfEnergy):
         e0 = sigeph.qp.e0
         nwr = sigeph.nwr
         ntemp = sigeph.ntemp
-        qpe = np.zeros((ntemp),dtype = complex)
+        qpe = np.zeros((ntemp), dtype=complex)
         qpe_oms = np.zeros((ntemp))
-        fan0 = np.zeros((ntemp),dtype = complex)
+        fan0 = np.zeros((ntemp), dtype=complex)
         dw = np.zeros((ntemp))
         ze0 = 0.0
         qp = CumulantQpTempState(spin=sigeph.spin, kpoint=sigeph.kpoint, band=sigeph.band, tmesh=sigeph.tmesh,
-                           e0=sigeph.qp.e0, qpe = qpe, ze0=ze0, fan0=fan0, dw=dw, qpe_oms = qpe_oms)
+                           e0=sigeph.qp.e0, qpe=qpe, ze0=ze0, fan0=fan0, dw=dw, qpe_oms=qpe_oms)
 
         # Frequency mesh step
         w_step = wmesh_init[1] - wmesh_init[0]
@@ -401,4 +393,4 @@ class CumulantSelfEnergy(EphSelfEnergy):
         # Spectral Function
         spfunc = -1.0 * gw.imag / np.pi
 
-        return cls( wmesh_init, qp, gw, spfunc, time_mesh = t, ct_vals = c1+c2+c3, gt_vals = Gt )
+        return cls( wmesh_init, qp, gw, spfunc, time_mesh=t, ct_vals=c1+c2+c3, gt_vals=Gt)

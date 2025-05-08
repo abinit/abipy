@@ -1952,12 +1952,12 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             shutil.copy(self.pyfile, self.workdir)
 
         # Add README.md file if set
-        if readme_md := getattr(self, "readme_md", None) is not None:
+        if (readme_md := getattr(self, "readme_md", None)) is not None:
             with open(os.path.join(self.workdir, "README.md"), "wt") as fh:
                 fh.write(readme_md)
 
         # Add abipy_meta.json file if set
-        if data := getattr(self, "abipy_meta_json", None) is not None:
+        if (data := getattr(self, "abipy_meta_json", None)) is not None:
             self.write_json_in_workdir("abipy_meta.json", data)
 
         # Write fix_flow.py script for advanced users.

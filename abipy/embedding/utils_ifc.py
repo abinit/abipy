@@ -1,14 +1,18 @@
-from phonopy import Phonopy
+from __future__ import annotations
+
+import os, shutil
 import numpy as np
 
-from pymatgen.io.phonopy import get_pmg_structure,get_phonopy_structure
+#from phonopy import Phonopy
+from abipy.core.structure import Structure
+#from pymatgen.io.phonopy import get_pmg_structure, get_phonopy_structure
+#from abipy.core.abinit_units import eV_to_THz
+#from abipy.dfpt.converters import phonopy_to_abinit
 
-from abipy.core.abinit_units import eV_to_THz
-from abipy.dfpt.converters import phonopy_to_abinit
-import os,shutil
 ## Usefull functions to be used in embedding_ifc ###
 
-def stru_0_1_to_minus_05_05(structure):
+
+def stru_0_1_to_minus_05_05(structure: Structure):
     """
     translate the structure so that the frac_coords go from [0,1] to [-0.5,0,5]
     """
@@ -24,6 +28,7 @@ def stru_0_1_to_minus_05_05(structure):
         if site.frac_coords[2] >= 0.5:
             site.frac_coords[2] = site.frac_coords[2] - 1
     return new_stru
+
 
 def frac_coords_05_to_minus05(stru):
     """
@@ -41,7 +46,8 @@ def frac_coords_05_to_minus05(stru):
 
     return new_stru
 
-def center_wrt_defect(structure,defect_coord):
+
+def center_wrt_defect(structure, defect_coord):
     """
     Center the structure around defect_coord. Defect is now at [0,0,0]
     """
@@ -60,10 +66,10 @@ def clean_structure(structure,defect_coord):
     center_wrt_defect(), stru_0_1_to_minus_05_05(), frac_coords_05_to_minus05()
     Usefull to match structures after clean_structure()
     """
-    stru=structure.copy()
-    stru=center_wrt_defect(stru,defect_coord)
-    stru=stru_0_1_to_minus_05_05(stru)
-    stru=frac_coords_05_to_minus05(stru)
+    stru = structure.copy()
+    stru = center_wrt_defect(stru,defect_coord)
+    stru = stru_0_1_to_minus_05_05(stru)
+    stru = frac_coords_05_to_minus05(stru)
     return stru
 
 
@@ -82,14 +88,15 @@ def map_two_structures_coords(stru_1, stru_2,tol=0.1):
             if max(abs(cart_1[i] - cart_2[j])) < tol:
                 mapping.append(j)
     
-    if len(mapping)!= len(stru_1):
+    if len(mapping) != len(stru_1):
         print(f"Mapping incomplete : only {len(mapping)}/{len(stru_1)} atoms mapped.")
     return mapping
 
+
 def accoustic_sum(Hessian_matrix, atom_label):
-    Sum_hessian=np.zeros((3,3))
+    Sum_hessian = np.zeros((3,3))
     for m in range(len(Hessian_matrix[0])):
-            Sum_hessian += Hessian_matrix[m][atom_label]
+        Sum_hessian += Hessian_matrix[m][atom_label]
         
     return Sum_hessian
 
@@ -100,20 +107,21 @@ def inverse_participation_ratio(eigenvectors):
     for a given q-point, eigenvectors shape=(nbands,natoms,3)
     """
     # for a given q-point,  eigenvectors shape=(nbands,natoms,3)
-    ipr=[]
+    ipr = []
     for iband in range(len(eigenvectors)):    
-        sum_atoms=0
+        sum_atoms = 0
         for iatom in range(len(eigenvectors[iband])):
             sum_atoms += np.dot(eigenvectors[iband,iatom],eigenvectors[iband,iatom])**2
         ipr.append(1/sum_atoms)
     return np.array(ipr).real
+
 
 def localization_ratio(eigenvectors):
     """
     See equation (10) of https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537   
     for a given q-point, eigenvectors shape=(nbands,natoms,3)
     """
-    ipr=inverse_participation_ratio(eigenvectors)
+    ipr = inverse_participation_ratio(eigenvectors)
     return len(eigenvectors[0])/ipr
 
 
@@ -148,32 +156,32 @@ def vesta_phonon(eigenvectors,in_path,ibands=None,
     if os.path.isdir(out_path): 
         shutil.rmtree(out_path)
         os.mkdir(out_path)
-    else : 
+    else: 
         os.mkdir(out_path)
 
-    path=out_path
+    path = out_path
 
     for iband in ibands : 
         towrite = vesta.split('VECTR')[0]
         towrite += 'VECTR\n'
 
-        magnitudes=[]
+        magnitudes = []
         for iatom in range(natoms) :
             magnitudes.append(np.sqrt(eigenvectors[iband][iatom][0]**2+eigenvectors[iband][iatom][1]**2+eigenvectors[iband][iatom][2]**2))
         for iatom in range(natoms) :
             if magnitudes[iatom] > factor_keep_vectors * max(np.real(magnitudes)):
-                towrite += '%5d' %(iatom + 1)
-                towrite += '%10.5f' %(eigenvectors[iband][iatom][0] * int(scale_vector))
-                towrite += '%10.5f' %(eigenvectors[iband][iatom][1] * int(scale_vector))
-                towrite += '%10.5f' %(eigenvectors[iband][iatom][2] * int(scale_vector))
+                towrite += '%5d' % (iatom + 1)
+                towrite += '%10.5f' % (eigenvectors[iband][iatom][0] * int(scale_vector))
+                towrite += '%10.5f' % (eigenvectors[iband][iatom][1] * int(scale_vector))
+                towrite += '%10.5f' % (eigenvectors[iband][iatom][2] * int(scale_vector))
                 towrite += '\n'
-                towrite += '%5d' %(iatom + 1)  +  ' 0 0 0 0\n  0 0 0 0 0\n'
+                towrite += '%5d' % (iatom + 1) + ' 0 0 0 0\n  0 0 0 0 0\n'
     
         towrite += '0 0 0 0 0\n' 
         towrite += 'VECTT\n'
 
         for atom in range(natoms) :
-            towrite += '%5d' %(atom + 1)
+            towrite += '%5d' % (atom + 1)
             towrite += f'  {width_vector} {color_vector[0]}   {color_vector[1]}   {color_vector[2]} 0\n'
 
         towrite += '0 0 0 0 0\n' 
@@ -181,18 +189,17 @@ def vesta_phonon(eigenvectors,in_path,ibands=None,
         towrite += vesta.split('SPLAN')[1]
         towrite += 'VECTS 1.00000'
 
-
         filename = path + f'/{iband:05}_'
         filename += '.vesta'
 
         open(filename, 'w').write(towrite)
 
-        if centered==True:
+        if centered:
 
             with open(filename, 'r') as file:
                 file_contents = file.read()
-                search_word="BOUND\n       0        1         0        1         0        1\n  0   0   0   0  0"
-                replace_word="BOUND\n       -0.5        0.5         -0.5        0.5         -0.5        0.5\n  0   0   0   0  0"
+                search_word = "BOUND\n       0        1         0        1         0        1\n  0   0   0   0  0"
+                replace_word = "BOUND\n       -0.5        0.5         -0.5        0.5         -0.5        0.5\n  0   0   0   0  0"
 
                 updated_contents = file_contents.replace(search_word, replace_word)
 

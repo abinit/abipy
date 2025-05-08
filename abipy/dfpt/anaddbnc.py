@@ -309,8 +309,8 @@ class AnaddbNcRobot(Robot):
             return self.get_elastic_dataframe()
         return None
 
-    def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params
-                              =False, funcs=None, **kwargs) -> pd.DataFrame:
+    def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params=False, 
+                              funcs=None, **kwargs) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with properties derived from the elastic tensor
         and an associated structure. Filename is used as index.
@@ -356,7 +356,7 @@ class AnaddbNcRobot(Robot):
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys() if rows else None))
 
     @add_fig_kwargs
-    def plot_elastic_properties(self, fontsize=10, **kwargs):
+    def plot_elastic_properties(self, fontsize=10, **kwargs) -> Figure:
         """
         Args:
             fontsize: legend and label fontsize.
