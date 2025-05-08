@@ -25,6 +25,7 @@ from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, 
     set_axlims, set_visible, rotate_ticklabels, set_ax_xylabels, set_grid_legend, plot_xy_with_hue)
 from abipy.tools.typing import Figure, KptSelect
 from abipy.tools import duck
+from abipy.tools.iotools import filepath_extract_differences
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.electrons.scissors import Scissors
@@ -2006,6 +2007,18 @@ class SigresRobot(Robot, RobotWithEbands):
     # Try to have API similar to SigEPhRobot
     EXT = "SIGRES"
 
+    XLABELS = {
+        "ecut": "ecut (Ha)",
+        "ecutwfn": "ecutwfn (Ha)",
+        "ecuteps": "ecuteps (Ha)",
+        "ecutsigx": "ecutsigx (Ha)",
+    }
+
+    YLABELS = {
+        "qpgap": r"$\text{QP}^{Z_0}_{\text{gap}}$ (eV)",
+        "qp-ks_gaps": r"$\text{QP}^{Z_0}_{\text{gap}} - \text{KS}_{\text{gap}}$ (eV)"
+    }
+
     def __init__(self, *args):
         super().__init__(*args)
         if len(self.abifiles) in (0, 1): return
@@ -2199,7 +2212,8 @@ class SigresRobot(Robot, RobotWithEbands):
     get_dataframe = get_qpgaps_dataframe
 
     @add_fig_kwargs
-    def plot_qpgaps_convergence(self, plot_qpmks=True, sortby=None, hue=None, sharey=False, fontsize=8, abs_conv=None, qp_kpoints: str = "all", **kwargs) -> Figure:
+    def plot_qpgaps_convergence(self, plot_qpmks=True, sortby=None, hue=None, sharey=False, fontsize=8, 
+                                abs_conv=None, qp_kpoints: str = "all", span_style: dict | None = None, **kwargs) -> Figure:
         """
         Plot the convergence of the direct QP gaps for all the k-points available in the robot.
 
@@ -2216,6 +2230,10 @@ class SigresRobot(Robot, RobotWithEbands):
                 If callable, the output of hue(abifile) is used.
             sharey: True if y-axis should be shared.
             fontsize: legend and label fontsize.
+            abs_conv: If not None, show absolute convergence window.
+            qp_kpoints: List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
+                or "all" to plot all k-points.
+            span_style: dictionary with options passed to ax.axhspan.
 
         Returns: |matplotlib-Figure|
         """
@@ -2245,6 +2263,8 @@ class SigresRobot(Robot, RobotWithEbands):
         else:
             groups = self.group_and_sortby(hue, sortby)
 
+        ylabel = "qpgap" if not plot_qpmks else "qp-ks_gaps"
+
         for ik, (kcalc, ax) in enumerate(zip(sigma_kpoints, ax_list)):
             for spin in range(nsppol):
                 ax.set_title("k-point: %s" % (repr(kcalc)), fontsize=fontsize)
@@ -2255,15 +2275,15 @@ class SigresRobot(Robot, RobotWithEbands):
 
                 if hue is None and isinstance(params[0],str):
                     # Sort by filename
-                    data["filename"] = data.index
+                    data["filename"] = filepath_extract_differences(data.index.to_list())
                     sortby = "filename"
 
                 plot_xy_with_hue(data,
                                  x= sortby,
-                                 y= "qpgap" if not plot_qpmks else "qp-ks_gaps",
+                                 y= ylabel,
                                  hue=hue,
                                  abs_conv=abs_conv,
-                                 span_style=None,
+                                 span_style=span_style,
                                  ax=ax,
                                  fontsize=fontsize,
                                  show=False,
@@ -2271,17 +2291,17 @@ class SigresRobot(Robot, RobotWithEbands):
 
             ax.grid(True)
             if ik == len(sigma_kpoints) - 1:
-                ax.set_xlabel("%s" % self._get_label(sortby))
-                if sortby is None: rotate_ticklabels(ax, 15)
+                if sortby == "filename":
+                    rotate_ticklabels(ax, 15)
+                    
+                else:
+                    ax.set_xlabel(self.XLABELS.get(sortby, sortby))
             else:
                 set_visible(ax, False, "xlabel")
             if ik == 0:
-                if plot_qpmks:
-                    ax.set_ylabel(r"$\text{QP}^{Z_0}_{\text{gap}} - \text{KS}_{\text{gap}}$ (eV)")
-                else:
-                    ax.set_ylabel(r"$\text{QP}^{Z_0}_{\text{gap}}$ (eV)")
+                ax.set_ylabel(self.YLABELS.get(ylabel, ylabel))
             else:
-                 set_visible(ax, False, "ylabel")
+                set_visible(ax, False, "ylabel")
 
         return fig
 

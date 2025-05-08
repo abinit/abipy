@@ -15,6 +15,7 @@ import functools
 import numpy as np
 import pandas as pd
 import matplotlib.collections as mcoll
+from matplotlib.ticker import StrMethodFormatter
 
 from collections import OrderedDict
 from typing import Any, Callable, Iterator
@@ -468,6 +469,26 @@ def set_ticks_fontsize(ax_or_axlist,
             ax.tick_params(axis='y', labelsize=fontsize, **kwargs)
 
 
+def set_ticks_format(ax_or_axlist,
+                     format: str = "%.2f",
+                     xy_string: str = "xy",
+                     **kwargs) -> None:
+    """
+    Set tick format for one axis or a list of axis.
+    Args:
+        ax_or_axlist: Axes or list of axes.
+        xy_string: "x" to share x-axis, "xy" for both.
+        format: Format string for the ticks.
+    """
+    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
+    formatter = StrMethodFormatter(format)
+    for ix, ax in enumerate(ax_list):
+        if "x" in xy_string:
+            ax.xaxis.set_major_formatter(formatter)
+
+        if "y" in xy_string:
+            ax.yaxis.set_major_formatter(formatter)
+
 def set_grid_legend(ax_or_axlist, fontsize: int,
                     xlabel: str | None = None,
                     ylabel: str | None = None,
@@ -650,8 +671,8 @@ def plot_xy_with_hue(data: pd.DataFrame,
 
     def _plot_key_grp(key, grp, span_style):
         # Sort xs and rearrange ys
-        xy = np.array(sorted(zip(grp[x], grp[y]), key=lambda t: t[0]))
-        xs, ys = xy[:, 0], xy[:, 1]
+        xy = sorted(zip(grp[x], grp[y]), key=lambda t: t[0])
+        xs, ys = np.array([i[0] for i in xy]), np.array([i[1] for i in xy])
 
         label = f"{hue}: {str(key)}" if hue is not None else ""
         style_kws = dict()
