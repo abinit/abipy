@@ -336,7 +336,7 @@ class PhononBands:
         self.phonopy_obj = phonopy_obj
 
         # Dictionary with metadata e.g. nkpt, tsmear ...
-        self.params = OrderedDict()
+        self.params = {}
 
     # TODO: Replace num_qpoints with nqpt, deprecate num_qpoints
     @property
@@ -407,7 +407,7 @@ class PhononBands:
         # Find the q-point names in the pymatgen database.
         # We'll use _auto_qlabels to label the point in the matplotlib plot
         # if qlabels are not specified by the user.
-        _auto_qlabels = OrderedDict()
+        _auto_qlabels = {}
 
         # If the first or the last q-point are not recognized in findname_in_hsym_stars
         # matplotlib won't show the full band structure along the k-path
@@ -686,7 +686,7 @@ class PhononBands:
 
     def get_dict4pandas(self, with_spglib=True) -> dict:
         """
-        Return a :class:`OrderedDict` with the most important parameters:
+        Return: dictionary with the most important parameters:
 
             - Chemical formula and number of atoms.
             - Lattice lengths, angles and volume.
@@ -1684,7 +1684,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         """Return ticks and labels from the mapping {qred: qstring} given in qlabels."""
         # TODO should be modified in order to handle the "split" list of qpoints
         if qlabels is not None:
-            d = OrderedDict()
+            d = {}
 
             for qcoord, qname in qlabels.items():
                 # Build Kpoint instancee
@@ -3099,7 +3099,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
     @cached_property
     def params(self) -> dict:
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """dictionary with parameters that might be subject to convergence studies."""
         od = self.get_phbands_params()
         return od
 
@@ -3676,7 +3676,7 @@ class PhdosReader(ETSF_Reader):
 
     def read_pjdos_symbol_xyz_dict(self):
         """
-        Return :class:`OrderedDict` mapping element symbol --> [3, nomega] array
+        Return: dictionary mapping element symbol --> [3, nomega] array
         with the the phonon DOSes summed over atom-types and decomposed along
         the three cartesian directions.
         """
@@ -3684,7 +3684,7 @@ class PhdosReader(ETSF_Reader):
         # phdos_rc_type[ntypat, 3, nomega]
         values = self.read_value("pjdos_rc_type")
 
-        od = OrderedDict()
+        od = {}
         for symbol in self.chemical_symbols:
             type_idx = self.typeidx_from_symbol(symbol)
             od[symbol] = values[type_idx]
@@ -3693,14 +3693,14 @@ class PhdosReader(ETSF_Reader):
 
     def read_pjdos_symbol_dict(self):
         """
-        Ordered dictionary mapping element symbol --> |PhononDos|
+        Dictionary mapping element symbol --> |PhononDos|
         where PhononDos is the contribution to the total DOS summed over atoms
         with chemical symbol ``symbol``.
         """
         # [ntypat, nomega] array with PH-DOS projected over atom types.
         values = self.read_pjdos_type()
 
-        od = OrderedDict()
+        od = {}
         for symbol in self.chemical_symbols:
             type_idx = self.typeidx_from_symbol(symbol)
             od[symbol] = PhononDos(self.wmesh, values[type_idx])
@@ -3756,7 +3756,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @cached_property
     def params(self) -> dict:
         """
-        :class:`OrderedDict` with the convergence parameters
+        dictionary with the convergence parameters
         Used to construct |pandas-DataFrames|.
         """
         return {}
@@ -3799,7 +3799,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @cached_property
     def pjdos_symbol(self):
         """
-        Ordered dictionary mapping element symbol --> `PhononDos`
+        Dictionary mapping element symbol --> `PhononDos`
         where PhononDos is the contribution to the total DOS summed over atoms
         with chemical symbol `symbol`.
         """
@@ -4244,7 +4244,6 @@ def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True) -> pd.
     Return: |pandas-DataFrame|
     """
     phbands_list = [PhononBands.as_phbands(obj) for obj in phbands_objects]
-    # Use OrderedDict to have columns ordered nicely.
     odict_list = [(phbands.get_dict4pandas(with_spglib=with_spglib)) for phbands in phbands_list]
 
     return pd.DataFrame(odict_list, index=index,
@@ -5013,7 +5012,7 @@ class PhononDosPlotter(NotebookWriter):
         plotter.gridplot()
     """
     def __init__(self, key_phdos=None, phdos_kwargs=None):
-        self._phdoses_dict = OrderedDict()
+        self._phdoses_dict = {}
         if key_phdos is None: key_phdos = []
         for label, phdos in key_phdos:
             self.add_phdos(label, phdos, phdos_kwargs=phdos_kwargs)

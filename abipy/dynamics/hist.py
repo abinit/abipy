@@ -10,7 +10,6 @@ import pandas as pd
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
-from collections import OrderedDict
 from functools import cached_property
 from monty.collections import AttrDict
 from monty.string import marquee, list_strings
@@ -224,7 +223,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             raise NotImplementedError("Alchemical mixing is not supported, {num_pseudos=} != {ntypat=}")
         #print("znucl:", znucl, "\ntypat:", typat)
 
-        symb2pos = OrderedDict()
+        symb2pos = {}
         symbols_atom = []
         for iatom, itype in enumerate(typat):
             itype = itype - 1
@@ -762,7 +761,7 @@ class HistRobot(Robot):
         rows, row_names = [], []
         for label, hist in self.items():
             row_names.append(label)
-            d = OrderedDict()
+            d = {}
 
             initial_fstas_dict = hist.get_fstats_dict(step=0)
             final_fstas_dict = hist.get_fstats_dict(step=-1)

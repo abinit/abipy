@@ -7,7 +7,6 @@ import itertools
 import numpy as np
 import pandas as pd
 
-from collections import OrderedDict
 from functools import cached_property
 from monty.string import marquee, is_string
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
@@ -564,7 +563,7 @@ class MdfPlotter:
         plotter.plot()
     """
     def __init__(self):
-        self._mdfs = OrderedDict()
+        self._mdfs = {}
 
     def add_mdf(self, label, mdf):
         """
@@ -655,7 +654,7 @@ class MultipleMdfPlotter:
 
     def __init__(self):
         # [label][mdf_type] --> DielectricFunction
-        self._mdfs = OrderedDict()
+        self._mdfs = {}
 
     def __str__(self) -> str:
         return self.to_string()
@@ -683,7 +682,7 @@ class MultipleMdfPlotter:
         if label in self._mdfs:
             raise ValueError("label: %s already in: %s" % (label, list(self._mdfs.keys())))
 
-        self._mdfs[label] = OrderedDict()
+        self._mdfs[label] = {}
 
         if is_string(obj):
             # Open the file.
@@ -943,11 +942,11 @@ class MdfRobot(Robot, RobotWithEbands):
         rows, row_names = [], []
         for i, (label, mdf) in enumerate(self.items()):
             row_names.append(label)
-            d = OrderedDict([
-                ("exc_mdf", mdf.exc_mdf),
-                ("rpa_mdf", mdf.rpanlf_mdf),
-                ("gwrpa_mdf", mdf.gwnlf_mdf),
-            ])
+            d = {
+                "exc_mdf": mdf.exc_mdf,
+                "rpa_mdf": mdf.rpanlf_mdf,
+                "gwrpa_mdf": mdf.gwnlf_mdf,
+            }
             #d = {aname: getattr(mdf, aname) for aname in attrs}
             #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 

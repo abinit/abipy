@@ -9,60 +9,6 @@ from functools import cached_property
 from collections import OrderedDict, defaultdict
 from itertools import groupby
 
-# Helper functions (coming from AbiPy)
-#class cached_property(object):
-#    """
-#    cached_property descriptor
-#
-#    Used as a decorator to create lazy attributes.
-#    Lazy attributes are evaluated on first use.
-#    """
-#
-#    def __init__(self, func):
-#        self.__func = func
-#        from functools import wraps
-#        wraps(self.__func)(self)
-#
-#    def __get__(self, inst, inst_cls):
-#        if inst is None:
-#            return self
-#
-#        if not hasattr(inst, '__dict__'):
-#            raise AttributeError("'%s' object has no attribute '__dict__'"
-#                                 % (inst_cls.__name__,))
-#
-#        name = self.__name__
-#        if name.startswith('__') and not name.endswith('__'):
-#            name = '_%s%s' % (inst_cls.__name__, name)
-#
-#        value = self.__func(inst)
-#        inst.__dict__[name] = value
-#        return value
-#
-#    @classmethod
-#    def invalidate(cls, inst, name):
-#        """Invalidate a lazy attribute.
-#
-#        This obviously violates the lazy contract. A subclass of lazy
-#        may however have a contract where invalidation is appropriate.
-#        """
-#        inst_cls = inst.__class__
-#
-#        if not hasattr(inst, '__dict__'):
-#            raise AttributeError("'%s' object has no attribute '__dict__'"
-#                                 % (inst_cls.__name__,))
-#
-#        if name.startswith('__') and not name.endswith('__'):
-#            name = '_%s%s' % (inst_cls.__name__, name)
-#
-#        if not isinstance(getattr(inst_cls, name), cls):
-#            raise AttributeError("'%s.%s' is not a %s attribute"
-#                                 % (inst_cls.__name__, name, cls.__name__))
-#
-#        if name in inst.__dict__:
-#            del inst.__dict__[name]
-
-
 def is_string(s):
     """True if s behaves like a string (duck typing test)."""
     try:
@@ -366,10 +312,10 @@ class Variable(object):
             return "https://docs.abinit.org/variables/%s#%s" % (self.executable, self.name)
 
     @cached_property
-    def topic2relevances(self):
+    def topic2relevances(self) -> dict:
         """topic --> list of tribes"""
         assert self.topics is not None
-        od = OrderedDict()
+        od = {}
         for tok in self.topics:
             topic, tribe = [s.strip() for s in tok.split("_")]
             if topic not in od: od[topic] = []
@@ -991,7 +937,7 @@ class InputVariables(OrderedDict):
     def groupby_first_letter(self):
         """Return ordered dict mapping first_char --> list of variables."""
         keys = sorted(self.keys(), key=lambda n: n[0].upper())
-        od = OrderedDict()
+        od = {}
         for char, group in groupby(keys, key=lambda n: n[0].upper()):
             od[char] = [self[name] for name in group]
         return od

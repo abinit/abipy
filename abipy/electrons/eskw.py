@@ -76,8 +76,8 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return self.ebands.structure
 
     @cached_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+    def params(self) -> dict:
+        """dictionary with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         od["einterp"] = self.interp
         od["einterp"] = self.einterp

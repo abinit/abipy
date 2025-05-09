@@ -424,13 +424,13 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
 
     def get_ebands_params(self) -> dict:
         """dictionary with the convergence parameters."""
-        return collections.OrderedDict([
-            ("nsppol", self.nsppol),
-            ("nspinor", self.nspinor),
-            ("nspden", self.nspden),
-            ("nband", self.nband),
-            ("nkpt", self.nkpt),
-        ])
+        return {
+            "nsppol": self.nsppol,
+            "nspinor": self.nspinor,
+            "nspden": self.nspden,
+            "nband": self.nband,
+            "nkpt": self.nkpt,
+        }
 
     def plot_ebands(self, **kwargs) -> Figure:
         """Plot the electron energy bands. See the :func:`ElectronBands.plot` for the signature."""
@@ -507,10 +507,10 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
         """Returns the |PhononBands| object."""
 
     def get_phbands_params(self) -> dict:
-        """:class:`OrderedDict` with the convergence parameters."""
-        return collections.OrderedDict([
-            ("nqpt", len(self.phbands.qpoints)),
-        ])
+        """dictionary  with the convergence parameters."""
+        return {
+            "nqpt": len(self.phbands.qpoints),
+        }
 
     def plot_phbands(self, **kwargs) -> Figure:
         """
@@ -594,14 +594,14 @@ def size2str(size):
 
 def get_filestat(filepath: str) -> dict:
     stat = os.stat(filepath)
-    return collections.OrderedDict([
-        ("Name", os.path.basename(filepath)),
-        ("Directory", os.path.dirname(filepath)),
-        ("Size", size2str(stat.st_size)),
-        ("Access Time", ctime(stat.st_atime)),
-        ("Modification Time", ctime(stat.st_mtime)),
-        ("Change Time", ctime(stat.st_ctime)),
-    ])
+    return {
+        "Name": os.path.basename(filepath),
+        "Directory": os.path.dirname(filepath),
+        "Size": size2str(stat.st_size),
+        "Access Time": ctime(stat.st_atime),
+        "Modification Time": ctime(stat.st_mtime),
+        "Change Time": ctime(stat.st_ctime),
+    }
 
 
 class HasNotebookTools:

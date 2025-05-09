@@ -14,7 +14,6 @@ import pandas as pd
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
-from collections import OrderedDict
 from functools import cached_property
 try:
     from scipy.integrate import cumulative_trapezoid as cumtrapz
@@ -24,7 +23,7 @@ try:
     from scipy.integrate import simpson as simps
 except ImportError:
     from scipy.integrate import simps
-#from typing import Any
+
 from monty.string import marquee, list_strings
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
@@ -1009,7 +1008,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
         rows, row_names = [], []
         for i, (label, ncfile) in enumerate(self.items()):
             row_names.append(label)
-            d = OrderedDict()
+            d = {}
 
             for qsamp in self.all_qsamps:
                 a2f = ncfile.get_a2f_qsamp(qsamp)

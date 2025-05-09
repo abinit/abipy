@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
-from collections import OrderedDict
 from functools import lru_cache
 from typing import Any
 from functools import cached_property
@@ -393,7 +392,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         # TODO: Create mapping [(idir1, ipert1), (idir2, ipert2)] --> element
         df_columns = "idir1 ipert1 idir2 ipert2 cvalue".split()
 
-        dynmat = OrderedDict()
+        dynmat = {}
         for block in self.blocks:
             # skip the blocks that are not related to second order derivatives
             first_line = block["data"][0].strip()
@@ -568,9 +567,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     @cached_property
     def params(self) -> dict:
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """dictionary with parameters that might be subject to convergence studies."""
         names = ("nkpt", "nsppol", "ecut", "tsmear", "occopt", "ixc", "nband", "usepaw")
-        od = OrderedDict()
+        od = {}
         for k in names:
             od[k] = self.header[k]
         return od
@@ -2080,12 +2079,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Generates an ordered dictionary with the second order derivatives in the form
             {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
 
-        Returns:
-            OrderedDict: a dictionary with all the elements of a dynamical matrix
+        Return: dictionary with all the elements of a dynamical matrix
         """
         dynmat = self.computed_dynmat
-        d = OrderedDict()
-
+        d = {}
         for q, dm in dynmat.items():
             dd = {}
             for index, row in dm.iterrows():
@@ -3129,7 +3126,7 @@ class DdbRobot(Robot):
         rows, row_names = [], []
         for i, (label, ddb) in enumerate(self.items()):
             row_names.append(label)
-            d = OrderedDict()
+            d = {}
             #d = {aname: getattr(ddb, aname) for aname in attrs}
             #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 

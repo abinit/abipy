@@ -149,18 +149,17 @@ def add_fig_kwargs(func: Callable) -> Callable:
         ================  ====================================================
         kwargs            Meaning
         ================  ====================================================
-        title             Title of the plot (Default: None).
-        show              True to show the figure (default: True).
-        savefig           "abc.png" or "abc.eps" to save the figure to a file.
+        title             Title of the plot. Default: None.
+        show              True to show the figure. Default: True.
+        savefig           "abc.png" or "abc.svg" to save the figure to a file.
         size_kwargs       Dictionary with options passed to fig.set_size_inches
-                          e.g. size_kwargs=dict(w=3, h=4)
-        tight_layout      True to call fig.tight_layout (default: False)
+                          e.g. size_kwargs=dict(w=3, h=4).
+        tight_layout      True to call fig.tight_layout. Default: False.
         ax_grid           True (False) to add (remove) grid from all axes in fig.
                           Default: None i.e. fig is left unchanged.
-        ax_annotate       Add labels to  subplots e.g. (a), (b).
-                          Default: False
+        ax_annotate       Add labels to subplots e.g. (a), (b). Default: False
         fig_close         Close figure. Default: False.
-        plotly            Try to convert mpl figure to plotly.
+        plotly            Try to convert mpl figure to plotly: Default: False
         ================  ====================================================
 
 """

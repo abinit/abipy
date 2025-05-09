@@ -4489,9 +4489,9 @@ class OpticInput(AbiAbstractInput, MSONable):
         """
         JSON interface used in pymatgen for easier serialization.
         """
-        my_dict = OrderedDict()
+        my_dict = {}
         for grp in self._GROUPS:
-            my_dict[grp] = OrderedDict()
+            my_dict[grp] = {}
 
         for name in self._VARNAMES:
             value = self.vars.get(name)

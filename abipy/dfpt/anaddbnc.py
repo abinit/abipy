@@ -336,7 +336,7 @@ class AnaddbNcRobot(Robot):
         rows, index = [], []
         for label, ncfile in self.items():
             index.append(label)
-            d = OrderedDict()
+            d = {}
 
             # Add info on structure.
             if with_geo:

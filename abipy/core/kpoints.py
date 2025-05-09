@@ -1224,7 +1224,7 @@ class KpointList(collections.abc.Sequence):
         else:
             qfrac_coords = np.reshape(qpt, (3,))
 
-        k2kqg = collections.OrderedDict()
+        k2kqg = {}
         if np.all(np.abs(qfrac_coords) <= 1e-6):
             # Gamma point, DOH!
             g0 = np.zeros(3, dtype=int)

@@ -500,7 +500,7 @@ class GsrReader(ElectronsReader):
         Return a dictionary with the different contributions to the total electronic energy.
         """
         convert = lambda e: units.Energy(e, unit="Ha").to(unit)
-        d = OrderedDict()
+        d = {}
         for k in EnergyTerms.ALL_KEYS:
             if k == "e_nonlocalpsp" and k not in self.rootgrp.variables:
                 # Renamed in 8.9
@@ -547,7 +547,7 @@ class GsrRobot(Robot, RobotWithEbands):
         rows, row_names = [], []
         for label, gsr in self.items():
             row_names.append(label)
-            d = OrderedDict()
+            d = {}
 
             # Add info on structure.
             if with_geo:

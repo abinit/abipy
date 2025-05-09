@@ -606,7 +606,7 @@ class ElectronBands(Has_Structure):
         if klabels are not specified by the user.
         """
 
-        _auto_klabels = OrderedDict()
+        _auto_klabels = {}
         # If the first or the last k-point are not recognized in findname_in_hsym_stars
         # matplotlib won't show the full band structure along the k-path
         # because the labels are not defined. So we have to make sure that
@@ -909,7 +909,7 @@ class ElectronBands(Has_Structure):
 
     def get_dict4pandas(self, with_geo=True, with_spglib=True) -> dict:
         """
-        Return a :class:`OrderedDict` with the most important parameters:
+        Return a dict with the most important parameters:
 
             - Chemical formula and number of atoms.
             - Lattice lengths, angles and volume.
@@ -922,11 +922,15 @@ class ElectronBands(Has_Structure):
             with_geo: True if structure info should be added to the dataframe
             with_spglib: If True, spglib_ is invoked to get the spacegroup symbol and number.
         """
-        odict = OrderedDict([
-            ("nsppol", self.nsppol), ("nspinor", self.nspinor), ("nspden", self.nspden),
-            ("nkpt", self.nkpt), ("nband", self.nband_sk.min()),
-            ("nelect", self.nelect), ("fermie", self.fermie),
-        ])
+        odict = {
+            "nsppol": self.nsppol,
+            "nspinor": self.nspinor,
+            "nspden": self.nspden,
+            "nkpt": self.nkpt,
+            "nband": self.nband_sk.min(),
+            "nelect": self.nelect,
+            "fermie": self.fermie,
+        }
 
         # Add info on structure.
         if with_geo:
@@ -2099,7 +2103,7 @@ class ElectronBands(Has_Structure):
             tot_jdos = spin_sign * self.get_ejdos(s, vrange, crange, method=method, step=step, width=width)
 
             # Decomposition in terms of v --> c transitions.
-            jdos_vc = OrderedDict()
+            jdos_vc = {}
             for v in vrange:
                 for c in crange:
                     jd = self.get_ejdos(s, v, c, method=method, step=step, width=width, mesh=tot_jdos.mesh)
@@ -2760,7 +2764,7 @@ class ElectronBands(Has_Structure):
     def _make_ticks_and_labels(self, klabels):
         """Return ticks and labels from the mapping qlabels."""
         if klabels is not None:
-            d = OrderedDict()
+            d = {}
             for kcoord, kname in klabels.items():
                 # Build Kpoint instance.
                 ktick = Kpoint(kcoord, self.reciprocal_lattice)
@@ -3443,7 +3447,6 @@ def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True) -> pd.Da
     Return: |pandas-DataFrame|
     """
     ebands_list = [ElectronBands.as_ebands(obj) for obj in ebands_objects]
-    # Use OrderedDict to have columns ordered nicely.
     odict_list = [(ebands.get_dict4pandas(with_spglib=with_spglib)) for ebands in ebands_list]
 
     return pd.DataFrame(odict_list, index=index, columns=list(odict_list[0].keys()) if odict_list else None)
@@ -5351,8 +5354,8 @@ class Bands3D(Has_Structure):
         # Construct energy bands on unit cell grid: e_{TSk} = e_{k}
         self.ucdata_sbk = self.symmetrize_ibz_scalars(self.eigens)
 
-        self.ucell_scalars = OrderedDict()
-        self.ucell_vectors = OrderedDict()
+        self.ucell_scalars = {}
+        self.ucell_vectors = {}
         #if reference_sb is None:
         #self.reference_sb = [[] for _ in self.spins]
         #for spin in self.spins:

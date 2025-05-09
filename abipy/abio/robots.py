@@ -15,7 +15,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from collections import OrderedDict, deque
+from collections import deque
 from typing import Callable, Union, Any
 from functools import wraps
 from monty.string import is_string, list_strings
@@ -62,7 +62,7 @@ class Robot(NotebookWriter):
         Args:
             args is a list of tuples (label, filepath)
         """
-        self._abifiles, self._do_close = OrderedDict(), OrderedDict()
+        self._abifiles, self._do_close = {}, {}
         self._exceptions = deque(maxlen=100)
 
         for label, abifile in args:
@@ -523,8 +523,8 @@ class Robot(NotebookWriter):
 
         old_labels = list(self._abifiles.keys())
         if not dryrun:
-            old_abifiles, self._abifiles = self._abifiles, OrderedDict()
-        new2old = OrderedDict()
+            old_abifiles, self._abifiles = self._abifiles, {}
+        new2old = {}
         for old, new in zip(old_labels, new_labels):
             new2old[new] = old
             if not dryrun:
@@ -563,7 +563,7 @@ class Robot(NotebookWriter):
         old_new_paths = [(p, os.path.relpath(os.path.abspath(p), start=self.start)) for p in old_paths]
 
         old_abifiles = self._abifiles
-        self._abifiles = OrderedDict()
+        self._abifiles = {}
         for old, new in old_new_paths:
             self._abifiles[new] = old_abifiles[old]
 

@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
-from collections import OrderedDict, namedtuple
+from collections import namedtuple
 from collections.abc import Iterable
 from functools import cached_property
 from tabulate import tabulate
@@ -144,7 +144,7 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
         Return: |pandas-DataFrame|
         """
         # TODO Add more entries (tau?)
-        od = OrderedDict()
+        od = {}
         tokens = "band e0 re_qpe qpeme0 re_sig0 imag_sig0 ze0 re_fan0 dw tmesh"
         if with_spin:
             tokens = "spin " + tokens
@@ -1188,13 +1188,13 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     @cached_property
     def params(self) -> dict:
         """dict with the convergence parameters, e.g. ``nbsum``."""
-        od = OrderedDict([
-            ("nbsum", self.nbsum),
-            ("zcut", self.zcut),
-            ("symsigma", self.symsigma),
-            ("nqbz", self.r.nqbz),
-            ("nqibz", self.r.nqibz),
-        ])
+        od = {
+            "nbsum": self.nbsum,
+            "zcut": self.zcut,
+            "symsigma": self.symsigma,
+            "nqbz": self.r.nqbz,
+            "nqibz": self.r.nqibz,
+        }
         # Add EPH parameters.
         od.update(self.r.common_eph_params)
 

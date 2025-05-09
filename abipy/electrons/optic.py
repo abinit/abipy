@@ -221,7 +221,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
     @cached_property
     def params(self) -> dict:
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """Dictionary with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
@@ -419,8 +419,8 @@ class OpticReader(ElectronsReader):
         super().__init__(filepath)
         self.ntemp = self.read_dimvalue("ntemp")
 
-        self.computed_components = OrderedDict()
-        self.computed_ids = OrderedDict()
+        self.computed_components = {}
+        self.computed_ids = {}
         for chiname, info in ALL_CHIS.items():
             comp_name = chiname + "_components"
             if comp_name not in self.rootgrp.variables:
@@ -451,7 +451,7 @@ class OpticReader(ElectronsReader):
             raise ValueError("Invalid itemp: %s, ntemp: %s" % (itemp, self.ntemp))
 
         var = self.read_variable("linopt_epsilon")
-        od = OrderedDict()
+        od = {}
         for comp in list_strings(components):
             try:
                 ijp = self.computed_components[key].index(comp)
@@ -471,8 +471,8 @@ class OpticReader(ElectronsReader):
             itemp: Temperature index.
 
         Return:
-            :class:`OrderedDict` mapping cartesian components e.g. "xyz" to data dictionary.
-            Individual entries are listed in ALL_CHIS[key]["terms"]
+            dictionary mapping Cartesian components e.g. "xyz" to data dictionary.
+            Individual entries are listed in ALL_CHIS[key]["terms"].
         """
         # arrays have Fortran shape [two, nomega, num_comp, ntemp]
         if components == "all": components = self.computed_components[key]
@@ -480,7 +480,7 @@ class OpticReader(ElectronsReader):
         if not (self.ntemp > itemp >= 0):
             raise ValueError("Invalid itemp: %s, ntemp: %s" % (itemp, self.ntemp))
 
-        od = OrderedDict([(comp, OrderedDict()) for comp in components])
+        od = OrderedDict([(comp, {}) for comp in components])
         for chiname in ALL_CHIS[key]["terms"]:
             #print("About to read:", chiname)
 
@@ -516,7 +516,7 @@ class OpticRobot(Robot, RobotWithEbands):
         Dictionary with the list of cartesian tensor components
         available in each file. Use keys from ALL_CHIS.
         """
-        od = OrderedDict()
+        od = {}
         for ncfile in self.abifiles:
             for chiname in ALL_CHIS:
                 comps = ncfile.reader.computed_components[chiname]

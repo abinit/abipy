@@ -5,7 +5,6 @@ Tools to analyze the V1QAVG file produced by the E-PH code (eph_task +15 or -15)
 from __future__ import annotations
 import numpy as np
 
-from collections import OrderedDict
 from functools import cached_property
 from monty.string import list_strings, marquee
 from abipy.core.structure import Structure
@@ -114,7 +113,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         Find the k-point names in the pymatgen database.
         """
-        od = OrderedDict()
+        od = {}
         # If the first or the last k-point are not recognized in findname_in_hsym_stars
         # matplotlib won't show the full band structure along the k-path
         # because the labels are not defined. So we have to make sure that
