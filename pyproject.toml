@@ -15,7 +15,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "abipy"
-dynamic = ["version"]
+#dynamic = ["version"]
 description = "Python package to automate ABINIT calculations and analyze the results."
 readme = "README.rst"
 requires-python = ">=3.10"

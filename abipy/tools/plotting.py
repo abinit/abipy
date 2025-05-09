@@ -2760,7 +2760,7 @@ def plotly_points(points, lattice=None, coords_are_cartesian=False, fold=False, 
 def plotly_brillouin_zone_from_kpath(kpath, fig=None, **kwargs):
     """
     Gives the plot (as a matplotlib object) of the symmetry line path in
-        the Brillouin Zone.
+    the Brillouin Zone.
 
     Args:
         kpath (HighSymmKpath): a HighSymmKPath object
