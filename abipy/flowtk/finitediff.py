@@ -2,12 +2,14 @@
 """
 This module provide Works for finite difference calculations and related post-processing tools.
 
-IMPORTANT: In Abinit Stress is equal to dE/d_strain * (1/ucvol) See m_forstr
+IMPORTANT: In Abinit, the  stress is equal to dE/d_strain * (1/ucvol). See m_forstr.F90.
 """
 from __future__ import annotations
 
 # Handle
 #=   KILLED BY SIGNAL: 9 (Killed)
+# slurmstepd: error: Detected 1 oom_kill event in StepId=8214672.0. Some of the step tasks have been OOM Killed.
+#srun: error: cns264: task 1: Out Of Memory
 
 import sys
 import pickle
@@ -21,8 +23,8 @@ from dataclasses import field
 from typing import Optional
 from io import StringIO
 from pathlib import Path
+from functools import cached_property
 from monty.string import list_strings #, marquee
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.analysis.elasticity.strain import Strain
 from abipy.core.structure import Structure
@@ -242,17 +244,17 @@ class _FdData(HasPickleIO):
                     dmag_dpert[ii, ip] = np.sum(self.cart_mag_pv[ip, fd_slice, ii] * weights) / pert.step
                 self.dmag_dpert_npts[npts] = dmag_dpert
 
-    @lazy_property
+    @cached_property
     def natom(self) -> int:
         """Numbef of atoms in the unit cell."""
         return len(self.initial_structure)
 
-    @lazy_property
+    @cached_property
     def npert(self) -> int:
         """Number of perturbations."""
         return len(self.perts)
 
-    @lazy_property
+    @cached_property
     def pert_kind(self) -> str:
         """Kind of perturbation treated."""
         pert_kind = self.perts[0].kind
@@ -261,7 +263,7 @@ class _FdData(HasPickleIO):
             raise ValueError(f"Expecting perturbations of the same kind but got {all_kinds}")
         return pert_kind
 
-    @lazy_property
+    @cached_property
     def pert_dir_comps(self) -> list[str]:
         """
         List with the compononents associated to self.perts
@@ -777,12 +779,12 @@ class ElectricFieldData(_FdData, _HasExternalField):
 
         return piezoel
 
-    def get_piezoel_df(self, proper, with_geo=False, with_params=False, **kwargs) -> pd.Dataframe:
+    def get_piezoel_df(self, proper: bool, with_geo=False, with_params=False, **kwargs) -> pd.Dataframe:
         """
         Dataframe with the components of the piezo-electric tensor obtained with different FD points.
 
         Args:
-            proper
+            proper: True if the proper tensor should be computed.
             with_geo: True to add info on structure.
             with_params: True to add calculations parameters.
             kwargs: Optional kwargs passed to add_geo_and_params.
@@ -939,7 +941,7 @@ class Perturbation:
             if self.voigt_ind not in ALL_STRAIN_INDS:
                 raise ValueError(f"Invalid {self.voigt_ind=}")
 
-    @lazy_property
+    @cached_property
     def step(self) -> float:
         """Step of the linear mesh. Raises ValueError if mesh is not linear."""
         dx = np.zeros(len(self.values) - 1)
@@ -952,12 +954,12 @@ class Perturbation:
         raise ValueError(f"Mesh is not homogenous: {dx=}")
 
     # TODO: Is this safe to use?
-    @lazy_property
+    @cached_property
     def ipv0(self) -> int:
         """Index of the """
         return np.argmin(np.abs(self.values))
 
-    @lazy_property
+    @cached_property
     def label(self) -> str:
         """Label string used in the plots."""
         if self.kind == PertKind.STRAIN:
@@ -965,12 +967,12 @@ class Perturbation:
 
         return "${%s}_{%s}$" % (self.tex, vec2str(self.cart_dir))
 
-    @lazy_property
+    @cached_property
     def dir_str(self) -> str:
         """String with the direction of the perturbation."""
         return "" if self.kind == PertKind.STRAIN else f"{vec2str(self.cart_dir)}"
 
-    @lazy_property
+    @cached_property
     def tex(self) -> str:
         """Latex symbol"""
         return {
@@ -980,7 +982,7 @@ class Perturbation:
             PertKind.STRAIN: r"{\varepsilon}",
         }[self.kind]
 
-    @lazy_property
+    @cached_property
     def name(self) -> str:
         """Name of the perturbation."""
         return {
@@ -996,21 +998,21 @@ class _BaseFdWork(Work):
     Base class for finite difference Works.
     """
 
-    @lazy_property
+    @cached_property
     def natom(self) -> int:
         """Number of atoms in the unit cell."""
         return len(self[0].input.structure)
 
-    @lazy_property
+    @cached_property
     def npert(self) -> int:
         """Number of perturbations."""
         return len(self.perts)
 
-    @lazy_property
+    @cached_property
     def all_ions_modes(self) -> list[str]:
         return [IonsMode.CLAMPED, IonsMode.RELAXED] if self.relax_ions else [IonsMode.CLAMPED]
 
-    @lazy_property
+    @cached_property
     def gs_tasks_ids(self) -> set:
         """Set with the ids of the gs tasks."""
         return {task.node_id for task in self.gs_tasks_pv.flat}
@@ -1538,7 +1540,7 @@ class FiniteEfieldWork(_FieldWork):
                 tasks_pv[ip, ipv] = register_func(new_inp)
 
             if ions_mode == IonsMode.RELAXED:
-                # Will relaxed ions at finite E using the WFK(E) of the gs_task
+                # Will relaxed ions at finite E using the WFK(E) file of the gs_task
                 tasks_pv[ip, ipv].add_deps({self.gs_tasks_pv[ip, ipv]: "WFK"})
 
             # Add the (ip, iv) indices as attributes of the task

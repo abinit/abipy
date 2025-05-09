@@ -10,9 +10,9 @@ import numpy as np
 import pandas as pd
 import spglib
 
+from functools import cached_property
 from monty.string import is_string
 from monty.itertools import iuptri
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -316,7 +316,7 @@ class SymmOp(Operation, SlotPickleMixin):
                               time_sign=self.time_sign,
                               afm_sign=self.afm_sign)
 
-    @lazy_property
+    @cached_property
     def isE(self) -> bool:
         """True if identity operator."""
         return (np.all(self.rot_r == np.eye(3, dtype=int)) and
@@ -325,7 +325,7 @@ class SymmOp(Operation, SlotPickleMixin):
                 self.afm_sign == 1)
     # end operator protocol.
 
-    #@lazy_property
+    #@cached_property
     #def order(self):
     #    """Order of the operation."""
     #    n = 0
@@ -356,37 +356,37 @@ class SymmOp(Operation, SlotPickleMixin):
 
         return s
 
-    @lazy_property
+    @cached_property
     def is_symmorphic(self) -> bool:
         """True if the fractional translation is non-zero."""
         return np.any(np.abs(self.tau) > 0.0)
 
-    @lazy_property
+    @cached_property
     def det(self) -> int:
         """Determinant of the rotation matrix [-1, +1]."""
         return _get_det(self.rot_r)
 
-    @lazy_property
+    @cached_property
     def trace(self) -> int:
         """Trace of the rotation matrix."""
         return self.rot_r.trace()
 
-    @lazy_property
+    @cached_property
     def is_proper(self) -> bool:
         """True if the rotational part has determinant == 1."""
         return self.det == +1
 
-    @lazy_property
+    @cached_property
     def has_timerev(self) -> bool:
         """True if symmetry contains the time-reversal operator."""
         return self.time_sign == -1
 
-    @lazy_property
+    @cached_property
     def is_fm(self) -> bool:
         """True if self if ferromagnetic symmetry."""
         return self.afm_sign == +1
 
-    @lazy_property
+    @cached_property
     def is_afm(self) -> bool:
         """True if self if anti-ferromagnetic symmetry."""
         return self.afm_sign == -1
@@ -555,7 +555,7 @@ class OpSequence(collections.abc.Sequence):
 
     #def is_superset(self, other)
 
-    @lazy_property
+    @cached_property
     def mult_table(self) -> np.ndarray:
         """
         Given a set of nsym 3x3 operations which are supposed to form a group,
@@ -582,7 +582,7 @@ class OpSequence(collections.abc.Sequence):
         """Number of classes."""
         return len(self.class_indices)
 
-    @lazy_property
+    @cached_property
     def class_indices(self) -> list:
         """
         A class is defined as the set of distinct elements obtained by
@@ -759,7 +759,7 @@ class AbinitSpaceGroup(OpSequence):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def is_symmorphic(self) -> bool:
         """True if there's at least one operation with non-zero fractional translation."""
         return any(op.is_symmorphic for op in self)
@@ -926,7 +926,7 @@ class LittleGroup(OpSequence):
         krots = np.array([o.rot_g for o in symmops if not o.has_timerev])
         self.kgroup = LatticePointGroup(krots)
 
-    @lazy_property
+    @cached_property
     def is_symmorphic(self) -> bool:
         """True if there's at least one operation with non-zero fractional translation."""
         return any(op.is_symmorphic for op in self)
@@ -935,7 +935,7 @@ class LittleGroup(OpSequence):
     def symmops(self):
         return self._ops
 
-    @lazy_property
+    @cached_property
     def on_bz_border(self) -> bool:
         """
         True if the k-point is on the border of the BZ.
@@ -1076,7 +1076,7 @@ class LatticeRotation(Operation):
         """
         return self.__class__(mati3inv(self.mat, trans=False))
 
-    @lazy_property
+    @cached_property
     def isE(self):
         """True if it is the identity"""
         return np.allclose(self.mat, self._E3D)
@@ -1113,27 +1113,27 @@ class LatticeRotation(Operation):
             self._order, self._root_inv = self._find_order_and_rootinv()
             return self._root_inv
 
-    @lazy_property
+    @cached_property
     def det(self):
         """Return the determinant of a symmetry matrix mat[3,3]. It must be +-1"""
         return _get_det(self.mat)
 
-    @lazy_property
+    @cached_property
     def trace(self):
         """The trace of the rotation matrix"""
         return self.mat.trace()
 
-    @lazy_property
+    @cached_property
     def is_proper(self):
         """True if proper rotation"""
         return self.det == 1
 
-    @lazy_property
+    @cached_property
     def isI(self):
         """True if self is the inversion operation."""
         return np.allclose(self.mat, -self._E3D)
 
-    @lazy_property
+    @cached_property
     def name(self):
         # Sign of the determinant (only if improper)
         name = "-" if self.det == -1 else ""
@@ -1219,7 +1219,7 @@ class Irrep:
     def character(self):
         return self._character
 
-    #@lazy_property
+    #@cached_property
     #def dataframe(self):
 
 
@@ -1289,7 +1289,7 @@ class BilbaoPointGroup:
         """List with the names of the irreps."""
         return list(self.irreps_by_name.keys())
 
-    @lazy_property
+    @cached_property
     def character_table(self) -> pd.DataFrame:
         """
         Dataframe with irreps.

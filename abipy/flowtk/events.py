@@ -923,15 +923,17 @@ class MemoryErrorHandler(ErrorHandler):
 
 @dataclasses.dataclass(kw_only=True)
 class _MemRecord:
+    lineno: int
     label: str
     mem_mb: float
 
 
 @dataclasses.dataclass(kw_only=True)
 class _TimeRecord:
+    lineno: int
     label: str
-    wall_time: float  # time is in seconds here!
-    cpu_time: float
+    wall: float  # time is in seconds here!
+    cpu: float
 
 
 def str2sec(time_str: str) -> float:
@@ -982,34 +984,63 @@ class MemLogParser:
                 self.docs.append(doc)
 
         # Extract lines with MEM or TIME info.
-        # TODO: Standardize output in Abinit
-        self.mem_records, self.time_records = [], []
+        mem_lines, time_lines = [], []
         with open(self.filepath, "rt") as fh:
             for line in fh:
                 line = line.strip()
                 if line.endswith(self.MEM_TAG):
-                    self._parse_mem_line(line)
-                #if line.endswith(self.TIME_TAG):
-                #    self._parse_time_line(line)
+                    mem_lines.append(line)
+                if line.endswith(self.TIME_TAG):
+                    time_lines.append(line)
 
-    def _parse_mem_line(self, line) -> None:
+        self._parse_mem_lines(mem_lines)
+        self._parse_time_lines(time_lines)
+
+    def _parse_mem_lines(self, mem_lines) -> None:
+        self.mem_records = []
+        if not mem_lines: return
+
         # Parse line in the form.
         # `Local memory for chi_q(g',r) matrices: 63.5  [Mb] <<< MEM`
-        line = line.replace(self.MEM_TAG, "")
-        tokens = line.split()
-        units = tokens.pop().replace("[", "").replace("]", "").strip()
-        if units == "Mb":
-            fact = 1
-        else:
-            raise ValueError(f"Too lazy to implement conversion for {units}")
-        mem_mb = fact * float(tokens.pop())
-        self.mem_records.append(_MemRecord(label=" ".join(tokens), mem_mb=mem_mb))
+        for lineno, line in enumerate(mem_lines):
+            line = line.replace(self.MEM_TAG, "")
+            tokens = line.split()
+            units = tokens.pop().replace("[", "").replace("]", "").strip()
+            if units == "Mb":
+                fact = 1
+            else:
+                raise ValueError(f"Too lazy now to implement conversion for {units=}")
 
-    #def _parse_time_line(self, line) -> None
-    #    # Parse line in the form.
-    #    #   `Chi my_ir [500/3375] (tot: 3375) , wall:  0.00 [s] , cpu:  0.00 [s] <<< TIME`
-    #    line = line.replace(self.TIME_TAG, "")
-    #    tokens = line.split()
+            mem_mb = fact * float(tokens.pop())
+            self.mem_records.append(_MemRecord(lineno=lineno, label=" ".join(tokens), mem_mb=mem_mb))
+
+        self.mem_records = sorted(self.mem_records, key=lambda o: o.mem_mb, reverse=True)
+
+    def _parse_time_lines(self, time_lines) -> None:
+        self.time_records = []
+        if not time_lines: return
+
+        # Parse line in the form.
+        #   `Chi my_ir [500/3375] (tot: 3375) , wall:  0.00 [s] , cpu:  0.00 [s] <<< TIME`
+        import re
+        pattern = (
+            r'^(?P<label>.*?),\s*'
+            r'wall:\s*(?P<wall_str>[\d:.]+\s*\[\w+\])\s*,\s*'
+            r'cpu:\s*(?P<cpu_str>[\d:.]+\s*\[\w+\])'
+        )
+
+        for lineno, line in enumerate(time_lines):
+            line = line.replace(self.TIME_TAG, "").strip()
+
+            if match := re.match(pattern, line):
+                label, wall_str, cpu_str = match.group("label"), match.group("wall_str"), match.group("cpu_str")
+                #print(f"{label=}, {wall_str=}, {cpu_str=}")
+                wall, cpu = str2sec(wall_str), str2sec(cpu_str)
+                self.time_records.append(_TimeRecord(lineno=lineno, label=label, wall=wall, cpu=cpu))
+            else:
+                raise ValueError(f"No match for {line=}")
+
+        self.time_records = sorted(self.time_records, key=lambda o: o.wall, reverse=True)
 
     def get_dataframe(self) -> pd.DataFrame:
         """Build dataframe from list of dictionaries."""
@@ -1023,6 +1054,17 @@ class MemLogParser:
 
         df = self.get_dataframe()
         _p(df)
+
+        max_recs = 5
+        if self.mem_records:
+            _p("\n")
+            for i in range(min(max_recs, len(self.mem_records))):
+                _p(self.mem_records[i])
+
+        if self.time_records:
+            _p("\n")
+            for i in range(min(max_recs, len(self.time_records))):
+                _p(self.time_records[i])
 
         strio.seek(0)
         return strio.read()
@@ -1055,8 +1097,7 @@ class MemLogParser:
         Args:
             what: `vmrss_mb` for actual physical RAM used.
         """
-        xs_file = collections.defaultdict(list)
-        ys_file = collections.defaultdict(list)
+        xs_file, ys_file = [collections.defaultdict(list) for _ in range(2)]
         if filenames is not None:
             filenames = list_strings(filenames)
 

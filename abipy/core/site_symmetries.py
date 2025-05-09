@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import sympy as sp
 
-from collections import OrderedDict
 from monty.termcolor import cprint
 from abipy.core.mixins import Has_Structure
 from abipy.core.structure import Structure
@@ -135,7 +134,7 @@ class SiteSymmetries(Has_Structure):
                 cprint("No solution for iatom %d" % iatom, "yellow")
 
             if solutions:
-                d = OrderedDict()
+                d = {}
                 d["element"] = site.specie.symbol
                 d["site_index"] = iatom
                 d["cart_coords"] = np.round(site.coords, decimals=decimals)
@@ -201,7 +200,7 @@ class SiteSymmetries(Has_Structure):
                 cprint("No solution for iatom %d" % iatom, "yellow")
 
             if solutions:
-                d = OrderedDict()
+                d = {}
                 d["element"] = site.specie.symbol
                 d["site_index"] = iatom
                 d["frac_coords"] = np.round(site.frac_coords, decimals=decimals)

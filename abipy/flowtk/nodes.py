@@ -15,16 +15,14 @@ import pandas as pd
 from collections import OrderedDict
 from pprint import pprint
 from typing import Any, Union
-from monty.json import jsanitize
-
+from functools import cached_property
 from pydispatch import dispatcher
+from monty.json import jsanitize, MSONable
 from monty.termcolor import colored
 from monty.serialization import loadfn
 from monty.string import is_string
 from monty.io import FileLock
 from monty.collections import AttrDict, Namespace
-from monty.functools import lazy_property
-from monty.json import MSONable
 from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 from abipy.tools.iotools import AtomicFile
 #from abipy.tools.typing import TYPE_CHECKING
@@ -174,7 +172,7 @@ class Dependency:
         """The status of the dependency, i.e. the status of the |Node|."""
         return self.node.status
 
-    @lazy_property
+    @cached_property
     def products(self) -> list[Product]:
         """List of output files produces by self."""
         _products = []
@@ -561,7 +559,7 @@ class Node(metaclass=abc.ABCMeta):
     #        raise RuntimeError("You should not call __setattr__ in spectator_mode")
     #    return super().__setattr__(name,value)
 
-    @lazy_property
+    @cached_property
     def color_hex(self) -> str:
         """Node color as Hex Triplet https://en.wikipedia.org/wiki/Web_colors#Hex_triplet"""
         def clamp(x):
@@ -1089,7 +1087,7 @@ class FileNode(Node):
             # this usually happens when workdir has not been initialized
             return "<%s, node_id=%s, path=%s>" % (self.__class__.__name__, self.node_id, self.filepath)
 
-    @lazy_property
+    @cached_property
     def basename(self) -> str:
         """Basename of the file."""
         return os.path.basename(self.filepath)

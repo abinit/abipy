@@ -14,11 +14,11 @@ from io import StringIO
 from queue import Queue, Empty
 from typing import Optional
 from shutil import which
+from functools import cached_property
 from monty.io import get_open_fds
 from monty.string import boxed, is_string
 from monty.collections import AttrDict #, dict2namedtuple
 from monty.termcolor import cprint
-from monty.functools import lazy_property
 from abipy.tools.iotools import yaml_safe_load, ask_yesno
 from abipy.tools.typing import TYPE_CHECKING
 from .utils import as_bool
@@ -471,7 +471,7 @@ killjobs_if_errors: yes # "yes" if the scheduler should try to kill all the runn
     def callback(self):
         """The function that will be executed by the scheduler."""
 
-    @lazy_property
+    @cached_property
     def pid(self) -> int:
         """The pid of the process associated to the scheduler."""
         return os.getpid()

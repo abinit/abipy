@@ -7,8 +7,8 @@ import os
 import abc
 
 from shutil import which
+from functools import cached_property
 from monty.termcolor import cprint
-from monty.functools import lazy_property
 
 
 __all__ = [
@@ -122,7 +122,7 @@ class Visualizer(metaclass=abc.ABCMeta):
                 return args
         return " "
 
-    @lazy_property
+    @cached_property
     def binpath(self) -> str:
         """Absolute path of the binary. None if app is not found"""
         return find_loc(self.name)

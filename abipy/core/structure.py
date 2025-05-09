@@ -17,7 +17,7 @@ from pprint import pformat
 from collections import OrderedDict
 from typing import Any
 from monty.collections import AttrDict, dict2namedtuple
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import is_string, marquee, list_strings
 from monty.termcolor import cprint
 from pymatgen.core.structure import Structure as pmg_Structure
@@ -28,7 +28,7 @@ from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, add_plotly_fig_kwargs
 from abipy.iotools import as_etsfreader, Visualizer
-from abipy.tools.typing import Figure
+from abipy.tools.typing import Figure, PathLike
 
 
 __all__ = [
@@ -46,8 +46,6 @@ def mp_match_structure(obj):
 
     Args:
         obj: filename or |Structure| object.
-        final (bool): Whether to get the final structure, or the initial
-            (pre-relaxation) structure. Defaults to True.
 
     Returns:
         :class:`MpStructures` object with
@@ -93,7 +91,7 @@ def mp_search(chemsys_formula_id):
             List of Structure objects, Materials project ids associated to structures.
             and List of dictionaries with MP data (same order as structures).
 
-        Note that the attributes evalute to False if no match is found.
+        Note that the attributes evaluate to False if no match is found.
     """
     chemsys_formula_id = chemsys_formula_id.replace(" ", "")
 
@@ -112,7 +110,7 @@ def mp_search(chemsys_formula_id):
                 # Want AbiPy structure.
                 structures = list(map(Structure.as_structure, structures))
 
-        except MPRestError:
+        except MPRestError as exc:
             cprint(str(exc), "magenta")
 
         return restapi.MpStructures(structures, mpids, data=data)
@@ -834,7 +832,7 @@ class Structure(pmg_Structure, NotebookWriter):
             for (frac_coords, symbol) in zip(xred, symbols):
                 app(v_to_s(frac_coords) + f" {symbol}")
 
-            return("\n".join(lines))
+            return "\n".join(lines)
 
         raise ValueError(f"Unknown fmt: {fmt}")
 
@@ -903,7 +901,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         if mode == "lowtri":
             a1, a2, a3 = lattice.matrix
-        elif mode =="uptri":
+        elif mode == "uptri":
             new_matrix = lattice.matrix.copy()
             for i in range(3):
                 new_matrix[i,0] = lattice.matrix[i,2]
@@ -1240,7 +1238,7 @@ class Structure(pmg_Structure, NotebookWriter):
             cprint("structure.indsym is already set!", "yellow")
         self._indsym = indsym
 
-    @lazy_property
+    @cached_property
     def site_symmetries(self):
         """Object with SiteSymmetries."""
         from abipy.core.site_symmetries import SiteSymmetries
@@ -1299,7 +1297,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 print("\t", repr(s), " at distance", dist)
             print("")
 
-    @lazy_property
+    @cached_property
     def has_zero_dynamical_quadrupoles(self):
         """
         Dynamical quadrupoles are nonzero in all noncentrosymmetric crystals,
@@ -1342,7 +1340,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return True
 
-    @lazy_property
+    @cached_property
     def hsym_kpath(self):
         """
         Returns an instance of :class:`pymatgen.symmetry.bandstructure.HighSymmKpath`.
@@ -1351,7 +1349,7 @@ class Structure(pmg_Structure, NotebookWriter):
         from pymatgen.symmetry.bandstructure import HighSymmKpath
         return HighSymmKpath(self)
 
-    @lazy_property
+    @cached_property
     def hsym_kpoints(self):
         """|KpointList| object with the high-symmetry K-points."""
         # Get mapping name --> frac_coords for the special k-points in the database.
@@ -1396,7 +1394,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return kcoords
 
-    @lazy_property
+    @cached_property
     def hsym_stars(self) -> list:
         """
         List of |KpointStar| objects. Each star is associated to one of the special k-points
@@ -2083,7 +2081,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 Has to be all integers. Several options are possible:
                 a. A full 3x3 scaling matrix defining the linear combination of the old lattice vectors.
                     E.g., [[2,1,0],[0,3,0],[0,0,1]] generates a new structure with lattice vectors
-                    a' = 2a + b, b' = 3b, c' = c
+                    a_new = 2a + b, b_new = 3b, c_new = c
                     where a, b, and c are the lattice vectors of the original structure.
                 b. A sequence of three scaling factors. e.g., [2, 1, 1]
                    specifies that the supercell should have dimensions 2a x b x c.
@@ -2098,7 +2096,7 @@ class Structure(pmg_Structure, NotebookWriter):
         index_non_eq_sites = []
         for pos in positions:
             if len(irred[pos]) != 0:
-                 index_non_eq_sites.append(irred[pos][0])
+                index_non_eq_sites.append(irred[pos][0])
 
         doped_supercell = self.copy()
         doped_supercell.make_supercell(scaling_matrix)
@@ -2106,7 +2104,7 @@ class Structure(pmg_Structure, NotebookWriter):
         doped_structure_list = []
 
         for index in index_non_eq_sites:
-            final_structure=doped_supercell.copy()
+            final_structure = doped_supercell.copy()
             final_structure.replace(index,dopant_atom)
             doped_structure_list.append(final_structure)
 
@@ -2881,7 +2879,7 @@ class StructDiff:
             raise ValueError(f"Found duplicated entries in: {self.labels}")
         natom = len(self.structs[0])
         if any(len(s) != natom for s in self.structs):
-            raise ValueError(f"structures have different number of atoms!")
+            raise ValueError("structures have different numbe of atoms!")
 
     def del_label(self, label: str) -> None:
         """Remove entry associated to label."""

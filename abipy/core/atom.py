@@ -8,7 +8,7 @@ import numpy as np
 from io import StringIO
 from dataclasses import dataclass
 from typing import Any, Union, Optional, Iterable
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import marquee  # is_string, list_strings,
 from scipy.interpolate import UnivariateSpline
 try :
@@ -137,23 +137,23 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
         else:
             return f"{self.n}{lc}{self.ksign}"  # e.g. 2s+
 
-    @lazy_property
+    @cached_property
     def latex(self) -> str:
         lc = l2char[self.l]
         # e.g. 2s or 2s^+
         return f"${self.n}{lc}$" if self.k is None else f"${self.n}{lc}^{self.ksign}$"
 
-    @lazy_property
+    @cached_property
     def latex_l(self) -> str:
         lc = l2char[self.l]
         # e.g. s or s^+
         return f"${lc}$"  if self.k is None else f"${lc}^{self.ksign}$"
 
-    @lazy_property
+    @cached_property
     def ksign(self) -> str:
         return {1: "+", 2: "-"}[self.k]
 
-    @lazy_property
+    @cached_property
     def j(self) -> int:
         """Total angular momentum"""
         l = self.l
@@ -427,13 +427,13 @@ class RadialFunction:
                 inodes.append(i)
         return inodes
 
-    @lazy_property
+    @cached_property
     def spline(self):
         """Cubic spline."""
         #return UnivariateSpline(self.rmesh, self.values, s=0)
         return UnivariateSpline(self.rmesh, self.values, s=None)
 
-    @lazy_property
+    @cached_property
     def roots(self):
         """Return the zeros of the spline."""
         return self.spline.roots()

@@ -12,7 +12,7 @@ import numpy as np
 import scipy
 import time
 
-from collections import deque, OrderedDict
+from collections import deque
 from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
@@ -403,7 +403,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         Return None if eigens are not available.
         """
         if not self.use_cache: return None
-        if not hasattr(self, "_cached_eigens"): self._cached_eigens = OrderedDict()
+        if not hasattr(self, "_cached_eigens"): self._cached_eigens = {}
         kmesh = tuple(kmesh)
         if is_shift is not None: is_shift = tuple(is_shift)
         arr = self._cached_eigens.get((kmesh, is_shift, kzone))
@@ -415,7 +415,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         Save interpolated eigenvalues associated to (kmesh, is_shift, kzone).
         """
         if not self.use_cache: return None
-        if not hasattr(self, "_cached_eigens"): self._cached_eigens = OrderedDict()
+        if not hasattr(self, "_cached_eigens"): self._cached_eigens = {}
         kmesh = tuple(kmesh)
         if is_shift is not None: is_shift = tuple(is_shift)
         self._cached_eigens[(kmesh, is_shift, kzone)] = eigens.copy()
@@ -426,7 +426,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         to (kmesh, is_shift). None if DOS is not available.
         """
         if not self.use_cache: return None
-        if not hasattr(self, "_cached_edos"): self._cached_edos = OrderedDict()
+        if not hasattr(self, "_cached_edos"): self._cached_edos = {}
         kmesh = tuple(kmesh)
         if is_shift is not None: is_shift = tuple(is_shift)
         return self._cached_edos.get((kmesh, is_shift))
@@ -436,7 +436,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         Save the electron DOS obtained from the interpolated eigenvalues associated to (kmesh, is_shift).
         """
         if not self.use_cache: return None
-        if not hasattr(self, "_cached_edos"): self._cached_edos = OrderedDict()
+        if not hasattr(self, "_cached_edos"): self._cached_edos = {}
         kmesh = tuple(kmesh)
         if is_shift is not None: is_shift = tuple(is_shift)
         self._cached_edos[(kmesh, is_shift)] = edos # .copy()

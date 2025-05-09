@@ -313,7 +313,7 @@ class MsqDos(Has_Structure):
         rows = []
         for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels):
             site = self.structure[iatom]
-            d = OrderedDict()
+            d = {}
             d["element"] = site.specie.symbol
             d["site_index"] = iatom
             d["frac_coords"] = np.round(site.frac_coords, decimals=decimals)

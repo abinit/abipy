@@ -10,7 +10,6 @@ import numpy as np
 import abipy.core.abinit_units as abu
 
 from monty.collections import dict2namedtuple
-#from monty.functools import lazy_property
 from pymatgen.analysis.eos import EOS
 from abipy.core.structure import Structure
 from abipy.core.func1d import Function1D
@@ -523,7 +522,7 @@ class Vzsisa(HasPickleIO):
             dfe_dV1[i] = (e[iv1] - e[iv0]) / dV
 
         # Calculate total energies
-        # Eq. 27 of paper. 
+        # Eq. 27 of paper.
         # The constant term F_V0(T) is missing in the Gibbs free energy because it is not available in the vib1 model.
         # As a result, the Gibbs free energy is not suitable for comparing energies
         # across different phases, which is essential for phase transition computations.

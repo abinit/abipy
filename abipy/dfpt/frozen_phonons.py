@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import scipy.optimize as optimize
 
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.collections import dict2namedtuple
 from abipy.core.abinit_units import phfactor_ev2units, amu_emass, Bohr_Ang, eV_Ha
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
@@ -88,7 +88,7 @@ class FrozenPhonon:
         """
         return len(self.structures)
 
-    @lazy_property
+    @cached_property
     def ieta0(self) -> int:
         """
         The index corresponding to the structure with no displacements.
@@ -99,7 +99,7 @@ class FrozenPhonon:
             raise ValueError("The structure with no displacement is not present in the list.")
 
     @classmethod
-    def from_phbands(cls, phbands, qpt_frac_coords, imode, etas, 
+    def from_phbands(cls, phbands, qpt_frac_coords, imode, etas,
                      scale_matrix=None, max_supercell=None) ->FrozenPhonon:
         """
         Create an instace of FrozenPhonon using the eigendisplacements from a |PhononBands|
@@ -132,7 +132,7 @@ class FrozenPhonon:
         return cls(phbands.structure, original_displ_cart, structures, normalized_fp.displ, etas,
                    phbands.qpoints[qind].frac_coords, normalized_fp.scale_matrix)
 
-    @lazy_property
+    @cached_property
     def mass_factor(self) -> float:
         """
         The factor accounting for the different masses and displacement of each atom

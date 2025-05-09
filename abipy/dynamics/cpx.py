@@ -26,7 +26,7 @@ import dataclasses
 import abipy.core.abinit_units as abu
 
 from pathlib import Path
-from monty.functools import lazy_property
+from functools import cached_property
 #from monty.bisect import find_le
 from abipy.core.mixins import TextFile, NotebookWriter
 from abipy.tools.typing import PathLike, Figure
@@ -138,7 +138,7 @@ class EvpFile(TextFile, NotebookWriter):
          #Volume        Pressure(GPa)        EXX               EVDW
     ]}
 
-    @lazy_property
+    @cached_property
     def time_key(self) -> str:
         key1 = "time(ps)"
         key2 = "tps(ps)"
@@ -146,14 +146,14 @@ class EvpFile(TextFile, NotebookWriter):
         if key2 in self.df.keys(): return key2
         raise ValueError(f"Cannot find time key in {self.df.keys()}")
 
-    @lazy_property
+    @cached_property
     def df(self) -> pd.DataFrame:
         """Dataframe with the results."""
         # TODO: Handle restart
         df = parse_file_with_header(self.filepath)
         return df
 
-    @lazy_property
+    @cached_property
     def times(self) -> np.ndarray:
         """Array with times in ps units."""
         return np.array(self.df["tps(ps)"].values, dtype=float)

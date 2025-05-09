@@ -12,10 +12,10 @@ import pandas as pd
 import pymatgen.core.units as units
 
 from pathlib import Path
+from functools import cached_property
 from scipy.stats import linregress
 from scipy import optimize
 from matplotlib.offsetbox import AnchoredText
-from monty.functools import lazy_property
 from monty.bisect import find_le
 from monty.string import list_strings, marquee
 from monty.collections import AttrDict #, dict2namedtuple
@@ -567,7 +567,7 @@ class MdAnalyzer(HasPickleIO):
         """Number of points in the MD trajectory."""
         return self.pos_atc.shape[1]
 
-    @lazy_property
+    @cached_property
     def natom(self) -> int:
         """Number of atoms."""
         return len(self.structure)
@@ -955,7 +955,7 @@ class Msdtt0:
     def temperature(self) -> float:
         return self.mda.temperature
 
-    @lazy_property
+    @cached_property
     def msd_t(self) -> np.ndarray:
         """Average of MSD(t,t_0) over t0."""
         return np.mean(self.arr_tt0, axis=1)
@@ -1012,7 +1012,7 @@ class Msdtt0:
         set_axlims(ax, xlims, "x")
         ax.legend(fontsize=fontsize, loc="upper left")
         ax.set_xlabel('t (ps)', fontsize=fontsize)
-        ax.set_ylabel('average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+        ax.set_ylabel(r'Average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
         #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
         ax.add_artist(AnchoredText(f"{self.mda.latex_formula_n_temp}\n{self.mda.latex_avg_volume}",
@@ -1226,7 +1226,7 @@ class SigmaBerend:
 
             ax.errorbar(xs, ys,
                         yerr=yerr, linestyle='-', # linewidth=0.5,
-                        label="$\sigma(\mathrm{MSD}($" + '%2.1f' % time +" ps$))$ "+ '\n' +
+                        label=r"$\sigma(\mathrm{MSD}($" + '%2.1f' % time +" ps$))$ "+ '\n' +
                               self.latex_formula + ', '+ 'T = %4.0f' % self.temperature + 'K')
             ax.legend(fontsize=fontsize, loc="lower right")
             ax.set_xlabel('N. of data in block', fontsize=fontsize)

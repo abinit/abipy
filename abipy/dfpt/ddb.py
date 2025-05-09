@@ -12,13 +12,12 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
-from collections import OrderedDict
 from functools import lru_cache
 from typing import Any
+from functools import cached_property
 from monty.string import marquee, list_strings
 from monty.json import MSONable
 from monty.collections import AttrDict, dict2namedtuple
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
 from abipy.tools.serialization import pmg_serialize
@@ -379,7 +378,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return np.reshape(qpoints, (-1, 3))
 
-    @lazy_property
+    @cached_property
     def computed_dynmat(self) -> dict:
         """
         dict mapping q-point object to --> pandas Dataframe.
@@ -393,7 +392,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         # TODO: Create mapping [(idir1, ipert1), (idir2, ipert2)] --> element
         df_columns = "idir1 ipert1 idir2 ipert2 cvalue".split()
 
-        dynmat = OrderedDict()
+        dynmat = {}
         for block in self.blocks:
             # skip the blocks that are not related to second order derivatives
             first_line = block["data"][0].strip()
@@ -429,7 +428,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return dynmat
 
-    @lazy_property
+    @cached_property
     def blocks(self) -> list:
         """
         DDB blocks. List of dictionaries, Each dictionary contains the following keys.
@@ -527,7 +526,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         else:
             return self.qpoints.index(qpoint)
 
-    @lazy_property
+    @cached_property
     def guessed_ngqpt(self) -> np.ndarray:
         """
         Guess for the q-mesh divisions (ngqpt) inferred from the list of
@@ -566,11 +565,11 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return np.array(ngqpt, dtype=int)
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """dictionary with parameters that might be subject to convergence studies."""
         names = ("nkpt", "nsppol", "ecut", "tsmear", "occopt", "ixc", "nband", "usepaw")
-        od = OrderedDict()
+        od = {}
         for k in names:
             od[k] = self.header[k]
         return od
@@ -581,7 +580,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             raise TypeError("object %s does not have `params` attribute" % type(obj))
         obj.params.update(self.params)
 
-    @lazy_property
+    @cached_property
     def total_energy(self):
         """
         Total energy in eV. None if not available.
@@ -592,7 +591,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 return Energy(ene_ha, "Ha").to("eV")
         return None
 
-    @lazy_property
+    @cached_property
     def cart_forces(self):
         """
         Cartesian forces in eV / Ang
@@ -627,7 +626,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return None
 
-    @lazy_property
+    @cached_property
     def cart_stress_tensor(self) -> Stress:
         """
         |Stress| tensor in cartesian coordinates (GPa units). None if not available.
@@ -2080,12 +2079,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Generates an ordered dictionary with the second order derivatives in the form
             {qpt: {(idir1, ipert1, idir2, ipert2): complex value}}.
 
-        Returns:
-            OrderedDict: a dictionary with all the elements of a dynamical matrix
+        Return: dictionary with all the elements of a dynamical matrix
         """
         dynmat = self.computed_dynmat
-        d = OrderedDict()
-
+        d = {}
         for q, dm in dynmat.items():
             dd = {}
             for index, row in dm.iterrows():
@@ -3129,7 +3126,7 @@ class DdbRobot(Robot):
         rows, row_names = [], []
         for i, (label, ddb) in enumerate(self.items()):
             row_names.append(label)
-            d = OrderedDict()
+            d = {}
             #d = {aname: getattr(ddb, aname) for aname in attrs}
             #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 

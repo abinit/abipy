@@ -17,7 +17,7 @@ import abipy.abilab as abilab
 import abipy.tools.cli_parsers as cli
 
 from pprint import pprint
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from socket import gethostname
 from monty import termcolor
 from monty.functools import prof_main
@@ -1173,7 +1173,7 @@ def main():
     elif options.command == "cycles":
         # Print cycles.
         from abipy.flowtk.abiinspect import CyclesPlotter
-        cls2plotter = OrderedDict()
+        cls2plotter = {}
         for task, cycle in flow.get_task_scfcycles(nids=select_nids(flow, options),
                                                    exclude_ok_tasks=options.exclude_ok_tasks):
             print()

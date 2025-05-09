@@ -18,7 +18,6 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_visible, ge
 from abipy.tools.typing import Figure
 
 
-
 class SoundVelocity(Has_Structure, NotebookWriter):
     """
     Compute the speed of sound by fitting phonon frequencies along selected directions

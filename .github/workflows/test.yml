@@ -29,6 +29,8 @@ jobs:
             python: "3.11"
           - os: ubuntu-latest
             python: "3.12"
+          - os: ubuntu-latest
+            python: "3.13"
 
     runs-on: ${{ matrix.config.os }}
 
@@ -48,7 +50,7 @@ jobs:
         run: |
             conda create -n abipy python=${{ matrix.config.python }} --yes
             conda activate abipy
-            conda install abinit -c conda-forge --yes
+            conda install "abinit>10" -c conda-forge --yes
             mpirun -n 1 abinit --version
             mpirun -n 1 abinit --build
 

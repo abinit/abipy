@@ -37,7 +37,7 @@ from abipy.tools import duck
 from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, AnaddbTask, ParalHintsParser, NetcdfReader
 from abipy.flowtk.abiinspect import yaml_read_irred_perts
 from abipy.flowtk import abiobjects as aobj
-from .enums import RUNL, WFK_TASK, GWR_TASK
+from .enums import RUNL, GWR_TASK # WFK_TASK,
 
 import logging
 logger = logging.getLogger(__file__)
@@ -196,7 +196,8 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         Set the value of the variables. Accept also comment="string"
         Return: dict with the variables added to the input.
 
-        .. Example::
+        **Example:**
+        .. code-block:: python
 
             input.set_vars(ecut=10, ionmov=3)
         """
@@ -234,9 +235,10 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         Set the value of the variables only if the variable is not already present.
         Return dict with the variables added to the input.
 
-        Example:
+        **Example:**
+        .. code-block:: python
 
-            input.set_vars(ecut=10, ionmov=3)
+            input.set_vars_ifnotin(ecut=10, ionmov=3)
         """
         kwargs.update(dict(*args))
         added = {}
@@ -255,7 +257,8 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         Args:
             keys: string or list of strings with variable names.
 
-        Example:
+        **Example:**
+        .. code-block:: python
 
             inp.pop_vars(["ionmov", "optcell", "ntime", "dilatmx"])
         """
@@ -358,6 +361,7 @@ class AbiAbstractInput(AbstractInput):
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
                 task: Task object
         """
+
 
 class AbinitInputError(Exception):
     """Base error class for exceptions raised by ``AbinitInput``."""
@@ -1264,7 +1268,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         Set spinat parameters from a dictionary mapping chemical simbol to spinat value.
         If an element in the structure is not present in symb2luj, default is used.
 
-        Example:
+        **Example:**
+        .. code-block:: python
 
             symb2spinat = {"Eu": [0, 0, 7]}
             inp.set_spinat_from_symbols(symb2spinat)
@@ -1311,7 +1316,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                 must be speficied.
             units: Energy units for U and J. Note that defaultis eV although ABINIT uses Hartree by default!
 
-        Example:
+        **Example:**
+        .. code-block:: python
 
             symb2luj = {"Eu": {"lpawu": 3, "upawu": 7, "jpawu": 0.7}
             inp.set_luj(symb2luj)
@@ -1417,7 +1423,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         over the interval [`start`, `stop`].
         The endpoint of the interval can optionally be excluded.
 
-        Example:
+        **Example:**
+        .. code-block:: python
 
             input_list = gs_template.linspace("ecut", start=10, stop=60)
 
@@ -1448,10 +1455,6 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         When using a non-integer step, such as 0.1, the results will often not
         be consistent. It is better to use ``linspace`` for these cases.
 
-        Example:
-
-            input_list = gs_template.linspace("ecut", start=10, stop=60, step=10)
-
         Args:
             start:  Start of interval. The interval includes this value. The default start value is 0.
             stop: End of interval.  The interval does not include this value, except
@@ -1459,6 +1462,12 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             step: Spacing between values.  For any output `out`, this is the distance
                 between two adjacent values, ``out[i+1] - out[i]``.  The default
                 step size is 1.  If `step` is specified, `start` must also be given.
+
+        **Example:**
+
+        .. code-block:: python
+
+            input_list = gs_template.linspace("ecut", start=10, stop=60, step=10)
         """
         inps = []
         for value in np.arange(start=start, stop=stop, step=step):
@@ -1506,7 +1515,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         """
         Return a new input with the given variables.
 
-        Example:
+        .. code-block:: python
 
             new = input.new_with_vars(ecut=20, tsmear=0.04)
         """
@@ -1542,7 +1551,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         if scdims is None:
             # Assume same value of natom and typat
             if len(self.structure) != len(new_structure):
-                raise ValueError(f"Structures must have same value of natom." +
+                raise ValueError("Structures must have same value of natom." +
                                  f"new_structure has {len(new_structure)} atoms." +
                                  f"input.structure has {len(self.structure)}")
             errors = []
@@ -1563,7 +1572,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                     numcells, len(self.structure), len(new_structure))
                 raise ValueError(errmsg)
 
-            expected_supercell=self.structure.copy()
+            expected_supercell = self.structure.copy()
             expected_supercell.make_supercell(scdims)
 
             expected_symbols = [site.specie.symbol for site in expected_supercell]
@@ -1607,8 +1616,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             iscale = int(np.ceil(len(new.structure) / len(self.structure)))
             if "nband" in new:
                 # take care of nband in format "*xxx"
-                if str(self["nband"])[0]=="*": #, convert to a string if nband considered as a int
-                    new["nband"] = "*%d" %(int(self["nband"][1:])*iscale)
+                if str(self["nband"])[0] == "*": #, convert to a string if nband considered as a int
+                    new["nband"] = "*%d" % (int(self["nband"][1:])*iscale)
                 else:
                     new["nband"] = int(self["nband"] * iscale)
                 if verbose: print("self['nband']", self["nband"], "new['nband']", new["nband"])
@@ -1654,12 +1663,16 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         1) Generate e.g. 3 inputs with different number of `nband`:
 
+        .. code-block:: python
+
             varname_values = ("nband", [8, 12, 14])
 
             for new_inp in input.news_with_varname_values(varname_values):
                 print(new_inp)
 
         2) Take Cartesian product of two or multiple variables:
+
+        .. code-block:: python
 
             var_vals = [
                  ("nband", [8, 12]),
@@ -1668,6 +1681,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
             for new_inp in input.news_with_varname_values(varname_values):
                 print(new_inp)
+
         """
         if duck.is_string(varname_values[0]):
             # varname_values = ("nband", [8, 12, 14])
@@ -2106,7 +2120,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             raise self.Error("tolvrs should not be used in a DKDK calculation")
 
         # See Dataset 3 of https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi
-        dkdk_input= self.new_with_vars(
+        dkdk_input = self.new_with_vars(
             qpt=(0, 0, 0),        # q-wavevector.
             kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
             iscf=-3,              # The d2/dk perturbation is treated in a non-self-consistent way
@@ -3320,6 +3334,7 @@ class MultiDataset:
         multi = cls(input.structure, input.pseudos, ndtset=ndtset)
 
         for inp in multi:
+            inp.set_spell_check(input.spell_check)
             inp.set_vars({k: v for k, v in input.items()})
             if input.comment:
                 inp.set_comment(input.comment)
@@ -3497,7 +3512,7 @@ class MultiDataset:
 
     def to_string(self,
                   mode: str = "text",
-                  verbose: int =0,
+                  verbose: int = 0,
                   with_pseudos: bool = True,
                   files_file: bool = False) -> str:
         """
@@ -4474,9 +4489,9 @@ class OpticInput(AbiAbstractInput, MSONable):
         """
         JSON interface used in pymatgen for easier serialization.
         """
-        my_dict = OrderedDict()
+        my_dict = {}
         for grp in self._GROUPS:
-            my_dict[grp] = OrderedDict()
+            my_dict[grp] = {}
 
         for name in self._VARNAMES:
             value = self.vars.get(name)

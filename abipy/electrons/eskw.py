@@ -2,7 +2,7 @@
 """
 Interface to the ESKW.nc file storing the (star-function) interpolated band structure produced by Abinit.
 """
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import marquee
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader
@@ -32,11 +32,11 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         super().__init__(filepath)
         self.reader = ElectronsReader(filepath)
 
-    @lazy_property
+    @cached_property
     def einterp(self):
         return self.reader.read_value("einterp")
 
-    @lazy_property
+    @cached_property
     def band_block(self):
         # band_block(2)=Initial and final band index to be interpolated. [0, 0] if all bands are used.
         band_block = self.reader.read_value("band_block")
@@ -75,9 +75,9 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+    @cached_property
+    def params(self) -> dict:
+        """dictionary with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         od["einterp"] = self.interp
         od["einterp"] = self.einterp

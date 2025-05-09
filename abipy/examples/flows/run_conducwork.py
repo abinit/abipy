@@ -3,7 +3,7 @@ r"""
 Conductivity in metals
 ======================
 
-Flow to compute conductivity in metals
+Flow to compute conductivity in metals.
 """
 
 import os

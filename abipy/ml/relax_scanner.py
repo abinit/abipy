@@ -16,8 +16,8 @@ import pandas as pd
 
 from pathlib import Path
 from multiprocessing import Pool
+from functools import cached_property
 from monty.json import MontyEncoder
-from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 from pymatgen.core.lattice import Lattice
 from pymatgen.util.coord import pbc_shortest_vectors
@@ -451,7 +451,7 @@ class RelaxScannerAnalyzer:
     #def initial_structure(self):
     #    return self.scanner.initial_structure
 
-    @lazy_property
+    @cached_property
     def df(self) -> pd.DataFrame:
         """
         Dataframe with the total energy in eV and the relaxed coordinates
@@ -484,7 +484,7 @@ class RelaxScannerAnalyzer:
         s = self.scanner.to_string(verbose=verbose)
         return s
 
-    @lazy_property
+    @cached_property
     def lattice(self):
         return Lattice(self.df.attrs["lattice_matrix"])
 

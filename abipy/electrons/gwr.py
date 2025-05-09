@@ -11,8 +11,8 @@ import abipy.core.abinit_units as abu
 
 from collections.abc import Iterable
 from typing import Any
+from functools import cached_property
 from monty.collections import dict2namedtuple
-from monty.functools import lazy_property
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from abipy.core.func1d import Function1D
@@ -466,7 +466,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """|ElectronBands| with the KS energies."""
         return self.r.ebands
 
-    @lazy_property
+    @cached_property
     def completed(self) -> bool:
         """True if GWR calculation completed."""
         return bool(self.r.read_value("gwr_completed", default=1))
@@ -481,12 +481,12 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """Number of k-points in sigma_kpoints"""
         return self.r.nkcalc
 
-    @lazy_property
+    @cached_property
     def ks_dirgaps(self) -> np.ndarray:
        """KS direct gaps in eV. Shape: [nsppol, nkcalc]"""
        return self.r.read_value("ks_gaps") * abu.Ha_eV
 
-    @lazy_property
+    @cached_property
     def qpz0_dirgaps(self) -> np.ndarray:
        """
        QP direct gaps in eV computed with the renormalization Z factor at the KS energy
@@ -494,12 +494,12 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
        """
        return self.r.read_value("qpz_gaps") * abu.Ha_eV
 
-    @lazy_property
+    @cached_property
     def minimax_mesh(self) -> MinimaxMesh:
         """Object storing the minimax mesh and weights."""
         return MinimaxMesh.from_ncreader(self.r)
 
-    @lazy_property
+    @cached_property
     def qplist_spin(self) -> tuple[QPList]:
         """Tuple of QPList objects indexed by spin."""
         return self.r.read_allqps()
@@ -550,7 +550,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return _MyQpkindsList(zip(items[0], items[1]))
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """
         dict with parameters that might be subject to convergence studies e.g ecuteps.
@@ -1295,22 +1295,22 @@ class GwrReader(ETSF_Reader):
         self.min_bstart = np.min(self.bstart_sk)
         self.min_bstop = np.min(self.bstop_sk)
 
-    @lazy_property
+    @cached_property
     def iw_mesh(self) -> np.ndarray:
         """Frequency mesh in eV along the imaginary axis."""
         return self.read_value("iw_mesh") * abu.Ha_eV
 
-    @lazy_property
+    @cached_property
     def tau_mesh(self) -> np.ndarray:
         """Tau mesh in a.u."""
         return self.read_value("tau_mesh")
 
-    @lazy_property
+    @cached_property
     def wr_step(self) -> float:
         """Frequency-mesh along the real axis in eV."""
         return self.read_value("wr_step") * abu.Ha_eV
 
-    @lazy_property
+    @cached_property
     def e0_kcalc(self) -> np.ndarray:
         # nctkarr_t("e0_kcalc", "dp", "smat_bsize1, nkcalc, nsppol"), &
         return self.read_value("e0_kcalc") * abu.Ha_eV

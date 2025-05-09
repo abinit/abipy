@@ -12,11 +12,11 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from typing import Optional
+from functools import cached_property
 from tabulate import tabulate
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from monty.collections import AttrDict, dict2namedtuple
-from monty.functools import lazy_property
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
@@ -100,7 +100,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """|ElectronBands| object."""
         return self._ebands
 
-    @lazy_property
+    @cached_property
     def is_scf_run(self) -> bool:
         """True if the GSR has been produced by a SCF run."""
         # NOTE: We use kptopt to understand if we have a SCF/NSCF run
@@ -110,12 +110,12 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         else:
             return abs(self.cart_stress_tensor[0, 0] - _INVALID_STRESS_TENSOR) > 0.1
 
-    @lazy_property
+    @cached_property
     def ecut(self):
         """Cutoff energy in Hartree (Abinit input variable)"""
         return units.Energy(self.r.read_value("ecut"), "Ha")
 
-    @lazy_property
+    @cached_property
     def pawecutdg(self):
         """Cutoff energy in Hartree for the PAW double grid (Abinit input variable)"""
         return units.Energy(self.r.read_value("pawecutdg"), "Ha")
@@ -125,17 +125,17 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def energy(self):
         """Total energy in eV."""
         return units.Energy(self.r.read_value("etotal"), "Ha").to("eV")
 
-    @lazy_property
+    @cached_property
     def energy_per_atom(self):
         """Total energy / number_of_atoms (eV units)"""
         return self.energy / len(self.structure)
 
-    @lazy_property
+    @cached_property
     def cart_forces(self):
         """
         Cartesian forces in eV / Ang. None if forces are not available.
@@ -144,7 +144,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             return self.r.read_cart_forces()
         return None
 
-    @lazy_property
+    @cached_property
     def max_force(self):
         """
         Max absolute cartesian force in eV/Ang. None if forces are not available.
@@ -181,7 +181,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         return s
 
-    @lazy_property
+    @cached_property
     def cart_stress_tensor(self):
         """
         Stress tensor in GPa. Return None if not available e.g. if NSCF run.
@@ -190,7 +190,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             return self.r.read_cart_stress_tensor()
         return None
 
-    @lazy_property
+    @cached_property
     def pressure(self):
         """
         Pressure in GPa. Return None if not available e.g. if NSCF run.
@@ -200,14 +200,14 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")
         return None
 
-    @lazy_property
+    @cached_property
     def residm(self):
         """
         Maximum of the residuals
         """
         return self.r.read_value("residm")
 
-    @lazy_property
+    @cached_property
     def xc(self):
         """
         :class:`XcFunc` object with info on the exchange-correlation functional.
@@ -215,7 +215,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         return self.r.read_abinit_xcfunc()
 
-    @lazy_property
+    @cached_property
     def energy_terms(self):
         """:class:`EnergyTerms` with the different contributions to the total energy in eV."""
         return self.r.read_energy_terms(unit="eV")
@@ -237,7 +237,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         if self.ebands.nspden == 4: mag = rhomag[1:]
         return mag
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
@@ -500,7 +500,7 @@ class GsrReader(ElectronsReader):
         Return a dictionary with the different contributions to the total electronic energy.
         """
         convert = lambda e: units.Energy(e, unit="Ha").to(unit)
-        d = OrderedDict()
+        d = {}
         for k in EnergyTerms.ALL_KEYS:
             if k == "e_nonlocalpsp" and k not in self.rootgrp.variables:
                 # Renamed in 8.9
@@ -547,7 +547,7 @@ class GsrRobot(Robot, RobotWithEbands):
         rows, row_names = [], []
         for label, gsr in self.items():
             row_names.append(label)
-            d = OrderedDict()
+            d = {}
 
             # Add info on structure.
             if with_geo:

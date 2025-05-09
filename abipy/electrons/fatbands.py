@@ -7,8 +7,8 @@ import numpy as np
 
 from collections import OrderedDict, defaultdict
 from tabulate import tabulate
+from functools import cached_property
 from monty.termcolor import cprint
-from monty.functools import lazy_property
 from monty.string import marquee
 from pymatgen.core.periodic_table import Element
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
@@ -169,7 +169,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             self.has_atom = np.zeros(self.natom, dtype=bool)
             self.has_atom[self.iatsph] = True
 
-    @lazy_property
+    @cached_property
     def wal_sbk(self) -> np.ndarray:
         """
         |numpy-array| of shape [natom, mbesslang, nsppol, mband, nkpt]
@@ -177,7 +177,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         """
         return self._read_wal_sbk()
 
-    @lazy_property
+    @cached_property
     def walm_sbk(self) -> np.ndarray:
         """
         |numpy-array| of shape [natom, mbesslang**2, nsppol, mband, nkpt]
@@ -277,7 +277,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         return walm_sbk
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.r.read_ebands()
@@ -287,7 +287,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
@@ -2248,11 +2248,11 @@ class _DosIntegrator:
         self.edos = fbfile.ebands.get_edos(method=method, step=step, width=width)
         self.mesh = self.edos.spin_dos[0].mesh
 
-    #@lazy_property
+    #@cached_property
     #def site_edos(self):
     #    """Array [natom, nsppol, lmax**2]"""
 
-    @lazy_property
+    @cached_property
     def symbols_lso(self) -> dict:
         """
         """
@@ -2281,7 +2281,7 @@ class _DosIntegrator:
 
         return symbols_lso
 
-    @lazy_property
+    @cached_property
     def ls_stackdos(self) -> dict:
         """
         Compute ``ls_stackdos`` datastructure for stacked DOS.

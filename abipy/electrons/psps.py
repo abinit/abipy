@@ -10,9 +10,9 @@ import pandas as pd
 
 #from typing import Any
 from collections import OrderedDict
+from functools import cached_property
 from monty.bisect import find_gt
 from monty.string import marquee # list_strings,
-from monty.functools import lazy_property
 from abipy.iotools import ETSF_Reader
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
@@ -134,7 +134,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         return {}

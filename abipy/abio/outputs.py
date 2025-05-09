@@ -11,8 +11,8 @@ import pandas as pd
 from collections import OrderedDict
 from io import StringIO
 from typing import Union
+from functools import cached_property
 from monty.string import is_string, marquee
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.symmetries import AbinitSpaceGroup
@@ -198,7 +198,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                     self.run_completed = True
 
         # Parse header to get important dimensions and variables
-        self.header, self.footer, self.datasets = [], [], OrderedDict()
+        self.header, self.footer, self.datasets = [], [], {}
         where = "in_header"
 
         with open(self.filepath, "rt") as fh:
@@ -254,7 +254,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 self.final_vars_global, self.final_vars_dataset = self._parse_variables("footer")
 
     def _parse_variables(self, what: str):
-        vars_global = OrderedDict()
+        vars_global = {}
         vars_dataset = OrderedDict([(k, OrderedDict()) for k in self.datasets.keys()])
         #print("keys", vars_dataset.keys())
 
@@ -431,7 +431,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         return structures
 
-    @lazy_property
+    @cached_property
     def initial_structures(self) -> list[Structure]:
         """List of initial |Structure|."""
         return self._get_structures("header")
@@ -441,7 +441,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """True if all initial structures are equal."""
         return all(self.initial_structures[0] == s for s in self.initial_structures)
 
-    @lazy_property
+    @cached_property
     def final_structures(self) -> list[Structure]:
         """List of final |Structure|."""
         if self.run_completed:
@@ -450,7 +450,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             cprint("Cannot extract final structures from file.\n %s" % self.filepath, "red")
             return []
 
-    @lazy_property
+    @cached_property
     def initial_structure(self) -> Structure:
         """
         The |Structure| defined in the output file.
@@ -474,7 +474,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """True if all initial structures are equal."""
         return all(self.final_structures[0] == s for s in self.final_structures)
 
-    @lazy_property
+    @cached_property
     def final_structure(self) -> Union[Structure, None]:
         """
         The |Structure| defined in the output file.
@@ -580,7 +580,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         dims_dataset, spginfo_dataset = self.get_dims_spginfo_dataset(verbose=verbose)
         rows = []
         for dtind, dims in dims_dataset.items():
-            d = OrderedDict()
+            d = {}
             d["dataset"] = dtind
             d.update(dims)
             d.update(spginfo_dataset[dtind])
@@ -599,7 +599,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
         Return: (dims_dataset, spginfo_dataset)
 
-            where dims_dataset[i] is an OrderedDict with the dimensions of dataset `i`
+            where dims_dataset[i] is a dict with the dimensions of dataset `i`
             spginfo_dataset[i] is a dictionary with space group information.
         """
         # If single dataset, we have to parse
@@ -662,7 +662,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             }
 
         from abipy.tools.numtools import grouper
-        dims_dataset, spginfo_dataset = OrderedDict(), OrderedDict()
+        dims_dataset, spginfo_dataset = {}, {}
         inblock = 0
         with open(self.filepath, "rt") as fh:
             for line in fh:
@@ -686,7 +686,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                         tokens = line.split()
                         dtindex = int(tokens[1])
 
-                    dims_dataset[dtindex] = dims = OrderedDict()
+                    dims_dataset[dtindex] = dims = {}
                     spginfo_dataset[dtindex] = parse_spgline(line)
                     continue
 
@@ -1038,7 +1038,7 @@ class AboRobot(Robot):
         rows, row_names = [], []
         for label, abo in self.items():
             row_names.append(label)
-            d = OrderedDict()
+            d = {}
 
             if with_dims:
                 dims_dataset, spg_dataset = abo.get_dims_spginfo_dataset()
@@ -1131,7 +1131,7 @@ class OutNcFile(AbinitNcFile):
                 varscache[name] = reader.read_value(name)
             return varscache[name]
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         return {}

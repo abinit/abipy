@@ -8,13 +8,14 @@ import numpy as np
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
+from functools import cached_property
 from monty.string import marquee, list_strings
-from monty.functools import lazy_property
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, data_from_cplx_mode
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
+
 
 ALL_CHIS = OrderedDict([
     ("linopt", {
@@ -138,7 +139,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         # In previous version nband_sum was assumed to be the max number of bands found in the external files.
         self.nband_sum = self.reader.read_value("nband_sum", default=self.ebands.nband)
 
-    @lazy_property
+    @cached_property
     def wmesh(self):
         """
         Frequency mesh in eV. Note that the same frequency-mesh is used
@@ -184,7 +185,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.reader.read_ebands()
@@ -194,22 +195,22 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def has_linopt(self) -> bool:
         """True if the ncfile contains Second Harmonic Generation tensor."""
         return "linopt" in self.reader.computed_components
 
-    @lazy_property
+    @cached_property
     def has_shg(self) -> bool:
         """True if the ncfile contains Second Harmonic Generation tensor."""
         return "shg" in self.reader.computed_components
 
-    @lazy_property
+    @cached_property
     def has_leo(self) -> bool:
         """True if the ncfile contains the Linear Electro-optic tensor"""
         return "leo" in self.reader.computed_components
 
-    #@lazy_property
+    #@cached_property
     #def xc(self):
     #    """:class:`XcFunc object with info on the exchange-correlation functional."""
     #    return self.reader.read_abinit_xcfunc()
@@ -218,9 +219,9 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         """Close the file."""
         self.reader.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """Dictionary with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
@@ -418,8 +419,8 @@ class OpticReader(ElectronsReader):
         super().__init__(filepath)
         self.ntemp = self.read_dimvalue("ntemp")
 
-        self.computed_components = OrderedDict()
-        self.computed_ids = OrderedDict()
+        self.computed_components = {}
+        self.computed_ids = {}
         for chiname, info in ALL_CHIS.items():
             comp_name = chiname + "_components"
             if comp_name not in self.rootgrp.variables:
@@ -450,7 +451,7 @@ class OpticReader(ElectronsReader):
             raise ValueError("Invalid itemp: %s, ntemp: %s" % (itemp, self.ntemp))
 
         var = self.read_variable("linopt_epsilon")
-        od = OrderedDict()
+        od = {}
         for comp in list_strings(components):
             try:
                 ijp = self.computed_components[key].index(comp)
@@ -470,8 +471,8 @@ class OpticReader(ElectronsReader):
             itemp: Temperature index.
 
         Return:
-            :class:`OrderedDict` mapping cartesian components e.g. "xyz" to data dictionary.
-            Individual entries are listed in ALL_CHIS[key]["terms"]
+            dictionary mapping Cartesian components e.g. "xyz" to data dictionary.
+            Individual entries are listed in ALL_CHIS[key]["terms"].
         """
         # arrays have Fortran shape [two, nomega, num_comp, ntemp]
         if components == "all": components = self.computed_components[key]
@@ -479,7 +480,7 @@ class OpticReader(ElectronsReader):
         if not (self.ntemp > itemp >= 0):
             raise ValueError("Invalid itemp: %s, ntemp: %s" % (itemp, self.ntemp))
 
-        od = OrderedDict([(comp, OrderedDict()) for comp in components])
+        od = OrderedDict([(comp, {}) for comp in components])
         for chiname in ALL_CHIS[key]["terms"]:
             #print("About to read:", chiname)
 
@@ -509,13 +510,13 @@ class OpticRobot(Robot, RobotWithEbands):
     """
     EXT = "OPTIC"
 
-    @lazy_property
+    @cached_property
     def computed_components_intersection(self):
         """
         Dictionary with the list of cartesian tensor components
         available in each file. Use keys from ALL_CHIS.
         """
-        od = OrderedDict()
+        od = {}
         for ncfile in self.abifiles:
             for chiname in ALL_CHIS:
                 comps = ncfile.reader.computed_components[chiname]

@@ -8,7 +8,7 @@ import pandas as pd
 #import warnings
 
 from collections import OrderedDict
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import marquee
 from monty.termcolor import cprint
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
@@ -60,11 +60,11 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def close(self):
         self.reader.close()
 
-    @lazy_property
+    @cached_property
     def structure(self):
         return self.reader.read_structure()
 
-    @lazy_property
+    @cached_property
     def params(self):
         # -666 to support old anaddb.nc files without metadata
         return OrderedDict([
@@ -138,7 +138,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def epsinf(self):
         """
         Macroscopic electronic |DielectricTensor| in Cartesian coordinates (a.k.a. epsilon_infinity)
@@ -150,7 +150,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             #print(exc, "Returning None", sep="\n")
             return None
 
-    @lazy_property
+    @cached_property
     def eps0(self):
         """
         Relaxed ion macroscopic |DielectricTensor| in Cartesian coordinates (a.k.a. epsilon_zero)
@@ -162,7 +162,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             #print(exc, "Requires dieflag > 0", "Returning None", sep="\n")
             return None
 
-    @lazy_property
+    @cached_property
     def becs(self):
         """
         Born effective charges. None if the file does not contain this information.
@@ -173,7 +173,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         except Exception as exc:
             return None
 
-    @lazy_property
+    @cached_property
     def ifc(self):
         """
         The interatomic force constants calculated by anaddb.
@@ -186,7 +186,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             cprint("Interatomic force constants have not been calculated. Returning None", "red")
             return None
 
-    @lazy_property
+    @cached_property
     def dchide(self):
         """
         Non-linear optical susceptibility tensor.
@@ -198,7 +198,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             #print(exc, "Requires nlflag > 0", "Returning None", sep="\n")
             return None
 
-    @lazy_property
+    @cached_property
     def dchidt(self):
         """
         First-order change in the linear dielectric susceptibility.
@@ -222,7 +222,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return dchidt
 
-    @lazy_property
+    @cached_property
     def oscillator_strength(self):
         """
         A complex |numpy-array| containing the oscillator strengths with shape [number of phonon modes, 3, 3],
@@ -237,17 +237,17 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             #print(exc, "Oscillator strengths require dieflag == 1, 3 or 4", "Returning None", sep="\n")
             return None
 
-    @lazy_property
+    @cached_property
     def has_elastic_data(self) -> bool:
         """True if elastic tensors have been computed."""
         return self.reader.read_value("elaflag", default=0) != 0
 
-    @lazy_property
+    @cached_property
     def has_piezoelectric_data(self) -> bool:
         """True if piezoelectric tensors have been computed."""
         return self.reader.read_value("piezoflag", default=0) != 0
 
-    @lazy_property
+    @cached_property
     def elastic_data(self) -> ElasticData:
         """
         Container with the different (piezo)elastic tensors computed by anaddb.
@@ -255,7 +255,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         return ElasticData.from_ncreader(self.reader)
 
-    @lazy_property
+    @cached_property
     def amu(self):
         """
         Dictionary with atomic_number as keys and the atomic massu units as values.
@@ -309,8 +309,8 @@ class AnaddbNcRobot(Robot):
             return self.get_elastic_dataframe()
         return None
 
-    def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params
-                              =False, funcs=None, **kwargs) -> pd.DataFrame:
+    def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params=False,
+                              funcs=None, **kwargs) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with properties derived from the elastic tensor
         and an associated structure. Filename is used as index.
@@ -336,7 +336,7 @@ class AnaddbNcRobot(Robot):
         rows, index = [], []
         for label, ncfile in self.items():
             index.append(label)
-            d = OrderedDict()
+            d = {}
 
             # Add info on structure.
             if with_geo:
@@ -356,7 +356,7 @@ class AnaddbNcRobot(Robot):
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys() if rows else None))
 
     @add_fig_kwargs
-    def plot_elastic_properties(self, fontsize=10, **kwargs):
+    def plot_elastic_properties(self, fontsize=10, **kwargs) -> Figure:
         """
         Args:
             fontsize: legend and label fontsize.

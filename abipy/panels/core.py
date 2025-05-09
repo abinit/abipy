@@ -16,7 +16,7 @@ import bokeh.models.widgets as bkw
 import panel as pn
 import panel.widgets as pnw
 
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.termcolor import cprint
 from abipy.core import abinit_units as abu
 from abipy.core.structure import Structure
@@ -704,7 +704,7 @@ class AbipyParameterized(param.Parameterized):
         import plotly.io as pio
         pio.templates.default = self.plotly_template
 
-    @lazy_property
+    @cached_property
     def mpl_kwargs(self) -> dict:
         """Default arguments passed to AbiPy matplotlib plot methods."""
         return dict(show=False, fig_close=True)

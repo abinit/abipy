@@ -1,6 +1,7 @@
 # coding: utf-8
 """Decorators for AbinitInput or MultiDataset objects."""
 from __future__ import annotations
+
 import abc
 import pymatgen.io.abinit.abiobjects as aobj
 
