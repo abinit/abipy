@@ -38,7 +38,7 @@ rprim  0.5  0.5  0.5   # BCC primitive vectors (to be scaled by acell)
 xred 3*0
 """)
 
-    pseudos = ["Fe.upf"]
+    pseudos = abidata.pseudos("Fe.psp8")
     scf_input = abilab.AbinitInput(structure, pseudos=pseudos)
     num_ele = scf_input.num_valence_electrons
 

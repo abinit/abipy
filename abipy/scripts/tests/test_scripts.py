@@ -133,8 +133,8 @@ class TestAbiopen(ScriptTest):
             r = env.run(self.script, path, "-p", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
         # Test abiopen with json file
-        #json_path = os.path.join(test_files_dir, "nscf_input.json")
-        #r = env.run(self.script, json_path, "-e", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        json_path = os.path.join(test_files_dir, "nscf_input.json")
+        r = env.run(self.script, json_path, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 class TestAbistruct(ScriptTest):
