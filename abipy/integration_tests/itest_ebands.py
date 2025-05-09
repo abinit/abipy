@@ -360,7 +360,7 @@ def itest_htc_bandstructure(fwp, tvars):
 
     # Use ebands_input factory function to build inputs.
     multi = abilab.ebands_input(structure, pseudos, kppa=20, nscf_nband=6, ndivsm=5,
-                                ecut=2, dos_kppa=40, spin_mode="unpolarized")
+                                ecut=4, dos_kppa=40, spin_mode="unpolarized")
 
     work = flowtk.BandStructureWork(scf_input=multi[0], nscf_input=multi[1], dos_inputs=multi[2:])
     multi.set_vars(paral_kgb=tvars.paral_kgb)
