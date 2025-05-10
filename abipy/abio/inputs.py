@@ -42,6 +42,8 @@ from .enums import RUNL, GWR_TASK # WFK_TASK,
 import logging
 logger = logging.getLogger(__file__)
 
+CHKPARAL = None
+
 
 # List of Abinit variables used to specify the structure.
 # This variables should not be passed to set_vars since
@@ -2765,7 +2767,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         inp = self.new_with_vars(
             chksymbreak=0,   # Bypass Abinit check as we always want to return results.
             mem_test=0,      # Disable memory check.
-            chkparal=0,     # Disable check on autoparal, paral_kgb etc.
+            chkparal=CHKPARAL,      # Disable check on autoparal, paral_kgb etc.
         )
         if extra_vars:
             inp.set_vars(**extra_vars)
@@ -2840,7 +2842,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             prtkpt=-2,          # The magic value that makes ABINIT print the IBZ and then stop.
             chksymbreak=0,      # Bypass Abinit check as we always want to return results.
             mem_test=0,         # Disable memory check.
-            chkparal=0,         # Disable check on autoparal, paral_kgb etc.
+            chkparal=CHKPARAL,      # Disable check on autoparal, paral_kgb etc.
         )
 
         if ngkpt is not None: inp["ngkpt"] = ngkpt
@@ -2890,7 +2892,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             nqptdm=-1,          # The magic value that makes ABINIT print the q-points
             chksymbreak=0,      # Bypass Abinit check as we always want to return results.
             mem_test=0,         # Disable memory check.
-            chkparal=0,         # Disable check on autoparal, paral_kgb etc.
+            chkparal=CHKPARAL,      # Disable check on autoparal, paral_kgb etc.
         )
 
         if ngkpt is not None: inp["ngkpt"] = ngkpt
@@ -3207,7 +3209,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             max_ncpus=max_ncpus,
             chksymbreak=0,  # Bypass Abinit check as we always want to return results.
             mem_test=0,     # Disable memory check.
-            chkparal=0,     # Disable check on autoparal, paral_kgb etc.
+            chkparal=CHKPARAL,  # Disable check on autoparal, paral_kgb etc.
         )
 
         # Run the job in a shell subprocess with mpi_procs = 1
@@ -3226,7 +3228,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         except parser.Error as exc:
             self._handle_task_exception(task, exc)
 
-    def add_tags(self, tags):
+    def add_tags(self, tags) -> None:
         """
         Add tags to the input.
 
@@ -3238,7 +3240,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         else:
             self.tags.add(tags)
 
-    def remove_tags(self, tags):
+    def remove_tags(self, tags) -> None:
         """
         Remove tags from the input.
 
@@ -3329,17 +3331,17 @@ class MultiDataset:
         return multi
 
     @classmethod
-    def replicate_input(cls, input: AbinitInput, ndtset: int) -> MultiDataset:
+    def replicate_input(cls, abi_input: AbinitInput, ndtset: int) -> MultiDataset:
         """Construct a multidataset with ndtset from the |AbinitInput| input."""
-        multi = cls(input.structure, input.pseudos, ndtset=ndtset)
+        multi = cls(abi_input.structure, abi_input.pseudos, ndtset=ndtset)
 
         for inp in multi:
-            inp.set_spell_check(input.spell_check)
-            inp.set_vars({k: v for k, v in input.items()})
-            if input.comment:
-                inp.set_comment(input.comment)
-            inp.tags = set(input.tags)
-            inp.enforce_znucl_and_typat(input.enforce_znucl, input.enforce_typat)
+            inp.set_spell_check(abi_input.spell_check)
+            inp.set_vars({k: v for k, v in abi_input.items()})
+            if abi_input.comment:
+                inp.set_comment(abi_input.comment)
+            inp.tags = set(abi_input.tags)
+            inp.enforce_znucl_and_typat(abi_input.enforce_znucl, abi_input.enforce_typat)
 
         return multi
 
