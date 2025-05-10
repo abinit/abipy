@@ -922,7 +922,7 @@ class TestMultiDataset(AbipyTest):
             self.assertDictEqual(old_inp.as_dict(), new_inp.as_dict())
 
         ref_input = multi[0]
-        new_multi = MultiDataset.replicate_input(abi_input=ref_input, ndtset=4)
+        new_multi = MultiDataset.replicate_input(input=ref_input, ndtset=4)
 
         assert new_multi.ndtset == 4
         for inp in new_multi:
