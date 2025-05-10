@@ -1879,7 +1879,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             ngfft: FFT divisions (3 integers). Used to enforce the same FFT mesh in the NSCF run as the one used for GS.
             tolwfr: Tolerance on residuals.
         """
-        multi = MultiDataset.replicate_input(input=self, ndtset=3)
+        multi = MultiDataset.replicate_input(abi_input=self, ndtset=3)
         multi.pop_vars(["ngkpt", "nshiftk", "shiftk", "iscf"])
         multi.pop_tolerances()
 
@@ -1956,7 +1956,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         # Build list of datasets (one input per perturbation)
         # Remove iscf if any (required if we pass an input for NSCF calculation)
-        ph_inputs = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+        ph_inputs = MultiDataset.replicate_input(abi_input=self, ndtset=len(perts))
         ph_inputs.pop_vars("iscf")
 
         # Set kptopt depending on the q-point i.e use time-reversal
@@ -2076,7 +2076,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         ddk_rfdirs = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
 
         # Build list of datasets (one input per perturbation)
-        ddk_inputs = MultiDataset.replicate_input(input=self, ndtset=len(ddk_rfdirs))
+        ddk_inputs = MultiDataset.replicate_input(abi_input=self, ndtset=len(ddk_rfdirs))
 
         # See tutorespfn/Input/trf1_5.in
         for rfdir, ddk_input in zip(ddk_rfdirs, ddk_inputs):
@@ -2208,7 +2208,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             perts = self.abiget_irred_ddeperts(manager=manager)
 
             # Build list of datasets (one input per irreducible perturbation)
-            multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+            multi = MultiDataset.replicate_input(abi_input=self, ndtset=len(perts))
 
             # See tutorespfn/Input/trf1_5.in dataset 3
             for pert, inp in zip(perts, multi):
@@ -2225,7 +2225,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             dde_rfdirs = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
 
             # Build list of datasets (one input per perturbation)
-            multi = MultiDataset.replicate_input(input=self, ndtset=len(dde_rfdirs))
+            multi = MultiDataset.replicate_input(abi_input=self, ndtset=len(dde_rfdirs))
 
             # See tutorespfn/Input/tnlo_2.in dataset 4
             for rfdir, inp in zip(dde_rfdirs, multi):
@@ -2337,7 +2337,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             perts = reduced_perts
 
         # Build list of datasets (one input per perturbation)
-        multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+        multi = MultiDataset.replicate_input(abi_input=self, ndtset=len(perts))
         if ixc is not None:
             multi.set_vars(ixc=int(ixc))
 
@@ -2399,7 +2399,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         perts = self.abiget_irred_phperts(qpt=(0, 0, 0), prepalw=prepalw, manager=manager)
 
         # Build list of datasets (one input per perturbation)
-        multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+        multi = MultiDataset.replicate_input(abi_input=self, ndtset=len(perts))
 
         # Important: this is needed to avoid Q* computations complaining about indkpt1
         if prepalw != 0: multi.set_vars(prepalw=prepalw)
@@ -2492,7 +2492,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         #print("Stress perts:", perts)
 
         # Build list of datasets (one input per perturbation)
-        multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
+        multi = MultiDataset.replicate_input(abi_input=self, ndtset=len(perts))
 
         for pert, inp in zip(perts, multi):
             rfdir = 3 * [0]
