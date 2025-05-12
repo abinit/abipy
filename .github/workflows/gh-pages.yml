@@ -79,10 +79,12 @@ jobs:
             make -j
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        id: deployment
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs/_build/html/ # Important. Set to the website output dir
 
+  # Deployment job
   deploy:
     environment:
       name: github-pages
