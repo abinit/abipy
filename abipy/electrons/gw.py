@@ -1724,10 +1724,10 @@ class SigresReader(ETSF_Reader):
         super().__init__(path)
 
         # Read number of frequencies for Sigma along the real axis.
-        self.nomega_r = self.read_value("nomega_r", default = -1)
+        self.nomega_r = self.read_dimvalue("nomega_r", default = -1)
 
         # Read Number of frequencies for Sigma along the imag axis.
-        self.nomega_i = self.read_value("nomega_i", default = -1)
+        self.nomega_i = self.read_dimvalue("nomega_i", default = -1)
 
         # Save important quantities needed to simplify the API.
         self.structure = self.read_structure()
