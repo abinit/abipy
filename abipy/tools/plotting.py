@@ -670,7 +670,7 @@ def plot_xy_with_hue(data: pd.DataFrame,
 
     def _plot_key_grp(key, grp, span_style):
         # Sort xs and rearrange ys
-        xy = sorted(zip(grp[x], grp[y]), key=lambda t: t[0])
+        xy = sorted(zip(grp[x], grp[y]), key=lambda t: t[0]) if x!="filename" else list(zip(grp[x], grp[y]))
         xs, ys = np.array([i[0] for i in xy]), np.array([i[1] for i in xy])
 
         label = f"{hue}: {str(key)}" if hue is not None else ""
