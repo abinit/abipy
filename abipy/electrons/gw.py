@@ -1724,22 +1724,20 @@ class SigresReader(ETSF_Reader):
         super().__init__(path)
 
         # Read number of frequencies for Sigma along the real axis.
-        try:
-            self.nomega_r = self.read_dimvalue("nomega_r")
-        except self.Error:
-            self.nomega_r = 0
+        self.nomega_r = self.read_dimvalue("nomega_r", default = -1)
 
         # Read Number of frequencies for Sigma along the imag axis.
-        try:
-            self.nomega_i = self.read_dimvalue("nomega_i")
-        except self.Error:
-            self.nomega_i = 0
+        self.nomega_i = self.read_dimvalue("nomega_i", default = -1)
 
         # Save important quantities needed to simplify the API.
         self.structure = self.read_structure()
 
         self.gwcalctyp = self.read_value("gwcalctyp")
         self.usepawu = self.read_value("usepawu")
+
+        # Read the number of frequencies for screening.
+        self.nfreqim = self.read_value("nfreqim", default = -1)
+        self.nfreqre = self.read_value("nfreqre", default = -1)
 
         # 1) The K-points of the homogeneous mesh.
         self.ibz = self.ks_bands.kpoints
