@@ -2,7 +2,7 @@ name: Deploy documentation with GitHub Pages dependencies preinstalled
 
 on:
   push:
-    branches: ["develop", "master"]
+    branches: ["develop"]
   workflow_dispatch: # enable manual workflow execution
 
 # Set permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -54,13 +54,13 @@ jobs:
         run: |
             conda create -n abipy python=${{ matrix.config.python }} --yes
             conda activate abipy
-            conda install abinit -c conda-forge --yes
+            pip install invoke
+            conda install "abinit>10" -c conda-forge --yes
             mpirun -n 1 abinit --version
             mpirun -n 1 abinit --build
 
             # Update submodules with data.
-            git submodule update --remote --init
-            git submodule update --recursive --remote
+            invoke submodules
 
             pip install --editable .
             mkdir -p $HOME/.abinit/abipy/

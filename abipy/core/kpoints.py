@@ -687,7 +687,12 @@ class Kpoint(SlotPickleMixin):
     def set_name(self, name: str | None) -> None:
         """Set the name of the k-point."""
         # Fix typo in Latex syntax (if any).
-        if name is not None and name.startswith("\\"): name = "$" + name + "$"
+        if (name is not None
+            and (name.startswith("\\") or "_" in name)
+            and not (name.startswith("$") and name.endswith("$"))
+            ):
+            name = "$" + name + "$"
+
         self._name = name
 
     @cached_property
@@ -1185,7 +1190,12 @@ class KpointList(collections.abc.Sequence):
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone
         fold = False
         if self.is_path:
-            labels = {k.name: k.frac_coords for k in self if k.name}
+            # NB: plot_brillouin_zone adds $ around k.name if _ is present so we have to remove it
+            def _fix(s):
+                if "_" in s: s = s.replace("$", "")
+                return s
+            labels = {_fix(k.name): k.frac_coords for k in self if k.name}
+            #labels = {k.name: k.frac_coords for k in self if k.name}
             frac_coords_lines = [self.frac_coords[line] for line in self.lines]
             return plot_brillouin_zone(self.reciprocal_lattice, lines=frac_coords_lines, labels=labels,
                                        ax=ax, fold=fold, **kwargs)
