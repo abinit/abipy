@@ -1839,7 +1839,9 @@ class GwrRobot(Robot, RobotWithEbands):
                 else:
                     set_visible(ax, False, "ylabel")
 
-                ax.set_title("k-point: %s" % repr(sigma_kpt), fontsize=fontsize)
+                ax.set_title("k-point: %s" % repr(sigma_kpt) + 
+                             (("  tol: %.3g meV" % (abs_conv*1E3)) if abs_conv else ""), 
+                             fontsize=fontsize)
 
         return fig
 

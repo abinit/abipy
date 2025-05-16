@@ -2265,7 +2265,9 @@ class SigresRobot(Robot, RobotWithEbands):
 
         for ik, (kcalc, ax) in enumerate(zip(sigma_kpoints, ax_list)):
             for spin in range(nsppol):
-                ax.set_title("k-point: %s" % (repr(kcalc)), fontsize=fontsize)
+                ax.set_title("k-point: %s" % (repr(kcalc)) + 
+                             (("  tol: %.3g meV" % (abs_conv*1E3)) if abs_conv else ""), 
+                             fontsize=fontsize)
 
                 data = self.get_qpgaps_dataframe(spin=spin, kpoint=kcalc, with_geo=False, with_ksgap=True)
                 if plot_qpmks:
