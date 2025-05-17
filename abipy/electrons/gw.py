@@ -1332,9 +1332,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             ib_gw = band - self.min_bstart
             sigma = var[spin, :, ik_ibz, ib_gw, 0] + 1j*var[spin, :, ik_ibz, ib_gw, 1]
             re_ax.plot(wmesh_ev, sigma.real, 
-                       label=label if label else f"band: {band}")
+                       label=label if label else f"band: {band+1}")
             im_ax.plot(wmesh_ev, sigma.imag, 
-                       label=label if label else f"band: {band}")
+                       label=label if label else f"band: {band+1}")
 
         re_ax.set_ylabel(r"$\Re{\Sigma_c}(i\omega)$ (eV)")
         im_ax.set_ylabel(r"$\Im{\Sigma_c}(i\omega)$ (eV)")
@@ -2583,10 +2583,16 @@ class SigresRobot(Robot, RobotWithEbands):
         if band_list is None:
             band_list = []
             for label, sigres in self.items():
-                for iband in range(sigres.bstart_sk[0], sigres.bstop_sk[0]):
+                print(sigres.min_bstart, sigres.max_bstop)
+                for iband in range(sigres.min_bstart,
+                                   sigres.max_bstop):
                     if iband not in band_list:
                         band_list.append(iband)
             band_list.sort()
+        elif isinstance(band_list, int):
+            band_list = [band_list - 1]
+        else:
+            band_list = [i-1 for i in band_list]
 
         # Build grid with (nkpt, 1) plots.
         ncols, nrows = 1, len(band_list)*len(sigma_kpoints)*2
@@ -2603,7 +2609,7 @@ class SigresRobot(Robot, RobotWithEbands):
                 band = band_list[ib]
                 ax = ax_list[ik*len(band_list)+ib,:]
                 for spin in range(nsppol):
-                    ax[0].set_title("k-point: %s band: %s" % (repr(kcalc), repr(band)), fontsize=fontsize)
+                    ax[0].set_title("k-point: %s band: %s" % (repr(kcalc), repr(band+1)), fontsize=fontsize)
                     for i, (label, sigres) in enumerate(self.items()):
                         sigres.plot_sigma_imag_axis(kpoint = kcalc,
                                                     spin = spin,
