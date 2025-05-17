@@ -2554,8 +2554,13 @@ class SigresRobot(Robot, RobotWithEbands):
         return self._write_nb_nbpath(nb, nbpath)
     
     @add_fig_kwargs
-    def plot_sigma_imag_axis(self, sharey=False, fontsize=8, band_list = None,
-                             qp_kpoints: str = "all", **kwargs) -> Figure:
+    def plot_sigma_imag_axis(self,
+                             sharey=False,
+                             qp_kpoints: str = "all",
+                             band_list: int | list[str] | None = None,
+                             sortby: str | None = None,
+                             fontsize=8,
+                             **kwargs) -> Figure:
         """
         Plot the imaginary part of the self-energy on the imaginary axis.
 
@@ -2601,7 +2606,7 @@ class SigresRobot(Robot, RobotWithEbands):
         fig.set_figheight(nrows*fig.get_figheight())
         fig.set_figwidth(ncols*fig.get_figwidth())
         ax_list = ax_list.reshape((nrows//2, 2))
-        label_list = filepath_extract_differences(list(self.keys()))
+        # label_list = filepath_extract_differences(list(self.keys()))
 
         for ik in range(len(sigma_kpoints)):
             kcalc = sigma_kpoints[ik]
@@ -2610,13 +2615,14 @@ class SigresRobot(Robot, RobotWithEbands):
                 ax = ax_list[ik*len(band_list)+ib,:]
                 for spin in range(nsppol):
                     ax[0].set_title("k-point: %s band: %s" % (repr(kcalc), repr(band+1)), fontsize=fontsize)
-                    for i, (label, sigres) in enumerate(self.items()):
+                    lnp_list = self.sortby(sortby)
+                    for i, (label, sigres, param) in enumerate(lnp_list):
                         sigres.plot_sigma_imag_axis(kpoint = kcalc,
                                                     spin = spin,
                                                     ax_list = ax,
                                                     band_list = band,
                                                     fontsize = fontsize,
-                                                    label = label_list[i],
+                                                    label = f"{sortby}: {param}",
                                                     show = False)
         
             # ax[0].legend(loc="best", fontsize=fontsize, shadow=True)
