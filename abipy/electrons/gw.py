@@ -453,7 +453,7 @@ class SelfEnergy:
     latex_symbols = dict(
         re=r"$\Re{\Sigma_{nk}(\omega)}$",
         im=r"$\Im{\Sigma_{nk}(\omega)}$",
-        aw=r"$A_{nk}(\omega)}$",
+        aw=r"$A_{nk}(\omega)$",
     )
 
     def __init__(self,
@@ -1282,6 +1282,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                              spin: int = 0,
                              ax_list=None,
                              fontsize: int = 8,
+                             band_list: list[int] | int | None = None,
+                             label: str = None,
                              **kwargs) -> Figure:
         """
         Plot the self-energy along the imaginary frequency axis.
@@ -1321,11 +1323,18 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         ax_list = np.array(ax_list).ravel()
         re_ax, im_ax = ax_list
 
+        if band_list is not None:
+            if isinstance(band_list, int):
+                band_list = [band_list]
+
         for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
+            if band_list is not None and band not in band_list: continue
             ib_gw = band - self.min_bstart
             sigma = var[spin, :, ik_ibz, ib_gw, 0] + 1j*var[spin, :, ik_ibz, ib_gw, 1]
-            re_ax.plot(wmesh_ev, sigma.real, label=f"band: {band}")
-            im_ax.plot(wmesh_ev, sigma.imag, label=f"band: {band}")
+            re_ax.plot(wmesh_ev, sigma.real, 
+                       label=label if label else f"band: {band}")
+            im_ax.plot(wmesh_ev, sigma.imag, 
+                       label=label if label else f"band: {band}")
 
         re_ax.set_ylabel(r"$\Re{\Sigma_c}(i\omega)$ (eV)")
         im_ax.set_ylabel(r"$\Im{\Sigma_c}(i\omega)$ (eV)")
@@ -1969,6 +1978,8 @@ class SigresReader(ETSF_Reader):
             "ecutwfn", "ecuteps", "ecutsigx",
             "scr_nband", "sigma_nband",
             "gwcalctyp", "scissor_ene",
+            "nfreqim", "nfreqre",
+            "nomega_i", "nomega_r",
         ]
 
         # Read data and convert to scalar to avoid problems with pandas dataframes.
@@ -1976,6 +1987,7 @@ class SigresReader(ETSF_Reader):
         params = {}
         for pname in param_names:
             v = self.read_value(pname, default=None)
+            if v is None: v = self.read_dimvalue(pname, default=None)
             params[pname] = v if v is None else np.asarray(v).item()
 
         # Other quantities that might be subject to convergence studies.
@@ -2540,6 +2552,79 @@ class SigresRobot(Robot, RobotWithEbands):
         nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
+    
+    @add_fig_kwargs
+    def plot_sigma_imag_axis(self,
+                             sharey=False,
+                             qp_kpoints: str = "all",
+                             band_list: int | list[str] | None = None,
+                             sortby: str | None = None,
+                             fontsize=8,
+                             **kwargs) -> Figure:
+        """
+        Plot the imaginary part of the self-energy on the imaginary axis.
+
+        Args:
+            spin: Spin index.
+            kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
+            band: Band index.
+            fontsize: legend and label fontsize.
+        """
+        # Make sure that nsppol and sigma_kpoints are consistent
+        self._check_dims_and_params()
+
+        nc0 = self.abifiles[0]
+        nsppol = nc0.nsppol
+        if qp_kpoints == "all":
+            sigma_kpoints = nc0.sigma_kpoints
+        else:
+            if isinstance(qp_kpoints, Iterable):
+                if not isinstance(qp_kpoints[0], Iterable):
+                    qp_kpoints = [qp_kpoints]
+                for k in qp_kpoints:
+                    ik_list = [nc0.sigma_kpoints.index(kpt) for kpt in qp_kpoints]
+                    sigma_kpoints = [nc0.sigma_kpoints[ikc] for ikc in ik_list]
+
+        if band_list is None:
+            band_list = []
+            for label, sigres in self.items():
+                for iband in range(sigres.min_bstart,
+                                   sigres.max_bstop):
+                    if iband not in band_list:
+                        band_list.append(iband)
+            band_list.sort()
+        elif isinstance(band_list, int):
+            band_list = [band_list]
+
+        # Build grid with (nkpt, 1) plots.
+        ncols, nrows = 1, len(band_list)*len(sigma_kpoints)*2
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                sharex=True, sharey=sharey, squeeze=False)
+        fig.set_figheight(nrows*fig.get_figheight())
+        fig.set_figwidth(ncols*fig.get_figwidth())
+        ax_list = ax_list.reshape((nrows//2, 2))
+        # label_list = filepath_extract_differences(list(self.keys()))
+
+        for ik in range(len(sigma_kpoints)):
+            kcalc = sigma_kpoints[ik]
+            for ib in range(len(band_list)):
+                band = band_list[ib]
+                ax = ax_list[ik*len(band_list)+ib,:]
+                for spin in range(nsppol):
+                    ax[0].set_title("k-point: %s band: %s" % (repr(kcalc), repr(band)), fontsize=fontsize)
+                    lnp_list = self.sortby(sortby)
+                    for i, (label, sigres, param) in enumerate(lnp_list):
+                        sigres.plot_sigma_imag_axis(kpoint = kcalc,
+                                                    spin = spin,
+                                                    ax_list = ax,
+                                                    band_list = band,
+                                                    fontsize = fontsize,
+                                                    label = f"{sortby}: {param}",
+                                                    show = False)
+        
+            # ax[0].legend(loc="best", fontsize=fontsize, shadow=True)
+                    
+        return fig
 
 
 class GwRobotWithDisplacedAtom(SigresRobot):
