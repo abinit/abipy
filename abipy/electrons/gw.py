@@ -453,7 +453,7 @@ class SelfEnergy:
     latex_symbols = dict(
         re=r"$\Re{\Sigma_{nk}(\omega)}$",
         im=r"$\Im{\Sigma_{nk}(\omega)}$",
-        aw=r"$A_{nk}(\omega)}$",
+        aw=r"$A_{nk}(\omega)$",
     )
 
     def __init__(self,
