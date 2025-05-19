@@ -1243,9 +1243,6 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return pd.concat(df_list)
 
-    # FIXME: To maintain previous interface.
-    #to_dataframe = get_dataframe
-
     def get_dataframe_sk(self,
                          spin: int,
                          kpoint: KptSelect,
@@ -1284,6 +1281,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                              fontsize: int = 8,
                              band_list: list[int] | int | None = None,
                              label: str = None,
+                             plt_kwargs: dict | None = None,
                              **kwargs) -> Figure:
         """
         Plot the self-energy along the imaginary frequency axis.
@@ -1293,6 +1291,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             spin: Spin index.
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            band_list: List of band indices to plot (starting from zero). If None, all bands are plotted.
+            plt_kwargs: Optional dict with keyword options passed to ax.plot.
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
@@ -1327,14 +1327,17 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             if isinstance(band_list, int):
                 band_list = [band_list]
 
+        if plt_kwargs is None:
+            plt_kwargs = dict(marker="o")
+
         for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
             if band_list is not None and band not in band_list: continue
             ib_gw = band - self.min_bstart
             sigma = var[spin, :, ik_ibz, ib_gw, 0] + 1j*var[spin, :, ik_ibz, ib_gw, 1]
-            re_ax.plot(wmesh_ev, sigma.real, 
-                       label=label if label else f"band: {band}")
-            im_ax.plot(wmesh_ev, sigma.imag, 
-                       label=label if label else f"band: {band}")
+            re_ax.plot(wmesh_ev, sigma.real,
+                       label=label if label else f"band: {band}", **plt_kwargs)
+            im_ax.plot(wmesh_ev, sigma.imag,
+                       label=label if label else f"band: {band}", **plt_kwargs)
 
         re_ax.set_ylabel(r"$\Re{\Sigma_c}(i\omega)$ (eV)")
         im_ax.set_ylabel(r"$\Im{\Sigma_c}(i\omega)$ (eV)")
@@ -1745,8 +1748,9 @@ class SigresReader(ETSF_Reader):
         self.usepawu = self.read_value("usepawu")
 
         # Read the number of frequencies for screening.
-        self.nfreqim = self.read_value("nfreqim", default = -1)
-        self.nfreqre = self.read_value("nfreqre", default = -1)
+        # These variables have been added in Abinit 10.5.2
+        self.nfreqim = self.read_value("nfreqim", default=-1)
+        self.nfreqre = self.read_value("nfreqre", default=-1)
 
         # 1) The K-points of the homogeneous mesh.
         self.ibz = self.ks_bands.kpoints
@@ -2222,7 +2226,7 @@ class SigresRobot(Robot, RobotWithEbands):
     get_dataframe = get_qpgaps_dataframe
 
     @add_fig_kwargs
-    def plot_qpgaps_convergence(self, plot_qpmks=True, sortby=None, hue=None, sharey=False, fontsize=8, 
+    def plot_qpgaps_convergence(self, plot_qpmks=True, sortby=None, hue=None, sharey=False, fontsize=8,
                                 abs_conv=None, qp_kpoints: str = "all", span_style: dict | None = None, **kwargs) -> Figure:
         """
         Plot the convergence of the direct QP gaps for all the k-points available in the robot.
@@ -2277,8 +2281,8 @@ class SigresRobot(Robot, RobotWithEbands):
 
         for ik, (kcalc, ax) in enumerate(zip(sigma_kpoints, ax_list)):
             for spin in range(nsppol):
-                ax.set_title("k-point: %s" % (repr(kcalc)) + 
-                             (("  tol: %.3g meV" % (abs_conv*1E3)) if abs_conv else ""), 
+                ax.set_title("k-point: %s" % (repr(kcalc)) +
+                             (("  tol: %.3g meV" % (abs_conv*1E3)) if abs_conv else ""),
                              fontsize=fontsize)
 
                 data = self.get_qpgaps_dataframe(spin=spin, kpoint=kcalc, with_geo=False, with_ksgap=True)
@@ -2305,7 +2309,7 @@ class SigresRobot(Robot, RobotWithEbands):
             if ik == len(sigma_kpoints) - 1:
                 if sortby == "filename":
                     rotate_ticklabels(ax, 15)
-                    
+
                 else:
                     ax.set_xlabel(self.XLABELS.get(sortby, sortby))
             else:
@@ -2552,17 +2556,17 @@ class SigresRobot(Robot, RobotWithEbands):
         nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
-    
+
     @add_fig_kwargs
     def plot_sigma_imag_axis(self,
-                             sharey=False,
                              qp_kpoints: str = "all",
                              band_list: int | list[str] | None = None,
                              sortby: str | None = None,
+                             sharey=False,
                              fontsize=8,
                              **kwargs) -> Figure:
         """
-        Plot the imaginary part of the self-energy on the imaginary axis.
+        Plot the self-energy along the imaginary axis.
 
         Args:
             spin: Spin index.
@@ -2599,9 +2603,8 @@ class SigresRobot(Robot, RobotWithEbands):
         # Build grid with (nkpt, 1) plots.
         ncols, nrows = 1, len(band_list)*len(sigma_kpoints)*2
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=sharey, squeeze=False)
-        fig.set_figheight(nrows*fig.get_figheight())
-        fig.set_figwidth(ncols*fig.get_figwidth())
+                                                sharex=True, sharey=sharey, squeeze=False, rescale_fig=True)
+
         ax_list = ax_list.reshape((nrows//2, 2))
         # label_list = filepath_extract_differences(list(self.keys()))
 
@@ -2621,9 +2624,9 @@ class SigresRobot(Robot, RobotWithEbands):
                                                     fontsize = fontsize,
                                                     label = f"{sortby}: {param}",
                                                     show = False)
-        
+
             # ax[0].legend(loc="best", fontsize=fontsize, shadow=True)
-                    
+
         return fig
 
 

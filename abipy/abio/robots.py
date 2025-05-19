@@ -844,10 +844,11 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
         Args:
             hue: Variable that defines subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
-                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked
+                    or that a key with the same name is present in abifile.params.
                 Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
                 If callable, the output of hue(abifile) is used.
-            func_or_string: Either None, string, callable defining the quantity to be used for sorting.
+            func_or_string: None, string, or callable defining the quantity to be used for sorting.
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of func_or_string(abifile) is used.
                 If None, no sorting is performed.

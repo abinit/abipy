@@ -290,12 +290,17 @@ def get_axarray_fig_plt(ax_array,
                         subplot_kw: dict | None = None,
                         gridspec_kw: dict | None = None,
                         grid: bool = True,
+                        rescale_fig: bool = False,
                         **fig_kw):
     """
     Helper function used in plot functions that accept an optional array of Axes
     as argument. If ax_array is None, we build the `matplotlib` figure and
     create the array of Axes by calling plt.subplots else we return the
     current active figure.
+
+    Args:
+        rescale_fig: If true, scale figure’s size proportionally to the number of rows (nrows)
+            and columns (ncols) in the grid. Useful to avoid squashing subplots.
 
     Returns:
         ax: Array of Axes objects
@@ -335,6 +340,10 @@ def get_axarray_fig_plt(ax_array,
             else:
                 for ax in ax_array:
                     ax.grid(grid)
+
+    if rescale_fig:
+        fig.set_figheight(nrows * fig.get_figheight())
+        fig.set_figwidth(ncols * fig.get_figwidth())
 
     return ax_array, fig, plt
 
