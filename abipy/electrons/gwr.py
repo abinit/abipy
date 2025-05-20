@@ -958,7 +958,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def plot_sigma_imag_axis(self,
                              kpoint: KptSelect,
                              spin: int = 0,
-                             include_bands="gap",
+                             include_bands: str = "gap",
                              with_tau: bool = True,
                              fontsize: int = 8,
                              ax_mat=None,
@@ -987,10 +987,10 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         # Plot Sigmac_nk(iw)
         re_ax, im_ax = ax_list = ax_mat[0]
-        style = dict(marker="o")
+        plt_style = dict(marker="o")
         for band, sigma in sigma_of_band.items():
-            sigma.c_iw.plot_ax(re_ax, cplx_mode="re", label=f"Re band: {band}", **style)
-            sigma.c_iw.plot_ax(im_ax, cplx_mode="im", label=f"Im band: {band}", **style)
+            sigma.c_iw.plot_ax(re_ax, cplx_mode="re", label=f"Re band: {band}", **plt_style)
+            sigma.c_iw.plot_ax(im_ax, cplx_mode="im", label=f"Im band: {band}", **plt_style)
 
         re_ax.set_ylabel(r"$\Re{\Sigma_c}(i\omega)$ (eV)")
         im_ax.set_ylabel(r"$\Im{\Sigma_c}(i\omega)$ (eV)")
@@ -999,10 +999,10 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         if with_tau:
             # Plot Sigmac_nk(itau)
             re_ax, im_ax = ax_list = ax_mat[1]
-            style = dict(marker="o")
+            plt_style = dict(marker="o")
             for band, sigma in sigma_of_band.items():
-                sigma.c_tau.plot_ax(re_ax, cplx_mode="re", label=f"Re band: {band}", **style)
-                sigma.c_tau.plot_ax(im_ax, cplx_mode="im", label=f"Im band: {band}", **style)
+                sigma.c_tau.plot_ax(re_ax, cplx_mode="re", label=f"Re band: {band}", **plt_style)
+                sigma.c_tau.plot_ax(im_ax, cplx_mode="im", label=f"Im band: {band}", **plt_style)
 
             re_ax.set_ylabel(r"$\Re{\Sigma_c}(i\tau)$ (eV)")
             im_ax.set_ylabel(r"$\Im{\Sigma_c}(i\tau)$ (eV)")
@@ -1839,8 +1839,8 @@ class GwrRobot(Robot, RobotWithEbands):
                 else:
                     set_visible(ax, False, "ylabel")
 
-                ax.set_title("k-point: %s" % repr(sigma_kpt) + 
-                             (("  tol: %.3g meV" % (abs_conv*1E3)) if abs_conv else ""), 
+                ax.set_title("k-point: %s" % repr(sigma_kpt) +
+                             (("  tol: %.3g meV" % (abs_conv*1E3)) if abs_conv else ""),
                              fontsize=fontsize)
 
         return fig
@@ -1875,7 +1875,6 @@ class GwrRobot(Robot, RobotWithEbands):
         # Make sure that nsppol and sigma_kpoints are consistent.
         self._check_dims_and_params()
 
-        # TODO: Add more quantities DW, Fan(0)
         # TODO: Decide how to treat complex quantities, avoid annoying ComplexWarning
         # TODO: Format for g.hvalue
         # Treat fundamental gaps

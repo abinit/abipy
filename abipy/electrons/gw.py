@@ -713,8 +713,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     .. code-block:: python
 
-        sigres = SigresFile("foo_SIGRES.nc")
-        sigres.plot_qps_vs_e0()
+        with SigresFile("foo_SIGRES.nc") as sigres:
+            sigres.plot_qps_vs_e0()
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: SigresFile
@@ -734,35 +734,37 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         super().__init__(filepath)
 
         # Keep a reference to the SigresReader.
-        self.reader = self.r = reader = SigresReader(self.filepath)
+        self.reader = self.r = SigresReader(self.filepath)
 
-        self._structure = reader.read_structure()
-        self.gwcalctyp = reader.gwcalctyp
-        self.ibz = reader.ibz
-        #self.sigma_kpoints = reader.sigma_kpoints
+        self._structure = self.r.read_structure()
+        self.gwcalctyp = self.r.gwcalctyp
+        self.ibz = self.r.ibz
         self.nkcalc = len(self.sigma_kpoints)
 
-        self.bstart_sk = reader.bstart_sk
-        self.bstop_sk = reader.bstop_sk
+        self.bstart_sk = self.r.bstart_sk
+        self.bstop_sk = self.r.bstop_sk
 
-        self.min_bstart = reader.min_bstart
-        self.max_bstart = reader.max_bstart
-        self.min_bstop = reader.min_bstop
-        self.max_bstop = reader.max_bstop
-
-        self._ebands = ebands = reader.ks_bands
-
-        qplist_spin = self.qplist_spin
-
-        # TODO handle the case in which nkptgw < nkibz
-        self.qpgaps = reader.read_qpgaps()
-        self.qpenes = reader.read_qpenes()
-        self.ksgaps = reader.read_ksgaps()
+        self.min_bstart = self.r.min_bstart
+        self.max_bstart = self.r.max_bstart
+        self.min_bstop = self.r.min_bstop
+        self.max_bstop = self.r.max_bstop
 
     @property
     def sigma_kpoints(self):
         """The k-points where QP corrections have been calculated."""
         return self.r.sigma_kpoints
+
+    @cached_property
+    def qpgaps(self):
+        return self.r.read_qpgaps()
+
+    @cached_property
+    def qpenes(self):
+        return self.r.read_qpenes()
+
+    @cached_property
+    def ksgaps(self):
+        return self.r.read_ksgaps()
 
     def get_marker(self, qpattr):
         """
@@ -843,7 +845,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     @property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| with the KS energies."""
-        return self._ebands
+        return self.r.ks_bands
 
     @property
     def has_spectral_function(self) -> bool:
@@ -1002,7 +1004,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
     @add_fig_kwargs
     def plot_qpgaps(self, ax=None, plot_qpmks=True, fontsize=8, **kwargs) -> Figure:
         """
-        Plot the KS and the QP direct gaps for all the k-points and spins available on file.
+        Plot the KS and the QP direct gaps for all the k-points and spins available in the Sigres file.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -1084,7 +1086,11 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return fig
 
     @add_fig_kwargs
-    def plot_spectral_functions(self, include_bands=None, fontsize=8, ax_list=None, **kwargs) -> Figure:
+    def plot_spectral_functions(self,
+                                include_bands: list | None = None,
+                                fontsize: int = 8,
+                                ax_list: list | None = None,
+                                **kwargs) -> Figure:
         """
         Plot the spectral function for all k-points, bands and spins available in the SIGRES file.
 
@@ -1108,14 +1114,16 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
                     if include_bands and band not in include_bands: continue
                     sigw = self.read_sigee_skb(spin, kcalc, band)
-                    label = r"$A(\omega)$: band: %d, spin: %d" % (band, spin)
-                    sigw.plot_ax(ax, what="a", label=label, fontsize=fontsize, **kwargs)
+                    sigw.plot_ax(ax, what="a", label= r"$A(\omega)$: band: %d, spin: %d" % (band, spin),
+                                fontsize=fontsize, **kwargs)
 
                 # Show KS gap as filled area.
                 #self.ebands.add_fundgap_span(ax, spin)
 
-            ax.set_title("k-point: %s" % repr(sigw.kpoint), fontsize=fontsize)
+            ax.set_title("k-point: %s" % repr(kcalc), fontsize=fontsize)
             ax.set_ylabel(r"$A(\omega)$ (1/eV)")
+            if ikcalc == len(self.sigma_kpoints) - 1:
+                ax.set_xlabel("Energy (eV)")
 
         return fig
 
@@ -1204,7 +1212,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             qpattr: Name of the QP attribute to plot. See :class:`QPState`.
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
                 - ``fermie``: shift all eigenvalues to have zero energy at the Fermi energy (``self.fermie``).
-                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
+                -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV.
                 -  None: Don't shift energies, equivalent to ``e0 = 0``
             fact: Markers are multiplied by this factor.
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -1278,9 +1286,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                              kpoint: KptSelect,
                              spin: int = 0,
                              ax_list=None,
-                             fontsize: int = 8,
                              band_list: list[int] | int | None = None,
                              label: str = None,
+                             fontsize: int = 8,
                              plt_kwargs: dict | None = None,
                              **kwargs) -> Figure:
         """
@@ -1310,8 +1318,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         var = self.r.read_variable("sigcmesi")
         wmesh_ev = self.r.read_value("omega_i")[:, 1]
 
-        ikcalc = self.r.kpt2ikcalc(kpoint)
-        ik_ibz = self.r.kpt2ibz(kpoint)
+        ikcalc, ik_ibz, kpoint = self.r.get_ikcalc_ik_ibz_kpoint(kpoint)
 
         #sigma_band = {}
         #for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
@@ -1341,7 +1348,10 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         re_ax.set_ylabel(r"$\Re{\Sigma_c}(i\omega)$ (eV)")
         im_ax.set_ylabel(r"$\Im{\Sigma_c}(i\omega)$ (eV)")
-        set_grid_legend(ax_list, fontsize, xlabel=r"$i\omega$ (eV)")
+        set_grid_legend(re_ax, fontsize)
+        set_grid_legend(im_ax, fontsize, xlabel=r"$i\omega$ (eV)")
+
+        fig.suptitle(r"$\Sigma_{nk}$" +  f" at k-point: {kpoint}, spin: {spin}", fontsize=fontsize)
 
         return fig
 
@@ -1543,10 +1553,18 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
+        mod10 = self.gwcalctyp % 10
+
         yield self.plot_qpgaps(show=False)
-        yield self.plot_qps_vs_e0(show=False)
+        #yield self.plot_qps_vs_e0(show=False)
         #yield self.plot_qpbands_ibz(show=False)
         #yield self.plot_ksbands_with_qpmarkers(show=False)
+
+        if mod10 == 1:
+            for spin in range(self.nsppol):
+                for kpoint in self.sigma_kpoints:
+                    yield self.plot_sigma_imag_axis(kpoint, spin=spin, show=False)
+
         if self.has_spectral_function:
             yield self.plot_spectral_functions(include_bands=None, show=False)
 
@@ -1731,9 +1749,9 @@ class SigresReader(ETSF_Reader):
     # ! Frequencies used to evaluate the Derivative of Sigma.
 
     def __init__(self, path: str):
+        super().__init__(path)
         self.ks_bands = ElectronBands.from_file(path)
         self.nsppol = self.ks_bands.nsppol
-        super().__init__(path)
 
         # Read number of frequencies for Sigma along the real axis.
         self.nomega_r = self.read_dimvalue("nomega_r", default = -1)
@@ -1769,7 +1787,6 @@ class SigresReader(ETSF_Reader):
         # min and Max band index for GW corrections.
         self.min_bstart = np.min(self.bstart_sk)
         self.max_bstart = np.max(self.bstart_sk)
-
         self.min_bstop = np.min(self.bstop_sk)
         self.max_bstop = np.max(self.bstop_sk)
 
@@ -1817,16 +1834,18 @@ class SigresReader(ETSF_Reader):
             This function is needed since arrays in the netcdf file are dimensioned
             with the total number of k-points in the IBZ.
         """
+        # FIXME: This is ambigous and should be remove.
         if duck.is_intlike(kpoint): return int(kpoint)
         return self.ibz.index(kpoint)
 
-    #def get_ikcalc_kpoint(self, kpoint) -> tuple(int, Kpoint):
-    #    """
-    #    Return the ikcalc index and the Kpoint
-    #    """
-    #    ikcalc = self.kpt2ikcalc(kpoint)
-    #    kpoint = self.sigma_kpoints[ikcalc]
-    #    return ikcalc, kpoint
+    def get_ikcalc_ik_ibz_kpoint(self, kpoint) -> tuple(int, int, Kpoint):
+        """
+        Return the ikcalc index, the index in the IBZ and the Kpoint object.
+        """
+        ikcalc = self.kpt2ikcalc(kpoint)
+        ik_ibz = self.kpt2ibz(kpoint)
+        kpoint = self.sigma_kpoints[ikcalc]
+        return ikcalc, ik_ibz, kpoint
 
     def kpt2ikcalc(self, kpoint) -> int:
         """
@@ -1978,20 +1997,31 @@ class SigresReader(ETSF_Reader):
         Read the parameters of the calculation.
         Returns dict with the value of the parameters.
         """
-        param_names = [
-            "ecutwfn", "ecuteps", "ecutsigx",
-            "scr_nband", "sigma_nband",
-            "gwcalctyp", "scissor_ene",
-            "nfreqim", "nfreqre",
-            "nomega_i", "nomega_r",
+        param_kind = [
+            ("ecutwfn", "variable"),
+            ("ecuteps", "variable"),
+            ("ecutsigx", "variable"),
+            ("scr_nband", "variable"),
+            ("sigma_nband", "variable"),
+            ("gwcalctyp", "variable"),
+            ("scissor_ene", "variable"),
+            ("nfreqim", "variable"),
+            ("nfreqre", "variable"),
+            ("nomega_i", "dimension"),
+            ("nomega_r", "dimension"),
         ]
 
         # Read data and convert to scalar to avoid problems with pandas dataframes.
         # Old sigres files may not have all the metadata.
         params = {}
-        for pname in param_names:
-            v = self.read_value(pname, default=None)
-            if v is None: v = self.read_dimvalue(pname, default=None)
+        for pname, kind in param_kind:
+            if kind == "variable":
+                v = self.read_value(pname, default=None)
+            elif kind == "dimension":
+                v = self.read_dimvalue(pname, default=-1)
+            else:
+                raise ValueError(f"Invalid {pname=}, {kind=}")
+
             params[pname] = v if v is None else np.asarray(v).item()
 
         # Other quantities that might be subject to convergence studies.
@@ -2563,15 +2593,15 @@ class SigresRobot(Robot, RobotWithEbands):
                              band_list: int | list[str] | None = None,
                              sortby: str | None = None,
                              sharey=False,
-                             fontsize=8,
+                             fontsize: int = 8,
                              **kwargs) -> Figure:
         """
-        Plot the self-energy along the imaginary axis.
+        Plot the correlated self-energy along the imaginary axis.
 
         Args:
             spin: Spin index.
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
-            band: Band index.
+            band_list: Band index.
             fontsize: legend and label fontsize.
         """
         # Make sure that nsppol and sigma_kpoints are consistent
@@ -2579,8 +2609,10 @@ class SigresRobot(Robot, RobotWithEbands):
 
         nc0 = self.abifiles[0]
         nsppol = nc0.nsppol
+
         if qp_kpoints == "all":
             sigma_kpoints = nc0.sigma_kpoints
+
         else:
             if isinstance(qp_kpoints, Iterable):
                 if not isinstance(qp_kpoints[0], Iterable):
@@ -2597,11 +2629,12 @@ class SigresRobot(Robot, RobotWithEbands):
                     if iband not in band_list:
                         band_list.append(iband)
             band_list.sort()
+
         elif isinstance(band_list, int):
             band_list = [band_list]
 
         # Build grid with (nkpt, 1) plots.
-        ncols, nrows = 1, len(band_list)*len(sigma_kpoints)*2
+        ncols, nrows = 1, len(band_list) * len(sigma_kpoints) * 2
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                 sharex=True, sharey=sharey, squeeze=False, rescale_fig=True)
 
@@ -2617,13 +2650,13 @@ class SigresRobot(Robot, RobotWithEbands):
                     ax[0].set_title("k-point: %s band: %s" % (repr(kcalc), repr(band)), fontsize=fontsize)
                     lnp_list = self.sortby(sortby)
                     for i, (label, sigres, param) in enumerate(lnp_list):
-                        sigres.plot_sigma_imag_axis(kpoint = kcalc,
-                                                    spin = spin,
-                                                    ax_list = ax,
-                                                    band_list = band,
-                                                    fontsize = fontsize,
-                                                    label = f"{sortby}: {param}",
-                                                    show = False)
+                        sigres.plot_sigma_imag_axis(kpoint=kcalc,
+                                                    spin=spin,
+                                                    ax_list=ax,
+                                                    band_list=band,
+                                                    fontsize=fontsize,
+                                                    label=f"{sortby}: {param}",
+                                                    show=False)
 
             # ax[0].legend(loc="best", fontsize=fontsize, shadow=True)
 
