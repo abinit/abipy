@@ -26,6 +26,7 @@ from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, 
 from abipy.tools.typing import Figure, KptSelect
 from abipy.tools import duck
 from abipy.tools.iotools import filepath_extract_differences
+from abipy.abio.enums import StrEnum
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.electrons.scissors import Scissors
@@ -36,6 +37,14 @@ __all__ = [
     "SigresFile",
     "SigresRobot",
 ]
+
+
+class Axis(StrEnum):
+    """Enumerator for the different kind of axis in Sigma(z)."""
+    wreal = "wreal"
+    wimag = "wimag"
+    tau = "tau"
+
 
 
 class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sigxme sigcmee0 vUme ze0")):
@@ -465,7 +474,10 @@ class SelfEnergy:
                  x_val: float,
                  e0: float,
                  ze0: complex,
+                 vxc: float,
+                 fermie0: float,
                  aw_vals: np.ndarray,
+                 ks_ebands: ElectronBands,
                  iw_mesh: np.ndarray | None = None,
                  c_iw_values: np.ndarray | None = None,
                  tau_mp_mesh: np.ndarray | None = None,
@@ -478,8 +490,9 @@ class SelfEnergy:
             wmesh: Frequency mesh along the real-axis in eV
             xc_vals: Matrix elements of sigma_xc on wmesh.
             x_val: Matrix element of sigma_x.
-            e0: Bare energi in eV.
+            e0: Bare energy in eV.
             ze0: Renormalization factor at the bare energy.
+            fermie0: Fermi level of the KS system.
             aw_vals: Spectral function A(w) on wmesh
             iw_mesh: Frequency mesh along the imag axis in eV. Optional
             c_iw_values: Values of Sigma_c(iw) on iw_mesh. Optional
@@ -488,12 +501,18 @@ class SelfEnergy:
         """
         self.spin, self.kpoint, self.band = spin, kpoint, band
 
+        # Save Fermi level as we are gonna shift energies and mesh wrt e0
+        self.fermie0 = fermie0
+        self.e0 = e0 - fermie0
         self.wmesh = np.array(wmesh)
+        self.wmesh -= fermie0
+
+        self.vxc = vxc
         self.xc = Function1D(self.wmesh, xc_vals)
         self.x_val = x_val
-        self.e0 = e0
         self.ze0 = ze0
         self.aw = Function1D(self.wmesh, aw_vals)
+        self.ks_ebands = ks_ebands
 
         if len(xc_vals) != len(aw_vals):
             raise ValueError(f"{len(xc_vals)=} != {len(aw_vals)=}")
@@ -625,6 +644,7 @@ class SelfEnergy:
 
         kw_color = kwargs.pop("color", None)
         kw_label = kwargs.pop("label", None)
+
         for i, (what, ax) in enumerate(zip(what_list, ax_list)):
             ax.grid(True)
             ax.set_ylabel(self.latex_symbols[what])
@@ -634,22 +654,26 @@ class SelfEnergy:
             # Add vertical line to show the position of the bare energy.
             ax.axvline(x=self.e0, color=kw_color, linestyle='--')
 
+            #if what == "re":
+            #    dyson_line = wmesh - self.e0 + self.vxc
+            #    ax.plot(wmesh, dyson_line, '--') # , label=r'ω − ε + v$_{xc}$')
+
             # TODO
             # Add linearized QP solution. See sigeph
             # Before doing this we should fix the treatmen of the frequency mesh in GW
             # and use the same approach used in GWR (mesh centered on e0 with even number of points)
+            # intersection with omega - eKs - vxc
             #sig0 = self.vals_wr[self.nwr // 2 + 1]
             #aa = self.dvals_de0ks.real
-            #ze0 = self.qp.ze0.real
             #line = sig0.real + aa * xs
             #ax.plot(xs, line, color="k", lw=1, ls=linestyles["densely_dotted"],
-            #         label=r"$\Re(\Sigma^0) + \dfrac{\partial\Sigma}{\partial\omega}(\omega - \epsilon^0$)")
+            #        label=r"$\Re(\Sigma^0) + \dfrac{\partial\Sigma}{\partial\omega}(\omega - \epsilon^0$)")
 
             #lins_x0 = self.qp.qpe.real - self.qp.e0
             #y0 = sig0.real + aa * lins_x0
             #scatter_opts = dict(color="blue", marker="o", alpha=0.8, s=50, zorder=100, edgecolor='black')
-            #ax0.scatter(lins_x0, y0, label="Linearized solution", **scatter_opts)
-            #text = r"$Z = %.2f$" % ze0
+            #ax.scatter(lins_x0, y0, label="Linearized solution", **scatter_opts)
+            #text = r"$Z = %.2f$" % self.ze0
             #ax.annotate(text, (lins_x0 + 0.02, y0 + 0.1), textcoords="data", size=8)
 
             set_axlims(ax, xlims, "x")
@@ -940,8 +964,12 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         ze0 =  self.r.read_variable("ze0")[spin, ik_ibz, ib_gw]
         ze0 = ze0[0] + 1j*ze0[1]
         e0 = self.ebands.eigens[spin, ik_ibz, band]
+        fermie0 = self.ebands.fermie
 
-        return SelfEnergy(spin, kpoint, band, wmesh, xc_vals, x_val, e0, ze0, aw_vals,
+        vxc = self.r._vxcme[spin, ik_ibz, ib_gw]
+
+        return SelfEnergy(spin, kpoint, band, wmesh, xc_vals, x_val, e0,
+                          ze0, vxc, fermie0, aw_vals, self.ebands,
                           iw_mesh=iw_mesh, c_iw_values=c_iw_values)
 
     def print_qps(self, precision=3, ignore_imag=True, file=sys.stdout) -> None:
@@ -2548,7 +2576,7 @@ class SigresRobot(Robot, RobotWithEbands):
 
     @add_fig_kwargs
     def plot_selfenergy_conv(self, spin, kpoint, band,
-                             axis_type="real",
+                             axis="wreal",
                              sortby=None,
                              hue=None,
                              colormap="viridis",
@@ -2563,8 +2591,8 @@ class SigresRobot(Robot, RobotWithEbands):
             spin: Spin index.
             kpoint: K-point in self-energy (can be |Kpoint|, list/tuple or int)
             band: Band index.
-            axis_type: "real" if self-energy along the real axis should be showed.
-                       "imag" for imaginary axis (if available, e.g. GW with AC).
+            axis: "wreal" if self-energy along the real axis should be showed.
+                       "wimag" for imaginary axis (if available, e.g. GW with AC).
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
@@ -2586,8 +2614,11 @@ class SigresRobot(Robot, RobotWithEbands):
         import matplotlib.pyplot as plt
         cmap = plt.get_cmap(colormap)
 
+        if axis not in Axis:
+            raise ValueError(f"Invalid value for {axis=}")
+
         what_list = ("re", "im", "aw")
-        nrows = {"real": 3, "imag": 2}[axis_type]
+        nrows = {Axis.wreal: len(what_list), Axis.wimag: 2}[axis]
 
         if hue is None:
             ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=1,
@@ -2602,12 +2633,15 @@ class SigresRobot(Robot, RobotWithEbands):
                     )
 
                 sigma = ncfile.read_sigee_skb(spin, kpoint, band)
-                if axis_type == "real":
+
+                if axis == Axis.wreal:
+                    # Plot Sigma(w) along the real axis.
                     sigma.plot(what_list=what_list, show=False, **plt_kwargs)
-                else:
+                elif axis == Axis.wimag:
+                    # Plot Sigma(iw) along the imaginary axis.
                     sigma.plot_reimc_iw(**plt_kwargs)
 
-            if axis_type == "imag":
+            if axis == Axis.wimag:
                 for ax in ax_mat.ravel():
                     ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -2629,9 +2663,11 @@ class SigresRobot(Robot, RobotWithEbands):
 
                     sigma = ncfile.read_sigee_skb(spin, kpoint, band)
 
-                    if axis_type == "real":
+                    if axis == Axis.wreal:
+                        # Plot Sigma(w) along the real axis.
                         sigma.plot(what_list=what_list, show=False, **plt_kwargs)
-                    else:
+                    elif axis == Axis.wimag:
+                        # Plot Sigma(iw) along the imaginary axis.
                         sigma.plot_reimc_iw(**plt_kwargs)
 
             if ig != 0:
@@ -2640,7 +2676,7 @@ class SigresRobot(Robot, RobotWithEbands):
 
             for ax in ax_mat.ravel():
                 set_axlims(ax, xlims, "x")
-                if axis_type == "imag":
+                if axis == Axis.wimag:
                     ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig

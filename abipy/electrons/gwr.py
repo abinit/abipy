@@ -26,7 +26,7 @@ from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fi
     set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line, Exposer)
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
-from abipy.electrons.gw import SelfEnergy, QPState, QPList
+from abipy.electrons.gw import SelfEnergy, QPState, QPList, Axis
 from abipy.abio.enums import GWR_TASK
 from abipy.tools.pade import pade, dpade, SigmaPade
 
@@ -1376,8 +1376,15 @@ class GwrReader(ETSF_Reader):
 
         ik_ibz = self.kcalc2ibz[ikcalc]
         e0 = self.ebands.eigens[spin, ik_ibz, band]
+        fermie0 = self.ebands.fermie
 
-        return GwrSelfEnergy(spin, kpoint, band, wmesh, xc_vals, x_val, e0, ze0, aw_vals,
+        # TODO: Add it to GWR.nc
+        #vxc = self._vxcme[spin, ikcalc, ib]
+        #vxc = self.read_variable("vxc_kcalc")[spin, ilcalc, ib]
+        vxc = 0.0
+
+        return GwrSelfEnergy(spin, kpoint, band, wmesh, xc_vals, x_val,
+                             e0, ze0, vxc, fermie0, aw_vals, self.ebands,
                              iw_mesh=self.iw_mesh, c_iw_values=c_iw_values,
                              tau_mp_mesh=tau_mp_mesh, c_tau_mp_values=c_tau_mp_values,
                              mx_mesh=mx_mesh)
@@ -1691,11 +1698,11 @@ class GwrRobot(Robot, RobotWithEbands):
         # Make sure nsppol and sigma_kpoints are consistent.
         self._check_dims_and_params()
         ebands0 = self.abifiles[0].ebands
-        style = {} if axis == "wreal" else dict(marker="o", markersize=4.0)
+        style = {} if axis == Axis.wreal else dict(marker="o", markersize=4.0)
 
         if hue is None:
             # Build grid depends on axis.
-            nrows = {"wreal": 3, "wimag": 2, "tau": 2}[axis]
+            nrows = {Axis.wreal: 3, Axis.wimag: 2, Axis.tau: 2}[axis]
             ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=1,
                                                     sharex=True, sharey=False, squeeze=False)
             ax_list = np.array(ax_list).ravel()
@@ -1707,17 +1714,17 @@ class GwrRobot(Robot, RobotWithEbands):
                 kws.update(style)
                 sigma = ncfile.r.read_sigee_skb(spin, kpoint, band)
 
-                if axis == "wreal":
+                if axis == Axis.wreal:
                     # Plot Sigma(w) along the real axis.
                     sigma.plot_reima_rw(ax_list, **kws)
-                elif axis == "wimag":
+                elif axis == Axis.wimag:
                     # Plot Sigma(iw) along the imaginary axis.
                     sigma.plot_reimc_iw(ax_list, **kws)
-                elif axis == "tau":
+                elif axis == Axis.tau:
                     # Plot Sigma(itau) along the imaginary axis.
                     sigma.plot_reimc_tau(ax_list, **kws)
 
-            if axis == "wreal": ebands0.add_fundgap_span(ax_list, spin)
+            if axis == Axis.wreal: ebands0.add_fundgap_span(ax_list, spin)
             set_grid_legend(ax_list, fontsize)
 
             for ax in ax_list:
@@ -1726,7 +1733,7 @@ class GwrRobot(Robot, RobotWithEbands):
         else:
             # group_and_sortby and build (3, ngroups) subplots
             groups = self.group_and_sortby(hue, sortby)
-            nrows = {"wreal": 3, "wimag": 2, "tau": 2}[axis]
+            nrows = {Axis.wreal: 3, Axis.wimag: 2, Axis.tau: 2}[axis]
             ncols = len(groups)
             ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                    sharex=True, sharey=False, squeeze=False)
@@ -1740,7 +1747,7 @@ class GwrRobot(Robot, RobotWithEbands):
                     kws.update(style)
                     sigma = ncfile.r.read_sigee_skb(spin, kpoint, band)
 
-                    if axis == "wreal":
+                    if axis == Axis.wreal:
                         lines = sigma.plot_reima_rw(ax_list, **kws)
                         if ix == 0:
                             # Show position of KS energy as vertical line.
@@ -1749,15 +1756,15 @@ class GwrRobot(Robot, RobotWithEbands):
                             for ax, l in zip(ax_list, lines):
                                 ax.axvline(ncfile.r.e0_kcalc[spin, ikcalc, ib], lw=1, color=l[0].get_color(), ls="--")
 
-                    elif axis == "wimag":
+                    elif axis == Axis.wimag:
                         # Plot Sigma_c(iw) along the imaginary axis.
                         sigma.plot_reimc_iw(ax_list, **kws)
 
-                    elif axis == "tau":
+                    elif axis == Axis.tau:
                         # Plot Sigma(itau) along the imaginary axis.
                         sigma.plot_reimc_tau(ax_list, **kws)
 
-                if axis == "wreal": ebands0.add_fundgap_span(ax_list, spin)
+                if axis == Axis.wreal: ebands0.add_fundgap_span(ax_list, spin)
                 set_grid_legend(ax_list, fontsize)
                 for ax in ax_list:
                     set_axlims(ax, xlims, "x")
@@ -2025,7 +2032,7 @@ class GwrRobot(Robot, RobotWithEbands):
                 band_v = nc0.ebands.homo_sk(spin, ik_ibz).band
                 band_c = nc0.ebands.lumo_sk(spin, ik_ibz).band
                 for band in range(band_v, band_c + 1):
-                    for axis in ("wreal", "wimag", "tau"):
+                    for axis in (Axis.wreal, Axis.wimag, Axis.tau):
                         yield self.plot_selfenergy_conv(spin, ikcalc, band, axis=axis, show=False)
 
     def write_notebook(self, nbpath=None, title=None) -> str:

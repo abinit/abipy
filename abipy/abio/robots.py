@@ -182,12 +182,33 @@ class Robot(NotebookWriter):
                 filename.endswith("." + cls.EXT))  # This for .abo
 
     @classmethod
-    def from_files(cls, filenames, labels=None, abspath=False) -> Robot:
+    def from_label_file_dict(cls, label_file_dict: dict) -> Robot:
+        """
+        Build a robot from a dictionary mapping labels to filepath.
+
+        Usage example:
+
+        .. code-block:: python
+
+        robot = SigresRobot.from_label_file_dict({
+           "Minimax": "t30o_DS3_SIGRES.nc",
+           "Gauss": "Gauss/t30o_DS3_SIGRES.nc",
+        })
+        """
+
+        return cls.from_files(list(label_file_dict.values()),
+                              labels=list(label_file_dict.keys()))
+
+    @classmethod
+    def from_files(cls, filenames: list[str],
+                   labels: list[str] | None = None,
+                   abspath: bool = False) -> Robot:
         """
         Build a Robot from a list of `filenames`.
-        If labels is None, labels are automatically generated from absolute paths.
 
         Args:
+            labels: List of labels associated to filenammes.
+                If None, labels are automatically generated from absolute paths.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
         filenames = list_strings(filenames)

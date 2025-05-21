@@ -2619,12 +2619,12 @@ class ElectronBands(Has_Structure):
 
     def add_fundgap_span(self, ax_or_axlist, spin, span_dir="v", fontsize=8, **kwargs) -> None:
         """
-        Show fundamental gap as filled area.
+        Show fundamental gap for this spin as filled area.
 
         Args:
             ax_or_axlist: Matplotlib Axes or list of Axes
             spin: Spin index
-            spand_dir: USe axvspan" if span_dir == "v" else "axhspan"
+            spand_dir: Use axvspan" if span_dir == "v" else "axhspan"
         """
         ks_lumo = self.lumos[spin]
         ks_homo = self.homos[spin]
@@ -2636,6 +2636,31 @@ class ElectronBands(Has_Structure):
             # recursion
             for ax in ax_or_axlist:
                 self.add_fundgap_span(ax, spin, span_dir=span_dir, **kwargs)
+        else:
+            ax = ax_or_axlist
+            f = getattr(ax, "axvspan" if span_dir == "v" else "axhspan")
+            rectangle = f(ks_homo.eig, ks_lumo.eig, **kwargs)
+
+    def add_dirgap_span(self, ax_or_axlist, spin, ik_ibz, span_dir="v", fontsize=8, **kwargs) -> None:
+        """
+        Show direct gap for this spin and k-point index in the IBZ as filled area.
+
+        Args:
+            ax_or_axlist: Matplotlib Axes or list of Axes
+            spin: Spin index
+            ik_ibz: Index of the k-point in the IBZ
+            spand_dir: Use axvspan" if span_dir == "v" else "axhspan"
+        """
+        ks_lumo = self.lumo_sk[spin, ik_ibz]
+        ks_homo = self.homo_sk[spin, ik_ibz]
+
+        kwargs.setdefault("alpha", 0.5)
+        kwargs.setdefault("color", "grey")
+
+        if duck.is_listlike(ax_or_axlist):
+            # recursion
+            for ax in ax_or_axlist:
+                self.add_dirgap_span(ax, spin, ik_ibz, span_dir=span_dir, **kwargs)
         else:
             ax = ax_or_axlist
             f = getattr(ax, "axvspan" if span_dir == "v" else "axhspan")
@@ -2752,7 +2777,7 @@ class ElectronBands(Has_Structure):
                     fig.add_scatter(x=xx, y=yy + w, mode='lines', line=lw_opts, name='',
                                     showlegend=False, fill='tonexty', row=ply_row, col=ply_col)
 
-    def _make_ticks_and_labels(self, klabels):
+    def _make_ticks_and_labels(self, klabels: dict):
         """Return ticks and labels from the mapping qlabels."""
         if klabels is not None:
             d = {}
