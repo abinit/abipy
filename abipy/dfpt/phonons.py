@@ -1694,7 +1694,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                         d[iq] = qname
 
             # Sort d by key This is needed to avoid e.g. {0: '$\\Gamma$', 97: '$\\Gamma$', 23: 'Y', 43: 'B', 66: 'A'}
-            #d = {k: d[k] for k in sorted(d.keys())}
+            d = {k: d[k] for k in sorted(d.keys())}
         else:
             d = self._auto_qlabels
 

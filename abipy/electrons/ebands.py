@@ -2785,8 +2785,11 @@ class ElectronBands(Has_Structure):
                 # Build Kpoint instance.
                 ktick = Kpoint(kcoord, self.reciprocal_lattice)
                 for idx, kpt in enumerate(self.kpoints):
-                    if ktick == kpt: d[idx] = kname
+                    if ktick == kpt:
+                        d[idx] = kname
 
+            # Sort d by key. This is needed to avoid e.g. {0: '$\\Gamma$', 97: '$\\Gamma$', 23: 'Y', 43: 'B', 66: 'A'}
+            d = {k: d[k] for k in sorted(d.keys())}
         else:
             d = self._auto_klabels
 
