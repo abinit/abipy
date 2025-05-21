@@ -1228,7 +1228,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             yield self.plot_tau_fit_sk(spin=0, kpoint=ik, show=False)
         return None
         """
-
         #include_bands = "all" if verbose else "gaps"
         #yield self.plot_spectral_functions(include_bands=include_bands, show=False)
 
@@ -1375,7 +1374,10 @@ class GwrReader(ETSF_Reader):
         ze0 = self.read_variable("ze0_kcalc")[spin, ikcalc, ib]
         ze0 = ze0[0] + 1j*ze0[1]
 
-        return GwrSelfEnergy(spin, kpoint, band, wmesh, xc_vals, x_val, ze0, aw_vals,
+        ik_ibz = self.kcalc2ibz[ikcalc]
+        e0 = self.ebands.eigens[spin, ik_ibz, band]
+
+        return GwrSelfEnergy(spin, kpoint, band, wmesh, xc_vals, x_val, e0, ze0, aw_vals,
                              iw_mesh=self.iw_mesh, c_iw_values=c_iw_values,
                              tau_mp_mesh=tau_mp_mesh, c_tau_mp_values=c_tau_mp_values,
                              mx_mesh=mx_mesh)

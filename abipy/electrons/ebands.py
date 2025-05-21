@@ -2619,12 +2619,12 @@ class ElectronBands(Has_Structure):
 
     def add_fundgap_span(self, ax_or_axlist, spin, span_dir="v", fontsize=8, **kwargs) -> None:
         """
-        Show gap as filled area.
+        Show fundamental gap as filled area.
 
         Args:
-            ax_or_axlist:
-            spin:
-            spand_dir:
+            ax_or_axlist: Matplotlib Axes or list of Axes
+            spin: Spin index
+            spand_dir: USe axvspan" if span_dir == "v" else "axhspan"
         """
         ks_lumo = self.lumos[spin]
         ks_homo = self.homos[spin]
@@ -2640,15 +2640,6 @@ class ElectronBands(Has_Structure):
             ax = ax_or_axlist
             f = getattr(ax, "axvspan" if span_dir == "v" else "axhspan")
             rectangle = f(ks_homo.eig, ks_lumo.eig, **kwargs)
-            #xy = rectangle.get_xy()
-            #rx, ry = xy[0,:]
-            #cx = rx + xy[1,0]/2
-            #cy = ry + xy[1,1]/2
-            #ax.annotate("KS gap", (cx, cy), color='black', weight='bold',
-            #            fontsize=4, ha='center', va='center')
-            #(x0, y0), (x1, y1) = rectangle.get_path()[0].get_extents().get_points()
-            #ax.text((x0 + x1) / 2, (y0 + y1) / 2, "KS band gap",
-            #         ha="center", va="center", fontsize=fontsize, color="red")
 
     def get_e0(self, e0):
         """

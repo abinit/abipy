@@ -463,6 +463,7 @@ class SelfEnergy:
                  wmesh: np.ndarray,
                  xc_vals: np.ndarray,
                  x_val: float,
+                 e0: float,
                  ze0: complex,
                  aw_vals: np.ndarray,
                  iw_mesh: np.ndarray | None = None,
@@ -477,6 +478,7 @@ class SelfEnergy:
             wmesh: Frequency mesh along the real-axis in eV
             xc_vals: Matrix elements of sigma_xc on wmesh.
             x_val: Matrix element of sigma_x.
+            e0: Bare energi in eV.
             ze0: Renormalization factor at the bare energy.
             aw_vals: Spectral function A(w) on wmesh
             iw_mesh: Frequency mesh along the imag axis in eV. Optional
@@ -489,8 +491,10 @@ class SelfEnergy:
         self.wmesh = np.array(wmesh)
         self.xc = Function1D(self.wmesh, xc_vals)
         self.x_val = x_val
+        self.e0 = e0
         self.ze0 = ze0
         self.aw = Function1D(self.wmesh, aw_vals)
+
         if len(xc_vals) != len(aw_vals):
             raise ValueError(f"{len(xc_vals)=} != {len(aw_vals)=}")
 
@@ -535,6 +539,10 @@ class SelfEnergy:
                 len(tau_mesh), tau_mesh[0], tau_mesh[-1]))
 
         return "\n".join(lines)
+
+    def get_title(self) -> str:
+        """String with title for plots"""
+        return f"k-point: {self.kpoint}, band: {self.band}, spin: {self.spin}"
 
     def _get_ys(self, what: str) -> dict:
         """Return the name of the array to plot from what."""
@@ -584,9 +592,9 @@ class SelfEnergy:
 
     @add_fig_kwargs
     def plot(self,
-             ax_list=None,
              what_list=("re", "im", "aw"),
              fermie=None,
+             ax_list=None,
              xlims=None,
              fontsize=8,
              **kwargs) -> Figure:
@@ -622,17 +630,38 @@ class SelfEnergy:
             ax.set_ylabel(self.latex_symbols[what])
             if (i == len(ax_list) - 1): ax.set_xlabel(xlabel)
             ax.plot(wmesh, self._get_ys(what), color=kw_color, label=kw_label if i == 0 else None)
+
+            # Add vertical line to show the position of the bare energy.
+            ax.axvline(x=self.e0, color=kw_color, linestyle='--')
+
+            # TODO
+            # Add linearized QP solution. See sigeph
+            # Before doing this we should fix the treatmen of the frequency mesh in GW
+            # and use the same approach used in GWR (mesh centered on e0 with even number of points)
+            #sig0 = self.vals_wr[self.nwr // 2 + 1]
+            #aa = self.dvals_de0ks.real
+            #ze0 = self.qp.ze0.real
+            #line = sig0.real + aa * xs
+            #ax.plot(xs, line, color="k", lw=1, ls=linestyles["densely_dotted"],
+            #         label=r"$\Re(\Sigma^0) + \dfrac{\partial\Sigma}{\partial\omega}(\omega - \epsilon^0$)")
+
+            #lins_x0 = self.qp.qpe.real - self.qp.e0
+            #y0 = sig0.real + aa * lins_x0
+            #scatter_opts = dict(color="blue", marker="o", alpha=0.8, s=50, zorder=100, edgecolor='black')
+            #ax0.scatter(lins_x0, y0, label="Linearized solution", **scatter_opts)
+            #text = r"$Z = %.2f$" % ze0
+            #ax.annotate(text, (lins_x0 + 0.02, y0 + 0.1), textcoords="data", size=8)
+
             set_axlims(ax, xlims, "x")
             if i == 0 and kw_label:
                 ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         if "title" not in kwargs:
-            title = "k-point: %s, band: %d, spin: %d" % (repr(self.kpoint), self.band, self.spin)
-            fig.suptitle(title, fontsize=fontsize)
+            fig.suptitle(self.get_title(), fontsize=fontsize)
 
         return fig
 
-    def plot_reima_rw(self, ax_list: list, with_xlabels: bool = False, **kwargs) -> list:
+    def plot_reima_rw(self, ax_list: list, with_xlabels: bool = False, fontsize=8, **kwargs) -> list:
         """
         Plot Re/Im (Sigma(w)) and the spectral function A(w) on `ax_list` with w on the real-axis.
 
@@ -646,6 +675,7 @@ class SelfEnergy:
         # Plot Sigma(w) along the real axis.
         l0 = self.xc.plot_ax(ax_list[0], cplx_mode="re", **kwargs)
         set_ax_xylabels(ax_list[0], xlabel, r"$\Re{\Sigma}(\omega)$ (eV)")
+
         l1 = self.xc.plot_ax(ax_list[1], cplx_mode="im", **kwargs)
         set_ax_xylabels(ax_list[1], xlabel, r"$\Im{\Sigma}(\omega)$ (eV)")
 
@@ -653,9 +683,12 @@ class SelfEnergy:
         l2 = self.aw.plot_ax(ax_list[2], **kwargs)
         set_ax_xylabels(ax_list[2], r"$\omega$ (eV)", r"$A(\omega)$ (1/eV)")
 
+        if "title" not in kwargs:
+            ax_list[0].set_title(self.get_title(), fontsize=fontsize)
+
         return [l0, l1, l2]
 
-    def plot_reimc_iw(self, ax_list: list, with_xlabels: bool = False, **kwargs) -> list:
+    def plot_reimc_iw(self, ax_list: list, with_xlabels: bool = False, fontsize=8, **kwargs) -> list:
         """
         Plot Re/Im (Sigma_c(iw)) of the correlated part on the imaginary-axis on `ax_list`.
 
@@ -668,40 +701,36 @@ class SelfEnergy:
 
         l0 = self.c_iw.plot_ax(ax_list[0], cplx_mode="re", **kwargs)
         set_ax_xylabels(ax_list[0], xlabel, r"$\Re{\Sigma_c}(i\omega)$ (eV)")
+
         self.c_iw.plot_ax(ax_list[1], cplx_mode="im", **kwargs)
         l1 = set_ax_xylabels(ax_list[1], r"$i\omega$ (eV)", r"$\Im{\Sigma_c}(i\omega)$ (eV)")
 
+        if "title" not in kwargs:
+            ax_list[0].set_title(self.get_title(), fontsize=fontsize)
+
         return [l0, l1]
 
-    def plot_reimc_tau(self, ax_list: list, with_xlabels: bool = False, **kwargs) -> list:
+    def plot_reimc_tau(self, ax_list: list, with_xlabels: bool = False, fontsize=8, **kwargs) -> list:
         """
         Plot Re/Im (Sigma_c(i tau)) of the correlated part on the imaginary-axis on `ax_list`.
 
         Return: list of matplotlib lines.
         """
         if len(ax_list) != 2:
-            raise ValueError(f"Expecting ax_list of len = 2, got: {len(ax_list)}")
+            raise ValueError(f"Expecting ax_list of len=2, got: {len(ax_list)=}")
 
         xlabel = r"$i\tau$ (a.u.)" if with_xlabels else ""
 
         l0 = self.c_tau.plot_ax(ax_list[0], cplx_mode="re", **kwargs)
         set_ax_xylabels(ax_list[0], xlabel, r"$\Re{\Sigma_c}(i\tau)$ (eV)")
+
         self.c_tau.plot_ax(ax_list[1], cplx_mode="im", **kwargs)
         l1 = set_ax_xylabels(ax_list[1], r"$i\tau$ (a.u.)", r"$\Im{\Sigma_c}(i\tau)$ (eV)")
 
+        if "title" not in kwargs:
+            ax_list[0].set_title(self.get_title(), fontsize=fontsize)
+
         return [l0, l1]
-
-    #@add_fig_kwargs
-    #def plot_with_other(self, other: SelfEnergy, **kwargs) -> Figure:
-    #    """
-    #    """
-    #    what_list = ["re", "im", "aw"]
-    #    ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=len(what_list), ncols=1,
-    #                                            sharex=True, sharey=False, squeeze=False)
-    #    ax_list = np.array(ax_list).ravel()
-
-    #    #for i, (what, ax) in enumerate(zip(what_list, ax_list)):
-    #    return fig
 
 
 
@@ -880,13 +909,16 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         else:
             return self.qpgaps[spin, ik], self.ksgaps[spin, ik]
 
-    def read_sigee_skb(self, spin: int, kpoint: KptSelect, band: int) -> SelfEnergy:
+    def read_sigee_skb(self, spin: int, kpoint: KptSelect, band: int, e0=None) -> SelfEnergy:
         """"
         Read self-energy for (spin, kpoint, band).
         """
         ik_ibz = self.r.kpt2ibz(kpoint)
         kpoint = self.ibz[ik_ibz]
         wmesh, xc_vals = self.r.read_sigmaw(spin, ik_ibz, band)
+        if e0 is not None:
+            wmesh += e0
+            #wmesh -= e0
 
         aw_vals = None
         if self.r.has_spfunc:
@@ -907,8 +939,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # nctkarr_t('ze0',"dp", 'cplex, nbgw, number_of_kpoints, number_of_spins')
         ze0 =  self.r.read_variable("ze0")[spin, ik_ibz, ib_gw]
         ze0 = ze0[0] + 1j*ze0[1]
+        e0 = self.ebands.eigens[spin, ik_ibz, band]
 
-        return SelfEnergy(spin, kpoint, band, wmesh, xc_vals, x_val, ze0, aw_vals,
+        return SelfEnergy(spin, kpoint, band, wmesh, xc_vals, x_val, e0, ze0, aw_vals,
                           iw_mesh=iw_mesh, c_iw_values=c_iw_values)
 
     def print_qps(self, precision=3, ignore_imag=True, file=sys.stdout) -> None:
@@ -1092,7 +1125,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                                 ax_list: list | None = None,
                                 **kwargs) -> Figure:
         """
-        Plot the spectral function for all k-points, bands and spins available in the SIGRES file.
+        Plot the spectral function A_nk(w) for all k-points, bands
+        and spins available in the SIGRES file.
 
         Args:
             include_bands: List of bands to include. None means all.
@@ -1100,6 +1134,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         Returns: |matplotlib-Figure|
         """
+        mod10 = self.gwcalctyp % 10
+
         if include_bands is not None:
             include_bands = set(include_bands)
 
@@ -1109,16 +1145,26 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                                                 sharex=True, sharey=False, squeeze=False)
         ax_list = np.array(ax_list).ravel()
 
+        #e0 = self.r.read_variable("e0")
+        #ikcalc, ik_ibz, kpoint = self.r.get_ikcalc_ik_ibz_kpoint(kpoint)
+
         for ikcalc, (kcalc, ax) in enumerate(zip(self.sigma_kpoints, ax_list)):
+            ik_ibz = self.ebands.kpoints.index(kcalc)
             for spin in range(self.nsppol):
                 for band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
                     if include_bands and band not in include_bands: continue
-                    sigw = self.read_sigee_skb(spin, kcalc, band)
-                    sigw.plot_ax(ax, what="a", label= r"$A(\omega)$: band: %d, spin: %d" % (band, spin),
-                                fontsize=fontsize, **kwargs)
+                    ks_eig = self.ebands.eigens[spin, ik_ibz, band]
+                    #print(f"{ks_eig=}")
+                    sigw = self.read_sigee_skb(spin, kcalc, band) # , e0=ks_eig)
 
-                # Show KS gap as filled area.
-                #self.ebands.add_fundgap_span(ax, spin)
+                    lines = sigw.plot_ax(ax, what="a",
+                                         label= r"band: %d, spin: %d" % (band, spin),
+                                         fontsize=fontsize, **kwargs)
+
+                    ax.axvline(x=ks_eig, color=lines[0].get_color(), linestyle='--')
+
+                # Show KS fundamental gap as filled area.
+                self.ebands.add_fundgap_span(ax, spin)
 
             ax.set_title("k-point: %s" % repr(kcalc), fontsize=fontsize)
             ax.set_ylabel(r"$A(\omega)$ (1/eV)")
@@ -1293,7 +1339,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                              **kwargs) -> Figure:
         """
         Plot the self-energy along the imaginary frequency axis.
-        Requires GW calculations with analytic continuation
+        Requires GW calculations with analytic continuation.
 
         Args:
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
@@ -1462,7 +1508,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         gw_kcoords = [k.frac_coords for k in self.sigma_kpoints]
 
         # Read GW energies from file (real part) and compute corrections if ks_ebands_kpath.
-        # This is the section in which the fileoformat (SIGRES.nc, GWR.nc) enters into play...
+        # This is the section in which the fileformat (SIGRES.nc, GWR.nc) enters into play...
         egw_rarr = self.r.read_value("egw", cmode="c").real
         if ks_ebands_kpath is not None:
             if ks_ebands_kpath.structure != self.structure:
@@ -1555,7 +1601,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         mod10 = self.gwcalctyp % 10
 
-        yield self.plot_qpgaps(show=False)
+        # yield self.plot_qpgaps(show=False)
         #yield self.plot_qps_vs_e0(show=False)
         #yield self.plot_qpbands_ibz(show=False)
         #yield self.plot_ksbands_with_qpmarkers(show=False)
@@ -1765,6 +1811,16 @@ class SigresReader(ETSF_Reader):
         self.gwcalctyp = self.read_value("gwcalctyp")
         self.usepawu = self.read_value("usepawu")
 
+        mod10 = self.gwcalctyp % 10
+
+        if mod10 == 1:
+            # If AC used, the KS Fermie level (midgap) is set to zero.
+            # so we have to read the eigenvalues from the e0 variable
+            # TODO: Write ebands method to do this
+            e0 = self.read_value("e0")
+            self.ks_bands._eigens = e0
+            self.ks_bands.set_fermie(0.0)
+
         # Read the number of frequencies for screening.
         # These variables have been added in Abinit 10.5.2
         self.nfreqim = self.read_value("nfreqim", default=-1)
@@ -1942,7 +1998,7 @@ class SigresReader(ETSF_Reader):
         Returns the real and the imaginary part of the self energy.
         """
         if not self.has_spfunc:
-            raise ValueError(f"{self.path} does not contain spectral function data.")
+            raise ValueError(f"{self.path} does not contain spectral function data. Forgot `nfreqsp` and `freqpspmax`?")
 
         ik = self.kpt2ibz(kpoint)
         # Must shift band index (see fortran code that allocates with mdbgw)
@@ -2491,8 +2547,14 @@ class SigresRobot(Robot, RobotWithEbands):
         return fig
 
     @add_fig_kwargs
-    def plot_selfenergy_conv(self, spin, kpoint, band, sortby=None, hue=None,
-                             colormap="jet", xlims=None, fontsize=8, **kwargs) -> Figure:
+    def plot_selfenergy_conv(self, spin, kpoint, band,
+                             axis_type="real",
+                             sortby=None,
+                             hue=None,
+                             colormap="viridis",
+                             xlims=None,
+                             fontsize=8,
+                             **kwargs) -> Figure:
         """
         Plot the convergence of the e-e self-energy wrt to the ``sortby`` parameter.
         Values can be optionally grouped by `hue`.
@@ -2501,6 +2563,8 @@ class SigresRobot(Robot, RobotWithEbands):
             spin: Spin index.
             kpoint: K-point in self-energy (can be |Kpoint|, list/tuple or int)
             band: Band index.
+            axis_type: "real" if self-energy along the real axis should be showed.
+                       "imag" for imaginary axis (if available, e.g. GW with AC).
             sortby: Define the convergence parameter, sort files and produce plot labels.
                 Can be None, string or function. If None, no sorting is performed.
                 If string and not empty it's assumed that the abifile has an attribute
@@ -2522,27 +2586,53 @@ class SigresRobot(Robot, RobotWithEbands):
         import matplotlib.pyplot as plt
         cmap = plt.get_cmap(colormap)
 
+        what_list = ("re", "im", "aw")
+        nrows = {"real": 3, "imag": 2}[axis_type]
+
         if hue is None:
-            ax_list = None
+            ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=1,
+                                                   sharex=True, sharey=False, squeeze=False)
+
             lnp_list = self.sortby(sortby)
             for i, (label, ncfile, param) in enumerate(lnp_list):
+                plt_kwargs = dict(
+                    ax_list=ax_mat[:,0],
+                    label=label,
+                    color=cmap(i/len(lnp_list)),
+                    )
+
                 sigma = ncfile.read_sigee_skb(spin, kpoint, band)
-                fig = sigma.plot(ax_list=ax_list, label=label, color=cmap(i/len(lnp_list)), show=False)
-                ax_list = fig.axes
+                if axis_type == "real":
+                    sigma.plot(what_list=what_list, show=False, **plt_kwargs)
+                else:
+                    sigma.plot_reimc_iw(**plt_kwargs)
+
+            if axis_type == "imag":
+                for ax in ax_mat.ravel():
+                    ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
         else:
             # group_and_sortby and build (3, ngroups) subplots
             groups = self.group_and_sortby(hue, sortby)
-            nrows, ncols = 3, len(groups)
+            ncols = len(groups)
             ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                   sharex=True, sharey=True, squeeze=False)
+                                                   sharex=True, sharey=False, squeeze=False)
             for ig, g in enumerate(groups):
                 subtitle = "%s: %s" % (self._get_label(hue), g.hvalue)
                 ax_mat[0, ig].set_title(subtitle, fontsize=fontsize)
                 for i, (nclabel, ncfile, param) in enumerate(g):
+
+                    plt_kwargs = dict(
+                        ax_list=ax_mat[:, ig],
+                        label="%s: %s" % (self._get_label(sortby), param),
+                        color=cmap(i / len(g)))
+
                     sigma = ncfile.read_sigee_skb(spin, kpoint, band)
-                    fig = sigma.plot(ax_list=ax_mat[:, ig],
-                                     label="%s: %s" % (self._get_label(sortby), param),
-                                     color=cmap(i / len(g)), show=False)
+
+                    if axis_type == "real":
+                        sigma.plot(what_list=what_list, show=False, **plt_kwargs)
+                    else:
+                        sigma.plot_reimc_iw(**plt_kwargs)
 
             if ig != 0:
                 for ax in ax_mat[:, ig]:
@@ -2550,42 +2640,10 @@ class SigresRobot(Robot, RobotWithEbands):
 
             for ax in ax_mat.ravel():
                 set_axlims(ax, xlims, "x")
+                if axis_type == "imag":
+                    ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
-
-    def yield_figs(self, **kwargs):  # pragma: no cover
-        """
-        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-        """
-        yield self.plot_qpgaps_convergence(plot_qpmks=True, show=False)
-        #yield self.plot_qpdata_conv_skb(spin, kpoint, band, show=False)
-        #yield self.plot_qpfield_vs_e0(field, show=False)
-        #yield self.plot_selfenergy_conv(spin, kpoint, band, sortby=None, hue=None, show=False)
-
-    def write_notebook(self, nbpath=None):
-        """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
-        working directory is created. Return path to the notebook.
-        """
-        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
-
-        args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            #nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
-            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False)"),
-            nbv.new_code_cell("robot.plot_qpgaps_convergence(plot_qpmks=True, sortby=None, hue=None);"),
-            nbv.new_code_cell("#robot.plot_qpdata_conv_skb(spin=0, kpoint=0, band=0, sortby=None, hue=None);"),
-            nbv.new_code_cell("robot.plot_qpfield_vs_e0(field='qpeme0', sortby=None, hue=None);"),
-            nbv.new_code_cell("#robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, sortby=None, hue=None);"),
-        ])
-
-        # Mixins
-        nb.cells.extend(self.get_baserobot_code_cells())
-        nb.cells.extend(self.get_ebands_code_cells())
-
-        return self._write_nb_nbpath(nb, nbpath)
 
     @add_fig_kwargs
     def plot_sigma_imag_axis(self,
@@ -2661,6 +2719,41 @@ class SigresRobot(Robot, RobotWithEbands):
             # ax[0].legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
+
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """
+        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
+        """
+        yield self.plot_qpgaps_convergence(plot_qpmks=True, show=False)
+        #yield self.plot_qpdata_conv_skb(spin, kpoint, band, show=False)
+        #yield self.plot_qpfield_vs_e0(field, show=False)
+        #yield self.plot_selfenergy_conv(spin, kpoint, band, sortby=None, hue=None, show=False)
+
+    def write_notebook(self, nbpath=None):
+        """
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        working directory is created. Return path to the notebook.
+        """
+        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
+
+        args = [(l, f.filepath) for l, f in self.items()]
+        nb.cells.extend([
+            #nbv.new_markdown_cell("# This is a markdown cell"),
+            #nbv.new_code_cell("plotter = robot.get_ebands_plotter()"),
+            nbv.new_code_cell("robot = abilab.SigresRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            nbv.new_code_cell("robot.get_qpgaps_dataframe(spin=None, kpoint=None, with_geo=False)"),
+            nbv.new_code_cell("robot.plot_qpgaps_convergence(plot_qpmks=True, sortby=None, hue=None);"),
+            nbv.new_code_cell("#robot.plot_qpdata_conv_skb(spin=0, kpoint=0, band=0, sortby=None, hue=None);"),
+            nbv.new_code_cell("robot.plot_qpfield_vs_e0(field='qpeme0', sortby=None, hue=None);"),
+            nbv.new_code_cell("#robot.plot_selfenergy_conv(spin=0, kpoint=0, band=0, sortby=None, hue=None);"),
+        ])
+
+        # Mixins
+        nb.cells.extend(self.get_baserobot_code_cells())
+        nb.cells.extend(self.get_ebands_code_cells())
+
+        return self._write_nb_nbpath(nb, nbpath)
+
 
 
 class GwRobotWithDisplacedAtom(SigresRobot):
