@@ -1351,7 +1351,9 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         set_grid_legend(re_ax, fontsize)
         set_grid_legend(im_ax, fontsize, xlabel=r"$i\omega$ (eV)")
 
-        fig.suptitle(r"$\Sigma_{nk}$" +  f" at k-point: {kpoint}, spin: {spin}", fontsize=fontsize)
+        re_ax.set_title(r"$\Sigma_{nk}$" +  f" at k-point: {kpoint},"
+                        +(f" band: {band_list[0]}," if len(band_list)==1 else "")
+                        +f" spin: {spin}", fontsize=fontsize)
 
         return fig
 
@@ -2647,7 +2649,6 @@ class SigresRobot(Robot, RobotWithEbands):
                 band = band_list[ib]
                 ax = ax_list[ik*len(band_list)+ib,:]
                 for spin in range(nsppol):
-                    ax[0].set_title("k-point: %s band: %s" % (repr(kcalc), repr(band)), fontsize=fontsize)
                     lnp_list = self.sortby(sortby)
                     for i, (label, sigres, param) in enumerate(lnp_list):
                         sigres.plot_sigma_imag_axis(kpoint=kcalc,
@@ -2655,10 +2656,8 @@ class SigresRobot(Robot, RobotWithEbands):
                                                     ax_list=ax,
                                                     band_list=band,
                                                     fontsize=fontsize,
-                                                    label=f"{sortby}: {param}",
+                                                    label=f"{sortby}: {param}" if sortby else label,
                                                     show=False)
-
-            # ax[0].legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
