@@ -2616,7 +2616,7 @@ class SigresRobot(Robot, RobotWithEbands):
         import matplotlib.pyplot as plt
         cmap = plt.get_cmap(colormap)
 
-        if axis not in Axis:
+        if axis not in Axis.__members__:
             raise ValueError(f"Invalid value for {axis=}")
 
         what_list = ("re", "im", "aw")
