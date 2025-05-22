@@ -4,7 +4,6 @@ import tempfile
 import shutil
 import abipy.data as abidata
 
-from monty.functools import lazy_property
 from pymatgen.core.lattice import Lattice
 from abipy.core.structure import Structure
 from abipy.flowtk.flows import *

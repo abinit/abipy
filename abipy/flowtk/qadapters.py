@@ -26,9 +26,9 @@ from . import qutils as qu
 from collections import namedtuple
 from subprocess import Popen, PIPE
 from typing import Optional, Any
+from functools import cached_property
 from monty.string import is_string, list_strings
 from monty.collections import AttrDict
-from monty.functools import lazy_property
 from monty.inspect import all_subclasses
 from monty.io import FileLock
 from monty.json import MSONable
@@ -721,7 +721,7 @@ limits:
         """Dictionary with the parameters used to construct the header."""
         return self._qparams
 
-    @lazy_property
+    @cached_property
     def supported_qparams(self) -> list:
         """
         List with the supported parameters that can be passed to the

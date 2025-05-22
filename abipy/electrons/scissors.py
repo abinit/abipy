@@ -1,12 +1,14 @@
 # coding: utf-8
 """Scissors operator."""
-import os
-import numpy as np
-import pickle
+from __future__ import annotations
 
-from collections import OrderedDict
+import os
+import pickle
+import numpy as np
+
 from monty.collections import AttrDict
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.typing import Figure
 
 
 __all__ = [
@@ -19,7 +21,7 @@ class ScissorsError(Exception):
     """Base class for the exceptions raised by :class:`Scissors`"""
 
 
-class Scissors(object):
+class Scissors:
     """
     This object represents an energy-dependent scissors operator.
     The operator is defined by a list of domains (energy intervals)
@@ -119,7 +121,7 @@ class Scissors(object):
         raise self.Error("Cannot find location of eigenvalue %s in domains:\n%s" % (eig, domains))
 
 
-class ScissorsBuilder(object):
+class ScissorsBuilder:
     """
     This object facilitates the creation of :class:`Scissors` instances.
 
@@ -141,7 +143,7 @@ class ScissorsBuilder(object):
     """
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str):
         """
         Generate object from (SIGRES.nc) file. Main entry point for client code.
         """
@@ -150,7 +152,7 @@ class ScissorsBuilder(object):
             return cls(qps_spin=ncfile.qplist_spin, sigres_ebands=ncfile.ebands)
 
     @classmethod
-    def pickle_load(cls, filepath):
+    def pickle_load(cls, filepath: str):
         """Load the object from a pickle file."""
         with open(filepath, "rb") as fh:
             d = AttrDict(pickle.load(fh))
@@ -202,17 +204,17 @@ class ScissorsBuilder(object):
         self.build()
 
     @property
-    def nsppol(self):
+    def nsppol(self) -> int:
         """Number of spins."""
         return len(self._qps_spin)
 
     @property
-    def e0min(self):
+    def e0min(self) -> float:
         """Minimum KS energy in eV (takes into account spin)"""
         return self._e0min
 
     @property
-    def e0max(self):
+    def e0max(self) -> float:
         """Maximum KS energy in eV (takes into account spin)"""
         return self._e0max
 
@@ -238,8 +240,8 @@ class ScissorsBuilder(object):
         nsppol = self.nsppol
 
         # The parameters defining the scissors operator
-        self.domains_spin = OrderedDict()
-        self.bounds_spin = OrderedDict()
+        self.domains_spin = {}
+        self.bounds_spin = {}
 
         if domains_spin is None:
             # Use sigres_ebands and the position of the homo, lumo to compute the domains.
@@ -275,7 +277,7 @@ class ScissorsBuilder(object):
         return domains_spin
 
     @add_fig_kwargs
-    def plot_qpe_vs_e0(self, with_fields="all", **kwargs):
+    def plot_qpe_vs_e0(self, with_fields="all", **kwargs) -> Figure:
         """Plot the quasiparticle corrections as function of the KS energy."""
         ax_list = None
         for spin, qps in enumerate(self._qps_spin):
@@ -286,7 +288,7 @@ class ScissorsBuilder(object):
         return fig
 
     @add_fig_kwargs
-    def plot_fit(self, ax=None, fontsize=8, **kwargs):
+    def plot_fit(self, ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Compare fit functions with input quasi-particle corrections.
 

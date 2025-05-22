@@ -7,6 +7,7 @@ import pandas as pd
 
 from collections import OrderedDict
 from monty.string import marquee
+from monty.termcolor import cprint
 from abipy.core.mixins import BaseFile, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
@@ -345,7 +346,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         Returns: |matplotlib-Figure|
         """
         if self._parse_iterations() != 0:
-            print("Wout files does not contain Wannierization cycles. Returning None")
+            cprint("Wout files does not contain Wannierization cycles. Returning None", color="red")
             return None
 
         # Build grid of plots.

@@ -75,7 +75,7 @@ def cube_read_structure_mesh_data(filepath: str) -> tuple:
                 data[ii // (ny * nz), (ii // nz) % ny, ii % nz] = float(val)
                 ii += 1
         data = data / (bohr_to_angstrom ** 3)
-        if ii != nx*ny*nz:
+        if ii != nx * ny * nz:
             raise ValueError('Wrong number of data points ...')
         from abipy.core.structure import Structure
         structure = Structure.from_sites(sites=sites)

@@ -16,9 +16,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.collections as mcoll
 
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 from typing import Any, Callable, Iterator
 from monty.string import list_strings
+from matplotlib.ticker import StrMethodFormatter
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
 from abipy.tools.typing import Figure, Axes, VectorLike
@@ -65,10 +66,9 @@ linestyles = OrderedDict(
 )
 
 
-
-def add_fig_kwargs(func):
-    """Decorator that adds keyword arguments for functions returning matplotlib
-    figures.
+def add_fig_kwargs(func: Callable) -> Callable:
+    """
+    Decorator that adds keyword arguments for functions returning matplotlib figures.
 
     The function should return either a matplotlib figure or None to signal
     some sort of error/unexpected event.
@@ -105,6 +105,7 @@ def add_fig_kwargs(func):
                 ax.grid(bool(ax_grid))
 
         if ax_annotate:
+            from string import ascii_letters
             tags = ascii_letters
             if len(fig.axes) > len(tags):
                 tags = (1 + len(ascii_letters) // len(fig.axes)) * ascii_letters
@@ -148,18 +149,17 @@ def add_fig_kwargs(func):
         ================  ====================================================
         kwargs            Meaning
         ================  ====================================================
-        title             Title of the plot (Default: None).
-        show              True to show the figure (default: True).
-        savefig           "abc.png" or "abc.eps" to save the figure to a file.
+        title             Title of the plot. Default: None.
+        show              True to show the figure. Default: True.
+        savefig           "abc.png" or "abc.svg" to save the figure to a file.
         size_kwargs       Dictionary with options passed to fig.set_size_inches
-                          e.g. size_kwargs=dict(w=3, h=4)
-        tight_layout      True to call fig.tight_layout (default: False)
+                          e.g. size_kwargs=dict(w=3, h=4).
+        tight_layout      True to call fig.tight_layout. Default: False.
         ax_grid           True (False) to add (remove) grid from all axes in fig.
                           Default: None i.e. fig is left unchanged.
-        ax_annotate       Add labels to  subplots e.g. (a), (b).
-                          Default: False
+        ax_annotate       Add labels to subplots e.g. (a), (b). Default: False
         fig_close         Close figure. Default: False.
-        plotly            Try to convert mpl figure to plotly.
+        plotly            Try to convert mpl figure to plotly: Default: False
         ================  ====================================================
 
 """
@@ -210,7 +210,7 @@ class FilesPlotter:
 
 
 @functools.cache
-def get_color_symbol(style: str="VESTA") -> dict:
+def get_color_symbol(style: str = "VESTA") -> dict:
     """
     Dictionary mapping chemical symbols to RGB color.
 
@@ -230,7 +230,7 @@ def get_color_symbol(style: str="VESTA") -> dict:
 # Matplotlib tools
 ###################
 
-def get_ax_fig_plt(ax=None, **kwargs):
+def get_ax_fig_plt(ax=None, grid: bool = False, **kwargs):
     """
     Helper function used in plot functions supporting an optional Axes argument.
     If ax is None, we build the `matplotlib` figure and create the Axes else
@@ -238,6 +238,7 @@ def get_ax_fig_plt(ax=None, **kwargs):
 
     Args:
         ax (Axes, optional): Axes object. Defaults to None.
+        grid: True to add grid to ax.
         kwargs: keyword arguments are passed to plt.figure if ax is not None.
 
       Returns:
@@ -249,8 +250,10 @@ def get_ax_fig_plt(ax=None, **kwargs):
     if ax is None:
         fig = plt.figure(**kwargs)
         ax = fig.gca()
+        if grid: ax.grid(grid)
     else:
         fig = plt.gcf()
+        if grid: ax.grid(grid)
 
     return ax, fig, plt
 
@@ -278,13 +281,26 @@ def get_ax3d_fig_plt(ax=None, **kwargs):
     return ax, fig, plt
 
 
-def get_axarray_fig_plt(
-    ax_array, nrows=1, ncols=1, sharex=False, sharey=False, squeeze=True, subplot_kw=None, gridspec_kw=None, **fig_kw):
+def get_axarray_fig_plt(ax_array,
+                        nrows: int = 1,
+                        ncols: int = 1,
+                        sharex: bool = False,
+                        sharey: bool = False,
+                        squeeze: bool = True,
+                        subplot_kw: dict | None = None,
+                        gridspec_kw: dict | None = None,
+                        grid: bool = True,
+                        rescale_fig: bool = False,
+                        **fig_kw):
     """
     Helper function used in plot functions that accept an optional array of Axes
     as argument. If ax_array is None, we build the `matplotlib` figure and
     create the array of Axes by calling plt.subplots else we return the
     current active figure.
+
+    Args:
+        rescale_fig: If true, scale figure’s size proportionally to the number of rows (nrows)
+            and columns (ncols) in the grid. Useful to avoid squashing subplots.
 
     Returns:
         ax: Array of Axes objects
@@ -304,6 +320,7 @@ def get_axarray_fig_plt(
             gridspec_kw=gridspec_kw,
             **fig_kw,
         )
+
     else:
         fig = plt.gcf()
         ax_array = np.reshape(np.array(ax_array), (nrows, ncols))
@@ -312,6 +329,21 @@ def get_axarray_fig_plt(
                 ax_array = ax_array[0]
             elif any(s == 1 for s in ax_array.shape):
                 ax_array = ax_array.ravel()
+
+    if grid:
+        if hasattr(ax_array, "ravel"):
+            for ax in ax_array.ravel():
+                ax.grid(grid)
+        else:
+            if hasattr(ax_array, "grid"):
+                ax_array.grid(grid)
+            else:
+                for ax in ax_array:
+                    ax.grid(grid)
+
+    if rescale_fig:
+        fig.set_figheight(nrows * fig.get_figheight())
+        fig.set_figwidth(ncols * fig.get_figwidth())
 
     return ax_array, fig, plt
 
@@ -322,7 +354,7 @@ def is_mpl_figure(obj: Any) -> bool:
     return isinstance(obj, plt.Figure)
 
 
-def ax_append_title(ax, title, loc="center", fontsize=None) -> str:
+def ax_append_title(ax, title: str , loc: str = "center", fontsize: int | None = None) -> str:
     """Add title to previous ax.title. Return new title."""
     prev_title = ax.get_title(loc=loc)
     new_title = prev_title + title
@@ -387,7 +419,10 @@ def set_axlims(ax, lims: tuple, axname: str) -> tuple:
     return left, right
 
 
-def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> None:
+def set_ax_xylabels(ax,
+                    xlabel: str,
+                    ylabel: str,
+                    exchange_xy: bool = False) -> None:
     """
     Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy.
     """
@@ -396,7 +431,7 @@ def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> 
     ax.set_ylabel(ylabel)
 
 
-def set_logscale(ax_or_axlist, xy_log) -> None:
+def set_logscale(ax_or_axlist, xy_log: str | None) -> None:
     """
     Activate logscale
 
@@ -421,7 +456,10 @@ def set_logscale(ax_or_axlist, xy_log) -> None:
             ax.set_yscale(log_type)
 
 
-def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string="xy", **kwargs) -> None:
+def set_ticks_fontsize(ax_or_axlist,
+                       fontsize: int,
+                       xy_string: str = "xy",
+                       **kwargs) -> None:
     """
     Set tick properties for one axis or a list of axis.
 
@@ -439,8 +477,34 @@ def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string="xy", **kwargs) ->
             ax.tick_params(axis='y', labelsize=fontsize, **kwargs)
 
 
+def set_ticks_format(ax_or_axlist,
+                     format: str = "%.2f",
+                     xy_string: str = "xy",
+                     **kwargs) -> None:
+    """
+    Set tick format for one axis or a list of axis.
+    Args:
+        ax_or_axlist: Axes or list of axes.
+        xy_string: "x" to share x-axis, "xy" for both.
+        format: Format string for the ticks.
+    """
+    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
+    formatter = StrMethodFormatter(format)
+    for ix, ax in enumerate(ax_list):
+        if "x" in xy_string:
+            ax.xaxis.set_major_formatter(formatter)
+
+        if "y" in xy_string:
+            ax.yaxis.set_major_formatter(formatter)
+
 def set_grid_legend(ax_or_axlist, fontsize: int,
-                    xlabel=None, ylabel=None, grid=True, legend=True, direction=None, title=None, legend_loc="best") -> None:
+                    xlabel: str | None = None,
+                    ylabel: str | None = None,
+                    grid: bool = True,
+                    legend: bool = True,
+                    direction: str | None = None,
+                    title: str | None = None,
+                    legend_loc: str = "best") -> None:
     """
     Activate grid and legend for one axis or a list of axis.
 
@@ -459,10 +523,10 @@ def set_grid_legend(ax_or_axlist, fontsize: int,
                 # print("There are artists with labels:", labels)
                 ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
             if xlabel:
-                doit = direction is None or (direction == "y" and ix == len(ax_or_axlist) -1)
+                doit = direction is None or (direction == "y" and ix == len(ax_or_axlist) - 1)
                 if doit: ax.set_xlabel(xlabel)
             if ylabel:
-                doit = direction is None or (direction == "x" and ix == len(ax_or_axlist) -1)
+                doit = direction is None or (direction == "x" and ix == len(ax_or_axlist) - 1)
                 if doit: ax.set_ylabel(ylabel)
             if title: ax.set_title(title, fontsize=fontsize)
     else:
@@ -506,17 +570,25 @@ def set_visible(ax, boolean: bool, *args) -> None:
             label.set_visible(boolean)
 
 
-def rotate_ticklabels(ax, rotation: float, axname: str ="x") -> None:
+def rotate_ticklabels(ax,
+                      rotation: float,
+                      axname: str = "x") -> None:
     """Rotate the ticklables of axis ``ax``"""
     if "x" in axname:
         for tick in ax.get_xticklabels():
             tick.set_rotation(rotation)
+
     if "y" in axname:
         for tick in ax.get_yticklabels():
             tick.set_rotation(rotation)
 
 
-def hspan_ax_line(ax, line, abs_conv, hatch, alpha=0.2, with_label=True) -> None:
+def hspan_ax_line(ax,
+                  line,
+                  abs_conv: float,
+                  hatch: str,
+                  alpha: float = 0.2,
+                  with_label: bool = True) -> None:
     """
     Add hspan to ax showing the convergence region of width `abs_conv`.
     Use same color as line. Return immediately if abs_conv is None or x-values are strings.
@@ -540,23 +612,36 @@ def hspan_ax_line(ax, line, abs_conv, hatch, alpha=0.2, with_label=True) -> None
 
 
 @add_fig_kwargs
-def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
-                     decimals=None, ax=None, xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
+def plot_xy_with_hue(data: pd.DataFrame,
+                     x: str,
+                     y: str,
+                     hue: str | None,
+                     decimals=None,
+                     abs_conv: float | None = None,
+                     span_style: dict | None = None,
+                     ax=None,
+                     xlims: tuple | None = None,
+                     ylims: tuple | None = None ,
+                     fontsize: int = 8,
+                     **kwargs) -> Figure:
     """
     Plot y = f(x) relation for different values of `hue`.
     Useful for convergence tests done wrt two parameters.
 
     Args:
         data: |pandas-DataFrame| containing columns `x`, `y`, and `hue`.
-        x: Name of the column used as x-value
-        y: Name of the column(s) used as y-value
-        hue: Variable that define subsets of the data, which will be drawn on separate lines
+        x: Name of the column used as x-value.
+        y: Name of the column(s) used as y-value.
+        hue: Variable that define subsets of the data, which will be drawn on separate lines.
+            None to disable grouping.
         decimals: Number of decimal places to round `hue` columns. Ignore if None
+        abs_conv: If not None, show absolute convergence window.
+        span_style: dictionary with options passed to ax.axhspan.
         ax: |matplotlib-Axes| or None if a new figure should be created.
         xlims, ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
             or scalar e.g. `left`. If left (right) is None, default values are used
         fontsize: Legend fontsize.
-        kwargs: Keyword arguments are passed to ax.plot method.
+        kwargs: Keyword arguments passed to ax.plot method.
 
     Returns: |matplotlib-Figure|
     """
@@ -579,40 +664,87 @@ def plot_xy_with_hue(data: pd.DataFrame, x: str, y: str, hue: str,
         return fig
 
     # Check here because pandas error messages are a bit criptic.
-    miss = [k for k in (x, y, hue) if k not in data]
+    if hue is not None:
+        miss = [k for k in (x, y, hue) if k not in data]
+    else:
+        miss = [k for k in (x, y) if k not in data]
     if miss:
         raise ValueError("Cannot find `%s` in dataframe.\nAvailable keys are: %s" % (str(miss), str(data.keys())))
 
     # Truncate values in hue column so that we can group.
-    if decimals is not None:
+    if hue and decimals is not None:
         data = data.round({hue: decimals})
 
     ax, fig, plt = get_ax_fig_plt(ax=ax)
-    for key, grp in data.groupby(by=hue):
-        # Sort xs and rearrange ys
-        xy = np.array(sorted(zip(grp[x], grp[y]), key=lambda t: t[0]))
-        xvals, yvals = xy[:, 0], xy[:, 1]
 
-        label = "%s" % (str(key))
-        if not kwargs:
-            ax.plot(xvals, yvals, 'o-', label=label)
-        else:
-            ax.plot(xvals, yvals, label=label, **kwargs)
+    def _plot_key_grp(key, grp, span_style):
+        # Sort xs and rearrange ys
+        xy = sorted(zip(grp[x], grp[y]), key=lambda t: t[0]) if x!="filename" else list(zip(grp[x], grp[y]))
+        xs, ys = np.array([i[0] for i in xy]), np.array([i[1] for i in xy])
+
+        label = f"{hue}: {str(key)}" if hue is not None else ""
+        style_kws = dict()
+        style_kws.update(kwargs)
+        line = ax.plot(xs, ys, label=label, **style_kws)[0]
+        # Plot points with different color if y reach convergence.
+        if abs_conv is not None:
+            color = line.get_color()
+            for i in range(len(ys)):
+                ax.plot(xs[i], ys[i],
+                        marker="*" if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else "o",
+                        markersize=10 if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else 5,
+                        color=color,
+                        alpha = 1 if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else 0.5,
+                        linestyle="")
+
+        if abs_conv is not None:
+            span_style = span_style or dict(alpha=0.2, hatch="/")
+            span_style["color"] = line.get_color()
+            # This to support the case in which we have multiple ys for the same x_max
+            x_max, y_xmax = xs[-1], ys[-1]
+            x_inds = np.where(xs == x_max)[0]
+            for i, ix in enumerate(x_inds):
+                y_xmax = ys[ix]
+                ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv,
+                           #label=r"$|y-y(x_{max})| \leq %s$" % abs_conv if (with_label and i == 0) else None,
+                           **span_style)
+
+    if hue is not None:
+        for key, grp in data.groupby(by=hue):
+            _plot_key_grp(key, grp, span_style)
+    else:
+        _plot_key_grp("nohue", data, span_style)
 
     ax.grid(True)
     ax.set_xlabel(x)
     ax.set_ylabel(y)
     set_axlims(ax, xlims, "x")
     set_axlims(ax, ylims, "y")
-    ax.legend(loc="best", fontsize=fontsize, shadow=True)
+    if hue:
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
     return fig
 
 
-def linear_fit_ax(ax, xs, ys, fontsize, with_label=True, with_ideal_line=False, **kwargs) -> tuple[float]:
+def linear_fit_ax(ax, xs, ys,
+                  fontsize: int,
+                  with_label: bool = True,
+                  with_ideal_line: bool = False,
+                  **kwargs) -> tuple[float]:
     """
     Calculate a linear least-squares regression for two sets of measurements.
-    kwargs are passed to ax.plot.
+
+
+    Args:
+        ax: |matplotlib-Axes|.
+        xs: X-values.
+        ys: Y-values.
+        fontsize: fontsize for legends and titles
+        with_label: True to add lable to the plot.
+        with_ideal_line: True to show ideal linear behaviour.
+        kwargs: keyword arguments passed to ax.plot.
+
+    Return: fit values.
     """
     from scipy.stats import linregress
     fit = linregress(xs, ys)
@@ -621,6 +753,7 @@ def linear_fit_ax(ax, xs, ys, fontsize, with_label=True, with_ideal_line=False, 
         kwargs["color"] = "r"
 
     ax.plot(xs, fit.slope*xs + fit.intercept, label=label if with_label else None, **kwargs)
+
     if with_ideal_line:
         # Plot y = x line
         ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-',
@@ -628,10 +761,50 @@ def linear_fit_ax(ax, xs, ys, fontsize, with_label=True, with_ideal_line=False, 
     return fit
 
 
+def quadratic_fit_ax(ax, xs, ys,
+                     fontsize: int,
+                     with_label: bool = True,
+                     num_pts: int = 100,
+                     **kwargs) -> tuple:
+    """
+    Quadratic fit: y = ax^2 + bx + c
+
+    Args:
+        ax: |matplotlib-Axes|.
+        xs: X-values.
+        ys: Y-values.
+        fontsize: fontsize for legends and titles.
+        with_label: True to add label to the plot.
+        kwargs: keyword arguments passed to ax.plot.
+
+    Return: (params, covariance)
+    """
+    # Define quadratic function
+    def quadratic(x, a, b, c):
+        return a * x**2 + b * x + c
+
+    from scipy.optimize import curve_fit
+    params, covariance = curve_fit(quadratic, xs, ys)
+    a, b, c = params
+
+    # Predict values
+    x_fit = np.linspace(min(xs), max(xs), num_pts)
+    y_fit = quadratic(x_fit, *params)
+
+    #label = r"Quad fit $a={:.2f}$, $b={:.2f}$ $c={:.2f}$ $\text{cov}$={:.2f}".format(a, b, c, covariance)
+    label = r"Quad fit $a={:.2f}$, $b={:.2f}$ $c={:.2f}$".format(a, b, c)
+    if "color" not in kwargs:
+        kwargs["color"] = "r"
+
+    ax.plot(x_fit, quadratic(x_fit, a, b, c), label=label if with_label else None, **kwargs)
+
+    return params, covariance
+
+
 @add_fig_kwargs
 def plot_array(array, color_map=None, cplx_mode="abs", **kwargs) -> Figure:
     """
-    Use imshow for plotting 2D or 1D arrays. Return: |matplotlib-Figure|
+    Use imshow for plotting 2D or 1D arrays.
 
     Example::
 
@@ -752,7 +925,7 @@ class ConvergenceAnalyzer:
             if not duck.is_listlike(ytols): ytols = [ytols]
 
             if any(yt <= 0 for yt in ytols):
-                raise ValueError(f"tolerances cannot be negative: {ytols}")
+                raise ValueError(f"tolerances cannot be negative: {ytols=}")
 
             # Sort input tolerances just to be on the safe side.
             self.ytols_dict[ykey] = np.sort(np.array(ytols))[::-1]
@@ -794,7 +967,7 @@ class ConvergenceAnalyzer:
                         # y(x) = alpha * (x - x0) + y0
                         #print("best_xx 1", best_xx)
                         if (y0 - y_xmax) >= 0: best_xx = x0 + ( ytol + y_xmax - y0) / alpha
-                        if (y0 - y_xmax) <  0: best_xx = x0 + (-ytol + y_xmax - y0) / alpha
+                        if (y0 - y_xmax) < 0: best_xx = x0 + (-ytol + y_xmax - y0) / alpha
                         #print("best_xx 2", best_xx)
 
                     self.ykey_best_xs[ykey][il] = best_xx
@@ -842,7 +1015,7 @@ class ConvergenceAnalyzer:
             #rows.append(dict(ytol=ytol, ix=ix, xx=xx), xx_best=xx_best, ykey=ykey)
         return pd.DataFrame(rows)
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """
         String representation with verbosity level `verbose`.
         """
@@ -897,7 +1070,7 @@ class ConvergenceAnalyzer:
                 elif yscale == "log":
                     ax.axhspan(y0_log, y1_log, label=label, **span_style)
                 else:
-                    raise ValueError(f"Invalid yscale: {yscale}")
+                    raise ValueError(f"Invalid {yscale=}")
             else:
                 # Use limits of the next window to avoid overlapping patches.
                 if yscale == "linear":
@@ -907,7 +1080,7 @@ class ConvergenceAnalyzer:
                     ax.axhspan(y0_log, ylims_log[il+1,0], label=label, **span_style)
                     ax.axhspan(ylims_log[il+1,1], y1_log, **span_style)
                 else:
-                    raise ValueError(f"Invalid yscale: {yscale}")
+                    raise ValueError(f"Invalid {yscale=}")
 
             # Add vertical line to show best_xx.
             best_xx = self.ykey_best_xs[ykey][il]
@@ -918,7 +1091,7 @@ class ConvergenceAnalyzer:
     @add_fig_kwargs
     def plot(self, ax_mat=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot convergence profile. A new grid is build if `ax_mat` is None:
+        Plot convergence profile. A new grid is built if `ax_mat` is None:
         """
         nrows, ncols = len(self.yvals_dict), 2
 
@@ -1057,48 +1230,35 @@ class ArrayPlotter:
         return fig
 
 
-#TODO Rename it to ScatterData?
 class Marker:
     """
-    Stores the position and the size of the marker.
+    Stores the position and the size of the markers.
     A marker is a list of tuple(x, y, s) where x, and y are the position
-    in the graph and s is the size of the marker.
+    in the plot and s is the size of the marker.
     Used for plotting purpose e.g. QP data, energy derivatives...
 
     Example::
-
         x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
         marker = Marker(x, y, s)
     """
 
     def __init__(self, x, y, s, **scatter_kwargs):
-                 #marker: str = "o", color: str = "y", alpha: float = 1.0, label=None, self.edgecolors=None):
         self.x, self.y, self.s = np.array(x), np.array(y), np.array(s)
 
         if len(self.x) != len(self.y):
-            raise ValueError("len(self.x) != len(self.y)")
+            raise ValueError(f"{len(self.x)=} != {len(self.y)=}")
+
         if len(self.y) != len(self.s):
-            raise ValueError("len(self.y) != len(self.s)")
+            raise ValueError(f"{len(self.y)=} != {len(self.s)=}")
 
-        #self.marker = marker
-        #self.color = color
-        #self.alpha = alpha
-        #self.label = label
-        #self.edgecolors = edgecolors
         self.scatter_kwargs = scatter_kwargs
-
-        # Step 1: Normalize sizes to a suitable range for plotting
-        #min_size = 10  # Minimum size for points
-        #max_size = 100  # Maximum size for points
-        #normalized_s = min_size + (max_size - min_size) * (self.s - np.min(self.s)) / (np.max(self.s) - np.min(self.s))
-        #self.s = normalized_s
 
     def __bool__(self):
         return bool(len(self.s))
 
     __nonzero__ = __bool__
 
-    def posneg_marker(self) -> tuple[Marker, Marker]:
+    def posneg_marker(self, threshold: float = 0.0) -> tuple[Marker, Marker]:
         """
         Split data into two sets: the first one contains all the points with positive size.
         The first set contains all the points with negative size.
@@ -1107,7 +1267,7 @@ class Marker:
         neg_x, neg_y, neg_s = [], [], []
 
         for x, y, s in zip(self.x, self.y, self.s):
-            if s >= 0.0:
+            if s >= threshold:
                 pos_x.append(x)
                 pos_y.append(y)
                 pos_s.append(s)
@@ -1132,9 +1292,9 @@ class Exposer:
     """
 
     @classmethod
-    def as_exposer(cls, exposer, **kwargs) -> Exposer:
+    def as_exposer(cls, exposer: str | Exposer, **kwargs) -> Exposer:
         """
-        Return an instance of Exposer, usually from a string with then name.
+        Return an instance of Exposer, usually from a string with the name.
 
         Args:
             exposer: "mpl" for MplExposer, "panel" for PanelExposer.
@@ -1742,9 +1902,9 @@ class PlotlyRowColDesc:
         self.iax = 1 + self.py_col + self.py_row * self.ncols
         # Note that plotly col and row start from 1.
         if nrows == 1 and ncols == 1:
-            self.ply_row, self.ply_col = (None, None)
+            self.ply_row, self.ply_col = None, None
         else:
-            self.ply_row, self.ply_col = (self.py_row + 1, self.py_col + 1)
+            self.ply_row, self.ply_col = self.py_row + 1, self.py_col + 1
 
     def __str__(self) -> str:
         lines = []
@@ -1754,7 +1914,7 @@ class PlotlyRowColDesc:
 
         return "\n".join(lines)
 
-    #@lazy_property
+    #@cached_property
     #def rowcol_dict(self):
     #    if self.nrows == 1 and self.ncols == 1: return {}
     #    return dict(row=self.ply_row, col=self.ply_col)
@@ -1839,7 +1999,7 @@ def plotly_set_lims(fig, lims, axname, iax=None) -> tuple:
     # Example: fig.update_layout(yaxis_range=[-4,4])
     k = dict(x="xaxis", y="yaxis")[axname]
     if iax:
-        k= k + str(iax)
+        k = k + str(iax)
     fig.layout[k].range = [left, right]
 
     return left, right
@@ -1942,6 +2102,7 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
     # Add docstring to the decorated method.
     doc_str = """\n\n
         Keyword arguments controlling the display of the figure:
+
         ================  ====================================================================
         kwargs            Meaning
         ================  ====================================================================
@@ -2160,7 +2321,7 @@ def go_line(v1, v2, color="black", width=2, mode="lines", **kwargs):
 
 
 def go_lines(V, name=None, color="black", width=2, **kwargs):
-    import plotly.graph_objects as go
+    #import plotly.graph_objects as go
     gen = ((v1, v2) for (v1, v2) in V)
     v1, v2 = next(gen)
     out = [
@@ -2608,7 +2769,7 @@ def plotly_points(points, lattice=None, coords_are_cartesian=False, fold=False, 
 def plotly_brillouin_zone_from_kpath(kpath, fig=None, **kwargs):
     """
     Gives the plot (as a matplotlib object) of the symmetry line path in
-        the Brillouin Zone.
+    the Brillouin Zone.
 
     Args:
         kpath (HighSymmKpath): a HighSymmKPath object
@@ -2763,7 +2924,7 @@ def add_colorscale_dropwdowns(fig):
     return fig
 
 
-def mpl_to_ply(fig: Figure, latex: bool= False):
+def mpl_to_ply(fig: Figure, latex: bool = False):
     """
     Nasty workaround for plotly latex rendering in legend/breaking exception
     """
@@ -2818,7 +2979,7 @@ def mpl_to_ply(fig: Figure, latex: bool= False):
     from plotly.tools import mpl_to_plotly
     plotly_fig = mpl_to_plotly(fig)
 
-    plotly_fig.update_layout(template  = "plotly_white", title = {
+    plotly_fig.update_layout(template="plotly_white", title={
                                 "xanchor": "center",
                                 "yanchor": "top",
                                 "x": 0.5,
@@ -2889,16 +3050,3 @@ class PolyfitPlotter:
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
-
-
-#class PolyExtrapolator:
-#    """
-#    Fit data with polynomals, extrapolate to zero and visualize the results.
-#    """
-#    def __init__(self, xs, ys):
-#        self.xs, self.ys = np.array(xs), np.array(ys)
-#
-#    def extrapolate_to_zero(self, deg: int):
-
-
-

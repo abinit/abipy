@@ -10,8 +10,8 @@ import pandas as pd
 import time
 
 from tabulate import tabulate
+from functools import cached_property
 from monty.string import marquee
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
@@ -45,17 +45,17 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = self.r = AbiwanReader(filepath)
+        self.r = AbiwanReader(filepath)
 
         # Number of bands actually used to construct the Wannier functions
         self.num_bands_spin = self.r.read_value("num_bands")
 
-    @lazy_property
+    @cached_property
     def nwan_spin(self) -> np.ndarray:
         """Number of Wannier functions for each spin."""
         return self.r.read_value("nwan")
 
-    @lazy_property
+    @cached_property
     def mwan(self) -> int:
         """
         Max number of Wannier functions over spins, i.e max(nwan_spin)
@@ -63,12 +63,12 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """
         return self.r.read_dimvalue("mwan")
 
-    @lazy_property
+    @cached_property
     def nntot(self) -> int:
         """Number of k-point neighbours."""
         return int(self.r.read_value("nntot"))
 
-    @lazy_property
+    @cached_property
     def bands_in(self) -> np.ndarray:
         """
         [nsppol, mband] logical array. Set to True if (spin, band) is included
@@ -76,39 +76,39 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """
         return self.r.read_value("band_in_int").astype(bool)
 
-    @lazy_property
+    @cached_property
     def lwindow(self) -> np.ndarray:
         """
         [nsppol, nkpt, max_num_bands] array. Only if disentanglement.
-        True if this band at this k-point lies within the outer window
+        True if this band at this k-point lies within the outer window.
         """
         return self.r.read_value("lwindow_int").astype(bool)
 
-    #@lazy_property
+    #@cached_property
     #def ndimwin(self):
     #    """
     #    [nsppol, nkpt] array giving the number of bands inside the outer window for each k-point and spin.
     #    """
     #    return self.r.read_value("ndimwin")
 
-    @lazy_property
+    @cached_property
     def have_disentangled_spin(self) -> np.ndarray:
         """[nsppol] bool array. Whether disentanglement has been performed."""
         #return self.r.read_value("have_disentangled_spin").astype(bool)
         # TODO: Exclude bands
         return self.nwan_spin != self.num_bands_spin
 
-    @lazy_property
+    @cached_property
     def wann_centers(self) -> np.ndarray:
         """[nsppol, mwan, 3] array with Wannier centers in Ang."""
         return self.r.read_value("wann_centres")
 
-    @lazy_property
+    @cached_property
     def wann_spreads(self) -> np.ndarray:
         """[nsppol, mwan] array with spreads in Ang^2"""
         return self.r.read_value("wann_spreads")
 
-    @lazy_property
+    @cached_property
     def irvec(self) -> np.ndarray:
         """
         [nrpts, 3] array with the lattice vectors in the Wigner-Seitz cell
@@ -116,7 +116,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """
         return self.r.read_value("irvec")
 
-    @lazy_property
+    @cached_property
     def ndegen(self) -> np.ndarray:
         """
         [nrpts] array with the degeneracy of each point.
@@ -124,7 +124,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """
         return self.r.read_value("ndegen")
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
@@ -194,7 +194,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """Close file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.r.read_ebands()
@@ -204,7 +204,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def hwan(self) -> HWanR:
         """
         Construct the matrix elements of the KS Hamiltonian in real space
@@ -344,7 +344,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     @add_fig_kwargs
     def plot_with_ebands(self, ebands_kpath,
-                         ebands_kmesh=None, method="gaussian", step: float=0.05, width: float=0.1, **kwargs) -> Figure:
+                         ebands_kmesh=None, method="gaussian", step: float = 0.05, width: float = 0.1, **kwargs) -> Figure:
         """
         Receive an ab-initio electronic strucuture, interpolate the energies on the same list of k-points
         and compare the two band structures.
@@ -450,7 +450,7 @@ class HWanR(ElectronInterpolator):
         self.nband = nwan_spin[0]
         #self.nelect
 
-    def eval_sk(self, spin, kpt, der1=None, der2=None) -> np.ndarray:
+    def eval_sk(self, spin: int, kpt, der1=None, der2=None) -> np.ndarray:
         """
         Interpolate eigenvalues for all bands at a given (spin, k-point).
         Optionally compute gradients and Hessian matrices.
@@ -465,7 +465,7 @@ class HWanR(ElectronInterpolator):
             oeigs[nband]
         """
         if der1 is not None or der2 is not None:
-            raise NotImplementedError("Derivatives")
+            raise NotImplementedError("Derivatives are not coded")
 
         # O_ij(k) = sum_R e^{+ik.R}*O_ij(R)
         j2pi = 2.0j * np.pi
@@ -538,7 +538,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
     """
     EXT = "ABIWAN"
 
-    def get_dataframe(self, with_geo=True, abspath=False, funcs=None, **kwargs) -> pd.DataFrame:
+    def get_dataframe(self, with_geo: bool = True, abspath: bool = False, funcs=None, **kwargs) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the most important Wannier90 results and the filenames as index.
 

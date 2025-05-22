@@ -3,7 +3,7 @@ r"""
 Conductivity in metals
 ======================
 
-Flow to compute conductivity in metals
+Flow to compute conductivity in metals.
 """
 
 import os
@@ -15,8 +15,7 @@ from abipy import flowtk
 from abipy.abio.factories import conduc_kerange_from_inputs
 
 
-def make_scf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0),
-                   **variables):
+def make_scf_input(structure, pseudos, ngkpt=(2, 2, 2), shiftk=(0, 0, 0), **variables):
     """Build and return SCF input given the structure and pseudopotentials"""
 
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
@@ -31,8 +30,7 @@ def make_scf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0),
     return scf_inp
 
 
-def make_nscf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0),
-                    **variables):
+def make_nscf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0), **variables):
     """Build and return NSCF input given the structure and pseudopotentials"""
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
@@ -76,14 +74,14 @@ def build_flow(options):
 
     # Kerange Variables
     nbr_proc = 4
-    ngqpt_fine = [16, 16, 16] # The sigma_ngkpt grid must be divisible by the qpt grid
+    ngqpt_fine = [16, 16, 16]         # The sigma_ngkpt grid must be divisible by the qpt grid
     sigma_ngkpt = [16, 16, 16]
-    einterp = [1, 5, 0, 0] # Star functions Interpolation
+    einterp = [1, 5, 0, 0]            # Star functions Interpolation
     sigma_erange = [-0.3, -0.3, "eV"] # Negative value for metals
 
     flow = flowtk.Flow(workdir=options.workdir)
 
-    # Create inputs Object
+    # Create inputs
     scf_input = make_scf_input(structure, pseudos,
                                tolvrs=1e-12,
                                ngkpt=ngkpt,
@@ -118,17 +116,18 @@ def build_flow(options):
                                        sigma_erange=sigma_erange,
                                        einterp=einterp,
                                        boxcutmin=boxcutmin, # 1.1 is the default value of the function
-                                       mixprec=mixprec # 1 is the default value of the function
+                                       mixprec=mixprec      # 1 is the default value of the function
                                        )
 
     # Here we can change multi to change the variable of a particular dataset
 
-    conduc_work = flowtk.ConducWork.from_phwork(phwork=ph_work, # Linking the DDB and DVDB via a |PhononWork|
-                                                multi=multi, # The multidataset object
+    conduc_work = flowtk.ConducWork.from_phwork(phwork=ph_work,    # Linking the DDB and DVDB via a PhononWork
+                                                multi=multi,       # The multidataset object
                                                 nbr_proc=nbr_proc, # Needed to parallelize the calculation
                                                 flow=flow,
                                                 with_kerange=True, # Using Kerange
-                                                omp_nbr_thread=1) # 1 is the default value of the function
+                                                omp_nbr_thread=1)  # 1 is the default value of the function
+
     # If you already have the DDB and DVDB, use from_filepath(ddb_path, dvdb_path, multi, ...) instead of from_phwork
 
     flow.register_work(conduc_work)
@@ -157,5 +156,3 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
-
-############################################

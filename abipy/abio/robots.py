@@ -1,7 +1,9 @@
 # coding: utf-8
 """
-This module defines the Robot BaseClass. Robots operates on multiple files and provide helper
-functions to plot the data e.g. convergence studies and to build pandas dataframes from the output files.
+This module defines the Robot base xlass.
+Robots operate on multiple files and provide helper
+functions to plot data, perform convergence studies
+and build pandas dataframes.
 """
 from __future__ import annotations
 
@@ -13,7 +15,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from collections import OrderedDict, deque
+from collections import deque
 from typing import Callable, Union, Any
 from functools import wraps
 from monty.string import is_string, list_strings
@@ -40,7 +42,7 @@ class Robot(NotebookWriter):
     .. code-block:: python
 
         with Robot([("label1", "file1"), (label2, "file2")]) as robot:
-            # Do something with robot. files are automatically closed when we exit.
+            # Do something with robot. Files are automatically closed when we exit.
             for label, abifile in self.items():
                 print(label)
     """
@@ -60,7 +62,7 @@ class Robot(NotebookWriter):
         Args:
             args is a list of tuples (label, filepath)
         """
-        self._abifiles, self._do_close = OrderedDict(), OrderedDict()
+        self._abifiles, self._do_close = {}, {}
         self._exceptions = deque(maxlen=100)
 
         for label, abifile in args:
@@ -98,7 +100,7 @@ class Robot(NotebookWriter):
             robot = GsrRobot.from_dir(".")
 
         Args:
-            top: Root directory
+            top: Root directory.
             walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
@@ -125,7 +127,7 @@ class Robot(NotebookWriter):
     @classmethod
     def from_dir_glob(cls, pattern: str, walk: bool = True, abspath: bool = False) -> Robot:
         """
-        This class method builds a robot by scanning all files located within the directories
+        Build a robot by scanning all files located within the directories
         matching `pattern` as implemented by glob.glob
         This method should be invoked with a concrete robot class, for example:
 
@@ -150,7 +152,7 @@ class Robot(NotebookWriter):
         Open files in directory tree starting from `top`. Return list of Abinit files.
         """
         if not os.path.isdir(top):
-            raise ValueError("%s: no such directory" % str(top))
+            raise ValueError(f"{top=}: no such directory")
         from abipy.abilab import abiopen
         items = []
         if walk:
@@ -180,12 +182,33 @@ class Robot(NotebookWriter):
                 filename.endswith("." + cls.EXT))  # This for .abo
 
     @classmethod
-    def from_files(cls, filenames, labels=None, abspath=False) -> Robot:
+    def from_label_file_dict(cls, label_file_dict: dict) -> Robot:
+        """
+        Build a robot from a dictionary mapping labels to filepath.
+
+        Usage example:
+
+        .. code-block:: python
+
+        robot = SigresRobot.from_label_file_dict({
+           "Minimax": "t30o_DS3_SIGRES.nc",
+           "Gauss": "Gauss/t30o_DS3_SIGRES.nc",
+        })
+        """
+
+        return cls.from_files(list(label_file_dict.values()),
+                              labels=list(label_file_dict.keys()))
+
+    @classmethod
+    def from_files(cls, filenames: list[str],
+                   labels: list[str] | None = None,
+                   abspath: bool = False) -> Robot:
         """
         Build a Robot from a list of `filenames`.
-        If labels is None, labels are automatically generated from absolute paths.
 
         Args:
+            labels: List of labels associated to filenammes.
+                If None, labels are automatically generated from absolute paths.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
         filenames = list_strings(filenames)
@@ -334,7 +357,6 @@ class Robot(NotebookWriter):
 
         return robot
 
-
     def __len__(self):
         return len(self._abifiles)
 
@@ -421,6 +443,7 @@ class Robot(NotebookWriter):
         """
         if is_string(abifile):
             from abipy.abilab import abiopen
+            print(f"{abifile=}")
             abifile = abiopen(abifile)
             if filter_abifile is not None and not filter_abifile(abifile):
                 abifile.close()
@@ -430,7 +453,7 @@ class Robot(NotebookWriter):
             self._do_close[abifile.filepath] = True
 
         if label in self._abifiles:
-            raise ValueError("label %s is already present!" % label)
+            raise ValueError(f"{label=} is already present!")
 
         self._abifiles[label] = abifile
 
@@ -521,8 +544,8 @@ class Robot(NotebookWriter):
 
         old_labels = list(self._abifiles.keys())
         if not dryrun:
-            old_abifiles, self._abifiles = self._abifiles, OrderedDict()
-        new2old = OrderedDict()
+            old_abifiles, self._abifiles = self._abifiles, {}
+        new2old = {}
         for old, new in zip(old_labels, new_labels):
             new2old[new] = old
             if not dryrun:
@@ -561,7 +584,7 @@ class Robot(NotebookWriter):
         old_new_paths = [(p, os.path.relpath(os.path.abspath(p), start=self.start)) for p in old_paths]
 
         old_abifiles = self._abifiles
-        self._abifiles = OrderedDict()
+        self._abifiles = {}
         for old, new in old_new_paths:
             self._abifiles[new] = old_abifiles[old]
 
@@ -663,9 +686,15 @@ class Robot(NotebookWriter):
         """List of netcdf files."""
         return list(self._abifiles.values())
 
-    def has_different_structures(self, rtol=1e-05, atol=1e-08) -> str:
+    def has_different_structures(self, rtol=1e-05, atol=1e-08, site_indices=None) -> str:
         """
         Check if structures are equivalent, return string with info about differences (if any).
+
+        Args:
+            rtol: relative tolerance
+            atol: absolute tolerance
+            site_indices: List of site indices that are supposed to be equal.
+                None to compare all sites.
         """
         if len(self) <= 1: return ""
         formulas = set([af.structure.composition.formula for af in self.abifiles])
@@ -678,8 +707,14 @@ class Robot(NotebookWriter):
             s1 = abifile.structure
             if not np.allclose(s0.lattice.matrix, s1.lattice.matrix, rtol=rtol, atol=atol):
                 lines.append("Structures have different lattice:")
-            if not np.allclose(s0.frac_coords, s1.frac_coords, rtol=rtol, atol=atol):
-                lines.append("Structures have different atomic positions:")
+            if site_indices is None:
+                # Compare all sites
+                if not np.allclose(s0.frac_coords, s1.frac_coords, rtol=rtol, atol=atol):
+                    lines.append("Structures have different atomic positions:")
+            else:
+                site_indices = np.array(site_indices)
+                if not np.allclose(s0.frac_coords[site_indices], s1.frac_coords[site_indices], rtol=rtol, atol=atol):
+                    lines.append(f"Structures have different atomic positions with {site_indices=}")
 
         return "\n".join(lines)
 
@@ -710,7 +745,7 @@ class Robot(NotebookWriter):
             val1, val2 = getattr(ref_abifile.r, aname), getattr(other_abifile.r, aname)
 
         else:
-            raise AttributeError(f"Cannot find attribute `{aname =}`")
+            raise AttributeError(f"Cannot find attribute `{aname=}`")
 
         # Now compare val1 and val2 taking into account the type.
         if isinstance(val1, (str, int, float, Structure)):
@@ -760,7 +795,7 @@ class Robot(NotebookWriter):
     %s
 
 Note that this list is automatically generated.
-Not all entries are sortable (Please select number-like quantities)""" % (self.__class__.__name__, aname, str(attrs)))
+Not all entries are sortable (please select number-like quantities)""" % (self.__class__.__name__, aname, str(attrs)))
 
     def _sortby_labelfile_list(self, labelfile_list, func_or_string, reverse=False, unpack=False):
         """
@@ -830,10 +865,11 @@ Not all entries are sortable (Please select number-like quantities)""" % (self._
         Args:
             hue: Variable that defines subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
-                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked
+                    or that a key with the same name is present in abifile.params.
                 Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
                 If callable, the output of hue(abifile) is used.
-            func_or_string: Either None, string, callable defining the quantity to be used for sorting.
+            func_or_string: None, string, or callable defining the quantity to be used for sorting.
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of func_or_string(abifile) is used.
                 If None, no sorting is performed.
@@ -1004,8 +1040,11 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         Example:
 
              robot.plot_convergence("energy")
+
              robot.plot_convergence("energy", sortby="nkpt")
+
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear")
+
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear", abs_conv=1e-3)
         """
         if "marker" not in kwargs:
@@ -1305,7 +1344,6 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             ax2.set_xlabel("%s" % xlabel)
 
 
-
 class HueGroup:
     """
     This small object is used by ``group_and_sortby`` to store information about the group.
@@ -1335,7 +1373,6 @@ class HueGroup:
         return zip(self.labels, self.abifiles, self.xvalues)
 
 
-
 class RobotPythonScript:
     """
     Small object used to generate a python script that reconstructs the
@@ -1345,7 +1382,9 @@ class RobotPythonScript:
     This object is typically used in the `on_all_ok` method of Works
     to generate ready-to-use python scripts to post-process/visualize the results.
 
-    Example:
+    **Example:**
+
+    .. code-block:: python
 
         with gsr_robot.get_pyscript(work.outdir.path_in("gsr_robot.py")) as script:
             script.add_text("a = 1")

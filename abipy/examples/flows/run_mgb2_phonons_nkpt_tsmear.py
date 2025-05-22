@@ -5,7 +5,7 @@ Convergence of phonons in metals wrt ngkpt and tsmear
 
 This examples shows how to build a flow to compute the
 phonon band structure in a metallic system (MgB2) with different
-k-point samplings and values of the electronic smearing tsmear
+k-point samplings and values of the electronic smearing tsmear.
 """
 
 import os

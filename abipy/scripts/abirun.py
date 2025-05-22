@@ -17,7 +17,7 @@ import abipy.abilab as abilab
 import abipy.tools.cli_parsers as cli
 
 from pprint import pprint
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from socket import gethostname
 from monty import termcolor
 from monty.functools import prof_main
@@ -440,14 +440,6 @@ def get_parser(with_epilog=False):
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
-    # Subparser for single command.
-    p_single = subparsers.add_parser('single', parents=[copts_parser], help="Run single task and exit.")
-
-    # Subparser for rapid command.
-    p_rapid = subparsers.add_parser('rapid', parents=[copts_parser], help="Run all tasks in rapidfire mode.")
-    p_rapid.add_argument('-m', '--max-nlaunch', default=10, type=int,
-        help="Maximum number of launches. default: 10. Use -1 for no limit.")
-
     # Subparser for scheduler command.
     p_scheduler = subparsers.add_parser('scheduler', parents=[copts_parser],
         help="Run all tasks with a Python scheduler. Requires scheduler.yml either in $PWD or ~/.abinit/abipy.")
@@ -456,6 +448,14 @@ def get_parser(with_epilog=False):
     p_scheduler.add_argument('-hs', '--hours', default=0, type=int, help="Number of hours to wait.")
     p_scheduler.add_argument('-m', '--minutes', default=0, type=int, help="Number of minutes to wait.")
     p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="Number of seconds to wait.")
+
+    # Subparser for single command.
+    p_single = subparsers.add_parser('single', parents=[copts_parser], help="Run single task and exit.")
+
+    # Subparser for rapid command.
+    p_rapid = subparsers.add_parser('rapid', parents=[copts_parser], help="Run all tasks in rapidfire mode.")
+    p_rapid.add_argument('-m', '--max-nlaunch', default=10, type=int,
+        help="Maximum number of launches. default: 10. Use -1 for no limit.")
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show status table.")
@@ -1173,7 +1173,7 @@ def main():
     elif options.command == "cycles":
         # Print cycles.
         from abipy.flowtk.abiinspect import CyclesPlotter
-        cls2plotter = OrderedDict()
+        cls2plotter = {}
         for task, cycle in flow.get_task_scfcycles(nids=select_nids(flow, options),
                                                    exclude_ok_tasks=options.exclude_ok_tasks):
             print()
@@ -1237,7 +1237,7 @@ def main():
         if plot_mode is not None:
             plotfunc = getattr(ebands_plotter, plot_mode, None)
             if plotfunc is None:
-                raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
+                raise ValueError(f"Don't know how to handle {plot_mode=}")
             plotfunc(tight_layout=True)
 
     elif options.command == "hist":
@@ -1272,10 +1272,10 @@ def main():
                                         exclude_exts=options.exclude_exts,
                                         exclude_dirs=options.exclude_dirs,
                                         verbose=options.verbose)
-            print("Created tarball file %s" % tarfile)
+            print(f"Created tarball file {tarfile}")
         else:
             tarfile = flow.make_light_tarfile()
-            print("Created light tarball file %s" % tarfile)
+            print(f"Created light tarball file {tarfile}")
 
     elif options.command == "tricky":
         flow.show_tricky_tasks(verbose=options.verbose)
@@ -1319,7 +1319,7 @@ def main():
             elif options.groupby == "task_class":
                 k = task.__class__.__name__
             else:
-                raise ValueError("Invalid groupby: `%s`" % options.groupby)
+                raise ValueError(f"Invalid groupby: {options.groupby}")
             d[k].append(task)
 
         for k, tasks in d.items():
@@ -1375,12 +1375,12 @@ def main():
 
         graph.view(directory=directory, cleanup=False)
 
+        print("Use -v to write graph to file in png format, -vv to use svg format.")
         if options.verbose > 1:
-            # Write graph to file in png format.
-            graph.format = "png"
+            graph.format = "png" if options.verbose == 1 else "svg"
             graph.attr(dpi=str(300))
             path = graph.render("graph", view=False, cleanup=False)
-            print("Saving png file to:", path)
+            print(f"Saving {graph.format} file to: {path}")
 
     elif options.command == "listext":
         if not options.listexts:

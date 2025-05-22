@@ -28,7 +28,7 @@ def _find_oncv_output(path: str) -> str:
     new_path = root + ".out"
     if not os.path.exists(new_path):
         raise ValueError("Cannot find neither %s nor %s" % (path, new_path))
-    cprint("Maybe you meant %s" % new_path, "yellow")
+    cprint("Maybe you meant %s" % new_path, color="yellow")
     return new_path
 
 
@@ -51,7 +51,7 @@ def oncv_gnuplot(options):
     # Parse output file.
     onc_parser = OncvParser(out_path).scan()
     if not onc_parser.run_completed:
-        cprint("oncvpsp output is not completed. Exiting", "red")
+        cprint("oncvpsp output is not completed. Exiting", color="red")
         return 1
 
     onc_parser.gnuplot()
@@ -60,7 +60,7 @@ def oncv_gnuplot(options):
 
 def oncv_print(options) -> int:
     """
-    Parse oncvps output and print results to terminal.
+    Parse oncvps output file and print results to terminal.
     """
     out_path = _find_oncv_output(options.filepath)
     p = OncvParser(out_path).scan()
@@ -155,10 +155,10 @@ def oncv_run(options):
     elif options.rel == "fr":
         if not root.endswith("_r"):
             root += "_r"
-            cprint("FR calculation with input file without `_r` suffix. Will add `_r` to output files", "yellow")
+            cprint("FR calculation with input file without `_r` suffix. Will add `_r` to output files", color="yellow")
 
     elif options.rel == "from_file":
-        calc_type  = "scalar-relativistic"
+        calc_type = "scalar-relativistic"
         if root.endswith("_r"): calc_type = "fully-relativistic"
         if root.endswith("_nor"): calc_type = "non-relativistic"
 
@@ -168,11 +168,11 @@ def oncv_run(options):
     out_path = root + ".out"
 
     if os.path.exists(psp8_path):
-        cprint("%s already exists and will be overwritten" % os.path.relpath(psp8_path), "yellow")
+        cprint("%s already exists and will be overwritten" % os.path.relpath(psp8_path), color="yellow")
     if os.path.exists(djrepo_path):
-        cprint("%s already exists and will be overwritten" % os.path.relpath(djrepo_path), "yellow")
+        cprint("%s already exists and will be overwritten" % os.path.relpath(djrepo_path), color="yellow")
     if os.path.exists(out_path):
-        cprint("%s already exists and will be overwritten" % os.path.relpath(out_path), "yellow")
+        cprint("%s already exists and will be overwritten" % os.path.relpath(out_path), color="yellow")
 
     # Select calc_type
     if calc_type is None:
@@ -188,11 +188,11 @@ def oncv_run(options):
     print(f"Output files produced in directory:\n\t{psgen.workdir}")
 
     if retcode := psgen.start_and_wait() != 0:
-        cprint("oncvpsp returned %s. Exiting" % retcode, "red")
+        cprint("oncvpsp returned %s. Exiting" % retcode, color="red")
         return retcode
 
     if psgen.status != psgen.S_OK:
-        cprint(f"psgen.status = {psgen.status} != psgen.S_OK", "red")
+        cprint(f"psgen.status = {psgen.status} != psgen.S_OK", color="red")
 
         if psgen.parser.warnings:
             print(2 * "\n")
@@ -212,7 +212,7 @@ def oncv_run(options):
     # Parse the output file.
     onc_parser = OncvParser(out_path).scan()
     if not onc_parser.run_completed:
-        cprint("oncvpsp output is not completed. Exiting", "red")
+        cprint("oncvpsp output is not completed. Exiting", color="red")
         return 1
 
     # Extract psp8 files from the oncvpsp output and write it to file.
@@ -225,11 +225,11 @@ def oncv_run(options):
         with open(psp8_path.replace(".psp8", ".upf"), "wt") as fh:
             fh.write(upf_str)
     else:
-        cprint("UPF2 file has not been produced. Use `both` in input file!", "red")
+        cprint("UPF2 file has not been produced. Use `both` in input file!", color="red")
 
     pseudo = Pseudo.from_file(psp8_path)
     if pseudo is None:
-        cprint("Cannot parse psp8 file: %s" % psp8_path, "red")
+        cprint("Cannot parse psp8 file: %s" % psp8_path, color="red")
         return 1
 
     # Initialize and write djson file.
@@ -246,6 +246,53 @@ def oncv_run(options):
     plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                    use_web=options.expose_web, verbose=options.verbose)
     return 0
+
+
+def oncv_ghost(options) -> int:
+    """
+    Scan directories for oncvpsp output files and build dataframe with ghost position
+    """
+    #cli.customize_mpl(options)
+
+    # Walk through the directory tree and find all .out files.
+    root_dir = options.filepath
+    out_paths = []
+    for dirpath, _, filenames in os.walk(root_dir):
+        for filename in filenames:
+            if filename.endswith(".out"):
+                out_paths.append(os.path.join(dirpath, filename))
+    #print(out_paths)
+
+    # Parse the output file.
+    ierr = 0
+    rows = []
+    for out_path in out_paths:
+        onc_parser = OncvParser(out_path).scan()
+        if not onc_parser.run_completed:
+            cprint("oncvpsp output is not completed. Exiting", color="red")
+            ierr += 1
+            continue
+
+        hints = onc_parser.hints
+        rows.append(dict(
+            out_path=out_path,
+            z=onc_parser.z,
+            num_warnings=len(onc_parser.warnings),
+            num_errors=len(onc_parser.errors),
+            min_ghost_empty_ha=onc_parser.min_ghost_empty_ha,
+            #min_ghost_occ_ha=oncv_parser.min_ghost_occ_ha,
+            #ppgen_hint_low=hints["low"]["ecut"],
+            #ppgen_hint_normal=hints["normal"]["ecut"],
+            ppgen_hint_high=hints["high"]["ecut"],
+            ))
+
+    import pandas as pd
+    df = pd.DataFrame(rows)
+    df = df.sort_values(by='z')
+    from abipy.tools.printing import print_dataframe
+    print_dataframe(df)
+
+    return ierr
 
 
 def oncv_gui(options):
@@ -278,10 +325,8 @@ def oncv_gui(options):
     return pn.serve(build, **serve_kwargs)
 
 
-
-
 def get_epilog() -> str:
-        return """\
+    return """\
 Usage example:
 
     oncv.py run H.in                   ==> Run oncvpsp input file (scalar relativistic mode).
@@ -315,6 +360,7 @@ def get_parser(with_epilog=False):
         return p
 
     copts_parser = get_copts_parser(multi=False)
+    copts_parser_multi = get_copts_parser(multi=True)
 
     # Parent parser for commands supporting MplExposer.
     plot_parser = argparse.ArgumentParser(add_help=False)
@@ -345,9 +391,12 @@ def get_parser(with_epilog=False):
                                           help=oncv_plot_pseudo.__doc__)
 
     # Subparser for compare command.
-    copts_parser_multi = get_copts_parser(multi=True)
-    p_compare = subparsers.add_parser('compare', parents=[copts_parser_multi, plot_parser],
+    p_compare = subparsers.add_parser("compare", parents=[copts_parser_multi, plot_parser],
                                       help=oncv_compare.__doc__)
+
+    # Subparser for ghost command.
+    p_ghost = subparsers.add_parser("ghost", parents=[copts_parser],
+                                      help=oncv_ghost.__doc__)
 
     # notebook options.
     p_nb = subparsers.add_parser('notebook', parents=[copts_parser], help=oncv_notebook.__doc__)

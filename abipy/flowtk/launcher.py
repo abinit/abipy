@@ -14,11 +14,11 @@ from io import StringIO
 from queue import Queue, Empty
 from typing import Optional
 from shutil import which
+from functools import cached_property
 from monty.io import get_open_fds
 from monty.string import boxed, is_string
 from monty.collections import AttrDict #, dict2namedtuple
 from monty.termcolor import cprint
-from monty.functools import lazy_property
 from abipy.tools.iotools import yaml_safe_load, ask_yesno
 from abipy.tools.typing import TYPE_CHECKING
 from .utils import as_bool
@@ -471,7 +471,7 @@ killjobs_if_errors: yes # "yes" if the scheduler should try to kill all the runn
     def callback(self):
         """The function that will be executed by the scheduler."""
 
-    @lazy_property
+    @cached_property
     def pid(self) -> int:
         """The pid of the process associated to the scheduler."""
         return os.getpid()
@@ -637,7 +637,10 @@ class PyFlowScheduler(BaseScheduler):
 
         except KeyboardInterrupt:
             self.shutdown(msg="KeyboardInterrupt from user")
-            if ask_yesno("Do you want to cancel all the jobs in the queue? [Y/n]"):
+            try:
+                if ask_yesno("Do you want to cancel all the jobs in the queue? [Y/n]"):
+                    print("Number of jobs cancelled:", flow.cancel())
+            except KeyboardInterrupt:
                 print("Number of jobs cancelled:", flow.cancel())
 
             flow.pickle_dump()
@@ -666,8 +669,7 @@ class PyFlowScheduler(BaseScheduler):
                   len(list(flow.iflat_tasks(status=flow.S_SUB))))
 
         if nqjobs >= self.max_njobs_inqueue:
-            print(f"Too many jobs in the queue: {nqjobs} >= {self.max_njobs_inqueue}.\n",
-                  "No job will be submitted.")
+            print(f"Too many jobs in the queue: {nqjobs} >= {self.max_njobs_inqueue}. No job will be submitted.")
             flow.check_status(show=False)
             return
 
@@ -753,12 +755,12 @@ class PyFlowScheduler(BaseScheduler):
 
         if delta_etime.total_seconds() > self.num_reminders * self.remindme_s:
             self.num_reminders += 1
-            msg = ("Just to remind you that the scheduler with pid %s, flow %s\n has been running for %s " %
+            msg = ("Just to remind you that the scheduler with pid %s, flow %s has been running for %s " %
                   (self.pid, flow, delta_etime))
             retcode = self.send_email(msg, tag="[REMINDER]")
 
             if retcode:
-                msg += ("\nThe scheduler tried to send an e-mail to remind the user\n" +
+                msg += ("\nThe scheduler tried to send an e-mail to remind the user," +
                         " but send_email returned %d. Error is not critical though!" % retcode)
                 print(msg)
 
@@ -839,8 +841,12 @@ class PyFlowScheduler(BaseScheduler):
             if all_ok:
                 app("Flow completed successfully")
             else:
+                try:
+                    flow.debug()
+                except:
+                    pass
                 app("Flow %s didn't complete successfully" % repr(flow.workdir))
-                app("use `abirun.py FLOWDIR debug` to analyze the problem.")
+                app("Use `abirun.py FLOWDIR debug` to analyze the problem.")
                 app("Shutdown message:\n%s" % msg)
 
             print("")

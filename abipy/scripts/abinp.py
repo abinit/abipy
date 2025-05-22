@@ -14,33 +14,33 @@ import abipy.tools.cli_parsers as cli
 from typing import Type
 from monty.termcolor import cprint
 from monty.functools import prof_main
-from pymatgen.io.vasp.sets import DictSet
+from pymatgen.io.vasp.sets import VaspInputSet
 from abipy import abilab
 from abipy.abio import factories
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.ddb import DdbFile
 
 
-def vasp_dict_set_cls(s: str | DictSet) -> Type | list[str]:
+def vasp_dict_set_cls(s: str | VaspInputSet) -> Type | list[str]:
     """
     Return a subclass of DictSect from string `s`.
-    If s == "__all__", return list with all DictSet subclasses supported by pymatgen.
+    If s == "__all__", return list with all VaspInputSet subclasses supported by pymatgen.
     """
     from inspect import isclass
     from pymatgen.io.vasp import sets
     def is_dict_set(key: str) -> bool:
-        return isclass(obj := getattr(sets, key)) and issubclass(obj, DictSet)
+        return isclass(obj := getattr(sets, key)) and issubclass(obj, VaspInputSet)
 
     valid_keys = [key for key in dir(sets) if is_dict_set(key)]
 
     if s == "__all__":
         return valid_keys
 
-    if isinstance(s, DictSet):
+    if isinstance(s, VaspInputSet):
         return s
 
     if s not in valid_keys:
-        raise ValueError(f"Unknown DictSet {s}, must be one of {valid_keys}")
+        raise ValueError(f"Unknown VaspInputSet {s}, must be one of {valid_keys}")
 
     return getattr(sets, s)
 

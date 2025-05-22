@@ -15,16 +15,14 @@ import pandas as pd
 from collections import OrderedDict
 from pprint import pprint
 from typing import Any, Union
-from monty.json import jsanitize
-
+from functools import cached_property
 from pydispatch import dispatcher
+from monty.json import jsanitize, MSONable
 from monty.termcolor import colored
 from monty.serialization import loadfn
 from monty.string import is_string
 from monty.io import FileLock
 from monty.collections import AttrDict, Namespace
-from monty.functools import lazy_property
-from monty.json import MSONable
 from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 from abipy.tools.iotools import AtomicFile
 #from abipy.tools.typing import TYPE_CHECKING
@@ -174,7 +172,7 @@ class Dependency:
         """The status of the dependency, i.e. the status of the |Node|."""
         return self.node.status
 
-    @lazy_property
+    @cached_property
     def products(self) -> list[Product]:
         """List of output files produces by self."""
         _products = []
@@ -532,6 +530,8 @@ class Node(metaclass=abc.ABCMeta):
         # The content will be saved in json format in the working directory of the node.
         self.abipy_meta_json = None
 
+        self._attrs = {}
+
         # Set to true if the node has been finalized.
         self._finalized = False
         self._status = self.S_INIT
@@ -559,7 +559,7 @@ class Node(metaclass=abc.ABCMeta):
     #        raise RuntimeError("You should not call __setattr__ in spectator_mode")
     #    return super().__setattr__(name,value)
 
-    @lazy_property
+    @cached_property
     def color_hex(self) -> str:
         """Node color as Hex Triplet https://en.wikipedia.org/wiki/Web_colors#Hex_triplet"""
         def clamp(x):
@@ -567,6 +567,11 @@ class Node(metaclass=abc.ABCMeta):
 
         r, g, b = np.trunc(self.color_rgb * 255)
         return "#{0:02x}{1:02x}{2:02x}".format(clamp(r), clamp(g), clamp(b))
+
+    @property
+    def attrs(self) -> dict:
+        """Dictionary with attributes attached to the node."""
+        return self._attrs
 
     def isinstance(self, class_or_string):
         """
@@ -630,9 +635,10 @@ class Node(metaclass=abc.ABCMeta):
             # current working directory may not be defined!
             return self.workdir
 
-    def set_name(self, name: str) -> None:
+    def set_name(self, name: str) -> Node:
         """Set the name of the Node."""
         self._name = name
+        return self
 
     @property
     def node_id(self) -> int:
@@ -1081,7 +1087,7 @@ class FileNode(Node):
             # this usually happens when workdir has not been initialized
             return "<%s, node_id=%s, path=%s>" % (self.__class__.__name__, self.node_id, self.filepath)
 
-    @lazy_property
+    @cached_property
     def basename(self) -> str:
         """Basename of the file."""
         return os.path.basename(self.filepath)
@@ -1309,7 +1315,7 @@ class NodeHistory(collections.deque):
 
 
 class NodeCorrections(list):
-    """Iterable storing the correctios performed by the :class:`EventHandler`"""
+    """Iterable storing the correctinos performed by the :class:`EventHandler`"""
     #TODO
     # Correction should have a human-readable message
     # and a list of operations in JSON format (Modder?) so that
@@ -1367,7 +1373,6 @@ def get_newnode_id() -> int:
     """
     #import uuid
     #return uuid.uuid4()
-
     init_counter()
 
     global _COUNTER
@@ -1384,6 +1389,6 @@ def save_lastnode_id() -> None:
             fh.write("%d\n" % _COUNTER)
 
 
-# Register function atexit
+# IMPORTANT: Register function atexit
 import atexit
 atexit.register(save_lastnode_id)

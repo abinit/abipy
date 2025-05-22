@@ -5,11 +5,11 @@ from __future__ import annotations
 import numpy as np
 import pymatgen.core.units as pmgu
 
+from functools import cached_property
 from monty.string import marquee
 from monty.inspect import all_subclasses
 from monty.termcolor import cprint
 from monty.collections import AttrDict
-from monty.functools import lazy_property
 from monty.bisect import index as bs_index
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import KpointList
@@ -101,7 +101,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         """List of k-points in the dielectric function."""
         return self.reader.kpoints
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """
         |ElectronBands| object with the single-particle energies used to compute the screening.
@@ -144,7 +144,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         """The netcdf_ name associated to the data on disk."""
         return self.reader.netcdf_name
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """
         dict with the most important parameters used to compute the screening

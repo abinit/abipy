@@ -47,7 +47,6 @@ class ScriptTest(AbipyTest):
         env = TestFileEnvironment()
 
         # Use Agg backend for plots.
-        #if not os.path.exists(env.base_path): os.makedirs(env.base_path)
         with open(os.path.join(env.base_path, "matplotlibrc"), "wt") as fh:
             fh.write("backend: Agg\n")
 
@@ -135,7 +134,7 @@ class TestAbiopen(ScriptTest):
 
         # Test abiopen with json file
         json_path = os.path.join(test_files_dir, "nscf_input.json")
-        r = env.run(self.script, json_path, "-e", self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
+        r = env.run(self.script, json_path, self.loglevel, self.verbose, expect_stderr=self.expect_stderr)
 
 
 class TestAbistruct(ScriptTest):

@@ -6,9 +6,9 @@ import abc
 import numpy as np
 import abipy.core.abinit_units as abu
 
+from functools import cached_property
 from scipy.interpolate import UnivariateSpline
 from monty.collections import dict2namedtuple
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.analysis.eos import EOS
 from abipy.core.func1d import Function1D
@@ -39,10 +39,18 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         self.structures = structures
         self.energies = np.array(energies)
         self.eos = EOS(eos_name)
+        self.eos_name = eos_name
         self.pressure = pressure
 
         self.volumes = np.array([s.volume for s in structures])
         self.iv0 = np.argmin(energies)
+        self.lattice_a = np.array([s.lattice.abc[0] for s in structures])
+        self.lattice_b = np.array([s.lattice.abc[1] for s in structures])
+        self.lattice_c = np.array([s.lattice.abc[2] for s in structures])
+
+        self.angles_alpha = np.array([s.lattice.angles[0] for s in structures])
+        self.angles_beta  = np.array([s.lattice.angles[1] for s in structures])
+        self.angles_gama  = np.array([s.lattice.angles[2] for s in structures])
 
     def fit_energies(self, tstart=0, tstop=800, num=100):
         """
@@ -92,8 +100,9 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         # list of minimum volumes and energies, one for each temperature
         min_volumes = np.array([fit.v0 for fit in fits])
         min_energies = np.array([fit.e0 for fit in fits])
+        F2D=  np.array([fit.b0 for fit in fits]) /min_volumes
 
-        return dict2namedtuple(tot_en=tot_en, fits=fits, min_en=min_energies, min_vol=min_volumes, temp=tmesh)
+        return dict2namedtuple(tot_en=tot_en, fits=fits, min_en=min_energies, min_vol=min_volumes, temp=tmesh , F2D=F2D)
 
     @abc.abstractmethod
     def get_vib_free_energies(self, tstart=0, tstop=800, num=100):
@@ -146,6 +155,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
         """
         self.eos = EOS(eos_name)
+        self.eos_name = eos_name
 
     @add_fig_kwargs
     def plot_energies(self, tstart=0, tstop=800, num=10, ax=None, **kwargs) -> Figure:
@@ -173,12 +183,12 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         ax.plot(f.min_vol, f.min_en - self.energies[self.iv0], color='r', lw=1, marker='x', ms=5)
 
         ax.set_xlabel(r'V (${\AA}^3$)')
-        ax.set_ylabel('E (eV)')
+        ax.set_ylabel('F (eV)')
         #ax.grid(True)
 
         return fig
 
-    def get_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100) -> Function1D:
+    def get_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100, tref=None, method=None) -> Function1D:
         """
         Calculates the thermal expansion coefficient as a function of temperature, using
         finite difference on the fitted values of the volume as a function of temperature.
@@ -186,25 +196,60 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
             tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
+
             num: int, optional Number of samples to generate. Default is 100.
 
         Returns: |Function1D|
         """
         f = self.fit_energies(tstart, tstop, num)
+        if tref is not None:
+            f0 = self.fit_energies(tref, tref, 1)
+        eos_list = [ 'taylor', 'murnaghan', 'birch', 'birch_murnaghan','pourier_tarantola', 'vinet', 'antonschmidt']
 
         dt = f.temp[1] - f.temp[0]
-        alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f.min_vol[1:-1]
+        if (method=="finite_difference"):
+            alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f.min_vol[1:-1]
+        else :
+            if (self.eos_name in eos_list) :
+                thermo = self.get_thermodynamic_properties(tstart=tstart, tstop=tstop, num=num)
+                entropy = thermo.entropy.T #* abu.e_Cb * abu.Avogadro
+                df_t = np.zeros((num,self.nvols))
+                df_t = - entropy
+                param = np.zeros((num,4))
+                param2 = np.zeros((num,3))
+                d2f_t_v = np.zeros(num)
+                gamma = np.zeros(num)
 
+                for j in range (1,num-1):
+                    param[j]=np.polyfit(self.volumes,df_t[j] , 3)
+                    param2[j] = np.array([3*param[j][0],2*param[j][1],param[j][2]])
+
+                    p = np.poly1d(param2[j])
+                    d2f_t_v[j]= p(f.min_vol[j])
+
+                if tref is None:
+                    alpha= - 1/f.min_vol[1:-1] *d2f_t_v[1:-1] / f.F2D[1:-1]
+                else :
+                    alpha= - 1/f0.min_vol * d2f_t_v[1:-1] / f.F2D[1:-1]
+            else :
+                if tref is None:
+                    alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f.min_vol[1:-1]
+                else :
+                    alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f0.min_vol
         return Function1D(f.temp[1:-1], alpha)
 
     @add_fig_kwargs
-    def plot_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100, ax=None, **kwargs) -> Figure:
+    def plot_thermal_expansion_coeff(self, tstart=0, tstop=800, num=100, tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
         Args:
             tstart: The starting value (in Kelvin) of the temperature mesh.
             tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
 
@@ -218,7 +263,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         if "color" not in kwargs:
             kwargs["color"] = "b"
 
-        alpha = self.get_thermal_expansion_coeff(tstart, tstop, num)
+        alpha = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
 
         ax.plot(alpha.mesh, alpha.values, **kwargs)
         ax.set_xlabel(r'T (K)')
@@ -257,6 +302,182 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         ax.set_ylabel(r'V (${\AA}^3$)')
         ax.set_xlim(tstart, tstop)
         ax.grid(True)
+
+        return fig
+
+    def get_abc(self, tstart=0, tstop=800 , num=100):
+        """
+        Plots the thermal expansion coefficient as a function of the temperature.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
+            num: int, optional Number of samples to generate. Default is 100.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+        """
+        f =  self.fit_energies(tstart, tstop, num)
+        param=np.polyfit(self.volumes, self.lattice_a , 3)
+        param0=[3*param[0],2*param[1],param[2]]
+        pa = np.poly1d(param)
+        dpa=np.poly1d(param0)
+        aa_qha=pa(f.min_vol)
+        daa_dv_qha=dpa(f.min_vol)
+        param=np.polyfit(self.volumes, self.lattice_b , 3)
+        param0=[3*param[0],2*param[1],param[2]]
+        pb = np.poly1d(param)
+        dpb = np.poly1d(param0)
+        bb_qha=pb(f.min_vol)
+        dbb_dv_qha=dpb(f.min_vol)
+        param=np.polyfit(self.volumes, self.lattice_c , 3)
+        param0=[3*param[0],2*param[1],param[2]]
+        pc = np.poly1d(param)
+        dpc = np.poly1d(param0)
+        cc_qha=pc(f.min_vol)
+        dcc_dv_qha=dpc(f.min_vol)
+
+        return aa_qha,bb_qha,cc_qha, daa_dv_qha,dbb_dv_qha,dcc_dv_qha
+
+    def get_angles(self, tstart=0, tstop=800 , num=100):
+        """
+        Plots the thermal expansion coefficient as a function of the temperature.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
+            num: int, optional Number of samples to generate. Default is 100.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
+        """
+        f =  self.fit_energies(tstart, tstop, num)
+        param=np.polyfit(self.volumes, self.angles_alpha, 3)
+        pa = np.poly1d(param)
+        alpha=pa(f.min_vol)
+        param=np.polyfit(self.volumes, self.angles_beta , 3)
+        pb = np.poly1d(param)
+        beta= pb(f.min_vol)
+        param = np.polyfit(self.volumes, self.angles_gama , 3)
+        pc = np.poly1d(param)
+        gamma = pc(f.min_vol)
+
+        return alpha, beta, gamma
+
+    @add_fig_kwargs
+    def plot_thermal_expansion_coeff_abc(self, tstart=0, tstop=800, num=100, tref=None, ax=None, **kwargs) -> Figure:
+        """
+        Plots the thermal expansion coefficient as a function of the temperature.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
+            num: int, optional Number of samples to generate. Default is 100.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        tmesh = np.linspace(tstart, tstop, num)
+
+        alpha_v = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
+        aa,bb,cc, daa_dv,dbb_dv,dcc_dv = self.get_abc(tstart, tstop, num)
+
+        if tref is None:
+            f = self.fit_energies(tstart, tstop, num)
+            dv_dt = alpha_v*f.min_vol[1:-1]
+            alpha_qha_a =  dv_dt*daa_dv[1:-1]/ aa[1:-1]
+            alpha_qha_b =  dv_dt*dbb_dv[1:-1]/ bb[1:-1]
+            alpha_qha_c =  dv_dt*dcc_dv[1:-1]/ cc[1:-1]
+        else:
+            f0 = self.fit_energies(tref, tref, num)
+            dv_dt = alpha_v*f0.min_vol[1:-1]
+            aa_tref, bb_tref, cc_tref , daa_dv_tref,dbb_dv_tref,dcc_dv_tref = self.get_abc(tref, tref, 1)
+            alpha_qha_a = dv_dt*daa_dv[1:-1]/ aa_tref
+            alpha_qha_b = dv_dt*dbb_dv[1:-1]/ bb_tref
+            alpha_qha_c = dv_dt*dcc_dv[1:-1]/ cc_tref
+
+        ax.plot(tmesh[1:-1], alpha_qha_a, color='r', lw=2)
+        ax.plot(tmesh[1:-1], alpha_qha_b, color='b', lw=2)
+        ax.plot(tmesh[1:-1], alpha_qha_c, color='m', lw=2)
+        ax.set_xlabel(r'T (K)')
+        ax.set_ylabel(r'$\alpha$ (K$^{-1}$)')
+        ax.legend([r"$\alpha_a$",r"$\alpha_b$",r"$\alpha_c$"])
+        ax.grid(True)
+
+        ax.set_xlim(tstart, tstop)
+        ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_abc_vs_t(self, tstart=0 , tstop=800, num=100, tref=None, ax=None, **kwargs) -> Figure:
+        """
+        Plots the thermal expansion coefficient as a function of the temperature.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
+            num: int, optional Number of samples to generate. Default is 100.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        #alpha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
+        tmesh = np.linspace(tstart, tstop, num)
+        aa,bb,cc, daa_dv,dbb_dv,dcc_dv = self.get_abc(tstart, tstop, num)
+
+        ax.plot(tmesh, aa, color='r', lw=2)
+        ax.plot(tmesh, bb, color='b', lw=2)
+        ax.plot(tmesh, cc, color='m', lw=2)
+        ax.set_xlabel(r'T (K)')
+        ax.legend(["a(V(T))","b(V(T))","c(V(T))"])
+        ax.grid(True)
+
+        ax.set_xlim(tstart, tstop)
+        ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_angle_vs_t(self, tstart=0, tstop=800, num=100, tref=None, ax=None, **kwargs)-> Figure:
+        """
+        Plots the thermal expansion coefficient as a function of the temperature.
+
+        Args:
+            tstart: The starting value (in Kelvin) of the temperature mesh.
+            tstop: The end value (in Kelvin) of the mesh.
+            tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
+                  (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
+            num: int, optional Number of samples to generate. Default is 100.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+
+        Returns: |matplotlib-Figure|
+        """
+        ax, fig, plt = get_ax_fig_plt(ax)
+
+        #alpha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
+        tmesh = np.linspace(tstart, tstop, num)
+        alpha, beta, gamma = self.get_angles(tstart, tstop, num)
+
+        ax.plot(tmesh, alpha, color='r', lw=2)
+        ax.plot(tmesh, beta, color='b', lw=2)
+        ax.plot(tmesh, gamma, color='m', lw=2)
+        ax.set_xlabel(r'T (K)')
+        ax.legend([r"$\alpha$(V(T))",r"$\beta$(V(T))",r"$\gamma$(V(T))"])
+        ax.grid(True)
+
+        ax.set_xlim(tstart, tstop)
+        ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
         return fig
 
@@ -485,30 +706,30 @@ class QHA(AbstractQHA):
                 energies.append(g.energy)
                 structures.append(g.structure)
 
-        #doses = [PhononDos.as_phdos(dp) for dp in phdos_paths]
+        #pndoses = [PhononDos.as_phdos(dp) for dp in phdos_paths]
 
-        doses = []
+        phdoses = []
         structures_from_phdos = []
         for path in phdos_paths:
             with PhdosFile(path) as p:
-                doses.append(p.phdos)
+                phdoses.append(p.phdos)
                 structures_from_phdos.append(p.structure)
 
         cls._check_volumes(structures, structures_from_phdos)
 
-        return cls(structures, doses, energies)
+        return cls(structures, phdoses, energies)
 
-    def __init__(self, structures, doses, energies, eos_name='vinet', pressure=0):
+    def __init__(self, structures, phdoses, energies, eos_name='vinet', pressure=0):
         """
         Args:
             structures: list of structures at different volumes.
-            doses: list of |PhononDos| at volumes corresponding to the structures.
+            phdoses: list of |PhononDos| at volumes corresponding to the structures.
             energies: list of SCF energies for the structures in eV.
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure: value of the pressure in GPa that will be considered in the p * V contribution to the energy.
         """
         super().__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
-        self.doses = doses
+        self.phdoses = phdoses
 
     @staticmethod
     def _check_volumes(struct_list1, struct_list2):
@@ -540,7 +761,7 @@ class QHA(AbstractQHA):
         """
         f = np.zeros((self.nvols, num))
 
-        for i, dos in enumerate(self.doses):
+        for i, dos in enumerate(self.phdoses):
             f[i] = dos.get_free_energy(tstart, tstop, num).values
 
         return f
@@ -567,17 +788,15 @@ class QHA(AbstractQHA):
         cv = np.zeros((self.nvols, num))
         free_energy = np.zeros((self.nvols, num))
         entropy = np.zeros((self.nvols, num))
-        internal_energy = np.zeros((self.nvols, num))
         zpe = np.zeros(self.nvols)
 
-        for i, d in enumerate(self.doses):
+        for i, d in enumerate(self.phdoses):
             cv[i] = d.get_cv(tstart, tstop, num).values
             free_energy[i] = d.get_free_energy(tstart, tstop, num).values
             entropy[i] = d.get_entropy(tstart, tstop, num).values
             zpe[i] = d.zero_point_energy
 
-        return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy,
-                               zpe=zpe)
+        return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy, zpe=zpe)
 
 
 class QHA3PF(AbstractQHA):
@@ -601,7 +820,7 @@ class QHA3PF(AbstractQHA):
         Args:
             gsr_paths: list of paths to GSR files.
             phdos_paths: list of paths to three PHDOS.nc files.
-            ind_doses: list of three values indicating, for each of the three doses, the index of the
+            ind_doses: list of three values indicating, for each of the three phdoses, the index of the
                 corresponding gsr_file in "gsr_paths".
 
         Returns: A new instance of QHA3PF
@@ -613,23 +832,23 @@ class QHA3PF(AbstractQHA):
                 energies.append(g.energy)
                 structures.append(g.structure)
 
-        doses = [PhononDos.as_phdos(dp) for dp in phdos_paths]
+        phdoses = [PhononDos.as_phdos(dp) for dp in phdos_paths]
 
-        return cls(structures, doses, energies, ind_doses)
+        return cls(structures, phdoses, energies, ind_doses)
 
-    def __init__(self, structures, doses, energies, ind_doses, eos_name='vinet', pressure=0, fit_degree=2):
+    def __init__(self, structures, phdoses, energies, ind_doses, eos_name='vinet', pressure=0, fit_degree=2):
         """
         Args:
             structures: list of structures at different volumes.
-            doses: list of three |PhononDos| at different volumes corresponding to the some of the structures.
+            phdoses: list of three |PhononDos| at different volumes corresponding to the some of the structures.
             energies: list of SCF energies for the structures in eV.
-            ind_doses: list of three values indicating, for each of the three doses, the index of the
+            ind_doses: list of three values indicating, for each of the three phdoses, the index of the
                 corresponding structure in "structures".
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
         """
         super().__init__(structures=structures, energies=energies, eos_name=eos_name, pressure=pressure)
-        self.doses = doses
+        self.phdoses = phdoses
         self.ind_doses = ind_doses
         self.fit_degree = fit_degree
         self._ind_energy_only = [i for i in range(len(structures)) if i not in ind_doses]
@@ -658,7 +877,7 @@ class QHA3PF(AbstractQHA):
         entropy = self._get_thermodynamic_prop("entropy", tstart, tstop, num)
         zpe = np.zeros(self.nvols)
 
-        for i, dos in zip(self.ind_doses, self.doses):
+        for i, dos in zip(self.ind_doses, self.phdoses):
             zpe[i] = dos.zero_point_energy
 
         dos_vols = self.volumes[self.ind_doses]
@@ -667,8 +886,7 @@ class QHA3PF(AbstractQHA):
         fit_params = np.polyfit(dos_vols, zpe[self.ind_doses], self.fit_degree)
         zpe[self._ind_energy_only] = np.poly1d(fit_params)(missing_vols)
 
-        return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy,
-                               zpe=zpe)
+        return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy, zpe=zpe)
 
     def _get_thermodynamic_prop(self, name, tstart, tstop, num):
         """
@@ -685,7 +903,7 @@ class QHA3PF(AbstractQHA):
             Numpy array with the values of the thermodynamic properties at the different
             volumes with size (nvols, num).
         """
-        prop_doses = np.array([getattr(dos, "get_" + name)(tstart, tstop, num).values for dos in self.doses])
+        prop_doses = np.array([getattr(dos, "get_" + name)(tstart, tstop, num).values for dos in self.phdoses])
 
         p = np.zeros((self.nvols, num))
 
@@ -740,7 +958,7 @@ class QHA3P(AbstractQHA):
         Args:
             gsr_paths: list of paths to GSR files.
             phdos_paths: list of paths to three PHDOS.nc files.
-            ind_doses: list of three values indicating, for each of the three doses, the index of the
+            ind_doses: list of three values indicating, for each of the three phdoses, the index of the
                 corresponding gsr_file in "gsr_paths".
 
         Returns: A new instance of QHA3P
@@ -760,9 +978,9 @@ class QHA3P(AbstractQHA):
         """
         Args:
             structures: list of structures at different volumes.
-            doses: list of three |PhononDos| at different volumes corresponding to the some of the structures.
+            phdoses: list of three |PhononDos| at different volumes corresponding to the some of the structures.
             energies: list of SCF energies for the structures in eV.
-            ind_grun: list of three values indicating, for each of the three doses, the index of the
+            ind_grun: list of three values indicating, for each of the three phdoses, the index of the
                 corresponding structure in "structures".
             eos_name: string indicating the expression used to fit the energies. See pymatgen.analysis.eos.EOS.
             pressure: value of the pressure in GPa that will be considered in the p*V contribution to the energy.
@@ -799,7 +1017,7 @@ class QHA3P(AbstractQHA):
         w = self.fitted_frequencies
 
         tmesh = np.linspace(tstart, tstop, num)
-        weights = self.grun.doses['qpoints'].weights
+        weights = self.grun.phdoses['qpoints'].weights
 
         free_energy = np.zeros((self.nvols, num))
         cv = np.zeros((self.nvols, num))
@@ -812,10 +1030,9 @@ class QHA3P(AbstractQHA):
             entropy[i] = [get_entropy(w[i], weights, t) for t in tmesh]
             zpe[i] = get_zero_point_energy(w, weights)
 
-        return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy,
-                               zpe=zpe)
+        return dict2namedtuple(tmesh=tmesh, cv=cv, free_energy=free_energy, entropy=entropy, zpe=zpe)
 
-    @lazy_property
+    @cached_property
     def fitted_frequencies(self) -> np.ndarray:
         """
         A numpy array with size (nvols, nqpts_ibz, 3*natoms) containing the phonon frequencies
@@ -857,7 +1074,7 @@ class QHA3P(AbstractQHA):
         w = self.fitted_frequencies
 
         tmesh = np.linspace(tstart, tstop, num)
-        weights = self.grun.doses['qpoints'].weights
+        weights = self.grun.phdoses['qpoints'].weights
 
         f = np.zeros((self.nvols, num))
 
@@ -942,10 +1159,9 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
     """
 
     fontsize = 8
-
     colormap = "viridis"
 
-    def _consistency_check(self):
+    def _consistency_check(self) -> None:
         if not hasattr(self, "qha_list") or not self.qha_list:
             raise RuntimeError("Please call the run method to compute the QHA!")
 
@@ -975,6 +1191,7 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
         for qha, ngqpt, ax in zip(self.qha_list, self.ngqpt_list, ax_list):
             qha.plot_energies(ax=ax, show=False, **kwargs)
             ax.set_title("ngpqt: %s" % str(ngqpt), fontsize=self.fontsize)
+
         return fig
 
     @add_fig_kwargs

@@ -13,9 +13,9 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from typing import Any
+from functools import cached_property
 from monty.string import is_string, list_strings, marquee
 from monty.collections import dict2namedtuple
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import eV_to_Ha, Energy
 from pymatgen.core.periodic_table import Element
@@ -23,7 +23,7 @@ from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos, PhononDos as PmgPhononDos
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter
-from abipy.core.kpoints import Kpoint, Kpath, KpointList, kmesh_from_mpdivs, map_grid2ibz
+from abipy.core.kpoints import Kpoint, Kpath, KpointList, kmesh_from_mpdivs
 from abipy.core.structure import Structure
 from abipy.abio.robots import Robot
 from abipy.iotools import ETSF_Reader
@@ -159,10 +159,48 @@ class PhononBands:
                        qpoints=qpoints,
                        phfreqs=r.read_phfreqs(),
                        phdispl_cart=r.read_phdispl_cart(),
+                       phangmom=r.read_phangmom(),
                        amu=amu,
                        non_anal_ph=non_anal_ph,
                        epsinf=epsinf, zcart=zcart,
                        )
+
+    @classmethod
+    def from_phonopy_phonon(cls, phonon) -> PhononBands:
+        """
+        Build an Abipy PhononBands from a phonopy Phonon instance.
+        """
+        structure = Structure.from_phonopy_atoms(phonon.unitcell)
+        natom = len(structure)
+        bands_dict = phonon.get_band_structure_dict()
+
+        nac_params = phonon.nac_params
+        epsinf, zcart = None, None
+        if nac_params is not None:
+            epsinf = nac_params["dielectric"]
+            zcart = nac_params["born"]
+
+        nqpt = 0
+        py_phfreqs, py_displ_cart = [], []
+        for q_list, w_list, eig_list in zip(bands_dict['qpoints'], bands_dict['frequencies'], bands_dict['eigenvectors'], strict=True):
+            nqpt += len(q_list)
+            py_phfreqs.extend(w_list)
+            py_displ_cart.extend(eig_list)
+
+        py_phfreqs = np.reshape(py_phfreqs, (nqpt, 3*natom)) / abu.eV_to_THz
+        py_displ_cart = np.reshape(py_displ_cart, (nqpt, 3*natom, 3*natom))
+
+        # Build abipy phonon bands from phonopy results.
+        return cls(structure,
+                   self.abi_phbands.qpoints,
+                   py_phfreqs,
+                   # FIXME: Use phononopy displacement
+                   self.abi_phbands.phdispl_cart,
+                   non_anal_ph=None,
+                   #amu=self.abi_phbands.amu,
+                   epsinf=self.abi_phbands.epsinf,
+                   zcart=self.abi_phbands.zcart,
+                   )
 
     @classmethod
     def as_phbands(cls, obj: Any) -> PhononBands:
@@ -237,8 +275,9 @@ class PhononBands:
                                    symprec=symprec, set_masses=set_masses)
         self.phonopy_obj = ph
 
-    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, non_anal_ph=None, amu=None,
-                 epsinf=None, zcart=None, linewidths=None, phonopy_obj=None):
+    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, phangmom=None,
+                 non_anal_ph=None, amu=None, epsinf=None, zcart=None, linewidths=None,
+                 phonopy_obj=None):
         """
         Args:
             structure: |Structure| object.
@@ -246,6 +285,7 @@ class PhononBands:
             phfreqs: Phonon frequencies in eV.
             phdispl_cart: [nqpt, 3*natom, 3*natom] array with displacement in Cartesian coordinates in Angstrom.
                 The last dimension stores the cartesian components.
+            phangmom: Phonon angular momentum in units of hbar.
             non_anal_ph: :class:`NonAnalyticalPh` with information of the non analytical contribution
                 None if contribution is not present.
             amu: dictionary that associates the atomic species present in the structure to the values of the atomic
@@ -268,6 +308,10 @@ class PhononBands:
         # `ndarray` of shape (nqpt, 3*natom, 3*natom).
         # The last dimension stores the cartesian components.
         self.phdispl_cart = phdispl_cart
+
+        # phonon angular momentum in units of hbar
+        # ndarray of shape (nqpt, 3*natom, 3)
+        self.phangmom = phangmom
 
         # Handy variables used to loop.
         self.num_atoms = structure.num_sites
@@ -292,7 +336,7 @@ class PhononBands:
         self.phonopy_obj = phonopy_obj
 
         # Dictionary with metadata e.g. nkpt, tsmear ...
-        self.params = OrderedDict()
+        self.params = {}
 
     # TODO: Replace num_qpoints with nqpt, deprecate num_qpoints
     @property
@@ -358,12 +402,12 @@ class PhononBands:
 
     __radd__ = __add__
 
-    @lazy_property
+    @cached_property
     def _auto_qlabels(self):
         # Find the q-point names in the pymatgen database.
         # We'll use _auto_qlabels to label the point in the matplotlib plot
         # if qlabels are not specified by the user.
-        _auto_qlabels = OrderedDict()
+        _auto_qlabels = {}
 
         # If the first or the last q-point are not recognized in findname_in_hsym_stars
         # matplotlib won't show the full band structure along the k-path
@@ -444,7 +488,7 @@ class PhononBands:
         """True if bands with linewidths."""
         return getattr(self, "_linewidths", None) is not None
 
-    @lazy_property
+    @cached_property
     def dyn_mat_eigenvect(self) -> np.ndarray:
         """
         [nqpt, 3*natom, 3*natom] array with the orthonormal eigenvectors of the dynamical matrix.
@@ -642,7 +686,7 @@ class PhononBands:
 
     def get_dict4pandas(self, with_spglib=True) -> dict:
         """
-        Return a :class:`OrderedDict` with the most important parameters:
+        Return: dictionary with the most important parameters:
 
             - Chemical formula and number of atoms.
             - Lattice lengths, angles and volume.
@@ -1320,6 +1364,66 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         return fig
 
     @add_fig_kwargs
+    def plot_phangmom(self, ax=None, pj_dir=[0, 0, 1], units="hbar",
+                      qlabels=None, branch_range=None, colormap="rainbow",
+                      max_colors=None, **kwargs) -> Figure:
+        r"""
+        Plot the phonon angular momentum with different colors for each line.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            pj_dir: direction along which the angular momentum is projected
+                in cartesian coordinates
+            units: Units for phonon plots. Only possible option: "hbar", maybe others to come ?
+                Case-insensitive.
+            qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
+                The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
+            branch_range: Tuple specifying the minimum and maximum branch_i index to plot
+                (default: all branches are plotted).
+            colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a
+                sequential order to avoid difficulties in distinguishing the lines.
+                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+            max_colors: maximum number of colors to be used. If max_colors < num_braches the colors will be reapeated.
+                It may be useful to better distinguish close bands when the number of branches is large.
+
+        Returns: |matplotlib-Figure|
+        """
+        # Select the band range.
+        if branch_range is None:
+            branch_range = range(self.num_branches)
+        else:
+            branch_range = range(branch_range[0], branch_range[1], 1)
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        # Decorate the axis (e.g add ticks and labels).
+        self.decorate_ax(ax, units=units, qlabels=qlabels)
+
+        first_xx = 0
+        lines = []
+
+        if max_colors is None:
+            max_colors = len(branch_range)
+
+        colormap = plt.get_cmap(colormap)
+
+        sorted_phangmom = np.empty_like(self.phangmom)
+        for i, pam in enumerate(self.phangmom):
+            ind = self.split_matched_indices[0][i]
+            sorted_phangmom[i, :, :] = pam[ind, :]
+
+        pj_dir = np.array(pj_dir)
+        pj_dir = pj_dir / np.linalg.norm(pj_dir)
+        proj_phangmom = np.dot(sorted_phangmom, pj_dir)
+        colors = itertools.cycle(colormap(np.linspace(0, 1, max_colors)))
+        for branch_i in branch_range:
+            kwargs = dict(kwargs)
+            kwargs['color'] = next(colors)
+            lines.extend(ax.plot(proj_phangmom[:, branch_i], **kwargs))
+
+        return fig
+
+    @add_fig_kwargs
     def plot_lt_character(self, units="eV", qlabels=None, ax=None, xlims=None, ylims=None, scale_size=50,
                           use_becs=True, colormap="jet", fontsize=12, **kwargs) -> Figure:
         r"""
@@ -1418,9 +1522,11 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @property
     def split_phdispl_cart(self):
-        # prepare the splitted phdispl_cart as a separate internal variable only when explicitely requested and
-        # not at the same time as split_qpoints and split_phfreqs as it requires a larger array and not used
-        # most of the times.
+        """
+        prepare the splitted phdispl_cart as a separate internal variable only when explicitely requested and
+        not at the same time as split_qpoints and split_phfreqs as it requires a larger array and not used
+        most of the times.
+        """
         try:
             return self._split_phdispl_cart
         except AttributeError:
@@ -1578,14 +1684,17 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         """Return ticks and labels from the mapping {qred: qstring} given in qlabels."""
         # TODO should be modified in order to handle the "split" list of qpoints
         if qlabels is not None:
-            d = OrderedDict()
-
+            d = {}
             for qcoord, qname in qlabels.items():
                 # Build Kpoint instancee
                 qtick = Kpoint(qcoord, self.structure.reciprocal_lattice)
-                for q, qpoint in enumerate(self.qpoints):
+                for iq, qpoint in enumerate(self.qpoints):
+                    #print(f"for {qtick=}, {qpoint=}", qtick == qpoint)
                     if qtick == qpoint:
-                        d[q] = qname
+                        d[iq] = qname
+
+            # Sort d by key. This is needed to avoid e.g. {0: '$\\Gamma$', 97: '$\\Gamma$', 23: 'Y', 43: 'B', 66: 'A'}
+            d = {k: d[k] for k in sorted(d.keys())}
         else:
             d = self._auto_qlabels
 
@@ -2909,6 +3018,12 @@ class PHBST_Reader(ETSF_Reader):
         """
         return self.read_value("phdispl_cart", cmode="c")
 
+    def read_phangmom(self):
+        """
+        Real array with the phonon angular momentum in units of hbar
+        """
+        return self.read_value("phangmom", default=None)
+
     def read_amu(self):
         """The atomic mass units"""
         return self.read_value("atomic_mass_units", default=None)
@@ -2985,9 +3100,9 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """dictionary with parameters that might be subject to convergence studies."""
         od = self.get_phbands_params()
         return od
 
@@ -3152,7 +3267,7 @@ class PhononDos(Function1D):
 
         raise TypeError("Don't know how to create PhononDos object from type: `%s`" % type(obj))
 
-    @lazy_property
+    @cached_property
     def iw0(self) -> int:
         """
         Index of the first point in the mesh whose value is >= 0
@@ -3162,18 +3277,24 @@ class PhononDos(Function1D):
             raise ValueError("Cannot find zero in energy mesh")
         return iw0
 
-    @lazy_property
+    #def is_unstable(self, rel_tolerance: float = 0.01) -> bool:
+    #    # Integrate phononon DOS up to w=0
+    #    integ = self.integral(start=0, stop=self.iw0).values[-1]
+    #    natom3 = self.idos().values[-1]
+    #    return (integ / natom3) > rel_tolerance
+
+    @cached_property
     def idos(self):
         """Integrated DOS."""
         return self.integral()
 
-    @lazy_property
-    def zero_point_energy(self):
+    @cached_property
+    def zero_point_energy(self) -> Energy:
         """Zero point energy in eV per unit cell."""
         iw0 = self.iw0
         return Energy(0.5 * np.trapz(self.mesh[iw0:] * self.values[iw0:], x=self.mesh[iw0:]), "eV")
 
-    def plot_dos_idos(self, ax, what="d", exchange_xy=False, units="eV", **kwargs):
+    def plot_dos_idos(self, ax, what="d", exchange_xy=False, units="eV", **kwargs) -> list:
         """
         Helper function to plot DOS/IDOS on the axis ``ax``.
 
@@ -3532,12 +3653,12 @@ class PhdosReader(ETSF_Reader):
 
             Frequencies are in eV, DOSes are in states/eV per unit cell.
     """
-    @lazy_property
+    @cached_property
     def structure(self):
         """|Structure| object."""
         return self.read_structure()
 
-    @lazy_property
+    @cached_property
     def wmesh(self):
         """The frequency mesh for the PH-DOS in eV."""
         return self.read_value("wmesh")
@@ -3558,7 +3679,7 @@ class PhdosReader(ETSF_Reader):
 
     def read_pjdos_symbol_xyz_dict(self):
         """
-        Return :class:`OrderedDict` mapping element symbol --> [3, nomega] array
+        Return: dictionary mapping element symbol --> [3, nomega] array
         with the the phonon DOSes summed over atom-types and decomposed along
         the three cartesian directions.
         """
@@ -3566,7 +3687,7 @@ class PhdosReader(ETSF_Reader):
         # phdos_rc_type[ntypat, 3, nomega]
         values = self.read_value("pjdos_rc_type")
 
-        od = OrderedDict()
+        od = {}
         for symbol in self.chemical_symbols:
             type_idx = self.typeidx_from_symbol(symbol)
             od[symbol] = values[type_idx]
@@ -3575,14 +3696,14 @@ class PhdosReader(ETSF_Reader):
 
     def read_pjdos_symbol_dict(self):
         """
-        Ordered dictionary mapping element symbol --> |PhononDos|
+        Dictionary mapping element symbol --> |PhononDos|
         where PhononDos is the contribution to the total DOS summed over atoms
         with chemical symbol ``symbol``.
         """
         # [ntypat, nomega] array with PH-DOS projected over atom types.
         values = self.read_pjdos_type()
 
-        od = OrderedDict()
+        od = {}
         for symbol in self.chemical_symbols:
             type_idx = self.typeidx_from_symbol(symbol)
             od[symbol] = PhononDos(self.wmesh, values[type_idx])
@@ -3631,14 +3752,14 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def qptrlatt(self):
         return self.r.read_value("qptrlatt")
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """
-        :class:`OrderedDict` with the convergence parameters
+        dictionary with the convergence parameters
         Used to construct |pandas-DataFrames|.
         """
         return {}
@@ -3668,26 +3789,26 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """|Structure| object."""
         return self.r.structure
 
-    @lazy_property
+    @cached_property
     def phdos(self) -> PhononDos:
         """|PhononDos| object."""
         return self.r.read_phdos()
 
-    @lazy_property
+    @cached_property
     def pjdos_symbol(self):
         """
-        Ordered dictionary mapping element symbol --> `PhononDos`
+        Dictionary mapping element symbol --> `PhononDos`
         where PhononDos is the contribution to the total DOS summed over atoms
         with chemical symbol `symbol`.
         """
         return self.r.read_pjdos_symbol_dict()
 
-    @lazy_property
+    @cached_property
     def msqd_dos(self):
         """
         |MsqDos| object with Mean square displacement tensor in cartesian coords.
@@ -4126,7 +4247,6 @@ def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True) -> pd.
     Return: |pandas-DataFrame|
     """
     phbands_list = [PhononBands.as_phbands(obj) for obj in phbands_objects]
-    # Use OrderedDict to have columns ordered nicely.
     odict_list = [(phbands.get_dict4pandas(with_spglib=with_spglib)) for phbands in phbands_list]
 
     return pd.DataFrame(odict_list, index=index,
@@ -4895,7 +5015,7 @@ class PhononDosPlotter(NotebookWriter):
         plotter.gridplot()
     """
     def __init__(self, key_phdos=None, phdos_kwargs=None):
-        self._phdoses_dict = OrderedDict()
+        self._phdoses_dict = {}
         if key_phdos is None: key_phdos = []
         for label, phdos in key_phdos:
             self.add_phdos(label, phdos, phdos_kwargs=phdos_kwargs)

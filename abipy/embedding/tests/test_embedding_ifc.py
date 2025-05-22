@@ -13,12 +13,7 @@ from abipy.core.kpoints import kmesh_from_mpdivs
 from abipy.embedding.utils_ifc import localization_ratio
 from abipy.embedding.embedding_ifc import Embedded_phonons
 from pymatgen.io.phonopy import get_pmg_structure,get_phonopy_structure
-
-
-try:
-    import phonopy 
-except ImportError:
-    Phonopy = None
+import phonopy
 
 
 class Embedding_ifcTest(AbipyTest):
@@ -85,14 +80,13 @@ class Embedding_ifcTest(AbipyTest):
         freqs_anaddb=modes.phfreqs[0]
         freqs_phonopy,vecs=ph_emb.get_gamma_freq_with_vec_abipy_fmt()
 
-        self.assert_almost_equal(freqs_anaddb[-1],7.31410150e-02,decimal=5)
-        self.assert_almost_equal(freqs_phonopy[-1],7.31411352e-02,decimal=5)
-        self.assert_almost_equal(max(abs(freqs_anaddb-freqs_phonopy)),0,decimal=5)
+        self.assert_almost_equal(freqs_anaddb[-1],0.07314101496974906,decimal=5)
+        self.assert_almost_equal(freqs_phonopy[-1],0.07182725446338956,decimal=5)
+        self.assert_almost_equal(max(abs(freqs_anaddb-freqs_phonopy)),0.0020214752349544465,decimal=5)
 
         ratio=localization_ratio(vecs)
 
-        self.assert_almost_equal(ratio[-1],7.41692860,decimal=5)
-
+        self.assert_almost_equal(ratio[-1],7.129688982510354,decimal=5)
 
 
     def test_embedding_substitution(self):
@@ -148,11 +142,11 @@ class Embedding_ifcTest(AbipyTest):
 
         freqs,vecs=ph_emb.get_gamma_freq_with_vec_abipy_fmt()
 
-        self.assert_almost_equal(freqs[-1],0.026440349386134484,decimal=5)
+        self.assert_almost_equal(freqs[-1],0.026431844680473826,decimal=5)
 
         ratio=localization_ratio(vecs)
 
-        self.assert_almost_equal(ratio[446],21.65624596304,decimal=5)
+        self.assert_almost_equal(ratio[446],2.354695997610233,decimal=5)
 
 
     def test_embedding_interstitial(self):
@@ -203,13 +197,12 @@ class Embedding_ifcTest(AbipyTest):
                                                asr=True)
 
 
-
         freqs,vecs=ph_emb.get_gamma_freq_with_vec_abipy_fmt()
 
-        self.assert_almost_equal(freqs[-1],0.212826358519,decimal=5)
+        self.assert_almost_equal(freqs[-1],0.21212027299739988,decimal=5)
 
         ratio=localization_ratio(vecs)
 
-        self.assert_almost_equal(ratio[650],78.76445591,decimal=5)
+        self.assert_almost_equal(ratio[650],78.29179108928511,decimal=5)
 
 

@@ -31,8 +31,7 @@ def make_scf_input(usepaw=0, nspinor=1):
          natom=2,
          typat=[1, 1],
          znucl=14,
-         #acell=3 * [10.26310667319252],
-         acell=3 * [10.2073557], # 5.4015 Ang
+         acell=3 * [10.2073557],   # 5.4015 Ang
          rprim=[[0.0,  0.5,  0.5],
                 [0.5,  0.0,  0.5],
                 [0.5,  0.5,  0.0]],

@@ -11,16 +11,16 @@ import numpy as np
 import pandas as pd
 #import abipy.core.abinit_units as abu
 
+from functools import cached_property
 from monty.string import marquee #, list_strings
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.structure import Structure
 from abipy.core.kpoints import kpoints_indices
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
 from abipy.tools.typing import PathLike
 from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
-#from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-#    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
+from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
+    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
 #from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 #from abipy.tools.typing import Figure
@@ -46,7 +46,7 @@ def _allclose(arr_name, array1, array2, verbose: int, rtol=1e-5, atol=1e-8) -> b
     return False
 
 
-class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , NotebookWriter):
+class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
     """
     This file stores the e-ph matrix elements produced by the EPH code of Abinit
     and provides methods to analyze and plot results.
@@ -79,7 +79,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
         super().__init__(filepath)
         self.r = GstoreReader(filepath)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.r.read_ebands()
@@ -93,11 +93,11 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def gqk_spin(self) -> list:
         return [Gqk.from_gstore(self, spin) for spin in range(self.nsppol)]
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with the convergence parameters, e.g. ``nbsum``."""
         #od = OrderedDict([
@@ -116,7 +116,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # 
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
 
@@ -192,7 +192,7 @@ class Gqk:
     vkmat_cart_ibz: np.ndarray | None
 
     @classmethod
-    def from_gstore(cls, gstore: GstoreFile, spin: int):
+    def from_gstore(cls, gstore: GstoreFile, spin: int) -> Gqk:
         """
         Build an istance from a GstoreFile and the spin index.
         """
@@ -236,7 +236,7 @@ class Gqk:
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
         lines = []; app = lines.append
 
@@ -250,7 +250,7 @@ class Gqk:
         return "\n".join(lines)
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         return self.gstore.structure
 
     def get_dataframe(self, what: str = "g2") -> pd.DataFrame:
@@ -277,8 +277,12 @@ class Gqk:
 
         return df
 
-    def get_g2q_interpolator_kpoint(self, kpoint, method="linear", check_mesh=1):
-        """
+    def get_g2q_interpolator_kpoint(self, kpoint, method="linear", check_mesh=1) -> BzRegularGridInterpolator:
+        r"""
+        Build and return an interpolator that can be used to interpolate g^2(q)
+
+        NB: Invoking the interpolation with an arbitrary q-point returns a numpy array
+        of shape (nb, nb, natom3) with g_{m_kq n_k, \nu}(q)
         """
         r = self.gstore.r
 
@@ -287,7 +291,7 @@ class Gqk:
 
         # Compute indices of qpoints in the ngqpt mesh.
         ngqpt, shifts = r.ngqpt, [0, 0, 0]
-        q_indices = kpoints_indices(r.qbz, ngqpt, check_mesh=check_mesh)
+        q_indices = kpoints_indices(r.qbz, ngqpt, shifts, check_mesh=check_mesh)
 
         natom3 = 3 * len(self.structure)
         nb = self.nb
@@ -308,7 +312,7 @@ class Gqk:
 
     def get_g_qpt_kpt(self, qpoint, kpoint, what) -> np.ndarray:
         """
-        Return numpy array with e-ph matrix elements the for the given (qpoint, kpoint) pair.
+        Return numpy array with e-ph matrix elements for the given (qpoint, kpoint) pair.
 
         Args:
             what="g2" for |g(k,q)|^2, "g" for g(k,q)
@@ -379,6 +383,24 @@ class Gqk:
             if not _allclose("gvals", self.gvals, other.gvals, **kws): ierr += 1
 
         return ierr
+
+    #@add_fig_kwargs
+    #def plot_g2_hist(self, ax_list=None, **kwargs) -> Figure:
+
+    #    natom = len(self.structure)
+    #    nrows, ncols, gridspec_kw = natom, 3, None
+    #    ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
+    #                                           sharex=True, sharey=True, squeeze=False, gridspec_kw=gridspec_kw)
+    #    ax_list = ax_list.ravel()
+
+    #    # (glob_nq, glob_nk, natom3, m_kq, n_k)
+    #    g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
+
+    #    for imode, ax in zip(range(natom * 3), ax_list):
+    #        data = g2[:,:,imode,:,:].flatten()
+    #        ax.hist(data)
+
+    #    return fig
 
 
 class GstoreReader(BaseEphReader):
@@ -454,7 +476,7 @@ class GstoreReader(BaseEphReader):
                 #print(f"Found {qpoint = } with index {iq_g = }")
                 return iq_g, qpoint
 
-        raise ValueError(f"Cannot find {qpoint = } in GSTORE.nc")
+        raise ValueError(f"Cannot find {qpoint=} in GSTORE.nc")
 
     def find_ik_glob_kpoint(self, kpoint, spin: int):
         """Find the internal indices of the kpoint needed to access the gvals array."""
@@ -464,10 +486,10 @@ class GstoreReader(BaseEphReader):
                 #print(f"Found {kpoint = } with index {ik_g = }")
                 return ik_g, kpoint
 
-        raise ValueError(f"Cannot find {kpoint = } in GSTORE.nc")
+        raise ValueError(f"Cannot find {kpoint=} in GSTORE.nc")
 
     # TODO: This fix to read groups should be imported in pymatgen.
-    @lazy_property
+    @cached_property
     def path2group(self) -> dict:
         return self.rootgrp.groups
 
@@ -517,7 +539,7 @@ class GstoreRobot(Robot, RobotWithEbands):
         return ierr
 
     @staticmethod
-    def _neq_two_gstores(gstore1: GstoreFile, gstore2: GstoreFile, verbose: int) -> int:
+    def _neq_two_gstores(self: GstoreFile, gstore2: GstoreFile, verbose: int) -> int:
         """
         Helper function to compare two GSTORE files.
         """
@@ -528,12 +550,12 @@ class GstoreRobot(Robot, RobotWithEbands):
                      ]
 
         for aname in aname_list:
-            self._compare_attr_name(aname, gstore1, gstore2)
+            self._compare_attr_name(aname, self, gstore2)
 
         # Now compare the gkq objects for each spin.
         ierr = 0
-        for spin in range(gstore1.nsppol):
-            gqk1, gqk2 = gstore1.gqk_spin[spin], gstore2.gqk_spin[spin]
+        for spin in range(self.nsppol):
+            gqk1, gqk2 = self.gqk_spin[spin], gstore2.gqk_spin[spin]
             ierr += gqk1.neq(gqk2, verbose)
 
         return ierr

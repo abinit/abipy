@@ -12,10 +12,10 @@ import pandas as pd
 import pymatgen.core.units as units
 
 from pathlib import Path
+from functools import cached_property
 from scipy.stats import linregress
 from scipy import optimize
 from matplotlib.offsetbox import AnchoredText
-from monty.functools import lazy_property
 from monty.bisect import find_le
 from monty.string import list_strings, marquee
 from monty.collections import AttrDict #, dict2namedtuple
@@ -42,9 +42,6 @@ Ang2PsTocm2S = 0.0001
 e2s = 1.602188**2 # electron charge in Coulomb scaled by 10.d-19**2
 kbs = 1.38066     # Boltzmann constant in Joule/K scaled by 10.d-23
 
-#bohr2a = 0.529177
-#kBoltzAng10m9 = 1.38066e-02
-#kBoltz = 1.38066e-23
 kBoltzEv = 8.617333e-05
 #nCar = 56  # FIXME: Harcoded
 
@@ -420,6 +417,7 @@ class MdAnalyzer(HasPickleIO):
             cart_positions: Cartesian positions in Ang. Default shape: (nt, natom, 3).
             ucmats: Array of lattice matrix of every step. Used for NPT.
                 For NVT-AIMD, the lattice at each time step is set to the lattice in the "structure" argument.
+            engine: String defining the engine used to produce the MD trajectory.
             pos_order: "tac" if cart_positions has shape (nt, natom, 3).
                        "atc" if cart_positions has shape (natom, nt, 3).
             evp_df:
@@ -569,7 +567,7 @@ class MdAnalyzer(HasPickleIO):
         """Number of points in the MD trajectory."""
         return self.pos_atc.shape[1]
 
-    @lazy_property
+    @cached_property
     def natom(self) -> int:
         """Number of atoms."""
         return len(self.structure)
@@ -623,7 +621,7 @@ class MdAnalyzer(HasPickleIO):
 
     @property
     def latex_avg_volume(self) -> str:
-        return "V$_{\mathrm{ave}}$ = " + f"{self.avg_volume:.2f}" + '$\mathrm{{\AA}^3}$'
+        return r"V$_{\mathrm{ave}}$ = " + f"{self.avg_volume:.2f}" + r'$\mathrm{{\AA}^3}$'
 
     @property
     def avg_volume(self) -> float:
@@ -821,7 +819,7 @@ class MdAnalyzer(HasPickleIO):
 
         ax.legend(fontsize=fontsize, loc="upper left")
         ax.set_xlabel('t (ps)', fontsize=fontsize)
-        ax.set_ylabel('mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+        ax.set_ylabel(r'mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
         set_axlims(ax, xlims, "x")
         #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
@@ -859,14 +857,14 @@ class MdAnalyzer(HasPickleIO):
             ts = self.times[t_start:] - self.times[t_start]
 
             ax.plot(ts, msd_t,
-                    label=symbol + " <msd($t$, $t_0$)>$\{$t_0$\}$, $t$ = [0, " + str(int(self.times[index_tmax])) + " ps]",
+                    label=symbol + r" <msd($t$, $t_0$)>$\{$t_0$\}$, $t$ = [0, " + str(int(self.times[index_tmax])) + " ps]",
                     color=self.color_symbol[symbol],
                     )
 
         set_axlims(ax, xlims, "x")
         ax.legend(fontsize=fontsize, loc="upper left")
         ax.set_xlabel('t (ps)', fontsize=fontsize)
-        ax.set_ylabel('average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+        ax.set_ylabel(r'average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
         #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
         ax.add_artist(AnchoredText(f"{self.latex_formula_n_temp}\n{self.latex_avg_volume}",
@@ -957,7 +955,7 @@ class Msdtt0:
     def temperature(self) -> float:
         return self.mda.temperature
 
-    @lazy_property
+    @cached_property
     def msd_t(self) -> np.ndarray:
         """Average of MSD(t,t_0) over t0."""
         return np.mean(self.arr_tt0, axis=1)
@@ -1003,7 +1001,7 @@ class Msdtt0:
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.plot(ts, self.msd_t,
-                label=self.symbol + " <msd($t, t_0$)>$\{$t_0$\}$, t = [0, " + str(int(self.times[index_tmax])) + " ps]",
+                label=self.symbol + r" <msd($t, t_0$)>$\{$t_0$\}$, t = [0, " + str(int(self.times[index_tmax])) + " ps]",
                 color=self.mda.color_symbol[self.symbol],
                 )
 
@@ -1014,7 +1012,7 @@ class Msdtt0:
         set_axlims(ax, xlims, "x")
         ax.legend(fontsize=fontsize, loc="upper left")
         ax.set_xlabel('t (ps)', fontsize=fontsize)
-        ax.set_ylabel('average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+        ax.set_ylabel(r'Average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
         #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
         ax.add_artist(AnchoredText(f"{self.mda.latex_formula_n_temp}\n{self.mda.latex_avg_volume}",
@@ -1193,7 +1191,6 @@ class Msdtt0List(list):
         return fig
 
 
-
 @dataclasses.dataclass(kw_only=True)
 class SigmaBerend:
     """
@@ -1229,11 +1226,11 @@ class SigmaBerend:
 
             ax.errorbar(xs, ys,
                         yerr=yerr, linestyle='-', # linewidth=0.5,
-                        label="$\sigma(\mathrm{MSD}($" + '%2.1f' % time +" ps$))$ "+ '\n' +
+                        label=r"$\sigma(\mathrm{MSD}($" + '%2.1f' % time +" ps$))$ "+ '\n' +
                               self.latex_formula + ', '+ 'T = %4.0f' % self.temperature + 'K')
             ax.legend(fontsize=fontsize, loc="lower right")
             ax.set_xlabel('N. of data in block', fontsize=fontsize)
-            ax.set_ylabel('$\sigma$ ($\AA^2$)', fontsize=fontsize)
+            ax.set_ylabel(r'$\sigma$ ($\AA^2$)', fontsize=fontsize)
             ax.grid(True)
 
         fig.suptitle("Variance of correlated data as function of block number")
@@ -1446,7 +1443,7 @@ class DiffusionDataList(list):
 
 class MultiMdAnalyzer(HasPickleIO):
     """
-    High-level interface to analyze multiple MD trajectories
+    High-level interface to analyze multiple MD trajectories.
     """
 
     @classmethod
@@ -1620,7 +1617,7 @@ class MultiMdAnalyzer(HasPickleIO):
             set_axlims(ax, xlims, "x")
             ax.legend(fontsize=fontsize, loc="upper left")
             ax.set_xlabel('t (ps)', fontsize=fontsize)
-            ax.set_ylabel('average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+            ax.set_ylabel(r'average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
             #set_ticks_fontsize(ax, fontsize)
             set_logscale(ax, xy_log)
 
@@ -1761,9 +1758,10 @@ class ArrheniusEntry:
 
     @classmethod
     def from_file(cls, filepath: PathLike, key, mpl_style) -> ArrheniusEntry:
-
-        # Read data in CSV format. Assuming header with at least the following entries:
-        #   temperature,diffusion,err_diffusion,volume,symbol,composition
+        """
+        Read data in CSV format. Assuming header with at least the following entries:
+        temperature,diffusion,err_diffusion,volume,symbol,composition
+        """
         try:
             df = pd.read_csv(filepath, skipinitialspace=True)
 
@@ -1983,7 +1981,8 @@ class ArrheniusPlotter:
         self.append(ArrheniusEntry.from_file(filepath, key, mpl_style))
 
     @add_fig_kwargs
-    def plot(self, thinvt_arange=None, what="diffusion", ncar=None, colormap="jet", with_t=True, text=None,
+    def plot(self, thinvt_arange=None, what="diffusion", ncar=None,
+             colormap="jet", with_t=True, text=None,
              ax=None, fontsize=8, xlims=None, ylims=None, **kwargs) -> Figure:
         """
         Arrhenius plot.
@@ -1993,7 +1992,7 @@ class ArrheniusPlotter:
             what: Selects the quantity to plot. Possibile values: "diffusion", "sigma", "tsigma".
             ncar: Number of carriers. Required if what is "sigma" or "tsigma".
             colormap: Colormap used to select the color if entry.mpl_style does not provide it.
-            with_t: True to dd a twin axes with the value of T
+            with_t: True to add a twin axes with the value of T
             text:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: fontsize for legends and titles.

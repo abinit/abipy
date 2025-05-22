@@ -1,5 +1,7 @@
 # coding: utf-8
-"""History file with structural relaxation results."""
+"""
+Interface with the HIST.nc file containing ABINIT structural relaxation results or MD
+"""
 from __future__ import annotations
 
 import os
@@ -8,8 +10,7 @@ import pandas as pd
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
-from collections import OrderedDict
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.collections import AttrDict
 from monty.string import marquee, list_strings
 from pymatgen.core.periodic_table import Element
@@ -51,7 +52,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         return {}
@@ -62,33 +63,33 @@ class HistFile(AbinitNcFile, NotebookWriter):
     #def read_structures(self, index: str):
 
     # TODO: Add more metadata.
-    #@lazy_property
+    #@cached_property
     #def nsppol(self):
     #    """Number of independent spins."""
     #    return self.r.read_dimvalue("nsppol")
 
-    #@lazy_property
+    #@cached_property
     #def nspden(self):
     #    """Number of independent spin densities."""
     #    return self.r.read_dimvalue("nspden")
 
-    #@lazy_property
+    #@cached_property
     #def nspinor(self):
     #    """Number of spinor components."""
     #    return self.r.read_dimvalue("nspinor")
 
-    @lazy_property
+    @cached_property
     def final_energy(self) -> float:
         """Total energy in eV of the last iteration."""
         return self.etotals[-1]
 
-    @lazy_property
+    @cached_property
     def final_pressure(self) -> float:
         """Final pressure in Gpa."""
         cart_stress_tensors, pressures = self.r.read_cart_stress_tensors()
         return pressures[-1]
 
-    #@lazy_property
+    #@cached_property
     #def final_max_force(self):
 
     def get_fstats_dict(self, step) -> AttrDict:
@@ -141,7 +142,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """Number of iterations performed."""
         return self.r.num_steps
 
-    @lazy_property
+    @cached_property
     def steps(self) -> list:
         """Step indices."""
         return list(range(self.num_steps))
@@ -156,12 +157,12 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """The |Structure| of the last iteration."""
         return self.structures[-1]
 
-    @lazy_property
+    @cached_property
     def structures(self) -> list[Structure]:
         """List of |Structure| objects at the different steps."""
         return self.r.read_all_structures()
 
-    @lazy_property
+    @cached_property
     def etotals(self) -> np.ndarray:
         """|numpy-array| with total energies in eV at the different steps."""
         return self.r.read_eterms().etotals
@@ -206,7 +207,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         from pymatgen.io.vasp.outputs import Xdatcar
 
         if filepath is not None and os.path.exists(filepath) and not overwrite:
-            raise RuntimeError("Cannot overwrite pre-existing file `%s`" % filepath)
+            raise RuntimeError(f"Cannot overwrite pre-existing file: {filepath}")
 
         if filepath is None:
             import tempfile
@@ -219,10 +220,10 @@ class HistFile(AbinitNcFile, NotebookWriter):
         ntypat = self.r.read_dimvalue("ntypat")
         num_pseudos = self.r.read_dimvalue("npsp")
         if num_pseudos != ntypat:
-            raise NotImplementedError("Alchemical mixing is not supported, num_pseudos != ntypat")
+            raise NotImplementedError("Alchemical mixing is not supported, {num_pseudos=} != {ntypat=}")
         #print("znucl:", znucl, "\ntypat:", typat)
 
-        symb2pos = OrderedDict()
+        symb2pos = {}
         symbols_atom = []
         for iatom, itype in enumerate(typat):
             itype = itype - 1
@@ -280,7 +281,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         from abipy.iotools import Visualizer
         visu = Visualizer.from_name(appname)
         if visu.name != "ovito":
-            raise NotImplementedError("visualizer: %s" % visu.name)
+            raise NotImplementedError(f"{visu.name=} is not supported")
 
         filepath = self.write_xdatcar(filepath=None, groupby_type=True, to_unit_cell=to_unit_cell)
 
@@ -486,7 +487,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             fig.layout['yaxis%u' % rcd.iax].title.text = 'F stats (eV/A)'
 
         else:
-            raise ValueError("Invalid value for what: `%s`" % str(what))
+            raise ValueError(f"Invalid value for {what=}")
 
         fig.layout.legend.font.size = fontsize
 
@@ -742,9 +743,9 @@ class HistRobot(Robot):
 
         kwargs:
             attrs:
-                List of additional attributes of the |GsrFile| to add to the |pandas-DataFrame|.
+                List of additional attributes of the |HistFile| to add to the |pandas-DataFrame|.
             funcs: Function or list of functions to execute to add more data to the DataFrame.
-                Each function receives a |GsrFile| object and returns a tuple (key, value)
+                Each function receives a |HistFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
         """
         # Add attributes specified by the users
@@ -760,7 +761,7 @@ class HistRobot(Robot):
         rows, row_names = [], []
         for label, hist in self.items():
             row_names.append(label)
-            d = OrderedDict()
+            d = {}
 
             initial_fstas_dict = hist.get_fstats_dict(step=0)
             final_fstas_dict = hist.get_fstats_dict(step=-1)
@@ -909,12 +910,12 @@ class HistReader(ETSF_Reader):
     .. inheritance-diagram:: HistReader
     """
 
-    @lazy_property
+    @cached_property
     def num_steps(self) -> int:
         """Number of iterations present in the HIST.nc_ file."""
         return self.read_dimvalue("time")
 
-    @lazy_property
+    @cached_property
     def natom(self) -> int:
         """Number of atoms un the unit cell."""
         return self.read_dimvalue("natom")
@@ -928,7 +929,7 @@ class HistReader(ETSF_Reader):
         num_pseudos = self.read_dimvalue("npsp")
         ntypat = self.read_dimvalue("ntypat")
         if num_pseudos != ntypat:
-            raise NotImplementedError("Alchemical mixing is not supported, num_pseudos != ntypat")
+            raise NotImplementedError("Alchemical mixing is not supported, {num_pseudos=} != {ntypat=}")
 
         znucl, typat = self.read_value("znucl"), self.read_value("typat").astype(int)
         #print(znucl.dtype, typat)

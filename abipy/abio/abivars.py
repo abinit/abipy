@@ -7,8 +7,8 @@ import numpy as np
 from typing import Union
 
 from pprint import pformat #, pprint
+from functools import cached_property
 from monty.string import is_string, boxed
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import Structure, dataframes_from_structures
@@ -17,6 +17,8 @@ from abipy.abio.abivar_database.variables import get_codevars
 
 __all__ = [
     "is_abivar",
+    "is_anaddb_var",
+    "is_atdep_var",
     "is_abiunit",
     "AbinitInputFile",
     "AbinitInputParser",
@@ -28,6 +30,9 @@ def is_anaddb_var(varname: str) -> bool:
     """True if varname is a valid Anaddb variable."""
     return varname in get_codevars()["anaddb"]
 
+def is_atdep_var(varname: str) -> bool:
+    """True if varname is a valid atdep variable."""
+    return varname in get_codevars()["atdep"]
 
 def is_abivar(varname: str) -> bool:
     """True if s is an ABINIT variable."""
@@ -44,7 +49,7 @@ ABI_UNIT_NAMES = {
     s.lower() for s in (
         "au", "nm",
         "Angstr", "Angstrom", "Angstroms", "Bohr", "Bohrs",
-        "eV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs",
+        "eV", "meV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs",
         "T", "Tesla",)
 }
 
@@ -203,7 +208,7 @@ def abi_tokenize(string: str) -> list[str]:
 
 class Dataset(dict, Has_Structure):
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """
         The initial structure associated to the dataset.
@@ -387,7 +392,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def has_multi_structures(self) -> bool:
         """True if input defines multiple structures."""
         return self.structure is None
@@ -401,7 +406,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
     def close(self) -> None:
         """NOP, required by ABC."""
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """
         The structure defined in the input file.
@@ -462,10 +467,18 @@ for dataset in abinp.datasets:
 
         return self._write_nb_nbpath(nb, nbpath)
 
-    def get_differences(self, other, ignore_vars=None) -> list[str]:
+    def get_differences(self, other, ignore_vars=None, decimal=7) -> list[str]:
         """
-        Get the differences between this AbinitInputFile and another.
+        Get the differences between this Dataset and another.
+
+        Args:
+            other: Other Dataset instance.
+            ignore_vars: List of variable names that should be ignored
+            decimal: Number of decimal places to check for equality. Default is 7.
         """
+        from numpy.testing import assert_almost_equal
+        abivars_database = get_codevars()["abinit"]
+
         diffs = []
         to_ignore = {"acell", "angdeg", "rprim", "ntypat", "natom", "znucl", "typat", "xred", "xcart", "xangst"}
         if ignore_vars is not None:
@@ -494,11 +507,45 @@ for dataset in abinp.datasets:
             if other_only_keys:
                 diffs.append(f"The following variables are in other file but not in this one: "
                              f"{', '.join([str(k) for k in other_only_keys])}")
+
             for k in common_keys:
-                if self_dataset_dict[k] != other_dataset_dict[k]:
+                v1, v2 = self_dataset_dict[k], other_dataset_dict[k]
+
+                ok = True
+                exc_msg = ""
+                try:
+                    if abivars_database[k].vartype == "string":
+                        # Strict equality for abinit variables whose type is string.
+                        ok = v1 == v2
+
+                    elif isinstance(v1, str):
+                        # v1 is a string representing a number/vector with/without units.
+                        tokens_1, tokens_2 = v1.split(), v2.split()
+                        if is_abiunit(tokens_1[-1]):
+                            assert_almost_equal(np.array(tokens_1[:-1], dtype=float),
+                                                np.array(tokens_2[:-1], dtype=float), decimal=decimal)
+                            # Check units string as well
+                            ok = tokens_1[-1] == tokens_2[-1]
+                        else:
+                            assert_almost_equal(np.array(tokens_1, dtype=float),
+                                                np.array(tokens_2, dtype=float), decimal=decimal)
+                    else:
+                        # Assume v1 and v2 are numpy arrays, list, tuple.
+                        assert_almost_equal(v1, v2, decimal)
+
+                except Exception as exc:
+                    ok = False
+                    exc_msg = str(exc)
+
+                if not ok:
                     diffs.append(f"The variable '{k}' is different in the two files:\n"
-                                 f" - this file:  '{self_dataset_dict[k]}'\n"
-                                 f" - other file: '{other_dataset_dict[k]}'")
+                                 f" - this file:  '{v1}'\n"
+                                 f" - other file: '{v2}'")
+                    #if exc_msg:
+                    #    diffs[-1] += f"\npython exception: {exc_msg}"
+
+                    print(diffs[-1])
+
         return diffs
 
 

@@ -125,7 +125,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,
         elif cplx_mode == "abs":
             data = np.abs(data)
         else:
-            raise ValueError("Wrong value for cplx_mode: %s" % cplx_mode)
+            raise ValueError(f"Wrong value for {cplx_mode=}")
 
     shape, ndim = data.shape, data.ndim
 
@@ -135,7 +135,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,
     elif ndim == 4:
         ngrids = shape[0]
     else:
-        raise ValueError("ndim %d is not supported" % ndim)
+        raise ValueError(f"{ndim=} is not supported")
 
     # Xcrysden uses Fortran-order.
     # Transpose (...,x,y,z) --> (...,z,y,x) to speed up the write below.

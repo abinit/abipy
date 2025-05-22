@@ -188,7 +188,7 @@ xred 3*0 3*1/4
         self.assert_equal(inp.structure[1].specie.symbol, "As")
         mat = 5.6533 * np.array([0, 1/2, 1/2, 1/2, 0, 1/2, 1/2, 1/2, 0])
         mat.shape = (3, 3)
-        self.assert_equal(inp.structure[1].lattice.matrix, mat)
+        self.assert_almost_equal(inp.structure[1].lattice.matrix, mat)
 
         # tutorial/input/tbase2_1
         # 2 datasets with different natom (should use typat[:1] in 2nd dataset)
@@ -399,3 +399,6 @@ xred_symbols
         assert diffs == ["The following variables are in other file but not in this one: ecut"]
         diffs = inp2.get_differences(inp4, ignore_vars=["ngkpt", "ecut"])
         assert diffs == []
+
+        #inp1 = AbinitInputFile.from_string(s1)
+        #inp2 = AbinitInputFile.from_string(s2)

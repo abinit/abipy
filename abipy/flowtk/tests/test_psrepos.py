@@ -16,6 +16,11 @@ class TestPsRepos(AbipyTest):
         repo = get_repo_from_name("ONCVPSP-PBEsol-SR-PDv0.4")
         if not repo.is_installed():
             raise self.SkipTest("ONCVPSP-PBEsol-SR-PDv0.4 should be installed")
+
+        #self.assert_msonable(repo, test_is_subclass=True)
+        #print(repo.as_dict())
+        #raise ValueError()
+
         filepath = os.path.join(repo.dirpath, "Ni/Ni-sp.psp8")
         encoded = encode_pseudopath(filepath)
         assert encoded == "@ONCVPSP-PBEsol-SR-PDv0.4/Ni/Ni-sp.psp8"
@@ -68,9 +73,10 @@ class TestPsRepos(AbipyTest):
         def check_url(url):
             import requests
             response = requests.head(url)
+            # 301 requested resource has permanently moved to a new URL
             # 302 corresponds to redirection and it's returned by github.
-            if response.status_code not in (200, 302):
-                raise RuntimeError(f'url {url} returned {response.status_code}')
+            if response.status_code not in (200, 301, 302):
+                raise RuntimeError(f'{url=} returned {response.status_code}')
 
         repos = get_all_registered_repos()
         assert repos

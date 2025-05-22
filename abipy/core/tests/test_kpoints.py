@@ -9,7 +9,7 @@ from pymatgen.core.lattice import Lattice
 from abipy import abilab
 from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, IrredZone, Kpath, KpointsReader,
     has_timrev_from_kptopt, KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, map_grid2ibz,
-    set_atol_kdiff, set_spglib_tols, kpath_from_bounds_and_ndivsm, build_segments)  #Ktables,
+    set_atol_kdiff, set_spglib_tols, kpath_from_bounds_and_ndivsm, build_segments, kpoints_indices)  #Ktables,
 from abipy.core.testing import AbipyTest
 
 
@@ -614,7 +614,8 @@ class TestKmappingTools(AbipyTest):
 
     def test_map_grid2ibz(self):
         """Testing map_grid2ibz."""
-        bz2ibz = map_grid2ibz(self.mgb2, self.kibz, self.ngkpt, self.has_timrev, pbc=False)
+        shifts = [0, 0, 0]
+        bz2ibz, bz_kpoints = map_grid2ibz(self.mgb2, self.kibz, self.ngkpt, shifts, self.has_timrev, pbc=False)
 
         bz = []
         nx, ny, nz = self.ngkpt
@@ -653,3 +654,56 @@ class TestKmappingTools(AbipyTest):
     #    k = Ktables(self.mgb2, mesh, is_shift, has_timrev)
     #    repr(k); str(k)
     #    k.print_bz2ibz()
+
+    def test_kpoints_indices(self):
+        """Testing kpoints_indices"""
+        # test basic_functionality
+        frac_coords = np.array([[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
+        ngkpt = [4, 4, 4]
+        shift = [0.0, 0.0, 0.0]
+
+        expected_indices = np.array([[0, 0, 0], [2, 2, 2]])
+        computed_indices = kpoints_indices(frac_coords, ngkpt, shift, check_mesh=1)
+
+        self.assert_equal(computed_indices, expected_indices)
+
+        # test with shift
+        frac_coords = np.array([[0.25, 0.25, 0.25], [0.75, 0.75, 0.75]])
+        ngkpt = [4, 4, 4]
+        shift = [0.25, 0.25, 0.25]
+
+        # Shift is removed
+        expected_indices = np.array([[0, 0, 0], [2, 2, 2]])
+        computed_indices = kpoints_indices(frac_coords, ngkpt, shift, check_mesh=1)
+
+        self.assert_equal(computed_indices, expected_indices)
+
+        # test periodic boundary conditions
+        frac_coords = np.array([[1.0, 1.0, 1.0], [-0.25, -0.25, -0.25]])
+        ngkpt = [4, 4, 4]
+        shift = [0.0, 0.0, 0.0]
+
+        expected_indices = np.array([[0, 0, 0], [3, 3, 3]])  # 1.0 and -0.25 wrap correctly
+        computed_indices = kpoints_indices(frac_coords, ngkpt, shift, check_mesh=1)
+
+        self.assert_equal(computed_indices, expected_indices)
+
+        # test rounding behavior
+        frac_coords = np.array([[0.49, 0.49, 0.49], [0.51, 0.51, 0.51]])
+        ngkpt = [10, 10, 10]
+        shift = [0.0, 0.0, 0.0]
+
+        # Both round to 5
+        #expected_indices = np.array([[5, 5, 5], [5, 5, 5]])
+        #computed_indices = kpoints_indices(frac_coords, ngkpt, shift, check_mesh=1)
+        #self.assert_equal(computed_indices, expected_indices)
+
+        # test_check_mesh
+        frac_coords = np.array([[0.2, 0.4, 0.6]])
+        ngkpt = [5, 5, 5]
+        shift = [0.0, 0.0, 0.0]
+
+        computed_indices = kpoints_indices(frac_coords, ngkpt, shift, check_mesh=2)
+
+        # Ensure shape is correct
+        self.assert_equal(computed_indices.shape, (1, 3))

@@ -44,8 +44,6 @@ from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, ge
 #        self.r = r = EtsfReader(filepath)
 
 
-#===============================================================================================================
-#===============================================================================================================
 @dataclasses.dataclass(kw_only=True)
 class LrujResults:
     """
@@ -186,8 +184,6 @@ class LrujResults:
         _data = locals()
         return cls(**{k: _data[k] for k in [field.name for field in dataclasses.fields(cls)]})
 
-#===============================================================================================================
-#===============================================================================================================
     @add_fig_kwargs
     def plot(self, ax=None, degrees="all", inset=True, insetdegree=1, insetlocale="lower left",
              ptcolor0='k', ptcolor='k', gradcolor1='#3575D5',gradcolor2='#FDAE7B',
@@ -295,8 +291,6 @@ class LrujResults:
 
 
 
-#===============================================================================================================
-#===============================================================================================================
 class LrujAnalyzer:
     """
     Analyzes multiple sets of LRUJ files.
