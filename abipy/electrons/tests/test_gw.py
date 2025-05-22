@@ -91,7 +91,7 @@ class TestSigresFile(AbipyTest):
         assert len(sigres.ibz) == 6
         assert sigres.sigma_kpoints == sigres.ibz
         # No spectral function
-        assert not sigres.reader.has_spfunc
+        assert not sigres.r.has_spfunc
         with self.assertRaises(ValueError):
             sigres.read_sigee_skb(0, 0, 0)
 
@@ -149,7 +149,7 @@ class TestSigresFile(AbipyTest):
         """Test methods to plot spectral function from SIGRES."""
         filepath = abidata.ref_file("al_g0w0_sigmaw_SIGRES.nc")
         with abilab.abiopen(filepath) as sigres:
-            assert sigres.reader.has_spfunc
+            assert sigres.r.has_spfunc
             sigma = sigres.read_sigee_skb(spin=0, kpoint=(0, 0, 0), band=0)
             repr(sigma); str(sigma)
             assert sigma.to_string(verbose=2)
