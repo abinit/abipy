@@ -2651,8 +2651,8 @@ class ElectronBands(Has_Structure):
             ik_ibz: Index of the k-point in the IBZ
             spand_dir: Use axvspan" if span_dir == "v" else "axhspan"
         """
-        ks_lumo = self.lumo_sk[spin, ik_ibz]
-        ks_homo = self.homo_sk[spin, ik_ibz]
+        ks_lumo = self.lumo_sk(spin, ik_ibz)
+        ks_homo = self.homo_sk(spin, ik_ibz)
 
         kwargs.setdefault("alpha", 0.5)
         kwargs.setdefault("color", "grey")
