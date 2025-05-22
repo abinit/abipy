@@ -2656,7 +2656,7 @@ class SigresRobot(Robot, RobotWithEbands):
         # Make sure that nsppol and sigma_kpoints are consistent
         self._check_dims_and_params()
 
-        if axis not in Axis:
+        if axis not in Axis.__members__:
             raise ValueError(f"Invalid value for {axis=}")
         what_list = ("re", "im", "aw")
         nrows = {Axis.wreal: len(what_list), Axis.wimag: 2}[axis]
