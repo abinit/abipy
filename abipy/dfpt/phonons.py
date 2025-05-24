@@ -1685,13 +1685,16 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         # TODO should be modified in order to handle the "split" list of qpoints
         if qlabels is not None:
             d = {}
-
             for qcoord, qname in qlabels.items():
                 # Build Kpoint instancee
                 qtick = Kpoint(qcoord, self.structure.reciprocal_lattice)
-                for q, qpoint in enumerate(self.qpoints):
+                for iq, qpoint in enumerate(self.qpoints):
+                    #print(f"for {qtick=}, {qpoint=}", qtick == qpoint)
                     if qtick == qpoint:
-                        d[q] = qname
+                        d[iq] = qname
+
+            # Sort d by key. This is needed to avoid e.g. {0: '$\\Gamma$', 97: '$\\Gamma$', 23: 'Y', 43: 'B', 66: 'A'}
+            d = {k: d[k] for k in sorted(d.keys())}
         else:
             d = self._auto_qlabels
 

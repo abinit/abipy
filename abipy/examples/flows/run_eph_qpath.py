@@ -39,6 +39,7 @@ xred 3*0
 """)
 
     pseudos = abidata.pseudos("Fe.psp8")
+    #pseudos = abidata.pseudos("Fe.upf")
     scf_input = abilab.AbinitInput(structure, pseudos=pseudos)
     num_ele = scf_input.num_valence_electrons
 

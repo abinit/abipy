@@ -11,7 +11,6 @@ import os
 import re
 import subprocess
 import webbrowser
-import requests
 
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING

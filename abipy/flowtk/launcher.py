@@ -841,8 +841,12 @@ class PyFlowScheduler(BaseScheduler):
             if all_ok:
                 app("Flow completed successfully")
             else:
+                try:
+                    flow.debug()
+                except:
+                    pass
                 app("Flow %s didn't complete successfully" % repr(flow.workdir))
-                app("use `abirun.py FLOWDIR debug` to analyze the problem.")
+                app("Use `abirun.py FLOWDIR debug` to analyze the problem.")
                 app("Shutdown message:\n%s" % msg)
 
             print("")

@@ -182,12 +182,33 @@ class Robot(NotebookWriter):
                 filename.endswith("." + cls.EXT))  # This for .abo
 
     @classmethod
-    def from_files(cls, filenames, labels=None, abspath=False) -> Robot:
+    def from_label_file_dict(cls, label_file_dict: dict) -> Robot:
+        """
+        Build a robot from a dictionary mapping labels to filepath.
+
+        Usage example:
+
+        .. code-block:: python
+
+        robot = SigresRobot.from_label_file_dict({
+           "Minimax": "t30o_DS3_SIGRES.nc",
+           "Gauss": "Gauss/t30o_DS3_SIGRES.nc",
+        })
+        """
+
+        return cls.from_files(list(label_file_dict.values()),
+                              labels=list(label_file_dict.keys()))
+
+    @classmethod
+    def from_files(cls, filenames: list[str],
+                   labels: list[str] | None = None,
+                   abspath: bool = False) -> Robot:
         """
         Build a Robot from a list of `filenames`.
-        If labels is None, labels are automatically generated from absolute paths.
 
         Args:
+            labels: List of labels associated to filenammes.
+                If None, labels are automatically generated from absolute paths.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
         filenames = list_strings(filenames)
@@ -844,10 +865,11 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
         Args:
             hue: Variable that defines subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
-                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
+                If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked
+                    or that a key with the same name is present in abifile.params.
                 Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
                 If callable, the output of hue(abifile) is used.
-            func_or_string: Either None, string, callable defining the quantity to be used for sorting.
+            func_or_string: None, string, or callable defining the quantity to be used for sorting.
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of func_or_string(abifile) is used.
                 If None, no sorting is performed.
