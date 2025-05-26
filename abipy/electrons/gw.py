@@ -780,7 +780,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     .. code-block:: python
 
-        with SigresFile("foo_SIGRES.nc") as sigres:
+        with SigresFile("out_SIGRES.nc") as sigres:
             sigres.plot_qps_vs_e0()
 
     .. rubric:: Inheritance Diagram
