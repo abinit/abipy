@@ -12,6 +12,7 @@ The Q* tensor may be needed to improve the accuracy of the Fourier interpolation
 especially in the long-wavelength limit |q| --> 0.
 
 This example is based on  <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+
 Note that only selected features are compatible with dynamical quadrupoles.
 Please consult <https://docs.abinit.org/topics/longwave/>
 """

@@ -4,7 +4,7 @@ Joint Density of States
 =======================
 
 This example shows how plot the different contributions
-to the electronic joint density of states of Silicon
+to the electronic joint density of states of Silicon.
 """
 import abipy.data as abidata
 from abipy.abilab import abiopen
