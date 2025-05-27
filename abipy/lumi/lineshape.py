@@ -4,8 +4,6 @@ from __future__ import annotations
 import numpy as np
 import abipy.core.abinit_units as abu
 
-#from numpy import fft
-#from scipy import signal
 try:
     from scipy.integrate import simpson as simps
 except ImportError:
