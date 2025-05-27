@@ -1,5 +1,7 @@
 # coding: utf-8
-"""Objects to analyze the screening files produced by the GW code (optdriver 3)."""
+"""
+Objects to analyze the screening files in netcdf format produced by the GW code (optdriver 3).
+"""
 from __future__ import annotations
 
 import numpy as np
@@ -15,10 +17,10 @@ from abipy.core.func1d import Function1D
 from abipy.core.kpoints import KpointList
 from abipy.core.structure import Structure
 from abipy.core.gsphere import GSphere
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import ETSF_Reader
-from abipy.tools.plotting import ArrayPlotter, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.plotting import ArrayPlotter, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
 from abipy.tools.typing import Figure
 from abipy.tools import duck
 
@@ -28,14 +30,14 @@ _COLOR_CMODE = dict(re="red", im="blue", abs="black", angle="green")
 
 def _latex_symbol_cplxmode(symbol: str, cplx_mode: str) -> str:
     """Latex label to be used to plot ``symbol`` in ``cplx_mode``."""
-    return {"re": r"$\Re(" + symbol + ")$",
-            "im": r"$\Im(" + symbol + ")$",
-            "abs": r"$||" + symbol + "||$",
-            "angle": r"$Phase(" + symbol + ")$"}[cplx_mode]
+    return {
+        "re": r"$\Re(" + symbol + ")$",
+        "im": r"$\Im(" + symbol + ")$",
+        "abs": r"$||" + symbol + "||$",
+        "angle": r"$Phase(" + symbol + ")$"}[cplx_mode]
 
 
-# TODO: Should contain ElectronBands.
-class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
+class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This object provides an interface to the ``SCR.nc`` file produced by the GW code.
 
@@ -43,9 +45,9 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
     .. code-block:: python
 
-        with ScrFile("foo_SCR.nc") as ncfile:
-            print(ncfile)
-            ncfile.plot_emacro()
+        with ScrFile("out_SCR.nc") as scr:
+            print(scr)
+            scr.plot_emacro()
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ScrFile
@@ -57,11 +59,11 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = ScrReader(filepath)
+        self.r = ScrReader(filepath)
 
     def close(self) -> None:
         """Close the file."""
-        self.reader.close()
+        self.r.close()
 
     def __str__(self) -> str:
         return self.to_string()
@@ -94,12 +96,12 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
     @property
     def structure(self) -> Structure:
         """|Structure| object."""
-        return self.reader.structure
+        return self.r.structure
 
     @property
     def kpoints(self):
         """List of k-points in the dielectric function."""
-        return self.reader.kpoints
+        return self.r.kpoints
 
     @cached_property
     def ebands(self) -> ElectronBands:
@@ -115,34 +117,34 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
     @property
     def ng(self) -> int:
         """Number of G-vectors in screening matrices."""
-        return self.reader.ng
+        return self.r.ng
 
     @property
     def wpoints(self) -> np.ndarray:
         """
         Array of complex numbers with the frequencies of the dielectric function in Hartree.
         """
-        return self.reader.wpoints
+        return self.r.wpoints
 
     @property
     def nw(self) -> int:
         """Total number of frequencies."""
-        return self.reader.nw
+        return self.r.nw
 
     @property
     def nrew(self) -> int:
         """Number of real frequencies."""
-        return self.reader.nrew
+        return self.r.nrew
 
     @property
     def nimw(self) -> int:
         """Number of imaginary frequencies."""
-        return self.reader.nimw
+        return self.r.nimw
 
     @property
     def netcdf_name(self) -> str:
         """The netcdf_ name associated to the data on disk."""
-        return self.reader.netcdf_name
+        return self.r.netcdf_name
 
     @cached_property
     def params(self) -> dict:
@@ -151,12 +153,12 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         keys can be accessed with the dot notation i.e. ``params.zcut``.
         """
         #od = self.get_ebands_params()
-        return self.reader.read_params()
+        return self.r.read_params()
 
     @add_fig_kwargs
-    def plot_emacro(self, cplx_mode="re-im", ax=None, xlims=None, fontsize=12, **kwargs) -> Figure:
+    def plot_emacro(self, cplx_mode="re-im", ax=None, xlims=None, fontsize=8, **kwargs) -> Figure:
         r"""
-        Plot the macroscopic dielectric function with local-field effects.
+        Plot the macroscopic dielectric function including local-field effects.
 
         Args:
             cplx_mode: string defining the data to print.
@@ -173,7 +175,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         Returns:
             |matplotlib-Figure|
         """
-        emlf = self.reader.read_emacro_lf()
+        emlf = self.r.read_emacro_lf()
         xx, yy = emlf.mesh * pmgu.Ha_to_eV, emlf.values
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -191,7 +193,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_eelf(self, ax=None, xlims=None, fontsize=12, **kwargs) -> Figure:
+    def plot_eelf(self, ax=None, xlims=None, fontsize=8, **kwargs) -> Figure:
         r"""
         Plot electron energy loss function.
 
@@ -200,10 +202,8 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
             xlims: Set the data limits for the x-axis in eV. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
             fontsize: Legend and label fontsize:
-
-        Returns: |matplotlib-Figure|
         """
-        eelf = self.reader.read_eelf()
+        eelf = self.r.read_eelf()
         xx, yy = eelf.mesh * pmgu.Ha_to_eV, eelf.values
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -214,6 +214,36 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, NotebookWriter):
         ax.grid(True)
         ax.set_xlabel(r"$\omega$ (eV)")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+    def plot_freqs_at_ggp(self, gvec1, gvec2=None, waxis="real", cplx_modes=("re", "im"),
+                          colormap="viridis", fontsize=8, **kwargs) -> Figure:
+        """
+        Plot the real and the imaginary part of the response function as a function of omega along
+        eithe the real or the imaginary axis. Each subplot, shows all the q-points stored on file
+
+        Args:
+            gvec1, gvec2: G-vectors.
+            waxis: ``real`` to plot along the real axis, ``imag`` for the imaginary axis.
+            cplx_modes:
+            colormap: Color map. Have a look at the colormaps here and decide which one you like:
+                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+        """
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=len(cplx_modes), ncols=1,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+        cmap = plt.get_cmap(colormap)
+
+        nqpt = len(self.r.sorted_kpoints)
+        for iq, qpoint in enumerate(self.r.sorted_kpoints):
+            wggmat = self.r.read_wggmat(qpoint)
+            for ax, cplx_mode in zip(ax_list, cplx_modes):
+                wggmat.plot_freq(gvec1, gvec2=gvec2, waxis=waxis,
+                                 color=cmap(float(iq) / nqpt),
+                                 label=f"{qpoint}",
+                                 cplx_mode=cplx_mode,
+                                 ax=ax, show=False)
 
         return fig
 
@@ -297,15 +327,24 @@ class ScrReader(ETSF_Reader):
         # Define self.netcdf_name from the data available on file.
         nfound = 0
         netcdf_names = ["polarizability", "dielectric_function", "inverse_dielectric_function"]
-        for tryname in netcdf_names:
-            if tryname in self.rootgrp.variables:
-                self.netcdf_name = tryname
+        for try_name in netcdf_names:
+            if try_name in self.rootgrp.variables:
+                self.netcdf_name = try_name
                 nfound += 1
 
         if nfound == 0:
             raise RuntimeError("Cannot find `%s` in netcdf file" % str(netcdf_names))
         if nfound > 1:
             raise RuntimeError("Find multiple netcdf arrays (%s) in netcdf file!" % str(netcdf_names))
+
+    @cached_property
+    def sorted_kpoints(self) -> KpointList:
+        """
+        Build list of k-points sorted by norm (ascending order).
+        """
+        norms = [(kpt.norm, kpt) for kpt in self.kpoints]
+        sorted_frac_coords = [t[1].frac_coords for t in sorted(norms, key= lambda t: t[0], reverse=False)]
+        return KpointList(self.structure.reciprocal_lattice, sorted_frac_coords)
 
     def read_params(self) -> AttrDict:
         """
@@ -330,8 +369,6 @@ class ScrReader(ETSF_Reader):
     def read_emacro_lf(self, kpoint=(0, 0, 0)) -> Function1D:
         """
         Read the macroscopic dielectric function *with* local field effects 1 / em1_{0,0)(kpoint, omega).
-
-        Return: |Function1D| object.
         """
         if self.netcdf_name == "inverse_dielectric_function":
             em1 = self.read_wslice(kpoint, ig1=0, ig2=0)
@@ -344,8 +381,6 @@ class ScrReader(ETSF_Reader):
     def read_emacro_nlf(self, kpoint=(0, 0, 0)) -> Function1D:
         """
         Read the macroscopic dielectric function *without* local field effects e_{0,0)(kpoint, omega).
-
-        Return: |Function1D|
 
         .. warning::
 
@@ -362,11 +397,7 @@ class ScrReader(ETSF_Reader):
 
     def read_eelf(self, kpoint=(0, 0, 0)) -> Function1D:
         """
-        Read electron energy loss function
-
-            - Im(1/ emacro)
-
-        Return: |Function1D| object.
+        Read electron energy loss function: - Im(1/ emacro)
         """
         # eelf = -Im(1 / eM)
         emacro_lf = self.read_emacro_lf(kpoint=kpoint)
@@ -441,6 +472,22 @@ class _AwggMatrix:
 
     latex_name = "Unknown"
 
+    @classmethod
+    def class_from_netcdf_name(cls, netcdf_name: str):
+        """Return the subclass associated to the given netcdf name."""
+        nfound = 0
+        for subclass in all_subclasses(cls):
+            if subclass.netcdf_name == netcdf_name:
+                nfound += 1
+                out_cls = subclass
+
+        if nfound == 0:
+            raise ValueError(f"Cannot find subclass associated to {netcdf_name=}")
+        if nfound > 1:
+            raise ValueError(f"Find multiple subclasses associated to {netcdf_name=}")
+
+        return out_cls
+
     def __init__(self, wpoints, gsphere, wggmat, inord="C"):
         """"
         Args:
@@ -460,8 +507,11 @@ class _AwggMatrix:
                 self.wggmat[iw] = self.wggmat[iw].T.copy()
 
         for i in (1, 2):
-            assert len(gsphere) == wggmat.shape[-i]
-        assert len(self.wpoints) == len(self.wggmat)
+            if len(gsphere) != wggmat.shape[-i]:
+                raise ValueError(f"{len(gsphere)=} != {wggmat.shape[-i]=}")
+
+        if len(self.wpoints) != len(self.wggmat):
+            raise ValueError(f"{len(self.wpoints)=} != {len(self.wggmat)=}")
 
         # Find number of real/imaginary frequencies.
         self.nrew = self.nw
@@ -476,26 +526,10 @@ class _AwggMatrix:
             raise ValueError("wpoints should contained real points packed in the first positions\n"
                 "followed by imaginary points but got: %s" % str(self.wpoints))
 
-    @classmethod
-    def class_from_netcdf_name(cls, netcdf_name: str):
-        """Return the subclass associated to the given netcdf name."""
-        nfound = 0
-        for subclass in all_subclasses(cls):
-            if subclass.netcdf_name == netcdf_name:
-                nfound += 1
-                out_cls = subclass
-
-        if nfound == 0:
-            raise ValueError("Cannot find subclass associated to `%s`" % str(netcdf_name))
-        if nfound > 1:
-            raise ValueError("Find multiple subclasses associated to `%s`" % str(netcdf_name))
-
-        return out_cls
-
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []
         app = lines.append
@@ -523,7 +557,7 @@ class _AwggMatrix:
 
     @property
     def nw(self) -> int:
-        """Total number of frequencies."""
+        """Total number of frequencies (real + imag)."""
         return len(self.wpoints)
 
     @property
@@ -554,7 +588,7 @@ class _AwggMatrix:
         """The slice of wggmat along the imaginary axis."""
         return self.wggmat[self.nrew:, :, :]
 
-    def windex(self, w, atol=0.001):
+    def windex(self, w, atol: float = 0.001) -> int:
         """
         Find the index of the **closest** frequency in ``wpoints``.
         """
@@ -569,23 +603,33 @@ class _AwggMatrix:
     def gindex(self, gvec):
         """
         Find the index of gvec. If ``gvec`` is an integer, gvec is returned.
+
         Raises:
             `ValueError` if gvec is not found.
         """
         if duck.is_intlike(gvec): return int(gvec)
         return self.gsphere.index(gvec)
 
-    def latex_label(self, cplx_mode):
+    def latex_label(self, cplx_mode: str) -> str:
         """Return a latex string that can be used in matplotlib plots."""
         return _latex_symbol_cplxmode(self.latex_name, cplx_mode)
 
     @add_fig_kwargs
-    def plot_freq(self, gvec1, gvec2=None, waxis="real", cplx_mode="re-im", ax=None, fontsize=8, **kwargs) -> Figure:
+    def plot_freq(self,
+                  gvec1,
+                  gvec2=None,
+                  waxis="real",
+                  cplx_mode="re-im",
+                  ax=None,
+                  color: str = None,
+                  label: str = None,
+                  fontsize=8,
+                  **kwargs) -> Figure:
         r"""
         Plot the frequency dependence of :math:`W_{G1, G2}(\omega)`
 
         Args:
-            gvec1, gvec2:
+            gvec1, gvec2: G-vectors.
             waxis: ``real`` to plot along the real axis, ``imag`` for the imaginary axis.
             cplx_mode: string defining the data to print.
                 Possible choices are (case-insensitive): ``re`` for the real part
@@ -593,6 +637,8 @@ class _AwggMatrix:
                 ``angle`` will display the phase of the complex number in radians.
                 Options can be concatenated with ``-`` e.g. ``re-im``.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            color: Optional color passed to ax.plot.
+            label: Optional string for label.
             fontsize: legend and label fontsize.
 
         Returns: |matplotlib-Figure|
@@ -602,28 +648,40 @@ class _AwggMatrix:
         ig2 = ig1 if gvec2 is None else self.gindex(gvec2)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
+
         if waxis == "real":
-            if self.nrew == 0: return fig
+            if self.nrew == 0:
+                cprint("File does not contain frequencies along the real axis!", color="orange")
+                return fig
+
             xx = self.real_wpoints.real * pmgu.Ha_to_eV
             yy = self.wggmat_realw[:, ig1, ig2]
 
         elif waxis == "imag":
-            if self.nimw == 0: return fig
+            if self.nimw == 0:
+                cprint("File does not contain frequencies along the imaginary axis!", color="orange")
+                return fig
+
             xx = self.imag_wpoints.imag * pmgu.Ha_to_eV
             yy = self.wggmat_imagw[:, ig1, ig2]
 
         else:
-            raise ValueError("Wrong value for waxis: %s" % str(waxis))
+            raise ValueError(f"Wrong value for {waxis=}")
 
-        linewidth = kwargs.pop("linewidth", 2)
-        linestyle = kwargs.pop("linestyle", "solid")
+        plt_kwargs = dict(
+            linewidth=kwargs.pop("linewidth", 2),
+            linestyle=kwargs.pop("linestyle", "solid"),
+        )
+        if color is not None:
+            plt_kwargs["color"] = color
 
-        lines = []
         for c in cplx_mode.lower().split("-"):
-            l, = ax.plot(xx, data_from_cplx_mode(c, yy),
-                         color=_COLOR_CMODE[c], linewidth=linewidth, linestyle=linestyle,
-                         label=self.latex_label(c))
-            lines.append(l)
+            if "color" not in plt_kwargs:
+                plt_kwargs["color"] = _COLOR_CMODE[c]
+
+            ax.plot(xx, data_from_cplx_mode(c, yy),
+                    label=self.latex_label(c) if label is None else label,
+                    **plt_kwargs)
 
         ax.grid(True)
         ax.set_xlabel(r"$\omega$ (eV)")
@@ -662,8 +720,8 @@ class _AwggMatrix:
         # Build plotter.
         plotter = ArrayPlotter()
         for iw in wpos:
-            label = r"%s $\omega=%s$" % (self.latex_label(cplx_mode), self.wpoints[iw])
             data = data_from_cplx_mode(cplx_mode, self.wggmat[iw])
+            label = r"%s $\omega=%s$" % (self.latex_label(cplx_mode), self.wpoints[iw])
             plotter.add_array(label, data)
 
         return plotter.plot(show=False, **kwargs)
@@ -749,7 +807,7 @@ class InverseDielectricFunction(_AwggMatrix):
     #    return fig
 
 
-#class PPModel(metaclas=abc.ABCMeta):
+#class PPModel(metaclass=abc.ABCMeta):
 #    """
 #    Abstract base class for Plasmonpole models.
 #    """
