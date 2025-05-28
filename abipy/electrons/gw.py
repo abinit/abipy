@@ -780,7 +780,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     .. code-block:: python
 
-        with SigresFile("foo_SIGRES.nc") as sigres:
+        with SigresFile("out_SIGRES.nc") as sigres:
             sigres.plot_qps_vs_e0()
 
     .. rubric:: Inheritance Diagram
@@ -2784,14 +2784,14 @@ class SigresRobot(Robot, RobotWithEbands):
             kcalc = sigma_kpoints[ik]
             for ib in range(len(band_list)):
                 band = band_list[ib]
-                ax_list = ax_list[ik*len(band_list) + ib,:]
+                ax = ax_list[ik*len(band_list) + ib,:]
                 for spin in range(nsppol):
                     #ax_list[0].set_title("k-point: %s band: %s" % (repr(kcalc), repr(band)), fontsize=fontsize)
                     lnp_list = self.sortby(sortby)
                     for i, (label, sigres, param) in enumerate(lnp_list):
                         sigres.plot_sigma_imag_axis(kpoint=kcalc,
                                                     spin=spin,
-                                                    ax_list=ax_list,
+                                                    ax_list=ax,
                                                     band_list=band,
                                                     fontsize=fontsize,
                                                     label=f"{sortby}: {param}" if sortby else label,

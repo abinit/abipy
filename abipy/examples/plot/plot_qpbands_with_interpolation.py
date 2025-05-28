@@ -35,6 +35,7 @@ r = sigres.interpolate(lpratio=5,
                        ks_ebands_kpath=ks_ebands_kpath,
                        ks_ebands_kmesh=ks_ebands_kmesh
                        )
+
 qp_edos = r.qp_ebands_kmesh.get_edos()
 
 # Get points with ab-initio QP energies from the SIGRES so that

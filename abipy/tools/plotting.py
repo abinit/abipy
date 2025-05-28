@@ -1525,14 +1525,30 @@ def ax_add_cartesian_frame(ax, start=(0, 0, 0)) -> Axes:
 
     class Arrow3D(FancyArrowPatch):
         def __init__(self, xs, ys, zs, *args, **kwargs):
-            FancyArrowPatch.__init__(self, (0, 0), (0, 0), *args, **kwargs)
+            super().__init__((0, 0), (0, 0), *args, **kwargs)
             self._verts3d = xs, ys, zs
 
-        def draw(self, renderer):
+        def do_3d_projection(self, renderer=None):
             xs3d, ys3d, zs3d = self._verts3d
-            xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
-            self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
-            FancyArrowPatch.draw(self, renderer)
+            xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)
+            self.set_positions((xs[0],ys[0]),(xs[1],ys[1]))
+
+            return np.min(zs)
+
+        #def draw(self, renderer):
+        #    xs3d, ys3d, zs3d = self._verts3d
+        #    xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
+        #    self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
+        #    super().draw(renderer)
+
+        #def do_3d_projection(self, renderer=None):
+        #    xs3d, ys3d, zs3d = self._verts3d
+        #    if renderer is None:
+        #        # fallback to a default or estimated z value
+        #        return np.mean(zs3d)  # safe fallback
+        #    else:
+        #        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
+        #        return np.min(zs)  # or np.mean(zs) depending on your desired sorting
 
     start = np.array(start)
     for end in ((1, 0, 0), (0, 1, 0), (0, 0, 1)):
