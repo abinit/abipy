@@ -8,7 +8,7 @@ from pymatgen.io.phonopy import get_pmg_structure,get_phonopy_structure
 from abipy.core.abinit_units import eV_to_THz
 #from abipy.core.structure import Structure
 from abipy.dfpt.converters import phonopy_to_abinit
-from abipy.embedding.utils_ifc import map_two_structures_coords, clean_structure # accoustic_sum, 
+from abipy.embedding.utils_ifc import map_two_structures_coords, clean_structure # accoustic_sum
 
 
 class Embedded_phonons(Phonopy):
@@ -63,18 +63,18 @@ class Embedded_phonons(Phonopy):
                 Should corresponds to order of phonopy_defect structure!
             main_defect_coords_in_pristine: Main coordinates of the defect in pristine structure, if defect complex, can be set to the
                 center of mass of the complex
-            main_defect_coords_in_defect : Main coordinates of the defect in defect structure, if defect complex, can be set to the
+            main_defect_coords_in_defect: Main coordinates of the defect in defect structure, if defect complex, can be set to the
                 center of mass of the complex
-            substitutions_list: List of substitutions infos [index,specie], ex : [[0, "Eu"],[1,"N"]]
+            substitutions_list: List of substitutions infos [index,specie], ex: [[0, "Eu"],[1,"N"]]
             vacancies_list: List of indices where the vacancies are, ex: [13,14]
             interstitial_list: List of interstitial infos [specie, cart_coord], ex [['Eu',[0,0,0]],['Ce','[0,0,3]']]
             tol_mapping: Tolerance in angstrom for the mapping between structures
-            cut_off_mode: Cut off mode for the radii of the sphere centered around the defect (rc_2). if 'auto' : the code tries to find the largest sphere
-                inscribed in the defect supercell. If 'manual' :  rc_1 and rc_2 should be provided.
+            cut_off_mode: Cut off mode for the radii of the sphere centered around the defect (rc_2). if 'auto': the code tries to find the largest sphere
+                inscribed in the defect supercell. If 'manual':  rc_1 and rc_2 should be provided.
             rc_1: Radii of the sphere centered around the defect outside which the IFCs are set to zero, allows to get sparse matrix.
             rc_2: Radii of the sphere centered around the defect where the IFCs of the defect computation are included
             factor_ifc: Multiply the IFCs inside the sphere of radii rc_2 by factor_ifc, usefull to introduce fictious high-frequency local mode
-            verbose : Print explicitely all the IFCs replacements
+            verbose: Print explicitely all the IFCs replacements
             asr: If True, re-enforce acoustic sum rule after IFCs embedding, following eq. (S4) of https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537
 
         Returns:
@@ -129,8 +129,8 @@ class Embedded_phonons(Phonopy):
         # Print infos
         ########################
 
-        print(f"Number of atoms in the pristine supercell      : {len(stru_pristine)}")
-        print(f"Number of atoms in the defective supercell     : {len(stru_defect)}")
+        print(f"Number of atoms in the pristine supercell : {len(stru_pristine)}")
+        print(f"Number of atoms in the defective supercell: {len(stru_defect)}")
 
         print("Defect infos")
         if substitutions_list is not None:
@@ -148,7 +148,7 @@ class Embedded_phonons(Phonopy):
             for inter in interstitial_list:
                 print(f"       {inter[0]}, {inter[1]} added")
 
-        print(f"Mapping after structure manipulation           : {len(mapping)}/{len(stru_defect)}")
+        print(f"Mapping after structure manipulation: {len(mapping)}/{len(stru_defect)}")
 
         ########################
         # change the IFCs
@@ -188,16 +188,16 @@ class Embedded_phonons(Phonopy):
                 if dist_1_from_defect < rc_2 and dist_2_from_defect < rc_2:
 
                     if verbose > 0:
-                        print(f"\n \n Atomic pair : {i,atom1} - {j,atom2}  \n")
-                        print(f"atom1 : Dist. from. defect = {dist_1_from_defect}")
-                        print(f"atom2 : Dist. from. defect = {dist_2_from_defect}")
+                        print(f"\n \n Atomic pair: {i,atom1} - {j,atom2}  \n")
+                        print(f"atom1: Dist. from. defect = {dist_1_from_defect}")
+                        print(f"atom2: Dist. from. defect = {dist_2_from_defect}")
 
                         print(f"Replacing pristine cell IFC = \n {ifc_pristine[i][j]}")
                         print(f"by defect cell IFC = \n {ifc_defect[mapping.index(i)][mapping.index(j)]}")
                         print(f"Diff IFC = \n {ifc_pristine[i][j]-ifc_defect[mapping.index(i)][mapping.index(j)]}")
 
                     ifc_emb[i][j] = factor_ifc*ifc_defect[mapping.index(i)][mapping.index(j)]
-                    
+
         # enforce ASR
         if asr:
             print("\n Enforce ASR")
@@ -205,7 +205,7 @@ class Embedded_phonons(Phonopy):
             for i,atom1 in enumerate(stru_emb):
                 for alpha in [0,1,2]:
                     ifc_emb[i][i][alpha][alpha] = - (sum_ac[i][alpha][alpha]-ifc_emb[i][i][alpha][alpha])
-        
+
         ########################
         # change the nac params
         ########################
@@ -257,6 +257,6 @@ class Embedded_phonons(Phonopy):
         ddb_sc = phonopy_to_abinit(unit_cell=get_pmg_structure(self.supercell), supercell_matrix=[1,1,1], qpt_list=[[0,0,0]],
                                    out_ddb_path=embedded_ddb_path, force_constants=self.force_constants,
                                    born=self.nac_params, primitive_matrix=np.eye(3), symprec=1e-5,
-                                   tolsym=None,workdir=workdir,nsym=1)
+                                   tolsym=None,workdir=workdir, nsym=1)
 
         return ddb_sc

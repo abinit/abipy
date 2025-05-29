@@ -190,4 +190,4 @@ class EphPlotter:
     #    self.phdos_file.close()
 
 
-#class EphMultiPlotter(object):
+#class EphMultiPlotter:

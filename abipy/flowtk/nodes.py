@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from pprint import pprint
+#from pprint import pprint
 from typing import Any, Union
 from functools import cached_property
 from pydispatch import dispatcher
@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 #    from .tasks import Task
 #    from .works import Work
 #    from .flows import Flow
+
 
 def _2attrs(item):
     return item if item is None or isinstance(list, tuple) else (item,)

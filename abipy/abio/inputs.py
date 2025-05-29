@@ -199,9 +199,11 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         Return: dict with the variables added to the input.
 
         **Example:**
+
         .. code-block:: python
 
             input.set_vars(ecut=10, ionmov=3)
+
         """
         kwargs.update(dict(*args))
 
@@ -238,9 +240,11 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         Return dict with the variables added to the input.
 
         **Example:**
+
         .. code-block:: python
 
             input.set_vars_ifnotin(ecut=10, ionmov=3)
+
         """
         kwargs.update(dict(*args))
         added = {}
@@ -260,9 +264,11 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
             keys: string or list of strings with variable names.
 
         **Example:**
+
         .. code-block:: python
 
             inp.pop_vars(["ionmov", "optcell", "ntime", "dilatmx"])
+
         """
         return self.remove_vars(keys, strict=False)
 
@@ -1271,10 +1277,12 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         If an element in the structure is not present in symb2luj, default is used.
 
         **Example:**
+
         .. code-block:: python
 
             symb2spinat = {"Eu": [0, 0, 7]}
             inp.set_spinat_from_symbols(symb2spinat)
+
         """
         spinat = []
         for site in self.structure:
@@ -1319,10 +1327,12 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             units: Energy units for U and J. Note that defaultis eV although ABINIT uses Hartree by default!
 
         **Example:**
+
         .. code-block:: python
 
             symb2luj = {"Eu": {"lpawu": 3, "upawu": 7, "jpawu": 0.7}
             inp.set_luj(symb2luj)
+
         """
         lpawu, upawu, jpawu = [], [], []
 
@@ -1426,6 +1436,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         The endpoint of the interval can optionally be excluded.
 
         **Example:**
+
         .. code-block:: python
 
             input_list = gs_template.linspace("ecut", start=10, stop=60)
@@ -1470,6 +1481,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         .. code-block:: python
 
             input_list = gs_template.linspace("ecut", start=10, stop=60, step=10)
+
         """
         inps = []
         for value in np.arange(start=start, stop=stop, step=step):
@@ -2928,9 +2940,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
             try:
                 do_something_with_the_output_files_produced_by_the_task
-
             except Exception as exc:
                 self._handle_task_exception(task, exc)
+
         """
         # Check if there are errors in the log file.
         report = task.get_event_report()
@@ -3613,6 +3625,7 @@ class MultiDataset:
         .. example:
 
             df = multi.get_vars_dataframe("ecut", "ngkpt")
+
         """
         frames = []
         for i, inp in enumerate(self):

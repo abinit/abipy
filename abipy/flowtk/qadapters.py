@@ -259,7 +259,7 @@ class Hardware:
         try:
             # old pymatgen
             mem_per_node = str(Memory(val=self.mem_per_node, unit='Mb'))
-        except:
+        except Exception:
             mem_per_node = str(Memory(val=self.mem_per_node, unit='MB'))
 
         return {'num_nodes': self.num_nodes,
@@ -1043,7 +1043,7 @@ limits:
 
     def get_script_str(self, job_name: str, launch_dir: str,
                        executable: str, qout_path: str, qerr_path: str,
-                       in_file: str=None, stdin=None, stdout=None, stderr=None, exec_args=None) -> str:
+                       in_file: str = None, stdin=None, stdout=None, stderr=None, exec_args=None) -> str:
         """
         Returns a (multi-line) String representing the queue script, e.g. PBS script.
         Uses the template_file along with internal parameters to create the script.
