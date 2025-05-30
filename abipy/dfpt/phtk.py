@@ -86,8 +86,7 @@ def match_eigenvectors(v1, v2) -> np.ndarray:
 
 class NonAnalyticalPh(Has_Structure):
     """
-    Phonon data at gamma including non analytical contributions
-    Usually read from anaddb.nc
+    Phonon data at gamma including non analytical contributions. Usually initialized from anaddb.nc
     """
 
     def __init__(self, structure, directions, phfreqs, phdispl_cart, amu=None):
@@ -181,7 +180,7 @@ class NonAnalyticalPh(Has_Structure):
                 return i
 
         raise ValueError("Cannot find direction: `%s` with cartesian: `%s` in non_analytical cartesian directions:\n%s" %
-                (str(direction), cartesian, str(self.directions)))
+                         (str(direction), cartesian, str(self.directions)))
 
     def has_direction(self, direction, cartesian=False) -> bool:
         """
@@ -200,13 +199,13 @@ class NonAnalyticalPh(Has_Structure):
 
 
 def open_file_phononwebsite(filename,
-                            port=8000,
-                            website="http://henriquemiranda.github.io/phononwebsite",
-                            host="localhost",
-                            browser=None): # pragma: no cover
+                            port: int = 8000,
+                            website: str = "http://henriquemiranda.github.io/phononwebsite",
+                            host: str = "localhost",
+                            browser: str | None = None): # pragma: no cover
     """
     Take a file, detect the type and open it on the phonon website
-    Based on a similar function in <https://github.com/henriquemiranda/phononwebsite/phononweb.py>
+    Based on a similar function implemented in <https://github.com/henriquemiranda/phononwebsite/phononweb.py>
 
     Args:
         filename: file with phonon data in phononwebsite format.

@@ -64,7 +64,7 @@ def generate_deformations(structure, eps: float, str_type='BO', eps_ref=[0.005, 
     #spgrp = AbinitSpaceGroup.from_structure(primitive_structure)
     #print(spgrp)
 
-    angdeg    = structure.lattice.angles
+    angdeg = structure.lattice.angles
     lattice_a = structure.lattice.abc[0]
     lattice_b = structure.lattice.abc[1]
     lattice_c = structure.lattice.abc[2]
@@ -72,8 +72,8 @@ def generate_deformations(structure, eps: float, str_type='BO', eps_ref=[0.005, 
     # Rotate lattice parameters to follow Abinit conventions.
     # Keep the angles unchanged if the lattice is orthogonal (90°)
     # or if it belongs to a cubic system with a primitive cell having 60° angles.
-    if (not((abs(angdeg[0] - 60) + abs(angdeg[1] - 60) + abs(angdeg[2] - 60)) < tol8 ) and 
-        not((abs(angdeg[0] - 90) + abs(angdeg[1] - 90) + abs(angdeg[2] - 90)) < tol8 )):
+    if (not ((abs(angdeg[0] - 60) + abs(angdeg[1] - 60) + abs(angdeg[2] - 60)) < tol8) and 
+        not ((abs(angdeg[0] - 90) + abs(angdeg[1] - 90) + abs(angdeg[2] - 90)) < tol8)):
         if (abs(angdeg[0] - angdeg[1]) < tol8 and abs(angdeg[1] - angdeg[2]) < tol8):
             # Trigonal symmetry case
             cosang = np.cos(np.pi * angdeg[0] / 180.0)

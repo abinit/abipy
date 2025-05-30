@@ -51,12 +51,11 @@ def memoized_method(*lru_args, **lru_kwargs):
 
     Taken from: https://stackoverflow.com/questions/33672412/python-functools-lru-cache-with-class-methods-release-object
 
+    .. code-block::
 
-    ... example::
-
-            @memoized_method(maxsize=12, typed=False)
-            def method(self, a, b):
-                ....
+        @memoized_method(maxsize=12, typed=False)
+        def method(self, a, b):
+            return a + b
     """
     def decorator(func):
         @functools.wraps(func)

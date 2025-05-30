@@ -399,7 +399,7 @@ class Flow(Node, NodeContainer, MSONable):
         """
         Set the path of the python script used to generate the flow.
 
-        .. Example:
+        .. code-block:: python
 
             flow.set_pyfile(__file__)
         """

@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 r"""
 KS + U calculations
-==================
 
-This example shows how to compute the KS+U band structure of NiO
+This example shows how to compute the KS + U band structure of NiO
 with PAW for several values of U and J.
 """
 

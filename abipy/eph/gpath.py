@@ -1,5 +1,5 @@
 """
-This module contains objects for analyzing the PATH.nc file storing 
+This module contains objects for analyzing the PATH.nc file storing
 the e-ph matrix elements along a k/q path
 """
 from __future__ import annotations
@@ -141,13 +141,13 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
                      fontsize=8,
                      **kwargs) -> Figure:
         """
-        Plot the averaged |g(k,q)| in meV units along the q-path.
+        Plot the averaged ``|g(k,q)|`` in meV units along the q-path.
 
         Args:
             band_range: Band range that will be averaged over (python convention).
                 If None all bands are considered.
-            which_g: "avg" to plot the symmetrized |g|, "raw" for unsymmetrized |g|. "all" for both.
-            with_qexp: Multiply |g(k, q)| by |q|^{with_qexp}.
+            which_g: "avg" to plot the symmetrized ``|g|``, "raw" for unsymmetrized ``|g|``. "all" for both.
+            with_qexp: Multiply ``|g(k, q)|`` by ``|q|^{with_qexp}``.
             scale: Scaling factor for the marker size used when with_phbands is True.
             gmax_mev: Show results up to gmax in meV.
             ph_modes: List of ph branch indices to show (start from 0). If None all modes are shown.
@@ -236,11 +236,11 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
                      fontsize=8,
                      **kwargs) -> Figure:
         """
-        Plot the averaged |g(k,q)| in meV units along the k-path
+        Plot the averaged ``|g(k,q)|`` in meV units along the k-path.
 
         Args:
             band_range: Band range that will be averaged over (python convention).
-            which_g: "avg" to plot the symmetrized |g|, "raw" for unsymmetrized |g|."all" for both.
+            which_g: "avg" to plot the symmetrized ``|g|``, "raw" for unsymmetrized ``|g|``."all" for both.
             scale: Scaling factor for the marker size used when with_phbands is True.
             gmax_mev: Show results up to gmax in meV.
             ph_modes: List of ph branch indices to show (start from 0). If None all modes are show.
@@ -643,8 +643,8 @@ class GpathRobot(Robot, RobotWithEbands):
         Compare the g-matrix stored in the Robot along a q-path.
 
         Args
-            which_g: "avg" to plot the symmetrized |g|, "raw" for unsymmetrized |g|."all" for both.
-            gmax_mev: Show results up to gmax in me
+            which_g: "avg" to plot the symmetrized ``|g|``, "raw" for unsymmetrized ``|g|``."all" for both.
+            gmax_mev: Show results up to gmax in me.
             ph_modes: List of ph branch indices to show (start from 0). If None all modes are show.
             colormap: Color map. Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html

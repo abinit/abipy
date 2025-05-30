@@ -4,11 +4,6 @@ from __future__ import annotations
 import numpy as np
 import abipy.core.abinit_units as abu
 
-try:
-    from scipy.integrate import simpson as simps
-except ImportError:
-    from scipy.integrate import simps
-
 from pymatgen.io.phonopy import get_pmg_structure
 from abipy.tools.plotting import get_ax_fig_plt,add_fig_kwargs
 from abipy.tools.typing import Figure
@@ -23,7 +18,7 @@ class Lineshape:
     Object representing a luminescent lineshape, following a multi-phonon mode model (multiD-CCM).
     For 1D-CCM, use plot_lineshape_1D_zero_temp() function of the abipy/lumi/deltaSCF module.
 
-    For equations, notations and formalism, please refer to :
+    For equations, notations and formalism, please refer to:
      https://doi.org/10.1103/PhysRevB.96.125132
      https://doi.org/10.1002/adom.202100649
      https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
@@ -110,12 +105,12 @@ class Lineshape:
         """
         Args:
             E_zpl: Zero-phonon line energy in eV
-            ph_eigvec: phonon eigenvectors, shape : (3 * N_atoms, 3 * N_atoms)
-            ph_eigfreq: phonon eigenfrequencies, shape : (3 * N_atoms), in eV
+            ph_eigvec: phonon eigenvectors, shape: (3 * N_atoms, 3 * N_atoms)
+            ph_eigfreq: phonon eigenfrequencies, shape: (3 * N_atoms), in eV
             structure: Structure object
-            forces : Forces acting on the atoms in the ground state, with atomic positions of the relaxed excited state, in eV/Ang
-            displacements : Atomic relaxation induced by the electronic transition, in Ang
-            use_forces : True in order to use the forces, False to use the displacements
+            forces: Forces acting on the atoms in the ground state, with atomic positions of the relaxed excited state, in eV/Ang
+            displacements: Atomic relaxation induced by the electronic transition, in Ang
+            use_forces: True in order to use the forces, False to use the displacements
         """
         self.E_zpl = E_zpl
         self.ph_eigvec = ph_eigvec
@@ -154,7 +149,7 @@ class Lineshape:
         if self.use_forces:
             delta_forces = self.forces.flatten() * ((abu.eV_Ha)*(abu.Ha_J)/(1e-10)) # eV/Angstrom to Newtons (Joules/meter)
             for i in range(self.n_modes()):
-                if self.ph_eigfreq[i] < 1e-5 :# discard phonon freq with too low freq (avoid division by nearly 0)
+                if self.ph_eigfreq[i] < 1e-5: # discard phonon freq with too low freq (avoid division by nearly 0)
                     Q_nu[i] = 0
                 else:
                     Q_nu[i] = (1/ph_eigfreq[i]**2) * np.sum( delta_forces/np.sqrt(masses) * np.real(ph_eigvector[i]))
@@ -366,7 +361,7 @@ def get_matching_dSCF_phonon_spcell(dSCF_spcell,phonon_spcell,tol):
     mapping = []
     for i, site_1 in enumerate(dSCF_spcell):  # subset structure
         for j, site_2 in enumerate(phonon_spcell):  # superset structure
-            if max(abs(dSCF_spcell_cart[i] - phonon_spcell_cart[j])) < tol :
+            if max(abs(dSCF_spcell_cart[i] - phonon_spcell_cart[j])) < tol:
                 mapping.append(j)
 
     if len(mapping) == len(dSCF_spcell):

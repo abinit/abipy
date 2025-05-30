@@ -59,13 +59,6 @@ to open the homepage in your browser.
 
 You can run ``make help`` to see information on all possible make targets.
 
-Use::
-
-   ./ghp_import.py _build/html/ -n -p
-
-to deploy to gh-pages (only for project leader).
-
-
 .. _formatting-abipy-docs:
 
 Formatting
@@ -78,7 +71,7 @@ Here are a few additional things to keep in mind:
 * Please familiarize yourself with the Sphinx directives for `inline markup`_.
   Abipy's documentation makes heavy use of cross-referencing and other semantic markup.
   Several aliases are defined in :file:`abipy/docs/links.rst` and are automatically
-  included in each ``rst`` file via `rst_epilog <http://www.sphinx-doc.org/en/stable/config.html#confval-rst_epilog>`_
+  included in each ``rst`` file via `rst_epilog <https://www.sphinx-doc.org/en/stable/config.html#confval-rst_epilog>`_
 
 * Mathematical expressions can be rendered with `mathjax <https://www.mathjax.org/>`_ in html.
   For example:

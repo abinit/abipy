@@ -15,13 +15,13 @@ from functools import cached_property
 from monty.collections import dict2namedtuple
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
-from abipy.core.func1d import Function1D
+#from abipy.core.func1d import Function1D
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
-from abipy.tools.typing import Figure, KptSelect
+from abipy.tools.typing import Figure, KptSelect, VectorLike
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker, plot_xy_with_hue,
     set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line, Exposer)
 from abipy.abio.robots import Robot
@@ -113,9 +113,9 @@ class MinimaxMesh:
     @add_fig_kwargs
     def plot_ft_weights(self,
                         other: MinimaxMesh,
-                        self_name: str ="self",
-                        other_name: str ="other",
-                        with_sinft: bool= False,
+                        self_name: str = "self",
+                        other_name: str = "other",
+                        with_sinft: bool = False,
                         fontsize: int = 6,
                         **kwargs) -> Figure:
         """
@@ -237,7 +237,7 @@ class GwrSelfEnergy(SelfEnergy):
         # Note that the sign of a depends whether as we working with positive or negative tau.
         if wn >= 0 and bb <= 1e-12: f0 = 0.0j
         if wn < 0 and bb >= -1e-12: f0 = 0.0j
-        aa =  f0 * np.exp(bb * w0)
+        aa = f0 * np.exp(bb * w0)
         #aa = (f0 + fn) / (np.exp(-bb * w0) + np.exp(-bb * wn))
         #print(f"{f0=}")
         return aa * np.exp(-bb * xs), aa, bb
@@ -387,16 +387,16 @@ class GwrSelfEnergy(SelfEnergy):
         # FIXME
         e0 = 0.0
         for pade_method in list_strings(pade_methods):
-           pdata = self.get_pade_data(wmesh, e0, pade_method)
-           #print(pdata)
-           ax_re.plot(pdata.w_vals, pdata.sigxc_w.real, label=pade_method)
-           ax_im.plot(pdata.w_vals, pdata.sigxc_w.imag, label=pade_method)
-           #ax_aw.plot(pdata.w_vals, pdata.aw, label=pade_method)
+            pdata = self.get_pade_data(wmesh, e0, pade_method)
+            #print(pdata)
+            ax_re.plot(pdata.w_vals, pdata.sigxc_w.real, label=pade_method)
+            ax_im.plot(pdata.w_vals, pdata.sigxc_w.imag, label=pade_method)
+            #ax_aw.plot(pdata.w_vals, pdata.aw, label=pade_method)
 
         if ref_data is not None:
-           ax_re.plot(ref_data.w_vals, ref_data.sigxc_w.real, label="Ref")
-           ax_im.plot(ref_data.w_vals, ref_data.sifxc_w.imag, lable="Ref")
-           #ax_aw.plot(ref_data.w_vals, ref_data.aw, label="Ref")
+            ax_re.plot(ref_data.w_vals, ref_data.sigxc_w.real, label="Ref")
+            ax_im.plot(ref_data.w_vals, ref_data.sifxc_w.imag, lable="Ref")
+            #ax_aw.plot(ref_data.w_vals, ref_data.aw, label="Ref")
 
         for ax in ax_list:
             set_grid_legend(ax, fontsize) #, xlabel="Iteration") #, ylabel=ylabel)
@@ -483,16 +483,16 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @cached_property
     def ks_dirgaps(self) -> np.ndarray:
-       """KS direct gaps in eV. Shape: [nsppol, nkcalc]"""
-       return self.r.read_value("ks_gaps") * abu.Ha_eV
+        """KS direct gaps in eV. Shape: [nsppol, nkcalc]"""
+        return self.r.read_value("ks_gaps") * abu.Ha_eV
 
     @cached_property
     def qpz0_dirgaps(self) -> np.ndarray:
-       """
-       QP direct gaps in eV computed with the renormalization Z factor at the KS energy
-       Shape: [nsppol, nkcalc]
-       """
-       return self.r.read_value("qpz_gaps") * abu.Ha_eV
+        """
+        QP direct gaps in eV computed with the renormalization Z factor at the KS energy
+        Shape: [nsppol, nkcalc]
+        """
+        return self.r.read_value("qpz_gaps") * abu.Ha_eV
 
     @cached_property
     def minimax_mesh(self) -> MinimaxMesh:
@@ -650,7 +650,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         if with_params:
             for k, v in self.params.items():
-                 d[k] = [v] * len(self.sigma_kpoints) * self.nsppol
+                d[k] = [v] * len(self.sigma_kpoints) * self.nsppol
 
         if with_geo:
             d.update(**self.structure.get_dict4pandas(with_spglib=True))
@@ -954,6 +954,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                                ks_ebands_kmesh=ks_ebands_kmesh,
                                interpolator=skw,
                                )
+
     @add_fig_kwargs
     def plot_sigma_imag_axis(self,
                              kpoint: KptSelect,
@@ -1008,7 +1009,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             im_ax.set_ylabel(r"$\Im{\Sigma_c}(i\tau)$ (eV)")
             set_grid_legend(ax_list, fontsize, xlabel=r"$i\tau$ (a.u.)")
 
-        fig.suptitle(r"$\Sigma_{nk}$" +  f" at k-point: {kpoint}, spin: {spin}", fontsize=fontsize)
+        fig.suptitle(r"$\Sigma_{nk}$" + f" at k-point: {kpoint}, spin: {spin}", fontsize=fontsize)
 
         return fig
 
@@ -1062,7 +1063,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         im_ax.set_ylabel(r"$\Im{\Sigma_{xc}(\omega)}$ (eV)")
         set_grid_legend(ax_list, fontsize=fontsize, xlabel=r"$\omega$ (eV)")
 
-        fig.suptitle(r"$\Sigma_{nk}(\omega)$" +  f" at k-point: {kpoint}", fontsize=fontsize)
+        fig.suptitle(r"$\Sigma_{nk}(\omega)$" + f" at k-point: {kpoint}", fontsize=fontsize)
 
         return fig
 
@@ -1352,7 +1353,7 @@ class GwrReader(ETSF_Reader):
 
         # nctkarr_t("sigxc_rw_diag", "dp", "two, nwr, smat_bsize1, nkcalc, nsppol"), &
         xc_vals = self.read_variable("sigxc_rw_diag")[spin,ikcalc,ib,:,:] * abu.Ha_eV
-        xc_vals = xc_vals[:,0] + 1j *xc_vals[:,1]
+        xc_vals = xc_vals[:,0] + 1j * xc_vals[:,1]
 
         # nctkarr_t("spfunc_diag", "dp", "nwr, smat_bsize1, nkcalc, nsppol") &
         aw_vals = self.read_variable("spfunc_diag")[spin,ikcalc,ib,:] / abu.Ha_eV
@@ -1550,7 +1551,7 @@ class GwrRobot(Robot, RobotWithEbands):
         for nc in self.abifiles[1:]:
             for k0, k1 in zip(nc0.sigma_kpoints, nc.sigma_kpoints):
                 if k0 != k1:
-                    cprint("Files with different values of `sigma_kpoints`\n"+
+                    cprint("Files with different values of `sigma_kpoints`\n" +
                            "Specify the kpoint via reduced coordinates and not via the index", "yellow")
                     break
 
@@ -1915,7 +1916,7 @@ class GwrRobot(Robot, RobotWithEbands):
         for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
             if hue is None:
                 # Extract QP data.
-                #yvals = [getattr(qp, what)[itemp] for qp in qplist]
+                yvals = [getattr(qp, what) for qp in qplist]
                 if not duck.is_string(params[0]):
                     ax.plot(params, yvals, marker=nc0.marker_spin[spin])
                 else:
@@ -1927,7 +1928,7 @@ class GwrRobot(Robot, RobotWithEbands):
             else:
                 for g, qplist in zip(groups, qplist_group):
                     # Extract QP data.
-                    yvals = [getattr(qp, what)[itemp] for qp in qplist]
+                    yvals = [getattr(qp, what) for qp in qplist]
                     label = "%s: %s" % (self._get_label(hue), g.hvalue)
                     ax.plot(g.xvalues, yvals, marker=nc0.marker_spin[spin], label=label if ix == 0 else None)
 

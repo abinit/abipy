@@ -102,5 +102,5 @@ def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart_bohr, phfreqs_ha, 
         glr_nu[nu] = num / (q_eps_q * np.sqrt(2.0 * phfreqs_ha[nu]))
 
     fact = 1
-    if qdamp is not None: fact = np.exp(-qpoint.norm**2/(4*qdamp))
-    return fact * glr_nu * 4j * np.pi / (structure.volume*abu.Ang_Bohr**3)
+    if qdamp is not None: fact = np.exp(-qpoint.norm ** 2 / (4 * qdamp))
+    return fact * glr_nu * 4j * np.pi / (structure.volume * abu.Ang_Bohr**3)

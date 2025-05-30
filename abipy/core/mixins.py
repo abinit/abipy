@@ -189,6 +189,16 @@ class AbinitNcFile(BaseFile):
             fh.write(bstring)
             return cls.from_file(tmp_path)
 
+    #@property
+    #def r(self)
+    #    """Reader"""
+    #    return self._r
+
+    #@r.setter(self):
+    #def r(self, reader):
+    #    """Set the reader"""
+    #    return self._r = reader
+
     def ncdump(self, *nc_args, **nc_kwargs) -> str:
         """Returns a string with the output of ncdump."""
         return NcDumper(*nc_args, **nc_kwargs).dump(self.filepath)
@@ -543,7 +553,7 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
 
     def expose_phbands(self, slide_mode=False, slide_timeout=None, **kwargs):
         """
-        Shows a predefined list of matplotlib figures for phonon bands with minimal input from the user.
+        Show a predefined list of matplotlib figures for phonon bands with minimal input from the user.
         """
         from abipy.tools.plotting import MplExposer
         with MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
@@ -869,11 +879,11 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
     def expose(self, slide_mode=False, slide_timeout=None, use_web=False, **kwargs):
         """
         Shows a predefined list of figures with minimal input from the user.
-        Relies on the ``yield_fig``s methods implemented by the subclass to generate such figures.
+        Relies on the ``yield_fig`` methods implemented by the subclass to generate such figures.
 
         Args:
             use_web: True to show all figures inside a panel template executed in the local browser.
-               False to show figures in different GUIs.
+                False to show figures in different GUIs.
         """
         if not use_web:
             # Produce all matplotlib figures and show them with the X-server.

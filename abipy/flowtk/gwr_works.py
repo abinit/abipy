@@ -30,7 +30,7 @@ class DirectDiagoWork(Work):
     def from_scf_input(cls,
                        scf_input: AbinitInput,
                        green_nband: int,
-                       manager: TaskManager=None) -> DirectDiagoWork:
+                       manager: TaskManager = None) -> DirectDiagoWork:
         """
         Build object from an input representing a GS-SCF calculation.
 
@@ -118,7 +118,6 @@ class GWRSigmaConvWork(_BaseGWRWork):
 """)
 
         return super().on_all_ok()
-
 
 
 class GWRChiCompareWork(_BaseGWRWork):

@@ -11,7 +11,7 @@ from monty.termcolor import cprint
 from abipy.core.mixins import BaseFile, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
-from abipy.tools.typing import Figure
+from abipy.tools.typing import Figure, PathLike
 
 
 class WoutFile(BaseFile, Has_Structure, NotebookWriter):
@@ -22,14 +22,14 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
 
     .. code-block:: python
 
-        with abilab.abiopen("foo.wout") as wout:
+        with abilab.abiopen("out.wout") as wout:
             print(wout)
             wout.plot()
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: WoutFile
     """
-    def __init__(self, filepath):
+    def __init__(self, filepath: PathLike):
         super().__init__(filepath)
         self.warnings = []
         self.use_disentangle = False
@@ -50,7 +50,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
 

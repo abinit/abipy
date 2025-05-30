@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from pprint import pprint
+#from pprint import pprint
 from typing import Any, Union
 from functools import cached_property
 from pydispatch import dispatcher
@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 #    from .tasks import Task
 #    from .works import Work
 #    from .flows import Flow
+
 
 def _2attrs(item):
     return item if item is None or isinstance(list, tuple) else (item,)
@@ -334,7 +335,7 @@ class NodeResults(dict, MSONable):
         to the absolute path. By default, files are assumed to be in binary form, for formatted files
         one should pass a tuple ("filepath", "t").
 
-        Example::
+        .. code-block::
 
             results.register_gridfs(GSR="path/to/GSR.nc", text_file=("/path/to/txt_file", "t"))
 
@@ -893,10 +894,11 @@ class Node(metaclass=abc.ABCMeta):
         Return pandas DataFrame with the value of the variables specified in `varnames`.
         Can be used for task/works/flow. It's recursive!
 
-        .. example:
+        .. code-block:: python
 
             flow.get_vars_dataframe("ecut", "ngkpt")
             work.get_vars_dataframe("acell", "usepawu")
+
         """
         if self.is_task:
             df = pd.DataFrame([{v: self.input.get(v, None) for v in varnames}], index=[self.name], columns=varnames)

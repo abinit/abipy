@@ -476,7 +476,7 @@ class GstoreReader(BaseEphReader):
                 #print(f"Found {qpoint = } with index {iq_g = }")
                 return iq_g, qpoint
 
-        raise ValueError(f"Cannot find {qpoint=} in GSTORE.nc")
+        raise ValueError(f"Cannot find {qpoint=} in {self.filepath=}")
 
     def find_ik_glob_kpoint(self, kpoint, spin: int):
         """Find the internal indices of the kpoint needed to access the gvals array."""
@@ -486,7 +486,7 @@ class GstoreReader(BaseEphReader):
                 #print(f"Found {kpoint = } with index {ik_g = }")
                 return ik_g, kpoint
 
-        raise ValueError(f"Cannot find {kpoint=} in GSTORE.nc")
+        raise ValueError(f"Cannot find {kpoint=} in {self.filepath=}")
 
     # TODO: This fix to read groups should be imported in pymatgen.
     @cached_property

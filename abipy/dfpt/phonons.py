@@ -148,8 +148,8 @@ class PhononBands:
             # does not contain all the directions required by AbiPy.
             # So we read NonAnalyticalPh only if we know that all directions are available.
             # The flag has_abipy_non_anal_ph is set at the Fortran level. See e.g ifc_mkphbs
-            if ("non_analytical_directions" in r.rootgrp.variables and "has_abipy_non_anal_ph" in r.rootgrp.variables):
             #if ("non_analytical_directions" in r.rootgrp.variables):
+            if ("non_analytical_directions" in r.rootgrp.variables and "has_abipy_non_anal_ph" in r.rootgrp.variables):
                 #print("Found non_anal_ph term compatible with AbiPy plotter.")
                 non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
@@ -165,42 +165,42 @@ class PhononBands:
                        epsinf=epsinf, zcart=zcart,
                        )
 
-    @classmethod
-    def from_phonopy_phonon(cls, phonon) -> PhononBands:
-        """
-        Build an Abipy PhononBands from a phonopy Phonon instance.
-        """
-        structure = Structure.from_phonopy_atoms(phonon.unitcell)
-        natom = len(structure)
-        bands_dict = phonon.get_band_structure_dict()
+    #@classmethod
+    #def from_phonopy_phonon(cls, phonon) -> PhononBands:
+    #    """
+    #    Build an Abipy PhononBands from a phonopy Phonon instance.
+    #    """
+    #    structure = Structure.from_phonopy_atoms(phonon.unitcell)
+    #    natom = len(structure)
+    #    bands_dict = phonon.get_band_structure_dict()
 
-        nac_params = phonon.nac_params
-        epsinf, zcart = None, None
-        if nac_params is not None:
-            epsinf = nac_params["dielectric"]
-            zcart = nac_params["born"]
+    #    nac_params = phonon.nac_params
+    #    epsinf, zcart = None, None
+    #    if nac_params is not None:
+    #        epsinf = nac_params["dielectric"]
+    #        zcart = nac_params["born"]
 
-        nqpt = 0
-        py_phfreqs, py_displ_cart = [], []
-        for q_list, w_list, eig_list in zip(bands_dict['qpoints'], bands_dict['frequencies'], bands_dict['eigenvectors'], strict=True):
-            nqpt += len(q_list)
-            py_phfreqs.extend(w_list)
-            py_displ_cart.extend(eig_list)
+    #    nqpt = 0
+    #    py_phfreqs, py_displ_cart = [], []
+    #    for q_list, w_list, eig_list in zip(bands_dict['qpoints'], bands_dict['frequencies'], bands_dict['eigenvectors'], strict=True):
+    #        nqpt += len(q_list)
+    #        py_phfreqs.extend(w_list)
+    #        py_displ_cart.extend(eig_list)
 
-        py_phfreqs = np.reshape(py_phfreqs, (nqpt, 3*natom)) / abu.eV_to_THz
-        py_displ_cart = np.reshape(py_displ_cart, (nqpt, 3*natom, 3*natom))
+    #    py_phfreqs = np.reshape(py_phfreqs, (nqpt, 3*natom)) / abu.eV_to_THz
+    #    py_displ_cart = np.reshape(py_displ_cart, (nqpt, 3*natom, 3*natom))
 
-        # Build abipy phonon bands from phonopy results.
-        return cls(structure,
-                   self.abi_phbands.qpoints,
-                   py_phfreqs,
-                   # FIXME: Use phononopy displacement
-                   self.abi_phbands.phdispl_cart,
-                   non_anal_ph=None,
-                   #amu=self.abi_phbands.amu,
-                   epsinf=self.abi_phbands.epsinf,
-                   zcart=self.abi_phbands.zcart,
-                   )
+    #    # Build abipy phonon bands from phonopy results.
+    #    return cls(structure,
+    #               self.abi_phbands.qpoints,
+    #               py_phfreqs,
+    #               # FIXME: Use phononopy displacement
+    #               self.abi_phbands.phdispl_cart,
+    #               non_anal_ph=None,
+    #               #amu=self.abi_phbands.amu,
+    #               epsinf=self.abi_phbands.epsinf,
+    #               zcart=self.abi_phbands.zcart,
+    #               )
 
     @classmethod
     def as_phbands(cls, obj: Any) -> PhononBands:
@@ -352,7 +352,11 @@ class PhononBands:
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, title=None, with_structure=True, with_qpoints=False, verbose=0) -> str:
+    def to_string(self,
+                  title: str | None = None,
+                  with_structure: bool = True,
+                  with_qpoints: bool = False,
+                  verbose: int = 0) -> str:
         """
         Human-readable string with useful information such as structure, q-points, ...
 
@@ -433,7 +437,7 @@ class PhononBands:
 
     @property
     def minfreq(self) -> float:
-        """Minimum phonon frequency."""
+        """Minimum phonon frequency in eV"""
         return self.get_minfreq_mode()
 
     @property
@@ -442,14 +446,14 @@ class PhononBands:
         return self.get_maxfreq_mode()
 
     def get_minfreq_mode(self, mode=None):
-        """Compute the minimum of the frequencies."""
+        """Compute the minimum of the frequencies in eV"""
         if mode is None:
             return np.min(self.phfreqs)
         else:
             return np.min(self.phfreqs[:, mode])
 
     def get_maxfreq_mode(self, mode=None):
-        """Compute the minimum of the frequencies."""
+        """Compute the minimum of the frequencies in eV"""
         if mode is None:
             return np.max(self.phfreqs)
         else:
@@ -624,7 +628,7 @@ class PhononBands:
         else:
             return self.qpoints.index(qpoint)
 
-    def qindex_qpoint(self, qpoint, is_non_analytical_direction=False):
+    def qindex_qpoint(self, qpoint, is_non_analytical_direction: bool = False) -> tuple[int, Kpoint]:
         """
         Returns (qindex, qpoint) from an integer or a qpoint.
 
@@ -659,11 +663,11 @@ class PhononBands:
 
             return qindex, qpoint
 
-    def get_unstable_modes(self, below_mev=-5.0) -> list[PhononMode]:
+    def get_unstable_modes(self, below_mev: float = -5.0) -> list[PhononMode]:
         """
         Return a list of :class:`PhononMode` objects with the unstable modes.
-        A mode is unstable if its frequency is < below_mev. Output list is sorted
-        and modes with lowest frequency come first.
+        A mode is considered unstable if its frequency is < below_mev.
+        Output list is sorted and modes with lowest frequency come first.
         """
         umodes = []
 
@@ -676,15 +680,7 @@ class PhononBands:
 
         return sorted(umodes)
 
-    # TODO
-    #def find_irreps(self, qpoint, tolerance):
-    #    """
-    #    Find the irreducible representation at this q-point
-    #    Raise: QIrrepsError if algorithm fails
-    #    """
-    #    qindex, qpoint = self.qindex_qpoint(qpoint)
-
-    def get_dict4pandas(self, with_spglib=True) -> dict:
+    def get_dict4pandas(self, with_spglib: bool = True) -> dict:
         """
         Return: dictionary with the most important parameters:
 
@@ -1124,8 +1120,16 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             fig.layout[xaxis].range = (ticks[0], ticks[-1])
 
     @add_fig_kwargs
-    def plot(self, ax=None, units="eV", qlabels=None, branch_range=None, match_bands=False, temp=None,
-             points=None, fontsize=12, **kwargs) -> Figure:
+    def plot(self,
+             ax=None,
+             units="eV",
+             qlabels=None,
+             branch_range=None,
+             match_bands=False,
+             temp=None,
+             points=None,
+             fontsize=12,
+             **kwargs) -> Figure:
         r"""
         Plot the phonon band structure with matplotlib.
 
@@ -1223,7 +1227,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             factor = abu.phfactor_ev2units(units)
             if temp < 1: temp = 1
             fig.layout.annotations = [dict(text="T = %.1f K" % temp, font_size=fontsize, x=0.5, xref='paper',
-                                           xanchor='center', y=1, yref='paper', yanchor='bottom', showarrow=False)]
+                                      xanchor='center', y=1, yref='paper', yanchor='bottom', showarrow=False)]
             xs = np.arange(self.num_qpoints)
             for nu in self.branches:
                 ws = self.phfreqs[:, nu]
@@ -1238,7 +1242,12 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 #               marker=dict(color=occ, colorscale='jet', size=s, opacity=0.6, line_width=0),
         return fig
 
-    def plot_ax(self, ax, branch, units='eV', match_bands=False, **kwargs):
+    def plot_ax(self,
+                ax,
+                branch,
+                units='eV',
+                match_bands=False,
+                **kwargs) -> list:
         """
         Plots the frequencies for the given branches indices as a function of the q-index on axis ``ax``.
         If ``branch`` is None, all phonon branches are plotted.
@@ -1308,8 +1317,14 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             fig.data[-1].showlegend = True
 
     @add_fig_kwargs
-    def plot_colored_matched(self, ax=None, units="eV", qlabels=None, branch_range=None,
-                             colormap="rainbow", max_colors=None, **kwargs) -> Figure:
+    def plot_colored_matched(self,
+                             ax=None,
+                             units: str = "eV",
+                             qlabels=None,
+                             branch_range=None,
+                             colormap="rainbow",
+                             max_colors=None,
+                             **kwargs) -> Figure:
         r"""
         Plot the phonon band structure with different colors for each line.
 
@@ -1364,18 +1379,22 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         return fig
 
     @add_fig_kwargs
-    def plot_phangmom(self, ax=None, pj_dir=[0, 0, 1], units="hbar",
-                      qlabels=None, branch_range=None, colormap="rainbow",
-                      max_colors=None, **kwargs) -> Figure:
+    def plot_phangmom(self,
+                      ax=None,
+                      pj_dir=[0, 0, 1],
+                      units="hbar",
+                      qlabels=None,
+                      branch_range=None,
+                      colormap="rainbow",
+                      max_colors=None,
+                      **kwargs) -> Figure:
         r"""
         Plot the phonon angular momentum with different colors for each line.
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            pj_dir: direction along which the angular momentum is projected
-                in cartesian coordinates
-            units: Units for phonon plots. Only possible option: "hbar", maybe others to come ?
-                Case-insensitive.
+            pj_dir: direction along which the angular momentum is projected in cartesian coordinates
+            units: Units for phonon plots. Only possible option: "hbar", maybe others to come? Case-insensitive.
             qlabels: dictionary whose keys are tuples with the reduced coordinates of the q-points.
                 The values are the labels. e.g. ``qlabels = {(0.0,0.0,0.0): "$\Gamma$", (0.5,0,0): "L"}``.
             branch_range: Tuple specifying the minimum and maximum branch_i index to plot
@@ -1424,8 +1443,17 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         return fig
 
     @add_fig_kwargs
-    def plot_lt_character(self, units="eV", qlabels=None, ax=None, xlims=None, ylims=None, scale_size=50,
-                          use_becs=True, colormap="jet", fontsize=12, **kwargs) -> Figure:
+    def plot_lt_character(self,
+                          units="eV",
+                          qlabels=None,
+                          ax=None,
+                          xlims=None,
+                          ylims=None,
+                          scale_size=50,
+                          use_becs=True,
+                          colormap="jet",
+                          fontsize=8,
+                          **kwargs) -> Figure:
         r"""
         Plot the phonon band structure with colored lines. The color of the lines indicates
         the degree to which the mode is longitudinal.
@@ -1920,7 +1948,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         for row, symbol in enumerate(self.structure.symbol_set):
             color = color_l[row]
             rcd = PlotlyRowColDesc(row, 0, nrows, ncols)
-            iax=rcd.iax
+            iax = rcd.iax
             self.decorate_plotly(fig, units=units, qlabels=qlabels, iax=iax)
             if row != len(self.structure.symbol_set):
                 xaxis = 'xaxis%u' % iax
@@ -2988,7 +3016,6 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     #    """Return tabs with widgets to interact with the |PhononBandsPlotter| file."""
     #    from abipy.panels.phonons import PhononBandsPlotterPanel
     #    return PhononBandsPlotterPanel(self).get_panel(**kwargs)
-
 
 
 class PHBST_Reader(ETSF_Reader):
@@ -5192,7 +5219,7 @@ class PhononDosPlotter(NotebookWriter):
             rcd = PlotlyRowColDesc(row, col, nrows, ncols)
             phdos.plotly_dos_idos(fig, rcd=rcd, units=units, trace_name=label, showlegend=False)
             fig.layout['xaxis'+str(rcd.iax)].title = {'text': 'Energy %s' % x_unit, "font": {"size" : fontsize}}
-            if col%ncols==0:
+            if col % ncols == 0:
                 fig.layout['yaxis'+str(rcd.iax)].title = {"text": 'DOS %s' % y_unit, "font": {"size" : fontsize}}
             fig.layout.annotations[rcd.iax-1].font.size = fontsize
             plotly_set_lims(fig, xlims, "x")

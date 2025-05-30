@@ -9,16 +9,16 @@ import numpy as np
 #import pandas as pd
 import abipy.core.abinit_units as abu
 
-from typing import Any
+#from typing import Any
 from functools import cached_property
-from monty.string import list_strings, marquee
+from monty.string import marquee #, list_strings
 #from monty.termcolor import cprint
 from abipy.core.structure import Structure
 #from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands # , NotebookWriter
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands, ElectronsReader
 from abipy.tools import duck
-from abipy.tools.typing import Figure, KptSelect, GvecSelect
+from abipy.tools.typing import Figure, KptSelect, GvecSelect, PathLike
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
     set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line, Exposer)
 from abipy.tools.numtools import data_from_cplx_mode

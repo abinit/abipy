@@ -2,7 +2,7 @@
 """
 This module contains the class defining the G-sphere for wavefunctions, densities and potentials
 """
-from  __future__ import annotations
+from __future__ import annotations
 
 import collections
 import numpy as np
