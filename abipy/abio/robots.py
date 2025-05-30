@@ -194,12 +194,12 @@ class Robot(NotebookWriter):
 
         .. code-block:: python
 
-        robot = SigresRobot.from_label_file_dict({
-           "Minimax": "t30o_DS3_SIGRES.nc",
-           "Gauss": "Gauss/t30o_DS3_SIGRES.nc",
-        })
-        """
+            robot = SigresRobot.from_label_file_dict({
+               "Minimax": "t30o_DS3_SIGRES.nc",
+               "Gauss": "Gauss/t30o_DS3_SIGRES.nc",
+            })
 
+        """
         return cls.from_files(list(label_file_dict.values()),
                               labels=list(label_file_dict.keys()))
 
@@ -643,13 +643,13 @@ class Robot(NotebookWriter):
 
     def getattrs_alleq(self, *aname_args) -> list:
         """
-        Return list of attribute values for each attribute name in *aname_args.
+        Return list of attribute values for each attribute name in ``*aname_args``.
         """
         return [self.getattr_alleq(aname) for aname in aname_args]
 
     def getattr_alleq(self, aname: str):
         """
-        Return the value of attribute aname. Try firs in self then in self.r
+        Return the value of attribute aname. Try firs in self then in self.r.
         Raises ValueError if value is not the same across all the files in the robot.
         """
 
@@ -865,13 +865,13 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
                          hue: Callable | str,
                          func_or_string: Callable | str | None = None) -> list[HueGroup]:
         """
-        Group files by ``hue`` and, inside each group` sort items by ``func_or_string``.
+        Group files by ``hue`` and, inside each group sort items by ``func_or_string``.
 
         Args:
             hue: Variable that defines subsets of the data, which will be drawn on separate lines.
                 Accepts callable or string
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked
-                    or that a key with the same name is present in abifile.params.
+                or that a key with the same name is present in abifile.params.
                 Dot notation is also supported e.g. hue="structure.formula" --> abifile.structure.formula
                 If callable, the output of hue(abifile) is used.
             func_or_string: None, string, or callable defining the quantity to be used for sorting.
@@ -1329,7 +1329,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
     @staticmethod
     def plot_abs_conv(ax1, ax2, xs, yvals, abs_conv, xlabel, fontsize, hatch, **kwargs) -> None:
         """
-        Plot |y - y_xmax| in log scale on ax2 and add hspan to ax1.
+        Plot ``|y - y(xmax)|`` in log scale on ax2 and add hspan to ax1.
         """
         y_xmax = yvals[-1]
         span_style = dict(alpha=0.2, color="green", hatch=hatch)

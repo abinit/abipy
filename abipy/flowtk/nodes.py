@@ -894,10 +894,11 @@ class Node(metaclass=abc.ABCMeta):
         Return pandas DataFrame with the value of the variables specified in `varnames`.
         Can be used for task/works/flow. It's recursive!
 
-        .. example:
+        .. code-block:: python
 
             flow.get_vars_dataframe("ecut", "ngkpt")
             work.get_vars_dataframe("acell", "usepawu")
+
         """
         if self.is_task:
             df = pd.DataFrame([{v: self.input.get(v, None) for v in varnames}], index=[self.name], columns=varnames)

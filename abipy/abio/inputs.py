@@ -3622,7 +3622,7 @@ class MultiDataset:
         """
         Return pandas DataFrame with the value of the variables specified in `varnames`.
 
-        .. example:
+        .. code-block:: python
 
             df = multi.get_vars_dataframe("ecut", "ngkpt")
 

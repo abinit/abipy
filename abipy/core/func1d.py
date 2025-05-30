@@ -608,7 +608,7 @@ class Function1D:
             exchange_xy: True to exchange x- and y-axis (default: False)
             fig: plotly figure or None if a new figure should be created.
             rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col)
-                of the subplot in the grid.
+                 of the subplot in the grid.
 
         Returns: plotly-Figure
         """
