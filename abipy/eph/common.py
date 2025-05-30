@@ -8,7 +8,7 @@ import numpy as np
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
-from monty.functools import lazy_property
+from functools import cached_property
 from abipy.electrons.ebands import ElectronsReader
 
 # Phonon frequency in Ha below which e-ph matrix elements are set to zero.
@@ -21,27 +21,27 @@ class BaseEphReader(ElectronsReader):
     See Abinit docs for the meaning of the variables.
     """
 
-    @lazy_property
+    @cached_property
     def ddb_ngqpt(self) -> np.ndarray:
         """Q-Mesh for DDB file."""
         return self.read_value("ddb_ngqpt")
 
-    @lazy_property
+    @cached_property
     def ngqpt(self) -> np.ndarray:
         """Effective Q-mesh used in to compute integrals (ph_linewidts, e-ph self-energy)."""
         return self.read_value("ngqpt")
 
-    @lazy_property
+    @cached_property
     def ph_ngqpt(self) -> np.ndarray:
         """Q-mesh for Phonon DOS, interpolated A2F ..."""
         return self.read_value("ph_ngqpt")
 
-    @lazy_property
+    @cached_property
     def eph_ngqpt_fine(self) -> np.ndarray:
         """Q-mesh for interpolated DFPT potentials"""
         return self.read_value("eph_ngqpt_fine")
 
-    @lazy_property
+    @cached_property
     def common_eph_params(self) -> dict:
         """
         Read basic parameters (scalars) from the netcdf files produced by the EPH code and cache them

@@ -11,13 +11,13 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
+from functools import cached_property
 from monty.string import marquee
-from monty.functools import lazy_property
 from scipy.interpolate import interp1d
 #from monty.termcolor import cprint
 from abipy.core.func1d import Function1D
 from abipy.core.structure import Structure
-from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs, map_grid2ibz
+from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs #, map_grid2ibz
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.tools.typing import PathLike
 from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt, set_axlims, set_visible,
@@ -137,7 +137,7 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         super().__init__(filepath)
         self.r = VpqReader(filepath)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.r.read_ebands()
@@ -151,12 +151,12 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def polaron_spin(self) -> list[Polaron]:
         """List of Polaron objects, one for each spin (if any)."""
         return [Polaron.from_vpq(self, spin) for spin in range(self.r.nsppol)]
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with the convergence parameters, e.g. ``nbsum``."""
         r = self.r
@@ -169,11 +169,11 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         e_frohl = r.read_value("e_frohl") # in Ha
 
         d = dict(
-            avg_g = bool(avg_g),
-            e_frohl = e_frohl * abu.Ha_eV,
+            avg_g=bool(avg_g),
+            e_frohl=e_frohl * abu.Ha_eV,
             ngkpt=tuple(ngkpt),
-            inv_k = 1. / np.cbrt(nkbz),
-            invsc_linsize = 1. / np.cbrt(nkbz * self.structure.lattice.volume),
+            inv_k=1. / np.cbrt(nkbz),
+            invsc_linsize=1. / np.cbrt(nkbz * self.structure.lattice.volume),
         )
 
         return d
@@ -245,7 +245,7 @@ class Polaron:
     nq: int            # Number of q-points in B_qnu (including filtering if any).
     bstart: int        # First band starts at bstart.
     bstop: int         # Last band (python convention)
-    erange: double     # Filtering value (in Ha)
+    erange: float     # Filtering value (in Ha)
     varpeq: VpqFile
 
     @classmethod
@@ -271,27 +271,27 @@ class Polaron:
         """Electron bands."""
         return self.varpeq.ebands
 
-    @lazy_property
+    @cached_property
     def kpoints(self) -> np.ndarray:
         """Reduced coordinates of the k-points."""
         return self.varpeq.r.read_value("kpts_spin")[self.spin, :self.nk]
 
-    @lazy_property
+    @cached_property
     def qpoints(self) -> np.ndarray:
         """Reduced coordinates of the q-points."""
         return self.varpeq.r.read_value("qpts_spin")[self.spin, :self.nq]
 
-    @lazy_property
+    @cached_property
     def a_kn(self) -> np.ndarray:
         """A_{pnk} coefficients for this spin."""
         return self.varpeq.r.read_value("a_spin", cmode="c")[self.spin, :self.nstates, :self.nk, :self.nb]
 
-    @lazy_property
+    @cached_property
     def b_qnu(self) -> np.ndarray:
         """B_{pqnu} coefficients for this spin."""
         return self.varpeq.r.read_value("b_spin", cmode="c")[self.spin, :self.nstates, :self.nq]
 
-    @lazy_property
+    @cached_property
     def scf_df_state(self) -> list[pd.DataFrame]:
         """
         List of dataframes with the SCF iterations. One dataframe for each polaron.
@@ -382,7 +382,7 @@ class Polaron:
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def ngkpt_and_shifts(self) -> tuple:
         """
         Return k-mesh divisions and shifts.
@@ -549,14 +549,14 @@ class Polaron:
                             ax.set_yscale("log")
                     else:
                         if entry.name == "E_pol":
-                        # Solid line for the *variational* quantity, also put it on top
+                            # Solid line for the *variational* quantity, also put it on top
                             ls, zord = '-', 10
                         else:
-                        # Dashed lines for non-variational, put them below
+                            # Dashed lines for non-variational, put them below
                             ls, zord = '--', 0
 
                         if iax == 1:
-                            energy_like =True
+                            energy_like = True
                             # Plot values linear scale.
                             ax.plot(xs, ys, label=entry.latex, linestyle=ls, zorder=zord)
                         elif iax == 2:
@@ -586,7 +586,6 @@ class Polaron:
                     else:
                         ax.set_title("Log-scale difference")
 
-
         fig.suptitle(self.get_title(with_gaps=True))
         fig.tight_layout()
 
@@ -594,7 +593,7 @@ class Polaron:
 
     @add_fig_kwargs
     def plot_ank_with_ebands(self, ebands_kpath,
-                             ebands_kmesh=None, lpratio: int = 5, with_info = True, with_legend=True,
+                             ebands_kmesh=None, lpratio: int = 5, with_info=True, with_legend=True,
                              with_ibz_a2dos=True, method="gaussian", step="auto", width="auto",
                              nksmall: int = 20, normalize: bool = False, with_title=True, interp_method="linear",
                              ax_mat=None, ylims=None, scale=50, marker_color="gold", marker_edgecolor="gray",
@@ -650,7 +649,7 @@ class Polaron:
             x, y, s = [], [], []
 
             a2_max = a2_interp_state[pstate].get_max_abs_data()
-            scale *= 1. / a2_max
+            _scale = scale * 1. / a2_max
 
             for ik, kpoint in enumerate(ebands_kpath.kpoints):
                 enes_n = ebands_kpath.eigens[self.spin, ik, self.bstart:self.bstop]
@@ -665,7 +664,7 @@ class Polaron:
                             allowed = False
 
                     if allowed:
-                        x.append(ik); y.append(e); s.append(scale * a2)
+                        x.append(ik); y.append(e); s.append(_scale * a2)
                         ymin, ymax = min(ymin, e), max(ymax, e)
 
             # Plot electron bands with markers.
@@ -780,7 +779,7 @@ class Polaron:
 
             # fill Ank dos in order
             if fill_dos:
-                y_common = np.linspace(ymin-e0-span*0.1, ymax-e0+span*0.1, 100)
+                y_common = np.linspace(ymin-e0-span*0.1, ymax-e0+span*0.1, 2000)
                 xleft = np.zeros_like(y_common)
                 # skip eDOS, fill only ADOS
                 for dos, c in zip(dos_lines[1:], colors[1:]):
@@ -814,7 +813,7 @@ class Polaron:
         # if filtering is used, show the filtering region
         for ax in ax_mat.ravel():
             xmin, xmax = ax.get_xlim()
-            xrange = np.linspace(xmin,xmax,100)
+            xrange = np.linspace(xmin,xmax,200)
             shifted_bm = bm - e0
             if filter_value:
                 if pkind == "hole":
@@ -907,15 +906,27 @@ class Polaron:
             x, y, s = [], [], []
 
             b2_max = b2_interp_state[pstate].get_max_abs_data()
-            scale *= 1. / b2_max
+            _scale = scale * 1. / b2_max
 
+            # handle LO-TO splitting
+            prev_qpoint = None
             for iq, qpoint in enumerate(phbands_qpath.qpoints):
                 omegas_nu = phbands_qpath.phfreqs[iq,:]
 
+                if np.all(np.abs(qpoint._frac_coords) < 1e-12):
+                    if prev_qpoint:
+                        nana_dir = prev_qpoint._frac_coords
+                    else:
+                        nana_dir = phbands_qpath.qpoints[iq+1]._frac_coords
+
+                    omegas_nu = phbands_qpath._get_non_anal_freqs(nana_dir)
+
                 for w, b2 in zip(omegas_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True):
                     w *= units_scale
-                    x.append(iq); y.append(w); s.append(scale * b2)
+                    x.append(iq); y.append(w); s.append(_scale * b2)
                     ymin, ymax = min(ymin, w), max(ymax, w)
+
+                prev_qpoint = qpoint
 
             ax = ax_mat[pstate, 0]
             points = Marker(x, y, s, color=marker_color, edgecolors=marker_edgecolor,
@@ -962,7 +973,7 @@ class Polaron:
         anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
 
         bz_qpoints = kmesh_from_mpdivs(phdos_ngqpt, phdos_shifts)
-        phbands_bz = ddb.anaget_phmodes_at_qpoints(qpoints=bz_qpoints, ifcflag=1, verbose=verbose, **anaddb_kwargs)
+        phbands_bz = ddb.anaget_phmodes_at_qpoints(qpoints=bz_qpoints, ifcflag=1, verbose=verbose, lo_to_splitting=True, **anaddb_kwargs)
         if len(phbands_bz.qpoints) != np.prod(phdos_ngqpt):
             raise RuntimeError(f"{len(phbands_bz.qpoints)=} != {np.prod(phdos_ngqpt)=}")
 
@@ -980,6 +991,11 @@ class Polaron:
             for iq_bz, qpoint in enumerate(phbands_bz.qpoints):
                 #q_weight = 1./phdos_nqbz
                 freqs_nu = phbands_bz.phfreqs[iq_bz]
+
+                # handle LO-TO splitting
+                if np.all(np.abs(qpoint._frac_coords) < 1e-12):
+                    freqs_nu = phbands_bz.non_anal_phfreqs[0]
+
                 for w, b2 in zip(freqs_nu, b2_interp_state[pstate].eval_kpoint(qpoint), strict=True):
                     bqnu_dos += b2 * gaussian(phdos_mesh, width, center=w)
 
@@ -1021,7 +1037,10 @@ class Polaron:
 
             # fill Bqnu dos in order
             if fill_dos:
-                y_common = np.linspace(ymin, ymax+span*0.1, 100)
+                # FIXME: nasty hack
+                y_common = np.linspace(0, np.max(phbands_bz.phfreqs)*units_scale, 2000)
+
+                #y_common = np.linspace(ymin, ymax+span*0.1, 2000)
                 xleft = np.zeros_like(y_common)
                 # skip phDOS, fill only BDOS
                 for dos, c in zip(dos_lines[1:], colors[1:]):
@@ -1258,7 +1277,6 @@ class VpqRobot(Robot, RobotWithEbands):
             print("plot_erange_conv: not enough data fro convergence wrt erange")
 
         return fig_list
-
 
     @add_fig_kwargs
     def plot_kconv(self, nfit: int = 3, spin: int = 0, pstate: int = 0, convby: str = "invsc_linsize",

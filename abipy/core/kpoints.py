@@ -10,8 +10,9 @@ import numpy as np
 
 from itertools import product
 from tabulate import tabulate
+from functools import cached_property
 from monty.collections import AttrDict, dict2namedtuple
-from monty.functools import lazy_property
+from monty.termcolor import cprint
 from monty.string import marquee
 from abipy.tools.serialization import pmg_serialize
 from abipy.iotools import ETSF_Reader
@@ -673,7 +674,7 @@ class Kpoint(SlotPickleMixin):
         """Set the weight of the k-point."""
         self._weight = weight
 
-    @lazy_property
+    @cached_property
     def cart_coords(self):
         """Cartesian coordinates of the k-point."""
         return self.lattice.get_cartesian_coords(self.frac_coords)
@@ -683,13 +684,18 @@ class Kpoint(SlotPickleMixin):
         """Name of the k-point. None if not available."""
         return self._name
 
-    def set_name(self, name):
+    def set_name(self, name: str | None) -> None:
         """Set the name of the k-point."""
         # Fix typo in Latex syntax (if any).
-        if name is not None and name.startswith("\\"): name = "$" + name + "$"
+        if (name is not None
+            and (name.startswith("\\") or "_" in name)
+            and not (name.startswith("$") and name.endswith("$"))
+            ):
+            name = "$" + name + "$"
+
         self._name = name
 
-    @lazy_property
+    @cached_property
     def on_border(self):
         """
         True if the k-point is on the border of the BZ (lattice translations are taken into account).
@@ -806,7 +812,7 @@ class Kpoint(SlotPickleMixin):
         else:
             return issamek(self.frac_coords, [0, 0, 0], atol=atol)
 
-    @lazy_property
+    @cached_property
     def norm(self):
         """Norm of the kpoint."""
         return np.sqrt(np.dot(self.cart_coords, self.cart_coords))
@@ -1059,7 +1065,7 @@ class KpointList(collections.abc.Sequence):
         """True if self represents a list of points in the IBZ."""
         return isinstance(self, IrredZone)
 
-    @lazy_property
+    @cached_property
     def mpdivs_shifts(self):
         """
         The Monkhorst-Pack (MP) divisions and shifts.
@@ -1184,7 +1190,12 @@ class KpointList(collections.abc.Sequence):
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone
         fold = False
         if self.is_path:
-            labels = {k.name: k.frac_coords for k in self if k.name}
+            # NB: plot_brillouin_zone adds $ around k.name if _ is present so we have to remove it
+            def _fix(s):
+                if "_" in s: s = s.replace("$", "")
+                return s
+            labels = {_fix(k.name): k.frac_coords for k in self if k.name}
+            #labels = {k.name: k.frac_coords for k in self if k.name}
             frac_coords_lines = [self.frac_coords[line] for line in self.lines]
             return plot_brillouin_zone(self.reciprocal_lattice, lines=frac_coords_lines, labels=labels,
                                        ax=ax, fold=fold, **kwargs)
@@ -1223,7 +1234,7 @@ class KpointList(collections.abc.Sequence):
         else:
             qfrac_coords = np.reshape(qpt, (3,))
 
-        k2kqg = collections.OrderedDict()
+        k2kqg = {}
         if np.all(np.abs(qfrac_coords) <= 1e-6):
             # Gamma point, DOH!
             g0 = np.zeros(3, dtype=int)
@@ -1372,7 +1383,7 @@ class Kpath(KpointList):
 
         return "\n".join([header, " ", tabulate(table, headers="firstrow")])
 
-    @lazy_property
+    @cached_property
     def ds(self):
         """
         |numpy-array| of len(self)-1 elements giving the distance between two
@@ -1383,7 +1394,7 @@ class Kpath(KpointList):
             ds[i] = (self[i + 1] - kpoint).norm
         return ds
 
-    @lazy_property
+    @cached_property
     def versors(self):
         """
         Tuple of len(self) - 1 elements with the versors connecting k[i] to k[i+1].
@@ -1393,7 +1404,7 @@ class Kpath(KpointList):
             versors[i] = (self[i + 1] - kpt).versor()
         return tuple(versors)
 
-    @lazy_property
+    @cached_property
     def lines(self) -> list:
         """
         Nested list containing the indices of the points belonging to the same line.
@@ -1423,14 +1434,14 @@ class Kpath(KpointList):
         lines[-1].append(len(self)-1)
         return tuple(lines)
 
-    @lazy_property
+    @cached_property
     def frac_bounds(self):
         """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
         frac_bounds = [self[line[0]].frac_coords for line in self.lines]
         frac_bounds.append(self[self.lines[-1][-1]].frac_coords)
         return np.reshape(frac_bounds, (-1, 3))
 
-    @lazy_property
+    @cached_property
     def cart_bounds(self):
         """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
         cart_bounds = [self[line[0]].cart_coords for line in self.lines]
@@ -1739,8 +1750,15 @@ class KpointsReaderMixin:
         if ksampling.kptopt < 0 or np.all(weights == 1):
             # We have a path in the BZ.
             kpath = Kpath(structure.reciprocal_lattice, frac_coords, ksampling=ksampling)
+            from pymatgen.symmetry.analyzer import SymmetryUndeterminedError
             for kpoint in kpath:
-                kpoint.set_name(structure.findname_in_hsym_stars(kpoint))
+                try:
+                    name = structure.findname_in_hsym_stars(kpoint)
+                    kpoint.set_name(name)
+                except SymmetryUndeterminedError as exc:
+                    cprint(f"Cannot find name for {kpoint=} due to {exc=}", color="red")
+                    break
+
             return kpath
 
         # FIXME

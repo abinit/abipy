@@ -1770,9 +1770,9 @@ class Flow(Node, NodeContainer, MSONable):
 
         return stream.writelines(lines)
 
-    def debug(self, status=None, nids=None, stream=sys.stdout):
+    def debug(self, status=None, nids=None, stream=sys.stdout) -> None:
         """
-        This method is usually used when the flow didn't completed succesfully
+        This method is used when the flow didn't completed succesfully
         It analyzes the files produced the tasks to facilitate debugging.
         Info are printed to stdout.
 
@@ -1841,7 +1841,7 @@ class Flow(Node, NodeContainer, MSONable):
                 # Inspect all log files produced by the other nodes.
                 log_files = task.tmpdir.list_filepaths(wildcard="*LOG_*")
                 if not log_files:
-                    cprint("No *LOG_* file in tmpdir. This usually happens if you are running with many CPUs",
+                    cprint("No *LOG_* file in tmpdir. This usually happens if you are using too many CPUs",
                            color="magenta", file=stream)
 
                 for log_file in log_files:
@@ -1858,7 +1858,7 @@ class Flow(Node, NodeContainer, MSONable):
 
             if not count:
                 cprint("""
-Houston, we could not find any error message that can explain the problem.
+Houston, we could not find any error message explainig the problem.
 Use the `abirun.py FLOWDIR history` command to print the log files of the different nodes.
 """,
                         color="magenta", file=stream)
@@ -1867,11 +1867,11 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
     def cancel(self, nids=None) -> int:
         """
-        Cancel all the tasks that are in the queue.
+        Cancel all the tasks in the queue.
         nids is an optional list of node identifiers used to filter the tasks.
 
         Returns:
-            Number of jobs cancelled, negative value if error
+            Number of jobs cancelled, negative value if error.
         """
         if self.has_chrooted:
             # TODO: Use paramiko to kill the job?
@@ -1899,12 +1899,12 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         return num_cancelled
 
-    def get_njobs_in_queue(self, username=None) -> int:
+    def get_njobs_in_queue(self, username: str | None = None) -> int:
         """
-        Returns the number of jobs in the queue, None when the number of jobs cannot be determined.
+        Returns the number of jobs in the queue, None if the number of jobs cannot be determined.
 
         Args:
-            username: (str) the username of the jobs to count (default is to autodetect)
+            username: the username of the jobs to count (None to autodetect)
         """
         return self.manager.qadapter.get_njobs_in_queue(username=username)
 
@@ -1952,14 +1952,12 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             shutil.copy(self.pyfile, self.workdir)
 
         # Add README.md file if set
-        readme_md = getattr(self, "readme_md", None)
-        if readme_md is not None:
+        if (readme_md := getattr(self, "readme_md", None)) is not None:
             with open(os.path.join(self.workdir, "README.md"), "wt") as fh:
                 fh.write(readme_md)
 
         # Add abipy_meta.json file if set
-        data = getattr(self, "abipy_meta_json", None)
-        if data is not None:
+        if (data := getattr(self, "abipy_meta_json", None)) is not None:
             self.write_json_in_workdir("abipy_meta.json", data)
 
         # Write fix_flow.py script for advanced users.
@@ -1968,7 +1966,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         for work in self:
             work.build(*args, **kwargs)
 
-    def build_and_pickle_dump(self, abivalidate=False):
+    def build_and_pickle_dump(self, abivalidate: bool = False) -> None:
         """
         Build dirs and file of the `Flow` and save the object in pickle format.
         Returns 0 if success
@@ -2021,13 +2019,13 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                         protocol=self.pickle_protocol if protocol is None else protocol)
         return strio.getvalue()
 
-    def register_task(self, input: AbinitInput | Task,
+    def register_task(self, abinit_input: AbinitInput | Task,
                       deps=None, manager=None, task_class=None, append=False) -> Work:
         """
         Utility function that generates a `Work` made of a single task
 
         Args:
-            input: |AbinitInput| instance or |Task| object.
+            abinit_input: |AbinitInput| instance or |Task| object.
             deps: List of :class:`Dependency` objects specifying the dependency of this node.
                   An empy list of deps implies that this node has no dependencies.
             manager: The |TaskManager| responsible for the submission of the task.
@@ -2049,7 +2047,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             else:
                 work = self.works[-1]
 
-        task = work.register(input, deps=deps, task_class=task_class)
+        task = work.register(abinit_input, deps=deps, task_class=task_class)
         if not append: self.register_work(work)
 
         return work
@@ -2368,27 +2366,6 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 self.history.info("Connecting %s \nwith sender %s, signal %s" % (str(cbk), dep.node, dep.node.S_OK))
                 dispatcher.connect(self.on_dep_ok, signal=dep.node.S_OK, sender=dep.node, weak=False)
 
-        # Associate to each signal the callback _on_signal
-        # (bound method of the node that will be called by `Flow`
-        # Each node will set its attribute _done_signal to True to tell
-        # the flow that this callback should be disabled.
-
-        # Register the callbacks for the Work.
-        #for work in self:
-        #    slot = self._sig_slots[work]
-        #    for signal in S_ALL:
-        #        done_signal = getattr(work, "_done_ " + signal, False)
-        #        if not done_sig:
-        #            cbk_name = "_on_" + str(signal)
-        #            cbk = getattr(work, cbk_name, None)
-        #            if cbk is None: continue
-        #            slot[work][signal].append(cbk)
-        #            print("connecting %s\nwith sender %s, signal %s" % (str(cbk), dep.node, dep.node.S_OK))
-        #            dispatcher.connect(self.on_dep_ok, signal=signal, sender=dep.node, weak=False)
-
-        # Register the callbacks for the Tasks.
-        #self.show_receivers()
-
     def disconnect_signals(self) -> None:
         """Disable the signals within the `Flow`."""
         for work in self:
@@ -2428,8 +2405,6 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             self.connect_signals()
         else:
             self.disconnect_signals()
-
-    #def get_results(self, **kwargs)
 
     def rapidfire(self, check_status=True, max_nlaunch=-1, max_loops=1, sleep_time=5, **kwargs):
         """
@@ -2721,7 +2696,8 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         # Treat the case in which we have a work producing output for other tasks.
         for work in self:
             children = work.get_children()
-            if not children: continue
+            if not children:
+                continue
             cluster_name = "cluster%s" % work.name
             seen = set()
             for child in children:
@@ -2849,8 +2825,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 if node.is_file:
                     return "%s\n(%s)" % (node.basename, node.node_id)
                 else:
-                    return (node.pos_str + "\n" + node.__class__.__name__
-                            if hasattr(node, "pos_str") else str(node))
+                    return (node.pos_str + "\n" + node.__class__.__name__ if hasattr(node, "pos_str") else str(node))
             else:
                 raise NotImplementedError("node_label: %s" % str(node_label))
 

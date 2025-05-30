@@ -359,6 +359,34 @@ def workdir_with_prefix(workdir, prefix, exist_ok=False) -> Path:
 
     return Path(workdir).absolute()
 
+def filepath_extract_differences(filepaths: list) -> list:
+    """
+    Extract the common prefix and suffix of a list of filepaths.
+    Return a list of strings with the common prefix and suffix replaced by "..".
+    """
+    if len(filepaths) <= 1:
+        return filepaths
+
+    prefix = os.path.commonprefix(filepaths)
+
+    reversed_strings = [s[::-1] for s in filepaths]
+    suffix = os.path.commonprefix(reversed_strings)[::-1]
+
+    results = []
+    for s in filepaths:
+        start = len(prefix)
+        end = len(s) - len(suffix) if len(suffix) > 0 else len(s)
+        start -= 2
+        end += 2
+        if start >= end:
+            results.append(s)
+        elif start <= 0:
+            results.append(f"{s[:end]}..")
+        elif end >= len(s):
+            results.append(f"..{s[start:]}")
+        else:
+            results.append(f"..{s[start:end]}..")
+    return results
 
 def change_ext_from_top(top: PathLike, old_ext: str, new_ext: str) -> int:
     """

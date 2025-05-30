@@ -5,7 +5,7 @@ Phonon band structures with LO-TO
 
 This example shows how to plot the phonon band structure of AlAs.
 without the LO-TO splitting.
-See tutorial/lesson_rf2.html
+See also tutorial/lesson_rf2.html
 """
 
 #%%

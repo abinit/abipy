@@ -9,7 +9,7 @@ import sys
 import numpy as np
 import abipy.core.abinit_units as abu
 
-from monty.functools import lazy_property
+from functools import cached_property
 from pymatgen.core.periodic_table import Element
 from abipy.core.mixins import Has_Structure
 from abipy.iotools import ETSF_Reader
@@ -147,7 +147,7 @@ class NonAnalyticalPh(Has_Structure):
 
         return cls(structure=structure, directions=directions, phfreqs=phfreq, phdispl_cart=phdispl_cart, amu=amu)
 
-    @lazy_property
+    @cached_property
     def dyn_mat_eigenvect(self) -> np.ndarray:
         """
         [ndirection, 3*natom, 3*natom] array with the orthonormal eigenvectors of the dynamical matrix.

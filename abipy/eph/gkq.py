@@ -12,8 +12,8 @@ import pandas as pd
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
+from functools import cached_property
 from monty.string import marquee
-from monty.functools import lazy_property
 from abipy.core.structure import Structure
 from abipy.core.kpoints import Kpoint
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
@@ -71,58 +71,58 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     def close(self) -> None:
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.r.read_ebands()
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def uses_interpolated_dvdb(self) -> bool:
         """True if the matrix elements have been computed with an interpolated potential."""
         return int(self.r.read_value("interpolated")) == 1
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
-    @lazy_property
+    @cached_property
     def qpoint(self) -> Kpoint:
         """Q-point object."""
         return Kpoint(self.r.read_value('qpoint'), self.structure.reciprocal_lattice)
 
-    @lazy_property
+    @cached_property
     def phfreqs_ha(self) -> np.ndarray:
         """(3 * natom) array with phonon frequencies in Ha."""
         return self.r.read_value("phfreqs")
 
-    @lazy_property
+    @cached_property
     def phdispl_cart_bohr(self) -> np.ndarray:
         """(natom3_nu, natom3) complex array with the phonon displacement in cartesian coordinates in Bohr."""
         return self.r.read_value("phdispl_cart", cmode="c")
 
-    @lazy_property
+    @cached_property
     def phdispl_red(self) -> np.ndarray:
         """(natom3_nu, natom3) complex array with the phonon displacement in reduced coordinates."""
         return self.r.read_value("phdispl_red", cmode="c")
 
-    @lazy_property
+    @cached_property
     def becs_cart(self) -> np.ndarray:
         """(natom, 3, 3) array with the Born effective charges in Cartesian coordinates."""
         return self.r.read_value("becs_cart").transpose(0, 2, 1).copy()
 
-    @lazy_property
+    @cached_property
     def epsinf_cart(self) -> np.ndarray:
         """(3, 3) array with electronic macroscopic dielectric tensor in Cartesian coordinates."""
         return self.r.read_value("emacro_cart").T.copy()
 
-    @lazy_property
+    @cached_property
     def eigens_kq(self) -> np.ndarray:
         """(spin, nkpt, mband) array with eigenvalues on the k+q grid in eV."""
         return self.r.read_value("eigenvalues_kq") * abu.Ha_eV
@@ -484,7 +484,7 @@ class GkqRobot(Robot, RobotWithEbands):
     """
     EXT = "GKQ"
 
-    @lazy_property
+    @cached_property
     def kpoints(self):
         # Consistency check: kmesh should be the same in each file.
         ref_kpoints = self.abifiles[0].ebands.kpoints

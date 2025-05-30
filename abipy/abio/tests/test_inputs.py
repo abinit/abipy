@@ -226,6 +226,12 @@ class TestAbinitInput(AbipyTest):
         assert ngkpt.tolist() == [1, 2, 3]
         assert len(shiftk) == 2 and shiftk.ravel().tolist() == [1, 2, 3, 4, 5, 6]
 
+        # kptopt=4 i.e. NO TR if non-collinear magnetic
+        #new_inp = inp.deepcopy()
+        #new_inp.set_vars(nspinor=2, nspden=4)
+        #with self.assertRaises(ValueError):
+        #    new_inp.set_kmesh(ngkpt=(1, 2, 3), shiftk=(0,0,0), kptopt=1)
+
         inp.pop("ngkpt")
         kptrlatt = [1, 0, 0, 0, 4, 0, 0, 0, 8]
         shiftk = (0.5, 0.0, 0.0)
@@ -622,8 +628,8 @@ class TestAbinitInput(AbipyTest):
         assert len(phg_inputs) == 2
         assert np.all(phg_inputs[0]["rfatpol"] == [1, 1])
         assert np.all(phg_inputs[1]["rfatpol"] == [2, 2])
-        assert all(np.all(inp["rfdir"] == [1, 0, 0] for inp in phg_inputs))
-        assert all(np.all(inp["kptopt"] == 2 for inp in phg_inputs))
+        assert np.all(inp["rfdir"] == [1, 0, 0] for inp in phg_inputs)
+        assert np.all(inp["kptopt"] == 2 for inp in phg_inputs)
 
         # Validate with Abinit
         self.abivalidate_multi(phg_inputs)
@@ -639,9 +645,9 @@ class TestAbinitInput(AbipyTest):
         assert len(bec_inputs) == 2
         assert np.all(bec_inputs[0]["rfatpol"] == [1, 1])
         assert np.all(bec_inputs[1]["rfatpol"] == [2, 2])
-        assert all(np.all(inp["rfelfd"] == 3 for inp in bec_inputs))
-        assert all(np.all(inp["tolvrs"] == 1.0e-10 for inp in bec_inputs))
-        assert all(np.all(inp["kptopt"] == 2 for inp in bec_inputs))
+        assert np.all(inp["rfelfd"] == 3 for inp in bec_inputs)
+        assert np.all(inp["tolvrs"] == 1.0e-10 for inp in bec_inputs)
+        assert np.all(inp["kptopt"] == 2 for inp in bec_inputs)
 
         # Validate with Abinit
         self.abivalidate_multi(bec_inputs)
@@ -684,7 +690,7 @@ class TestAbinitInput(AbipyTest):
         #############
         # DKDK methods
         #############
-        dkdk_input = gs_inp.make_dkdk_input()
+        dkdk_input = gs_inp.make_dkdk_input(rf2_dkdk=1)
         assert dkdk_input["kptopt"] == 2
         assert dkdk_input["rf2_dkdk"] == 1
         assert dkdk_input["useylm"] == 1
@@ -707,7 +713,7 @@ class TestAbinitInput(AbipyTest):
         dde_inputs = gs_inp.make_dde_inputs(tolerance=None, use_symmetries=True)
         #print("DDE inputs\n", dde_inputs)
         assert len(dde_inputs) == 1
-        assert all(np.all(inp["tolvrs"] == 1.0e-22 for inp in dde_inputs))
+        assert np.all(inp["tolvrs"] == 1.0e-22 for inp in dde_inputs)
         assert all(inp["rfelfd"] == 3 for inp in dde_inputs)
         assert all(inp["kptopt"] == 2 for inp in dde_inputs)
 
@@ -767,7 +773,7 @@ class TestAbinitInput(AbipyTest):
         assert len(dte_inputs) == 8
         assert np.all(dte_inputs[0]["d3e_pert2_dir"] == [1, 0, 0])
         assert np.all(dte_inputs[3]["d3e_pert1_atpol"] == [2, 2])
-        assert all(np.all(inp["optdriver"] == 5 for inp in dte_inputs))
+        assert np.all(inp["optdriver"] == 5 for inp in dte_inputs)
 
         # Validate with Abinit
         self.abivalidate_multi(dte_inputs)

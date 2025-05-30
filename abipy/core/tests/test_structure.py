@@ -37,6 +37,9 @@ class TestStructure(AbipyTest):
             #visu = structure.visualize(appname="vesta")
             #assert callable(visu)
 
+            if self.has_matplotlib():
+                assert structure.plot(show=False)
+
             if self.has_ase():
                 assert structure == Structure.from_ase_atoms(structure.to_ase_atoms())
                 if self.has_matplotlib():

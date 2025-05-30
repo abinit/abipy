@@ -13,8 +13,8 @@ import numpy as np
 import abipy.core.abinit_units as abu
 
 from scipy.interpolate import RectBivariateSpline #, RegularGridInterpolator
+from functools import cached_property
 #from monty.collections import dict2namedtuple
-from monty.functools import lazy_property
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.typing import Figure
 from abipy.tools.serialization import HasPickleIO, mjson_load
@@ -188,12 +188,12 @@ class QHA_2D(HasPickleIO):
         # Find index of minimum energy
         self.min_energy_idx = np.unravel_index(np.nanargmin(self.energies), self.energies.shape)
 
-    @lazy_property
+    @cached_property
     def use_qha(self) -> bool:
         """True if we are in full QHA_2D mode."""
         return len(self.lattice_a_from_phdos) == len(self.lattice_a) and len(self.lattice_c_from_phdos) == len(self.lattice_c)
 
-    @lazy_property
+    @cached_property
     def use_einfvib2(self) -> bool:
         return len(self.lattice_a_from_phdos) == 3 and len(self.lattice_c_from_phdos) == 3
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Visualization of GWR results
-============================
+GWR results
+===========
 
 This example shows how to visualize the results produced by the GWR code.
 """

@@ -9,7 +9,7 @@ try:
 except ImportError:
     from pymatgen.io.abinit.netcdf import EtsfReader as ETSF_Reader
 
-from monty.functools import lazy_property
+from functools import cached_property
 from pymatgen.core.periodic_table import Element
 from .xsf import *
 from .visualizer import *
@@ -38,7 +38,7 @@ class ETSF_Reader(ETSF_Reader):
 
     # Must overwrite implementation of pymatgen.io.abinit.netcdf
     # due to a possible bug introduced by initial whitespaces in symbol
-    @lazy_property
+    @cached_property
     def chemical_symbols(self):
         """Chemical symbols char [number of atom species][symbol length]."""
         charr = self.read_value("chemical_symbols")

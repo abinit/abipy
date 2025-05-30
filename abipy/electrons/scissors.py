@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import os
-import numpy as np
 import pickle
+import numpy as np
 
-from collections import OrderedDict
 from monty.collections import AttrDict
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.typing import Figure
@@ -241,8 +240,8 @@ class ScissorsBuilder:
         nsppol = self.nsppol
 
         # The parameters defining the scissors operator
-        self.domains_spin = OrderedDict()
-        self.bounds_spin = OrderedDict()
+        self.domains_spin = {}
+        self.bounds_spin = {}
 
         if domains_spin is None:
             # Use sigres_ebands and the position of the homo, lumo to compute the domains.

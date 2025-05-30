@@ -7,8 +7,7 @@ import itertools
 import numpy as np
 import pandas as pd
 
-from collections import OrderedDict
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import marquee, is_string
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.core.func1d import Function1D
@@ -353,22 +352,22 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """|Structure| object."""
         return self.r.read_structure()
 
-    @lazy_property
+    @cached_property
     def exc_mdf(self):
         "Excitonic macroscopic dieletric function."""
         return self.r.read_exc_mdf()
 
-    @lazy_property
+    @cached_property
     def rpanlf_mdf(self):
         """RPA dielectric function without local-field effects."""
         return self.r.read_rpanlf_mdf()
 
-    @lazy_property
+    @cached_property
     def gwnlf_mdf(self):
         """RPA-GW dielectric function without local-field effects."""
         return self.r.read_gwnlf_mdf()
@@ -383,7 +382,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """|numpy-array| with the fractional coordinates of the q-points."""
         return self.qpoints.frac_coords
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """
         Dictionary with the parameters that are usually tested for convergence.
@@ -505,13 +504,13 @@ class MdfReader(ETSF_Reader): #ElectronsReader
         """|Structure| object."""
         return self._structure
 
-    @lazy_property
+    @cached_property
     def qpoints(self) -> KpointList:
         """List of q-points (ndarray)."""
         # Read the fractional coordinates and convert them to KpointList.
         return KpointList(self.structure.reciprocal_lattice, frac_coords=self.read_value("qpoints"))
 
-    @lazy_property
+    @cached_property
     def wmesh(self) -> np.ndarray:
         """The frequency mesh in eV."""
         return self.read_value("wmesh")
@@ -564,7 +563,7 @@ class MdfPlotter:
         plotter.plot()
     """
     def __init__(self):
-        self._mdfs = OrderedDict()
+        self._mdfs = {}
 
     def add_mdf(self, label, mdf):
         """
@@ -655,7 +654,7 @@ class MultipleMdfPlotter:
 
     def __init__(self):
         # [label][mdf_type] --> DielectricFunction
-        self._mdfs = OrderedDict()
+        self._mdfs = {}
 
     def __str__(self) -> str:
         return self.to_string()
@@ -683,7 +682,7 @@ class MultipleMdfPlotter:
         if label in self._mdfs:
             raise ValueError("label: %s already in: %s" % (label, list(self._mdfs.keys())))
 
-        self._mdfs[label] = OrderedDict()
+        self._mdfs[label] = {}
 
         if is_string(obj):
             # Open the file.
@@ -943,11 +942,11 @@ class MdfRobot(Robot, RobotWithEbands):
         rows, row_names = [], []
         for i, (label, mdf) in enumerate(self.items()):
             row_names.append(label)
-            d = OrderedDict([
-                ("exc_mdf", mdf.exc_mdf),
-                ("rpa_mdf", mdf.rpanlf_mdf),
-                ("gwrpa_mdf", mdf.gwnlf_mdf),
-            ])
+            d = {
+                "exc_mdf": mdf.exc_mdf,
+                "rpa_mdf": mdf.rpanlf_mdf,
+                "gwrpa_mdf": mdf.gwnlf_mdf,
+            }
             #d = {aname: getattr(mdf, aname) for aname in attrs}
             #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 

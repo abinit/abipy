@@ -15,6 +15,7 @@ import abipy.data as data
 import abipy.abilab as abilab
 
 from abipy import flowtk
+from abipy.flowtk.gwr_works import DirectDiagoWork, GWRSigmaConvWork
 
 
 def build_flow(options):
@@ -22,49 +23,57 @@ def build_flow(options):
     if not options.workdir:
         options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_","flow_")
 
-    #from abipy.flowtk.psrepos import get_repo_from_name
-    #pseudos = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4").get_pseudos("stringent")
+    # IMPORTANT: Note stringent table to have semi-core states.
+    from abipy.flowtk.psrepos import get_oncvpsp_pseudos
+    pseudos = get_oncvpsp_pseudos(xc_name="PBE", version="0.4",
+                                  relativity_type="SR", accuracy="stringent")
 
-    scf_input = abilab.AbinitInput(structure=data.cif_file("si.cif"),
-                                   pseudos=data.pseudos("14si.pspnc"))
+    scf_input = abilab.AbinitInput(structure=data.cif_file("si.cif"), pseudos=pseudos)
+
+    num_ele = scf_input.num_valence_electrons
 
     # Global variables.
     scf_input.set_vars(
         ecut=6,
+        nband=num_ele // 2,
         tolvrs=1e-8,
-        nband=4,
         paral_kgb=1,
     )
-    scf_input.set_kmesh(
-        ngkpt=[2, 2, 2],
-        shiftk=[0.0, 0.0, 0.0], # IMPORTANT: k-grid for GWR must be Gamma-centered.
-    )
+
+    # IMPORTANT: k-grid for GWR must be Gamma-centered.
+    scf_input.set_kmesh(ngkpt=[2, 2, 2], shiftk=[0.0, 0.0, 0.0])
 
     flow = flowtk.Flow(workdir=options.workdir)
 
     # GS-SCF run to get the DEN, followed by direct diago to obtain green_nband bands.
-    from abipy.flowtk.gwr_works import DirectDiagoWork, GWRSigmaConvWork
     green_nband = -1  # -1 this means full diago
     diago_work = DirectDiagoWork.from_scf_input(scf_input, green_nband)
     flow.register_work(diago_work)
 
     # Build template for GWR.
-    gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=8, ecuteps=4)
+    gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=8, ecuteps=4, ecutwfn=2)
 
     # Two possibilities:
-    # 1) Change the value of one variable:
+    # 1) To change the value of one variable, use:
 
     varname_values = ("nband", [8, 12, 14])
 
-    # or take the Cartesian product of two or more variables with e.g.:
+    # 2) To take the Cartesian product of two or more variables use e.g.:
     #
     #varname_values = [
-    #   ("gwr_ntau", [6, 8]),
+    #   ("nband", [50, 100]),
     #   ("ecuteps", [2, 4]),
     #]
 
+    # Can also use strings with path to files for den_node and wfk_node
+    # so that one does not need to recompute these files.
+
     gwr_work = GWRSigmaConvWork.from_varname_values(
-            varname_values, gwr_template, den_node=diago_work[0], wfk_node=diago_work[1])
+            varname_values,
+            gwr_template,
+            den_node=diago_work.scf_task,
+            wfk_node=diago_work.diago_task,
+    )
     flow.register_work(gwr_work)
 
     return flow

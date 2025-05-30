@@ -13,9 +13,9 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from typing import Any
+from functools import cached_property
 from monty.string import is_string, list_strings, marquee
 from monty.collections import dict2namedtuple
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import eV_to_Ha, Energy
 from pymatgen.core.periodic_table import Element
@@ -336,7 +336,7 @@ class PhononBands:
         self.phonopy_obj = phonopy_obj
 
         # Dictionary with metadata e.g. nkpt, tsmear ...
-        self.params = OrderedDict()
+        self.params = {}
 
     # TODO: Replace num_qpoints with nqpt, deprecate num_qpoints
     @property
@@ -402,12 +402,12 @@ class PhononBands:
 
     __radd__ = __add__
 
-    @lazy_property
+    @cached_property
     def _auto_qlabels(self):
         # Find the q-point names in the pymatgen database.
         # We'll use _auto_qlabels to label the point in the matplotlib plot
         # if qlabels are not specified by the user.
-        _auto_qlabels = OrderedDict()
+        _auto_qlabels = {}
 
         # If the first or the last q-point are not recognized in findname_in_hsym_stars
         # matplotlib won't show the full band structure along the k-path
@@ -488,7 +488,7 @@ class PhononBands:
         """True if bands with linewidths."""
         return getattr(self, "_linewidths", None) is not None
 
-    @lazy_property
+    @cached_property
     def dyn_mat_eigenvect(self) -> np.ndarray:
         """
         [nqpt, 3*natom, 3*natom] array with the orthonormal eigenvectors of the dynamical matrix.
@@ -686,7 +686,7 @@ class PhononBands:
 
     def get_dict4pandas(self, with_spglib=True) -> dict:
         """
-        Return a :class:`OrderedDict` with the most important parameters:
+        Return: dictionary with the most important parameters:
 
             - Chemical formula and number of atoms.
             - Lattice lengths, angles and volume.
@@ -1684,14 +1684,17 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         """Return ticks and labels from the mapping {qred: qstring} given in qlabels."""
         # TODO should be modified in order to handle the "split" list of qpoints
         if qlabels is not None:
-            d = OrderedDict()
-
+            d = {}
             for qcoord, qname in qlabels.items():
                 # Build Kpoint instancee
                 qtick = Kpoint(qcoord, self.structure.reciprocal_lattice)
-                for q, qpoint in enumerate(self.qpoints):
+                for iq, qpoint in enumerate(self.qpoints):
+                    #print(f"for {qtick=}, {qpoint=}", qtick == qpoint)
                     if qtick == qpoint:
-                        d[q] = qname
+                        d[iq] = qname
+
+            # Sort d by key. This is needed to avoid e.g. {0: '$\\Gamma$', 97: '$\\Gamma$', 23: 'Y', 43: 'B', 66: 'A'}
+            d = {k: d[k] for k in sorted(d.keys())}
         else:
             d = self._auto_qlabels
 
@@ -3097,9 +3100,9 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+        """dictionary with parameters that might be subject to convergence studies."""
         od = self.get_phbands_params()
         return od
 
@@ -3264,7 +3267,7 @@ class PhononDos(Function1D):
 
         raise TypeError("Don't know how to create PhononDos object from type: `%s`" % type(obj))
 
-    @lazy_property
+    @cached_property
     def iw0(self) -> int:
         """
         Index of the first point in the mesh whose value is >= 0
@@ -3280,12 +3283,12 @@ class PhononDos(Function1D):
     #    natom3 = self.idos().values[-1]
     #    return (integ / natom3) > rel_tolerance
 
-    @lazy_property
+    @cached_property
     def idos(self):
         """Integrated DOS."""
         return self.integral()
 
-    @lazy_property
+    @cached_property
     def zero_point_energy(self) -> Energy:
         """Zero point energy in eV per unit cell."""
         iw0 = self.iw0
@@ -3650,12 +3653,12 @@ class PhdosReader(ETSF_Reader):
 
             Frequencies are in eV, DOSes are in states/eV per unit cell.
     """
-    @lazy_property
+    @cached_property
     def structure(self):
         """|Structure| object."""
         return self.read_structure()
 
-    @lazy_property
+    @cached_property
     def wmesh(self):
         """The frequency mesh for the PH-DOS in eV."""
         return self.read_value("wmesh")
@@ -3676,7 +3679,7 @@ class PhdosReader(ETSF_Reader):
 
     def read_pjdos_symbol_xyz_dict(self):
         """
-        Return :class:`OrderedDict` mapping element symbol --> [3, nomega] array
+        Return: dictionary mapping element symbol --> [3, nomega] array
         with the the phonon DOSes summed over atom-types and decomposed along
         the three cartesian directions.
         """
@@ -3684,7 +3687,7 @@ class PhdosReader(ETSF_Reader):
         # phdos_rc_type[ntypat, 3, nomega]
         values = self.read_value("pjdos_rc_type")
 
-        od = OrderedDict()
+        od = {}
         for symbol in self.chemical_symbols:
             type_idx = self.typeidx_from_symbol(symbol)
             od[symbol] = values[type_idx]
@@ -3693,14 +3696,14 @@ class PhdosReader(ETSF_Reader):
 
     def read_pjdos_symbol_dict(self):
         """
-        Ordered dictionary mapping element symbol --> |PhononDos|
+        Dictionary mapping element symbol --> |PhononDos|
         where PhononDos is the contribution to the total DOS summed over atoms
         with chemical symbol ``symbol``.
         """
         # [ntypat, nomega] array with PH-DOS projected over atom types.
         values = self.read_pjdos_type()
 
-        od = OrderedDict()
+        od = {}
         for symbol in self.chemical_symbols:
             type_idx = self.typeidx_from_symbol(symbol)
             od[symbol] = PhononDos(self.wmesh, values[type_idx])
@@ -3749,14 +3752,14 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def qptrlatt(self):
         return self.r.read_value("qptrlatt")
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """
-        :class:`OrderedDict` with the convergence parameters
+        dictionary with the convergence parameters
         Used to construct |pandas-DataFrames|.
         """
         return {}
@@ -3786,26 +3789,26 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """|Structure| object."""
         return self.r.structure
 
-    @lazy_property
+    @cached_property
     def phdos(self) -> PhononDos:
         """|PhononDos| object."""
         return self.r.read_phdos()
 
-    @lazy_property
+    @cached_property
     def pjdos_symbol(self):
         """
-        Ordered dictionary mapping element symbol --> `PhononDos`
+        Dictionary mapping element symbol --> `PhononDos`
         where PhononDos is the contribution to the total DOS summed over atoms
         with chemical symbol `symbol`.
         """
         return self.r.read_pjdos_symbol_dict()
 
-    @lazy_property
+    @cached_property
     def msqd_dos(self):
         """
         |MsqDos| object with Mean square displacement tensor in cartesian coords.
@@ -4244,7 +4247,6 @@ def dataframe_from_phbands(phbands_objects, index=None, with_spglib=True) -> pd.
     Return: |pandas-DataFrame|
     """
     phbands_list = [PhononBands.as_phbands(obj) for obj in phbands_objects]
-    # Use OrderedDict to have columns ordered nicely.
     odict_list = [(phbands.get_dict4pandas(with_spglib=with_spglib)) for phbands in phbands_list]
 
     return pd.DataFrame(odict_list, index=index,
@@ -5013,7 +5015,7 @@ class PhononDosPlotter(NotebookWriter):
         plotter.gridplot()
     """
     def __init__(self, key_phdos=None, phdos_kwargs=None):
-        self._phdoses_dict = OrderedDict()
+        self._phdoses_dict = {}
         if key_phdos is None: key_phdos = []
         for label, phdos in key_phdos:
             self.add_phdos(label, phdos, phdos_kwargs=phdos_kwargs)

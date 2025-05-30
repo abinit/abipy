@@ -149,7 +149,6 @@ def display_top(snapshot, key_type='lineno', limit=3):
     print("Total allocated size: %.1f KiB" % (total / 1024))
 
 
-
 def get_size(bytes, suffix="B"):
     """
     Scale bytes to its proper format

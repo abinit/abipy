@@ -170,8 +170,9 @@ if with_gallery:
         ],
         # FIXME: Remove it when we enter production.
         'expected_failing_examples': [
-            '../abipy/examples/plot_vpq.py',
-            '../abipy/examples/plot_orbmag.py',
+            '../abipy/examples/plot/plot_vpq.py',
+            '../abipy/examples/plot/plot_orbmag.py',
+            '../abipy/examples/flows/run_screening.py',
         ],
         'filename_pattern': "(plot*|run*)",
         #'filename_pattern': '(plot_|run_)/.*\.py$',

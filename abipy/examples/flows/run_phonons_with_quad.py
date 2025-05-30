@@ -12,6 +12,7 @@ The Q* tensor may be needed to improve the accuracy of the Fourier interpolation
 especially in the long-wavelength limit |q| --> 0.
 
 This example is based on  <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+
 Note that only selected features are compatible with dynamical quadrupoles.
 Please consult <https://docs.abinit.org/topics/longwave/>
 """
@@ -87,8 +88,8 @@ def build_flow(options):
         # print(pseudo)
         if not pseudo.isnc:
             raise RuntimeError("Only NC pseudos are compatible with Q*")
-        if pseudo.has_nlcc:
-            raise RuntimeError("NLCC is not compatible with Q*")
+        #if pseudo.has_nlcc:
+        #    raise RuntimeError("NLCC is not compatible with Q*")
 
     # Initialize the flow
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)

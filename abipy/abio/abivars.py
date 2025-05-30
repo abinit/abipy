@@ -7,8 +7,8 @@ import numpy as np
 from typing import Union
 
 from pprint import pformat #, pprint
+from functools import cached_property
 from monty.string import is_string, boxed
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import Structure, dataframes_from_structures
@@ -208,7 +208,7 @@ def abi_tokenize(string: str) -> list[str]:
 
 class Dataset(dict, Has_Structure):
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """
         The initial structure associated to the dataset.
@@ -392,7 +392,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def has_multi_structures(self) -> bool:
         """True if input defines multiple structures."""
         return self.structure is None
@@ -406,7 +406,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
     def close(self) -> None:
         """NOP, required by ABC."""
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """
         The structure defined in the input file.

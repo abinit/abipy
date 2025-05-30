@@ -7,8 +7,8 @@ import numpy as np
 
 from collections import OrderedDict, defaultdict
 from tabulate import tabulate
+from functools import cached_property
 from monty.termcolor import cprint
-from monty.functools import lazy_property
 from monty.string import marquee
 from pymatgen.core.periodic_table import Element
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
@@ -169,16 +169,16 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             self.has_atom = np.zeros(self.natom, dtype=bool)
             self.has_atom[self.iatsph] = True
 
-    @lazy_property
-    def wal_sbk(self):
+    @cached_property
+    def wal_sbk(self) -> np.ndarray:
         """
         |numpy-array| of shape [natom, mbesslang, nsppol, mband, nkpt]
         with the L-contributions. Present only if prtdos == 3.
         """
         return self._read_wal_sbk()
 
-    @lazy_property
-    def walm_sbk(self):
+    @cached_property
+    def walm_sbk(self) -> np.ndarray:
         """
         |numpy-array| of shape [natom, mbesslang**2, nsppol, mband, nkpt]
         with the LM-contribution. Present only if prtdos == 3 and prtdosm != 0
@@ -277,7 +277,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         return walm_sbk
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.r.read_ebands()
@@ -287,7 +287,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
@@ -338,7 +338,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         return "\n".join(lines)
 
-    def get_wl_atom(self, iatom, spin=None, band=None):
+    def get_wl_atom(self, iatom, spin=None, band=None) -> np.ndarray:
         """
         Return the l-dependent DOS weights for atom index ``iatom``. The weights are summed over m.
         If ``spin`` and ``band`` are not specified, the method returns the weights
@@ -350,7 +350,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             assert spin is not None and band is not None
             return self.wal_sbk[iatom, :, spin, band, :]
 
-    def get_wl_symbol(self, symbol, spin=None, band=None):
+    def get_wl_symbol(self, symbol, spin=None, band=None) -> np.ndarray:
         """
         Return the l-dependent DOS weights for a given type specified in terms of the
         chemical symbol ``symbol``. The weights are summed over m and over all atoms of the same type.
@@ -371,7 +371,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         return wl
 
-    def get_w_symbol(self, symbol, spin=None, band=None):
+    def get_w_symbol(self, symbol, spin=None, band=None) -> np.ndarray:
         """
         Return the DOS weights for a given type specified in terms of the
         chemical symbol ``symbol``. The weights are summed over m and lmax[symbol] and
@@ -394,7 +394,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         return w
 
-    def get_spilling(self, spin=None, band=None):
+    def get_spilling(self, spin=None, band=None) -> np.ndarray:
         """
         Return the spilling parameter
         If ``spin`` and ``band`` are not specified, the method returns the spilling for all states
@@ -918,7 +918,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     @add_fig_kwargs
     def plot_spilling(self, e0="fermie", fact=1.0, ax_list=None, ylims=None, blist=None, **kwargs) -> Figure:
         """
-        Plot the electronic fatbands
+        Plot the electronic fatbands.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -2232,14 +2232,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class _DosIntegrator(object):
+class _DosIntegrator:
     """
     This object is responsible for the integration of the DOS/PJDOS.
     It's an internal object that should not be instantiated directly outside of this module.
     PJDOSes are computed lazily and stored in the integrator so that we can reuse the results
     if needed.
     """
-    def __init__(self, fbfile, method, step, width):
+    def __init__(self, fbfile: str, method: str, step: float, width: float):
         """
         """
         self.fbfile, self.method, self.step, self.width = fbfile, method, step, width
@@ -2248,18 +2248,18 @@ class _DosIntegrator(object):
         self.edos = fbfile.ebands.get_edos(method=method, step=step, width=width)
         self.mesh = self.edos.spin_dos[0].mesh
 
-    #@lazy_property
+    #@cached_property
     #def site_edos(self):
     #    """Array [natom, nsppol, lmax**2]"""
 
-    @lazy_property
-    def symbols_lso(self):
+    @cached_property
+    def symbols_lso(self) -> dict:
         """
         """
         fbfile, ebands = self.fbfile, self.fbfile.ebands
 
         # Compute l-decomposed PJDOS for each type of atom.
-        symbols_lso = OrderedDict()
+        symbols_lso = {}
         if self.method == "gaussian":
 
             for symbol in fbfile.symbols:
@@ -2281,8 +2281,8 @@ class _DosIntegrator(object):
 
         return symbols_lso
 
-    @lazy_property
-    def ls_stackdos(self):
+    @cached_property
+    def ls_stackdos(self) -> dict:
         """
         Compute ``ls_stackdos`` datastructure for stacked DOS.
         ls_stackdos maps (l, spin) onto a numpy array [nsymbols, nfreqs] where
@@ -2300,12 +2300,13 @@ class _DosIntegrator(object):
         for (l, spin), dvals in dls.items():
             arr = np.zeros((nsymb, len(self.mesh)))
             for isymb, symbol in enumerate(fbfile.symbols):
+                if symbol not in dvals: continue
                 arr[isymb] = dvals[symbol]
             ls_stackdos[(l, spin)] = arr.cumsum(axis=0)
 
         return ls_stackdos
 
-    def get_lstack_symbol(self, symbol, spin):
+    def get_lstack_symbol(self, symbol: str, spin: int) -> np.ndarray:
         """
         Return |numpy-array| with the cumulative sum over l for a given
         atom type (specified by the chemical symbol ``symbol``) and spin.

@@ -11,10 +11,9 @@ import os
 import re
 import subprocess
 import webbrowser
+
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
-
-import requests
 from invoke import task
 from monty.os import cd
 
