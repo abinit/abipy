@@ -266,7 +266,7 @@ class AtomicConfiguration:
         return (self.Z == other.Z and
                 all(s1 == s2 for s1, s2 in zip(self.states, other.states)))
 
-    def __ne__(self, other: AtomicConfiguration) -> bool:
+    def __ne__(self, other) -> bool:
         return not self == other
 
     def copy(self) -> AtomicConfiguration:
@@ -371,12 +371,8 @@ class RadialFunction:
         self.pprint(stream=stream)
         return stream.getvalue()
 
-    #def __add__(self, other):
-    #def __sub__(self, other):
-    #def __mul__(self, other):
-
     def __abs__(self) -> RadialFunction:
-        return self.__class__(self.rmesh, np.abs(self.values))
+        return self.__class__(self.name, self.rmesh, np.abs(self.values))
 
     @property
     def to_dict(self) -> dict:

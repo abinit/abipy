@@ -553,7 +553,7 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
 
     def expose_phbands(self, slide_mode=False, slide_timeout=None, **kwargs):
         """
-        Shows a predefined list of matplotlib figures for phonon bands with minimal input from the user.
+        Show a predefined list of matplotlib figures for phonon bands with minimal input from the user.
         """
         from abipy.tools.plotting import MplExposer
         with MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:

@@ -236,7 +236,7 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 class Polaron:
     """
     This object stores the polaron coefficients A_kn, B_qnu for a given spin and all the nstate polaron states.
-    Provides methods to plot |A_nk|^2 or |B_qnu|^2 together with the band structures (fatbands-like plots).
+    Provides methods to plot ``|A_nk|^2`` or ``|B_qnu|^2`` together with the band structures (fatbands-like plots).
     """
     spin: int          # Spin index.
     nstates: int       # Number of polaronic states for this spin.
@@ -456,7 +456,7 @@ class Polaron:
 
     def get_a2_interpolator_state(self, interp_method: str) -> BzRegularGridInterpolator:
         """
-        Build and return an interpolator for |A_nk|^2 for each polaronic state.
+        Build and return an interpolator for ``|A_nk|^2`` for each polaronic state.
 
         Args:
             interp_method: The method of interpolation. Supported are “linear”, “nearest”,
@@ -469,7 +469,7 @@ class Polaron:
 
     def get_b2_interpolator_state(self, interp_method: str) -> BzRegularGridInterpolator:
         """
-        Build and return an interpolator for |B_qnu|^2 for each polaronic state.
+        Build and return an interpolator for ``|B_qnu|^2`` for each polaronic state.
 
         Args:
             interp_method: The method of interpolation. Supported are “linear”, “nearest”,
@@ -600,7 +600,7 @@ class Polaron:
                              marker_alpha=0.5, fontsize=12, lw_bands=1.0, lw_dos=1.0,
                              filter_value=None, fill_dos=True, **kwargs) -> Figure:
         """
-        Plot electron bands with markers whose size is proportional to |A_nk|^2.
+        Plot electron bands with markers whose size is proportional to ``|A_nk|^2``.
 
         Args:
             ebands_kpath: ElectronBands or netcdf file providing an electronic band structure along a k-path.
@@ -618,7 +618,7 @@ class Polaron:
             ax_mat: Matrix |matplotlib-Axes| or None if a new figure should be created.
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used.
-            scale: Scaling factor for |A_nk|^2.
+            scale: Scaling factor for ``|A_nk|^2``.
             marker_color: Color for markers and ADOS.
             marker_edgecolor: Color for marker edges.
             marker_edgecolor: Marker transparency.
@@ -837,7 +837,7 @@ class Polaron:
     def plot_bqnu_with_ddb(self, ddb, smearing_ev=0.001,
                            with_phdos=True, anaddb_kwargs=None, **kwargs) -> Figure:
         """
-        High-level interface to plot phonon energies with markers whose size is proportional to |B_qnu|^2.
+        High-level interface to plot phonon energies with markers whose size is proportional to ``|B_qnu|^2``.
         Similar to plot_bqnu_with_phbands but this function receives in input a DdbFile or a
         path to a DDB file and automates the computation of the phonon bands by invoking anaddb.
 
@@ -866,7 +866,7 @@ class Polaron:
                                marker_alpha=0.5, fontsize=12, lw_bands=1.0, lw_dos=1.0,
                                fill_dos=True, **kwargs) -> Figure:
         """
-        Plot phonon energies with markers whose size is proportional to |B_qnu|^2.
+        Plot phonon energies with markers whose size is proportional to ``|B_qnu|^2``.
 
         Args:
             phbands_qpath: PhononBands or nc file providing a phonon band structure.
@@ -879,7 +879,7 @@ class Polaron:
             with_title: True to add title with chemical formula and gaps.
             interp_method: Interpolation method.
             ax_mat: List of |matplotlib-Axes| or None if a new figure should be created.
-            scale: Scaling factor for |B_qnu|^2.
+            scale: Scaling factor for ``|B_qnu|^2``.
             marker_color: Color for markers.
             fontsize: fontsize for legends and titles.
         """
@@ -1290,8 +1290,8 @@ class VpqRobot(Robot, RobotWithEbands):
             pstate (int, optional): Index of a polaronic state. Defaults to 0.
             convby (str, optional): Convergence parameter.
                 Possible values are:
-                    - `"invsc_linsize"`: Inverse linear size of a supercell (inverse Angstrom).
-                    - `"inv_k"`: Inverse linear size of a k-grid (arbitrary units).
+                - `"invsc_linsize"`: Inverse linear size of a supercell (inverse Angstrom).
+                - `"inv_k"`: Inverse linear size of a k-grid (arbitrary units).
                 Defaults to `"invsc_linsize"`.
             add_lr (bool, optional): Specifies if LR correction should be added a-posteriori.
                 Relevant when LR correction to the matrix elements is not used. Defaults to False.

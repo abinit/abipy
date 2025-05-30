@@ -3657,4 +3657,3 @@ class SigmaPhReader(BaseEphReader):
 
         return tuple(qps_spin)
 
-

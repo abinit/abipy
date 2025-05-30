@@ -18,7 +18,7 @@ class InteratomicForceConstants(Has_Structure):
     Read from the anaddb.nc file.
     """
 
-    def __init__(self, 
+    def __init__(self,
                 structure: Structure,
                 atoms_indices,
                 neighbours_indices,

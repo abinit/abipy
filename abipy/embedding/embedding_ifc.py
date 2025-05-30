@@ -63,7 +63,7 @@ class Embedded_phonons(Phonopy):
         Args:
             phonopy_pristine: Phonopy object of the pristine structure.
             phonopy_defect: Phonopy object of the defect structure.
-            structure_defect_wo_relax: Supercell structure associated to the defect structure, but without relaxation. 
+            structure_defect_wo_relax: Supercell structure associated to the defect structure, but without relaxation.
                 Needed for an easier mapping. Should corresponds to order of phonopy_defect structure.
             main_defect_coords_in_pristine: Main coordinates of the defect in pristine structure, if defect complex,
                 can be set to the center of mass of the complex.

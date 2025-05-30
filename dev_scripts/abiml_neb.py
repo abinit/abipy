@@ -1,6 +1,3 @@
-cat run_neb.py
-#!/usr/bin/env python
-
 from pathlib import Path
 import sys
 import os
@@ -9,7 +6,6 @@ import numpy as np
 import pandas as pd
 
 from monty.os.path import find_exts
-from abipy.tools.iotools import make_executable
 
 from abipy.flowtk.qutils import SlurmJobArray
 
@@ -120,7 +116,7 @@ def process():
 
         ax.set_title(nn_name)
         ax.set_xlabel('Image index', fontsize=fontsize)
-        ax.set_ylabel('$\Delta$ energy [eV]', fontsize=fontsize)
+        ax.set_ylabel(r'$\Delta$ energy [eV]', fontsize=fontsize)
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
     fig.suptitle("K2Cu3Ge5O14")

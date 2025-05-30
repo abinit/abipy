@@ -100,7 +100,7 @@ class FrozenPhonon:
 
     @classmethod
     def from_phbands(cls, phbands, qpt_frac_coords, imode, etas,
-                     scale_matrix=None, max_supercell=None) ->FrozenPhonon:
+                     scale_matrix=None, max_supercell=None) -> FrozenPhonon:
         """
         Create an instace of FrozenPhonon using the eigendisplacements from a |PhononBands|
 

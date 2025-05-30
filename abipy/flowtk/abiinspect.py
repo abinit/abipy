@@ -374,9 +374,9 @@ class Relaxation(Iterable):
     """
     A list of :class:`GroundStateScfCycle` objects.
 
-    .. attribute::
+    .. attribute::  num_iterations:
 
-        num_iterations: Number of iterations performed.
+        Number of iterations performed.
 
     .. note::
 

@@ -148,8 +148,8 @@ class PhononBands:
             # does not contain all the directions required by AbiPy.
             # So we read NonAnalyticalPh only if we know that all directions are available.
             # The flag has_abipy_non_anal_ph is set at the Fortran level. See e.g ifc_mkphbs
-            if ("non_analytical_directions" in r.rootgrp.variables and "has_abipy_non_anal_ph" in r.rootgrp.variables):
             #if ("non_analytical_directions" in r.rootgrp.variables):
+            if ("non_analytical_directions" in r.rootgrp.variables and "has_abipy_non_anal_ph" in r.rootgrp.variables):
                 #print("Found non_anal_ph term compatible with AbiPy plotter.")
                 non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
@@ -165,42 +165,42 @@ class PhononBands:
                        epsinf=epsinf, zcart=zcart,
                        )
 
-    @classmethod
-    def from_phonopy_phonon(cls, phonon) -> PhononBands:
-        """
-        Build an Abipy PhononBands from a phonopy Phonon instance.
-        """
-        structure = Structure.from_phonopy_atoms(phonon.unitcell)
-        natom = len(structure)
-        bands_dict = phonon.get_band_structure_dict()
+    #@classmethod
+    #def from_phonopy_phonon(cls, phonon) -> PhononBands:
+    #    """
+    #    Build an Abipy PhononBands from a phonopy Phonon instance.
+    #    """
+    #    structure = Structure.from_phonopy_atoms(phonon.unitcell)
+    #    natom = len(structure)
+    #    bands_dict = phonon.get_band_structure_dict()
 
-        nac_params = phonon.nac_params
-        epsinf, zcart = None, None
-        if nac_params is not None:
-            epsinf = nac_params["dielectric"]
-            zcart = nac_params["born"]
+    #    nac_params = phonon.nac_params
+    #    epsinf, zcart = None, None
+    #    if nac_params is not None:
+    #        epsinf = nac_params["dielectric"]
+    #        zcart = nac_params["born"]
 
-        nqpt = 0
-        py_phfreqs, py_displ_cart = [], []
-        for q_list, w_list, eig_list in zip(bands_dict['qpoints'], bands_dict['frequencies'], bands_dict['eigenvectors'], strict=True):
-            nqpt += len(q_list)
-            py_phfreqs.extend(w_list)
-            py_displ_cart.extend(eig_list)
+    #    nqpt = 0
+    #    py_phfreqs, py_displ_cart = [], []
+    #    for q_list, w_list, eig_list in zip(bands_dict['qpoints'], bands_dict['frequencies'], bands_dict['eigenvectors'], strict=True):
+    #        nqpt += len(q_list)
+    #        py_phfreqs.extend(w_list)
+    #        py_displ_cart.extend(eig_list)
 
-        py_phfreqs = np.reshape(py_phfreqs, (nqpt, 3*natom)) / abu.eV_to_THz
-        py_displ_cart = np.reshape(py_displ_cart, (nqpt, 3*natom, 3*natom))
+    #    py_phfreqs = np.reshape(py_phfreqs, (nqpt, 3*natom)) / abu.eV_to_THz
+    #    py_displ_cart = np.reshape(py_displ_cart, (nqpt, 3*natom, 3*natom))
 
-        # Build abipy phonon bands from phonopy results.
-        return cls(structure,
-                   self.abi_phbands.qpoints,
-                   py_phfreqs,
-                   # FIXME: Use phononopy displacement
-                   self.abi_phbands.phdispl_cart,
-                   non_anal_ph=None,
-                   #amu=self.abi_phbands.amu,
-                   epsinf=self.abi_phbands.epsinf,
-                   zcart=self.abi_phbands.zcart,
-                   )
+    #    # Build abipy phonon bands from phonopy results.
+    #    return cls(structure,
+    #               self.abi_phbands.qpoints,
+    #               py_phfreqs,
+    #               # FIXME: Use phononopy displacement
+    #               self.abi_phbands.phdispl_cart,
+    #               non_anal_ph=None,
+    #               #amu=self.abi_phbands.amu,
+    #               epsinf=self.abi_phbands.epsinf,
+    #               zcart=self.abi_phbands.zcart,
+    #               )
 
     @classmethod
     def as_phbands(cls, obj: Any) -> PhononBands:
@@ -1948,7 +1948,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         for row, symbol in enumerate(self.structure.symbol_set):
             color = color_l[row]
             rcd = PlotlyRowColDesc(row, 0, nrows, ncols)
-            iax=rcd.iax
+            iax = rcd.iax
             self.decorate_plotly(fig, units=units, qlabels=qlabels, iax=iax)
             if row != len(self.structure.symbol_set):
                 xaxis = 'xaxis%u' % iax
@@ -3016,7 +3016,6 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     #    """Return tabs with widgets to interact with the |PhononBandsPlotter| file."""
     #    from abipy.panels.phonons import PhononBandsPlotterPanel
     #    return PhononBandsPlotterPanel(self).get_panel(**kwargs)
-
 
 
 class PHBST_Reader(ETSF_Reader):
@@ -5220,7 +5219,7 @@ class PhononDosPlotter(NotebookWriter):
             rcd = PlotlyRowColDesc(row, col, nrows, ncols)
             phdos.plotly_dos_idos(fig, rcd=rcd, units=units, trace_name=label, showlegend=False)
             fig.layout['xaxis'+str(rcd.iax)].title = {'text': 'Energy %s' % x_unit, "font": {"size" : fontsize}}
-            if col%ncols==0:
+            if col % ncols == 0:
                 fig.layout['yaxis'+str(rcd.iax)].title = {"text": 'DOS %s' % y_unit, "font": {"size" : fontsize}}
             fig.layout.annotations[rcd.iax-1].font.size = fontsize
             plotly_set_lims(fig, xlims, "x")

@@ -109,7 +109,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             drift=np.linalg.norm(forces.sum(axis=0)),
         )
 
-    def to_string(self, verbose=0, title=None) -> str:
+    def to_string(self, verbose: int = 0, title: str | None = None) -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
@@ -204,7 +204,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             path to Xdatcar file.
         """
         # This library takes 13s to import on HPC (07/02/24) so moved to class method instead of header
-        from pymatgen.io.vasp.outputs import Xdatcar
+        #from pymatgen.io.vasp.outputs import Xdatcar
 
         if filepath is not None and os.path.exists(filepath) and not overwrite:
             raise RuntimeError(f"Cannot overwrite pre-existing file: {filepath}")
@@ -291,11 +291,12 @@ class HistFile(AbinitNcFile, NotebookWriter):
         #else:
         #    hist.mvanimate()
 
-    def plot_ax(self, ax, what, fontsize=8, **kwargs) -> None:
+    def plot_ax(self, ax, what: str, fontsize=8, **kwargs) -> None:
         """
         Helper function to plot quantity ``what`` on axis ``ax`` with matplotlib.
 
         Args:
+            what: Quantity to plot.
             fontsize: fontsize for legend.
             kwargs are passed to matplotlib plot method.
         """
