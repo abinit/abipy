@@ -204,7 +204,7 @@ class LumiWork_relaxations(Work):
     """
     This Work implements the ground and excited state relaxations only.
 
-    The relaxations run simultaneously. No task creation at run-time. 
+    The relaxations run simultaneously. No task creation at run-time.
     """
 
     @classmethod

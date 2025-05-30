@@ -10,7 +10,7 @@ def profile(statement, global_vars, local_vars):
     """
     Run statement under profiler, supplying your own globals and locals
 
-    Example::
+    .. code-block::
 
         stats = profile("main()", global_vars=globals(), local_vars=locals())
     """
@@ -115,7 +115,7 @@ def display_top(snapshot, key_type='lineno', limit=3):
     Profile memory usage in Python.
     Taken from https://stackoverflow.com/questions/552744/how-do-i-profile-memory-usage-in-python
 
-    Example::
+    .. code-block::
 
         tracemalloc.start()
         main()

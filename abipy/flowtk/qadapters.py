@@ -259,7 +259,7 @@ class Hardware:
         try:
             # old pymatgen
             mem_per_node = str(Memory(val=self.mem_per_node, unit='Mb'))
-        except Exception:
+        except UnitError:
             mem_per_node = str(Memory(val=self.mem_per_node, unit='MB'))
 
         return {'num_nodes': self.num_nodes,

@@ -1058,7 +1058,7 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
                         qpt=(0, 0, 0),                     # q-wavevector.
                         kptopt=3,                          # Take into account time-reversal symmetry.
                         iscf=7,                            # The rfstrs perturbation must be treated in a
-                                                           #  self-consistent way
+                                                           # self-consistent way
                         paral_kgb=0
                         )
 

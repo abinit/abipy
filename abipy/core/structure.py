@@ -551,8 +551,9 @@ class Structure(pmg_Structure, NotebookWriter):
             units: Units of input lattice parameters e.g. "bohr", "pm"
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
 
-        Example::
-            Structure.zincblende(a, ["Zn", "S"])
+        .. code-block::
+
+            structure = Structure.zincblende(a, ["Zn", "S"])
         """
         a = pmg_units.Length(a, units).to("ang")
         lattice = 0.5 * float(a) * np.array([
@@ -574,8 +575,9 @@ class Structure(pmg_Structure, NotebookWriter):
             species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
 
-        Example::
-            Structure.rocksalt(a, ["Na", "Cl"])
+        .. code-block::
+
+            structure = Structure.rocksalt(a, ["Na", "Cl"])
         """
         a = pmg_units.Length(a, units).to("ang")
         lattice = 0.5 * float(a) * np.array([
@@ -626,7 +628,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         Build a |Structure| object from a dictionary with ABINIT variables.
 
-        Example::
+        .. code-block::
 
             al_structure = Structure.from_abivars(
                 acell=3*[7.5],

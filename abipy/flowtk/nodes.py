@@ -335,7 +335,7 @@ class NodeResults(dict, MSONable):
         to the absolute path. By default, files are assumed to be in binary form, for formatted files
         one should pass a tuple ("filepath", "t").
 
-        Example::
+        .. code-block:: abinit
 
             results.register_gridfs(GSR="path/to/GSR.nc", text_file=("/path/to/txt_file", "t"))
 

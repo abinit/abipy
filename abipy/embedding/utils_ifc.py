@@ -6,11 +6,7 @@ from __future__ import annotations
 import os, shutil
 import numpy as np
 
-#from phonopy import Phonopy
 from abipy.core.structure import Structure
-#from pymatgen.io.phonopy import get_pmg_structure, get_phonopy_structure
-#from abipy.core.abinit_units import eV_to_THz
-#from abipy.dfpt.converters import phonopy_to_abinit
 
 
 def stru_0_1_to_minus_05_05(structure: Structure):
@@ -31,12 +27,12 @@ def stru_0_1_to_minus_05_05(structure: Structure):
     return new_stru
 
 
-def frac_coords_05_to_minus05(stru) -> Structure:
+def frac_coords_05_to_minus05(structure: Structure) -> Structure:
     """
     Move atoms that are close to frac_coord = 0.5 to -0.5
     Needed for atoms that are at -0.5 in the perfect supercell but move to for instance 0.498 after relaxation
     """
-    new_stru = stru.copy()
+    new_stru = structure.copy()
     for i, atom in enumerate(new_stru):
         if atom.frac_coords[0] > 0.495:
             atom.frac_coords[0] = -0.5
@@ -48,7 +44,7 @@ def frac_coords_05_to_minus05(stru) -> Structure:
     return new_stru
 
 
-def center_wrt_defect(structure, defect_coord) -> Structure:
+def center_wrt_defect(structure: Structure, defect_coord) -> Structure:
     """
     Center the structure around defect_coord. Defect is now at [0,0,0]
     """
@@ -56,12 +52,13 @@ def center_wrt_defect(structure, defect_coord) -> Structure:
     new_stru = structure.copy()
     # site = structure[index_in_structure]
     new_stru.translate_sites(indices=np.arange(0, len(structure)),
-                            vector=-defect_coord,frac_coords=False,
-                            to_unit_cell=False)
+                             vector=-defect_coord,
+                             frac_coords=False,
+                             to_unit_cell=False)
     return new_stru
 
 
-def clean_structure(structure, defect_coord) -> Structure:
+def clean_structure(structure: Structure, defect_coord) -> Structure:
     """
     Apply successively:
     center_wrt_defect(), stru_0_1_to_minus_05_05(), frac_coords_05_to_minus05()
@@ -74,7 +71,7 @@ def clean_structure(structure, defect_coord) -> Structure:
     return stru
 
 
-def map_two_structures_coords(stru_1, stru_2,tol=0.1):
+def map_two_structures_coords(stru_1: Structure, stru_2: Structure, tol: float = 0.1) -> list[int]:
     """
     Returns a mapping between two structures based on
     the coordinates, within a given tolerance in Angstrom.
@@ -95,12 +92,12 @@ def map_two_structures_coords(stru_1, stru_2,tol=0.1):
     return mapping
 
 
-def accoustic_sum(Hessian_matrix, atom_label):
-    Sum_hessian = np.zeros((3,3))
+def accoustic_sum(Hessian_matrix, atom_label) -> np.ndarray:
+    sum_hessian = np.zeros((3, 3))
     for m in range(len(Hessian_matrix[0])):
-        Sum_hessian += Hessian_matrix[m][atom_label]
+        sum_hessian += Hessian_matrix[m][atom_label]
 
-    return Sum_hessian
+    return sum_hessian
 
 
 def inverse_participation_ratio(eigenvectors):
@@ -127,10 +124,15 @@ def localization_ratio(eigenvectors):
     return len(eigenvectors[0])/ipr
 
 
-def vesta_phonon(eigenvectors,in_path,ibands=None,
-                 scale_vector=20,width_vector=0.3,color_vector=[255,0,0],centered=True,
-                 factor_keep_vectors=0.1,
-                 out_path="VESTA_FILES") -> None:
+def vesta_phonon(eigenvectors,
+                in_path,
+                ibands=None,
+                scale_vector=20,
+                width_vector=0.3,
+                color_vector=[255,0,0],
+                centered=True,
+                factor_keep_vectors=0.1,
+                out_path="VESTA_FILES") -> None:
     """
     Draw the phonons eigenvectors on a vesta file.
     Inspired from https://github.com/AdityaRoy-1996/Phonopy_VESTA/tree/master

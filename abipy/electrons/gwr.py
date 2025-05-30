@@ -21,7 +21,7 @@ from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, No
 from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
-from abipy.tools.typing import Figure, KptSelect
+from abipy.tools.typing import Figure, KptSelect, VectorLike
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker, plot_xy_with_hue,
     set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line, Exposer)
 from abipy.abio.robots import Robot

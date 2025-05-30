@@ -806,7 +806,7 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs) -> Figure:
     """
     Use imshow for plotting 2D or 1D arrays.
 
-    Example::
+    .. code-block::
 
         plot_array(np.random.rand(10,10))
 
@@ -902,7 +902,7 @@ class ConvergenceAnalyzer:
             yvals_dict:
             ytols_dict: dict mapping the name of the y-variable to absolute tolerance(s).
 
-        Example::
+        .. code-block::
 
             plotter = ConvergencePlotter("ecut", ecut_value, yvals_dict, ytols_dict)
             plotter.plot()
@@ -1237,7 +1237,8 @@ class Marker:
     in the plot and s is the size of the marker.
     Used for plotting purpose e.g. QP data, energy derivatives...
 
-    Example::
+    .. code-block::
+
         x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
         marker = Marker(x, y, s)
     """

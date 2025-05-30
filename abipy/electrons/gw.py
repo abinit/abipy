@@ -23,7 +23,7 @@ from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import (ArrayPlotter, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
     set_axlims, set_visible, rotate_ticklabels, set_ax_xylabels, set_grid_legend, plot_xy_with_hue)
-from abipy.tools.typing import Figure, KptSelect
+from abipy.tools.typing import Figure, KptSelect, VectorLike
 from abipy.tools import duck
 from abipy.tools.iotools import filepath_extract_differences
 from abipy.abio.enums import StrEnum
@@ -1018,7 +1018,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             size: The marker size in points**2
             verbose: Verbosity level
 
-        Example::
+        .. code-block::
 
             r = sigres.interpolate(lpratio=5,
                                    ks_ebands_kpath=ks_ebands_kpath,

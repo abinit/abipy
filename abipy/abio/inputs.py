@@ -2936,7 +2936,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         an exception when trying to extract data from the output results produced by Abinit
         It tries to extract information about the error and finally raises self.Error.
 
-        .. example::
+        .. code-block::
 
             try:
                 do_something_with_the_output_files_produced_by_the_task

@@ -1,8 +1,7 @@
 # coding: utf-8
 """
-This module defines the Robot base xlass.
-Robots operate on multiple files and provide helper
-functions to plot data, perform convergence studies
+This module defines the Robot base class.
+Robots operate on multiple files and provide helper functions to plot data, perform convergence studies
 and build pandas dataframes.
 """
 from __future__ import annotations
@@ -16,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 from collections import deque
-from typing import Callable, Union, Any
+from typing import Callable, Any
 from functools import wraps
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
@@ -109,7 +108,9 @@ class Robot(NotebookWriter):
         return new
 
     @classmethod
-    def from_dirs(cls, dirpaths: list[str], walk: bool = True, abspath: bool = False) -> Robot:
+    def from_dirs(cls, dirpaths: list[str],
+                  walk: bool = True,
+                  abspath: bool = False) -> Robot:
         """
         Similar to `from_dir` but accepts a list of directories instead of a single directory.
 
@@ -125,7 +126,10 @@ class Robot(NotebookWriter):
         return new
 
     @classmethod
-    def from_dir_glob(cls, pattern: str, walk: bool = True, abspath: bool = False) -> Robot:
+    def from_dir_glob(cls,
+                      pattern: str,
+                      walk: bool = True,
+                      abspath: bool = False) -> Robot:
         """
         Build a robot by scanning all files located within the directories
         matching `pattern` as implemented by glob.glob
@@ -200,7 +204,8 @@ class Robot(NotebookWriter):
                               labels=list(label_file_dict.keys()))
 
     @classmethod
-    def from_files(cls, filenames: list[str],
+    def from_files(cls,
+                   filenames: list[str],
                    labels: list[str] | None = None,
                    abspath: bool = False) -> Robot:
         """
@@ -837,7 +842,7 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
         else:
             return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
 
-    def sortby(self, func_or_string: Union[Callable, str, None],
+    def sortby(self, func_or_string: Callable | str | None,
                reverse: bool = False, unpack: bool = False) -> list[tuple]:
         """
         Sort files in the robot by ``func_or_string``.
@@ -857,8 +862,8 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
         return self._sortby_labelfile_list(labelfile_list, func_or_string, reverse=reverse, unpack=unpack)
 
     def group_and_sortby(self,
-                         hue: Union[Callable, str],
-                         func_or_string: Union[Callable, str, None]) -> list[HueGroup]:
+                         hue: Callable | str,
+                         func_or_string: Callable | str | None = None) -> list[HueGroup]:
         """
         Group files by ``hue`` and, inside each group` sort items by ``func_or_string``.
 
@@ -873,8 +878,6 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
                 If string, it's assumed that the abifile has an attribute with the same name and getattr is invoked.
                 If callable, the output of func_or_string(abifile) is used.
                 If None, no sorting is performed.
-
-        Return: List of :class:`HueGroup` instance.
         """
         # Group by hue.
         # This is the section in which we support: callable, abifile.attr.name syntax or abifile.params["key"]
@@ -1009,7 +1012,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             return str(func_or_string)
 
     @add_fig_kwargs
-    def plot_convergence(self, item: Union[str, Callable],
+    def plot_convergence(self, item: str | Callable,
                          sortby=None, hue=None, abs_conv=None,
                          ax=None, fontsize=8, **kwargs) -> Figure:
         """
@@ -1040,11 +1043,8 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         Example:
 
              robot.plot_convergence("energy")
-
              robot.plot_convergence("energy", sortby="nkpt")
-
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear")
-
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear", abs_conv=1e-3)
         """
         if "marker" not in kwargs:
@@ -1091,12 +1091,16 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         return fig
 
     @add_fig_kwargs
-    def plot_convergence_items(self, items: list[Union[str, Callable]],
-                               sortby=None, hue=None, abs_conv=None,
-                               fontsize=8, **kwargs) -> Figure:
+    def plot_convergence_items(self,
+                               items: list[str | Callable],
+                               sortby=None,
+                               hue=None,
+                               abs_conv=None,
+                               fontsize=8,
+                               **kwargs) -> Figure:
         """
         Plot the convergence of a list of ``items`` wrt to the ``sortby`` parameter.
-        Values can optionally be grouped by ``hue``.
+        Values can optionally be grouped by the ``hue`` parameter.
 
         Args:
             items: List of attributes (or callables) to be analyzed.
@@ -1124,7 +1128,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         # Build grid plot.
         nrows, ncols = len(items), 1 if abs_conv is None else 2
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
+                                               sharex=True, sharey=False, squeeze=False)
 
         # Sort and group files if hue.
         if hue is None:
@@ -1176,7 +1180,9 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
         return fig
 
-    def get_convergence_analyzer(self, xname: str, ytols_dict: dict) -> ConvergenceAnalyzer:
+    def get_convergence_analyzer(self,
+                                 xname: str,
+                                 ytols_dict: dict) -> ConvergenceAnalyzer:
         """
         The main difference is that ConvergenceAnalyze supports multiple convergence tolerances
         for a given y-value.
@@ -1184,8 +1190,6 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         Args:
             xname: Name of the x-variable.
             ytols_dict: dict mapping the name of the y-variable to the tolerance(s).
-
-        Example:
         """
         df = self.get_dataframe()
         return ConvergenceAnalyzer.from_dataframe(df, xname, ytols_dict)
@@ -1221,9 +1225,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         Example:
 
              robot.plot_lattice_convergence()
-
              robot.plot_lattice_convergence(sortby="nkpt")
-
              robot.plot_lattice_convergence(sortby="nkpt", hue="tsmear")
         """
         if not self.abifiles: return None
@@ -1272,8 +1274,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
         marker = kwargs.pop("marker", "o")
         for i, (ax, item) in enumerate(zip(ax_list.ravel(), items)):
-            self.plot_convergence(item, sortby=sortby, hue=hue, ax=ax, fontsize=fontsize,
-                                  marker=marker, show=False)
+            self.plot_convergence(item, sortby=sortby, hue=hue, ax=ax, fontsize=fontsize, marker=marker, show=False)
             if i != 0:
                 set_visible(ax, False, "legend")
             if i != len(items) - 1:
@@ -1346,15 +1347,14 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
 class HueGroup:
     """
-    This small object is used by ``group_and_sortby`` to store information about the group.
+    This object is used by ``group_and_sortby`` to store information about the group.
     """
 
     def __init__(self, hvalue, xvalues, abifiles, labels):
         """
         Args:
             hvalue: Hue value.
-            xvalues: abifiles are sorted by ``func_or_string`` and these are the values
-                associated to ``abifiles``.
+            xvalues: abifiles are sorted by ``func_or_string`` and these are the values associated to ``abifiles``.
             abifiles: List of file with this hue value.
             labels: List of labels associated to ``abifiles``.
         """
@@ -1362,8 +1362,10 @@ class HueGroup:
         self.abifiles = abifiles
         self.labels = labels
         self.xvalues = xvalues
-        assert len(abifiles) == len(labels)
-        assert len(abifiles) == len(xvalues)
+        if len(abifiles) != len(labels):
+            raise ValueError("abifiles and labels must have the same length: %s != %s" % (len(abifiles), len(labels)))
+        if len(abifiles) != len(xvalues):
+            raise ValueError("abifiles and xvalues must have the same length: %s != %s" % (len(abifiles), len(xvalues)))
 
     def __len__(self) -> int:
         return len(self.abifiles)
@@ -1406,7 +1408,7 @@ from __future__ import annotations
 if False:
     import seaborn as sns
     sns.set(context="paper", style='darkgrid', palette='deep',
-           font='sans-serif', font_scale=0.8, color_codes=False, rc=None)
+            font='sans-serif', font_scale=0.8, color_codes=False, rc=None)
 
 from abipy.abio.robots import Robot
 robot = Robot.from_json_file("{self.filepath_json}")
