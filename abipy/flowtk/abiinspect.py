@@ -130,7 +130,8 @@ class ScfCycle(Mapping):
         self._num_iterations = all_lens[0]
         assert all(n == self._num_iterations for n in all_lens)
 
-    def num_iterations(self)
+    @property
+    def num_iterations(self) -> int:
         """Number of iterations performed."""
         return self._num_iterations
 

@@ -1622,12 +1622,12 @@ class ElectronBands(Has_Structure):
         return [self.homos[spin].eig - self.lomos[spin].eig for spin in self.spins]
 
     @property
-    def fundamental_gaps(self) -> List[ElectronTransition]:
+    def fundamental_gaps(self) -> list[ElectronTransition]:
         """List of :class:`ElectronTransition` with info on the fundamental gaps for each spin."""
         return [ElectronTransition(self.homos[spin], self.lumos[spin]) for spin in self.spins]
 
     @property
-    def direct_gaps(self) -> List[ElectronTransition]:
+    def direct_gaps(self) -> list[ElectronTransition]:
         """List of `nsppol` :class:`ElectronTransition` with info on the direct gaps for each spin."""
         dirgaps = self.nsppol * [None]
         for spin in self.spins:
