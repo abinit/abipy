@@ -4,11 +4,6 @@ from __future__ import annotations
 import numpy as np
 import abipy.core.abinit_units as abu
 
-#try:
-#    from scipy.integrate import simpson as simps
-#except ImportError:
-#    from scipy.integrate import simps
-
 from pymatgen.io.phonopy import get_pmg_structure
 from abipy.tools.plotting import get_ax_fig_plt,add_fig_kwargs
 from abipy.tools.typing import Figure
