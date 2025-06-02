@@ -42,9 +42,10 @@ def get_abinb_workdir() -> str:
     Return the absolute path of the scratch directory used to produce
     and save temporary files when we are runnning inside a jupyter_ notebook.
 
-    .. note:
+    .. note::
 
         Due to web-browser policy, files used in the notebook must be within the current working directory.
+
     """
     wdir = os.path.join(os.getcwd(), "__abinb_workdir__")
     if not os.path.exists(wdir): os.mkdir(wdir)
@@ -63,9 +64,10 @@ def abinb_mkstemp(force_abinb_workdir=False, use_relpath=False, **kwargs) -> tup
             notebooks or in web browers.
             In this case, the caller is responsbile for calling the function with the correct flag.
 
-    .. example:
+    .. code-block::
 
         _, filename = abinb_mkstep(suffix="." + ext, text=True)
+
     """
     if in_notebook() or force_abinb_workdir:
         d = kwargs.pop("dir", None)

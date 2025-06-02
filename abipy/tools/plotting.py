@@ -146,9 +146,9 @@ def add_fig_kwargs(func: Callable) -> Callable:
     doc_str = """\n\n
         Keyword arguments controlling the display of the figure:
 
-        ================  ====================================================
+        ================  =======================================================
         kwargs            Meaning
-        ================  ====================================================
+        ================  =======================================================
         title             Title of the plot. Default: None.
         show              True to show the figure. Default: True.
         savefig           "abc.png" or "abc.svg" to save the figure to a file.
@@ -160,7 +160,7 @@ def add_fig_kwargs(func: Callable) -> Callable:
         ax_annotate       Add labels to subplots e.g. (a), (b). Default: False
         fig_close         Close figure. Default: False.
         plotly            Try to convert mpl figure to plotly: Default: False
-        ================  ====================================================
+        ================  =======================================================
 
 """
 
@@ -806,7 +806,7 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs) -> Figure:
     """
     Use imshow for plotting 2D or 1D arrays.
 
-    Example::
+    .. code-block::
 
         plot_array(np.random.rand(10,10))
 
@@ -902,7 +902,7 @@ class ConvergenceAnalyzer:
             yvals_dict:
             ytols_dict: dict mapping the name of the y-variable to absolute tolerance(s).
 
-        Example::
+        .. code-block::
 
             plotter = ConvergencePlotter("ecut", ecut_value, yvals_dict, ytols_dict)
             plotter.plot()
@@ -1237,7 +1237,8 @@ class Marker:
     in the plot and s is the size of the marker.
     Used for plotting purpose e.g. QP data, energy derivatives...
 
-    Example::
+    .. code-block::
+
         x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
         marker = Marker(x, y, s)
     """
@@ -2119,9 +2120,9 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
     doc_str = """\n\n
         Keyword arguments controlling the display of the figure:
 
-        ================  ====================================================================
+        ================  =============================================================================================
         kwargs            Meaning
-        ================  ====================================================================
+        ================  =============================================================================================
         title             Title of the plot (Default: None).
         show              True to show the figure (default: True).
         hovermode         True to show the hover info (default: False)
@@ -2135,17 +2136,16 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
                           See https://github.com/plotly/jupyterlab-chart-editor
         renderer          (str or None (default None)) –
                           A string containing the names of one or more registered renderers
-                          (separated by ‘+’ characters) or None. If None, then the default
+                          (separated by "+" characters) or None. If None, then the default
                           renderers specified in plotly.io.renderers.default are used.
-                          See https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
+                          See <https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html>
         config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-        chart_studio      True to push figure to chart_studio server. Requires authenticatios.
+        chart_studio      True to push figure to chart_studio server. Requires authentication.
                           Default: False.
-        template          Plotly template. See https://plotly.com/python/templates/
-                          ["plotly", "plotly_white", "plotly_dark", "ggplot2",
-                           "seaborn", "simple_white", "none"]
+        template          Plotly template. See <https://plotly.com/python/templates>
+                          ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]
                           Default is None that is the default template is used.
-        ================  ====================================================================
+        ================  =============================================================================================
 
 """
 

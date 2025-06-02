@@ -26,6 +26,7 @@ from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 #from abipy.tools.typing import Figure
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
+from abipy.eph.gstore import GstoreFile #, GstoreReader, Gqk
 
 
 class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , NotebookWriter):
@@ -344,7 +345,7 @@ class GwanReader(BaseEphReader):
     Reads data from file and constructs objects.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: GstoreReader
+    .. inheritance-diagram:: GwanReader
     """
     def __init__(self, filepath: PathLike):
         super().__init__(filepath)
@@ -412,7 +413,7 @@ class GwanReader(BaseEphReader):
                 #print(f"Found {qpoint = } with index {iq_g = }")
                 return iq_g, qpoint
 
-        raise ValueError(f"Cannot find {qpoint = } in GSTORE.nc")
+        raise ValueError(f"Cannot find {qpoint=} in GSTORE.nc")
 
     def find_ik_glob_kpoint(self, kpoint, spin: int):
         """Find the internal indices of the kpoint needed to access the gvals array."""
@@ -422,7 +423,7 @@ class GwanReader(BaseEphReader):
                 #print(f"Found {kpoint = } with index {ik_g = }")
                 return ik_g, kpoint
 
-        raise ValueError(f"Cannot find {kpoint = } in GSTORE.nc")
+        raise ValueError(f"Cannot find {kpoint=} in GSTORE.nc")
 
     # TODO: This fix to read groups should be imported in pymatgen.
     @cached_property

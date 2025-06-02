@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from typing import Union
 from functools import cached_property
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
@@ -19,9 +18,16 @@ class InteratomicForceConstants(Has_Structure):
     Read from the anaddb.nc file.
     """
 
-    def __init__(self, structure, atoms_indices, neighbours_indices, ifc_cart_coord,
-                 ifc_cart_coord_short_range, local_vectors, distances, atoms_cart_coord,
-                 ifc_weights):
+    def __init__(self,
+                structure: Structure,
+                atoms_indices,
+                neighbours_indices,
+                ifc_cart_coord,
+                ifc_cart_coord_short_range,
+                local_vectors,
+                distances,
+                atoms_cart_coord,
+                ifc_weights):
         """
         Args:
             structure: |Structure| object.
@@ -113,7 +119,7 @@ class InteratomicForceConstants(Has_Structure):
         return np.shape(self.neighbours_indices)[1]
 
     @cached_property
-    def ifc_cart_coord_ewald(self) -> Union[None, np.ndarray]:
+    def ifc_cart_coord_ewald(self) -> None | np.ndarray:
         """Ewald part of the IFCs in cartesian coordinates."""
         if self.ifc_cart_coord_short_range is None:
             return None
@@ -121,7 +127,7 @@ class InteratomicForceConstants(Has_Structure):
             return self.ifc_cart_coord - self.ifc_cart_coord_short_range
 
     @cached_property
-    def ifc_local_coord(self) -> Union[None, np.ndarray]:
+    def ifc_local_coord(self) -> None | np.ndarray:
         """IFCs in local coordinates."""
         if self.local_vectors is None:
             return None
@@ -129,7 +135,7 @@ class InteratomicForceConstants(Has_Structure):
             return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord, self.local_vectors)
 
     @cached_property
-    def ifc_local_coord_short_range(self) -> Union[None, np.ndarray]:
+    def ifc_local_coord_short_range(self) -> None | np.ndarray:
         """Short range part of the IFCs in cartesian coordinates."""
         if self.local_vectors is None:
             return None

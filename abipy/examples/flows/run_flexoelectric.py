@@ -9,7 +9,7 @@ The final results (out_DDB, out_DVDB) will be produced automatically at the end 
 and saved in ``flow_phonons_with_quad/outdata/``.
 
 The Q* tensor may be needed to improve the accuracy of the Fourier interpolation of the phonon frequencies,
-especially in the long-wavelength limit |q| --> 0.
+especially in the long-wavelength limit q --> 0.
 This example is based on  <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
 
 Note that only selected features are compatible with dynamical quadrupoles.

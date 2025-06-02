@@ -42,8 +42,8 @@ class Qha2dFlow(Flow):
         Args:
             workdir: Working directory of the flow.
             scf_input: |AbinitInput| for GS-SCF run used as template to generate the other inputs.
-            bo_strains_ac
-            phdos_strains_ac
+            bo_strains_ac:
+            phdos_strains_ac:
             ngqpt: Three integers defining the q-mesh for phonon calculation.
             with_becs: Activate calculation of Electric field and Born effective charges.
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
@@ -104,7 +104,7 @@ class Qha2dFlow(Flow):
 class Qha2dWork(Work):
     """
     This work performs a structural relaxation of the initial structure, then a set of distorted
-    structures is genenerated and the relaxed structures are used
+    structures is generated and the relaxed structures are used
     to compute phonons, BECS and the dielectric tensor with DFPT.
 
     .. rubric:: Inheritance Diagram
@@ -147,9 +147,9 @@ class Qha2dWork(Work):
         # Create input for relaxation and register the relaxation task.
         work.relax_template = relax_template = scf_input.deepcopy()
 
-        # optcell = 3 --> constant-volume optimization of cell geometry.
+        # optcell = 3 --> ions + cell optimization
         relax_template.pop_tolerances()
-        relax_template.set_vars(optcell=3, ionmov=ionmov, tolvrs=1e-8, tolmxf=1e-6)
+        relax_template.set_vars(optcell=2, ionmov=ionmov, tolvrs=1e-8, tolmxf=1e-6)
         relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
 
         work.initial_relax_task = work.register_relax_task(relax_template)

@@ -5,13 +5,14 @@
 #SPHINXOPTS  = -j6
 #SPHINXOPTS   = -v -W --show-traceback --pdb
 #SPHINXOPTS   = -j1 -v -W --show-traceback --pdb
-SPHINXOPTS  = 
+SPHINXOPTS  =
 # Verbose mode
-#SPHINXBUILD   = sphinx-build -v
+SPHINXBUILD   = sphinx-build -v
 # Sphinx may treat warnings as errors, halting HTML generation.
-#SPHINXBUILD   = sphinx-build -v -W --keep-going
-#SPHINXBUILD   = sphinx-build -v -W --show-traceback --pdb
-SPHINXBUILD   = sphinx-build
+#SPHINXBUILD   = sphinx-build -v -W -n
+#SPHINXBUILD   = sphinx-build -v -W -n --keep-going
+#SPHINXBUILD   = sphinx-build -v -W -n --show-traceback --pdb
+#SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
 

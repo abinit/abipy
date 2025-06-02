@@ -116,10 +116,6 @@ class ScfCycle(Mapping):
     """
     It essentially consists of a dictionary mapping string
     to list of floats containing the data at the different iterations.
-
-    .. attribute::
-
-        num_iterations: Number of iterations performed.
     """
 
     MAGIC = "Must be defined by the subclass." ""
@@ -131,8 +127,13 @@ class ScfCycle(Mapping):
         """
         self.fields = fields
         all_lens = [len(lst) for lst in self.values()]
-        self.num_iterations = all_lens[0]
-        assert all(n == self.num_iterations for n in all_lens)
+        self._num_iterations = all_lens[0]
+        assert all(n == self._num_iterations for n in all_lens)
+
+    @property
+    def num_iterations(self) -> int:
+        """Number of iterations performed."""
+        return self._num_iterations
 
     def __getitem__(self, slice):
         return self.fields.__getitem__(slice)
@@ -373,9 +374,9 @@ class Relaxation(Iterable):
     """
     A list of :class:`GroundStateScfCycle` objects.
 
-    .. attribute::
+    .. attribute::  num_iterations:
 
-        num_iterations: Number of iterations performed.
+        Number of iterations performed.
 
     .. note::
 

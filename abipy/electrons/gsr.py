@@ -705,7 +705,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
 
-        Example::
+        .. code-block::
 
              gsr.plot_gsr_convergence(sortby="ecut")
              gsr.plot_gsr_convergence(sortby="nkpt", hue="tsmear")

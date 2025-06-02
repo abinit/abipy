@@ -99,7 +99,7 @@ How to extend tasks/works with specialized code
 -----------------------------------------------
 
 Remember that pickle_ does not support classes defined inside scripts (`__main__`).
-This means that `abirun.py` will likely raise an exception when trying to
+This means that `abirun.py` will raise the following exception when trying to
 reconstruct the object from the pickle file:
 
 .. code-block:: python

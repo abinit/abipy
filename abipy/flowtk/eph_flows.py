@@ -219,8 +219,8 @@ class GkqPathFlow(Flow):
                        ddb_filepath=None,
                        dvdb_filepath=None,
                        ddk_tolerance=None,
-                       test_ft_interpolation=False,
-                       prepgkk=0,
+                       test_ft_interpolation: bool = False,
+                       prepgkk: int = 0,
                        manager=None) -> GkqPathFlow:
         """
         Build the flow from an input file representing a GS calculation.

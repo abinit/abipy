@@ -315,7 +315,7 @@ def smooth(x, window_len=11, window='hanning'):
 
     Returns: the smoothed signal.
 
-    example::
+    .. code-block::
 
         t = linspace(-2,2,0.1)
         x = sin(t)+randn(len(t))*0.1

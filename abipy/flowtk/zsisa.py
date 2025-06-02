@@ -118,6 +118,7 @@ class ZsisaWork(Work):
                        ndivsm: int,
                        ionmov: int,
                        edos_ngkpt=None) -> ZsisaWork:
+                       #mode: str
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
         See ZsisaFlow for the meaning of the arguments.
@@ -154,6 +155,8 @@ class ZsisaWork(Work):
             # Get relaxed structure and build new task for structural relaxation at fixed volume.
             relaxed_structure = sender.get_final_structure()
 
+            # FIXME
+            # def generate_deformations(structure, eps: float, str_type='BO', eps_ref=[0.005, 0.005 ,0.005], mode="TEC") -> tuple:
             self.strained_structures_dict, self.strain_inds, self.spgrp_number = generate_deformations(relaxed_structure, self.eps)
 
             self.relax_tasks_strained = []
@@ -252,6 +255,7 @@ class ThermalRelaxWork(Work):
 
 
 class ThermalRelaxTask(RelaxTask):
+    # TODO Write files with results
 
     def _on_ok(self):
         results = super()._on_ok()
@@ -269,6 +273,8 @@ class ThermalRelaxTask(RelaxTask):
             # Stress tensor is in GPa units
             cart_therm_stress = zsisa.get_cart_thermal_stress(relaxed_structure, self.temperature, self.pressure_gpa)
             converged = np.all(np.abs(cart_therm_stress - gsr.cart_stress_tensor)) < tol_gpa
+
+            #def cal_stress(self, temp, pressure = 0, mode = "TEC" , elastic_path = "elastic_constant.txt" ):
 
             thermal_hist["history"].append(dict(
                 structure=relaxed_structure,

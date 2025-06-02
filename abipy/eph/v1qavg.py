@@ -47,7 +47,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     This file is produced by the E-PH code by setting eph_task to +15 or -15.
     If eph_task is +15, the input DVDB contains a q-mesh and the potentials are interpolated on a list of q-points
     (usually a q-path) specified by the user. In this case the V1QAVG.nc file also contains an extra array
-    with Max_r |W(R, r)|, useful to study the decay of the scattering potentials in R-space.
+    with ``Max_r |W(R, r)|``, useful to study the decay of the scattering potentials in R-space.
     If eph_task is -15, the netcdf file contains the average for the q-points found in the DVDB file.
     This option is usually used to visualize the ab-initio potentials and compare then with the model for the LR part.
     """
@@ -78,7 +78,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @cached_property
     def has_maxw(self) -> bool:
-        """True if ncfile contains Max_r |W(R, r)|"""
+        """True if ncfile contains ``Max_r |W(R, r)|``"""
         return "maxw" in self.reader.rootgrp.variables
 
     def close(self) -> None:
@@ -287,7 +287,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot_maxw(self, scale="semilogy", ax=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot the decay of max_{r,idir,ipert} |W(R,r,idir,ipert)|
+        Plot the decay of max_{r,idir,ipert} ``|W(R,r,idir,ipert)|``.
 
         Args:
             scale: "semilogy", "loglog" or "plot".
@@ -318,7 +318,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot_maxw_perts(self, scale="semilogy", sharey=False, fontsize=8, **kwargs) -> Figure:
         """
-        Plot the decay of max_r |W(R,r,idir,ipert)| for the individual atomic perturbations.
+        Plot the decay of ``Max_r |W(R,r,idir,ipert)|`` for the individual atomic perturbations.
 
         Args:
             scale: "semilogy", "loglog" or "plot".

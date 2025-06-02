@@ -380,7 +380,7 @@ class DeltaSCF():
         w_0 = np.sqrt(8*np.log(2))*(self.S_em()/np.sqrt(self.S_abs()))*self.eff_freq_gs()
         if T == 0:
             return w_0
-        else :
+        else:
             k_b = abu.kb_eVK
             w_T = w_0 * np.sqrt(coth(self.eff_freq_ex() / (2 * k_b * T)))
             return w_T
@@ -449,7 +449,7 @@ class DeltaSCF():
         See eq. (9) of  https://doi.org/10.1002/adom.202100649. NOT based on the generating function.
 
         Args:
-            energy_range:  Energy range at which the intensities are computed, ex : [0.5,5]
+            energy_range:  Energy range at which the intensities are computed, ex: [0.5,5]
             max_m: Maximal vibrational state m considered
             phonon_width: fwhm of each phonon peak, in eV
             with_omega_cube: Considered or not the omega^3 dependence of the intensity
@@ -492,7 +492,7 @@ class DeltaSCF():
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            energy_range:  Energy range at which the intensities are computed, ex : [0.5,5]
+            energy_range:  Energy range at which the intensities are computed, ex: [0.5,5]
             max_m: Maximal vibrational state m considered
             phonon_width: fwhm of each phonon peak, in eV
             with_omega_cube: Considered or not the omega^3 dependence of the intensity
@@ -528,7 +528,7 @@ class DeltaSCF():
 
     def get_dataframe(self, label=None) -> pd.DataFrame:
         """
-        Panda dataframe with the main results of a LumiWork : transition energies, delta Q, Huang Rhys factor,...
+        Panda dataframe with the main results of a LumiWork: transition energies, delta Q, Huang Rhys factor,...
         Units used are Angstrom, eV, amu.
         DeltaSCF object should be instantiated with the four points files, not with relax files only.
         """
@@ -548,14 +548,14 @@ class DeltaSCF():
         Draw the ground state to excited state atomic relaxation on a vesta structure.
 
         Args:
-            in_path : path where the initial .vesta structure in stored, should correspond to the ground state relaxed structure.
-            mass_weighted : If True, weight the displacements by the atomic masses. Draw the \Delta Q in that case.
-            scale_vector : scaling factor of the vector modulus
-            width_vector : vector width
-            color_vector : color in rgb format
-            centered : center the vesta structure around [0,0,0]
-            factor_keep_vectors : draw only the eigenvectors with magnitude > factor_keep_vectors * max(magnitude)
-            out_path : path where .vesta files with vector are stored
+            in_path: path where the initial .vesta structure in stored, should correspond to the ground state relaxed structure.
+            mass_weighted: If True, weight the displacements by the atomic masses. Draw the \Delta Q in that case.
+            scale_vector: scaling factor of the vector modulus
+            width_vector: vector width
+            color_vector: color in rgb format
+            centered: center the vesta structure around [0,0,0]
+            factor_keep_vectors: draw only the eigenvectors with magnitude > factor_keep_vectors * max(magnitude)
+            out_path: path where .vesta files with vector are stored
         """
 
         vesta = open(in_path,'r').read()
@@ -564,7 +564,7 @@ class DeltaSCF():
         if os.path.isdir(out_path):
             shutil.rmtree(out_path)
             os.mkdir(out_path)
-        else :
+        else:
             os.mkdir(out_path)
 
         path = out_path
@@ -577,10 +577,10 @@ class DeltaSCF():
         if mass_weighted:
             displacements = self.diff_pos_mass_weighted()
 
-        for iatom in range(natoms) :
+        for iatom in range(natoms):
             magnitudes.append(np.sqrt(displacements[iatom][0]**2 + displacements[iatom][1]**2 + displacements[iatom][2]**2))
 
-        for iatom in range(natoms) :
+        for iatom in range(natoms):
             if magnitudes[iatom] > factor_keep_vectors * max(np.real(magnitudes)):
                 towrite += '%5d' % (iatom + 1)
                 towrite += '%10.5f' % (displacements[iatom][0] * (scale_vector))
@@ -592,7 +592,7 @@ class DeltaSCF():
         towrite += '0 0 0 0 0\n'
         towrite += 'VECTT\n'
 
-        for atom in range(natoms) :
+        for atom in range(natoms):
             towrite += '%5d' % (atom + 1)
             towrite += f'  {width_vector} {color_vector[0]}   {color_vector[1]}   {color_vector[2]} 0\n'
 
@@ -618,7 +618,7 @@ class DeltaSCF():
             with open(filename, 'w') as file:
                 file.write(updated_contents)
 
-        print(f"Vesta files created and stored in : \n {os.getcwd()}/{out_path}")
+        print(f"Vesta files created and stored in: \n {os.getcwd()}/{out_path}")
 
     @add_fig_kwargs
     def displacements_visu(self, a_g=10, **kwargs) -> Figure:
@@ -628,7 +628,7 @@ class DeltaSCF():
         The colors of the atoms are based on Delta_Q_^2 per atom.
 
         Args:
-            a_g : coefficient that multiplies the displacement magnitudes
+            a_g: coefficient that multiplies the displacement magnitudes
 
         Returns: |matplotlib-Figure|
         """

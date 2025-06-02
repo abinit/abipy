@@ -746,6 +746,7 @@ class ElectronBands(Has_Structure):
         .. warning:
 
             Assume spin-unpolarized band energies.
+
         """
         if self.nsppol == 2:
             raise ValueError(f"set_fermie_to_vbm assumes nsppol == 1 while it is: {self.nsppol}")
@@ -1358,6 +1359,7 @@ class ElectronBands(Has_Structure):
             the conversion is not complete, especially if you rely on the default values.
             Please read carefylly the docstring and the code and use the optional arguments to pass
             additional data required by AbiPy if you need a complete conversion.
+
         """
         from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
 
@@ -1620,12 +1622,12 @@ class ElectronBands(Has_Structure):
         return [self.homos[spin].eig - self.lomos[spin].eig for spin in self.spins]
 
     @property
-    def fundamental_gaps(self) -> List[ElectronTransition]:
+    def fundamental_gaps(self) -> list[ElectronTransition]:
         """List of :class:`ElectronTransition` with info on the fundamental gaps for each spin."""
         return [ElectronTransition(self.homos[spin], self.lumos[spin]) for spin in self.spins]
 
     @property
-    def direct_gaps(self) -> List[ElectronTransition]:
+    def direct_gaps(self) -> list[ElectronTransition]:
         """List of `nsppol` :class:`ElectronTransition` with info on the direct gaps for each spin."""
         dirgaps = self.nsppol * [None]
         for spin in self.spins:
@@ -3559,12 +3561,12 @@ class ElectronBandsPlotter(NotebookWriter):
         return dataframe_from_ebands(list(self.ebands_dict.values()), index=list(self.ebands_dict.keys()), with_spglib=with_spglib)
 
     @property
-    def ebands_list(self) -> List[ElectronBands]:
+    def ebands_list(self) -> list[ElectronBands]:
         """"List of |ElectronBands| objects."""
         return list(self.ebands_dict.values())
 
     @property
-    def edoses_list(self) -> List[ElectronDos]:
+    def edoses_list(self) -> list[ElectronDos]:
         """"List of |ElectronDos| objects."""
         return list(self.edoses_dict.values())
 
@@ -4937,7 +4939,7 @@ class ElectronDosPlotter(NotebookWriter):
         return len(self.edoses_dict)
 
     @property
-    def edos_list(self) -> List[ElectronDos]:
+    def edos_list(self) -> list[ElectronDos]:
         """List of DOSes"""
         return list(self.edoses_dict.values())
 
