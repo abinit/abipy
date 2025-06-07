@@ -41,7 +41,7 @@ def anaget_phdoses_with_gauss(nqsmall_or_qppa,
         nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
             if > 0, it is interpreted as nqsmall
             if < 0, it is interpreted as qppa.
-        smearing_ev: Gaussian smearing in eV.
+        smearing_ev: Gaussian smearing in eV. None to use Abinit default value.
         ddb_paths: List of paths to the DDB files.
         anaget_kwargs: dictionary with extra arguments passed to anaget_phbst_and_phdos_files.
         verbose: Verbosity level.

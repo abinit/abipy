@@ -1,14 +1,13 @@
-# deformation_utils.py
 from __future__ import annotations
 
 import numpy as np
 
 from pymatgen.core import Lattice
+from abipy.core.structure import Structure
 from abipy.core.symmetries import AbinitSpaceGroup
-from abipy import abilab
 
 
-def generate_deformations_volumic(structure, eps_V=0.02, scales=None):
+def generate_deformations_volumic(structure: Structure, eps_V: float = 0.02, scales=None):
     if scales is None:
         scales = [-1, 0, 1, 2, 3]
     rprim = structure.lattice.matrix
@@ -28,38 +27,43 @@ def generate_deformations_volumic(structure, eps_V=0.02, scales=None):
     return structures_new
 
 
-#def generate_deformations(structure, eps=0.005) -> tuple:
-def generate_deformations(structure, eps: float, str_type='BO', eps_ref=[0.005, 0.005 ,0.005], mode="TEC") -> tuple:
+def generate_deformations(structure: Structure,
+                          eps: float,
+                          str_type: str = 'BO',
+                          eps_ref=[0.005, 0.005 ,0.005],
+                          mode: str = "TEC") -> tuple:
     """
     Generates deformed structures by applying strain to the input structure's lattice.
 
-    Parameters:
-    structure : pymatgen.Structure
-        The input crystal structure.
-    eps : float
-        Strain magnitude to be applied to the lattice. Strains will be applied to the reference lattice. 
-    str_type : str, optional
-        Structure types :
-        -  ref': The reference structure for the Taylor expansion method.
-        - 'BO': BO structure, applies strain scaling using eps_ref to generate a
-                deformed reference structure for the Taylor expansion method.
-    eps_ref : list of float, optional
-        A list of strain values corresponding to normal strains along xx, yy, and zz
-        directions ([eps_xx, eps_yy, eps_zz]). Default: [0.005, 0.005, 0.005](not used in 'ref' structure type).
-    mode : str, optional
-        Determines the purpose of deformation:
-        - 'TEC': Generates new structures needed to compute the thermal expansion coefficient.
-        - 'ECs': Generates structures for both elastic constants and thermal expansion coefficient calculations.
+    Args:
+      structure: Input crystal structure.
+      eps: Strain magnitude to be applied to the lattice. Strains will be applied to the reference lattice.
+      str_type:
+          -  ref': The reference structure for the Taylor expansion method.
+          - 'BO': BO structure, applies strain scaling using eps_ref to generate a
+                  deformed reference structure for the Taylor expansion method.
+      eps_ref: list of float, optional
+          A list of strain values corresponding to normal strains along xx, yy, and zz
+          directions ([eps_xx, eps_yy, eps_zz]). Default: [0.005, 0.005, 0.005] (not used in 'ref' structure type).
+      mode: Determines the purpose of deformation:
+          - 'TEC': Generates new structures needed to compute the thermal expansion coefficient.
+          - 'ECs': Generates structures for both elastic constants and thermal expansion coefficient calculations.
 
-    Returns:
-    tuple
-        A tuple containing the modified structures and associated strain indices.
+    Returns: tuple containing the modified structures and the associated strain indices.
     """
+    allowed_modes = {"TEC", "ECs"}
+    if mode not in allowed_modes:
+        raise ValueError(f"Invalid {mode=}, should be in {allowed_modes}")
+
+    allowed_str_types = {"BO", "ref"}
+    if str_type not in allowed_str_types:
+        raise ValueError(f"Invalid {str_type=}, should be in {allowed_str_types}")
+
     spgrp = AbinitSpaceGroup.from_structure(structure)
 
     spgrp_number = spgrp.spgid
     rprim = np.copy(structure.lattice.matrix)
-    #TOFIX: The primitive lattice is not a standard one. 
+    #TOFIX: The primitive lattice is not a standard one.
     #primitive_structure = structure.get_primitive_structure(tolerance=0.01, use_site_props=False, constrain_latt=False)
     #spgrp = AbinitSpaceGroup.from_structure(primitive_structure)
     #print(spgrp)
@@ -69,10 +73,11 @@ def generate_deformations(structure, eps: float, str_type='BO', eps_ref=[0.005, 
     lattice_b = structure.lattice.abc[1]
     lattice_c = structure.lattice.abc[2]
     tol8 = 1.0e-8
+
     # Rotate lattice parameters to follow Abinit conventions.
     # Keep the angles unchanged if the lattice is orthogonal (90°)
     # or if it belongs to a cubic system with a primitive cell having 60° angles.
-    if (not ((abs(angdeg[0] - 60) + abs(angdeg[1] - 60) + abs(angdeg[2] - 60)) < tol8) and 
+    if (not ((abs(angdeg[0] - 60) + abs(angdeg[1] - 60) + abs(angdeg[2] - 60)) < tol8) and
         not ((abs(angdeg[0] - 90) + abs(angdeg[1] - 90) + abs(angdeg[2] - 90)) < tol8)):
         if (abs(angdeg[0] - angdeg[1]) < tol8 and abs(angdeg[1] - angdeg[2]) < tol8):
             # Trigonal symmetry case
@@ -98,10 +103,9 @@ def generate_deformations(structure, eps: float, str_type='BO', eps_ref=[0.005, 
         rprim0[0,:] = rprim0[0,:]*lattice_a
         rprim0[1,:] = rprim0[1,:]*lattice_b
         rprim0[2,:] = rprim0[2,:]*lattice_c
-        print("Old rprim:")
-        print(rprim)
-        print("New rprim:")
-        print(rprim0)
+        #print("Old rprim:\n", rprim)
+        #print("New rprim:\n", rprim0)
+
     else:
         rprim0 = rprim
 
@@ -112,6 +116,7 @@ def generate_deformations(structure, eps: float, str_type='BO', eps_ref=[0.005, 
         rprim[ :,0] *= (1.00 + eps_ref[0])
         rprim[ :,1] *= (1.00 + eps_ref[1])
         rprim[ :,2] *= (1.00 + eps_ref[2])
+
     elif str_type != 'ref':
         raise ValueError("Invalid method. Choose 'ref' or 'BO'.")
 
@@ -131,7 +136,8 @@ def generate_deformations(structure, eps: float, str_type='BO', eps_ref=[0.005, 
     # Initialize strain components in Voigt notation: xx, yy, zz, yz, xz, xy
     i, j, k, l, m, n = 6 * [0]
 
-    if 1 <= spgrp_number <= 2: # Check for triclinic crystal systems
+    if 1 <= spgrp_number <= 2:
+        # triclinic crystal systems
         # Define strain configurations in Voigt notation
         disp = [[0,0,0,0,0,0], [-1,0,0,0,0,0], [1,0,0,0,0,0], [0,-1,0,0,0,0], [0,1,0,0,0,0], [0,0,-1,0,0,0],
               [0,0,1,0,0,0], [0,0,0,-1,0,0], [0,0,0,1,0,0], [0,0,0,0,-1,0], [0,0,0,0,1,0], [0,0,0,0,0,-1],
@@ -139,35 +145,44 @@ def generate_deformations(structure, eps: float, str_type='BO', eps_ref=[0.005, 
               [-1,0,-1,0,0,0], [-1,0,0,-1,0,0], [-1,0,0,0,-1,0], [-1,0,0,0,0,-1], [0,-1,0,-1,0,0], [0,-1,0,0,-1,0],
               [0,-1,0,0,0,-1], [0,0,-1,0,-1,0], [0,0,-1,0,0,-1], [0,0,0,-1,0,-1]]
 
-    elif 3 <= spgrp_number <= 15: # Check for triclinic crystal systems
+    elif 3 <= spgrp_number <= 15:
+        # Triclinic crystal systems
         # Define strain configurations in Voigt notation
         disp=[[0,0,0,0,0,0], [-1,0,0,0,0,0], [1,0,0,0,0,0], [0,-1,0,0,0,0], [0,1,0,0,0,0], [0,0,-1,0,0,0],
               [0,0,1,0,0,0], [0,0,0,0,-1,0], [0,0,0,0,1,0], [-1,-1,0,0,0,0], [0,-1,-1,0,0,0], [0,0,-1,0,-1,0],
               [-1,0,-1,0,0,0], [0,-1,0,0,-1,0], [-1,0,0,0,-1,0]]
-        if mode=="ECs":
+
+        if mode == "ECs":
             disp.extend([[0,0,0,-1,0,0], [0,0,0,0,0,-1], [0,0,0,-1,0,-1]])
 
-    elif 16 <= spgrp_number <= 74: # Check for orthorhombic crystal systems
+    elif 16 <= spgrp_number <= 74:
+        # orthorhombic crystal systems
         disp=[[0,0,0,0,0,0], [-1,0,0,0,0,0], [1,0,0,0,0,0], [0,-1,0,0,0,0], [0,1,0,0,0,0], [0,0,-1,0,0,0],
               [0,0,1,0,0,0], [-1,-1,0,0,0,0], [0,-1,-1,0,0,0], [-1,0,-1,0,0,0]]
-        if mode=="ECs":
+
+        if mode == "ECs":
             disp.extend([[0,0,0,1,0,0], [0,0,0,2,0,0], [0,0,0,0,1,0], [0,0,0,0,2,0], [0,0,0,0,0,1], [0,0,0,0,0,2]])
 
-    elif 75 <= spgrp_number <= 194: # Check for uniaxial crystal systems
-        if mode=="TEC":
+    elif 75 <= spgrp_number <= 194:
+        # uniaxial crystal systems
+        if mode == "TEC":
             disp=[[0,0,0,0,0,0], [0,0,-1,0,0,0], [0,0,1,0,0,0], [-1,-1,0,0,0,0], [1,1,0,0,0,0], [-1,-1,-1,0,0,0]]
         else:
             disp=[[0,0,0,0,0,0], [-1,0,0,0,0,0], [1,0,0,0,0,0], [0,0,-1,0,0,0],
                   [0,0,1,0,0,0], [-1,-1,0,0,0,0], [-1,0,-1,0,0,0]]
-            if    75  <= spgrp_number <= 142: # Check for Tetragonal crystal systems
+            if    75  <= spgrp_number <= 142:
+                # Tetragonal crystal systems
                 disp.extend([[0,0,0,1,0,0], [0,0,0,2,0,0], [0,0,0,0,0,1], [0,0,0,0,0,2]])
-            elif  143 <= spgrp_number <= 167: # Check for trigonal systems
+            elif  143 <= spgrp_number <= 167:
+                # trigonal systems
                 disp.extend([[0,0,0,1,0,0], [0,0,0,2,0,0],[-1,0,0,1,0,0]])
-            elif  168 <= spgrp_number <= 194: # Check for hexagonal crystal systems
+            elif  168 <= spgrp_number <= 194:
+                # hexagonal crystal systems
                 disp.extend([[0,0,0,1,0,0], [0,0,0,2,0,0]])
 
-    elif 195 <= spgrp_number <= 230: # Check for cubic crystal systems
-        if mode=="TEC":
+    elif 195 <= spgrp_number <= 230:
+        # cubic crystal systems
+        if mode == "TEC":
             disp=[[0,0,0,0,0,0], [-1,-1,-1,0,0,0], [1,1,1,0,0,0]]
         else:
             disp=[[0,0,0,0,0,0], [-1,0,0,0,0,0], [1,0,0,0,0,0], [-1,-1,0,0,0,0], [0,0,0,1,0,0], [0,0,0,2,0,0]]
@@ -177,18 +192,19 @@ def generate_deformations(structure, eps: float, str_type='BO', eps_ref=[0.005, 
 
     for pair in disp:
         i, j, k, l, m, n = pair
-        rprim2[ :,0] = rprim0[ :,0] * (1.00 + eps * i) + rprim0[ :,1] * (eps * n) +rprim0[ :,2] * (eps * m)
+        rprim2[ :,0] = rprim0[ :,0] * (1.00 + eps * i) + rprim0[ :,1] * (eps * n) + rprim0[ :,2] * (eps * m)
         rprim2[ :,1] = rprim0[ :,1] * (1.00 + eps * j) + rprim0[ :,2] * (eps * l)
         rprim2[ :,2] = rprim0[ :,2] * (1.00 + eps * k)
 
-        namei = ( eps * i)
-        namej = ( eps * j)
-        namek = ( eps * k)
-        namel = ( eps * l)
-        namem = ( eps * m)
-        namen = ( eps * n)
+        namei = eps * i
+        namej = eps * j
+        namek = eps * k
+        namel = eps * l
+        namem = eps * m
+        namen = eps * n
         formatted_namei = f"{namei:.3f}_{namej:.3f}_{namek:.3f}_{namel:.3f}_{namem:.3f}_{namen:.3f}"
 
         _add(formatted_namei, rprim2, i, j, k, l, m, n)
+
     return structures_new, np.array(strain_inds, dtype=int), spgrp_number
 

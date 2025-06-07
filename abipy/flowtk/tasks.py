@@ -1736,7 +1736,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
     def restart(self) -> int:
         """
-        Restart the calculation.  Subclasses should provide a concrete version that
+        Restart the calculation. Subclasses should provide a concrete version that
         performs all the actions needed for preparing the restart and then calls self._restart
         to restart the task. The default implementation is empty.
 

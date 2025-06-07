@@ -73,9 +73,14 @@ rprim
 
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
+    # mode: 'TEC' for thermal expansion only, 'ECs' to include elastic constants
+    mode = 'TEC'
     eps = 0.005
-    return ZsisaFlow.from_scf_input(options.workdir, scf_input, eps, ngqpt,
+
+    flow = ZsisaFlow.from_scf_input(options.workdir, scf_input, eps, mode, ngqpt,
                                     with_becs, with_quad, edos_ngkpt=None)
+
+    return flow
 
 
 # This block generates the thumbnails in the Abipy gallery.

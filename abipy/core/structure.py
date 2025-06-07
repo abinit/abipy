@@ -705,6 +705,35 @@ class Structure(pmg_Structure, NotebookWriter):
         else:
             return super().to(fmt=fmt, filename=filename, **kwargs)
 
+    def compare(self, other, atol: float= 1e-6) -> tuple[bool, str]:
+        """
+        Compare two structures with absolute tolerance `atol`.
+        Return: bool indicating if structures are equal and string with error message, if any.
+        """
+        from io import StringIO
+        file = StringIO()
+        lat_match = np.allclose(self.lattice.matrix, other.lattice.matrix, atol=atol)
+        if not lat_match:
+           print("Mismatch in lattice", file=file)
+
+        site_match = True
+        if len(self) != len(other):
+            site_match = False
+            print(f"{len(self)=} != {len(other)=}", file=file)
+
+        for site1, site2 in zip(self.sites, other.sites):
+            if site1.species != site2.species:
+                print("Mismatch in atomic species:", site1.species, site2.species, file=file)
+                site_match = False
+            elif not np.allclose(site1.frac_coords, site2.frac_coords, atol=atol):
+                print("Mismatch in fractional coordinates:", site1.frac_coords, site2.frac_coords, file=file)
+                site_match = False
+            elif not np.allclose(site1.coords, site2.coords, atol=atol):
+                print("Mismatch in cartesian coordinates:", site1.coords, site2.coords, file=file)
+                site_match = False
+
+        return lat_match and site_match, file.getvalue()
+
     def mp_match(self, **kwargs):
         """
         Finds matching structures on the Materials Project database.

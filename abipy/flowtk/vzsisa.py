@@ -9,6 +9,7 @@ from __future__ import annotations
 import numpy as np
 
 from abipy.tools.serialization import mjson_write
+from abipy.abio.inputs import AbinitInput
 from abipy.flowtk.tasks import RelaxTask
 from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.flows import Flow
@@ -26,7 +27,7 @@ class VzsisaFlow(Flow):
     @classmethod
     def from_scf_input(cls,
                        workdir,
-                       scf_input,
+                       scf_input: AbinitInput,
                        bo_vol_scales,
                        ph_vol_scales,
                        ngqpt,
@@ -83,7 +84,7 @@ class VzsisaFlow(Flow):
         data = {"bo_vol_scales": work.bo_vol_scales, "ph_vol_scales": work.ph_vol_scales}
         data["initial_structure"] = work.initial_scf_input.structure
 
-        # Build list of strings with path to the relevant output files ordered by volume.
+        # Build list of strings with paths to the relevant output files ordered by volume.
         data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_vol]
 
         gsr_relax_entries, gsr_relax_volumes = [], []
