@@ -43,7 +43,7 @@ class ZsisaFlow(Flow):
                        tolmxf=1e-5,
                        manager=None) -> ZsisaFlow:
         """
-        Build a flow for QHA calculations from an |AbinitInput| for GS-SCF calculation.
+        Build a flow for ZSISA calculations from an |AbinitInput| representing a GS-SCF calculation.
 
         Args:
             workdir: Working directory of the flow.
@@ -70,6 +70,14 @@ class ZsisaFlow(Flow):
             tolmxf: Tolerance of Max force.
             manager: |TaskManager| instance. Use default if None.
         """
+        # Consistency check.
+        if "ngkpt" in scf_input:
+            ngkpt = np.array(scf_input["ngkpt"], dtype=int)
+            ngqpt = np.array(ngqpt, dtype=int)
+
+            if np.any(ngkpt % ngqpt != 0):
+                raise ValueError(f"ngqpt should be a divisor of ngkpt but got {ngqpt=} and {ngkpt=}")
+
         flow = cls(workdir=workdir, manager=manager)
         flow.register_work(ZsisaWork.from_scf_input(scf_input, eps, mode, ngqpt, with_becs, with_quad,
                                                     ndivsm, ionmov, tolmxf,
@@ -169,17 +177,20 @@ class ZsisaWork(Work):
     def on_ok(self, sender):
         """
         This method is called when one task reaches status `S_OK`.
+        Here we take the relaxed structure from initial_relax_task and generated deformed
+        structures that will be relaxed at fixed unit cell to prepare the phonon calculations.
         """
         if sender == self.initial_relax_task:
             # Get relaxed structure and build new task for structural relaxation at fixed volume.
             relaxed_structure = sender.get_final_structure()
 
+            # Generate deformed structures with the associated indices in the 6d matrix.
             self.strained_structures_dict, self.strain_inds, self.spgrp_number = generate_deformations(
                 relaxed_structure, self.eps, mode=self.mode)
 
+            # Relax each deformed structure with fixed unit cell (optcell 0).
             self.relax_tasks_strained = []
             for structure in self.strained_structures_dict.values():
-                # Relax deformed structure with fixed unit cell.
                 task = self.register_relax_task(self.relax_template.new_with_structure(structure, optcell=0))
                 self.relax_tasks_strained.append(task)
 
@@ -190,7 +201,7 @@ class ZsisaWork(Work):
     def on_all_ok(self):
         """
         This callback is called when all tasks in the Work reach status `S_OK`.
-        Here we add a new PhononWork for each volume using the relaxed structure.
+        Here we add a new PhononWork for each deformed structure that has been relaxed at fixed cell.
         """
         # Build phonon works for the different relaxed structures.
         self.ph_works = []
@@ -205,8 +216,8 @@ class ZsisaWork(Work):
                                                 ndivsm=0 if np.any(strain_ind != 0) else self.ndivsm)
 
             # Reduce the number of files produced by the DFPT tasks to avoid possible disk quota issues.
-            for ph_task in ph_work[1:]:
-                ph_task.input.set_vars(prtden=0, prtpot=0)
+            #for ph_task in ph_work[1:]:
+            #    ph_task.input.set_vars(prtpot=0)
 
             ph_work.set_name(strain_name)
             self.ph_works.append(ph_work)
@@ -227,21 +238,26 @@ class ZsisaWork(Work):
 
 class ThermalRelaxWork(Work):
     """
+    A work made of ThermalRelaxTask tasks.
+
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ThermalRelaxWork
     """
 
     #@classmethod
-    #def from_zsisa_flow(self, zsisa_flow,
+    #def from_zsisa_flow(self, zsisa_flow_dir,
     #                    temperatures: list,
     #                    pressures: list) -> ThermalRelaxWork:
+    #    nqsmall_or_qppa = 4
+    #    zsisa = QHA_ZSISA.from_json_file("flow_qha_zsisa/outdata/zsisa.json", nqsmall_or_qppa, verbose=1)
+    #    print(zsisa)
 
     @classmethod
     def from_relax_input(cls,
                          relax_input: AbinitInput,
                          mode: str,
                          phdos_paths,
-                         gsr_bo_path
+                         gsr_bo_path,
                          temperatures: list,
                          pressures: list) -> ThermalRelaxWork:
         """
@@ -262,15 +278,20 @@ class ThermalRelaxWork(Work):
         work.temperatures = np.array(temperatures)
         work.pressures_gpa = np.array(pressures_gpa)
 
-        #zsisa = self.get_zsisa(self, guess_path)
+        # Build zsisa object.
+        zsisa = self.get_zsisa(gsr_bo_path)
+
+        # Generate initial ThermalRelaxTask tasks.
         work.thermal_relax_tasks = []
         for pressure_gpa, temperature in itertools.product(work.pressures_gpa, work.temperatures):
-            #new_structure = zsisa.structure_guess
-            #new_input = relax_input.new_with_structure(new_structure)
-            new_input = relax_input.new_with_vars(strtarget=strtarget)
+            converged, stress = zsisa.cal_stress(temperature, pressure_gpa,
+                                                 mode=self.mode, elastic_path=None)
 
-            # Register ThermalRelaxTask and attach pressure and temperature to the task.
-            task = work.register_task(new_input, task_class=ThermalRelaxTask)
+            # TODO: Relax options with ecutsm and strfact?
+            new_relax_input = relax_input.new_with_vars(strtarget=stress)
+
+            # Attach pressure and temperature to the task.
+            task = work.register_task(new_relax_input, task_class=ThermalRelaxTask)
             task.mode = mode
             task.pressure_gpa = pressure_gpa
             task.temperature = temperature
@@ -293,33 +314,63 @@ class ThermalRelaxWork(Work):
     #    else:
     #        raise RuntimeError(f"Cannot find {sender=} in {self}")
 
-    #    #if work.mode == "elastic":
-    #    # Build work for elastic properties
-    #    #relaxed_structure = relax_task.get_final_structure()
-    #    #scf_input = relax_task.input.new_with_structure(relaxed_structure)
-    #    #scf_input.pop_relax_vars()
-    #    #elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
-    #    #self.flow.register_work(elastic_work)
-    #    #self.flow.allocate(build=True)
+    def on_all_ok(self):
+        """
+        Callback triggered when all tasks in the ThermalRelaxWork reach the `S_OK` status.
 
-    #    return super().on_all_ok()
+        This method writes a JSON file containing the paths to the GSR files associated with each
+        temperature (T) and pressure (P) point. If elastic constants have also been computed,
+        a similar JSON entry is generated for the corresponding DDB files.
+        """
+
+        data = dict(
+            #initial_structure=self.input.structure,
+            mode=self.mode,
+            phdos_paths=self.phdos_paths,
+            gsr_bo_path=self.gsr_bo_path,
+            temperatures=self.temperatures,
+            pressures_gpa=self.pressures_gpa,
+        )
+
+        data["task_entries"] = []
+        for task in self.thermal_relax_tasks:
+            d = dict(
+                pressure_gpa=task.pressure_gpa,
+                temperature=task.temperature,
+                gsr_path=task.gsr_path,
+                elastic_ddb_path=None,
+            )
+            # Add path to the DDB file with 2nd order derivatives wrt strain.
+            if task.elastic_work is not None:
+                d["elastic_ddb_path"] = task.elastic_work.outdir.path_in("out_DDB")
+
+            data["task_entries"].append(d)
+
+        mjson_write(data, self.outdir.path_in("thermal_relax_work.json"), indent=4)
 
 
 class ThermalRelaxTask(RelaxTask):
+    """
+    This task implements an iterative method to find the optimal lattice parameters
+    at a given temperature (T) and external pressure P_ext.
+    Starting from an initial lattice guess, the thermal and Born-Oppenheimer (BO) stresses are computed.
+    A target stress is defined using the thermal stress and P_ext.
+    Then, the lattice and atomic positions are relaxed repeatedly until the BO stress matches the target stress,
+    ensuring convergence.
+    """
 
     def _on_ok(self):
         results = super()._on_ok()
 
-        # === Main loop to calculate stress and trigger elastic constants ===
         guess_path = self.gsr_path
         zsisa = self.work.get_zsisa(guess_path)
 
         elastic_path = self.outdir.path_in("elastic_constant.txt")
-        chk_converge, stress = zsisa.cal_stress(self.temperature, self.pressure_gpa,
-                                                mode=self.mode, elastic_path=elastic_path)
-        print(stress)
-        if not chk_converge:
-            # Write new input for relaxation.
+        converged, stress = zsisa.cal_stress(self.temperature, self.pressure_gpa,
+                                             mode=self.mode, elastic_path=None)
+        #print(stress)
+        if not converged:
+            # Change strtarget and restart.
             extra_vars = {
                 "strtarget": stress,
                 #"ionmov": 2,
@@ -328,66 +379,20 @@ class ThermalRelaxTask(RelaxTask):
                 #"dilatmx": 1.04,
                 #"tolmxf": 1.0e-5,
                 #"strfact": 1000.,
-                #"prtden": 0,
-                #"prtwf": 0,
-                #"prteig": 0
             }
             self.input.set_vars(**extra_vars)
             self.finalized = False
             # Restart will take care of using the output structure in the input.
             self.restart(submit=False)
 
-        #else:
-        #    if self.mode == "ECs":
-        #        # Build work for elastic properties
-        #        relaxed_structure = self.get_final_structure()
-        #        scf_input = self.input.new_with_structure(relaxed_structure)
-        #        scf_input.pop_relax_vars()
-        #        elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
-        #        self.flow.register_work(elastic_work)
-        #        self.flow.allocate(build=True)
+        else:
+            if self.mode == "ECs":
+                # Build work for elastic properties
+                relaxed_structure = self.get_final_structure()
+                #scf_input = self.input.new_with_structure(relaxed_structure)
+                #scf_input.pop_relax_vars()
+                elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
+                self.flow.register_work(elastic_work)
+                self.flow.allocate(build=True)
 
         return results
-
-        # TODO Write files with results
-        #tol_gpa = 0.01
-        #json_path = self.outdir.path_in("thermal_history.json")
-        #if os.path.exists(json_path):
-        #    thermal_hist = mjson_load(json_path)
-        #else:
-        #    thermal_hist = {"initial_structure": self.input.structure, "tol_gpa": tol_gpa, "history": []}
-
-        #with self.open_gsr() as gsr:
-        #    relaxed_structure = gsr.structure
-        #    # Stress tensor is in GPa units
-        #    cart_therm_stress = zsisa.get_cart_thermal_stress(relaxed_structure, self.temperature, self.pressure_gpa)
-        #    converged = np.all(np.abs(cart_therm_stress - gsr.cart_stress_tensor)) < tol_gpa
-
-        #    #def cal_stress(self, temp, pressure = 0, mode = "TEC" , elastic_path = "elastic_constant.txt" ):
-
-        #    thermal_hist["history"].append(dict(
-        #        structure=relaxed_structure,
-        #        cart_therm_stress=cart_therm_stress,
-        #        cart_bo_stress=gsr.cart_stress_tensor,
-        #        converged=converged,
-        #    ))
-
-        #mjson_write(thermal_hist, json_path, indent=4)
-
-        ## Check for convergence.
-        #if not converged:
-        #    # In fortran notation The components of the stress tensor must be stored according to:
-        #    # (1,1) → 1; (2,2) → 2; (3,3) → 3; (2,3) → 4; (3,1) → 5; (1,2) → 6
-        #    # TODO: strtarget refers to Cartesian coords I suppose! Also, check sign!
-        #    strtarget = np.empty(6)
-        #    strtarget[0] = cart_therm_stress[0,0]
-        #    strtarget[1] = cart_therm_stress[1,1]
-        #    strtarget[2] = cart_therm_stress[2,2]
-        #    strtarget[3] = cart_therm_stress[1,2]
-        #    strtarget[4] = cart_therm_stress[2,0]
-        #    strtarget[5] = cart_therm_stress[0,1]
-        #    strtarget /= abu.HaBohr3_GPa
-        #    self.input.set_vars(strtarget=strtarget)
-        #    self.finalized = False
-        #    self.restart()
-

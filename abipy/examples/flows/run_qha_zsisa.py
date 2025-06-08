@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-Flow for quasi-harmonic calculations under development
-======================================================
+Flow for ZSISA calculations
+===========================
 
 Warning: This code is still under development.
 """
@@ -16,7 +16,7 @@ from abipy.flowtk.zsisa import ZsisaFlow
 
 def build_flow(options):
     """
-    Create a `QhaFlow` for quasi-harmonic calculations.
+    Create a `ZsisaFlow` for QHA calculations withing the ZSISA method
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
@@ -43,6 +43,7 @@ rprim
    0.0000000000    0.0000000000    9.7234377918
 """)
 
+    # FIXME: This is just to make the computation faster.
     # Initialize structure and pseudos
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
@@ -54,10 +55,6 @@ rprim
     #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
     ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
 
-    with_becs = False
-    with_quad = False
-    #with_quad = not structure.has_zero_dynamical_quadrupoles
-
     scf_input = abilab.AbinitInput(structure, pseudos)
 
     # Set other important variables
@@ -67,15 +64,18 @@ rprim
         nbdbuf=0,
         nstep=100,
         ecutsm=1.0,
-        #tolvrs=1.0e-18,      # SCF stopping criterion (modify default)
+        #tolvrs=1.0e-18,    # SCF stopping criterion (modify default)
         tolvrs=1.0e-6,      # SCF stopping criterion (modify default)
     )
 
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
-    # mode: 'TEC' for thermal expansion only, 'ECs' to include elastic constants
-    mode = 'TEC'
-    eps = 0.005
+    eps = 0.005  # Strain magnitude to be applied to the reference lattice.
+    mode = "TEC" # "TEC" for thermal expansion only, "ECs" to include elastic constants.
+
+    with_becs = True
+    with_quad = True
+    #with_quad = not structure.has_zero_dynamical_quadrupoles
 
     flow = ZsisaFlow.from_scf_input(options.workdir, scf_input, eps, mode, ngqpt,
                                     with_becs, with_quad, edos_ngkpt=None)
