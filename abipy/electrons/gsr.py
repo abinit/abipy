@@ -57,10 +57,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = self.r = r = GsrReader(filepath)
-
-        # Initialize the electron bands from file
-        self._ebands = r.read_ebands()
+        self.r = GsrReader(filepath)
 
         # Add forces to structure
         if self.is_scf_run:
@@ -95,10 +92,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         return "\n".join(lines)
 
-    @property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
-        return self._ebands
+        return self.r.read_ebands()
 
     @cached_property
     def is_scf_run(self) -> bool:

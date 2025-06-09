@@ -5,6 +5,7 @@ across various crystallographic structures, from cubic to triclinic.
 from __future__ import annotations
 
 import numpy as np
+import sys
 import os
 import math
 import abipy.core.abinit_units as abu
@@ -43,25 +44,24 @@ class QHA_ZSISA(HasPickleIO):
         """
         json_filepath = os.path.abspath(json_filepath)
         data = mjson_load(json_filepath)
-        ddb_relax_paths = data["ddb_relax_paths"]
-        gsr_relax_paths = data["gsr_relax_paths"]
 
         phdos_paths, phbands_paths = anaget_phdoses_with_gauss(nqsmall_or_qppa, smearing_ev,
-                                                               ddb_relax_paths, anaget_kwargs, verbose)
+                                                               data.ddb_relax_paths, anaget_kwargs, verbose)
 
         # Create a 6D array with shape (3, 3, 3, 3, 3, 3) initialized with None.
         phdos_paths_6d = np.full((3, 3, 3, 3, 3, 3), None, dtype=object)
 
         # === Paths to guessed and BO-relaxed structures ===
-        gsr_bo_path = data["gsr_bo_path"]
-        gsr_guess_path = gsr_bo_path # FIXME
+        gsr_guess_path = data.gsr_bo_path # FIXME
 
-        strain_inds = data["strain_inds"]
-        #print(f"{strain_inds=}")
-        for gsr_path, phdos_path, inds in zip(gsr_relax_paths, phdos_paths, strain_inds, strict=True):
+        strain_inds = data.strain_inds
+        for gsr_path, phdos_path, inds in zip(data.gsr_relax_paths, phdos_paths, strain_inds, strict=True):
+            inds = inds + 1
+            #FIXME: This works only in particular cases e.g. cubic. IT does not work if elastic constants are computed.
+            print(f"{inds=}")
             phdos_paths_6d[inds] = phdos_path
 
-        new = cls.from_files(phdos_paths_6d, gsr_guess_path, gsr_bo_path, model='zsisa', verbose=verbose)
+        new = cls.from_files(phdos_paths_6d, gsr_guess_path, data.gsr_bo_path, model='zsisa', verbose=verbose)
 
         workdir = os.path.dirname(json_filepath)
         new.pickle_dump(workdir, basename=os.path.basename(json_filepath) + ".pickle")
@@ -271,7 +271,7 @@ class QHA_ZSISA(HasPickleIO):
             phdoses: List of phonon density of states (PHDOS) objects computed at different strains.
             dim: Shape of the 6D dataset.
             structure_guess: Initial structure used as a guess.
-            stress_guess: Stress tensor corresponding to the initial guess structure.
+            stress_guess: Stress tensor corresponding to the initial guess structure as (3,3) matrix
             structure_bo: Born-Oppenheimer reference structure.
             sym: Crystallographic symmetry of the reference structure.
         """
@@ -351,6 +351,9 @@ class QHA_ZSISA(HasPickleIO):
         """
         Set structure parameters and stress for the initial guess.
         """
+        if stress_guess.shape != (3, 3):
+            raise ValueError(f"{stress_guess.shape=} != (3, 3)")
+
         self.structure_guess = structure_guess
         self.volume_guess = structure_guess.volume
         self.lattice_a_guess = structure_guess.lattice.abc[0]
@@ -375,6 +378,38 @@ class QHA_ZSISA(HasPickleIO):
         self.ave_y_guess = (abs(self.ay_guess)+abs(self.by_guess)+abs(self.cy_guess))
         self.ave_z_guess = (abs(self.az_guess)+abs(self.bz_guess)+abs(self.cz_guess))
 
+    def print_mat_entries(self, what: str, file=sys.stdout) -> None:
+        mat6d = getattr(self, what, None)
+        if mat6d is None:
+            raise ValueError("Invalid value for {what=}")
+
+        for index, value in np.ndenumerate(mat6d):
+            if value is None: continue
+            print(f"Index: {index}, {what}: {value}", file=file)
+
+    def __str__(self) -> str:
+        return self.to_string(self)
+
+    def to_string(self, verbose: int = 0) -> str:
+        """
+        String representation with verbosity level `verbose`.
+        """
+        from io import StringIO
+        file = StringIO()
+        def _p(*args, **kwargs):
+            print(*args, file=file, **kwargs)
+
+        _p("Structure:\n", self.structures)
+        _p(f"sym={self.sym}, dym={self.dim}")
+
+        what_list = ("ax", "ay", "az")
+        for what in what_list:
+            _p(f"Attribute: {what}")
+            self.print_mat_entries(what, file=file)
+            _p("")
+
+        return file.getvalue()
+
     def stress_v_ZSISA(self, temp: float, pressure: float) -> tuple:
 
         e, S = self.get_vib_free_energies(temp)
@@ -395,6 +430,9 @@ class QHA_ZSISA(HasPickleIO):
             d3F_dV3 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+2*e[3,0,0,0,0,0]-e[4,0,0,0,0,0])/(2*dv**3)
             d4F_dV4 = (e[0,0,0,0,0,0]-4*e[1,0,0,0,0,0]+6*e[2,0,0,0,0,0]-4*e[3,0,0,0,0,0]+e[4,0,0,0,0,0])/(dv**4)
             dfdv = dF_dV + (v-v0)*d2F_dV2+ 0.5*(v-v0)**2*d3F_dV3+ 1/6.0*(v-v0)**3*d4F_dV4
+
+        else:
+            raise ValueError(f"Unsupported value of {self.dim[0]=}")
 
         stress_a = -dfdv* self.eVA3_HaBohr3
         stress = np.zeros(6)
@@ -427,6 +465,7 @@ class QHA_ZSISA(HasPickleIO):
         # Compute strain-related quantities. Eq (50)
         dexx = (X0 - X1) / XBO  # Strain step
         exx0 = X1 / XBO - 1  # Reference strain
+        #print(f"{dexx=}, {exx0=}")
 
         # Compute first and second derivatives of free energy w.r.t. strain
         dF_dX = (e[0,0,0,0,0,0]-e[2,2,2,0,0,0])/(2*dexx)
@@ -1429,9 +1468,7 @@ class QHA_ZSISA(HasPickleIO):
         pressure_gpa = pressure
         pressure = pressure/abu.HaBohr3_GPa
         if self.verbose:
-            print("Mode = ", mode)
-            print("Pressure = ", pressure_gpa, "GPa")
-            print("Temperature = ", temp, "K")
+            print("Mode: ", mode, "\nPressure: ", pressure_gpa, "(GPa)", "\nTemperature: ", temp, "(K)")
 
         elastic = None
         therm = None

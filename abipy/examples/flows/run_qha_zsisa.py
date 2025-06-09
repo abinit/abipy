@@ -72,9 +72,11 @@ rprim
 
     eps = 0.005  # Strain magnitude to be applied to the reference lattice.
     mode = "TEC" # "TEC" for thermal expansion only, "ECs" to include elastic constants.
+    #mode = "ECs" # "TEC" for thermal expansion only, "ECs" to include elastic constants.
 
-    with_becs = True
-    with_quad = True
+    with_becs = False
+    #with_becs = True
+    with_quad = False
     #with_quad = not structure.has_zero_dynamical_quadrupoles
 
     flow = ZsisaFlow.from_scf_input(options.workdir, scf_input, eps, mode, ngqpt,

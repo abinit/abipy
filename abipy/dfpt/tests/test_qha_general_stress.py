@@ -53,7 +53,7 @@ class QhaZSISATest(AbipyTest):
 
         temp = 600
         pressure = 8.0
-        zsisa = QHA_ZSISA.from_files(dos_paths, guess_path, gsr_BO_path )
+        zsisa = QHA_ZSISA.from_files(dos_paths, guess_path, gsr_BO_path)
         result = zsisa.cal_stress(temp, pressure, mode='ECs', elastic_path=elastic_path)
         assert zsisa.dim == (3, 3, 3, 3, 1, 1)
         #print("Stress calculation result:", result)

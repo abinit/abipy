@@ -5,18 +5,37 @@ Workflows for calculations within the ZSISA approximation to the QHA.
 from __future__ import annotations
 
 import itertools
+import dataclasses
 import numpy as np
+import pandas as pd
 import abipy.core.abinit_units as abu
 
 from abipy.tools.serialization import mjson_write, mjson_load
-from abipy.tools.typing import PathLike
+from abipy.tools.typing import PathLike, Figure
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.abio.inputs import AbinitInput
+from abipy.electrons import GsrFile
+from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.deformation_utils import generate_deformations
 from abipy.dfpt.qha_general_stress import QHA_ZSISA
 from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.tasks import RelaxTask
 from abipy.flowtk.flows import Flow
 from abipy.flowtk.dfpt_works import ElasticWork
+
+
+@dataclasses.dataclass(kw_only=True)
+class ZsisaResults:
+    eps: float
+    mode: str
+    spgrp_number: int
+    gsr_bo_path: str
+    strain_inds: np.ndarray
+    gsr_relax_paths: list[str]
+    gsr_relax_entries: list[dict]
+    ddb_relax_paths: list[str]
+    gsr_relax_edos_paths: list[str]
+    gsr_relax_ebands_paths: list[str]
 
 
 class ZsisaFlow(Flow):
@@ -90,14 +109,18 @@ class ZsisaFlow(Flow):
         It performs some basic post-processing of the results to facilitate further analysis.
         """
         work = self[0]
-        data = {"eps": work.eps, "mode": work.mode, "spgrp_number": work.spgrp_number}
-        data["gsr_bo_path"] = work.initial_relax_task.gsr_path
+        data = {
+            "eps": work.eps,
+            "mode": work.mode,
+            "spgrp_number": work.spgrp_number,
+            "gsr_bo_path": work.initial_relax_task.gsr_path,
+            "strain_inds": work.strain_inds,
+        }
 
         # Build list of strings with paths to the relevant output files.
         data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_strained]
-        data["strain_inds"] = work.strain_inds
 
-        gsr_relax_entries, gsr_relax_volumes = [], []
+        gsr_relax_entries = []
         for task in work.relax_tasks_strained:
             with task.open_gsr() as gsr:
                 gsr_relax_entries.append(dict(
@@ -106,7 +129,6 @@ class ZsisaFlow(Flow):
                     pressure_GPa=float(gsr.pressure),
                     #structure=gsr.structure,
                 ))
-                gsr_relax_volumes.append(gsr.structure.volume)
 
         data["gsr_relax_entries"] = gsr_relax_entries
 
@@ -115,8 +137,9 @@ class ZsisaFlow(Flow):
         data["gsr_relax_ebands_paths"] = [] if work.ndivsm == 0 else \
             [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
 
-        # Write json file
-        mjson_write(data, self.outdir.path_in("zsisa.json"), indent=4)
+        # Write json file.
+        obj = ZsisaResults(**data)
+        mjson_write(obj, self.outdir.path_in("ZsisaResults.json"), indent=4)
 
         return super().finalize()
 
@@ -177,8 +200,8 @@ class ZsisaWork(Work):
     def on_ok(self, sender):
         """
         This method is called when one task reaches status `S_OK`.
-        Here we take the relaxed structure from initial_relax_task and generated deformed
-        structures that will be relaxed at fixed unit cell to prepare the phonon calculations.
+        Here we take the relaxed structure from initial_relax_task and generate deformed
+        structures that will be relaxed at fixed unit cell before running phonon calculations.
         """
         if sender == self.initial_relax_task:
             # Get relaxed structure and build new task for structural relaxation at fixed volume.
@@ -244,22 +267,12 @@ class ThermalRelaxWork(Work):
     .. inheritance-diagram:: ThermalRelaxWork
     """
 
-    #@classmethod
-    #def from_zsisa_flow(self, zsisa_flow_dir,
-    #                    temperatures: list,
-    #                    pressures: list) -> ThermalRelaxWork:
-    #    nqsmall_or_qppa = 4
-    #    zsisa = QHA_ZSISA.from_json_file("flow_qha_zsisa/outdata/zsisa.json", nqsmall_or_qppa, verbose=1)
-    #    print(zsisa)
-
     @classmethod
-    def from_relax_input(cls,
-                         relax_input: AbinitInput,
-                         mode: str,
-                         phdos_paths,
-                         gsr_bo_path,
-                         temperatures: list,
-                         pressures: list) -> ThermalRelaxWork:
+    def from_zsisa_flow(cls,
+                        zsisa_flow_dir,
+                        temperatures: list,
+                        pressures_gpa: list,
+                        verbose: int = 0) -> ThermalRelaxWork:
         """
         Args:
             relax_input:
@@ -267,41 +280,48 @@ class ThermalRelaxWork(Work):
             phdos_paths:
             gsr_bo_path:
             temperatures: List of temperatures in K.
-            pressures: List of pressures in GPa.
+            pressures_gpa: List of pressures in GPa.
         """
+        flow = Flow.as_flow(zsisa_flow_dir)
+
+        json_filepath = flow.outdir.path_in("ZsisaResults.json")
+        data = mjson_load(json_filepath)
+
         work = cls()
 
-        work.mode = mode
-        work.phdos_paths = phdos_paths
-        work.gsr_bo_path = gsr_bo_path
-
-        work.temperatures = np.array(temperatures)
-        work.pressures_gpa = np.array(pressures_gpa)
+        work.temperatures = np.array(temperatures, dtype=float)
+        work.pressures_gpa = np.array(pressures_gpa, dtype=float)
+        work.mode = data.mode
+        #work.phdos_paths = phdos_paths
+        #work.gsr_bo_path = gsr_bo_path
 
         # Build zsisa object.
-        zsisa = self.get_zsisa(gsr_bo_path)
+        nqsmall_or_qppa = 2
+        work.zsisa = QHA_ZSISA.from_json_file(json_filepath, nqsmall_or_qppa, verbose=verbose)
+
+        scf_input = flow[0].initial_scf_input
+        relax_template = flow[0].relax_template
 
         # Generate initial ThermalRelaxTask tasks.
         work.thermal_relax_tasks = []
         for pressure_gpa, temperature in itertools.product(work.pressures_gpa, work.temperatures):
-            converged, stress = zsisa.cal_stress(temperature, pressure_gpa,
-                                                 mode=self.mode, elastic_path=None)
+            converged, stress = work.zsisa.cal_stress(temperature, pressure_gpa,
+                                                      mode=work.mode, elastic_path=None)
 
+            #print(f"{temperature=}, {pressure_gpa=}, {stress=}")
             # TODO: Relax options with ecutsm and strfact?
-            new_relax_input = relax_input.new_with_vars(strtarget=stress)
+            new_relax_input = relax_template.new_with_vars(strtarget=stress)
 
             # Attach pressure and temperature to the task.
             task = work.register_task(new_relax_input, task_class=ThermalRelaxTask)
-            task.mode = mode
+            task.mode = work.mode
             task.pressure_gpa = pressure_gpa
             task.temperature = temperature
+            task.elastic_work = None
 
             work.thermal_relax_tasks.append(task)
 
         return work
-
-    def get_zsisa(self, guess_path) -> QHA_ZSISA:
-        return QHA_ZSISA.from_files(self.phdos_paths, guess_path, self.gsr_bo_path)
 
     #def on_ok(self, sender):
     #    """
@@ -326,73 +346,156 @@ class ThermalRelaxWork(Work):
         data = dict(
             #initial_structure=self.input.structure,
             mode=self.mode,
-            phdos_paths=self.phdos_paths,
-            gsr_bo_path=self.gsr_bo_path,
-            temperatures=self.temperatures,
-            pressures_gpa=self.pressures_gpa,
+            #phdos_paths=self.phdos_paths,
+            #gsr_bo_path=self.gsr_bo_path,
+            #temperatures=self.temperatures,
+            #pressures_gpa=self.pressures_gpa,
         )
 
         data["task_entries"] = []
         for task in self.thermal_relax_tasks:
-            d = dict(
+            entry = dict(
                 pressure_gpa=task.pressure_gpa,
                 temperature=task.temperature,
                 gsr_path=task.gsr_path,
                 elastic_ddb_path=None,
             )
-            # Add path to the DDB file with 2nd order derivatives wrt strain.
+            # Add path to the DDB file with the 2nd order derivatives wrt strain.
             if task.elastic_work is not None:
-                d["elastic_ddb_path"] = task.elastic_work.outdir.path_in("out_DDB")
+                entry["elastic_ddb_path"] = task.elastic_work.outdir.path_in("out_DDB")
 
-            data["task_entries"].append(d)
+            data["task_entries"].append(entry)
 
-        mjson_write(data, self.outdir.path_in("thermal_relax_work.json"), indent=4)
+        obj = ThermalRelaxResults(**data)
+        mjson_write(obj, self.outdir.path_in("ThermalRelaxResults.json"), indent=4)
+
+        return super().on_all_ok()
 
 
 class ThermalRelaxTask(RelaxTask):
     """
     This task implements an iterative method to find the optimal lattice parameters
-    at a given temperature (T) and external pressure P_ext.
+    at a given temperature T and external pressure P_ext.
     Starting from an initial lattice guess, the thermal and Born-Oppenheimer (BO) stresses are computed.
     A target stress is defined using the thermal stress and P_ext.
-    Then, the lattice and atomic positions are relaxed repeatedly until the BO stress matches the target stress,
-    ensuring convergence.
+    Then, the lattice and atomic positions are relaxed repeatedly until the BO stress matches the target stress
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: ThermalRelaxTask
     """
 
     def _on_ok(self):
+        print("In _on_ok")
         results = super()._on_ok()
 
-        guess_path = self.gsr_path
-        zsisa = self.work.get_zsisa(guess_path)
+        # Get relaxed structure and stress_guess from GSR file.
+        with self.open_gsr() as gsr:
+            relaxed_structure = gsr.structure
+            stress_guess = gsr.cart_stress_tensor / 29421.02648438959
 
-        elastic_path = self.outdir.path_in("elastic_constant.txt")
+        guess_path = self.gsr_path
+        zsisa = self.work.zsisa
+        zsisa.set_structure_stress_guess(relaxed_structure, stress_guess)
+
+        #elastic_path = self.outdir.path_in("elastic_constant.txt")
         converged, stress = zsisa.cal_stress(self.temperature, self.pressure_gpa,
                                              mode=self.mode, elastic_path=None)
-        #print(stress)
+        print(f"{stress_guess=}")
+        print(f"{stress=}")
+        print(f"{converged=}")
+
         if not converged:
-            # Change strtarget and restart.
+            # Change strtarget and restart the task but without submitting it.
             extra_vars = {
                 "strtarget": stress,
-                #"ionmov": 2,
-                #"ntime": 60,
-                #"optcell": 2,
-                #"dilatmx": 1.04,
-                #"tolmxf": 1.0e-5,
-                #"strfact": 1000.,
+                "ionmov": 2,
+                "ntime": 100,
+                "optcell": 2,
+                "dilatmx": 1.04,
+                "tolmxf": 1.0e-5,
+                "strfact": 1000.,
             }
             self.input.set_vars(**extra_vars)
             self.finalized = False
             # Restart will take care of using the output structure in the input.
-            self.restart(submit=False)
+            self.restart()
 
         else:
             if self.mode == "ECs":
-                # Build work for elastic properties
-                relaxed_structure = self.get_final_structure()
-                #scf_input = self.input.new_with_structure(relaxed_structure)
-                #scf_input.pop_relax_vars()
-                elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
-                self.flow.register_work(elastic_work)
+                # Build work for elastic properties and attach it to the task.
+                scf_input = self.input.new_with_structure(relaxed_structure, ionmov=0, optcell=0)
+                self.elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
+                self.flow.register_work(self.elastic_work)
                 self.flow.allocate(build=True)
 
         return results
+
+
+@dataclasses.dataclass(kw_only=True)
+class ThermalRelaxResults:
+    """
+    """
+    mode: str
+    #phdos_paths: list[str]
+    #gsr_bo_path: str
+    #temperatures: np.ndarray
+    #pressures_gpa: np.ndarray
+    task_entries: list[dict]
+
+    def get_dataframe(self) -> pd.DataFrame:
+        """
+        Build pandas DataFrame with temperature, pressure, lattice parameters and spacegroup info.
+        """
+        rows = []
+        for entry in self.task_entries:
+            row = {k: entry[k] for k in ("temperature", "pressure_gpa")}
+            with GsrFile(entry["gsr_path"]) as gsr:
+                row.update(gsr.structure.get_dict4pandas())
+            rows.append(row)
+
+        return pd.DataFrame(rows).sort_values(by="temperature")
+
+    #def get_elastic_dataframe(self, **kwargs) -> pd.DataFrame:
+    #    """Build pandas DataFrame with temperatures, pressure and elastic constants."""
+    #    rows = []
+    #    for entry in self.task_entries:
+    #        ddb_path = entry["elastic_ddb_path"]
+    #        if ddb_path is None:
+    #            raise ValueError("elastic_ddb_path is None --> elastic costants are not available!")
+
+    #        raise NotImplementedError()
+    #        row = {k: entry[k] for k in ("temperature", "pressure_gpa")}
+    #        with DdbFile(ddb_path) as ddb:
+    #            elastic_data = ddb.anaget_elastic(**kwargs)
+    #            df = elastic_data.get_elastic_dataframe(tensor_name)
+    #            #row.update(gsr.structure.get_dict4pandas())
+    #        rows.append(row)
+
+    #    return pd.DataFrame(rows).sort_values(by="temperature")
+
+    @add_fig_kwargs
+    def plot_lattice_vs_temp(self, **kwargs) -> Figure:
+        angles = ["alpha", "beta", "gamma"]
+        lenghts = ["a", "b", "c"]
+        volume = "volume"
+        data = self.get_dataframe()
+        #hue = "pressure"
+        hue = None
+
+        #ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+        #                                        sharex=False, sharey=True, squeeze=False)
+        #ax_list = ax_list.ravel()
+
+        ax, fig, plt = get_ax_fig_plt(ax=None)
+
+        import seaborn as sns
+        sns.lineplot(data=data, x="temperature", y="a", ax=ax, hue=hue,
+                     markers=True, dashes=False)
+
+        #for angle in angles:
+
+        return fig
+
+    #@add_fig_kwargs
+    #def plot_elastic_vs_temp(self, **kwargs) -> Figure:
+    #     df = self.get_elastic_dataframe()

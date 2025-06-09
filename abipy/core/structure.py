@@ -1553,7 +1553,7 @@ class Structure(pmg_Structure, NotebookWriter):
             - The spacegroup number computed by Abinit (set to None if not available).
             - The spacegroup number and symbol computed by spglib (if `with_spglib`).
 
-        Useful to construct pandas DataFrames
+        Useful to construct pandas DataFrames.
 
         Args:
             with_spglib (bool): If True, spglib is invoked to get the spacegroup symbol and number
@@ -1569,6 +1569,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 spglib_symbol, spglib_number = self.get_space_group_info(symprec=symprec,
                                                                          angle_tolerance=angle_tolerance)
                 spglib_lattice_type = self.spget_lattice_type(symprec=symprec, angle_tolerance=angle_tolerance)
+
             except Exception as exc:
                 cprint("Spglib couldn't find space group symbol and number for composition: `%s`" %
                         str(self.composition), "red")
@@ -1583,6 +1584,7 @@ class Structure(pmg_Structure, NotebookWriter):
             ("a", abc[0]), ("b", abc[1]), ("c", abc[2]), ("volume", self.volume),
             ("abispg_num", abispg_number),
         ])
+
         if with_spglib:
             od["spglib_symb"] = spglib_symbol
             od["spglib_num"] = spglib_number

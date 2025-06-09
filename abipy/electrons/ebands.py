@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Classes to analyse electronic structures."""
+"""Classes to analyze electronic energies."""
 from __future__ import annotations
 
 import os

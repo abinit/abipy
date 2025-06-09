@@ -30,7 +30,7 @@ def anaget_phdoses_with_gauss(nqsmall_or_qppa,
     """
     Invoke anaddb to compute PHDOSes from a list of DDB filepaths with the gaussian method.
 
-    From PHYSICAL REVIEW B110,014103 (2024)
+    From PHYSICAL REVIEW B110,014103 (2024):
     The phonon density of states (PHDOS) was determined utilizing the Gaussian method,
     with a DOS smearing value set to 4.5×10−6 Hartree.
     Furthermore, a frequency grid step of 1.0×10−6 Hartree was employed for PHDOS calculations.

@@ -1848,7 +1848,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 NB: relaxed-ion piezoelectric requires the activation of `relaxed_ion`.
             dde: if True, dielectric tensors will be calculated.
             stress_correction: Calculate the relaxed ion elastic tensors, considering
-                the stress left inside cell. The DDB must contain the stress tensor.
+                the stress left inside the cell. The DDB must contain the stress tensor.
             asr: Anaddb input variable. See official documentation.
             chneut: Anaddb input variable. See official documentation.
             mpi_procs: Number of MPI processes to use.
