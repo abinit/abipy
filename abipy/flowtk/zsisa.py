@@ -166,6 +166,7 @@ class ZsisaWork(Work):
                        ionmov: int = 2,
                        tolmxf=1e-5,
                        edos_ngkpt=None) -> ZsisaWork:
+                       #mode: str
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
         See ZsisaFlow for the meaning of the arguments.
