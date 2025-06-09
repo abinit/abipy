@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
-from abipy.tools.serialization import mjson_write, mjson_load
+from abipy.tools.serialization import mjson_load, Serializable
 from abipy.tools.typing import PathLike, Figure
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.abio.inputs import AbinitInput
@@ -25,7 +25,7 @@ from abipy.flowtk.dfpt_works import ElasticWork
 
 
 @dataclasses.dataclass(kw_only=True)
-class ZsisaResults:
+class ZsisaResults(Serializable):
     eps: float
     mode: str
     spgrp_number: int
@@ -138,8 +138,7 @@ class ZsisaFlow(Flow):
             [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
 
         # Write json file.
-        obj = ZsisaResults(**data)
-        mjson_write(obj, self.outdir.path_in("ZsisaResults.json"), indent=4)
+        ZsisaResults(**data).json_write(self.outdir.path_in("ZsisaResults.json"), indent=4)
 
         return super().finalize()
 
@@ -147,7 +146,7 @@ class ZsisaFlow(Flow):
 class ZsisaWork(Work):
     """
     This work performs a structural relaxation of the initial structure,
-    then a set of distorted structures is genenerated and the relaxed structures are used to compute
+    then a set of distorted structures is generated and the relaxed structures are used to compute
     phonons, BECS and the dielectric tensor with DFPT.
 
     .. rubric:: Inheritance Diagram
@@ -330,7 +329,7 @@ class ThermalRelaxWork(Work):
     #    """
     #    # Find sender in self.thermal_relax_tasks.
     #    for relax_task in self.thermal_relax_tasks:
-    #        if sender.node_id == relax_task.node_id:
+    #        if sender == relax_task:
     #            break
     #    else:
     #        raise RuntimeError(f"Cannot find {sender=} in {self}")
@@ -367,8 +366,7 @@ class ThermalRelaxWork(Work):
 
             data["task_entries"].append(entry)
 
-        obj = ThermalRelaxResults(**data)
-        mjson_write(obj, self.outdir.path_in("ThermalRelaxResults.json"), indent=4)
+        ThermalRelaxResults(**data).json_write(self.outdir.path_in("ThermalRelaxResults.json"), indent=4)
 
         return super().on_all_ok()
 
@@ -433,7 +431,7 @@ class ThermalRelaxTask(RelaxTask):
 
 
 @dataclasses.dataclass(kw_only=True)
-class ThermalRelaxResults:
+class ThermalRelaxResults(Serializable):
     """
     """
     mode: str
@@ -462,7 +460,7 @@ class ThermalRelaxResults:
     #    for entry in self.task_entries:
     #        ddb_path = entry["elastic_ddb_path"]
     #        if ddb_path is None:
-    #            raise ValueError("elastic_ddb_path is None --> elastic costants are not available!")
+    #            raise ValueError("elastic_ddb_path is None --> elastic constants are not available!")
 
     #        raise NotImplementedError()
     #        row = {k: entry[k] for k in ("temperature", "pressure_gpa")}
@@ -477,7 +475,7 @@ class ThermalRelaxResults:
     @add_fig_kwargs
     def plot_lattice_vs_temp(self, **kwargs) -> Figure:
         angles = ["alpha", "beta", "gamma"]
-        lenghts = ["a", "b", "c"]
+        lengths = ["a", "b", "c"]
         volume = "volume"
         data = self.get_dataframe()
         #hue = "pressure"

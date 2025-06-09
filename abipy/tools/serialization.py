@@ -14,7 +14,37 @@ from typing import Any
 from pathlib import Path
 from monty.json import MontyDecoder, MontyEncoder
 from pymatgen.core.periodic_table import Element
+from abipy.tools.typing import PathLike
 from abipy.tools.context_managers import Timer
+
+
+class Serializable:
+    """
+    Mixin to support both pickle and JSON I/O.
+    """
+
+    @classmethod
+    def pickle_load(cls, filepath: PathLike):
+        with open(filepath, 'rb') as f:
+            obj = pickle.load(f)
+
+        if obj.__class__ != cls:
+            raise TypeError(f"{obj.__class__=} != {cls=}")
+        return obj
+
+    @classmethod
+    def json_load(cls, filepath: PathLike, **kwargs):
+        obj = mjson_load(filepath, **kwargs)
+        if obj.__class__ != cls:
+            raise TypeError(f"{obj.__class__=} != {cls=}")
+        return obj
+
+    def json_write(self, filepath: PathLike, **kwargs) -> None:
+        mjson_write(self, filepath, **kwargs)
+
+    def pickle_dump(self, filepath: PathLike) -> None:
+        with open(filepath, 'wb') as f:
+            pickle.dump(self, f)
 
 
 def pmg_serialize(method):
@@ -117,7 +147,7 @@ def pmg_pickle_dump(obj: Any, filobj, **kwargs):
     return PmgPickler(filobj, **kwargs).dump(obj)
 
 
-def mjson_load(filepath: str, **kwargs) -> Any:
+def mjson_load(filepath: PathLike, **kwargs) -> Any:
     """
     Read JSON file in MSONable format with MontyDecoder.
     """
@@ -125,14 +155,14 @@ def mjson_load(filepath: str, **kwargs) -> Any:
         return json.load(fh, cls=MontyDecoder, **kwargs)
 
 
-def mjson_loads(string: str, **kwargs) -> Any:
+def mjson_loads(string: PathLike, **kwargs) -> Any:
     """
     Read JSON string in MSONable format with MontyDecoder.
     """
     return json.loads(string, cls=MontyDecoder, **kwargs)
 
 
-def mjson_write(obj: Any, filepath: str, **kwargs) -> None:
+def mjson_write(obj: Any, filepath: PathLike, **kwargs) -> None:
     """
     Write object to filepath in JSON format using MontyDecoder.
     """
