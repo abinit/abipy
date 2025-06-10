@@ -26,6 +26,22 @@ from abipy.flowtk.dfpt_works import ElasticWork
 
 @dataclasses.dataclass(kw_only=True)
 class ZsisaResults(Serializable):
+    """
+    This object stores the locations of the GSR/DDB files produced by a ZSISA calculation
+    so that we can easily redo a thermal relaxation run.
+    For instance, one may want to increase the list of temperatures, pressures or increase
+    the q-mesh used to compute the phonon DOS.
+
+    To read the object from file use:
+
+    .. code-block:: python
+
+        data = ZsisaResults.json_load("json_filepath")
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: ZsisaResults
+    """
+
     eps: float
     mode: str
     spgrp_number: int
@@ -41,7 +57,6 @@ class ZsisaResults(Serializable):
 class ZsisaFlow(Flow):
     """
     Flow for QHA calculations with the ZSISA approximation.
-    This is the main entry point for client code.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ZsisaFlow
@@ -56,6 +71,9 @@ class ZsisaFlow(Flow):
                        ngqpt,
                        with_becs: bool,
                        with_quad: bool,
+                       temperatures,
+                       pressures_gpa,
+                       nqsmall_or_qppa = 2, # TODO PROVIDE DEFAULT
                        ndivsm: int = -20,
                        edos_ngkpt=None,
                        ionmov: int = 2,
@@ -63,6 +81,7 @@ class ZsisaFlow(Flow):
                        manager=None) -> ZsisaFlow:
         """
         Build a flow for ZSISA calculations from an |AbinitInput| representing a GS-SCF calculation.
+        This is the main entry point for client code.
 
         Args:
             workdir: Working directory of the flow.
@@ -75,6 +94,9 @@ class ZsisaFlow(Flow):
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
                 Note that only selected features are compatible with dynamical quadrupoles.
                 Please consult <https://docs.abinit.org/topics/longwave/>
+            temperatures: List of temperatures in K.
+            pressures_gpa: List of pressures in GPa.
+            nqsmall_or_qppa:
             ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
                 if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
                 in the segment is proportional to its length. Typical value: -20.
@@ -98,12 +120,33 @@ class ZsisaFlow(Flow):
                 raise ValueError(f"ngqpt should be a divisor of ngkpt but got {ngqpt=} and {ngkpt=}")
 
         flow = cls(workdir=workdir, manager=manager)
+
+        # Store temperatures and pressures in flow.
+        flow.temperatures = np.array(temperatures, dtype=float)
+        flow.pressures_gpa = np.array(pressures_gpa, dtype=float)
+
         flow.register_work(ZsisaWork.from_scf_input(scf_input, eps, mode, ngqpt, with_becs, with_quad,
-                                                    ndivsm, ionmov, tolmxf,
+                                                    nqsmall_or_qppa, ndivsm, ionmov, tolmxf,
                                                     edos_ngkpt=edos_ngkpt))
         return flow
 
-    def finalize(self):
+    def on_all_ok(self):
+        """
+        This method is called when all the works in the flow have reached S_OK.
+        Here we write a json file with the paths to the DDB/GSR files produced so far
+        then we create a new work for the self-consistent relaxation under thermal stress
+        for each temperature and pressure.
+        """
+        self.on_all_ok_num_calls += 1
+        if self.on_all_ok_num_calls == 1:
+            self.write_zsisa_results()
+            self.register_work(ThermalRelaxWork.from_zsisa_flow(self, self.temperatures, self.pressures_gpa))
+            self.allocate(build=True)
+            return False
+
+        return True
+
+    def write_zsisa_results(self):
         """
         This method is called when the flow is completed.
         It performs some basic post-processing of the results to facilitate further analysis.
@@ -140,8 +183,6 @@ class ZsisaFlow(Flow):
         # Write json file.
         ZsisaResults(**data).json_write(self.outdir.path_in("ZsisaResults.json"), indent=4)
 
-        return super().finalize()
-
 
 class ZsisaWork(Work):
     """
@@ -161,6 +202,7 @@ class ZsisaWork(Work):
                        ngqpt,
                        with_becs: bool,
                        with_quad: bool,
+                       nqsmall_or_qppa: int,
                        ndivsm: int = -20,
                        ionmov: int = 2,
                        tolmxf=1e-5,
@@ -180,6 +222,7 @@ class ZsisaWork(Work):
         work.with_becs = with_becs
         work.with_quad = with_quad
         work.edos_ngkpt = edos_ngkpt if edos_ngkpt is None else np.reshape(edos_ngkpt, (3,))
+        work.nqsmall_or_qppa = nqsmall_or_qppa
         work.ndivsm = ndivsm
 
         # Create input for relaxation and register the initial relaxation task.
@@ -269,26 +312,24 @@ class ThermalRelaxWork(Work):
 
     @classmethod
     def from_zsisa_flow(cls,
-                        zsisa_flow_dir,
+                        zsisa_flow,
                         temperatures: list,
                         pressures_gpa: list,
+                        nqsmall_or_qppa: int | None = None,
                         verbose: int = 0) -> ThermalRelaxWork:
         """
         Args:
-            relax_input:
-            mode:
-            phdos_paths:
-            gsr_bo_path:
+            zsisa_flow:
             temperatures: List of temperatures in K.
             pressures_gpa: List of pressures in GPa.
+            nqsmall_or_qppa:
         """
-        flow = Flow.as_flow(zsisa_flow_dir)
+        flow = Flow.as_flow(zsisa_flow)
 
         json_filepath = flow.outdir.path_in("ZsisaResults.json")
-        data = mjson_load(json_filepath)
+        data = ZsisaResults.json_load(json_filepath)
 
         work = cls()
-
         work.temperatures = np.array(temperatures, dtype=float)
         work.pressures_gpa = np.array(pressures_gpa, dtype=float)
         work.mode = data.mode
@@ -296,7 +337,10 @@ class ThermalRelaxWork(Work):
         #work.gsr_bo_path = gsr_bo_path
 
         # Build zsisa object.
-        nqsmall_or_qppa = 2
+        if nqsmall_or_qppa is None:
+            nqsmall_or_qppa = flow[0].nqsmall_or_qppa
+
+        print(f"Computing PHDOS with {nqsmall_or_qppa=}")
         work.zsisa = QHA_ZSISA.from_json_file(json_filepath, nqsmall_or_qppa, verbose=verbose)
 
         scf_input = flow[0].initial_scf_input
@@ -322,17 +366,6 @@ class ThermalRelaxWork(Work):
             work.thermal_relax_tasks.append(task)
 
         return work
-
-    #def on_ok(self, sender):
-    #    """
-    #    This method is called when one task reaches status `S_OK`.
-    #    """
-    #    # Find sender in self.thermal_relax_tasks.
-    #    for relax_task in self.thermal_relax_tasks:
-    #        if sender == relax_task:
-    #            break
-    #    else:
-    #        raise RuntimeError(f"Cannot find {sender=} in {self}")
 
     def on_all_ok(self):
         """
@@ -367,7 +400,6 @@ class ThermalRelaxWork(Work):
             data["task_entries"].append(entry)
 
         ThermalRelaxResults(**data).json_write(self.outdir.path_in("ThermalRelaxResults.json"), indent=4)
-
         return super().on_all_ok()
 
 
@@ -384,10 +416,9 @@ class ThermalRelaxTask(RelaxTask):
     """
 
     def _on_ok(self):
-        print("In _on_ok")
         results = super()._on_ok()
 
-        # Get relaxed structure and stress_guess from GSR file.
+        # Get relaxed structure and stress_guess from the GSR file.
         with self.open_gsr() as gsr:
             relaxed_structure = gsr.structure
             stress_guess = gsr.cart_stress_tensor / 29421.02648438959
@@ -404,7 +435,7 @@ class ThermalRelaxTask(RelaxTask):
         print(f"{converged=}")
 
         if not converged:
-            # Change strtarget and restart the task but without submitting it.
+            # Change strtarget and restart the task.
             extra_vars = {
                 "strtarget": stress,
                 "ionmov": 2,
@@ -416,12 +447,12 @@ class ThermalRelaxTask(RelaxTask):
             }
             self.input.set_vars(**extra_vars)
             self.finalized = False
-            # Restart will take care of using the output structure in the input.
+            # Restart will take care of using the output structure as the input.
             self.restart()
 
         else:
             if self.mode == "ECs":
-                # Build work for elastic properties and attach it to the task.
+                # Build work for elastic constants and attach it to the task.
                 scf_input = self.input.new_with_structure(relaxed_structure, ionmov=0, optcell=0)
                 self.elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
                 self.flow.register_work(self.elastic_work)
@@ -433,13 +464,23 @@ class ThermalRelaxTask(RelaxTask):
 @dataclasses.dataclass(kw_only=True)
 class ThermalRelaxResults(Serializable):
     """
+    This object stores in task_entries the ...
+
+    It also provides methods to post-process the data.
+
+    To read the object from file use:
+
+    .. code-block:: python
+
+        data = ThermalRelaxResults.json_load("json_filepath")
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: ThermalRelaxResults
     """
     mode: str
+    task_entries: list[dict]
     #phdos_paths: list[str]
     #gsr_bo_path: str
-    #temperatures: np.ndarray
-    #pressures_gpa: np.ndarray
-    task_entries: list[dict]
 
     def get_dataframe(self) -> pd.DataFrame:
         """
@@ -455,12 +496,13 @@ class ThermalRelaxResults(Serializable):
         return pd.DataFrame(rows).sort_values(by="temperature")
 
     #def get_elastic_dataframe(self, **kwargs) -> pd.DataFrame:
-    #    """Build pandas DataFrame with temperatures, pressure and elastic constants."""
+    #    """
+    #    Build pandas DataFrame with temperatures, pressure and elastic constants.
+    #    """
     #    rows = []
     #    for entry in self.task_entries:
-    #        ddb_path = entry["elastic_ddb_path"]
-    #        if ddb_path is None:
-    #            raise ValueError("elastic_ddb_path is None --> elastic constants are not available!")
+    #        if (ddb_path := entry["elastic_ddb_path"]) is None
+    #            raise ValueError("elastic_ddb_path is None --> elastic constants have not been computed!")
 
     #        raise NotImplementedError()
     #        row = {k: entry[k] for k in ("temperature", "pressure_gpa")}
@@ -474,12 +516,14 @@ class ThermalRelaxResults(Serializable):
 
     @add_fig_kwargs
     def plot_lattice_vs_temp(self, **kwargs) -> Figure:
+        """
+        """
         angles = ["alpha", "beta", "gamma"]
         lengths = ["a", "b", "c"]
         volume = "volume"
-        data = self.get_dataframe()
-        #hue = "pressure"
-        hue = None
+        df = self.get_dataframe()
+        same_pressure = df["pressure_gpa"].nunique() == 1
+        hue = "pressure_gpa" if not same_pressure else None
 
         #ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
         #                                        sharex=False, sharey=True, squeeze=False)
@@ -488,8 +532,7 @@ class ThermalRelaxResults(Serializable):
         ax, fig, plt = get_ax_fig_plt(ax=None)
 
         import seaborn as sns
-        sns.lineplot(data=data, x="temperature", y="a", ax=ax, hue=hue,
-                     markers=True, dashes=False)
+        sns.lineplot(df, x="temperature", y="a", ax=ax, hue=hue, markers=True, dashes=False)
 
         #for angle in angles:
 

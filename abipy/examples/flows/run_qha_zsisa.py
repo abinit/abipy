@@ -16,7 +16,7 @@ from abipy.flowtk.zsisa import ZsisaFlow
 
 def build_flow(options):
     """
-    Create a `ZsisaFlow` for QHA calculations withing the ZSISA method
+    Create a `ZsisaFlow` for QHA calculations within the ZSISA method
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
@@ -51,10 +51,6 @@ rprim
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
     pseudos = get_oncvpsp_pseudos(xc_name="PBEsol", version="0.4")
 
-    # Select k-mesh for electrons and q-mesh for phonons.
-    #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
-    ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
-
     scf_input = abilab.AbinitInput(structure, pseudos)
 
     # Set other important variables
@@ -68,6 +64,10 @@ rprim
         tolvrs=1.0e-6,      # SCF stopping criterion (modify default)
     )
 
+    # Select k-mesh for electrons and q-mesh for phonons.
+    #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
+    ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
+
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
     eps = 0.005  # Strain magnitude to be applied to the reference lattice.
@@ -79,8 +79,15 @@ rprim
     with_quad = False
     #with_quad = not structure.has_zero_dynamical_quadrupoles
 
+    # List of temperatures in Kelvin and pressures in Gpa.
+    temperatures = [10, 50, 100]
+    pressures_gpa = [0]
+    nqsmall_or_qppa = 2 # TODO
+
     flow = ZsisaFlow.from_scf_input(options.workdir, scf_input, eps, mode, ngqpt,
-                                    with_becs, with_quad, edos_ngkpt=None)
+                                    with_becs, with_quad, temperatures, pressures_gpa,
+                                    nqsmall_or_qppa=nqsmall_or_qppa,
+                                    )
 
     return flow
 

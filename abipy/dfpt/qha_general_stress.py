@@ -57,7 +57,7 @@ class QHA_ZSISA(HasPickleIO):
         strain_inds = data.strain_inds
         for gsr_path, phdos_path, inds in zip(data.gsr_relax_paths, phdos_paths, strain_inds, strict=True):
             inds = inds + 1
-            #FIXME: This works only in particular cases e.g. cubic. IT does not work if elastic constants are computed.
+            #FIXME: This works only in particular cases e.g. cubic. It does not work for elastic constants.
             print(f"{inds=}")
             phdos_paths_6d[inds] = phdos_path
 
@@ -956,7 +956,7 @@ class QHA_ZSISA(HasPickleIO):
         c = self.lattice_c_guess
         v = self.volume_guess
 
-        # Reconstruct the latice vectores to find the standard lattice vector of monoclinic
+        # Reconstruct the lattice vectors to find the standard lattice vector of monoclinic
         ax = a
         by = b
         cz = c * math.sin(math.pi*self.angles_guess[1]/180)
@@ -1183,7 +1183,7 @@ class QHA_ZSISA(HasPickleIO):
 
         d2S_dB1dC1 = (S[1,1,1,1,1,1] - S[1,1,1,1,0,1] - S[1,1,1,1,1,0] + S[1,1,1,1,0,0]) / (dexz *dexy)
 
-        # Reconstruct the latice vectores to find the standard lattice vector of monoclinic
+        # Reconstruct the lattice vectors to find the standard lattice vector of monoclinic
         a = self.lattice_a_guess
         b = self.lattice_b_guess
         c = self.lattice_c_guess
