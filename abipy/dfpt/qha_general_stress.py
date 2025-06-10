@@ -54,10 +54,7 @@ class QHA_ZSISA(HasPickleIO):
         # === Paths to guessed and BO-relaxed structures ===
         gsr_guess_path = data.gsr_bo_path # FIXME
 
-        strain_inds = data.strain_inds
-        for gsr_path, phdos_path, inds in zip(data.gsr_relax_paths, phdos_paths, strain_inds, strict=True):
-            inds = inds + 1
-            #FIXME: This works only in particular cases e.g. cubic. It does not work for elastic constants.
+        for gsr_path, phdos_path, inds in zip(data.gsr_relax_paths, phdos_paths, data.inds_6d, strict=True):
             print(f"{inds=}")
             phdos_paths_6d[inds] = phdos_path
 

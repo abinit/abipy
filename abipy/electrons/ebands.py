@@ -332,7 +332,7 @@ class ElectronBands(Has_Structure):
     # Increase a bit the value of fermie used in bisection routines to solve the problem mentioned below
     pad_fermie = 1e-3
 
-    # One should check whether fermie is recomputed at the end of the SCF cyle
+    # One should check whether fermie is recomputed at the end of the SCF cycle
     # I have problems in finding homos/lumos in semiconductors (e.g. Si)
     # because fermie is slightly smaller than the CBM:
 
@@ -470,7 +470,7 @@ class ElectronBands(Has_Structure):
             nelect: Number of electrons in the unit cell.
                 If None, this value is automatically computed using the Fermi level (if metal)
                 or the VBM indices reported in the JSON document sent by the MP database.
-                It is recommended to pass nelect explictly if this quantity is known in the caller.
+                It is recommended to pass nelect explicitly if this quantity is known in the caller.
             nspinor: Number of spinor components.
             line_mode (bool): If True, fetch a BandStructureSymmLine object
                 (default). If False, return the uniform band structure.
@@ -819,7 +819,7 @@ class ElectronBands(Has_Structure):
         from calculation performed in the IBZ.
 
         Args:
-            frac_bounds: [M, 3] array  with the vertexes of the k-path in reduced coordinates.
+            frac_bounds: [M, 3] array  with the vertices of the k-path in reduced coordinates.
                 If None, the k-path is automatically selected from the structure.
             knames: List of strings with the k-point labels defining the k-path. It has precedence over frac_bounds.
             dist_tol: A point is considered to be on the path if its distance from the line is less than dist_tol.
@@ -867,7 +867,7 @@ class ElectronBands(Has_Structure):
         ik_new2prev = []
         for ik, ik_new in enumerate(p.ikfound):
             # Stars are ordered as self.kpoints to this is the index we need to access self.eigens.
-            # and trasfer the data from self to new
+            # and transfer the data from self to new
             ik_self = back2istar[ik_new]
             ik_new2prev.append(ik_self)
             fcs = self.structure.reciprocal_lattice.get_fractional_coords(cart_coords[ik_new])
@@ -1015,7 +1015,7 @@ class ElectronBands(Has_Structure):
     def isnot_ibz_sampling(self, require_gamma_centered=False) -> str:
         """
         Test whether the k-points in the band structure represent an IBZ with an associated k-mesh
-        Return string with error message if the condition is not fullfilled.
+        Return string with error message if the condition is not fulfilled.
 
         Args:
             require_gamma_centered: True if the k-mesh should be Gamma-centered
@@ -1601,7 +1601,7 @@ class ElectronBands(Has_Structure):
     def get_edge_state(self, vbm_or_cbm, spin=None):
 
         if spin is None:
-            # Returm max/min over spins (if any)
+            # Return max/min over spins (if any)
             if vbm_or_cbm == "vbm":
                 ord_states = sorted(self.homos, key=lambda state: state.eig)
                 return ord_states[-1]
@@ -1734,8 +1734,8 @@ class ElectronBands(Has_Structure):
         Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
 
         Args:
-            with_structure: False if structural info shoud not be displayed.
-            with_kpoints: False if k-point info shoud not be displayed.
+            with_structure: False if structural info should not be displayed.
+            with_kpoints: False if k-point info should not be displayed.
             verbose: Verbosity level.
         """
         lines = []; app = lines.append
@@ -2209,7 +2209,7 @@ class ElectronBands(Has_Structure):
                     bands before executing `ebands.plot().
                     The Fermi energy stored in the object, indeed, comes from the GS calculation
                     that produced the DEN file. If the k-mesh used for the GS and the CBM is e.g. at Gamma,
-                    the Fermi energy will be underestimated and a manual aligment is needed.
+                    the Fermi energy will be underestimated and a manual alignment is needed.
             max_phfreq: Max phonon frequency in eV to activate scatterplot showing
                 possible phonon absorption/emission processes based on energy-conservation alone.
                 All final states whose energy is within +- max_phfreq of the initial state are included.
@@ -2345,7 +2345,7 @@ class ElectronBands(Has_Structure):
                 bands before executing `ebands.plot().
                 The Fermi energy stored in the object, indeed, comes from the GS calculation
                 that produced the DEN file. If the k-mesh used for the GS and the CBM is e.g. at Gamma,
-                the Fermi energy will be underestimated and a manual aligment is needed.
+                the Fermi energy will be underestimated and a manual alignment is needed.
             max_phfreq: Max phonon frequency in eV to activate scatterplot showing
                 possible phonon absorption/emission processes based on energy-conservation alone.
                 All final states whose energy is within +- max_phfreq of the initial state are included.
@@ -3125,7 +3125,7 @@ class ElectronBands(Has_Structure):
 
         Args:
             interpolation_factor: The factor by which the band structure will be interpolated.
-            mu: Energy offset from the reference energy determing by `eref`.
+            mu: Energy offset from the reference energy determining by `eref`.
             eref: Defines the energy reference. Possible values: `fermie`, `cbm`, `vbm`.
                 The energy of the isosurface is given by: `eref` + `mu`.
             wigner_seitz: Controls whether the cell is the Wigner-Seitz cell
@@ -3515,7 +3515,7 @@ class ElectronBandsPlotter(NotebookWriter):
         self.edoses_dict = OrderedDict(key_edos)
         if key_edos:
             if not key_ebands:
-                raise ValueError("key_ebands must be specifed when key_dos is not None")
+                raise ValueError("key_ebands must be specified when key_dos is not None")
             if len(key_ebands) != len(key_edos):
                 raise ValueError("key_ebands and key_edos must have the same number of elements.")
 
@@ -3531,7 +3531,9 @@ class ElectronBandsPlotter(NotebookWriter):
         return len(self.ebands_dict)
 
     def add_plotter(self, other) -> ElectronBandsPlotter:
-        """Merge two plotters, return new plotter."""
+        """
+        Merge two plotters, return new plotter.
+        """
         if not isinstance(other, self.__class__):
             raise TypeError("Don't know to add %s to %s" % (other.__class__, self.__class__))
 
@@ -4242,7 +4244,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -5299,7 +5301,7 @@ class ElectronDosPlotter(NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -5628,7 +5630,7 @@ class Bands3D(Has_Structure):
         #spin, band = 0, 4
         #for i, band in enumerate(isobands[spin]):
         #data = np.reshape(isoenes[0][band], mpdivs + 1 if pbc else mpdivs)
-        #plot_fermi_surface(data, self.structure, False, energy_levels=[e0]) interative=not (i == len(isobands[spin]) - 1))
+        #plot_fermi_surface(data, self.structure, False, energy_levels=[e0]) interactive=not (i == len(isobands[spin]) - 1))
 
         # Plot isosurface with mayavi.
         from abipy.display import mvtk

@@ -204,7 +204,11 @@ def generate_deformations(structure: Structure,
         namen = eps * n
         formatted_namei = f"{namei:.3f}_{namej:.3f}_{namek:.3f}_{namel:.3f}_{namem:.3f}_{namen:.3f}"
 
-        _add(formatted_namei, rprim2, i, j, k, l, m, n)
+        #_add(formatted_namei, rprim2, i, j, k, l, m, n)
+        if 16 <= spgrp_number:
+            _add(formatted_namei, rprim2, i+1, j+1, k+1, l, m, n)
+        else:
+            _add(formatted_namei, rprim2, i+1, j+1, k+1, l+1, m+1, n+1)
+
 
     return structures_new, np.array(strain_inds, dtype=int), spgrp_number
-

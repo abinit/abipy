@@ -24,14 +24,14 @@ class ElasticWork(Work, MergeDdb):
 
     The structure is assumed to be already relaxed
 
-    Create a `Flow` for phonon calculations. The flow has one works with:
+    Create a `Work` for phonon calculations. The flow has one works with:
 
         - 1 GS Task
         - 3 DDK Task
         - 4 Phonon Tasks (Gamma point)
         - 6 Elastic tasks (3 uniaxial + 3 shear strain)
 
-    The Phonon tasks and the elastic task will read the DDK produced at the beginning
+    The Phonon tasks and the elastic task will read the DDK files produced at the beginning.
     """
     @classmethod
     def from_scf_input(cls,
@@ -104,7 +104,7 @@ class ElasticWork(Work, MergeDdb):
                 if inp.get("rfphon", 0) == 1:
                     new.register_phonon_task(inp, deps=ph_deps)
 
-        # Finally compute strain pertubations (read DDK if piezo).
+        # Finally compute strain perturbations (read DDK if piezo).
         elast_deps = {wfk_task: "WFK"}
         if with_piezo: elast_deps.update(ddk_deps)
         for inp in strain_multi:

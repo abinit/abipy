@@ -82,7 +82,7 @@ rprim
     # List of temperatures in Kelvin and pressures in Gpa.
     temperatures = [10, 50, 100]
     pressures_gpa = [0]
-    nqsmall_or_qppa = 2 # TODO
+    nqsmall_or_qppa = 30 # TODO
 
     flow = ZsisaFlow.from_scf_input(options.workdir, scf_input, eps, mode, ngqpt,
                                     with_becs, with_quad, temperatures, pressures_gpa,
