@@ -85,6 +85,14 @@ rprim
     nqsmall_or_qppa = 30 # TODO
     nqsmall_or_qppa = 1 # TODO
 
+    # Relaxation with thermal stress may require ~ 10 iterations.
+    # Here we set programmatically the maximum number of restarts to 20.
+    from abipy.flowtk.tasks import TaskManager, set_user_config_taskmanager
+    manager = TaskManager.from_user_config()
+    for qad in manager.qads:
+        qad.max_num_launches = 20
+    set_user_config_taskmanager(manager)
+
     flow = ZsisaFlow.from_scf_input(options.workdir, scf_input, eps, mode, ngqpt,
                                     with_becs, with_quad, temperatures, pressures_gpa,
                                     nqsmall_or_qppa=nqsmall_or_qppa,

@@ -31,6 +31,28 @@ class ThermalData:
     elastic: np.ndarray | None
     therm: np.ndarray | None
 
+    def __str__(self):
+        return self.to_string()
+
+    def to_string(self, verbose: int = 0) -> str:
+        def format_array(arr):
+            if arr is None:
+                return "None"
+            return np.array2string(arr, precision=10, suppress_small=True)
+
+        return (
+            f"ThermalData(\n"
+            f"  temperature = {self.temperature:.3f} K,\n"
+            f"  pressure_gpa = {self.pressure_gpa:.3f} GPa,\n"
+            f"  converged = {self.converged},\n"
+            f"  dtol = {format_array(self.dtol)},\n"
+            f"  stress_au = {format_array(self.stress_au)},\n"
+            #f"  elastic = {format_array(self.elastic)},\n"
+            #f"  therm = {format_array(self.therm)}\n"
+            f")"
+        )
+
+
 
 class QHA_ZSISA(HasPickleIO):
     """
@@ -59,7 +81,7 @@ class QHA_ZSISA(HasPickleIO):
         phdos_paths, phbands_paths = anaget_phdoses_with_gauss(nqsmall_or_qppa, smearing_ev,
                                                                data.ddb_relax_paths, anaget_kwargs, verbose)
 
-        # Create a 6D array with shape (3, 3, 3, 3, 3, 3) initialized with None.
+        # Create a 6D array initialized with None.
         phdos_paths_6d = np.full((3, 3, 3, 3, 3, 3), None, dtype=object)
 
         # === Paths to guessed and BO-relaxed structures ===
@@ -291,6 +313,8 @@ class QHA_ZSISA(HasPickleIO):
         self.HaBohr3_eVA3 = abu.HaBohr3_GPa/abu.eVA3_GPa
         self.eVA3_HaBohr3 = abu.eVA3_GPa/abu.HaBohr3_GPa
 
+        self.dtol_tolerance = 1e-8
+
         def extract_attribute(structures, attribute_func) -> np.ndarray:
             return np.array([[[[[[attribute_func(s) if s is not None else None for s in col] for col in row] for row in d1]
                             for d1 in d2] for d2 in d3] for d3 in structures])
@@ -492,7 +516,7 @@ class QHA_ZSISA(HasPickleIO):
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2
         dsdx = dS_dX + (exx_n-exx0)*d2S_dX2
 
-        # Compute thermal stress . Eq (51)
+        # Compute thermal stress. Eq (51)
         stress_xx = -dfdx/v*(exx_n+1)/3.0 * self.eVA3_HaBohr3
         if self.verbose:
             print("x/XBO: ", x/XBO)
@@ -512,8 +536,8 @@ class QHA_ZSISA(HasPickleIO):
         dtol[2] = abs(stress[2]-self.stress_guess[2,2])
 
         therm = None
-        # Check if the stress has converged (all tolerances below 1e-8)
-        if all(dtol[i] < 1e-8 for i in range(6)): # Check convergence
+        # Check if the stress has converged (all tolerances below self.dtol_tolerance)
+        if all(dtol[i] < self.dtol_tolerance for i in range(6)): # Check convergence
             if self.elastic_path is not None and os.path.exists(self.elastic_path):
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
                 matrix_elastic = self.elastic_constants(self.elastic_path)
@@ -602,7 +626,7 @@ class QHA_ZSISA(HasPickleIO):
         dsdx = dS_dX + (exx_n-exx0)*d2S_dX2+(ezz_n-ezz0)*d2S_dXdZ
         dsdz = dS_dZ + (ezz_n-ezz0)*d2S_dZ2+(exx_n-exx0)*d2S_dXdZ
 
-        # Compute thermal stresses . Eq (54)
+        # Compute thermal stresses. Eq (54)
         stress_xx = -dfdx/v*(exx_n+1)*0.5 * self.eVA3_HaBohr3
         stress_zz = -dfdz/v*(ezz_n+1)     * self.eVA3_HaBohr3
 
@@ -624,8 +648,8 @@ class QHA_ZSISA(HasPickleIO):
         dtol[2] = abs(stress[2]-self.stress_guess[2,2])
 
         therm = None
-        # Check if the stress has converged (all tolerances below 1e-8)
-        if all(dtol[i] < 1e-8 for i in range(6)):
+        # Check if the stress has converged (all tolerances below self.dtol_tolerance)
+        if all(dtol[i] < self.dtol_tolerance for i in range(6)):
             if self.elastic_path is not None and os.path.exists(self.elastic_path):
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
                 matrix_elastic = self.elastic_constants(self.elastic_path)
@@ -667,7 +691,7 @@ class QHA_ZSISA(HasPickleIO):
         # S = Entropy (S)
         e, S = self.get_vib_free_energies(temp)
 
-        # A_x, B_y and C_z from deformed structures based on table IV and eq(42)
+        # A_x, B_y and C_z from deformed structures based on table IV and Eq (42)
         X0 = self.ave_x[0,1,1,0,0,0] # reference structure - exx0
         Y0 = self.ave_y[1,0,1,0,0,0] # reference structure - eyy0
         Z0 = self.ave_z[1,1,0,0,0,0] # reference structure - ezz0
@@ -808,7 +832,7 @@ class QHA_ZSISA(HasPickleIO):
         dsdy = dS_dY + (eyy_n-eyy0)*d2S_dY2+(exx_n-exx0)*d2S_dXdY+(ezz_n-ezz0)*d2S_dYdZ
         dsdz = dS_dZ + (ezz_n-ezz0)*d2S_dZ2+(exx_n-exx0)*d2S_dXdZ+(eyy_n-eyy0)*d2S_dYdZ
 
-        # Compute thermal stresses . Eq (45)
+        # Compute thermal stresses. Eq (45)
         stress_xx = -dfdx/v*(exx_n+1)* self.eVA3_HaBohr3
         stress_yy = -dfdy/v*(eyy_n+1)* self.eVA3_HaBohr3
         stress_zz = -dfdz/v*(ezz_n+1)* self.eVA3_HaBohr3
@@ -826,10 +850,10 @@ class QHA_ZSISA(HasPickleIO):
         dtol[1] = abs(stress[1]-self.stress_guess[1,1])
         dtol[2] = abs(stress[2]-self.stress_guess[2,2])
 
+        # Check if the stress has converged (all tolerances below self.dtol_tolerance)
         therm = None
-        # Check if the stress has converged (all tolerances below 1e-8)
         elastic = None
-        if all(dtol[i] < 1e-8 for i in range(6)):
+        if all(dtol[i] < self.dtol_tolerance for i in range(6)):
             if self.elastic_path is not None and os.path.exists(self.elastic_path):
                 matrix_elastic = self.elastic_constants(self.elastic_path)
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
@@ -998,7 +1022,7 @@ class QHA_ZSISA(HasPickleIO):
 
         therm = None
 
-        stress =np.zeros(6)
+        stress = np.zeros(6)
         stress[0] = stress_a1 -pressure
         stress[1] = stress_b2 -pressure
         stress[2] = stress_c3 -pressure
@@ -1010,9 +1034,9 @@ class QHA_ZSISA(HasPickleIO):
         dtol[2] = abs(stress[2] - self.stress_guess[2,2])
         dtol[4] = abs(stress[4] - self.stress_guess[2,0])
 
-        # Check if the stress has converged (all tolerances below 1e-8)
-        elastic=None
-        if all(dtol[i] < 1e-8 for i in range(6)):
+        # Check if the stress has converged (all tolerances below self.dtol_tolerance)
+        elastic = None
+        if all(dtol[i] < self.dtol_tolerance for i in range(6)):
             if self.elastic_path is not None and os.path.exists(self.elastic_path):
                 # If elastic constants are requested, compute the second derivatives for C44, C66, and C46
                 if mode == 'ECs':
@@ -1236,7 +1260,7 @@ class QHA_ZSISA(HasPickleIO):
         dsdc1 = dS_dC1 + (exz_n-exz0)*d2S_dC12+(exx_n-exx0)*d2S_dA1dC1+(eyy_n-eyy0)*d2S_dB2dC1+(ezz_n-ezz0)*d2S_dC3dC1+(exy_n-exy0)*d2S_dB1dC1+(eyz_n-eyz0)*d2S_dC1dC2
         dsdc2 = dS_dC2 + (eyz_n-eyz0)*d2S_dC22+(exx_n-exx0)*d2S_dA1dC2+(eyy_n-eyy0)*d2S_dB2dC2+(ezz_n-ezz0)*d2S_dC3dC2+(exy_n-exy0)*d2S_dB1dC2+(exz_n-exz0)*d2S_dC1dC2
 
-        # Compute thermal stresses . Eq (57)
+        # Compute thermal stresses. Eq (57)
         stress_a1 = -dfda1/v*(exx_n+1) * self.eVA3_HaBohr3
         stress_b2 = -dfdb2/v*(eyy_n+1) * self.eVA3_HaBohr3
         stress_c3 = -dfdc3/v*(ezz_n+1) * self.eVA3_HaBohr3
@@ -1265,9 +1289,9 @@ class QHA_ZSISA(HasPickleIO):
         dtol[5] = abs(stress[5]-self.stress_guess[1,0])
         therm = None
 
-        # Check if the stress has converged (all tolerances below 1e-8)
+        # Check if the stress has converged (all tolerances below self.dtol_tolerance)
         elastic=None
-        if all(dtol[i] < 1e-8 for i in range(6)):
+        if all(dtol[i] < self.dtol_tolerance for i in range(6)):
             if self.elastic_path is not None and os.path.exists(self.elastic_path):
                 # If elastic constants are requested, compute the second derivatives for C44, C66, and C46
                 matrix_elastic = self.elastic_constants(self.elastic_path)
@@ -1514,7 +1538,7 @@ class QHA_ZSISA(HasPickleIO):
             raise ValueError(f"Unknown {self.sym=}")
 
         converged = False
-        if all(dtol[i] < 1e-8 for i in range(6)):
+        if all(dtol[i] < self.dtol_tolerance for i in range(6)):
             converged = True
             self.print_data(temp, pressure_gpa, therm, stress, elastic, mode)
             if self.verbose: print("Converged !!!")
@@ -1548,7 +1572,8 @@ class QHA_ZSISA(HasPickleIO):
                                    entropy[i,j,k,l,m,n] = None
         return f, entropy
 
-    def elastic_constants(self, file_name: str):
+    def elastic_constants(self, file_name: str) -> np.ndarray:
+        print("About to read ELASTIC_RELAXED tensor from:", file_name)
         with open(file_name, "rt") as file:
             lines = file.readlines()
 

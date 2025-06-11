@@ -148,12 +148,21 @@ class ZsisaFlow(Flow):
             return False
 
         if self.on_all_ok_num_calls == 2:
+            print("In elastic_path branch")
+            zsisa = self.thermal_relax_work.zsisa
             work = self[0]
             for task in self.thermal_relax_work:
                 print(task)
-                #elastic_path = task.outdir.path_in("elastic_constant.txt")
-                #tdata = work.zsisa.get_tdata(task.temperature, task.pressure_gpa,
-                #                             mode=work.mode, elastic_path=elastic_path)
+                ddb_path = task.elastic_work.outdir.path_in("out_DDB")
+                with DdbFile(ddb_path) as ddb:
+                    edata = ddb.anaget_elastic()
+
+                elastic_path = task.outdir.path_in("elastic_constant.txt")
+                with open(elastic_path, "wt") as f:
+                    f.write(str(edata))
+
+                tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa,
+                                          mode=work.mode, elastic_path=elastic_path)
 
         return True
 
@@ -218,12 +227,13 @@ class ZsisaWork(Work):
                        ndivsm: int = -20,
                        ionmov: int = 2,
                        tolmxf=1e-5,
-                       edos_ngkpt=None) -> ZsisaWork:
+                       edos_ngkpt=None,
+                       manager=None) -> ZsisaWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
         See ZsisaFlow for the meaning of the arguments.
         """
-        work = cls()
+        work = cls(manager=manager)
 
         # Save attributes in work.
         work.initial_scf_input = scf_input
@@ -358,9 +368,19 @@ class ThermalRelaxWork(Work):
             tdata = work.zsisa.get_tstress(temperature, pressure_gpa,
                                            mode=work.mode, elastic_path=None)
 
+            extra_vars = {
+                "strtarget": tdata.stress_au,
+                "ionmov": 2,
+                "ntime": 100,
+                "optcell": 2,
+                "dilatmx": 1.04,
+                "tolmxf": 1.0e-5,
+                "strfact": 1000.,  # This to give more weight to the stress in the relaxation.
+            }
+
             #print(tdata)
             # TODO: Relax options with ecutsm and strfact?
-            new_relax_input = relax_template.new_with_vars(strtarget=tdata.stress_au)
+            new_relax_input = relax_template.new_with_vars(**extra_vars)
 
             # Attach pressure and temperature to the task.
             task = work.register_task(new_relax_input, task_class=ThermalRelaxTask)
@@ -440,16 +460,7 @@ class ThermalRelaxTask(RelaxTask):
 
         if not tdata.converged:
             # Change strtarget and restart the relaxation task.
-            extra_vars = {
-                "strtarget": tdata.stress_au,
-                "ionmov": 2,
-                "ntime": 100,
-                "optcell": 2,
-                "dilatmx": 1.04,
-                "tolmxf": 1.0e-5,
-                "strfact": 1000.,  # This to give more weight to the stress in the relaxation.
-            }
-            self.input.set_vars(**extra_vars)
+            self.input.set_vars(strtarget=tdata.stress_au)
             self.finalized = False
             # Restart will take care of using the output structure as the input.
             self.restart()
@@ -457,6 +468,7 @@ class ThermalRelaxTask(RelaxTask):
         else:
             # Build work for elastic constants and attach it to the task.
             scf_input = self.input.new_with_structure(relaxed_structure, ionmov=0, optcell=0)
+            scf_input.pop_irdvars() # Remove all irdvars. Important!
             self.elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
             self.flow.register_work(self.elastic_work)
             self.flow.allocate(build=True)
