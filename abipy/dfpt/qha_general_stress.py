@@ -23,7 +23,7 @@ from abipy.dfpt.vzsisa import anaget_phdoses_with_gauss
 
 
 class QhaModel(StrEnum):
-    """Enumerator for the different kind of QHA model types."""
+    """Enumerator for the different kinds of QHA models."""
     zsisa = 'zsisa'
     v_zsisa = 'v_zsisa'
     zsisa_slab = 'zsisa_slab'
@@ -98,8 +98,8 @@ class QHA_ZSISA(HasPickleIO):
         # === Paths to guessed and BO-relaxed structures ===
         gsr_guess_path = data.gsr_bo_path # FIXME
 
-        for gsr_path, phdos_path, ind in zip(data.gsr_relax_paths, phdos_paths, data.inds_6d, strict=True):
-            phdos_paths_6d[ind] = phdos_path
+        for phdos_path, ind in zip(phdos_paths, data.inds_6d, strict=True):
+            phdos_paths_6d[tuple(ind)] = phdos_path
 
         new = cls.from_files(phdos_paths_6d, gsr_guess_path, data.gsr_bo_path, qha_model=data.qha_model, verbose=verbose)
 
@@ -237,7 +237,9 @@ class QHA_ZSISA(HasPickleIO):
                             dim5_structures = []
                             dim5_energies = []
                             for path_idx, path in enumerate(dim5_list):
-                                if os.path.exists(path):
+                                if path is not None:
+                                    if not os.path.exists(path):
+                                        raise FileNotFoundError(f"Cannot find {path=}")
                                     with PhdosFile(path) as p:
                                         dim5_doses.append(p.phdos)
                                         dim5_structures.append(p.structure)
@@ -368,9 +370,6 @@ class QHA_ZSISA(HasPickleIO):
         self.ave_y[mask] = (abs(self.ay[mask]) + abs(self.by[mask]) + abs(self.cy[mask]))
         self.ave_z[mask] = (abs(self.az[mask]) + abs(self.bz[mask]) + abs(self.cz[mask]))
 
-        # Set structure parameters for initial guess.
-        self.set_structure_stress_guess(structure_guess, stress_guess)
-
         # Store structure parameters for BO
         self.ax_bo = structure_bo.lattice.matrix[0,0]
         self.ay_bo = structure_bo.lattice.matrix[0,1]
@@ -386,6 +385,9 @@ class QHA_ZSISA(HasPickleIO):
         self.ave_x_bo = (abs(self.ax_bo)+abs(self.bx_bo)+abs(self.cx_bo))
         self.ave_y_bo = (abs(self.ay_bo)+abs(self.by_bo)+abs(self.cy_bo))
         self.ave_z_bo = (abs(self.az_bo)+abs(self.bz_bo)+abs(self.cz_bo))
+
+        # Set structure parameters for initial guess.
+        self.set_structure_stress_guess(structure_guess, stress_guess)
 
     def set_structure_stress_guess(self, structure_guess: Structure, stress_guess) -> None:
         """
@@ -428,7 +430,7 @@ class QHA_ZSISA(HasPickleIO):
             print(f"Index: {index}, {what}: {value}", file=file)
 
     def __str__(self) -> str:
-        return self.to_string(self)
+        return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
         """

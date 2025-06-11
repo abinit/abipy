@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
-from abipy.tools.serialization import mjson_load, Serializable
+from abipy.tools.serialization import mjson_load, mjson_write, Serializable
 from abipy.tools.typing import PathLike, Figure
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.abio.inputs import AbinitInput
@@ -42,15 +42,15 @@ class ZsisaResults(Serializable):
     .. inheritance-diagram:: ZsisaResults
     """
 
-    #spgrp_number: int
-    eps: float
-    mode: str
+    spgrp_number: int                # Space group number.
+    eps: float                       # Strain magnitude to be applied to the lattice.
+    mode: str                        # "TEC" or "ECs"
     qha_model: str
-    inds_6d: np.ndarray
+    inds_6d: np.ndarray              # List of indices in the 6D grid
     gsr_bo_path: str
-    gsr_relax_paths: list[str]
+    gsr_relax_paths: list[str]       # Paths to the GSR files for the deformed structures after relaxation
     #gsr_relax_entries: list[dict]
-    ddb_relax_paths: list[str]
+    ddb_relax_paths: list[str]       # Paths to the DDB file with phonons for the deformed structures after relaxation
     gsr_relax_edos_paths: list[str]
     gsr_relax_ebands_paths: list[str]
 
@@ -160,6 +160,8 @@ class ZsisaFlow(Flow):
             #print("In elastic_path branch")
             zsisa = self.thermal_relax_work.zsisa
             work = self[0]
+
+            tdata_list = []
             for task in self.thermal_relax_work:
                 # Call anaddb to get elastic tensor from the DDB file
                 ddb_filepath = task.elastic_work.outdir.path_in("out_DDB")
@@ -174,6 +176,12 @@ class ZsisaFlow(Flow):
                 #edata.elastic_relaxed
                 tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa,
                                           mode=work.mode, elastic_path=elastic_path)
+                tdata_list.append(tdata)
+
+            #ZsisaResults(**data).json_write(self.outdir.path_in("ZsisaResults.json"), indent=4)
+            #results = ZsisaResults.json_load(self.outdir.path_in("ZsisaResults.json"))
+            #json_filepath = self.outdir.path_in("ThermaData_List.json")
+            #mjson_write(tdata_list, json_filepath, indent=4)
 
         return True
 
@@ -184,7 +192,7 @@ class ZsisaFlow(Flow):
         """
         work = self[0]
         data = {
-            #"spgrp_number": work.spgrp_number,
+            "spgrp_number": work.spgrp_number,
             "qha_model": self.qha_model,
             "eps": work.eps,
             "mode": work.mode,
@@ -458,7 +466,7 @@ class ThermalRelaxTask(RelaxTask):
         # Get relaxed structure and stress_guess from the GSR file.
         with self.open_gsr() as gsr:
             relaxed_structure = gsr.structure
-            stress_guess = gsr.cart_stress_tensor * abu.Gpa_to_au
+            stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
 
         guess_path = self.gsr_path
         zsisa = self.work.zsisa
@@ -572,7 +580,7 @@ class ThermalRelaxResults(Serializable):
         return fig
 
     #@add_fig_kwargs
-    #def plot_therm_expansion(self, ax=None, **kwargs) -> Figure:
+    #def plot_thermal_expansion(self, ax=None, **kwargs) -> Figure:
 
     #@add_fig_kwargs
     #def plot_elastic_vs_temp(self,
