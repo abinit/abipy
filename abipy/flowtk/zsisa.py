@@ -42,13 +42,14 @@ class ZsisaResults(Serializable):
     .. inheritance-diagram:: ZsisaResults
     """
 
+    #spgrp_number: int
     eps: float
     mode: str
-    spgrp_number: int
-    gsr_bo_path: str
+    qha_model: str
     inds_6d: np.ndarray
+    gsr_bo_path: str
     gsr_relax_paths: list[str]
-    gsr_relax_entries: list[dict]
+    #gsr_relax_entries: list[dict]
     ddb_relax_paths: list[str]
     gsr_relax_edos_paths: list[str]
     gsr_relax_ebands_paths: list[str]
@@ -74,10 +75,11 @@ class ZsisaFlow(Flow):
                        temperatures,
                        pressures_gpa,
                        nqsmall_or_qppa = 2, # TODO PROVIDE DEFAULT
-                       ndivsm: int = -20,
+                       ndivsm: int = 0,
                        edos_ngkpt=None,
                        ionmov: int = 2,
                        tolmxf=1e-5,
+                       qha_model: str = 'zsisa',
                        manager=None) -> ZsisaFlow:
         """
         Build a flow for ZSISA calculations from an |AbinitInput| representing a GS-SCF calculation.
@@ -109,6 +111,11 @@ class ZsisaFlow(Flow):
                 None disables the computation of the e-DOS.
             ionmov: Algorithm for ion optimization.
             tolmxf: Tolerance of Max force.
+            qha_model:
+                Specifies the QHA model type. Options are:
+                  - 'zsisa': Standard ZSISA model.
+                  - 'v_zsisa': v-ZSISA model.
+                  - 'zsisa_slab': ZSISA model adapted for slab geometries.
             manager: |TaskManager| instance. Use default if None.
         """
         # Consistency check.
@@ -124,6 +131,7 @@ class ZsisaFlow(Flow):
         # Store temperatures and pressures in flow.
         flow.temperatures = np.array(temperatures, dtype=float)
         flow.pressures_gpa = np.array(pressures_gpa, dtype=float)
+        flow.qha_model = qha_model
 
         flow.register_work(ZsisaWork.from_scf_input(scf_input, eps, mode, ngqpt, with_becs, with_quad,
                                                     nqsmall_or_qppa, ndivsm, ionmov, tolmxf,
@@ -148,19 +156,22 @@ class ZsisaFlow(Flow):
             return False
 
         if self.on_all_ok_num_calls == 2:
-            print("In elastic_path branch")
+            # Here we compute elastic constants for the different (T, P).
+            #print("In elastic_path branch")
             zsisa = self.thermal_relax_work.zsisa
             work = self[0]
             for task in self.thermal_relax_work:
-                print(task)
-                ddb_path = task.elastic_work.outdir.path_in("out_DDB")
-                with DdbFile(ddb_path) as ddb:
+                # Call anaddb to get elastic tensor from the DDB file
+                ddb_filepath = task.elastic_work.outdir.path_in("out_DDB")
+                with DdbFile(ddb_filepath) as ddb:
                     edata = ddb.anaget_elastic()
 
+                # FIXME This is to maintain compatibility with the previous API
+                # but things should be done in a much cleaner way.
                 elastic_path = task.outdir.path_in("elastic_constant.txt")
                 with open(elastic_path, "wt") as f:
                     f.write(str(edata))
-
+                #edata.elastic_relaxed
                 tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa,
                                           mode=work.mode, elastic_path=elastic_path)
 
@@ -172,11 +183,11 @@ class ZsisaFlow(Flow):
         It performs some basic post-processing of the results to facilitate further analysis.
         """
         work = self[0]
-        #print(work)
         data = {
+            #"spgrp_number": work.spgrp_number,
+            "qha_model": self.qha_model,
             "eps": work.eps,
             "mode": work.mode,
-            "spgrp_number": work.spgrp_number,
             "gsr_bo_path": work.initial_relax_task.gsr_path,
             "inds_6d": work.inds_6d,
         }
@@ -184,17 +195,16 @@ class ZsisaFlow(Flow):
         # Build list of strings with paths to the relevant output files.
         data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_strained]
 
-        gsr_relax_entries = []
-        for task in work.relax_tasks_strained:
-            with task.open_gsr() as gsr:
-                gsr_relax_entries.append(dict(
-                    volume=gsr.structure.volume,
-                    energy_eV=float(gsr.energy),
-                    pressure_GPa=float(gsr.pressure),
-                    #structure=gsr.structure,
-                ))
-
-        data["gsr_relax_entries"] = gsr_relax_entries
+        #gsr_relax_entries = []
+        #for task in work.relax_tasks_strained:
+        #    with task.open_gsr() as gsr:
+        #        gsr_relax_entries.append(dict(
+        #            volume=gsr.structure.volume,
+        #            energy_eV=float(gsr.energy),
+        #            pressure_GPa=float(gsr.pressure),
+        #            #structure=gsr.structure,
+        #        ))
+        #data["gsr_relax_entries"] = gsr_relax_entries
 
         data["ddb_relax_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in work.ph_works]
         data["gsr_relax_edos_paths"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
@@ -224,7 +234,7 @@ class ZsisaWork(Work):
                        with_becs: bool,
                        with_quad: bool,
                        nqsmall_or_qppa: int,
-                       ndivsm: int = -20,
+                       ndivsm: int = 0,
                        ionmov: int = 2,
                        tolmxf=1e-5,
                        edos_ngkpt=None,
@@ -339,6 +349,7 @@ class ThermalRelaxWork(Work):
             temperatures: List of temperatures in K.
             pressures_gpa: List of pressures in GPa.
             nqsmall_or_qppa:
+            verbose:
         """
         flow = Flow.as_flow(zsisa_flow)
 
@@ -452,7 +463,6 @@ class ThermalRelaxTask(RelaxTask):
         guess_path = self.gsr_path
         zsisa = self.work.zsisa
 
-        #elastic_path = self.outdir.path_in("elastic_constant.txt")
         zsisa.set_structure_stress_guess(relaxed_structure, stress_guess)
         tdata = zsisa.get_tstress(self.temperature, self.pressure_gpa,
                                   mode=self.mode, elastic_path=None)
@@ -560,6 +570,9 @@ class ThermalRelaxResults(Serializable):
             sns.lineplot(df, x="temperature", y=angle, ax=ax, hue=hue, markers=True, dashes=False)
 
         return fig
+
+    #@add_fig_kwargs
+    #def plot_therm_expansion(self, ax=None, **kwargs) -> Figure:
 
     #@add_fig_kwargs
     #def plot_elastic_vs_temp(self,

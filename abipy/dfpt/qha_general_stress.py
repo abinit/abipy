@@ -11,25 +11,34 @@ import math
 import dataclasses
 import abipy.core.abinit_units as abu
 
+from abipy.abio.enums import StrEnum
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
-from abipy.tools.serialization import mjson_load, HasPickleIO
+from abipy.tools.serialization import mjson_load, HasPickleIO, Serializable
 from abipy.core.structure import Structure
+from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhdosFile
-from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.dfpt.vzsisa import anaget_phdoses_with_gauss
 
 
+class QhaModel(StrEnum):
+    """Enumerator for the different kind of QHA model types."""
+    zsisa = 'zsisa'
+    v_zsisa = 'v_zsisa'
+    zsisa_slab = 'zsisa_slab'
+
+
 @dataclasses.dataclass(kw_only=True)
-class ThermalData:
-    temperature: float
-    pressure_gpa: float
-    converged: bool
+class ThermalData(Serializable):
+
+    temperature: float           # Temperature in K
+    pressure_gpa: float          # Pressure in GPa.
+    converged: bool              # True if self-consistent condition in the relaxation has been reached
     dtol: np.ndarray
-    stress_au: np.ndarray
-    elastic: np.ndarray | None
-    therm: np.ndarray | None
+    stress_au: np.ndarray        # Stress in a.u. (Voigt form)
+    elastic: np.ndarray | None   # Elastic constants.
+    therm: np.ndarray | None     # Thermal expansion
 
     def __str__(self):
         return self.to_string()
@@ -71,12 +80,14 @@ class QHA_ZSISA(HasPickleIO):
 
         Args:
             json_filepath: path to the json file.
+            nqsmall_or_qppa:
             anaget_kwargs: kwargs passed to anaget_phdoses_with_gauss.
             smearing_ev: Gaussian smearing in eV. None to use Abinit default value.
             verbose: Verbosity level
         """
         json_filepath = os.path.abspath(json_filepath)
-        data = mjson_load(json_filepath)
+        from abipy.flowtk.zsisa import ZsisaResults
+        data = ZsisaResults.json_load(json_filepath)
 
         phdos_paths, phbands_paths = anaget_phdoses_with_gauss(nqsmall_or_qppa, smearing_ev,
                                                                data.ddb_relax_paths, anaget_kwargs, verbose)
@@ -87,11 +98,10 @@ class QHA_ZSISA(HasPickleIO):
         # === Paths to guessed and BO-relaxed structures ===
         gsr_guess_path = data.gsr_bo_path # FIXME
 
-        for gsr_path, phdos_path, inds in zip(data.gsr_relax_paths, phdos_paths, data.inds_6d, strict=True):
-            #print(f"{inds=}")
-            phdos_paths_6d[inds] = phdos_path
+        for gsr_path, phdos_path, ind in zip(data.gsr_relax_paths, phdos_paths, data.inds_6d, strict=True):
+            phdos_paths_6d[ind] = phdos_path
 
-        new = cls.from_files(phdos_paths_6d, gsr_guess_path, data.gsr_bo_path, model='zsisa', verbose=verbose)
+        new = cls.from_files(phdos_paths_6d, gsr_guess_path, data.gsr_bo_path, qha_model=data.qha_model, verbose=verbose)
 
         workdir = os.path.dirname(json_filepath)
         new.pickle_dump(workdir, basename=os.path.basename(json_filepath) + ".pickle")
@@ -103,7 +113,7 @@ class QHA_ZSISA(HasPickleIO):
                    phdos_paths_6D,
                    gsr_guess_path,
                    gsr_bo_path,
-                   model: str = 'zsisa',
+                   qha_model: str = 'zsisa',
                    verbose: int = 0,
                    ) -> QHA_ZSISA:
         """
@@ -112,7 +122,7 @@ class QHA_ZSISA(HasPickleIO):
         Args:
             phdos_paths_6D: A 6D list of paths to PHDOS.nc files.
                 The PHDOS files must be provided according to the deformations defined in Table IV of the paper.
-                For the 'zsisa' model:
+                For the 'zsisa' qha_model:
                      A 6D array of PHDOS files is required, but the array does not need to be completely filled.
                      Only the necessary deformations from Table IV need to exist.
                      For cubic cases, a 1D or 3D array is also accepted for the TEC case.
@@ -123,7 +133,7 @@ class QHA_ZSISA(HasPickleIO):
                 or the reference structure used to build deformations.
                 This is needed to reconstruct strains from Eqs. (24) and (25) in the paper.
                 and find the crystallographic symmetry of the structure.
-            model:
+            qha_model:
                 Specifies the QHA model type. Options are:
                   - 'zsisa': Standard ZSISA model.
                   - 'v_zsisa': v-ZSISA model.
@@ -162,7 +172,7 @@ class QHA_ZSISA(HasPickleIO):
         #print(spgrp)
 
         # Find the crystallographic symmetry from the BO structure.
-        if model == 'zsisa':
+        if qha_model == 'zsisa':
             if 1 <= spgrp_number <= 2:
                 # triclinic crystal system
                 sym = "triclinic"
@@ -250,12 +260,12 @@ class QHA_ZSISA(HasPickleIO):
         #print("{dim=})
 
         # If the structure is uniaxial and the input PHDOS data is 2D, expand it to 3D format.
-        if list(dim) == [3, 3, 1, 1, 1, 1] and model == 'zsisa':
-            if not (sym == 'hexagonal' or sym == 'trigonal' or sym == 'tetragonal') :
+        if list(dim) == [3, 3, 1, 1, 1, 1] and qha_model == 'zsisa':
+            if not (sym in ('hexagonal', 'trigonal', 'tetragonal')):
                 raise RuntimeError("Only uniaxial structures (e.g., hexagonal, trigonal, tetragonal) are allowed to have 2D PHDOS data.")
             new_shape = (3, 3, 3, 1, 1, 1)
             dim = [3, 3, 3, 1, 1, 1]
-            structures2 = np.empty(new_shape, dtype=object)  # Use dtype=object for lists
+            structures2 = np.empty(new_shape, dtype=object)
             phdoses2 = np.empty(new_shape, dtype=object)
 
             # Copy data: Fill the new dim3 by copying dim2 data
@@ -268,7 +278,7 @@ class QHA_ZSISA(HasPickleIO):
             phdoses = phdoses2
 
         # If the structure is cubic and the input PHDOS data is 1D, expand it to a 3D format.
-        if list(dim) == [3, 1, 1, 1, 1, 1] and model == 'zsisa':
+        if list(dim) == [3, 1, 1, 1, 1, 1] and qha_model == 'zsisa':
             if sym !='cubic' :
                 raise RuntimeError("Only cubic structure is allowed to have 1D PHDOS data.")
 
@@ -541,7 +551,6 @@ class QHA_ZSISA(HasPickleIO):
             if self.elastic_path is not None and os.path.exists(self.elastic_path):
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
                 matrix_elastic = self.elastic_constants(self.elastic_path)
-                matrix_elastic = np.array(matrix_elastic)
                 # Convert elastic constants to second derivative of BO energy (Eq. 39)
                 matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
                 # Initialize second derivative matrix M using free energy second derivatives.
@@ -578,7 +587,7 @@ class QHA_ZSISA(HasPickleIO):
         # S = Entropy (S)
         e, S = self.get_vib_free_energies(temp)
 
-        # A_x and C_z from deformed structures based on table IV and eq(52)
+        # A_x and C_z from deformed structures based on table IV and Eq (52)
         X0 = self.ave_x[0,0,1,0,0,0] # reference structure - exx0 -eyy0
         Z0 = self.ave_z[1,1,0,0,0,0] # reference structure - ezz0
 
@@ -615,7 +624,7 @@ class QHA_ZSISA(HasPickleIO):
         x = self.ave_x_guess
         z = self.ave_z_guess
         v = self.volume_guess
-        # compute BO strain at guess, Eq(53)
+        # compute BO strain at guess, Eq (53)
         exx_n = x/XBO-1
         ezz_n = z/ZBO-1
 
@@ -653,7 +662,6 @@ class QHA_ZSISA(HasPickleIO):
             if self.elastic_path is not None and os.path.exists(self.elastic_path):
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
                 matrix_elastic = self.elastic_constants(self.elastic_path)
-                matrix_elastic = np.array(matrix_elastic)
                 # Convert elastic constants to second derivative of BO energy (Eq. 39)
                 matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
                 # Initialize second derivative matrix M using free energy second derivatives.
@@ -818,7 +826,7 @@ class QHA_ZSISA(HasPickleIO):
         z = self.ave_z_guess
         v = self.volume_guess
 
-        # compute BO strain at guess, Eq(44)
+        # Compute BO strain at guess, Eq(44)
         exx_n = x/XBO-1
         eyy_n = y/YBO-1
         ezz_n = z/ZBO-1
@@ -855,9 +863,8 @@ class QHA_ZSISA(HasPickleIO):
         elastic = None
         if all(dtol[i] < self.dtol_tolerance for i in range(6)):
             if self.elastic_path is not None and os.path.exists(self.elastic_path):
-                matrix_elastic = self.elastic_constants(self.elastic_path)
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
-                matrix_elastic = np.array(matrix_elastic)
+                matrix_elastic = self.elastic_constants(self.elastic_path)
                 # Convert elastic constants to second derivative of BO energy (Eq. 39)
                 matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
                 scale_xx=(exx0+1)*(exx0+1)
@@ -1050,9 +1057,8 @@ class QHA_ZSISA(HasPickleIO):
                     d2F_dC22 =  0.0
                     d2F_dB1dC2= 0.0
 
-                matrix_elastic = self.elastic_constants(self.elastic_path)
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
-                matrix_elastic = np.array(matrix_elastic)
+                matrix_elastic = self.elastic_constants(self.elastic_path)
                 # Convert elastic constants to second derivative of BO energy (Eq. 39)
                 matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
                 scale_xx=(exx0+1)*(exx0+1)
@@ -1294,9 +1300,8 @@ class QHA_ZSISA(HasPickleIO):
         if all(dtol[i] < self.dtol_tolerance for i in range(6)):
             if self.elastic_path is not None and os.path.exists(self.elastic_path):
                 # If elastic constants are requested, compute the second derivatives for C44, C66, and C46
-                matrix_elastic = self.elastic_constants(self.elastic_path)
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
-                matrix_elastic = np.array(matrix_elastic)
+                matrix_elastic = self.elastic_constants(self.elastic_path)
                 # Convert elastic constants to second derivative of BO energy (Eq. 39)
                 matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
                 scale_xx=(exx0+1)*(exx0+1)
@@ -1543,7 +1548,6 @@ class QHA_ZSISA(HasPickleIO):
             self.print_data(temp, pressure_gpa, therm, stress, elastic, mode)
             if self.verbose: print("Converged !!!")
 
-        #return converged, stress
         return ThermalData(temperature=temp, pressure_gpa=pressure_gpa,
                            converged=converged, dtol=dtol, stress_au=stress, elastic=elastic, therm=therm)
 
@@ -1596,10 +1600,7 @@ class QHA_ZSISA(HasPickleIO):
                     continue
 
         # Convert the list into a numpy array for easier indexing
-        matrix_elastic = np.array(elastic_data)
-
-        # Extract the desired values
-        return matrix_elastic
+        return np.array(elastic_data)
 
     def print_data(self, temp, pressure, therm, stress, elastic, mode):
         M = elastic

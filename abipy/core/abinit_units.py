@@ -52,6 +52,7 @@ amu_emass = 1.660538782e-27 / 9.10938215e-31
 HaBohr3_GPa = Ha_eV / Bohr_Ang**3 * e_Cb * 1.0e+21
 # 1 eV/A^3 to GPa
 eVA3_GPa = 160.21766208
+GPa_to_au = 1.0/eVA3_GPa
 # 1 eV in seconds
 eV_s = eV_to_THz*1e12 * 2*np.pi
 # conversion factor for velocity between atomic units and SI
