@@ -144,12 +144,12 @@ class QHA_ZSISA(HasPickleIO):
             if gsr_bo_path.endswith("DDB"):
                 with DdbFile.from_file(gsr_bo_path) as g:
                     structure_bo = g.structure
-                    stress_bo = g.cart_stress_tensor /29421.02648438959
+                    stress_bo = g.cart_stress_tensor * abu.GPa_to_au # /29421.02648438959
 
             elif gsr_bo_path.endswith("GSR.nc"):
                 with GsrFile.from_file(gsr_bo_path) as g:
                     structure_bo = g.structure
-                    stress_bo = g.cart_stress_tensor /29421.02648438959
+                    stress_bo = g.cart_stress_tensor * abu.GPa_to_au # /29421.02648438959
             else:
                 raise TypeError(f"Unknown file type: {type(gsr_bo_path)=}")
 
@@ -160,7 +160,7 @@ class QHA_ZSISA(HasPickleIO):
         if os.path.exists(gsr_guess_path):
             with GsrFile.from_file(gsr_guess_path) as g:
                 structure_guess = g.structure
-                stress_guess = g.cart_stress_tensor /29421.02648438959
+                stress_guess = g.cart_stress_tensor * abu.GPa_to_au # /29421.02648438959
         else:
             # If the initial guess GSR file is missing, fall back to the BO structure and stress
             structure_guess = structure_bo
@@ -320,8 +320,6 @@ class QHA_ZSISA(HasPickleIO):
         self.phdoses = phdoses
         self.dim = dim
         self.verbose = verbose
-        self.HaBohr3_eVA3 = abu.HaBohr3_GPa/abu.eVA3_GPa
-        self.eVA3_HaBohr3 = abu.eVA3_GPa/abu.HaBohr3_GPa
 
         self.dtol_tolerance = 1e-8
 
@@ -476,7 +474,7 @@ class QHA_ZSISA(HasPickleIO):
         else:
             raise ValueError(f"Unsupported value of {self.dim[0]=}")
 
-        stress_a = -dfdv* self.eVA3_HaBohr3
+        stress_a = -dfdv * abu.eVA3_HaBohr3
         stress = np.zeros(6)
         stress[0] = stress_a - pressure
         stress[1] = stress_a - pressure
@@ -527,7 +525,7 @@ class QHA_ZSISA(HasPickleIO):
         dsdx = dS_dX + (exx_n-exx0)*d2S_dX2
 
         # Compute thermal stress. Eq (51)
-        stress_xx = -dfdx/v*(exx_n+1)/3.0 * self.eVA3_HaBohr3
+        stress_xx = -dfdx/v*(exx_n+1)/3.0 * abu.eVA3_HaBohr3
         if self.verbose:
             print("x/XBO: ", x/XBO)
             print(f"{stress_xx=}")
@@ -568,7 +566,7 @@ class QHA_ZSISA(HasPickleIO):
                               [0,0,0,0,0,0],
                               [0,0,0,0,0,0]])
                 # Compute the final second derivative matrix M, including elastic and pressure contributions
-                M = M + matrix_elastic+P/self.eVA3_HaBohr3
+                M = M + matrix_elastic + P / abu.eVA3_HaBohr3
                 # Scale the first derivative of entropy
                 S1 = dsdx*(exx_n+1)/3
                 dSde = np.array([S1,S1,S1,0,0,0])
@@ -636,8 +634,8 @@ class QHA_ZSISA(HasPickleIO):
         dsdz = dS_dZ + (ezz_n-ezz0)*d2S_dZ2+(exx_n-exx0)*d2S_dXdZ
 
         # Compute thermal stresses. Eq (54)
-        stress_xx = -dfdx/v*(exx_n+1)*0.5 * self.eVA3_HaBohr3
-        stress_zz = -dfdz/v*(ezz_n+1)     * self.eVA3_HaBohr3
+        stress_xx = -dfdx/v*(exx_n+1)*0.5 * abu.eVA3_HaBohr3
+        stress_zz = -dfdz/v*(ezz_n+1)     * abu.eVA3_HaBohr3
 
         # Apply external pressure
         stress = np.zeros(6)
@@ -679,7 +677,7 @@ class QHA_ZSISA(HasPickleIO):
                               [0,0,0,0,0,0],
                               [0,0,0,0,0,0]])
                 # Compute the final second derivative matrix M, including elastic and pressure contributions
-                M = M + matrix_elastic+P/self.eVA3_HaBohr3
+                M = M + matrix_elastic + P / abu.eVA3_HaBohr3
                 # Scale the first derivative of entropy
                 S1 = dsdx*(exx_n+1)*0.5
                 S3 = dsdz*(ezz_n+1)
@@ -841,9 +839,9 @@ class QHA_ZSISA(HasPickleIO):
         dsdz = dS_dZ + (ezz_n-ezz0)*d2S_dZ2+(exx_n-exx0)*d2S_dXdZ+(eyy_n-eyy0)*d2S_dYdZ
 
         # Compute thermal stresses. Eq (45)
-        stress_xx = -dfdx/v*(exx_n+1)* self.eVA3_HaBohr3
-        stress_yy = -dfdy/v*(eyy_n+1)* self.eVA3_HaBohr3
-        stress_zz = -dfdz/v*(ezz_n+1)* self.eVA3_HaBohr3
+        stress_xx = -dfdx/v*(exx_n+1) * abu.eVA3_HaBohr3
+        stress_yy = -dfdy/v*(eyy_n+1) * abu.eVA3_HaBohr3
+        stress_zz = -dfdz/v*(ezz_n+1) * abu.eVA3_HaBohr3
 
         stress = np.zeros(6)
         stress[0] = stress_xx - pressure
@@ -891,7 +889,7 @@ class QHA_ZSISA(HasPickleIO):
                               [0,0,0,0,0,0],
                               [0,0,0,0,0,0]])
                 # Compute the final second derivative matrix M, including elastic and pressure contributions
-                M = M + matrix_elastic+P/ self.eVA3_HaBohr3
+                M = M + matrix_elastic + P / abu.eVA3_HaBohr3
                 # Scale the first derivative of entropy
                 S1 = dsdx*(exx_n+1)
                 S2 = dsdy*(eyy_n+1)
@@ -1019,10 +1017,10 @@ class QHA_ZSISA(HasPickleIO):
         dsdc1= dS_dC1 + (exz_n-exz0)*d2S_dC12+(exx_n-exx0)*d2S_dA1dC1+(eyy_n-eyy0)*d2S_dB2dC1+(ezz_n-ezz0)*d2S_dC3dC1
 
         # Compute thermal stresses. Eq (47)
-        stress_a1= -dfda1/v*(exx_n+1)* self.eVA3_HaBohr3
-        stress_b2= -dfdb2/v*(eyy_n+1)* self.eVA3_HaBohr3
-        stress_c3= -dfdc3/v*(ezz_n+1)* self.eVA3_HaBohr3
-        stress_c1= -1.0/v*(dfdc1*(ezz_n+1)+dfda1*exz_n) * self.eVA3_HaBohr3
+        stress_a1= -dfda1/v*(exx_n+1)* abu.eVA3_HaBohr3
+        stress_b2= -dfdb2/v*(eyy_n+1)* abu.eVA3_HaBohr3
+        stress_c3= -dfdc3/v*(ezz_n+1)* abu.eVA3_HaBohr3
+        stress_c1= -1.0/v*(dfdc1*(ezz_n+1)+dfda1*exz_n) * abu.eVA3_HaBohr3
         if self.verbose:
             print("ax/AxBO, by/ByBO, cz/CzBO: ", ax/AxBO, by/ByBO, cz/CzBO)
             print(f"{stress_a1=}, {stress_b2=}, {stress_c3=}, {stress_c1=}")
@@ -1084,7 +1082,7 @@ class QHA_ZSISA(HasPickleIO):
                               [0,0,0,0,0,0],
                               [0,0,0,0,0,0]])
                 # Compute the final second derivative matrix M, including elastic and pressure contributions
-                M = M + matrix_elastic+P/ self.eVA3_HaBohr3
+                M = M + matrix_elastic + P / abu.eVA3_HaBohr3
                 # Scale the first derivative of entropy
                 S1= dsda1*(exx_n+1)
                 S2= dsdb2*(eyy_n+1)
@@ -1267,12 +1265,12 @@ class QHA_ZSISA(HasPickleIO):
         dsdc2 = dS_dC2 + (eyz_n-eyz0)*d2S_dC22+(exx_n-exx0)*d2S_dA1dC2+(eyy_n-eyy0)*d2S_dB2dC2+(ezz_n-ezz0)*d2S_dC3dC2+(exy_n-exy0)*d2S_dB1dC2+(exz_n-exz0)*d2S_dC1dC2
 
         # Compute thermal stresses. Eq (57)
-        stress_a1 = -dfda1/v*(exx_n+1) * self.eVA3_HaBohr3
-        stress_b2 = -dfdb2/v*(eyy_n+1) * self.eVA3_HaBohr3
-        stress_c3 = -dfdc3/v*(ezz_n+1) * self.eVA3_HaBohr3
-        stress_b1 = -1.0/v*(dfdb1*(eyy_n+1)+dfda1*exy_n) * self.eVA3_HaBohr3
-        stress_c2 = -1.0/v*(dfdc2*(ezz_n+1)+dfdb2*eyz_n) * self.eVA3_HaBohr3
-        stress_c1 = -1.0/v*(dfdc1*(ezz_n+1)+dfdb1*eyz_n+dfda1*exz_n) * self.eVA3_HaBohr3
+        stress_a1 = -dfda1/v*(exx_n+1) * abu.eVA3_HaBohr3
+        stress_b2 = -dfdb2/v*(eyy_n+1) * abu.eVA3_HaBohr3
+        stress_c3 = -dfdc3/v*(ezz_n+1) * abu.eVA3_HaBohr3
+        stress_b1 = -1.0/v*(dfdb1*(eyy_n+1)+dfda1*exy_n) * abu.eVA3_HaBohr3
+        stress_c2 = -1.0/v*(dfdc2*(ezz_n+1)+dfdb2*eyz_n) * abu.eVA3_HaBohr3
+        stress_c1 = -1.0/v*(dfdc1*(ezz_n+1)+dfdb1*eyz_n+dfda1*exz_n) * abu.eVA3_HaBohr3
 
         stress = np.zeros(6)
         stress[0] = stress_a1 -pressure
@@ -1325,7 +1323,7 @@ class QHA_ZSISA(HasPickleIO):
                               [0,0,0,0,0,0],
                               [0,0,0,0,0,0]])
                 # Compute the final second derivative matrix M, including elastic and pressure contributions
-                M = M + matrix_elastic+P/ self.eVA3_HaBohr3
+                M = M + matrix_elastic + P / abu.eVA3_HaBohr3
                 # Scale the first derivative of entropy
                 S1 = dsda1*(exx_n+1)
                 S2 = dsdb2*(eyy_n+1)
@@ -1362,7 +1360,7 @@ class QHA_ZSISA(HasPickleIO):
 
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2
 
-        stress_xx = -dfdx/V*(exx_n+1)*0.5 * self.eVA3_HaBohr3
+        stress_xx = -dfdx/V*(exx_n+1)*0.5 * abu.eVA3_HaBohr3
         if self.verbose:
             print("x/X0:", x/X0)
             print(f"{stress_xx=}")
@@ -1410,8 +1408,8 @@ class QHA_ZSISA(HasPickleIO):
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2+(eyy_n-eyy0)*d2F_dXdY
         dfdy = dF_dY + (eyy_n-eyy0)*d2F_dY2+(exx_n-exx0)*d2F_dXdY
 
-        stress_xx = -dfdx/V*(exx_n+1)* self.eVA3_HaBohr3
-        stress_yy = -dfdy/V*(eyy_n+1)* self.eVA3_HaBohr3
+        stress_xx = -dfdx/V*(exx_n+1)* abu.eVA3_HaBohr3
+        stress_yy = -dfdy/V*(eyy_n+1)* abu.eVA3_HaBohr3
         if self.verbose:
             print("x/X0, y/Y0", x/X0, y/Y0)
             print(f"{stress_xx=}, {stress_yy=}")
@@ -1480,9 +1478,9 @@ class QHA_ZSISA(HasPickleIO):
         dfdb2 = dF_dB2 + (eyy_n-eyy0)*d2F_dB22+(exx_n-exx0)*d2F_dA1dB2+(exy_n-exy0)*d2F_dB2dB1
         dfdb1 = dF_dB1 + (exy_n-exy0)*d2F_dB12+(exx_n-exx0)*d2F_dA1dB1+(eyy_n-eyy0)*d2F_dB2dB1
 
-        stress_a1 = -dfda1/V*(exx_n+1) * self.eVA3_HaBohr3
-        stress_b2 = -dfdb2/V*(eyy_n+1) * self.eVA3_HaBohr3
-        stress_b1 = -1.0/V*(dfdb1*(eyy_n+1)+dfda1*exy_n) * self.eVA3_HaBohr3
+        stress_a1 = -dfda1/V*(exx_n+1) * abu.eVA3_HaBohr3
+        stress_b2 = -dfdb2/V*(eyy_n+1) * abu.eVA3_HaBohr3
+        stress_b1 = -1.0/V*(dfdb1*(eyy_n+1)+dfda1*exy_n) * abu.eVA3_HaBohr3
         if self.verbose:
             print("ax/Ax0, by/By0", ax/Ax0, by/By0)
             print(f"{stress_a1=}, {stress_b2=}, {stress_b1=}")

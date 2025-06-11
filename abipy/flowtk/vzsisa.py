@@ -7,6 +7,7 @@ See [Phys. Rev. B 110, 014103](https://doi.org/10.1103/PhysRevB.110.014103)
 from __future__ import annotations
 
 import numpy as np
+#import abipy.core.abinit_units as abu
 
 from abipy.tools.serialization import mjson_write
 from abipy.abio.inputs import AbinitInput
@@ -118,7 +119,7 @@ class VzsisaFlow(Flow):
 class VzsisaWork(Work):
     """
     This work performs the structural relaxation of the initial structure,
-    then a set of distorted structures is genenerated and the relaxed structures are used
+    then a set of distorted structures is generated and the relaxed structures are used
     to compute phonons, BECS and the dielectric tensor with DFPT.
 
     .. rubric:: Inheritance Diagram

@@ -458,7 +458,7 @@ class ThermalRelaxTask(RelaxTask):
         # Get relaxed structure and stress_guess from the GSR file.
         with self.open_gsr() as gsr:
             relaxed_structure = gsr.structure
-            stress_guess = gsr.cart_stress_tensor / 29421.02648438959
+            stress_guess = gsr.cart_stress_tensor * abu.Gpa_to_au
 
         guess_path = self.gsr_path
         zsisa = self.work.zsisa
