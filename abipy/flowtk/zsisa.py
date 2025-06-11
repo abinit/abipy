@@ -140,19 +140,20 @@ class ZsisaFlow(Flow):
         self.on_all_ok_num_calls += 1
 
         if self.on_all_ok_num_calls == 1:
+            # Here we start the relaxations with thermal stress.
             self.write_zsisa_results()
             self.thermal_relax_work = ThermalRelaxWork.from_zsisa_flow(self, self.temperatures, self.pressures_gpa)
             self.register_work(self.thermal_relax_work)
             self.allocate(build=True)
             return False
 
-        # TODO
-        #if self.on_all_ok_num_calls == 2:
-        #    work = self[0]
-        #    for task in self.thermal_relax_work:
-        #        #elastic_path = task.outdir.path_in("elastic_constant.txt")
-        #        converged, stress = work.zsisa.cal_stress(task.temperature, task.pressure_gpa,
-        #                                                  mode=work.mode, elastic_path=None)
+        if self.on_all_ok_num_calls == 2:
+            work = self[0]
+            for task in self.thermal_relax_work:
+                print(task)
+                #elastic_path = task.outdir.path_in("elastic_constant.txt")
+                #tdata = work.zsisa.get_tdata(task.temperature, task.pressure_gpa,
+                #                             mode=work.mode, elastic_path=elastic_path)
 
         return True
 
@@ -286,14 +287,9 @@ class ZsisaWork(Work):
         for task, strain_name, strain_ind in zip(self[1:], self.strained_structures_dict.keys(), self.inds_6d, strict=True):
             relaxed_structure = task.get_final_structure()
             scf_input = self.initial_scf_input.new_with_structure(relaxed_structure)
-            #scf_input.pop_vars(["dilatmx"])
             ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
                                                 with_becs=self.with_becs, with_quad=self.with_quad,
                                                 ndivsm=0 if np.any(strain_ind != 0) else self.ndivsm)
-
-            # Reduce the number of files produced by the DFPT tasks to avoid possible disk quota issues.
-            #for ph_task in ph_work[1:]:
-            #    ph_task.input.set_vars(prtpot=0)
 
             ph_work.set_name(strain_name)
             self.ph_works.append(ph_work)
@@ -350,7 +346,7 @@ class ThermalRelaxWork(Work):
         if nqsmall_or_qppa is None:
             nqsmall_or_qppa = flow[0].nqsmall_or_qppa
 
-        print(f"Computing PHDOS with {nqsmall_or_qppa=}")
+        print(f"Computing PHDOS with {nqsmall_or_qppa=} ...")
         work.zsisa = QHA_ZSISA.from_json_file(json_filepath, nqsmall_or_qppa, verbose=verbose)
 
         scf_input = flow[0].initial_scf_input
@@ -359,12 +355,12 @@ class ThermalRelaxWork(Work):
         # Generate initial ThermalRelaxTask tasks.
         work.thermal_relax_tasks = []
         for pressure_gpa, temperature in itertools.product(work.pressures_gpa, work.temperatures):
-            converged, stress = work.zsisa.cal_stress(temperature, pressure_gpa,
-                                                      mode=work.mode, elastic_path=None)
+            tdata = work.zsisa.get_tstress(temperature, pressure_gpa,
+                                           mode=work.mode, elastic_path=None)
 
-            #print(f"{temperature=}, {pressure_gpa=}, {stress=}")
+            #print(tdata)
             # TODO: Relax options with ecutsm and strfact?
-            new_relax_input = relax_template.new_with_vars(strtarget=stress)
+            new_relax_input = relax_template.new_with_vars(strtarget=tdata.stress_au)
 
             # Attach pressure and temperature to the task.
             task = work.register_task(new_relax_input, task_class=ThermalRelaxTask)
@@ -438,20 +434,20 @@ class ThermalRelaxTask(RelaxTask):
 
         #elastic_path = self.outdir.path_in("elastic_constant.txt")
         zsisa.set_structure_stress_guess(relaxed_structure, stress_guess)
-        converged, stress = zsisa.cal_stress(self.temperature, self.pressure_gpa,
-                                             mode=self.mode, elastic_path=None)
-        print(f"{stress_guess=}", "\n", f"{stress=}", "\n", f"{converged=}")
+        tdata = zsisa.get_tstress(self.temperature, self.pressure_gpa,
+                                  mode=self.mode, elastic_path=None)
+        print(tdata)
 
-        if not converged:
+        if not tdata.converged:
             # Change strtarget and restart the relaxation task.
             extra_vars = {
-                "strtarget": stress,
+                "strtarget": tdata.stress_au,
                 "ionmov": 2,
                 "ntime": 100,
                 "optcell": 2,
                 "dilatmx": 1.04,
                 "tolmxf": 1.0e-5,
-                "strfact": 1000.,
+                "strfact": 1000.,  # This to give more weight to the stress in the relaxation.
             }
             self.input.set_vars(**extra_vars)
             self.finalized = False

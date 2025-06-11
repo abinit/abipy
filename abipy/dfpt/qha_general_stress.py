@@ -8,8 +8,8 @@ import numpy as np
 import sys
 import os
 import math
+import dataclasses
 import abipy.core.abinit_units as abu
-
 
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.serialization import mjson_load, HasPickleIO
@@ -21,9 +21,20 @@ from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.dfpt.vzsisa import anaget_phdoses_with_gauss
 
 
+@dataclasses.dataclass(kw_only=True)
+class ThermalData:
+    temperature: float
+    pressure_gpa: float
+    converged: bool
+    dtol: np.ndarray
+    stress_au: np.ndarray
+    elastic: np.ndarray | None
+    therm: np.ndarray | None
+
+
 class QHA_ZSISA(HasPickleIO):
     """
-    Does not include electronic entropic contributions for metals.
+    NB: The present implementation does not include electronic entropic contributions for metals.
     """
 
     @classmethod
@@ -55,7 +66,7 @@ class QHA_ZSISA(HasPickleIO):
         gsr_guess_path = data.gsr_bo_path # FIXME
 
         for gsr_path, phdos_path, inds in zip(data.gsr_relax_paths, phdos_paths, data.inds_6d, strict=True):
-            print(f"{inds=}")
+            #print(f"{inds=}")
             phdos_paths_6d[inds] = phdos_path
 
         new = cls.from_files(phdos_paths_6d, gsr_guess_path, data.gsr_bo_path, model='zsisa', verbose=verbose)
@@ -216,7 +227,7 @@ class QHA_ZSISA(HasPickleIO):
 
         #print("{dim=})
 
-        # If the structure is uniaxial and the input PHDOS data is 2D, expand it to a 3D format.
+        # If the structure is uniaxial and the input PHDOS data is 2D, expand it to 3D format.
         if list(dim) == [3, 3, 1, 1, 1, 1] and model == 'zsisa':
             if not (sym == 'hexagonal' or sym == 'trigonal' or sym == 'tetragonal') :
                 raise RuntimeError("Only uniaxial structures (e.g., hexagonal, trigonal, tetragonal) are allowed to have 2D PHDOS data.")
@@ -547,7 +558,7 @@ class QHA_ZSISA(HasPickleIO):
         X0 = self.ave_x[0,0,1,0,0,0] # reference structure - exx0 -eyy0
         Z0 = self.ave_z[1,1,0,0,0,0] # reference structure - ezz0
 
-        #  A_x and C_z from reference structure
+        # A_x and C_z from reference structure
         X1 = self.ave_x[1,1,1,0,0,0]
         Z1 = self.ave_z[1,1,1,0,0,0]
 
@@ -1459,16 +1470,15 @@ class QHA_ZSISA(HasPickleIO):
 
         return dtol, stress
 
-    def cal_stress(self, temp: float, pressure: float = 0.0,
-                   mode: str = "TEC", elastic_path: str = "elastic_constant.txt") -> tuple:
+    def get_tstress(self, temp: float, pressure: float = 0.0,
+                   mode: str = "TEC", elastic_path: str = "elastic_constant.txt") -> ThermalData:
         self.elastic_path = elastic_path
         pressure_gpa = pressure
         pressure = pressure/abu.HaBohr3_GPa
         if self.verbose:
             print("Mode: ", mode, "\nPressure: ", pressure_gpa, "(GPa)", "\nTemperature: ", temp, "(K)")
 
-        elastic = None
-        therm = None
+        elastic, therm = None, None
 
         if self.sym == "v_ZSISA":
             dtol, stress = self.stress_v_ZSISA(temp, pressure)
@@ -1505,19 +1515,21 @@ class QHA_ZSISA(HasPickleIO):
 
         converged = False
         if all(dtol[i] < 1e-8 for i in range(6)):
+            converged = True
             self.print_data(temp, pressure_gpa, therm, stress, elastic, mode)
             if self.verbose: print("Converged !!!")
-            converged = True
 
-        return converged, stress
+        #return converged, stress
+        return ThermalData(temperature=temp, pressure_gpa=pressure_gpa,
+                           converged=converged, dtol=dtol, stress_au=stress, elastic=elastic, therm=therm)
 
     def get_vib_free_energies(self, temp: float) -> tuple:
         """
-        Compute vibrational free energy and entropy at a specific temperature `temp` in K.
+        Compute vibrational free energy and entropy at the specified temperature `temp` in K.
 
         Return:
-            e = Vibrational free energy (F_vib)
-            S = Entropy (S)
+            e: Vibrational free energy (F_vib)
+            S: Entropy.
         """
         f = np.zeros((self.dim[0],self.dim[1],self.dim[2],self.dim[3],self.dim[4],self.dim[5]))
         entropy = np.zeros((self.dim[0],self.dim[1],self.dim[2],self.dim[3],self.dim[4],self.dim[5]))

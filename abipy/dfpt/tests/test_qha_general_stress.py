@@ -24,8 +24,8 @@ class QhaZSISATest(AbipyTest):
         elastic_BO_paths = os.path.join(root, f"find_TEC/Temp_0300_000/elastic_constant.txt")
 
         zsisa = QHA_ZSISA.from_files(dos_paths, guess_path, gsr_BO_paths, verbose=1)
-        result = zsisa.cal_stress(300.0, pressure=0.0, elastic_path=elastic_BO_paths)
-        #print("Stress calculation result:", result)
+        tdata = zsisa.get_tstress(300.0, pressure=0.0, elastic_path=elastic_BO_paths)
+        #print("Stress calculation result:", tdata)
 
         dtol, stress, therm = zsisa.stress_ZSISA_2DOF(300.0, 0.0)
 
@@ -54,9 +54,9 @@ class QhaZSISATest(AbipyTest):
         temp = 600
         pressure = 8.0
         zsisa = QHA_ZSISA.from_files(dos_paths, guess_path, gsr_BO_path)
-        result = zsisa.cal_stress(temp, pressure, mode='ECs', elastic_path=elastic_path)
+        tdata = zsisa.get_tstress(temp, pressure, mode='ECs', elastic_path=elastic_path)
         assert zsisa.dim == (3, 3, 3, 3, 1, 1)
-        #print("Stress calculation result:", result)
+        #print("Stress calculation result:", tdata)
         dtol, stress, therm, elastic = zsisa.stress_ZSISA_3DOF(temp, pressure/abu.HaBohr3_GPa, mode='ECs')
         self.assert_almost_equal(dtol,
             [1.1743820e-09, 1.1743588e-09, 3.9019984e-10, 0.0000000e+00, 0.0000000e+00, 0.0000000e+00])

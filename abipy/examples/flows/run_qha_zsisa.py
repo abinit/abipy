@@ -56,12 +56,12 @@ rprim
     # Set other important variables
     scf_input.set_vars(
         nband=scf_input.num_valence_electrons // 2,
-        nline=10,
+        #nline=10,
         nbdbuf=0,
         nstep=100,
         ecutsm=1.0,
         #tolvrs=1.0e-18,    # SCF stopping criterion (modify default)
-        tolvrs=1.0e-6,      # SCF stopping criterion (modify default)
+        tolvrs=1.0e-8,      # SCF stopping criterion (modify default)
     )
 
     # Select k-mesh for electrons and q-mesh for phonons.
@@ -83,12 +83,12 @@ rprim
     temperatures = [10, 50, 100]
     pressures_gpa = [0]
     nqsmall_or_qppa = 30 # TODO
+    nqsmall_or_qppa = 1 # TODO
 
     flow = ZsisaFlow.from_scf_input(options.workdir, scf_input, eps, mode, ngqpt,
                                     with_becs, with_quad, temperatures, pressures_gpa,
                                     nqsmall_or_qppa=nqsmall_or_qppa,
                                     )
-
     return flow
 
 
