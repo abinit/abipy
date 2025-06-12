@@ -2107,6 +2107,7 @@ class SigresReader(ETSF_Reader):
             ("gwcalctyp", "variable"),
             ("scissor_ene", "variable"),
             ("nfreqim", "variable"),
+            ("nfreqim_conv", "variable"),
             ("nfreqre", "variable"),
             ("nomega_i", "dimension"),
             ("nomega_r", "dimension"),
