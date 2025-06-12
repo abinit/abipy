@@ -412,7 +412,7 @@ class ParalHints(collections.abc.Iterable):
             logger.info("Applying condition %s" % str(policy.condition))
             hints.select_with_condition(policy.condition)
 
-            # Undo change if no configuration fullfills the requirements.
+            # Undo change if no configuration fulfills the requirements.
             if not hints:
                 hints = bkp_hints
                 logger.warning("Empty list of configurations after policy.condition")
@@ -739,7 +739,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
                 raise ValueError("qadapter cannot have negative priority:\n %s" % qad)
 
         if not qads:
-            raise ValueError("Received emtpy list of qadapters")
+            raise ValueError("Received empty list of qadapters")
         #if len(qads) != 1:
         #    raise NotImplementedError("For the time being multiple qadapters are not supported! Please use one adapter")
 
@@ -770,7 +770,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         # On BlueGene we need at least two qadapters.
         # One for running jobs on the computing nodes and another one
         # for running small jobs on the fronted. These two qadapters
-        # will have different enviroments and different executables.
+        # will have different environments and different executables.
         # If None of the q-adapters has qtype==shell, we change qtype to shell
         # and we return a new Manager for sequential jobs with the same parameters as self.
         # If the list contains a qadapter with qtype == shell, we ignore the remaining qadapters
@@ -899,7 +899,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         if self.has_omp: self.set_omp_threads(pconf.omp_threads)
 
         # Set memory per proc.
-        #FIXME: Fixer may have changed the memory per proc and should not be resetted by ParalConf
+        #FIXME: Fixer may have changed the memory per proc and should not be reset by ParalConf
         #self.set_mem_per_proc(pconf.mem_per_proc)
         return pconf
 
@@ -1053,7 +1053,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
     def increase_mem(self):
         # OLD
         # with GW calculations in mind with GW mem = 10,
-        # the response fuction is in memory and not distributed
+        # the response function is in memory and not distributed
         # we need to increase memory if jobs fail ...
         # return self.qadapter.more_mem_per_proc()
         try:
@@ -1219,9 +1219,9 @@ class AbinitBuild:
         self.has_libxc = False
 
         def yesno2bool(line):
-            ans = line.split()[-1].lower()
+            answer = line.split()[-1].lower()
             try:
-                return dict(yes=True, no=False, auto=True)[ans]
+                return dict(yes=True, no=False, auto=True)[answer]
             except KeyError:
                 # Temporary hack for abinit v9
                 return True
@@ -1244,8 +1244,8 @@ class AbinitBuild:
             if "openMP support" in line:
                 self.has_omp = yesno2bool(line)
             if "Parallel build" in line:
-                ans = line.split()[-1].lower()
-                if ans == "@enable_mpi@":
+                answer = line.split()[-1].lower()
+                if answer == "@enable_mpi@":
                     # Temporary hack for abinit v9
                     self.has_mpi = True
                 else:
@@ -1447,9 +1447,9 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.queue_errors = []
         self.abi_errors = []
 
-        # two flags that provide, dynamically, information on the scaling behavious of a task. If any process of fixing
+        # Two flags that provide, dynamically, information on the scaling behaviour of a task. If any process of fixing
         # finds none scaling behaviour, they should be switched. If a task type is clearly not scaling they should be
-        # swiched.
+        # switched.
         self.mem_scales = True
         self.load_scales = True
 
@@ -1888,7 +1888,7 @@ class Task(Node, metaclass=abc.ABCMeta):
     def lock(self, source_node: None) -> None:
         """Lock the task, source is the |Node| that applies the lock."""
         if self.status != self.S_INIT:
-            raise ValueError("Trying to lock a task with status %s" % self.status)
+            raise ValueError(f"Trying to lock a task with status: {self.status}")
 
         self._status = self.S_LOCKED
         self.history.info("Locked by node %s", source_node)
@@ -1960,7 +1960,7 @@ class Task(Node, metaclass=abc.ABCMeta):
                 self.history.info("Status changed to %s. msg: %s", status, msg)
 
         #######################################################
-        # The section belows contains callbacks that should not
+        # The section below contains callbacks that should not
         # be executed if we are in spectator_mode
         #######################################################
         if status == self.S_DONE:
@@ -1987,7 +1987,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         error files produced by the application and by the queue manager.
         """
         # 1) check it the job is blocked.
-        # 2) check if an error occured when the job was submitted, TODO these problems can be solved
+        # 2) check if an error occurred when the job was submitted, TODO these problems can be solved
         # 3) check if main output file has been produced.
         # 4) check if abinit reports problems.
         # 5) check if both err files exist and are empty.
@@ -2113,7 +2113,7 @@ class Task(Node, metaclass=abc.ABCMeta):
                 #    rt = -1.0
                 #tl = self.manager.qadapter.timelimit
                 #if rt > tl:
-                #    msg += 'set to error : runtime (%s) exceded walltime (%s)' % (rt, tl)
+                #    msg += 'set to error: runtime (%s) exceeded walltime (%s)' % (rt, tl)
                 #    print(msg)
                 #    return self.set_status(self.S_ERROR, msg=msg)
                 # The job may be killed or crashed but we don't know what happened
@@ -2123,7 +2123,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         # 8) analyzing the err files and abinit output did not identify a problem
         # but if the files are not empty we do have a problem but no way of solving it:
-        # The job got killed or crashed but we don't know what happend
+        # The job got killed or crashed but we don't know what happened
         # it is set to QCritical, we will attempt to fix it by running on more resources
         if err_msg:
             msg = 'Found error message:\n %s' % str(err_msg)
@@ -2776,17 +2776,17 @@ class AbinitTask(Task):
         Here we fix this issue by renaming run.abo to run.abo_[number] if the output file "run.abo" already
         exists. A few lines of code in python, a lot of problems if you try to implement this trick in Fortran90.
         """
-        def rename_file(afile):
+        def rename_file(file_obj):
             """Helper function to rename :class:`File` objects. Return string for logging purpose."""
             # Find the index of the last file (if any).
             # TODO: Maybe it's better to use run.abo --> run(1).abo
-            fnames = [f for f in os.listdir(self.workdir) if f.startswith(afile.basename)]
+            fnames = [f for f in os.listdir(self.workdir) if f.startswith(file_obj.basename)]
             nums = [int(f) for f in [f.split("_")[-1] for f in fnames] if f.isdigit()]
             last = max(nums) if nums else 0
-            new_path = afile.path + "_" + str(last+1)
+            new_path = file_obj.path + "_" + str(last+1)
 
-            os.rename(afile.path, new_path)
-            return "Will rename %s to %s" % (afile.path, new_path)
+            os.rename(file_obj.path, new_path)
+            return "Will rename %s to %s" % (file_obj.path, new_path)
 
         logs = []
         if self.output_file.exists: logs.append(rename_file(self.output_file))
@@ -3226,7 +3226,7 @@ class AbinitTask(Task):
 
                 elif isinstance(error, MemoryCancelError):
                     # ask the qadapter to provide more resources, i.e. more cpu's so more total memory if the code
-                    # scales this should fix the memeory problem
+                    # scales this should fix the memory problem
                     # increase both max and min ncpu of the autoparalel and rerun autoparalel
                     if self.mem_scales:
                         try:
@@ -3864,7 +3864,7 @@ class DfptTask(AbinitTask):
                     if not out_ddk:
                         raise RuntimeError("%s didn't produce the DDK file" % ddk_task)
 
-                    # Get (fortran) idir and costruct the name of the 1WF expected by Abinit
+                    # Get (fortran) idir and construct the name of the 1WF expected by Abinit
                     rfdir = list(ddk_task.input["rfdir"])
                     if rfdir.count(1) != 1:
                         raise RuntimeError("Only one direction should be specifned in rfdir but rfdir = %s" % rfdir)
@@ -4152,7 +4152,7 @@ class ManyBodyTask(AbinitTask):
         Returns True in case of success, False in case of Failure.
         """
         # The first digit governs the storage of W(q), the second digit the storage of u(r)
-        # Try to avoid the storage of u(r) first since reading W(q) from file will lead to a drammatic slowdown.
+        # Try to avoid the storage of u(r) first since reading W(q) from file will lead to a dramatic slowdown.
         prev_gwmem = int(self.get_inpvar("gwmem", default=11))
         first_dig, second_dig = prev_gwmem // 10, prev_gwmem % 10
 
@@ -5095,4 +5095,3 @@ class AtdepTask(Task):
         s = str(inp)
         if with_header: s = str(self) + "\n" + s
         return s
-

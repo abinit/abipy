@@ -67,6 +67,7 @@ rprim
     # Select k-mesh for electrons and q-mesh for phonons.
     #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
     ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
+    #ngkpt = [4, 4, 4]; ngqpt = [2, 2, 2]
 
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
@@ -80,12 +81,14 @@ rprim
     #with_quad = not structure.has_zero_dynamical_quadrupoles
 
     # List of temperatures in Kelvin and pressures in Gpa.
-    temperatures = [10, 50, 100]
+    #temperatures = [10, 50, 100, 200, 300]
+    #pressures_gpa = [0, 20]
+    temperatures = [10, 100, 200]
     pressures_gpa = [0]
-    nqsmall_or_qppa = 30 # TODO
     nqsmall_or_qppa = 1 # TODO
+    nqsmall_or_qppa = 20 # TODO
 
-    # Relaxation with thermal stress may require ~ 10 iterations.
+    # Relaxation with thermal stress may require several iterations.
     # Here we set programmatically the maximum number of restarts to 20.
     from abipy.flowtk.tasks import TaskManager, set_user_config_taskmanager
     manager = TaskManager.from_user_config()

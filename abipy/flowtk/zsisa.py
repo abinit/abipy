@@ -12,7 +12,7 @@ import abipy.core.abinit_units as abu
 
 from abipy.tools.serialization import mjson_load, mjson_write, Serializable
 from abipy.tools.typing import PathLike, Figure
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, plot_xy_with_hue
 from abipy.abio.inputs import AbinitInput
 from abipy.electrons import GsrFile
 from abipy.dfpt.ddb import DdbFile
@@ -22,37 +22,6 @@ from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.tasks import RelaxTask
 from abipy.flowtk.flows import Flow
 from abipy.flowtk.dfpt_works import ElasticWork
-
-
-@dataclasses.dataclass(kw_only=True)
-class ZsisaResults(Serializable):
-    """
-    This object stores the locations of the GSR/DDB files produced by a ZSISA calculation
-    so that we can easily redo a thermal relaxation run.
-    For instance, one may want to increase the list of temperatures, pressures or increase
-    the q-mesh used to compute the phonon DOS.
-
-    To read the object from file use:
-
-    .. code-block:: python
-
-        data = ZsisaResults.json_load("json_filepath")
-
-    .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: ZsisaResults
-    """
-
-    spgrp_number: int                # Space group number.
-    eps: float                       # Strain magnitude to be applied to the lattice.
-    mode: str                        # "TEC" or "ECs"
-    qha_model: str
-    inds_6d: np.ndarray              # List of indices in the 6D grid
-    gsr_bo_path: str
-    gsr_relax_paths: list[str]       # Paths to the GSR files for the deformed structures after relaxation
-    #gsr_relax_entries: list[dict]
-    ddb_relax_paths: list[str]       # Paths to the DDB file with phonons for the deformed structures after relaxation
-    gsr_relax_edos_paths: list[str]
-    gsr_relax_ebands_paths: list[str]
 
 
 class ZsisaFlow(Flow):
@@ -132,6 +101,7 @@ class ZsisaFlow(Flow):
         flow.temperatures = np.array(temperatures, dtype=float)
         flow.pressures_gpa = np.array(pressures_gpa, dtype=float)
         flow.qha_model = qha_model
+        flow.nqsmall_or_qppa = nqsmall_or_qppa
 
         flow.register_work(ZsisaWork.from_scf_input(scf_input, eps, mode, ngqpt, with_becs, with_quad,
                                                     nqsmall_or_qppa, ndivsm, ionmov, tolmxf,
@@ -147,9 +117,11 @@ class ZsisaFlow(Flow):
         """
         self.on_all_ok_num_calls += 1
 
+        json_filepath = self.outdir.path_in("ZsisaResults.json")
+
         if self.on_all_ok_num_calls == 1:
             # Here we start the relaxations with thermal stress.
-            self.write_zsisa_results()
+            self.write_zsisa_results_step1(json_filepath)
             self.thermal_relax_work = ThermalRelaxWork.from_zsisa_flow(self, self.temperatures, self.pressures_gpa)
             self.register_work(self.thermal_relax_work)
             self.allocate(build=True)
@@ -158,10 +130,15 @@ class ZsisaFlow(Flow):
         if self.on_all_ok_num_calls == 2:
             # Here we compute elastic constants for the different (T, P).
             #print("In elastic_path branch")
-            zsisa = self.thermal_relax_work.zsisa
             work = self[0]
 
-            tdata_list = []
+            # Read previously generated json file
+            self.thermal_relax_work.update_zsisa_results(json_filepath)
+
+            """
+            results = ZsisaResults.json_load(json_filepath)
+            zsisa = self.thermal_relax_work.zsisa
+
             for task in self.thermal_relax_work:
                 # Call anaddb to get elastic tensor from the DDB file
                 ddb_filepath = task.elastic_work.outdir.path_in("out_DDB")
@@ -174,18 +151,39 @@ class ZsisaFlow(Flow):
                 with open(elastic_path, "wt") as f:
                     f.write(str(edata))
                 #edata.elastic_relaxed
+
+                # Get relaxed structure and stress_guess from the GSR file.
+                with task.open_gsr() as gsr:
+                    relaxed_structure = gsr.structure
+                    stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
+
+                zsisa.set_structure_stress_guess(relaxed_structure, stress_guess)
+
                 tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa,
                                           mode=work.mode, elastic_path=elastic_path)
-                tdata_list.append(tdata)
+                print(tdata)
 
-            #ZsisaResults(**data).json_write(self.outdir.path_in("ZsisaResults.json"), indent=4)
-            #results = ZsisaResults.json_load(self.outdir.path_in("ZsisaResults.json"))
-            #json_filepath = self.outdir.path_in("ThermaData_List.json")
-            #mjson_write(tdata_list, json_filepath, indent=4)
+                # Init entry and add it to list.
+                entry = dict(
+                    nqsmall_or_qppa=self[0].nqsmall_or_qppa,
+                    pressure_gpa=task.pressure_gpa,
+                    temperature=task.temperature,
+                    gsr_path=task.gsr_path,
+                    # Add path to the DDB file with the 2nd order derivatives wrt strain.
+                    elastic_ddb_path=ddb_filepath,
+                    therm=tdata.therm,
+                    elastic=tdata.elastic
+                )
+                entry = ThermalRelaxEntry(**entry)
+
+                results.thermal_relax_entries.append(entry)
+
+            results.json_write(json_filepath, indent=4)
+            """
 
         return True
 
-    def write_zsisa_results(self):
+    def write_zsisa_results_step1(self, json_filepath: str) -> None:
         """
         This method is called when the flow is completed.
         It performs some basic post-processing of the results to facilitate further analysis.
@@ -193,7 +191,7 @@ class ZsisaFlow(Flow):
         work = self[0]
         data = {
             "spgrp_number": work.spgrp_number,
-            "qha_model": self.qha_model,
+            "qha_model": work.flow.qha_model,
             "eps": work.eps,
             "mode": work.mode,
             "gsr_bo_path": work.initial_relax_task.gsr_path,
@@ -203,24 +201,16 @@ class ZsisaFlow(Flow):
         # Build list of strings with paths to the relevant output files.
         data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_strained]
 
-        #gsr_relax_entries = []
-        #for task in work.relax_tasks_strained:
-        #    with task.open_gsr() as gsr:
-        #        gsr_relax_entries.append(dict(
-        #            volume=gsr.structure.volume,
-        #            energy_eV=float(gsr.energy),
-        #            pressure_GPa=float(gsr.pressure),
-        #            #structure=gsr.structure,
-        #        ))
-        #data["gsr_relax_entries"] = gsr_relax_entries
-
         data["ddb_relax_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in work.ph_works]
         data["gsr_relax_edos_paths"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
         data["gsr_relax_ebands_paths"] = [] if work.ndivsm == 0 else \
             [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
 
+        # Init with empty list.
+        data["thermal_relax_entries"] = []
+
         # Write json file.
-        ZsisaResults(**data).json_write(self.outdir.path_in("ZsisaResults.json"), indent=4)
+        ZsisaResults(**data).json_write(json_filepath, indent=4)
 
 
 class ZsisaWork(Work):
@@ -266,7 +256,7 @@ class ZsisaWork(Work):
 
         # Create input for relaxation and register the initial relaxation task.
         if "tolvrs" not in scf_input:
-            raise ValueError("tolvrs should be specified in scf_input.")
+            raise ValueError("tolvrs must be specified in scf_input.")
 
         work.relax_template = relax_template = scf_input.deepcopy()
 
@@ -368,14 +358,12 @@ class ThermalRelaxWork(Work):
         work.temperatures = np.array(temperatures, dtype=float)
         work.pressures_gpa = np.array(pressures_gpa, dtype=float)
         work.mode = data.mode
-        #work.phdos_paths = phdos_paths
-        #work.gsr_bo_path = gsr_bo_path
 
         # Build zsisa object.
         if nqsmall_or_qppa is None:
             nqsmall_or_qppa = flow[0].nqsmall_or_qppa
 
-        print(f"Computing PHDOS with {nqsmall_or_qppa=} ...")
+        print(f"Computing Phonon DOS with {nqsmall_or_qppa=} ...")
         work.zsisa = QHA_ZSISA.from_json_file(json_filepath, nqsmall_or_qppa, verbose=verbose)
 
         scf_input = flow[0].initial_scf_input
@@ -412,40 +400,55 @@ class ThermalRelaxWork(Work):
 
         return work
 
-    def on_all_ok(self):
+    def update_zsisa_results(self, json_filepath: str) -> None:
         """
-        Callback triggered when all tasks in the ThermalRelaxWork reach the `S_OK` status.
-
-        This method writes a JSON file containing the paths to the GSR files associated with each
-        temperature (T) and pressure (P) point. If elastic constants have also been computed,
-        a similar JSON entry is generated for the corresponding DDB files.
+        Compute elastic constants C at the end of the calculation.
+        Use C to obtain to reduce noise in thermal expansion.
+        Also, compute C(T, P) if self.mode == "ECs"
         """
+        results = ZsisaResults.json_load(json_filepath)
+        zsisa = self.zsisa
 
-        data = dict(
-            #initial_structure=self.input.structure,
-            mode=self.mode,
-            #phdos_paths=self.phdos_paths,
-            #gsr_bo_path=self.gsr_bo_path,
-            #temperatures=self.temperatures,
-            #pressures_gpa=self.pressures_gpa,
-        )
-
-        data["task_entries"] = []
         for task in self.thermal_relax_tasks:
+            # Call anaddb to get elastic tensor from the DDB file
+            ddb_filepath = task.elastic_work.outdir.path_in("out_DDB")
+            with DdbFile(ddb_filepath) as ddb:
+                edata = ddb.anaget_elastic()
+
+            # FIXME This is to maintain compatibility with the previous API
+            # but things should be done in a much cleaner way.
+            elastic_path = task.outdir.path_in("elastic_constant.txt")
+            with open(elastic_path, "wt") as f:
+                f.write(str(edata))
+            #edata.elastic_relaxed
+
+            # Get relaxed structure and stress_guess from the GSR file.
+            with task.open_gsr() as gsr:
+                relaxed_structure = gsr.structure
+                stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
+
+            zsisa.set_structure_stress_guess(relaxed_structure, stress_guess)
+            tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa,
+                                      mode=self.mode, elastic_path=elastic_path)
+            print(tdata)
+
+            # Init entry and add it to list.
             entry = dict(
+                nqsmall_or_qppa=task.flow.nqsmall_or_qppa,
                 pressure_gpa=task.pressure_gpa,
                 temperature=task.temperature,
                 gsr_path=task.gsr_path,
-                elastic_ddb_path=None,
+                # Add path to the DDB file with the 2nd order derivatives wrt strain.
+                elastic_ddb_path=ddb_filepath,
+                therm=tdata.therm,
+                elastic=tdata.elastic
             )
-            # Add path to the DDB file with the 2nd order derivatives wrt strain.
-            if task.elastic_work is not None:
-                entry["elastic_ddb_path"] = task.elastic_work.outdir.path_in("out_DDB")
+            entry = ThermalRelaxEntry(**entry)
 
-            data["task_entries"].append(entry)
+            results.thermal_relax_entries.append(entry)
 
-        ThermalRelaxResults(**data).json_write(self.outdir.path_in("ThermalRelaxResults.json"), indent=4)
-        return super().on_all_ok()
+        results.json_write(json_filepath, indent=4)
+
 
 
 class ThermalRelaxTask(RelaxTask):
@@ -454,7 +457,7 @@ class ThermalRelaxTask(RelaxTask):
     at a given temperature T and external pressure P_ext.
     Starting from an initial lattice guess, the thermal and Born-Oppenheimer (BO) stresses are computed.
     A target stress is defined using the thermal stress and P_ext.
-    Then, the lattice and atomic positions are relaxed repeatedly until the BO stress matches the target stress
+    Then, the lattice and atomic positions are relaxed repeatedly until the BO stress matches the target stress.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ThermalRelaxTask
@@ -468,13 +471,11 @@ class ThermalRelaxTask(RelaxTask):
             relaxed_structure = gsr.structure
             stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
 
-        guess_path = self.gsr_path
         zsisa = self.work.zsisa
-
         zsisa.set_structure_stress_guess(relaxed_structure, stress_guess)
         tdata = zsisa.get_tstress(self.temperature, self.pressure_gpa,
                                   mode=self.mode, elastic_path=None)
-        print(tdata)
+        #print(tdata)
 
         if not tdata.converged:
             # Change strtarget and restart the relaxation task.
@@ -486,7 +487,8 @@ class ThermalRelaxTask(RelaxTask):
         else:
             # Build work for elastic constants and attach it to the task.
             scf_input = self.input.new_with_structure(relaxed_structure, ionmov=0, optcell=0)
-            scf_input.pop_irdvars() # Remove all irdvars. Important!
+            # Remove all irdvars. Important!
+            scf_input.pop_irdvars()
             self.elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
             self.flow.register_work(self.elastic_work)
             self.flow.allocate(build=True)
@@ -494,38 +496,92 @@ class ThermalRelaxTask(RelaxTask):
         return results
 
 
-@dataclasses.dataclass(kw_only=True)
-class ThermalRelaxResults(Serializable):
-    """
-    This object stores in task_entries the ...
+# TODO: Why Voigt notation for alpha? Matrix is not necessarily symmetric
+ALPHA_COMPS = ('alpha_xx', 'alpha_yy', 'alpha_zz', 'alpha_yz', 'alpha_xz', 'alpha_xy')
 
-    It also provides methods to post-process the data.
+
+@dataclasses.dataclass(kw_only=True)
+class ThermalRelaxEntry:
+
+    nqsmall_or_qppa: int
+    pressure_gpa: float                    # Pressure in GPa.
+    temperature: float                     # Temperature in K.
+    gsr_path: str                          # Path to the GSR file.
+    elastic_ddb_path: str                  # Path to the DDB file with the 2nd order derivatives wrt strain.
+    therm: np.ndarray | None               # Thermal_expansion (Voigt notation).
+    elastic: np.ndarray | None             # Elastic constants.
+
+    def get_dict4pandas(self) -> dict:
+        """Return dictionary used to build pandas dataframes."""
+        dct = {k: getattr(self, k) for k in ("temperature", "pressure_gpa", "nqsmall_or_qppa")}
+        with GsrFile(self.gsr_path) as gsr:
+            dct.update(gsr.structure.get_dict4pandas())
+
+        #f.write(f"{'#T':<8} {'P':<8} {'alpha_xx':<15} {'alpha_yy':<15} {'alpha_zz':<15} {'alpha_yz':<15} {'alpha_xz':<15} {'alpha_xy':<15}\n")
+        #f.write(f"{temp:<8} {pressure:<8.2f} {therm[0]:<15.8e} {therm[1]:<15.8e} {therm[2]:<15.8e} "
+        #                f"{therm[3]:<15.8e} {therm[4]:<15.8e} {therm[5]:<15.8e}\n")
+
+        if self.therm is not None:
+            # Add thermal expansion coefficients.
+            dct.update({name: self.therm[i] for i, name in enumerate(ALPHA_COMPS)})
+
+        if self.elastic is not None:
+            # Add elastic constants.
+            #dct
+            raise NotImplementedError()
+
+        return dct
+
+
+@dataclasses.dataclass(kw_only=True)
+class ZsisaResults(Serializable):
+    """
+    Main entry point for post-processing and visualizing the results of a Zsisa calculation.
+
+    This object stores the locations of the GSR/DDB files produced by a ZSISA calculation
+    so that we can easily redo a thermal relaxation run.
+    For instance, one may want to increase the list of temperatures, pressures or increase
+    the q-mesh used to compute the phonon DOS via Fourier interpolation.
 
     To read the object from file use:
 
     .. code-block:: python
 
-        data = ThermalRelaxResults.json_load("json_filepath")
+        data = ZsisaResults.json_load("json_filepath")
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: ThermalRelaxResults
+    .. inheritance-diagram:: ZsisaResults
     """
-    mode: str
-    task_entries: list[dict]
-    #phdos_paths: list[str]
-    #gsr_bo_path: str
+
+    spgrp_number: int                    # Space group number.
+    eps: float                           # Strain magnitude to be applied to the lattice.
+    mode: str                            # "TEC" or "ECs".
+    qha_model: str
+
+    # TODO: Should have inds_6d as well as strain_inds
+    inds_6d: np.ndarray                  # List of indices in the phdos 6D grid used for finite differences.
+
+    gsr_bo_path: str                     # Path to the GSR file with the relaxed BO configuration.
+    gsr_relax_paths: list[str]           # Paths to the GSR files for the deformed structures after relaxation.
+    ddb_relax_paths: list[str]           # Paths to the DDB files with phonons for the deformed structures after relaxation.
+    gsr_relax_edos_paths: list[str]      # Paths to the GSR files with electron DOS for the deformed structures after relaxation.
+    gsr_relax_ebands_paths: list[str]    # Paths to the GSR files with electron bands for the deformed structures after relaxation.
+    thermal_relax_entries: list[ThermalRelaxEntry]
+
+    def __post_init__(self):
+        """
+        It seems that MontyDecoder does not support nested dataclasses.
+        Here we convert entries from dict to ThermalRelaxEntry.
+        """
+        for ie, entry in enumerate(self.thermal_relax_entries):
+            if isinstance(entry, ThermalRelaxEntry): continue
+            self.thermal_relax_entries[ie] = ThermalRelaxEntry(**entry)
 
     def get_dataframe(self) -> pd.DataFrame:
         """
         Build pandas DataFrame with temperature, pressure_gpa, lattice parameters and spacegroup info.
         """
-        rows = []
-        for entry in self.task_entries:
-            row = {k: entry[k] for k in ("temperature", "pressure_gpa")}
-            with GsrFile(entry["gsr_path"]) as gsr:
-                row.update(gsr.structure.get_dict4pandas())
-            rows.append(row)
-
+        rows = [entry.get_dict4pandas() for entry in self.thermal_relax_entries]
         return pd.DataFrame(rows).sort_values(by="temperature")
 
     #def get_elastic_dataframe(self, **kwargs) -> pd.DataFrame:
@@ -536,7 +592,7 @@ class ThermalRelaxResults(Serializable):
     #       kwargs: Keyword arguments passed to `ddb.anaget_elastic` method.
     #    """
     #    rows = []
-    #    for entry in self.task_entries:
+    #    for entry in self.thermal_relax_entries:
     #        if (ddb_path := entry["elastic_ddb_path"]) is None
     #            raise ValueError("elastic_ddb_path is None --> elastic constants have not been computed!")
 
@@ -551,7 +607,7 @@ class ThermalRelaxResults(Serializable):
     #    return pd.DataFrame(rows).sort_values(by="temperature")
 
     @add_fig_kwargs
-    def plot_lattice_vs_temp(self, **kwargs) -> Figure:
+    def plot_lattice_vs_temp(self, fontsize=8, **kwargs) -> Figure:
         """
         Plot lattice parameters and angles as a function of T grouped by P in GPa.
         """
@@ -568,14 +624,18 @@ class ThermalRelaxResults(Serializable):
         same_pressure = df["pressure_gpa"].nunique() == 1
         hue = "pressure_gpa" if not same_pressure else None
 
-        import seaborn as sns
-        for length in lengths:
-            ax = ax_list[0]
-            sns.lineplot(df, x="temperature", y=length, ax=ax, hue=hue, markers=True, dashes=False)
+        plt_kwargs = dict(fontsize=fontsize, hue=hue, show=False)
+        plot_xy_with_hue(df, "temperature", lengths, ax=ax_list[0], **plt_kwargs)
+        plot_xy_with_hue(df, "temperature", angles, ax=ax_list[1], **plt_kwargs)
 
-        for angle in angles:
-            ax = ax_list[1]
-            sns.lineplot(df, x="temperature", y=angle, ax=ax, hue=hue, markers=True, dashes=False)
+        #import seaborn as sns
+        #for length in lengths:
+        #    ax = ax_list[0]
+        #    #sns.lineplot(df, x="temperature", y=length, ax=ax, hue=hue, markers=True, dashes=False)
+
+        #for angle in angles:
+        #    ax = ax_list[1]
+        #    sns.lineplot(df, x="temperature", y=angle, ax=ax, hue=hue, markers=True, dashes=False)
 
         return fig
 
