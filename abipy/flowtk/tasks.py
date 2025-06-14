@@ -38,7 +38,8 @@ from . import qutils as qu
 from . import abiinspect
 from . import events
 
-if TYPE_CHECKING: # Avoid circular dependencies
+if TYPE_CHECKING:
+    # Avoid circular dependencies
     from abipy.abio.inputs import AbinitInput, OpticInput
     from .works import Work
     from .flows import Flow
@@ -58,6 +59,7 @@ __all__ = [
     "ScfTask",
     "NscfTask",
     "RelaxTask",
+    "MultiRelaxTask",
     "DdkTask",
     "EffMassTask",
     "PhononTask",
@@ -71,9 +73,6 @@ __all__ = [
     "AtdepTask",
     "set_user_config_taskmanager",
 ]
-
-import logging
-logger = logging.getLogger(__name__)
 
 # Tools and helper functions.
 
@@ -1549,6 +1548,15 @@ class Task(Node, metaclass=abc.ABCMeta):
         """|AbinitInput| object."""
         return self._input
 
+    @input.setter
+    def set_input(self, abi_input: AbinitInput) -> None:
+        """Set the input of the task."""
+        from abipy.abio.inputs import AbinitInput, OpticInput
+        if not isinstance(abi_input, (AbinitInput, OpticInput)):
+            raise TypeError(f"Excepcting AbinitInput instance but got {type(abi_input)}")
+
+        self._input = abi_input
+
     def get_inpvar(self, varname: str, default=None):
         """Return the value of the ABINIT variable varname, None if not present."""
         return self.input.get(varname, default)
@@ -2751,8 +2759,11 @@ class AbinitTask(Task):
         return cls(input, workdir=workdir, manager=manager)
 
     @classmethod
-    def temp_shell_task(cls, inp: AbinitInput,
-                        mpi_procs=1, workdir=None, manager=None) -> AbinitTask:
+    def temp_shell_task(cls,
+                        inp: AbinitInput,
+                        mpi_procs: int = 1,
+                        workdir=None,
+                        manager=None) -> AbinitTask:
         """
         Build a Task with a temporary workdir. The task is executed via the shell with 1 MPI proc.
         Mainly used for invoking Abinit to get important parameters needed to prepare the real task.
@@ -3661,11 +3672,14 @@ class RelaxTask(GsTask, ProduceHist):
         """
         restart_file = None
 
-        # Try to restart from the WFK file if possible.
+        # Try to restart from WFK file if possible.
         # FIXME: This part has been disabled because WFK=IO is a mess if paral_kgb == 1
         # This is also the reason why I wrote my own MPI-IO code for the GW part!
+        paral_kgb = self.input.get("paral_kgb", 0)
+        use_wfk = paral_kgb == 0
+
         wfk_file = self.outdir.has_abiext("WFK")
-        if False and wfk_file:
+        if use_wfk and wfk_file:
             irdvars = irdvars_for_ext("WFK")
             restart_file = self.out_to_in(wfk_file)
 
@@ -3744,10 +3758,10 @@ class RelaxTask(GsTask, ProduceHist):
         else:
             raise ValueError("Wrong value for what %s" % what)
 
-    def reduce_dilatmx(self, target: float = 1.01) -> None:
-        actual_dilatmx = self.get_inpvar("dilatmx", 1.0)
-        new_dilatmx = actual_dilatmx - min((actual_dilatmx - target), actual_dilatmx * 0.05)
-        self.set_vars(dilatmx=new_dilatmx)
+    #def reduce_dilatmx(self, target: float = 1.01) -> None:
+    #    actual_dilatmx = self.get_inpvar("dilatmx", 1.0)
+    #    new_dilatmx = actual_dilatmx - min((actual_dilatmx - target), actual_dilatmx * 0.05)
+    #    self.set_vars(dilatmx=new_dilatmx)
 
     def fix_ofiles(self) -> None:
         """
@@ -3770,6 +3784,60 @@ class RelaxTask(GsTask, ProduceHist):
         if last_timden.path.endswith(".nc"): ofile += ".nc"
         self.history.info("Renaming last_denfile %s --> %s" % (last_timden.path, ofile))
         os.rename(last_timden.path, ofile)
+
+
+class MultiRelaxTask(RelaxTask):
+    """
+    Specialized task class derived from RelaxTask.
+    It’s designed to perform multiple structural relaxations that are sensitive to initial cell size.
+    """
+
+    def __init__(self, input: AbinitInput,
+                 workdir=None, manager=None, deps=None):
+
+        super().__init__(input, workdir=workdir, manager=manager, deps=deps)
+
+        # Keep a copy of the original input.
+        self.original_input = self.input.deepcopy()
+
+        self.num_double_relax_restarts = 0
+
+        optcell = self.input.get("optcell", 0)
+        new_vars = {}
+
+        # Start with less accurate settings to improve performance.
+        if "boxcutmin" not in self.input:
+            new_vars["boxcutmin"] = 1.7
+
+        if optcell != 0:
+            new_vars["chkdilatmx"] = 0
+            if "dilatmx" not in self.input:
+                new_vars["dilatmx"] = 1.0
+
+        self._input = self.input.new_with_vars(**new_vars)
+
+    def _on_ok(self):
+        results = super()._on_ok()
+
+        optcell = self.input.get("optcell", 0)
+
+        self.num_double_relax_restarts += 1
+
+        if self.num_double_relax_restarts == 1:
+            # First restart.
+            self.input["boxcutmin"] = 1.8
+            self.input["dilatmx"] = 1.05
+            self.finalized = False
+            self.restart()
+
+        if self.num_double_relax_restarts == 2:
+            # Second restart.
+            self.input["boxcutmin"] = 2.0
+            self.input["dilatmx"] = 1.0
+            self.finalized = False
+            self.restart()
+
+        return results
 
 
 class BerryTask(ScfTask):
@@ -4072,7 +4140,7 @@ class QuadTask(DfptTask):
     color_rgb = np.array((122, 122, 255)) / 255
 
     def restart(self):
-        raise NotImplementedError("don't know how to restart dynamical quadrupoles")
+        raise NotImplementedError("Don't know how to restart dynamical quadrupoles")
 
 
 class FlexoETask(DfptTask):
@@ -4083,7 +4151,7 @@ class FlexoETask(DfptTask):
     color_rgb = np.array((122, 122, 255)) / 255
 
     def restart(self):
-        raise NotImplementedError("don't know how to restart Flexoelectric calculations.")
+        raise NotImplementedError("Don't know how to restart Flexoelectric calculations.")
 
 
 class EffMassTask(DfptTask):
@@ -4218,7 +4286,7 @@ class SigmaTask(ManyBodyTask):
     color_rgb = np.array((0, 255, 0)) / 255
 
     def restart(self):
-        # G calculations can be restarted only if we have the QPS file
+        # Sigma calculations can be restarted only if we have the QPS file
         # from which we can read the results of the previous step.
         ext = "QPS"
         restart_file = self.outdir.has_abiext(ext)

@@ -626,7 +626,7 @@ def plot_xy_with_hue(data: pd.DataFrame,
                      **kwargs) -> Figure:
     """
     Plot y = f(x) relation for different values of `hue`.
-    Useful for convergence tests done wrt two parameters.
+    Useful for convergence tests wrt two parameters.
 
     Args:
         data: |pandas-DataFrame| containing columns `x`, `y`, and `hue`.
@@ -686,7 +686,8 @@ def plot_xy_with_hue(data: pd.DataFrame,
         style_kws = dict()
         style_kws.update(kwargs)
         line = ax.plot(xs, ys, label=label, **style_kws)[0]
-        # Plot points with different color if y reach convergence.
+
+        # Plot points with different colors if y reached convergence.
         if abs_conv is not None:
             color = line.get_color()
             for i in range(len(ys)):
@@ -700,7 +701,7 @@ def plot_xy_with_hue(data: pd.DataFrame,
         if abs_conv is not None:
             span_style = span_style or dict(alpha=0.2, hatch="/")
             span_style["color"] = line.get_color()
-            # This to support the case in which we have multiple ys for the same x_max
+            # This to support the case in which we have multiple ys for the same x_max.
             x_max, y_xmax = xs[-1], ys[-1]
             x_inds = np.where(xs == x_max)[0]
             for i, ix in enumerate(x_inds):
@@ -740,7 +741,7 @@ def linear_fit_ax(ax, xs, ys,
         xs: X-values.
         ys: Y-values.
         fontsize: fontsize for legends and titles
-        with_label: True to add lable to the plot.
+        with_label: True to add labele to the plot.
         with_ideal_line: True to show ideal linear behaviour.
         kwargs: keyword arguments passed to ax.plot.
 
@@ -986,7 +987,7 @@ class ConvergenceAnalyzer:
     def set_label(self, key: str, label: str, ignore_exc=False) -> None:
         """
         Set the label for `key` to be used in the plot.
-        Dont't raise exception if `ignore_exc` is True.
+        Don't raise exception if `ignore_exc` is True.
         """
         if key in self.ykey2label:
             self.ykey2label[key] = label
@@ -1598,8 +1599,8 @@ def plot_structure(structure,
             ax.text(x, y, z, symbol)
 
     # The definition of sizes is not optimal because matplotlib uses points
-    # wherease we would like something that depends on the radius (5000 seems to give reasonable plots)
-    # For possibile approaches, see
+    # whereas we would like something that depends on the radius (5000 seems to give reasonable plots)
+    # For possible approaches, see
     # https://stackoverflow.com/questions/9081553/python-scatter-plot-size-and-style-of-the-marker/24567352#24567352
     # https://gist.github.com/syrte/592a062c562cd2a98a83
     if "points" in style:
@@ -1897,7 +1898,7 @@ class PlotlyRowColDesc:
     def from_object(cls, obj: Any) -> PlotlyRowColDesc:
         """
         Build an instance for a generic object.
-        If oject is None, a simple descriptor corresponding to a (1,1) grid is returned.
+        If object is None, a simple descriptor corresponding to a (1,1) grid is returned.
         """
         if obj is None: return cls(0, 0, 1, 1)
         if isinstance(obj, cls): return obj
@@ -2576,7 +2577,7 @@ def plotly_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
 
     # The definition of sizes is not optimal because matplotlib uses points
     # whereas we would like something that depends on the radius (5000 seems to give reasonable plots)
-    # For possibile approaches, see
+    # For possible approaches, see
     # https://stackoverflow.com/questions/9081553/python-scatter-plot-size-and-style-of-the-marker/24567352#24567352
     # https://gist.github.com/syrte/592a062c562cd2a98a83
     #if "points" in style:
@@ -2948,7 +2949,7 @@ def mpl_to_ply(fig: Figure, latex: bool = False):
         return fig
 
     def parse_latex(label):
-        # Remove latex symobols
+        """Remove latex symbols"""
         new_label = label.replace("$", "")
         new_label = new_label.replace("\\", "") if not latex else new_label
         new_label = new_label.replace("{", "") if not latex else new_label
@@ -3028,7 +3029,7 @@ def mpl_to_ply(fig: Figure, latex: bool = False):
 
 class PolyfitPlotter:
     """
-    Fit data with polynomals of different degrees and visualize the results.
+    Fit data with polynomials of different degrees and visualize the results.
     """
     def __init__(self, xs, ys):
         self.xs, self.ys = np.array(xs), np.array(ys)

@@ -11,8 +11,8 @@ import pandas as pd
 import abipy.core.abinit_units as abu
 
 from abipy.tools.serialization import mjson_load, mjson_write, Serializable
-from abipy.tools.typing import PathLike, Figure
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, plot_xy_with_hue
+from abipy.tools.typing import PathLike, VectorLike, Figure
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, plot_xy_with_hue, set_visible
 from abipy.abio.inputs import AbinitInput
 from abipy.electrons import GsrFile
 from abipy.dfpt.ddb import DdbFile
@@ -38,16 +38,16 @@ class ZsisaFlow(Flow):
                        scf_input: AbinitInput,
                        eps: float,
                        mode: str,
-                       ngqpt,
+                       ngqpt: VectorLike,
                        with_becs: bool,
                        with_quad: bool,
-                       temperatures,
-                       pressures_gpa,
-                       nqsmall_or_qppa = 2, # TODO PROVIDE DEFAULT
+                       temperatures: VectorLike,
+                       pressures_gpa: VectorLike,
+                       nqsmall_or_qppa: int = 2, # TODO PROVIDE DEFAULT
                        ndivsm: int = 0,
-                       edos_ngkpt=None,
+                       edos_ngkpt: VectorLike | None = None,
                        ionmov: int = 2,
-                       tolmxf=1e-5,
+                       tolmxf: float = 1e-5,
                        qha_model: str = 'zsisa',
                        manager=None) -> ZsisaFlow:
         """
@@ -116,11 +116,10 @@ class ZsisaFlow(Flow):
         for each temperature and pressure.
         """
         self.on_all_ok_num_calls += 1
-
         json_filepath = self.outdir.path_in("ZsisaResults.json")
 
         if self.on_all_ok_num_calls == 1:
-            # Here we start the relaxations with thermal stress.
+            # Start the relaxation with thermal stress for the different (T, P)
             self.write_zsisa_results_step1(json_filepath)
             self.thermal_relax_work = ThermalRelaxWork.from_zsisa_flow(self, self.temperatures, self.pressures_gpa)
             self.register_work(self.thermal_relax_work)
@@ -128,58 +127,8 @@ class ZsisaFlow(Flow):
             return False
 
         if self.on_all_ok_num_calls == 2:
-            # Here we compute elastic constants for the different (T, P).
-            #print("In elastic_path branch")
-            work = self[0]
-
-            # Read previously generated json file
+            # Add results to the json file.
             self.thermal_relax_work.update_zsisa_results(json_filepath)
-
-            """
-            results = ZsisaResults.json_load(json_filepath)
-            zsisa = self.thermal_relax_work.zsisa
-
-            for task in self.thermal_relax_work:
-                # Call anaddb to get elastic tensor from the DDB file
-                ddb_filepath = task.elastic_work.outdir.path_in("out_DDB")
-                with DdbFile(ddb_filepath) as ddb:
-                    edata = ddb.anaget_elastic()
-
-                # FIXME This is to maintain compatibility with the previous API
-                # but things should be done in a much cleaner way.
-                elastic_path = task.outdir.path_in("elastic_constant.txt")
-                with open(elastic_path, "wt") as f:
-                    f.write(str(edata))
-                #edata.elastic_relaxed
-
-                # Get relaxed structure and stress_guess from the GSR file.
-                with task.open_gsr() as gsr:
-                    relaxed_structure = gsr.structure
-                    stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
-
-                zsisa.set_structure_stress_guess(relaxed_structure, stress_guess)
-
-                tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa,
-                                          mode=work.mode, elastic_path=elastic_path)
-                print(tdata)
-
-                # Init entry and add it to list.
-                entry = dict(
-                    nqsmall_or_qppa=self[0].nqsmall_or_qppa,
-                    pressure_gpa=task.pressure_gpa,
-                    temperature=task.temperature,
-                    gsr_path=task.gsr_path,
-                    # Add path to the DDB file with the 2nd order derivatives wrt strain.
-                    elastic_ddb_path=ddb_filepath,
-                    therm=tdata.therm,
-                    elastic=tdata.elastic
-                )
-                entry = ThermalRelaxEntry(**entry)
-
-                results.thermal_relax_entries.append(entry)
-
-            results.json_write(json_filepath, indent=4)
-            """
 
         return True
 
@@ -228,14 +177,14 @@ class ZsisaWork(Work):
                        scf_input: AbinitInput,
                        eps: float,
                        mode: str,
-                       ngqpt,
+                       ngqpt: VectorLike,
                        with_becs: bool,
                        with_quad: bool,
                        nqsmall_or_qppa: int,
                        ndivsm: int = 0,
                        ionmov: int = 2,
-                       tolmxf=1e-5,
-                       edos_ngkpt=None,
+                       tolmxf: float = 1e-5,
+                       edos_ngkpt: VectorLike | None = None,
                        manager=None) -> ZsisaWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
@@ -265,7 +214,8 @@ class ZsisaWork(Work):
         relax_template.set_vars(**relax_kwargs)
         relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
 
-        work.initial_relax_task = work.register_relax_task(relax_template)
+        work.initial_relax_task = work.register_multi_relax_task(relax_template)
+        #work.initial_relax_task = work.register_relax_task(relax_template)
 
         return work
 
@@ -286,7 +236,8 @@ class ZsisaWork(Work):
             # Relax each deformed structure with fixed unit cell (optcell 0).
             self.relax_tasks_strained = []
             for structure in self.strained_structures_dict.values():
-                task = self.register_relax_task(self.relax_template.new_with_structure(structure, optcell=0))
+                #task = self.register_relax_task(self.relax_template.new_with_structure(structure, optcell=0))
+                task = self.register_multi_relax_task(self.relax_template.new_with_structure(structure, optcell=0))
                 self.relax_tasks_strained.append(task)
 
             self.flow.allocate(build=True)
@@ -337,8 +288,8 @@ class ThermalRelaxWork(Work):
     @classmethod
     def from_zsisa_flow(cls,
                         zsisa_flow,
-                        temperatures: list,
-                        pressures_gpa: list,
+                        temperatures: VectorLike,
+                        pressures_gpa: VectorLike,
                         nqsmall_or_qppa: int | None = None,
                         verbose: int = 0) -> ThermalRelaxWork:
         """
@@ -450,7 +401,6 @@ class ThermalRelaxWork(Work):
         results.json_write(json_filepath, indent=4)
 
 
-
 class ThermalRelaxTask(RelaxTask):
     """
     This task implements an iterative method to find the optimal lattice parameters
@@ -496,8 +446,8 @@ class ThermalRelaxTask(RelaxTask):
         return results
 
 
-# TODO: Why Voigt notation for alpha? Matrix is not necessarily symmetric
-ALPHA_COMPS = ('alpha_xx', 'alpha_yy', 'alpha_zz', 'alpha_yz', 'alpha_xz', 'alpha_xy')
+# TODO: Why Voigt notation for alpha? The matrix is not necessarily symmetric
+_ALPHA_COMPS = ('alpha_xx', 'alpha_yy', 'alpha_zz', 'alpha_yz', 'alpha_xz', 'alpha_xy')
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -512,7 +462,9 @@ class ThermalRelaxEntry:
     elastic: np.ndarray | None             # Elastic constants.
 
     def get_dict4pandas(self) -> dict:
-        """Return dictionary used to build pandas dataframes."""
+        """
+        Return dictionary to build pandas dataframes.
+        """
         dct = {k: getattr(self, k) for k in ("temperature", "pressure_gpa", "nqsmall_or_qppa")}
         with GsrFile(self.gsr_path) as gsr:
             dct.update(gsr.structure.get_dict4pandas())
@@ -523,7 +475,7 @@ class ThermalRelaxEntry:
 
         if self.therm is not None:
             # Add thermal expansion coefficients.
-            dct.update({name: self.therm[i] for i, name in enumerate(ALPHA_COMPS)})
+            dct.update({name: self.therm[i] for i, name in enumerate(_ALPHA_COMPS)})
 
         if self.elastic is not None:
             # Add elastic constants.
@@ -531,6 +483,18 @@ class ThermalRelaxEntry:
             raise NotImplementedError()
 
         return dct
+
+
+#key2label = {
+#    "temperature": "T (K)",
+#    "a": "a (Ang)",
+#    "b": "b (Ang)",
+#    "c": "c (Ang)",
+#    "alpha": r"$\alpha$ (degrees)",
+#    "beta": r"$\beta$ (degrees)",
+#    "gamma": r"$\gamma$ (degrees)",
+#    "C_11": r"$C_{11}$",
+#}
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -566,12 +530,13 @@ class ZsisaResults(Serializable):
     ddb_relax_paths: list[str]           # Paths to the DDB files with phonons for the deformed structures after relaxation.
     gsr_relax_edos_paths: list[str]      # Paths to the GSR files with electron DOS for the deformed structures after relaxation.
     gsr_relax_ebands_paths: list[str]    # Paths to the GSR files with electron bands for the deformed structures after relaxation.
+
     thermal_relax_entries: list[ThermalRelaxEntry]
 
     def __post_init__(self):
         """
         It seems that MontyDecoder does not support nested dataclasses.
-        Here we convert entries from dict to ThermalRelaxEntry.
+        Here we convert dict to ThermalRelaxEntry.
         """
         for ie, entry in enumerate(self.thermal_relax_entries):
             if isinstance(entry, ThermalRelaxEntry): continue
@@ -579,79 +544,102 @@ class ZsisaResults(Serializable):
 
     def get_dataframe(self) -> pd.DataFrame:
         """
-        Build pandas DataFrame with temperature, pressure_gpa, lattice parameters and spacegroup info.
+        Build pandas DataFrame with temperature, pressure_gpa, lattice parameters, thermal expansion
+        and spacegroup info.
         """
         rows = [entry.get_dict4pandas() for entry in self.thermal_relax_entries]
         return pd.DataFrame(rows).sort_values(by="temperature")
 
-    #def get_elastic_dataframe(self, **kwargs) -> pd.DataFrame:
-    #    """
-    #    Build pandas DataFrame with temperatures, pressure_gpa and elastic constants.
-    #
-    #    Args:
-    #       kwargs: Keyword arguments passed to `ddb.anaget_elastic` method.
-    #    """
-    #    rows = []
-    #    for entry in self.thermal_relax_entries:
-    #        if (ddb_path := entry["elastic_ddb_path"]) is None
-    #            raise ValueError("elastic_ddb_path is None --> elastic constants have not been computed!")
-
-    #        raise NotImplementedError()
-    #        row = {k: entry[k] for k in ("temperature", "pressure_gpa")}
-    #        with DdbFile(ddb_path) as ddb:
-    #            elastic_data = ddb.anaget_elastic(**kwargs)
-    #            df = elastic_data.get_elastic_dataframe(tensor_name)
-    #            #row.update(gsr.structure.get_dict4pandas())
-    #        rows.append(row)
-
-    #    return pd.DataFrame(rows).sort_values(by="temperature")
-
     @add_fig_kwargs
     def plot_lattice_vs_temp(self, fontsize=8, **kwargs) -> Figure:
         """
-        Plot lattice parameters and angles as a function of T grouped by P in GPa.
+        Plot lattice parameters and angles as a function of T grouped by pressure P.
         """
         angles = ["alpha", "beta", "gamma"]
         lengths = ["a", "b", "c"]
-        volume = "volume"
 
-        nrows = 2
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=1,
-                                                sharex=True, sharey=False, squeeze=False)
-        ax_list = ax_list.ravel()
-
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=3, ncols=2,
+                                               sharex=True, sharey=False, squeeze=False)
         df = self.get_dataframe()
-        same_pressure = df["pressure_gpa"].nunique() == 1
-        hue = "pressure_gpa" if not same_pressure else None
+        one_pressure = df["pressure_gpa"].nunique() == 1
 
-        plt_kwargs = dict(fontsize=fontsize, hue=hue, show=False)
-        plot_xy_with_hue(df, "temperature", lengths, ax=ax_list[0], **plt_kwargs)
-        plot_xy_with_hue(df, "temperature", angles, ax=ax_list[1], **plt_kwargs)
+        plt_kwargs = dict(fontsize=fontsize,
+                          hue="pressure_gpa" if not one_pressure else None,
+                          marker="o",
+                          show=False
+                          )
 
-        #import seaborn as sns
-        #for length in lengths:
-        #    ax = ax_list[0]
-        #    #sns.lineplot(df, x="temperature", y=length, ax=ax, hue=hue, markers=True, dashes=False)
+        for ix, length in enumerate(lengths):
+            ax = ax_mat[ix, 0]
+            plot_xy_with_hue(df, "temperature", length, ax=ax, **plt_kwargs)
+            if ix != len(lengths) - 1:
+                set_visible(ax, False, *["xlabel"])
 
-        #for angle in angles:
-        #    ax = ax_list[1]
-        #    sns.lineplot(df, x="temperature", y=angle, ax=ax, hue=hue, markers=True, dashes=False)
+        for ix, angle in enumerate(angles):
+            ax = ax_mat[ix, 1]
+            plot_xy_with_hue(df, "temperature", angle, ax=ax, **plt_kwargs)
+            if ix != len(angles) - 1:
+                set_visible(ax, False, *["xlabel"])
 
         return fig
 
-    #@add_fig_kwargs
-    #def plot_thermal_expansion(self, ax=None, **kwargs) -> Figure:
+    @add_fig_kwargs
+    def plot_thermal_expansion(self, fontsize=8, **kwargs) -> Figure:
+        """
+        Plot thermal expansion alpha as a function of T grouped by pressure P.
+        """
+        nrows, ncols = 3, 2
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
+        df = self.get_dataframe()
+        one_pressure = df["pressure_gpa"].nunique() == 1
 
-    #@add_fig_kwargs
-    #def plot_elastic_vs_temp(self,
-    #                         anaget_kwargs: dict | None,
-    #                         ax=None, **kwargs) -> Figure:
-    #    """
-    #    Plot elastic constants as a function of T grouped by P.
-    #    """
-    #    anaget_kwargs = {} if anaget_kwargs is None else anaget_kwargs
-    #    df = self.get_elastic_dataframe(**anaget_kwargs)
+        plt_kwargs = dict(fontsize=fontsize,
+                          hue="pressure_gpa" if not one_pressure else None,
+                          marker="o",
+                          show=False
+                          )
 
-    #    ax, fig, plt get_ax_fig_plt(ax=ax)
+        alpha_comps_mat = np.reshape(_ALPHA_COMPS, (2, 3)).T
 
-    #    return fig
+        for ii, jj in itertools.product(range(nrows), range(ncols)):
+            ax = ax_mat[ii, jj]
+            alpha_name = alpha_comps_mat[ii, jj]
+            plot_xy_with_hue(df, "temperature", alpha_name, ax=ax, **plt_kwargs)
+            if ii != nrows - 1:
+                set_visible(ax, False, *["xlabel"])
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_elastic_vs_temp(self, fontsize=8, **kwargs) -> Figure:
+        """
+        Plot elastic constants as a function of T grouped by pressure P.
+        """
+        df = self.get_dataframe()
+        one_pressure = df["pressure_gpa"].nunique() == 1
+
+        plt_kwargs = dict(fontsize=fontsize,
+                          hue="pressure_gpa" if not one_pressure else None,
+                          marker="o",
+                          show=False
+                          )
+
+        # Get names of columns associated to elastic constants.
+        c_keys = [k for k in df.keys() if k.startswith("C_")]
+        if not c_keys:
+            raise ValueError("Dataframe does not contain elastic constants!")
+
+        if one_pressure:
+            ax, fig, plt = get_ax_fig_plt(ax=ax)
+            for c_key in c_keys:
+                plot_xy_with_hue(df, "temperature", c_key, ax=ax, **plt_kwargs)
+        else:
+            nrows, ncols = len(c_keys), 1
+            ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                                   sharex=True, sharey=False, squeeze=False)
+            for ix, c_key in c_keys:
+                ax = ax_mat[ix]
+                plot_xy_with_hue(df, "temperature", c_key, ax=ax, **plt_kwargs)
+
+        return fig

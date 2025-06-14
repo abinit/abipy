@@ -1019,9 +1019,9 @@ class QHA_ZSISA(HasPickleIO):
         dsdc1= dS_dC1 + (exz_n-exz0)*d2S_dC12+(exx_n-exx0)*d2S_dA1dC1+(eyy_n-eyy0)*d2S_dB2dC1+(ezz_n-ezz0)*d2S_dC3dC1
 
         # Compute thermal stresses. Eq (47)
-        stress_a1= -dfda1/v*(exx_n+1)* abu.eVA3_HaBohr3
-        stress_b2= -dfdb2/v*(eyy_n+1)* abu.eVA3_HaBohr3
-        stress_c3= -dfdc3/v*(ezz_n+1)* abu.eVA3_HaBohr3
+        stress_a1= -dfda1/v*(exx_n+1) * abu.eVA3_HaBohr3
+        stress_b2= -dfdb2/v*(eyy_n+1) * abu.eVA3_HaBohr3
+        stress_c3= -dfdc3/v*(ezz_n+1) * abu.eVA3_HaBohr3
         stress_c1= -1.0/v*(dfdc1*(ezz_n+1)+dfda1*exz_n) * abu.eVA3_HaBohr3
         if self.verbose:
             print("ax/AxBO, by/ByBO, cz/CzBO: ", ax/AxBO, by/ByBO, cz/CzBO)
@@ -1444,9 +1444,9 @@ class QHA_ZSISA(HasPickleIO):
         deyy = (By0-By1)/By0
         dexy = (Ax0*(Bx0-Bx1)-(Ax0-Ax1)*Bx0)/(Ax0*By0)
 
-        exx0 = Ax1/Ax0-1
-        eyy0 = By1/By0-1
-        exy0 = (Ax0*Bx1-Ax1*Bx0)/(Ax0*By0)
+        exx0 = Ax1 / Ax0-1
+        eyy0 = By1 / By0-1
+        exy0 = (Ax0*Bx1-Ax1*Bx0) / (Ax0*By0)
 
         dF_dA1 = (e[0,1,1,0,0,0]-e[2,1,1,0,0,0])/(2*dexx)
         dF_dB2 = (e[1,0,1,0,0,0]-e[1,2,1,0,0,0])/(2*deyy)
@@ -1468,8 +1468,8 @@ class QHA_ZSISA(HasPickleIO):
         cos_ab = math.cos(math.pi*self.angles_guess[2]/180)
 
         ax = a
-        bx = b*cos_ab
-        by = b*np.sqrt(1-cos_ab**2)
+        bx = b * cos_ab
+        by = b * np.sqrt(1-cos_ab**2)
         cz = c
 
         exx_n = ax/Ax0-1
@@ -1499,8 +1499,12 @@ class QHA_ZSISA(HasPickleIO):
 
         return dtol, stress
 
-    def get_tstress(self, temp: float, pressure: float = 0.0,
-                   mode: str = "TEC", elastic_path: str = "elastic_constant.txt") -> ThermalData:
+    def get_tstress(self,
+                    temp: float,
+                    pressure: float = 0.0,
+                    mode: str = "TEC",
+                    elastic_path: str = "elastic_constant.txt") -> ThermalData:
+
         self.elastic_path = elastic_path
         pressure_gpa = pressure
         pressure = pressure/abu.HaBohr3_GPa

@@ -212,7 +212,7 @@ def tuna(ctx: Context) -> None:
 
 @task
 def git_info(ctx: Context, top_n=20) -> None:
-    """Scan Git history for largest files"""
+    """Scan git history for largest top_n files"""
 
     def get_git_objects():
         """Return list of all Git objects (hash, path)."""
