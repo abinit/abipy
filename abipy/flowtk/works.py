@@ -1,3069 +1,2491 @@
 # coding: utf-8
 """
-Utilities for generating matplotlib plots.
-
-.. note::
-
-    Avoid importing matplotlib or plotly in the module namespace otherwise startup is very slow.
+Works for Abinit
 """
 from __future__ import annotations
 
 import os
+import shutil
 import time
-import itertools
-import functools
+import abc
+import collections
 import numpy as np
 import pandas as pd
-import matplotlib.collections as mcoll
 
-from collections import OrderedDict
-from typing import Any, Callable, Iterator
-from monty.string import list_strings
-from matplotlib.ticker import StrMethodFormatter
-from abipy.tools import duck
-from abipy.tools.iotools import dataframe_from_filepath
-from abipy.tools.typing import Figure, Axes, VectorLike
-from abipy.tools.numtools import data_from_cplx_mode
+from typing import Iterator # Any
+from functools import cached_property
+from monty.collections import AttrDict
+from monty.itertools import chunks
+from monty.fnmatch import WildCard
+from monty.dev import deprecated
+from pydispatch import dispatcher
+from pymatgen.core.units import EnergyArray
+from abipy.tools.typing import TYPE_CHECKING, Figure
+from abipy.flowtk import wrappers
+from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status
+from .tasks import (Task, AbinitTask, ScfTask, NscfTask, BerryTask, DfptTask, PhononTask, ElasticTask, DdkTask,
+                    DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask, EfieldTask,
+                    EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
+                    DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
+from .utils import Directory
+from .netcdf import NetcdfReader
+try:
+    from .netcdf import ETSF_Reader
+except ImportError:
+    from .netcdf import EtsfReader as ETSF_Reader
+from .abitimer import AbinitTimerParser
+
+if TYPE_CHECKING:  # needed to avoid circular imports
+    from .flows import Flow
+    from abipy.abio.inputs import AbinitInput
+
+
+__author__ = "Matteo Giantomassi"
+__copyright__ = "Copyright 2013, The Materials Project"
+__version__ = "0.1"
+__maintainer__ = "Matteo Giantomassi"
 
 
 __all__ = [
-    "set_axlims",
-    "add_fig_kwargs",
-    "get_ax_fig_plt",
-    "get_axarray_fig_plt",
-    "get_ax3d_fig_plt",
-    "plot_array",
-    "ArrayPlotter",
-    "data_from_cplx_mode",
-    "Marker",
-    "plot_unit_cell",
-    "GenericDataFilePlotter",
-    "GenericDataFilesPlotter",
-    "add_plotly_fig_kwargs",
-    "get_fig_plotly",
-    "get_figs_plotly",
+    "Work",
+    "BandStructureWork",
+    "RelaxWork",
+    "G0W0Work",
+    "QptdmWork",
+    "SigmaConvWork",
+    "BseMdfWork",
+    "PhononWork",
+    "PhononWfkqWork",
+    "GKKPWork",
+    "BecWork",
+    "DteWork",
+    "ConducWork",
 ]
 
 
-# https://matplotlib.org/gallery/lines_bars_and_markers/linestyles.html
-linestyles = OrderedDict(
-    [('solid',               (0, ())),
-     ('loosely_dotted',      (0, (1, 10))),
-     ('dotted',              (0, (1, 5))),
-     ('densely_dotted',      (0, (1, 1))),
-     #
-     ('loosely_dashed',      (0, (5, 10))),
-     ('dashed',              (0, (5, 5))),
-     ('densely_dashed',      (0, (5, 1))),
-     #
-     ('loosely_dashdotted',  (0, (3, 10, 1, 10))),
-     ('dashdotted',          (0, (3, 5, 1, 5))),
-     ('densely_dashdotted',  (0, (3, 1, 1, 1))),
-     #
-     ('loosely_dashdotdotted', (0, (3, 10, 1, 10, 1, 10))),
-     ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
-     ('densely_dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))]
-)
+class WorkResults(NodeResults):
 
-
-def add_fig_kwargs(func: Callable) -> Callable:
-    """
-    Decorator that adds keyword arguments for functions returning matplotlib figures.
-
-    The function should return either a matplotlib figure or None to signal
-    some sort of error/unexpected event.
-    See doc string below for the list of supported options.
-    """
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        # pop the kwds used by the decorator.
-        title = kwargs.pop("title", None)
-        size_kwargs = kwargs.pop("size_kwargs", None)
-        show = kwargs.pop("show", True)
-        savefig = kwargs.pop("savefig", None)
-        tight_layout = kwargs.pop("tight_layout", False)
-        ax_grid = kwargs.pop("ax_grid", None)
-        ax_annotate = kwargs.pop("ax_annotate", None)
-        fig_close = kwargs.pop("fig_close", False)
-        plotly = kwargs.pop("plotly", False)
-
-        # Call func and return immediately if None is returned.
-        fig = func(*args, **kwargs)
-        if fig is None:
-            return fig
-
-        # Operate on matplotlib figure.
-        if title is not None:
-            fig.suptitle(title)
-
-        if size_kwargs is not None:
-            fig.set_size_inches(size_kwargs.pop("w"), size_kwargs.pop("h"), **size_kwargs)
-
-        if ax_grid is not None:
-            for ax in fig.axes:
-                ax.grid(bool(ax_grid))
-
-        if ax_annotate:
-            from string import ascii_letters
-            tags = ascii_letters
-            if len(fig.axes) > len(tags):
-                tags = (1 + len(ascii_letters) // len(fig.axes)) * ascii_letters
-            for ax, tag in zip(fig.axes, tags):
-                ax.annotate(f"({tag})", xy=(0.05, 0.95), xycoords="axes fraction")
-
-        if tight_layout:
-            try:
-                fig.tight_layout()
-            except Exception as exc:
-                # For some unknown reason, this problem shows up only on travis.
-                # https://stackoverflow.com/questions/22708888/valueerror-when-using-matplotlib-tight-layout
-                print("Ignoring Exception raised by fig.tight_layout\n", str(exc))
-
-        if savefig:
-            fig.savefig(savefig)
-
-        if plotly:
-            try:
-                plotly_fig = mpl_to_ply(fig, latex=False)
-                if show: plotly_fig.show()
-                return plotly_fig
-            except Exception as exc:
-                print("Exception while convertig matplotlib figure to plotly. Returning mpl figure!")
-                print(str(exc))
-                pass
-
-        import matplotlib.pyplot as plt
-        if show:
-            plt.show()
-
-        if fig_close:
-            plt.close(fig=fig)
-
-        return fig
-
-    # Add docstring to the decorated method.
-    doc_str = """\n\n
-        Keyword arguments controlling the display of the figure:
-
-        ================  =======================================================
-        kwargs            Meaning
-        ================  =======================================================
-        title             Title of the plot. Default: None.
-        show              True to show the figure. Default: True.
-        savefig           "abc.png" or "abc.svg" to save the figure to a file.
-        size_kwargs       Dictionary with options passed to fig.set_size_inches
-                          e.g. size_kwargs=dict(w=3, h=4).
-        tight_layout      True to call fig.tight_layout. Default: False.
-        ax_grid           True (False) to add (remove) grid from all axes in fig.
-                          Default: None i.e. fig is left unchanged.
-        ax_annotate       Add labels to subplots e.g. (a), (b). Default: False
-        fig_close         Close figure. Default: False.
-        plotly            Try to convert mpl figure to plotly: Default: False
-        ================  =======================================================
-
-"""
-
-    if wrapper.__doc__ is not None:
-        # Add s at the end of the docstring.
-        wrapper.__doc__ += f"\n{doc_str}"
-    else:
-        # Use s
-        wrapper.__doc__ = doc_str
-
-    return wrapper
-
-
-class FilesPlotter:
-    """
-    Use matplotlib to plot multiple png files on a grid.
-
-    Example:
-
-        FilesPlotter(["file1.png", file2.png"]).plot()
-    """
-    def __init__(self, filepaths: list[str]):
-        self.filepaths = list_strings(filepaths)
-
-    @add_fig_kwargs
-    def plot(self, **kwargs) -> Figure:
-        """
-        Loop through the PNG files and display them in subplots.
-        """
-        # Build grid of plots.
-        num_plots, ncols, nrows = len(self.filepaths), 1, 1
-        if num_plots > 1:
-            ncols = 2
-            nrows = (num_plots // ncols) + (num_plots % ncols)
-
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=False, squeeze=False)
-        ax_list = ax_list.ravel()
-        # don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: ax_list[-1].axis("off")
-
-        for i, (filepath, ax) in enumerate(zip(self.filepaths, ax_list)):
-            ax.axis('off')
-            ax.imshow(plt.imread(filepath))
-
-        return fig
-
-
-@functools.cache
-def get_color_symbol(style: str = "VESTA") -> dict:
-    """
-    Dictionary mapping chemical symbols to RGB color.
-
-    Args:
-        style: "VESTA" or "Jmol".
-    """
-    from monty.serialization import loadfn
-    from pymatgen import vis
-    colors = loadfn(os.path.join(os.path.dirname(vis.__file__), "ElementColorSchemes.yaml"))
-    if style not in colors:
-        raise KeyError(f"Invalid {style=}. Should be in {colors.keys()}")
-    color_symbol = {el: [j / 256.001 for j in colors[style][el]] for el in colors[style]}
-    return color_symbol
-
-
-###################
-# Matplotlib tools
-###################
-
-def get_ax_fig_plt(ax=None, grid: bool = False, **kwargs):
-    """
-    Helper function used in plot functions supporting an optional Axes argument.
-    If ax is None, we build the `matplotlib` figure and create the Axes else
-    we return the current active figure.
-
-    Args:
-        ax (Axes, optional): Axes object. Defaults to None.
-        grid: True to add grid to ax.
-        kwargs: keyword arguments are passed to plt.figure if ax is not None.
-
-      Returns:
-        ax: :class:`Axes` object
-        figure: matplotlib figure
-        plt: matplotlib pyplot module.
-    """
-    import matplotlib.pyplot as plt
-    if ax is None:
-        fig = plt.figure(**kwargs)
-        ax = fig.gca()
-        if grid: ax.grid(grid)
-    else:
-        fig = plt.gcf()
-        if grid: ax.grid(grid)
-
-    return ax, fig, plt
-
-
-def get_ax3d_fig_plt(ax=None, **kwargs):
-    """
-    Helper function used in plot functions supporting an optional Axes3D
-    argument. If ax is None, we build the `matplotlib` figure and create the
-    Axes3D else we return the current active figure.
-
-    Args:
-        ax (Axes3D, optional): Axes3D object. Defaults to None.
-        kwargs: keyword arguments are passed to plt.figure if ax is not None.
-
-    Returns:
-        tuple[Axes3D, Figure]: matplotlib Axes3D and corresponding figure objects
-    """
-    import matplotlib.pyplot as plt
-    if ax is None:
-        fig = plt.figure(**kwargs)
-        ax = fig.add_subplot(projection="3d")
-    else:
-        fig = plt.gcf()
-
-    return ax, fig, plt
-
-
-def get_axarray_fig_plt(ax_array,
-                        nrows: int = 1,
-                        ncols: int = 1,
-                        sharex: bool = False,
-                        sharey: bool = False,
-                        squeeze: bool = True,
-                        subplot_kw: dict | None = None,
-                        gridspec_kw: dict | None = None,
-                        grid: bool = True,
-                        rescale_fig: bool = False,
-                        **fig_kw):
-    """
-    Helper function used in plot functions that accept an optional array of Axes
-    as argument. If ax_array is None, we build the `matplotlib` figure and
-    create the array of Axes by calling plt.subplots else we return the
-    current active figure.
-
-    Args:
-        rescale_fig: If true, scale figure’s size proportionally to the number of rows (nrows)
-            and columns (ncols) in the grid. Useful to avoid squashing subplots.
-
-    Returns:
-        ax: Array of Axes objects
-        figure: matplotlib figure
-        plt: matplotlib pyplot module.
-    """
-    import matplotlib.pyplot as plt
-
-    if ax_array is None:
-        fig, ax_array = plt.subplots(
-            nrows=nrows,
-            ncols=ncols,
-            sharex=sharex,
-            sharey=sharey,
-            squeeze=squeeze,
-            subplot_kw=subplot_kw,
-            gridspec_kw=gridspec_kw,
-            **fig_kw,
-        )
-
-    else:
-        fig = plt.gcf()
-        ax_array = np.reshape(np.array(ax_array), (nrows, ncols))
-        if squeeze:
-            if ax_array.size == 1:
-                ax_array = ax_array[0]
-            elif any(s == 1 for s in ax_array.shape):
-                ax_array = ax_array.ravel()
-
-    if grid:
-        if hasattr(ax_array, "ravel"):
-            for ax in ax_array.ravel():
-                ax.grid(grid)
-        else:
-            if hasattr(ax_array, "grid"):
-                ax_array.grid(grid)
-            else:
-                for ax in ax_array:
-                    ax.grid(grid)
-
-    if rescale_fig:
-        fig.set_figheight(nrows * fig.get_figheight())
-        fig.set_figwidth(ncols * fig.get_figwidth())
-
-    return ax_array, fig, plt
-
-
-def is_mpl_figure(obj: Any) -> bool:
-    """Return True if obj is a matplotlib Figure."""
-    from matplotlib import pyplot as plt
-    return isinstance(obj, plt.Figure)
-
-
-def ax_append_title(ax, title: str , loc: str = "center", fontsize: int | None = None) -> str:
-    """Add title to previous ax.title. Return new title."""
-    prev_title = ax.get_title(loc=loc)
-    new_title = prev_title + title
-    ax.set_title(new_title, loc=loc, fontsize=fontsize)
-    return new_title
-
-
-def ax_share(xy_string: str, *ax_list) -> None:
-    """
-    Share x- or y-axis of two or more subplots after they are created.
-
-    Args:
-        xy_string: "x" to share x-axis, "xy" for both
-        ax_list: List of axes to share.
-
-    Example:
-
-        ax_share("y", ax0, ax1)
-        ax_share("xy", *(ax0, ax1, ax2))
-    """
-    if "x" in xy_string:
-        for ix, ax in enumerate(ax_list):
-            others = [a for a in ax_list if a != ax]
-            ax.get_shared_x_axes().join(*others)
-
-    if "y" in xy_string:
-        for ix, ax in enumerate(ax_list):
-            others = [a for a in ax_list if a != ax]
-            ax.get_shared_y_axes().join(*others)
-
-
-def set_axlims(ax, lims: tuple, axname: str) -> tuple:
-    """
-    Set the data limits for the axis ax.
-
-    Args:
-        lims: tuple(2) for (left, right), tuple(1) or scalar for left only.
-        axname: "x" for x-axis, "y" for y-axis.
-
-    Return: (left, right)
-    """
-    left, right = None, None
-    if lims is None: return left, right
-
-    len_lims = None
-    try:
-        len_lims = len(lims)
-    except TypeError:
-        # Assume Scalar
-        left = float(lims)
-
-    if len_lims is not None:
-        if len(lims) == 2:
-            left, right = lims[0], lims[1]
-        elif len(lims) == 1:
-            left = lims[0]
-
-    set_lim = getattr(ax, {"x": "set_xlim", "y": "set_ylim"}[axname])
-    if left != right:
-        set_lim(left, right)
-
-    return left, right
-
-
-def set_ax_xylabels(ax,
-                    xlabel: str,
-                    ylabel: str,
-                    exchange_xy: bool = False) -> None:
-    """
-    Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy.
-    """
-    if exchange_xy: xlabel, ylabel = ylabel, xlabel
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-
-
-def set_logscale(ax_or_axlist, xy_log: str | None) -> None:
-    """
-    Activate logscale
-
-    Args:
-        ax_or_axlist: Axes or list of axes.
-        xy_log: None or empty string for linear scale. "x" for log scale on x-axis.
-            "xy" for log scale on x- and y-axis. "x:semilog" for semilog scale on x-axis.
-    """
-    if not xy_log: return
-
-    # Parse xy_log string.
-    xy, log_type = xy_log, "log"
-    if ":" in xy_log:
-        xy, log_type = xy_log.split(":")
-
-    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
-
-    for ix, ax in enumerate(ax_list):
-        if "x" in xy:
-            ax.set_xscale(log_type)
-        if "y" in xy:
-            ax.set_yscale(log_type)
-
-
-def set_ticks_fontsize(ax_or_axlist,
-                       fontsize: int,
-                       xy_string: str = "xy",
-                       **kwargs) -> None:
-    """
-    Set tick properties for one axis or a list of axis.
-
-    Args:
-        ax_or_axlist: Axes or list of axes.
-        xy_string: "x" to share x-axis, "xy" for both.
-    """
-    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
-
-    for ix, ax in enumerate(ax_list):
-        if "x" in xy_string:
-            ax.tick_params(axis='x', labelsize=fontsize, **kwargs)
-
-        if "y" in xy_string:
-            ax.tick_params(axis='y', labelsize=fontsize, **kwargs)
-
-
-def set_ticks_format(ax_or_axlist,
-                     format: str = "%.2f",
-                     xy_string: str = "xy",
-                     **kwargs) -> None:
-    """
-    Set tick format for one axis or a list of axis.
-    Args:
-        ax_or_axlist: Axes or list of axes.
-        xy_string: "x" to share x-axis, "xy" for both.
-        format: Format string for the ticks.
-    """
-    ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
-    formatter = StrMethodFormatter(format)
-    for ix, ax in enumerate(ax_list):
-        if "x" in xy_string:
-            ax.xaxis.set_major_formatter(formatter)
-
-        if "y" in xy_string:
-            ax.yaxis.set_major_formatter(formatter)
-
-def set_grid_legend(ax_or_axlist, fontsize: int,
-                    xlabel: str | None = None,
-                    ylabel: str | None = None,
-                    grid: bool = True,
-                    legend: bool = True,
-                    direction: str | None = None,
-                    title: str | None = None,
-                    legend_loc: str = "best") -> None:
-    """
-    Activate grid and legend for one axis or a list of axis.
-
-    Args:
-        grid: True to activate the grid.
-        legend: True to activate the legend.
-        direction: Use "x" ("y") if to add xlabel (ylabel) only to the last ax.
-        title: Title string
-    """
-    if duck.is_listlike(ax_or_axlist):
-        for ix, ax in enumerate(ax_or_axlist):
-            ax.grid(grid)
-            # Check if there are artists with labels
-            handles, labels = ax.get_legend_handles_labels()
-            if legend and labels:
-                # print("There are artists with labels:", labels)
-                ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
-            if xlabel:
-                doit = direction is None or (direction == "y" and ix == len(ax_or_axlist) - 1)
-                if doit: ax.set_xlabel(xlabel)
-            if ylabel:
-                doit = direction is None or (direction == "x" and ix == len(ax_or_axlist) - 1)
-                if doit: ax.set_ylabel(ylabel)
-            if title: ax.set_title(title, fontsize=fontsize)
-    else:
-        ax = ax_or_axlist
-        ax.grid(grid)
-        # Check if there are artists with labels
-        handles, labels = ax.get_legend_handles_labels()
-        if legend and labels: ax.legend(loc=legend_loc, fontsize=fontsize, shadow=True)
-        if xlabel: ax.set_xlabel(xlabel)
-        if ylabel: ax.set_ylabel(ylabel)
-        if title: ax.set_title(title, fontsize=fontsize)
-
-
-def set_visible(ax, boolean: bool, *args) -> None:
-    """
-    Hide/Show the artists of axis ax listed in args.
-    ax can be a single axis, a list or axis or a numpy arrays.
-    """
-    if duck.is_listlike(ax):
-        if isinstance(ax, np.ndarray):
-            for _ in ax.ravel():
-                set_visible(_, *args)
-        else:
-            for _ in ax:
-                set_visible(_, *args)
-        return
-
-    if "legend" in args and ax.legend():
-        ax.legend().set_visible(boolean)
-    if "title" in args and ax.title:
-        ax.title.set_visible(boolean)
-    if "xlabel" in args and ax.xaxis.label:
-        ax.xaxis.label.set_visible(boolean)
-    if "ylabel" in args and ax.yaxis.label:
-        ax.yaxis.label.set_visible(boolean)
-    if "xticklabels" in args:
-        for label in ax.get_xticklabels():
-            label.set_visible(boolean)
-    if "yticklabels" in args:
-        for label in ax.get_yticklabels():
-            label.set_visible(boolean)
-
-
-def rotate_ticklabels(ax,
-                      rotation: float,
-                      axname: str = "x") -> None:
-    """Rotate the ticklables of axis ``ax``"""
-    if "x" in axname:
-        for tick in ax.get_xticklabels():
-            tick.set_rotation(rotation)
-
-    if "y" in axname:
-        for tick in ax.get_yticklabels():
-            tick.set_rotation(rotation)
-
-
-def hspan_ax_line(ax,
-                  line,
-                  abs_conv: float,
-                  hatch: str,
-                  alpha: float = 0.2,
-                  with_label: bool = True) -> None:
-    """
-    Add hspan to ax showing the convergence region of width `abs_conv`.
-    Use same color as line. Return immediately if abs_conv is None or x-values are strings.
-    """
-    if abs_conv is None: return
-    xs = line.get_xdata()
-    ys = line.get_ydata()
-    if duck.is_string(xs[0]): return
-
-    color = line.get_color()
-    span_style = dict(alpha=0.2, color=color, hatch=hatch)
-
-    x_max = xs[-1]
-    x_inds = np.where(xs == x_max)[0]
-    # This to support the case in which we have multiple ys for the same x_max
-    for i, ix in enumerate(x_inds):
-        y_xmax = ys[ix]
-        ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv,
-                   label=r"$|y-y(x_{max})| \leq %s$" % abs_conv if (with_label and i == 0) else None,
-                   **span_style)
-
-
-@add_fig_kwargs
-def plot_xy_with_hue(data: pd.DataFrame,
-                     x: str,
-                     y: str,
-                     hue: str | None,
-                     decimals=None,
-                     abs_conv: float | None = None,
-                     span_style: dict | None = None,
-                     ax=None,
-                     xlims: tuple | None = None,
-                     ylims: tuple | None = None ,
-                     fontsize: int = 8,
-                     **kwargs) -> Figure:
-    """
-    Plot y = f(x) relation for different values of `hue`.
-    Useful for convergence tests wrt two parameters.
-
-    Args:
-        data: |pandas-DataFrame| containing columns `x`, `y`, and `hue`.
-        x: Name of the column used as x-value.
-        y: Name of the column(s) used as y-value.
-        hue: Variable that define subsets of the data, which will be drawn on separate lines.
-            None to disable grouping.
-        decimals: Number of decimal places to round `hue` columns. Ignore if None
-        abs_conv: If not None, show absolute convergence window.
-        span_style: dictionary with options passed to ax.axhspan.
-        ax: |matplotlib-Axes| or None if a new figure should be created.
-        xlims, ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
-            or scalar e.g. `left`. If left (right) is None, default values are used
-        fontsize: Legend fontsize.
-        kwargs: Keyword arguments passed to ax.plot method.
-
-    Returns: |matplotlib-Figure|
-    """
-    if isinstance(y, (list, tuple)):
-        # Recursive call for each ax in ax_list.
-        num_plots, ncols, nrows = len(y), 1, 1
-        if num_plots > 1:
-            ncols = 2
-            nrows = (num_plots // ncols) + (num_plots % ncols)
-
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=False, squeeze=False)
-
-        ax_list = ax_list.ravel()
-        if num_plots % ncols != 0: ax_list[-1].axis('off')
-
-        for ykey, ax in zip(y, ax_list):
-            plot_xy_with_hue(data, x, str(ykey), hue, decimals=decimals, ax=ax,
-                             xlims=xlims, ylims=ylims, fontsize=fontsize, show=False, **kwargs)
-        return fig
-
-    # Check here because pandas error messages are a bit criptic.
-    if hue is not None:
-        miss = [k for k in (x, y, hue) if k not in data]
-    else:
-        miss = [k for k in (x, y) if k not in data]
-    if miss:
-        raise ValueError("Cannot find `%s` in dataframe.\nAvailable keys are: %s" % (str(miss), str(data.keys())))
-
-    # Truncate values in hue column so that we can group.
-    if hue and decimals is not None:
-        data = data.round({hue: decimals})
-
-    ax, fig, plt = get_ax_fig_plt(ax=ax)
-
-    def _plot_key_grp(key, grp, span_style):
-        # Sort xs and rearrange ys
-        xy = sorted(zip(grp[x], grp[y]), key=lambda t: t[0]) if x!="filename" else list(zip(grp[x], grp[y]))
-        xs, ys = np.array([i[0] for i in xy]), np.array([i[1] for i in xy])
-
-        label = f"{hue}: {str(key)}" if hue is not None else ""
-        style_kws = dict()
-        style_kws.update(kwargs)
-        line = ax.plot(xs, ys, label=label, **style_kws)[0]
-
-        # Plot points with different colors if y reached convergence.
-        if abs_conv is not None:
-            color = line.get_color()
-            for i in range(len(ys)):
-                ax.plot(xs[i], ys[i],
-                        marker="*" if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else "o",
-                        markersize=10 if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else 5,
-                        color=color,
-                        alpha = 1 if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else 0.5,
-                        linestyle="")
-
-        if abs_conv is not None:
-            span_style = span_style or dict(alpha=0.2, hatch="/")
-            span_style["color"] = line.get_color()
-            # This to support the case in which we have multiple ys for the same x_max.
-            x_max, y_xmax = xs[-1], ys[-1]
-            x_inds = np.where(xs == x_max)[0]
-            for i, ix in enumerate(x_inds):
-                y_xmax = ys[ix]
-                ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv,
-                           #label=r"$|y-y(x_{max})| \leq %s$" % abs_conv if (with_label and i == 0) else None,
-                           **span_style)
-
-    if hue is not None:
-        for key, grp in data.groupby(by=hue):
-            _plot_key_grp(key, grp, span_style)
-    else:
-        _plot_key_grp("nohue", data, span_style)
-
-    ax.grid(True)
-    ax.set_xlabel(x)
-    ax.set_ylabel(y)
-    set_axlims(ax, xlims, "x")
-    set_axlims(ax, ylims, "y")
-    if hue:
-        ax.legend(loc="best", fontsize=fontsize, shadow=True)
-
-    return fig
-
-
-def linear_fit_ax(ax, xs, ys,
-                  fontsize: int,
-                  with_label: bool = True,
-                  with_ideal_line: bool = False,
-                  **kwargs) -> tuple[float]:
-    """
-    Calculate a linear least-squares regression for two sets of measurements.
-
-
-    Args:
-        ax: |matplotlib-Axes|.
-        xs: X-values.
-        ys: Y-values.
-        fontsize: fontsize for legends and titles
-        with_label: True to add labele to the plot.
-        with_ideal_line: True to show ideal linear behaviour.
-        kwargs: keyword arguments passed to ax.plot.
-
-    Return: fit values.
-    """
-    from scipy.stats import linregress
-    fit = linregress(xs, ys)
-    label = r"Linear fit $\alpha={:.2f}$, $r^2$={:.2f}".format(fit.slope, fit.rvalue**2)
-    if "color" not in kwargs:
-        kwargs["color"] = "r"
-
-    ax.plot(xs, fit.slope*xs + fit.intercept, label=label if with_label else None, **kwargs)
-
-    if with_ideal_line:
-        # Plot y = x line
-        ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-',
-                linewidth=1, label='Ideal' if with_label else None)
-    return fit
-
-
-def quadratic_fit_ax(ax, xs, ys,
-                     fontsize: int,
-                     with_label: bool = True,
-                     num_pts: int = 100,
-                     **kwargs) -> tuple:
-    """
-    Quadratic fit: y = ax^2 + bx + c
-
-    Args:
-        ax: |matplotlib-Axes|.
-        xs: X-values.
-        ys: Y-values.
-        fontsize: fontsize for legends and titles.
-        with_label: True to add label to the plot.
-        kwargs: keyword arguments passed to ax.plot.
-
-    Return: (params, covariance)
-    """
-    # Define quadratic function
-    def quadratic(x, a, b, c):
-        return a * x**2 + b * x + c
-
-    from scipy.optimize import curve_fit
-    params, covariance = curve_fit(quadratic, xs, ys)
-    a, b, c = params
-
-    # Predict values
-    x_fit = np.linspace(min(xs), max(xs), num_pts)
-    y_fit = quadratic(x_fit, *params)
-
-    #label = r"Quad fit $a={:.2f}$, $b={:.2f}$ $c={:.2f}$ $\text{cov}$={:.2f}".format(a, b, c, covariance)
-    label = r"Quad fit $a={:.2f}$, $b={:.2f}$ $c={:.2f}$".format(a, b, c)
-    if "color" not in kwargs:
-        kwargs["color"] = "r"
-
-    ax.plot(x_fit, quadratic(x_fit, a, b, c), label=label if with_label else None, **kwargs)
-
-    return params, covariance
-
-
-@add_fig_kwargs
-def plot_array(array, color_map=None, cplx_mode="abs", **kwargs) -> Figure:
-    """
-    Use imshow for plotting 2D or 1D arrays.
-
-    .. code-block::
-
-        plot_array(np.random.rand(10,10))
-
-    See <http://stackoverflow.com/questions/7229971/2d-grid-data-visualization-in-python>
-
-    Args:
-        array: Array-like object (1D or 2D).
-        color_map: color map.
-        cplx_mode:
-            Flag defining how to handle complex arrays. Possible values in ("re", "im", "abs", "angle")
-            "re" for the real part, "im" for the imaginary part.
-            "abs" means that the absolute value of the complex number is shown.
-            "angle" will display the phase of the complex number in radians.
-    """
-    # Handle vectors
-    array = np.atleast_2d(array)
-    array = data_from_cplx_mode(cplx_mode, array)
-
-    import matplotlib as mpl
-    from matplotlib import pyplot as plt
-    if color_map is None:
-        # make a color map of fixed colors
-        color_map = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                                 ['blue', 'black', 'red'], 256)
-
-    img = plt.imshow(array, interpolation='nearest', cmap=color_map, origin='lower')
-
-    # Make a color bar
-    plt.colorbar(img, cmap=color_map)
-
-    # Set grid
-    plt.grid(True, color='white')
-
-    fig = plt.gcf()
-    return fig
-
-
-class ConvergenceAnalyzer:
-    """
-    This object allows one to plot the convergence of an arbitrary list
-    of quantities as a function of the same x.
-    """
-
-    # Colors for the different convergence criteria.
-    color_ilevel = ["red", "blue", "green"]
-
-    # matplotlib option to fill convergence window.
-    HATCH = "/"
+    JSON_SCHEMA = NodeResults.JSON_SCHEMA.copy()
 
     @classmethod
-    def from_xy_label_vals(cls, xlabel, xs, ylabel, yvalues, tols) -> ConvergenceAnalyzer:
-        """
-        Simplified interface to analyze a single list of values.
-        """
-        yvals_dict = {ylabel: yvalues}
-        ytols_dict = {ylabel: tols}
-        return cls(xlabel, xs, yvals_dict, ytols_dict)
+    def from_node(cls, work: Work) -> WorkResults:
+        """Initialize an instance from a |Work| instance."""
+        new = super().from_node(work)
+
+        # Will put all files found in outdir in GridFs
+        # Warning: assuming binary files.
+        d = {os.path.basename(f): f for f in work.outdir.list_filepaths()}
+        new.register_gridfs_files(**d)
 
-    @classmethod
-    def from_file(cls, filepath: str, xkey: str, ytols_dict: dict, **kwargs) -> ConvergenceAnalyzer:
-        """
-        High-level constructor to build the object from a file containing data
-        that can be converted to pandas DataFrame. kwargs are passed to the pandas IO routines.
-
-        Args:
-            filepath: Filename.
-            xkey: name of the x-variable.
-            ytols_dict: dict mapping the name of the y-variable to absolute tolerance(s).
-        """
-        df = dataframe_from_filepath(filepath, **kwargs)
-        return cls.from_dataframe(df, xkey, ytols_dict)
-
-    @classmethod
-    def from_dataframe(cls, df: pd.DataFrame, xkey: str, ytols_dict: dict) -> ConvergenceAnalyzer:
-        """
-        Build the object from a pandas dataframe.
-
-        Args:
-            df: DataFrame
-            xkey: name of the x-variable.
-            ytols_dict: dict mapping the name of the y-variable to tolerance(s).
-        """
-        df = df.sort_values(xkey)
-        xs = df[xkey].values
-        yvals_dict = {k: df[k].values for k in ytols_dict}
-        return cls(xkey, xs, yvals_dict, ytols_dict)
-
-    def __init__(self, xkey: str, xs: VectorLike, yvals_dict: dict[str, VectorLike], ytols_dict: dict):
-        """
-        Args:
-            xkey:
-            xs:
-            yvals_dict:
-            ytols_dict: dict mapping the name of the y-variable to absolute tolerance(s).
-
-        .. code-block::
-
-            plotter = ConvergencePlotter("ecut", ecut_value, yvals_dict, ytols_dict)
-            plotter.plot()
-        """
-        # Convert to numpy arrays and store data in self.
-        self.xkey = self.xlabel = xkey
-        self.xs = np.array(xs)
-        if not np.all(self.xs[:-1] <= self.xs[1:]):
-            raise ValueError("xs values should be in ascending order")
-
-        self.yvals_dict = {k: np.array(v) for k, v in yvals_dict.items()}
-        self.ykey2label = {k: k for k in yvals_dict}
-
-        if len(self.yvals_dict) > len(self.color_ilevel):
-            raise ValueError(f"Not programmed for more than {len(self.color_ilevel)} convergence levels")
-
-        # Handle ytols_dict.
-        self.ytols_dict = {}
-        for ykey, ytols in ytols_dict.items():
-            if not duck.is_listlike(ytols): ytols = [ytols]
-
-            if any(yt <= 0 for yt in ytols):
-                raise ValueError(f"tolerances cannot be negative: {ytols=}")
-
-            # Sort input tolerances just to be on the safe side.
-            self.ytols_dict[ykey] = np.sort(np.array(ytols))[::-1]
-
-        # Compute the first index in xs that gives value within the convergence window.
-        # -1 or None indicates that convergence has not been achieved.
-        self.ykey_ixs = {}
-        self.ykey_best_xs = {}
-
-        for ykey, ys in self.yvals_dict.items():
-            if len(ys) != len(xs):
-                raise ValueError(f"len(ys) != len(xs): {len(ys)} and {len(xs)}")
-
-            tol_levels = self.ytols_dict[ykey]
-
-            # Init values assuming no convergence achieved.
-            self.ykey_ixs[ykey] = [-1] * len(tol_levels)
-            self.ykey_best_xs[ykey] = [None] * len(tol_levels)
-
-            # For each y-tolerance.
-            num_x = len(self.xs)
-            y_xmax = ys[-1]
-            for il, ytol in enumerate(tol_levels):
-                for _, xx in enumerate(self.xs[::-1]):
-                    ix = -_ + num_x - 1
-                    if abs(y_xmax - ys[ix]) > ytol:
-                        self.ykey_ixs[ykey][il] = ix + 1
-                        break
-
-                ix = self.ykey_ixs[ykey][il]
-                if ix != -1:
-                    # If converged, use linear interpolation to get a better estimate of the
-                    # converged xx. This is useful especially if the xs grid is too coarse.
-                    best_xx = self.xs[ix]
-                    if ix - 1 >= 0:
-                        x0, y0 = xs[ix-1], ys[ix-1]
-                        x1, y1 = xs[ix], ys[ix]
-                        alpha = (y1 - y0) / (x1 - x0)
-                        # y(x) = alpha * (x - x0) + y0
-                        #print("best_xx 1", best_xx)
-                        if (y0 - y_xmax) >= 0: best_xx = x0 + ( ytol + y_xmax - y0) / alpha
-                        if (y0 - y_xmax) < 0: best_xx = x0 + (-ytol + y_xmax - y0) / alpha
-                        #print("best_xx 2", best_xx)
-
-                    self.ykey_best_xs[ykey][il] = best_xx
-
-        # Here we change the x-y labels for the plots using an hard-coded mapping
-        # in order to add additional info on units and normalization.
-        auto_key_label = dict(
-            ecut=r"$E_{cut}$ (Ha)",
-            energy_per_atom=r"$E/N_{at}$ (eV)",
-            pressure="P (GPa)",
-        )
-
-        for key, label in auto_key_label.items():
-            self.set_label(key, label, ignore_exc=True)
-
-    def set_label(self, key: str, label: str, ignore_exc=False) -> None:
-        """
-        Set the label for `key` to be used in the plot.
-        Don't raise exception if `ignore_exc` is True.
-        """
-        if key in self.ykey2label:
-            self.ykey2label[key] = label
-        elif key == self.xkey:
-            self.xlabel = label
-        else:
-            if not ignore_exc:
-                raise ValueError(
-                    f"key:`{key}` should be either in {list(self.ykey2label.keys())} or {self.xname}")
-
-    def get_ylabel(self, ykey: str) -> str:
-        """Return the ylabel to be used for `ykey` in the plot."""
-        return self.ykey2label[ykey]
-
-    def ytol_ix_xx(self, ykey) -> Iterator[tuple]:
-        """
-        Iterate over (ytols, ixs, and xs) for the given ``ykey`.
-        """
-        return zip(self.ytols_dict[ykey], self.ykey_ixs[ykey] ,self.ykey_best_xs[ykey])
-
-    def get_dataframe_ykey(self, ykey: str) -> pd.DataFrame:
-        """Return dataframe with convergence params for `ykey`."""
-        rows = []
-        for ytol, ix, xx in self.ytol_ix_xx(ykey):
-            rows.append(dict(ytol=ytol, ix=ix, xx=xx, ykey=ykey))
-            #rows.append(dict(ytol=ytol, ix=ix, xx=xx), xx_best=xx_best, ykey=ykey)
-        return pd.DataFrame(rows)
-
-    def to_string(self, verbose: int = 0) -> str:
-        """
-        String representation with verbosity level `verbose`.
-        """
-        lines = []; app = lines.append
-        app(f"Number of points for x-axis: {len(self.xs)}")
-        for ykey in self.yvals_dict:
-            app("ykey: %s" % ykey)
-            df = self.get_dataframe_ykey(ykey)
-            app(str(df))
-
-        return "\n".join(lines)
-
-    def __str__(self) -> str:
-        return self.to_string()
-
-    def _decorate_ax(self, ax, ykey, ys, yscale) -> None:
-        """
-        Decorate axis ax by adding patches showing the convergence window
-        and vertical lines where convergence is achieved.
-
-        Args:
-            ax: matplotlib axes.
-            ykey: y-name
-            ys: y-values
-            yscale: "linear" or "log"
-        """
-        # Precompute y-limits of the converge window for each tolerance.
-        y_xmax = ys[-1]
-        ytols = self.ytols_dict[ykey]
-        ntols = len(ytols)
-        ylims = np.empty((ntols, 2))
-        ylims_log = np.empty((ntols, 2))
-
-        for il, ytol in enumerate(ytols):
-            # Absolute tolerance.
-            y0, y1 = y_xmax - ytol, y_xmax + ytol
-            y1_log = ytol
-            ylims[il] = [y0, y1]
-            ylims_log[il] = [0, y1_log]
-
-        # Loop again as ylimits are known.
-        for il, ytol in enumerate(ytols):
-            label = r"$|y-y_\infty| \leq %s$" % ytol
-            span_style = dict(alpha=0.2, color=self.color_ilevel[il], zorder=abs(ytol), hatch=self.HATCH)
-
-            y0, y1 = ylims[il]
-            y0_log, y1_log = ylims_log[il]
-
-            if il == ntols - 1:
-                if yscale == "linear":
-                    ax.axhspan(y0, y1, label=label, **span_style)
-                elif yscale == "log":
-                    ax.axhspan(y0_log, y1_log, label=label, **span_style)
-                else:
-                    raise ValueError(f"Invalid {yscale=}")
-            else:
-                # Use limits of the next window to avoid overlapping patches.
-                if yscale == "linear":
-                    ax.axhspan(y0, ylims[il+1,0], label=label, **span_style)
-                    ax.axhspan(ylims[il+1,1], y1, **span_style)
-                elif yscale == "log":
-                    ax.axhspan(y0_log, ylims_log[il+1,0], label=label, **span_style)
-                    ax.axhspan(ylims_log[il+1,1], y1_log, **span_style)
-                else:
-                    raise ValueError(f"Invalid {yscale=}")
-
-            # Add vertical line to show best_xx.
-            best_xx = self.ykey_best_xs[ykey][il]
-            line_style = dict(lw=1, color=self.color_ilevel[il], ls=":")
-            if best_xx is not None:
-                ax.axvline(best_xx, **line_style)
-
-    @add_fig_kwargs
-    def plot(self, ax_mat=None, fontsize=8, **kwargs) -> Figure:
-        """
-        Plot convergence profile. A new grid is built if `ax_mat` is None:
-        """
-        nrows, ncols = len(self.yvals_dict), 2
-
-        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
-                                               sharex=False, sharey=False, squeeze=False)
-
-        # TODO
-        #for icol in range(ncols):
-        #    ax_share("x", ax_mat[0,icol], ax_mat[1,icol])
-
-        for irow, ((ykey, ys), ax_row) in enumerate(zip(self.yvals_dict.items(), ax_mat)):
-            # Plot y(x)
-            ax1, ax2 = ax_row
-            ax1.plot(self.xs, ys, marker="o", color="k")
-            ax1.set_ylabel(self.get_ylabel(ykey))
-            self._decorate_ax(ax1, ykey, ys, "linear")
-
-            # Plot |y(x) - y_xmax| on log scale.
-            abs_diffs = np.abs(ys - ys[-1])
-            ax2.plot(self.xs, abs_diffs, marker="o", color="k")
-            ax2.set_yscale("log")
-            self._decorate_ax(ax2, ykey, ys, "log")
-            ax2.set_xlim(self.xs[0] - 1, self.xs[-2] + 1)
-
-            title = ""
-            for i, (ytol, ix, xx) in enumerate(self.ytol_ix_xx(ykey)):
-                pre_str = "" if i == 0 else ", "
-                ytol_string = str(ytol)
-                #print("ytol_string:", ytol_string, "pre_str:", pre_str, "ytol_string:", ytol_string, "xx:", xx)
-                if xx is not None:
-                    s = r"x: %.1f for $\Delta$: %s" % (xx, ytol_string)
-                else:
-                    s = r"x: ?? for $\Delta$: %s" % (ytol_string)
-                title += pre_str + s
-
-            ax2.set_title(title, fontsize=fontsize)
-            ax2.set_ylabel(r"$|y-y(x_{max})|$", fontsize=fontsize)
-
-            set_grid_legend(ax_row, fontsize,
-                            xlabel=self.xlabel if irow == (nrows - 1) else None,
-                            grid=False, legend=True)
-
-        fig.tight_layout()
-        return fig
-
-
-class ArrayPlotter:
-
-    def __init__(self, *labels_and_arrays):
-        """
-        Args:
-            labels_and_arrays: list [("label1", arr1), ("label2", arr2)]
-        """
-        self._arr_dict = {}
-        for label, array in labels_and_arrays:
-            self.add_array(label, array)
-
-    def __len__(self) -> int:
-        return len(self._arr_dict)
-
-    def __iter__(self):
-        return self._arr_dict.__iter__()
-
-    def keys(self):
-        return self._arr_dict.keys()
-
-    def items(self):
-        return self._arr_dict.items()
-
-    def add_array(self, label: str, array) -> None:
-        """Add array with the given name."""
-        if label in self._arr_dict:
-            raise ValueError("%s is already in %s" % (label, list(self._arr_dict.keys())))
-
-        self._arr_dict[label] = array
-
-    def add_arrays(self, labels: list, arr_list: list) -> None:
-        """
-        Add a list of arrays
-
-        Args:
-            labels: List of labels.
-            arr_list: List of arrays.
-        """
-        assert len(labels) == len(arr_list)
-        for label, arr in zip(labels, arr_list):
-            self.add_array(label, arr)
-
-    @add_fig_kwargs
-    def plot(self, cplx_mode="abs", colormap="jet", fontsize=8, **kwargs) -> Figure:
-        """
-        Args:
-            cplx_mode: "abs" for absolute value, "re", "im", "angle"
-            colormap: matplotlib colormap.
-            fontsize: legend and label fontsize.
-        """
-        # Build grid of plots.
-        num_plots, ncols, nrows = len(self), 1, 1
-        if num_plots > 1:
-            ncols = 2
-            nrows = num_plots // ncols + (num_plots % ncols)
-
-        import matplotlib.pyplot as plt
-        fig, ax_mat = plt.subplots(nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False)
-        # Don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
-
-        from mpl_toolkits.axes_grid1 import make_axes_locatable
-        from matplotlib.ticker import MultipleLocator
-
-        for ax, (label, arr) in zip(ax_mat.flat, self.items()):
-            data = data_from_cplx_mode(cplx_mode, arr)
-            # Use origin to place the [0, 0] index of the array in the lower left corner of the axes.
-            img = ax.matshow(data, interpolation='nearest', cmap=colormap, origin='lower', aspect="auto")
-            ax.set_title("(%s) %s" % (cplx_mode, label), fontsize=fontsize)
-
-            # Make a color bar for this ax
-            # Create divider for existing axes instance
-            # http://stackoverflow.com/questions/18266642/multiple-imshow-subplots-each-with-colorbar
-            divider3 = make_axes_locatable(ax)
-            # Append axes to the right of ax, with 10% width of ax
-            cax3 = divider3.append_axes("right", size="10%", pad=0.05)
-            # Create colorbar in the appended axes
-            # Tick locations can be set with the kwarg `ticks`
-            # and the format of the ticklabels with kwarg `format`
-            cbar3 = plt.colorbar(img, cax=cax3, ticks=MultipleLocator(0.2), format="%.2f")
-            # Remove xticks from ax
-            ax.xaxis.set_visible(False)
-            # Manually set ticklocations
-            #ax.set_yticks([0.0, 2.5, 3.14, 4.0, 5.2, 7.0])
-
-            # Set grid
-            ax.grid(True, color='white')
-
-        fig.tight_layout()
-        return fig
-
-
-class Marker:
-    """
-    Stores the position and the size of the markers.
-    A marker is a list of tuple(x, y, s) where x, and y are the position
-    in the plot and s is the size of the marker.
-    Used for plotting purpose e.g. QP data, energy derivatives...
-
-    .. code-block::
-
-        x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
-        marker = Marker(x, y, s)
-    """
-
-    def __init__(self, x, y, s, **scatter_kwargs):
-        self.x, self.y, self.s = np.array(x), np.array(y), np.array(s)
-
-        if len(self.x) != len(self.y):
-            raise ValueError(f"{len(self.x)=} != {len(self.y)=}")
-
-        if len(self.y) != len(self.s):
-            raise ValueError(f"{len(self.y)=} != {len(self.s)=}")
-
-        self.scatter_kwargs = scatter_kwargs
-
-    def __bool__(self):
-        return bool(len(self.s))
-
-    __nonzero__ = __bool__
-
-    def posneg_marker(self, threshold: float = 0.0) -> tuple[Marker, Marker]:
-        """
-        Split data into two sets: the first one contains all the points with positive size.
-        The first set contains all the points with negative size.
-        """
-        pos_x, pos_y, pos_s = [], [], []
-        neg_x, neg_y, neg_s = [], [], []
-
-        for x, y, s in zip(self.x, self.y, self.s):
-            if s >= threshold:
-                pos_x.append(x)
-                pos_y.append(y)
-                pos_s.append(s)
-            else:
-                neg_x.append(x)
-                neg_y.append(y)
-                neg_s.append(s)
-
-        return self.__class__(pos_x, pos_y, pos_s), self.__class__(neg_x, neg_y, neg_s)
-
-
-class Exposer:
-    """
-    Base class for Exposer objects.
-
-    Example:
-
-        plot_kws = dict(show=False)
-        with Exposer.as_exposer("panel") as e:
-            e(obj.plot1(**plot_kws))
-            e(obj.plot2(**plot_kws))
-    """
-
-    @classmethod
-    def as_exposer(cls, exposer: str | Exposer, **kwargs) -> Exposer:
-        """
-        Return an instance of Exposer, usually from a string with the name.
-
-        Args:
-            exposer: "mpl" for MplExposer, "panel" for PanelExposer.
-        """
-        if isinstance(exposer, cls): return exposer
-
-        # Assume string.
-        exposer_cls = dict(
-            mpl=MplExposer,
-            panel=PanelExposer,
-        )[exposer]
-        return exposer_cls(**kwargs)
-
-    def add_obj_with_yield_figs(self, obj: Any) -> None:
-        """
-        Add an object implementing a `yield_figs` method to the Exposer.
-        """
-        if not hasattr(obj, "yield_figs"):
-            raise TypeError(f"object of type {type(obj)} does not implement `yield_figs` method")
-
-        for fig in obj.yield_figs():
-            self.add_fig(fig)
-
-    def __call__(self, obj: Any):
-        """
-        Add an object to the Exposer
-        Support mpl figure, list of figures or generator yielding figures.
-        """
-        import types
-        if isinstance(obj, (types.GeneratorType, list, tuple)):
-            for fig in obj:
-                self.add_fig(fig)
-        else:
-            self.add_fig(obj)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Activated at the end of the with statement. """
-        if exc_type is not None: return
-        self.expose()
-
-
-class MplExposer(Exposer): # pragma: no cover
-    """
-    Context manager used to produce several matplotlib figures and show
-    all of them at once so that users do not have to close the window
-    to visualize the next one.
-
-    Example:
-
-        plot_args = dict(show=False)
-        with MplExposer() as e:
-            e(obj.plot1(**plot_args))
-            e(obj.plot2(**plot_args))
-    """
-
-    def __init__(self, slide_mode=False, slide_timeout=None, verbose=1, **kwargs):
-        """
-        Args:
-            slide_mode: If True, iterate over figures. Default: Expose all figures at once.
-            slide_timeout: Close figure after slide-timeout seconds. Block if None.
-            verbose: verbosity level
-        """
-        self.figures = []
-        self.slide_mode = bool(slide_mode)
-        self.timeout_ms = slide_timeout
-        self.verbose = verbose
-        if self.timeout_ms is not None:
-            self.timeout_ms = int(self.timeout_ms * 1000)
-            assert self.timeout_ms >= 0
-
-        if self.verbose:
-            if self.slide_mode:
-                print("\nSliding matplotlib figures with slide timeout: %s [s]" % slide_timeout)
-            else:
-                print("\nLoading all matplotlib figures before showing them. It may take some time...")
-
-        self.start_time = time.time()
-
-    def add_fig(self, fig: Figure) -> None:
-        """
-        Add a matplotlib figure.
-        """
-        if fig is None: return
-
-        if not self.slide_mode:
-            self.figures.append(fig)
-        else:
-            import matplotlib.pyplot as plt
-            if self.timeout_ms is not None:
-                # Creating a timer object
-                # timer calls plt.close after interval milliseconds to close the window.
-                timer = fig.canvas.new_timer(interval=self.timeout_ms)
-                timer.add_callback(plt.close, fig)
-                timer.start()
-
-            plt.show()
-            if hasattr(fig, "clear"):
-                fig.clear()
-
-    def expose(self) -> None:
-        """
-        Show all figures. Clear figures if needed.
-        """
-        if not self.slide_mode:
-            print("All figures in memory, elapsed time: %.3f s" % (time.time() - self.start_time))
-            import matplotlib.pyplot as plt
-            plt.show()
-            for fig in self.figures:
-                if hasattr(fig, "clear"):
-                    fig.clear()
-
-
-class PanelExposer(Exposer):  # pragma: no cover
-    """
-    Context manager used to produce several matplotlib/plotly figures
-    and show all of them inside the web browser using a panel template.
-
-    Example:
-
-        with PanelExposer() as e:
-            e(obj.plot1(show=False))
-            e(obj.plot2(show=False))
-    """
-    def __init__(self, title=None, dpi=92, verbose=1, **kwargs):
-        """
-        Args:
-            title: String to be show in the header.
-            verbose: verbosity level
-        """
-        self.title = title
-        self.figures = []
-        self.verbose = verbose
-        self.dpi = int(dpi)
-
-        if self.verbose:
-            print("\nLoading all figures before showing them. It may take some time...")
-
-        self.start_time = time.time()
-
-    def add_fig(self, fig: Figure) -> None:
-        """Add a matplotlib figure."""
-        if fig is None: return
-        self.figures.append(fig)
-
-    def expose(self):
-        """Show all figures. Clear figures if needed."""
-        import panel as pn
-        pn.config.sizing_mode = 'stretch_width'
-        from abipy.panels.core import get_template_cls_from_name
-        cls = get_template_cls_from_name("FastGridTemplate")
-
-        template = cls(
-            title=self.title if self.title is not None else self.__class__.__name__,
-            header_background="#ff8c00 ", # Dark orange
-        )
-        #pn.config.sizing_mode = 'stretch_width'
-        from abipy.panels.core import mpl, ply
-        for i, fig in enumerate(self.figures):
-            row, col = divmod(i, 2)
-            if is_plotly_figure(fig):
-                p = ply(fig, with_divider=False)
-            elif is_mpl_figure(fig):
-                p = mpl(fig, with_divider=False, dpi=self.dpi)
-            else:
-                raise TypeError(f"Don't know how to handle type: `{type(fig)}`")
-
-            if hasattr(template.main, "append"):
-                template.main.append(p)
-            else:
-                # Assume .main area acts like a GridSpec
-                row_slice = slice(3 * row, 3 * (row + 1))
-                if col == 0: template.main[row_slice, :6] = p
-                if col == 1: template.main[row_slice, 6:] = p
-
-        return template.show()
-
-
-def plot_unit_cell(lattice, ax=None, **kwargs) -> tuple[Figure, Axes]:
-    """
-    Adds the unit cell of the lattice to a matplotlib Axes3D
-
-    Args:
-        lattice: Lattice object
-        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
-        kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to black
-            and linewidth to 3.
-
-    Returns:
-        matplotlib figure and ax
-    """
-    ax, fig, plt = get_ax3d_fig_plt(ax)
-
-    if "color" not in kwargs: kwargs["color"] = "k"
-    if "linewidth" not in kwargs: kwargs["linewidth"] = 3
-
-    v = 8 * [None]
-    v[0] = lattice.get_cartesian_coords([0.0, 0.0, 0.0])
-    v[1] = lattice.get_cartesian_coords([1.0, 0.0, 0.0])
-    v[2] = lattice.get_cartesian_coords([1.0, 1.0, 0.0])
-    v[3] = lattice.get_cartesian_coords([0.0, 1.0, 0.0])
-    v[4] = lattice.get_cartesian_coords([0.0, 1.0, 1.0])
-    v[5] = lattice.get_cartesian_coords([1.0, 1.0, 1.0])
-    v[6] = lattice.get_cartesian_coords([1.0, 0.0, 1.0])
-    v[7] = lattice.get_cartesian_coords([0.0, 0.0, 1.0])
-
-    for i, j in ((0, 1), (1, 2), (2, 3), (0, 3), (3, 4), (4, 5), (5, 6),
-                 (6, 7), (7, 4), (0, 7), (1, 6), (2, 5), (3, 4)):
-        ax.plot(*zip(v[i], v[j]), **kwargs)
-
-    # Plot cartesian frame
-    ax_add_cartesian_frame(ax)
-
-    return fig, ax
-
-
-def ax_add_cartesian_frame(ax, start=(0, 0, 0)) -> Axes:
-    """
-    Add cartesian frame to 3d axis at point `start`.
-    """
-    # https://stackoverflow.com/questions/22867620/putting-arrowheads-on-vectors-in-matplotlibs-3d-plot
-    from matplotlib.patches import FancyArrowPatch
-    from mpl_toolkits.mplot3d import proj3d
-    arrow_opts = {"color": "k"}
-    arrow_opts.update(dict(lw=1, arrowstyle="-|>",))
-
-    class Arrow3D(FancyArrowPatch):
-        def __init__(self, xs, ys, zs, *args, **kwargs):
-            super().__init__((0, 0), (0, 0), *args, **kwargs)
-            self._verts3d = xs, ys, zs
-
-        def do_3d_projection(self, renderer=None):
-            xs3d, ys3d, zs3d = self._verts3d
-            xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)
-            self.set_positions((xs[0],ys[0]),(xs[1],ys[1]))
-
-            return np.min(zs)
-
-        #def draw(self, renderer):
-        #    xs3d, ys3d, zs3d = self._verts3d
-        #    xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
-        #    self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
-        #    super().draw(renderer)
-
-        #def do_3d_projection(self, renderer=None):
-        #    xs3d, ys3d, zs3d = self._verts3d
-        #    if renderer is None:
-        #        # fallback to a default or estimated z value
-        #        return np.mean(zs3d)  # safe fallback
-        #    else:
-        #        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
-        #        return np.min(zs)  # or np.mean(zs) depending on your desired sorting
-
-    start = np.array(start)
-    for end in ((1, 0, 0), (0, 1, 0), (0, 0, 1)):
-        end = start + np.array(end)
-        xs, ys, zs = list(zip(start, end))
-        p = Arrow3D(xs, ys, zs,
-                   connectionstyle='arc3', mutation_scale=20,
-                   alpha=0.8, **arrow_opts)
-        ax.add_artist(p)
-
-    return ax
-
-
-def plot_structure(structure,
-                   ax=None, to_unit_cell=False, alpha=0.7,
-                   style="points+labels", color_scheme="VESTA", **kwargs) -> Figure:
-    """
-    Plot structure with matplotlib (minimalistic version).
-
-    Args:
-        structure: |Structure| object
-        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
-        alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
-        to_unit_cell: True if sites should be wrapped into the first unit cell.
-        style: "points+labels" to show atoms sites with labels.
-        color_scheme: color scheme for atom types. Allowed values in ("Jmol", "VESTA")
-
-    Returns: |matplotlib-Figure|
-    """
-    fig, ax = plot_unit_cell(structure.lattice, ax=ax, linewidth=1)
-
-    from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
-    from pymatgen.vis.structure_vtk import EL_COLORS
-    xyzs, colors = np.empty((len(structure), 4)), []
-
-    for i, site in enumerate(structure):
-        symbol = site.specie.symbol
-        color = tuple(i / 255 for i in EL_COLORS[color_scheme][symbol])
-        radius = CovalentRadius.radius[symbol]
-        if to_unit_cell and hasattr(site, "to_unit_cell"): site = site.to_unit_cell()
-        # Use cartesian coordinates.
-        x, y, z = site.coords
-        xyzs[i] = (x, y, z, radius)
-        colors.append(color)
-        if "labels" in style:
-            ax.text(x, y, z, symbol)
-
-    # The definition of sizes is not optimal because matplotlib uses points
-    # whereas we would like something that depends on the radius (5000 seems to give reasonable plots)
-    # For possible approaches, see
-    # https://stackoverflow.com/questions/9081553/python-scatter-plot-size-and-style-of-the-marker/24567352#24567352
-    # https://gist.github.com/syrte/592a062c562cd2a98a83
-    if "points" in style:
-        x, y, z, s = xyzs.T.copy()
-        s = 5000 * s ** 2
-        ax.scatter(x, y, zs=z, s=s, c=colors, alpha=alpha)  #facecolors="white", #edgecolors="blue"
-
-    ax.set_title(structure.composition.formula)
-    ax.set_axis_off()
-
-    return fig
-
-
-def _generic_parser_fh(fh) -> dict:
-    """
-    Parse file with data in tabular format. Supports multi datasets a la gnuplot.
-    Mainly used for files without any schema, not even CSV
-
-    Args:
-        fh: File object
-
-    Returns:
-        dict title --> numpy array
-        where title is taken from the first (non-empty) line preceding the dataset
-    """
-    arr_list = [None]
-    data = []
-    head_list = []
-    count = -1
-    last_header = None
-    for l in fh:
-        l = l.strip()
-        if not l or l.startswith("#"):
-            count = -1
-            last_header = l
-            if arr_list[-1] is not None: arr_list.append(None)
-            continue
-
-        count += 1
-        if count == 0: head_list.append(last_header)
-        if arr_list[-1] is None: arr_list[-1] = []
-        data = arr_list[-1]
-        data.append(list(map(float, l.split())))
-
-    if len(head_list) != len(arr_list):
-        raise RuntimeError("len(head_list) != len(arr_list), %d != %d" % (len(head_list), len(arr_list)))
-
-    od = {}
-    for key, data in zip(head_list, arr_list):
-        key = " ".join(key.split())
-        if key in od:
-            print("Header %s already in dictionary. Using new key %s" % (key, 2 * key))
-            key = 2 * key
-        od[key] = np.array(data).T.copy()
-
-    return od
-
-
-class GenericDataFilePlotter:
-    """
-    Extract data from a generic text file with results in tabular format and plot data with matplotlib.
-    Multiple datasets are supported.
-    No attempt is made to handle metadata (e.g. column name)
-    Mainly used to handle text files written without any schema.
-    """
-    def __init__(self, filepath: str):
-        with open(filepath, "rt") as fh:
-            self.od = _generic_parser_fh(fh)
-
-    def __str__(self) -> str:
-        return self.to_string()
-
-    def to_string(self, verbose: int = 0) -> str:
-        """String representation with verbosity level `verbose`."""
-        lines = []
-        for key, arr in self.od.items():
-            lines.append("key: `%s` --> array shape: %s" % (key, str(arr.shape)))
-        return "\n".join(lines)
-
-    @add_fig_kwargs
-    def plot(self, use_index=False, fontsize=8, **kwargs) -> Figure:
-        """
-        Plot all arrays. Use multiple axes if datasets.
-
-        Args:
-            use_index: By default, the x-values are taken from the first column.
-                If use_index is False, the x-values are the row index.
-            fontsize: fontsize for title.
-            kwargs: options passed to ``ax.plot``.
-
-        Return: |matplotlib-figure|
-        """
-        # build grid of plots.
-        num_plots, ncols, nrows = len(self.od), 1, 1
-        if num_plots > 1:
-            ncols = 2
-            nrows = (num_plots // ncols) + (num_plots % ncols)
-
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=False, squeeze=False)
-        ax_list = ax_list.ravel()
-
-        # Don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: ax_list[-1].axis("off")
-
-        for ax, (key, arr) in zip(ax_list, self.od.items()):
-            ax.set_title(key, fontsize=fontsize)
-            ax.grid(True)
-            xs = arr[0] if not use_index else list(range(len(arr[0])))
-            for ys in arr[1:] if not use_index else arr:
-                ax.plot(xs, ys)
-
-        return fig
-
-
-class GenericDataFilesPlotter:
-
-    @classmethod
-    def from_files(cls, filepaths: list[str]) -> GenericDataFilesPlotter:
-        """
-        Build object from a list of `filenames`.
-        """
-        new = cls()
-        for filepath in filepaths:
-            new.add_file(filepath)
         return new
 
-    def __init__(self):
-        self.odlist = []
-        self.filepaths = []
 
-    def __str__(self) -> str:
-        return self.to_string()
+class WorkError(NodeError):
+    """Base class for the exceptions raised by Work objects."""
 
-    def to_string(self, verbose: int = 0) -> str:
+
+class BaseWork(Node, metaclass=abc.ABCMeta):
+    """
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: BaseWork
+    """
+    Error = WorkError
+
+    Results = WorkResults
+
+    # interface modeled after subprocess.Popen
+    @property
+    @abc.abstractmethod
+    def processes(self) -> list:
+        """Return a list of objects that support the `subprocess.Popen` protocol."""
+
+    def poll(self) -> list:
+        """
+        Check if all child processes have terminated. Set and return returncode attribute.
+        """
+        return [task.poll() for task in self]
+
+    def wait(self) -> list:
+        """
+        Wait for child processed to terminate. Set and return returncode attribute.
+        """
+        return [task.wait() for task in self]
+
+    def communicate(self, input=None) -> list[tuple]:
+        """
+        Interact with processes: Send data to stdin. Read data from stdout and
+        stderr, until end-of-file is reached.
+        Wait for process to terminate. The optional input argument should be a
+        string to be sent to the child processed, or None, if no data should be
+        sent to the children.
+
+        communicate() returns a list of tuples (stdoutdata, stderrdata).
+        """
+        return [task.communicate(input) for task in self]
+
+    @property
+    def returncodes(self) -> list[int]:
+        """
+        The children return codes, set by poll() and wait() (and indirectly by communicate()).
+        A None value indicates that the process hasn't terminated yet.
+        A negative value -N indicates that the child was terminated by signal N (Unix only).
+        """
+        return [task.returncode for task in self]
+
+    @property
+    def ncores_reserved(self) -> int:
+        """
+        Returns the number of cores reserved in this moment.
+        A core is reserved if it's still not running but
+        we have submitted the task to the queue manager.
+        """
+        return sum(task.manager.num_cores for task in self if task.status == task.S_SUB)
+
+    @property
+    def ncores_allocated(self) -> int:
+        """
+        Returns the number of CPUs allocated in this moment.
+        A core is allocated if it's running a task or if we have
+        submitted a task to the queue manager but the job is still pending.
+        """
+        return sum(task.manager.num_cores for task in self if task.status in [task.S_SUB, task.S_RUN])
+
+    @property
+    def ncores_used(self) -> int:
+        """
+        Returns the number of cores used in this moment.
+        A core is used if there's a job that is running on it.
+        """
+        return sum(task.manager.num_cores for task in self if task.status == task.S_RUN)
+
+    def fetch_task_to_run(self) -> Task | None:
+        """
+        Returns the first task that is ready to run or
+        None if no task can be submitted at present"
+
+        Raises:
+            `StopIteration` if all tasks are done.
+        """
+        # All the tasks are done so raise an exception
+        # that will be handled by the client code.
+        if all(task.is_completed for task in self):
+            raise StopIteration("All tasks completed.")
+
+        for task in self:
+            if task.can_run:
+                return task
+
+        # No task found, this usually happens when we have dependencies.
+        # Beware of possible deadlocks here!
+        self.history.warning("Possible deadlock in fetch_task_to_run!")
+        return None
+
+    def fetch_alltasks_to_run(self) -> list[Task]:
+        """
+        Returns a list with all the tasks that can be submitted.
+        Empty list if not task has been found.
+        """
+        return [task for task in self if task.can_run]
+
+    @abc.abstractmethod
+    def setup(self, *args, **kwargs):
+        """Method called before submitting the calculations."""
+
+    def _setup(self, *args, **kwargs) -> None:
+        self.setup(*args, **kwargs)
+
+    def connect_signals(self) -> None:
+        """
+        Connect the signals within the work.
+        The |Work| is responsible for catching the important signals raised from
+        its task and raise new signals when some particular condition occurs.
+        """
+        for task in self:
+            dispatcher.connect(self.on_ok, signal=task.S_OK, sender=task)
+
+    def disconnect_signals(self) -> None:
+        """
+        Disable the signals within the work.
+        This function reverses the process of `connect_signals`
+        """
+        for task in self:
+            try:
+                dispatcher.disconnect(self.on_ok, signal=task.S_OK, sender=task)
+            except dispatcher.errors.DispatcherKeyError as exc:
+                self.history.debug(str(exc))
+
+    @property
+    def all_ok(self) -> bool:
+        return all(task.status == task.S_OK for task in self)
+
+    def on_ok(self, sender):
+        """
+        This callback is called when one task reaches status `S_OK`.
+        It executes on_all_ok when all tasks in self have reached `S_OK`.
+        """
+        self.history.debug("In on_ok with sender %s" % sender)
+
+        if self.all_ok:
+            if self.finalized:
+                return AttrDict(returncode=0, message="Work has been already finalized")
+            else:
+                # Set finalized here, because on_all_ok might change it (e.g. Relax + EOS in a single work)
+                self.finalized = True
+                try:
+                    results = AttrDict(**self.on_all_ok())
+                except Exception as exc:
+                    self.history.critical("on_all_ok raises %s" % str(exc))
+                    self.finalized = False
+                    raise
+
+                # Signal to possible observers that the `Work` reached S_OK
+                self.history.info("Work %s is finalized and broadcasts signal S_OK" % str(self))
+                if self._finalized:
+                    self.send_signal(self.S_OK)
+
+                return results
+
+        return AttrDict(returncode=1, message="Not all tasks are OK!")
+
+    def on_all_ok(self):
+        """
+        This method is called once the `Work` is completed i.e. when all tasks have reached status S_OK.
+        Subclasses should provide their own implementation
+
+        Returns:
+            Dictionary that must contain at least the following entries:
+                returncode: 0 on success.
+                message: a string that should provide a human-readable description of what has been performed.
+        """
+        return dict(returncode=0, message=f"Calling on_all_ok of {self.__class__.__name__}")
+
+    def get_results(self, **kwargs):
+        """
+        Method called once the calculations are completed.
+        The base version returns a dictionary task_name: TaskResults for each task in self.
+        """
+        return self.Results.from_node(self)
+
+    def get_graphviz(self, engine="automatic", graph_attr=None, node_attr=None, edge_attr=None):
+        """
+        Generate task graph in the DOT language (only parents and children of this work).
+
+        Args:
+            engine: Layout command used. ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']
+            graph_attr: Mapping of (attribute, value) pairs for the graph.
+            node_attr: Mapping of (attribute, value) pairs set for all nodes.
+            edge_attr: Mapping of (attribute, value) pairs set for all edges.
+
+        Returns: graphviz.Digraph <https://graphviz.readthedocs.io/en/stable/api.html#digraph>
+        """
+        from graphviz import Digraph
+        fg = Digraph("work", #filename="work_%s.gv" % os.path.basename(self.workdir),
+            engine="fdp" if engine == "automatic" else engine)
+
+        # Set graph attributes.
+        # https://www.graphviz.org/doc/info/
+        #fg.attr(label="%s@%s" % (self.__class__.__name__, self.relworkdir))
+        fg.attr(label=repr(self))
+        #fg.attr(fontcolor="white", bgcolor='purple:pink')
+        fg.attr(rankdir="LR", pagedir="BL")
+        #fg.attr(constraint="false", pack="true", packMode="clust")
+        fg.node_attr.update(color='lightblue2', style='filled')
+        #fg.node_attr.update(ranksep='equally')
+
+        # Add input attributes.
+        if graph_attr is not None:
+            fg.graph_attr.update(**graph_attr)
+        if node_attr is not None:
+            fg.node_attr.update(**node_attr)
+        if edge_attr is not None:
+            fg.edge_attr.update(**edge_attr)
+
+        def node_kwargs(node):
+            return dict(
+                #shape="circle",
+                color=node.color_hex,
+                label=(str(node) if not hasattr(node, "pos_str") else
+                    node.pos_str + "\n" + node.__class__.__name__),
+            )
+
+        edge_kwargs = dict(arrowType="vee", style="solid")
+        cluster_kwargs = dict(rankdir="LR", pagedir="BL", style="rounded", bgcolor="azure2")
+
+        # Build cluster with tasks in *this* work
+        cluster_name = "cluster%s" % self.name
+        with fg.subgraph(name=cluster_name) as wg:
+            wg.attr(**cluster_kwargs)
+            wg.attr(label="%s (%s)" % (self.__class__.__name__, self.name))
+            for task in self:
+                wg.node(task.name, **node_kwargs(task))
+                # Connect task to children
+                for child in task.get_children():
+                    # Test if child is in this cluster (self).
+                    myg = wg if child in self else fg
+                    myg.node(child.name, **node_kwargs(child))
+                    # Find file extensions required by this task
+                    i = [dep.node for dep in child.deps].index(task)
+                    edge_label = "+".join(child.deps[i].exts)
+                    myg.edge(task.name, child.name, label=edge_label, color=task.color_hex,
+                             **edge_kwargs)
+
+                # Connect task to parents
+                for parent in task.get_parents():
+                    # Test if parent is in this cluster (self).
+                    myg = wg if parent in self else fg
+                    myg.node(parent.name, **node_kwargs(parent))
+                    # Find file extensions required by this task
+                    i = [dep.node for dep in task.deps].index(parent)
+                    edge_label = "+".join(task.deps[i].exts)
+                    myg.edge(parent.name, task.name, label=edge_label, color=parent.color_hex,
+                             **edge_kwargs)
+
+        # Treat the case in which we have a work producing output for tasks in *this* work.
+        #for work in self.flow:
+        #    children = work.get_children()
+        #    if not children or all(child not in self for child in children):
+        #        continue
+        #    cluster_name = "cluster%s" % work.name
+        #    seen = set()
+        #    for child in children:
+        #        if child not in self: continue
+        #        # This is not needed, too much confusing
+        #        #fg.edge(cluster_name, child.name, color=work.color_hex, **edge_kwargs)
+        #        # Find file extensions required by work
+        #        i = [dep.node for dep in child.deps].index(work)
+        #        for ext in child.deps[i].exts:
+        #            out = "%s (%s)" % (ext, work.name)
+        #            fg.node(out)
+        #            fg.edge(out, child.name, **edge_kwargs)
+        #            key = (cluster_name, out)
+        #            if key not in seen:
+        #                fg.edge(cluster_name, out, color=work.color_hex, **edge_kwargs)
+        #                seen.add(key)
+
+        return fg
+
+
+class NodeContainer(metaclass=abc.ABCMeta):
+    """
+    Mixin classes for `Work` and `Flow` objects providing helper functions
+    to register tasks in the container.
+    The helper function call the `register` method of the container.
+    """
+    # Abstract protocol for containers
+
+    @abc.abstractmethod
+    def register_task(self, *args, **kwargs):
+        """
+        Register a task in the container.
+        """
+        # TODO: shall flow.register_task return a Task or a Work?
+
+    # Helper functions to register Task subclasses.
+    def register_scf_task(self, *args, **kwargs) -> ScfTask:
+        """Register a SCF task."""
+        kwargs["task_class"] = ScfTask
+        input = args[0]
+        if input.get("berryopt", 0) != 0:
+            kwargs["task_class"] = BerryTask
+
+        return self.register_task(*args, **kwargs)
+
+    def register_collinear_then_noncollinear_scf_task(self, *args, **kwargs):
+        """Register a Scf task that perform a SCF run first with nsppol = 2 and then nspinor = 2"""
+        kwargs["task_class"] = CollinearThenNonCollinearScfTask
+        return self.register_task(*args, **kwargs)
+
+    def register_nscf_task(self, *args, **kwargs) -> NscfTask:
+        """Register a NSCF task."""
+        kwargs["task_class"] = NscfTask
+        task = self.register_task(*args, **kwargs)
+
+        # Make sure the parent producing the DEN file is given.
+        if task.is_work: task = task[-1]
+        den_parent = task.find_parent_with_ext("DEN")
+        if den_parent is None:
+            raise ValueError("NSCF task %s\nrequires parent producing DEN file!" % repr(task))
+
+        if task.input.get("usekden", 0) == 1:
+            # Meta-GGA calculation --> Add KDEN if not explicitly given.
+            # Assuming prtkden is already set to 1
+            # TODO: Abinit should automatically set it to 1 if usekden --> I'm not gonna fix the input at this level
+            kden_parent = task.find_parent_with_ext("KDEN")
+            if kden_parent is None:
+                task.add_deps({den_parent: "KDEN"})
+
+        return task
+
+    def register_relax_task(self, *args, **kwargs) -> RelaxTask:
+        """Register a task for structural optimization."""
+        kwargs["task_class"] = RelaxTask
+        return self.register_task(*args, **kwargs)
+
+    def register_berry_task(self, *args, **kwargs) -> BerryTask:
+        kwargs["task_class"] = BerryTask
+        return self.register_task(*args, **kwargs)
+
+    def register_phonon_task(self, *args, **kwargs) -> PhononTask:
+        """Register a phonon task."""
+        kwargs["task_class"] = PhononTask
+        return self.register_task(*args, **kwargs)
+
+    def register_elastic_task(self, *args, **kwargs) -> ElasticTask:
+        """Register an elastic task."""
+        kwargs["task_class"] = ElasticTask
+        return self.register_task(*args, **kwargs)
+
+    def register_ddk_task(self, *args, **kwargs) -> DdkTask:
+        """Register a DDK task."""
+        kwargs["task_class"] = DdkTask
+        return self.register_task(*args, **kwargs)
+
+    def register_dkdk_task(self, *args, **kwargs) -> DkdkTask:
+        """Register a DkdkTask task."""
+        kwargs["task_class"] = DkdkTask
+        return self.register_task(*args, **kwargs)
+
+    def register_quad_task(self, *args, **kwargs) -> QuadTask:
+        """Register a QuadTask task."""
+        kwargs["task_class"] = QuadTask
+        return self.register_task(*args, **kwargs)
+
+    def register_flexoe_task(self, *args, **kwargs) -> FlexoETask:
+        """Register a FlexETask task."""
+        kwargs["task_class"] = FlexoETask
+        return self.register_task(*args, **kwargs)
+
+    def register_effmass_task(self, *args, **kwargs) -> EffMassTask:
+        """Register a effective mass task."""
+        kwargs["task_class"] = EffMassTask
+        kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
+        task = self.register_task(*args, **kwargs)
+        task.history.info("Enforcing sequential execution as effmass task does not support MPI")
+        return task
+
+    def register_scr_task(self, *args, **kwargs) -> ScrTask:
+        """Register a screening task."""
+        kwargs["task_class"] = ScrTask
+        return self.register_task(*args, **kwargs)
+
+    def register_sigma_task(self, *args, **kwargs) -> SigmaTask:
+        """Register a sigma task."""
+        kwargs["task_class"] = SigmaTask
+        return self.register_task(*args, **kwargs)
+
+    def register_gwr_task(self, *args, **kwargs) -> GwrTask:
+        """Register a sigma task."""
+        kwargs["task_class"] = GwrTask
+        task = self.register_task(*args, **kwargs)
+        gwr_task = task.input["gwr_task"]
+        #if gwr_task = ""
+
+        return task
+
+    def register_dde_task(self, *args, **kwargs) -> DdeTask:
+        """Register a Dde task."""
+        kwargs["task_class"] = DdeTask
+        return self.register_task(*args, **kwargs)
+
+    def register_dte_task(self, *args, **kwargs) -> DteTask:
+        """Register a Dte task."""
+        kwargs["task_class"] = DteTask
+        # DteTask sets autoparal to 0 but we need more procs
+        manager = TaskManager.from_user_config()
+        max_cores = manager.qadapter.max_cores
+        new_manager = manager.new_with_fixed_mpi_omp(max_cores, 1)
+        kwargs.update({"manager": new_manager})
+        return self.register_task(*args, **kwargs)
+
+    def register_efield_task(self, *args, **kwargs) -> EfieldTask:
+        """Register an Efield task."""
+        kwargs["task_class"] = EfieldTask
+        return self.register_task(*args, **kwargs)
+
+    def register_bec_task(self, *args, **kwargs) -> BecTask:
+        """Register a BEC task."""
+        kwargs["task_class"] = BecTask
+        return self.register_task(*args, **kwargs)
+
+    def register_bse_task(self, *args, **kwargs) -> BseTask:
+        """Register a Bethe-Salpeter task."""
+        kwargs["task_class"] = BseTask
+        return self.register_task(*args, **kwargs)
+
+    def register_eph_task(self, *args, **kwargs) -> EphTask:
+        """Register an electron-phonon task."""
+        kwargs["task_class"] = EphTask
+        eph_inp = args[0]
+        eph_task = eph_inp.get("eph_task", 0)
+        msg = ""
+
+        if eph_inp.get("eph_frohlichm", 0) != 0 or abs(eph_task) == 15:
+            msg = "Enforcing sequential execution as MPI with nprocs > 1 is not supported"
+            kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
+
+        if eph_task == -4:
+            # Computation of imaginary part of Sigma_eph.
+            msg = "For an optimal memory distribution, the number of MPI procs should be a multiple of 3*natom."
+            manager = TaskManager.from_user_config()
+            min_cores = manager.qadapter.min_cores
+            max_cores = manager.qadapter.max_cores
+            natom3 = 3 * len(eph_inp.structure)
+            mpi_procs = max(max_cores - max_cores % natom3, min_cores)
+            kwargs.update({"manager": manager.new_with_fixed_mpi_omp(mpi_procs, 1)})
+
+        if eph_task == 9:
+            # Kubo spectral function from SIGEPH.nc file.
+            nkptgw = eph_inp.vars["nkptgw"]
+            manager = TaskManager.from_user_config()
+            max_cores = manager.qadapter.max_cores
+            mpi_procs = max_cores
+            msg = "Enforcing mpi_procs = max_cores as autoparal is not yet implemented"
+            if max_cores > nkptgw:
+                msg = "Enforcing mpi_procs = nkptgw"
+                mpi_procs = nkptgw
+
+            kwargs.update({"manager": manager.new_with_fixed_mpi_omp(mpi_procs, 1)})
+
+        task = self.register_task(*args, **kwargs)
+        if msg: task.history.info(msg)
+        return task
+
+    def register_kerange_task(self, *args, **kwargs) -> KerangeTask:
+        """Register a kerange task."""
+        kwargs["task_class"] = KerangeTask
+        kwargs.update({"manager": TaskManager.from_user_config().new_with_fixed_mpi_omp(1, 1)})
+        task = self.register_task(*args, **kwargs)
+        task.history.info("Enforcing sequential execution as Kerange is not MPI parallelized although it's fast.")
+        return task
+
+    def walknset_vars(self, task_class=None, *args, **kwargs) -> None:
+        """
+        Set the values of the ABINIT variables in the input files of the nodes
+
+        Args:
+            task_class: If not None, only the input files of the tasks belonging
+                to class `task_class` are modified.
+
+        Example:
+
+            flow.walknset_vars(ecut=10, kptopt=4)
+        """
+        def change_task(task):
+            if task_class is not None and task.__class__ is not task_class: return False
+            return True
+
+        if self.is_work:
+            for task in self:
+                if not change_task(task): continue
+                task.set_vars(*args, **kwargs)
+
+        elif self.is_flow:
+            for task in self.iflat_tasks():
+                if not change_task(task): continue
+                task.set_vars(*args, **kwargs)
+
+        else:
+            raise TypeError("Don't know how to set variables for object class %s" % self.__class__.__name__)
+
+
+class Work(BaseWork, NodeContainer):
+    """
+    A Work is a list of (possibly connected) tasks.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: Work
+    """
+
+    def __init__(self, workdir=None, manager=None):
+        """
+        Args:
+            workdir: Path to the working directory.
+            manager: |TaskManager| object.
+        """
+        super().__init__()
+        self._tasks = []
+
+        if workdir is not None:
+            self.set_workdir(workdir)
+
+        if manager is not None:
+            self.set_manager(manager)
+
+    def set_manager(self, manager: TaskManager) -> None:
+        """Set the |TaskManager| to be used to launch the |Task|."""
+        self.manager = manager.deepcopy()
+        for task in self:
+            task.set_manager(manager)
+
+    @property
+    def flow(self) -> Flow:
+        """The flow containing this |Work|."""
+        return self._flow
+
+    def set_flow(self, flow: Flow) -> None:
+        """Set the flow associated to this |Work|."""
+        if not hasattr(self, "_flow"):
+            self._flow = flow
+        else:
+            if self._flow != flow:
+                raise ValueError("self._flow != flow")
+
+    @cached_property
+    def pos(self) -> int:
+        """The position of work in the |Flow|"""
+        for i, work in enumerate(self.flow):
+            if self == work:
+                return i
+        raise ValueError("Cannot find the position of %s in flow %s" % (self, self.flow))
+
+    @property
+    def pos_str(self) -> str:
+        """String representation of self.pos"""
+        return "w" + str(self.pos)
+
+    def set_workdir(self, workdir: str, chroot=False) -> None:
+        """Set the working directory. Cannot be set more than once unless chroot is True"""
+        if not chroot and hasattr(self, "workdir") and self.workdir != workdir:
+            raise ValueError("self.workdir != workdir: %s, %s" % (self.workdir,  workdir))
+
+        self.workdir = os.path.abspath(workdir)
+
+        # Directories with (input|output|temporary) data.
+        # The work will use these directories to connect
+        # itself to other works and/or to produce new data
+        # that will be used by its children.
+        self.indir = Directory(os.path.join(self.workdir, "indata"))
+        self.outdir = Directory(os.path.join(self.workdir, "outdata"))
+        self.tmpdir = Directory(os.path.join(self.workdir, "tmpdata"))
+        self.wdir = Directory(self.workdir)
+
+    def chroot(self, new_workdir: str) -> None:
+        self.set_workdir(new_workdir, chroot=True)
+
+        for i, task in enumerate(self):
+            new_tdir = os.path.join(self.workdir, "t" + str(i))
+            task.set_workdir(new_tdir, chroot=True)
+
+    def __len__(self) -> int:
+        return len(self._tasks)
+
+    def __iter__(self) -> Iterator[Task]:
+        return self._tasks.__iter__()
+
+    def __getitem__(self, slice) -> Task | list[Task]:
+        return self._tasks[slice]
+
+    def postpone_on_all_ok(self):
+        """
+        This method should be called when additional tasks are added to the Work at runtime.
+        e.g inside an on_all_ok method. This call triggers the allocations of new tasks
+        so that the scheduler will continue execution since new tasks have been added
+        and the finalized flag is set to False.
+        """
+        self.flow.allocate()
+        self.flow.build_and_pickle_dump()
+        self.finalized = False
+
+        return super().on_all_ok()
+
+    def chunks(self, chunk_size) -> list[Task]:
+        """Yield successive chunks of tasks of length chunk_size."""
+        for tasks in chunks(self, chunk_size):
+            yield tasks
+
+    def ipath_from_ext(self, ext: str) -> str:
+        """
+        Returns the path of the input file with extension ext.
+        Use it when the file does not exist yet.
+        """
+        return self.indir.path_in("in_" + ext)
+
+    def opath_from_ext(self, ext: str) -> str:
+        """
+        Returns the path of the output file with extension ext.
+        Use it when the file does not exist yet.
+        """
+        return self.outdir.path_in("out_" + ext)
+
+    def get_all_outdata_files_with_ext(self, ext: str) -> list:
+        """
+        Returns list with all the output files produced in outdata
+        with extension `ext`.
+        """
+        paths = []
+        for task in self:
+            p = task.outdir.has_abiext(ext)
+            if p:
+                paths.append(p)
+        return paths
+
+    @property
+    def processes(self) -> list:
+        return [task.process for task in self]
+
+    @property
+    def all_done(self) -> bool:
+        """True if all the |Task| objects in the |Work| are done."""
+        return all(task.status >= task.S_DONE for task in self)
+
+    @property
+    def isnc(self) -> bool:
+        """True if norm-conserving calculation."""
+        return all(task.isnc for task in self)
+
+    @property
+    def ispaw(self) -> bool:
+        """True if PAW calculation."""
+        return all(task.ispaw for task in self)
+
+    @property
+    def status_counter(self) -> collections.Counter:
+        """
+        Returns a `Counter` object that counts the number of task with
+        given status (use the string representation of the status as key).
+        """
+        counter = collections.Counter()
+
+        for task in self:
+            counter[str(task.status)] += 1
+
+        return counter
+
+    def allocate(self, manager=None) -> None:
+        """
+        This function is called once we have completed the initialization
+        of the |Work|. It sets the manager of each task (if not already done)
+        and defines the working directories of the tasks.
+
+        Args:
+            manager: |TaskManager| object or None
+        """
+        for i, task in enumerate(self):
+
+            if not hasattr(task, "manager"):
+                # Set the manager
+                # Use the one provided in input else the one of the work/flow.
+                if manager is not None:
+                    task.set_manager(manager)
+                else:
+                    # Look first in work and then in the flow.
+                    if hasattr(self, "manager"):
+                        task.set_manager(self.manager)
+                    else:
+                        task.set_manager(self.flow.manager)
+
+            task_workdir = os.path.join(self.workdir, "t" + str(i))
+
+            if not hasattr(task, "workdir"):
+                task.set_workdir(task_workdir)
+            else:
+                if task.workdir != task_workdir:
+                    raise ValueError("task.workdir != task_workdir: %s, %s" % (task.workdir, task_workdir))
+
+    def register(self, obj: AbinitInput | Task,
+                 deps=None, required_files=None, manager=None, task_class=None) -> Task:
+        """
+        Registers a new |Task| and add it to the internal list, taking into account possible dependencies.
+
+        Args:
+            obj: |AbinitInput| instance or |Task| object.
+            deps: Dictionary specifying the dependency of this node or list of dependencies
+                  None means that this obj has no dependency.
+            required_files: List of strings with the path of the files used by the task.
+                Note that the files must exist when the task is registered.
+                Use the standard approach based on Works, Tasks and deps
+                if the files will be produced in the future.
+            manager:
+                The |TaskManager| responsible for the submission of the task. If manager is None, we use
+                the `TaskManager` specified during the creation of the |Work|.
+            task_class: Task subclass to instantiate. Default: :class:`AbinitTask`
+
+        Returns: |Task| object
+        """
+        task_workdir = None
+        if hasattr(self, "workdir"):
+            task_workdir = os.path.join(self.workdir, "t" + str(len(self)))
+
+        if isinstance(obj, Task):
+            task = obj
+
+        else:
+            # Set the class
+            if task_class is None:
+                task_class = AbinitTask
+
+            task = task_class.from_input(obj, task_workdir, manager)
+
+        self._tasks.append(task)
+
+        # Handle possible dependencies given either as dict or list.
+        if deps is not None:
+            if hasattr(deps, "items"):
+                deps = [Dependency(node, exts) for node, exts in deps.items()]
+            task.add_deps(deps)
+
+        # Handle possible dependencies.
+        if required_files is not None:
+            task.add_required_files(required_files)
+
+        return task
+
+    # Needed by NodeContainer
+    register_task = register
+
+    def path_in_workdir(self, filename: str) -> str:
+        """Create the absolute path of filename in the working directory."""
+        return os.path.join(self.workdir, filename)
+
+    def setup(self, *args, **kwargs) -> None:
+        """
+        Method called before running the calculations.
+        The default implementation is empty.
+        """
+
+    def build(self, *args, **kwargs) -> None:
+        """Creates the top level directory."""
+        # Create the directories of the work.
+        self.indir.makedirs()
+        self.outdir.makedirs()
+        self.tmpdir.makedirs()
+
+        # Add README.md file if set
+        readme_md = getattr(self, "readme_md", None)
+        if readme_md is not None:
+            with open(self.path_in_workdir("README.md"), "wt") as fh:
+                fh.write(readme_md)
+
+        # Add abipy_meta.json file if set
+        data = getattr(self, "abipy_meta_json", None)
+        if data is not None:
+            self.write_json_in_workdir("abipy_meta.json", data)
+
+        # Build dirs and files of each task.
+        for task in self:
+            task.build(*args, **kwargs)
+
+        # Connect signals within the work.
+        self.connect_signals()
+
+    @property
+    def status(self) -> Status:
+        """
+        Returns the status of the work i.e. the minimum of the status of the tasks.
+        """
+        return self.get_all_status(only_min=True)
+
+    def get_all_status(self, only_min=False):
+        """
+        Returns a list with the status of the tasks in self.
+
+        Args:
+            only_min: If True, the minimum of the status is returned.
+        """
+        if len(self) == 0:
+            # The work will be created in the future.
+            if only_min:
+                return self.S_INIT
+            else:
+                return [self.S_INIT]
+
+        self.check_status()
+        status_list = [task.status for task in self]
+
+        if only_min:
+            return min(status_list)
+        else:
+            return status_list
+
+    def check_status(self) -> None:
+        """Check the status of the tasks."""
+        # Recompute the status of the tasks
+        # Ignore OK and LOCKED tasks.
+        for task in self:
+            if task.status in (task.S_OK, task.S_LOCKED): continue
+            task.check_status()
+
+        # Take into account possible dependencies.
+        for task in self:
+            if task.status == task.S_LOCKED: continue
+            if task.status < task.S_SUB and all(status == task.S_OK for status in task.deps_status):
+                task.set_status(task.S_READY, "Status set to Ready")
+
+    def has_different_structures(self, rtol=1e-05, atol=1e-08) -> str:
+        """
+        Check if structures are equivalent, return string with info about differences (if any).
+        """
+        if len(self) <= 1: return ""
+        formulas = set([task.input.structure.composition.formula for task in self])
+        if len(formulas) != 1:
+            return "Found structures with different full formulas: %s" % str(formulas)
+
         lines = []
-        app = lines.append
-        for od, filepath in zip(self.odlist, self.filepaths):
-            app("File: %s" % filepath)
-            for key, arr in od.items():
-                lines.append("\tkey: `%s` --> array shape: %s" % (key, str(arr.shape)))
+        s0 = self[0].input.structure
+        for task in self[1:]:
+            s1 = task.input.structure
+            if not np.allclose(s0.lattice.matrix, s1.lattice.matrix, rtol=rtol, atol=atol):
+                lines.append("Structures have different lattice:")
+            if not np.allclose(s0.frac_coords, s1.frac_coords, rtol=rtol, atol=atol):
+                lines.append("Structures have different atomic positions:")
 
         return "\n".join(lines)
 
-    def add_file(self, filepath: str) -> None:
-        """Add data from `filepath`"""
-        with open(filepath, "rt") as fh:
-            self.odlist.append(_generic_parser_fh(fh))
-            self.filepaths.append(filepath)
-
-    @add_fig_kwargs
-    def plot(self, use_index=False, fontsize=8, colormap="viridis", **kwargs) -> Figure:
+    def get_panel(self, **kwargs):
         """
-        Plot all arrays. Use multiple axes if datasets.
+        Build panel with widgets to interact with the Work either in a notebook or in panel app.
+        This is the implementation provided by the base class.
+        Subclasses may provide specialized implementations.
+        """
+        from abipy.panels.works import WorkPanel
+        return WorkPanel(work=self).get_panel(**kwargs)
+
+    def get_dataframe(self, as_dict=False) -> pd.DataFrame:
+        """
+        Return pandas dataframe task info or dictionary if as_dict is True.
+        This function should be called after work.get_status to update the status.
+        """
+        rows = []
+        for task in self:
+            d = task.get_dataframe(as_dict=True)
+            rows.append(d)
+
+        if as_dict: return rows
+
+        return pd.DataFrame(rows)
+
+    def rmtree(self, exclude_wildcard: str = "") -> None:
+        """
+        Remove all files and directories in the working directory
 
         Args:
-            use_index: By default, the x-values are taken from the first column.
-                If use_index is False, the x-values are the row index.
-            fontsize: fontsize for title.
-            colormap: matplotlib color map.
-            kwargs: options passed to ``ax.plot``.
-
-        Return: |matplotlib-figure|
+            exclude_wildcard: Optional string with regular expressions separated by `|`.
+                Files matching one of the regular expressions will be preserved.
+                example: exclude_wildard="*.nc|*.txt" preserves all the files
+                whose extension is in ["nc", "txt"].
         """
-        if not self.odlist: return None
+        if not exclude_wildcard:
+            shutil.rmtree(self.workdir)
 
-        # Compute intersection of all keys.
-        # Here we loose the initial ordering in the dict but oh well!
-        klist = [list(d.keys()) for d in self.odlist]
-        keys = set(klist[0]).intersection(*klist)
-        if not keys:
-            print("Warning: cannot find common keys in files. Check input data")
-            return None
+        else:
+            w = WildCard(exclude_wildcard)
+            for dirpath, dirnames, filenames in os.walk(self.workdir):
+                for fname in filenames:
+                    path = os.path.join(dirpath, fname)
+                    if not w.match(fname):
+                        os.remove(path)
 
-        # Build grid of plots.
-        num_plots, ncols, nrows = len(keys), 1, 1
-        if num_plots > 1:
-            ncols = 2
-            nrows = (num_plots // ncols) + (num_plots % ncols)
+    def rm_indatadir(self) -> None:
+        """Remove all the indata directories."""
+        for task in self:
+            task.rm_indatadir()
 
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=False, squeeze=False)
-        ax_list = ax_list.ravel()
+    def rm_outdatadir(self) -> None:
+        """Remove all the indata directories."""
+        for task in self:
+            task.rm_outatadir()
 
-        # Don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: ax_list[-1].axis("off")
+    def rm_tmpdatadir(self) -> None:
+        """Remove all the tmpdata directories."""
+        for task in self:
+            task.rm_tmpdatadir()
 
-        cmap = plt.get_cmap(colormap)
-        line_cycle = itertools.cycle(["-", ":", "--", "-.",])
+    def move(self, dest, isabspath=False) -> None:
+        """
+        Recursively move self.workdir to another location. This is similar to the Unix "mv" command.
+        The destination path must not already exist. If the destination already exists
+        but is not a directory, it may be overwritten depending on os.rename() semantics.
 
-        # One ax for key, each ax may show multiple arrays
-        # so we need different line styles that are consistent with input data.
-        # Figure may be crowded but it's difficult to do better without metadata
-        # so I'm not gonna spend time to implement more complicated logic.
-        for ax, key in zip(ax_list, keys):
-            ax.set_title(key, fontsize=fontsize)
-            ax.grid(True)
-            for iod, (od, filepath) in enumerate(zip(self.odlist, self.filepaths)):
-                if key not in od: continue
-                arr = od[key]
-                color = cmap(iod / len(self.odlist))
-                xvals = arr[0] if not use_index else list(range(len(arr[0])))
-                arr_list = arr[1:] if not use_index else arr
-                for iarr, (ys, linestyle) in enumerate(zip(arr_list, line_cycle)):
-                    ax.plot(xvals, ys, color=color, linestyle=linestyle,
-                            label=os.path.relpath(filepath) if iarr == 0 else None)
+        Be default, dest is located in the parent directory of self.workdir, use isabspath=True
+        to specify an absolute path.
+        """
+        if not isabspath:
+            dest = os.path.join(os.path.dirname(self.workdir), dest)
 
-            ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        shutil.move(self.workdir, dest)
 
-        return fig
+    def submit_tasks(self, wait=False) -> None:
+        """
+        Submits the task in self and wait.
+        TODO: change name.
+        """
+        for task in self:
+            task.start()
 
+        if wait:
+            for task in self: task.wait()
 
-##########################
-# Plotly helper functions
-##########################
+    def start(self, *args, **kwargs) -> None:
+        """
+        Start the work. Calls build and _setup first, then submit the tasks.
+        Non-blocking call unless wait is set to True
+        """
+        wait = kwargs.pop("wait", False)
 
-_LATEX_GREEK_TO_UNICODE = dict(
-    alpha="α",
-    beta="β",
-    gamma="ɣ",
-    delta="δ",
-    epsilon="ε",
-    zeta="ζ",
-    eta="η",
-    theta="θ",
-    iota="ι",
-    kappa="κ",
-    #lambda="λ",
-    mu="μ",
-    nu="ν",
-    xi="ξ",
-    omicron="ο",
-    pi="π",
-    rho="ρ",
-    sigma="σ",
-    tau="τ",
-    upsilon="υ",
-    phi="φ",
-    chi="χ",
-    psi="ψ",
-    omega="ω",
-    # Capital case:
-    Alpha="Α",
-    Beta="Β",
-    Gamma="Γ",
-    Delta="Δ",
-    Epsilon="Ε",
-    Zeta="Ζ",
-    Eta="Η",
-    Theta="Θ",
-    Iota="Ι",
-    Kappa="Κ",
-    Lambda="Λ",
-    Mu="Μ",
-    Nu="Ν",
-    Xi="Ξ",
-    Omicron="Ο",
-    Po="Π",
-    Rho="Ρ",
-    Sigma="Σ",
-    Tau="Τ",
-    Upsilon="Υ",
-    Phi="Φ",
-    Chi="Χ",
-    Psi="Ψ",
-    Omega="Ω",
-)
+        # Initial setup
+        self._setup(*args, **kwargs)
 
-_LATEX_GREEK_TO_UNICODE["lambda"] = "λ"
+        # Build dirs and files.
+        self.build(*args, **kwargs)
+
+        # Submit tasks (does not block)
+        self.submit_tasks(wait=wait)
+
+    def read_etotals(self, unit="Ha") -> EnergyArray:
+        """
+        Reads the total energy from the GSR file produced by the task.
+
+        Return a numpy array with the total energies in Hartree
+        The array element is set to np.inf if an exception is raised while reading the GSR file.
+        """
+        if not self.all_done:
+            raise self.Error("Some task is still in running/submitted state")
+
+        etotals = []
+        for task in self:
+            # Open the GSR file and read etotal (Hartree)
+            gsr_path = task.outdir.has_abiext("GSR")
+            etot = np.inf
+            if gsr_path:
+                with EtsfReader(gsr_path) as r:
+                    etot = r.read_value("etotal")
+
+            etotals.append(etot)
+
+        return EnergyArray(etotals, "Ha").to(unit)
+
+    def parse_timers(self) -> AbinitTimerParser:
+        """
+        Parse the TIMER section reported in the ABINIT output files.
+
+        Returns:
+            :class:`AbinitTimerParser` object
+        """
+        filenames = list(filter(os.path.exists, [task.output_file.path for task in self]))
+
+        parser = AbinitTimerParser()
+        parser.parse(filenames)
+
+        return parser
 
 
-def latex_greek_2unicode(latex: str) -> str:
+class BandStructureWork(Work):
     """
-    Convert a single greek letter in latex notation into unicode
-    """
-    s = latex.replace("$", "").replace("\\", "").strip()
-    return _LATEX_GREEK_TO_UNICODE[s]
+    Work for band structure calculations.
 
+    The first task performs the GS-SCF calculations, the second one computes the band dispersion
+    along an high-symmetry k-path. Finally, we have a list of NSCF tasks computing the e-DOS.
 
-def is_plotly_figure(obj: Any) -> bool:
-    """Return True if obj is a plotly Figure."""
-    import plotly.graph_objs as go
-    return isinstance(obj, go.Figure)
-    #return isinstance(obj, (go.Figure, go.FigureWidget))
-
-
-class PlotlyRowColDesc:
-    """
-    This object specifies the position of a plotly subplot inside a grid.
-
-    rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: BandStructureWork
     """
 
     @classmethod
-    def from_object(cls, obj: Any) -> PlotlyRowColDesc:
+    def from_scf_input(cls, scf_input: AbinitInput,
+                       dos_ngkpt, nb_extra=10, ndivsm=-20,
+                       dos_shiftk=(0, 0, 0), prtdos=3) -> BandStructureWork:
         """
-        Build an instance for a generic object.
-        If object is None, a simple descriptor corresponding to a (1,1) grid is returned.
+        Build a BandStructureWork from an |AbinitInput| representing a GS-SCF calculation.
+
+        Args:
+            scf_input: Input for the GS-SCF run.
+            dos_ngkpt: K-mesh for e-DOS. Set it to None to skip this task.
+            nb_extra: Extra bands to be added to the input nband.
+            ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
+                This option is the recommended one if the k-path contains two consecutive high symmetry k-points
+                that are very close as ndivsm > 0 may produce a very large number of wavevectors.
+            prtdos: By default, we compute L-projections with tetrahedron method.
+                Set prtdos to zero to deactivate L-projections.
         """
-        if obj is None: return cls(0, 0, 1, 1)
-        if isinstance(obj, cls): return obj
+        # Build input for NSCF along k-path.
+        nscf_input = scf_input.make_ebands_input(ndivsm=ndivsm, tolwfr=1e-20, nscf_nband=None, nb_extra=nb_extra,
+                                                 nstep=100)
+        nscf_input["prtdos"] = prtdos
+        #if prtdos != 0: nscf_input.set_ratpsh(ratsph_mode)
 
-        # Assume list with 4 integers
-        try:
-            return cls(*obj)
-        except Exception as exc:
-            raise TypeError(f"Dont know how to convert `{type(obj)}` into `{cls}`")
+        dos_input = None
+        if dos_ngkpt is not None:
+            # Build input for NSCF with k-mesh.
+            dos_input = scf_input.make_edos_input(dos_ngkpt, shiftk=dos_shiftk, tolwfr=1e-20, nb_extra=nb_extra, nstep=100)
+            dos_input["prtdos"] = prtdos
+            #if prtdos != 0: dos_input.set_ratpsh(ratsph_mode)
 
-    def __init__(self, py_row: int, py_col: int, nrows: int, ncols: int):
+        return cls(scf_input, nscf_input, [dos_input])
+
+
+    def __init__(self, scf_input: AbinitInput, nscf_input: AbinitInput,
+                 dos_inputs=None, workdir=None, manager=None):
         """
         Args:
-            py_row, py_col: python index of the subplot in the grid (starts from 0)
-            nrows, ncols: Number of rows/cols in the grid.
+            scf_input: Input for the SCF run
+            nscf_input: Input for the NSCF run defining the band structure calculation.
+            dos_inputs: Input(s) for the DOS. DOS is computed only if dos_inputs is not None.
+            workdir: Working directory.
+            manager: |TaskManager| object.
         """
-        self.py_row, self.py_col = (py_row, py_col)
-        self.nrows, self.ncols = (nrows, ncols)
-        self.iax = 1 + self.py_col + self.py_row * self.ncols
-        # Note that plotly col and row start from 1.
-        if nrows == 1 and ncols == 1:
-            self.ply_row, self.ply_col = None, None
+        super().__init__(workdir=workdir, manager=manager)
+
+        # Register the GS-SCF run.
+        self.scf_task = self.register_scf_task(scf_input)
+
+        # Register the NSCF run and its dependency.
+        self.nscf_task = self.register_nscf_task(nscf_input, deps={self.scf_task: "DEN"})
+
+        # Add DOS computation(s) if requested.
+        self.dos_tasks = []
+        if dos_inputs is not None:
+            if not isinstance(dos_inputs, (list, tuple)):
+                dos_inputs = [dos_inputs]
+
+            for dos_input in dos_inputs:
+                dos_task = self.register_nscf_task(dos_input, deps={self.scf_task: "DEN"})
+                self.dos_tasks.append(dos_task)
+
+    def plot_ebands(self, **kwargs) -> Figure:
+        """
+        Plot the band structure. kwargs are passed to the plot method of |ElectronBands|.
+
+        Return: |matplotlib-Figure|
+        """
+        with self.nscf_task.open_gsr() as gsr:
+            return gsr.ebands.plot(**kwargs)
+
+    def plot_ebands_with_edos(self, dos_pos=0, method="gaussian",
+                              step=0.01, width=0.1, **kwargs) -> Figure:
+        """
+        Plot the band structure and the DOS.
+
+        Args:
+            dos_pos: Index of the task from which the DOS should be obtained (note: 0 refers to the first DOS task).
+            method: String defining the method for the computation of the DOS.
+            step: Energy step (eV) of the linear mesh.
+            width: Standard deviation (eV) of the gaussian.
+            kwargs: Keyword arguments passed to `plot_with_edos` method to customize the plot.
+
+        Return: |matplotlib-Figure|
+        """
+        with self.nscf_task.open_gsr() as gsr:
+            gs_ebands = gsr.ebands
+
+        with self.dos_tasks[dos_pos].open_gsr() as gsr:
+            dos_ebands = gsr.ebands
+
+        edos = dos_ebands.get_edos(method=method, step=step, width=width)
+        return gs_ebands.plot_with_edos(edos, **kwargs)
+
+    def plot_edoses(self, dos_pos=None, method="gaussian", step=0.01, width=0.1, **kwargs) -> Figure:
+        """
+        Plot the band structure and the DOS.
+
+        Args:
+            dos_pos: Index of the task from which the DOS should be obtained.
+                     None is all DOSes should be displayed. Accepts integer or list of integers.
+            method: String defining the method for the computation of the DOS.
+            step: Energy step (eV) of the linear mesh.
+            width: Standard deviation (eV) of the gaussian.
+            kwargs: Keyword arguments passed to `plot` method to customize the plot.
+
+        Return: |matplotlib-Figure|
+        """
+        if dos_pos is not None and not isinstance(dos_pos, (list, tuple)): dos_pos = [dos_pos]
+
+        from abipy.electrons.ebands import ElectronDosPlotter
+        plotter = ElectronDosPlotter()
+        for i, task in enumerate(self.dos_tasks):
+            if dos_pos is not None and i not in dos_pos: continue
+            with task.open_gsr() as gsr:
+                edos = gsr.ebands.get_edos(method=method, step=step, width=width)
+                ngkpt = task.get_inpvar("ngkpt")
+                plotter.add_edos("ngkpt %s" % str(ngkpt), edos)
+
+        return plotter.combiplot(**kwargs)
+
+
+class RelaxWork(Work):
+    """
+    Work for structural relaxations. The first task relaxes the atomic position
+    while keeping the unit cell parameters fixed. The second task uses the final
+    structure to perform a structural relaxation in which both the atomic positions
+    and the lattice parameters are optimized.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: RelaxWork
+    """
+    def __init__(self, ion_input: AbinitInput, ioncell_input: AbinitInput,
+                 workdir=None, manager=None, target_dilatmx=None):
+        """
+        Args:
+            ion_input: Input for the relaxation of the ions (cell is fixed)
+            ioncell_input: Input for the relaxation of the ions and the unit cell.
+            workdir: Working directory.
+            manager: |TaskManager| object.
+        """
+        super().__init__(workdir=workdir, manager=manager)
+
+        self.ion_task = self.register_relax_task(ion_input)
+
+        # Note:
+        #   1) It would be nice to restart from the WFK file but ABINIT crashes due to the
+        #      different unit cell parameters if paral_kgb == 1
+        #paral_kgb = ion_input[0]["paral_kgb"]
+        #if paral_kgb == 1:
+
+        #deps = {self.ion_task: "WFK"}  # --> FIXME: Problem in rwwf
+        #deps = {self.ion_task: "DEN"}
+        deps = None
+
+        self.ioncell_task = self.register_relax_task(ioncell_input, deps=deps)
+
+        # Lock ioncell_task as ion_task should communicate to ioncell_task that
+        # the calculation is OK and pass the final structure.
+        self.ioncell_task.lock(source_node=self)
+        self.transfer_done = False
+
+        self.target_dilatmx = target_dilatmx
+
+    def on_ok(self, sender):
+        """
+        This callback is called when one task reaches status S_OK.
+        If sender == self.ion_task, we update the initial structure
+        used by self.ioncell_task and we unlock it so that the job can be submitted.
+        """
+        self.history.debug("In on_ok with sender %s" % sender)
+
+        if sender == self.ion_task and not self.transfer_done:
+            # Get the relaxed structure from ion_task
+            ion_structure = self.ion_task.get_final_structure()
+
+            # Transfer it to the ioncell task (we do it only once).
+            self.ioncell_task._change_structure(ion_structure)
+            self.transfer_done = True
+
+            # Unlock ioncell_task so that we can submit it.
+            self.ioncell_task.unlock(source_node=self)
+
+        elif sender == self.ioncell_task and self.target_dilatmx:
+            actual_dilatmx = self.ioncell_task.get_inpvar('dilatmx', 1.)
+            if self.target_dilatmx < actual_dilatmx:
+                self.ioncell_task.reduce_dilatmx(target=self.target_dilatmx)
+                self.history.info('Converging dilatmx. Value reduced from {} to {}.'
+                            .format(actual_dilatmx, self.ioncell_task.get_inpvar('dilatmx')))
+                self.ioncell_task.restart()
+
+        return super().on_ok(sender)
+
+    def plot_ion_relaxation(self, **kwargs) -> Figure:
+        """
+        Plot the history of the ion-cell relaxation.
+        kwargs are passed to the plot method of |HistFile|
+
+        Return: |matplotlib-Figure| or None if hist file is not found.
+        """
+        with self.ion_task.open_hist() as hist:
+            return hist.plot(**kwargs) if hist else None
+
+    def plot_ioncell_relaxation(self, **kwargs) -> Figure:
+        """
+        Plot the history of the ion-cell relaxation.
+        kwargs are passed to the plot method of |HistFile|
+
+        Return: |matplotlib-Figure| or None if hist file is not found.
+        """
+        with self.ioncell_task.open_hist() as hist:
+            return hist.plot(**kwargs) if hist else None
+
+
+class G0W0Work(Work):
+    """
+    Work for generic G0W0 calculations.
+    All input can be either single inputs or lists of inputs
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: G0W0Work
+    """
+    def __init__(self, scf_inputs, nscf_inputs, scr_inputs, sigma_inputs,
+                 workdir=None, manager=None):
+        """
+        Args:
+            scf_inputs: Input(s) for the SCF run, if it is a list add all but only link
+                to the last input (used for convergence studies on the KS band gap)
+            nscf_inputs: Input(s) for the NSCF run, if it is a list add all but only
+                link to the last (i.e. addditiona DOS and BANDS)
+            scr_inputs: Input for the screening run
+            sigma_inputs: List of |AbinitInput| for the self-energy run.
+                if scr and sigma are lists of the same length, every sigma gets its own screening.
+                if there is only one screening all sigma inputs are linked to this one
+            workdir: Working directory of the calculation.
+            manager: |TaskManager| object.
+        """
+        super().__init__(workdir=workdir, manager=manager)
+
+        spread_scr = (isinstance(sigma_inputs, (list, tuple)) and
+                      isinstance(scr_inputs, (list, tuple)) and
+                      len(sigma_inputs) == len(scr_inputs))
+        #print("spread_scr", spread_scr)
+
+        self.sigma_tasks = []
+
+        # Register the GS-SCF run.
+        # register all scf_inputs but link the nscf only the last scf in the list
+        # multiple scf_inputs can be provided to perform convergence studies
+        if isinstance(scf_inputs, (list, tuple)):
+            for scf_input in scf_inputs:
+                self.scf_task = self.register_scf_task(scf_input)
         else:
-            self.ply_row, self.ply_col = self.py_row + 1, self.py_col + 1
+            self.scf_task = self.register_scf_task(scf_inputs)
 
-    def __str__(self) -> str:
-        lines = []
-        app = lines.append
-        app("py_rowcol: (%d, %d) in grid: (%d, %d)" % (self.py_row, self.py_col, self.nrows, self.ncols))
-        app("plotly_rowcol: (%s, %s)" % (self.ply_row, self.ply_col))
+        # Register the NSCF run (s).
+        if isinstance(nscf_inputs, (list, tuple)):
+            for nscf_input in nscf_inputs:
+                self.nscf_task = nscf_task = self.register_nscf_task(nscf_input, deps={self.scf_task: "DEN"})
+        else:
+            self.nscf_task = nscf_task = self.register_nscf_task(nscf_inputs, deps={self.scf_task: "DEN"})
 
-        return "\n".join(lines)
-
-    #@cached_property
-    #def rowcol_dict(self):
-    #    if self.nrows == 1 and self.ncols == 1: return {}
-    #    return dict(row=self.ply_row, col=self.ply_col)
-
-
-def get_figs_plotly(nrows=1, ncols=1, subplot_titles=(), sharex=False, sharey=False, **fig_kw):
-    """
-    Helper function used in plot functions that build the `plotly` figure by calling plotly.subplots.
-
-    Returns:
-        figure: plotly graph_objects figure
-        go: plotly graph_objects module.
-    """
-    from plotly.subplots import make_subplots
-    import plotly.graph_objects as go
-
-    fig = make_subplots(rows=int(nrows), cols=int(ncols), subplot_titles=subplot_titles, shared_xaxes=sharex,
-                        shared_yaxes=sharey, **fig_kw)
-
-    return fig, go
-
-
-def get_fig_plotly(fig=None, **fig_kw):
-    """
-    Helper function used in plot functions that build the `plotly` figure by calling
-    plotly.graph_objects.Figure if fig is None else return fig
-
-    Returns:
-        figure: plotly graph_objects figure
-        go: plotly graph_objects module.
-    """
-    import plotly.graph_objects as go
-
-    if fig is None:
-        fig = go.Figure(**fig_kw)
-        #fig = go.FigureWidget(**fig_kw)
-
-    return fig, go
-
-
-def plotly_set_lims(fig, lims, axname, iax=None) -> tuple:
-    """
-    Set the data limits for the axis ax.
-
-    Args:
-        fig: Plotly Figure.
-        lims: tuple(2) for (left, right), if tuple(1) or scalar for left only, none is set.
-        axname: "x" for x-axis, "y" for y-axis.
-        iax: An int, use iax=n to decorate the nth axis when the fig has subplots.
-
-    Return: (left, right)
-    """
-    left, right = None, None
-    if lims is None: return (left, right)
-
-    # iax = kwargs.pop("iax", 1)
-    # xaxis = 'xaxis%u' % iax
-    #fig.layout[xaxis].title.text = "Wave Vector"
-
-    axis = dict(x=fig.layout.xaxis, y=fig.layout.yaxis)[axname]
-
-    len_lims = None
-    try:
-        len_lims = len(lims)
-    except TypeError:
-        # Assume Scalar
-        left = float(lims)
-
-    if len_lims is not None:
-        if len(lims) == 2:
-            left, right = lims[0], lims[1]
-        elif len(lims) == 1:
-            left = lims[0]
-
-    ax_range = axis.range
-    if ax_range is None and (left is None or right is None):
-        return None, None
-
-    #if left is not None: ax_range[0] = left
-    #if right is not None: ax_range[1] = right
-
-    # Example: fig.update_layout(yaxis_range=[-4,4])
-    k = dict(x="xaxis", y="yaxis")[axname]
-    if iax:
-        k = k + str(iax)
-    fig.layout[k].range = [left, right]
-
-    return left, right
-
-
-_PLOTLY_DEFAULT_SHOW = [True]
-
-
-def set_plotly_default_show(true_or_false: bool) -> None:
-    """
-    Set the default value of show in the add_plotly_fig_kwargs decorator.
-    Useful for instance when generating the sphinx gallery of plotly plots.
-    """
-    _PLOTLY_DEFAULT_SHOW[0] = true_or_false
-
-
-def add_plotly_fig_kwargs(func: Callable) -> Callable:
-    """
-    Decorator that adds keyword arguments for functions returning plotly figures.
-    The function should return either a plotly figure or None to signal some
-    sort of error/unexpected event.
-    See doc string below for the list of supported options.
-    """
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        # pop the kwds used by the decorator.
-        title = kwargs.pop("title", None)
-        show = kwargs.pop("show", _PLOTLY_DEFAULT_SHOW[0])
-        hovermode = kwargs.pop("hovermode", False)
-        savefig = kwargs.pop("savefig", None)
-        write_json = kwargs.pop("write_json", None)
-        config = kwargs.pop("config", None)
-        renderer = kwargs.pop("renderer", None)
-        chart_studio = kwargs.pop("chart_studio", False)
-        template = kwargs.pop("template", None)
-
-        # Allow users to specify the renderer via shell env.
-        if renderer is not None and os.getenv("PLOTLY_RENDERER", default=None) is not None:
-            renderer = None
-
-        # Call func and return immediately if None is returned.
-        fig = func(*args, **kwargs)
-        if fig is None:
-            return fig
-
-        # Operate on plotly figure.
-        if title is not None:
-            fig.update_layout(title_text=title, title_x=0.5)
-
-        if template is not None:
-            fig.update_layout(template=template)
-
-        if savefig:
-            # https://plotly.github.io/plotly.py-docs/generated/plotly.io.write_image.html
-            if savefig.endswith("html"):
-                from plotly.offline import plot as show_plotly
-                show_plotly(fig, include_mathjax="cdn", filename=savefig, auto_open=False)
-
+        # Register the SCR and SIGMA run(s).
+        if spread_scr:
+            for scr_input, sigma_input in zip(scr_inputs, sigma_inputs):
+                scr_task = self.register_scr_task(scr_input, deps={nscf_task: "WFK"})
+                sigma_task = self.register_sigma_task(sigma_input, deps={nscf_task: "WFK", scr_task: "SCR"})
+                self.sigma_tasks.append(sigma_task)
+        else:
+            # Sigma work(s) connected to the same screening.
+            scr_task = self.register_scr_task(scr_inputs, deps={nscf_task: "WFK"})
+            if isinstance(sigma_inputs, (list, tuple)):
+                for inp in sigma_inputs:
+                    task = self.register_sigma_task(inp, deps={nscf_task: "WFK", scr_task: "SCR"})
+                    self.sigma_tasks.append(task)
             else:
+                task = self.register_sigma_task(sigma_inputs, deps={nscf_task: "WFK", scr_task: "SCR"})
+                self.sigma_tasks.append(task)
+
+
+class SigmaConvWork(Work):
+    """
+    Work for self-energy convergence studies.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: SigmaConvWork
+    """
+    def __init__(self, wfk_node, scr_node, sigma_inputs, workdir=None, manager=None):
+        """
+        Args:
+            wfk_node: The node who has produced the WFK file or filepath pointing to the WFK file.
+            scr_node: The node who has produced the SCR file or filepath pointing to the SCR file.
+            sigma_inputs: List of |AbinitInput| for the self-energy runs.
+            workdir: Working directory of the calculation.
+            manager: |TaskManager| object.
+        """
+        # Cast to node instances.
+        wfk_node, scr_node = Node.as_node(wfk_node), Node.as_node(scr_node)
+
+        super().__init__(workdir=workdir, manager=manager)
+
+        # Register the SIGMA runs.
+        if not isinstance(sigma_inputs, (list, tuple)):
+            sigma_inputs = [sigma_inputs]
+
+        for sigma_input in sigma_inputs:
+            self.register_sigma_task(sigma_input, deps={wfk_node: "WFK", scr_node: "SCR"})
+
+
+class BseMdfWork(Work):
+    """
+    Work for BSE calculations in which the self-energy corrections
+    are approximated by the scissors operator and the screening is modeled
+    with the model dielectric function.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: BseMdfWork
+    """
+    def __init__(self, scf_input: AbinitInput, nscf_input: AbinitInput,
+                 bse_inputs, workdir=None, manager=None):
+        """
+        Args:
+            scf_input: Input for the SCF run.
+            nscf_input: Input for the NSCF run.
+            bse_inputs: List of Inputs for the BSE run.
+            workdir: Working directory of the calculation.
+            manager: |TaskManager|
+        """
+        super().__init__(workdir=workdir, manager=manager)
+
+        # Register the GS-SCF run.
+        self.scf_task = self.register_scf_task(scf_input)
+
+        # Construct the input for the NSCF run.
+        self.nscf_task = self.register_nscf_task(nscf_input, deps={self.scf_task: "DEN"})
+
+        # Construct the input(s) for the BSE run.
+        if not isinstance(bse_inputs, (list, tuple)):
+            bse_inputs = [bse_inputs]
+
+        for bse_input in bse_inputs:
+            self.register_bse_task(bse_input, deps={self.nscf_task: "WFK"})
+
+    def get_mdf_robot(self):
+        """Builds and returns a :class:`MdfRobot` for analyzing the results in the MDF files."""
+        from abipy.electrons.bse import MdfRobot
+        robot = MdfRobot()
+        for task in self[2:]:
+            mdf_path = task.outdir.has_abiext(robot.EXT)
+            if mdf_path:
+                robot.add_file(str(task), mdf_path)
+        return robot
+
+
+class QptdmWork(Work):
+    """
+    This work parallelizes the calculation of the q-points of the screening.
+    It also provides the callback `on_all_ok` that calls mrgscr to merge
+    all the partial screening files produced.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: QptdmWork
+    """
+
+    @deprecated(message="QptdmWork is deprecated and will be removed in abipy 1.0, use flowtk.ScreeningWork")
+    def create_tasks(self, wfk_file: str, scr_input: AbinitInput):
+        """
+        Create the SCR tasks and register them in self.
+
+        Args:
+            wfk_file: Path to the ABINIT WFK file to use for the computation of the screening.
+            scr_input: Input for the screening calculation.
+        """
+        assert len(self) == 0
+        wfk_file = self.wfk_file = os.path.abspath(wfk_file)
+
+        # Build a temporary work in the tmpdir that will use a shell manager
+        # to run ABINIT in order to get the list of q-points for the screening.
+        shell_manager = self.manager.to_shell_manager(mpi_procs=1)
+
+        w = Work(workdir=self.tmpdir.path_join("_qptdm_run"), manager=shell_manager)
+
+        fake_input = scr_input.deepcopy()
+        fake_task = w.register(fake_input)
+        w.allocate()
+        w.build()
+
+        # Create the symbolic link and add the magic value
+        # nqpdm = -1 to the input to get the list of q-points.
+        fake_task.inlink_file(wfk_file)
+        fake_task.set_vars({"nqptdm": -1})
+        fake_task.start_and_wait()
+
+        # Parse the section with the q-points
+        with NetcdfReader(fake_task.outdir.has_abiext("qptdms.nc")) as reader:
+            qpoints = reader.read_value("reduced_coordinates_of_kpoints")
+
+        # Now we can register the task for the different q-points
+        for qpoint in qpoints:
+            qptdm_input = scr_input.deepcopy()
+            qptdm_input.set_vars(nqptdm=1, qptdm=qpoint)
+            new_task = self.register_scr_task(qptdm_input, manager=self.manager)
+            # Add the garbage collector.
+            if self.flow.gc is not None:
+                new_task.set_gc(self.flow.gc)
+
+        self.allocate()
+
+    def merge_scrfiles(self, remove_scrfiles=True) -> str:
+        """
+        This method is called when all the q-points have been computed.
+        It runs `mrgscr` in sequential on the local machine to produce
+        the final SCR file in the outdir of the `Work`.
+        If remove_scrfiles is True, the partial SCR files are removed after the merge.
+        """
+        scr_files = list(filter(None, [task.outdir.has_abiext("SCR") for task in self]))
+
+        self.history.info("Will call mrgscr to merge %s SCR files:\n" % len(scr_files))
+        assert len(scr_files) == len(self)
+
+        mrgscr = wrappers.Mrgscr(manager=self[0].manager, verbose=1)
+        final_scr = mrgscr.merge_qpoints(self.outdir.path, scr_files, out_prefix="out")
+
+        if remove_scrfiles:
+            for scr_file in scr_files:
                 try:
-                    import kaleido
-                except ImportError:
-                    kaleido = False
+                    os.remove(scr_file)
+                except IOError:
+                    pass
 
-                if kaleido is None:
-                    raise ValueError(
-                        "kaleido package required to save static ploty images\n"
-                        "please install it using:\npip install kaleido"
-                    )
+        return final_scr
 
-                fig.write_image(savefig, engine="kaleido", scale=5, width=750, height=750)
-                #fig.write_image(savefig)
+    def on_all_ok(self):
+        """
+        This method is called when all the q-points have been computed.
+        It runs `mrgscr` in sequential on the local machine to produce
+        the final SCR file in the outdir of the `Work`.
+        """
+        final_scr = self.merge_scrfiles()
+        return self.Results(node=self, returncode=0, message="mrgscr done", final_scr=final_scr)
 
-        if write_json:
-            import plotly.io as pio
-            pio.write_json(fig, write_json)
-
-        fig.layout.hovermode = hovermode
-
-        if show: # and _PLOTLY_DEFAULT_SHOW:
-            my_config = dict(
-                responsive=True,
-                #showEditInChartStudio=True,
-                showLink=True,
-                plotlyServerURL="https://chart-studio.plotly.com",
-            )
-
-            if config is not None:
-                my_config.update(config)
-
-            #add_template_buttons(fig)
-
-            fig.show(renderer=renderer, config=my_config)
-
-        if chart_studio:
-            push_to_chart_studio(fig)
-
-        return fig
-
-    # Add docstring to the decorated method.
-    doc_str = """\n\n
-        Keyword arguments controlling the display of the figure:
-
-        ================  =============================================================================================
-        kwargs            Meaning
-        ================  =============================================================================================
-        title             Title of the plot (Default: None).
-        show              True to show the figure (default: True).
-        hovermode         True to show the hover info (default: False)
-        savefig           "abc.png" , "abc.jpeg" or "abc.webp" to save the figure to a file.
-        write_json        Write plotly figure to `write_json` JSON file.
-                          Inside jupyter-lab, one can right-click the `write_json` file from
-                          the file menu and open with "Plotly Editor".
-                          Make some changes to the figure, then use the file menu to save
-                          the customized plotly plot.
-                          Requires `jupyter labextension install jupyterlab-chart-editor`.
-                          See https://github.com/plotly/jupyterlab-chart-editor
-        renderer          (str or None (default None)) –
-                          A string containing the names of one or more registered renderers
-                          (separated by "+" characters) or None. If None, then the default
-                          renderers specified in plotly.io.renderers.default are used.
-                          See <https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html>
-        config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-        chart_studio      True to push figure to chart_studio server. Requires authentication.
-                          Default: False.
-        template          Plotly template. See <https://plotly.com/python/templates>
-                          ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]
-                          Default is None that is the default template is used.
-        ================  =============================================================================================
-
-"""
-
-    if wrapper.__doc__ is not None:
-        # Add s at the end of the docstring.
-        wrapper.__doc__ += f"\n{doc_str}"
-    else:
-        # Use s
-        wrapper.__doc__ = doc_str
-
-    return wrapper
+# TODO: MergeDdb --> DfptWork(Work) postpone it because it may break pickle.
 
 
-def plotlyfigs_to_browser(figs, filename=None, browser=None):
+class MergeDdb:
     """
-    Save a list of plotly figures in an HTML file and open it the browser.
-    Useful to display multiple figures generated by different AbiPy methods
-    without having to construct a plotly subplot grid.
-
-    Args:
-        figs: List of plotly figures.
-        filename: File name to save in. Use temporary filename if filename is None.
-        browser: Open webpage in ``browser``. Use $BROWSER if None.
-
-    Example:
-
-        fig1 = plotter.combiplotly(renderer="browser", title="foo", show=False)
-        fig2 = plotter.combiplotly(renderer="browser", title="bar", show=False)
-        from abipy.tools.plotting import plotlyfigs_to_browser
-        plotlyfigs_to_browser([fig1, fig2])
-
-    Return: path to HTML file.
-    """
-    if filename is None:
-        import tempfile
-        fd, filename = tempfile.mkstemp(text=True, suffix=".html")
-
-    if not isinstance(figs, (list, tuple)): figs = [figs]
-
-    # Based on https://stackoverflow.com/questions/46821554/multiple-plotly-plots-on-1-page-without-subplot
-    with open(filename, "wt") as fp:
-        for i, fig in enumerate(figs):
-            first = True if i == 0 else False
-            fig.write_html(fp, include_plotlyjs=first, include_mathjax="cdn" if first else False)
-
-    import webbrowser
-    print("Opening HTML file:", filename)
-    webbrowser.get(browser).open_new_tab("file://" + filename)
-
-    return filename
-
-
-def plotly_klabels(labels: list, allow_dupes=False) -> list:
-    """
-    This helper function polish a list of k-points labels before calling plotly by:
-
-        - Checking if we have two equivalent consecutive labels (only the first one is shown and the second one is set to "")
-        - Replacing particular Latex tokens with unicode as plotly support for Latex is far from optimal.
-
-    Return: New list labels, same length as input labels.
-    """
-    new_labels = labels.copy()
-
-    if not allow_dupes:
-        # Don't show label if previous k-point is the same.
-        for il in range(1, len(new_labels)):
-            if new_labels[il] == new_labels[il - 1]: new_labels[il] = ""
-
-    replace = {
-        r"$\Gamma$": "Γ",
-    }
-
-    for il in range(len(new_labels)):
-        if new_labels[il] in replace:
-            new_labels[il] = replace[new_labels[il]]
-
-    return new_labels
-
-
-def plotly_set_xylabels(fig, xlabel, ylabel, exchange_xy):
-    """
-    Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy
-    """
-    if exchange_xy: xlabel, ylabel = ylabel, xlabel
-    fig.layout.xaxis.title.text = xlabel
-    fig.layout.yaxis.title.text = ylabel
-
-
-_PLOTLY_AUTHEHTICATED = False
-
-
-def plotly_chartstudio_authenticate():
-    """
-    Authenticate the user on the chart studio portal by reading `PLOTLY_USERNAME` and `PLOTLY_API_KEY`
-    from the pymatgen configuration file located in $HOME/.pmgrc.yaml.
-
-        PLOTLY_USERNAME: johndoe
-        PLOTLY_API_KEY: XXXXXXXXXXXXXXXXXXXX
-
-    """
-    global _PLOTLY_AUTHEHTICATED
-    if _PLOTLY_AUTHEHTICATED: return
-
-    try:
-        from pymatgen.core import SETTINGS
-        #from pymatgen.settings import SETTINGS
-    except ImportError:
-        from pymatgen import SETTINGS
-
-    example = """
-Add it to $HOME/.pmgrc.yaml using the follow syntax:
-
-PLOTLY_USERNAME: john_doe
-PLOTLY_API_KEY: secret  # to get your api_key go to profile > settings > regenerate key
-
-"""
-
-    username = SETTINGS.get("PLOTLY_USERNAME")
-    if username is None:
-        raise RuntimeError(f"Cannot find PLOTLY_USERNAME in pymatgen settings.\n{example}")
-
-    api_key = SETTINGS.get("PLOTLY_API_KEY")
-    if api_key is None:
-        raise RuntimeError(f"Cannot find PLOTLY_API_KEY in pymatgen settings.\n{example}")
-
-    import chart_studio
-    # https://towardsdatascience.com/how-to-create-a-plotly-visualization-and-embed-it-on-websites-517c1a78568b
-    chart_studio.tools.set_credentials_file(username=username, api_key=api_key)
-    _PLOTLY_AUTHEHTICATED = True
-
-
-def push_to_chart_studio(figs) -> None:
-    """
-    Push a plotly figure or a list of figures to the chart studio cloud.
-    """
-    plotly_chartstudio_authenticate()
-    import chart_studio.plotly as py
-    if not isinstance(figs, (list, tuple)): figs = [figs]
-    for fig in figs:
-        py.plot(fig, auto_open=True)
-
-
-####################################################
-# This code is shamelessy taken from Adam's package
-####################################################
-
-
-def go_points(points, size=4, color="black", labels=None, **kwargs):
-
-    #textposition = 'top right',
-    #textfont = dict(color='#E58606'),
-    mode = "markers" if labels is None else "markers+text"
-    #text = labels
-
-    if labels is not None:
-        labels = plotly_klabels(labels, allow_dupes=True)
-
-    import plotly.graph_objects as go
-    return go.Scatter3d(
-        x=[v[0] for v in points],
-        y=[v[1] for v in points],
-        z=[v[2] for v in points],
-        marker=dict(size=size, color=color),
-        mode=mode,
-        text=labels,
-        **kwargs
-    )
-
-
-def _add_if_not_in(d, key, value):
-    if key not in d:
-        d[key] = value
-
-
-def go_line(v1, v2, color="black", width=2, mode="lines", **kwargs):
-
-    _add_if_not_in(kwargs, "line_color", "black")
-    _add_if_not_in(kwargs, "line_width", 2)
-
-    import plotly.graph_objects as go
-    return go.Scatter3d(
-        mode=mode,
-        x=[v1[0], v2[0]],
-        y=[v1[1], v2[1]],
-        z=[v1[2], v2[2]],
-        #line=dict(color=color, width=width),
-        **kwargs
-    )
-
-
-def go_lines(V, name=None, color="black", width=2, **kwargs):
-    #import plotly.graph_objects as go
-    gen = ((v1, v2) for (v1, v2) in V)
-    v1, v2 = next(gen)
-    out = [
-        go_line(v1, v2, width=width, color=color, name=name, legendgroup=name, **kwargs)
-    ]
-    out.extend(
-        go_line(
-            v1,
-            v2,
-            width=width,
-            color=color,
-            showlegend=False,
-            legendgroup=name,
-            **kwargs
-        )
-        for (v1, v2) in gen
-    )
-    return out
-
-
-def vectors(lattice, name=None, color="black", width=4, **kwargs):
-    gen = zip(lattice, ["a", "b", "c"])
-    v, label = next(gen)
-
-    out = [
-        go_line(
-            [0, 0, 0],
-            v,
-            text=["", label],
-            width=width,
-            color=color,
-            name=name,
-            legendgroup=name,
-            mode="lines+text",
-            **kwargs
-        )
-    ]
-    out.extend(
-        go_line(
-            [0, 0, 0],
-            v,
-            text=["", label],
-            width=width,
-            color=color,
-            showlegend=False,
-            legendgroup=name,
-            mode="lines+text",
-            **kwargs
-        )
-        for (v, label) in gen
-    )
-    return out
-
-
-def get_vectors(lattice_mat, name=None, color="black", width=2, **kwargs):
-    return go_lines([[[0, 0, 0], v] for v in lattice_mat], **kwargs)
-
-
-def get_box(lattice_mat, **kwargs):
-    a, b, c = lattice_mat
-    segments = [
-        [[0, 0, 0], a],
-        [[0, 0, 0], b],
-        [[0, 0, 0], c],
-        [a, a + b],
-        [a, a + c],
-        [b, b + a],
-        [b, b + c],
-        [c, c + a],
-        [c, c + b],
-        [a + b, a + b + c],
-        [a + c, a + b + c],
-        [b + c, a + b + c],
-    ]
-    return go_lines(segments, **kwargs)
-
-
-def plot_fcc_conv():
-
-    fcc_conv = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    fcc_vectors = vectors(
-        fcc_conv, name="conv lattice vectors", color="darkblue", width=6
-    )
-    fcc_box = get_box(fcc_conv, name="conv lattice")
-
-    atoms = go_points(
-        [[0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]],
-        size=10,
-        color="orange",
-        name="atoms",
-        legendgroup="atoms",
-    )
-
-    import plotly.graph_objects as go
-    fig = go.Figure(data=[*fcc_box, *fcc_vectors, atoms])
-    return fig
-
-
-def plot_fcc_prim():
-    fcc_prim = np.array([[0.5, 0.5, 0], [0, 0.5, 0.5], [0.5, 0, 0.5]])
-
-    fcc_prim_vectors = vectors(
-        fcc_prim, name="prim lattice vectors", color="green", width=6
-    )
-    fcc_prim_box = get_box(fcc_prim, name="prim lattice", color="green")
-
-    atoms = go_points(
-        [[0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]],
-        size=10,
-        color="orange",
-        name="atoms",
-        legendgroup="atoms",
-    )
-
-    fcc_conv = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    fcc_conv_box = get_box(fcc_conv, name="conv lattice")
-
-    import plotly.graph_objects as go
-    fig = go.Figure(data=[*fcc_prim_box, *fcc_prim_vectors, *fcc_conv_box, atoms])
-
-    return fig
-
-
-def plot_fcc_100():
-
-    # fcc_100_cell = np.array([[0, 0.5, -0.5], [0, 0.5, 0.5], [1.0, 0.0, 0]])
-    fcc_100_cell = np.array([[0.5, -0.5, 0], [0.5, 0.5, 0], [0.0, 0, 1.0]])
-
-    fcc_100_vectors = vectors(
-        fcc_100_cell, name="100 lattice vectors", color="red", width=6
-    )
-    fcc_100_box = get_box(fcc_100_cell, name="100 lattice", color="red")
-
-    fig = plot_fcc_conv()
-    fig.add_traces([*fcc_100_box, *fcc_100_vectors])
-
-    return fig
-
-
-def plot_fcc_110():
-    fcc_110_cell = np.array([[0, 0.0, 1.0], [0.5, -0.5, 0], [0.5, 0.5, 0.0]])
-
-    fcc_110_vectors = vectors(
-        fcc_110_cell, name="reduced lattice vectors", color="red", width=6
-    )
-    fcc_110_box = get_box(fcc_110_cell, name="reduced lattice", color="red")
-
-    fig = plot_fcc_conv()
-    fig.add_traces([*fcc_110_box, *fcc_110_vectors])
-    return fig
-
-
-def plot_fcc_111():
-    fcc_111_cell = np.array([[0.5, 0, -0.5], [0, 0.5, -0.5], [1, 1, 1]])
-
-    fcc_111_vectors = vectors(
-        fcc_111_cell, name="reduced lattice vectors", color="red", width=6
-    )
-    fcc_111_box = get_box(fcc_111_cell, name="reduced lattice", color="red")
-
-    fig = plot_fcc_conv()
-    fig.add_traces([*fcc_111_box, *fcc_111_vectors])
-    return fig
-
-
-def plotly_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
-                     style="points+labels", color_scheme="VESTA", **kwargs):
-    """
-    Plot structure with plotly (minimalistic version).
-
-    Args:
-        structure: |Structure| object
-        ax: matplotlib :class:`Axes3D` or None if a new figure should be created.
-        alpha: The alpha blending value, between 0 (transparent) and 1 (opaque)
-        to_unit_cell: True if sites should be wrapped into the first unit cell.
-        style: "points+labels" to show atoms sites with labels.
-        color_scheme: color scheme for atom types. Allowed values in ("Jmol", "VESTA")
-
-    Returns: |matplotlib-Figure|
-    """
-    #fig, ax = plot_unit_cell(structure.lattice, ax=ax, linewidth=1)
-
-    box = get_box(structure.lattice.matrix) #, **kwargs):
-
-    from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
-    from pymatgen.vis.structure_vtk import EL_COLORS
-
-    #symb2data = {}
-    #for symbol in structure.symbol_set:
-    #    symb2data[symbol] = d = {}
-    #    d["color"] = color = tuple(i / 255 for i in EL_COLORS[color_scheme][symbol])
-    #    d["radius"] = CovalentRadius.radius[symbol]
-    #    inds = structure.indices_from_symbol(symbol)
-    #    sites = [structure[i] for i in inds]
-    #    d["xyz"] = []
-    #    for site in sites:
-    #       if to_unit_cell and hasattr(site, "to_unit_cell"): site = site.to_unit_cell()
-    #       Use cartesian coordinates.
-    #       x, y, z = site.coords
-    #       d["xyz"].append((x, y ,z)
-
-    xyz, sizes, colors = np.empty((len(structure), 3)), [], []
-    for i, site in enumerate(structure):
-        symbol = site.specie.symbol
-        color = tuple(i / 255 for i in EL_COLORS[color_scheme][symbol])
-        radius = CovalentRadius.radius[symbol]
-        if to_unit_cell and hasattr(site, "to_unit_cell"): site = site.to_unit_cell()
-        # Use cartesian coordinates.
-        x, y, z = site.coords
-        xyz[i] = (x, y, z) # , radius)
-        sizes.append(radius)
-        colors.append(color)
-        #if "labels" in style:
-        #    ax.text(x, y, z, symbol)
-
-    atoms = go_points(
-        #[[0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]],
-        xyz,
-        size=10,
-        color="orange",
-        name="atoms",
-        legendgroup="atoms",
-    )
-
-    #marker = [dict(size=size, color=color) for (size, color) in zip(sizes, colors)]
-
-    #atoms = go.Scatter3d(
-    #    x=[v[0] for v in xyz],
-    #    y=[v[1] for v in xyz],
-    #    z=[v[2] for v in xyz],
-    #    #marker=dict(size=size, color=color),
-    #    marker=marker,
-    #    mode="markers",
-    #    #**kwargs
-    #)
-
-    # The definition of sizes is not optimal because matplotlib uses points
-    # whereas we would like something that depends on the radius (5000 seems to give reasonable plots)
-    # For possible approaches, see
-    # https://stackoverflow.com/questions/9081553/python-scatter-plot-size-and-style-of-the-marker/24567352#24567352
-    # https://gist.github.com/syrte/592a062c562cd2a98a83
-    #if "points" in style:
-    #    x, y, z, s = xyzs.T.copy()
-    #    s = 5000 * s ** 2
-    #    ax.scatter(x, y, zs=z, s=s, c=colors, alpha=alpha)  #facecolors="white", #edgecolors="blue"
-
-    #ax.set_title(structure.composition.formula)
-    #ax.set_axis_off()
-
-    #fig = go.Figure(data=[*box, *vectors, atoms])
-    import plotly.graph_objects as go
-    fig = go.Figure(data=[*box, atoms])
-    return fig
-
-
-# This is the matplotlib API to plot the BZ.
-
-def plotly_wigner_seitz(lattice, fig=None, **kwargs):
-    """
-    Adds the skeleton of the Wigner-Seitz cell of the lattice to a plotly figure.
-
-    Args:
-        lattice: Lattice object
-        fig: plotly figure or None if a new figure should be created.
-        kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to black
-            and linewidth to 1.
-
-    Returns: Plotly figure
-    """
-    #ax, fig, plt = get_ax3d_fig_plt(ax)
-    fig, go = get_fig_plotly(fig=fig) #, **fig_kw)
-
-    if "line_color" not in kwargs:
-        kwargs["line_color"] = "black"
-    if "line_width" not in kwargs:
-        kwargs["line_width"] = 1
-
-    bz = lattice.get_wigner_seitz_cell()
-    #ax, fig, plt = get_ax3d_fig_plt(ax)
-
-    for iface in range(len(bz)):  # pylint: disable=C0200
-        for line in itertools.combinations(bz[iface], 2):
-            for jface in range(len(bz)):
-                if (iface < jface
-                    and any(np.all(line[0] == x) for x in bz[jface])
-                    and any(np.all(line[1] == x) for x in bz[jface])):
-                    #ax.plot(*zip(line[0], line[1]), **kwargs)
-                    fig.add_trace(go_line(line[0], line[1], showlegend=False, **kwargs))
-
-    return fig
-
-
-def plotly_lattice_vectors(lattice, fig=None, **kwargs):
-    """
-    Adds the basis vectors of the lattice provided to a plotly figure.
-
-    Args:
-        lattice: Lattice object
-        fig: plotly figure or None if a new figure should be created.
-        kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to green
-            and linewidth to 3.
-
-    Returns: plotly figure
-    """
-    fig, go = get_fig_plotly(fig=fig)
-
-    if "line_color" not in kwargs:
-        kwargs["line_color"] = "green"
-    if "line_width" not in kwargs:
-        kwargs["line_width"] = 3
-    if "showlegend" not in kwargs:
-        kwargs["showlegend"] = False
-
-    vertex1 = lattice.get_cartesian_coords([0.0, 0.0, 0.0])
-    vertex2 = lattice.get_cartesian_coords([1.0, 0.0, 0.0])
-    fig.add_trace(go_line(vertex1, vertex2, name="a", **kwargs))
-    vertex2 = lattice.get_cartesian_coords([0.0, 1.0, 0.0])
-    fig.add_trace(go_line(vertex1, vertex2, name="b", **kwargs))
-    vertex2 = lattice.get_cartesian_coords([0.0, 0.0, 1.0])
-    fig.add_trace(go_line(vertex1, vertex2, name="c", **kwargs))
-
-    return fig
-
-
-def plotly_path(line, lattice=None, coords_are_cartesian=False, fig=None, **kwargs):
-    """
-    Adds a line passing through the coordinates listed in 'line' to a plotly figure.
-
-    Args:
-        line: list of coordinates.
-        lattice: Lattice object used to convert from reciprocal to cartesian coordinates
-        coords_are_cartesian: Set to True if you are providing
-            coordinates in cartesian coordinates. Defaults to False.
-            Requires lattice if False.
-        fig: plotly figure or None if a new figure should be created.
-        kwargs: kwargs passed to the matplotlib function 'plot'. Color defaults to red
-            and linewidth to 3.
-
-    Returns: plotly figure
-    """
-    fig, go = get_fig_plotly(fig=fig)
-
-    if "line_color" not in kwargs:
-        kwargs["line_color"] = "red"
-    if "line_width" not in kwargs:
-        kwargs["line_width"] = 3
-
-    for k in range(1, len(line)):
-        vertex1 = line[k - 1]
-        vertex2 = line[k]
-        if not coords_are_cartesian:
-            if lattice is None:
-                raise ValueError("coords_are_cartesian False requires the lattice")
-            vertex1 = lattice.get_cartesian_coords(vertex1)
-            vertex2 = lattice.get_cartesian_coords(vertex2)
-
-        fig.add_trace(go_line(vertex1, vertex2, showlegend=False, **kwargs))
-
-    return fig
-
-
-#def plotly_labels(labels, lattice=None, coords_are_cartesian=False, ax=None, **kwargs):
-#    """
-#    Adds labels to a matplotlib Axes
-#
-#    Args:
-#        labels: dict containing the label as a key and the coordinates as value.
-#        lattice: Lattice object used to convert from reciprocal to cartesian coordinates
-#        coords_are_cartesian: Set to True if you are providing.
-#            coordinates in cartesian coordinates. Defaults to False.
-#            Requires lattice if False.
-#        ax: matplotlib :class:`Axes` or None if a new figure should be created.
-#        kwargs: kwargs passed to the matplotlib function 'text'. Color defaults to blue
-#            and size to 25.
-#
-#    Returns:
-#        matplotlib figure and matplotlib ax
-#    """
-#    ax, fig, plt = get_ax3d_fig_plt(ax)
-#
-#    if "color" not in kwargs:
-#        kwargs["color"] = "b"
-#    if "size" not in kwargs:
-#        kwargs["size"] = 25
-#
-#    for k, coords in labels.items():
-#        label = k
-#        if k.startswith("\\") or k.find("_") != -1:
-#            label = "$" + k + "$"
-#        off = 0.01
-#        if coords_are_cartesian:
-#            coords = np.array(coords)
-#        else:
-#            if lattice is None:
-#                raise ValueError("coords_are_cartesian False requires the lattice")
-#            coords = lattice.get_cartesian_coords(coords)
-#        ax.text(*(coords + off), s=label, **kwargs)
-#
-#    return fig, ax
-
-
-def plotly_points(points, lattice=None, coords_are_cartesian=False, fold=False, labels=None, fig=None, **kwargs):
-    """
-    Adds points to a plotly figure.
-
-    Args:
-        points: list of coordinates
-        lattice: Lattice object used to convert from reciprocal to cartesian coordinates
-        coords_are_cartesian: Set to True if you are providing
-            coordinates in cartesian coordinates. Defaults to False.
-            Requires lattice if False.
-        fold: whether the points should be folded inside the first Brillouin Zone.
-            Defaults to False. Requires lattice if True.
-        fig: plotly figure or None if a new figure should be created.
-        kwargs: kwargs passed to the matplotlib function 'scatter'. Color defaults to blue
-
-    Returns: plotly figure
-    """
-    fig, go = get_fig_plotly(fig=fig) #, **fig_kw)
-
-    if "marker_color" not in kwargs:
-        kwargs["marker_color"] = "blue"
-
-    if (not coords_are_cartesian or fold) and lattice is None:
-        raise ValueError("coords_are_cartesian False or fold True require the lattice")
-
-    from pymatgen.electronic_structure.plotter import fold_point
-    vecs = []
-    for p in points:
-        if fold:
-            p = fold_point(p, lattice, coords_are_cartesian=coords_are_cartesian)
-        elif not coords_are_cartesian:
-            p = lattice.get_cartesian_coords(p)
-
-        vecs.append(p)
-
-    kws = dict(textposition="top right", showlegend=False) #, textfont=dict(color='#E58606'))
-    kws.update(kwargs)
-    fig.add_trace(go_points(vecs, labels=labels, **kws))
-
-    return fig
-
-
-@add_plotly_fig_kwargs
-def plotly_brillouin_zone_from_kpath(kpath, fig=None, **kwargs):
-    """
-    Gives the plot (as a matplotlib object) of the symmetry line path in
-    the Brillouin Zone.
-
-    Args:
-        kpath (HighSymmKpath): a HighSymmKPath object
-        ax: matplotlib :class:`Axes` or None if a new figure should be created.
-        **kwargs: provided by add_fig_kwargs decorator
-
-    Returns: plotly figure.
-    """
-    lines = [[kpath.kpath["kpoints"][k] for k in p] for p in kpath.kpath["path"]]
-    return plotly_brillouin_zone(
-        bz_lattice=kpath.prim_rec,
-        lines=lines,
-        fig=fig,
-        labels=kpath.kpath["kpoints"],
-        show=False,
-        **kwargs,
-    )
-
-
-@add_plotly_fig_kwargs
-def plotly_brillouin_zone(
-    bz_lattice,
-    lines=None,
-    labels=None,
-    kpoints=None,
-    fold=False,
-    coords_are_cartesian=False,
-    fig=None,
-    **kwargs,
-):
-    """
-    Plots a 3D representation of the Brillouin zone of the structure.
-    Can add to the plot paths, labels and kpoints
-
-    Args:
-        bz_lattice: Lattice object of the Brillouin zone
-        lines: list of lists of coordinates. Each list represent a different path
-        labels: dict containing the label as a key and the coordinates as value.
-        kpoints: list of coordinates
-        fold: whether the points should be folded inside the first Brillouin Zone.
-            Defaults to False. Requires lattice if True.
-        coords_are_cartesian: Set to True if you are providing
-            coordinates in cartesian coordinates. Defaults to False.
-        ax: matplotlib :class:`Axes` or None if a new figure should be created.
-        kwargs: provided by add_fig_kwargs decorator
-
-    Returns: plotly figure
+    Mixin class for Works that need to merge the DDB files produced by the tasks in self.
     """
 
-    fig = plotly_lattice_vectors(bz_lattice, fig=fig)
-    plotly_wigner_seitz(bz_lattice, fig=fig)
-    if lines is not None:
-        for line in lines:
-            plotly_path(line, bz_lattice, coords_are_cartesian=coords_are_cartesian, fig=fig)
+    def add_becs_from_scf_task(self, scf_task, ddk_tolerance, ph_tolerance,
+                               with_quad=False, with_flexoe=False) -> tuple:
+        """
+        Build tasks for the computation of Born effective charges and add them to the work.
 
-    if labels is not None:
-        # TODO
-        #plotly_labels(labels, bz_lattice, coords_are_cartesian=coords_are_cartesian, ax=ax)
-        plotly_points(
-            labels.values(),
-            lattice=bz_lattice,
-            coords_are_cartesian=coords_are_cartesian,
-            fold=False,
-            labels=list(labels.keys()),
-            fig=fig,
-        )
+        Args:
+            scf_task: |ScfTask| object.
+            ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run. None to use AbiPy default.
+            ph_tolerance: dict {"varname": value} with the tolerance used in the phonon run. None to use AbiPy default.
+            with_quad: Activate calculation of dynamical quadrupoles.
+                Note that only selected features are compatible with dynamical quadrupoles.
+                Please consult <https://docs.abinit.org/topics/longwave/>
+            with_flexoe: True to activate computation of flexoelectric tensor.
 
-    if kpoints is not None:
-        plotly_points(
-            kpoints,
-            lattice=bz_lattice,
-            coords_are_cartesian=coords_are_cartesian,
-            fold=fold,
-            fig=fig,
-        )
+        Return: (ddk_tasks, bec_tasks, dkdk_task, quad_task)
+        """
+        if not isinstance(scf_task, ScfTask):
+            raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
 
-    return fig
+        # DDK calculations (self-consistent to get electric field).
+        # Use time-reversal symmetry for DDK (ddk_kptopt 2) except when
+        # the SCF run has disabled all symmetries (3) or just TR (4).
+        ddk_kptopt = 2
+        if "kptopt" in scf_task.input:
+            if scf_task.input["kptopt"] in (3, 4):
+                ddk_kptopt = 3
 
+        multi_ddk = scf_task.input.make_ddk_inputs(kptopt=ddk_kptopt, tolerance=ddk_tolerance)
 
-def add_colorscale_dropwdowns(fig):
-    """
-    Add dropdown widgets to change/reverse the colorscale.
-    Based on: https://plotly.com/python/dropdowns/#update-several-data-attributes
-    """
-    button_layer_1_height = 1.30
+        ddk_tasks = []
+        for ddk_inp in multi_ddk:
+            ddk_task = self.register_ddk_task(ddk_inp, deps={scf_task: "WFK"})
+            ddk_tasks.append(ddk_task)
 
-    # Create list of buttons
-    # A single button has the form:
-    #
-    #    dict(
-    #        args=["colorscale", "Viridis"],
-    #        label="Viridis",
-    #        method="restyle"
-    #    ),
+        # Build the list of inputs for electric field perturbation and phonons
+        # Each BEC task is connected to all the previous DDK task and to the scf_task.
+        bec_deps = {ddk_task: "DDK" for ddk_task in ddk_tasks}
+        bec_deps.update({scf_task: "WFK"})
 
-    colorscales = ["Viridis", "Cividis", "Blues", "Greens"]
+        if with_flexoe:
+            bec_inputs = scf_task.input.make_strain_perts_inputs(tolerance=ph_tolerance,
+                                                                 phonon_pert=True, efield_pert=True,
+                                                                 prepalw=1)
+        else:
+            # Dataset 4 in <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+            bec_inputs = scf_task.input.make_bec_inputs(tolerance=ph_tolerance,
+                                                        prepalw=2 if with_quad else 0)
 
-    colorscale_buttons = []
-    for cscale in colorscales:
-        colorscale_buttons.append(dict(
-                args=["colorscale", cscale],
-                label=cscale,
-                method="restyle",
-        ))
+        bec_tasks = []
+        for bec_inp in bec_inputs:
+            bec_task = self.register_bec_task(bec_inp, deps=bec_deps)
+            bec_tasks.append(bec_task)
 
-    fig.update_layout(
-        updatemenus=[
-            dict(
-                buttons=colorscale_buttons,
-                direction="down",
-                pad={"r": 10, "t": 10},
-                showactive=True,
-                x=0.1,
-                xanchor="left",
-                y=button_layer_1_height,
-                yanchor="top"
-            ),
-            dict(
-                buttons=list([
-                    dict(
-                        args=["reversescale", False],
-                        label="False",
-                        method="restyle"
-                    ),
-                    dict(
-                        args=["reversescale", True],
-                        label="True",
-                        method="restyle"
-                    )
-                ]),
-                direction="down",
-                pad={"r": 10, "t": 10},
-                showactive=True,
-                x=0.37,
-                xanchor="left",
-                y=button_layer_1_height,
-                yanchor="top"
-            ),
-        ]
-    )
+        if with_quad or with_flexoe:
+            # Response function calculation of d2/dkdk wave function.
+            # Dataset 3 in <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+            dkdk_inp = scf_task.input.make_dkdk_input(rf2_dkdk=3, tolerance=ddk_tolerance)
+            dkdk_task = self.register_dkdk_task(dkdk_inp, deps=bec_deps)
 
-    y = button_layer_1_height - 0.02
+            # Add electric field perturbations.
+            # FIXME: In principle, one can have it via BECS but make_bec_inputs uses symmetries
+            # but dyn. qaudrupoles requires all three directions so we do it explicitly.
+            e_tasks = []
+            for idir in range(3):
+                rfdir = np.zeros(3, dtype=int)
+                rfdir[idir] = 1
+                d = dict(rfelfd=3, kptopt=2, prepalw=2, rfdir=rfdir)
+                efield_input = scf_task.input.new_with_vars(**d)
+                e_tasks.append(self.register_efield_task(efield_input, deps=bec_deps))
 
-    fig.update_layout(
-        annotations=[
-            dict(text="colorscale", x=0, xref="paper", y=y, yref="paper",
-                 align="left", showarrow=False),
-            dict(text="Reverse<br>Colorscale", x=0.25, xref="paper", y=y,
-                 yref="paper", showarrow=False),
-    ])
+            quad_deps = bec_deps.copy()
+            quad_deps.update({dkdk_task: "DKDK"})
+            quad_deps.update({bec_task: ["1DEN", "1WF"] for bec_task in bec_tasks})
+            # Add the electric field dependencies.
+            quad_deps.update({e_task: ["1DEN", "1WF"] for e_task in e_tasks})
 
-    return fig
+            if with_quad:
+                # Dynamical quadrupoles calculation
+                # See Dataset 5 in <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
+                quad_inp = scf_task.input.make_quad_input(tolerance=ph_tolerance)
+                quad_task = self.register_quad_task(quad_inp, deps=quad_deps)
 
-
-def mpl_to_ply(fig: Figure, latex: bool = False):
-    """
-    Nasty workaround for plotly latex rendering in legend/breaking exception
-    """
-    if is_plotly_figure(fig):
-        return fig
-
-    def parse_latex(label):
-        """Remove latex symbols"""
-        new_label = label.replace("$", "")
-        new_label = new_label.replace("\\", "") if not latex else new_label
-        new_label = new_label.replace("{", "") if not latex else new_label
-        new_label = new_label.replace("}", "") if not latex else new_label
-        # plotly latex needs an extra \ for parsing python strings
-        # new_label = new_label.replace(" ", "\\ ") if latex else new_label
-        # Wrap the label in dollar signs for LaTeX, if needed unless empty``
-        new_label = f"${new_label}$" if latex and len(new_label) > 0 else new_label
-
-        return new_label
-
-    for ax in fig.get_axes():
-        # TODO improve below logic to add new scatter plots?
-        # Loop backwards through the collections to avoid modifying the list as we iterate
-        for coll in ax.collections[::-1]:
-            if isinstance(coll, mcoll.PathCollection):
-                # Use the remove() method to remove the scatter plot collection from the axes
-                coll.remove()
-
-        # Process the axis title, x-label, and y-label
-        for label in [ax.get_title(), ax.get_xlabel(), ax.get_ylabel()]:
-            # Few differences in how mpl and ply parse/encode symbols
-            new_label = parse_latex(label)
-            # Set the new label
-            if label == ax.get_title():
-                ax.set_title(new_label)
-            elif label == ax.get_xlabel():
-                ax.set_xlabel(new_label)
-            elif label == ax.get_ylabel():
-                ax.set_ylabel(new_label)
-
-        # Check if the axis has a legend
-        if ax.get_legend():
-            legend = ax.get_legend()
-            # Get the legend's text entries
-            for text in legend.get_texts():
-                label = text.get_text()
-                # Remove any existing dollar signs
-                new_label = parse_latex(label)
-                # Set the new label
-                text.set_text(new_label)
-
-    # Convert to plotly figure
-    from plotly.tools import mpl_to_plotly
-    plotly_fig = mpl_to_plotly(fig)
-
-    plotly_fig.update_layout(template="plotly_white", title={
-                                "xanchor": "center",
-                                "yanchor": "top",
-                                "x": 0.5,
-                                "font": {
-                                    "size": 14
-                                },
-                            })
-
-    # Iterate over the axes in the figure to retrieve the custom line attributes
-    for ax in fig.get_axes():
-        if hasattr(ax, '_custom_rc_lines'):
-            for rc, color in ax._custom_rc_lines:
-                # Add vertical lines to the Plotly figure
-                plotly_fig.add_vline(
-                    x=rc,
-                    line_width=2,
-                    line_dash="dash",
-                    line_color=color
+            if with_flexoe:
+                #flexoe_inp = scf_task.input.make_flexoe_input(tolerance=ph_tolerance)
+                flexoe_inp = scf_task.input.new_with_vars(
+                    optdriver=10,
+                    lw_flexo=1,
+                    kptopt=2,
+                    useylm=1,
                 )
 
-    # # Loop through each trace and update the hover labels to remove $
-    for trace in plotly_fig.data:
-        # Retrieve the current label and remove any $ signs
-        new_label = trace.name.replace("$", "")
-        # Update the trace's name (which is used for the legend label)
-        trace.name = new_label
+                self.register_flexoe_task(flexoe_inp, deps=quad_deps)
 
-    return plotly_fig
-
-
-class PolyfitPlotter:
-    """
-    Fit data with polynomials of different degrees and visualize the results.
-    """
-    def __init__(self, xs, ys):
-        self.xs, self.ys = np.array(xs), np.array(ys)
-
-    @add_fig_kwargs
-    def plot(self, deg_list: list[int],
-             num=100, ax=None, xlabel=None, ylabel=None, fontsize=8, **kwargs) -> Figure:
+    def merge_ddb_files(self, delete_source_ddbs=False, only_dfpt_tasks=True,
+                        exclude_tasks=None, include_tasks=None) -> str:
         """
+        This method is called when all the q-points have been computed.
+        It runs `mrgddb` in sequential on the local machine to produce
+        the final DDB file in the outdir of the `Work`.
+
         Args:
-            deg_list: List with degrees of the fitting polynomial.
-            num: Number of samples to generate. Default is 100. Must be non-negative.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
-            fontsize: Legend fontsize.
+            delete_source_ddbs: True if input DDB should be removed once final DDB is created.
+            only_dfpt_tasks: False to merge all DDB files produced by the tasks of the work
+                Useful e.g. for finite stress corrections in which the stress in the
+                initial configuration should be merged in the final DDB.
+            exclude_tasks: List of tasks that should be excluded when merging the partial DDB files.
+            include_tasks: List of tasks that should be included when merging the partial DDB files.
+                Mutually exclusive with exclude_tasks.
+
+        Returns:
+            path to the output DDB file
         """
-        xs, ys = self.xs, self.ys
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        if exclude_tasks:
+            my_tasks = [task for task in self if task not in exclude_tasks]
+        elif include_tasks:
+            my_tasks = [task for task in self if task in include_tasks]
+        else:
+            my_tasks = [task for task in self]
 
-        for i, deg in enumerate(deg_list):
-            # Fit a ndeg polynomial to the data points and get the polynomial function.
-            coefficients = np.polyfit(xs, ys, deg)
-            polynomial = np.poly1d(coefficients)
-            #print("Coefficients:", coefficients); print("Polynomial:", polynomial)
+        if only_dfpt_tasks:
+            ddb_files = list(filter(None, [task.outdir.has_abiext("DDB") for task in my_tasks
+                                    if isinstance(task, DfptTask)]))
+        else:
+            ddb_files = list(filter(None, [task.outdir.has_abiext("DDB") for task in my_tasks]))
 
-            if i == 0:
-                # Plot the original data points
-                ax.scatter(xs, ys, color='red', marker="o", label='Data Points')
+        self.history.info("Will call mrgddb to merge %s DDB files:" % len(ddb_files))
+        # DDB files are always produces so this should never happen!
+        if not ddb_files:
+            raise RuntimeError("Cannot find any DDB file to merge by the task of " % self)
 
-            # Generate (x, y) values for plotting the fit
-            x_fit = np.linspace(min(xs), max(xs), num)
-            y_fit = polynomial(x_fit)
-            ax.plot(x_fit, y_fit, label=f"{deg}-order fit")
+        # Final DDB file will be produced in the outdir of the work.
+        out_ddb = self.outdir.path_in("out_DDB")
 
-        if xlabel is not None: ax.set_xlabel(xlabel)
-        if ylabel is not None: ax.set_ylabel(ylabel)
-        ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        if len(ddb_files) == 1:
+            # Avoid the merge. Just copy the DDB file to the outdir of the work.
+            shutil.copy(ddb_files[0], out_ddb)
+        else:
+            # Call mrgddb
+            desc = "DDB file merged by %s on %s" % (self.__class__.__name__, time.asctime())
+            mrgddb = wrappers.Mrgddb(manager=self[0].manager, verbose=0)
+            mrgddb.merge(self.outdir.path, ddb_files, out_ddb=out_ddb, description=desc,
+                         delete_source_ddbs=delete_source_ddbs)
 
-        return fig
+        return out_ddb
+
+    def merge_pot1_files(self, delete_source=False) -> str | None:
+        """
+        This method is called when all the q-points have been computed.
+        It runs `mrgdvdb` in sequential on the local machine to produce
+        the final DVDB file in the outdir of the `Work`.
+
+        Args:
+            delete_source: True if POT1 files should be removed after (successful) merge.
+
+        Returns: path to the output DVDB file. None if not DFPT POT file is found.
+        """
+        natom = len(self[0].input.structure)
+        max_pertcase = 3 * natom
+
+        pot1_files = []
+        for task in self:
+            if not isinstance(task, DfptTask): continue
+            paths = task.outdir.list_filepaths(wildcard="*_POT*")
+            for path in paths:
+                # Include only atomic perturbations i.e. files whose ext <= 3 * natom
+                i = path.rindex("_POT")
+                pertcase = int(path[i+4:].replace(".nc", ""))
+                if pertcase <= max_pertcase:
+                    pot1_files.append(path)
+
+        # prtpot = 0 disables the output of the DFPT POT files so an empty list is not fatal here.
+        if not pot1_files: return None
+
+        self.history.info("Will call mrgdvdb to merge %s files:" % len(pot1_files))
+
+        # Final DDB file will be produced in the outdir of the work.
+        out_dvdb = self.outdir.path_in("out_DVDB")
+
+        if len(pot1_files) == 1:
+            # Avoid the merge. Just move the DVDB file to the outdir of the work
+            shutil.copy(pot1_files[0], out_dvdb)
+        else:
+            # FIXME: The merge may require a non-negligible amount of memory if lots of qpts.
+            # Besides there are machines such as lemaitre3 that are problematic when
+            # running MPI applications on the front-end
+            mrgdvdb = wrappers.Mrgdvdb(manager=self[0].manager, verbose=0)
+            mrgdvdb.merge(self.outdir.path, pot1_files, out_dvdb, delete_source=delete_source)
+
+        return out_dvdb
+
+
+class PhononWork(Work, MergeDdb):
+    """
+    This work consists of nirred Phonon tasks where nirred is
+    the number of irreducible atomic perturbations for a given set of q-points.
+    It provides the callback method (on_all_ok) that calls mrgddb and mrgdv to merge
+    all the partial DDB (POT) files produced.
+    The two files are available in the output directory of the Work.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: PhononWork
+    """
+
+    @classmethod
+    def from_scf_task(cls, scf_task: ScfTask,
+                      qpoints, is_ngqpt=False, with_becs=False,
+                      with_quad=False, with_flexoe=False, with_dvdb=True,
+                      tolerance=None, ddk_tolerance=None, ndivsm=0, qptopt=1,
+                      prtwf=-1, prepgkk=0, manager=None) -> PhononWork:
+        """
+        Construct a `PhononWork` from a |ScfTask| object.
+        The input file for phonons is automatically generated from the input of the ScfTask.
+        Each phonon task depends on the WFK file produced by the `scf_task`.
+
+        Args:
+            scf_task: |ScfTask| object.
+            qpoints: q-points in reduced coordinates. Accepts single q-point, list of q-points
+                or three integers defining the q-mesh if `is_ngqpt`.
+            is_ngqpt: True if `qpoints` should be interpreted as divisions instead of q-points.
+            with_becs: Activate calculation of Electric field and Born effective charges.
+            with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
+                Note that only selected features are compatible with dynamical quadrupoles.
+                Please consult <https://docs.abinit.org/topics/longwave/>
+            with_flexoe: True to activate computation of flexoelectric tensor. Require `with_becs`
+            with_dvdb: True to merge POT1 files associated to atomic perturbations in the DVDB file
+                at the end of the calculation
+            tolerance: dict {"varname": value} with the tolerance to be used in the phonon run.
+                None to use AbiPy default.
+            ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if with_becs.
+                None to use AbiPy default.
+            ndivsm: If different from zero, activate computation of electron band structure.
+                if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
+                if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
+                in the segment is proportional to its length. Typical value: -20.
+                This option is the recommended one if the k-path contains two high symmetry k-points that are very close
+                as ndivsm > 0 may produce a very large number of wavevectors.
+                if 0, deactivate band structure calculation.
+            qptopt: Option for the generation of q-points. Default: 1 i.e. use msym spatial symmetries + TR.
+            prtwf: Controls the output of the first-order WFK.
+                By default we set it to -1 when q != 0 so that AbiPy is still able
+                to restart the DFPT task if the calculation is not converged (worst case scenario)
+                but we avoid the output of the 1-st order WFK if the calculation converged successfully.
+                Non-linear DFPT tasks should not be affected since they assume q == 0.
+            prepgkk: option to compute only the irreducible preturbations or all perturbations
+                for the chosen set of q-point. Default: 0 (irred. pret. only)
+            manager: |TaskManager| object.
+        """
+        if not isinstance(scf_task, ScfTask):
+            raise TypeError(f"task {scf_task} does not inherit from ScfTask")
+
+        if is_ngqpt:
+            qpoints = scf_task.input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=qptopt).points
+        qpoints = np.reshape(qpoints, (-1, 3))
+
+        new = cls(manager=manager)
+        new.with_dvdb = with_dvdb
+
+        if (with_quad or with_flexoe) and not with_becs:
+            raise RuntimeError("with_quad or with_flexoe require with_becs")
+
+        if with_becs:
+            # Special treatment of q == 0.
+            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance,
+                                       with_quad=with_quad, with_flexoe=with_flexoe)
+
+        for qpt in qpoints:
+            is_gamma = np.sum(qpt ** 2) < 1e-12
+            if with_becs and is_gamma: continue
+            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance,
+                                                         prepgkk=prepgkk)
+            for ph_inp in multi:
+                # Here we set the value of prtwf for the DFPT tasks if q != Gamma.
+                if not is_gamma: ph_inp.set_vars(prtwf=prtwf)
+                new.register_phonon_task(ph_inp, deps={scf_task: "WFK"})
+
+        new.ebands_task = None
+        if ndivsm != 0:
+            new.ebands_task = scf_task.add_ebands_task_to_work(new, ndivsm=ndivsm)
+
+        return new
+
+    @classmethod
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       qpoints,
+                       is_ngqpt=False,
+                       with_becs=False,
+                       with_quad=False,
+                       with_flexoe=False,
+                       with_dvdb=True,
+                       tolerance=None,
+                       ddk_tolerance=None,
+                       ndivsm=0,
+                       qptopt=1,
+                       prtwf=-1,
+                       prepgkk=0,
+                       manager=None) -> PhononWork:
+        """
+        Similar to `from_scf_task`, the difference is that this method requires
+        an input for SCF calculation. A new |ScfTask| is created and added to the Work.
+        This API should be used if the DDB of the GS task with the forces should be merged.
+        This is needed for the computation of relaxed-atom elastic constants.
+        """
+        if is_ngqpt:
+            qpoints = scf_input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=qptopt).points
+
+        qpoints = np.reshape(qpoints, (-1, 3))
+
+        new = cls(manager=manager)
+        new.with_dvdb = with_dvdb
+
+        # Create ScfTask
+        scf_task = new.register_scf_task(scf_input)
+
+        if (with_quad or with_flexoe) and not with_becs:
+            raise RuntimeError("with_quad or with_flexoe require with_becs")
+
+        if with_becs:
+            # Special treatment of q == 0.
+            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance,
+                                       with_quad=with_quad, with_flexoe=with_flexoe)
+
+        for qpt in qpoints:
+            is_gamma = np.sum(qpt ** 2) < 1e-12
+            if with_becs and is_gamma: continue
+            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance,
+                                                         prepgkk=prepgkk)
+            for ph_inp in multi:
+                # Here we set the value of prtwf for the DFPT tasks if q != Gamma.
+                if not is_gamma: ph_inp.set_vars(prtwf=prtwf)
+                new.register_phonon_task(ph_inp, deps={scf_task: "WFK"})
+
+        new.ebands_task = None
+        if ndivsm is not None and ndivsm != 0:
+            new.ebands_task = scf_task.add_ebands_task_to_work(new, ndivsm=ndivsm)
+
+        return new
+
+    def on_all_ok(self):
+        """
+        This method is called when all the q-points have been computed.
+        It runs `mrgddb` in sequential on the local machine to produce
+        the final DDB file in the outdir of the |Work|.
+        """
+        # Merge DDB files.
+        exclude_tasks = []
+        if getattr(self, "ebands_task", None) is not None:
+            exclude_tasks = [self.ebands_task]
+
+        out_ddb = self.merge_ddb_files(only_dfpt_tasks=False, exclude_tasks=exclude_tasks)
+
+        if getattr(self, "with_dvdb", True):
+            # Merge DVDB files (use getattr to maintain backward compatibility with pickle).
+            out_dvdb = self.merge_pot1_files()
+
+        return self.Results(node=self, returncode=0, message="DDB merge done")
+
+
+class PhononWfkqWork(Work, MergeDdb):
+    """
+    This work computes phonons with DFPT on an arbitrary q-mesh (usually denser than the k-mesh for electrons)
+    by computing WKQ files for each q-point.
+    The number of irreducible atomic perturbations for each q-point is taken into account.
+    It provides the callback method (on_all_ok) that calls mrgddb (mrgdv) to merge
+    all the partial DDB (POT) files produced. The two files are available in the
+    output directory of the Work. The WKQ files are removed at runtime.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: PhononWfkqWork
+    """
+
+    @classmethod
+    def from_scf_task(cls, scf_task: ScfTask,
+                      ngqpt, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
+                      with_becs=False, with_quad=False, ddk_tolerance=None, shiftq=(0, 0, 0),
+                      is_ngqpt=True, qptopt=1, remove_wfkq=True,
+                      prepgkk=0, manager=None) -> PhononWfkqWork:
+        """
+        Construct a `PhononWfkqWork` from a |ScfTask| object.
+        The input files for WFQ and phonons are automatically generated from the input of the ScfTask.
+        Each phonon task depends on the WFK file produced by scf_task and the associated WFQ file.
+
+        Args:
+            scf_task: |ScfTask| object.
+            ngqpt: three integers defining the q-mesh
+            with_becs: Activate calculation of Electric field and Born effective charges.
+            with_quad: Activate calculation of dynamical quadrupoles.
+                Note that only selected features are compatible with dynamical quadrupoles.
+                Please consult <https://docs.abinit.org/topics/longwave/>
+            ph_tolerance: dict {"varname": value} with the tolerance for the phonon run.
+                None to use AbiPy default.
+            tolwfr: tolerance used to compute WFQ.
+            ddk_tolerance: dict {"varname": value} with the tolerance used in the DDK run if with_becs.
+                None to use AbiPy default.
+            shiftq: Q-mesh shift. Multiple shifts are not supported.
+            is_ngqpt: the ngqpt is interpreted as a set of integers defining the q-mesh, otherwise
+                      is an explicit list of q-points
+            qptopt: Option for the generation of q-points. Default: 1
+            remove_wfkq: Remove WKQ files when the children are completed.
+            prepgkk: 1 to activate computation of all 3*natom perts (debugging option).
+            manager: |TaskManager| object.
+
+        .. note:
+
+            Use k-meshes with one shift and q-meshes that are multiple of ngkpt
+            to decrease the number of WFQ files to be computed.
+        """
+        if not isinstance(scf_task, ScfTask):
+            raise TypeError(f"task {scf_task} does not inherit from ScfTask")
+
+        shiftq = np.reshape(shiftq, (3, ))
+        #print("ngqpt", ngqpt, "\nshiftq", shiftq)
+        if is_ngqpt:
+            qpoints = scf_task.input.abiget_ibz(ngkpt=ngqpt, shiftk=shiftq, kptopt=qptopt).points
+        else:
+            qpoints = np.reshape(ngqpt, (-1, 3))
+
+        new = cls(manager=manager)
+        new.remove_wfkq = remove_wfkq
+        new.phonon_tasks = []
+        new.wfkq_tasks = []
+        new.wfkq_task_children = collections.defaultdict(list)
+
+        if with_becs:
+            # Add DDK and BECS.
+            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance, with_quad=with_quad)
+
+        # Get ngkpt, shift for electrons from input.
+        # Won't try to skip WFQ if multiple shifts or off-diagonal kptrlatt
+        ngkpt, shiftk = scf_task.input.get_ngkpt_shiftk()
+        #try_to_skip_wfkq = True
+        #if ngkpt is not None and len(shiftk) == 1 and not is_ngqpt:
+        #    try_to_skip_wfkq = True
+        try_to_skip_wfkq = False
+
+        # TODO: One could avoid kptopt 3 by computing WFK in the IBZ and then rotating.
+        # but this has to be done inside Abinit.
+        for qpt in qpoints:
+            is_gamma = np.sum(qpt ** 2) < 1e-12
+            if with_becs and is_gamma: continue
+
+            # Avoid WFQ if k + q = k (requires ngkpt, multiple shifts are not supported)
+            need_wfkq = True
+            if is_gamma:
+                need_wfkq = False
+            elif try_to_skip_wfkq:
+                # k = (i + shiftk) / ngkpt
+                qinds = np.rint(qpt * ngqpt - shiftq)
+                #print("qpt", qpt, "\nqinds", qinds, "\nngkpt", ngkpt, "\nngqpt", ngqpt)
+                f = (qinds * ngkpt) % ngqpt
+                need_wfkq = np.any(f != 0)
+
+            #neee_wfkq = True
+
+            if need_wfkq:
+                nscf_inp = scf_task.input.new_with_vars(qpt=qpt, nqpt=1, iscf=-2, kptopt=3, tolwfr=tolwfr)
+                if nband:
+                    nbdbuf = max(2, nband*0.1)
+                    nscf_inp.set_vars(nband=nband+nbdbuf, nbdbuf=nbdbuf)
+
+                wfkq_task = new.register_nscf_task(nscf_inp, deps={scf_task: ["DEN", "WFK"]})
+                new.wfkq_tasks.append(wfkq_task)
+
+            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=ph_tolerance, prepgkk=prepgkk)
+            for ph_inp in multi:
+                deps = {scf_task: "WFK", wfkq_task: "WFQ"} if need_wfkq else {scf_task: "WFK"}
+                #ph_inp["prtwf"] = -1
+                t = new.register_phonon_task(ph_inp, deps=deps)
+                new.phonon_tasks.append(t)
+                if need_wfkq:
+                    new.wfkq_task_children[wfkq_task].append(t)
+
+        return new
+
+    def on_ok(self, sender):
+        """
+        This callback is called when one task reaches status `S_OK`.
+        It removes the WFKQ file if all its children have reached `S_OK`.
+        """
+        if self.remove_wfkq:
+            for task in self.wfkq_tasks:
+                if task.status != task.S_OK: continue
+                children = self.wfkq_task_children[task]
+                if all(child.status == child.S_OK for child in children):
+                    path = task.outdir.has_abiext("WFQ")
+                    if path:
+                        self.history.info("Removing WFQ: %s" % path)
+                        os.remove(path)
+
+        return super().on_ok(sender)
+
+    def on_all_ok(self):
+        """
+        This method is called when all the q-points have been computed.
+        Ir runs `mrgddb` in sequential on the local machine to produce
+        the final DDB file in the outdir of the |Work|.
+        """
+        # Merge DDB files.
+        out_ddb = self.merge_ddb_files(only_dfpt_tasks=True)
+
+        # Merge DVDB files.
+        out_dvdb = self.merge_pot1_files()
+
+        return self.Results(node=self, returncode=0, message="DDB merge done")
+
+
+class GKKPWork(Work):
+    """
+    This work computes electron-phonon matrix elements for all the q-points
+    present in a DVDB and a DDB file
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: GKKPWork
+    """
+    @classmethod
+    def from_den_ddb_dvdb(cls, inp, den_path, ddb_path, dvdb_path, mpiprocs=1, remove_wfkq=True,
+                          qpath=None, with_ddk=True, expand=True, manager=None):
+        """
+        Construct a `GKKPWork` from a DDB and DVDB file.
+        For each q found, a WFQ task and an EPH task computing the matrix elements are created.
+        """
+        import abipy.abilab as abilab
+
+        # Create file nodes
+        den_file = FileNode(den_path)
+        ddb_file = FileNode(ddb_path)
+        dvdb_file = FileNode(dvdb_path)
+
+        # Create new work
+        new = cls(manager=manager)
+        new.remove_wfkq = remove_wfkq
+        new.wfkq_tasks = []
+        new.wfkq_task_children = collections.defaultdict(list)
+        if manager is None: manager = TaskManager.from_user_config()
+        tm = manager.new_with_fixed_mpi_omp(mpiprocs, 1)
+
+        # Create a WFK task
+        kptopt = 1 if expand else 3
+        nscf_inp = inp.new_with_vars(iscf=-2, kptopt=kptopt)
+        wfk_task = new.register_nscf_task(nscf_inp, deps={den_file: "DEN"}, manager=tm)
+        new.wfkq_tasks.append(wfk_task)
+        new.wfk_task = wfk_task
+
+        # Read path and regular grid from DDB file
+        with abilab.abiopen(ddb_path) as ddb:
+            q_frac_coords = np.array([k.frac_coords for k in ddb.qpoints])
+            ddb_ngqpt = ddb.guessed_ngqpt
+
+        # If qpath is set, we read the list of q-points to be used to interpolate the DVDB file.
+        # The DVDB and DDB file have to correspond to a regular grid.
+        dvdb = dvdb_file
+        if qpath is None:
+            qpath = q_frac_coords
+        else:
+            interp_inp = inp.new_with_vars(optdriver=7, eph_task=-5, ddb_ngqpt=ddb_ngqpt,
+                                           ph_nqpath=len(qpath), ph_qpath=qpath, prtphdos=0)
+            dvdb = new.register_eph_task(interp_inp, deps={wfk_task: "WFK", ddb_file: "DDB", dvdb_file: "DVDB"},
+                                         manager=tm)
+
+        # Create a WFK expansion task
+        if expand:
+            fbz_nscf_inp = inp.new_with_vars(optdriver=8)
+            fbz_nscf_inp.set_spell_check(False)
+            fbz_nscf_inp.set_vars(wfk_task="wfk_fullbz")
+            tm_serial = manager.new_with_fixed_mpi_omp(1, 1)
+            wfk_task = new.register_nscf_task(fbz_nscf_inp, deps={wfk_task: "WFK", den_file: "DEN"},
+                                              manager=tm_serial)
+            new.wfkq_tasks.append(wfk_task)
+            new.wfk_task = wfk_task
+
+        if with_ddk:
+            kptopt = 3 if expand else 1
+            ddk_inp = inp.new_with_vars(optdriver=8, kptopt=kptopt)
+            ddk_inp.set_spell_check(False)
+            ddk_inp.set_vars(wfk_task="wfk_ddk")
+            ddk_task = new.register_nscf_task(ddk_inp, deps={wfk_task: "WFK", den_file: "DEN"}, manager=tm)
+            new.wfkq_tasks.append(ddk_task)
+
+        # For each qpoint
+        for qpt in qpath:
+            is_gamma = np.sum(qpt ** 2) < 1e-12
+            if is_gamma:
+                # Create a link from WFK to WFQ on_ok
+                wfkq_task = wfk_task
+                deps = {wfk_task: ["WFK", "WFQ"], ddb_file: "DDB", dvdb: "DVDB"}
+            else:
+                # Create a WFQ task
+                nscf_inp = nscf_inp.new_with_vars(kptopt=3, qpt=qpt, nqpt=1)
+                wfkq_task = new.register_nscf_task(nscf_inp, deps={den_file: "DEN"}, manager=tm)
+                new.wfkq_tasks.append(wfkq_task)
+                deps = {wfk_task: "WFK", wfkq_task: "WFQ", ddb_file: "DDB", dvdb: "DVDB"}
+
+            # Create a EPH task
+            eph_inp = inp.new_with_vars(optdriver=7, prtphdos=0, eph_task=-2, kptopt=3,
+                                        ddb_ngqpt=[1, 1, 1], nqpt=1, qpt=qpt)
+            t = new.register_eph_task(eph_inp, deps=deps, manager=tm)
+            new.wfkq_task_children[wfkq_task].append(t)
+
+        return new
+
+    @classmethod
+    def from_phononwfkq_work(cls, phononwfkq_work, nscf_vars={}, remove_wfkq=True, with_ddk=True, manager=None):
+        """
+        Construct a `GKKPWork` from a `PhononWfkqWork` object.
+        The WFQ are the ones used for PhononWfkqWork so in principle have only valence bands
+        """
+        # Get list of qpoints from the the phonon tasks in this work
+        qpoints = []
+        qpoints_deps = []
+        for task in phononwfkq_work:
+            if isinstance(task,PhononTask):
+                # Store qpoints
+                qpt = task.input.get("qpt", [0, 0, 0])
+                qpoints.append(qpt)
+                # Store dependencies
+                qpoints_deps.append(task.deps)
+
+        # Create file nodes
+        ddb_path = phononwfkq_work.outdir.has_abiext("DDB")
+        dvdb_path = phononwfkq_work.outdir.has_abiext("DVDB")
+        ddb_file = FileNode(ddb_path)
+        dvdb_file = FileNode(dvdb_path)
+
+        # Get scf_task from first q-point
+        for dep in qpoints_deps[0]:
+            if isinstance(dep.node,ScfTask) and dep.exts[0] == 'WFK':
+                scf_task = dep.node
+
+        # Create new work
+        new = cls(manager=manager)
+        new.remove_wfkq = remove_wfkq
+        new.wfkq_tasks = []
+        new.wfk_task = []
+
+        # Add one eph task per qpoint
+        for qpt,qpoint_deps in zip(qpoints,qpoints_deps):
+            # Create eph task
+            eph_input = scf_task.input.new_with_vars(optdriver=7, prtphdos=0, eph_task=-2,
+                                                     ddb_ngqpt=[1, 1, 1], nqpt=1, qpt=qpt)
+            deps = {ddb_file: "DDB", dvdb_file: "DVDB"}
+            for dep in qpoint_deps:
+                deps[dep.node] = dep.exts[0]
+            # If no WFQ in deps link the WFK with WFQ extension
+            if 'WFQ' not in deps.values():
+                inv_deps = dict((v, k) for k, v in deps.items())
+                wfk_task = inv_deps['WFK']
+                wfk_path = wfk_task.outdir.has_abiext("WFK")
+                # Check if netcdf
+                filename, extension = os.path.splitext(wfk_path)
+                infile = 'out_WFQ' + extension
+                wfq_path = os.path.join(os.path.dirname(wfk_path), infile)
+                if not os.path.isfile(wfq_path): os.symlink(wfk_path, wfq_path)
+                deps[FileNode(wfq_path)] = 'WFQ'
+
+            new.register_eph_task(eph_input, deps=deps)
+
+        return new
+
+    def on_ok(self, sender):
+        """
+        This callback is called when one task reaches status `S_OK`.
+        It removes the WFKQ file if all its children have reached `S_OK`.
+        """
+        if self.remove_wfkq:
+            for task in self.wfkq_tasks:
+                if task.status != task.S_OK: continue
+                children = self.wfkq_task_children[task]
+                if all(child.status == child.S_OK for child in children):
+                    path = task.outdir.has_abiext("WFQ")
+                    if path:
+                        self.history.info("Removing WFQ: %s" % path)
+                        os.remove(path)
+
+        # If wfk task we create a link to a wfq file so abinit is happy
+        if sender == self.wfk_task:
+            wfk_path = self.wfk_task.outdir.has_abiext("WFK")
+            # Check if netcdf
+            filename, extension = os.path.splitext(wfk_path)
+            infile = 'out_WFQ' + extension
+            infile = os.path.join(os.path.dirname(wfk_path), infile)
+            os.symlink(wfk_path, infile)
+
+        return super().on_ok(sender)
+
+
+# TODO: We may deprecate it and use PhononWork that is more general!
+
+class BecWork(Work, MergeDdb):
+    """
+    Work for the computation of the Born effective charges.
+
+    This work consists of DDK tasks and phonon + electric field perturbation
+    It provides the callback method (on_all_ok) that calls mrgddb to merge the
+    partial DDB files produced by the work.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: BecWork
+    """
+
+    @classmethod
+    def from_scf_task(cls, scf_task: ScfTask,
+                      ddk_tolerance=None, ph_tolerance=None, manager=None):
+        """
+        Build tasks for the computation of Born effective charges from a ground-state task.
+
+        Args:
+            scf_task: |ScfTask| object.
+            ddk_tolerance: tolerance used in the DDK run if with_becs. None to use AbiPy default.
+            ph_tolerance: dict {"varname": value} with the tolerance used in the phonon run.
+                None to use AbiPy default.
+            manager: |TaskManager| object.
+        """
+        new = cls(manager=manager)
+        new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance)
+        return new
+
+    def on_all_ok(self):
+        """
+        This method is called when all tasks reach S_OK
+        Ir runs `mrgddb` in sequential on the local machine to produce
+        the final DDB file in the outdir of the |Work|.
+        """
+        # Merge DDB files.
+        out_ddb = self.merge_ddb_files(only_dfpt_tasks=True)
+        return self.Results(node=self, returncode=0, message="DDB merge done")
+
+
+class DteWork(Work, MergeDdb):
+    """
+    Work for the computation of the third derivative of the energy.
+
+    This work consists of DDK tasks and electric field perturbation.
+    It provides the callback method (on_all_ok) that calls mrgddb to merge the partial DDB files produced
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: DteWork
+    """
+    @classmethod
+    def from_scf_task(cls, scf_task: ScfTask,
+                      ddk_tolerance=None, manager=None) -> DteWork:
+        """
+        Build a DteWork from a ground-state task.
+
+        Args:
+            scf_task: |ScfTask| object.
+            ddk_tolerance: tolerance used in the DDK run if with_becs. None to use AbiPy default.
+            manager: |TaskManager| object.
+        """
+        if not isinstance(scf_task, ScfTask):
+            raise TypeError(f"task {scf_task} does not inherit from ScfTask")
+
+        new = cls(manager=manager)
+
+        # DDK calculations
+        multi_ddk = scf_task.input.make_ddk_inputs(tolerance=ddk_tolerance)
+
+        ddk_tasks = []
+        for ddk_inp in multi_ddk:
+            ddk_task = new.register_ddk_task(ddk_inp, deps={scf_task: "WFK"})
+            ddk_tasks.append(ddk_task)
+
+        # Build the list of inputs for electric field perturbation
+        # Each task is connected to all the previous DDK, DDE task and to the scf_task.
+        multi_dde = scf_task.input.make_dde_inputs(use_symmetries=False)
+
+        # To compute the nonlinear coefficients all the directions of the perturbation
+        # have to be taken in consideration
+        # DDE calculations
+        dde_tasks = []
+        dde_deps = {ddk_task: "DDK" for ddk_task in ddk_tasks}
+        dde_deps.update({scf_task: "WFK"})
+        for dde_inp in multi_dde:
+            dde_task = new.register_dde_task(dde_inp, deps=dde_deps)
+            dde_tasks.append(dde_task)
+
+        # DTE calculations
+        # Read WFK only and use it to compute the density on the fly
+        # to avoid possible problems with paral_kgb 1 and MPI-FFT
+        #dte_deps = {scf_task: "WFK DEN"}
+        dte_deps = {scf_task: "WFK"}
+        dte_deps.update({dde_task: "1WF 1DEN" for dde_task in dde_tasks})
+
+        # VT: Taken from dte_from_gsinput factory fct
+        # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
+        # Do this as last, so not to interfere with the the generation of the other steps.
+        gs_inp = scf_task.input.deepcopy()
+        gs_inp.pop_irdvars()
+        nval = gs_inp.structure.num_valence_electrons(gs_inp.pseudos)
+        #nval -= gs_inp['charge'] # VT: commented out because KeyError
+        nband = int(round(nval / 2))
+        gs_inp.set_vars(nband=nband)
+        gs_inp.pop('nbdbuf', None)
+        multi_dte = gs_inp.make_dte_inputs()
+
+        #multi_dte = scf_task.input.make_dte_inputs()
+        dte_tasks = []
+        for dte_inp in multi_dte:
+            dte_task = new.register_dte_task(dte_inp, deps=dte_deps)
+            dte_tasks.append(dte_task)
+
+        return new
+
+    def on_all_ok(self):
+        """
+        This method is called when all tasks reach S_OK
+        It runs `mrgddb` in sequential on the local machine to produce
+        the final DDB file in the outdir of the `Work`.
+        """
+        # Merge DDB files.
+        out_ddb = self.merge_ddb_files(only_dfpt_tasks=True)
+        return self.Results(node=self, returncode=0, message="DDB merge done")
+
+
+class ConducWork(Work):
+    """
+    Workflow for the computation of electrical conductivity.
+
+    Can be called from:
+        1. MultiDataset and PhononWork
+        2. MultiDataset, DDB filepath and DVDB filepath.
+
+    Can use Kerange Capability using withKerange=True
+
+    This work consists of 3 tasks or 5 tasks with kerange:
+
+        1. SCF GS
+        2. NSCF
+        3. Kerange (Kerange only)
+        4. WFK Interpolation (Kerange only)
+        5. Electrical Conductivity Calculation.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: ConducWork
+    """
+
+    @classmethod
+    def from_phwork(cls, phwork, multi, nbr_proc=None, flow=None, with_kerange=False,
+                    omp_nbr_thread=1, manager=None) -> ConducWork:
+        """
+        Construct a ConducWork from a |PhononWork| and |MultiDataset|.
+
+        Args:
+            phwork: |PhononWork| object calculating the DDB and DVDB files.
+            multi: |MultiDataset| object containing a list of 3 datasets or 5 with Kerange.
+                See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
+            nbr_proc: Required if with_kerange since autoparal doesn't work with optdriver=8.
+            flow: The flow calling the work. Used for  with_fixed_mpi_omp.
+            with_kerange: True if using Kerange.
+            omp_nbr_thread : Number of omp_thread to use.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+        """
+        # Verify phwork
+        if not isinstance(phwork, PhononWork):
+            raise TypeError(f"Work {phwork} does not inherit from PhononWork")
+
+        # Verify Multi
+        if (not with_kerange) and (multi.ndtset != 3): #Without kerange, multi should contain 3 datasets
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                                It should have 3 datasets and it had `%s`. You should generate
+                                multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+        if (with_kerange) and (multi.ndtset != 5): # With Kerange, multi should contain 5 datasets
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                              It should have 5 datasets and it had `%s`. You should generate
+                              multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+        # Verify nbr_proc and flow are defined if with_kerange
+        if with_kerange and (flow is None or nbr_proc is None):
+            raise ValueError("""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
+                                flow = {}\n nbr_proc = {}""".format(flow, nbr_proc))
+
+        new = cls(manager=manager)
+
+        new.register_task(multi[0])
+        new.register_task(multi[1], deps={new[0]: "DEN"})
+        taskNumber = 2 # To keep track of the task in new and multi
+
+        if with_kerange:  # Using Kerange
+            new.register_task(multi[2], deps={new[1]: "WFK"})
+            new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
+            taskNumber = 4 # We have 2 more dataset
+
+        new.register_task(multi[taskNumber], deps={new[taskNumber-1]: "WFK", phwork: ["DDB","DVDB"]})
+
+        for task in new:
+            task.set_work(new)
+
+        # Manual Parallelization since autoparal doesn't work with optdriver=8 (t2)
+        if flow is not None :
+            new.set_flow(flow)
+            if nbr_proc is not None:
+                for task in new[2:]:
+                    task.with_fixed_mpi_omp(nbr_proc, omp_nbr_thread)
+        return new
+
+    @classmethod
+    def from_filepath(cls, ddb_path, dvdb_path, multi, nbr_proc=None, flow=None,
+                      with_kerange=False, omp_nbr_thread=1, manager=None) -> ConducWork:
+        """
+        Construct a ConducWork from previously calculated DDB/DVDB file and |MultiDataset|.
+
+        Args:
+            multi: a |MultiDataset| object containing a list of 3 datasets or 5 with Kerange.
+                       See abipy/abio/factories.py -> conduc_from_scf_nscf_inputs for details about multi.
+            ddb_path: a string containing the path to the DDB file.
+            dvdb_path: a string containing the path to the DVDB file.
+            nbr_proc: Required if with_kerange since autoparal doesn't work with optdriver=8.
+            flow: The flow calling the work, only needed if with_kerange.
+            with_kerange: True if using Kerange.
+            omp_nbr_thread : Number of omp_thread to use.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+        """
+        # Verify Multi
+        if (not with_kerange) and (multi.ndtset != 3): # Without kerange, multi should contain 4 datasets
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                                It should have 4 datasets and it had `%s`. You should generate
+                                multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+        if (with_kerange) and (multi.ndtset != 5): # With Kerange, multi should contain 6 datasets
+            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                              It should have 6 datasets and it had `%s`.You should generate
+                                multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+        # Make sure both file exists
+        if not os.path.exists(ddb_path):
+            raise ValueError(f"The DDB file {ddb_path} does not exist")
+
+        if not os.path.exists(dvdb_path):
+            raise ValueError(f"The DVDB file {dvdb_path} does not exist")
+
+        # Verify nbr_proc and flow are defined if with_kerange
+        if with_kerange and (flow is None or nbr_proc is None):
+            raise ValueError("""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
+                                flow = {}, nbr_proc = {}""".format(flow, nbr_proc))
+
+        new = cls(manager=manager)
+
+        new.register_task(multi[0])
+        new.register_task(multi[1], deps={new[0]: "DEN"})
+        taskNumber = 2 # To keep track of the task in new and multi
+
+        if with_kerange: # Using Kerange
+            new.register_task(multi[2], deps={new[1]: "WFK"})
+            new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
+            taskNumber = 4 # We have 2 more task
+
+        #new.register_task(multi[taskNumber], deps=[Dependency(new[taskNumber-1], "WFK"),
+        #                                             Dependency(ddb_path, "DDB"),
+        #                                             Dependency(dvdb_path, "DVDB")])
+        #new.register_task(multi[taskNumber], deps=[{new[taskNumber-1]: "WFK"},(ddb_path, "DDB"),(dvdb_path, "DVDB")])
+        new.register_task(multi[taskNumber], deps={new[taskNumber-1]: "WFK", ddb_path: "DDB", dvdb_path: "DVDB"})
+
+        for task in new:
+            task.set_work(new)
+
+        # Manual Parallelization since autoparal doesn't work with optdriver=8 (t2)
+        if flow is not None :
+            new.set_flow(flow)
+            if nbr_proc is not None:
+                for task in new[2:]:
+                    task.with_fixed_mpi_omp(nbr_proc, omp_nbr_thread)
+
+        return new
