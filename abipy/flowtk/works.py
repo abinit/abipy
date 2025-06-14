@@ -25,7 +25,7 @@ from abipy.flowtk import wrappers
 from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status
 from .tasks import (Task, AbinitTask, ScfTask, NscfTask, BerryTask, DfptTask, PhononTask, ElasticTask, DdkTask,
                     DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask, EfieldTask,
-                    EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
+                    EffMassTask, BseTask, RelaxTask, MultiRelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
                     DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
 from .utils import Directory
 from .netcdf import NetcdfReader
@@ -419,6 +419,11 @@ class NodeContainer(metaclass=abc.ABCMeta):
     def register_relax_task(self, *args, **kwargs) -> RelaxTask:
         """Register a task for structural optimization."""
         kwargs["task_class"] = RelaxTask
+        return self.register_task(*args, **kwargs)
+
+    def register_multi_relax_task(self, *args, **kwargs) -> MultiRelaxTask:
+        """Register a task for structural optimization."""
+        kwargs["task_class"] = MultiRelaxTask
         return self.register_task(*args, **kwargs)
 
     def register_berry_task(self, *args, **kwargs) -> BerryTask:
