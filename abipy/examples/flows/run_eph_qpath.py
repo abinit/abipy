@@ -4,9 +4,10 @@ e-ph matrix elements along q-path
 =================================
 
 This example demonstrates how to compute electron-phonon (e-ph) matrix elements
-along a specified q-path, either by explicitly calculating the self-consistent potential perturbations
-(Δq Vscf) for each q-point using ab initio methods, or by employing
-Fourier interpolation techniques starting from a coarse q-point mesh.
+along a specified q-path, either by explicitly calculating
+the self-consistent potential perturbations (Δq Vscf) for each q-point
+using ab initio results, or by employing Fourier interpolation techniques
+starting from a coarse q-point mesh.
 """
 import sys
 import os

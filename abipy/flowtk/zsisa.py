@@ -629,6 +629,9 @@ class ZsisaResults(Serializable):
         """
         Plot thermal expansion alpha as a function of T grouped by pressure P.
         """
+        if not self.has_thermal_expansion:
+            raise ValueError("Thermal expansion coefficients are not available!")
+
         nrows, ncols = 3, 2
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
@@ -659,6 +662,9 @@ class ZsisaResults(Serializable):
         """
         Plot elastic constants as a function of T grouped by pressure P.
         """
+        if not self.has_thermal_expansion:
+            raise ValueError("Temperature-dependent elastic constants are not available!")
+
         if df is None:
             df = self.get_dataframe()
 
