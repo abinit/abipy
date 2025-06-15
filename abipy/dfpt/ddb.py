@@ -216,7 +216,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         else:
             app("Has stress tensor: %s" % (self.cart_stress_tensor is not None))
         app("")
-        app("Has (at least one) atomic pertubation: %s" % self.has_at_least_one_atomic_perturbation())
+        app("Has (at least one) atomic perturbation: %s" % self.has_at_least_one_atomic_perturbation())
         app("Has (at least one diagonal) electric-field perturbation: %s" %
             self.has_epsinf_terms(select="at_least_one_diagoterm"))
         app("Has (at least one) Born effective charge: %s" % self.has_bec_terms(select="at_least_one"))
@@ -403,7 +403,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             qpt = Kpoint(frac_coords=block["qpt"], lattice=self.structure.reciprocal_lattice, weight=None, name=None)
 
             # Build pandas dataframe with df_columns and (idir1, ipert1, idir2, ipert2) as index.
-            # Each line in data represents an element of the dynamical matric
+            # Each line in data represents an element of the dynamical matrix
             # idir1 ipert1 idir2 ipert2 re_D im_D
             df_rows, df_index = [], []
             for line in block["data"]:
@@ -611,7 +611,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             # Fred stores d(etotal)/d(xred)
             # this array has *not* been corrected by enforcing
             # the translational symmetry, namely that the sum of force
-            # on all atoms is not necessarly zero.
+            # on all atoms is not necessarily zero.
             # Compute fcart using same code as in fred2fcart.
             # Note conversion to cartesian coordinates (bohr) AND
             # negation to make a force out of a gradient.
@@ -1148,7 +1148,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                                      mpi_procs=1, workdir=None, manager=None, return_input=False):
         """
         Execute anaddb to compute the phonon band structure and the phonon DOS.
-        Return contex manager that closes the files automatically.
+        Return context manager that closes the files automatically.
 
         .. important::
 
@@ -1213,7 +1213,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
-        # Use ExitStackWithFiles so that caller can use with contex manager.
+        # Use ExitStackWithFiles so that caller can use with context manager.
         exit_stack = ExitStackWithFiles()
 
         # Open file and add metadata to phbands from DDB
@@ -1401,7 +1401,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 In the later case, the value 0.001 eV is used as gaussian broadening
             ngqpt: Number of divisions for the ab-initio q-mesh in the DDB file. Auto-detected if None (default)
             verbose: Verbosity level.
-            num_cpus: Number of CPUs (threads) used to parallellize the calculation of the DOSes. Autodetected if None.
+            num_cpus: Number of CPUs (threads) used to parallelize the calculation of the DOSes. Autodetected if None.
             stream: File-like object used for printing.
 
         Return:
@@ -1695,7 +1695,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Args:
             ngqpt: the ngqpt used to generate the anaddbnc. Will be used to determine the (diagonal)
                 supercell matrix in phonopy. A smaller value can be used, but some information will
-                be lost and inconsistencies in the convertion may occour.
+                be lost and inconsistencies in the conversion may occur.
             supercell_matrix: the supercell matrix used for phonopy. if None it will be set to
                 a diagonal matrix with ngqpt on the diagonal. This should provide the best agreement between
                 the anaddb and phonopy results.
@@ -2117,7 +2117,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
+        Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -3166,28 +3166,21 @@ class DdbRobot(Robot):
         if "workdir" in kwargs:
             raise ValueError("Cannot specify `workdir` when multiple DDB file are executed.")
 
-        def find_anaddb_ncpath(filepath):
-            from abipy.flowtk.utils import Directory
-            directory = Directory(os.path.dirname(filepath))
-            p = directory.has_abiext("anaddb.nc")
-            if not p:
-                raise RuntimeError("Cannot find `anaddb.nc` in directory %s" % (directory))
-            return p
-
         phbands_plotter, phdos_plotter = PhononBandsPlotter(), PhononDosPlotter()
-        phdos_paths, phbands_paths = [], []
+        # lo_to_splitting in ["automatic", True, False] and defaults to automatic.
+        lo_to_splitting = kwargs.get("lo_to_splitting", "automatic")
+        #print("lo_to_splitting:", kwargs["lo_to_splitting"])
 
+        phdos_paths, phbands_paths = [], []
         for label, ddb in self.items():
             # Invoke anaddb to get phonon bands and DOS.
             phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(**kwargs)
 
             # Phonon frequencies with non analytical contributions, if calculated, are saved in anaddb.nc
             # Those results should be fetched from there and added to the phonon bands.
-            # lo_to_splitting in ["automatic", True, False] and defaults to automatic.
-            loto_mode = kwargs.get("lo_to_splitting", False)
-            if loto_mode:
-                #print("lo_to_splitting:", kwargs["lo_to_splitting"])
+            if lo_to_splitting in ("automatic", True) and ddb.has_lo_to_data():
                 anaddb_path = find_anaddb_ncpath(phbst_file.filepath)
+                print(f"Reading non_anal_term from: {anaddb_path=}")
                 phbst_file.phbands.read_non_anal_from_file(anaddb_path)
 
             phbands_plotter.add_phbands(label, phbst_file, phdos=phdos_file)
@@ -3455,3 +3448,12 @@ def get_2nd_ord_block_string(qpt, data: dict) -> list:
         lines.append(l_format.format(*p, v.real, v.imag))
 
     return lines
+
+
+def find_anaddb_ncpath(filepath):
+    from abipy.flowtk.utils import Directory
+    directory = Directory(os.path.dirname(filepath))
+    p = directory.has_abiext("anaddb.nc")
+    if not p:
+        raise RuntimeError("Cannot find `anaddb.nc` in directory %s" % (directory))
+    return p

@@ -580,7 +580,7 @@ class ZsisaResults(Serializable):
         # Labels for thermal expansion coefficients.
         for alpha_comp in _ALPHA_COMPS:
             alpha, comp = alpha_comp.split("_")
-            col2label[alpha_comp] = r"${\%s}_{%s}$" % (alpha, comp)
+            col2label[alpha_comp] = r"${\%s}_{%s}$ (K$^{-1}$)" % (alpha, comp)
 
         # Labels for elastic constants.
         for i, j in itertools.product(range(1, 7), range(1, 7)):
