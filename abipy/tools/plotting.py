@@ -622,6 +622,7 @@ def plot_xy_with_hue(data: pd.DataFrame,
                      ax=None,
                      xlims: tuple | None = None,
                      ylims: tuple | None = None ,
+                     col2label: dict | None = None,
                      fontsize: int = 8,
                      **kwargs) -> Figure:
     """
@@ -640,6 +641,7 @@ def plot_xy_with_hue(data: pd.DataFrame,
         ax: |matplotlib-Axes| or None if a new figure should be created.
         xlims, ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
             or scalar e.g. `left`. If left (right) is None, default values are used
+        col2label: Dictionary mapping column name to label for plot.
         fontsize: Legend fontsize.
         kwargs: Keyword arguments passed to ax.plot method.
 
@@ -717,10 +719,12 @@ def plot_xy_with_hue(data: pd.DataFrame,
         _plot_key_grp("nohue", data, span_style)
 
     ax.grid(True)
-    ax.set_xlabel(x)
-    ax.set_ylabel(y)
+    ax.set_xlabel(x if col2label is None else col2label.get(x, x))
+    ax.set_ylabel(y if col2label is None else col2label.get(y, y))
+
     set_axlims(ax, xlims, "x")
     set_axlims(ax, ylims, "y")
+
     if hue:
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 

@@ -13,12 +13,13 @@ import abipy.core.abinit_units as abu
 
 from abipy.abio.enums import StrEnum
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.typing import Figure
 from abipy.tools.serialization import mjson_load, HasPickleIO, Serializable
 from abipy.core.structure import Structure
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
-from abipy.dfpt.phonons import PhdosFile
+from abipy.dfpt.phonons import PhdosFile, PhononDosPlotter
 from abipy.dfpt.vzsisa import anaget_phdoses_with_gauss
 
 
@@ -237,9 +238,10 @@ class QHA_ZSISA(HasPickleIO):
                             dim5_structures = []
                             dim5_energies = []
                             for path_idx, path in enumerate(dim5_list):
-                                if path is not None:
-                                    if not os.path.exists(path):
-                                        raise FileNotFoundError(f"Cannot find {path=}")
+                                if path is not None and os.path.exists(path):
+                                #if path is not None:
+                                #    if not os.path.exists(path):
+                                #        raise FileNotFoundError(f"Cannot find {path=}")
                                     with PhdosFile(path) as p:
                                         dim5_doses.append(p.phdos)
                                         dim5_structures.append(p.structure)
@@ -319,8 +321,10 @@ class QHA_ZSISA(HasPickleIO):
         """
         self.structures = structures
         self.sym = sym
+        #phdoses = np.reshape(phdoses, (3, 3, 3, 3, 3, 3))
         self.phdoses = phdoses
         self.dim = dim
+        #print(f"{self.phdoses.shape=}, {self.dim=}")
         self.verbose = verbose
 
         self.dtol_tolerance = 1e-8
@@ -343,7 +347,7 @@ class QHA_ZSISA(HasPickleIO):
         self.gamma = extract_attribute(structures, lambda s: s.lattice.angles[2])
 
         # Lattice vectors from the lattice matrix
-        # Eq(17) from the paper:
+        # Eq (17) from the paper:
         # R1 = (ax, ay, az) corresponds to (R1x, R1y, R1z)
         # R2 = (bx, by, bz) corresponds to (R2x, R2y, R2z)
         # R3 = (cx, cy, cz) corresponds to (R3x, R3y, R3z)
@@ -362,7 +366,7 @@ class QHA_ZSISA(HasPickleIO):
 
         mask = self.ax != None  # Create a mask where self.ax is not None
 
-        # Compute averages. Eq(43) from the paper:
+        # Compute averages. Eq (43) from the paper:
         # ave_x corresponds to A_x in the paper
         # ave_y corresponds to B_y in the paper
         # ave_z corresponds to C_z in the paper
@@ -381,7 +385,7 @@ class QHA_ZSISA(HasPickleIO):
         self.cy_bo = structure_bo.lattice.matrix[2,1]
         self.cz_bo = structure_bo.lattice.matrix[2,2]
 
-        # Eq(43)
+        # Eq (43)
         self.ave_x_bo = (abs(self.ax_bo)+abs(self.bx_bo)+abs(self.cx_bo))
         self.ave_y_bo = (abs(self.ay_bo)+abs(self.by_bo)+abs(self.cy_bo))
         self.ave_z_bo = (abs(self.az_bo)+abs(self.bz_bo)+abs(self.cz_bo))
@@ -415,7 +419,7 @@ class QHA_ZSISA(HasPickleIO):
         self.cy_guess = structure_guess.lattice.matrix[2,1]
         self.cz_guess = structure_guess.lattice.matrix[2,2]
 
-        # Eq(43)
+        # Eq (43)
         self.ave_x_guess = (abs(self.ax_guess)+abs(self.bx_guess)+abs(self.cx_guess))
         self.ave_y_guess = (abs(self.ay_guess)+abs(self.by_guess)+abs(self.cy_guess))
         self.ave_z_guess = (abs(self.az_guess)+abs(self.bz_guess)+abs(self.cz_guess))
@@ -519,7 +523,7 @@ class QHA_ZSISA(HasPickleIO):
 
         x = self.ave_x_guess
         v = self.volume_guess
-        # compute BO strain at guess, Eq(50)
+        # compute BO strain at guess, Eq (50)
         exx_n = x/XBO-1
 
         # Free energy and entropy derivative at guess structure
@@ -826,7 +830,7 @@ class QHA_ZSISA(HasPickleIO):
         z = self.ave_z_guess
         v = self.volume_guess
 
-        # Compute BO strain at guess, Eq(44)
+        # Compute BO strain at guess, Eq (44)
         exx_n = x/XBO-1
         eyy_n = y/YBO-1
         ezz_n = z/ZBO-1
@@ -1001,7 +1005,7 @@ class QHA_ZSISA(HasPickleIO):
         cz = c * math.sin(math.pi*self.angles_guess[1]/180)
         cx = c * math.cos(math.pi*self.angles_guess[1]/180)
 
-        # compute BO strain at guess, Eq(47)
+        # compute BO strain at guess, Eq (47)
         exx_n = ax/AxBO-1
         eyy_n = by/ByBO-1
         ezz_n = cz/CzBO-1
@@ -1244,7 +1248,7 @@ class QHA_ZSISA(HasPickleIO):
         cz = cz*c
         v = self.volume_guess
 
-        # Compute BO strain at guess, Eq(56)
+        # Compute BO strain at guess, Eq (56)
         exx_n = ax/Ax0-1
         eyy_n = by/By0-1
         ezz_n = cz/Cz0-1
@@ -1670,3 +1674,14 @@ class QHA_ZSISA(HasPickleIO):
                     f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
                     f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
                     f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
+
+
+    def get_phdos_plotter(self, **kwargs) -> PhononDosPlotter:
+        """Build and return a PhononDosPlotter."""
+        plotter = PhononDosPlotter()
+        print(f"{self.phdoses.shape=}, {self.dim=}")
+        for inds, phdos in np.ndenumerate(self.phdoses):
+            if phdos is None: continue
+            plotter.add_phdos(str(inds), phdos)
+
+        return plotter

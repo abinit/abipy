@@ -139,7 +139,7 @@ def get_parser(with_epilog=False):
     parser.add_argument("-pn", '--panel', action='store_true', default=False,
                         help="Open Dashboard in web browser, requires panel package.")
     parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
-                        help="Specify template for panel dasboard." +
+                        help="Specify template for panel dashboard." +
                              "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                              "Default: FastList"
                         )
@@ -398,6 +398,7 @@ def handle_ase_md_log(options):
 
 def handle_csv(options):
     """Handle CSV file."""
+    import pandas as pd
     df = pd.read_csv(options.filepath)
 
     def print_df():
@@ -440,7 +441,7 @@ def handle_csv(options):
         print_df()
         import IPython
         IPython.embed(header="""
-The pandas DataFrame initialized from the csv file can be accesssed via the `df` python variable.
+The pandas DataFrame initialized from the csv file can be accessed via the `df` python variable.
 """)
 
     return 0
