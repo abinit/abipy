@@ -3504,7 +3504,6 @@ class ScfTask(GsTask):
 
         # Now we can resubmit the job.
         self.history.info("Will restart from %s", restart_file)
-
         #self.change_ks_solver_params_if_needed(self, is_scf_cycle=True)
 
         return self._restart()

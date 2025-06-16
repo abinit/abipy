@@ -3,8 +3,9 @@ r"""
 QHA_2D method
 =============
 
-This example shows how to use the GSR.nc and PHDOS.nc files computed with different volumes
-to compute thermodynamic properties within the quasi-harmonic approximation.
+This example shows how to use the GSR.nc and PHDOS.nc files computed
+with different volumes to compute thermodynamic properties within
+the quasi-harmonic approximation.
 """
 import os
 import numpy as np

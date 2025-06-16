@@ -143,11 +143,17 @@ class Qha2dWork(Work):
             work.bo_strains_ac[i] = np.array(bo_strains_ac[i])
             work.phdos_strains_ac[i] = np.array(phdos_strains_ac[i])
 
-        work.ngqpt = ngqpt
+        work.ngqpt = np.array(ngqpt, dtype=int)
         work.with_becs = with_becs
         work.with_quad = with_quad
         work.edos_ngkpt = edos_ngkpt if edos_ngkpt is None else np.reshape(edos_ngkpt, (3,))
         work.ndivsm = ndivsm
+
+        # Consistency check.
+        if "ngkpt" in scf_input:
+            ngkpt = np.array(scf_input["ngkpt"], dtype=int)
+            if np.any(ngkpt % work.ngqpt != 0):
+                raise ValueError(f"ngqpt should be a divisor of ngkpt but got {work.ngqpt=} and {ngkpt=}")
 
         # Create input for relaxation and register the relaxation task.
         work.relax_template = relax_template = scf_input.deepcopy()
