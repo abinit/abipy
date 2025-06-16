@@ -29,7 +29,7 @@ from abipy.core.structure import Structure
 from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 from abipy.tools.iotools import yaml_safe_load
 from abipy.tools.typing import TYPE_CHECKING
-from abipy.abio.enums import GWR_TASK
+#from abipy.abio.enums import GWR_TASK
 from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer, Condition, SparseHistogram
 from .qadapters import make_qadapter, QueueAdapter, QueueAdapterError
 from .nodes import Status, Node, NodeError, NodeResults, FileNode
@@ -37,6 +37,9 @@ from .abitimer import AbinitTimerParser
 from . import qutils as qu
 from . import abiinspect
 from . import events
+
+import logging
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     # Avoid circular dependencies
@@ -666,7 +669,6 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
 
         _USER_CONFIG_TASKMANAGER = cls.from_file(path)
         return _USER_CONFIG_TASKMANAGER
-
 
     @classmethod
     def from_file(cls, filepath: str) -> TaskManager:
@@ -3824,12 +3826,15 @@ class MultiRelaxTask(RelaxTask):
 
         if self.num_double_relax_restarts == 1:
             # First restart.
-            self.input["boxcutmin"] = 1.8
-            self.input["dilatmx"] = 1.05
+            if optcell == 0:
+                self.input["boxcutmin"] = 2.0
+            else:
+                self.input["boxcutmin"] = 1.8
+                self.input["dilatmx"] = 1.05
             self.finalized = False
             self.restart()
 
-        if self.num_double_relax_restarts == 2:
+        if optcell != 0 and self.num_double_relax_restarts == 2:
             # Second restart.
             self.input["boxcutmin"] = 2.0
             self.input["dilatmx"] = 1.0
@@ -3841,7 +3846,6 @@ class MultiRelaxTask(RelaxTask):
 
 class BerryTask(ScfTask):
     """Task for Berry phase calculations."""
-
 
 
 class DfptTask(AbinitTask):
@@ -5149,7 +5153,7 @@ class AtdepTask(Task):
         """Open DDB file produced by atdep and returns |DdbFile| object."""
         from abipy.dfpt.ddb import DdbFile
         ddb_path = self.outpath_from_ext("DDB")
-        return DdbFile(s_path)
+        return DdbFile(ddb_path)
 
     def make_input(self, with_header=False) -> str:
         """return string the input file of the calculation."""

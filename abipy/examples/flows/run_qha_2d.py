@@ -9,7 +9,6 @@ import sys
 import os
 import numpy as np
 import abipy.abilab as abilab
-#import abipy.data as abidata
 
 from abipy import flowtk
 from abipy.flowtk.qha_2d import Qha2dFlow
@@ -59,6 +58,7 @@ rprim
         ecutsm=1.0,
         #tolvrs=1.0e-18,    # SCF stopping criterion.
         tolvrs=1.0e-6,      # SCF stopping criterion.
+        paral_kgb=0,
     )
 
     # Select k-mesh for electrons and q-mesh for phonons.

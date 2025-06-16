@@ -62,6 +62,7 @@ rprim
         ecutsm=1.0,
         #tolvrs=1.0e-18,    # SCF stopping criterion (modify default)
         tolvrs=1.0e-8,      # SCF stopping criterion (modify default)
+        paral_kgb=0,
     )
 
     # Select k-mesh for electrons and q-mesh for phonons.

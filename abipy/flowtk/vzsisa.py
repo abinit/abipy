@@ -12,10 +12,9 @@ import numpy as np
 
 from abipy.tools.serialization import Serializable
 from abipy.core.structure import Structure
-from abipy.tools.typing import PathLike, VectorLike, Figure
+from abipy.tools.typing import PathLike, VectorLike #, Figure
 from abipy.abio.inputs import AbinitInput
 from abipy.dfpt.vzsisa import Vzsisa
-from abipy.flowtk.tasks import RelaxTask
 from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.flows import Flow
 
@@ -31,7 +30,7 @@ class VzsisaFlow(Flow):
 
     @classmethod
     def from_scf_input(cls,
-                       workdir,
+                       workdir: PathLike,
                        scf_input: AbinitInput,
                        bo_vol_scales,
                        ph_vol_scales,
@@ -106,7 +105,8 @@ class VzsisaFlow(Flow):
         data["gsr_relax_edos_paths"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
         data["gsr_relax_ebands_paths"] = []
         if work.ndivsm != 0:
-            data["gsr_relax_ebands_paths"] = [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
+            data["gsr_relax_ebands_paths"] = [ph_work.ebands_task.gsr_path
+                for ph_work in work.ph_works if ph_work.ebands_task is not None]
 
         # Write json file.
         VzsisaResults(**data).json_write(self.outdir.path_in("vzsisa.json"), indent=4)
@@ -125,9 +125,16 @@ class VzsisaWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, bo_vol_scales, ph_vol_scales, ngqpt,
-                       with_becs: bool, with_quad: bool, ndivsm: int,
-                       ionmov: int, edos_ngkpt=None) -> VzsisaWork:
+    def from_scf_input(cls,
+                       scf_input,
+                       bo_vol_scales,
+                       ph_vol_scales,
+                       ngqpt,
+                       with_becs: bool,
+                       with_quad: bool,
+                       ndivsm: int,
+                       ionmov: int,
+                       edos_ngkpt=None) -> VzsisaWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
         See VzsisaFlow for the meaning of the arguments.
@@ -252,7 +259,8 @@ class VzsisaResults(Serializable):
     initial_structure: Structure
 
     gsr_relax_paths: list[str]
-    gsr_relax_entries: list[GsrRelaxEntry]
+    #gsr_relax_entries: list[GsrRelaxEntry]
+    gsr_relax_entries: list[dict]
     gsr_relax_volumes_ang3: list[float]
 
     ddb_relax_paths: list[str]
