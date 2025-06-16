@@ -17,7 +17,6 @@ from abipy.tools.plotting import Exposer
 from pprint import pprint
 from shutil import which
 from monty.termcolor import cprint
-from monty.functools import prof_main
 from abipy import abilab
 
 
@@ -192,7 +191,7 @@ for port forwarding.
 
 
 
-@prof_main
+@cli.prof_main
 def main():
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
@@ -470,16 +469,6 @@ def handle_json(options):
         obj = abilab.mjson_load(options.filepath)
         handle_object(obj, options)
 
-    return 0
-
-
-def handle_flowsdb_file(options):
-    """Handle flows.db file."""
-    import pandas as pd
-    import sqlite3
-    with sqlite3.connect(options.filepath) as con:
-        df = pd.read_sql_query("SELECT * FROM flows", con)
-        abilab.print_dataframe(df, title=options.filepath)
     return 0
 
 

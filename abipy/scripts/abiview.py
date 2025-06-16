@@ -11,7 +11,6 @@ import argparse
 import abipy.tools.cli_parsers as cli
 
 from pprint import pformat
-from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 from abipy.abio.outputs import AbinitOutputFile
@@ -613,7 +612,7 @@ def abiview_phbands(options) -> int:
 def abiview_denpot(options) -> int:
     """
     Visualize netcdf DEN/POT files with --appname (default: Vesta).
-    NB: Appplication must be installed and in $PATH.
+    NB: Application must be installed and in $PATH.
     """
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
@@ -993,7 +992,7 @@ def get_parser(with_epilog=False):
     return parser
 
 
-@prof_main
+@cli.prof_main
 def main():
 
     def show_examples_and_exit(err_msg=None, error_code=1):

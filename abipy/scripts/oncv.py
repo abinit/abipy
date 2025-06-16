@@ -121,10 +121,6 @@ def oncv_compare(options) -> int:
     return 0
 
 
-#@flowtk.flow_main
-#def main(options):
-#    return build_flow(options)
-
 #def oncv_hints(options):
 #    """
 #    """
@@ -429,6 +425,7 @@ def get_parser(with_epilog=False):
     return parser
 
 
+@cli.prof_main
 def main():
 
     def show_examples_and_exit(err_msg=None, error_code=1):

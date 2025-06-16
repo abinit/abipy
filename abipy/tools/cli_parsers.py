@@ -4,8 +4,10 @@ Tools and helper functions to build the command line interface of the AbiPy scri
 from __future__ import annotations
 
 import argparse
+import sys
 import os
 
+from functools import wraps
 from pprint import pformat
 
 
@@ -42,7 +44,7 @@ def pn_serve_parser(**kwargs) -> argparse.ArgumentParser:
     p.add_argument("--num_procs", default=1, type=int,
                               help="Number of worker processes for the app. Defaults to 1")
     p.add_argument('--panel-template', "-pnt", default="FastList",
-                  help="Specify template for panel dasboard." +
+                  help="Specify template for panel dashboard." +
                        "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                        "Default: FastList")
     p.add_argument('--has-remote-server', default=False, action="store_true",
@@ -217,3 +219,58 @@ def range_from_str(string: str) -> range:
 
     return range(start, stop, step)
 
+
+def prof_main(main):
+    """
+    Decorator for profiling main programs.
+
+    Profiling is activated by prepending the command line options
+    supported by the original main program with the keyword `prof`.
+
+    Examples:
+
+            $ script.py arg --foo=1
+
+        becomes
+
+            $ script.py prof arg --foo=1
+
+        The decorated main accepts two new arguments:
+
+            prof_file: Name of the output file with profiling data
+                If not given, a temporary file is created.
+            sortby: Profiling data are sorted according to this value.
+                default is "time". See sort_stats.
+    """
+
+    @wraps(main)
+    def wrapper(*args, **kwargs):
+        try:
+            do_prof = sys.argv[1] == "prof"
+            if do_prof:
+                sys.argv.pop(1)
+        except Exception:
+            do_prof = False
+
+        if not do_prof:
+            sys.exit(main())
+        else:
+            print("Entering profiling mode...")
+            import cProfile
+            import pstats
+            import tempfile
+            prof_file = kwargs.get("prof_file", None)
+            if prof_file is None:
+                _, prof_file = tempfile.mkstemp()
+                print(f"Profiling data stored in {prof_file}")
+
+            sortby = kwargs.get("sortby", "time")
+            cProfile.runctx("main()", globals(), locals(), prof_file)
+            s = pstats.Stats(prof_file)
+            s.strip_dirs().sort_stats(sortby).print_stats()
+            if "retval" not in kwargs:
+                sys.exit(0)
+            else:
+                return kwargs["retval"]
+
+    return wrapper

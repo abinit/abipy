@@ -109,8 +109,7 @@ class VzsisaFlow(Flow):
             data["gsr_relax_ebands_paths"] = [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
 
         # Write json file.
-        data = VzsisaResults(**data)
-        data.json_write(self.outdir.path_in("vzsisa.json"), indent=4)
+        VzsisaResults(**data).json_write(self.outdir.path_in("vzsisa.json"), indent=4)
 
         return super().finalize()
 

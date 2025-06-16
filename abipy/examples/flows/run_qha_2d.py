@@ -9,7 +9,7 @@ import sys
 import os
 import numpy as np
 import abipy.abilab as abilab
-import abipy.data as abidata
+#import abipy.data as abidata
 
 from abipy import flowtk
 from abipy.flowtk.qha_2d import Qha2dFlow
@@ -48,26 +48,22 @@ rprim
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
     pseudos = get_oncvpsp_pseudos(xc_name="PBEsol", version="0.4")
 
-    # Select k-mesh for electrons and q-mesh for phonons.
-    #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
-    ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
-
-    with_becs = True
-    with_quad = False
-    #with_quad = not structure.has_zero_dynamical_quadrupoles
-
     scf_input = abilab.AbinitInput(structure, pseudos)
 
     # Set other important variables
     scf_input.set_vars(
         nband=scf_input.num_valence_electrons // 2,
-        nline=10,
+        #nline=10,
         nbdbuf=0,
         nstep=100,
         ecutsm=1.0,
-        #tolvrs=1.0e-18,      # SCF stopping criterion (modify default)
-        tolvrs=1.0e-6,      # SCF stopping criterion (modify default)
+        #tolvrs=1.0e-18,    # SCF stopping criterion.
+        tolvrs=1.0e-6,      # SCF stopping criterion.
     )
+
+    # Select k-mesh for electrons and q-mesh for phonons.
+    #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
+    ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
 
     #scf_input.set_scf_nband_semicond()
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
@@ -86,6 +82,10 @@ rprim
 
     bo_strains_ac = [bo_strains_a, bo_strains_c]
     phdos_strains_ac = bo_strains_ac
+
+    with_becs = True
+    with_quad = False
+    #with_quad = not structure.has_zero_dynamical_quadrupoles
 
     return Qha2dFlow.from_scf_input(options.workdir, scf_input, bo_strains_ac, phdos_strains_ac, ngqpt,
                                     with_becs, with_quad, edos_ngkpt=None)
