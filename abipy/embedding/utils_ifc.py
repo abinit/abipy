@@ -111,7 +111,7 @@ def inverse_participation_ratio(eigenvectors):
         sum_atoms = 0
         for iatom in range(len(eigenvectors[iband])):
             sum_atoms += np.dot(eigenvectors[iband,iatom],eigenvectors[iband,iatom])**2
-        ipr.append(1/sum_atoms)
+        ipr.append(1 / sum_atoms)
     return np.array(ipr).real
 
 
@@ -121,7 +121,7 @@ def localization_ratio(eigenvectors):
     for a given q-point, eigenvectors shape=(nbands,natoms,3)
     """
     ipr = inverse_participation_ratio(eigenvectors)
-    return len(eigenvectors[0])/ipr
+    return len(eigenvectors[0]) / ipr
 
 
 def vesta_phonon(eigenvectors,
@@ -149,7 +149,6 @@ def vesta_phonon(eigenvectors,
         factor_keep_vectors: draw only the eigenvectors with magnitude > factor_keep_vectors * max(magnitude)
         out_path: path where .vesta files with vector are stored
     """
-
     vesta = open(in_path, 'r').read()
     nbands = len(eigenvectors)
     natoms = len(eigenvectors[0])

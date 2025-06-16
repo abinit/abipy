@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Objects common to the other eph modules.
+Objects and functions common to other eph modules.
 """
 from __future__ import annotations
 
@@ -91,7 +91,7 @@ def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart_bohr, phfreqs_ha, 
     phdispl_cart_bohr = np.reshape(phdispl_cart_bohr, (natom3, natom, 3))
 
     xred = structure.frac_coords
-    # Acoustic modes are included --> assume BECS fullfill charge neutrality
+    # Acoustic modes are included --> assume BECS fulfill charge neutrality.
     glr_nu = np.empty(natom3, dtype=complex)
     for nu in range(natom3):
         if phfreqs_ha[nu] < EPH_WTOL or q_eps_q < tol_qnorm: continue
