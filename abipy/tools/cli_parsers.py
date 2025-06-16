@@ -245,32 +245,40 @@ def prof_main(main):
 
     @wraps(main)
     def wrapper(*args, **kwargs):
+        arg0 = None
         try:
-            do_prof = sys.argv[1] == "prof"
+            do_prof = sys.argv[1] in ("prof", "tuna", "snakeviz")
             if do_prof:
-                sys.argv.pop(1)
+                arg0 = sys.argv.pop(1)
         except Exception:
             do_prof = False
 
         if not do_prof:
+            # No profiling. Run script as usual.
             sys.exit(main())
-        else:
-            print("Entering profiling mode...")
-            import cProfile
-            import pstats
-            import tempfile
-            prof_file = kwargs.get("prof_file", None)
-            if prof_file is None:
-                _, prof_file = tempfile.mkstemp()
-                print(f"Profiling data stored in {prof_file}")
 
-            sortby = kwargs.get("sortby", "time")
-            cProfile.runctx("main()", globals(), locals(), prof_file)
-            s = pstats.Stats(prof_file)
-            s.strip_dirs().sort_stats(sortby).print_stats()
-            if "retval" not in kwargs:
-                sys.exit(0)
-            else:
-                return kwargs["retval"]
+        print("Entering profiling mode...")
+        import cProfile
+        import pstats
+        import tempfile
+        prof_file = kwargs.get("prof_file", None)
+        if prof_file is None:
+            _, prof_file = tempfile.mkstemp()
+            print(f"Profiling data stored in: {prof_file}")
+
+        sortby = kwargs.get("sortby", "time")
+        cProfile.runctx("main()", globals(), locals(), prof_file)
+        s = pstats.Stats(prof_file)
+        s.strip_dirs().sort_stats(sortby).print_stats()
+
+        if arg0 in ("tuna", "snakeviz"):
+            cmd = f"{arg0} {prof_file}"
+            print(f"Executing {cmd=}")
+            os.system(cmd)
+
+        if "retval" not in kwargs:
+            sys.exit(0)
+        else:
+            return kwargs["retval"]
 
     return wrapper
