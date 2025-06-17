@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
-from functools import cached_property, lru_cache
-from abipy.tools.serialization import mjson_load, mjson_write, Serializable
+from functools import cached_property
+from abipy.tools.serialization import Serializable
 from abipy.tools.typing import PathLike, VectorLike, Figure
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, plot_xy_with_hue, set_visible
 from abipy.abio.inputs import AbinitInput
@@ -420,6 +420,8 @@ class ThermalRelaxTask(RelaxTask):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ThermalRelaxTask
     """
+    def _post_init_(self):
+        self.num_converged = 0
 
     def _on_ok(self):
         results = super()._on_ok()
@@ -435,9 +437,18 @@ class ThermalRelaxTask(RelaxTask):
                                   mode=self.mode, elastic_path=None)
         #print(tdata)
 
-        if not tdata.converged:
+        if tdata.converged:
+            self.num_converged += 1
+        else:
+            self.num_converged -= 1
+            self.num_converged = max(self.num_converged, 0)
+
+        if not tdata.converged or (tdata.converged and self.num_converged == 1):
             # Change strtarget and restart the relaxation task.
             self.input.set_vars(strtarget=tdata.stress_au)
+            if tdata.converged:
+                self.input.set_vars(dilatmx=1.0)
+
             self.finalized = False
             # Restart will take care of using the output structure as the input.
             self.restart()
@@ -484,9 +495,10 @@ class ThermalRelaxEntry:
         with GsrFile(self.gsr_path) as gsr:
             dct.update(gsr.structure.get_dict4pandas())
 
-        #f.write(f"{'#T':<8} {'P':<8} {'alpha_xx':<15} {'alpha_yy':<15} {'alpha_zz':<15} {'alpha_yz':<15} {'alpha_xz':<15} {'alpha_xy':<15}\n")
-        #f.write(f"{temp:<8} {pressure:<8.2f} {therm[0]:<15.8e} {therm[1]:<15.8e} {therm[2]:<15.8e} "
-        #                f"{therm[3]:<15.8e} {therm[4]:<15.8e} {therm[5]:<15.8e}\n")
+        #(f"{'#T':<8} {'P':<8} {'alpha_xx':<15} {'alpha_yy':<15} {'alpha_zz':<15}
+        # {'alpha_yz':<15} {'alpha_xz':<15} {'alpha_xy':<15}\n")
+        #(f"{temp:<8} {pressure:<8.2f} {therm[0]:<15.8e} {therm[1]:<15.8e} {therm[2]:<15.8e} "
+        #f"{therm[3]:<15.8e} {therm[4]:<15.8e} {therm[5]:<15.8e}\n")
 
         if self.therm is not None:
             # Add thermal expansion coefficients.
@@ -517,25 +529,29 @@ class ZsisaResults(Serializable):
 
     .. code-block:: python
 
+        from abipy.flowtk.zsisa import ZsisaResults
         data = ZsisaResults.json_load("json_filepath")
+        data.get_dataframe()
+        data.plot_lattice_vs_temp()
+        data.plot_thermal_expansion()
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ZsisaResults
     """
 
-    spgrp_number: int                    # Space group number.
-    eps: float                           # Strain magnitude to be applied to the lattice.
-    mode: str                            # "TEC" or "ECs".
+    spgrp_number: int                  # Space group number.
+    eps: float                         # Strain magnitude to be applied to the lattice.
+    mode: str                          # "TEC" or "ECs".
     qha_model: str
 
     # TODO: Should have inds_6d as well as strain_inds
     inds_6d: np.ndarray                  # List of indices in the phdos 6D grid used for finite differences.
 
-    gsr_bo_path: str                     # Path to the GSR file with the relaxed BO configuration.
-    gsr_relax_paths: list[str]           # Paths to the GSR files for the deformed structures after relaxation.
-    ddb_relax_paths: list[str]           # Paths to the DDB files with phonons for the deformed structures after relaxation.
-    gsr_relax_edos_paths: list[str]      # Paths to the GSR files with electron DOS for the deformed structures after relaxation.
-    gsr_relax_ebands_paths: list[str]    # Paths to the GSR files with electron bands for the deformed structures after relaxation.
+    gsr_bo_path: str                   # Path to GSR file with the relaxed BO configuration.
+    gsr_relax_paths: list[str]         # Paths to GSR files for the deformed structures after relaxation.
+    ddb_relax_paths: list[str]         # Paths to DDB files with phonons for the deformed structures after relaxation.
+    gsr_relax_edos_paths: list[str]    # Paths to GSR files with electron DOS for the deformed structures after relaxation.
+    gsr_relax_ebands_paths: list[str]  # Paths to GSR files with electron bands for the deformed structures after relaxation.
 
     thermal_relax_entries: list[ThermalRelaxEntry]
 
@@ -683,7 +699,7 @@ class ZsisaResults(Serializable):
             raise ValueError("Dataframe does not contain elastic constants!")
 
         if one_pressure:
-            ax, fig, plt = get_ax_fig_plt(ax=ax)
+            ax, fig, plt = get_ax_fig_plt(ax=None)
             for c_key in c_keys:
                 plot_xy_with_hue(df, "temperature", c_key, ax=ax, **plt_kwargs)
         else:

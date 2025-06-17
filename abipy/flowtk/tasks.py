@@ -1454,6 +1454,14 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.mem_scales = True
         self.load_scales = True
 
+        self._post_init_()
+
+    def _post_init_(self) -> None:
+        """
+        Mimic __post_init__ to facilitate possible migration to dataclasses.
+        Subclasses are supposed to provide their own implementation.
+        """
+
     def __getstate__(self):
         """
         Return state is pickled as the contents for the instance.
@@ -3790,13 +3798,27 @@ class RelaxTask(GsTask, ProduceHist):
 class MultiRelaxTask(RelaxTask):
     """
     Specialized task class derived from RelaxTask.
-    It’s designed to perform multiple structural relaxations that are sensitive to initial cell size.
+    It is designed to perform multiple structural relaxations that are sensitive
+    to the initial cell size (optcell != 0).
+
+    The first relaxation is done with chkdilatmx 0, boxcutmin 1.7 to get an improved structure.
+    The second relaxation is done with chkdilatmx 1, boxcutmin 1.9 and dilatmx 1.05
+    Finally a last relaxation is done with more accurate settings.
+
+    For the Abinit documentation:
+
+    When you have no idea of evolution of the lattice parameters, and suspect that a large increase
+    during geometry optimization is possible, while you need an accurate estimation of the geometry, then make a first
+    run with [[chkdilatmx]] = 0, producing an inaccurate, but much better estimation, followed by a second run using
+    the newly estimated geometry, with [[chkdilatmx]] = 1 (the default) and [[dilatmx]] set to 1.05.
+    If you are not in search of an accurate estimation of the lattice parameters anyhow,
+    then run with [[chkdilatmx]] = 0 only once.
     """
 
-    def __init__(self, input: AbinitInput,
-                 workdir=None, manager=None, deps=None):
+    #def __init__(self, input: AbinitInput, workdir=None, manager=None, deps=None):
+    #    super().__init__(input, workdir=workdir, manager=manager, deps=deps)
 
-        super().__init__(input, workdir=workdir, manager=manager, deps=deps)
+    def _post_init_(self) -> None:
 
         # Keep a copy of the original input.
         self.original_input = self.input.deepcopy()
@@ -3830,6 +3852,7 @@ class MultiRelaxTask(RelaxTask):
                 self.input["boxcutmin"] = 2.0
             else:
                 self.input["boxcutmin"] = 1.8
+                self.input["chkdilatmx"] = 1
                 self.input["dilatmx"] = 1.05
             self.finalized = False
             self.restart()
@@ -3837,6 +3860,7 @@ class MultiRelaxTask(RelaxTask):
         if optcell != 0 and self.num_double_relax_restarts == 2:
             # Second restart.
             self.input["boxcutmin"] = 2.0
+            self.input["chkdilatmx"] = 1
             self.input["dilatmx"] = 1.0
             self.finalized = False
             self.restart()

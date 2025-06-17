@@ -116,7 +116,7 @@ def mp_search(chemsys_formula_id):
         return restapi.MpStructures(structures, mpids, data=data)
 
 
-def cod_search(formula, primitive=False):
+def cod_search(formula: str, primitive: bool = False):
     """
     Connect to the COD_ database. Get list of structures corresponding to a chemical formula
 
@@ -129,7 +129,7 @@ def cod_search(formula, primitive=False):
             List of Structure objects, COD ids associated to structures.
             and List of dictionaries with COD data (same order as structures).
 
-        Note that the attributes evalute to False if no match is found
+        Note that the attributes evaluate to False if no match is found
     """
     from pymatgen.ext.cod import COD
     data = COD().get_structure_by_formula(formula)
@@ -429,8 +429,8 @@ class Structure(pmg_Structure, NotebookWriter):
         import pymatgen.io.ase as aio
         return aio.AseAtomsAdaptor.get_structure(atoms, cls=cls)
 
-    # FIXME: Temporary workaround to maintain compatbility with old pymatgen versions.
-    # m_elems was added in v2024.7.18
+    # FIXME: Temporary workaround to maintain compatibility with old pymatgen versions.
+    # n_elems was added in v2024.7.18
     @property
     def n_elems(self) -> int:
         """Number of types of atoms."""
@@ -705,7 +705,7 @@ class Structure(pmg_Structure, NotebookWriter):
         else:
             return super().to(fmt=fmt, filename=filename, **kwargs)
 
-    def compare(self, other, atol: float= 1e-6) -> tuple[bool, str]:
+    def compare(self, other, atol: float = 1e-6) -> tuple[bool, str]:
         """
         Compare two structures with absolute tolerance `atol`.
         Return: bool indicating if structures are equal and string with error message, if any.
@@ -714,7 +714,7 @@ class Structure(pmg_Structure, NotebookWriter):
         file = StringIO()
         lat_match = np.allclose(self.lattice.matrix, other.lattice.matrix, atol=atol)
         if not lat_match:
-           print("Mismatch in lattice", file=file)
+            print("Mismatch in lattice", file=file)
 
         site_match = True
         if len(self) != len(other):
@@ -971,7 +971,8 @@ class Structure(pmg_Structure, NotebookWriter):
         Args:
             symprec (float): Symmetry precision used to refine the structure.
             angle_tolerance (float): Tolerance on angles.
-                if ``symprec`` is None and `angle_tolerance` is None, no structure refinement is peformed.
+                if ``symprec`` is None and `angle_tolerance` is None,
+                no structure refinement is performed.
             primitive (bool): Returns most primitive structure found.
             primitive_standard (bool): Whether to convert to a primitive cell using
                 the standards defined in Setyawan, W., & Curtarolo, S. (2010).
@@ -1301,7 +1302,7 @@ class Structure(pmg_Structure, NotebookWriter):
         {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
 
         Args:
-            tolsym: Abinit tolsym input variable. None correspondes to the default value.
+            tolsym: Abinit tolsym input variable. None corresponds to the default value.
             pre: Keywords in dictionary are prepended with this string
         """
         from abipy.data.hgh_pseudos import HGH_TABLE
@@ -1404,7 +1405,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         Args:
             knames: List of strings with the k-point labels.
-            cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates
+            cart_coords: True if the ``coords`` dataframe should contain Cartesian coordinates
                 instead of Reduced coordinates.
         """
         kname2frac = {k.name: k.frac_coords for k in self.hsym_kpoints}
@@ -1461,7 +1462,7 @@ class Structure(pmg_Structure, NotebookWriter):
         from .kpoints import Kpoint
         kpoint = Kpoint.as_kpoint(kpoint, self.reciprocal_lattice)
 
-        # Try to find kpoint in hsym_stars without taking into accout symmetry operation (compare with base_point)
+        # Try to find kpoint in hsym_stars without taking into account symmetry operation (compare with base_point)
         # Important if there are symmetry equivalent k-points in hsym_kpoints e.g. K and U in FCC lattice
         # as U should not be mapped onto K as done in the second loop below.
         from .kpoints import issamek
@@ -1730,7 +1731,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 instance of visu is returned. See |Visualizer| for the list of applications and formats supported.
             verbose: Verbosity level
 
-        Returns: ``Visulizer`` instance.
+        Returns: ``Visualizer`` instance.
         """
         if "." not in filename:
             raise ValueError("Cannot detect extension in filename %s:" % filename)
@@ -1954,7 +1955,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         Displace the sites of the structure along the displacement vector displ.
 
-        The displacement vector is first rescaled so that the maxium atomic displacement
+        The displacement vector is first rescaled so that the maximum atomic displacement
         is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
         all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
@@ -1991,7 +1992,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         Displace one site of the structure along the displacement vector displ.
 
-        The displacement vector is first rescaled so that the maxium atomic displacement
+        The displacement vector is first rescaled so that the maximum atomic displacement
         is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
         the site so that the maximum atomic displacement is 0.001 Angstrom.
 
@@ -2612,7 +2613,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -2659,7 +2660,7 @@ def dataframes_from_structures(struct_objects, index=None, symprec=1e-2, angle_t
         symprec (float): Symmetry precision used to refine the structure.
         angle_tolerance (float): Tolerance on angles.
         with_spglib (bool): If True, spglib_ is invoked to get the spacegroup symbol and number.
-        cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates
+        cart_coords: True if the ``coords`` dataframe should contain Cartesian coordinates
             instead of Reduced coordinates.
 
     Return:
@@ -2774,7 +2775,7 @@ class StructureModifier:
         """
         Displace the sites of the structure along the displacement vector displ.
 
-        The displacement vector is first rescaled so that the maxium atomic displacement
+        The displacement vector is first rescaled so that the maximum atomic displacement
         is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
         all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
@@ -2912,7 +2913,7 @@ class StructDiff:
             raise ValueError(f"Found duplicated entries in: {self.labels}")
         natom = len(self.structs[0])
         if any(len(s) != natom for s in self.structs):
-            raise ValueError("structures have different numbe of atoms!")
+            raise ValueError("structures have different number of atoms!")
 
     def del_label(self, label: str) -> None:
         """Remove entry associated to label."""

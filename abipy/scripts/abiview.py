@@ -15,7 +15,8 @@ from monty.termcolor import cprint
 from abipy import abilab
 from abipy.abio.outputs import AbinitOutputFile
 from abipy.iotools.visualizer import Visualizer
-from abipy.tools.plotting import MplExposer, PanelExposer, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
+from abipy.tools.plotting import MplExposer, PanelExposer, GenericDataFilePlotter
+# , plotlyfigs_to_browser, push_to_chart_studio
 
 
 def handle_overwrite(path, options):
@@ -272,6 +273,7 @@ def abiview_ddb(options) -> int:
         # Don't need PHDOS if phononwebsite
         nqsmall = 0 if options.phononwebsite else 10
         ndivsm = 20; asr = 2; chneut = 1; dipdip = 1; dos_method = "tetra"; lo_to_splitting = "automatic"
+        #chneut = 0
         print(f"""
 Computing phonon bands and DOS from DDB file with:
 
@@ -891,7 +893,7 @@ def get_parser(with_epilog=False):
     ifermi_parser.add_argument("-i", '--interpolation-factor', default=8, type=float,
         help="interpolation factor for band structure  [default: 8.0]")
     ifermi_parser.add_argument("--eref", default="fermie", type=str, choices=['fermie', 'cbm', 'vbm'],
-        help="Energy reference for isosurface. `eref` and `mu` define the energy level: isoe = eref + mu"  +
+        help="Energy reference for isosurface. `eref` and `mu` define the energy level: isoe = eref + mu" +
               "Use `fermie` for metals, `cbm` for the conduction band minimum, and `vbm` for the valence band maximum, " +
              "[default: `fermie`]")
     ifermi_parser.add_argument("-t", '--plot-type', default="plotly", choices=["plotly", "matplotlib", "mayavi"],
