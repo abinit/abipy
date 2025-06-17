@@ -1570,8 +1570,8 @@ class QHA_ZSISA(HasPickleIO):
                         for m, dim4_list in enumerate(dim3_list):
                             for n, dos in enumerate(dim4_list):
                                if dos is not None:
-                                   f[i,j,k,l,m,n] = dos.get_free_energy(temp, temp, 1).values
-                                   entropy[i,j,k,l,m,n] = dos.get_entropy(temp, temp, 1).values
+                                   f[i,j,k,l,m,n] = dos.get_free_energy(temp, temp, 1).values.item()
+                                   entropy[i,j,k,l,m,n] = dos.get_entropy(temp, temp, 1).values.item()
                                else:
                                    f[i,j,k,l,m,n] = None
                                    entropy[i,j,k,l,m,n] = None

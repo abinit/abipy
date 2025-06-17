@@ -317,9 +317,13 @@ class QHA_2D(HasPickleIO):
 
             xy_init = self.get_initial_guess_ac()
             min_x, min_y, min_tot_en = np.zeros(num), np.zeros(num), np.zeros(num)
-            for j,e in enumerate(tot_en.T):
+            for j, e in enumerate(tot_en.T):
                 f_interp = RectBivariateSpline(a0, c0, e, kx=4, ky=4)
-                min_x[j], min_y[j], min_tot_en[j]= self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e2 = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                min_x[j] = x.item()
+                min_y[j] = y.item()
+                min_tot_en[j] = e2.item()
+
                 xy_init = min_x[j], min_y[j]
 
             ax.scatter(min_y, min_x, min_tot_en, color='c', s=100)
@@ -353,7 +357,12 @@ class QHA_2D(HasPickleIO):
             min_x, min_y, min_tot_en2 = np.zeros(num), np.zeros(num), np.zeros(num)
             for j, e in enumerate(tot_en2.T):
                 f_interp = RectBivariateSpline(a, c, e, kx=4, ky=4)
-                min_x[j], min_y[j], min_tot_en2[j] = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e2 = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+
+                min_x[j] = x.item()
+                min_y[j] = y.item()
+                min_tot_en2[j] = e2.item()
+
                 xy_init = min_x[j], min_y[j]
 
             X, Y = np.meshgrid(c, a)
@@ -404,7 +413,11 @@ class QHA_2D(HasPickleIO):
             # Perform minimization for each temperature
             for j, energy in enumerate(tot_energies.T):
                 f_interp = RectBivariateSpline(self.lattice_a[:, 0], self.lattice_c[0, :], energy, kx=4, ky=4)
-                min_x[j], min_y[j], min_tot_energy[j] = self.find_minimum( f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e = self.find_minimum( f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                min_x[j] = x.item()
+                min_y[j] = y.item()
+                min_tot_energy[j] = e.item()
+
                 xy_init = min_x[j], min_y[j]
 
             # Calculate thermal expansion coefficients
@@ -448,7 +461,11 @@ class QHA_2D(HasPickleIO):
 
             for j, energy in enumerate(tot_en2.T):
                 f_interp = RectBivariateSpline(self.lattice_a[:, 0], self.lattice_c[0, :], energy, kx=4, ky=4)
-                min_x[j], min_y[j], min_tot_energy[j] = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                min_x[j] = x.item()
+                min_y[j] = y.item()
+                min_tot_energy[j] = e.item()
+
                 xy_init = min_x[j], min_y[j]
 
             A0 = self.lattice_a[self.ix0,self.iy0]
@@ -511,7 +528,11 @@ class QHA_2D(HasPickleIO):
             # Perform minimization for each temperature
             for j, energy in enumerate(tot_energies.T):
                 f_interp = RectBivariateSpline(self.lattice_a[:, 0], self.lattice_c[0, :], energy, kx=4, ky=4)
-                min_x[j], min_y[j], min_tot_energy[j] = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                min_x[j] = x.item()
+                min_y[j] = y.item()
+                min_tot_energy[j] = e.item()
+
                 xy_init = min_x[j], min_y[j]
 
             # Calculate thermal expansion coefficients
@@ -550,7 +571,11 @@ class QHA_2D(HasPickleIO):
 
             for j, energy in enumerate(tot_en2.T):
                 f_interp = RectBivariateSpline(self.lattice_a[:, 0], self.lattice_c[0, :], energy, kx=4, ky=4)
-                min_x[j], min_y[j], min_tot_energy[j] = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                min_x[j] = x.item()
+                min_y[j] = y.item()
+                min_tot_energy[j] = e.item()
+
                 xy_init = min_x[j], min_y[j]
 
             A0 = self.lattice_a[self.ix0, self.iy0]
