@@ -12,9 +12,9 @@ import dataclasses
 import abipy.core.abinit_units as abu
 
 from abipy.abio.enums import StrEnum
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
-from abipy.tools.typing import Figure
-from abipy.tools.serialization import mjson_load, HasPickleIO, Serializable
+#from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+#from abipy.tools.typing import Figure
+from abipy.tools.serialization import HasPickleIO, Serializable
 from abipy.core.structure import Structure
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.electrons.gsr import GsrFile
@@ -63,7 +63,6 @@ class ThermalData(Serializable):
         )
 
 
-
 class QHA_ZSISA(HasPickleIO):
     """
     NB: The present implementation does not include electronic entropic contributions for metals.
@@ -96,13 +95,10 @@ class QHA_ZSISA(HasPickleIO):
         # Create a 6D array initialized with None.
         phdos_paths_6d = np.full((3, 3, 3, 3, 3, 3), None, dtype=object)
 
-        # === Paths to guessed and BO-relaxed structures ===
-        gsr_guess_path = data.gsr_bo_path # FIXME
-
         for phdos_path, ind in zip(phdos_paths, data.inds_6d, strict=True):
             phdos_paths_6d[tuple(ind)] = phdos_path
 
-        new = cls.from_files(phdos_paths_6d, gsr_guess_path, data.gsr_bo_path, qha_model=data.qha_model, verbose=verbose)
+        new = cls.from_files(phdos_paths_6d, data.gsr_bo_path, qha_model=data.qha_model, verbose=verbose)
 
         workdir = os.path.dirname(json_filepath)
         new.pickle_dump(workdir, basename=os.path.basename(json_filepath) + ".pickle")
@@ -112,7 +108,6 @@ class QHA_ZSISA(HasPickleIO):
     @classmethod
     def from_files(cls,
                    phdos_paths_6D,
-                   gsr_guess_path,
                    gsr_bo_path,
                    qha_model: str = 'zsisa',
                    verbose: int = 0,
@@ -129,7 +124,6 @@ class QHA_ZSISA(HasPickleIO):
                      For cubic cases, a 1D or 3D array is also accepted for the TEC case.
                      For uniaxial cases (hexagonal, trigonal, and tetragonal), a 2D or 3D
                      array is also accepted for the TEC case.
-            gsr_guess_path: Path to the GSR file used for the initial guess.
             gsr_bo_path: Path to the GSR file for the Born-Oppenheimer structure,
                 or the reference structure used to build deformations.
                 This is needed to reconstruct strains from Eqs. (24) and (25) in the paper.
@@ -145,27 +139,17 @@ class QHA_ZSISA(HasPickleIO):
             if gsr_bo_path.endswith("DDB"):
                 with DdbFile.from_file(gsr_bo_path) as g:
                     structure_bo = g.structure
-                    stress_bo = g.cart_stress_tensor * abu.GPa_to_au # /29421.02648438959
+                    stress_bo = g.cart_stress_tensor * abu.GPa_to_au
 
             elif gsr_bo_path.endswith("GSR.nc"):
                 with GsrFile.from_file(gsr_bo_path) as g:
                     structure_bo = g.structure
-                    stress_bo = g.cart_stress_tensor * abu.GPa_to_au # /29421.02648438959
+                    stress_bo = g.cart_stress_tensor * abu.GPa_to_au
             else:
                 raise TypeError(f"Unknown file type: {type(gsr_bo_path)=}")
 
         else:
-             raise FileNotFoundError(f"Error: Born-Oppenheimer GSR file at {gsr_bo_path=} does not exist.")
-
-        # If the GSR file for the initial guess exists, read the structure and stress tensor
-        if os.path.exists(gsr_guess_path):
-            with GsrFile.from_file(gsr_guess_path) as g:
-                structure_guess = g.structure
-                stress_guess = g.cart_stress_tensor * abu.GPa_to_au # /29421.02648438959
-        else:
-            # If the initial guess GSR file is missing, fall back to the BO structure and stress
-            structure_guess = structure_bo
-            stress_guess = stress_bo
+            raise FileNotFoundError(f"Error: Born-Oppenheimer GSR file at {gsr_bo_path=} does not exist.")
 
         spgrp = AbinitSpaceGroup.from_structure(structure_bo)
         spgrp_number = spgrp.spgid
@@ -183,13 +167,13 @@ class QHA_ZSISA(HasPickleIO):
             elif 16 <= spgrp_number <= 74:
                 # orthorhombic crystal system
                 sym = "orthorhombic"
-            elif 75  <= spgrp_number <= 142:
+            elif 75 <= spgrp_number <= 142:
                 # Tetragonal crystal system
                 sym = "tetragonal"
             elif 143 <= spgrp_number <= 167:
                 # trigonal systems
                 sym = "trigonal"
-            elif  168 <= spgrp_number <= 194:
+            elif 168 <= spgrp_number <= 194:
                 # hexagonal crystal systems
                 sym = "hexagonal"
             elif 195 <= spgrp_number <= 230:
@@ -283,7 +267,7 @@ class QHA_ZSISA(HasPickleIO):
 
         # If the structure is cubic and the input PHDOS data is 1D, expand it to a 3D format.
         if list(dim) == [3, 1, 1, 1, 1, 1] and qha_model == 'zsisa':
-            if sym !='cubic' :
+            if sym != 'cubic' :
                 raise RuntimeError("Only cubic structure is allowed to have 1D PHDOS data.")
 
             new_shape = (3, 3, 3, 1, 1, 1)
@@ -298,14 +282,12 @@ class QHA_ZSISA(HasPickleIO):
             structures = structures2
             phdoses = phdoses2
 
-        return cls(structures, phdoses, dim, structure_guess, stress_guess, structure_bo, sym, verbose=verbose)
+        return cls(structures, phdoses, dim, structure_bo, sym, verbose=verbose)
 
     def __init__(self,
                  structures: list[Structure],
                  phdoses,
                  dim,
-                 structure_guess: Structure,
-                 stress_guess,
                  structure_bo: Structure,
                  sym: str,
                  verbose: int = 0):
@@ -314,8 +296,7 @@ class QHA_ZSISA(HasPickleIO):
             structures: List of structures at different strains.
             phdoses: List of phonon density of states (PHDOS) objects computed at different strains.
             dim: Shape of the 6D dataset.
-            structure_guess: Initial structure used as a guess.
-            stress_guess: Stress tensor corresponding to the initial guess structure as (3,3) matrix
+
             structure_bo: Born-Oppenheimer reference structure.
             sym: Crystallographic symmetry of the reference structure.
         """
@@ -364,7 +345,8 @@ class QHA_ZSISA(HasPickleIO):
         self.ave_y = np.zeros_like(self.volumes)
         self.ave_z = np.zeros_like(self.volumes)
 
-        mask = self.ax != None  # Create a mask where self.ax is not None
+        # Create a mask where self.ax is not None
+        mask = self.ax != None
 
         # Compute averages. Eq (43) from the paper:
         # ave_x corresponds to A_x in the paper
@@ -391,7 +373,7 @@ class QHA_ZSISA(HasPickleIO):
         self.ave_z_bo = (abs(self.az_bo)+abs(self.bz_bo)+abs(self.cz_bo))
 
         # Set structure parameters for initial guess.
-        self.set_structure_stress_guess(structure_guess, stress_guess)
+        #self.set_structure_stress_guess(structure_guess, stress_guess)
 
     def set_structure_stress_guess(self, structure_guess: Structure, stress_guess) -> None:
         """
@@ -792,10 +774,10 @@ class QHA_ZSISA(HasPickleIO):
             d2S_dXdY = (S[1,1,1,0,0,0] - S[0,1,1,0,0,0] - S[1,0,1,0,0,0] + S[0,0,1,0,0,0]) / (dexx *deyy)
             d2S_dYdZ = (S[1,1,1,0,0,0] - S[1,0,1,0,0,0] - S[1,1,0,0,0,0] + S[1,0,0,0,0,0]) / (deyy *dezz)
 
-        d2F_dXY2  = 0.0
+        d2F_dXY2 = 0.0
         d2F_dXdYZ = 0.0
-        d2F_dYZ2  = 0.0
-        d2F_dXZ2  = 0.0
+        d2F_dYZ2 = 0.0
+        d2F_dXZ2 = 0.0
 
         # If elastic constants are requested, compute shear strain steps and their related second derivatives
         # by fitting a quadratic curve. Section G in APPENDIX.
@@ -1505,9 +1487,20 @@ class QHA_ZSISA(HasPickleIO):
 
     def get_tstress(self,
                     temp: float,
-                    pressure: float = 0.0,
+                    pressure: float,
+                    structure_guess: Structure,
+                    stress_guess,
                     mode: str = "TEC",
-                    elastic_path: str = "elastic_constant.txt") -> ThermalData:
+                    elastic_path: str | None = "elastic_constant.txt") -> ThermalData:
+        """
+        Args
+            temp: Temperature in K.
+            pressure: Pressure in GPa
+            structure_guess: Structure used as a guess.
+            stress_guess: Stress tensor corresponding to the initial guess structure as (3,3) matrix in a.u.
+            mode: "TEC" or "ECs"
+        """
+        self.set_structure_stress_guess(structure_guess, stress_guess)
 
         self.elastic_path = elastic_path
         pressure_gpa = pressure
@@ -1658,7 +1651,7 @@ class QHA_ZSISA(HasPickleIO):
                 elif self.sym == "monoclinic":
                     if mode != 'ECs':
                         f.write(f" Warning: C44, C46, and C66 do not include the free energy contribution (only BO energy).\n")
-                    f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
+                    f.write( " \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
                     f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
                     f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
                     f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")

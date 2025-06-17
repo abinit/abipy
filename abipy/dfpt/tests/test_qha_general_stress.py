@@ -1,10 +1,15 @@
 """Tests for qha_general_stress module"""
+
 import os
 import abipy.data as abidata
-
-from abipy.dfpt.qha_general_stress import QHA_ZSISA
-from abipy.core.testing import AbipyTest
 import abipy.core.abinit_units as abu
+
+
+from abipy.core.testing import AbipyTest
+from abipy.electrons.gsr import GsrFile
+from abipy.dfpt.qha_general_stress import QHA_ZSISA
+
+
 
 
 class QhaZSISATest(AbipyTest):
@@ -19,12 +24,17 @@ class QhaZSISATest(AbipyTest):
         strains_c = [1000, 1005, 1010]
 
         dos_paths = [[os.path.join(root, f"scale_{s1}_{s3}/out_PHDOS.nc") for s3 in strains_c] for s1 in strains_a]
-        guess_path = os.path.join(root, f"find_TEC/Temp_0300_000/Relax2o_GSR.nc")
+        gsr_guess_path = os.path.join(root, f"find_TEC/Temp_0300_000/Relax2o_GSR.nc")
         gsr_BO_paths = os.path.join(root, f"scale_1000_1000/out_GSR_DDB")
         elastic_BO_paths = os.path.join(root, f"find_TEC/Temp_0300_000/elastic_constant.txt")
 
-        zsisa = QHA_ZSISA.from_files(dos_paths, guess_path, gsr_BO_paths, verbose=1)
-        tdata = zsisa.get_tstress(300.0, pressure=0.0, elastic_path=elastic_BO_paths)
+        with GsrFile(gsr_guess_path) as gsr:
+            structure_guess = gsr.structure
+            stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
+
+        zsisa = QHA_ZSISA.from_files(dos_paths, gsr_BO_paths, verbose=1)
+        tdata = zsisa.get_tstress(300.0, 0.0, structure_guess, stress_guess,
+                                  mode="TEC", elastic_path=elastic_BO_paths)
         #print("Stress calculation result:", tdata)
 
         dtol, stress, therm = zsisa.stress_ZSISA_2DOF(300.0, 0.0)
@@ -47,14 +57,21 @@ class QhaZSISATest(AbipyTest):
 
         dos_paths = [[[[os.path.join(root, f"scale_{s1}_{s2}_{s3}_{s4}_1000_1000/out_PHDOS.nc") for s4 in strains_d]
             for s3 in strains_c] for s2 in strains_b] for s1 in strains_a]
-        guess_path = os.path.join(root, f"find_TEC_ECs/Temp_0600_08/Relax2o_GSR.nc")
+        gsr_guess_path = os.path.join(root, f"find_TEC_ECs/Temp_0600_08/Relax2o_GSR.nc")
         gsr_BO_path = os.path.join(root, f"scale_1000_1000_1000_1000_1000_1000/out_GSR.nc")
         elastic_path = os.path.join(root, f"find_TEC_ECs/Temp_0600_08/elastic_constant.txt")
 
+        with GsrFile(gsr_guess_path) as gsr:
+            structure_guess = gsr.structure
+            stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
+
         temp = 600
         pressure = 8.0
-        zsisa = QHA_ZSISA.from_files(dos_paths, guess_path, gsr_BO_path)
-        tdata = zsisa.get_tstress(temp, pressure, mode='ECs', elastic_path=elastic_path)
+        zsisa = QHA_ZSISA.from_files(dos_paths, gsr_BO_path)
+
+        tdata = zsisa.get_tstress(temp, pressure, structure_guess, stress_guess,
+                                  mode='ECs', elastic_path=elastic_path)
+
         assert zsisa.dim == (3, 3, 3, 3, 1, 1)
         #print("Stress calculation result:", tdata)
         dtol, stress, therm, elastic = zsisa.stress_ZSISA_3DOF(temp, pressure/abu.HaBohr3_GPa, mode='ECs')

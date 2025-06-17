@@ -327,13 +327,20 @@ class ThermalRelaxWork(Work):
         print(f"Computing Phonon DOS with {nqsmall_or_qppa=} ...")
         work.zsisa = QHA_ZSISA.from_json_file(json_filepath, nqsmall_or_qppa, verbose=verbose)
 
-        scf_input = flow[0].initial_scf_input
-        relax_template = flow[0].relax_template
+        work0 = flow[0]
+
+        scf_input = work0.initial_scf_input
+        relax_template = work0.relax_template
+
+        with work0.initial_relax_task.open_gsr() as gsr:
+            structure_guess = gsr.structure
+            stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
 
         # Generate initial ThermalRelaxTask tasks.
         work.thermal_relax_tasks = []
         for pressure_gpa, temperature in itertools.product(work.pressures_gpa, work.temperatures):
             tdata = work.zsisa.get_tstress(temperature, pressure_gpa,
+                                           structure_guess, stress_guess,
                                            mode=work.mode, elastic_path=None)
 
             extra_vars = {
@@ -388,8 +395,8 @@ class ThermalRelaxWork(Work):
                 relaxed_structure = gsr.structure
                 stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
 
-            zsisa.set_structure_stress_guess(relaxed_structure, stress_guess)
             tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa,
+                                      relaxed_structure, stress_guess,
                                       mode=self.mode, elastic_path=elastic_path)
             print(tdata)
 
@@ -434,8 +441,8 @@ class ThermalRelaxTask(RelaxTask):
             stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
 
         zsisa = self.work.zsisa
-        zsisa.set_structure_stress_guess(relaxed_structure, stress_guess)
         tdata = zsisa.get_tstress(self.temperature, self.pressure_gpa,
+                                  relaxed_structure, stress_guess,
                                   mode=self.mode, elastic_path=None)
         #print(tdata)
 
