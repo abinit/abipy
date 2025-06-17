@@ -46,7 +46,7 @@ class ElasticWork(Work, MergeDdb):
         Args:
             scf_input:
             with_relaxed_ion:
-            with_piezo:
+            with_piezo: True to compute piezoelectric tensor.
             with_dde: Compute electric field perturbations.
             tolerances: Dict of tolerances
             den_deps:

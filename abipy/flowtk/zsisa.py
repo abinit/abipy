@@ -50,6 +50,7 @@ class ZsisaFlow(Flow):
                        ionmov: int = 2,
                        tolmxf: float = 1e-5,
                        qha_model: str = 'zsisa',
+                       with_piezo: bool = False,
                        manager=None) -> ZsisaFlow:
         """
         Build a flow for ZSISA calculations from an |AbinitInput| representing a GS-SCF calculation.
@@ -86,6 +87,7 @@ class ZsisaFlow(Flow):
                   - 'zsisa': Standard ZSISA model.
                   - 'v_zsisa': v-ZSISA model.
                   - 'zsisa_slab': ZSISA model adapted for slab geometries.
+            with_piezo: True to compute piezoelectric tensor.
             manager: |TaskManager| instance. Use default if None.
         """
         # Consistency check.
@@ -103,6 +105,7 @@ class ZsisaFlow(Flow):
         flow.pressures_gpa = np.array(pressures_gpa, dtype=float)
         flow.qha_model = qha_model
         flow.nqsmall_or_qppa = nqsmall_or_qppa
+        flow.with_piezo = with_piezo
 
         flow.register_work(ZsisaWork.from_scf_input(scf_input, eps, mode, ngqpt, with_becs, with_quad,
                                                     nqsmall_or_qppa, ndivsm, ionmov, tolmxf,
@@ -244,8 +247,7 @@ class ZsisaWork(Work):
             # Relax each deformed structure with fixed unit cell (optcell 0).
             self.relax_tasks_strained = []
             for structure in self.strained_structures_dict.values():
-                task = self.register_relax_task(self.relax_template.new_with_structure(structure, optcell=0))
-                #task = self.register_multi_relax_task(self.relax_template.new_with_structure(structure, optcell=0))
+                task = self.register_relax_task(self.relax_template.new_with_structure(structure, optcell=0, dilatmx=1.0))
                 self.relax_tasks_strained.append(task)
 
             self.flow.allocate(build=True)
@@ -458,7 +460,8 @@ class ThermalRelaxTask(RelaxTask):
             scf_input = self.input.new_with_structure(relaxed_structure, ionmov=0, optcell=0)
             # Remove all irdvars. Important!
             scf_input.pop_irdvars()
-            self.elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True)
+            self.elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True,
+                                    with_piezo=self.flow.with_piezo)
             self.flow.register_work(self.elastic_work)
             self.flow.allocate(build=True)
 

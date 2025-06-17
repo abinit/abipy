@@ -1533,7 +1533,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         return self.work.flow
 
     @cached_property
-    def pos(self) -> int:
+    def pos(self) -> tuple[int, int]:
         """The position of the task inside the |Flow|"""
         for i, task in enumerate(self.work):
             if self == task:
@@ -3814,10 +3814,6 @@ class MultiRelaxTask(RelaxTask):
     If you are not in search of an accurate estimation of the lattice parameters anyhow,
     then run with [[chkdilatmx]] = 0 only once.
     """
-
-    #def __init__(self, input: AbinitInput, workdir=None, manager=None, deps=None):
-    #    super().__init__(input, workdir=workdir, manager=manager, deps=deps)
-
     def _post_init_(self) -> None:
 
         # Keep a copy of the original input.
