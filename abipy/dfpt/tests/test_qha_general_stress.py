@@ -36,10 +36,12 @@ class QhaZSISATest(AbipyTest):
         zsisa = QHA_ZSISA.from_files(dos_paths, gsr_BO_paths, verbose=1)
         tdata = zsisa.get_tstress(300.0, 0.0, structure_guess, stress_guess, energy_guess,
                                   mode="TEC", elastic_path=elastic_BO_paths)
-        #print("Stress calculation result:", tdata)
+        #print("tdata)
+        assert tdata.elastic is None
 
         dtol, gibbs, stress, therm = zsisa.stress_ZSISA_2DOF(300.0, 0.0)
 
+        self.assert_almost_equal(gibbs, -12268.354238255062)
         self.assert_almost_equal(dtol,
                 [9.64016894e-09 ,9.64014627e-09, 9.27508661e-09, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00])
         self.assert_almost_equal(stress,
@@ -69,13 +71,23 @@ class QhaZSISATest(AbipyTest):
         temp = 600
         pressure = 8.0
         zsisa = QHA_ZSISA.from_files(dos_paths, gsr_BO_path)
-
-        tdata = zsisa.get_tstress(temp, pressure, structure_guess, stress_guess, energy_guess, 
-                                  mode='ECs', elastic_path=elastic_path)
-
         assert zsisa.dim == (3, 3, 3, 3, 1, 1)
-        #print("Stress calculation result:", tdata)
+
+        tdata = zsisa.get_tstress(temp, pressure, structure_guess, stress_guess, energy_guess,
+                                  mode='ECs', elastic_path=elastic_path)
+        #print(tdata)
+        self.assert_almost_equal(tdata.elastic, [
+            [201.48244311, 153.66462493, 137.08726476, 0., 0., 0.],
+            [153.66462493, 201.48250611, 137.08726776, 0., 0., 0.],
+            [137.08725376, 137.08725576, 213.92063478, 0., 0., 0.],
+            [0., 0., 0., 28.43553811, 0., 0.],
+            [0., 0., 0., 0., 31.676614, 0.],
+            [0., 0., 0., 0., 0., 33.597613]]
+        )
+
         dtol, gibbs, stress, therm, elastic = zsisa.stress_ZSISA_3DOF(temp, pressure/abu.HaBohr3_GPa, mode='ECs')
+
+        self.assert_almost_equal(gibbs, -12268.704989002104)
         self.assert_almost_equal(dtol,
             [1.1743820e-09, 1.1743588e-09, 3.9019984e-10, 0.0000000e+00, 0.0000000e+00, 0.0000000e+00])
         self.assert_almost_equal(stress,

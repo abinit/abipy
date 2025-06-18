@@ -46,8 +46,6 @@ rprim
     # FIXME: This is just to make the computation faster.
     # Initialize structure and pseudos
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif")).abi_sanitize(primitive_standard=True)
-    #print(structure.lattice.matrix)
-    #sys.exit(0)
 
     # Use NC PBE pseudos from pseudodojo v0.4
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos

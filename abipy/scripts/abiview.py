@@ -562,10 +562,8 @@ def abiview_ddb_elastic(options) -> int:
         print(ddb.to_string(verbose=options.verbose))
 
         asr = 2; chneut = 1
-        relaxed_ion = "automatic"
-        piezo = "automatic"
-        dde = False
-        stress_correction = False
+        relaxed_ion = "automatic"; piezo = "automatic"
+        dde = False; stress_correction = False
 
         print(f"""
 Calling anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.
@@ -581,7 +579,8 @@ Calling anaddb to compute elastic and piezoelectric tensors. Require DDB with st
                                      asr=asr,
                                      chneut=chneut,
                                      verbose=options.verbose,
-                                     retpath=False, return_input=False)
+                                     retpath=False,
+                                     return_input=False)
         print(el_data)
         #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
@@ -606,6 +605,7 @@ def abiview_phbands(options) -> int:
             print(abifile.to_string(verbose=options.verbose))
             abifile.expose_phbands(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                                     verbose=options.verbose, units="mev")
+
         #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
         return 0

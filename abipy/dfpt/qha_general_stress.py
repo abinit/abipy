@@ -1625,7 +1625,7 @@ class QHA_ZSISA(HasPickleIO):
         converged = False
         if all(dtol[i] < self.dtol_tolerance for i in range(6)):
             converged = True
-            self.print_data(temp, pressure_gpa, therm, stress, elastic, mode)
+            #self.print_data(temp, pressure_gpa, therm, stress, elastic, mode)
             if self.verbose: print("Converged !!!")
 
         return ThermalData(temperature=temp, pressure_gpa=pressure_gpa,
@@ -1674,78 +1674,80 @@ class QHA_ZSISA(HasPickleIO):
                 try:
                     # Extract numbers from each line
                     numbers = list(map(float, line.split()[1:7]))
+                    print("numbers:", numbers)
                     if numbers:  # Add non-empty lines
                         elastic_data.append(numbers)
-                except ValueError:
+                except ValueError as exc:
+                    #raise exc
                     continue
 
         # Convert the list into a numpy array for easier indexing
         return np.array(elastic_data)
 
-    def print_data(self, temp, pressure, therm, stress, elastic, mode):
-        M = elastic
-        filename = f"cell_{temp:04.0f}_{pressure:03.0f}.txt"
-        with open(filename, "w") as f:
-            f.write(f"{'#T':<8} {'P':<8} {'lattice_a':<13} {'lattice_b':<13} {'lattice_c':<13} "
-                    f"{'alpha':<10} {'beta':<10} {'gamma':<10} {'volume':<13} {'ave_x':<13} "
-                    f"{'ave_y':<13} {'ave_z':<13}\n")
+    #def print_data(self, temp, pressure, therm, stress, elastic, mode):
+    #    M = elastic
+    #    filename = f"cell_{temp:04.0f}_{pressure:03.0f}.txt"
+    #    with open(filename, "w") as f:
+    #        f.write(f"{'#T':<8} {'P':<8} {'lattice_a':<13} {'lattice_b':<13} {'lattice_c':<13} "
+    #                f"{'alpha':<10} {'beta':<10} {'gamma':<10} {'volume':<13} {'ave_x':<13} "
+    #                f"{'ave_y':<13} {'ave_z':<13}\n")
 
-            f.write(f"{temp:<8} {pressure:<8.2f} {self.lattice_a_guess:<13.10f} {self.lattice_b_guess:<13.10f} "
-                    f"{self.lattice_c_guess:<13.10f} {self.angles_guess[0]:<10.5f} {self.angles_guess[1]:<10.5f} "
-                    f"{self.angles_guess[2]:<10.5f} {self.volume_guess:<13.10f} {self.ave_x_guess:<13.10f} "
-                    f"{self.ave_y_guess:<13.10f} {self.ave_z_guess:<13.10f} \n")
+    #        f.write(f"{temp:<8} {pressure:<8.2f} {self.lattice_a_guess:<13.10f} {self.lattice_b_guess:<13.10f} "
+    #                f"{self.lattice_c_guess:<13.10f} {self.angles_guess[0]:<10.5f} {self.angles_guess[1]:<10.5f} "
+    #                f"{self.angles_guess[2]:<10.5f} {self.volume_guess:<13.10f} {self.ave_x_guess:<13.10f} "
+    #                f"{self.ave_y_guess:<13.10f} {self.ave_z_guess:<13.10f} \n")
 
-        if therm is not None:
-            filename = f"TEC_{temp:04.0f}_{pressure:03.0f}.txt"
-            with open(filename, "w") as f:
-                f.write(f"{'#T':<8} {'P':<8} {'alpha_xx':<15} {'alpha_yy':<15} {'alpha_zz':<15} {'alpha_yz':<15} {'alpha_xz':<15} {'alpha_xy':<15}\n")
-                f.write(f"{temp:<8} {pressure:<8.2f} {therm[0]:<15.8e} {therm[1]:<15.8e} {therm[2]:<15.8e} "
-                        f"{therm[3]:<15.8e} {therm[4]:<15.8e} {therm[5]:<15.8e}\n")
+    #    if therm is not None:
+    #        filename = f"TEC_{temp:04.0f}_{pressure:03.0f}.txt"
+    #        with open(filename, "w") as f:
+    #            f.write(f"{'#T':<8} {'P':<8} {'alpha_xx':<15} {'alpha_yy':<15} {'alpha_zz':<15} {'alpha_yz':<15} {'alpha_xz':<15} {'alpha_xy':<15}\n")
+    #            f.write(f"{temp:<8} {pressure:<8.2f} {therm[0]:<15.8e} {therm[1]:<15.8e} {therm[2]:<15.8e} "
+    #                    f"{therm[3]:<15.8e} {therm[4]:<15.8e} {therm[5]:<15.8e}\n")
 
-        if elastic is not None:
-            filename = f"ECs_{temp:04.0f}_{pressure:03.0f}.txt"
-            with open(filename, "w") as f:
-                f.write("Elastic [GPa] \n")
-                if self.sym in ("cubic", "trigonal", "hexagonal", "tetragonal", "orthorhombic"):
-                    if mode == 'ECs':
-                        if self.sym == "cubic":
-                            f.write(f"    {'C11':12s} {'C12':12s} {'C44':12s}\n")
-                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[3,3]:12.6f} \n")
-                        elif self.sym == "hexagonal":
-                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s}\n")
-                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} \n")
-                        elif self.sym == "trigonal":
-                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C14':12s} {'C44':12s}\n")
-                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[0,3]:12.6f} {M[3,3]:12.6f} \n")
-                        elif self.sym == "tetragonal":
-                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s} {'C66':12s}\n")
-                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[5,5]:12.6f} \n")
-                        if  self.sym == "orthorhombic":
-                            f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} {'C44':12s} {'C55':12s} {'C66':12s}\n")
-                            f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[4,4]:12.6f} {M[5,5]:12.6f} \n")
-                    else:
-                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} \n")
-                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} \n")
+    #    if elastic is not None:
+    #        filename = f"ECs_{temp:04.0f}_{pressure:03.0f}.txt"
+    #        with open(filename, "w") as f:
+    #            f.write("Elastic [GPa] \n")
+    #            if self.sym in ("cubic", "trigonal", "hexagonal", "tetragonal", "orthorhombic"):
+    #                if mode == 'ECs':
+    #                    if self.sym == "cubic":
+    #                        f.write(f"    {'C11':12s} {'C12':12s} {'C44':12s}\n")
+    #                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[3,3]:12.6f} \n")
+    #                    elif self.sym == "hexagonal":
+    #                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s}\n")
+    #                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} \n")
+    #                    elif self.sym == "trigonal":
+    #                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C14':12s} {'C44':12s}\n")
+    #                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[0,3]:12.6f} {M[3,3]:12.6f} \n")
+    #                    elif self.sym == "tetragonal":
+    #                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s} {'C66':12s}\n")
+    #                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[5,5]:12.6f} \n")
+    #                    if  self.sym == "orthorhombic":
+    #                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} {'C44':12s} {'C55':12s} {'C66':12s}\n")
+    #                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[4,4]:12.6f} {M[5,5]:12.6f} \n")
+    #                else:
+    #                    f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} \n")
+    #                    f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} \n")
 
-                elif self.sym == "monoclinic":
-                    if mode != 'ECs':
-                        f.write(f" Warning: C44, C46, and C66 do not include the free energy contribution (only BO energy).\n")
-                    f.write( " \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
-                    f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
-                    f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
-                    f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
-                    f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
-                    f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
-                    f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
+    #            elif self.sym == "monoclinic":
+    #                if mode != 'ECs':
+    #                    f.write(f" Warning: C44, C46, and C66 do not include the free energy contribution (only BO energy).\n")
+    #                f.write( " \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
+    #                f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
+    #                f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
+    #                f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
+    #                f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
+    #                f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
+    #                f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
 
-                elif self.sym == "triclinic":
-                    f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
-                    f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
-                    f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
-                    f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
-                    f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
-                    f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
-                    f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
+    #            elif self.sym == "triclinic":
+    #                f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
+    #                f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
+    #                f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
+    #                f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
+    #                f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
+    #                f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
+    #                f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
 
 
     def get_phdos_plotter(self, **kwargs) -> PhononDosPlotter:

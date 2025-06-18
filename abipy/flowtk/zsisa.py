@@ -226,7 +226,6 @@ class ZsisaWork(Work):
         relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
 
         work.initial_relax_task = work.register_multi_relax_task(relax_template)
-        #work.initial_relax_task = work.register_relax_task(relax_template)
 
         return work
 
@@ -345,6 +344,7 @@ class ThermalRelaxWork(Work):
                                            structure_guess, stress_guess, energy_guess,
                                            mode=work.mode, elastic_path=None)
 
+            # TODO: Relax options with ecutsm and strfact?
             extra_vars = {
                 "strtarget": tdata.stress_au,
                 "ionmov": 2,
@@ -355,8 +355,6 @@ class ThermalRelaxWork(Work):
                 "strfact": 1000.,  # This to give more weight to the stress in the relaxation.
             }
 
-            #print(tdata)
-            # TODO: Relax options with ecutsm and strfact?
             new_relax_input = relax_template.new_with_vars(**extra_vars)
 
             # Attach pressure and temperature to the task.
@@ -389,20 +387,30 @@ class ThermalRelaxWork(Work):
             # but things should be done in a much cleaner way.
             elastic_path = task.outdir.path_in("elastic_constant.txt")
             with open(elastic_path, "wt") as f:
+                print("Writing edata to", elastic_path)
                 f.write(str(edata))
-            #edata.elastic_relaxed
+
+            elastic_relaxed = edata.elastic_relaxed
+            elastic_relaxed = edata.elastic_relaxed.zeroed(1e-3)
 
             # Get relaxed structure and stress_guess and energy_guess from the GSR file.
             with task.open_gsr() as gsr:
                 relaxed_structure = gsr.structure
                 stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
                 energy_guess = gsr.energy
-                natom = len(gsr.structure)
 
             tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa,
                                       relaxed_structure, stress_guess, energy_guess,
                                       mode=self.mode, elastic_path=elastic_path)
             print(tdata)
+            print(f"{tdata.elastic=}")
+            print(f"{elastic_relaxed.voigt=}")
+            print("tdata.elastic vs elastic_relaxed")
+            for v1, v2 in zip(tdata.elastic.flatten(), elastic_relaxed.voigt.flatten(), strict=True):
+                print(v1, v2)
+
+            if not np.allclose(tdata.elastic, elastic_relaxed.voigt, rtol=1e-5, atol=1e-8):
+                raise RuntimeError("Diff")
 
             # Init entry and add it to list.
             entry = dict(
@@ -414,7 +422,7 @@ class ThermalRelaxWork(Work):
                 elastic_ddb_path=ddb_filepath,
                 therm=tdata.therm,
                 elastic=tdata.elastic,
-                gibbs_atom=tdata.gibbs / natom,
+                gibbs_atom=tdata.gibbs / len(relaxed_structure),
             )
             entry = ThermalRelaxEntry(**entry)
 
@@ -450,8 +458,6 @@ class ThermalRelaxTask(RelaxTask):
         tdata = zsisa.get_tstress(self.temperature, self.pressure_gpa,
                                   relaxed_structure, stress_guess, energy_guess,
                                   mode=self.mode, elastic_path=None)
-        #print(tdata)
-
         if tdata.converged:
             self.num_converged += 1
         else:

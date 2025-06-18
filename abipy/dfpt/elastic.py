@@ -28,7 +28,7 @@ class MyElasticTensor(ElasticTensor):
 
     def get_voigt_dataframe(self, tol: float = 1e-5) -> pd.DataFrame:
         """
-        Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
+        Return |pandas-DataFrame| with Voigt indices as columns (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
         Elements below `tol` are set to zero.
         """
@@ -70,7 +70,7 @@ class MyPiezoTensor(PiezoTensor):
 
     def get_voigt_dataframe(self, tol: float = 1e-5) -> pd.DataFrame:
         """
-        Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
+        Return |pandas-DataFrame| with Voigt indices as columns (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
         Elements below `tol` are set to zero.
         """
@@ -167,7 +167,7 @@ class ElasticData(Has_Structure, MSONable):
         Args:
             structure: |Structure| object.
             params: Dictionary with input parameters.
-            elastic_clamped: clamped-ion elastic tensor in Voigt notation in GPa. shape (6,6).
+            elastic_clamped: clamped-ion elastic tensor in Voigt notation in GPa. shape (6, 6).
             elastic_relaxed: relaxed-ion elastic tensor in Voigt notation in GPa. shape (6, 6).
             elastic_stress_corr: relaxed-ion elastic tensor considering the stress left inside cell
                 in Voigt notation in GPa. shape (6,6).
@@ -274,7 +274,7 @@ class ElasticData(Has_Structure, MSONable):
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
-        """String represention with verbosity level `verbose`."""
+        """String representation with verbosity level `verbose`."""
         lines = []; app = lines.append
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
@@ -377,7 +377,7 @@ class ElasticData(Has_Structure, MSONable):
         kwargs = {}
         structure = self.structure if structure is None else structure
         for name, tensor in self.name_tensor_list():
-            # TODO: one should pass the ieee stucture.
+            # TODO: one should pass the ieee structure.
             kwargs[name] = tensor.convert_to_ieee(structure,
                 initial_fit=initial_fit, refine_rotation=refine_rotation)
 
@@ -427,7 +427,7 @@ class ElasticData(Has_Structure, MSONable):
 
     def get_voigt_dataframe(self, tensor_names, voigt_as_index=True, tol=None):
         """
-        Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
+        Return |pandas-DataFrame| with Voigt indices as columns (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
 
         Args:
@@ -474,7 +474,7 @@ class ElasticData(Has_Structure, MSONable):
             include_base_props (bool): whether to include base properties, like k_vrh, etc.
             ignore_errors (bool): if set to true, will set problem properties
                 that depend on a physical tensor to None, defaults to False
-            fit_to_structure (bool): If True, properties are computed with the orginal tensors
+            fit_to_structure (bool): If True, properties are computed with the original tensors
                 and symmetrized tensors. An additional column `fit_to_structure` is added to the dataframe.
             symprec (float): symmetry tolerance for the Spacegroup Analyzer
                 used to generate the symmetry operations if `fit_to_structure`
