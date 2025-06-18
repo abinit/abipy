@@ -174,19 +174,19 @@ class Flow(Node, NodeContainer, MSONable):
         elif isinstance(obj, collections.abc.Mapping):
             return cls.from_dict(obj)
         else:
-            raise TypeError("Don't know how to convert type %s into a Flow" % type(obj))
+            raise TypeError(f"Don't know how to convert {type(obj)=} into a Flow")
 
     def __init__(self, workdir, manager=None, pickle_protocol=-1, remove=False):
         """
         Args:
             workdir: String specifying the directory where the works will be produced.
-                     if workdir is None, the initialization of the working directory
-                     is performed by flow.allocate(workdir).
+                if workdir is None, the initialization of the working directory
+                is performed by flow.allocate(workdir).
             manager: |TaskManager| object responsible for the submission of the jobs.
-                     If manager is None, the object is initialized from the yaml file
-                     located either in the working directory or in the user configuration dir.
+                If manager is None, the object is initialized from the yaml file
+                located either in the working directory or in the user configuration dir.
             pickle_protocol: Pickle protocol version used for saving the status of the object.
-                          -1 denotes the latest version supported by the python interpreter.
+                -1 denotes the latest version supported by the python interpreter.
             remove: attempt to remove working directory `workdir` if directory already exists.
         """
         super().__init__()

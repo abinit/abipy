@@ -1,8 +1,6 @@
 """
 This module contains objects for postprocessing e-ph calculations
 using the results stored in the GSTORE.nc file.
-
-For a theoretical introduction see :cite:`Giustino2017`
 """
 from __future__ import annotations
 
@@ -194,7 +192,7 @@ class Gqk:
     @classmethod
     def from_gstore(cls, gstore: GstoreFile, spin: int) -> Gqk:
         """
-        Build an istance from a GstoreFile and the spin index.
+        Build an instance from a GstoreFile and the spin index.
         """
         ncr = gstore.r
         path = f"gqk_spin{spin+1}"
@@ -348,7 +346,7 @@ class Gqk:
         """
         Helper function to compare two GQK objects.
         """
-        # This dimensions must agree in order to have a meaningfull comparison.
+        # This dimensions must agree in order to have a meaningful comparison.
         # so raise immediately if not equal.
         aname_list = ["cplex", "spin", "nb", "glob_nk", "glob_nq"]
 
@@ -543,7 +541,7 @@ class GstoreRobot(Robot, RobotWithEbands):
         """
         Helper function to compare two GSTORE files.
         """
-        # These quantities must be the same to have a meaningfull comparison.
+        # These quantities must be the same to have a meaningful comparison.
         aname_list = ["structure", "nsppol", "cplex", "nkbz", "nkibz",
                       "nqbz", "nqibz", "completed", "kzone", "qzone", "kfilter", "gmode",
                       "brange_spin", "erange_spin", "glob_spin_nq", "glob_nk_spin",

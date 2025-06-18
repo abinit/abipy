@@ -7,10 +7,13 @@ from __future__ import annotations
 
 import itertools
 import numpy as np
+import dataclasses
 
-from abipy.tools.serialization import mjson_write
+from abipy.tools.serialization import mjson_write, Serializable
 from abipy.dfpt.deformation_utils import generate_deformations
 from abipy.abio.inputs import AbinitInput
+from abipy.tools.typing import PathLike, VectorLike #, Figure
+from abipy.dfpt.qha_2D import QHA_2D
 from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.tasks import RelaxTask
 from abipy.flowtk.flows import Flow
@@ -30,10 +33,10 @@ class Qha2dFlow(Flow):
                        scf_input: AbinitInput,
                        bo_strains_ac: list[list],
                        phdos_strains_ac: list[list],
-                       ngqpt,
+                       ngqpt: VectorLike,
                        with_becs: bool,
                        with_quad: bool,
-                       ndivsm=-20,
+                       ndivsm: int = 0,
                        edos_ngkpt=None,
                        manager=None) -> Qha2dFlow:
         """
@@ -96,7 +99,9 @@ class Qha2dFlow(Flow):
             [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
 
         # Write json file
-        mjson_write(data, self.outdir.path_in("qha_2d.json"), indent=4)
+        #mjson_write(data, self.outdir.path_in("qha_2d.json"), indent=4)
+
+        Qha2DData(**data).json_write(self.outdir.path_in("qha_2d.json"), indent=4)
 
         return super().finalize()
 
@@ -138,11 +143,17 @@ class Qha2dWork(Work):
             work.bo_strains_ac[i] = np.array(bo_strains_ac[i])
             work.phdos_strains_ac[i] = np.array(phdos_strains_ac[i])
 
-        work.ngqpt = ngqpt
+        work.ngqpt = np.array(ngqpt, dtype=int)
         work.with_becs = with_becs
         work.with_quad = with_quad
         work.edos_ngkpt = edos_ngkpt if edos_ngkpt is None else np.reshape(edos_ngkpt, (3,))
         work.ndivsm = ndivsm
+
+        # Consistency check.
+        if "ngkpt" in scf_input:
+            ngkpt = np.array(scf_input["ngkpt"], dtype=int)
+            if np.any(ngkpt % work.ngqpt != 0):
+                raise ValueError(f"ngqpt should be a divisor of ngkpt but got {work.ngqpt=} and {ngkpt=}")
 
         # Create input for relaxation and register the relaxation task.
         work.relax_template = relax_template = scf_input.deepcopy()
@@ -152,7 +163,8 @@ class Qha2dWork(Work):
         relax_template.set_vars(optcell=2, ionmov=ionmov, tolvrs=1e-8, tolmxf=1e-6)
         relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
 
-        work.initial_relax_task = work.register_relax_task(relax_template)
+        #work.initial_relax_task = work.register_relax_task(relax_template)
+        work.initial_relax_task = work.register_multi_relax_task(relax_template)
 
         return work
 
@@ -227,3 +239,39 @@ class Qha2dWork(Work):
         self.flow.allocate(build=True)
 
         return super().on_all_ok()
+
+
+#@dataclass
+#class RelaxEntry:
+#    volume: float
+#    energy_eV: float
+#    pressure_GPa: float
+#    # You could add structure: Optional[Any] if you want to include the structure later.
+
+
+@dataclasses.dataclass(kw_only=True)
+class Qha2DData:
+
+    bo_strains_ac: np.ndarray
+    phdos_strains_ac: np.ndarray
+
+    gsr_relax_paths: list[str]
+    gsr_relax_entries: list[dict]
+    #gsr_relax_entries: list[RelaxEntry]
+    ddb_relax_paths: list[str]
+    gsr_relax_edos_paths: list[str]
+    gsr_relax_ebands_paths: list[str]
+
+    def get_qha_2d(self,
+                   nqsmall_or_qppa: int,
+                   anaget_kwargs: dict | None = None,
+                   smearing_ev: float | None = None,
+                   verbose: int = 0) -> QHA_2D:
+        """
+        Build an instance from a json file `filepath` typically produced by an Abipy flow.
+        """
+        return QHA_2D.from_gsr_ddb_paths(nqsmall_or_qppa,
+                                         self["gsr_relax_paths"], self["ddb_relax_paths"],
+                                         self["bo_strains_ac"], self["phdos_strains_ac"],
+                                         anaget_kwargs=anaget_kwargs,
+                                         smearing_ev=smearing_ev, verbose=verbose)

@@ -731,12 +731,11 @@ class AbinitSpaceGroup(OpSequence):
         # Call spglib to get the list of symmetry operations.
         spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
         data = spga.get_symmetry_dataset()
-        symrel = data["rotations"]
 
-        return cls(spgid=data["number"],
-                   symrel=symrel,
-                   tnons=data["translations"],
-                   symafm=len(symrel) * [1],
+        return cls(spgid=data.number,
+                   symrel=data.rotations,
+                   tnons=data.translations,
+                   symafm=len(data.rotations) * [1],
                    has_timerev=has_timerev,
                    inord="C")
 

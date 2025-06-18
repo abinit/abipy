@@ -13,6 +13,7 @@ import subprocess
 import webbrowser
 
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import TYPE_CHECKING
 from invoke import task
 from monty.os import cd
@@ -208,3 +209,97 @@ def tuna(ctx: Context) -> None:
     ctx.run(cmd, pty=True)
     cmd = "tuna __abipy_import.log"
     ctx.run(cmd, pty=True)
+
+
+@task
+def git_info(ctx: Context, top_n=20) -> None:
+    """Scan git history for largest top_n files"""
+
+    def get_git_objects():
+        """Return list of all Git objects (hash, path)."""
+        result = subprocess.run(
+            ['git', 'rev-list', '--objects', '--all'],
+            stdout=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+        objects = []
+        for line in result.stdout.splitlines():
+            parts = line.split(' ', 1)
+            if len(parts) == 2:
+                objects.append((parts[0], parts[1]))
+        return objects
+
+    def get_blob_sizes(hashes):
+        """Return a dict of {hash: (size_in_bytes, path)} for blobs."""
+        input_text = '\n'.join(hashes)
+        result = subprocess.run(
+            ['git', 'cat-file', '--batch-check=%(objectname) %(objecttype) %(objectsize)'],
+            input=input_text,
+            stdout=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+
+        sizes = {}
+        for line in result.stdout.splitlines():
+            obj_hash, obj_type, obj_size = line.split()
+            if obj_type == "blob":
+                sizes[obj_hash] = int(obj_size)
+        return sizes
+
+    print("Scanning Git history for largest files...")
+
+    objects = get_git_objects()
+    hashes = [obj[0] for obj in objects]
+    paths = {obj[0]: obj[1] for obj in objects}
+
+    sizes = get_blob_sizes(hashes)
+
+    sorted_blobs = sorted(
+        ((size, paths[_hash], _hash) for _hash, size in sizes.items() if _hash in paths),
+        reverse=True
+    )
+
+    print(f"\nTop {top_n} largest files ever committed:")
+    for size, path, obj_hash in sorted_blobs[:top_n]:
+        print(f"{size / (1024*1024):7.2f} MB\t{path}")
+
+    ctx.run("git count-objects -vH", pty=True)
+
+
+@task
+def large_files(ctx, top_dir=None, size_threshold_mb=10):
+    """
+    Find and list files larger than `size_threshold_mb` megabytes under `top_dir`.
+
+    Args:
+        top_dir: Root directory to start searching from.
+        size_threshold_mb: Minimum file size in MB to report.
+    """
+    large_files = []
+    threshold_bytes = size_threshold_mb * 1024 * 1024
+
+    if top_dir is None:
+        top_dir = ABIPY_ROOTDIR
+
+    exclude_dirs = {".git", "__pycache__", ".ruff_cache"}
+    print(f"Scanning files starting from {top_dir=}")
+
+    for root, dirs, files in os.walk(top_dir):
+        dirs[:] = [d for d in dirs if d not in exclude_dirs]
+
+        for name in files:
+            path = os.path.join(root, name)
+            try:
+                size = os.path.getsize(path)
+                if size > threshold_bytes:
+                    large_files.append((size / (1024 * 1024), Path(path)))
+            except OSError:
+                # skip unreadable files
+                continue
+
+    large_files.sort(reverse=True)
+
+    for size_mb, path in large_files:
+        print(f"{size_mb:.2f} MB\t{path}")

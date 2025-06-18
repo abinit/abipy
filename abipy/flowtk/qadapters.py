@@ -461,7 +461,7 @@ limits:
                              # smallest number of nodes compatible with the optimal configuration.
                              # Use `force_nodes` to enforce entire nodes allocation.
                              # `shared` mode does not enforce any constraint (DEFAULT: shared).
-    max_num_launches:        # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
+    max_num_launches:        # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 8)
     limits_for_task_class:   # Dictionary mapping Task class names to a dictionary with limits to be used
                              # for this particular Task. Example (mind white spaces):
                              #
@@ -635,7 +635,7 @@ limits:
         self.max_mem_per_proc = qu.any2mb(d.pop("max_mem_per_proc", self.hw.mem_per_node))
 
         # Misc
-        self.max_num_launches = int(d.pop("max_num_launches", 5))
+        self.max_num_launches = int(d.pop("max_num_launches", 8))
         self.condition = Condition(d.pop("condition", {}))
         self.allocation = d.pop("allocation", "shared")
         if self.allocation not in ("nodes", "force_nodes", "shared"):

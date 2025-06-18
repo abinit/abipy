@@ -116,7 +116,7 @@ def mp_search(chemsys_formula_id):
         return restapi.MpStructures(structures, mpids, data=data)
 
 
-def cod_search(formula, primitive=False):
+def cod_search(formula: str, primitive: bool = False):
     """
     Connect to the COD_ database. Get list of structures corresponding to a chemical formula
 
@@ -129,7 +129,7 @@ def cod_search(formula, primitive=False):
             List of Structure objects, COD ids associated to structures.
             and List of dictionaries with COD data (same order as structures).
 
-        Note that the attributes evalute to False if no match is found
+        Note that the attributes evaluate to False if no match is found
     """
     from pymatgen.ext.cod import COD
     data = COD().get_structure_by_formula(formula)
@@ -429,8 +429,8 @@ class Structure(pmg_Structure, NotebookWriter):
         import pymatgen.io.ase as aio
         return aio.AseAtomsAdaptor.get_structure(atoms, cls=cls)
 
-    # FIXME: Temporary workaround to maintain compatbility with old pymatgen versions.
-    # m_elems was added in v2024.7.18
+    # FIXME: Temporary workaround to maintain compatibility with old pymatgen versions.
+    # n_elems was added in v2024.7.18
     @property
     def n_elems(self) -> int:
         """Number of types of atoms."""
@@ -705,6 +705,35 @@ class Structure(pmg_Structure, NotebookWriter):
         else:
             return super().to(fmt=fmt, filename=filename, **kwargs)
 
+    def compare(self, other, atol: float = 1e-6) -> tuple[bool, str]:
+        """
+        Compare two structures with absolute tolerance `atol`.
+        Return: bool indicating if structures are equal and string with error message, if any.
+        """
+        from io import StringIO
+        file = StringIO()
+        lat_match = np.allclose(self.lattice.matrix, other.lattice.matrix, atol=atol)
+        if not lat_match:
+            print("Mismatch in lattice", file=file)
+
+        site_match = True
+        if len(self) != len(other):
+            site_match = False
+            print(f"{len(self)=} != {len(other)=}", file=file)
+
+        for site1, site2 in zip(self.sites, other.sites):
+            if site1.species != site2.species:
+                print("Mismatch in atomic species:", site1.species, site2.species, file=file)
+                site_match = False
+            elif not np.allclose(site1.frac_coords, site2.frac_coords, atol=atol):
+                print("Mismatch in fractional coordinates:", site1.frac_coords, site2.frac_coords, file=file)
+                site_match = False
+            elif not np.allclose(site1.coords, site2.coords, atol=atol):
+                print("Mismatch in cartesian coordinates:", site1.coords, site2.coords, file=file)
+                site_match = False
+
+        return lat_match and site_match, file.getvalue()
+
     def mp_match(self, **kwargs):
         """
         Finds matching structures on the Materials Project database.
@@ -849,7 +878,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return StructurePanel(structure=self).get_panel(with_inputs=with_inputs, **kwargs)
 
     def get_conventional_standard_structure(self, international_monoclinic=True,
-                                           symprec=1e-3, angle_tolerance=5) -> Structure:
+                                            symprec=1e-3, angle_tolerance=5) -> Structure:
         """
         Gives a structure with a conventional cell according to certain standards.
         The standards are defined in :cite:`Setyawan2010`
@@ -931,7 +960,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return self.__class__.as_structure(new)
 
     def abi_sanitize(self, symprec=1e-3, angle_tolerance=5,
-                     primitive=True, primitive_standard=False) -> Structure:
+                     primitive=True, primitive_standard=False, atol=1e-12) -> Structure:
         """
         Returns a new structure in which:
 
@@ -942,13 +971,16 @@ class Structure(pmg_Structure, NotebookWriter):
         Args:
             symprec (float): Symmetry precision used to refine the structure.
             angle_tolerance (float): Tolerance on angles.
-                if ``symprec`` is None and `angle_tolerance` is None, no structure refinement is peformed.
+                if ``symprec`` is None and `angle_tolerance` is None,
+                no structure refinement is performed.
             primitive (bool): Returns most primitive structure found.
             primitive_standard (bool): Whether to convert to a primitive cell using
                 the standards defined in Setyawan, W., & Curtarolo, S. (2010).
                 High-throughput electronic band structure calculations:
                 Challenges and tools. Computational Materials Science, 49(2), 299-312.
                 doi:10.1016/j.commatsci.2010.05.010
+            atol: Components whose absolute value are less than atol are set to zero.
+                Use None or zero to disable this step.
         """
         from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
         structure = self.__class__.from_sites(self)
@@ -978,7 +1010,13 @@ class Structure(pmg_Structure, NotebookWriter):
             structure = trans.apply_transformation(structure)
             m = structure.lattice.matrix
             x_prod = np.dot(np.cross(m[0], m[1]), m[2])
-            if x_prod < 0: raise RuntimeError("x_prod is still negative!")
+            if x_prod < 0:
+                raise RuntimeError("x_prod is still negative!")
+
+        if atol is not None:
+            new_mat = structure.lattice.matrix.copy()
+            new_mat[np.abs(new_mat) < atol] = 0.0
+            structure.lattice = new_mat
 
         return self.__class__.as_structure(structure)
 
@@ -1272,7 +1310,7 @@ class Structure(pmg_Structure, NotebookWriter):
         {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
 
         Args:
-            tolsym: Abinit tolsym input variable. None correspondes to the default value.
+            tolsym: Abinit tolsym input variable. None corresponds to the default value.
             pre: Keywords in dictionary are prepended with this string
         """
         from abipy.data.hgh_pseudos import HGH_TABLE
@@ -1375,7 +1413,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         Args:
             knames: List of strings with the k-point labels.
-            cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates
+            cart_coords: True if the ``coords`` dataframe should contain Cartesian coordinates
                 instead of Reduced coordinates.
         """
         kname2frac = {k.name: k.frac_coords for k in self.hsym_kpoints}
@@ -1432,7 +1470,7 @@ class Structure(pmg_Structure, NotebookWriter):
         from .kpoints import Kpoint
         kpoint = Kpoint.as_kpoint(kpoint, self.reciprocal_lattice)
 
-        # Try to find kpoint in hsym_stars without taking into accout symmetry operation (compare with base_point)
+        # Try to find kpoint in hsym_stars without taking into account symmetry operation (compare with base_point)
         # Important if there are symmetry equivalent k-points in hsym_kpoints e.g. K and U in FCC lattice
         # as U should not be mapped onto K as done in the second loop below.
         from .kpoints import issamek
@@ -1524,7 +1562,7 @@ class Structure(pmg_Structure, NotebookWriter):
             - The spacegroup number computed by Abinit (set to None if not available).
             - The spacegroup number and symbol computed by spglib (if `with_spglib`).
 
-        Useful to construct pandas DataFrames
+        Useful to construct pandas DataFrames.
 
         Args:
             with_spglib (bool): If True, spglib is invoked to get the spacegroup symbol and number
@@ -1540,6 +1578,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 spglib_symbol, spglib_number = self.get_space_group_info(symprec=symprec,
                                                                          angle_tolerance=angle_tolerance)
                 spglib_lattice_type = self.spget_lattice_type(symprec=symprec, angle_tolerance=angle_tolerance)
+
             except Exception as exc:
                 cprint("Spglib couldn't find space group symbol and number for composition: `%s`" %
                         str(self.composition), "red")
@@ -1554,6 +1593,7 @@ class Structure(pmg_Structure, NotebookWriter):
             ("a", abc[0]), ("b", abc[1]), ("c", abc[2]), ("volume", self.volume),
             ("abispg_num", abispg_number),
         ])
+
         if with_spglib:
             od["spglib_symb"] = spglib_symbol
             od["spglib_num"] = spglib_number
@@ -1699,7 +1739,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 instance of visu is returned. See |Visualizer| for the list of applications and formats supported.
             verbose: Verbosity level
 
-        Returns: ``Visulizer`` instance.
+        Returns: ``Visualizer`` instance.
         """
         if "." not in filename:
             raise ValueError("Cannot detect extension in filename %s:" % filename)
@@ -1923,7 +1963,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         Displace the sites of the structure along the displacement vector displ.
 
-        The displacement vector is first rescaled so that the maxium atomic displacement
+        The displacement vector is first rescaled so that the maximum atomic displacement
         is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
         all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
@@ -1960,7 +2000,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         Displace one site of the structure along the displacement vector displ.
 
-        The displacement vector is first rescaled so that the maxium atomic displacement
+        The displacement vector is first rescaled so that the maximum atomic displacement
         is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
         the site so that the maximum atomic displacement is 0.001 Angstrom.
 
@@ -2581,7 +2621,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -2628,7 +2668,7 @@ def dataframes_from_structures(struct_objects, index=None, symprec=1e-2, angle_t
         symprec (float): Symmetry precision used to refine the structure.
         angle_tolerance (float): Tolerance on angles.
         with_spglib (bool): If True, spglib_ is invoked to get the spacegroup symbol and number.
-        cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates
+        cart_coords: True if the ``coords`` dataframe should contain Cartesian coordinates
             instead of Reduced coordinates.
 
     Return:
@@ -2743,7 +2783,7 @@ class StructureModifier:
         """
         Displace the sites of the structure along the displacement vector displ.
 
-        The displacement vector is first rescaled so that the maxium atomic displacement
+        The displacement vector is first rescaled so that the maximum atomic displacement
         is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
         all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
@@ -2881,7 +2921,7 @@ class StructDiff:
             raise ValueError(f"Found duplicated entries in: {self.labels}")
         natom = len(self.structs[0])
         if any(len(s) != natom for s in self.structs):
-            raise ValueError("structures have different numbe of atoms!")
+            raise ValueError("structures have different number of atoms!")
 
     def del_label(self, label: str) -> None:
         """Remove entry associated to label."""

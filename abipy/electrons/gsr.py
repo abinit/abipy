@@ -57,10 +57,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = self.r = r = GsrReader(filepath)
-
-        # Initialize the electron bands from file
-        self._ebands = r.read_ebands()
+        self.r = self.reader = GsrReader(filepath)
 
         # Add forces to structure
         if self.is_scf_run:
@@ -95,10 +92,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         return "\n".join(lines)
 
-    @property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
-        return self._ebands
+        return self.r.read_ebands()
 
     @cached_property
     def is_scf_run(self) -> bool:
@@ -345,7 +342,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporaty file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -441,11 +438,73 @@ class EnergyTerms(AttrDict):
             table.append([k, self[k]])
         return tabulate(table, tablefmt="plain")
 
-    #def get_dataframe(self):
-    #    """Return a |pandas-DataFrame|"""
-    #    d = {k: float(self[k]) for k in self}
-    #    return pd.DataFrame(d, index=[None], columns=list(d.keys()))
-    #    #return pd.DataFrame(d, columns=list(d.keys()))
+    def get_dataframe(self) -> pd.DataFrame:
+        """Return a |pandas-DataFrame|"""
+        d = {k: float(self[k]) for k in self}
+        return pd.DataFrame(d, index=[None], columns=list(d.keys()))
+
+
+class EnergyTermsPlotter:
+
+    @classmethod
+    def from_label_file_dict(cls, label_file_dict: dict) -> EnergyTermsPlotter:
+        """
+        Build an object from a dictionary mapping labels to filepath.
+
+        Usage example:
+
+        .. code-block:: python
+
+            plotter = EnergyTermsPlotter.from_label_file_dict({
+               "label1": "out1_GSR.nc",
+               "label2": "out2_GSR.nc",
+            })
+
+        """
+        eterms_list = []
+        for label, path in label_file_dict.items():
+            if isinstance(path, GsrFile):
+                eterms_list.append(path.eterms)
+            else:
+                with GsrFile(path) as gsr:
+                    eterms_list.append(gsr.eterms)
+
+        return cls(list(glabel_file_dict.keys()), eterms_list)
+
+    def __init__(self, labels, eterms_list):
+        self.labels = labels
+        self.eterms_list = eterms_list
+
+    #def add(self, label: str, gsr_path: str) -> None:
+    #   self.labels.append(label)
+    #    if isinstance(path, GsrFile):
+    #        self.eterms_list.append(path.eterms)
+    #    else:
+    #    with GsrFile(gsr_path) as gsr:
+    #        self.labels.append(
+
+    def get_dataframe(self) -> pd.DataFrame:
+        df_list = []
+        for label, eterms in zip(self.labels, self.eterms_list):
+            df = eterms.get_dataframe()
+            df["label"] = label
+            df_list.append(df)
+
+        return pd.concat(df_list)
+
+    #def plot(self, what_list=("foo", "bar"), fontsize=8, **kwargs) -> Figure:
+    #    df = self.get_dataframe()
+    #    #keys = [k for k in df.keys() if k != "label")
+    #    #nkeys = len(keys)
+
+    #    # Build grid of plots.
+    #    ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=1,
+    #                                            sharex=True, sharey=True, squeeze=False)
+    #    ax_list = ax_list.ravel()
+
+    #    for ax, what in zip(ax_list, what_list):
+
+    #    return fig
 
 
 class GsrReader(ElectronsReader):
@@ -626,7 +685,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
     def get_energyterms_dataframe(self, iref: Optional[int] = None) -> pd.DataFrame:
         """
-        Build and return dataframe with the different contributions to the total energy in eV
+        Build and return dataframe with the different contributions to the total energy in eV.
 
         Args:
             iref: Index of the abifile used as reference: the energies of the
@@ -731,7 +790,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

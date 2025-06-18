@@ -1,4 +1,5 @@
 # coding: utf-8
+"""This module provides functions and classes related to Phonons."""
 from __future__ import annotations
 
 import functools
@@ -267,8 +268,8 @@ class PhononBands:
         from abipy.dfpt.converters import abinit_to_phonopy
 
         if isinstance(ananc, str):
-            with AnaddbNcFile(ananc) as anc:
-                ph = abinit_to_phonopy(anc, supercell_matrix=supercell_matrix, symmetrize_tensors=symmetrize_tensors,
+            with AnaddbNcFile(ananc) as ananc:
+                ph = abinit_to_phonopy(ananc, supercell_matrix=supercell_matrix, symmetrize_tensors=symmetrize_tensors,
                                        symprec=symprec, set_masses=set_masses)
         else:
             ph = abinit_to_phonopy(ananc, supercell_matrix=supercell_matrix, symmetrize_tensors=symmetrize_tensors,
@@ -290,7 +291,7 @@ class PhononBands:
                 None if contribution is not present.
             amu: dictionary that associates the atomic species present in the structure to the values of the atomic
                 mass units used for the calculation.
-            epsinf: [3,3] matrix with electronic dielectric tensor in Cartesian coordinates. None if not avaiable.
+            epsinf: [3,3] matrix with electronic dielectric tensor in Cartesian coordinates. None if not available.
             zcart: [natom, 3, 3] matrix with Born effective charges in Cartesian coordinates. None if not available.
             linewidths: Array-like object with the linewidths (eV) stored as [q, num_modes]
             phonopy_obj: an instance of a Phonopy object obtained from the same IFC used to generate the band structure.
@@ -362,7 +363,7 @@ class PhononBands:
 
         Args:
             with_structure: False if structural info should not be displayed.
-            with_qpoints: False if q-point info shoud not be displayed.
+            with_qpoints: False if q-point info should not be displayed.
             verbose: Verbosity level.
         """
         lines = []; app = lines.append
@@ -1339,7 +1340,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a
                 sequential order to avoid difficulties in distinguishing the lines.
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
-            max_colors: maximum number of colors to be used. If max_colors < num_braches the colors will be reapeated.
+            max_colors: maximum number of colors to be used. If max_colors < num_braches the colors will be repeated.
                 It may be useful to better distinguish close bands when the number of branches is large.
 
         Returns: |matplotlib-Figure|
@@ -1402,7 +1403,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             colormap: matplotlib colormap to determine the colors available. The colors will be chosen not in a
                 sequential order to avoid difficulties in distinguishing the lines.
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
-            max_colors: maximum number of colors to be used. If max_colors < num_braches the colors will be reapeated.
+            max_colors: maximum number of colors to be used. If max_colors < num_braches the colors will be rapeated.
                 It may be useful to better distinguish close bands when the number of branches is large.
 
         Returns: |matplotlib-Figure|
@@ -1551,7 +1552,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
     @property
     def split_phdispl_cart(self):
         """
-        prepare the splitted phdispl_cart as a separate internal variable only when explicitely requested and
+        Prepare the split phdispl_cart as a separate internal variable only when explicitly requested and
         not at the same time as split_qpoints and split_phfreqs as it requires a larger array and not used
         most of the times.
         """
@@ -1823,7 +1824,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
             for nu in self.branches:
                 yy_qq = self.phfreqs[:, nu] * factor
 
-                # Exctract the sub-vector associated to this atom type (eigvec or diplacement).
+                # Extract the sub-vector associated to this atom type (eigvec or displacement).
                 if use_eigvec:
                     v_type = self.dyn_mat_eigenvect[:, nu, dir_indices]
                 else:
@@ -3207,7 +3208,7 @@ class PhbstFile(AbinitNcFile, Has_Structure, Has_PhononBands, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -4145,7 +4146,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -4317,7 +4318,7 @@ class PhononBandsPlotter(NotebookWriter):
         self._phdoses_dict = OrderedDict(key_phdos)
         if key_phdos:
             if not key_phbands:
-                raise ValueError("key_phbands must be specifed when key_dos is not None")
+                raise ValueError("key_phbands must be specified when key_dos is not None")
             if len(key_phbands) != len(key_phdos):
                 raise ValueError("key_phbands and key_phdos must have the same number of elements.")
 
@@ -4756,7 +4757,7 @@ class PhononBandsPlotter(NotebookWriter):
                 if any(nq != nqpt_list[0] for nq in nqpt_list):
                     cprint("WARNING: Bands have different number of k-points:\n%s" % str(nqpt_list), "yellow")
 
-                # Plot all bands in grups on the same axis.
+                # Plot all bands in groups on the same axis.
                 for i, (phbands, lineopts) in enumerate(zip(phb_list, self.iter_lineopt())):
                     # Plot all branches with lineopts and set the label of the last line produced.
                     phbands.plot_ax(ax, branch=None, units=units, **lineopts)
@@ -4792,7 +4793,7 @@ class PhononBandsPlotter(NotebookWriter):
                 sh = str(hue) if not callable(hue) else str(hue.__doc__)
                 ax1.set_title("%s = %s" % (sh, hvalue), fontsize=fontsize)
 
-                # Plot all bands in grups on the same axis.
+                # Plot all bands in groups on the same axis.
                 nqpt_list = [phbands.nqpt for phbands in phb_list]
                 if any(nq != nqpt_list[0] for nq in nqpt_list):
                     cprint("WARNING: Bands have different number of k-points:\n%s" % str(nqpt_list), "yellow")
@@ -4822,7 +4823,7 @@ class PhononBandsPlotter(NotebookWriter):
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz").
                 Case-insensitive.
             swarm: True to show the datapoints on top of the boxes
-            kwargs: Keywork arguments passed to seaborn_ boxplot.
+            kwargs: Keyword arguments passed to seaborn_ boxplot.
         """
         # Build grid of plots.
         num_plots, ncols, nrows = len(self.phbands_dict), 1, 1
@@ -5009,7 +5010,7 @@ class PhononBandsPlotter(NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -5390,7 +5391,7 @@ class PhononDosPlotter(NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write an jupyter notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write an jupyter notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -5507,7 +5508,7 @@ class PhbstRobot(Robot, RobotWithPhbands):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

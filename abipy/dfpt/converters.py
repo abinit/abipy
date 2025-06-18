@@ -33,7 +33,7 @@ def abinit_to_phonopy(anaddbnc,
                       symprec=1e-5,
                       set_masses=False) -> Phonopy:
     """
-    Converts the interatomic force constants(IFC), Born effective charges (BEC) and dielectric
+    Convert the interatomic force constants(IFC), Born effective charges (BEC) and dielectric
     tensor obtained from anaddb to the phonopy format. Optionally writes the
     standard phonopy files to a selected directory: FORCE_CONSTANTS, BORN (if BECs are available)
     POSCAR of the unit cell, POSCAR of the supercell.
@@ -66,7 +66,6 @@ def abinit_to_phonopy(anaddbnc,
     Returns:
         An instance of a Phonopy object that contains the IFC, BEC and dieletric tensor data.
     """
-
     ifc = anaddbnc.ifc
     nac_params = None
     becs = None
@@ -194,7 +193,7 @@ def phonopy_to_abinit(unit_cell=None,
     Convert the data from phonopy to an abinit DDB file.
     The data can be provided in form of arrays or paths to the phonopy files that should be parsed.
     The minimal input should contains the FORCE_CONSTANTS or FORCE_SETS,
-    or the phonopy.yaml ouput from the postprocessing of phonopy
+    or the phonopy.yaml output from the postprocessing of phonopy
     (https://phonopy.github.io/phonopy/output-files.html#phonopy-yaml-and-phonopy-disp-yaml).
     If BORN is present the Born effective charges (BEC) and dielectric tensor will also be added to the DDB.
 
@@ -367,7 +366,7 @@ def phonopy_to_abinit(unit_cell=None,
     if abi_spg != spglib_spg:
         warnings.warn("The space group number obtained based on the DDB symmetries differs "
                       f"from the one calculated with spglib: {abi_spg} versus "
-                      f"{spglib_spg}. The convertion may be incorrect. Try changing symprec or tolsym.")
+                      f"{spglib_spg}. The conversion may be incorrect. Try changing symprec or tolsym.")
 
     tmp_ddb_path = task.opath_from_ext("DDB")
 

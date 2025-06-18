@@ -1,5 +1,5 @@
 """
-Added to compute ZSISA-QHA for systems with two degrees of freedom (2DOF).
+ZSISA-QHA for systems with two degrees of freedom (2DOF).
 Capable of calculating anisotropic thermal expansion and lattice constants for uniaxial configurations.
 Requires PHDOS.nc and DDB files for GSR calculations or _GSR.nc files.
 If PHDOS.nc is available for all structures, normal interpolation for QHA will be applied.
@@ -12,11 +12,11 @@ import abc
 import numpy as np
 import abipy.core.abinit_units as abu
 
-from scipy.interpolate import RectBivariateSpline #, RegularGridInterpolator
+from scipy.interpolate import RectBivariateSpline
 from functools import cached_property
 #from monty.collections import dict2namedtuple
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
-from abipy.tools.typing import Figure
+from abipy.tools.typing import PathLike, Figure, VectorLike
 from abipy.tools.serialization import HasPickleIO, mjson_load
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
@@ -24,37 +24,41 @@ from abipy.dfpt.phonons import PhdosFile # PhononBandsPlotter, PhononDos,
 from abipy.dfpt.vzsisa import anaget_phdoses_with_gauss
 
 
-
 class QHA_2D(HasPickleIO):
     """
-    Quasi-Harmonic Approximation (QHA) analysis in 2D.
+    ZSISA-QHA for systems with two degrees of freedom (2DOF).
+    Capable of calculating anisotropic thermal expansion and lattice constants for uniaxial configurations.
+    Requires PHDOS.nc and DDB files for GSR calculations or _GSR.nc files.
+    If PHDOS.nc is available for all structures, normal interpolation for QHA will be applied.
+    Supports the use of six PHDOS.nc files for specific structures to employ the EinfVib2 approximation.
+
     Provides methods for calculating and visualizing energy, free energy, and thermal expansion.
     """
 
-    @classmethod
-    def from_json_file(cls,
-                       filepath: PathLike,
-                       nqsmall_or_qppa: int,
-                       anaget_kwargs: dict | None = None,
-                       smearing_ev: float | None = None,
-                       verbose: int = 0) -> Vzsisa:
-        """
-        Build an instance from a json file `filepath` typically produced by an Abipy flow.
-        For the meaning of the other arguments see from_gsr_ddb_paths.
-        """
-        data = mjson_load(filepath)
-        return cls.from_gsr_ddb_paths(nqsmall_or_qppa,
-                                      data["gsr_relax_paths"], data["ddb_relax_paths"],
-                                      data["bo_strains_ac"], data["phdos_strains_ac"],
-                                      anaget_kwargs=anaget_kwargs, smearing_ev=smearing_ev, verbose=verbose)
+    #@classmethod
+    #def from_json_file(cls,
+    #                   filepath: PathLike,
+    #                   nqsmall_or_qppa: int,
+    #                   anaget_kwargs: dict | None = None,
+    #                   smearing_ev: float | None = None,
+    #                   verbose: int = 0) -> QHA_2D:
+    #    """
+    #    Build an instance from a json file `filepath` typically produced by an Abipy flow.
+    #    For the meaning of the other arguments see from_gsr_ddb_paths.
+    #    """
+    #    data = mjson_load(filepath)
+    #    return cls.from_gsr_ddb_paths(nqsmall_or_qppa,
+    #                                  data["gsr_relax_paths"], data["ddb_relax_paths"],
+    #                                  data["bo_strains_ac"], data["phdos_strains_ac"],
+    #                                  anaget_kwargs=anaget_kwargs, smearing_ev=smearing_ev, verbose=verbose)
 
     @classmethod
     def from_gsr_ddb_paths(cls,
                            nqsmall_or_qppa: int,
-                           gsr_paths,
-                           ddb_paths,
-                           bo_strains_ac,
-                           phdos_strains_ac,
+                           gsr_paths: list[PathLike],
+                           ddb_paths: list[PathLike],
+                           bo_strains_ac: VectorLike,
+                           phdos_strains_ac: VectorLike,
                            anaget_kwargs: dict | None = None,
                            smearing_ev: float | None = None,
                            verbose: int = 0) -> QHA_2D:
@@ -82,7 +86,12 @@ class QHA_2D(HasPickleIO):
         return new
 
     @classmethod
-    def from_files(cls, gsr_paths_2D, phdos_paths_2D, bo_strains_ac, phdos_strains_ac, gsr_file="GSR.nc") -> QHA_2D:
+    def from_files(cls,
+                   gsr_paths_2D,
+                   phdos_paths_2D,
+                   bo_strains_ac,
+                   phdos_strains_ac,
+                   gsr_file="GSR.nc") -> QHA_2D:
         """
         Creates an instance of QHA from a 2D array of GSR and PHDOS files.
 
@@ -148,9 +157,15 @@ class QHA_2D(HasPickleIO):
 
         return cls(structures, phdoses, energies, structures_from_phdos, bo_strains_ac, phdos_strains_ac)
 
-    def __init__(self, structures, phdoses, energies, structures_from_phdos,
-                 bo_strains_ac, phdos_strains_ac,
-                 eos_name: str='vinet', pressure: float=0.0):
+    def __init__(self,
+                 structures,
+                 phdoses,
+                 energies,
+                 structures_from_phdos,
+                 bo_strains_ac,
+                 phdos_strains_ac,
+                 eos_name: str='vinet',
+                 pressure: float=0.0):
         """
         Args:
             structures (list): List of structures at different volumes.
@@ -302,9 +317,13 @@ class QHA_2D(HasPickleIO):
 
             xy_init = self.get_initial_guess_ac()
             min_x, min_y, min_tot_en = np.zeros(num), np.zeros(num), np.zeros(num)
-            for j,e in enumerate(tot_en.T):
+            for j, e in enumerate(tot_en.T):
                 f_interp = RectBivariateSpline(a0, c0, e, kx=4, ky=4)
-                min_x[j], min_y[j], min_tot_en[j]= self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e2 = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                min_x[j] = x.item()
+                min_y[j] = y.item()
+                min_tot_en[j] = e2.item()
+
                 xy_init = min_x[j], min_y[j]
 
             ax.scatter(min_y, min_x, min_tot_en, color='c', s=100)
@@ -338,7 +357,12 @@ class QHA_2D(HasPickleIO):
             min_x, min_y, min_tot_en2 = np.zeros(num), np.zeros(num), np.zeros(num)
             for j, e in enumerate(tot_en2.T):
                 f_interp = RectBivariateSpline(a, c, e, kx=4, ky=4)
-                min_x[j], min_y[j], min_tot_en2[j] = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e2 = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+
+                min_x[j] = x.item()
+                min_y[j] = y.item()
+                min_tot_en2[j] = e2.item()
+
                 xy_init = min_x[j], min_y[j]
 
             X, Y = np.meshgrid(c, a)
@@ -389,7 +413,11 @@ class QHA_2D(HasPickleIO):
             # Perform minimization for each temperature
             for j, energy in enumerate(tot_energies.T):
                 f_interp = RectBivariateSpline(self.lattice_a[:, 0], self.lattice_c[0, :], energy, kx=4, ky=4)
-                min_x[j], min_y[j], min_tot_energy[j] = self.find_minimum( f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e = self.find_minimum( f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                min_x[j] = x.item()
+                min_y[j] = y.item()
+                min_tot_energy[j] = e.item()
+
                 xy_init = min_x[j], min_y[j]
 
             # Calculate thermal expansion coefficients
@@ -433,7 +461,11 @@ class QHA_2D(HasPickleIO):
 
             for j, energy in enumerate(tot_en2.T):
                 f_interp = RectBivariateSpline(self.lattice_a[:, 0], self.lattice_c[0, :], energy, kx=4, ky=4)
-                min_x[j], min_y[j], min_tot_energy[j] = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                min_x[j] = x.item()
+                min_y[j] = y.item()
+                min_tot_energy[j] = e.item()
+
                 xy_init = min_x[j], min_y[j]
 
             A0 = self.lattice_a[self.ix0,self.iy0]
@@ -496,7 +528,11 @@ class QHA_2D(HasPickleIO):
             # Perform minimization for each temperature
             for j, energy in enumerate(tot_energies.T):
                 f_interp = RectBivariateSpline(self.lattice_a[:, 0], self.lattice_c[0, :], energy, kx=4, ky=4)
-                min_x[j], min_y[j], min_tot_energy[j] = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                min_x[j] = x.item()
+                min_y[j] = y.item()
+                min_tot_energy[j] = e.item()
+
                 xy_init = min_x[j], min_y[j]
 
             # Calculate thermal expansion coefficients
@@ -535,7 +571,11 @@ class QHA_2D(HasPickleIO):
 
             for j, energy in enumerate(tot_en2.T):
                 f_interp = RectBivariateSpline(self.lattice_a[:, 0], self.lattice_c[0, :], energy, kx=4, ky=4)
-                min_x[j], min_y[j], min_tot_energy[j] = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                min_x[j] = x.item()
+                min_y[j] = y.item()
+                min_tot_energy[j] = e.item()
+
                 xy_init = min_x[j], min_y[j]
 
             A0 = self.lattice_a[self.ix0, self.iy0]
