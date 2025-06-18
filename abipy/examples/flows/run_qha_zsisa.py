@@ -45,7 +45,9 @@ rprim
 
     # FIXME: This is just to make the computation faster.
     # Initialize structure and pseudos
-    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+    structure = abilab.Structure.from_file(abidata.cif_file("si.cif")).abi_sanitize(primitive_standard=True)
+    #print(structure.lattice.matrix)
+    #sys.exit(0)
 
     # Use NC PBE pseudos from pseudodojo v0.4
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
@@ -74,7 +76,7 @@ rprim
 
     eps = 0.005  # Strain magnitude to be applied to the reference lattice.
     mode = "TEC" # "TEC" for thermal expansion only, "ECs" to include elastic constants.
-    #mode = "ECs" # "TEC" for thermal expansion only, "ECs" to include elastic constants.
+    mode = "ECs" # "TEC" for thermal expansion only, "ECs" to include elastic constants.
 
     with_becs = False
     #with_becs = True
@@ -91,11 +93,8 @@ rprim
 
     # Relaxation with thermal stress may require several iterations.
     # Here we set programmatically the maximum number of restarts to 20.
-    from abipy.flowtk.tasks import TaskManager, set_user_config_taskmanager
-    manager = TaskManager.from_user_config()
-    for qad in manager.qads:
-        qad.max_num_launches = 20
-    set_user_config_taskmanager(manager)
+    from abipy.flowtk.tasks import set_user_config_taskmanager_attrs
+    set_user_config_taskmanager_attrs(max_num_launches=20)
 
     flow = ZsisaFlow.from_scf_input(options.workdir, scf_input, eps, mode, ngqpt,
                                     with_becs, with_quad, temperatures, pressures_gpa,

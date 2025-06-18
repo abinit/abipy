@@ -547,6 +547,26 @@ def set_user_config_taskmanager(task_manager: TaskManager) -> None:
     _USER_CONFIG_TASKMANAGER = task_manager
 
 
+def set_user_config_taskmanager_attrs(**kwargs) -> None:
+    """
+    Set programmatically the attributes of the qadapters.
+
+    example:
+
+        from abipy.flowtk.tasks import set_user_config_taskmanager_attrs
+        set_user_config_taskmanager_attrs(max_num_launches=10)
+    """
+    manager = TaskManager.from_user_config()
+    for k, v in kwargs.items():
+        for qad in manager.qads:
+            if not hasattr(qad, k):
+                raise AttributeError(f"Cannot find attribute {k=} in {qad=}")
+            setattr(qad, k, v)
+
+    set_user_config_taskmanager(manager)
+
+
+
 class TaskManager(MSONable):
     """
     A `TaskManager` is responsible for the generation of the job script,

@@ -23,6 +23,34 @@ from abipy.dfpt.phonons import PhdosFile, PhononDosPlotter
 from abipy.dfpt.vzsisa import anaget_phdoses_with_gauss
 
 
+def spgnum_to_crystal_system(spgrp_number: int) -> str:
+    if 1 <= spgrp_number <= 2:
+        # triclinic crystal system
+        sym = "triclinic"
+    elif 3 <= spgrp_number <= 15:
+        # monoclinic crystal system
+        sym = "monoclinic"
+    elif 16 <= spgrp_number <= 74:
+        # orthorhombic crystal system
+        sym = "orthorhombic"
+    elif 75 <= spgrp_number <= 142:
+        # Tetragonal crystal system
+        sym = "tetragonal"
+    elif 143 <= spgrp_number <= 167:
+        # trigonal systems
+        sym = "trigonal"
+    elif 168 <= spgrp_number <= 194:
+        # hexagonal crystal systems
+        sym = "hexagonal"
+    elif 195 <= spgrp_number <= 230:
+        # cubic crystal system
+        sym = "cubic"
+    else:
+        raise RuntimeError(f"Unknown {spgrp_number=}")
+
+    return sym
+
+
 class QhaModel(StrEnum):
     """Enumerator for the different kinds of QHA models."""
     zsisa = 'zsisa'
@@ -158,31 +186,7 @@ class QHA_ZSISA(HasPickleIO):
 
         # Find the crystallographic symmetry from the BO structure.
         if qha_model == 'zsisa':
-            if 1 <= spgrp_number <= 2:
-                # triclinic crystal system
-                sym = "triclinic"
-            elif 3 <= spgrp_number <= 15:
-                # monoclinic crystal system
-                sym = "monoclinic"
-            elif 16 <= spgrp_number <= 74:
-                # orthorhombic crystal system
-                sym = "orthorhombic"
-            elif 75 <= spgrp_number <= 142:
-                # Tetragonal crystal system
-                sym = "tetragonal"
-            elif 143 <= spgrp_number <= 167:
-                # trigonal systems
-                sym = "trigonal"
-            elif 168 <= spgrp_number <= 194:
-                # hexagonal crystal systems
-                sym = "hexagonal"
-            elif 195 <= spgrp_number <= 230:
-                # cubic crystal system
-                sym = "cubic"
-            else:
-                raise RuntimeError(f"Unknown {spgrp_number=}")
-
-            #print (f"{sym=}")
+            sym = spgnum_to_crystal_system(spgrp_number)
 
         phdos_paths_6D = np.array(phdos_paths_6D)
 

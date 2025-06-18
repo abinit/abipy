@@ -878,7 +878,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return StructurePanel(structure=self).get_panel(with_inputs=with_inputs, **kwargs)
 
     def get_conventional_standard_structure(self, international_monoclinic=True,
-                                           symprec=1e-3, angle_tolerance=5) -> Structure:
+                                            symprec=1e-3, angle_tolerance=5) -> Structure:
         """
         Gives a structure with a conventional cell according to certain standards.
         The standards are defined in :cite:`Setyawan2010`
@@ -960,7 +960,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return self.__class__.as_structure(new)
 
     def abi_sanitize(self, symprec=1e-3, angle_tolerance=5,
-                     primitive=True, primitive_standard=False) -> Structure:
+                     primitive=True, primitive_standard=False, atol=1e-12) -> Structure:
         """
         Returns a new structure in which:
 
@@ -979,6 +979,8 @@ class Structure(pmg_Structure, NotebookWriter):
                 High-throughput electronic band structure calculations:
                 Challenges and tools. Computational Materials Science, 49(2), 299-312.
                 doi:10.1016/j.commatsci.2010.05.010
+            atol: Components whose absolute value are less than atol are set to zero.
+                Use None or zero to disable this step.
         """
         from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
         structure = self.__class__.from_sites(self)
@@ -1008,7 +1010,13 @@ class Structure(pmg_Structure, NotebookWriter):
             structure = trans.apply_transformation(structure)
             m = structure.lattice.matrix
             x_prod = np.dot(np.cross(m[0], m[1]), m[2])
-            if x_prod < 0: raise RuntimeError("x_prod is still negative!")
+            if x_prod < 0:
+                raise RuntimeError("x_prod is still negative!")
+
+        if atol is not None:
+            new_mat = structure.lattice.matrix.copy()
+            new_mat[np.abs(new_mat) < atol] = 0.0
+            structure.lattice = new_mat
 
         return self.__class__.as_structure(structure)
 

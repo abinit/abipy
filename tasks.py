@@ -13,6 +13,7 @@ import subprocess
 import webbrowser
 
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import TYPE_CHECKING
 from invoke import task
 from monty.os import cd
@@ -265,3 +266,40 @@ def git_info(ctx: Context, top_n=20) -> None:
         print(f"{size / (1024*1024):7.2f} MB\t{path}")
 
     ctx.run("git count-objects -vH", pty=True)
+
+
+@task
+def large_files(ctx, top_dir=None, size_threshold_mb=10):
+    """
+    Find and list files larger than `size_threshold_mb` megabytes under `top_dir`.
+
+    Args:
+        top_dir: Root directory to start searching from.
+        size_threshold_mb: Minimum file size in MB to report.
+    """
+    large_files = []
+    threshold_bytes = size_threshold_mb * 1024 * 1024
+
+    if top_dir is None:
+        top_dir = ABIPY_ROOTDIR
+
+    exclude_dirs = {".git", "__pycache__", ".ruff_cache"}
+    print(f"Scanning files starting from {top_dir=}")
+
+    for root, dirs, files in os.walk(top_dir):
+        dirs[:] = [d for d in dirs if d not in exclude_dirs]
+
+        for name in files:
+            path = os.path.join(root, name)
+            try:
+                size = os.path.getsize(path)
+                if size > threshold_bytes:
+                    large_files.append((size / (1024 * 1024), Path(path)))
+            except OSError:
+                # skip unreadable files
+                continue
+
+    large_files.sort(reverse=True)
+
+    for size_mb, path in large_files:
+        print(f"{size_mb:.2f} MB\t{path}")

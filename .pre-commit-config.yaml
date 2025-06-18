@@ -11,9 +11,13 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
+      - id: check-ast
+      - id: check-merge-conflict
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
+      - id: check-added-large-files
+        args: ['--maxkb=100']  # 1000 KB = 1 MB
 
   #- repo: https://github.com/astral-sh/ruff-pre-commit
   #  rev: v0.11.12
@@ -47,17 +51,18 @@ repos:
   #  rev: 7.1.0
   #  hooks:
   #  -   id: flake8
+  #  additional_dependencies: ['flake8-docstrings']
 
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.45.0
-    hooks:
-      - id: markdownlint
-        # MD013: line too long
-        # MD024: Multiple headings with the same content
-        # MD033: no inline HTML
-        # MD041: first line in a file should be a top-level heading
-        # MD025: single title
-        args: [--disable, MD013, MD024, MD025, MD033, MD041, "--"]
+  #- repo: https://github.com/igorshubovych/markdownlint-cli
+  #  rev: v0.45.0
+  #  hooks:
+  #    - id: markdownlint
+  #      # MD013: line too long
+  #      # MD024: Multiple headings with the same content
+  #      # MD033: no inline HTML
+  #      # MD041: first line in a file should be a top-level heading
+  #      # MD025: single title
+  #      args: [--disable, MD013, MD024, MD025, MD033, MD041, "--"]
 
   #- repo: https://github.com/kynan/nbstripout
   #  rev: 0.8.1

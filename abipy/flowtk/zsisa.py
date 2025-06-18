@@ -13,12 +13,12 @@ import abipy.core.abinit_units as abu
 from functools import cached_property
 from abipy.tools.serialization import Serializable
 from abipy.tools.typing import PathLike, VectorLike, Figure
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, plot_xy_with_hue, set_visible
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, plot_xy_with_hue, set_visible, set_grid_legend
 from abipy.abio.inputs import AbinitInput
 from abipy.electrons import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.deformation_utils import generate_deformations
-from abipy.dfpt.qha_general_stress import QHA_ZSISA
+from abipy.dfpt.qha_general_stress import QHA_ZSISA, spgnum_to_crystal_system
 from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.tasks import RelaxTask
 from abipy.flowtk.flows import Flow
@@ -616,9 +616,13 @@ class ZsisaResults(Serializable):
         return col2label
 
     @add_fig_kwargs
-    def plot_lattice_vs_temp(self, fontsize=8, df=None, **kwargs) -> Figure:
+    def plot_lattice_vs_temp(self, df=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot lattice parameters and angles as a function of T grouped by pressure P.
+
+        Args:
+            df: dataframe with data. None to compute it inside the function.
+            fontsize: fontsize for legends and titles
         """
         angles = ["alpha", "beta", "gamma"]
         lengths = ["a", "b", "c"]
@@ -648,12 +652,19 @@ class ZsisaResults(Serializable):
             if ix != len(angles) - 1:
                 set_visible(ax, False, *["xlabel"])
 
+        if "title" not in kwargs:
+            fig.suptitle("Lattice parameters and angles")
+
         return fig
 
     @add_fig_kwargs
-    def plot_thermal_expansion(self, fontsize=8, df=None, **kwargs) -> Figure:
+    def plot_thermal_expansion(self, df=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot thermal expansion alpha as a function of T grouped by pressure P.
+
+        Args:
+            df: dataframe with data. None to compute it inside the function.
+            fontsize: fontsize for legends and titles
         """
         if not self.has_thermal_expansion:
             raise ValueError("Thermal expansion coefficients are not available!")
@@ -680,46 +691,139 @@ class ZsisaResults(Serializable):
             plot_xy_with_hue(df, "temperature", alpha_name, ax=ax, **plt_kwargs)
             if ii != nrows - 1:
                 set_visible(ax, False, *["xlabel"])
+            if jj == 1:
+                set_visible(ax, False, *["ylabel"])
+
+        if "title" not in kwargs:
+            fig.suptitle("Thermal expansion coefficients")
 
         return fig
 
     @add_fig_kwargs
-    def plot_elastic_vs_temp(self, fontsize=8, df=None, **kwargs) -> Figure:
+    def plot_elastic_vs_temp(self, pressure_gpa=None, df=None, ax=None,
+                             colormap="jet", fontsize=8, **kwargs) -> Figure:
         """
-        Plot elastic constants as a function of T grouped by pressure P.
+        Plot elastic constants as a function of T for fixed Pressure.
+
+        Args:
+            pressure_gpa: Pressure to select. If None, the minimum pressure is used.
+            df: dataframe with data. None to compute it inside the function.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            colormap: Color map. Have a look at the colormaps here and decide which one you like:
+                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+            fontsize: fontsize for legends and titles
         """
-        if not self.has_thermal_expansion:
+        if not self.has_elastic:
             raise ValueError("Temperature-dependent elastic constants are not available!")
 
         if df is None:
             df = self.get_dataframe()
 
-        one_pressure = df["pressure_gpa"].nunique() == 1
+        if pressure_gpa is None:
+            pressure_gpa = df["pressure_gpa"].values.min()
 
-        plt_kwargs = dict(fontsize=fontsize,
-                          hue="pressure_gpa" if not one_pressure else None,
-                          col2label=self.col2label,
-                          marker="o",
-                          show=False
-                          )
+        df = df[df["pressure_gpa"] == pressure_gpa]
 
-        # Get names of columns associated to elastic constants.
-        c_keys = [k for k in df.keys() if k.startswith("C_")]
-        if not c_keys:
-            raise ValueError("Dataframe does not contain elastic constants!")
+        # TODO
+        # Get names of columns associated to the independent elastic constants.
+        #c_names = [k for k in df.keys() if k.startswith("C_")]
+        #if not c_names:
+        #    raise ValueError("Dataframe does not contain elastic constants!")
 
-        if one_pressure:
-            ax, fig, plt = get_ax_fig_plt(ax=None)
-            for c_key in c_keys:
-                plot_xy_with_hue(df, "temperature", c_key, ax=ax, **plt_kwargs)
-        else:
-            nrows, ncols = len(c_keys), 1
-            ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                   sharex=True, sharey=False, squeeze=False)
-            for ix, c_key in c_keys:
-                ax = ax_mat[ix]
-                plot_xy_with_hue(df, "temperature", c_key, ax=ax, **plt_kwargs)
-                if ix != len(c_keys) - 1:
-                    set_visible(ax, False, *["xlabel"])
+        sym = spgnum_to_crystal_system(self.spgrp_number)
+        c_ind_list, c_names = cmat_inds_names(sym, self.mode)
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+
+        # Create a list of markers you want to cycle through
+        from itertools import cycle
+        markers = cycle(('o', 's', '^', 'D', 'v', '>', '<', 'p', '*', 'h', '+', 'x'))
+        cmap = plt.get_cmap(colormap)
+
+        for i, c_name in enumerate(c_names):
+            plt_kwargs = dict(
+                marker=next(markers),
+                color=cmap(float(i) / len(c_names)),
+                label=c_name,
+            )
+            ax.plot(df["temperature"], df[c_name], **plt_kwargs)
+
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel="Elastic constant (GPa)")
+
+        #one_pressure = df["pressure_gpa"].nunique() == 1
+        #if one_pressure:
+        #    ax, fig, plt = get_ax_fig_plt(ax=None)
+        #    for c_name in c_names:
+        #        plot_xy_with_hue(df, "temperature", c_name, ax=ax, **plt_kwargs)
+        #else:
+        #nrows, ncols = len(c_names), 1
+        #ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+        #                                       sharex=True, sharey=False, squeeze=False)
+
+        #plt_kwargs = dict(fontsize=fontsize,
+        #                  hue="pressure_gpa" if not one_pressure else None,
+        #                  col2label=self.col2label,
+        #                  marker="o",
+        #                  show=False
+        #                  )
+
+        #for ix, c_name in enumerate(c_names):
+        #    ax = ax_mat[ix,0]
+        #    plot_xy_with_hue(df, "temperature", c_name, ax=ax, **plt_kwargs)
+        #    if ix != len(c_names) - 1:
+        #        set_visible(ax, False, *["xlabel"])
+
+        if "title" not in kwargs:
+            fig.suptitle(f"Temperature-dependent elastic constants at P={pressure_gpa} (GPa)")
 
         return fig
+
+
+
+def cmat_inds_names(sym: str, mode: str) -> tuple[list, list]:
+
+    if sym in ("cubic", "trigonal", "hexagonal", "tetragonal", "orthorhombic"):
+        if mode == 'ECs':
+            if sym == "cubic":
+                inds_list = [(0,0), (0,1), (3,3)]
+            elif sym == "hexagonal":
+                inds_list = [(0,0), (0,1), (0,2), (2,2), (3,3)]
+            elif sym == "trigonal":
+                inds_list = [(0,0), (0,1), (0,2), (2,2), (0,3), (3,3)]
+            elif sym == "tetragonal":
+                inds_list = [(0,0), (0,1), (0,2), (2,2), (3,3), (5,5)]
+            if  sym == "orthorhombic":
+                inds_list = [(0,0), (0,1), (0,2), (1,1), (1,2), (2,2), (3,3), (4,4), (5,5)]
+
+        elif mode == 'TEC':
+            inds_list = [(0,0), (0,1), (0,2), (1,1), (1,2), (2,2)]
+
+        else:
+            raise ValueError(f"Invalid {mode=}")
+
+    elif sym == "monoclinic":
+        #if mode != 'ECs':
+        #    f.write(f" Warning: C44, C46, and C66 do not include the free energy contribution (only BO energy).\n")
+        inds_list = [
+            (0,0), (0,1), (0,2), (0,3), (0,4), (0,5),
+            (1,0), (1,1), (1,2), (1,3), (1,4), (1,5),
+            (2,0), (2,1), (2,2), (2,3), (2,4), (2,5),
+            (3,0), (3,1), (3,2), (3,3), (3,4), (3,5),
+            (4,0), (4,1), (4,2), (4,3), (4,4), (4,5),
+            (5,0), (5,1), (5,2), (5,3), (5,4), (5,5),
+        ]
+
+    elif sym == "triclinic":
+        inds_list = [
+            (0,0), (0,1), (0,2), (0,3), (0,4), (0,5),
+            (1,0), (1,1), (1,2), (1,3), (1,4), (1,5),
+            (2,0), (2,1), (2,2), (2,3), (2,4), (2,5),
+            (3,0), (3,1), (3,2), (3,3), (3,4), (3,5),
+            (4,0), (4,1), (4,2), (4,3), (4,4), (4,5),
+            (5,0), (5,1), (5,2), (5,3), (5,4), (5,5),
+        ]
+
+    # Build names. Note +1
+    names = [f"C_{inds[0]+1}{inds[1]+1}" for inds in inds_list]
+
+    return inds_list, names

@@ -262,7 +262,7 @@ xred_symbols
 
         # TODO: This part should be tested more carefully
         mgb2.abi_sanitize()
-        mgb2.abi_sanitize(primitive_standard=True)
+        mgb2.abi_sanitize(primitive_standard=True, atol=1e-8)
         mgb2.get_conventional_standard_structure()
         assert len(mgb2.abi_string)
         assert len(mgb2.spget_summary(site_symmetry=True, verbose=10))
