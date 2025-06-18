@@ -19,10 +19,10 @@ from abipy.electrons import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.deformation_utils import generate_deformations
 from abipy.dfpt.qha_general_stress import QHA_ZSISA, spgnum_to_crystal_system, cmat_inds_names
-from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.tasks import RelaxTask
-from abipy.flowtk.flows import Flow
+from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.dfpt_works import ElasticWork
+from abipy.flowtk.flows import Flow
 
 
 class ZsisaFlow(Flow):
@@ -397,6 +397,7 @@ class ThermalRelaxWork(Work):
                 relaxed_structure = gsr.structure
                 stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
                 energy_guess = gsr.energy
+                natom = len(gsr.structure)
 
             tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa,
                                       relaxed_structure, stress_guess, energy_guess,
@@ -412,7 +413,8 @@ class ThermalRelaxWork(Work):
                 # Add path to the DDB file with the 2nd order derivatives wrt strain.
                 elastic_ddb_path=ddb_filepath,
                 therm=tdata.therm,
-                elastic=tdata.elastic
+                elastic=tdata.elastic,
+                gibbs_atom=tdata.gibbs / natom,
             )
             entry = ThermalRelaxEntry(**entry)
 
@@ -500,19 +502,15 @@ class ThermalRelaxEntry:
     elastic_ddb_path: str                  # Path to the DDB file with the 2nd order derivatives wrt strain.
     therm: np.ndarray | None               # Thermal_expansion (Voigt notation).
     elastic: np.ndarray | None             # Elastic constants.
+    gibbs_atom: float                      # Gibbs free energy per atom in eV.
 
     def get_dict4pandas(self) -> dict:
         """
         Return dictionary to build pandas dataframes.
         """
-        dct = {k: getattr(self, k) for k in ("temperature", "pressure_gpa", "nqsmall_or_qppa")}
+        dct = {k: getattr(self, k) for k in ("temperature", "pressure_gpa", "gibbs_atom", "nqsmall_or_qppa")}
         with GsrFile(self.gsr_path) as gsr:
             dct.update(gsr.structure.get_dict4pandas())
-
-        #(f"{'#T':<8} {'P':<8} {'alpha_xx':<15} {'alpha_yy':<15} {'alpha_zz':<15}
-        # {'alpha_yz':<15} {'alpha_xz':<15} {'alpha_xy':<15}\n")
-        #(f"{temp:<8} {pressure:<8.2f} {therm[0]:<15.8e} {therm[1]:<15.8e} {therm[2]:<15.8e} "
-        #f"{therm[3]:<15.8e} {therm[4]:<15.8e} {therm[5]:<15.8e}\n")
 
         if self.therm is not None:
             # Add thermal expansion coefficients.
@@ -588,7 +586,7 @@ class ZsisaResults(Serializable):
 
     @cached_property
     def cycle_markers(self):
-        # Create a list of markers you want to cycle through
+        """Create a list of markers you want to cycle through."""
         from itertools import cycle
         return cycle(('o', 's', '^', 'D', 'v', '>', '<', 'p', '*', 'h', '+', 'x'))
 
@@ -611,6 +609,7 @@ class ZsisaResults(Serializable):
             "alpha": r"$\alpha$ (degrees)",
             "beta": r"$\beta$ (degrees)",
             "gamma": r"$\gamma$ (degrees)",
+            "gibbs_atom": r"$G$ (eV/atom)",
         }
 
         # Labels for thermal expansion coefficients.
@@ -843,8 +842,6 @@ class ZsisaResults(Serializable):
             plt_kwargs = dict(
                 fontsize=fontsize,
                 marker=next(self.cycle_markers),
-                #color=cmap(float(ix) / len(c_names)),
-                #label=c_name,
                 hue=p_key,
                 col2label=self.col2label,
                 show=False,
@@ -859,6 +856,48 @@ class ZsisaResults(Serializable):
                 set_visible(ax, False, *["xlabel"])
 
             #set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel="Elastic constant (GPa)")
+
+        #if "title" not in kwargs:
+        #    fig.suptitle(f"Temperature-dependent elastic constants at P={pressure_gpa} (GPa)")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_gibbs(self,
+                   df=None,
+                   ax=None,
+                   colormap: str = "jet",
+                   fontsize: int = 8,
+                   **kwargs) -> Figure:
+        """
+        Plot Gibbs energy per atom in eV as a function of T grouped by pressure.
+
+        Args:
+            df: dataframe with data. None to compute it inside the function.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            colormap: Color map. Have a look at the colormaps here and decide which one you like:
+                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+            fontsize: fontsize for legends and titles
+        """
+        if df is None:
+            df = self.get_dataframe()
+
+        # Add new column with p_key to have nicer labels.
+        p_key, df = self._add_pga_col(df)
+
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
+        cmap = plt.get_cmap(colormap)
+
+        plt_kwargs = dict(
+            fontsize=fontsize,
+            hue=p_key,
+            col2label=self.col2label,
+            marker="o",
+            show=False,
+        )
+
+        plot_xy_with_hue(df, "temperature", "gibbs_atom", ax=ax, **plt_kwargs)
+        #set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel="Elastic constant (GPa)")
 
         #if "title" not in kwargs:
         #    fig.suptitle(f"Temperature-dependent elastic constants at P={pressure_gpa} (GPa)")

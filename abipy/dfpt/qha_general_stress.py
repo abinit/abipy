@@ -68,7 +68,7 @@ class ThermalData(Serializable):
     stress_au: np.ndarray        # Stress in a.u. (Voigt form)
     elastic: np.ndarray | None   # Elastic constants.
     therm: np.ndarray | None     # Thermal expansion
-    gibbs: float                 # Gibbs free energy
+    gibbs: float                 # Gibbs free energy in eV.
 
     def __str__(self):
         return self.to_string()
@@ -456,7 +456,7 @@ class QHA_ZSISA(HasPickleIO):
             dF_dV = (e[0,0,0,0,0,0]-e[2,0,0,0,0,0])/(2*dv)
             d2F_dV2 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+e[2,0,0,0,0,0])/(dv)**2
             dfdv = dF_dV + (v-v0)*d2F_dV2
-            gibbs= self.energy_guess + e[1,0,0,0,0,0] + pressure*v+\
+            gibbs = self.energy_guess + e[1,0,0,0,0,0] + pressure*v+\
                     (v-v0)*dF_dV + 0.5*(v-v0)**2*d2F_dV2
 
         elif self.dim[0] == 5:
@@ -466,7 +466,7 @@ class QHA_ZSISA(HasPickleIO):
             d3F_dV3 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+2*e[3,0,0,0,0,0]-e[4,0,0,0,0,0])/(2*dv**3)
             d4F_dV4 = (e[0,0,0,0,0,0]-4*e[1,0,0,0,0,0]+6*e[2,0,0,0,0,0]-4*e[3,0,0,0,0,0]+e[4,0,0,0,0,0])/(dv**4)
             dfdv = dF_dV + (v-v0)*d2F_dV2+ 0.5*(v-v0)**2*d3F_dV3+ 1/6.0*(v-v0)**3*d4F_dV4
-            gibbs= self.energy_guess + e[1,0,0,0,0,0] + pressure*v+\
+            gibbs = self.energy_guess + e[1,0,0,0,0,0] + pressure*v+\
                     (v-v0)*dF_dV + 0.5*(v-v0)**2*d2F_dV2 + 1/6.0*(v-v0)**3*d3F_dV3+ 1/24.0*(v-v0)**4*d4F_dV4
 
         else:
@@ -523,7 +523,7 @@ class QHA_ZSISA(HasPickleIO):
         dsdx = dS_dX + (exx_n-exx0)*d2S_dX2
 
         # Gibbs free energy
-        gibbs= self.energy_guess + e[1,1,1,0,0,0] + (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 + pressure*v
+        gibbs = self.energy_guess + e[1,1,1,0,0,0] + (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 + pressure*v
 
         # Compute thermal stress. Eq (51)
         stress_xx = -dfdx/v*(exx_n+1)/3.0 * abu.eVA3_HaBohr3
@@ -635,7 +635,7 @@ class QHA_ZSISA(HasPickleIO):
         dsdz = dS_dZ + (ezz_n-ezz0)*d2S_dZ2+(exx_n-exx0)*d2S_dXdZ
 
         # Gibbs free energy
-        gibbs= self.energy_guess + e[1,1,1,0,0,0] + pressure*v + \
+        gibbs = self.energy_guess + e[1,1,1,0,0,0] + pressure*v + \
                   (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 +\
                   (ezz_n-ezz0)*dF_dZ + 0.5*(ezz_n-ezz0)**2*d2F_dZ2 +\
                   (exx_n-exx0)*(ezz_n-ezz0)*d2F_dXdZ
@@ -846,7 +846,7 @@ class QHA_ZSISA(HasPickleIO):
         dsdz = dS_dZ + (ezz_n-ezz0)*d2S_dZ2+(exx_n-exx0)*d2S_dXdZ+(eyy_n-eyy0)*d2S_dYdZ
 
         # Gibbs free energy
-        gibbs= self.energy_guess + e[1,1,1,0,0,0] + pressure*v + \
+        gibbs = self.energy_guess + e[1,1,1,0,0,0] + pressure*v + \
                   (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 +\
                   (eyy_n-eyy0)*dF_dY + 0.5*(eyy_n-eyy0)**2*d2F_dY2 +\
                   (ezz_n-ezz0)*dF_dZ + 0.5*(ezz_n-ezz0)**2*d2F_dZ2 +\
@@ -1033,7 +1033,7 @@ class QHA_ZSISA(HasPickleIO):
         dsdc1= dS_dC1 + (exz_n-exz0)*d2S_dC12+(exx_n-exx0)*d2S_dA1dC1+(eyy_n-eyy0)*d2S_dB2dC1+(ezz_n-ezz0)*d2S_dC3dC1
 
         # Gibbs free energy
-        gibbs= self.energy_guess + e[1,1,1,1,1,1] + pressure*v + \
+        gibbs = self.energy_guess + e[1,1,1,1,1,1] + pressure*v + \
                   (exx_n-exx0)*dF_dA1 + 0.5*(exx_n-exx0)**2*d2F_dA12 +\
                   (eyy_n-eyy0)*dF_dB2 + 0.5*(eyy_n-eyy0)**2*d2F_dB22 +\
                   (ezz_n-ezz0)*dF_dC3 + 0.5*(ezz_n-ezz0)**2*d2F_dC32 +\
@@ -1294,7 +1294,7 @@ class QHA_ZSISA(HasPickleIO):
         dsdc2 = dS_dC2 + (eyz_n-eyz0)*d2S_dC22+(exx_n-exx0)*d2S_dA1dC2+(eyy_n-eyy0)*d2S_dB2dC2+(ezz_n-ezz0)*d2S_dC3dC2+(exy_n-exy0)*d2S_dB1dC2+(exz_n-exz0)*d2S_dC1dC2
 
         # Gibbs free energy
-        gibbs= self.energy_guess + e[1,1,1,1,1,1] + pressure*v + \
+        gibbs = self.energy_guess + e[1,1,1,1,1,1] + pressure*v + \
          (exx_n-exx0)*dF_dA1 + 0.5*(exx_n-exx0)**2*d2F_dA12 +\
          (eyy_n-eyy0)*dF_dB2 + 0.5*(eyy_n-eyy0)**2*d2F_dB22 +\
          (ezz_n-ezz0)*dF_dC3 + 0.5*(ezz_n-ezz0)**2*d2F_dC32 +\
@@ -1412,7 +1412,7 @@ class QHA_ZSISA(HasPickleIO):
         exx_n = x/X0-1
 
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2
-        gibbs= self.energy_guess + e[1,0,0,0,0,0] + pressure*v + \
+        gibbs = self.energy_guess + e[1,0,0,0,0,0] + pressure*v + \
                   (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2
 
         stress_xx = -dfdx/v*(exx_n+1)*0.5 * abu.eVA3_HaBohr3
@@ -1462,7 +1462,7 @@ class QHA_ZSISA(HasPickleIO):
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2+(eyy_n-eyy0)*d2F_dXdY
         dfdy = dF_dY + (eyy_n-eyy0)*d2F_dY2+(exx_n-exx0)*d2F_dXdY
 
-        gibbs= self.energy_guess + e[1,1,0,0,0,0] + pressure*v + \
+        gibbs = self.energy_guess + e[1,1,0,0,0,0] + pressure*v + \
                   (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 +\
                   (eyy_n-eyy0)*dF_dY + 0.5*(eyy_n-eyy0)**2*d2F_dY2 +\
                   (exx_n-exx0)*(ezz_n-eyy0)*d2F_dXdY
@@ -1536,7 +1536,7 @@ class QHA_ZSISA(HasPickleIO):
         dfda1 = dF_dA1 + (exx_n-exx0)*d2F_dA12+(eyy_n-eyy0)*d2F_dA1dB2+(exy_n-exy0)*d2F_dA1dB1
         dfdb2 = dF_dB2 + (eyy_n-eyy0)*d2F_dB22+(exx_n-exx0)*d2F_dA1dB2+(exy_n-exy0)*d2F_dB2dB1
         dfdb1 = dF_dB1 + (exy_n-exy0)*d2F_dB12+(exx_n-exx0)*d2F_dA1dB1+(eyy_n-eyy0)*d2F_dB2dB1
-        gibbs= self.energy_guess + e[1,1,1,0,0,0] + pressure*v + \
+        gibbs = self.energy_guess + e[1,1,1,0,0,0] + pressure*v + \
               (exx_n-exx0)*dF_dA1 + 0.5*(exx_n-exx0)**2*d2F_dA12 +\
               (eyy_n-eyy0)*dF_dB2 + 0.5*(eyy_n-eyy0)**2*d2F_dB22 +\
               (exy_n-exy0)*dF_dB1 + 0.5*(exy_n-exy0)**2*d2F_dB12 +\
