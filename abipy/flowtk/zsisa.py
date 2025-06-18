@@ -582,6 +582,12 @@ class ZsisaResults(Serializable):
     def has_elastic(self) -> bool:
         return all(entry.elastic is not None for entry in self.thermal_relax_entries)
 
+    @cached_property
+    def cycle_markers(self):
+        # Create a list of markers you want to cycle through
+        from itertools import cycle
+        return cycle(('o', 's', '^', 'D', 'v', '>', '<', 'p', '*', 'h', '+', 'x'))
+
     def get_dataframe(self) -> pd.DataFrame:
         """
         Build pandas DataFrame with temperature, pressure_gpa, lattice parameters, thermal expansion
@@ -610,13 +616,39 @@ class ZsisaResults(Serializable):
 
         # Labels for elastic constants.
         for i, j in itertools.product(range(1, 7), range(1, 7)):
-            key = "C_{%s%s}"
-            col2label[key] = "${%s}$" % key
+            key = f"C_{i}{j}"
+            col2label[key] = "$C_{%s%s}$ (GPa)" % (i, j)
 
         return col2label
 
+    def get_cnames_from_c_select(self, c_select: str) -> list[str]:
+        """
+        Return list of strings with the names of the elastic tensor components from `c_select`.
+        """
+        if c_select == "symmetry":
+            # Get names of columns associated to the independent elastic constants.
+            sym = spgnum_to_crystal_system(self.spgrp_number)
+            _, c_names = cmat_inds_names(sym, self.mode)
+        elif c_select == "all":
+            c_names = [k for k in df.keys() if k.startswith("C_")]
+        else:
+            raise ValueError(f"Invalid {c_select=}")
+
+        return c_names
+
+    @staticmethod
+    def _add_pga_col(df) -> tuple[str, pd.DataFrame]:
+        """Add new column with p_key to have nicer labels."""
+        p_key = "P (GPa)"
+        df = df.copy()
+        df[p_key] = df["pressure_gpa"]
+        return p_key, df
+
     @add_fig_kwargs
-    def plot_lattice_vs_temp(self, df=None, fontsize=8, **kwargs) -> Figure:
+    def plot_lattice_vs_temp(self,
+                             df=None,
+                             fontsize: int = 8,
+                             **kwargs) -> Figure:
         """
         Plot lattice parameters and angles as a function of T grouped by pressure P.
 
@@ -633,8 +665,11 @@ class ZsisaResults(Serializable):
             df = self.get_dataframe()
         one_pressure = df["pressure_gpa"].nunique() == 1
 
+        # Add new column with p_key to have nicer labels.
+        p_key, df = self._add_pga_col(df)
+
         plt_kwargs = dict(fontsize=fontsize,
-                          hue="pressure_gpa" if not one_pressure else None,
+                          hue=p_key if not one_pressure else None,
                           col2label=self.col2label,
                           marker="o",
                           show=False
@@ -645,12 +680,15 @@ class ZsisaResults(Serializable):
             plot_xy_with_hue(df, "temperature", length, ax=ax, **plt_kwargs)
             if ix != len(lengths) - 1:
                 set_visible(ax, False, *["xlabel"])
+            if ix != 0:
+                set_visible(ax, False, *["legend"])
 
         for ix, angle in enumerate(angles):
             ax = ax_mat[ix, 1]
             plot_xy_with_hue(df, "temperature", angle, ax=ax, **plt_kwargs)
             if ix != len(angles) - 1:
                 set_visible(ax, False, *["xlabel"])
+            set_visible(ax, False, *["legend"])
 
         if "title" not in kwargs:
             fig.suptitle("Lattice parameters and angles")
@@ -658,7 +696,10 @@ class ZsisaResults(Serializable):
         return fig
 
     @add_fig_kwargs
-    def plot_thermal_expansion(self, df=None, fontsize=8, **kwargs) -> Figure:
+    def plot_thermal_expansion(self,
+                               df=None,
+                               fontsize: int = 8,
+                               **kwargs) -> Figure:
         """
         Plot thermal expansion alpha as a function of T grouped by pressure P.
 
@@ -676,8 +717,11 @@ class ZsisaResults(Serializable):
             df = self.get_dataframe()
         one_pressure = df["pressure_gpa"].nunique() == 1
 
+        # Add new column with p_key to have nicer labels.
+        p_key, df = self._add_pga_col(df)
+
         plt_kwargs = dict(fontsize=fontsize,
-                          hue="pressure_gpa" if not one_pressure else None,
+                          hue=p_key if not one_pressure else None,
                           col2label=self.col2label,
                           marker="o",
                           show=False
@@ -693,6 +737,8 @@ class ZsisaResults(Serializable):
                 set_visible(ax, False, *["xlabel"])
             if jj == 1:
                 set_visible(ax, False, *["ylabel"])
+            if (ii, jj) != (0, 0):
+                set_visible(ax, False, *["legend"])
 
         if "title" not in kwargs:
             fig.suptitle("Thermal expansion coefficients")
@@ -700,13 +746,21 @@ class ZsisaResults(Serializable):
         return fig
 
     @add_fig_kwargs
-    def plot_elastic_vs_temp(self, pressure_gpa=None, df=None, ax=None,
-                             colormap="jet", fontsize=8, **kwargs) -> Figure:
+    def plot_elastic_vs_t(self,
+                          pressure_gpa: float | None = None,
+                          c_select: str = "symmetry",
+                          df=None,
+                          ax=None,
+                          colormap: str = "jet",
+                          fontsize: int = 8,
+                          **kwargs) -> Figure:
         """
-        Plot elastic constants as a function of T for fixed Pressure.
+        Plot elastic constants as a function of T for fixed Pressure on a single figure.
 
         Args:
             pressure_gpa: Pressure to select. If None, the minimum pressure is used.
+            c_select: "symmetry" if only the non-zero components should be plotted.
+                "all" to plot all components.
             df: dataframe with data. None to compute it inside the function.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             colormap: Color map. Have a look at the colormaps here and decide which one you like:
@@ -722,27 +776,17 @@ class ZsisaResults(Serializable):
         if pressure_gpa is None:
             pressure_gpa = df["pressure_gpa"].values.min()
 
-        df = df[df["pressure_gpa"] == pressure_gpa]
-
-        # TODO
-        # Get names of columns associated to the independent elastic constants.
-        #c_names = [k for k in df.keys() if k.startswith("C_")]
-        #if not c_names:
-        #    raise ValueError("Dataframe does not contain elastic constants!")
-
-        sym = spgnum_to_crystal_system(self.spgrp_number)
-        c_ind_list, c_names = cmat_inds_names(sym, self.mode)
+        # Add new column with p_key to have nicer labels.
+        p_key, df = self._add_pga_col(df)
+        df = df[df[p_key] == pressure_gpa]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-
-        # Create a list of markers you want to cycle through
-        from itertools import cycle
-        markers = cycle(('o', 's', '^', 'D', 'v', '>', '<', 'p', '*', 'h', '+', 'x'))
         cmap = plt.get_cmap(colormap)
 
+        c_names = self.get_cnames_from_c_select(c_select)
         for i, c_name in enumerate(c_names):
             plt_kwargs = dict(
-                marker=next(markers),
+                marker=next(self.cycle_markers),
                 color=cmap(float(i) / len(c_names)),
                 label=c_name,
             )
@@ -750,38 +794,84 @@ class ZsisaResults(Serializable):
 
         set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel="Elastic constant (GPa)")
 
-        #one_pressure = df["pressure_gpa"].nunique() == 1
-        #if one_pressure:
-        #    ax, fig, plt = get_ax_fig_plt(ax=None)
-        #    for c_name in c_names:
-        #        plot_xy_with_hue(df, "temperature", c_name, ax=ax, **plt_kwargs)
-        #else:
-        #nrows, ncols = len(c_names), 1
-        #ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-        #                                       sharex=True, sharey=False, squeeze=False)
-
-        #plt_kwargs = dict(fontsize=fontsize,
-        #                  hue="pressure_gpa" if not one_pressure else None,
-        #                  col2label=self.col2label,
-        #                  marker="o",
-        #                  show=False
-        #                  )
-
-        #for ix, c_name in enumerate(c_names):
-        #    ax = ax_mat[ix,0]
-        #    plot_xy_with_hue(df, "temperature", c_name, ax=ax, **plt_kwargs)
-        #    if ix != len(c_names) - 1:
-        #        set_visible(ax, False, *["xlabel"])
-
         if "title" not in kwargs:
             fig.suptitle(f"Temperature-dependent elastic constants at P={pressure_gpa} (GPa)")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_elastic_vs_t_and_p(self,
+                                c_select: str = "symmetry",
+                                df=None,
+                                ax=None,
+                                colormap: str = "jet",
+                                fontsize: int = 8,
+                                **kwargs) -> Figure:
+        """
+        Plot elastic constants as a function of T grouped by Pressure.
+        One subplot for each element of the C tensor
+
+        Args:
+            c_select: "symmetry" if only the non-zero components should be plotted.
+                "all" to plot all components.
+            df: dataframe with data. None to compute it inside the function.
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            colormap: Color map. Have a look at the colormaps here and decide which one you like:
+                http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
+            fontsize: fontsize for legends and titles
+        """
+        if not self.has_elastic:
+            raise ValueError("Temperature-dependent elastic constants are not available!")
+
+        if df is None:
+            df = self.get_dataframe()
+
+        # Add new column with p_key to have nicer labels.
+        p_key, df = self._add_pga_col(df)
+
+        c_names = self.get_cnames_from_c_select(c_select)
+        nrows, ncols = len(c_names), 1
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=True)
+        cmap = plt.get_cmap(colormap)
+
+        for ix, (c_name, ax) in enumerate(zip(c_names, ax_list, strict=True)):
+            plt_kwargs = dict(
+                fontsize=fontsize,
+                marker=next(self.cycle_markers),
+                #color=cmap(float(ix) / len(c_names)),
+                #label=c_name,
+                hue=p_key,
+                col2label=self.col2label,
+                show=False,
+            )
+
+            plot_xy_with_hue(df, "temperature", c_name, ax=ax, **plt_kwargs)
+
+            if ix != 0:
+                set_visible(ax, False, *["legend"])
+
+            if ix != len(c_names) - 1:
+                set_visible(ax, False, *["xlabel"])
+
+            #set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel="Elastic constant (GPa)")
+
+        #if "title" not in kwargs:
+        #    fig.suptitle(f"Temperature-dependent elastic constants at P={pressure_gpa} (GPa)")
 
         return fig
 
 
 
 def cmat_inds_names(sym: str, mode: str) -> tuple[list, list]:
+    """
+    Return list with the numpy indices of the non-null components of
+    the elastic tensor as we as list with their names e.g. (0, 0) -> "C_11".
 
+    Args:
+        sym: Crystalline system.
+        mode:
+    """
     if sym in ("cubic", "trigonal", "hexagonal", "tetragonal", "orthorhombic"):
         if mode == 'ECs':
             if sym == "cubic":

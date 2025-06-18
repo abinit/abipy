@@ -719,8 +719,8 @@ def plot_xy_with_hue(data: pd.DataFrame,
         _plot_key_grp("nohue", data, span_style)
 
     ax.grid(True)
-    ax.set_xlabel(x if col2label is None else col2label.get(x, x))
-    ax.set_ylabel(y if col2label is None else col2label.get(y, y))
+    ax.set_xlabel(x if col2label is None else col2label[x])
+    ax.set_ylabel(y if col2label is None else col2label[y])
 
     set_axlims(ax, xlims, "x")
     set_axlims(ax, ylims, "y")
