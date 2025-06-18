@@ -33,7 +33,7 @@ class QhaZSISATest(AbipyTest):
             stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
 
         zsisa = QHA_ZSISA.from_files(dos_paths, gsr_BO_paths, verbose=1)
-        tdata = zsisa.get_tstress(300.0, 0.0, structure_guess, stress_guess,
+        tdata = zsisa.get_tstress(300.0, 0.0, structure_guess, stress_guess, energy_guess,
                                   mode="TEC", elastic_path=elastic_BO_paths)
         #print("Stress calculation result:", tdata)
 
@@ -69,7 +69,7 @@ class QhaZSISATest(AbipyTest):
         pressure = 8.0
         zsisa = QHA_ZSISA.from_files(dos_paths, gsr_BO_path)
 
-        tdata = zsisa.get_tstress(temp, pressure, structure_guess, stress_guess,
+        tdata = zsisa.get_tstress(temp, pressure, structure_guess, stress_guess, energy_guess, 
                                   mode='ECs', elastic_path=elastic_path)
 
         assert zsisa.dim == (3, 3, 3, 3, 1, 1)

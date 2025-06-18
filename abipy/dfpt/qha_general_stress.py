@@ -68,6 +68,7 @@ class ThermalData(Serializable):
     stress_au: np.ndarray        # Stress in a.u. (Voigt form)
     elastic: np.ndarray | None   # Elastic constants.
     therm: np.ndarray | None     # Thermal expansion
+    gibbs: float                 # Gibbs free energy
 
     def __str__(self):
         return self.to_string()
@@ -167,12 +168,12 @@ class QHA_ZSISA(HasPickleIO):
             if gsr_bo_path.endswith("DDB"):
                 with DdbFile.from_file(gsr_bo_path) as g:
                     structure_bo = g.structure
-                    stress_bo = g.cart_stress_tensor * abu.GPa_to_au
+                    #stress_bo = g.cart_stress_tensor * abu.GPa_to_au
 
             elif gsr_bo_path.endswith("GSR.nc"):
                 with GsrFile.from_file(gsr_bo_path) as g:
                     structure_bo = g.structure
-                    stress_bo = g.cart_stress_tensor * abu.GPa_to_au
+                    #stress_bo = g.cart_stress_tensor * abu.GPa_to_au
             else:
                 raise TypeError(f"Unknown file type: {type(gsr_bo_path)=}")
 
@@ -379,7 +380,7 @@ class QHA_ZSISA(HasPickleIO):
         # Set structure parameters for initial guess.
         #self.set_structure_stress_guess(structure_guess, stress_guess)
 
-    def set_structure_stress_guess(self, structure_guess: Structure, stress_guess) -> None:
+    def set_structure_stress_guess(self, structure_guess: Structure, stress_guess, energy_guess) -> None:
         """
         Set structure parameters and stress for the initial guess.
         """
@@ -393,6 +394,7 @@ class QHA_ZSISA(HasPickleIO):
         self.lattice_c_guess = structure_guess.lattice.abc[2]
         self.matrix_guess = structure_guess.lattice.matrix
         self.stress_guess = stress_guess
+        self.energy_guess = energy_guess
         self.frac_coords_guess = structure_guess.frac_coords
         self.angles_guess = structure_guess.lattice.angles
         self.ax_guess = structure_guess.lattice.matrix[0,0]
@@ -454,6 +456,8 @@ class QHA_ZSISA(HasPickleIO):
             dF_dV = (e[0,0,0,0,0,0]-e[2,0,0,0,0,0])/(2*dv)
             d2F_dV2 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+e[2,0,0,0,0,0])/(dv)**2
             dfdv = dF_dV + (v-v0)*d2F_dV2
+            gibbs= self.energy_guess + e[1,0,0,0,0,0] + pressure*v+\
+                    (v-v0)*dF_dV + 0.5*(v-v0)**2*d2F_dV2
 
         elif self.dim[0] == 5:
             v0 = self.volumes[2,0,0,0,0,0]
@@ -462,6 +466,8 @@ class QHA_ZSISA(HasPickleIO):
             d3F_dV3 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+2*e[3,0,0,0,0,0]-e[4,0,0,0,0,0])/(2*dv**3)
             d4F_dV4 = (e[0,0,0,0,0,0]-4*e[1,0,0,0,0,0]+6*e[2,0,0,0,0,0]-4*e[3,0,0,0,0,0]+e[4,0,0,0,0,0])/(dv**4)
             dfdv = dF_dV + (v-v0)*d2F_dV2+ 0.5*(v-v0)**2*d3F_dV3+ 1/6.0*(v-v0)**3*d4F_dV4
+            gibbs= self.energy_guess + e[1,0,0,0,0,0] + pressure*v+\
+                    (v-v0)*dF_dV + 0.5*(v-v0)**2*d2F_dV2 + 1/6.0*(v-v0)**3*d3F_dV3+ 1/24.0*(v-v0)**4*d4F_dV4
 
         else:
             raise ValueError(f"Unsupported value of {self.dim[0]=}")
@@ -477,7 +483,7 @@ class QHA_ZSISA(HasPickleIO):
         dtol[1] = abs(stress[1] - self.stress_guess[1,1])
         dtol[2] = abs(stress[2] - self.stress_guess[2,2])
 
-        return dtol, stress
+        return dtol, gibbs, stress
 
     def stress_ZSISA_1DOF(self, temp: float, pressure: float) -> tuple:
         """
@@ -515,6 +521,9 @@ class QHA_ZSISA(HasPickleIO):
         # Free energy and entropy derivative at guess structure
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2
         dsdx = dS_dX + (exx_n-exx0)*d2S_dX2
+
+        # Gibbs free energy 
+        gibbs= self.energy_guess + e[1,1,1,0,0,0] + (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 + pressure*v
 
         # Compute thermal stress. Eq (51)
         stress_xx = -dfdx/v*(exx_n+1)/3.0 * abu.eVA3_HaBohr3
@@ -568,7 +577,7 @@ class QHA_ZSISA(HasPickleIO):
                 therm = [dstrain_dt[0]*(exx_n+1) , dstrain_dt[1]*(exx_n+1),dstrain_dt[2]*(exx_n+1),0,0,0]
                 if self.verbose: print(f"{therm=}")
 
-        return dtol, stress, therm
+        return dtol, gibbs, stress, therm
 
     def stress_ZSISA_2DOF(self, temp: float, pressure: float) -> tuple:
 
@@ -625,6 +634,12 @@ class QHA_ZSISA(HasPickleIO):
         dsdx = dS_dX + (exx_n-exx0)*d2S_dX2+(ezz_n-ezz0)*d2S_dXdZ
         dsdz = dS_dZ + (ezz_n-ezz0)*d2S_dZ2+(exx_n-exx0)*d2S_dXdZ
 
+        # Gibbs free energy 
+        gibbs= self.energy_guess + e[1,1,1,0,0,0] + pressure*v + \
+                  (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 +\
+                  (ezz_n-ezz0)*dF_dZ + 0.5*(ezz_n-ezz0)**2*d2F_dZ2 +\
+                  (exx_n-exx0)*(ezz_n-ezz0)*d2F_dXdZ 
+
         # Compute thermal stresses. Eq (54)
         stress_xx = -dfdx/v*(exx_n+1)*0.5 * abu.eVA3_HaBohr3
         stress_zz = -dfdz/v*(ezz_n+1)     * abu.eVA3_HaBohr3
@@ -680,7 +695,7 @@ class QHA_ZSISA(HasPickleIO):
                 therm = [dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(exx_n+1),dstrain_dt[2]*(ezz_n+1),0,0,0]
                 if self.verbose: print(f"{therm=}")
 
-        return dtol, stress, therm
+        return dtol, gibbs, stress, therm
 
     def stress_ZSISA_3DOF(self, temp: float, pressure: float, mode: str) -> tuple:
 
@@ -830,6 +845,15 @@ class QHA_ZSISA(HasPickleIO):
         dsdy = dS_dY + (eyy_n-eyy0)*d2S_dY2+(exx_n-exx0)*d2S_dXdY+(ezz_n-ezz0)*d2S_dYdZ
         dsdz = dS_dZ + (ezz_n-ezz0)*d2S_dZ2+(exx_n-exx0)*d2S_dXdZ+(eyy_n-eyy0)*d2S_dYdZ
 
+        # Gibbs free energy 
+        gibbs= self.energy_guess + e[1,1,1,0,0,0] + pressure*v + \
+                  (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 +\
+                  (eyy_n-eyy0)*dF_dY + 0.5*(eyy_n-eyy0)**2*d2F_dY2 +\
+                  (ezz_n-ezz0)*dF_dZ + 0.5*(ezz_n-ezz0)**2*d2F_dZ2 +\
+                  (exx_n-exx0)*(ezz_n-ezz0)*d2F_dXdZ +\
+                  (exx_n-exx0)*(ezz_n-eyy0)*d2F_dXdY +\
+                  (eyy_n-eyy0)*(ezz_n-ezz0)*d2F_dYdZ 
+
         # Compute thermal stresses. Eq (45)
         stress_xx = -dfdx/v*(exx_n+1) * abu.eVA3_HaBohr3
         stress_yy = -dfdy/v*(eyy_n+1) * abu.eVA3_HaBohr3
@@ -894,7 +918,7 @@ class QHA_ZSISA(HasPickleIO):
                 #print(f"{therm=}")
                 elastic = M / v * abu.eVA3_GPa
 
-        return dtol, stress, therm, elastic
+        return dtol, gibbs, stress, therm, elastic
 
     def stress_ZSISA_monoclinic(self, temp: float, pressure: float, mode: str) -> tuple:
 
@@ -1008,6 +1032,19 @@ class QHA_ZSISA(HasPickleIO):
         dsdc3= dS_dC3 + (ezz_n-ezz0)*d2S_dC32+(exx_n-exx0)*d2S_dA1dC3+(eyy_n-eyy0)*d2S_dB2dC3+(exz_n-exz0)*d2S_dC3dC1
         dsdc1= dS_dC1 + (exz_n-exz0)*d2S_dC12+(exx_n-exx0)*d2S_dA1dC1+(eyy_n-eyy0)*d2S_dB2dC1+(ezz_n-ezz0)*d2S_dC3dC1
 
+        # Gibbs free energy 
+        gibbs= self.energy_guess + e[1,1,1,1,1,1] + pressure*v + \
+                  (exx_n-exx0)*dF_dA1 + 0.5*(exx_n-exx0)**2*d2F_dA12 +\
+                  (eyy_n-eyy0)*dF_dB2 + 0.5*(eyy_n-eyy0)**2*d2F_dB22 +\
+                  (ezz_n-ezz0)*dF_dC3 + 0.5*(ezz_n-ezz0)**2*d2F_dC32 +\
+                  (exz_n-exz0)*dF_dC1 + 0.5*(exz_n-exz0)**2*d2F_dC12 +\
+                  (exx_n-exx0)*(eyy_n-eyy0)*d2F_dA1dB2 +\
+                  (exx_n-exx0)*(ezz_n-ezz0)*d2F_dA1dC3 +\
+                  (exx_n-exx0)*(exz_n-exz0)*d2F_dA1dC1 +\
+                  (eyy_n-eyy0)*(ezz_n-ezz0)*d2F_dB2dC3 +\
+                  (eyy_n-eyy0)*(exz_n-exz0)*d2F_dB2dC1 +\
+                  (ezz_n-ezz0)*(exz_n-exz0)*d2F_dC3dC1
+
         # Compute thermal stresses. Eq (47)
         stress_a1= -dfda1/v*(exx_n+1) * abu.eVA3_HaBohr3
         stress_b2= -dfdb2/v*(eyy_n+1) * abu.eVA3_HaBohr3
@@ -1090,7 +1127,7 @@ class QHA_ZSISA(HasPickleIO):
                 therm=[dstrain_dt[0]*(exx_n+1), dstrain_dt[1]*(eyy_n+1),dstrain_dt[2]*(ezz_n+1)-(dstrain_dt[4]*(ezz_n+1)+dstrain_dt[0]*exz_n)/cz,0,-dstrain_dt[4],0]
                 elastic=M/v*abu.eVA3_GPa
 
-        return dtol, stress, therm, elastic
+        return dtol, gibbs, stress, therm, elastic
 
     def stress_ZSISA_triclinic(self, temp: float, pressure: float, mode: str) -> tuple:
 
@@ -1256,6 +1293,30 @@ class QHA_ZSISA(HasPickleIO):
         dsdc1 = dS_dC1 + (exz_n-exz0)*d2S_dC12+(exx_n-exx0)*d2S_dA1dC1+(eyy_n-eyy0)*d2S_dB2dC1+(ezz_n-ezz0)*d2S_dC3dC1+(exy_n-exy0)*d2S_dB1dC1+(eyz_n-eyz0)*d2S_dC1dC2
         dsdc2 = dS_dC2 + (eyz_n-eyz0)*d2S_dC22+(exx_n-exx0)*d2S_dA1dC2+(eyy_n-eyy0)*d2S_dB2dC2+(ezz_n-ezz0)*d2S_dC3dC2+(exy_n-exy0)*d2S_dB1dC2+(exz_n-exz0)*d2S_dC1dC2
 
+        # Gibbs free energy 
+        gibbs= self.energy_guess + e[1,1,1,1,1,1] + pressure*v + \
+         (exx_n-exx0)*dF_dA1 + 0.5*(exx_n-exx0)**2*d2F_dA12 +\
+         (eyy_n-eyy0)*dF_dB2 + 0.5*(eyy_n-eyy0)**2*d2F_dB22 +\
+         (ezz_n-ezz0)*dF_dC3 + 0.5*(ezz_n-ezz0)**2*d2F_dC32 +\
+         (exy_n-exy0)*dF_dB1 + 0.5*(exy_n-exy0)**2*d2F_dB12 +\
+         (exz_n-exz0)*dF_dC1 + 0.5*(exz_n-exz0)**2*d2F_dC12 +\
+         (eyz_n-eyz0)*dF_dC2 + 0.5*(eyz_n-eyz0)**2*d2F_dC22 +\
+         (exx_n-exx0)*(eyy_n-eyy0)*d2F_dA1dB2 +\
+         (exx_n-exx0)*(ezz_n-ezz0)*d2F_dA1dC3 +\
+         (exx_n-exx0)*(exy_n-exy0)*d2F_dA1dB1 +\
+         (exx_n-exx0)*(exz_n-exz0)*d2F_dA1dC1 +\
+         (exx_n-exx0)*(eyz_n-eyz0)*d2F_dA1dC2 +\
+         (eyy_n-eyy0)*(ezz_n-ezz0)*d2F_dB2dC3 +\
+         (eyy_n-eyy0)*(exy_n-exy0)*d2F_dB2dB1 +\
+         (eyy_n-eyy0)*(exz_n-exz0)*d2F_dB2dC1 +\
+         (eyy_n-eyy0)*(eyz_n-eyz0)*d2F_dB2dC2 +\
+         (ezz_n-ezz0)*(exy_n-exy0)*d2F_dC3dB1 +\
+         (ezz_n-ezz0)*(exz_n-exz0)*d2F_dC3dC1 +\
+         (ezz_n-ezz0)*(eyz_n-eyz0)*d2F_dC3dC2 +\
+         (exy_n-exy0)*(exz_n-exz0)*d2F_dB1dC1 +\
+         (exy_n-exy0)*(eyz_n-eyz0)*d2F_dB1dC2 +\
+         (exz_n-exz0)*(eyz_n-eyz0)*d2F_dC1dC2
+
         # Compute thermal stresses. Eq (57)
         stress_a1 = -dfda1/v*(exx_n+1) * abu.eVA3_HaBohr3
         stress_b2 = -dfdb2/v*(eyy_n+1) * abu.eVA3_HaBohr3
@@ -1339,8 +1400,6 @@ class QHA_ZSISA(HasPickleIO):
         X0 = self.ave_x[0,0,0,0,0,0]
         X1 = self.ave_x[1,0,0,0,0,0]
 
-        V = self.volume_guess
-
         dexx = (X0-X1)/X0
         exx0 = X1/X0-1
 
@@ -1348,11 +1407,15 @@ class QHA_ZSISA(HasPickleIO):
         d2F_dX2 = (e[0,0,0,0,0,0]-2*e[1,0,0,0,0,0]+e[2,0,0,0,0,0])/(dexx)**2
 
         x = self.ave_x_guess
+        v = self.volume_guess
+
         exx_n = x/X0-1
 
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2
+        gibbs= self.energy_guess + e[1,0,0,0,0,0] + pressure*v + \
+                  (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 
 
-        stress_xx = -dfdx/V*(exx_n+1)*0.5 * abu.eVA3_HaBohr3
+        stress_xx = -dfdx/v*(exx_n+1)*0.5 * abu.eVA3_HaBohr3
         if self.verbose:
             print("x/X0:", x/X0)
             print(f"{stress_xx=}")
@@ -1365,7 +1428,7 @@ class QHA_ZSISA(HasPickleIO):
         dtol[0] = abs(stress[0]-self.stress_guess[0,0])
         dtol[1] = abs(stress[1]-self.stress_guess[1,1])
 
-        return dtol, stress
+        return dtol, gibbs, stress
 
     def stress_ZSISA_slab_2DOF(self, temp: float, pressure: float) -> tuple:
         e, S = self.get_vib_free_energies(temp)
@@ -1375,8 +1438,6 @@ class QHA_ZSISA(HasPickleIO):
 
         X1 = self.ave_x[1,1,0,0,0,0]
         Y1 = self.ave_y[1,1,0,0,0,0]
-
-        V = self.volume_guess
 
         dexx = (X0-X1)/X0
         deyy = (Y0-Y1)/Y0
@@ -1393,6 +1454,7 @@ class QHA_ZSISA(HasPickleIO):
 
         x = self.ave_x_guess
         y = self.ave_y_guess
+        v = self.volume_guess
 
         exx_n = x/X0-1
         eyy_n = y/Y0-1
@@ -1400,8 +1462,13 @@ class QHA_ZSISA(HasPickleIO):
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2+(eyy_n-eyy0)*d2F_dXdY
         dfdy = dF_dY + (eyy_n-eyy0)*d2F_dY2+(exx_n-exx0)*d2F_dXdY
 
-        stress_xx = -dfdx/V*(exx_n+1)* abu.eVA3_HaBohr3
-        stress_yy = -dfdy/V*(eyy_n+1)* abu.eVA3_HaBohr3
+        gibbs= self.energy_guess + e[1,1,0,0,0,0] + pressure*v + \
+                  (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 +\
+                  (eyy_n-eyy0)*dF_dY + 0.5*(eyy_n-eyy0)**2*d2F_dY2 +\
+                  (exx_n-exx0)*(ezz_n-eyy0)*d2F_dXdY
+
+        stress_xx = -dfdx/v*(exx_n+1)* abu.eVA3_HaBohr3
+        stress_yy = -dfdy/v*(eyy_n+1)* abu.eVA3_HaBohr3
         if self.verbose:
             print("x/X0, y/Y0", x/X0, y/Y0)
             print(f"{stress_xx=}, {stress_yy=}")
@@ -1414,7 +1481,7 @@ class QHA_ZSISA(HasPickleIO):
         dtol[0] = abs(stress[0]-self.stress_guess[0,0])
         dtol[1] = abs(stress[1]-self.stress_guess[1,1])
 
-        return dtol, stress
+        return dtol, gibbs, stress
 
     def stress_ZSISA_slab_3DOF(self, temp: float, pressure: float) -> tuple:
 
@@ -1428,7 +1495,7 @@ class QHA_ZSISA(HasPickleIO):
         Bx1 = self.bx[1,1,1,0,0,0]
         By1 = self.by[1,1,1,0,0,0]
 
-        V = self.volume_guess
+        v = self.volume_guess
 
         dexx = (Ax0-Ax1)/Ax0
         deyy = (By0-By1)/By0
@@ -1469,10 +1536,17 @@ class QHA_ZSISA(HasPickleIO):
         dfda1 = dF_dA1 + (exx_n-exx0)*d2F_dA12+(eyy_n-eyy0)*d2F_dA1dB2+(exy_n-exy0)*d2F_dA1dB1
         dfdb2 = dF_dB2 + (eyy_n-eyy0)*d2F_dB22+(exx_n-exx0)*d2F_dA1dB2+(exy_n-exy0)*d2F_dB2dB1
         dfdb1 = dF_dB1 + (exy_n-exy0)*d2F_dB12+(exx_n-exx0)*d2F_dA1dB1+(eyy_n-eyy0)*d2F_dB2dB1
+        gibbs= self.energy_guess + e[1,1,1,0,0,0] + pressure*v + \
+              (exx_n-exx0)*dF_dA1 + 0.5*(exx_n-exx0)**2*d2F_dA12 +\
+              (eyy_n-eyy0)*dF_dB2 + 0.5*(eyy_n-eyy0)**2*d2F_dB22 +\
+              (exy_n-exy0)*dF_dB1 + 0.5*(exy_n-exy0)**2*d2F_dB12 +\
+              (exx_n-exx0)*(eyy_n-eyy0)*d2F_dA1dB2 +\
+              (exx_n-exx0)*(exy_n-exy0)*d2F_dA1dB1 +\
+              (eyy_n-eyy0)*(exy_n-exy0)*d2F_dB2dB1 
 
-        stress_a1 = -dfda1/V*(exx_n+1) * abu.eVA3_HaBohr3
-        stress_b2 = -dfdb2/V*(eyy_n+1) * abu.eVA3_HaBohr3
-        stress_b1 = -1.0/V*(dfdb1*(eyy_n+1)+dfda1*exy_n) * abu.eVA3_HaBohr3
+        stress_a1 = -dfda1/v*(exx_n+1) * abu.eVA3_HaBohr3
+        stress_b2 = -dfdb2/v*(eyy_n+1) * abu.eVA3_HaBohr3
+        stress_b1 = -1.0/v*(dfdb1*(eyy_n+1)+dfda1*exy_n) * abu.eVA3_HaBohr3
         if self.verbose:
             print("ax/Ax0, by/By0", ax/Ax0, by/By0)
             print(f"{stress_a1=}, {stress_b2=}, {stress_b1=}")
@@ -1487,13 +1561,14 @@ class QHA_ZSISA(HasPickleIO):
         dtol[1] = abs(stress[1] - self.stress_guess[1,1])
         dtol[5] = abs(stress[5] - self.stress_guess[1,0])
 
-        return dtol, stress
+        return dtol, gibbs, stress
 
     def get_tstress(self,
                     temp: float,
                     pressure: float,
                     structure_guess: Structure,
                     stress_guess,
+                    energy_guess,
                     mode: str = "TEC",
                     elastic_path: str | None = "elastic_constant.txt") -> ThermalData:
         """
@@ -1504,7 +1579,7 @@ class QHA_ZSISA(HasPickleIO):
             stress_guess: Stress tensor corresponding to the initial guess structure as (3,3) matrix in a.u.
             mode: "TEC" or "ECs"
         """
-        self.set_structure_stress_guess(structure_guess, stress_guess)
+        self.set_structure_stress_guess(structure_guess, stress_guess, energy_guess)
 
         self.elastic_path = elastic_path
         pressure_gpa = pressure
@@ -1515,34 +1590,34 @@ class QHA_ZSISA(HasPickleIO):
         elastic, therm = None, None
 
         if self.sym == "v_ZSISA":
-            dtol, stress = self.stress_v_ZSISA(temp, pressure)
+            dtol, gibbs, stress = self.stress_v_ZSISA(temp, pressure)
 
         elif self.sym == "cubic" and mode == "TEC":
-            dtol, stress, therm = self.stress_ZSISA_1DOF(temp, pressure)
+            dtol, gibbs, stress, therm = self.stress_ZSISA_1DOF(temp, pressure)
 
         elif self.sym in ("trigonal", "hexagonal", "tetragonal") and mode == "TEC":
-            dtol, stress, therm = self.stress_ZSISA_2DOF(temp, pressure)
+            dtol, gibbs, stress, therm = self.stress_ZSISA_2DOF(temp, pressure)
 
         elif self.sym in ("cubic", "trigonal", "hexagonal", "tetragonal") and mode == "ECs":
-            dtol, stress, therm, elastic = self.stress_ZSISA_3DOF(temp, pressure, mode)
+            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_3DOF(temp, pressure, mode)
 
         elif self.sym == "orthorhombic":
-            dtol, stress, therm, elastic = self.stress_ZSISA_3DOF(temp, pressure, mode)
+            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_3DOF(temp, pressure, mode)
 
         elif self.sym == "monoclinic":
-            dtol, stress, therm, elastic = self.stress_ZSISA_monoclinic(temp, pressure, mode)
+            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_monoclinic(temp, pressure, mode)
 
         elif self.sym == "triclinic":
-            dtol, stress, therm, elastic = self.stress_ZSISA_triclinic(temp, pressure, mode)
+            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_triclinic(temp, pressure, mode)
 
         elif self.sym == "ZSISA_slab_1DOF":
-            dtol, stress = self.stress_ZSISA_slab_1DOF(temp, pressure)
+            dtol, gibbs, stress = self.stress_ZSISA_slab_1DOF(temp, pressure)
 
         elif self.sym == "ZSISA_slab_2DOF":
-            dtol, stress = self.stress_ZSISA_slab_2DOF(temp, pressure)
+            dtol, gibbs, stress = self.stress_ZSISA_slab_2DOF(temp, pressure)
 
         elif self.sym == "ZSISA_slab_3DOF":
-            dtol, stress = self.stress_ZSISA_slab_3DOF(temp, pressure)
+            dtol, gibbs, stress = self.stress_ZSISA_slab_3DOF(temp, pressure)
 
         else:
             raise ValueError(f"Unknown {self.sym=}")
@@ -1554,7 +1629,7 @@ class QHA_ZSISA(HasPickleIO):
             if self.verbose: print("Converged !!!")
 
         return ThermalData(temperature=temp, pressure_gpa=pressure_gpa,
-                           converged=converged, dtol=dtol, stress_au=stress, elastic=elastic, therm=therm)
+                           converged=converged, dtol=dtol, stress_au=stress, elastic=elastic, therm=therm, gibbs=gibbs)
 
     def get_vib_free_energies(self, temp: float) -> tuple:
         """
