@@ -3320,7 +3320,7 @@ class PhononDos(Function1D):
     def zero_point_energy(self) -> Energy:
         """Zero point energy in eV per unit cell."""
         iw0 = self.iw0
-        return Energy(0.5 * np.trapz(self.mesh[iw0:] * self.values[iw0:], x=self.mesh[iw0:]), "eV")
+        return Energy(0.5 * np.trapezoid(self.mesh[iw0:] * self.values[iw0:], x=self.mesh[iw0:]), "eV")
 
     def plot_dos_idos(self, ax, what="d", exchange_xy=False, units="eV", **kwargs) -> list:
         """
@@ -3465,7 +3465,7 @@ class PhononDos(Function1D):
                 vals[it] = self.zero_point_energy
             else:
                 wd2kt = w / (2 * abu.kb_eVK * temp)
-                vals[it] = 0.5 * np.trapz(w * coth(wd2kt) * gw, x=w)
+                vals[it] = 0.5 * np.trapezoid(w * coth(wd2kt) * gw, x=w)
             #print(vals[it])
 
         return Function1D(tmesh, vals)
@@ -3493,7 +3493,7 @@ class PhononDos(Function1D):
                 vals[it] = 0
             else:
                 wd2kt = w / (2 * abu.kb_eVK * temp)
-                vals[it] = np.trapz((wd2kt * coth(wd2kt) - np.log(2 * np.sinh(wd2kt))) * gw, x=w)
+                vals[it] = np.trapezoid((wd2kt * coth(wd2kt) - np.log(2 * np.sinh(wd2kt))) * gw, x=w)
 
         return Function1D(tmesh, abu.kb_eVK * vals)
 
@@ -3538,7 +3538,7 @@ class PhononDos(Function1D):
                 vals[it] = 0
             else:
                 wd2kt = w / (2 * abu.kb_eVK * temp)
-                vals[it] = np.trapz(wd2kt ** 2 * csch2(wd2kt) * gw, x=w)
+                vals[it] = np.trapezoid(wd2kt ** 2 * csch2(wd2kt) * gw, x=w)
 
         return Function1D(tmesh, abu.kb_eVK * vals)
 

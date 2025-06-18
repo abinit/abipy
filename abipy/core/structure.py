@@ -1243,8 +1243,8 @@ class Structure(pmg_Structure, NotebookWriter):
         cprint(msg, "magenta")
 
         spglib_data = SpacegroupAnalyzer(self).get_symmetry_dataset()
-        spgid = spglib_data["number"]
-        symrel, tnons = spglib_data["rotations"], spglib_data["translations"]
+        spgid = spglib_data.number
+        symrel, tnons = spglib_data.rotations, spglib_data.translations
         # TODO: Anti-ferromagnetic symmetries are not supported by spglib
         symafm = [1] * len(symrel)
 
