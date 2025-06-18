@@ -12,9 +12,9 @@ class DeformationUtilsTest(AbipyTest):
         """Testing generate_deformations"""
         eps = 0.005/1.005
         si = self.get_structure("Si")
-        structures_dict, strain_inds, spgrp_number = generate_deformations(si, eps)
+        structures_dict, inds_6d, spgrp_number = generate_deformations(si, eps)
         assert len(structures_dict) == 3
         assert spgrp_number == 227
-        assert strain_inds.shape == (3, 6)
-        self.assert_equal(strain_inds[:, 0], [0, -1, 1])
-        assert np.all(strain_inds[3:, 1] == 0)
+        assert inds_6d.shape == (3, 6)
+        self.assert_equal(inds_6d[:, 0], [1, 0, 2])
+        assert np.all(inds_6d[3:, 1] == 0)
