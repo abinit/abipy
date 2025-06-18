@@ -251,6 +251,8 @@ class FilesGenerator:
             fh.write(self.make_filesfile_str())
 
         cmd = self.executable + " < run.files > run.log"
+        if getattr(self, "mpiexec", None) and getattr(self, "mpinp", None):
+            cmd = self.mpiexec + " -np " + self.mpinp + " " + cmd
         return Popen(cmd, shell=True, stderr=PIPE, stdout=PIPE, cwd=self.workdir)
 
     def _finalize(self) -> None:
