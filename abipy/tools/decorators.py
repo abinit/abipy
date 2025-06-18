@@ -101,24 +101,27 @@ class Appender:
     the original docstring. An optional 'join' parameter may be supplied
     which will be used to join the docstring and addendum. e.g.
 
-    add_copyright = Appender("Copyright (c) 2009", join='\n')
+    .. code-block:: python
 
-    @add_copyright
-    def my_dog(has='fleas'):
-        "This docstring will have a copyright below"
-        pass
+        add_copyright = Appender("Copyright (c) 2009", join='\n')
+
+        @add_copyright
+        def my_dog(has='fleas'):
+            "This docstring will have a copyright below"
+            pass
 
     MG took it from:
     https://github.com/pandas-dev/pandas/blob/3a7f956c30528736beaae5784f509a76d892e229/pandas/util/_decorators.py#L156
 
     MG: Added dedent and debug args.
-    """
 
+    """
     def __init__(self, addendum, join='', indents=0, dedent=True, debug=False):
         if indents > 0:
             self.addendum = indent(addendum, indents=indents)
         else:
             self.addendum = addendum
+
         self.join = join
 
         # MG additional stuff
@@ -151,4 +154,3 @@ def indent(text: str, indents=1) -> str:
         return ''
     jointext = ''.join(['\n'] + ['    '] * indents)
     return jointext.join(text.split('\n'))
-

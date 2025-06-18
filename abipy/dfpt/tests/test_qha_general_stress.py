@@ -4,12 +4,9 @@ import os
 import abipy.data as abidata
 import abipy.core.abinit_units as abu
 
-
 from abipy.core.testing import AbipyTest
 from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.qha_general_stress import QHA_ZSISA
-
-
 
 
 class QhaZSISATest(AbipyTest):
@@ -43,9 +40,9 @@ class QhaZSISATest(AbipyTest):
 
         self.assert_almost_equal(gibbs, -12268.354238255062)
         self.assert_almost_equal(dtol,
-                [9.64016894e-09 ,9.64014627e-09, 9.27508661e-09, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00])
+                [9.64016894e-09, 9.64014627e-09, 9.27508661e-09, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00])
         self.assert_almost_equal(stress,
-                [4.17248287e-05 ,4.17248287e-05 ,3.84335822e-05, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00])
+                [4.17248287e-05, 4.17248287e-05 ,3.84335822e-05, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00])
         self.assert_almost_equal(therm,
                 [4.8963870998460175e-06, 4.896377032350449e-06, 3.4159028178772595e-06, 0, 0, 0])
 

@@ -2114,24 +2114,24 @@ class Structure(pmg_Structure, NotebookWriter):
         # Fortran 2 python!!!
         return scale_matrix.T.copy()
 
-    def make_doped_supercells(self, scaling_matrix, replaced_atom, dopant_atom):
+    def make_doped_supercells(self, scaling_matrix, replaced_atom: str, dopant_atom: str) -> list[Structure]:
         """
-        Returns a list doped supercell structures, one for each non-equivalent site of the replaced atom.
+        Returns a list of doped supercell structures, one for each non-equivalent site of the replaced atom.
 
         Args:
             scaling_matrix: A scaling matrix for transforming the lattice vectors.
                 Has to be all integers. Several options are possible:
-                a. A full 3x3 scaling matrix defining the linear combination of the old lattice vectors.
-                    E.g., [[2,1,0],[0,3,0],[0,0,1]] generates a new structure with lattice vectors
-                    a_new = 2a + b, b_new = 3b, c_new = c
-                    where a, b, and c are the lattice vectors of the original structure.
-                b. A sequence of three scaling factors. e.g., [2, 1, 1]
-                   specifies that the supercell should have dimensions 2a x b x c.
-                c. A number, which simply scales all lattice vectors by the same factor.
+                a) A full 3x3 scaling matrix defining the linear combination of the old lattice vectors.
+                E.g., [[2,1,0],[0,3,0],[0,0,1]] generates a new structure with lattice vectors
+                a_new = 2a + b, b_new = 3b, c_new = c
+                where a, b, and c are the lattice vectors of the original structure.
+                b) A sequence of three scaling factors. e.g., [2, 1, 1]
+                specifies that the supercell should have dimensions 2a x b x c.
+                c) A number, which simply scales all lattice vectors by the same factor.
             replaced atom: Symbol of the atom to be replaced (ex: 'Sr')
             dopant_atom: Symbol of the dopant_atom (ex: 'Eu')
         """
-        ### list of positions of non-equivalent sites for the replaced atom. ###
+        # list of positions of non-equivalent sites for the replaced atom.
         irred = self.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
         positions = self.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
 
