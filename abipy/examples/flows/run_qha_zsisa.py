@@ -84,10 +84,10 @@ rprim
     #with_quad = not structure.has_zero_dynamical_quadrupoles
 
     # List of temperatures in Kelvin and pressures in Gpa.
-    temperatures = [10, 50, 100, 200, 300]
-    pressures_gpa = [0, 10, 20]
-    #temperatures = [10, 100, 200]
-    #pressures_gpa = [0]
+    #temperatures = [10, 50, 100, 200, 300]
+    #pressures_gpa = [0, 10, 20]
+    temperatures = [10, 100, 200]
+    pressures_gpa = [0]
     nqsmall_or_qppa = 1 # TODO
     nqsmall_or_qppa = 20 # TODO
 

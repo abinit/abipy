@@ -522,7 +522,7 @@ class QHA_ZSISA(HasPickleIO):
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2
         dsdx = dS_dX + (exx_n-exx0)*d2S_dX2
 
-        # Gibbs free energy 
+        # Gibbs free energy
         gibbs= self.energy_guess + e[1,1,1,0,0,0] + (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 + pressure*v
 
         # Compute thermal stress. Eq (51)
@@ -634,11 +634,11 @@ class QHA_ZSISA(HasPickleIO):
         dsdx = dS_dX + (exx_n-exx0)*d2S_dX2+(ezz_n-ezz0)*d2S_dXdZ
         dsdz = dS_dZ + (ezz_n-ezz0)*d2S_dZ2+(exx_n-exx0)*d2S_dXdZ
 
-        # Gibbs free energy 
+        # Gibbs free energy
         gibbs= self.energy_guess + e[1,1,1,0,0,0] + pressure*v + \
                   (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 +\
                   (ezz_n-ezz0)*dF_dZ + 0.5*(ezz_n-ezz0)**2*d2F_dZ2 +\
-                  (exx_n-exx0)*(ezz_n-ezz0)*d2F_dXdZ 
+                  (exx_n-exx0)*(ezz_n-ezz0)*d2F_dXdZ
 
         # Compute thermal stresses. Eq (54)
         stress_xx = -dfdx/v*(exx_n+1)*0.5 * abu.eVA3_HaBohr3
@@ -845,14 +845,14 @@ class QHA_ZSISA(HasPickleIO):
         dsdy = dS_dY + (eyy_n-eyy0)*d2S_dY2+(exx_n-exx0)*d2S_dXdY+(ezz_n-ezz0)*d2S_dYdZ
         dsdz = dS_dZ + (ezz_n-ezz0)*d2S_dZ2+(exx_n-exx0)*d2S_dXdZ+(eyy_n-eyy0)*d2S_dYdZ
 
-        # Gibbs free energy 
+        # Gibbs free energy
         gibbs= self.energy_guess + e[1,1,1,0,0,0] + pressure*v + \
                   (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 +\
                   (eyy_n-eyy0)*dF_dY + 0.5*(eyy_n-eyy0)**2*d2F_dY2 +\
                   (ezz_n-ezz0)*dF_dZ + 0.5*(ezz_n-ezz0)**2*d2F_dZ2 +\
                   (exx_n-exx0)*(ezz_n-ezz0)*d2F_dXdZ +\
                   (exx_n-exx0)*(ezz_n-eyy0)*d2F_dXdY +\
-                  (eyy_n-eyy0)*(ezz_n-ezz0)*d2F_dYdZ 
+                  (eyy_n-eyy0)*(ezz_n-ezz0)*d2F_dYdZ
 
         # Compute thermal stresses. Eq (45)
         stress_xx = -dfdx/v*(exx_n+1) * abu.eVA3_HaBohr3
@@ -1032,7 +1032,7 @@ class QHA_ZSISA(HasPickleIO):
         dsdc3= dS_dC3 + (ezz_n-ezz0)*d2S_dC32+(exx_n-exx0)*d2S_dA1dC3+(eyy_n-eyy0)*d2S_dB2dC3+(exz_n-exz0)*d2S_dC3dC1
         dsdc1= dS_dC1 + (exz_n-exz0)*d2S_dC12+(exx_n-exx0)*d2S_dA1dC1+(eyy_n-eyy0)*d2S_dB2dC1+(ezz_n-ezz0)*d2S_dC3dC1
 
-        # Gibbs free energy 
+        # Gibbs free energy
         gibbs= self.energy_guess + e[1,1,1,1,1,1] + pressure*v + \
                   (exx_n-exx0)*dF_dA1 + 0.5*(exx_n-exx0)**2*d2F_dA12 +\
                   (eyy_n-eyy0)*dF_dB2 + 0.5*(eyy_n-eyy0)**2*d2F_dB22 +\
@@ -1293,7 +1293,7 @@ class QHA_ZSISA(HasPickleIO):
         dsdc1 = dS_dC1 + (exz_n-exz0)*d2S_dC12+(exx_n-exx0)*d2S_dA1dC1+(eyy_n-eyy0)*d2S_dB2dC1+(ezz_n-ezz0)*d2S_dC3dC1+(exy_n-exy0)*d2S_dB1dC1+(eyz_n-eyz0)*d2S_dC1dC2
         dsdc2 = dS_dC2 + (eyz_n-eyz0)*d2S_dC22+(exx_n-exx0)*d2S_dA1dC2+(eyy_n-eyy0)*d2S_dB2dC2+(ezz_n-ezz0)*d2S_dC3dC2+(exy_n-exy0)*d2S_dB1dC2+(exz_n-exz0)*d2S_dC1dC2
 
-        # Gibbs free energy 
+        # Gibbs free energy
         gibbs= self.energy_guess + e[1,1,1,1,1,1] + pressure*v + \
          (exx_n-exx0)*dF_dA1 + 0.5*(exx_n-exx0)**2*d2F_dA12 +\
          (eyy_n-eyy0)*dF_dB2 + 0.5*(eyy_n-eyy0)**2*d2F_dB22 +\
@@ -1413,7 +1413,7 @@ class QHA_ZSISA(HasPickleIO):
 
         dfdx = dF_dX + (exx_n-exx0)*d2F_dX2
         gibbs= self.energy_guess + e[1,0,0,0,0,0] + pressure*v + \
-                  (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2 
+                  (exx_n-exx0)*dF_dX + 0.5*(exx_n-exx0)**2*d2F_dX2
 
         stress_xx = -dfdx/v*(exx_n+1)*0.5 * abu.eVA3_HaBohr3
         if self.verbose:
@@ -1542,7 +1542,7 @@ class QHA_ZSISA(HasPickleIO):
               (exy_n-exy0)*dF_dB1 + 0.5*(exy_n-exy0)**2*d2F_dB12 +\
               (exx_n-exx0)*(eyy_n-eyy0)*d2F_dA1dB2 +\
               (exx_n-exx0)*(exy_n-exy0)*d2F_dA1dB1 +\
-              (eyy_n-eyy0)*(exy_n-exy0)*d2F_dB2dB1 
+              (eyy_n-eyy0)*(exy_n-exy0)*d2F_dB2dB1
 
         stress_a1 = -dfda1/v*(exx_n+1) * abu.eVA3_HaBohr3
         stress_b2 = -dfdb2/v*(eyy_n+1) * abu.eVA3_HaBohr3
@@ -1757,3 +1757,59 @@ class QHA_ZSISA(HasPickleIO):
             plotter.add_phdos(str(inds), phdos)
 
         return plotter
+
+
+def cmat_inds_names(sym: str, mode: str) -> tuple[list, list]:
+    """
+    Return list with the numpy indices of the non-null components of
+    the elastic tensor as well as list with their names e.g. (0, 0) -> "C_11".
+
+    Args:
+        sym: Crystalline system.
+        mode:
+    """
+    if sym in ("cubic", "trigonal", "hexagonal", "tetragonal", "orthorhombic"):
+        if mode == 'ECs':
+            if sym == "cubic":
+                inds_list = [(0,0), (0,1), (3,3)]
+            elif sym == "hexagonal":
+                inds_list = [(0,0), (0,1), (0,2), (2,2), (3,3)]
+            elif sym == "trigonal":
+                inds_list = [(0,0), (0,1), (0,2), (2,2), (0,3), (3,3)]
+            elif sym == "tetragonal":
+                inds_list = [(0,0), (0,1), (0,2), (2,2), (3,3), (5,5)]
+            if  sym == "orthorhombic":
+                inds_list = [(0,0), (0,1), (0,2), (1,1), (1,2), (2,2), (3,3), (4,4), (5,5)]
+
+        elif mode == 'TEC':
+            inds_list = [(0,0), (0,1), (0,2), (1,1), (1,2), (2,2)]
+
+        else:
+            raise ValueError(f"Invalid {mode=}")
+
+    elif sym == "monoclinic":
+        #if mode != 'ECs':
+        #    f.write(f" Warning: C44, C46, and C66 do not include the free energy contribution (only BO energy).\n")
+        inds_list = [
+            (0,0), (0,1), (0,2), (0,3), (0,4), (0,5),
+            (1,0), (1,1), (1,2), (1,3), (1,4), (1,5),
+            (2,0), (2,1), (2,2), (2,3), (2,4), (2,5),
+            (3,0), (3,1), (3,2), (3,3), (3,4), (3,5),
+            (4,0), (4,1), (4,2), (4,3), (4,4), (4,5),
+            (5,0), (5,1), (5,2), (5,3), (5,4), (5,5),
+        ]
+
+    elif sym == "triclinic":
+        inds_list = [
+            (0,0), (0,1), (0,2), (0,3), (0,4), (0,5),
+            (1,0), (1,1), (1,2), (1,3), (1,4), (1,5),
+            (2,0), (2,1), (2,2), (2,3), (2,4), (2,5),
+            (3,0), (3,1), (3,2), (3,3), (3,4), (3,5),
+            (4,0), (4,1), (4,2), (4,3), (4,4), (4,5),
+            (5,0), (5,1), (5,2), (5,3), (5,4), (5,5),
+        ]
+
+    # Build names. Note +1
+    names = [f"C_{inds[0]+1}{inds[1]+1}" for inds in inds_list]
+
+    return inds_list, names

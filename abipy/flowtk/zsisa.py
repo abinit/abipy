@@ -18,7 +18,7 @@ from abipy.abio.inputs import AbinitInput
 from abipy.electrons import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.deformation_utils import generate_deformations
-from abipy.dfpt.qha_general_stress import QHA_ZSISA, spgnum_to_crystal_system
+from abipy.dfpt.qha_general_stress import QHA_ZSISA, spgnum_to_crystal_system, cmat_inds_names
 from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.tasks import RelaxTask
 from abipy.flowtk.flows import Flow
@@ -759,7 +759,7 @@ class ZsisaResults(Serializable):
                           fontsize: int = 8,
                           **kwargs) -> Figure:
         """
-        Plot elastic constants as a function of T for fixed Pressure on a single figure.
+        Plot elastic constants as a function of T for fixed pressure on a single figure.
 
         Args:
             pressure_gpa: Pressure to select. If None, the minimum pressure is used.
@@ -812,8 +812,8 @@ class ZsisaResults(Serializable):
                                 fontsize: int = 8,
                                 **kwargs) -> Figure:
         """
-        Plot elastic constants as a function of T grouped by Pressure.
-        One subplot for each element of the C tensor
+        Plot elastic constants as a function of T grouped by pressure.
+        One subplot for each element of the C tensor.
 
         Args:
             c_select: "symmetry" if only the non-zero components should be plotted.
@@ -864,60 +864,3 @@ class ZsisaResults(Serializable):
         #    fig.suptitle(f"Temperature-dependent elastic constants at P={pressure_gpa} (GPa)")
 
         return fig
-
-
-
-def cmat_inds_names(sym: str, mode: str) -> tuple[list, list]:
-    """
-    Return list with the numpy indices of the non-null components of
-    the elastic tensor as we as list with their names e.g. (0, 0) -> "C_11".
-
-    Args:
-        sym: Crystalline system.
-        mode:
-    """
-    if sym in ("cubic", "trigonal", "hexagonal", "tetragonal", "orthorhombic"):
-        if mode == 'ECs':
-            if sym == "cubic":
-                inds_list = [(0,0), (0,1), (3,3)]
-            elif sym == "hexagonal":
-                inds_list = [(0,0), (0,1), (0,2), (2,2), (3,3)]
-            elif sym == "trigonal":
-                inds_list = [(0,0), (0,1), (0,2), (2,2), (0,3), (3,3)]
-            elif sym == "tetragonal":
-                inds_list = [(0,0), (0,1), (0,2), (2,2), (3,3), (5,5)]
-            if  sym == "orthorhombic":
-                inds_list = [(0,0), (0,1), (0,2), (1,1), (1,2), (2,2), (3,3), (4,4), (5,5)]
-
-        elif mode == 'TEC':
-            inds_list = [(0,0), (0,1), (0,2), (1,1), (1,2), (2,2)]
-
-        else:
-            raise ValueError(f"Invalid {mode=}")
-
-    elif sym == "monoclinic":
-        #if mode != 'ECs':
-        #    f.write(f" Warning: C44, C46, and C66 do not include the free energy contribution (only BO energy).\n")
-        inds_list = [
-            (0,0), (0,1), (0,2), (0,3), (0,4), (0,5),
-            (1,0), (1,1), (1,2), (1,3), (1,4), (1,5),
-            (2,0), (2,1), (2,2), (2,3), (2,4), (2,5),
-            (3,0), (3,1), (3,2), (3,3), (3,4), (3,5),
-            (4,0), (4,1), (4,2), (4,3), (4,4), (4,5),
-            (5,0), (5,1), (5,2), (5,3), (5,4), (5,5),
-        ]
-
-    elif sym == "triclinic":
-        inds_list = [
-            (0,0), (0,1), (0,2), (0,3), (0,4), (0,5),
-            (1,0), (1,1), (1,2), (1,3), (1,4), (1,5),
-            (2,0), (2,1), (2,2), (2,3), (2,4), (2,5),
-            (3,0), (3,1), (3,2), (3,3), (3,4), (3,5),
-            (4,0), (4,1), (4,2), (4,3), (4,4), (4,5),
-            (5,0), (5,1), (5,2), (5,3), (5,4), (5,5),
-        ]
-
-    # Build names. Note +1
-    names = [f"C_{inds[0]+1}{inds[1]+1}" for inds in inds_list]
-
-    return inds_list, names
