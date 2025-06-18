@@ -332,15 +332,17 @@ class ThermalRelaxWork(Work):
         scf_input = work0.initial_scf_input
         relax_template = work0.relax_template
 
+        # Get relaxed structure and stress_guess and energy_guess from the GSR file.
         with work0.initial_relax_task.open_gsr() as gsr:
             structure_guess = gsr.structure
             stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
+            energy_guess = gsr.energy
 
         # Generate initial ThermalRelaxTask tasks.
         work.thermal_relax_tasks = []
         for pressure_gpa, temperature in itertools.product(work.pressures_gpa, work.temperatures):
             tdata = work.zsisa.get_tstress(temperature, pressure_gpa,
-                                           structure_guess, stress_guess,
+                                           structure_guess, stress_guess, energy_guess,
                                            mode=work.mode, elastic_path=None)
 
             extra_vars = {
@@ -390,13 +392,14 @@ class ThermalRelaxWork(Work):
                 f.write(str(edata))
             #edata.elastic_relaxed
 
-            # Get relaxed structure and stress_guess from the GSR file.
+            # Get relaxed structure and stress_guess and energy_guess from the GSR file.
             with task.open_gsr() as gsr:
                 relaxed_structure = gsr.structure
                 stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
+                energy_guess = gsr.energy
 
             tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa,
-                                      relaxed_structure, stress_guess,
+                                      relaxed_structure, stress_guess, energy_guess,
                                       mode=self.mode, elastic_path=elastic_path)
             print(tdata)
 
@@ -435,14 +438,15 @@ class ThermalRelaxTask(RelaxTask):
     def _on_ok(self):
         results = super()._on_ok()
 
-        # Get relaxed structure and stress_guess from the GSR file.
+        # Get relaxed structure and stress_guess and energy_guess from the GSR file.
         with self.open_gsr() as gsr:
             relaxed_structure = gsr.structure
             stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
+            energy_guess = gsr.energy
 
         zsisa = self.work.zsisa
         tdata = zsisa.get_tstress(self.temperature, self.pressure_gpa,
-                                  relaxed_structure, stress_guess,
+                                  relaxed_structure, stress_guess, energy_guess,
                                   mode=self.mode, elastic_path=None)
         #print(tdata)
 

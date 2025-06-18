@@ -31,13 +31,14 @@ class QhaZSISATest(AbipyTest):
         with GsrFile(gsr_guess_path) as gsr:
             structure_guess = gsr.structure
             stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
+            energy_guess = gsr.energy
 
         zsisa = QHA_ZSISA.from_files(dos_paths, gsr_BO_paths, verbose=1)
-        tdata = zsisa.get_tstress(300.0, 0.0, structure_guess, stress_guess,
+        tdata = zsisa.get_tstress(300.0, 0.0, structure_guess, stress_guess, energy_guess,
                                   mode="TEC", elastic_path=elastic_BO_paths)
         #print("Stress calculation result:", tdata)
 
-        dtol, stress, therm = zsisa.stress_ZSISA_2DOF(300.0, 0.0)
+        dtol, gibbs, stress, therm = zsisa.stress_ZSISA_2DOF(300.0, 0.0)
 
         self.assert_almost_equal(dtol,
                 [9.64016894e-09 ,9.64014627e-09, 9.27508661e-09, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00])
@@ -69,12 +70,12 @@ class QhaZSISATest(AbipyTest):
         pressure = 8.0
         zsisa = QHA_ZSISA.from_files(dos_paths, gsr_BO_path)
 
-        tdata = zsisa.get_tstress(temp, pressure, structure_guess, stress_guess,
+        tdata = zsisa.get_tstress(temp, pressure, structure_guess, stress_guess, energy_guess, 
                                   mode='ECs', elastic_path=elastic_path)
 
         assert zsisa.dim == (3, 3, 3, 3, 1, 1)
         #print("Stress calculation result:", tdata)
-        dtol, stress, therm, elastic = zsisa.stress_ZSISA_3DOF(temp, pressure/abu.HaBohr3_GPa, mode='ECs')
+        dtol, gibbs, stress, therm, elastic = zsisa.stress_ZSISA_3DOF(temp, pressure/abu.HaBohr3_GPa, mode='ECs')
         self.assert_almost_equal(dtol,
             [1.1743820e-09, 1.1743588e-09, 3.9019984e-10, 0.0000000e+00, 0.0000000e+00, 0.0000000e+00])
         self.assert_almost_equal(stress,
