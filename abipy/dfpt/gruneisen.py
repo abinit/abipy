@@ -15,7 +15,7 @@ from monty.string import marquee, list_strings
 from monty.termcolor import cprint
 from monty.collections import AttrDict
 from pymatgen.core.units import amu_to_kg
-from pymatgen.core.periodic_table import Element
+
 from abipy.core.kpoints import Kpath, IrredZone, KSamplingInfo
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.abio.inputs import AnaddbInput
@@ -163,6 +163,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """Atomic mass units"""
         amu_list = self.reader.read_value("atomic_mass_units")
         atomic_numbers = self.reader.read_value("atomic_numbers")
+        from pymatgen.core.periodic_table import Element
         amu = {Element.from_Z(at).symbol: a for at, a in zip(atomic_numbers, amu_list)}
         return amu
 
@@ -534,7 +535,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -622,7 +623,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def thermal_conductivity_slack(self, squared=True, limit_frequencies=None, theta_d=None, t=None) -> float:
         """
-        Calculates the thermal conductivity at the acoustic Debye temperature wit the Slack formula,
+        Calculates the thermal conductivity at the acoustic Debye temperature with the Slack formula,
         using the average Gruneisen.
 
         Args:
@@ -937,7 +938,7 @@ class GrunsReader(ETSF_Reader):
 
     def read_structures(self) -> list[Structure]:
         """
-        Resturns a list of structures at the different volumes
+        Return list of structures at the different volumes
         """
         lattices = self.read_value("gruns_rprimd") * abu.Bohr_Ang  # , "dp", "three, three, gruns_nvols")
         gruns_xred = self.read_value("gruns_xred")  # , "dp", "three, number_of_atoms, gruns_nvols")

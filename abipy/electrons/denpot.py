@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-#import tempfile
 #import numpy as np
 
 from functools import cached_property
@@ -17,7 +16,6 @@ from abipy.core.fields import FieldReader
 from abipy.electrons.ebands import ElectronBands, ElectronsReader
 from abipy.abio.inputs import Cut3DInput
 from abipy.flowtk import Cut3D
-
 
 
 __all__ = [
@@ -147,7 +145,7 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -426,7 +424,7 @@ class DensityFortranFile(AbinitFortranFile):
 
         Args:
             structure: a Structure object representing the structure used to generate the density
-            all_el_dens_paths: a list of paths to the all-electron density files correspinding to the elements defined
+            all_el_dens_paths: a list of paths to the all-electron density files corresponding to the elements defined
                 in the abinit input.
             fhi_all_el_path: path to the folder containing the fhi all-electron density files that will be used
                 to automatically determine the path of the required densities.

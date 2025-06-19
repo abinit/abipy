@@ -10,7 +10,6 @@ import numpy as np
 import abipy.core.abinit_units as abu
 
 from functools import cached_property
-from pymatgen.core.periodic_table import Element
 from abipy.core.mixins import Has_Structure
 from abipy.iotools import ETSF_Reader
 
@@ -48,6 +47,7 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None) -> np.nd
     if amu is not None and amu_symbol is not None:
         raise ValueError("Only one between amu and amu_symbol should be provided!")
 
+    from pymatgen.core.periodic_table import Element
     if amu is not None:
         amu_symbol = {Element.from_Z(n).symbol: v for n, v in amu.items()}
 
@@ -106,6 +106,8 @@ class NonAnalyticalPh(Has_Structure):
         self.phdispl_cart = phdispl_cart
         self.amu = amu
         self.amu_symbol = None
+
+        from pymatgen.core.periodic_table import Element
         if amu is not None:
             self.amu_symbol = {}
             for z, m in amu.items():

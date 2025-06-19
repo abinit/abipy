@@ -19,7 +19,6 @@ from monty.string import is_string, list_strings, marquee
 from monty.collections import dict2namedtuple
 from monty.termcolor import cprint
 from pymatgen.core.units import eV_to_Ha, Energy
-from pymatgen.core.periodic_table import Element
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
 from pymatgen.phonon.dos import CompletePhononDos as PmgCompletePhononDos, PhononDos as PmgPhononDos
 from abipy.core.func1d import Function1D
@@ -322,6 +321,7 @@ class PhononBands:
         self.non_anal_ph = non_anal_ph
         self.amu = amu
         self.amu_symbol = None
+        from pymatgen.core.periodic_table import Element
         if amu is not None:
             self.amu_symbol = {}
             for z, m in amu.items():
