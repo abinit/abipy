@@ -6,6 +6,7 @@ import abipy.core.abinit_units as abu
 
 from abipy.core.testing import AbipyTest
 from abipy.electrons.gsr import GsrFile
+from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.qha_general_stress import QHA_ZSISA
 
 
@@ -23,16 +24,21 @@ class QhaZSISATest(AbipyTest):
         phdos_paths = [[os.path.join(root, f"scale_{s1}_{s3}/out_PHDOS.nc") for s3 in strains_c] for s1 in strains_a]
         gsr_guess_path = os.path.join(root, f"find_TEC/Temp_0300_000/Relax2o_GSR.nc")
         gsr_bo_paths = os.path.join(root, f"scale_1000_1000/out_GSR_DDB")
-        elastic_bo_path = os.path.join(root, f"find_TEC/Temp_0300_000/elastic_constant.txt")
+        #elastic_bo_path = os.path.join(root, f"find_TEC/Temp_0300_000/elastic_constant.txt")
+        elastic_ddb_path = os.path.join(root, f"find_TEC/Temp_0300_000/out_DDB")
 
         with GsrFile(gsr_guess_path) as gsr:
             structure_guess = gsr.structure
             stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
             energy_guess = gsr.energy
 
+        with DdbFile(elastic_ddb_path) as ddb:
+            edata = ddb.anaget_elastic()
+            elastic_relaxed = edata.elastic_relaxed.zeroed(1e-3)
+
         zsisa = QHA_ZSISA.from_files(phdos_paths, gsr_bo_paths, verbose=1)
         tdata = zsisa.get_tstress(300.0, 0.0, structure_guess, stress_guess, energy_guess,
-                                  mode="TEC", elastic_path=elastic_bo_path)
+                                  mode="TEC", bo_elastic_voigt=elastic_relaxed.voigt)
         #print("tdata)
         assert tdata.elastic is None
 
@@ -59,11 +65,17 @@ class QhaZSISATest(AbipyTest):
             for s3 in strains_c] for s2 in strains_b] for s1 in strains_a]
         gsr_guess_path = os.path.join(root, f"find_TEC_ECs/Temp_0600_08/Relax2o_GSR.nc")
         gsr_BO_path = os.path.join(root, f"scale_1000_1000_1000_1000_1000_1000/out_GSR.nc")
-        elastic_path = os.path.join(root, f"find_TEC_ECs/Temp_0600_08/elastic_constant.txt")
+        #elastic_path = os.path.join(root, f"find_TEC_ECs/Temp_0600_08/elastic_constant.txt")
+        elastic_ddb = os.path.join(root, f"find_TEC_ECs/Temp_0600_08/out_DDB")
 
         with GsrFile(gsr_guess_path) as gsr:
             structure_guess = gsr.structure
             stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
+
+        with DdbFile(elastic_ddb) as ddb:
+            edata = ddb.anaget_elastic()
+            elastic_relaxed = edata.elastic_relaxed
+            elastic_relaxed = edata.elastic_relaxed.zeroed(1e-3)
 
         temp = 600
         pressure = 8.0
@@ -71,7 +83,9 @@ class QhaZSISATest(AbipyTest):
         assert zsisa.dim == (3, 3, 3, 3, 1, 1)
 
         tdata = zsisa.get_tstress(temp, pressure, structure_guess, stress_guess, energy_guess,
-                                  mode='ECs', elastic_path=elastic_path)
+                                  mode='ECs',
+                                  bo_elastic_voigt=elastic_relaxed.voigt)
+                                  #elastic_path=elastic_path)
         #print(tdata)
         self.assert_almost_equal(tdata.elastic, [
             [201.48244311, 153.66462493, 137.08726476, 0., 0., 0.],
@@ -79,7 +93,8 @@ class QhaZSISATest(AbipyTest):
             [137.08725376, 137.08725576, 213.92063478, 0., 0., 0.],
             [0., 0., 0., 28.43553811, 0., 0.],
             [0., 0., 0., 0., 31.676614, 0.],
-            [0., 0., 0., 0., 0., 33.597613]]
+            [0., 0., 0., 0., 0., 33.597613]],
+            decimal=4
         )
 
         dtol, gibbs, stress, therm, elastic = zsisa.stress_ZSISA_3DOF(temp, pressure/abu.HaBohr3_GPa, mode='ECs')
@@ -94,7 +109,8 @@ class QhaZSISATest(AbipyTest):
 
         ecs = [elastic[0,0], elastic[0,1], elastic[0,2], elastic[2,2], elastic[3,3]]
         self.assert_almost_equal(ecs,
-            [201.48244311040455, 153.6646249346295, 137.08726476110223, 213.9206347809034, 28.435538105561616])
+            [201.48244311040455, 153.6646249346295, 137.08726476110223, 213.9206347809034, 28.435538105561616],
+            decimal=4)
 
         # Make sure zsisa is serializable with pickle as we store an instance in the Abipy Works
         #self.serialize_with_pickle(zsisa)

@@ -538,9 +538,9 @@ class QHA_ZSISA(HasPickleIO):
         therm = None
         # Check if the stress has converged (all tolerances below self.dtol_tolerance)
         if all(dtol[i] < self.dtol_tolerance for i in range(6)): # Check convergence
-            if self.elastic_path is not None and os.path.exists(self.elastic_path):
+            if self.bo_elastic_voigt is not None:
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
-                matrix_elastic = self.elastic_constants(self.elastic_path)
+                matrix_elastic = self.bo_elastic_voigt
                 # Convert elastic constants to second derivative of BO energy (Eq. 39)
                 matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
                 # Initialize second derivative matrix M using free energy second derivatives.
@@ -655,9 +655,9 @@ class QHA_ZSISA(HasPickleIO):
         therm = None
         # Check if the stress has converged (all tolerances below self.dtol_tolerance)
         if all(dtol[i] < self.dtol_tolerance for i in range(6)):
-            if self.elastic_path is not None and os.path.exists(self.elastic_path):
+            if self.bo_elastic_voigt is not None:
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
-                matrix_elastic = self.elastic_constants(self.elastic_path)
+                matrix_elastic = self.bo_elastic_voigt
                 # Convert elastic constants to second derivative of BO energy (Eq. 39)
                 matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
                 # Initialize second derivative matrix M using free energy second derivatives.
@@ -867,9 +867,9 @@ class QHA_ZSISA(HasPickleIO):
         therm = None
         elastic = None
         if all(dtol[i] < self.dtol_tolerance for i in range(6)):
-            if self.elastic_path is not None and os.path.exists(self.elastic_path):
+            if self.bo_elastic_voigt is not None:
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
-                matrix_elastic = self.elastic_constants(self.elastic_path)
+                matrix_elastic = self.bo_elastic_voigt
                 # Convert elastic constants to second derivative of BO energy (Eq. 39)
                 matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
                 scale_xx = (exx0+1)*(exx0+1)
@@ -1062,7 +1062,7 @@ class QHA_ZSISA(HasPickleIO):
         # Check if the stress has converged (all tolerances below self.dtol_tolerance)
         elastic = None
         if all(dtol[i] < self.dtol_tolerance for i in range(6)):
-            if self.elastic_path is not None and os.path.exists(self.elastic_path):
+            if self.bo_elastic_voigt is not None:
                 # If elastic constants are requested, compute the second derivatives for C44, C66, and C46
                 if mode == 'ECs':
                     dexy = (Bx0-Bx1)/(ByBO)
@@ -1076,7 +1076,7 @@ class QHA_ZSISA(HasPickleIO):
                     d2F_dB1dC2 = 0.0
 
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
-                matrix_elastic = self.elastic_constants(self.elastic_path)
+                matrix_elastic = self.bo_elastic_voigt
                 # Convert elastic constants to second derivative of BO energy (Eq. 39)
                 matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
                 scale_xx = (exx0+1)*(exx0+1)
@@ -1340,10 +1340,10 @@ class QHA_ZSISA(HasPickleIO):
         # Check if the stress has converged (all tolerances below self.dtol_tolerance)
         elastic=None
         if all(dtol[i] < self.dtol_tolerance for i in range(6)):
-            if self.elastic_path is not None and os.path.exists(self.elastic_path):
+            if self.bo_elastic_voigt is not None:
                 # If elastic constants are requested, compute the second derivatives for C44, C66, and C46
                 # Read elastic constants from the output of DFPT obtained by abiopen.py (ELASTIC_RELAXED)
-                matrix_elastic = self.elastic_constants(self.elastic_path)
+                matrix_elastic = self.bo_elastic_voigt
                 # Convert elastic constants to second derivative of BO energy (Eq. 39)
                 matrix_elastic = matrix_elastic*v/abu.eVA3_GPa
                 scale_xx = (exx0+1)*(exx0+1)
@@ -1561,7 +1561,8 @@ class QHA_ZSISA(HasPickleIO):
                     stress_guess,
                     energy_guess,
                     mode: str = "TEC",
-                    elastic_path: str | None = "elastic_constant.txt") -> ThermalData:
+                    bo_elastic_voigt=None) -> ThermalData:
+                    #elastic_path: str | None = "elastic_constant.txt") -> ThermalData:
         """
         Args
             temp: Temperature in K.
@@ -1569,10 +1570,11 @@ class QHA_ZSISA(HasPickleIO):
             structure_guess: Structure used as a guess.
             stress_guess: Stress tensor corresponding to the initial guess structure as (3,3) matrix in a.u.
             mode: "TEC" or "ECs"
+            bo_elastic_voigt: Elastic tensor in Voigt notation i.e. shape = (6,6) with BO elastic constants in GPa.
         """
         self._set_structure_stress_guess(structure_guess, stress_guess, energy_guess)
 
-        self.elastic_path = elastic_path
+        self.bo_elastic_voigt = bo_elastic_voigt
         pressure_au = pressure_gpa / abu.HaBohr3_GPa
         if self.verbose:
             print("Mode: ", mode, "\nPressure: ", pressure_gpa, "(GPa)", "\nTemperature: ", temp, "(K)")
@@ -1646,33 +1648,33 @@ class QHA_ZSISA(HasPickleIO):
                                    entropy[i,j,k,l,m,n] = None
         return f, entropy
 
-    def elastic_constants(self, file_name: str) -> np.ndarray:
-        print("About to read ELASTIC_RELAXED tensor from:", file_name)
-        with open(file_name, "rt") as file:
-            lines = file.readlines()
+    #def elastic_constants(self, file_name: str) -> np.ndarray:
+    #    print("About to read ELASTIC_RELAXED tensor from:", file_name)
+    #    with open(file_name, "rt") as file:
+    #        lines = file.readlines()
 
-        in_relaxed_section = False
-        elastic_data = []
+    #    in_relaxed_section = False
+    #    elastic_data = []
 
-        for line in lines:
-            if "[ELASTIC_RELAXED]" in line:
-                in_relaxed_section = True
-                continue
-            if "[" in line and in_relaxed_section:  # Stop if another section starts
-                break
-            if in_relaxed_section:
-                try:
-                    # Extract numbers from each line
-                    numbers = list(map(float, line.split()[1:7]))
-                    #print("numbers:", numbers)
-                    if numbers:  # Add non-empty lines
-                        elastic_data.append(numbers)
-                except ValueError as exc:
-                    #raise exc
-                    continue
+    #    for line in lines:
+    #        if "[ELASTIC_RELAXED]" in line:
+    #            in_relaxed_section = True
+    #            continue
+    #        if "[" in line and in_relaxed_section:  # Stop if another section starts
+    #            break
+    #        if in_relaxed_section:
+    #            try:
+    #                # Extract numbers from each line
+    #                numbers = list(map(float, line.split()[1:7]))
+    #                #print("numbers:", numbers)
+    #                if numbers:  # Add non-empty lines
+    #                    elastic_data.append(numbers)
+    #            except ValueError as exc:
+    #                #raise exc
+    #                continue
 
-        # Convert the list into a numpy array for easier indexing
-        return np.array(elastic_data)
+    #    # Convert the list into a numpy array for easier indexing
+    #    return np.array(elastic_data)
 
     #def print_data(self, temp, pressure, therm, stress, elastic, mode):
     #    M = elastic

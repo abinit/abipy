@@ -342,7 +342,7 @@ class ThermalRelaxWork(Work):
         for pressure_gpa, temperature in itertools.product(work.pressures_gpa, work.temperatures):
             tdata = work.zsisa.get_tstress(temperature, pressure_gpa,
                                            structure_guess, stress_guess, energy_guess,
-                                           mode=work.mode, elastic_path=None)
+                                           mode=work.mode, bo_elastic_voigt=None)
 
             # TODO: Relax options with ecutsm and strfact?
             extra_vars = {
@@ -385,16 +385,7 @@ class ThermalRelaxWork(Work):
             ddb_filepath = task.elastic_work.outdir.path_in("out_DDB")
             with DdbFile(ddb_filepath) as ddb:
                 edata = ddb.anaget_elastic()
-
-            # FIXME This is to maintain compatibility with the previous API
-            # but things should be done in a much cleaner way.
-            elastic_path = task.outdir.path_in("elastic_constant.txt")
-            with open(elastic_path, "wt") as f:
-                print("Writing edata to", elastic_path)
-                f.write(str(edata))
-
-            elastic_relaxed = edata.elastic_relaxed
-            elastic_relaxed = edata.elastic_relaxed.zeroed(1e-3)
+                elastic_relaxed = edata.elastic_relaxed.zeroed(1e-3)
 
             # Get relaxed structure and stress_guess and energy_guess from the GSR file.
             with task.open_gsr() as gsr:
@@ -404,16 +395,8 @@ class ThermalRelaxWork(Work):
 
             tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa,
                                       relaxed_structure, stress_guess, energy_guess,
-                                      mode=self.mode, elastic_path=elastic_path)
-            print(tdata)
-            print(f"{tdata.elastic=}")
-            print(f"{elastic_relaxed.voigt=}")
-            print("tdata.elastic vs elastic_relaxed")
-            for v1, v2 in zip(tdata.elastic.flatten(), elastic_relaxed.voigt.flatten(), strict=True):
-                print(v1, v2)
-
-            if not np.allclose(tdata.elastic, elastic_relaxed.voigt, rtol=1e-5, atol=1e-8):
-                raise RuntimeError("Diff")
+                                      mode=self.mode, bo_elastic_voigt=elastic_relaxed.voigt)
+            #print(tdata)
 
             # Init entry and add it to list.
             entry = dict(
@@ -460,7 +443,7 @@ class ThermalRelaxTask(RelaxTask):
         zsisa = self.work.zsisa
         tdata = zsisa.get_tstress(self.temperature, self.pressure_gpa,
                                   relaxed_structure, stress_guess, energy_guess,
-                                  mode=self.mode, elastic_path=None)
+                                  mode=self.mode, bo_elastic_voigt=None)
         if tdata.converged:
             self.num_converged += 1
         else:
@@ -530,7 +513,8 @@ class ThermalRelaxEntry:
             # Add elastic constants.
             for inds, value in np.ndenumerate(self.elastic):
                 inds = np.array(inds, dtype=int)
-                key = f"C_{inds[0]+1}{inds[1]+1}" # Start to count from 1.
+                # Start to count from 1.
+                key = f"C_{inds[0]+1}{inds[1]+1}"
                 dct[key] = value
 
         return dct

@@ -361,7 +361,7 @@ def phonopy_to_abinit(unit_cell=None,
     # phonopy and abinit are the same.
     with GsrFile(task.opath_from_ext("GSR.nc")) as gsr:
         abi_spg = gsr.structure.abi_spacegroup.spgid
-    spglib_spg = phonon.symmetry.dataset["number"]
+    spglib_spg = phonon.symmetry.dataset.number
     if abi_spg != spglib_spg:
         warnings.warn("The space group number obtained based on the DDB symmetries differs "
                       f"from the one calculated with spglib: {abi_spg} versus "
