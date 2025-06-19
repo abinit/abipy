@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Work subclasses related to DFTP.
+Work subclasses related to DFPT.
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ class ElasticWork(Work, MergeDdb):
         * interatomic force constants at gamma
         * Born effective charges
 
-    The structure is assumed to be already relaxed
+    IMPORTANT: The structure is assumed to be already relaxed.
 
     Create a `Work` for phonon calculations. The flow has one works with:
 

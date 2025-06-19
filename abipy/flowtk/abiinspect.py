@@ -1,4 +1,3 @@
-# pylint: disable=no-member, chained-comparison, unnecessary-comprehension, not-callable
 """
 This module provides objects to inspect the status of the Abinit tasks at run-time.
 by extracting information from the main output file (text format).
@@ -664,7 +663,7 @@ class YamlTokenizer(Iterator):
 
         .. warning::
 
-            Assume that the YAML document are closed explicitely with the sentinel '...'
+            Assume that the YAML document are closed explicitly with the sentinel '...'
         """
         in_doc, lines, doc_tag = None, [], None
 
@@ -708,7 +707,7 @@ class YamlTokenizer(Iterator):
         .. warning::
 
             Assume that all the YAML docs (with the exception of the last one)
-            are closed explicitely with the sentinel '...'
+            are closed explicitly with the sentinel '...'
         """
         docs = [doc for doc in self]
         self.seek(0)

@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Flows for electron-phonon calculations (high-level interface)
+Flows for electron-phonon calculations (high-level interface).
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from .flows import Flow
 class EphPotFlow(Flow):
     r"""
     This flow computes the e-ph scattering potentials on a q-mesh defined by ngqpt
-    and a list of q-points (usually a q-path) specified by the user.
+    and a list of q-points (usually a high-symmetry q-path) specified by the user.
     The DFPT potentials on the q-mesh are merged in the DVDB located in the outdata
     of the second work while the DFPT potentials on the q-path are merged in the DVDB file
     located in the outdata of the third work.
@@ -32,7 +32,7 @@ class EphPotFlow(Flow):
     If "gkq_qpath":
 
         The g(k,q) for qpt in `qbounds` are computed in two ways: using fully ab-abinito DFPT potentials
-        explicilty computed for each q-point or Fourier-interpolated potentials.
+        explicitly computed for each q-point or Fourier-interpolated potentials.
     """
 
     @classmethod
@@ -279,7 +279,7 @@ class GkqPathFlow(Flow):
             # Use input list of q-points.
             qpath_list = np.reshape(qbounds, (-1, 3))
         else:
-            raise ValueError("ndivsm cannot be negative. Received ndivsm: %s" % ndivsm)
+            raise ValueError(f"ndivsm cannot be negative. Received {ndivsm=}")
 
         # Third Work. Compute WFK/WFQ and phonons for qpt in qpath_list.
         # Don't include BECS because they have been already computed in the previous work.

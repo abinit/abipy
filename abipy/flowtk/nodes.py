@@ -13,8 +13,7 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-#from pprint import pprint
-from typing import Any, Union
+from typing import Any
 from functools import cached_property
 from pydispatch import dispatcher
 from monty.json import jsanitize, MSONable
@@ -52,7 +51,7 @@ class Status(int):
         (1, "Initialized", None, None, None),
         # Task is locked an must be explicitly unlocked by an external subject (Work).
         (2, "Locked", "grey", None, None),
-        # Node is ready i.e. all the depencies of the node have status S_OK
+        # Node is ready i.e. all the dependencies of the node have status S_OK
         (3, "Ready", None, None, None),
         # Node has been submitted (The `Task` is running or we have started to finalize the Work)
         (4, "Submitted", "blue", None, None),
@@ -136,7 +135,7 @@ class Dependency:
     def __init__(self, node, exts=None):
         """
         Args:
-            node: The task or the worfklow associated to the dependency or string with a filepath.
+            node: The task or the workflow associated to the dependency or string with a filepath.
             exts: Extensions of the output files that are needed for running the other tasks.
         """
         self._node = Node.as_node(node)
@@ -233,7 +232,7 @@ class Product:
         """
         Args:
             ext: ABINIT file extension
-            path: (asbolute) filepath
+            path: (absolute) filepath
         """
         if ext not in abi_extensions():
             raise ValueError("Extension `%s` has not been registered in the internal database" % str(ext))
@@ -371,17 +370,6 @@ class NodeResults(dict, MSONable):
     def json_load(cls, filename):
         return cls.from_dict(loadfn(filename))
 
-    #def validate_json_schema(self):
-    #    import validictory
-    #    d = self.as_dict()
-    #    try:
-    #        validictory.validate(d, self.JSON_SCHEMA)
-    #        return True
-    #    except ValueError as exc:
-    #        pprint(d)
-    #        print(exc)
-    #        return False
-
     def update_collection(self, collection):
         """
         Update a mongodb collection.
@@ -404,7 +392,7 @@ class NodeResults(dict, MSONable):
             fs = gridfs.GridFS(db)
             for ext, gridfile in self.gridfs_files.items():
                 logger.info("gridfs: about to put file:", str(gridfile))
-                # Here we set gridfile.fs_id that will be stored in the mondodb document
+                # Here we set gridfile.fs_id that will be stored in the mongodb document
                 try:
                     with open(gridfile.path, "r" + gridfile.mode) as f:
                         gridfile.fs_id = fs.put(f, filename=gridfile.path)
@@ -589,7 +577,7 @@ class Node(metaclass=abc.ABCMeta):
             return self.__class__.__name__.lower() == class_or_string.lower()
 
     @classmethod
-    def as_node(cls, obj: Any) -> Union[Node, None]:
+    def as_node(cls, obj: Any) -> Node | None:
         """
         Convert obj into a Node instance.
 
@@ -717,7 +705,7 @@ class Node(metaclass=abc.ABCMeta):
 
         Args:
             event: :class:`AbinitEvent` that triggered the correction.
-            action (str): Human-readable string with info on the action perfomed to solve the problem.
+            action (str): Human-readable string with info on the action performed to solve the problem.
         """
         # TODO: Create CorrectionObject
         action = str(action)
@@ -1139,7 +1127,7 @@ class FileNode(Node):
             msg = """\n
 File type does not match the abinit file extension.
 Caller asked for abiext: `%s` whereas filepath: `%s`.
-Continuing anyway assuming that the netcdf file provides the API/dims/vars neeeded by the caller.
+Continuing anyway assuming that the netcdf file provides the API/dims/vars needed by the caller.
 """ % (abiext, self.filepath)
             self.history.warning(msg)
 

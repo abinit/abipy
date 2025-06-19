@@ -179,7 +179,7 @@ class ParalConf(AttrDict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Add default values if not already in self.
+        # Add default values if k not already in self.
         for k, v in self._DEFAULTS.items():
             if k not in self:
                 self[k] = v

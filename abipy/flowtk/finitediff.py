@@ -28,7 +28,6 @@ from monty.string import list_strings #, marquee
 from monty.termcolor import cprint
 from pymatgen.analysis.elasticity.strain import Strain
 from abipy.core.structure import Structure
-#from abipy.core.mixins import NotebookWriter #
 from abipy.tools.numtools import build_mesh
 from abipy.tools.derivatives import central_fdiff_weights
 from abipy.tools.tensors import DielectricDataList

@@ -5,8 +5,8 @@ from __future__ import annotations
 import os
 import numpy as np
 
-from monty.string import list_strings
 from io import StringIO
+from monty.string import list_strings
 from abipy.core.globals import get_workdir
 
 __author__ = "Matteo Giantomassi"
@@ -207,8 +207,8 @@ class Mrgddb(ExecWrapper):
 
         # Handle the case of a single file since mrgddb uses 1 to denote GS files!
         if len(ddb_files) == 1:
-            with open(ddb_files[0], "r") as inh, open(out_ddb, "w") as out:
-                for line in inh:
+            with open(ddb_files[0], "r") as in_fh, open(out_ddb, "w") as out:
+                for line in in_fh:
                     out.write(line)
             return out_ddb
 
@@ -271,8 +271,8 @@ class Mrgdvdb(ExecWrapper):
 
         # Handle the case of a single file since mrgddb uses 1 to denote GS files!
         if len(pot_files) == 1:
-            with open(pot_files[0], "r") as inh, open(out_dvdb, "w") as out:
-                for line in inh:
+            with open(pot_files[0], "r") as in_fh, open(out_dvdb, "w") as out:
+                for line in in_fh:
                     out.write(line)
             return out_dvdb
 
