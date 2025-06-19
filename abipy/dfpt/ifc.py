@@ -174,10 +174,10 @@ class InteratomicForceConstants(Has_Structure):
 
         # apply the filter: construct matrices of num_atoms * num_neighbours size, all conditions should be satisfied.
         ind = np.where(
-            (np.tile(np.in1d(self.atoms_indices, atom_indices), [self.number_of_neighbours, 1])).T &
+            (np.tile(np.isin(self.atoms_indices, atom_indices), [self.number_of_neighbours, 1])).T &
             (self.distances > min_dist if min_dist is not None else True) &
             (self.distances < max_dist if max_dist is not None else True) &
-            (np.in1d(self.neighbours_indices, self.structure.indices_from_symbol(neighbour_element))
+            (np.isin(self.neighbours_indices, self.structure.indices_from_symbol(neighbour_element))
              .reshape(self.number_of_atoms, self.number_of_neighbours) if neighbour_element is not None else True)
         )
 

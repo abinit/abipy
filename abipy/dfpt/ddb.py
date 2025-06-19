@@ -3179,9 +3179,10 @@ class DdbRobot(Robot):
             # Phonon frequencies with non analytical contributions, if calculated, are saved in anaddb.nc
             # Those results should be fetched from there and added to the phonon bands.
             if lo_to_splitting in ("automatic", True) and ddb.has_lo_to_data():
-                anaddb_path = find_anaddb_ncpath(phbst_file.filepath)
-                print(f"Reading non_anal_term from: {anaddb_path=}")
-                phbst_file.phbands.read_non_anal_from_file(anaddb_path)
+                anaddb_path, has_non_anal_term = _find_anaddb_ncpath(phbst_file.filepath)
+                if has_non_anal_term:
+                    print(f"Reading non_anal_term from: {anaddb_path=}")
+                    phbst_file.phbands.read_non_anal_from_file(anaddb_path)
 
             phbands_plotter.add_phbands(label, phbst_file, phdos=phdos_file)
             phbands_paths.append(phbst_file.filepath)
@@ -3450,10 +3451,16 @@ def get_2nd_ord_block_string(qpt, data: dict) -> list:
     return lines
 
 
-def find_anaddb_ncpath(filepath):
+def _find_anaddb_ncpath(filepath) -> tuple[str, bool]:
     from abipy.flowtk.utils import Directory
+    from abipy.dfpt.anaddbnc import AnaddbNcFile
     directory = Directory(os.path.dirname(filepath))
     p = directory.has_abiext("anaddb.nc")
     if not p:
         raise RuntimeError("Cannot find `anaddb.nc` in directory %s" % (directory))
-    return p
+
+    with AnaddbNcFile(filepath) as ananc:
+        dirs = ananc.r.read_value("non_analytical_directions", default=None)
+        has_non_anal_term = dirs is not None
+
+    return p, has_non_anal_term

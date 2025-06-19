@@ -131,7 +131,7 @@ class NonAnalyticalPh(Has_Structure):
         directions = r.read_value("non_analytical_directions")
         phfreq = r.read_value("non_analytical_phonon_modes")
 
-        # need a default as the first abinit version including IFCs in the netcdf doesn't have this attribute
+        # Need a default as the first abinit version including IFCs in the netcdf doesn't have this attribute
         phdispl_cart = r.read_value("non_analytical_phdispl_cart", cmode="c", default=None)
         structure = r.read_structure()
 
