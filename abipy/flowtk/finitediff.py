@@ -898,6 +898,7 @@ class PertKind(StrEnum):
 
 
 class IonsMode(StrEnum):
+    """String enumerator for the different kind of tensors."""
     CLAMPED = "clamped_ions"
     RELAXED = "relaxed_ions"
 
@@ -907,8 +908,8 @@ class Perturbation:
     """
     This object stores info on the perturbation and its amplitude.
     """
-    kind: str
-    values: np.ndarray
+    kind: str            # Kind of perturbation.
+    values: np.ndarray   # Perturbation amplitudes.
 
     # Optional arguments.
     cart_dir: np.ndarray | None = None
