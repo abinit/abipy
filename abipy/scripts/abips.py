@@ -82,7 +82,7 @@ def abips_avail(options) -> int:
 #    return 0
 #
 #
-#def abips_paw_install(options):
+#def abips_paw_install(options) -> int:
 #    """
 #    Get all JTH PAW repositories in PAWXML format for the given version.
 #    """
@@ -159,7 +159,7 @@ def abips_element(options) -> int:
     """
     Find all pseudos in the installed tables for the given element (symbol or znucl).
     """
-    # Accept symbol string or Z
+    # Accept symbol string or Z.
     from pymatgen.core.periodic_table import Element
     symbol = options.element
     if symbol.isnumeric():

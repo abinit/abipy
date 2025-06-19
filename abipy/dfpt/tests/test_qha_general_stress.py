@@ -64,8 +64,7 @@ class QhaZSISATest(AbipyTest):
         phdos_paths = [[[[os.path.join(root, f"scale_{s1}_{s2}_{s3}_{s4}_1000_1000/out_PHDOS.nc") for s4 in strains_d]
             for s3 in strains_c] for s2 in strains_b] for s1 in strains_a]
         gsr_guess_path = os.path.join(root, f"find_TEC_ECs/Temp_0600_08/Relax2o_GSR.nc")
-        gsr_BO_path = os.path.join(root, f"scale_1000_1000_1000_1000_1000_1000/out_GSR.nc")
-        #elastic_path = os.path.join(root, f"find_TEC_ECs/Temp_0600_08/elastic_constant.txt")
+        gsr_bo_path = os.path.join(root, f"scale_1000_1000_1000_1000_1000_1000/out_GSR.nc")
         elastic_ddb = os.path.join(root, f"find_TEC_ECs/Temp_0600_08/out_DDB")
 
         with GsrFile(gsr_guess_path) as gsr:
@@ -79,13 +78,12 @@ class QhaZSISATest(AbipyTest):
 
         temp = 600
         pressure = 8.0
-        zsisa = QHA_ZSISA.from_files(phdos_paths, gsr_BO_path)
+        zsisa = QHA_ZSISA.from_files(phdos_paths, gsr_bo_path)
         assert zsisa.dim == (3, 3, 3, 3, 1, 1)
 
         tdata = zsisa.get_tstress(temp, pressure, structure_guess, stress_guess, energy_guess,
                                   mode='ECs',
                                   bo_elastic_voigt=elastic_relaxed.voigt)
-                                  #elastic_path=elastic_path)
         #print(tdata)
         self.assert_almost_equal(tdata.elastic, [
             [201.48244311, 153.66462493, 137.08726476, 0., 0., 0.],

@@ -57,7 +57,7 @@ class Embedded_phonons(Phonopy):
                                rc_1: float | None = None,
                                rc_2: float | None = None,
                                factor_ifc: float = 1.0,
-                               verbose : int = 0,
+                               verbose: int = 0,
                                asr: bool = True) -> Phonopy:
         """
         Args:
@@ -79,7 +79,7 @@ class Embedded_phonons(Phonopy):
             rc_1: Radii of the sphere centered around the defect outside which the IFCs are set to zero, allows to get sparse matrix.
             rc_2: Radii of the sphere centered around the defect where the IFCs of the defect computation are included
             factor_ifc: Multiply the IFCs inside the sphere of radii rc_2 by factor_ifc,
-                useful to introduce fictious high-frequency local mode.
+                useful to introduce fictitious high-frequency local mode.
             verbose: Print explicitly all the IFCs replacements.
             asr: If True, re-enforce acoustic sum rule after IFCs embedding,
                 following eq. (S4) of https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537
@@ -136,8 +136,8 @@ class Embedded_phonons(Phonopy):
         # Print infos
         ########################
 
-        print(f"Number of atoms in the pristine supercell : {len(stru_pristine)}")
-        print(f"Number of atoms in the defective supercell: {len(stru_defect)}")
+        print(f"Number of atoms in the pristine supercell: {len(stru_pristine)}")
+        print(f"Number of atoms in the defective supercel: {len(stru_defect)}")
 
         print("Defect infos")
         if substitutions_list is not None:

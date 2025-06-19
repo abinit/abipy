@@ -146,20 +146,20 @@ class QHA_ZSISA(HasPickleIO):
             phdos_paths_6D: A 6D list of paths to PHDOS.nc files.
                 The PHDOS files must be provided according to the deformations defined in Table IV of the paper.
                 For the 'zsisa' qha_model:
-                     A 6D array of PHDOS files is required, but the array does not need to be completely filled.
-                     Only the necessary deformations from Table IV need to exist.
-                     For cubic cases, a 1D or 3D array is also accepted for the TEC case.
-                     For uniaxial cases (hexagonal, trigonal, and tetragonal), a 2D or 3D
-                     array is also accepted for the TEC case.
+                A 6D array of PHDOS files is required, but the array does not need to be completely filled.
+                Only the necessary deformations from Table IV need to exist.
+                For cubic cases, a 1D or 3D array is also accepted for the TEC case.
+                For uniaxial cases (hexagonal, trigonal, and tetragonal), a 2D or 3D
+                array is also accepted for the TEC case.
             gsr_bo_path: Path to the GSR file for the Born-Oppenheimer structure,
                 or the reference structure used to build deformations.
                 This is needed to reconstruct strains from Eqs. (24) and (25) in the paper.
                 and find the crystallographic symmetry of the structure.
             qha_model:
                 Specifies the QHA model type. Options are:
-                  - 'zsisa': Standard ZSISA model.
-                  - 'v_zsisa': v-ZSISA model.
-                  - 'zsisa_slab': ZSISA model adapted for slab geometries.
+                'zsisa': Standard ZSISA model.
+                'v_zsisa': v-ZSISA model.
+                'zsisa_slab': ZSISA model adapted for slab geometries.
         """
         # If the BO GSR file exists, read the structure and stress tensor.
         if not os.path.exists(gsr_bo_path):
@@ -244,8 +244,6 @@ class QHA_ZSISA(HasPickleIO):
                 dim1_structures.append(dim2_structures)
             phdoses.append(dim1_doses)
             structures.append(dim1_structures)
-
-        #print("{dim=})
 
         # If the structure is uniaxial and the input PHDOS data is 2D, expand it to 3D format.
         if list(dim) == [3, 3, 1, 1, 1, 1] and qha_model == 'zsisa':

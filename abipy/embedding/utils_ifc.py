@@ -1,5 +1,5 @@
 """
-Useful functions to be used in embedding_ifc
+Useful functions used in embedding_ifc
 """
 from __future__ import annotations
 
@@ -13,7 +13,6 @@ def stru_0_1_to_minus_05_05(structure: Structure):
     """
     translate the structure so that the frac_coords go from [0,1] to [-0.5,0,5]
     """
-
     new_stru = structure.copy()
     for site in new_stru:
         if site.frac_coords[0] >= 0.5:

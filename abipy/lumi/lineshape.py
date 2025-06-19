@@ -14,21 +14,21 @@ from abipy.embedding.utils_ifc import localization_ratio
 
 class Lineshape:
     """
-
     Object representing a luminescent lineshape, following a multi-phonon mode model (multiD-CCM).
     For 1D-CCM, use plot_lineshape_1D_zero_temp() function of the abipy/lumi/deltaSCF module.
 
     For equations, notations and formalism, please refer to:
-     https://doi.org/10.1103/PhysRevB.96.125132
-     https://doi.org/10.1002/adom.202100649
-     https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
 
-    In the 1D-CCM, the vibronic peaks are the ones from a fictious phonon mode that connects
+        https://doi.org/10.1103/PhysRevB.96.125132
+        https://doi.org/10.1002/adom.202100649
+        https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
+
+    In the 1D-CCM, the vibronic peaks are the ones from a fictitious  phonon mode that connects
     the atomic relaxation between the ground state and excited state.
     Within this model, the global shape (fwhm) is well represented if the total Huang-Rhys
     factor is large enough (gaussian shaped spectrum). However, if vibronic
     peaks are present in the experimental spectrum, this model is not able to correctly
-    reproduce them as it assumes a fictious phonon mode.
+    reproduce them as it assumes a fictitious phonon mode.
 
     In the multiD-CCM, the atomic relaxation is projected along the phonon eigenvectors of the system,
     allowing a phonon-projected decomposition of the relaxation.
@@ -40,7 +40,7 @@ class Lineshape:
                              coords_defect_phonons=None,tol=0.3):
         r"""
         Different levels of approximations for the phonons and force/displacements:
-        See discussion in the supplementary informations of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537, section (1).
+        See discussion in the supplementary information of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537, section (1).
 
         - size_supercell deltaSCF = size_supercell phonons (phonons of the bulk structure or phonons of defect structure).
           Use of the forces or the displacemements is allowed.
@@ -59,8 +59,8 @@ class Lineshape:
             E_zpl: Zero-phonon line energy in eV
             phonopy_ph: Phonopy object containing eigenfrequencies and eigenvectors
             dSCF_structure: Delta_SCF structure
-            dSCF_displacements: Dispalcements \Delta R induced by the electronic transition
-            dSCF_forces: Dispalcements \Delta F induced by the electronic transition
+            dSCF_displacements: Displacements \Delta R induced by the electronic transition
+            dSCF_forces: Displacements \Delta F induced by the electronic transition
             coords_defect_dSCF: Main coordinates of the defect in defect structure, if defect complex, can be set to the
                 center of mass of the complex
             tol: tolerance in Angstrom applied for the matching between the dSCF structure and phonon structure
@@ -84,7 +84,6 @@ class Lineshape:
                                                                 phonon_supercell=phonon_supercell,
                                                                 displacements_dSCF=dSCF_displacements,
                                                                 tol=tol)
-
         if use_forces:
             displacements = None
             forces = get_forces_on_phonon_supercell(dSCF_supercell=dSCF_structure,

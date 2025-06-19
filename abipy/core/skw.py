@@ -8,9 +8,9 @@ from __future__ import annotations
 import abc
 import itertools
 import pickle
-import numpy as np
-import scipy
 import time
+import scipy
+import numpy as np
 
 from collections import deque
 from monty.termcolor import cprint
@@ -19,7 +19,7 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.numtools import gaussian, find_degs_sk
 from abipy.core.kpoints import Kpath
 from abipy.core.symmetries import mati3inv
-#from abipy.tools.typing import Figure, KptSelect
+from abipy.tools.typing import Figure #, KptSelect
 
 
 class ElectronInterpolator(metaclass=abc.ABCMeta):
@@ -146,7 +146,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
     #    `kmesh` and `is_shift` to recompute the new Fermi level
 
     #    Args:
-    #        nelect: New numbre of electrons.
+    #        nelect: New number of electrons.
     #        kmesh: Three integers with the number of divisions along the reciprocal primitive axes.
     #        is_shift: three integers (spglib API). When is_shift is not None, the kmesh is shifted along
     #            the axis in half of adjacent mesh points irrespective of the mesh numbers. None means unshited mesh.
@@ -443,7 +443,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
 
     @add_fig_kwargs
     def plot_dos_vs_kmeshes(self, kmeshes, is_shift=None, method="gaussian", step=0.1, width=0.2,
-                            fontsize=12, ax=None, **kwargs):
+                            fontsize=12, ax=None, **kwargs) -> Figure:
         """
         Plot (interpolated) DOSes computed with different meshes.
 
@@ -640,7 +640,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         Args:
             spin: Spin index.
             kpt: K-point in reduced coordinates.
-            der1: If not None, ouput gradient is stored in der1[nband, 3].
+            der1: If not None, output gradient is stored in der1[nband, 3].
             der2: If not None, output Hessian is der2[nband, 3, 3].
 
         Return:
@@ -825,7 +825,7 @@ class SkwInterpolator(ElectronInterpolator):
                 hmat[ik, jk] = np.vdot(v_jkr, v_ikr)
                 if ik == jk: hmat[ik, jk] = hmat[ik, jk].real
 
-        # Solving system of linear equations to get lambda coeffients (eq. 10 of PRB 38 2721)..."
+        # Solving system of linear equations to get lambda coefficients (eq. 10 of PRB 38 2721)..."
         de_kbs = np.empty((nkpt-1, nband, nsppol), dtype=complex)
         for spin in range(nsppol):
             for ib in range(nband):
@@ -845,7 +845,7 @@ class SkwInterpolator(ElectronInterpolator):
                     #sym_pos=False, lower=False, overwrite_a=False, overwrite_b=False, check_finite=True)
 
         except scipy.linalg.LinAlgError as exc:
-            print("Cannot solve system of linear equations to get lambda coeffients (eq. 10 of PRB 38 2721)")
+            print("Cannot solve system of linear equations to get lambda coefficients (eq. 10 of PRB 38 2721)")
             print("This usually happens when there are symmetrical k-points passed to the interpolator.")
             raise exc
 
@@ -929,7 +929,7 @@ class SkwInterpolator(ElectronInterpolator):
         Args:
             spin: Spin index.
             kpt: K-point in reduced coordinates.
-            der1: If not None, ouput gradient is stored in der1[nband, 3].
+            der1: If not None, output gradient is stored in der1[nband, 3].
             der2: If not None, output Hessian is der2[nband, 3, 3].
 
         Return:

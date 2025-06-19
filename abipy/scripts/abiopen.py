@@ -12,11 +12,11 @@ import os
 import argparse
 import subprocess
 import abipy.tools.cli_parsers as cli
-from abipy.tools.plotting import Exposer
 
 from pprint import pprint
 from shutil import which
 from monty.termcolor import cprint
+from abipy.tools.plotting import Exposer
 from abipy import abilab
 
 

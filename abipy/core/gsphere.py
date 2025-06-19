@@ -37,7 +37,7 @@ class GSphere(collections.abc.Sequence):
 
         self.istwfk = istwfk
         if istwfk != 1:
-            raise NotImplementedError("istwfk %d is not implemented" % self.istwfk)
+            raise NotImplementedError(f"istwfk {self.istwfk} is not implemented")
 
     @property
     def gvecs(self) -> np.ndarray:

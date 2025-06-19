@@ -610,12 +610,12 @@ def main():
         from ase.io.vasp import write_vasp_xdatcar
 
         print(f"Converting ASE trajectory into XDATCAR format. Output file: {options.output}")
-        # Load the trajectory file using ASE
+        # Load the trajectory file using ASE.
         trajectory = read(options.filepath, index=':')
         if not options.force and os.path.exists(options.output):
             raise RuntimeError(f"Cannot overwrite pre-existent file: {options.output}! Use -f to force overwriting.")
 
-        # Write the trajectory to an XDATCAR file
+        # Write the trajectory to an XDATCAR file.
         write_vasp_xdatcar(options.output, trajectory)
 
     elif options.command == "print":

@@ -35,6 +35,12 @@ class BaseFile(metaclass=abc.ABCMeta):
     Abstract base class defining the methods that must be implemented
     by the concrete classes representing the different files produced by ABINIT.
     """
+    @classmethod
+    def from_file(cls, filepath: str):
+        """Initialize the object from a string."""
+        if isinstance(filepath, cls): return filepath
+        return cls(filepath)
+
     def __init__(self, filepath: str):
         filepath = str(filepath)
         self._filepath = os.path.abspath(filepath)
@@ -47,12 +53,6 @@ class BaseFile(metaclass=abc.ABCMeta):
 
     def __repr__(self) -> str:
         return "<%s, %s>" % (self.__class__.__name__, self.relpath)
-
-    @classmethod
-    def from_file(cls, filepath: str):
-        """Initialize the object from a string."""
-        if isinstance(filepath, cls): return filepath
-        return cls(filepath)
 
     @property
     def filepath(self) -> str:

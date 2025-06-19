@@ -16,7 +16,6 @@ from monty import termcolor
 from monty.termcolor import cprint
 from abipy import abilab
 
-
 def show_managers(options):
     """
     Print table with manager files provided by AbiPy.
