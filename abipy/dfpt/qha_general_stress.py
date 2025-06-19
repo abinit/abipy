@@ -371,10 +371,7 @@ class QHA_ZSISA(HasPickleIO):
         self.ave_y_bo = (abs(self.ay_bo)+abs(self.by_bo)+abs(self.cy_bo))
         self.ave_z_bo = (abs(self.az_bo)+abs(self.bz_bo)+abs(self.cz_bo))
 
-        # Set structure parameters for initial guess.
-        #self.set_structure_stress_guess(structure_guess, stress_guess)
-
-    def set_structure_stress_guess(self, structure_guess: Structure, stress_guess, energy_guess) -> None:
+    def _set_structure_stress_guess(self, structure_guess: Structure, stress_guess, energy_guess) -> None:
         """
         Set structure parameters and stress for the initial guess.
         """
@@ -1559,7 +1556,7 @@ class QHA_ZSISA(HasPickleIO):
 
     def get_tstress(self,
                     temp: float,
-                    pressure: float,
+                    pressure_gpa: float,
                     structure_guess: Structure,
                     stress_guess,
                     energy_guess,
@@ -1568,50 +1565,49 @@ class QHA_ZSISA(HasPickleIO):
         """
         Args
             temp: Temperature in K.
-            pressure: Pressure in GPa
+            pressure_gpa: Pressure in GPa
             structure_guess: Structure used as a guess.
             stress_guess: Stress tensor corresponding to the initial guess structure as (3,3) matrix in a.u.
             mode: "TEC" or "ECs"
         """
-        self.set_structure_stress_guess(structure_guess, stress_guess, energy_guess)
+        self._set_structure_stress_guess(structure_guess, stress_guess, energy_guess)
 
         self.elastic_path = elastic_path
-        pressure_gpa = pressure
-        pressure = pressure/abu.HaBohr3_GPa
+        pressure_au = pressure_gpa / abu.HaBohr3_GPa
         if self.verbose:
             print("Mode: ", mode, "\nPressure: ", pressure_gpa, "(GPa)", "\nTemperature: ", temp, "(K)")
 
         elastic, therm = None, None
 
         if self.sym == "v_ZSISA":
-            dtol, gibbs, stress = self.stress_v_ZSISA(temp, pressure)
+            dtol, gibbs, stress = self.stress_v_ZSISA(temp, pressure_au)
 
         elif self.sym == "cubic" and mode == "TEC":
-            dtol, gibbs, stress, therm = self.stress_ZSISA_1DOF(temp, pressure)
+            dtol, gibbs, stress, therm = self.stress_ZSISA_1DOF(temp, pressure_au)
 
         elif self.sym in ("trigonal", "hexagonal", "tetragonal") and mode == "TEC":
-            dtol, gibbs, stress, therm = self.stress_ZSISA_2DOF(temp, pressure)
+            dtol, gibbs, stress, therm = self.stress_ZSISA_2DOF(temp, pressure_au)
 
         elif self.sym in ("cubic", "trigonal", "hexagonal", "tetragonal") and mode == "ECs":
-            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_3DOF(temp, pressure, mode)
+            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_3DOF(temp, pressure_au, mode)
 
         elif self.sym == "orthorhombic":
-            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_3DOF(temp, pressure, mode)
+            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_3DOF(temp, pressure_au, mode)
 
         elif self.sym == "monoclinic":
-            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_monoclinic(temp, pressure, mode)
+            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_monoclinic(temp, pressure_au, mode)
 
         elif self.sym == "triclinic":
-            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_triclinic(temp, pressure, mode)
+            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_triclinic(temp, pressure_au, mode)
 
         elif self.sym == "ZSISA_slab_1DOF":
-            dtol, gibbs, stress = self.stress_ZSISA_slab_1DOF(temp, pressure)
+            dtol, gibbs, stress = self.stress_ZSISA_slab_1DOF(temp, pressure_au)
 
         elif self.sym == "ZSISA_slab_2DOF":
-            dtol, gibbs, stress = self.stress_ZSISA_slab_2DOF(temp, pressure)
+            dtol, gibbs, stress = self.stress_ZSISA_slab_2DOF(temp, pressure_au)
 
         elif self.sym == "ZSISA_slab_3DOF":
-            dtol, gibbs, stress = self.stress_ZSISA_slab_3DOF(temp, pressure)
+            dtol, gibbs, stress = self.stress_ZSISA_slab_3DOF(temp, pressure_au)
 
         else:
             raise ValueError(f"Unknown {self.sym=}")
@@ -1747,7 +1743,7 @@ class QHA_ZSISA(HasPickleIO):
     def get_phdos_plotter(self, **kwargs) -> PhononDosPlotter:
         """Build and return a PhononDosPlotter."""
         plotter = PhononDosPlotter()
-        print(f"{self.phdoses.shape=}, {self.dim=}")
+        #print(f"{self.phdoses.shape=}, {self.dim=}")
         for inds, phdos in np.ndenumerate(self.phdoses):
             if phdos is None: continue
             plotter.add_phdos(str(inds), phdos)

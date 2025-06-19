@@ -49,7 +49,7 @@ class ZsisaFlow(Flow):
                        edos_ngkpt: VectorLike | None = None,
                        ionmov: int = 2,
                        tolmxf: float = 1e-5,
-                       qha_model: str = 'zsisa',
+                       qha_model: str = "zsisa",
                        with_piezo: bool = False,
                        manager=None) -> ZsisaFlow:
         """
@@ -125,8 +125,9 @@ class ZsisaFlow(Flow):
             return self.outdir.path_in(basename)
 
         if self.on_all_ok_num_calls == 1:
-            # Start the relaxation with thermal stress for the different (T, P)
+            # Write json file with metadata and empty list of results.
             self.write_zsisa_results_step1(json_filepath)
+            # Relaxation with thermal stress for the different (T, P).
             self.thermal_relax_work = ThermalRelaxWork.from_zsisa_flow(self, self.temperatures, self.pressures_gpa)
             self.register_work(self.thermal_relax_work)
             self.allocate(build=True)
@@ -138,8 +139,7 @@ class ZsisaFlow(Flow):
 
             # Produce csv file in the outdir of the flow.
             results = ZsisaResults.json_load(json_filepath)
-            df = results.get_dataframe()
-            df.to_csv(_path("data.csv"))
+            results.get_dataframe().to_csv(_path("data.csv"))
 
         return True
 
@@ -176,8 +176,8 @@ class ZsisaFlow(Flow):
 class ZsisaWork(Work):
     """
     This work performs a structural relaxation of the initial structure,
-    then a set of distorted structures is generated and the relaxed structures are used to compute
-    phonons, BECS and the dielectric tensor with DFPT.
+    then a set of distorted structures is generated and the relaxed structures
+    are used to compute phonons, BECS and the dielectric tensor with DFPT.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ZsisaWork
@@ -239,7 +239,7 @@ class ZsisaWork(Work):
             # Get relaxed structure and build new task for structural relaxation at fixed volume.
             relaxed_structure = sender.get_final_structure()
 
-            # Generate deformed structures with the associated indices in the 6d matrix.
+            # Generate deformed structures with the associated indices in the phdos_6d matrix.
             self.strained_structures_dict, self.inds_6d, self.spgrp_number = generate_deformations(
                 relaxed_structure, self.eps, mode=self.mode)
 
@@ -352,7 +352,7 @@ class ThermalRelaxWork(Work):
                 "optcell": 2,
                 "dilatmx": 1.04,
                 "tolmxf": 1.0e-5,
-                "strfact": 1000.,  # This to give more weight to the stress in the relaxation.
+                "strfact": 1000.,  # Give more weight to the stress in the relaxation.
             }
 
             new_relax_input = relax_template.new_with_vars(**extra_vars)
@@ -373,6 +373,9 @@ class ThermalRelaxWork(Work):
         Compute elastic constants C at the end of the calculation.
         Use C to obtain to reduce noise in thermal expansion.
         Also, compute C(T, P) if self.mode == "ECs"
+
+        Args:
+            json_filepath: Path to json file.
         """
         results = ZsisaResults.json_load(json_filepath)
         zsisa = self.zsisa
@@ -448,7 +451,7 @@ class ThermalRelaxTask(RelaxTask):
     def _on_ok(self):
         results = super()._on_ok()
 
-        # Get relaxed structure and stress_guess and energy_guess from the GSR file.
+        # Get relaxed structure, stress_guess and energy_guess from the GSR file.
         with self.open_gsr() as gsr:
             relaxed_structure = gsr.structure
             stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
@@ -479,8 +482,9 @@ class ThermalRelaxTask(RelaxTask):
             scf_input = self.input.new_with_structure(relaxed_structure, ionmov=0, optcell=0)
             # Remove all irdvars. Important!
             scf_input.pop_irdvars()
-            self.elastic_work = ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True,
-                                    with_piezo=self.flow.with_piezo)
+            self.elastic_work = ElasticWork.from_scf_input(
+                scf_input, with_relaxed_ion=True, with_piezo=self.flow.with_piezo
+            )
             self.flow.register_work(self.elastic_work)
             self.flow.allocate(build=True)
 
@@ -507,7 +511,7 @@ class ThermalRelaxEntry:
     gsr_path: str                          # Path to the GSR file.
     elastic_ddb_path: str                  # Path to the DDB file with the 2nd order derivatives wrt strain.
     therm: np.ndarray | None               # Thermal_expansion (Voigt notation).
-    elastic: np.ndarray | None             # Elastic constants.
+    elastic: np.ndarray | None             # Elastic constants (6,6) matrix in GPa (Voigt notation).
     gibbs_atom: float                      # Gibbs free energy per atom in eV.
 
     def get_dict4pandas(self) -> dict:
@@ -526,8 +530,7 @@ class ThermalRelaxEntry:
             # Add elastic constants.
             for inds, value in np.ndenumerate(self.elastic):
                 inds = np.array(inds, dtype=int)
-                inds += 1 # Start to count from 1.
-                key = f"C_{inds[0]}{inds[1]}"
+                key = f"C_{inds[0]+1}{inds[1]+1}" # Start to count from 1.
                 dct[key] = value
 
         return dct
@@ -563,7 +566,7 @@ class ZsisaResults(Serializable):
     qha_model: str
 
     # TODO: Should have inds_6d as well as strain_inds
-    inds_6d: np.ndarray                  # List of indices in the phdos 6D grid used for finite differences.
+    inds_6d: np.ndarray                # List of indices in the phdos 6D grid used for finite differences.
 
     gsr_bo_path: str                   # Path to GSR file with the relaxed BO configuration.
     gsr_relax_paths: list[str]         # Paths to GSR files for the deformed structures after relaxation.
@@ -584,10 +587,12 @@ class ZsisaResults(Serializable):
 
     @property
     def has_thermal_expansion(self) -> bool:
+        """True if thermal_expansion has been computed with elastic constants."""
         return all(entry.therm is not None for entry in self.thermal_relax_entries)
 
     @property
     def has_elastic(self) -> bool:
+        """True if T-dep elastic constants are available."""
         return all(entry.elastic is not None for entry in self.thermal_relax_entries)
 
     @cached_property
@@ -630,7 +635,7 @@ class ZsisaResults(Serializable):
 
         return col2label
 
-    def get_cnames_from_c_select(self, c_select: str) -> list[str]:
+    def _get_cnames_from_c_select(self, c_select: str) -> list[str]:
         """
         Return list of strings with the names of the elastic tensor components from `c_select`.
         """
@@ -646,8 +651,8 @@ class ZsisaResults(Serializable):
         return c_names
 
     @staticmethod
-    def _add_pga_col(df) -> tuple[str, pd.DataFrame]:
-        """Add new column with p_key to have nicer labels."""
+    def _add_pga_col(df: pd.DataFrame) -> tuple[str, pd.DataFrame]:
+        """Add new column to df with p_key to have nicer labels."""
         p_key = "P (GPa)"
         df = df.copy()
         df[p_key] = df["pressure_gpa"]
@@ -777,7 +782,7 @@ class ZsisaResults(Serializable):
             fontsize: fontsize for legends and titles
         """
         if not self.has_elastic:
-            raise ValueError("Temperature-dependent elastic constants are not available!")
+            raise ValueError("T-dependent elastic constants are not available!")
 
         if df is None:
             df = self.get_dataframe()
@@ -792,7 +797,7 @@ class ZsisaResults(Serializable):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
 
-        c_names = self.get_cnames_from_c_select(c_select)
+        c_names = self._get_cnames_from_c_select(c_select)
         for i, c_name in enumerate(c_names):
             plt_kwargs = dict(
                 marker=next(self.cycle_markers),
@@ -830,7 +835,7 @@ class ZsisaResults(Serializable):
             fontsize: fontsize for legends and titles
         """
         if not self.has_elastic:
-            raise ValueError("Temperature-dependent elastic constants are not available!")
+            raise ValueError("T-dependent elastic constants are not available!")
 
         if df is None:
             df = self.get_dataframe()
@@ -838,7 +843,7 @@ class ZsisaResults(Serializable):
         # Add new column with p_key to have nicer labels.
         p_key, df = self._add_pga_col(df)
 
-        c_names = self.get_cnames_from_c_select(c_select)
+        c_names = self._get_cnames_from_c_select(c_select)
         nrows, ncols = len(c_names), 1
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=True)
