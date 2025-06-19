@@ -336,7 +336,7 @@ class DensityFortranFile(AbinitFortranFile):
         return CubeFile(self._convert(cut3d_input=Cut3DInput.den_to_cube(self.filepath, out_filepath),
                                       workdir=workdir))
 
-    def get_xsf(self, out_filepath, shift=None, workdir=None):
+    def get_xsf(self, out_filepath, shift=None, workdir=None) -> str:
         """
         Runs cut3d to convert the density to the xsf format
 
@@ -353,7 +353,7 @@ class DensityFortranFile(AbinitFortranFile):
         return self._convert(cut3d_input=Cut3DInput.den_to_xsf(self.filepath,
                              output_filepath=out_filepath, shift=shift), workdir=workdir)
 
-    def get_tecplot(self, out_filepath, workdir=None):
+    def get_tecplot(self, out_filepath, workdir=None) -> str:
         """
         Runs cut3d to convert the density to the tecplot format
 
@@ -369,7 +369,7 @@ class DensityFortranFile(AbinitFortranFile):
         return self._convert(cut3d_input=Cut3DInput.den_to_tecplot(self.filepath, out_filepath),
                              workdir=workdir)
 
-    def get_molekel(self, out_filepath, workdir=None):
+    def get_molekel(self, out_filepath, workdir=None) -> str:
         """
         Runs cut3d to convert the density to the molekel format
 
@@ -385,7 +385,7 @@ class DensityFortranFile(AbinitFortranFile):
         return self._convert(cut3d_input=Cut3DInput.den_to_molekel(self.filepath, out_filepath),
                              workdir=workdir)
 
-    def get_3d_indexed(self, out_filepath, workdir=None):
+    def get_3d_indexed(self, out_filepath, workdir=None) -> str:
         """
         Runs cut3d to convert the density to the 3D indexed format
 
@@ -401,7 +401,7 @@ class DensityFortranFile(AbinitFortranFile):
         return self._convert(cut3d_input=Cut3DInput.den_to_3d_indexed(self.filepath, out_filepath),
                              workdir=workdir)
 
-    def get_3d_formatted(self, out_filepath, workdir=None):
+    def get_3d_formatted(self, out_filepath, workdir=None) -> str:
         """
         Runs cut3d to convert the density to the 3D formatted format
 
@@ -454,9 +454,6 @@ class DensityFortranFile(AbinitFortranFile):
     def get_density(self, workdir=None):
         """
         Invoke cut3d to produce a netcdf file with the density, read the file and return Density object.
-
-        Args:
-            workdir: directory in which cut3d is executed.
         """
         workdir = get_workdir(workdir)
         output_filepath = os.path.join(workdir, "field_CUT3DDENPOT.nc")

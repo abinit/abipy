@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Classes and functions for parsing the ONCVPSP output file and plotting the results.
+Classes and functions for parsing ONCVPSP output files and plotting results.
 """
 from __future__ import annotations
 
@@ -641,7 +641,7 @@ http://localhost:{port}/notebooks/{notebook_name}
 def oncv_write_notebook(outpath: str, nbpath: Optional[str] = None) -> str:
     """
     Write an ipython notebook to nbpath
-    If nbpath is None, a temporay file is created.
+    If nbpath is None, a temporary file is created.
     Return path to the notebook.
     """
     outpath = os.path.abspath(outpath)

@@ -17,7 +17,7 @@ from abipy.flowtk.wrappers import Abitk
 
 class KmeshFile(AbinitNcFile, Has_Structure):
     """
-    Interface to the KMESH.nc file produced by abitk
+    Interface to the KMESH.nc file produced by abitk.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: KmeshFile
