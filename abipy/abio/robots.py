@@ -1,8 +1,8 @@
 # coding: utf-8
 """
 This module defines the Robot base class.
-Robots operate on multiple files and provide helper functions to plot data, perform convergence studies
-and build pandas dataframes.
+Robots operate on multiple files and provide helper functions to plot data,
+perform convergence studies and build pandas dataframes.
 """
 from __future__ import annotations
 
@@ -45,7 +45,7 @@ class Robot(NotebookWriter):
             for label, abifile in self.items():
                 print(label)
     """
-    # filepaths are relative to `start`. None for asbolute paths. This flag is set in trim_paths
+    # filepaths are relative to `start`. None for absolute paths. This flag is set in trim_paths
     start = None
 
     # Used in iter_lineopt to generate matplotlib linestyles.
@@ -269,7 +269,7 @@ class Robot(NotebookWriter):
         Build Robot from a list of json files.
         Each json file should have a list of filepaths and @module and @class as required by msonable.
         """
-        # Merge filepaths and chech that module and class are equal across files.
+        # Merge filepaths and check that module and class are equal across files.
         robot_filepaths = []
         _module, _class = None, None
         for path in json_paths:
@@ -469,7 +469,7 @@ class Robot(NotebookWriter):
 
     @classmethod
     def from_dict(cls, d: dict):
-        """Recontruct object from dictionary with filepaths."""
+        """Reconstruct object from dictionary with filepaths."""
         return cls.from_files(d["filepaths"])
 
     def to_json(self) -> str:
@@ -572,7 +572,7 @@ class Robot(NotebookWriter):
         Return:
             mapping new_label --> old_label.
         """
-        new_labels = [function(afile) for afile in self.abifiles]
+        new_labels = [function(abifile) for abifile in self.abifiles]
         # Labels must be unique and hashable.
         if len(set(new_labels)) != len(new_labels):
             raise ValueError("Duplicated labels are not allowed. Change input function.\nnew_labels %s" % str(new_labels))
@@ -604,7 +604,7 @@ class Robot(NotebookWriter):
     def labels(self) -> list[str]:
         """
         List of strings used to create labels in matplotlib figures when plotting results
-        taked from multiple files. By default, labels is initialized with the path of the files in the robot.
+        taken from multiple files. By default, labels is initialized with the path of the files in the robot.
         Use change_labels to change the list.
         """
         return list(self._abifiles.keys())
@@ -649,7 +649,7 @@ class Robot(NotebookWriter):
 
     def getattr_alleq(self, aname: str):
         """
-        Return the value of attribute aname. Try firs in self then in self.r.
+        Return the value of attribute aname. Try first in self then in self.r.
         Raises ValueError if value is not the same across all the files in the robot.
         """
 
@@ -1240,27 +1240,27 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 raise TypeError("Don't know how to extract structure from %s" % type(self.abifiles[0]))
 
         # Define callbacks. docstrings will be used as ylabels.
-        def a(afile):
+        def a(abi_file):
             "a (Ang)"
-            return getattr(afile, key).lattice.a
-        def b(afile):
+            return getattr(abi_file, key).lattice.a
+        def b(abi_file):
             "b (Ang)"
-            return getattr(afile, key).lattice.b
-        def c(afile):
+            return getattr(abi_file, key).lattice.b
+        def c(abi_file):
             "c (Ang)"
-            return getattr(afile, key).lattice.c
-        def volume(afile):
+            return getattr(abi_file, key).lattice.c
+        def volume(abi_file):
             r"$V$"
-            return getattr(afile, key).lattice.volume
-        def alpha(afile):
+            return getattr(abi_file, key).lattice.volume
+        def alpha(abi_file):
             r"$\alpha$"
-            return getattr(afile, key).lattice.alpha
-        def beta(afile):
+            return getattr(abi_file, key).lattice.alpha
+        def beta(abi_file):
             r"$\beta$"
-            return getattr(afile, key).lattice.beta
-        def gamma(afile):
+            return getattr(abi_file, key).lattice.beta
+        def gamma(abi_file):
             r"$\gamma$"
-            return getattr(afile, key).lattice.gamma
+            return getattr(abi_file, key).lattice.gamma
 
         items = [a, b, c, volume, alpha, beta, gamma]
         if what_list is not None:

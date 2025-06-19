@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import functools
-import numpy as np
 import itertools
 import pickle
 import os
 import json
 import warnings
+import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 

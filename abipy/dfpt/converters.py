@@ -109,7 +109,6 @@ def abinit_to_phonopy(anaddbnc,
     # loop over the atoms in the primitive cell
     # other operations are vectorized using numpy arrays. Some array may require large allocations
     for i, (site, c_list, w_list) in enumerate(zip(s, at_cart, weights)):
-
         ind_w = np.where(w_list > 0)
         ifccc_loc = ifccc[i, ind_w[0]]
 

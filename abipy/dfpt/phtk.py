@@ -125,7 +125,7 @@ class NonAnalyticalPh(Has_Structure):
     @classmethod
     def from_ncreader(cls, nc_reader) -> NonAnalyticalPh:
         """
-        Build the object from a NetcdfReader.
+        Build the object from a NetcdfReader instance.
         """
         r = nc_reader
         directions = r.read_value("non_analytical_directions")

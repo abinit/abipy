@@ -102,7 +102,7 @@ class FrozenPhonon:
     def from_phbands(cls, phbands, qpt_frac_coords, imode, etas,
                      scale_matrix=None, max_supercell=None) -> FrozenPhonon:
         """
-        Create an instace of FrozenPhonon using the eigendisplacements from a |PhononBands|
+        Create an instance of FrozenPhonon using the eigendisplacements from a |PhononBands|
 
         Args:
             phbands: a |PhononBands| instance.
@@ -114,11 +114,7 @@ class FrozenPhonon:
                 the qpoint will be determined.
             max_supercell: mandatory if scale_matrix is None, ignored otherwise. Defines the largest
                 supercell in the search for a scaling matrix suitable for the q point.
-
-        Returns:
-            A FrozenPhonon.
         """
-
         qind = phbands.qindex(qpt_frac_coords)
         original_displ_cart = phbands.phdispl_cart[qind, imode].reshape((-1, 3))
 
@@ -269,7 +265,7 @@ class FrozenPhonon:
         Requires the 0 displacement to be present in the list of etas.
 
         Args:
-            freq: phonon frequncy in eV
+            freq: phonon frequency in eV
             relative: if True the plot will represent the relative difference with respect to the expected value
                 obtained from the frequency, rather than the absolute difference.
             ax: |matplotlib-Axes| or None if a new figure should be created.

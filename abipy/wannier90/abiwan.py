@@ -5,9 +5,9 @@ Inspired to the Fortran version of wannier90.
 """
 from __future__ import annotations
 
+import time
 import numpy as np
 import pandas as pd
-import time
 
 from tabulate import tabulate
 from functools import cached_property
@@ -346,7 +346,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
     def plot_with_ebands(self, ebands_kpath,
                          ebands_kmesh=None, method="gaussian", step: float = 0.05, width: float = 0.1, **kwargs) -> Figure:
         """
-        Receive an ab-initio electronic strucuture, interpolate the energies on the same list of k-points
+        Receive an ab-initio electronic structure, interpolate the energies on the same list of k-points
         and compare the two band structures.
 
         Args:
@@ -402,7 +402,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -458,7 +458,7 @@ class HWanR(ElectronInterpolator):
         Args:
             spin: Spin index.
             kpt: K-point in reduced coordinates.
-            der1: If not None, ouput gradient is stored in der1[nband, 3].
+            der1: If not None, output gradient is stored in der1[nband, 3].
             der2: If not None, output Hessian is der2[nband, 3, 3].
 
         Return:
@@ -655,7 +655,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

@@ -43,9 +43,13 @@ rprim
    0.0000000000    0.0000000000    9.7234377918
 """)
 
-    # FIXME: This is just to make the computation faster.
     # Initialize structure and pseudos
+    # FIXME: This is just to make the computation faster.
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif")).abi_sanitize(primitive_standard=True)
+
+    # IMPORTANT: the Zsisa code assumes structure in primitive standard settings.
+    # This call to abi_sanitize enforces the correct settings.
+    structure = structure.abi_sanitize(primitive_standard=True)
 
     # Use NC PBE pseudos from pseudodojo v0.4
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
@@ -53,7 +57,7 @@ rprim
 
     scf_input = abilab.AbinitInput(structure, pseudos)
 
-    # Set other important variables
+    # Set other important variables for the SCF run.
     scf_input.set_vars(
         nband=scf_input.num_valence_electrons // 2,
         #nline=10,
@@ -66,15 +70,12 @@ rprim
     )
 
     # Select k-mesh for electrons and q-mesh for phonons.
+    # The q-mesh must divide ngkpt.
     #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
     ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
     #ngkpt = [4, 4, 4]; ngqpt = [2, 2, 2]
 
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
-
-    eps = 0.005  # Strain magnitude to be applied to the reference lattice.
-    mode = "TEC" # "TEC" for thermal expansion only, "ECs" to include elastic constants.
-    mode = "ECs" # "TEC" for thermal expansion only, "ECs" to include elastic constants.
 
     with_becs = False
     #with_becs = True
@@ -86,6 +87,12 @@ rprim
     #pressures_gpa = [0, 10, 20]
     temperatures = [10, 100, 200]
     pressures_gpa = [0]
+
+    eps = 0.005  # Strain magnitude to be applied to the reference lattice.
+    mode = "TEC" # "TEC" for thermal expansion only, "ECs" to include elastic constants.
+    mode = "ECs"
+
+    # Q-mesh for the computation of the phonon dos.
     nqsmall_or_qppa = 1 # TODO
     nqsmall_or_qppa = 20 # TODO
 
