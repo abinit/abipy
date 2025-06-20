@@ -1555,19 +1555,19 @@ class QHA_ZSISA(HasPickleIO):
     def get_tstress(self,
                     temp: float,
                     pressure_gpa: float,
+                    mode: str,
                     structure_guess: Structure,
-                    stress_guess,
                     energy_guess,
-                    mode: str = "TEC",
-                    bo_elastic_voigt=None) -> ThermalData:
-                    #elastic_path: str | None = "elastic_constant.txt") -> ThermalData:
+                    stress_guess,
+                    bo_elastic_voigt) -> ThermalData:
         """
         Args
             temp: Temperature in K.
             pressure_gpa: Pressure in GPa
-            structure_guess: Structure used as a guess.
-            stress_guess: Stress tensor corresponding to the initial guess structure as (3,3) matrix in a.u.
             mode: "TEC" or "ECs"
+            structure_guess: Structure used as a guess.
+            energy_guess: Energy in eV corresponding to structure_guess.
+            stress_guess: Stress tensor corresponding to the initial guess structure as (3,3) matrix in a.u.
             bo_elastic_voigt: Elastic tensor in Voigt notation i.e. shape = (6,6) with BO elastic constants in GPa.
         """
         self._set_structure_stress_guess(structure_guess, stress_guess, energy_guess)

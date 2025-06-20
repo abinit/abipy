@@ -28,6 +28,7 @@ from abipy.flowtk.flows import Flow
 class ZsisaFlow(Flow):
     """
     Flow for QHA calculations with the ZSISA approximation.
+    This is the main entry point for client code.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ZsisaFlow
@@ -54,7 +55,6 @@ class ZsisaFlow(Flow):
                        manager=None) -> ZsisaFlow:
         """
         Build a flow for ZSISA calculations from an |AbinitInput| representing a GS-SCF calculation.
-        This is the main entry point for client code.
 
         Args:
             workdir: Working directory of the flow.
@@ -139,7 +139,7 @@ class ZsisaFlow(Flow):
 
             # Produce csv file in the outdir of the flow.
             results = ZsisaResults.json_load(json_filepath)
-            results.get_dataframe().to_csv(_path("data.csv"))
+            results.get_dataframe().to_csv(_path("zsisa_data.csv"))
 
         return True
 
@@ -340,9 +340,9 @@ class ThermalRelaxWork(Work):
         # Generate initial ThermalRelaxTask tasks.
         work.thermal_relax_tasks = []
         for pressure_gpa, temperature in itertools.product(work.pressures_gpa, work.temperatures):
-            tdata = work.zsisa.get_tstress(temperature, pressure_gpa,
+            tdata = work.zsisa.get_tstress(temperature, pressure_gpa, work.mode,
                                            structure_guess, stress_guess, energy_guess,
-                                           mode=work.mode, bo_elastic_voigt=None)
+                                           bo_elastic_voigt=None)
 
             # TODO: Relax options with ecutsm and strfact?
             extra_vars = {
@@ -393,9 +393,9 @@ class ThermalRelaxWork(Work):
                 stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
                 energy_guess = gsr.energy
 
-            tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa,
-                                      relaxed_structure, stress_guess, energy_guess,
-                                      mode=self.mode, bo_elastic_voigt=elastic_relaxed.voigt)
+            tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa, self.mode,
+                                      relaxed_structure, energy_guess, stress_guess,
+                                      bo_elastic_voigt=elastic_relaxed.voigt)
             #print(tdata)
 
             # Init entry and add it to list.
@@ -441,9 +441,9 @@ class ThermalRelaxTask(RelaxTask):
             energy_guess = gsr.energy
 
         zsisa = self.work.zsisa
-        tdata = zsisa.get_tstress(self.temperature, self.pressure_gpa,
-                                  relaxed_structure, stress_guess, energy_guess,
-                                  mode=self.mode, bo_elastic_voigt=None)
+        tdata = zsisa.get_tstress(self.temperature, self.pressure_gpa, self.mode,
+                                  relaxed_structure, energy_guess, stress_guess,
+                                  bo_elastic_voigt=None)
         if tdata.converged:
             self.num_converged += 1
         else:

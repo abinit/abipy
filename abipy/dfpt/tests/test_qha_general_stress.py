@@ -37,8 +37,9 @@ class QhaZSISATest(AbipyTest):
             elastic_relaxed = edata.elastic_relaxed.zeroed(1e-3)
 
         zsisa = QHA_ZSISA.from_files(phdos_paths, gsr_bo_paths, verbose=1)
-        tdata = zsisa.get_tstress(300.0, 0.0, structure_guess, stress_guess, energy_guess,
-                                  mode="TEC", bo_elastic_voigt=elastic_relaxed.voigt)
+        mode = "TEC"
+        tdata = zsisa.get_tstress(300.0, 0.0, mode, structure_guess, energy_guess, stress_guess,
+                                  bo_elastic_voigt=elastic_relaxed.voigt)
         #print("tdata)
         assert tdata.elastic is None
 
@@ -81,8 +82,8 @@ class QhaZSISATest(AbipyTest):
         zsisa = QHA_ZSISA.from_files(phdos_paths, gsr_bo_path)
         assert zsisa.dim == (3, 3, 3, 3, 1, 1)
 
-        tdata = zsisa.get_tstress(temp, pressure, structure_guess, stress_guess, energy_guess,
-                                  mode='ECs',
+        mode = "ECs"
+        tdata = zsisa.get_tstress(temp, pressure, mode, structure_guess, energy_guess, stress_guess,
                                   bo_elastic_voigt=elastic_relaxed.voigt)
         #print(tdata)
         self.assert_almost_equal(tdata.elastic, [
