@@ -174,19 +174,19 @@ class Flow(Node, NodeContainer, MSONable):
         elif isinstance(obj, collections.abc.Mapping):
             return cls.from_dict(obj)
         else:
-            raise TypeError("Don't know how to convert type %s into a Flow" % type(obj))
+            raise TypeError(f"Don't know how to convert {type(obj)=} into a Flow")
 
     def __init__(self, workdir, manager=None, pickle_protocol=-1, remove=False):
         """
         Args:
             workdir: String specifying the directory where the works will be produced.
-                     if workdir is None, the initialization of the working directory
-                     is performed by flow.allocate(workdir).
+                if workdir is None, the initialization of the working directory
+                is performed by flow.allocate(workdir).
             manager: |TaskManager| object responsible for the submission of the jobs.
-                     If manager is None, the object is initialized from the yaml file
-                     located either in the working directory or in the user configuration dir.
+                If manager is None, the object is initialized from the yaml file
+                located either in the working directory or in the user configuration dir.
             pickle_protocol: Pickle protocol version used for saving the status of the object.
-                          -1 denotes the latest version supported by the python interpreter.
+                -1 denotes the latest version supported by the python interpreter.
             remove: attempt to remove working directory `workdir` if directory already exists.
         """
         super().__init__()
@@ -798,7 +798,7 @@ class Flow(Node, NodeContainer, MSONable):
                     deadlocks.append((task, dep.node))
 
         if deadlocks:
-            lines = ["Detect wrong list of dependecies that will lead to a deadlock:"]
+            lines = ["Detect wrong list of dependencies that will lead to a deadlock:"]
             lines.extend(["%s <--> %s" % nodes for nodes in deadlocks])
             raise RuntimeError("\n".join(lines))
 
@@ -1346,7 +1346,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     def show_events(self, status=None, nids=None, stream=sys.stdout):
         """
-        Print the Abinit events (ERRORS, WARNIING, COMMENTS) to stdout
+        Print the Abinit events (ERRORS, WARNING, COMMENTS) to stdout
 
         Args:
             status: if not None, only the tasks with this status are select
@@ -1532,7 +1532,7 @@ class Flow(Node, NodeContainer, MSONable):
     def get_task_scfcycles(self, nids=None, wslice=None, task_class=None,
                            exclude_ok_tasks=False) -> list[Task]:
         """
-        Return list of (taks, scfcycle) tuples for all the tasks in the flow with a SCF algorithm
+        Return list of (task, scfcycle) tuples for all the tasks in the flow with a SCF algorithm
         e.g. electronic GS-SCF iteration, DFPT-SCF iterations etc.
 
         Args:
@@ -1772,7 +1772,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     def debug(self, status=None, nids=None, stream=sys.stdout) -> None:
         """
-        This method is used when the flow didn't completed succesfully
+        This method is used when the flow didn't completed successfully
         It analyzes the files produced the tasks to facilitate debugging.
         Info are printed to stdout.
 
@@ -1802,7 +1802,7 @@ class Flow(Node, NodeContainer, MSONable):
         # For each task selected:
         #     1) Check the error files of the task. If not empty, print the content to stdout and we are done.
         #     2) If error files are empty, look at the master log file for possible errors
-        #     3) If also this check failes, scan all the process log files.
+        #     3) If also this check fails, scan all the process log files.
         #        TODO: This check is not needed if we introduce a new __abinit_error__ file
         #        that is created by the first MPI process that invokes MPI abort!
         #
@@ -2027,7 +2027,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         Args:
             abinit_input: |AbinitInput| instance or |Task| object.
             deps: List of :class:`Dependency` objects specifying the dependency of this node.
-                  An empy list of deps implies that this node has no dependencies.
+                  An empty list of deps implies that this node has no dependencies.
             manager: The |TaskManager| responsible for the submission of the task.
                      If manager is None, we use the |TaskManager| specified during the creation of the work.
             task_class: Task subclass to instantiate. Default: |AbinitTask|
@@ -2059,7 +2059,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         Args:
             deps: List of :class:`Dependency` objects specifying the dependency of this node.
-                  An empy list of deps implies that this node has no dependencies.
+                  An empty list of deps implies that this node has no dependencies.
             manager: The |TaskManager| responsible for the submission of the task.
                      If manager is None, we use the `TaskManager` specified during the creation of the work.
             workdir: The name of the directory used for the |Work|.
@@ -2077,7 +2077,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         Args:
             work: |Work| object.
             deps: List of :class:`Dependency` objects specifying the dependency of this node.
-                  An empy list of deps implies that this node has no dependencies.
+                  An empty list of deps implies that this node has no dependencies.
             manager: The |TaskManager| responsible for the submission of the task.
                      If manager is None, we use the `TaskManager` specified during the creation of the work.
             workdir: The name of the directory used for the |Work|.
@@ -2147,7 +2147,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
     @property
     def allocated(self) -> int:
-        """Numer of allocations. Set by `allocate`."""
+        """Number of allocations. Set by `allocate`."""
         try:
             return self._allocated
         except AttributeError:
@@ -2260,24 +2260,26 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         This methods allows subclasses to implement customized logic such as extending the flow by adding new works.
         The flow has an internal counter: on_all_ok_num_calls
         that shall be incremented by client code when subclassing this method.
-        This counter can be used to decide if futher actions are needed or not.
+        This counter can be used to decide if further actions are needed or not.
 
         An example of flow that adds a new work (only once) when all_ok is reached for the first time:
 
-        def on_all_ok(self):
-            if self.on_all_ok_num_calls > 0: return True
-            self.on_all_ok_num_calls += 1
+        .. code-block:: python
 
-            #####################################
-            # implement_logic_to_create_new_work
-            #####################################
+            def on_all_ok(self):
+                if self.on_all_ok_num_calls > 0: return True
+                self.on_all_ok_num_calls += 1
 
-            self.register_work(work)
-            self.allocate()
-            self.build_and_pickle_dump()
+                #####################################
+                # implement_logic_to_create_new_work
+                #####################################
 
-            # The scheduler will keep on running the flow.
-            return False
+                self.register_work(work)
+                self.allocate()
+                self.build_and_pickle_dump()
+
+                # The scheduler will keep on running the flow.
+                return False
         """
         return True
 
@@ -2534,7 +2536,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 if verbose: print("Excluding %s due to extension" % tarinfo.name)
                 return None
 
-            # Exlude directories (use dir basenames).
+            # Exclude directories (use dir basenames).
             if exclude_dirs and any(dir_name in exclude_dirs for dir_name in tarinfo.name.split(os.path.sep)):
                 if verbose: print("Excluding %s due to exclude_dirs" % tarinfo.name)
                 return None

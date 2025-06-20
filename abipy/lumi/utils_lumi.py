@@ -21,8 +21,8 @@ def Bose_einstein(T, freq):
     Bose Einstein average occupation number
 
     Args:
-        T: Temperature in K
-        freq: frequency in eV
+        T: Temperature in K.
+        freq: frequency in eV.
     """
     k_b = abu.kb_eVK  # in eV/K
 
@@ -41,7 +41,7 @@ def get_G_t(T, S_nu, omega_nu):
 
     Args:
         T: Temperature in K
-        S_nu: Parial Huang-Rhys factors
+        S_nu: Partial Huang-Rhys factors
         omega_nu: phonon frequencies
     """
     n_step = 100001

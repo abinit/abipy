@@ -565,7 +565,7 @@ class DdbRobotTest(AbipyTest):
                 dipdip=0, with_geo=True, abspath=True)
         assert "mode1" in data and "alpha" in data
 
-        r = robot.anaget_phonon_plotters(nqsmall=2, ndivsm=2, dipdip=0, verbose=2)
+        r = robot.anaget_phonon_plotters(nqsmall=2, ndivsm=2, dipdip=1, verbose=2)
         if self.has_matplotlib():
             assert r.phbands_plotter.gridplot(show=False)
             assert r.phdos_plotter.gridplot(show=False)
@@ -649,7 +649,7 @@ class PhononComputationTest(AbipyTest):
             #E        DESIRED: 9
             self.assert_almost_equal(phdos.integral_value, natom3, decimal=1)
 
-            # Test convertion to eigenvectors. Verify that they are orthonormal
+            # Test conversion to eigenvectors. Verify that they are orthonormal
             cidentity = np.eye(natom3, dtype=complex)
             eig = phbands.dyn_mat_eigenvect
             for iq in range(phbands.nqpt):

@@ -58,7 +58,6 @@ def straceback() -> str:
 #    yaml_tag = '!PstatData'
 
 
-
 class AbinitEvent(yaml.YAMLObject):
 #class AbinitEvent(yaml.YAMLObject, MSONable):
     """
@@ -96,7 +95,7 @@ class AbinitEvent(yaml.YAMLObject):
 
     Note that:
         # --- and ... become reserved words (whey they are placed at
-          the begining of a line) since they are used to mark the beginning and
+          the beginning of a line) since they are used to mark the beginning and
           the end of YAML documents.
 
         # All the possible events should subclass `AbinitEvent` and define
@@ -478,7 +477,7 @@ class EventsParser:
                         #print(event.yaml_tag, type(event))
                     except Exception:
                         #raise
-                        # Wrong YAML doc. Check tha doc tag and instantiate the proper event.
+                        # Wrong YAML doc. Check that doc tag and instantiate the proper event.
                         message = "In EventsParser.parse(): Malformatted YAML document at line: %d\n" % doc.lineno
                         message += doc.text
 
@@ -525,7 +524,7 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
 
         handlers = [cls() for cls in get_event_handler_classes()]
 
-    The defaul values should be chosen so to cover the most typical cases.
+    The default values should be chosen so to cover the most typical cases.
 
     Each EventHandler should define the class attribute `can_change_physics`
     that is true if the handler changes `important` parameters of the

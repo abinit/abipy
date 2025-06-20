@@ -21,7 +21,6 @@ import copy
 import getpass
 import json
 import math
-from . import qutils as qu
 
 from collections import namedtuple
 from subprocess import Popen, PIPE
@@ -38,6 +37,7 @@ from .utils import Condition
 from .launcher import ScriptEditor
 from .qjobs import QueueJob
 from .qutils import any2mb
+from . import qutils as qu
 
 import logging
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ class SubmitResults(namedtuple("SubmitResult", "qid, out, err, process")):
     submitting the jobfile to the que.
     qid: queue id of the submission
     out: stdout of the submission
-    err: stdrr of the submisison
+    err: stdrr of the submission
     process: process object of the submission
     """
 
@@ -404,7 +404,7 @@ hardware:
                          # The total number of cores available on this queue is
                          # `num_nodes * sockets_per_node * cores_per_socket`.
 
-# Dictionary with the options used to prepare the enviroment before submitting the job
+# Dictionary with the options used to prepare the environment before submitting the job
 
 job:
     setup:                # List of commands (strings) executed before running (DEFAULT: empty)
@@ -461,7 +461,7 @@ limits:
                              # smallest number of nodes compatible with the optimal configuration.
                              # Use `force_nodes` to enforce entire nodes allocation.
                              # `shared` mode does not enforce any constraint (DEFAULT: shared).
-    max_num_launches:        # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 5)
+    max_num_launches:        # Limit to the number of times a specific task can be restarted (integer, DEFAULT: 8)
     limits_for_task_class:   # Dictionary mapping Task class names to a dictionary with limits to be used
                              # for this particular Task. Example (mind white spaces):
                              #
@@ -630,12 +630,12 @@ limits:
             raise ValueError("min_cores %s cannot be greater than max_cores %s" % (self.min_cores, self.max_cores))
 
         # Memory
-        # FIXME: Neeed because autoparal 1 with paral_kgb 1 is not able to estimate memory
+        # FIXME: Needed because autoparal 1 with paral_kgb 1 is not able to estimate memory
         self.min_mem_per_proc = qu.any2mb(d.pop("min_mem_per_proc", self.hw.mem_per_core))
         self.max_mem_per_proc = qu.any2mb(d.pop("max_mem_per_proc", self.hw.mem_per_node))
 
         # Misc
-        self.max_num_launches = int(d.pop("max_num_launches", 5))
+        self.max_num_launches = int(d.pop("max_num_launches", 8))
         self.condition = Condition(d.pop("condition", {}))
         self.allocation = d.pop("allocation", "shared")
         if self.allocation not in ("nodes", "force_nodes", "shared"):

@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import os
 
+from abipy.tools.iotools import make_executable
 from abipy.abio.inputs import AbinitInput, RUNL, GWR_TASK
 from abipy.electrons.gwr import GwrRobot
-from abipy.tools.iotools import make_executable
 from .nodes import Node
 from .tasks import TaskManager
 from .works import Work

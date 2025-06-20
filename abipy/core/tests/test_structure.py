@@ -29,8 +29,11 @@ class TestStructure(AbipyTest):
             # Call pymatgen machinery to get the high-symmetry stars.
             str(structure.hsym_stars)
 
-            geodict = structure.get_dict4pandas()
-            assert geodict["abispg_num"] is not None
+            is_eq, msg = structure.compare(structure, atol=1e-12)
+            assert is_eq and not msg
+
+            geo_dict = structure.get_dict4pandas()
+            assert geo_dict["abispg_num"] is not None
 
             # Export data in Xcrysden format.
             #structure.export(self.get_tmpname(text=True, suffix=".xsf"))
@@ -259,7 +262,7 @@ xred_symbols
 
         # TODO: This part should be tested more carefully
         mgb2.abi_sanitize()
-        mgb2.abi_sanitize(primitive_standard=True)
+        mgb2.abi_sanitize(primitive_standard=True, atol=1e-8)
         mgb2.get_conventional_standard_structure()
         assert len(mgb2.abi_string)
         assert len(mgb2.spget_summary(site_symmetry=True, verbose=10))

@@ -13,14 +13,14 @@ try:
     from scipy.integrate import simpson as simps
 except ImportError:
     from scipy.integrate import simps
-from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs,get_axarray_fig_plt
+from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs, get_axarray_fig_plt
 from abipy.tools.typing import Figure
-from abipy.lumi.utils_lumi import A_hw_help,L_hw_help,plot_emission_spectrum_help
+from abipy.lumi.utils_lumi import A_hw_help, L_hw_help, plot_emission_spectrum_help
 from abipy.core.structure import Structure
 from abipy.abilab import abiopen
 
 
-class DeltaSCF():
+class DeltaSCF:
     """
     Object to post-process the results from a LumiWork, following a one-effective phonon mode model (1D-CCM).
     For equations, notations and formalism, please refer to:
@@ -98,10 +98,6 @@ class DeltaSCF():
 
         Args:
             filepaths: list of netcdf files in the order [Ag,Agstar,Aestar,Ae]
-
-        Returns:
-            A DeltaSCF object
-
         """
         energies = []
         structures = []
@@ -123,9 +119,9 @@ class DeltaSCF():
 
     @classmethod
     def from_relax_file(cls, filepaths) -> DeltaSCF:
-        """ Create the object from the two relaxation files (relax_gs, relax_ex).
-            Give only acccess to structural relaxation induced by the transition
-            and to E_zpl
+        """
+        Create the object from the two relaxation files (relax_gs, relax_ex).
+        Give only access to structural relaxation induced by the transition and to E_zpl
         """
         energies = []
         structures = []
@@ -496,7 +492,7 @@ class DeltaSCF():
             max_m: Maximal vibrational state m considered
             phonon_width: fwhm of each phonon peak, in eV
             with_omega_cube: Considered or not the omega^3 dependence of the intensity
-            normlized: Normalisation procedure. 'Area' if Area under the curve = 1. 'Sum' if maximum of the curve = 1.
+            normalized: Normalisation procedure. 'Area' if Area under the curve = 1. 'Sum' if maximum of the curve = 1.
 
         Returns: |matplotlib-Figure|
         """

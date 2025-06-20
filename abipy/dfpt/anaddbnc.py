@@ -24,7 +24,7 @@ from abipy.dfpt.elastic import ElasticData
 class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
     AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.
-    This object is usually instanciated with `abiopen("anaddb.nc")`.
+    This object is usually instantiated with `abiopen("anaddb.nc")`.
 
     .. attribute:: structure
 
@@ -138,7 +138,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return "\n".join(lines)
 
     @cached_property
-    def epsinf(self):
+    def epsinf(self) -> DielectricTensor:
         """
         Macroscopic electronic |DielectricTensor| in Cartesian coordinates (a.k.a. epsilon_infinity)
         None if the file does not contain this information.
@@ -150,7 +150,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             return None
 
     @cached_property
-    def eps0(self):
+    def eps0(self) -> DielectricTensor:
         """
         Relaxed ion macroscopic |DielectricTensor| in Cartesian coordinates (a.k.a. epsilon_zero)
         None if the file does not contain this information.
@@ -162,7 +162,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             return None
 
     @cached_property
-    def becs(self):
+    def becs(self) -> Zeffs:
         """
         Born effective charges. None if the file does not contain this information.
         """
@@ -173,11 +173,11 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             return None
 
     @cached_property
-    def ifc(self):
+    def ifc(self) -> InteratomicForceConstants:
         """
         The interatomic force constants calculated by anaddb.
         The following anaddb variables should be used in the run: ``ifcflag``, ``natifc``, ``atifc``, ``ifcout``.
-        Return None, if the netcdf_ file does not contain the IFCs,
+        Return None, if the netcdf file does not contain the IFCs,
         """
         try:
             return InteratomicForceConstants.from_file(self.filepath)
@@ -186,7 +186,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             return None
 
     @cached_property
-    def dchide(self):
+    def dchide(self) -> NLOpticalSusceptibilityTensor:
         """
         Non-linear optical susceptibility tensor.
         Returns a :class:`NLOpticalSusceptibilityTensor` or None if the file does not contain this information.
@@ -222,7 +222,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return dchidt
 
     @cached_property
-    def oscillator_strength(self):
+    def oscillator_strength(self) -> np.ndarray:
         """
         A complex |numpy-array| containing the oscillator strengths with shape [number of phonon modes, 3, 3],
         in a.u. (1 a.u.=253.2638413 m3/s2).
@@ -255,7 +255,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return ElasticData.from_ncreader(self.r)
 
     @cached_property
-    def amu(self):
+    def amu(self) -> dict:
         """
         Dictionary with atomic_number as keys and the atomic massu units as values.
         """
@@ -277,7 +277,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
+        Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -355,7 +355,7 @@ class AnaddbNcRobot(Robot):
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys() if rows else None))
 
     @add_fig_kwargs
-    def plot_elastic_properties(self, fontsize=10, **kwargs) -> Figure:
+    def plot_elastic_properties(self, fontsize=8, **kwargs) -> Figure:
         """
         Args:
             fontsize: legend and label fontsize.
@@ -411,7 +411,7 @@ class AnaddbNcRobot(Robot):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

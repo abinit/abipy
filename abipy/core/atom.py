@@ -7,7 +7,7 @@ import numpy as np
 
 from io import StringIO
 from dataclasses import dataclass
-from typing import Any, Union, Optional, Iterable
+from typing import Any, Optional, Iterable
 from functools import cached_property
 from monty.string import marquee  # is_string, list_strings,
 from scipy.interpolate import UnivariateSpline
@@ -116,7 +116,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
         return super().__new__(cls, n, l, k)
 
     @classmethod
-    def from_nlkap(cls, n: int, l: int, kap: Union[int, None]) -> NlkState:
+    def from_nlkap(cls, n: int, l: int, kap: int | None) -> NlkState:
         k = None
         if kap is not None:
             #if(ikap==1) kap=-(ll+1)
@@ -239,7 +239,7 @@ class AtomicConfiguration:
         return cls(Z, states)
 
     @classmethod
-    def neutral_from_symbol(cls, symbol: Union[str, int]) -> AtomicConfiguration:
+    def neutral_from_symbol(cls, symbol: str | int) -> AtomicConfiguration:
         """
         symbol: str or int
             Can be a chemical symbol (str) or an atomic number (int).
@@ -582,4 +582,3 @@ class Peaks:
             app(f"last peak at: {round(self.xs[-1], 2)}, num peaks: {len(self.xs)}")
 
         return "\n".join(lines)
-

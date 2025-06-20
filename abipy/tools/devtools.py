@@ -151,10 +151,9 @@ def display_top(snapshot, key_type='lineno', limit=3):
 
 def get_size(bytes, suffix="B"):
     """
-    Scale bytes to its proper format
-    e.g:
-        1253656 => '1.20MB'
-        1253656678 => '1.17GB'
+    Scale bytes to its proper format, e.g:
+    1253656 => '1.20MB'
+    1253656678 => '1.17GB'
     """
     factor = 1024
     for unit in ["", "K", "M", "G", "T", "P"]:
@@ -222,8 +221,7 @@ def print_hardware_system_info() -> None:
         try:
             partition_usage = psutil.disk_usage(partition.mountpoint)
         except PermissionError:
-            # this can be catched due to the disk that
-            # isn't ready
+            # this can be caught due to the disk that isn't ready
             continue
         print(f"  Total Size: {get_size(partition_usage.total)}")
         print(f"  Used: {get_size(partition_usage.used)}")

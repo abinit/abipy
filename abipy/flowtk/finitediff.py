@@ -28,7 +28,6 @@ from monty.string import list_strings #, marquee
 from monty.termcolor import cprint
 from pymatgen.analysis.elasticity.strain import Strain
 from abipy.core.structure import Structure
-#from abipy.core.mixins import NotebookWriter #
 from abipy.tools.numtools import build_mesh
 from abipy.tools.derivatives import central_fdiff_weights
 from abipy.tools.tensors import DielectricDataList
@@ -37,9 +36,9 @@ from abipy.tools.typing import Figure
 from abipy.abio.inputs import AbinitInput
 from abipy.abio.enums import StrEnum
 from abipy.tools.serialization import HasPickleIO
-from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
-    rotate_ticklabels, set_visible, set_ax_xylabels, linear_fit_ax, quadratic_fit_ax)
-#from abipy.tools.serialization import mjson_write #, pmg_serialize
+from abipy.tools.plotting import (add_fig_kwargs, set_grid_legend, get_axarray_fig_plt,
+    quadratic_fit_ax) # linear_fit_ax, get_ax_fig_plt,
+#from abipy.tools.serialization import Serializble
 from .works import Work
 #from .flows import Flow
 
@@ -140,7 +139,6 @@ def voigt_to_mat33(voigt: np.ndarray, engineering_strain: bool = True) -> np.nda
     return mat
 
 
-
 @dataclasses.dataclass(kw_only=True)
 class _FdData(HasPickleIO):
     """
@@ -232,8 +230,8 @@ class _FdData(HasPickleIO):
                     # Shape is (npert, np_vals, 3)
                     dpol_dpert[ii, ip] = np.sum(self.cart_pol_pv[ip, fd_slice, ii] * weights) / pert.step
                 self.dpol_dpert_npts[npts] = dpol_dpert
-                #self.dpole_dpert_npts[npts] = dpole_dpert  TODO ?
-                #self.dpoli_dpert_npts[npts] = dpoli_dpert  TODO ?
+                #self.dpole_dpert_npts[npts] = dpole_dpert  TODO?
+                #self.dpoli_dpert_npts[npts] = dpoli_dpert  TODO?
 
             # Finite differences for magnetization (if available).
             if self.has_mag:
@@ -296,7 +294,7 @@ class _FdData(HasPickleIO):
             dct.update(geo_dict)
 
         if with_params:
-            dic.update(self.params)
+            dct.update(self.params)
 
     def print_relaxed_coords(self,
                              elements: list[str] | None = None,
@@ -559,7 +557,6 @@ class _FdData(HasPickleIO):
             yield self.plot_magnetization(show=False)
 
 
-
 @dataclasses.dataclass(kw_only=True)
 class DisplData(_FdData):
     """
@@ -774,7 +771,7 @@ class ElectricFieldData(_FdData, _HasExternalField):
             # Go from Voigt to (3,3)
             # Add polarization terms
             # Shape: (npert, np_vals, 3)
-            cart_pol = self.cart_pol_pv[ip, ipv0]
+            #cart_pol = self.cart_pol_pv[ip, ipv0]
             # From (3, 3) to Voigt.
 
         return piezoel
@@ -820,7 +817,6 @@ class ElectricFieldData(_FdData, _HasExternalField):
     #    yield from super().yield_figs()
     #    #self.plot_forces_vs_field([1, 0, 0], elements="Al")
     #    yield self.plot_polarization(show=False)
-
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -869,7 +865,6 @@ class ZeemanData(_FdData, _HasExternalField):
         return strio.read()
 
 
-
 def _dict_from_mat_npts(mat: np.ndarray, mat_comps: list[str], npts: int, with_info: bool = True,
                         comps2inds: dict | None = None) -> dict:
     """
@@ -883,7 +878,7 @@ def _dict_from_mat_npts(mat: np.ndarray, mat_comps: list[str], npts: int, with_i
             d[k] = mat[ind]
 
     if with_info and mat.shape[0] == mat.shape[1]:
-        d["iso_avg"]= np.trace(mat) / mat.shape[0]
+        d["iso_avg"] = np.trace(mat) / mat.shape[0]
         #d["det"] = np.linalg.det(mat)
         tmp_mat = (mat + mat.T) / 2.0
         eigvals = np.linalg.eigvalsh(mat)  # Assuming Hermitian matrix
@@ -892,7 +887,6 @@ def _dict_from_mat_npts(mat: np.ndarray, mat_comps: list[str], npts: int, with_i
         #d["min_eig"] = np.min(eigvals)
 
     return d
-
 
 
 class PertKind(StrEnum):
@@ -904,6 +898,7 @@ class PertKind(StrEnum):
 
 
 class IonsMode(StrEnum):
+    """String enumerator for the different kind of tensors."""
     CLAMPED = "clamped_ions"
     RELAXED = "relaxed_ions"
 
@@ -913,8 +908,8 @@ class Perturbation:
     """
     This object stores info on the perturbation and its amplitude.
     """
-    kind: str
-    values: np.ndarray
+    kind: str            # Kind of perturbation.
+    values: np.ndarray   # Perturbation amplitudes.
 
     # Optional arguments.
     cart_dir: np.ndarray | None = None
@@ -951,7 +946,7 @@ class Perturbation:
         if np.allclose(dx[0], dx):
             return float(dx[0])
 
-        raise ValueError(f"Mesh is not homogenous: {dx=}")
+        raise ValueError(f"Mesh is not homogeneous: {dx=}")
 
     # TODO: Is this safe to use?
     @cached_property
@@ -1025,7 +1020,7 @@ class _BaseFdWork(Work):
         self.relax_ions = relax_ions
         self.relax_ions_opts = {"ionmov": 2, "tolmxf": 1e-6}
         if relax_ions_opts:
-            self.relax_ions_opts.update(**relax_ion_opts)
+            self.relax_ions_opts.update(**relax_ions_opts)
 
         np_vals = max(len(pert.values) for pert in self.perts)
         self.gs_tasks_pv = np.empty((self.npert, np_vals), dtype=object)
@@ -1036,7 +1031,7 @@ class _BaseFdWork(Work):
         This method is shared by all the Finite difference works.
         It reads energies, forces, stresses, polarizations and magnetizations from the GSR.nc files
         and the main output files of the tasks and builds a dictionary that can be used
-        to instanciate the appropriate subclass of _FdData.
+        to instantiate the appropriate subclass of _FdData.
         """
         npert, np_vals = len(self.perts), max(len(pert.values) for pert in self.perts)
 
@@ -1215,7 +1210,7 @@ class FiniteDisplWork(_BaseFdWork):
 
 class FiniteStrainWork(_BaseFdWork):
     """
-    This work deforms the initial unit cell by a finite amout and performs
+    This work deforms the initial unit cell by a finite amount and performs
     GS calculations to get forces and stresses.
     """
     DataCls = StrainData
@@ -1365,9 +1360,10 @@ class FiniteStrainWork(_BaseFdWork):
         return super().on_all_ok()
 
 
-
 class _FieldWork(_BaseFdWork):
-    """Base class for finite field + finite difference Work."""
+    """
+    Base class for finite field + finite difference Work.
+    """
 
     @classmethod
     def from_scf_input(cls,
@@ -1432,7 +1428,7 @@ class _FieldWork(_BaseFdWork):
 
         if self.relax_ions and sender.node_id in self.gs_tasks_ids:
             # Get structure from the GSR file.
-            # FIXME: Do we really need get_final_structure eventhough this is GS?
+            # FIXME: Do we really need get_final_structure even though this is GS?
             relaxed_structure = sender.get_final_structure()
             ip, iv = sender.attrs["ip_ipv"]
 

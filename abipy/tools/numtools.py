@@ -157,7 +157,7 @@ def data_from_cplx_mode(cplx_mode: str, arr, tol=None):
     return val if tol is None else np.where(np.abs(val) > tol, val, 0)
 
 
-def is_diagonal(matrix, atol=1e-12):
+def is_diagonal(matrix, atol=1e-12) -> bool:
     """
     Return True if matrix is diagonal.
     """
@@ -304,7 +304,7 @@ def smooth(x, window_len=11, window='hanning'):
     This method is based on the convolution of a scaled window with the signal.
     The signal is prepared by introducing reflected copies of the signal
     (with the window size) in both ends so that transient parts are minimized
-    in the begining and end part of the output signal.
+    in the beginning and end part of the output signal.
     Taken from http://www.scipy.org/Cookbook/SignalSmooth
 
     Args:
@@ -459,7 +459,7 @@ class BlochRegularGridInterpolator:
 
         # Build `ndat` interpolators. Note that RegularGridInterpolator supports
         # [nx, ny, nz, ...] arrays but then each call operates on the full set of
-        # ndat components and this complicates the declation of callbacks
+        # ndat components and this complicates the declaration of callbacks
         # operating on a single component.
         from scipy.interpolate import RegularGridInterpolator
         self._interpolators = [None] * self.ndat

@@ -25,7 +25,7 @@ from abipy.flowtk import wrappers
 from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status
 from .tasks import (Task, AbinitTask, ScfTask, NscfTask, BerryTask, DfptTask, PhononTask, ElasticTask, DdkTask,
                     DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask, EfieldTask,
-                    EffMassTask, BseTask, RelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
+                    EffMassTask, BseTask, RelaxTask, MultiRelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
                     DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
 from .utils import Directory
 from .netcdf import NetcdfReader
@@ -421,6 +421,11 @@ class NodeContainer(metaclass=abc.ABCMeta):
         kwargs["task_class"] = RelaxTask
         return self.register_task(*args, **kwargs)
 
+    def register_multi_relax_task(self, *args, **kwargs) -> MultiRelaxTask:
+        """Register a task for structural optimization."""
+        kwargs["task_class"] = MultiRelaxTask
+        return self.register_task(*args, **kwargs)
+
     def register_berry_task(self, *args, **kwargs) -> BerryTask:
         kwargs["task_class"] = BerryTask
         return self.register_task(*args, **kwargs)
@@ -689,7 +694,7 @@ class Work(BaseWork, NodeContainer):
         return super().on_all_ok()
 
     def chunks(self, chunk_size) -> list[Task]:
-        """Yield successive chunks of tasks of lenght chunk_size."""
+        """Yield successive chunks of tasks of length chunk_size."""
         for tasks in chunks(self, chunk_size):
             yield tasks
 
@@ -1882,7 +1887,7 @@ class PhononWork(Work, MergeDdb):
         out_ddb = self.merge_ddb_files(only_dfpt_tasks=False, exclude_tasks=exclude_tasks)
 
         if getattr(self, "with_dvdb", True):
-            # Merge DVDB files (use getattr to maintain backward compability with pickle).
+            # Merge DVDB files (use getattr to maintain backward compatibility with pickle).
             out_dvdb = self.merge_pot1_files()
 
         return self.Results(node=self, returncode=0, message="DDB merge done")
@@ -2307,7 +2312,7 @@ class DteWork(Work, MergeDdb):
 
         # DTE calculations
         # Read WFK only and use it to compute the density on the fly
-        # to avoid possibe problems with paral_kgb 1 and MPI-FFT
+        # to avoid possible problems with paral_kgb 1 and MPI-FFT
         #dte_deps = {scf_task: "WFK DEN"}
         dte_deps = {scf_task: "WFK"}
         dte_deps.update({dde_task: "1WF 1DEN" for dde_task in dde_tasks})
@@ -2415,7 +2420,7 @@ class ConducWork(Work):
         for task in new:
             task.set_work(new)
 
-        # Manual Paralellization since autoparal doesn't work with optdriver=8 (t2)
+        # Manual Parallelization since autoparal doesn't work with optdriver=8 (t2)
         if flow is not None :
             new.set_flow(flow)
             if nbr_proc is not None:
@@ -2481,7 +2486,7 @@ class ConducWork(Work):
         for task in new:
             task.set_work(new)
 
-        # Manual Paralellization since autoparal doesn't work with optdriver=8 (t2)
+        # Manual Parallelization since autoparal doesn't work with optdriver=8 (t2)
         if flow is not None :
             new.set_flow(flow)
             if nbr_proc is not None:

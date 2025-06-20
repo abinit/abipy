@@ -435,7 +435,7 @@ def kpoints_indices(frac_coords, ngkpt, shift, check_mesh=0) -> np.ndarray:
     k_indices = [np.round((kpt % 1) * ngkpt) for kpt in frac_coords]
     k_indices = np.array(k_indices, dtype=int)
 
-    # Debug secction.
+    # Debug section.
     if check_mesh:
         print(f"kpoints_indices: Testing whether k-points belong to the {ngkpt=} mesh")
         ierr = 0
@@ -450,7 +450,7 @@ def kpoints_indices(frac_coords, ngkpt, shift, check_mesh=0) -> np.ndarray:
         #for kpt, inds in zip(frac_coords, k_indices):
         #    if np.any(inds >= ngkpt):
         #        raise ValueError(f"inds >= nkgpt for {kpt=}, {np.round(kpt % 1)=} {inds=})")
-        print("check_mesh succesfull!")
+        print("check_mesh successful!")
 
     return k_indices
 
@@ -528,7 +528,8 @@ def kpath_from_bounds_and_ndivsm(bounds, ndivsm, structure):
     lens = []
     for i in range(nbounds - 1):
         v = bounds[i + 1] - bounds[i]
-        lens.append(float(structure.reciprocal_lattice.norm(v)))
+        #lens.append(float(structure.reciprocal_lattice.norm(v)))
+        lens.append(structure.reciprocal_lattice.norm(v).item())
 
     # Avoid division by zero if any bounds[i+1] == bounds[i]
     minlen = np.min(lens)
@@ -1050,7 +1051,7 @@ class KpointList(collections.abc.Sequence):
 
         dist = np.empty(len(self))
         for i, kpt in enumerate(self):
-            dist[i] = float(kpt.lattice.norm(kpt.frac_coords - frac_coords))
+            dist[i] = kpt.lattice.norm(kpt.frac_coords - frac_coords).item()
 
         ind = dist.argmin()
         return ind, self[ind], np.copy(dist[ind])
@@ -1436,14 +1437,14 @@ class Kpath(KpointList):
 
     @cached_property
     def frac_bounds(self):
-        """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
+        """Numpy array of shape [M, 3] with the vertices of the path in frac coords."""
         frac_bounds = [self[line[0]].frac_coords for line in self.lines]
         frac_bounds.append(self[self.lines[-1][-1]].frac_coords)
         return np.reshape(frac_bounds, (-1, 3))
 
     @cached_property
     def cart_bounds(self):
-        """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
+        """Numpy array of shape [M, 3] with the vertices of the path in frac coords."""
         cart_bounds = [self[line[0]].cart_coords for line in self.lines]
         cart_bounds.append(self[self.lines[-1][-1]].cart_coords)
         return np.reshape(cart_bounds, (-1, 3))
@@ -1919,8 +1920,8 @@ def dist_point_from_line(x0, x1, x2):
     """
     denom = x2 - x1
     denomabs = np.sqrt(np.dot(denom, denom))
-    numer = np.cross(x0 - x1, x0 - x2)
-    numerabs = np.sqrt(np.dot(numer, numer))
+    number = np.cross(x0 - x1, x0 - x2)
+    numerabs = np.sqrt(np.dot(number, number))
     return numerabs / denomabs
 
 

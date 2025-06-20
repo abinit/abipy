@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Classes for the analysis of BSE calculations"""
+"""Classes for the analysis of Bethe-Salpeter calculations"""
 from __future__ import annotations
 
 import os
@@ -9,12 +9,12 @@ import pandas as pd
 
 from functools import cached_property
 from monty.string import marquee, is_string
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.core.func1d import Function1D
 from abipy.core.structure import Structure
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.iotools import ETSF_Reader
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.plotting import set_axlims
 from abipy.tools import duck
 from abipy.tools.typing import Figure
@@ -465,7 +465,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -623,7 +623,7 @@ class MdfPlotter:
 
 class MultipleMdfPlotter:
     """
-    Class for plotting multipe macroscopic dielectric functions
+    Class for plotting multiple macroscopic dielectric functions
     extracted from several MDF.nc files
 
     Usage example:
@@ -984,7 +984,7 @@ class MdfRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

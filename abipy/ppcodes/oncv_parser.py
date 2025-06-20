@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 
 from collections import namedtuple # , defaultdict
-from typing import Union
 from dataclasses import dataclass
 from functools import cached_property
 from monty.collections import AttrDict, dict2namedtuple
@@ -124,7 +123,7 @@ class OncvParser(BaseParser):
                 if line.startswith("DATA FOR PLOTTING"):
                     self.run_completed = True
 
-                # lines that contain the word ERROR but do not seem to indicate an actual teminating error
+                # lines that contain the word ERROR but do not seem to indicate an actual terminating error
                 acceptable_error_markers = [
                   'run_config: ERROR for fully non-local  PS atom,'
                 ]
@@ -870,7 +869,7 @@ class OncvParser(BaseParser):
             i = self.find_string("Reference configufation results")
             return "\n".join(self.lines[:i])
 
-    def get_psp8_str(self) -> Union[str, None]:
+    def get_psp8_str(self) -> str | None:
         """
         Return string with the pseudopotential data in psp8 format.
         Return None if field is not present.
@@ -892,7 +891,7 @@ class OncvParser(BaseParser):
 
         return ps_data
 
-    def get_upf_str(self) -> Union[str, None]:
+    def get_upf_str(self) -> str | None:
         """
         Return string with the pseudopotential data in upf format.
         Return None if field is not present.
@@ -907,7 +906,7 @@ class OncvParser(BaseParser):
         if start is None and stop is None: return None
         return "\n".join(self.lines[start+1:stop])
 
-    def get_plotter(self): # -> Union[OncvPlotter, None]:
+    def get_plotter(self): # -> OncvPlotter | None:
         """
         Return an instance of OncvPlotter or None
         """

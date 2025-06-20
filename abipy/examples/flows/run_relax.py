@@ -48,7 +48,7 @@ def make_ion_ioncell_inputs(paral_kgb=0):
         tolrff=0.02,
         tolmxf=5.0e-5,
         #ntime=50,
-        ntime=3,  #To test the restart
+        ntime=3,  # To test the restart
         #dilatmx=1.1, # FIXME: abinit crashes if I don't use this
     )
 

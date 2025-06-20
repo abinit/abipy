@@ -13,7 +13,6 @@ import numpy as np
 import abipy.tools.cli_parsers as cli
 
 from pprint import pprint
-from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter, FilesPlotter, Exposer
@@ -888,7 +887,7 @@ Usage example:
   abicomp.py ebands out1_GSR.nc out2_WFK.nc     => Plot electron bands on a grid (Use `-p` to change plot mode)
   abicomp.py ebands *_GSR.nc -ipy               => Build plotter object and start ipython console.
   abicomp.py ebands *_GSR.nc -nb                => Interact with the plotter in the jupyter notebook.
-  abicomp.py ebands `find . -name "*_GSR.nc"` -c = Find all GSR.nc files startign from current working directory
+  abicomp.py ebands `find . -name "*_GSR.nc"` -c = Find all GSR.nc files starting from current working directory
                                                    Copy dataframe to the system clipboard.
                                                    This can be pasted into Excel, for example
   abicomp.py edos *_WFK.nc -nb                  => Compare electron DOS in the jupyter notebook.
@@ -1173,7 +1172,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
     robot_parser.add_argument("-pn", '--panel', default=False, action="store_true",
                               help="Open GUI in web browser, requires panel package. WARNING: Experimental")
     robot_parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
-                              help="Specify template for panel dasboard." +
+                              help="Specify template for panel dashboard." +
                                    "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                                    "Default: FastList"
                               )
@@ -1259,7 +1258,7 @@ for port forwarding.
     )
 
 
-@prof_main
+@cli.prof_main
 def main():
 
     def show_examples_and_exit(err_msg=None, error_code=1):

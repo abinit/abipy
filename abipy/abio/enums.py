@@ -7,7 +7,7 @@ import enum
 
 
 class EnumMixin:
-    """Mixin for enums provides extra capabilities."""
+    """Mixin for enums providing extra capabilities."""
 
     @classmethod
     def validate(cls, value) -> None:

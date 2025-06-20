@@ -20,7 +20,7 @@ __all__ = [
 class GsKmeshConvWork(Work):
     """
     This work performs convergence studies of GS properties
-    with respect to the k-mesh
+    with respect to the k-mesh.
 
     It produces ...
 

@@ -6,21 +6,17 @@ using the results stored in the out_EPH_CUMULANT.nc file.
 from __future__ import annotations
 
 import numpy as np
-#import pandas as pd
 import abipy.core.abinit_units as abu
 
-from scipy.fft import fft, fftshift, ifft # fftfreq
+from scipy.fft import fft, fftshift, ifft
 #from functools import cached_property
-#from tabulate import tabulate
-from monty.string import marquee # , list_strings
+from monty.string import marquee #, list_strings
 #from monty.termcolor import cprint
-#from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 #from abipy.core.kpoints import has_timrev_from_kptopt, find_points_along_path
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
 #from abipy.tools import duck
-from abipy.electrons.ebands import ElectronBands # , ElectronDos, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
-#from abipy.abio.robots import Robot
+#from abipy.electrons.ebands import ElectronBands
 from abipy.eph.sigeph import SigEPhFile, EphSelfEnergy, SigmaPhReader, QpTempState
 
 
@@ -186,7 +182,7 @@ class CumulantPhReader(SigmaPhReader):
         super().__init__(path)
 
         # Check if the cumulant function exists
-        # It is an optional output, mostly for debuging
+        # It is an optional output, mostly for debugging
         # If it exists, then G(t) and time_mesh also exists
         variables = self.read_varnames()
         if "ct_vals" in variables:
@@ -284,7 +280,7 @@ class CumulantSelfEnergy(EphSelfEnergy):
         ntemp = len(qp.tmesh)
         nwr = len(wmesh)
 
-        # In case of debugging, seting:
+        # In case of debugging, setting:
         # Green's function in time domain, cumulant function and time mesh
         self.gt_vals = gt_vals
         self.ct_vals = ct_vals
@@ -351,7 +347,7 @@ class CumulantSelfEnergy(EphSelfEnergy):
 
         # Frequency mesh step
         w_step = wmesh_init[1] - wmesh_init[0]
-        # Shift frequency mesh to set the KS energy close to 0.0, with principal value offseting the mesh slightly.
+        # Shift frequency mesh to set the KS energy close to 0.0, with principal value offsetting the mesh slightly.
         wmesh = wmesh_init - e0 - 0.5 * w_step
         # Create the time mesh
         t = np.linspace(0.0,1,nwr)*2*np.pi/w_step
@@ -373,7 +369,7 @@ class CumulantSelfEnergy(EphSelfEnergy):
 
             # Other terms of the cumulant function
             c2 = - 1j * t * sigma0
-            c3 = -1.0 * np.trapz(beta/wmesh**2,x=wmesh) * np.ones(nwr)
+            c3 = -1.0 * np.trapezoid(beta/wmesh**2,x=wmesh) * np.ones(nwr)
 
             # Calculation of the cumulant function
             Ct = c1 + c2 + c3

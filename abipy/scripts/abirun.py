@@ -20,7 +20,6 @@ from pprint import pprint
 from collections import defaultdict
 from socket import gethostname
 from monty import termcolor
-from monty.functools import prof_main
 from monty.termcolor import cprint, colored, get_terminal_size
 from monty.string import boxed, make_banner
 from abipy.tools import duck
@@ -134,7 +133,7 @@ def cli_abiopen(options, filepath: str):
                 abifile = abilab.abiopen(filepath)
                 return abifile.make_and_open_notebook(foreground=options.foreground)
         else:
-            raise TypeError("Object ot type `%s` does not provide make_and_open_notebook method" % str(cls))
+            raise TypeError("Object of type `%s` does not provide make_and_open_notebook method" % str(cls))
             #return make_and_open_notebook(options)
 
 
@@ -143,7 +142,7 @@ def flow_debug_reset_tasks(flow: Flow, nids=None, verbose=0) -> None:
     Analyze error files produced by reset tasks for possible error messages
 
     Args:
-        nids: List of node identifiers. By defaults all nodes that have been resetted are analyzed.
+        nids: List of node identifiers. By defaults all nodes that have been reset are analyzed.
         verbose: Verbosity level.
     """
     # TODO: Improve implementation.
@@ -182,7 +181,7 @@ def flow_watch_status(flow: Flow, delay=5, nids=None, verbose=0, func_name="show
 
     Args:
         delay: delay execution for the given number of seconds. (default: 5 secs).
-        nids: List of node identifiers. By defaults all nodes that have been resetted are analyzed.
+        nids: List of node identifiers. By defaults all nodes that have been reset are analyzed.
         verbose: Verbosity level.
         func_name: Name of the function used to show the status of the flow.
     """
@@ -327,7 +326,7 @@ Usage example:
 # Documentation
 ###############
 
-  abirun.py FLOWDIR doc_manager slurm     => Document the TaskManager options availabe for Slurm.
+  abirun.py FLOWDIR doc_manager slurm     => Document the TaskManager options available for Slurm.
   abirun.py . doc_manager script          => Show the job script that will be produced with the current settings.
   abirun.py . doc_scheduler               => Document the options available in scheduler.yml.
 """
@@ -390,7 +389,7 @@ def get_parser(with_epilog=False):
                 return list(range(s.start, s.stop, s.step))
         except Exception:
             raise argparse.ArgumentTypeError(
-                    "Invalid nids string %s\n Expecting None or int or comma-separated integers or slice sintax" % s)
+                    "Invalid nids string %s\n Expecting None or int or comma-separated integers or slice syntax" % s)
 
     def parse_wslice(s):
         s = duck.as_slice(s)
@@ -536,7 +535,7 @@ Default: o
     p_panel = subparsers.add_parser('panel', parents=[copts_parser, flow_selector_parser],
                                     help="Interact with the flow in the browser (requires panel package).")
     p_panel.add_argument("-pnt", "--panel-template", default="FastList", type=str,
-                        help="Specify template for panel dasboard." +
+                        help="Specify template for panel dashboard." +
                              "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                              "Default: FastList"
                         )
@@ -776,7 +775,7 @@ for port forwarding.
 
 
 
-@prof_main
+@cli.prof_main
 def main():
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -1301,7 +1300,7 @@ def main():
             qid = task.queue_id
             if qid is None: continue
             if qid not in slurm_jobs and not task.is_completed:
-                print("Task:", task, "seeem to have been killed and will be automatically reset.")
+                print("Task:", task, "seem to have been killed and will be automatically reset.")
                 task.reset()
 
         return flow.build_and_pickle_dump()

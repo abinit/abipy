@@ -1730,7 +1730,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
     #def pop_relax_vars(self):
     #    """
-    #    Remove all the relax variables present in self.
+    #    Remove all the relax variables present in the input.
     #    Return dictionary with the variables that have been removed.
     #    """
     #    return self.pop_vars(["ionmov", "optcell", "ntime", "dilatmx"])

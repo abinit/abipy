@@ -6,10 +6,15 @@ See [Phys. Rev. B 110, 014103](https://doi.org/10.1103/PhysRevB.110.014103)
 """
 from __future__ import annotations
 
+import dataclasses
 import numpy as np
+#import abipy.core.abinit_units as abu
 
-from abipy.tools.serialization import mjson_write
-from abipy.flowtk.tasks import RelaxTask
+from abipy.tools.serialization import Serializable
+from abipy.core.structure import Structure
+from abipy.tools.typing import PathLike, VectorLike #, Figure
+from abipy.abio.inputs import AbinitInput
+from abipy.dfpt.vzsisa import Vzsisa
 from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.flows import Flow
 
@@ -25,14 +30,14 @@ class VzsisaFlow(Flow):
 
     @classmethod
     def from_scf_input(cls,
-                       workdir,
-                       scf_input,
+                       workdir: PathLike,
+                       scf_input: AbinitInput,
                        bo_vol_scales,
                        ph_vol_scales,
-                       ngqpt,
+                       ngqpt: VectorLike,
                        with_becs: bool,
                        with_quad: bool,
-                       ndivsm=-20,
+                       ndivsm: int = 0,
                        edos_ngkpt=None,
                        manager=None) -> VzsisaFlow:
         """
@@ -72,18 +77,12 @@ class VzsisaFlow(Flow):
         This method is called by the scheduler when the flow finishes.
         It generates a `vzsisa.json` file in the output directory, which can be used
         to build the Vzsisa object for post-processing.
-
-        The JSON file contains:
-            - BO and phonon volumetric scaling factors.
-            - Paths to GSR files of relaxed structures and their corresponding volumes.
-            - Paths to DDB files for phonon calculations.
-            - Paths to electronic DOS data, if available.
         """
         work = self[0]
         data = {"bo_vol_scales": work.bo_vol_scales, "ph_vol_scales": work.ph_vol_scales}
         data["initial_structure"] = work.initial_scf_input.structure
 
-        # Build list of strings with path to the relevant output files ordered by volume.
+        # Build list of strings with paths to the relevant output files ordered by volume.
         data["gsr_relax_paths"] = [task.gsr_path for task in work.relax_tasks_vol]
 
         gsr_relax_entries, gsr_relax_volumes = [], []
@@ -106,10 +105,11 @@ class VzsisaFlow(Flow):
         data["gsr_relax_edos_paths"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
         data["gsr_relax_ebands_paths"] = []
         if work.ndivsm != 0:
-            data["gsr_relax_ebands_paths"] = [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
+            data["gsr_relax_ebands_paths"] = [ph_work.ebands_task.gsr_path
+                for ph_work in work.ph_works if ph_work.ebands_task is not None]
 
         # Write json file.
-        mjson_write(data, self.outdir.path_in("vzsisa.json"), indent=4)
+        VzsisaResults(**data).json_write(self.outdir.path_in("vzsisa.json"), indent=4)
 
         return super().finalize()
 
@@ -117,7 +117,7 @@ class VzsisaFlow(Flow):
 class VzsisaWork(Work):
     """
     This work performs the structural relaxation of the initial structure,
-    then a set of distorted structures is genenerated and the relaxed structures are used
+    then a set of distorted structures is generated and the relaxed structures are used
     to compute phonons, BECS and the dielectric tensor with DFPT.
 
     .. rubric:: Inheritance Diagram
@@ -125,9 +125,16 @@ class VzsisaWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input, bo_vol_scales, ph_vol_scales, ngqpt,
-                       with_becs: bool, with_quad: bool, ndivsm: int,
-                       ionmov: int, edos_ngkpt=None) -> VzsisaWork:
+    def from_scf_input(cls,
+                       scf_input,
+                       bo_vol_scales,
+                       ph_vol_scales,
+                       ngqpt,
+                       with_becs: bool,
+                       with_quad: bool,
+                       ndivsm: int,
+                       ionmov: int,
+                       edos_ngkpt=None) -> VzsisaWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
         See VzsisaFlow for the meaning of the arguments.
@@ -155,7 +162,8 @@ class VzsisaWork(Work):
         relax_template.pop_tolerances()
         relax_template.set_vars(optcell=3, ionmov=ionmov, tolvrs=1e-8, tolmxf=1e-6)
         relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
-        work.initial_relax_task = work.register_relax_task(relax_template)
+        #work.initial_relax_task = work.register_relax_task(relax_template)
+        work.initial_relax_task = work.register_multi_relax_task(relax_template)
 
         return work
 
@@ -202,7 +210,7 @@ class VzsisaWork(Work):
 
             # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
             for task in ph_work[1:]:
-                task.input.set_vars(prtden=0, prtpot=0)
+                task.input.set_vars(prtpot=0)
 
             self.flow.register_work(ph_work)
             self.ph_works.append(ph_work)
@@ -218,3 +226,64 @@ class VzsisaWork(Work):
         self.flow.allocate(build=True)
 
         return super().on_all_ok()
+
+
+#@dataclasses.dataclass(kw_only=True)
+#class GsrRelaxEntry:
+#    volume: float
+#    energy_eV: float
+#    pressure_GPa: float
+#    # structure: Optional[Any] = None  # Uncomment if you want to store structure
+
+
+@dataclasses.dataclass(kw_only=True)
+class VzsisaResults(Serializable):
+    """
+    Main entry point for post-processing and visualizing the results of a Zsisa calculation.
+
+    The JSON file contains:
+        - BO and phonon volumetric scaling factors.
+        - Paths to GSR files of relaxed structures and their corresponding volumes.
+        - Paths to DDB files for phonon calculations.
+        - Paths to electronic DOS data, if available.
+
+    .. code-block:: python
+
+        data = VzsisaResults.json_load("json_filepath")
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: VzsisaResults
+    """
+    bo_vol_scales: np.ndarray
+    ph_vol_scales: np.ndarray
+    initial_structure: Structure
+
+    gsr_relax_paths: list[str]
+    #gsr_relax_entries: list[GsrRelaxEntry]
+    gsr_relax_entries: list[dict]
+    gsr_relax_volumes_ang3: list[float]
+
+    ddb_relax_paths: list[str]
+    ddb_relax_volumes_ang3: list[str]
+
+    gsr_relax_edos_paths: list[str]
+    gsr_relax_ebands_paths: list[str]
+
+    def get_vzsisa(self,
+                   nqsmall_or_qppa: int,
+                   anaget_kwargs: dict | None = None,
+                   smearing_ev: float | None = None,
+                   verbose: int = 0) -> Vzsisa:
+        """
+        Build an instance of Vzsisa to plot the results.
+
+        Args:
+            nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
+                if > 0, it is interpreted as nqsmall
+                if < 0, it is interpreted as qppa.
+            anaget_kwargs: dict with extra arguments passed to anaget_phdoses_with_gauss.
+            smearing_ev: Gaussian smearing in eV.
+            verbose: Verbosity level.
+        """
+        return Vzsisa.from_gsr_ddb_paths(nqsmall_or_qppa, self.gsr_relax_paths, self.ddb_relax_paths,
+                                         anaget_kwargs, smearing_ev, verbose)

@@ -12,12 +12,11 @@ import os
 import argparse
 import subprocess
 import abipy.tools.cli_parsers as cli
-from abipy.tools.plotting import Exposer
 
 from pprint import pprint
 from shutil import which
 from monty.termcolor import cprint
-from monty.functools import prof_main
+from abipy.tools.plotting import Exposer
 from abipy import abilab
 
 
@@ -139,7 +138,7 @@ def get_parser(with_epilog=False):
     parser.add_argument("-pn", '--panel', action='store_true', default=False,
                         help="Open Dashboard in web browser, requires panel package.")
     parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
-                        help="Specify template for panel dasboard." +
+                        help="Specify template for panel dashboard." +
                              "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                              "Default: FastList"
                         )
@@ -192,7 +191,7 @@ for port forwarding.
 
 
 
-@prof_main
+@cli.prof_main
 def main():
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
@@ -398,6 +397,7 @@ def handle_ase_md_log(options):
 
 def handle_csv(options):
     """Handle CSV file."""
+    import pandas as pd
     df = pd.read_csv(options.filepath)
 
     def print_df():
@@ -440,7 +440,7 @@ def handle_csv(options):
         print_df()
         import IPython
         IPython.embed(header="""
-The pandas DataFrame initialized from the csv file can be accesssed via the `df` python variable.
+The pandas DataFrame initialized from the csv file can be accessed via the `df` python variable.
 """)
 
     return 0
@@ -469,16 +469,6 @@ def handle_json(options):
         obj = abilab.mjson_load(options.filepath)
         handle_object(obj, options)
 
-    return 0
-
-
-def handle_flowsdb_file(options):
-    """Handle flows.db file."""
-    import pandas as pd
-    import sqlite3
-    with sqlite3.connect(options.filepath) as con:
-        df = pd.read_sql_query("SELECT * FROM flows", con)
-        abilab.print_dataframe(df, title=options.filepath)
     return 0
 
 

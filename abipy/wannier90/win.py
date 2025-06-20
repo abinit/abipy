@@ -3,20 +3,18 @@
 from __future__ import annotations
 
 import numpy as np
+import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from abipy.core.mixins import Has_Structure
 from abipy.core.structure import Structure
 from abipy.abio.variable import InputVariable
 from abipy.abio.inputs import AbstractInput
-#from abipy.tools.typing import Figure
-
-import abipy.core.abinit_units as abu
 
 
 def structure2wannier90(structure, units="Bohr") -> str:
     """
-    Return string with stucture in wannier90 format.
+    Return string with structure in wannier90 format.
     """
     if not structure.is_ordered:
         raise NotImplementedError("""\

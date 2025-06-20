@@ -30,7 +30,7 @@ def anaget_phdoses_with_gauss(nqsmall_or_qppa,
     """
     Invoke anaddb to compute PHDOSes from a list of DDB filepaths with the gaussian method.
 
-    From PHYSICAL REVIEW B110,014103 (2024)
+    From PHYSICAL REVIEW B110,014103 (2024):
     The phonon density of states (PHDOS) was determined utilizing the Gaussian method,
     with a DOS smearing value set to 4.5×10−6 Hartree.
     Furthermore, a frequency grid step of 1.0×10−6 Hartree was employed for PHDOS calculations.
@@ -41,7 +41,7 @@ def anaget_phdoses_with_gauss(nqsmall_or_qppa,
         nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
             if > 0, it is interpreted as nqsmall
             if < 0, it is interpreted as qppa.
-        smearing_ev: Gaussian smearing in eV.
+        smearing_ev: Gaussian smearing in eV. None to use Abinit default value.
         ddb_paths: List of paths to the DDB files.
         anaget_kwargs: dictionary with extra arguments passed to anaget_phbst_and_phdos_files.
         verbose: Verbosity level.
@@ -119,21 +119,6 @@ class Vzsisa(HasPickleIO):
                    phbands_list=None,
                    ebands_list=None)
 
-
-    @classmethod
-    def from_json_file(cls,
-                       filepath: PathLike,
-                       nqsmall_or_qppa: int,
-                       anaget_kwargs: dict | None = None,
-                       smearing_ev: float | None = None,
-                       verbose: int = 0) -> Vzsisa:
-        """
-        Build an instance from a json file `filepath` typically produced by an AbiPy flow.
-        For the meaning of the other arguments see from_gsr_ddb_paths.
-        """
-        data = mjson_load(filepath)
-        return cls.from_gsr_ddb_paths(nqsmall_or_qppa, data["gsr_relax_paths"], data["ddb_relax_paths"],
-                                      anaget_kwargs, smearing_ev, verbose)
 
     @classmethod
     def from_gsr_ddb_paths(cls,
@@ -682,7 +667,7 @@ class Vzsisa(HasPickleIO):
         func(max_bo_vol, **plt_kwargs)
 
     @add_fig_kwargs
-    def plot_bo_energies(self, tstart=0, tstop=1000, num=1, ax=None, fontsize=10, **kwargs) -> Figure:
+    def plot_bo_energies(self, tstart=0, tstop=1000, num=1, ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the BO energy as a function of volume.
 
@@ -711,7 +696,7 @@ class Vzsisa(HasPickleIO):
         return fig
 
     @add_fig_kwargs
-    def plot_vol_vs_t(self, tstart=0, tstop=1000, num=101, fontsize=10, ax=None, **kwargs) -> Figure:
+    def plot_vol_vs_t(self, tstart=0, tstop=1000, num=101, fontsize=8, ax=None, **kwargs) -> Figure:
         """
         Plot the volume as a function of temperature using various methods.
 
@@ -823,7 +808,7 @@ class Vzsisa(HasPickleIO):
 
     @add_fig_kwargs
     def plot_thermal_expansion_coeff(self, tstart=0, tstop=1000, num=101, tref=None,
-                                     ax=None, fontsize=12, **kwargs) -> Figure:
+                                     ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -977,7 +962,7 @@ class Vzsisa(HasPickleIO):
 
     @add_fig_kwargs
     def plot_thermal_expansion_coeff_abc(self, tstart=0, tstop=1000, num=101, tref=None,
-                                         ax=None, fontsize=10, **kwargs) -> Figure:
+                                         ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficients of the lattice parameters
         as a function of the temperature.
@@ -1082,7 +1067,7 @@ class Vzsisa(HasPickleIO):
 
     @add_fig_kwargs
     def plot_thermal_expansion_coeff_angles(self, tstart=0, tstop=1000, num=101, tref=None,
-                                            ax=None, fontsize=10, **kwargs) -> Figure:
+                                            ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -1184,7 +1169,7 @@ class Vzsisa(HasPickleIO):
 
     @add_fig_kwargs
     def plot_abc_vs_t(self, tstart=0, tstop=1000, num=101, lattice=None, tref=None,
-                      ax=None, fontsize=10, **kwargs) -> Figure:
+                      ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot lattice parameters as a function of the temperature.
 
@@ -1259,7 +1244,7 @@ class Vzsisa(HasPickleIO):
 
     @add_fig_kwargs
     def plot_angles_vs_t(self, tstart=0, tstop=1000, num=101, angle=None, tref=None,
-                         ax=None, fontsize=10, **kwargs) -> Figure:
+                         ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -1519,7 +1504,7 @@ class Vzsisa(HasPickleIO):
         return vols
 
     @add_fig_kwargs
-    def plot_vol_vs_t_4th(self, tstart=0, tstop=1000, num=101, ax=None, fontsize=10, **kwargs) -> Figure:
+    def plot_vol_vs_t_4th(self, tstart=0, tstop=1000, num=101, ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the volume as a function of the temperature.
 
@@ -1619,7 +1604,7 @@ class Vzsisa(HasPickleIO):
 
     @add_fig_kwargs
     def plot_thermal_expansion_coeff_4th(self, tstart=0, tstop=1000, num=101, tref=None,
-                                         ax=None, fontsize=10, **kwargs) -> Figure:
+                                         ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -1736,7 +1721,7 @@ class Vzsisa(HasPickleIO):
 
     @add_fig_kwargs
     def plot_abc_vs_t_4th(self, tstart=0, tstop=1000, num=101, lattice=None, tref=None,
-                          ax=None, fontsize=10, **kwargs) -> Figure:
+                          ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -1812,7 +1797,7 @@ class Vzsisa(HasPickleIO):
 
     @add_fig_kwargs
     def plot_angles_vs_t_4th(self, tstart=0, tstop=1000, num=101, angle=None, tref=None,
-                             ax=None, fontsize=10, **kwargs) -> Figure:
+                             ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -1824,7 +1809,7 @@ class Vzsisa(HasPickleIO):
             tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            fontsize: fontsize for legends and titles
+            fontsize: fontsize for legends and titles.
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         tmesh = np.linspace(tstart, tstop, num)
@@ -1888,7 +1873,7 @@ class Vzsisa(HasPickleIO):
 
     @add_fig_kwargs
     def plot_thermal_expansion_coeff_abc_4th(self, tstart=0, tstop=1000, num=101, tref=None,
-                                             ax=None, fontsize=10, **kwargs) -> Figure:
+                                             ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -1899,7 +1884,7 @@ class Vzsisa(HasPickleIO):
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             num: int, optional Number of samples to generate.
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            fontsize: fontsize for legends and titles
+            fontsize: fontsize for legends and titles.
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         tmesh = np.linspace(tstart, tstop, num)
@@ -1992,7 +1977,7 @@ class Vzsisa(HasPickleIO):
 
     @add_fig_kwargs
     def plot_thermal_expansion_coeff_angles_4th(self, tstart=0, tstop=1000, num=101, tref=None,
-                                                ax=None, fontsize=10, **kwargs) -> Figure:
+                                                ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -2003,7 +1988,7 @@ class Vzsisa(HasPickleIO):
             tref: The reference temperature (in Kelvin) used to compute the thermal expansion coefficient 1/V(tref) * dV(T)/dT.
                   (If tref is not available, it uses 1/V(T) * dV(T)/dT instead.)
             ax: |matplotlib-Axes| or None if a new figure should be created.
-            fontsize: fontsize for legends and titles
+            fontsize: fontsize for legends and titles.
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         tmesh = np.linspace(tstart, tstop, num)

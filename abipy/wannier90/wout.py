@@ -43,6 +43,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
             self._parse_iterations()
         except Exception as exc:
             print("Exception in _parse_iterations:\n", exc)
+            raise exc
 
     def close(self) -> None:
         """Close file. Required by abc protocol."""
@@ -394,7 +395,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
