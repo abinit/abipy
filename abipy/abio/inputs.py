@@ -382,7 +382,7 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: AbinitInput
 
-    The name of methods that invoke the Abinit executable to extact dimensions and
+    The name of methods that invoke the Abinit executable to extract dimensions and
     additional quantities such as list of q-points, perturbations, etc
     start with the `abiget_` prefix.
     """
@@ -1273,7 +1273,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
     def set_spinat_from_symbols(self, symb2spinat: dict, default=(0, 0, 0)) -> dict:
         """
-        Set spinat parameters from a dictionary mapping chemical simbol to spinat value.
+        Set spinat parameters from a dictionary mapping chemical symbol to spinat value.
         If an element in the structure is not present in symb2luj, default is used.
 
         **Example:**
@@ -1323,7 +1323,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             symb2luj: Dictionary mapping chemical symbol to the values of `lpawu`, `upawu` and `jpawu`.
                 If an element in the structure is not present in symb2luj, the U+J term is automatically
                 disabled for this element. In other words, only the element on which U+J should be applied
-                must be speficied.
+                must be specified.
             units: Energy units for U and J. Note that defaultis eV although ABINIT uses Hartree by default!
 
         **Example:**
@@ -2952,7 +2952,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         # Weird condition. Possible explanations:
         # 1) Abinit cannot be executed or runtime errors due e.g to libraries not in LD_LIBRARY_PATH
         # 2) IO buffering (Abinit called MPI_ABORT but files are not flushed before aborting.
-        # Try to return as much information as possible to faciliate debugging.
+        # Try to return as much information as possible to facilitate debugging.
         errors = ["Problem in temp Task executed in %s" % task.workdir,
                   "Previous exception %s" % prev_exc]
 
@@ -3299,7 +3299,7 @@ class MultiDataset:
         for i in range(multi.ndtset):
             multi[i].set_vars(ecut=1)
 
-    MultiDataset provides its own implementaion of __getattr__ so that one can simply use:
+    MultiDataset provides its own implementation of __getattr__ so that one can simply use:
 
         multi.set_vars(ecut=1)
 
@@ -3958,7 +3958,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
-                        qptbounds=None, asr=2, chneut=0, dipdip=1, dipquad=1, quadquad=1,
+                        qptbounds=None, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
                         dos_method="tetra", lo_to_splitting=False,
                         with_ifc=False, anaddb_args=None, anaddb_kwargs=None,
                         spell_check=False, comment=None) -> AnaddbInput:
@@ -4657,7 +4657,7 @@ class Cut3DInput(MSONable):
     @classmethod
     def _convert(cls, infile_path, output_filepath, out_option) -> Cut3DInput:
         """
-        Generic function used to generate the input for convertions using cut3d
+        Generic function used to generate the input for conversions using cut3d.
 
         Args:
             infile_path: absolute or relative path to the input file produced by abinit (e.g. DEN, WFK, ...). Can be
@@ -5115,7 +5115,7 @@ def kpoints_from_line_density(structure, line_density, symprec=1e-2):
 
     Args:
         line_density: Number of points in each segment is computed as: int(ceil(distance * line_density))
-            where distance is the lenght of the segment.
+            where distance is the length of the segment.
             This option is the recommended one if the k-path contains two consecutive high symmetry k-points
             that are very close as ndivsm > 0 may produce a very large number of wavevectors.
         symprec: Symmetry precision passed to spglib.
