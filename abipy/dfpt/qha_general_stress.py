@@ -4,11 +4,11 @@ across various crystallographic structures, from cubic to triclinic.
 """
 from __future__ import annotations
 
-import numpy as np
 import sys
 import os
 import math
 import dataclasses
+import numpy as np
 import abipy.core.abinit_units as abu
 
 from abipy.abio.enums import StrEnum
@@ -58,11 +58,14 @@ class QhaModel(StrEnum):
 
 @dataclasses.dataclass(kw_only=True)
 class ThermalData(Serializable):
+    """
+    Store the results computed in get_tstress.
+    """
 
     temperature: float           # Temperature in K
     pressure_gpa: float          # Pressure in GPa.
-    converged: bool              # True if self-consistent condition in the relaxation has been reached
-    dtol: np.ndarray
+    converged: bool              # True if self-consistent condition in the relaxation has been reached.
+    dtol: np.ndarray             # absolute difference between the current stress and the guessed stress.
     stress_au: np.ndarray        # Stress in a.u. (Voigt form)
     elastic: np.ndarray | None   # Elastic constants.
     therm: np.ndarray | None     # Thermal expansion
@@ -107,7 +110,9 @@ class QHA_ZSISA(HasPickleIO):
 
         Args:
             json_filepath: path to the json file.
-            nqsmall_or_qppa:
+            nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
+                if > 0, it is interpreted as nqsmall
+                if < 0, it is interpreted as qppa.
             anaget_kwargs: kwargs passed to anaget_phdoses_with_gauss.
             smearing_ev: Gaussian smearing in eV. None to use Abinit default value.
             verbose: Verbosity level
@@ -140,7 +145,7 @@ class QHA_ZSISA(HasPickleIO):
                    verbose: int = 0,
                    ) -> QHA_ZSISA:
         """
-        Creates an instance of QHA from a 6D array of PHDOS.nc files and a Born-Oppenheimer (BO) GSR file.
+        Creates an instance of QHA from a 6D array of PHDOS.nc files and the Born-Oppenheimer (BO) GSR file.
 
         Args:
             phdos_paths_6D: A 6D list of paths to PHDOS.nc files.
@@ -155,8 +160,7 @@ class QHA_ZSISA(HasPickleIO):
                 or the reference structure used to build deformations.
                 This is needed to reconstruct strains from Eqs. (24) and (25) in the paper.
                 and find the crystallographic symmetry of the structure.
-            qha_model:
-                Specifies the QHA model type. Options are:
+            qha_model: Specifies the QHA model type. Possible values are:
                 'zsisa': Standard ZSISA model.
                 'v_zsisa': v-ZSISA model.
                 'zsisa_slab': ZSISA model adapted for slab geometries.
@@ -304,7 +308,6 @@ class QHA_ZSISA(HasPickleIO):
         self.dim = dim
         #print(f"{self.phdoses.shape=}, {self.dim=}")
         self.verbose = verbose
-
         self.dtol_tolerance = 1e-8
 
         def extract_attribute(structures, attribute_func) -> np.ndarray:
@@ -1615,7 +1618,6 @@ class QHA_ZSISA(HasPickleIO):
         converged = False
         if all(dtol[i] < self.dtol_tolerance for i in range(6)):
             converged = True
-            #self.print_data(temp, pressure_gpa, therm, stress, elastic, mode)
             if self.verbose: print("Converged !!!")
 
         return ThermalData(temperature=temp, pressure_gpa=pressure_gpa,
@@ -1637,108 +1639,14 @@ class QHA_ZSISA(HasPickleIO):
                 for k, dim2_list in enumerate(dim1_list):
                     for l, dim3_list in enumerate(dim2_list):
                         for m, dim4_list in enumerate(dim3_list):
-                            for n, dos in enumerate(dim4_list):
-                               if dos is not None:
-                                   f[i,j,k,l,m,n] = dos.get_free_energy(temp, temp, 1).values.item()
-                                   entropy[i,j,k,l,m,n] = dos.get_entropy(temp, temp, 1).values.item()
+                            for n, phdos in enumerate(dim4_list):
+                               if phdos is not None:
+                                   f[i,j,k,l,m,n] = phdos.get_free_energy(temp, temp, 1).values.item()
+                                   entropy[i,j,k,l,m,n] = phdos.get_entropy(temp, temp, 1).values.item()
                                else:
                                    f[i,j,k,l,m,n] = None
                                    entropy[i,j,k,l,m,n] = None
         return f, entropy
-
-    #def elastic_constants(self, file_name: str) -> np.ndarray:
-    #    print("About to read ELASTIC_RELAXED tensor from:", file_name)
-    #    with open(file_name, "rt") as file:
-    #        lines = file.readlines()
-
-    #    in_relaxed_section = False
-    #    elastic_data = []
-
-    #    for line in lines:
-    #        if "[ELASTIC_RELAXED]" in line:
-    #            in_relaxed_section = True
-    #            continue
-    #        if "[" in line and in_relaxed_section:  # Stop if another section starts
-    #            break
-    #        if in_relaxed_section:
-    #            try:
-    #                # Extract numbers from each line
-    #                numbers = list(map(float, line.split()[1:7]))
-    #                #print("numbers:", numbers)
-    #                if numbers:  # Add non-empty lines
-    #                    elastic_data.append(numbers)
-    #            except ValueError as exc:
-    #                #raise exc
-    #                continue
-
-    #    # Convert the list into a numpy array for easier indexing
-    #    return np.array(elastic_data)
-
-    #def print_data(self, temp, pressure, therm, stress, elastic, mode):
-    #    M = elastic
-    #    filename = f"cell_{temp:04.0f}_{pressure:03.0f}.txt"
-    #    with open(filename, "w") as f:
-    #        f.write(f"{'#T':<8} {'P':<8} {'lattice_a':<13} {'lattice_b':<13} {'lattice_c':<13} "
-    #                f"{'alpha':<10} {'beta':<10} {'gamma':<10} {'volume':<13} {'ave_x':<13} "
-    #                f"{'ave_y':<13} {'ave_z':<13}\n")
-
-    #        f.write(f"{temp:<8} {pressure:<8.2f} {self.lattice_a_guess:<13.10f} {self.lattice_b_guess:<13.10f} "
-    #                f"{self.lattice_c_guess:<13.10f} {self.angles_guess[0]:<10.5f} {self.angles_guess[1]:<10.5f} "
-    #                f"{self.angles_guess[2]:<10.5f} {self.volume_guess:<13.10f} {self.ave_x_guess:<13.10f} "
-    #                f"{self.ave_y_guess:<13.10f} {self.ave_z_guess:<13.10f} \n")
-
-    #    if therm is not None:
-    #        filename = f"TEC_{temp:04.0f}_{pressure:03.0f}.txt"
-    #        with open(filename, "w") as f:
-    #            f.write(f"{'#T':<8} {'P':<8} {'alpha_xx':<15} {'alpha_yy':<15} {'alpha_zz':<15} {'alpha_yz':<15} {'alpha_xz':<15} {'alpha_xy':<15}\n")
-    #            f.write(f"{temp:<8} {pressure:<8.2f} {therm[0]:<15.8e} {therm[1]:<15.8e} {therm[2]:<15.8e} "
-    #                    f"{therm[3]:<15.8e} {therm[4]:<15.8e} {therm[5]:<15.8e}\n")
-
-    #    if elastic is not None:
-    #        filename = f"ECs_{temp:04.0f}_{pressure:03.0f}.txt"
-    #        with open(filename, "w") as f:
-    #            f.write("Elastic [GPa] \n")
-    #            if self.sym in ("cubic", "trigonal", "hexagonal", "tetragonal", "orthorhombic"):
-    #                if mode == 'ECs':
-    #                    if self.sym == "cubic":
-    #                        f.write(f"    {'C11':12s} {'C12':12s} {'C44':12s}\n")
-    #                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[3,3]:12.6f} \n")
-    #                    elif self.sym == "hexagonal":
-    #                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s}\n")
-    #                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} \n")
-    #                    elif self.sym == "trigonal":
-    #                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C14':12s} {'C44':12s}\n")
-    #                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[0,3]:12.6f} {M[3,3]:12.6f} \n")
-    #                    elif self.sym == "tetragonal":
-    #                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C33':12s} {'C44':12s} {'C66':12s}\n")
-    #                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[5,5]:12.6f} \n")
-    #                    if  self.sym == "orthorhombic":
-    #                        f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} {'C44':12s} {'C55':12s} {'C66':12s}\n")
-    #                        f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} {M[3,3]:12.6f} {M[4,4]:12.6f} {M[5,5]:12.6f} \n")
-    #                else:
-    #                    f.write(f"    {'C11':12s} {'C12':12s} {'C13':12s} {'C22':12s} {'C23':12s} {'C33':12s} \n")
-    #                    f.write(f"  {M[0,0]:12.6f} {M[0,1]:12.6f} {M[0,2]:12.6f} {M[1,1]:12.6f} {M[1,2]:12.6f} {M[2,2]:12.6f} \n")
-
-    #            elif self.sym == "monoclinic":
-    #                if mode != 'ECs':
-    #                    f.write(f" Warning: C44, C46, and C66 do not include the free energy contribution (only BO energy).\n")
-    #                f.write( " \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
-    #                f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
-    #                f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
-    #                f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
-    #                f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
-    #                f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
-    #                f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
-
-    #            elif self.sym == "triclinic":
-    #                f.write(f" \t   xx\t\tyy\t\tzz\t\tyz\t\txz\t\txy\n")
-    #                f.write(f" xx {M[0,0]:14.8f}  {M[0,1]:14.8f}  {M[0,2]:14.8f}  {M[0,3]:14.8f}  {M[0,4]:14.8f}  {M[0,5]:14.8f}\n")
-    #                f.write(f" yy {M[1,0]:14.8f}  {M[1,1]:14.8f}  {M[1,2]:14.8f}  {M[1,3]:14.8f}  {M[1,4]:14.8f}  {M[1,5]:14.8f}\n")
-    #                f.write(f" zz {M[2,0]:14.8f}  {M[2,1]:14.8f}  {M[2,2]:14.8f}  {M[2,3]:14.8f}  {M[2,4]:14.8f}  {M[2,5]:14.8f}\n")
-    #                f.write(f" yz {M[3,0]:14.8f}  {M[3,1]:14.8f}  {M[3,2]:14.8f}  {M[3,3]:14.8f}  {M[3,4]:14.8f}  {M[3,5]:14.8f}\n")
-    #                f.write(f" xz {M[4,0]:14.8f}  {M[4,1]:14.8f}  {M[4,2]:14.8f}  {M[4,3]:14.8f}  {M[4,4]:14.8f}  {M[4,5]:14.8f}\n")
-    #                f.write(f" xy {M[5,0]:14.8f}  {M[5,1]:14.8f}  {M[5,2]:14.8f}  {M[5,3]:14.8f}  {M[5,4]:14.8f}  {M[5,5]:14.8f}\n")
-
 
     def get_phdos_plotter(self, **kwargs) -> PhononDosPlotter:
         """Build and return a PhononDosPlotter."""
@@ -1758,7 +1666,7 @@ def cmat_inds_names(sym: str, mode: str) -> tuple[list, list]:
 
     Args:
         sym: Crystalline system.
-        mode:
+        mode: "TEC" or "ECs".
     """
     if sym in ("cubic", "trigonal", "hexagonal", "tetragonal", "orthorhombic"):
         if mode == 'ECs':

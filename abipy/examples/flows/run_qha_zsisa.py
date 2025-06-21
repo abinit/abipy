@@ -131,7 +131,7 @@ rprim
                  #  (more calculations are usually needed)
 
     # Q-mesh for the computation of the phonon DOS. See docstring.
-    nqsmall_or_qppa = 20 # TODO
+    nqsmall_or_qppa = np.max(ngqpt) * 10
 
     # Relaxation with thermal stress may require several iterations.
     # Here we set programmatically the maximum number of restarts to 20.

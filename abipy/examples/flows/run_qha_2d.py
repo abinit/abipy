@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 r"""
-Flow for QHA calculations with 2 DOFs
-=====================================
+Flow for QHA calculations with two DOFs
+=======================================
 
 Warning: This code is still under development.
+This example shows to run calculations with the
+ZSISA quasi-harmonic approximation and two degrees of freedom.
 """
 import sys
 import os
@@ -16,7 +18,7 @@ from abipy.flowtk.qha_2d import Qha2dFlow
 
 def build_flow(options):
     """
-    Create a `Qha2dFlow` for quasi-harmonic calculations with 2 DOFs
+    Create a `Qha2dFlow` for quasi-harmonic calculations with two DOFs
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
