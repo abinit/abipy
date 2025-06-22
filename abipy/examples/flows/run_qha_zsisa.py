@@ -4,7 +4,7 @@ Flow for ZSISA calculations
 ===========================
 
 This examples shows how to compute temperature-dependent lattice parameters,
-thermal expansion coefficients and temperature-dependent elastic constants
+thermal expansion coefficients and relaxed-ions temperature-dependent elastic constants
 using the ZSISA-QHA method. External pressure can be included as well.
 
 By incorporating second-order derivatives of the vibrational free energy with respect
@@ -15,32 +15,37 @@ The AbiPy flow performs the following operations:
 
 1) The initial structure is relaxed and a minimum set of deformed configurations is generated.
 2) The atomic positions in the deformed structures are relaxed at fixed cell,
-   and the relaxed configuration is then used to compute phonons, BECS, eps_inf and dynamical
-   quadrupoles with DFPT.
-3) Phonon DOSes are computed for all the deformed structures on a much denser q-mesh.
+   and the relaxed configuration is then used to compute phonons, Born-effective charges,
+   electronic dielectric tensort (eps_inf) and dynamical, quadrupoles with DFPT.
+3) Phonon DOSes are computed for all the deformed structures on a much denser q-mesh
    and the results are used to compute thermal stresses.
-4) An iterative process for determining lattice parameters at temperature T and external pressure Pext.
+4) An iterative process for determining lattice parameters at temperature T and external pressure P.
    The process begins with an initial guess for the lattice configuration [R],
    followed by the computation of thermal and BO stresses.
-   A target stress is defined based on thermal stress and Pext, and the lattice and atomic positions
+   A target stress is defined based on thermal stress and P, and the lattice and atomic positions
    are relaxed iteratively until the target stress matches the BO stress and the BO forces are zeroed,
    ensuring convergence to the optimal lattice configuration.
-5) Finally, elastic constants for the thermal-relaxed configurations are computed with DFPT.
+5) Finally, relaxed-ions elastic constants for the thermal-relaxed configurations are computed with DFPT.
 
-The results of the calculations are stored in the outdata directory of the flow:
+The results of the calculations are stored in the outdata directory of the flow.
 Two files are produced:
 
 zsisa_data.csv:
 
-    lattice parameters, thermal expansion, elastic tensor for each T and P in CSV format.
+    lattice parameters, thermal expansion, and elastic tensor components for each T and P in CSV format.
 
 ZsisaResults.json:
 
     JSON file with the location of the different files (GSR.nc, DDB) on the filesystem.
-    To recostruct a python object from it, use:
+    To recostruct a python object from file, use:
 
         from abipy.zsisa import ZsisaResults
-        data = ZsisaResults.json_load("ABSPATH_TO_FILE)
+        data = ZsisaResults.json_load("ABSPATH_TO_FILE")
+
+        # Post-processing methods.
+        data.get_dataframe()
+        data.plot_lattice_vs_temp()
+        data.plot_thermal_expansion()
 """
 import sys
 import os
@@ -96,6 +101,7 @@ rprim
     scf_input = abilab.AbinitInput(structure, pseudos)
 
     # Set other important variables for the SCF run.
+    # Assuming non-magnetic semiconductor with scalar wavefunctions.
     scf_input.set_vars(
         nband=scf_input.num_valence_electrons // 2,
         nstep=100,
@@ -105,7 +111,7 @@ rprim
     )
 
     # Select k-mesh for electrons and q-mesh for phonons.
-    # The q-mesh should divide ngkpt.
+    # NB: The q-mesh should divide ngkpt.
     ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
     #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
     #ngkpt = [4, 4, 4]; ngqpt = [2, 2, 2]

@@ -18,7 +18,7 @@ import abipy.abio.input_tags as atags
 
 from collections import OrderedDict
 from collections.abc import MutableMapping
-from typing import Any, Union, Iterable, Iterator
+from typing import Any, Iterable, Iterator
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
 from monty.json import MontyDecoder, MSONable
@@ -272,7 +272,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         """
         return self.remove_vars(keys, strict=False)
 
-    def remove_vars(self, keys: Union[Iterable[str], str], strict: bool = True) -> dict:
+    def remove_vars(self, keys: Iterable[str] | str, strict: bool = True) -> dict:
         """
         Remove the variables listed in keys.
         Return dictionary with the variables that have been removed.
@@ -517,7 +517,7 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
             sha1.update(tos(value))
 
         # Use string representation to compute hash
-        # Not perfect but it supposed to be better than the version above
+        # Not perfect but it is supposed to be better than the version above
         # Use alphabetical sorting, don't write pseudos (treated below).
         #s = self.to_string(sortmode="a", with_mnemonics=False, with_structure=True, with_pseudos=False)
         #sha1.update(tos(s))
@@ -848,7 +848,6 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
             if with_structure:
                 app(w * "#")
-                #app("####" + "STRUCTURE".center(w - 1))
                 app("####" + "STRUCTURE".center(w - 1).rstrip())
                 app(w * "#")
                 #print("abivars keys:", self.structure_abivars.keys())
@@ -928,7 +927,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         return abivars
 
     @property
-    def comment(self) -> Union[str, None]:
+    def comment(self) -> str | None:
         """Optional string with comment. None if comment is not set."""
         try:
             return self._comment
@@ -3321,7 +3320,7 @@ class MultiDataset:
     Error = AbinitInputError
 
     @classmethod
-    def from_inputs(cls, inputs: Union[list[AbinitInput], MultiDataset]) -> MultiDataset:
+    def from_inputs(cls, inputs: list[AbinitInput] | MultiDataset) -> MultiDataset:
         """Build a |MultiDataset| from a list of |AbinitInput| objects."""
         for inp in inputs:
             if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, inp.pseudos)):
@@ -3466,7 +3465,7 @@ class MultiDataset:
         if isattr: on_all = on_all()
         return on_all
 
-    def __add__(self, other: Union[AbinitInput, MultiDataset]) -> MultiDataset:
+    def __add__(self, other: AbinitInput | MultiDataset) -> MultiDataset:
         """self + other"""
         if isinstance(other, AbinitInput):
             new_mds = MultiDataset.from_inputs(self)
@@ -3479,7 +3478,7 @@ class MultiDataset:
         else:
             raise NotImplementedError("Operation not supported")
 
-    def __radd__(self, other: Union[AbinitInput, MultiDataset]) -> MultiDataset:
+    def __radd__(self, other: AbinitInput | MultiDataset) -> MultiDataset:
         if isinstance(other, AbinitInput):
             new_mds = MultiDataset.from_inputs([other])
             new_mds.extend(self)
@@ -3496,7 +3495,7 @@ class MultiDataset:
             raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
         self._inputs.append(abinit_input)
 
-    def extend(self, abinit_inputs: Union[AbinitInput, MultiDataset]) -> None:
+    def extend(self, abinit_inputs: AbinitInput | MultiDataset) -> None:
         """Extends self with a list of |AbinitInput| objects."""
         assert all(isinstance(inp, AbinitInput) for inp in abinit_inputs)
         for inp in abinit_inputs:
@@ -3972,7 +3971,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 It defines the number of q-points used to sample the smallest lattice vector.
             qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per atom.
                 Overrides nqsmall.
-            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+            line_density: Defines the density of k-points per reciprocal atom to plot the phonon dispersion.
                 Overrides ndivsm.
             ndivsm: Used to generate a normalized path for the phonon bands.
                 If gives the number of divisions for the smallest segment of the path.
@@ -4183,7 +4182,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 It defines the number of q-points used to sample the smallest lattice vector.
             qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
                 Overrides nqsmall.
-            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+            line_density: Defines the density of k-points per reciprocal atom to plot the phonon dispersion.
                 Overrides ndivsm.
             ndivsm: Used to generate a normalized path for the phonon bands.
                 If gives the number of divisions for the smallest segment of the path.
@@ -4370,7 +4369,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
                 retcode: Return code. 0 if OK.
                 output_file: output file of the run.
-                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                log_file: log file of the Abinit run, use log_file.read() to access its content.
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
                 task: Task object
         """
@@ -4604,7 +4603,7 @@ class OpticInput(AbiAbstractInput, MSONable):
 
                 retcode: Return code. 0 if OK.
                 output_file: output file of the run.
-                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                log_file: log file of the Abinit run, use log_file.read() to access its content.
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
                 task: Task object
         """
@@ -4832,7 +4831,7 @@ class AtdepInput(AbiAbstractInput, MSONable, Has_Structure):
     This object stores the anaddb variables.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: AnaddbInput
+    .. inheritance-diagram:: AtdepInput
     """
 
     Error = AtdepInputError

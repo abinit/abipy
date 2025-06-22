@@ -126,14 +126,15 @@ class ZsisaFlow(Flow):
         then we create a new work for the self-consistent relaxation under thermal stress
         for each temperature and pressure.
         """
-        self.on_all_ok_num_calls += 1
         json_filepath = self.outdir.path_in("ZsisaResults.json")
         def _path(basename: str):
             return self.outdir.path_in(basename)
 
+        self.on_all_ok_num_calls += 1
+
         if self.on_all_ok_num_calls == 1:
             # Write json file with metadata and empty list of results.
-            self.write_zsisa_results_step1(json_filepath)
+            self._write_zsisa_results_step1(json_filepath)
             # Relaxation with thermal stress for the different (T, P) values.
             self.thermal_relax_work = ThermalRelaxWork.from_zsisa_flow(self, self.temperatures, self.pressures_gpa)
             self.register_work(self.thermal_relax_work)
@@ -150,10 +151,9 @@ class ZsisaFlow(Flow):
 
         return True
 
-    def write_zsisa_results_step1(self, json_filepath: str) -> None:
+    def _write_zsisa_results_step1(self, json_filepath: str) -> None:
         """
-        This method is called when the flow is completed.
-        It performs some basic post-processing of the results to facilitate further analysis.
+        Write json file with initial data.
         """
         work = self[0]
         data = {
@@ -368,6 +368,7 @@ class ThermalRelaxWork(Work):
 
             # Attach pressure and temperature to the task.
             task = work.register_task(new_relax_input, task_class=ThermalRelaxTask)
+
             task.mode = work.mode
             task.pressure_gpa = pressure_gpa
             task.temperature = temperature
@@ -504,7 +505,7 @@ class ThermalRelaxEntry:
     gsr_path: str                 # Path to the GSR file.
     elastic_ddb_path: str         # Path to the DDB file with the 2nd order derivatives wrt strain.
     therm: np.ndarray | None      # Thermal_expansion (Voigt notation).
-    elastic: np.ndarray | None    # Elastic constants (6,6) matrix in GPa (Voigt notation).
+    elastic: np.ndarray | None    # Elastic constants (6,6) matrix in GPa (Voigt notation, relaxed-ions).
     gibbs_atom: float             # Gibbs free energy per atom in eV.
 
     def get_dict4pandas(self) -> dict:
@@ -536,7 +537,7 @@ class ZsisaResults(Serializable):
     Main entry point for post-processing and visualizing the results of a Zsisa calculation.
 
     This object stores the locations of the GSR/DDB files produced by a ZSISA calculation
-    so that we can easily redo a thermal relaxation run.
+    so that we can easily redo a thermal relaxation run if needed.
     For instance, one may want to increase the list of temperatures, pressures or increase
     the q-mesh used to compute the phonon DOS via Fourier interpolation.
 
