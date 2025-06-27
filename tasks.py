@@ -303,3 +303,48 @@ def large_files(ctx, top_dir=None, size_threshold_mb=10):
 
     for size_mb, path in large_files:
         print(f"{size_mb:.2f} MB\t{path}")
+
+
+@task
+def system(ctx):
+    """Show System Info as a Table"""
+    import psutil
+    import platform
+    from tabulate import tabulate
+    info = []
+    info.append(["OS", f"{platform.system()} {platform.release()}"])
+    info.append(["Kernel", platform.version()])
+    info.append(["Architecture", platform.machine()])
+    info.append(["Processor", platform.processor()])
+    info.append(["CPU Cores (Physical)", psutil.cpu_count(logical=False)])
+    info.append(["CPU Cores (Logical)", psutil.cpu_count()])
+    info.append(["Memory (Total)", f"{psutil.virtual_memory().total / (1024 ** 3):.2f} GB"])
+    print(tabulate(info, headers=["Item", "Value"], tablefmt="grid"))
+
+
+@task
+def pid(ctx, pid):
+    import psutil
+    from tabulate import tabulate
+    pid = int(pid)
+    try:
+        p = psutil.Process(pid)
+        info = []
+        info.append(["PID", p.pid])
+        info.append(["Name", p.name()])
+        info.append(["Executable", p.exe()])
+        info.append(["Command Line", " ".join(p.cmdline())])
+        info.append(["Status", p.status()])
+        info.append(["User", p.username()])
+        info.append(["CPU %", f"{p.cpu_percent(interval=0.1):.1f} %"])
+        info.append(["Memory %", f"{p.memory_percent():.2f} %"])
+        info.append(["Memory RSS", f"{p.memory_info().rss / (1024 ** 2):.2f} MB"])
+        info.append(["Threads", p.num_threads()])
+        info.append(["CWD", p.cwd()])
+        info.append(["Parent PID", p.ppid()])
+        info.append(["Start Time (Epoch)", int(p.create_time())])
+        print(tabulate(info, headers=["Item", "Value"], tablefmt="grid"))
+
+    except psutil.NoSuchProcess:
+        print(f"❌ Process with PID {pid} does not exist.")
+        sys.exit(1)

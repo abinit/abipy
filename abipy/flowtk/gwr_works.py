@@ -1,8 +1,9 @@
 # coding: utf-8
 """
-Works and Flows for GWR calculations (GW in supercells).
+Flows and Works for GWR calculations (GW in supercells).
 
 NB: An Abinit build with Scalapack is required to run GWR.
+Elpa library is strongly recommended for improved performance.
 """
 from __future__ import annotations
 
@@ -122,8 +123,8 @@ class GWRSigmaConvWork(_BaseGWRWork):
 
 class GWRChiCompareWork(_BaseGWRWork):
     """
-    This work computes the irreducibile polarizability along the imaginary axis
-    using the GWR code and the quartic-scaling algorithm using the same minimax mesh
+    This work computes the irreducibile polarizability along the imaginary frequency axis
+    using the GWR code and the quartic-scaling GW code using the same minimax mesh
     so that one can compare the two quantities.
 
     .. rubric:: Inheritance Diagram

@@ -249,6 +249,7 @@ def prof_main(main):
         try:
             do_prof = sys.argv[1] in ("prof", "tuna", "snakeviz")
             if do_prof:
+                print("Entering profiling mode...")
                 arg0 = sys.argv.pop(1)
         except Exception:
             do_prof = False
@@ -257,7 +258,6 @@ def prof_main(main):
             # No profiling. Run script as usual.
             sys.exit(main())
 
-        print("Entering profiling mode...")
         import cProfile
         import pstats
         import tempfile

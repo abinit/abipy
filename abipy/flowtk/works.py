@@ -1551,8 +1551,8 @@ class MergeDdb:
 
         Return: (ddk_tasks, bec_tasks, dkdk_task, quad_task)
         """
-        if not isinstance(scf_task, ScfTask):
-            raise TypeError("task `%s` does not inherit from ScfTask" % scf_task)
+        if not isinstance(scf_task, (ScfTask, NscfTask)):
+            raise TypeError("task `%s` does not inherit from ScfTask|NscfTask" % scf_task)
 
         # DDK calculations (self-consistent to get electric field).
         # Use time-reversal symmetry for DDK (ddk_kptopt 2) except when
@@ -1782,8 +1782,8 @@ class PhononWork(Work, MergeDdb):
                 for the chosen set of q-point. Default: 0 (irred. pret. only)
             manager: |TaskManager| object.
         """
-        if not isinstance(scf_task, ScfTask):
-            raise TypeError(f"task {scf_task} does not inherit from ScfTask")
+        if not isinstance(scf_task, (ScfTask, NscfTask)):
+            raise TypeError(f"task: {scf_task} does not inherit from ScfTask | NscfTask")
 
         if is_ngqpt:
             qpoints = scf_task.input.abiget_ibz(ngkpt=qpoints, shiftk=[0, 0, 0], kptopt=qptopt).points
@@ -2283,8 +2283,8 @@ class DteWork(Work, MergeDdb):
             ddk_tolerance: tolerance used in the DDK run if with_becs. None to use AbiPy default.
             manager: |TaskManager| object.
         """
-        if not isinstance(scf_task, ScfTask):
-            raise TypeError(f"task {scf_task} does not inherit from ScfTask")
+        if not isinstance(scf_task, (ScfTask, NscfTask)):
+            raise TypeError(f"task {scf_task} does not inherit from ScfTask|NscfTask")
 
         new = cls(manager=manager)
 

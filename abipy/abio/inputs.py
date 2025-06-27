@@ -18,7 +18,7 @@ import abipy.abio.input_tags as atags
 
 from collections import OrderedDict
 from collections.abc import MutableMapping
-from typing import Any, Union, Iterable, Iterator
+from typing import Any, Iterable, Iterator
 from monty.collections import dict2namedtuple
 from monty.string import is_string, list_strings
 from monty.json import MontyDecoder, MSONable
@@ -272,7 +272,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         """
         return self.remove_vars(keys, strict=False)
 
-    def remove_vars(self, keys: Union[Iterable[str], str], strict: bool = True) -> dict:
+    def remove_vars(self, keys: Iterable[str] | str, strict: bool = True) -> dict:
         """
         Remove the variables listed in keys.
         Return dictionary with the variables that have been removed.
@@ -382,7 +382,7 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: AbinitInput
 
-    The name of methods that invoke the Abinit executable to extact dimensions and
+    The name of methods that invoke the Abinit executable to extract dimensions and
     additional quantities such as list of q-points, perturbations, etc
     start with the `abiget_` prefix.
     """
@@ -517,7 +517,7 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
             sha1.update(tos(value))
 
         # Use string representation to compute hash
-        # Not perfect but it supposed to be better than the version above
+        # Not perfect but it is supposed to be better than the version above
         # Use alphabetical sorting, don't write pseudos (treated below).
         #s = self.to_string(sortmode="a", with_mnemonics=False, with_structure=True, with_pseudos=False)
         #sha1.update(tos(s))
@@ -848,7 +848,6 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
             if with_structure:
                 app(w * "#")
-                #app("####" + "STRUCTURE".center(w - 1))
                 app("####" + "STRUCTURE".center(w - 1).rstrip())
                 app(w * "#")
                 #print("abivars keys:", self.structure_abivars.keys())
@@ -928,7 +927,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         return abivars
 
     @property
-    def comment(self) -> Union[str, None]:
+    def comment(self) -> str | None:
         """Optional string with comment. None if comment is not set."""
         try:
             return self._comment
@@ -1273,7 +1272,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
     def set_spinat_from_symbols(self, symb2spinat: dict, default=(0, 0, 0)) -> dict:
         """
-        Set spinat parameters from a dictionary mapping chemical simbol to spinat value.
+        Set spinat parameters from a dictionary mapping chemical symbol to spinat value.
         If an element in the structure is not present in symb2luj, default is used.
 
         **Example:**
@@ -1323,7 +1322,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             symb2luj: Dictionary mapping chemical symbol to the values of `lpawu`, `upawu` and `jpawu`.
                 If an element in the structure is not present in symb2luj, the U+J term is automatically
                 disabled for this element. In other words, only the element on which U+J should be applied
-                must be speficied.
+                must be specified.
             units: Energy units for U and J. Note that defaultis eV although ABINIT uses Hartree by default!
 
         **Example:**
@@ -2441,6 +2440,12 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return multi
 
+    #def supports_quad(self):
+    #    if (nspinor := self.get("nspinor", 1)) == 2:
+    #        raise ValueError("dynamical quadrupoles with {nspinor=} are not supported")
+    #    if any(pseudo.is_paw for pseudo in self.pseudos):
+    #        raise ValueError("dynamical quadrupoles with PAW are not supported."
+
     def make_quad_input(self, tolerance=None, kptopt=2, nstep=100, manager=None) -> AbinitInput:
         """
         Return an |AbinitInput| for the calculation of dynamical quadrupoles..
@@ -2952,7 +2957,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         # Weird condition. Possible explanations:
         # 1) Abinit cannot be executed or runtime errors due e.g to libraries not in LD_LIBRARY_PATH
         # 2) IO buffering (Abinit called MPI_ABORT but files are not flushed before aborting.
-        # Try to return as much information as possible to faciliate debugging.
+        # Try to return as much information as possible to facilitate debugging.
         errors = ["Problem in temp Task executed in %s" % task.workdir,
                   "Previous exception %s" % prev_exc]
 
@@ -3299,7 +3304,7 @@ class MultiDataset:
         for i in range(multi.ndtset):
             multi[i].set_vars(ecut=1)
 
-    MultiDataset provides its own implementaion of __getattr__ so that one can simply use:
+    MultiDataset provides its own implementation of __getattr__ so that one can simply use:
 
         multi.set_vars(ecut=1)
 
@@ -3321,7 +3326,7 @@ class MultiDataset:
     Error = AbinitInputError
 
     @classmethod
-    def from_inputs(cls, inputs: Union[list[AbinitInput], MultiDataset]) -> MultiDataset:
+    def from_inputs(cls, inputs: list[AbinitInput] | MultiDataset) -> MultiDataset:
         """Build a |MultiDataset| from a list of |AbinitInput| objects."""
         for inp in inputs:
             if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, inp.pseudos)):
@@ -3466,7 +3471,7 @@ class MultiDataset:
         if isattr: on_all = on_all()
         return on_all
 
-    def __add__(self, other: Union[AbinitInput, MultiDataset]) -> MultiDataset:
+    def __add__(self, other: AbinitInput | MultiDataset) -> MultiDataset:
         """self + other"""
         if isinstance(other, AbinitInput):
             new_mds = MultiDataset.from_inputs(self)
@@ -3479,7 +3484,7 @@ class MultiDataset:
         else:
             raise NotImplementedError("Operation not supported")
 
-    def __radd__(self, other: Union[AbinitInput, MultiDataset]) -> MultiDataset:
+    def __radd__(self, other: AbinitInput | MultiDataset) -> MultiDataset:
         if isinstance(other, AbinitInput):
             new_mds = MultiDataset.from_inputs([other])
             new_mds.extend(self)
@@ -3496,7 +3501,7 @@ class MultiDataset:
             raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
         self._inputs.append(abinit_input)
 
-    def extend(self, abinit_inputs: Union[AbinitInput, MultiDataset]) -> None:
+    def extend(self, abinit_inputs: AbinitInput | MultiDataset) -> None:
         """Extends self with a list of |AbinitInput| objects."""
         assert all(isinstance(inp, AbinitInput) for inp in abinit_inputs)
         for inp in abinit_inputs:
@@ -3958,7 +3963,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
-                        qptbounds=None, asr=2, chneut=0, dipdip=1, dipquad=1, quadquad=1,
+                        qptbounds=None, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
                         dos_method="tetra", lo_to_splitting=False,
                         with_ifc=False, anaddb_args=None, anaddb_kwargs=None,
                         spell_check=False, comment=None) -> AnaddbInput:
@@ -3972,7 +3977,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 It defines the number of q-points used to sample the smallest lattice vector.
             qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per atom.
                 Overrides nqsmall.
-            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+            line_density: Defines the density of k-points per reciprocal atom to plot the phonon dispersion.
                 Overrides ndivsm.
             ndivsm: Used to generate a normalized path for the phonon bands.
                 If gives the number of divisions for the smallest segment of the path.
@@ -4183,7 +4188,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 It defines the number of q-points used to sample the smallest lattice vector.
             qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per reciproval atom.
                 Overrides nqsmall.
-            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+            line_density: Defines the density of k-points per reciprocal atom to plot the phonon dispersion.
                 Overrides ndivsm.
             ndivsm: Used to generate a normalized path for the phonon bands.
                 If gives the number of divisions for the smallest segment of the path.
@@ -4370,7 +4375,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
                 retcode: Return code. 0 if OK.
                 output_file: output file of the run.
-                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                log_file: log file of the Abinit run, use log_file.read() to access its content.
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
                 task: Task object
         """
@@ -4604,7 +4609,7 @@ class OpticInput(AbiAbstractInput, MSONable):
 
                 retcode: Return code. 0 if OK.
                 output_file: output file of the run.
-                log_file:  log file of the Abinit run, use log_file.read() to access its content.
+                log_file: log file of the Abinit run, use log_file.read() to access its content.
                 stderr_file: stderr file of the Abinit run. use stderr_file.read() to access its content.
                 task: Task object
         """
@@ -4657,7 +4662,7 @@ class Cut3DInput(MSONable):
     @classmethod
     def _convert(cls, infile_path, output_filepath, out_option) -> Cut3DInput:
         """
-        Generic function used to generate the input for convertions using cut3d
+        Generic function used to generate the input for conversions using cut3d.
 
         Args:
             infile_path: absolute or relative path to the input file produced by abinit (e.g. DEN, WFK, ...). Can be
@@ -4832,7 +4837,7 @@ class AtdepInput(AbiAbstractInput, MSONable, Has_Structure):
     This object stores the anaddb variables.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: AnaddbInput
+    .. inheritance-diagram:: AtdepInput
     """
 
     Error = AtdepInputError
@@ -5115,7 +5120,7 @@ def kpoints_from_line_density(structure, line_density, symprec=1e-2):
 
     Args:
         line_density: Number of points in each segment is computed as: int(ceil(distance * line_density))
-            where distance is the lenght of the segment.
+            where distance is the length of the segment.
             This option is the recommended one if the k-path contains two consecutive high symmetry k-points
             that are very close as ndivsm > 0 may produce a very large number of wavevectors.
         symprec: Symmetry precision passed to spglib.

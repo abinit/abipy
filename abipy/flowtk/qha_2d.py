@@ -1,19 +1,19 @@
 # coding: utf-8
 """
-Workflows for calculations within the quasi-harmonic approximation
-with two degrees of freedom. The main entry point is Qha2dFlow.
+Workflows for calculations within the ZSISA quasi-harmonic approximation
+and two degrees of freedom. The main entry point is Qha2dFlow.
 """
 from __future__ import annotations
 
 import itertools
-import numpy as np
 import dataclasses
+import numpy as np
 
 from abipy.tools.serialization import mjson_write, Serializable
+from abipy.tools.typing import PathLike, VectorLike
 from abipy.dfpt.deformation_utils import generate_deformations
-from abipy.abio.inputs import AbinitInput
-from abipy.tools.typing import PathLike, VectorLike #, Figure
 from abipy.dfpt.qha_2D import QHA_2D
+from abipy.abio.inputs import AbinitInput
 from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.tasks import RelaxTask
 from abipy.flowtk.flows import Flow
@@ -22,6 +22,7 @@ from abipy.flowtk.flows import Flow
 class Qha2dFlow(Flow):
     """
     Flow for QHA calculations with two degrees of freedom.
+    Main entry point for client code.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Qha2dFlow
@@ -99,8 +100,6 @@ class Qha2dFlow(Flow):
             [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
 
         # Write json file
-        #mjson_write(data, self.outdir.path_in("qha_2d.json"), indent=4)
-
         Qha2DData(**data).json_write(self.outdir.path_in("qha_2d.json"), indent=4)
 
         return super().finalize()
@@ -187,7 +186,7 @@ class Qha2dWork(Work):
                 #print("strained_structure:", strained_structure)
 
                 # Relax deformed structure with fixed unit cell.
-                task = self.register_relax_task(self.relax_template.new_with_structure(strained_structure, optcell=0))
+                task = self.register_relax_task(self.relax_template.new_with_structure(strained_structure, optcell=0, dilatmx=1.0))
 
                 task.bo_strain = np.array((s1, s3))
                 task.in_phdos_strains = np.any(np.abs(s1 - self.phdos_strains_ac[0]) < 1e-3) and \
@@ -251,7 +250,11 @@ class Qha2dWork(Work):
 
 @dataclasses.dataclass(kw_only=True)
 class Qha2DData:
-
+    """
+    Stores the paths to the GSR/DDB files produced by Qha2dFlow.
+    Provides get_qha_2d method to build an instance of QHA_2D
+    that can be used for further post-processing.
+    """
     bo_strains_ac: np.ndarray
     phdos_strains_ac: np.ndarray
 
@@ -268,10 +271,18 @@ class Qha2DData:
                    smearing_ev: float | None = None,
                    verbose: int = 0) -> QHA_2D:
         """
-        Build an instance from a json file `filepath` typically produced by an Abipy flow.
+        Build an instance from a json file `filepath` typically produced by an AbiPy flow.
+
+        Args:
+            nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
+                if > 0, it is interpreted as nqsmall
+                if < 0, it is interpreted as qppa.
+            anaget_kwargs: dict with arguments passed to anaddb.
+            smearing_ev: Smearing for phonon DOS in eV.
+            verbose: Verbosity level.
         """
         return QHA_2D.from_gsr_ddb_paths(nqsmall_or_qppa,
-                                         self["gsr_relax_paths"], self["ddb_relax_paths"],
-                                         self["bo_strains_ac"], self["phdos_strains_ac"],
+                                         self.gsr_relax_paths, self.ddb_relax_paths,
+                                         self.bo_strains_ac, self.phdos_strains_ac,
                                          anaget_kwargs=anaget_kwargs,
                                          smearing_ev=smearing_ev, verbose=verbose)

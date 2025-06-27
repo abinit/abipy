@@ -45,7 +45,8 @@ class ZsisaFlow(Flow):
                        with_quad: bool,
                        temperatures: VectorLike,
                        pressures_gpa: VectorLike,
-                       nqsmall_or_qppa: int = 2, # TODO PROVIDE DEFAULT
+                       nqsmall_or_qppa: int,
+                       with_elastic: bool = True,
                        ndivsm: int = 0,
                        edos_ngkpt: VectorLike | None = None,
                        ionmov: int = 2,
@@ -60,8 +61,8 @@ class ZsisaFlow(Flow):
             workdir: Working directory of the flow.
             scf_input: |AbinitInput| for GS-SCF run used as template to generate the other inputs.
             eps: Strain magnitude to be applied to the lattice. Strains will be applied to the reference lattice.
-            mode: 'TEC' for thermal expansion coefficients.
-                'ECs" for thermal expansion coefficients + elastic constants.
+            mode: "TEC" for thermal expansion coefficients.
+                "ECs" for thermal expansion coefficients + elastic constants.
             ngqpt: Three integers defining the q-mesh for phonon calculation.
             with_becs: Activate calculation of Electric field and Born effective charges.
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
@@ -69,7 +70,10 @@ class ZsisaFlow(Flow):
                 Please consult <https://docs.abinit.org/topics/longwave/>
             temperatures: List of temperatures in K.
             pressures_gpa: List of pressures in GPa.
-            nqsmall_or_qppa:
+            nqsmall_or_qppa: Defines the q-mesh for the computation of the phonon DOS.
+                if > 0, it is interpreted as nqsmall
+                if < 0, it is interpreted as qppa.
+            with_elastic: False to disable to computation of elastic constants. Only available if mode == "TEC".
             ndivsm: if > 0, it's the number of divisions for the smallest segment of the path (Abinit variable).
                 if < 0, it's interpreted as the pymatgen `line_density` parameter in which the number of points
                 in the segment is proportional to its length. Typical value: -20.
@@ -82,11 +86,10 @@ class ZsisaFlow(Flow):
                 None disables the computation of the e-DOS.
             ionmov: Algorithm for ion optimization.
             tolmxf: Tolerance of Max force.
-            qha_model:
-                Specifies the QHA model type. Options are:
-                  - 'zsisa': Standard ZSISA model.
-                  - 'v_zsisa': v-ZSISA model.
-                  - 'zsisa_slab': ZSISA model adapted for slab geometries.
+            qha_model: Specifies the QHA model type. Possible values are:
+                'zsisa': Standard ZSISA model.
+                'v_zsisa': v-ZSISA model.
+                'zsisa_slab': ZSISA model adapted for slab geometries.
             with_piezo: True to compute piezoelectric tensor.
             manager: |TaskManager| instance. Use default if None.
         """
@@ -106,6 +109,10 @@ class ZsisaFlow(Flow):
         flow.qha_model = qha_model
         flow.nqsmall_or_qppa = nqsmall_or_qppa
         flow.with_piezo = with_piezo
+        flow.with_elastic = with_elastic
+
+        if not with_elastic and mode == "ECs":
+            raise ValueError(f"with_elastic = False is not compatible with {mode=}")
 
         flow.register_work(ZsisaWork.from_scf_input(scf_input, eps, mode, ngqpt, with_becs, with_quad,
                                                     nqsmall_or_qppa, ndivsm, ionmov, tolmxf,
@@ -119,15 +126,16 @@ class ZsisaFlow(Flow):
         then we create a new work for the self-consistent relaxation under thermal stress
         for each temperature and pressure.
         """
-        self.on_all_ok_num_calls += 1
         json_filepath = self.outdir.path_in("ZsisaResults.json")
         def _path(basename: str):
             return self.outdir.path_in(basename)
 
+        self.on_all_ok_num_calls += 1
+
         if self.on_all_ok_num_calls == 1:
             # Write json file with metadata and empty list of results.
-            self.write_zsisa_results_step1(json_filepath)
-            # Relaxation with thermal stress for the different (T, P).
+            self._write_zsisa_results_step1(json_filepath)
+            # Relaxation with thermal stress for the different (T, P) values.
             self.thermal_relax_work = ThermalRelaxWork.from_zsisa_flow(self, self.temperatures, self.pressures_gpa)
             self.register_work(self.thermal_relax_work)
             self.allocate(build=True)
@@ -143,10 +151,9 @@ class ZsisaFlow(Flow):
 
         return True
 
-    def write_zsisa_results_step1(self, json_filepath: str) -> None:
+    def _write_zsisa_results_step1(self, json_filepath: str) -> None:
         """
-        This method is called when the flow is completed.
-        It performs some basic post-processing of the results to facilitate further analysis.
+        Write json file with initial data.
         """
         work = self[0]
         data = {
@@ -296,18 +303,20 @@ class ThermalRelaxWork(Work):
 
     @classmethod
     def from_zsisa_flow(cls,
-                        zsisa_flow,
+                        zsisa_flow: Flow | PathLike,
                         temperatures: VectorLike,
                         pressures_gpa: VectorLike,
                         nqsmall_or_qppa: int | None = None,
                         verbose: int = 0) -> ThermalRelaxWork:
         """
         Args:
-            zsisa_flow:
+            zsisa_flow: instance of ZsisaFlow or directory hosting the Flow.
             temperatures: List of temperatures in K.
             pressures_gpa: List of pressures in GPa.
-            nqsmall_or_qppa:
-            verbose:
+            nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
+                if > 0, it is interpreted as nqsmall
+                if < 0, it is interpreted as qppa.
+            verbose: Verbosity level.
         """
         flow = Flow.as_flow(zsisa_flow)
 
@@ -323,7 +332,7 @@ class ThermalRelaxWork(Work):
         if nqsmall_or_qppa is None:
             nqsmall_or_qppa = flow[0].nqsmall_or_qppa
 
-        print(f"Computing Phonon DOS with {nqsmall_or_qppa=} ...")
+        print(f"Computing Phonon DOS using {nqsmall_or_qppa=} ...")
         work.zsisa = QHA_ZSISA.from_json_file(json_filepath, nqsmall_or_qppa, verbose=verbose)
 
         work0 = flow[0]
@@ -359,6 +368,7 @@ class ThermalRelaxWork(Work):
 
             # Attach pressure and temperature to the task.
             task = work.register_task(new_relax_input, task_class=ThermalRelaxTask)
+
             task.mode = work.mode
             task.pressure_gpa = pressure_gpa
             task.temperature = temperature
@@ -371,8 +381,8 @@ class ThermalRelaxWork(Work):
     def update_zsisa_results(self, json_filepath: str) -> None:
         """
         Compute elastic constants C at the end of the calculation.
-        Use C to obtain to reduce noise in thermal expansion.
-        Also, compute C(T, P) if self.mode == "ECs"
+        Use C to obtain to reduce noise in thermal expansion coefficients.
+        Also, compute C(T, P) if self.mode == "ECs".
 
         Args:
             json_filepath: Path to json file.
@@ -381,7 +391,7 @@ class ThermalRelaxWork(Work):
         zsisa = self.zsisa
 
         for task in self.thermal_relax_tasks:
-            # Call anaddb to get elastic tensor from the DDB file
+            # Call anaddb to get elastic tensor from the DDB file.
             ddb_filepath = task.elastic_work.outdir.path_in("out_DDB")
             with DdbFile(ddb_filepath) as ddb:
                 edata = ddb.anaget_elastic()
@@ -457,19 +467,20 @@ class ThermalRelaxTask(RelaxTask):
                 self.input.set_vars(dilatmx=1.0)
 
             self.finalized = False
-            # Restart will take care of using the output structure as the input.
+            # NB: Restart will take care of using the output structure as input.
             self.restart()
 
         else:
-            # Build work for elastic constants and attach it to the task.
-            scf_input = self.input.new_with_structure(relaxed_structure, ionmov=0, optcell=0)
-            # Remove all irdvars. Important!
-            scf_input.pop_irdvars()
-            self.elastic_work = ElasticWork.from_scf_input(
-                scf_input, with_relaxed_ion=True, with_piezo=self.flow.with_piezo
-            )
-            self.flow.register_work(self.elastic_work)
-            self.flow.allocate(build=True)
+            if self.flow.with_elastic:
+                # Build work for elastic constants and attach it to the task.
+                scf_input = self.input.new_with_structure(relaxed_structure, ionmov=0, optcell=0)
+                # Remove all irdvars before running. Important!
+                scf_input.pop_irdvars()
+                self.elastic_work = ElasticWork.from_scf_input(
+                    scf_input, with_relaxed_ion=True, with_piezo=self.flow.with_piezo
+                )
+                self.flow.register_work(self.elastic_work)
+                self.flow.allocate(build=True)
 
         return results
 
@@ -488,14 +499,14 @@ _ALPHA_COMPS = (
 @dataclasses.dataclass(kw_only=True)
 class ThermalRelaxEntry:
 
-    nqsmall_or_qppa: int
-    pressure_gpa: float                    # Pressure in GPa.
-    temperature: float                     # Temperature in K.
-    gsr_path: str                          # Path to the GSR file.
-    elastic_ddb_path: str                  # Path to the DDB file with the 2nd order derivatives wrt strain.
-    therm: np.ndarray | None               # Thermal_expansion (Voigt notation).
-    elastic: np.ndarray | None             # Elastic constants (6,6) matrix in GPa (Voigt notation).
-    gibbs_atom: float                      # Gibbs free energy per atom in eV.
+    nqsmall_or_qppa: int          # Define the q-mesh for the computation of the PHDOS.
+    pressure_gpa: float           # Pressure in GPa.
+    temperature: float            # Temperature in K.
+    gsr_path: str                 # Path to the GSR file.
+    elastic_ddb_path: str         # Path to the DDB file with the 2nd order derivatives wrt strain.
+    therm: np.ndarray | None      # Thermal_expansion (Voigt notation).
+    elastic: np.ndarray | None    # Elastic constants (6,6) matrix in GPa (Voigt notation, relaxed-ions).
+    gibbs_atom: float             # Gibbs free energy per atom in eV.
 
     def get_dict4pandas(self) -> dict:
         """
@@ -526,7 +537,7 @@ class ZsisaResults(Serializable):
     Main entry point for post-processing and visualizing the results of a Zsisa calculation.
 
     This object stores the locations of the GSR/DDB files produced by a ZSISA calculation
-    so that we can easily redo a thermal relaxation run.
+    so that we can easily redo a thermal relaxation run if needed.
     For instance, one may want to increase the list of temperatures, pressures or increase
     the q-mesh used to compute the phonon DOS via Fourier interpolation.
 
@@ -562,7 +573,7 @@ class ZsisaResults(Serializable):
 
     def __post_init__(self):
         """
-        It seems that MontyDecoder does not support nested dataclasses.
+        It seems MontyDecoder does not support nested dataclasses.
         Here we convert dict to ThermalRelaxEntry.
         """
         for ie, entry in enumerate(self.thermal_relax_entries):
@@ -644,7 +655,7 @@ class ZsisaResults(Serializable):
 
     @add_fig_kwargs
     def plot_lattice_vs_temp(self,
-                             df=None,
+                             df: pd.DataFrame | None = None,
                              fontsize: int = 8,
                              **kwargs) -> Figure:
         """
@@ -652,7 +663,7 @@ class ZsisaResults(Serializable):
 
         Args:
             df: dataframe with data. None to compute it inside the function.
-            fontsize: fontsize for legends and titles
+            fontsize: fontsize for legends and titles.
         """
         angles = ["alpha", "beta", "gamma"]
         lengths = ["a", "b", "c"]
@@ -695,7 +706,7 @@ class ZsisaResults(Serializable):
 
     @add_fig_kwargs
     def plot_thermal_expansion(self,
-                               df=None,
+                               df: pd.DataFrame | None = None,
                                fontsize: int = 8,
                                **kwargs) -> Figure:
         """
@@ -703,7 +714,7 @@ class ZsisaResults(Serializable):
 
         Args:
             df: dataframe with data. None to compute it inside the function.
-            fontsize: fontsize for legends and titles
+            fontsize: fontsize for legends and titles.
         """
         if not self.has_thermal_expansion:
             raise ValueError("Thermal expansion coefficients are not available!")
@@ -747,7 +758,7 @@ class ZsisaResults(Serializable):
     def plot_elastic_vs_t(self,
                           pressure_gpa: float | None = None,
                           c_select: str = "symmetry",
-                          df=None,
+                          df: pd.DataFrame | None = None,
                           ax=None,
                           colormap: str = "jet",
                           fontsize: int = 8,
@@ -763,7 +774,7 @@ class ZsisaResults(Serializable):
             ax: |matplotlib-Axes| or None if a new figure should be created.
             colormap: Color map. Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
-            fontsize: fontsize for legends and titles
+            fontsize: fontsize for legends and titles.
         """
         if not self.has_elastic:
             raise ValueError("T-dependent elastic constants are not available!")
@@ -800,7 +811,7 @@ class ZsisaResults(Serializable):
     @add_fig_kwargs
     def plot_elastic_vs_t_and_p(self,
                                 c_select: str = "symmetry",
-                                df=None,
+                                df: pd.DataFrame | None = None,
                                 ax=None,
                                 colormap: str = "jet",
                                 fontsize: int = 8,
@@ -816,7 +827,7 @@ class ZsisaResults(Serializable):
             ax: |matplotlib-Axes| or None if a new figure should be created.
             colormap: Color map. Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
-            fontsize: fontsize for legends and titles
+            fontsize: fontsize for legends and titles.
         """
         if not self.has_elastic:
             raise ValueError("T-dependent elastic constants are not available!")
@@ -859,20 +870,20 @@ class ZsisaResults(Serializable):
 
     @add_fig_kwargs
     def plot_gibbs(self,
-                   df=None,
+                   df: pd.DataFrame | None = None,
                    ax=None,
                    colormap: str = "jet",
                    fontsize: int = 8,
                    **kwargs) -> Figure:
         """
-        Plot Gibbs energy per atom in eV as a function of T grouped by pressure.
+        Plot Gibbs energy per atom in eV as a function of T grouped by pressure in Gpa.
 
         Args:
             df: dataframe with data. None to compute it inside the function.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             colormap: Color map. Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
-            fontsize: fontsize for legends and titles
+            fontsize: fontsize for legends and titles.
         """
         if df is None:
             df = self.get_dataframe()
@@ -892,7 +903,6 @@ class ZsisaResults(Serializable):
         )
 
         plot_xy_with_hue(df, "temperature", "gibbs_atom", ax=ax, **plt_kwargs)
-        #set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel="Elastic constant (GPa)")
 
         #if "title" not in kwargs:
         #    fig.suptitle(f"Temperature-dependent elastic constants at P={pressure_gpa} (GPa)")

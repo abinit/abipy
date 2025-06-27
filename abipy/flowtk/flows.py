@@ -19,7 +19,7 @@ import pandas as pd
 
 from io import StringIO
 from pprint import pprint
-from typing import Any, Union, Iterator, Generator
+from typing import Any, Iterator, Generator
 from tabulate import tabulate
 from pydispatch import dispatcher
 from monty.collections import dict2namedtuple
@@ -321,8 +321,7 @@ class Flow(Node, NodeContainer, MSONable):
             spectator_mode: If True, the nodes of the flow are not connected by signals.
                 This option is usually used when we want to read a flow
                 in read-only mode and we want to avoid callbacks that can change the flow.
-            remove_lock:
-                True to remove the file lock if any (use it carefully).
+            remove_lock: True to remove the file lock if any (use it carefully).
         """
         filepath = os.path.expanduser(filepath)
         if os.path.isdir(filepath):
@@ -392,7 +391,7 @@ class Flow(Node, NodeContainer, MSONable):
     def __iter__(self) -> Iterator[Work]:
         return self.works.__iter__()
 
-    def __getitem__(self, slice) -> Union[Work, list[Work]]:
+    def __getitem__(self, slice) -> Work | list[Work]:
         return self.works[slice]
 
     def set_pyfile(self, pyfile: str) -> None:
@@ -406,7 +405,7 @@ class Flow(Node, NodeContainer, MSONable):
         self._pyfile = os.path.abspath(pyfile)
 
     @property
-    def pyfile(self) -> Union[str, None]:
+    def pyfile(self) -> str | None:
         """
         Absolute path of the python script used to generate the flow.
         None if unset. Set by `set_pyfile`

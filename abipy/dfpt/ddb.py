@@ -8,6 +8,7 @@ import sys
 import os
 import tempfile
 import itertools
+import dataclasses
 import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
@@ -40,21 +41,8 @@ from abipy.dfpt.elastic import ElasticData
 from abipy.dfpt.raman import Raman
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, get_figs_plotly, get_fig_plotly,
-                                  add_plotly_fig_kwargs, PlotlyRowColDesc, plotlyfigs_to_browser, push_to_chart_studio)
-
-
-SUBSCRIPT_UNICODE = {
-                "0": "₀",
-                "1": "₁",
-                "2": "₂",
-                "3": "₃",
-                "4": "₄",
-                "5": "₅",
-                "6": "₆",
-                "7": "₇",
-                "8": "₈",
-                "9": "₉",
-            }
+                                  add_plotly_fig_kwargs, PlotlyRowColDesc, plotlyfigs_to_browser, push_to_chart_studio,
+                                  SUBSCRIPT_UNICODE, plot_xy_with_hue, symbol_with_components, set_visible)
 
 
 class DdbError(Exception):
@@ -1242,7 +1230,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def get_coarse(self, ngqpt_coarse, filepath=None) -> DdbFile:
         """
-        Return a |DdbFile| on a coarse q-mesh
+        Return a new |DdbFile| on a coarse q-mesh.
 
         Args:
             ngqpt_coarse: list of ngqpt indexes that must be a sub-mesh of the original ngqpt
@@ -1674,7 +1662,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         with AnaddbNcFile(anaddbnc_path) as anaddbnc:
             dij = anaddbnc.dchide
 
-        if units=="pm/V":
+        if units == "pm/V":
             dij *= 16 * np.pi**2 * abu.Bohr_Ang**2 * 1e-8 * abu.eps0 / abu.e_Cb
 
         if voigt:
@@ -1719,7 +1707,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Returns:
             An instance of a Phonopy object that contains the IFC, BEC and dieletric tensor data.
         """
-
         if ngqpt is None: ngqpt = self.guessed_ngqpt
         if supercell_matrix is None:
             supercell_matrix = np.eye(3) * ngqpt
@@ -1758,7 +1745,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             anaddb_kwargs: additional kwargs for anaddb.
             return_input: True if the |AnaddbInput| object should be returned as 2nd argument
         """
-
         if ngqpt is None: ngqpt = self.guessed_ngqpt
 
         inp = AnaddbInput(self.structure, anaddb_kwargs=anaddb_kwargs)
@@ -2017,7 +2003,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return False
 
-    def insert_block(self, data, replace=True) -> bool:
+    def insert_block(self, data: dict, replace: bool = True) -> bool:
         """
         Inserts a block in the list. Can replace a block if already present.
 
@@ -2046,7 +2032,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         self.blocks.append(data)
         return True
 
-    def remove_block(self, dord, qpt=None, qpt3=None) -> bool:
+    def remove_block(self, dord: int, qpt=None, qpt3=None) -> bool:
         """
         Removes one block from the list of blocks in the ddb
 
@@ -2091,7 +2077,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return d
 
-    def set_2nd_ord_data(self, data, replace=True) -> None:
+    def set_2nd_ord_data(self, data: dict, replace: bool = True) -> None:
         """
         Insert the blocks corresponding to the data provided for the second order perturbations.
 
@@ -2215,6 +2201,11 @@ class Zeffs(Has_Structure, MSONable):
     This object stores effective charges and provides tools for data analysis.
     """
 
+    # Mapping component string --> numpy indices.
+    comps2inds = {"xx": (0, 0), "yy": (1, 1), "zz": (2, 2),
+                  "xy": (0, 1), "xz": (0, 2), "yx": (1, 0),
+                  "yz": (1, 2), "zx": (2, 0), "zy": (2, 1)}
+
     @pmg_serialize
     def as_dict(self) -> dict:
         """Return dictionary with JSON serialization in MSONable format."""
@@ -2304,8 +2295,9 @@ class Zeffs(Has_Structure, MSONable):
         """
         aview = self._get_atomview(view, select_symbols=elements, verbose=verbose)
 
-        comps2inds = {"xx": (0,0), "yy": (1,1), "zz": (2,2),
-                     "xy": (0, 1), "xz": (0, 2), "yx": (1, 0), "yz": (1, 2), "zx": (2, 0), "zy": (2, 1)}
+
+
+
         rows = []
         for iatom, wlabel in zip(aview.iatom_list, aview.wyck_labels, strict=True):
             site = self.structure[iatom]
@@ -2316,7 +2308,7 @@ class Zeffs(Has_Structure, MSONable):
             d["frac_coords"] = site.frac_coords
             #d["cart_coords"] = site.coords
             d["wyckoff"] = wlabel
-            for k, ind in comps2inds.items():
+            for k, ind in self.comps2inds.items():
                 d[k] = zstar[ind]
 
             if with_geo:
@@ -2343,8 +2335,9 @@ class Zeffs(Has_Structure, MSONable):
 
 class ZeffsList(list):
     """
-    A list of effective charges associated to a list of structures or the same structure.
-    Each structure shall have the same number of atoms, same element for site and the same chemical formula.
+    A list of effective charges associated to a list of structures or to the same structure.
+    Each structure shall have the same number of atoms, same element for site
+    and the same chemical formula.
     """
 
     def append(self, obj) -> None:
@@ -2556,7 +2549,7 @@ class DielectricTensorGenerator(Has_Structure):
 
     @add_fig_kwargs
     def plot(self, w_min=0, w_max=None, gamma_ev=1e-4, num=500, component='diag', reim="reim", units='eV',
-             with_phfreqs=True, ax=None, fontsize=12, **kwargs) -> Figure:
+             with_phfreqs=True, ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the selected components of the dielectric tensor as a function of frequency with matplotlib.
 
@@ -2760,7 +2753,7 @@ class DielectricTensorGenerator(Has_Structure):
 
     @add_fig_kwargs
     def plot_e0w_qdirs(self, qdirs=None, w_min=0, w_max=None, gamma_ev=1e-4, num=500, reim="reim", func="direct",
-                       units='eV', with_phfreqs=True, ax=None, fontsize=12, **kwargs) -> Figure:
+                       units='eV', with_phfreqs=True, ax=None, fontsize=8, **kwargs) -> Figure:
         r"""
         Plots the dielectric tensor and/or -epsinf_q**2 / \epsilon_q along a set of specified directions.
         With \epsilon_q as defined in eq. (56) in :cite:`Gonze1997` PRB55, 10355 (1997).
@@ -2790,11 +2783,10 @@ class DielectricTensorGenerator(Has_Structure):
         for i, w in enumerate(wmesh):
             t[i] = self.tensor_at_frequency(w, units=units, gamma_ev=gamma_ev)
 
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
-
         if 'linewidth' not in kwargs:
             kwargs['linewidth'] = 2
 
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.set_xlabel('Frequency {}'.format(phunit_tag(units)))
         ax.set_ylabel(r'$\epsilon(\omega)$')
         ax.grid(True)
@@ -2832,7 +2824,6 @@ class DielectricTensorGenerator(Has_Structure):
                     ax.plot(wmesh, reimf(tt), label=label, **kwargs)
 
         self._add_phfreqs(ax, units, with_phfreqs)
-
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
@@ -2867,7 +2858,7 @@ class DielectricTensorGenerator(Has_Structure):
             fig.add_scatter(x=wvals, y=np.zeros_like(wvals), mode='markers', marker=dict(color='blue', size=10),
                             name='', row=rcd.ply_row, col=rcd.ply_col, showlegend=False)
 
-    def reflectivity(self, qdir, w, gamma_ev=1e-4, units='eV'):
+    def reflectivity(self, qdir, w, gamma_ev=1e-4, units='eV') -> np.ndarray:
         """
         Calculates the reflectivity from the dielectric tensor along the specified direction
         according to Eq. (58) in :cite:`Gonze1997` PRB55, 10355 (1997).
@@ -2883,19 +2874,17 @@ class DielectricTensorGenerator(Has_Structure):
 
         Returns: the value of the reflectivity.
         """
-
         qdir = np.array(qdir) / np.linalg.norm(qdir)
         t = self.tensor_at_frequency(w, units=units, gamma_ev=gamma_ev)
 
         n = np.einsum("i,ij,j", qdir, t, qdir) ** 0.5
-
         r = (n - 1) / (n + 1)
 
         return (r * r.conjugate()).real
 
     @add_fig_kwargs
     def plot_reflectivity(self, qdirs=None, w_min=0, w_max=None, gamma_ev=1e-4, num=500,
-                          units='eV', with_phfreqs=True, ax=None, fontsize=12, **kwargs) -> Figure:
+                          units='eV', with_phfreqs=True, ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the reflectivity from the dielectric tensor along the specified directions,
         according to eq. (58) in :cite:`Gonze1997` PRB55, 10355 (1997).
@@ -2926,29 +2915,118 @@ class DielectricTensorGenerator(Has_Structure):
             qdirs = [qdirs]
 
         qdirs = np.array(qdirs, dtype=float)
-
         qdirs /= np.linalg.norm(qdirs, axis=1)[:, None]
 
         n = np.einsum("li,kij,lj->lk", qdirs, t, qdirs) ** 0.5
-
         r = np.abs((n - 1) / (n + 1)) ** 2
-
-        ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         if 'linewidth' not in kwargs:
             kwargs['linewidth'] = 2
 
+        ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.set_xlabel('Frequency {}'.format(phunit_tag(units)))
         ax.set_ylabel(r'$R(\omega)$')
         ax.grid(True)
 
         for i in range(len(qdirs)):
-            label = f"$R_{{q{i}}}$"
-            ax.plot(wmesh, r[i], label=label, **kwargs)
+            ax.plot(wmesh, r[i], label=f"$R_{{q{i}}}$", **kwargs)
 
         self._add_phfreqs(ax, units, with_phfreqs)
-
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
+
+        return fig
+
+
+@dataclasses.dataclass(kw_only=True)
+class EpsinfResults:
+    """
+    Object returned by anacompare_epsinf
+    Provides methods to perform convergence studies.
+    """
+    df: pd.DataFrame                      # DataFrame with Voigt indices as columns.
+    epsinf_list: list[DielectricTensor]   # List of |DielectricTensor| objects with eps^{inf}
+
+    @add_fig_kwargs
+    def plot(self, x_name, abs_conv=0.1, voigt_comps=None,
+             hue=None, fontsize=8, **kwargs) -> Figure:
+        """
+        Plot convergence of the eps_inf wrt ``x_name`` variable.
+
+        Args:
+            x_name: Name of the column used as x-value.
+            hue: Variable that define subsets of the data, which will be drawn on separate lines.
+                None to disable grouping.
+            abs_conv: If not None, show absolute convergence window.
+            voigt_comps:
+            fontsize: Legend and label fontsize.
+        """
+        voigt_comps = ["xx", "yy", "zz", "yz", "xz", "xy"] if voigt_comps is None else voigt_comps
+        labels = symbol_with_components(r"\epsilon", voigt_comps)
+
+        nrows, ncols = len(voigt_comps), 1
+        if len(voigt_comps) % 2 == 0:
+            nrows, ncols = len(voigt_comps) // 2, 2
+
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
+
+        plt_kwargs = dict(
+            abs_conv=abs_conv,
+            hue=hue,
+            col2label=dict(zip(voigt_comps, labels, strict=True)),
+            fontsize=fontsize,
+            show=False,
+        )
+
+        voigt_comps = np.reshape(voigt_comps, (nrows, ncols))
+
+        for ii, jj in itertools.product(range(nrows), range(ncols)):
+            v_name, ax = voigt_comps[ii, jj], ax_mat[ii, jj]
+            plot_xy_with_hue(self.df, x_name, v_name, ax=ax, **plt_kwargs)
+
+            if ii != nrows - 1:
+                set_visible(ax, False, *["xlabel"])
+
+        return fig
+
+
+@dataclasses.dataclass(kw_only=True)
+class BecsResults:
+    df: pd.DataFrame
+    becs_list: list
+
+    @add_fig_kwargs
+    def plot(self, x_name, abs_conv=0.1, fontsize=8, **kwargs) -> Figure:
+        """
+        Plot convergence of the BECS wrt ``x_name`` variable.
+
+        Args:
+            x_name: Name of the column used as x-value.
+            abs_conv: If not None, show absolute convergence window.
+            fontsize: Legend and label fontsize.
+        """
+        zeff_comps = list(Zeffs.comps2inds.keys())
+        labels = symbol_with_components(r"Z", zeff_comps)
+
+        nrows, ncols = 3, 3
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
+
+        plt_kwargs = dict(
+            abs_conv=abs_conv,
+            col2label=dict(zip(zeff_comps, labels, strict=True)),
+            fontsize=fontsize,
+            show=False,
+        )
+
+        zeff_comps = np.reshape(zeff_comps, (nrows, ncols))
+
+        for ii, jj in itertools.product(range(nrows), range(ncols)):
+            z_name, ax = zeff_comps[ii, jj], ax_mat[ii, jj]
+            plot_xy_with_hue(self.df, x_name, z_name, ax=ax, hue="site_index", **plt_kwargs)
+
+            if ii != nrows - 1:
+                set_visible(ax, False, *["xlabel"])
 
         return fig
 
@@ -3247,7 +3325,7 @@ class DdbRobot(Robot):
         return dict2namedtuple(df=pd.concat(df_list, ignore_index=True),
                                elastdata_list=elastdata_list)
 
-    def anacompare_becs(self, ddb_header_keys=None, chneut=1, with_path=False, verbose=0):
+    def anacompare_becs(self, ddb_header_keys=None, chneut=1, with_path=False, verbose=0) -> BecsResults:
         """
         Compute Born effective charges for all DDBs in the robot and build DataFrame.
         with values and metadata. Useful for convergence studies.
@@ -3259,15 +3337,15 @@ class DdbRobot(Robot):
             with_path: True to add DDB path to dataframe
             verbose: verbosity level. Set it to a value > 0 to get more information
 
-        Return: ``namedtuple`` with the following attributes::
+        Return: ``BecsResults`` with the following attributes::
 
-            df: DataFrame.
+            df: pandas DataFrame.
             becs_list: list of Zeffs objects.
         """
         ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
         df_list, becs_list = [], []
         for label, ddb in self.items():
-            # Invoke anaddb to compute Becs
+            # Invoke anaddb to compute Becs.
             _, becs = ddb.anaget_epsinf_and_becs(chneut=chneut, verbose=verbose)
             becs_list.append(becs)
             df = becs.get_dataframe()
@@ -3275,6 +3353,7 @@ class DdbRobot(Robot):
             # Add metadata to the dataframe.
             df["formula"] = ddb.structure.formula
             df["chneut"] = chneut
+            df["nkpt"] = ddb.header["nkpt"]
             for k in ddb_header_keys:
                 df[k] = ddb.header[k]
 
@@ -3284,15 +3363,15 @@ class DdbRobot(Robot):
             df_list.append(df)
 
         # Concatenate dataframes.
-        return dict2namedtuple(df=pd.concat(df_list, ignore_index=True).sort_values(by="site_index"),
-                               becs_list=becs_list)
+        return BecsResults(df=pd.concat(df_list, ignore_index=True).sort_values(by="site_index"),
+                           becs_list=becs_list)
 
     def anacompare_epsinf(self,
                           ddb_header_keys: list[str] | None = None,
                           chneut: int = 1,
                           tol: float = 1e-3,
                           with_path: bool = False,
-                          verbose: int = 0):
+                          verbose: int = 0) -> EpsinfResults:
         r"""
         Compute (eps^\inf) electronic dielectric tensor for all DDBs in the robot and build DataFrame.
         with Voigt indices as columns + metadata. Useful for convergence studies.
@@ -3304,7 +3383,7 @@ class DdbRobot(Robot):
             with_path: True to add DDB path to dataframe
             verbose: verbosity level. Set it to a value > 0 to get more information.
 
-        Return: ``namedtuple`` with the following attributes::
+        Return: ``EpsinfResults`` with the following attributes::
 
             df: DataFrame with Voigt indices as columns.
             epsinf_list: List of |DielectricTensor| objects with eps^{inf}
@@ -3320,6 +3399,7 @@ class DdbRobot(Robot):
             # Add metadata to the dataframe.
             df["formula"] = ddb.structure.formula
             df["chneut"] = chneut
+            df["nkpt"] = ddb.header["nkpt"]
             for k in ddb_header_keys:
                 df[k] = ddb.header[k]
 
@@ -3328,7 +3408,7 @@ class DdbRobot(Robot):
             df_list.append(df)
 
         # Concatenate dataframes.
-        return dict2namedtuple(df=pd.concat(df_list, ignore_index=True), epsinf_list=epsinf_list)
+        return EpsinfResults(df=pd.concat(df_list, ignore_index=True), epsinf_list=epsinf_list)
 
     def anacompare_eps0(self, ddb_header_keys=None, asr=2, chneut=1, tol=1e-3, with_path=False, verbose=0):
         """

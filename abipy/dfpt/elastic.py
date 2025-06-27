@@ -301,7 +301,7 @@ class ElasticData(Has_Structure, MSONable):
 
         return "\n".join(lines)
 
-    def get_tensor(self, tensor_name: str, tol=None):
+    def get_tensor(self, tensor_name: str, tol: float | None = None):
         """
         Return tensor from its name `tensor_name`.
         Set to zero all entries below `tol` if `tol` is not None.
@@ -311,7 +311,10 @@ class ElasticData(Has_Structure, MSONable):
         if tol is not None: tensor = tensor.zeroed(tol=tol)
         return tensor
 
-    def name_tensor_list(self, tensor_names=None, tensor_type="all", tol=None) -> list:
+    def name_tensor_list(self,
+                        tensor_names: list[str] | None = None,
+                        tensor_type: str = "all",
+                        tol: float | None = None) -> list:
         """
         List of (name, tensor) tuples. Only tensors stored in the object are returned.
 
@@ -336,7 +339,7 @@ class ElasticData(Has_Structure, MSONable):
 
         return l
 
-    def fit_to_structure(self, structure=None, symprec=0.1) -> ElasticData:
+    def fit_to_structure(self, structure=None, symprec: float = 0.1) -> ElasticData:
         """
         Return new ElasticData object with tensors that are invariant with respect to symmetry
         operations corresponding to `structure`.
@@ -382,7 +385,9 @@ class ElasticData(Has_Structure, MSONable):
 
         return self.__class__(structure, self.params, **kwargs)
 
-    def get_elastic_tensor_dataframe(self, tensor_name="elastic_relaxed", tol=1e-3) -> pd.DataFrame:
+    def get_elastic_tensor_dataframe(self,
+                                     tensor_name: str = "elastic_relaxed",
+                                     tol: float = 1e-3) -> pd.DataFrame:
         """
         Args:
             tensor_name:
@@ -398,7 +403,9 @@ class ElasticData(Has_Structure, MSONable):
 
         return pd.DataFrame(rows, index=columns, columns=columns)
 
-    def get_piezoelectric_tensor_dataframe(self, tensor_name="piezo_relaxed", tol=1e-5) -> pd.DataFrame:
+    def get_piezoelectric_tensor_dataframe(self,
+                                           tensor_name: str = "piezo_relaxed",
+                                           tol: float = 1e-5) -> pd.DataFrame:
         """
         Args:
             tensor_name:
@@ -424,7 +431,10 @@ class ElasticData(Has_Structure, MSONable):
         return self.get_voigt_dataframe(tensor_names=self.ALL_PIEZOELECTRIC_TENSOR_NAMES,
                                         voigt_as_index=voigt_as_index, tol=tol)
 
-    def get_voigt_dataframe(self, tensor_names, voigt_as_index=True, tol=None):
+    def get_voigt_dataframe(self,
+                            tensor_names: list[str],
+                            voigt_as_index: bool = True,
+                            tol: float | None = None) -> pd.DataFrame:
         """
         Return |pandas-DataFrame| with Voigt indices as columns (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
@@ -452,17 +462,16 @@ class ElasticData(Has_Structure, MSONable):
             df = df.drop(columns="tensor_name").T
             df.index.name = "voigt_cinds"
             return df.reset_index()
-            #return df
         else:
             return df
 
     def get_elastic_properties_dataframe(self,
-                                        tensor_names="all",
-                                        properties_as_index=False,
-                                        include_base_props=True,
-                                        ignore_errors=False,
-                                        fit_to_structure=False,
-                                        symprec=0.1) -> pd.DataFrame:
+                                        tensor_names: str = "all",
+                                        properties_as_index: bool = False,
+                                        include_base_props: bool = True,
+                                        ignore_errors: bool = False,
+                                        fit_to_structure: bool = False,
+                                        symprec: float = 0.1) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with properties derived from the elastic tensor
         and the associated structure

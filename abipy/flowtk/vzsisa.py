@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Workflows for calculations within the quasi-harmonic approximation.
+Workflows for calculations within the VZISA approximation to the quasi-harmonic approximation.
 
 See [Phys. Rev. B 110, 014103](https://doi.org/10.1103/PhysRevB.110.014103)
 """
@@ -8,11 +8,10 @@ from __future__ import annotations
 
 import dataclasses
 import numpy as np
-#import abipy.core.abinit_units as abu
 
 from abipy.tools.serialization import Serializable
 from abipy.core.structure import Structure
-from abipy.tools.typing import PathLike, VectorLike #, Figure
+from abipy.tools.typing import PathLike, VectorLike
 from abipy.abio.inputs import AbinitInput
 from abipy.dfpt.vzsisa import Vzsisa
 from abipy.flowtk.works import Work, PhononWork
@@ -72,8 +71,6 @@ class VzsisaFlow(Flow):
 
     def finalize(self):
         """
-        Finalize the flow after its completion.
-
         This method is called by the scheduler when the flow finishes.
         It generates a `vzsisa.json` file in the output directory, which can be used
         to build the Vzsisa object for post-processing.
@@ -117,8 +114,8 @@ class VzsisaFlow(Flow):
 class VzsisaWork(Work):
     """
     This work performs the structural relaxation of the initial structure,
-    then a set of distorted structures is generated and the relaxed structures are used
-    to compute phonons, BECS and the dielectric tensor with DFPT.
+    then a set of distorted structures is generated and the relaxed structures
+    are used to compute phonons, BECS and the dielectric tensor with DFPT.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VzsisaWork

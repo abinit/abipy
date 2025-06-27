@@ -19,8 +19,8 @@ __all__ = [
 
 class GsKmeshConvWork(Work):
     """
-    This work performs convergence studies of GS properties
-    with respect to the k-mesh.
+    This work performs convergence study of GS properties
+    with respect to the k-point sampling.
 
     It produces ...
 
@@ -29,7 +29,9 @@ class GsKmeshConvWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list) -> GsKmeshConvWork:
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       nksmall_list: list) -> GsKmeshConvWork:
         """
         Build the work from a `scf_input` for a GS SCF run and a list
         with the smallest number of divisions for the k-mesh.
@@ -72,7 +74,7 @@ robot.plot_convergence_items(items, sortby="nkpt", abs_conv=abs_conv)
 class GsKmeshTsmearConvWork(Work):
     """
     This work performs convergence studies of GS properties
-    with respect to the k-mesh and the electronic smearing.
+    with respect to the k-point sampling and the electronic smearing.
 
     It produces ...
 
@@ -81,7 +83,10 @@ class GsKmeshTsmearConvWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list, tsmear_list: list) -> GsKmeshTsmearConvWork:
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       nksmall_list: list,
+                       tsmear_list: list) -> GsKmeshTsmearConvWork:
         """
         Build the work from a `scf_input` for a GS SCF run including `occopt`
         and a list with the smallest number of divisions for the k-mesh.
@@ -91,11 +96,10 @@ class GsKmeshTsmearConvWork(Work):
             raise ValueError(f"scf_input should define occopt but found: {occopt}")
 
         work = cls()
-        for tsmear in tsmear_list:
-            for nksmall in nksmall_list:
-                new_inp = scf_input.new_with_vars(tsmear=tsmear)
-                new_inp.set_autokmesh(nksmall)
-                work.register_scf_task(new_inp)
+        for tsmear, nksmall in itertools.product(tsmear_list, nksmall_list):
+           new_inp = scf_input.new_with_vars(tsmear=tsmear)
+           new_inp.set_autokmesh(nksmall)
+           work.register_scf_task(new_inp)
 
         return work
 
@@ -148,8 +152,12 @@ class EosWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput,
-                       npoints=4, deltap_vol=0.25, ecutsm=0.5, move_atoms=True,
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       npoints: int = 4,
+                       deltap_vol: float = 0.25,
+                       ecutsm: float = 0.5,
+                       move_atoms: bool = True,
                        manager=None) -> EosWork:
         """
         Build an EosWork from an AbinitInput for GS-SCF.
