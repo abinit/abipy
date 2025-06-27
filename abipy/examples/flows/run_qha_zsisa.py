@@ -49,6 +49,7 @@ ZsisaResults.json:
 """
 import sys
 import os
+import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
 

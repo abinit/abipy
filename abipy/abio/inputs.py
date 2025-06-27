@@ -2440,6 +2440,12 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return multi
 
+    #def supports_quad(self):
+    #    if (nspinor := self.get("nspinor", 1)) == 2:
+    #        raise ValueError("dynamical quadrupoles with {nspinor=} are not supported")
+    #    if any(pseudo.is_paw for pseudo in self.pseudos):
+    #        raise ValueError("dynamical quadrupoles with PAW are not supported."
+
     def make_quad_input(self, tolerance=None, kptopt=2, nstep=100, manager=None) -> AbinitInput:
         """
         Return an |AbinitInput| for the calculation of dynamical quadrupoles..

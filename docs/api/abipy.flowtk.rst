@@ -41,6 +41,14 @@ abipy.flowtk.abitimer module
    :undoc-members:
    :show-inheritance:
 
+abipy.flowtk.dfpt\_flows module
+-------------------------------
+
+.. automodule:: abipy.flowtk.dfpt_flows
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 abipy.flowtk.dfpt\_works module
 -------------------------------
 

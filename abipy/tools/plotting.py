@@ -65,6 +65,36 @@ linestyles = OrderedDict(
      ('densely_dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))]
 )
 
+SUBSCRIPT_UNICODE = {
+                "0": "₀",
+                "1": "₁",
+                "2": "₂",
+                "3": "₃",
+                "4": "₄",
+                "5": "₅",
+                "6": "₆",
+                "7": "₇",
+                "8": "₈",
+                "9": "₉",
+            }
+
+def symbol_with_components(symbol: str, components: list[str], sub_or_sub: str = "sub") -> list[str]:
+    r"""
+    Given a latex symbol, and a list of components,
+    build and return list of latex strings.
+
+        voigt_comps = ["xx", "yy", "zz", "yz", "xz", "xy"]
+        symbol_with_components(r"\epsilon" voigt_comps)
+    """
+    pre = {"sub": "_", "sup": "^"}[sub_or_sub]
+    symbol = symbol.replace("$", "")
+    latex_strings = []
+    for comp in list_strings(components):
+        latex_strings.append("$" + (symbol + "%s{%s}" % (pre, comp) + "$"))
+
+    return latex_strings
+
+
 
 def add_fig_kwargs(func: Callable) -> Callable:
     """
@@ -719,8 +749,8 @@ def plot_xy_with_hue(data: pd.DataFrame,
         _plot_key_grp("nohue", data, span_style)
 
     ax.grid(True)
-    ax.set_xlabel(x if col2label is None else col2label[x])
-    ax.set_ylabel(y if col2label is None else col2label[y])
+    ax.set_xlabel(x if col2label is None else col2label.get(x, x))
+    ax.set_ylabel(y if col2label is None else col2label.get(y, y))
 
     set_axlims(ax, xlims, "x")
     set_axlims(ax, ylims, "y")

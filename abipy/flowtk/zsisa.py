@@ -391,7 +391,7 @@ class ThermalRelaxWork(Work):
         zsisa = self.zsisa
 
         for task in self.thermal_relax_tasks:
-            # Call anaddb to get elastic tensor from the DDB file
+            # Call anaddb to get elastic tensor from the DDB file.
             ddb_filepath = task.elastic_work.outdir.path_in("out_DDB")
             with DdbFile(ddb_filepath) as ddb:
                 edata = ddb.anaget_elastic()
@@ -467,7 +467,7 @@ class ThermalRelaxTask(RelaxTask):
                 self.input.set_vars(dilatmx=1.0)
 
             self.finalized = False
-            # NB: Restart will take care of using the output structure as the input.
+            # NB: Restart will take care of using the output structure as input.
             self.restart()
 
         else:
