@@ -3460,8 +3460,7 @@ def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True) -> pd.Da
 
     Args:
         ebands_objects: List of objects that can be converted to structure.
-            Support netcdf filenames or |ElectronBands| objects
-            See ``ElectronBands.as_ebands`` for the complete list.
+            Support netcdf filenames or |ElectronBands| objects. See ``ElectronBands.as_ebands`` for the complete list.
         index: Index of the dataframe.
         with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
 
@@ -3846,7 +3845,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 By default, the four electronic states defining the fundamental and the direct gaps
                 are considered as initial state (not available for metals).
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ```(left, right)``
-                   or scalar e.g. ``left``. If left (right) is None, default values are used
+                or scalar e.g. ``left``. If left (right) is None, default values are used
             fontsize: fontsize for subtitles.
 
         Returns: |matplotlib-Figure|
@@ -5123,7 +5122,6 @@ class ElectronDosPlotter(NotebookWriter):
                 Meaningful only if nsppol == 2.
                 "automatic" to use "resolved" if at least one DOS is polarized.
             e0: Option used to define the zero of energy in the band structure plot. Possible values::
-
                 - ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
                    Note that, by default, the Fermi energy is taken from the band structure object
                    i.e. the Fermi energy computed at the end of the SCF file that produced the density.
@@ -5134,7 +5132,6 @@ class ElectronDosPlotter(NotebookWriter):
                    Available only if edos_objects is not None
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to ``e0 = 0``.
-
             sharex, sharey: True if x (y) axis should be shared.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
@@ -5217,7 +5214,6 @@ class ElectronDosPlotter(NotebookWriter):
                    Available only if edos_objects is not None
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to ``e0 = 0``.
-
             sharex, sharey: True if x (y) axis should be shared.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
             fontsize: Axis_label and subtitle fontsize.

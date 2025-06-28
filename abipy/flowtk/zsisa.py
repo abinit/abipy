@@ -29,6 +29,51 @@ class ZsisaFlow(Flow):
     """
     Flow for QHA calculations with the ZSISA approximation.
     This is the main entry point for client code.
+    See <https://arxiv.org/pdf/2503.09531>.
+
+    This AbiPy flow performs the following operations:
+
+    1) The initial structure is relaxed and a minimum set of deformed configurations is generated.
+
+    2) The atomic positions in the deformed structures are relaxed at fixed cell,
+       and the relaxed configurations are then used to compute phonons, Born-effective charges,
+       the electronic dielectric tensor (eps_inf), and dynamical, quadrupoles with DFPT.
+
+    3) Phonon DOSes are computed for all the deformed structures by interpolating the interatomic
+       forces constants on a much denser q-mesh, and the results are used to compute the thermal stresse.
+
+    4) An iterative process is used for determining lattice parameters at temperature T and external pressure P.
+       The process begins with an initial guess for the lattice configuration,
+       followed by the computation of thermal and BO stresses.
+       A target stress is defined based on thermal stress and P, and the lattice and atomic positions
+       are relaxed iteratively until the target stress matches the BO stress and the BO forces are zeroed,
+       ensuring convergence to the optimal lattice configuration.
+
+    5) Finally, relaxed-ions elastic constants for the thermal-relaxed configurations
+       are optionally computed with DFPT.
+
+    The final results are stored in the ``outdata`` directory of the flow.
+    Two files are produced at the end of the run:
+
+    zsisa_data.csv:
+
+        lattice parameters, thermal expansion, and elastic tensor components for each T and P in CSV format.
+
+    ZsisaResults.json:
+
+        JSON file with the location of the different files (GSR.nc, DDB) on the filesystem.
+        To reconstruct a python object from file, use:
+
+
+    .. code-block:: python
+
+        from abipy.zsisa import ZsisaResults
+        data = ZsisaResults.json_load("ABSPATH_TO_FILE")
+
+        # Post-processing methods.
+        data.get_dataframe()
+        data.plot_lattice_vs_temp()
+        data.plot_thermal_expansion()
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ZsisaFlow

@@ -17,7 +17,7 @@ from abipy.tools.typing import Figure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, rotate_ticklabels
 from abipy.tools.tensors import Tensor, DielectricTensor, NLOpticalSusceptibilityTensor
 from abipy.dfpt.ifc import InteratomicForceConstants
-from abipy.dfpt.ddb import Zeffs
+from abipy.dfpt.ddb import Zeffs, DynQuad
 from abipy.dfpt.elastic import ElasticData
 
 
@@ -162,13 +162,23 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             return None
 
     @cached_property
-    def becs(self) -> Zeffs:
+    def becs(self) -> Zeffs | None:
         """
         Born effective charges. None if the file does not contain this information.
         """
-        params = {k: self.params[k] for k in ("chneut", )}
         try:
-            return Zeffs("Ze", self.r.read_value("becs_cart"), self.structure, params)
+            return Zeffs("Ze", self.r.read_value("becs_cart"), self.structure, self.params)
+        except Exception as exc:
+            return None
+
+    @cached_property
+    def dyn_quad(self) -> DynQuad | None:
+        try:
+            # First two dimension are associated to the q-point, then atomic perturbation in Cart coords.
+            # nctkarr_t('quadrupoles_cart', "dp", 'three, three, three, number_of_atoms')
+            quad_cart = self.r.read_value("quadrupoles_cart")
+            quad_cart = np.swapaxes(quad_cart, -1, -2)
+            return DynQuad(quad_cart, self.structure, self.params)
         except Exception as exc:
             return None
 
