@@ -2281,7 +2281,7 @@ class Zeffs(Has_Structure, MSONable):
                       with_geo: bool = False,
                       with_spglib: bool = True,
                       with_params: bool = False,
-                      verbose: int = 0) -> pd.dataframe:
+                      verbose: int = 0) -> pd.DataFrame:
         """
         return |pandas-dataframe| with zeff values as columns and natom rows.
 
@@ -2320,7 +2320,7 @@ class Zeffs(Has_Structure, MSONable):
 
             rows.append(d)
 
-        return pd.dataframe(rows, columns=list(rows[0].keys()) if rows else None)
+        return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
 
     def check_site_symmetries(self, verbose: int = 0) -> float:
         """
@@ -2431,7 +2431,7 @@ class DynQuad(Has_Structure, MSONable):
                       with_geo: bool = False,
                       with_spglib: bool = True,
                       with_params: bool = False,
-                      verbose: int = 0) -> pd.dataframe:
+                      verbose: int = 0) -> pd.DataFrame:
         """
         return |pandas-dataframe| with dyn. quadrupole values as columns and natom rows.
 
@@ -2467,7 +2467,7 @@ class DynQuad(Has_Structure, MSONable):
 
             rows.append(d)
 
-        return pd.dataframe(rows, columns=list(rows[0].keys()) if rows else None)
+        return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
 
 
 class DielectricTensorGenerator(Has_Structure):
