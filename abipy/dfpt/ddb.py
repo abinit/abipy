@@ -2296,7 +2296,7 @@ class Zeffs(Has_Structure, MSONable):
         aview = self._get_atomview(view, select_symbols=elements, verbose=verbose)
 
         rows = []
-        for iatom, wlabel in zip(aview.iatom_list, aview.wyck_labels, strict=true):
+        for iatom, wlabel in zip(aview.iatom_list, aview.wyck_labels, strict=True):
             site = self.structure[iatom]
             zstar = self.zstars[iatom]
             d = {}
@@ -2320,7 +2320,7 @@ class Zeffs(Has_Structure, MSONable):
 
             rows.append(d)
 
-        return pd.dataframe(rows, columns=list(rows[0].keys()) if rows else none)
+        return pd.dataframe(rows, columns=list(rows[0].keys()) if rows else None)
 
     def check_site_symmetries(self, verbose: int = 0) -> float:
         """
@@ -2446,7 +2446,7 @@ class DynQuad(Has_Structure, MSONable):
         aview = self._get_atomview(view, select_symbols=elements, verbose=verbose)
 
         rows = []
-        for iatom, wlabel in zip(aview.iatom_list, aview.wyck_labels, strict=true):
+        for iatom, wlabel in zip(aview.iatom_list, aview.wyck_labels, strict=True):
             site = self.structure[iatom]
             # (3,3,3) atom_dir, q_i, q_j in cart. coordinates.
             qstar = self.zstars[iatom]
@@ -2467,7 +2467,7 @@ class DynQuad(Has_Structure, MSONable):
 
             rows.append(d)
 
-        return pd.dataframe(rows, columns=list(rows[0].keys()) if rows else none)
+        return pd.dataframe(rows, columns=list(rows[0].keys()) if rows else None)
 
 
 class DielectricTensorGenerator(Has_Structure):
@@ -3152,9 +3152,9 @@ class PhqdataResults:
     """
     Object returned by anacompare_becs. Provides methods to perform convergence studies.
     """
-    qpoint: Kpoint
-    ph_df: pd.DataFrame
-    dyn_quad_df: pd.DataFrame | None
+    qpoint: Kpoint                         # Q-point for phonons
+    ph_df: pd.DataFrame                    # dataframe with phonon frequencies and metadata.
+    dyn_quad_df: pd.DataFrame | None       # dataframe with Q* and metadata.
 
     @add_fig_kwargs
     def plot_ph(self,
@@ -3213,6 +3213,11 @@ class PhqdataResults:
                 None to disable grouping.
             fontsize: Legend and label fontsize.
         """
+        if self.dyn_quad_df is None:
+            raise ValueError("dataframe with dynamical quadrupoles is not available.")
+
+        raise NotImplementedError("")
+
         # Each tensor has (natom, 3, 3, 3) entries but many entries are zero by symmetry.
         #natom = ??
         nrows, ncols = natom, 3
