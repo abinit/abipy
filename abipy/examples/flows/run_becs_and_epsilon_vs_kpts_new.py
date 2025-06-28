@@ -62,7 +62,7 @@ def build_flow(options):
 
     flow = flowtk.Flow(workdir=options.workdir)
 
-    ngkpt_list = [(2, 2, 2), (4, 4, 4)]
+    ngkpt_list = [(2, 2, 2), (4, 4, 4), (6, 6, 6)]
     scf_input = make_scf_input(ngkpt=[2,2,2])
 
     flow = ConvBecsEpsFlow.from_scf_input(

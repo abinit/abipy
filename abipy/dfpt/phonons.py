@@ -229,7 +229,85 @@ class PhononBands:
             # object with phbands
             return obj.phbands
 
-        raise TypeError("Don't know how to extract a PhononBands from type %s" % type(obj))
+        raise TypeError(f"Don't know how to extract a PhononBands from {type(obj)=}")
+
+    def __init__(self,
+                 structure,
+                 qpoints,
+                 phfreqs,
+                 phdispl_cart,
+                 phangmom=None,
+                 non_anal_ph=None,
+                 dyn_quad=None,
+                 amu=None,
+                 epsinf=None,
+                 zcart=None,
+                 linewidths=None,
+                 phonopy_obj=None):
+        """
+        Initialize the instance.
+
+        Args:
+            structure: |Structure| object.
+            qpoints: |KpointList| instance.
+            phfreqs: Phonon frequencies in eV.
+            phdispl_cart: [nqpt, 3*natom, 3*natom] array with displacement in Cartesian coordinates in Angstrom.
+                The last dimension stores the cartesian components.
+            phangmom: Phonon angular momentum in units of hbar.
+            non_anal_ph: :class:`NonAnalyticalPh` with information on the non-analytical contribution
+                None if contribution is not present.
+            amu: dictionary mapping the atomic species present in the structure to the values of the atomic
+                mass units used for the calculation.
+            dyn_quad: Dynamical quadrupoles. None if contribution is not present.
+            epsinf: [3,3] matrix with electronic dielectric tensor in Cartesian coordinates. None if not available.
+            zcart: [natom, 3, 3] matrix with Born effective charges in Cartesian coordinates. None if not available.
+            linewidths: Array-like object with the linewidths (eV) stored as [q, num_modes]
+            phonopy_obj: an instance of a Phonopy object obtained from the same IFC used to generate the band structure.
+        """
+        self.structure = structure
+
+        # KpointList with the q-points
+        self.qpoints = qpoints
+        self.num_qpoints = len(self.qpoints)
+
+        # numpy array with phonon frequencies. Shape=(nqpt, 3*natom)
+        self.phfreqs = phfreqs
+
+        # phonon displacements in Cartesian coordinates. `ndarray` of shape (nqpt, 3*natom, 3*natom).
+        # The last dimension stores the cartesian components.
+        self.phdispl_cart = phdispl_cart
+
+        # phonon angular momentum in units of hbar. ndarray of shape (nqpt, 3*natom, 3)
+        self.phangmom = phangmom
+
+        # Handy variables used to loop.
+        self.num_atoms = structure.num_sites
+        self.num_branches = 3 * self.num_atoms
+        self.branches = range(self.num_branches)
+
+        self.non_anal_ph = non_anal_ph
+        self.dyn_quad = dyn_quad
+
+        self.amu = amu
+        self.amu_symbol = None
+
+        from pymatgen.core.periodic_table import Element
+        if amu is not None:
+            self.amu_symbol = {}
+            for z, m in amu.items():
+                el = Element.from_Z(int(z))
+                self.amu_symbol[el.symbol] = m
+
+        self._linewidths = None
+        if linewidths is not None:
+            self._linewidths = np.reshape(linewidths, self.phfreqs.shape)
+
+        self.epsinf = epsinf
+        self.zcart = zcart
+        self.phonopy_obj = phonopy_obj
+
+        # Dictionary with metadata e.g. nkpt, tsmear ...
+        self.params = {}
 
     @staticmethod
     def phfactor_ev2units(units: str) -> float:
@@ -241,9 +319,16 @@ class PhononBands:
     def read_non_anal_from_file(self, filepath: str) -> None:
         """
         Reads the non analytical directions, frequencies and displacements from the anaddb.nc file
-        specified and adds them to the object.
+        and adds them to the object.
         """
         self.non_anal_ph = NonAnalyticalPh.from_file(filepath)
+
+    def read_dyn_quad_from_file(self, filepath: str) -> None:
+        """
+        Reads the dynamical quadrupoles from file and adds them to the object.
+        """
+        from abipy.ddb import DynQuad
+        self.dyn_quad = DynQuad.from_file(filepath)
 
     def set_phonopy_obj_from_ananc(self, ananc, supercell_matrix, symmetrize_tensors=False,
                                    symprec=1e-5, set_masses=True) -> None:
@@ -274,70 +359,6 @@ class PhononBands:
             ph = abinit_to_phonopy(ananc, supercell_matrix=supercell_matrix, symmetrize_tensors=symmetrize_tensors,
                                    symprec=symprec, set_masses=set_masses)
         self.phonopy_obj = ph
-
-    def __init__(self, structure, qpoints, phfreqs, phdispl_cart, phangmom=None,
-                 non_anal_ph=None, amu=None, epsinf=None, zcart=None, linewidths=None,
-                 phonopy_obj=None):
-        """
-        Args:
-            structure: |Structure| object.
-            qpoints: |KpointList| instance.
-            phfreqs: Phonon frequencies in eV.
-            phdispl_cart: [nqpt, 3*natom, 3*natom] array with displacement in Cartesian coordinates in Angstrom.
-                The last dimension stores the cartesian components.
-            phangmom: Phonon angular momentum in units of hbar.
-            non_anal_ph: :class:`NonAnalyticalPh` with information of the non analytical contribution
-                None if contribution is not present.
-            amu: dictionary that associates the atomic species present in the structure to the values of the atomic
-                mass units used for the calculation.
-            epsinf: [3,3] matrix with electronic dielectric tensor in Cartesian coordinates. None if not available.
-            zcart: [natom, 3, 3] matrix with Born effective charges in Cartesian coordinates. None if not available.
-            linewidths: Array-like object with the linewidths (eV) stored as [q, num_modes]
-            phonopy_obj: an instance of a Phonopy object obtained from the same IFC used to generate the band structure.
-        """
-        self.structure = structure
-
-        # KpointList with the q-points
-        self.qpoints = qpoints
-        self.num_qpoints = len(self.qpoints)
-
-        # numpy array with phonon frequencies. Shape=(nqpt, 3*natom)
-        self.phfreqs = phfreqs
-
-        # phonon displacements in Cartesian coordinates.
-        # `ndarray` of shape (nqpt, 3*natom, 3*natom).
-        # The last dimension stores the cartesian components.
-        self.phdispl_cart = phdispl_cart
-
-        # phonon angular momentum in units of hbar
-        # ndarray of shape (nqpt, 3*natom, 3)
-        self.phangmom = phangmom
-
-        # Handy variables used to loop.
-        self.num_atoms = structure.num_sites
-        self.num_branches = 3 * self.num_atoms
-        self.branches = range(self.num_branches)
-
-        self.non_anal_ph = non_anal_ph
-        self.amu = amu
-        self.amu_symbol = None
-        from pymatgen.core.periodic_table import Element
-        if amu is not None:
-            self.amu_symbol = {}
-            for z, m in amu.items():
-                el = Element.from_Z(int(z))
-                self.amu_symbol[el.symbol] = m
-
-        self._linewidths = None
-        if linewidths is not None:
-            self._linewidths = np.reshape(linewidths, self.phfreqs.shape)
-
-        self.epsinf = epsinf
-        self.zcart = zcart
-        self.phonopy_obj = phonopy_obj
-
-        # Dictionary with metadata e.g. nkpt, tsmear ...
-        self.params = {}
 
     # TODO: Replace num_qpoints with nqpt, deprecate num_qpoints
     @property
@@ -1523,10 +1544,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         scatt_s *= scale_size
         #print("scatt_s", scatt_s, "min", scatt_s.min(), "max", scatt_s.max())
 
-        ax.scatter(scatt_x, scatt_y, s=scatt_s,
-            #c=None, marker=None, cmap=None, norm=None, vmin=None, vmax=None, alpha=None,
-            #linewidths=None, verts=None, edgecolors=None, *, data=None
-        )
+        ax.scatter(scatt_x, scatt_y, s=scatt_s)
         self.decorate_ax(ax, units=units, qlabels=qlabels)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
@@ -3027,32 +3045,32 @@ class PHBST_Reader(ETSF_Reader):
     .. inheritance-diagram:: PHBST_Reader
     """
 
-    def read_qredcoords(self):
+    def read_qredcoords(self) -> np.ndarray:
         """Array with the reduced coordinates of the q-points."""
         return self.read_value("qpoints")
 
-    def read_qweights(self):
+    def read_qweights(self) -> np.ndarray:
         """The weights of the q-points"""
         return self.read_value("qweights")
 
-    def read_phfreqs(self):
+    def read_phfreqs(self) -> np.ndarray:
         """|numpy-array| with the phonon frequencies in eV."""
         return self.read_value("phfreqs")
 
-    def read_phdispl_cart(self):
+    def read_phdispl_cart(self) -> np.ndarray:
         """
         Complex array with the Cartesian displacements in **Angstrom**
         shape is [num_qpoints,  mu_mode,  cart_direction].
         """
         return self.read_value("phdispl_cart", cmode="c")
 
-    def read_phangmom(self):
+    def read_phangmom(self) -> np.ndarray | None:
         """
         Real array with the phonon angular momentum in units of hbar
         """
         return self.read_value("phangmom", default=None)
 
-    def read_amu(self):
+    def read_amu(self) -> np.ndarray | None:
         """The atomic mass units"""
         return self.read_value("atomic_mass_units", default=None)
 

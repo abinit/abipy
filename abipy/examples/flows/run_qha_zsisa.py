@@ -9,26 +9,32 @@ using the ZSISA-QHA method. External pressure can be included as well.
 
 By incorporating second-order derivatives of the vibrational free energy with respect
 to lattice degrees of freedom, one can significantly reduce the number of
-required phonon band structure calculations. See <https://arxiv.org/pdf/2503.09531>.
+required phonon band structure calculations.
+See <https://arxiv.org/pdf/2503.09531>.
 
-The AbiPy flow performs the following operations:
+This AbiPy flow performs the following operations:
 
 1) The initial structure is relaxed and a minimum set of deformed configurations is generated.
+
 2) The atomic positions in the deformed structures are relaxed at fixed cell,
-   and the relaxed configuration is then used to compute phonons, Born-effective charges,
-   electronic dielectric tensort (eps_inf) and dynamical, quadrupoles with DFPT.
-3) Phonon DOSes are computed for all the deformed structures on a much denser q-mesh
-   and the results are used to compute thermal stresses.
-4) An iterative process for determining lattice parameters at temperature T and external pressure P.
-   The process begins with an initial guess for the lattice configuration [R],
+   and the relaxed configurations are then used to compute phonons, Born-effective charges,
+   the electronic dielectric tensor (eps_inf), and dynamical, quadrupoles with DFPT.
+
+3) Phonon DOSes are computed for all the deformed structures by interpolating the interatomic
+   forces constants on a much denser q-mesh, and the results are used to compute the thermal stresse.
+
+4) An iterative process is used for determining lattice parameters at temperature T and external pressure P.
+   The process begins with an initial guess for the lattice configuration,
    followed by the computation of thermal and BO stresses.
    A target stress is defined based on thermal stress and P, and the lattice and atomic positions
    are relaxed iteratively until the target stress matches the BO stress and the BO forces are zeroed,
    ensuring convergence to the optimal lattice configuration.
-5) Finally, relaxed-ions elastic constants for the thermal-relaxed configurations are computed with DFPT.
 
-The results of the calculations are stored in the outdata directory of the flow.
-Two files are produced:
+5) Finally, relaxed-ions elastic constants for the thermal-relaxed configurations
+   are optionally computed with DFPT.
+
+The final results are stored in the ``outdata`` directory of the flow.
+Two files are produced at the end of the run:
 
 zsisa_data.csv:
 
@@ -37,8 +43,9 @@ zsisa_data.csv:
 ZsisaResults.json:
 
     JSON file with the location of the different files (GSR.nc, DDB) on the filesystem.
-    To recostruct a python object from file, use:
+    To reconstruct a python object from file, use:
 
+```
         from abipy.zsisa import ZsisaResults
         data = ZsisaResults.json_load("ABSPATH_TO_FILE")
 
@@ -46,7 +53,9 @@ ZsisaResults.json:
         data.get_dataframe()
         data.plot_lattice_vs_temp()
         data.plot_thermal_expansion()
+```
 """
+
 import sys
 import os
 import numpy as np
@@ -86,9 +95,8 @@ rprim
    0.0000000000    0.0000000000    9.7234377918
 """)
 
-    # Initialize structure and pseudos
-    # FIXME: This is just to make the computation faster.
-    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+    # This is just to make the computation faster.
+    #structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
     # IMPORTANT:
     # The Zsisa code assumes structure in primitive standard settings.
@@ -109,10 +117,13 @@ rprim
         ecutsm=1.0,
         tolvrs=1.0e-8,      # SCF stopping criterion.
         paral_kgb=0,
+        #nbdbuf=0,
+        #nline=10,
+        #chksymbreak=1
     )
 
     # Select k-mesh for electrons and q-mesh for phonons.
-    # NB: The q-mesh should divide ngkpt.
+    # Important: the q-mesh should divide ngkpt.
     ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
     #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
     #ngkpt = [4, 4, 4]; ngqpt = [2, 2, 2]
@@ -121,21 +132,23 @@ rprim
 
     # Flags to activate the computation of Born effective charges,
     # and dynamical quadrupoles with DFPT.
-    with_becs = False
-    #with_becs = True
+    with_becs = True
     with_quad = False
+
+    #with_becs = False
     #with_quad = not structure.has_zero_dynamical_quadrupoles
 
     # List of temperatures in Kelvin and pressures in Gpa.
-    #temperatures = [10, 50, 100, 200, 300]
     temperatures = [10, 100, 200]
-    pressures_gpa = [0]
-    #pressures_gpa = [0, 5]
+    pressures_gpa = [0, 5]
+    #pressures_gpa = [0]
 
     eps = 0.005  # Strain magnitude to be applied to the reference lattice.
-    mode = "TEC" # "TEC" for thermal expansion only,
+
     mode = "ECs" # "ECs" to include T-dependent elastic constants
-                 #  (more calculations are usually needed)
+                 #  (more configurations are usually needed)
+
+    mode = "TEC" # "TEC" for thermal expansion only.
 
     # Q-mesh for the computation of the phonon DOS. See docstring.
     nqsmall_or_qppa = np.max(ngqpt) * 10
