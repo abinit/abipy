@@ -3057,9 +3057,9 @@ class EpsinfData:
     def plot_conv(self,
                   x_name: str,
                   abs_conv: float = 0.1,
-                  voigt_comps: list[str] | None = None,
                   hue: str | None = None,
-                  fontsize: int = 10,
+                  zero_below: float = 1e-6,
+                  fontsize: int = 8,
                   **kwargs) -> Figure:
         """
         Plot the convergence of the eps_inf wrt ``x_name`` variable.
@@ -3068,32 +3068,41 @@ class EpsinfData:
             x_name: Name of the column used as x-value.
             abs_conv: If not None, show absolute convergence window.
                 A negative value is interpreted as relative convergence.
-            voigt_comps: List of string defining the tensor components. If None all components are considered.
+            zero_below: Don't show Z^* components if all values are below this threshold.
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
                 None to disable grouping.
             fontsize: Legend and label fontsize.
         """
-        voigt_comps = ["xx", "xz", "yy", "xy", "zz", "yz"] if voigt_comps is None else voigt_comps
-        labels = symbol_with_components(r"\epsilon^\infty", voigt_comps)
+        # Select non-zero components.
+        voigt_comps = ["xx", "xz", "yy", "xy", "zz", "yz"]
+        non_zero_comps = []
+        for comp in voigt_comps:
+            if np.any(np.abs(self.df[comp].values) > zero_below):
+                non_zero_comps.append(comp)
 
-        nrows, ncols = len(voigt_comps), 1
-        if len(voigt_comps) % 2 == 0:
-            nrows, ncols = len(voigt_comps) // 2, 2
+        # Build plot grid
+        num_plots, nrows, ncols = len(non_zero_comps), len(non_zero_comps), 1
+        if num_plots > 1 and num_plots % 2 == 0:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
 
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
+
+        labels = symbol_with_components(r"\epsilon^\infty", non_zero_comps)
+
         plt_kwargs = dict(
             abs_conv=abs_conv,
             hue=hue,
-            col2label=dict(zip(voigt_comps, labels, strict=True)),
+            col2label=dict(zip(non_zero_comps, labels, strict=True)),
             fontsize=fontsize,
             show=False,
         )
 
-        voigt_comps = np.reshape(voigt_comps, (nrows, ncols))
+        non_zero_comps = np.reshape(non_zero_comps, (nrows, ncols))
 
         for ii, jj in itertools.product(range(nrows), range(ncols)):
-            v_name, ax = voigt_comps[ii, jj], ax_mat[ii, jj]
+            v_name, ax = non_zero_comps[ii, jj], ax_mat[ii, jj]
             plot_xy_with_hue(self.df, x_name, v_name, ax=ax, **plt_kwargs)
 
             if ii != nrows - 1:
@@ -3116,6 +3125,7 @@ class BecsData:
     def plot_conv(self,
                   x_name: str,
                   abs_conv: float = 0.1,
+                  zero_below: float = 1e-6,
                   fontsize: int = 8,
                   **kwargs) -> Figure:
         """
@@ -3125,25 +3135,40 @@ class BecsData:
             x_name: Name of the column used as x-value.
             abs_conv: If not None, show absolute convergence window.
                 A negative value is interpreted as relative convergence.
+            zero_below: Don't show Z^* components if all values are below this threshold.
             fontsize: Legend and label fontsize.
         """
-        zeff_comps = list(Zeffs.comps2inds.keys())
-        labels = symbol_with_components(r"Z^e", zeff_comps)
+        # Select non-zero components.
+        non_zero_comps = []
+        for comp in Zeffs.comps2inds.keys():
+            if np.any(np.abs(self.df[comp].values) > zero_below):
+                non_zero_comps.append(comp)
 
-        nrows, ncols = 3, 3
+        # Build plot grid
+        num_plots, nrows, ncols = len(non_zero_comps), len(non_zero_comps), 1
+        if num_plots > 1 and num_plots % 2 == 0:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
+
+        # don't show the last ax if num_plots is odd.
+        if num_plots % ncols != 0: ax_mat.ravel()[-1].axis("off")
+
+        labels = symbol_with_components(r"Z^e", non_zero_comps)
+
         plt_kwargs = dict(
             abs_conv=abs_conv,
-            col2label=dict(zip(zeff_comps, labels, strict=True)),
+            col2label=dict(zip(non_zero_comps, labels, strict=True)),
             fontsize=fontsize,
             show=False,
         )
 
-        zeff_comps = np.reshape(zeff_comps, (nrows, ncols)).T
+        non_zero_comps = np.reshape(non_zero_comps, (nrows, ncols))
 
         for ii, jj in itertools.product(range(nrows), range(ncols)):
-            z_name, ax = zeff_comps[ii, jj], ax_mat[ii, jj]
+            z_name, ax = non_zero_comps[ii, jj], ax_mat[ii, jj]
             plot_xy_with_hue(self.df, x_name, z_name, ax=ax, hue="site_index", **plt_kwargs)
 
             if ii != nrows - 1:
@@ -3250,14 +3275,14 @@ class PhqData:
         # 3      As           1  [0.25, 0.25, 0.25]      1d -9.313927e-08 -4.500280e-08  0.01
 
         # Each tensor has (natom, 3, 3, 3) entries but many entries are zero by symmetry.
-        all_comps = DynQuad.comps2inds.keys()
+        # Select non-zero components.
         non_zero_comps = []
-        for comp in all_comps:
+        for comp in DynQuad.comps2inds.keys():
             if np.any(np.abs(self.dyn_quad_df[comp].values) > zero_below):
                 non_zero_comps.append(comp)
 
-        num_plots, ncols, nrows = len(non_zero_comps), 1, 1
-        if num_plots > 1:
+        num_plots, nrows, ncols = len(non_zero_comps), len(non_zero_comps), 1
+        if num_plots > 1 and num_plots % 2 == 0:
             ncols = 2
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
@@ -3285,7 +3310,6 @@ class PhqData:
             if (ii, jj) != (0, 0):
                 set_visible(ax, False, *["legend"])
 
-        # Place a single legend outside the plot grid (bottom center)
         fig.suptitle(r"Convergence of dynamical quadrupoles with $\Delta$=%s" % abs_conv, fontsize=fontsize)
 
         return fig
