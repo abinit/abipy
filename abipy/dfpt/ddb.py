@@ -3294,7 +3294,6 @@ class PhqData:
 
         plt_kwargs = dict(
             abs_conv=abs_conv,
-            #col2label=dict(zip(zeff_comps, labels, strict=True)),
             fontsize=fontsize,
             show=False,
         )
@@ -3333,7 +3332,7 @@ class DdbRobot(Robot):
         return filename.endswith("_" + cls.EXT)
 
     @classmethod
-    def from_mpid_list(cls, mpid_list: list):
+    def from_mpid_list(cls, mpid_list: list) -> DdbRobot:
         """
         Build a DdbRobot from list of materials-project ids.
 
@@ -3550,6 +3549,7 @@ class DdbRobot(Robot):
 
             df_list.append(df)
 
+        # TODO: Implement dataclass with plot_conv method
         # Concatenate dataframes.
         return dict2namedtuple(df=pd.concat(df_list, ignore_index=True),
                                elastdata_list=elastdata_list)
