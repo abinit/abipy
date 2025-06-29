@@ -21,6 +21,7 @@ from monty.json import MSONable
 from monty.collections import AttrDict, dict2namedtuple
 from monty.termcolor import cprint
 from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
+from abipy.tools.decorators import cached_classproperty
 from abipy.tools.serialization import pmg_serialize
 from abipy.flowtk import AnaddbTask
 from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
@@ -2372,24 +2373,6 @@ class ZeffsList(list):
         return pd.concat(df_list)
 
 
-class classproperty(property):
-    """class-level property"""
-    def __get__(self, obj, cls):
-        return self.fget(cls)
-
-
-class cached_classproperty:
-    """class-level property that’s also cached."""
-    def __init__(self, func):
-        self.func = func
-        self._cache_name = f"__cached_{func.__name__}"
-
-    def __get__(self, instance, owner):
-        if not hasattr(owner, self._cache_name):
-            setattr(owner, self._cache_name, self.func(owner))
-        return getattr(owner, self._cache_name)
-
-
 class DynQuad(Has_Structure, MSONable):
     """
     This object stores the dynamical quadrupole in Cartesian coordinates
@@ -2494,7 +2477,6 @@ class DynQuad(Has_Structure, MSONable):
             return rows
 
         return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
-
 
 
 class DielectricTensorGenerator(Has_Structure):
@@ -3064,7 +3046,7 @@ class DielectricTensorGenerator(Has_Structure):
 
 
 @dataclasses.dataclass(kw_only=True)
-class EpsinfResults:
+class EpsinfData:
     """
     Object returned by anacompare_epsinf. Provides methods to perform convergence studies.
     """
@@ -3085,6 +3067,7 @@ class EpsinfResults:
         Args:
             x_name: Name of the column used as x-value.
             abs_conv: If not None, show absolute convergence window.
+                A negative value is interpreted as relative convergence.
             voigt_comps: List of string defining the tensor components. If None all components are considered.
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
                 None to disable grouping.
@@ -3122,7 +3105,7 @@ class EpsinfResults:
 
 
 @dataclasses.dataclass(kw_only=True)
-class BecsResults:
+class BecsData:
     """
     Object returned by anacompare_becs. Provides methods to perform convergence studies.
     """
@@ -3131,16 +3114,17 @@ class BecsResults:
 
     @add_fig_kwargs
     def plot_conv(self,
-                 x_name: str,
-                 abs_conv: float = 0.1,
-                 fontsize: int = 8,
-                 **kwargs) -> Figure:
+                  x_name: str,
+                  abs_conv: float = 0.1,
+                  fontsize: int = 8,
+                  **kwargs) -> Figure:
         """
         Plot the convergence of the BECS wrt ``x_name`` variable.
 
         Args:
             x_name: Name of the column used as x-value.
             abs_conv: If not None, show absolute convergence window.
+                A negative value is interpreted as relative convergence.
             fontsize: Legend and label fontsize.
         """
         zeff_comps = list(Zeffs.comps2inds.keys())
@@ -3195,8 +3179,8 @@ class PhqData:
 
         Args:
             x_name: Name of the column used as x-value.
-            abs_conv: If not None, show absolute convergence window in meV.
-            1 cm⁻¹ ~ 0.000123984 eV
+            abs_conv: If not None, show absolute convergence window in meV. 1 cm⁻¹ ~ 0.000123984 eV
+                A negative value is interpreted as relative convergence.
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
                 None to disable grouping.
             fontsize: Legend and label fontsize.
@@ -3235,8 +3219,9 @@ class PhqData:
     @add_fig_kwargs
     def plot_dyn_quad_conv(self,
                            x_name: str,
-                           abs_conv: float = 1,
+                           abs_conv: float = 0.1,
                            hue: str | None = None,
+                           zero_below: float = 1e-6,
                            fontsize: int = 8,
                            **kwargs) -> Figure:
         """
@@ -3245,8 +3230,10 @@ class PhqData:
         Args:
             x_name: Name of the column used as x-value.
             abs_conv: If not None, show absolute convergence window.
+                A negative value is interpreted as relative convergence.
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
                 None to disable grouping.
+            zero_below: Don't show Q^* components if all values are below this threshold.
             fontsize: Legend and label fontsize.
         """
         if self.dyn_quad_df is None:
@@ -3266,10 +3253,8 @@ class PhqData:
         all_comps = DynQuad.comps2inds.keys()
         non_zero_comps = []
         for comp in all_comps:
-            if np.any(np.abs(self.dyn_quad_df[comp].values) > 1e-4):
+            if np.any(np.abs(self.dyn_quad_df[comp].values) > zero_below):
                 non_zero_comps.append(comp)
-
-        print(len(non_zero_comps), non_zero_comps)
 
         num_plots, ncols, nrows = len(non_zero_comps), 1, 1
         if num_plots > 1:
@@ -3301,7 +3286,6 @@ class PhqData:
                 set_visible(ax, False, *["legend"])
 
         # Place a single legend outside the plot grid (bottom center)
-        #fig.legend(loc='lower center', bbox_to_anchor=(0.5, -0.05), ncol=ncols)
         fig.suptitle(r"Convergence of dynamical quadrupoles with $\Delta$=%s" % abs_conv, fontsize=fontsize)
 
         return fig
@@ -3546,7 +3530,7 @@ class DdbRobot(Robot):
         return dict2namedtuple(df=pd.concat(df_list, ignore_index=True),
                                elastdata_list=elastdata_list)
 
-    def anacompare_becs(self, ddb_header_keys=None, chneut=1, with_path=False, verbose=0) -> BecsResults:
+    def anacompare_becs(self, ddb_header_keys=None, chneut=1, with_path=False, verbose=0) -> BecsData:
         """
         Compute Born effective charges for all DDBs in the robot and build DataFrame.
         with values and metadata that can be used for convergence studies.
@@ -3558,7 +3542,7 @@ class DdbRobot(Robot):
             with_path: True to add DDB path to dataframe
             verbose: verbosity level. Set it to a value > 0 to get more information
 
-        Return: ``BecsResults`` with the following attributes::
+        Return: ``BecsData`` with the following attributes::
             df: pandas DataFrame.
             becs_list: list of Zeffs objects.
         """
@@ -3583,15 +3567,15 @@ class DdbRobot(Robot):
             df_list.append(df)
 
         # Concatenate dataframes.
-        return BecsResults(df=pd.concat(df_list, ignore_index=True).sort_values(by="site_index"),
-                           becs_list=becs_list)
+        return BecsData(df=pd.concat(df_list, ignore_index=True).sort_values(by="site_index"),
+                        becs_list=becs_list)
 
     def anacompare_epsinf(self,
                           ddb_header_keys: list[str] | None = None,
                           chneut: int = 1,
                           tol: float = 1e-3,
                           with_path: bool = False,
-                          verbose: int = 0) -> EpsinfResults:
+                          verbose: int = 0) -> EpsinfData:
         r"""
         Compute (eps^\inf) electronic dielectric tensor for all DDBs in the robot and build DataFrame.
         with Voigt indices as columns + metadata that can be used for convergence studies.
@@ -3603,7 +3587,7 @@ class DdbRobot(Robot):
             with_path: True to add DDB path to dataframe
             verbose: verbosity level. Set it to a value > 0 to get more information.
 
-        Return: ``EpsinfResults`` with the following attributes::
+        Return: ``EpsinfData`` with the following attributes::
 
             df: DataFrame with Voigt indices as columns.
             epsinf_list: List of |DielectricTensor| objects with eps^{inf}
@@ -3628,7 +3612,7 @@ class DdbRobot(Robot):
             df_list.append(df)
 
         # Concatenate dataframes.
-        return EpsinfResults(df=pd.concat(df_list, ignore_index=True), epsinf_list=epsinf_list)
+        return EpsinfData(df=pd.concat(df_list, ignore_index=True), epsinf_list=epsinf_list)
 
     def anacompare_eps0(self, ddb_header_keys=None, asr=2, chneut=1, tol=1e-3, with_path=False, verbose=0):
         """
