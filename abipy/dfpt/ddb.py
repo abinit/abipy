@@ -555,7 +555,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     @cached_property
     def params(self) -> dict:
-        """dictionary with parameters that might be subject to convergence studies."""
+        """dictionary with the parameters that might be subject to convergence studies."""
         names = ("nkpt", "nsppol", "ecut", "tsmear", "occopt", "ixc", "nband", "usepaw")
         od = {}
         for k in names:
@@ -942,8 +942,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Args:
             select: Possible values in ["at_least_one", "all"]
-                If select == "at_least_one", we check if there's at least one entry associated to Q*
-                If select == "all", all tensor components must be present in the DDB file.
+            If select == "at_least_one", we check if there is at least one entry associated to Q*
+            If select == "all", all tensor components must be present in the DDB file.
 
         .. note::
 
@@ -1123,10 +1123,14 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         with task.open_phbst() as ncfile:
             anaddbnc_path = task.outpath_from_ext("anaddb.nc")
+
             if lo_to_splitting and has_gamma:
                 ncfile.phbands.read_non_anal_from_file(anaddbnc_path)
 
-            print("Calculation completed.\nAnaddb results available in:", task.workdir)
+            if self.has_quadrupole_terms(select="at_least_one"):
+                ncfile.phbands.read_dyn_quad_from_file(anaddbnc_path)
+
+            print("Calculation completed. Anaddb results available in:", task.workdir)
             return ncfile.phbands if not return_input else (ncfile.phbands, inp)
 
     def anaget_phbst_and_phdos_files(self, nqsmall=10, qppa=None, ndivsm=20, line_density=None, asr=2, chneut=1,
@@ -1499,9 +1503,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         return phbands_plotter
 
-    def anacompare_quad(self, asr=2, chneut=1, dipdip=1, lo_to_splitting="automatic",
-                        nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
-                        verbose=0, mpi_procs=1) -> PhononBandsPlotter:
+    def anacompare_phbands_with_quad(self, asr=2, chneut=1, dipdip=1, lo_to_splitting="automatic",
+                                     nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
+                                     verbose=0, mpi_procs=1) -> PhononBandsPlotter:
         """
         Invoke anaddb to compute the phonon band structure and the phonon DOS by including
         dipole-quadrupole and quadrupole-quadrupole terms in the dynamical matrix
@@ -2222,7 +2226,7 @@ class Zeffs(Has_Structure, MSONable):
             zeff_adf: [natom, 3, 3] array with the effective charges in Cartesian coordinates.
                 Last axis is the external field (electric or magnetic).
             structure: |Structure| object.
-            params: Dictionary with parameters associated to the computation.
+            params: Dictionary with the parameters associated to the computation.
         """
         if len(zeff_adf) != len(structure):
             raise ValueError(f"{len(zeff_adf)=} != {len(structure)=}")
@@ -2368,16 +2372,34 @@ class ZeffsList(list):
         return pd.concat(df_list)
 
 
+class classproperty(property):
+    """class-level property"""
+    def __get__(self, obj, cls):
+        return self.fget(cls)
+
+
+class cached_classproperty:
+    """class-level property that’s also cached."""
+    def __init__(self, func):
+        self.func = func
+        self._cache_name = f"__cached_{func.__name__}"
+
+    def __get__(self, instance, owner):
+        if not hasattr(owner, self._cache_name):
+            setattr(owner, self._cache_name, self.func(owner))
+        return getattr(owner, self._cache_name)
+
+
 class DynQuad(Has_Structure, MSONable):
     """
     This object stores the dynamical quadrupole in Cartesian coordinates
     and provides tools for data analysis.
     """
 
-    @pmg_serialize
-    def as_dict(self) -> dict:
-        """Return dictionary with JSON serialization in MSONable format."""
-        return dict(quad_cart=self.quad_cart, structure=self.structure, params=self.params)
+    #@pmg_serialize
+    #def as_dict(self) -> dict:
+    #    """Return dictionary with JSON serialization in MSONable format."""
+    #    return dict(quad_cart=self.quad_cart, structure=self.structure, params=self.params)
 
     @classmethod
     def from_file(cls, filepath: PathLike) -> DynQuad:
@@ -2389,19 +2411,18 @@ class DynQuad(Has_Structure, MSONable):
             return ananc.dyn_quad
 
     def __init__(self,
-                 name: str,
                  quad_cart: np.ndarray,
                  structure: Structure,
                  params: dict | None = None):
         """
         Args:
             quad_cart: [natom, 3, 3, 3] array with the dynamical quadrupoles in Cartesian coordinates.
-                The last 3 dimensions are: atom direction, q_i, q_j
+                The last 3 dimensions are: atom direction, q_i, q_j.
             structure: |Structure| object.
-            params: Dictionary with parameters associated to the computation.
+            params: Dictionary with the parameters associated to the computation.
         """
-        if len(quad_cart) != len(structure):
-            raise ValueError(f"{len(quad_cart)=} != {len(structure)=}")
+        if quad_cart.shape[0] != len(structure):
+            raise ValueError(f"{quad_cart.shape[0]=} != {len(structure)=}")
 
         self._structure = structure
         self.quad_cart = quad_cart
@@ -2412,12 +2433,12 @@ class DynQuad(Has_Structure, MSONable):
         """|Structure| object."""
         return self._structure
 
-    @property
-    def comps2inds(self) -> dict:
+    @cached_classproperty
+    def comps2inds(cls) -> dict:
         """
-        Mapping component string --> numpy indices, e.g. xxx -> (0, 0, 0).
+        Mapping dyn. quadrupole component string --> numpy indices, e.g. xxx -> (0, 0, 0).
         """
-        d = {1: "x", 2: "y", 3: "z"}
+        d = {0: "x", 1: "y", 2: "z"}
         comps2inds = {}
         for (i, j, k) in itertools.product(range(3), range(3), range(3)):
             key = f"{d[i]}{d[j]}{d[k]}"
@@ -2430,17 +2451,19 @@ class DynQuad(Has_Structure, MSONable):
                       elements=None,
                       with_geo: bool = False,
                       with_spglib: bool = True,
-                      with_params: bool = False,
-                      verbose: int = 0) -> pd.DataFrame:
+                      params: dict | None  = None,
+                      as_rows: bool = False,
+                      verbose: int = 0) -> pd.DataFrame | list[dict]:
         """
-        return |pandas-dataframe| with dyn. quadrupole values as columns and natom rows.
+        Return |pandas-dataframe| with dynamical quadrupole values as columns and natom rows.
 
-        args:
+        Args:
             view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
             elements: string or list of strings with chemical symbols. used to select atoms of this type.
-            with_geo: true if structure info should be added to the dataframe
-            with_spglib: if true, spglib_ is invoked to get the spacegroup symbol and number.
-            with_params: true if parameters should be added to the dataframe.
+            with_geo: True if structure info should be added to the dataframe
+            with_spglib: if True, spglib_ is invoked to get the spacegroup symbol and number.
+            params: Rrue if parameters should be added to the dataframe.
+            as_rows: True to return list of dictionaries instead of dataframe.
             verbose: verbosity level.
         """
         aview = self._get_atomview(view, select_symbols=elements, verbose=verbose)
@@ -2448,26 +2471,30 @@ class DynQuad(Has_Structure, MSONable):
         rows = []
         for iatom, wlabel in zip(aview.iatom_list, aview.wyck_labels, strict=True):
             site = self.structure[iatom]
-            # (3,3,3) atom_dir, q_i, q_j in cart. coordinates.
-            qstar = self.zstars[iatom]
+            # (3,3,3) shaep with (atom_dir, q_i, q_j) in Cart. coordinates.
+            qstar = self.quad_cart[iatom]
             d = {}
             d["element"] = site.specie.symbol
             d["site_index"] = iatom
             d["frac_coords"] = site.frac_coords
             #d["cart_coords"] = site.coords
             d["wyckoff"] = wlabel
-            for k, ind3 in self.comps2inds.items():
+            for k, ind3 in DynQuad.comps2inds.items():
                 d[k] = qstar[ind3]
 
             if with_geo:
                 d.update(self.structure.get_dict4pandas(with_spglib=with_spglib))
 
-            if with_params:
-                d.update(self.params)
+            if params is not None:
+                d.update(params)
 
             rows.append(d)
 
+        if as_rows:
+            return rows
+
         return pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
+
 
 
 class DielectricTensorGenerator(Has_Structure):
@@ -3045,13 +3072,13 @@ class EpsinfResults:
     epsinf_list: list[DielectricTensor]   # List of |DielectricTensor| objects with eps^{inf}
 
     @add_fig_kwargs
-    def plot(self,
-             x_name: str,
-             abs_conv: float = 0.1,
-             voigt_comps: list[str] | None = None,
-             hue: str | None = None,
-             fontsize: int = 10,
-             **kwargs) -> Figure:
+    def plot_conv(self,
+                  x_name: str,
+                  abs_conv: float = 0.1,
+                  voigt_comps: list[str] | None = None,
+                  hue: str | None = None,
+                  fontsize: int = 10,
+                  **kwargs) -> Figure:
         """
         Plot the convergence of the eps_inf wrt ``x_name`` variable.
 
@@ -3089,8 +3116,7 @@ class EpsinfResults:
             if ii != nrows - 1:
                 set_visible(ax, False, *["xlabel"])
 
-        if "title" not in kwargs:
-            fig.suptitle(r"Convergence of $\epsilon^\infty$ with $\Delta$=%s" % abs_conv, fontsize=fontsize)
+        fig.suptitle(r"Convergence of $\epsilon^\infty$ with $\Delta$=%s" % abs_conv, fontsize=fontsize)
 
         return fig
 
@@ -3104,13 +3130,13 @@ class BecsResults:
     becs_list: list
 
     @add_fig_kwargs
-    def plot(self,
-             x_name: str,
-             abs_conv: float = 0.1,
-             fontsize: int = 8,
-             **kwargs) -> Figure:
+    def plot_conv(self,
+                 x_name: str,
+                 abs_conv: float = 0.1,
+                 fontsize: int = 8,
+                 **kwargs) -> Figure:
         """
-        Plot convergence of the BECS wrt ``x_name`` variable.
+        Plot the convergence of the BECS wrt ``x_name`` variable.
 
         Args:
             x_name: Name of the column used as x-value.
@@ -3141,70 +3167,80 @@ class BecsResults:
             if (ii, jj) != (0, 0):
                 set_visible(ax, False, *["legend"])
 
-        if "title" not in kwargs:
-            fig.suptitle(r"Convergence of BECs with $\Delta$=%s" % abs_conv, fontsize=fontsize)
+        fig.suptitle(r"Convergence of BECs with $\Delta$=%s" % abs_conv, fontsize=fontsize)
 
         return fig
 
 
 @dataclasses.dataclass(kw_only=True)
-class PhqdataResults:
+class PhqData:
     """
     Object returned by anacompare_becs. Provides methods to perform convergence studies.
     """
-    qpoint: Kpoint                         # Q-point for phonons
-    ph_df: pd.DataFrame                    # dataframe with phonon frequencies and metadata.
-    dyn_quad_df: pd.DataFrame | None       # dataframe with Q* and metadata.
+    qpoint: Kpoint                       # q-point for phonons
+    units: str                           # Units for phonon frequencies.
+    structures: list[Structure]          # List of structures.
+    ph_df: pd.DataFrame                  # Dataframe with phonon frequencies and metadata.
+    dyn_quad_df: pd.DataFrame | None     # Dataframe with Q* and metadata.
 
     @add_fig_kwargs
-    def plot_ph(self,
-                x_name: str,
-                abs_conv: float = 10,
-                hue: str | None = None,
-                fontsize: int = 8,
-                **kwargs) -> Figure:
-        """
-        Plot convergence of the phonon frequencies wrt ``x_name`` variable.
+    def plot_ph_conv(self,
+                     x_name: str,
+                     abs_conv: float = 0.1,
+                     hue: str | None = None,
+                     fontsize: int = 8,
+                     **kwargs) -> Figure:
+        r"""
+        Plot the convergence of the phonon frequencies wrt ``x_name`` variable.
 
         Args:
             x_name: Name of the column used as x-value.
             abs_conv: If not None, show absolute convergence window in meV.
+            1 cm⁻¹ ~ 0.000123984 eV
             hue: Variable that define subsets of the data, which will be drawn on separate lines.
                 None to disable grouping.
             fontsize: Legend and label fontsize.
         """
-        #natom = ??
+        natom = len(self.structures[0])
+        if any(natom != len(st) for st in self.structures):
+            raise ValueError("Structures have different number of atoms!")
+
+        if self.units != "meV":
+            raise NotImplementedError(f"{self.units=} are not supported here!")
+
         nrows, ncols = natom, 3
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
+
         plt_kwargs = dict(
             abs_conv=abs_conv,
-            #col2label=dict(zip(zeff_comps, labels, strict=True)),
+            col2label={f"mode{i}": r"$\omega_{%s}$ (meV)" % i for i in range(3 * natom)},
             fontsize=fontsize,
             show=False,
         )
 
         for imode, (ii, jj) in enumerate(itertools.product(range(nrows), range(ncols))):
             y_name, ax = f"mode{imode}", ax_mat[ii, jj]
-            plot_xy_with_hue(self.ph_df, x_name, y_name, ax=ax, **plt_kwargs)
+            plot_xy_with_hue(self.ph_df, x_name, y_name, ax=ax, hue=hue, **plt_kwargs)
 
             if ii != nrows - 1:
                 set_visible(ax, False, *["xlabel"])
 
-        if "title" not in kwargs:
-            fig.suptitle(r"Convergence of phonon frequencies with $\Delta$=%s (meV)" % abs_conv, fontsize=fontsize)
+        fig.suptitle(r"Convergence of ph frequencies at q=%s with $\Delta$=%s (meV)" % (repr(self.qpoint), abs_conv),
+                     fontsize=fontsize)
+        fig.tight_layout()
 
         return fig
 
     @add_fig_kwargs
-    def plot_dyn_quad(self,
-                     x_name: str,
-                     abs_conv: float = 1,
-                     hue: str | None = None,
-                     fontsize: int = 8,
-                     **kwargs) -> Figure:
+    def plot_dyn_quad_conv(self,
+                           x_name: str,
+                           abs_conv: float = 1,
+                           hue: str | None = None,
+                           fontsize: int = 8,
+                           **kwargs) -> Figure:
         """
-        Plot convergence of the dynamical quadrupoles wrt ``x_name`` variable.
+        Plot the convergence of the dynamical quadrupoles wrt ``x_name`` variable.
 
         Args:
             x_name: Name of the column used as x-value.
@@ -3216,13 +3252,36 @@ class PhqdataResults:
         if self.dyn_quad_df is None:
             raise ValueError("dataframe with dynamical quadrupoles is not available.")
 
-        raise NotImplementedError("")
+        natom = len(self.structures[0])
+        if any(natom != len(st) for st in self.structures):
+            raise ValueError("Structures have different number of atoms!")
+
+        #           element  site_index         frac_coords wyckoff           xxx        ecut
+        # 0      Al           0     [0.0, 0.0, 0.0]      1a -2.721676e-08 -7.641359e-09  0.01
+        # 1      As           1  [0.25, 0.25, 0.25]      1d -1.019512e-07  2.159039e-09  0.01
+        # 2      Al           0     [0.0, 0.0, 0.0]      1a -3.762428e-08 -2.392680e-08  0.01
+        # 3      As           1  [0.25, 0.25, 0.25]      1d -9.313927e-08 -4.500280e-08  0.01
 
         # Each tensor has (natom, 3, 3, 3) entries but many entries are zero by symmetry.
-        #natom = ??
-        nrows, ncols = natom, 3
+        all_comps = DynQuad.comps2inds.keys()
+        non_zero_comps = []
+        for comp in all_comps:
+            if np.any(np.abs(self.dyn_quad_df[comp].values) > 1e-4):
+                non_zero_comps.append(comp)
+
+        print(len(non_zero_comps), non_zero_comps)
+
+        num_plots, ncols, nrows = len(non_zero_comps), 1, 1
+        if num_plots > 1:
+            ncols = 2
+            nrows = (num_plots // ncols) + (num_plots % ncols)
+
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
+
+        # don't show the last ax if num_plots is odd.
+        if num_plots % ncols != 0: ax_mat.ravel()[-1].axis("off")
+
         plt_kwargs = dict(
             abs_conv=abs_conv,
             #col2label=dict(zip(zeff_comps, labels, strict=True)),
@@ -3230,17 +3289,20 @@ class PhqdataResults:
             show=False,
         )
 
-        for imode, (ii, jj) in enumerate(itertools.product(range(nrows), range(ncols))):
-            y_name, ax = f"mode{imode}", ax_mat[ii, jj]
-            plot_xy_with_hue(self.ph_df, x_name, y_name, ax=ax, **plt_kwargs)
+        non_zero_comps = np.reshape(non_zero_comps, (nrows, ncols))
 
-            #if ii != nrows - 1:
-            #    set_visible(ax, False, *["xlabel"])
-            #if (ii, jj) != (0, 0):
-            #    set_visible(ax, False, *["legend"])
+        for (ii, jj) in itertools.product(range(nrows), range(ncols)):
+            y_name, ax = non_zero_comps[ii, jj], ax_mat[ii, jj]
+            plot_xy_with_hue(self.dyn_quad_df, x_name, y_name, ax=ax, hue="site_index", **plt_kwargs)
 
-        if "title" not in kwargs:
-            fig.suptitle(r"Convergence of dynamical quadrupoles with $\Delta$=%s" % abs_conv, fontsize=fontsize)
+            if ii != nrows - 1:
+                set_visible(ax, False, *["xlabel"])
+            if (ii, jj) != (0, 0):
+                set_visible(ax, False, *["legend"])
+
+        # Place a single legend outside the plot grid (bottom center)
+        #fig.legend(loc='lower center', bbox_to_anchor=(0.5, -0.05), ncol=ncols)
+        fig.suptitle(r"Convergence of dynamical quadrupoles with $\Delta$=%s" % abs_conv, fontsize=fontsize)
 
         return fig
 
@@ -3299,28 +3361,25 @@ class DdbRobot(Robot):
 
         return cls.from_files(ddb_files, labels=mpid_list)
 
-    def get_dataframe_at_qpoint(self,
-                                qpoint=None,
-                                units: str = "eV",
-                                asr: int = 2,
-                                chneut: int = 1,
-                                dipdip: int = 1,
-                                dipquad: int = 1,
-                                quadquad: int = 1,
-                                ifcflag: int = 0,
-                                with_geo: bool = True,
-                                with_spglib: bool = True,
-                                abspath: bool = False,
-                                funcs=None) -> pd.DataFrame:
+    def get_phdata_at_qpoint(self,
+                             qpoint,
+                             asr: int = 2,
+                             chneut: int = 1,
+                             dipdip: int = 1,
+                             dipquad: int = 1,
+                             quadquad: int = 1,
+                             ifcflag: int = 0,
+                             with_geo: bool = True,
+                             with_spglib: bool = True,
+                             abspath: bool = False,
+                             funcs=None) -> PhqData:
         """
         Call anaddb to compute the phonon frequencies at a single q-point using all the DDB files treated
         by the robot and the given anaddb input arguments. LO-TO splitting is not included.
-        Build and return a |pandas-Dataframe| with results.
+        Build and return a PhqData instance with results.
 
         Args:
             qpoint: Reduced coordinates of the qpoint where phonon modes are computed
-            units: string specifying the units used for ph frequencies.  Possible values in
-                ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
             ifcflag: 1 if phonons should be Fourier-interpolated, 0 to use dynamical matrix directly.
@@ -3333,44 +3392,64 @@ class DdbRobot(Robot):
 
         Return: |pandas-DataFrame|
         """
+        units = "meV"
+
         # If qpoint is None, all the DDB must contain have the same q-point .
-        if qpoint is None:
-            if not all(len(ddb.qpoints) == 1 for ddb in self.abifiles):
-                raise ValueError("Found more than one q-point in the DDB file. qpoint must be specified")
+        #if qpoint is None:
+        #    if not all(len(ddb.qpoints) == 1 for ddb in self.abifiles):
+        #        raise ValueError("Found more than one q-point in the DDB file. qpoint must be specified")
 
-            qpoint = self[0].qpoints[0]
-            if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.abifiles):
-                raise ValueError("All the q-points in the DDB files must be equal")
+        #    qpoint = self[0].qpoints[0]
+        #    if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.abifiles):
+        #        raise ValueError("All the q-points in the DDB files must be equal")
 
-        rows, row_names = [], []
+        ph_row_names, ph_rows, dyn_quad_rows = [], [], []
         for i, (label, ddb) in enumerate(self.items()):
-            row_names.append(label)
-            d = {}
-            #d = {aname: getattr(ddb, aname) for aname in attrs}
-            #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 
             # Call anaddb to get the phonon frequencies. Note lo_to_splitting set to False.
             phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut,
                                                    dipdip=dipdip, dipquad=dipquad, quadquad=quadquad,
                                                    ifcflag=ifcflag, lo_to_splitting=False)
+
+            ph_row_names.append(label)
+
+            if has_quad := phbands.dyn_quad is not None:
+                d_list = phbands.dyn_quad.get_dataframe(with_geo=with_geo, with_spglib=with_spglib, as_rows=True)
+                for d in d_list:
+                    d.update(ddb.params)
+                #print(d_list)
+
             # [nq, nmodes] array
             freqs = phbands.phfreqs[0, :] * phfactor_ev2units(units)
-            d.update({"mode" + str(i): freqs[i] for i in range(len(freqs))})
+            ph_d = {"mode" + str(i): freqs[i] for i in range(len(freqs))}
 
             # Add convergence parameters
-            d.update(ddb.params)
+            ph_d.update(ddb.params)
 
             # Add info on structure.
             if with_geo:
-                d.update(phbands.structure.get_dict4pandas(with_spglib=with_spglib))
+                geo_dict = phbands.structure.get_dict4pandas(with_spglib=with_spglib)
+                ph_d.update(geo_dict)
 
             # Execute functions.
-            if funcs is not None: d.update(self._exec_funcs(funcs, ddb))
-            rows.append(d)
+            if funcs is not None:
+                extra_dict = self._exec_funcs(funcs, ddb)
+                ph_d.update(extra_dict)
 
-        row_names = row_names if not abspath else self._to_relpaths(row_names)
-        df = pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
-        return df
+            ph_rows.append(ph_d)
+            if has_quad:
+                dyn_quad_rows.extend(d_list)
+
+        ph_row_names = ph_row_names if not abspath else self._to_relpaths(ph_row_names)
+        ph_df = pd.DataFrame(ph_rows, index=ph_row_names, columns=list(ph_rows[0].keys()))
+
+        dyn_quad_df = None
+        if dyn_quad_rows:
+            dyn_quad_df = pd.DataFrame(dyn_quad_rows) #, index=ph_row_names, columns=list(ph_rows[0].keys()))
+
+        return PhqData(qpoint=qpoint, units=units,
+                       structures=[ddb.structure for ddb in self.abifiles],
+                       ph_df=ph_df, dyn_quad_df=dyn_quad_df)
 
     def anaget_phonon_plotters(self, **kwargs):
         r"""
@@ -3638,7 +3717,6 @@ class DdbRobot(Robot):
         nb.cells.extend([
             #nbv.new_markdown_cell("# This is a markdown cell"),
             nbv.new_code_cell("robot = abilab.DdbRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("""#dfq = robot.get_dataframe_at_qpoint(qpoint=None, units="meV")"""),
             nbv.new_code_cell("r = robot.anaget_phonon_plotters(%s)" % anaget_phonon_plotters_kwargs),
             nbv.new_code_cell("r.phbands_plotter.get_phbands_frame()"),
             nbv.new_code_cell("r.phbands_plotter.ipw_select_plot()"),

@@ -467,9 +467,9 @@ def abiview_ddb_quad(options) -> int:
     print("Computing phonon frequencies with/without dip-quad and quad-quad terms.")
 
     with abilab.abiopen(options.filepath) as ddb:
-        plotter = ddb.anacompare_quad(asr=2, chneut=1, dipdip=1, lo_to_splitting="automatic",
-                                      nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
-                                      verbose=0, mpi_procs=1)
+        plotter = ddb.anacompare_phbands_with_quad(asr=2, chneut=1, dipdip=1, lo_to_splitting="automatic",
+                                                   nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
+                                                   verbose=0, mpi_procs=1)
 
         title = ddb.structure.formula
         renderer = "browser" if not options.chart_studio else "chart_studio"

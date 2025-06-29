@@ -401,9 +401,9 @@ class DdbTest(AbipyTest):
         # Invoke anaddb to get bands and doses
         r = robot.anaget_phonon_plotters(nqsmall=2)
 
-        data = robot.get_dataframe_at_qpoint(qpoint=(0, 0, 0), units="meV", with_geo=False)
-        assert "tsmear" in data
-        self.assert_equal(data["ixc"].values, 1)
+        data = robot.get_phdata_at_qpoint(qpoint=(0, 0, 0), units="meV", with_geo=False)
+        assert "tsmear" in data.ph_df
+        self.assert_equal(data.ph_df["ixc"].values, 1)
 
         if self.has_matplotlib():
             assert r.phbands_plotter.gridplot_with_hue("nkpt", with_dos=True, show=False)
@@ -483,9 +483,9 @@ class DdbTest(AbipyTest):
 
             assert df is not None
 
-            plotter = ddb.anacompare_quad(asr=2, chneut=1, dipdip=-1, lo_to_splitting="automatic",
-                                          nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
-                                          verbose=1, mpi_procs=1)
+            plotter = ddb.anacompare_phbands_with_quad(asr=2, chneut=1, dipdip=-1, lo_to_splitting="automatic",
+                                                       nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
+                                                       verbose=1, mpi_procs=1)
             assert len(plotter) == 3
 
     def test_ddb_with_flexoe(self):
@@ -561,9 +561,9 @@ class DdbRobotTest(AbipyTest):
         assert len(robot) == 2
         assert robot.EXT == "DDB"
 
-        data = robot.get_dataframe_at_qpoint(qpoint=[0, 0, 0], asr=2, chneut=1,
-                dipdip=0, with_geo=True, abspath=True)
-        assert "mode1" in data and "alpha" in data
+        data = robot.get_phdata_at_qpoint(qpoint=[0, 0, 0], asr=2, chneut=1, units="eV",
+                                          dipdip=0, with_geo=True, abspath=True)
+        assert "mode1" in data.ph_df and "alpha" in data.ph_df
 
         r = robot.anaget_phonon_plotters(nqsmall=2, ndivsm=2, dipdip=1, verbose=2)
         if self.has_matplotlib():
