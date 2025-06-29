@@ -667,6 +667,7 @@ def plot_xy_with_hue(data: pd.DataFrame,
             None to disable grouping.
         decimals: Number of decimal places to round `hue` columns. Ignore if None
         abs_conv: If not None, show absolute convergence window.
+            A negative value is interpreted as relative convergence.
         span_style: dictionary with options passed to ax.axhspan.
         ax: |matplotlib-Axes| or None if a new figure should be created.
         xlims, ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
@@ -717,30 +718,43 @@ def plot_xy_with_hue(data: pd.DataFrame,
         label = f"{hue}: {str(key)}" if hue is not None else ""
         style_kws = dict()
         style_kws.update(kwargs)
+        if abs_conv is None and "marker" not in kwargs:
+            style_kws["marker"] = "o"
+
         line = ax.plot(xs, ys, label=label, **style_kws)[0]
 
         # Plot points with different colors if y reached convergence.
         if abs_conv is not None:
             color = line.get_color()
+
             for i in range(len(ys)):
+                if abs_conv > 0:
+                    # Absolute convergence
+                    converged = abs(ys[i] - ys[-1]) < abs_conv
+                else:
+                    # Relative convergence. Won't work when ys[-1] could be zero or very sma
+                    converged = abs(ys[i] - ys[-1]) < abs(abs_conv) * abs(ys[-1])
+
                 ax.plot(xs[i], ys[i],
-                        marker="*" if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else "o",
-                        markersize=10 if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else 5,
+                        marker="*" if converged else "o",
+                        markersize=10 if converged else 5,
                         color=color,
-                        alpha = 1 if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else 0.5,
+                        alpha=1 if converged else 0.5,
                         linestyle="")
 
-        if abs_conv is not None:
-            span_style = span_style or dict(alpha=0.2, hatch="/")
-            span_style["color"] = line.get_color()
             # This to support the case in which we have multiple ys for the same x_max.
             x_max, y_xmax = xs[-1], ys[-1]
             x_inds = np.where(xs == x_max)[0]
+
+            span_style = span_style or dict(alpha=0.2, hatch="/")
+            span_style["color"] = line.get_color()
             for i, ix in enumerate(x_inds):
                 y_xmax = ys[ix]
-                ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv,
-                           #label=r"$|y-y(x_{max})| \leq %s$" % abs_conv if (with_label and i == 0) else None,
-                           **span_style)
+                if abs_conv > 0:
+                    ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv, **span_style)
+                else:
+                    tol = abs(abs_conv) * abs(y_xmax)
+                    ax.axhspan(y_xmax - tol, y_xmax + tol, **span_style)
 
     if hue is not None:
         for key, grp in data.groupby(by=hue):

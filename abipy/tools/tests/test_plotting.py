@@ -71,8 +71,11 @@ class TestPlotting(AbipyTest):
 
         from abipy.tools.plotting import plot_xy_with_hue
         if self.has_matplotlib():
-            assert plot_xy_with_hue(data=df, x="x", y="y", hue="z", ax=None, show=False)
-            assert plot_xy_with_hue(data=df, x="x", y="y", hue="z", ax=None, show=False,
+            assert plot_xy_with_hue(data=df, x="x", y="y", hue=None, abs_conv=None, show=False)
+            assert plot_xy_with_hue(data=df, x="x", y="y", hue=None, abs_conv=0.1, show=False)
+            assert plot_xy_with_hue(data=df, x="x", y="y", hue=None, abs_conv=-0.02, show=False)
+            assert plot_xy_with_hue(data=df, x="x", y="y", hue="z", abs_conv=0.1, ax=None, show=False)
+            assert plot_xy_with_hue(data=df, x="x", y="y", hue="z", abs_conv=-0.02, ax=None, show=False,
                                     color="red", marker="v")
             assert plot_xy_with_hue(data=df, x="x", y="y", hue="z", decimals=0, ax=None, show=False,
                                     color="red", marker="v")

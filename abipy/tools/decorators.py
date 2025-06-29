@@ -10,6 +10,23 @@ import inspect
 from typing import Callable
 from textwrap import dedent
 
+class classproperty(property):
+    """class-level property"""
+    def __get__(self, obj, cls):
+        return self.fget(cls)
+
+
+class cached_classproperty:
+    """class-level property that is also cached."""
+    def __init__(self, func):
+        self.func = func
+        self._cache_name = f"__cached_{func.__name__}"
+
+    def __get__(self, instance, owner):
+        if not hasattr(owner, self._cache_name):
+            setattr(owner, self._cache_name, self.func(owner))
+        return getattr(owner, self._cache_name)
+
 
 def return_straceback_ifexc(func: Callable):
     """

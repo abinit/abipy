@@ -318,16 +318,17 @@ class PhononBands:
 
     def read_non_anal_from_file(self, filepath: str) -> None:
         """
-        Reads the non analytical directions, frequencies and displacements from the anaddb.nc file
-        and adds them to the object.
+        Read the non analytical directions, frequencies and displacements from the anaddb.nc file
+        and add them to the object.
         """
         self.non_anal_ph = NonAnalyticalPh.from_file(filepath)
 
     def read_dyn_quad_from_file(self, filepath: str) -> None:
         """
-        Reads the dynamical quadrupoles from file and adds them to the object.
+        Read the dynamical quadrupoles from file and adds them to the object.
         """
-        from abipy.ddb import DynQuad
+        #print("Reading dyn_quad")
+        from abipy.dfpt.ddb import DynQuad
         self.dyn_quad = DynQuad.from_file(filepath)
 
     def set_phonopy_obj_from_ananc(self, ananc, supercell_matrix, symmetrize_tensors=False,

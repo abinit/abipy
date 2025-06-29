@@ -4,6 +4,7 @@ AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc
 """
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
@@ -180,6 +181,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             quad_cart = np.swapaxes(quad_cart, -1, -2)
             return DynQuad(quad_cart, self.structure, self.params)
         except Exception as exc:
+            #print(exc)
             return None
 
     @cached_property

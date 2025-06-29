@@ -401,11 +401,12 @@ class DdbTest(AbipyTest):
         # Invoke anaddb to get bands and doses
         r = robot.anaget_phonon_plotters(nqsmall=2)
 
-        data = robot.get_dataframe_at_qpoint(qpoint=(0, 0, 0), units="meV", with_geo=False)
-        assert "tsmear" in data
-        self.assert_equal(data["ixc"].values, 1)
+        ph_data = robot.get_phdata_at_qpoint(qpoint=(0, 0, 0), with_geo=False)
+        assert "tsmear" in ph_data.ph_df
+        self.assert_equal(ph_data.ph_df["ixc"].values, 1)
 
         if self.has_matplotlib():
+            assert ph_data.plot_ph_conv("nkpt", show=False)
             assert r.phbands_plotter.gridplot_with_hue("nkpt", with_dos=True, show=False)
             assert r.phbands_plotter.gridplot_with_hue("nkpt", with_dos=False, show=False)
 
@@ -483,9 +484,9 @@ class DdbTest(AbipyTest):
 
             assert df is not None
 
-            plotter = ddb.anacompare_quad(asr=2, chneut=1, dipdip=-1, lo_to_splitting="automatic",
-                                          nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
-                                          verbose=1, mpi_procs=1)
+            plotter = ddb.anacompare_phbands_with_quad(asr=2, chneut=1, dipdip=-1, lo_to_splitting="automatic",
+                                                       nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
+                                                       verbose=1, mpi_procs=1)
             assert len(plotter) == 3
 
     def test_ddb_with_flexoe(self):
@@ -561,12 +562,15 @@ class DdbRobotTest(AbipyTest):
         assert len(robot) == 2
         assert robot.EXT == "DDB"
 
-        data = robot.get_dataframe_at_qpoint(qpoint=[0, 0, 0], asr=2, chneut=1,
-                dipdip=0, with_geo=True, abspath=True)
-        assert "mode1" in data and "alpha" in data
+        ph_data = robot.get_phdata_at_qpoint(qpoint=[0, 0, 0], asr=2, chneut=1,
+                                          dipdip=0, with_geo=True, abspath=True)
+        assert "mode1" in ph_data.ph_df and "alpha" in ph_data.ph_df
 
         r = robot.anaget_phonon_plotters(nqsmall=2, ndivsm=2, dipdip=1, verbose=2)
+
         if self.has_matplotlib():
+            assert ph_data.plot_ph_conv("nkpt", show=False)
+            #assert ph_data.plot_dyn_quad_conv("nkpt", show=False)
             assert r.phbands_plotter.gridplot(show=False)
             assert r.phdos_plotter.gridplot(show=False)
 
@@ -597,15 +601,20 @@ class DdbRobotTest(AbipyTest):
 
     def test_robot_becs_eps(self):
         """Test DdbRobot with anacompare_becs and eps methods."""
-        paths = ["out_ngkpt222_DDB", "out_ngkpt444_DDB", "out_ngkpt888_DDB"]
+        #paths = ["out_ngkpt222_DDB", "out_ngkpt444_DDB", "out_ngkpt888_DDB"]
+        paths = ["AlAs_222k_DDB", "AlAs_444k_DDB","AlAs_666k_DDB", "AlAs_888k_DDB"]
+
         paths = [os.path.join(abidata.dirpath, "refs", "alas_eps_and_becs_vs_ngkpt", f) for f in paths]
 
         with abilab.DdbRobot.from_files(paths) as robot:
             # Test anacompare_epsinf
-            rinf = robot.anacompare_epsinf(ddb_header_keys="nkpt", chneut=0, with_path=True, verbose=2)
-            assert "nkpt" in rinf.df
-            assert "ddb_path" in rinf.df
-            assert len(rinf.epsinf_list) == len(robot)
+            einf_data = robot.anacompare_epsinf(ddb_header_keys="nkpt", chneut=0, with_path=True, verbose=2)
+            assert "nkpt" in einf_data.df
+            assert "ddb_path" in einf_data.df
+            assert len(einf_data.epsinf_list) == len(robot)
+
+            if self.has_matplotlib():
+                assert einf_data.plot_conv("nkpt", show=False)
 
             # Test anacompare_eps0
             r0 = robot.anacompare_eps0(ddb_header_keys=["nkpt", "tsmear"], asr=0, tol=1e-5, with_path=True, verbose=2)
@@ -614,10 +623,23 @@ class DdbRobotTest(AbipyTest):
             assert "ddb_path" in r0.df
 
             # Test anacompare_becs
-            rb = robot.anacompare_becs(ddb_header_keys=["nkpt", "tsmear"], chneut=0, with_path=True, verbose=2)
-            assert len(rb.becs_list) == len(robot)
+            becs_data = robot.anacompare_becs(ddb_header_keys=["nkpt", "tsmear"], chneut=0, with_path=True, verbose=2)
+            assert len(becs_data.becs_list) == len(robot)
             for k in ["nkpt", "tsmear", "ddb_path"]:
-                assert k in rb.df
+                assert k in becs_data.df
+
+            if self.has_matplotlib():
+                assert becs_data.plot_conv("nkpt", show=False)
+
+            # Test get_phdata_at_qpoint
+            ph_data = robot.get_phdata_at_qpoint(qpoint=[0, 0, 0], asr=2, chneut=1,
+                                                 dipdip=0, with_geo=True, abspath=True)
+            assert "mode1" in ph_data.ph_df
+            assert ph_data.dyn_quad_df is not None
+
+            if self.has_matplotlib():
+                assert ph_data.plot_ph_conv("nkpt", show=False)
+                assert ph_data.plot_dyn_quad_conv("nkpt", show=False)
 
 
 class PhononComputationTest(AbipyTest):
