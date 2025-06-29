@@ -718,20 +718,22 @@ def plot_xy_with_hue(data: pd.DataFrame,
         label = f"{hue}: {str(key)}" if hue is not None else ""
         style_kws = dict()
         style_kws.update(kwargs)
+        if abs_conv is None and "marker" not in kwargs:
+            style_kws["marker"] = "o"
+
         line = ax.plot(xs, ys, label=label, **style_kws)[0]
 
         # Plot points with different colors if y reached convergence.
         if abs_conv is not None:
             color = line.get_color()
-            for i in range(len(ys)):
 
+            for i in range(len(ys)):
                 if abs_conv > 0:
                     # Absolute convergence
                     converged = abs(ys[i] - ys[-1]) < abs_conv
                 else:
                     # Relative convergence. Won't work when ys[-1] could be zero or very sma
                     converged = abs(ys[i] - ys[-1]) < abs(abs_conv) * abs(ys[-1])
-                    #converged = abs(ys[i] - ys[-1]) < max(abs_conv, rel_conv * abs(ys[-1]))
 
                 ax.plot(xs[i], ys[i],
                         marker="*" if converged else "o",
