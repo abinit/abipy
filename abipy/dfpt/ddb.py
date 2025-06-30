@@ -1113,7 +1113,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             lo_to_splitting = self.has_lo_to_data() and has_gamma and dipdip != 0
 
         # if lo_to_splitting and has_gamma and not self.has_lo_to_data():
-        #     cprint("lo_to_splitting set to True but Eps_inf and Becs are not available in DDB %s:" % self.filepath)
+        #     cprint("lo_to_splitting set to True but Eps_inf and BECs are not available in DDB %s:" % self.filepath)
 
         inp = AnaddbInput.modes_at_qpoints(self.structure, qpoints, asr=asr, chneut=chneut, dipdip=dipdip,
                                            dipquad=dipquad, quadquad=quadquad,
@@ -1195,7 +1195,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             lo_to_splitting = self.has_lo_to_data() and dipdip != 0
 
         if lo_to_splitting and not self.has_lo_to_data():
-            cprint("lo_to_splitting is True but Eps_inf and Becs are not available in DDB: %s" % self.filepath, "yellow")
+            cprint("lo_to_splitting is True but Eps_inf and BECs are not available in DDB: %s" % self.filepath, "yellow")
 
         inp = AnaddbInput.phbands_and_dos(
             self.structure, ngqpt=ngqpt, ndivsm=ndivsm, line_density=line_density,
@@ -1279,7 +1279,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Args:
             asr_list: List of ``asr`` values to test.
             chneut_list: List of ``chneut`` values to test (used by anaddb only if dipdip == 1).
-            dipdip: 1 to activate the treatment of the dipole-dipole interaction (requires BECS and dielectric tensor).
+            dipdip: 1 to activate the treatment of the dipole-dipole interaction (requires BECs and dielectric tensor).
             dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
             lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
                 If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
@@ -1478,7 +1478,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Args:
             rifcsph_list: List of rifcsph to analyze.
             asr, chneut: Anaddb input variable. See official documentation.
-            dipdip: 1 to activate the treatment of the dipole-dipole interaction (requires BECS and dielectric tensor).
+            dipdip: 1 to activate the treatment of the dipole-dipole interaction (requires BECs and dielectric tensor).
             dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
             lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
                 If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
@@ -1515,8 +1515,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         Args:
             asr: Acoustic sum rule input variable.
-            chneut: Charge neutrality for BECS
-            dipdip: 1 to activate the treatment of the dipole-dipole interaction (requires BECS and dielectric tensor).
+            chneut: Charge neutrality for BECs.
+            dipdip: 1 to activate the treatment of the dipole-dipole interaction (requires BECs and dielectric tensor).
             lo_to_splitting: Allowed values are [True, False, "automatic"]. Defaults to "automatic"
                 If True the LO-TO splitting will be calculated if qpoint == Gamma and the non_anal_directions
                 non_anal_phfreqs attributes will be addeded to the phonon band structure.
@@ -2288,7 +2288,7 @@ class Zeffs(Has_Structure, MSONable):
                       with_params: bool = False,
                       verbose: int = 0) -> pd.DataFrame:
         """
-        return |pandas-dataframe| with zeff values as columns and natom rows.
+        Return |pandas-dataframe| with zeff values as columns and natom rows.
 
         args:
             view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
@@ -2379,11 +2379,6 @@ class DynQuad(Has_Structure, MSONable):
     and provides tools for data analysis.
     """
 
-    #@pmg_serialize
-    #def as_dict(self) -> dict:
-    #    """Return dictionary with JSON serialization in MSONable format."""
-    #    return dict(quad_cart=self.quad_cart, structure=self.structure, params=self.params)
-
     @classmethod
     def from_file(cls, filepath: PathLike) -> DynQuad:
         """
@@ -2392,6 +2387,11 @@ class DynQuad(Has_Structure, MSONable):
         from abipy.dfpt.anaddbnc import AnaddbNcFile
         with AnaddbNcFile(filepath) as ananc:
             return ananc.dyn_quad
+
+    @pmg_serialize
+    def as_dict(self) -> dict:
+        """Return dictionary with JSON serialization in MSONable format."""
+        return dict(quad_cart=self.quad_cart, structure=self.structure, params=self.params)
 
     def __init__(self,
                  quad_cart: np.ndarray,
@@ -3062,7 +3062,7 @@ class EpsinfData:
                   fontsize: int = 8,
                   **kwargs) -> Figure:
         """
-        Plot the convergence of the eps_inf wrt ``x_name`` variable.
+        Plot the convergence of eps_inf wrt ``x_name`` variable.
 
         Args:
             x_name: Name of the column used as x-value.
@@ -3074,11 +3074,8 @@ class EpsinfData:
             fontsize: Legend and label fontsize.
         """
         # Select non-zero components.
-        voigt_comps = ["xx", "xz", "yy", "xy", "zz", "yz"]
-        non_zero_comps = []
-        for comp in voigt_comps:
-            if np.any(np.abs(self.df[comp].values) > zero_below):
-                non_zero_comps.append(comp)
+        non_zero_comps = [comp for comp in ["xx", "xz", "yy", "xy", "zz", "yz"]
+            if np.any(np.abs(self.df[comp].values) > zero_below)]
 
         # Build plot grid
         num_plots, nrows, ncols = len(non_zero_comps), len(non_zero_comps), 1
@@ -3139,10 +3136,8 @@ class BecsData:
             fontsize: Legend and label fontsize.
         """
         # Select non-zero components.
-        non_zero_comps = []
-        for comp in Zeffs.comps2inds.keys():
-            if np.any(np.abs(self.df[comp].values) > zero_below):
-                non_zero_comps.append(comp)
+        non_zero_comps = [comp for comp in Zeffs.comps2inds \
+            if np.any(np.abs(self.df[comp].values) > zero_below)]
 
         # Build plot grid
         num_plots, nrows, ncols = len(non_zero_comps), len(non_zero_comps), 1
@@ -3186,7 +3181,7 @@ class PhqData:
     """
     Object returned by anacompare_becs. Provides methods to perform convergence studies.
     """
-    qpoint: Kpoint                       # q-point for phonons
+    qpoint: Kpoint                       # q-point for phonons.
     units: str                           # Units for phonon frequencies.
     structures: list[Structure]          # List of structures.
     ph_df: pd.DataFrame                  # Dataframe with phonon frequencies and metadata.
@@ -3276,10 +3271,8 @@ class PhqData:
 
         # Each tensor has (natom, 3, 3, 3) entries but many entries are zero by symmetry.
         # Select non-zero components.
-        non_zero_comps = []
-        for comp in DynQuad.comps2inds.keys():
-            if np.any(np.abs(self.dyn_quad_df[comp].values) > zero_below):
-                non_zero_comps.append(comp)
+        non_zero_comps = [comp for comp in DynQuad.comps2inds \
+            if np.any(np.abs(self.dyn_quad_df[comp].values) > zero_below)]
 
         num_plots, nrows, ncols = len(non_zero_comps), len(non_zero_comps), 1
         if num_plots > 1 and num_plots % 2 == 0:
@@ -3386,7 +3379,7 @@ class DdbRobot(Robot):
         Build and return a PhqData instance with results.
 
         Args:
-            qpoint: Reduced coordinates of the qpoint where phonon modes are computed
+            qpoint: Reduced coordinates of the q-point where phonon modes are computed
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
             ifcflag: 1 if phonons should be Fourier-interpolated, 0 to use dynamical matrix directly.
@@ -3396,19 +3389,8 @@ class DdbRobot(Robot):
             funcs: Function or list of functions to execute to add more data to the DataFrame.
                 Each function receives a |DdbFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
-
-        Return: |pandas-DataFrame|
         """
         units = "meV"
-
-        # If qpoint is None, all the DDB must contain have the same q-point .
-        #if qpoint is None:
-        #    if not all(len(ddb.qpoints) == 1 for ddb in self.abifiles):
-        #        raise ValueError("Found more than one q-point in the DDB file. qpoint must be specified")
-
-        #    qpoint = self[0].qpoints[0]
-        #    if any(np.any(ddb.qpoints[0] != qpoint) for ddb in self.abifiles):
-        #        raise ValueError("All the q-points in the DDB files must be equal")
 
         ph_row_names, ph_rows, dyn_quad_rows = [], [], []
         for i, (label, ddb) in enumerate(self.items()):
@@ -3573,7 +3555,7 @@ class DdbRobot(Robot):
         ddb_header_keys = [] if ddb_header_keys is None else list_strings(ddb_header_keys)
         df_list, becs_list = [], []
         for label, ddb in self.items():
-            # Invoke anaddb to compute Becs.
+            # Invoke anaddb to compute BECs.
             _, becs = ddb.anaget_epsinf_and_becs(chneut=chneut, verbose=verbose)
             becs_list.append(becs)
             df = becs.get_dataframe()
