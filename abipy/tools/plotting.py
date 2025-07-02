@@ -723,7 +723,7 @@ def plot_xy_with_hue(data: pd.DataFrame,
 
         line = ax.plot(xs, ys, label=label, **style_kws)[0]
 
-        # Plot points with different colors if y reached convergence.
+        # Plot points with different colors if y has reached convergence.
         if abs_conv is not None:
             color = line.get_color()
 
@@ -782,7 +782,6 @@ def linear_fit_ax(ax, xs, ys,
                   **kwargs) -> tuple[float]:
     """
     Calculate a linear least-squares regression for two sets of measurements.
-
 
     Args:
         ax: |matplotlib-Axes|.
@@ -1184,6 +1183,7 @@ class ConvergenceAnalyzer:
                             grid=False, legend=True)
 
         fig.tight_layout()
+
         return fig
 
 
@@ -1584,21 +1584,6 @@ def ax_add_cartesian_frame(ax, start=(0, 0, 0)) -> Axes:
             self.set_positions((xs[0],ys[0]),(xs[1],ys[1]))
 
             return np.min(zs)
-
-        #def draw(self, renderer):
-        #    xs3d, ys3d, zs3d = self._verts3d
-        #    xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
-        #    self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
-        #    super().draw(renderer)
-
-        #def do_3d_projection(self, renderer=None):
-        #    xs3d, ys3d, zs3d = self._verts3d
-        #    if renderer is None:
-        #        # fallback to a default or estimated z value
-        #        return np.mean(zs3d)  # safe fallback
-        #    else:
-        #        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
-        #        return np.min(zs)  # or np.mean(zs) depending on your desired sorting
 
     start = np.array(start)
     for end in ((1, 0, 0), (0, 1, 0), (0, 0, 1)):
@@ -2036,10 +2021,6 @@ def plotly_set_lims(fig, lims, axname, iax=None) -> tuple:
     left, right = None, None
     if lims is None: return (left, right)
 
-    # iax = kwargs.pop("iax", 1)
-    # xaxis = 'xaxis%u' % iax
-    #fig.layout[xaxis].title.text = "Wave Vector"
-
     axis = dict(x=fig.layout.xaxis, y=fig.layout.yaxis)[axname]
 
     len_lims = None
@@ -2137,7 +2118,6 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
                     )
 
                 fig.write_image(savefig, engine="kaleido", scale=5, width=750, height=750)
-                #fig.write_image(savefig)
 
         if write_json:
             import plotly.io as pio
@@ -2344,10 +2324,7 @@ def push_to_chart_studio(figs) -> None:
 
 def go_points(points, size=4, color="black", labels=None, **kwargs):
 
-    #textposition = 'top right',
-    #textfont = dict(color='#E58606'),
     mode = "markers" if labels is None else "markers+text"
-    #text = labels
 
     if labels is not None:
         labels = plotly_klabels(labels, allow_dupes=True)

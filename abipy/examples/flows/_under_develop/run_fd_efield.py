@@ -45,7 +45,6 @@ typat 1 2 # type 1 is Phosphorous, type 2 is Aluminum (order defined by znucl ab
 ntypat 2 # two types of atoms
 znucl 15 13 # the atom types are Phosphorous and Aluminum
 
-
 #atomic positions, given in units of the cell vectors. Thus as the cell vectors
 #change due to strain the atoms will move as well.
 xred
