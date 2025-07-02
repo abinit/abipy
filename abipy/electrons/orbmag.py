@@ -137,7 +137,7 @@ class OrbmagAnalyzer:
                             if iterm < 4:
                                 omtmp = ucvol * np.matmul(gprimd, orbmag_mesh[iterm,0:ndir,isppol,ikpt,iband])
                             else:
-                                omtmp = np.matmul(rprimd, orbmag_mesh[iterm,0:ndir,isppol,ikpt,iband])
+                                omtmp = np.matmul(np.transpose(rprimd), orbmag_mesh[iterm,0:ndir,isppol,ikpt,iband])
 
                             self.orbmag_merge_mesh[iterm,idir,0:ndir,isppol,ikpt,iband] = omtmp
 
