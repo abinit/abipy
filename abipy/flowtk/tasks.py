@@ -1232,7 +1232,9 @@ class AbinitBuild:
         # flavor options were used in Abinit v8
         for line in self.info.splitlines():
             print(line)
-            if "Version" in line: self.version = line.split()[-1]
+            if "Version" in line: 
+                self.version = line.split()[-1]
+                self.version = self.version.split('-')[0]
             if "TRIO flavor" in line:
                 self.has_netcdf = "netcdf" in line
             if "NetCDF Fortran" in line:
