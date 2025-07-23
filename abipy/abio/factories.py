@@ -924,7 +924,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
         with_dde = False
 
     if ph_tol is None:
-        ph_tol = {"tolvrs": 1.0e-22}
+        ph_tol = {"tolvrs": 1.0e-10}
 
     if ddk_tol is None:
         ddk_tol = {"tolwfr": 1.0e-22}
