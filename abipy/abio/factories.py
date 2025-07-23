@@ -924,7 +924,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
         with_dde = False
 
     if ph_tol is None:
-        ph_tol = {"tolvrs": 1.0e-10}
+        ph_tol = {"tolvrs": 1.0e-22}
 
     if ddk_tol is None:
         ddk_tol = {"tolwfr": 1.0e-22}
@@ -1472,7 +1472,7 @@ def phononpert_from_gsinput(gs_input, phonon_pert, phonon_tol = None, manager=No
     gs_input.pop_vars(['autoparal', 'npfft'])
 
     if phonon_tol is None:
-        phonon_tol = {"tolvrs": 1.0e-10}
+        phonon_tol = {"tolvrs": 1.0e-22}
 
     phonon_inp = gs_input.make_phpert_input(perturbation=phonon_pert, tolerance = phonon_tol, manager=manager)
 
@@ -1506,7 +1506,7 @@ def dte_from_gsinput(gs_input, use_phonons=True, ph_tol=None, ddk_tol=None, dde_
     gs_input.pop_irdvars()
 
     if ph_tol is None:
-        ph_tol = {"tolvrs": 1.0e-10}
+        ph_tol = {"tolvrs": 1.0e-22}
 
     if ddk_tol is None:
         ddk_tol = {"tolwfr": 1.0e-22}
@@ -1593,7 +1593,7 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
     """
 
     if ph_tol is None:
-        ph_tol = {"tolvrs": 1.0e-10}
+        ph_tol = {"tolvrs": 1.0e-22}
     if ddk_tol is None:
         ddk_tol = {"tolwfr": 1.0e-22}
     if dde_tol is None:

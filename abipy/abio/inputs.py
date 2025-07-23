@@ -2265,7 +2265,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
-        if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
+        if tolerance is None: tolerance = {"tolvrs": 1.0e-18}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error(f"Invalid {tolerance=}")
@@ -3918,7 +3918,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
     @classmethod
     def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
-                        qptbounds=None, asr=2, chneut=0, dipdip=1, dipquad=1, quadquad=1,
+                        qptbounds=None, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
                         dos_method="tetra", lo_to_splitting=False,
                         with_ifc=False, anaddb_args=None, anaddb_kwargs=None,
                         spell_check=False, comment=None) -> AnaddbInput:
