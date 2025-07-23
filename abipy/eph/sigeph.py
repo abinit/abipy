@@ -14,11 +14,11 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
-from collections import OrderedDict, namedtuple
+from collections import namedtuple
 from collections.abc import Iterable
+from functools import cached_property
 from tabulate import tabulate
 from monty.string import marquee, list_strings
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
@@ -71,61 +71,61 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
         Energies are in eV.
     """
 
-    @lazy_property
-    def qpeme0(self):
+    @cached_property
+    def qpeme0(self) -> float:
         """E_QP[T] - E_0 (Real part)"""
         return (self.qpe - self.e0).real
 
-    @lazy_property
-    def re_qpe(self):
+    @cached_property
+    def re_qpe(self) -> float:
         """Real part of the QP energy."""
         return self.qpe.real
 
-    @lazy_property
-    def imag_qpe(self):
+    @cached_property
+    def imag_qpe(self) -> float:
         """Imaginay part of the QP energy."""
         return self.qpe.imag
 
     @property
-    def re_fan0(self):
+    def re_fan0(self) -> float:
         """Real part of the Fan term at KS."""
         return self.fan0.real
 
     @property
-    def imag_fan0(self):
+    def imag_fan0(self) -> float:
         """Imaginary part of the Fan term at KS."""
         return self.fan0.imag
 
-    @lazy_property
-    def re_sig0(self):
+    @cached_property
+    def re_sig0(self) -> float:
         """Real part of the self-energy computed at the KS energy."""
         return self.re_fan0 + self.dw
 
-    @lazy_property
-    def imag_sig0(self):
+    @cached_property
+    def imag_sig0(self) -> float:
         """Imaginary part of the self-energy computed at the KS energy."""
         return self.imag_fan0
 
-    @lazy_property
-    def skb(self):
+    @cached_property
+    def skb(self) -> tuple:
         """Tuple with (spin, kpoint, band)"""
         return self.spin, self.kpoint, self.band
 
     @classmethod
-    def get_fields(cls, exclude=()):
+    def get_fields(cls, exclude=()) -> tuple:
         fields = list(cls._fields) + ["qpeme0"]
         for e in exclude:
             fields.remove(e)
         return tuple(fields)
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         """Integration with jupyter_ notebooks."""
         return self.get_dataframe()._repr_html_()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0, title=None) -> str:
+    def to_string(self, verbose: int = 0, title: str | None = None) -> str:
         """
         String representation with verbosity level ``verbose`` and optional ``title``.
         """
@@ -139,12 +139,10 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
         Args:
             index: dataframe index.
             with_spin: False if spin index is not wanted.
-            params: Optional (Ordered) dictionary with extra parameters.
-
-        Return: |pandas-DataFrame|
+            params: Optional dictionary with extra parameters.
         """
         # TODO Add more entries (tau?)
-        od = OrderedDict()
+        od = {}
         tokens = "band e0 re_qpe qpeme0 re_sig0 imag_sig0 ze0 re_fan0 dw tmesh"
         if with_spin:
             tokens = "spin " + tokens
@@ -454,7 +452,7 @@ class EphSelfEnergy:
     latex_symbol = dict(
         re=r"$\Re{\Sigma(\omega)}$",
         im=r"$\Im{\Sigma(\omega)}$",
-        spfunc=r"$A(\omega)}$",
+        spfunc=r"$A(\omega)$",
     )
 
     def __init__(self, wmesh, qp, vals_e0ks, dvals_de0ks, dw_vals, vals_wr, spfunc_wr,
@@ -495,7 +493,7 @@ class EphSelfEnergy:
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0, title=None) -> str:
+    def to_string(self, verbose: int = 0, title: str | None = None) -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
@@ -561,7 +559,7 @@ class EphSelfEnergy:
     @add_fig_kwargs
     def plot_tdep(self, itemps="all", zero_energy="e0", colormap="jet", ax_list=None,
                   what_list=("re", "im", "spfunc"), with_frohl=False,
-                  xlims=None, ylims= None, fontsize=8, **kwargs) -> Figure:
+                  xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the real/imaginary part of self-energy as well as the spectral function for
         the different temperatures with a colormap.
@@ -1015,7 +1013,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.r.read_ebands()
@@ -1029,12 +1027,12 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """Close the file."""
         self.r.close()
 
-    @lazy_property
+    @cached_property
     def has_spectral_function(self) -> bool:
         """True if file contains spectral function data."""
         return self.r.nwr != 0
 
-    @lazy_property
+    @cached_property
     def has_eliashberg_function(self) -> bool:
         """True if file contains Eliashberg functions."""
         return self.r.gfw_nomega > 0
@@ -1049,7 +1047,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """Temperature mesh in Kelvin."""
         return self.r.tmesh
 
-    @lazy_property
+    @cached_property
     def kcalc2ibz(self):
         """
         Return a mapping of the kpoints at which the self energy was calculated and the ibz
@@ -1073,7 +1071,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         ##assert np.all(kcalc2ibz == self.r.read_value("kcalc2ibz")[0] - 1)
         #return kcalc2ibz
 
-    @lazy_property
+    @cached_property
     def ibz2kcalc(self):
         """
         Mapping IBZ --> K-points in self-energy.
@@ -1084,14 +1082,14 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             ibz2kcalc[ik_ibz] = ikc
         return ibz2kcalc
 
-    @lazy_property
+    @cached_property
     def ks_dirgaps(self):
         """
         |numpy-array| of shape [nsppol, nkcalc] with the KS gaps in eV ordered as kcalc.
         """
         return self.r.read_value("ks_gaps") * abu.Ha_eV
 
-    @lazy_property
+    @cached_property
     def qp_dirgaps_t(self):
         """
         |numpy-array| of shape [nsppol, nkcalc, ntemp] with the QP direct gap in eV ordered as kcalc.
@@ -1099,7 +1097,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         """
         return self.r.read_value("qp_gaps") * abu.Ha_to_eV
 
-    @lazy_property
+    @cached_property
     def qp_dirgaps_otms_t(self):
         """
         |numpy-array| of shape [nsppol, nkcalc, ntemp] with the QP direct gap in eV ordered as kcalc.
@@ -1111,12 +1109,12 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             #cprint("Reading old deprecated sigeph file!", "yellow")
             return self.r.read_value("qpadb_enes") * abu.Ha_to_eV
 
-    @lazy_property
+    @cached_property
     def mu_e(self):
         """mu_e[ntemp] chemical potential (eV) of electrons for the different temperatures."""
         return self.r.read_value("mu_e") * abu.Ha_eV
 
-    @lazy_property
+    @cached_property
     def edos(self) -> ElectronDos:
         """
         |ElectronDos| object computed by Abinit with the input WFK file without doping (if any).
@@ -1185,16 +1183,16 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return _MyQpkindsList(zip(items[0], items[1]))
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with the convergence parameters, e.g. ``nbsum``."""
-        od = OrderedDict([
-            ("nbsum", self.nbsum),
-            ("zcut", self.zcut),
-            ("symsigma", self.symsigma),
-            ("nqbz", self.r.nqbz),
-            ("nqibz", self.r.nqibz),
-        ])
+        od = {
+            "nbsum": self.nbsum,
+            "zcut": self.zcut,
+            "symsigma": self.symsigma,
+            "nqbz": self.r.nqbz,
+            "nqibz": self.r.nqibz,
+        }
         # Add EPH parameters.
         od.update(self.r.common_eph_params)
 
@@ -1722,7 +1720,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return fig
 
-    @lazy_property
+    @cached_property
     def qplist_spin(self):
         """Tuple of :class:`QpTempList` objects indexed by spin."""
         return self.r.read_allqps()
@@ -3146,12 +3144,12 @@ class TdepElectronBands: # pragma: no cover
         if qp_ebands_kmesh_t:
             assert len(self.qp_ebands_kmesh_t) == self.ntemp
 
-    @lazy_property
+    @cached_property
     def has_kpath(self) -> bool:
         """True if interpolated bands on the k-path are available."""
         return bool(self.qp_ebands_kpath_t)
 
-    @lazy_property
+    @cached_property
     def has_kmesh(self) -> bool:
         """True if interpolated bands on the k-mesh are available."""
         return bool(self.qp_ebands_kmesh_t)
@@ -3658,5 +3656,4 @@ class SigmaPhReader(BaseEphReader):
             qps_spin[spin] = QpTempList(qps)
 
         return tuple(qps_spin)
-
 

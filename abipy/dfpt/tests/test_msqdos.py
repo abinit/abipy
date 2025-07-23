@@ -57,7 +57,7 @@ _cell_angle_gamma   120.00000000
 _symmetry_Int_Tables_number   1
 _chemical_formula_structural   SiO2
 _chemical_formula_sum   'Si3 O6'
-_cell_volume   115.45026881
+_cell_volume   115.45026857
 _cell_formula_units_Z   3
 loop_
  _symmetry_equiv_pos_site_id
@@ -99,7 +99,7 @@ O7    0.01126    0.01922    0.01356    0.00412   -0.00249    0.00765
 O8    0.01922    0.01518    0.01356   -0.00661   -0.00412    0.01157"""
 
         # FIXME: This is not portable
-        #self.assertMultiLineEqual(cif_string, ref_string)
+        self.assertMultiLineEqual(cif_string, ref_string)
 
         # Write CIF file with U_cif tensor
         filepath = msqd_dos.write_cif_file(filepath=None, temp=300)

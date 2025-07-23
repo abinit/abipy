@@ -22,6 +22,12 @@ def get_anaddb_variables():
     return get_codevars()["anaddb"]
 
 
+def get_atdep_variables():
+    """Returns the database with the description of the ATDEP variables."""
+    from abipy.abio.abivar_database.variables import get_codevars
+    return get_codevars()["atdep"]
+
+
 def docvar(varname, executable="abinit"):
     """Return the `Variable` object associated to this name."""
     from abipy.abio.abivar_database.variables import get_codevars

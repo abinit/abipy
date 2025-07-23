@@ -4,7 +4,7 @@ Relaxation flow
 ===============
 
 This example shows how to build a very simple Flow for the structural relaxation of SiC.
-One could use a similar logic to perform multiple relaxations with different input parameters...
+One could use a similar logic to perform multiple relaxations with different input parameters.
 """
 
 import sys

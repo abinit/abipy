@@ -12,12 +12,12 @@ class Timer:
     """
     Context manager to time code section.
 
-    .. example::
+    .. code-block::
 
         with Timer("Timing code section"):
             do_stuff()
 
-    or
+        # or
 
         with Timer(header=f"Begin ABINIT", footer="ABINIT GS") as timer:
             do_stuff()

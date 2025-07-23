@@ -21,14 +21,16 @@ phbands.plot(units="cm-1", title="AlAs without LO-TO splitting")
 
 # Alternatively you can use the optional argument qlabels
 # that defines the mapping reduced_coordinates --> name of the q-point.
-#qlabels = {
-#    (0,0,0): "$\Gamma$",
-#    (0.375, 0.375, 0.7500): "K",
-#    (0.5, 0.5, 1.0): "X",
-#    (0.5, 0.5, 0.5): "L",
-#    (0.5, 0.0, 0.5): "X",
-#    (0.5, 0.25, 0.75): "W",
-#}
+#
+qlabels = {
+    (0,0,0): r"$\Gamma$",
+    (0.375, 0.375, 0.7500): "K",
+    (0.5, 0.5, 1.0): "X",
+    (0.5, 0.5, 0.5): "L",
+    (0.5, 0.0, 0.5): "X",
+    (0.5, 0.25, 0.75): "W",
+}
 
 # and pass it to the plot method:
-#phbands.plot(title="AlAs without LO-TO splitting", qlabels=qlabels)
+phbands.plot(title="AlAs without LO-TO splitting and qlabels",
+             qlabels=qlabels)

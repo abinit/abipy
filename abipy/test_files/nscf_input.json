@@ -130,7 +130,7 @@
     {
       "l_max": 2, 
       "Z_val": 4.0, 
-      "filepath": "/Users/setten/software/conda_install/setten_stack/abipy/abipy/data/pseudos/14si.pspnc", 
+      "filepath": "../../../data/pseudos/14si.pspnc", 
       "symbol": "Si", 
       "@module": "pymatgen.io.abinit.pseudos", 
       "Z": 14, 

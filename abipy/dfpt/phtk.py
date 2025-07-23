@@ -9,8 +9,7 @@ import sys
 import numpy as np
 import abipy.core.abinit_units as abu
 
-from monty.functools import lazy_property
-from pymatgen.core.periodic_table import Element
+from functools import cached_property
 from abipy.core.mixins import Has_Structure
 from abipy.iotools import ETSF_Reader
 
@@ -48,6 +47,7 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None) -> np.nd
     if amu is not None and amu_symbol is not None:
         raise ValueError("Only one between amu and amu_symbol should be provided!")
 
+    from pymatgen.core.periodic_table import Element
     if amu is not None:
         amu_symbol = {Element.from_Z(n).symbol: v for n, v in amu.items()}
 
@@ -86,8 +86,7 @@ def match_eigenvectors(v1, v2) -> np.ndarray:
 
 class NonAnalyticalPh(Has_Structure):
     """
-    Phonon data at gamma including non analytical contributions
-    Usually read from anaddb.nc
+    Phonon data at gamma including non analytical contributions. Usually initialized from anaddb.nc
     """
 
     def __init__(self, structure, directions, phfreqs, phdispl_cart, amu=None):
@@ -107,6 +106,8 @@ class NonAnalyticalPh(Has_Structure):
         self.phdispl_cart = phdispl_cart
         self.amu = amu
         self.amu_symbol = None
+
+        from pymatgen.core.periodic_table import Element
         if amu is not None:
             self.amu_symbol = {}
             for z, m in amu.items():
@@ -126,13 +127,13 @@ class NonAnalyticalPh(Has_Structure):
     @classmethod
     def from_ncreader(cls, nc_reader) -> NonAnalyticalPh:
         """
-        Build the object from a NetcdfReader.
+        Build the object from a NetcdfReader instance.
         """
         r = nc_reader
         directions = r.read_value("non_analytical_directions")
         phfreq = r.read_value("non_analytical_phonon_modes")
 
-        # need a default as the first abinit version including IFCs in the netcdf doesn't have this attribute
+        # Need a default as the first abinit version including IFCs in the netcdf doesn't have this attribute
         phdispl_cart = r.read_value("non_analytical_phdispl_cart", cmode="c", default=None)
         structure = r.read_structure()
 
@@ -147,7 +148,7 @@ class NonAnalyticalPh(Has_Structure):
 
         return cls(structure=structure, directions=directions, phfreqs=phfreq, phdispl_cart=phdispl_cart, amu=amu)
 
-    @lazy_property
+    @cached_property
     def dyn_mat_eigenvect(self) -> np.ndarray:
         """
         [ndirection, 3*natom, 3*natom] array with the orthonormal eigenvectors of the dynamical matrix.
@@ -181,7 +182,7 @@ class NonAnalyticalPh(Has_Structure):
                 return i
 
         raise ValueError("Cannot find direction: `%s` with cartesian: `%s` in non_analytical cartesian directions:\n%s" %
-                (str(direction), cartesian, str(self.directions)))
+                         (str(direction), cartesian, str(self.directions)))
 
     def has_direction(self, direction, cartesian=False) -> bool:
         """
@@ -199,12 +200,14 @@ class NonAnalyticalPh(Has_Structure):
             return False
 
 
-def open_file_phononwebsite(filename, port=8000,
-                            website="http://henriquemiranda.github.io/phononwebsite",
-                            host="localhost", browser=None): # pragma: no cover
+def open_file_phononwebsite(filename,
+                            port: int = 8000,
+                            website: str = "http://henriquemiranda.github.io/phononwebsite",
+                            host: str = "localhost",
+                            browser: str | None = None): # pragma: no cover
     """
     Take a file, detect the type and open it on the phonon website
-    Based on a similar function in <https://github.com/henriquemiranda/phononwebsite/phononweb.py>
+    Based on a similar function implemented in <https://github.com/henriquemiranda/phononwebsite/phononweb.py>
 
     Args:
         filename: file with phonon data in phononwebsite format.

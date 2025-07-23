@@ -107,7 +107,6 @@ class Pauli:
         return reconstructed
 
     #def project_mats_nspden(self, mats_nspden: np.ndarray) -> np.ndarray:
-
     #    if mats_nspden.shape[0] % 4 != 0:
     #        raise ValueError(f"The first dimension must be divisible by 4 while it is {mats_nspden.shape[0]}")
 
@@ -115,6 +114,5 @@ class Pauli:
     #    mats_22 = mats_nspden.reshape(2, 2, *arr.shape[1:])
     #    # Move [2, 2] axes to the end for consistency
     #    mats = np.moveaxis(mats_22, (0, 1), (-2, -1))
-
     #    coeffs = self.project_mats(mats)
     #    return coeffs

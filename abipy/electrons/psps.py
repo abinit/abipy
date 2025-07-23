@@ -8,11 +8,10 @@ import os
 import numpy as np
 import pandas as pd
 
-#from typing import List, Any
 from collections import OrderedDict
+from functools import cached_property
 from monty.bisect import find_gt
 from monty.string import marquee # list_strings,
-from monty.functools import lazy_property
 from abipy.iotools import ETSF_Reader
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, NotebookWriter
@@ -82,7 +81,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
 
     .. code-block:: python
 
-        with PspsFile("foo_PSPS.nc") as psps:
+        with PspsFile("out_PSPS.nc") as psps:
             psps.plot_tcore_rspace()
     """
     linestyles_der = ["-", "--", '-.', ':', ":", ":"]
@@ -101,7 +100,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         abinit with cutoff energy `ecut`.
 
         Args:
-            vloc_rcut: Radial cutoff in Bohr (Abinit input variable)
+            vloc_rcut: Radial cutoff in Bohr (Abinit input variable).
         """
         from abipy.flowtk.pseudos import Pseudo
         pseudo = Pseudo.as_pseudo(pseudo)
@@ -126,16 +125,15 @@ class PspsFile(AbinitNcFile, NotebookWriter):
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = PspsReader(filepath)
-
+        self.r = PspsReader(filepath)
         # TODO
-        #self.ecut = self.reader.read_value("ecut")
+        #self.ecut = self.r.read_value("ecut")
 
     def close(self) -> None:
         """Close the file."""
-        self.reader.close()
+        self.r.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         return {}
@@ -198,7 +196,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         """
         if not isinstance(ders, (list, tuple)): ders = [ders]
 
-        rmeshes, coresd = self.reader.read_coresd(rmax=rmax)
+        rmeshes, coresd = self.r.read_coresd(rmax=rmax)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         for rmesh, mcores in zip(rmeshes, coresd):
@@ -221,8 +219,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_tcore_qspace(self, ax=None, ders=(0,), with_fact=True,
-                          with_qn=0, scale=1.0, **kwargs) -> Figure:
+    def plot_tcore_qspace(self, ax=None, ders=(0,), with_fact=True, with_qn=0, scale=1.0, **kwargs) -> Figure:
         """
         Plot the model core charge in q space.
 
@@ -241,7 +238,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         color = kwargs.pop("color", "black")
         linewidth = kwargs.pop("linewidth", _LW)
 
-        qmesh, tcore_spl = self.reader.read_tcorespl()
+        qmesh, tcore_spl = self.r.read_tcorespl()
         ecuts = 2 * (np.pi * qmesh)**2
 
         lines = []
@@ -273,8 +270,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_q2vq(self, ax=None, ders=(0,), with_qn=0, with_fact=True,
-                  scale=None, **kwargs) -> Figure:
+    def plot_q2vq(self, ax=None, ders=(0,), with_qn=0, with_fact=True, scale=None, **kwargs) -> Figure:
         r"""
         Plot the local part of the pseudopotential in q space.
 
@@ -297,7 +293,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         color = kwargs.pop("color", "black")
         linewidth = kwargs.pop("linewidth", _LW)
 
-        qmesh, vlspl = self.reader.read_vlspl()
+        qmesh, vlspl = self.r.read_vlspl()
         ecuts = 2 * (np.pi * qmesh)**2
         for atype, vl_atype in enumerate(vlspl):
             for der, values in enumerate(vl_atype):
@@ -315,7 +311,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
                 #    ax.plot(ecuts, yvals, color=color, linewidth=linewidth, label="q*f(q) x %2.f" % fact)
 
                 #if der == 0:
-                #   z_val = self.reader.zion_typat[atype]
+                #   z_val = self.r.zion_typat[atype]
                 #   ax.axhline(y=-z_val / np.pi, linewidth=1, color='k', linestyle="dashed")
 
         ax.grid(True)
@@ -355,8 +351,8 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         l_seen = set()
 
         # vlspl has shape [ntypat, 2, mqgrid_vl]
-        qmesh, vlspl = self.reader.read_vlspl()
-        all_projs = self.reader.read_projectors()
+        qmesh, vlspl = self.r.read_vlspl()
+        all_projs = self.r.read_projectors()
 
         for itypat, projs_type in enumerate(all_projs):
             # Loop over the projectors for this atom type.
@@ -409,7 +405,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -587,7 +583,7 @@ class PspsRobot(Robot):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

@@ -4,11 +4,11 @@ AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc
 """
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
-#import warnings
 
 from collections import OrderedDict
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import marquee
 from monty.termcolor import cprint
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
@@ -18,14 +18,14 @@ from abipy.tools.typing import Figure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, rotate_ticklabels
 from abipy.tools.tensors import Tensor, DielectricTensor, NLOpticalSusceptibilityTensor
 from abipy.dfpt.ifc import InteratomicForceConstants
-from abipy.dfpt.ddb import Becs
+from abipy.dfpt.ddb import Zeffs, DynQuad
 from abipy.dfpt.elastic import ElasticData
 
 
 class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
     AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.
-    This object is usually instanciated with `abiopen("anaddb.nc")`.
+    This object is usually instantiated with `abiopen("anaddb.nc")`.
 
     .. attribute:: structure
 
@@ -55,29 +55,29 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = ETSF_Reader(filepath)
+        self.r = ETSF_Reader(filepath)
 
     def close(self):
-        self.reader.close()
+        self.r.close()
 
-    @lazy_property
+    @cached_property
     def structure(self):
-        return self.reader.read_structure()
+        return self.r.read_structure()
 
-    @lazy_property
+    @cached_property
     def params(self):
         # -666 to support old anaddb.nc files without metadata
         return OrderedDict([
-            ("asr", int(self.reader.read_value("asr", default=-666))),
-            ("chneut", int(self.reader.read_value("chneut", default=-666))),
-            ("dipdip", int(self.reader.read_value("dipdip", default=-666))),
-            ("symdynmat", int(self.reader.read_value("symdynmat", default=-666))),
+            ("asr", int(self.r.read_value("asr", default=-666))),
+            ("chneut", int(self.r.read_value("chneut", default=-666))),
+            ("dipdip", int(self.r.read_value("dipdip", default=-666))),
+            ("symdynmat", int(self.r.read_value("symdynmat", default=-666))),
         ])
 
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """
         String representation
 
@@ -123,8 +123,6 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             app(self.eps0.get_dataframe(tol=tol).to_string())
             app("")
 
-        #if self.becs is not None:
-
         if self.dchide is not None:
             app("Non-linear optical susceptibility tensor.")
             app(str(self.dchide))
@@ -140,47 +138,58 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    @lazy_property
-    def epsinf(self):
+    @cached_property
+    def epsinf(self) -> DielectricTensor:
         """
         Macroscopic electronic |DielectricTensor| in Cartesian coordinates (a.k.a. epsilon_infinity)
         None if the file does not contain this information.
         """
         try:
-            return DielectricTensor(self.reader.read_value("emacro_cart").T.copy())
+            return DielectricTensor(self.r.read_value("emacro_cart").T.copy())
         except Exception as exc:
             #print(exc, "Returning None", sep="\n")
             return None
 
-    @lazy_property
-    def eps0(self):
+    @cached_property
+    def eps0(self) -> DielectricTensor:
         """
         Relaxed ion macroscopic |DielectricTensor| in Cartesian coordinates (a.k.a. epsilon_zero)
         None if the file does not contain this information.
         """
         try:
-            return DielectricTensor(self.reader.read_value("emacro_cart_rlx").T.copy())
+            return DielectricTensor(self.r.read_value("emacro_cart_rlx").T.copy())
         except Exception as exc:
             #print(exc, "Requires dieflag > 0", "Returning None", sep="\n")
             return None
 
-    @lazy_property
-    def becs(self):
+    @cached_property
+    def becs(self) -> Zeffs | None:
         """
         Born effective charges. None if the file does not contain this information.
         """
-        chneut = self.params["chneut"]
         try:
-            return Becs(self.reader.read_value("becs_cart"), self.structure, chneut=chneut, order="f")
+            return Zeffs("Ze", self.r.read_value("becs_cart"), self.structure, self.params)
         except Exception as exc:
             return None
 
-    @lazy_property
-    def ifc(self):
+    @cached_property
+    def dyn_quad(self) -> DynQuad | None:
+        try:
+            # First two dimension are associated to the q-point, then atomic perturbation in Cart coords.
+            # nctkarr_t('quadrupoles_cart', "dp", 'three, three, three, number_of_atoms')
+            quad_cart = self.r.read_value("quadrupoles_cart")
+            quad_cart = np.swapaxes(quad_cart, -1, -2)
+            return DynQuad(quad_cart, self.structure, self.params)
+        except Exception as exc:
+            #print(exc)
+            return None
+
+    @cached_property
+    def ifc(self) -> InteratomicForceConstants:
         """
         The interatomic force constants calculated by anaddb.
         The following anaddb variables should be used in the run: ``ifcflag``, ``natifc``, ``atifc``, ``ifcout``.
-        Return None, if the netcdf_ file does not contain the IFCs,
+        Return None, if the netcdf file does not contain the IFCs,
         """
         try:
             return InteratomicForceConstants.from_file(self.filepath)
@@ -188,19 +197,19 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             cprint("Interatomic force constants have not been calculated. Returning None", "red")
             return None
 
-    @lazy_property
-    def dchide(self):
+    @cached_property
+    def dchide(self) -> NLOpticalSusceptibilityTensor:
         """
         Non-linear optical susceptibility tensor.
         Returns a :class:`NLOpticalSusceptibilityTensor` or None if the file does not contain this information.
         """
         try:
-            return NLOpticalSusceptibilityTensor(self.reader.read_value("dchide"))
+            return NLOpticalSusceptibilityTensor(self.r.read_value("dchide"))
         except Exception as exc:
             #print(exc, "Requires nlflag > 0", "Returning None", sep="\n")
             return None
 
-    @lazy_property
+    @cached_property
     def dchidt(self):
         """
         First-order change in the linear dielectric susceptibility.
@@ -210,7 +219,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         None if the file does not contain this information.
         """
         try:
-            a = self.reader.read_value("dchidt").T.copy()
+            a = self.r.read_value("dchidt").T.copy()
         except Exception as exc:
             #print(exc, "Requires 0 < nlflag < 3", "Returning None", sep="\n")
             return None
@@ -224,47 +233,47 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return dchidt
 
-    @lazy_property
-    def oscillator_strength(self):
+    @cached_property
+    def oscillator_strength(self) -> np.ndarray:
         """
         A complex |numpy-array| containing the oscillator strengths with shape [number of phonon modes, 3, 3],
         in a.u. (1 a.u.=253.2638413 m3/s2).
         None if the file does not contain this information.
         """
         try:
-            carr = self.reader.read_value("oscillator_strength", cmode="c")
+            carr = self.r.read_value("oscillator_strength", cmode="c")
             carr = carr.transpose((0, 2, 1)).copy()
             return carr
         except Exception as exc:
             #print(exc, "Oscillator strengths require dieflag == 1, 3 or 4", "Returning None", sep="\n")
             return None
 
-    @lazy_property
+    @cached_property
     def has_elastic_data(self) -> bool:
         """True if elastic tensors have been computed."""
-        return self.reader.read_value("elaflag", default=0) != 0
+        return self.r.read_value("elaflag", default=0) != 0
 
-    @lazy_property
+    @cached_property
     def has_piezoelectric_data(self) -> bool:
         """True if piezoelectric tensors have been computed."""
-        return self.reader.read_value("piezoflag", default=0) != 0
+        return self.r.read_value("piezoflag", default=0) != 0
 
-    @lazy_property
+    @cached_property
     def elastic_data(self) -> ElasticData:
         """
         Container with the different (piezo)elastic tensors computed by anaddb.
         stored in pymatgen tensor objects.
         """
-        return ElasticData.from_ncreader(self.reader)
+        return ElasticData.from_ncreader(self.r)
 
-    @lazy_property
-    def amu(self):
+    @cached_property
+    def amu(self) -> dict:
         """
         Dictionary with atomic_number as keys and the atomic massu units as values.
         """
-        amu_list = self.reader.read_value("atomic_mass_units", default=None)
+        amu_list = self.r.read_value("atomic_mass_units", default=None)
         if amu_list is not None:
-            atomic_numbers = self.reader.read_value("atomic_numbers")
+            atomic_numbers = self.r.read_value("atomic_numbers")
             amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
         else:
             amu = None
@@ -280,7 +289,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
+        Write an jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -311,8 +320,8 @@ class AnaddbNcRobot(Robot):
             return self.get_elastic_dataframe()
         return None
 
-    def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params
-                              =False, funcs=None, **kwargs) -> pd.DataFrame:
+    def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params=False,
+                              funcs=None, **kwargs) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with properties derived from the elastic tensor
         and an associated structure. Filename is used as index.
@@ -338,7 +347,7 @@ class AnaddbNcRobot(Robot):
         rows, index = [], []
         for label, ncfile in self.items():
             index.append(label)
-            d = OrderedDict()
+            d = {}
 
             # Add info on structure.
             if with_geo:
@@ -358,7 +367,7 @@ class AnaddbNcRobot(Robot):
         return pd.DataFrame(rows, index=index, columns=list(rows[0].keys() if rows else None))
 
     @add_fig_kwargs
-    def plot_elastic_properties(self, fontsize=10, **kwargs):
+    def plot_elastic_properties(self, fontsize=8, **kwargs) -> Figure:
         """
         Args:
             fontsize: legend and label fontsize.
@@ -414,7 +423,7 @@ class AnaddbNcRobot(Robot):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

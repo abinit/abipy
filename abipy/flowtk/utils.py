@@ -9,7 +9,7 @@ import shutil
 import operator
 import numpy as np
 
-from typing import Union, Optional
+from typing import Optional
 from fnmatch import fnmatch
 from monty.collections import dict2namedtuple
 from monty.string import list_strings
@@ -21,7 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def as_bool(s: Union[str, bool]) -> bool:
+def as_bool(s: str | bool) -> bool:
     """
     Convert a string into a boolean value.
 
@@ -280,7 +280,7 @@ class Directory:
             single_file: If None, allow for multiple matches and return the first one.
 
         Raises:
-            `ValueError` if multiple files with the given extention `ext` are found and `single_file` is True.
+            `ValueError` if multiple files with the given extension `ext` are found and `single_file` is True.
             This implies that this method is not compatible with multiple datasets.
         """
         if ext != "abo":
@@ -316,7 +316,7 @@ class Directory:
 
     def symlink_abiext(self, inext: str, outext: str) -> int:
         """
-        Create a simbolic link (outext --> inext). The file names are implicitly
+        Create a symbolic link (outext --> inext). The file names are implicitly
         given by the ABINIT file extension.
 
         Example:
@@ -389,7 +389,7 @@ class Directory:
         shutil.copy(infile, outfile)
         return 0
 
-    def remove_exts(self, exts: Union[str, list[str]]) -> list[str]:
+    def remove_exts(self, exts: str | list[str]) -> list[str]:
         """
         Remove the files with the given extensions. Unlike rmtree, this function preserves the directory path.
         Return list with the absolute paths of the files that have been removed.
@@ -516,6 +516,7 @@ _EXT2VARS = {
     #"DKDE": {"getdkde": 1},
     #"DELFD": {"getdelfd": 1},
     "GSTORE": {"getgstore_filepath": '"indata/in_GSTORE.nc"'},
+    "HIST": {},
 }
 
 

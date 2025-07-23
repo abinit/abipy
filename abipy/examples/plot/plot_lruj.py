@@ -5,8 +5,7 @@ Plot the LRUJ results
 
 This example shows how to parse the output file produced by lruj and plot the results
 
-
-See also https://docs.abinit.org/tutorial/lruj/#43-execution-of-the-lruj-post-processinng-utility
+See also <https://docs.abinit.org/tutorial/lruj>
 """
 from abipy.electrons.lruj import LrujAnalyzer, LrujResults
 import abipy.data as abidata

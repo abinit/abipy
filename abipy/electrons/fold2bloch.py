@@ -1,13 +1,13 @@
 # coding: utf-8
-"""Fold2Bloch netcdf file."""
+"""Interface to the Fold2Bloch netcdf file."""
 from __future__ import annotations
 
 import os
 import numpy as np
 import pymatgen.core.units as units
 
+from functools import cached_property
 from monty.string import marquee
-from monty.functools import lazy_property
 from monty.collections import dict2namedtuple
 from monty.termcolor import cprint
 from pymatgen.core.lattice import Lattice
@@ -35,13 +35,14 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Fold2BlochNcfile
     """
+
     @classmethod
-    def from_wfkpath(cls, wfkpath, folds, workdir=None, manager=None, mpi_procs=1, verbose=0) -> Fold2BlochNcfile:
+    def from_wfkpath(cls, wfk_path, folds, workdir=None, manager=None, mpi_procs=1, verbose=0) -> Fold2BlochNcfile:
         """
         Run fold2bloch in workdir.
 
         Args:
-            wfkpath:
+            wfk_path:
             folds:
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: :class:`TaskManager` of the task. If None, the manager is initialized from the config file.
@@ -55,9 +56,9 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
         # Create temporary directory and link to the WFK file
         workdir = get_workdir(workdir)
-        wfkpath = os.path.abspath(wfkpath)
-        link = os.path.join(workdir, os.path.basename(wfkpath))
-        os.symlink(wfkpath, link)
+        wfk_path = os.path.abspath(wfk_path)
+        link = os.path.join(workdir, os.path.basename(wfk_path))
+        os.symlink(wfk_path, link)
 
         # Run fold2bloch
         ncpath = fold2bloch.unfold(link, folds, workdir=workdir)
@@ -66,7 +67,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = ElectronsReader(filepath)
+        self.r = ElectronsReader(filepath)
 
         # Initialize the electron bands from file.
         # Spectral weights are dimensioned with `nss`
@@ -74,9 +75,8 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         # nctkarr_t("reduced_coordinates_of_unfolded_kpoints", "dp", "number_of_reduced_dimensions, nk_unfolded")
         # nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")
         # nctkarr_t("spectral_weights", "dp", "max_number_of_states, nk_unfolded, nsppol_times_nspinor")
-        self._ebands = self.reader.read_ebands()
         self.nss = max(self.nsppol, self.nspinor)
-        self.fold_matrix = self.reader.read_value("fold_matrix")
+        self.fold_matrix = self.r.read_value("fold_matrix")
 
         # Compute direct lattice of the primitive cell from fold_matrix.
         if is_diagonal(self.fold_matrix):
@@ -86,15 +86,15 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
             raise NotImplementedError("non diagonal fold_matrix: %s" % str(self.fold_matrix))
 
         # Read fold2bloch output data.
-        self.uf_kfrac_coords = self.reader.read_value("reduced_coordinates_of_unfolded_kpoints")
+        self.uf_kfrac_coords = self.r.read_value("reduced_coordinates_of_unfolded_kpoints")
         self.uf_kpoints = KpointList(self.pc_lattice.reciprocal_lattice, self.uf_kfrac_coords)
         self.uf_nkpt = len(self.uf_kpoints)
 
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
-        """String representation."""
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level `verbose`."""
         lines = []; app = lines.append
 
         app(marquee("File Info", mark="="))
@@ -121,10 +121,10 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
         return "\n".join(lines)
 
-    @property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object with folded band energies."""
-        return self._ebands
+        return self.r.read_ebands()
 
     @property
     def structure(self) -> Structure:
@@ -133,25 +133,25 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     def close(self) -> None:
         """Close the file."""
-        self.reader.close()
+        self.r.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
-    @lazy_property
+    @cached_property
     def uf_eigens(self) -> np.ndarray:
         """[nsppol, nk_unfolded, nband] |numpy-array| with unfolded eigenvalues in eV."""
         # nctkarr_t("unfolded_eigenvalues", "dp", "max_number_of_states, nk_unfolded, number_of_spins")
-        return self.reader.read_value("unfolded_eigenvalues") * units.Ha_to_eV
+        return self.r.read_value("unfolded_eigenvalues") * units.Ha_to_eV
 
-    @lazy_property
+    @cached_property
     def uf_weights(self) -> np.ndarray:
         """[nss, nk_unfolded, nband] array with spectral weights. nss = max(nspinor, nsppol)."""
         # nctkarr_t("spectral_weights", "dp", "max_number_of_states, nk_unfolded, nsppol_times_nspinor")
-        return self.reader.read_value("spectral_weights")
+        return self.r.read_value("spectral_weights")
 
     def get_spectral_functions(self, step=0.01, width=0.02):
         """
@@ -215,6 +215,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         if len(p.ikfound) == 0:
             cprint("Warning: find_points_along_path returned zero points along the path. Try to increase dist_tol.", "yellow")
             return None
+
         if verbose:
             uf_frac_coords = np.reshape([k.frac_coords for k in self.uf_kpoints], (-1, 3))
             fcoords = uf_frac_coords[p.ikfound]
@@ -255,7 +256,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to nbpath. If `nbpath` is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If `nbpath` is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

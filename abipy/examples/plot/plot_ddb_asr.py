@@ -5,7 +5,7 @@ Phonon bands with/without the ASR
 
 This example shows how to plot a phonon band structure
 with and without enforcing the acoustic sum rule (ASR).
-Both matplotlib and plotly are supported.
+Both matplotlib and plotly plots are supported.
 
 .. important::
 

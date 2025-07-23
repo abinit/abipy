@@ -16,7 +16,7 @@ except ImportError:
 _DEFAULTS = {"numq": 3001, "numr": 3001}
 
 
-def spline_int_jlqr(l, qmax, rcut, numq=None, numr=None):
+def spline_int_jlqr(l, qmax, rcut, numq=None, numr=None) -> UnivariateSpline:
     r"""
     Compute :math:`j_n(z) = \int_0^{rcut} r^2 j_l(qr) dr`
     where :math:`j_l` is the Spherical Bessel function.

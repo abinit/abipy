@@ -91,7 +91,7 @@ class TestSigresFile(AbipyTest):
         assert len(sigres.ibz) == 6
         assert sigres.sigma_kpoints == sigres.ibz
         # No spectral function
-        assert not sigres.reader.has_spfunc
+        assert not sigres.r.has_spfunc
         with self.assertRaises(ValueError):
             sigres.read_sigee_skb(0, 0, 0)
 
@@ -149,13 +149,13 @@ class TestSigresFile(AbipyTest):
         """Test methods to plot spectral function from SIGRES."""
         filepath = abidata.ref_file("al_g0w0_sigmaw_SIGRES.nc")
         with abilab.abiopen(filepath) as sigres:
-            assert sigres.reader.has_spfunc
+            assert sigres.r.has_spfunc
             sigma = sigres.read_sigee_skb(spin=0, kpoint=(0, 0, 0), band=0)
             repr(sigma); str(sigma)
             assert sigma.to_string(verbose=2)
 
             if self.has_matplotlib():
-                assert sigma.plot(what_list="spfunc", xlims=(-10, 10), fontsize=12, show=False)
+                assert sigma.plot(what_list="aw", xlims=(-10, 10), fontsize=12, show=False)
                 assert sigres.plot_spectral_functions(show=False)
                 assert sigres.plot_spectral_functions(include_bands=range(0, 4), show=False)
 
@@ -263,6 +263,7 @@ class SigresRobotTest(AbipyTest):
             if self.has_matplotlib():
                 assert robot.plot_qpgaps_convergence(plot_qpmks=False, sortby=None, hue=None, show=False)
                 assert robot.plot_qpgaps_convergence(plot_qpmks=True, sortby="nband", hue="ecuteps", show=False)
+                assert robot.plot_qpgaps_convergence(plot_qpmks=True, sortby="nband", hue="ecuteps", show=False, abs_conv=5E-3, qp_kpoints=[(0, 0, 0), (0.5, 0, 0)])
 
                 assert robot.plot_qpdata_conv_skb(spin=0, kpoint=(0, 0, 0), band=3, show=False)
                 assert robot.plot_qpdata_conv_skb(spin=0, kpoint=(0, 0, 0), band=5,

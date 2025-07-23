@@ -5,62 +5,9 @@ import sys
 import os
 import json
 
+from functools import cached_property
 from collections import OrderedDict, defaultdict
 from itertools import groupby
-
-# Helper functions (coming from AbiPy)
-class lazy_property(object):
-    """
-    lazy_property descriptor
-
-    Used as a decorator to create lazy attributes.
-    Lazy attributes are evaluated on first use.
-    """
-
-    def __init__(self, func):
-        self.__func = func
-        from functools import wraps
-        wraps(self.__func)(self)
-
-    def __get__(self, inst, inst_cls):
-        if inst is None:
-            return self
-
-        if not hasattr(inst, '__dict__'):
-            raise AttributeError("'%s' object has no attribute '__dict__'"
-                                 % (inst_cls.__name__,))
-
-        name = self.__name__
-        if name.startswith('__') and not name.endswith('__'):
-            name = '_%s%s' % (inst_cls.__name__, name)
-
-        value = self.__func(inst)
-        inst.__dict__[name] = value
-        return value
-
-    @classmethod
-    def invalidate(cls, inst, name):
-        """Invalidate a lazy attribute.
-
-        This obviously violates the lazy contract. A subclass of lazy
-        may however have a contract where invalidation is appropriate.
-        """
-        inst_cls = inst.__class__
-
-        if not hasattr(inst, '__dict__'):
-            raise AttributeError("'%s' object has no attribute '__dict__'"
-                                 % (inst_cls.__name__,))
-
-        if name.startswith('__') and not name.endswith('__'):
-            name = '_%s%s' % (inst_cls.__name__, name)
-
-        if not isinstance(getattr(inst_cls, name), cls):
-            raise AttributeError("'%s.%s' is not a %s attribute"
-                                 % (inst_cls.__name__, name, cls.__name__))
-
-        if name in inst.__dict__:
-            del inst.__dict__[name]
-
 
 def is_string(s):
     """True if s behaves like a string (duck typing test)."""
@@ -332,12 +279,12 @@ class Variable(object):
         if errors:
             raise ValueError("Errors in %s:\n%s" % (self.abivarname, "\n".join(errors)))
 
-    @lazy_property
+    @cached_property
     def name(self):
         """Name of the variable without the executable name."""
         return self.abivarname if "@" not in self.abivarname else self.abivarname.split("@")[0]
 
-    @lazy_property
+    @cached_property
     def executable(self):
         """string with the name of the code associated to this variable."""
         if "@" in self.abivarname:
@@ -347,7 +294,7 @@ class Variable(object):
             code = "abinit"
         return code
 
-    @lazy_property
+    @cached_property
     def website_url(self):
         """
         The absolute URL associated to this variable on the Abinit website.
@@ -364,23 +311,23 @@ class Variable(object):
         else:
             return "https://docs.abinit.org/variables/%s#%s" % (self.executable, self.name)
 
-    @lazy_property
-    def topic2relevances(self):
+    @cached_property
+    def topic2relevances(self) -> dict:
         """topic --> list of tribes"""
         assert self.topics is not None
-        od = OrderedDict()
+        od = {}
         for tok in self.topics:
             topic, tribe = [s.strip() for s in tok.split("_")]
             if topic not in od: od[topic] = []
             od[topic].append(tribe)
         return od
 
-    @lazy_property
+    @cached_property
     def is_internal(self):
         """True if this is an internal variable."""
         return self.characteristics is not None and '[[INTERNAL_ONLY]]' in self.characteristics
 
-    @lazy_property
+    @cached_property
     def wikilink(self):
         """Abinit wikilink."""
         return "[[%s:%s]]" % (self.executable, self.name)
@@ -407,7 +354,7 @@ class Variable(object):
     def __ne__(self, other):
         return not (self == other)
 
-    @lazy_property
+    @cached_property
     def info(self):
         """String with extra info on the variable."""
         attrs = [
@@ -448,7 +395,7 @@ class Variable(object):
         import webbrowser
         return webbrowser.open(self.website_url)
 
-    @lazy_property
+    @cached_property
     def isarray(self):
         """True if this variable is an array."""
         return not (is_string(self.dimensions) and self.dimensions == "scalar")
@@ -726,7 +673,7 @@ class MultipleValue(object):
     """
     Used for variables that can assume multiple values.
     This is the equivalent to the X * Y syntax in the Abinit parser.
-    If X is null, it means that you want to do *Y (all Y)
+    If X is null, it means that you want to do ``*Y`` (all Y)
     """
     def __init__(self, number=None, value=None):
         self.number = number
@@ -953,12 +900,12 @@ class InputVariables(OrderedDict):
             new[v.name] = v
         return new
 
-    @lazy_property
+    @cached_property
     def my_varset_list(self):
         """Set with the all the varset strings found in the database."""
         return sorted(set(v.varset for v in self.values()))
 
-    @lazy_property
+    @cached_property
     def name2varset(self):
         """Dictionary mapping the name of the variable to the varset section."""
         d = {}
@@ -966,7 +913,7 @@ class InputVariables(OrderedDict):
             d[name] = var.varset
         return d
 
-    @lazy_property
+    @cached_property
     def my_characteristics(self):
         """Set with all characteristics found in the database. NB [] are removed from the string."""
         allchars = []
@@ -990,7 +937,7 @@ class InputVariables(OrderedDict):
     def groupby_first_letter(self):
         """Return ordered dict mapping first_char --> list of variables."""
         keys = sorted(self.keys(), key=lambda n: n[0].upper())
-        od = OrderedDict()
+        od = {}
         for char, group in groupby(keys, key=lambda n: n[0].upper()):
             od[char] = [self[name] for name in group]
         return od

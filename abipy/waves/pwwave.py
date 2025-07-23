@@ -1,6 +1,7 @@
 # coding: utf-8
 """This module contains the class describing a planewave wavefunction."""
 from __future__ import annotations
+
 #import copy
 import numpy as np
 
@@ -164,7 +165,7 @@ class WaveFunction:
     def get_ur_mesh(self, mesh, copy=True):
         """
         Returns u(r) on the FFT mesh. This routine is mainly used if we need u(r) on a
-        differen mesh. Data on the initial mesh is already available in `self.ur`
+        different mesh. Data on the initial mesh is already available in `self.ur`
 
         Args:
             mesh: |Mesh3d| object.
@@ -270,7 +271,7 @@ class PWWaveFunction(WaveFunction):
         """
         Returns the scalar product <u1|u2> of the periodic part of two wavefunctions
         computed in G-space or r-space, depending on the value of space.
-        Note that selection rules introduced by k-points is not taken into accout.
+        Note that selection rules introduced by k-points is not taken into account.
 
         Args:
             other: Other wave (right-hand side)
@@ -417,7 +418,7 @@ class PWWaveFunction(WaveFunction):
         return fig
 
     @add_fig_kwargs
-    def plot_line_neighbors(self, site_index, radius, num=200, with_krphase=False, 
+    def plot_line_neighbors(self, site_index, radius, num=200, with_krphase=False,
                             max_nn=10, fontsize=12, **kwargs) -> Figure:
         """
         Plot (interpolated) density/potential in real space along the lines connecting
@@ -551,32 +552,6 @@ class PWWaveFunction(WaveFunction):
                 pass
         else:
             raise visu.Error("Don't know how to export data for %s" % str(appname))
-
-    #def mvplot_cutplanes(self, show=True):
-    #    data = self.ur2
-    #    from abipy.display import mvtk
-    #    figure, mlab = mvtk.get_fig_mlab(figure=None)
-    #    source = mlab.pipeline.scalar_field(data)
-    #    mlab.pipeline.image_plane_widget(source, plane_orientation='x_axes', slice_index=data.shape[0]//2)
-    #    mlab.pipeline.image_plane_widget(source, plane_orientation='y_axes', slice_index=data.shape[1]//2)
-    #    mlab.pipeline.image_plane_widget(source, plane_orientation='z_axes', slice_index=data.shape[2]//2)
-    #    #mlab.pipeline.iso_surface(source, contours=contours) #, opacity=0.1)
-    #    #mlab.pipeline.iso_surface(source, contours=[data.min()+ 0.1 * data.ptp()], opacity=0.1)
-    #    mlab.outline()
-    #    if show: mlab.show()
-    #    return figure
-
-    #def mvplot_volume(self, figure=None, vmin=0.65, vmax=0.9, show=True):
-    #    from abipy.display import mvtk
-    #    figure, mlab = mvtk.get_fig_mlab(figure=figure)
-    #    data = self.ur2
-    #    source = mlab.pipeline.scalar_field(data)
-    #    data_min, data_max = data.min(), data.max()
-    #    mlab.pipeline.volume(source,
-    #                         vmin=data_min + vmin * (data_max - data_min),
-    #                         vmax=data_min + vmax * (data_max - data_min))
-    #    if show: mlab.show()
-    #    return figure
 
 
 class PAW_WaveFunction(WaveFunction):

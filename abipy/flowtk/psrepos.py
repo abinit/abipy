@@ -37,11 +37,10 @@ import requests
 
 from typing import Optional
 from urllib.parse import urlsplit
+from tqdm import tqdm
 from monty.termcolor import cprint, colored
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
 from abipy.tools.decorators import memoized_method
-from tqdm import tqdm
-
 
 # Installation directory.
 REPOS_ROOT = os.environ.get("ABIPY_PSREPOS_ROOT",
@@ -63,7 +62,7 @@ def get_oncvpsp_pseudos(xc_name: str, version: str, relativity_type: str = "SR",
 
     repo = get_repo_from_name(repo_name)
 
-    # Istall it at runtime if needed.
+    # Install it at runtime if needed.
     if not repo.is_installed():
         repo.install()
 
@@ -98,7 +97,7 @@ def decode_pseudopath(filepath: str) -> str:
 def download_repo_from_url(url: str, save_dirpath: str,
                            chunk_size: int = 2 * 1024**2, verbose: int = 0) -> None:
     """
-    Dowload file from url.
+    Download file from url.
 
     Args:
         url: The url from which the targz is taken.
@@ -128,7 +127,7 @@ def download_repo_from_url(url: str, save_dirpath: str,
 
             progress_bar.close()
             if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
-                raise RuntimeError(f"Something went wrong while donwloading url: {url}")
+                raise RuntimeError(f"Something went wrong while downloading url: {url}")
 
             shutil.unpack_archive(tmp_filepath, extract_dir=tmp_dir)
 
@@ -367,7 +366,7 @@ class OncvpspRepo(PseudosRepo):
 
     def validate_checksums(self, verbose: int) -> None:
         """
-        Compare checksums given in the djson file with the ones computed from file after the donwload.
+        Compare checksums given in the djson file with the ones computed from file after the download.
         """
         print(f"\nValidating md5 checksums of {repr(self)}...")
         djson_paths = [os.path.join(self.dirpath, jfile) for jfile in ("standard.djson", "stringent.djson")]

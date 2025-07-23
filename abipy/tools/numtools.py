@@ -61,7 +61,7 @@ def build_mesh(x0: float, num: int, step: float, direction: str) -> tuple[list, 
     directions == "centered" or a mesh that starts/ends at x0 if direction is `>`/`<`.
     Return mesh and index of x0.
     """
-    if direction == "centered":
+    if direction in  ("centered", "="):
         start = x0 - num * step
         return [start + i * step for i in range(2 * num + 1)], num
 
@@ -157,7 +157,7 @@ def data_from_cplx_mode(cplx_mode: str, arr, tol=None):
     return val if tol is None else np.where(np.abs(val) > tol, val, 0)
 
 
-def is_diagonal(matrix, atol=1e-12):
+def is_diagonal(matrix, atol=1e-12) -> bool:
     """
     Return True if matrix is diagonal.
     """
@@ -304,28 +304,24 @@ def smooth(x, window_len=11, window='hanning'):
     This method is based on the convolution of a scaled window with the signal.
     The signal is prepared by introducing reflected copies of the signal
     (with the window size) in both ends so that transient parts are minimized
-    in the begining and end part of the output signal.
+    in the beginning and end part of the output signal.
     Taken from http://www.scipy.org/Cookbook/SignalSmooth
 
     Args:
-        x:
-            the input signal
-        window_len:
-            the dimension of the smoothing window. it should be an odd integer
-        window:
-            the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'.
+        x: the input signal
+        window_len: the dimension of the smoothing window. it should be an odd integer
+        window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'.
             'flat' window will produce a moving average smoothing.
 
-    Returns:
-        the smoothed signal.
+    Returns: the smoothed signal.
 
-    example::
+    .. code-block::
 
         t = linspace(-2,2,0.1)
         x = sin(t)+randn(len(t))*0.1
         y = smooth(x)
 
-    see also:
+    See also:
 
     numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve scipy.signal.lfilter
 
@@ -463,7 +459,7 @@ class BlochRegularGridInterpolator:
 
         # Build `ndat` interpolators. Note that RegularGridInterpolator supports
         # [nx, ny, nz, ...] arrays but then each call operates on the full set of
-        # ndat components and this complicates the declation of callbacks
+        # ndat components and this complicates the declaration of callbacks
         # operating on a single component.
         from scipy.interpolate import RegularGridInterpolator
         self._interpolators = [None] * self.ndat
@@ -564,7 +560,7 @@ class BzRegularGridInterpolator:
         Args:
             structure: :class:`Structure` object.
             datak: [ndat, nx, ny, nz] array.
-            shifts: Shift of the mesh.
+            shifts: Shifts of the mesh (only one shift is supported here)
             add_replicas: If True, data is padded with redundant data points.
                 in order to have a periodic 3D array of shape=[ndat, nx+1, ny+1, nz+1].
             kwargs: Extra arguments are passed to RegularGridInterpolator e.g.: method
@@ -572,13 +568,19 @@ class BzRegularGridInterpolator:
                     “slinear”, “cubic”, “quintic” and “pchip”.
         """
         self.structure = structure
-        self.shifts = shifts
+        self.shifts = np.reshape(shifts, (-1, 3))
+
+        if self.shifts.shape[0] != 1:
+            raise ValueError(f"Multiple shifts are not supported! {self.shifts.shape[0]=}")
+
+        if np.any(self.shifts[0] != 0):
+            raise ValueError(f"Shift should be zero but got: {self.shifts=}")
 
         if add_replicas:
             datak = add_periodic_replicas(datak)
 
         self.dtype = datak.dtype
-        # We want a 4d array (ndat arrays of shape (nx, ny, nz)
+        # We want a 4d array of shape (ndat, nx, ny, nz)
         nx, ny, nz = datak.shape[-3:]
         datak = np.reshape(datak, (-1,) + (nx, ny, nz))
         self.ndat = len(datak)
@@ -588,12 +590,26 @@ class BzRegularGridInterpolator:
 
         # Build `ndat` interpolators. Note that RegularGridInterpolator supports
         # [nx, ny, nz, ...] arrays but then each call operates on the full set of
-        # ndat components and this complicates the declation of callbacks
-        # operating on a single component.
+        # ndat components and this complicates the declaration of callbacks operating on a single component.
         from scipy.interpolate import RegularGridInterpolator
         self._interpolators = [None] * self.ndat
-        for i in range(self.ndat):
-            self._interpolators[i] = RegularGridInterpolator((x, y, z), datak[i], **kwargs)
+
+        self.abs_data_min_idat = np.empty(self.ndat)
+        self.abs_data_max_idat = np.empty(self.ndat)
+
+        for idat in range(self.ndat):
+            self._interpolators[idat] = RegularGridInterpolator((x, y, z), datak[idat], **kwargs)
+
+            # Compute min and max of |f| to be used to scale markers in matplotlib plots.
+            self.abs_data_min_idat[idat] = np.min(np.abs(datak[idat]))
+            self.abs_data_max_idat[idat] = np.max(np.abs(datak[idat]))
+
+    def get_max_abs_data(self, idat=None) -> tuple:
+        """
+        """
+        if idat is None:
+            return self.abs_data_max_idat.max()
+        return self.abs_data_max_idat[idat]
 
     def eval_kpoint(self, frac_coords, cartesian=False, **kwargs) -> np.ndarray:
         """
@@ -614,6 +630,9 @@ class BzRegularGridInterpolator:
             red_from_cart = self.structure.reciprocal_lattice.inv_matrix.T
             frac_coords = np.dot(red_from_cart, frac_coords)
 
+        # Remove the shift here
+        frac_coords -= self.shifts[0]
+
         uc_coords = np.reshape(frac_coords, (3,)) % 1
 
         values = np.empty(self.ndat, dtype=self.dtype)
@@ -621,56 +640,6 @@ class BzRegularGridInterpolator:
             values[idat] = self._interpolators[idat](uc_coords, **kwargs)
 
         return values
-
-    #def eval_kline(self, point1, point2, num=200, cartesian=False, kpoint=None):
-    #    """
-    #    Interpolate values along a line.
-
-    #    Args:
-    #        point1: First point of the line. Accepts 3d vector or integer.
-    #            The vector is in reduced coordinates unless `cartesian == True`.
-    #            If integer, the first point of the line is given by the i-th site of the structure
-    #            e.g. `point1=0, point2=1` gives the line passing through the first two atoms.
-    #        point2: Second point of the line. Same API as `point1`.
-    #        num: Number of points sampled along the line.
-    #        cartesian: By default, `point1` and `point1` are interpreted as points in fractional
-    #            coordinates (if not integers). Use True to pass points in cartesian coordinates.
-    #        kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
-
-    #    Return: named tuple with
-    #        site1, site2: None if the points do not represent atomic sites.
-    #        points: Points in fractional coords.
-    #        dist: the distance of points along the line in Ang.
-    #        values: numpy array of shape [ndat, num] with interpolated values.
-    #    """
-    #    site1 = None
-    #    if duck.is_intlike(point1):
-    #        if point1 > len(self.structure):
-    #            raise ValueError("point1: %s > natom: %s" % (point1, len(self.structure)))
-    #        site1 = self.structure[point1]
-    #        point1 = site1.coords if cartesian else site1.frac_coords
-
-    #    site2 = None
-    #    if duck.is_intlike(point2):
-    #        if point2 > len(self.structure):
-    #            raise ValueError("point2: %s > natom: %s" % (point2, len(self.structure)))
-    #        site2 = self.structure[point2]
-    #        point2 = site2.coords if cartesian else site2.frac_coords
-
-    #    point1 = np.reshape(point1, (3,))
-    #    point2 = np.reshape(point2, (3,))
-    #    if cartesian:
-    #        red_from_cart = self.structure.lattice.inv_matrix.T
-    #        point1 = np.dot(red_from_cart, point1)
-    #        point2 = np.dot(red_from_cart, point2)
-
-    #    p21 = point2 - point1
-    #    line_points = np.reshape([alpha * p21 for alpha in np.linspace(0, 1, num=num)], (-1, 3))
-    #    dist = self.structure.lattice.norm(line_points)
-    #    line_points += point1
-
-    #    return dict2namedtuple(site1=site1, site2=site2, points=line_points, dist=dist,
-    #                           values=self.eval_kpoints(line_points))
 
 
 #class PolyExtrapolator:
@@ -695,4 +664,3 @@ class BzRegularGridInterpolator:
 #        ax.legend(loc="best", shadow=True, fontsize=fontsize)
 #
 #        return fig
-

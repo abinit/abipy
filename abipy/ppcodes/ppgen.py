@@ -9,7 +9,7 @@ import collections
 import shutil
 import time
 
-from typing import Union, Optional # Any,
+from typing import Optional
 from shutil import which
 from monty.termcolor import cprint
 from abipy.flowtk.pseudos import Pseudo
@@ -42,7 +42,7 @@ class Status(int):
         return _STATUS2STR[self]
 
     @classmethod
-    def as_status(cls, obj: Union[Status, str]) -> Status:
+    def as_status(cls, obj: Status | str) -> Status:
         """Convert obj into Status."""
         if isinstance(obj, cls):
             return obj
@@ -145,7 +145,7 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         return self._status
 
     @property
-    def retcode(self) -> Union[int, None]:
+    def retcode(self) -> int | None:
         """
         Return code of the subprocess.
         None if not available because e.g. the job has not been started yet.
@@ -160,7 +160,7 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         return self._parser
 
     #@property
-    #def pseudo(self) -> Union[Pseudo, None]:
+    #def pseudo(self) -> Pseudo | None:
     #    """Pseudo object or None if not available"""
     #    try:
     #        return self._pseudo
@@ -230,7 +230,7 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         """Kill the child."""
         self.process.kill()
         self.set_status(self.S_ERROR)
-        self.errors.append("Process has beed killed by host code.")
+        self.errors.append("Process has been killed by host code.")
         self._retcode = self.process.returncode
 
     def set_status(self, status, info_msg=None):

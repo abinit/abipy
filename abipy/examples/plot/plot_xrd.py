@@ -12,7 +12,6 @@ import abipy.data as abidata
 # Also available via the `abistruct.py xrd FILE` command line interface.
 structure = abilab.Structure.from_file(abidata.ref_file("si_scf_WFK.nc"))
 
-import sys
-if sys.version[0:3] > '2.7':
-    # pmg broke py compatibility
-    structure.plot_xrd()
+#%%
+# Plot the XRD spectrum.
+structure.plot_xrd()

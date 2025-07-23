@@ -31,7 +31,8 @@ paths = [
     "mgb2_121212k_0.04tsmear_DDB",
 ]
 
-paths = [os.path.join(abidata.dirpath, "refs", "mgb2_phonons_nkpt_tsmear", f) for f in paths]
+paths = [os.path.join(abidata.dirpath, "refs", "mgb2_phonons_nkpt_tsmear", f)
+        for f in paths]
 
 #%%
 # Now we initialize the DdbRobot from this list of paths:

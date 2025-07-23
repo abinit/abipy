@@ -2,11 +2,18 @@
 """Tests for derivatives module."""
 import numpy as np
 
-from abipy.tools.derivatives import finite_diff
+from abipy.tools.derivatives import finite_diff, check_num_points_for_order
 from abipy.core.testing import AbipyTest
 
 
 class FiniteDiffTest(AbipyTest):
+
+    def test_check_num_points_for_order(self):
+        check_num_points_for_order(num_points=3, order=1, kind="=")
+        check_num_points_for_order(num_points=3, order=2, kind=">")
+        check_num_points_for_order(num_points=3, order=2, kind="<")
+        with self.assertRaises(ValueError):
+            check_num_points_for_order(num_points=1, order=1, kind="=")
 
     def test_complex(self):
         """complex functions are not supported"""

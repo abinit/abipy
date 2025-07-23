@@ -399,3 +399,6 @@ xred_symbols
         assert diffs == ["The following variables are in other file but not in this one: ecut"]
         diffs = inp2.get_differences(inp4, ignore_vars=["ngkpt", "ecut"])
         assert diffs == []
+
+        #inp1 = AbinitInputFile.from_string(s1)
+        #inp2 = AbinitInputFile.from_string(s2)

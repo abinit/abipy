@@ -5,6 +5,7 @@ Band structure w/wo magnetization
 
 Calculation of the band structure of Fe with and without magnetization,
 including L-projected (FATBANDS and FATDOS)
+
 See also <~abinit/tutorial/Input/tspin_1.in>
 """
 import os

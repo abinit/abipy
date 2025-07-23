@@ -144,7 +144,6 @@ def cleanup():
 #    install_requires = [s.strip() for s in fh]
 
 install_requires = [
-    "monty",
     "packaging",
     "tabulate",
     "apscheduler<=3.10.4",
@@ -171,8 +170,8 @@ install_requires = [
     "seekpath",
     "ase",
     #"custodian",
-    #pydantic,
-    #panel,
+    #"pydantic',
+    #"panel",
 ]
 
 #---------------------------------------------------------------------------

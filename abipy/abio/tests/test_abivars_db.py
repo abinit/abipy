@@ -42,7 +42,7 @@ class AbinitVariableDatabaseTest(AbipyTest):
             assert len(database.vars_with_char(charact))
 
         name2varset = database.name2varset
-        assert name2varset["ecut"] == "basic" and name2varset["ionmov"] == "rlx"
+        assert name2varset["ecut"] == "basic" and name2varset["ionmov"] == "dev"
 
         assert database.group_by_varset("ecut") == {'basic': ['ecut']}
 

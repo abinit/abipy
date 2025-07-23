@@ -21,9 +21,9 @@ from inspect import isclass
 from multiprocessing import Pool
 from typing import Type, Any, Optional, Union
 from enum import IntEnum
+from functools import cached_property
 from tabulate import tabulate
 from monty.string import marquee, list_strings
-from monty.functools import lazy_property
 from monty.json import MontyEncoder
 from monty.collections import AttrDict
 from pymatgen.core import Structure as PmgStructure
@@ -74,21 +74,12 @@ class RX_MODE(EnumMixin, StrEnum):  # StrEnum added in 3.11
     cell = "cell"
 
 
-def to_ase_atoms(structure: PmgStructure, calc=None) -> Atoms:
-    """Convert pymatgen structure to ASE atoms. Optionally, attach a calculator."""
-    structure = Structure.as_structure(structure)
-    atoms = AseAtomsAdaptor.get_atoms(structure)
-    if calc:
-        atoms.calc = calc
-    return atoms
-
-
 def get_atoms(obj: Any) -> Atoms:
     """Return ASE Atoms from object."""
     if isinstance(obj, str):
-        return to_ase_atoms(Structure.from_file(obj))
+        return Structure.from_file(obj).to_ase_atoms()
     if isinstance(obj, PmgStructure):
-        return to_ase_atoms(obj)
+        return Structure.as_structure(obj).to_ase_atoms()
     if isinstance(obj, Atoms):
         return obj
     raise TypeError(f"Don't know how to construct Atoms object from {type(obj)}")
@@ -100,7 +91,7 @@ def abisanitize_atoms(atoms: Atoms, **kwargs) -> Atoms:
     """
     structure = Structure.as_structure(atoms)
     new_structure = structure.abi_sanitize(**kwargs)
-    return to_ase_atoms(get_atoms(new_structure), calc=atoms.calc)
+    return new_structure.to_ase_atoms(calc=atoms.calc)
 
 
 def fix_atoms(atoms: Atoms,
@@ -548,12 +539,12 @@ class AseResultsComparator(HasPickleIO):
     def __len__(self):
         return len(self.keys)
 
-    @lazy_property
+    @cached_property
     def nsteps(self) -> int:
         """Number of steps in the trajectory."""
         return self.forces_list.shape[1]
 
-    @lazy_property
+    @cached_property
     def natom(self) -> int:
         """Number of atoms."""
         return len(self.structure)
@@ -1012,7 +1003,7 @@ class AseRelaxation:
         self.r0, self.r1 = r0, r1
         self.traj_path = str(traj_path)
 
-    @lazy_property
+    @cached_property
     def traj(self):
         """ASE trajectory."""
         if self.traj_path is None:
@@ -1472,6 +1463,7 @@ class CalcBuilder:
         4) nn_type@calc_kwargs.yaml e.g.: mace:calc_kwargs.yaml.
     """
 
+    # List of supported ML calculators
     ALL_NN_TYPES = [
         "emt",
         "m3gnet",
@@ -1487,6 +1479,7 @@ class CalcBuilder:
         "orb",
         "sevenn",
         "mattersim",
+        "pet-mad",
     ]
 
     def __init__(self, name: str, dftd3_args=None, **kwargs):
@@ -1503,7 +1496,7 @@ class CalcBuilder:
         if ":" in name:
             self.nn_type, last = name.split(":")
             if last.endswith(".yaml") or last.endswith(".yml"):
-                print("Reading Calculator kwargs from file:", last)
+                print("Reading calculator kwargs from file:", last)
                 self.calc_kwargs = yaml_safe_load_path(last)
                 print("calc_kwargs:", self.calc_kwargs)
             else:
@@ -1815,6 +1808,17 @@ class CalcBuilder:
             load_path = "MatterSim-v1.0.0-1M.pth" if self.model_name is None else self.model_name
             #load_path = "MatterSim-v1.0.0-5M.pth"
             calc = _MatterSimCalculator(load_path=load_path, device=device)
+
+        elif self.nn_type == "pet-mad":
+            try:
+                from pet_mad.calculator import PETMADCalculator
+            except ImportError as exc:
+                raise ImportError("pet-mad not installed. See https://github.com/lab-cosmo/pet-mad") from exc
+
+            class _PETMADCalculator(_MyCalculator, PETMADCalculator):
+                """Add abi_forces and abi_stress"""
+
+            calc = _PETMADCalculator(version="latest") #, device="cpu")
 
         else:
             raise ValueError(f"Invalid {self.nn_type=}")
@@ -2227,7 +2231,7 @@ class AseMdLog(TextFile):
 
     time_key = "Time[ps]"
 
-    @lazy_property
+    @cached_property
     def df(self) -> pd.DataFrame:
         """
         DataFrame with the results.
@@ -3867,7 +3871,7 @@ class MlCwfEos(MlBase):
                     for volume in volumes:
                         #ase = structure.get_ase().copy()
                         #ase.set_cell(ase.get_cell() * float(scale_factor)**(1 / 3), scale_atoms=True)
-                        atoms = to_ase_atoms(Structure.as_structure(v0_atoms).scale_lattice(volume))
+                        atoms = Structure.as_structure(v0_atoms).scale_lattice(volume).to_ase_atoms()
                         r = AseResults.from_atoms(atoms, calc=calc)
                         energies.append(r.ene)
                         stresses.append(r.stress.tolist())

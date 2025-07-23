@@ -10,6 +10,23 @@ import inspect
 from typing import Callable
 from textwrap import dedent
 
+class classproperty(property):
+    """class-level property"""
+    def __get__(self, obj, cls):
+        return self.fget(cls)
+
+
+class cached_classproperty:
+    """class-level property that is also cached."""
+    def __init__(self, func):
+        self.func = func
+        self._cache_name = f"__cached_{func.__name__}"
+
+    def __get__(self, instance, owner):
+        if not hasattr(owner, self._cache_name):
+            setattr(owner, self._cache_name, self.func(owner))
+        return getattr(owner, self._cache_name)
+
 
 def return_straceback_ifexc(func: Callable):
     """
@@ -51,12 +68,11 @@ def memoized_method(*lru_args, **lru_kwargs):
 
     Taken from: https://stackoverflow.com/questions/33672412/python-functools-lru-cache-with-class-methods-release-object
 
+    .. code-block::
 
-    ... example::
-
-            @memoized_method(maxsize=12, typed=False)
-            def method(self, a, b):
-                ....
+        @memoized_method(maxsize=12, typed=False)
+        def method(self, a, b):
+            return a + b
     """
     def decorator(func):
         @functools.wraps(func)
@@ -102,24 +118,27 @@ class Appender:
     the original docstring. An optional 'join' parameter may be supplied
     which will be used to join the docstring and addendum. e.g.
 
-    add_copyright = Appender("Copyright (c) 2009", join='\n')
+    .. code-block:: python
 
-    @add_copyright
-    def my_dog(has='fleas'):
-        "This docstring will have a copyright below"
-        pass
+        add_copyright = Appender("Copyright (c) 2009", join='\n')
+
+        @add_copyright
+        def my_dog(has='fleas'):
+            "This docstring will have a copyright below"
+            pass
 
     MG took it from:
     https://github.com/pandas-dev/pandas/blob/3a7f956c30528736beaae5784f509a76d892e229/pandas/util/_decorators.py#L156
 
     MG: Added dedent and debug args.
-    """
 
+    """
     def __init__(self, addendum, join='', indents=0, dedent=True, debug=False):
         if indents > 0:
             self.addendum = indent(addendum, indents=indents)
         else:
             self.addendum = addendum
+
         self.join = join
 
         # MG additional stuff
@@ -152,4 +171,3 @@ def indent(text: str, indents=1) -> str:
         return ''
     jointext = ''.join(['\n'] + ['    '] * indents)
     return jointext.join(text.split('\n'))
-

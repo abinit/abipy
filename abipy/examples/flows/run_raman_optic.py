@@ -10,7 +10,6 @@ included with the BSE formalism.
 import sys
 import os
 import numpy as np
-
 import abipy.abilab as abilab
 import abipy.data as abidata
 import abipy.flowtk as flowtk

@@ -4,7 +4,7 @@ Raman with BSE and frozen phonon
 ================================
 
 This script shows how to perform a Raman calculation with
-excitonic effects included with the BSE formalism.
+excitonic effects included with the Bethe-Salpeter formalism.
 """
 
 import sys
@@ -12,6 +12,7 @@ import os
 import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
+
 from abipy import flowtk
 
 

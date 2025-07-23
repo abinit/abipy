@@ -18,6 +18,7 @@ def generate_manager_examples():
 
     lines = []; app = lines.append
     for f in manager_files:
+        print("file:", f)
         machine_name = os.path.basename(f).replace("_manager.yml", "").capitalize()
         app(machine_name)
         app("-" * len(machine_name))
@@ -27,6 +28,7 @@ def generate_manager_examples():
 """)
         with open(f, "rt") as fh:
             lines.extend(["\t%s" % l.rstrip() for l in fh])
+
         app("\n")
 
     text = """\

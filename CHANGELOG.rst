@@ -23,9 +23,9 @@ Release 0.9.4:
 Release 0.9.3:
 
     * Require pymatgen >= 2023.3.23
-    * Add ``ndivsm`` argument to PhononWork and EffMassLineWork to activate band 
+    * Add ``ndivsm`` argument to PhononWork and EffMassLineWork to activate band
       structure computation along k-path.
-    * Add new option to TaskManager (`limits_for_task_class`) to specify custom limits 
+    * Add new option to TaskManager (`limits_for_task_class`) to specify custom limits
       depending on the name of the task class. See `abidoc.py manager` for syntax
     * Deprecate `single` and `rapid` commands of abirun.py.
 

@@ -7,22 +7,17 @@ import numpy as np
 from scipy.interpolate import UnivariateSpline
 from monty.collections import dict2namedtuple
 from abipy.core.mixins import Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.tools.typing import Figure
 from abipy.electrons import ElectronBands
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt #set_axlims,
 
 
 class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
     """
-    Usage example:
-
-    .. code-block:: python
-
-        with abilab.abiopen("foo_ABIWAN.nc") as abiwan:
-            print(abiwan)
-
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ArpesPlotter
     """
+
     @classmethod
     def model_from_ebands(cls, ebands, tmesh=(0, 300, 600), poorman_polaron=False):
         ebands = ElectronBands.as_ebands(ebands)
@@ -101,10 +96,10 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         """|ElectronBands| object."""
         return self._ebands
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
         lines = []; app = lines.append
         app(self.structure.to_string(verbose=verbose, title="Structure"))
@@ -148,7 +143,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
     #    return self.__class__(new_ebands, new_aw, aw_meshes, self.tmesh)
 
-    def get_emesh_eminmax(self, estep):
+    def get_emesh_eminmax(self, estep: float) -> np.ndarray:
         """Compute linear mesh covering entire energy range."""
         emin = self.ebands.enemin()
         emin -= 0.1 * abs(emin)
@@ -189,7 +184,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @add_fig_kwargs
     def plot_ekmap_temps(self, temp_inds=None, spins=None, estep=0.02, with_colorbar=True,
-                        ylims=None, fontsize=8, **kwargs):
+                        ylims=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot (k, e) color maps for different temperatures.
 
@@ -220,7 +215,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_ekmap_itemp(self, itemp=0, spins=None, estep=0.02, ax=None, ylims=None, with_colorbar=True, **kwargs):
+    def plot_ekmap_itemp(self, itemp=0, spins=None, estep=0.02, ax=None, ylims=None, with_colorbar=True, **kwargs) -> Figure:
         """
         Plot (k, e) color map for given temperature.
 
@@ -279,7 +274,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @add_fig_kwargs
     def plot_ak_vs_temp(self, temp_inds=None, spins=None, band_inds=None, kpt_inds=None,
-                        apad=1.0, estep=0.02, colormap="jet", fontsize=8, **kwargs):
+                        apad=1.0, estep=0.02, colormap="jet", fontsize=8, **kwargs) -> Figure:
         """
 
         Args:
@@ -388,7 +383,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
     #    return fig
 
     @add_fig_kwargs
-    def plot_3dlines(self, itemp=0, estep=0.02, spins=None, band_inds=None, ax=None, **kwargs):
+    def plot_3dlines(self, itemp=0, estep=0.02, spins=None, band_inds=None, ax=None, **kwargs) -> Figure:
         ax, fig, plt = get_ax3d_fig_plt(ax=ax)
 
         xs, emin, emax = self.get_emesh_eminmax(estep)

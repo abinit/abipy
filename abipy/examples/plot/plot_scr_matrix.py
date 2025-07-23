@@ -19,7 +19,7 @@ with abiopen(abidata.ref_file("sio2_SCR.nc")) as ncfile:
     # Read e^{-1}_{G1, G2}(k, omega)
 
     kpoint = [0.5, 0, 0]
-    em1 = ncfile.reader.read_wggmat(kpoint)
+    em1 = ncfile.r.read_wggmat(kpoint)
     print(em1)
 
     gvec1 = [1, 0, 0]

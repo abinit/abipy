@@ -1,4 +1,3 @@
-# pylint: disable=no-member, chained-comparison, unnecessary-comprehension, not-callable
 """
 This module provides objects to inspect the status of the Abinit tasks at run-time.
 by extracting information from the main output file (text format).
@@ -6,13 +5,13 @@ by extracting information from the main output file (text format).
 from __future__ import annotations
 
 import os
+import numpy as np
+
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Mapping
 from typing import Union
-
-import numpy as np
+from functools import cached_property
 from monty.collections import AttrDict
-from monty.functools import lazy_property
 from tabulate import tabulate
 from abipy.tools.iotools import yaml_safe_load
 from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt,
@@ -116,10 +115,6 @@ class ScfCycle(Mapping):
     """
     It essentially consists of a dictionary mapping string
     to list of floats containing the data at the different iterations.
-
-    .. attribute::
-
-        num_iterations: Number of iterations performed.
     """
 
     MAGIC = "Must be defined by the subclass." ""
@@ -131,8 +126,13 @@ class ScfCycle(Mapping):
         """
         self.fields = fields
         all_lens = [len(lst) for lst in self.values()]
-        self.num_iterations = all_lens[0]
-        assert all(n == self.num_iterations for n in all_lens)
+        self._num_iterations = all_lens[0]
+        assert all(n == self._num_iterations for n in all_lens)
+
+    @property
+    def num_iterations(self) -> int:
+        """Number of iterations performed."""
+        return self._num_iterations
 
     def __getitem__(self, slice):
         return self.fields.__getitem__(slice)
@@ -373,9 +373,9 @@ class Relaxation(Iterable):
     """
     A list of :class:`GroundStateScfCycle` objects.
 
-    .. attribute::
+    .. attribute::  num_iterations:
 
-        num_iterations: Number of iterations performed.
+        Number of iterations performed.
 
     .. note::
 
@@ -436,7 +436,7 @@ class Relaxation(Iterable):
 
         return cls(cycles) if cycles else None
 
-    @lazy_property
+    @cached_property
     def history(self) -> dict:
         """
         dictionary of lists with the evolution of
@@ -663,7 +663,7 @@ class YamlTokenizer(Iterator):
 
         .. warning::
 
-            Assume that the YAML document are closed explicitely with the sentinel '...'
+            Assume that the YAML document are closed explicitly with the sentinel '...'
         """
         in_doc, lines, doc_tag = None, [], None
 
@@ -707,7 +707,7 @@ class YamlTokenizer(Iterator):
         .. warning::
 
             Assume that all the YAML docs (with the exception of the last one)
-            are closed explicitely with the sentinel '...'
+            are closed explicitly with the sentinel '...'
         """
         docs = [doc for doc in self]
         self.seek(0)

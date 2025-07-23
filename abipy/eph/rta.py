@@ -7,7 +7,7 @@ from __future__ import annotations
 import numpy as np
 import abipy.core.abinit_units as abu
 
-from monty.functools import lazy_property
+from functools import cached_property
 #from monty.termcolor import cprint
 from monty.string import marquee, list_strings
 from abipy.core.structure import Structure
@@ -133,17 +133,17 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """Mesh with Temperatures in Kelvin."""
         return self.reader.tmesh
 
-    @lazy_property
+    @cached_property
     def assume_gap(self) -> bool:
         """True if we are dealing with a semiconductor. More precisely if all(sigma_erange) > 0."""
         return bool(self.reader.rootgrp.variables["assume_gap"])
 
-    @lazy_property
+    @cached_property
     def has_ibte(self) -> bool:
         """True if file contains IBTE results."""
         return "ibte_sigma" in self.reader.rootgrp.variables
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.reader.read_ebands()
@@ -153,7 +153,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
@@ -718,12 +718,12 @@ class RtaRobot(Robot, RobotWithEbands):
 
         return fig
 
-    @lazy_property
+    @cached_property
     def assume_gap(self) -> bool:
         """True if we are dealing with a semiconductor. More precisely if all(sigma_erange) > 0."""
         return all(abifile.assume_gap for abifile in self.abifiles)
 
-    @lazy_property
+    @cached_property
     def all_have_ibte(self) -> bool:
         """True if all files contain IBTE results."""
         return all(abifile.has_ibte for abifile in self.abifiles)
