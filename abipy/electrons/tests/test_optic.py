@@ -38,7 +38,7 @@ class OpticTest(AbipyTest):
             # Test plot methods
             if self.has_matplotlib():
                 assert optic.plot_linear_epsilon(show=False)
-                assert optic.plot_linopt(show=False)
+                assert optic.plot_linopt(ax_annotate=True, show=False)
                 assert optic.plot_shg(show=False)
                 assert optic.plot_leo(show=False)
 

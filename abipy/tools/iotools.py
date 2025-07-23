@@ -129,12 +129,14 @@ class ExitStackWithFiles(ExitStack):
 def get_input(prompt: str):
     """
     Wraps python builtin input so that we can easily mock it in unit tests using:
+    Usage example:
 
-    Example:
+    .. code-block:: python
 
         from unittest.mock import patch
         with patch('abipy.tools.iotools.get_input', return_value='no'):
             do_something_that_uses_get_input
+
     """
     return input(prompt)
 
@@ -359,6 +361,34 @@ def workdir_with_prefix(workdir, prefix, exist_ok=False) -> Path:
 
     return Path(workdir).absolute()
 
+def filepath_extract_differences(filepaths: list) -> list:
+    """
+    Extract the common prefix and suffix of a list of filepaths.
+    Return a list of strings with the common prefix and suffix replaced by "..".
+    """
+    if len(filepaths) <= 1:
+        return filepaths
+
+    prefix = os.path.commonprefix(filepaths)
+
+    reversed_strings = [s[::-1] for s in filepaths]
+    suffix = os.path.commonprefix(reversed_strings)[::-1]
+
+    results = []
+    for s in filepaths:
+        start = len(prefix)
+        end = len(s) - len(suffix) if len(suffix) > 0 else len(s)
+        start -= 2
+        end += 2
+        if start >= end:
+            results.append(s)
+        elif start <= 0:
+            results.append(f"{s[:end]}..")
+        elif end >= len(s):
+            results.append(f"..{s[start:]}")
+        else:
+            results.append(f"..{s[start:end]}..")
+    return results
 
 def change_ext_from_top(top: PathLike, old_ext: str, new_ext: str) -> int:
     """

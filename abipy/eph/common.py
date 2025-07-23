@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Objects common to the other eph modules.
+Objects and functions common to other eph modules.
 """
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import numpy as np
 import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
-from monty.functools import lazy_property
+from functools import cached_property
 from abipy.electrons.ebands import ElectronsReader
 
 # Phonon frequency in Ha below which e-ph matrix elements are set to zero.
@@ -21,28 +21,28 @@ class BaseEphReader(ElectronsReader):
     See Abinit docs for the meaning of the variables.
     """
 
-    @lazy_property
-    def ddb_ngqpt(self):
+    @cached_property
+    def ddb_ngqpt(self) -> np.ndarray:
         """Q-Mesh for DDB file."""
         return self.read_value("ddb_ngqpt")
 
-    @lazy_property
-    def ngqpt(self):
+    @cached_property
+    def ngqpt(self) -> np.ndarray:
         """Effective Q-mesh used in to compute integrals (ph_linewidts, e-ph self-energy)."""
         return self.read_value("ngqpt")
 
-    @lazy_property
-    def ph_ngqpt(self):
+    @cached_property
+    def ph_ngqpt(self) -> np.ndarray:
         """Q-mesh for Phonon DOS, interpolated A2F ..."""
         return self.read_value("ph_ngqpt")
 
-    @lazy_property
-    def eph_ngqpt_fine(self):
+    @cached_property
+    def eph_ngqpt_fine(self) -> np.ndarray:
         """Q-mesh for interpolated DFPT potentials"""
         return self.read_value("eph_ngqpt_fine")
 
-    @lazy_property
-    def common_eph_params(self):
+    @cached_property
+    def common_eph_params(self) -> dict:
         """
         Read basic parameters (scalars) from the netcdf files produced by the EPH code and cache them
         """
@@ -91,7 +91,7 @@ def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart_bohr, phfreqs_ha, 
     phdispl_cart_bohr = np.reshape(phdispl_cart_bohr, (natom3, natom, 3))
 
     xred = structure.frac_coords
-    # Acoustic modes are included --> assume BECS fullfill charge neutrality
+    # Acoustic modes are included --> assume BECS fulfill charge neutrality.
     glr_nu = np.empty(natom3, dtype=complex)
     for nu in range(natom3):
         if phfreqs_ha[nu] < EPH_WTOL or q_eps_q < tol_qnorm: continue
@@ -102,5 +102,5 @@ def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart_bohr, phfreqs_ha, 
         glr_nu[nu] = num / (q_eps_q * np.sqrt(2.0 * phfreqs_ha[nu]))
 
     fact = 1
-    if qdamp is not None: fact = np.exp(-qpoint.norm**2/(4*qdamp))
-    return fact * glr_nu * 4j * np.pi / (structure.volume*abu.Ang_Bohr**3)
+    if qdamp is not None: fact = np.exp(-qpoint.norm ** 2 / (4 * qdamp))
+    return fact * glr_nu * 4j * np.pi / (structure.volume * abu.Ang_Bohr**3)

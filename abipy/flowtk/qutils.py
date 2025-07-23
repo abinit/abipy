@@ -12,6 +12,7 @@ import os
 
 from subprocess import Popen, PIPE, run
 from monty.string import is_string
+from monty.os import cd
 from pymatgen.core.units import Time, Memory, UnitError
 from abipy.tools.typing import PathLike
 from abipy.tools import duck
@@ -31,8 +32,7 @@ def slurm_parse_timestr(s: str) -> Time:
 
     Returns: Time in seconds.
 
-    Raises:
-        `ValueError` if string is not valid.
+    Raises: `ValueError` if string is not valid.
     """
     days, hours, minutes, seconds = 0, 0, 0, 0
 
@@ -135,14 +135,16 @@ def any2mb(s):
         try:
             # latest pymatgen version (as of july 2024)
             mem = int(Memory.from_str(s.upper()).to("MB"))
-        except (KeyError, UnitError):  # For backward compatibility with older pymatgen versions
+        except (KeyError, UnitError):
+            # For backward compatibility with older pymatgen versions
             try:
                 mem = int(Memory.from_str(s.replace("B", "b")).to("Mb"))
-            except AttributeError:  # For even older pymatgen versions
+            except AttributeError:
+                # For even older pymatgen versions
                 mem = int(Memory.from_string(s.replace("B", "b")).to("Mb"))
         return mem
-    else:
-        return int(s)
+
+    return int(s)
 
 
 def slurm_get_jobs() -> dict[int, dict]:
@@ -151,7 +153,7 @@ def slurm_get_jobs() -> dict[int, dict]:
     """
     # Based on https://gist.github.com/stevekm/7831fac98473ea17d781330baa0dd7aa
     process = Popen(["squeue", "--me", "-o", '%all'],
-                       stdout=PIPE, stderr=PIPE, shell=False, universal_newlines=True)
+                     stdout=PIPE, stderr=PIPE, shell=False, universal_newlines=True)
     proc_stdout, proc_stderr = process.communicate()
 
     lines = proc_stdout.split('\n')
@@ -176,7 +178,6 @@ def slurm_get_jobs() -> dict[int, dict]:
 
 class SlurmJobArray:
     """
-
     Example:
 
     header = '''\
@@ -285,14 +286,13 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
     """
     Submit a job script to the queue with Slurm sbatch. Return Slurm JOB ID.
     """
-    from monty.os import cd
-    dirpath = os.path.dirname(slurm_filepath)
+    dirpath = os.path.dirname(str(slurm_filepath))
     #print("dirpath", dirpath)
-    with cd(dirpath):
 
+    with cd(dirpath):
         # need string not bytes so must use universal_newlines
         slurm_filepath = str(slurm_filepath)
-        process = Popen(['sbatch', slurm_filepath], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        process = Popen(["sbatch", slurm_filepath], stdout=PIPE, stderr=PIPE, universal_newlines=True)
         out, err = process.communicate()
 
         # grab the returncode. SLURM returns 0 if the job was successful
@@ -320,7 +320,6 @@ def get_sacct_info():
     Run the sacct command to get the job information
     """
     try:
-
         result = run(['sacct', '--format=JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode', '--noheader'],
                       stdout=PIPE, stderr=PIPE, text=True)
 
@@ -331,7 +330,7 @@ def get_sacct_info():
 
         # Process the output
         jobs_info = result.stdout.strip().split('\n')
-        jobs = [dict(zip(['JobID', 'JobName', 'Partition', 'Account', 'AllocCPUS', 'State', 'ExitCode'], job.split())) 
+        jobs = [dict(zip(['JobID', 'JobName', 'Partition', 'Account', 'AllocCPUS', 'State', 'ExitCode'], job.split()))
                 for job in jobs_info]
         return jobs
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 """
-This module contains objects for postprocessing A2F calculations (phonon lifetimes in metals
-and Eliashberg function).
+This module contains objects for postprocessing A2F calculations:
+(phonon lifetimes in metals and Eliashberg function).
 
 Warning:
     Work in progress, DO NOT USE THIS CODE.
@@ -14,7 +14,7 @@ import pandas as pd
 import pymatgen.core.units as units
 import abipy.core.abinit_units as abu
 
-from collections import OrderedDict
+from functools import cached_property
 try:
     from scipy.integrate import cumulative_trapezoid as cumtrapz
 except ImportError:
@@ -23,9 +23,8 @@ try:
     from scipy.integrate import simpson as simps
 except ImportError:
     from scipy.integrate import simps
-#from typing import Any
+
 from monty.string import marquee, list_strings
-from monty.functools import lazy_property
 from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.kpoints import Kpath
@@ -65,7 +64,7 @@ class A2f:
             meta: Dictionary with metavariables.
 
         TODO:
-            1. possibility of computing a2f directly from data on file?
+            Add possibility of computing a2f directly from data on file?
         """
         self.mesh = mesh
         self.ngqpt = ngqpt
@@ -76,7 +75,8 @@ class A2f:
         values_spin_nu = np.atleast_3d(values_spin_nu)
         self.nsppol = len(values_spin)
         self.nmodes = values_spin_nu.shape[1]
-        assert self.nmodes % 3 == 0
+        if self.nmodes % 3 != 0:
+            raise ValueError(f"{self.nmodes=} is not a multiple of 3")
         self.natom = self.nmodes // 3
 
         if self.nsppol == 2:
@@ -86,13 +86,13 @@ class A2f:
             self.values = values_spin[0]
             self.values_nu = values_spin_nu[0]
         else:
-            raise ValueError("Invalid nsppol: %s" % self.nsppol)
+            raise ValueError(f"Invalid {self.nsppol=}")
 
         self.values_spin = values_spin
         self.values_spin_nu = values_spin_nu
         #self.lambdaw ?
 
-    @lazy_property
+    @cached_property
     def iw0(self) -> int:
         """
         Index of the first point in the mesh whose value is >= 0
@@ -133,12 +133,12 @@ class A2f:
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def lambda_iso(self) -> float:
         """Isotropic lambda."""
         return self.get_moment(n=0)
 
-    @lazy_property
+    @cached_property
     def omega_log(self) -> float:
         r"""
         Logarithmic moment of alpha^2F: exp((2/\lambda) \int dw a2F(w) ln(w)/w)
@@ -258,7 +258,7 @@ class A2f:
             ax.plot(xx, yy, label=label, **style)
 
         else:
-            raise ValueError("Invalid value for what: `%s`" % str(what))
+            raise ValueError(f"Invalid value for {what=}")
 
         xlabel = abu.wlabel_from_units(units)
         if exchange_xy: xlabel, ylabel = ylabel, xlabel
@@ -462,7 +462,7 @@ class A2Ftr:
         """
         self.mesh = mesh
 
-    @lazy_property
+    @cached_property
     def iw0(self) -> int:
         """
         Index of the first point in the mesh whose value is >= 0
@@ -546,12 +546,12 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.reader.read_ebands()
 
-    @lazy_property
+    @cached_property
     def edos(self) -> ElectronDos:
         """|ElectronDos| object with e-DOS computed by Abinit."""
         return self.reader.read_edos()
@@ -569,7 +569,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         return self.reader.read_phbands_qpath()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
@@ -578,14 +578,14 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return od
 
-    @lazy_property
+    @cached_property
     def a2f_qcoarse(self):
         """
         :class:`A2f` with the Eliashberg function a2F(w) computed on the (coarse) ab-initio q-mesh.
         """
         return self.reader.read_a2f(qsamp="qcoarse")
 
-    @lazy_property
+    @cached_property
     def a2f_qintp(self):
         """
         :class:`A2f` with the Eliashberg function a2F(w) computed on the dense q-mesh by Fourier interpolation.
@@ -596,14 +596,14 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """Return the :class:`A2f` object associated to q-sampling ``qsamp``."""
         if qsamp == "qcoarse": return self.a2f_qcoarse
         if qsamp == "qintp": return self.a2f_qintp
-        raise ValueError("Invalid value for qsamp `%s`" % str(qsamp))
+        raise ValueError(f"Invalid value for {qsamp=}")
 
-    @lazy_property
+    @cached_property
     def has_a2ftr(self) -> bool:
         """True if the netcdf file contains transport data."""
         return "a2ftr_qcoarse" in self.reader.rootgrp.variables
 
-    @lazy_property
+    @cached_property
     def a2ftr_qcoarse(self):
         """
         :class:`A2ftr` with the Eliashberg transport spectral function a2F_tr(w, x, x')
@@ -612,7 +612,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         if not self.has_a2ftr: return None
         return self.reader.read_a2ftr(qsamp="qcoarse")
 
-    @lazy_property
+    @cached_property
     def a2ftr_qintp(self):
         """
         :class:`A2ftr` with the Eliashberg transport spectral function a2F_tr(w, x, x')
@@ -625,7 +625,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """Return the :class:`A2ftr` object associated to q-sampling ``qsamp``."""
         if qsamp == "qcoarse": return self.a2ftr_qcoarse
         if qsamp == "qintp": return self.a2ftr_qintp
-        raise ValueError("Invalid value for qsamp `%s`" % str(qsamp))
+        raise ValueError(f"Invalid value for {qsamp=}")
 
     def close(self) -> None:
         """Close the file."""
@@ -734,7 +734,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                     yvals = self.reader.read_phgamma_qpath()
                     ylabel = r"$\gamma(q,\nu)$ (eV)"
                 else:
-                    raise ValueError("Invalid value for what: `%s`" % str(what))
+                    raise ValueError(f"Invalid value for {what=}")
 
                 style = dict(
                     linestyle=kwargs.pop("linestyle", "-"),
@@ -797,7 +797,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             sqn = scale * np.abs(gammas)
             cqn = lambdas
         else:
-            raise ValueError("Invalid what: `%s`" % str(what))
+            raise ValueError(f"Invalid {what=}")
 
         vmin, vmax = cqn.min(), cqn.max()
 
@@ -952,7 +952,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -1009,7 +1009,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
         rows, row_names = [], []
         for i, (label, ncfile) in enumerate(self.items()):
             row_names.append(label)
-            d = OrderedDict()
+            d = {}
 
             for qsamp in self.all_qsamps:
                 a2f = ncfile.get_a2f_qsamp(qsamp)
@@ -1172,7 +1172,8 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
         return fig
 
     @add_fig_kwargs
-    def plot_a2fdata_convergence(self, sortby=None, hue=None, qsamps="all", what_list=("lambda_iso", "omega_log"),
+    def plot_a2fdata_convergence(self, sortby=None, hue=None, qsamps="all",
+                                 what_list=("lambda_iso", "omega_log"),
                                  fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of the isotropic lambda and omega_log wrt the ``sortby`` parameter.
@@ -1287,7 +1288,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
             elif what == "a2ftr":
                 a2f_list = self.get_a2ftr_qsamp(qsamp)
             else:
-                raise ValueError("Invalid value for what: `%s`" % what)
+                raise ValueError(f"Invalid value for {what=}")
 
             a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in self.abifiles]
 
@@ -1335,7 +1336,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -1426,7 +1427,7 @@ class A2fReader(BaseEphReader):
                            linewidths=linewidths,
                            )
 
-    def read_phlambda_qpath(self, sum_spin=True):
+    def read_phlambda_qpath(self, sum_spin=True) -> np.ndarray:
         """
         Reads the EPH coupling strength *interpolated* along the q-path.
 
@@ -1436,7 +1437,7 @@ class A2fReader(BaseEphReader):
         vals = self.read_value("phlambda_qpath")
         return vals if not sum_spin else vals.sum(axis=0)
 
-    def read_phgamma_qpath(self, sum_spin=True):
+    def read_phgamma_qpath(self, sum_spin=True) -> np.ndarray:
         """
         Reads the phonon linewidths (eV) *interpolated* along the q-path.
 

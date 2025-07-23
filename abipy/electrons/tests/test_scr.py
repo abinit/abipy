@@ -80,23 +80,23 @@ class ScrFileTest(AbipyTest):
             # FIXME: workaround required because fermie is not filled.
             assert ncfile.ebands.fermie == 0
 
-            emacro_lf = ncfile.reader.read_emacro_lf()
+            emacro_lf = ncfile.r.read_emacro_lf()
             mesh, values = emacro_lf.mesh, emacro_lf.values
             self.assert_almost_equal(mesh[1] * pmgu.Ha_to_eV, 0.68965522717365468)
             self.assert_almost_equal(values[1], 4.3045172293768923 + 0.048181271128789963j)
 
-            emacro_nlf = ncfile.reader.read_emacro_nlf()
+            emacro_nlf = ncfile.r.read_emacro_nlf()
             mesh, values = emacro_nlf.mesh, emacro_nlf.values
             self.assert_almost_equal(mesh[3] * pmgu.Ha_to_eV, 2.0689656815209636)
             self.assert_almost_equal(values[3], 4.8759925663692183 + 0.17078051537847205j)
 
-            eelf = ncfile.reader.read_eelf()
+            eelf = ncfile.r.read_eelf()
             mesh, values = eelf.mesh, eelf.values
             self.assert_almost_equal(mesh[4] * pmgu.Ha_to_eV, 2.7586209086946187)
             self.assert_almost_equal(values[4], 0.038293723864876617)
 
             kpoint = [0.5, 0, 0]
-            em1 = ncfile.reader.read_wggmat(kpoint)
+            em1 = ncfile.r.read_wggmat(kpoint)
             repr(em1); str(em1)
             assert em1.kpoint == kpoint
             assert em1.nw == 35 and em1.nrew == 30 and em1.nimw == 5
@@ -115,6 +115,8 @@ class ScrFileTest(AbipyTest):
                 # ncfile plot methods
                 assert ncfile.plot_emacro(show=False)
                 assert ncfile.ebands.plot(show=False)
+                assert ncfile.plot_freqs_at_ggp(gvec1=[0,0,0], gvec2=None, waxis="real", cplx_modes=("re", "im"), show=False)
+
                 # em1 plot methods
                 assert em1.plot_freq(gvec1=0, gvec2=None, waxis="real", cplx_mode="re-im", show=False)
                 assert em1.plot_freq(gvec1=[0, 0, 0], gvec2=[1, 0, 0], waxis="imag", cplx_mode="re-im", show=False)

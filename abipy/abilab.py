@@ -34,7 +34,7 @@ from abipy.core.mixins import TextFile, JsonFile, CubeFile
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import set_atol_kdiff
 from abipy.abio.robots import Robot
-from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput
+from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput, AtdepInput
 from abipy.abio.abivars import AbinitInputFile
 from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile, AboRobot
 from abipy.tools.printing import print_dataframe
@@ -66,7 +66,7 @@ from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 from abipy.eph.cumulant import CumulantEPhFile
-from abipy.eph.varpeq import VarpeqFile
+from abipy.eph.vpq import VpqFile
 from abipy.eph.eph_plotter import EphPlotter
 from abipy.eph.v1sym import V1symFile
 from abipy.eph.gkq import GkqFile, GkqRobot
@@ -78,7 +78,6 @@ from abipy.eph.gstore import GstoreFile
 from abipy.eph.gpath import GpathFile
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
 from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
-
 from abipy.dynamics.cpx import EvpFile
 #try:
 #    from abipy.ml.aseml import AseMdLog
@@ -183,7 +182,7 @@ abiext2ncfile = collections.OrderedDict([
     ("V1QAVG.nc", V1qAvgFile),
     ("ABIWAN.nc", AbiwanFile),
     ("EPH_CUMULANT.nc", CumulantEPhFile),
-    ("VARPEQ.nc", VarpeqFile),
+    ("VPQ.nc", VpqFile),
 ])
 
 
@@ -303,7 +302,7 @@ def abiopen(filepath: str):
     root, ext = os.path.splitext(filepath)
     if ext in (".bz2", ".gz", ".z"):
         from monty.io import zopen
-        with zopen(filepath, "rt") as f:
+        with zopen(filepath, mode="rt", encoding="utf-8") as f:
             import tempfile
             _, tmp_path = tempfile.mkstemp(suffix=os.path.basename(root), text=True)
             cprint("Creating temporary file: %s" % tmp_path, "yellow")

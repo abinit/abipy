@@ -6,9 +6,9 @@ from __future__ import annotations
 
 import sys
 import argparse
+import abipy.tools.cli_parsers as cli
 import abipy.flowtk as flowtk
 
-from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy.core.release import __version__
 from abipy import abilab
@@ -119,7 +119,7 @@ def get_parser(with_epilog=False):
     return parser
 
 
-@prof_main
+@cli.prof_main
 def main():
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -143,7 +143,7 @@ def main():
         raise ValueError('Invalid log level: %s' % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    # Get the dabase of variables for codename.
+    # Get the database of variables for codename.
     from abipy.abio.abivar_database.variables import get_codevars
     codevars = get_codevars()
     vdb = codevars[options.codename]

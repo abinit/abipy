@@ -10,13 +10,12 @@ import tempfile
 import numpy as np
 import pandas as pd
 
-from collections import namedtuple, defaultdict
-from typing import Union, Any
+from collections import namedtuple # , defaultdict
 from dataclasses import dataclass
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.collections import AttrDict, dict2namedtuple
 from monty.termcolor import colored
-from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction, l2char
+from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction #, l2char
 from abipy.ppcodes.base_parser import BaseParser
 
 
@@ -40,7 +39,6 @@ class AtomicLevel:
     eig: float
     occ: float
     is_valence: bool
-
 
 
 class OncvParser(BaseParser):
@@ -91,11 +89,11 @@ class OncvParser(BaseParser):
         return self
 
     @property
-    def is_metapsp(self):
+    def is_metapsp(self) -> bool:
         return self.generator_type == "METAPSP"
 
     @property
-    def is_oncvpsp(self):
+    def is_oncvpsp(self) -> bool:
         return self.generator_type == "ONCVPSP"
 
     def _scan(self, verbose: int = 0) -> OncvParser:
@@ -125,7 +123,7 @@ class OncvParser(BaseParser):
                 if line.startswith("DATA FOR PLOTTING"):
                     self.run_completed = True
 
-                # lines that contain the word ERROR but do not seem to indicate an actual teminating error
+                # lines that contain the word ERROR but do not seem to indicate an actual terminating error
                 acceptable_error_markers = [
                   'run_config: ERROR for fully non-local  PS atom,'
                 ]
@@ -178,12 +176,12 @@ class OncvParser(BaseParser):
             if line.startswith("# atsym"):
                 values = self.lines[i + 1].split()
                 if len(values) != 6:
-                  # Rf104.00   10    8       4      both
-                  l = values.pop(0)
-                  atmsym, z = l[0:2], l[2:]
-                  values.insert(0, z)
-                  values.insert(0, atmsym)
-                  #print(values)
+                    # Rf104.00   10    8       4      both
+                    l = values.pop(0)
+                    atmsym, z = l[0:2], l[2:]
+                    values.insert(0, z)
+                    values.insert(0, atmsym)
+                    #print(values)
 
                 keys = header[1:].split()
                 # assert len(keys) == len(values)
@@ -291,7 +289,7 @@ class OncvParser(BaseParser):
 
         return self
 
-    @lazy_property
+    @cached_property
     def min_ghost_empty_ha(self):
         ghost_ene = np.inf
         for line in self.warnings:
@@ -300,7 +298,7 @@ class OncvParser(BaseParser):
 
         return None if ghost_ene == np.inf else ghost_ene
 
-    @lazy_property
+    @cached_property
     def lmax(self) -> int:
         # Read lmax (not very robust because we assume the user didn't change the template but oh well)
         header = "# lmax"
@@ -310,7 +308,7 @@ class OncvParser(BaseParser):
         else:
             raise self.Error(f"Cannot find line with `#lmax` in: {self.filepath}")
 
-    def to_string(self, verbose: int = 0 ) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """
         String representation.
         """
@@ -356,7 +354,7 @@ class OncvParser(BaseParser):
         """True if fully-relativistic calculation."""
         return self.calc_type in ("fully-relativistic", "relativistic")
 
-    @lazy_property
+    @cached_property
     def rc_l(self) -> dict[int, float]:
         """
         Core radii as a function of l extracted from the output file.
@@ -381,7 +379,7 @@ class OncvParser(BaseParser):
 
         return rc_l
 
-    @lazy_property
+    @cached_property
     def kinerr_nlk(self) -> dict[NlkState, namedtuple]:
         """
         Dictionary with the error on the kinetic energy indexed by nlk.
@@ -484,7 +482,7 @@ class OncvParser(BaseParser):
             ks = "\n\t".join(str(k) for k in d)
             raise RuntimeError(f"nlk state `{nlk}` is already in {dict_name}:\nKeys:\n\t{ks}")
 
-    @lazy_property
+    @cached_property
     def potentials(self) -> dict[int, RadialFunction]:
         """
         Dict with radial functions with the non-local and local potentials indexed by l.
@@ -508,7 +506,7 @@ class OncvParser(BaseParser):
 
         return ionpots_l
 
-    @lazy_property
+    @cached_property
     def densities(self) -> dict[str, RadialFunction]:
         """
         Dictionary with charge densities on the radial mesh.
@@ -523,13 +521,13 @@ class OncvParser(BaseParser):
             rhoM=RadialFunction("Model charge", rho_data[:, 0], rho_data[:, 3])
         )
 
-    @lazy_property
+    @cached_property
     def kin_densities(self) -> dict[str, RadialFunction]:
         """
         Dictionary with Kinetic energy densities on the radial mesh.
         """
         if not self.is_metapsp:
-            raise ValueEror("kin_densities are only available in pseudos generated with metapsp")
+            raise ValueError("kin_densities are only available in pseudos generated with metapsp")
 
         # Metagga taups and taumodps
         #!t   0.0200249       2.9590E+02      6.4665E+02
@@ -540,13 +538,13 @@ class OncvParser(BaseParser):
             tau_modps=RadialFunction("Tau Model + Pseudo", rho_data[:, 0], rho_data[:, 2]),
         )
 
-    @lazy_property
+    @cached_property
     def vtaus(self) -> dict[str, RadialFunction]:
         """
         Dictionary with Vtau ptotentials on the radial mesh.
         """
         if not self.is_metapsp:
-            raise ValueEror("kin_densities are only available in pseudos generated with metapsp")
+            raise ValueError("kin_densities are only available in pseudos generated with metapsp")
 
         # plot    "<grep '!vt' t1" using 2:3 title "VtauAE" with lines ls 1,\
         #         "<grep '!vt' t1" using 2:4 title "Vtau(M+PS)" with lines ls 9
@@ -560,7 +558,7 @@ class OncvParser(BaseParser):
             vtau_modps=RadialFunction("VTau Model + Pseudo", rho_data[:, 0], rho_data[:, 2]),
         )
 
-    @lazy_property
+    @cached_property
     def radial_wfs(self) -> AePsNamedTuple:
         """
         Read and set the radial wavefunctions for the bound states.
@@ -581,7 +579,7 @@ class OncvParser(BaseParser):
         """
         return bool(self.scattering_wfs.ae)
 
-    @lazy_property
+    @cached_property
     def scattering_wfs(self) -> AePsNamedTuple:
         """
         Read and set the scattering wavefunctions.
@@ -666,7 +664,7 @@ class OncvParser(BaseParser):
 
         return AePsNamedTuple(ae=ae_waves, ps=ps_waves)
 
-    @lazy_property
+    @cached_property
     def projectors(self) -> dict[NlkState, RadialFunction]:
         """
         Dict with projector wave functions indexed by nlk.
@@ -709,7 +707,7 @@ class OncvParser(BaseParser):
 
         return projectors_nlk
 
-    @lazy_property
+    @cached_property
     def atan_logders(self) -> AePsNamedTuple:
         """
         Atan of the log derivatives for different l-values.
@@ -749,7 +747,7 @@ class OncvParser(BaseParser):
 
         return AePsNamedTuple(ae=ae_atan_logder_l, ps=ps_atan_logder_l)
 
-    @lazy_property
+    @cached_property
     def kene_vs_ecut(self) -> dict[int, ConvData]:
         """
         Dict with the convergence of the kinetic energy versus ecut for different l-values.
@@ -767,7 +765,7 @@ class OncvParser(BaseParser):
 
         return conv_l
 
-    @lazy_property
+    @cached_property
     def hints(self) -> dict:
         """
         Hints for the cutoff energy as provided by oncvpsp.
@@ -871,7 +869,7 @@ class OncvParser(BaseParser):
             i = self.find_string("Reference configufation results")
             return "\n".join(self.lines[:i])
 
-    def get_psp8_str(self) -> Union[str, None]:
+    def get_psp8_str(self) -> str | None:
         """
         Return string with the pseudopotential data in psp8 format.
         Return None if field is not present.
@@ -893,7 +891,7 @@ class OncvParser(BaseParser):
 
         return ps_data
 
-    def get_upf_str(self) -> Union[str, None]:
+    def get_upf_str(self) -> str | None:
         """
         Return string with the pseudopotential data in upf format.
         Return None if field is not present.
@@ -908,7 +906,7 @@ class OncvParser(BaseParser):
         if start is None and stop is None: return None
         return "\n".join(self.lines[start+1:stop])
 
-    def get_plotter(self): # -> Union[OncvPlotter, None]:
+    def get_plotter(self): # -> OncvPlotter | None:
         """
         Return an instance of OncvPlotter or None
         """

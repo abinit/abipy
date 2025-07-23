@@ -2,16 +2,17 @@
 """
 Interface to the ESKW.nc file storing the (star-function) interpolated band structure produced by Abinit.
 """
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import marquee
+from abipy.core.structure import Structure
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.electrons.ebands import ElectronsReader
+from abipy.electrons.ebands import ElectronsReader, ElectronBands
 
 
 class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     """
     This file contains the (star-function) interpolated band structure produced by Abinit.
-    It's similar to the GSR file but it does not contain the header and energies.
+    It is similar to the GSR file but it does not contain the header and energies.
 
     Usage example:
 
@@ -32,11 +33,11 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         super().__init__(filepath)
         self.reader = ElectronsReader(filepath)
 
-    @lazy_property
+    @cached_property
     def einterp(self):
         return self.reader.read_value("einterp")
 
-    @lazy_property
+    @cached_property
     def band_block(self):
         # band_block(2)=Initial and final band index to be interpolated. [0, 0] if all bands are used.
         band_block = self.reader.read_value("band_block")
@@ -47,7 +48,7 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """String representation."""
         return self.to_string()
 
-    def to_string(self, verbose=0):
+    def to_string(self, verbose: int = 0) -> str:
         """String representation."""
         lines = []; app = lines.append
 
@@ -66,18 +67,18 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         self.reader.close()
 
     @property
-    def ebands(self):
+    def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.reader.read_ebands()
 
     @property
-    def structure(self):
+    def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
-    def params(self):
-        """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
+    @cached_property
+    def params(self) -> dict:
+        """dictionary with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         od["einterp"] = self.interp
         od["einterp"] = self.einterp
@@ -92,7 +93,7 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

@@ -13,7 +13,6 @@ import abipy.tools.cli_parsers as cli
 
 from typing import Type
 from monty.termcolor import cprint
-from monty.functools import prof_main
 from pymatgen.io.vasp.sets import VaspInputSet
 from abipy import abilab
 from abipy.abio import factories
@@ -124,7 +123,7 @@ def abinp_validate(options):
     inp = build_abinit_input_from_file(options)
     r = inp.abivalidate()
     if r.retcode == 0:
-        print("Validation completed succesfully.")
+        print("Validation completed successfully.")
     else:
         print(r.log_file, r.stderr_file)
 
@@ -176,7 +175,7 @@ def abinp_ibz(options):
     print("kptopt 0 nkpt ", nkibz)
     print("kpts")
     for i, (k, w) in enumerate(zip(ibz.points, ibz.weights)):
-        print("%12.8f  %12.8f  %12.8f  # index: %d, weigth: %10.8f" % (k[0], k[1], k[2], i + 1, w))
+        print("%12.8f  %12.8f  %12.8f  # index: %d, weight: %10.8f" % (k[0], k[1], k[2], i + 1, w))
 
     print("\nwtk")
     for i, w in enumerate(ibz.weights):
@@ -472,7 +471,7 @@ def get_parser(with_epilog=False):
     return parser
 
 
-@prof_main
+@cli.prof_main
 def main():
 
     def show_examples_and_exit(err_msg=None, error_code=1):

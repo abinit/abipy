@@ -16,7 +16,7 @@ import bokeh.models.widgets as bkw
 import panel as pn
 import panel.widgets as pnw
 
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.termcolor import cprint
 from abipy.core import abinit_units as abu
 from abipy.core.structure import Structure
@@ -493,7 +493,7 @@ def my_md(string: str, **kwargs) -> pn.pane.Markdown:
     Extra kwargs are passed to pane.Markdown.
     The string can contain links to Abinit variables in the wikilink format.
 
-    .. example::
+    .. code-block::
 
         The anaddb variable [[dipdip@anaddb]] has the same meaning as the Abinit variable [[dipdip]].
     """
@@ -704,7 +704,7 @@ class AbipyParameterized(param.Parameterized):
         import plotly.io as pio
         pio.templates.default = self.plotly_template
 
-    @lazy_property
+    @cached_property
     def mpl_kwargs(self) -> dict:
         """Default arguments passed to AbiPy matplotlib plot methods."""
         return dict(show=False, fig_close=True)

@@ -26,9 +26,6 @@ def make_inputs(paral_kgb=1):
     ecut = 12
     global_vars = dict(
         ecut=ecut,
-        istwfk="*1",
-        paral_kgb=paral_kgb,
-        gwpara=2,
         iomode=1,
     )
 
@@ -43,13 +40,15 @@ def make_inputs(paral_kgb=1):
     multi[0].set_vars(
         nband=10,
         tolvrs=1.e-8,
+        paral_kgb=paral_kgb,
     )
 
     # NSCF
     multi[1].set_vars(
         nband=25,
         tolwfr=1.e-8,
-        iscf=-2
+        iscf=-2,
+        paral_kgb=paral_kgb,
     )
 
     # SCR
@@ -57,8 +56,6 @@ def make_inputs(paral_kgb=1):
         optdriver=3,
         ecutwfn=ecut,
         nband=20,
-        symchi=1,
-        inclvkb=0,
         ecuteps=ecuteps,
     )
 
@@ -69,7 +66,6 @@ def make_inputs(paral_kgb=1):
         ecutwfn=ecut,
         ecutsigx=ecut,
         #ecutsigx=(4*ecut), ! This is problematic
-        symsigma=1,
         ecuteps=ecuteps,
         )
 

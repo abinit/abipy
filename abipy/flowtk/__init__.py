@@ -19,8 +19,6 @@ from .flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow, pho
     g0w0_flow, NonLinearCoeffFlow)
 from .abitimer import AbinitTimerParser, AbinitTimerSection
 from .events import EventsParser, autodoc_event_handlers
-#from abipy.flowtk.works import *
-#from abipy.flowtk.gs_works import EosWork
 from .dfpt_works import ElasticWork, NscfDdksWork
 from .gw_works import ScreeningWork
 
@@ -55,7 +53,7 @@ def flow_main(main):  # pragma: no cover
             raise ValueError('Invalid log level: %s' % options.loglevel)
         logging.basicConfig(level=numeric_level)
 
-        # Istantiate the manager.
+        # Instantiate the manager.
         options.manager = TaskManager.as_manager(options.manager)
 
         if options.tempdir:
@@ -123,7 +121,7 @@ def flow_main(main):  # pragma: no cover
 
 def build_flow_main_parser():
     """
-    Build and return the parser used in the abipy/data/runs scripts.
+    Build and return the parser used in the scripts building AbiPy flows.
     """
 
     epilog = """\
@@ -159,7 +157,7 @@ Usage example:
     parser.add_argument("-d", "--dry-run", default=False, action="store_true", help="Don't write directory with flow.")
     parser.add_argument("-a", "--abivalidate", default=False, action="store_true", help="Call Abinit to validate input files.")
     parser.add_argument("-t", "--tempdir", default=False, action="store_true", help="Execute flow in temporary directory.")
-    parser.add_argument("--prof", action="store_true", default=False, help="Profile code wth cProfile ")
+    parser.add_argument("--prof", action="store_true", default=False, help="Profile code with cProfile ")
     parser.add_argument("-e", "--extra", default=None, help="Extra argument passed to the script.")
 
     return parser

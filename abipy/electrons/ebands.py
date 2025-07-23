@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Classes to analyse electronic structures."""
+"""Classes to analyze electron band energies."""
 from __future__ import annotations
 
 import os
@@ -16,12 +16,12 @@ import abipy.core.abinit_units as abu
 
 from collections import OrderedDict, namedtuple
 from collections.abc import Iterable
+from functools import cached_property
 from typing import Any
 from monty.string import is_string, list_strings, marquee
 from monty.termcolor import cprint
 from monty.json import MontyEncoder
 from monty.collections import AttrDict, dict2namedtuple
-from monty.functools import lazy_property
 from monty.bisect import find_le, find_gt
 from pymatgen.electronic_structure.core import Spin as PmgSpin
 from abipy.tools.serialization import pmg_serialize
@@ -223,17 +223,17 @@ class ElectronTransition:
     def __ne__(self, other) -> bool:
         return not (self == other)
 
-    @lazy_property
+    @cached_property
     def energy(self):
         """Transition energy in eV."""
         return self.out_state.eig - self.in_state.eig
 
-    @lazy_property
+    @cached_property
     def qpoint(self) -> Kpoint:
         """k_final - k_initial"""
         return self.out_state.kpoint - self.in_state.kpoint
 
-    @lazy_property
+    @cached_property
     def is_direct(self) -> bool:
         """True if direct transition."""
         return self.in_state.kpoint == self.out_state.kpoint
@@ -332,7 +332,7 @@ class ElectronBands(Has_Structure):
     # Increase a bit the value of fermie used in bisection routines to solve the problem mentioned below
     pad_fermie = 1e-3
 
-    # One should check whether fermie is recomputed at the end of the SCF cyle
+    # One should check whether fermie is recomputed at the end of the SCF cycle
     # I have problems in finding homos/lumos in semiconductors (e.g. Si)
     # because fermie is slightly smaller than the CBM:
 
@@ -470,7 +470,7 @@ class ElectronBands(Has_Structure):
             nelect: Number of electrons in the unit cell.
                 If None, this value is automatically computed using the Fermi level (if metal)
                 or the VBM indices reported in the JSON document sent by the MP database.
-                It is recommended to pass nelect explictly if this quantity is known in the caller.
+                It is recommended to pass nelect explicitly if this quantity is known in the caller.
             nspinor: Number of spinor components.
             line_mode (bool): If True, fetch a BandStructureSymmLine object
                 (default). If False, return the uniform band structure.
@@ -598,7 +598,7 @@ class ElectronBands(Has_Structure):
         """|Structure| object."""
         return self._structure
 
-    @lazy_property
+    @cached_property
     def _auto_klabels(self):
         """
         Find the k-point names in the pymatgen database.
@@ -606,7 +606,7 @@ class ElectronBands(Has_Structure):
         if klabels are not specified by the user.
         """
 
-        _auto_klabels = OrderedDict()
+        _auto_klabels = {}
         # If the first or the last k-point are not recognized in findname_in_hsym_stars
         # matplotlib won't show the full band structure along the k-path
         # because the labels are not defined. So we have to make sure that
@@ -731,7 +731,7 @@ class ElectronBands(Has_Structure):
         if self.smearing:
             return self.smearing.has_metallic_scheme
         else:
-            cprint("ebands.smearing is not defined, assuming has_metallic_scheme = False", "red")
+            cprint("ebands.smearing is not defined, assuming has_metallic_scheme = False", color="red")
             return False
 
     def set_fermie_to_vbm(self) -> float:
@@ -746,6 +746,7 @@ class ElectronBands(Has_Structure):
         .. warning:
 
             Assume spin-unpolarized band energies.
+
         """
         if self.nsppol == 2:
             raise ValueError(f"set_fermie_to_vbm assumes nsppol == 1 while it is: {self.nsppol}")
@@ -787,6 +788,30 @@ class ElectronBands(Has_Structure):
         # TODO change occfacts
         return self.fermie
 
+    def select_kinds(self, kinds) -> ElectronBands:
+        """
+        Build and return a new ElectronBands instance that retains only the k-points
+        and their associated energies corresponding to the specified list of indices.
+
+        Args:
+            kinds (list of int): List of k-point indices to retain (e.g., [0, 1, 2, 3, 8, 9]).
+        """
+        kinds = np.array(kinds)
+
+        # Build new set of k-points
+        new_kcoords = self.kpoints.frac_coords[kinds].copy()
+        weights = self.kpoints.weights[kinds]
+        new_kpoints = KpointList(self.structure.reciprocal_lattice, new_kcoords,
+                                 weights=weights, names=None, ksampling=self.kpoints.ksampling)
+
+        new_eigens = self.eigens[:,kinds,:].copy()
+        new_occfacts = self.occfacts[:,kinds,:].copy()
+        new_linewidths = None if self.linewidths is None else self.linewidths[:,kinds,:].copy()
+
+        return self.__class__(self.structure, new_kpoints, new_eigens, self.fermie, new_occfacts,
+                              self.nelect, self.nspinor, self.nspden,
+                              nband_sk=None, smearing=self.smearing, linewidths=new_linewidths)
+
     def with_points_along_path(self, frac_bounds=None, knames=None, dist_tol=1e-12):
         """
         Build new |ElectronBands| object containing the k-points along the
@@ -794,7 +819,7 @@ class ElectronBands(Has_Structure):
         from calculation performed in the IBZ.
 
         Args:
-            frac_bounds: [M, 3] array  with the vertexes of the k-path in reduced coordinates.
+            frac_bounds: [M, 3] array  with the vertices of the k-path in reduced coordinates.
                 If None, the k-path is automatically selected from the structure.
             knames: List of strings with the k-point labels defining the k-path. It has precedence over frac_bounds.
             dist_tol: A point is considered to be on the path if its distance from the line is less than dist_tol.
@@ -842,7 +867,7 @@ class ElectronBands(Has_Structure):
         ik_new2prev = []
         for ik, ik_new in enumerate(p.ikfound):
             # Stars are ordered as self.kpoints to this is the index we need to access self.eigens.
-            # and trasfer the data from self to new
+            # and transfer the data from self to new
             ik_self = back2istar[ik_new]
             ik_new2prev.append(ik_self)
             fcs = self.structure.reciprocal_lattice.get_fractional_coords(cart_coords[ik_new])
@@ -885,7 +910,7 @@ class ElectronBands(Has_Structure):
 
     def get_dict4pandas(self, with_geo=True, with_spglib=True) -> dict:
         """
-        Return a :class:`OrderedDict` with the most important parameters:
+        Return a dict with the most important parameters:
 
             - Chemical formula and number of atoms.
             - Lattice lengths, angles and volume.
@@ -898,11 +923,15 @@ class ElectronBands(Has_Structure):
             with_geo: True if structure info should be added to the dataframe
             with_spglib: If True, spglib_ is invoked to get the spacegroup symbol and number.
         """
-        odict = OrderedDict([
-            ("nsppol", self.nsppol), ("nspinor", self.nspinor), ("nspden", self.nspden),
-            ("nkpt", self.nkpt), ("nband", self.nband_sk.min()),
-            ("nelect", self.nelect), ("fermie", self.fermie),
-        ])
+        odict = {
+            "nsppol": self.nsppol,
+            "nspinor": self.nspinor,
+            "nspden": self.nspden,
+            "nkpt": self.nkpt,
+            "nband": self.nband_sk.min(),
+            "nelect": self.nelect,
+            "fermie": self.fermie,
+        }
 
         # Add info on structure.
         if with_geo:
@@ -939,17 +968,17 @@ class ElectronBands(Has_Structure):
 
         return odict
 
-    @lazy_property
+    @cached_property
     def has_bzmesh(self) -> bool:
         """True if the k-point sampling is homogeneous."""
         return isinstance(self.kpoints, IrredZone)
 
-    @lazy_property
+    @cached_property
     def has_bzpath(self) -> bool:
         """True if the bands are computed on a k-path."""
         return isinstance(self.kpoints, Kpath)
 
-    @lazy_property
+    @cached_property
     def kptopt(self) -> int:
         """The value of the kptopt input variable."""
         try:
@@ -958,7 +987,7 @@ class ElectronBands(Has_Structure):
             cprint("ebands.kpoints.ksampling.kptopt is not defined, assuming kptopt = 1", "red")
             return 1
 
-    @lazy_property
+    @cached_property
     def has_timrev(self) -> bool:
         """True if time-reversal symmetry is used in the BZ sampling."""
         return has_timrev_from_kptopt(self.kptopt)
@@ -986,7 +1015,7 @@ class ElectronBands(Has_Structure):
     def isnot_ibz_sampling(self, require_gamma_centered=False) -> str:
         """
         Test whether the k-points in the band structure represent an IBZ with an associated k-mesh
-        Return string with error message if the condition is not fullfilled.
+        Return string with error message if the condition is not fulfilled.
 
         Args:
             require_gamma_centered: True if the k-mesh should be Gamma-centered
@@ -1330,6 +1359,7 @@ class ElectronBands(Has_Structure):
             the conversion is not complete, especially if you rely on the default values.
             Please read carefylly the docstring and the code and use the optional arguments to pass
             additional data required by AbiPy if you need a complete conversion.
+
         """
         from pymatgen.electronic_structure.bandstructure import BandStructure, BandStructureSymmLine
 
@@ -1571,7 +1601,7 @@ class ElectronBands(Has_Structure):
     def get_edge_state(self, vbm_or_cbm, spin=None):
 
         if spin is None:
-            # Returm max/min over spins (if any)
+            # Return max/min over spins (if any)
             if vbm_or_cbm == "vbm":
                 ord_states = sorted(self.homos, key=lambda state: state.eig)
                 return ord_states[-1]
@@ -1592,12 +1622,12 @@ class ElectronBands(Has_Structure):
         return [self.homos[spin].eig - self.lomos[spin].eig for spin in self.spins]
 
     @property
-    def fundamental_gaps(self) -> List[ElectronTransition]:
+    def fundamental_gaps(self) -> list[ElectronTransition]:
         """List of :class:`ElectronTransition` with info on the fundamental gaps for each spin."""
         return [ElectronTransition(self.homos[spin], self.lumos[spin]) for spin in self.spins]
 
     @property
-    def direct_gaps(self) -> List[ElectronTransition]:
+    def direct_gaps(self) -> list[ElectronTransition]:
         """List of `nsppol` :class:`ElectronTransition` with info on the direct gaps for each spin."""
         dirgaps = self.nsppol * [None]
         for spin in self.spins:
@@ -1704,8 +1734,8 @@ class ElectronBands(Has_Structure):
         Human-readable string with useful info such as band gaps, position of HOMO, LOMO...
 
         Args:
-            with_structure: False if structural info shoud not be displayed.
-            with_kpoints: False if k-point info shoud not be displayed.
+            with_structure: False if structural info should not be displayed.
+            with_kpoints: False if k-point info should not be displayed.
             verbose: Verbosity level.
         """
         lines = []; app = lines.append
@@ -2075,7 +2105,7 @@ class ElectronBands(Has_Structure):
             tot_jdos = spin_sign * self.get_ejdos(s, vrange, crange, method=method, step=step, width=width)
 
             # Decomposition in terms of v --> c transitions.
-            jdos_vc = OrderedDict()
+            jdos_vc = {}
             for v in vrange:
                 for c in crange:
                     jd = self.get_ejdos(s, v, c, method=method, step=step, width=width, mesh=tot_jdos.mesh)
@@ -2179,7 +2209,7 @@ class ElectronBands(Has_Structure):
                     bands before executing `ebands.plot().
                     The Fermi energy stored in the object, indeed, comes from the GS calculation
                     that produced the DEN file. If the k-mesh used for the GS and the CBM is e.g. at Gamma,
-                    the Fermi energy will be underestimated and a manual aligment is needed.
+                    the Fermi energy will be underestimated and a manual alignment is needed.
             max_phfreq: Max phonon frequency in eV to activate scatterplot showing
                 possible phonon absorption/emission processes based on energy-conservation alone.
                 All final states whose energy is within +- max_phfreq of the initial state are included.
@@ -2261,8 +2291,7 @@ class ElectronBands(Has_Structure):
             if ylims is None:
                 set_axlims(ax, (-mgap - 5, +mgap + 5), "y")
 
-            gaps_string = self.get_gaps_string()
-            if gaps_string:
+            if gaps_string := self.get_gaps_string():
                 ax.set_title(gaps_string, fontsize=fontsize)
 
         if max_phfreq is not None and (self.mband > self.nspinor * self.nelect // 2):
@@ -2316,7 +2345,7 @@ class ElectronBands(Has_Structure):
                 bands before executing `ebands.plot().
                 The Fermi energy stored in the object, indeed, comes from the GS calculation
                 that produced the DEN file. If the k-mesh used for the GS and the CBM is e.g. at Gamma,
-                the Fermi energy will be underestimated and a manual aligment is needed.
+                the Fermi energy will be underestimated and a manual alignment is needed.
             max_phfreq: Max phonon frequency in eV to activate scatterplot showing
                 possible phonon absorption/emission processes based on energy-conservation alone.
                 All final states whose energy is within +- max_phfreq of the initial state are included.
@@ -2592,12 +2621,12 @@ class ElectronBands(Has_Structure):
 
     def add_fundgap_span(self, ax_or_axlist, spin, span_dir="v", fontsize=8, **kwargs) -> None:
         """
-        Show gap as filled area.
+        Show fundamental gap for this spin as filled area.
 
         Args:
-            ax_or_axlist:
-            spin:
-            spand_dir:
+            ax_or_axlist: Matplotlib Axes or list of Axes
+            spin: Spin index
+            spand_dir: Use axvspan" if span_dir == "v" else "axhspan"
         """
         ks_lumo = self.lumos[spin]
         ks_homo = self.homos[spin]
@@ -2613,15 +2642,31 @@ class ElectronBands(Has_Structure):
             ax = ax_or_axlist
             f = getattr(ax, "axvspan" if span_dir == "v" else "axhspan")
             rectangle = f(ks_homo.eig, ks_lumo.eig, **kwargs)
-            #xy = rectangle.get_xy()
-            #rx, ry = xy[0,:]
-            #cx = rx + xy[1,0]/2
-            #cy = ry + xy[1,1]/2
-            #ax.annotate("KS gap", (cx, cy), color='black', weight='bold',
-            #            fontsize=4, ha='center', va='center')
-            #(x0, y0), (x1, y1) = rectangle.get_path()[0].get_extents().get_points()
-            #ax.text((x0 + x1) / 2, (y0 + y1) / 2, "KS band gap",
-            #         ha="center", va="center", fontsize=fontsize, color="red")
+
+    def add_dirgap_span(self, ax_or_axlist, spin, ik_ibz, span_dir="v", fontsize=8, **kwargs) -> None:
+        """
+        Show direct gap for this spin and k-point index in the IBZ as filled area.
+
+        Args:
+            ax_or_axlist: Matplotlib Axes or list of Axes
+            spin: Spin index
+            ik_ibz: Index of the k-point in the IBZ
+            spand_dir: Use axvspan" if span_dir == "v" else "axhspan"
+        """
+        ks_lumo = self.lumo_sk(spin, ik_ibz)
+        ks_homo = self.homo_sk(spin, ik_ibz)
+
+        kwargs.setdefault("alpha", 0.5)
+        kwargs.setdefault("color", "grey")
+
+        if duck.is_listlike(ax_or_axlist):
+            # recursion
+            for ax in ax_or_axlist:
+                self.add_dirgap_span(ax, spin, ik_ibz, span_dir=span_dir, **kwargs)
+        else:
+            ax = ax_or_axlist
+            f = getattr(ax, "axvspan" if span_dir == "v" else "axhspan")
+            rectangle = f(ks_homo.eig, ks_lumo.eig, **kwargs)
 
     def get_e0(self, e0):
         """
@@ -2734,16 +2779,19 @@ class ElectronBands(Has_Structure):
                     fig.add_scatter(x=xx, y=yy + w, mode='lines', line=lw_opts, name='',
                                     showlegend=False, fill='tonexty', row=ply_row, col=ply_col)
 
-    def _make_ticks_and_labels(self, klabels):
+    def _make_ticks_and_labels(self, klabels: dict):
         """Return ticks and labels from the mapping qlabels."""
         if klabels is not None:
-            d = OrderedDict()
+            d = {}
             for kcoord, kname in klabels.items():
                 # Build Kpoint instance.
                 ktick = Kpoint(kcoord, self.reciprocal_lattice)
                 for idx, kpt in enumerate(self.kpoints):
-                    if ktick == kpt: d[idx] = kname
+                    if ktick == kpt:
+                        d[idx] = kname
 
+            # Sort d by key. This is needed to avoid e.g. {0: '$\\Gamma$', 97: '$\\Gamma$', 23: 'Y', 43: 'B', 66: 'A'}
+            d = {k: d[k] for k in sorted(d.keys())}
         else:
             d = self._auto_klabels
 
@@ -3077,7 +3125,7 @@ class ElectronBands(Has_Structure):
 
         Args:
             interpolation_factor: The factor by which the band structure will be interpolated.
-            mu: Energy offset from the reference energy determing by `eref`.
+            mu: Energy offset from the reference energy determining by `eref`.
             eref: Defines the energy reference. Possible values: `fermie`, `cbm`, `vbm`.
                 The energy of the isosurface is given by: `eref` + `mu`.
             wigner_seitz: Controls whether the cell is the Wigner-Seitz cell
@@ -3412,15 +3460,13 @@ def dataframe_from_ebands(ebands_objects, index=None, with_spglib=True) -> pd.Da
 
     Args:
         ebands_objects: List of objects that can be converted to structure.
-            Support netcdf filenames or |ElectronBands| objects
-            See ``ElectronBands.as_ebands`` for the complete list.
+            Support netcdf filenames or |ElectronBands| objects. See ``ElectronBands.as_ebands`` for the complete list.
         index: Index of the dataframe.
         with_spglib: If True, spglib is invoked to get the spacegroup symbol and number.
 
     Return: |pandas-DataFrame|
     """
     ebands_list = [ElectronBands.as_ebands(obj) for obj in ebands_objects]
-    # Use OrderedDict to have columns ordered nicely.
     odict_list = [(ebands.get_dict4pandas(with_spglib=with_spglib)) for ebands in ebands_list]
 
     return pd.DataFrame(odict_list, index=index, columns=list(odict_list[0].keys()) if odict_list else None)
@@ -3468,7 +3514,7 @@ class ElectronBandsPlotter(NotebookWriter):
         self.edoses_dict = OrderedDict(key_edos)
         if key_edos:
             if not key_ebands:
-                raise ValueError("key_ebands must be specifed when key_dos is not None")
+                raise ValueError("key_ebands must be specified when key_dos is not None")
             if len(key_ebands) != len(key_edos):
                 raise ValueError("key_ebands and key_edos must have the same number of elements.")
 
@@ -3484,7 +3530,9 @@ class ElectronBandsPlotter(NotebookWriter):
         return len(self.ebands_dict)
 
     def add_plotter(self, other) -> ElectronBandsPlotter:
-        """Merge two plotters, return new plotter."""
+        """
+        Merge two plotters, return new plotter.
+        """
         if not isinstance(other, self.__class__):
             raise TypeError("Don't know to add %s to %s" % (other.__class__, self.__class__))
 
@@ -3514,12 +3562,12 @@ class ElectronBandsPlotter(NotebookWriter):
         return dataframe_from_ebands(list(self.ebands_dict.values()), index=list(self.ebands_dict.keys()), with_spglib=with_spglib)
 
     @property
-    def ebands_list(self) -> List[ElectronBands]:
+    def ebands_list(self) -> list[ElectronBands]:
         """"List of |ElectronBands| objects."""
         return list(self.ebands_dict.values())
 
     @property
-    def edoses_list(self) -> List[ElectronDos]:
+    def edoses_list(self) -> list[ElectronDos]:
         """"List of |ElectronDos| objects."""
         return list(self.edoses_dict.values())
 
@@ -3797,7 +3845,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 By default, the four electronic states defining the fundamental and the direct gaps
                 are considered as initial state (not available for metals).
             ylims: Set the data limits for the y-axis. Accept tuple e.g. ```(left, right)``
-                   or scalar e.g. ``left``. If left (right) is None, default values are used
+                or scalar e.g. ``left``. If left (right) is None, default values are used
             fontsize: fontsize for subtitles.
 
         Returns: |matplotlib-Figure|
@@ -4195,7 +4243,7 @@ class ElectronBandsPlotter(NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -4478,7 +4526,7 @@ class ElectronDos:
         #print("mu linear", mu)
         return mu
 
-    @lazy_property
+    @cached_property
     def up_minus_down(self) -> Function1D:
         """
         Function1D with dos_up - dos_down
@@ -4511,6 +4559,42 @@ class ElectronDos:
         else:
             # Assume number
             return float(e0)
+
+    #def get_free_energy(self, tstart=5, tstop=300, num=50) -> Function1D:
+    #    """
+    #    Returns the electronic free energy in eV
+
+    #    Args:
+    #        tstart: The starting value (in Kelvin) of the temperature mesh.
+    #        tstop: The end value (in Kelvin) of the mesh.
+    #        num: Number of samples to generate.
+
+    #    Return: |Function1D| object with F(T) = U(T) + ZPE - T x S(T)
+    #    """
+    #    return Function1D(uz.mesh, uz.values - s.mesh * s.values)
+
+    #def get_cv(self, tstart=5, tstop=300, num=50) -> Function1D:
+    #    """
+    #    Returns the constant-volume specific heat C_v(T), in eV/K
+    #    for different temperatures
+
+    #    Args:
+    #        tstart: The starting value (in Kelvin) of the temperature mesh.
+    #        tstop: The end value (in Kelvin) of the mesh.
+    #        num: Number of samples to generate. Default is 50.
+    #    """
+
+    #def get_entropy(self, tstart=5, tstop=300, num=50) -> Function1D:
+    #    """
+    #    Returns the entropy, in eV/K for different temperatures
+
+    #    Args:
+    #        tstart: The starting value (in Kelvin) of the temperature mesh.
+    #        tstop: The end value (in Kelvin) of the mesh.
+    #        num: optional Number of samples to generate. Default is 50.
+
+    #    Return: |Function1D| object with S(T).
+    #    """
 
     def plot_ax(self, ax, e0, spin=None, what="dos", fact=1.0, normalize=False, exchange_xy=False, **kwargs) -> list:
         """
@@ -4856,7 +4940,7 @@ class ElectronDosPlotter(NotebookWriter):
         return len(self.edoses_dict)
 
     @property
-    def edos_list(self) -> List[ElectronDos]:
+    def edos_list(self) -> list[ElectronDos]:
         """List of DOSes"""
         return list(self.edoses_dict.values())
 
@@ -5038,7 +5122,6 @@ class ElectronDosPlotter(NotebookWriter):
                 Meaningful only if nsppol == 2.
                 "automatic" to use "resolved" if at least one DOS is polarized.
             e0: Option used to define the zero of energy in the band structure plot. Possible values::
-
                 - ``fermie``: shift all eigenvalues and the DOS to have zero energy at the Fermi energy.
                    Note that, by default, the Fermi energy is taken from the band structure object
                    i.e. the Fermi energy computed at the end of the SCF file that produced the density.
@@ -5049,7 +5132,6 @@ class ElectronDosPlotter(NotebookWriter):
                    Available only if edos_objects is not None
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to ``e0 = 0``.
-
             sharex, sharey: True if x (y) axis should be shared.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
                    or scalar e.g. ``left``. If left (right) is None, default values are used
@@ -5132,7 +5214,6 @@ class ElectronDosPlotter(NotebookWriter):
                    Available only if edos_objects is not None
                 -  Number e.g ``e0 = 0.5``: shift all eigenvalues to have zero energy at 0.5 eV
                 -  None: Don't shift energies, equivalent to ``e0 = 0``.
-
             sharex, sharey: True if x (y) axis should be shared.
             xlims: Set the data limits for the x-axis. Accept tuple e.g. ``(left, right)``
             fontsize: Axis_label and subtitle fontsize.
@@ -5216,7 +5297,7 @@ class ElectronDosPlotter(NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -5292,8 +5373,8 @@ class Bands3D(Has_Structure):
         # Construct energy bands on unit cell grid: e_{TSk} = e_{k}
         self.ucdata_sbk = self.symmetrize_ibz_scalars(self.eigens)
 
-        self.ucell_scalars = OrderedDict()
-        self.ucell_vectors = OrderedDict()
+        self.ucell_scalars = {}
+        self.ucell_vectors = {}
         #if reference_sb is None:
         #self.reference_sb = [[] for _ in self.spins]
         #for spin in self.spins:
@@ -5545,7 +5626,7 @@ class Bands3D(Has_Structure):
         #spin, band = 0, 4
         #for i, band in enumerate(isobands[spin]):
         #data = np.reshape(isoenes[0][band], mpdivs + 1 if pbc else mpdivs)
-        #plot_fermi_surface(data, self.structure, False, energy_levels=[e0]) interative=not (i == len(isobands[spin]) - 1))
+        #plot_fermi_surface(data, self.structure, False, energy_levels=[e0]) interactive=not (i == len(isobands[spin]) - 1))
 
         # Plot isosurface with mayavi.
         from abipy.display import mvtk

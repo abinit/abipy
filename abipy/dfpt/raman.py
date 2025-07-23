@@ -15,34 +15,10 @@ PowderIntensity = namedtuple("PowderIntensity", ("paral", "perp", "tot"))
 
 class Raman:
     """
-    An object that allows to obtain the Raman intensities based on the calculated
-    susceptibilities. The expressions used to extract the different values of the
-    Raman intensities can be found for example in PRB 71, 214307, Physics of the
-    Earth and Planetary Interiors 174, 113 or PRB 71, 125107.
+    An object that allows to obtain the Raman intensities based on the calculated susceptibilities.
+    The expressions used to extract the different values of the Raman intensities can be found
+    in PRB 71, 214307, Physics of the Earth and Planetary Interiors 174, 113 or PRB 71, 125107.
     """
-
-    def __init__(self, susceptibility, phfreqs, non_anal_susceptibility=None,
-                 non_anal_phfreqs=None, non_anal_directions=None):
-        """
-        Args:
-            susceptibility: a numpy array with shape (n modes, 3 3) containing the
-                Raman susceptibilities of transverse zone-center phonon modes.
-            phfreqs: a numpy array with the phonon frequencies at Gamma, without non
-                analytical contributions.
-            non_anal_susceptibility: a numpy array with shape (n directions, n modes, 3 3)
-                containing the Raman susceptibilities of zone-center phonons, with non-analyticity
-                in  different directions.
-            non_anal_phfreqs: a numpy array with the phonon frequencies with shape
-                (n directions, n modes), with non analytical contributions along the different
-                directions.
-            non_anal_directions: a numpy array with shape (n directions, 3) with the directions
-                along which the non analytical contribution has been calculated.
-        """
-        self.susceptibility = susceptibility
-        self.phfreqs = phfreqs
-        self.non_anal_susceptibility = non_anal_susceptibility
-        self.non_anal_phfreqs = non_anal_phfreqs
-        self.non_anal_directions = non_anal_directions
 
     @classmethod
     def from_file(cls, filepath: str) -> Raman:
@@ -51,8 +27,6 @@ class Raman:
 
         Args:
             filepath: path to the netcdf file.
-
-        Returns: An instance of Raman.
         """
 
         with ETSF_Reader(filepath) as r:
@@ -73,6 +47,33 @@ class Raman:
 
             return cls(susceptibility=susceptibility, phfreqs=phfreqs, non_anal_susceptibility=non_anal_susceptibility,
                        non_anal_phfreqs=non_anal_phfreqs, non_anal_directions=non_anal_directions)
+
+    def __init__(self,
+                susceptibility,
+                 phfreqs,
+                 non_anal_susceptibility=None,
+                 non_anal_phfreqs=None,
+                 non_anal_directions=None):
+        """
+        Args:
+            susceptibility: a numpy array with shape (n modes, 3 3) containing the
+                Raman susceptibilities of transverse zone-center phonon modes.
+            phfreqs: a numpy array with the phonon frequencies at Gamma, without non
+                analytical contributions.
+            non_anal_susceptibility: a numpy array with shape (n directions, n modes, 3 3)
+                containing the Raman susceptibilities of zone-center phonons, with non-analyticity
+                in  different directions.
+            non_anal_phfreqs: a numpy array with the phonon frequencies with shape
+                (n directions, n modes), with non analytical contributions along the different
+                directions.
+            non_anal_directions: a numpy array with shape (n directions, 3) with the directions
+                along which the non analytical contribution has been calculated.
+        """
+        self.susceptibility = susceptibility
+        self.phfreqs = phfreqs
+        self.non_anal_susceptibility = non_anal_susceptibility
+        self.non_anal_phfreqs = non_anal_phfreqs
+        self.non_anal_directions = non_anal_directions
 
     def get_modes_intensities(self, temp, laser_freq, non_anal_dir=None, relative=False, units="eV",
                               pol_in=None, pol_out=None) -> np.ndarray:
@@ -106,7 +107,6 @@ class Raman:
             with all the components. Otherwise an array with size (n modes) with the intensities of
             the selected polarizations.
         """
-
         if non_anal_dir is None:
             w = self.phfreqs
             sus = self.susceptibility
@@ -155,7 +155,6 @@ class Raman:
         Returns:
             An array with shape (n modes) with the coefficient for the Raman intensities.
         """
-
         c = np.zeros_like(w)
         ind = np.where(w > 1e-5)
 
@@ -165,7 +164,7 @@ class Raman:
 
         return c
 
-    def _get_lorentz_freqs_and_factor(self, intensity, non_anal_dir, min_freq, max_freq, 
+    def _get_lorentz_freqs_and_factor(self, intensity, non_anal_dir, min_freq, max_freq,
                                       num, width, units) -> tuple:
         """
         Helper method to get the list of frequencies and the main spread factors to
@@ -187,7 +186,6 @@ class Raman:
             Tuple with list of "num" frequencies in eV and factors for the Lorentz broadening
             with shape (n modes, num).
         """
-
         if non_anal_dir is None:
             w = self.phfreqs
         else:
@@ -275,7 +273,6 @@ class Raman:
 
         else:
             li = np.einsum("ij, ikl -> jkl", lorentz, i)
-
             li_func = [[None]*3]*3
 
             for i in range(3):
@@ -287,7 +284,7 @@ class Raman:
 
             return li_func
 
-    def get_powder_intensity(self, temp, laser_freq, non_anal_dir=None, 
+    def get_powder_intensity(self, temp, laser_freq, non_anal_dir=None,
                              relative=False, units="eV") -> PowderIntensity:
         """
         Calculates the Raman intensities in arbitrary units for each mode integrated over all possible
@@ -309,7 +306,6 @@ class Raman:
             A PowderIntensity with the parallel, perpendicular and total components of the powder
             intensities. Each one is an array with length n modes.
         """
-
         if non_anal_dir is None:
             w = self.phfreqs
             sus = self.susceptibility
@@ -369,7 +365,6 @@ class Raman:
             A PowderIntensity with the parallel, perpendicular and total components of the powder
             intensities. Each one is a Function1D with "num" points.
         """
-
         pi = self.get_powder_intensity(temp=temp, laser_freq=laser_freq, non_anal_dir=non_anal_dir, units=units)
 
         freqs, lorentz = self._get_lorentz_freqs_and_factor(intensity=pi.tot, non_anal_dir=non_anal_dir, min_freq=min_freq,
@@ -386,7 +381,7 @@ class Raman:
 
     @add_fig_kwargs
     def plot_intensity(self, temp, laser_freq, width, value, non_anal_dir=None, min_freq=None, max_freq=None,
-                       num=1000, relative=False, units="eV", ax=None, 
+                       num=1000, relative=False, units="eV", ax=None,
                        plot_phfreqs=False, **kwargs) -> Figure:
         """
         Plot one representation of the broadened Raman intensities.
@@ -420,7 +415,6 @@ class Raman:
 
         Returns: |matplotlib-Figure|
         """
-
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
         if width:
@@ -456,7 +450,6 @@ class Raman:
             if value == "powder":
                 ri = self.get_powder_intensity(temp=temp, laser_freq=laser_freq, non_anal_dir=non_anal_dir,
                                                relative=relative, units=units)
-
                 i = ri.tot
             else:
                 if len(value) != 2:

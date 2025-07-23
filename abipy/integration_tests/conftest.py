@@ -3,14 +3,14 @@ from __future__ import annotations
 
 import os
 import pytest
-#import yaml
 import ruamel.yaml as yaml
-from abipy.tools.iotools import yaml_safe_load_path, yaml_dump
 import copy
 import abipy.flowtk as flowtk
 
+from pprint import pformat
 from monty.collections import AttrDict
 from monty.string import marquee
+from abipy.tools.iotools import yaml_safe_load_path, yaml_dump
 
 # Are we running on travis?
 on_travis = os.environ.get("TRAVIS", "False") == "true"
@@ -38,6 +38,7 @@ for autoparal in [1]: #, 1]:
     if "policy" not in newd: newd["policy"] = {}
     newd["policy"]["autoparal"] = autoparal
     _manager_confs.append(newd)
+
 
 _manager_confs = [yaml_dump(d) for d in _manager_confs]
 #_manager_confs = [base_conf]
@@ -108,7 +109,7 @@ def pytest_report_header(config):
         for i, s in enumerate(_manager_confs):
             app(80 * "=")
             app("TaskManager #%d" % i)
-            app(s)
+            app(pformat(s))
             app(80 * "=")
     app("")
 

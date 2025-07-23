@@ -1,5 +1,5 @@
 """
-Tools used to parallelize sections of python code.
+Tools used to parallelize sections of python code with multiprocessing or threads.
 """
 from __future__ import annotations
 
@@ -45,7 +45,6 @@ def pool_nprocs_pmode(nprocs: int | None, pmode: str):
     """
     from multiprocessing.pool import ThreadPool
     from multiprocessing import Pool
-
     max_nprocs = get_max_nprocs()
 
     if pmode == "seq":

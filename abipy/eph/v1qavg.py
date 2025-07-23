@@ -5,9 +5,8 @@ Tools to analyze the V1QAVG file produced by the E-PH code (eph_task +15 or -15)
 from __future__ import annotations
 import numpy as np
 
-from collections import OrderedDict
+from functools import cached_property
 from monty.string import list_strings, marquee
-from monty.functools import lazy_property
 from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.typing import Figure
@@ -48,7 +47,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     This file is produced by the E-PH code by setting eph_task to +15 or -15.
     If eph_task is +15, the input DVDB contains a q-mesh and the potentials are interpolated on a list of q-points
     (usually a q-path) specified by the user. In this case the V1QAVG.nc file also contains an extra array
-    with Max_r |W(R, r)|, useful to study the decay of the scattering potentials in R-space.
+    with ``Max_r |W(R, r)|``, useful to study the decay of the scattering potentials in R-space.
     If eph_task is -15, the netcdf file contains the average for the q-points found in the DVDB file.
     This option is usually used to visualize the ab-initio potentials and compare then with the model for the LR part.
     """
@@ -66,26 +65,26 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.interpolated = bool(r.read_value("interpolated"))
         self.qdamp = r.read_value("qdamp")
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """|Structure| object."""
         return self.reader.read_structure()
 
-    @lazy_property
+    @cached_property
     def qpoints(self) -> Kpath:
         """List of q-points."""
         frac_coords = self.reader.read_value('qpoints')
         return Kpath(self.structure.reciprocal_lattice, frac_coords, ksampling=None)
 
-    @lazy_property
+    @cached_property
     def has_maxw(self) -> bool:
-        """True if ncfile contains Max_r |W(R, r)|"""
+        """True if ncfile contains ``Max_r |W(R, r)|``"""
         return "maxw" in self.reader.rootgrp.variables
 
     def close(self) -> None:
         self.reader.close()
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """Dict with parameters that might be subject to convergence studies."""
         return {}
@@ -114,7 +113,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         Find the k-point names in the pymatgen database.
         """
-        od = OrderedDict()
+        od = {}
         # If the first or the last k-point are not recognized in findname_in_hsym_stars
         # matplotlib won't show the full band structure along the k-path
         # because the labels are not defined. So we have to make sure that
@@ -288,7 +287,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot_maxw(self, scale="semilogy", ax=None, fontsize=8, **kwargs) -> Figure:
         """
-        Plot the decay of max_{r,idir,ipert} |W(R,r,idir,ipert)|
+        Plot the decay of max_{r,idir,ipert} ``|W(R,r,idir,ipert)|``.
 
         Args:
             scale: "semilogy", "loglog" or "plot".
@@ -319,7 +318,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @add_fig_kwargs
     def plot_maxw_perts(self, scale="semilogy", sharey=False, fontsize=8, **kwargs) -> Figure:
         """
-        Plot the decay of max_r |W(R,r,idir,ipert)| for the individual atomic perturbations.
+        Plot the decay of ``Max_r |W(R,r,idir,ipert)|`` for the individual atomic perturbations.
 
         Args:
             scale: "semilogy", "loglog" or "plot".
@@ -412,7 +411,7 @@ class V1qAvgRobot(Robot):
     # Absolute tolerance used to compare q-points.
     atol = 1e-2
 
-    @lazy_property
+    @cached_property
     def qpoints(self):
         """List of q-points."""
         if len(self) == 1: return self.abifiles[0].qpoints

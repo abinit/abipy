@@ -10,8 +10,9 @@ import numpy as np
 
 from itertools import product
 from tabulate import tabulate
+from functools import cached_property
 from monty.collections import AttrDict, dict2namedtuple
-from monty.functools import lazy_property
+from monty.termcolor import cprint
 from monty.string import marquee
 from abipy.tools.serialization import pmg_serialize
 from abipy.iotools import ETSF_Reader
@@ -208,7 +209,7 @@ def map_grid2ibz(structure, ibz, ngkpt, shifts, has_timrev, pbc=False):
         structure: Structure with Abinit symmetry operations.
         ibz: [*, 3] array with the reduced coordinates in the IBZ.
         ngkpt: Mesh divisions.
-        shifts:
+        shifts: List of shifts.
         has_timrev: True if time-reversal can be used.
         pbc: True if the mesh should contain the periodic images (closed mesh).
 
@@ -413,24 +414,30 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
 #    #return irred_map
 
 
-def kpoints_indices(frac_coords, ngkpt, check_mesh=0) -> np.ndarray:
+def kpoints_indices(frac_coords, ngkpt, shift, check_mesh=0) -> np.ndarray:
     """
     This function is used when we need to insert k-dependent quantities in a (nx, ny, nz) array.
-    It computes the indices of the k-points assuming these points belong to a mesh with ngkpt divisions.
+    It computes and returns the indices of the k-points assuming these points
+    belong to a mesh with ngkpt divisions.
 
     Args:
-        frac_coords
-        ngkpt:
-        check_mesh:
+        frac_coords: array with the fractional coordinates of the k-points.
+        ngkpt: Number of divisions of the mesh.
+        shift: Grid shift (only one shift is supported here)
+        check_mesh: > 0 to activate debugging sections.
     """
+    shift = np.reshape(shift, (3,))
+    if np.any(np.abs(shift) > 1e-6):
+        # Unshift the points
+        frac_coords = np.array(frac_coords) - shift
 
     # Transforms kpt in its corresponding reduced number in the interval [0,1[
     k_indices = [np.round((kpt % 1) * ngkpt) for kpt in frac_coords]
     k_indices = np.array(k_indices, dtype=int)
 
-    # Debug secction.
+    # Debug section.
     if check_mesh:
-        print(f"kpoints_indices: Testing whether k-points belong to the {ngkpt =} mesh")
+        print(f"kpoints_indices: Testing whether k-points belong to the {ngkpt=} mesh")
         ierr = 0
         for kpt, inds in zip(frac_coords, k_indices):
             if check_mesh > 1: print("kpt:", kpt, "inds:", inds)
@@ -438,13 +445,12 @@ def kpoints_indices(frac_coords, ngkpt, check_mesh=0) -> np.ndarray:
             if not issamek(kpt, same_k):
                 ierr += 1; print(kpt, "-->", same_k)
         if ierr:
-            raise ValueError("Wrong mapping")
+            raise ValueError(f"Wrong mapping, {ierr=}")
 
         #for kpt, inds in zip(frac_coords, k_indices):
         #    if np.any(inds >= ngkpt):
         #        raise ValueError(f"inds >= nkgpt for {kpt=}, {np.round(kpt % 1)=} {inds=})")
-
-        print("Check succesfull!")
+        print("check_mesh successful!")
 
     return k_indices
 
@@ -522,7 +528,8 @@ def kpath_from_bounds_and_ndivsm(bounds, ndivsm, structure):
     lens = []
     for i in range(nbounds - 1):
         v = bounds[i + 1] - bounds[i]
-        lens.append(float(structure.reciprocal_lattice.norm(v)))
+        #lens.append(float(structure.reciprocal_lattice.norm(v)))
+        lens.append(structure.reciprocal_lattice.norm(v).item())
 
     # Avoid division by zero if any bounds[i+1] == bounds[i]
     minlen = np.min(lens)
@@ -668,7 +675,7 @@ class Kpoint(SlotPickleMixin):
         """Set the weight of the k-point."""
         self._weight = weight
 
-    @lazy_property
+    @cached_property
     def cart_coords(self):
         """Cartesian coordinates of the k-point."""
         return self.lattice.get_cartesian_coords(self.frac_coords)
@@ -678,13 +685,18 @@ class Kpoint(SlotPickleMixin):
         """Name of the k-point. None if not available."""
         return self._name
 
-    def set_name(self, name):
+    def set_name(self, name: str | None) -> None:
         """Set the name of the k-point."""
         # Fix typo in Latex syntax (if any).
-        if name is not None and name.startswith("\\"): name = "$" + name + "$"
+        if (name is not None
+            and (name.startswith("\\") or "_" in name)
+            and not (name.startswith("$") and name.endswith("$"))
+            ):
+            name = "$" + name + "$"
+
         self._name = name
 
-    @lazy_property
+    @cached_property
     def on_border(self):
         """
         True if the k-point is on the border of the BZ (lattice translations are taken into account).
@@ -788,7 +800,7 @@ class Kpoint(SlotPickleMixin):
         return self.__class__(self.frac_coords.copy(), self.lattice.copy(),
                               weight=self.weight, name=self.name)
 
-    def is_gamma(self, allow_umklapp=False, atol=None):
+    def is_gamma(self, allow_umklapp=False, atol=None) -> bool:
         """
         Return True if this the gamma point.
 
@@ -801,7 +813,7 @@ class Kpoint(SlotPickleMixin):
         else:
             return issamek(self.frac_coords, [0, 0, 0], atol=atol)
 
-    @lazy_property
+    @cached_property
     def norm(self):
         """Norm of the kpoint."""
         return np.sqrt(np.dot(self.cart_coords, self.cart_coords))
@@ -824,7 +836,7 @@ class Kpoint(SlotPickleMixin):
         return self.__class__(wrap_to_bz(self.frac_coords), self.lattice,
                               name=self.name, weight=self.weight)
 
-    def compute_star(self, symmops, wrap_tows=True):
+    def compute_star(self, symmops, wrap_tows=True) -> KpointStar:
         """Return the star of the kpoint (tuple of |Kpoint| objects)."""
         frac_coords = [self.frac_coords]
 
@@ -875,7 +887,7 @@ class KpointList(collections.abc.Sequence):
         raise ValueError(f"Cannot find subclass associated to {name=}")
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict):
         """
         Makes Kpoints obey the general json interface used in pymatgen for easier serialization.
         """
@@ -1039,22 +1051,22 @@ class KpointList(collections.abc.Sequence):
 
         dist = np.empty(len(self))
         for i, kpt in enumerate(self):
-            dist[i] = float(kpt.lattice.norm(kpt.frac_coords - frac_coords))
+            dist[i] = kpt.lattice.norm(kpt.frac_coords - frac_coords).item()
 
         ind = dist.argmin()
         return ind, self[ind], np.copy(dist[ind])
 
     @property
-    def is_path(self):
+    def is_path(self) -> bool:
         """True if self represents a path in the BZ."""
         return isinstance(self, Kpath)
 
     @property
-    def is_ibz(self):
+    def is_ibz(self) -> bool:
         """True if self represents a list of points in the IBZ."""
         return isinstance(self, IrredZone)
 
-    @lazy_property
+    @cached_property
     def mpdivs_shifts(self):
         """
         The Monkhorst-Pack (MP) divisions and shifts.
@@ -1067,7 +1079,7 @@ class KpointList(collections.abc.Sequence):
         return self.ksampling.kptrlatt.diagonal(), self.ksampling.shifts
 
     @property
-    def is_mpmesh(self):
+    def is_mpmesh(self) -> bool:
         """
         True if self represents a Monkhorst-Pack mesh.
         i.e if the sampling has been specified in terms of divisions
@@ -1085,12 +1097,12 @@ class KpointList(collections.abc.Sequence):
         return np.reshape([k.cart_coords for k in self], (-1, 3))
 
     @property
-    def names(self):
+    def names(self) -> list[str]:
         """List with the name of the k-points."""
         return [k.name for k in self]
 
     @property
-    def weights(self):
+    def weights(self) -> np.ndarray:
         """|numpy-array| with the weights of the k-points."""
         return np.array([kpoint.weight for kpoint in self])
 
@@ -1098,7 +1110,7 @@ class KpointList(collections.abc.Sequence):
         """Returns the sum of the weights."""
         return np.sum(self.weights)
 
-    def check_weights(self):
+    def check_weights(self) -> None:
         """
         Check if weights are normalized to one.
         Raises: `ValueError` if Weights are not normalized.
@@ -1167,7 +1179,7 @@ class KpointList(collections.abc.Sequence):
         """Returns a |numpy-array| [nkpy, 3] with the fractional coordinates."""
         return np.array(self.frac_coords.copy())
 
-    def to_json(self):
+    def to_json(self) -> str:
         """
         Returns a JSON_ string representation of the MSONable object.
         """
@@ -1179,7 +1191,12 @@ class KpointList(collections.abc.Sequence):
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone
         fold = False
         if self.is_path:
-            labels = {k.name: k.frac_coords for k in self if k.name}
+            # NB: plot_brillouin_zone adds $ around k.name if _ is present so we have to remove it
+            def _fix(s):
+                if "_" in s: s = s.replace("$", "")
+                return s
+            labels = {_fix(k.name): k.frac_coords for k in self if k.name}
+            #labels = {k.name: k.frac_coords for k in self if k.name}
             frac_coords_lines = [self.frac_coords[line] for line in self.lines]
             return plot_brillouin_zone(self.reciprocal_lattice, lines=frac_coords_lines, labels=labels,
                                        ax=ax, fold=fold, **kwargs)
@@ -1218,7 +1235,7 @@ class KpointList(collections.abc.Sequence):
         else:
             qfrac_coords = np.reshape(qpt, (3,))
 
-        k2kqg = collections.OrderedDict()
+        k2kqg = {}
         if np.all(np.abs(qfrac_coords) <= 1e-6):
             # Gamma point, DOH!
             g0 = np.zeros(3, dtype=int)
@@ -1367,7 +1384,7 @@ class Kpath(KpointList):
 
         return "\n".join([header, " ", tabulate(table, headers="firstrow")])
 
-    @lazy_property
+    @cached_property
     def ds(self):
         """
         |numpy-array| of len(self)-1 elements giving the distance between two
@@ -1378,7 +1395,7 @@ class Kpath(KpointList):
             ds[i] = (self[i + 1] - kpoint).norm
         return ds
 
-    @lazy_property
+    @cached_property
     def versors(self):
         """
         Tuple of len(self) - 1 elements with the versors connecting k[i] to k[i+1].
@@ -1388,8 +1405,8 @@ class Kpath(KpointList):
             versors[i] = (self[i + 1] - kpt).versor()
         return tuple(versors)
 
-    @lazy_property
-    def lines(self):
+    @cached_property
+    def lines(self) -> list:
         """
         Nested list containing the indices of the points belonging to the same line.
         Used for extracting the eigenvalues while looping over the lines.
@@ -1418,16 +1435,16 @@ class Kpath(KpointList):
         lines[-1].append(len(self)-1)
         return tuple(lines)
 
-    @lazy_property
+    @cached_property
     def frac_bounds(self):
-        """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
+        """Numpy array of shape [M, 3] with the vertices of the path in frac coords."""
         frac_bounds = [self[line[0]].frac_coords for line in self.lines]
         frac_bounds.append(self[self.lines[-1][-1]].frac_coords)
         return np.reshape(frac_bounds, (-1, 3))
 
-    @lazy_property
+    @cached_property
     def cart_bounds(self):
-        """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
+        """Numpy array of shape [M, 3] with the vertices of the path in frac coords."""
         cart_bounds = [self[line[0]].cart_coords for line in self.lines]
         cart_bounds.append(self[self.lines[-1][-1]].cart_coords)
         return np.reshape(cart_bounds, (-1, 3))
@@ -1468,7 +1485,6 @@ class Kpath(KpointList):
             ders_on_lines.append(der)
 
         return np.array(ders_on_lines, dtype=object)
-        #return np.array(ders_on_lines)
 
 
 class IrredZone(KpointList):
@@ -1735,8 +1751,15 @@ class KpointsReaderMixin:
         if ksampling.kptopt < 0 or np.all(weights == 1):
             # We have a path in the BZ.
             kpath = Kpath(structure.reciprocal_lattice, frac_coords, ksampling=ksampling)
+            from pymatgen.symmetry.analyzer import SymmetryUndeterminedError
             for kpoint in kpath:
-                kpoint.set_name(structure.findname_in_hsym_stars(kpoint))
+                try:
+                    name = structure.findname_in_hsym_stars(kpoint)
+                    kpoint.set_name(name)
+                except SymmetryUndeterminedError as exc:
+                    cprint(f"Cannot find name for {kpoint=} due to {exc=}", color="red")
+                    break
+
             return kpath
 
         # FIXME
@@ -1897,8 +1920,8 @@ def dist_point_from_line(x0, x1, x2):
     """
     denom = x2 - x1
     denomabs = np.sqrt(np.dot(denom, denom))
-    numer = np.cross(x0 - x1, x0 - x2)
-    numerabs = np.sqrt(np.dot(numer, numer))
+    number = np.cross(x0 - x1, x0 - x2)
+    numerabs = np.sqrt(np.dot(number, number))
     return numerabs / denomabs
 
 

@@ -3,7 +3,7 @@ r"""
 Bethe-Salpeter flow with factory functions
 ==========================================
 
-Calculation of the BSE spectrum with the High-throuhput interface (factory functions).
+Calculation of the BSE spectrum with the high-throuhput interface (factory functions).
 """
 import sys
 import os

@@ -26,6 +26,8 @@ class TestFunction1D(AbipyTest):
         assert len(sinf) == len(sinf.mesh)
         assert self.h == sinf.h
 
+        self.assert_msonable(sinf, test_is_subclass=False)
+
         cumint = cosf.integral()
         self.assert_almost_equal(cumint.values, sinf.values, decimal=5)
 

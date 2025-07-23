@@ -4,8 +4,8 @@ import numpy as np
 import unittest
 import pymatgen.core.units as units
 import abipy.data as abidata
-from abipy import abilab
 
+from abipy import abilab
 from abipy.electrons.ebands import (ElectronBands, ElectronDos, ElectronBandsPlotter, ElectronDosPlotter,
     ElectronsReader, dataframe_from_ebands, Smearing)
 from abipy.core.testing import AbipyTest
@@ -256,6 +256,10 @@ class ElectronBandsTest(AbipyTest):
         assert si_ebands_kmesh.get_e0(1.0) == 1.0
         with self.assertRaises(ValueError):
             si_ebands_kmesh.get_e0("foo")
+
+        new_ebands = si_ebands_kmesh.select_kinds([0, 1])
+        assert len(new_ebands.kpoints) == 2
+        assert new_ebands.kpoints[0].is_gamma
 
         r = si_ebands_kmesh.with_points_along_path(knames=["G", "X", "L", "G"])
         assert r.ebands.kpoints.is_path

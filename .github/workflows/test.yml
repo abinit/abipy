@@ -29,6 +29,10 @@ jobs:
             python: "3.11"
           - os: ubuntu-latest
             python: "3.12"
+          - os: ubuntu-latest
+            python: "3.13"
+          #- os: ubuntu-latest
+          #  python: "3.14"
 
     runs-on: ${{ matrix.config.os }}
 
@@ -48,9 +52,14 @@ jobs:
         run: |
             conda create -n abipy python=${{ matrix.config.python }} --yes
             conda activate abipy
-            conda install abinit -c conda-forge --yes
+            conda install "abinit>10" -c conda-forge --yes
             mpirun -n 1 abinit --version
             mpirun -n 1 abinit --build
+
+            # Update submodules with data.
+            git submodule update --remote --init
+            git submodule update --recursive --remote
+
             pip install -r requirements.txt
             pip install -r requirements-optional.txt
             pip install -r requirements-panel.txt
@@ -58,6 +67,9 @@ jobs:
             mkdir -p $HOME/.abinit/abipy/
             cp abipy/data/managers/gh_manager.yml $HOME/.abinit/abipy/manager.yml
             cp abipy/data/managers/gh_scheduler.yml $HOME/.abinit/abipy/scheduler.yml
+
+            # TEMPORARY HACK THAT MIGHT BE NEEDED IF THE PYMATGEN GUYS BREAK STUFF
+            #pip install git+https://github.com/gmatteo/pymatgen.git@master -U
 
       - name: pytest
         run: |

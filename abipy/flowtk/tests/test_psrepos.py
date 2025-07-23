@@ -73,9 +73,10 @@ class TestPsRepos(AbipyTest):
         def check_url(url):
             import requests
             response = requests.head(url)
+            # 301 requested resource has permanently moved to a new URL
             # 302 corresponds to redirection and it's returned by github.
-            if response.status_code not in (200, 302):
-                raise RuntimeError(f'url {url} returned {response.status_code}')
+            if response.status_code not in (200, 301, 302):
+                raise RuntimeError(f'{url=} returned {response.status_code}')
 
         repos = get_all_registered_repos()
         assert repos

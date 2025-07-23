@@ -27,8 +27,8 @@ class GruneisenWork(Work):
     """
 
     @classmethod
-    def from_gs_input(cls, gs_inp, voldelta, ngqpt, 
-                      tolerance=None, with_becs=False, 
+    def from_gs_input(cls, gs_inp, voldelta, ngqpt,
+                      tolerance=None, with_becs=False,
                       ddk_tolerance=None, workdir=None, manager=None) -> GruneisenWork:
         """
         Build the work from an |AbinitInput| representing a GS calculations.

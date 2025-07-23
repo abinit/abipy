@@ -3,20 +3,18 @@
 from __future__ import annotations
 
 import numpy as np
+import abipy.core.abinit_units as abu
 
 from collections import OrderedDict
 from abipy.core.mixins import Has_Structure
 from abipy.core.structure import Structure
 from abipy.abio.variable import InputVariable
 from abipy.abio.inputs import AbstractInput
-#from abipy.tools.typing import Figure
-
-import abipy.core.abinit_units as abu
 
 
 def structure2wannier90(structure, units="Bohr") -> str:
     """
-    Return string with stucture in wannier90 format.
+    Return string with structure in wannier90 format.
     """
     if not structure.is_ordered:
         raise NotImplementedError("""\
@@ -36,7 +34,7 @@ to build an appropriate supercell from partial occupancies or alternatively use 
         fact = 1.0
         app("begin unit_cell_cart\nAng")
     else:
-        raise ValueError(f"Invalid {units =}")
+        raise ValueError(f"Invalid {units=}")
 
     for r in np.where(np.abs(structure.lattice.matrix) > 1e-8, structure.lattice.matrix, 0.0):
         r = r * fact
@@ -123,7 +121,7 @@ class Wannier90Input(AbstractInput, Has_Structure):
         self._vars = OrderedDict(args)
 
     @property
-    def vars(self) ->dict:
+    def vars(self) -> dict:
         return self._vars
 
     # This stufff should be moved to the ABC

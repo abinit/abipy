@@ -1,4 +1,5 @@
 """
+Low-level tools used in abipy.ml module
 """
 from __future__ import annotations
 
@@ -30,7 +31,7 @@ def get_energy_step(step: dict) -> float:
 
 def get_structures_labels_from_file(filepath: str) -> tuple[list[Structure], dict]:
     """
-    Read energies, forces, stresses and magmoms from an external file. 
+    Read energies, forces, stresses and magmoms from an external file.
     Return list of structures and dict with results.
     """
     basename = os.path.basename(str(filepath))
@@ -79,7 +80,7 @@ def get_structures_labels_from_file(filepath: str) -> tuple[list[Structure], dic
 
 def get_structures_labels_from_files(filepaths) -> tuple[list[Structure], dict]:
     """
-    Read energies, forces, stresses and magmoms from an external file. 
+    Read energies, forces, stresses and magmoms from an external file.
     Return list of structures and dict with results.
     """
     for i, path in enumerate(list_strings(filepaths)):
@@ -96,4 +97,3 @@ def get_structures_labels_from_files(filepaths) -> tuple[list[Structure], dict]:
     #for k, v in labels.items(): print(k, v)
 
     return structures, labels
-

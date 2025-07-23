@@ -1,6 +1,5 @@
 .. :Release: |version| :Date: |today|
 
-
 .. list-table::
     :stub-columns: 1
     :widths: 10 90

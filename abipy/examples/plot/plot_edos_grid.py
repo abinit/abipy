@@ -4,7 +4,7 @@ ElectronDosPlotter
 ==================
 
 This example shows how to plot several Electron Dos on a grid
-using the results stored in the ni_666k_GSR.nc file.
+using the results stored in a GSR.nc file.
 """
 
 #%%

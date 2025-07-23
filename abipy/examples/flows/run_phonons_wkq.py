@@ -5,9 +5,11 @@ Phonons with WFQ files (q-mesh denser than k-mesh)
 
 This example shows how to use WFQ files to compute phonons on a q-mesh
 that is not necessarily commensurate with the k-mesh used for electrons.
+
 Symmetries are taken into account: only q-points in the IBZ are generated.
 Moreover WFQ files are computed only if k + q does not belong to the initial mesh and,
 for each q-point, only the independent atomic perturbations are computed.
+
 The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
 and saved in the ``outdata/`` of the work.
 """

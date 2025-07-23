@@ -4,16 +4,20 @@ Delta SCF calculation: luminescence of an Eu-doped phosphor
 ===========================================================
 
 This example shows how to compute the luminescent properties of an Eu-doped phosphor.
-It uses a 36 atoms cell of SrLiAl3N4. Two non-equivalent Sr sites are available for Eu, resulting
-in two independent LumiWork. The creation of the supercells is done with make_doped_supercell().
+It uses a 36 atoms cell of SrLiAl3N4.
+Two non-equivalent Sr sites are available for Eu, resulting
+in two independent LumiWork.
+The creation of the supercells is done with make_doped_supercell().
 
 Steps, for each structure:
+
 1) Relaxation in the ground state.
 2) Relaxation in the excited state, starting from the relaxed ground state. Created at run-time.
 3) Scf computation in the relaxed/unrelaxed ground/excited state (4 computations).
 
 Even if we use minimal settings, the workflow takes around one hour to run on one core.
-Filepaths of the 6 runs are stored in outdata/lumi.json of each work.
+Filepaths of the six runs are stored in outdata/lumi.json of each work.
+
 A quick post-processing is automatically done at the end of a LumiWork,
 and stored in outdata/Delta_SCF.json of each work, with relevant luminescent properties
 (ZPL energy, Stoke Shift, \Delta Q,...), see abipy/lumi/delta_scf.py .
@@ -24,35 +28,37 @@ import os
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 import abipy.data as abidata
+
 from abipy.core.structure import Structure
 from abipy.flowtk.lumi_works import LumiWork
 
-def get_non_eq_sites(structure,replaced_atom):
-    ### return a list of positions of non-equivalent sites for the replaced atom. ###
-    irred=structure.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
-    positions=structure.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
 
-    index_different_sites=[]
+def get_non_eq_sites(structure, replaced_atom):
+    """return a list of positions of non-equivalent sites for the replaced atom."""
+    irred = structure.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
+    positions = structure.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
+
+    index_different_sites = []
 
     for i in positions:
         if len(irred[i]) != 0:
             index_different_sites.append(irred[i][0])
 
-    return(index_different_sites)
+    return index_different_sites
 
 
 def make_doped_supercell(prim_structure,supercell_size,replaced_atom,dopant_atom):
-    #return a list of doped supercell structure, one for each non-equivalent site of the replaced atom
-    my_structure=prim_structure.copy()
+    """return a list of doped supercell structure, one for each non-equivalent site of the replaced atom"""
+    my_structure = prim_structure.copy()
     my_structure.make_supercell(supercell_size)
 
-    list_ineq_pos=get_non_eq_sites(my_structure,replaced_atom)
+    list_ineq_pos = get_non_eq_sites(my_structure, replaced_atom)
 
-    doped_structure_list=[]
+    doped_structure_list = []
 
     for pos in list_ineq_pos:
-        final_structure=my_structure.copy()
-        final_structure.replace(pos,dopant_atom)
+        final_structure = my_structure.copy()
+        final_structure.replace(pos, dopant_atom)
         doped_structure_list.append(final_structure)
 
     return doped_structure_list
@@ -72,7 +78,6 @@ def scf_inp(structure):
                         chkprim=0,
                         nbdbuf=5 # help convergence
                     )
-
 
     # Set DFT+U and spinat parameters according to chemical symbols.
     #symb2spinat = {"Eu": [0, 0, 7]}
@@ -103,7 +108,6 @@ def scf_inp(structure):
     return gs_scf_inp,exc_scf_inp
 
 
-
 def relax_kwargs():
 
     # Dictionary with input variables to be added for performing structural relaxations.
@@ -115,11 +119,11 @@ def relax_kwargs():
         chkdilatmx=0,
     )
 
-    relax_kwargs_gs=relax_kwargs.copy()
-    relax_kwargs_gs['optcell']=0 # in the ground state, allow relaxation of the cell
+    relax_kwargs_gs = relax_kwargs.copy()
+    relax_kwargs_gs['optcell'] = 0 # in the ground state, allow relaxation of the cell
 
-    relax_kwargs_ex=relax_kwargs.copy()
-    relax_kwargs_ex['optcell']=0 # in the excited state, no relaxation of the cell
+    relax_kwargs_ex = relax_kwargs.copy()
+    relax_kwargs_ex['optcell'] = 0 # in the excited state, no relaxation of the cell
 
     return relax_kwargs_gs, relax_kwargs_ex
 
@@ -135,10 +139,9 @@ def build_flow(options):
     #Construct the two structures (2 non-eq. sites for Sr) from the primitive cell of SLA (SrAlLi3N4)
 
     #prim_structure=structure.Structure.from_file('SLA_prim.cif')
-    prim_structure=Structure.from_file(abidata.cif_file("SLA_prim.cif"))
-    supercell_matrix=[1,1,1]  # Too small, just for test
+    prim_structure = Structure.from_file(abidata.cif_file("SLA_prim.cif"))
+    supercell_matrix = [1,1,1]  # Too small, just for test
     strus=prim_structure.make_doped_supercells(supercell_matrix,'Sr','Eu')
-
 
     ####### Delta SCF part of the flow #######
 
