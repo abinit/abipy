@@ -2163,7 +2163,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         if tolerance is None:
-            tolerance = {"tolvrs": 1.0e-22}
+            tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
@@ -2209,7 +2209,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         if tolerance is None:
-            tolerance = {"tolvrs": 1.0e-22}
+            tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error(f"Invalid {tolerance=}")
@@ -2319,6 +2319,49 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         inp.pop_tolerances()
 
         return inp
+
+
+    def make_phpert_input(self, perturbation, tolerance = None, prtwf = -1, prepgkk = 0, manager=None) -> AbinitInput:
+        """
+        Return |AbinitInput| for a Phonon calculation for a given perturbation.
+        This functions should be called with an input that represents a GS run.
+
+        Args:
+            perturbation: dict with the Abinit variables defining the irreducible perturbation
+                Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+        """
+        if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
+
+        if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
+            raise self.Error(f"Invalid {tolerance=}")
+        inp = self.deepcopy()
+        inp.pop_irdvars()
+
+        scf_kptopt = self.get("kptopt", 1)
+        kptopt = 3
+        if np.allclose(perturbation["qpt"], 0) and scf_kptopt in (1, 2):
+            kptopt = 2
+
+        rfdir = 3 * [0]
+        rfdir[perturbation["idir"] - 1] = 1
+
+        inp.set_vars(
+            rfphon=1,                           # Will consider phonon-type perturbation
+            nqpt=1,                             # One wavevector is to be considered
+            qpt=perturbation["qpt"],                       # q-wavevector.
+            rfatpol=[perturbation["ipert"], perturbation["ipert"]],
+            rfdir=rfdir,
+            kptopt=kptopt,
+            comment="Input file for PH calculation with DFPT.",
+            prtwf=prtwf,
+        )
+
+        inp.pop_tolerances()
+        inp.set_vars(tolerance)
+
+        return inp
+
 
     def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, ixc=None, manager=None) -> MultiDataset:
         """

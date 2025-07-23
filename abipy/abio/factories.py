@@ -1452,6 +1452,29 @@ def dtepert_from_gsinput(gs_input, dte_pert, manager=None) -> AbinitInput:
     return dte_inp
 
 
+
+def phononpert_from_gsinput(gs_input, phonon_pert, phonon_tol = None, manager=None) -> AbinitInput:
+    """
+    Returns an |AbinitInput| to perform a BEC calculations for a specific perturbation based on a ground state |AbinitInput|.
+
+    Args:
+        gs_input: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
+        phonon_pert: dict with the Abinit variables defining the perturbation
+            Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
+        manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+    """
+    gs_input = gs_input.deepcopy()
+    gs_input.pop_irdvars()
+    gs_input.pop_vars(['autoparal', 'npfft'])
+
+    if phonon_tol is None:
+        phonon_tol = {"tolvrs": 1.0e-10}
+
+    phonon_inp = gs_input.make_phpert_input(perturbation=phonon_pert, tolerance = phonon_tol, manager=manager)
+
+    return phonon_inp
+
+
 def dte_from_gsinput(gs_input, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None,
                      skip_dte_permutations=False, manager=None) -> MultiDataset:
     """
@@ -1479,7 +1502,7 @@ def dte_from_gsinput(gs_input, use_phonons=True, ph_tol=None, ddk_tol=None, dde_
     gs_input.pop_irdvars()
 
     if ph_tol is None:
-        ph_tol = {"tolvrs": 1.0e-22}
+        ph_tol = {"tolvrs": 1.0e-10}
 
     if ddk_tol is None:
         ddk_tol = {"tolwfr": 1.0e-22}
