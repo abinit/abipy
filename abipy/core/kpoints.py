@@ -1284,7 +1284,12 @@ class Kpath(KpointList):
     """
 
     @classmethod
-    def from_names(cls, structure, knames, line_density=20):
+    def from_structure(cls, structure, line_density: int = 20) -> Kpath:
+        knames = [k.name for k in structure.hsym_kpoints]
+        return cls.from_names(structure, knames, line_density=line_density)
+
+    @classmethod
+    def from_names(cls, structure, knames, line_density: int = 20) -> Kpath:
         """
         Generate normalized K-path from list of k-point labels.
 
@@ -1299,7 +1304,7 @@ class Kpath(KpointList):
         return cls.from_vertices_and_names(structure, vertices_names, line_density=line_density)
 
     @classmethod
-    def from_vertices_and_names(cls, structure, vertices_names, line_density=20):
+    def from_vertices_and_names(cls, structure, vertices_names, line_density: int = 20) -> Kpath:
         """
         Generate normalized k-path from a list of vertices and the corresponding labels.
 

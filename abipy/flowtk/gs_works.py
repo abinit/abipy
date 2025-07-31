@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Work subclasses related to GS calculations."""
+"""Work related to GS calculations."""
 from __future__ import annotations
 
 import json
@@ -258,3 +258,40 @@ class EosWork(Work):
         """
         self.get_and_write_eosdata()
         return super().on_all_ok()
+
+
+class SpinSpiralWork(Work):
+    """
+    Work to compute spin spirals with the generalized Bloch Theorem.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: EosWork
+    """
+
+    @classmethod
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       line_density: int = 10,
+                       qnames: list or None = None,
+                       manager=None) -> SpinSpiralWork:
+        """
+        Build a SpinSpiralWork from an AbinitInput for GS-SCF.
+
+        Args:
+            scf_input: AbinitInput for GS-SCF used as template to generate the other inputs.
+            line_density:
+        """
+        new_work = cls(manager=manager)
+
+        from abipy.core.kpoints import Kpath
+        if qnames is not None:
+            qpath = Kpath.from_names(scf_input.structure, qnames, line_density=line_density)
+        else:
+            qpath = Kpath.from_structure(scf_input.structure, line_density=line_density)
+        print(qpath)
+
+        for iq, qpt in enumerate(qpath):
+            deps = None if iq == 0 else {new_work[iq-1]: "WFK"}
+            new_work.register_scf_task(scf_input.new_with_vars(use_gbt=1, qgbt=qpt.frac_coords), deps=deps)
+
+        return new_work

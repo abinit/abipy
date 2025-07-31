@@ -2588,9 +2588,9 @@ class ElectronBands(Has_Structure):
             for il in range(1, len(labels)):
                 if labels[il] == labels[il-1]: labels[il] = ""
             #print("ticks", ticks, "\nlabels", labels)
+            #print("ticks", len(ticks), ticks)
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
-            #print("ticks", len(ticks), ticks)
             ax.set_xlim(ticks[0], ticks[-1])
 
     def decorate_plotly(self, fig, **kwargs) -> None:
