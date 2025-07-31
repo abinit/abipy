@@ -274,6 +274,28 @@ See also the variables [[chneut]] and [[chneut@anaddb]], that govern the imposit
 ),
 
 Variable(
+    abivarname="atndlist",
+    varset="gstate",
+    vartype="real",
+    topics=['NMR_basic','MagField_expert'],
+    dimensions=['[[3*natnd]]'],
+    defaultval=MultipleValue(number=None, value=0),
+    mnemonics="ATom Nuclear Dipole moment LIST",
+    requires="[[natnd]] > 0 and [[iatnd]]",
+    added_in_version="v10.5",
+    text=r"""
+Provides a simplified, alternative input to [[nucdipmom]] for the atoms carrying explicit
+nuclear dipole moments. The number of atoms in the cell with explicit
+nuclear dipoles is [[natnd]]; the list of the atoms is [[iatnd]]; and the components
+of the dipole moment vector on each atom is given in [[atndlist]]. There are 3*[[natnd]]
+entries in [[atndlist]]: the Cartesian x, y, and z components of the dipole moment to be
+assigned to each of the [[natnd]] atoms in the list. This simplified
+list is converted internally to the full [[nucdipmom]] list; either input format
+can be used.
+""",
+),
+
+Variable(
     abivarname="atvshift",
     varset="ffield",
     vartype="real",
@@ -2778,47 +2800,43 @@ Variable(
     added_in_version="before_v9",
     text=r"""
 [[dilatmx]] is an auxiliary variable used to book additional memory (see detailed description later) for possible
-on-the-flight enlargement of the plane wave basis set, due to cell volume increase during geometry optimization by ABINIT.
-Useful only when doing cell optimization, e.g. [[optcell]]/=0, usually with [[geoopt]] = "bfgs" or "lbfgs" ([[ionmov]] == 2 or 22).
+on-the-fly enlargement of the plane wave basis set, due to cell volume increase during geometry optimization by ABINIT.
+Useful only when doing cell optimization, e.g. [[optcell]] /= 0, usually with [[geoopt]] = "bfgs" or "lbfgs" ([[ionmov]] == 2 or 22).
 Supposing that the starting (estimated) lattice parameters are already rather accurate (or likely to be too large),
 then the recommended value of [[dilatmx]] is 1.05.
-When you have no idea of evolution of the lattice parameters, and suspect that a large increase during geometry optimization is possible, while
-you need an accurate estimation of the geometry, then make a first
-run with [[chkdilatmx]]=0, producing an inaccurate, but much better estimation, followed by a second run using
-the newly estimated geometry, with [[chkdilatmx]]=1 (the default) and [[dilatmx]] set to 1.05.
-If you are not in search of an accurate estimation of the lattice parameters anyhow, then run with [[chkdilatmx]]=0 only once.
+When you have no idea of evolution of the lattice parameters, and suspect that a large increase during geometry optimization is possible,
+while you need an accurate estimation of the geometry, then make a first
+run with [[chkdilatmx]] = 0, producing an inaccurate, but much better estimation, followed by a second run using
+the newly estimated geometry, with [[chkdilatmx]] = 1 (the default) and [[dilatmx]] set to 1.05.
+If you are not in search of an accurate estimation of the lattice parameters anyhow, then run with [[chkdilatmx]] = 0 only once.
 
-In the default mode ([[chkdilatmx]] = 1), when the [[dilatmx]] threshold is exceeded,
-ABINIT will rescale uniformly the
-tentative new primitive vectors to a value that leads at most to 90% of the
-maximal allowed [[dilatmx]] deviation from 1. It will do this three times (to
-prevent the geometry optimization algorithms to have taken a too large trial
+In the default mode ([[chkdilatmx]] = 1), when the [[dilatmx]] threshold is exceeded, ABINIT will rescale uniformly the
+tentative new primitive vectors to a value that leads at most to 90% of the maximal allowed [[dilatmx]] deviation from 1.
+It will do this three times (to prevent the geometry optimization algorithms to have taken a too large trial
 step), but afterwards will stop and exit.
 
-Setting [[chkdilatmx]] == 0 allows one to
-book a larger planewave basis (if [[dilatmx]] is set to be bigger than 1), but will not rescale the tentative new primitive vectors
-nor lead to an exit when the [[dilatmx]] threshold is exceeded.
+Setting [[chkdilatmx]] == 0 allows one to book a larger planewave basis (if [[dilatmx]] is set to be bigger than 1),
+but will not rescale the tentative new primitive vectors nor lead to an exit when the [[dilatmx]] threshold is exceeded.
 The obtained optimized primitive vectors will not be exactly the ones corresponding to the planewave basis set
 determined using [[ecut]] at the latter primitive vectors. Still, as an intermediate step in a geometry search
-this might be sufficiently accurate. In such case, [[dilatmx]] might even be let at its default value 1.0.
+this might be sufficiently accurate.
+In such case, [[dilatmx]] might even be let at its default value 1.0.
 
 Detailed explanation: The memory space for the planewave basis set is defined
-by multiplying [[ecut]] by [[dilatmx]] squared (the result is an "effective ecut", called
-internally "ecut_eff"). Other uses of [[ecut]] are not modified when [[dilatmx]] > 1.0.
+by multiplying [[ecut]] by [[dilatmx]] squared (the result is an "effective ecut", called internally "ecut_eff").
+Other uses of [[ecut]] are not modified when [[dilatmx]] > 1.0.
 Still, operations (like scalar products) are done by taking into account these fake (non-used) planewaves,
 even if their coefficients are set to zero, thus slowing down the ABINIT execution.
-Using [[dilatmx]]<1.0 is equivalent to changing [[ecut]] in all its uses. This
-is allowed, although its meaning is no longer related to a maximal expected scaling.
+Using [[dilatmx]] < 1.0 is equivalent to changing [[ecut]] in all its uses.
+This is allowed, although its meaning is no longer related to a maximal expected scaling.
 
 Setting [[dilatmx]] to a large value leads to waste of CPU time and memory.
 By default, ABINIT will not accept that you define [[dilatmx]] bigger than 1.15.
 This behaviour will be overcome by using [[chkdilatmx]] == 0.
-Supposing you think that the optimized [[acell]] values might be 5% larger
-than your input values, use simply [[dilatmx]] 1.05. This will lead to
-an increase of the number of planewaves by a factor $(1.05)^3$, which is about $1.158$, and a
-corresponding increase in CPU time and memory.
-It is possible to use [[dilatmx]] when [[optcell]] =0, but a value larger than
-1.0 will be a waste.
+Supposing you think that the optimized [[acell]] values might be 5% larger than your input values, use simply [[dilatmx]] 1.05.
+This will lead to an increase of the number of planewaves by a factor $(1.05)^3$, which is about $1.158$,
+and a corresponding increase in CPU time and memory.
+It is possible to use [[dilatmx]] when [[optcell]] = 0, but a value larger than 1.0 will be a waste.
 """,
 ),
 
@@ -7751,6 +7769,27 @@ along x, y or z directions, or a combination of these. See the variable
 ),
 
 Variable(
+    abivarname="iatnd",
+    varset="gstate",
+    vartype="integer",
+    topics=['NMR_basic','MagField_expert'],
+    dimensions=['[[natnd]]'],
+    defaultval=0,
+    mnemonics="list of AToms with Nuclear Dipole moment",
+    requires="[[natnd]] > 0",
+    added_in_version="v10.5",
+    text=r"""
+Together with [[natnd]], provides a simplified, alternative input to [[nucdipmom]] for
+the atoms carrying explicit nuclear dipole moments. The number of atoms in the cell with
+explicit nuclear dipoles is [[natnd]]; the list of the atoms is [[iatnd]]; and the components
+of the dipole moment vector on each atom is given in [[atndlist]]. This simplified
+list is converted internally to the full [[nucdipmom]] list; either input format
+can be used.
+""",
+),
+
+
+Variable(
     abivarname="iatsph",
     varset="gstate",
     vartype="integer",
@@ -11189,6 +11228,26 @@ When [[natfixz]] > 0, [[natfixz]] entries should be provided in array [[iatfixz]
 ),
 
 Variable(
+    abivarname="natnd",
+    varset="gstate",
+    vartype="integer",
+    topics=['NMR_basic','MagField_expert'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="Number of AToms with Nuclear Dipole moment",
+    added_in_version="v10.5",
+    text=r"""
+Provides a simplified, alternative input to [[nucdipmom]] for the atoms carrying explicit
+nuclear dipole moments. The number of atoms in the cell with explicit
+nuclear dipoles is [[natnd]]; the list of the atoms is [[iatnd]]; and the components
+of the dipole moment vector on each atom is given in [[atndlist]]. This simplified
+list is converted internally to the full [[nucdipmom]] list; either input format
+can be used.
+""",
+),
+
+
+Variable(
     abivarname="natom",
     varset="basic",
     vartype="integer",
@@ -11924,6 +11983,41 @@ the dielectric matrix in order to perform the numerical integration of the GW se
 ),
 
 Variable(
+    abivarname="nfreqim_conv",
+    varset="gw",
+    vartype="integer",
+    topics=['FrequencyMeshMBPT_basic'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="Number of FREQuencies along the IMaginary axis for CONVolution",
+    requires="[[optdriver]] == 4 and [[gwcalctyp]] in [x1]",
+    added_in_version="10.5.1",
+    text=r"""
+[[nfreqim_conv]] defines the number of imaginary frequency points used to interpolate the convolution between G and W
+when computing the self-energy with the analytic continuation (AC) method (i.e., when [[gwcalctyp]] = x1).
+This setting enables a more accurate evaluation of the self-energy for a given SCR file containing [[nfreqim]] imaginary frequencies.
+
+* [[nfreqim_conv]] = 0: No interpolation is performed; the self-energy is calculated using the inverse dielectric matrix
+  directly on the input imaginary frequency mesh read from the SCR file.
+* [[nfreqim_conv]] > 0: The self-energy is calculated using an interpolated inverse dielectric matrix on a Gauss-Legendre grid
+  with spline interpolation.
+  Note that [[nfreqim_conv]]  must be greater than or equal to [[nfreqim]]; otherwise, it is invalid.
+* [[nfreqim_conv]] < 0: The multiple of [[nfreqim]] is used to define the number of interpolation points,
+  i.e. [[nfreqim_conv]] = -n will lead to n * [[nfreqim]] interpolation points.
+
+!!! important
+
+    This parameter can significantly improve convergence speed, but it also has limitations:
+    a larger value of [[nfreqim_conv]] is not necessarily better.
+    Using too many interpolation points may introduce numerical instabilities.
+    For example, if the user sets [[nfreqim_conv]] = 1000, the resulting quasiparticle (QP) gap could differ
+    by several meV due to such instabilities.
+    Therefore, it is important to test the stability of the results with respect to this parameter.
+    Fortunately, increasing [[nfreqim_conv]] does not substantially increase the computational cost.
+""",
+),
+
+Variable(
     abivarname="nfreqmidm",
     varset="gw",
     vartype="integer",
@@ -11933,7 +12027,7 @@ Variable(
     requires="[[optdriver]] == 4",
     added_in_version="before_v9",
     text=r"""
-depending on the value of [[nfreqmidm]] will calculate the frequency moment of
+Depending on the value of [[nfreqmidm]] will calculate the frequency moment of
 the dielectric matrix or its inverse,
 
   * if [[nfreqmidm]] is positive: calculate (nth=[[nfreqmidm]]) frequency moment of the dielectric matrix.
@@ -13566,6 +13660,8 @@ moment values are entered in atomic units, as vectors in the Cartesian (not crys
 coordinate frame. For reference, note that
 one Bohr magneton has value $1/2$ in atomic units, while one nuclear
 Bohr magneton has value $2.7321\times 10^{-4}$ in atomic units.
+
+A simplified input to these values is provided by the variables [[natnd]], [[iatnd]], and [[atndlist]].
 """,
 ),
 
@@ -14991,8 +15087,10 @@ When PAW is activated, the **spin-orbit coupling** as derived from the
 zero-order regular approximation to relativistic effects (ZORA)
 can be added without the
 use of specific PAW datasets (pseudopotentials).  If in addition, a
-nuclear magnetic dipole moment (see [[nucdipmom]]) is present, ZORA terms due
-to the electron-nuclear spin interactions are added as well.
+nuclear magnetic dipole moment (see [[nucdipmom]]) is present, onsite ZORA terms due
+to the electron-nuclear spin interactions are added as well. See also the [[zora]]
+input keyword.
+
 If [[pawspnorb]] = 1, spin-orbit (and nuclear-electron spin) interactions will be added.
 If the wavefunction is spinorial (that is, if [[nspinor]] = 2), there is no
 reason not to include the spin-orbit interaction, so that the default value of
@@ -15011,7 +15109,7 @@ magnetization [[nspden]] = 4, the time-reversal symmetry is broken.
 The use of [[kptopt]] = 1 or [[kptopt]] = 2 is thus forbidden. It is advised to
 use [[kptopt]] = 3 (no symmetry used to generate k-points) or [[kptopt]] = 4 (only
 spatial symmetries used to generate k-points).
-Be careful if you choose to use [[kptopt]] = 0 (k-points given by hand); Time-
+Be careful if you choose [[kptopt]] = 0 (k-points given by hand); Time-
 reversal symmetry has to be avoided.
 An artificial scaling of the spin-orbit can be introduced thanks to the [[spnorbscl]] input variable.
 """,
@@ -16130,6 +16228,22 @@ the [BoltzTraP code](https://www.imc.tuwien.ac.at/forschungsbereich_theoretische
 ),
 
 Variable(
+    abivarname="prtchkprdm",
+    varset="files",
+    vartype="integer",
+    topics=['GW_expert', 'SelfEnergy_expert'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="Integer that governs PrinTing of CHecK-Point files for the GW 1-RDM",
+    requires="[[optdriver]] == 4",
+    added_in_version="9.4.0",
+    text=r"""
+[[prtchkprdm]]==1 triggers the priting of binary checkpoint files when updating the density matrix for the the linearized GW approximation.
+It is only meaningful when [[gw1rdm]]>0. The files that are printed use the usual ABINIT output files naming convention with extension _CHKP_RDM_1.
+""",
+),
+
+Variable(
     abivarname="prtcif",
     varset="dev",
     vartype="integer",
@@ -16146,18 +16260,17 @@ present run (cell size shape and atomic positions).
 ),
 
 Variable(
-    abivarname="prtchkprdm",
-    varset="files",
+    abivarname="prtcurrent",
+    varset="rttddft",
     vartype="integer",
-    topics=['GW_expert', 'SelfEnergy_expert'],
+    topics=['RTTDDFT_useful'],
     dimensions="scalar",
     defaultval=0,
-    mnemonics="Integer that governs PrinTing of CHecK-Point files for the GW 1-RDM",
-    requires="[[optdriver]] == 4",
-    added_in_version="9.4.0",
+    mnemonics="PRinT macroscopic CURRENT density",
+    added_in_version="10",
     text=r"""
-[[prtchkprdm]]==1 triggers the priting of binary checkpoint files when updating the density matrix for the the linearized GW approximation.
-It is only meaningful when [[gw1rdm]]>0. The files that are printed use the usual ABINIT output files naming convention with extension _CHKP_RDM_1.
+If set to 1, prints the time-dependent macroscopic current density
+computed in real-time TDDFT calculations ([[optdriver]] 9).
 """,
 ),
 
@@ -16381,6 +16494,8 @@ for the additional input variables to be specified.
 
 If [[prtdos]] = 5, delivers the spin-spin DOS in the [[nspinor]] == 2 case, using the
 tetrahedron method (as [[prtdos]] = 2).
+
+Note that in the case [[nsppol]]=1 and [[nspden]]=2, only the spin up DOS is delivered, for all values of [[prtdos]].
 """,
 ),
 
@@ -16403,6 +16518,8 @@ spherical harmonics basis.
 If set to 2, the m-decomposed LDOS is delivered in DOS file.
 In this case, [[prtdosm]] computes the M-resolved partial dos for real
 spherical harmonics in the same basis as the DFT+U occupation matrix.
+
+Note that in the case [[nsppol]]=1 and [[nspden]]=2, only the spin up DOS is delivered, for all values of [[prtdos]].
 """,
 ),
 
@@ -22599,6 +22716,37 @@ screen exactly the pseudopotential).
 ),
 
 Variable(
+    abivarname="zora",
+    varset="paw",
+    vartype="integer",
+    topics=['PAW_useful', 'spinpolarisation_useful'],
+    dimensions="scalar",
+    defaultval="0",
+    mnemonics="Zeroth Order Regularized Approximation",
+    requires="[[usepaw]] == 1",
+    added_in_version="v10.5",
+    text=r"""
+ZORA is an effective approximation to the full Dirac equation, which
+delivers reasonable values for relativistic effects at modest
+cost [[cite:Autschbach2013]].
+The ZORA Hamiltonian includes kinetic energy couplings that are
+independent of electron spin, and additional terms depending explicitly
+on electron spin. The default, [[zora]] 0, provides the usual nonrelativistic calculation.
+[[zora]] 1 activates kinetic energy terms, which currently include only those
+due to nuclear magnetic dipoles (see [[nucdipmom]]).
+[[zora]] 2 activates the spin-dependent terms, which include both spin-orbit couplings
+(so identical to [[pawspnorb]] 1) and terms arising from nuclear magnetic dipoles if present.
+[[zora]] 3 activates both kinetic energy and electron spin terms.
+
+Negative values of [[zora]] are present only for debugging purposes. [[zora]] -1 permits only
+spin-orbit coupling, regardless of the presence of nuclear dipoles. [[zora]] -2 permits only
+the electon spin-nuclear dipole through space interaciton, and [[zora]] -3 permits only the
+electron spin-nuclear dipole Fermi-contact-like interaction.
+""",
+),
+
+
+Variable(
     abivarname="znucl",
     varset="basic",
     vartype="real",
@@ -25667,6 +25815,34 @@ This is particularly useful when performing CD or AC computations.
 Note that in the case of AC, the total SCR file is supposed to contain 1 + [[nfreqim]] frequencies
 with the first point being the static limit.
 As a consequence, the full set of frequencies spans the [1, 1 + nfreqim] range.
+""",
+),
+
+Variable(
+    abivarname="use_gbt",
+    varset="gstate",
+    vartype="integer",
+    topics=['spinpolarisation_basic', 'MagMom_useful'],
+    dimensions="scalar",
+    defaultval=0,
+    mnemonics="USE Generalized Bloch Theorem",
+    added_in_version="10.5.1",
+    text=r"""
+This variable activates the usage of the Generalized Bloch Theorem to compute spin-spirals.
+""",
+),
+
+Variable(
+    abivarname="qgbt",
+    varset="gstate",
+    vartype="real",
+    topics=['spinpolarisation_basic', 'MagMom_useful'],
+    dimensions=[3],
+    defaultval=[0, 0, 0],
+    mnemonics="Q-point for Generalized Bloch Theorem.",
+    added_in_version="10.5.1",
+    text=r"""
+This variable defines the reduced coordinates of the wave-vector of the spin spiral whent [[use_gbt]] /= 0.
 """,
 ),
 

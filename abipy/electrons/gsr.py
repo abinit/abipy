@@ -21,7 +21,7 @@ from pymatgen.core.units import ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.structure import Structure
-from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, get_ax_fig_plt, set_grid_legend, set_ax_xylabels
 from abipy.tools.typing import Figure
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands, ElectronBands
@@ -771,6 +771,171 @@ class GsrRobot(Robot, RobotWithEbands):
         """
         return self.plot_convergence_items(items, sortby=sortby, hue=hue,
                                            fontsize=fontsize, show=False, **kwargs)
+
+    def get_spin_spiral_df(self) -> pd.DataFrame:
+        # nctkarr_t("intgden", "dp", "number_of_components, number_of_atoms"), &
+        # nctkarr_t("ratsph", "dp", "number_of_atom_species"), &
+        # nctkarr_t("rhomag", "dp", "two, number_of_components") &
+
+        # GBT calculations are done with nsym 1 but here we need the spacegroup
+        # to find the equivalent q-points.
+        structure0 = self.abifiles[0].structure.copy()
+        structure0.spgset_abi_spacegroup(has_timerev=False, overwrite=True)
+
+        rows = []
+        for iq, (label, gsr) in enumerate(self.items()):
+            spinat = gsr.r.read_value("spinat")
+            intgden = gsr.r.read_value("intgden")
+            nspden = intgden.shape[1]
+
+            qgbt = None
+            if (use_gbt := gsr.r.read_value("use_gbt", default=0)) != 0:
+                qgbt = gsr.r.read_value("qgbt")
+                qname = structure0.findname_in_hsym_stars(qgbt)
+
+            # Convert energies to mev per atom.
+            energy_mev_pat = float(gsr.energy) * 1000 / len(gsr.structure)
+
+            for iat, site in enumerate(gsr.structure):
+                magmom=intgden[iat, 1] - intgden[iat, 0] if nspden == 2 else intgden[iat, 1:]
+                d = dict(
+                    site_idx=iat,
+                    symbol=site.specie.symbol,
+                    frac_coords=site.frac_coords,
+                    magmom=magmom,
+                    magmom_norm=np.linalg.norm(magmom),
+                    spinat=spinat[iat],
+                    charge_isph=intgden[iat, 1] + intgden[iat, 0] if nspden == 2 else intgden[iat, 0],
+                    energy_mev_pat=energy_mev_pat,
+                )
+                if qgbt is not None:
+                    # Add qgbt and sequential index
+                    d.update(qgbt=qgbt, qname=qname, iq=iq)
+
+                rows.append(d)
+
+        return pd.DataFrame(rows)
+
+    @add_fig_kwargs
+    def plot_spin_spiral_magmom(self,
+                                keys=("magmom_norm", "mx", "my", "mz", "charge_isph"),
+                                symbols: str | list[str] | None = None,
+                                site_inds: list[int] | None = None,
+                                fontsize=8, **kwargs) -> Figure:
+        """
+        Plot the magnetic moments obtained with the generalized Bloch theorem as a function of q.
+
+        Args:
+            keys: List of quantities to plot.
+            symbols: string or list of strings with chemical symbols to show.
+                None means all chemical symbols in the structure.
+            site_inds: List of site indices to show. None means all sites.
+            fontsize: legend and label fontsize.
+        """
+        # Get dataframe with results
+        df = self.get_spin_spiral_df()
+
+        # Build grid of plots.
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=len(keys), ncols=1,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        structure0 = self.abifiles[0].structure
+        if symbols is not None:
+            symbols = list_strings(symbols)
+
+        ticks, labels = None, None
+
+        for site_idx, site in enumerate(structure0):
+            # Filter.
+            symbol = site.specie.symbol
+            if symbols is not None and symbol not in symbols: continue
+            if site_inds is not None and site_idx not in site_inds: continue
+
+            # Select data for this site index.
+            data = df[df["site_idx"] == site_idx]
+
+            # Get ticks and labels.
+            if ticks is None:
+                ticks = data["iq"].values
+                labels = data["qname"].values
+
+            for ax, key in zip(ax_list, keys, strict=True):
+                if key in ("mx", "my", "mz"):
+                    # Convert magmom column to (nq, 3) array and select Cart. coord.
+                    idx = {"mx": 0, "my": 1, "mz": 2}[key]
+                    ys = np.array([y for y in data["magmom"].values])[:,idx]
+                else:
+                    ys = data[key]
+
+                ax.plot(ys, label="$%s_{%d}$" % (symbol, site_idx))
+
+        for ix, (ax, key) in enumerate(zip(ax_list, keys, strict=True)):
+            set_grid_legend(ax, fontsize=fontsize)
+            ax.set_ylabel(key)
+            if ix == len(ax_list) - 1:
+                ax.set_xlabel("Wave Vector q")
+                #print("ticks", ticks, "labels", labels)
+                ax.set_xticks(ticks, minor=False)
+                ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))
+                if len(ticks) > 1:
+                    ax.set_xlim(ticks[0], ticks[-1])
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_spin_spiral(self, ax=None, fontsize=8, **kwargs) -> Figure:
+        """
+        Plot spin spiral energy E(q) obtained with the generalized Bloch theorem.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: legend and label fontsize.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax, grid=True)
+
+        # TODO: Should check that all structures are the same.
+        # GBT calculations are done with nsym 1 but here we need the spacegroup
+        # to find the equivalent q-points.
+        structure0 = self.abifiles[0].structure
+        structure0.spgset_abi_spacegroup(has_timerev=False, overwrite=True)
+        natom = len(structure0)
+
+        # Read GBT q-point and energies from the GSR files.
+        energies, qpoints, spinat = [], [], None
+        for label, gsr in self.items():
+            if (use_gbt := gsr.r.read_value("use_gbt", default=0)) == 0:
+                raise RuntimeError(f"{gsr.filepath=} has {use_gbt=}")
+            if (spinat_ := gsr.r.read_value("spinat")) is None:
+                spinat = spinat_
+            if spinat is not None:
+                if not np.allclose(spinat, spinat_):
+                    cprint(f"spinat is not the same:\n {spinat_=}\n{spinat=}", color="yellow")
+
+            qpoints.append(gsr.r.read_value("qgbt"))
+            energies.append(float(gsr.energy))
+
+        # Convert energies to mev per atom.
+        energies_mev = np.array(energies) * 1000 / natom
+        energies_mev -= energies_mev.min()
+
+        ax.plot(energies_mev)
+        ax.set_xlabel("Wave Vector q")
+        ax.set_ylabel("Energy/atom (meV)")
+
+        ticks, labels = zip(*[(i, qname) for i, qpt in enumerate(qpoints)
+            if (qname := structure0.findname_in_hsym_stars(qpt)) is not None])
+
+        #for star in structure0.hsym_stars:
+        #    print(star)
+        #print("ticks", ticks, "labels", labels)
+
+        ax.set_xticks(ticks, minor=False)
+        ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))
+        if len(ticks) > 1:
+            ax.set_xlim(ticks[0], ticks[-1])
+
+        return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
