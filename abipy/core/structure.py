@@ -1485,6 +1485,7 @@ class Structure(pmg_Structure, NotebookWriter):
             if i != -1:
                 #print("input kpt:", kpoint, "star image", star[i], star[i].name)
                 return star.name
+
         return None
 
     def get_symbol2indices(self) -> dict:

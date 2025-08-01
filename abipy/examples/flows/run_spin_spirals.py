@@ -40,20 +40,20 @@ rprim
         nspinor=2,
         nspden=4,
         so_psp=0,
-        spinat=[0.0, 0.0, 4.0],
+        spinat=[4.0, 0.0, 0.0],
         ixc=7,   # LDA
         ecut=30,
         nband=32,
-        nline=8,
+        nline=12,
         nstep=100,        # Maximal number of SCF cycles
         toldfe=1e-6,
-        #tolvrs=1.0e-8,
         #
         nsym=1,
         #
         occopt=7,
         tsmear=0.01,
         paral_kgb=0,
+        prtwf=-1,
     )
 
     scf_input.set_kmesh(ngkpt=[2, 2, 2], shiftk=[0.0, 0.0, 0.0], kptopt=4)

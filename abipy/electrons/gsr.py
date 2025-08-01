@@ -957,10 +957,17 @@ class GsrRobot(Robot, RobotWithEbands):
         # Convert energies to mev per atom.
         energies_mev = np.array(energies) * 1000 / natom
         energies_mev -= energies_mev.min()
+        qmin = qpoints[np.argmin(energies_mev)]
+        if (qmin_name := structure0.findname_in_hsym_stars(qmin)) is None:
+            qmin_name = ""
 
-        ax.plot(energies_mev)
+        kw_linestyle = kwargs.pop("linestyle", "o")
+        kw_color = kwargs.pop("color", "k")
+        ax.plot(energies_mev, color=kw_color, label=kw_label)
+
         ax.set_xlabel("Wave Vector q")
         ax.set_ylabel("Energy/atom (meV)")
+        ax.set_title(f"Minimum at {qmin} {qmin_name}", fontsize=fontsize)
 
         ticks, labels = zip(*[(i, qname) for i, qpt in enumerate(qpoints)
             if (qname := structure0.findname_in_hsym_stars(qpt)) is not None])

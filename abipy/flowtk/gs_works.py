@@ -311,10 +311,16 @@ class SpinSpiralWork(Work):
             #    data = gsr.get_mag_results()
 
             scf_input = self.initial_task.input
+
+            # Loop over q-path lines to improve parallelism.
+            #for line in enumerate(self.qpath.lines):
+            #    for iql in line:
+            #        qpt = self.qpath[iql]
+
             for iq, qpt in enumerate(self.qpath):
 
                 parent = self[iq-1] if iq > 0 else self.initial_task
-                if qpt.is_gamma:
+                if qpt.is_gamma():
                     parent = self.initial_task
 
                 new_input = scf_input.new_with_vars(use_gbt=1, qgbt=qpt.frac_coords)
