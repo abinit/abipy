@@ -45,7 +45,7 @@ class MagneticData:
     @classmethod
     def from_gsr(cls, gsr) -> MagneticData:
         """
-        Build an istance from a GSR file.
+        Build an instance from a GSR file.
         """
         spinat = gsr.r.read_value("spinat")
         intgden = gsr.r.read_value("intgden")
@@ -895,10 +895,12 @@ class GsrRobot(Robot, RobotWithEbands):
             # Select data for this site index.
             data = df[df["site_idx"] == site_idx]
 
-            # Get ticks and labels.
             if ticks is None:
-                ticks = data["iq"].values
-                labels = data["qname"].values
+                # Get ticks and labels.
+                ticks, labels = data["iq"].values, data["qname"].values
+                # Filter and then unpack
+                filtered_pairs = [(x, y) for x, y in zip(ticks, labels) if y is not None]
+                ticks, labels = zip(*filtered_pairs)
 
             for ax, key in zip(ax_list, keys, strict=True):
                 if key in ("mx", "my", "mz"):
@@ -941,15 +943,15 @@ class GsrRobot(Robot, RobotWithEbands):
         natom = len(structure0)
 
         # Read GBT q-point and energies from the GSR files.
-        energies, qpoints, spinat = [], [], None
+        qpoints, energies, spinat = [], [], None
         for label, gsr in self.items():
             if (use_gbt := gsr.r.read_value("use_gbt", default=0)) == 0:
                 raise RuntimeError(f"{gsr.filepath=} has {use_gbt=}")
+
             if (spinat_ := gsr.r.read_value("spinat")) is None:
                 spinat = spinat_
-            if spinat is not None:
-                if not np.allclose(spinat, spinat_):
-                    cprint(f"spinat is not the same:\n {spinat_=}\n{spinat=}", color="yellow")
+            if spinat is not None and not np.allclose(spinat, spinat_):
+                cprint(f"spinat is not the same:\n {spinat_=}\n{spinat=}", color="yellow")
 
             qpoints.append(gsr.r.read_value("qgbt"))
             energies.append(float(gsr.energy))
@@ -957,17 +959,18 @@ class GsrRobot(Robot, RobotWithEbands):
         # Convert energies to mev per atom.
         energies_mev = np.array(energies) * 1000 / natom
         energies_mev -= energies_mev.min()
+
+        # Find the q-point where we have the minimum.
         qmin = qpoints[np.argmin(energies_mev)]
         if (qmin_name := structure0.findname_in_hsym_stars(qmin)) is None:
             qmin_name = ""
 
-        kw_linestyle = kwargs.pop("linestyle", "o")
         kw_color = kwargs.pop("color", "k")
-        ax.plot(energies_mev, color=kw_color, label=kw_label)
+        ax.plot(energies_mev, color=kw_color)
 
         ax.set_xlabel("Wave Vector q")
         ax.set_ylabel("Energy/atom (meV)")
-        ax.set_title(f"Minimum at {qmin} {qmin_name}", fontsize=fontsize)
+        ax.set_title(f"Minimum at q: {qmin} {qmin_name}", fontsize=fontsize)
 
         ticks, labels = zip(*[(i, qname) for i, qpt in enumerate(qpoints)
             if (qname := structure0.findname_in_hsym_stars(qpt)) is not None])

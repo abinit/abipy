@@ -297,7 +297,7 @@ class SpinSpiralWork(Work):
             work.qpath = Kpath.from_names(scf_input.structure, qnames, line_density=line_density)
         else:
             work.qpath = Kpath.from_structure(scf_input.structure, line_density=line_density)
-        #print(work.qpath)
+        print(work.qpath)
 
         return work
 
@@ -341,4 +341,3 @@ class SpinSpiralWork(Work):
         filepaths = [task.gsr_path for task in self[1:]]
         robot = GsrRobot.from_files(filepaths)
         robot.json_write(self.outdir.path_in("GsrRobot.json"))
-

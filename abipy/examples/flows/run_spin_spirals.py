@@ -29,6 +29,13 @@ rprim
    0.0000000000    0.0000000000    4.8846869602
 """)
 
+
+    a = 6.82
+    #a = 6.833
+    structure = abilab.Structure.fcc(a, ["Fe"], units="bohr")
+    print(structure)
+    print(structure.abi_string)
+
     # Use relativistic NC PBEsol pseudos from pseudodojo v0.4.
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
     pseudos = get_oncvpsp_pseudos(xc_name="PBEsol", version="0.4", relativity_type="FR")
@@ -43,7 +50,7 @@ rprim
         spinat=[4.0, 0.0, 0.0],
         ixc=7,   # LDA
         ecut=30,
-        nband=32,
+        nband=24,
         nline=12,
         nstep=100,        # Maximal number of SCF cycles
         toldfe=1e-6,
@@ -62,7 +69,9 @@ rprim
     flow = flowtk.Flow(options.workdir, manager=options.manager)
 
     from abipy.flowtk.gs_works import SpinSpiralWork
-    work = SpinSpiralWork.from_scf_input(scf_input, line_density=2)
+    qnames = ["G", "X"]
+    line_density = 10
+    work = SpinSpiralWork.from_scf_input(scf_input, qnames=qnames, line_density=line_density)
     flow.register_work(work)
 
     return flow
