@@ -515,10 +515,11 @@ class OncvParser(BaseParser):
         # !r   0.0100642   4.7238866  53.4149287   0.0000000
         rho_data = self._grep("!r").data
 
+        # Note: all charges in ONCVPSP outputs do not include r^2 coefficients.
         return dict(
-            rhoV=RadialFunction("Valence charge", rho_data[:, 0], rho_data[:, 1]),
-            rhoC=RadialFunction("Core charge", rho_data[:, 0], rho_data[:, 2]),
-            rhoM=RadialFunction("Model charge", rho_data[:, 0], rho_data[:, 3])
+            rhoV=RadialFunction("Valence charge", rho_data[:, 0], rho_data[:, 1]*rho_data[:, 0]**2),
+            rhoC=RadialFunction("Core charge", rho_data[:, 0], rho_data[:, 2]*rho_data[:, 0]**2),
+            rhoM=RadialFunction("Model charge", rho_data[:, 0], rho_data[:, 3]*rho_data[:, 0]**2)
         )
 
     @cached_property
