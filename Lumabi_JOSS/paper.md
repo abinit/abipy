@@ -11,22 +11,22 @@ authors:
   - name: Julien Bouquiaux
     orcid: 0000-0003-1982-052X
     corresponding: true
-    affiliation: 1,5
+    affiliation: "1, 5"
   - name: Matteo Giantomassi
     orcid: 0000-0002-7007-9813
-    affiliation: 1
+    affiliation: "1"
   - name: Samuel Poncé
     orcid: 0000-0003-1159-8389
-    affiliation: 1,2
+    affiliation: "1, 2"
   - name: Yongchao Jia
     orcid: 0000-0002-7319-9546
-    affiliation: 3
+    affiliation: "3"
   - name: Masayoshi Mikami
     orcid: 0000-0002-5598-4882
-    affiliation: 4
+    affiliation: "4"
   - name: Xavier Gonze
     orcid: 0000-0002-8377-6829
-    affiliation: 1
+    affiliation: "1"
 
 affiliations:
  - name:  Institute of Condensed Matter and Nanosciences, Université catholique de Louvain, B-1348 Louvain-la-Neuve, Belgium
