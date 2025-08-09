@@ -290,6 +290,8 @@ class SpinSpiralWork(Work):
         work = cls(manager=manager)
         work.constraints = constraints
         work.connect = connect
+        if connect and (prtwf := scf_input.get("prtwf", 1)) != 1:
+            raise ValueError(f"When connect is on, prtwf must be 1 while it is {prtwf}")
 
         work.initial_task = work.register_scf_task(scf_input)
 

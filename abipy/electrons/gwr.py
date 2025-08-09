@@ -336,7 +336,7 @@ class GwrSelfEnergy(SelfEnergy):
             # Fit values for tau < 0, tau > 0 with two exponentials with real argument
             # and remove them from the signal.
             # Use Pade' to perform the AC of the difference and add analytic transform.
-            # Trasform F(i tau) --> F(i ww) using minimax_mesh and inhomogeneous FT.
+            # Transform F(i tau) --> F(i ww) using minimax_mesh and inhomogeneous FT.
             # Ordering is first negative then positive tau values.
             fit = self.get_exp_tau_fit()
             diff_tau = self.c_tau.values - fit.values
@@ -395,7 +395,7 @@ class GwrSelfEnergy(SelfEnergy):
 
         if ref_data is not None:
             ax_re.plot(ref_data.w_vals, ref_data.sigxc_w.real, label="Ref")
-            ax_im.plot(ref_data.w_vals, ref_data.sifxc_w.imag, lable="Ref")
+            ax_im.plot(ref_data.w_vals, ref_data.sifxc_w.imag, label="Ref")
             #ax_aw.plot(ref_data.w_vals, ref_data.aw, label="Ref")
 
         for ax in ax_list:
@@ -848,6 +848,10 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             if not ks_ebands_kpath.kpoints.is_path:
                 cprint("Energies in ks_ebands_kpath should be along a k-path!", "red")
 
+            print(f"{ks_ebands_kpath.eigens.shape}=")
+            print("gwr_bstart", bstart)
+            print("gwr_bstop", bstop)
+
         # Interpolate QP energies if ks_ebands_kpath is None else interpolate QP corrections
         # and re-apply them on top of the KS band structure.
         gw_kcoords = [k.frac_coords for k in self.sigma_kpoints]
@@ -1241,7 +1245,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     def write_notebook(self, nbpath=None, title=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=title)
@@ -2038,7 +2042,7 @@ class GwrRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None, title=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=title)

@@ -806,10 +806,17 @@ class GsrRobot(Robot, RobotWithEbands):
         return self.plot_convergence_items(items, sortby=sortby, hue=hue,
                                            fontsize=fontsize, show=False, **kwargs)
 
-    def get_spin_spiral_df(self) -> pd.DataFrame:
+    def get_spin_spiral_df(self,
+                           with_params: bool = False,
+                           with_geo: bool = False,
+                           ) -> pd.DataFrame:
         """
         Build and return a dataframe with the atomic magnetization/charge for each
         site, the total energy, and the GBT q-point.
+
+        Args:
+            with_params: True if convergence params should be added to the dataframe
+            with_geo: True if structure info should be added to the dataframe
         """
         # nctkarr_t("intgden", "dp", "number_of_components, number_of_atoms"), &
         # nctkarr_t("ratsph", "dp", "number_of_atom_species"), &
@@ -850,6 +857,11 @@ class GsrRobot(Robot, RobotWithEbands):
                 if qgbt is not None:
                     # Add qgbt and sequential index
                     d.update(qgbt=qgbt, qname=qname, iq=iq)
+
+                if with_params:
+                    d.update(gsr.params)
+                if with_geo:
+                    d.update(gsr.structure.get_dict4pandas(with_spglib=True))
 
                 rows.append(d)
 

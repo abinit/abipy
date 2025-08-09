@@ -29,7 +29,7 @@ rprim
    0.0000000000    0.0000000000    4.8846869602
 """)
 
-
+    # gamma-iron. fcc structure with Cu lattice parameters
     a = 6.82
     #a = 6.833
     structure = abilab.Structure.fcc(a, ["Fe"], units="bohr")
@@ -42,37 +42,54 @@ rprim
 
     scf_input = abilab.AbinitInput(structure=structure, pseudos=pseudos)
 
+    connect = False
+
     scf_input.set_vars(
         # SPIN
         nspinor=2,
         nspden=4,
         so_psp=0,
         spinat=[4.0, 0.0, 0.0],
-        ixc=7,   # LDA
+        ixc=7,        # Use LDA instead of PBEsol
         ecut=30,
         nband=24,
-        nline=12,
+        nline=12,         # Facilitate convergence
         nstep=100,        # Maximal number of SCF cycles
         toldfe=1e-6,
         #
-        nsym=1,
+        nsym=1,           # Disable spatial symmetries
         #
         occopt=7,
         tsmear=0.01,
         paral_kgb=0,
-        prtwf=-1,
+        prtwf=-1 if connect else 1,
     )
 
-    scf_input.set_kmesh(ngkpt=[2, 2, 2], shiftk=[0.0, 0.0, 0.0], kptopt=4)
+
 
     # Create the Flow.
     flow = flowtk.Flow(options.workdir, manager=options.manager)
 
-    from abipy.flowtk.gs_works import SpinSpiralWork
+    # Define q-path. Two modes are available
+    # If qnames is None, a standardized path is automatically generated from the structure
+    # else the labels are taken from qnames.
+    qnames = None
     qnames = ["G", "X"]
     line_density = 10
-    work = SpinSpiralWork.from_scf_input(scf_input, qnames=qnames, line_density=line_density)
-    flow.register_work(work)
+
+    # This to show how to perform convergence studies.
+    # Here we compute E(q) for different ngkpt
+    ngkpt_list = [
+        (2, 2, 2),
+        #(4, 4, 4),
+    ]
+
+    from abipy.flowtk.gs_works import SpinSpiralWork
+    for ngkpt in ngkpt_list:
+        new_input.copy()
+        new_input.set_kmesh(ngkpt=ngkpt, shiftk=[0.0, 0.0, 0.0], kptopt=4)
+        work = SpinSpiralWork.from_scf_input(new_input, qnames=qnames, line_density=line_density, connect=connect)
+        flow.register_work(work)
 
     return flow
 
