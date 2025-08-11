@@ -1957,7 +1957,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             so that the DFPT run can be started from the WFK file directly without having
             to generate intermediate WFQ files.
         """
-        if tolerance is None: tolerance = {"tolvrs": 1.0e-22}
+        if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error(f"Invalid {tolerance=}")
@@ -2163,7 +2163,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         if tolerance is None:
-            tolerance = {"tolvrs": 1.0e-10}
+            tolerance = {"tolvrs": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid tolerance: %s" % str(tolerance))
@@ -2331,7 +2331,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                 Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
-        if tolerance is None: tolerance = {"tolvrs": 1.0e-18}
+        if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error(f"Invalid {tolerance=}")
