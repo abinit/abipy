@@ -1115,6 +1115,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         # if lo_to_splitting and has_gamma and not self.has_lo_to_data():
         #     cprint("lo_to_splitting set to True but Eps_inf and BECs are not available in DDB %s:" % self.filepath)
 
+        if self.has_epsinf_terms():
+            if anaddb_kwargs is None:
+                anaddb_kwargs = {'dieflag' : 2}
+            else:
+                anaddb_kwargs.setdefault('dieflag', 2)
+
         inp = AnaddbInput.modes_at_qpoints(self.structure, qpoints, asr=asr, chneut=chneut, dipdip=dipdip,
                                            dipquad=dipquad, quadquad=quadquad,
                                            ifcflag=ifcflag, ngqpt=ngqpt, lo_to_splitting=lo_to_splitting, directions=directions,
