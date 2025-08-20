@@ -86,7 +86,8 @@ class ConverterTest(AbipyTest):
                                             output_dir_path=tmp_dir, set_masses=True)
 
             orig_phbands = ddb.anaget_phmodes_at_qpoints(qpoints=qpoints, asr=0, dipdip=0, chneut=0,
-                                                         lo_to_splitting=False, workdir=orig_run_ana)
+                                                         lo_to_splitting=False, workdir=orig_run_ana,
+                                                         anaddb_kwargs={'dieflag' : 2})
             ananc_orig = abilab.abiopen(find_anaddbnc_in_dir(os.path.join(orig_run_ana, "outdata")))
 
         nac = phonon.nac_params
@@ -102,7 +103,8 @@ class ConverterTest(AbipyTest):
                                      born=os.path.join(tmp_dir, "BORN"), primitive_matrix=np.eye(3), symprec=1e-5, tolsym=None)
 
         conv_phbands = ddb_conv.anaget_phmodes_at_qpoints(qpoints=qpoints, asr=0, dipdip=0, chneut=0,
-                                                          lo_to_splitting=False, workdir=conv_run_ana)
+                                                          lo_to_splitting=False, workdir=conv_run_ana,
+                                                          anaddb_kwargs={'dieflag' : 2})
         ananc_conv = abilab.abiopen(find_anaddbnc_in_dir(os.path.join(conv_run_ana, "outdata")))
 
         self.assert_almost_equal(orig_phbands.phfreqs, conv_phbands.phfreqs, decimal=5)
@@ -151,7 +153,8 @@ class ConverterTest(AbipyTest):
 
         run_ana = os.path.join(tmp_dir, "run_anaddb")
         phbands = ddb.anaget_phmodes_at_qpoints(qpoints=qpoints, asr=0, dipdip=0, chneut=0,
-                                                lo_to_splitting=False, workdir=run_ana)
+                                                lo_to_splitting=False, workdir=run_ana,
+                                                anaddb_kwargs={'dieflag' : 2})
         ananc = abilab.abiopen(find_anaddbnc_in_dir(os.path.join(run_ana, "outdata")))
 
         self.assert_almost_equal(phbands.phfreqs * abu.eV_to_THz, phfreqs_phonopy_orig, decimal=3)
