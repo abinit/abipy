@@ -53,7 +53,7 @@ rprim
         ixc=7,        # Use LDA instead of PBEsol
         ecut=30,
         nband=24,
-        nline=12,         # Facilitate convergence
+        nline=12,         # To facilitate convergence.
         nstep=100,        # Maximal number of SCF cycles
         toldfe=1e-6,
         #
@@ -64,8 +64,6 @@ rprim
         paral_kgb=0,
         prtwf=-1 if connect else 1,
     )
-
-
 
     # Create the Flow.
     flow = flowtk.Flow(options.workdir, manager=options.manager)
@@ -86,7 +84,7 @@ rprim
 
     from abipy.flowtk.gs_works import SpinSpiralWork
     for ngkpt in ngkpt_list:
-        new_input.copy()
+        new_input = scf_input.deepcopy()
         new_input.set_kmesh(ngkpt=ngkpt, shiftk=[0.0, 0.0, 0.0], kptopt=4)
         work = SpinSpiralWork.from_scf_input(new_input, qnames=qnames, line_density=line_density, connect=connect)
         flow.register_work(work)

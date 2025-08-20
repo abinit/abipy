@@ -680,6 +680,27 @@ class Structure(pmg_Structure, NotebookWriter):
         else:
             app(super().__str__())
 
+        key = "cartesian_forces"
+        if key in self.site_properties:
+            # print force stats
+            cart_forces = np.reshape([site.properties.get(key) for site in self], (-1 ,3))
+            force_norms = np.linalg.norm(cart_forces, axis=1)
+            min_fnorm, max_fnorm  = np.min(force_norms), np.max(force_norms)
+            mean_fnorm, std_fnorm = np.mean(force_norms), np.std(force_norms)
+            app(f"min |F_iat|: {min_fnorm} eV/Ang")
+            app(f"max |F_iat|: {max_fnorm} eV/Ang")
+            app(f"mean F_iat|: {mean_fnorm} eV/Ang")
+            app(f"std  |F_iat|: {std_fnorm} eV/Ang")
+
+            # Print warning if forces are too large.
+            standard, high = 1e-3, 1e-4
+            if max_fnorm <= high:
+                app(f"Forces are relaxed within high quality criterion: {high} eV/Ang")
+            elif max_fnorm <= standard:
+                app(f"Forces are relaxed within standard criterion: {standard} eV/Ang")
+            else:
+                app(f"FORCES ARE NOT FULLY RELAXED. THIS STRUCTURE SHOULD NOT BE USED FOR PHONONS!")
+
         if verbose > 1:
             for i, vec in enumerate(self.lattice.matrix):
                 app("a_%d: %.8f %.8f %.8f" % (i + 1, vec[0], vec[1], vec[2]))
