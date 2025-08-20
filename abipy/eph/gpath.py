@@ -1,5 +1,5 @@
 """
-This module contains objects for analyzing the PATH.nc file storing
+This module contains objects for analyzing the GPATH.nc file storing
 the e-ph matrix elements along a k/q path
 """
 from __future__ import annotations
@@ -182,6 +182,9 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 # Plot g_nu(q)
                 ax_cnt += 1
                 ax = ax_mat[ax_cnt, spin]
+                if self.r.nsppol == 2:
+                    ax.set_title(f"Spin: {spin}")
+
                 for nu in range(self.r.natom3):
                     if ph_modes is not None and nu not in ph_modes: continue
                     ax.plot(g_nuq[nu], label=f"{nu=}")
@@ -193,7 +196,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
                     set_axlims(ax, [0, gmax_mev], "y")
 
             if with_phbands:
-                # Plot phonons bands + averaged g(q)  as markers
+                # Plot phonons bands + averaged g(q) as markers.
                 ax_cnt += 1
                 x, y, s = [], [], []
                 for iq, qpoint in enumerate(self.phbands.qpoints):
@@ -211,7 +214,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 set_grid_legend(ax, fontsize) #, xlabel=r"Wavevector $\mathbf{q}$")
 
             if with_ebands:
-                # Plot phonons bands + g(q) as markers
+                # Plot phonons bands + g(q) as markers.
                 ax_cnt += 1
                 ax = ax_mat[ax_cnt, spin]
                 self.ebands_kq.plot(ax=ax, spin=spin, band_range=band_range, with_gaps=False, show=False)
@@ -307,7 +310,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -438,7 +441,7 @@ class GpathReader(BaseEphReader):
         if self.nk_path != 1:
             raise ValueError(f"{self.nk_path=} != 1. In this case, one cannot ask for q-dependent g(k,q)!")
 
-        # Tolerences to detect degeneracies.
+        # Tolerances to detect degeneracies.
         eps_ha = eps_mev / abu.Ha_meV
         eps_ev = eps_ha * abu.Ha_eV
 
@@ -534,7 +537,7 @@ class GpathReader(BaseEphReader):
         if self.nq_path != 1:
             raise ValueError(f"{self.nq_path=} != 1. In this case, one cannot ask for l-dependent g(k,q)!")
 
-        # Tolerences to detect degeneracies.
+        # Tolerances to detect degeneracies.
         eps_ha = eps_mev / abu.Ha_meV
         eps_ev = eps_ha * abu.Ha_eV
 

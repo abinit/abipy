@@ -6,6 +6,7 @@ import json
 
 from pymatgen.analysis.eos import EOS
 from abipy.core.structure import Structure
+from abipy.core.kpoints import Kpath
 from abipy.abio.inputs import AbinitInput
 from abipy.electrons.gsr import GsrRobot
 from .works import Work
@@ -271,7 +272,9 @@ class SpinSpiralWork(Work):
     @classmethod
     def from_scf_input(cls,
                        scf_input: AbinitInput,
+                       constraints: dict | None = None,
                        line_density: int = 10,
+                       connect: bool = True,
                        qnames: list or None = None,
                        manager=None) -> SpinSpiralWork:
         """
@@ -279,19 +282,64 @@ class SpinSpiralWork(Work):
 
         Args:
             scf_input: AbinitInput for GS-SCF used as template to generate the other inputs.
+            constraints:
             line_density:
+            qnames:
+            manager: TaskManager instance. Use default if None.
         """
-        new_work = cls(manager=manager)
+        work = cls(manager=manager)
+        work.constraints = constraints
+        work.connect = connect
+        if connect and (prtwf := scf_input.get("prtwf", 1)) != 1:
+            raise ValueError(f"When connect is on, prtwf must be 1 while it is {prtwf}")
 
-        from abipy.core.kpoints import Kpath
+        work.initial_task = work.register_scf_task(scf_input)
+
         if qnames is not None:
-            qpath = Kpath.from_names(scf_input.structure, qnames, line_density=line_density)
+            work.qpath = Kpath.from_names(scf_input.structure, qnames, line_density=line_density)
         else:
-            qpath = Kpath.from_structure(scf_input.structure, line_density=line_density)
-        print(qpath)
+            work.qpath = Kpath.from_structure(scf_input.structure, line_density=line_density)
+        print(work.qpath)
 
-        for iq, qpt in enumerate(qpath):
-            deps = None if iq == 0 else {new_work[iq-1]: "WFK"}
-            new_work.register_scf_task(scf_input.new_with_vars(use_gbt=1, qgbt=qpt.frac_coords), deps=deps)
+        return work
 
-        return new_work
+    def on_ok(self, sender):
+        """
+        This method is called when one task reaches status `S_OK`.
+        Here we read the atomic magnetization from the initial task
+        """
+        if sender == self.initial_task:
+            #with self.initial_task.open_gsr() as gsr:
+            #    data = gsr.get_mag_results()
+
+            scf_input = self.initial_task.input
+
+            # Loop over q-path lines to improve parallelism.
+            #for line in enumerate(self.qpath.lines):
+            #    for iql in line:
+            #        qpt = self.qpath[iql]
+
+            for iq, qpt in enumerate(self.qpath):
+
+                parent = self[iq-1] if iq > 0 else self.initial_task
+                if qpt.is_gamma():
+                    parent = self.initial_task
+
+                new_input = scf_input.new_with_vars(use_gbt=1, qgbt=qpt.frac_coords)
+                if self.constraints is not None:
+                    new_input.set_vars(**self.constraints)
+
+                self.register_scf_task(new_input, deps={parent: "WFK"} if self.connect else None)
+
+            self.flow.allocate(build=True)
+
+        return super().on_ok(sender)
+
+    def on_all_ok(self):
+        """
+        This method is called when all the works in the flow have reached S_OK.
+        Here we write a json file with the paths to the GSR files produced by the work.
+        """
+        filepaths = [task.gsr_path for task in self[1:]]
+        robot = GsrRobot.from_files(filepaths)
+        robot.json_write(self.outdir.path_in("GsrRobot.json"))

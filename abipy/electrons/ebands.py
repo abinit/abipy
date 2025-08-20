@@ -756,7 +756,7 @@ class ElectronBands(Has_Structure):
         iv = int(self.nelect * self.nspinor) // 2 - 1
         if iv >= self.mband:
             iv = self.mband - 1
-            cprint("mband = {self.mband} is not large enough to include the VBM", "red")
+            cprint(f"mband = {self.mband} is not large enough to include the VBM", "red")
 
         new_fermie = self.eigens[:, :, iv].max()
         return self.set_fermie(new_fermie)

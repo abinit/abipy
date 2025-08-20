@@ -5,6 +5,7 @@ Interface to the GSR.nc_ file storing the Ground-state results and the electron 
 from __future__ import annotations
 
 import sys
+import dataclasses
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
@@ -32,6 +33,39 @@ __all__ = [
 ]
 
 _INVALID_STRESS_TENSOR = 9999999999e+99
+
+
+@dataclasses.dataclass(kw_only=True)
+class MagneticData:
+    spinat: np.ndarray
+    use_gbt: int
+    qgbt: np.ndarray | None
+    #from pymatgen.electronic_structure.core import Magmom
+
+    @classmethod
+    def from_gsr(cls, gsr) -> MagneticData:
+        """
+        Build an instance from a GSR file.
+        """
+        spinat = gsr.r.read_value("spinat")
+        intgden = gsr.r.read_value("intgden")
+        nspden = intgden.shape[1]
+
+        qgbt = None
+        if (use_gbt := gsr.r.read_value("use_gbt", default=0)) != 0:
+            qgbt = gsr.r.read_value("qgbt")
+
+        energy_mev_pat = float(gsr.energy) * 1000 / len(gsr.structure)
+
+        if nspden == 2:
+            magmoms = Magmom(intgden[:, 1] - intgden[:, 0])
+        elif nspden == 4:
+            magmoms = [Magmom([intg_at[1], intg_at[2], intg_at[3]]) for intg_at in intgden]
+        else:
+            magmoms = None
+
+        locs = locals()
+        return cls**{locs[field] for field in dataclasses.fields(cls)}
 
 
 class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -772,18 +806,30 @@ class GsrRobot(Robot, RobotWithEbands):
         return self.plot_convergence_items(items, sortby=sortby, hue=hue,
                                            fontsize=fontsize, show=False, **kwargs)
 
-    def get_spin_spiral_df(self) -> pd.DataFrame:
+    def get_spin_spiral_df(self,
+                           with_params: bool = False,
+                           with_geo: bool = False,
+                           ) -> pd.DataFrame:
+        """
+        Build and return a dataframe with the atomic magnetization/charge for each
+        site, the total energy, and the GBT q-point.
+
+        Args:
+            with_params: True if convergence params should be added to the dataframe
+            with_geo: True if structure info should be added to the dataframe
+        """
         # nctkarr_t("intgden", "dp", "number_of_components, number_of_atoms"), &
         # nctkarr_t("ratsph", "dp", "number_of_atom_species"), &
         # nctkarr_t("rhomag", "dp", "two, number_of_components") &
 
-        # GBT calculations are done with nsym 1 but here we need the spacegroup
-        # to find the equivalent q-points.
+        # GBT calculations are done with nsym 1 but here we need a
+        # structure with the spacegroup to find the equivalent q-points.
         structure0 = self.abifiles[0].structure.copy()
         structure0.spgset_abi_spacegroup(has_timerev=False, overwrite=True)
 
         rows = []
         for iq, (label, gsr) in enumerate(self.items()):
+            #mag_data = MagneticData.from_gsr(gsr)
             spinat = gsr.r.read_value("spinat")
             intgden = gsr.r.read_value("intgden")
             nspden = intgden.shape[1]
@@ -812,6 +858,11 @@ class GsrRobot(Robot, RobotWithEbands):
                     # Add qgbt and sequential index
                     d.update(qgbt=qgbt, qname=qname, iq=iq)
 
+                if with_params:
+                    d.update(gsr.params)
+                if with_geo:
+                    d.update(gsr.structure.get_dict4pandas(with_spglib=True))
+
                 rows.append(d)
 
         return pd.DataFrame(rows)
@@ -823,7 +874,8 @@ class GsrRobot(Robot, RobotWithEbands):
                                 site_inds: list[int] | None = None,
                                 fontsize=8, **kwargs) -> Figure:
         """
-        Plot the magnetic moments obtained with the generalized Bloch theorem as a function of q.
+        Plot the magnetic moments obtained with the generalized Bloch theorem
+        as a function of the wave-vector q.
 
         Args:
             keys: List of quantities to plot.
@@ -847,7 +899,7 @@ class GsrRobot(Robot, RobotWithEbands):
         ticks, labels = None, None
 
         for site_idx, site in enumerate(structure0):
-            # Filter.
+            # Filtering on symbol or site index.
             symbol = site.specie.symbol
             if symbols is not None and symbol not in symbols: continue
             if site_inds is not None and site_idx not in site_inds: continue
@@ -855,14 +907,16 @@ class GsrRobot(Robot, RobotWithEbands):
             # Select data for this site index.
             data = df[df["site_idx"] == site_idx]
 
-            # Get ticks and labels.
             if ticks is None:
-                ticks = data["iq"].values
-                labels = data["qname"].values
+                # Get ticks and labels.
+                ticks, labels = data["iq"].values, data["qname"].values
+                # Filter and then unpack
+                filtered_pairs = [(x, y) for x, y in zip(ticks, labels) if y is not None]
+                ticks, labels = zip(*filtered_pairs)
 
             for ax, key in zip(ax_list, keys, strict=True):
                 if key in ("mx", "my", "mz"):
-                    # Convert magmom column to (nq, 3) array and select Cart. coord.
+                    # Convert magmom column to (nq, 3) array and select the Cartesian component.
                     idx = {"mx": 0, "my": 1, "mz": 2}[key]
                     ys = np.array([y for y in data["magmom"].values])[:,idx]
                 else:
@@ -875,7 +929,6 @@ class GsrRobot(Robot, RobotWithEbands):
             ax.set_ylabel(key)
             if ix == len(ax_list) - 1:
                 ax.set_xlabel("Wave Vector q")
-                #print("ticks", ticks, "labels", labels)
                 ax.set_xticks(ticks, minor=False)
                 ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))
                 if len(ticks) > 1:
@@ -895,22 +948,22 @@ class GsrRobot(Robot, RobotWithEbands):
         ax, fig, plt = get_ax_fig_plt(ax=ax, grid=True)
 
         # TODO: Should check that all structures are the same.
-        # GBT calculations are done with nsym 1 but here we need the spacegroup
-        # to find the equivalent q-points.
+        # GBT calculations are done with nsym 1 but here we need a
+        # structure with the spacegroup to find the equivalent q-points.
         structure0 = self.abifiles[0].structure
         structure0.spgset_abi_spacegroup(has_timerev=False, overwrite=True)
         natom = len(structure0)
 
         # Read GBT q-point and energies from the GSR files.
-        energies, qpoints, spinat = [], [], None
+        qpoints, energies, spinat = [], [], None
         for label, gsr in self.items():
             if (use_gbt := gsr.r.read_value("use_gbt", default=0)) == 0:
                 raise RuntimeError(f"{gsr.filepath=} has {use_gbt=}")
+
             if (spinat_ := gsr.r.read_value("spinat")) is None:
                 spinat = spinat_
-            if spinat is not None:
-                if not np.allclose(spinat, spinat_):
-                    cprint(f"spinat is not the same:\n {spinat_=}\n{spinat=}", color="yellow")
+            if spinat is not None and not np.allclose(spinat, spinat_):
+                cprint(f"spinat is not the same:\n {spinat_=}\n{spinat=}", color="yellow")
 
             qpoints.append(gsr.r.read_value("qgbt"))
             energies.append(float(gsr.energy))
@@ -919,16 +972,20 @@ class GsrRobot(Robot, RobotWithEbands):
         energies_mev = np.array(energies) * 1000 / natom
         energies_mev -= energies_mev.min()
 
-        ax.plot(energies_mev)
+        # Find the q-point where we have the minimum.
+        qmin = qpoints[np.argmin(energies_mev)]
+        if (qmin_name := structure0.findname_in_hsym_stars(qmin)) is None:
+            qmin_name = ""
+
+        kw_color = kwargs.pop("color", "k")
+        ax.plot(energies_mev, color=kw_color)
+
         ax.set_xlabel("Wave Vector q")
         ax.set_ylabel("Energy/atom (meV)")
+        ax.set_title(f"Minimum at q: {qmin} {qmin_name}", fontsize=fontsize)
 
         ticks, labels = zip(*[(i, qname) for i, qpt in enumerate(qpoints)
             if (qname := structure0.findname_in_hsym_stars(qpt)) is not None])
-
-        #for star in structure0.hsym_stars:
-        #    print(star)
-        #print("ticks", ticks, "labels", labels)
 
         ax.set_xticks(ticks, minor=False)
         ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))
