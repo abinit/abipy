@@ -7,10 +7,9 @@ import numpy as np
 
 from collections import OrderedDict, defaultdict
 from tabulate import tabulate
+from functools import cached_property
 from monty.termcolor import cprint
-from monty.functools import lazy_property
 from monty.string import marquee
-from pymatgen.core.periodic_table import Element
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader
@@ -21,6 +20,9 @@ from abipy.tools.plotting import (set_axlims, get_axarray_fig_plt, add_fig_kwarg
 
 
 def gaussians_dos(dos, mesh, width, values, energies, weights):
+    """
+    Accumulate dos with the Gaussian method.
+    """
     assert len(dos) == len(mesh) and len(values) == len(energies) == len(weights)
     for vw, e, w in zip(values * weights, energies, weights):
         dos += vw * gaussian(mesh, width, center=e)
@@ -97,7 +99,6 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         self.r = self.reader = r = ElectronsReader(filepath)
 
         # Initialize the electron bands from file
-        self._ebands = r.read_ebands()
         self.natom = len(self.structure)
 
         # Read metadata so that we know how to handle the content of the file.
@@ -142,6 +143,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         # Sort the chemical symbols and use OrderedDict because we are gonna use these dicts for looping.
         # Note that we don't have arrays dimensioned with ntypat in the nc file so we can define
         # our own ordering for symbols.
+        from pymatgen.core.periodic_table import Element
         self.symbols = sorted(self.structure.symbol_set, key=lambda s: Element[s].Z)
         self.symbol2indices, self.lmax_symbol = OrderedDict(), OrderedDict()
         for symbol in self.symbols:
@@ -167,16 +169,16 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             self.has_atom = np.zeros(self.natom, dtype=bool)
             self.has_atom[self.iatsph] = True
 
-    @lazy_property
-    def wal_sbk(self):
+    @cached_property
+    def wal_sbk(self) -> np.ndarray:
         """
         |numpy-array| of shape [natom, mbesslang, nsppol, mband, nkpt]
         with the L-contributions. Present only if prtdos == 3.
         """
         return self._read_wal_sbk()
 
-    @lazy_property
-    def walm_sbk(self):
+    @cached_property
+    def walm_sbk(self) -> np.ndarray:
         """
         |numpy-array| of shape [natom, mbesslang**2, nsppol, mband, nkpt]
         with the LM-contribution. Present only if prtdos == 3 and prtdosm != 0
@@ -195,7 +197,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         # To keep it simple, the code always operate on an array dimensioned with the total number of atoms
         # Entries that are not computed are set to zero and a warning is issued.
         if self.prtdos != 3:
-            raise RuntimeError("The file does not contain L-DOS since prtdos=%i" % self.prtdos)
+            raise RuntimeError(f"The file does not contain L-DOS since {self.prtdos=}")
 
         wshape = (self.natom, self.mbesslang, self.nsppol, self.mband, self.nkpt)
 
@@ -240,9 +242,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         # To keep it simple, the code always operate on an array dimensioned with the total number of atoms
         # Entries that are not computed are set to zero and a warning is issued.
         if self.prtdos != 3:
-            raise RuntimeError("The file does not contain L-DOS since prtdos=%i" % self.prtdos)
+            raise RuntimeError(f"The file does not contain L-DOS since {self.prtdos=}")
         if self.prtdosm == 0:
-            raise RuntimeError("The file does not contain LM-DOS since prtdosm=%i" % self.prtdosm)
+            raise RuntimeError("The file does not contain LM-DOS since {self.prtdosm=}")
 
         wshape = (self.natom, self.mbesslang**2, self.nsppol, self.mband, self.nkpt)
 
@@ -275,17 +277,17 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         return walm_sbk
 
-    @property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
-        return self._ebands
+        return self.r.read_ebands()
 
     @property
     def structure(self) -> Structure:
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
@@ -295,7 +297,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         """Called at the end of the ``with`` context manager."""
         return self.r.close()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation"""
         return self.to_string()
 
@@ -336,7 +338,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         return "\n".join(lines)
 
-    def get_wl_atom(self, iatom, spin=None, band=None):
+    def get_wl_atom(self, iatom, spin=None, band=None) -> np.ndarray:
         """
         Return the l-dependent DOS weights for atom index ``iatom``. The weights are summed over m.
         If ``spin`` and ``band`` are not specified, the method returns the weights
@@ -348,7 +350,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             assert spin is not None and band is not None
             return self.wal_sbk[iatom, :, spin, band, :]
 
-    def get_wl_symbol(self, symbol, spin=None, band=None):
+    def get_wl_symbol(self, symbol, spin=None, band=None) -> np.ndarray:
         """
         Return the l-dependent DOS weights for a given type specified in terms of the
         chemical symbol ``symbol``. The weights are summed over m and over all atoms of the same type.
@@ -369,7 +371,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         return wl
 
-    def get_w_symbol(self, symbol, spin=None, band=None):
+    def get_w_symbol(self, symbol, spin=None, band=None) -> np.ndarray:
         """
         Return the DOS weights for a given type specified in terms of the
         chemical symbol ``symbol``. The weights are summed over m and lmax[symbol] and
@@ -392,7 +394,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         return w
 
-    def get_spilling(self, spin=None, band=None):
+    def get_spilling(self, spin=None, band=None) -> np.ndarray:
         """
         Return the spilling parameter
         If ``spin`` and ``band`` are not specified, the method returns the spilling for all states
@@ -412,7 +414,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         return 1.0 - sp
 
-    def eb_plotax_kwargs(self, spin):
+    def eb_plotax_kwargs(self, spin: int) -> dict:
         """
         Dictionary with the options passed to ``ebands.plot_ax``
         when plotting a band line with spin index ``spin``.
@@ -426,7 +428,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             #klabel_size=self.klabel_size,
         )
 
-    def eb_plotly_kwargs(self, spin):
+    def eb_plotly_kwargs(self, spin: int) -> tuple[dict]:
         """
         Dictionary with the options passed to ``ebands.plot_ax``
         when plotting a band line with spin index ``spin``.
@@ -476,7 +478,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             num_plots = len(ea.irred_pos)
             ax2iatom = ea.irred_pos
         else:
-            raise ValueError("Wrong value for view: %s" % str(view))
+            raise ValueError(f"Wrong value for {view=}")
 
         # Build plot grid.
         ncols, nrows = 1, 1
@@ -916,7 +918,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     @add_fig_kwargs
     def plot_spilling(self, e0="fermie", fact=1.0, ax_list=None, ylims=None, blist=None, **kwargs) -> Figure:
         """
-        Plot the electronic fatbands
+        Plot the electronic fatbands.
 
         Args:
             e0: Option used to define the zero of energy in the band structure plot. Possible values:
@@ -1063,8 +1065,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #    return fig
 
     # TODO: THIS CODE IS STILL UNDER DEVELOPMENT
-    #def nelect_in_spheres(self, start_energy=None, stop_energy=None,
-    #                     method="gaussian", step=0.1, width=0.2):
+    #def get_nelect_in_spheres(self, start_energy=None, stop_energy=None,
+    #                          method="gaussian", step=0.1, width=0.2):
     #    """
     #    Print the number of electrons inside each atom-centered sphere.
     #    Note that this is a very crude estimate of the charge density distribution.
@@ -1105,7 +1107,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #            nel_spin[spin] = edos[spin].integral(start=start_spin[spin], stop=stop_spin[spin])
     #        print("iatom", iatm, "site", site, nel_spin)
 
-    def get_dos_integrator(self, method, step, width):
+    def get_dos_integrator(self, method: str, step: float, width: float):
         """
         FatBandsFile can use differerent integrators that are cached in self._cached_dos_integrators
         """
@@ -1162,9 +1164,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         except Exception:
             msg = traceback.format_exc()
             msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
+                    "Verify that the k-points form a homogeneous sampling of the BZ.\n"
                     "Returning None\n")
-            cprint(msg, "red")
+            cprint(msg, color="red")
             return None
 
         # Get energy mesh from total DOS and define the zero of energy
@@ -1182,7 +1184,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                                                sharex=True, sharey=True, squeeze=False)
         ax_mat = np.reshape(ax_mat, (nrows, ncols))
 
-        # The code below expectes a matrix of axes of shape[nsppol, self.lsize]
+        # The code below expects a matrix of axes of shape[nsppol, self.lsize]
         # If spins are plotted on the same graph (combined_spins), I build a new matrix so that
         # ax_mat[spin=0] is ax_mat[spin=1] and aliased_axis is set to True
         aliased_axis = False
@@ -1320,9 +1322,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         except Exception:
             msg = traceback.format_exc()
             msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
+                    "Verify that the k-points form a homogeneous sampling of the BZ.\n"
                     "Returning None\n")
-            cprint(msg, "red")
+            cprint(msg, color="red")
             return None
 
         # Get energy mesh from total DOS and define the zero of energy
@@ -1491,9 +1493,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         except Exception:
             msg = traceback.format_exc()
             msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
+                    "Verify that the k-points form a homogeneous sampling of the BZ.\n"
                     "Returning None\n")
-            cprint(msg, "red")
+            cprint(msg, color="red")
             return None
 
         # Get energy mesh from total DOS and define the zero of energy
@@ -1510,7 +1512,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                                                sharex=True, sharey=True, squeeze=False)
         ax_mat = np.reshape(ax_mat, (nrows, ncols))
 
-        # The code below expectes a matrix of axes of shape[nsppol, self.ntypat]
+        # The code below expects a matrix of axes of shape[nsppol, self.ntypat]
         # If spins are plotted on the same graph (combined_spins), I build a new matrix so that
         # ax_mat[spin=0] is ax_mat[spin=1] and aliased_axis is set to True
         aliased_axis = False
@@ -1650,9 +1652,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         except Exception:
             msg = traceback.format_exc()
             msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
+                    "Verify that the k-points form a homogeneous sampling of the BZ.\n"
                     "Returning None\n")
-            cprint(msg, "red")
+            cprint(msg, color="red")
             return None
 
         # Get energy mesh from total DOS and define the zero of energy
@@ -1815,8 +1817,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             pjdosfile = self
 
         if not pjdosfile.ebands.kpoints.is_ibz:
-            cprint("DOS requires k-points in the IBZ but got pjdosfile: %s" % repr(pjdosfile), "yellow")
-            cprint("Returning None", "yellow")
+            cprint("DOS requires k-points in the IBZ but got pjdosfile: %s" % repr(pjdosfile), color="yellow")
+            cprint("Returning None", color="yellow")
             return None
 
         if edos_kwargs is None: edos_kwargs = {}
@@ -1862,7 +1864,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                                           with_info=False, with_spin_sign=False, show=False, ylims=ylims,
                                           **edos_kwargs)
         else:
-            raise ValueError("Don't know how to handle view=%s" % str(view))
+            raise ValueError(f"Don't know how to handle {view=}")
 
         # Remove labels from DOS plots.
         for ax in pjdos_axmat.ravel():
@@ -1912,8 +1914,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             pjdosfile = self
 
         if not pjdosfile.ebands.kpoints.is_ibz:
-            cprint("DOS requires k-points in the IBZ but got pjdosfile: %s" % repr(pjdosfile), "yellow")
-            cprint("Returning None", "yellow")
+            cprint("DOS requires k-points in the IBZ but got pjdosfile: %s" % repr(pjdosfile), color="yellow")
+            cprint("Returning None", color="yellow")
             return None
 
         if edos_kwargs is None: edos_kwargs = {}
@@ -1941,7 +1943,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                                             combined_spins=False, fontsize=fontsize, with_info=False,
                                             with_spin_sign=False, ylims=ylims, band_and_dos=1, show=False, **edos_kwargs)
         else:
-            raise ValueError("Don't know how to handle view=%s" % str(view))
+            raise ValueError(f"Don't know how to handle {view=}")
 
         if closeit: pjdosfile.close()
         return fig
@@ -2009,7 +2011,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                                 pawt1dos_al[iatom, l, spin] += weight * gs * pawt1_wal_sbk[iatom, l, spin, band, k]
 
         else:
-            raise ValueError("Method %s is not supported" % method)
+            raise ValueError(f"{method=} is not supported")
 
         # TOT = PW + AE - PS
         pwdos_al = totdos_al - paw1dos_al + pawt1dos_al
@@ -2096,7 +2098,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #    except Exception:
     #        msg = traceback.format_exc()
     #        msg += ("Error while trying to compute the DOS.\n"
-    #                "Verify that the k-points form a homogenous sampling of the BZ.\n"
+    #                "Verify that the k-points form a homogeneous sampling of the BZ.\n"
     #                "Returning None\n")
     #        print(msg)
     #        return None
@@ -2171,7 +2173,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -2230,14 +2232,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class _DosIntegrator(object):
+class _DosIntegrator:
     """
     This object is responsible for the integration of the DOS/PJDOS.
     It's an internal object that should not be instantiated directly outside of this module.
     PJDOSes are computed lazily and stored in the integrator so that we can reuse the results
     if needed.
     """
-    def __init__(self, fbfile, method, step, width):
+    def __init__(self, fbfile: str, method: str, step: float, width: float):
         """
         """
         self.fbfile, self.method, self.step, self.width = fbfile, method, step, width
@@ -2246,18 +2248,18 @@ class _DosIntegrator(object):
         self.edos = fbfile.ebands.get_edos(method=method, step=step, width=width)
         self.mesh = self.edos.spin_dos[0].mesh
 
-    #@lazy_property
+    #@cached_property
     #def site_edos(self):
     #    """Array [natom, nsppol, lmax**2]"""
 
-    @lazy_property
-    def symbols_lso(self):
+    @cached_property
+    def symbols_lso(self) -> dict:
         """
         """
         fbfile, ebands = self.fbfile, self.fbfile.ebands
 
         # Compute l-decomposed PJDOS for each type of atom.
-        symbols_lso = OrderedDict()
+        symbols_lso = {}
         if self.method == "gaussian":
 
             for symbol in fbfile.symbols:
@@ -2275,12 +2277,12 @@ class _DosIntegrator(object):
                 symbols_lso[symbol] = lso
 
         else:
-            raise ValueError("Method %s is not supported" % self.method)
+            raise ValueError(f"{self.method=} is not supported")
 
         return symbols_lso
 
-    @lazy_property
-    def ls_stackdos(self):
+    @cached_property
+    def ls_stackdos(self) -> dict:
         """
         Compute ``ls_stackdos`` datastructure for stacked DOS.
         ls_stackdos maps (l, spin) onto a numpy array [nsymbols, nfreqs] where
@@ -2298,12 +2300,13 @@ class _DosIntegrator(object):
         for (l, spin), dvals in dls.items():
             arr = np.zeros((nsymb, len(self.mesh)))
             for isymb, symbol in enumerate(fbfile.symbols):
+                if symbol not in dvals: continue
                 arr[isymb] = dvals[symbol]
             ls_stackdos[(l, spin)] = arr.cumsum(axis=0)
 
         return ls_stackdos
 
-    def get_lstack_symbol(self, symbol, spin):
+    def get_lstack_symbol(self, symbol: str, spin: int) -> np.ndarray:
         """
         Return |numpy-array| with the cumulative sum over l for a given
         atom type (specified by the chemical symbol ``symbol``) and spin.

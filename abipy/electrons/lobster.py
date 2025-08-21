@@ -8,12 +8,11 @@ import glob
 import numpy as np
 
 from collections import defaultdict, OrderedDict
+from functools import cached_property
 from monty.string import marquee
 from monty.collections import tree
 from monty.io import zopen
 from monty.termcolor import cprint
-from monty.functools import lazy_property
-from pymatgen.core.periodic_table import Element
 from pymatgen.electronic_structure.core import OrbitalType
 from pymatgen.io.abinit.pseudos import Pseudo
 from abipy.core.func1d import Function1D
@@ -124,7 +123,7 @@ class CoxpFile(_LobsterFile):
 
     .. attribute:: type_of_index
 
-        Dictionary mappping site index to element string.
+        Dictionary mapping site index to element string.
 
     .. attribute:: energies
 
@@ -208,7 +207,7 @@ class CoxpFile(_LobsterFile):
 
         new = cls(filepath)
 
-        with zopen(filepath, "rt") as f:
+        with zopen(filepath, mode="rt", encoding="utf-8") as f:
             # Find the header
             for line in f:
                 match = header_patt.match(line.rstrip())
@@ -289,7 +288,7 @@ class CoxpFile(_LobsterFile):
 
         return new
 
-    @lazy_property
+    @cached_property
     def functions_pair_lorbitals(self):
         """
         Extracts a dictionary with keys pair, orbital, spin and containing a |Function1D| object resolved
@@ -318,7 +317,7 @@ class CoxpFile(_LobsterFile):
 
         return results
 
-    @lazy_property
+    @cached_property
     def functions_pair_morbitals(self):
         """
         Extracts a dictionary with keys pair, orbital, spin and containing a |Function1D| object resolved
@@ -334,7 +333,7 @@ class CoxpFile(_LobsterFile):
                     results[pair][orbs][spin] = Function1D(self.energies, orbs_data[spin]['single'])
         return results
 
-    @lazy_property
+    @cached_property
     def functions_pair(self):
         """
         Extracts a dictionary with keys pair, spin and containing a |Function1D| object for the total COP.
@@ -425,7 +424,7 @@ class CoxpFile(_LobsterFile):
     def plot_average_pairs(self, with_site_index, what="single", exchange_xy=False,
                            fontsize=8, **kwargs) -> Figure:
         """
-        Plot COXP total overlap for all sites containg `with_site_index` and average sum
+        Plot COXP total overlap for all sites containing `with_site_index` and average sum
         (multiplied by the number of pairs)
 
         Args:
@@ -651,7 +650,7 @@ class CoxpFile(_LobsterFile):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -686,7 +685,7 @@ class ICoxpFile(_LobsterFile):
 
     .. attribute:: type_of_index
 
-        Dictionary mappping site index to element string.
+        Dictionary mapping site index to element string.
     """
 
     @classmethod
@@ -712,7 +711,7 @@ class ICoxpFile(_LobsterFile):
         spin = None
         avg_num_bonds = False
         new.type_of_index = {}
-        with zopen(filepath, "rt") as f:
+        with zopen(filepath, mode="rt", encoding="utf-8") as f:
             for line in f:
                 match = header_patt.match(line.rstrip())
                 if match:
@@ -744,7 +743,7 @@ class ICoxpFile(_LobsterFile):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def dataframe(self):
         """|pandas-DataFrame| with results."""
         # self.values[pair][spin]
@@ -784,7 +783,7 @@ class ICoxpFile(_LobsterFile):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -833,7 +832,7 @@ class LobsterDoscarFile(_LobsterFile):
         Returns:
             A LobsterDoscarFile.
         """
-        with zopen(filepath, "rt") as f:
+        with zopen(filepath, mode="rt", encoding="utf-8") as f:
             dos_data = f.readlines()
 
         new = cls(filepath)
@@ -865,6 +864,7 @@ class LobsterDoscarFile(_LobsterFile):
             tokens = dos_data[i_first_line].split(';')
             orbitals = tokens[-1].split()
             Z = int(tokens[-2].split()[-1])
+            from pymatgen.core.periodic_table import Element
             el = Element.from_Z(Z)
             new.type_of_index[i_site] = el.symbol
 
@@ -984,7 +984,7 @@ class LobsterDoscarFile(_LobsterFile):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -1048,7 +1048,7 @@ class LobsterInput(object):
         self.advanced_options = advanced_options or {}
 
         if not all(opt in self.available_advanced_options for opt in self.advanced_options.keys()):
-            raise ValueError("Unknown adavanced options")
+            raise ValueError("Unknown advanced options")
 
     @classmethod
     def _get_basis_functions_from_abinit_pseudos(cls, pseudos):
@@ -1428,7 +1428,7 @@ class LobsterAnalyzer(NotebookWriter):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

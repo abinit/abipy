@@ -13,7 +13,7 @@ from collections import namedtuple
 from monty.collections import AttrDict
 from monty.string import is_string
 from monty.json import jsanitize, MontyDecoder, MSONable
-from pymatgen.io.abinit.pseudos import PseudoTable
+#from pymatgen.io.abinit.pseudos import PseudoTable
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 from abipy.tools.serialization import pmg_serialize
@@ -480,10 +480,6 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
         gw_qprange: Option for the automatic selection of k-points and bands for GW corrections.
             See Abinit docs for more detail. The default value makes the code compute the
             QP energies for all the point in the IBZ and one band above and one band below the Fermi level.
-
-    .. versionchanged: 0.3
-
-        The default value of ``shifts`` changed in v0.3 from (0.5, 0.5, 0.5) to (0.0, 0.0, 0.0).
     """
 
     structure = Structure.as_structure(structure)
@@ -1062,7 +1058,7 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
                         qpt=(0, 0, 0),                     # q-wavevector.
                         kptopt=3,                          # Take into account time-reversal symmetry.
                         iscf=7,                            # The rfstrs perturbation must be treated in a
-                                                           #  self-consistent way
+                                                           # self-consistent way
                         paral_kgb=0
                         )
 
@@ -1378,6 +1374,7 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
     abiinput.set_vars(chksymbreak=1, nbdbuf=nbdbuf, tolwfr=1.e-22)
 
     return abiinput
+
 
 def ddkpert_from_gsinput(gs_input, ddk_pert, nband=None, use_symmetries=False, ddk_tol=None, manager=None) -> AbinitInput:
     """

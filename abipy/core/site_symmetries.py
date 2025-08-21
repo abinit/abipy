@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import sympy as sp
 
-from collections import OrderedDict
 from monty.termcolor import cprint
 from abipy.core.mixins import Has_Structure
 from abipy.core.structure import Structure
@@ -80,7 +79,7 @@ class SiteSymmetries(Has_Structure):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose."""
         lines = []; app = lines.append
         app(self.structure.to_string(verbose=verbose, title="Structure"))
@@ -135,7 +134,7 @@ class SiteSymmetries(Has_Structure):
                 cprint("No solution for iatom %d" % iatom, "yellow")
 
             if solutions:
-                d = OrderedDict()
+                d = {}
                 d["element"] = site.specie.symbol
                 d["site_index"] = iatom
                 d["cart_coords"] = np.round(site.coords, decimals=decimals)
@@ -154,7 +153,7 @@ class SiteSymmetries(Has_Structure):
 
     def get_tensor_rank2_dataframe(self, view="all", select_symbols=None, decimals=5, verbose=0) -> pd.DataFrame:
         """
-        Use site symmetries to detect indipendent elements of rank 2 tensor.
+        Use site symmetries to detect independent elements of rank 2 tensor.
 
         Args:
             view:
@@ -194,14 +193,14 @@ class SiteSymmetries(Has_Structure):
 
                 system.append(m)
 
-            # Solve system of linear equations. Print only sites for which we have contraints.
+            # Solve system of linear equations. Print only sites for which we have constraints.
             solutions = sp.solve(system, dict=True)
             #print(solutions)
             if verbose and not solutions:
                 cprint("No solution for iatom %d" % iatom, "yellow")
 
             if solutions:
-                d = OrderedDict()
+                d = {}
                 d["element"] = site.specie.symbol
                 d["site_index"] = iatom
                 d["frac_coords"] = np.round(site.frac_coords, decimals=decimals)

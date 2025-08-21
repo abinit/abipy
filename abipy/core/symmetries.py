@@ -10,9 +10,9 @@ import numpy as np
 import pandas as pd
 import spglib
 
+from functools import cached_property
 from monty.string import is_string
 from monty.itertools import iuptri
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -284,7 +284,7 @@ class SymmOp(Operation, SlotPickleMixin):
 
     # operator protocol.
     def __eq__(self, other):
-        # Note the two fractional traslations are equivalent if they differ by a lattice vector.
+        # Note the two fractional translations are equivalent if they differ by a lattice vector.
         return (np.all(self.rot_r == other.rot_r) and
                 is_integer(self.tau - other.tau, atol=self._ATOL_TAU) and
                 self.afm_sign == other.afm_sign and
@@ -316,7 +316,7 @@ class SymmOp(Operation, SlotPickleMixin):
                               time_sign=self.time_sign,
                               afm_sign=self.afm_sign)
 
-    @lazy_property
+    @cached_property
     def isE(self) -> bool:
         """True if identity operator."""
         return (np.all(self.rot_r == np.eye(3, dtype=int)) and
@@ -325,7 +325,7 @@ class SymmOp(Operation, SlotPickleMixin):
                 self.afm_sign == 1)
     # end operator protocol.
 
-    #@lazy_property
+    #@cached_property
     #def order(self):
     #    """Order of the operation."""
     #    n = 0
@@ -356,37 +356,37 @@ class SymmOp(Operation, SlotPickleMixin):
 
         return s
 
-    @lazy_property
+    @cached_property
     def is_symmorphic(self) -> bool:
         """True if the fractional translation is non-zero."""
         return np.any(np.abs(self.tau) > 0.0)
 
-    @lazy_property
+    @cached_property
     def det(self) -> int:
         """Determinant of the rotation matrix [-1, +1]."""
         return _get_det(self.rot_r)
 
-    @lazy_property
+    @cached_property
     def trace(self) -> int:
         """Trace of the rotation matrix."""
         return self.rot_r.trace()
 
-    @lazy_property
+    @cached_property
     def is_proper(self) -> bool:
         """True if the rotational part has determinant == 1."""
         return self.det == +1
 
-    @lazy_property
+    @cached_property
     def has_timerev(self) -> bool:
         """True if symmetry contains the time-reversal operator."""
         return self.time_sign == -1
 
-    @lazy_property
+    @cached_property
     def is_fm(self) -> bool:
         """True if self if ferromagnetic symmetry."""
         return self.afm_sign == +1
 
-    @lazy_property
+    @cached_property
     def is_afm(self) -> bool:
         """True if self if anti-ferromagnetic symmetry."""
         return self.afm_sign == -1
@@ -487,7 +487,7 @@ class OpSequence(collections.abc.Sequence):
         stream.writelines("\n".join(lines))
 
     def count(self, op) -> int:
-        """Returns the number of occurences of operation op in self."""
+        """Returns the number of occurrences of operation op in self."""
         return self._ops.count(op)
 
     def index(self, op) -> int:
@@ -555,7 +555,7 @@ class OpSequence(collections.abc.Sequence):
 
     #def is_superset(self, other)
 
-    @lazy_property
+    @cached_property
     def mult_table(self) -> np.ndarray:
         """
         Given a set of nsym 3x3 operations which are supposed to form a group,
@@ -582,7 +582,7 @@ class OpSequence(collections.abc.Sequence):
         """Number of classes."""
         return len(self.class_indices)
 
-    @lazy_property
+    @cached_property
     def class_indices(self) -> list:
         """
         A class is defined as the set of distinct elements obtained by
@@ -633,6 +633,61 @@ class AbinitSpaceGroup(OpSequence):
     """
     Container storing the space group symmetries.
     """
+
+    @classmethod
+    def from_ncreader(cls, r, inord="F") -> AbinitSpaceGroup:
+        """
+        Builds the object from a netcdf reader
+        """
+        kptopt = int(r.read_value("kptopt", default=1))
+        symrel = r.read_value("reduced_symmetry_matrices")
+
+        return cls(spgid=r.read_value("space_group"),
+                   symrel=symrel,
+                   tnons=r.read_value("reduced_symmetry_translations"),
+                   symafm=r.read_value("symafm"),
+                   has_timerev=has_timrev_from_kptopt(kptopt),
+                   inord=inord)
+
+    @classmethod
+    def from_structure(cls, structure, has_timerev=True, symprec=1e-5, angle_tolerance=5):
+        """
+        Takes a |Structure| object. Uses spglib to perform various symmetry finding operations.
+
+        Args:
+            structure: |Structure| object.
+            has_timerev: True is time-reversal symmetry is included.
+            symprec: Tolerance for symmetry finding.
+            angle_tolerance: Angle tolerance for symmetry finding.
+
+        .. warning::
+
+            AFM symmetries are not supported.
+        """
+        # Call spglib to get the list of symmetry operations.
+        spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
+        data = spga.get_symmetry_dataset()
+
+        return cls(spgid=data.number,
+                   symrel=data.rotations,
+                   tnons=data.translations,
+                   symafm=len(data.rotations) * [1],
+                   has_timerev=has_timerev,
+                   inord="C")
+
+    #@classmethod
+    #def from_file(cls, ncfile, inord="F"):
+    #    """
+    #    Initialize the object from a Netcdf file.
+    #    """
+    #    from abipy.iotools import as_etsfreader
+    #    r, closeit = as_etsfreader(ncfile)
+    #    new = cls.from_ncreader(r)
+    #    if closeit:
+    #        file.close()
+
+    #    return new
+
 
     def __init__(self, spgid, symrel, tnons, symafm, has_timerev, inord="C"):
         """
@@ -685,61 +740,6 @@ class AbinitSpaceGroup(OpSequence):
                                        rot_g=self.symrec[isym]))
         self._ops = tuple(all_syms)
 
-    @classmethod
-    def from_ncreader(cls, r, inord="F"):
-        """
-        Builds the object from a netcdf reader
-        """
-        kptopt = int(r.read_value("kptopt", default=1))
-        symrel = r.read_value("reduced_symmetry_matrices")
-
-        return cls(spgid=r.read_value("space_group"),
-                   symrel=symrel,
-                   tnons=r.read_value("reduced_symmetry_translations"),
-                   symafm=r.read_value("symafm"),
-                   has_timerev=has_timrev_from_kptopt(kptopt),
-                   inord=inord)
-
-    #@classmethod
-    #def from_file(cls, ncfile, inord="F"):
-    #    """
-    #    Initialize the object from a Netcdf file.
-    #    """
-    #    from abipy.iotools import as_etsfreader
-    #    r, closeit = as_etsfreader(ncfile)
-    #    new = cls.from_ncreader(r)
-    #    if closeit:
-    #        file.close()
-
-    #    return new
-
-    @classmethod
-    def from_structure(cls, structure, has_timerev=True, symprec=1e-5, angle_tolerance=5):
-        """
-        Takes a |Structure| object. Uses spglib to perform various symmetry finding operations.
-
-        Args:
-            structure: |Structure| object.
-            has_timerev: True is time-reversal symmetry is included.
-            symprec: Tolerance for symmetry finding.
-            angle_tolerance: Angle tolerance for symmetry finding.
-
-        .. warning::
-
-            AFM symmetries are not supported.
-        """
-        # Call spglib to get the list of symmetry operations.
-        spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
-        data = spga.get_symmetry_dataset()
-        symrel = data["rotations"]
-
-        return cls(spgid=data["number"],
-                   symrel=symrel,
-                   tnons=data["translations"],
-                   symafm=len(symrel) * [1],
-                   has_timerev=has_timerev,
-                   inord="C")
-
     def __repr__(self) -> str:
         return "spgid: %d, num_spatial_symmetries: %d, has_timerev: %s, symmorphic: %s" % (
             self.spgid, self.num_spatial_symmetries, self.has_timerev, self.is_symmorphic)
@@ -759,7 +759,7 @@ class AbinitSpaceGroup(OpSequence):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def is_symmorphic(self) -> bool:
         """True if there's at least one operation with non-zero fractional translation."""
         return any(op.is_symmorphic for op in self)
@@ -926,7 +926,7 @@ class LittleGroup(OpSequence):
         krots = np.array([o.rot_g for o in symmops if not o.has_timerev])
         self.kgroup = LatticePointGroup(krots)
 
-    @lazy_property
+    @cached_property
     def is_symmorphic(self) -> bool:
         """True if there's at least one operation with non-zero fractional translation."""
         return any(op.is_symmorphic for op in self)
@@ -935,7 +935,7 @@ class LittleGroup(OpSequence):
     def symmops(self):
         return self._ops
 
-    @lazy_property
+    @cached_property
     def on_bz_border(self) -> bool:
         """
         True if the k-point is on the border of the BZ.
@@ -1076,7 +1076,7 @@ class LatticeRotation(Operation):
         """
         return self.__class__(mati3inv(self.mat, trans=False))
 
-    @lazy_property
+    @cached_property
     def isE(self):
         """True if it is the identity"""
         return np.allclose(self.mat, self._E3D)
@@ -1113,27 +1113,27 @@ class LatticeRotation(Operation):
             self._order, self._root_inv = self._find_order_and_rootinv()
             return self._root_inv
 
-    @lazy_property
+    @cached_property
     def det(self):
         """Return the determinant of a symmetry matrix mat[3,3]. It must be +-1"""
         return _get_det(self.mat)
 
-    @lazy_property
+    @cached_property
     def trace(self):
         """The trace of the rotation matrix"""
         return self.mat.trace()
 
-    @lazy_property
+    @cached_property
     def is_proper(self):
         """True if proper rotation"""
         return self.det == 1
 
-    @lazy_property
+    @cached_property
     def isI(self):
         """True if self is the inversion operation."""
         return np.allclose(self.mat, -self._E3D)
 
-    @lazy_property
+    @cached_property
     def name(self):
         # Sign of the determinant (only if improper)
         name = "-" if self.det == -1 else ""
@@ -1219,7 +1219,7 @@ class Irrep:
     def character(self):
         return self._character
 
-    #@lazy_property
+    #@cached_property
     #def dataframe(self):
 
 
@@ -1289,12 +1289,12 @@ class BilbaoPointGroup:
         """List with the names of the irreps."""
         return list(self.irreps_by_name.keys())
 
-    @lazy_property
+    @cached_property
     def character_table(self) -> pd.DataFrame:
         """
         Dataframe with irreps.
         """
-        # Caveat: class names are not necessarly unique --> use np.stack
+        # Caveat: class names are not necessarily unique --> use np.stack
         import pandas as pd
         name_mult = [name + " [" + str(mult) + "]" for (name, mult) in zip(self.class_names, self.class_len)]
         columns = ["name"] + name_mult

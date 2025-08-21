@@ -67,10 +67,6 @@
 
     Compute phonon frequencies with phonopy (supercells and finite-difference method).
 
-``run_qha``:
-
-    Flow for quasi-harmonic calculations
-
 ``run_qptdmscr``:
 
     This example shows how to compute the SCR file by splitting the calculation of the SCR file

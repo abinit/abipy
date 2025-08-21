@@ -3,8 +3,9 @@ Classes to compute vibrational properties with phonopy and ML potentials.
 """
 from __future__ import annotations
 
-import numpy as np
+import os
 import json
+import numpy as np
 import abipy.core.abinit_units as abu
 
 from monty.dev import requires
@@ -12,15 +13,18 @@ from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from ase.calculators.calculator import Calculator
 from ase.atoms import Atoms
+from ase.filters import FrechetCellFilter # ExpCellFilter,
 from pymatgen.io.phonopy import get_phonopy_structure
 from abipy.core.structure import Structure
 from abipy.dfpt.ddb import DdbFile
+from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter
 from abipy.tools.context_managers import Timer
 from abipy.ml.aseml import RX_MODE, CalcBuilder, AseResults, MlBase, relax_atoms, dataframe_from_results_list
 try:
     import phonopy
     from phonopy import Phonopy
     from phonopy.structure.atoms import PhonopyAtoms
+    from phonopy import PhonopyQHA
 except ImportError:
     phonopy = None
     Phonopy = None
@@ -42,6 +46,8 @@ def get_phonopy(structure: Structure,
                 remove_drift=True,
                 ) -> Phonopy:
     """
+    Build and return a Phonopy instance.
+
     Args:
         structure: Structure object.
         supercell_matrix: Supercell matrix.
@@ -52,9 +58,9 @@ def get_phonopy(structure: Structure,
 
     Based on a similar implementation available at: https://github.com/modl-uclouvain/randomcarbon/blob/main/randomcarbon/run/phonon.py
     """
-    unitcell = Structure.as_structure(structure).get_phonopy_atoms()
+    unit_cell = Structure.as_structure(structure).get_phonopy_atoms()
 
-    phonon = Phonopy(unitcell, supercell_matrix=supercell_matrix, primitive_matrix=primitive_matrix)
+    phonon = Phonopy(unit_cell, supercell_matrix=supercell_matrix, primitive_matrix=primitive_matrix)
     phonon.generate_displacements(distance=distance)
 
     forces_list = []
@@ -68,7 +74,6 @@ def get_phonopy(structure: Structure,
                   cell=sc.cell,
                   pbc=True,
                   calculator=calculator)
-
 
         forces = a.get_forces()
         if remove_drift:
@@ -88,18 +93,31 @@ class MlPhonopyWithDDB(MlBase):
     """
     Compute phonons with phonopy and a ML potential starting from a DDB file and compare the results.
     """
-    def __init__(self, ddb_filepath,
-                 distance, asr, dipdip, line_density, qppa,
-                 relax_mode, fmax, pressure, steps, optimizer, nn_names,
-                 verbose, workdir, prefix=None,
-                 supercell=None):
+    def __init__(self,
+                 ddb_filepath,
+                 distance,
+                 asr,
+                 dipdip,
+                 line_density,
+                 qppa,
+                 relax_mode,
+                 fmax,
+                 pressure,
+                 steps,
+                 optimizer,
+                 nn_names,
+                 verbose,
+                 workdir,
+                 prefix=None,
+                 supercell=None
+                ):
         """
         Args:
             ddb_filepath: DDB filepath.
             distance: Distance of finite displacement in Angstrom.
             asr: Enforce acoustic sum-rule. Abinit variable.
             dipdip: Treatment of dipole-dipole term. Abinit variable.
-            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+            line_density: Defines the density of k-points per reciprocal atom to plot the phonon dispersion.
             qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per atom.
             relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
             fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
@@ -139,6 +157,7 @@ class MlPhonopyWithDDB(MlBase):
         if self.supercell is None:
             raise ValueError("Supercell must be specified in input!")
 
+        self.supercell = np.array(self.supercell)
         self.abi_nac_params = {}
 
     def to_string(self, verbose=0):
@@ -197,7 +216,6 @@ class MlPhonopyWithDDB(MlBase):
                 d_nn[nn_name] = d
                 d_nn[nn_name]["exception"] = None
             except Exception as exc:
-                #raise
                 cprint_traceback()
                 d_nn[nn_name] = {}
                 d_nn[nn_name]["exception"] = str(exc)
@@ -246,7 +264,6 @@ class MlPhonopyWithDDB(MlBase):
         # Save phonopy object in Yaml format.
         phonon.save(filename=workdir / f"phonopy_params.yaml", settings={'force_constants': True})
 
-        from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter
         with Timer(header="Starting phonopy ph-band computation...", footer=""):
             phonon.run_band_structure(self.py_qpoints, with_eigenvectors=True)
 
@@ -257,7 +274,7 @@ class MlPhonopyWithDDB(MlBase):
         bands_dict = phonon.get_band_structure_dict()
         nqpt = 0
         py_phfreqs, py_displ_cart = [], []
-        for q_list, w_list, eig_list in zip(bands_dict['qpoints'], bands_dict['frequencies'], bands_dict['eigenvectors']):
+        for q_list, w_list, eig_list in zip(bands_dict['qpoints'], bands_dict['frequencies'], bands_dict['eigenvectors'], strict=True):
             nqpt += len(q_list)
             py_phfreqs.extend(w_list)
             py_displ_cart.extend(eig_list)
@@ -275,6 +292,9 @@ class MlPhonopyWithDDB(MlBase):
                                  zcart=self.abi_phbands.zcart,
                                  )
 
+        # TODO
+        #py_phbands = PhononBands.from_phonopy_phonon(phonon)
+
         # Compute diff stats.
         mabs_wdiff_ev = np.abs(py_phbands.phfreqs - self.abi_phbands.phfreqs).mean()
 
@@ -285,8 +305,8 @@ class MlPhonopyWithDDB(MlBase):
         mae_str = f"MAE {1000 * mabs_wdiff_ev:.3f} meV"
         print(mae_str)
         latex_formula = self.abi_phbands.structure.latex_formula
-        ph_plotter.combiplot(show=False, title=f"{latex_formula}: {mae_str}", units="meV",
-                             savefig=str(workdir / f"combiplot_{nn_name}.pdf"))
+        ph_plotter.combiplot(title=f"{latex_formula}: {mae_str}", units="meV",
+                             savefig=str(workdir / f"combiplot_{nn_name}.pdf"), show=False)
 
         data = dict(
             mabs_wdiff_ev=mabs_wdiff_ev,
@@ -311,11 +331,24 @@ class MlPhonopyWithDDB(MlBase):
 
 class MlPhonopy(MlBase):
     """
-    Compute phonons with phonopy and ML potential.
+    Compute phonons with phonopy and a ML potential.
     """
-    def __init__(self, structure, supercell, distance, line_density, qppa,
-                 relax_mode, fmax, pressure, steps, optimizer, nn_names,
-                 verbose, workdir, prefix=None):
+    def __init__(self,
+                 structure,
+                 supercell,
+                 distance,
+                 line_density,
+                 qppa,
+                 relax_mode,
+                 fmax,
+                 pressure,
+                 steps,
+                 optimizer,
+                 nn_names,
+                 verbose,
+                 workdir,
+                 prefix=None
+                 ):
         """
         Args:
             structure: Structure object
@@ -338,8 +371,6 @@ class MlPhonopy(MlBase):
         self.initial_atoms = structure.to_ase_atoms()
 
         self.distance = float(distance)
-        #self.asr = asr
-        #self.dipdip = dipdip
         self.relax_mode = relax_mode
         RX_MODE.validate(self.relax_mode)
         self.fmax = fmax
@@ -348,10 +379,9 @@ class MlPhonopy(MlBase):
         self.optimizer = optimizer
         self.nn_names = list_strings(nn_names)
         self.verbose = verbose
-        self.supercell = supercell
+        self.supercell = np.array(supercell)
         self.line_density = line_density
         self.qppa = qppa
-        #self.abi_nac_params = {}
 
     def to_string(self, verbose=0):
         """String representation with verbosity level `verbose`."""
@@ -392,7 +422,7 @@ class MlPhonopy(MlBase):
         self.write_json("data.json", data, info="JSON file with final results.")
         self._finalize()
 
-    def _run_nn_name(self, nn_name: str) -> None:
+    def _run_nn_name(self, nn_name: str) -> dict:
         """
         Run calculation for a single NN potential.
         """
@@ -401,7 +431,6 @@ class MlPhonopy(MlBase):
         calculator = CalcBuilder(nn_name).get_calculator()
         atoms = self.initial_atoms.copy()
         atoms.calc = calculator
-        natom = len(atoms)
 
         if self.relax_mode != RX_MODE.no:
             print(f"Relaxing input atoms with relax mode: {self.relax_mode}.")
@@ -458,3 +487,182 @@ class MlPhonopy(MlBase):
 
         return {}
 
+
+class MlVZSISAQHAPhonopy(MlBase):
+    """
+    Perform a VZSISA QHA calculation with phonopy and a ML potential.
+    """
+    def __init__(self,
+                 structure,
+                 bo_vol_scales,
+                 supercell,
+                 distance,
+                 line_density,
+                 qppa,
+                 relax_mode,
+                 fmax,
+                 pressure,
+                 steps,
+                 optimizer,
+                 nn_name,
+                 verbose,
+                 workdir,
+                 prefix=None
+                ):
+        """
+        Args:
+            structure: Structure object
+            supercell: Supercell dimensions.
+            distance: Distance of finite displacements in Angstrom.
+            line_density: Defines the a density of k-points per reciprocal atom to plot the phonon dispersion.
+            qppa: Defines the homogeneous q-mesh used for the DOS in units of q-points per atom.
+            relax_mode: "ions" to relax ions only, "cell" for ions + cell, "no" for no relaxation.
+            fmax: tolerance for relaxation convergence. Here fmax is a sum of force and stress forces.
+            steps: max number of steps for relaxation.
+            optimizer: name of the ASE optimizer to use for relaxation.
+            nn_name: String defining the NN potential. See also CalcBuilder.
+            verbose: Verbosity level.
+            workdir: Working directory, None to generate temporary directory automatically.
+            prefix: Prefix for workdir.
+        """
+        super().__init__(workdir, prefix)
+
+        self.initial_atoms = structure.to_ase_atoms()
+        self.bo_vol_scales = np.array(bo_vol_scales)
+        # TODO
+        #self.ph_vol_scales = np.array(ph_vol_scales)
+
+        self.distance = float(distance)
+        self.fmax = fmax
+        self.steps = steps
+        self.optimizer = optimizer
+        self.nn_name = str(nn_name)
+        self.verbose = verbose
+        self.supercell = np.array(supercell)
+        self.line_density = line_density
+        self.qppa = qppa
+
+    def to_string(self, verbose=0):
+        """String representation with verbosity level `verbose`."""
+        supercell = self.supercell.tolist()
+        s = f"""\
+
+{self.__class__.__name__} parameters:
+
+     supercell     = {supercell}
+     distance      = {self.distance}
+     qppa          = {self.qppa}
+     line_density  = {self.line_density}
+     fmax          = {self.fmax}
+     steps         = {self.steps}
+     optimizer     = {self.optimizer}
+     nn_name       = {self.nn_name}
+     workdir       = {self.workdir}
+     verbose       = {self.verbose}
+"""
+        return s
+
+    def run(self) -> None:
+        """
+        Run calculation
+        """
+        workdir = self.workdir
+        nn_name = self.nn_name
+
+        calculator = CalcBuilder(self.nn_name).get_calculator()
+        atoms = self.initial_atoms.copy()
+        atoms.calc = calculator
+
+        relax_mode = RX_MODE.cell
+        print(f"Relaxing initial atoms with {relax_mode=}.")
+        relax_kws = dict(optimizer=self.optimizer,
+                         relax_mode=relax_mode,
+                         fmax=self.fmax,
+                         pressure=0,
+                         steps=self.steps,
+                         traj_path=self.get_path(f"{nn_name}_initial_relax.traj", "ASE relax trajectory"),
+                         verbose=self.verbose,
+                        )
+
+        relax = relax_atoms(atoms, **relax_kws)
+        relax.summarize(["initial", "relaxed"])
+        print(relax)
+
+        v0 = atoms.get_volume()
+        data = {"bo_vol_scales": self.bo_vol_scales}
+        data["bo_energies"] = []
+
+        for ivol, bo_vol_scale in enumerate(self.bo_vol_scales):
+            # Scale the cell
+            new_structure = Structure.as_structure(atoms.copy())
+            new_vol = v0 * bo_vol_scale
+            new_atoms = new_structure.scale_lattice(new_vol).to_ase_atoms()
+            new_atoms.calc = calculator
+            new_ucf = FrechetCellFilter(new_atoms, constant_volume=True)
+
+            vol_workdir = self.get_path(f"VOL_{ivol}", info=f"Directory with phonopy results for {ivol=}, {new_vol=}")
+            os.mkdir(vol_workdir)
+            relax_mode = RX_MODE.ions
+            print(f"Relaxing initial atoms at fixed volume with {relax_mode=}.")
+            relax_kws = dict(optimizer=self.optimizer,
+                             relax_mode=relax_mode,
+                             fmax=self.fmax,
+                             pressure=0,
+                             steps=self.steps,
+                             traj_path=vol_workdir / "relax.traj",
+                             verbose=self.verbose,
+                            )
+
+            relax = relax_atoms(new_ucf, **relax_kws)
+            relax.summarize(["initial", "relaxed"])
+            print(relax)
+
+            data["bo_energies"].append(new_ucf.get_potential_energy())
+
+            # Call phonopy to compute phonons with finite difference and ML potential.
+            # Include non-analytical term if dipoles are available in the DDB file.
+            with Timer(header=f"Calling get_phonopy with {nn_name=}", footer=""):
+                phonon = get_phonopy(new_atoms, self.supercell, calculator,
+                                     distance=self.distance, primitive_matrix=None, remove_drift=True)
+
+            plt = phonon.auto_band_structure(
+                  npoints=101,
+                  with_eigenvectors=False,
+                  with_group_velocities=False,
+                  plot=True,
+                  write_yaml=True,
+                  filename=vol_workdir / f"band.yml",
+            )
+            plt.savefig(vol_workdir / f"phonopy_phbands{self.fig_ext}")
+            plt.close()
+
+            # Save phonopy object in Yaml format.
+            phonon.save(filename=vol_workdir / f"phonopy_params.yaml", settings={'force_constants': True})
+
+            # Compute phonon DOS and generate file with figure.
+            dos_filepath = vol_workdir / "phonopy_phdos.dat"
+            phonon.auto_total_dos(plot=True, write_dat=True, filename=dos_filepath)
+            plt.savefig(vol_workdir / f"phonopy_phdos{self.fig_ext}")
+            plt.close()
+
+            # Compute thermal properties.
+            phonon.run_thermal_properties(t_step=10, t_max=1000, t_min=0)
+            phonon.write_yaml_thermal_properties(filename=vol_workdir / "phonopy_thermal_properties.yaml")
+
+            phonon.plot_thermal_properties()
+            plt.savefig(vol_workdir / f"phonopy_thermal_properties{self.fig_ext}")
+            plt.close()
+
+        #phonopy_qha = PhonopyQHA(
+        #    volumes=volumes,
+        #    electronic_energies=electronic_energies,
+        #    temperatures=temperatures,
+        #    free_energy=np.transpose(free_energies),
+        #    entropy=np.transpose(entropies),
+        #    #cv=np.transpose(heat_capacities),
+        #    eos=self.eos,
+        #    t_max=self.t_max,
+        #)
+
+        self.write_json("data.json", data, info="JSON file with final results.")
+        self._finalize()

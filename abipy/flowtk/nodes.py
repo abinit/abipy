@@ -13,18 +13,15 @@ import numpy as np
 import pandas as pd
 
 from collections import OrderedDict
-from pprint import pprint
-from typing import Any, Union
-from monty.json import jsanitize
-
+from typing import Any
+from functools import cached_property
 from pydispatch import dispatcher
+from monty.json import jsanitize, MSONable
 from monty.termcolor import colored
 from monty.serialization import loadfn
 from monty.string import is_string
 from monty.io import FileLock
 from monty.collections import AttrDict, Namespace
-from monty.functools import lazy_property
-from monty.json import MSONable
 from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 from abipy.tools.iotools import AtomicFile
 #from abipy.tools.typing import TYPE_CHECKING
@@ -38,6 +35,7 @@ logger = logging.getLogger(__name__)
 #    from .tasks import Task
 #    from .works import Work
 #    from .flows import Flow
+
 
 def _2attrs(item):
     return item if item is None or isinstance(list, tuple) else (item,)
@@ -53,7 +51,7 @@ class Status(int):
         (1, "Initialized", None, None, None),
         # Task is locked an must be explicitly unlocked by an external subject (Work).
         (2, "Locked", "grey", None, None),
-        # Node is ready i.e. all the depencies of the node have status S_OK
+        # Node is ready i.e. all the dependencies of the node have status S_OK
         (3, "Ready", None, None, None),
         # Node has been submitted (The `Task` is running or we have started to finalize the Work)
         (4, "Submitted", "blue", None, None),
@@ -137,7 +135,7 @@ class Dependency:
     def __init__(self, node, exts=None):
         """
         Args:
-            node: The task or the worfklow associated to the dependency or string with a filepath.
+            node: The task or the workflow associated to the dependency or string with a filepath.
             exts: Extensions of the output files that are needed for running the other tasks.
         """
         self._node = Node.as_node(node)
@@ -174,7 +172,7 @@ class Dependency:
         """The status of the dependency, i.e. the status of the |Node|."""
         return self.node.status
 
-    @lazy_property
+    @cached_property
     def products(self) -> list[Product]:
         """List of output files produces by self."""
         _products = []
@@ -234,7 +232,7 @@ class Product:
         """
         Args:
             ext: ABINIT file extension
-            path: (asbolute) filepath
+            path: (absolute) filepath
         """
         if ext not in abi_extensions():
             raise ValueError("Extension `%s` has not been registered in the internal database" % str(ext))
@@ -336,7 +334,7 @@ class NodeResults(dict, MSONable):
         to the absolute path. By default, files are assumed to be in binary form, for formatted files
         one should pass a tuple ("filepath", "t").
 
-        Example::
+        .. code-block::
 
             results.register_gridfs(GSR="path/to/GSR.nc", text_file=("/path/to/txt_file", "t"))
 
@@ -372,17 +370,6 @@ class NodeResults(dict, MSONable):
     def json_load(cls, filename):
         return cls.from_dict(loadfn(filename))
 
-    #def validate_json_schema(self):
-    #    import validictory
-    #    d = self.as_dict()
-    #    try:
-    #        validictory.validate(d, self.JSON_SCHEMA)
-    #        return True
-    #    except ValueError as exc:
-    #        pprint(d)
-    #        print(exc)
-    #        return False
-
     def update_collection(self, collection):
         """
         Update a mongodb collection.
@@ -405,7 +392,7 @@ class NodeResults(dict, MSONable):
             fs = gridfs.GridFS(db)
             for ext, gridfile in self.gridfs_files.items():
                 logger.info("gridfs: about to put file:", str(gridfile))
-                # Here we set gridfile.fs_id that will be stored in the mondodb document
+                # Here we set gridfile.fs_id that will be stored in the mongodb document
                 try:
                     with open(gridfile.path, "r" + gridfile.mode) as f:
                         gridfile.fs_id = fs.put(f, filename=gridfile.path)
@@ -532,6 +519,8 @@ class Node(metaclass=abc.ABCMeta):
         # The content will be saved in json format in the working directory of the node.
         self.abipy_meta_json = None
 
+        self._attrs = {}
+
         # Set to true if the node has been finalized.
         self._finalized = False
         self._status = self.S_INIT
@@ -559,7 +548,7 @@ class Node(metaclass=abc.ABCMeta):
     #        raise RuntimeError("You should not call __setattr__ in spectator_mode")
     #    return super().__setattr__(name,value)
 
-    @lazy_property
+    @cached_property
     def color_hex(self) -> str:
         """Node color as Hex Triplet https://en.wikipedia.org/wiki/Web_colors#Hex_triplet"""
         def clamp(x):
@@ -567,6 +556,11 @@ class Node(metaclass=abc.ABCMeta):
 
         r, g, b = np.trunc(self.color_rgb * 255)
         return "#{0:02x}{1:02x}{2:02x}".format(clamp(r), clamp(g), clamp(b))
+
+    @property
+    def attrs(self) -> dict:
+        """Dictionary with attributes attached to the node."""
+        return self._attrs
 
     def isinstance(self, class_or_string):
         """
@@ -583,7 +577,7 @@ class Node(metaclass=abc.ABCMeta):
             return self.__class__.__name__.lower() == class_or_string.lower()
 
     @classmethod
-    def as_node(cls, obj: Any) -> Union[Node, None]:
+    def as_node(cls, obj: Any) -> Node | None:
         """
         Convert obj into a Node instance.
 
@@ -630,9 +624,10 @@ class Node(metaclass=abc.ABCMeta):
             # current working directory may not be defined!
             return self.workdir
 
-    def set_name(self, name: str) -> None:
+    def set_name(self, name: str) -> Node:
         """Set the name of the Node."""
         self._name = name
+        return self
 
     @property
     def node_id(self) -> int:
@@ -710,7 +705,7 @@ class Node(metaclass=abc.ABCMeta):
 
         Args:
             event: :class:`AbinitEvent` that triggered the correction.
-            action (str): Human-readable string with info on the action perfomed to solve the problem.
+            action (str): Human-readable string with info on the action performed to solve the problem.
         """
         # TODO: Create CorrectionObject
         action = str(action)
@@ -887,10 +882,11 @@ class Node(metaclass=abc.ABCMeta):
         Return pandas DataFrame with the value of the variables specified in `varnames`.
         Can be used for task/works/flow. It's recursive!
 
-        .. example:
+        .. code-block:: python
 
             flow.get_vars_dataframe("ecut", "ngkpt")
             work.get_vars_dataframe("acell", "usepawu")
+
         """
         if self.is_task:
             df = pd.DataFrame([{v: self.input.get(v, None) for v in varnames}], index=[self.name], columns=varnames)
@@ -1081,7 +1077,7 @@ class FileNode(Node):
             # this usually happens when workdir has not been initialized
             return "<%s, node_id=%s, path=%s>" % (self.__class__.__name__, self.node_id, self.filepath)
 
-    @lazy_property
+    @cached_property
     def basename(self) -> str:
         """Basename of the file."""
         return os.path.basename(self.filepath)
@@ -1131,7 +1127,7 @@ class FileNode(Node):
             msg = """\n
 File type does not match the abinit file extension.
 Caller asked for abiext: `%s` whereas filepath: `%s`.
-Continuing anyway assuming that the netcdf file provides the API/dims/vars neeeded by the caller.
+Continuing anyway assuming that the netcdf file provides the API/dims/vars needed by the caller.
 """ % (abiext, self.filepath)
             self.history.warning(msg)
 
@@ -1309,7 +1305,7 @@ class NodeHistory(collections.deque):
 
 
 class NodeCorrections(list):
-    """Iterable storing the correctios performed by the :class:`EventHandler`"""
+    """Iterable storing the correctinos performed by the :class:`EventHandler`"""
     #TODO
     # Correction should have a human-readable message
     # and a list of operations in JSON format (Modder?) so that
@@ -1367,7 +1363,6 @@ def get_newnode_id() -> int:
     """
     #import uuid
     #return uuid.uuid4()
-
     init_counter()
 
     global _COUNTER
@@ -1384,6 +1379,6 @@ def save_lastnode_id() -> None:
             fh.write("%d\n" % _COUNTER)
 
 
-# Register function atexit
+# IMPORTANT: Register function atexit
 import atexit
 atexit.register(save_lastnode_id)

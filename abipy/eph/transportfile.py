@@ -8,7 +8,7 @@ Warning: This fileformat is deprecated and will be removed when Abinit 9.2 is re
 import numpy as np
 import abipy.core.abinit_units as abu
 
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import marquee
 from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
@@ -43,7 +43,7 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         """Number of temperatures."""
         return len(self.tmesh)
 
-    @lazy_property
+    @cached_property
     def ebands(self):
         """|ElectronBands| object."""
         return self.reader.read_ebands()
@@ -53,7 +53,7 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         """|Structure| object."""
         return self.ebands.structure
 
-    @lazy_property
+    @cached_property
     def params(self):
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()

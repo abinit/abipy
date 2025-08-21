@@ -19,7 +19,7 @@ import pandas as pd
 
 from io import StringIO
 from pprint import pprint
-from typing import Any, Union, Iterator, Generator
+from typing import Any, Iterator, Generator
 from tabulate import tabulate
 from pydispatch import dispatcher
 from monty.collections import dict2namedtuple
@@ -174,19 +174,19 @@ class Flow(Node, NodeContainer, MSONable):
         elif isinstance(obj, collections.abc.Mapping):
             return cls.from_dict(obj)
         else:
-            raise TypeError("Don't know how to convert type %s into a Flow" % type(obj))
+            raise TypeError(f"Don't know how to convert {type(obj)=} into a Flow")
 
     def __init__(self, workdir, manager=None, pickle_protocol=-1, remove=False):
         """
         Args:
             workdir: String specifying the directory where the works will be produced.
-                     if workdir is None, the initialization of the working directory
-                     is performed by flow.allocate(workdir).
+                if workdir is None, the initialization of the working directory
+                is performed by flow.allocate(workdir).
             manager: |TaskManager| object responsible for the submission of the jobs.
-                     If manager is None, the object is initialized from the yaml file
-                     located either in the working directory or in the user configuration dir.
+                If manager is None, the object is initialized from the yaml file
+                located either in the working directory or in the user configuration dir.
             pickle_protocol: Pickle protocol version used for saving the status of the object.
-                          -1 denotes the latest version supported by the python interpreter.
+                -1 denotes the latest version supported by the python interpreter.
             remove: attempt to remove working directory `workdir` if directory already exists.
         """
         super().__init__()
@@ -321,8 +321,7 @@ class Flow(Node, NodeContainer, MSONable):
             spectator_mode: If True, the nodes of the flow are not connected by signals.
                 This option is usually used when we want to read a flow
                 in read-only mode and we want to avoid callbacks that can change the flow.
-            remove_lock:
-                True to remove the file lock if any (use it carefully).
+            remove_lock: True to remove the file lock if any (use it carefully).
         """
         filepath = os.path.expanduser(filepath)
         if os.path.isdir(filepath):
@@ -392,21 +391,21 @@ class Flow(Node, NodeContainer, MSONable):
     def __iter__(self) -> Iterator[Work]:
         return self.works.__iter__()
 
-    def __getitem__(self, slice) -> Union[Work, list[Work]]:
+    def __getitem__(self, slice) -> Work | list[Work]:
         return self.works[slice]
 
     def set_pyfile(self, pyfile: str) -> None:
         """
         Set the path of the python script used to generate the flow.
 
-        .. Example:
+        .. code-block:: python
 
             flow.set_pyfile(__file__)
         """
         self._pyfile = os.path.abspath(pyfile)
 
     @property
-    def pyfile(self) -> Union[str, None]:
+    def pyfile(self) -> str | None:
         """
         Absolute path of the python script used to generate the flow.
         None if unset. Set by `set_pyfile`
@@ -753,7 +752,7 @@ class Flow(Node, NodeContainer, MSONable):
                         else:
                             yield task
 
-    def abivalidate_inputs(self) -> tuple:
+    def abivalidate_inputs(self, verbose: int = 1) -> tuple:
         """
         Run ABINIT in dry mode to validate all the inputs of the flow.
 
@@ -777,7 +776,11 @@ class Flow(Node, NodeContainer, MSONable):
         isok, tuples = True, []
         for task in self.iflat_tasks():
             t = task.input.abivalidate()
-            if t.retcode != 0: isok = False
+            if t.retcode != 0:
+                isok = False
+                if verbose:
+                    print(t.stderr_file.read())
+
             tuples.append(t)
 
         return isok, tuples
@@ -794,7 +797,7 @@ class Flow(Node, NodeContainer, MSONable):
                     deadlocks.append((task, dep.node))
 
         if deadlocks:
-            lines = ["Detect wrong list of dependecies that will lead to a deadlock:"]
+            lines = ["Detect wrong list of dependencies that will lead to a deadlock:"]
             lines.extend(["%s <--> %s" % nodes for nodes in deadlocks])
             raise RuntimeError("\n".join(lines))
 
@@ -1342,7 +1345,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     def show_events(self, status=None, nids=None, stream=sys.stdout):
         """
-        Print the Abinit events (ERRORS, WARNIING, COMMENTS) to stdout
+        Print the Abinit events (ERRORS, WARNING, COMMENTS) to stdout
 
         Args:
             status: if not None, only the tasks with this status are select
@@ -1528,7 +1531,7 @@ class Flow(Node, NodeContainer, MSONable):
     def get_task_scfcycles(self, nids=None, wslice=None, task_class=None,
                            exclude_ok_tasks=False) -> list[Task]:
         """
-        Return list of (taks, scfcycle) tuples for all the tasks in the flow with a SCF algorithm
+        Return list of (task, scfcycle) tuples for all the tasks in the flow with a SCF algorithm
         e.g. electronic GS-SCF iteration, DFPT-SCF iterations etc.
 
         Args:
@@ -1766,9 +1769,9 @@ class Flow(Node, NodeContainer, MSONable):
 
         return stream.writelines(lines)
 
-    def debug(self, status=None, nids=None, stream=sys.stdout):
+    def debug(self, status=None, nids=None, stream=sys.stdout) -> None:
         """
-        This method is usually used when the flow didn't completed succesfully
+        This method is used when the flow didn't completed successfully
         It analyzes the files produced the tasks to facilitate debugging.
         Info are printed to stdout.
 
@@ -1798,7 +1801,7 @@ class Flow(Node, NodeContainer, MSONable):
         # For each task selected:
         #     1) Check the error files of the task. If not empty, print the content to stdout and we are done.
         #     2) If error files are empty, look at the master log file for possible errors
-        #     3) If also this check failes, scan all the process log files.
+        #     3) If also this check fails, scan all the process log files.
         #        TODO: This check is not needed if we introduce a new __abinit_error__ file
         #        that is created by the first MPI process that invokes MPI abort!
         #
@@ -1837,7 +1840,7 @@ class Flow(Node, NodeContainer, MSONable):
                 # Inspect all log files produced by the other nodes.
                 log_files = task.tmpdir.list_filepaths(wildcard="*LOG_*")
                 if not log_files:
-                    cprint("No *LOG_* file in tmpdir. This usually happens if you are running with many CPUs",
+                    cprint("No *LOG_* file in tmpdir. This usually happens if you are using too many CPUs",
                            color="magenta", file=stream)
 
                 for log_file in log_files:
@@ -1854,7 +1857,7 @@ class Flow(Node, NodeContainer, MSONable):
 
             if not count:
                 cprint("""
-Houston, we could not find any error message that can explain the problem.
+Houston, we could not find any error message explainig the problem.
 Use the `abirun.py FLOWDIR history` command to print the log files of the different nodes.
 """,
                         color="magenta", file=stream)
@@ -1863,11 +1866,11 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
     def cancel(self, nids=None) -> int:
         """
-        Cancel all the tasks that are in the queue.
+        Cancel all the tasks in the queue.
         nids is an optional list of node identifiers used to filter the tasks.
 
         Returns:
-            Number of jobs cancelled, negative value if error
+            Number of jobs cancelled, negative value if error.
         """
         if self.has_chrooted:
             # TODO: Use paramiko to kill the job?
@@ -1895,12 +1898,12 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         return num_cancelled
 
-    def get_njobs_in_queue(self, username=None) -> int:
+    def get_njobs_in_queue(self, username: str | None = None) -> int:
         """
-        Returns the number of jobs in the queue, None when the number of jobs cannot be determined.
+        Returns the number of jobs in the queue, None if the number of jobs cannot be determined.
 
         Args:
-            username: (str) the username of the jobs to count (default is to autodetect)
+            username: the username of the jobs to count (None to autodetect)
         """
         return self.manager.qadapter.get_njobs_in_queue(username=username)
 
@@ -1948,14 +1951,12 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             shutil.copy(self.pyfile, self.workdir)
 
         # Add README.md file if set
-        readme_md = getattr(self, "readme_md", None)
-        if readme_md is not None:
+        if (readme_md := getattr(self, "readme_md", None)) is not None:
             with open(os.path.join(self.workdir, "README.md"), "wt") as fh:
                 fh.write(readme_md)
 
         # Add abipy_meta.json file if set
-        data = getattr(self, "abipy_meta_json", None)
-        if data is not None:
+        if (data := getattr(self, "abipy_meta_json", None)) is not None:
             self.write_json_in_workdir("abipy_meta.json", data)
 
         # Write fix_flow.py script for advanced users.
@@ -1964,7 +1965,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         for work in self:
             work.build(*args, **kwargs)
 
-    def build_and_pickle_dump(self, abivalidate=False):
+    def build_and_pickle_dump(self, abivalidate: bool = False) -> None:
         """
         Build dirs and file of the `Flow` and save the object in pickle format.
         Returns 0 if success
@@ -2017,15 +2018,15 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                         protocol=self.pickle_protocol if protocol is None else protocol)
         return strio.getvalue()
 
-    def register_task(self, input: AbinitInput,
+    def register_task(self, abinit_input: AbinitInput | Task,
                       deps=None, manager=None, task_class=None, append=False) -> Work:
         """
         Utility function that generates a `Work` made of a single task
 
         Args:
-            input: |AbinitInput|
+            abinit_input: |AbinitInput| instance or |Task| object.
             deps: List of :class:`Dependency` objects specifying the dependency of this node.
-                  An empy list of deps implies that this node has no dependencies.
+                  An empty list of deps implies that this node has no dependencies.
             manager: The |TaskManager| responsible for the submission of the task.
                      If manager is None, we use the |TaskManager| specified during the creation of the work.
             task_class: Task subclass to instantiate. Default: |AbinitTask|
@@ -2045,7 +2046,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             else:
                 work = self.works[-1]
 
-        task = work.register(input, deps=deps, task_class=task_class)
+        task = work.register(abinit_input, deps=deps, task_class=task_class)
         if not append: self.register_work(work)
 
         return work
@@ -2057,7 +2058,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         Args:
             deps: List of :class:`Dependency` objects specifying the dependency of this node.
-                  An empy list of deps implies that this node has no dependencies.
+                  An empty list of deps implies that this node has no dependencies.
             manager: The |TaskManager| responsible for the submission of the task.
                      If manager is None, we use the `TaskManager` specified during the creation of the work.
             workdir: The name of the directory used for the |Work|.
@@ -2075,7 +2076,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         Args:
             work: |Work| object.
             deps: List of :class:`Dependency` objects specifying the dependency of this node.
-                  An empy list of deps implies that this node has no dependencies.
+                  An empty list of deps implies that this node has no dependencies.
             manager: The |TaskManager| responsible for the submission of the task.
                      If manager is None, we use the `TaskManager` specified during the creation of the work.
             workdir: The name of the directory used for the |Work|.
@@ -2105,7 +2106,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         return work
 
-    def register_work_from_cbk(self, cbk_name, cbk_data, deps, work_class, manager=None):
+    def register_work_from_cbk(self, cbk_name, cbk_data, deps, work_class, manager=None) -> Work:
         """
         Registers a callback function that will generate the :class:`Task` of the :class:`Work`.
 
@@ -2145,7 +2146,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
     @property
     def allocated(self) -> int:
-        """Numer of allocations. Set by `allocate`."""
+        """Number of allocations. Set by `allocate`."""
         try:
             return self._allocated
         except AttributeError:
@@ -2258,24 +2259,26 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         This methods allows subclasses to implement customized logic such as extending the flow by adding new works.
         The flow has an internal counter: on_all_ok_num_calls
         that shall be incremented by client code when subclassing this method.
-        This counter can be used to decide if futher actions are needed or not.
+        This counter can be used to decide if further actions are needed or not.
 
         An example of flow that adds a new work (only once) when all_ok is reached for the first time:
 
-        def on_all_ok(self):
-            if self.on_all_ok_num_calls > 0: return True
-            self.on_all_ok_num_calls += 1
+        .. code-block:: python
 
-            #####################################
-            # implement_logic_to_create_new_work
-            #####################################
+            def on_all_ok(self):
+                if self.on_all_ok_num_calls > 0: return True
+                self.on_all_ok_num_calls += 1
 
-            self.register_work(work)
-            self.allocate()
-            self.build_and_pickle_dump()
+                #####################################
+                # implement_logic_to_create_new_work
+                #####################################
 
-            # The scheduler will keep on running the flow.
-            return False
+                self.register_work(work)
+                self.allocate()
+                self.build_and_pickle_dump()
+
+                # The scheduler will keep on running the flow.
+                return False
         """
         return True
 
@@ -2364,27 +2367,6 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 self.history.info("Connecting %s \nwith sender %s, signal %s" % (str(cbk), dep.node, dep.node.S_OK))
                 dispatcher.connect(self.on_dep_ok, signal=dep.node.S_OK, sender=dep.node, weak=False)
 
-        # Associate to each signal the callback _on_signal
-        # (bound method of the node that will be called by `Flow`
-        # Each node will set its attribute _done_signal to True to tell
-        # the flow that this callback should be disabled.
-
-        # Register the callbacks for the Work.
-        #for work in self:
-        #    slot = self._sig_slots[work]
-        #    for signal in S_ALL:
-        #        done_signal = getattr(work, "_done_ " + signal, False)
-        #        if not done_sig:
-        #            cbk_name = "_on_" + str(signal)
-        #            cbk = getattr(work, cbk_name, None)
-        #            if cbk is None: continue
-        #            slot[work][signal].append(cbk)
-        #            print("connecting %s\nwith sender %s, signal %s" % (str(cbk), dep.node, dep.node.S_OK))
-        #            dispatcher.connect(self.on_dep_ok, signal=signal, sender=dep.node, weak=False)
-
-        # Register the callbacks for the Tasks.
-        #self.show_receivers()
-
     def disconnect_signals(self) -> None:
         """Disable the signals within the `Flow`."""
         for work in self:
@@ -2424,8 +2406,6 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             self.connect_signals()
         else:
             self.disconnect_signals()
-
-    #def get_results(self, **kwargs)
 
     def rapidfire(self, check_status=True, max_nlaunch=-1, max_loops=1, sleep_time=5, **kwargs):
         """
@@ -2555,7 +2535,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 if verbose: print("Excluding %s due to extension" % tarinfo.name)
                 return None
 
-            # Exlude directories (use dir basenames).
+            # Exclude directories (use dir basenames).
             if exclude_dirs and any(dir_name in exclude_dirs for dir_name in tarinfo.name.split(os.path.sep)):
                 if verbose: print("Excluding %s due to exclude_dirs" % tarinfo.name)
                 return None
@@ -2717,7 +2697,8 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         # Treat the case in which we have a work producing output for other tasks.
         for work in self:
             children = work.get_children()
-            if not children: continue
+            if not children:
+                continue
             cluster_name = "cluster%s" % work.name
             seen = set()
             for child in children:
@@ -2845,8 +2826,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 if node.is_file:
                     return "%s\n(%s)" % (node.basename, node.node_id)
                 else:
-                    return (node.pos_str + "\n" + node.__class__.__name__
-                            if hasattr(node, "pos_str") else str(node))
+                    return (node.pos_str + "\n" + node.__class__.__name__ if hasattr(node, "pos_str") else str(node))
             else:
                 raise NotImplementedError("node_label: %s" % str(node_label))
 
@@ -3198,8 +3178,8 @@ class PhononFlow(Flow):
     """
     @classmethod
     def from_scf_input(cls, workdir: str, scf_input: AbinitInput, ph_ngqpt,
-                       with_becs=True, with_quad=False, with_flexoe=False,
-                       manager=None, allocate=True) -> PhononFlow:
+                       qptopt=1, with_becs=True, with_quad=False, with_flexoe=False,
+                       manager=None, allocate=True, **kwargs) -> PhononFlow:
         """
         Create a `PhononFlow` for phonon calculations from an `AbinitInput` defining a ground-state run.
 
@@ -3209,6 +3189,7 @@ class PhononFlow(Flow):
             ph_ngqpt: q-mesh for phonons. Must be a sub-mesh of the k-mesh used for
                 electrons. e.g if ngkpt = (8, 8, 8). ph_ngqpt = (4, 4, 4) is a valid choice
                 whereas ph_ngqpt = (3, 3, 3) is not!
+            qptopt: Option for the generation of q-points. Default: 1 i.e. use nsym spatial symmetries + TR.
             with_becs: True if Born effective charges are wanted.
             with_quad: Activate calculation of dynamical quadrupoles.
                 Note that only selected features are compatible with dynamical quadrupoles.
@@ -3216,6 +3197,8 @@ class PhononFlow(Flow):
             with_flexoe: True to activate computation of flexoelectric tensor.
             manager: |TaskManager| object. Read from `manager.yml` if None.
             allocate: True if the flow should be allocated before returning.
+            kwargs: Extra optional arguments passed to PhononWork.from_scf_task.
+                See doc string for possible kwargs.
 
         Return:
             :class:`PhononFlow` object.
@@ -3232,8 +3215,8 @@ class PhononFlow(Flow):
         if any(scf_ngkpt % ph_ngqpt != 0):
             raise ValueError("ph_ngqpt %s should be a sub-mesh of scf_ngkpt %s" % (ph_ngqpt, scf_ngkpt))
 
-        ph_work = PhononWork.from_scf_task(scf_task, ph_ngqpt, is_ngqpt=True, with_becs=with_becs,
-                                           with_quad=with_quad, with_flexoe=with_flexoe)
+        ph_work = PhononWork.from_scf_task(scf_task, ph_ngqpt, is_ngqpt=True, qptopt=qptopt, with_becs=with_becs,
+                                           with_quad=with_quad, with_flexoe=with_flexoe, **kwargs)
         flow.register_work(ph_work)
 
         if allocate: flow.allocate()

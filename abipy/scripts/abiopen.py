@@ -12,12 +12,11 @@ import os
 import argparse
 import subprocess
 import abipy.tools.cli_parsers as cli
-from abipy.tools.plotting import Exposer
 
 from pprint import pprint
 from shutil import which
 from monty.termcolor import cprint
-from monty.functools import prof_main
+from abipy.tools.plotting import Exposer
 from abipy import abilab
 
 
@@ -139,7 +138,7 @@ def get_parser(with_epilog=False):
     parser.add_argument("-pn", '--panel', action='store_true', default=False,
                         help="Open Dashboard in web browser, requires panel package.")
     parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
-                        help="Specify template for panel dasboard." +
+                        help="Specify template for panel dashboard." +
                              "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                              "Default: FastList"
                         )
@@ -192,7 +191,7 @@ for port forwarding.
 
 
 
-@prof_main
+@cli.prof_main
 def main():
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
@@ -247,72 +246,43 @@ def main():
     if options.filepath.endswith("md.aselog"):
         return handle_ase_md_log(options)
 
+    if options.filepath.endswith(".pickle") and not options.filepath.endswith("__AbinitFlow__.pickle"):
+        # Handle pickle file.
+        import pickle
+        with open(options.filepath, "rb") as fh:
+            obj = pickle.load(fh)
+
+        return handle_object(obj, options)
+
     if os.path.basename(options.filepath) == "flows.db":
         from abipy.flowtk.launcher import print_flowsdb_file
         return print_flowsdb_file(options.filepath)
 
-    if not options.notebook:
-        abifile = abilab.abiopen(options.filepath)
-        if options.print:
-            # Print object to terminal.
-            if hasattr(abifile, "to_string"):
-                #print(f"Calling {abifile.__class__}.to_string with verbose: {verbose}")
-                print(abifile.to_string(verbose=options.verbose))
-            else:
-                print(abifile)
-            return 0
-
-        elif options.expose:
-            # Print info to terminal
-            if hasattr(abifile, "to_string"):
-                print(abifile.to_string(verbose=options.verbose))
-            else:
-                print(abifile)
-
-            # Generate plots automatically.
-            if options.plotly:
-                # plotly version
-                if hasattr(abifile, "plotly_expose"):
-                    abifile.plotly_expose(verbose=options.verbose)
-                else:
-                    cprint("`%s` does not implement plotly_expose method" % type(abifile), "red")
-
-            elif hasattr(abifile, "expose"):
-                # matplotlib version
-                abifile.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                               use_web=options.expose_web, verbose=options.verbose)
-            else:
-                if not hasattr(abifile, "yield_figs"):
-                    raise TypeError("Object of type `%s` does not implement (expose or yield_figs methods" % type(abifile))
-                from abipy.tools.plotting import MplExposer
-                with MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                                verbose=options.verbose) as e:
-                    e(abifile.yield_figs())
-
-            return 0
-
-        elif options.panel:
-            if not hasattr(abifile, "get_panel"):
-                raise TypeError("Object of type `%s` does not implement get_panel method" % type(abifile))
-
-            import matplotlib
-            matplotlib.use("Agg")
-            pn = abilab.abipanel()
-
-            app = abifile.get_panel(template=options.panel_template)
-            serve_kwargs = serve_kwargs_from_options(options)
-
-            return pn.serve(app, **serve_kwargs)
-
+    if os.path.basename(options.filepath) == "phonopy_params.yaml":
+        import phonopy
+        phonon = phonopy.load("phonopy_params.yaml")
         # Start ipython shell with namespace
-        # Use embed because I don't know how to show a header with start_ipython.
         import IPython
         IPython.embed(header="""
-The Abinit file object is associated to the `abifile` python variable.
-Use `abifile.<TAB>` to list available methods.
-Use e.g. `abifile.plot?` to access docstring and `abifile.plot??` to visualize source.
-Use `print(abifile)` to print the object.
+The Phonopy object is associated to the `phonon` python variable.
+Use `phonon.<TAB>` to list available methods.
+
+#phonon.set_irreps(
+#  (0.0, 0.0, 0),
+#  is_little_cogroup=False
+#  nac_q_direction=False,
+#  #nac_q_direction=settings.nac_q_direction,
+#  degeneracy_tolerance=
+#)
+
+#phonon.show_irreps(show_irreps=True)
+#phonon.write_yaml_irreps(show_irreps=True)
 """)
+        return 0
+
+    if not options.notebook:
+        abifile = abilab.abiopen(options.filepath)
+        return handle_object(abifile, options)
 
     else:
         # Call specialized method if the object is a NotebookWriter
@@ -335,7 +305,72 @@ Use `print(abifile)` to print the object.
     return 0
 
 
-def handle_ase_traj(options):
+def handle_object(obj, options):
+    """
+    Postprocess/visualize object according to CLI options.
+    """
+    if options.print:
+        # Print object to terminal.
+        if hasattr(obj, "to_string"):
+            print(obj.to_string(verbose=options.verbose))
+        else:
+            print(obj)
+        return 0
+
+    elif options.expose:
+        # Print info to terminal
+        if hasattr(obj, "to_string"):
+            print(obj.to_string(verbose=options.verbose))
+        else:
+            print(obj)
+
+        # Generate plots automatically.
+        if options.plotly:
+            # plotly version
+            if hasattr(obj, "plotly_expose"):
+                obj.plotly_expose(verbose=options.verbose)
+            else:
+                cprint("`%s` does not implement plotly_expose method" % type(obj), "red")
+
+        elif hasattr(obj, "expose"):
+            # matplotlib version
+            obj.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                       use_web=options.expose_web, verbose=options.verbose)
+        else:
+            if not hasattr(obj, "yield_figs"):
+                raise TypeError("Object of type `%s` does not implement (expose or yield_figs methods" % type(obj))
+            from abipy.tools.plotting import MplExposer
+            with MplExposer(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
+                            verbose=options.verbose) as e:
+                e(obj.yield_figs())
+
+    elif options.panel:
+        if not hasattr(obj, "get_panel"):
+            raise TypeError("Object of type `%s` does not implement get_panel method" % type(obj))
+
+        import matplotlib
+        matplotlib.use("Agg")
+        pn = abilab.abipanel()
+
+        app = obj.get_panel(template=options.panel_template)
+        serve_kwargs = serve_kwargs_from_options(options)
+
+        return pn.serve(app, **serve_kwargs)
+
+    else:
+        # Start ipython shell with namespace
+        # Use embed because I don't know how to show a header with start_ipython.
+        import IPython
+        IPython.embed(header="""
+The AbiPy object is associated to the `obj` python variable.
+Use `obj.<TAB>` to list all available methods.
+Use e.g. `obj.plot?` to access docstring and `obj.plot??` to visualize source code.
+Use `print(obj)` to print the object.
+""")
+
+
+
+def handle_ase_traj(obj, options):
     """Handle ASE trajectory file."""
     from abipy.ml.aseml import AseTrajectoryPlotter
     plotter = AseTrajectoryPlotter.from_file(options.filepath)
@@ -362,6 +397,7 @@ def handle_ase_md_log(options):
 
 def handle_csv(options):
     """Handle CSV file."""
+    import pandas as pd
     df = pd.read_csv(options.filepath)
 
     def print_df():
@@ -404,7 +440,7 @@ def handle_csv(options):
         print_df()
         import IPython
         IPython.embed(header="""
-The pandas DataFrame initialized from the csv file can be accesssed via the `df` python variable.
+The pandas DataFrame initialized from the csv file can be accessed via the `df` python variable.
 """)
 
     return 0
@@ -430,37 +466,9 @@ def handle_json(options):
         return pn.serve(app, **serve_kwargs)
 
     else:
-        if options.print:
-            # Print python object to terminal.
-            data = abilab.mjson_load(options.filepath)
-            pprint(data, indent=4)
-            return 0
-        elif options.expose:
-            # Pretty-print dict to terminal.
-            import json
-            with open(options.filepath, "rt") as fh:
-                data = json.load(fh)
-            pprint(data, indent=4)
-            return 0
+        obj = abilab.mjson_load(options.filepath)
+        handle_object(obj, options)
 
-        data = abilab.mjson_load(options.filepath)
-        # Start ipython shell with namespace
-        # Use embed because I don't know how to show a header with start_ipython.
-        import IPython
-        IPython.embed(header="""
-The object initialized from JSON (MSONable) is associated to the `data` python variable.
-""")
-
-    return 0
-
-
-def handle_flowsdb_file(options):
-    """Handle flows.db file."""
-    import pandas as pd
-    import sqlite3
-    with sqlite3.connect(options.filepath) as con:
-        df = pd.read_sql_query("SELECT * FROM flows", con)
-        abilab.print_dataframe(df, title=options.filepath)
     return 0
 
 

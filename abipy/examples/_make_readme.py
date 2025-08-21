@@ -7,7 +7,6 @@ import os
 
 from monty.fnmatch import WildCard
 
-
 def main():
     # Find (runnable) scripts.
     dirpath = os.path.dirname(os.path.abspath(__file__))
@@ -26,6 +25,7 @@ def main():
     if missing:
         raise RuntimeError("The following script do not provide a doc string:\n" + "\n".join(missing))
 
+    print(f"{len(missing)=}")
     return len(missing)
 
 

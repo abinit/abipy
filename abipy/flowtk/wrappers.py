@@ -5,8 +5,8 @@ from __future__ import annotations
 import os
 import numpy as np
 
-from monty.string import list_strings
 from io import StringIO
+from monty.string import list_strings
 from abipy.core.globals import get_workdir
 
 __author__ = "Matteo Giantomassi"
@@ -23,6 +23,8 @@ __all__ = [
     "Mrgdvdb",
     "Cut3D",
     "Fold2Bloch",
+    "Lruj",
+    "Abitk",
 ]
 
 
@@ -91,8 +93,8 @@ class ExecWrapper:
         )
 
         # Write the script.
-        script_file = os.path.join(workdir, "run" + self.name + ".sh")
-        with open(script_file, "w") as fh:
+        script_file = os.path.join(workdir, "run_" + self.name + ".sh")
+        with open(script_file, "wt") as fh:
             fh.write(script)
             os.chmod(script_file, 0o740)
 
@@ -109,10 +111,10 @@ class Mrgscr(ExecWrapper):
     """
     _name = "mrgscr"
 
-    def merge_qpoints(self, workdir, files_to_merge, out_prefix):
+    def merge_qpoints(self, workdir: str, files_to_merge: list[str], out_prefix: str) -> None:
         """
-        Execute mrgscr inside directory `workdir` to merge `files_to_merge`.
-        Produce new file with prefix `out_prefix`
+        Execute mrgscr inside directory `workdir` to merge `files_to_merge` over q-points.
+        Produce new file in workdir with prefix `out_prefix`.
         """
         # We work with absolute paths.
         files_to_merge = [os.path.abspath(s) for s in list_strings(files_to_merge)]
@@ -130,13 +132,49 @@ class Mrgscr(ExecWrapper):
             map(os.path.join, 3 * [workdir], ["mrgscr.stdin", "mrgscr.stdout", "mrgscr.stderr"])
 
         inp = StringIO()
-        inp.write(str(nfiles) + "\n")     # Number of files to merge.
-        inp.write(out_prefix + "\n")      # Prefix for the final output file:
-
+        inp.write(str(nfiles) + "\n")     # Number of partial files to merge.
+        inp.write(out_prefix + "\n")      # Prefix for the final output file (_SCR extension will be added)
         for filename in files_to_merge:
             inp.write(filename + "\n")   # List with the files to merge.
-
         inp.write("1\n")                 # Option for merging q-points.
+
+        self.stdin_data = [s for s in inp.getvalue()]
+
+        with open(self.stdin_fname, "w") as fh:
+            fh.writelines(self.stdin_data)
+            # Force OS to write data to disk.
+            fh.flush()
+            os.fsync(fh.fileno())
+
+        self.execute(workdir)
+
+    def merge_omegas(self, workdir: str, files_to_merge: list[str], out_prefix: str) -> None:
+        """
+        Execute mrgscr inside directory `workdir` to merge `files_to_merge` over frequencies.
+        Produce new file in workdir with prefix `out_prefix`.
+        """
+        # We work with absolute paths.
+        files_to_merge = [os.path.abspath(s) for s in list_strings(files_to_merge)]
+        nfiles = len(files_to_merge)
+
+        if self.verbose:
+            print("Will merge %d files with output_prefix %s" % (nfiles, out_prefix))
+            for (i, f) in enumerate(files_to_merge):
+                print(" [%d] %s" % (i, f))
+
+        if nfiles == 1:
+            raise self.Error("merge_omegas does not support nfiles == 1")
+
+        self.stdin_fname, self.stdout_fname, self.stderr_fname = \
+            map(os.path.join, 3 * [workdir], ["mrgscr.stdin", "mrgscr.stdout", "mrgscr.stderr"])
+
+        inp = StringIO()
+        inp.write(str(nfiles) + "\n")     # Number of partial SCR files to merge.
+        inp.write(out_prefix + "\n")      # Prefix for the final output file (_SCR extension will be added)
+        for filename in files_to_merge:
+            inp.write(filename + "\n")   # List with the files to merge.
+        inp.write("2\n")                 # Option for merging frequencies.
+        inp.write("0.0\n")               # To use all freqs found.
 
         self.stdin_data = [s for s in inp.getvalue()]
 
@@ -169,8 +207,8 @@ class Mrgddb(ExecWrapper):
 
         # Handle the case of a single file since mrgddb uses 1 to denote GS files!
         if len(ddb_files) == 1:
-            with open(ddb_files[0], "r") as inh, open(out_ddb, "w") as out:
-                for line in inh:
+            with open(ddb_files[0], "r") as in_fh, open(out_ddb, "w") as out:
+                for line in in_fh:
                     out.write(line)
             return out_ddb
 
@@ -233,8 +271,8 @@ class Mrgdvdb(ExecWrapper):
 
         # Handle the case of a single file since mrgddb uses 1 to denote GS files!
         if len(pot_files) == 1:
-            with open(pot_files[0], "r") as inh, open(out_dvdb, "w") as out:
-                for line in inh:
+            with open(pot_files[0], "r") as in_fh, open(out_dvdb, "w") as out:
+                for line in in_fh:
                     out.write(line)
             return out_dvdb
 
@@ -292,9 +330,7 @@ class Cut3D(ExecWrapper):
 
         cut3d_input.write(self.stdin_fname)
 
-        retcode = self._execute(workdir, with_mpirun=False)
-
-        if retcode != 0:
+        if retcode := self._execute(workdir, with_mpirun=False):
             raise RuntimeError("Error while running cut3d in %s" % workdir)
 
         output_filepath = cut3d_input.output_filepath
@@ -331,12 +367,9 @@ class Fold2Bloch(ExecWrapper):
             raise RuntimeError("WFK file `%s` does not exist in %s" % (wfkpath, workdir))
 
         # Usage: $ fold2Bloch file_WFK x:y:z (folds)
-        retcode = self.execute(workdir, exec_args=[wfkpath, fold_arg])
-        if retcode:
-            print("stdout:")
-            print(self.stdout_data)
-            print("stderr:")
-            print(self.stderr_data)
+        if retcode := self.execute(workdir, exec_args=[wfkpath, fold_arg]):
+            print("stdout:\n", self.stdout_data)
+            print("stderr:\n", self.stderr_data)
             raise RuntimeError("fold2bloch returned %s in %s" % (retcode, workdir))
 
         filepaths = [f for f in os.listdir(workdir) if f.endswith("_FOLD2BLOCH.nc")]
@@ -365,12 +398,33 @@ class Lruj(ExecWrapper):
         # We work with absolute paths.
         nc_paths = [os.path.abspath(s) for s in list_strings(nc_paths)]
 
-        retcode = self.execute(workdir, exec_args=nc_paths)
-        if retcode != 0:
-            print("stdout:")
-            print(self.stdout_data)
-            print("stderr:")
-            print(self.stderr_data)
-            raise RuntimeError("Error while running lruj in %s" % workdir)
+        if retcode := self.execute(workdir, exec_args=nc_paths):
+            print("stdout:\n", self.stdout_data)
+            print("stderr:\n", self.stderr_data)
+            raise RuntimeError(f"Error while running lruj in {workdir}")
+
+        return retcode
+
+
+class Abitk(ExecWrapper):
+    """
+    Wraps the abitk Fortran executable.
+    """
+    _name = "abitk"
+
+    stdin_fname = None
+
+    def run(self, exec_args: list, workdir=None) -> int:
+        """
+        Execute abitk inside directory `workdir`.
+        """
+        workdir = get_workdir(workdir)
+
+        self.stdout_fname, self.stderr_fname = map(os.path.join, 2 * [workdir], ["abitk.stdout", "abitk.stderr"])
+
+        if retcode := self.execute(workdir, exec_args=exec_args):
+            print("stdout:\n", self.stdout_data)
+            print("stderr:\n", self.stderr_data)
+            raise RuntimeError(f"Error while running abitk in {workdir}")
 
         return retcode

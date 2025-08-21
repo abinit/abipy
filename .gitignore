@@ -3,7 +3,9 @@ abinit_vars.pickle
 Profile.prof
 abipy/examples/flows/flow_*
 abipy/examples/flows/develop/flow_*
+__abipy_import.log
 _debug
+abipy/scripts/tests/test-output/
 #__abinb_workdir__
 #abinb_*.ipynb
 $*.pickle
@@ -83,3 +85,5 @@ Untitled.ipynb
 gallery/
 modules/
 style.log
+
+sg_execution_times.rst

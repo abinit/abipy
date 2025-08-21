@@ -4,11 +4,10 @@ from __future__ import annotations
 import os
 import warnings
 import numpy as np
-from typing import Union
 
 from pprint import pformat #, pprint
+from functools import cached_property
 from monty.string import is_string, boxed
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 from abipy.core.structure import Structure, dataframes_from_structures
@@ -17,6 +16,8 @@ from abipy.abio.abivar_database.variables import get_codevars
 
 __all__ = [
     "is_abivar",
+    "is_anaddb_var",
+    "is_atdep_var",
     "is_abiunit",
     "AbinitInputFile",
     "AbinitInputParser",
@@ -27,6 +28,11 @@ __all__ = [
 def is_anaddb_var(varname: str) -> bool:
     """True if varname is a valid Anaddb variable."""
     return varname in get_codevars()["anaddb"]
+
+
+def is_atdep_var(varname: str) -> bool:
+    """True if varname is a valid atdep variable."""
+    return varname in get_codevars()["atdep"]
 
 
 def is_abivar(varname: str) -> bool:
@@ -44,7 +50,7 @@ ABI_UNIT_NAMES = {
     s.lower() for s in (
         "au", "nm",
         "Angstr", "Angstrom", "Angstroms", "Bohr", "Bohrs",
-        "eV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs",
+        "eV", "meV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs",
         "T", "Tesla",)
 }
 
@@ -203,7 +209,7 @@ def abi_tokenize(string: str) -> list[str]:
 
 class Dataset(dict, Has_Structure):
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """
         The initial structure associated to the dataset.
@@ -299,7 +305,10 @@ class Dataset(dict, Has_Structure):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, post=None, mode="text", verbose=0) -> str:
+    def to_string(self,
+                  post: str | None = None,
+                  mode: str = "text",
+                  verbose: int = 0) -> str:
         """
         String representation.
 
@@ -322,7 +331,7 @@ class Dataset(dict, Has_Structure):
 
         return "\n".join(lines) if mode == "text" else "\n".join(lines).replace("\n", "<br>")
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         """Integration with jupyter_ notebooks."""
         return self.to_string(mode="html")
 
@@ -356,8 +365,8 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
-        """String representation."""
+    def to_string(self, verbose: int = 0) -> str:
+        """String representation with verbosity level verbose."""
         lines = []
         app = lines.append
         header = 10 * "=" + " Input File " + 10 * "="
@@ -387,12 +396,12 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    @lazy_property
+    @cached_property
     def has_multi_structures(self) -> bool:
         """True if input defines multiple structures."""
         return self.structure is None
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         """Integration with jupyter notebooks."""
         from abipy.abio.abivars_db import repr_html_from_abinit_string
         return repr_html_from_abinit_string(self.string)
@@ -401,7 +410,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
     def close(self) -> None:
         """NOP, required by ABC."""
 
-    @lazy_property
+    @cached_property
     def structure(self) -> Structure:
         """
         The structure defined in the input file.
@@ -462,10 +471,20 @@ for dataset in abinp.datasets:
 
         return self._write_nb_nbpath(nb, nbpath)
 
-    def get_differences(self, other, ignore_vars=None) -> list[str]:
+    def get_differences(self, other,
+                        ignore_vars: list | None = None,
+                        decimal: int = 7) -> list[str]:
         """
-        Get the differences between this AbinitInputFile and another.
+        Get the differences between this Dataset and another.
+
+        Args:
+            other: Other Dataset instance.
+            ignore_vars: List of variable names that should be ignored
+            decimal: Number of decimal places to check for equality. Default is 7.
         """
+        from numpy.testing import assert_almost_equal
+        abivars_database = get_codevars()["abinit"]
+
         diffs = []
         to_ignore = {"acell", "angdeg", "rprim", "ntypat", "natom", "znucl", "typat", "xred", "xcart", "xangst"}
         if ignore_vars is not None:
@@ -474,10 +493,12 @@ for dataset in abinp.datasets:
             diffs.append(f"Number of datasets in this file is {self.ndtset} "
                          f"while other file has {other.ndtset} datasets.")
             return diffs
+
         for idataset, self_dataset in enumerate(self.datasets):
             other_dataset = other.datasets[idataset]
             if self_dataset.structure != other_dataset.structure:
                 diffs.append("Structures are different.")
+
             self_dataset_dict = dict(self_dataset)
             other_dataset_dict = dict(other_dataset)
             for k in to_ignore:
@@ -485,20 +506,55 @@ for dataset in abinp.datasets:
                     del self_dataset_dict[k]
                 if k in other_dataset_dict:
                     del other_dataset_dict[k]
+
             common_keys = set(self_dataset_dict.keys()).intersection(other_dataset_dict.keys())
             self_only_keys = set(self_dataset_dict.keys()).difference(other_dataset_dict.keys())
             other_only_keys = set(other_dataset_dict.keys()).difference(self_dataset_dict.keys())
+
             if self_only_keys:
                 diffs.append(f"The following variables are in this file but not in other: "
                              f"{', '.join([str(k) for k in self_only_keys])}")
             if other_only_keys:
                 diffs.append(f"The following variables are in other file but not in this one: "
                              f"{', '.join([str(k) for k in other_only_keys])}")
+
             for k in common_keys:
-                if self_dataset_dict[k] != other_dataset_dict[k]:
+                v1, v2 = self_dataset_dict[k], other_dataset_dict[k]
+                ok = True
+                exc_msg = ""
+                try:
+                    if abivars_database[k].vartype == "string":
+                        # Strict equality for abinit variables whose type is string.
+                        ok = v1 == v2
+
+                    elif isinstance(v1, str):
+                        # v1 is a string representing a number/vector with/without units.
+                        tokens_1, tokens_2 = v1.split(), v2.split()
+                        if is_abiunit(tokens_1[-1]):
+                            assert_almost_equal(np.array(tokens_1[:-1], dtype=float),
+                                                np.array(tokens_2[:-1], dtype=float), decimal=decimal)
+                            # Check units string as well
+                            ok = tokens_1[-1] == tokens_2[-1]
+                        else:
+                            assert_almost_equal(np.array(tokens_1, dtype=float),
+                                                np.array(tokens_2, dtype=float), decimal=decimal)
+                    else:
+                        # Assume v1 and v2 are numpy arrays, list, tuple.
+                        assert_almost_equal(v1, v2, decimal)
+
+                except Exception as exc:
+                    ok = False
+                    exc_msg = str(exc)
+
+                if not ok:
                     diffs.append(f"The variable '{k}' is different in the two files:\n"
-                                 f" - this file:  '{self_dataset_dict[k]}'\n"
-                                 f" - other file: '{other_dataset_dict[k]}'")
+                                 f" - this file:  '{v1}'\n"
+                                 f" - other file: '{v2}'")
+                    #if exc_msg:
+                    #    diffs[-1] += f"\npython exception: {exc_msg}"
+
+                    print(diffs[-1])
+
         return diffs
 
 
@@ -682,7 +738,7 @@ class AbinitInputParser:
         return eval_abinit_operators(tokens)
 
     @staticmethod
-    def varname_dtindex(tok):
+    def varname_dtindex(tok: str) -> tuple[str, int]:
         """
         >>> p = AbinitInputParser()
         >>> assert p.varname_dtindex("acell1") == ("acell", 1)
@@ -693,7 +749,7 @@ class AbinitInputParser:
             if c.isalpha(): break
             l.append(c)
         else:
-            raise ValueError("Cannot find dataset index in: %s" % tok)
+            raise ValueError(f"Cannot find dataset index in {tok=}")
 
         assert i > 0
         l.reverse()
@@ -703,7 +759,7 @@ class AbinitInputParser:
         return varname, dtidx
 
 
-def format_string_abivars(varname, value, code="abinit") -> str:
+def format_string_abivars(varname: str, value, code: str = "abinit") -> str:
     """
     Given a variable and its value, check if it is of string type and wraps it
     in double quotes if needed.
@@ -713,8 +769,7 @@ def format_string_abivars(varname, value, code="abinit") -> str:
         value: the value to format.
         code: the code the variable refers to (e.g. "abinit", "anaddb")
 
-    Returns:
-        The properly formatted value.
+    Returns: The properly formatted value.
     """
 
     var = get_codevars()[code].get(varname)
@@ -724,8 +779,7 @@ def format_string_abivars(varname, value, code="abinit") -> str:
 
         str_values = [str(v).strip() for v in value]
 
-        # handle gruns_ddbs separately as it supports a different syntax
-        # incompatible with other variables
+        # handle gruns_ddbs separately as it supports a different syntax incompatible with other variables
         if varname == "gruns_ddbs":
             join_str = "\n    "
             for i, str_val in enumerate(str_values):
@@ -747,7 +801,7 @@ def format_string_abivars(varname, value, code="abinit") -> str:
     return value
 
 
-def structure_from_abistruct_fmt(string):
+def structure_from_abistruct_fmt(string: str) -> Structure:
     """
     Parse geometrical information given in the structure:abivars format return Structure object
 
@@ -840,12 +894,12 @@ def structure_from_abistruct_fmt(string):
     return AbinitInputFile.from_string(s).structure
 
 
-def validate_input_parser(abitests_dir=None, input_files=None):
+def validate_input_parser(abitests_dir=None, input_files=None) -> int:
     """
     validate/test AbinitInput parser.
 
     Args:
-        dirpath: Abinit tests directory.
+        abitests_dir: Abinit tests directory.
         input_files: List of Abinit input files.
 
     Return: Exit code.

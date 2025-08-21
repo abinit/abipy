@@ -3,7 +3,7 @@ r"""
 ElectronBandsPlotter
 ====================
 
-This example shows how to plot several band structures on a grid
+This example shows how to plot several band structures on a grid.
 
 We use two GSR files:
 

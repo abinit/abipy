@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Base class for parsers
+Base class for pseudopotential parsers
 """
 from __future__ import annotations
 

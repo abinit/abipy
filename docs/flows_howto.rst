@@ -9,24 +9,23 @@ Feel free to suggest new entries!
 
 .. important::
 
-    The execution of the flows require the proper configuration of ``manager.yml`` and,
-    optionally, ``scheduler.yml``.
-    Please consult the documentation available via the abidoc.py script. See FAQ below.
+    The execution of the flow requires the proper configuration of ``manager.yml`` and `scheduler.yml``.
+    Please consult the documentation available via the abidoc.py script. See also FAQ below.
 
 Suggestions:
 
-* Start with the examples available in examples/flows before embarking on large scale calculations.
-* Make sure the Abinit executable compiled on the machine can be executed both on the front end
+* Please start from the examples available in `~abipy/examples/flows` before embarking on large scale calculations.
+* Make sure the Abinit executable compiled on your machine can be executed both on the front end
   and the compute node (ask your sysadmin)
-* If you are running on clusters in which the architecture of the compute node is completely different
+* If you are running on clusters in which the architecture of the compute node is different
   from the one available on the front end, use ``shell_runner``
-* Use the ``debug`` command
+* Use the ``abirun.py FLOWDIR debug`` command
 
-Do not:
+Please DO NOT:
 
-* Change manually the input files and the submission scripts
+* Change manually the input files and the submission scripts while the scheduler is running
 * Submit jobs manually when the scheduler is running
-* Use a too small delay for the scheduler
+* Use a too small delay for the scheduler to avoid overloading the front end.
 
 
 .. contents::
@@ -74,7 +73,7 @@ At this point, you can try to run a small flow for testing purpose with::
 How to limit the number of cores used by the scheduler
 ------------------------------------------------------
 
-Add the following options to scheduler.yml
+Add the following options to `~/.abinit/abipy/scheduler.yml`:
 
 .. code-block:: yaml
 
@@ -87,32 +86,30 @@ Add the following options to scheduler.yml
 How to reduce the number of files produced by the Flow
 ------------------------------------------------------
 
-When running many calculations,
-Use ``prtwf -1`` to tell Abinit to produce the wavefunction file only
+When running many calculations, use ``prtwf -1`` to tell Abinit to produce the wavefunction file only
 if SCF cycle didn't converged so that AbiPy can reuse the file to restart the calculation.
 
-Note that it's possible to use::
+Note that it is possible to use::
 
     flow.use_smartio()
 
-to activate this mode for all tasks that are not supposed to produce WFK files
-for their children.
+to activate this mode for all tasks that are not supposed to produce WFK files for their children.
 
 How to extend tasks/works with specialized code
 -----------------------------------------------
 
 Remember that pickle_ does not support classes defined inside scripts (`__main__`).
-This means that `abirun.py` will likely raise an exception when trying to
+This means that `abirun.py` will raise the following exception when trying to
 reconstruct the object from the pickle file:
 
 .. code-block:: python
 
     AttributeError: Cannot get attribute 'MyWork' on <module '__main__'
 
-If you need to subclass one of the AbiPy Tasks/Works/Flows, define the subclass
+If you need to subclass one of the AbiPy Tasks/Works/Flows, please define the subclass
 in a separated python module and import the module inside your script.
 We suggest to create a python module in the AbiPy package e.g. `abipy/flowtk/my_works.py`
-in order to have an absolute import that allows one to use
+in order to have an absolute import path that allows one to use
 
 .. code-block:: python
 
@@ -128,17 +125,16 @@ Use the official API::
 
     abirun.py FLOWDIR cancel
 
-to cancel all jobs of the flow that are in queue and kill the scheduler.
+to cancel all the jobs of the flow in queue and kill the scheduler.
 
 Compare multiple output files
 -----------------------------
 
-The abicomp.py_ script
+Please use the abicomp.py_ script
 
 Try to understand why a task failed
 -----------------------------------
 
 There are several reasons why a task could fail.
-Some of these reasons could be related to hardware failure, disk quota,
-OS errors or resource manager errors.
-Others are related to Abinit-specific errors.
+Some of these reasons could be related to hardware failure, disk quota, OS errors or resource manager errors.
+Others might be related to Abinit-specific errors.

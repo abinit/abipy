@@ -17,10 +17,9 @@ import abipy.abilab as abilab
 import abipy.tools.cli_parsers as cli
 
 from pprint import pprint
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from socket import gethostname
 from monty import termcolor
-from monty.functools import prof_main
 from monty.termcolor import cprint, colored, get_terminal_size
 from monty.string import boxed, make_banner
 from abipy.tools import duck
@@ -134,7 +133,7 @@ def cli_abiopen(options, filepath: str):
                 abifile = abilab.abiopen(filepath)
                 return abifile.make_and_open_notebook(foreground=options.foreground)
         else:
-            raise TypeError("Object ot type `%s` does not provide make_and_open_notebook method" % str(cls))
+            raise TypeError("Object of type `%s` does not provide make_and_open_notebook method" % str(cls))
             #return make_and_open_notebook(options)
 
 
@@ -143,7 +142,7 @@ def flow_debug_reset_tasks(flow: Flow, nids=None, verbose=0) -> None:
     Analyze error files produced by reset tasks for possible error messages
 
     Args:
-        nids: List of node identifiers. By defaults all nodes that have been resetted are analyzed.
+        nids: List of node identifiers. By defaults all nodes that have been reset are analyzed.
         verbose: Verbosity level.
     """
     # TODO: Improve implementation.
@@ -182,7 +181,7 @@ def flow_watch_status(flow: Flow, delay=5, nids=None, verbose=0, func_name="show
 
     Args:
         delay: delay execution for the given number of seconds. (default: 5 secs).
-        nids: List of node identifiers. By defaults all nodes that have been resetted are analyzed.
+        nids: List of node identifiers. By defaults all nodes that have been reset are analyzed.
         verbose: Verbosity level.
         func_name: Name of the function used to show the status of the flow.
     """
@@ -327,7 +326,7 @@ Usage example:
 # Documentation
 ###############
 
-  abirun.py FLOWDIR doc_manager slurm     => Document the TaskManager options availabe for Slurm.
+  abirun.py FLOWDIR doc_manager slurm     => Document the TaskManager options available for Slurm.
   abirun.py . doc_manager script          => Show the job script that will be produced with the current settings.
   abirun.py . doc_scheduler               => Document the options available in scheduler.yml.
 """
@@ -390,7 +389,7 @@ def get_parser(with_epilog=False):
                 return list(range(s.start, s.stop, s.step))
         except Exception:
             raise argparse.ArgumentTypeError(
-                    "Invalid nids string %s\n Expecting None or int or comma-separated integers or slice sintax" % s)
+                    "Invalid nids string %s\n Expecting None or int or comma-separated integers or slice syntax" % s)
 
     def parse_wslice(s):
         s = duck.as_slice(s)
@@ -440,14 +439,6 @@ def get_parser(with_epilog=False):
     # Create the parsers for the sub-commands
     subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
 
-    # Subparser for single command.
-    p_single = subparsers.add_parser('single', parents=[copts_parser], help="Run single task and exit.")
-
-    # Subparser for rapid command.
-    p_rapid = subparsers.add_parser('rapid', parents=[copts_parser], help="Run all tasks in rapidfire mode.")
-    p_rapid.add_argument('-m', '--max-nlaunch', default=10, type=int,
-        help="Maximum number of launches. default: 10. Use -1 for no limit.")
-
     # Subparser for scheduler command.
     p_scheduler = subparsers.add_parser('scheduler', parents=[copts_parser],
         help="Run all tasks with a Python scheduler. Requires scheduler.yml either in $PWD or ~/.abinit/abipy.")
@@ -456,6 +447,14 @@ def get_parser(with_epilog=False):
     p_scheduler.add_argument('-hs', '--hours', default=0, type=int, help="Number of hours to wait.")
     p_scheduler.add_argument('-m', '--minutes', default=0, type=int, help="Number of minutes to wait.")
     p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="Number of seconds to wait.")
+
+    # Subparser for single command.
+    p_single = subparsers.add_parser('single', parents=[copts_parser], help="Run single task and exit.")
+
+    # Subparser for rapid command.
+    p_rapid = subparsers.add_parser('rapid', parents=[copts_parser], help="Run all tasks in rapidfire mode.")
+    p_rapid.add_argument('-m', '--max-nlaunch', default=10, type=int,
+        help="Maximum number of launches. default: 10. Use -1 for no limit.")
 
     # Subparser for status command.
     p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show status table.")
@@ -536,7 +535,7 @@ Default: o
     p_panel = subparsers.add_parser('panel', parents=[copts_parser, flow_selector_parser],
                                     help="Interact with the flow in the browser (requires panel package).")
     p_panel.add_argument("-pnt", "--panel-template", default="FastList", type=str,
-                        help="Specify template for panel dasboard." +
+                        help="Specify template for panel dashboard." +
                              "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                              "Default: FastList"
                         )
@@ -776,7 +775,7 @@ for port forwarding.
 
 
 
-@prof_main
+@cli.prof_main
 def main():
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -1173,7 +1172,7 @@ def main():
     elif options.command == "cycles":
         # Print cycles.
         from abipy.flowtk.abiinspect import CyclesPlotter
-        cls2plotter = OrderedDict()
+        cls2plotter = {}
         for task, cycle in flow.get_task_scfcycles(nids=select_nids(flow, options),
                                                    exclude_ok_tasks=options.exclude_ok_tasks):
             print()
@@ -1237,7 +1236,7 @@ def main():
         if plot_mode is not None:
             plotfunc = getattr(ebands_plotter, plot_mode, None)
             if plotfunc is None:
-                raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
+                raise ValueError(f"Don't know how to handle {plot_mode=}")
             plotfunc(tight_layout=True)
 
     elif options.command == "hist":
@@ -1272,10 +1271,10 @@ def main():
                                         exclude_exts=options.exclude_exts,
                                         exclude_dirs=options.exclude_dirs,
                                         verbose=options.verbose)
-            print("Created tarball file %s" % tarfile)
+            print(f"Created tarball file {tarfile}")
         else:
             tarfile = flow.make_light_tarfile()
-            print("Created light tarball file %s" % tarfile)
+            print(f"Created light tarball file {tarfile}")
 
     elif options.command == "tricky":
         flow.show_tricky_tasks(verbose=options.verbose)
@@ -1301,7 +1300,7 @@ def main():
             qid = task.queue_id
             if qid is None: continue
             if qid not in slurm_jobs and not task.is_completed:
-                print("Task:", task, "seeem to have been killed and will be automatically reset.")
+                print("Task:", task, "seem to have been killed and will be automatically reset.")
                 task.reset()
 
         return flow.build_and_pickle_dump()
@@ -1319,7 +1318,7 @@ def main():
             elif options.groupby == "task_class":
                 k = task.__class__.__name__
             else:
-                raise ValueError("Invalid groupby: `%s`" % options.groupby)
+                raise ValueError(f"Invalid groupby: {options.groupby}")
             d[k].append(task)
 
         for k, tasks in d.items():
@@ -1375,12 +1374,12 @@ def main():
 
         graph.view(directory=directory, cleanup=False)
 
+        print("Use -v to write graph to file in png format, -vv to use svg format.")
         if options.verbose > 1:
-            # Write graph to file in png format.
-            graph.format = "png"
+            graph.format = "png" if options.verbose == 1 else "svg"
             graph.attr(dpi=str(300))
             path = graph.render("graph", view=False, cleanup=False)
-            print("Saving png file to:", path)
+            print(f"Saving {graph.format} file to: {path}")
 
     elif options.command == "listext":
         if not options.listexts:

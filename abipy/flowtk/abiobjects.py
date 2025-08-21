@@ -91,7 +91,7 @@ class LdauParams:
             jpawu.append(float(j))
 
         # convert upawu and jpaw to string so that we can use
-        # eV unit in the Abinit input file (much more readable).
+        # eV units in the Abinit input file (much more readable).
         return dict(
             usepawu=self.usepawu,
             lpawu=" ".join(map(str, lpawu)),

@@ -5,8 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 #from itertools import product as iproduct
-from monty.functools import lazy_property
-#from numpy.random import random
+from functools import cached_property
 from numpy.fft import fftn, ifftn, fftshift, ifftshift, fftfreq
 from abipy.tools import duck
 
@@ -117,7 +116,7 @@ class Mesh3D:
         """Number of points along z."""
         return self.shape[2]
 
-    @lazy_property
+    @cached_property
     def inv_vectors(self):
         return np.linalg.inv(self.vectors)
 
@@ -283,7 +282,7 @@ class Mesh3D:
         else:
             raise NotImplementedError("ndim < 3 are not supported")
 
-    @lazy_property
+    @cached_property
     def gvecs(self) -> np.ndarray:
         """
         Array with the reduced coordinates of the G-vectors.
@@ -311,7 +310,7 @@ class Mesh3D:
 
         return gvecs
 
-    @lazy_property
+    @cached_property
     def gmods(self) -> np.ndarray:
         """[ng] |numpy-array| with :math:`|G|`"""
         gmet = np.dot(self.inv_vectors.T, self.inv_vectors)
@@ -321,11 +320,11 @@ class Mesh3D:
 
         return 2 * np.pi * np.sqrt(gmods)
 
-    #@lazy_property
+    #@cached_property
     #def gmax(self)
     #    return self.gmods.max()
 
-    @lazy_property
+    @cached_property
     def rpoints(self) -> np.ndarray:
         """|numpy-array| with the points in real space in reduced coordinates."""
         nx, ny, nz = self.nx, self.ny, self.nz
@@ -404,7 +403,7 @@ class Mesh3D:
     #        rotsm1_fft[isym] = np.dot(np.dot(red2fft, rotm1_r), fft2red)
     #        tnons_fft[isym] = np.dot(red2fft, tau)
 
-    #    # Indeces of $R^{-1}(r-\tau)$ in the FFT box.
+    #    # Indices of $R^{-1}(r-\tau)$ in the FFT box.
     #    irottable = np.empty((nsym, nx*ny*nz), dtype=int)
 
     #    #max_err = 0.0

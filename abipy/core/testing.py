@@ -9,14 +9,11 @@ in a single location, so that test scripts can just import it and work right awa
 from __future__ import annotations
 
 import os
-import numpy
 import json
 import tempfile
 import unittest
-try:
-    import numpy.testing as nptu
-except ImportError:
-    import numpy.testing.utils as nptu
+import numpy
+import numpy.testing as nptu
 import abipy.data as abidata
 
 from typing import Optional
@@ -24,6 +21,8 @@ from functools import wraps
 from shutil import which
 from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
+# TODO
+#from pymatgen.util.testing import MatSciTest
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 
@@ -312,9 +311,10 @@ def get_gsinput_alas_ngkpt(ngkpt, usepaw=0, as_task=False):
         return ScfTask(scf_input)
 
 
+#class AbipyTest(MatSciTest):
 class AbipyTest(PymatgenTest):
     """
-    Extends PymatgenTest with Abinit-specific methods.
+    Extends MatSciTest with Abinit-specific methods.
     Several helper functions are implemented as static methods so that we
     can easily reuse the code in the pytest integration tests.
     """
@@ -476,7 +476,7 @@ class AbipyTest(PymatgenTest):
 
     @staticmethod
     def mkdtemp(**kwargs) -> str:
-        """Invoke mkdtep with kwargs, return the name of a temporary directory."""
+        """Invoke mkdtemp with kwargs, return the name of a temporary directory."""
         return tempfile.mkdtemp(**kwargs)
 
     @staticmethod

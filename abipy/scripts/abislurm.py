@@ -2,6 +2,8 @@
 """
 This script retrieve information on Slurm jobs.
 """
+from __future__ import annotations
+
 import sys
 import os
 import argparse
@@ -12,7 +14,7 @@ from abipy.core.release import __version__
 
 
 def get_epilog() -> str:
-   return """\
+    return """\
 Usage example:\n
 
     abislurm.py running                => Get info on all the running jobs
@@ -86,14 +88,9 @@ def main():
         for job_id, dct in jobs_dict.items():
             print(f"{job_id=}", dct)
 
-    #elif options.command == "running_from_abilogs":
-
     elif options.command == "completed":
         for job_id in options.job_ids:
             print(qu.get_completed_job_info(job_id))
-
-    #elif options.command == "completed_from_abilogs":
-    #    job_ids = []
 
     else:
         raise ValueError(f"Unsupported {options.command=}")

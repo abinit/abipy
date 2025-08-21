@@ -4,9 +4,8 @@ Object to plot DFPT potentials in the phonon mode representation.
 """
 import numpy as np
 
-#from collections import OrderedDict
+from functools import cached_property
 from monty.string import marquee
-from monty.functools import lazy_property
 #from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 #from abipy.core.kpoints import Kpoint #KpointList,
@@ -26,7 +25,7 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # Read FFT grid.
         self.ngfft = r.read_value("ngfft")
 
-    @lazy_property
+    @cached_property
     def structure(self):
         """|Structure| object."""
         return self.reader.read_structure()
@@ -34,7 +33,7 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def close(self):
         self.reader.close()
 
-    @lazy_property
+    @cached_property
     def params(self):
         """:class:`OrderedDict` with parameters that might be subject to convergence studies."""
         return {}
@@ -55,7 +54,7 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    #@lazy_property
+    #@cached_property
     #def qpoints(self):
     #    return KpointList(self.structure.reciprocal_lattice, frac_coords=self.reader.read_value("qlist"))
 

@@ -29,13 +29,19 @@ class TestStructure(AbipyTest):
             # Call pymatgen machinery to get the high-symmetry stars.
             str(structure.hsym_stars)
 
-            geodict = structure.get_dict4pandas()
-            assert geodict["abispg_num"] is not None
+            is_eq, msg = structure.compare(structure, atol=1e-12)
+            assert is_eq and not msg
+
+            geo_dict = structure.get_dict4pandas()
+            assert geo_dict["abispg_num"] is not None
 
             # Export data in Xcrysden format.
             #structure.export(self.get_tmpname(text=True, suffix=".xsf"))
             #visu = structure.visualize(appname="vesta")
             #assert callable(visu)
+
+            if self.has_matplotlib():
+                assert structure.plot(show=False)
 
             if self.has_ase():
                 assert structure == Structure.from_ase_atoms(structure.to_ase_atoms())
@@ -159,6 +165,7 @@ class TestStructure(AbipyTest):
         assert len(si.abi_string)
         assert si.reciprocal_lattice == si.lattice.reciprocal_lattice
 
+        # Test k-sampling methods.
         kptbounds = si.calc_kptbounds()
         ksamp = si.calc_ksampling(nksmall=10)
 
@@ -167,6 +174,13 @@ class TestStructure(AbipyTest):
         self.assert_equal(si.calc_shiftk(), shiftk)
         self.assert_equal(ksamp.ngkpt, [10, 10, 10])
         self.assert_equal(ksamp.shiftk, shiftk)
+
+        # Test as_ngkpt API
+        self.assert_equal(si.as_ngkpt([1, 2, 3]), [1, 2, 3])
+        self.assert_equal(si.as_ngkpt(3), [3, 3, 3])
+        self.assert_equal(si.as_ngkpt(-1000), [8, 8, 8])
+        with self.assertRaises(ValueError):
+            si.as_ngkpt("foo")
 
         lif = Structure.from_abistring("""
 acell      7.7030079150    7.7030079150    7.7030079150 Angstrom
@@ -248,7 +262,7 @@ xred_symbols
 
         # TODO: This part should be tested more carefully
         mgb2.abi_sanitize()
-        mgb2.abi_sanitize(primitive_standard=True)
+        mgb2.abi_sanitize(primitive_standard=True, atol=1e-8)
         mgb2.get_conventional_standard_structure()
         assert len(mgb2.abi_string)
         assert len(mgb2.spget_summary(site_symmetry=True, verbose=10))

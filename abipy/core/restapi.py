@@ -9,7 +9,7 @@ import pandas as pd
 
 from collections import OrderedDict
 from pprint import pprint
-from monty.functools import lazy_property
+from functools import cached_property
 from monty.string import marquee
 
 from pymatgen.ext.matproj import MPRester, MPRestError
@@ -98,7 +98,7 @@ def get_mprester():
 #            plotter.show()
 #        return plotter
 #
-#    @lazy_property
+#    @cached_property
 #    def dataframe(self) -> pd.DataFrame:
 #        """Pandas dataframe with the most important results."""
 #        rows = []
@@ -194,7 +194,7 @@ class DatabaseStructures(NotebookWriter):
         """pandas DataFrame with atomic positions."""
         return self.structure_dataframes.coords
 
-    @lazy_property
+    @cached_property
     def structure_dataframes(self):
         """Pandas dataframes constructed from self.structures."""
         from abipy.core.structure import dataframes_from_structures
@@ -265,7 +265,7 @@ class MpStructures(DatabaseStructures):
     """
     dbname = "Materials Project"
 
-    @lazy_property
+    @cached_property
     def dataframe(self) -> pd.DataFrame:
         """
         Pandas dataframe constructed from self.data. None if data is not available.
@@ -308,7 +308,7 @@ class CodStructures(DatabaseStructures):
     """
     dbname = "COD"
 
-    @lazy_property
+    @cached_property
     def dataframe(self) -> pd.DataFrame:
         """
         |pandas-Dataframe| constructed. Essentially geometrical info and space groups found by spglib_

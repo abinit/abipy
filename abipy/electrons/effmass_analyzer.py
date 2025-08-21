@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 import abipy.core.abinit_units as abu
 
-from typing import List, Union
 from monty.termcolor import cprint
 from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure, Has_ElectronBands
@@ -147,7 +146,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
         ik_indices, band_inds_k = self._select(["cbm", "vbm"], spin, degtol_ev)
         return self._build_segments(spin, ik_indices, band_inds_k)
 
-    def _select(self, what_list, spin, degtol_ev):
+    def _select(self, what_list: list[str], spin: int, degtol_ev: float):
         """
         Low-level method to select the electronic states
         """
@@ -181,7 +180,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
         return ik_indices, band_inds_k
 
-    def _build_segments(self, spin, ik_indices, band_inds_k) -> int:
+    def _build_segments(self, spin: int, ik_indices, band_inds_k) -> int:
         """
         Build list of segments. Return: Number of segments
 
@@ -304,7 +303,7 @@ class Segment:
     This object stores the KS energies along a particular segment in k-space passing through k0.
     Provides methods to compute effective masses at k0 via finite differences.
     """
-    def __init__(self, ik: int, spin: int, line, band_inds: List[int], ebands: ElectronBands):
+    def __init__(self, ik: int, spin: int, line, band_inds: list[int], ebands: ElectronBands):
         """
         Args:
             ik: index of the k0 k-point in ebands.eigens

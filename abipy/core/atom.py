@@ -7,8 +7,8 @@ import numpy as np
 
 from io import StringIO
 from dataclasses import dataclass
-from typing import Any, Union, Optional, Iterable
-from monty.functools import lazy_property
+from typing import Any, Optional, Iterable
+from functools import cached_property
 from monty.string import marquee  # is_string, list_strings,
 from scipy.interpolate import UnivariateSpline
 try :
@@ -116,7 +116,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
         return super().__new__(cls, n, l, k)
 
     @classmethod
-    def from_nlkap(cls, n: int, l: int, kap: Union[int, None]) -> NlkState:
+    def from_nlkap(cls, n: int, l: int, kap: int | None) -> NlkState:
         k = None
         if kap is not None:
             #if(ikap==1) kap=-(ll+1)
@@ -137,23 +137,23 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
         else:
             return f"{self.n}{lc}{self.ksign}"  # e.g. 2s+
 
-    @lazy_property
+    @cached_property
     def latex(self) -> str:
         lc = l2char[self.l]
         # e.g. 2s or 2s^+
         return f"${self.n}{lc}$" if self.k is None else f"${self.n}{lc}^{self.ksign}$"
 
-    @lazy_property
+    @cached_property
     def latex_l(self) -> str:
         lc = l2char[self.l]
         # e.g. s or s^+
         return f"${lc}$"  if self.k is None else f"${lc}^{self.ksign}$"
 
-    @lazy_property
+    @cached_property
     def ksign(self) -> str:
         return {1: "+", 2: "-"}[self.k]
 
-    @lazy_property
+    @cached_property
     def j(self) -> int:
         """Total angular momentum"""
         l = self.l
@@ -239,7 +239,7 @@ class AtomicConfiguration:
         return cls(Z, states)
 
     @classmethod
-    def neutral_from_symbol(cls, symbol: Union[str, int]) -> AtomicConfiguration:
+    def neutral_from_symbol(cls, symbol: str | int) -> AtomicConfiguration:
         """
         symbol: str or int
             Can be a chemical symbol (str) or an atomic number (int).
@@ -266,7 +266,7 @@ class AtomicConfiguration:
         return (self.Z == other.Z and
                 all(s1 == s2 for s1, s2 in zip(self.states, other.states)))
 
-    def __ne__(self, other: AtomicConfiguration) -> bool:
+    def __ne__(self, other) -> bool:
         return not self == other
 
     def copy(self) -> AtomicConfiguration:
@@ -371,12 +371,8 @@ class RadialFunction:
         self.pprint(stream=stream)
         return stream.getvalue()
 
-    #def __add__(self, other):
-    #def __sub__(self, other):
-    #def __mul__(self, other):
-
     def __abs__(self) -> RadialFunction:
-        return self.__class__(self.rmesh, np.abs(self.values))
+        return self.__class__(self.name, self.rmesh, np.abs(self.values))
 
     @property
     def to_dict(self) -> dict:
@@ -427,13 +423,13 @@ class RadialFunction:
                 inodes.append(i)
         return inodes
 
-    @lazy_property
+    @cached_property
     def spline(self):
         """Cubic spline."""
         #return UnivariateSpline(self.rmesh, self.values, s=0)
         return UnivariateSpline(self.rmesh, self.values, s=None)
 
-    @lazy_property
+    @cached_property
     def roots(self):
         """Return the zeros of the spline."""
         return self.spline.roots()
@@ -586,4 +582,3 @@ class Peaks:
             app(f"last peak at: {round(self.xs[-1], 2)}, num peaks: {len(self.xs)}")
 
         return "\n".join(lines)
-

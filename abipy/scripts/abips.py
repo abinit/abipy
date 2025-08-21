@@ -10,9 +10,7 @@ import argparse
 import abipy.tools.cli_parsers as cli
 
 from monty.termcolor import cprint
-from pymatgen.core.periodic_table import Element
 from abipy.core.release import __version__
-from abipy.tools import duck
 from abipy.flowtk.pseudos import PseudoTable
 from abipy.flowtk.psrepos import (tabulate_repos, repos_from_names,
                                   get_all_registered_repos, get_installed_repos_and_root)
@@ -84,7 +82,7 @@ def abips_avail(options) -> int:
 #    return 0
 #
 #
-#def abips_paw_install(options):
+#def abips_paw_install(options) -> int:
 #    """
 #    Get all JTH PAW repositories in PAWXML format for the given version.
 #    """
@@ -161,7 +159,8 @@ def abips_element(options) -> int:
     """
     Find all pseudos in the installed tables for the given element (symbol or znucl).
     """
-    # Accept symbol string or Z
+    # Accept symbol string or Z.
+    from pymatgen.core.periodic_table import Element
     symbol = options.element
     if symbol.isnumeric():
         symbol = Element.from_Z(int(symbol)).symbol
@@ -312,6 +311,7 @@ def get_parser(with_epilog=False):
     return parser
 
 
+@cli.prof_main
 def main():
 
     def show_examples_and_exit(err_msg=None, error_code=1):

@@ -53,7 +53,7 @@ class _Component:
         if self.name == "trace":
             return mat33w.trace()
 
-        raise TypeError("Don't know how to extract data for `%s`" % self.name)
+        raise TypeError(f"Don't know how to extract data for {self.name=}")
 
 
 class MsqDos(Has_Structure):
@@ -61,7 +61,7 @@ class MsqDos(Has_Structure):
     This object stores the generalized phonon DOS in CARTESIAN coords.
     This DOS-like quantity allows one to calculate Debye Waller factors as a function of Temperature
     by integration with 1/omega and the Bose-Einstein factor.
-    This object is usually instanciated via the read_msq_dos method of the PhdosReader
+    This object is usually instantiated via the read_msq_dos method of the PhdosReader
     and stored as attribute of the PhdosFile instance.
 
     See :cite:`Lee1995` for the further details about the internal implementation and
@@ -313,7 +313,7 @@ class MsqDos(Has_Structure):
         rows = []
         for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels):
             site = self.structure[iatom]
-            d = OrderedDict()
+            d = {}
             d["element"] = site.specie.symbol
             d["site_index"] = iatom
             d["frac_coords"] = np.round(site.frac_coords, decimals=decimals)

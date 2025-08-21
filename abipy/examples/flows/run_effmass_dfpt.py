@@ -8,7 +8,7 @@ Two options are available:
 
     - EffMassDFPTWork --> Run DFPT calculation directly assuming the location
                           of the band edges is already known.
-    - EffMassAutoDFPTWork --> Run NSCF calculation to find band edges, then use DFPT.
+    - EffMassAutoDFPTWork --> Run NSCF calculations to find band edges, then use DFPT.
 """
 
 import sys
@@ -31,8 +31,7 @@ def make_scf_input(usepaw=0, nspinor=1):
          natom=2,
          typat=[1, 1],
          znucl=14,
-         #acell=3 * [10.26310667319252],
-         acell=3 * [10.2073557], # 5.4015 Ang
+         acell=3 * [10.2073557],   # 5.4015 Ang
          rprim=[[0.0,  0.5,  0.5],
                 [0.5,  0.0,  0.5],
                 [0.5,  0.5,  0.0]],
@@ -74,8 +73,8 @@ def build_flow(options):
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
     # Compute effective masses for each k in k0_list.
-    # effmass_bands_f90 defines the band range for each k in k0_list
-    # Here we are interested in the effective masses at the Gamma point for the valence bands
+    # effmass_bands_f90 defines the band range for each k in k0_list.
+    # Here we are interested in the effective masses at the Gamma point for the valence bands.
     effmass_bands_f90 = [1, 4] if scf_input["nspinor"] == 1 else [1, 8]
     work = EffMassDFPTWork.from_scf_input(scf_input, k0_list=(0, 0, 0),
                                           effmass_bands_f90=effmass_bands_f90)

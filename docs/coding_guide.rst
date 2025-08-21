@@ -68,7 +68,7 @@ Naming, spacing, and formatting conventions
 -------------------------------------------
 
 In general, we want to stay as closely as possible to the standard
-coding guidelines for python written by Guido van Rossum in `PEP0008 <http://www.python.org/dev/peps/pep-0008>`_.
+coding guidelines for python written by Guido van Rossum in `PEP0008 <https://www.python.org/dev/peps/pep-0008>`_.
 
 * functions and class methods: ``lower`` or ``lower_underscore_separated``
 * attributes and variables: ``lower`` 
@@ -117,7 +117,6 @@ contains several output files that can be used for writing unit tests and exampl
 To install pytest with useful plugins, use::
 
     pip install -r requirements-tests.txt
-
 
 in the top-level directory of the package.
 To run the tests associated to the abio.inputs module, use::

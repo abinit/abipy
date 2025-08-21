@@ -168,9 +168,9 @@
     :alt: Coverage status
     :target: https://coveralls.io/github/abinit/abipy?branch=develop
 
-.. |download-with-anaconda| image:: https://anaconda.org/abinit/abipy/badges/installer/conda.svg   
+.. |download-with-anaconda| image:: https://anaconda.org/conda-forge/abipy/badges/downloads.svg   
+    :target: https://anaconda.org/conda-forge/abipy
     :alt: Download with Anaconda
-    :target: https://anaconda.org/conda-forge/abinit
 
 .. |abipy-license| image:: https://img.shields.io/badge/license-GPL-blue.svg
     :alt: AbiPy license

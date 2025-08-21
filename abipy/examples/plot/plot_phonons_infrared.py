@@ -29,12 +29,16 @@ gamma_ev = 1e-3
 # Plot IR spectrum in Cartesian coordinates.
 tgen.plot_all(gamma_ev=gamma_ev, title="Diagonal and off-diagonal components")
 
-tgen.plot(component="diag", reim="re", gamma_ev=gamma_ev, title="Real part, diagonal components")
+tgen.plot(component="diag", reim="re", gamma_ev=gamma_ev,
+          title="Real part, diagonal components")
 
-tgen.plotly(component="diag", reim="re", gamma_ev=gamma_ev, title="Real part, diagonal components")
+tgen.plotly(component="diag", reim="re", gamma_ev=gamma_ev,
+            title="Real part, diagonal components")
 
-tgen.plot(component="diag", reim="im", gamma_ev=gamma_ev, title="Imaginary part, diagonal components")
+tgen.plot(component="diag", reim="im", gamma_ev=gamma_ev,
+          title="Imaginary part, diagonal components")
 
-tgen.plotly(component="diag", reim="im", gamma_ev=gamma_ev, title="Imaginary part, diagonal components")
+tgen.plotly(component="diag", reim="im", gamma_ev=gamma_ev,
+            title="Imaginary part, diagonal components")
 
 ddb.close()

@@ -1,5 +1,5 @@
 """"GUIs for structure."""
-from __future__ import annotations 
+from __future__ import annotations
 
 import os
 import io
@@ -10,6 +10,7 @@ import panel.widgets as pnw
 import bokeh.models.widgets as bkw
 
 from abipy.core.structure import Structure
+from abipy.abio.inputs import AbinitInput
 from abipy.panels.core import (AbipyParameterized, PanelWithStructure, dfc, mpl, ply,
     depends_on_btn_click, Loading, add_mp_rest_docstring)
 from abipy.tools.decorators import Appender

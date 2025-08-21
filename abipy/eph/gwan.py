@@ -11,8 +11,8 @@ import numpy as np
 import pandas as pd
 #import abipy.core.abinit_units as abu
 
+from functools import cached_property
 from monty.string import marquee #, list_strings
-from monty.functools import lazy_property
 from monty.termcolor import cprint
 from abipy.core.structure import Structure
 from abipy.core.kpoints import kpoints_indices
@@ -26,6 +26,7 @@ from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 #from abipy.tools.typing import Figure
 from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
+from abipy.eph.gstore import GstoreFile #, GstoreReader, Gqk
 
 
 class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , NotebookWriter):
@@ -61,7 +62,7 @@ class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , 
         super().__init__(filepath)
         self.r = GwanReader(filepath)
 
-    @lazy_property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
         return self.r.read_ebands()
@@ -75,11 +76,11 @@ class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , 
         """Close the file."""
         self.r.close()
 
-    #@lazy_property
+    #@cached_property
     #def gqk_spin(self) -> list:
     #    return [Gqk.from_gstore(self, spin) for spin in range(self.nsppol)]
 
-    @lazy_property
+    @cached_property
     def params(self) -> dict:
         """dict with the convergence parameters, e.g. ``nbsum``."""
         #od = OrderedDict([
@@ -245,7 +246,7 @@ class Gqk:
 
         # Compute indices of qpoints in the ngqpt mesh.
         ngqpt, shifts = r.ngqpt, [0, 0, 0]
-        q_indices = kpoints_indices(r.qbz, ngqpt, check_mesh=check_mesh)
+        q_indices = kpoints_indices(r.qbz, ngqpt, shifts, check_mesh=check_mesh)
 
         natom3 = 3 * len(self.structure)
         nb = self.nb
@@ -339,12 +340,12 @@ class Gqk:
         return ierr
 
 
-class GstoreReader(BaseEphReader):
+class GwanReader(BaseEphReader):
     """
     Reads data from file and constructs objects.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: GstoreReader
+    .. inheritance-diagram:: GwanReader
     """
     def __init__(self, filepath: PathLike):
         super().__init__(filepath)
@@ -412,7 +413,7 @@ class GstoreReader(BaseEphReader):
                 #print(f"Found {qpoint = } with index {iq_g = }")
                 return iq_g, qpoint
 
-        raise ValueError(f"Cannot find {qpoint = } in GSTORE.nc")
+        raise ValueError(f"Cannot find {qpoint=} in GSTORE.nc")
 
     def find_ik_glob_kpoint(self, kpoint, spin: int):
         """Find the internal indices of the kpoint needed to access the gvals array."""
@@ -422,10 +423,10 @@ class GstoreReader(BaseEphReader):
                 #print(f"Found {kpoint = } with index {ik_g = }")
                 return ik_g, kpoint
 
-        raise ValueError(f"Cannot find {kpoint = } in GSTORE.nc")
+        raise ValueError(f"Cannot find {kpoint=} in GSTORE.nc")
 
     # TODO: This fix to read groups should be imported in pymatgen.
-    @lazy_property
+    @cached_property
     def path2group(self) -> dict:
         return self.rootgrp.groups
 
