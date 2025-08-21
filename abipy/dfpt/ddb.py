@@ -1119,7 +1119,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             if anaddb_kwargs is None:
                 anaddb_kwargs = {'dieflag' : 2}
             else:
-                anaddb_kwargs.setdefault('dieflag', 2)
+                if "dieflag" not in anaddb_kwargs:
+                    anaddb_kwargs.setdefault('dieflag', 2)
 
         inp = AnaddbInput.modes_at_qpoints(self.structure, qpoints, asr=asr, chneut=chneut, dipdip=dipdip,
                                            dipquad=dipquad, quadquad=quadquad,
