@@ -53,6 +53,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
     .. code-block:: python
 
+        from abipy.eph.gstore import GstoreFile
         with GstoreFile("out_GSTORE.nc") as gstore:
             print(gstore)
 

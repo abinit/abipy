@@ -25,6 +25,7 @@ from abipy.eph.common import BaseEphReader
 
 
 def k2s(k_vector, fmt=".3f", threshold=1e-8) -> str:
+    """Convert k-vector to string."""
     k_vector = np.asarray(k_vector)
     k_vector[np.abs(k_vector) < threshold] = 0
 
@@ -42,6 +43,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         with GpathFile("out_GPATH.nc") as gpath:
             print(gpath)
+            gpath.plot_g_qpath()
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GpathFile
@@ -192,7 +194,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
                     g_label = r"$|g^{\text{%s}}_{\mathbf{q}}|$ %s" % (which_g, q_label)
                     set_grid_legend(ax, fontsize, ylabel="%s %s" % (g_label, g_units))
 
-                if gmax_mev is not None and with_qexp == 0:
+                if gmax_mev is not None:
                     set_axlims(ax, [0, gmax_mev], "y")
 
             if with_phbands:
@@ -212,18 +214,20 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 ax = ax_mat[ax_cnt, spin]
                 self.phbands.plot(ax=ax, points=points, show=False)
                 set_grid_legend(ax, fontsize) #, xlabel=r"Wavevector $\mathbf{q}$")
+                ax.set_title("Phonons", fontsize=fontsize)
 
             if with_ebands:
                 # Plot phonons bands + g(q) as markers.
                 ax_cnt += 1
                 ax = ax_mat[ax_cnt, spin]
                 self.ebands_kq.plot(ax=ax, spin=spin, band_range=band_range, with_gaps=False, show=False)
+                ax.set_title("Electrons", fontsize=fontsize)
 
         # Add title.
         if (kpt_name := self.structure.findname_in_hsym_stars(self.r.eph_fix_wavec)) is None:
             qpt_name = k2s(self.r.eph_fix_wavec)
 
-        fig.suptitle(f"k = {kpt_name}" + f" m, n = {band_range[0]} - {band_range[1] - 1}")
+        fig.suptitle(f"k = {kpt_name} m, n = {band_range[0]} - {band_range[1] - 1}")
 
         return fig
 
@@ -231,8 +235,8 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def plot_g_kpath(self,
                      band_range=None,
                      which_g="avg",
+                     gmax_mev=None,
                      scale=1,
-                     gmax_mev=250,
                      ph_modes=None,
                      with_ebands=True,
                      ax_mat=None,
@@ -244,8 +248,8 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Args:
             band_range: Band range that will be averaged over (python convention).
             which_g: "avg" to plot the symmetrized ``|g|``, "raw" for unsymmetrized ``|g|``."all" for both.
-            scale: Scaling factor for the marker size used when with_phbands is True.
             gmax_mev: Show results up to gmax in meV.
+            scale: Scaling factor for the marker size used when with_phbands is True.
             ph_modes: List of ph branch indices to show (start from 0). If None all modes are show.
             with_ebands: False if electron bands should now be displayed.
             ax_mat: List of |matplotlib-Axes| or None if a new figure should be created.
@@ -289,7 +293,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if (qpt_name := self.structure.findname_in_hsym_stars(self.r.eph_fix_wavec)) is None:
             qpt_name = k2s(self.r.eph_fix_wavec)
 
-        fig.suptitle(f"q = {qpt_name}" + f" m, n = {band_range[0]} - {band_range[1] - 1}")
+        fig.suptitle(f"q = {qpt_name} m, n = {band_range[0]} - {band_range[1] - 1}")
 
         return fig
 
@@ -299,7 +303,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         if self.r.eph_fix_korq == "k":
             plt_kwargs = dict(with_phbands=True, with_ebands=True, show=False)
-            yield self.plot_g_qpath(with_qexp=1, **plt_kwargs)
+            #yield self.plot_g_qpath(with_qexp=1, **plt_kwargs)
             yield self.plot_g_qpath(with_qexp=0, **plt_kwargs)
             #yield self.ebands_kq.plot(show=False)
             #yield self.phbands.plot(show=False)
@@ -514,6 +518,8 @@ class GpathReader(BaseEphReader):
         nb = nb_in_g
         if band_range is not None:
             nb = band_range[1] - band_range[0]
+            if nb <= 0:
+                raise ValueError(f"Invalid {band_range=}")
             b0, b1 = band_range[0] - bstart, band_range[1] - bstart
             absg_avg, absg_raw = absg_avg[..., b0:b1, b0:b1], absg_raw[..., b0:b1, b0:b1]
 
@@ -610,6 +616,8 @@ class GpathReader(BaseEphReader):
         nb = nb_in_g
         if band_range is not None:
             nb = band_range[1] - band_range[0]
+            if nb <= 0:
+                raise ValueError(f"Invalid {band_range=}")
             b0, b1 = band_range[0] - bstart, band_range[1] - bstart
             absg_avg, absg_raw = absg_avg[..., b0:b1, b0:b1], absg_raw[..., b0:b1, b0:b1]
 
@@ -629,6 +637,7 @@ class GpathRobot(Robot, RobotWithEbands):
             "t04o_GPATH.nc",
             "t05o_GPATH.nc",
             ])
+        robot.plot_g_qpath()
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GpathRobot
@@ -638,16 +647,14 @@ class GpathRobot(Robot, RobotWithEbands):
     @add_fig_kwargs
     def plot_g_qpath(self,
                      which_g="avg",
-                     gmax_mev=250,
                      ph_modes=None,
                      colormap="jet",
                      **kwargs) -> Figure:
         """
-        Compare the g-matrix stored in the Robot along a q-path.
+        Compare the g matrix elements stored in the Robot along a q-path.
 
         Args
             which_g: "avg" to plot the symmetrized ``|g|``, "raw" for unsymmetrized ``|g|``."all" for both.
-            gmax_mev: Show results up to gmax in me.
             ph_modes: List of ph branch indices to show (start from 0). If None all modes are show.
             colormap: Color map. Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
@@ -687,10 +694,6 @@ class GpathRobot(Robot, RobotWithEbands):
                         #set_grid_legend(ax, fontsize, ylabel="%s %s" % (g_label, g_units))
                     else:
                         ax.plot(g_nuq[nu], color=color, label=f"{nu=}")
-
-            #if gmax_mev is not None and with_qexp == 0:
-            if gmax_mev is not None:
-                set_axlims(ax, [0, gmax_mev], "y")
 
         return fig
 
