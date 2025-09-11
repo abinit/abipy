@@ -331,6 +331,15 @@ class Cut3D(ExecWrapper):
         cut3d_input.write(self.stdin_fname)
 
         if retcode := self._execute(workdir, with_mpirun=False):
+            stdout = os.path.join(workdir, "cut3d.stdout")
+            stderr = os.path.join(workdir, "cut3d.stderr")
+            if os.path.exist(stdout):
+                with open(stdout, "rt") as fh:
+                    print(fh.read())
+            if os.path.exist(stderr):
+                with open(stderr, "rt") as fh:
+                    print(fh.read())
+
             raise RuntimeError("Error while running cut3d in %s" % workdir)
 
         output_filepath = cut3d_input.output_filepath

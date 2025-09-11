@@ -135,7 +135,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
                      which_g="avg",
                      with_qexp: int = 0,
                      scale=1,
-                     gmax_mev=250,
+                     gmax_mev=None,
                      ph_modes=None,
                      with_phbands=True,
                      with_ebands=False,
@@ -428,7 +428,10 @@ class GpathReader(BaseEphReader):
                            #zcart=zcart,
                            )
 
-    def get_gnuq_average_spin(self, spin: int, band_range: list | tuple | None, eps_mev: float = 0.01) -> tuple:
+    def get_gnuq_average_spin(self,
+                              spin: int,
+                              band_range: list | tuple | None,
+                              eps_mev: float = 0.01) -> tuple:
         """
         Average e-matrix elements over phonon modes, and k- k+q electrons when the matrix elements
         have been computed along a q-path.
