@@ -227,7 +227,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if (kpt_name := self.structure.findname_in_hsym_stars(self.r.eph_fix_wavec)) is None:
             qpt_name = k2s(self.r.eph_fix_wavec)
 
-        fig.suptitle(f"k = {kpt_name} m, n = {band_range[0]} - {band_range[1] - 1}")
+        fig.suptitle(f"k = {kpt_name}, m, n = {band_range[0]} - {band_range[1] - 1}")
 
         return fig
 
@@ -293,7 +293,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if (qpt_name := self.structure.findname_in_hsym_stars(self.r.eph_fix_wavec)) is None:
             qpt_name = k2s(self.r.eph_fix_wavec)
 
-        fig.suptitle(f"q = {qpt_name} m, n = {band_range[0]} - {band_range[1] - 1}")
+        fig.suptitle(f"q = {qpt_name}, m, n = {band_range[0]} - {band_range[1] - 1}")
 
         return fig
 

@@ -333,10 +333,10 @@ class Cut3D(ExecWrapper):
         if retcode := self._execute(workdir, with_mpirun=False):
             stdout = os.path.join(workdir, "cut3d.stdout")
             stderr = os.path.join(workdir, "cut3d.stderr")
-            if os.path.exist(stdout):
+            if os.path.exists(stdout):
                 with open(stdout, "rt") as fh:
                     print(fh.read())
-            if os.path.exist(stderr):
+            if os.path.exists(stderr):
                 with open(stderr, "rt") as fh:
                     print(fh.read())
 

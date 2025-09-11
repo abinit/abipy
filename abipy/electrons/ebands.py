@@ -2751,7 +2751,7 @@ class ElectronBands(Has_Structure):
                 if with_band_index:
                     # Add band index next to the band (but avoid overlaps).
                     step, shift = 10, 2
-                    ii = (band * step + shift) % self.nkpt
+                    ii = (band * step + shift * (spin + 1)) % self.nkpt
                     ax.text(xx[ii], yy[ii], str(band), color=line_color, va="center")
 
         return lines
