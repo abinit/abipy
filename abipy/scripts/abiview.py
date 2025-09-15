@@ -11,12 +11,12 @@ import argparse
 import abipy.tools.cli_parsers as cli
 
 from pprint import pformat
-from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy import abilab
 from abipy.abio.outputs import AbinitOutputFile
 from abipy.iotools.visualizer import Visualizer
-from abipy.tools.plotting import MplExposer, PanelExposer, GenericDataFilePlotter, plotlyfigs_to_browser, push_to_chart_studio
+from abipy.tools.plotting import MplExposer, PanelExposer, GenericDataFilePlotter
+# , plotlyfigs_to_browser, push_to_chart_studio
 
 
 def handle_overwrite(path, options):
@@ -273,6 +273,7 @@ def abiview_ddb(options) -> int:
         # Don't need PHDOS if phononwebsite
         nqsmall = 0 if options.phononwebsite else 10
         ndivsm = 20; asr = 2; chneut = 1; dipdip = 1; dos_method = "tetra"; lo_to_splitting = "automatic"
+        #chneut = 0
         print(f"""
 Computing phonon bands and DOS from DDB file with:
 
@@ -466,9 +467,9 @@ def abiview_ddb_quad(options) -> int:
     print("Computing phonon frequencies with/without dip-quad and quad-quad terms.")
 
     with abilab.abiopen(options.filepath) as ddb:
-        plotter = ddb.anacompare_quad(asr=2, chneut=1, dipdip=1, lo_to_splitting="automatic",
-                                      nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
-                                      verbose=0, mpi_procs=1)
+        plotter = ddb.anacompare_phbands_with_quad(asr=2, chneut=1, dipdip=1, lo_to_splitting="automatic",
+                                                   nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
+                                                   verbose=0, mpi_procs=1)
 
         title = ddb.structure.formula
         renderer = "browser" if not options.chart_studio else "chart_studio"
@@ -561,10 +562,8 @@ def abiview_ddb_elastic(options) -> int:
         print(ddb.to_string(verbose=options.verbose))
 
         asr = 2; chneut = 1
-        relaxed_ion = "automatic"
-        piezo = "automatic"
-        dde = False
-        stress_correction = False
+        relaxed_ion = "automatic"; piezo = "automatic"
+        dde = False; stress_correction = False
 
         print(f"""
 Calling anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.
@@ -580,7 +579,8 @@ Calling anaddb to compute elastic and piezoelectric tensors. Require DDB with st
                                      asr=asr,
                                      chneut=chneut,
                                      verbose=options.verbose,
-                                     retpath=False, return_input=False)
+                                     retpath=False,
+                                     return_input=False)
         print(el_data)
         #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
@@ -605,6 +605,7 @@ def abiview_phbands(options) -> int:
             print(abifile.to_string(verbose=options.verbose))
             abifile.expose_phbands(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
                                     verbose=options.verbose, units="mev")
+
         #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
         return 0
@@ -613,7 +614,7 @@ def abiview_phbands(options) -> int:
 def abiview_denpot(options) -> int:
     """
     Visualize netcdf DEN/POT files with --appname (default: Vesta).
-    NB: Appplication must be installed and in $PATH.
+    NB: Application must be installed and in $PATH.
     """
     with abilab.abiopen(options.filepath) as abifile:
         print(abifile.to_string(verbose=options.verbose))
@@ -892,7 +893,7 @@ def get_parser(with_epilog=False):
     ifermi_parser.add_argument("-i", '--interpolation-factor', default=8, type=float,
         help="interpolation factor for band structure  [default: 8.0]")
     ifermi_parser.add_argument("--eref", default="fermie", type=str, choices=['fermie', 'cbm', 'vbm'],
-        help="Energy reference for isosurface. `eref` and `mu` define the energy level: isoe = eref + mu"  +
+        help="Energy reference for isosurface. `eref` and `mu` define the energy level: isoe = eref + mu" +
               "Use `fermie` for metals, `cbm` for the conduction band minimum, and `vbm` for the valence band maximum, " +
              "[default: `fermie`]")
     ifermi_parser.add_argument("-t", '--plot-type', default="plotly", choices=["plotly", "matplotlib", "mayavi"],
@@ -993,7 +994,7 @@ def get_parser(with_epilog=False):
     return parser
 
 
-@prof_main
+@cli.prof_main
 def main():
 
     def show_examples_and_exit(err_msg=None, error_code=1):

@@ -14,6 +14,7 @@ import abipy.abilab as abilab
 import abipy.data as abidata
 
 from abipy import flowtk
+from abipy.flowtk.dfpt_flows import ConvBecsEpsFlow
 
 
 def make_scf_input(ngkpt, paral_kgb=0):
@@ -61,15 +62,14 @@ def build_flow(options):
 
     flow = flowtk.Flow(workdir=options.workdir)
 
-    for ngkpt in [(2, 2, 2), (4, 4, 4), (8, 8, 8)]:
-        # Build input for GS calculation with different k-meshes
-        scf_input = make_scf_input(ngkpt=ngkpt)
-        flow.register_scf_task(scf_input, append=True)
+    ngkpt_list = [(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]
+    scf_input = make_scf_input(ngkpt=[4,4,4])
 
-    for scf_task in flow[0]:
-        bec_work = flowtk.BecWork.from_scf_task(scf_task)
-        flow.register_work(bec_work)
-
+    flow = ConvBecsEpsFlow.from_scf_input(
+        options.workdir,
+        scf_input,
+        ngkpt_list,
+    )
     return flow
 
 

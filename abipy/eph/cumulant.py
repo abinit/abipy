@@ -6,25 +6,18 @@ using the results stored in the out_EPH_CUMULANT.nc file.
 from __future__ import annotations
 
 import numpy as np
-#import pandas as pd
 import abipy.core.abinit_units as abu
 
-from scipy.fft import fft, fftfreq,fftshift,ifft
-from collections import OrderedDict, namedtuple
-from collections.abc import Iterable
-from functools import cached_property
-from tabulate import tabulate
-from monty.string import marquee, list_strings
-from monty.termcolor import cprint
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt, find_points_along_path
+from scipy.fft import fft, fftshift, ifft
+#from functools import cached_property
+from monty.string import marquee #, list_strings
+#from monty.termcolor import cprint
+#from abipy.core.kpoints import has_timrev_from_kptopt, find_points_along_path
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
     rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
-from abipy.tools import duck
-from abipy.tools.numtools import gaussian
-from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
-#from abipy.abio.robots import Robot
-from abipy.eph.sigeph import SigEPhFile,EphSelfEnergy, SigmaPhReader, QpTempState
+#from abipy.tools import duck
+#from abipy.electrons.ebands import ElectronBands
+from abipy.eph.sigeph import SigEPhFile, EphSelfEnergy, SigmaPhReader, QpTempState
 
 
 __all__ = [
@@ -78,7 +71,6 @@ class CumulantEPhFile(SigEPhFile):
 
     .. code-block:: python
 
-        SigmaEphFile = SigEPhFile("out_SIGEPH.nc")
         with CumulantEPhFile("out_EPH_CUMULANT.nc", SigmaEphFile) as ncfile:
             print(ncfile)
             ncfile.ebands.plot()
@@ -94,7 +86,7 @@ class CumulantEPhFile(SigEPhFile):
 
     def __init__(self, filepath):
         self._filepath = filepath
-        self.reader = r = CumulantPhReader(filepath)
+        self.r = r = CumulantPhReader(filepath)
         self.nkcalc = r.nkcalc
         self.ntemp = r.ntemp
         self.nqbz = r.nqbz
@@ -121,13 +113,13 @@ class CumulantEPhFile(SigEPhFile):
         app(marquee("CumulantEPh calculation", mark="="))
         app("Number of k-points in Sigma_{nk}: %d" % (self.nkcalc))
         # These variables have added recently
-        sigma_ngkpt = self.reader.read_value("sigma_ngkpt", default=None)
-        sigma_erange = self.reader.read_value("sigma_erange", default=None)
-        #dvdb_add_lr = self.reader.read_value("dvdb_add_lr", default=None)
+        sigma_ngkpt = self.r.read_value("sigma_ngkpt", default=None)
+        sigma_erange = self.r.read_value("sigma_erange", default=None)
+        #dvdb_add_lr = self.r.read_value("dvdb_add_lr", default=None)
         #app("sigma_ngkpt: %s, sigma_erange: %s" % (sigma_ngkpt, sigma_erange))
-        app("Max bstart: %d, min bstop: %d" % (self.reader.max_bstart, self.reader.min_bstop))
+        app("Max bstart: %d, min bstop: %d" % (self.r.max_bstart, self.r.min_bstop))
         app("Initial ab-initio q-mesh:\n\tngqpt: %s, with nqibz: %s" % (str(self.ngqpt), self.nqibz))
-        #eph_ngqpt_fine = self.reader.read_value("eph_ngqpt_fine")
+        #eph_ngqpt_fine = self.r.read_value("eph_ngqpt_fine")
         #if np.all(eph_ngqpt_fine == 0): eph_ngqpt_fine = self.ngqpt
         #app("q-mesh for self-energy integration (eph_ngqpt_fine): %s" % (str(eph_ngqpt_fine)))
         #app("k-mesh for electrons:")
@@ -175,7 +167,7 @@ class CumulantEPhFile(SigEPhFile):
 
     def get_cumulant_skb(self, spin, kpoint, band):
         """"Return e-ph self-energy for the given (spin, kpoint, band)."""
-        return self.reader.read_cumulant_skb(spin, kpoint, band)
+        return self.r.read_cumulant_skb(spin, kpoint, band)
 
 
 class CumulantPhReader(SigmaPhReader):
@@ -190,7 +182,7 @@ class CumulantPhReader(SigmaPhReader):
         super().__init__(path)
 
         # Check if the cumulant function exists
-        # It is an optional output, mostly for debuging
+        # It is an optional output, mostly for debugging
         # If it exists, then G(t) and time_mesh also exists
         variables = self.read_varnames()
         if "ct_vals" in variables:
@@ -288,7 +280,7 @@ class CumulantSelfEnergy(EphSelfEnergy):
         ntemp = len(qp.tmesh)
         nwr = len(wmesh)
 
-        # In case of debugging, seting:
+        # In case of debugging, setting:
         # Green's function in time domain, cumulant function and time mesh
         self.gt_vals = gt_vals
         self.ct_vals = ct_vals
@@ -355,7 +347,7 @@ class CumulantSelfEnergy(EphSelfEnergy):
 
         # Frequency mesh step
         w_step = wmesh_init[1] - wmesh_init[0]
-        # Shift frequency mesh to set the KS energy close to 0.0, with principal value offseting the mesh slightly.
+        # Shift frequency mesh to set the KS energy close to 0.0, with principal value offsetting the mesh slightly.
         wmesh = wmesh_init - e0 - 0.5 * w_step
         # Create the time mesh
         t = np.linspace(0.0,1,nwr)*2*np.pi/w_step
@@ -370,14 +362,14 @@ class CumulantSelfEnergy(EphSelfEnergy):
             beta = np.abs( sigma[itemp].imag)/np.pi
 
             # Calculate the part of the cumulant function that can be Fourier Transformed
-            c1= fft((beta/(wmesh**2)),nwr)*w_step
+            c1 = fft((beta/(wmesh**2)),nwr)*w_step
 
             # The odd indexes give negative values
             c1[1::2] = -1.0 * c1[1::2]
 
             # Other terms of the cumulant function
             c2 = - 1j * t * sigma0
-            c3 = -1.0 * np.trapz(beta/wmesh**2,x=wmesh) * np.ones(nwr)
+            c3 = -1.0 * np.trapezoid(beta/wmesh**2,x=wmesh) * np.ones(nwr)
 
             # Calculation of the cumulant function
             Ct = c1 + c2 + c3
@@ -387,10 +379,10 @@ class CumulantSelfEnergy(EphSelfEnergy):
 
             # Green's function in frequency domain
             gw_temp = fftshift(ifft(Gt,nwr))*nwr*t_step
-            R = 0.5* Gt[0]*t_step
+            R = 0.5 * Gt[0] * t_step
             gw[itemp,:] = gw_temp - R
 
         # Spectral Function
         spfunc = -1.0 * gw.imag / np.pi
 
-        return cls( wmesh_init, qp, gw, spfunc, time_mesh=t, ct_vals=c1+c2+c3, gt_vals=Gt)
+        return cls(wmesh_init, qp, gw, spfunc, time_mesh=t, ct_vals=c1+c2+c3, gt_vals=Gt)

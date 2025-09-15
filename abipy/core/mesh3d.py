@@ -6,7 +6,6 @@ import numpy as np
 
 #from itertools import product as iproduct
 from functools import cached_property
-#from numpy.random import random
 from numpy.fft import fftn, ifftn, fftshift, ifftshift, fftfreq
 from abipy.tools import duck
 
@@ -404,7 +403,7 @@ class Mesh3D:
     #        rotsm1_fft[isym] = np.dot(np.dot(red2fft, rotm1_r), fft2red)
     #        tnons_fft[isym] = np.dot(red2fft, tau)
 
-    #    # Indeces of $R^{-1}(r-\tau)$ in the FFT box.
+    #    # Indices of $R^{-1}(r-\tau)$ in the FFT box.
     #    irottable = np.empty((nsym, nx*ny*nz), dtype=int)
 
     #    #max_err = 0.0

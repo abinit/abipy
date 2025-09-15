@@ -43,7 +43,7 @@ e2s = 1.602188**2 # electron charge in Coulomb scaled by 10.d-19**2
 kbs = 1.38066     # Boltzmann constant in Joule/K scaled by 10.d-23
 
 kBoltzEv = 8.617333e-05
-#nCar = 56  # FIXME: Harcoded
+#nCar = 56  # FIXME: Hardcoded
 
 
 def common_oxidation_states() -> dict:
@@ -325,7 +325,7 @@ class MdAnalyzer(HasPickleIO):
         ucmats = np.reshape(ucmats, (cel_nsteps, 3, 3))
 
         if pos_nsteps != cel_nsteps:
-            raise RuntimeError(f"Found differrent no. iterations in pos and cel file: {pos_nsteps=} != {cel_nsteps=}")
+            raise RuntimeError(f"Found different no. iterations in pos and cel file: {pos_nsteps=} != {cel_nsteps=}")
 
         times = np.arange(0, pos_nsteps) * timestep * step_skip
         if step_skip != 1:
@@ -1918,6 +1918,7 @@ class ArrheniusPlotter:
 
         plotter.plot(thinvt_arange=thinvt_arange,
                      xlims=xlims, ylims=ylims, text='LLZO cubic', savefig=None)
+
     """
 
     def __init__(self, entries=None):
@@ -1989,7 +1990,7 @@ class ArrheniusPlotter:
 
         Args:
             thinvt_arange: start, stop, step for 1000/T mesh. If None, the mesh is automatically computed.
-            what: Selects the quantity to plot. Possibile values: "diffusion", "sigma", "tsigma".
+            what: Selects the quantity to plot. Possible values: "diffusion", "sigma", "tsigma".
             ncar: Number of carriers. Required if what is "sigma" or "tsigma".
             colormap: Colormap used to select the color if entry.mpl_style does not provide it.
             with_t: True to add a twin axes with the value of T

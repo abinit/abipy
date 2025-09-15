@@ -23,55 +23,21 @@ class SoundVelocity(Has_Structure, NotebookWriter):
     Compute the speed of sound by fitting phonon frequencies along selected directions
     by linear least-squares fit.
     """
-    def __init__(self, directions, sound_velocities, mode_types, structure,
-                 labels=None, phfreqs=None, qpts=None):
-        """
-        Args:
-            directions: list of qpoints identifying the directions for the calculation
-                of the speed of sound. In fractional coordinates.
-            sound_velocities: array of shape (len(directions), 3) with the values of the
-                sound velocities in SI units.
-            mode_types: array of shape (len(directions), 3) with the type of modes (transverse,
-                longitudinal). None if not known.
-            structure: |Structure| object.
-            labels: list with the same length as direction with labels for the directions.
-            phfreqs: array with shape (len(directions), 3, num_points) with the acoustic phonon
-                frequencies along the directions.
-            qpts: array with shape (len(directions), num_points, 3) with the coordinates of
-                the qpoints in fractional used to fit the phonon frequencies.
-        """
-        self.directions = np.array(directions)
-        self.sound_velocities = np.array(sound_velocities)
-        self.mode_types = mode_types
-        self.labels = labels
-        self.phfreqs = np.array(phfreqs) if phfreqs else None
-        self.qpts = np.array(qpts) if qpts else None
-        self._structure = structure
-
-    @property
-    def structure(self) -> Structure:
-        """|Structure| object"""
-        return self._structure
-
-    @property
-    def n_directions(self) -> int:
-        """Number of directions."""
-        return len(self.directions)
 
     @classmethod
-    def from_ddb(cls, ddb_path: str, 
+    def from_ddb(cls, ddb_path: str,
                  directions=None, labels=None, num_points=20, qpt_norm=0.1,
                  ignore_neg_freqs=True, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
                  ngqpt=None, spell_check=True, anaddb_kwargs=None, verbose=0, mpi_procs=1, workdir=None, manager=None,
                  return_input=False) -> SoundVelocity:
         """
-        Creates and instance of the object. Runs anaddb along the specified
-        directions or the standard directions in the standard paths given
+        Creates and instance of the object for a path to a DDB file..
+        Runs anaddb along the specified directions or the standard directions in the standard paths given
         in :cite:`Setyawan2010`. The values of the speed of sound
         will be calculated as the slope of the linear fits along each direction.
 
         Args:
-            ddb_path (str): path to the ddb file.
+            ddb_path: path to the ddb file.
             directions (list): list of qpoints identifying the directions for the calculation
                 of the speed of sound. In fractional coordinates.
             labels (list): list of string with the name of the directions.
@@ -80,8 +46,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             qpt_norm (float): Norm of the largest q-point in fractional coordinates for
                 each of the directions considered.
             ignore_neg_freqs (bool): if True, q-points with negative frequencies will not be
-                considered in the fit, in order to ignore inaccuracies in the long range
-                behavior.
+                considered in the fit, in order to ignore inaccuracies in the long range behavior.
             asr, chneut, dipdip: Anaddb input variable. See official documentation.
             dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
             ngqpt: Number of divisions for the q-mesh in the DDB file. Auto-detected if None (default).
@@ -91,8 +56,6 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             workdir: Working directory. If None, a temporary directory is created.
             manager: |TaskManager| object. If None, the object is initialized from the configuration file.
             return_input: True if the |AnaddbInput| object should be returned as 2nd argument
-
-        Returns: an instance of SoundVelocity
         """
         with DdbFile(ddb_path) as ddb:
             if ngqpt is None: ngqpt = ddb.guessed_ngqpt
@@ -160,8 +123,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                    ignore_neg_freqs: bool = True,
                    labels: list[str] = None) -> SoundVelocity:
         """
-        Creates an instance of the object starting interpolating the acoustic frequencies
-        from a PHBST netcdf file.
+        Creates an instance of the object starting from a PHBST netcdf file.
         The file should contain a series of directions starting from gamma and with the
         same number of points for each direction, as the one produced in the from_ddb method.
 
@@ -171,8 +133,6 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                 considered in the fit, in order to ignore inaccuracies in the long range
                 behavior.
             labels (list): list of string with the name of the directions.
-
-        Returns: an instance of SoundVelocity
         """
         phb = PhononBands.from_file(phbst_path)
         structure = phb.structure
@@ -277,6 +237,41 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         return cls(directions=directions, sound_velocities=sound_velocities, mode_types=mode_types,
                    structure=structure, labels=labels, phfreqs=all_acoustic_freqs, qpts=all_qpts)
+
+    def __init__(self, directions, sound_velocities, mode_types, structure,
+                 labels=None, phfreqs=None, qpts=None):
+        """
+        Args:
+            directions: list of qpoints identifying the directions for the calculation
+                of the speed of sound. In fractional coordinates.
+            sound_velocities: array of shape (len(directions), 3) with the values of the
+                sound velocities in SI units.
+            mode_types: array of shape (len(directions), 3) with the type of modes (transverse,
+                longitudinal). None if not known.
+            structure: |Structure| object.
+            labels: list with the same length as direction with labels for the directions.
+            phfreqs: array with shape (len(directions), 3, num_points) with the acoustic phonon
+                frequencies along the directions.
+            qpts: array with shape (len(directions), num_points, 3) with the coordinates of
+                the qpoints in fractional used to fit the phonon frequencies.
+        """
+        self.directions = np.array(directions)
+        self.sound_velocities = np.array(sound_velocities)
+        self.mode_types = mode_types
+        self.labels = labels
+        self.phfreqs = np.array(phfreqs) if phfreqs else None
+        self.qpts = np.array(qpts) if qpts else None
+        self._structure = structure
+
+    @property
+    def structure(self) -> Structure:
+        """|Structure| object"""
+        return self._structure
+
+    @property
+    def n_directions(self) -> int:
+        """Number of directions."""
+        return len(self.directions)
 
     def get_dataframe(self) -> pd.DataFrame:
         """
@@ -456,7 +451,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write an jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write an jupyter_ notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

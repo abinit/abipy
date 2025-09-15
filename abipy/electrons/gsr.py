@@ -5,6 +5,7 @@ Interface to the GSR.nc_ file storing the Ground-state results and the electron 
 from __future__ import annotations
 
 import sys
+import dataclasses
 import numpy as np
 import pandas as pd
 import pymatgen.core.units as units
@@ -21,7 +22,7 @@ from pymatgen.core.units import ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.structure import Structure
-from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, get_ax_fig_plt, set_grid_legend, set_ax_xylabels
 from abipy.tools.typing import Figure
 from abipy.abio.robots import Robot
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands, ElectronBands
@@ -32,6 +33,39 @@ __all__ = [
 ]
 
 _INVALID_STRESS_TENSOR = 9999999999e+99
+
+
+@dataclasses.dataclass(kw_only=True)
+class MagneticData:
+    spinat: np.ndarray
+    use_gbt: int
+    qgbt: np.ndarray | None
+    #from pymatgen.electronic_structure.core import Magmom
+
+    @classmethod
+    def from_gsr(cls, gsr) -> MagneticData:
+        """
+        Build an instance from a GSR file.
+        """
+        spinat = gsr.r.read_value("spinat")
+        intgden = gsr.r.read_value("intgden")
+        nspden = intgden.shape[1]
+
+        qgbt = None
+        if (use_gbt := gsr.r.read_value("use_gbt", default=0)) != 0:
+            qgbt = gsr.r.read_value("qgbt")
+
+        energy_mev_pat = float(gsr.energy) * 1000 / len(gsr.structure)
+
+        if nspden == 2:
+            magmoms = Magmom(intgden[:, 1] - intgden[:, 0])
+        elif nspden == 4:
+            magmoms = [Magmom([intg_at[1], intg_at[2], intg_at[3]]) for intg_at in intgden]
+        else:
+            magmoms = None
+
+        locs = locals()
+        return cls**{locs[field] for field in dataclasses.fields(cls)}
 
 
 class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -57,10 +91,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
-        self.reader = self.r = r = GsrReader(filepath)
-
-        # Initialize the electron bands from file
-        self._ebands = r.read_ebands()
+        self.r = self.reader = GsrReader(filepath)
 
         # Add forces to structure
         if self.is_scf_run:
@@ -95,10 +126,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         return "\n".join(lines)
 
-    @property
+    @cached_property
     def ebands(self) -> ElectronBands:
         """|ElectronBands| object."""
-        return self._ebands
+        return self.r.read_ebands()
 
     @cached_property
     def is_scf_run(self) -> bool:
@@ -345,7 +376,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporaty file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -441,11 +472,73 @@ class EnergyTerms(AttrDict):
             table.append([k, self[k]])
         return tabulate(table, tablefmt="plain")
 
-    #def get_dataframe(self):
-    #    """Return a |pandas-DataFrame|"""
-    #    d = {k: float(self[k]) for k in self}
-    #    return pd.DataFrame(d, index=[None], columns=list(d.keys()))
-    #    #return pd.DataFrame(d, columns=list(d.keys()))
+    def get_dataframe(self) -> pd.DataFrame:
+        """Return a |pandas-DataFrame|"""
+        d = {k: float(self[k]) for k in self}
+        return pd.DataFrame(d, index=[None], columns=list(d.keys()))
+
+
+class EnergyTermsPlotter:
+
+    @classmethod
+    def from_label_file_dict(cls, label_file_dict: dict) -> EnergyTermsPlotter:
+        """
+        Build an object from a dictionary mapping labels to filepath.
+
+        Usage example:
+
+        .. code-block:: python
+
+            plotter = EnergyTermsPlotter.from_label_file_dict({
+               "label1": "out1_GSR.nc",
+               "label2": "out2_GSR.nc",
+            })
+
+        """
+        eterms_list = []
+        for label, path in label_file_dict.items():
+            if isinstance(path, GsrFile):
+                eterms_list.append(path.eterms)
+            else:
+                with GsrFile(path) as gsr:
+                    eterms_list.append(gsr.eterms)
+
+        return cls(list(glabel_file_dict.keys()), eterms_list)
+
+    def __init__(self, labels, eterms_list):
+        self.labels = labels
+        self.eterms_list = eterms_list
+
+    #def add(self, label: str, gsr_path: str) -> None:
+    #   self.labels.append(label)
+    #    if isinstance(path, GsrFile):
+    #        self.eterms_list.append(path.eterms)
+    #    else:
+    #    with GsrFile(gsr_path) as gsr:
+    #        self.labels.append(
+
+    def get_dataframe(self) -> pd.DataFrame:
+        df_list = []
+        for label, eterms in zip(self.labels, self.eterms_list):
+            df = eterms.get_dataframe()
+            df["label"] = label
+            df_list.append(df)
+
+        return pd.concat(df_list)
+
+    #def plot(self, what_list=("foo", "bar"), fontsize=8, **kwargs) -> Figure:
+    #    df = self.get_dataframe()
+    #    #keys = [k for k in df.keys() if k != "label")
+    #    #nkeys = len(keys)
+
+    #    # Build grid of plots.
+    #    ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=1,
+    #                                            sharex=True, sharey=True, squeeze=False)
+    #    ax_list = ax_list.ravel()
+
+    #    for ax, what in zip(ax_list, what_list):
+
+    #    return fig
 
 
 class GsrReader(ElectronsReader):
@@ -626,7 +719,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
     def get_energyterms_dataframe(self, iref: Optional[int] = None) -> pd.DataFrame:
         """
-        Build and return dataframe with the different contributions to the total energy in eV
+        Build and return dataframe with the different contributions to the total energy in eV.
 
         Args:
             iref: Index of the abifile used as reference: the energies of the
@@ -705,13 +798,201 @@ class GsrRobot(Robot, RobotWithEbands):
 
         Returns: |matplotlib-Figure|
 
-        Example::
+        .. code-block::
 
              gsr.plot_gsr_convergence(sortby="ecut")
              gsr.plot_gsr_convergence(sortby="nkpt", hue="tsmear")
         """
         return self.plot_convergence_items(items, sortby=sortby, hue=hue,
                                            fontsize=fontsize, show=False, **kwargs)
+
+    def get_spin_spiral_df(self,
+                           with_params: bool = False,
+                           with_geo: bool = False,
+                           ) -> pd.DataFrame:
+        """
+        Build and return a dataframe with the atomic magnetization/charge for each
+        site, the total energy, and the GBT q-point.
+
+        Args:
+            with_params: True if convergence params should be added to the dataframe
+            with_geo: True if structure info should be added to the dataframe
+        """
+        # nctkarr_t("intgden", "dp", "number_of_components, number_of_atoms"), &
+        # nctkarr_t("ratsph", "dp", "number_of_atom_species"), &
+        # nctkarr_t("rhomag", "dp", "two, number_of_components") &
+
+        # GBT calculations are done with nsym 1 but here we need a
+        # structure with the spacegroup to find the equivalent q-points.
+        structure0 = self.abifiles[0].structure.copy()
+        structure0.spgset_abi_spacegroup(has_timerev=False, overwrite=True)
+
+        rows = []
+        for iq, (label, gsr) in enumerate(self.items()):
+            #mag_data = MagneticData.from_gsr(gsr)
+            spinat = gsr.r.read_value("spinat")
+            intgden = gsr.r.read_value("intgden")
+            nspden = intgden.shape[1]
+
+            qgbt = None
+            if (use_gbt := gsr.r.read_value("use_gbt", default=0)) != 0:
+                qgbt = gsr.r.read_value("qgbt")
+                qname = structure0.findname_in_hsym_stars(qgbt)
+
+            # Convert energies to mev per atom.
+            energy_mev_pat = float(gsr.energy) * 1000 / len(gsr.structure)
+
+            for iat, site in enumerate(gsr.structure):
+                magmom=intgden[iat, 1] - intgden[iat, 0] if nspden == 2 else intgden[iat, 1:]
+                d = dict(
+                    site_idx=iat,
+                    symbol=site.specie.symbol,
+                    frac_coords=site.frac_coords,
+                    magmom=magmom,
+                    magmom_norm=np.linalg.norm(magmom),
+                    spinat=spinat[iat],
+                    charge_isph=intgden[iat, 1] + intgden[iat, 0] if nspden == 2 else intgden[iat, 0],
+                    energy_mev_pat=energy_mev_pat,
+                )
+                if qgbt is not None:
+                    # Add qgbt and sequential index
+                    d.update(qgbt=qgbt, qname=qname, iq=iq)
+
+                if with_params:
+                    d.update(gsr.params)
+                if with_geo:
+                    d.update(gsr.structure.get_dict4pandas(with_spglib=True))
+
+                rows.append(d)
+
+        return pd.DataFrame(rows)
+
+    @add_fig_kwargs
+    def plot_spin_spiral_magmom(self,
+                                keys=("magmom_norm", "mx", "my", "mz", "charge_isph"),
+                                symbols: str | list[str] | None = None,
+                                site_inds: list[int] | None = None,
+                                fontsize=8, **kwargs) -> Figure:
+        """
+        Plot the magnetic moments obtained with the generalized Bloch theorem
+        as a function of the wave-vector q.
+
+        Args:
+            keys: List of quantities to plot.
+            symbols: string or list of strings with chemical symbols to show.
+                None means all chemical symbols in the structure.
+            site_inds: List of site indices to show. None means all sites.
+            fontsize: legend and label fontsize.
+        """
+        # Get dataframe with results
+        df = self.get_spin_spiral_df()
+
+        # Build grid of plots.
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=len(keys), ncols=1,
+                                                sharex=True, sharey=False, squeeze=False)
+        ax_list = ax_list.ravel()
+
+        structure0 = self.abifiles[0].structure
+        if symbols is not None:
+            symbols = list_strings(symbols)
+
+        ticks, labels = None, None
+
+        for site_idx, site in enumerate(structure0):
+            # Filtering on symbol or site index.
+            symbol = site.specie.symbol
+            if symbols is not None and symbol not in symbols: continue
+            if site_inds is not None and site_idx not in site_inds: continue
+
+            # Select data for this site index.
+            data = df[df["site_idx"] == site_idx]
+
+            if ticks is None:
+                # Get ticks and labels.
+                ticks, labels = data["iq"].values, data["qname"].values
+                # Filter and then unpack
+                filtered_pairs = [(x, y) for x, y in zip(ticks, labels) if y is not None]
+                ticks, labels = zip(*filtered_pairs)
+
+            for ax, key in zip(ax_list, keys, strict=True):
+                if key in ("mx", "my", "mz"):
+                    # Convert magmom column to (nq, 3) array and select the Cartesian component.
+                    idx = {"mx": 0, "my": 1, "mz": 2}[key]
+                    ys = np.array([y for y in data["magmom"].values])[:,idx]
+                else:
+                    ys = data[key]
+
+                ax.plot(ys, label="$%s_{%d}$" % (symbol, site_idx))
+
+        for ix, (ax, key) in enumerate(zip(ax_list, keys, strict=True)):
+            set_grid_legend(ax, fontsize=fontsize)
+            ax.set_ylabel(key)
+            if ix == len(ax_list) - 1:
+                ax.set_xlabel("Wave Vector q")
+                ax.set_xticks(ticks, minor=False)
+                ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))
+                if len(ticks) > 1:
+                    ax.set_xlim(ticks[0], ticks[-1])
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_spin_spiral(self, ax=None, fontsize=8, **kwargs) -> Figure:
+        """
+        Plot spin spiral energy E(q) obtained with the generalized Bloch theorem.
+
+        Args:
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: legend and label fontsize.
+        """
+        ax, fig, plt = get_ax_fig_plt(ax=ax, grid=True)
+
+        # TODO: Should check that all structures are the same.
+        # GBT calculations are done with nsym 1 but here we need a
+        # structure with the spacegroup to find the equivalent q-points.
+        structure0 = self.abifiles[0].structure
+        structure0.spgset_abi_spacegroup(has_timerev=False, overwrite=True)
+        natom = len(structure0)
+
+        # Read GBT q-point and energies from the GSR files.
+        qpoints, energies, spinat = [], [], None
+        for label, gsr in self.items():
+            if (use_gbt := gsr.r.read_value("use_gbt", default=0)) == 0:
+                raise RuntimeError(f"{gsr.filepath=} has {use_gbt=}")
+
+            if (spinat_ := gsr.r.read_value("spinat")) is None:
+                spinat = spinat_
+            if spinat is not None and not np.allclose(spinat, spinat_):
+                cprint(f"spinat is not the same:\n {spinat_=}\n{spinat=}", color="yellow")
+
+            qpoints.append(gsr.r.read_value("qgbt"))
+            energies.append(float(gsr.energy))
+
+        # Convert energies to mev per atom.
+        energies_mev = np.array(energies) * 1000 / natom
+        energies_mev -= energies_mev.min()
+
+        # Find the q-point where we have the minimum.
+        qmin = qpoints[np.argmin(energies_mev)]
+        if (qmin_name := structure0.findname_in_hsym_stars(qmin)) is None:
+            qmin_name = ""
+
+        kw_color = kwargs.pop("color", "k")
+        ax.plot(energies_mev, color=kw_color)
+
+        ax.set_xlabel("Wave Vector q")
+        ax.set_ylabel("Energy/atom (meV)")
+        ax.set_title(f"Minimum at q: {qmin} {qmin_name}", fontsize=fontsize)
+
+        ticks, labels = zip(*[(i, qname) for i, qpt in enumerate(qpoints)
+            if (qname := structure0.findname_in_hsym_stars(qpt)) is not None])
+
+        ax.set_xticks(ticks, minor=False)
+        ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))
+        if len(ticks) > 1:
+            ax.set_xlim(ticks[0], ticks[-1])
+
+        return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -731,7 +1012,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

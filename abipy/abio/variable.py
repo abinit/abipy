@@ -33,7 +33,7 @@ class InputVariable:
     """
     An Abinit input variable.
     """
-    def __init__(self, name: str, value: Any, units='', valperline=3):
+    def __init__(self, name: str, value: Any, units='', valperline: int = 3):
         """
         Args:
             name: Name of the variable.
@@ -41,7 +41,6 @@ class InputVariable:
             units: String specifying one of the units supported by Abinit. Default: atomic units.
             valperline: Number of items printed per line.
         """
-
         self._name = name
         self.value = value
         self._units = units
@@ -134,10 +133,9 @@ class InputVariable:
 
         return line
 
-    def format_scalar(self, val, floatdecimal=0) -> str:
+    def format_scalar(self, val, floatdecimal: int = 0) -> str:
         """
-        Format a single numerical value into a string
-        with the appropriate number of decimal.
+        Format a single numerical value into a string with the appropriate number of decimal.
         """
         sval = str(val)
         if sval.lstrip('-').lstrip('+').isdigit() and floatdecimal == 0:
@@ -168,7 +166,7 @@ class InputVariable:
 
         return sval
 
-    def format_list2d(self, values: list[list], floatdecimal=0) -> str:
+    def format_list2d(self, values: list[list], floatdecimal: int = 0) -> str:
         """
         Format a list of lists.
         """
@@ -192,7 +190,6 @@ class InputVariable:
         elif type_all == str:
             formatspec = '>{0}'.format(width)
         else:
-
             # Number of decimal
             maxdec = max(len(str(f-int(f)))-2 for f in lvals)
             ndec = min(max(maxdec, floatdecimal), 10)
@@ -210,7 +207,7 @@ class InputVariable:
 
         return line.rstrip('\n')
 
-    def format_list(self, values: list, floatdecimal=0) -> str:
+    def format_list(self, values: list, floatdecimal: int = 0) -> str:
         """
         Format a list of values into a string.
         The result might be spread among several lines.

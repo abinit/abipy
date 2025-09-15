@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Work subclasses related to DFTP.
+Work subclasses related to DFPT.
 """
 from __future__ import annotations
 
@@ -17,21 +17,21 @@ class ElasticWork(Work, MergeDdb):
     This Work computes the elastic constants and (optionally) the piezoelectric tensor.
     It consists of response function calculations for:
 
-        * rigid-atom elastic tensor
-        * rigid-atom piezoelectric tensor
-        * interatomic force constants at gamma
-        * Born effective charges
+    * rigid-atom elastic tensor
+    * rigid-atom piezoelectric tensor
+    * interatomic force constants at gamma
+    * Born effective charges
 
-    The structure is assumed to be already relaxed
+    IMPORTANT: The structure is assumed to be already relaxed.
 
-    Create a `Flow` for phonon calculations. The flow has one works with:
+    Create a `Work` for phonon calculations. The flow has one works with:
 
-        - 1 GS Task
-        - 3 DDK Task
-        - 4 Phonon Tasks (Gamma point)
-        - 6 Elastic tasks (3 uniaxial + 3 shear strain)
+        - 1 GS Task.
+        - 3 DDK Task.
+        - 4 Phonon Tasks (Gamma point).
+        - 6 Elastic tasks (3 uniaxial + 3 shear strain).
 
-    The Phonon tasks and the elastic task will read the DDK produced at the beginning
+    The Phonon tasks and the elastic tasks will read the DDK files produced at the beginning.
     """
     @classmethod
     def from_scf_input(cls,
@@ -44,13 +44,13 @@ class ElasticWork(Work, MergeDdb):
                        manager=None) -> ElasticWork:
         """
         Args:
-            scf_input:
-            with_relaxed_ion:
-            with_piezo:
+            scf_input: |AbinitInput| for GS-SCF run used as template to generate the other inputs.
+            with_relaxed_ion: True if relaxed-ion tensors should be computed.
+            with_piezo: True to compute piezoelectric tensor.
             with_dde: Compute electric field perturbations.
             tolerances: Dict of tolerances
             den_deps:
-            manager:
+            manager: |TaskManager| instance. Use default if None.
 
         Similar to `from_scf_task`, the difference is that this method requires
         an input for SCF calculation instead of a ScfTask. All the tasks (Scf + Phonon)
@@ -82,7 +82,6 @@ class ElasticWork(Work, MergeDdb):
 
         if with_dde:
             # Add tasks for electric field perturbation.
-            #dde_tolerance = None
             dde_tolerance = tolerances.get("dde", None)
             dde_multi = scf_input.make_dde_inputs(tolerance=dde_tolerance, use_symmetries=True, manager=manager)
             dde_deps = {wfk_task: "WFK"}
@@ -104,7 +103,7 @@ class ElasticWork(Work, MergeDdb):
                 if inp.get("rfphon", 0) == 1:
                     new.register_phonon_task(inp, deps=ph_deps)
 
-        # Finally compute strain pertubations (read DDK if piezo).
+        # Finally compute strain perturbations (read DDK if piezo).
         elast_deps = {wfk_task: "WFK"}
         if with_piezo: elast_deps.update(ddk_deps)
         for inp in strain_multi:
@@ -128,16 +127,20 @@ class ElasticWork(Work, MergeDdb):
 
 class NscfDdksWork(Work):
     """
-    This work requires a DEN file and computes the KS energies with a non self-consistent task
-    with a dense k-mesh and empty states.
+    This work requires a DEN file and computes the KS energies non self-consistently
+    with a dense k-mesh, and empty states.
     This task is then followed by the computation of the DDK matrix elements with nstep = 1
     (the first order change of the wavefunctions is not converged but we only need the matrix elements)
     Mainly used to prepare optic calculations or other post-processing steps requiring the DDKs.
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task : ScfTask,
-                      ddk_ngkpt, ddk_shiftk, ddk_nband, manager=None) -> NscfDdksWork:
+    def from_scf_task(cls,
+                      scf_task: ScfTask,
+                      ddk_ngkpt,
+                      ddk_shiftk,
+                      ddk_nband,
+                      manager=None) -> NscfDdksWork:
         """
         Build NscfDdksWork from a scf_task.
 

@@ -15,6 +15,7 @@ import pymatgen.core.units as pmg_units
 
 from pprint import pformat
 from collections import OrderedDict
+from collections.abc import Sequence # Callable, Iterable, Iterator,
 from typing import Any
 from monty.collections import AttrDict, dict2namedtuple
 from functools import cached_property
@@ -116,7 +117,7 @@ def mp_search(chemsys_formula_id):
         return restapi.MpStructures(structures, mpids, data=data)
 
 
-def cod_search(formula, primitive=False):
+def cod_search(formula: str, primitive: bool = False):
     """
     Connect to the COD_ database. Get list of structures corresponding to a chemical formula
 
@@ -129,7 +130,7 @@ def cod_search(formula, primitive=False):
             List of Structure objects, COD ids associated to structures.
             and List of dictionaries with COD data (same order as structures).
 
-        Note that the attributes evalute to False if no match is found
+        Note that the attributes evaluate to False if no match is found
     """
     from pymatgen.ext.cod import COD
     data = COD().get_structure_by_formula(formula)
@@ -429,8 +430,8 @@ class Structure(pmg_Structure, NotebookWriter):
         import pymatgen.io.ase as aio
         return aio.AseAtomsAdaptor.get_structure(atoms, cls=cls)
 
-    # FIXME: Temporary workaround to maintain compatbility with old pymatgen versions.
-    # m_elems was added in v2024.7.18
+    # FIXME: Temporary workaround to maintain compatibility with old pymatgen versions.
+    # n_elems was added in v2024.7.18
     @property
     def n_elems(self) -> int:
         """Number of types of atoms."""
@@ -551,8 +552,9 @@ class Structure(pmg_Structure, NotebookWriter):
             units: Units of input lattice parameters e.g. "bohr", "pm"
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
 
-        Example::
-            Structure.zincblende(a, ["Zn", "S"])
+        .. code-block::
+
+            structure = Structure.zincblende(a, ["Zn", "S"])
         """
         a = pmg_units.Length(a, units).to("ang")
         lattice = 0.5 * float(a) * np.array([
@@ -574,8 +576,9 @@ class Structure(pmg_Structure, NotebookWriter):
             species: Chemical species. See __init__ method of :class:`pymatgen.Structure`
             kwargs: All keyword arguments accepted by :class:`pymatgen.Structure`
 
-        Example::
-            Structure.rocksalt(a, ["Na", "Cl"])
+        .. code-block::
+
+            structure = Structure.rocksalt(a, ["Na", "Cl"])
         """
         a = pmg_units.Length(a, units).to("ang")
         lattice = 0.5 * float(a) * np.array([
@@ -626,7 +629,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         Build a |Structure| object from a dictionary with ABINIT variables.
 
-        Example::
+        .. code-block::
 
             al_structure = Structure.from_abivars(
                 acell=3*[7.5],
@@ -677,6 +680,27 @@ class Structure(pmg_Structure, NotebookWriter):
         else:
             app(super().__str__())
 
+        key = "cartesian_forces"
+        if key in self.site_properties:
+            # print force stats
+            cart_forces = np.reshape([site.properties.get(key) for site in self], (-1 ,3))
+            force_norms = np.linalg.norm(cart_forces, axis=1)
+            min_fnorm, max_fnorm  = np.min(force_norms), np.max(force_norms)
+            mean_fnorm, std_fnorm = np.mean(force_norms), np.std(force_norms)
+            app(f"min |F_iat|: {min_fnorm} eV/Ang")
+            app(f"max |F_iat|: {max_fnorm} eV/Ang")
+            app(f"mean F_iat|: {mean_fnorm} eV/Ang")
+            app(f"std  |F_iat|: {std_fnorm} eV/Ang")
+
+            # Print warning if forces are too large.
+            standard, high = 1e-3, 1e-4
+            if max_fnorm <= high:
+                app(f"Forces are relaxed within high quality criterion: {high} eV/Ang")
+            elif max_fnorm <= standard:
+                app(f"Forces are relaxed within standard criterion: {standard} eV/Ang")
+            else:
+                app(f"FORCES ARE NOT FULLY RELAXED. THIS STRUCTURE SHOULD NOT BE USED FOR PHONONS!")
+
         if verbose > 1:
             for i, vec in enumerate(self.lattice.matrix):
                 app("a_%d: %.8f %.8f %.8f" % (i + 1, vec[0], vec[1], vec[2]))
@@ -702,6 +726,35 @@ class Structure(pmg_Structure, NotebookWriter):
                 return self.abi_string
         else:
             return super().to(fmt=fmt, filename=filename, **kwargs)
+
+    def compare(self, other, atol: float = 1e-6) -> tuple[bool, str]:
+        """
+        Compare two structures with absolute tolerance `atol`.
+        Return: bool indicating if structures are equal and string with error message, if any.
+        """
+        from io import StringIO
+        file = StringIO()
+        lat_match = np.allclose(self.lattice.matrix, other.lattice.matrix, atol=atol)
+        if not lat_match:
+            print("Mismatch in lattice", file=file)
+
+        site_match = True
+        if len(self) != len(other):
+            site_match = False
+            print(f"{len(self)=} != {len(other)=}", file=file)
+
+        for site1, site2 in zip(self.sites, other.sites):
+            if site1.species != site2.species:
+                print("Mismatch in atomic species:", site1.species, site2.species, file=file)
+                site_match = False
+            elif not np.allclose(site1.frac_coords, site2.frac_coords, atol=atol):
+                print("Mismatch in fractional coordinates:", site1.frac_coords, site2.frac_coords, file=file)
+                site_match = False
+            elif not np.allclose(site1.coords, site2.coords, atol=atol):
+                print("Mismatch in cartesian coordinates:", site1.coords, site2.coords, file=file)
+                site_match = False
+
+        return lat_match and site_match, file.getvalue()
 
     def mp_match(self, **kwargs):
         """
@@ -847,7 +900,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return StructurePanel(structure=self).get_panel(with_inputs=with_inputs, **kwargs)
 
     def get_conventional_standard_structure(self, international_monoclinic=True,
-                                           symprec=1e-3, angle_tolerance=5) -> Structure:
+                                            symprec=1e-3, angle_tolerance=5) -> Structure:
         """
         Gives a structure with a conventional cell according to certain standards.
         The standards are defined in :cite:`Setyawan2010`
@@ -929,7 +982,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return self.__class__.as_structure(new)
 
     def abi_sanitize(self, symprec=1e-3, angle_tolerance=5,
-                     primitive=True, primitive_standard=False) -> Structure:
+                     primitive=True, primitive_standard=False, atol=1e-12) -> Structure:
         """
         Returns a new structure in which:
 
@@ -940,13 +993,16 @@ class Structure(pmg_Structure, NotebookWriter):
         Args:
             symprec (float): Symmetry precision used to refine the structure.
             angle_tolerance (float): Tolerance on angles.
-                if ``symprec`` is None and `angle_tolerance` is None, no structure refinement is peformed.
+                if ``symprec`` is None and `angle_tolerance` is None,
+                no structure refinement is performed.
             primitive (bool): Returns most primitive structure found.
             primitive_standard (bool): Whether to convert to a primitive cell using
                 the standards defined in Setyawan, W., & Curtarolo, S. (2010).
                 High-throughput electronic band structure calculations:
                 Challenges and tools. Computational Materials Science, 49(2), 299-312.
                 doi:10.1016/j.commatsci.2010.05.010
+            atol: Components whose absolute value are less than atol are set to zero.
+                Use None or zero to disable this step.
         """
         from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
         structure = self.__class__.from_sites(self)
@@ -976,7 +1032,13 @@ class Structure(pmg_Structure, NotebookWriter):
             structure = trans.apply_transformation(structure)
             m = structure.lattice.matrix
             x_prod = np.dot(np.cross(m[0], m[1]), m[2])
-            if x_prod < 0: raise RuntimeError("x_prod is still negative!")
+            if x_prod < 0:
+                raise RuntimeError("x_prod is still negative!")
+
+        if atol is not None:
+            new_mat = structure.lattice.matrix.copy()
+            new_mat[np.abs(new_mat) < atol] = 0.0
+            structure.lattice = new_mat
 
         return self.__class__.as_structure(structure)
 
@@ -1203,8 +1265,8 @@ class Structure(pmg_Structure, NotebookWriter):
         cprint(msg, "magenta")
 
         spglib_data = SpacegroupAnalyzer(self).get_symmetry_dataset()
-        spgid = spglib_data["number"]
-        symrel, tnons = spglib_data["rotations"], spglib_data["translations"]
+        spgid = spglib_data.number
+        symrel, tnons = spglib_data.rotations, spglib_data.translations
         # TODO: Anti-ferromagnetic symmetries are not supported by spglib
         symafm = [1] * len(symrel)
 
@@ -1270,7 +1332,7 @@ class Structure(pmg_Structure, NotebookWriter):
         {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
 
         Args:
-            tolsym: Abinit tolsym input variable. None correspondes to the default value.
+            tolsym: Abinit tolsym input variable. None corresponds to the default value.
             pre: Keywords in dictionary are prepended with this string
         """
         from abipy.data.hgh_pseudos import HGH_TABLE
@@ -1373,7 +1435,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         Args:
             knames: List of strings with the k-point labels.
-            cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates
+            cart_coords: True if the ``coords`` dataframe should contain Cartesian coordinates
                 instead of Reduced coordinates.
         """
         kname2frac = {k.name: k.frac_coords for k in self.hsym_kpoints}
@@ -1421,7 +1483,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """Order the structure according to increasing Z of the elements"""
         return self.__class__.from_sites(sorted(self.sites, key=lambda site: site.specie.Z))
 
-    def findname_in_hsym_stars(self, kpoint):
+    def findname_in_hsym_stars(self, kpoint) -> str | None:
         """
         Returns the name of the special k-point, None if kpoint is unknown.
         """
@@ -1430,7 +1492,7 @@ class Structure(pmg_Structure, NotebookWriter):
         from .kpoints import Kpoint
         kpoint = Kpoint.as_kpoint(kpoint, self.reciprocal_lattice)
 
-        # Try to find kpoint in hsym_stars without taking into accout symmetry operation (compare with base_point)
+        # Try to find kpoint in hsym_stars without taking into account symmetry operation (compare with base_point)
         # Important if there are symmetry equivalent k-points in hsym_kpoints e.g. K and U in FCC lattice
         # as U should not be mapped onto K as done in the second loop below.
         from .kpoints import issamek
@@ -1444,8 +1506,8 @@ class Structure(pmg_Structure, NotebookWriter):
             if i != -1:
                 #print("input kpt:", kpoint, "star image", star[i], star[i].name)
                 return star.name
-        else:
-            return None
+
+        return None
 
     def get_symbol2indices(self) -> dict:
         """
@@ -1513,16 +1575,81 @@ class Structure(pmg_Structure, NotebookWriter):
         new_lattice = self.lattice.scale(new_volume)
         return self.__class__(new_lattice, self.species, self.frac_coords)
 
+    def magnetic_supercell(self, scaling_matrix: int | Sequence[int], magmom=None) -> Structure:
+        """
+        Make a supercell. Allow sites outside the unit cell.
+
+        Args:
+            scaling_matrix: A scaling matrix for transforming the lattice
+                vectors. Has to be all integers. Several options are possible:
+
+                a. A sequence of three scaling factors. e.g. [2, 1, 1]
+                   specifies that the supercell should have dimensions 2a x b x c.
+                b. A number, which simply scales all lattice vectors by the
+                   same factor.
+
+        Returns:
+            Supercell structure. Note that a Structure is always returned,
+            even if the input structure is a subclass of Structure. This is
+            to avoid different arguments signatures from causing problems. If
+            you prefer a subclass to return its own type, you need to override
+            this method in the subclass.
+        """
+        scale_matrix = np.array(scaling_matrix, dtype=int)
+        if scale_matrix.shape != (3, 3):
+            scale_matrix = scale_matrix * np.eye(3, dtype=int)
+
+        qq_frac = 1.0 / np.diagonal(scale_matrix)
+        qq_cart = self.reciprocal_lattice.get_cartesian_coords(qq_frac)
+        print(f"{qq_frac=}")
+
+        from pymatgen.util.coord import lattice_points_in_supercell
+        new_lattice = Lattice(np.dot(scale_matrix, self.lattice.matrix))
+        frac_lattice = lattice_points_in_supercell(scale_matrix)
+        cart_lattice = new_lattice.get_cartesian_coords(frac_lattice)
+
+        if magmom is None:
+            if (magmom := self.site_properties.get("magmom", None)) is None:
+                raise ValueError("Structure does not have magmom in site properties. Values must be passed explicitly")
+        magmom = np.reshape(magmom, (-1, 3))
+
+        new_sites = []
+        for site, m0 in zip(self, magmom, strict=True):
+            for cart_vec in cart_lattice:
+                #print(f"{cart_vec=}")
+                #qr = 2.0 * np.pi * np.dot(qq_cart, cart_vec)
+                qr = np.dot(qq_cart, cart_vec)
+                mm = np.array([
+                    m0[0] * np.cos(qr) - m0[1] * np.sin(qr),
+                    m0[0] * np.sin(qr) + m0[1] * np.cos(qr),
+                    m0[2],
+                ])
+
+                new_properties = site.properties.copy()
+                new_properties["magmom"] = mm
+
+                new_sites.append(PeriodicSite(
+                    site.species,
+                    site.coords + cart_vec,
+                    new_lattice,
+                    properties=new_properties,
+                    coords_are_cartesian=True,
+                    to_unit_cell=False,
+                    skip_checks=True,
+                    label=site.label,
+                ))
+
+        new_charge = self._charge * np.linalg.det(scale_matrix) if self._charge else None
+        return self.__class__.from_sites(new_sites, charge=new_charge, to_unit_cell=True)
+
     def get_dict4pandas(self, symprec=1e-2, angle_tolerance=5.0, with_spglib=True) -> dict:
         """
-        Return a dict with the most important structural parameters:
+        Return a dict with the most important structural parameters useful to construct pandas DataFrames.
 
             - Chemical formula and number of atoms.
             - Lattice lengths, angles and volume.
             - The spacegroup number computed by Abinit (set to None if not available).
             - The spacegroup number and symbol computed by spglib (if `with_spglib`).
-
-        Useful to construct pandas DataFrames
 
         Args:
             with_spglib (bool): If True, spglib is invoked to get the spacegroup symbol and number
@@ -1538,6 +1665,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 spglib_symbol, spglib_number = self.get_space_group_info(symprec=symprec,
                                                                          angle_tolerance=angle_tolerance)
                 spglib_lattice_type = self.spget_lattice_type(symprec=symprec, angle_tolerance=angle_tolerance)
+
             except Exception as exc:
                 cprint("Spglib couldn't find space group symbol and number for composition: `%s`" %
                         str(self.composition), "red")
@@ -1552,6 +1680,7 @@ class Structure(pmg_Structure, NotebookWriter):
             ("a", abc[0]), ("b", abc[1]), ("c", abc[2]), ("volume", self.volume),
             ("abispg_num", abispg_number),
         ])
+
         if with_spglib:
             od["spglib_symb"] = spglib_symbol
             od["spglib_num"] = spglib_number
@@ -1697,7 +1826,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 instance of visu is returned. See |Visualizer| for the list of applications and formats supported.
             verbose: Verbosity level
 
-        Returns: ``Visulizer`` instance.
+        Returns: ``Visualizer`` instance.
         """
         if "." not in filename:
             raise ValueError("Cannot detect extension in filename %s:" % filename)
@@ -1921,7 +2050,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         Displace the sites of the structure along the displacement vector displ.
 
-        The displacement vector is first rescaled so that the maxium atomic displacement
+        The displacement vector is first rescaled so that the maximum atomic displacement
         is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
         all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
@@ -1958,7 +2087,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         Displace one site of the structure along the displacement vector displ.
 
-        The displacement vector is first rescaled so that the maxium atomic displacement
+        The displacement vector is first rescaled so that the maximum atomic displacement
         is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
         the site so that the maximum atomic displacement is 0.001 Angstrom.
 
@@ -2072,24 +2201,24 @@ class Structure(pmg_Structure, NotebookWriter):
         # Fortran 2 python!!!
         return scale_matrix.T.copy()
 
-    def make_doped_supercells(self, scaling_matrix, replaced_atom, dopant_atom):
+    def make_doped_supercells(self, scaling_matrix, replaced_atom: str, dopant_atom: str) -> list[Structure]:
         """
-        Returns a list doped supercell structures, one for each non-equivalent site of the replaced atom.
+        Returns a list of doped supercell structures, one for each non-equivalent site of the replaced atom.
 
         Args:
             scaling_matrix: A scaling matrix for transforming the lattice vectors.
                 Has to be all integers. Several options are possible:
-                a. A full 3x3 scaling matrix defining the linear combination of the old lattice vectors.
-                    E.g., [[2,1,0],[0,3,0],[0,0,1]] generates a new structure with lattice vectors
-                    a_new = 2a + b, b_new = 3b, c_new = c
-                    where a, b, and c are the lattice vectors of the original structure.
-                b. A sequence of three scaling factors. e.g., [2, 1, 1]
-                   specifies that the supercell should have dimensions 2a x b x c.
-                c. A number, which simply scales all lattice vectors by the same factor.
+                a) A full 3x3 scaling matrix defining the linear combination of the old lattice vectors.
+                E.g., [[2,1,0],[0,3,0],[0,0,1]] generates a new structure with lattice vectors
+                a_new = 2a + b, b_new = 3b, c_new = c
+                where a, b, and c are the lattice vectors of the original structure.
+                b) A sequence of three scaling factors. e.g., [2, 1, 1]
+                specifies that the supercell should have dimensions 2a x b x c.
+                c) A number, which simply scales all lattice vectors by the same factor.
             replaced atom: Symbol of the atom to be replaced (ex: 'Sr')
             dopant_atom: Symbol of the dopant_atom (ex: 'Eu')
         """
-        ### list of positions of non-equivalent sites for the replaced atom. ###
+        # list of positions of non-equivalent sites for the replaced atom.
         irred = self.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
         positions = self.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
 
@@ -2579,7 +2708,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -2626,7 +2755,7 @@ def dataframes_from_structures(struct_objects, index=None, symprec=1e-2, angle_t
         symprec (float): Symmetry precision used to refine the structure.
         angle_tolerance (float): Tolerance on angles.
         with_spglib (bool): If True, spglib_ is invoked to get the spacegroup symbol and number.
-        cart_coords: True if the ``coords`` dataframe should contain Cartesian cordinates
+        cart_coords: True if the ``coords`` dataframe should contain Cartesian coordinates
             instead of Reduced coordinates.
 
     Return:
@@ -2741,7 +2870,7 @@ class StructureModifier:
         """
         Displace the sites of the structure along the displacement vector displ.
 
-        The displacement vector is first rescaled so that the maxium atomic displacement
+        The displacement vector is first rescaled so that the maximum atomic displacement
         is one Angstrom, and then multiplied by eta. Hence passing eta=0.001, will move
         all the atoms so that the maximum atomic displacement is 0.001 Angstrom.
 
@@ -2879,7 +3008,7 @@ class StructDiff:
             raise ValueError(f"Found duplicated entries in: {self.labels}")
         natom = len(self.structs[0])
         if any(len(s) != natom for s in self.structs):
-            raise ValueError("structures have different numbe of atoms!")
+            raise ValueError("structures have different number of atoms!")
 
     def del_label(self, label: str) -> None:
         """Remove entry associated to label."""

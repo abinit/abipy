@@ -72,60 +72,60 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
     """
 
     @cached_property
-    def qpeme0(self):
+    def qpeme0(self) -> float:
         """E_QP[T] - E_0 (Real part)"""
         return (self.qpe - self.e0).real
 
     @cached_property
-    def re_qpe(self):
+    def re_qpe(self) -> float:
         """Real part of the QP energy."""
         return self.qpe.real
 
     @cached_property
-    def imag_qpe(self):
+    def imag_qpe(self) -> float:
         """Imaginay part of the QP energy."""
         return self.qpe.imag
 
     @property
-    def re_fan0(self):
+    def re_fan0(self) -> float:
         """Real part of the Fan term at KS."""
         return self.fan0.real
 
     @property
-    def imag_fan0(self):
+    def imag_fan0(self) -> float:
         """Imaginary part of the Fan term at KS."""
         return self.fan0.imag
 
     @cached_property
-    def re_sig0(self):
+    def re_sig0(self) -> float:
         """Real part of the self-energy computed at the KS energy."""
         return self.re_fan0 + self.dw
 
     @cached_property
-    def imag_sig0(self):
+    def imag_sig0(self) -> float:
         """Imaginary part of the self-energy computed at the KS energy."""
         return self.imag_fan0
 
     @cached_property
-    def skb(self):
+    def skb(self) -> tuple:
         """Tuple with (spin, kpoint, band)"""
         return self.spin, self.kpoint, self.band
 
     @classmethod
-    def get_fields(cls, exclude=()):
+    def get_fields(cls, exclude=()) -> tuple:
         fields = list(cls._fields) + ["qpeme0"]
         for e in exclude:
             fields.remove(e)
         return tuple(fields)
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         """Integration with jupyter_ notebooks."""
         return self.get_dataframe()._repr_html_()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0, title=None) -> str:
+    def to_string(self, verbose: int = 0, title: str | None = None) -> str:
         """
         String representation with verbosity level ``verbose`` and optional ``title``.
         """
@@ -139,9 +139,7 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
         Args:
             index: dataframe index.
             with_spin: False if spin index is not wanted.
-            params: Optional (Ordered) dictionary with extra parameters.
-
-        Return: |pandas-DataFrame|
+            params: Optional dictionary with extra parameters.
         """
         # TODO Add more entries (tau?)
         od = {}
@@ -454,7 +452,7 @@ class EphSelfEnergy:
     latex_symbol = dict(
         re=r"$\Re{\Sigma(\omega)}$",
         im=r"$\Im{\Sigma(\omega)}$",
-        spfunc=r"$A(\omega)}$",
+        spfunc=r"$A(\omega)$",
     )
 
     def __init__(self, wmesh, qp, vals_e0ks, dvals_de0ks, dw_vals, vals_wr, spfunc_wr,
@@ -495,7 +493,7 @@ class EphSelfEnergy:
     def __str__(self):
         return self.to_string()
 
-    def to_string(self, verbose=0, title=None) -> str:
+    def to_string(self, verbose: int = 0, title: str | None = None) -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
@@ -3658,5 +3656,4 @@ class SigmaPhReader(BaseEphReader):
             qps_spin[spin] = QpTempList(qps)
 
         return tuple(qps_spin)
-
 

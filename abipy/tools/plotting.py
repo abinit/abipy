@@ -65,6 +65,36 @@ linestyles = OrderedDict(
      ('densely_dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))]
 )
 
+SUBSCRIPT_UNICODE = {
+                "0": "₀",
+                "1": "₁",
+                "2": "₂",
+                "3": "₃",
+                "4": "₄",
+                "5": "₅",
+                "6": "₆",
+                "7": "₇",
+                "8": "₈",
+                "9": "₉",
+            }
+
+def symbol_with_components(symbol: str, components: list[str], sub_or_sub: str = "sub") -> list[str]:
+    r"""
+    Given a latex symbol, and a list of components,
+    build and return list of latex strings.
+
+        voigt_comps = ["xx", "yy", "zz", "yz", "xz", "xy"]
+        symbol_with_components(r"\epsilon" voigt_comps)
+    """
+    pre = {"sub": "_", "sup": "^"}[sub_or_sub]
+    symbol = symbol.replace("$", "")
+    latex_strings = []
+    for comp in list_strings(components):
+        latex_strings.append("$" + (symbol + "%s{%s}" % (pre, comp) + "$"))
+
+    return latex_strings
+
+
 
 def add_fig_kwargs(func: Callable) -> Callable:
     """
@@ -146,9 +176,9 @@ def add_fig_kwargs(func: Callable) -> Callable:
     doc_str = """\n\n
         Keyword arguments controlling the display of the figure:
 
-        ================  ====================================================
+        ================  =======================================================
         kwargs            Meaning
-        ================  ====================================================
+        ================  =======================================================
         title             Title of the plot. Default: None.
         show              True to show the figure. Default: True.
         savefig           "abc.png" or "abc.svg" to save the figure to a file.
@@ -160,7 +190,7 @@ def add_fig_kwargs(func: Callable) -> Callable:
         ax_annotate       Add labels to subplots e.g. (a), (b). Default: False
         fig_close         Close figure. Default: False.
         plotly            Try to convert mpl figure to plotly: Default: False
-        ================  ====================================================
+        ================  =======================================================
 
 """
 
@@ -622,11 +652,12 @@ def plot_xy_with_hue(data: pd.DataFrame,
                      ax=None,
                      xlims: tuple | None = None,
                      ylims: tuple | None = None ,
+                     col2label: dict | None = None,
                      fontsize: int = 8,
                      **kwargs) -> Figure:
     """
     Plot y = f(x) relation for different values of `hue`.
-    Useful for convergence tests done wrt two parameters.
+    Useful for convergence tests wrt two parameters.
 
     Args:
         data: |pandas-DataFrame| containing columns `x`, `y`, and `hue`.
@@ -636,10 +667,12 @@ def plot_xy_with_hue(data: pd.DataFrame,
             None to disable grouping.
         decimals: Number of decimal places to round `hue` columns. Ignore if None
         abs_conv: If not None, show absolute convergence window.
+            A negative value is interpreted as relative convergence.
         span_style: dictionary with options passed to ax.axhspan.
         ax: |matplotlib-Axes| or None if a new figure should be created.
         xlims, ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
             or scalar e.g. `left`. If left (right) is None, default values are used
+        col2label: Dictionary mapping column name to label for plot.
         fontsize: Legend fontsize.
         kwargs: Keyword arguments passed to ax.plot method.
 
@@ -685,29 +718,43 @@ def plot_xy_with_hue(data: pd.DataFrame,
         label = f"{hue}: {str(key)}" if hue is not None else ""
         style_kws = dict()
         style_kws.update(kwargs)
+        if abs_conv is None and "marker" not in kwargs:
+            style_kws["marker"] = "o"
+
         line = ax.plot(xs, ys, label=label, **style_kws)[0]
-        # Plot points with different color if y reach convergence.
+
+        # Plot points with different colors if y has reached convergence.
         if abs_conv is not None:
             color = line.get_color()
+
             for i in range(len(ys)):
+                if abs_conv > 0:
+                    # Absolute convergence
+                    converged = abs(ys[i] - ys[-1]) < abs_conv
+                else:
+                    # Relative convergence. Won't work when ys[-1] could be zero or very sma
+                    converged = abs(ys[i] - ys[-1]) < abs(abs_conv) * abs(ys[-1])
+
                 ax.plot(xs[i], ys[i],
-                        marker="*" if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else "o",
-                        markersize=10 if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else 5,
+                        marker="*" if converged else "o",
+                        markersize=10 if converged else 5,
                         color=color,
-                        alpha = 1 if (ys[i] > ys[-1] - abs_conv and ys[i] < ys[-1] + abs_conv) else 0.5,
+                        alpha=1 if converged else 0.5,
                         linestyle="")
 
-        if abs_conv is not None:
-            span_style = span_style or dict(alpha=0.2, hatch="/")
-            span_style["color"] = line.get_color()
-            # This to support the case in which we have multiple ys for the same x_max
+            # This to support the case in which we have multiple ys for the same x_max.
             x_max, y_xmax = xs[-1], ys[-1]
             x_inds = np.where(xs == x_max)[0]
+
+            span_style = span_style or dict(alpha=0.2, hatch="/")
+            span_style["color"] = line.get_color()
             for i, ix in enumerate(x_inds):
                 y_xmax = ys[ix]
-                ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv,
-                           #label=r"$|y-y(x_{max})| \leq %s$" % abs_conv if (with_label and i == 0) else None,
-                           **span_style)
+                if abs_conv > 0:
+                    ax.axhspan(y_xmax - abs_conv, y_xmax + abs_conv, **span_style)
+                else:
+                    tol = abs(abs_conv) * abs(y_xmax)
+                    ax.axhspan(y_xmax - tol, y_xmax + tol, **span_style)
 
     if hue is not None:
         for key, grp in data.groupby(by=hue):
@@ -716,10 +763,12 @@ def plot_xy_with_hue(data: pd.DataFrame,
         _plot_key_grp("nohue", data, span_style)
 
     ax.grid(True)
-    ax.set_xlabel(x)
-    ax.set_ylabel(y)
+    ax.set_xlabel(x if col2label is None else col2label.get(x, x))
+    ax.set_ylabel(y if col2label is None else col2label.get(y, y))
+
     set_axlims(ax, xlims, "x")
     set_axlims(ax, ylims, "y")
+
     if hue:
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -734,13 +783,12 @@ def linear_fit_ax(ax, xs, ys,
     """
     Calculate a linear least-squares regression for two sets of measurements.
 
-
     Args:
         ax: |matplotlib-Axes|.
         xs: X-values.
         ys: Y-values.
         fontsize: fontsize for legends and titles
-        with_label: True to add lable to the plot.
+        with_label: True to add labele to the plot.
         with_ideal_line: True to show ideal linear behaviour.
         kwargs: keyword arguments passed to ax.plot.
 
@@ -806,7 +854,7 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs) -> Figure:
     """
     Use imshow for plotting 2D or 1D arrays.
 
-    Example::
+    .. code-block::
 
         plot_array(np.random.rand(10,10))
 
@@ -902,7 +950,7 @@ class ConvergenceAnalyzer:
             yvals_dict:
             ytols_dict: dict mapping the name of the y-variable to absolute tolerance(s).
 
-        Example::
+        .. code-block::
 
             plotter = ConvergencePlotter("ecut", ecut_value, yvals_dict, ytols_dict)
             plotter.plot()
@@ -986,7 +1034,7 @@ class ConvergenceAnalyzer:
     def set_label(self, key: str, label: str, ignore_exc=False) -> None:
         """
         Set the label for `key` to be used in the plot.
-        Dont't raise exception if `ignore_exc` is True.
+        Don't raise exception if `ignore_exc` is True.
         """
         if key in self.ykey2label:
             self.ykey2label[key] = label
@@ -1135,6 +1183,7 @@ class ConvergenceAnalyzer:
                             grid=False, legend=True)
 
         fig.tight_layout()
+
         return fig
 
 
@@ -1237,7 +1286,8 @@ class Marker:
     in the plot and s is the size of the marker.
     Used for plotting purpose e.g. QP data, energy derivatives...
 
-    Example::
+    .. code-block::
+
         x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
         marker = Marker(x, y, s)
     """
@@ -1535,21 +1585,6 @@ def ax_add_cartesian_frame(ax, start=(0, 0, 0)) -> Axes:
 
             return np.min(zs)
 
-        #def draw(self, renderer):
-        #    xs3d, ys3d, zs3d = self._verts3d
-        #    xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
-        #    self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
-        #    super().draw(renderer)
-
-        #def do_3d_projection(self, renderer=None):
-        #    xs3d, ys3d, zs3d = self._verts3d
-        #    if renderer is None:
-        #        # fallback to a default or estimated z value
-        #        return np.mean(zs3d)  # safe fallback
-        #    else:
-        #        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
-        #        return np.min(zs)  # or np.mean(zs) depending on your desired sorting
-
     start = np.array(start)
     for end in ((1, 0, 0), (0, 1, 0), (0, 0, 1)):
         end = start + np.array(end)
@@ -1597,8 +1632,8 @@ def plot_structure(structure,
             ax.text(x, y, z, symbol)
 
     # The definition of sizes is not optimal because matplotlib uses points
-    # wherease we would like something that depends on the radius (5000 seems to give reasonable plots)
-    # For possibile approaches, see
+    # whereas we would like something that depends on the radius (5000 seems to give reasonable plots)
+    # For possible approaches, see
     # https://stackoverflow.com/questions/9081553/python-scatter-plot-size-and-style-of-the-marker/24567352#24567352
     # https://gist.github.com/syrte/592a062c562cd2a98a83
     if "points" in style:
@@ -1896,7 +1931,7 @@ class PlotlyRowColDesc:
     def from_object(cls, obj: Any) -> PlotlyRowColDesc:
         """
         Build an instance for a generic object.
-        If oject is None, a simple descriptor corresponding to a (1,1) grid is returned.
+        If object is None, a simple descriptor corresponding to a (1,1) grid is returned.
         """
         if obj is None: return cls(0, 0, 1, 1)
         if isinstance(obj, cls): return obj
@@ -1985,10 +2020,6 @@ def plotly_set_lims(fig, lims, axname, iax=None) -> tuple:
     """
     left, right = None, None
     if lims is None: return (left, right)
-
-    # iax = kwargs.pop("iax", 1)
-    # xaxis = 'xaxis%u' % iax
-    #fig.layout[xaxis].title.text = "Wave Vector"
 
     axis = dict(x=fig.layout.xaxis, y=fig.layout.yaxis)[axname]
 
@@ -2087,7 +2118,6 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
                     )
 
                 fig.write_image(savefig, engine="kaleido", scale=5, width=750, height=750)
-                #fig.write_image(savefig)
 
         if write_json:
             import plotly.io as pio
@@ -2119,9 +2149,9 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
     doc_str = """\n\n
         Keyword arguments controlling the display of the figure:
 
-        ================  ====================================================================
+        ================  =============================================================================================
         kwargs            Meaning
-        ================  ====================================================================
+        ================  =============================================================================================
         title             Title of the plot (Default: None).
         show              True to show the figure (default: True).
         hovermode         True to show the hover info (default: False)
@@ -2135,17 +2165,16 @@ def add_plotly_fig_kwargs(func: Callable) -> Callable:
                           See https://github.com/plotly/jupyterlab-chart-editor
         renderer          (str or None (default None)) –
                           A string containing the names of one or more registered renderers
-                          (separated by ‘+’ characters) or None. If None, then the default
+                          (separated by "+" characters) or None. If None, then the default
                           renderers specified in plotly.io.renderers.default are used.
-                          See https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
+                          See <https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html>
         config (dict)     A dict of parameters to configure the figure. The defaults are set in plotly.js.
-        chart_studio      True to push figure to chart_studio server. Requires authenticatios.
+        chart_studio      True to push figure to chart_studio server. Requires authentication.
                           Default: False.
-        template          Plotly template. See https://plotly.com/python/templates/
-                          ["plotly", "plotly_white", "plotly_dark", "ggplot2",
-                           "seaborn", "simple_white", "none"]
+        template          Plotly template. See <https://plotly.com/python/templates>
+                          ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]
                           Default is None that is the default template is used.
-        ================  ====================================================================
+        ================  =============================================================================================
 
 """
 
@@ -2295,10 +2324,7 @@ def push_to_chart_studio(figs) -> None:
 
 def go_points(points, size=4, color="black", labels=None, **kwargs):
 
-    #textposition = 'top right',
-    #textfont = dict(color='#E58606'),
     mode = "markers" if labels is None else "markers+text"
-    #text = labels
 
     if labels is not None:
         labels = plotly_klabels(labels, allow_dupes=True)
@@ -2576,7 +2602,7 @@ def plotly_structure(structure, ax=None, to_unit_cell=False, alpha=0.7,
 
     # The definition of sizes is not optimal because matplotlib uses points
     # whereas we would like something that depends on the radius (5000 seems to give reasonable plots)
-    # For possibile approaches, see
+    # For possible approaches, see
     # https://stackoverflow.com/questions/9081553/python-scatter-plot-size-and-style-of-the-marker/24567352#24567352
     # https://gist.github.com/syrte/592a062c562cd2a98a83
     #if "points" in style:
@@ -2948,7 +2974,7 @@ def mpl_to_ply(fig: Figure, latex: bool = False):
         return fig
 
     def parse_latex(label):
-        # Remove latex symobols
+        """Remove latex symbols"""
         new_label = label.replace("$", "")
         new_label = new_label.replace("\\", "") if not latex else new_label
         new_label = new_label.replace("{", "") if not latex else new_label
@@ -3028,7 +3054,7 @@ def mpl_to_ply(fig: Figure, latex: bool = False):
 
 class PolyfitPlotter:
     """
-    Fit data with polynomals of different degrees and visualize the results.
+    Fit data with polynomials of different degrees and visualize the results.
     """
     def __init__(self, xs, ys):
         self.xs, self.ys = np.array(xs), np.array(ys)

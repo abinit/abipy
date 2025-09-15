@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Flows for electron-phonon calculations (high-level interface)
+Flows for electron-phonon calculations (high-level interface).
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from .flows import Flow
 class EphPotFlow(Flow):
     r"""
     This flow computes the e-ph scattering potentials on a q-mesh defined by ngqpt
-    and a list of q-points (usually a q-path) specified by the user.
+    and a list of q-points (usually a high-symmetry q-path) specified by the user.
     The DFPT potentials on the q-mesh are merged in the DVDB located in the outdata
     of the second work while the DFPT potentials on the q-path are merged in the DVDB file
     located in the outdata of the third work.
@@ -32,7 +32,7 @@ class EphPotFlow(Flow):
     If "gkq_qpath":
 
         The g(k,q) for qpt in `qbounds` are computed in two ways: using fully ab-abinito DFPT potentials
-        explicilty computed for each q-point or Fourier-interpolated potentials.
+        explicitly computed for each q-point or Fourier-interpolated potentials.
     """
 
     @classmethod
@@ -63,7 +63,7 @@ class EphPotFlow(Flow):
                 and no pre-processing is performed.
             ndivsm: Number of points in the smallest segment of the path defined by `qbounds`.
                 Use 0 to pass full list of q-points.
-            with_becs: Activate calculation of Electric field and Born effective charges.
+            with_becs: Activate calculation of electric field and Born effective charges.
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
                 Note that only selected features are compatible with dynamical quadrupoles.
                 Please consult <https://docs.abinit.org/topics/longwave/>
@@ -77,7 +77,8 @@ class EphPotFlow(Flow):
         flow = cls(workdir=workdir, manager=manager)
         ngqpt = np.array(ngqpt)
 
-        # Build the first work with the GS run. Make sure that WFK and POT files are produced.
+        # Build the first work with the GS run.
+        # Make sure that WFK and POT files are produced.
         scf_task = flow.register_scf_task(scf_input.new_with_vars(
             prtwf=1,
             prtpot=1,
@@ -110,7 +111,7 @@ class EphPotFlow(Flow):
         else:
             raise ValueError(f"ndivsm cannot be negative but received {ndivsm=}")
 
-        # Third Work: compute WFK/WFQ and phonons for each qpt in qpath_list.
+        # The third work computes WFK/WFQ and phonons for each qpt in qpath_list.
         # Don't include BECS because they have been already computed in the previous work.
         work_qpath = PhononWfkqWork.from_scf_task(
                        scf_task, qpath_list, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
@@ -123,7 +124,6 @@ class EphPotFlow(Flow):
         eph_work = Work()
 
         if what_to_compute == "v1qavg":
-
             # Compute average of v1.
             for eph_task in (-15, 15):
 
@@ -154,7 +154,6 @@ class EphPotFlow(Flow):
                         eph_work.register_eph_task(new_inp, deps=deps)
 
         elif what_to_compute == "gkq_qpath":
-
             # Compute the e-ph matrix for each q-point.
             for ii in range(2):
                 eph_inp = scf_input.new_with_vars(
@@ -219,8 +218,8 @@ class GkqPathFlow(Flow):
                        ddb_filepath=None,
                        dvdb_filepath=None,
                        ddk_tolerance=None,
-                       test_ft_interpolation=False,
-                       prepgkk=0,
+                       test_ft_interpolation: bool = False,
+                       prepgkk: int = 0,
                        manager=None) -> GkqPathFlow:
         """
         Build the flow from an input file representing a GS calculation.
@@ -279,9 +278,9 @@ class GkqPathFlow(Flow):
             # Use input list of q-points.
             qpath_list = np.reshape(qbounds, (-1, 3))
         else:
-            raise ValueError("ndivsm cannot be negative. Received ndivsm: %s" % ndivsm)
+            raise ValueError(f"ndivsm cannot be negative. Received {ndivsm=}")
 
-        # Third Work. Compute WFK/WFQ and phonons for qpt in qpath_list.
+        # The third work computes WFK/WFQ and phonons for qpt in qpath_list.
         # Don't include BECS because they have been already computed in the previous work.
         work_qpath = PhononWfkqWork.from_scf_task(
                        scf_task, qpath_list, ph_tolerance=None, tolwfr=1.0e-22, nband=None,

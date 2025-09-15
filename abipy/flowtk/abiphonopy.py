@@ -88,7 +88,7 @@ class PhonopyWork(Work):
         unitcell = atoms_from_structure(gs_inp.structure)
         new.scdims = scdims = np.array(scdims)
         if scdims.shape != (3,):
-            raise ValueError("Expecting 3 int in scdims but got %s" % str(scdims))
+            raise ValueError(f"Expecting 3 int in scdims but got {scdims=}")
 
         supercell_matrix = np.diag(scdims)
         phonopy_kwargs = phonopy_kwargs if phonopy_kwargs is not None else {}
@@ -224,7 +224,7 @@ class PhonopyGruneisenWork(Work):
         # the supercells with the displacements once the three volumes have been relaxed.
         new.scdims = np.array(scdims)
         if new.scdims.shape != (3,):
-            raise ValueError("Expecting 3 int in scdims but got %s" % str(new.scdims))
+            raise ValueError(f"Expecting 3 int in scdims but {new.scdims=}")
         new.phonopy_kwargs = phonopy_kwargs if phonopy_kwargs is not None else {}
         new.displ_kwargs = displ_kwargs if displ_kwargs is not None else {}
 

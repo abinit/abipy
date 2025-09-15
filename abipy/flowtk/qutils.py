@@ -135,10 +135,12 @@ def any2mb(s):
         try:
             # latest pymatgen version (as of july 2024)
             mem = int(Memory.from_str(s.upper()).to("MB"))
-        except (KeyError, UnitError):  # For backward compatibility with older pymatgen versions
+        except (KeyError, UnitError):
+            # For backward compatibility with older pymatgen versions
             try:
                 mem = int(Memory.from_str(s.replace("B", "b")).to("Mb"))
-            except AttributeError:  # For even older pymatgen versions
+            except AttributeError:
+                # For even older pymatgen versions
                 mem = int(Memory.from_string(s.replace("B", "b")).to("Mb"))
         return mem
 
@@ -176,7 +178,6 @@ def slurm_get_jobs() -> dict[int, dict]:
 
 class SlurmJobArray:
     """
-
     Example:
 
     header = '''\

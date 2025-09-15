@@ -28,7 +28,7 @@ class MyElasticTensor(ElasticTensor):
 
     def get_voigt_dataframe(self, tol: float = 1e-5) -> pd.DataFrame:
         """
-        Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
+        Return |pandas-DataFrame| with Voigt indices as columns (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
         Elements below `tol` are set to zero.
         """
@@ -56,21 +56,20 @@ class MyElasticTensor(ElasticTensor):
         import sys
         save_stdout = sys.stdout
         try:
-            html = ELATE(matrix.tolist(), sysname=sysname)
-            return html
+            return ELATE(matrix.tolist(), sysname=sysname)
         finally:
             sys.stdout = save_stdout
 
 
 class MyPiezoTensor(PiezoTensor):
 
-    def _repr_html_(self):
+    def _repr_html_(self) -> str:
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
 
     def get_voigt_dataframe(self, tol: float = 1e-5) -> pd.DataFrame:
         """
-        Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
+        Return |pandas-DataFrame| with Voigt indices as columns (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
         Elements below `tol` are set to zero.
         """
@@ -93,7 +92,7 @@ class ElasticData(Has_Structure, MSONable):
     Container with the different elastic and piezoelectric tensors computed by anaddb.
     Data is stored in pymatgen tensor objects.
 
-    Provides methods to analyze/tabulate data
+    Provides methods to analyze/tabulate data.
     See also http://progs.coudert.name/elate/mp?query=mp-2172 for a web interface.
     """
 
@@ -120,7 +119,7 @@ class ElasticData(Has_Structure, MSONable):
         "piezoelectric": ALL_PIEZOELECTRIC_TENSOR_NAMES,
     }
 
-    # https://journals.aps.org/prb/abstract/10.1103/PhysRevB.72.035105
+    # See https://journals.aps.org/prb/abstract/10.1103/PhysRevB.72.035105
     TENSOR_META = {
         "elastic_clamped": AttrDict(
             info="clamped-ion elastic tensor in Voigt notation (shape: (6, 6))",
@@ -167,7 +166,7 @@ class ElasticData(Has_Structure, MSONable):
         Args:
             structure: |Structure| object.
             params: Dictionary with input parameters.
-            elastic_clamped: clamped-ion elastic tensor in Voigt notation in GPa. shape (6,6).
+            elastic_clamped: clamped-ion elastic tensor in Voigt notation in GPa. shape (6, 6).
             elastic_relaxed: relaxed-ion elastic tensor in Voigt notation in GPa. shape (6, 6).
             elastic_stress_corr: relaxed-ion elastic tensor considering the stress left inside cell
                 in Voigt notation in GPa. shape (6,6).
@@ -274,11 +273,11 @@ class ElasticData(Has_Structure, MSONable):
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
-        """String represention with verbosity level `verbose`."""
+        """String representation with verbosity level `verbose`."""
         lines = []; app = lines.append
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
-        app(marquee("Anaddb Variables", mark="="))
+        app(marquee("Anaddb variables", mark="="))
         app(json.dumps(self.params, indent=2, sort_keys=True))
 
         for tensor_type in ("elastic", "piezoelectric"):
@@ -302,7 +301,7 @@ class ElasticData(Has_Structure, MSONable):
 
         return "\n".join(lines)
 
-    def get_tensor(self, tensor_name: str, tol=None):
+    def get_tensor(self, tensor_name: str, tol: float | None = None):
         """
         Return tensor from its name `tensor_name`.
         Set to zero all entries below `tol` if `tol` is not None.
@@ -312,7 +311,10 @@ class ElasticData(Has_Structure, MSONable):
         if tol is not None: tensor = tensor.zeroed(tol=tol)
         return tensor
 
-    def name_tensor_list(self, tensor_names=None, tensor_type="all", tol=None) -> list:
+    def name_tensor_list(self,
+                        tensor_names: list[str] | None = None,
+                        tensor_type: str = "all",
+                        tol: float | None = None) -> list:
         """
         List of (name, tensor) tuples. Only tensors stored in the object are returned.
 
@@ -330,14 +332,14 @@ class ElasticData(Has_Structure, MSONable):
         else:
             for name in list_strings(tensor_names):
                 if name not in self.TYPE2NAMES[tensor_type]:
-                    raise ValueError("tensor name %s does not belong to type: `%s`" % (name, tensor_type))
+                    raise ValueError(f"tensor {name=}  does not belong to {tensor_type=}")
                 tensor = self.get_tensor(name, tol=tol)
                 if tensor is not None:
                     l.append((name, tensor))
 
         return l
 
-    def fit_to_structure(self, structure=None, symprec=0.1) -> ElasticData:
+    def fit_to_structure(self, structure=None, symprec: float = 0.1) -> ElasticData:
         """
         Return new ElasticData object with tensors that are invariant with respect to symmetry
         operations corresponding to `structure`.
@@ -346,7 +348,7 @@ class ElasticData(Has_Structure, MSONable):
             structure: |Structure| from which to generate symmetry operations
                 If None, the internal structure is used.
             symprec (float): symmetry tolerance for the Spacegroup Analyzer
-                used to generate the symmetry operations
+                used to generate the symmetry operations.
         """
         structure = self.structure if structure is None else structure
         kwargs = {name: tensor.fit_to_structure(structure, symprec=symprec)
@@ -363,8 +365,8 @@ class ElasticData(Has_Structure, MSONable):
 
         Args:
             structure: A |Structure| structure associated with the
-                tensor to be converted to the IEEE standard
-                If None, the internal structure is used
+                tensor to be converted to the IEEE standard.
+                If None, the internal structure is used.
             initial_fit (bool): flag to indicate whether initial
                 tensor is fit to the symmetry of the structure.
                 Defaults to true. Note that if false, inconsistent
@@ -372,18 +374,20 @@ class ElasticData(Has_Structure, MSONable):
                 equivalent, but distinct transformations
                 being used in different versions of spglib.
             refine_rotation (bool): whether to refine the rotation
-                produced by the ieee transform generator, default True
+                produced by the ieee transform generator, default True.
         """
         kwargs = {}
         structure = self.structure if structure is None else structure
         for name, tensor in self.name_tensor_list():
-            # TODO: one should pass the ieee stucture.
+            # TODO: one should pass the ieee structure.
             kwargs[name] = tensor.convert_to_ieee(structure,
                 initial_fit=initial_fit, refine_rotation=refine_rotation)
 
         return self.__class__(structure, self.params, **kwargs)
 
-    def get_elastic_tensor_dataframe(self, tensor_name="elastic_relaxed", tol=1e-3) -> pd.DataFrame:
+    def get_elastic_tensor_dataframe(self,
+                                     tensor_name: str = "elastic_relaxed",
+                                     tol: float = 1e-3) -> pd.DataFrame:
         """
         Args:
             tensor_name:
@@ -399,7 +403,9 @@ class ElasticData(Has_Structure, MSONable):
 
         return pd.DataFrame(rows, index=columns, columns=columns)
 
-    def get_piezoelectric_tensor_dataframe(self, tensor_name="piezo_relaxed", tol=1e-5) -> pd.DataFrame:
+    def get_piezoelectric_tensor_dataframe(self,
+                                           tensor_name: str = "piezo_relaxed",
+                                           tol: float = 1e-5) -> pd.DataFrame:
         """
         Args:
             tensor_name:
@@ -425,9 +431,12 @@ class ElasticData(Has_Structure, MSONable):
         return self.get_voigt_dataframe(tensor_names=self.ALL_PIEZOELECTRIC_TENSOR_NAMES,
                                         voigt_as_index=voigt_as_index, tol=tol)
 
-    def get_voigt_dataframe(self, tensor_names, voigt_as_index=True, tol=None):
+    def get_voigt_dataframe(self,
+                            tensor_names: list[str],
+                            voigt_as_index: bool = True,
+                            tol: float | None = None) -> pd.DataFrame:
         """
-        Return |pandas-DataFrame| with Voigt indices as colums (C-indexing starting from 0).
+        Return |pandas-DataFrame| with Voigt indices as columns (C-indexing starting from 0).
         Useful to analyze the converge of individual elements of the tensor(s)
 
         Args:
@@ -453,17 +462,16 @@ class ElasticData(Has_Structure, MSONable):
             df = df.drop(columns="tensor_name").T
             df.index.name = "voigt_cinds"
             return df.reset_index()
-            #return df
         else:
             return df
 
     def get_elastic_properties_dataframe(self,
-                                        tensor_names="all",
-                                        properties_as_index=False,
-                                        include_base_props=True,
-                                        ignore_errors=False,
-                                        fit_to_structure=False,
-                                        symprec=0.1) -> pd.DataFrame:
+                                        tensor_names: str = "all",
+                                        properties_as_index: bool = False,
+                                        include_base_props: bool = True,
+                                        ignore_errors: bool = False,
+                                        fit_to_structure: bool = False,
+                                        symprec: float = 0.1) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with properties derived from the elastic tensor
         and the associated structure
@@ -474,7 +482,7 @@ class ElasticData(Has_Structure, MSONable):
             include_base_props (bool): whether to include base properties, like k_vrh, etc.
             ignore_errors (bool): if set to true, will set problem properties
                 that depend on a physical tensor to None, defaults to False
-            fit_to_structure (bool): If True, properties are computed with the orginal tensors
+            fit_to_structure (bool): If True, properties are computed with the original tensors
                 and symmetrized tensors. An additional column `fit_to_structure` is added to the dataframe.
             symprec (float): symmetry tolerance for the Spacegroup Analyzer
                 used to generate the symmetry operations if `fit_to_structure`
@@ -508,11 +516,11 @@ class ElasticData(Has_Structure, MSONable):
             return df
 
 
-# TODO
+# TODO: finalize implementation.
 #class ElasticDataList(list):
 #    """
 #    A list of ElasticData objects associated to a list of structures or the same structure.
-#    Useful for convergence studies.
+#    Useful for convergence studies or comparing the results.
 #    """
 #
 #    def append(self, obj) -> None:
@@ -526,7 +534,7 @@ class ElasticData(Has_Structure, MSONable):
 #        """True if all structures are equal."""
 #        if len(self) in (0, 1): return True
 #        structure0 = self[0].structure
-#        return all(structure0 == z.structure for z in self[1:])
+#        return all(structure0 == e.structure for e in self[1:])
 #
 #    def concat(self, tensor_name: str **kwargs) -> pd.DataFrame:
 #        """

@@ -1,15 +1,18 @@
 # coding: utf-8
 """
-Workflows for calculations within the quasi-harmonic approximation
-with two degrees of freedom. The main entry point is Qha2dFlow.
+Workflows for calculations within the ZSISA quasi-harmonic approximation
+and two degrees of freedom. The main entry point is Qha2dFlow.
 """
 from __future__ import annotations
 
 import itertools
+import dataclasses
 import numpy as np
 
-from abipy.tools.serialization import mjson_write
+from abipy.tools.serialization import mjson_write, Serializable
+from abipy.tools.typing import PathLike, VectorLike
 from abipy.dfpt.deformation_utils import generate_deformations
+from abipy.dfpt.qha_2D import QHA_2D
 from abipy.abio.inputs import AbinitInput
 from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.tasks import RelaxTask
@@ -19,6 +22,7 @@ from abipy.flowtk.flows import Flow
 class Qha2dFlow(Flow):
     """
     Flow for QHA calculations with two degrees of freedom.
+    Main entry point for client code.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Qha2dFlow
@@ -30,10 +34,10 @@ class Qha2dFlow(Flow):
                        scf_input: AbinitInput,
                        bo_strains_ac: list[list],
                        phdos_strains_ac: list[list],
-                       ngqpt,
+                       ngqpt: VectorLike,
                        with_becs: bool,
                        with_quad: bool,
-                       ndivsm=-20,
+                       ndivsm: int = 0,
                        edos_ngkpt=None,
                        manager=None) -> Qha2dFlow:
         """
@@ -42,8 +46,8 @@ class Qha2dFlow(Flow):
         Args:
             workdir: Working directory of the flow.
             scf_input: |AbinitInput| for GS-SCF run used as template to generate the other inputs.
-            bo_strains_ac
-            phdos_strains_ac
+            bo_strains_ac:
+            phdos_strains_ac:
             ngqpt: Three integers defining the q-mesh for phonon calculation.
             with_becs: Activate calculation of Electric field and Born effective charges.
             with_quad: Activate calculation of dynamical quadrupoles. Require `with_becs`
@@ -96,7 +100,7 @@ class Qha2dFlow(Flow):
             [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
 
         # Write json file
-        mjson_write(data, self.outdir.path_in("qha_2d.json"), indent=4)
+        Qha2DData(**data).json_write(self.outdir.path_in("qha_2d.json"), indent=4)
 
         return super().finalize()
 
@@ -104,7 +108,7 @@ class Qha2dFlow(Flow):
 class Qha2dWork(Work):
     """
     This work performs a structural relaxation of the initial structure, then a set of distorted
-    structures is genenerated and the relaxed structures are used
+    structures is generated and the relaxed structures are used
     to compute phonons, BECS and the dielectric tensor with DFPT.
 
     .. rubric:: Inheritance Diagram
@@ -138,21 +142,28 @@ class Qha2dWork(Work):
             work.bo_strains_ac[i] = np.array(bo_strains_ac[i])
             work.phdos_strains_ac[i] = np.array(phdos_strains_ac[i])
 
-        work.ngqpt = ngqpt
+        work.ngqpt = np.array(ngqpt, dtype=int)
         work.with_becs = with_becs
         work.with_quad = with_quad
         work.edos_ngkpt = edos_ngkpt if edos_ngkpt is None else np.reshape(edos_ngkpt, (3,))
         work.ndivsm = ndivsm
 
+        # Consistency check.
+        if "ngkpt" in scf_input:
+            ngkpt = np.array(scf_input["ngkpt"], dtype=int)
+            if np.any(ngkpt % work.ngqpt != 0):
+                raise ValueError(f"ngqpt should be a divisor of ngkpt but got {work.ngqpt=} and {ngkpt=}")
+
         # Create input for relaxation and register the relaxation task.
         work.relax_template = relax_template = scf_input.deepcopy()
 
-        # optcell = 3 --> constant-volume optimization of cell geometry.
+        # optcell = 3 --> ions + cell optimization
         relax_template.pop_tolerances()
-        relax_template.set_vars(optcell=3, ionmov=ionmov, tolvrs=1e-8, tolmxf=1e-6)
+        relax_template.set_vars(optcell=2, ionmov=ionmov, tolvrs=1e-8, tolmxf=1e-6)
         relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
 
-        work.initial_relax_task = work.register_relax_task(relax_template)
+        #work.initial_relax_task = work.register_relax_task(relax_template)
+        work.initial_relax_task = work.register_multi_relax_task(relax_template)
 
         return work
 
@@ -175,7 +186,7 @@ class Qha2dWork(Work):
                 #print("strained_structure:", strained_structure)
 
                 # Relax deformed structure with fixed unit cell.
-                task = self.register_relax_task(self.relax_template.new_with_structure(strained_structure, optcell=0))
+                task = self.register_relax_task(self.relax_template.new_with_structure(strained_structure, optcell=0, dilatmx=1.0))
 
                 task.bo_strain = np.array((s1, s3))
                 task.in_phdos_strains = np.any(np.abs(s1 - self.phdos_strains_ac[0]) < 1e-3) and \
@@ -227,3 +238,51 @@ class Qha2dWork(Work):
         self.flow.allocate(build=True)
 
         return super().on_all_ok()
+
+
+#@dataclass
+#class RelaxEntry:
+#    volume: float
+#    energy_eV: float
+#    pressure_GPa: float
+#    # You could add structure: Optional[Any] if you want to include the structure later.
+
+
+@dataclasses.dataclass(kw_only=True)
+class Qha2DData:
+    """
+    Stores the paths to the GSR/DDB files produced by Qha2dFlow.
+    Provides get_qha_2d method to build an instance of QHA_2D
+    that can be used for further post-processing.
+    """
+    bo_strains_ac: np.ndarray
+    phdos_strains_ac: np.ndarray
+
+    gsr_relax_paths: list[str]
+    gsr_relax_entries: list[dict]
+    #gsr_relax_entries: list[RelaxEntry]
+    ddb_relax_paths: list[str]
+    gsr_relax_edos_paths: list[str]
+    gsr_relax_ebands_paths: list[str]
+
+    def get_qha_2d(self,
+                   nqsmall_or_qppa: int,
+                   anaget_kwargs: dict | None = None,
+                   smearing_ev: float | None = None,
+                   verbose: int = 0) -> QHA_2D:
+        """
+        Build an instance from a json file `filepath` typically produced by an AbiPy flow.
+
+        Args:
+            nqsmall_or_qppa: Define the q-mesh for the computation of the PHDOS.
+                if > 0, it is interpreted as nqsmall
+                if < 0, it is interpreted as qppa.
+            anaget_kwargs: dict with arguments passed to anaddb.
+            smearing_ev: Smearing for phonon DOS in eV.
+            verbose: Verbosity level.
+        """
+        return QHA_2D.from_gsr_ddb_paths(nqsmall_or_qppa,
+                                         self.gsr_relax_paths, self.ddb_relax_paths,
+                                         self.bo_strains_ac, self.phdos_strains_ac,
+                                         anaget_kwargs=anaget_kwargs,
+                                         smearing_ev=smearing_ev, verbose=verbose)

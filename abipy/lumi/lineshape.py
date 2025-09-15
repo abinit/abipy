@@ -4,11 +4,6 @@ from __future__ import annotations
 import numpy as np
 import abipy.core.abinit_units as abu
 
-try:
-    from scipy.integrate import simpson as simps
-except ImportError:
-    from scipy.integrate import simps
-
 from pymatgen.io.phonopy import get_pmg_structure
 from abipy.tools.plotting import get_ax_fig_plt,add_fig_kwargs
 from abipy.tools.typing import Figure
@@ -19,21 +14,21 @@ from abipy.embedding.utils_ifc import localization_ratio
 
 class Lineshape:
     """
-
     Object representing a luminescent lineshape, following a multi-phonon mode model (multiD-CCM).
     For 1D-CCM, use plot_lineshape_1D_zero_temp() function of the abipy/lumi/deltaSCF module.
 
-    For equations, notations and formalism, please refer to :
-     https://doi.org/10.1103/PhysRevB.96.125132
-     https://doi.org/10.1002/adom.202100649
-     https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
+    For equations, notations and formalism, please refer to:
 
-    In the 1D-CCM, the vibronic peaks are the ones from a fictious phonon mode that connects
+        https://doi.org/10.1103/PhysRevB.96.125132
+        https://doi.org/10.1002/adom.202100649
+        https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
+
+    In the 1D-CCM, the vibronic peaks are the ones from a fictitious  phonon mode that connects
     the atomic relaxation between the ground state and excited state.
     Within this model, the global shape (fwhm) is well represented if the total Huang-Rhys
     factor is large enough (gaussian shaped spectrum). However, if vibronic
     peaks are present in the experimental spectrum, this model is not able to correctly
-    reproduce them as it assumes a fictious phonon mode.
+    reproduce them as it assumes a fictitious phonon mode.
 
     In the multiD-CCM, the atomic relaxation is projected along the phonon eigenvectors of the system,
     allowing a phonon-projected decomposition of the relaxation.
@@ -45,7 +40,7 @@ class Lineshape:
                              coords_defect_phonons=None,tol=0.3):
         r"""
         Different levels of approximations for the phonons and force/displacements:
-        See discussion in the supplementary informations of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537, section (1).
+        See discussion in the supplementary information of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537, section (1).
 
         - size_supercell deltaSCF = size_supercell phonons (phonons of the bulk structure or phonons of defect structure).
           Use of the forces or the displacemements is allowed.
@@ -64,8 +59,8 @@ class Lineshape:
             E_zpl: Zero-phonon line energy in eV
             phonopy_ph: Phonopy object containing eigenfrequencies and eigenvectors
             dSCF_structure: Delta_SCF structure
-            dSCF_displacements: Dispalcements \Delta R induced by the electronic transition
-            dSCF_forces: Dispalcements \Delta F induced by the electronic transition
+            dSCF_displacements: Displacements \Delta R induced by the electronic transition
+            dSCF_forces: Displacements \Delta F induced by the electronic transition
             coords_defect_dSCF: Main coordinates of the defect in defect structure, if defect complex, can be set to the
                 center of mass of the complex
             tol: tolerance in Angstrom applied for the matching between the dSCF structure and phonon structure
@@ -89,7 +84,6 @@ class Lineshape:
                                                                 phonon_supercell=phonon_supercell,
                                                                 displacements_dSCF=dSCF_displacements,
                                                                 tol=tol)
-
         if use_forces:
             displacements = None
             forces = get_forces_on_phonon_supercell(dSCF_supercell=dSCF_structure,
@@ -110,12 +104,12 @@ class Lineshape:
         """
         Args:
             E_zpl: Zero-phonon line energy in eV
-            ph_eigvec: phonon eigenvectors, shape : (3 * N_atoms, 3 * N_atoms)
-            ph_eigfreq: phonon eigenfrequencies, shape : (3 * N_atoms), in eV
+            ph_eigvec: phonon eigenvectors, shape: (3 * N_atoms, 3 * N_atoms)
+            ph_eigfreq: phonon eigenfrequencies, shape: (3 * N_atoms), in eV
             structure: Structure object
-            forces : Forces acting on the atoms in the ground state, with atomic positions of the relaxed excited state, in eV/Ang
-            displacements : Atomic relaxation induced by the electronic transition, in Ang
-            use_forces : True in order to use the forces, False to use the displacements
+            forces: Forces acting on the atoms in the ground state, with atomic positions of the relaxed excited state, in eV/Ang
+            displacements: Atomic relaxation induced by the electronic transition, in Ang
+            use_forces: True in order to use the forces, False to use the displacements
         """
         self.E_zpl = E_zpl
         self.ph_eigvec = ph_eigvec
@@ -154,7 +148,7 @@ class Lineshape:
         if self.use_forces:
             delta_forces = self.forces.flatten() * ((abu.eV_Ha)*(abu.Ha_J)/(1e-10)) # eV/Angstrom to Newtons (Joules/meter)
             for i in range(self.n_modes()):
-                if self.ph_eigfreq[i] < 1e-5 :# discard phonon freq with too low freq (avoid division by nearly 0)
+                if self.ph_eigfreq[i] < 1e-5: # discard phonon freq with too low freq (avoid division by nearly 0)
                     Q_nu[i] = 0
                 else:
                     Q_nu[i] = (1/ph_eigfreq[i]**2) * np.sum( delta_forces/np.sqrt(masses) * np.real(ph_eigvector[i]))
@@ -366,7 +360,7 @@ def get_matching_dSCF_phonon_spcell(dSCF_spcell,phonon_spcell,tol):
     mapping = []
     for i, site_1 in enumerate(dSCF_spcell):  # subset structure
         for j, site_2 in enumerate(phonon_spcell):  # superset structure
-            if max(abs(dSCF_spcell_cart[i] - phonon_spcell_cart[j])) < tol :
+            if max(abs(dSCF_spcell_cart[i] - phonon_spcell_cart[j])) < tol:
                 mapping.append(j)
 
     if len(mapping) == len(dSCF_spcell):

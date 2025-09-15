@@ -6,8 +6,8 @@ import abc
 import os
 import time
 import datetime
-import pandas as pd
 import apscheduler
+import pandas as pd
 
 from collections import deque
 from io import StringIO
@@ -17,7 +17,7 @@ from shutil import which
 from functools import cached_property
 from monty.io import get_open_fds
 from monty.string import boxed, is_string
-from monty.collections import AttrDict #, dict2namedtuple
+from monty.collections import AttrDict
 from monty.termcolor import cprint
 from abipy.tools.iotools import yaml_safe_load, ask_yesno
 from abipy.tools.typing import TYPE_CHECKING
@@ -25,11 +25,6 @@ from .utils import as_bool
 
 import logging
 logger = logging.getLogger(__name__)
-
-#try:
-#    has_sched_v3 = apscheduler.version >= "3.0.0"
-#except AttributeError:
-#    has_sched_v3 = False
 
 if TYPE_CHECKING:  # needed to avoid circular imports
     from .tasks import Task
@@ -49,7 +44,6 @@ def straceback() -> str:
     """Returns a string with the traceback."""
     import traceback
     return traceback.format_exc()
-
 
 
 class ScriptEditor:
@@ -391,7 +385,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
 
     @classmethod
     def from_string(cls, s: str) -> BaseScheduler:
-        """Create an istance from string s containing a YAML dictionary."""
+        """Create an instance from string s containing a YAML dictionary."""
         stream = StringIO(s)
         stream.seek(0)
         return cls(**yaml_safe_load(stream))
@@ -535,7 +529,7 @@ killjobs_if_errors: yes # "yes" if the scheduler should try to kill all the runn
 
         # Temporarily disabled by MG because I don't know if fix_critical works after the
         # introduction of the new qadapters
-        # reenabled by MsS disable things that do not work at low level
+        # re-enabled by MsS disable things that do not work at low level
         # fix only prepares for restarting, and sets to ready
         if self.fix_qcritical:
             nfixed = flow.fix_queue_critical()
@@ -680,7 +674,7 @@ class PyFlowScheduler(BaseScheduler):
         flow.check_status(show=False)
 
         # This check is not perfect, we should make a list of tasks to submit
-        # and then select a subset so that we don't exceeed max_ncores_used
+        # and then select a subset so that we don't exceed max_ncores_used
         # Many sections of this code should be rewritten though.
         #if self.max_ncores_used is not None and flow.ncores_used > self.max_ncores_used:
         if self.max_ncores_used is not None and flow.ncores_allocated > self.max_ncores_used:
@@ -1114,7 +1108,7 @@ class MultiFlowScheduler(BaseScheduler):
                       min(self.max_njobs_inqueue - nqjobs, self.max_nlaunches)
 
         # This check is not perfect, we should make a list of tasks to submit
-        # and then select a subset so that we don't exceeed max_ncores_used
+        # and then select a subset so that we don't exceed max_ncores_used
         # Many sections of this code should be rewritten though.
         #if self.max_ncores_used is not None and flow.ncores_used > self.max_ncores_used:
         ncores_allocated = sum(flow.ncores_allocated for flow in self.flows)

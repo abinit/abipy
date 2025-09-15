@@ -30,7 +30,7 @@ class SigEPhFileTest(AbipyTest):
         assert sigeph.nqibz == 8
         # FIXME
         #self.assert_almost_equal(sigeph.zcut, 0.001)
-        assert sigeph.has_spectral_function and sigeph.reader.nwr == 101
+        assert sigeph.has_spectral_function and sigeph.r.nwr == 101
         assert not sigeph.has_eliashberg_function
         assert len(sigeph.mu_e) == sigeph.ntemp
         assert "nbsum" in sigeph.params
@@ -67,7 +67,7 @@ class SigEPhFileTest(AbipyTest):
         assert sigeph.find_qpkinds(qpkinds) is qpkinds
 
         # Test ksampling
-        ksamp = sigeph.reader.read_ksampling_info()
+        ksamp = sigeph.r.read_ksampling_info()
         assert ksamp.is_mesh and not ksamp.is_path
         assert ksamp.has_diagonal_kptrlatt
         self.assert_equal(ksamp.mpdivs, [4, 4, 4])
@@ -99,15 +99,15 @@ class SigEPhFileTest(AbipyTest):
 
         # Test self-energy object.
         with self.assertRaises(ValueError):
-            sigeph.reader.sigkpt2index([0.3, 0.5, 0.4])
+            sigeph.r.sigkpt2index([0.3, 0.5, 0.4])
         with self.assertRaises(ValueError):
-            sigeph.reader.read_sigeph_skb(spin=0, kpoint=5, band=0)
+            sigeph.r.read_sigeph_skb(spin=0, kpoint=5, band=0)
         with self.assertRaises(ValueError):
-            sigeph.reader.read_sigeph_skb(spin=0, kpoint=[0.3, 0.5, 0.4], band=0)
+            sigeph.r.read_sigeph_skb(spin=0, kpoint=[0.3, 0.5, 0.4], band=0)
         with self.assertRaises(ValueError):
-            sigeph.reader.read_sigeph_skb(spin=0, kpoint=0, band=100)
+            sigeph.r.read_sigeph_skb(spin=0, kpoint=0, band=100)
 
-        sigma = sigeph.reader.read_sigeph_skb(spin=0, kpoint=[0.5, 0, 0], band=3)
+        sigma = sigeph.r.read_sigeph_skb(spin=0, kpoint=[0.5, 0, 0], band=3)
         repr(sigma); str(sigma)
         assert sigma.to_string(verbose=2, title="Fan-Migdal Self-energy.")
         assert sigma.spin == 0 and sigma.band == 3 and sigma.kpoint == [0.5, 0, 0]
@@ -123,7 +123,7 @@ class SigEPhFileTest(AbipyTest):
             assert hasattr(sigeph.get_panel(), "show")
 
         # Test QpTempState
-        qp = sigeph.reader.read_qp(spin=0, kpoint=0, band=3, ignore_imag=False)
+        qp = sigeph.r.read_qp(spin=0, kpoint=0, band=3, ignore_imag=False)
         repr(qp); str(qp)
         assert qp.to_string(verbose=2, title="QPTempState")
         assert qp._repr_html_()
@@ -144,7 +144,7 @@ class SigEPhFileTest(AbipyTest):
             assert qp.plot(show=False)
 
         # Test QPList
-        qplist = sigeph.reader.read_qplist_sk(spin=0, kpoint=[0, 0, 0], ignore_imag=False)
+        qplist = sigeph.r.read_qplist_sk(spin=0, kpoint=[0, 0, 0], ignore_imag=False)
         assert isinstance(qplist, collections.abc.Iterable)
         # TODO
         #self.serialize_with_pickle(qplist, protocols=[-1])
@@ -173,7 +173,7 @@ class SigEPhFileTest(AbipyTest):
         with self.assertRaises(ValueError):
             qplist.merge(qplist)
 
-        other_qplist = sigeph.reader.read_qplist_sk(spin=0, kpoint=sigeph.sigma_kpoints[1])
+        other_qplist = sigeph.r.read_qplist_sk(spin=0, kpoint=sigeph.sigma_kpoints[1])
         qpl_merge = qplist.merge(other_qplist)
 
         assert all(qp in qpl_merge for qp in qplist)

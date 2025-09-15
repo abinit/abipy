@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Fold2Bloch netcdf file."""
+"""Interface to the Fold2Bloch netcdf file."""
 from __future__ import annotations
 
 import os
@@ -256,7 +256,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to nbpath. If `nbpath` is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If `nbpath` is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

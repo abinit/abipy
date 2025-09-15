@@ -15,7 +15,6 @@ import abipy.tools.cli_parsers as cli
 from functools import wraps
 from time import time
 from abipy.core.structure import Structure
-#from abipy.tools.printing import print_dataframe
 
 
 ASE_OPTIMIZERS = aseml.ase_optimizer_cls("__all__")

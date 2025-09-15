@@ -1,6 +1,7 @@
 # coding: utf-8
 """
-Objects to read and analyze optical properties stored in the optic.nc file produced by optic executable.
+Objects to read and analyze optical properties stored in the optic.nc file produced
+by optic executable.
 """
 from __future__ import annotations
 
@@ -385,7 +386,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -650,7 +651,7 @@ class OpticRobot(Robot, RobotWithEbands):
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If ``nbpath`` is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

@@ -27,7 +27,7 @@ def _find_oncv_output(path: str) -> str:
     root, _ = os.path.splitext(path)
     new_path = root + ".out"
     if not os.path.exists(new_path):
-        raise ValueError("Cannot find neither %s nor %s" % (path, new_path))
+        raise ValueError(f"Cannot find neither {path} nor {new_path}")
     cprint("Maybe you meant %s" % new_path, color="yellow")
     return new_path
 
@@ -120,10 +120,6 @@ def oncv_compare(options) -> int:
 
     return 0
 
-
-#@flowtk.flow_main
-#def main(options):
-#    return build_flow(options)
 
 #def oncv_hints(options):
 #    """
@@ -429,6 +425,7 @@ def get_parser(with_epilog=False):
     return parser
 
 
+@cli.prof_main
 def main():
 
     def show_examples_and_exit(err_msg=None, error_code=1):

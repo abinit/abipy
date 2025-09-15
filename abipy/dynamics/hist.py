@@ -13,7 +13,7 @@ import abipy.core.abinit_units as abu
 from functools import cached_property
 from monty.collections import AttrDict
 from monty.string import marquee, list_strings
-from pymatgen.core.periodic_table import Element
+
 from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, get_figs_plotly, \
     get_fig_plotly, add_plotly_fig_kwargs, plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc, plotly_set_lims, \
@@ -109,7 +109,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             drift=np.linalg.norm(forces.sum(axis=0)),
         )
 
-    def to_string(self, verbose=0, title=None) -> str:
+    def to_string(self, verbose: int = 0, title: str | None = None) -> str:
         """String representation."""
         lines = []; app = lines.append
         if title is not None: app(marquee(title, mark="="))
@@ -204,7 +204,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             path to Xdatcar file.
         """
         # This library takes 13s to import on HPC (07/02/24) so moved to class method instead of header
-        from pymatgen.io.vasp.outputs import Xdatcar
+        #from pymatgen.io.vasp.outputs import Xdatcar
 
         if filepath is not None and os.path.exists(filepath) and not overwrite:
             raise RuntimeError(f"Cannot overwrite pre-existing file: {filepath}")
@@ -222,7 +222,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         if num_pseudos != ntypat:
             raise NotImplementedError("Alchemical mixing is not supported, {num_pseudos=} != {ntypat=}")
         #print("znucl:", znucl, "\ntypat:", typat)
-
+        from pymatgen.core.periodic_table import Element
         symb2pos = {}
         symbols_atom = []
         for iatom, itype in enumerate(typat):
@@ -291,11 +291,12 @@ class HistFile(AbinitNcFile, NotebookWriter):
         #else:
         #    hist.mvanimate()
 
-    def plot_ax(self, ax, what, fontsize=8, **kwargs) -> None:
+    def plot_ax(self, ax, what: str, fontsize=8, **kwargs) -> None:
         """
         Helper function to plot quantity ``what`` on axis ``ax`` with matplotlib.
 
         Args:
+            what: Quantity to plot.
             fontsize: fontsize for legend.
             kwargs are passed to matplotlib plot method.
         """
@@ -693,7 +694,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -882,7 +883,7 @@ class HistRobot(Robot):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

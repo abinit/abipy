@@ -435,7 +435,7 @@ def kpoints_indices(frac_coords, ngkpt, shift, check_mesh=0) -> np.ndarray:
     k_indices = [np.round((kpt % 1) * ngkpt) for kpt in frac_coords]
     k_indices = np.array(k_indices, dtype=int)
 
-    # Debug secction.
+    # Debug section.
     if check_mesh:
         print(f"kpoints_indices: Testing whether k-points belong to the {ngkpt=} mesh")
         ierr = 0
@@ -450,7 +450,7 @@ def kpoints_indices(frac_coords, ngkpt, shift, check_mesh=0) -> np.ndarray:
         #for kpt, inds in zip(frac_coords, k_indices):
         #    if np.any(inds >= ngkpt):
         #        raise ValueError(f"inds >= nkgpt for {kpt=}, {np.round(kpt % 1)=} {inds=})")
-        print("check_mesh succesfull!")
+        print("check_mesh successful!")
 
     return k_indices
 
@@ -528,7 +528,8 @@ def kpath_from_bounds_and_ndivsm(bounds, ndivsm, structure):
     lens = []
     for i in range(nbounds - 1):
         v = bounds[i + 1] - bounds[i]
-        lens.append(float(structure.reciprocal_lattice.norm(v)))
+        #lens.append(float(structure.reciprocal_lattice.norm(v)))
+        lens.append(structure.reciprocal_lattice.norm(v).item())
 
     # Avoid division by zero if any bounds[i+1] == bounds[i]
     minlen = np.min(lens)
@@ -1050,7 +1051,7 @@ class KpointList(collections.abc.Sequence):
 
         dist = np.empty(len(self))
         for i, kpt in enumerate(self):
-            dist[i] = float(kpt.lattice.norm(kpt.frac_coords - frac_coords))
+            dist[i] = kpt.lattice.norm(kpt.frac_coords - frac_coords).item()
 
         ind = dist.argmin()
         return ind, self[ind], np.copy(dist[ind])
@@ -1260,6 +1261,7 @@ class KpointStar(KpointList):
     Star of the kpoint. Note that the first k-point is assumed to be the base
     of the star namely the point that is used to generate the Star.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: KpointStar
     """
     @property
@@ -1279,11 +1281,17 @@ class Kpath(KpointList):
     It provides methods to compute (line) derivatives along the path.
     The k-points do not have weights so Kpath should not be used to compute integral in the BZ.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Kpath
     """
 
     @classmethod
-    def from_names(cls, structure, knames, line_density=20):
+    def from_structure(cls, structure, line_density: int = 20) -> Kpath:
+        knames = [k.name for k in structure.hsym_kpoints]
+        return cls.from_names(structure, knames, line_density=line_density)
+
+    @classmethod
+    def from_names(cls, structure, knames, line_density: int = 20) -> Kpath:
         """
         Generate normalized K-path from list of k-point labels.
 
@@ -1298,7 +1306,7 @@ class Kpath(KpointList):
         return cls.from_vertices_and_names(structure, vertices_names, line_density=line_density)
 
     @classmethod
-    def from_vertices_and_names(cls, structure, vertices_names, line_density=20):
+    def from_vertices_and_names(cls, structure, vertices_names, line_density: int = 20) -> Kpath:
         """
         Generate normalized k-path from a list of vertices and the corresponding labels.
 
@@ -1384,7 +1392,7 @@ class Kpath(KpointList):
         return "\n".join([header, " ", tabulate(table, headers="firstrow")])
 
     @cached_property
-    def ds(self):
+    def ds(self) -> np.ndarray:
         """
         |numpy-array| of len(self)-1 elements giving the distance between two
         consecutive k-points, i.e. ds[i] = ||k[i+1] - k[i]|| for i=0,1,...,n-1
@@ -1395,7 +1403,7 @@ class Kpath(KpointList):
         return ds
 
     @cached_property
-    def versors(self):
+    def versors(self) -> tuple:
         """
         Tuple of len(self) - 1 elements with the versors connecting k[i] to k[i+1].
         """
@@ -1412,7 +1420,7 @@ class Kpath(KpointList):
 
         Example:
 
-            for line in self.lines:
+            for line in kpath.lines:
                 vals_on_line = eigens[spin, line, band]
         """
         if len(self) < 2:
@@ -1435,15 +1443,19 @@ class Kpath(KpointList):
         return tuple(lines)
 
     @cached_property
-    def frac_bounds(self):
-        """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
+    def frac_bounds(self) -> np.ndarray:
+        """
+        Numpy array of shape [M, 3] with the vertices of the path in frac coords.
+        """
         frac_bounds = [self[line[0]].frac_coords for line in self.lines]
         frac_bounds.append(self[self.lines[-1][-1]].frac_coords)
         return np.reshape(frac_bounds, (-1, 3))
 
     @cached_property
-    def cart_bounds(self):
-        """Numpy array of shape [M, 3] with the vertexes of the path in frac coords."""
+    def cart_bounds(self) -> np.ndarray:
+        """
+        Numpy array of shape [M, 3] with the vertices of the path in frac coords.
+        """
         cart_bounds = [self[line[0]].cart_coords for line in self.lines]
         cart_bounds.append(self[self.lines[-1][-1]].cart_coords)
         return np.reshape(cart_bounds, (-1, 3))
@@ -1455,7 +1467,7 @@ class Kpath(KpointList):
         """
         return find_points_along_path(self.cart_bounds, cart_coords, dist_tol=dist_tol)
 
-    def finite_diff(self, values, order=1, acc=4):
+    def finite_diff(self, values, order: int = 1, acc: int = 4):
         """
         Compute the derivatives of values by finite differences.
 
@@ -1512,6 +1524,7 @@ class IrredZone(KpointList):
             if len(shifts) > 1: raise ValueError("Multiple shifts are not supported")
             # Code for mesh defined in terms of mpdivs and one shift.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: IrredZone
     """
 
@@ -1829,6 +1842,7 @@ class KpointsReader(ETSF_Reader, KpointsReaderMixin):
     """
     This object reads k-point data from a netcdf file.
 
+    .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: KpointsReader
     """
 
@@ -1919,8 +1933,8 @@ def dist_point_from_line(x0, x1, x2):
     """
     denom = x2 - x1
     denomabs = np.sqrt(np.dot(denom, denom))
-    numer = np.cross(x0 - x1, x0 - x2)
-    numerabs = np.sqrt(np.dot(numer, numer))
+    number = np.cross(x0 - x1, x0 - x2)
+    numerabs = np.sqrt(np.dot(number, number))
     return numerabs / denomabs
 
 

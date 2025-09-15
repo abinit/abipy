@@ -1,12 +1,64 @@
 #!/usr/bin/env python
 r"""
-Flow for quasi-harmonic calculations under development
-======================================================
+Flow for ZSISA calculations
+===========================
 
-Warning: This code is still under development.
+This examples shows how to compute temperature-dependent lattice parameters,
+thermal expansion coefficients and relaxed-ions temperature-dependent elastic constants
+using the ZSISA-QHA method. External pressure can be included as well.
+
+By incorporating second-order derivatives of the vibrational free energy with respect
+to lattice degrees of freedom, one can significantly reduce the number of
+required phonon band structure calculations.
+See <https://arxiv.org/pdf/2503.09531>.
+
+This AbiPy flow performs the following operations:
+
+1) The initial structure is relaxed and a minimum set of deformed configurations is generated.
+
+2) The atomic positions in the deformed structures are relaxed at fixed cell,
+   and the relaxed configurations are then used to compute phonons, Born-effective charges,
+   the electronic dielectric tensor (eps_inf), and dynamical, quadrupoles with DFPT.
+
+3) Phonon DOSes are computed for all the deformed structures by interpolating the interatomic
+   forces constants on a much denser q-mesh, and the results are used to compute the thermal stresse.
+
+4) An iterative process is used for determining lattice parameters at temperature T and external pressure P.
+   The process begins with an initial guess for the lattice configuration,
+   followed by the computation of thermal and BO stresses.
+   A target stress is defined based on thermal stress and P, and the lattice and atomic positions
+   are relaxed iteratively until the target stress matches the BO stress and the BO forces are zeroed,
+   ensuring convergence to the optimal lattice configuration.
+
+5) Finally, relaxed-ions elastic constants for the thermal-relaxed configurations
+   are optionally computed with DFPT.
+
+The final results are stored in the ``outdata`` directory of the flow.
+Two files are produced at the end of the run:
+
+zsisa_data.csv:
+
+    lattice parameters, thermal expansion, and elastic tensor components for each T and P in CSV format.
+
+ZsisaResults.json:
+
+    JSON file with the location of the different files (GSR.nc, DDB) on the filesystem.
+    To reconstruct a python object from file, use:
+
+```
+        from abipy.zsisa import ZsisaResults
+        data = ZsisaResults.json_load("ABSPATH_TO_FILE")
+
+        # Post-processing methods.
+        data.get_dataframe()
+        data.plot_lattice_vs_temp()
+        data.plot_thermal_expansion()
+```
 """
+
 import sys
 import os
+import numpy as np
 import abipy.abilab as abilab
 import abipy.data as abidata
 
@@ -16,7 +68,7 @@ from abipy.flowtk.zsisa import ZsisaFlow
 
 def build_flow(options):
     """
-    Create a `QhaFlow` for quasi-harmonic calculations.
+    Create a `ZsisaFlow` for QHA calculations within the ZSISA method
     """
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
@@ -43,39 +95,74 @@ rprim
    0.0000000000    0.0000000000    9.7234377918
 """)
 
-    # Initialize structure and pseudos
-    structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+    # This is just to make the computation faster.
+    #structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
-    # Use NC PBE pseudos from pseudodojo v0.4
+    # IMPORTANT:
+    # The Zsisa code assumes structure in primitive standard settings.
+    # This call to abi_sanitize enforces the correct settings.
+    structure = structure.abi_sanitize(primitive_standard=True)
+
+    # Use NC PBEsol pseudos from pseudodojo v0.4.
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
     pseudos = get_oncvpsp_pseudos(xc_name="PBEsol", version="0.4")
 
-    # Select k-mesh for electrons and q-mesh for phonons.
-    #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
-    ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
-
-    with_becs = False
-    with_quad = False
-    #with_quad = not structure.has_zero_dynamical_quadrupoles
-
     scf_input = abilab.AbinitInput(structure, pseudos)
 
-    # Set other important variables
+    # Set other important variables for the SCF run.
+    # Assuming non-magnetic semiconductor with scalar wavefunctions.
     scf_input.set_vars(
         nband=scf_input.num_valence_electrons // 2,
-        nline=10,
-        nbdbuf=0,
         nstep=100,
         ecutsm=1.0,
-        #tolvrs=1.0e-18,      # SCF stopping criterion (modify default)
-        tolvrs=1.0e-6,      # SCF stopping criterion (modify default)
+        tolvrs=1.0e-8,      # SCF stopping criterion.
+        paral_kgb=0,
+        #nbdbuf=0,
+        #nline=10,
+        #chksymbreak=1
     )
+
+    # Select k-mesh for electrons and q-mesh for phonons.
+    # Important: the q-mesh should divide ngkpt.
+    ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
+    #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
+    #ngkpt = [4, 4, 4]; ngqpt = [2, 2, 2]
 
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
-    eps = 0.005
-    return ZsisaFlow.from_scf_input(options.workdir, scf_input, eps, ngqpt,
-                                    with_becs, with_quad, edos_ngkpt=None)
+    # Flags to activate the computation of Born effective charges,
+    # and dynamical quadrupoles with DFPT.
+    with_becs = True
+    with_quad = False
+
+    #with_becs = False
+    #with_quad = not structure.has_zero_dynamical_quadrupoles
+
+    # List of temperatures in Kelvin and pressures in Gpa.
+    temperatures = [10, 100, 200]
+    pressures_gpa = [0, 5]
+    #pressures_gpa = [0]
+
+    eps = 0.005  # Strain magnitude to be applied to the reference lattice.
+
+    mode = "ECs" # "ECs" to include T-dependent elastic constants
+                 #  (more configurations are usually needed)
+
+    mode = "TEC" # "TEC" for thermal expansion only.
+
+    # Q-mesh for the computation of the phonon DOS. See docstring.
+    nqsmall_or_qppa = np.max(ngqpt) * 10
+
+    # Relaxation with thermal stress may require several iterations.
+    # Here we set programmatically the maximum number of restarts to 20.
+    from abipy.flowtk.tasks import set_user_config_taskmanager_attrs
+    set_user_config_taskmanager_attrs(max_num_launches=20)
+
+    flow = ZsisaFlow.from_scf_input(options.workdir, scf_input, eps, mode, ngqpt,
+                                    with_becs, with_quad, temperatures, pressures_gpa,
+                                    nqsmall_or_qppa=nqsmall_or_qppa,
+                                    )
+    return flow
 
 
 # This block generates the thumbnails in the Abipy gallery.

@@ -10,7 +10,6 @@ from tabulate import tabulate
 from functools import cached_property
 from monty.termcolor import cprint
 from monty.string import marquee
-from pymatgen.core.periodic_table import Element
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader
@@ -144,6 +143,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         # Sort the chemical symbols and use OrderedDict because we are gonna use these dicts for looping.
         # Note that we don't have arrays dimensioned with ntypat in the nc file so we can define
         # our own ordering for symbols.
+        from pymatgen.core.periodic_table import Element
         self.symbols = sorted(self.structure.symbol_set, key=lambda s: Element[s].Z)
         self.symbol2indices, self.lmax_symbol = OrderedDict(), OrderedDict()
         for symbol in self.symbols:
@@ -1164,7 +1164,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         except Exception:
             msg = traceback.format_exc()
             msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
+                    "Verify that the k-points form a homogeneous sampling of the BZ.\n"
                     "Returning None\n")
             cprint(msg, color="red")
             return None
@@ -1184,7 +1184,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                                                sharex=True, sharey=True, squeeze=False)
         ax_mat = np.reshape(ax_mat, (nrows, ncols))
 
-        # The code below expectes a matrix of axes of shape[nsppol, self.lsize]
+        # The code below expects a matrix of axes of shape[nsppol, self.lsize]
         # If spins are plotted on the same graph (combined_spins), I build a new matrix so that
         # ax_mat[spin=0] is ax_mat[spin=1] and aliased_axis is set to True
         aliased_axis = False
@@ -1322,7 +1322,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         except Exception:
             msg = traceback.format_exc()
             msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
+                    "Verify that the k-points form a homogeneous sampling of the BZ.\n"
                     "Returning None\n")
             cprint(msg, color="red")
             return None
@@ -1493,7 +1493,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         except Exception:
             msg = traceback.format_exc()
             msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
+                    "Verify that the k-points form a homogeneous sampling of the BZ.\n"
                     "Returning None\n")
             cprint(msg, color="red")
             return None
@@ -1512,7 +1512,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                                                sharex=True, sharey=True, squeeze=False)
         ax_mat = np.reshape(ax_mat, (nrows, ncols))
 
-        # The code below expectes a matrix of axes of shape[nsppol, self.ntypat]
+        # The code below expects a matrix of axes of shape[nsppol, self.ntypat]
         # If spins are plotted on the same graph (combined_spins), I build a new matrix so that
         # ax_mat[spin=0] is ax_mat[spin=1] and aliased_axis is set to True
         aliased_axis = False
@@ -1652,7 +1652,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         except Exception:
             msg = traceback.format_exc()
             msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogenous sampling of the BZ.\n"
+                    "Verify that the k-points form a homogeneous sampling of the BZ.\n"
                     "Returning None\n")
             cprint(msg, color="red")
             return None
@@ -2098,7 +2098,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #    except Exception:
     #        msg = traceback.format_exc()
     #        msg += ("Error while trying to compute the DOS.\n"
-    #                "Verify that the k-points form a homogenous sampling of the BZ.\n"
+    #                "Verify that the k-points form a homogeneous sampling of the BZ.\n"
     #                "Returning None\n")
     #        print(msg)
     #        return None
@@ -2173,7 +2173,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     def write_notebook(self, nbpath=None):
         """
-        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

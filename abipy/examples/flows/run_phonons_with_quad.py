@@ -4,12 +4,12 @@ Phonons + dynamical quadrupoles
 ===============================
 
 This example shows how to compute the dynamical matrix of GaP on a user-defined q-mesh
-including Born effective charges, the macroscopic dielectric matric and the dynamical quadrupoles Q*.
+including Born effective charges, the macroscopic dielectric matrix and the dynamical quadrupoles Q*.
 The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
 and saved in ``flow_phonons_with_quad/outdata/``.
 
 The Q* tensor may be needed to improve the accuracy of the Fourier interpolation of the phonon frequencies,
-especially in the long-wavelength limit |q| --> 0.
+especially in the long-wavelength limit q --> 0.
 
 This example is based on  <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
 
@@ -83,13 +83,10 @@ def build_flow(options):
     # At the time of writing, Q* calculations are implemented only for
     # NC scalar-relativistic pseudos without non-linear core correction.
     # This section shows how to use the Pseudo API to perform this kind of check
-    # before runnnig the calculation.
+    # before running the calculation.
     for pseudo in scf_input.pseudos:
-        # print(pseudo)
         if not pseudo.isnc:
             raise RuntimeError("Only NC pseudos are compatible with Q*")
-        #if pseudo.has_nlcc:
-        #    raise RuntimeError("NLCC is not compatible with Q*")
 
     # Initialize the flow
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)

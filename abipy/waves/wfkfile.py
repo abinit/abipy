@@ -14,6 +14,7 @@ from abipy.electrons.ebands import ElectronsReader, ElectronBands
 from abipy.waves.pwwave import PWWaveFunction
 from abipy.tools import duck
 
+
 __all__ = [
     "WfkFile",
 ]
@@ -148,7 +149,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         ug_skb = self.r.read_ug(spin, kpoint, band)
 
-        # Istantiate the wavefunction object and set the FFT mesh
+        # Instantiate the wavefunction object and set the FFT mesh
         # using the divisions reported in the WFK file.
         wave = PWWaveFunction(self.structure, self.nspinor, spin, band, self.gspheres[ik], ug_skb)
         wave.set_mesh(self.fft_mesh)
@@ -214,7 +215,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     #            `band_range=(0, 5)` to include [0, 1, 2, 3, 4].
     #        energy_range: Define the set of bands included in the classification. Mutually exclusive with `band_range`.
     #            Accepts: "gap"
-    #        atol: Absolute tolerance on the energy in eV. Two states are considered degerate if
+    #        atol: Absolute tolerance on the energy in eV. Two states are considered degenerate if
     #            their energy differ by less than `atol`.
 
     #    Return:
@@ -254,7 +255,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     #            for i in range(nb):
     #                #print("int", waves[i].norm2())
     #                for j in range(nb):
-    #                    cmat[i, j] = waves[i].braket(op_waves[j], space="r")
+    #                    cmat[i, j] = waves[i].bracket(op_waves[j], space="r")
     #                    #cmat[i, j] = 1.0
 
     #            print(cmat)
@@ -297,7 +298,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write an ipython notebook to nbpath. If nbpath is None, a temporay file in the current
+        Write an ipython notebook to nbpath. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)

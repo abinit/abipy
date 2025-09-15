@@ -14,9 +14,7 @@ import abipy.tools.cli_parsers as cli
 
 from monty import termcolor
 from monty.termcolor import cprint
-from monty.functools import prof_main
 from abipy import abilab
-
 
 def show_managers(options):
     """
@@ -70,7 +68,7 @@ def get_parser(with_epilog=False):
     return parser
 
 
-@prof_main
+@cli.prof_main
 def main():
 
     def show_examples_and_exit(err_msg=None, error_code=1):

@@ -493,7 +493,7 @@ def my_md(string: str, **kwargs) -> pn.pane.Markdown:
     Extra kwargs are passed to pane.Markdown.
     The string can contain links to Abinit variables in the wikilink format.
 
-    .. example::
+    .. code-block::
 
         The anaddb variable [[dipdip@anaddb]] has the same meaning as the Abinit variable [[dipdip]].
     """

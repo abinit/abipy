@@ -8,7 +8,7 @@ from io import StringIO
 
 
 def print_dataframe(df: pd.DataFrame,
-                    title=None, precision=6, sortby=None, file=sys.stdout, end=None, display=None) -> None:
+                    title=None, precision=6, sortby=None, file=sys.stdout, end=None, display=None) -> None | str:
     """
     Print entire pandas DataFrame.
 

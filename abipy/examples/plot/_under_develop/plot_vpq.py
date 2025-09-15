@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 r"""
-e-ph matrix along a path in the BZ
-==================================
+Variational Polaron Equation
+============================
 
-This example shows how to use the VPQ.nc file produced by ABINIT
-to plot e-ph matrix elements along a path in the BZ.
+This example shows how to analyze the VPQ.nc file produced by ABINIT
 """
 import os
 import abipy.data as abidata
@@ -14,9 +13,8 @@ from abipy.eph.vpq import VpqFile
 root = "/Users/giantomassi/git_repos/abinit/_build/tests/tutorespfn_teph4vpq_1-teph4vpq_2-teph4vpq_3-teph4vpq_4-teph4vpq_5-teph4vpq_6-teph4vpq_7-teph4vpq_8-teph4vpq_9-teph4vpq_10"
 
 #%%
-# Here we use one of the GPATH files shipped with abipy
-# with the e-ph matrix g(k,q) with q along a path and k fixed.
-# Replace the call to abidata.ref_file("") with the path to your GPATH.nc
+# Here we use one of the VPQ.nc files shipped with abipy
+# Replace the call to abidata.ref_file("") with the path to your VPQ.nc
 
 filepath = os.path.join(root, "teph4vpq_9o_VPQ.nc")
 varpeq = VpqFile(abidata.ref_file(filepath))

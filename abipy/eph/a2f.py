@@ -1,7 +1,7 @@
 # coding: utf-8
 """
-This module contains objects for postprocessing A2F calculations (phonon lifetimes in metals
-and Eliashberg function).
+This module contains objects for postprocessing A2F calculations:
+(phonon lifetimes in metals and Eliashberg function).
 
 Warning:
     Work in progress, DO NOT USE THIS CODE.
@@ -64,7 +64,7 @@ class A2f:
             meta: Dictionary with metavariables.
 
         TODO:
-            1. possibility of computing a2f directly from data on file?
+            Add possibility of computing a2f directly from data on file?
         """
         self.mesh = mesh
         self.ngqpt = ngqpt
@@ -75,7 +75,8 @@ class A2f:
         values_spin_nu = np.atleast_3d(values_spin_nu)
         self.nsppol = len(values_spin)
         self.nmodes = values_spin_nu.shape[1]
-        assert self.nmodes % 3 == 0
+        if self.nmodes % 3 != 0:
+            raise ValueError(f"{self.nmodes=} is not a multiple of 3")
         self.natom = self.nmodes // 3
 
         if self.nsppol == 2:
@@ -85,7 +86,7 @@ class A2f:
             self.values = values_spin[0]
             self.values_nu = values_spin_nu[0]
         else:
-            raise ValueError("Invalid nsppol: %s" % self.nsppol)
+            raise ValueError(f"Invalid {self.nsppol=}")
 
         self.values_spin = values_spin
         self.values_spin_nu = values_spin_nu
@@ -257,7 +258,7 @@ class A2f:
             ax.plot(xx, yy, label=label, **style)
 
         else:
-            raise ValueError("Invalid value for what: `%s`" % str(what))
+            raise ValueError(f"Invalid value for {what=}")
 
         xlabel = abu.wlabel_from_units(units)
         if exchange_xy: xlabel, ylabel = ylabel, xlabel
@@ -595,7 +596,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """Return the :class:`A2f` object associated to q-sampling ``qsamp``."""
         if qsamp == "qcoarse": return self.a2f_qcoarse
         if qsamp == "qintp": return self.a2f_qintp
-        raise ValueError("Invalid value for qsamp `%s`" % str(qsamp))
+        raise ValueError(f"Invalid value for {qsamp=}")
 
     @cached_property
     def has_a2ftr(self) -> bool:
@@ -624,7 +625,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """Return the :class:`A2ftr` object associated to q-sampling ``qsamp``."""
         if qsamp == "qcoarse": return self.a2ftr_qcoarse
         if qsamp == "qintp": return self.a2ftr_qintp
-        raise ValueError("Invalid value for qsamp `%s`" % str(qsamp))
+        raise ValueError(f"Invalid value for {qsamp=}")
 
     def close(self) -> None:
         """Close the file."""
@@ -733,7 +734,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                     yvals = self.reader.read_phgamma_qpath()
                     ylabel = r"$\gamma(q,\nu)$ (eV)"
                 else:
-                    raise ValueError("Invalid value for what: `%s`" % str(what))
+                    raise ValueError(f"Invalid value for {what=}")
 
                 style = dict(
                     linestyle=kwargs.pop("linestyle", "-"),
@@ -796,7 +797,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             sqn = scale * np.abs(gammas)
             cqn = lambdas
         else:
-            raise ValueError("Invalid what: `%s`" % str(what))
+            raise ValueError(f"Invalid {what=}")
 
         vmin, vmax = cqn.min(), cqn.max()
 
@@ -951,7 +952,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -1171,7 +1172,8 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
         return fig
 
     @add_fig_kwargs
-    def plot_a2fdata_convergence(self, sortby=None, hue=None, qsamps="all", what_list=("lambda_iso", "omega_log"),
+    def plot_a2fdata_convergence(self, sortby=None, hue=None, qsamps="all",
+                                 what_list=("lambda_iso", "omega_log"),
                                  fontsize=8, **kwargs) -> Figure:
         """
         Plot the convergence of the isotropic lambda and omega_log wrt the ``sortby`` parameter.
@@ -1286,7 +1288,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
             elif what == "a2ftr":
                 a2f_list = self.get_a2ftr_qsamp(qsamp)
             else:
-                raise ValueError("Invalid value for what: `%s`" % what)
+                raise ValueError(f"Invalid value for {what=}")
 
             a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in self.abifiles]
 
@@ -1334,7 +1336,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
 
     def write_notebook(self, nbpath=None) -> str:
         """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporay file in the current
+        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
         working directory is created. Return path to the notebook.
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
@@ -1425,7 +1427,7 @@ class A2fReader(BaseEphReader):
                            linewidths=linewidths,
                            )
 
-    def read_phlambda_qpath(self, sum_spin=True):
+    def read_phlambda_qpath(self, sum_spin=True) -> np.ndarray:
         """
         Reads the EPH coupling strength *interpolated* along the q-path.
 
@@ -1435,7 +1437,7 @@ class A2fReader(BaseEphReader):
         vals = self.read_value("phlambda_qpath")
         return vals if not sum_spin else vals.sum(axis=0)
 
-    def read_phgamma_qpath(self, sum_spin=True):
+    def read_phgamma_qpath(self, sum_spin=True) -> np.ndarray:
         """
         Reads the phonon linewidths (eV) *interpolated* along the q-path.
 

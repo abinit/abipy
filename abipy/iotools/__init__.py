@@ -10,7 +10,7 @@ except ImportError:
     from pymatgen.io.abinit.netcdf import EtsfReader as ETSF_Reader
 
 from functools import cached_property
-from pymatgen.core.periodic_table import Element
+
 from .xsf import *
 from .visualizer import *
 
@@ -91,6 +91,7 @@ class ETSF_Reader(ETSF_Reader):
         amu_list = self.read_value("atomic_mass_units")
         atomic_numbers = self.read_value("atomic_numbers")
         amu_z = {at: a for at, a in zip(atomic_numbers, amu_list)}
+        from pymatgen.core.periodic_table import Element
         amu_symbol = {Element.from_Z(n).symbol: v for n, v in amu_z.items()}
 
         return amu_symbol

@@ -97,7 +97,6 @@ include = [
     "/abipy",
 ]
 
-
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
@@ -169,7 +168,6 @@ pydocstyle.convention = "google"
 #    "PLR6301", # no-self-use
 #    "S101", # Use of "assert"
 #]
-
 
 #[tool.pytest.ini_options]
 #addopts = "--durations=30 --quiet -r xXs --color=yes --import-mode=importlib"

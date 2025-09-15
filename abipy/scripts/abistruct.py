@@ -13,7 +13,6 @@ import abipy.tools.cli_parsers as cli
 from pprint import pprint
 from tabulate import tabulate
 from monty.string import marquee
-from monty.functools import prof_main
 from monty.termcolor import cprint
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.core.kpoints import Ktables, Kpoint, IrredZone
@@ -60,7 +59,7 @@ Usage example:
   abistruct.py abisanitize FILE            => Read structure from FILE, call abisanitize, compare structures
                                               and save "abisanitized" structure to file.
   abistruct.py conventional FILE           => Read structure from FILE, generate conventional structure
-                                              following Setyawan, W., & Curtarolo, S. (2010) doi:10.1016/j.commatsci.2010.05.010 
+                                              following Setyawan, W., & Curtarolo, S. (2010) doi:10.1016/j.commatsci.2010.05.010
   abistruct.py proto FILE                  => Read structure from FILE, find possible crystallographic prototypes:
                                               in the AFLOW library of crystallographic prototypes.
                                               See http://doi.org/10.1016/j.commatsci.2017.01.017
@@ -363,7 +362,7 @@ closest points in this particular structure. This is usually what you want in a 
     p_panel = subparsers.add_parser('panel', parents=[copts_parser, path_selector],
         help="Open GUI in web browser, requires panel package.")
     p_panel.add_argument("-pnt", "--panel-template", default="FastList", type=str,
-                        help="Specify template for panel dasboard." +
+                        help="Specify template for panel dashboard." +
                              "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
                              "Default: FastList"
                         )
@@ -535,7 +534,7 @@ for port forwarding.
     )
 
 
-@prof_main
+@cli.prof_main
 def main():
 
     def show_examples_and_exit(err_msg=None, error_code=1):
@@ -610,13 +609,13 @@ def main():
         from ase.io import read
         from ase.io.vasp import write_vasp_xdatcar
 
-        print(f"Converting ASE trajectory into XDATCAR format. Ouput file: {options.output}")
-        # Load the trajectory file using ASE
+        print(f"Converting ASE trajectory into XDATCAR format. Output file: {options.output}")
+        # Load the trajectory file using ASE.
         trajectory = read(options.filepath, index=':')
         if not options.force and os.path.exists(options.output):
             raise RuntimeError(f"Cannot overwrite pre-existent file: {options.output}! Use -f to force overwriting.")
 
-        # Write the trajectory to an XDATCAR file
+        # Write the trajectory to an XDATCAR file.
         write_vasp_xdatcar(options.output, trajectory)
 
     elif options.command == "print":

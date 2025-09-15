@@ -35,9 +35,9 @@ def build_flow(options):
     ngkpt = [2, 2, 2]
     ngqpt = [1, 1, 1]
 
-    # BECS are not needed for Si. quadrupoles require pseudos without non-linear core correction.
-    with_becs = False
-    with_quad = False
+    # BECS are not needed for Si.
+    with_becs = True
+    with_quad = True
     #with_quad = not structure.has_zero_dynamical_quadrupoles
 
     # List of volumetric scaling factors for the BO energies and the phonon part.
@@ -58,6 +58,7 @@ def build_flow(options):
         ecutsm=1.0,
         tolvrs=1.0e-8,   # SCF stopping criterion (modify default)
         #tolvrs=1.0e-18, # SCF stopping criterion (modify default)
+        paral_kgb=0,
     )
 
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])

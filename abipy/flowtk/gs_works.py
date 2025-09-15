@@ -1,11 +1,12 @@
 # coding: utf-8
-"""Work subclasses related to GS calculations."""
+"""Work related to GS calculations."""
 from __future__ import annotations
 
 import json
 
 from pymatgen.analysis.eos import EOS
 from abipy.core.structure import Structure
+from abipy.core.kpoints import Kpath
 from abipy.abio.inputs import AbinitInput
 from abipy.electrons.gsr import GsrRobot
 from .works import Work
@@ -19,8 +20,8 @@ __all__ = [
 
 class GsKmeshConvWork(Work):
     """
-    This work performs convergence studies of GS properties
-    with respect to the k-mesh
+    This work performs convergence study of GS properties
+    with respect to the k-point sampling.
 
     It produces ...
 
@@ -29,7 +30,9 @@ class GsKmeshConvWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list) -> GsKmeshConvWork:
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       nksmall_list: list) -> GsKmeshConvWork:
         """
         Build the work from a `scf_input` for a GS SCF run and a list
         with the smallest number of divisions for the k-mesh.
@@ -72,7 +75,7 @@ robot.plot_convergence_items(items, sortby="nkpt", abs_conv=abs_conv)
 class GsKmeshTsmearConvWork(Work):
     """
     This work performs convergence studies of GS properties
-    with respect to the k-mesh and the electronic smearing.
+    with respect to the k-point sampling and the electronic smearing.
 
     It produces ...
 
@@ -81,7 +84,10 @@ class GsKmeshTsmearConvWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list, tsmear_list: list) -> GsKmeshTsmearConvWork:
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       nksmall_list: list,
+                       tsmear_list: list) -> GsKmeshTsmearConvWork:
         """
         Build the work from a `scf_input` for a GS SCF run including `occopt`
         and a list with the smallest number of divisions for the k-mesh.
@@ -91,11 +97,10 @@ class GsKmeshTsmearConvWork(Work):
             raise ValueError(f"scf_input should define occopt but found: {occopt}")
 
         work = cls()
-        for tsmear in tsmear_list:
-            for nksmall in nksmall_list:
-                new_inp = scf_input.new_with_vars(tsmear=tsmear)
-                new_inp.set_autokmesh(nksmall)
-                work.register_scf_task(new_inp)
+        for tsmear, nksmall in itertools.product(tsmear_list, nksmall_list):
+           new_inp = scf_input.new_with_vars(tsmear=tsmear)
+           new_inp.set_autokmesh(nksmall)
+           work.register_scf_task(new_inp)
 
         return work
 
@@ -148,8 +153,12 @@ class EosWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput,
-                       npoints=4, deltap_vol=0.25, ecutsm=0.5, move_atoms=True,
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       npoints: int = 4,
+                       deltap_vol: float = 0.25,
+                       ecutsm: float = 0.5,
+                       move_atoms: bool = True,
                        manager=None) -> EosWork:
         """
         Build an EosWork from an AbinitInput for GS-SCF.
@@ -250,3 +259,87 @@ class EosWork(Work):
         """
         self.get_and_write_eosdata()
         return super().on_all_ok()
+
+
+class SpinSpiralWork(Work):
+    """
+    Work to compute spin spirals with the generalized Bloch Theorem.
+
+    .. rubric:: Inheritance Diagram
+    .. inheritance-diagram:: EosWork
+    """
+
+    @classmethod
+    def from_scf_input(cls,
+                       scf_input: AbinitInput,
+                       constraints: dict | None = None,
+                       line_density: int = 10,
+                       connect: bool = True,
+                       qnames: list or None = None,
+                       manager=None) -> SpinSpiralWork:
+        """
+        Build a SpinSpiralWork from an AbinitInput for GS-SCF.
+
+        Args:
+            scf_input: AbinitInput for GS-SCF used as template to generate the other inputs.
+            constraints:
+            line_density:
+            qnames:
+            manager: TaskManager instance. Use default if None.
+        """
+        work = cls(manager=manager)
+        work.constraints = constraints
+        work.connect = connect
+        if connect and (prtwf := scf_input.get("prtwf", 1)) != 1:
+            raise ValueError(f"When connect is on, prtwf must be 1 while it is {prtwf}")
+
+        work.initial_task = work.register_scf_task(scf_input)
+
+        if qnames is not None:
+            work.qpath = Kpath.from_names(scf_input.structure, qnames, line_density=line_density)
+        else:
+            work.qpath = Kpath.from_structure(scf_input.structure, line_density=line_density)
+        print(work.qpath)
+
+        return work
+
+    def on_ok(self, sender):
+        """
+        This method is called when one task reaches status `S_OK`.
+        Here we read the atomic magnetization from the initial task
+        """
+        if sender == self.initial_task:
+            #with self.initial_task.open_gsr() as gsr:
+            #    data = gsr.get_mag_results()
+
+            scf_input = self.initial_task.input
+
+            # Loop over q-path lines to improve parallelism.
+            #for line in enumerate(self.qpath.lines):
+            #    for iql in line:
+            #        qpt = self.qpath[iql]
+
+            for iq, qpt in enumerate(self.qpath):
+
+                parent = self[iq-1] if iq > 0 else self.initial_task
+                if qpt.is_gamma():
+                    parent = self.initial_task
+
+                new_input = scf_input.new_with_vars(use_gbt=1, qgbt=qpt.frac_coords)
+                if self.constraints is not None:
+                    new_input.set_vars(**self.constraints)
+
+                self.register_scf_task(new_input, deps={parent: "WFK"} if self.connect else None)
+
+            self.flow.allocate(build=True)
+
+        return super().on_ok(sender)
+
+    def on_all_ok(self):
+        """
+        This method is called when all the works in the flow have reached S_OK.
+        Here we write a json file with the paths to the GSR files produced by the work.
+        """
+        filepaths = [task.gsr_path for task in self[1:]]
+        robot = GsrRobot.from_files(filepaths)
+        robot.json_write(self.outdir.path_in("GsrRobot.json"))

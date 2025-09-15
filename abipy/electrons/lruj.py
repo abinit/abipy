@@ -5,8 +5,8 @@ from __future__ import annotations
 import dataclasses
 import numpy as np
 import pandas as pd
+
 from pathlib import Path
-#from typing import Any
 #from monty.string import is_string, list_strings, marquee
 from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.iotools import ETSF_Reader
@@ -15,7 +15,6 @@ from abipy.core.structure import Structure
 from abipy.tools.typing import Figure, PathLike
 from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
     get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly)
-
 
 
 #class LrujFile(AbinitNcFile, Has_Header, Has_Structure): #, Has_ElectronBands, NotebookWriter):
@@ -71,7 +70,7 @@ class LrujResults:
     @classmethod
     def from_file(cls, filepath: PathLike):
         """
-        Extract results from the main ouput file produced by lruj.
+        Extract results from the main output file produced by lruj.
         """
         with open(filepath, "rt") as fh:
             lines = [line.lstrip() for line in fh]

@@ -7,7 +7,7 @@ import enum
 
 
 class EnumMixin:
-    """Mixin for enums provides extra capabilities."""
+    """Mixin for enums providing extra capabilities."""
 
     @classmethod
     def validate(cls, value) -> None:
@@ -43,18 +43,18 @@ class RUNL(EnumMixin, enum.IntEnum):
     """
     Values of optdriver corresponding to the different run-levels. See defs_basis.F90
     """
-    GSTATE     = 0
-    RESPFN     = 1
-    SCREENING  = 3
-    SIGMA      = 4
-    NONLINEAR  = 5
-    GWR        = 6
-    EPH        = 7
-    WFK        = 8
-    RTTDDFT    = 9
-    GWLS       = 66
-    BSE        = 99
-    LONGWAVE   = 10
+    GSTATE = 0
+    RESPFN = 1
+    SCREENING = 3
+    SIGMA = 4
+    NONLINEAR = 5
+    GWR = 6
+    EPH = 7
+    WFK = 8
+    RTTDDFT = 9
+    GWLS = 66
+    BSE = 99
+    LONGWAVE = 10
 
     def __str__(self):
         return str(self.value)
@@ -64,15 +64,15 @@ class WFK_TASK(EnumMixin, enum.IntEnum):
     """
     Integer flags defining the task to be performed in wfk_analyze. See defs_basis.F90
     """
-    NONE      = 0
-    FULLBZ    = 1
-    CLASSIFY  = 2
+    NONE = 0
+    FULLBZ = 1
+    CLASSIFY = 2
     PAW_AEPSI = 3
-    EINTERP   = 4
-    DDK       = 5
+    EINTERP = 4
+    DDK = 5
     DDK_DIAGO = 6
     OPTICS_FULLBZ = 7
-    KPTS_ERANGE= 8
+    KPTS_ERANGE = 8
     CHECK_SYMTAB = 9
 
     def __str__(self):

@@ -673,7 +673,7 @@ class MultipleValue(object):
     """
     Used for variables that can assume multiple values.
     This is the equivalent to the X * Y syntax in the Abinit parser.
-    If X is null, it means that you want to do *Y (all Y)
+    If X is null, it means that you want to do ``*Y`` (all Y)
     """
     def __init__(self, number=None, value=None):
         self.number = number

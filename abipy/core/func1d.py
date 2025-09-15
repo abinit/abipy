@@ -1,14 +1,13 @@
 # coding: utf-8
 """
 Function1D describes a function of a single variable and provides an easy-to-use API
-for performing common tasks such as algebraic operations, integrations, differentiations, plots ...
+for performing common tasks such as algebraic operations, integrations, differentiations, plots, etc.
 """
 from __future__ import annotations
 
 import numpy as np
 
 from io import StringIO
-from typing import Tuple, Union
 from functools import cached_property
 from abipy.tools.typing import Figure
 from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, add_plotly_fig_kwargs, PlotlyRowColDesc, get_fig_plotly)
@@ -100,7 +99,7 @@ class Function1D:
     def __iter__(self):
         return zip(self.mesh, self.values)
 
-    def __getitem__(self, slice) -> Tuple[float, float]:
+    def __getitem__(self, slice) -> tuple[float, float]:
         return self.mesh[slice], self.values[slice]
 
     def __eq__(self, other) -> bool:
@@ -246,7 +245,7 @@ class Function1D:
         return np.iscomplexobj(self.values)
 
     @cached_property
-    def h(self) -> Union[float, None]:
+    def h(self) -> float | None:
         """The spacing of the mesh. None if mesh is not homogeneous."""
         return self.dx[0] if np.allclose(self.dx[0], self.dx) else None
 
@@ -608,7 +607,7 @@ class Function1D:
             exchange_xy: True to exchange x- and y-axis (default: False)
             fig: plotly figure or None if a new figure should be created.
             rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col)
-                of the subplot in the grid.
+                 of the subplot in the grid.
 
         Returns: plotly-Figure
         """

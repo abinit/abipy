@@ -9,10 +9,10 @@ in a single location, so that test scripts can just import it and work right awa
 from __future__ import annotations
 
 import os
-import numpy
 import json
 import tempfile
 import unittest
+import numpy
 import numpy.testing as nptu
 import abipy.data as abidata
 
