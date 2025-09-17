@@ -4144,7 +4144,10 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             for iatom in aview.iatom_list:
                 site = self.structure[iatom]
                 symbol = str(site)
-                color = cmap(float(iatom) / max((len(aview.iatom_list) - 1), 1))
+                # since iatom comes from a list of length natom, the cmap values should
+                # be computed from iatom/natom
+                #color = cmap(float(iatom) / max((len(aview.iatom_list) - 1), 1))
+                color = cmap(float(iatom) / max((len(self.structure)-1),1))
                 yy = pjdos_atdir[iatom, idir] / factor
 
                 if not stacked:
