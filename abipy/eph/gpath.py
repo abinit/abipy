@@ -166,7 +166,6 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         marker_color = "gold"
         band_range = self._get_band_range(band_range)
 
-        #facts_q, g_label, g_units = self.get_info(which_g, with_qexp)
         facts_q = np.ones(len(self.phbands.qpoints)) if with_qexp == 0 else \
                   np.array([qpt.norm for qpt in self.phbands.qpoints]) ** with_qexp
 
@@ -209,9 +208,9 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 label = r'$|g^{\text{avg}}_{\mathbf{q}}|$' if with_qexp == 0 else \
                         r'$|g^{\text{avg}}_{\mathbf{q}}| |q|^{%s}$' % with_qexp
 
-                points = Marker(x, y, s, color=marker_color, edgecolors='gray', alpha=0.8, label=label)
-
                 ax = ax_mat[ax_cnt, spin]
+
+                points = Marker(x, y, s, color=marker_color, edgecolors='gray', alpha=0.8, label=label)
                 self.phbands.plot(ax=ax, points=points, show=False)
                 set_grid_legend(ax, fontsize) #, xlabel=r"Wavevector $\mathbf{q}$")
                 ax.set_title("Phonons", fontsize=fontsize)
