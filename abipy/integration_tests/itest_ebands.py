@@ -275,7 +275,7 @@ def itest_bandstructure_flow(fwp, tvars):
         denfile.get_3d_indexed("den.data_indexed", workdir=workdir)
         denfile.get_3d_formatted("den.data_formatted", workdir=workdir)
         ae_path = os.path.join(abidata.pseudo_dir, "0.14-Si.8.density.AE")
-        hc = denfile.get_hirshfeld(scf_input.structure, all_el_dens_paths=[ae_path] * 2)
+        hc = denfile.get_hirshfeld(scf_input.structure, all_el_dens_paths=[ae_path])
         assert np.abs(hc.net_charges[0]) < 0.1
         # This feature requires Abinit 8.5.2
         if flow.manager.abinit_build.version_ge("8.5.2"):
