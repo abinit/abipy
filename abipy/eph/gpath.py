@@ -526,7 +526,15 @@ class GpathReader(BaseEphReader):
             absg_avg, absg_raw = absg_avg[..., b0:b1, b0:b1], absg_raw[..., b0:b1, b0:b1]
 
         # Average over bands 1/n_b**2 sum_{mn}
-        return np.sum(absg_avg, axis=(-2, -1)) / nb**2, np.sum(absg_raw, axis=(-2, -1)) / nb**2
+        gavg, graw = np.sum(absg_avg, axis=(-2, -1)) / nb**2, np.sum(absg_raw, axis=(-2, -1)) / nb**2
+
+        # Quick and dirty hack to plot D.
+        for nu in range(self.natom3):
+            omegas_nu = self.phbands.phfreqs[:,nu]  # PH Frequencies are in eV
+            gavg[nu] *= np.sqrt(omegas_nu)
+            graw[nu] *= np.sqrt(omegas_nu)
+
+        return gavg, graw
 
     def get_gnuk_average_spin(self, spin: int, band_range: list | tuple | None, eps_mev: float = 0.01) -> tuple:
         """
