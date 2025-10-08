@@ -529,10 +529,10 @@ class GpathReader(BaseEphReader):
         gavg, graw = np.sum(absg_avg, axis=(-2, -1)) / nb**2, np.sum(absg_raw, axis=(-2, -1)) / nb**2
 
         # Quick and dirty hack to plot D.
-        for nu in range(self.natom3):
-            omegas_nu = self.phbands.phfreqs[:,nu]  # PH Frequencies are in eV
-            gavg[nu] *= np.sqrt(omegas_nu)
-            graw[nu] *= np.sqrt(omegas_nu)
+        #for nu in range(self.natom3):
+        #    omegas_nu = self.phbands.phfreqs[:,nu]  # PH Frequencies are in eV
+        #    gavg[nu] *= np.sqrt(omegas_nu)
+        #    graw[nu] *= np.sqrt(omegas_nu)
 
         return gavg, graw
 
@@ -547,7 +547,7 @@ class GpathReader(BaseEphReader):
             eps_mev: Tolerance in meV used to detect degeneracies for phonons and electrons.
 
         Return:
-            tuple with two numpy array
+            tuple with two numpy arrays.
         """
         # Consistency check
         if self.nq_path != 1:
@@ -709,7 +709,7 @@ class GpathRobot(Robot, RobotWithEbands):
 
     #@add_fig_kwargs
     #def plot_g_kpath(self, **kwargs) --> Figure
-    #   """Compare the g-matrix stored in the Robot along a q-path."""
+    #   """Compare the g-matrix stored in the Robot along a k-path."""
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
