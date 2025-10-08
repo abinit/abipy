@@ -141,7 +141,8 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         app(f"gstore_kptopt: {self.r.kptopt}")
         app(f"gstore_qptopt: {self.r.qptopt}")
         for spin in range(self.r.nsppol):
-            app(f"gstore_brange_spin[{spin}]: {self.r.brange_spin[spin]}")
+            app(f"gstore_brange_k_spin[{spin}]: {self.r.brange_k_spin[spin]}")
+            app(f"gstore_brange_kq_spin[{spin}]: {self.r.brange_kq_spin[spin]}")
             app(f"gstore_erange_spin[{spin}]: {self.r.erange_spin[spin]}")
             app(f"gstore_glob_spin_nq[{spin}]: {self.r.glob_spin_nq[spin]}")
 
@@ -175,9 +176,12 @@ class Gqk:
     cplex: int         # 1 if |g|^2 is stored
                        # 2 if complex valued g (mind the gauge)
     spin: int          # Spin index.
-    nb: int            # Number of bands
-    bstart: int
-    #bstop: int
+    nb_k: int          # Number of bands at k
+    nb_kq: int         # Number of bands at k+q
+    bstart_k: int
+    #bstop_k: int
+    bstart_kq: int
+    #bstop_kq: int
 
     glob_nk: int       # Total number of k/q points in global matrix.
     glob_nq: int       # Note that k-points/q-points can be filtered.
@@ -187,6 +191,10 @@ class Gqk:
 
     gvals: np.ndarray | None
     g2: np.ndarray | None
+
+    gvals_ks: np.ndarray | None
+    g2_ks: np.ndarray | None
+
     vk_cart_ibz: np.ndarray | None
     vkmat_cart_ibz: np.ndarray | None
 
@@ -198,36 +206,47 @@ class Gqk:
         ncr = gstore.r
         path = f"gqk_spin{spin+1}"
         cplex = ncr.read_dimvalue("gstore_cplex")
-        nb = ncr.read_dimvalue("nb", path=path)
+        nb_k = ncr.read_dimvalue("nb_k", path=path)
+        nb_kq = ncr.read_dimvalue("nb_kq", path=path)
         glob_nk = ncr.read_dimvalue("glob_nk", path=path)
         glob_nq = ncr.read_dimvalue("glob_nq", path=path)
+        assert cplex == 2
 
         # Read e-ph matrix elements
         # nctkarr_t("gvals", "dp", "gstore_cplex, nb_kq, nb_k, natom3, glob_nk, glob_nq)
         # Have to transpose the (nb_kq, nb_k) submatrix written by Fortran.
         g2, gvals = None, None
-        if cplex == 1:
-            g2 = ncr.read_value("gvals", path=path).transpose(0, 1, 2, 4, 3, 5).copy()
+        #if cplex == 1:
+        #    g2 = ncr.read_value("gvals", path=path).transpose(0, 1, 2, 4, 3, 5).copy()
 
-        elif cplex == 2:
-            gvals = ncr.read_value("gvals", path=path).transpose(0, 1, 2, 4, 3, 5).copy()
-            gvals = gvals[...,0] + 1j*gvals[...,1]
+        #elif cplex == 2:
+        gvals = ncr.read_value("gvals", path=path).transpose(0, 1, 2, 4, 3, 5).copy()
+        gvals = gvals[...,0] + 1j*gvals[...,1]
+
+        # Try to read KS gvals (produced by GWPT)
+        g2_ks, gvals_ks = None, None
+        try:
+            gvals_ks = ncr.read_value("gvals_ks", path=path).transpose(0, 1, 2, 4, 3, 5).copy()
+        except Exception:
+            pass
 
         vk_cart_ibz, vkmat_cart_ibz = None, None
         if ncr.with_vk == 1:
-            # nctk_def_arrays(spin_ncid, nctkarr_t("vk_cart_ibz", "dp", "three, nb, gstore_nkibz"))
+            # nctk_def_arrays(spin_ncid, nctkarr_t("vk_cart_ibz", "dp", "three, nb_k, gstore_nkibz"))
             vk_cart_ibz = ncr.read_value("vk_cart_ibz", path=path)
 
         if ncr.with_vk == 2:
-            # Full (nb x nb) matrix.
+            # Full (nb_k x nb_k) matrix.
             # Have to transpose (nb_kq, nb_k) submatrix written by Fortran.
-            # nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb, nb, gstore_nkibz"))
+            # nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb_k, nb_k, gstore_nkibz"))
             vkmat_cart_ibz = ncr.read_value("vkmat_cart_ibz", path=path).transpose(0, 1, 3, 2, 4).copy()
             vkmat_cart_ibz = vkmat_cart_ibz[...,0] + 1j*vkmat_cart_ibz[...,1]
 
         # Note conversion between Fortran and python indexing.
-        bstart = ncr.read_value("bstart", path=path) - 1
-        #bstop = ncr.read_value("stop", path=path)
+        bstart_k = ncr.read_value("bstart_k", path=path) - 1
+        bstart_kq = ncr.read_value("bstart_kq", path=path) - 1
+        #bstop_k = ncr.read_value("bstop_k", path=path)
+        #bstop_kq = ncr.read_value("bstop_kq", path=path)
 
         data = locals()
         return cls(**{k: data[k] for k in [field.name for field in dataclasses.fields(Gqk)]})
@@ -241,8 +260,10 @@ class Gqk:
 
         app(marquee(f"Gqk for spin: {self.spin}", mark="="))
         app(f"cplex: {self.cplex}")
-        app(f"nb: {self.nb}")
-        app(f"bstart: {self.bstart}")
+        app(f"nb_k: {self.nb_k}")
+        app(f"nb_kq: {self.nb_kq}")
+        app(f"bstart_k: {self.bstart_k}")
+        app(f"bstart_kq: {self.bstart_kq}")
         app(f"glob_nk: {self.glob_nk}")
         app(f"glob_nq: {self.glob_nq}")
 
@@ -281,7 +302,7 @@ class Gqk:
         Build and return an interpolator that can be used to interpolate g^2(q)
 
         NB: Invoking the interpolation with an arbitrary q-point returns a numpy array
-        of shape (nb, nb, natom3) with g_{m_kq n_k, \nu}(q)
+        of shape (nb_kq, nb_k, natom3) with g_{m_kq n_k, \nu}(q)
         """
         r = self.gstore.r
 
@@ -293,15 +314,17 @@ class Gqk:
         q_indices = kpoints_indices(r.qbz, ngqpt, shifts, check_mesh=check_mesh)
 
         natom3 = 3 * len(self.structure)
-        nb = self.nb
+        nb_k = self.nb_k
+        nb_kq = self.nb_kq
         nx, ny, nz = ngqpt
+        assert nb_k == nb_kq
 
         # (glob_nq, glob_nk, natom3, m_kq, n_k)
         g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
         g2_qph_mn = g2[:,ik_g]
 
         # Insert g2 in g2_grid
-        g2_grid = np.empty((nb, nb, natom3, nx, ny, nz))
+        g2_grid = np.empty((nb_k, nb_kq, natom3, nx, ny, nz))
         for nu in range(natom3):
             for g2_mn, q_inds in zip(g2_qph_mn[:,nu], q_indices):
                 ix, iy, iz = q_inds
@@ -349,7 +372,7 @@ class Gqk:
         """
         # This dimensions must agree in order to have a meaningful comparison.
         # so raise immediately if not equal.
-        aname_list = ["cplex", "spin", "nb", "glob_nk", "glob_nq"]
+        aname_list = ["cplex", "spin", "nb_k", "nb_kq", "glob_nk", "glob_nq"]
 
         for aname in aname_list:
             val1, val2 = getattr(self, aname), getattr(other, aname)
@@ -432,8 +455,11 @@ class GstoreReader(BaseEphReader):
         self.gmode = self.read_string("gstore_gmode")
 
         # Note conversion Fortran --> C for the isym index.
-        self.brange_spin = self.read_value("gstore_brange_spin")
-        self.brange_spin[:,0] -= 1
+        self.brange_k_spin = self.read_value("gstore_brange_k_spin")
+        self.brange_k_spin[:,0] -= 1
+        self.brange_kq_spin = self.read_value("gstore_brange_kq_spin")
+        self.brange_kq_spin[:,0] -= 1
+
         self.erange_spin = self.read_value("gstore_erange_spin")
         # Total number of k/q points for each spin after filtering (if any)
         self.glob_spin_nq = self.read_value("gstore_glob_nq_spin")
@@ -545,7 +571,7 @@ class GstoreRobot(Robot, RobotWithEbands):
         # These quantities must be the same to have a meaningful comparison.
         aname_list = ["structure", "nsppol", "cplex", "nkbz", "nkibz",
                       "nqbz", "nqibz", "completed", "kzone", "qzone", "kfilter", "gmode",
-                      "brange_spin", "erange_spin", "glob_spin_nq", "glob_nk_spin",
+                      "brange_k_spin", "brange_kq_spin", "erange_spin", "glob_spin_nq", "glob_nk_spin",
                      ]
 
         for aname in aname_list:

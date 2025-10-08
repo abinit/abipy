@@ -166,7 +166,6 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         marker_color = "gold"
         band_range = self._get_band_range(band_range)
 
-        #facts_q, g_label, g_units = self.get_info(which_g, with_qexp)
         facts_q = np.ones(len(self.phbands.qpoints)) if with_qexp == 0 else \
                   np.array([qpt.norm for qpt in self.phbands.qpoints]) ** with_qexp
 
@@ -209,9 +208,9 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 label = r'$|g^{\text{avg}}_{\mathbf{q}}|$' if with_qexp == 0 else \
                         r'$|g^{\text{avg}}_{\mathbf{q}}| |q|^{%s}$' % with_qexp
 
-                points = Marker(x, y, s, color=marker_color, edgecolors='gray', alpha=0.8, label=label)
-
                 ax = ax_mat[ax_cnt, spin]
+
+                points = Marker(x, y, s, color=marker_color, edgecolors='gray', alpha=0.8, label=label)
                 self.phbands.plot(ax=ax, points=points, show=False)
                 set_grid_legend(ax, fontsize) #, xlabel=r"Wavevector $\mathbf{q}$")
                 ax.set_title("Phonons", fontsize=fontsize)
@@ -527,7 +526,15 @@ class GpathReader(BaseEphReader):
             absg_avg, absg_raw = absg_avg[..., b0:b1, b0:b1], absg_raw[..., b0:b1, b0:b1]
 
         # Average over bands 1/n_b**2 sum_{mn}
-        return np.sum(absg_avg, axis=(-2, -1)) / nb**2, np.sum(absg_raw, axis=(-2, -1)) / nb**2
+        gavg, graw = np.sum(absg_avg, axis=(-2, -1)) / nb**2, np.sum(absg_raw, axis=(-2, -1)) / nb**2
+
+        # Quick and dirty hack to plot D.
+        #for nu in range(self.natom3):
+        #    omegas_nu = self.phbands.phfreqs[:,nu]  # PH Frequencies are in eV
+        #    gavg[nu] *= np.sqrt(omegas_nu)
+        #    graw[nu] *= np.sqrt(omegas_nu)
+
+        return gavg, graw
 
     def get_gnuk_average_spin(self, spin: int, band_range: list | tuple | None, eps_mev: float = 0.01) -> tuple:
         """
@@ -540,7 +547,7 @@ class GpathReader(BaseEphReader):
             eps_mev: Tolerance in meV used to detect degeneracies for phonons and electrons.
 
         Return:
-            tuple with two numpy array
+            tuple with two numpy arrays.
         """
         # Consistency check
         if self.nq_path != 1:
@@ -702,7 +709,7 @@ class GpathRobot(Robot, RobotWithEbands):
 
     #@add_fig_kwargs
     #def plot_g_kpath(self, **kwargs) --> Figure
-    #   """Compare the g-matrix stored in the Robot along a q-path."""
+    #   """Compare the g-matrix stored in the Robot along a k-path."""
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
