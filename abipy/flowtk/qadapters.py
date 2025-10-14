@@ -286,7 +286,8 @@ class _ExcludeNodesFile:
 
     def __init__(self):
         if not os.path.exists(self.FILEPATH):
-            if not os.path.exists(self.DIRPATH): os.makedirs(self.DIRPATH)
+            if not os.path.exists(self.DIRPATH):
+                os.makedirs(self.DIRPATH,exist_ok=True)
             with FileLock(self.FILEPATH):
                 with open(self.FILEPATH, "w") as fh:
                     json.dump({}, fh)
