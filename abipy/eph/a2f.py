@@ -695,7 +695,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @add_fig_kwargs
     def plot_eph_strength(self, what_list=("phbands", "gamma", "lambda"), ax_list=None,
-                          ylims=None, label=None, fontsize=8, **kwargs) -> None:
+                          ylims=None, label=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot phonon bands with EPH coupling strength lambda(q, nu) and lambda(q, nu)
         These values have been Fourier interpolated by Abinit.
