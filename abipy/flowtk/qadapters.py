@@ -1116,6 +1116,17 @@ limits:
 
         return qheader + se.get_script_str() + "\n"
 
+    def check_num_launches(self):
+        """
+        Verify that we have not reached the maximum number of launches.
+
+        Raises:
+            `self.MaxNumLaunchesError` if we have already tried to submit the job max_num_launches
+            `self.Error` if generic error
+        """
+        if self.num_launches == self.max_num_launches:
+            raise self.MaxNumLaunchesError("num_launches %s == max_num_launches %s" % (self.num_launches, self.max_num_launches))
+
     def submit_to_queue(self, script_file: str) -> QueueJob:
         """
         Public API: wraps the concrete implementation _submit_to_queue
@@ -1127,8 +1138,7 @@ limits:
         if not os.path.exists(script_file):
             raise self.Error('Cannot find script file located at: {}'.format(script_file))
 
-        if self.num_launches == self.max_num_launches:
-            raise self.MaxNumLaunchesError("num_launches %s == max_num_launches %s" % (self.num_launches, self.max_num_launches))
+        self.check_num_launches()
 
         # Call the concrete implementation.
         s = self._submit_to_queue(script_file)

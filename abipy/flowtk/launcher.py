@@ -522,6 +522,7 @@ killjobs_if_errors: yes # "yes" if the scheduler should try to kill all the runn
         for task in flow.unconverged_tasks:
             try:
                 logger.info("Trying to restart task: `%s`" % repr(task))
+                task.manager.qadapter.check_num_launches()  # First check number of launches.
                 fired = task.restart()
                 if fired:
                     self.nlaunch += 1
