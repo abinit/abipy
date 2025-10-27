@@ -1243,6 +1243,44 @@ def nscf_from_gsinput(gs_input, kppa=None, nband=None, accuracy="normal",
 
     return nscf_input
 
+def wfq_nscf_from_gsinput(gs_input, qpt, kppa=None, nband = None, accuracy="high",
+                          shift_mode="Monkhorst-Pack") -> AbinitInput:
+    """
+    Return an |AbinitInput| object to perform a NSCF calculation on a K+Q grid from a GS SCF input.
+
+    Args:
+        gs_input: the |AbinitInput| that was used to calculated the charge density.
+        qpt: q-point used to shift the k grid.
+        kppa: defines the kpt sampling used for the NSCF run. If None the kpoint sampling and
+            shifts will be the same as in the SCF input.
+        nband: the number of bands to be used for the calculation. If None it will be
+            automatically generated.
+        accuracy: accuracy of the calculation.
+        shift_mode: the mode to be used for the shifts. Options are "Gamma", "Monkhorst-Pack",
+            "Symmetric", "OneSymmetric". See ShiftMode object for more details. Only used if kppa
+            is not None.
+
+    Return: |AbinitInput|
+    """
+    # create a copy to avoid messing with the previous input
+    wfq_input = gs_input.deepcopy()
+    wfq_input.pop_irdvars()
+
+    if kppa is not None:
+        shift_mode = ShiftMode.from_object(shift_mode)
+        shifts = _get_shifts(shift_mode, gs_input.structure)
+        dos_ksampling = aobj.KSampling.automatic_density(wfq_input.structure, kppa, chksymbreak=0, shifts=shifts)
+        wfq_input.set_vars(dos_ksampling.to_abivars())
+
+    if nband is None:
+        nband = _find_nscf_nband_from_gsinput(gs_input)
+
+    wfq_input.set_vars(qpt = qpt, nband=nband, iscf=-2, nqpt = 1, kptopt = 3)
+    wfq_input.set_vars(_stopping_criterion("nscf", accuracy))
+
+    return wfq_input
+
+
 
 def dos_from_gsinput(gs_input, kppa=None, nband=None, accuracy="normal", dos_method="tetra",
                      projection="l", shift_mode="Monkhorst-Pack") -> AbinitInput:
