@@ -395,11 +395,18 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             # Each line in data represents an element of the dynamical matrix
             # idir1 ipert1 idir2 ipert2 re_D im_D
             df_rows, df_index = [], []
+            frequency = 0.0
             for line in block["data"]:
                 line = line.strip()
                 if line.startswith("2nd derivatives") or line.startswith("qpt"):
                     continue
+
+                if "frequency" in line:
+                    frequency = float(line.split()[-1])
+                    continue
+
                 try:
+                    #print("line:", line)
                     toks = line.split()
                     idir1, ipert1 = p1 = (int(toks[0]), int(toks[1]))
                     idir2, ipert2 = p2 = (int(toks[2]), int(toks[3]))
@@ -411,7 +418,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     raise exc
 
                 df_index.append(p1 + p2)
-                df_rows.append(dict(idir1=idir1, ipert1=ipert1, idir2=idir2, ipert2=ipert2, cvalue=cvalue))
+                df_rows.append(dict(idir1=idir1, ipert1=ipert1, idir2=idir2, ipert2=ipert2, cvalue=cvalue, frequency=frequency))
 
             dynmat[qpt] = pd.DataFrame(df_rows, index=df_index, columns=df_columns)
 
