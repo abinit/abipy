@@ -1938,7 +1938,7 @@ def dist_point_from_line(x0, x1, x2):
     return numerabs / denomabs
 
 
-def find_points_along_path(cart_bounds, cart_coords, dist_tol):
+def find_points_along_path(cart_bounds, cart_coords, dist_tol: float):
     """
     Find points in ``cart_coords`` lying on the path defined by ``cart_bounds``.
     Result are ordered according to distance along the path.
