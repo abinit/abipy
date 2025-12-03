@@ -31,8 +31,8 @@ jobs:
             python: "3.12"
           - os: ubuntu-latest
             python: "3.13"
-          #- os: ubuntu-latest
-          #  python: "3.14"
+          - os: ubuntu-latest
+            python: "3.14"
 
     runs-on: ${{ matrix.config.os }}
 
