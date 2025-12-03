@@ -641,6 +641,38 @@ class BzRegularGridInterpolator:
 
         return values
 
+    def plot_ax(self, ax=None, **kwargs) -> Figure:
+        """
+        Plot interpolated results along a high-symmetry path.
+
+        Args:
+            ax: matplotlib :class:`Axes` or None if a new figure should be created.
+        """
+        # Get high-symmetry path from structure.
+        kpoints = self.structure.hsym_kpoints
+        nk = len(kpoints)
+        values = np.empty((nk, self.ndat))
+        ticks, labels = [], []
+
+        for ik, kpt in enumerate(kpoints):
+            values[ik] = self.eval_kpoint(kpt.frac_coords, cartesian=False)
+            if kpt.name is not None:
+                ticks.append(ik)
+                labels.append(kpt.name)
+
+        # Plot values (import here to avoid cyclic dependencies)
+        from abipy.tools.plotting import get_ax_fig_plt
+        ax, fig, plt = get_ax_fig_plt(ax=ax, grid=True)
+        for idat in range(self.ndat):
+            #if idat != 5: continue
+            ax.plot(values[:,idat])
+
+        ax.set_xlabel("Wave Vector")
+        ax.set_xticks(ticks, minor=False)
+        ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
+
+        return fig
+
 
 #class PolyExtrapolator:
 #

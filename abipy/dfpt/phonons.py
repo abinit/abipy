@@ -1151,6 +1151,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
              match_bands=False,
              temp=None,
              points=None,
+             with_band_index=False,
              fontsize=12,
              **kwargs) -> Figure:
         r"""
@@ -1168,6 +1169,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 at temperature `temp` is added.
             points: Marker object with the position and the size of the marker.
                 Used for plotting purpose e.g. QP energies, energy derivatives etc.
+            with_band_index: Show band index in plot.
             fontsize: Legend and title fontsize.
 
         Returns: |matplotlib-Figure|
@@ -1185,7 +1187,8 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         if "linewidth" not in kwargs: kwargs["linewidth"] = 2.0
 
         # Plot the phonon branches.
-        self.plot_ax(ax, branch_range, units=units, match_bands=match_bands, **kwargs)
+        self.plot_ax(ax, branch_range, units=units, match_bands=match_bands,
+                     with_band_index=with_band_index, **kwargs)
 
         if points is not None:
             ax.scatter(points.x, np.array(points.y), s=np.abs(points.s), **points.scatter_kwargs)
@@ -1270,16 +1273,23 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 branch,
                 units='eV',
                 match_bands=False,
+                with_band_index=False,
                 **kwargs) -> list:
         """
         Plots the frequencies for the given branches indices as a function of the q-index on axis ``ax``.
         If ``branch`` is None, all phonon branches are plotted.
 
+        Args:
+            ax: |matplotlib-Axes|.
+            branch: Band index, If None, all bands are plotted.
+            with_band_index: Show band index in plot.
+            kwargs: Passed to ax.plot.
+
         Return: The list of matplotlib lines added.
         """
         if branch is None:
             branch_range = range(self.num_branches)
-        elif isinstance(branch, (list, tuple, np.ndarray)):
+        elif isinstance(branch, (list, tuple, range, np.ndarray)):
             branch_range = branch
         else:
             branch_range = [branch]
@@ -1295,8 +1305,17 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 pf = pf[np.arange(len(pf))[:, None], ind]
             pf = pf * factor
             xx = list(range(first_xx, first_xx + len(pf)))
+
             for branch in branch_range:
                 lines.extend(ax.plot(xx, pf[:, branch], **kwargs))
+                line_color = lines[-1].get_color()
+
+                if with_band_index:
+                    # Add band index next to the band (but avoid overlaps).
+                    step, shift = 10, 2
+                    ii = (branch * step + shift) % len(xx)
+                    ax.text(xx[ii], pf[ii, branch], str(branch), color=line_color, va="center")
+
             first_xx = xx[-1]
 
         return lines
@@ -1347,6 +1366,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                              branch_range=None,
                              colormap="rainbow",
                              max_colors=None,
+                             with_band_index=False,
                              **kwargs) -> Figure:
         r"""
         Plot the phonon band structure with different colors for each line.
@@ -1364,12 +1384,15 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
             max_colors: maximum number of colors to be used. If max_colors < num_braches the colors will be repeated.
                 It may be useful to better distinguish close bands when the number of branches is large.
+            with_band_index: Show band index in plot.
 
         Returns: |matplotlib-Figure|
         """
         # Select the band range.
         if branch_range is None:
             branch_range = range(self.num_branches)
+        elif isinstance(branch_range, (list, tuple, range, np.ndarray)):
+            branch_range = branch_range
         else:
             branch_range = range(branch_range[0], branch_range[1], 1)
 
@@ -1397,6 +1420,14 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
                 kwargs = dict(kwargs)
                 kwargs['color'] = next(colors)
                 lines.extend(ax.plot(xx, pf[:, branch_i], **kwargs))
+                line_color = lines[-1].get_color()
+
+                if with_band_index:
+                    # Add band index next to the band (but avoid overlaps).
+                    step, shift = 10, 2
+                    ii = (branch_i * step + shift) % len(xx)
+                    ax.text(xx[ii], pf[ii, branch_i], str(branch_i), color=line_color, va="center")
+
             first_xx = xx[-1]
 
         return fig
@@ -4113,7 +4144,10 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
             for iatom in aview.iatom_list:
                 site = self.structure[iatom]
                 symbol = str(site)
-                color = cmap(float(iatom) / max((len(aview.iatom_list) - 1), 1))
+                # since iatom comes from a list of length natom, the cmap values should
+                # be computed from iatom/natom
+                #color = cmap(float(iatom) / max((len(aview.iatom_list) - 1), 1))
+                color = cmap(float(iatom) / max((len(self.structure)-1),1))
                 yy = pjdos_atdir[iatom, idir] / factor
 
                 if not stacked:
