@@ -250,6 +250,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     @version.setter
     def version(self, version: int) -> None:
         self.header["version"] = version
+        for i, line in enumerate(self.header.lines):
+            if "Version" in line:
+                # In Fortran we read with:
+                # read (unddb, '(20x,i10)' )ddbvrs
+                key = "+DDB, Version number"
+                self.header.lines[i] = f"{key:20s}{version:10d}"
 
     @property
     def header(self):
