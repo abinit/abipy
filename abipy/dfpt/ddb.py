@@ -247,6 +247,10 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """DDB Version number (integer)."""
         return self.header["version"]
 
+    @version.setter
+    def version(self, version: int) -> None:
+        self.header["version"] = version
+
     @property
     def header(self):
         """
@@ -383,7 +387,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         dynmat = {}
         for block in self.blocks:
-            # skip the blocks that are not related to second order derivatives
+            # Skip the blocks that are not related to second order derivatives
             first_line = block["data"][0].strip()
             if not first_line.startswith("2nd derivatives"):
                 continue
@@ -451,7 +455,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 continue
 
             if "List of bloks and their characteristics" in line:
-                # add last block when we reach the last part of the file.
+                # Add last block when we reach the last part of the file.
                 # This line is present only if DDB has been produced by mrgddb
                 if block_lines:
                     blocks.append({"data": block_lines, "qpt": qpt, "qpt3": qpt3, "dord": dord})
@@ -1966,7 +1970,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         Writes the DDB file to filepath. Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks
-        are used to produce the file
+        are used to produce the file.
         """
         lines = list(self.header.lines)
 
