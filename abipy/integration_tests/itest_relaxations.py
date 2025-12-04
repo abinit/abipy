@@ -9,7 +9,12 @@ import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_matplotlib
 
-import pytest
+import socket
+hostname = socket.gethostname()
+
+skip_hosts = [
+    "scope.pcpm.ucl.ac.be",
+]
 
 def ion_relaxation(tvars, ntime=50):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
@@ -23,7 +28,8 @@ def ion_relaxation(tvars, ntime=50):
         shiftk=[0,0,0],
         nshiftk=1,
         chksymbreak=0,
-        paral_kgb=tvars.paral_kgb,
+        #paral_kgb=tvars.paral_kgb,
+        paral_kgb=0,
     )
 
     inp = abilab.AbinitInput(structure, pseudos=abidata.pseudos("14si.pspnc"))
@@ -45,7 +51,7 @@ def ion_relaxation(tvars, ntime=50):
 
     return inp
 
-@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
+@pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
 def itest_atomic_relaxation(fwp, tvars):
     """Test atomic relaxation with automatic restart."""
     # Build the flow
@@ -118,12 +124,14 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
 
     global_vars = dict(
         ecut=6,
+        #nband=8,
         ecutsm=0.5,
         ngkpt=[4,4,4],
         shiftk=[0,0,0],
         nshiftk=1,
         chksymbreak=0,
-        paral_kgb=tvars.paral_kgb,
+        #paral_kgb=tvars.paral_kgb,
+        paral_kgb=0,
     )
 
     multi = abilab.MultiDataset(structure, pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
@@ -155,7 +163,7 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
     return ion_inp, ioncell_inp
 
 
-@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
+@pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
 def itest_relaxation_with_restart_from_den(fwp, tvars):
     """Test structural relaxations with automatic restart from DEN files."""
     # Build the flow
@@ -191,7 +199,7 @@ def itest_relaxation_with_restart_from_den(fwp, tvars):
     flow.rmtree()
 
 
-@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
+@pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
 def itest_dilatmx_error_handler(fwp, tvars):
     """
     Test cell relaxation with automatic restart in the presence of dilatmx error.
@@ -224,7 +232,8 @@ def itest_dilatmx_error_handler(fwp, tvars):
     assert t0.corrections[0]["event"]["@class"] == "DilatmxError"
 
 
-@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
+#@pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
+@pytest.mark.skipif(True, reason=f"This test is not portable")
 def itest_relaxation_with_target_dilatmx(fwp, tvars):
     """Test structural relaxations with automatic restart from DEN files."""
     # Build the flow

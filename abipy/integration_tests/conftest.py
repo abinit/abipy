@@ -13,7 +13,6 @@ from monty.string import marquee
 from abipy.tools.iotools import yaml_safe_load_path, yaml_dump
 
 # Are we running on travis?
-on_travis = os.environ.get("TRAVIS", "False") == "true"
 
 # Create the list of Manager configurations used for the integration tests.
 # Note that the items in _manager_confs must be hashable hence we cannot use dictionaries directly
@@ -57,24 +56,16 @@ def fwp(tmpdir, request):
     # Create the TaskManager.
     fwp.manager = flowtk.TaskManager.from_string(request.param)
     fwp.scheduler = flowtk.PyFlowScheduler.from_file(os.path.join(USER_CONFIG_DIR, "scheduler.yml"))
-    fwp.on_travis = on_travis
     fwp.abinit_build = flowtk.AbinitBuild()
 
     return fwp
 
 
 # Use tuples instead of dict because pytest require objects to be hashable.
-if on_travis:
-    _tvars_list = [
-        (("paral_kgb", 0),),
-        #(("paral_kgb", 1),),
-    ]
-
-else:
-    _tvars_list = [
-        #(("paral_kgb", 0),),
-        (("paral_kgb", 1),),
-    ]
+_tvars_list = [
+    #(("paral_kgb", 0),),
+    (("paral_kgb", 1),),
+]
 
 
 @pytest.fixture(params=_tvars_list)

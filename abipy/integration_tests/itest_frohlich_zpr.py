@@ -1,12 +1,21 @@
 """Integration tests for phonon flows."""
 from __future__ import annotations
 
+import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 
 from abipy.dfpt.ddb import DdbFile
 
-import pytest
+import socket
+hostname = socket.gethostname()
+
+skip_hosts = [
+    "scope.pcpm.ucl.ac.be",
+]
+
+
+
 
 def make_scf_input(usepaw=0):
     """Returns the GS input file"""
@@ -45,7 +54,7 @@ def make_scf_input(usepaw=0):
 
     return scf_input
 
-@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
+@pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
 def itest_frohlich_zpr_flow(fwp, tvars):
     """
     """

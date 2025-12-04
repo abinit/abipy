@@ -190,7 +190,7 @@ class PyLauncher:
 
         return num_launched
 
-    def rapidfire(self, max_nlaunch=-1, max_loops=1, sleep_time=5):
+    def rapidfire(self, max_nlaunch=-1, max_loops=1, sleep_time=5, max_ncores_used=None):
         """
         Keeps submitting `Tasks` until we are out of jobs or no job is ready to run.
 
@@ -202,7 +202,10 @@ class PyLauncher:
         Returns:
             The number of tasks launched.
         """
-        num_launched, do_exit, launched = 0, False, []
+        num_launched, ncores_used, do_exit, launched = 0, 0, False, []
+
+        if max_ncores_used is None:
+            max_ncores_used = float('inf')
 
         for count in range(max_loops):
             if do_exit: break
@@ -220,10 +223,18 @@ class PyLauncher:
             if not tasks: continue
 
             for task in tasks:
+
+                # Check that we do not exceed number of cores
+                if (ncores_used + task.manager.num_cores) > max_ncores_used:
+                    logger.info('reached max_ncores_used, breaking submission loop')
+                    do_exit = True
+                    break
+
                 fired = task.start()
                 if fired:
                     launched.append(task)
                     num_launched += 1
+                    ncores_used += task.manager.num_cores
 
                 if num_launched >= max_nlaunch > 0:
                     logger.info('num_launched >= max_nlaunch, breaking submission loop')
@@ -511,6 +522,7 @@ killjobs_if_errors: yes # "yes" if the scheduler should try to kill all the runn
         for task in flow.unconverged_tasks:
             try:
                 logger.info("Trying to restart task: `%s`" % repr(task))
+                task.manager.qadapter.check_num_launches()  # First check number of launches.
                 fired = task.restart()
                 if fired:
                     self.nlaunch += 1
@@ -673,14 +685,15 @@ class PyFlowScheduler(BaseScheduler):
         # check status.
         flow.check_status(show=False)
 
-        # This check is not perfect, we should make a list of tasks to submit
-        # and then select a subset so that we don't exceed max_ncores_used
-        # Many sections of this code should be rewritten though.
-        #if self.max_ncores_used is not None and flow.ncores_used > self.max_ncores_used:
-        if self.max_ncores_used is not None and flow.ncores_allocated > self.max_ncores_used:
-            print("Cannot exceed max_ncores_used %s" % self.max_ncores_used,
-                  ", ncores_allocated:", flow.ncores_allocated)
-            return
+        if self.max_ncores_used is not None:
+            if flow.ncores_allocated > self.max_ncores_used:
+                print("Cannot exceed max_ncores_used %s" % self.max_ncores_used,
+                      ", ncores_allocated:", flow.ncores_allocated)
+                return
+            else:
+                max_ncores_left = self.max_ncores_used - flow.ncores_allocated
+        else:
+            max_ncores_left = None
 
         # Try to restart unconverged tasks.
         max_nlaunch = self.restart_unconverged(flow, max_nlaunch, excs)
@@ -693,7 +706,9 @@ class PyFlowScheduler(BaseScheduler):
 
         # Submit the tasks that are ready.
         try:
-            nlaunch = PyLauncher(flow).rapidfire(max_nlaunch=max_nlaunch, sleep_time=10)
+            nlaunch = PyLauncher(flow).rapidfire(max_nlaunch=max_nlaunch,
+                                                 max_ncores_used=max_ncores_left,
+                                                 sleep_time=10)
             self.nlaunch += nlaunch
             if nlaunch:
                 cprint("[%s] Number of launches: %d" % (time.asctime(), nlaunch), "yellow")
@@ -1112,10 +1127,15 @@ class MultiFlowScheduler(BaseScheduler):
         # Many sections of this code should be rewritten though.
         #if self.max_ncores_used is not None and flow.ncores_used > self.max_ncores_used:
         ncores_allocated = sum(flow.ncores_allocated for flow in self.flows)
-        if self.max_ncores_used is not None and ncores_allocated > self.max_ncores_used:
-            print("Cannot exceed max_ncores_used %s" % self.max_ncores_used,
-                  ", ncores_allocated:", ncores_allocated)
-            return
+        if self.max_ncores_used is not None:
+            if ncores_allocated > self.max_ncores_used:
+                print("Cannot exceed max_ncores_used %s" % self.max_ncores_used,
+                      ", ncores_allocated:", ncores_allocated)
+                return
+            else:
+                max_ncores_left = self.max_ncores_used - ncores_allocated
+        else:
+            max_ncores_left = None
 
         # Try to restart unconverged tasks.
         for flow in self.flows:
@@ -1133,7 +1153,9 @@ class MultiFlowScheduler(BaseScheduler):
             # Submit the tasks that are ready.
             try:
                 if max_nlaunch > 0:
-                    nlaunch = PyLauncher(flow).rapidfire(max_nlaunch=max_nlaunch, sleep_time=10)
+                    nlaunch = PyLauncher(flow).rapidfire(max_nlaunch=max_nlaunch,
+                                                         max_ncores_used=max_ncores_left,
+                                                         sleep_time=10)
                     self.nlaunch += nlaunch
                     max_nlaunch -= nlaunch
                     if nlaunch:

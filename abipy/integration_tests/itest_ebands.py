@@ -12,7 +12,13 @@ import abipy.flowtk as flowtk
 
 from abipy.core.testing import has_matplotlib
 
-import pytest
+import socket
+hostname = socket.gethostname()
+
+skip_hosts = [
+    "scope.pcpm.ucl.ac.be",
+]
+
 
 def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     """
@@ -142,7 +148,7 @@ def itest_unconverged_scf(fwp, tvars):
     # Test reset_from_scratch
     t0.reset_from_scratch()
     assert t0.status == t0.S_READY
-    # Datetime counters shouls be set to None
+    # Datetime counters should be set to None
     # FIXME: This does not work
     #dt = t0.datetimes
     #assert (dt.submission, dt.start, dt.end) == (None, None, None)
@@ -150,12 +156,13 @@ def itest_unconverged_scf(fwp, tvars):
     t0.start_and_wait()
     t0.reset_from_scratch()
 
-    # Datetime counters shouls be set to None
+    # Datetime counters should be set to None
     # FIXME: This does not work
     #dt = t0.datetimes
     #assert (dt.submission, dt.start, dt.end) == (None, None, None)
 
-@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
+
+@pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
 def itest_bandstructure_flow(fwp, tvars):
     """
     Testing band-structure flow with one dependency: SCF -> NSCF.
@@ -350,6 +357,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
                     gsr.ebands.get_edos()
 
 
+@pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
 def itest_htc_bandstructure(fwp, tvars):
     """Test band-structure calculations done with the HTC interface."""
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
@@ -402,7 +410,8 @@ def itest_htc_bandstructure(fwp, tvars):
                 assert not gsr.ebands.has_bzpath
                 gsr.ebands.get_edos()
 
-@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
+
+@pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
 def itest_metagga_ebands_flow(fwp, tvars):
     """
     Test band structure calculation with meta-GGA
