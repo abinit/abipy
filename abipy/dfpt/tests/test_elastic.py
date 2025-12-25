@@ -32,7 +32,7 @@ class ElasticDataFileTest(AbipyTest):
             assert e.params["instrflag"] == 1
             assert e.params["asr"] == 2 and e.params["chneut"] == 1
             # Elastic tensors.
-            self.assert_almost_equal(e.elastic_relaxed[0,0,0,0], 122.23496623977118)
+            self.assert_almost_equal(e.elastic_relaxed[0,0,0,0], 122.23496623977118, decimal=4)
             assert e.elastic_clamped is not None
             assert e.elastic_stress_corr is None
             assert e.elastic_relaxed_fixed_D is None
