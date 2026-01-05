@@ -203,8 +203,9 @@ class Embedded_phonons(Phonopy):
 
                     ifc_emb[i][j] = factor_ifc * ifc_defect[mapping.index(i)][mapping.index(j)]
 
-        # enforce ASR, following formalism of https://doi.org/10.1103/PhysRevMaterials.5.084603
-        if asr:
+        # enforce ASR, following formalism of https://doi.org/10.1103/PhysRevMaterials.5.084603 
+        # and https://doi.org/10.1103/PhysRevB.104.045303
+        if asr: 
             print("\n Enforcing ASR")
             sum_ac = np.sum(ifc_emb,axis=1)
             for i, atom1 in enumerate(stru_emb):
