@@ -2218,22 +2218,22 @@ class Structure(pmg_Structure, NotebookWriter):
             replaced atom: Symbol of the atom to be replaced (ex: 'Sr')
             dopant_atom: Symbol of the dopant_atom (ex: 'Eu')
         """
+        supercell = self.copy()
+        supercell.make_supercell(scaling_matrix)
+
         # list of positions of non-equivalent sites for the replaced atom.
-        irred = self.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
-        positions = self.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
+        irred = supercell.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
+        positions = supercell.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
 
         index_non_eq_sites = []
         for pos in positions:
             if len(irred[pos]) != 0:
                 index_non_eq_sites.append(irred[pos][0])
 
-        doped_supercell = self.copy()
-        doped_supercell.make_supercell(scaling_matrix)
-
         doped_structure_list = []
 
         for index in index_non_eq_sites:
-            final_structure = doped_supercell.copy()
+            final_structure = supercell.copy()
             final_structure.replace(index,dopant_atom)
             doped_structure_list.append(final_structure)
 
