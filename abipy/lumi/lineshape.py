@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import numpy as np
+import warnings
 import abipy.core.abinit_units as abu
 
 from pymatgen.io.phonopy import get_pmg_structure
@@ -149,6 +150,7 @@ class Lineshape:
             delta_forces = self.forces.flatten() * ((abu.eV_Ha)*(abu.Ha_J)/(1e-10)) # eV/Angstrom to Newtons (Joules/meter)
             for i in range(self.n_modes()):
                 if self.ph_eigfreq[i] < 1e-5: # discard phonon freq with too low freq (avoid division by nearly 0)
+                    warnings.warn(f"Phonon mode {i} with frequency {self.ph_eigfreq[i]:.2e} eV is ignored.")
                     Q_nu[i] = 0
                 else:
                     Q_nu[i] = (1/ph_eigfreq[i]**2) * np.sum( delta_forces/np.sqrt(masses) * np.real(ph_eigvector[i]))
