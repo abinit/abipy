@@ -766,6 +766,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                     line_density: int = 20,
                     filter_params: list | None = None,
                     only_corrections: bool = False,
+                    iter: int = None,
                     verbose: int = 0):
         """
         Interpolate the QP corrections in k-space on a k-path and, optionally, on a k-mesh
@@ -871,7 +872,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         # Read QP energies
         varname = "qpz_ene"
-        egw_rarr = self.r.read_value(varname, cmode="c").real * abu.Ha_eV
+        egw_rarr = self.r.read_value(varname, cmode="c", path=f"iter{iter}" if iter else '/').real * abu.Ha_eV
 
         if ks_ebands_kpath is not None:
             # Compute QP corrections
@@ -1442,7 +1443,7 @@ class GwrReader(ETSF_Reader):
 
         return tuple(qps_spin)
 
-    def read_qplist_sk(self, spin: int, kpoint: KptSelect, band: int = None, ignore_imag: bool = False) -> QPList:
+    def read_qplist_sk(self, spin: int, kpoint: KptSelect, band: int = None, ignore_imag: bool = False, iter: int = None) -> QPList:
         """
         Read and return a QPList object for the given spin, kpoint.
 
@@ -1466,10 +1467,10 @@ class GwrReader(ETSF_Reader):
             if band is not None and sigma_band != band: continue
             ib = sigma_band - self.min_bstart
 
-            qpe = self.read_variable("qpz_ene")[spin, ikcalc, ib] * abu.Ha_meV
+            qpe = self.read_variable("qpz_ene", path=f"iter{iter}" if iter else '/')[spin, ikcalc, ib] * abu.Ha_meV
             qpe = qpe[0] + 1j*qpe[1]
 
-            ze0 = self.read_variable("ze0_kcalc")[spin, ikcalc, ib]
+            ze0 = self.read_variable("ze0_kcalc", path=f"iter{iter}" if iter else '/')[spin, ikcalc, ib]
             ze0 = ze0[0] + 1j*ze0[1]
 
             # TODO Finalize the implementation
@@ -1491,6 +1492,9 @@ class GwrReader(ETSF_Reader):
 
         return qp_list
 
+    @cached_property
+    def path2group(self) -> dict:
+        return self.rootgrp.groups
 
 class GwrRobot(Robot, RobotWithEbands):
     """

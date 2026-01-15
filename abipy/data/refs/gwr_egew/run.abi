@@ -1,0 +1,127 @@
+# Crystalline silicon.
+# Calculation of the GW corrections with GWR code and energy-only self-consistency
+
+ndtset      4
+iomode 1
+istwfk *1
+nstep 1000
+
+# This to compute QP without symmetries for debugging purposes
+#nsym 1
+#kptopt 3
+#kptopt 2
+#
+####################
+# Dataset 1: SCF run
+####################
+nband1  6
+tolvrs1 1.e-8
+
+###########################################
+# Dataset 2: Direct diago with empty states
+###########################################
+optdriver2  6        # Activate GWR code
+gwr_task2 "HDIAGO_FULL"   # Direct Diagonalization with nband == npw
+getden2       1
+
+#########################################
+# GWR variables common to dataset 3 and 4
+#########################################
+gwr_ntau   6        # Number of imaginary-time points
+gwr_sigma_algo 1    # Use supercell for Sigma
+gwr_boxcutmin  1.1  # This should be subject to convergence studies
+#mixprec    1       # Mixed precision FFT.
+nband      30       # Bands to be used in the screening calculation
+ecuteps    4        # Cut-off energy of the planewave set to represent the dielectric matrix.
+                    # It is important to adjust this parameter.
+ecutsigx    4.0     # Dimension of the G sum in Sigma_x.
+                    # ecutsigx = ecut is usually a wise choice
+                    # (the dimension in Sigma_c is controlled by ecuteps)
+gw_qprange +5
+# gwr_nstep  4        # Max number of iteration (default 50, so one might omit it)
+gwr_tolqpe 0.005 eV  # Will stop if all abs differences between QP energies computed at two
+                    # consecutive iteration steps are smaller than this value.
+                    #
+#gw_icutcoul   16   # Monte-Carlo integration in the mini-Brillouin zone for Full Coulomb interaction.
+#gw_icutcoul   0    # Spherical cutoff
+
+# Spectral function (very coarse grid to reduce txt file size)
+nfreqsp 50
+freqspmax 5 eV
+
+################################
+# Dataset 3: EGEW with GWR code
+################################
+optdriver3  6        # Activate GWR code
+gwr_task3 "EGEW"     # energy-only self-consistency both in G and W
+
+getden3 1
+getwfk3 2            # WFK file with empty states
+prtvol3 1            # Write additional stuff to abo file for testing purposes.
+
+
+# Definition of the k-point grid
+# IMPORTANT: GWR requires Gamma-centered k-meshes
+ngkpt1   4 4 4
+nshiftk1 1
+shiftk1  0.0 0.0 0.0
+
+ngkpt2   4 4 4
+nshiftk2 1
+shiftk2  0.0 0.0 0.0
+
+ngkpt3   4 4 4
+nshiftk3 1
+shiftk3  0.0 0.0 0.0
+
+########################
+# Dataset 4: SCF run for KS bands on k-path
+########################
+nband4  30
+getden4  1
+iscf4 -2
+ndivsm4 20
+kptopt4 -4
+kptbounds4
+   +0.500000000  +0.500000000  +0.500000000  # L 
+   +0.000000000  +0.000000000  +0.000000000  # $\Gamma$
+   +0.500000000  +0.000000000  +0.500000000  # X 
+   +0.375000000  +0.375000000  +0.750000000  # K 
+   +0.000000000  +0.000000000  +0.000000000  # $\Gamma$
+tolwfr4  1.0d-15
+enunit4  1
+
+########################
+# Global variables
+########################
+
+
+ecut 4.0          # Maximal kinetic energy cut-off, in Hartree
+
+# Definition of the SCF procedure
+acell 3*5.61 angstrom # expt value
+rprim 0   1/2 1/2
+      1/2 0   1/2
+      1/2 1/2 0
+natom 2
+ntypat 2
+typat 1 2
+znucl  31 33
+xred 3*0 3*1/4
+
+#%%<BEGIN TEST_INFO>
+#%% [setup]
+#%% executable = abinit
+#%% exclude_builders = eos_nvhpc_23.9_elpa, eos_nvhpc_24.9_openmpi, haicgu_*
+#%% [files]
+#%% files_to_test =
+#%%   t04.abo, tolnlines = 70, tolabs = 8e-3, tolrel = 3.0e-3, fld_options = -medium;
+#%% [paral_info]
+#%% max_nprocs = 12
+#%% [extra_info]
+#%% authors = M. Giantomassi
+#%% keywords = NC, GWR
+#%% description =
+#%%  Crystalline silicon
+#%%  Calculation of the GW corrections with GWR code and energy-only self-consistency
+#%%<END TEST_INFO>
