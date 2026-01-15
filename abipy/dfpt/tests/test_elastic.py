@@ -37,8 +37,9 @@ class ElasticDataFileTest(AbipyTest):
             assert e.elastic_stress_corr is None
             assert e.elastic_relaxed_fixed_D is None
 
-            html = e.elastic_clamped.get_elate_html()
-            assert "<!DOCTYPE" in html
+            # TODO: Waiting for new version of elate compatible with numpy 2.4.1
+            #html = e.elastic_clamped.get_elate_html()
+            #assert "<!DOCTYPE" in html
 
             # Piezoelectric tensors.
             self.assert_almost_equal(e.piezo_relaxed[2,2,2], -0.041496005147475756)

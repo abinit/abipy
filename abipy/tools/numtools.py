@@ -637,7 +637,7 @@ class BzRegularGridInterpolator:
 
         values = np.empty(self.ndat, dtype=self.dtype)
         for idat in range(self.ndat):
-            values[idat] = self._interpolators[idat](uc_coords, **kwargs)
+            values[idat] = self._interpolators[idat](uc_coords, **kwargs)[0]
 
         return values
 
