@@ -14,8 +14,8 @@
  acknowledgments of the ABINIT effort.
  For more information, see https://www.abinit.org .
 
-.Starting date : Thu 15 Jan 2026.
-- ( at 15h58 )
+.Starting date : Mon 19 Jan 2026.
+- ( at 17h01 )
   
 - input  file    -> run.abi
 - output file    -> run.abo
@@ -6031,13 +6031,13 @@ P           mkmem4         12
 - The licence allows the authors to put it on the Web.
 - DOI and bibtex: see https://docs.abinit.org/theory/bibliography/#gonze2009
 -
-- Proc.   0 individual time (sec): cpu=        112.1  wall=        118.2
+- Proc.   0 individual time (sec): cpu=        112.4  wall=        110.0
 
 ================================================================================
 
  Calculation completed.
 .Delivered   1 WARNINGs and   0 COMMENTs to log file.
-+Overall time at end (sec) : cpu=        881.9  wall=        945.7
++Overall time at end (sec) : cpu=        862.9  wall=        879.6
 - [ALL OK] MEMORY CONSUMPTION REPORT FOR C CODE:
 -   There were 327 allocations and 327 deallocations in C code
 - [ALL OK] MEMORY CONSUMPTION REPORT FOR FORTRAN CODE:

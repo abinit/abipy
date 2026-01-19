@@ -648,8 +648,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                               kpoint: KptSelect | None = None,
                               spin: int | None = None,
                               with_params: bool = True,
-                              with_geo: bool = False,
-                              iter: bool = False) -> pd.DataFrame:
+                              with_geo: bool = False) -> pd.DataFrame:
         """
         Return a pandas DataFrame with the QP direct gaps in eV.
 
@@ -659,12 +658,11 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             spin: Spin index. None, to select all spins.
             with_params: True if GWR parameters should be included.
             with_geo: True if geometry info should be included.
-            iter: If True include data for all SCF iterations.
         """
         d = {}
         d["kpoint"] = [k.frac_coords for k in self.sigma_kpoints] * self.nsppol * self.scf_iteration
         d["kname"] = [k.name for k in self.sigma_kpoints] * self.nsppol * self.scf_iteration
-        if iter:
+        if self.scf_iteration > 1:
             d["iteration"] = []
             d["ks_dirgaps"] = np.zeros(0)
             d["qpz0_dirgaps"] = np.zeros(0)
@@ -803,6 +801,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             fontsize: legend and label fontsize.
         """
 
+        assert self.scf_iteration > 1, "GWR calculation was not self-consistent!"
+
         # Get labels from x and y and add units.
         xlabel = "SCF Iteration"
         ylabel = "QP Direct Gaps (eV)"
@@ -826,8 +826,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                 data = self.get_dirgaps_dataframe(kpoint=ikcalc,
                                                   spin=spin,
                                                   with_params=False,
-                                                  with_geo=False,
-                                                  iter=True)
+                                                  with_geo=False)
 
                 plot_xy_with_hue(data,
                                  x="iteration",

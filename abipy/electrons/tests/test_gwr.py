@@ -68,6 +68,11 @@ class GwrFileTest(AbipyTest):
 
             if self.has_nbformat():
                 assert gwr.write_notebook(nbpath=self.get_tmpname(text=True))
+        
+        path = abidata.ref_file("out_DS3_GWR.nc")
+        with GwrFile(abidata.ref_file(path)) as gwr:
+            repr(gwr); str(gwr)
+            assert gwr.plot_qpgaps_iterations(show=False)
 
     def test_gwr_robot(self):
         """Testing GwrRobot."""
