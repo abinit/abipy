@@ -827,6 +827,10 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                                                   spin=spin,
                                                   with_params=False,
                                                   with_geo=False)
+                ks_row = data.iloc[0].copy()
+                ks_row[y] = ks_row["ks_dirgaps"]
+                ks_row["iteration"] = 0
+                data = pd.concat([pd.DataFrame([ks_row]), data], ignore_index=True).reset_index(drop=True)
 
                 plot_xy_with_hue(data,
                                  x="iteration",
@@ -849,6 +853,11 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                     ax.set_ylabel(ylabel)
                 else:
                     set_visible(ax, False, "ylabel")
+
+                set_axlims(ax, (-0.2, self.scf_iteration+0.2), "x")
+                xticks = np.arange(0, self.scf_iteration + 1, 1)
+                ax.set_xticks(xticks)
+                ax.set_xticklabels([str(int(tick)) if tick else "KS" for tick in xticks])
 
                 ax.set_title("k-point: %s" % repr(sigma_kpt),
                              fontsize=fontsize)
