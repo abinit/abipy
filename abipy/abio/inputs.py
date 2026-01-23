@@ -436,7 +436,13 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
             pseudos = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
 
         if enforce_znucl is not None:
-            self._pseudos = [Pseudo.from_file(p) for p in pseudos]
+            psps = []
+            for p in pseudos:
+                if isinstance(p, Pseudo):
+                    psps.append(p)
+                else:
+                    psps.append(Pseudo.from_file(p))
+            self._pseudos = psps
         else:
             try:
                 self._pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(self.structure)
