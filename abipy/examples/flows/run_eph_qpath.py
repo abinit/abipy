@@ -67,7 +67,7 @@ xred 3*0
     ngqpt = [2, 2, 2]
     #ngqpt = [1, 1, 1]
 
-    # Lisg of q-points in reduced coordinates.
+    # List of q-points in reduced coordinates.
     qpath_list = [
         +0.10000,  +0.10000,  +0.10000,
         +0.00000,  +0.00000,  +0.00000,

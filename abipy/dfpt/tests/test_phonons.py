@@ -83,7 +83,7 @@ class PhononBandsTest(AbipyTest):
         asr_breaking = phbands.asr_breaking()
         assert asr_breaking.absmax_break == 0
 
-        # Test convertion to eigenvectors. Verify that they are orthonormal
+        # Test conversion to eigenvectors. Verify that they are orthonormal
         # Allow relatively large tolerance due to possible mismatching in the atomic masses between abinit and pmg
         # (Note that amu is None here)
         assert phbands.amu is None
@@ -108,10 +108,10 @@ class PhononBandsTest(AbipyTest):
         }
 
         if self.has_matplotlib():
-            assert phbands.plot(units="Thz", temp=300, show=False)
+            assert phbands.plot(units="Thz", temp=300, with_band_index=True, show=False)
             assert phbands.plot_fatbands(units="ha", qlabels=qlabels, show=False)
             assert phbands.plot_fatbands(phdos_file=abidata.ref_file("trf2_5.out_PHDOS.nc"), units="thz", show=False)
-            assert phbands.plot_colored_matched(units="cm^-1", show=False)
+            assert phbands.plot_colored_matched(units="cm^-1", with_band_index=True, show=False)
             assert phbands.plot_phdispl(qpoint=(0, 0, 0), units="cm^-1", hatches=None, show=False)
             assert phbands.plot_phdispl(qpoint=(0, 0, 0), units="cm^-1", hatches=None, show=False, cart_dir="x+y")
             assert phbands.plot_phdispl(qpoint=(0, 0, 0), units="cm^-1", hatches=None, show=False, use_sqrt=True,

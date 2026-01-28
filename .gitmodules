@@ -1,3 +1,4 @@
 [submodule "abipy/data/data_v-ZSISA-QHA.git"]
 	path = abipy/data/data_v-ZSISA-QHA.git
 	url = https://github.com/abinit/data_v-ZSISA-QHA.git
+    branch = main

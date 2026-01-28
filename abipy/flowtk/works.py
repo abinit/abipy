@@ -787,6 +787,12 @@ class Work(BaseWork, NodeContainer):
                 if task.workdir != task_workdir:
                     raise ValueError("task.workdir != task_workdir: %s, %s" % (task.workdir, task_workdir))
 
+    #def append_task(self, task: Task) -> None:
+    #    """
+    #    Low level method to append a pre-existent task.
+    #    """
+    #    self._tasks.append(task)
+
     def register(self, obj: AbinitInput | Task,
                  deps=None, required_files=None, manager=None, task_class=None) -> Task:
         """

@@ -1,13 +1,18 @@
 """Integration tests for GW flows."""
 from __future__ import annotations
 
+import pytest
 import abipy.data as abidata
 import abipy.abilab as abilab
 import abipy.flowtk as flowtk
 
-#from abipy.core.testing import has_abinit, has_matplotlib
+import socket
+hostname = socket.gethostname()
 
-import pytest
+skip_hosts = [
+    "scope.pcpm.ucl.ac.be",
+]
+
 
 def make_g0w0_inputs(ngkpt, tvars):
     """
@@ -95,7 +100,7 @@ def make_g0w0_inputs(ngkpt, tvars):
     return multi.split_datasets()
 
 
-@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
+@pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
 def itest_g0w0_flow(fwp, tvars):
     """Test flow for G0W0 calculations."""
     scf, nscf, scr, sig = make_g0w0_inputs(ngkpt=[2, 2, 2], tvars=tvars)
@@ -158,7 +163,7 @@ def itest_g0w0_flow(fwp, tvars):
     #assert flow.validate_json_schema()
 
 
-@pytest.mark.skip(reason="there is currently no way to test this on the testfarm (builder scope_gnu_12.2_abipy )")
+@pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
 def itest_htc_g0w0(fwp, tvars):
     """Testing G0W0Work."""
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))

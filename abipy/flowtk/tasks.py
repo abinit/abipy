@@ -1253,7 +1253,9 @@ class AbinitBuild:
         # flavor options were used in Abinit v8
         for line in self.info.splitlines():
             print(line)
-            if "Version" in line: self.version = line.split()[-1]
+            if "Version" in line: 
+                self.version = line.split()[-1]
+                self.version = self.version.split('-')[0]
             if "TRIO flavor" in line:
                 self.has_netcdf = "netcdf" in line
             if "NetCDF Fortran" in line:
@@ -2116,7 +2118,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         if not self.output_file.exists:
             #self.history.debug("output_file does not exists")
             if not self.stderr_file.exists and not self.qerr_file.exists:
-                # No output at allThe job is still in the queue.
+                # No output at all. The job is still in the queue.
                 return self.status
 
         # 7) Analyze the files of the resource manager and abinit and execution err (mvs)
@@ -2832,6 +2834,7 @@ class AbinitTask(Task):
         logs = []
         if self.output_file.exists: logs.append(rename_file(self.output_file))
         if self.log_file.exists: logs.append(rename_file(self.log_file))
+        if self.stderr_file.exists: logs.append(rename_file(self.stderr_file))
 
         if logs:
             self.history.info("\n".join(logs))

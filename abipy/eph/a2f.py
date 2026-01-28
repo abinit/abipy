@@ -50,8 +50,10 @@ class A2f:
     """
     Eliashberg function a2F(w). Energies are in eV.
     """
-    # Markers used for up/down bands.
+    # Markers used for up/down bands (collinear case)
     marker_spin = {0: "^", 1: "v"}
+
+    color_spin = {0: "red", 1: "blue"}
 
     def __init__(self, mesh, values_spin, values_spin_nu, ngqpt, meta):
         """
@@ -62,10 +64,8 @@ class A2f:
             vals(w,0,1:nsppol): a2f(w) summed over phonons modes, decomposed in spin
             ngqpt: Q-mesh used to compute A2f.
             meta: Dictionary with metavariables.
-
-        TODO:
-            Add possibility of computing a2f directly from data on file?
         """
+        # TODO: Add possibility of computing a2f directly from data on file?
         self.mesh = mesh
         self.ngqpt = ngqpt
         self.meta = meta
@@ -214,7 +214,7 @@ class A2f:
         Plot a2F(w) or lambda(w) depending on the value of `what`.
 
         Args:
-            what: a2f for a2F(w), lambda for lambda(w)
+            what: "a2f" for a2F(w), "lambda" for lambda(w).
             units: Units for phonon plots. Possible values in ("eV", "meV", "Ha", "cm-1", "Thz"). Case-insensitive.
             exchange_xy: True to exchange x-y axes.
             ax: |matplotlib-Axes| or None if a new figure should be created.
@@ -237,8 +237,8 @@ class A2f:
             linewidth=kwargs.pop("linewidth", 1),
         )
 
-        # Plot a2f(w)
         if what == "a2f":
+            # Plot a2f(w)
             xx, yy = self.mesh * wfactor, self.values
             if exchange_xy: xx, yy = yy, xx
             ax.plot(xx, yy, label=label, **style)
@@ -248,10 +248,12 @@ class A2f:
                 for spin in range(self.nsppol):
                     xx, yy = self.mesh * wfactor, self.values_spin[spin]
                     if exchange_xy: xx, yy = yy, xx
-                    ax.plot(xx, yy, marker=self.marker_spin[spin], **style)
+                    spin_style = style.copy()
+                    spin_style["color"] = self.color_spin[spin]
+                    ax.plot(xx, yy, label=f"{spin=}", **spin_style)
 
-        # Plot lambda(w)
         elif what == "lambda":
+            # Plot lambda(w)
             lambda_w = self.get_moment(n=0, cumulative=True)
             xx, yy = self.mesh * wfactor, lambda_w
             if exchange_xy: xx, yy = yy, xx
@@ -342,7 +344,6 @@ class A2f:
         )
         lambda_style = a2f_style.copy()
         lambda_style["color"] = "red"
-
 
         for idir, iatom in itertools.product(range(3), range(self.natom)):
             nu = idir + 3 * iatom
@@ -694,7 +695,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @add_fig_kwargs
     def plot_eph_strength(self, what_list=("phbands", "gamma", "lambda"), ax_list=None,
-                          ylims=None, label=None, fontsize=8, **kwargs) -> None:
+                          ylims=None, label=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot phonon bands with EPH coupling strength lambda(q, nu) and lambda(q, nu)
         These values have been Fourier interpolated by Abinit.

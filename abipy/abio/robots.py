@@ -472,14 +472,21 @@ class Robot(NotebookWriter):
         """Reconstruct object from dictionary with filepaths."""
         return cls.from_files(d["filepaths"])
 
-    def to_json(self) -> str:
+    def to_json(self, **kwargs) -> str:
         """
         Returns a JSON string representation of the object.
         """
-        return json.dumps(self.as_dict(), cls=MontyEncoder)
+        return json.dumps(self.as_dict(), cls=MontyEncoder, **kwargs)
+
+    def json_write(self, filepath: str, indent=4) -> None:
+        """
+        Write json file with paths needed to rebuild the robot.
+        """
+        with open(filepath, "wt") as fh:
+            fh.write(self.to_json(indent=4))
 
     def get_pyscript(self, filepath: str) -> RobotPythonScript:
-        """Return RobotPythonScript to br used as context manager."""
+        """Return RobotPythonScript to be used as context manager."""
         return RobotPythonScript(self, filepath)
 
     #def pop_filepath(self, filepath: str) -> None:

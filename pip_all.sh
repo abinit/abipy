@@ -6,3 +6,6 @@ pip install -r requirements-optional.txt
 pip install -r requirements-panel.txt
 pip install -r requirements-tests.txt
 python setup.py develop
+
+pip install invoke
+invoke submodules

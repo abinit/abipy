@@ -247,6 +247,16 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """DDB Version number (integer)."""
         return self.header["version"]
 
+    @version.setter
+    def version(self, version: int) -> None:
+        self.header["version"] = version
+        for i, line in enumerate(self.header.lines):
+            if "Version" in line:
+                # In Fortran we read with:
+                # read (unddb, '(20x,i10)' )ddbvrs
+                key = "+DDB, Version number"
+                self.header.lines[i] = f"{key:20s}{version:10d}"
+
     @property
     def header(self):
         """
@@ -383,7 +393,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         dynmat = {}
         for block in self.blocks:
-            # skip the blocks that are not related to second order derivatives
+            # Skip the blocks that are not related to second order derivatives
             first_line = block["data"][0].strip()
             if not first_line.startswith("2nd derivatives"):
                 continue
@@ -395,11 +405,18 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             # Each line in data represents an element of the dynamical matrix
             # idir1 ipert1 idir2 ipert2 re_D im_D
             df_rows, df_index = [], []
+            frequency = 0.0
             for line in block["data"]:
                 line = line.strip()
                 if line.startswith("2nd derivatives") or line.startswith("qpt"):
                     continue
+
+                if "frequency" in line:
+                    frequency = float(line.split()[-1])
+                    continue
+
                 try:
+                    #print("line:", line)
                     toks = line.split()
                     idir1, ipert1 = p1 = (int(toks[0]), int(toks[1]))
                     idir2, ipert2 = p2 = (int(toks[2]), int(toks[3]))
@@ -411,7 +428,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     raise exc
 
                 df_index.append(p1 + p2)
-                df_rows.append(dict(idir1=idir1, ipert1=ipert1, idir2=idir2, ipert2=ipert2, cvalue=cvalue))
+                df_rows.append(dict(idir1=idir1, ipert1=ipert1, idir2=idir2, ipert2=ipert2, cvalue=cvalue, frequency=frequency))
 
             dynmat[qpt] = pd.DataFrame(df_rows, index=df_index, columns=df_columns)
 
@@ -444,7 +461,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 continue
 
             if "List of bloks and their characteristics" in line:
-                # add last block when we reach the last part of the file.
+                # Add last block when we reach the last part of the file.
                 # This line is present only if DDB has been produced by mrgddb
                 if block_lines:
                     blocks.append({"data": block_lines, "qpt": qpt, "qpt3": qpt3, "dord": dord})
@@ -1114,6 +1131,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         # if lo_to_splitting and has_gamma and not self.has_lo_to_data():
         #     cprint("lo_to_splitting set to True but Eps_inf and BECs are not available in DDB %s:" % self.filepath)
+
+        if self.has_epsinf_terms():
+            if anaddb_kwargs is None:
+                anaddb_kwargs = {'dieflag' : 2}
+            else:
+                if "dieflag" not in anaddb_kwargs:
+                    anaddb_kwargs.setdefault('dieflag', 2)
 
         inp = AnaddbInput.modes_at_qpoints(self.structure, qpoints, asr=asr, chneut=chneut, dipdip=dipdip,
                                            dipquad=dipquad, quadquad=quadquad,
@@ -1952,7 +1976,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         Writes the DDB file to filepath. Requires the blocks data.
         Only the information stored in self.header.lines and in self.blocks
-        are used to produce the file
+        are used to produce the file.
         """
         lines = list(self.header.lines)
 

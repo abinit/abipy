@@ -89,7 +89,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
             inds = np.where(uniq == ir_gp_id)
             #print("inds", inds, "inds[0]", inds[0])
             assert len(inds) == 1
-            bz2ibz[i] = int(inds[0])
+            bz2ibz[i] = int(inds[0].item())
             #print("%3d ->%3d %s" % (i, ir_gp_id, (gp + [0.5, 0.5, 0.5]) / mesh))
             #print("%3d ->%3d %s" % (i, ir_gp_id, (gp + kshift) / mesh))
 
@@ -685,14 +685,24 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
 
         return dict2namedtuple(eigens=new_eigens, dedk=dedk, dedk2=dedk2)
 
-    def interp_kpts_and_enforce_degs(self, kfrac_coords, ref_eigens, atol=1e-4):
+    def interp_kpts_and_enforce_degs(self,
+                                     kfrac_coords: np.ndarray,
+                                     ref_eigens: np.array,
+                                     atol: float = 1e-4):
         """
         Interpolate energies on an arbitrary set of k-points. Use `ref_eigens`
         to detect degeneracies and average the interpolated values in the degenerate subspace.
         """
         kfrac_coords = np.reshape(kfrac_coords, (-1, 3))
         new_nkpt = len(kfrac_coords)
-        ref_eigens = np.reshape(ref_eigens, (self.nsppol, new_nkpt, self.nband))
+        ref_eigens = np.array(ref_eigens)
+        this_shape = (self.nsppol, new_nkpt, self.nband)
+        try:
+            ref_eigens = np.reshape(ref_eigens, this_shape)
+        except Exception as exc:
+            cprint(f"{ref_eigens.shape=}", color="red")
+            cprint(f"{this_shape=}", color="red")
+            raise exc
 
         # Interpolate eigenvales.
         new_eigens = self.interp_kpts(kfrac_coords).eigens
