@@ -99,6 +99,9 @@ class DeltaSCF:
         Args:
             filepaths: list of netcdf files in the order [Ag,Agstar,Aestar,Ae]
         """
+        if len(filepaths) != 4:
+            raise ValueError(f"Expected exactly 4 GSR files (Ag, Ag*, Ae*, Ae), got {len(filepaths)}")
+        
         energies = []
         structures = []
         forces = []

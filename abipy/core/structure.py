@@ -15,6 +15,7 @@ import pymatgen.core.units as pmg_units
 
 from pprint import pformat
 from collections import OrderedDict
+from collections.abc import Sequence # Callable, Iterable, Iterator,
 from typing import Any
 from monty.collections import AttrDict, dict2namedtuple
 from functools import cached_property
@@ -678,6 +679,27 @@ class Structure(pmg_Structure, NotebookWriter):
             app(self.spget_summary(verbose=verbose))
         else:
             app(super().__str__())
+
+        key = "cartesian_forces"
+        if key in self.site_properties:
+            # print force stats
+            cart_forces = np.reshape([site.properties.get(key) for site in self], (-1 ,3))
+            force_norms = np.linalg.norm(cart_forces, axis=1)
+            min_fnorm, max_fnorm  = np.min(force_norms), np.max(force_norms)
+            mean_fnorm, std_fnorm = np.mean(force_norms), np.std(force_norms)
+            app(f"min |F_iat|: {min_fnorm} eV/Ang")
+            app(f"max |F_iat|: {max_fnorm} eV/Ang")
+            app(f"mean F_iat|: {mean_fnorm} eV/Ang")
+            app(f"std  |F_iat|: {std_fnorm} eV/Ang")
+
+            # Print warning if forces are too large.
+            standard, high = 1e-3, 1e-4
+            if max_fnorm <= high:
+                app(f"Forces are relaxed within high quality criterion: {high} eV/Ang")
+            elif max_fnorm <= standard:
+                app(f"Forces are relaxed within standard criterion: {standard} eV/Ang")
+            else:
+                app(f"FORCES ARE NOT FULLY RELAXED. THIS STRUCTURE SHOULD NOT BE USED FOR PHONONS!")
 
         if verbose > 1:
             for i, vec in enumerate(self.lattice.matrix):
@@ -1461,7 +1483,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """Order the structure according to increasing Z of the elements"""
         return self.__class__.from_sites(sorted(self.sites, key=lambda site: site.specie.Z))
 
-    def findname_in_hsym_stars(self, kpoint):
+    def findname_in_hsym_stars(self, kpoint) -> str | None:
         """
         Returns the name of the special k-point, None if kpoint is unknown.
         """
@@ -1484,8 +1506,8 @@ class Structure(pmg_Structure, NotebookWriter):
             if i != -1:
                 #print("input kpt:", kpoint, "star image", star[i], star[i].name)
                 return star.name
-        else:
-            return None
+
+        return None
 
     def get_symbol2indices(self) -> dict:
         """
@@ -1553,16 +1575,81 @@ class Structure(pmg_Structure, NotebookWriter):
         new_lattice = self.lattice.scale(new_volume)
         return self.__class__(new_lattice, self.species, self.frac_coords)
 
+    def magnetic_supercell(self, scaling_matrix: int | Sequence[int], magmom=None) -> Structure:
+        """
+        Make a supercell. Allow sites outside the unit cell.
+
+        Args:
+            scaling_matrix: A scaling matrix for transforming the lattice
+                vectors. Has to be all integers. Several options are possible:
+
+                a. A sequence of three scaling factors. e.g. [2, 1, 1]
+                   specifies that the supercell should have dimensions 2a x b x c.
+                b. A number, which simply scales all lattice vectors by the
+                   same factor.
+
+        Returns:
+            Supercell structure. Note that a Structure is always returned,
+            even if the input structure is a subclass of Structure. This is
+            to avoid different arguments signatures from causing problems. If
+            you prefer a subclass to return its own type, you need to override
+            this method in the subclass.
+        """
+        scale_matrix = np.array(scaling_matrix, dtype=int)
+        if scale_matrix.shape != (3, 3):
+            scale_matrix = scale_matrix * np.eye(3, dtype=int)
+
+        qq_frac = 1.0 / np.diagonal(scale_matrix)
+        qq_cart = self.reciprocal_lattice.get_cartesian_coords(qq_frac)
+        print(f"{qq_frac=}")
+
+        from pymatgen.util.coord import lattice_points_in_supercell
+        new_lattice = Lattice(np.dot(scale_matrix, self.lattice.matrix))
+        frac_lattice = lattice_points_in_supercell(scale_matrix)
+        cart_lattice = new_lattice.get_cartesian_coords(frac_lattice)
+
+        if magmom is None:
+            if (magmom := self.site_properties.get("magmom", None)) is None:
+                raise ValueError("Structure does not have magmom in site properties. Values must be passed explicitly")
+        magmom = np.reshape(magmom, (-1, 3))
+
+        new_sites = []
+        for site, m0 in zip(self, magmom, strict=True):
+            for cart_vec in cart_lattice:
+                #print(f"{cart_vec=}")
+                #qr = 2.0 * np.pi * np.dot(qq_cart, cart_vec)
+                qr = np.dot(qq_cart, cart_vec)
+                mm = np.array([
+                    m0[0] * np.cos(qr) - m0[1] * np.sin(qr),
+                    m0[0] * np.sin(qr) + m0[1] * np.cos(qr),
+                    m0[2],
+                ])
+
+                new_properties = site.properties.copy()
+                new_properties["magmom"] = mm
+
+                new_sites.append(PeriodicSite(
+                    site.species,
+                    site.coords + cart_vec,
+                    new_lattice,
+                    properties=new_properties,
+                    coords_are_cartesian=True,
+                    to_unit_cell=False,
+                    skip_checks=True,
+                    label=site.label,
+                ))
+
+        new_charge = self._charge * np.linalg.det(scale_matrix) if self._charge else None
+        return self.__class__.from_sites(new_sites, charge=new_charge, to_unit_cell=True)
+
     def get_dict4pandas(self, symprec=1e-2, angle_tolerance=5.0, with_spglib=True) -> dict:
         """
-        Return a dict with the most important structural parameters:
+        Return a dict with the most important structural parameters useful to construct pandas DataFrames.
 
             - Chemical formula and number of atoms.
             - Lattice lengths, angles and volume.
             - The spacegroup number computed by Abinit (set to None if not available).
             - The spacegroup number and symbol computed by spglib (if `with_spglib`).
-
-        Useful to construct pandas DataFrames.
 
         Args:
             with_spglib (bool): If True, spglib is invoked to get the spacegroup symbol and number
@@ -2131,22 +2218,22 @@ class Structure(pmg_Structure, NotebookWriter):
             replaced atom: Symbol of the atom to be replaced (ex: 'Sr')
             dopant_atom: Symbol of the dopant_atom (ex: 'Eu')
         """
+        supercell = self.copy()
+        supercell.make_supercell(scaling_matrix)
+
         # list of positions of non-equivalent sites for the replaced atom.
-        irred = self.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
-        positions = self.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
+        irred = supercell.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
+        positions = supercell.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
 
         index_non_eq_sites = []
         for pos in positions:
             if len(irred[pos]) != 0:
                 index_non_eq_sites.append(irred[pos][0])
 
-        doped_supercell = self.copy()
-        doped_supercell.make_supercell(scaling_matrix)
-
         doped_structure_list = []
 
         for index in index_non_eq_sites:
-            final_structure = doped_supercell.copy()
+            final_structure = supercell.copy()
             final_structure.replace(index,dopant_atom)
             doped_structure_list.append(final_structure)
 

@@ -1,23 +1,21 @@
 """Tests for embedding.embedding_ifc module"""
-import abipy.data as abidata
-from abipy.core.testing import AbipyTest
-from abipy.abilab import abiopen
-
-from abipy.dfpt.ddb import DdbFile
 import tempfile
 import os
+import phonopy
+import abipy.data as abidata
 
+from pymatgen.io.phonopy import get_pmg_structure,get_phonopy_structure
+from abipy.core.testing import AbipyTest
+from abipy.abilab import abiopen
+from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.converters import ddb_ucell_to_phonopy_supercell
 from abipy.core.kpoints import kmesh_from_mpdivs
-
 from abipy.embedding.utils_ifc import localization_ratio
 from abipy.embedding.embedding_ifc import Embedded_phonons
-from pymatgen.io.phonopy import get_pmg_structure,get_phonopy_structure
-import phonopy
 
 
 class Embedding_ifcTest(AbipyTest):
-    
+
     def test_embedding_vacancy(self):
 
         self.skip_if_not_phonopy()
@@ -31,10 +29,7 @@ class Embedding_ifcTest(AbipyTest):
         qpts=kmesh_from_mpdivs(mpdivs=[3,3,3],shifts=[0,0,0],order="unit_cell")
         ddb_pristine_333=ddb_pristine.anaget_interpolated_ddb(qpt_list=qpts)
 
-
-
         ph_pristine=ddb_ucell_to_phonopy_supercell(unit_ddb=ddb_pristine_333,nac=True)
-
 
         ddb_defect = DdbFile(abidata.ref_file("refs/embedding_ifc/CaO_16at_vacancy_DDB"))
         ph_defect=ddb_defect.anaget_phonopy_ifc()
@@ -53,7 +48,7 @@ class Embedding_ifcTest(AbipyTest):
         structure_defect_wo_relax.remove_sites(indices=[idefect_defect_stru])
         structure_defect_wo_relax.sort()
 
-        # 
+        #
         idefect_pristine_stru=27
         main_defect_coords_in_pristine=get_pmg_structure(ph_pristine.supercell).cart_coords[idefect_pristine_stru]
 
@@ -63,15 +58,15 @@ class Embedding_ifcTest(AbipyTest):
                                phonopy_defect=ph_defect,
                                structure_defect_wo_relax=structure_defect_wo_relax,
                                main_defect_coords_in_pristine=main_defect_coords_in_pristine,
-                               main_defect_coords_in_defect=main_defect_coords_in_defect, 
-                               substitutions_list=None, 
-                               vacancies_list=[27],       
-                               interstitial_list=None,  
+                               main_defect_coords_in_defect=main_defect_coords_in_defect,
+                               substitutions_list=None,
+                               vacancies_list=[27],
+                               interstitial_list=None,
                                factor_ifc=3, #  increasing ifc, this will induce a fictious local mode above the bulk frequencies
                                cut_off_mode='auto',
                                verbose=0,
                                asr=True,)
-        
+
         #test the conversion to ddb
         ph_emb.to_ddb(tmp_dir+"out_DDB")
         ddb_emb = DdbFile(tmp_dir+"out_DDB")
@@ -105,7 +100,7 @@ class Embedding_ifcTest(AbipyTest):
 
         ph_pristine=ddb_ucell_to_phonopy_supercell(unit_ddb=ddb_pristine_666,nac=False)
 
-        # test with phonopy loading 
+        # test with phonopy loading
         ph_defect = phonopy.load(supercell_filename=abidata.ref_file("refs/embedding_ifc/SrCl2_Eu_POSCAR"),
                          force_sets_filename=abidata.ref_file("refs/embedding_ifc/SrCl2_Eu_FORCE_SETS"))
 
@@ -131,10 +126,10 @@ class Embedding_ifcTest(AbipyTest):
                                phonopy_defect=ph_defect,
                                structure_defect_wo_relax=structure_defect_wo_relax,
                                main_defect_coords_in_pristine=main_defect_coords_in_pristine,
-                               main_defect_coords_in_defect=main_defect_coords_in_defect, 
-                               substitutions_list=[[idefect_pristine_stru,"Eu"]], 
-                               vacancies_list=None,       
-                               interstitial_list=None,  
+                               main_defect_coords_in_defect=main_defect_coords_in_defect,
+                               substitutions_list=[[idefect_pristine_stru,"Eu"]],
+                               vacancies_list=None,
+                               interstitial_list=None,
                                cut_off_mode='auto',
                                verbose=0,
                                asr=True,)
@@ -164,7 +159,7 @@ class Embedding_ifcTest(AbipyTest):
                                                    nac=False,)
 
 
-        # test with phonopy loading 
+        # test with phonopy loading
         ddb_defect = DdbFile(abidata.ref_file("refs/embedding_ifc/C_interstitial_DDB"))
         ph_defect=ddb_defect.anaget_phonopy_ifc()
 
@@ -177,8 +172,8 @@ class Embedding_ifcTest(AbipyTest):
         stru.append(species="C",coords=[0.600, 0.5000, 0.2500])
         stru.append(species="C",coords=[0.400, 0.5000, 0.2500])
         structure_defect_wo_relax=stru
-        
-        # main defect is 
+
+        # main defect is
         main_defect_coords_in_pristine=get_pmg_structure(ph_pristine.supercell)[31].coords
         main_defect_coords_in_defect=main_defect_coords_in_pristine
 
@@ -186,7 +181,7 @@ class Embedding_ifcTest(AbipyTest):
                                                phonopy_defect=ph_defect,
                                                structure_defect_wo_relax=structure_defect_wo_relax,
                                                main_defect_coords_in_pristine=main_defect_coords_in_pristine,
-                                               main_defect_coords_in_defect=main_defect_coords_in_defect, 
+                                               main_defect_coords_in_defect=main_defect_coords_in_defect,
                                                vacancies_list=[31],
                                                interstitial_list=[['C',[4.2885, 3.5737, 1.7869]],
                                                                   ['C',[2.8590, 3.5737, 1.7869]]

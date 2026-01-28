@@ -460,7 +460,7 @@ class Vzsisa(HasPickleIO):
         # Eq 19 of paper.
         for i, e in enumerate(ph_energies_vt.T):
             dfe_dV1[i] = (e[iv1] - e[iv0]) / dV
-            vols[i] = V0 - (dfe_dV1[i] + self.pressure / abu.eVA3_GPa) / E2D
+            vols[i] = (V0 - (dfe_dV1[i] + self.pressure / abu.eVA3_GPa) / E2D).item()
 
         # Calculate total energies (Eq 15, 16)
         # The constant term F_V0(T) is missing in the Gibbs free energy because it is not available in the vib1 model.

@@ -73,7 +73,7 @@ def list_ints(arg: Any) -> list:
     [1]
     """
     l = np.array(arg, dtype=int)
-    return [int(l)] if l.size == 1 else l.tolist()
+    return [int(l.item())] if l.size == 1 else l.tolist()
 
 
 def torange(obj: Any) -> range:

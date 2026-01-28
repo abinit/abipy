@@ -284,7 +284,7 @@ class SymmOp(Operation, SlotPickleMixin):
 
     # operator protocol.
     def __eq__(self, other):
-        # Note the two fractional traslations are equivalent if they differ by a lattice vector.
+        # Note the two fractional translations are equivalent if they differ by a lattice vector.
         return (np.all(self.rot_r == other.rot_r) and
                 is_integer(self.tau - other.tau, atol=self._ATOL_TAU) and
                 self.afm_sign == other.afm_sign and
@@ -487,7 +487,7 @@ class OpSequence(collections.abc.Sequence):
         stream.writelines("\n".join(lines))
 
     def count(self, op) -> int:
-        """Returns the number of occurences of operation op in self."""
+        """Returns the number of occurrences of operation op in self."""
         return self._ops.count(op)
 
     def index(self, op) -> int:
@@ -634,6 +634,61 @@ class AbinitSpaceGroup(OpSequence):
     Container storing the space group symmetries.
     """
 
+    @classmethod
+    def from_ncreader(cls, r, inord="F") -> AbinitSpaceGroup:
+        """
+        Builds the object from a netcdf reader
+        """
+        kptopt = int(r.read_value("kptopt", default=1))
+        symrel = r.read_value("reduced_symmetry_matrices")
+
+        return cls(spgid=r.read_value("space_group"),
+                   symrel=symrel,
+                   tnons=r.read_value("reduced_symmetry_translations"),
+                   symafm=r.read_value("symafm"),
+                   has_timerev=has_timrev_from_kptopt(kptopt),
+                   inord=inord)
+
+    @classmethod
+    def from_structure(cls, structure, has_timerev=True, symprec=1e-5, angle_tolerance=5):
+        """
+        Takes a |Structure| object. Uses spglib to perform various symmetry finding operations.
+
+        Args:
+            structure: |Structure| object.
+            has_timerev: True is time-reversal symmetry is included.
+            symprec: Tolerance for symmetry finding.
+            angle_tolerance: Angle tolerance for symmetry finding.
+
+        .. warning::
+
+            AFM symmetries are not supported.
+        """
+        # Call spglib to get the list of symmetry operations.
+        spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
+        data = spga.get_symmetry_dataset()
+
+        return cls(spgid=data.number,
+                   symrel=data.rotations,
+                   tnons=data.translations,
+                   symafm=len(data.rotations) * [1],
+                   has_timerev=has_timerev,
+                   inord="C")
+
+    #@classmethod
+    #def from_file(cls, ncfile, inord="F"):
+    #    """
+    #    Initialize the object from a Netcdf file.
+    #    """
+    #    from abipy.iotools import as_etsfreader
+    #    r, closeit = as_etsfreader(ncfile)
+    #    new = cls.from_ncreader(r)
+    #    if closeit:
+    #        file.close()
+
+    #    return new
+
+
     def __init__(self, spgid, symrel, tnons, symafm, has_timerev, inord="C"):
         """
         Args:
@@ -684,60 +739,6 @@ class AbinitSpaceGroup(OpSequence):
                                        afm_sign=self.symafm[isym],
                                        rot_g=self.symrec[isym]))
         self._ops = tuple(all_syms)
-
-    @classmethod
-    def from_ncreader(cls, r, inord="F"):
-        """
-        Builds the object from a netcdf reader
-        """
-        kptopt = int(r.read_value("kptopt", default=1))
-        symrel = r.read_value("reduced_symmetry_matrices")
-
-        return cls(spgid=r.read_value("space_group"),
-                   symrel=symrel,
-                   tnons=r.read_value("reduced_symmetry_translations"),
-                   symafm=r.read_value("symafm"),
-                   has_timerev=has_timrev_from_kptopt(kptopt),
-                   inord=inord)
-
-    #@classmethod
-    #def from_file(cls, ncfile, inord="F"):
-    #    """
-    #    Initialize the object from a Netcdf file.
-    #    """
-    #    from abipy.iotools import as_etsfreader
-    #    r, closeit = as_etsfreader(ncfile)
-    #    new = cls.from_ncreader(r)
-    #    if closeit:
-    #        file.close()
-
-    #    return new
-
-    @classmethod
-    def from_structure(cls, structure, has_timerev=True, symprec=1e-5, angle_tolerance=5):
-        """
-        Takes a |Structure| object. Uses spglib to perform various symmetry finding operations.
-
-        Args:
-            structure: |Structure| object.
-            has_timerev: True is time-reversal symmetry is included.
-            symprec: Tolerance for symmetry finding.
-            angle_tolerance: Angle tolerance for symmetry finding.
-
-        .. warning::
-
-            AFM symmetries are not supported.
-        """
-        # Call spglib to get the list of symmetry operations.
-        spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
-        data = spga.get_symmetry_dataset()
-
-        return cls(spgid=data.number,
-                   symrel=data.rotations,
-                   tnons=data.translations,
-                   symafm=len(data.rotations) * [1],
-                   has_timerev=has_timerev,
-                   inord="C")
 
     def __repr__(self) -> str:
         return "spgid: %d, num_spatial_symmetries: %d, has_timerev: %s, symmorphic: %s" % (
@@ -1293,7 +1294,7 @@ class BilbaoPointGroup:
         """
         Dataframe with irreps.
         """
-        # Caveat: class names are not necessarly unique --> use np.stack
+        # Caveat: class names are not necessarily unique --> use np.stack
         import pandas as pd
         name_mult = [name + " [" + str(mult) + "]" for (name, mult) in zip(self.class_names, self.class_len)]
         columns = ["name"] + name_mult

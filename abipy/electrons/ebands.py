@@ -756,7 +756,7 @@ class ElectronBands(Has_Structure):
         iv = int(self.nelect * self.nspinor) // 2 - 1
         if iv >= self.mband:
             iv = self.mband - 1
-            cprint("mband = {self.mband} is not large enough to include the VBM", "red")
+            cprint(f"mband = {self.mband} is not large enough to include the VBM", "red")
 
         new_fermie = self.eigens[:, :, iv].max()
         return self.set_fermie(new_fermie)
@@ -2183,8 +2183,19 @@ class ElectronBands(Has_Structure):
             nband_sk=self.nband_sk, smearing=self.smearing)
 
     @add_fig_kwargs
-    def plot(self, spin=None, band_range=None, klabels=None, e0="fermie", ax=None, ylims=None,
-             points=None, with_gaps=False, max_phfreq=None, fontsize=8, **kwargs) -> Figure:
+    def plot(self,
+             spin=None,
+             band_range=None,
+             klabels=None,
+             e0="fermie",
+             ax=None,
+             ylims=None,
+             points=None,
+             with_gaps=False,
+             with_band_index=False,
+             max_phfreq=None,
+             fontsize=8,
+             **kwargs) -> Figure:
         r"""
         Plot the electronic band structure with matplotlib.
 
@@ -2210,6 +2221,7 @@ class ElectronBands(Has_Structure):
                     The Fermi energy stored in the object, indeed, comes from the GS calculation
                     that produced the DEN file. If the k-mesh used for the GS and the CBM is e.g. at Gamma,
                     the Fermi energy will be underestimated and a manual alignment is needed.
+            with_band_index: Show band index in plot.
             max_phfreq: Max phonon frequency in eV to activate scatterplot showing
                 possible phonon absorption/emission processes based on energy-conservation alone.
                 All final states whose energy is within +- max_phfreq of the initial state are included.
@@ -2245,7 +2257,7 @@ class ElectronBands(Has_Structure):
 
             for ib, band in enumerate(band_list):
                 if ib != 0: opts.pop("label", None)
-                self.plot_ax(ax, e0, spin=spin, band=band, **opts)
+                self.plot_ax(ax, e0, spin=spin, band=band, with_band_index=with_band_index, **opts)
 
         if points is not None:
             ax.scatter(points.x, np.array(points.y) - e0, s=np.abs(points.s), **points.scatter_kwargs)
@@ -2588,9 +2600,9 @@ class ElectronBands(Has_Structure):
             for il in range(1, len(labels)):
                 if labels[il] == labels[il-1]: labels[il] = ""
             #print("ticks", ticks, "\nlabels", labels)
+            #print("ticks", len(ticks), ticks)
             ax.set_xticks(ticks, minor=False)
             ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
-            #print("ticks", len(ticks), ticks)
             ax.set_xlim(ticks[0], ticks[-1])
 
     def decorate_plotly(self, fig, **kwargs) -> None:
@@ -2688,7 +2700,13 @@ class ElectronBands(Has_Structure):
             # Assume number
             return e0
 
-    def plot_ax(self, ax, e0, spin=None, band=None, **kwargs) -> list:
+    def plot_ax(self,
+                ax,
+                e0,
+                spin=None,
+                band=None,
+                with_band_index=False,
+                **kwargs) -> list:
         """
         Helper function to plot the energies for (spin, band) on the axis ax with matplotlib.
 
@@ -2697,7 +2715,8 @@ class ElectronBands(Has_Structure):
             e0: Option used to define the zero of energy in the band structure plot.
             spin: Spin index. If None, all spins are plotted.
             band: Band index, If None, all bands are plotted.
-            kwargs: Passed to ax.plot
+            with_band_index: Show band index in plot.
+            kwargs: Passed to ax.plot.
 
         Return: matplotlib lines
         """
@@ -2705,6 +2724,7 @@ class ElectronBands(Has_Structure):
         band_range = range(self.mband) if band is None else [band]
 
         label = kwargs.pop("label", None)
+
         # Handle linewidths
         with_linewidths = kwargs.pop("with_linewidths", True) and self.has_linewidths
         if with_linewidths:
@@ -2718,6 +2738,7 @@ class ElectronBands(Has_Structure):
                 yy = self.eigens[spin, :, band] - e0
 
                 lines.extend(ax.plot(xx, yy, label=label, **kwargs))
+                line_color = lines[-1].get_color()
                 # Set label only at the first iteration
                 label = None
 
@@ -2726,6 +2747,12 @@ class ElectronBands(Has_Structure):
                     lw_color = lines[-1].get_color()
                     ax.fill_between(xx, yy - w, yy + w, facecolor=lw_color, **lw_opts)
                     #, alpha=self.alpha, facecolor=self.l2color[l])
+
+                if with_band_index:
+                    # Add band index next to the band (but avoid overlaps).
+                    step, shift = 10, 2
+                    ii = (band * step + shift * (spin + 1)) % self.nkpt
+                    ax.text(xx[ii], yy[ii], str(band), color=line_color, va="center")
 
         return lines
 

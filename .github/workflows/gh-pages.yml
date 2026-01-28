@@ -32,7 +32,7 @@ jobs:
       matrix:
         config:
           - os: ubuntu-latest
-            python: '3.11'
+            python: '3.13'
 
     runs-on: ubuntu-latest
     env:
