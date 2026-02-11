@@ -540,6 +540,10 @@ class AbipyTest(PymatgenTest):
         return nptu.assert_almost_equal(actual, desired, decimal, err_msg, verbose)
 
     @staticmethod
+    def assert_array_equal(actual, desired) -> None:
+        return nptu.assert_array_equal(actual, desired)
+
+    @staticmethod
     def assert_equal(actual, desired, err_msg='', verbose=True) -> None:
         """
         Alternative naming for assertArrayEqual.

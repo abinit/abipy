@@ -64,8 +64,8 @@ class MagneticData:
         else:
             magmoms = None
 
-        locs = locals()
-        return cls**{locs[field] for field in dataclasses.fields(cls)}
+        data = locals()
+        return cls(**{k: data[k] for k in [field.name for field in dataclasses.fields(Gqk)]})
 
 
 class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
