@@ -70,5 +70,7 @@ class ElasticDataFileTest(AbipyTest):
             df = e.get_piezoelectric_tensor_dataframe(tensor_name="piezo_clamped", tol=1e-8)
 
             df = e.get_voigt_dataframe("elastic_relaxed", voigt_as_index=False, tol=1e-1)
-            self.assert_almost_equal(df[(0, 0)][0], 122.23496623977118, decimal=4)
+
+            self.assert_almost_equal(df[(0, 0)].iloc[0], 122.23496623977118, decimal=4)
+            #self.assert_almost_equal(df[(0, 0)][0], 122.23496623977118, decimal=4)
             df = e.get_elastic_properties_dataframe(tensor_names="elastic_relaxed", fit_to_structure=True)

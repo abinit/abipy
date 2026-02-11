@@ -19,20 +19,20 @@ class TestSiteSymmetries(AbipyTest):
         repr(ss); str(ss)
         assert ss.to_string(verbose=2)
         df = ss.get_wyckoff_dataframe(verbose=2)
-        self.assert_equal(np.array(df["xfrac"].values, dtype=float), [0, 0.25])
-        self.assert_equal(np.array(df["yfrac"].values, dtype=float), [0, 0.25])
-        self.assert_equal(np.array(df["zfrac"].values, dtype=float), [0, 0.25])
+        self.assert_array_equal(np.array(df["xfrac"].values, dtype=float), [0, 0.25])
+        self.assert_array_equal(np.array(df["yfrac"].values, dtype=float), [0, 0.25])
+        self.assert_array_equal(np.array(df["zfrac"].values, dtype=float), [0, 0.25])
         #0  -43m (#31) nsym:24                  0                  0                  0
         #1  -43m (#31) nsym:24  0.250000000000000  0.250000000000000  0.250000000000000
 
         df = ss.get_tensor_rank2_dataframe(verbose=2)
         ref = ["Tzz", "Tzz"]
-        self.assert_equal(df["Txx"].values, ref)
-        self.assert_equal(df["Tyy"].values, ref)
+        self.assert_array_equal(df["Txx"].values, ref)
+        self.assert_array_equal(df["Tyy"].values, ref)
         ref = ["-Tzz/3", "-Tzz/3"]
-        self.assert_equal(df["Txy"].values, ref)
-        self.assert_equal(df["Txz"].values, ref)
-        self.assert_equal(df["Tyz"].values, ref)
+        self.assert_array_equal(df["Txy"].values, ref)
+        self.assert_array_equal(df["Txz"].values, ref)
+        self.assert_array_equal(df["Tyz"].values, ref)
 
     def test_alpha_sio2(self):
         """Testing wyckoff positions for alpha-SiO2"""
@@ -40,9 +40,9 @@ class TestSiteSymmetries(AbipyTest):
         ss = asi02.site_symmetries
         df = ss.get_wyckoff_dataframe(verbose=2)
         df = df[df["element"] == "Si"]
-        self.assert_equal(df["xfrac"].values, ["xfrac", "yfrac", "0.0"])
-        self.assert_equal(df["yfrac"].values, ["0.0", "yfrac", "yfrac"])
-        self.assert_equal(np.array(df["zfrac"].values, dtype=float), [0.833335, 0.5, 0.166665])
+        self.assert_array_equal(df["xfrac"].values, ["xfrac", "yfrac", "0.0"])
+        self.assert_array_equal(df["yfrac"].values, ["0.0", "yfrac", "yfrac"])
+        self.assert_array_equal(np.array(df["zfrac"].values, dtype=float), [0.833335, 0.5, 0.166665])
 
         """
                  wyckoff  site_symmetry    Txx  Tyy  Tzz    Txy    Txz  Tyz
@@ -52,14 +52,14 @@ class TestSiteSymmetries(AbipyTest):
         """
         df = ss.get_tensor_rank2_dataframe(verbose=2)
         ref = ["Txx", "Tyy", "2*Txy"]
-        self.assert_equal(df["Txx"].values, ref)
+        self.assert_array_equal(df["Txx"].values, ref)
         ref = ["Tyy", "Tyy", "Tyy"]
-        self.assert_equal(df["Tyy"].values, ref)
+        self.assert_array_equal(df["Tyy"].values, ref)
         ref = ["Tzz", "Tzz", "Tzz"]
-        self.assert_equal(df["Tzz"].values, ref)
+        self.assert_array_equal(df["Tzz"].values, ref)
         ref = ["Tyy/2", "Txy", "Txy"]
-        self.assert_equal(df["Txy"].values, ref)
+        self.assert_array_equal(df["Txy"].values, ref)
         ref = ["Tyz/2", "-Tyz", "2*Tyz"]
-        self.assert_equal(df["Txz"].values, ref)
+        self.assert_array_equal(df["Txz"].values, ref)
         ref = ["Tyz", "Tyz", "Tyz"]
-        self.assert_equal(df["Tyz"].values, ref)
+        self.assert_array_equal(df["Tyz"].values, ref)
