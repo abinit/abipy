@@ -433,7 +433,8 @@ def abicheck(verbose: int = 0) -> str:
         from packaging.version import parse as parse_version
         from monty.operator import operator_from_str
         op = operator_from_str(op)
-        return op(parse_version(this), parse_version(other))
+        return op(parse_version(this.split('-')[0]),
+                  parse_version(other.split('-')[0]))
 
     from abipy.flowtk import PyFlowScheduler
 

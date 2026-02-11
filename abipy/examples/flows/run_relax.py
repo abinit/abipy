@@ -31,6 +31,7 @@ def make_ion_ioncell_inputs(paral_kgb=0):
         shiftk=[0, 0, 0],
         nshiftk=1,
         chksymbreak=0,
+        chksymtnons=0,
         paral_kgb=paral_kgb,
         iomode=3,
         #prtwf=0,
@@ -84,15 +85,6 @@ def build_flow(options):
 
     relax_work = flowtk.RelaxWork(ion_inp, ioncell_inp)
     flow.register_work(relax_work)
-
-    #bands_work = flowtk.BandStructureWork(scf_input, nscf_input)
-    bands_work = flowtk.Work()
-    deps = {relax_work[-1]: "@structure"}
-    deps = {relax_work[-1]: ["DEN", "@structure"]}  # --> This is not possible because the file ext is changed!
-    #deps = {relax_work[-1]: ["WFK", "@structure"]} # --> This triggers an infamous bug in abinit
-
-    bands_work.register_relax_task(ioncell_inp, deps=deps)
-    flow.register_work(bands_work)
 
     return flow
 

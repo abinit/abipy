@@ -435,10 +435,19 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
                 raise self.Error(f"Directory `{pseudo_dir}` does not exist")
             pseudos = [os.path.join(pseudo_dir, p) for p in list_strings(pseudos)]
 
-        try:
-            self._pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(self.structure)
-        except ValueError as exc:
-            raise self.Error(str(exc))
+        if enforce_znucl is not None:
+            psps = []
+            for p in pseudos:
+                if isinstance(p, Pseudo):
+                    psps.append(p)
+                else:
+                    psps.append(Pseudo.from_file(p))
+            self._pseudos = psps
+        else:
+            try:
+                self._pseudos = PseudoTable.as_table(pseudos).get_pseudos_for_structure(self.structure)
+            except ValueError as exc:
+                raise self.Error(str(exc))
 
         if comment is not None: self.set_comment(comment)
 
@@ -490,9 +499,9 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         if len(typat) != len(self.structure):
             raise ValueError("typat contains %d entries while it should be natom: %d" % (len(typat), len(self.structure)))
 
-        ntypat = self.structure.n_elems
-        if len(znucl) != ntypat:
-            raise ValueError("znucl contains %d entries while it should be ntypat: %d" % (len(znucl), ntypat))
+        #ntypat = self.structure.n_elems
+        #if len(znucl) != ntypat:
+        #    raise ValueError("znucl contains %d entries while it should be ntypat: %d" % (len(znucl), ntypat))
 
     def variable_checksum(self) -> str:
         """
