@@ -1243,6 +1243,44 @@ def nscf_from_gsinput(gs_input, kppa=None, nband=None, accuracy="normal",
 
     return nscf_input
 
+def wfq_nscf_from_gsinput(gs_input, qpt, kppa=None, nband=None, accuracy="high",
+                          shift_mode="Monkhorst-Pack") -> AbinitInput:
+    """
+    Return an |AbinitInput| object to perform a NSCF calculation on a K+Q grid from a GS SCF input.
+
+    Args:
+        gs_input: the |AbinitInput| that was used to calculated the charge density.
+        qpt: q-point used to shift the k grid.
+        kppa: defines the kpt sampling used for the NSCF run. If None the kpoint sampling and
+            shifts will be the same as in the SCF input.
+        nband: the number of bands to be used for the calculation. If None it will be
+            automatically generated.
+        accuracy: accuracy of the calculation.
+        shift_mode: the mode to be used for the shifts. Options are "Gamma", "Monkhorst-Pack",
+            "Symmetric", "OneSymmetric". See ShiftMode object for more details. Only used if kppa
+            is not None.
+
+    Return: |AbinitInput|
+    """
+    # create a copy to avoid messing with the previous input
+    wfq_input = gs_input.deepcopy()
+    wfq_input.pop_irdvars()
+
+    if kppa is not None:
+        shift_mode = ShiftMode.from_object(shift_mode)
+        shifts = _get_shifts(shift_mode, gs_input.structure)
+        dos_ksampling = aobj.KSampling.automatic_density(wfq_input.structure, kppa, chksymbreak=0, shifts=shifts)
+        wfq_input.set_vars(dos_ksampling.to_abivars())
+
+    if nband is None:
+        nband = _find_nscf_nband_from_gsinput(gs_input)
+
+    wfq_input.set_vars(qpt=qpt, nband=nband, iscf=-2, nqpt=1, kptopt=3)
+    wfq_input.set_vars(_stopping_criterion("nscf", accuracy))
+
+    return wfq_input
+
+
 
 def dos_from_gsinput(gs_input, kppa=None, nband=None, accuracy="normal", dos_method="tetra",
                      projection="l", shift_mode="Monkhorst-Pack") -> AbinitInput:
@@ -1352,10 +1390,9 @@ def hybrid_scf_input(gs_input: AbinitInput,
 
 def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=None, accuracy="normal",
                     spin_mode="polarized", smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
-                    shift_mode="Symmetric") -> AbinitInput:
+                    shift_mode="Symmetric", nbdbuf=4) -> AbinitInput:
 
     # add the band for nbdbuf, if needed
-    nbdbuf = 4
     if nband is not None:
         nband += nbdbuf
 
@@ -1364,7 +1401,7 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
                          scf_algorithm=scf_algorithm, shift_mode=shift_mode)
 
     # with no bands set and no smearing the minimum number of bands plus some nbdbuf
-    if nband is None and smearing is None:
+    if nband is None and (smearing is None or smearing == "nosmearing"):
         nval = structure.num_valence_electrons(pseudos)
         nval -= abiinput['charge']
         nband = int(round(nval / 2) + nbdbuf)
@@ -1451,6 +1488,32 @@ def dtepert_from_gsinput(gs_input, dte_pert, manager=None) -> AbinitInput:
     dte_inp = gs_input.make_dtepert_input(perturbation=dte_pert, manager=manager)
 
     return dte_inp
+
+
+
+def phononpert_from_gsinput(gs_input, phonon_pert, phonon_tol=None, manager=None) -> AbinitInput:
+    """
+    Returns an |AbinitInput| to perform a phonon perturbation calculation for a specific perturbation based on a ground state |AbinitInput|.
+
+    Args:
+        gs_input: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
+        phonon_pert: dict with the Abinit variables defining the perturbation
+            Example: {'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]},
+        phonon_tol: dict with a single ABINIT tolerance variable (e.g. ``{'tolvrs': 1.0e-10}``)
+                used to control the convergence of the DFPT calculation. 
+                If ``None``, a default of ``{'tolvrs': 1.0e-10}`` is used.
+        manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
+    """
+    gs_input = gs_input.deepcopy()
+    gs_input.pop_irdvars()
+    gs_input.pop_vars(['autoparal', 'npfft'])
+
+    if phonon_tol is None:
+        phonon_tol = {"tolvrs": 1.0e-10}
+
+    phonon_inp = gs_input.make_phpert_input(perturbation=phonon_pert, tolerance=phonon_tol, manager=manager)
+
+    return phonon_inp
 
 
 def dte_from_gsinput(gs_input, use_phonons=True, ph_tol=None, ddk_tol=None, dde_tol=None,
