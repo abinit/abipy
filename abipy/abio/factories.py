@@ -1275,7 +1275,7 @@ def wfq_nscf_from_gsinput(gs_input, qpt, kppa=None, nband = None, accuracy="high
     if nband is None:
         nband = _find_nscf_nband_from_gsinput(gs_input)
 
-    wfq_input.set_vars(qpt = qpt, nband=nband, iscf=-2, nqpt = 1, kptopt = 3)
+    wfq_input.set_vars(qpt=qpt, nband=nband, iscf=-2, nqpt=1, kptopt=3)
     wfq_input.set_vars(_stopping_criterion("nscf", accuracy))
 
     return wfq_input
@@ -1491,14 +1491,14 @@ def dtepert_from_gsinput(gs_input, dte_pert, manager=None) -> AbinitInput:
 
 
 
-def phononpert_from_gsinput(gs_input, phonon_pert, phonon_tol = None, manager=None) -> AbinitInput:
+def phononpert_from_gsinput(gs_input, phonon_pert, phonon_tol=None, manager=None) -> AbinitInput:
     """
-    Returns an |AbinitInput| to perform a BEC calculations for a specific perturbation based on a ground state |AbinitInput|.
+    Returns an |AbinitInput| to perform a phonon perturbation calculation for a specific perturbation based on a ground state |AbinitInput|.
 
     Args:
         gs_input: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         phonon_pert: dict with the Abinit variables defining the perturbation
-            Example: {'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
+            Example: {'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]},
         manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
     gs_input = gs_input.deepcopy()
@@ -1508,7 +1508,7 @@ def phononpert_from_gsinput(gs_input, phonon_pert, phonon_tol = None, manager=No
     if phonon_tol is None:
         phonon_tol = {"tolvrs": 1.0e-10}
 
-    phonon_inp = gs_input.make_phpert_input(perturbation=phonon_pert, tolerance = phonon_tol, manager=manager)
+    phonon_inp = gs_input.make_phpert_input(perturbation=phonon_pert, tolerance=phonon_tol, manager=manager)
 
     return phonon_inp
 
