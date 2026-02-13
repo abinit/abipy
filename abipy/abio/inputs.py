@@ -2321,7 +2321,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         return inp
 
 
-    def make_phpert_input(self, perturbation, tolerance=None, prtwf=-1, prepgkk=0, manager=None) -> AbinitInput:
+    def make_phpert_input(self, perturbation, tolerance=None, prtwf=-1, manager=None) -> AbinitInput:
         """
         Return |AbinitInput| for a Phonon calculation for a given perturbation.
         This functions should be called with an input that represents a GS run.
@@ -2334,8 +2334,6 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                 default of ``{'tolvrs': 1.0e-10}`` is used.
             prtwf: Value passed to the ABINIT variable ``prtwf`` to control the printing
                 of wavefunctions for the phonon calculation. Defaults to ``-1`` (ABINIT default).
-            prepgkk: Value for the ABINIT variable ``prepgkk`` controlling the preparation
-                of GKK-related data for subsequent calculations. Defaults to ``0``.
             manager: |TaskManager| of the task. If None, the manager is initialized from
                 the config file.
         """

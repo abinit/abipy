@@ -1243,7 +1243,7 @@ def nscf_from_gsinput(gs_input, kppa=None, nband=None, accuracy="normal",
 
     return nscf_input
 
-def wfq_nscf_from_gsinput(gs_input, qpt, kppa=None, nband = None, accuracy="high",
+def wfq_nscf_from_gsinput(gs_input, qpt, kppa=None, nband=None, accuracy="high",
                           shift_mode="Monkhorst-Pack") -> AbinitInput:
     """
     Return an |AbinitInput| object to perform a NSCF calculation on a K+Q grid from a GS SCF input.
@@ -1499,6 +1499,9 @@ def phononpert_from_gsinput(gs_input, phonon_pert, phonon_tol=None, manager=None
         gs_input: an |AbinitInput| representing a ground state calculation, likely the SCF performed to get the WFK.
         phonon_pert: dict with the Abinit variables defining the perturbation
             Example: {'idir': 1, 'ipert': 1, 'qpt': [0.0, 0.0, 0.0]},
+        phonon_tol: dict with a single ABINIT tolerance variable (e.g. ``{'tolvrs': 1.0e-10}``)
+                used to control the convergence of the DFPT calculation. 
+                If ``None``, a default of ``{'tolvrs': 1.0e-10}`` is used.
         manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
     gs_input = gs_input.deepcopy()
