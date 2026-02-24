@@ -469,6 +469,11 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     def completed(self) -> bool:
         """True if GWR calculation completed."""
         return bool(self.r.read_value("gwr_completed", default=1))
+    
+    @cached_property
+    def scf_iteration(self) -> int:
+        """The number of SCF iterations performed in the self-consistent calculation."""
+        return int(self.r.read_value("scf_iteration", default=1))
 
     @property
     def sigma_kpoints(self) -> KpointList:
@@ -492,6 +497,14 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Shape: [nsppol, nkcalc]
         """
         return self.r.read_value("qpz_gaps") * abu.Ha_eV
+
+    # @cached_property
+    # def qp_pade_dirgaps(self) -> np.ndarray:
+    #     """
+    #     QP direct gaps in eV computed with the quasi-particle equation
+    #     Shape: [nsppol, nkcalc]
+    #     """
+    #     return self.r.read_value("qp_pade_gaps") * abu.Ha_eV
 
     @cached_property
     def minimax_mesh(self) -> MinimaxMesh:
@@ -647,18 +660,28 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             with_geo: True if geometry info should be included.
         """
         d = {}
-        d["kpoint"] = [k.frac_coords for k in self.sigma_kpoints] * self.nsppol
-        d["kname"] = [k.name for k in self.sigma_kpoints] * self.nsppol
-        d["ks_dirgaps"] = self.ks_dirgaps.ravel()
-        d["qpz0_dirgaps"] = self.qpz0_dirgaps.ravel()
-        #d["qp_pade_dirgaps"] = self.qp_pade_dirgaps.ravel()
-        d["spin"] = [0] * len(self.sigma_kpoints)
-        if self.nsppol == 2: d["spin"].extend([1] * len(self.sigma_kpoints))
+        d["kpoint"] = [k.frac_coords for k in self.sigma_kpoints] * self.nsppol * self.scf_iteration
+        d["kname"] = [k.name for k in self.sigma_kpoints] * self.nsppol * self.scf_iteration
+        if self.scf_iteration > 1:
+            d["iteration"] = []
+            d["ks_dirgaps"] = np.zeros(0)
+            d["qpz0_dirgaps"] = np.zeros(0)
+            # d["qp_pade_dirgaps"] = np.zeros(0)
+            for iter in range(self.scf_iteration):
+                d["iteration"].extend([iter + 1] * len(self.sigma_kpoints) * self.nsppol)
+                d["ks_dirgaps"] = np.concatenate((d["ks_dirgaps"], (self.r.read_value("ks_gaps", path=f"iter{iter+1}") * abu.Ha_eV).ravel()))
+                d["qpz0_dirgaps"] = np.concatenate((d["qpz0_dirgaps"], (self.r.read_value("qpz_gaps", path=f"iter{iter+1}") * abu.Ha_eV).ravel()))
+                # d["qp_pade_dirgaps"] = np.concatenate((d["qp_pade_dirgaps"], (self.r.read_value("qp_pade_gaps", path=f"iter{iter+1}") * abu.Ha_eV).ravel()))
+        else:
+            d["ks_dirgaps"] = self.ks_dirgaps.ravel()
+            d["qpz0_dirgaps"] = self.qpz0_dirgaps.ravel()
+            # d["qp_pade_dirgaps"] = self.qp_pade_dirgaps.ravel()
+        d["spin"] = [0] * len(self.sigma_kpoints) * self.scf_iteration
+        if self.nsppol == 2: d["spin"].extend([1] * len(self.sigma_kpoints) * self.scf_iteration)
 
         if with_params:
             for k, v in self.params.items():
-                d[k] = [v] * len(self.sigma_kpoints) * self.nsppol
-
+                d[k] = [v] * len(self.sigma_kpoints) * self.nsppol * self.scf_iteration
         if with_geo:
             d.update(**self.structure.get_dict4pandas(with_spglib=True))
 
@@ -757,6 +780,90 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         #print(d)
         return d
 
+    @add_fig_kwargs
+    def plot_qpgaps_iterations(self,
+                               abs_conv: float = None,
+                               qp_kpoints: str = "all",
+                               qp_type: str = "qpz0_dirgaps",
+                               span_style: dict | None = None,
+                               fontsize: int = 8,
+                               **kwargs) -> Figure:
+        """
+        Plot the iterations of the direct QP gaps for all the k-points and spins.
+
+        Args:
+            abs_conv: absolute convergence threshold for the QP gaps.
+            qp_kpoints: List of k-points in self-energy. Accept integers (list or scalars), list of vectors,
+                or "all" to plot all k-points.
+            qp_type: "qpz0_dirgaps" for linear qp equation with Z factor computed at the KS e0,
+                     "qp_pade_dirgaps" for non-linear qp equation.
+            span_style: dictionary with options passed to ax.axhspan.
+            fontsize: legend and label fontsize.
+        """
+
+        assert self.scf_iteration > 1, "GWR calculation was not self-consistent!"
+
+        # Get labels from x and y and add units.
+        xlabel = "SCF Iteration"
+        ylabel = "QP Direct Gaps (eV)"
+
+        nsppol = self.nsppol
+        qpkinds = self.find_qpkinds(qp_kpoints)
+
+        # Build grid with (nkpt, nsppol) plots.
+        nrows, ncols = len(qpkinds), nsppol
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
+                                               sharex=True, sharey=False, squeeze=False)
+
+        if qp_type in ("qpz0_dirgaps", "qp_pade_dirgaps"):
+            y = qp_type
+        else:
+            raise ValueError(f"Invalid {qp_type=}. Should be in ('qpz0_dirgaps', 'qp_pade_dirgaps')")
+
+        for spin in range(nsppol):
+            for ix, (sigma_kpt, ikcalc) in enumerate(qpkinds):
+                ax = ax_mat[ix, spin]
+                data = self.get_dirgaps_dataframe(kpoint=ikcalc,
+                                                  spin=spin,
+                                                  with_params=False,
+                                                  with_geo=False)
+                ks_row = data.iloc[0].copy()
+                ks_row[y] = ks_row["ks_dirgaps"]
+                ks_row["iteration"] = 0
+                data = pd.concat([pd.DataFrame([ks_row]), data], ignore_index=True).reset_index(drop=True)
+
+                plot_xy_with_hue(data,
+                                 x="iteration",
+                                 y=y,
+                                 hue=None,
+                                 abs_conv=abs_conv,
+                                 span_style=span_style,
+                                 ax=ax,
+                                 fontsize=fontsize,
+                                 step=True,
+                                 show=False,
+                                 )
+
+                if ix == len(qpkinds) - 1:
+                    ax.set_xlabel(xlabel)
+                else:
+                    set_visible(ax, False, "xlabel")
+
+                if ix == 0:
+                    ax.set_ylabel(ylabel)
+                else:
+                    set_visible(ax, False, "ylabel")
+
+                set_axlims(ax, (-0.2, self.scf_iteration+0.2), "x")
+                xticks = np.arange(0, self.scf_iteration + 1, 1)
+                ax.set_xticks(xticks)
+                ax.set_xticklabels([str(int(tick)) if tick else "KS" for tick in xticks])
+
+                ax.set_title("k-point: %s" % repr(sigma_kpt),
+                             fontsize=fontsize)
+
+        return fig
+    
     def interpolate(self,
                     lpratio: int = 5,
                     ks_ebands_kpath: ElectronBands | None = None,
@@ -766,6 +873,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                     line_density: int = 20,
                     filter_params: list | None = None,
                     only_corrections: bool = False,
+                    iter: int = None,
                     verbose: int = 0):
         """
         Interpolate the QP corrections in k-space on a k-path and, optionally, on a k-mesh
@@ -871,7 +979,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         # Read QP energies
         varname = "qpz_ene"
-        egw_rarr = self.r.read_value(varname, cmode="c").real * abu.Ha_eV
+        egw_rarr = self.r.read_value(varname, cmode="c", path=f"iter{iter}" if iter else '/').real * abu.Ha_eV
 
         if ks_ebands_kpath is not None:
             # Compute QP corrections
@@ -1442,7 +1550,7 @@ class GwrReader(ETSF_Reader):
 
         return tuple(qps_spin)
 
-    def read_qplist_sk(self, spin: int, kpoint: KptSelect, band: int = None, ignore_imag: bool = False) -> QPList:
+    def read_qplist_sk(self, spin: int, kpoint: KptSelect, band: int = None, ignore_imag: bool = False, iter: int = None) -> QPList:
         """
         Read and return a QPList object for the given spin, kpoint.
 
@@ -1466,10 +1574,10 @@ class GwrReader(ETSF_Reader):
             if band is not None and sigma_band != band: continue
             ib = sigma_band - self.min_bstart
 
-            qpe = self.read_variable("qpz_ene")[spin, ikcalc, ib] * abu.Ha_meV
+            qpe = self.read_variable("qpz_ene", path=f"iter{iter}" if iter else '/')[spin, ikcalc, ib] * abu.Ha_meV
             qpe = qpe[0] + 1j*qpe[1]
 
-            ze0 = self.read_variable("ze0_kcalc")[spin, ikcalc, ib]
+            ze0 = self.read_variable("ze0_kcalc", path=f"iter{iter}" if iter else '/')[spin, ikcalc, ib]
             ze0 = ze0[0] + 1j*ze0[1]
 
             # TODO Finalize the implementation
@@ -1491,6 +1599,9 @@ class GwrReader(ETSF_Reader):
 
         return qp_list
 
+    @cached_property
+    def path2group(self) -> dict:
+        return self.rootgrp.groups
 
 class GwrRobot(Robot, RobotWithEbands):
     """

@@ -654,6 +654,7 @@ def plot_xy_with_hue(data: pd.DataFrame,
                      ylims: tuple | None = None ,
                      col2label: dict | None = None,
                      fontsize: int = 8,
+                     step: bool = False,
                      **kwargs) -> Figure:
     """
     Plot y = f(x) relation for different values of `hue`.
@@ -721,7 +722,10 @@ def plot_xy_with_hue(data: pd.DataFrame,
         if abs_conv is None and "marker" not in kwargs:
             style_kws["marker"] = "o"
 
-        line = ax.plot(xs, ys, label=label, **style_kws)[0]
+        if step:
+            line = ax.step(xs, ys, label=label, where='post', **style_kws)[0]
+        else:
+            line = ax.plot(xs, ys, label=label, **style_kws)[0]
 
         # Plot points with different colors if y has reached convergence.
         if abs_conv is not None:
