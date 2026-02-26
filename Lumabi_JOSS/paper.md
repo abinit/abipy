@@ -11,25 +11,25 @@ authors:
   - name: Julien Bouquiaux
     orcid: 0000-0003-1982-052X
     corresponding: true
-    affiliation: 1,5
+    affiliation: "1, 5"
   - name: Matteo Giantomassi
     orcid: 0000-0002-7007-9813
-    affiliation: 1
+    affiliation: "1"
   - name: Samuel Poncé
     orcid: 0000-0003-1159-8389
-    affiliation: 1,2
+    affiliation: "1, 2"
   - name: Yongchao Jia
     orcid: 0000-0002-7319-9546
-    affiliation: 3
+    affiliation: "3"
   - name: Masayoshi Mikami
     orcid: 0000-0002-5598-4882
-    affiliation: 4
+    affiliation: "4"
   - name: Xavier Gonze
     orcid: 0000-0002-8377-6829
-    affiliation: 1
+    affiliation: "1"
 
 affiliations:
- - name:  Institute of Condensed Matter and Nanosciences, Université catholique de Louvain, B-1348 Louvain-la-Neuve, Belgium
+ - name:  Institute of Condensed Matter and Nanosciences, Université catholique de Louvain, B-1348 Louvain-la-Neuve, Belgium
    index: 1
  - name:  WEL Research Institute, avenue Pasteur 6, 1300 Wavre, Belgium.
    index: 2
@@ -40,35 +40,29 @@ affiliations:
  - name: Matgenix, A6K Advanced Engineering Centre, Charleroi, Belgium.
    index: 5
 
-date: 22 April 2025
+date: 07 August 2025
 bibliography: paper.bib
-
 ---
 
 # Summary
 
 ![Lumabi logo](Lumabi_logo.pdf){width=50%}
 
-Lumabi is a Python package integrated within the AbiPy framework [@gonze2020abinit] designed to automate and streamline the computation of phonon-resolved luminescence spectra of point defects (including the case of dopants) in inorganic solids using the ABINIT first-principles software application [@gonze2002first;@gonze2009abinit;@gonze2016recent;@gonze2020abinit]. The package addresses the growing need for efficient, reproducible workflows in materials science [@lejaeghere2016reproducibility;@bosoni2024verify], particularly in the study of defect-related luminescent properties, which are critical for applications ranging from quantum technologies [@wolfowicz2021quantum;@dreyer2018first] to down-conversion phosphors materials used in white light LEDs [@pust2015revolution;@lin2017inorganic;@fang2022evolutionary]. Lumabi automates key steps in the computational workflow, from initial $\Delta$SCF density-functional theory calculations with constrained occupations, to the generation of defect phonon modes in large supercells, right through the final generation of luminescence spectra based on the Huang-Rhys theory [@huang1950theory;@jin2021photoluminescence].
-A collection of tutorials and examples, organized as Jupyter Books,
-is available on the [Abipy Book project webpage](https://abinit.github.io/abipy_book/lumabi/intro/intro.html).
+Lumabi is a Python package within the AbiPy framework [@gonze2020abinit] that automates the computation of phonon-resolved luminescence spectra of point defects and dopants in inorganic solids using the ABINIT first-principles software [@gonze2020abinit]. The package provides an end-to-end workflow: from $\Delta$SCF density-functional theory calculations with constrained occupations, to the generation of defect phonon modes in large supercells, right through the generation of luminescence spectra based on Huang–Rhys theory [@huang1950theory;@jin2021photoluminescence].  
+
+Lumabi addresses the growing need for reproducible, automated workflows in defect physics [@lejaeghere2016reproducibility;@bosoni2024verify], with applications ranging from quantum technologies [@wolfowicz2021quantum;@dreyer2018first] to phosphors for solid-state lighting [@pust2015revolution;@lin2017inorganic;@fang2022evolutionary]. Tutorials and examples are available in the [AbiPy Book](https://abinit.github.io/abipy_book/lumabi/intro/intro.html).
 
 # Statement of need
 
-The study of defect-induced luminescence in materials is crucial for understanding and designing materials with specific optical properties. However, the computational workflow required to accurately predict these properties is complex and involves ground- and excited-state calculations,
-phonon computations, as well as pre- and post-processing steps.
+Defect-induced luminescence plays a key role in materials design for optoelectronics, quantum information, and phosphor technologies. Accurate predictions require ground- and excited-state calculations, phonon computations, and multiple post-processing steps, which are typically laborious to set up.  
 
-Therefore, a number of software packages have been developed to manage the pre- or post-processing of defect calculations [@naik2018coffee;@pean2017presentation;@goyal2017computational;@broberg2018pycdt;@kumagai2021insights;@neilson2022defap;@arrigoni2021spinney;@shen2024pymatgen]. The few that focus on luminescent properties [@Kavanagh2024;@turiansky2021nonrad;@cavignac2024] are all interfaced with the commercial software VASP [@kresse1996efficiency], and only provide the post-processing part of DFT computations following the formalism proposed by Alkauskas et al. [@alkauskas2014]. To our knowledge, the generation of defect phonon modes in large supercells following an embedding of the interatomic force constants is currently not available.
+Existing tools focus either on defect energetics [@naik2018coffee;@pean2017presentation;@goyal2017computational;@broberg2018pycdt;@kumagai2021insights;@neilson2022defap;@arrigoni2021spinney;@shen2024pymatgen;@Kavanagh2024] or luminescence post-processing [@turiansky2021nonrad;@cavignac2024], and most are tied to the commercial VASP software [@kresse1996efficiency]. To our knowledge, no open-source package has provided a fully automated pipeline for computing defect phonon modes in large supercells together with luminescence spectra.  
 
-Divided in four main Python modules, Lumabi provides a solution to automate all the necessary tasks required to compute phonon-resolved luminescence spectra of defects. The density functional theory (DFT) computations are performed with the open-source ABINIT software [@gonze2002first;@gonze2009abinit;@gonze2016recent;@gonze2020abinit]. The generation of ABINIT input files, automatic workflow management, and post-processing  are done with the AbiPy package, which is interfaced with Pymatgen [@ong2013python]. Lumabi is also interfaced with the Phonopy package [@togo2015first;@togo2023first] for the calculations of phonons.
-This tool is intended for researchers aiming to perform accurate defect luminescence simulations with minimal human intervention.
-Moreover, the systematic generation of well-structured data through this automated workflow could enable data-driven searches for new phosphors [@hariyani2023guide] and could provide a robust foundation for training machine-learning models [@lee2025machine] to accelerate the discovery of materials with targeted luminescent properties.
+Lumabi aims at filling this gap. Built on ABINIT and AbiPy, with interfaces to Phonopy [@togo2015first;@togo2023first] and Pymatgen [@ong2013python], it streamlines the entire workflow. It enables reproducible simulations with limited intervention and produces structured data suitable for data-driven searches [@hariyani2023guide] and machine learning [@lee2025machine].
 
 # Software Description, Features, and Computational Workflow
 
-The code is structured around four Python modules, each handling a different stage of the computational workflow.
-Although these modules are designed to work seamlessly together --where the output of one serves as the input to the next--
-each individual building block can be also used independently with ease. In this article, we describe here the overall working principles of each block. For a more practical approach, we provide [online tutorials](https://abinit.github.io/abipy_book/intro.html) for the different modules.
+The code is organized into four modules that can be combined into a complete workflow or used independently. We describe here the overall working principles of each module. For a more practical approach, we provide [online tutorials](https://abinit.github.io/abipy_book/lumabi/lumiwork/lesson_lumiwork.html).
 
 ## LumiWork Module
 
@@ -87,12 +81,6 @@ The majority of outputs are in NetCDF format, serving as the foundation for subs
 
 The next step in the workflow is handled by the $\Delta$SCF post-processing module (\autoref{fig-post_process}). This tool takes the NetCDF output files generated by the previous LumiWork module, and processes them following a one-dimensional configuration-coordinate model [@jia2017first;@bouquiaux2021importance]. This analysis provides detailed insights into the luminescence characteristics of the defect under study by computing properties such as transition energies, Huang-Rhys factors, effective phonon frequencies, and lineshapes following this 1D model or within a semi-classical approximation.
 It also facilitates the analysis of atomic relaxations by, for example, automatically generating VESTA [@momma2011vesta] files that include relaxation vectors.
-
-In cases where experimental lineshapes exhibit resolved phonon peaks,
-it is important to note that the lineshapes produced by this tool *are not* supposed to closely match experimental data at the level of the phonon peaks.
-Indeed, the model accounts for only a single effective phonon frequency $\omega_{\rm{eff}}$,
-and improved agreement with experiment requires the use of subsequent modules.
-Nevertheless, the 1D model provides the overall spectrum shape, or the total Huang-Rhys factor, which can be compared to experiment.
 
 ## IFCs Embedding Module
 
