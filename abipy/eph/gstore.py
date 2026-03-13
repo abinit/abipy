@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 #import abipy.core.abinit_units as abu
 
-from functools import cached_property
+from functools import cached_property, lru_cache
 from monty.string import marquee #, list_strings
 from monty.termcolor import cprint
 from abipy.core.structure import Structure
@@ -174,6 +174,114 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             if self.r.kfilter == "none":
                 raise ValueError("when kfilter == 'none' all the entries in gvals should have been written!")
 
+    @lru_cache
+    def get_gwpt_label_data(self, what: str, spin: int) -> tuple[str, np.array]:
+        """Return label and numpy array to analyze according to `what`."""
+        gqk = self.gqk_spin[spin]
+        # TODO: Handle 1/0 and little group with huge values
+
+        where = (np.abs(gqk.gvals_ks) > 1e-10) & (np.abs(gqk.gvals_ks) < 1e+10)
+
+        if what == "ratio":
+            label = r"Ratio $|g^{\text{GWPT}}|/|g^{\text{KS}}|$"
+            #data = np.abs(gqk.gvals) / np.abs(gqk.gvals_ks)
+
+            data = np.ones_like(gqk.gvals, dtype=float)
+            np.divide(
+                np.abs(gqk.gvals),
+                np.abs(gqk.gvals_ks),
+                out=data,
+                where=where,
+            )
+
+        elif what == "gwpt":
+            label = r"$|g|^{\text{GWPT}}$"
+            data = np.abs(gqk.gvals)
+
+        elif what == "gks":
+            label = r"$|g|^\text{KS}}$"
+            data = np.abs(gqk.gvals_ks)
+
+        else:
+            raise ValueError(f"Invalid value for {what=}")
+
+        return label, data
+
+    @add_fig_kwargs
+    def plot_gwpt_hist(self, what: str = "ratio", spin: int = 0, ax=None, hist_kwargs: dict | None = None,
+                       **kwargs) -> Figure:
+        """
+        Plot histogram with the ratio between the GWPT and the KS e-ph matrix elements.
+
+        Args:
+            what:
+            spin: spin index
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            hist_kwargs:
+            fontsize: legend and label fontsize.
+        """
+        if not self.has_gwpt:
+            raise ValueError("GSTORE does not contain GWPT matrix elements.")
+
+        what_list = ("gwpt", "gks", "ratio")
+
+        ax_list = None
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=len(what_list), ncols=1,
+                                               sharex=False, sharey=True, squeeze=True)
+
+        for what, ax in zip(what_list, ax_list):
+            xlabel, data = self.get_gwpt_label_data(what, spin)
+            data_flat = data.flatten()
+            #print(data_flat)
+            hist_kwargs_ = hist_kwargs or {}
+            ax.hist(data_flat, **hist_kwargs_)
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel("Count")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_gwpt_heatmap_kq(self, kpoint, qpoint,
+                             what: str = "ratio", spin: int = 0, ax=None,
+                             **kwargs) -> Figure:
+        """
+        Plot heatmap with the ratio between the GWPT and the KS e-ph matrix elements.
+
+        Args:
+            kpoint:
+            qpoint:
+            what:
+            spin: spin index
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            hist_kwargs:
+            fontsize: legend and label fontsize.
+        """
+        if not self.has_gwpt:
+            raise ValueError("GSTORE does not contain GWPT matrix elements.")
+
+        ik_glob, kpoint = self.r.find_ik_glob_kpoint(kpoint, spin)
+        iq_glob, qpoint = self.r.find_iq_glob_qpoint(qpoint, spin)
+
+        label, data = self.get_gwpt_label_data(what, spin)
+
+        natom = len(self.structure)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=natom, ncols=3,
+                                               sharex=True, sharey=True, squeeze=False)
+
+        for iat, idir in itertools.product(range(natom), range(3)):
+            # (glob_nq, glob_nk, natom3, nb_kq, nb_k)
+            ipc = idir + iat * 3
+            grid_mn = data[iq_glob, ik_glob, ipc]
+
+            ax = ax_mat[iat, idir]
+            ax.imshow(grid_mn, aspect="auto", origin="lower")
+            #ax.set_colorbar(label=label)
+            ax.set_xlabel("m band index")
+            ax.set_ylabel("n band index")
+            #ax.set_title("A/B averaged over bands")
+
+        return fig
+
     @add_fig_kwargs
     def plot_gwpt_vs_qpts(self,
                           kpoint,
@@ -308,7 +416,7 @@ class Gqk:
 
     gstore: GstoreFile
 
-    gvals: np.ndarray             # Array of shape (glob_nk, glob_nk, natom3, nb_kq, nb_k)
+    gvals: np.ndarray             # Array of shape (glob_nq, glob_nk, natom3, nb_kq, nb_k)
                                   # storing complex g(k,q) in the atom representation.
 
     gvals_ks: np.ndarray | None   # Same as gvals but for KS if we are in GWPT mode.

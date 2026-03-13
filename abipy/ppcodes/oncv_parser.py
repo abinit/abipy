@@ -644,7 +644,9 @@ class OncvParser(BaseParser):
                 kap = None
             else:
                 # n= 1,  l= 0,  kap=-1, all-electron wave function, pseudo w-f
-                if self.major_version <= 2: header = header.replace("kap=", ", kap=")
+                #if self.major_version <= 2: header = header.replace("kap=", ", kap=")
+                header = header.replace("kap=", ", kap=")
+                print(f"{header=}")
                 n, l, kap = header.split(",")[0:3]
                 n = int(n.split("=")[1])
                 l = int(l.split("=")[1])

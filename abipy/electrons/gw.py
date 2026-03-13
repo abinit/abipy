@@ -1078,6 +1078,61 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         return Marker(*(x, y, s))
 
+    def write_qpdata(self, filepath: str, qp_type: str, version: int = 1) -> None:
+        """
+        Writa a QPDATA file that can be read by Abinit to update the KS band structure with QP energies
+
+        Args:
+            filepath: Name of the output file.
+            qp_type: "otms" if on-the-mass-shell energies are wanted.
+            version: Fileformat version.
+        """
+        # Be careful here as number of bands is different
+        # NB: Energies in QPDATA file are in eV.
+        # nctkarr_t('egw', "dp",'cplex, max_number_of_states, number_of_kpoints, number_of_spins'),&
+
+        #ks_enes = self.r.read_value("e0")
+
+        #if qpenes.shape[0:2] == (self.nkcalc, self.nsppol):
+        #    raise ValueError(f"{qpenes.shape[0:2]=} != ({self.nkcalc}, {self.nsppol})")
+
+        with open(filepath, "wt") as fh:
+            fh.write(f"# QP energies in eV computed with {qp_type=}\n")
+            fh.write(f"{str(version)} # version\n")
+            fh.write(f"{self.nkcalc} {self.nsppol} {self.nspinor} # nkibz, nsppol, nspinor\n")
+
+            for spin in range(self.nsppol):
+                for ikcalc, kcalc in enumerate(self.sigma_kpoints):
+                    ik_ibz = self.ebands.kpoints.index(kcalc)
+                    b_start, b_stop = self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]
+
+                    # KS energies for this band range
+                    ks_enes_b = self.ebands.eigens[spin, ik_ibz, b_start:b_stop]
+
+                    if qp_type == "otms":
+                        # Compute on-the-mass shell QP energies. Everything is already in eV.
+                        cvals = self.r._sigxme[spin, ik_ibz] + self.r._sigcmee0[spin, ik_ibz] - self.r._vxcme[spin, ik_ibz]
+                        #cvals = self.r._sigxme[spin, ik_ibz]
+
+                        gw_bstart = b_start - self.r.min_bstart
+                        gw_bstop = b_stop - self.r.min_bstart
+                        qpes = ks_enes_b + cvals[gw_bstart:gw_bstop]
+                        #qpes = cvals[gw_bstart:gw_bstop]
+
+                    elif qp_type == "Z":
+                        raise NotImplementedError("Z")
+                        qpes = self.r.read_value("egw", cmode="c")
+
+                    else:
+                        raise ValueError("Invalid {qp_type=}")
+
+                    fh.write(f"{kcalc[0]:.17e} {kcalc[1]:.17e} {kcalc[2]:.17e} {spin+1} {b_start+1} {b_stop} # kpt, spin, bstart, bstop\n")
+                    real_energies = qpes.real
+                    np.savetxt(fh, real_energies[np.newaxis, :], fmt="%.17e")
+                    imag_energies = qpes.imag
+                    np.savetxt(fh, imag_energies[np.newaxis, :], fmt="%.17e")
+
+
     @add_fig_kwargs
     def plot_qpgaps(self, ax=None, plot_qpmks=True, fontsize=8, **kwargs) -> Figure:
         """

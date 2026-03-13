@@ -66,6 +66,13 @@ SUBSCRIPT_UNICODE = {
             }
 
 
+
+
+
+
+
+
+
 class Electron(namedtuple("Electron", "spin kpoint band eig occ kidx")):
     """
     Single-particle state.
@@ -238,6 +245,26 @@ class ElectronTransition:
         """True if direct transition."""
         return self.in_state.kpoint == self.out_state.kpoint
 
+    #def best_rationals(self, what:str, max_denominator=1000) -> tuple:
+    #    if what == "in_state":
+    #        kk = self.in_state.kpoint.frac_coords
+    #    elif what == "out_state":
+    #        kk = self.out_state.kpoint.frac_coords
+    #    else:
+    #        raise ValueError(f"Invalid value for {what=}")
+
+
+
+#def best_rational(x: float, max_denominator: int):
+#    """"Best rational approximation with denominator ≤ max_denominator using continued fractions."""
+#    from fractions import Fraction
+#    return Fraction(x).limit_denominator(max_denominator)
+#
+#        return (best_rational(kk[0], max_denominator=max_denominator),
+#                best_rational(kk[1], max_denominator=max_denominator),
+#                best_rational(kk[2], max_denominator=max_denominator),
+#                )
+#
 
 class Smearing(AttrDict):
     """
@@ -1625,6 +1652,12 @@ class ElectronBands(Has_Structure):
     def fundamental_gaps(self) -> list[ElectronTransition]:
         """List of :class:`ElectronTransition` with info on the fundamental gaps for each spin."""
         return [ElectronTransition(self.homos[spin], self.lumos[spin]) for spin in self.spins]
+
+    #def print_kmeshes_for_band_edges(self) -> None:
+    #    fun_gaps = self.fundamental_gaps
+    #    for spin in self.spins:
+    #        fun_gaps[spin]
+
 
     @property
     def direct_gaps(self) -> list[ElectronTransition]:
