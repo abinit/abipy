@@ -874,6 +874,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                     filter_params: list | None = None,
                     only_corrections: bool = False,
                     iter: int = None,
+                    varname: str = "qpz_ene",
                     verbose: int = 0):
         """
         Interpolate the QP corrections in k-space on a k-path and, optionally, on a k-mesh
@@ -907,6 +908,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                 First item gives rcut, second item sigma. Ignored if None.
             only_corrections: If True, the output contains the interpolated QP corrections instead of the QP energies.
                 Available only if ks_ebands_kpath and/or ks_ebands_kmesh are used.
+            varname: Name of the variable in the netcdf file to be interpolated.
+                     Default is "qpz_ene" but "qp_pade" is also available if it's recorded in the file.
             verbose: Verbosity level.
 
         Returns:
@@ -978,7 +981,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         #   smat_bsize2 = merge(1, gwr%b2gw - gwr%b1gw + 1, gwr%sig_diago)
 
         # Read QP energies
-        varname = "qpz_ene"
+        # varname = "qpz_ene"
         egw_rarr = self.r.read_value(varname, cmode="c", path=f"iter{iter}" if iter else '/').real * abu.Ha_eV
 
         if ks_ebands_kpath is not None:
