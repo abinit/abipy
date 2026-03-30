@@ -59,7 +59,7 @@ Defect-induced luminescence plays a key role in materials design for optoelectro
 
 Existing tools focus either on defect energetics [@naik2018coffee;@pean2017presentation;@goyal2017computational;@broberg2018pycdt;@kumagai2021insights;@neilson2022defap;@arrigoni2021spinney;@shen2024pymatgen;@Kavanagh2024] or luminescence post-processing [@turiansky2021nonrad;@cavignac2024], and most are tied to the commercial VASP software [@kresse1996efficiency]. To our knowledge, no open-source package has provided a fully automated pipeline for computing defect phonon modes in large supercells together with luminescence spectra.  
 
-Lumabi aims at filling this gap. Built on ABINIT and AbiPy, with interfaces to Phonopy [@togo2015first;@togo2023first] and Pymatgen [@ong2013python], it streamlines the entire workflow. It enables reproducible simulations with limited intervention and produces structured data suitable for data-driven searches [@hariyani2023guide] and machine learning [@lee2025machine].
+Lumabi aims at filling this gap. Built on ABINIT and AbiPy, with interfaces to Phonopy [@togo2015first;@togo2023first] and Pymatgen [@ong2013python], it streamlines the entire workflow. It enables reproducible simulations with limited intervention and produces structured data suitable for data-driven searches [@hariyani2023guide] and machine learning [@lee2025machine;kumar2025machine].
 
 # Software Description, Features, and Computational Workflow
 
