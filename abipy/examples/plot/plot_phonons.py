@@ -6,8 +6,8 @@ AlAs Phonon bands
 This example shows how to plot the phonon band structure of AlAs.
 See tutorial/lesson_rf2.html
 """
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 # Open PHBST file produced by anaddb and extract the phonon bands object.
 # (alternatively one can use the shell and `abiopen.py OUT_PHBST.nc -nb`

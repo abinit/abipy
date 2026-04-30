@@ -5,12 +5,11 @@ Bethe-Salpeter flow with factory functions
 
 Calculation of the BSE spectrum with the high-throuhput interface (factory functions).
 """
-import sys
 import os
-import abipy.data as abidata
-import abipy.flowtk as flowtk
+import sys
 
-from abipy import abilab
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

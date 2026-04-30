@@ -1,10 +1,11 @@
 """Tests for func1d module"""
-import numpy as np
 import collections
 import tempfile
 
-from abipy.core.testing import AbipyTest
+import numpy as np
+
 from abipy.core.func1d import *
+from abipy.core.testing import AbipyTest
 
 
 class TestFunction1D(AbipyTest):

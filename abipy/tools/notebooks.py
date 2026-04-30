@@ -11,7 +11,7 @@ def find_free_port():
     import socket
     from contextlib import closing
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        s.bind(('', 0))
+        s.bind(("", 0))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         return s.getsockname()[1]
 
@@ -24,11 +24,12 @@ def print_source_in_module(function, module):  # pragma: no cover
 
         http://stackoverflow.com/questions/20665118/how-to-show-source-code-of-a-package-function-in-ipython-notebook
     """
-    from inspect import getmembers, isfunction, getsource
-    from pygments import highlight
-    from pygments.lexers import PythonLexer
-    from pygments.formatters import HtmlFormatter
+    from inspect import getmembers, getsource, isfunction
+
     from IPython.core.display import HTML
+    from pygments import highlight
+    from pygments.formatters import HtmlFormatter
+    from pygments.lexers import PythonLexer
 
     internal_module = __import__(module)
     internal_functions = dict(getmembers(internal_module, isfunction))
@@ -46,10 +47,11 @@ def print_source(function, **kwargs):  # pragma: no cover
         HTML string.
     """
     from inspect import getsource
-    from pygments import highlight
-    from pygments.lexers import PythonLexer
-    from pygments.formatters import HtmlFormatter
+
     from IPython.core.display import HTML
+    from pygments import highlight
+    from pygments.formatters import HtmlFormatter
+    from pygments.lexers import PythonLexer
 
     if "full" not in kwargs: kwargs["full"] = True
     return HTML(highlight(getsource(function), PythonLexer(), HtmlFormatter(**kwargs)))
@@ -66,10 +68,11 @@ def print_doc(function, **kwargs):  # pragma: no cover
         HTML string.
     """
     from inspect import getsource
-    from pygments import highlight
-    from pygments.lexers import PythonLexer
-    from pygments.formatters import HtmlFormatter
+
     from IPython.core.display import HTML
+    from pygments import highlight
+    from pygments.formatters import HtmlFormatter
+    from pygments.lexers import PythonLexer
 
     # Extract source code up to end of docstring.
     lines, count = [], 0
@@ -94,9 +97,10 @@ def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):   # pragma: no c
         widget_type: Specify the widget to create. Possible values in:
             ["tooglebuttons", "dropdown", "radiobuttons"]
     """
-    from abipy import abilab
-    from IPython.display import display, clear_output
     import ipywidgets as ipw
+    from IPython.display import clear_output, display
+
+    from abipy import abilab
 
     # Select the widget class from widget_type
     d = dict(
@@ -124,7 +128,7 @@ def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):   # pragma: no c
     for dirname, files in dir2files.items():
         w = widget_class(options=files, description="%s:" % dirname)
         # TODO: Should register the callback of "selected" but I didn't find the event type!
-        w.observe(on_value_change, names='value', type="change")
+        w.observe(on_value_change, names="value", type="change")
         children.append(w)
     box = ipw.VBox(children=children)
 

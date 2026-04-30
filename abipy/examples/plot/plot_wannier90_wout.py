@@ -9,8 +9,8 @@ Use `abiopen FILE.wout` for a command line interface and
 the `--expose` option to generate matplotlib figures automatically.
 """
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.abilab import abiopen
 
 # Open the wout file

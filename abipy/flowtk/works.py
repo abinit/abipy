@@ -1,43 +1,71 @@
-# coding: utf-8
 """
 Works for Abinit
 """
 from __future__ import annotations
 
+import abc
+import collections
 import os
 import shutil
 import time
-import abc
-import collections
+from collections.abc import Iterator  # Any
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
-
-from typing import Iterator # Any
-from functools import cached_property
 from monty.collections import AttrDict
-from monty.itertools import chunks
-from monty.fnmatch import WildCard
 from monty.dev import deprecated
+from monty.fnmatch import WildCard
+from monty.itertools import chunks
 from pydispatch import dispatcher
 from pymatgen.core.units import EnergyArray
-from abipy.tools.typing import TYPE_CHECKING, Figure
+
 from abipy.flowtk import wrappers
-from .nodes import Dependency, Node, NodeError, NodeResults, FileNode, Status
-from .tasks import (Task, AbinitTask, ScfTask, NscfTask, BerryTask, DfptTask, PhononTask, ElasticTask, DdkTask,
-                    DkdkTask, QuadTask, FlexoETask, DdeTask, BecTask, EfieldTask,
-                    EffMassTask, BseTask, RelaxTask, MultiRelaxTask, ScrTask, SigmaTask, GwrTask, TaskManager,
-                    DteTask, EphTask, KerangeTask, CollinearThenNonCollinearScfTask)
-from .utils import Directory
+from abipy.tools.typing import TYPE_CHECKING, Figure
+
 from .netcdf import NetcdfReader
+from .nodes import Dependency, FileNode, Node, NodeError, NodeResults, Status
+from .tasks import (
+    AbinitTask,
+    BecTask,
+    BerryTask,
+    BseTask,
+    CollinearThenNonCollinearScfTask,
+    DdeTask,
+    DdkTask,
+    DfptTask,
+    DkdkTask,
+    DteTask,
+    EffMassTask,
+    EfieldTask,
+    ElasticTask,
+    EphTask,
+    FlexoETask,
+    GwrTask,
+    KerangeTask,
+    MultiRelaxTask,
+    NscfTask,
+    PhononTask,
+    QuadTask,
+    RelaxTask,
+    ScfTask,
+    ScrTask,
+    SigmaTask,
+    Task,
+    TaskManager,
+)
+from .utils import Directory
+
 try:
     from .netcdf import ETSF_Reader
 except ImportError:
-    from .netcdf import EtsfReader as ETSF_Reader
+    pass
 from .abitimer import AbinitTimerParser
 
 if TYPE_CHECKING:  # needed to avoid circular imports
-    from .flows import Flow
     from abipy.abio.inputs import AbinitInput
+
+    from .flows import Flow
 
 
 __author__ = "Matteo Giantomassi"
@@ -47,19 +75,19 @@ __maintainer__ = "Matteo Giantomassi"
 
 
 __all__ = [
-    "Work",
     "BandStructureWork",
-    "RelaxWork",
-    "G0W0Work",
-    "QptdmWork",
-    "SigmaConvWork",
-    "BseMdfWork",
-    "PhononWork",
-    "PhononWfkqWork",
-    "GKKPWork",
     "BecWork",
-    "DteWork",
+    "BseMdfWork",
     "ConducWork",
+    "DteWork",
+    "G0W0Work",
+    "GKKPWork",
+    "PhononWfkqWork",
+    "PhononWork",
+    "QptdmWork",
+    "RelaxWork",
+    "SigmaConvWork",
+    "Work",
 ]
 
 
@@ -228,22 +256,21 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         if self.all_ok:
             if self.finalized:
                 return AttrDict(returncode=0, message="Work has been already finalized")
-            else:
-                # Set finalized here, because on_all_ok might change it (e.g. Relax + EOS in a single work)
-                self.finalized = True
-                try:
-                    results = AttrDict(**self.on_all_ok())
-                except Exception as exc:
-                    self.history.critical("on_all_ok raises %s" % str(exc))
-                    self.finalized = False
-                    raise
+            # Set finalized here, because on_all_ok might change it (e.g. Relax + EOS in a single work)
+            self.finalized = True
+            try:
+                results = AttrDict(**self.on_all_ok())
+            except Exception as exc:
+                self.history.critical("on_all_ok raises %s" % str(exc))
+                self.finalized = False
+                raise
 
-                # Signal to possible observers that the `Work` reached S_OK
-                self.history.info("Work %s is finalized and broadcasts signal S_OK" % str(self))
-                if self._finalized:
-                    self.send_signal(self.S_OK)
+            # Signal to possible observers that the `Work` reached S_OK
+            self.history.info("Work %s is finalized and broadcasts signal S_OK" % str(self))
+            if self._finalized:
+                self.send_signal(self.S_OK)
 
-                return results
+            return results
 
         return AttrDict(returncode=1, message="Not all tasks are OK!")
 
@@ -289,7 +316,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         #fg.attr(fontcolor="white", bgcolor='purple:pink')
         fg.attr(rankdir="LR", pagedir="BL")
         #fg.attr(constraint="false", pack="true", packMode="clust")
-        fg.node_attr.update(color='lightblue2', style='filled')
+        fg.node_attr.update(color="lightblue2", style="filled")
         #fg.node_attr.update(ranksep='equally')
 
         # Add input attributes.
@@ -572,7 +599,6 @@ class NodeContainer(metaclass=abc.ABCMeta):
                 to class `task_class` are modified.
 
         Example:
-
             flow.walknset_vars(ecut=10, kptopt=4)
         """
         def change_task(task):
@@ -631,9 +657,8 @@ class Work(BaseWork, NodeContainer):
         """Set the flow associated to this |Work|."""
         if not hasattr(self, "_flow"):
             self._flow = flow
-        else:
-            if self._flow != flow:
-                raise ValueError("self._flow != flow")
+        elif self._flow != flow:
+            raise ValueError("self._flow != flow")
 
     @cached_property
     def pos(self) -> int:
@@ -772,20 +797,18 @@ class Work(BaseWork, NodeContainer):
                 # Use the one provided in input else the one of the work/flow.
                 if manager is not None:
                     task.set_manager(manager)
+                # Look first in work and then in the flow.
+                elif hasattr(self, "manager"):
+                    task.set_manager(self.manager)
                 else:
-                    # Look first in work and then in the flow.
-                    if hasattr(self, "manager"):
-                        task.set_manager(self.manager)
-                    else:
-                        task.set_manager(self.flow.manager)
+                    task.set_manager(self.flow.manager)
 
             task_workdir = os.path.join(self.workdir, "t" + str(i))
 
             if not hasattr(task, "workdir"):
                 task.set_workdir(task_workdir)
-            else:
-                if task.workdir != task_workdir:
-                    raise ValueError("task.workdir != task_workdir: %s, %s" % (task.workdir, task_workdir))
+            elif task.workdir != task_workdir:
+                raise ValueError("task.workdir != task_workdir: %s, %s" % (task.workdir, task_workdir))
 
     #def append_task(self, task: Task) -> None:
     #    """
@@ -864,7 +887,7 @@ class Work(BaseWork, NodeContainer):
         # Add README.md file if set
         readme_md = getattr(self, "readme_md", None)
         if readme_md is not None:
-            with open(self.path_in_workdir("README.md"), "wt") as fh:
+            with open(self.path_in_workdir("README.md"), "w") as fh:
                 fh.write(readme_md)
 
         # Add abipy_meta.json file if set
@@ -897,16 +920,14 @@ class Work(BaseWork, NodeContainer):
             # The work will be created in the future.
             if only_min:
                 return self.S_INIT
-            else:
-                return [self.S_INIT]
+            return [self.S_INIT]
 
         self.check_status()
         status_list = [task.status for task in self]
 
         if only_min:
             return min(status_list)
-        else:
-            return status_list
+        return status_list
 
     def check_status(self) -> None:
         """Check the status of the tasks."""
@@ -1276,11 +1297,11 @@ class RelaxWork(Work):
             self.ioncell_task.unlock(source_node=self)
 
         elif sender == self.ioncell_task and self.target_dilatmx:
-            actual_dilatmx = self.ioncell_task.get_inpvar('dilatmx', 1.)
+            actual_dilatmx = self.ioncell_task.get_inpvar("dilatmx", 1.)
             if self.target_dilatmx < actual_dilatmx:
                 self.ioncell_task.reduce_dilatmx(target=self.target_dilatmx)
-                self.history.info('Converging dilatmx. Value reduced from {} to {}.'
-                            .format(actual_dilatmx, self.ioncell_task.get_inpvar('dilatmx')))
+                self.history.info("Converging dilatmx. Value reduced from {} to {}."
+                            .format(actual_dilatmx, self.ioncell_task.get_inpvar("dilatmx")))
                 self.ioncell_task.restart()
 
         return super().on_ok(sender)
@@ -1356,7 +1377,7 @@ class G0W0Work(Work):
 
         # Register the SCR and SIGMA run(s).
         if spread_scr:
-            for scr_input, sigma_input in zip(scr_inputs, sigma_inputs):
+            for scr_input, sigma_input in zip(scr_inputs, sigma_inputs, strict=False):
                 scr_task = self.register_scr_task(scr_input, deps={nscf_task: "WFK"})
                 sigma_task = self.register_sigma_task(sigma_input, deps={nscf_task: "WFK", scr_task: "SCR"})
                 self.sigma_tasks.append(sigma_task)
@@ -1519,7 +1540,7 @@ class QptdmWork(Work):
             for scr_file in scr_files:
                 try:
                     os.remove(scr_file)
-                except IOError:
+                except OSError:
                     pass
 
         return final_scr
@@ -1577,7 +1598,7 @@ class MergeDdb:
 
         # Build the list of inputs for electric field perturbation and phonons
         # Each BEC task is connected to all the previous DDK task and to the scf_task.
-        bec_deps = {ddk_task: "DDK" for ddk_task in ddk_tasks}
+        bec_deps = dict.fromkeys(ddk_tasks, "DDK")
         bec_deps.update({scf_task: "WFK"})
 
         if with_flexoe:
@@ -2062,7 +2083,7 @@ class GKKPWork(Work):
         Construct a `GKKPWork` from a DDB and DVDB file.
         For each q found, a WFQ task and an EPH task computing the matrix elements are created.
         """
-        import abipy.abilab as abilab
+        from abipy import abilab
 
         # Create file nodes
         den_file = FileNode(den_path)
@@ -2166,7 +2187,7 @@ class GKKPWork(Work):
 
         # Get scf_task from first q-point
         for dep in qpoints_deps[0]:
-            if isinstance(dep.node,ScfTask) and dep.exts[0] == 'WFK':
+            if isinstance(dep.node,ScfTask) and dep.exts[0] == "WFK":
                 scf_task = dep.node
 
         # Create new work
@@ -2176,7 +2197,7 @@ class GKKPWork(Work):
         new.wfk_task = []
 
         # Add one eph task per qpoint
-        for qpt,qpoint_deps in zip(qpoints,qpoints_deps):
+        for qpt,qpoint_deps in zip(qpoints,qpoints_deps, strict=False):
             # Create eph task
             eph_input = scf_task.input.new_with_vars(optdriver=7, prtphdos=0, eph_task=-2,
                                                      ddb_ngqpt=[1, 1, 1], nqpt=1, qpt=qpt)
@@ -2184,16 +2205,16 @@ class GKKPWork(Work):
             for dep in qpoint_deps:
                 deps[dep.node] = dep.exts[0]
             # If no WFQ in deps link the WFK with WFQ extension
-            if 'WFQ' not in deps.values():
+            if "WFQ" not in deps.values():
                 inv_deps = dict((v, k) for k, v in deps.items())
-                wfk_task = inv_deps['WFK']
+                wfk_task = inv_deps["WFK"]
                 wfk_path = wfk_task.outdir.has_abiext("WFK")
                 # Check if netcdf
                 filename, extension = os.path.splitext(wfk_path)
-                infile = 'out_WFQ' + extension
+                infile = "out_WFQ" + extension
                 wfq_path = os.path.join(os.path.dirname(wfk_path), infile)
                 if not os.path.isfile(wfq_path): os.symlink(wfk_path, wfq_path)
-                deps[FileNode(wfq_path)] = 'WFQ'
+                deps[FileNode(wfq_path)] = "WFQ"
 
             new.register_eph_task(eph_input, deps=deps)
 
@@ -2219,7 +2240,7 @@ class GKKPWork(Work):
             wfk_path = self.wfk_task.outdir.has_abiext("WFK")
             # Check if netcdf
             filename, extension = os.path.splitext(wfk_path)
-            infile = 'out_WFQ' + extension
+            infile = "out_WFQ" + extension
             infile = os.path.join(os.path.dirname(wfk_path), infile)
             os.symlink(wfk_path, infile)
 
@@ -2310,7 +2331,7 @@ class DteWork(Work, MergeDdb):
         # have to be taken in consideration
         # DDE calculations
         dde_tasks = []
-        dde_deps = {ddk_task: "DDK" for ddk_task in ddk_tasks}
+        dde_deps = dict.fromkeys(ddk_tasks, "DDK")
         dde_deps.update({scf_task: "WFK"})
         for dde_inp in multi_dde:
             dde_task = new.register_dde_task(dde_inp, deps=dde_deps)
@@ -2321,7 +2342,7 @@ class DteWork(Work, MergeDdb):
         # to avoid possible problems with paral_kgb 1 and MPI-FFT
         #dte_deps = {scf_task: "WFK DEN"}
         dte_deps = {scf_task: "WFK"}
-        dte_deps.update({dde_task: "1WF 1DEN" for dde_task in dde_tasks})
+        dte_deps.update(dict.fromkeys(dde_tasks, "1WF 1DEN"))
 
         # VT: Taken from dte_from_gsinput factory fct
         # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
@@ -2332,7 +2353,7 @@ class DteWork(Work, MergeDdb):
         #nval -= gs_inp['charge'] # VT: commented out because KeyError
         nband = int(round(nval / 2))
         gs_inp.set_vars(nband=nband)
-        gs_inp.pop('nbdbuf', None)
+        gs_inp.pop("nbdbuf", None)
         multi_dte = gs_inp.make_dte_inputs()
 
         #multi_dte = scf_task.input.make_dte_inputs()
@@ -2407,8 +2428,8 @@ class ConducWork(Work):
                               multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
         # Verify nbr_proc and flow are defined if with_kerange
         if with_kerange and (flow is None or nbr_proc is None):
-            raise ValueError("""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
-                                flow = {}\n nbr_proc = {}""".format(flow, nbr_proc))
+            raise ValueError(f"""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
+                                flow = {flow}\n nbr_proc = {nbr_proc}""")
 
         new = cls(manager=manager)
 
@@ -2469,8 +2490,8 @@ class ConducWork(Work):
 
         # Verify nbr_proc and flow are defined if with_kerange
         if with_kerange and (flow is None or nbr_proc is None):
-            raise ValueError("""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
-                                flow = {}, nbr_proc = {}""".format(flow, nbr_proc))
+            raise ValueError(f"""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
+                                flow = {flow}, nbr_proc = {nbr_proc}""")
 
         new = cls(manager=manager)
 

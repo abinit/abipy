@@ -17,13 +17,13 @@ in the `the official tutorial <https://docs.abinit.org/tutorial/elastic/>`_
 The DDB file with all the perturbations will be produced automatically at the end of the run
 and saved in ``flow_elastic/w0/outdata/out_DDB``.
 """
-import sys
 import os
-import numpy as np
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import numpy as np
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_input(paral_kgb=0):
@@ -32,7 +32,6 @@ def make_scf_input(paral_kgb=0):
     AlAs in hypothetical wurzite (hexagonal) structure.
     In principle, the stucture should be relaxed before starting the calculation
     """
-
     # Initialize structure. Use enough significant digits
     # so that Abinit will recognize the correct spacegroup
     # (Hexagonal and rhombohedral lattices are a bit problematic).

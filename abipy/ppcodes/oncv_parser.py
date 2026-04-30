@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Classes and functions for parsing the ONCVPSP output file and plotting the results.
 """
@@ -7,17 +6,17 @@ from __future__ import annotations
 import os
 import re
 import tempfile
-import numpy as np
-import pandas as pd
-
-from collections import namedtuple # , defaultdict
+from collections import namedtuple  # , defaultdict
 from dataclasses import dataclass
 from functools import cached_property
+
+import numpy as np
+import pandas as pd
 from monty.collections import AttrDict, dict2namedtuple
 from monty.termcolor import colored
-from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction #, l2char
-from abipy.ppcodes.base_parser import BaseParser
 
+from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction  #, l2char
+from abipy.ppcodes.base_parser import BaseParser
 
 # Object returned by self._grep
 GrepResults = namedtuple("GrepResults", "data, start, stop")
@@ -54,7 +53,6 @@ class OncvParser(BaseParser):
         psfile
 
     Example:
-
         parser = OncvParser(filename).scan()
 
         # To access data:
@@ -103,8 +101,7 @@ class OncvParser(BaseParser):
 
         # Read data and store it in lines
         self.lines = []
-        import io
-        with io.open(self.filepath, "rt", encoding="latin-1") as fh:
+        with open(self.filepath, encoding="latin-1") as fh:
             for i, line in enumerate(fh):
                 if i == 0:
                     self.generator_type = line.split()[0]
@@ -125,7 +122,7 @@ class OncvParser(BaseParser):
 
                 # lines that contain the word ERROR but do not seem to indicate an actual terminating error
                 acceptable_error_markers = [
-                  'run_config: ERROR for fully non-local  PS atom,'
+                  "run_config: ERROR for fully non-local  PS atom,"
                 ]
 
                 if "ERROR" in line:
@@ -186,7 +183,7 @@ class OncvParser(BaseParser):
                 keys = header[1:].split()
                 # assert len(keys) == len(values)
                 # Store values in self.
-                for k, v in zip(keys, values):
+                for k, v in zip(keys, values, strict=False):
                     # Convert nc and nv to int.
                     if k in ("nc", "nv", "iexc"): v = int(v)
                     if k in ("z", ): v = float(v)
@@ -232,11 +229,10 @@ class OncvParser(BaseParser):
         if self.is_metapsp:
             header = "#   n    l    f      MGGA eval (Ha)         PBE         delta"
 
+        elif self.relativistic and self.major_version <= 3:
+            header = "#   n    l    f        l+1/2             l-1/2"
         else:
-            if self.relativistic and self.major_version <= 3:
-                header = "#   n    l    f        l+1/2             l-1/2"
-            else:
-                header = "#   n    l    f        energy (Ha)"
+            header = "#   n    l    f        energy (Ha)"
 
         nc, nv = self.nc, self.nv
 
@@ -305,8 +301,7 @@ class OncvParser(BaseParser):
         for i, line in enumerate(self.lines):
             if line.startswith(header):
                 return int(self.lines[i+1])
-        else:
-            raise self.Error(f"Cannot find line with `#lmax` in: {self.filepath}")
+        raise self.Error(f"Cannot find line with `#lmax` in: {self.filepath}")
 
     def to_string(self, verbose: int = 0) -> str:
         """
@@ -384,7 +379,6 @@ class OncvParser(BaseParser):
         """
         Dictionary with the error on the kinetic energy indexed by nlk.
         """
-
         # In relativistic mode we write data inside the following loops:
 
         #do l1=1,lmax+1
@@ -856,8 +850,7 @@ class OncvParser(BaseParser):
         for i, line in enumerate(self.lines):
             if s in line:
                 return i
-        else:
-            raise self.Error(f"Cannot find `{s}` in lines")
+        raise self.Error(f"Cannot find `{s}` in lines")
 
     def get_input_str(self) -> str:
         """String with the ONCVPSP input file."""
@@ -878,8 +871,8 @@ class OncvParser(BaseParser):
         """
         start, stop = None, None
         for i, line in enumerate(self.lines):
-            if 'Begin PSPCODE8' in line: start = i
-            if start is not None and 'END_PSP' in line:
+            if "Begin PSPCODE8" in line: start = i
+            if start is not None and "END_PSP" in line:
                 stop = i
                 break
 
@@ -901,7 +894,7 @@ class OncvParser(BaseParser):
         start, stop = None, None
         for i, line in enumerate(self.lines):
             if "Begin PSP_UPF" in line: start = i
-            if start is not None and 'END_PSP' in line:
+            if start is not None and "END_PSP" in line:
                 stop = i
                 break
 
@@ -936,16 +929,14 @@ class OncvParser(BaseParser):
                 if intag == -1:
                     intag = beg + i
                 data.append([float(c) for c in l.split()[1:]])
-            else:
-                # Exit because we know there's only one section starting with 'tag'
-                if intag != -1:
-                    stop = beg + i
-                    break
+            # Exit because we know there's only one section starting with 'tag'
+            elif intag != -1:
+                stop = beg + i
+                break
 
         if not data:
             return GrepResults(data=None, start=intag, stop=stop)
-        else:
-            return GrepResults(data=np.array(data), start=intag, stop=stop)
+        return GrepResults(data=np.array(data), start=intag, stop=stop)
 
     def gnuplot(self) -> None:
         """
@@ -961,8 +952,9 @@ class OncvParser(BaseParser):
         workdir = tempfile.mkdtemp()
         print(f"Working in: {workdir}")
 
-        from monty.os import cd
         from subprocess import check_call
+
+        from monty.os import cd
         with cd(workdir):
             check_call("awk 'BEGIN{out=0};/GNUSCRIPT/{out=0}; {if(out == 1) {print}}; \
                                 /DATA FOR PLOTTING/{out=1}' %s > %s" % (outfile, plotfile), shell=True)

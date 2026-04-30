@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 The initial version of this module was based on a similar implementation
 present in FireWorks (https://pypi.python.org/pypi/FireWorks).
@@ -13,33 +12,35 @@ allows one to get a list of parallel configuration and their expected efficiency
 """
 from __future__ import annotations
 
-import sys
-import os
 import abc
-import string
 import copy
 import getpass
 import json
+import logging
 import math
-
+import os
+import string
+import sys
 from collections import namedtuple
-from subprocess import Popen, PIPE
-from typing import Optional, Any
 from functools import cached_property
-from monty.string import is_string, list_strings
+from subprocess import PIPE, Popen
+from typing import Any
+
 from monty.collections import AttrDict
 from monty.inspect import all_subclasses
 from monty.io import FileLock
 from monty.json import MSONable
+from monty.string import is_string, list_strings
 from pymatgen.core.units import Memory, UnitError
+
 from abipy.tools.iotools import AtomicFile
-from .utils import Condition
+
+from . import qutils as qu
 from .launcher import ScriptEditor
 from .qjobs import QueueJob
 from .qutils import any2mb
-from . import qutils as qu
+from .utils import Condition
 
-import logging
 logger = logging.getLogger(__name__)
 
 __all__ = [
@@ -82,16 +83,16 @@ class MpiRunner:
         self.options = str(options)
 
     def string_to_run(self, qad: QueueAdapter, executable: str,
-                      in_file: Optional[str] = None,
-                      stdin: Optional[str] = None,
-                      stdout: Optional[str] = None,
-                      stderr: Optional[str] = None,
-                      exec_args: Optional[list[str]] = None
+                      in_file: str | None = None,
+                      stdin: str | None = None,
+                      stdout: str | None = None,
+                      stderr: str | None = None,
+                      exec_args: list[str] | None = None
                       ) -> str:
         """
         Build and return a string with the command required to launch `executable` with the qadapter `qad`.
 
-        Args
+        Args:
             qad: QueueAdapter instance.
             executable (str): Executable name or path
             in_file (str): Name of the input file passed to the executable as first argument.
@@ -258,21 +259,21 @@ class Hardware:
     def as_dict(self) -> dict:
         try:
             # old pymatgen
-            mem_per_node = str(Memory(val=self.mem_per_node, unit='Mb'))
+            mem_per_node = str(Memory(val=self.mem_per_node, unit="Mb"))
         except UnitError:
-            mem_per_node = str(Memory(val=self.mem_per_node, unit='MB'))
+            mem_per_node = str(Memory(val=self.mem_per_node, unit="MB"))
 
-        return {'num_nodes': self.num_nodes,
-                'sockets_per_node': self.sockets_per_node,
-                'cores_per_socket': self.cores_per_socket,
-                'mem_per_node': mem_per_node}
+        return {"num_nodes": self.num_nodes,
+                "sockets_per_node": self.sockets_per_node,
+                "cores_per_socket": self.cores_per_socket,
+                "mem_per_node": mem_per_node}
 
     @classmethod
     def from_dict(cls, d: dict) -> Hardware:
-        return cls(num_nodes=d['num_nodes'],
-                   sockets_per_node=d['sockets_per_node'],
-                   cores_per_socket=d['cores_per_socket'],
-                   mem_per_node=d['mem_per_node'])
+        return cls(num_nodes=d["num_nodes"],
+                   sockets_per_node=d["sockets_per_node"],
+                   cores_per_socket=d["cores_per_socket"],
+                   mem_per_node=d["mem_per_node"])
 
 
 class _ExcludeNodesFile:
@@ -293,7 +294,7 @@ class _ExcludeNodesFile:
                     json.dump({}, fh)
 
     def read_nodes(self, qname: str):
-        with open(self.FILEPATH, "r") as fh:
+        with open(self.FILEPATH) as fh:
             return json.load(fh).get(qname, [])
 
     def add_nodes(self, qname, nodes) -> None:
@@ -315,7 +316,7 @@ _EXCL_NODES_FILE = _ExcludeNodesFile()
 def show_qparams(qtype: str, stream=sys.stdout):
     """Print to the given stream the template of the :class:`QueueAdapter` of type `qtype`."""
     for cls in all_subclasses(QueueAdapter):
-        if cls.QTYPE == qtype: return stream.write(cls.QTEMPLATE)
+        if qtype == cls.QTYPE: return stream.write(cls.QTEMPLATE)
 
     raise ValueError("Cannot find class associated to qtype %s" % qtype)
 
@@ -359,7 +360,7 @@ def make_qadapter(**kwargs):
 
 
 class QScriptTemplate(string.Template):
-    delimiter = '$$'
+    delimiter = "$$"
 
 
 class QueueAdapterError(Exception):
@@ -539,47 +540,47 @@ limits:
             `ValueError` if errors.
         """
         if self.has_omp:
-            raise NotImplementedError('as_dict method of QueueAdapter not yet implemented when OpenMP is activated')
-        return {'@module': self.__class__.__module__,
-                '@class': self.__class__.__name__,
-                'priority': self.priority,
-                'hardware': self.hw.as_dict(),
-                'queue': {'qtype': self.QTYPE,
-                          'qname': self._qname,
-                          'qnodes': self.qnodes,
-                          'qparams': self._qparams,
-                          'mail_type': self.mail_type,
-                          'mail_user': self.mail_user},
-                'limits': {'timelimit_hard': self._timelimit_hard,
-                           'timelimit': self._timelimit,
-                           'min_cores': self.min_cores,
-                           'max_cores': self.max_cores,
-                           'min_mem_per_proc': self.min_mem_per_proc,
-                           'max_mem_per_proc': self.max_mem_per_proc,
-                           'memory_policy': self.memory_policy
+            raise NotImplementedError("as_dict method of QueueAdapter not yet implemented when OpenMP is activated")
+        return {"@module": self.__class__.__module__,
+                "@class": self.__class__.__name__,
+                "priority": self.priority,
+                "hardware": self.hw.as_dict(),
+                "queue": {"qtype": self.QTYPE,
+                          "qname": self._qname,
+                          "qnodes": self.qnodes,
+                          "qparams": self._qparams,
+                          "mail_type": self.mail_type,
+                          "mail_user": self.mail_user},
+                "limits": {"timelimit_hard": self._timelimit_hard,
+                           "timelimit": self._timelimit,
+                           "min_cores": self.min_cores,
+                           "max_cores": self.max_cores,
+                           "min_mem_per_proc": self.min_mem_per_proc,
+                           "max_mem_per_proc": self.max_mem_per_proc,
+                           "memory_policy": self.memory_policy
                            },
-                'job': {},
-                'mpi_procs': self._mpi_procs,
-                'mem_per_proc': self._mem_per_proc,
-                'master_mem_overhead': self._master_mem_overhead
+                "job": {},
+                "mpi_procs": self._mpi_procs,
+                "mem_per_proc": self._mem_per_proc,
+                "master_mem_overhead": self._master_mem_overhead
                 }
 
     @classmethod
     def from_dict(cls, dd: dict) -> QueueAdapter:
-        priority = dd.pop('priority')
-        hardware = dd.pop('hardware')
-        queue = dd.pop('queue')
-        limits = dd.pop('limits')
-        job = dd.pop('job')
+        priority = dd.pop("priority")
+        hardware = dd.pop("hardware")
+        queue = dd.pop("queue")
+        limits = dd.pop("limits")
+        job = dd.pop("job")
         qa = make_qadapter(priority=priority, hardware=hardware, queue=queue, limits=limits, job=job)
-        qa.set_mpi_procs(dd.pop('mpi_procs'))
-        qa.set_mem_per_proc(dd.pop('mem_per_proc'))
-        qa.set_master_mem_overhead(dd.pop('master_mem_overhead', 0))
-        timelimit = dd.pop('timelimit', None)
+        qa.set_mpi_procs(dd.pop("mpi_procs"))
+        qa.set_mem_per_proc(dd.pop("mem_per_proc"))
+        qa.set_master_mem_overhead(dd.pop("master_mem_overhead", 0))
+        timelimit = dd.pop("timelimit", None)
         if timelimit is not None:
             qa.set_timelimit(timelimit=timelimit)
-        dd.pop('@module', None)
-        dd.pop('@class', None)
+        dd.pop("@module", None)
+        dd.pop("@class", None)
         if dd:
             raise ValueError("Found unknown keywords:\n%s" % list(dd.keys()))
         return qa
@@ -704,7 +705,7 @@ limits:
 
         if self.qnodes not in ["standard", "shared", "exclusive"]:
             raise ValueError("Nodes must be either in standard, shared or exclusive mode "
-                             "while qnodes parameter was {}".format(self.qnodes))
+                             f"while qnodes parameter was {self.qnodes}")
         if d:
             raise ValueError("Found unknown keyword(s) in queue section:\n %s" % list(d.keys()))
 
@@ -739,7 +740,7 @@ limits:
     @property
     def has_omp(self) -> bool:
         """True if we are using OpenMP threads"""
-        return hasattr(self, "omp_env") and bool(getattr(self, "omp_env"))
+        return hasattr(self, "omp_env") and bool(self.omp_env)
 
     @property
     def num_cores(self) -> int:
@@ -751,8 +752,7 @@ limits:
         """Number of OpenMP threads."""
         if self.has_omp:
             return self.omp_env["OMP_NUM_THREADS"]
-        else:
-            return 1
+        return 1
 
     @property
     def pure_mpi(self) -> bool:
@@ -799,8 +799,7 @@ limits:
         """Return the last launch."""
         if len(self.launches) > 0:
             return self.launches[-1]
-        else:
-            return None
+        return None
 
     def validate(self) -> None:
         """Validate the parameters of the run. Raises self.Error if invalid parameters."""
@@ -1026,9 +1025,9 @@ limits:
         # Set job_name and the names for the stderr and stdout of the
         # queue manager (note the use of the extensions .qout and .qerr
         # so that we can easily locate this file.
-        subs_dict['job_name'] = job_name.replace('/', '_')
-        subs_dict['_qout_path'] = qout_path
-        subs_dict['_qerr_path'] = qerr_path
+        subs_dict["job_name"] = job_name.replace("/", "_")
+        subs_dict["_qout_path"] = qout_path
+        subs_dict["_qerr_path"] = qerr_path
 
         qtemplate = QScriptTemplate(self.QTEMPLATE)
         # might contain unused parameters as leftover $$.
@@ -1036,11 +1035,11 @@ limits:
 
         # Remove lines with leftover $$.
         clean_template = []
-        for line in unclean_template.split('\n'):
-            if '$$' not in line:
+        for line in unclean_template.split("\n"):
+            if "$$" not in line:
                 clean_template.append(line)
 
-        return '\n'.join(clean_template)
+        return "\n".join(clean_template)
 
     def get_script_str(self, job_name: str, launch_dir: str,
                        executable: str, qout_path: str, qerr_path: str,
@@ -1136,7 +1135,7 @@ limits:
             `self.Error` if generic error
         """
         if not os.path.exists(script_file):
-            raise self.Error('Cannot find script file located at: {}'.format(script_file))
+            raise self.Error(f"Cannot find script file located at: {script_file}")
 
         self.check_num_launches()
 
@@ -1168,7 +1167,7 @@ limits:
 
     def get_njobs_in_queue(self, username=None) -> int:
         """
-        returns the number of jobs in the queue, probably using subprocess or shutil to
+        Returns the number of jobs in the queue, probably using subprocess or shutil to
         call a command like 'qstat'. returns None when the number of jobs cannot be determined.
 
         Args:
@@ -1179,12 +1178,12 @@ limits:
 
         if process is not None and process.returncode != 0:
             # there's a problem talking to squeue server?
-            err_msg = ('Error trying to get the number of jobs in the queue' +
-                       'The error response reads:\n {}'.format(process.stderr.read()))
+            err_msg = ("Error trying to get the number of jobs in the queue"
+                       f"The error response reads:\n {process.stderr.read()}")
             logger.critical(err_msg)
 
         if not isinstance(self, ShellAdapter):
-            logger.info('The number of jobs currently in the queue is: {}'.format(njobs))
+            logger.info(f"The number of jobs currently in the queue is: {njobs}")
 
         return njobs
 
@@ -1218,7 +1217,7 @@ limits:
             self.set_mem_per_proc(new_mem)
             return new_mem
 
-        raise self.Error('could not increase mem_per_proc further')
+        raise self.Error("could not increase mem_per_proc further")
 
     def more_master_mem_overhead(self, mem_increase_mb=1000):
         """
@@ -1231,7 +1230,7 @@ limits:
             self.set_master_mem_overhead(new_master_mem_overhead)
             return new_master_mem_overhead
 
-        raise self.Error('could not increase master_mem_overhead further')
+        raise self.Error("could not increase master_mem_overhead further")
 
     def more_cores(self, factor=1):
         """
@@ -1250,7 +1249,7 @@ limits:
             self.hint_cores = new_cores
             return new_cores
 
-        raise self.Error('%s hint_cores reached limit on max_core %s' % (new_cores, self.max_cores))
+        raise self.Error("%s hint_cores reached limit on max_core %s" % (new_cores, self.max_cores))
 
     def more_time(self, factor=1):
         """
@@ -1259,10 +1258,10 @@ limits:
         base_increase = int(self.timelimit_hard / 10)
 
         new_time = self.timelimit + base_increase*factor
-        print('qadapter: trying to increase time')
+        print("qadapter: trying to increase time")
         if new_time < self.timelimit_hard:
             self.set_timelimit(new_time)
-            print('new time set: ', new_time)
+            print("new time set: ", new_time)
             return new_time
 
         self.priority = -1
@@ -1289,8 +1288,8 @@ $${qverbatim}
     def _submit_to_queue(self, script_file: str) -> SubmitResults:
         # Submit the job, return process and pid.
         process = Popen(("/bin/bash", script_file), stderr=PIPE)
-        return SubmitResults(qid=process.pid, out='no out in shell submission',
-                             err='no err in shell submission', process=process)
+        return SubmitResults(qid=process.pid, out="no out in shell submission",
+                             err="no err in shell submission", process=process)
 
     def _get_njobs_in_queue(self, username):
         return None, None
@@ -1393,7 +1392,7 @@ $${qverbatim}
     def _submit_to_queue(self, script_file: str) -> SubmitResults:
         """Submit a job script to the queue."""
         # need string not bytes so must use universal_newlines
-        process = Popen(['sbatch', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        process = Popen(["sbatch", script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
 
@@ -1403,31 +1402,31 @@ $${qverbatim}
             try:
                 # output should of the form '2561553.sdb' or '352353.jessup' - just grab the first part for job id
                 queue_id = int(out.split()[3])
-                logger.info('Job submission was successful and queue_id is {}'.format(queue_id))
+                logger.info(f"Job submission was successful and queue_id is {queue_id}")
             except Exception:
                 # probably error parsing job code
-                logger.critical('Could not parse job id following slurm...')
+                logger.critical("Could not parse job id following slurm...")
 
         return SubmitResults(qid=queue_id, out=out, err=err, process=process)
 
     def exclude_nodes(self, nodes):
         try:
-            if 'exclude_nodes' not in self.qparams:
-                self.qparams.update({'exclude_nodes': 'node' + nodes[0]})
-                print('excluded node %s' % nodes[0])
+            if "exclude_nodes" not in self.qparams:
+                self.qparams.update({"exclude_nodes": "node" + nodes[0]})
+                print("excluded node %s" % nodes[0])
 
             for node in nodes[1:]:
-                self.qparams['exclude_nodes'] += ',node' + node
-                print('excluded node %s' % node)
+                self.qparams["exclude_nodes"] += ",node" + node
+                print("excluded node %s" % node)
 
             return True
 
         except (KeyError, IndexError):
-            raise self.Error('qadapter failed to exclude nodes')
+            raise self.Error("qadapter failed to exclude nodes")
 
     def _get_njobs_in_queue(self, username: str):
         # need string not bytes so must use universal_newlines
-        process = Popen(['squeue', '-o "%u"', '-u', username], stdout=PIPE, stderr=PIPE,
+        process = Popen(["squeue", '-o "%u"', "-u", username], stdout=PIPE, stderr=PIPE,
                         universal_newlines=True)
 
         out, err = process.communicate()
@@ -1567,33 +1566,29 @@ $${qverbatim}
             memory_policy = self.memory_policy
         if qnodes is None:
             qnodes = self.qnodes
-        else:
-            if qnodes not in ["standard", "shared", "exclusive"]:
-                raise ValueError("Nodes must be either in standard, shared or exclusive mode "
-                                 "while qnodes parameter was {}".format(self.qnodes))
+        elif qnodes not in ["standard", "shared", "exclusive"]:
+            raise ValueError("Nodes must be either in standard, shared or exclusive mode "
+                             f"while qnodes parameter was {self.qnodes}")
         if qnodes == "standard":
             return self._get_select_standard(ret_dict=ret_dict, memory_policy=memory_policy)
-        else:
-            return self._get_select_with_master_mem_overhead(ret_dict=ret_dict, qnodes=qnodes,
-                                                             memory_policy=memory_policy)
+        return self._get_select_with_master_mem_overhead(ret_dict=ret_dict, qnodes=qnodes,
+                                                         memory_policy=memory_policy)
 
-    def _get_select_with_master_mem_overhead(self, ret_dict=False, qnodes=None, memory_policy='mem'):
+    def _get_select_with_master_mem_overhead(self, ret_dict=False, qnodes=None, memory_policy="mem"):
         if self.has_omp:
             raise NotImplementedError("select with master mem overhead not yet implemented with has_omp")
         if qnodes is None:
             qnodes = self.qnodes
-        else:
-            if qnodes not in ["standard", "shared", "exclusive"]:
-                raise ValueError("Nodes must be either in standard, shared or exclusive mode "
-                                 "while qnodes parameter was {}".format(self.qnodes))
+        elif qnodes not in ["standard", "shared", "exclusive"]:
+            raise ValueError("Nodes must be either in standard, shared or exclusive mode "
+                             f"while qnodes parameter was {self.qnodes}")
         if qnodes == "exclusive":
             return self._get_select_with_master_mem_overhead_exclusive(ret_dict=ret_dict, memory_policy=memory_policy)
-        elif qnodes == "shared":
+        if qnodes == "shared":
             return self._get_select_with_master_mem_overhead_shared(ret_dict=ret_dict, memory_policy=memory_policy)
-        else:
-            raise ValueError("Wrong value of qnodes parameter : {}".format(self.qnodes))
+        raise ValueError(f"Wrong value of qnodes parameter : {self.qnodes}")
 
-    def _get_select_with_master_mem_overhead_shared(self, ret_dict=False, memory_policy='mem'):
+    def _get_select_with_master_mem_overhead_shared(self, ret_dict=False, memory_policy="mem"):
         chunk_master, ncpus_master, vmem_master, mpiprocs_master = 1, 1, self.mem_per_proc+self.master_mem_overhead, 1
         if self.mpi_procs > 1:
             chunks_slaves, ncpus_slaves, vmem_slaves, mpiprocs_slaves = self.mpi_procs - 1, 1, self.mem_per_proc, 1
@@ -1601,40 +1596,40 @@ $${qverbatim}
                                      mpiprocs_master=mpiprocs_master, vmem_master=int(vmem_master),
                                      chunks_slaves=chunks_slaves, ncpus_slaves=ncpus_slaves,
                                      mpiprocs_slaves=mpiprocs_slaves, vmem_slaves=int(vmem_slaves))
-            if memory_policy == 'vmem':
+            if memory_policy == "vmem":
                 s = "{chunk_master}:ncpus={ncpus_master}:vmem={vmem_master}mb:mpiprocs={mpiprocs_master}+" \
                     "{chunks_slaves}:ncpus={ncpus_slaves}:vmem={vmem_slaves}mb:" \
                     "mpiprocs={mpiprocs_slaves}".format(**select_params)
-            elif memory_policy == 'mem':
+            elif memory_policy == "mem":
                 s = "{chunk_master}:ncpus={ncpus_master}:mem={vmem_master}mb:mpiprocs={mpiprocs_master}+" \
                     "{chunks_slaves}:ncpus={ncpus_slaves}:mem={vmem_slaves}mb:" \
                     "mpiprocs={mpiprocs_slaves}".format(**select_params)
             tot_ncpus = chunk_master*ncpus_master + chunks_slaves*ncpus_slaves
             if tot_ncpus != self.mpi_procs:
-                raise ValueError('Total number of cpus is different from mpi_procs ...')
+                raise ValueError("Total number of cpus is different from mpi_procs ...")
         else:
             select_params = AttrDict(chunk_master=chunk_master, ncpus_master=ncpus_master,
                                      mpiprocs_master=mpiprocs_master, vmem_master=int(vmem_master))
-            if memory_policy == 'vmem':
+            if memory_policy == "vmem":
                 s = "{chunk_master}:ncpus={ncpus_master}:vmem={vmem_master}mb:" \
                     "mpiprocs={mpiprocs_master}".format(**select_params)
-            elif memory_policy == 'mem':
+            elif memory_policy == "mem":
                 s = "{chunk_master}:ncpus={ncpus_master}:mem={vmem_master}mb:" \
                     "mpiprocs={mpiprocs_master}".format(**select_params)
         if ret_dict:
             return s, select_params
         return s
 
-    def _get_select_with_master_mem_overhead_exclusive(self, ret_dict=False, memory_policy='mem'):
+    def _get_select_with_master_mem_overhead_exclusive(self, ret_dict=False, memory_policy="mem"):
         max_ncpus_master = min(self.hw.cores_per_node,
                                int((self.hw.mem_per_node-self.mem_per_proc-self.master_mem_overhead)
                                    / self.mem_per_proc) + 1)
         if max_ncpus_master >= self.mpi_procs:
             chunk, ncpus, mem, mpiprocs = 1, self.mpi_procs, self.hw.mem_per_node, self.mpi_procs
-            if memory_policy == 'vmem':
+            if memory_policy == "vmem":
                 select_params = AttrDict(chunks=chunk, ncpus=ncpus, mpiprocs=mpiprocs, vmem=int(mem))
                 s = "{chunks}:ncpus={ncpus}:vmem={vmem}mb:mpiprocs={mpiprocs}".format(**select_params)
-            elif memory_policy == 'mem':
+            elif memory_policy == "mem":
                 select_params = AttrDict(chunks=chunk, ncpus=ncpus, mpiprocs=mpiprocs, mem=int(mem))
                 s = "{chunks}:ncpus={ncpus}:mem={mem}mb:mpiprocs={mpiprocs}".format(**select_params)
             tot_ncpus = chunk*ncpus
@@ -1662,18 +1657,18 @@ $${qverbatim}
                 else:
                     ncpus_master = self.mpi_procs-pot_ncpus_all_slaves
                 if ncpus_master > max_ncpus_master:
-                    raise ValueError('ncpus for the master node exceeds the maximum ncpus for the master ... this'
-                                     'should not happen ...')
+                    raise ValueError("ncpus for the master node exceeds the maximum ncpus for the master ... this"
+                                     "should not happen ...")
                 if ncpus_master < 1:
-                    raise ValueError('ncpus for the master node is 0 ... this should not happen ...')
+                    raise ValueError("ncpus for the master node is 0 ... this should not happen ...")
             elif nslaves_float == int(nslaves_float):
                 chunks_slaves = int(nslaves_float)
                 ncpus_master = max_ncpus_master
             else:
-                raise ValueError('nslaves_float < int(nslaves_float) ...')
+                raise ValueError("nslaves_float < int(nslaves_float) ...")
             mem_master, mpiprocs_master = self.hw.mem_per_node, ncpus_master
             if explicit_last_slave:
-                if memory_policy == 'vmem':
+                if memory_policy == "vmem":
                     select_params = AttrDict(chunk_master=chunk_master, ncpus_master=ncpus_master,
                                              mpiprocs_master=mpiprocs_master, vmem_master=int(mem_master),
                                              chunks_slaves=chunks_slaves, ncpus_per_slave=ncpus_per_slave,
@@ -1685,7 +1680,7 @@ $${qverbatim}
                         "{chunks_slaves}:ncpus={ncpus_per_slave}:vmem={vmem_slaves}mb:mpiprocs={mpiprocs_slaves}+" \
                         "{chunk_last_slave}:ncpus={ncpus_last_slave}:vmem={vmem_last_slave}mb:" \
                         "mpiprocs={mpiprocs_last_slave}".format(**select_params)
-                elif memory_policy == 'mem':
+                elif memory_policy == "mem":
                     select_params = AttrDict(chunk_master=chunk_master, ncpus_master=ncpus_master,
                                              mpiprocs_master=mpiprocs_master, mem_master=int(mem_master),
                                              chunks_slaves=chunks_slaves, ncpus_per_slave=ncpus_per_slave,
@@ -1699,7 +1694,7 @@ $${qverbatim}
                         "mpiprocs={mpiprocs_last_slave}".format(**select_params)
                 tot_ncpus = chunk_master*ncpus_master+chunks_slaves*ncpus_per_slave+chunk_last_slave*ncpus_last_slave
             else:
-                if memory_policy == 'vmem':
+                if memory_policy == "vmem":
                     select_params = AttrDict(chunk_master=chunk_master, ncpus_master=ncpus_master,
                                              mpiprocs_master=mpiprocs_master, vmem_master=int(mem_master),
                                              chunks_slaves=chunks_slaves, ncpus_per_slave=ncpus_per_slave,
@@ -1707,7 +1702,7 @@ $${qverbatim}
                     s = "{chunk_master}:ncpus={ncpus_master}:vmem={vmem_master}mb:mpiprocs={mpiprocs_master}+" \
                         "{chunks_slaves}:ncpus={ncpus_per_slave}:vmem={vmem_slaves}mb:" \
                         "mpiprocs={mpiprocs_slaves}".format(**select_params)
-                elif memory_policy == 'mem':
+                elif memory_policy == "mem":
                     select_params = AttrDict(chunk_master=chunk_master, ncpus_master=ncpus_master,
                                              mpiprocs_master=mpiprocs_master, mem_master=int(mem_master),
                                              chunks_slaves=chunks_slaves, ncpus_per_slave=ncpus_per_slave,
@@ -1718,27 +1713,27 @@ $${qverbatim}
                 tot_ncpus = chunk_master*ncpus_master + chunks_slaves*ncpus_per_slave
 
         if tot_ncpus != self.mpi_procs:
-            raise ValueError('Total number of cpus is different from mpi_procs ...')
+            raise ValueError("Total number of cpus is different from mpi_procs ...")
         if ret_dict:
             return s, select_params
         return s
 
-    def _get_select_standard(self, ret_dict=False, memory_policy='mem'):
+    def _get_select_standard(self, ret_dict=False, memory_policy="mem"):
         if not self.has_omp:
             chunks, ncpus, mem, mpiprocs = self.mpi_procs, 1, self.mem_per_proc, 1
-            if memory_policy == 'vmem':
+            if memory_policy == "vmem":
                 select_params = AttrDict(chunks=chunks, ncpus=ncpus, mpiprocs=mpiprocs, vmem=int(mem))
                 s = "{chunks}:ncpus={ncpus}:vmem={vmem}mb:mpiprocs={mpiprocs}".format(**select_params)
-            elif memory_policy == 'mem':
+            elif memory_policy == "mem":
                 select_params = AttrDict(chunks=chunks, ncpus=ncpus, mpiprocs=mpiprocs, mem=int(mem))
                 s = "{chunks}:ncpus={ncpus}:mem={mem}mb:mpiprocs={mpiprocs}".format(**select_params)
         else:
             chunks, ncpus, mem, mpiprocs, ompthreads = self.mpi_procs, self.omp_threads, self.mem_per_proc, 1, self.omp_threads
-            if memory_policy == 'vmem':
+            if memory_policy == "vmem":
                 select_params = AttrDict(chunks=chunks, ncpus=ncpus, mpiprocs=mpiprocs, vmem=int(mem),
                                          ompthreads=ompthreads)
                 s = "{chunks}:ncpus={ncpus}:vmem={vmem}mb:mpiprocs={mpiprocs}:ompthreads={ompthreads}".format(**select_params)
-            elif memory_policy == 'mem':
+            elif memory_policy == "mem":
                 select_params = AttrDict(chunks=chunks, ncpus=ncpus, mpiprocs=mpiprocs, mem=int(mem),
                                          ompthreads=ompthreads)
                 s = "{chunks}:ncpus={ncpus}:mem={mem}mb:mpiprocs={mpiprocs}:ompthreads={ompthreads}".format(
@@ -1751,7 +1746,7 @@ $${qverbatim}
     def _submit_to_queue(self, script_file):
         """Submit a job script to the queue."""
         # need string not bytes so must use universal_newlines
-        process = Popen(['qsub', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        process = Popen(["qsub", script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         # grab the return code. PBS returns 0 if the job was successful
@@ -1759,7 +1754,7 @@ $${qverbatim}
         if process.returncode == 0:
             try:
                 # output should of the form '2561553.sdb' or '352353.jessup' - just grab the first part for job id
-                queue_id = int(out.split('.')[0])
+                queue_id = int(out.split(".")[0])
             except Exception:
                 # probably error parsing job code
                 logger.critical("Could not parse job id following qsub...")
@@ -1767,7 +1762,7 @@ $${qverbatim}
 
     def _get_njobs_in_queue(self, username):
         # need string not bytes so must use universal_newlines
-        process = Popen(['qstat', '-a', '-u', username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        process = Popen(["qstat", "-a", "-u", username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         njobs = None
@@ -1778,7 +1773,7 @@ $${qverbatim}
             # count lines that include the username in it
 
             # TODO: only count running or queued jobs. or rather, *don't* count jobs that are 'C'.
-            outs = out.split('\n')
+            outs = out.split("\n")
             njobs = len([line.split() for line in outs if username in line])
 
         return njobs, process
@@ -1833,15 +1828,14 @@ $${qverbatim}
             self.qparams["ppn"] = self.hw.cores_per_node
 
     def exclude_nodes(self, nodes):
-        raise self.Error('qadapter failed to exclude nodes, not implemented yet in torque')
+        raise self.Error("qadapter failed to exclude nodes, not implemented yet in torque")
 
 
 class SGEAdapter(QueueAdapter):
     """
     Adapter for Sun Grid Engine (SGE) task submission software.
 
-    See also:
-
+    See Also:
         * https://www.wiki.ed.ac.uk/display/EaStCHEMresearchwiki/How+to+write+a+SGE+job+submission+script
         * http://www.uibk.ac.at/zid/systeme/hpc-systeme/common/tutorials/sge-howto.html
     """
@@ -1900,7 +1894,7 @@ $${qverbatim}
     def _submit_to_queue(self, script_file):
         """Submit a job script to the queue."""
         # need string not bytes so must use universal_newlines
-        process = Popen(['qsub', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        process = Popen(["qsub", script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         # grab the returncode. SGE returns 0 if the job was successful
@@ -1909,7 +1903,7 @@ $${qverbatim}
             try:
                 # output should of the form
                 # Your job 1659048 ("NAME_OF_JOB") has been submitted
-                queue_id = int(out.split(' ')[2])
+                queue_id = int(out.split(" ")[2])
             except Exception:
                 # probably error parsing job code
                 logger.critical("Could not parse job id following qsub...")
@@ -1917,11 +1911,11 @@ $${qverbatim}
 
     def exclude_nodes(self, nodes):
         """Method to exclude nodes in the calculation"""
-        raise self.Error('qadapter failed to exclude nodes, not implemented yet in sge')
+        raise self.Error("qadapter failed to exclude nodes, not implemented yet in sge")
 
     def _get_njobs_in_queue(self, username):
         # need string not bytes so must use universal_newlines
-        process = Popen(['qstat', '-u', username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        process = Popen(["qstat", "-u", username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         njobs = None
@@ -1981,7 +1975,7 @@ $${qverbatim}
         #raise NotImplementedError("set_mem_per_cpu")
 
     def exclude_nodes(self, nodes):
-        raise self.Error('qadapter failed to exclude nodes, not implemented yet in moad')
+        raise self.Error("qadapter failed to exclude nodes, not implemented yet in moad")
 
     def cancel(self, job_id: int) -> int:
         return os.system("canceljob %d" % job_id)
@@ -1989,7 +1983,7 @@ $${qverbatim}
     def _submit_to_queue(self, script_file):
         """Submit a job script to the queue."""
         # need string not bytes so must use universal_newlines
-        process = Popen(['msub', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        process = Popen(["msub", script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         queue_id = None
@@ -2000,13 +1994,13 @@ $${qverbatim}
                 queue_id = int(out.split()[0])
             except Exception:
                 # probably error parsing job code
-                logger.critical('Could not parse job id following msub...')
+                logger.critical("Could not parse job id following msub...")
 
         return SubmitResults(qid=queue_id, out=out, err=err, process=process)
 
     def _get_njobs_in_queue(self, username):
         # need string not bytes so must use universal_newlines
-        process = Popen(['showq', '-s -u', username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        process = Popen(["showq", "-s -u", username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         njobs = None
@@ -2100,7 +2094,7 @@ $${qverbatim}
     def _submit_to_queue(self, script_file: str):
         """Submit a job script to the queue."""
         # need string not bytes so must use universal_newlines
-        process = Popen(['llsubmit', script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        process = Popen(["llsubmit", script_file], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         # grab the return code. llsubmit returns 0 if the job was successful
@@ -2121,7 +2115,7 @@ $${qverbatim}
 
     def _get_njobs_in_queue(self, username: str):
         # need string not bytes so must use universal_newlines
-        process = Popen(['llq', '-u', username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        process = Popen(["llq", "-u", username], stdout=PIPE, stderr=PIPE, universal_newlines=True)
 
         out, err = process.communicate()
         njobs = None
@@ -2134,7 +2128,7 @@ $${qverbatim}
             # 1 job step(s) in query, 1 waiting, 0 pending, 0 running, 0 held, 0 preempted
             #
             # count lines that include the username in it
-            outs = out.split('\n')
+            outs = out.split("\n")
             njobs = len([line.split() for line in outs if username in line])
 
         return njobs, process

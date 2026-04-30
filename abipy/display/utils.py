@@ -1,11 +1,9 @@
-# coding: utf-8
 """Tools to build ipython widgets."""
 from __future__ import annotations
 
-import ipywidgets as ipw
-
 from collections import OrderedDict
 
+import ipywidgets as ipw
 
 #def add_docstrings(*tuples):
 #    """
@@ -61,29 +59,29 @@ def str2bool_or_none(*args):
 
 # Taken from matplotlib.markers.MarkerStyle (replaced dict with OrderedDict).
 _mpl_markers = OrderedDict([
-    ('.', 'point'),
-    (',', 'pixel'),
-    ('o', 'circle'),
-    ('v', 'triangle_down'),
-    ('^', 'triangle_up'),
-    ('<', 'triangle_left'),
-    ('>', 'triangle_right'),
-    ('1', 'tri_down'),
-    ('2', 'tri_up'),
-    ('3', 'tri_left'),
-    ('4', 'tri_right'),
-    ('8', 'octagon'),
-    ('s', 'square'),
-    ('p', 'pentagon'),
-    ('*', 'star'),
-    ('h', 'hexagon1'),
-    ('H', 'hexagon2'),
-    ('+', 'plus'),
-    ('x', 'x'),
-    ('D', 'diamond'),
-    ('d', 'thin_diamond'),
-    ('|', 'vline'),
-    ('_', 'hline'),
+    (".", "point"),
+    (",", "pixel"),
+    ("o", "circle"),
+    ("v", "triangle_down"),
+    ("^", "triangle_up"),
+    ("<", "triangle_left"),
+    (">", "triangle_right"),
+    ("1", "tri_down"),
+    ("2", "tri_up"),
+    ("3", "tri_left"),
+    ("4", "tri_right"),
+    ("8", "octagon"),
+    ("s", "square"),
+    ("p", "pentagon"),
+    ("*", "star"),
+    ("h", "hexagon1"),
+    ("H", "hexagon2"),
+    ("+", "plus"),
+    ("x", "x"),
+    ("D", "diamond"),
+    ("d", "thin_diamond"),
+    ("|", "vline"),
+    ("_", "hline"),
     #(TICKLEFT: 'tickleft',
     #(TICKRIGHT: 'tickright',
     #(TICKUP: 'tickup',
@@ -92,10 +90,10 @@ _mpl_markers = OrderedDict([
     #(CARETRIGHT: 'caretright',
     #(CARETUP: 'caretup',
     #(CARETDOWN: 'caretdown',
-    ("None", 'nothing'),
-    (None, 'nothing'),
-    (' ', 'nothing'),
-    ('', 'nothing'),
+    ("None", "nothing"),
+    (None, "nothing"),
+    (" ", "nothing"),
+    ("", "nothing"),
 ])
 
 
@@ -103,7 +101,7 @@ def markers_dropdown(default="o"):
     return ipw.Dropdown(
         options={name: key for key, name in _mpl_markers.items()},
         value=default,
-        description='marker',
+        description="marker",
     )
 
 
@@ -124,7 +122,7 @@ def colors_dropdow(default="None"):
     return ipw.Dropdown(
         options=_mpl_colors,
         value=default,
-        description='color',
+        description="color",
     )
 
 
@@ -134,9 +132,9 @@ def linewidth_slider(default=1, orientation="horizontal"):
         min=0,
         max=10,
         step=0.5,
-        description='linewidth',
+        description="linewidth",
         orientation=orientation,
-        readout_format='.1f'
+        readout_format=".1f"
     )
 
 
@@ -146,9 +144,9 @@ def size_slider(default=5, orientation="horizontal"):
         min=0,
         max=20,
         step=0.5,
-        description='size',
+        description="size",
         orientation=orientation,
-        readout_format='.1f'
+        readout_format=".1f"
     )
 
 
@@ -158,9 +156,9 @@ def saturation_slider(default=0.75, orientation="horizontal"):
         min=0,
         max=1,
         step=0.05,
-        description='saturation',
+        description="saturation",
         orientation=orientation,
-        readout_format='.1f'
+        readout_format=".1f"
     )
 
 
@@ -168,24 +166,24 @@ def saturation_slider(default=0.75, orientation="horizontal"):
 # http://matplotlib.org/examples/color/colormaps_reference.html
 _mpl_categ_cmaps = OrderedDict([
     #('Perceptually Uniform Sequential',
-    ('Uniform',        ['viridis', 'inferno', 'plasma', 'magma']),
-    ('Sequential',     ['Blues', 'BuGn', 'BuPu',
-                        'GnBu', 'Greens', 'Greys', 'Oranges', 'OrRd',
-                        'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu',
-                        'Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd']),
-    ('Sequential(2)',  ['afmhot', 'autumn', 'bone', 'cool',
-                        'copper', 'gist_heat', 'gray', 'hot',
-                        'pink', 'spring', 'summer', 'winter']),
-    ('Diverging',      ['BrBG', 'bwr', 'coolwarm', 'PiYG', 'PRGn', 'PuOr',
-                        'RdBu', 'RdGy', 'RdYlBu', 'RdYlGn', 'Spectral',
-                        'seismic']),
-    ('Qualitative',    ['Accent', 'Dark2', 'Paired', 'Pastel1',
-                        'Pastel2', 'Set1', 'Set2', 'Set3']),
-    ('Miscellaneous',  ['gist_earth', 'terrain', 'ocean', 'gist_stern',
-                        'brg', 'CMRmap', 'cubehelix',
-                        'gnuplot', 'gnuplot2', 'gist_ncar',
-                        'nipy_spectral', 'jet', 'rainbow',
-                        'gist_rainbow', 'hsv', 'flag', 'prism'])
+    ("Uniform",        ["viridis", "inferno", "plasma", "magma"]),
+    ("Sequential",     ["Blues", "BuGn", "BuPu",
+                        "GnBu", "Greens", "Greys", "Oranges", "OrRd",
+                        "PuBu", "PuBuGn", "PuRd", "Purples", "RdPu",
+                        "Reds", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd"]),
+    ("Sequential(2)",  ["afmhot", "autumn", "bone", "cool",
+                        "copper", "gist_heat", "gray", "hot",
+                        "pink", "spring", "summer", "winter"]),
+    ("Diverging",      ["BrBG", "bwr", "coolwarm", "PiYG", "PRGn", "PuOr",
+                        "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral",
+                        "seismic"]),
+    ("Qualitative",    ["Accent", "Dark2", "Paired", "Pastel1",
+                        "Pastel2", "Set1", "Set2", "Set3"]),
+    ("Miscellaneous",  ["gist_earth", "terrain", "ocean", "gist_stern",
+                        "brg", "CMRmap", "cubehelix",
+                        "gnuplot", "gnuplot2", "gist_ncar",
+                        "nipy_spectral", "jet", "rainbow",
+                        "gist_rainbow", "hsv", "flag", "prism"])
 ])
 
 # flat list.
@@ -198,7 +196,7 @@ def colormap_widget(default=None):
     if default is not None:
         value = default
         if default not in _mpl_cmaps: options[:].insert(0, value)
-    return ipw.Dropdown(options=options, value=value, description='colormap')
+    return ipw.Dropdown(options=options, value=value, description="colormap")
 
 
 #def colormap_widget():

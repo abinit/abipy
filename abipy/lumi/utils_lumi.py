@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import numpy as np
-import abipy.core.abinit_units as abu
-
 from numpy import fft
 from scipy import signal
+
+import abipy.core.abinit_units as abu
+
 try:
     from scipy.integrate import simpson as simps
 except ImportError:
     from scipy.integrate import simps
-from abipy.tools.plotting import get_ax_fig_plt, add_fig_kwargs #, get_axarray_fig_plt
-
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt  #, get_axarray_fig_plt
 
 #### Generating function ####
 
@@ -68,7 +68,7 @@ def get_G_t(T, S_nu, omega_nu):
     return t, G_t
 
 
-def A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w, model='multi-D'):
+def A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w, model="multi-D"):
     """
     Lineshape function
     Eq. (2) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
@@ -80,10 +80,10 @@ def A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w, model='multi-D'):
         w: Gaussian broadening applied to the vibronic peaks, in meV
         model: 'multi-D' for full phonon decomposition, 'one-D' for 1D-CCM PL spectrum.
     """
-    if model == 'multi-D':
+    if model == "multi-D":
         t, G_t = get_G_t(T, S_nu, omega_nu)
 
-    elif model == 'one-D':
+    elif model == "one-D":
         t, G_t = get_G_t(T, S_nu=np.array([np.sum(S_nu)]), omega_nu=np.array(eff_freq))#np.array([self.eff_freq_multiD()]))
 
     n_step = len(t)
@@ -110,7 +110,7 @@ def A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w, model='multi-D'):
 
     sigma = w / (2.35482 * 1000)
     gaussian = (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-((En) ** 2 / (2 * (sigma) ** 2)))
-    A_conv = signal.fftconvolve(np.abs(fourier_2), gaussian, mode='same')
+    A_conv = signal.fftconvolve(np.abs(fourier_2), gaussian, mode="same")
 
     return (E_x, A_conv)
 
@@ -146,7 +146,6 @@ def plot_emission_spectrum_help(x_eV, y_eV, unit, max_to_one, ax, **kwargs):
         lamb: Lorentzian broadening applied to the vibronic peaks, in meV
         w: Gaussian broadening applied to the vibronic peaks, in meV
     """
-
     ax, fig, plt = get_ax_fig_plt(ax=ax)
 
     #x_eV,y_eV=self.L_hw(T=T,lamb=lamb,w=w) # in eV
@@ -162,20 +161,20 @@ def plot_emission_spectrum_help(x_eV, y_eV, unit, max_to_one, ax, **kwargs):
         y_cm = y_cm/max(y_cm)
         y_nm = y_nm/max(y_nm)
 
-    if unit == 'eV':
+    if unit == "eV":
         ax.plot(x_eV,y_eV,**kwargs)
-        ax.set_xlabel('Photon energy (eV)')
-        ax.set_ylabel(r'$L(\hbar\omega)$  (1/eV)')
+        ax.set_xlabel("Photon energy (eV)")
+        ax.set_ylabel(r"$L(\hbar\omega)$  (1/eV)")
 
-    elif unit == 'cm-1':
+    elif unit == "cm-1":
         ax.plot(x_cm,y_cm,**kwargs)
-        ax.set_xlabel(r'Photon energy ($cm^{-1}$)')
-        ax.set_ylabel(r'$L(\hbar\omega)$  (1/$cm^{-1}$)')
+        ax.set_xlabel(r"Photon energy ($cm^{-1}$)")
+        ax.set_ylabel(r"$L(\hbar\omega)$  (1/$cm^{-1}$)")
 
-    elif unit == 'nm':
+    elif unit == "nm":
         ax.plot(x_nm,y_nm,**kwargs)
-        ax.set_xlabel(r'Photon wavelength (nm))')
-        ax.set_ylabel(r'Intensity (a.u.)')
+        ax.set_xlabel(r"Photon wavelength (nm))")
+        ax.set_ylabel(r"Intensity (a.u.)")
 
     else:
         raise ValueError(f"Invalid {unit=}, must be 'eV', 'cm-1', or 'nm'")

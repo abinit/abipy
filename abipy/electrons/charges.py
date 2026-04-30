@@ -1,24 +1,24 @@
-# coding: utf-8
 """Hirshfeld Charges."""
 from __future__ import annotations
 
-import numpy as np
 import os
-
 from shutil import which
+
+import numpy as np
 from monty.dev import requires
 from pymatgen.command_line.bader_caller import BaderAnalysis
-from pymatgen.io.abinit.pseudos import Pseudo
 from pymatgen.core.units import bohr_to_angstrom
-from abipy.core.structure import Structure
-from abipy.core.mixins import Has_Structure
+from pymatgen.io.abinit.pseudos import Pseudo
+
 from abipy.core.fields import Density
 from abipy.core.globals import get_workdir
+from abipy.core.mixins import Has_Structure
+from abipy.core.structure import Structure
 from abipy.electrons.denpot import DensityFortranFile
 
 __all__ = [
-    "HirshfeldCharges",
-    "BaderCharges"
+    "BaderCharges",
+    "HirshfeldCharges"
 ]
 
 
@@ -74,10 +74,9 @@ class HirshfeldCharges(Charges):
         """
         Generates a HirshfeldCharges object from the outputfile of cut3d and a structure.
         """
-
         electron_charges = []
         reference_charges = []
-        with open(filepath, 'rt') as f:
+        with open(filepath) as f:
             lines = f.readlines()
 
         start_hirshfeld_i = None
@@ -86,7 +85,7 @@ class HirshfeldCharges(Charges):
                 start_hirshfeld_i = i+3
                 break
         else:
-            raise RuntimeError('The file does not contain Hirshfeld charges')
+            raise RuntimeError("The file does not contain Hirshfeld charges")
 
         for i in range(start_hirshfeld_i, start_hirshfeld_i+len(structure)):
             l = lines[i]
@@ -133,7 +132,7 @@ class BaderCharges(Charges):
         """
         # read the valence density
         # if density is not a netcdf file, convert with cut3d
-        if not density_path.endswith('.nc'):
+        if not density_path.endswith(".nc"):
             dff = DensityFortranFile.from_file(density_path)
             density = dff.get_density()
         else:
@@ -171,7 +170,7 @@ class BaderCharges(Charges):
             pseudos = {k: Pseudo.from_file(p) for k, p in pseudopotential_paths.items()}
             atomic_charges = [pseudos[s.specie.name].Z_val for s in structure]
 
-        chgcar_path = os.path.join(workdir, 'CHGCAR')
+        chgcar_path = os.path.join(workdir, "CHGCAR")
         density.to_chgcar(chgcar_path)
 
         ba = BaderAnalysis(chgcar_path)

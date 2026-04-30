@@ -1,59 +1,59 @@
-# coding: utf-8
-"""Factory functions for Abinit input files """
+"""Factory functions for Abinit input files"""
 from __future__ import annotations
+
+from collections import namedtuple
+from enum import Enum
+from typing import Any
 
 import numpy as np
 import pymatgen.io.abinit.abiobjects as aobj
-import abipy.core.abinit_units as abu
-import abipy.abio.input_tags as atags
-
-from enum import Enum
-from typing import Any
-from collections import namedtuple
 from monty.collections import AttrDict
+from monty.json import MontyDecoder, MSONable, jsanitize
 from monty.string import is_string
-from monty.json import jsanitize, MontyDecoder, MSONable
+
+import abipy.abio.input_tags as atags
+import abipy.core.abinit_units as abu
+from abipy.abio.inputs import AbinitInput, MultiDataset
+
 #from pymatgen.io.abinit.pseudos import PseudoTable
 from abipy.core.structure import Structure
-from abipy.abio.inputs import AbinitInput, MultiDataset
 from abipy.tools.serialization import pmg_serialize
 
-
 __all__ = [
-    "gs_input",
-    "ebands_input",
-    "phonons_from_gsinput",
-    "g0w0_with_ppmodel_inputs",
-    "g0w0_convergence_inputs",
     "bse_with_mdf_inputs",
-    "ion_ioncell_relax_input",
-    "ion_ioncell_relax_and_ebands_input",
-    "scf_phonons_inputs",
-    "piezo_elastic_inputs_from_gsinput",
-    "scf_piezo_elastic_inputs",
-    "scf_for_phonons",
-    "ddkpert_from_gsinput",
     "ddepert_from_gsinput",
-    "dtepert_from_gsinput",
-    "dte_from_gsinput",
+    "ddkpert_from_gsinput",
     "dfpt_from_gsinput",
+    "dte_from_gsinput",
+    "dtepert_from_gsinput",
+    "ebands_input",
+    "g0w0_convergence_inputs",
+    "g0w0_with_ppmodel_inputs",
+    "gs_input",
+    "ion_ioncell_relax_and_ebands_input",
+    "ion_ioncell_relax_input",
     "minimal_scf_input",
+    "phonons_from_gsinput",
+    "piezo_elastic_inputs_from_gsinput",
+    "scf_for_phonons",
+    "scf_phonons_inputs",
+    "scf_piezo_elastic_inputs",
 ]
 
 
 # Name of the (default) tolerance used by the runlevels.
 _runl2tolname = {
-    "scf": 'tolvrs',
-    "nscf": 'tolwfr',
-    "dfpt": 'toldfe',        # ?
-    "screening": 'toldfe',   # dummy
-    "sigma": 'toldfe',       # dummy
-    "bse": 'toldfe',         # ?
-    "relax": 'tolrff',
+    "scf": "tolvrs",
+    "nscf": "tolwfr",
+    "dfpt": "toldfe",        # ?
+    "screening": "toldfe",   # dummy
+    "sigma": "toldfe",       # dummy
+    "bse": "toldfe",         # ?
+    "relax": "tolrff",
 }
 
 # Tolerances for the different levels of accuracy.
-T = namedtuple('Tolerance', "low normal high")
+T = namedtuple("Tolerance", "low normal high")
 _tolerances = {
     "toldfe": T(1.e-7,  1.e-8,  1.e-9),
     "tolvrs": T(1.e-7,  1.e-8,  1.e-9),
@@ -77,10 +77,10 @@ class ShiftMode(Enum):
     O: OneSymmetric. Respects the chksymbreak with a single shift (as in 'S' if a single shift is given, gamma
         centered otherwise.
     """
-    GammaCentered = 'G'
-    MonkhorstPack = 'M'
-    Symmetric = 'S'
-    OneSymmetric = 'O'
+    GammaCentered = "G"
+    MonkhorstPack = "M"
+    Symmetric = "S"
+    OneSymmetric = "O"
 
     @classmethod
     def from_object(cls, obj: Any) -> ShiftMode:
@@ -91,10 +91,9 @@ class ShiftMode(Enum):
         """
         if isinstance(obj, cls):
             return obj
-        elif is_string(obj):
+        if is_string(obj):
             return cls(obj[0].upper())
-        else:
-            raise TypeError('The object provided is not handled: type %s' % type(obj))
+        raise TypeError("The object provided is not handled: type %s" % type(obj))
 
 
 def _stopping_criterion(runlevel: str, accuracy: str) -> dict:
@@ -179,7 +178,7 @@ def _find_nscf_nband_from_gsinput(gs_input: AbinitInput) -> int:
 
         charge = gs_input.get("charge", 0)
         electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, charge=charge)
-        spinat = gs_input.get('spinat', None)
+        spinat = gs_input.get("spinat", None)
         scf_nband = _find_scf_nband(gs_input.structure, gs_input.pseudos, electrons, spinat)
 
     return scf_nband + 10
@@ -200,20 +199,18 @@ def _get_shifts(shift_mode: str, structure: Structure):
     """
     if shift_mode == ShiftMode.GammaCentered:
         return ((0, 0, 0))
-    elif shift_mode == ShiftMode.MonkhorstPack:
+    if shift_mode == ShiftMode.MonkhorstPack:
         return ((0.5, 0.5, 0.5))
-    elif shift_mode == ShiftMode.Symmetric:
+    if shift_mode == ShiftMode.Symmetric:
         structure = Structure.from_sites(structure)
         return structure.calc_shiftk()
-    elif shift_mode == ShiftMode.OneSymmetric:
+    if shift_mode == ShiftMode.OneSymmetric:
         structure = Structure.from_sites(structure)
         shifts = structure.calc_shiftk()
         if len(shifts) == 1:
             return shifts
-        else:
-            return ((0, 0, 0))
-    else:
-        raise ValueError("invalid shift_mode: `%s`" % str(shift_mode))
+        return ((0, 0, 0))
+    raise ValueError("invalid shift_mode: `%s`" % str(shift_mode))
 
 
 def gs_input(structure: Structure, pseudos,
@@ -294,7 +291,7 @@ def ebands_input(structure: Structure, pseudos,
         multi[0].set_autospinat()
 
     if scf_electrons.nband is None:
-        scf_electrons.nband = _find_scf_nband(structure, multi.pseudos, scf_electrons, multi[0].get('spinat', None))
+        scf_electrons.nband = _find_scf_nband(structure, multi.pseudos, scf_electrons, multi[0].get("spinat", None))
 
     multi[0].set_vars(scf_ksampling.to_abivars())
     multi[0].set_vars(scf_electrons.to_abivars())
@@ -330,7 +327,7 @@ def ion_ioncell_relax_input(structure, pseudos,
                             kppa=None, nband=None,
                             ecut=None, pawecutdg=None, accuracy="normal", spin_mode="polarized",
                             smearing="fermi_dirac:0.1 eV", charge=0.0,
-                            scf_algorithm=None, shift_mode='Monkhorst-pack') -> MultiDataset:
+                            scf_algorithm=None, shift_mode="Monkhorst-pack") -> MultiDataset:
     """
     Returns a |MultiDataset| for a structural relaxation. The first dataset optmizes the
     atomic positions at fixed unit cell. The second datasets optimizes both ions and unit cell parameters.
@@ -481,7 +478,6 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
             See Abinit docs for more detail. The default value makes the code compute the
             QP energies for all the point in the IBZ and one band above and one band below the Fermi level.
     """
-
     structure = Structure.as_structure(structure)
     # Scf input
     # Note that kppa and shift_mode here are dummy as, they will be overwritten just after.
@@ -496,7 +492,7 @@ def g0w0_with_ppmodel_inputs(structure, pseudos,
     # - The spinat is not set
     # - The number of bands is not adapted for spinat
     # TODO: Should we consider changing that and update the reference files accordingly ?
-    scf_inp.pop_vars('spinat')
+    scf_inp.pop_vars("spinat")
     scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=scf_algorithm,
                                    charge=charge, nband=None, fband=None)
     nband = _find_scf_nband(structure, scf_inp.pseudos, scf_electrons)
@@ -558,15 +554,15 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     keys = list(extra_abivars.keys())
     #for k in extra_abivars.keys():
     for k in keys:
-        if k[-2:] == '_s':
+        if k[-2:] == "_s":
             var = k[:len(k)-2]
             values = extra_abivars.pop(k)
             # to_add.update({k: values[-1]})
             for value in values:
                 diff_abivars = dict()
                 diff_abivars[var] = value
-                if pseudos.allpaw and var == 'ecut':
-                    diff_abivars['pawecutdg'] = diff_abivars['ecut'] * 2
+                if pseudos.allpaw and var == "ecut":
+                    diff_abivars["pawecutdg"] = diff_abivars["ecut"] * 2
                 scf_diffs.append(diff_abivars)
 
     extra_abivars_all = dict(
@@ -580,13 +576,13 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     extra_abivars_all.update(extra_abivars)
 
     if pseudos.allpaw:
-        extra_abivars_all['pawecutdg'] = extra_abivars_all['ecut'] * 2
+        extra_abivars_all["pawecutdg"] = extra_abivars_all["ecut"] * 2
 
     extra_abivars_gw = dict(
         inclvkb=2,
         symsigma=1,
         gwpara=2,
-        gwmem='10',
+        gwmem="10",
         prtsuscep=0
     )
 
@@ -636,7 +632,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     multi_scf.set_vars(_stopping_criterion(runlevel="scf", accuracy=accuracy))
     multi_scf.set_vars(extra_abivars)
 
-    for variables, abinput in zip(scf_diffs, multi_scf):
+    for variables, abinput in zip(scf_diffs, multi_scf, strict=False):
         abinput.set_vars(variables)
 
     scf_inputs = multi_scf.split_datasets()
@@ -656,9 +652,9 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
         bands_ksampling = aobj.KSampling.path_from_structure(ndivsm=nksmall, structure=structure)
         dos_ksampling = aobj.KSampling.automatic_density(structure=structure, kppa=2000)
         nscf_multi[0].set_vars(bands_ksampling.to_abivars())
-        nscf_multi[0].set_vars({'chksymbreak': 0})
+        nscf_multi[0].set_vars({"chksymbreak": 0})
         nscf_multi[1].set_vars(dos_ksampling.to_abivars())
-        nscf_multi[1].set_vars({'chksymbreak': 0})
+        nscf_multi[1].set_vars({"chksymbreak": 0})
 
     nscf_inputs = nscf_multi.split_datasets()
 
@@ -669,7 +665,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
     #if sigma_nband is None:
     #     sigma_nband = nscf_nband_nscf
 
-    if 'cd' in response_models:
+    if "cd" in response_models:
         hilbert = aobj.HilbertTransform(nomegasf=100, domegasf=None, spmeth=1, nfreqre=None,
                                         freqremax=None, nfreqim=None,
                                         freqremin=None)
@@ -687,7 +683,7 @@ def g0w0_convergence_inputs(structure, pseudos, kppa, nscf_nband, ecuteps, ecuts
                 multi.set_vars(nscf_electrons.to_abivars())
                 multi.set_vars(extra_abivars_all)
                 multi.set_vars(extra_abivars_gw)
-                if response_model == 'cd':
+                if response_model == "cd":
                     screening = aobj.Screening(ecuteps_v, scr_nband, w_type="RPA", sc_mode="one_shot", hilbert=hilbert,
                                                ecutwfn=None, inclvkb=inclvkb)
                     self_energy = aobj.SelfEnergy("gw", "one_shot", sigma_nband, ecutsigx, screening)
@@ -835,7 +831,7 @@ def scf_phonons_inputs(structure, pseudos, kppa,
 
     ph_inputs = MultiDataset.replicate_input(gs_inp, ndtset=len(qpoints))
 
-    for ph_inp, qpt in zip(ph_inputs, qpoints):
+    for ph_inp, qpt in zip(ph_inputs, qpoints, strict=False):
         # Response-function calculation for phonons.
         ph_inp.set_vars(
             rfphon=1,        # Will consider phonon-type perturbation
@@ -965,7 +961,7 @@ def phonons_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, with_ddk=True, wit
                 multi_nscf.set_vars(**wfq_tol)
             else:
                 multi_nscf.set_vars(tolwfr=1e-22)
-            for q, nscf_inp in zip(nscf_qpt, multi_nscf):
+            for q, nscf_inp in zip(nscf_qpt, multi_nscf, strict=False):
                 nscf_inp.set_vars(qpt=q)
 
             multi_nscf.add_tags(atags.NSCF)
@@ -1033,13 +1029,13 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
             ddk_tol = {"tolwfr": 1.0e-20}
 
         if len(ddk_tol) != 1 or any(k not in _tolerances for k in ddk_tol):
-            raise ValueError("Invalid tolerance: {}".format(ddk_tol))
+            raise ValueError(f"Invalid tolerance: {ddk_tol}")
         ddk_inp.pop_tolerances()
         ddk_inp.set_vars(ddk_tol)
         # Adding buffer to help convergence ...
-        if 'nbdbuf' not in ddk_inp:
-            nbdbuf = max(int(0.1*ddk_inp['nband']), 4)
-            ddk_inp.set_vars(nband=ddk_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
+        if "nbdbuf" not in ddk_inp:
+            nbdbuf = max(int(0.1*ddk_inp["nband"]), 4)
+            ddk_inp.set_vars(nband=ddk_inp["nband"]+nbdbuf, nbdbuf=nbdbuf)
 
         multi = MultiDataset.from_inputs([ddk_inp])
     multi.add_tags(atags.DDK)
@@ -1066,19 +1062,19 @@ def piezo_elastic_inputs_from_gsinput(gs_inp, ddk_tol=None, rf_tol=None, ddk_spl
             rf_tol = {"tolvrs": 1.0e-12}
 
         if len(rf_tol) != 1 or any(k not in _tolerances for k in rf_tol):
-            raise ValueError("Invalid tolerance: {}".format(rf_tol))
+            raise ValueError(f"Invalid tolerance: {rf_tol}")
         rf_inp.pop_tolerances()
         rf_inp.set_vars(rf_tol)
 
         # Adding buffer to help convergence ...
-        if 'nbdbuf' not in rf_inp:
-            nbdbuf = max(int(0.1*rf_inp['nband']), 4)
-            rf_inp.set_vars(nband=rf_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
+        if "nbdbuf" not in rf_inp:
+            nbdbuf = max(int(0.1*rf_inp["nband"]), 4)
+            rf_inp.set_vars(nband=rf_inp["nband"]+nbdbuf, nbdbuf=nbdbuf)
 
         multi_rf = MultiDataset.from_inputs([rf_inp])
     multi_rf.add_tags([atags.DFPT, atags.STRAIN])
     for inp in multi_rf:
-        if inp.get('rfphon', 0) == 1:
+        if inp.get("rfphon", 0) == 1:
             inp.add_tags(atags.PHONON)
 
     multi.extend(multi_rf)
@@ -1090,7 +1086,6 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
                              accuracy="normal", spin_mode="polarized",
                              smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None,
                              ddk_tol=None, rf_tol=None, ddk_split=False, rf_split=False) -> MultiDataset:
-
     """
     Returns a |MultiDataset| for performing elastic and piezoelectric constants calculations.
     GS input + the input files for the elastic and piezoelectric constants calculation.
@@ -1120,8 +1115,8 @@ def scf_piezo_elastic_inputs(structure, pseudos, kppa, ecut=None, pawecutdg=None
                        scf_algorithm=scf_algorithm, shift_mode="Gamma-centered")
 
     # Adding buffer to help convergence ...
-    nbdbuf = max(int(0.1*gs_inp['nband']), 4)
-    gs_inp.set_vars(nband=gs_inp['nband']+nbdbuf, nbdbuf=nbdbuf)
+    nbdbuf = max(int(0.1*gs_inp["nband"]), 4)
+    gs_inp.set_vars(nband=gs_inp["nband"]+nbdbuf, nbdbuf=nbdbuf)
 
     multi = MultiDataset.from_inputs([gs_inp])
 
@@ -1158,7 +1153,7 @@ def scf_input(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nband=No
 
     if scf_electrons.nband is None:
         scf_electrons.nband = _find_scf_nband(structure, abinit_input.pseudos, scf_electrons,
-                                              abinit_input.get('spinat', None))
+                                              abinit_input.get("spinat", None))
 
     abinit_input.set_vars(scf_ksampling.to_abivars())
     abinit_input.set_vars(scf_electrons.to_abivars())
@@ -1317,22 +1312,22 @@ def hybrid_oneshot_input(gs_input: AbinitInput,
     hybrid_input.pop_irdvars()
 
     functional = functional.lower()
-    if functional == 'hse06':
+    if functional == "hse06":
         gwcalctyp = 115
         icutcoul = 5
         rcut = 9.090909
-    elif functional == 'pbe0':
+    elif functional == "pbe0":
         gwcalctyp = 215
         icutcoul = 6
         rcut = 0.
-    elif functional == 'b3lyp':
+    elif functional == "b3lyp":
         gwcalctyp = 315
         icutcoul = 6
         rcut = 0.
     else:
-        raise ValueError("Unknow functional {0}.".format(functional))
+        raise ValueError(f"Unknow functional {functional}.")
 
-    ecut = hybrid_input['ecut']
+    ecut = hybrid_input["ecut"]
     ecutsigx = ecutsigx or 2*ecut
 
     hybrid_input.set_vars(optdriver=4, gwcalctyp=gwcalctyp, gwpara=2, icutcoul=icutcoul, rcut=rcut,
@@ -1345,7 +1340,7 @@ def hybrid_scf_input(gs_input: AbinitInput,
                      functional="hse06", ecutsigx=None, gw_qprange=1) -> AbinitInput:
 
     hybrid_input = hybrid_oneshot_input(gs_input=gs_input, functional=functional, ecutsigx=ecutsigx, gw_qprange=gw_qprange)
-    hybrid_input['gwcalctyp'] += 10
+    hybrid_input["gwcalctyp"] += 10
 
     return hybrid_input
 
@@ -1366,7 +1361,7 @@ def scf_for_phonons(structure, pseudos, kppa=None, ecut=None, pawecutdg=None, nb
     # with no bands set and no smearing the minimum number of bands plus some nbdbuf
     if nband is None and smearing is None:
         nval = structure.num_valence_electrons(pseudos)
-        nval -= abiinput['charge']
+        nval -= abiinput["charge"]
         nband = int(round(nval / 2) + nbdbuf)
         abiinput.set_vars(nband=nband)
 
@@ -1392,7 +1387,7 @@ def ddkpert_from_gsinput(gs_input, ddk_pert, nband=None, use_symmetries=False, d
     """
     gs_input = gs_input.deepcopy()
     gs_input.pop_irdvars()
-    gs_input.pop_vars(['autoparal', 'npfft'])
+    gs_input.pop_vars(["autoparal", "npfft"])
 
     if ddk_tol is None:
         ddk_tol = {"tolwfr": 1.0e-22}
@@ -1424,7 +1419,7 @@ def ddepert_from_gsinput(gs_input, dde_pert, use_symmetries=True, dde_tol=None, 
     """
     gs_input = gs_input.deepcopy()
     gs_input.pop_irdvars()
-    gs_input.pop_vars(['autoparal', 'npfft'])
+    gs_input.pop_vars(["autoparal", "npfft"])
 
     if dde_tol is None:
         dde_tol = {"tolvrs": 1.0e-22}
@@ -1446,7 +1441,7 @@ def dtepert_from_gsinput(gs_input, dte_pert, manager=None) -> AbinitInput:
     """
     gs_input = gs_input.deepcopy()
     gs_input.pop_irdvars()
-    gs_input.pop_vars(['autoparal', 'npfft'])
+    gs_input.pop_vars(["autoparal", "npfft"])
 
     dte_inp = gs_input.make_dtepert_input(perturbation=dte_pert, manager=manager)
 
@@ -1505,10 +1500,10 @@ def dte_from_gsinput(gs_input, use_phonons=True, ph_tol=None, ddk_tol=None, dde_
     # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
     # Do this as last, so not to interfere with the the generation of the other steps.
     nval = gs_input.structure.num_valence_electrons(gs_input.pseudos)
-    nval -= gs_input['charge']
+    nval -= gs_input["charge"]
     nband = int(round(nval / 2))
     gs_input.set_vars(nband=nband)
-    gs_input.pop('nbdbuf', None)
+    gs_input.pop("nbdbuf", None)
     multi_dte = gs_input.make_dte_inputs(phonon_pert=use_phonons, skip_permutations=skip_dte_permutations,
                                          manager=manager)
     multi_dte.add_tags(atags.DTE)
@@ -1565,7 +1560,6 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
             duplicated outputs.
         manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
-
     if ph_tol is None:
         ph_tol = {"tolvrs": 1.0e-10}
     if ddk_tol is None:
@@ -1612,11 +1606,11 @@ def dfpt_from_gsinput(gs_inp, ph_ngqpt=None, qpoints=None, do_ddk=True, do_dde=T
     if do_dte:
         # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
         nval = gs_inp.structure.num_valence_electrons(gs_inp.pseudos)
-        nval -= gs_inp['charge']
+        nval -= gs_inp["charge"]
         nband = int(round(nval / 2))
         gs_inp_copy = gs_inp.deepcopy()
         gs_inp_copy.set_vars(nband=nband)
-        gs_inp_copy.pop('nbdbuf', None)
+        gs_inp_copy.pop("nbdbuf", None)
         multi_dte = gs_inp_copy.make_dte_inputs(phonon_pert=do_phonons and has_gamma,
                                                 skip_permutations=skip_dte_permutations, manager=manager)
         multi_dte.add_tags([atags.DTE, atags.DFPT])
@@ -1782,7 +1776,7 @@ class InputFactory(MSONable):
 
     def __init__(self, *args, **kwargs):
         if self.factory_function is None:
-            raise NotImplementedError('The factory function should be specified')
+            raise NotImplementedError("The factory function should be specified")
 
         self.args = args
         self.kwargs = kwargs
@@ -1790,13 +1784,13 @@ class InputFactory(MSONable):
     def build_input(self, previous_input=None):
         # make a copy to pop additional parameteres
         kwargs = dict(self.kwargs)
-        decorators = kwargs.pop('decorators', [])
+        decorators = kwargs.pop("decorators", [])
         if not isinstance(decorators, (list, tuple)):
             decorators = [decorators]
-        extra_abivars = kwargs.pop('extra_abivars', {})
+        extra_abivars = kwargs.pop("extra_abivars", {})
         if self.input_required:
             if not previous_input:
-                raise ValueError('An input is required for factory function {0}.'.format(self.factory_function.__name__))
+                raise ValueError(f"An input is required for factory function {self.factory_function.__name__}.")
             abiinput = self.factory_function(previous_input, *self.args, **kwargs)
         else:
             abiinput = self.factory_function(*self.args, **kwargs)
@@ -1815,7 +1809,7 @@ class InputFactory(MSONable):
     @classmethod
     def from_dict(cls, d: dict):
         dec = MontyDecoder()
-        return cls(*dec.process_decoded(d['args']), **dec.process_decoded(d['kwargs']))
+        return cls(*dec.process_decoded(d["args"]), **dec.process_decoded(d["kwargs"]))
 
 
 class BandsFromGsFactory(InputFactory):

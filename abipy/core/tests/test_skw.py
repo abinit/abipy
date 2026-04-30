@@ -1,9 +1,9 @@
 """Tests for core.skw module"""
 import numpy as np
-import abipy.data as abidata
 
-from abipy.core.testing import AbipyTest
+import abipy.data as abidata
 from abipy.core.skw import SkwInterpolator
+from abipy.core.testing import AbipyTest
 
 
 class TestSkwInterpolator(AbipyTest):
@@ -11,7 +11,6 @@ class TestSkwInterpolator(AbipyTest):
 
     def test_silicon_interpolation(self):
         """Testing interpolation of Si band energies with SKW method."""
-
         from abipy.abilab import abiopen
         with abiopen(abidata.ref_file("si_scf_GSR.nc")) as gsr:
             # Extract data from GSR
@@ -21,7 +20,7 @@ class TestSkwInterpolator(AbipyTest):
 
             # Get FM part of symmetry operations.
             abispg = structure.abi_spacegroup
-            fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
+            fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm, strict=False) if afm == 1]
 
             # Build interpolator.
             lpratio, has_timrev = 5.0, True

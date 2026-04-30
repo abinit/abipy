@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-
+from abipy import abilab, flowtk
 from abipy.flowtk import mocks
 
 

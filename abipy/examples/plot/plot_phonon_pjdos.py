@@ -12,8 +12,8 @@ See tutorial/lesson_rf2.html
 # (alternatively one can use the shell and `abiopen.py OUT_PHDOS.nc -nb`
 # to open the file in a jupyter notebook.
 
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 phdos_file = abiopen(abidata.ref_file("trf2_5.out_PHDOS.nc"))
 

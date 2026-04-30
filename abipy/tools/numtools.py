@@ -1,11 +1,10 @@
-# coding: utf-8
 """Numeric tools."""
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-
 from monty.collections import dict2namedtuple
+
 from abipy.tools import duck
 
 
@@ -65,7 +64,7 @@ def build_mesh(x0: float, num: int, step: float, direction: str) -> tuple[list, 
         start = x0 - num * step
         return [start + i * step for i in range(2 * num + 1)], num
 
-    elif direction in (">", "<"):
+    if direction in (">", "<"):
         start, ix0 = x0, 0
         if direction == "<":
             ix0 = num - 1
@@ -166,8 +165,7 @@ def is_diagonal(matrix, atol=1e-12) -> bool:
 
     if issubclass(matrix.dtype.type, np.integer):
         return np.all(m == 0)
-    else:
-        return np.all(np.abs(m) <= atol)
+    return np.all(np.abs(m) <= atol)
 
 
 #########################################################################################
@@ -182,7 +180,7 @@ def alternate(*iterables):
     [1, 2, 3, 4, 5, 6]
     """
     items = []
-    for tup in zip(*iterables):
+    for tup in zip(*iterables, strict=False):
         items.extend([item for item in tup])
     return items
 
@@ -230,12 +228,11 @@ def sort_and_groupby(items, key=None, reverse=False, ret_lists=False):
     from itertools import groupby
     if not ret_lists:
         return groupby(sorted(items, key=key, reverse=reverse), key=key)
-    else:
-        keys, groups = [], []
-        for hvalue, grp in groupby(sorted(items, key=key, reverse=reverse), key=key):
-            keys.append(hvalue)
-            groups.append(list(grp))
-        return keys, groups
+    keys, groups = [], []
+    for hvalue, grp in groupby(sorted(items, key=key, reverse=reverse), key=key):
+        keys.append(hvalue)
+        groups.append(list(grp))
+    return keys, groups
 
 
 #########################################################################################
@@ -297,9 +294,9 @@ def lorentzian(x, width, center=0.0, height=None):
 #=====================================
 
 
-def smooth(x, window_len=11, window='hanning'):
+def smooth(x, window_len=11, window="hanning"):
     """
-    smooth the data using a window with requested size.
+    Smooth the data using a window with requested size.
 
     This method is based on the convolution of a scaled window with the signal.
     The signal is prepared by introducing reflected copies of the signal
@@ -321,8 +318,7 @@ def smooth(x, window_len=11, window='hanning'):
         x = sin(t)+randn(len(t))*0.1
         y = smooth(x)
 
-    See also:
-
+    See Also:
     numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve scipy.signal.lfilter
 
     TODO: the window parameter could be the window itself if an array instead of a string
@@ -339,19 +335,19 @@ def smooth(x, window_len=11, window='hanning'):
     if window_len % 2 == 0:
         raise ValueError("window_len should be odd.")
 
-    windows = ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']
+    windows = ["flat", "hanning", "hamming", "bartlett", "blackman"]
 
     if window not in windows:
         raise ValueError("window must be in: " + str(windows))
 
     s = np.r_[x[window_len - 1:0:-1], x, x[-1:-window_len:-1]]
 
-    if window == 'flat': # moving average
-        w = np.ones(window_len, 'd')
+    if window == "flat": # moving average
+        w = np.ones(window_len, "d")
     else:
-        w = eval('np.' + window + '(window_len)')
+        w = eval("np." + window + "(window_len)")
 
-    y = np.convolve(w / w.sum(), s, mode='valid')
+    y = np.convolve(w / w.sum(), s, mode="valid")
 
     s = window_len // 2
     e = s + len(x)

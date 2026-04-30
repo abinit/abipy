@@ -1,51 +1,53 @@
-# coding: utf-8
 """This module provides functions and classes related to Task objects."""
 from __future__ import annotations
 
-import os
-import time
-import datetime
-import shutil
-import collections
 import abc
+import collections
 import copy
+import datetime
+import logging
+import os
+import shutil
+import time
+from functools import cached_property
+from io import StringIO
+from itertools import product
+from pprint import pprint
+from typing import Any
+
 import numpy as np
 import pandas as pd
-
-from io import StringIO
-from pprint import pprint
-from itertools import product
-from typing import Any, Union
-from functools import cached_property
-from monty.string import is_string, list_strings
-from monty.termcolor import colored, cprint
 from monty.collections import AttrDict
+from monty.fnmatch import WildCard
 from monty.functools import return_none_if_raise
 from monty.json import MSONable
-from monty.fnmatch import WildCard
+from monty.string import is_string, list_strings
+from monty.termcolor import colored, cprint
 from pymatgen.core.units import Memory, UnitError
+
 from abipy.core.globals import get_workdir
 from abipy.core.structure import Structure
-from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 from abipy.tools.iotools import yaml_safe_load
+from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 from abipy.tools.typing import TYPE_CHECKING
-#from abipy.abio.enums import GWR_TASK
-from .utils import File, Directory, irdvars_for_ext, abi_splitext, FilepathFixer, Condition, SparseHistogram
-from .qadapters import make_qadapter, QueueAdapter, QueueAdapterError
-from .nodes import Status, Node, NodeError, NodeResults, FileNode
-from .abitimer import AbinitTimerParser
-from . import qutils as qu
-from . import abiinspect
-from . import events
 
-import logging
+from . import abiinspect, events
+from . import qutils as qu
+from .abitimer import AbinitTimerParser
+from .nodes import FileNode, Node, NodeError, NodeResults, Status
+from .qadapters import QueueAdapter, QueueAdapterError, make_qadapter
+
+#from abipy.abio.enums import GWR_TASK
+from .utils import Condition, Directory, File, FilepathFixer, SparseHistogram, abi_splitext, irdvars_for_ext
+
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     # Avoid circular dependencies
     from abipy.abio.inputs import AbinitInput, OpticInput
-    from .works import Work
+
     from .flows import Flow
+    from .works import Work
 
 
 __author__ = "Matteo Giantomassi"
@@ -54,26 +56,26 @@ __version__ = "0.1"
 __maintainer__ = "Matteo Giantomassi"
 
 __all__ = [
-    "TaskManager",
     "AbinitBuild",
-    "ParalHintsParser",
-    "ParalHints",
     "AbinitTask",
-    "ScfTask",
-    "NscfTask",
-    "RelaxTask",
-    "MultiRelaxTask",
+    "AnaddbTask",
+    "AtdepTask",
     "DdkTask",
     "EffMassTask",
-    "PhononTask",
     "ElasticTask",
-    "SigmaTask",
     "EphTask",
-    "KerangeTask",
-    "OpticTask",
-    "AnaddbTask",
     "GwrTask",
-    "AtdepTask",
+    "KerangeTask",
+    "MultiRelaxTask",
+    "NscfTask",
+    "OpticTask",
+    "ParalHints",
+    "ParalHintsParser",
+    "PhononTask",
+    "RelaxTask",
+    "ScfTask",
+    "SigmaTask",
+    "TaskManager",
     "set_user_config_taskmanager",
 ]
 
@@ -144,7 +146,6 @@ class ParalConf(AttrDict):
     It also provides default values for selected keys that might not be present in the ABINIT dictionary.
 
     Example:
-
         --- !Autoparal
         info:
             version: 1
@@ -432,12 +433,12 @@ class ParalHints(collections.abc.Iterable):
 
         if len(policy.autoparal_priorities) == 1:
             # Example: hints.sort_by_speedup()
-            if policy.autoparal_priorities[0] in ['efficiency', 'speedup', 'mem_per_proc']:
+            if policy.autoparal_priorities[0] in ["efficiency", "speedup", "mem_per_proc"]:
                 getattr(hints, "sort_by_" + policy.autoparal_priorities[0])()
             elif isinstance(policy.autoparal_priorities[0], collections.Mapping):
-                if policy.autoparal_priorities[0]['meta_priority'] == 'highest_speedup_minimum_efficiency_cutoff':
-                    min_efficiency = policy.autoparal_priorities[0].get('minimum_efficiency', 1.0)
-                    hints.select_with_condition({'efficiency': {'$gte': min_efficiency}})
+                if policy.autoparal_priorities[0]["meta_priority"] == "highest_speedup_minimum_efficiency_cutoff":
+                    min_efficiency = policy.autoparal_priorities[0].get("minimum_efficiency", 1.0)
+                    hints.select_with_condition({"efficiency": {"$gte": min_efficiency}})
                     hints.sort_by_speedup()
         else:
             hints = hints.multidimensional_optimization(priorities=policy.autoparal_priorities)
@@ -471,13 +472,11 @@ class TaskPolicy:
         if obj is None:
             # Use default policy.
             return TaskPolicy()
-        else:
-            if isinstance(obj, cls):
-                return obj
-            elif isinstance(obj, collections.abc.Mapping):
-                return cls(**obj)
-            else:
-                raise TypeError("Don't know how to convert type %s to %s" % (type(obj), cls))
+        if isinstance(obj, cls):
+            return obj
+        if isinstance(obj, collections.abc.Mapping):
+            return cls(**obj)
+        raise TypeError("Don't know how to convert type %s to %s" % (type(obj), cls))
 
     @classmethod
     def autodoc(cls) -> str:
@@ -551,8 +550,7 @@ def set_user_config_taskmanager_attrs(**kwargs) -> None:
     """
     Set programmatically the attributes of the qadapters.
 
-    example:
-
+    Example:
         from abipy.flowtk.tasks import set_user_config_taskmanager_attrs
         set_user_config_taskmanager_attrs(max_num_launches=10)
     """
@@ -695,9 +693,9 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         """Read the configuration parameters from the Yaml file filepath."""
         filepath = os.path.expanduser(filepath)
         try:
-            with open(filepath, "rt") as fh:
+            with open(filepath) as fh:
                 return cls.from_dict(yaml_safe_load(fh))
-        except Exception as exc:
+        except Exception:
             print(f"Error while reading TaskManager parameters from {filepath}\n")
             raise
 
@@ -718,13 +716,11 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         if is_string(obj):
             if os.path.exists(obj):
                 return cls.from_file(obj)
-            else:
-                return cls.from_string(obj)
+            return cls.from_string(obj)
 
-        elif isinstance(obj, collections.abc.Mapping):
+        if isinstance(obj, collections.abc.Mapping):
             return cls.from_dict(obj)
-        else:
-            raise TypeError("Don't know how to convert type %s to TaskManager" % type(obj))
+        raise TypeError("Don't know how to convert type %s to TaskManager" % type(obj))
 
     @classmethod
     def from_dict(cls, d: dict) -> TaskManager:
@@ -987,7 +983,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
 
     def get_njobs_in_queue(self, username=None):
         """
-        returns the number of jobs in the queue,
+        Returns the number of jobs in the queue,
         returns None when the number of jobs cannot be determined.
 
         Args:
@@ -1058,7 +1054,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         # Submit the task and save the queue id.
         try:
             qjob, process = self.qadapter.submit_to_queue(script_file)
-            task.set_status(task.S_SUB, msg='Submitted to queue')
+            task.set_status(task.S_SUB, msg="Submitted to queue")
             task.set_qjob(qjob)
             return process
 
@@ -1081,18 +1077,18 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             self.qadapter.more_mem_per_proc()
         except QueueAdapterError:
             # here we should try to switch to another qadapter
-            raise ManagerIncreaseError('manager failed to increase mem')
+            raise ManagerIncreaseError("manager failed to increase mem")
 
     def increase_ncpus(self):
         """
-        increase the number of cpus, first ask the current qadapter, if that one raises a QadapterIncreaseError
+        Increase the number of cpus, first ask the current qadapter, if that one raises a QadapterIncreaseError
         switch to the next qadapter. If all fail raise an ManagerIncreaseError
         """
         try:
             self.qadapter.more_cores()
         except QueueAdapterError:
             # here we should try to switch to another qadapter
-            raise ManagerIncreaseError('manager failed to increase ncpu')
+            raise ManagerIncreaseError("manager failed to increase ncpu")
 
     def increase_resources(self):
         try:
@@ -1105,21 +1101,21 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             self.qadapter.more_mem_per_proc()
         except QueueAdapterError:
             # here we should try to switch to another qadapter
-            raise ManagerIncreaseError('manager failed to increase resources')
+            raise ManagerIncreaseError("manager failed to increase resources")
 
     def exclude_nodes(self, nodes):
         try:
             self.qadapter.exclude_nodes(nodes=nodes)
         except QueueAdapterError:
             # here we should try to switch to another qadapter
-            raise ManagerIncreaseError('manager failed to exclude nodes')
+            raise ManagerIncreaseError("manager failed to exclude nodes")
 
     def increase_time(self):
         try:
             self.qadapter.more_time()
         except QueueAdapterError:
             # here we should try to switch to another qadapter
-            raise ManagerIncreaseError('manager failed to increase time')
+            raise ManagerIncreaseError("manager failed to increase time")
 
 
 class AbinitBuild:
@@ -1170,7 +1166,7 @@ class AbinitBuild:
 
         # Execute the script.
         script_file = os.path.join(workdir, "job.sh")
-        with open(script_file, "wt") as fh:
+        with open(script_file, "w") as fh:
             fh.write(script)
         qjob, process = manager.qadapter.submit_to_queue(script_file)
         process.wait()
@@ -1183,7 +1179,7 @@ class AbinitBuild:
         # To avoid: ResourceWarning: unclosed file <_io.BufferedReader name=87> in py3k
         process.stderr.close()
 
-        with open(stdout, "rt") as fh:
+        with open(stdout) as fh:
             self.info = fh.read()
 
         # info string has the following format.
@@ -1253,9 +1249,9 @@ class AbinitBuild:
         # flavor options were used in Abinit v8
         for line in self.info.splitlines():
             print(line)
-            if "Version" in line: 
+            if "Version" in line:
                 self.version = line.split()[-1]
-                self.version = self.version.split('-')[0]
+                self.version = self.version.split("-")[0]
             if "TRIO flavor" in line:
                 self.has_netcdf = "netcdf" in line
             if "NetCDF Fortran" in line:
@@ -1296,8 +1292,8 @@ class AbinitBuild:
 
     def compare_version(self, version_string, op):
         """Compare Abinit version to `version_string` with operator `op`"""
-        from packaging.version import parse as parse_version
         from monty.operator import operator_from_str
+        from packaging.version import parse as parse_version
         op = operator_from_str(op)
         return op(parse_version(self.version), parse_version(version_string))
 
@@ -1545,9 +1541,8 @@ class Task(Node, metaclass=abc.ABCMeta):
         """Set the |Work| associated to this |Task|."""
         if not hasattr(self, "_work"):
             self._work = work
-        else:
-            if self._work != work:
-                raise ValueError("self._work != work")
+        elif self._work != work:
+            raise ValueError("self._work != work")
 
     @property
     def flow(self) -> Flow:
@@ -1572,7 +1567,8 @@ class Task(Node, metaclass=abc.ABCMeta):
         """
         Number of launches performed. This number includes both possible ABINIT restarts
         and possible launches done due to errors encountered with the resource manager
-        or the hardware/software."""
+        or the hardware/software.
+        """
         return sum(q.num_launches for q in self.manager.qads)
 
     @property
@@ -1613,7 +1609,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         return self.input.structure
 
     def make_input(self, with_header=False) -> str:
-        """return string the input file of the calculation."""
+        """Return string the input file of the calculation."""
         s = str(self.input)
         if with_header: s = str(self) + "\n" + s
         return s
@@ -2087,14 +2083,13 @@ class Task(Node, metaclass=abc.ABCMeta):
                 # Check if the calculation converged.
                 not_ok = report.filter_types(self.CRITICAL_EVENTS)
                 if not_ok:
-                    return self.set_status(self.S_UNCONVERGED, msg='status set to UNCONVERGED based on abiout')
-                else:
-                    return self.set_status(self.S_OK, msg="status set to OK based on abiout")
+                    return self.set_status(self.S_UNCONVERGED, msg="status set to UNCONVERGED based on abiout")
+                return self.set_status(self.S_OK, msg="status set to OK based on abiout")
 
             # Calculation still running or errors?
             if report.errors:
                 # Abinit reported problems
-                self.history.debug('Found errors in report')
+                self.history.debug("Found errors in report")
                 for error in report.errors:
                     self.history.debug(str(error))
                     try:
@@ -2112,7 +2107,7 @@ class Task(Node, metaclass=abc.ABCMeta):
                 if self.qerr_file.exists and not qerr_info:
                     # there is output and no errors
                     # The job still seems to be running
-                    return self.set_status(self.S_RUN, msg='there is output and no errors: job still seems to be running')
+                    return self.set_status(self.S_RUN, msg="there is output and no errors: job still seems to be running")
 
         # 6)
         if not self.output_file.exists:
@@ -2166,7 +2161,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         # The job got killed or crashed but we don't know what happened
         # it is set to QCritical, we will attempt to fix it by running on more resources
         if err_msg:
-            msg = 'Found error message:\n %s' % str(err_msg)
+            msg = "Found error message:\n %s" % str(err_msg)
             self.history.warning(msg)
             #return self.set_status(self.S_QCRITICAL, msg=msg)
 
@@ -2185,7 +2180,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         #    msg = "Task have been submitted but cannot find the log file or the output file"
         #    return self.set_status(self.S_ERROR, msg)
 
-        return self.set_status(self.S_RUN, msg='final option: nothing seems to be wrong, the job must still be running')
+        return self.set_status(self.S_RUN, msg="final option: nothing seems to be wrong, the job must still be running")
 
     def reduce_memory_demand(self):
         """
@@ -2240,9 +2235,8 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         if not os.path.exists(infile):
             os.symlink(filepath, infile)
-        else:
-            if os.path.realpath(infile) != filepath:
-                raise self.Error("infile %s does not point to filepath %s" % (infile, filepath))
+        elif os.path.realpath(infile) != filepath:
+            raise self.Error("infile %s does not point to filepath %s" % (infile, filepath))
 
     def make_links(self) -> None:
         """
@@ -2256,7 +2250,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         for dep in self.deps:
             filepaths, exts = dep.get_filepaths_and_exts()
 
-            for path, ext in zip(filepaths, exts):
+            for path, ext in zip(filepaths, exts, strict=False):
                 self.history.info(f"Need path `{path}` with extension: `{ext}`")
                 dest = self.ipath_from_ext(ext)
 
@@ -2277,12 +2271,11 @@ class Task(Node, metaclass=abc.ABCMeta):
                 self.history.debug("Linking path %s --> %s" % (path, dest))
                 if not os.path.exists(dest):
                     os.symlink(path, dest)
-                else:
-                    # check links but only if we haven't performed the restart.
-                    # in this case, indeed we may have replaced the file pointer with the
-                    # previous output file of the present task.
-                    if os.path.realpath(dest) != path and self.num_restarts == 0:
-                        raise self.Error("\nDestination:\n `%s`\ndoes not point to path:\n `%s`" % (dest, path))
+                # check links but only if we haven't performed the restart.
+                # in this case, indeed we may have replaced the file pointer with the
+                # previous output file of the present task.
+                elif os.path.realpath(dest) != path and self.num_restarts == 0:
+                    raise self.Error("\nDestination:\n `%s`\ndoes not point to path:\n `%s`" % (dest, path))
 
     @abc.abstractmethod
     def setup(self):
@@ -2318,10 +2311,9 @@ class Task(Node, metaclass=abc.ABCMeta):
         if not ofile.exists:
             if not self.mpiabort_file.exists:
                 return None
-            else:
-                # ABINIT abort file without log!
-                abort_report = parser.parse(self.mpiabort_file.path)
-                return abort_report
+            # ABINIT abort file without log!
+            abort_report = parser.parse(self.mpiabort_file.path)
+            return abort_report
 
         try:
             report = parser.parse(ofile.path)
@@ -2440,7 +2432,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         # Add README.md file if set
         readme_md = getattr(self, "readme_md", None)
         if readme_md is not None:
-            with open(self.path_in_workdir("README.md"), "wt") as fh:
+            with open(self.path_in_workdir("README.md"), "w") as fh:
                 fh.write(readme_md)
 
         # Add abipy_meta.json file if set
@@ -2539,7 +2531,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.history.info("Removed files: %s" % paths)
         return paths
 
-    def setup(self):  # noqa: E731,F811
+    def setup(self):  # noqa: F811
         """Base class does not provide any hook."""
 
     def start(self, **kwargs) -> int:
@@ -2657,7 +2649,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         #fg.attr(fontcolor="white", bgcolor='purple:pink')
         #fg.attr(rankdir="LR", pagedir="BL")
         #fg.attr(constraint="false", pack="true", packMode="clust")
-        fg.node_attr.update(color='lightblue2', style='filled')
+        fg.node_attr.update(color="lightblue2", style="filled")
 
         # Add input attributes.
         if graph_attr is not None:
@@ -2729,7 +2721,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         return fg
 
-    def get_dataframe(self, as_dict: bool = False) -> Union[pd.DataFrame, dict]:
+    def get_dataframe(self, as_dict: bool = False) -> pd.DataFrame | dict:
         """
         Return pandas dataframe with task info or dictionary if as_dict is True.
         This function should be called after task.get_status to update the status.
@@ -2809,7 +2801,7 @@ class AbinitTask(Task):
 
         # Construct the task and run it
         task = cls.from_input(inp, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=mpi_procs))
-        task.set_name('temp_shell_task')
+        task.set_name("temp_shell_task")
         return task
 
     def setup(self) -> None:
@@ -2906,7 +2898,7 @@ class AbinitTask(Task):
 
         for z in znucl:
             for p in self.pseudos:
-                if p.Z == z:
+                if z == p.Z:
                     ord_pseudos.append(p)
                     break
             else:
@@ -3064,7 +3056,7 @@ class AbinitTask(Task):
         # Finalization
         ##############
         # Reset the status, remove garbage files ...
-        self.set_status(self.S_INIT, msg='finished autoparal run')
+        self.set_status(self.S_INIT, msg="finished autoparal run")
 
         # Remove the output file since Abinit likes to create new files
         # with extension .outA, .outB if the file already exists.
@@ -3110,12 +3102,12 @@ class AbinitTask(Task):
         ])
 
         if what == "all":
-            return [getattr(v, "path") for v in choices.values()]
+            return [v.path for v in choices.values()]
 
         selected = []
         for c in what:
             try:
-                selected.append(getattr(choices[c], "path"))
+                selected.append(choices[c].path)
             except KeyError:
                 self.history.warning("Wrong keyword %s" % c)
 
@@ -3123,7 +3115,7 @@ class AbinitTask(Task):
 
     def restart(self) -> None:
         """
-        general restart used when scheduler problems have been taken care of
+        General restart used when scheduler problems have been taken care of
         """
         return self._restart()
 
@@ -3141,7 +3133,7 @@ class AbinitTask(Task):
             os.mkdir(reset_dir)
             num_reset = 1
         else:
-            with open(reset_file, "rt") as fh:
+            with open(reset_file) as fh:
                 num_reset = 1 + int(fh.read())
 
         # Move files to reset and append digit with reset index.
@@ -3150,12 +3142,12 @@ class AbinitTask(Task):
             try:
                 f.move(os.path.join(reset_dir, f.basename + "_" + str(num_reset)))
             except OSError as exc:
-                self.history.warning("Couldn't move file {}. exc: {}".format(f, str(exc)))
+                self.history.warning(f"Couldn't move file {f}. exc: {exc!s}")
 
         for fname in ("output_file", "log_file", "stderr_file", "qout_file", "qerr_file"):
             move_file(getattr(self, fname))
 
-        with open(reset_file, "wt") as fh:
+        with open(reset_file, "w") as fh:
             fh.write(str(num_reset))
 
         self.start_lockfile.remove()
@@ -3167,21 +3159,21 @@ class AbinitTask(Task):
 
     def fix_abicritical(self) -> int:
         """
-        method to fix crashes/error caused by abinit
+        Method to fix crashes/error caused by abinit
 
         Returns:
             1 if task has been fixed else 0.
         """
         event_handlers = self.event_handlers
         if not event_handlers:
-            self.set_status(status=self.S_ERROR, msg='Empty list of event handlers. Cannot fix abi_critical errors')
+            self.set_status(status=self.S_ERROR, msg="Empty list of event handlers. Cannot fix abi_critical errors")
             return 0
 
         count, done = 0, len(event_handlers) * [0]
 
         report = self.get_event_report()
         if report is None:
-            self.set_status(status=self.S_ERROR, msg='get_event_report returned None')
+            self.set_status(status=self.S_ERROR, msg="get_event_report returned None")
             return 0
 
         # Note we have loop over all possible events (slow, I know)
@@ -3205,7 +3197,7 @@ class AbinitTask(Task):
             self.reset_from_scratch()
             return 1
 
-        self.set_status(status=self.S_ERROR, msg='We encountered AbiCritical events that could not be fixed')
+        self.set_status(status=self.S_ERROR, msg="We encountered AbiCritical events that could not be fixed")
         return 0
 
     def fix_queue_critical(self) -> int:
@@ -3218,10 +3210,10 @@ class AbinitTask(Task):
         Returns:
             1 if task has been fixed else 0.
         """
-        from abipy.flowtk.scheduler_error_parsers import NodeFailureError, MemoryCancelError, TimeCancelError
+        from abipy.flowtk.scheduler_error_parsers import MemoryCancelError, NodeFailureError, TimeCancelError
         #assert isinstance(self.manager, TaskManager)
 
-        self.history.info('fixing queue critical')
+        self.history.info("fixing queue critical")
         ret = "task.fix_queue_critical: "
 
         if not self.queue_errors:
@@ -3242,10 +3234,10 @@ class AbinitTask(Task):
                     ret += "increased resources"
                     return ret
                 except ManagerIncreaseError:
-                    self.set_status(self.S_ERROR, msg='unknown queue error, could not increase resources any further')
+                    self.set_status(self.S_ERROR, msg="unknown queue error, could not increase resources any further")
                     raise FixQueueCriticalError
             else:
-                self.set_status(self.S_ERROR, msg='unknown queue error, no options left')
+                self.set_status(self.S_ERROR, msg="unknown queue error, no options left")
                 raise FixQueueCriticalError
 
         else:
@@ -3253,7 +3245,7 @@ class AbinitTask(Task):
             print("type_list: %s" % list(type(qe) for qe in self.queue_errors))
 
             for error in self.queue_errors:
-                self.history.info('fixing: %s' % str(error))
+                self.history.info("fixing: %s" % str(error))
                 ret += str(error)
                 if isinstance(error, NodeFailureError):
                     # if the problematic node is known, exclude it
@@ -3261,11 +3253,11 @@ class AbinitTask(Task):
                         try:
                             self.manager.exclude_nodes(error.nodes)
                             self.reset_from_scratch()
-                            self.set_status(self.S_READY, msg='excluding nodes')
+                            self.set_status(self.S_READY, msg="excluding nodes")
                         except Exception:
                             raise FixQueueCriticalError
                     else:
-                        self.set_status(self.S_ERROR, msg='Node error but no node identified.')
+                        self.set_status(self.S_ERROR, msg="Node error but no node identified.")
                         raise FixQueueCriticalError
 
                 elif isinstance(error, MemoryCancelError):
@@ -3276,76 +3268,76 @@ class AbinitTask(Task):
                         try:
                             self.manager.increase_ncpus()
                             self.reset_from_scratch()
-                            self.set_status(self.S_READY, msg='increased ncps to solve memory problem')
-                            return
+                            self.set_status(self.S_READY, msg="increased ncps to solve memory problem")
+                            return None
                         except ManagerIncreaseError:
-                            self.history.warning('increasing ncpus failed')
+                            self.history.warning("increasing ncpus failed")
 
                     # if the max is reached, try to increase the memory per cpu:
                     try:
                         self.manager.increase_mem()
                         self.reset_from_scratch()
-                        self.set_status(self.S_READY, msg='increased mem')
-                        return
+                        self.set_status(self.S_READY, msg="increased mem")
+                        return None
                     except ManagerIncreaseError:
-                        self.history.warning('increasing mem failed')
+                        self.history.warning("increasing mem failed")
 
                     # if this failed ask the task to provide a method to reduce the memory demand
                     try:
                         self.reduce_memory_demand()
                         self.reset_from_scratch()
-                        self.set_status(self.S_READY, msg='decreased mem demand')
-                        return
+                        self.set_status(self.S_READY, msg="decreased mem demand")
+                        return None
                     except DecreaseDemandsError:
-                        self.history.warning('decreasing demands failed')
+                        self.history.warning("decreasing demands failed")
 
-                    msg = ('Memory error detected but the memory could not be increased neither could the\n'
-                           'memory demand be decreased. Unrecoverable error.')
+                    msg = ("Memory error detected but the memory could not be increased neither could the\n"
+                           "memory demand be decreased. Unrecoverable error.")
                     self.set_status(self.S_ERROR, msg)
                     raise FixQueueCriticalError
 
                 elif isinstance(error, TimeCancelError):
                     # ask the qadapter to provide more time
-                    print('trying to increase time')
+                    print("trying to increase time")
                     try:
                         self.manager.increase_time()
                         self.reset_from_scratch()
-                        self.set_status(self.S_READY, msg='increased wall time')
-                        return
+                        self.set_status(self.S_READY, msg="increased wall time")
+                        return None
                     except ManagerIncreaseError:
-                        self.history.warning('increasing the waltime failed')
+                        self.history.warning("increasing the waltime failed")
 
                     # if this fails ask the qadapter to increase the number of cpus
                     if self.load_scales:
                         try:
                             self.manager.increase_ncpus()
                             self.reset_from_scratch()
-                            self.set_status(self.S_READY, msg='increased number of cpus')
-                            return
+                            self.set_status(self.S_READY, msg="increased number of cpus")
+                            return None
                         except ManagerIncreaseError:
-                            self.history.warning('increase ncpus to speed up the calculation to stay in the walltime failed')
+                            self.history.warning("increase ncpus to speed up the calculation to stay in the walltime failed")
 
                     # if this failed ask the task to provide a method to speed up the task
                     try:
                         self.speed_up()
                         self.reset_from_scratch()
-                        self.set_status(self.S_READY, msg='task speedup')
-                        return
+                        self.set_status(self.S_READY, msg="task speedup")
+                        return None
                     except DecreaseDemandsError:
-                        self.history.warning('decreasing demands failed')
+                        self.history.warning("decreasing demands failed")
 
-                    msg = ('Time cancel error detected but the time could not be increased neither could\n'
-                           'the time demand be decreased by speedup of increasing the number of cpus.\n'
-                           'Unrecoverable error.')
+                    msg = ("Time cancel error detected but the time could not be increased neither could\n"
+                           "the time demand be decreased by speedup of increasing the number of cpus.\n"
+                           "Unrecoverable error.")
                     self.set_status(self.S_ERROR, msg)
 
                 else:
-                    msg = 'No solution provided for error %s. Unrecoverable error.' % error.name
+                    msg = "No solution provided for error %s. Unrecoverable error." % error.name
                     self.set_status(self.S_ERROR, msg)
 
         return 0
 
-    def parse_timing(self) -> Union[AbinitTimerParser, None]:
+    def parse_timing(self) -> AbinitTimerParser | None:
         """
         Parse the timer data in the main output file of Abinit.
         Requires timopt /= 0 in the input file (usually timopt = -1)
@@ -3362,8 +3354,7 @@ class AbinitTask(Task):
         """
         Parse the main output file in text format, return AbinitOutputFile object.
 
-        example:
-
+        Example:
             with task.open_abo() as abo:
                 dims_dataset, spginfo_dataset = abo.get_dims_spginfo_dataset(verbose=0)
         """
@@ -3549,7 +3540,7 @@ class ScfTask(GsTask):
         """
         try:
             scf_cycle = abiinspect.GroundStateScfCycle.from_file(self.output_file.path)
-        except IOError:
+        except OSError:
             return None
 
         if scf_cycle is not None:
@@ -3623,7 +3614,6 @@ class NscfTask(GsTask):
         (in principle, it's possible to interpolate inside Abinit but tests revealed some numerical noise
         Here we change the input file of the NSCF task to have the same FFT mesh.
         """
-
         # Print a warning if nbdbuf is not specified since Abinit default is usually too small.
         if "nbdbuf" not in self.input:
             msg = """
@@ -4133,7 +4123,7 @@ class DteTask(DfptTask):
 
     def start(self, **kwargs):
         """Disable autoparal mode before starting the task."""
-        kwargs['autoparal'] = False
+        kwargs["autoparal"] = False
         return super().start(**kwargs)
 
 
@@ -4151,7 +4141,7 @@ class DdkTask(DfptTask):
         # so that we can use deps={ddk_task: "DDK"} in the high-level API.
         # The price to pay is that we have to handle the DDK extension in make_links.
         # See DfptTask.make_links
-        self.outdir.symlink_abiext('1WF', 'DDK')
+        self.outdir.symlink_abiext("1WF", "DDK")
 
 
 class EfieldTask(DfptTask):
@@ -4389,8 +4379,7 @@ class SigmaTask(ManyBodyTask):
         from abipy.electrons.scissors import ScissorsBuilder
         if self.sigres_path:
             return ScissorsBuilder.from_file(self.sigres_path)
-        else:
-            raise RuntimeError("Cannot find SIGRES file!")
+        raise RuntimeError("Cannot find SIGRES file!")
 
 
 class BseTask(ManyBodyTask):
@@ -4582,9 +4571,9 @@ class OpticTask(Task):
 
         # Use DDK extension instead of 1WF
         if use_ddknc:
-            deps = {n: "DDK.nc" for n in self.ddk_nodes}
+            deps = dict.fromkeys(self.ddk_nodes, "DDK.nc")
         else:
-            deps = {n: "1WF" for n in self.ddk_nodes}
+            deps = dict.fromkeys(self.ddk_nodes, "1WF")
 
         deps.update({self.nscf_node: "WFK"})
 
@@ -4678,7 +4667,7 @@ class OpticTask(Task):
 
     def reset_from_scratch(self):
         """
-        restart from scratch, this is to be used if a job is restarted with more resources after a crash
+        Restart from scratch, this is to be used if a job is restarted with more resources after a crash
         """
         # Move output files produced in workdir to _reset otherwise check_status continues
         # to see the task as crashed even if the job did not run
@@ -4689,7 +4678,7 @@ class OpticTask(Task):
             os.mkdir(reset_dir)
             num_reset = 1
         else:
-            with open(reset_file, "rt") as fh:
+            with open(reset_file) as fh:
                 num_reset = 1 + int(fh.read())
 
         # Move files to reset and append digit with reset index.
@@ -4698,12 +4687,12 @@ class OpticTask(Task):
             try:
                 f.move(os.path.join(reset_dir, f.basename + "_" + str(num_reset)))
             except OSError as exc:
-                self.history.warning("Couldn't move file {}. exc: {}".format(f, str(exc)))
+                self.history.warning(f"Couldn't move file {f}. exc: {exc!s}")
 
         for fname in ("output_file", "log_file", "stderr_file", "qout_file", "qerr_file", "mpiabort_file"):
             move_file(getattr(self, fname))
 
-        with open(reset_file, "wt") as fh:
+        with open(reset_file, "w") as fh:
             fh.write(str(num_reset))
 
         self.start_lockfile.remove()
@@ -4723,24 +4712,24 @@ class OpticTask(Task):
         Returns:
             1 if task has been fixed else 0.
         """
-        from abipy.flowtk.scheduler_error_parsers import NodeFailureError, MemoryCancelError, TimeCancelError
+        from abipy.flowtk.scheduler_error_parsers import MemoryCancelError, NodeFailureError, TimeCancelError
 
         if not self.queue_errors:
             if self.mem_scales or self.load_scales:
                 try:
                     self.manager.increase_resources()  # acts either on the policy or on the qadapter
                     self.reset_from_scratch()
-                    return
+                    return None
                 except ManagerIncreaseError:
-                    self.set_status(self.S_ERROR, msg='unknown queue error, could not increase resources any further')
+                    self.set_status(self.S_ERROR, msg="unknown queue error, could not increase resources any further")
                     raise FixQueueCriticalError
             else:
-                self.set_status(self.S_ERROR, msg='unknown queue error, no options left')
+                self.set_status(self.S_ERROR, msg="unknown queue error, no options left")
                 raise FixQueueCriticalError
 
         else:
             for error in self.queue_errors:
-                self.history.info('fixing: %s' % str(error))
+                self.history.info("fixing: %s" % str(error))
 
                 if isinstance(error, NodeFailureError):
                     # if the problematic node is known, exclude it
@@ -4748,11 +4737,11 @@ class OpticTask(Task):
                         try:
                             self.manager.exclude_nodes(error.nodes)
                             self.reset_from_scratch()
-                            self.set_status(self.S_READY, msg='excluding nodes')
+                            self.set_status(self.S_READY, msg="excluding nodes")
                         except Exception:
                             raise FixQueueCriticalError
                     else:
-                        self.set_status(self.S_ERROR, msg='Node error but no node identified.')
+                        self.set_status(self.S_ERROR, msg="Node error but no node identified.")
                         raise FixQueueCriticalError
 
                 elif isinstance(error, MemoryCancelError):
@@ -4763,31 +4752,31 @@ class OpticTask(Task):
                         try:
                             self.manager.increase_ncpus()
                             self.reset_from_scratch()
-                            self.set_status(self.S_READY, msg='increased ncps to solve memory problem')
-                            return
+                            self.set_status(self.S_READY, msg="increased ncps to solve memory problem")
+                            return None
                         except ManagerIncreaseError:
-                            self.history.warning('increasing ncpus failed')
+                            self.history.warning("increasing ncpus failed")
 
                     # if the max is reached, try to increase the memory per cpu:
                     try:
                         self.manager.increase_mem()
                         self.reset_from_scratch()
-                        self.set_status(self.S_READY, msg='increased mem')
-                        return
+                        self.set_status(self.S_READY, msg="increased mem")
+                        return None
                     except ManagerIncreaseError:
-                        self.history.warning('increasing mem failed')
+                        self.history.warning("increasing mem failed")
 
                     # if this failed ask the task to provide a method to reduce the memory demand
                     try:
                         self.reduce_memory_demand()
                         self.reset_from_scratch()
-                        self.set_status(self.S_READY, msg='decreased mem demand')
-                        return
+                        self.set_status(self.S_READY, msg="decreased mem demand")
+                        return None
                     except DecreaseDemandsError:
-                        self.history.warning('decreasing demands failed')
+                        self.history.warning("decreasing demands failed")
 
-                    msg = ('Memory error detected but the memory could not be increased neither could the\n'
-                           'memory demand be decreased. Unrecoverable error.')
+                    msg = ("Memory error detected but the memory could not be increased neither could the\n"
+                           "memory demand be decreased. Unrecoverable error.")
                     self.set_status(self.S_ERROR, msg)
                     raise FixQueueCriticalError
 
@@ -4796,37 +4785,37 @@ class OpticTask(Task):
                     try:
                         self.manager.increase_time()
                         self.reset_from_scratch()
-                        self.set_status(self.S_READY, msg='increased wall time')
-                        return
+                        self.set_status(self.S_READY, msg="increased wall time")
+                        return None
                     except ManagerIncreaseError:
-                        self.history.warning('increasing the walltime failed')
+                        self.history.warning("increasing the walltime failed")
 
                     # if this fails ask the qadapter to increase the number of cpus
                     if self.load_scales:
                         try:
                             self.manager.increase_ncpus()
                             self.reset_from_scratch()
-                            self.set_status(self.S_READY, msg='increased number of cpus')
-                            return
+                            self.set_status(self.S_READY, msg="increased number of cpus")
+                            return None
                         except ManagerIncreaseError:
-                            self.history.warning('increase ncpus to speed up the calculation to stay in the walltime failed')
+                            self.history.warning("increase ncpus to speed up the calculation to stay in the walltime failed")
 
                     # if this failed ask the task to provide a method to speed up the task
                     try:
                         self.speed_up()
                         self.reset_from_scratch()
-                        self.set_status(self.S_READY, msg='task speedup')
-                        return
+                        self.set_status(self.S_READY, msg="task speedup")
+                        return None
                     except DecreaseDemandsError:
-                        self.history.warning('decreasing demands failed')
+                        self.history.warning("decreasing demands failed")
 
-                    msg = ('Time cancel error detected but the time could not be increased neither could\n'
-                           'the time demand be decreased by speedup of increasing the number of cpus.\n'
-                           'Unrecoverable error.')
+                    msg = ("Time cancel error detected but the time could not be increased neither could\n"
+                           "the time demand be decreased by speedup of increasing the number of cpus.\n"
+                           "Unrecoverable error.")
                     self.set_status(self.S_ERROR, msg)
 
                 else:
-                    msg = 'No solution provided for error %s. Unrecoverable error.' % error.name
+                    msg = "No solution provided for error %s. Unrecoverable error." % error.name
                     self.set_status(self.S_ERROR, msg)
 
         return 0
@@ -4911,7 +4900,7 @@ class OpticTask(Task):
         # Finalization
         ##############
         # Reset the status, remove garbage files ...
-        self.set_status(self.S_INIT, msg='finished auto paralell')
+        self.set_status(self.S_INIT, msg="finished auto paralell")
 
         # Remove the output file since Abinit likes to create new files
         # with extension .outA, .outB if the file already exists.
@@ -5078,7 +5067,7 @@ class AnaddbTask(Task):
         return PhdosFile(phdos_path)
 
     def make_input(self, with_header: bool = False) -> str:
-        """return string the input file of the calculation."""
+        """Return string the input file of the calculation."""
         inp = self.input.deepcopy()
 
         ddb_filepath = self.ddb_filepath
@@ -5181,7 +5170,6 @@ class AtdepTask(Task):
 
     def setup(self):
         """Public method called before submitting the task."""
-        pass
 
     def make_links(self):
         self.inlink_file(self.hist_filepath)
@@ -5199,12 +5187,12 @@ class AtdepTask(Task):
         return DdbFile(ddb_path)
 
     def make_input(self, with_header=False) -> str:
-        """return string the input file of the calculation."""
+        """Return string the input file of the calculation."""
         inp = self.input.deepcopy()
 
-        inp['output_file'] = str(self.output_file.path)
-        inp['indata_prefix'] = self.indir.path_in('in')
-        inp['outdata_prefix'] = self.outdir.path_in('out')
+        inp["output_file"] = str(self.output_file.path)
+        inp["indata_prefix"] = self.indir.path_in("in")
+        inp["outdata_prefix"] = self.outdir.path_in("out")
 
         s = str(inp)
         if with_header: s = str(self) + "\n" + s

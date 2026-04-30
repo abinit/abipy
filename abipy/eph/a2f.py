@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 This module contains objects for postprocessing A2F calculations:
 (phonon lifetimes in metals and Eliashberg function).
@@ -9,12 +8,14 @@ Warning:
 from __future__ import annotations
 
 import itertools
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
-import pymatgen.core.units as units
+from pymatgen.core import units
+
 import abipy.core.abinit_units as abu
 
-from functools import cached_property
 try:
     from scipy.integrate import cumulative_trapezoid as cumtrapz
 except ImportError:
@@ -24,19 +25,25 @@ try:
 except ImportError:
     from scipy.integrate import simps
 
-from monty.string import marquee, list_strings
-from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.core.kpoints import Kpath
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-                                  rotate_ticklabels)
-from abipy.tools import duck
-from abipy.tools.typing import Figure
-from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands
-from abipy.dfpt.phonons import PhononBands, PhononDos, RobotWithPhbands
-from abipy.abio.robots import Robot
-from abipy.eph.common import BaseEphReader
+from monty.string import list_strings, marquee
 
+from abipy.abio.robots import Robot
+from abipy.core.kpoints import Kpath
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
+from abipy.dfpt.phonons import PhononBands, PhononDos, RobotWithPhbands
+from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands
+from abipy.eph.common import BaseEphReader
+from abipy.tools import duck
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    rotate_ticklabels,
+    set_axlims,
+    set_visible,
+)
+from abipy.tools.typing import Figure
 
 _LATEX_LABELS = {
     "lambda_iso": r"$\lambda_{iso}$",
@@ -100,8 +107,7 @@ class A2f:
         """
         for i, x in enumerate(self.mesh):
             if x >= 0.0: return i
-        else:
-            raise ValueError("Cannot find zero in energy mesh")
+        raise ValueError("Cannot find zero in energy mesh")
 
     def __str__(self) -> str:
         return self.to_string()
@@ -471,8 +477,7 @@ class A2Ftr:
         """
         for i, x in enumerate(self.mesh):
             if x >= 0.0: return i
-        else:
-            raise ValueError("Cannot find zero in energy mesh")
+        raise ValueError("Cannot find zero in energy mesh")
 
 
 class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -572,7 +577,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         # Add EPH parameters.
         od.update(self.reader.common_eph_params)
@@ -719,7 +724,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         ax_list = np.array(ax_list).ravel()
         units = "eV"
 
-        for i, (ax, what) in enumerate(zip(ax_list, what_list)):
+        for i, (ax, what) in enumerate(zip(ax_list, what_list, strict=False)):
             # Decorate the axis (e.g add ticks and labels).
             self.phbands.decorate_ax(ax, units="")
 
@@ -844,7 +849,7 @@ class A2fFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             qintp={"linestyle": "-", "color": "r"},
         )
 
-        for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
+        for ix, (ax, what) in enumerate(zip(ax_list, what_list, strict=False)):
             for qsamp in ["qcoarse", "qintp"]:
                 a2f = self.get_a2f_qsamp(qsamp)
                 a2f.plot(what=what, ax=ax, units=units, ylims=ylims, fontsize=fontsize,
@@ -1211,7 +1216,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
         qsamps = self.all_qsamps if qsamps == "all" else list_strings(qsamps)
         marker = kwargs.pop("marker", "o")
 
-        for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
+        for ix, (ax, what) in enumerate(zip(ax_list, what_list, strict=False)):
             #ax.set_title(what, fontsize=fontsize)
             if hue is None:
                 params_are_string = duck.is_string(params[0])
@@ -1293,7 +1298,7 @@ class A2fRobot(Robot, RobotWithEbands, RobotWithPhbands):
 
             a2f_list = [ncfile.get_a2f_qsamp(qsamp) for ncfile in self.abifiles]
 
-            for i, (a2f, ax, title) in enumerate(zip(a2f_list, ax_list, self.keys())):
+            for i, (a2f, ax, title) in enumerate(zip(a2f_list, ax_list, self.keys(), strict=False)):
                 irow, icol = divmod(i, ncols)
                 # FIXME: Twinx is problematic
                 a2f.plot_with_lambda(ax=ax, show=False,
@@ -1414,7 +1419,7 @@ class A2fReader(BaseEphReader):
         amu_list = self.read_value("atomic_mass_units", default=None)
         if amu_list is not None:
             atom_species = self.read_value("atomic_numbers")
-            amu = {at: a for at, a in zip(atom_species, amu_list)}
+            amu = {at: a for at, a in zip(atom_species, amu_list, strict=False)}
         else:
             raise ValueError("atomic_mass_units is not present!")
             amu = None

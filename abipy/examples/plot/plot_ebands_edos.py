@@ -6,8 +6,8 @@ Bands + DOS
 This example shows how to compute the DOS and plot a
 band structure with DOS using two GSR files.
 """
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 # Open the file with energies computed on a k-path in the BZ
 # and extract the band structure object.

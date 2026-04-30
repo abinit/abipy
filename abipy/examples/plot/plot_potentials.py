@@ -7,8 +7,8 @@ This example shows how to plot the potentials stored in netcdf files.
 Use the input variables `prtpot`, `prtvha`, `prtvhxc`, `prtvxc` with
 `iomode 3` to produce these files at the end of the SCF-GS run.
 """
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 # VKS = Hartree + XC potential + sum of local part of pseudos.
 with abiopen(abidata.ref_file("ni_666k_POT.nc")) as ncfile:

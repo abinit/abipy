@@ -10,15 +10,13 @@ k-point samplings and values of the electronic smearing tsmear.
 
 import os
 import sys
-import abipy.data as abidata
-import abipy.abilab as abilab
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_input(structure, ngkpt, tsmear, pseudos, paral_kgb=0):
     """Build and return Ground-state input for MgB2 given ngkpt and tsmear."""
-
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
     # Global variables

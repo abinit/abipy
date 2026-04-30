@@ -4,18 +4,18 @@ Script to perform several types of calculations with ASE and ML potentials.
 """
 from __future__ import annotations
 
-import sys
-import os
 import json
-import click
-import numpy as np
-import abipy.ml.aseml as aseml
-import abipy.tools.cli_parsers as cli
-
+import os
+import sys
 from functools import wraps
 from time import time
-from abipy.core.structure import Structure
 
+import click
+import numpy as np
+
+import abipy.tools.cli_parsers as cli
+from abipy.core.structure import Structure
+from abipy.ml import aseml
 
 ASE_OPTIMIZERS = aseml.ase_optimizer_cls("__all__")
 
@@ -61,7 +61,7 @@ def herald(f):
         #print('func:%r args:[%r, %r]' % (f.__name__, args, kw))
         #raise ValueError()
         if verbose > 3:
-            print('func:%r args:[%r, %r]' % (f.__name__, args, kw))
+            print("func:%r args:[%r, %r]" % (f.__name__, args, kw))
             print(f.__doc__, end=2*"\n")
             print("Command line options:")
             print(json.dumps(kw, indent=4), end="\n")
@@ -72,7 +72,7 @@ def herald(f):
         t_start = time()
         exit_code = f(*args, **kw)
         t_end = time()
-        print('\n%s command completed in %2.4f sec\n' % (f.__name__, t_end - t_start))
+        print("\n%s command completed in %2.4f sec\n" % (f.__name__, t_end - t_start))
         return exit_code
 
     return wrapper
@@ -100,10 +100,10 @@ def add_relax_opts(f):
     # fmax (float): total force tolerance for relaxation convergence.
     # Here fmax is a sum of force and stress forces. Defaults to 0.1.
     f = click.option("--relax-mode", "-r", default="ions", show_default=True, type=click.Choice(["no", "ions", "cell"]),
-                     help='Relaxation mode.')(f)
+                     help="Relaxation mode.")(f)
     f = click.option("--fmax", default=0.01, type=float, show_default=True,
-                     help='Stopping criterion in eV/A')(f)
-    f = click.option("--pressure", default=0.0, type=float, show_default=True, help='Scalar pressure')(f)
+                     help="Stopping criterion in eV/A")(f)
+    f = click.option("--pressure", default=0.0, type=float, show_default=True, help="Scalar pressure")(f)
     f = click.option("--steps", default=500, type=int, show_default=True,
                      help="Max number of steps for ASE relaxation.")(f)
     f = click.option("--optimizer", "-o", default="BFGS", show_default=True, type=click.Choice(ASE_OPTIMIZERS),
@@ -117,9 +117,9 @@ def add_phonopy_opts(f, supercell=(2, 2, 2)):
                      help="Supercell dimensions.")(f)
     f = click.option("--distance", "-d", type=float, show_default=True, default=0.01,
                      help="Displacement distance in Ang.")(f)
-    f = click.option('--line-density', "-ld", default=20, type=float, show_default=True,
+    f = click.option("--line-density", "-ld", default=20, type=float, show_default=True,
                      help="Line density to generate the q-path for PH bands.")(f)
-    f = click.option('--qppa', "-qppa", default=None, type=float, show_default=True,
+    f = click.option("--qppa", "-qppa", default=None, type=float, show_default=True,
                      help="q-points per atom to generate the q-mesh for PH DOS.")(f)
     return f
 
@@ -127,12 +127,12 @@ def add_phonopy_opts(f, supercell=(2, 2, 2)):
 def add_neb_opts(f):
     """Add CLI options for NEB calculations with ASE."""
     f = click.option("--nimages", "-n", default=14, type=click.IntRange(3, None), show_default=True,
-                     help='Number of NEB images including initial/final points. Must be >= 3')(f)
+                     help="Number of NEB images including initial/final points. Must be >= 3")(f)
     f = click.option("--relax-mode", "-r", default="ions", show_default=True, type=click.Choice(["no", "ions", "cell"]),
-            help="Relax initial and final structure. Use `cell` to relax ions and cell, " +
+            help="Relax initial and final structure. Use `cell` to relax ions and cell, "
                  "`ions` to relax atomic positions only, `no` to disable relaxation")(f)
-    f = click.option("--fmax", default=0.03, type=float, show_default=True, help='Stopping criterion.')(f)
-    f = click.option("--pressure", default=0.0, type=float, show_default=True, help='Scalar pressure')(f)
+    f = click.option("--fmax", default=0.03, type=float, show_default=True, help="Stopping criterion.")(f)
+    f = click.option("--pressure", default=0.0, type=float, show_default=True, help="Scalar pressure")(f)
     f = click.option("--optimizer", "-o", default="BFGS", show_default=True, type=click.Choice(ASE_OPTIMIZERS),
                      help="ASE optimizer class.")(f)
     f = click.option("--neb-method", "-m", default="aseneb", type=click.Choice(aseml.ASENEB_METHODS),
@@ -144,7 +144,7 @@ def add_neb_opts(f):
 def add_nprocs_opt(f):
     """Add CLI options for multiprocessing."""
     f = click.option("-np", "--nprocs", default=-1, type=int, show_default=True,
-                    help='Number of processes in multiprocessing pool. -1 to let Abipy select it automatically.')(f)
+                    help="Number of processes in multiprocessing pool. -1 to let Abipy select it automatically.")(f)
     return f
 
 
@@ -152,7 +152,7 @@ def add_workdir_verbose_opts(f):
     """Add workdir and verbose options to CLI subcommand."""
     f = click.option("--workdir", "-w", default=None, type=str,
                       help="Working directory. If not specified, a temporary directory is created.")(f)
-    f = click.option('-v', '--verbose', count=True, help="Verbosity level")(f)
+    f = click.option("-v", "--verbose", count=True, help="Verbosity level")(f)
     return f
 
 
@@ -168,8 +168,8 @@ def add_nn_name_opt(f):
 
 def add_nn_names_opt(f):
     """Add CLI options to select multiple NN potentials."""
-    f = click.option("-nns", '--nn-names', type=str, multiple=True, show_default=True,
-                    help='ML potentials to use.', default=[DEFAULT_NN])(f)
+    f = click.option("-nns", "--nn-names", type=str, multiple=True, show_default=True,
+                    help="ML potentials to use.", default=[DEFAULT_NN])(f)
     return f
 
 
@@ -211,8 +211,8 @@ def main(ctx, seaborn):
     if seaborn:
         # Activate seaborn settings for plots
         import seaborn as sns
-        sns.set(context=seaborn, style='darkgrid', palette='deep',
-                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+        sns.set(context=seaborn, style="darkgrid", palette="deep",
+                font="sans-serif", font_scale=1, color_codes=False, rc=None)
 
     # Suppress all DeprecationWarnings
     #import warnings
@@ -227,7 +227,7 @@ def main(ctx, seaborn):
 @add_relax_opts
 @add_constraint_opts
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_relax.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_relax.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def relax(ctx, filepath, nn_name,
           relax_mode, fmax, pressure, steps, optimizer,
           fix_inds, fix_symbols,
@@ -264,7 +264,7 @@ def relax(ctx, filepath, nn_name,
 @click.pass_context
 @click.argument("filepath", type=str)
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_abinit_relax.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_abinit_relax.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def abinit_relax(ctx, filepath,
                  workdir, verbose):
     """
@@ -283,7 +283,7 @@ def abinit_relax(ctx, filepath,
 @add_nn_name_opt
 @add_relax_opts
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_eos.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_eos.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def eos(ctx, filepath, nn_name,
         relax_mode, fmax, pressure, steps, optimizer,
         workdir, verbose):
@@ -320,16 +320,16 @@ def eos(ctx, filepath, nn_name,
 @click.pass_context
 @click.argument("filepath", type=str)
 @add_nn_name_opt
-@click.option('--temperature', "-t", default=600, type=float, show_default=True, help='Temperature in Kelvin')
-@click.option('--pressure', "-p", default=1, type=float, show_default=True, help='Pressure in ???.')
-@click.option('--timestep', "-ts", default=1, type=float, show_default=True, help='Timestep in fs.')
-@click.option('--steps', "-s", default=1000, type=int, show_default=True, help='Number of timesteps.')
-@click.option('--loginterval', "-l", default=100, type=int, show_default=True, help='Interval for record the log.')
-@click.option('--ensemble', "-e", default="nvt", show_default=True,
-              type=click.Choice(["nvt", "npt", "npt_berendsen"]), help='Ensemble e.g. nvt, npt.')
+@click.option("--temperature", "-t", default=600, type=float, show_default=True, help="Temperature in Kelvin")
+@click.option("--pressure", "-p", default=1, type=float, show_default=True, help="Pressure in ???.")
+@click.option("--timestep", "-ts", default=1, type=float, show_default=True, help="Timestep in fs.")
+@click.option("--steps", "-s", default=1000, type=int, show_default=True, help="Number of timesteps.")
+@click.option("--loginterval", "-l", default=100, type=int, show_default=True, help="Interval for record the log.")
+@click.option("--ensemble", "-e", default="nvt", show_default=True,
+              type=click.Choice(["nvt", "npt", "npt_berendsen"]), help="Ensemble e.g. nvt, npt.")
 @add_constraint_opts
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_md.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_md.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def md(ctx, filepath, nn_name,
        temperature, pressure, timestep, steps, loginterval, ensemble,
        fix_inds, fix_symbols,
@@ -370,7 +370,7 @@ def md(ctx, filepath, nn_name,
 @add_neb_opts
 @add_constraint_opts
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_neb.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_neb.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def neb(ctx, filepaths, nn_name,
         nimages, relax_mode, fmax, pressure, optimizer, neb_method, climb,
         fix_inds, fix_symbols,
@@ -412,7 +412,7 @@ def neb(ctx, filepaths, nn_name,
 @add_neb_opts
 @add_constraint_opts
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_mneb.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_mneb.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def mneb(ctx, filepaths, nn_name,
          nimages, relax_mode, fmax, pressure, optimizer, neb_method, climb,
          fix_inds, fix_symbols,
@@ -453,7 +453,7 @@ def mneb(ctx, filepaths, nn_name,
 @add_phonopy_opts
 @add_relax_opts
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_ph.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_ph.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def ph(ctx, filepath, nn_names,
        supercell, distance, line_density, qppa,
        relax_mode, fmax, pressure, steps, optimizer,
@@ -504,11 +504,11 @@ def phddb_add_phonopy_opts(f):
 @click.argument("ddb_filepath", type=str)
 @add_nn_names_opt
 @phddb_add_phonopy_opts
-@click.option('--asr', type=int, default=2, show_default=True, help="Restore the acoustic sum rule on the interatomic force constants.")
-@click.option('--dipdip', type=int, default=1, show_default=True, help="Treatment of dipole-dipole interaction.")
+@click.option("--asr", type=int, default=2, show_default=True, help="Restore the acoustic sum rule on the interatomic force constants.")
+@click.option("--dipdip", type=int, default=1, show_default=True, help="Treatment of dipole-dipole interaction.")
 @add_relax_opts
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_phddb.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_phddb.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def phddb(ctx, ddb_filepath, nn_names,
           supercell, distance, line_density, qppa,
           asr, dipdip,
@@ -565,7 +565,7 @@ def phddb(ctx, ddb_filepath, nn_names,
 @add_phonopy_opts
 @add_relax_opts
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_vqha.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_vqha.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def vqha(ctx, filepath, nn_name,
          supercell, distance, line_density, qppa,
          relax_mode, fmax, pressure, steps, optimizer,
@@ -611,10 +611,10 @@ def vqha(ctx, filepath, nn_name,
 @click.pass_context
 @click.argument("filepath", type=str)
 @add_nn_name_opt
-@click.option("--max-ns", "-m", default=100, type=int, show_default=True, help='Max number of structures')
+@click.option("--max-ns", "-m", default=100, type=int, show_default=True, help="Max number of structures")
 @add_relax_opts
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_order.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_order.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def order(ctx, filepath, nn_name,
           max_ns, relax_mode, fmax, pressure, steps, optimizer, workdir, verbose):
     """
@@ -642,12 +642,12 @@ def order(ctx, filepath, nn_name,
 @click.argument("filepath", type=str)
 @add_nn_name_opt
 @click.option("-isite", "--isite", required=True,
-               help='Index of atom to displace or string with the chemical element to be added to input structure.')
-@click.option("--mesh", type=int, default=4, show_default=True, help='Mesh size along the smallest cell size.')
+               help="Index of atom to displace or string with the chemical element to be added to input structure.")
+@click.option("--mesh", type=int, default=4, show_default=True, help="Mesh size along the smallest cell size.")
 @add_relax_opts
 @add_nprocs_opt
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_scan_relax.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_scan_relax.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def scan_relax(ctx, filepath, nn_name,
                isite, mesh,
                relax_mode, fmax, pressure, steps, optimizer,
@@ -685,7 +685,7 @@ def scan_relax(ctx, filepath, nn_name,
 @main.command()
 @herald
 @click.pass_context
-@click.argument('filepaths', type=str, nargs=-1)
+@click.argument("filepaths", type=str, nargs=-1)
 @add_nn_names_opt
 @click.option("--traj_range", type=str, show_default=True,
               help="Trajectory range e.g. `5` to select the first 5 iterations, `1:4` to select steps 1,2,3. `1:4:2 for 1,3",
@@ -693,14 +693,14 @@ def scan_relax(ctx, filepath, nn_name,
 @click.option("--symbol", type=str, show_default=True,
               help="Chemical symbol. If None all atoms are considered.",
               default=None)
-@click.option('--stress/--no-stress', default=True, show_default=True, help="Show parity-plot for stress tensor")
-@click.option('--delta/--no-delta', default=False, show_default=True, help="Show parity-plot for delta mode")
-@click.option('--traj/--no-traj', default=False, show_default=True, help="Show results along trajectory")
-@click.option("-e", '--exposer', default="mpl", show_default=True, type=click.Choice(["mpl", "panel"]),
-              help='Plotting backend: mpl for matplotlib, panel for web-based, None to disable plotting.')
+@click.option("--stress/--no-stress", default=True, show_default=True, help="Show parity-plot for stress tensor")
+@click.option("--delta/--no-delta", default=False, show_default=True, help="Show parity-plot for delta mode")
+@click.option("--traj/--no-traj", default=False, show_default=True, help="Show results along trajectory")
+@click.option("-e", "--exposer", default="mpl", show_default=True, type=click.Choice(["mpl", "panel"]),
+              help="Plotting backend: mpl for matplotlib, panel for web-based, None to disable plotting.")
 @add_nprocs_opt
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_validate.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_validate.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def validate(ctx,
              filepaths,
              nn_names,
@@ -765,7 +765,7 @@ def validate(ctx,
 @main.command()
 @herald
 @click.pass_context
-@click.option('-v', '--verbose', count=True, help="Verbosity level")
+@click.option("-v", "--verbose", count=True, help="Verbosity level")
 def show(ctx, verbose):
     """
     Show the NN potentials installed in the environment.
@@ -777,10 +777,10 @@ def show(ctx, verbose):
 @main.command()
 @herald
 @click.pass_context
-@click.option("-nns", '--nn-names', type=str, multiple=True, show_default=True,
-              help='ML potentials to install.', default=["all"])
-@click.option('-U', '--update', is_flag=True, default=False, show_default=True, help="Update packages.")
-@click.option('-v', '--verbose', count=True, help="Verbosity level")
+@click.option("-nns", "--nn-names", type=str, multiple=True, show_default=True,
+              help="ML potentials to install.", default=["all"])
+@click.option("-U", "--update", is_flag=True, default=False, show_default=True, help="Update packages.")
+@click.option("-v", "--verbose", count=True, help="Verbosity level")
 def install(ctx, nn_names, update, verbose):
     """
     Install NN potentials in the environment using pip.
@@ -795,14 +795,14 @@ def install(ctx, nn_names, update, verbose):
 @herald
 @click.pass_context
 @click.argument("filepath", type=str)
-@click.option("-nns", '--nn-names', type=str, multiple=True, show_default=True,
-              help='ML potentials to compare.', default=["all"])
-@click.option('--num-tests', "-n", default=20, type=int, show_default=True, help='Number of configurations to generate.')
+@click.option("-nns", "--nn-names", type=str, multiple=True, show_default=True,
+              help="ML potentials to compare.", default=["all"])
+@click.option("--num-tests", "-n", default=20, type=int, show_default=True, help="Number of configurations to generate.")
 @click.option("--rattle", default=0.2, type=float, show_default=True, help="Displace atoms randomly with this stdev.")
 @click.option("-srv", "--stdev-rvol", default=0.1, type=float, show_default=True,
               help="Scale volumes randomly around input v0 with stdev: v0 * value")
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_compare.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_compare.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def compare(ctx, filepath, nn_names,
             num_tests, rattle, stdev_rvol,
             workdir, verbose
@@ -824,7 +824,7 @@ def compare(ctx, filepath, nn_names,
 @click.argument("filepath", type=str)
 @add_nn_name_opt
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_gs.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_gs.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def gs(ctx, filepath, nn_name,
        workdir, verbose,
        ):
@@ -844,7 +844,7 @@ def gs(ctx, filepath, nn_name,
 @click.option("--qpoint", "-q", nargs=3, type=float, help="q-point in reduced coordinates.")
 @add_nn_name_opt
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_phfrozen.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_phfrozen.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def phddb_frozen(ctx, filepath, qpoint, nn_name,
        workdir, verbose,
        ):
@@ -865,7 +865,7 @@ def phddb_frozen(ctx, filepath, qpoint, nn_name,
 @click.argument("elements", nargs=-1, type=str)
 @add_nn_names_opt
 @add_workdir_verbose_opts
-@click.option('--config', default='abiml_cwf_eos.yml', type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
+@click.option("--config", default="abiml_cwf_eos.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False)
 def cwf_eos(ctx, elements, nn_names,
             workdir, verbose
             ):

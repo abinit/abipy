@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import pytest
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_inputs(tvars):
@@ -117,7 +117,7 @@ def itest_optic_flow(fwp, tvars):
     flow.check_status(show=True)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     # Optic does not support MPI with ncores > 1 hence we have to construct a manager with mpi_procs==1
     shell_manager = fwp.manager.to_shell_manager(mpi_procs=1)
@@ -157,7 +157,7 @@ def itest_optic_flow(fwp, tvars):
     flow.check_status(show=True)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     assert all(work.finalized for work in flow)
 

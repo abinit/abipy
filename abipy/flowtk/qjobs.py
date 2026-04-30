@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Objects and methods to contact the resource manager to get info on the status of the job and useful statistics.
 Note that this is not a wrapper for the C API but a collection of simple wrappers around the shell commands
@@ -8,14 +7,14 @@ having to rely on external libraries.
 """
 from __future__ import annotations
 
+import logging
 import shlex
-
 from collections import OrderedDict, defaultdict
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
+
 from monty.collections import AttrDict
 from monty.inspect import all_subclasses
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -74,10 +73,9 @@ class JobStatus(int):
         """Return an instance from its string representation."""
         for num, text in cls._STATUS_TABLE.items():
             if text == s: return cls(num)
-        else:
-            #raise ValueError("Wrong string %s" % s)
-            logger.warning("Got unknown status: %s" % s)
-            return cls.from_string("UNKNOWN")
+        #raise ValueError("Wrong string %s" % s)
+        logger.warning("Got unknown status: %s" % s)
+        return cls.from_string("UNKNOWN")
 
 
 class QueueJob:
@@ -112,7 +110,7 @@ class QueueJob:
             qname: Name of the queue (optional).
         """
         for cls in all_subclasses(QueueJob):
-            if cls.QTYPE == qtype: break
+            if qtype == cls.QTYPE: break
         else:
             logger.critical("Cannot find QueueJob subclass registered for qtype %s" % qtype)
             cls = QueueJob
@@ -229,7 +227,7 @@ class QueueJob:
 
     def estimated_start_time(self):
         """Return date with estimated start time. None if it cannot be detected"""
-        return None
+        return
 
     def get_info(self, **kwargs):
         return None
@@ -254,7 +252,7 @@ class SlurmJob(QueueJob):
         #squeue  --start -j  116791
         #  JOBID PARTITION     NAME     USER  ST           START_TIME  NODES NODELIST(REASON)
         # 116791      defq gs6q2wop username  PD  2014-11-04T09:27:15     16 (QOSResourceLimit)
-        cmd = "squeue" "--start", "--job %d" % self.qid
+        cmd = "squeue--start", "--job %d" % self.qid
         process = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
 
@@ -341,7 +339,7 @@ class SlurmJob(QueueJob):
         keys = lines[0].strip().split("|")
         values = lines[1].strip().split("|")
         #print("lines0", lines[0])
-        return dict(zip(keys, values))
+        return dict(zip(keys, values, strict=False))
 
 
 class PbsProJob(QueueJob):
@@ -423,7 +421,7 @@ class PbsProJob(QueueJob):
             if process.returncode != 0:
                 logger.critical(out)
                 logger.critical(err)
-                return None
+                return
 
         # Here I don't know what's happeing but I get an output that differs from the one obtained in the terminal.
         # Job id            Name             User              Time Use S Queue

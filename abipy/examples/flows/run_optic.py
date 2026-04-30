@@ -8,11 +8,11 @@ This example shows how to create a Flow to compute optical spectra with optic
 a convergence study with respect to the k-point sampling.
 """
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options, paral_kgb=0):

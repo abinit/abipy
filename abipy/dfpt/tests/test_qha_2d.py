@@ -1,10 +1,11 @@
 """Tests for QHA_2D"""
 import os
-import numpy as np
-import abipy.data as abidata
 
-from abipy.dfpt.qha_2D import QHA_2D
+import numpy as np
+
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
+from abipy.dfpt.qha_2D import QHA_2D
 
 
 class Qha2dTest(AbipyTest):

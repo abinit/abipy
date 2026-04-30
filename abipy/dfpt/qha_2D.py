@@ -8,20 +8,21 @@ Supports the use of six PHDOS.nc files for specific structures to employ the Ein
 from __future__ import annotations
 
 import os
-import abc
-import numpy as np
-import abipy.core.abinit_units as abu
-
-from scipy.interpolate import RectBivariateSpline
 from functools import cached_property
-#from monty.collections import dict2namedtuple
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
-from abipy.tools.typing import PathLike, Figure, VectorLike
-from abipy.tools.serialization import HasPickleIO, mjson_load
-from abipy.electrons.gsr import GsrFile
+
+import numpy as np
+from scipy.interpolate import RectBivariateSpline
+
+import abipy.core.abinit_units as abu
 from abipy.dfpt.ddb import DdbFile
-from abipy.dfpt.phonons import PhdosFile # PhononBandsPlotter, PhononDos,
+from abipy.dfpt.phonons import PhdosFile  # PhononBandsPlotter, PhononDos,
 from abipy.dfpt.vzsisa import anaget_phdoses_with_gauss
+from abipy.electrons.gsr import GsrFile
+
+#from monty.collections import dict2namedtuple
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.serialization import HasPickleIO
+from abipy.tools.typing import Figure, PathLike, VectorLike
 
 
 class QHA_2D(HasPickleIO):
@@ -164,7 +165,7 @@ class QHA_2D(HasPickleIO):
                  structures_from_phdos,
                  bo_strains_ac,
                  phdos_strains_ac,
-                 eos_name: str='vinet',
+                 eos_name: str="vinet",
                  pressure: float=0.0):
         """
         Args:
@@ -226,7 +227,7 @@ class QHA_2D(HasPickleIO):
             ax: Matplotlib axis for the plot. If None, creates a new figure.
         """
         ax, fig, plt = get_ax_fig_plt(ax, figsize=(10, 8))
-        ax = fig.add_subplot(111, projection='3d')  # Create a 3D subplot
+        ax = fig.add_subplot(111, projection="3d")  # Create a 3D subplot
 
         a0 = self.lattice_a[:,0]
         c0 = self.lattice_c[0,:]
@@ -234,8 +235,8 @@ class QHA_2D(HasPickleIO):
         X, Y = np.meshgrid(c0, a0)
 
         # Plot the surface
-        ax.plot_wireframe(X, Y, self.energies, cmap='viridis')
-        ax.scatter(self.lattice_c[0,self.iy0], self.lattice_a[self.ix0,0], self.energies[self.ix0, self.iy0], color='red', s=100)
+        ax.plot_wireframe(X, Y, self.energies, cmap="viridis")
+        ax.scatter(self.lattice_c[0,self.iy0], self.lattice_a[self.ix0,0], self.energies[self.ix0, self.iy0], color="red", s=100)
 
         f_interp = RectBivariateSpline(a0, c0, self.energies, kx=4, ky=4)
 
@@ -249,13 +250,13 @@ class QHA_2D(HasPickleIO):
 
         energy_interp = f_interp(x_new, y_new)
 
-        ax.plot_surface(x_grid, y_grid, energy_interp, cmap='viridis', alpha=0.6)
+        ax.plot_surface(x_grid, y_grid, energy_interp, cmap="viridis", alpha=0.6)
 
         # Set labels
-        ax.set_xlabel('Lattice parameter C (Å)')
-        ax.set_ylabel('Lattice parameter A (Å)')
-        ax.set_zlabel('Energy (eV)')
-        ax.set_title('BO Energy Surface in 3D')
+        ax.set_xlabel("Lattice parameter C (Å)")
+        ax.set_ylabel("Lattice parameter A (Å)")
+        ax.set_zlabel("Energy (eV)")
+        ax.set_title("BO Energy Surface in 3D")
 
         return fig
 
@@ -300,7 +301,7 @@ class QHA_2D(HasPickleIO):
             ax: Matplotlib axis for the plot.
         """
         ax, fig, plt = get_ax_fig_plt(ax, figsize=(10, 8))
-        ax = fig.add_subplot(111, projection='3d')  # Create a 3D subplot
+        ax = fig.add_subplot(111, projection="3d")  # Create a 3D subplot
 
         tmesh = np.linspace(tstart, tstop, num)
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
@@ -312,8 +313,8 @@ class QHA_2D(HasPickleIO):
 
             X, Y = np.meshgrid(self.lattice_c[0,:], self.lattice_a[:,0])
             for  e in ( tot_en.T ):
-                ax.plot_surface(X, Y, e, cmap='viridis', alpha=0.7)
-                ax.plot_wireframe(X, Y, e, cmap='viridis')
+                ax.plot_surface(X, Y, e, cmap="viridis", alpha=0.7)
+                ax.plot_wireframe(X, Y, e, cmap="viridis")
 
             xy_init = self.get_initial_guess_ac()
             min_x, min_y, min_tot_en = np.zeros(num), np.zeros(num), np.zeros(num)
@@ -326,8 +327,8 @@ class QHA_2D(HasPickleIO):
 
                 xy_init = min_x[j], min_y[j]
 
-            ax.scatter(min_y, min_x, min_tot_en, color='c', s=100)
-            ax.plot(min_y, min_x, min_tot_en, color='c')
+            ax.scatter(min_y, min_x, min_tot_en, color="c", s=100)
+            ax.plot(min_y, min_x, min_tot_en, color="c")
 
         elif self.use_einfvib2:
             a0 = self.lattice_a[1,1]
@@ -367,20 +368,20 @@ class QHA_2D(HasPickleIO):
 
             X, Y = np.meshgrid(c, a)
             for e in tot_en2.T:
-                ax.plot_wireframe(X, Y, e, cmap='viridis')
-                ax.plot_surface(X, Y, e, cmap='viridis', alpha=0.7)
+                ax.plot_wireframe(X, Y, e, cmap="viridis")
+                ax.plot_surface(X, Y, e, cmap="viridis", alpha=0.7)
 
-            ax.scatter(min_y, min_x, min_tot_en2, color='c', s=100)
-            ax.plot(min_y, min_x, min_tot_en2, color='c')
+            ax.scatter(min_y, min_x, min_tot_en2, color="c", s=100)
+            ax.plot(min_y, min_x, min_tot_en2, color="c")
 
         else:
             raise RuntimeError("Invalid branch")
 
-        ax.scatter(self.lattice_c[0,self.iy0], self.lattice_a[self.ix0,0], self.energies[self.ix0, self.iy0], color='red', s=100)
+        ax.scatter(self.lattice_c[0,self.iy0], self.lattice_a[self.ix0,0], self.energies[self.ix0, self.iy0], color="red", s=100)
 
-        ax.set_xlabel('C')
-        ax.set_ylabel('A')
-        ax.set_zlabel('Free energy (eV)')
+        ax.set_xlabel("C")
+        ax.set_ylabel("A")
+        ax.set_zlabel("Free energy (eV)")
         #ax.set_title('Free energies as a 3D Plot')
         plt.savefig("energy.pdf", format="pdf", bbox_inches="tight")
 
@@ -430,8 +431,8 @@ class QHA_2D(HasPickleIO):
             alpha_c = (min_y[2:] - min_y[:-2]) / (2 * dt) / min_y[1:-1]
             alpha_v = (min_volumes[2:] - min_volumes[:-2]) / (2 * dt) / min_volumes[1:-1]
 
-            ax.plot(tmesh[1:-1], alpha_a, color='b', label=r"$\alpha_a$ (QHA)", linewidth=2)
-            ax.plot(tmesh[1:-1], alpha_c, color='r', label=r"$\alpha_c$ (QHA)", linewidth=2)
+            ax.plot(tmesh[1:-1], alpha_a, color="b", label=r"$\alpha_a$ (QHA)", linewidth=2)
+            ax.plot(tmesh[1:-1], alpha_c, color="r", label=r"$\alpha_c$ (QHA)", linewidth=2)
             #ax.plot(tmesh[1:-1], alpha_v, color='purple', label=r"$\alpha_v$ (QHA)", linewidth=2)
 
         elif self.use_einfvib2:
@@ -478,8 +479,8 @@ class QHA_2D(HasPickleIO):
             alpha_c = (min_y[2:] - min_y[:-2]) / (2 * dt) / min_y[1:-1]
             alpha_v = (min_v[2:] - min_v[:-2]) / (2 * dt) / min_v[1:-1]
 
-            ax.plot(tmesh[1:-1], alpha_a, linestyle='--', color='gold', label=r"$\alpha_a$ E$\infty$Vib2")
-            ax.plot(tmesh[1:-1], alpha_c, linestyle='--', color='teal', label=r"$\alpha_c$ E$\infty$Vib2")
+            ax.plot(tmesh[1:-1], alpha_a, linestyle="--", color="gold", label=r"$\alpha_a$ E$\infty$Vib2")
+            ax.plot(tmesh[1:-1], alpha_c, linestyle="--", color="teal", label=r"$\alpha_c$ E$\infty$Vib2")
             #ax.plot(tmesh[1:-1], alpha_v, linestyle='--', color='darkorange', label=r"$\alpha_v$ E$\infty$Vib2")
 
         else:
@@ -487,15 +488,15 @@ class QHA_2D(HasPickleIO):
 
         # Save the data
         data_to_save = np.column_stack((tmesh[1:-1], alpha_v, alpha_a, alpha_c))
-        columns = ['#Tmesh', 'alpha_v', 'alpha_a', 'alpha_c']
-        file_path = 'thermal-expansion_data.txt'
+        columns = ["#Tmesh", "alpha_v", "alpha_a", "alpha_c"]
+        file_path = "thermal-expansion_data.txt"
         print(f"Writing thermal expansion data to: {file_path}")
-        np.savetxt(file_path, data_to_save, fmt='%4.6e', delimiter='\t\t',  header='\t\t\t'.join(columns), comments='')
+        np.savetxt(file_path, data_to_save, fmt="%4.6e", delimiter="\t\t",  header="\t\t\t".join(columns), comments="")
 
         ax.grid(True)
         ax.legend(loc="best", shadow=True)
-        ax.set_xlabel('Temperature (K)')
-        ax.set_ylabel(r'Thermal Expansion Coefficients ($\alpha$)')
+        ax.set_xlabel("Temperature (K)")
+        ax.set_ylabel(r"Thermal Expansion Coefficients ($\alpha$)")
         plt.savefig("thermal_expansion.pdf", format="pdf", bbox_inches="tight")
 
         return fig
@@ -541,10 +542,10 @@ class QHA_2D(HasPickleIO):
             min_volumes = min_x**2 * min_y * scale
 
             # Plot min_x in the first subplot
-            axs[0].plot(tmesh, min_x, color='c', label=r"$a$ (QHA)", linewidth=2)
+            axs[0].plot(tmesh, min_x, color="c", label=r"$a$ (QHA)", linewidth=2)
             axs[1].set_title("Plots of a, c, and V (QHA)")
-            axs[1].plot(tmesh, min_y, color='r', label=r"$c$ (QHA)", linewidth=2)
-            axs[2].plot(tmesh, min_volumes, color='b', label=r"$V$ (QHA)", linewidth=2)
+            axs[1].plot(tmesh, min_y, color="r", label=r"$c$ (QHA)", linewidth=2)
+            axs[2].plot(tmesh, min_volumes, color="b", label=r"$V$ (QHA)", linewidth=2)
 
         elif self.use_einfvib2:
 
@@ -583,10 +584,10 @@ class QHA_2D(HasPickleIO):
             scale = self.volumes[self.ix0, self.iy0] / A0**2 / C0
             min_volumes = min_x**2 * min_y * scale
 
-            axs[0].plot(tmesh, min_x, color='c', label=r"$a$ (E$\infty$Vib2)", linewidth=2)
+            axs[0].plot(tmesh, min_x, color="c", label=r"$a$ (E$\infty$Vib2)", linewidth=2)
             axs[1].set_title(r"Plots of a, c, and V (E$\infty$Vib2)")
-            axs[1].plot(tmesh, min_y, color='r', label=r"$c$ (E$\infty$Vib2)", linewidth=2)
-            axs[2].plot(tmesh, min_volumes, color='b', label=r"$V$ (E$\infty$Vib2)", linewidth=2)
+            axs[1].plot(tmesh, min_y, color="r", label=r"$c$ (E$\infty$Vib2)", linewidth=2)
+            axs[2].plot(tmesh, min_volumes, color="b", label=r"$V$ (E$\infty$Vib2)", linewidth=2)
 
         else:
             raise RuntimeError("Invalid branch.")

@@ -1,6 +1,5 @@
 """Tests for varpeq module."""
 import abipy.data as abidata
-
 from abipy.core.testing import AbipyTest
 from abipy.eph.gpath import GpathFile, GpathRobot
 

@@ -1,19 +1,16 @@
-# coding: utf-8
 """This module contains the class describing a planewave wavefunction."""
 from __future__ import annotations
 
 #import copy
 import numpy as np
-
 from monty.termcolor import cprint
+
 from abipy.core import Mesh3D
 from abipy.core.structure import Structure
-from abipy.core.kpoints import Kpoint
 from abipy.iotools import Visualizer
-from abipy.iotools.xsf import xsf_write_structure, xsf_write_data
+from abipy.iotools.xsf import xsf_write_data, xsf_write_structure
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.typing import Figure
-
 
 __all__ = [
     "PWWaveFunction",
@@ -23,11 +20,10 @@ __all__ = [
 def latex_label_ispinor(ispinor: int, nspinor: int) -> str:
     if nspinor == 1:
         return ""
-    elif nspinor == 2:
+    if nspinor == 2:
         return {k: v.replace("myuparrow", "uparrow") for k, v in
                     {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispinor]
-    else:
-        raise ValueError("Wrong value for nspinor: %s" % nspinor)
+    raise ValueError("Wrong value for nspinor: %s" % nspinor)
 
 
 class WaveFunction:
@@ -44,7 +40,7 @@ class WaveFunction:
 
     def __iter__(self):
         """Yields G, ug[0:nspinor, G]"""
-        return zip(self.gvecs, self.ug.T)
+        return zip(self.gvecs, self.ug.T, strict=False)
 
     def __getitem__(self, slice):
         return self.gvecs[slice], self.ug[:, slice]
@@ -173,8 +169,7 @@ class WaveFunction:
         """
         if mesh == self.mesh:
             return self.ur.copy() if copy else self.ur
-        else:
-            return self.fft_ug(mesh=mesh)
+        return self.fft_ug(mesh=mesh)
 
     def fft_ug(self, mesh=None):
         """
@@ -258,14 +253,11 @@ class PWWaveFunction(WaveFunction):
         """
         space = space.lower()
 
-        if space == "g":
+        if space == "g" or space == "gsphere":
             return np.real(np.vdot(self.ug, self.ug))
-        elif space == "gsphere":
-            return np.real(np.vdot(self.ug, self.ug))
-        elif space == "r":
+        if space == "r":
             return np.vdot(self.ur, self.ur) / self.mesh.size
-        else:
-            raise ValueError("Wrong space: %s" % str(space))
+        raise ValueError("Wrong space: %s" % str(space))
 
     def braket(self, other, space="g") -> complex:
         """
@@ -286,12 +278,11 @@ class PWWaveFunction(WaveFunction):
             ug1_mesh = self.gsphere.tofftmesh(self.mesh, self.ug)
             ug2_mesh = other.gsphere.tofftmesh(self.mesh, other.ug) if other is not self else ug1_mesh
             return np.vdot(ug1_mesh, ug2_mesh)
-        elif space == "gsphere":
+        if space == "gsphere":
             return np.vdot(self.ug, other.ug)
-        elif space == "r":
+        if space == "r":
             return np.vdot(self.ur, other.ur) / self.mesh.size
-        else:
-            raise ValueError("Wrong space: %s" % str(space))
+        raise ValueError("Wrong space: %s" % str(space))
 
     def get_interpolator(self):
         """
@@ -446,7 +437,7 @@ class PWWaveFunction(WaveFunction):
             return None
 
         # Sort sites by distance.
-        nn_list = list(sorted(nn_list, key=lambda t: t[1]))
+        nn_list = sorted(nn_list, key=lambda t: t[1])
         if max_nn is not None and len(nn_list) > max_nn:
             cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
                    (radius, len(nn_list), max_nn), "yellow")
@@ -463,7 +454,7 @@ class PWWaveFunction(WaveFunction):
         which = r"\psi(r)" if with_krphase else "u(r)"
 
         # For each neighbor, plot psi along the line connecting site to nn.
-        for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
+        for i, (nn, ax) in enumerate(zip(nn_list, ax_list, strict=False)):
             #nn_site, nn_dist, nn_sc_index = nn
             nn_site = nn
             nn_dist = nn.nn_distance
@@ -520,7 +511,7 @@ class PWWaveFunction(WaveFunction):
         # Compute |u(r)|2 and write data according to ext.
         ur2 = np.reshape(self.ur2, (1,) + self.ur2.shape)
 
-        with open(filename, mode="wt") as fh:
+        with open(filename, mode="w") as fh:
             if ext == "xsf":
                 # xcrysden
                 xsf_write_structure(fh, structures=self.structure)
@@ -530,8 +521,7 @@ class PWWaveFunction(WaveFunction):
 
         if visu is None:
             return Visualizer.from_file(filename)
-        else:
-            return visu(filename)
+        return visu(filename)
 
     def visualize_ur2(self, appname="vesta"):
         """
@@ -550,8 +540,7 @@ class PWWaveFunction(WaveFunction):
                 return self.export_ur2(ext, visu=visu)
             except visu.Error:
                 pass
-        else:
-            raise visu.Error("Don't know how to export data for %s" % str(appname))
+        raise visu.Error("Don't know how to export data for %s" % str(appname))
 
 
 class PAW_WaveFunction(WaveFunction):

@@ -1,7 +1,5 @@
 """Tests for v1qavg module."""
 import abipy.data as abidata
-
-from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.eph.v1qavg import V1qAvgFile, V1qAvgRobot
 

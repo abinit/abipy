@@ -1,22 +1,21 @@
 """Tests for lumi.lineshape module"""
-import abipy.data as abidata
 import phonopy
-
 from pymatgen.io.phonopy import get_pmg_structure
-from abipy.core.testing import AbipyTest
-from abipy.lumi.deltaSCF import DeltaSCF
-from abipy.embedding.embedding_ifc import Embedded_phonons
-from abipy.dfpt.ddb import DdbFile
-from abipy.lumi.lineshape import Lineshape
-from abipy.dfpt.converters import ddb_ucell_to_phonopy_supercell
+
+import abipy.data as abidata
 from abipy.core.kpoints import kmesh_from_mpdivs
+from abipy.core.testing import AbipyTest
+from abipy.dfpt.converters import ddb_ucell_to_phonopy_supercell
+from abipy.dfpt.ddb import DdbFile
+from abipy.embedding.embedding_ifc import Embedded_phonons
+from abipy.lumi.deltaSCF import DeltaSCF
+from abipy.lumi.lineshape import Lineshape
 
 
 class DeltaSCFTest(AbipyTest):
 
     def test_deltaSCF(self):
         """Testing DeltaSCF"""
-
         Delta_333=DeltaSCF.from_four_points_file([abidata.ref_file("A_g_out_GSR.nc"),
                                                   abidata.ref_file("A_g_starout_GSR.nc"),
                                                   abidata.ref_file("A_e_starout_GSR.nc"),
@@ -44,7 +43,7 @@ class DeltaSCFTest(AbipyTest):
         # We need first to create the defect structure without relax
         structure_defect_wo_relax=ddb_pristine.structure.copy()
         structure_defect_wo_relax.make_supercell(3)
-        structure_defect_wo_relax.replace(0,'Eu')
+        structure_defect_wo_relax.replace(0,"Eu")
         structure_defect_wo_relax.sort()
 
         # index of the sub. = 26 (in defect structure), this is found manually
@@ -65,7 +64,7 @@ class DeltaSCFTest(AbipyTest):
                             substitutions_list=[[idefect_pristine_stru,"Eu"]],
                             vacancies_list=None,
                             interstitial_list=None,
-                            cut_off_mode='auto',
+                            cut_off_mode="auto",
                             rc_2=0,
                             rc_1=100000,
                             verbose=0,

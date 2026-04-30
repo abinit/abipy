@@ -3,16 +3,16 @@
 Titanium with 256 atoms and k-point sampling.
 GS calculations with paralkgb == 1 and wfoptalg in [default, 1]
 """
-import sys
 import operator
-import numpy as np
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
-
+import sys
 from functools import reduce
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+import numpy as np
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_input(paw=True):
@@ -368,7 +368,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
     return build_flow(options)
 
 

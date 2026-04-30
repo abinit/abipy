@@ -1,17 +1,17 @@
 """Tests for embedding.embedding_ifc module"""
 import tempfile
-import os
-import phonopy
-import abipy.data as abidata
 
-from pymatgen.io.phonopy import get_pmg_structure,get_phonopy_structure
-from abipy.core.testing import AbipyTest
+import phonopy
+from pymatgen.io.phonopy import get_pmg_structure
+
+import abipy.data as abidata
 from abipy.abilab import abiopen
-from abipy.dfpt.ddb import DdbFile
-from abipy.dfpt.converters import ddb_ucell_to_phonopy_supercell
 from abipy.core.kpoints import kmesh_from_mpdivs
-from abipy.embedding.utils_ifc import localization_ratio
+from abipy.core.testing import AbipyTest
+from abipy.dfpt.converters import ddb_ucell_to_phonopy_supercell
+from abipy.dfpt.ddb import DdbFile
 from abipy.embedding.embedding_ifc import Embedded_phonons
+from abipy.embedding.utils_ifc import localization_ratio
 
 
 class Embedding_ifcTest(AbipyTest):
@@ -48,7 +48,6 @@ class Embedding_ifcTest(AbipyTest):
         structure_defect_wo_relax.remove_sites(indices=[idefect_defect_stru])
         structure_defect_wo_relax.sort()
 
-        #
         idefect_pristine_stru=27
         main_defect_coords_in_pristine=get_pmg_structure(ph_pristine.supercell).cart_coords[idefect_pristine_stru]
 
@@ -63,7 +62,7 @@ class Embedding_ifcTest(AbipyTest):
                                vacancies_list=[27],
                                interstitial_list=None,
                                factor_ifc=3, #  increasing ifc, this will induce a fictious local mode above the bulk frequencies
-                               cut_off_mode='auto',
+                               cut_off_mode="auto",
                                verbose=0,
                                asr=True,)
 
@@ -109,7 +108,7 @@ class Embedding_ifcTest(AbipyTest):
         # We need first to create the defect structure without relax
         structure_defect_wo_relax=ddb_pristine.structure.copy()
         structure_defect_wo_relax.make_supercell(3)
-        structure_defect_wo_relax.replace(0,'Eu')
+        structure_defect_wo_relax.replace(0,"Eu")
         structure_defect_wo_relax.sort()
 
         # index of the sub. = 26 (in defect structure), this is found manually
@@ -130,7 +129,7 @@ class Embedding_ifcTest(AbipyTest):
                                substitutions_list=[[idefect_pristine_stru,"Eu"]],
                                vacancies_list=None,
                                interstitial_list=None,
-                               cut_off_mode='auto',
+                               cut_off_mode="auto",
                                verbose=0,
                                asr=True,)
 
@@ -183,11 +182,11 @@ class Embedding_ifcTest(AbipyTest):
                                                main_defect_coords_in_pristine=main_defect_coords_in_pristine,
                                                main_defect_coords_in_defect=main_defect_coords_in_defect,
                                                vacancies_list=[31],
-                                               interstitial_list=[['C',[4.2885, 3.5737, 1.7869]],
-                                                                  ['C',[2.8590, 3.5737, 1.7869]]
+                                               interstitial_list=[["C",[4.2885, 3.5737, 1.7869]],
+                                                                  ["C",[2.8590, 3.5737, 1.7869]]
                                                                  ],
                                                verbose=1,
-                                               cut_off_mode='auto',
+                                               cut_off_mode="auto",
                                                factor_ifc=1,
                                                asr=True)
 

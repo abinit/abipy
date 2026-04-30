@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 """Benchmark for DDK calculations."""
 import sys
-import abipy.abilab as abilab
-import abipy.data as abidata
-import abipy.flowtk as flowtk
-
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_inputs(paw=False):
@@ -112,7 +111,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
 
     return build_flow(options)
 

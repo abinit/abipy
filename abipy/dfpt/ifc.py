@@ -1,15 +1,15 @@
-# coding: utf-8
 """The interatomic force constants calculated by anaddb."""
 from __future__ import annotations
 
+from functools import cached_property
+
 import numpy as np
 
-from functools import cached_property
-from abipy.core.structure import Structure
 from abipy.core.mixins import Has_Structure
-from abipy.tools.typing import Figure
+from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.typing import Figure
 
 
 class InteratomicForceConstants(Has_Structure):
@@ -123,24 +123,21 @@ class InteratomicForceConstants(Has_Structure):
         """Ewald part of the IFCs in cartesian coordinates."""
         if self.ifc_cart_coord_short_range is None:
             return None
-        else:
-            return self.ifc_cart_coord - self.ifc_cart_coord_short_range
+        return self.ifc_cart_coord - self.ifc_cart_coord_short_range
 
     @cached_property
     def ifc_local_coord(self) -> None | np.ndarray:
         """IFCs in local coordinates."""
         if self.local_vectors is None:
             return None
-        else:
-            return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord, self.local_vectors)
+        return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord, self.local_vectors)
 
     @cached_property
     def ifc_local_coord_short_range(self) -> None | np.ndarray:
         """Short range part of the IFCs in cartesian coordinates."""
         if self.local_vectors is None:
             return None
-        else:
-            return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord_short_range, self.local_vectors)
+        return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord_short_range, self.local_vectors)
 
     @cached_property
     def ifc_local_coord_ewald(self) -> np.ndarray:
@@ -159,7 +156,6 @@ class InteratomicForceConstants(Has_Structure):
             min_dist: minimum distance between atoms and neighbours.
             max_dist: maximum distance between atoms and neighbours.
         """
-
         if atom_indices is not None and atom_element is not None:
             raise ValueError("atom_index and atom_element cannot be specified simultaneously")
 
@@ -249,18 +245,18 @@ class InteratomicForceConstants(Has_Structure):
 
         dist, filtered_ifc = self.distances[ind], ifc[ind]
 
-        if 'color' not in kwargs: kwargs['color'] = 'blue'
-        if 'marker' not in kwargs: kwargs['marker'] = 'o'
-        if 'linewidth' not in kwargs and 'lw' not in kwargs: kwargs['lw'] = 0
+        if "color" not in kwargs: kwargs["color"] = "blue"
+        if "marker" not in kwargs: kwargs["marker"] = "o"
+        if "linewidth" not in kwargs and "lw" not in kwargs: kwargs["lw"] = 0
 
         ax.set_yscale(yscale)
-        ylabel = r'IFC (Ha/Bohr$^2$)'
+        ylabel = r"IFC (Ha/Bohr$^2$)"
         if yscale in ("log", "symlog", "logit"):
             filtered_ifc = np.abs(filtered_ifc)
             if yscale == "logit": filtered_ifc /= filtered_ifc.max()
             ylabel = f"{ylabel} ({yscale} scale)"
 
-        ax.set_xlabel('Distance (Bohr)')
+        ax.set_xlabel("Distance (Bohr)")
         ax.set_ylabel(ylabel)
         ax.grid(True)
 

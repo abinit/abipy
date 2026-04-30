@@ -1,22 +1,28 @@
 """Tests for abivars module"""
-import numpy as np
 import os
-import abipy.data as abidata
 
+import numpy as np
 from pymatgen.core.units import bohr_to_ang
+
+import abipy.data as abidata
+from abipy.abio.abivars import (
+    AbinitInputFile,
+    AbinitInputParser,
+    expand_star_syntax,
+    format_string_abivars,
+    structure_from_abistruct_fmt,
+)
 from abipy.core.structure import *
 from abipy.core.testing import AbipyTest
-from abipy.abio.abivars import AbinitInputFile, AbinitInputParser, expand_star_syntax, structure_from_abistruct_fmt
-from abipy.abio.abivars import format_string_abivars
 
 
 class TestAbinitInputParser(AbipyTest):
 
     def test_helper_functions(self):
-        assert expand_star_syntax("3*2") == '2 2 2'
-        assert expand_star_syntax("2 *1") == '1 1'
-        assert expand_star_syntax("1 2*2") == '1 2 2'
-        assert expand_star_syntax("*2") == '*2'
+        assert expand_star_syntax("3*2") == "2 2 2"
+        assert expand_star_syntax("2 *1") == "1 1"
+        assert expand_star_syntax("1 2*2") == "1 2 2"
+        assert expand_star_syntax("*2") == "*2"
 
         s = expand_star_syntax("64*1 6*1 0 1/3 1/3 1/3 17*0")
         values = s.split()
@@ -224,7 +230,6 @@ typat 1 1         # For the first dataset, both numbers will be read,
 
     def test_abinitv9(self):
         """Test Abinit input file with v9 syntax."""
-
         s = """
     pseudos = "Cd.psp8, Se.psp8"
     optdriver 7
@@ -318,7 +323,7 @@ xred_symbols
     def test_format_string_abivars(self):
         assert format_string_abivars("ecut", 30) == 30
         assert format_string_abivars("pseudos", ["xxx", "yyy"]) == '\n    "xxx,\n    yyy"'
-        assert format_string_abivars("pseudos", 'xxx') == '"xxx"'
+        assert format_string_abivars("pseudos", "xxx") == '"xxx"'
         assert format_string_abivars("pseudos", '"xxx"') == '"xxx"'
 
     def test_get_differences(self):
@@ -373,7 +378,7 @@ xred_symbols
         assert diffs[0] == "The variable 'ngkpt' is different in the two files:\n" \
                            " - this file:  '3 3 3'\n" \
                            " - other file: '2 2 2'"
-        diffs = inp1.get_differences(inp2, ignore_vars=['ngkpt'])
+        diffs = inp1.get_differences(inp2, ignore_vars=["ngkpt"])
         assert diffs == []
         diffs = inp1.get_differences(inp3)
         assert diffs == ["Structures are different."]
@@ -381,7 +386,7 @@ xred_symbols
         assert diffs == ["The following variables are in other file but not in this one: ecut"]
         diffs = inp4.get_differences(inp1)
         assert diffs == ["The following variables are in this file but not in other: ecut"]
-        diffs = inp1.get_differences(inp4, ignore_vars=['ecut'])
+        diffs = inp1.get_differences(inp4, ignore_vars=["ecut"])
         assert diffs == []
         diffs = inp2.get_differences(inp4)
         assert len(diffs) == 2

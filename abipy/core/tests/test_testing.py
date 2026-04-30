@@ -1,7 +1,7 @@
 """Tests for test_testing module"""
 import os
-from abipy.core.testing import AbipyTest
-from abipy.core.testing import input_equality_check
+
+from abipy.core.testing import AbipyTest, input_equality_check
 
 root = os.path.dirname(__file__)
 
@@ -11,9 +11,8 @@ class TestTEstingTools(AbipyTest):
 
     def test_check_input_equality(self):
         """Testing the function to test input equality."""
-
-        ref_file = os.path.join(root, '..', '..', 'test_files', 'convergence_inputs_single_factory_00.json')
-        bad_file = os.path.join(root, '..', '..', 'test_files', 'convergence_inputs_single_factory_00-bad.json')
+        ref_file = os.path.join(root, "..", "..", "test_files", "convergence_inputs_single_factory_00.json")
+        bad_file = os.path.join(root, "..", "..", "test_files", "convergence_inputs_single_factory_00-bad.json")
 
         input_good = self.json_read_abinit_input(ref_file)
         input_bad = self.json_read_abinit_input(bad_file)

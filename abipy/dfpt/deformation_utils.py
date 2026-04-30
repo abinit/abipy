@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import numpy as np
-
 from pymatgen.core import Lattice
+
 from abipy.core.structure import Structure
 from abipy.core.symmetries import AbinitSpaceGroup
 
@@ -29,7 +29,7 @@ def generate_deformations_volumic(structure: Structure, eps_V: float = 0.02, sca
 
 def generate_deformations(structure: Structure,
                           eps: float,
-                          str_type: str = 'BO',
+                          str_type: str = "BO",
                           eps_ref=[0.005, 0.005 ,0.005],
                           mode: str = "TEC") -> tuple:
     """
@@ -109,7 +109,7 @@ def generate_deformations(structure: Structure,
     else:
         rprim0 = rprim
 
-    if str_type == 'BO':
+    if str_type == "BO":
         rprim_BO = np.copy(rprim)
         # Scale each lattice vector by the corresponding strain component
         # to generate the reference structure.
@@ -117,7 +117,7 @@ def generate_deformations(structure: Structure,
         rprim[ :,1] *= (1.00 + eps_ref[1])
         rprim[ :,2] *= (1.00 + eps_ref[2])
 
-    elif str_type != 'ref':
+    elif str_type != "ref":
         raise ValueError("Invalid method. Choose 'ref' or 'BO'.")
 
     rprim2 = np.copy(rprim)
@@ -205,7 +205,7 @@ def generate_deformations(structure: Structure,
         formatted_namei = f"{namei:.3f}_{namej:.3f}_{namek:.3f}_{namel:.3f}_{namem:.3f}_{namen:.3f}"
 
         #_add(formatted_namei, rprim2, i, j, k, l, m, n)
-        if 16 <= spgrp_number:
+        if spgrp_number >= 16:
             _add(formatted_namei, rprim2, i+1, j+1, k+1, l, m, n)
         else:
             _add(formatted_namei, rprim2, i+1, j+1, k+1, l+1, m+1, n+1)

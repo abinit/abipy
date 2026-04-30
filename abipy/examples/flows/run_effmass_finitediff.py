@@ -7,11 +7,11 @@ Flow to compute effective masses with finite difference methods.
 Derivatives are computed along lines in k-space.
 """
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_scf_input(nspinor=1, usepaw=0):

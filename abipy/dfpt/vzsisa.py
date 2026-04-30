@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Classes for post-processing QHA results obtained with the V-ZSISA approximation.
 
@@ -7,19 +6,19 @@ See [Phys. Rev. B 110, 014103](https://doi.org/10.1103/PhysRevB.110.014103)
 from __future__ import annotations
 
 import numpy as np
-import abipy.core.abinit_units as abu
-
 from monty.collections import dict2namedtuple
 from pymatgen.analysis.eos import EOS
-from abipy.core.structure import Structure
+
+import abipy.core.abinit_units as abu
 from abipy.core.func1d import Function1D
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_grid_legend #, get_axarray_fig_plt
-from abipy.tools.typing import Figure, PathLike
-from abipy.tools.serialization import HasPickleIO, mjson_load
+from abipy.core.structure import Structure
+from abipy.dfpt.ddb import DdbFile
+from abipy.dfpt.phonons import PhdosFile, PhononDos, PhononDosPlotter
 from abipy.electrons.ebands import ElectronDosPlotter
 from abipy.electrons.gsr import GsrFile
-from abipy.dfpt.ddb import DdbFile
-from abipy.dfpt.phonons import PhdosFile, PhononDosPlotter, PhononDos
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_grid_legend  #, get_axarray_fig_plt
+from abipy.tools.serialization import HasPickleIO
+from abipy.tools.typing import Figure, PathLike
 
 
 def anaget_phdoses_with_gauss(nqsmall_or_qppa,
@@ -208,7 +207,7 @@ class Vzsisa(HasPickleIO):
                  edoses: list | None = None,
                  phbands_list: list | None = None,
                  ebands_list: list | None = None,
-                 eos_name: str = 'vinet',
+                 eos_name: str = "vinet",
                  pressure: float = 0.0):
         """
         Args:
@@ -278,7 +277,7 @@ class Vzsisa(HasPickleIO):
         """Find structures in self.bo_structures and return list with the index."""
         vols1 = [s.volume for s in self.bo_structures]
         vols2 = [s.volume for s in structures]
-        dv = np.zeros((len(vols2)-1))
+        dv = np.zeros(len(vols2)-1)
         for j in range(len(vols2)-1):
             dv[j] = vols2[j+1] - vols2[j]
 
@@ -360,7 +359,6 @@ class Vzsisa(HasPickleIO):
         #    raise ValueError(f"Invalid {fit_type=}")
 
     def fit_energies_vt(self, volumes, energies_vt, tstart=0, tstop=1000, num=101):
-
         """
         Performs a fit of the energies as a function of the volume at different temperatures.
 
@@ -660,7 +658,7 @@ class Vzsisa(HasPickleIO):
         min_ph_vol, max_ph_vol = self.ph_volumes.min(), self.ph_volumes.max()
 
         func = {"y": ax.axhline, "x": ax.axvline}[x_or_y]
-        plt_kwargs = dict(color='r', linestyle='--', label="ph")
+        plt_kwargs = dict(color="r", linestyle="--", label="ph")
         func(min_bo_vol, **plt_kwargs)
         func(min_ph_vol, **plt_kwargs)
         func(max_bo_vol, **plt_kwargs)
@@ -685,11 +683,11 @@ class Vzsisa(HasPickleIO):
         x = np.linspace(xmin, xmax, 100)
 
         for fit, e, t in zip(f.fits, f.tot_en.T - self.bo_energies[self.iv0], f.temp, strict=True):
-            ax.scatter(self.bo_volumes, e, label=t, color='b', marker='s', s=10)
-            ax.plot(x, fit.func(x) - self.bo_energies[self.iv0], color='b', lw=1)
+            ax.scatter(self.bo_volumes, e, label=t, color="b", marker="s", s=10)
+            ax.plot(x, fit.func(x) - self.bo_energies[self.iv0], color="b", lw=1)
 
-        ax.plot(f.min_vol, f.min_en - self.bo_energies[self.iv0], color='r', linestyle='dashed', lw=1, marker='o', ms=5)
-        set_grid_legend(ax, fontsize, xlabel=r'V (${\AA}^3$)', ylabel='E (eV)', legend=False)
+        ax.plot(f.min_vol, f.min_en - self.bo_energies[self.iv0], color="r", linestyle="dashed", lw=1, marker="o", ms=5)
+        set_grid_legend(ax, fontsize, xlabel=r"V (${\AA}^3$)", ylabel="E (eV)", legend=False)
 
         fig.suptitle("Energies as a function of volume for different T")
 
@@ -719,20 +717,20 @@ class Vzsisa(HasPickleIO):
         # Method 1: E2Vib1
         if self.scale_points == "S":
             vols, _ = self.vol_E2Vib1(tstart=tstart, tstop=tstop, num=num)
-            ax.plot(tmesh, vols, color='b', lw=2, label="E2Vib1")
+            ax.plot(tmesh, vols, color="b", lw=2, label="E2Vib1")
             data["E2vib1"] = vols
 
         # Method 2: Einf_Vib1
         if len(self.index_list) >= 2:
             vols, _ = self.vol_Einf_Vib1(tstart=tstart, tstop=tstop, num=num)
-            ax.plot(tmesh, vols, color='gold', lw=2, label=r"$E_\infty$ Vib1")
-            data['Einfvib1'] = vols
+            ax.plot(tmesh, vols, color="gold", lw=2, label=r"$E_\infty$ Vib1")
+            data["Einfvib1"] = vols
 
         # Method 3: Einf_Vib2
         if len(self.index_list) >= 3:
             vols, _ = self.vol_Einf_Vib2(tstart=tstart, tstop=tstop, num=num)
-            ax.plot(tmesh, vols, color='m', lw=2, label=r"$E_\infty$ Vib2")
-            data['Einfvib2'] = vols
+            ax.plot(tmesh, vols, color="m", lw=2, label=r"$E_\infty$ Vib2")
+            data["Einfvib2"] = vols
 
         # Method 4: Einf_Vib4 and QHA
         if len(self.index_list) == 5:
@@ -742,17 +740,17 @@ class Vzsisa(HasPickleIO):
 
             vols, _ = self.vol_Einf_Vib4(tstart=tstart, tstop=tstop, num=num)
 
-            ax.plot(tmesh, vols, color='c', lw=2, label=r"$E_\infty$ Vib4")
-            ax.plot(tmesh, f0.min_vol, color='k', linestyle='dashed', lw=1.5, label="QHA")
-            data['Einfvib4'] = vols
-            data['QHA'] = f0.min_vol
+            ax.plot(tmesh, vols, color="c", lw=2, label=r"$E_\infty$ Vib4")
+            ax.plot(tmesh, f0.min_vol, color="k", linestyle="dashed", lw=1.5, label="QHA")
+            data["Einfvib4"] = vols
+            data["QHA"] = f0.min_vol
 
         # Plot V0
         iv0 = self.iv0_vib
         iv1 = self.iv1_vib
-        ax.plot(0, self.bo_volumes[self.iv0], color='g', lw=0, marker='o', ms=10, label="V0")
+        ax.plot(0, self.bo_volumes[self.iv0], color="g", lw=0, marker="o", ms=10, label="V0")
 
-        set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'V (${\AA}^3$)')
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel=r"V (${\AA}^3$)")
         ax.set_xlim(tstart, tstop)
 
         fig.suptitle("Volume as a function of T")
@@ -850,8 +848,8 @@ class Vzsisa(HasPickleIO):
                 b0 = np.array([fit.b0 for fit in fits])
                 print("B (E2vib1)   @ ", tref, " K =", b0 * 160.21766208, "(GPa)" )
                 alpha_1 = - 1/vol_ref * (df_t[:,iv1]-df_t[:,iv0])/(ph_volumes[iv1]-ph_volumes[iv0]) / E2D
-            ax.plot(tmesh, alpha_1, color='b', lw=2, label="E2Vib1")
-            data['E2vib1'] = alpha_1
+            ax.plot(tmesh, alpha_1, color="b", lw=2, label="E2Vib1")
+            data["E2vib1"] = alpha_1
 
         # TODO: Check case P != 0
         if len(self.index_list) >= 2:
@@ -865,8 +863,8 @@ class Vzsisa(HasPickleIO):
                 print("B (Einfvib1) @ ", tref," K =", b0 * 160.21766208, "(GPa)" )
                 alpha_2 = - 1/vol2_ref * (df_t[:,iv1]-df_t[:,iv0])/(ph_volumes[iv1]-ph_volumes[iv0]) / E2D_V[:]
 
-            ax.plot(tmesh, alpha_2,color='gold', lw=2 ,  label=r"$E_\infty Vib1$")
-            data['Einfvib1'] = alpha_2
+            ax.plot(tmesh, alpha_2,color="gold", lw=2 ,  label=r"$E_\infty Vib1$")
+            data["Einfvib1"] = alpha_2
 
         if len(self.index_list) >= 3:
             vols, fits = self.vol_Einf_Vib2(num=num, tstop=tstop, tstart=tstart)
@@ -885,8 +883,8 @@ class Vzsisa(HasPickleIO):
                 #print("B (Einfvib2) @ ",tref," K =", b0*160.21766208, "(GPa)" )
                 alpha_3 = - 1/vol3_ref * ds_dv / (E2D_V[:]+dfe_dV2[:])
 
-            ax.plot(tmesh, alpha_3,color='m', lw=2, label=r"$E_\infty Vib2$")
-            data['Einfvib2'] = alpha_3
+            ax.plot(tmesh, alpha_3,color="m", lw=2, label=r"$E_\infty Vib2$")
+            data["Einfvib2"] = alpha_3
 
         if len(self.index_list) == 5:
             alpha_qha = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
@@ -914,13 +912,13 @@ class Vzsisa(HasPickleIO):
                 print("B (Einfvib4) @ ", tref, " K =", b0 * 160.21766208, "(GPa)" )
                 alpha_4 = - 1/vol4_ref * ds_dv / D2F
 
-            ax.plot(tmesh, alpha_4, color='c', linewidth=2, label=r"$E_\infty Vib4$")
-            ax.plot(alpha_qha.mesh, alpha_qha.values, color='k', linestyle='dashed', lw=1.5, label="QHA")
+            ax.plot(tmesh, alpha_4, color="c", linewidth=2, label=r"$E_\infty Vib4$")
+            ax.plot(alpha_qha.mesh, alpha_qha.values, color="k", linestyle="dashed", lw=1.5, label="QHA")
 
-            data['Einfvib4'] = alpha_4
-            data['QHA'] = alpha_qha.values
+            data["Einfvib4"] = alpha_4
+            data["QHA"] = alpha_qha.values
 
-        set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'$\alpha$ (K$^{-1}$)')
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel=r"$\alpha$ (K$^{-1}$)")
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
@@ -983,7 +981,7 @@ class Vzsisa(HasPickleIO):
         iv1 = self.iv1_vib
         ph_volumes = self.ph_volumes
         data_to_save = tmesh[1:-1]
-        columns = ['#Tmesh']
+        columns = ["#Tmesh"]
 
         if self.scale_points == "S":
             vols2, _ = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
@@ -1029,9 +1027,9 @@ class Vzsisa(HasPickleIO):
             alpha_b = (bb[2:] - bb[:-2]) / (2 * dt) / bb_tref
             alpha_c = (cc[2:] - cc[:-2]) / (2 * dt) / cc_tref
 
-        ax.plot(tmesh[1:-1], alpha_a, color='r', lw=2, label=r"$\alpha_a$" + method)
-        ax.plot(tmesh[1:-1], alpha_b, color='b', lw=2, label=r"$\alpha_b$" + method)
-        ax.plot(tmesh[1:-1], alpha_c, color='m', lw=2, label=r"$\alpha_c$" + method)
+        ax.plot(tmesh[1:-1], alpha_a, color="r", lw=2, label=r"$\alpha_a$" + method)
+        ax.plot(tmesh[1:-1], alpha_b, color="b", lw=2, label=r"$\alpha_b$" + method)
+        ax.plot(tmesh[1:-1], alpha_c, color="m", lw=2, label=r"$\alpha_c$" + method)
 
         method_header = method + "  (alpha_a,alpha_b,alpha_c) |"
         data_to_save = np.column_stack((data_to_save, alpha_a, alpha_b, alpha_c))
@@ -1051,13 +1049,13 @@ class Vzsisa(HasPickleIO):
                 alpha2_b = (bb2[2:] - bb2[:-2]) / (2 * dt) / bb2_tref
                 alpha2_c = (cc2[2:] - cc2[:-2]) / (2 * dt) / cc2_tref
 
-            ax.plot(tmesh[1:-1], alpha2_a, linestyle='dashed', color='r', lw=2, label=r"$\alpha_a$"" (E2vib1)")
-            ax.plot(tmesh[1:-1], alpha2_b, linestyle='dashed', color='b', lw=2, label=r"$\alpha_b$"" (E2vib1)")
-            ax.plot(tmesh[1:-1], alpha2_c, linestyle='dashed', color='m', lw=2, label=r"$\alpha_c$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_a, linestyle="dashed", color="r", lw=2, label=r"$\alpha_a$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_b, linestyle="dashed", color="b", lw=2, label=r"$\alpha_b$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_c, linestyle="dashed", color="m", lw=2, label=r"$\alpha_c$"" (E2vib1)")
             data_to_save = np.column_stack((data_to_save,alpha2_a,alpha2_b,alpha2_c))
-            columns.append( 'E2vib1 (alpha_a,alpha_b,alpha_c)   ')
+            columns.append( "E2vib1 (alpha_a,alpha_b,alpha_c)   ")
 
-        set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'$\alpha$ (K$^{-1}$)')
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel=r"$\alpha$ (K$^{-1}$)")
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
@@ -1087,7 +1085,7 @@ class Vzsisa(HasPickleIO):
         iv1 = self.iv1_vib
         ph_volumes = self.ph_volumes
         data_to_save = tmesh[1:-1]
-        columns = ['#Tmesh']
+        columns = ["#Tmesh"]
 
         if self.scale_points == "S":
             vols2, _ = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
@@ -1133,9 +1131,9 @@ class Vzsisa(HasPickleIO):
             alpha_beta = (beta[2:] - beta[:-2]) / (2 * dt) / beta_tref
             alpha_gamma = (cc[2:] - cc[:-2]) / (2 * dt) / cc_tref
 
-        ax.plot(tmesh[1:-1], alpha_alpha, color='r', lw=2, label= r"$\alpha_alpha$" + method)
-        ax.plot(tmesh[1:-1], alpha_beta, color='b', lw=2, label=r"$\alpha_beta$" + method)
-        ax.plot(tmesh[1:-1], alpha_gamma, color='m', lw=2, label=r"$\alpha_gamma$" + method)
+        ax.plot(tmesh[1:-1], alpha_alpha, color="r", lw=2, label= r"$\alpha_alpha$" + method)
+        ax.plot(tmesh[1:-1], alpha_beta, color="b", lw=2, label=r"$\alpha_beta$" + method)
+        ax.plot(tmesh[1:-1], alpha_gamma, color="m", lw=2, label=r"$\alpha_gamma$" + method)
 
         method_header = method + "  (alpha_alpha,alpha_beta,alpha_gamma) |"
         data_to_save = np.column_stack((data_to_save,alpha_alpha,alpha_beta,alpha_gamma))
@@ -1155,13 +1153,13 @@ class Vzsisa(HasPickleIO):
                 alpha2_beta = (beta2[2:] - beta2[:-2]) / (2 * dt) / beta2_tref
                 alpha2_gamma = (cc2[2:] - cc2[:-2]) / (2 * dt) / cc2_tref
 
-            ax.plot(tmesh[1:-1], alpha2_alpha, linestyle='dashed', color='r', lw=2, label=r"$\alpha_alpha$"" (E2vib1)")
-            ax.plot(tmesh[1:-1], alpha2_beta, linestyle='dashed', color='b', lw=2, label=r"$\alpha_beta$"" (E2vib1)")
-            ax.plot(tmesh[1:-1], alpha2_gamma, linestyle='dashed', color='m', lw=2, label=r"$\alpha_gamma$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_alpha, linestyle="dashed", color="r", lw=2, label=r"$\alpha_alpha$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_beta, linestyle="dashed", color="b", lw=2, label=r"$\alpha_beta$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_gamma, linestyle="dashed", color="m", lw=2, label=r"$\alpha_gamma$"" (E2vib1)")
             data_to_save = np.column_stack((data_to_save, alpha2_alpha, alpha2_beta, alpha2_gamma))
-            columns.append( 'E2vib1 (alpha_alpha,alpha_beta,alpha_gamma)   ')
+            columns.append( "E2vib1 (alpha_alpha,alpha_beta,alpha_gamma)   ")
 
-        set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'$\alpha$ (K$^{-1}$)')
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel=r"$\alpha$ (K$^{-1}$)")
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
@@ -1190,12 +1188,12 @@ class Vzsisa(HasPickleIO):
         ph_volumes = self.ph_volumes
 
         data_to_save = tmesh
-        columns = ['#Tmesh']
+        columns = ["#Tmesh"]
         if self.scale_points == "S":
             vols2, _ = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
             aa2, bb2, cc2 = self.get_abc(vols2)
             data_to_save = np.column_stack((data_to_save, aa2, bb2, cc2))
-            columns.append( 'E2vib1 (a,b,c) |            ')
+            columns.append( "E2vib1 (a,b,c) |            ")
 
         if len(self.index_list) == 2:
             vols, _ = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
@@ -1220,21 +1218,21 @@ class Vzsisa(HasPickleIO):
         columns.append(method_header)
 
         if lattice is None or lattice == "a":
-            ax.plot(tmesh, aa, color='r', lw=2, label=r"$a(V(T))$" + method)
+            ax.plot(tmesh, aa, color="r", lw=2, label=r"$a(V(T))$" + method)
         if lattice is None or lattice == "b":
-            ax.plot(tmesh, bb, color='b', lw=2, label=r"$b(V(T))$" + method)
+            ax.plot(tmesh, bb, color="b", lw=2, label=r"$b(V(T))$" + method)
         if lattice is None or lattice == "c":
-            ax.plot(tmesh, cc, color='m', lw=2, label=r"$c(V(T))$" + method)
+            ax.plot(tmesh, cc, color="m", lw=2, label=r"$c(V(T))$" + method)
 
         if abs(abs(self.bo_volumes[self.iv0] - ph_volumes[iv0]) - abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3:
             if lattice is None or lattice == "a":
-                ax.plot(tmesh, aa2, linestyle='dashed', color='r', lw=2, label=r"$a(V(T))$""E2vib1")
+                ax.plot(tmesh, aa2, linestyle="dashed", color="r", lw=2, label=r"$a(V(T))$""E2vib1")
             if lattice is None or lattice == "b":
-                ax.plot(tmesh, bb2, linestyle='dashed', color='b', lw=2, label=r"$b(V(T))$""E2vib1")
+                ax.plot(tmesh, bb2, linestyle="dashed", color="b", lw=2, label=r"$b(V(T))$""E2vib1")
             if lattice is None or lattice == "c":
-                ax.plot(tmesh, cc2, linestyle='dashed', color='m', lw=2, label=r"$c(V(T))$""E2vib1")
+                ax.plot(tmesh, cc2, linestyle="dashed", color="m", lw=2, label=r"$c(V(T))$""E2vib1")
 
-        set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=None)
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel=None)
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
@@ -1266,12 +1264,12 @@ class Vzsisa(HasPickleIO):
         ph_volumes = self.ph_volumes
 
         data_to_save = tmesh
-        columns = ['#Tmesh']
+        columns = ["#Tmesh"]
         if self.scale_points == "S":
             vols2, _ = self.vol_E2Vib1(num=num, tstop=tstop, tstart=tstart)
             alpha2, beta2, gamma2 = self.get_angles(vols2)
             data_to_save = np.column_stack((data_to_save, alpha2, beta2, gamma2))
-            columns.append( 'E2vib1 (alpha,beta,gamma) |            ')
+            columns.append( "E2vib1 (alpha,beta,gamma) |            ")
 
         if len(self.index_list) == 2:
             vols, _ = self.vol_Einf_Vib1(num=num, tstop=tstop, tstart=tstart)
@@ -1296,21 +1294,21 @@ class Vzsisa(HasPickleIO):
         columns.append(method_header)
 
         if angle is None or angle == 1:
-            ax.plot(tmesh, alpha, color='r', lw=2, label=r"$alpha(V(T))$" + method)
+            ax.plot(tmesh, alpha, color="r", lw=2, label=r"$alpha(V(T))$" + method)
         if angle is None or angle == 2:
-            ax.plot(tmesh, beta, color='b', lw=2, label=r"$beta(V(T))$" + method)
+            ax.plot(tmesh, beta, color="b", lw=2, label=r"$beta(V(T))$" + method)
         if angle is None or angle == 3:
-            ax.plot(tmesh, gamma, color='m', lw=2, label=r"$gamma(V(T))$" + method)
+            ax.plot(tmesh, gamma, color="m", lw=2, label=r"$gamma(V(T))$" + method)
 
         if abs(abs(self.bo_volumes[self.iv0] - ph_volumes[iv0])-abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3:
             if angle is None or angle == 1:
-                ax.plot(tmesh, alpha2, linestyle='dashed', color='r', lw=2, label=r"$alpha(V(T))$""E2vib1")
+                ax.plot(tmesh, alpha2, linestyle="dashed", color="r", lw=2, label=r"$alpha(V(T))$""E2vib1")
             if angle is None or angle == 2:
-                ax.plot(tmesh, beta2, linestyle='dashed', color='b', lw=2, label=r"$beta(V(T))$""E2vib1")
+                ax.plot(tmesh, beta2, linestyle="dashed", color="b", lw=2, label=r"$beta(V(T))$""E2vib1")
             if angle is None or angle == 3:
-                ax.plot(tmesh, gamma2, linestyle='dashed', color='m', lw=2, label=r"$gamma(V(T))$""E2vib1")
+                ax.plot(tmesh, gamma2, linestyle="dashed", color="m", lw=2, label=r"$gamma(V(T))$""E2vib1")
 
-        set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=None)
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel=None)
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
@@ -1341,9 +1339,9 @@ class Vzsisa(HasPickleIO):
         param = np.zeros((num, 5))
         param2 = np.zeros((num, 4))
         param3 = np.zeros((num, 3))
-        min_vol = np.zeros((num))
-        min_en = np.zeros((num))
-        F2D_V = np.zeros((num))
+        min_vol = np.zeros(num)
+        min_en = np.zeros(num)
+        F2D_V = np.zeros(num)
 
         for j, e in enumerate(energy.T):
             param[j] = np.polyfit(volumes, e, 4)
@@ -1453,7 +1451,7 @@ class Vzsisa(HasPickleIO):
             fe_V0[i] = e[iv0]
 
         gibbs_vt = self.bo_energies[np.newaxis, :].T + (self.bo_volumes[np.newaxis, :].T - V0) * dfe_dV
-        gibbs_vt += 0.5 * ((self.bo_volumes[np.newaxis, :].T - V0))**2 * (d2fe_dV2)
+        gibbs_vt += 0.5 * (self.bo_volumes[np.newaxis, :].T - V0)**2 * (d2fe_dV2)
         gibbs_vt += fe_V0 + self.bo_volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
         gibbs_vt += self.bo_volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
 
@@ -1526,17 +1524,17 @@ class Vzsisa(HasPickleIO):
 
         if self.scale_points == "S":
             vol_4th = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
-            ax.plot(tmesh, vol_4th, color='b', lw=2, label="E2Vib1")
-            data['E2vib1'] = vol_4th
+            ax.plot(tmesh, vol_4th, color="b", lw=2, label="E2Vib1")
+            data["E2vib1"] = vol_4th
 
         if len(self.index_list) >= 2:
             vol2_4th = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
-            ax.plot(tmesh, vol2_4th, color='gold', lw=2, label=r"$E_\infty Vib1$")
-            data['Einfvib1'] = vol2_4th
+            ax.plot(tmesh, vol2_4th, color="gold", lw=2, label=r"$E_\infty Vib1$")
+            data["Einfvib1"] = vol2_4th
 
         if len(self.index_list) >= 3:
             vol3_4th = self.vol_Einf_Vib2_forth(num=num,tstop=tstop,tstart=tstart)
-            ax.plot(tmesh, vol3_4th, color='m', lw=2, label=r"$E_\infty Vib2$")
+            ax.plot(tmesh, vol3_4th, color="m", lw=2, label=r"$E_\infty Vib2$")
             data["Einfvib2"] = vol3_4th
 
         if len(self.index_list) == 5:
@@ -1545,13 +1543,13 @@ class Vzsisa(HasPickleIO):
             f0 = self.fit_forth(ph_volumes, gibbs_vt, tstart, tstop, num)
 
             vol4_4th = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
-            ax.plot(tmesh, vol4_4th,color='c', lw=2  ,label=r"$E_\infty Vib4$")
-            ax.plot(tmesh, f0.min_vol, color='k', linestyle='dashed', lw=1.5, label="QHA")
-            data['Einfvib4'] = vol4_4th
-            data['QHA'] = f0.min_vol
+            ax.plot(tmesh, vol4_4th,color="c", lw=2  ,label=r"$E_\infty Vib4$")
+            ax.plot(tmesh, f0.min_vol, color="k", linestyle="dashed", lw=1.5, label="QHA")
+            data["Einfvib4"] = vol4_4th
+            data["QHA"] = f0.min_vol
 
-        ax.plot(0, self.bo_volumes[self.iv0], color='g', lw=0, marker='o', ms=10, label="V0")
-        set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'V (${\AA}^3$)')
+        ax.plot(0, self.bo_volumes[self.iv0], color="g", lw=0, marker="o", ms=10, label="V0")
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel=r"V (${\AA}^3$)")
         ax.set_xlim(tstart, tstop)
 
         fig.suptitle("Volume as a function of T")
@@ -1646,8 +1644,8 @@ class Vzsisa(HasPickleIO):
                 vol_4th_ref = self.vol_E2Vib1_forth(num=1, tstop=tref, tstart=tref)
                 alpha_1 = - 1/vol_4th_ref * (df_t[:,iv1]-df_t[:,iv0])/(ph_volumes[iv1]-ph_volumes[iv0]) / E2D
 
-            ax.plot(tmesh, alpha_1,color='b', lw=2, label="E2Vib1")
-            data['E2vib1'] = alpha_1
+            ax.plot(tmesh, alpha_1,color="b", lw=2, label="E2Vib1")
+            data["E2vib1"] = alpha_1
 
         if len(self.index_list) >= 2:
             vol2_4th = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
@@ -1659,8 +1657,8 @@ class Vzsisa(HasPickleIO):
                 vol2_4th_ref = self.vol_EinfVib1_forth(num=1, tstop=tref, tstart=tref)
                 alpha_2 = - 1/vol2_4th_ref * (df_t[:,iv1]-df_t[:,iv0])/(ph_volumes[iv1]-ph_volumes[iv0]) / E2D_V[:]
 
-            ax.plot(tmesh, alpha_2, color='gold', lw=2, label=r"$E_\infty Vib1$")
-            data['Einfvib1'] = alpha_2
+            ax.plot(tmesh, alpha_2, color="gold", lw=2, label=r"$E_\infty Vib1$")
+            data["Einfvib1"] = alpha_2
 
         if len(self.index_list) >= 3:
             vol3_4th = self.vol_Einf_Vib2_forth(num=num, tstop=tstop, tstart=tstart)
@@ -1677,8 +1675,8 @@ class Vzsisa(HasPickleIO):
                 vol3_4th_ref = self.vol_Einf_Vib2_forth(num=1, tstop=tref, tstart=tref)
                 alpha_3 = - 1/vol3_4th_ref * ds_dv / (E2D_V[:]+dfe_dV2[:])
 
-            ax.plot(tmesh, alpha_3,color='m', lw=2, label=r"$E_\infty Vib2$")
-            data['Einfvib2'] = alpha_3
+            ax.plot(tmesh, alpha_3,color="m", lw=2, label=r"$E_\infty Vib2$")
+            data["Einfvib2"] = alpha_3
 
         if len(self.index_list) == 5:
             vol4_4th = self.vol_Einf_Vib4_forth(num=num, tstop=tstop, tstart=tstart)
@@ -1704,14 +1702,14 @@ class Vzsisa(HasPickleIO):
                 vol4_4th_ref = self.vol_Einf_Vib4_forth(num=1, tstop=tref, tstart=tref)
                 alpha_4 = - 1/vol4_4th_ref * ds_dv / D2F
 
-            ax.plot(tmesh, alpha_4, color='c', linewidth=2, label=r"$E_\infty Vib4$")
+            ax.plot(tmesh, alpha_4, color="c", linewidth=2, label=r"$E_\infty Vib4$")
 
             alpha_qha = self.get_thermal_expansion_coeff_4th(tstart, tstop, num, tref)
-            ax.plot(tmesh, alpha_qha, color='k', linestyle='dashed', lw=1.5, label="QHA")
-            data['Einfvib4'] = alpha_4
-            data['QHA'] = alpha_qha
+            ax.plot(tmesh, alpha_qha, color="k", linestyle="dashed", lw=1.5, label="QHA")
+            data["Einfvib4"] = alpha_4
+            data["QHA"] = alpha_qha
 
-        set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'$\alpha$ (K$^{-1}$)')
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel=r"$\alpha$ (K$^{-1}$)")
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
@@ -1743,12 +1741,12 @@ class Vzsisa(HasPickleIO):
         ph_volumes = self.ph_volumes
 
         data_to_save = tmesh
-        columns = ['#Tmesh']
+        columns = ["#Tmesh"]
         if self.scale_points == "S":
             vols2 = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
             aa2, bb2, cc2 = self.get_abc(vols2)
             data_to_save = np.column_stack((data_to_save, aa2, bb2, cc2))
-            columns.append( 'E2vib1 (a,b,c) |            ')
+            columns.append( "E2vib1 (a,b,c) |            ")
 
         if len(self.index_list) == 2:
             vols = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
@@ -1773,21 +1771,21 @@ class Vzsisa(HasPickleIO):
         columns.append(method_header)
 
         if lattice is None or lattice == "a":
-            ax.plot(tmesh, aa, color='r', lw=2, label=r"$a(V(T))$" + method)
+            ax.plot(tmesh, aa, color="r", lw=2, label=r"$a(V(T))$" + method)
         if lattice is None or lattice == "b":
-            ax.plot(tmesh, bb, color='b', lw=2, label=r"$b(V(T))$" + method)
+            ax.plot(tmesh, bb, color="b", lw=2, label=r"$b(V(T))$" + method)
         if lattice is None or lattice == "c":
-            ax.plot(tmesh, cc, color='m', lw=2, label=r"$c(V(T))$" + method)
+            ax.plot(tmesh, cc, color="m", lw=2, label=r"$c(V(T))$" + method)
 
         if abs(abs(self.bo_volumes[self.iv0] - ph_volumes[iv0])-abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3:
             if lattice is None or lattice == "a":
-                ax.plot(tmesh, aa2, linestyle='dashed', color='r', lw=2, label=r"$a(V(T))$""E2vib1")
+                ax.plot(tmesh, aa2, linestyle="dashed", color="r", lw=2, label=r"$a(V(T))$""E2vib1")
             if lattice is None or lattice == "b":
-                ax.plot(tmesh, bb2, linestyle='dashed', color='b', lw=2, label=r"$b(V(T))$""E2vib1")
+                ax.plot(tmesh, bb2, linestyle="dashed", color="b", lw=2, label=r"$b(V(T))$""E2vib1")
             if lattice is None or lattice == "c":
-                ax.plot(tmesh, cc2, linestyle='dashed', color='m', lw=2, label=r"$c(V(T))$""E2vib1")
+                ax.plot(tmesh, cc2, linestyle="dashed", color="m", lw=2, label=r"$c(V(T))$""E2vib1")
 
-        set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=None)
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel=None)
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
@@ -1819,12 +1817,12 @@ class Vzsisa(HasPickleIO):
         ph_volumes = self.ph_volumes
 
         data_to_save = tmesh
-        columns = ['#Tmesh']
+        columns = ["#Tmesh"]
         if self.scale_points == "S":
             vols2 = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
             alpha2, beta2, gamma2 = self.get_angles(vols2)
             data_to_save = np.column_stack((data_to_save, alpha2, beta2, gamma2))
-            columns.append( 'E2vib1 (alpha,beta,gamma) |            ')
+            columns.append( "E2vib1 (alpha,beta,gamma) |            ")
 
         if len(self.index_list) == 2:
             vols = self.vol_EinfVib1_forth(num=num, tstop=tstop, tstart=tstart)
@@ -1849,21 +1847,21 @@ class Vzsisa(HasPickleIO):
         columns.append(method_header)
 
         if angle is None or angle == 1:
-            ax.plot(tmesh, alpha, color='r', lw=2, label=r"$alpha(V(T))$" + method)
+            ax.plot(tmesh, alpha, color="r", lw=2, label=r"$alpha(V(T))$" + method)
         if angle is None or angle == 2:
-            ax.plot(tmesh, beta, color='b', lw=2, label=r"$beta(V(T))$" + method)
+            ax.plot(tmesh, beta, color="b", lw=2, label=r"$beta(V(T))$" + method)
         if angle is None or angle == 3:
-            ax.plot(tmesh, gamma, color='m', lw=2, label=r"$gamma(V(T))$" + method)
+            ax.plot(tmesh, gamma, color="m", lw=2, label=r"$gamma(V(T))$" + method)
 
         if abs(abs(self.bo_volumes[self.iv0]- ph_volumes[iv0]) - abs(ph_volumes[iv1]-self.bo_volumes[self.iv0])) < 1e-3:
             if angle is None or angle == 1:
-                ax.plot(tmesh, alpha2, linestyle='dashed', color='r', lw=2, label=r"$alpha(V(T))$""E2vib1")
+                ax.plot(tmesh, alpha2, linestyle="dashed", color="r", lw=2, label=r"$alpha(V(T))$""E2vib1")
             if angle is None or angle == 2:
-                ax.plot(tmesh, beta2, linestyle='dashed', color='b', lw=2, label=r"$beta(V(T))$""E2vib1")
+                ax.plot(tmesh, beta2, linestyle="dashed", color="b", lw=2, label=r"$beta(V(T))$""E2vib1")
             if angle is None or angle == 3:
-                ax.plot(tmesh, gamma2, linestyle='dashed', color='m', lw=2, label=r"$gamma(V(T))$""E2vib1")
+                ax.plot(tmesh, gamma2, linestyle="dashed", color="m", lw=2, label=r"$gamma(V(T))$""E2vib1")
 
-        set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=None)
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel=None)
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
@@ -1894,7 +1892,7 @@ class Vzsisa(HasPickleIO):
         ph_volumes = self.ph_volumes
 
         data_to_save = tmesh[1:-1]
-        columns = ['#Tmesh']
+        columns = ["#Tmesh"]
         if self.scale_points == "S":
             vols2 = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
@@ -1939,9 +1937,9 @@ class Vzsisa(HasPickleIO):
             alpha_b = (bb[2:] - bb[:-2]) / (2 * dt) / bb_tref
             alpha_c = (cc[2:] - cc[:-2]) / (2 * dt) / cc_tref
 
-        ax.plot(tmesh[1:-1], alpha_a, color='r', lw=2, label=r"$\alpha_a$" + method)
-        ax.plot(tmesh[1:-1], alpha_b, color='b', lw=2, label=r"$\alpha_b$" + method)
-        ax.plot(tmesh[1:-1], alpha_c, color='m', lw=2, label=r"$\alpha_c$" + method)
+        ax.plot(tmesh[1:-1], alpha_a, color="r", lw=2, label=r"$\alpha_a$" + method)
+        ax.plot(tmesh[1:-1], alpha_b, color="b", lw=2, label=r"$\alpha_b$" + method)
+        ax.plot(tmesh[1:-1], alpha_c, color="m", lw=2, label=r"$\alpha_c$" + method)
 
         method_header = method + "  (alpha_a,alpha_b,alpha_c) |"
         data_to_save = np.column_stack((data_to_save, alpha_a, alpha_b, alpha_c))
@@ -1961,13 +1959,13 @@ class Vzsisa(HasPickleIO):
                 alpha2_b = (bb2[2:] - bb2[:-2]) / (2 * dt) / bb2_tref
                 alpha2_c = (cc2[2:] - cc2[:-2]) / (2 * dt) / cc2_tref
 
-            ax.plot(tmesh[1:-1], alpha2_a, linestyle='dashed', color='r', lw=2, label=r"$\alpha_a$"" (E2vib1)")
-            ax.plot(tmesh[1:-1], alpha2_b, linestyle='dashed', color='b', lw=2, label=r"$\alpha_b$"" (E2vib1)")
-            ax.plot(tmesh[1:-1], alpha2_c, linestyle='dashed', color='m', lw=2, label=r"$\alpha_c$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_a, linestyle="dashed", color="r", lw=2, label=r"$\alpha_a$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_b, linestyle="dashed", color="b", lw=2, label=r"$\alpha_b$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_c, linestyle="dashed", color="m", lw=2, label=r"$\alpha_c$"" (E2vib1)")
             data_to_save = np.column_stack((data_to_save, alpha2_a, alpha2_b, alpha2_c))
-            columns.append( 'E2vib1 (alpha_a,alpha_b,alpha_c)   ')
+            columns.append( "E2vib1 (alpha_a,alpha_b,alpha_c)   ")
 
-        set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'$\alpha$ (K$^{-1}$)')
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel=r"$\alpha$ (K$^{-1}$)")
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 
@@ -1998,7 +1996,7 @@ class Vzsisa(HasPickleIO):
         ph_volumes = self.ph_volumes
 
         data_to_save = tmesh[1:-1]
-        columns = ['#Tmesh']
+        columns = ["#Tmesh"]
         if self.scale_points == "S":
             vols2 = self.vol_E2Vib1_forth(num=num, tstop=tstop, tstart=tstart)
             if tref is not None:
@@ -2042,9 +2040,9 @@ class Vzsisa(HasPickleIO):
             alpha_beta = (beta[2:] - beta[:-2]) / (2 * dt) / beta_tref
             alpha_gamma = (gamma[2:] - gamma[:-2]) / (2 * dt) / gamma_tref
 
-        ax.plot(tmesh[1:-1], alpha_alpha, color='r', lw=2, label=r"$\alpha_alpha$" + method)
-        ax.plot(tmesh[1:-1], alpha_beta, color='b', lw=2, label=r"$\alpha_beta$" + method)
-        ax.plot(tmesh[1:-1], alpha_gamma, color='m', lw=2, label=r"$\alpha_gamma$" + method)
+        ax.plot(tmesh[1:-1], alpha_alpha, color="r", lw=2, label=r"$\alpha_alpha$" + method)
+        ax.plot(tmesh[1:-1], alpha_beta, color="b", lw=2, label=r"$\alpha_beta$" + method)
+        ax.plot(tmesh[1:-1], alpha_gamma, color="m", lw=2, label=r"$\alpha_gamma$" + method)
 
         method_header = method + "  (alpha_alpha,alpha_beta,alpha_gamma) |"
         data_to_save = np.column_stack((data_to_save, alpha_alpha, alpha_beta, alpha_gamma))
@@ -2064,13 +2062,13 @@ class Vzsisa(HasPickleIO):
                 alpha2_beta = (beta2[2:] - beta2[:-2]) / (2 * dt) / beta2_tref
                 alpha2_gamma = (gamma2[2:] - gamma2[:-2]) / (2 * dt) / gamma2_tref
 
-            ax.plot(tmesh[1:-1], alpha2_alpha, linestyle='dashed', color='r', lw=2 ,label=r"$\alpha_alpha$"" (E2vib1)")
-            ax.plot(tmesh[1:-1], alpha2_beta, linestyle='dashed', color='b', lw=2 ,label=r"$\alpha_beta$"" (E2vib1)")
-            ax.plot(tmesh[1:-1], alpha2_gamma, linestyle='dashed', color='m', lw=2 ,label=r"$\alpha_gamma$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_alpha, linestyle="dashed", color="r", lw=2 ,label=r"$\alpha_alpha$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_beta, linestyle="dashed", color="b", lw=2 ,label=r"$\alpha_beta$"" (E2vib1)")
+            ax.plot(tmesh[1:-1], alpha2_gamma, linestyle="dashed", color="m", lw=2 ,label=r"$\alpha_gamma$"" (E2vib1)")
             data_to_save = np.column_stack((data_to_save, alpha2_alpha, alpha2_beta, alpha2_gamma))
-            columns.append( 'E2vib1 (alpha_alpha,alpha_beta,alpha_gamma)   ')
+            columns.append( "E2vib1 (alpha_alpha,alpha_beta,alpha_gamma)   ")
 
-        set_grid_legend(ax, fontsize, xlabel='T (K)', ylabel=r'$\alpha$ (K$^{-1}$)')
+        set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel=r"$\alpha$ (K$^{-1}$)")
         ax.set_xlim(tstart, tstop)
         ax.get_yaxis().get_major_formatter().set_powerlimits((0, 0))
 

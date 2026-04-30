@@ -2,15 +2,11 @@
 """
 This script regenerate all the reference files located in this directory 
 """
-from __future__ import print_function, division, unicode_literals
 
-import sys
-import os 
 import argparse
-import shutil
-import tempfile
-
-from subprocess import call, Popen
+import os
+import sys
+from subprocess import call
 
 
 def main():
@@ -24,21 +20,21 @@ def main():
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(str_examples())
-        if err_msg: 
+        if err_msg:
             sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
     parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-m', '--mode', type=str, default="sequential",
+    parser.add_argument("-m", "--mode", type=str, default="sequential",
                         help="execution mode. Default is sequential.")
 
-    parser.add_argument('-e', '--exclude', type=str, default="", help="Exclude scripts.")
+    parser.add_argument("-e", "--exclude", type=str, default="", help="Exclude scripts.")
 
-    parser.add_argument('--keep-dirs', action="store_true", default=False,
+    parser.add_argument("--keep-dirs", action="store_true", default=False,
                         help="Do not remove flowdirectories.")
 
-    parser.add_argument('-b', '--bail-on-failure', default=False, help="Exit at the first error.")
+    parser.add_argument("-b", "--bail-on-failure", default=False, help="Exit at the first error.")
 
     #parser.add_argument("scripts", nargs="+",help="List of scripts to be executed")
 
@@ -69,7 +65,7 @@ def main():
             ret = call(["python", script])
             retcode += ret
 
-            if ret != 0: 
+            if ret != 0:
                 print("retcode %d while running %s" % (ret, script))
                 if options.bail_on_failure: break
 

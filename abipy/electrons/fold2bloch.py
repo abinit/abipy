@@ -1,24 +1,24 @@
-# coding: utf-8
 """Interface to the Fold2Bloch netcdf file."""
 from __future__ import annotations
 
 import os
-import numpy as np
-import pymatgen.core.units as units
-
 from functools import cached_property
-from monty.string import marquee
+
+import numpy as np
 from monty.collections import dict2namedtuple
+from monty.string import marquee
 from monty.termcolor import cprint
+from pymatgen.core import units
 from pymatgen.core.lattice import Lattice
-from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.core.kpoints import KpointList, is_diagonal, find_points_along_path
+
 from abipy.core.globals import get_workdir
-from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt
-from abipy.tools.typing import Figure
+from abipy.core.kpoints import KpointList, find_points_along_path, is_diagonal
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader
 from abipy.tools.numtools import gaussian
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.typing import Figure
 
 
 class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -137,7 +137,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
@@ -235,13 +235,13 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
             ws = self.uf_weights[spin, p.ikfound, :]
             s = ax.scatter(xs, ys.T, s=fact * ws.T, c=ws.T,
                            marker=marker_spin[spin], label=None if self.nss == 1 else "spin %s" % spin,
-                           linewidth=1, edgecolors='none', cmap=plt.get_cmap(colormap))
-            plt.colorbar(s, ax=ax, orientation='vertical')
+                           linewidth=1, edgecolors="none", cmap=plt.get_cmap(colormap))
+            plt.colorbar(s, ax=ax, orientation="vertical")
 
         ax.set_xticks(p.path_ticks, minor=False)
         ax.set_xticklabels(klabels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
         ax.grid(True)
-        ax.set_ylabel('Energy (eV)')
+        ax.set_ylabel("Energy (eV)")
         set_axlims(ax, ylims, "y")
         if self.nss == 2: ax.legend(loc="best", fontsize=fontsize, shadow=True)
 

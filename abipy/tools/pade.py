@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Functions to perform analytic continuation with Pade'
 Some of these routines have been directly translated from the Fortran version
@@ -59,7 +58,7 @@ def pade(zs: np.ndarray, f_zs: np.ndarray, z_eval) -> complex:
     """
     Calculate the Pade approximant of the function f_zs at z_eval.
 
-    Args
+    Args:
       zs: Input array of complex numbers.
       f_zs: Input array of complex numbers.
       z_eval: Point at which to evaluate the Pade approximant.

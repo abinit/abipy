@@ -1,17 +1,15 @@
 #!/usr/bin/env python
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_input(scf_ngkpt, paral_kgb=0):
     """
     This function constructs the input file for the GS calculation:
     """
-
     # Initialize MgO structure from abinit variables.
     structure = abilab.Structure.from_abivars(
         acell=3 * [4.252718 * abilab.units.ang_to_bohr],
@@ -136,7 +134,7 @@ def build_flow(options):
     # Create empty work to contain EPH tasks with this value of eph_ngqpt_fine
     eph_work = flow.new_work()
 
-    for ngkpt_fine, nscf_task in zip(ngkpt_fine_list, nscf_empty_states_tasks):
+    for ngkpt_fine, nscf_task in zip(ngkpt_fine_list, nscf_empty_states_tasks, strict=False):
         new_inp = eph_template.new_with_vars(
             ngkpt=ngkpt_fine,
             eph_ngqpt_fine=ngkpt_fine,

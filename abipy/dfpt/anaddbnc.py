@@ -1,25 +1,25 @@
-# coding: utf-8
 """
 AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.
 """
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd
-
 from collections import OrderedDict
 from functools import cached_property
+
+import numpy as np
+import pandas as pd
 from monty.string import marquee
 from monty.termcolor import cprint
-from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
+
 from abipy.abio.robots import Robot
-from abipy.iotools import ETSF_Reader
-from abipy.tools.typing import Figure
-from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, rotate_ticklabels
-from abipy.tools.tensors import Tensor, DielectricTensor, NLOpticalSusceptibilityTensor
-from abipy.dfpt.ifc import InteratomicForceConstants
-from abipy.dfpt.ddb import Zeffs, DynQuad
+from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
+from abipy.dfpt.ddb import DynQuad, Zeffs
 from abipy.dfpt.elastic import ElasticData
+from abipy.dfpt.ifc import InteratomicForceConstants
+from abipy.iotools import ETSF_Reader
+from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, rotate_ticklabels
+from abipy.tools.tensors import DielectricTensor, NLOpticalSusceptibilityTensor, Tensor
+from abipy.tools.typing import Figure
 
 
 class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -146,7 +146,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         try:
             return DielectricTensor(self.r.read_value("emacro_cart").T.copy())
-        except Exception as exc:
+        except Exception:
             #print(exc, "Returning None", sep="\n")
             return None
 
@@ -158,7 +158,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         try:
             return DielectricTensor(self.r.read_value("emacro_cart_rlx").T.copy())
-        except Exception as exc:
+        except Exception:
             #print(exc, "Requires dieflag > 0", "Returning None", sep="\n")
             return None
 
@@ -169,7 +169,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         try:
             return Zeffs("Ze", self.r.read_value("becs_cart"), self.structure, self.params)
-        except Exception as exc:
+        except Exception:
             return None
 
     @cached_property
@@ -180,7 +180,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             quad_cart = self.r.read_value("quadrupoles_cart")
             quad_cart = np.swapaxes(quad_cart, -1, -2)
             return DynQuad(quad_cart, self.structure, self.params)
-        except Exception as exc:
+        except Exception:
             #print(exc)
             return None
 
@@ -193,7 +193,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         try:
             return InteratomicForceConstants.from_file(self.filepath)
-        except Exception as exc:
+        except Exception:
             cprint("Interatomic force constants have not been calculated. Returning None", "red")
             return None
 
@@ -205,7 +205,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         try:
             return NLOpticalSusceptibilityTensor(self.r.read_value("dchide"))
-        except Exception as exc:
+        except Exception:
             #print(exc, "Requires nlflag > 0", "Returning None", sep="\n")
             return None
 
@@ -220,7 +220,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         try:
             a = self.r.read_value("dchidt").T.copy()
-        except Exception as exc:
+        except Exception:
             #print(exc, "Requires 0 < nlflag < 3", "Returning None", sep="\n")
             return None
 
@@ -244,7 +244,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             carr = self.r.read_value("oscillator_strength", cmode="c")
             carr = carr.transpose((0, 2, 1)).copy()
             return carr
-        except Exception as exc:
+        except Exception:
             #print(exc, "Oscillator strengths require dieflag == 1, 3 or 4", "Returning None", sep="\n")
             return None
 
@@ -274,7 +274,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         amu_list = self.r.read_value("atomic_mass_units", default=None)
         if amu_list is not None:
             atomic_numbers = self.r.read_value("atomic_numbers")
-            amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
+            amu = {at: a for at, a in zip(atomic_numbers, amu_list, strict=False)}
         else:
             amu = None
 
@@ -390,7 +390,7 @@ class AnaddbNcRobot(Robot):
                                                 sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
-        for ix, (key, ax) in enumerate(zip(keys, ax_list)):
+        for ix, (key, ax) in enumerate(zip(keys, ax_list, strict=False)):
             irow, icol = divmod(ix, ncols)
             xn = range(len(df.index))
             ax.plot(xn, df[key], marker="o")
@@ -404,7 +404,7 @@ class AnaddbNcRobot(Robot):
 
         if ix != len(ax_list) - 1:
             for ix in range(ix + 1, len(ax_list)):
-                ax_list[ix].axis('off')
+                ax_list[ix].axis("off")
 
         return fig
 

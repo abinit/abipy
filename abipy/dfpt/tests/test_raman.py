@@ -1,6 +1,5 @@
 """Tests for Raman module."""
 import abipy.data as abidata
-
 from abipy.core.testing import AbipyTest
 from abipy.dfpt.raman import Raman
 
@@ -9,7 +8,6 @@ class RamanTest(AbipyTest):
 
     def test_raman(self):
         """Testing Raman object."""
-
         r = Raman.from_file(abidata.ref_file("AlAs_nl_dte_anaddb.nc"))
 
         im = r.get_modes_intensities(temp=300, laser_freq=2.54, non_anal_dir=0)

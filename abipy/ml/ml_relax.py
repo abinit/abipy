@@ -2,29 +2,27 @@
 """
 from __future__ import annotations
 
-import sys
-import os
-import time
-import tempfile
 import json
-import numpy as np
-
-from pathlib import Path
+import time
 from typing import Any
-#from monty.string import marquee, list_strings # is_string,
-from monty.json import MontyEncoder
-from monty.collections import dict2namedtuple
+
+import numpy as np
 from ase.atoms import Atoms
 from ase.calculators.abinit import Abinit, AbinitProfile
 from ase.constraints import ExpCellFilter
-from ase.stress import full_3x3_to_voigt_6_stress, voigt_6_to_full_3x3_stress
-from abipy.core.abinit_units import eV_Ha, Ang_Bohr
-from abipy.core.structure import Structure, StructDiff
-from abipy.tools.iotools import workdir_with_prefix
-from abipy.tools.context_managers import Timer
+from ase.stress import voigt_6_to_full_3x3_stress
+from monty.collections import dict2namedtuple
+
+#from monty.string import marquee, list_strings # is_string,
+from monty.json import MontyEncoder
+
+from abipy.core.abinit_units import Ang_Bohr, eV_Ha
+from abipy.core.structure import StructDiff, Structure
 from abipy.dynamics.hist import HistFile
 from abipy.flowtk import PseudoTable
-from abipy.ml.aseml import print_atoms, get_atoms, CalcBuilder, ase_optimizer_cls, abisanitize_atoms, RX_MODE
+from abipy.ml.aseml import RX_MODE, CalcBuilder, ase_optimizer_cls, get_atoms
+from abipy.tools.context_managers import Timer
+from abipy.tools.iotools import workdir_with_prefix
 
 
 class RelaxationProfiler:
@@ -115,7 +113,7 @@ class RelaxationProfiler:
         """Apply a filter to input atoms depending on the relaxation mode."""
         if self.relax_mode == RX_MODE.ions:
             return atoms
-        elif self.relax_mode == RX_MODE.cell:
+        if self.relax_mode == RX_MODE.cell:
             return ExpCellFilter(atoms, scalar_pressure=self.scalar_pressure)
 
         raise ValueError(f"Invalid value of {self.relax_mode=}")
@@ -124,7 +122,7 @@ class RelaxationProfiler:
         """
         Relax structure with ML potential only. Return ASE optimizer.
         """
-        print(f"\nBegin {self.nn_name} relaxation in {str(directory)}")
+        print(f"\nBegin {self.nn_name} relaxation in {directory!s}")
         print("relax_mode:", self.relax_mode, "with fmax:", self.fmax)
         directory.mkdir()
         ml_calc = CalcBuilder(self.nn_name).get_calculator()
@@ -132,7 +130,7 @@ class RelaxationProfiler:
         atoms.calc = ml_calc
 
         opt_kws = dict(
-            trajectory=str(directory / f"opt.traj"),
+            trajectory=str(directory / "opt.traj"),
             #logfile=str(directory / f"log"),
         )
         opt = self.ase_opt_cls(self._mkfilter(atoms), **opt_kws)
@@ -141,7 +139,7 @@ class RelaxationProfiler:
             opt.run(fmax=self.fmax, steps=self.steps)
             if not opt.converged():
                 raise RuntimeError("ml_relax_opt didn't converge!")
-        print('%s relaxation completed in %.2f sec after nsteps: %d\n' % (self.nn_name, timer.time, opt.nsteps))
+        print("%s relaxation completed in %.2f sec after nsteps: %d\n" % (self.nn_name, timer.time, opt.nsteps))
 
         return opt
 
@@ -149,7 +147,7 @@ class RelaxationProfiler:
         """
         Relax structure with ABINIT. Return namedtuple with results.
         """
-        print(f"\n{header} in {str(directory)}")
+        print(f"\n{header} in {directory!s}")
         print("relax_mode:", self.relax_mode, "with tolmxf:", self.relax_kwargs["tolmxf"])
         if atoms is None:
             atoms = self.initial_atoms.copy()
@@ -163,7 +161,7 @@ class RelaxationProfiler:
             nsteps = hist.num_steps
             energy = float(hist.final_energy)
             atoms = get_atoms(hist.final_structure)
-        print('ABINIT relaxation completed in %.2f sec after nsteps: %d\n' % (timer.time, nsteps))
+        print("ABINIT relaxation completed in %.2f sec after nsteps: %d\n" % (timer.time, nsteps))
 
         return dict2namedtuple(
                 atoms=atoms,
@@ -176,7 +174,7 @@ class RelaxationProfiler:
         """
         Relax structure with ABINIT. Return ASE Optimizer
         """
-        print(f"\n{header} in {str(directory)}")
+        print(f"\n{header} in {directory!s}")
         print("relax_mode:", self.relax_mode, "with tolmxf:", self.relax_kwargs["tolmxf"])
 
         atoms = self.initial_atoms.copy()
@@ -188,19 +186,19 @@ class RelaxationProfiler:
             opt.run(fmax=self.fmax, steps=self.steps)
             if not opt.converged():
                 raise RuntimeError("Abinit+ASE optimizer didn't converge!")
-        print('%s relaxation completed in %.2f sec after nsteps: %d\n' % (self.nn_name, timer.time, opt.nsteps))
+        print("%s relaxation completed in %.2f sec after nsteps: %d\n" % (self.nn_name, timer.time, opt.nsteps))
         return opt
 
     def abinit_run_gs_atoms(self, directory, atoms):
         """
         Perform a GS calculation with ABINIT. Return namedtuple with results in ASE units.
         """
-        with Timer(header=f"\nBegin ABINIT GS in {str(directory)}", footer="ABINIT GS") as timer:
+        with Timer(header=f"\nBegin ABINIT GS in {directory!s}", footer="ABINIT GS") as timer:
             abinit = Abinit(profile=self.abinit_profile, directory=directory, **self.gs_kwargs)
             forces = abinit.get_forces(atoms=atoms)
             stress = abinit.get_stress(atoms=atoms)
             energy = abinit.get_potential_energy(atoms=atoms)
-            print('ABINIT GS completed in %.2f sec\n' % (timer.time))
+            print("ABINIT GS completed in %.2f sec\n" % (timer.time))
 
         return dict2namedtuple(abinit=abinit, forces=forces,
                                stress=voigt_6_to_full_3x3_stress(stress),
@@ -222,7 +220,7 @@ class RelaxationProfiler:
 
         if False:
             # Run relaxation with ASE optimizer and Abinit forces.
-            abiase_opt = self.abi_relax_atoms_with_ase(workdir / f"abiase_relax")
+            abiase_opt = self.abi_relax_atoms_with_ase(workdir / "abiase_relax")
 
         # Compare structures
         diff = StructDiff(["INITIAL", "ABINIT_RELAX", self.nn_name + "_RELAX"],
@@ -263,7 +261,7 @@ class RelaxationProfiler:
             atoms.calc = ml_calc
 
             opt_kws = dict(
-                trajectory=str(gs.abinit.directory / f"opt.traj"),
+                trajectory=str(gs.abinit.directory / "opt.traj"),
                 #logfile=str(abinit.directory / f"log_{count}"),
             )
             opt = self.ase_opt_cls(self._mkfilter(atoms), **opt_kws)
@@ -274,8 +272,8 @@ class RelaxationProfiler:
             atoms = opt.atoms.copy()
 
             final_mlabi_relax = None
-            if self.algorithm =='old': do_final_relax = opt_converged and opt.nsteps <= 1
-            if self.algorithm == 'one-GS': do_final_relax = opt_converged
+            if self.algorithm =="old": do_final_relax = opt_converged and opt.nsteps <= 1
+            if self.algorithm == "one-GS": do_final_relax = opt_converged
 
             if do_final_relax:
                 # Sanitize atoms at each step to avoid possibile issues when relaxing with Abinit.
@@ -287,7 +285,7 @@ class RelaxationProfiler:
                 abiml_nsteps += final_mlabi_relax.nsteps
                 break
 
-        print(f'ABINIT + {self.nn_name} relaxation completed in {time.time() - t_start :.2f} sec\n')
+        print(f"ABINIT + {self.nn_name} relaxation completed in {time.time() - t_start :.2f} sec\n")
         #print_atoms(atoms, title="Atoms after ABINIT + ML relaxation:")
 
         diff = StructDiff(["INITIAL", self.nn_name + "_RELAX", "ABINIT_RELAX", "ABI_ML"],
@@ -300,7 +298,7 @@ class RelaxationProfiler:
         print(f"Single point calculations performed in ABI + ML mode {count=}")
 
         # Write json file with output results.
-        with open(workdir / "data.json", "wt") as fh:
+        with open(workdir / "data.json", "w") as fh:
             data = dict(
                 corr_algo=self.corr_algo,
                 xc_name=self.xc_name,
@@ -322,7 +320,7 @@ if __name__ == "__main__":
     xc_name = "PBE"
     pseudos = get_oncvpsp_pseudos(xc_name=xc_name, version="0.4")
     from ase.build import bulk
-    atoms = bulk('Si')
+    atoms = bulk("Si")
     atoms.rattle(stdev=0.1, seed=42)
     kppa = 200
     corr_algo = CORRALGO.from_string("delta")

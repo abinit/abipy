@@ -4,10 +4,9 @@ from __future__ import annotations
 #import param
 import panel as pn
 import panel.widgets as pnw
-import bokeh.models.widgets as bkw
 
 from abipy.dynamics.hist import HistFile
-from abipy.panels.core import AbipyParameterized, mpl, ply, depends_on_btn_click
+from abipy.panels.core import AbipyParameterized, depends_on_btn_click, ply
 
 
 class HistFilePanel(AbipyParameterized):
@@ -28,7 +27,7 @@ class HistFilePanel(AbipyParameterized):
 
         super().__init__(**params)
 
-    @depends_on_btn_click('plot_relax_btn')
+    @depends_on_btn_click("plot_relax_btn")
     def on_plot_relax_btn(self) -> pn.Column:
         """
         Plot the evolution of structural parameters (lattice lengths, angles and volume)
@@ -41,7 +40,7 @@ class HistFilePanel(AbipyParameterized):
 
         return col
 
-    @depends_on_btn_click('view_relax_btn')
+    @depends_on_btn_click("view_relax_btn")
     def on_view_relax_btn(self):
         """
         Visalize the structural relaxation with an external application.
@@ -68,4 +67,4 @@ class HistFilePanel(AbipyParameterized):
 
         if as_dict: return d
 
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template"))

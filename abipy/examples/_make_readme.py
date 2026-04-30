@@ -2,10 +2,11 @@
 """
 This script extracts the docstrings from the run_*.py scripts located in this directory.
 """
-import sys
 import os
+import sys
 
 from monty.fnmatch import WildCard
+
 
 def main():
     # Find (runnable) scripts.
@@ -14,7 +15,7 @@ def main():
     scripts = [f.replace(".py", "") for f in wildcard.filter(os.listdir(dirpath))]
 
     missing = []
-    with open("README.md", "wt") as fh:
+    with open("README.md", "w") as fh:
         for script in scripts:
             mod = __import__(script)
             if mod.__doc__ is None: missing.append(script)

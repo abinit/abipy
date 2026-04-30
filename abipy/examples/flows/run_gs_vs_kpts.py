@@ -5,12 +5,11 @@ Convergence study with different k-meshes
 
 In this example,
 """
-import sys
 import os
+import sys
 
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
 import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

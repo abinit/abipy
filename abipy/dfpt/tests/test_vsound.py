@@ -1,7 +1,7 @@
 """Tests for phtk module."""
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.dfpt.vsound import SoundVelocity
 

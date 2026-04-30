@@ -1,34 +1,34 @@
-# coding: utf-8
 """
 This module defines the Node base class inherited by Task, Work and Flow objects.
 """
 from __future__ import annotations
 
-import sys
-import os
-import time
-import collections
 import abc
+import collections
+import logging
+import os
+import sys
+import time
+from collections import OrderedDict
+from functools import cached_property
+from typing import Any
+
 import numpy as np
 import pandas as pd
-
-from collections import OrderedDict
-from typing import Any
-from functools import cached_property
-from pydispatch import dispatcher
-from monty.json import jsanitize, MSONable
-from monty.termcolor import colored
+from monty.collections import AttrDict, Namespace
+from monty.io import FileLock
+from monty.json import MSONable, jsanitize
 from monty.serialization import loadfn
 from monty.string import is_string
-from monty.io import FileLock
-from monty.collections import AttrDict, Namespace
-from abipy.tools.serialization import json_pretty_dump, pmg_serialize
+from monty.termcolor import colored
+from pydispatch import dispatcher
+
 from abipy.tools.iotools import AtomicFile
+from abipy.tools.serialization import json_pretty_dump, pmg_serialize
+
 #from abipy.tools.typing import TYPE_CHECKING
-from .utils import File, Directory, Dirviz, irdvars_for_ext, abi_extensions
+from .utils import Directory, Dirviz, File, abi_extensions, irdvars_for_ext
 
-
-import logging
 logger = logging.getLogger(__name__)
 
 #if TYPE_CHECKING:  # needed to avoid circular imports
@@ -93,8 +93,7 @@ class Status(int):
         for num, text in cls._STATUS2STR.items():
             if text == s:
                 return cls(num)
-        else:
-            raise ValueError("Wrong string %s" % s)
+        raise ValueError("Wrong string %s" % s)
 
     @classmethod
     def all_status_strings(cls) -> list[str]:
@@ -125,7 +124,6 @@ class Dependency:
     One usually creates the object by calling work.register
 
     Example:
-
         # Register the SCF task in work.
         scf_task = work.register(scf_strategy)
 
@@ -396,7 +394,7 @@ class NodeResults(dict, MSONable):
                 try:
                     with open(gridfile.path, "r" + gridfile.mode) as f:
                         gridfile.fs_id = fs.put(f, filename=gridfile.path)
-                except IOError as exc:
+                except OSError as exc:
                     logger.critical(str(exc))
 
         if flow.mongo_id is None:
@@ -555,7 +553,7 @@ class Node(metaclass=abc.ABCMeta):
             return max(0, min(int(x), 255))
 
         r, g, b = np.trunc(self.color_rgb * 255)
-        return "#{0:02x}{1:02x}{2:02x}".format(clamp(r), clamp(g), clamp(b))
+        return f"#{clamp(r):02x}{clamp(g):02x}{clamp(b):02x}"
 
     @property
     def attrs(self) -> dict:
@@ -573,8 +571,7 @@ class Node(metaclass=abc.ABCMeta):
         import inspect
         if inspect.isclass(class_or_string):
             return isinstance(self, class_or_string)
-        else:
-            return self.__class__.__name__.lower() == class_or_string.lower()
+        return self.__class__.__name__.lower() == class_or_string.lower()
 
     @classmethod
     def as_node(cls, obj: Any) -> Node | None:
@@ -588,13 +585,12 @@ class Node(metaclass=abc.ABCMeta):
         """
         if isinstance(obj, cls):
             return obj
-        elif is_string(obj):
+        if is_string(obj):
             # Assume filepath.
             return FileNode(obj)
-        elif obj is None:
+        if obj is None:
             return obj
-        else:
-            raise TypeError("Don't know how to convert %s to Node instance." % obj)
+        raise TypeError("Don't know how to convert %s to Node instance." % obj)
 
     @property
     def name(self) -> str:
@@ -893,17 +889,16 @@ class Node(metaclass=abc.ABCMeta):
             df["class"] = self.__class__.__name__
             return df
 
-        elif self.is_work:
+        if self.is_work:
             frames = [task.get_vars_dataframe(*varnames) for task in self]
             return pd.concat(frames)
 
-        elif self.is_flow:
+        if self.is_flow:
             frames = [work.get_vars_dataframe(*varnames) for work in self]
             return pd.concat(frames)
 
-        else:
-            #print("Ignoring node of type: `%s`" % type(self))
-            return pd.DataFrame(index=[self.name])
+        #print("Ignoring node of type: `%s`" % type(self))
+        return pd.DataFrame(index=[self.name])
 
     def get_graphviz_dirtree(self, engine="automatic", **kwargs):
         """
@@ -976,10 +971,9 @@ class Node(metaclass=abc.ABCMeta):
 
         from .events import get_event_handler_classes
         if categories:
-            raise NotImplementedError()
+            raise NotImplementedError
             handlers = [cls() for cls in get_event_handler_classes(categories=categories)]
-        else:
-            handlers = handlers or [cls() for cls in get_event_handler_classes()]
+        handlers = handlers or [cls() for cls in get_event_handler_classes()]
 
         self._event_handlers = handlers
 
@@ -1008,7 +1002,7 @@ class Node(metaclass=abc.ABCMeta):
         through send, terminating the dispatch loop, so it is quite
         possible to not have all receivers called if a raises an error.
         """
-        if self.in_spectator_mode: return None
+        if self.in_spectator_mode: return
         self.history.debug("Node %s broadcasts signal %s" % (self, signal))
         dispatcher.send(signal=signal, sender=self)
 
@@ -1122,6 +1116,7 @@ class FileNode(Node):
 
     def _abiopen_abiext(self, abiext):
         import glob
+
         from abipy import abilab
         if not self.filepath.endswith(abiext):
             msg = """\n
@@ -1261,13 +1256,13 @@ class HistoryRecord:
 
     @pmg_serialize
     def as_dict(self) -> dict:
-        return {'level': self.levelno, 'pathname': self.pathname, 'lineno': self.lineno, 'msg': self.msg,
-                'args': self.args, 'exc_info': self.exc_info, 'func': self.func_name}
+        return {"level": self.levelno, "pathname": self.pathname, "lineno": self.lineno, "msg": self.msg,
+                "args": self.args, "exc_info": self.exc_info, "func": self.func_name}
 
     @classmethod
     def from_dict(cls, d: dict) -> HistoryRecord:
-        return cls(level=d['level'], pathname=d['pathname'], lineno=int(d['lineno']), msg=d['msg'], args=d['args'],
-                   exc_info=d['exc_info'], func=d['func'])
+        return cls(level=d["level"], pathname=d["pathname"], lineno=int(d["lineno"]), msg=d["msg"], args=d["args"],
+                   exc_info=d["exc_info"], func=d["func"])
 
 
 class NodeHistory(collections.deque):
@@ -1321,7 +1316,7 @@ class NodeCorrections(list):
 
 
 class GarbageCollector:
-    """This object stores information on the """
+    """This object stores information on the"""
     def __init__(self, exts, policy):
         self.exts, self.policy = set(exts), policy
 
@@ -1342,11 +1337,11 @@ def init_counter() -> None:
         os.makedirs(os.path.dirname(_COUNTER_FILE))
 
     if not os.path.exists(_COUNTER_FILE):
-        with open(_COUNTER_FILE, "wt") as fh:
+        with open(_COUNTER_FILE, "w") as fh:
             fh.write("%d\n" % -1)
 
     if _COUNTER is None:
-        with open(_COUNTER_FILE, "r") as fh:
+        with open(_COUNTER_FILE) as fh:
             s = fh.read().strip()
             if not s: s = "-1"
             _COUNTER = int(s)
@@ -1381,4 +1376,5 @@ def save_lastnode_id() -> None:
 
 # IMPORTANT: Register function atexit
 import atexit
+
 atexit.register(save_lastnode_id)

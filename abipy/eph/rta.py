@@ -1,22 +1,22 @@
-# coding: utf-8
 """
 RTA.nc file.
 """
 from __future__ import annotations
 
-import numpy as np
-import abipy.core.abinit_units as abu
-
 from functools import cached_property
+
+import numpy as np
+
 #from monty.termcolor import cprint
-from monty.string import marquee, list_strings
+from monty.string import list_strings, marquee
+
+import abipy.core.abinit_units as abu
+from abipy.abio.robots import Robot
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
 from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.typing import Figure
-from abipy.abio.robots import Robot
-
 
 __all__ = [
     "RtaFile",
@@ -155,7 +155,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
@@ -198,7 +198,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return "\n".join(lines)
 
-    def get_mobility_mu(self, eh, itemp, component='xx', ef=None, irta=0, spin=0):
+    def get_mobility_mu(self, eh, itemp, component="xx", ef=None, irta=0, spin=0):
         """
         Get the mobility at the chemical potential Ef
 
@@ -210,7 +210,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                 The default None uses the chemical potential at the temperature item as computed by Abinit.
             spin: Spin index.
         """
-        if ef is None: ef = self.reader.read_value('transport_mu_e')[itemp]
+        if ef is None: ef = self.reader.read_value("transport_mu_e")[itemp]
         emesh, mobility = self.reader.read_mobility(eh, itemp, component, spin, irta=irta)
 
         from scipy import interpolate
@@ -268,8 +268,8 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             self._add_vline_at_bandedge(ax, spin, "both")
 
         ax.grid(True)
-        ax.set_xlabel('Energy (eV)')
-        ax.set_ylabel('States/eV p.u.c')
+        ax.set_xlabel("Energy (eV)")
+        ax.set_ylabel("States/eV p.u.c")
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         if "title" not in kwargs:
@@ -314,13 +314,13 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             ax.grid(True)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
             if irta == (len(ax_list) - 1):
-                ax.set_xlabel('Energy (eV)')
+                ax.set_xlabel("Energy (eV)")
                 ax.set_ylabel(r"$\tau(\epsilon)\, (fms)$")
 
             self._add_vline_at_bandedge(ax, spin, "both")
 
             ax.text(0.1, 0.9, irta2s(irta), fontsize=fontsize,
-                horizontalalignment='center', verticalalignment='center', transform=ax.transAxes,
+                horizontalalignment="center", verticalalignment="center", transform=ax.transAxes,
                 bbox=dict(alpha=0.5))
 
         if "title" not in kwargs:
@@ -372,21 +372,21 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         self._add_vline_at_bandedge(ax, spin, "both")
 
         ax.grid(True)
-        ax.set_xlabel('Energy (eV)')
-        ax.set_ylabel(r'$v_{%s} v_{%s} \tau$ DOS' % (component[0], component[1]))
-        ax.set_yscale('log')
+        ax.set_xlabel("Energy (eV)")
+        ax.set_ylabel(r"$v_{%s} v_{%s} \tau$ DOS" % (component[0], component[1]))
+        ax.set_yscale("log")
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         if "title" not in kwargs:
-            vvt = r'v_{%s} v_{%s} \tau' % (component[0], component[1])
+            vvt = r"v_{%s} v_{%s} \tau" % (component[0], component[1])
             title = r"$\frac{1}{N_k} \sum_{nk} %s\,\delta(\epsilon - \epsilon_{nk})$" % vvt
             fig.suptitle(title, fontsize=fontsize)
 
         return fig
 
     @add_fig_kwargs
-    def plot_mobility(self, eh=0, irta=0, component='xx', spin=0, ax=None,
-                      colormap='jet', fontsize=8, yscale="log", **kwargs) -> Figure:
+    def plot_mobility(self, eh=0, irta=0, component="xx", spin=0, ax=None,
+                      colormap="jet", fontsize=8, yscale="log", **kwargs) -> Figure:
         """
         Read the mobility from the netcdf file and plot it
 
@@ -416,8 +416,8 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         self._add_vline_at_bandedge(ax, spin, "cbm" if eh == 0 else "vbm")
 
         ax.grid(True)
-        ax.set_xlabel('Fermi level (eV)')
-        ax.set_ylabel(r'%s-mobility $\mu_{%s}(\epsilon_F)$ (cm$^2$/Vs)' % (eh2s(eh), component))
+        ax.set_xlabel("Fermi level (eV)")
+        ax.set_ylabel(r"%s-mobility $\mu_{%s}(\epsilon_F)$ (cm$^2$/Vs)" % (eh2s(eh), component))
         ax.set_yscale(yscale)
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
@@ -448,7 +448,7 @@ class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         cmap = plt.get_cmap(colormap)
 
-        for iax, (what, ax) in enumerate(zip(what_list, ax_list)):
+        for iax, (what, ax) in enumerate(zip(what_list, ax_list, strict=False)):
             irow, icol = divmod(iax, ncols)
             # nctkarr_t('seebeck', "dp", "three, three, edos_nw, ntemp, nsppol, nrta")
             what_var = self.reader.read_variable(what)
@@ -549,7 +549,7 @@ class RtaReader(ElectronsReader):
     def __init__(self, filepath: str):
         super().__init__(filepath)
 
-        self.nsppol = self.read_dimvalue('nsppol')
+        self.nsppol = self.read_dimvalue("nsppol")
         self.tmesh = self.read_value("kTmesh") / abu.kb_HaK
 
     #def read_vvdos_tau(self, itemp, component='xx', spin=0, irta=0):
@@ -629,7 +629,7 @@ class RtaRobot(Robot, RobotWithEbands):
     #def get_mobility_mu_dataframe(self, eh=0, component='xx', itemp=0, spin=0, **kwargs):
 
     @add_fig_kwargs
-    def plot_mobility_kconv(self, eh=0, bte=('serta', 'mrta', 'ibte'), mode="full", component='xx', itemp=0,
+    def plot_mobility_kconv(self, eh=0, bte=("serta", "mrta", "ibte"), mode="full", component="xx", itemp=0,
                             spin=0, fontsize=14, ax=None, **kwargs) -> Figure:
         """
         Plot the convergence of the mobility as a function of the number of k-points,
@@ -651,9 +651,9 @@ class RtaRobot(Robot, RobotWithEbands):
         """
         bte = list(list_strings(bte))
 
-        if 'ibte' in bte and not self.all_have_ibte:
+        if "ibte" in bte and not self.all_have_ibte:
             print("At least some IBTE results are missing ! Will remove ibte from the bte list")
-            bte.remove('ibte')
+            bte.remove("ibte")
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
@@ -668,11 +668,11 @@ class RtaRobot(Robot, RobotWithEbands):
             kptrlattz = kptrlatt[2, 2]
 
             mob_serta, mob_mrta, mob_ibte = -1, -1, -1
-            if 'serta' in bte:
+            if "serta" in bte:
                 mob_serta = ncfile.reader.read_variable("mobility_mu")[0, itemp, spin, eh, j, i]
-            if 'mrta' in bte:
+            if "mrta" in bte:
                 mob_mrta = ncfile.reader.read_variable("mobility_mu")[1, itemp, spin, eh, j, i]
-            if 'ibte' in bte:
+            if "ibte" in bte:
                 mob_ibte = ncfile.reader.read_variable("ibte_mob")[itemp, spin, eh, j, i]
 
             res.append([kptrlattx, mob_serta, mob_mrta, mob_ibte])
@@ -683,35 +683,35 @@ class RtaRobot(Robot, RobotWithEbands):
         #print(res)
 
         size = 14
-        if mode == 'relative':
+        if mode == "relative":
             ylabel = r"Relative %s mobility (%%)" % {0: "electron", 1: "hole"}[eh]
-        elif mode == 'full':
+        elif mode == "full":
             ylabel = r"%s mobility (cm$^2$/(V$\cdot$s))" % {0: "Electron", 1: "Hole"}[eh]
         ax.set_ylabel(ylabel, size=size)
 
         from fractions import Fraction
         ratio1 = Fraction(kptrlatty, kptrlattx)
         ratio2 = Fraction(kptrlattz, kptrlattx)
-        text1 = '' if ratio1.numerator == ratio1.denominator else \
-                r'$\frac{{{0}}}{{{1}}}$'.format(ratio1.numerator, ratio1.denominator)
-        text2 = '' if ratio2.numerator == ratio2.denominator else \
-                r'$\frac{{{0}}}{{{1}}}$'.format(ratio2.numerator, ratio2.denominator)
+        text1 = "" if ratio1.numerator == ratio1.denominator else \
+                rf"$\frac{{{ratio1.numerator}}}{{{ratio1.denominator}}}$"
+        text2 = "" if ratio2.numerator == ratio2.denominator else \
+                rf"$\frac{{{ratio2.numerator}}}{{{ratio2.denominator}}}$"
 
-        ax.set_xlabel(r'Homogeneous $N_k \times$ ' + text1 + r'$N_k \times$ ' + text2 + r'$N_k$ $\mathbf{k}$-point grid',
+        ax.set_xlabel(r"Homogeneous $N_k \times$ " + text1 + r"$N_k \times$ " + text2 + r"$N_k$ $\mathbf{k}$-point grid",
                       size=size)
 
-        ax.set_title(component+" component, T = {0} K".format(ncfile.tmesh[itemp]),size=size)
+        ax.set_title(component+f" component, T = {ncfile.tmesh[itemp]} K",size=size)
 
-        if mode == 'relative':
+        if mode == "relative":
             for ires in [1,2,3]:
                 res[:,ires] = 100*(res[:,ires]-res[-1,ires])/res[-1,ires]
 
-        if 'serta' in bte:
-            ax.plot(res[:,0], res[:,1], '-ob', label='SERTA')
-        if 'mrta' in bte:
-            ax.plot(res[:,0], res[:,2], '-or', label='MRTA')
-        if 'ibte' in bte:
-            ax.plot(res[:,0], res[:,3], '-og', label='IBTE')
+        if "serta" in bte:
+            ax.plot(res[:,0], res[:,1], "-ob", label="SERTA")
+        if "mrta" in bte:
+            ax.plot(res[:,0], res[:,2], "-or", label="MRTA")
+        if "ibte" in bte:
+            ax.plot(res[:,0], res[:,3], "-og", label="IBTE")
 
         ax.set_xticks(res[:,0].astype(float))
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
@@ -756,7 +756,7 @@ class RtaRobot(Robot, RobotWithEbands):
                                                 sharex=True, sharey=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        for abifile, ax in zip(self.abifiles, ax_list):
+        for abifile, ax in zip(self.abifiles, ax_list, strict=False):
             abifile.plot_ibte_vs_rta_rho(component="xx", fontsize=fontsize, ax=ax, show=False)
 
         return fig
@@ -785,7 +785,7 @@ class RtaRobot(Robot, RobotWithEbands):
 
         tmesh = self.get_same_tmesh()
         keys = ["serta", "mrta", "ibte"]
-        for ix, (key, ax) in enumerate(zip(keys, ax_list)):
+        for ix, (key, ax) in enumerate(zip(keys, ax_list, strict=False)):
             ax.grid(True)
             ax.set_title(key.upper(), fontsize=fontsize)
             for ifile, ys in enumerate(data[key]):
@@ -810,10 +810,10 @@ class RtaRobot(Robot, RobotWithEbands):
         # Determine the independent component. For the time being,
         # only consider the cubic case separately
         abifile = self.abifiles[0]
-        if 'cubic' in abifile.structure.spget_summary():
-            components = ['xx']
+        if "cubic" in abifile.structure.spget_summary():
+            components = ["xx"]
         else:
-            components = ['xx','yy','zz']
+            components = ["xx","yy","zz"]
 
         # Determine the type of carriers for which the mobility is computed
         eh_list = []
@@ -864,7 +864,7 @@ if __name__ == "__main__":
     #plt.tick_params(labelsize=14)
     #ax = plt.gca()
 
-    robot.plot_mobility_kconv(ax=None, color='k')
+    robot.plot_mobility_kconv(ax=None, color="k")
 
     #fileslist = ['conv_fine/k27x27x27/q27x27x27/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k30x30x30/q30x30x30/Sio_DS1_TRANSPORT.nc',

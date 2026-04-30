@@ -1,11 +1,11 @@
 """Tests for symmetries module"""
 import numpy as np
-import abipy.data as abidata
 
-from abipy.core import Structure
-from abipy.core.symmetries import LatticeRotation, AbinitSpaceGroup, mati3inv
-from abipy.core.testing import AbipyTest
+import abipy.data as abidata
 from abipy.abilab import abiopen
+from abipy.core import Structure
+from abipy.core.symmetries import AbinitSpaceGroup, LatticeRotation, mati3inv
+from abipy.core.testing import AbipyTest
 
 
 class TestSymmetries(AbipyTest):
@@ -122,7 +122,7 @@ class TestSymmetries(AbipyTest):
         assert len(lg_gamma) == len(spgrp)
         repr(lg_gamma); str(lg_gamma)
         assert lg_gamma.is_symmorphic and not lg_gamma.on_bz_border
-        for o1, (o2, g0) in zip(spgrp, lg_gamma.iter_symmop_g0()):
+        for o1, (o2, g0) in zip(spgrp, lg_gamma.iter_symmop_g0(), strict=False):
             assert o1 == o2
             assert np.all(g0 == 0)
 

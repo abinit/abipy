@@ -1,24 +1,26 @@
-# coding: utf-8
 """
 Objects related to the computation of Debye-Waller tensors from the generalized phonon DOS.
 """
 from __future__ import annotations
 
+from collections import OrderedDict
+
 import numpy as np
 import pandas as pd
+
 import abipy.core.abinit_units as abu
 
-from collections import OrderedDict
 try:
     from scipy.integrate import simpson as simps
 except ImportError:
     from scipy.integrate import simps
-from monty.string import list_strings, marquee
 from monty.collections import dict2namedtuple
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
-from abipy.core.structure import Structure
+
 from abipy.core.mixins import Has_Structure
-from abipy.tools.plotting import add_fig_kwargs, set_axlims, get_axarray_fig_plt, set_visible
+from abipy.core.structure import Structure
+from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, set_axlims, set_visible
 from abipy.tools.printing import print_dataframe
 
 
@@ -43,8 +45,7 @@ class _Component:
 
         if self.name == "trace":
             return r"$\langle {%s}^2 \rangle%s$" % (n, unit)
-        else:
-            return r"$\langle {%s}_{%s} \rangle%s$" % (n, self.name, unit)
+        return r"$\langle {%s}_{%s} \rangle%s$" % (n, self.name, unit)
 
     def eval33w(self, mat33w):
         #assert mat33w.shape[:2] == (3, 3)
@@ -254,7 +255,7 @@ class MsqDos(Has_Structure):
         #    # Eq 7
         #    return ucart_mat * 8 * np.pi**2
 
-        elif fmt in ("cif", "ustar", "beta"):
+        if fmt in ("cif", "ustar", "beta"):
             # Build A matrix
             amat = self.structure.lattice.matrix.T
             ainv = np.linalg.inv(amat)
@@ -311,7 +312,7 @@ class MsqDos(Has_Structure):
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
         inds = [(0, 0), (1, 1), (2, 2), (1, 2), (0, 2), (0, 1)]
         rows = []
-        for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels):
+        for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels, strict=False):
             site = self.structure[iatom]
             d = {}
             d["element"] = site.specie.symbol
@@ -322,7 +323,7 @@ class MsqDos(Has_Structure):
             if fmt == "cartesian":
                 d["isotropic"] = ucart[iatom].trace() / 3.0
                 d["determinant"] = np.linalg.det(ucart[iatom])
-            for col, ind in zip(columns, inds):
+            for col, ind in zip(columns, inds, strict=False):
                 d[col] = values[iatom, ind[0], ind[1]]
             rows.append(d)
 
@@ -344,7 +345,7 @@ class MsqDos(Has_Structure):
             import tempfile
             _, filepath = tempfile.mkstemp(suffix=".cif", text=True)
 
-        with open(filepath, "wt") as fh:
+        with open(filepath, "w") as fh:
             fh.write(self.get_cif_string(temp=temp, symprec=symprec))
 
         return filepath
@@ -414,7 +415,7 @@ _atom_site_aniso_U_12""".splitlines()
         # Compute U tensor in CIF format (reduced coords)
         natom = len(self.structure)
         msq = self.get_msq_tmesh([float(temp)], what_list="displ")
-        ucart = getattr(msq, "displ")
+        ucart = msq.displ
         ucart = np.reshape(ucart, (natom, 3, 3))
         ucif = self.convert_ucart(ucart, fmt="cif")
 
@@ -433,7 +434,7 @@ _atom_site_aniso_U_12""".splitlines()
         Return maximum error.
         """
         msq = self.get_msq_tmesh([float(temp)], what_list="displ")
-        ucart = getattr(msq, "displ")
+        ucart = msq.displ
         natom = len(self.structure)
         ucart = np.reshape(ucart, (natom, 3, 3))
 
@@ -445,14 +446,13 @@ _atom_site_aniso_U_12""".splitlines()
         """
         if components == "all":
             return list(self.ALL_COMPS.values())
-        elif components == "upper":
+        if components == "upper":
             return [self.ALL_COMPS[c] for c in ("xx", "yy", "zz", "yz", "xz", "xy")]
-        elif components == "diag":
+        if components == "diag":
             return [self.ALL_COMPS[c] for c in ("xx", "yy", "zz")]
-        elif components == "offdiag":
+        if components == "offdiag":
             return [self.ALL_COMPS[c] for c in ("xy", "xz", "yz")]
-        else:
-            return [self.ALL_COMPS[c] for c in list_strings(components)]
+        return [self.ALL_COMPS[c] for c in list_strings(components)]
 
     @add_fig_kwargs
     def plot(self, components="upper", view="inequivalent", units="eV", select_symbols=None,
@@ -500,7 +500,7 @@ _atom_site_aniso_U_12""".splitlines()
         components = self._get_components(components)
 
         # For each atom in the view.
-        for ix, (ax, iatom, site_label) in enumerate(zip(ax_list, aview.iatom_list, aview.site_labels)):
+        for ix, (ax, iatom, site_label) in enumerate(zip(ax_list, aview.iatom_list, aview.site_labels, strict=False)):
             irow, icol = divmod(ix, ncols)
             ax.grid(True)
             set_axlims(ax, xlims, "x")
@@ -517,7 +517,7 @@ _atom_site_aniso_U_12""".splitlines()
 
             # Handle labels.
             if irow == nrows - 1:
-                ax.set_xlabel('Frequency %s' % abu.phunit_tag(units))
+                ax.set_xlabel("Frequency %s" % abu.phunit_tag(units))
             else:
                 set_visible(ax, False, "xlabel", "xticklabels")
 
@@ -578,7 +578,7 @@ _atom_site_aniso_U_12""".splitlines()
         # [natom,3,3,nt] array
         values = getattr(msq, what)
 
-        for ix, (ax, comp) in enumerate(zip(ax_list, components)):
+        for ix, (ax, comp) in enumerate(zip(ax_list, components, strict=False)):
             irow, icol = divmod(ix, ncols)
             ax.grid(True)
             set_axlims(ax, xlims, "x")
@@ -587,7 +587,7 @@ _atom_site_aniso_U_12""".splitlines()
             ax.set_ylabel(ylabel, fontsize=fontsize)
 
             # Plot this component for all inequivalent atoms on the same subplot.
-            for ii, (iatom, site_label) in enumerate(zip(aview.iatom_list, aview.site_labels)):
+            for ii, (iatom, site_label) in enumerate(zip(aview.iatom_list, aview.site_labels, strict=False)):
                 color = cmap(float(ii) / max((len(aview.iatom_list) - 1), 1))
                 ys = comp.eval33w(values[iatom])
                 ax.plot(msq.tmesh, ys, label=site_label if ix == 0 else None,
@@ -596,7 +596,7 @@ _atom_site_aniso_U_12""".splitlines()
                     ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
             if irow == 1:
-                ax.set_xlabel('Temperature (K)')
+                ax.set_xlabel("Temperature (K)")
             else:
                 set_visible(ax, False, "xlabel", "xticklabels")
 
@@ -664,7 +664,7 @@ _atom_site_aniso_U_12""".splitlines()
             ax.set_ylabel(ylabel, fontsize=fontsize)
 
             # Plot this component for all inequivalent atoms on the same subplot.
-            for ii, (iatom, site_label) in enumerate(zip(aview.iatom_list, aview.site_labels)):
+            for ii, (iatom, site_label) in enumerate(zip(aview.iatom_list, aview.site_labels, strict=False)):
                 color = cmap(float(ii) / max((len(aview.iatom_list) - 1), 1))
                 #msq.displ[iatom, 3, 3, nt]
                 if ix == 0:
@@ -675,7 +675,7 @@ _atom_site_aniso_U_12""".splitlines()
                     # A ratio of 1 would correspond to an isotropic displacement.
                     ys = np.empty(ntemp)
                     for itemp in range(ntemp):
-                        eigs = np.linalg.eigvalsh(values[iatom, :, :, itemp], UPLO='U')
+                        eigs = np.linalg.eigvalsh(values[iatom, :, :, itemp], UPLO="U")
                         ys[itemp] = eigs.max() / eigs.min()
                 else:
                     raise ValueError("Invalid ix index: `%s" % ix)

@@ -7,7 +7,6 @@ import os
 
 from monty.collections import dict2namedtuple
 
-
 _MAX_NPROCS = os.cpu_count()
 
 
@@ -43,8 +42,8 @@ def pool_nprocs_pmode(nprocs: int | None, pmode: str):
                "processes" for multiprocessing Pool.
                "seq" for sequential execution (debugging)
     """
-    from multiprocessing.pool import ThreadPool
     from multiprocessing import Pool
+    from multiprocessing.pool import ThreadPool
     max_nprocs = get_max_nprocs()
 
     if pmode == "seq":

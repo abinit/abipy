@@ -6,8 +6,8 @@ Wavefunction file
 This example shows how to analyze the wavefunctions
 stored in the WFK.nc file.
 """
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 # Open the DEN.nc file
 ncfile = abiopen(abidata.ref_file("si_nscf_WFK.nc"))

@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Shankland-Koelling-Wood Fourier interpolation scheme.
 For the theoretical background see :cite:`Euwema1969,Koelling1986,Pickett1988,Madsen2006`.
@@ -9,17 +8,18 @@ import abc
 import itertools
 import pickle
 import time
-import scipy
-import numpy as np
-
 from collections import deque
-from monty.termcolor import cprint
+
+import numpy as np
+import scipy
 from monty.collections import dict2namedtuple
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
-from abipy.tools.numtools import gaussian, find_degs_sk
+from monty.termcolor import cprint
+
 from abipy.core.kpoints import Kpath
 from abipy.core.symmetries import mati3inv
-from abipy.tools.typing import Figure #, KptSelect
+from abipy.tools.numtools import find_degs_sk, gaussian
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.typing import Figure  #, KptSelect
 
 
 class ElectronInterpolator(metaclass=abc.ABCMeta):
@@ -85,7 +85,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
 
         # All k-points and mapping to ir-grid points
         bz2ibz = np.empty(len(bz), dtype=int)
-        for i, (ir_gp_id, gp) in enumerate(zip(mapping, grid)):
+        for i, (ir_gp_id, gp) in enumerate(zip(mapping, grid, strict=False)):
             inds = np.where(uniq == ir_gp_id)
             #print("inds", inds, "inds[0]", inds[0])
             assert len(inds) == 1
@@ -414,7 +414,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         """
         Save interpolated eigenvalues associated to (kmesh, is_shift, kzone).
         """
-        if not self.use_cache: return None
+        if not self.use_cache: return
         if not hasattr(self, "_cached_eigens"): self._cached_eigens = {}
         kmesh = tuple(kmesh)
         if is_shift is not None: is_shift = tuple(is_shift)
@@ -435,7 +435,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         """
         Save the electron DOS obtained from the interpolated eigenvalues associated to (kmesh, is_shift).
         """
-        if not self.use_cache: return None
+        if not self.use_cache: return
         if not hasattr(self, "_cached_edos"): self._cached_edos = {}
         kmesh = tuple(kmesh)
         if is_shift is not None: is_shift = tuple(is_shift)
@@ -471,7 +471,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
 
         ax.grid(True)
         ax.set_xlabel("Energy (eV)")
-        ax.set_ylabel('DOS (states/eV)')
+        ax.set_ylabel("DOS (states/eV)")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
@@ -807,10 +807,9 @@ class SkwInterpolator(ElectronInterpolator):
             self.nr = len(self.rpts)
             if ok:
                 break
-            else:
-                print("rmax: ", rmax," was not large enough to find", nrwant, "R-star points.")
-                rmax *= 2
-                print("Will try again with enlarged rmax:", rmax)
+            print("rmax: ", rmax," was not large enough to find", nrwant, "R-star points.")
+            rmax *= 2
+            print("Will try again with enlarged rmax:", rmax)
 
         print("Using:", self.nr, "star-functions. nstars/nk:", self.nr / self.nkpt)
 
@@ -1070,7 +1069,7 @@ class SkwInterpolator(ElectronInterpolator):
             of the star function wrt k in reduced coordinates.
         """
         srk_dk2 = np.zeros((3, 3, self.nr), dtype=complex)
-        raise NotImplementedError()
+        raise NotImplementedError
         #work = zero
         #do isym=1,self.ptg_nsym
         #   sk = two_pi * matmul(transpose(self%ptg_symrel(:,:,isym)), kpt)
@@ -1209,7 +1208,7 @@ class SkwInterpolator(ElectronInterpolator):
             print("end ", time.time() - start)
             if self.verbose > 10:
                 print("nstars:", nstars)
-                for r, r2 in zip(rpts, r2vals):
+                for r, r2 in zip(rpts, r2vals, strict=False):
                     print(r, r2)
 
         return rpts, r2vals, ok

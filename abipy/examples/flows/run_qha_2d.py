@@ -7,12 +7,12 @@ Warning: This code is still under development.
 This example shows to run calculations with the
 ZSISA quasi-harmonic approximation and two degrees of freedom.
 """
-import sys
 import os
-import numpy as np
-import abipy.abilab as abilab
+import sys
 
-from abipy import flowtk
+import numpy as np
+
+from abipy import abilab, flowtk
 from abipy.flowtk.qha_2d import Qha2dFlow
 
 

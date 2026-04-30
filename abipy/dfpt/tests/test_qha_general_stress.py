@@ -1,13 +1,13 @@
 """Tests for qha_general_stress module"""
 
 import os
-import abipy.data as abidata
-import abipy.core.abinit_units as abu
 
+import abipy.core.abinit_units as abu
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
-from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.qha_general_stress import QHA_ZSISA
+from abipy.electrons.gsr import GsrFile
 
 
 class QhaZSISATest(AbipyTest):
@@ -22,10 +22,10 @@ class QhaZSISATest(AbipyTest):
         strains_c = [1000, 1005, 1010]
 
         phdos_paths = [[os.path.join(root, f"scale_{s1}_{s3}/out_PHDOS.nc") for s3 in strains_c] for s1 in strains_a]
-        gsr_guess_path = os.path.join(root, f"find_TEC/Temp_0300_000/Relax2o_GSR.nc")
-        gsr_bo_paths = os.path.join(root, f"scale_1000_1000/out_GSR_DDB")
+        gsr_guess_path = os.path.join(root, "find_TEC/Temp_0300_000/Relax2o_GSR.nc")
+        gsr_bo_paths = os.path.join(root, "scale_1000_1000/out_GSR_DDB")
         #elastic_bo_path = os.path.join(root, f"find_TEC/Temp_0300_000/elastic_constant.txt")
-        elastic_ddb_path = os.path.join(root, f"find_TEC/Temp_0300_000/out_DDB")
+        elastic_ddb_path = os.path.join(root, "find_TEC/Temp_0300_000/out_DDB")
 
         with GsrFile(gsr_guess_path) as gsr:
             structure_guess = gsr.structure
@@ -64,9 +64,9 @@ class QhaZSISATest(AbipyTest):
 
         phdos_paths = [[[[os.path.join(root, f"scale_{s1}_{s2}_{s3}_{s4}_1000_1000/out_PHDOS.nc") for s4 in strains_d]
             for s3 in strains_c] for s2 in strains_b] for s1 in strains_a]
-        gsr_guess_path = os.path.join(root, f"find_TEC_ECs/Temp_0600_08/Relax2o_GSR.nc")
-        gsr_bo_path = os.path.join(root, f"scale_1000_1000_1000_1000_1000_1000/out_GSR.nc")
-        elastic_ddb = os.path.join(root, f"find_TEC_ECs/Temp_0600_08/out_DDB")
+        gsr_guess_path = os.path.join(root, "find_TEC_ECs/Temp_0600_08/Relax2o_GSR.nc")
+        gsr_bo_path = os.path.join(root, "scale_1000_1000_1000_1000_1000_1000/out_GSR.nc")
+        elastic_ddb = os.path.join(root, "find_TEC_ECs/Temp_0600_08/out_DDB")
 
         with GsrFile(gsr_guess_path) as gsr:
             structure_guess = gsr.structure
@@ -96,7 +96,7 @@ class QhaZSISATest(AbipyTest):
             decimal=4
         )
 
-        dtol, gibbs, stress, therm, elastic = zsisa.stress_ZSISA_3DOF(temp, pressure/abu.HaBohr3_GPa, mode='ECs')
+        dtol, gibbs, stress, therm, elastic = zsisa.stress_ZSISA_3DOF(temp, pressure/abu.HaBohr3_GPa, mode="ECs")
 
         self.assert_almost_equal(gibbs, -12266.466758063929)
         self.assert_almost_equal(dtol,

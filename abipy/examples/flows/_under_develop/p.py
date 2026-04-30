@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
-from abipy.electrons.effmass_analyzer import EffMassAnalyzer
 import sys
 
-from monty.json import json, MontyEncoder
-import numpy as np
+from abipy.electrons.effmass_analyzer import EffMassAnalyzer
 
 #carr = np.array([1j, 2j])
 #print(json.dumps(carr, cls=MontyEncoder))

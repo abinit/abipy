@@ -1,10 +1,7 @@
 """Tests for psps module."""
-import numpy as np
 import abipy.data as abidata
-import abipy.core
-
 from abipy.core.testing import AbipyTest
-from abipy.electrons.psps import PspsFile, PspsRobot
+from abipy.electrons.psps import PspsRobot
 
 
 class PspsFileTestCase(AbipyTest):

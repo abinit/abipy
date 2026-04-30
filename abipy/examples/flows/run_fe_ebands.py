@@ -10,9 +10,8 @@ See also <~abinit/tutorial/Input/tspin_1.in>
 """
 import os
 import sys
-import abipy.data as data
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+
+from abipy import abilab, data, flowtk
 
 
 def make_scf_input(nsppol, paral_kgb=1):

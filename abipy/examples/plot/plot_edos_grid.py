@@ -12,8 +12,8 @@ using the results stored in a GSR.nc file.
 # In this case, for simplicity, we use the same file but we must
 # use different labels when adding them to the plotter with the add_edos method.
 
-from abipy import abilab
 import abipy.data as abidata
+from abipy import abilab
 
 edos_paths = [abidata.ref_file("ni_666k_GSR.nc")]
 

@@ -5,18 +5,16 @@ the creation of data structures and pymatgen objects using Materials Project dat
 from __future__ import annotations
 
 import sys
-import pandas as pd
-
 from collections import OrderedDict
-from pprint import pprint
 from functools import cached_property
+from pprint import pprint
+
+import pandas as pd
 from monty.string import marquee
+from pymatgen.ext.matproj import MPRester
 
-from pymatgen.ext.matproj import MPRester, MPRestError
-from abipy.tools.printing import print_dataframe
 from abipy.core.mixins import NotebookWriter
-
-
+from abipy.tools.printing import print_dataframe
 
 MP_KEYS_FOR_DATAFRAME = (
     "pretty_formula", "e_above_hull", "energy_per_atom",
@@ -186,12 +184,12 @@ class DatabaseStructures(NotebookWriter):
 
     @property
     def lattice_dataframe(self) -> pd.DataFrame:
-        """pandas DataFrame with lattice parameters."""
+        """Pandas DataFrame with lattice parameters."""
         return self.structure_dataframes.lattice
 
     @property
     def coords_dataframe(self) -> pd.DataFrame:
-        """pandas DataFrame with atomic positions."""
+        """Pandas DataFrame with atomic positions."""
         return self.structure_dataframes.coords
 
     @cached_property
@@ -273,7 +271,7 @@ class MpStructures(DatabaseStructures):
         if not self.data: return None
         import pandas as pd
         rows = []
-        for d, structure in zip(self.data, self.structures):
+        for d, structure in zip(self.data, self.structures, strict=False):
             d = Dotdict(d)
             d = OrderedDict([(k, d.dotget(k, default=None)) for k in MP_KEYS_FOR_DATAFRAME])
             # Add lattice parameters.
@@ -289,8 +287,8 @@ class MpStructures(DatabaseStructures):
             browser: Open webpage in ``browser``. Use default if $BROWSER if None.
             limit: Max number of tabs opened in browser. None for no limit.
         """
-        import webbrowser
         import cgi
+        import webbrowser
         for i, mpid in enumerate(self.ids):
             if limit is not None and i >= limit:
                 print("Found %d structures found. Won't open more than %d tabs" % (len(self.ids), limit))

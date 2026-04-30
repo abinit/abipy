@@ -1,17 +1,17 @@
-# coding: utf-8
 """
 Object to analyze the results stored in the V1SYM.nc file (mainly for debugging purposes)
 """
-import numpy as np
-
 from collections import OrderedDict
 from functools import cached_property
+
+import numpy as np
 from monty.string import marquee
-from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
+
+from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
-from abipy.core.kpoints import KpointList, Kpoint
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
+from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
 
 
 class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -126,15 +126,15 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
             ])
 
             xs = np.arange(len(abs_diff))
-            ax.hist(abs_diff, facecolor='g', alpha=0.75)
+            ax.hist(abs_diff, facecolor="g", alpha=0.75)
             ax.grid(True)
             ax.set_title("idir: %d, iat: %d, pertsy: %d" % (idir, ipert, self.pertsy_qpt[iq, ipert, idir]),
                          fontsize=fontsize)
 
-            ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
+            ax.axvline(stats["mean"], color="k", linestyle="dashed", linewidth=1)
             _, max_ = ax.get_ylim()
             ax.text(0.7, 0.7, "\n".join("%s = %.1E" % item for item in stats.items()),
-                    fontsize=fontsize, horizontalalignment='center', verticalalignment='center',
+                    fontsize=fontsize, horizontalalignment="center", verticalalignment="center",
                     transform=ax.transAxes)
 
         fig.suptitle("qpoint: %s" % repr(qpoint))
@@ -219,7 +219,7 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
             #ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
             _, max_ = ax.get_ylim()
             ax.text(0.7, 0.7, "\n".join("%s = %.1E" % item for item in stats.items()),
-                    fontsize=fontsize, horizontalalignment='center', verticalalignment='center',
+                    fontsize=fontsize, horizontalalignment="center", verticalalignment="center",
                     transform=ax.transAxes)
 
             #ax2 = ax.twinx()

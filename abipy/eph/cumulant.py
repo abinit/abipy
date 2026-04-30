@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 This module contains objects for postprocessing e-ph calculations
 using the results stored in the out_EPH_CUMULANT.nc file.
@@ -6,24 +5,24 @@ using the results stored in the out_EPH_CUMULANT.nc file.
 from __future__ import annotations
 
 import numpy as np
+
+#from functools import cached_property
+from monty.string import marquee  #, list_strings
+from scipy.fft import fft, fftshift, ifft
+
 import abipy.core.abinit_units as abu
 
-from scipy.fft import fft, fftshift, ifft
-#from functools import cached_property
-from monty.string import marquee #, list_strings
-#from monty.termcolor import cprint
-#from abipy.core.kpoints import has_timrev_from_kptopt, find_points_along_path
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
 #from abipy.tools import duck
 #from abipy.electrons.ebands import ElectronBands
-from abipy.eph.sigeph import SigEPhFile, EphSelfEnergy, SigmaPhReader, QpTempState
+from abipy.eph.sigeph import EphSelfEnergy, QpTempState, SigEPhFile, SigmaPhReader
 
+#from monty.termcolor import cprint
+#from abipy.core.kpoints import has_timrev_from_kptopt, find_points_along_path
 
 __all__ = [
-    "CumulantQpTempState",
     "CumulantEPhFile",
     "CumulantPhReader",
+    "CumulantQpTempState",
     "CumulantSelfEnergy",
 ]
 
@@ -252,11 +251,11 @@ class CumulantPhReader(SigmaPhReader):
 
         # Quasi-particle energies set initially to zero
         qpe = np.zeros((self.ntemp), dtype=complex)
-        qpe_oms = np.zeros((self.ntemp))
+        qpe_oms = np.zeros(self.ntemp)
 
         # Fan and Debbye-Waller self-energies set to zero
         fan0 = np.zeros((self.ntemp), dtype=complex)
-        dw = np.zeros((self.ntemp))
+        dw = np.zeros(self.ntemp)
 
         # Renormalization of the Quasi-Particle set to zero
         ze0 = 0.0
@@ -288,7 +287,7 @@ class CumulantSelfEnergy(EphSelfEnergy):
 
         # Set Debye-Waller to zero, probably is the same as Dyson-Migdal since it is added
         # separately from the cumulant calculation
-        dw_vals = np.zeros((ntemp))
+        dw_vals = np.zeros(ntemp)
 
         # Calculation of the self-energy (vals_wr)
         # Calculation of the self-energy evaluated at the KS energy (vals_e0ks)
@@ -311,8 +310,8 @@ class CumulantSelfEnergy(EphSelfEnergy):
         nwr = len(wmesh)
         ntemp = len(qp.tmesh)
         sigma = np.zeros((ntemp,nwr),dtype=complex)
-        e0ks = np.zeros((ntemp))
-        de0ks = np.zeros((ntemp))
+        e0ks = np.zeros(ntemp)
+        de0ks = np.zeros(ntemp)
 
         # Identify the index of the KS energy is located ( probably at nwr//2 )
         idx_e0 = np.argmin( np.abs(wmesh - qp.e0))
@@ -338,9 +337,9 @@ class CumulantSelfEnergy(EphSelfEnergy):
         nwr = sigeph.nwr
         ntemp = sigeph.ntemp
         qpe = np.zeros((ntemp), dtype=complex)
-        qpe_oms = np.zeros((ntemp))
+        qpe_oms = np.zeros(ntemp)
         fan0 = np.zeros((ntemp), dtype=complex)
-        dw = np.zeros((ntemp))
+        dw = np.zeros(ntemp)
         ze0 = 0.0
         qp = CumulantQpTempState(spin=sigeph.spin, kpoint=sigeph.kpoint, band=sigeph.band, tmesh=sigeph.tmesh,
                            e0=sigeph.qp.e0, qpe=qpe, ze0=ze0, fan0=fan0, dw=dw, qpe_oms=qpe_oms)

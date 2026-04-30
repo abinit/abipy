@@ -9,11 +9,9 @@ and the analytic continuation implemented in quartic scaling code in order to co
 
 import os
 import sys
-import abipy.data as data
-import abipy.abilab as abilab
-import abipy.core.abinit_units as abu
 
-from abipy import flowtk
+import abipy.core.abinit_units as abu
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

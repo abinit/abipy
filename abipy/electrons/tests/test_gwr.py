@@ -1,9 +1,8 @@
-# coding: utf-8
 """Tests for gwr module."""
 import numpy as np
+
 #import pymatgen.core.units as pmgu
 import abipy.data as abidata
-
 from abipy.core.testing import AbipyTest
 from abipy.electrons.gwr import GwrFile, GwrRobot
 

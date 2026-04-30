@@ -1,20 +1,19 @@
-# coding: utf-8
 """
 TRANSPORT.nc file.
 
 Warning: This fileformat is deprecated and will be removed when Abinit 9.2 is released
 """
 
-import numpy as np
-import abipy.core.abinit_units as abu
-
 from functools import cached_property
+
+import numpy as np
 from monty.string import marquee
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
+
+import abipy.core.abinit_units as abu
+from abipy.abio.robots import Robot
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Structure, NotebookWriter
 from abipy.electrons.ebands import ElectronsReader, RobotWithEbands
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
-from abipy.abio.robots import Robot
-
 
 __all__ = [
     "TransportFile",
@@ -102,13 +101,13 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         wmesh, dos, idos = self.reader.read_dos()
         ax.plot(wmesh, dos[0], **kwargs)
         ax.grid(True)
-        ax.set_xlabel('Energy (eV)')
-        ax.set_ylabel('States/eV')
+        ax.set_xlabel("Energy (eV)")
+        ax.set_ylabel("States/eV")
 
         return fig
 
     @add_fig_kwargs
-    def plot_vvtau_dos(self, component='xx', ax=None, colormap='jet', fontsize=8, **kwargs):
+    def plot_vvtau_dos(self, component="xx", ax=None, colormap="jet", fontsize=8, **kwargs):
         """
         Plot velocity * lifetime density of states.
 
@@ -125,18 +124,18 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         for itemp in range(self.ntemp):
             temp = self.tmesh[itemp]
             wmesh, vvdos = self.reader.read_vvdos_tau(itemp, component=component)
-            ax.plot(wmesh, vvdos, c=cmap(itemp / self.ntemp), label='T = %dK' % temp)
+            ax.plot(wmesh, vvdos, c=cmap(itemp / self.ntemp), label="T = %dK" % temp)
 
         ax.grid(True)
-        ax.set_xlabel('Energy (eV)')
-        ax.set_ylabel('VVDOS')
-        ax.set_yscale('log')
+        ax.set_xlabel("Energy (eV)")
+        ax.set_ylabel("VVDOS")
+        ax.set_yscale("log")
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
 
     @add_fig_kwargs
-    def plot_mobility(self, component='xx', ax=None, colormap='jet', fontsize=8, **kwargs):
+    def plot_mobility(self, component="xx", ax=None, colormap="jet", fontsize=8, **kwargs):
         """
         Read the mobility from the netcdf file and plot it
 
@@ -153,17 +152,17 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         for itemp in range(self.ntemp):
             temp = self.tmesh[itemp]
             wmesh, mu = self.reader.read_mobility(0, itemp, component,0)
-            ax.plot(wmesh, mu, c=cmap(itemp / self.ntemp), label='T = %dK' % temp)
+            ax.plot(wmesh, mu, c=cmap(itemp / self.ntemp), label="T = %dK" % temp)
 
         ax.grid(True)
-        ax.set_xlabel('Fermi level (eV)')
-        ax.set_ylabel(r'mobility $\mu(\epsilon_F)$ [cm$^2$/Vs]')
-        ax.set_yscale('log')
+        ax.set_xlabel("Fermi level (eV)")
+        ax.set_ylabel(r"mobility $\mu(\epsilon_F)$ [cm$^2$/Vs]")
+        ax.set_yscale("log")
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
 
-    def get_mobility_mu(self, eh, itemp, component='xx', ef=None, spin=0):
+    def get_mobility_mu(self, eh, itemp, component="xx", ef=None, spin=0):
         """
         Get the value of the mobility at a chemical potential Ef
 
@@ -175,7 +174,7 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
             spin: Spin index.
         """
         from scipy import interpolate
-        if ef is None: ef = self.reader.read_value('transport_mu_e')[itemp]
+        if ef is None: ef = self.reader.read_value("transport_mu_e")[itemp]
         wmesh, mobility = self.reader.read_mobility(eh, itemp, component, spin)
         f = interpolate.interp1d(wmesh, mobility)
 
@@ -235,9 +234,9 @@ class TransportReader(ElectronsReader):
 
         ktmesh = self.read_value("kTmesh")
         self.tmesh = ktmesh / abu.kb_HaK
-        self.nsppol = self.read_dimvalue('nsppol')
+        self.nsppol = self.read_dimvalue("nsppol")
 
-    def read_vvdos(self, component='xx', spin=1):
+    def read_vvdos(self, component="xx", spin=1):
         """
         Read the group velocity density of states
         The vvdos_vals array has 3 dimensions (3, 3, nsppolplus1, nw)
@@ -254,7 +253,7 @@ class TransportReader(ElectronsReader):
 
         return wmesh, vvdos
 
-    def read_vvdos_tau(self, itemp, component='xx', spin=1):
+    def read_vvdos_tau(self, itemp, component="xx", spin=1):
         """
         Read the group velocity density of states
         The vvdos_vals array has 3 dimensions (3, 3, nsppolplus1, nw)
@@ -336,7 +335,7 @@ class TransportRobot(Robot, RobotWithEbands):
     EXT = "TRANSPORT"
 
     @add_fig_kwargs
-    def plot_mobility_conv(self, eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+    def plot_mobility_conv(self, eh=0, component="xx", itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
         """
         Plot the convergence of the mobility obtained in a list of files
 
@@ -357,12 +356,12 @@ class TransportRobot(Robot, RobotWithEbands):
 
         res = []
         for ncfile in self.abifiles:
-            kptrlatt = ncfile.reader.read_value('kptrlatt')
+            kptrlatt = ncfile.reader.read_value("kptrlatt")
             kptrlattx = kptrlatt[0, 0]
             kptrlatty = kptrlatt[1, 1]
             kptrlattz = kptrlatt[2, 2]
             #nkpt = ncfile.nkpt
-            mobility = ncfile.reader.read_value('mobility_mu')[itemp][i,j][spin][eh]
+            mobility = ncfile.reader.read_value("mobility_mu")[itemp][i,j][spin][eh]
             res.append([kptrlattx, mobility])
 
         res.sort(key=lambda t: t[0])
@@ -370,21 +369,21 @@ class TransportRobot(Robot, RobotWithEbands):
 
         size = 14
         if eh == 0:
-            ax.set_ylabel(r'Electron mobility (cm$^2$/(V$\cdot$s))', size=size)
+            ax.set_ylabel(r"Electron mobility (cm$^2$/(V$\cdot$s))", size=size)
         elif eh == 1:
-            ax.set_ylabel(r'Hole mobility (cm$^2$/(V$\cdot$s))', size=size)
+            ax.set_ylabel(r"Hole mobility (cm$^2$/(V$\cdot$s))", size=size)
         else:
             raise ValueError("Invalid value for eh argument: %s" % eh)
 
         from fractions import Fraction
         ratio1 = Fraction(kptrlatty, kptrlattx)
         ratio2 = Fraction(kptrlattz, kptrlattx)
-        text1 = '' if ratio1.numerator == ratio1.denominator else \
-                r'$\frac{{{0}}}{{{1}}}$'.format(ratio1.numerator, ratio1.denominator)
-        text2 = '' if ratio2.numerator == ratio2.denominator else \
-                r'$\frac{{{0}}}{{{1}}}$'.format(ratio2.numerator, ratio2.denominator)
+        text1 = "" if ratio1.numerator == ratio1.denominator else \
+                rf"$\frac{{{ratio1.numerator}}}{{{ratio1.denominator}}}$"
+        text2 = "" if ratio2.numerator == ratio2.denominator else \
+                rf"$\frac{{{ratio2.numerator}}}{{{ratio2.denominator}}}$"
 
-        ax.set_xlabel(r'Homogeneous $N_k \times$ ' + text1 + r'$N_k \times$ ' + text2 + r'$N_k$ $\mathbf{k}$-point grid',
+        ax.set_xlabel(r"Homogeneous $N_k \times$ " + text1 + r"$N_k \times$ " + text2 + r"$N_k$ $\mathbf{k}$-point grid",
                       size=size)
 
         ax.plot(res[:,0], res[:,1], **kwargs)
@@ -441,7 +440,7 @@ if __name__ == "__main__":
     #plt.tick_params(labelsize=14)
     #ax = plt.gca()
 
-    robot.plot_mobility_conv(ax=None, color='k', marker='o', label=r'$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$')
+    robot.plot_mobility_conv(ax=None, color="k", marker="o", label=r"$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$")
 
     #fileslist = ['conv_fine/k27x27x27/q27x27x27/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k30x30x30/q30x30x30/Sio_DS1_TRANSPORT.nc',

@@ -1,20 +1,27 @@
-# coding: utf-8
 """Tools to compute speed of sound."""
 from __future__ import annotations
 
 import math
+
 import numpy as np
 import pandas as pd
-import abipy.core.abinit_units as abu
-
 from pymatgen.core.units import bohr_to_angstrom, eV_to_Ha
-from abipy.core.structure import Structure
+
+import abipy.core.abinit_units as abu
+from abipy.abio.inputs import AnaddbInput
 from abipy.core.mixins import Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBands, get_dyn_mat_eigenvec, match_eigenvectors
-from abipy.abio.inputs import AnaddbInput
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_visible, get_fig_plotly, get_figs_plotly, \
-    add_plotly_fig_kwargs, PlotlyRowColDesc
+from abipy.tools.plotting import (
+    PlotlyRowColDesc,
+    add_fig_kwargs,
+    add_plotly_fig_kwargs,
+    get_ax_fig_plt,
+    get_fig_plotly,
+    get_figs_plotly,
+    set_visible,
+)
 from abipy.tools.typing import Figure
 
 
@@ -107,8 +114,8 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             qph1l[:, :-1] = qpts
             qph1l[:, -1] = 1
 
-            inp['qph1l'] = qph1l.tolist()
-            inp['nph1l'] = n_qpoints
+            inp["qph1l"] = qph1l.tolist()
+            inp["nph1l"] = n_qpoints
 
             task = ddb._run_anaddb_task(inp, mpi_procs=mpi_procs, workdir=workdir, manager=manager,
                                         verbose=verbose)
@@ -153,7 +160,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         n_points = len(phb.qpoints) / n_directions
         if not n_points.is_integer():
-            raise ValueError('Error extracting information from {}'.format(phbst_path))
+            raise ValueError(f"Error extracting information from {phbst_path}")
         n_points = int(n_points)
 
         phfreqs = phb.phfreqs
@@ -200,7 +207,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                     break
 
             if first_positive_freq_ind is None or first_positive_freq_ind - n_points / 2 > 0:
-                raise ValueError("Too many negative frequencies along direction {}".format(direction))
+                raise ValueError(f"Too many negative frequencies along direction {direction}")
 
             sv = []
             mt = []
@@ -228,7 +235,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                     mt.append(None)
 
             # sort the lists based on the sound velocities
-            sv, mt, freqs = zip(*sorted(zip(sv, mt, acoustic_freqs.T.tolist())))
+            sv, mt, freqs = zip(*sorted(zip(sv, mt, acoustic_freqs.T.tolist(), strict=False)), strict=False)
 
             sound_velocities.append(sv)
             mode_types.append(mt)
@@ -319,7 +326,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         title = "[{:.3f}, {:.3f}, {:.3f}]".format(*self.directions[idir])
         if self.labels:
-            title += " - {}".format(self.labels[idir])
+            title += f" - {self.labels[idir]}"
 
         for i, c in enumerate(["r", "b", "g"]):
             ax.scatter(qpt_cart_coords, freqs[i] * units_factor, color=c, marker="x")
@@ -352,17 +359,17 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         title = "[{:.3f}, {:.3f}, {:.3f}]".format(*self.directions[idir])
         if self.labels:
-            title += " - {}".format(self.labels[idir])
+            title += f" - {self.labels[idir]}"
 
         rcd = PlotlyRowColDesc.from_object(rcd)
         ply_row, ply_col = rcd.ply_row, rcd.ply_col
-        xaxis = 'xaxis%u' % rcd.iax
-        yaxis = 'yaxis%u' % rcd.iax
+        xaxis = "xaxis%u" % rcd.iax
+        yaxis = "yaxis%u" % rcd.iax
 
         if fig is None:
             fig, _ = get_fig_plotly()
-            fig.layout = dict(annotations=[dict(text=title, font_size=fontsize, x=0.5, xref='paper', xanchor='center',
-                              y=1, yref='paper', yanchor='bottom' ,showarrow=False)],
+            fig.layout = dict(annotations=[dict(text=title, font_size=fontsize, x=0.5, xref="paper", xanchor="center",
+                              y=1, yref="paper", yanchor="bottom" ,showarrow=False)],
                               yaxis_title_text=abu.wlabel_from_units(units, unicode=True),
                               xaxis_title_text="Wave Vector")
         else:
@@ -373,8 +380,8 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             if idir == 0:
                 fig.layout[yaxis].title.text = abu.wlabel_from_units(units, unicode=True)
 
-        fig.layout[xaxis].rangemode = 'tozero'
-        fig.layout[yaxis].rangemode = 'tozero'
+        fig.layout[xaxis].rangemode = "tozero"
+        fig.layout[yaxis].rangemode = "tozero"
 
         rlatt = self.structure.lattice.reciprocal_lattice
         freqs = self.phfreqs[idir]
@@ -385,9 +392,9 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         for i, c in enumerate(["red", "blue", "green"]):
             fig.add_scatter(x=qpt_cart_coords, y=slope[i] * qpt_cart_coords * units_factor, line_color=c,
-                          name='', showlegend=False, mode='lines', row=ply_row, col=ply_col)
+                          name="", showlegend=False, mode="lines", row=ply_row, col=ply_col)
             fig.add_scatter(x=qpt_cart_coords, y=freqs[i] * units_factor, marker=dict(symbol=4, size=8, color=c),
-                          name='', showlegend=False, mode='markers', row=ply_row, col=ply_col)
+                          name="", showlegend=False, mode="markers", row=ply_row, col=ply_col)
 
         return fig
 
@@ -431,7 +438,6 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         Returns: |plotly.graph_objects.Figure|
         """
-
         nrows, ncols = math.ceil(self.n_directions / 2),  2
         fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, self.n_directions+1)),
                                  horizontal_spacing=0.05)
@@ -459,11 +465,11 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         tmpfile = self.pickle_dump()
 
         nb.cells.extend([
-            nbv.new_code_cell("sv = abilab.SoundVelocity.pickle_load('{}')".format(tmpfile)),
+            nbv.new_code_cell(f"sv = abilab.SoundVelocity.pickle_load('{tmpfile}')"),
             nbv.new_code_cell("sv.get_dataframe()")
         ])
         if self.phfreqs is not None and self.qpts is not None:
             for i in range(self.n_directions):
-                nb.cells.append(nbv.new_code_cell("sv.plot_fit_freqs_dir({});".format(i)))
+                nb.cells.append(nbv.new_code_cell(f"sv.plot_fit_freqs_dir({i});"))
 
         return self._write_nb_nbpath(nb, nbpath)

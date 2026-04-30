@@ -4,10 +4,9 @@ Integration tests for flows/works/tasks that rely on external files e.g. DEN -->
 from __future__ import annotations
 
 import os
-import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
 
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.core.testing import AbipyTest
 
 
@@ -109,7 +108,7 @@ def itest_nscf_from_denfile(fwp, tvars):
     flow.check_status(show=True)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
     assert all(work.finalized for work in flow)
 
     # The WFK files should have been removed because we called set_garbage_collector

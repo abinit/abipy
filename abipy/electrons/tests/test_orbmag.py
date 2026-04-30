@@ -1,9 +1,8 @@
-# coding: utf-8
 """Tests for orbmag module."""
-import pytest
 import os
+
 import numpy as np
-import abipy.data as abidata
+import pytest
 
 from abipy.core.testing import AbipyTest
 from abipy.electrons.orbmag import OrbmagAnalyzer
@@ -38,7 +37,7 @@ class OrbmagTest(AbipyTest):
             ref_omlamb = np.zeros((3, 3))
             self.assert_almost_equal(orban.get_omlamb(), ref_omlamb)
 
-            for report_type in ['T', 'B', 'TB']:
+            for report_type in ["T", "B", "TB"]:
                 orban.report_eigvals(report_type=report_type)
 
             orb = orban.orb_files[0]

@@ -1,12 +1,12 @@
-# coding: utf-8
 """
 Work subclasses related to DFPT.
 """
 from __future__ import annotations
 
 from abipy.tools.typing import TYPE_CHECKING
+
 from .tasks import ScfTask
-from .works import Work, MergeDdb
+from .works import MergeDdb, Work
 
 if TYPE_CHECKING:  # needed to avoid circular imports
     from abipy.abio.inputs import AbinitInput
@@ -78,7 +78,7 @@ class ElasticWork(Work, MergeDdb):
             for inp in ddk_multi:
                 ddk_task = new.register_ddk_task(inp, deps={wfk_task: "WFK"})
                 ddk_tasks.append(ddk_task)
-            ddk_deps = {ddk_task: "DDK" for ddk_task in ddk_tasks}
+            ddk_deps = dict.fromkeys(ddk_tasks, "DDK")
 
         if with_dde:
             # Add tasks for electric field perturbation.

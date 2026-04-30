@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Work for computing the Grüneisen parameters with finite differences of DFPT phonons.
 
@@ -9,7 +8,8 @@ from __future__ import annotations
 import numpy as np
 
 from abipy.core.structure import Structure
-from .works import Work, PhononWork
+
+from .works import PhononWork, Work
 
 
 class GruneisenWork(Work):
@@ -131,7 +131,7 @@ class GruneisenWork(Work):
         for i in range(4):
             app("FOOBAR")
 
-        with open(self.flow.outdir.path_in("anaddb_gruns.files"), "wt") as fh:
+        with open(self.flow.outdir.path_in("anaddb_gruns.files"), "w") as fh:
             fh.write("\n".join(files_file))
 
         #task = AbinitTask.temp_shell_task(anaddb_inp, workdir=work.outdir, manager=self.manager)

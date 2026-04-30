@@ -8,12 +8,11 @@ along a q-path, merge the POT files in the DVDB file and finally use the
 DVDB and the DDB file to analyze the average over the unit cell of the
 periodic part as a function of q.
 """
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_input(ngkpt):

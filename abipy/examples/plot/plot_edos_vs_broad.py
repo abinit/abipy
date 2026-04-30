@@ -8,7 +8,6 @@ electron DOSes obtained with different values
 of the gaussian broadening.
 """
 import abipy.data as abidata
-
 from abipy import abilab
 
 # Open the wavefunction file computed with a homogeneous sampling of the BZ

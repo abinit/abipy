@@ -1,42 +1,41 @@
-# coding: utf-8
 """Tools for the submission of Tasks."""
 from __future__ import annotations
 
 import abc
+import datetime
+import logging
 import os
 import time
-import datetime
-import apscheduler
-import pandas as pd
-
 from collections import deque
-from io import StringIO
-from queue import Queue, Empty
-from typing import Optional
-from shutil import which
 from functools import cached_property
+from io import StringIO
+from queue import Empty, Queue
+from shutil import which
+
+import pandas as pd
+from monty.collections import AttrDict
 from monty.io import get_open_fds
 from monty.string import boxed, is_string
-from monty.collections import AttrDict
 from monty.termcolor import cprint
-from abipy.tools.iotools import yaml_safe_load, ask_yesno
+
+from abipy.tools.iotools import ask_yesno, yaml_safe_load
 from abipy.tools.typing import TYPE_CHECKING
+
 from .utils import as_bool
 
-import logging
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:  # needed to avoid circular imports
-    from .tasks import Task
     #from .works import Work
     from .flows import Flow
+    from .tasks import Task
 
 
 __all__ = [
-    "ScriptEditor",
-    "PyLauncher",
-    "PyFlowScheduler",
     "MultiFlowScheduler",
+    "PyFlowScheduler",
+    "PyLauncher",
+    "ScriptEditor",
 ]
 
 
@@ -51,7 +50,7 @@ class ScriptEditor:
     Simple editor to simplify the writing of shell scripts
     """
 
-    _shell = '/bin/bash'
+    _shell = "/bin/bash"
 
     def __init__(self):
         self._lines = []
@@ -75,12 +74,12 @@ class ScriptEditor:
 
     def shebang(self) -> None:
         """Adds the shebang line."""
-        self._lines.append('#!' + self.shell)
+        self._lines.append("#!" + self.shell)
 
     def declare_var(self, key: str, val: str) -> None:
         """Declare a env variable. If val is None the variable is unset."""
         if val is not None:
-            line = "export " + key + '=' + str(val)
+            line = "export " + key + "=" + str(val)
         else:
             line = "unset " + key
 
@@ -115,7 +114,7 @@ class ScriptEditor:
             self.load_module(module)
 
     def load_module(self, module: str) -> None:
-        self._add('module load ' + module + " 2>> mods.err")
+        self._add("module load " + module + " 2>> mods.err")
 
     def add_line(self, line: str) -> None:
         self._add(line)
@@ -205,7 +204,7 @@ class PyLauncher:
         num_launched, ncores_used, do_exit, launched = 0, 0, False, []
 
         if max_ncores_used is None:
-            max_ncores_used = float('inf')
+            max_ncores_used = float("inf")
 
         for count in range(max_loops):
             if do_exit: break
@@ -226,7 +225,7 @@ class PyLauncher:
 
                 # Check that we do not exceed number of cores
                 if (ncores_used + task.manager.num_cores) > max_ncores_used:
-                    logger.info('reached max_ncores_used, breaking submission loop')
+                    logger.info("reached max_ncores_used, breaking submission loop")
                     do_exit = True
                     break
 
@@ -237,7 +236,7 @@ class PyLauncher:
                     ncores_used += task.manager.num_cores
 
                 if num_launched >= max_nlaunch > 0:
-                    logger.info('num_launched >= max_nlaunch, breaking submission loop')
+                    logger.info("num_launched >= max_nlaunch, breaking submission loop")
                     do_exit = True
                     break
 
@@ -391,7 +390,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
     @classmethod
     def from_file(cls, filepath: str) -> BaseScheduler:
         """Read the configuration parameters from a Yaml file."""
-        with open(filepath, "rt") as fh:
+        with open(filepath) as fh:
             return cls(**yaml_safe_load(fh))
 
     @classmethod
@@ -611,7 +610,7 @@ class PyFlowScheduler(BaseScheduler):
 
         self._accept_flow(flow)
 
-        with open(flow.pid_file, "wt") as fh:
+        with open(flow.pid_file, "w") as fh:
             fh.write(str(self.pid))
 
         self._pid_file = flow.pid_file
@@ -690,8 +689,7 @@ class PyFlowScheduler(BaseScheduler):
                 print("Cannot exceed max_ncores_used %s" % self.max_ncores_used,
                       ", ncores_allocated:", flow.ncores_allocated)
                 return
-            else:
-                max_ncores_left = self.max_ncores_used - flow.ncores_allocated
+            max_ncores_left = self.max_ncores_used - flow.ncores_allocated
         else:
             max_ncores_left = None
 
@@ -837,7 +835,7 @@ class PyFlowScheduler(BaseScheduler):
             # Write file with the list of exceptions:
             if self.exceptions:
                 dump_file = os.path.join(flow.workdir, "_exceptions")
-                with open(dump_file, "wt") as fh:
+                with open(dump_file, "w") as fh:
                     fh.writelines(self.exceptions)
                     fh.write("Shutdown message:\n%s" % msg)
 
@@ -858,13 +856,13 @@ class PyFlowScheduler(BaseScheduler):
                 app("Use `abirun.py FLOWDIR debug` to analyze the problem.")
                 app("Shutdown message:\n%s" % msg)
 
-            print("")
+            print()
             print("\n".join(lines))
-            print("")
+            print()
 
         finally:
             # Shutdown the scheduler thus allowing the process to exit.
-            logger.debug('This should be the shutdown of the scheduler')
+            logger.debug("This should be the shutdown of the scheduler")
 
             # Unschedule all the jobs before calling shutdown
             #self.sched.print_jobs()
@@ -937,7 +935,7 @@ class MultiFlowScheduler(BaseScheduler):
 
     def register_flow_exception(self, flow_idx, exc) -> None:
         flow = self.flows[flow_idx]
-        self.history.append(f"Exception for {repr(flow)}")
+        self.history.append(f"Exception for {flow!r}")
         self.history.append(straceback())
         self._errored_flow_ids.append(flow_idx)
 
@@ -1036,13 +1034,12 @@ class MultiFlowScheduler(BaseScheduler):
 
         if row and os.path.exists(row["workdir"]):
             return Flow.from_file(row["workdir"]), row["status"]
-        else:
-            return None, None
+        return None, None
 
     def get_sql_rows_with_node_ids(self, node_id_list):
         with self.sql_connect() as con:
             cur = con.cursor()
-            query = "SELECT * FROM flows WHERE flow_id IN (%s)" % ','.join('?' * len(node_id_list))
+            query = "SELECT * FROM flows WHERE flow_id IN (%s)" % ",".join("?" * len(node_id_list))
             cur.execute(query, node_id_list)
             rows = cur.fetchall()
         con.close()
@@ -1132,8 +1129,7 @@ class MultiFlowScheduler(BaseScheduler):
                 print("Cannot exceed max_ncores_used %s" % self.max_ncores_used,
                       ", ncores_allocated:", ncores_allocated)
                 return
-            else:
-                max_ncores_left = self.max_ncores_used - ncores_allocated
+            max_ncores_left = self.max_ncores_used - ncores_allocated
         else:
             max_ncores_left = None
 
@@ -1227,6 +1223,7 @@ def print_flowsdb_file(filepath: str) -> None:
     Print flows.db file to terminal.
     """
     import sqlite3
+
     from abipy.tools.printing import print_dataframe
     with sqlite3.connect(filepath) as con:
         df = pd.read_sql_query("SELECT * FROM flows", con)
@@ -1235,7 +1232,7 @@ def print_flowsdb_file(filepath: str) -> None:
 
 
 def sendmail(subject: str, text: str, mailto: str,
-             sender: Optional[str] = None) -> int:
+             sender: str | None = None) -> int:
     """
     Sends an e-mail with unix sendmail.
 
@@ -1255,7 +1252,7 @@ def sendmail(subject: str, text: str, mailto: str,
     try:
         sender = user_at_host() if sender is None else sender
     except OSError:
-        sender = 'abipyscheduler@youknowwhere'
+        sender = "abipyscheduler@youknowwhere"
 
     if is_string(mailto): mailto = [mailto]
 
@@ -1269,7 +1266,7 @@ def sendmail(subject: str, text: str, mailto: str,
 
     # sendmail works much better than the python interface.
     # Note that sendmail is available only on Unix-like OS.
-    from subprocess import Popen, PIPE
+    from subprocess import PIPE, Popen
 
     _sendmail = which("sendmail")
     if _sendmail is None: return -1

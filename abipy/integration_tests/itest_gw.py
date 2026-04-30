@@ -1,12 +1,13 @@
 """Integration tests for GW flows."""
 from __future__ import annotations
 
-import pytest
-import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-
 import socket
+
+import pytest
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+
 hostname = socket.gethostname()
 
 skip_hosts = [
@@ -117,7 +118,7 @@ def itest_g0w0_flow(fwp, tvars):
     assert all(work.finalized for work in flow)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     scf_task = flow[0][0]
     nscf_task = flow[0][1]
@@ -214,7 +215,7 @@ def itest_htc_g0w0(fwp, tvars):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     assert all(work.finalized for work in flow)
 

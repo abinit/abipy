@@ -6,8 +6,8 @@ import panel as pn
 import panel.widgets as pnw
 
 from abipy.electrons.gsr import GsrFile, GsrRobot
-from .core import (PanelWithElectronBands,
-  PanelWithEbandsRobot, ply, mpl, dfc, depends_on_btn_click)
+
+from .core import PanelWithEbandsRobot, PanelWithElectronBands, depends_on_btn_click, dfc
 
 
 class GsrFilePanel(PanelWithElectronBands):
@@ -50,7 +50,7 @@ class GsrFilePanel(PanelWithElectronBands):
         #))
 
         if as_dict: return d
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template"))
 
 
 class GsrRobotPanel(PanelWithEbandsRobot):
@@ -61,15 +61,15 @@ class GsrRobotPanel(PanelWithEbandsRobot):
     def __init__(self, robot: GsrRobot, **params):
         PanelWithEbandsRobot.__init__(self, robot=robot, **params)
 
-        self.gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')
-        self.transpose_gsr_dataframe = pnw.Checkbox(name='Transpose GSR dataframe')
+        self.gsr_dataframe_btn = pnw.Button(name="Compute", button_type="primary")
+        self.transpose_gsr_dataframe = pnw.Checkbox(name="Transpose GSR dataframe")
 
-    @depends_on_btn_click('gsr_dataframe_btn')
+    @depends_on_btn_click("gsr_dataframe_btn")
     def on_gsr_dataframe_btn(self) -> pn.Column:
         df = self.robot.get_dataframe(with_geo=True)
         transpose = self.transpose_gsr_dataframe.value
 
-        return pn.Column(dfc(df, transpose=transpose), sizing_mode='stretch_width')
+        return pn.Column(dfc(df, transpose=transpose), sizing_mode="stretch_width")
 
     def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the |GsrRobot|."""
@@ -88,4 +88,4 @@ class GsrRobotPanel(PanelWithEbandsRobot):
 
         if as_dict: return d
 
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template"))

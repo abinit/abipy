@@ -8,7 +8,7 @@ values to correct the KS band structure computed on a high symmetry k-path and
 the KS energies of a k-mesh. Finally, the KS and the GW results are plotted with matplotlib.
 """
 import abipy.data as abidata
-from abipy.abilab import abiopen, ElectronBandsPlotter
+from abipy.abilab import ElectronBandsPlotter, abiopen
 
 # Get quasiparticle results from the SIGRES.nc database.
 sigres = abiopen(abidata.ref_file("si_g0w0ppm_nband30_SIGRES.nc"))

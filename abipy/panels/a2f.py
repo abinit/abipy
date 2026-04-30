@@ -5,7 +5,7 @@ from __future__ import annotations
 import panel as pn
 import panel.widgets as pnw
 
-from .core import (PanelWithElectronBands, ply, mpl, dfc, depends_on_btn_click)
+from .core import PanelWithElectronBands, depends_on_btn_click, mpl
 
 
 class A2fFilePanel(PanelWithElectronBands):
@@ -16,7 +16,7 @@ class A2fFilePanel(PanelWithElectronBands):
         PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
         self.ncfile = ncfile
 
-        self.a2f_view_btn = pnw.Button(name="Plot a2F", button_type='primary')
+        self.a2f_view_btn = pnw.Button(name="Plot a2F", button_type="primary")
 
     def get_a2f_view(self) -> pn.Row:
         """
@@ -29,19 +29,19 @@ class A2fFilePanel(PanelWithElectronBands):
             self.on_view_a2f,
         )
 
-    @depends_on_btn_click('a2f_view_btn')
+    @depends_on_btn_click("a2f_view_btn")
     def on_view_a2f(self):
         """Visualize a2f function."""
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
 
         ncfile = self.ncfile
 
         a2f = ncfile.a2f_qcoarse
-        ca(f"## A2F")
+        ca("## A2F")
         fig = a2f.plot_with_lambda(units="eV", **self.mpl_kwargs)
         ca(mpl(fig))
 
-        ca(f"## A2F + nu")
+        ca("## A2F + nu")
         fig = a2f.plot_nuterms(units="eV", ax_mat=None, with_lambda=True, fontsize=12,
                                xlims=None, ylims=None, label=None, **self.mpl_kwargs)
         ca(mpl(fig))
@@ -90,4 +90,4 @@ class A2fFilePanel(PanelWithElectronBands):
         #))
 
         if as_dict: return d
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template"))

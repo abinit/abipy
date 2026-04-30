@@ -1,13 +1,11 @@
 """Test for GSR module"""
 import os
-import numpy as np
-import abipy.data as abidata
+
 import abipy.core
 import abipy.core.abinit_units as abu
-
-from pprint import pprint
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
-from abipy.electrons.gsr import GsrReader, GsrFile
+from abipy.electrons.gsr import GsrFile, GsrReader
 
 
 class GSRReaderTestCase(AbipyTest):
@@ -66,7 +64,7 @@ class GSRReaderTestCase(AbipyTest):
 class GSRFileTestCase(AbipyTest):
 
     def test_scf_gsr_silicon(self):
-        """spin unpolarized GSR file produced by a GS SCF calculation."""
+        """Spin unpolarized GSR file produced by a GS SCF calculation."""
         filepath = abidata.ref_file("si_scf_GSR.nc")
 
         # Init GSR from binary string.
@@ -148,7 +146,7 @@ class GSRFileTestCase(AbipyTest):
                 assert hasattr(gsr.get_panel(), "show")
 
     def test_nscf_gsr_silicon(self):
-        """spin unpolarized GSR file produced by a GS NSCF calculation."""
+        """Spin unpolarized GSR file produced by a GS NSCF calculation."""
         filepath = abidata.ref_file("si_nscf_GSR.nc")
 
         with GsrFile(filepath) as gsr:

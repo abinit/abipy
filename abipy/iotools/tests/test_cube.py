@@ -1,12 +1,5 @@
 """Tests for cube module"""
-import tempfile
-import unittest
-import numpy as np
-import abipy.data as data
 
-from abipy.core.testing import AbipyTest
-from abipy.core.fields import Density, core_density_from_file
-from abipy.core.mesh3d import Mesh3D
 
 #filepath = data.ref_file("si_DEN-etsf.nc")
 #density = Density.from_file(filepath=filepath)

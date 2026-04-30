@@ -6,26 +6,27 @@ to generate input files and workflows.
 """
 from __future__ import annotations
 
-import sys
-import os
 import argparse
-import abipy.tools.cli_parsers as cli
+import os
+import sys
 
-from typing import Type
 from monty.termcolor import cprint
 from pymatgen.io.vasp.sets import VaspInputSet
+
+import abipy.tools.cli_parsers as cli
 from abipy import abilab
 from abipy.abio import factories
 from abipy.abio.inputs import AnaddbInput
 from abipy.dfpt.ddb import DdbFile
 
 
-def vasp_dict_set_cls(s: str | VaspInputSet) -> Type | list[str]:
+def vasp_dict_set_cls(s: str | VaspInputSet) -> type | list[str]:
     """
     Return a subclass of DictSect from string `s`.
     If s == "__all__", return list with all VaspInputSet subclasses supported by pymatgen.
     """
     from inspect import isclass
+
     from pymatgen.io.vasp import sets
     def is_dict_set(key: str) -> bool:
         return isclass(obj := getattr(sets, key)) and issubclass(obj, VaspInputSet)
@@ -52,7 +53,7 @@ def _get_structure(options):
     if os.path.exists(options.filepath):
         return abilab.Structure.from_file(options.filepath)
 
-    elif options.filepath.startswith("mp-"):
+    if options.filepath.startswith("mp-"):
         return abilab.Structure.from_mpid(options.filepath)
 
     raise TypeError("Don't know how to extract structure object from %s" % options.filepath)
@@ -70,12 +71,11 @@ def _get_pseudotable(options):
         if options.usepaw:
             raise NotImplementedError("PAW table is missing")
             #pseudos = dojo_tables["ONCVPSP-PBE-PDv0.2-accuracy"]
-        else:
-            pseudos = dojo_tables["ONCVPSP-PBE-PDv0.2-accuracy"]
+        pseudos = dojo_tables["ONCVPSP-PBE-PDv0.2-accuracy"]
 
         print("Using pseudos from PseudoDojo table", repr(pseudos))
 
-    except ImportError as exc:
+    except ImportError:
         from abipy.data.hgh_pseudos import HGH_TABLE
         pseudos = HGH_TABLE
         print("PseudoDojo package not installed. Please install it with `pip install pseudo_dojo`")
@@ -174,7 +174,7 @@ def abinp_ibz(options):
     nkibz = len(ibz.points)
     print("kptopt 0 nkpt ", nkibz)
     print("kpts")
-    for i, (k, w) in enumerate(zip(ibz.points, ibz.weights)):
+    for i, (k, w) in enumerate(zip(ibz.points, ibz.weights, strict=False)):
         print("%12.8f  %12.8f  %12.8f  # index: %d, weight: %10.8f" % (k[0], k[1], k[2], i + 1, w))
 
     print("\nwtk")
@@ -372,101 +372,101 @@ def get_parser(with_epilog=False):
     """Build parser."""
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
-    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-        help='verbose, can be supplied multiple times to increase verbosity')
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
+    copts_parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+        help="verbose, can be supplied multiple times to increase verbosity")
+    copts_parser.add_argument("--loglevel", default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    copts_parser.add_argument("-m", '--mnemonics', default=False, action="store_true",
+    copts_parser.add_argument("-m", "--mnemonics", default=False, action="store_true",
         help="Print brief description of input variables in the input file.")
-    copts_parser.add_argument('--usepaw', default=False, action="store_true",
+    copts_parser.add_argument("--usepaw", default=False, action="store_true",
         help="Use PAW pseudos instead of norm-conserving.")
 
     # Parent parser for command options operating on Abinit input files.
     abiinput_parser = argparse.ArgumentParser(add_help=False)
-    abiinput_parser.add_argument('--jdtset', default=1, type=int,
-        help="jdtset index. Used to select the dataset index when the input file " +
+    abiinput_parser.add_argument("--jdtset", default=1, type=int,
+        help="jdtset index. Used to select the dataset index when the input file "
              "contains more than one dataset.")
-    abiinput_parser.add_argument("-p", '--pseudos', nargs="+", default=None, help="List of pseudopotentials")
+    abiinput_parser.add_argument("-p", "--pseudos", nargs="+", default=None, help="List of pseudopotentials")
 
-    abiinput_parser.add_argument('--kppa', type=int, default=None,
+    abiinput_parser.add_argument("--kppa", type=int, default=None,
         help="Number of k-points per reciprocal atom. Use default value (1000) if not specified.")
-    abiinput_parser.add_argument('--spin-mode', type=str, default="unpolarized",
-        help="Spin polarization. Default: unpolarized. Allowed values in: " +
-             "[polarized, unpolarized, afm (anti-ferromagnetic), spinor (non-collinear magnetism) " +
+    abiinput_parser.add_argument("--spin-mode", type=str, default="unpolarized",
+        help="Spin polarization. Default: unpolarized. Allowed values in: "
+             "[polarized, unpolarized, afm (anti-ferromagnetic), spinor (non-collinear magnetism) "
              " spinor_nomag (non-collinear, no magnetism)].")
-    abiinput_parser.add_argument('--smearing', type=str, default="fermi_dirac:0.1 eV",
+    abiinput_parser.add_argument("--smearing", type=str, default="fermi_dirac:0.1 eV",
         help="Smearing scheme. Defaults to Fermi-Dirac.")
 
     # Parent parser for commands requiring a file.
     path_selector = argparse.ArgumentParser(add_help=False)
-    path_selector.add_argument('filepath', type=str,
+    path_selector.add_argument("filepath", type=str,
         help="File with the crystalline structure (netcdf, cif, POSCAR, input files ...)")
 
     # Parent parser for commands requiring a path to a directory.
     dir_selector = argparse.ArgumentParser(add_help=False)
-    dir_selector.add_argument('dirpath', type=str,
+    dir_selector.add_argument("dirpath", type=str,
         help="Directory with input files required by COMMAND.")
 
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--loglevel', default="ERROR", type=str,
+    parser.add_argument("--loglevel", default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
-    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-        help='verbose, can be supplied multiple times to increase verbosity')
+    parser.add_argument("-V", "--version", action="version", version=abilab.__version__)
+    parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+        help="verbose, can be supplied multiple times to increase verbosity")
 
     # Create the parsers for the sub-commands
-    subparsers = parser.add_subparsers(dest='command', help='sub-command help',
+    subparsers = parser.add_subparsers(dest="command", help="sub-command help",
                                        description="Valid subcommands, use command --help for help")
 
     abifile_parsers = [copts_parser, path_selector, abiinput_parser]
 
     # Subparser for validate command.
-    p_validate = subparsers.add_parser('validate', parents=abifile_parsers, help=abinp_validate.__doc__)
+    p_validate = subparsers.add_parser("validate", parents=abifile_parsers, help=abinp_validate.__doc__)
 
     # Subparser for autoparal command.
-    p_autoparal = subparsers.add_parser('autoparal', parents=abifile_parsers, help=abinp_autoparal.__doc__)
-    p_autoparal.add_argument("-n", '--max-ncpus', default=50, type=int, help="Maximum number of CPUs")
+    p_autoparal = subparsers.add_parser("autoparal", parents=abifile_parsers, help=abinp_autoparal.__doc__)
+    p_autoparal.add_argument("-n", "--max-ncpus", default=50, type=int, help="Maximum number of CPUs")
 
     # Subparser for abispg command.
-    p_abispg = subparsers.add_parser('abispg', parents=abifile_parsers, help=abinp_abispg.__doc__)
+    p_abispg = subparsers.add_parser("abispg", parents=abifile_parsers, help=abinp_abispg.__doc__)
 
     # Subparser for ibz command.
-    p_ibz = subparsers.add_parser('ibz', parents=abifile_parsers, help=abinp_ibz.__doc__)
+    p_ibz = subparsers.add_parser("ibz", parents=abifile_parsers, help=abinp_ibz.__doc__)
 
     # Subparser for phperts command.
-    p_phperts = subparsers.add_parser('phperts', parents=abifile_parsers, help=abinp_phperts.__doc__)
+    p_phperts = subparsers.add_parser("phperts", parents=abifile_parsers, help=abinp_phperts.__doc__)
 
     inpgen_parsers = [copts_parser, path_selector, abiinput_parser]
 
     # Subparser for gs command.
-    p_gs = subparsers.add_parser('gs', parents=inpgen_parsers, help=abinp_gs.__doc__)
+    p_gs = subparsers.add_parser("gs", parents=inpgen_parsers, help=abinp_gs.__doc__)
 
     # Subparser for ebands command.
-    p_ebands = subparsers.add_parser('ebands', parents=inpgen_parsers, help=abinp_ebands.__doc__)
+    p_ebands = subparsers.add_parser("ebands", parents=inpgen_parsers, help=abinp_ebands.__doc__)
 
     # Subparser for phonons command.
-    p_phonons = subparsers.add_parser('phonons', parents=inpgen_parsers, help=abinp_phonons.__doc__)
+    p_phonons = subparsers.add_parser("phonons", parents=inpgen_parsers, help=abinp_phonons.__doc__)
 
     # Subparser for g0w0 command.
-    p_g0w0 = subparsers.add_parser('g0w0', parents=inpgen_parsers, help=abinp_g0w0.__doc__)
+    p_g0w0 = subparsers.add_parser("g0w0", parents=inpgen_parsers, help=abinp_g0w0.__doc__)
 
     # Subparser for anaph command.
-    p_anaph = subparsers.add_parser('anaph', parents=inpgen_parsers, help=abinp_anaph.__doc__)
+    p_anaph = subparsers.add_parser("anaph", parents=inpgen_parsers, help=abinp_anaph.__doc__)
 
     # Subparser for vasp command.
-    p_vasp = subparsers.add_parser('vasp', parents=[path_selector], help=abinp_vasp.__doc__)
-    p_vasp.add_argument('--dict-set', default="MPStaticSet", type=str,
+    p_vasp = subparsers.add_parser("vasp", parents=[path_selector], help=abinp_vasp.__doc__)
+    p_vasp.add_argument("--dict-set", default="MPStaticSet", type=str,
                         help="VaspDictSet. Default: MPStaticSet. For further info see pymatgen.io.vasp.sets",
                         choices=ALL_VASP_DICT_SETS)
 
     # Subparser for wannier90 command.
-    p_wannier90 = subparsers.add_parser('wannier90', parents=[path_selector], help=abinp_wannier90.__doc__)
+    p_wannier90 = subparsers.add_parser("wannier90", parents=[path_selector], help=abinp_wannier90.__doc__)
 
     # Subparser for lobster command.
-    p_lobster = subparsers.add_parser('lobster', parents=[dir_selector], help=abinp_lobster.__doc__)
+    p_lobster = subparsers.add_parser("lobster", parents=[dir_selector], help=abinp_lobster.__doc__)
 
-    p_slurm = subparsers.add_parser('slurm', help=abinp_slurm.__doc__)
+    p_slurm = subparsers.add_parser("slurm", help=abinp_slurm.__doc__)
 
     return parser
 

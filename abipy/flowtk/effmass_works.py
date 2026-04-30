@@ -1,16 +1,17 @@
-# coding: utf-8
 """Work subclasses related to effective mass calculations."""
 from __future__ import annotations
 
 import os
-import numpy as np
 
+import numpy as np
 from monty.json import jsanitize
-from abipy.core.kpoints import build_segments
+
 from abipy.abio.inputs import AbinitInput
-from .nodes import Node
-from .works import Work, PhononWork
+from abipy.core.kpoints import build_segments
+
 from .flows import Flow
+from .nodes import Node
+from .works import PhononWork, Work
 
 
 def _get_red_dirs_from_opts(red_dirs, cart_dirs, reciprocal_lattice) -> np.ndarray:

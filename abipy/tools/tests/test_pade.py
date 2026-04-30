@@ -1,8 +1,7 @@
 """Tests for frozen_phonons"""
-import os
 import numpy as np
-#import abipy.data as abidata
 
+#import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.tools.pade import SigmaPade
 
@@ -11,7 +10,6 @@ class PadeTest(AbipyTest):
 
     def test_sigma_pade(self):
         """Testing SigmaPade interface."""
-
         # List of points and values for the Pade'
         zs = np.array([0.3204639033968435j, 1.159257347625358j, 2.7851769489568112j,
                        6.6074592214004655j, 16.793387237006716j, 50.739714260170196j],

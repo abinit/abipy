@@ -15,9 +15,10 @@ This example shows how to plot several phonon band structures on a grid.
 # We start by defining a list of DDB files:
 # obtained with the same structure but different k-mesh and tmear:
 
-from abipy import abilab
-import abipy.data as abidata
 import os
+
+import abipy.data as abidata
+from abipy import abilab
 
 paths = [
     #"mgb2_444k_0.01tsmear_DDB",

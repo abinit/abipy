@@ -9,19 +9,16 @@ The final results (out_DDB, out_DVDB) will be produced automatically at the end 
 and saved in the ``outdata/`` directory of work[1].
 """
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+from abipy import abilab, flowtk
 
 
 def make_scf_input():
     """
     This function constructs the input file for the GS calculation:
     """
-
     # Initialize MgO structure from abinit variables.
     structure = abilab.Structure.from_abivars(
         acell=3 * [4.252718 * abilab.units.ang_to_bohr],

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import pytest
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def itest_tolsymerror_handler(fwp):
@@ -59,7 +59,7 @@ def itest_tolsymerror_handler(fwp):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     task = flow[0][0]
     assert len(task.corrections) == 1
@@ -117,7 +117,7 @@ def itest_dilatmxerror_handler(fwp):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     task = flow[0][0]
     # Don't check the number of corrections as it's not portable.

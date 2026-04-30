@@ -20,19 +20,21 @@ See: https://www.quantum-espresso.org/Doc/INPUT_CP.html
 """
 from __future__ import annotations
 
+import dataclasses
+from functools import cached_property
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-import dataclasses
+
 import abipy.core.abinit_units as abu
 
-from pathlib import Path
-from functools import cached_property
 #from monty.bisect import find_le
-from abipy.core.mixins import TextFile, NotebookWriter
-from abipy.tools.typing import PathLike, Figure
-from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly,
-    get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
+from abipy.core.mixins import NotebookWriter, TextFile
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+)
+from abipy.tools.typing import Figure, PathLike
 
 
 def parse_file_with_blocks(filepath: PathLike, block_len: int) -> tuple[int, np.ndarray, list]:
@@ -57,7 +59,7 @@ def parse_file_with_blocks(filepath: PathLike, block_len: int) -> tuple[int, np.
     Return: (number_of_steps, array_to_be_reshaped, list_of_headers)
     """
     nsteps, data, headers = 0, [], []
-    with open(filepath, "rt") as fh:
+    with open(filepath) as fh:
         for il, line in enumerate(fh):
             toks = line.split()
             if il % (block_len + 1) == 0:
@@ -76,7 +78,7 @@ def parse_file_with_header(filepath: PathLike) -> pd.DataFrame:
     """
     from io import StringIO
     sbuf = StringIO()
-    with open(filepath, "rt") as fh:
+    with open(filepath) as fh:
         for il, line in enumerate(fh):
             if il == 0:
                 if not line.startswith("#"):
@@ -246,11 +248,11 @@ def traj_to_qepos(traj_filepath: PathLike, pos_filepath: PathLike) -> None:
     for it, atoms in enumerate(traj):
         pos_tac[it] = atoms.positions
 
-    with open(str(pos_filepath), "wt") as fh:
+    with open(str(pos_filepath), "w") as fh:
         for it in range(nsteps):
-            fh.write(str(it) + '\n')
+            fh.write(str(it) + "\n")
             for ia in range(natoms):
-                fh.write(str(pos_tac[it,ia,0]) + ' ' + str(pos_tac[it,ia,1]) + ' ' + str(pos_tac[it,ia,2]) + '\n')
+                fh.write(str(pos_tac[it,ia,0]) + " " + str(pos_tac[it,ia,1]) + " " + str(pos_tac[it,ia,2]) + "\n")
 
 
 class Qe2Extxyz:
@@ -258,7 +260,6 @@ class Qe2Extxyz:
     Convert QE/CP output files into ASE extended xyz format.
 
     Example:
-
         from abipy.dynamics.cpx import Qe2Extxyz
         converter = Qe2Extxyz.from_input("cp.in", code="cp")
         converter.write_xyz("extended.xyz", take_every=1)
@@ -273,7 +274,7 @@ class Qe2Extxyz:
         qe_input = Path(str(qe_input)).absolute()
         directory = qe_input.cwd()
         from ase.io.espresso import read_fortran_namelist
-        with open(qe_input, "rt") as fh:
+        with open(qe_input) as fh:
             sections, card_lines = read_fortran_namelist(fh)
 
         # https://www.quantum-espresso.org/Doc/INPUT_CP.html
@@ -317,7 +318,7 @@ Reading stresses from: {str_filepath=}
 
         # Parse input file to get initial_atoms and symbols.
         from ase.io.espresso import read_espresso_in
-        with open(qe_input, "rt") as fh:
+        with open(qe_input) as fh:
             self.initial_atoms = read_espresso_in(fh)
             natom = len(self.initial_atoms)
             #print("initial_atoms:", self.initial_atoms)
@@ -371,10 +372,10 @@ Reading stresses from: {str_filepath=}
         """
         print(f"Writing results in extended xyz format in: {xyz_filepath}")
         from ase.io import write
-        with open(xyz_filepath, "wt") as fh:
+        with open(xyz_filepath, "w") as fh:
             for istep, atoms in enumerate(self.yield_atoms(pbc)):
                 if istep % take_every != 0: continue
-                write(fh, atoms, format='extxyz', append=True)
+                write(fh, atoms, format="extxyz", append=True)
 
     def yield_atoms(self, pbc):
         """Yields ASE atoms along the trajectory."""
@@ -408,14 +409,14 @@ def downsample_xyz(input_xyz, take_every, output_xyz, skip_head=None, verbose=1)
         skip_head: If not None, skip the first skip_head configurations.
         verbose: Verbosity level.
     """
-    from ase.io import write, iread
+    from ase.io import iread, write
     count = 0
-    with open(output_xyz, "wt") as out_xyz:
+    with open(output_xyz, "w") as out_xyz:
         for istep, atoms in enumerate(iread(input_xyz)):
             if istep % take_every != 0: continue
             if skip_head is not None and (istep + 1) <= skip_head: continue
             count += 1
-            write(out_xyz, atoms, format='extxyz', append=True)
+            write(out_xyz, atoms, format="extxyz", append=True)
 
     if verbose: print(f"Wrote {count=} configurations to {output_xyz=} with {take_every=} and {skip_head=}")
     return count

@@ -1,12 +1,7 @@
-# coding: utf-8
 """Test for Robots"""
-import sys
-import os
-import abipy.data as abidata
-import abipy.abilab as abilab
-
-from abipy.core.testing import AbipyTest
+from abipy import abilab
 from abipy.abio.robots import Robot
+from abipy.core.testing import AbipyTest
 
 
 class RobotTest(AbipyTest):
@@ -17,9 +12,9 @@ class RobotTest(AbipyTest):
         class MyRobot(Robot):
             EXT = "FOOBAR.nc"
             def write_notebook(self, nbpath=None):
-                raise NotImplementedError()
+                raise NotImplementedError
             def yield_figs(self, **kwargs):  # pragma: no cover
-                raise NotImplementedError()
+                raise NotImplementedError
 
         # With context.
         with MyRobot() as robot:

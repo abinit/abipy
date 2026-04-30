@@ -6,12 +6,12 @@ Phonon-limited mobilities in semiconductors
 This flow computes the phonon-limited mobility in AlAs
 using different dense k/q meshes.
 """
-import sys
 import os
-import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+import sys
+
 import abipy.core.abinit_units as abu
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -136,7 +136,6 @@ def main(options):
     flow_main is a decorator implementing the command line interface.
     Command line args are stored in `options`.
     """
-
     return build_flow(options)
 
 

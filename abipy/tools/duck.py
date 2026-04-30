@@ -1,12 +1,11 @@
-# coding: utf-8
 """Duck-typing tests"""
 from __future__ import annotations
 
 import collections
 import warnings
-import numpy as np
-
 from typing import Any
+
+import numpy as np
 
 
 def is_string(s: Any) -> bool:
@@ -27,13 +26,12 @@ def is_intlike(obj: Any) -> bool:
         # This to get rid of warnings about casting complex to real.
         if np.iscomplexobj(obj) and np.isreal(obj):
             return int(obj.real) == obj
-        else:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                #print("hello", int(obj) == obj)
-                return int(obj) == obj
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            #print("hello", int(obj) == obj)
+            return int(obj) == obj
 
-    except (ValueError, TypeError) as exc:
+    except (ValueError, TypeError):
         #print(exc)
         return False
 
@@ -91,16 +89,15 @@ def torange(obj: Any) -> range:
     if is_intlike(obj):
         return range(obj, obj + 1)
 
-    elif isinstance(obj, slice):
+    if isinstance(obj, slice):
         start = obj.start if obj.start is not None else 0
         step = obj.step if obj.step is not None else 1
         return range(start, obj.stop, step)
 
-    else:
-        try:
-            return obj.__iter__()
-        except Exception:
-            raise TypeError("Don't know how to convert %s into a range object" % str(obj))
+    try:
+        return obj.__iter__()
+    except Exception:
+        raise TypeError("Don't know how to convert %s into a range object" % str(obj))
 
 
 def as_slice(obj: Any) -> slice:

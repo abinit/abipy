@@ -1,21 +1,20 @@
-# coding: utf-8
 """Classes to analyse LRUJ results."""
 from __future__ import annotations
 
 import dataclasses
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
-from pathlib import Path
 #from monty.string import is_string, list_strings, marquee
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.iotools import ETSF_Reader
 from abipy.tools.iotools import yaml_safe_load
-from abipy.core.structure import Structure
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+)
 from abipy.tools.typing import Figure, PathLike
-from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly)
-
 
 #class LrujFile(AbinitNcFile, Has_Header, Has_Structure): #, Has_ElectronBands, NotebookWriter):
 #    """
@@ -72,7 +71,7 @@ class LrujResults:
         """
         Extract results from the main output file produced by lruj.
         """
-        with open(filepath, "rt") as fh:
+        with open(filepath) as fh:
             lines = [line.lstrip() for line in fh]
 
         # Extract the Yaml document with the chi/chi0 coefficients
@@ -91,21 +90,21 @@ class LrujResults:
             if in_doc:
                 yaml_lines.append(line)
 
-        natom = data['natom']
-        ndata = data['ndata']
-        pawujat = data['pawujat']
-        macro_uj = data['macro_uj']
-        diem_token = data['diem_token']
-        diem = data['diem']
+        natom = data["natom"]
+        ndata = data["ndata"]
+        pawujat = data["pawujat"]
+        macro_uj = data["macro_uj"]
+        diem_token = data["diem_token"]
+        diem = data["diem"]
         npert = ndata - 1
         if macro_uj==4:
           pert_name = r"$\beta$"
           metric = r"M $(n^{\uparrow} - n^{\downarrow})$"
-          parname = 'J'
+          parname = "J"
         else:
           pert_name = r"$\alpha$"
           metric = r"N $(n^{\uparrow} + n^{\downarrow})$"
-          parname = 'U'
+          parname = "U"
 
         chi0_coefficients = {}
         chi_coefficients = {}
@@ -173,7 +172,7 @@ class LrujResults:
         for irow in range(maxdeg):
             l = lines[i+irow].replace("|", " ")
             tokens = l.split()
-            d = dict(zip(keys, [float(t) for t in tokens[-6:]]))
+            d = dict(zip(keys, [float(t) for t in tokens[-6:]], strict=False))
             d["degree"] = irow + 1
             dict_list.append(d)
 
@@ -185,7 +184,7 @@ class LrujResults:
 
     @add_fig_kwargs
     def plot(self, ax=None, degrees="all", inset=True, insetdegree=1, insetlocale="lower left",
-             ptcolor0='k', ptcolor='k', gradcolor1='#3575D5',gradcolor2='#FDAE7B',
+             ptcolor0="k", ptcolor="k", gradcolor1="#3575D5",gradcolor2="#FDAE7B",
              ptitle="default", fontsize=12, **kwargs) -> Figure:
         """
         Plot
@@ -209,7 +208,7 @@ class LrujResults:
         # Plot data
         yshift = self.occ_unscr[np.where(self.alphas == 0.0000)] * (self.diem - 1.0)
         data0 = 1.0/self.diem * (self.occ_unscr + yshift)
-        ax.scatter(self.alphas, data0, s=70, color=ptcolor0, facecolors='none', linewidths=2, label="Unscreened")
+        ax.scatter(self.alphas, data0, s=70, color=ptcolor0, facecolors="none", linewidths=2, label="Unscreened")
         ax.scatter(self.alphas, self.occ_scr, s=70, color=ptcolor, label="Screened")
         ax.axvline(x=0.0, color="white", linestyle="--", lw=0.5)
 
@@ -245,27 +244,27 @@ class LrujResults:
           polynomial0=poly0(self.chi0_coefficients[degree])
           polynomial=poly(self.chi_coefficients[degree])
           if degree == 1:
-            Labelstring='Linear'
+            Labelstring="Linear"
           elif degree == 2:
-            Labelstring='Quadratic'
+            Labelstring="Quadratic"
           elif degree == 3:
-            Labelstring='Cubic'
+            Labelstring="Cubic"
           else:
-            Labelstring=' '.join(['Degree',str(degree)])
+            Labelstring=" ".join(["Degree",str(degree)])
 
           if insetdegree==degree:
-            deginfo = ' '.join(['Parameters for',Labelstring,'fit'])
+            deginfo = " ".join(["Parameters for",Labelstring,"fit"])
             insetcolor = linecolors[degree-1]
 
-          ax.plot(xs,polynomial0(xs),color=linecolors[degree-1],linewidth=2.0,linestyle='dashed')
+          ax.plot(xs,polynomial0(xs),color=linecolors[degree-1],linewidth=2.0,linestyle="dashed")
           ax.plot(xs,polynomial(xs),color=linecolors[degree-1],linewidth=2.0,label=Labelstring)
 
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
         if ptitle=="default":
-          ptitle=' '.join(["Linear Response",self.parname,"on atom",str(self.pawujat)])
+          ptitle=" ".join(["Linear Response",self.parname,"on atom",str(self.pawujat)])
         plt.title(ptitle)
         ax.grid(True)
-        ax.set_xlabel(' '.join([self.pert_name,"(eV)"]))
+        ax.set_xlabel(" ".join([self.pert_name,"(eV)"]))
         ax.set_ylabel(self.metric)
 
         # Generate inset with numerical information on LR
@@ -276,14 +275,14 @@ class LrujResults:
             tablevalue = self.fit_df[select][keywo]
             return "%.4f" % tablevalue.values[0]
 
-          X0str = ' '.join([r"$\chi_0$","=",dfvalue("Chi0"),r"$\pm$",dfvalue("rms_Chi0"),r"[eV]$^{-1}$"])
-          Xstr = ' '.join([r"$\chi$","=",dfvalue("Chi"),r"$\pm$",dfvalue("rms_Chi"),r"[eV]$^{-1}$"])
-          HPstr = ' '.join([self.parname,"=",dfvalue("HP"),r"$\pm$",dfvalue("rms_HP"),r"[eV]"])
-          insettxt = '\n'.join([deginfo,X0str,Xstr,HPstr])
+          X0str = " ".join([r"$\chi_0$","=",dfvalue("Chi0"),r"$\pm$",dfvalue("rms_Chi0"),r"[eV]$^{-1}$"])
+          Xstr = " ".join([r"$\chi$","=",dfvalue("Chi"),r"$\pm$",dfvalue("rms_Chi"),r"[eV]$^{-1}$"])
+          HPstr = " ".join([self.parname,"=",dfvalue("HP"),r"$\pm$",dfvalue("rms_HP"),r"[eV]"])
+          insettxt = "\n".join([deginfo,X0str,Xstr,HPstr])
           parambox = AnchoredText(insettxt,loc=insetlocale)
           parambox.patch.set_linewidth(2)
           parambox.patch.set_edgecolor(insetcolor)
-          parambox.patch.set_facecolor('white')
+          parambox.patch.set_facecolor("white")
           ax.add_artist(parambox)
 
         return fig
@@ -327,8 +326,8 @@ class LrujAnalyzer:
         """
         Invoke lruj
         """
-        from abipy.flowtk.wrappers import Lruj
         from abipy.core.globals import get_workdir
+        from abipy.flowtk.wrappers import Lruj
         workdir = Path(get_workdir(workdir))
         for key, nc_paths in self.ncfiles_of_key.items():
             if self.results_of_key[key] is not None: continue
@@ -358,7 +357,7 @@ class LrujAnalyzer:
         # don't show the last ax if num_plots is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
-        for ix, (key, ax) in enumerate(zip(keys, ax_list)):
+        for ix, (key, ax) in enumerate(zip(keys, ax_list, strict=False)):
             res = self.results_of_key[key]
             res.plot(ax=ax, show=False, title=key)
 

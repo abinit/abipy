@@ -1,8 +1,5 @@
 """Tests for phonons"""
-import os
-import numpy as np
 import abipy.data as abidata
-
 from abipy.core.testing import AbipyTest
 from abipy.dfpt.anaddbnc import AnaddbNcFile
 

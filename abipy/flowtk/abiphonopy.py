@@ -1,24 +1,22 @@
-# coding: utf-8
 """Interface between phonopy and the AbiPy workflow model."""
 from __future__ import annotations
 
 import os
-import numpy as np
 
+import numpy as np
 from phonopy import Phonopy, file_IO
-from phonopy.interface.vasp import read_vasp_from_strings
 from phonopy.interface.abinit import parse_set_of_forces
+from phonopy.interface.vasp import read_vasp_from_strings
 
 from abipy.abio.inputs import AbinitInput
 from abipy.core.structure import Structure
 from abipy.flowtk.works import Work
 
-
 __all__ = [
+    "PhonopyGruneisenWork",
+    "PhonopyWork",
     "atoms_from_structure",
     "structure_from_atoms",
-    "PhonopyWork",
-    "PhonopyGruneisenWork",
 ]
 
 
@@ -127,7 +125,7 @@ class PhonopyWork(Work):
         supercell = phonon.supercell
         displacements = phonon.displacements
         file_IO.write_disp_yaml(displacements, supercell, # directions=directions,
-                                filename=self.outdir.path_in('disp.yaml'))
+                                filename=self.outdir.path_in("disp.yaml"))
 
         # Extract forces from the main Abinit output files.
         forces_filenames = [task.output_file.path for task in self.phonopy_tasks]
@@ -135,11 +133,11 @@ class PhonopyWork(Work):
         force_sets = parse_set_of_forces(num_atoms, forces_filenames)
 
         # Write FORCE_SETS file.
-        displacements = file_IO.parse_disp_yaml(filename=self.outdir.path_in('disp.yaml'))
-        num_atoms = displacements['natom']
-        for forces, disp in zip(force_sets, displacements['first_atoms']):
-            disp['forces'] = forces
-        file_IO.write_FORCE_SETS(displacements, filename=self.outdir.path_in('FORCE_SETS'))
+        displacements = file_IO.parse_disp_yaml(filename=self.outdir.path_in("disp.yaml"))
+        num_atoms = displacements["natom"]
+        for forces, disp in zip(force_sets, displacements["first_atoms"], strict=False):
+            disp["forces"] = forces
+        file_IO.write_FORCE_SETS(displacements, filename=self.outdir.path_in("FORCE_SETS"))
 
         # Write README and configuration files.
         examples_url = "http://atztogo.github.io/phonopy/examples.html"
@@ -149,7 +147,7 @@ class PhonopyWork(Work):
         path_labels = " ".join(k.name for k in structure.hsym_kpoints)
         ngqpt = structure.calc_ngkpt(nksmall=30)
 
-        with open(self.outdir.path_in("band.conf"), "wt") as fh:
+        with open(self.outdir.path_in("band.conf"), "w") as fh:
             fh.write("#" + doctags_url + "\n")
             fh.write("DIM = %d %d %d\n" % tuple(self.scdims))
             fh.write("BAND = %s\n" % path_coords)
@@ -157,13 +155,13 @@ class PhonopyWork(Work):
             fh.write("BAND_POINTS = 101\n")
             fh.write("#BAND_CONNECTION = .TRUE.\n")
 
-        with open(self.outdir.path_in("dos.conf"), "wt") as fh:
+        with open(self.outdir.path_in("dos.conf"), "w") as fh:
             fh.write("#" + doctags_url + "\n")
             fh.write("DIM = %d %d %d\n" % tuple(self.scdims))
             fh.write("MP = %d %d %d\n" % tuple(ngqpt))
             fh.write("#GAMMA_CENTER = .TRUE.\n")
 
-        with open(self.outdir.path_in("band-dos.conf"), "wt") as fh:
+        with open(self.outdir.path_in("band-dos.conf"), "w") as fh:
             fh.write("#" + doctags_url + "\n")
             fh.write("DIM = %d %d %d\n" % tuple(self.scdims))
             fh.write("BAND = %s\n" % path_coords)
@@ -173,7 +171,7 @@ class PhonopyWork(Work):
             fh.write("MP = %d %d %d\n" % tuple(ngqpt))
             fh.write("#GAMMA_CENTER = .TRUE.\n")
 
-        with open(self.outdir.path_in("README.md"), "wt") as fh:
+        with open(self.outdir.path_in("README.md"), "w") as fh:
             fh.write("To plot bands, use:\n\tphonopy -p band.conf\n\n")
             fh.write("To plot phonon dos, use:\n\tphonopy -p dos.conf\n\n")
             fh.write("To plot bands and dos, use:\n\tphonopy -p band-dos.conf\n\n")

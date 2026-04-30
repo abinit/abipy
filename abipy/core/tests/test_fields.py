@@ -1,12 +1,20 @@
 #!/usr/bin/env python
 """Tests for core.field module"""
-import numpy as np
 import os
-import pymatgen.core.units as pmgu
-import abipy.data as abidata
 
-from pymatgen.core.units import bohr_to_angstrom
-from abipy.core.fields import _Field, FieldReader, Density, VxcPotential, VhartreePotential, VhxcPotential, core_density_from_file
+import numpy as np
+import pymatgen.core.units as pmgu
+
+import abipy.data as abidata
+from abipy.core.fields import (
+    Density,
+    FieldReader,
+    VhartreePotential,
+    VhxcPotential,
+    VxcPotential,
+    _Field,
+    core_density_from_file,
+)
 from abipy.core.testing import AbipyTest
 from abipy.iotools import *
 
@@ -173,14 +181,14 @@ class TestScalarField(AbipyTest):
         # Test creation of AE core density. Use low parameters to reduce time
         rhoc = {"Si": core_density_from_file(os.path.join(abidata.pseudo_dir, "Si.fc"))}
         core_den_1 = Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1.5,
-                                                     method='get_sites_in_sphere', small_dist_mesh=(6, 6, 6))
+                                                     method="get_sites_in_sphere", small_dist_mesh=(6, 6, 6))
         core_den_2 = Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1.5,
-                                                     method='mesh3d_dist_gridpoints', small_dist_mesh=(6, 6, 6))
+                                                     method="mesh3d_dist_gridpoints", small_dist_mesh=(6, 6, 6))
         self.assertAlmostEqual(np.sum(core_den_1.datar) * si_den.mesh.dv, 20, delta=0.5)
         self.assert_almost_equal(core_den_1.datar, core_den_2.datar, decimal=1)
         with self.assertRaises(ValueError):
             Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1, nelec=20, tol=0.001,
-                                            method='get_sites_in_sphere', small_dist_mesh=(2, 2, 2))
+                                            method="get_sites_in_sphere", small_dist_mesh=(2, 2, 2))
 
     def test_ni_density(self):
         """Testing density object (spin polarized, collinear)."""

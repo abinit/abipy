@@ -1,10 +1,8 @@
-# coding: utf-8
 """Tests for duck module."""
-import numpy as np
 
-from abipy.core.testing import AbipyTest
 import abipy.tools.decorators as decs
-import abipy.tools.duck as duck
+from abipy.core.testing import AbipyTest
+from abipy.tools import duck
 
 
 class DecoratorsTest(AbipyTest):

@@ -1,4 +1,3 @@
-# coding: utf-8
 """Tests for duck module."""
 import numpy as np
 
@@ -16,16 +15,15 @@ class DuckTest(AbipyTest):
 
     def test_is_number_like(self):
         """Testing is_number_like."""
-        from numbers import Number
         from decimal import Decimal
         from fractions import Fraction
         is_number_like = duck.is_number_like
         assert is_number_like(2)
         assert is_number_like(2.0)
-        assert is_number_like(Decimal('2.0'))
+        assert is_number_like(Decimal("2.0"))
         assert is_number_like(complex(2,0))
         assert is_number_like(Fraction(2,1))
-        assert not is_number_like('2')
+        assert not is_number_like("2")
         assert not is_number_like({})
 
     def test_is_intlike(self):
@@ -63,8 +61,8 @@ class DuckTest(AbipyTest):
     def test_getattrd(self):
         """Testing getattrd and hasattrd."""
         getattrd, hasattrd = duck.getattrd, duck.hasattrd
-        with self.assertRaises(AttributeError): getattrd(int, 'a')
-        assert getattrd(int, 'a', default=None) is None
-        assert getattrd(int, '__class__.__name__') == "type"
-        assert hasattrd(int, '__class__.__name__')
-        assert not hasattrd(int, 'foobar.__name__')
+        with self.assertRaises(AttributeError): getattrd(int, "a")
+        assert getattrd(int, "a", default=None) is None
+        assert getattrd(int, "__class__.__name__") == "type"
+        assert hasattrd(int, "__class__.__name__")
+        assert not hasattrd(int, "foobar.__name__")

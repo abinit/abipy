@@ -9,12 +9,11 @@ the self-consistent potential perturbations (Δq Vscf) for each q-point
 using ab initio results, or by employing Fourier interpolation techniques
 starting from a coarse q-point mesh.
 """
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.flowtk.eph_flows import EphPotFlow
 
 

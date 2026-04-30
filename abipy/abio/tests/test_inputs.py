@@ -1,15 +1,15 @@
 """Tests for inputs module"""
 import os
-import numpy as np
-import abipy.data as abidata
 
-from abipy import abilab
-from abipy.core.testing import AbipyTest
-from abipy.abio.inputs import *
-from abipy.abio.input_tags import *
+import numpy as np
 
 import abipy.abio.decorators as ideco
+import abipy.data as abidata
+from abipy import abilab
 from abipy.abio.factories import *
+from abipy.abio.input_tags import *
+from abipy.abio.inputs import *
+from abipy.core.testing import AbipyTest
 from abipy.flowtk.abiphonopy import *
 
 
@@ -21,14 +21,14 @@ class TestAbinitInput(AbipyTest):
         # Build simple input with structure and pseudos
         unit_cell = {
             "acell": 3*[10.217],
-            'rprim': [[.0, .5, .5],
+            "rprim": [[.0, .5, .5],
                       [.5, .0, .5],
                       [.5, .5, .0]],
-            'ntypat': 1,
-            'znucl': [14,],
-            'natom': 2,
-            'typat': [1, 1],
-            'xred': [[.0, .0, .0],
+            "ntypat": 1,
+            "znucl": [14,],
+            "natom": 2,
+            "typat": [1, 1],
+            "xred": [[.0, .0, .0],
                      [.25,.25,.25]]
         }
 
@@ -168,7 +168,7 @@ class TestAbinitInput(AbipyTest):
         varname_values = ("nband", [1, 4])
         inp_list = new_inp.news_varname_values(varname_values)
         assert len(inp_list) == len(varname_values[1])
-        for inp, nband in zip(inp_list, varname_values[1]):
+        for inp, nband in zip(inp_list, varname_values[1], strict=False):
             assert inp["nband"] == nband
 
         # Test news_varname_values with Cartesian product.
@@ -342,7 +342,6 @@ class TestAbinitInput(AbipyTest):
 
     def test_new_with_structure_2(self):
         """Testing new_with_structure with occopt=2 nband='*xxx' format ."""
-
         abi_kwargs = dict(ecut=15, chksymbreak=0,)
 
         inp = AbinitInput(structure=abidata.cif_file("NV_center_64_at_sc.cif"),
@@ -365,7 +364,7 @@ class TestAbinitInput(AbipyTest):
 
         new_inp = inp.new_with_structure(new_structure=sc_stru,
                        scdims=[2,1,1],verbose=0)
-        assert new_inp["nband"] == '*276'
+        assert new_inp["nband"] == "*276"
         #self.abivalidate_input(new_inp)
         # Not valid now because occ should be rewritten as well
         # TODO
@@ -442,13 +441,13 @@ class TestAbinitInput(AbipyTest):
         irred_perts = inp_gan.abiget_irred_phperts(qpt=(0.5, 0, 0))
         #print(irred_perts)
         assert len(irred_perts) == 6
-        irred_perts_values = [{'idir': 1, 'ipert': 1, 'qpt': [0.5, 0.0, 0.0]},
-                              {'idir': 2, 'ipert': 1, 'qpt': [0.5, 0.0, 0.0]},
-                              {'idir': 3, 'ipert': 1, 'qpt': [0.5, 0.0, 0.0]},
-                              {'idir': 1, 'ipert': 3, 'qpt': [0.5, 0.0, 0.0]},
-                              {'idir': 2, 'ipert': 3, 'qpt': [0.5, 0.0, 0.0]},
-                              {'idir': 3, 'ipert': 3, 'qpt': [0.5, 0.0, 0.0]}]
-        for a, b in zip(irred_perts, irred_perts_values):
+        irred_perts_values = [{"idir": 1, "ipert": 1, "qpt": [0.5, 0.0, 0.0]},
+                              {"idir": 2, "ipert": 1, "qpt": [0.5, 0.0, 0.0]},
+                              {"idir": 3, "ipert": 1, "qpt": [0.5, 0.0, 0.0]},
+                              {"idir": 1, "ipert": 3, "qpt": [0.5, 0.0, 0.0]},
+                              {"idir": 2, "ipert": 3, "qpt": [0.5, 0.0, 0.0]},
+                              {"idir": 3, "ipert": 3, "qpt": [0.5, 0.0, 0.0]}]
+        for a, b in zip(irred_perts, irred_perts_values, strict=False):
             # The nkpt_rbz entry was added in Abinit v9.5 but it's not used by AbiPy.
             if "nkpt_rbz" in a: b["nkpt_rbz"] = a["nkpt_rbz"]
             self.assertDictEqual(a, b)
@@ -463,7 +462,7 @@ class TestAbinitInput(AbipyTest):
         assert inp_si.run_in_shell()
 
     def test_dict_methods(self):
-        """ Testing AbinitInput dict methods """
+        """Testing AbinitInput dict methods"""
         inp = ebands_input(abidata.cif_file("si.cif"), abidata.pseudos("14si.pspnc"), kppa=10, ecut=2)[0]
         inp = ideco.SpinDecorator("spinor")(inp)
         inp_dict = inp.as_dict()
@@ -782,13 +781,12 @@ class TestAbinitInput(AbipyTest):
         """Testing the hash method of AbinitInput"""
         inp = ebands_input(abidata.cif_file("si.cif"), abidata.pseudos("14si.pspnc"), kppa=10, ecut=2)[0]
         inp_cs = inp.variable_checksum()
-        ecut = inp.pop('ecut')
-        inp.set_vars({'ecut': ecut})
+        ecut = inp.pop("ecut")
+        inp.set_vars({"ecut": ecut})
         assert inp_cs == inp.variable_checksum()
 
     def test_explicit_occ(self):
         """Testing helper function to set occupancies when occopt == 2"""
-
         abi_kwargs = dict(ecut=15, pawecutdg=30, tolvrs=1e-12, chksymbreak=0)
 
         inp = AbinitInput(structure=abidata.cif_file("SrO_Eu_222.cif"),
@@ -866,7 +864,7 @@ class TestMultiDataset(AbipyTest):
         assert len(multi) == 1 and multi.ndtset == 1
         assert multi.isnc
         for i, inp in enumerate(multi):
-            assert list(inp.keys()) == list(multi[i].keys())
+            assert list(inp.keys()) == list(inp.keys())
 
         multi.addnew_from(0)
         assert multi.ndtset == 2 and multi[0] is not multi[1]
@@ -917,7 +915,7 @@ class TestMultiDataset(AbipyTest):
         assert new_multi.ndtset == multi.ndtset
         assert new_multi.structure == multi.structure
 
-        for old_inp, new_inp in zip(multi, new_multi):
+        for old_inp, new_inp in zip(multi, new_multi, strict=False):
             assert old_inp is not new_inp
             self.assertDictEqual(old_inp.as_dict(), new_inp.as_dict())
 
@@ -981,14 +979,14 @@ class AnaddbInputTest(AbipyTest):
         ngqpt = (4, 4, 4)
 
         inp2 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall, asr=0, dos_method="tetra")
-        assert inp2['ifcflag'] == 1
+        assert inp2["ifcflag"] == 1
         print(inp2.to_string(sortmode="a"))
         self.abivalidate_input(inp2)
 
         inp3 = AnaddbInput.phbands_and_dos(self.structure, ngqpt, ndivsm, nqsmall,
                                            qptbounds=[0,0,0,1,1,1], dos_method="gaussian:0.001 eV")
-        assert inp3['ifcflag'] == 1
-        assert inp3['prtdos'] == 1
+        assert inp3["ifcflag"] == 1
+        assert inp3["prtdos"] == 1
         print(inp3.to_string(sortmode="a"))
         self.abivalidate_input(inp3)
 
@@ -1014,7 +1012,7 @@ class AnaddbInputTest(AbipyTest):
         """Testing modes constructor"""
         anaddb_input = AnaddbInput.modes(self.structure)
         assert str(anaddb_input)
-        for flag in ('ifcflag', 'dieflag'):
+        for flag in ("ifcflag", "dieflag"):
             assert anaddb_input[flag] == 1
         self.abivalidate_input(anaddb_input)
 
@@ -1025,7 +1023,7 @@ class AnaddbInputTest(AbipyTest):
         """Testing ifc constructor"""
         anaddb_input = AnaddbInput.ifc(self.structure, ngqpt=[4,4,4])
         assert str(anaddb_input)
-        for flag in ('ifcflag', 'dipdip'):
+        for flag in ("ifcflag", "dipdip"):
             assert anaddb_input[flag] == 1
 
         self.serialize_with_pickle(anaddb_input, test_eq=False)
@@ -1071,16 +1069,16 @@ class AnaddbInputTest(AbipyTest):
         nqsmall = 3
         ngqpt = (4, 4, 4)
         anaddb_input = AnaddbInput.dfpt(self.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, asr=0, dos_method="tetra")
-        assert anaddb_input['ifcflag'] == 1
+        assert anaddb_input["ifcflag"] == 1
         self.abivalidate_input(anaddb_input)
 
         anaddb_input = AnaddbInput.dfpt(self.structure, dte=True)
-        assert anaddb_input['nlflag'] == 3
-        assert anaddb_input['alphon'] == 0
+        assert anaddb_input["nlflag"] == 3
+        assert anaddb_input["alphon"] == 0
 
         anaddb_input = AnaddbInput.dfpt(self.structure, raman=True)
-        assert anaddb_input['nlflag'] == 1
-        assert anaddb_input['ramansr'] == 1
+        assert anaddb_input["nlflag"] == 1
+        assert anaddb_input["ramansr"] == 1
 
 
 class TestCut3DInput(AbipyTest):
@@ -1090,7 +1088,7 @@ class TestCut3DInput(AbipyTest):
         self.structure = abidata.structure_from_ucell("Si")
 
     def test_dict_methods(self):
-        cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
+        cut3d_input = Cut3DInput.den_to_cube("/path/to/den", "outfile_name")
         repr(cut3d_input); str(cut3d_input)
         cut3d_input.write(self.get_tmpname(text=True))
 
@@ -1098,12 +1096,12 @@ class TestCut3DInput(AbipyTest):
         self.assert_msonable(cut3d_input)
 
     def test_generation_methods(self):
-        cut3d_input = Cut3DInput.den_to_cube('/path/to/den', 'outfile_name')
-        cut3d_input = Cut3DInput.den_to_xsf('/path/to/den', 'outfile_name', shift=[2, 2, 2])
-        cut3d_input = Cut3DInput.den_to_3d_indexed('/path/to/den', 'outfile_name')
-        cut3d_input = Cut3DInput.den_to_3d_formatted('/path/to/den', 'outfile_name')
-        cut3d_input = Cut3DInput.den_to_tecplot('/path/to/den', 'outfile_name')
-        cut3d_input = Cut3DInput.den_to_molekel('/path/to/den', 'outfile_name')
+        cut3d_input = Cut3DInput.den_to_cube("/path/to/den", "outfile_name")
+        cut3d_input = Cut3DInput.den_to_xsf("/path/to/den", "outfile_name", shift=[2, 2, 2])
+        cut3d_input = Cut3DInput.den_to_3d_indexed("/path/to/den", "outfile_name")
+        cut3d_input = Cut3DInput.den_to_3d_formatted("/path/to/den", "outfile_name")
+        cut3d_input = Cut3DInput.den_to_tecplot("/path/to/den", "outfile_name")
+        cut3d_input = Cut3DInput.den_to_molekel("/path/to/den", "outfile_name")
 
         # TODO
         #cut3d_input = Cut3DInput.hirshfeld(density_filepath, all_el_dens_paths)

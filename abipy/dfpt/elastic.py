@@ -1,19 +1,20 @@
-# coding: utf-8
 """
 Objects to analyze elastic and piezoelectric tensors computed by anaddb.
 """
 from __future__ import annotations
 
 import json
-import pandas as pd
-
 from collections import OrderedDict
-from monty.string import list_strings, marquee
+
+import pandas as pd
 from monty.collections import AttrDict
 from monty.json import MSONable
-from abipy.core.structure import Structure
+from monty.string import list_strings, marquee
+
 from abipy.core.mixins import Has_Structure
-from abipy.tools.tensors import Tensor, ElasticTensor, PiezoTensor
+from abipy.core.structure import Structure
+from abipy.tools.tensors import ElasticTensor, PiezoTensor, Tensor
+
 try:
     from abipy.flowtk.netcdf import ETSF_Reader
 except ImportError:
@@ -37,7 +38,7 @@ class MyElasticTensor(ElasticTensor):
         #columns = ["1", "2", "3", "4", "5", "6"]
         rows = []
         for row in tensor.voigt:
-            rows.append({k: v for k, v in zip(columns, row)})
+            rows.append({k: v for k, v in zip(columns, row, strict=False)})
 
         df = pd.DataFrame(rows, index=columns, columns=columns)
         df.index.name = "Voigt index"
@@ -80,7 +81,7 @@ class MyPiezoTensor(PiezoTensor):
         #columns = ["1", "2", "3", "4", "5", "6"]
         rows = []
         for irow, row in enumerate(tensor.voigt):
-            rows.append({k: v for k, v in zip(columns, row)})
+            rows.append({k: v for k, v in zip(columns, row, strict=False)})
 
         df = pd.DataFrame(rows, index=index, columns=columns)
         df.index.name = "Voigt index"
@@ -203,8 +204,7 @@ class ElasticData(Has_Structure, MSONable):
                 raise TypeError("Expecting tensor class `%s`, received class `%s`" % (
                     tensor_class.__name__, tensor_voigt.__class__.__name__))
             return tensor_voigt
-        else:
-            return tensor_class.from_voigt(tensor_voigt) if tensor_voigt is not None else None
+        return tensor_class.from_voigt(tensor_voigt) if tensor_voigt is not None else None
 
     @property
     def structure(self) -> Structure:
@@ -237,7 +237,7 @@ class ElasticData(Has_Structure, MSONable):
             dieflag=int(reader.read_value("dieflag", default=0)),
         )
 
-        ts = AttrDict({n: None for n in cls.ALL_TENSOR_NAMES})
+        ts = AttrDict(dict.fromkeys(cls.ALL_TENSOR_NAMES))
 
         # [6, 6] symmetric tensors (written by Fortran, produced in ddb_elast)
         ts.elastic_clamped = reader.read_value("elastic_constants_clamped_ion", default=None)
@@ -399,7 +399,7 @@ class ElasticData(Has_Structure, MSONable):
         #columns = ["1", "2", "3", "4", "5", "6"]
         rows = []
         for row in tensor.voigt:
-            rows.append({k: v for k, v in zip(columns, row)})
+            rows.append({k: v for k, v in zip(columns, row, strict=False)})
 
         return pd.DataFrame(rows, index=columns, columns=columns)
 
@@ -419,7 +419,7 @@ class ElasticData(Has_Structure, MSONable):
         #columns = ["1", "2", "3", "4", "5", "6"]
         rows = []
         for row in tensor.voigt:
-            rows.append({k: v for k, v in zip(columns, row)})
+            rows.append({k: v for k, v in zip(columns, row, strict=False)})
 
         return pd.DataFrame(rows, index=index, columns=columns)
 
@@ -462,8 +462,7 @@ class ElasticData(Has_Structure, MSONable):
             df = df.drop(columns="tensor_name").T
             df.index.name = "voigt_cinds"
             return df.reset_index()
-        else:
-            return df
+        return df
 
     def get_elastic_properties_dataframe(self,
                                         tensor_names: str = "all",
@@ -512,8 +511,7 @@ class ElasticData(Has_Structure, MSONable):
             df.index.name = "property"
             #df.columns = columns
             return df.reset_index()
-        else:
-            return df
+        return df
 
 
 # TODO: finalize implementation.

@@ -4,16 +4,21 @@ Script to download and install pseudopotential tables from the web.
 """
 from __future__ import annotations
 
-import sys
 #import os
 import argparse
-import abipy.tools.cli_parsers as cli
+import sys
 
 from monty.termcolor import cprint
+
+import abipy.tools.cli_parsers as cli
 from abipy.core.release import __version__
 from abipy.flowtk.pseudos import PseudoTable
-from abipy.flowtk.psrepos import (tabulate_repos, repos_from_names,
-                                  get_all_registered_repos, get_installed_repos_and_root)
+from abipy.flowtk.psrepos import (
+    get_all_registered_repos,
+    get_installed_repos_and_root,
+    repos_from_names,
+    tabulate_repos,
+)
 
 
 def abips_list(options) -> list:
@@ -177,7 +182,7 @@ def abips_element(options) -> int:
                 pseudos = repo.get_pseudos(table_name=table_name)
                 pseudo = pseudos.pseudo_with_symbol(symbol, allow_multi=False)
             except Exception as exc:
-                cprint(f"{str(exc)}", "red")
+                cprint(f"{exc!s}", "red")
                 continue
 
             if pseudo not in pseudo_list:
@@ -248,10 +253,10 @@ def get_parser(with_epilog=False):
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
-    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                              help='verbose, can be supplied multiple times to increase verbosity.')
+    copts_parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+                              help="verbose, can be supplied multiple times to increase verbosity.")
 
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
+    copts_parser.add_argument("--loglevel", default="ERROR", type=str,
                               help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     #copts_parser.add_argument('--repos-root', "-r", type=str,
@@ -264,10 +269,10 @@ def get_parser(with_epilog=False):
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-V', '--version', action='version', version=__version__)
+    parser.add_argument("-V", "--version", action="version", version=__version__)
 
     # Create the parsers for the sub-commands
-    subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
+    subparsers = parser.add_subparsers(dest="command", help="sub-command help", description="Valid subcommands")
 
     # Subparser for avail command.
     subparsers.add_parser("avail", parents=[copts_parser], help=abips_avail.__doc__)
@@ -334,8 +339,8 @@ def main():
     # Use seaborn settings.
     if hasattr(options, "seaborn") and options.seaborn:
         import seaborn as sns
-        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
-                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+        sns.set(context=options.seaborn, style="darkgrid", palette="deep",
+                font="sans-serif", font_scale=1, color_codes=False, rc=None)
 
     return globals()[f"abips_{options.command}"](options)
 

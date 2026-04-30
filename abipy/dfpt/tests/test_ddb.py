@@ -1,17 +1,17 @@
 """Tests for phonons"""
 import os
-import numpy as np
-import abipy.data as abidata
-import abipy.core.abinit_units as abu
 
+import numpy as np
+
+import abipy.core.abinit_units as abu
+import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
-from abipy.dfpt.ddb import DdbFile, DielectricTensorGenerator
 from abipy.dfpt.anaddbnc import AnaddbNcFile
+from abipy.dfpt.ddb import DdbFile, DielectricTensorGenerator
 from abipy.dfpt.phonons import PhononBands
 
-
-test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
+test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "test_files")
 
 
 class DdbTest(AbipyTest):
@@ -105,9 +105,9 @@ class DdbTest(AbipyTest):
             assert ddb.qpoints[0] in d_2ord
             new_qpt = [0.11, 0.22, 3.4]
             new_block = {"data":
-                             [' 2nd derivatives (non-stat.)  - # elements :      1',
-                              ' qpt  1.10000000E-01  2.20000000E-01  3.40000000E+00   1.0',
-                              '   1   1   1   1  0.38964081001769D+01  0.51387831420710D-24'],
+                             [" 2nd derivatives (non-stat.)  - # elements :      1",
+                              " qpt  1.10000000E-01  2.20000000E-01  3.40000000E+00   1.0",
+                              "   1   1   1   1  0.38964081001769D+01  0.51387831420710D-24"],
                          "dord": 2, "qpt": new_qpt, "qpt3": None}
             assert ddb.insert_block(new_block)
             assert ddb.insert_block(new_block, replace=True)
@@ -174,7 +174,7 @@ class DdbTest(AbipyTest):
         ], (-1, 3))
 
         assert len(ddb.qpoints) == 8
-        for qpt, ref_qpt in zip(ddb.qpoints, ref_qpoints):
+        for qpt, ref_qpt in zip(ddb.qpoints, ref_qpoints, strict=False):
             assert qpt == ref_qpt
 
         for qpoint in ddb.qpoints:
@@ -339,7 +339,7 @@ class DdbTest(AbipyTest):
             self.assert_almost_equal(np.array(epsinf), ref_epsinf)
             repr(becs); str(becs)
             assert becs.to_string(verbose=2)
-            for arr, z in zip(becs.values, becs.zstars):
+            for arr, z in zip(becs.values, becs.zstars, strict=False):
                 self.assert_equal(arr, z)
             df = becs.get_dataframe(view="all", elements="O", verbose=1)
             assert len(df) == 2
@@ -529,12 +529,12 @@ class DielectricTensorGeneratorTest(AbipyTest):
         df = d.get_oscillator_dataframe(reim="im", tol=1e-8)
         df = d.get_oscillator_dataframe(reim="re", tol=1e-8)
 
-        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha', gamma_ev=0.0)[0, 0], 11.917178540635028)
+        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units="Ha", gamma_ev=0.0)[0, 0], 11.917178540635028)
 
         d = DielectricTensorGenerator.from_objects(PhononBands.from_file(phbstnc_fname),
                                                    AnaddbNcFile.from_file(anaddbnc_fname))
 
-        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units='Ha', gamma_ev=0.0)[0, 0], 11.917178540635028)
+        self.assertAlmostEqual(d.tensor_at_frequency(0.001, units="Ha", gamma_ev=0.0)[0, 0], 11.917178540635028)
         self.assertAlmostEqual(d.reflectivity([1, 0, 0], 0.045), 0.59389746, places=5)
 
         if self.has_matplotlib():

@@ -1,20 +1,27 @@
 """"GUIs for structure."""
 from __future__ import annotations
 
-import os
 import io
-import param
-import panel as pn
-import numpy as np
-import panel.widgets as pnw
+import os
+
 import bokeh.models.widgets as bkw
+import numpy as np
+import panel as pn
+import panel.widgets as pnw
+import param
 
-from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput
-from abipy.panels.core import (AbipyParameterized, PanelWithStructure, dfc, mpl, ply,
-    depends_on_btn_click, Loading, add_mp_rest_docstring)
+from abipy.core.structure import Structure
+from abipy.panels.core import (
+    AbipyParameterized,
+    Loading,
+    PanelWithStructure,
+    add_mp_rest_docstring,
+    depends_on_btn_click,
+    dfc,
+    ply,
+)
 from abipy.tools.decorators import Appender
-
 
 add_inp_docstring = Appender("""
 kprra (number of **k**-points per reciprocal atom) defines the **k**-mesh for electrons.
@@ -63,17 +70,17 @@ class StructurePanel(PanelWithStructure):
         self.spglib_angtol = pnw.Spinner(name="angtol", value=5, start=0.0, end=None, step=1)
 
         # Abisanitize widgets
-        self.abisanitize_btn = pnw.Button(name="Run abisanitize", button_type='primary')
-        self.select_primitive = pnw.Select(name='Select primitive',
-                                           options=['primitive', 'primitive_standard', "no_primitive"])
+        self.abisanitize_btn = pnw.Button(name="Run abisanitize", button_type="primary")
+        self.select_primitive = pnw.Select(name="Select primitive",
+                                           options=["primitive", "primitive_standard", "no_primitive"])
 
         # K-path widgets
         self.kpath_format = pnw.Select(name="format", value="abinit", options=["abinit", "siesta", "wannier90"])
         self.line_density = pnw.Spinner(name="line density", value=10, step=5, start=0, end=None)
-        self.plot_kpath = pnw.Checkbox(name='Plot k-path', value=False)
+        self.plot_kpath = pnw.Checkbox(name="Plot k-path", value=False)
 
         # MP-match
-        self.mp_match_btn = pnw.Button(name="Connect to Materials Project", button_type='primary')
+        self.mp_match_btn = pnw.Button(name="Connect to Materials Project", button_type="primary")
 
         # MP-search
         #mp_search_btn = pnw.Button(name="Connect to Materials Project", button_type='primary')
@@ -96,21 +103,21 @@ class StructurePanel(PanelWithStructure):
 
         # widgets for GS input generator
         self.gs_type = pnw.Select(name="GS type", value="scf", options=["scf", "relax"])
-        self.gs_input_btn = pnw.Button(name="Generate input", button_type='primary')
+        self.gs_input_btn = pnw.Button(name="Generate input", button_type="primary")
 
         # widgets for e-bands input generator.
-        self.ebands_input_btn = pnw.Button(name="Generate input", button_type='primary')
+        self.ebands_input_btn = pnw.Button(name="Generate input", button_type="primary")
         self.edos_kppra = pnw.Spinner(name="edos_kppra", value=0, step=500, start=0, end=None)
 
         # widgets for DFPT phonons input generator.
-        self.ph_input_btn = pnw.Button(name="Generate input", button_type='primary')
-        self.with_becs = pnw.Checkbox(name='BECS and epsilon_inf (semiconductors)', value=False)
+        self.ph_input_btn = pnw.Button(name="Generate input", button_type="primary")
+        self.with_becs = pnw.Checkbox(name="BECS and epsilon_inf (semiconductors)", value=False)
         #self.dfpt_ngqpt = pnw.LiteralInput(name='ngqpt (python list)', value=[None, None, None], type=list)
         #self.dfpt_ngqpt = pnw.LiteralInput(name='ngqpt (python list)', value=[None, None, None], type=list)
 
         self.label2mode = {
-            "unpolarized": 'unpolarized',
-            "polarized": 'polarized',
+            "unpolarized": "unpolarized",
+            "polarized": "polarized",
             "non-collinear SOC with magnetism": "spinor",
             "non-collinear SOC, no magnetism": "spinor_nomag",
             "collinear anti-ferromagnetic": "afm",
@@ -129,9 +136,9 @@ class StructurePanel(PanelWithStructure):
         """Call spglib to find space group symmetries and Wyckoff positions."""
         s = self.structure.spget_summary(symprec=self.spglib_symprec.value,
                                          angle_tolerance=self.spglib_angtol.value)
-        return pn.Row(bkw.PreText(text=s, sizing_mode='stretch_width'))
+        return pn.Row(bkw.PreText(text=s, sizing_mode="stretch_width"))
 
-    @depends_on_btn_click('abisanitize_btn')
+    @depends_on_btn_click("abisanitize_btn")
     def on_abisanitize_btn(self) -> None:
         """
         Returns a new structure in which:
@@ -155,9 +162,9 @@ class StructurePanel(PanelWithStructure):
             Computational Materials Science, 49(2), 299-312. doi:10.1016/j.commatsci.2010.05.010
         """
         primitive, primitive_standard = False, False
-        if self.select_primitive.value in ('primitive', 'primitive_standard'):
+        if self.select_primitive.value in ("primitive", "primitive_standard"):
             primitive = True
-            primitive_standard = self.select_primitive.value == 'primitive_standard'
+            primitive_standard = self.select_primitive.value == "primitive_standard"
         else:
             assert self.select_primitive.value == "no_primitive"
 
@@ -167,16 +174,16 @@ class StructurePanel(PanelWithStructure):
                                         primitive=primitive, primitive_standard=primitive_standard)
 
         return pn.Row(
-                pn.Column("## Input Structure:", bkw.PreText(text=str(self.structure), sizing_mode='stretch_width')),
-                pn.Column("## Sanitized:", bkw.PreText(text=str(s), sizing_mode='stretch_width')),
-                sizing_mode='stretch_width')
+                pn.Column("## Input Structure:", bkw.PreText(text=str(self.structure), sizing_mode="stretch_width")),
+                pn.Column("## Sanitized:", bkw.PreText(text=str(s), sizing_mode="stretch_width")),
+                sizing_mode="stretch_width")
 
     @pn.depends("kpath_format.value", "line_density.value")
     def get_kpath(self) -> pn.Column:
         """
         Generate high-symmetry k-path from input structure in the ABINIT format.
         """
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
 
         s = self.structure.get_kpath_input_string(fmt=self.kpath_format.value,
                                                   line_density=self.line_density.value)
@@ -296,7 +303,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
         return gs_inp
 
-    @depends_on_btn_click('gs_input_btn')
+    @depends_on_btn_click("gs_input_btn")
     @add_inp_docstring
     def on_gs_input_btn(self):
         """
@@ -313,7 +320,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
         return self._finalize(gs_inp)
 
-    @depends_on_btn_click('ebands_input_btn')
+    @depends_on_btn_click("ebands_input_btn")
     @add_inp_docstring
     def on_ebands_input_btn(self):
         """
@@ -358,7 +365,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
         return self._finalize(multi)
 
-    @depends_on_btn_click('ph_input_btn')
+    @depends_on_btn_click("ph_input_btn")
     @add_inp_docstring
     def on_ph_input_btn(self):
         """
@@ -366,8 +373,6 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         for the DFPT computation of phonons, Born effective charges (BECS)
         and macroscopic dieletric tensors.
         """
-        from abipy.abio.factories import phonons_from_gsinput
-
         gs_inp = self.get_gs_input()
         ngkpt = np.array(gs_inp["ngkpt"])
 
@@ -404,7 +409,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
             ddk_input.pop_tolerances()
             ddk_input.set_vars(tolwfr=1.0e-22)
 
-        for qpt, ph_input in zip(qpoints, multi[qstart:]):
+        for qpt, ph_input in zip(qpoints, multi[qstart:], strict=False):
             is_gamma = np.sum(qpt ** 2) < 1e-12
             #if with_becs and is_gamma: continue
             ph_input.set_vars(
@@ -447,7 +452,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
         return self._finalize(multi, header=header)
 
-    @depends_on_btn_click('mp_match_btn', show_shared_wdg_warning=False)
+    @depends_on_btn_click("mp_match_btn", show_shared_wdg_warning=False)
     @add_mp_rest_docstring
     def on_mp_match_btn(self):
         """
@@ -459,7 +464,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
             return pn.Column("## No structure found in the MP database")
 
         return pn.Column(dfc(mp.lattice_dataframe, transpose=True),
-                         sizing_mode='stretch_width')
+                         sizing_mode="stretch_width")
 
     #@depends_on_btn_click('mp_search_btn')
     #def on_mp_search_btn(self):
@@ -483,20 +488,20 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         d["Summary"] = self.get_summary_view_for_abiobj(self.structure)
         d["Viewer"] = self.get_structure_view()
         d["Spglib"] = pn.Row(
-            self.pws_col(['## Spglib options',
+            self.pws_col(["## Spglib options",
                           "spglib_symprec", "spglib_angtol",
                         ]),
             self.spglib_summary
         )
         d["AbiSanitize"] = pn.Row(
-            self.pws_col(['## Spglib options',
+            self.pws_col(["## Spglib options",
                           "spglib_symprec", "spglib_angtol", "select_primitive", "abisanitize_btn",
                           pn.layout.Divider(),
                         ]),
             self.on_abisanitize_btn
         )
         d["Kpath"] = pn.Row(
-            self.pws_col(['## K-path options',
+            self.pws_col(["## K-path options",
                           "kpath_format", "line_density", "plot_kpath",
                          ]),
             self.get_kpath
@@ -511,7 +516,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         if with_inputs:
             # Add tabs to generate inputs from structure.
             d["GS-input"] = pn.Row(
-                self.pws_col(['## Generate GS input',
+                self.pws_col(["## Generate GS input",
                               "gs_type", "spin_mode", "kppra", "smearing_type", "tsmear",
                               "repos_name", "table_name",
                               "gs_input_btn",
@@ -520,7 +525,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
             )
 
             d["Ebands-input"] = pn.Row(
-                self.pws_col(['## Generate Ebands input',
+                self.pws_col(["## Generate Ebands input",
                               "spin_mode", "kppra", "edos_kppra", "smearing_type", "tsmear",
                               "repos_name", "table_name",
                               "ebands_input_btn",
@@ -528,7 +533,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
                 self.on_ebands_input_btn
             )
             d["PH-input"] = pn.Row(
-                self.pws_col(['## Generate phonon input',
+                self.pws_col(["## Generate phonon input",
                               "spin_mode", "kppra", "smearing_type", "tsmear",
                               "with_becs",
                               "repos_name", "table_name",
@@ -544,7 +549,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
         if as_dict: return d
 
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template"))
 
 
 class InputFileGenerator(AbipyParameterized):
@@ -583,7 +588,7 @@ or through the Materials Project identifier (*mp-id*).
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
 
-        self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press ⏎')
+        self.mpid_input = pnw.TextInput(name="mp-id", placeholder="Enter e.g. mp-149 for Silicon and press ⏎")
         self.mpid_input.param.watch(self.on_mpid_input, "value")
         self.mpid_err_wdg = pn.pane.Markdown("")
 
@@ -596,7 +601,7 @@ or through the Materials Project identifier (*mp-id*).
     def on_file_input(self, event):
         self.mpid_err_wdg.object = ""
         #print("filename", self.file_input.filename)
-        if self.file_input.value is None: return None
+        if self.file_input.value is None: return
         #print("value", self.file_input.value)
         import tempfile
         workdir = tempfile.mkdtemp()

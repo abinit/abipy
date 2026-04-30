@@ -6,25 +6,30 @@ from __future__ import annotations
 
 import dataclasses
 import itertools
+
+#import abipy.core.abinit_units as abu
+from functools import cached_property, lru_cache
+
 import numpy as np
 import pandas as pd
-#import abipy.core.abinit_units as abu
-
-from functools import cached_property, lru_cache
-from monty.string import marquee #, list_strings
+from monty.string import marquee  #, list_strings
 from monty.termcolor import cprint
-from abipy.core.structure import Structure
+
+from abipy.abio.robots import Robot
 from abipy.core.kpoints import kpoints_indices
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
-from abipy.tools.typing import PathLike
-from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible, set_grid_legend,
-    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure  #, NotebookWriter
+from abipy.core.structure import Structure
+
 #from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
-from abipy.tools.typing import Figure
-from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
+from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    get_axarray_fig_plt,
+    set_grid_legend,
+)
+from abipy.tools.typing import Figure, PathLike
 
 
 def _allclose(arr_name, array1, array2, verbose: int, rtol=1e-5, atol=1e-8) -> bool:
@@ -104,7 +109,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
     @cached_property
     def params(self) -> dict:
-        """dict with the convergence parameters, e.g. ``nbsum``."""
+        """Dict with the convergence parameters, e.g. ``nbsum``."""
         #od = OrderedDict([
         #    ("nbsum", self.nbsum),
         #    ("zcut", self.zcut),
@@ -229,7 +234,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=len(what_list), ncols=1,
                                                sharex=False, sharey=True, squeeze=True)
 
-        for what, ax in zip(what_list, ax_list):
+        for what, ax in zip(what_list, ax_list, strict=False):
             xlabel, data = self.get_gwpt_label_data(what, spin)
             data_flat = data.flatten()
             #print(data_flat)
@@ -574,7 +579,7 @@ class Gqk:
         # Insert g2 in g2_grid
         g2_grid = np.empty((nb_k, nb_kq, natom3, nx, ny, nz))
         for nu in range(natom3):
-            for g2_mn, q_inds in zip(g2_qph_mn[:,nu], q_indices):
+            for g2_mn, q_inds in zip(g2_qph_mn[:,nu], q_indices, strict=False):
                 ix, iy, iz = q_inds
                 g2_grid[:, :, nu, ix, iy, iz] = g2_mn
 

@@ -1,28 +1,35 @@
-# coding: utf-8
 """
 Workflows for calculations within the ZSISA approximation to the QHA.
 """
 from __future__ import annotations
 
-import itertools
 import dataclasses
+import itertools
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
-import abipy.core.abinit_units as abu
 
-from functools import cached_property
-from abipy.tools.serialization import Serializable
-from abipy.tools.typing import PathLike, VectorLike, Figure
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, plot_xy_with_hue, set_visible, set_grid_legend
+import abipy.core.abinit_units as abu
 from abipy.abio.inputs import AbinitInput
-from abipy.electrons import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.deformation_utils import generate_deformations
-from abipy.dfpt.qha_general_stress import QHA_ZSISA, spgnum_to_crystal_system, cmat_inds_names
-from abipy.flowtk.tasks import RelaxTask
-from abipy.flowtk.works import Work, PhononWork
+from abipy.dfpt.qha_general_stress import QHA_ZSISA, cmat_inds_names, spgnum_to_crystal_system
+from abipy.electrons import GsrFile
 from abipy.flowtk.dfpt_works import ElasticWork
 from abipy.flowtk.flows import Flow
+from abipy.flowtk.tasks import RelaxTask
+from abipy.flowtk.works import PhononWork, Work
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    plot_xy_with_hue,
+    set_grid_legend,
+    set_visible,
+)
+from abipy.tools.serialization import Serializable
+from abipy.tools.typing import Figure, PathLike, VectorLike
 
 
 class ZsisaFlow(Flow):
@@ -515,29 +522,28 @@ class ThermalRelaxTask(RelaxTask):
             # NB: Restart will take care of using the output structure as input.
             self.restart()
 
-        else:
-            if self.flow.with_elastic:
-                # Build work for elastic constants and attach it to the task.
-                scf_input = self.input.new_with_structure(relaxed_structure, ionmov=0, optcell=0)
-                # Remove all irdvars before running. Important!
-                scf_input.pop_irdvars()
-                self.elastic_work = ElasticWork.from_scf_input(
-                    scf_input, with_relaxed_ion=True, with_piezo=self.flow.with_piezo
-                )
-                self.flow.register_work(self.elastic_work)
-                self.flow.allocate(build=True)
+        elif self.flow.with_elastic:
+            # Build work for elastic constants and attach it to the task.
+            scf_input = self.input.new_with_structure(relaxed_structure, ionmov=0, optcell=0)
+            # Remove all irdvars before running. Important!
+            scf_input.pop_irdvars()
+            self.elastic_work = ElasticWork.from_scf_input(
+                scf_input, with_relaxed_ion=True, with_piezo=self.flow.with_piezo
+            )
+            self.flow.register_work(self.elastic_work)
+            self.flow.allocate(build=True)
 
         return results
 
 
 # TODO: Why Voigt notation for alpha? The matrix is not necessarily symmetric
 _ALPHA_COMPS = (
-    'alpha_xx',
-    'alpha_yy',
-    'alpha_zz',
-    'alpha_yz',
-    'alpha_xz',
-    'alpha_xy',
+    "alpha_xx",
+    "alpha_yy",
+    "alpha_zz",
+    "alpha_yz",
+    "alpha_xz",
+    "alpha_xy",
 )
 
 
@@ -639,7 +645,7 @@ class ZsisaResults(Serializable):
     def cycle_markers(self):
         """Create a list of markers you want to cycle through."""
         from itertools import cycle
-        return cycle(('o', 's', '^', 'D', 'v', '>', '<', 'p', '*', 'h', '+', 'x'))
+        return cycle(("o", "s", "^", "D", "v", ">", "<", "p", "*", "h", "+", "x"))
 
     def get_dataframe(self) -> pd.DataFrame:
         """

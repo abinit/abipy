@@ -3,9 +3,8 @@ from __future__ import annotations
 
 import panel as pn
 import panel.widgets as pnw
-import bokeh.models.widgets as bkw
 
-from abipy.panels.core import AbipyParameterized, Loading, mpl, ply, dfc
+from abipy.panels.core import AbipyParameterized, Loading, dfc, ply
 
 
 class AbinitOutputFilePanel(AbipyParameterized):
@@ -35,7 +34,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
             ncols = 2
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        box = pn.GridBox(nrows=nrows, ncols=ncols, sizing_mode='stretch_width')
+        box = pn.GridBox(nrows=nrows, ncols=ncols, sizing_mode="stretch_width")
         #box = pn.Column(sizing_mode="stretch_width")
 
         for icycle, cycle in enumerate(cycles):
@@ -50,11 +49,11 @@ class AbinitOutputFilePanel(AbipyParameterized):
         ca = col.append; cext = col.extend
 
         filepath = self.outfile.filepath
-        with open(filepath, "rt") as fh:
+        with open(filepath) as fh:
             text = fh.read()
 
-        ace = pnw.Ace(value=text, language='text', readonly=True,
-                      sizing_mode='stretch_width', height=1200)
+        ace = pnw.Ace(value=text, language="text", readonly=True,
+                      sizing_mode="stretch_width", height=1200)
                       #sizing_mode='stretch_width', width=900)
         cext([f"## Output <small>{filepath}</small>", ace, pn.layout.Divider()])
 
@@ -82,7 +81,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
 
         if as_dict: return d
 
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template"))
 
 
 class AbinitOutputFilePanelWithFileInput(AbipyParameterized):

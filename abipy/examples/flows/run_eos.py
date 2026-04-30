@@ -5,11 +5,11 @@ Equation of state
 
 Flow to compute the equation of state by fitting E(V) at T = 0.
 """
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

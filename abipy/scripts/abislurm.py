@@ -4,13 +4,11 @@ This script retrieve information on Slurm jobs.
 """
 from __future__ import annotations
 
-import sys
-import os
 import argparse
-import abipy.tools.cli_parsers as cli
-import abipy.flowtk.qutils as qu
+import sys
 
-from abipy.core.release import __version__
+import abipy.flowtk.qutils as qu
+import abipy.tools.cli_parsers as cli
 
 
 def get_epilog() -> str:
@@ -27,8 +25,8 @@ def get_parser(with_epilog=False):
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                        help='verbose, can be supplied multiple times to increase verbosity')
+    parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+                        help="verbose, can be supplied multiple times to increase verbosity")
 
     #parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
     #parser.add_argument('--loglevel', default="ERROR", type=str,
@@ -36,24 +34,24 @@ def get_parser(with_epilog=False):
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
-    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-        help='verbose, can be supplied multiple times to increase verbosity')
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
+    copts_parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+        help="verbose, can be supplied multiple times to increase verbosity")
+    copts_parser.add_argument("--loglevel", default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
     job_ids_parser = argparse.ArgumentParser(add_help=False)
-    job_ids_parser.add_argument('job_ids', nargs="+", help="List of job ids.")
+    job_ids_parser.add_argument("job_ids", nargs="+", help="List of job ids.")
 
     # Create the parsers for the sub-commands
-    subparsers = parser.add_subparsers(dest='command', help='sub-command help',
+    subparsers = parser.add_subparsers(dest="command", help="sub-command help",
         description="Valid subcommands, use command --help for help")
 
     # Subparser for running command.
-    p_running = subparsers.add_parser('running', parents=[copts_parser],
+    p_running = subparsers.add_parser("running", parents=[copts_parser],
         help="Check info on all the running jobs.")
 
     # Subparser for completed command.
-    p_completed = subparsers.add_parser('completed', parents=[copts_parser, job_ids_parser],
+    p_completed = subparsers.add_parser("completed", parents=[copts_parser, job_ids_parser],
         help="Returning info on completed jobs.")
 
     return parser
@@ -72,7 +70,7 @@ def main():
     # Parse command line.
     try:
         options = parser.parse_args()
-    except Exception as exc:
+    except Exception:
         show_examples_and_exit(error_code=1)
 
     if not options.command:

@@ -1,19 +1,19 @@
-# coding: utf-8
 """
 Function1D describes a function of a single variable and provides an easy-to-use API
 for performing common tasks such as algebraic operations, integrations, differentiations, plots, etc.
 """
 from __future__ import annotations
 
+from functools import cached_property
+from io import StringIO
+
 import numpy as np
 
-from io import StringIO
-from functools import cached_property
-from abipy.tools.typing import Figure
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, add_plotly_fig_kwargs, PlotlyRowColDesc, get_fig_plotly)
 from abipy.tools.derivatives import finite_diff
-from abipy.tools.serialization import pmg_serialize
 from abipy.tools.numtools import data_from_cplx_mode
+from abipy.tools.plotting import PlotlyRowColDesc, add_fig_kwargs, add_plotly_fig_kwargs, get_ax_fig_plt, get_fig_plotly
+from abipy.tools.serialization import pmg_serialize
+from abipy.tools.typing import Figure
 
 __all__ = [
     "Function1D",
@@ -97,7 +97,7 @@ class Function1D:
         return len(self.mesh)
 
     def __iter__(self):
-        return zip(self.mesh, self.values)
+        return zip(self.mesh, self.values, strict=False)
 
     def __getitem__(self, slice) -> tuple[float, float]:
         return self.mesh[slice], self.values[slice]
@@ -124,8 +124,7 @@ class Function1D:
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
             return cls(self.mesh, self.values+other.values)
-        else:
-            return cls(self.mesh, self.values + np.array(other))
+        return cls(self.mesh, self.values + np.array(other))
 
     __radd__ = __add__
 
@@ -134,8 +133,7 @@ class Function1D:
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
             return cls(self.mesh, self.values-other.values)
-        else:
-            return cls(self.mesh, self.values-np.array(other))
+        return cls(self.mesh, self.values-np.array(other))
 
     def __rsub__(self, other) -> Function1D:
         return -self + other
@@ -145,8 +143,7 @@ class Function1D:
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
             return cls(self.mesh, self.values*other.values)
-        else:
-            return cls(self.mesh, self.values*other)
+        return cls(self.mesh, self.values*other)
 
     __rmul__ = __mul__
 
@@ -155,8 +152,7 @@ class Function1D:
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
             return cls(self.mesh, self.values/other.values)
-        else:
-            return cls(self.mesh, self.values/other)
+        return cls(self.mesh, self.values/other)
 
     __rtruediv__ = __truediv__
 
@@ -185,14 +181,14 @@ class Function1D:
         """Return :class:`Function1D` with the absolute value."""
         return self.__class__(self.mesh, np.abs(self.values))
 
-    def to_file(self, path, fmt='%.18e', header='') -> None:
+    def to_file(self, path, fmt="%.18e", header="") -> None:
         """
         Save data in a text file. Use format fmr. A header is added at the beginning.
         """
         fmt = "%s %s\n" % (fmt, fmt)
-        with open(path, "wt") as fh:
+        with open(path, "w") as fh:
             if header: fh.write(header)
-            for x, y in zip(self.mesh, self.values):
+            for x, y in zip(self.mesh, self.values, strict=False):
                 fh.write(fmt % (x, y))
 
     def __repr__(self) -> str:
@@ -200,7 +196,7 @@ class Function1D:
 
     def __str__(self) -> str:
         stream = StringIO()
-        for x, y in zip(self.mesh, self.values):
+        for x, y in zip(self.mesh, self.values, strict=False):
             stream.write("%.18e %.18e\n" % (x, y))
         return "".join(stream.getvalue())
 
@@ -209,9 +205,8 @@ class Function1D:
         if self.h is None and other.h is None:
             # Generic meshes.
             return np.allclose(self.mesh, other.mesh)
-        else:
-            # Check for linear meshes
-            return len(self.mesh) == len(other.mesh) and self.h == other.h
+        # Check for linear meshes
+        return len(self.mesh) == len(other.mesh) and self.h == other.h
 
     @property
     def bma(self) -> float:
@@ -223,17 +218,15 @@ class Function1D:
         """Max of f(x) if f is real, max of :math:`|f(x)|` if complex."""
         if not self.iscomplexobj:
             return self.values.max()
-        else:
-            # Max of |z|
-            return np.max(np.abs(self.values))
+        # Max of |z|
+        return np.max(np.abs(self.values))
 
     @property
     def min(self) -> float:
         """Min of f(x) if f is real, min of :math:`|f(x)|` if complex."""
         if not self.iscomplexobj:
             return self.values.min()
-        else:
-            return np.max(np.abs(self.values))
+        return np.max(np.abs(self.values))
 
     @property
     def iscomplexobj(self) -> bool:

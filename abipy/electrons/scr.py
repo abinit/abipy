@@ -1,29 +1,35 @@
-# coding: utf-8
 """
 Objects to analyze the screening files in netcdf format produced by the GW code (optdriver 3).
 """
 from __future__ import annotations
 
+from functools import cached_property
+
 import numpy as np
 import pymatgen.core.units as pmgu
-
-from functools import cached_property
-from monty.string import marquee
-from monty.inspect import all_subclasses
-from monty.termcolor import cprint
-from monty.collections import AttrDict
 from monty.bisect import index as bs_index
+from monty.collections import AttrDict
+from monty.inspect import all_subclasses
+from monty.string import marquee
+from monty.termcolor import cprint
+
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import KpointList
-from abipy.core.structure import Structure
 from abipy.core.gsphere import GSphere
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.kpoints import KpointList
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import ETSF_Reader
-from abipy.tools.plotting import ArrayPlotter, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
-from abipy.tools.typing import Figure
 from abipy.tools import duck
-
+from abipy.tools.plotting import (
+    ArrayPlotter,
+    add_fig_kwargs,
+    data_from_cplx_mode,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    set_axlims,
+)
+from abipy.tools.typing import Figure
 
 _COLOR_CMODE = dict(re="red", im="blue", abs="black", angle="green")
 
@@ -149,7 +155,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     @cached_property
     def params(self) -> dict:
         """
-        dict with the most important parameters used to compute the screening
+        Dict with the most important parameters used to compute the screening
         keys can be accessed with the dot notation i.e. ``params.zcut``.
         """
         #od = self.get_ebands_params()
@@ -238,7 +244,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         nqpt = len(self.r.sorted_kpoints)
         for iq, qpoint in enumerate(self.r.sorted_kpoints):
             wggmat = self.r.read_wggmat(qpoint)
-            for ax, cplx_mode in zip(ax_list, cplx_modes):
+            for ax, cplx_mode in zip(ax_list, cplx_modes, strict=False):
                 wggmat.plot_freq(gvec1, gvec2=gvec2, waxis=waxis,
                                  color=cmap(float(iq) / nqpt),
                                  label=f"{qpoint}",

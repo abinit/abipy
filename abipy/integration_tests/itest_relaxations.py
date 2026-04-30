@@ -1,15 +1,15 @@
 """Integration tests for structural relaxations."""
 from __future__ import annotations
 
+import socket
+
 import numpy as np
 import pytest
-import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
 
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.core.testing import has_matplotlib
 
-import socket
 hostname = socket.gethostname()
 
 skip_hosts = [
@@ -95,7 +95,7 @@ def itest_atomic_relaxation(fwp, tvars):
     assert all(work.finalized for work in flow)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     # post-processing tools
     if has_matplotlib():
@@ -183,7 +183,7 @@ def itest_relaxation_with_restart_from_den(fwp, tvars):
     assert all(work.finalized for work in flow)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     # we should have (0, 1) restarts and no WFK file in outdir.
     for i, task in enumerate(relax_work):
@@ -222,7 +222,7 @@ def itest_dilatmx_error_handler(fwp, tvars):
     assert all(work.finalized for work in flow)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     # t0 should have reached S_OK, and we should have DilatmxError in the corrections.
     t0 = work[0]
@@ -233,7 +233,7 @@ def itest_dilatmx_error_handler(fwp, tvars):
 
 
 #@pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
-@pytest.mark.skipif(True, reason=f"This test is not portable")
+@pytest.mark.skipif(True, reason="This test is not portable")
 def itest_relaxation_with_target_dilatmx(fwp, tvars):
     """Test structural relaxations with automatic restart from DEN files."""
     # Build the flow
@@ -252,7 +252,7 @@ def itest_relaxation_with_target_dilatmx(fwp, tvars):
     assert all(work.finalized for work in flow)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
     #assert relax_work.last_dilatmx <= target_dilatmx
 
     # we should have (0, 1) restarts

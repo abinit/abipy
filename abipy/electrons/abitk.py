@@ -1,18 +1,18 @@
-# coding: utf-8
 """Interface to the abitk Fortran executable."""
 from __future__ import annotations
 
 import os
 import tempfile
-import numpy as np
-
 from functools import cached_property
+
+import numpy as np
 from monty.string import marquee
-from abipy.tools.numtools import is_diagonal
+
 from abipy.core.mixins import AbinitNcFile, Has_Structure
 from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronsReader
 from abipy.flowtk.wrappers import Abitk
+from abipy.tools.numtools import is_diagonal
 
 
 class KmeshFile(AbinitNcFile, Has_Structure):
@@ -37,7 +37,7 @@ class KmeshFile(AbinitNcFile, Has_Structure):
         nshifk = len(shifts)
 
         def s(numbers):
-            return ', '.join(str(n) for n in np.array(numbers).flatten())
+            return ", ".join(str(n) for n in np.array(numbers).flatten())
 
         import shutil
         workdir = tempfile.mkdtemp()

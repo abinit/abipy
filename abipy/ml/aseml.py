@@ -3,66 +3,71 @@ Objects to perform ASE calculations with machine-learned potentials.
 """
 from __future__ import annotations
 
-import sys
-import os
-import io
-import time
 import contextlib
-import json
 import dataclasses
+import io
+import json
+import os
 import stat
-import numpy as np
-import pandas as pd
-import abipy.core.abinit_units as abu
-import ase
-
-from pathlib import Path
-from inspect import isclass
-from multiprocessing import Pool
-from typing import Type, Any, Optional, Union
+import sys
+import time
 from enum import IntEnum
 from functools import cached_property
-from tabulate import tabulate
-from monty.string import marquee, list_strings
-from monty.json import MontyEncoder
-from monty.collections import AttrDict
-from pymatgen.core import Structure as PmgStructure
-from pymatgen.io.ase import AseAtomsAdaptor
+from inspect import isclass
+from multiprocessing import Pool
+from pathlib import Path
+from typing import Any
+
+import ase
+import numpy as np
+import pandas as pd
 from ase import units
 from ase.atoms import Atoms
-from ase.io.trajectory import write_traj, Trajectory
+from ase.calculators.calculator import Calculator, PropertyNotImplementedError
+from ase.filters import FrechetCellFilter  # ExpCellFilter,
 from ase.io import read
-from ase.optimize.optimize import Optimizer
-from ase.calculators.calculator import Calculator
-from ase.filters import FrechetCellFilter # ExpCellFilter,
-from ase.io.vasp import write_vasp_xdatcar, write_vasp
-from ase.mep import NEB
+from ase.io.trajectory import Trajectory, write_traj
+from ase.io.vasp import write_vasp, write_vasp_xdatcar
+
 #from ase.neb import NEB
 from ase.md.npt import NPT
-from ase.md.nptberendsen import NPTBerendsen, Inhomogeneous_NPTBerendsen
+from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, Stationary, ZeroRotation
-from ase.stress import voigt_6_to_full_3x3_stress, full_3x3_to_voigt_6_stress
-from ase.calculators.calculator import PropertyNotImplementedError
+from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
+from ase.mep import NEB
+from ase.optimize.optimize import Optimizer
+from ase.stress import full_3x3_to_voigt_6_stress, voigt_6_to_full_3x3_stress
+from monty.collections import AttrDict
+from monty.json import MontyEncoder
+from monty.string import list_strings, marquee
+from pymatgen.core import Structure as PmgStructure
+from pymatgen.io.vasp.outputs import Vasprun
+from tabulate import tabulate
+
+import abipy.core.abinit_units as abu
+from abipy.abio.enums import EnumMixin, StrEnum
 from abipy.core import Structure
-from abipy.tools.iotools import workdir_with_prefix, PythonScript, yaml_safe_load_path
-from abipy.tools.typing import Figure, PathLike
+from abipy.core.mixins import TextFile  #, NotebookWriter
+from abipy.ml.tools import get_energy_step
+from abipy.tools.context_managers import Timer
+from abipy.tools.iotools import PythonScript, workdir_with_prefix, yaml_safe_load_path
+from abipy.tools.parallel import get_max_nprocs  #, pool_nprocs_pmode
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    linear_fit_ax,
+    set_axlims,
+    set_grid_legend,
+)
 from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import HasPickleIO, mjson_write
-from abipy.tools.context_managers import Timer
-from abipy.tools.parallel import get_max_nprocs #, pool_nprocs_pmode
-from abipy.abio.enums import StrEnum, EnumMixin
-from abipy.core.mixins import TextFile #, NotebookWriter
-from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend,
-    set_ax_xylabels, linear_fit_ax)
-from abipy.ml.tools import get_energy_step
-from pymatgen.io.vasp.outputs import Vasprun
-
+from abipy.tools.typing import Figure, PathLike
 
 _CELLPAR_KEYS = ["a", "b", "c", "angle(b,c)", "angle(a,c)", "angle(a,b)"]
 
 
-ASENEB_METHODS = ['aseneb', 'eb', 'improvedtangent', 'spline', 'string']
+ASENEB_METHODS = ["aseneb", "eb", "improvedtangent", "spline", "string"]
 
 
 class RX_MODE(EnumMixin, StrEnum):  # StrEnum added in 3.11
@@ -147,7 +152,7 @@ def write_atoms(atoms: Atoms, workdir, verbose: int,
         if postfix: fname = fname + postfix
         outpath = workdir / fname
         if verbose > 1: print(f"Writing atoms to: {outpath:} with {fmt=}")
-        with open(outpath, "wt") as fh:
+        with open(outpath, "w") as fh:
             fh.write(structure.convert(fmt=fmt))
         outpath_fmt.append((outpath, fmt))
     return outpath_fmt
@@ -174,7 +179,7 @@ def print_atoms(atoms: Atoms, title=None, cart_forces=None, stream=sys.stdout) -
     else:
         pf("Frac coords and cart forces:")
 
-    for ia, (atom, frac_coords) in enumerate(zip(atoms, scaled_positions)):
+    for ia, (atom, frac_coords) in enumerate(zip(atoms, scaled_positions, strict=False)):
         if cart_forces is None:
             pf("\t", frac_coords)
         else:
@@ -189,7 +194,7 @@ def diff_two_structures(label1, structure1, label2, structure2, fmt, file=sys.st
     lines2 = Structure.as_structure(structure2).convert(fmt=fmt).splitlines()
     pad = max(max(len(l) for l in lines1), len(label1), len(label2))
     print(label1.ljust(pad), " | ", label2, file=file)
-    for l1, l2 in zip(lines1, lines2):
+    for l1, l2 in zip(lines1, lines2, strict=False):
         print(l1.ljust(pad), " | ", l2, file=file)
 
 
@@ -238,7 +243,7 @@ class AseTrajectoryPlotter:
         energies = [float(atoms.get_potential_energy()) for atoms in self.traj]
         ax = ax_list[0]
         ax.plot(energies, marker=marker)
-        ax.set_ylabel('Energy (eV)')
+        ax.set_ylabel("Energy (eV)")
 
         # Plot Force stats.
         forces_traj = np.reshape([atoms.get_forces() for atoms in self.traj], (self.traj_size, self.natom, 3))
@@ -256,7 +261,7 @@ class AseTrajectoryPlotter:
         ax.plot(fmax_steps, label="max |F|", marker=markers[1])
         ax.plot(fmean_steps, label="mean |F|", marker=markers[2])
         #ax.plot(fstd_steps, label="std |F|", marker=markers[3])
-        ax.set_ylabel('F stats (eV/A)')
+        ax.set_ylabel("F stats (eV/A)")
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         # Plot pressure.
@@ -264,13 +269,13 @@ class AseTrajectoryPlotter:
         pressures = [-sum(vs[0:3])/3 for vs in voigt_stresses_traj]
         ax = ax_list[2]
         ax.plot(pressures, marker=marker)
-        ax.set_ylabel('Pressure (GPa)')
+        ax.set_ylabel("Pressure (GPa)")
 
         for ix, ax in enumerate(ax_list):
             set_axlims(ax, xlims, "x")
             ax.grid(True)
             if ix == len(ax_list) - 1:
-                ax.set_xlabel('Trajectory index', fontsize=fontsize)
+                ax.set_xlabel("Trajectory index", fontsize=fontsize)
 
         return fig
 
@@ -290,7 +295,7 @@ class AseTrajectoryPlotter:
         ax_list = ax_list.ravel()
 
         def cell_dict(atoms):
-            return dict(zip(_CELLPAR_KEYS, atoms.cell.cellpar()))
+            return dict(zip(_CELLPAR_KEYS, atoms.cell.cellpar(), strict=False))
 
         cellpar_list = [cell_dict(atoms) for atoms in self.traj]
         df = pd.DataFrame(cellpar_list)
@@ -313,12 +318,12 @@ class AseTrajectoryPlotter:
         ax = ax_list[2]
         volumes = [atoms.get_volume() for atoms in self.traj]
         ax.plot(volumes, label="Volume", marker=marker)
-        ax.set_ylabel(r'$V\, (A^3)$')
+        ax.set_ylabel(r"$V\, (A^3)$")
 
         for ix, ax in enumerate(ax_list):
             set_axlims(ax, xlims, "x")
             if ix == len(ax_list) - 1:
-                ax.set_xlabel('Trajectory index', fontsize=fontsize)
+                ax.set_xlabel("Trajectory index", fontsize=fontsize)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
@@ -416,7 +421,7 @@ class AseResults(HasPickleIO):
 
         # if verbose:
         if True:
-            app('Forces (eV/Ang):')
+            app("Forces (eV/Ang):")
             positions = self.atoms.get_positions()
             data = dict(
                 x=positions[:,0],
@@ -433,7 +438,7 @@ class AseResults(HasPickleIO):
             df = pd.DataFrame(data)
             app(df.to_string())
 
-        app('Stress tensor:')
+        app("Stress tensor:")
         for row in self.stress:
             app(str(row))
 
@@ -451,7 +456,7 @@ class AseResults(HasPickleIO):
         """
         d = {k: getattr(self, k) for k in ["ene", "volume", "pressure"]}
         if with_geo:
-            d.update(dict(zip(_CELLPAR_KEYS, self.atoms.cell.cellpar())))
+            d.update(dict(zip(_CELLPAR_KEYS, self.atoms.cell.cellpar(), strict=False)))
         if with_fstats:
             d.update(self.get_fstats())
 
@@ -863,7 +868,7 @@ def main():
                 ax.plot(e1, marker="o", color="red",  label=key1, markersize=markersize)
                 ax.plot(e2, marker="o", color="blue", label=key2, markersize=markersize)
 
-            set_grid_legend(ax, fontsize, xlabel='trajectory',
+            set_grid_legend(ax, fontsize, xlabel="trajectory",
                             ylabel=r"$|\Delta_E|$" if delta_mode else "$E$",
                             grid=True, legend_loc="upper left",
                             title=f"{key1}/{key2} MAE: {stats.MAE:.6f} eV")
@@ -936,7 +941,7 @@ def main():
                 if delta_mode:
                     ax.set_yscale("log" if not zero_values else "symlog")
 
-                set_grid_legend(ax, fontsize, xlabel='trajectory' if last_row else None,
+                set_grid_legend(ax, fontsize, xlabel="trajectory" if last_row else None,
                                 grid=True, legend=not delta_mode, legend_loc="upper left",
                                 ylabel=f"$|\\Delta {fp_tex}|$" if delta_mode else f"${fp_tex}$")
 
@@ -984,7 +989,7 @@ def main():
                     ax.plot(s2, **s_style, label=f"${key2}\\,\\sigma_{voigt_comp_tex}$" if iv == 0 else None)
                     #ax.set_ylim(-1, +1)
 
-                set_grid_legend(ax, fontsize, xlabel='trajectory' if last_row else None,
+                set_grid_legend(ax, fontsize, xlabel="trajectory" if last_row else None,
                                 grid=True, legend=not delta_mode, legend_loc="upper left",
                                 ylabel=f"$|\\Delta \\sigma_{voigt_comp_tex}|$ " if delta_mode else r"$\sigma$ ")
 
@@ -1066,7 +1071,7 @@ def dataframe_from_results_list(index: list,
     return df
 
 
-def ase_optimizer_cls(s: str | Optimizer) -> Type | list[str]:
+def ase_optimizer_cls(s: str | Optimizer) -> type | list[str]:
     """
     Return an ASE Optimizer subclass from string `s`.
     If s == "__all__", return list with all Optimizer subclasses supported by ASE.
@@ -1115,7 +1120,6 @@ def relax_atoms(atoms: Atoms,
         traj_path:
         calculator:
     """
-
     #from ase.filters import FrechetCellFilter
     RX_MODE.validate(relax_mode)
     if relax_mode == RX_MODE.no:
@@ -1151,7 +1155,7 @@ def relax_atoms(atoms: Atoms,
         t_start = time.time()
         converged = dyn.run(fmax=fmax, steps=steps)
         t_end = time.time()
-        pf('Relaxation completed in %2.4f sec\n' % (t_end - t_start))
+        pf("Relaxation completed in %2.4f sec\n" % (t_end - t_start))
         if not converged:
             raise RuntimeError("ASE relaxation didn't converge")
 
@@ -1166,12 +1170,12 @@ def silence_tensorflow() -> None:
     """
     # https://stackoverflow.com/questions/35911252/disable-tensorflow-debugging-information
     import logging
-    logging.getLogger('tensorflow').setLevel(logging.ERROR)
+    logging.getLogger("tensorflow").setLevel(logging.ERROR)
     os.environ["KMP_AFFINITY"] = "noverbose"
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
     try:
         import tensorflow as tf
-        tf.get_logger().setLevel('ERROR')
+        tf.get_logger().setLevel("ERROR")
         tf.autograph.set_verbosity(3)
     except (ModuleNotFoundError, ImportError):
         pass
@@ -1192,8 +1196,8 @@ class CORRALGO(IntEnum):
         try:
             enum = getattr(cls, string)
             return enum
-        except AttributeError as exc:
-            raise ValueError(f'Error: {string} is not a valid value')
+        except AttributeError:
+            raise ValueError(f"Error: {string} is not a valid value")
 
 
 class _MyCalculator:
@@ -1323,8 +1327,8 @@ class _MyCalculator:
                     forces += delta_forces
                     print(f"{delta_forces=}")
                     #AA: TODO: save the delta in list and call method...
-                    dict = {'delta_forces': delta_forces,}
-                    with open('delta_forces.json', 'a') as outfile:
+                    dict = {"delta_forces": delta_forces,}
+                    with open("delta_forces.json", "a") as outfile:
                         json.dump(dict, outfile, indent=1, cls=MontyEncoder)
 
                 elif self.correct_forces_algo == CORRALGO.one_point:
@@ -1395,9 +1399,9 @@ def get_installed_nn_names(verbose=0, printout=True) -> tuple[list[str], list[st
 
     if printout:
         print("The following NN potentials are installed in the environment:", sys.executable, end=2*"\n")
-        table = [t for t in zip(installed, versions)]
+        table = [t for t in zip(installed, versions, strict=False)]
         print(tabulate(table, headers=["Package", "Version"]))
-        print("")
+        print()
 
     return installed, versions
 
@@ -1484,8 +1488,8 @@ class CalcBuilder:
 
     def __init__(self, name: str, dftd3_args=None, **kwargs):
         """
-            name: Model name.
-            kwargs: optional arguments are stored in calc_kwargs
+        name: Model name.
+        kwargs: optional arguments are stored in calc_kwargs
         """
         self.name = name
 
@@ -1557,12 +1561,12 @@ class CalcBuilder:
 
             return MyEMTCalculator(**self.calc_kwargs)
 
-        elif self.nn_type == "m3gnet":
+        if self.nn_type == "m3gnet":
             # m3gnet legacy version.
             if self._model is None:
                 silence_tensorflow()
             try:
-                from m3gnet.models import Potential, M3GNet, M3GNetCalculator
+                from m3gnet.models import M3GNet, M3GNetCalculator, Potential
             except ImportError as exc:
                 raise ImportError("m3gnet not installed. Try `pip install m3gnet`.") from exc
 
@@ -1631,7 +1635,7 @@ class CalcBuilder:
 
         elif self.nn_type == "alignn":
             try:
-                from alignn.ff.ff import AlignnAtomwiseCalculator, default_path # , get_figshare_model_ff
+                from alignn.ff.ff import AlignnAtomwiseCalculator, default_path  # , get_figshare_model_ff
             except ImportError as exc:
                 raise ImportError("alignn not installed. See https://github.com/usnistgov/alignn") from exc
 
@@ -1691,8 +1695,7 @@ class CalcBuilder:
 
         elif self.nn_type == "mace_mp":
             try:
-                from mace.calculators import MACECalculator
-                from mace.calculators import mace_mp
+                from mace.calculators import MACECalculator, mace_mp
             except ImportError as exc:
                 raise ImportError("mace not installed. See https://github.com/ACEsuit/mace") from exc
 
@@ -1895,12 +1898,12 @@ class MlBase(HasPickleIO):
     def write_json(self, basename: str, data, info: str, indent=4, stream=None, **kwargs) -> None:
         """Write data in JSON format and mirror output to `stream`."""
         self.add_basename_info(basename, info)
-        with open(self.workdir / basename, "wt") as fh:
+        with open(self.workdir / basename, "w") as fh:
             json.dump(data, fh, indent=indent, cls=MontyEncoder, **kwargs)
 
         if stream is not None:
             # Print JSON to stream as well.
-            print("", file=stream)
+            print(file=stream)
             print(marquee(info, mark="="), file=stream)
             print(json.dumps(data, cls=MontyEncoder, indent=4), file=stream, end="\n")
 
@@ -1957,7 +1960,7 @@ import matplotlib.pyplot as plt
                 md_lines.append(f"- `{path}`: {info}")
 
             md_str = "\n".join(md_lines)
-            with open(self.workdir / "README.md", "wt") as fh:
+            with open(self.workdir / "README.md", "w") as fh:
                 fh.write(md_str)
             print("\n", md_str, end=2*"\n")
 
@@ -2046,7 +2049,7 @@ class MlRelaxer(MlBase):
 
         atoms = structure.to_ase_atoms()
         if iatfix is not None:
-            raise NotImplementedError()
+            raise NotImplementedError
             #aseml.fix_atoms(atoms, fix_inds=fix_inds, fix_symbols=fix_symbols)
 
         ######################################################################
@@ -2088,7 +2091,7 @@ class MlRelaxer(MlBase):
         def fmt_vec3(vec) -> str:
             return "{:.12e} {:.12e} {:.12e}".format(*vec)
 
-        with open(filepath, "wt") as fh:
+        with open(filepath, "w") as fh:
             fh.write("%i # format_version\n" % format_version)
             fh.write("%i # natom\n" % len(self.atoms))
             # Write lattice vectors.
@@ -2240,7 +2243,7 @@ class AseMdLog(TextFile):
         begin_restart = False
         d = {}
         add_time = 0.0
-        with open(self.filepath, mode="rt") as fh:
+        with open(self.filepath) as fh:
             for i, line in enumerate(fh):
                 if i == 0:
                     # Extract column names from the header and init dict.
@@ -2261,7 +2264,7 @@ class AseMdLog(TextFile):
 
                 tokens = [float(tok) for tok in line.split()]
                 tokens[0] += add_time
-                for c, v in zip(columns, tokens):
+                for c, v in zip(columns, tokens, strict=False):
                     d[c].append(v)
 
         return pd.DataFrame(d)
@@ -2289,7 +2292,7 @@ class AseMdLog(TextFile):
         ax_list, fig, plt = get_axarray_fig_plt(None, nrows=len(ynames), ncols=1,
                                                 sharex=False, sharey=False, squeeze=True)
 
-        for yname, ax in zip(ynames, ax_list):
+        for yname, ax in zip(ynames, ax_list, strict=False):
             self.df.plot.hist(column=[yname], ax=ax, grid=True)
 
         return fig
@@ -2418,7 +2421,7 @@ from ase.io import read
 
 # For an MD simulation with timestep of N, and images written every M iterations, our timestep here is N * M.
 timestep = {self.timestep} * {self.loginterval}
-traj = read("{str(traj_file)}", index=":")
+traj = read("{traj_file!s}", index=":")
 dc = DiffusionCoefficient(traj, timestep, atom_indices=None, molecule=False)
 dc.calculate(ignore_n_images=0, number_of_segments=1)
 dc.print_data()
@@ -2427,7 +2430,7 @@ dc.plot(ax=None, show=True)
 
         self.write_script("plot_energies.py", text=f"""\
 from abipy.ml.aseml import AseMdLog
-log = AseMdLog("{str(logfile)}")
+log = AseMdLog("{logfile!s}")
 log.plot(savefig=None)
 """, info="Python script to visualize energies vs time.")
 
@@ -2547,7 +2550,7 @@ class _MlNebBase(MlBase):
         """
         Read results from the JSON file produced by postprocess_images
         """
-        with open(self.workdir / 'neb_data.json', "rt") as fh:
+        with open(self.workdir / "neb_data.json") as fh:
             return json.load(fh)
 
 
@@ -2716,7 +2719,7 @@ class MlNeb(_MlNebBase):
         # Generate several instances of the calculator. It is probably fine to have just one, but just in case...
         calculators = [CalcBuilder(self.nn_name).get_calculator() for i in range(self.nimages)]
         neb = make_ase_neb(initial_atoms, final_atoms, self.nimages, calculators, self.neb_method, self.climb,
-                           method='linear', mic=False)
+                           method="linear", mic=False)
 
         write_vasp_xdatcar(workdir / "INITIAL_NEB_XDATCAR", neb.images,
                            label="XDATCAR with initial NEB images.")
@@ -2730,7 +2733,7 @@ class MlNeb(_MlNebBase):
         optimizer.run(fmax=self.fmax)
 
         # To read the last nimages atoms e.g. 5: read('neb.traj@-5:')
-        images = ase.io.read(f"{str(nebtraj_file)}@-{self.nimages}:")
+        images = ase.io.read(f"{nebtraj_file!s}@-{self.nimages}:")
         write_vasp_xdatcar(workdir / "FINAL_NEB_XDATCAR", images,
                            label="XDATCAR with final NEB images.")
 
@@ -2842,7 +2845,7 @@ class MultiMlNeb(_MlNebBase):
 
             # Read energies from json files and remove first/last point depending on CAMP index..
             data = ml_neb.read_neb_data()
-            enes = data['energies_images']
+            enes = data["energies_images"]
             if i == 0: enes = enes[:-1]
             if i == len(camp_dirs) - 1: enes = enes[1:]
             energies.extend(enes)
@@ -2850,14 +2853,14 @@ class MultiMlNeb(_MlNebBase):
         #print("energies", energies)
         ax, fig, plt = get_ax_fig_plt()
         ax.plot(energies, marker="o")
-        ax.set_xlabel('Path index')
-        ax.set_ylabel('Energy [eV]')
+        ax.set_xlabel("Path index")
+        ax.set_ylabel("Energy [eV]")
         ef = max(energies) - energies[0]
         er = max(energies) - energies[-1]
         de = energies[-1] - energies[0]
-        ax.set_title(r'$E_\mathrm{{f}} \approx$ {:.3f} eV; '
-                     r'$E_\mathrm{{r}} \approx$ {:.3f} eV; '
-                     r'$\Delta E$ = {:.3f} eV'.format(ef, er, de))
+        ax.set_title(rf"$E_\mathrm{{f}} \approx$ {ef:.3f} eV; "
+                     rf"$E_\mathrm{{r}} \approx$ {er:.3f} eV; "
+                     rf"$\Delta E$ = {de:.3f} eV")
         self.savefig("neb_barrier", fig, info="Figure with NEB barrier")
 
         self._finalize()
@@ -2865,7 +2868,7 @@ class MultiMlNeb(_MlNebBase):
 
 def make_ase_neb(initial: Atoms, final: Atoms, nimages: int,
                  calculators: list, neb_method: str, climb: bool,
-                 method='linear', mic=False) -> NEB:
+                 method="linear", mic=False) -> NEB:
     """
     Make a NEB band consisting of nimages. See https://databases.fysik.dtu.dk/ase/ase/neb.html
 
@@ -2891,13 +2894,13 @@ def make_ase_neb(initial: Atoms, final: Atoms, nimages: int,
             raise RuntimeError("Both initial and final points should have constraints!")
         if len(initial.constraints) != len(final.constraints):
             raise RuntimeError("different number of constraints in initial and final")
-        for ci, cf in zip(initial.constraints, final.constraints):
+        for ci, cf in zip(initial.constraints, final.constraints, strict=False):
             if ci.__class__ != cf.__class__:
                 raise RuntimeError(f"Constraints in initial and final points should belong to the same class: {ci}, {cf}")
         apply_constraint = True
 
     # Set calculators
-    for image, calculator in zip(images, calculators): #, strict=True):
+    for image, calculator in zip(images, calculators, strict=False): #, strict=True):
         image.calc = calculator
 
     # Compute energy/forces for the extrema in order to have them in the trajectory.
@@ -3134,7 +3137,7 @@ class MlValidateWithAbinitio(_MlNebBase):
                 forces_hist = hist.r.read_cart_forces(unit="eV ang^-1")
                 # GPa units.
                 stress_cart_tensors, pressures = hist.reader.read_cart_stress_tensors()
-                for istep, (structure, ene, stress, forces) in enumerate(zip(hist.structures, etotals, stress_cart_tensors, forces_hist)):
+                for istep, (structure, ene, stress, forces) in enumerate(zip(hist.structures, etotals, stress_cart_tensors, forces_hist, strict=False)):
                     if istep not in self.traj_range: continue
                     magmoms = None
                     r = AseResults(atoms=get_atoms(structure), ene=float(ene), forces=forces, stress=stress, magmoms=magmoms)
@@ -3248,11 +3251,11 @@ class MolecularDynamics:
         temperature: int = 300,
         timestep: float = 1.0,
         pressure: float = 1.01325 * units.bar,
-        taut: Optional[float] = None,
-        taup: Optional[float] = None,
-        compressibility_au: Optional[float] = None,
-        trajectory: Optional[Union[str, Trajectory]] = None,
-        logfile: Optional[str] = None,
+        taut: float | None = None,
+        taup: float | None = None,
+        compressibility_au: float | None = None,
+        trajectory: str | Trajectory | None = None,
+        logfile: str | None = None,
         loginterval: int = 1,
         append_trajectory: bool = False,
     ):
@@ -3417,7 +3420,7 @@ class MolecularDynamics:
         """
         from ase.md import MDLogger
         stress = self.ensemble not in ("nvt", )
-        self.dyn.attach(MDLogger(self.dyn, self.atoms, '-', header=True, stress=stress,
+        self.dyn.attach(MDLogger(self.dyn, self.atoms, "-", header=True, stress=stress,
                         peratom=True, mode="a"), interval=self.loginterval)
         self.dyn.run(steps)
 
@@ -3845,9 +3848,9 @@ class MlCwfEos(MlBase):
         for element in self.elements:
             for configuration in self.configurations_set_name[set_name]:
                 my_uuid = uuid.uuid4().hex
-                uuid_mapping[f'{element}-{configuration}'] = {
-                    'structure': my_uuid,
-                    'eos_workflow': my_uuid
+                uuid_mapping[f"{element}-{configuration}"] = {
+                    "structure": my_uuid,
+                    "eos_workflow": my_uuid
                 }
 
                 #count = 7
@@ -3856,7 +3859,7 @@ class MlCwfEos(MlBase):
 
                 conf = configuration.replace("X/", "")
                 filepath = self.dirpath_set_name[set_name] / f"{element}-{conf}.xsf"
-                v0_atoms = read(filepath, format='xsf')
+                v0_atoms = read(filepath, format="xsf")
                 v0 = v0_atoms.get_volume()
                 volumes = (v0 * np.array([0.94, 0.96, 0.98, 1.00, 1.02, 1.04, 1.06])).tolist()
                 energies, stresses = [], []
@@ -3876,8 +3879,8 @@ class MlCwfEos(MlBase):
                         energies.append(r.ene)
                         stresses.append(r.stress.tolist())
 
-                    eos_data = list(zip(volumes, energies))
-                    stress_data = list(zip(volumes, stresses))
+                    eos_data = list(zip(volumes, energies, strict=False))
+                    stress_data = list(zip(volumes, stresses, strict=False))
                     # This line disables the visualization of stress
                     stress_data = None
                     #for v, e in eos_data: print(v, e)
@@ -3888,9 +3891,9 @@ class MlCwfEos(MlBase):
                     min_loc = np.array(energies).argmin()
                     if min_loc == 0:
                         # Side is whether the minimum occurs on the left side (small volumes) or right side (large volumes)
-                        completely_off.append({'element': element, 'configuration': configuration, 'side': 'left'})
+                        completely_off.append({"element": element, "configuration": configuration, "side": "left"})
                     elif min_loc == len(energies) - 1:
-                        completely_off.append({'element': element, 'configuration': configuration, 'side': 'right'})
+                        completely_off.append({"element": element, "configuration": configuration, "side": "right"})
 
                     try:
                         min_volume, E0, bulk_modulus_internal, bulk_deriv, residuals = BM(np.array(eos_data))
@@ -3898,62 +3901,62 @@ class MlCwfEos(MlBase):
                         #1 eV/Angstrom3 = 160.21766208 GPa
                         bulk_modulus_ev_ang3 = bulk_modulus_GPa / 160.21766208
                         BM_fit_data = {
-                            'min_volume': min_volume,
-                            'E0': E0,
-                            'bulk_modulus_ev_ang3': bulk_modulus_ev_ang3,
-                            'bulk_deriv': bulk_deriv,
-                            'residuals': residuals[0]
+                            "min_volume": min_volume,
+                            "E0": E0,
+                            "bulk_modulus_ev_ang3": bulk_modulus_ev_ang3,
+                            "bulk_deriv": bulk_deriv,
+                            "residuals": residuals[0]
                         }
                         if residuals[0] > 1.e-3:
                             warning_lines.append(f"WARNING! High fit residuals: {residuals[0]} for {element} {configuration}")
-                    except ValueError as exc:
+                    except ValueError:
                         # If we cannot find a minimum
                         # Note that BM_fit_data was already set to None at the top
                         warning_lines.append(f"WARNING! Unable to fit for {element=} {configuration=}")
                         #print(str(exc))
 
-                except Exception as exc:
+                except Exception:
                     warning_lines.append(f"WARNING! Unable to compute E(V) for {element=} {configuration=}")
                     #print(str(exc))
 
-                all_eos_data[f'{element}-{configuration}'] = eos_data
-                num_atoms_in_sim_cell[f'{element}-{configuration}'] = num_atoms
+                all_eos_data[f"{element}-{configuration}"] = eos_data
+                num_atoms_in_sim_cell[f"{element}-{configuration}"] = num_atoms
                 if stress_data is None:
-                    stress_data = list(zip(volumes, [None for _ in range(len(volumes))]))
-                all_stress_data[f'{element}-{configuration}'] = stress_data
-                all_BM_fit_data[f'{element}-{configuration}'] = BM_fit_data
+                    stress_data = list(zip(volumes, [None for _ in range(len(volumes))], strict=False))
+                all_stress_data[f"{element}-{configuration}"] = stress_data
+                all_BM_fit_data[f"{element}-{configuration}"] = BM_fit_data
 
         data = {
-            'script_version': "0.0.4",
-            'set_name': set_name,
+            "script_version": "0.0.4",
+            "set_name": set_name,
             # Mapping from strings like "He-X2O" to a dictionary with the UUIDs of the structure and the EOS workflow
-            'uuid_mapping': uuid_mapping,
+            "uuid_mapping": uuid_mapping,
             # A list of dictionaries with information on the workchains that did not finish with a 0 exit code
-            'failed_wfs': failed_wfs,
+            "failed_wfs": failed_wfs,
             # A dictionary that indicate for which elements and configurations there are missing outputs,
             # (only for the workchains that still had enough volumes to be considered for a fit)
-            'missing_outputs': all_missing_outputs,
+            "missing_outputs": all_missing_outputs,
             # A list of dictionaries that indicate which elements and configurations have been computed completely
             # off-centre (meaning that the minimum of all computed energies is on either of the two edges, i.e. for
             # the smallest or largest volume)
-            'completely_off': completely_off,
+            "completely_off": completely_off,
             # Dictionary with the EOS data (volumes and energies datapoints). The keys are the same as the `uuid_mapping`.
             # Values can be None.
-            'eos_data': all_eos_data,
-            'stress_data': all_stress_data,
+            "eos_data": all_eos_data,
+            "stress_data": all_stress_data,
             # Birch-Murnaghan fit data. See above for the keys. Can be None.
-            'BM_fit_data': all_BM_fit_data,
-            'num_atoms_in_sim_cell': num_atoms_in_sim_cell
+            "BM_fit_data": all_BM_fit_data,
+            "num_atoms_in_sim_cell": num_atoms_in_sim_cell
         }
 
         # Print some statistics on the results
         warning_lines.append("")
         #warning_lines.append("Counter of states: " + str(Counter(states)))
-        good_cnt = len([eos_data for eos_data in data['eos_data'] if eos_data is not None])
+        good_cnt = len([eos_data for eos_data in data["eos_data"] if eos_data is not None])
         warning_lines.append("")
         warning_lines.append(f"Minimum completely off for {len(completely_off)}/{good_cnt}")
         warning_lines.append("Completely off systems (symbol indicates if the minimum is on the very left or right):")
-        for system in data['completely_off']:
+        for system in data["completely_off"]:
             warning_lines.append(
                 f"- {system['element']} {system['configuration']} "
                 f"({'<' if system['side'] == 'left' else '>'})"
@@ -3963,7 +3966,7 @@ class MlCwfEos(MlBase):
         PLUGIN_NAME = nn_name
 
         fname = self.workdir / f"warnings-{SET_NAME}-{PLUGIN_NAME}.txt"
-        with open(fname, 'w') as fhandle:
+        with open(fname, "w") as fhandle:
             for line in warning_lines:
                 fhandle.write(f"{line}\n")
                 print(line)
@@ -3971,7 +3974,7 @@ class MlCwfEos(MlBase):
 
         # Output results to file
         fname = self.workdir / f"results-{SET_NAME}-{PLUGIN_NAME}.json"
-        with open(fname, 'w') as fhandle:
+        with open(fname, "w") as fhandle:
             json.dump(data, fhandle, indent=2, sort_keys=True)
         print(f"Output results written to: '{fname}'.")
 

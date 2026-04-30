@@ -17,12 +17,11 @@ Please consult <https://docs.abinit.org/topics/longwave/> and
 <https://docs.abinit.org/tests/tutorespfn/Input/tlw_1.abi>
 """
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

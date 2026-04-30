@@ -7,13 +7,13 @@ This script shows how to perform a Raman calculation with
 excitonic effects included with the Bethe-Salpeter formalism.
 """
 
-import sys
 import os
-import numpy as np
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import numpy as np
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -46,7 +46,7 @@ def build_flow(options):
     all_shifts = [[x,y,z] for x in shift1D for y in shift1D for z in shift1D]
     all_shifts = [[0, 0, 0]]
 
-    for structure, eta in zip(displaced_structures, etas):
+    for structure, eta in zip(displaced_structures, etas, strict=False):
         for shift in all_shifts:
             flow.register_work(raman_work(structure, pseudos, shift))
 

@@ -1,10 +1,9 @@
-# coding: utf-8
 """Mock objects for unit tests."""
 from __future__ import annotations
 
-from .nodes import Status
-from .tasks import Task, AbinitTask
 from .flows import Flow
+from .nodes import Status
+from .tasks import AbinitTask, Task
 
 
 def change_task_start(task: Task, mocked_status="Error"):

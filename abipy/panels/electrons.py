@@ -3,11 +3,11 @@ AbiPy panels for electronic properties.
 """
 from __future__ import annotations
 
-import param
 import panel as pn
 import panel.widgets as pnw
+import param
 
-from abipy.panels.core import AbipyParameterized, ActiveBar, Loading, ply, mpl, depends_on_btn_click
+from abipy.panels.core import AbipyParameterized, ActiveBar, Loading, depends_on_btn_click, mpl, ply
 
 
 class CompareEbandsWithMP(AbipyParameterized):
@@ -34,11 +34,11 @@ This app alllows users to upload two files with KS energies.
                                    self.get_alert_data_transfer(),
                                    sizing_mode="stretch_width")
 
-        self.replot_btn = pnw.Button(name="Replot", button_type='primary')
+        self.replot_btn = pnw.Button(name="Replot", button_type="primary")
 
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
-        self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website', bar_color="warning",
+        self.mp_progress = pn.indicators.Progress(name="Fetching data from the MP website", bar_color="warning",
                                                   active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event):
@@ -76,7 +76,7 @@ This app alllows users to upload two files with KS energies.
             #self.main_area.objects = [col]
             self.main_area.objects = col.objects
 
-    @depends_on_btn_click('replot_btn')
+    @depends_on_btn_click("replot_btn")
     def on_replot_btn(self):
         self.update_main()
 

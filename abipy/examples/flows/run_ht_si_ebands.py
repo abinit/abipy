@@ -6,12 +6,11 @@ Band structure flow with factory functions
 This example show how to build a flow to compute the band structure and the DOS of silicon.
 Input files are automatically generated with factory functions designed for automatic calculations.
 """
-import sys
 import os
-import abipy.data as abidata
-import abipy.flowtk as flowtk
+import sys
 
-from abipy import abilab
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

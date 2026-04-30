@@ -1,17 +1,16 @@
-# coding: utf-8
 import os
-import tempfile
 import shutil
-import abipy.data as abidata
+import tempfile
 
 from pymatgen.core.lattice import Lattice
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.core.structure import Structure
-from abipy.flowtk.flows import *
-from abipy.flowtk.works import *
-from abipy.flowtk.tasks import *
 from abipy.core.testing import AbipyTest
-from abipy import abilab
-from abipy import flowtk
+from abipy.flowtk.flows import *
+from abipy.flowtk.tasks import *
+from abipy.flowtk.works import *
 
 
 class FlowUnitTest(AbipyTest):
@@ -187,8 +186,8 @@ class FlowTest(FlowUnitTest):
         assert flow[1][0].find_parent_with_ext("WFK") == task0_w0
         assert flow[1][0].find_parent_with_ext("FOOBAR") is None
         assert not flow[2][0].depends_on(task0_w0)
-        assert not flow[2][0] in task0_w0.get_children()
-        assert not task0_w0 in flow[2][0].get_parents()
+        assert flow[2][0] not in task0_w0.get_children()
+        assert task0_w0 not in flow[2][0].get_parents()
         assert flow[1].pos == 1
         assert flow[1][0].pos == (1, 0)
         assert flow[2][0].pos == (2, 0)
@@ -316,7 +315,6 @@ class FlowTest(FlowUnitTest):
 
         def make_scf_nscf_inputs():
             """Build ands return the input files for the GS-SCF and the GS-NSCF tasks."""
-
             multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
                                         pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
 

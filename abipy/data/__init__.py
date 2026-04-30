@@ -9,9 +9,8 @@ from __future__ import annotations
 import os
 
 from abipy.core.structure import Structure
-from abipy.flowtk import Pseudo, PseudoTable
 from abipy.data.ucells import structure_from_ucell
-
+from abipy.flowtk import Pseudo, PseudoTable
 
 __all__ = [
     "cif_file",
@@ -133,11 +132,10 @@ def ref_file(basename: str) -> str:
     """Returns the absolute path of basename in tests/data directory."""
     if basename in _DATA_NCFILES:
         return _DATA_NCFILES[basename]
-    else:
-        path = os.path.join(dirpath, basename)
-        if not os.path.exists(path):
-            raise ValueError("Cannot find reference file `%s`, at abs_path: `%s`" % (basename, path))
-        return path
+    path = os.path.join(dirpath, basename)
+    if not os.path.exists(path):
+        raise ValueError("Cannot find reference file `%s`, at abs_path: `%s`" % (basename, path))
+    return path
 
 
 def ref_files(*basenames) -> list[str]:
@@ -168,9 +166,10 @@ def get_mp_structures_dict() -> dict[str, Structure]:
         return _MP_STRUCT_DICT
 
     import json
+
     from monty.json import MontyDecoder
 
-    with open(os.path.join(_MPDATA_DIRPATH, 'mp_structures.json'), 'rt') as f:
+    with open(os.path.join(_MPDATA_DIRPATH, "mp_structures.json")) as f:
         _MP_STRUCT_DICT = json.load(f, cls=MontyDecoder)
         # Change Structure class
         for k, v in _MP_STRUCT_DICT.items():
@@ -246,8 +245,8 @@ class FilesGenerator:
         return 0
 
     def _run(self):
-        from subprocess import Popen, PIPE
-        with open(os.path.join(self.workdir, "run.files"), "wt") as fh:
+        from subprocess import PIPE, Popen
+        with open(os.path.join(self.workdir, "run.files"), "w") as fh:
             fh.write(self.make_filesfile_str())
 
         cmd = self.executable + " < run.files > run.log"

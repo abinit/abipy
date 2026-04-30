@@ -3,27 +3,27 @@ Objects used to extract and plot results from output files in text format.
 """
 from __future__ import annotations
 
-import os
 import dataclasses
+import os
+from collections import OrderedDict
+from functools import cached_property
+from io import StringIO
+
 import numpy as np
 import pandas as pd
-
-from collections import OrderedDict
-from io import StringIO
-from typing import Union
-from functools import cached_property
 from monty.string import is_string, marquee
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
-from abipy.core.symmetries import AbinitSpaceGroup
-from abipy.core.structure import Structure, dataframes_from_structures
-from abipy.core.kpoints import has_timrev_from_kptopt
-from abipy.core.mixins import TextFile, AbinitNcFile, NotebookWriter
-from abipy.tools.typing import Figure
+
 from abipy.abio.inputs import GEOVARS
-from abipy.abio.timer import AbinitTimerParser
 from abipy.abio.robots import Robot
-from abipy.flowtk import EventsParser, NetcdfReader, GroundStateScfCycle, D2DEScfCycle
+from abipy.abio.timer import AbinitTimerParser
+from abipy.core.kpoints import has_timrev_from_kptopt
+from abipy.core.mixins import AbinitNcFile, NotebookWriter, TextFile
+from abipy.core.structure import Structure, dataframes_from_structures
+from abipy.core.symmetries import AbinitSpaceGroup
+from abipy.flowtk import D2DEScfCycle, EventsParser, GroundStateScfCycle, NetcdfReader
+from abipy.tools.typing import Figure
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -41,7 +41,6 @@ class BerryPhasePolarization:
     @classmethod
     def from_abo_file(cls, filepath: str) -> BerryPhasePolarization:
         """Build object from the main Abinit output file."""
-
         # We have to parse the following section:
 
         # Polarization in cartesian coordinates (a.u.):
@@ -60,7 +59,7 @@ class BerryPhasePolarization:
           ("Total", total),
         ]
 
-        with open(filepath, "rt") as fh:
+        with open(filepath) as fh:
             for line in fh:
                 if line.startswith(magic_start):
                     break
@@ -121,7 +120,7 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
 
     def plot(self, **kwargs):
         """Empty placeholder."""
-        return None
+        return
 
     #@add_fig_kwargs
     #def plot_mem(self, **kwargs) -> Figure:
@@ -177,7 +176,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         self.overall_cputime, self.overall_walltime = 0.0, 0.0
         self.proc0_cputime, self.proc0_walltime = 0.0, 0.0
 
-        with open(self.filepath, "rt") as fh:
+        with open(self.filepath) as fh:
             for line in fh:
                 if self.version is None and line.startswith(".Version"):
                     self.version = line.split()[1]
@@ -201,7 +200,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         self.header, self.footer, self.datasets = [], [], {}
         where = "in_header"
 
-        with open(self.filepath, "rt") as fh:
+        with open(self.filepath) as fh:
             for line in fh:
                 if "== DATASET" in line:
                     # Save dataset number
@@ -403,7 +402,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             spgid = int(spgd.get("spgroup", 0))
             if "symrel" not in spgd:
                 symrel = np.reshape(np.eye(3, 3, dtype=int), (1, 3, 3))
-                spgd["symrel"] = " ".join((str(i) for i in symrel.flatten()))
+                spgd["symrel"] = " ".join(str(i) for i in symrel.flatten())
             else:
                 symrel = np.reshape(np.array([int(n) for n in spgd["symrel"].split()], dtype=int), (-1, 3, 3))
             nsym = len(symrel)
@@ -446,9 +445,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """List of final |Structure|."""
         if self.run_completed:
             return self._get_structures("footer")
-        else:
-            cprint("Cannot extract final structures from file.\n %s" % self.filepath, "red")
-            return []
+        cprint("Cannot extract final structures from file.\n %s" % self.filepath, "red")
+        return []
 
     @cached_property
     def initial_structure(self) -> Structure:
@@ -475,7 +473,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         return all(self.final_structures[0] == s for s in self.final_structures)
 
     @cached_property
-    def final_structure(self) -> Union[Structure, None]:
+    def final_structure(self) -> Structure | None:
         """
         The |Structure| defined in the output file.
 
@@ -506,7 +504,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         for i in range(2):
             _, tmpname = tempfile.mkstemp(text=True)
             tmp_names.append(tmpname)
-            with open(tmpname, "wt") as fh:
+            with open(tmpname, "w") as fh:
                 if with_params: fh.write(self.header)
                 for idt in dt_lists[i]:
                     fh.write(self.datasets[idt])
@@ -517,14 +515,11 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             diff = HtmlDiff(tmp_names)
             if dryrun:
                 return diff
-            else:
-                return diff.open_browser()
-        else:
-            cmd = "%s %s %s" % (differ, tmp_names[0], tmp_names[1])
-            if dryrun:
-                return cmd
-            else:
-                return os.system(cmd)
+            return diff.open_browser()
+        cmd = "%s %s %s" % (differ, tmp_names[0], tmp_names[1])
+        if dryrun:
+            return cmd
+        return os.system(cmd)
 
     def __str__(self) -> str:
         return self.to_string()
@@ -549,17 +544,16 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 else:
                     # initial == final. Print final structure.
                     app(self.final_structure.to_string(verbose=verbose))
+        # Final structures are not available.
+        elif self.has_same_initial_structures:
+            app(self.initial_structure.to_string(verbose=verbose))
         else:
-            # Final structures are not available.
-            if self.has_same_initial_structures:
-                app(self.initial_structure.to_string(verbose=verbose))
-            else:
-                df = dataframes_from_structures(self.initial_structures,
-                                                index=[i+1 for i in range(self.ndtset)])
-                app("Lattice parameters:")
-                app(str(df.lattice))
-                app("Atomic coordinates:")
-                app(str(df.coords))
+            df = dataframes_from_structures(self.initial_structures,
+                                            index=[i+1 for i in range(self.ndtset)])
+            app("Lattice parameters:")
+            app(str(df.lattice))
+            app("Atomic coordinates:")
+            app(str(df.coords))
 
         # Print dataframe with dimensions.
         df = self.get_dims_spginfo_dataframe(verbose=verbose)
@@ -587,7 +581,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             rows.append(d)
 
         df = pd.DataFrame(rows, columns=list(rows[0].keys()) if rows else None)
-        df = df.set_index('dataset')
+        df = df.set_index("dataset")
         return df
 
     def get_dims_spginfo_dataset(self, verbose=0) -> tuple[dict, dict]:
@@ -664,7 +658,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         from abipy.tools.numtools import grouper
         dims_dataset, spginfo_dataset = {}, {}
         inblock = 0
-        with open(self.filepath, "rt") as fh:
+        with open(self.filepath) as fh:
             for line in fh:
                 line = line.strip()
                 if verbose > 1: print("inblock:", inblock, " at line:", line)
@@ -763,7 +757,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         Args:
             with_timer: True if timer section should be plotted
         """
-        from abipy.tools.plotting import MplExposer #, PanelExposer
+        from abipy.tools.plotting import MplExposer  #, PanelExposer
         with MplExposer(slide_mode=False, slide_timeout=5.0) as e:
             e(self.yield_figs(tight_layout=tight_layout, with_timer=with_timer))
 
@@ -925,7 +919,7 @@ def validate_output_parser(abitests_dir=None, output_files=None) -> int:  # prag
         if not path.endswith(".abo"): return False
         if not path.endswith(".out"): return False
 
-        with open(path, "rt") as fh:
+        with open(path) as fh:
             for i, line in enumerate(fh):
                 if i == 1:
                     return line.rstrip().lower().endswith("abinit")
@@ -1112,7 +1106,7 @@ class OutNcFile(AbinitNcFile):
     def __init__(self, filepath: str):
         super().__init__(filepath)
         self.reader = NetcdfReader(filepath)
-        self._varscache = {k: None for k in self.reader.rootgrp.variables}
+        self._varscache = dict.fromkeys(self.reader.rootgrp.variables)
 
     def __dir__(self):
         """Ipython integration."""
@@ -1133,7 +1127,7 @@ class OutNcFile(AbinitNcFile):
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         return {}
 
     def close(self) -> None:

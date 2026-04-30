@@ -4,36 +4,42 @@ Tools to analyze MD trajectories and compute diffusion coefficients.
 from __future__ import annotations
 
 import dataclasses
-import warnings
 import json
 import os
+import warnings
+from functools import cached_property
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-import pymatgen.core.units as units
-
-from pathlib import Path
-from functools import cached_property
-from scipy.stats import linregress
-from scipy import optimize
 from matplotlib.offsetbox import AnchoredText
 from monty.bisect import find_le
+from monty.collections import AttrDict  #, dict2namedtuple
 from monty.string import list_strings, marquee
-from monty.collections import AttrDict #, dict2namedtuple
 from monty.termcolor import cprint
-from pymatgen.util.string import latexify
-from pymatgen.core.lattice import Lattice
+from pymatgen.core import units
 from pymatgen.core.composition import Composition
+from pymatgen.core.lattice import Lattice
+from pymatgen.util.string import latexify
+from scipy import optimize
+from scipy.stats import linregress
+
 #from abipy.core.mixins import TextFile # , NotebookWriter
 from abipy.core.structure import Structure
-from abipy.tools.typing import Figure, PathLike
-from abipy.tools.serialization import HasPickleIO
-from abipy.tools.iotools import try_files # , file_with_ext_indir
+from abipy.dynamics.cpx import EvpFile, parse_file_with_blocks
 from abipy.tools.context_managers import Timer
-from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, get_color_symbol,
-                                  set_ticks_fontsize, set_logscale, linear_fit_ax)
-from abipy.tools.parallel import pool_nprocs_pmode #, get_max_nprocs
-from abipy.dynamics.cpx import parse_file_with_blocks, EvpFile
-
+from abipy.tools.iotools import try_files  # , file_with_ext_indir
+from abipy.tools.parallel import pool_nprocs_pmode  #, get_max_nprocs
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    get_color_symbol,
+    set_axlims,
+    set_logscale,
+)
+from abipy.tools.serialization import HasPickleIO
+from abipy.tools.typing import Figure, PathLike
 
 __author__ = "Giuliana Materzanini, Tommaso Chiarotti, Matteo Giantomassi"
 
@@ -168,7 +174,7 @@ class MdAnalyzer(HasPickleIO):
         structure, pos_tac, ucmats, traj_len = read_structure_postac_ucmats(directory / "md.traj", step_skip)
 
         # Read metadata from the JSON file.
-        with open(directory / "md.json", "rt") as fh:
+        with open(directory / "md.json") as fh:
             meta = json.load(fh)
 
         temperature = meta["temperature"]
@@ -204,7 +210,7 @@ class MdAnalyzer(HasPickleIO):
             ucmats = ucmats[::step_skip].copy()
             pos_tac = pos_tac[::step_skip].copy()
 
-        raise NotImplementedError()
+        raise NotImplementedError
         #return cls(structure, temperature, times, pos_tac, ucmats, "abinit", evp_df=evp_df)
 
     @classmethod
@@ -285,7 +291,7 @@ class MdAnalyzer(HasPickleIO):
 
         # Use ASE to parse QE input file.
         from ase.io.espresso import read_espresso_in, read_fortran_namelist
-        with open(filepath, "rt") as fh:
+        with open(filepath) as fh:
             atoms = read_espresso_in(fh)
             fh.seek(0)
             sections, card_lines = read_fortran_namelist(fh)
@@ -393,7 +399,7 @@ class MdAnalyzer(HasPickleIO):
                 timestep = evp.times[1] - evp.times[0]
                 loginterval = 1
         else:
-            raise NotImplementedError()
+            raise NotImplementedError
 
         times = (np.arange(0, traj_len) * timestep * loginterval)[::step_skip].copy()
 
@@ -493,7 +499,7 @@ class MdAnalyzer(HasPickleIO):
             for coords in pos_tac:
                 yield Structure(const_lattice, species, coords, coords_are_cartesian=True)
         else:
-            for coords, lattice in zip(pos_tac, self.lattices):
+            for coords, lattice in zip(pos_tac, self.lattices, strict=False):
                 yield Structure(lattice.copy(), species, coords, coords_are_cartesian=True)
 
     #def iter_atoms(self):
@@ -621,7 +627,7 @@ class MdAnalyzer(HasPickleIO):
 
     @property
     def latex_avg_volume(self) -> str:
-        return r"V$_{\mathrm{ave}}$ = " + f"{self.avg_volume:.2f}" + r'$\mathrm{{\AA}^3}$'
+        return r"V$_{\mathrm{ave}}$ = " + f"{self.avg_volume:.2f}" + r"$\mathrm{{\AA}^3}$"
 
     @property
     def avg_volume(self) -> float:
@@ -723,7 +729,7 @@ class MdAnalyzer(HasPickleIO):
         sqdt = self.get_sqdt_symbol(symbol, it0=it0, atom_inds=atom_inds)
         fit = linregress(ts[:it1], sqdt[:it1])
         naive_d = fit.slope * Ang2PsTocm2S / 6
-        label = r"Linear fit: D={:.2E} cm$^2$/s, $r^2$={:.2f}".format(naive_d, fit.rvalue**2)
+        label = rf"Linear fit: D={naive_d:.2E} cm$^2$/s, $r^2$={fit.rvalue**2:.2f}"
         return AttrDict(naive_d=naive_d, ts=ts, fit=fit, label=label)
 
     def get_msdtt0_symbol_tmax(self, symbol: str, tmax: float, atom_inds=None, nprocs=None) -> Msdtt0:
@@ -772,12 +778,12 @@ class MdAnalyzer(HasPickleIO):
                 ax.plot(ts, sd_t, label=f"${symbol}_{{{iatom}}}$")
 
         ax.legend(fontsize=fontsize, loc="upper left")
-        ax.set_xlabel('t (ps)', fontsize=fontsize)
-        ax.set_ylabel(r'square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+        ax.set_xlabel("t (ps)", fontsize=fontsize)
+        ax.set_ylabel(r"square displacement ($\mathrm{{\AA}^2}$)", fontsize=fontsize)
         set_axlims(ax, xlims, "x")
         #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
-        ax.add_artist(AnchoredText(f"{self.latex_formula_n_temp}\n{self.latex_avg_volume}\n" +
+        ax.add_artist(AnchoredText(f"{self.latex_formula_n_temp}\n{self.latex_avg_volume}\n"
                                    "sd(t, $t_0$ =" + str(int(self.times[it0])) + " ps)",
                                    loc="upper right", prop=dict(size=fontsize)))
         return fig
@@ -806,7 +812,7 @@ class MdAnalyzer(HasPickleIO):
 
         for symbol in self._select_symbols(symbols):
             ax.plot(ts, self.get_sqdt_symbol(symbol, it0=it0, atom_inds=atom_inds),
-                    label=symbol + ' msd($t, t_0$ = ' + str(t0) + ' ps)',
+                    label=symbol + " msd($t, t_0$ = " + str(t0) + " ps)",
                     color=self.color_symbol[symbol],
                     )
 
@@ -818,8 +824,8 @@ class MdAnalyzer(HasPickleIO):
                         )
 
         ax.legend(fontsize=fontsize, loc="upper left")
-        ax.set_xlabel('t (ps)', fontsize=fontsize)
-        ax.set_ylabel(r'mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+        ax.set_xlabel("t (ps)", fontsize=fontsize)
+        ax.set_ylabel(r"mean square displacement ($\mathrm{{\AA}^2}$)", fontsize=fontsize)
         set_axlims(ax, xlims, "x")
         #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
@@ -863,8 +869,8 @@ class MdAnalyzer(HasPickleIO):
 
         set_axlims(ax, xlims, "x")
         ax.legend(fontsize=fontsize, loc="upper left")
-        ax.set_xlabel('t (ps)', fontsize=fontsize)
-        ax.set_ylabel(r'average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+        ax.set_xlabel("t (ps)", fontsize=fontsize)
+        ax.set_ylabel(r"average mean square displacement ($\mathrm{{\AA}^2}$)", fontsize=fontsize)
         #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
         ax.add_artist(AnchoredText(f"{self.latex_formula_n_temp}\n{self.latex_avg_volume}",
@@ -921,13 +927,13 @@ class MdAnalyzer(HasPickleIO):
             ax = ax_list[cnt]
             ax.plot(self.times, [lattice.volume for lattice in self.lattices],
                     label="Volume", marker=marker)
-            ax.set_ylabel(r'$V\, (A^3)$')
+            ax.set_ylabel(r"$V\, (A^3)$")
 
         for ix, ax in enumerate(ax_list):
             set_logscale(ax, xy_log)
             set_axlims(ax, xlims, "x")
             if ix == len(ax_list) - 1:
-                ax.set_xlabel('t (ps)', fontsize=fontsize)
+                ax.set_xlabel("t (ps)", fontsize=fontsize)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
         return fig
@@ -979,7 +985,7 @@ class Msdtt0:
         ts = self.times[t_start:] - self.times[t_start]
         fit = linregress(ts, self.msd_t)
         naive_d = fit.slope * Ang2PsTocm2S / 6
-        label = r"Linear fit: D={:.2E} cm$^2$/s, $r^2$={:.2f}".format(naive_d, fit.rvalue**2)
+        label = rf"Linear fit: D={naive_d:.2E} cm$^2$/s, $r^2$={fit.rvalue**2:.2f}"
         return AttrDict(naive_d=naive_d, fit=fit, label=label)
 
     @add_fig_kwargs
@@ -1011,8 +1017,8 @@ class Msdtt0:
 
         set_axlims(ax, xlims, "x")
         ax.legend(fontsize=fontsize, loc="upper left")
-        ax.set_xlabel('t (ps)', fontsize=fontsize)
-        ax.set_ylabel(r'Average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+        ax.set_xlabel("t (ps)", fontsize=fontsize)
+        ax.set_ylabel(r"Average mean square displacement ($\mathrm{{\AA}^2}$)", fontsize=fontsize)
         #set_ticks_fontsize(ax, fontsize)
         set_logscale(ax, xy_log)
         ax.add_artist(AnchoredText(f"{self.mda.latex_formula_n_temp}\n{self.mda.latex_avg_volume}",
@@ -1127,7 +1133,7 @@ class Msdtt0:
         err_conductivity = e2s / kbs * ncarriers / avg_volume / temperature * err_diffusion_coeff * 1.e09
 
         print(f"{ncarriers=} for {symbol=}")
-        print('{:.2E}'.format(best_angcoeff*Ang2PsTocm2S/6, 2))
+        print(f"{best_angcoeff*Ang2PsTocm2S/6:.2E}")
         print(best_angcoeff)
         print(max_angcoeff)
         print(min_angcoeff)
@@ -1152,8 +1158,8 @@ class Msdtt0:
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         im = ax.matshow(self.arr_tt0, cmap=cmap)
         fig.colorbar(im, ax=ax)
-        ax.set_xlabel('t0 (ps)', fontsize=fontsize)
-        ax.set_ylabel('t (ps)', fontsize=fontsize)
+        ax.set_xlabel("t0 (ps)", fontsize=fontsize)
+        ax.set_ylabel("t (ps)", fontsize=fontsize)
         ax.set_title(self.symbol + ": msd($t, t_0$)", fontsize=fontsize)
         return fig
 
@@ -1185,7 +1191,7 @@ class Msdtt0List(list):
         ax_list = ax_list.ravel()
         if len(self) % ncols != 0: ax_list[-1].axis("off")
 
-        for ix, (msdtt0, ax) in enumerate(zip(self, ax_list)):
+        for ix, (msdtt0, ax) in enumerate(zip(self, ax_list, strict=False)):
             msdtt0.plot(ax=ax, fontsize=fontsize, show=False, **kwargs)
 
         return fig
@@ -1225,12 +1231,12 @@ class SigmaBerend:
                 xs, ys, yerr, it, time = self.block_sizes2, self.sigmas2, self.delta_sigmas2, self.it2, self.time2
 
             ax.errorbar(xs, ys,
-                        yerr=yerr, linestyle='-', # linewidth=0.5,
-                        label=r"$\sigma(\mathrm{MSD}($" + '%2.1f' % time +" ps$))$ "+ '\n' +
-                              self.latex_formula + ', '+ 'T = %4.0f' % self.temperature + 'K')
+                        yerr=yerr, linestyle="-", # linewidth=0.5,
+                        label=r"$\sigma(\mathrm{MSD}($" + "%2.1f" % time +" ps$))$ "+ "\n" +
+                              self.latex_formula + ", "+ "T = %4.0f" % self.temperature + "K")
             ax.legend(fontsize=fontsize, loc="lower right")
-            ax.set_xlabel('N. of data in block', fontsize=fontsize)
-            ax.set_ylabel(r'$\sigma$ ($\AA^2$)', fontsize=fontsize)
+            ax.set_xlabel("N. of data in block", fontsize=fontsize)
+            ax.set_ylabel(r"$\sigma$ ($\AA^2$)", fontsize=fontsize)
             ax.grid(True)
 
         fig.suptitle("Variance of correlated data as function of block number")
@@ -1277,17 +1283,17 @@ class DiffusionData(HasPickleIO):
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ts = self.times[:self.msd_t.shape[0]]
 
-        ax.errorbar(ts, self.msd_t, yerr=self.err_msd, color='mediumblue', label=self.symbol)
-        ax.errorbar(self.timeArrScorrelated, self.msdSScorrelated, yerr=self.errMSDScorrelated, linestyle='-')
-        ax.errorbar(ts, self.best_angcoeff * ts + self.quote, linestyle='--')
-        ax.errorbar(ts, self.min_angcoeff * ts + self.quote, linestyle='--')
-        ax.errorbar(ts, self.max_angcoeff * ts + self.quote, linestyle='--')
+        ax.errorbar(ts, self.msd_t, yerr=self.err_msd, color="mediumblue", label=self.symbol)
+        ax.errorbar(self.timeArrScorrelated, self.msdSScorrelated, yerr=self.errMSDScorrelated, linestyle="-")
+        ax.errorbar(ts, self.best_angcoeff * ts + self.quote, linestyle="--")
+        ax.errorbar(ts, self.min_angcoeff * ts + self.quote, linestyle="--")
+        ax.errorbar(ts, self.max_angcoeff * ts + self.quote, linestyle="--")
 
-        ax.set_xlabel('t (ps)', fontsize=fontsize)
-        ax.set_ylabel(r'$\mathrm{MSD}_\mathrm{tr}$ $\mathrm{(\AA}^2\mathrm{)}$', fontsize=fontsize)
+        ax.set_xlabel("t (ps)", fontsize=fontsize)
+        ax.set_ylabel(r"$\mathrm{MSD}_\mathrm{tr}$ $\mathrm{(\AA}^2\mathrm{)}$", fontsize=fontsize)
         ax.add_artist(AnchoredText(
-            'D$_{tr}$ = (' + str('{:.2E}'.format(self.diffusion_coeff)) + '\u00B1' +
-            str('{:.2E}'.format(self.err_diffusion_coeff)) + ') cm$^2$/s',
+            "D$_{tr}$ = (" + str(f"{self.diffusion_coeff:.2E}") + "\u00B1" +
+            str(f"{self.err_diffusion_coeff:.2E}") + ") cm$^2$/s",
             loc="upper left", prop=dict(size=fontsize)))
         ax.legend(fontsize=fontsize, loc="lower right")
         ax.add_artist(AnchoredText(f"{self.latex_formula}\nT = {self.temperature} K",
@@ -1375,7 +1381,7 @@ class DiffusionDataList(list):
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=False, sharey=False, squeeze=False)
 
-        for ix, (data, ax_list) in enumerate(zip(self, ax_mat)):
+        for ix, (data, ax_list) in enumerate(zip(self, ax_mat, strict=False)):
             data.sigma_berend.plot(ax_list=ax_list, show=False)
 
         return fig
@@ -1392,7 +1398,7 @@ class DiffusionDataList(list):
         ax_list = ax_list.ravel()
         if len(self) % ncols != 0: ax_list[-1].axis("off")
 
-        for i, (data, ax) in enumerate(zip(self, ax_list)):
+        for i, (data, ax) in enumerate(zip(self, ax_list, strict=False)):
             data.plot(ax=ax, show=False)
 
         return fig
@@ -1607,17 +1613,17 @@ class MultiMdAnalyzer(HasPickleIO):
         # Plot data.
         for itemp, (mda, temp, color) in enumerate(self.iter_mdatc()):
             it0, ts = mda.get_it_ts(t0)
-            for ix, (ax, symbol) in enumerate(zip(ax_list, symbols)):
+            for ix, (ax, symbol) in enumerate(zip(ax_list, symbols, strict=False)):
                 ax.plot(ts, mda.get_sqdt_symbol(symbol, it0=it0),
                         label=f"T = {temp} K", color=color)
 
         # Decorate axes.
-        for ix, (ax, symbol) in enumerate(zip(ax_list, symbols)):
+        for ix, (ax, symbol) in enumerate(zip(ax_list, symbols, strict=False)):
             ax.set_title(symbol, fontsize=fontsize)
             set_axlims(ax, xlims, "x")
             ax.legend(fontsize=fontsize, loc="upper left")
-            ax.set_xlabel('t (ps)', fontsize=fontsize)
-            ax.set_ylabel(r'average mean square displacement ($\mathrm{{\AA}^2}$)', fontsize=fontsize)
+            ax.set_xlabel("t (ps)", fontsize=fontsize)
+            ax.set_ylabel(r"average mean square displacement ($\mathrm{{\AA}^2}$)", fontsize=fontsize)
             #set_ticks_fontsize(ax, fontsize)
             set_logscale(ax, xy_log)
 
@@ -1675,14 +1681,14 @@ def msd_tt0_from_tac(pos_tac: np.ndarray, size_t: int, nprocs=None) -> np.ndarra
     msd_tt0 = np.empty((size_t, size_t0), dtype=float)
 
     if nprocs == 1:
-        for it in range(0, size_t):
+        for it in range(size_t):
             #for it0 in range(0, size_t0):
             #    msd_tt0[it,it0] = np.mean(np.sum((pos_tac[it+it0,:,:] - pos_tac[it0,:,:])**2, axis=1))
             msd_tt0[it,:] = np.mean(np.sum((pos_tac[it:it+size_t0,:,:] - pos_tac[:size_t0,:,:])**2, axis=2), axis=1)
     else:
         p = pool_nprocs_pmode(nprocs, pmode="threads")
         using_msg = f"Computing MSD(t,t_0) matrix of shape {(size_t, size_t0)} {p.using_msg}"
-        args = [(size_t0, it, pos_tac, msd_tt0) for it in range(0, size_t)]
+        args = [(size_t0, it, pos_tac, msd_tt0) for it in range(size_t)]
         with p.pool_cls(p.nprocs) as pool, Timer(header=using_msg, footer="") as timer:
             pool.starmap(_func, args)
 
@@ -1895,7 +1901,6 @@ class ArrheniusPlotter:
     In the simplest case, one reads the data from external files in CSV format.
 
     Example:
-
         from abipy.dynamics.analyzer import ArrheniusPlotter
 
         key_path = {
@@ -2026,7 +2031,7 @@ class ArrheniusPlotter:
 
             diff = entry.get_diffusion_data(fit_thinvt=fit_thinvt)
             label = r"D$_{\mathrm{%s}}$ (%s): " % (symbol, entry.key)
-            label += r"E$_\mathrm{a}$=" + str('{:.2F}'.format(diff.e_act)) + ' eV'
+            label += r"E$_\mathrm{a}$=" + str(f"{diff.e_act:.2F}") + " eV"
 
             if what == "diffusion":
                 data = diff
@@ -2049,9 +2054,9 @@ class ArrheniusPlotter:
                 # Plot data without errors.
                 lines = ax.plot(data.th_invt, data.log10, label=label, **mpl_style)
 
-            ax.plot(fit_thinvt, data.fit_log10, linestyle='--', color=lines[0].get_color())
+            ax.plot(fit_thinvt, data.fit_log10, linestyle="--", color=lines[0].get_color())
 
-        ax.set_xlabel('1000 / T(K)', fontsize=18)
+        ax.set_xlabel("1000 / T(K)", fontsize=18)
         ylabel = dict(
             diffusion=r"log$_{10}$ (D(cm$^2$/s))",
             sigma=r"log$_{10}$ [$\sigma$(S/cm)]",
@@ -2068,17 +2073,17 @@ class ArrheniusPlotter:
 
         if text:
             ax.text(0.96, 0.85, text,
-                    verticalalignment='bottom', horizontalalignment='right', transform=ax.transAxes,
-                    color='black', fontsize=18, bbox=dict(facecolor='none', edgecolor='grey', pad=10))
+                    verticalalignment="bottom", horizontalalignment="right", transform=ax.transAxes,
+                    color="black", fontsize=18, bbox=dict(facecolor="none", edgecolor="grey", pad=10))
 
         if with_t:
             # Add a twin axes and set its limits so it matches the first.
             ax_t = ax.twiny()
-            ax_t.set_xlabel('T (K)', fontsize=18)
+            ax_t.set_xlabel("T (K)", fontsize=18)
             ax_t.set_xlim(ax.get_xlim())
             # apply a function formatter
             import matplotlib.ticker as mticker
-            formatter = mticker.FuncFormatter(lambda x, pos: '{:.0f}'.format(1000/x))
+            formatter = mticker.FuncFormatter(lambda x, pos: f"{1000/x:.0f}")
             ax_t.xaxis.set_major_formatter(formatter)
 
         return fig

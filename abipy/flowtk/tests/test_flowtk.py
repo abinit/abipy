@@ -1,6 +1,5 @@
 """Tests for flowtk __init__ module"""
-import abipy.flowtk as flowtk
-
+from abipy import flowtk
 from abipy.core.testing import AbipyTest
 
 
@@ -18,7 +17,7 @@ class TestFlowtk(AbipyTest):
             return flowtk.Flow.temporary_flow()
 
         mock = self.get_mock_module()
-        with mock.patch('sys.argv', ["test_main.py", "prof", "--help"]):
+        with mock.patch("sys.argv", ["test_main.py", "prof", "--help"]):
             with self.assertRaises(SystemExit) as cm:
                 main()
         assert cm.exception.code == 0

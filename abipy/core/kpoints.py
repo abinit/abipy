@@ -1,42 +1,42 @@
-# coding: utf-8
 """This module defines objects describing the sampling of the Brillouin Zone."""
 from __future__ import annotations
 
 import collections
 import json
+import logging
 import sys
 import time
-import numpy as np
-
-from itertools import product
-from tabulate import tabulate
 from functools import cached_property
+from itertools import product
+
+import numpy as np
 from monty.collections import AttrDict, dict2namedtuple
-from monty.termcolor import cprint
 from monty.string import marquee
-from abipy.tools.serialization import pmg_serialize
+from monty.termcolor import cprint
+from tabulate import tabulate
+
+from abipy.core.mixins import SlotPickleMixin
 from abipy.iotools import ETSF_Reader
 from abipy.tools.derivatives import finite_diff
 from abipy.tools.numtools import add_periodic_replicas, is_diagonal
-from abipy.core.mixins import SlotPickleMixin
+from abipy.tools.serialization import pmg_serialize
 
-import logging
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "issamek",
-    "wrap_to_ws",
-    "wrap_to_bz",
-    "as_kpoints",
+    "IrredZone",
+    "Kpath",
     "Kpoint",
     "KpointList",
     "KpointStar",
-    "Kpath",
-    "IrredZone",
-    "rc_list",
-    "kmesh_from_mpdivs",
     "Ktables",
+    "as_kpoints",
     "find_points_along_path",
+    "issamek",
+    "kmesh_from_mpdivs",
+    "rc_list",
+    "wrap_to_bz",
+    "wrap_to_ws",
 ]
 
 # Tolerance used to compare k-points.
@@ -287,7 +287,7 @@ def kptopt2str(kptopt, verbose=0):
     """
     if kptopt < 0:
         t = ("Band structure run. Use kptbounds, and ndivk (ndivsm)"
-             "The absolute value of kptopt gives the number of segments of the band structure." +
+             "The absolute value of kptopt gives the number of segments of the band structure."
              "Weights are usually irrelevant with this option")
     else:
         t = {
@@ -300,7 +300,7 @@ def kptopt2str(kptopt, verbose=0):
             3: ("Do not take into account any symmetry",
                 "This is to be used for DFPT at non-zero q (ngkpt or kptrlatt, nshiftk and shiftk)."),
             4: ("Spatial symmetries, NO TR symmetry",
-                "This has to be used for PAW calculations with SOC (pawspnorb/=0) " +
+                "This has to be used for PAW calculations with SOC (pawspnorb/=0) "
                 "from ngkpt or kptrlatt, nshiftk and shiftk."),
         }[kptopt]
 
@@ -321,7 +321,7 @@ def map_kpoints(other_kpoints, other_lattice, ref_lattice, ref_kpoints, ref_symr
         ref_symrecs: [nsym,3,3] arrays with symmetry operations in the `ref_lattice` reciprocal space.
         has_timrev: True if time-reversal can be used.
 
-    Returns
+    Returns:
         (o2r_map, nmissing)
 
         nmissing:
@@ -439,7 +439,7 @@ def kpoints_indices(frac_coords, ngkpt, shift, check_mesh=0) -> np.ndarray:
     if check_mesh:
         print(f"kpoints_indices: Testing whether k-points belong to the {ngkpt=} mesh")
         ierr = 0
-        for kpt, inds in zip(frac_coords, k_indices):
+        for kpt, inds in zip(frac_coords, k_indices, strict=False):
             if check_mesh > 1: print("kpt:", kpt, "inds:", inds)
             same_k = np.array((inds[0]/ngkpt[0], inds[1]/ngkpt[1], inds[2]/ngkpt[2]))
             if not issamek(kpt, same_k):
@@ -581,11 +581,11 @@ def as_kpoints(obj, lattice, weights=None, names=None):
     if ndim == 1:
         return [Kpoint(obj, lattice, weight=weights, name=names)]
 
-    elif ndim == 2:
+    if ndim == 2:
         nk = len(obj)
         if weights is None: weights = nk * [None]
         if names is None: names = nk * [None]
-        return [Kpoint(rc, lattice, weight=w, name=l) for (rc, w, l) in zip(obj, weights, names)]
+        return [Kpoint(rc, lattice, weight=w, name=l) for (rc, w, l) in zip(obj, weights, names, strict=False)]
 
     raise ValueError(f"{ndim=} > 2 is not supported!")
 
@@ -603,10 +603,10 @@ class Kpoint(SlotPickleMixin):
 
     __slots__ = [
         "_frac_coords",
-        "_lattice",
-        "_weight",
-        "_name",
         "_hash",
+        "_lattice",
+        "_name",
+        "_weight",
     ]
 
     @classmethod
@@ -668,8 +668,7 @@ class Kpoint(SlotPickleMixin):
         """Weight of the k-point. 0.0 if the weight is not defined."""
         if self._weight is None:
             return 0.0
-        else:
-            return self._weight
+        return self._weight
 
     def set_weight(self, weight):
         """Set the weight of the k-point."""
@@ -730,12 +729,11 @@ class Kpoint(SlotPickleMixin):
 
         if m == "fract":
             return "[%.3f, %.3f, %.3f]" % tuple(rescale(self.frac_coords))
-        elif m == "cart":
+        if m == "cart":
             return "(%.3f, %.3f, %.3f)" % tuple(rescale(self.cart_coords))
-        elif m == "fracart":
+        if m == "fracart":
             return "%s, %s" % (self.tos(m="fract", scale=scale), self.tos(m="cart", scale=scale))
-        else:
-            raise ValueError(f"Invalid mode: {m}")
+        raise ValueError(f"Invalid mode: {m}")
 
     def __str__(self) -> str:
         return self.to_string()
@@ -766,9 +764,8 @@ class Kpoint(SlotPickleMixin):
         if hasattr(other, "frac_coords"):
             # Comparison between two Kpoint objects
             return issamek(self.frac_coords, other.frac_coords)
-        else:
-            # Kpoint vs iterable (e.g. list)
-            return issamek(self.frac_coords, other)
+        # Kpoint vs iterable (e.g. list)
+        return issamek(self.frac_coords, other)
 
     def __ne__(self, other):
         return not (self == other)
@@ -787,8 +784,7 @@ class Kpoint(SlotPickleMixin):
         """
         if isinstance(obj, cls):
             return obj
-        else:
-            return cls(obj, lattice, weight=None, name=None)
+        return cls(obj, lattice, weight=None, name=None)
 
     @classmethod
     def gamma(cls, lattice, weight=None):
@@ -810,8 +806,7 @@ class Kpoint(SlotPickleMixin):
         """
         if not allow_umklapp:
             return np.all(self.frac_coords == 0.0)
-        else:
-            return issamek(self.frac_coords, [0, 0, 0], atol=atol)
+        return issamek(self.frac_coords, [0, 0, 0], atol=atol)
 
     @cached_property
     def norm(self):
@@ -823,8 +818,7 @@ class Kpoint(SlotPickleMixin):
         cls = self.__class__
         if self.norm > 1e-12:
             return cls(self.frac_coords / self.norm, self.lattice, weight=self.weight)
-        else:
-            return cls.gamma(self.lattice, weight=self.weight)
+        return cls.gamma(self.lattice, weight=self.weight)
 
     def wrap_to_ws(self):
         """Returns a new |Kpoint| in the Wigner-Seitz zone."""
@@ -985,7 +979,7 @@ class KpointList(collections.abc.Sequence):
 
     def __eq__(self, other):
         if other is None or not isinstance(other, KpointList): return False
-        for k1, k2 in zip(self, other):
+        for k1, k2 in zip(self, other, strict=False):
             if k1 != k2: return False
         return True
 
@@ -1200,12 +1194,11 @@ class KpointList(collections.abc.Sequence):
             frac_coords_lines = [self.frac_coords[line] for line in self.lines]
             return plot_brillouin_zone(self.reciprocal_lattice, lines=frac_coords_lines, labels=labels,
                                        ax=ax, fold=fold, **kwargs)
-        else:
-            # Not sure this works, I got points outside of the BZ in a simple with Si and Gamma-centered 8x8x8.
-            # Don't know if it's a bug in matplotlib or plot_brillouin_zone.
-            #print(self.frac_coords)
-            return plot_brillouin_zone(self.reciprocal_lattice, kpoints=self.frac_coords,
-                                       ax=ax, fold=fold, **kwargs)
+        # Not sure this works, I got points outside of the BZ in a simple with Si and Gamma-centered 8x8x8.
+        # Don't know if it's a bug in matplotlib or plot_brillouin_zone.
+        #print(self.frac_coords)
+        return plot_brillouin_zone(self.reciprocal_lattice, kpoints=self.frac_coords,
+                                   ax=ax, fold=fold, **kwargs)
 
     def plotly(self, fig=None, **kwargs):
         """Plot k-points with plotly."""
@@ -1216,9 +1209,8 @@ class KpointList(collections.abc.Sequence):
             frac_coords_lines = [self.frac_coords[line] for line in self.lines]
             return plotly_brillouin_zone(self.reciprocal_lattice, lines=frac_coords_lines, labels=labels,
                                          fig=fig, fold=fold, **kwargs)
-        else:
-            return plotly_brillouin_zone(self.reciprocal_lattice, kpoints=self.frac_coords,
-                                         fig=fig, fold=fold, **kwargs)
+        return plotly_brillouin_zone(self.reciprocal_lattice, kpoints=self.frac_coords,
+                                     fig=fig, fold=fold, **kwargs)
 
     def get_k2kqg_map(self, qpt, atol_kdiff=None):
         """
@@ -1301,7 +1293,7 @@ class Kpath(KpointList):
             line_density: Number of points used to sample the smallest segment of the path
         """
         kfrac_coords = structure.get_kcoords_from_names(knames)
-        vertices_names = list(zip(kfrac_coords, knames))
+        vertices_names = list(zip(kfrac_coords, knames, strict=False))
 
         return cls.from_vertices_and_names(structure, vertices_names, line_density=line_density)
 
@@ -1419,7 +1411,6 @@ class Kpath(KpointList):
         Used for extracting the eigenvalues while looping over the lines.
 
         Example:
-
             for line in kpath.lines:
                 vals_on_line = eigens[spin, line, band]
         """
@@ -1819,16 +1810,14 @@ class KpointsReaderMixin:
 
     def read_kmpdivs(self) -> np.ndarray:
         """Returns the Monkhorst-Pack divisions defining the mesh. None if not found."""
-
         if "monkhorst_pack_folding" in self.rootgrp.variables:
             return self.none_if_masked_array(self.read_value("monkhorst_pack_folding"))
-        else:
-            kptrlatt = self.read_kptrlatt()
-            kmpdivs = np.diag(kptrlatt)
-            for i in range(3):
-                for j in range(3):
-                    if i != j and kptrlatt[i, j] != 0: kmpdivs = None
-            return kmpdivs
+        kptrlatt = self.read_kptrlatt()
+        kmpdivs = np.diag(kptrlatt)
+        for i in range(3):
+            for j in range(3):
+                if i != j and kptrlatt[i, j] != 0: kmpdivs = None
+        return kmpdivs
 
     def read_kptrlatt(self) -> np.ndarray:
         """Returns ABINIT variable kptrlatt. None if not found."""
@@ -1857,7 +1846,6 @@ class Ktables:
         is_shift:
 
     Attributes:
-
         mesh
         is_shift
         ibz:

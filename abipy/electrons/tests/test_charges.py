@@ -1,13 +1,10 @@
-# coding: utf-8
 """Tests for charges."""
-import numpy as np
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
-from abipy.electrons.denpot import DensityNcFile
-from abipy.electrons.charges import HirshfeldCharges, BaderCharges
+from abipy.electrons.charges import BaderCharges, HirshfeldCharges
 
 
 class HirshfeldChargesTest(AbipyTest):

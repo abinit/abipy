@@ -1,7 +1,6 @@
 """
 This script runs all the python scripts located in this directory
 """
-import sys
 import os
 import unittest
 
@@ -23,6 +22,7 @@ class TestPlots(AbipyTest):
             raise unittest.SkipTest("matplotlib is not installed")
 
         import matplotlib.pyplot as plt
+
         from abipy.tools.plotting import set_plotly_default_show
         ply_show = False
         ply_show = True
@@ -37,7 +37,7 @@ class TestPlots(AbipyTest):
             path = os.path.join(plot_dir, fname)
             print("About to execute:", path)
             try:
-                with open(path, "rt") as fh:
+                with open(path) as fh:
                     exec(fh.read(), {}, {})
             except Exception:
                 errors.append("file %s\n %s" % (path, self.straceback()))

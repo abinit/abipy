@@ -1,12 +1,12 @@
 """Panels to interact with the SIGEPH file."""
 from __future__ import annotations
 
-import param
 import panel as pn
 import panel.widgets as pnw
 
 from abipy.eph.sigeph import SigEPhFile
-from .core import PanelWithElectronBands, mpl, ply, depends_on_btn_click #, PanelWithEbandsRobot
+
+from .core import PanelWithElectronBands, depends_on_btn_click, mpl  #, PanelWithEbandsRobot
 
 
 class SigEPhFilePanel(PanelWithElectronBands):
@@ -21,12 +21,12 @@ class SigEPhFilePanel(PanelWithElectronBands):
         self.sigma_kpoint_select = pnw.Select(name="Kpoint in Sigma_nk",
                 options={"[%d]: %s" % (ik, repr(k)): ik for ik, k in enumerate(sigeph.sigma_kpoints)})
 
-        self.plot_qpsolution_btn = pnw.Button(name="Plot Sigma_nk", button_type='primary')
+        self.plot_qpsolution_btn = pnw.Button(name="Plot Sigma_nk", button_type="primary")
         #sigma_band_select  = param.ObjectSelector(default=0, objects=[0], doc="Band index in sigma_nk")
 
     def plot_lws(self) -> pn.GridSpec:
         # Insert results in grid.
-        gspec = pn.GridSpec(sizing_mode='scale_width')
+        gspec = pn.GridSpec(sizing_mode="scale_width")
         for i, rta_type in enumerate(("serta", "mrta")):
             fig = self.sigeph.plot_lws_vs_e0(rta_type=rta_type, **self.mpl_kwargs)
             gspec[i, 0] = fig
@@ -37,7 +37,7 @@ class SigEPhFilePanel(PanelWithElectronBands):
 
     def plot_qpgaps(self) -> pn.GridSpec:
         # Insert results in grid.
-        gspec = pn.GridSpec(sizing_mode='scale_width')
+        gspec = pn.GridSpec(sizing_mode="scale_width")
 
         for i, qp_kpt in enumerate(self.sigeph.sigma_kpoints):
             fig = self.sigeph.plot_qpgaps_t(qp_kpoints=qp_kpt, qp_type="qpz0", **self.mpl_kwargs)
@@ -50,7 +50,7 @@ class SigEPhFilePanel(PanelWithElectronBands):
     def plot_qps_vs_e0(self):
         return mpl(self.sigeph.plot_qps_vs_e0(**self.mpl_kwargs))
 
-    @depends_on_btn_click('plot_qpsolution_btn')
+    @depends_on_btn_click("plot_qpsolution_btn")
     def on_plot_qpsolution_sk(self):
         fig = self.sigeph.plot_qpsolution_sk(self.sigma_spin_select.value, self.sigma_kpoint_select.value,
                                              itemp=0, with_int_aw=True,
@@ -83,4 +83,4 @@ class SigEPhFilePanel(PanelWithElectronBands):
         d["NcFile"] = self.sigeph.get_ncfile_view()
 
         if as_dict: return d
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template"))

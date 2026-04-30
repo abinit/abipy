@@ -1,9 +1,8 @@
-# coding: utf-8
 """Tests for cli_parsers module."""
 import pytest
 
-from abipy.tools import cli_parsers as cli
 from abipy.core.testing import AbipyTest
+from abipy.tools import cli_parsers as cli
 
 
 class TestCliParsers(AbipyTest):

@@ -6,8 +6,8 @@ Spin spirals in iron with GBT
 """
 import os
 import sys
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -56,9 +56,7 @@ rprim
         nline=12,         # To facilitate convergence.
         nstep=100,        # Maximal number of SCF cycles
         toldfe=1e-6,
-        #
         nsym=1,           # Disable spatial symmetries
-        #
         occopt=7,
         tsmear=0.01,
         paral_kgb=0,

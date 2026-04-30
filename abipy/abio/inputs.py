@@ -3,43 +3,45 @@ This module defines objects to facilitate the creation of ABINIT input files.
 """
 from __future__ import annotations
 
-import os
-import collections
-import itertools
-import copy
-import time
 import abc
+import collections
+import copy
+import itertools
 import json
-import tempfile
+import logging
+import os
 import tarfile
+import tempfile
+import time
+from collections import OrderedDict
+from collections.abc import Iterable, Iterator, MutableMapping
+from typing import Any
+
 import numpy as np
 import pandas as pd
-import abipy.abio.input_tags as atags
-
-from collections import OrderedDict
-from collections.abc import MutableMapping
-from typing import Any, Iterable, Iterator
 from monty.collections import dict2namedtuple
-from monty.string import is_string, list_strings
 from monty.json import MontyDecoder, MSONable
+from monty.string import is_string, list_strings
 from monty.termcolor import cprint
 from pymatgen.core.units import Energy
 from pymatgen.symmetry.bandstructure import HighSymmKpath
-from abipy.tools.numtools import is_diagonal
-from abipy.core.structure import Structure
-from abipy.core.mixins import Has_Structure
-from abipy.core.kpoints import has_timrev_from_kptopt
-from abipy.tools.serialization import pmg_serialize
-from abipy.abio.variable import InputVariable
-from abipy.abio.abivars import is_abivar, is_anaddb_var, is_atdep_var, format_string_abivars
-from abipy.abio.abivars_db import get_abinit_variables, get_anaddb_variables, get_atdep_variables
-from abipy.tools import duck
-from abipy.flowtk import PseudoTable, Pseudo, AbinitTask, AnaddbTask, ParalHintsParser, NetcdfReader
-from abipy.flowtk.abiinspect import yaml_read_irred_perts
-from abipy.flowtk import abiobjects as aobj
-from .enums import RUNL, GWR_TASK # WFK_TASK,
 
-import logging
+import abipy.abio.input_tags as atags
+from abipy.abio.abivars import format_string_abivars, is_abivar, is_anaddb_var, is_atdep_var
+from abipy.abio.abivars_db import get_abinit_variables, get_anaddb_variables, get_atdep_variables
+from abipy.abio.variable import InputVariable
+from abipy.core.kpoints import has_timrev_from_kptopt
+from abipy.core.mixins import Has_Structure
+from abipy.core.structure import Structure
+from abipy.flowtk import AbinitTask, AnaddbTask, NetcdfReader, ParalHintsParser, Pseudo, PseudoTable
+from abipy.flowtk import abiobjects as aobj
+from abipy.flowtk.abiinspect import yaml_read_irred_perts
+from abipy.tools import duck
+from abipy.tools.numtools import is_diagonal
+from abipy.tools.serialization import pmg_serialize
+
+from .enums import GWR_TASK, RUNL  # WFK_TASK,
+
 logger = logging.getLogger(__file__)
 
 CHKPARAL = None
@@ -65,10 +67,10 @@ GEOVARS = {
 
 # Variables defining tolerances (used in pop_tolerances)
 _TOLVARS = {
-    'toldfe',
-    'tolvrs',
-    'tolwfr',
-    'tolrff',
+    "toldfe",
+    "tolvrs",
+    "tolwfr",
+    "tolrff",
     "toldff",
     "tolimg",  # ?
     "tolmxf",
@@ -77,10 +79,10 @@ _TOLVARS = {
 
 # Variables defining tolerances for the SCF cycle (mutually exclusive).
 _TOLVARS_SCF = {
-    'toldfe',
-    'tolvrs',
-    'tolwfr',
-    'tolrff',
+    "toldfe",
+    "tolvrs",
+    "tolwfr",
+    "tolrff",
     "toldff",
 }
 
@@ -156,7 +158,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         dirname = os.path.dirname(os.path.abspath(filepath))
         if not os.path.exists(dirname): os.makedirs(dirname)
 
-        with open(filepath, "wt") as fh:
+        with open(filepath, "w") as fh:
             fh.write(self.to_string(files_file=files_file))
 
     def make_targz(self, tarname: str = "input.tar.gz", **kwargs) -> str:
@@ -169,7 +171,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         os.chdir(tmpdir)
 
         name = os.path.join(tmpdir, tarname)
-        with tarfile.open(name=name, mode='w:gz', **kwargs) as tar:
+        with tarfile.open(name=name, mode="w:gz", **kwargs) as tar:
             filepath = "run.abi"
             self.write(filepath=filepath)
             tar.add(filepath)
@@ -182,7 +184,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
                 #print("Adding dir:", dirname)
                 os.mkdir(dirname)
                 p = os.path.join(dirname, "__empty__")
-                with open(p, "wt") as fh:
+                with open(p, "w") as fh:
                     fh.write("Empty placeholder")
                 tar.add(p)
 
@@ -467,7 +469,7 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         ord_pseudos = []
         for z in znucl:
             for p in self.pseudos:
-                if p.Z == z:
+                if z == p.Z:
                     ord_pseudos.append(p)
                     break
             else:
@@ -600,20 +602,20 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         for pseudo_dict in d["pseudos"]:
             pseudo_dict["filepath"] = decode_pseudopath(pseudo_dict["filepath"])
 
-        pseudos = [Pseudo.from_file(p['filepath']) for p in d['pseudos']]
+        pseudos = [Pseudo.from_file(p["filepath"]) for p in d["pseudos"]]
         dec = MontyDecoder()
 
         return cls(d["structure"], pseudos, decorators=dec.process_decoded(d["decorators"]),
                    comment=d["comment"], abi_args=d["abi_args"], tags=d["tags"],
-                   enforce_znucl=d.get("enforce_znucl", None),
-                   enforce_typat=d.get("enforce_typat", None),
+                   enforce_znucl=d.get("enforce_znucl"),
+                   enforce_typat=d.get("enforce_typat"),
                    )
 
     def __setitem__(self, key: str, value: Any):
         """Implements: self[key] = value"""
-        if key in _TOLVARS_SCF and hasattr(self, '_vars') and any(t in self._vars and t != key for t in _TOLVARS_SCF):
-            logger.info("Replacing previously set tolerance variable: {0}."
-                        .format(self.remove_vars(_TOLVARS_SCF, strict=False)))
+        if key in _TOLVARS_SCF and hasattr(self, "_vars") and any(t in self._vars and t != key for t in _TOLVARS_SCF):
+            logger.info(f"Replacing previously set tolerance variable: {self.remove_vars(_TOLVARS_SCF, strict=False)}."
+                        )
 
         return super().__setitem__(key, value)
 
@@ -917,7 +919,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         sorted_paths = []
         for z in znucl:
             for p in self.pseudos:
-                if p.Z == z:
+                if z == p.Z:
                     sorted_paths.append(p.filepath)
                     break
             else:
@@ -1018,7 +1020,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         for pseudo in self.pseudos:
             hint = pseudo.hint_for_accuracy(accuracy)
             if hint.ecut <= 0:
-                raise self.Error(f"Pseudo {repr(pseudo)} does not provide hints for ecut!")
+                raise self.Error(f"Pseudo {pseudo!r} does not provide hints for ecut!")
             ecut = max(ecut, hint.ecut)
             if pseudo.ispaw:
                 has_paw += 1
@@ -1180,9 +1182,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             if kptbounds is None: kptbounds = self.structure.calc_kptbounds()
             kptbounds = np.reshape(kptbounds, (-1, 3))
             return self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds) - 1), ndivsm=ndivsm, iscf=iscf)
-        else:
-            kpts = kpoints_from_line_density(self.structure, abs(ndivsm))
-            return self.set_vars(kptopt=0, nkpt=len(kpts), kpt=kpts, iscf=iscf)
+        kpts = kpoints_from_line_density(self.structure, abs(ndivsm))
+        return self.set_vars(kptopt=0, nkpt=len(kpts), kpt=kpts, iscf=iscf)
 
     def set_qpath(self, ndivsm: int, qptbounds=None) -> dict:
         """
@@ -1268,9 +1269,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         spinat = []
         for site in self.structure:
-            if hasattr(site, 'magmom'):
+            if hasattr(site, "magmom"):
                 spinat.append((0., 0., site.magmom))
-            elif hasattr(site.specie, 'spin') and site.specie.spin:
+            elif hasattr(site.specie, "spin") and site.specie.spin:
                 spinat.append((0., 0., site.specie.spin))
             elif str(site.specie) in magmom_mp_conf:
                 spinat.append((0., 0., magmom_mp_conf.get(str(site.specie))))
@@ -1525,9 +1526,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         values = itertools.product(*values)
 
         inps = []
-        for names, values in zip(varnames, values):
+        for names, values in zip(varnames, values, strict=False):
             inp = self.deepcopy()
-            inp.set_vars(**{k: v for k, v in zip(names, values)})
+            inp.set_vars(**{k: v for k, v in zip(names, values, strict=False)})
             inp.enforce_znucl_and_typat(self.enforce_znucl, self.enforce_typat)
             inps.append(inp)
 
@@ -1573,11 +1574,11 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         if scdims is None:
             # Assume same value of natom and typat
             if len(self.structure) != len(new_structure):
-                raise ValueError("Structures must have same value of natom." +
-                                 f"new_structure has {len(new_structure)} atoms." +
+                raise ValueError("Structures must have same value of natom."
+                                 f"new_structure has {len(new_structure)} atoms."
                                  f"input.structure has {len(self.structure)}")
             errors = []
-            for i, (site1, site2) in enumerate(zip(self.structure, new_structure)):
+            for i, (site1, site2) in enumerate(zip(self.structure, new_structure, strict=False)):
                 if site1.specie.symbol != site2.specie.symbol:
                     errors.append("[%d] %s != %s" % (i, site1.specie.symbol, site2.specie.symbol))
             if errors:
@@ -1713,14 +1714,13 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             for val in values:
                 new_inputs.append(self.new_with_vars(**{varname: val}))
             return new_inputs
-        else:
-            #varname_values = [
-            #    ("nband", [8, 12]),
-            #    ("gwr_ntau", [6, 8]),
-            #]
-            items = [t[0] for t in varname_values]
-            items.extend(t[1] for t in varname_values)
-            return self.product(*items)
+        #varname_values = [
+        #    ("nband", [8, 12]),
+        #    ("gwr_ntau", [6, 8]),
+        #]
+        items = [t[0] for t in varname_values]
+        items.extend(t[1] for t in varname_values)
+        return self.product(*items)
 
     def pop_tolerances(self) -> dict:
         """
@@ -1751,9 +1751,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         """
         tolvar, value = None, None
         for t in _TOLVARS_SCF:
-            if t in self and self[t]:
+            if self.get(t):
                 if tolvar:
-                    raise self.Error('More than one tolerance set.')
+                    raise self.Error("More than one tolerance set.")
                 tolvar = t
                 value = self[t]
 
@@ -1987,7 +1987,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             kptopt = 2
 
         # Note: this will work for phonons, but not for the other types of perturbations.
-        for pert, ph_input in zip(perts, ph_inputs):
+        for pert, ph_input in zip(perts, ph_inputs, strict=False):
             rfdir = 3 * [0]
             rfdir[pert.idir - 1] = 1
 
@@ -2039,7 +2039,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         inp.pop_irdvars()
 
         rfdir = 3 * [0]
-        rfdir[perturbation['idir'] - 1] = 1
+        rfdir[perturbation["idir"] - 1] = 1
 
         inp.set_vars(
             rfelfd=2,             # Activate the calculation of the d/dk perturbation
@@ -2099,7 +2099,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         ddk_inputs = MultiDataset.replicate_input(input=self, ndtset=len(ddk_rfdirs))
 
         # See tutorespfn/Input/trf1_5.in
-        for rfdir, ddk_input in zip(ddk_rfdirs, ddk_inputs):
+        for rfdir, ddk_input in zip(ddk_rfdirs, ddk_inputs, strict=False):
             ddk_input.set_vars(
                 rfelfd=2,             # Activate the calculation of the d/dk perturbation
                                       # only the derivative of ground-state wavefunctions with respect to k
@@ -2181,7 +2181,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         inp.pop_irdvars()
 
         rfdir = 3 * [0]
-        rfdir[perturbation['idir'] - 1] = 1
+        rfdir[perturbation["idir"] - 1] = 1
 
         inp.set_vars(
             rfdir=rfdir,  # Direction of the dde perturbation.
@@ -2231,7 +2231,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
 
             # See tutorespfn/Input/trf1_5.in dataset 3
-            for pert, inp in zip(perts, multi):
+            for pert, inp in zip(perts, multi, strict=False):
                 rfdir = 3 * [0]
                 rfdir[pert.idir - 1] = 1
 
@@ -2248,7 +2248,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             multi = MultiDataset.replicate_input(input=self, ndtset=len(dde_rfdirs))
 
             # See tutorespfn/Input/tnlo_2.in dataset 4
-            for rfdir, inp in zip(dde_rfdirs, multi):
+            for rfdir, inp in zip(dde_rfdirs, multi, strict=False):
                 inp.set_vars(
                     rfdir=rfdir,  # Direction of the per ddk.
                     prepanl=1,    # Prepare Non-linear RF calculations.
@@ -2284,10 +2284,10 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         # non-linear calculations do not accept more bands than those in the valence. Set the correct values.
         # Do this as last, so not to interfere with the the generation of the other steps.
         nval = inp.structure.num_valence_electrons(inp.pseudos)
-        nval -= inp['charge']
+        nval -= inp["charge"]
         nband = int(round(nval / 2))
         inp.set_vars(nband=nband)
-        inp.pop('nbdbuf', None)
+        inp.pop("nbdbuf", None)
 
         if ixc is not None:
             inp.set_vars(ixc=int(ixc))
@@ -2296,27 +2296,27 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         na = len(self.structure)
 
         rfdir1 = 3 * [0]
-        rfdir1[perturbation['i1dir'] - 1] = 1
+        rfdir1[perturbation["i1dir"] - 1] = 1
         rfdir2 = 3 * [0]
-        rfdir2[perturbation['i2dir'] - 1] = 1
+        rfdir2[perturbation["i2dir"] - 1] = 1
         rfdir3 = 3 * [0]
-        rfdir3[perturbation['i3dir'] - 1] = 1
+        rfdir3[perturbation["i3dir"] - 1] = 1
 
         # atpol if needed. Since there can be only one spatial perturbation
-        m = min(perturbation['i1pert'], perturbation['i2pert'], perturbation['i3pert'])
+        m = min(perturbation["i1pert"], perturbation["i2pert"], perturbation["i3pert"])
         atpol = [m, m] if m <= na else None
 
         inp.set_vars(
             # Activate the calculation of the electric field perturbation
-            d3e_pert1_elfd=1 if perturbation['i1pert'] == na + 2 else 0,
-            d3e_pert2_elfd=1 if perturbation['i2pert'] == na + 2 else 0,
-            d3e_pert3_elfd=1 if perturbation['i3pert'] == na + 2 else 0,
+            d3e_pert1_elfd=1 if perturbation["i1pert"] == na + 2 else 0,
+            d3e_pert2_elfd=1 if perturbation["i2pert"] == na + 2 else 0,
+            d3e_pert3_elfd=1 if perturbation["i3pert"] == na + 2 else 0,
             d3e_pert1_dir=rfdir1,  # Direction of the dte perturbation.
             d3e_pert2_dir=rfdir2,
             d3e_pert3_dir=rfdir3,
-            d3e_pert1_phon=1 if perturbation['i1pert'] <= na else 0,
-            d3e_pert2_phon=1 if perturbation['i2pert'] <= na else 0,
-            d3e_pert3_phon=1 if perturbation['i3pert'] <= na else 0,
+            d3e_pert1_phon=1 if perturbation["i1pert"] <= na else 0,
+            d3e_pert2_phon=1 if perturbation["i2pert"] <= na else 0,
+            d3e_pert3_phon=1 if perturbation["i3pert"] <= na else 0,
             d3e_pert1_atpol=atpol,
             nqpt=1,         # One wavevector is to be considered
             qpt=(0, 0, 0),  # q-wavevector.
@@ -2364,7 +2364,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         # See tutorespfn/Input/tnlo_2.in
         na = len(self.structure)
 
-        for pert, inp in zip(perts, multi):
+        for pert, inp in zip(perts, multi, strict=False):
             rfdir1 = 3 * [0]
             rfdir1[pert.i1dir - 1] = 1
             rfdir2 = 3 * [0]
@@ -2429,7 +2429,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         if scf_kptopt in (1, 2): kptopt = 2
 
         # See tutorespfn/Input/trf1_5.in dataset 3
-        for pert, inp in zip(perts, multi):
+        for pert, inp in zip(perts, multi, strict=False):
             rfdir = 3 * [0]
             rfdir[pert.idir - 1] = 1
 
@@ -2520,7 +2520,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
 
-        for pert, inp in zip(perts, multi):
+        for pert, inp in zip(perts, multi, strict=False):
             rfdir = 3 * [0]
             rfdir[pert.idir - 1] = 1
 
@@ -2827,9 +2827,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             with task.get_output_file() as out:
                 if not retdict:
                     return out.initial_structure
-                else:
-                    dims_dataset, spginfo_dataset = out.get_dims_spginfo_dataset(verbose=verbose)
-                    return spginfo_dataset[1]
+                dims_dataset, spginfo_dataset = out.get_dims_spginfo_dataset(verbose=verbose)
+                return spginfo_dataset[1]
         except Exception as exc:
             self._handle_task_exception(task, exc)
 
@@ -3021,7 +3020,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         if ngkpt is not None: inp["ngkpt"] = ngkpt
         if shiftk is not None:
             shiftk = np.reshape(shiftk, (-1, 3))
-            inp.set_vars(shiftk=shiftk, nshiftk=len(inp['shiftk']))
+            inp.set_vars(shiftk=shiftk, nshiftk=len(inp["shiftk"]))
 
         inp.set_vars(
             nqpt=1,       # One wavevector is to be considered
@@ -3041,7 +3040,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         # Parse the file to get the perturbations.
         try:
             return yaml_read_irred_perts(task.log_file.path)
-        except Exception as exc:
+        except Exception:
             # Sometimes the previous call raises: Cannot find next YAML document in /tmp/tmpskvdr_bo/run.log
             # perhaps because the log file is still being written (?) so let's wait a bit.
             # On some machines, we found that the log file is truncated when MPI_ABORT is called and mpirun is used
@@ -3074,7 +3073,6 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             List of dictionaries with the Abinit variables defining the irreducible perturbations.
 
         Example:
-
                 [{'idir': 1, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]},
                  {'idir': 2, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]}]
         """
@@ -3106,7 +3104,6 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             List of dictionaries with the Abinit variables defining the irreducible perturbation
 
         Example:
-
             [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
              {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
 
@@ -3137,7 +3134,6 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             List of dictionaries with the Abinit variables defining the irreducible perturbation
 
         Example:
-
             [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
              {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
         """
@@ -3180,7 +3176,6 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             List of dictionaries with the Abinit variables defining the irreducible perturbation
 
         Example:
-
             [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
              {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
         """
@@ -3194,11 +3189,11 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                              )
 
         if phonon_pert:
-            strainperts_vars['rfphon'] = 1                          # No phonon-type perturbation
-            strainperts_vars['rfatpol'] = (1, len(self.structure))  # Perturbation of all atoms
+            strainperts_vars["rfphon"] = 1                          # No phonon-type perturbation
+            strainperts_vars["rfatpol"] = (1, len(self.structure))  # Perturbation of all atoms
 
         if efield_pert:
-            strainperts_vars['rfelfd'] = 3                          # Activate E-field. Requires DDK files.
+            strainperts_vars["rfelfd"] = 3                          # Activate E-field. Requires DDK files.
 
         perts = self._abiget_irred_perts(strainperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk,
                                          kptopt=kptopt, workdir=workdir, manager=manager)
@@ -3215,9 +3210,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         Useful in case of a restart when we need to remove the parallel variables
         before rerunning with autoparal.
         """
-        parvars = ['npkpt', 'npfft', 'npband', 'npspinor', 'npimage']
+        parvars = ["npkpt", "npfft", "npband", "npspinor", "npimage"]
         if all:
-            parvars.append('gwpara')
+            parvars.append("gwpara")
         popped = {}
         for var in parvars:
             popped[var] = self.pop(var, None)
@@ -3338,14 +3333,14 @@ class MultiDataset:
     def from_inputs(cls, inputs: list[AbinitInput] | MultiDataset) -> MultiDataset:
         """Build a |MultiDataset| from a list of |AbinitInput| objects."""
         for inp in inputs:
-            if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, inp.pseudos)):
+            if any(p1 != p2 for p1, p2 in zip(inputs[0].pseudos, inp.pseudos, strict=False)):
                 raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
 
         # Build MultiDataset from input structures and pseudos and add inputs.
         multi = cls(structure=[inp.structure for inp in inputs], pseudos=inputs[0].pseudos, ndtset=len(inputs))
 
         # Add variables, decorators, tags and propagate enforce_znucl and enforce_typat (if any).
-        for inp, new_inp in zip(inputs, multi):
+        for inp, new_inp in zip(inputs, multi, strict=False):
             new_inp.set_vars(**inp)
             new_inp._decorators = inp.decorators
             if inp.comment:
@@ -3481,17 +3476,16 @@ class MultiDataset:
         return on_all
 
     def __add__(self, other: AbinitInput | MultiDataset) -> MultiDataset:
-        """self + other"""
+        """Self + other"""
         if isinstance(other, AbinitInput):
             new_mds = MultiDataset.from_inputs(self)
             new_mds.append(other)
             return new_mds
-        elif isinstance(other, MultiDataset):
+        if isinstance(other, MultiDataset):
             new_mds = MultiDataset.from_inputs(self)
             new_mds.extend(other)
             return new_mds
-        else:
-            raise NotImplementedError("Operation not supported")
+        raise NotImplementedError("Operation not supported")
 
     def __radd__(self, other: AbinitInput | MultiDataset) -> MultiDataset:
         if isinstance(other, AbinitInput):
@@ -3506,7 +3500,7 @@ class MultiDataset:
     def append(self, abinit_input: AbinitInput) -> None:
         """Add a |AbinitInput| to the list."""
         assert isinstance(abinit_input, AbinitInput)
-        if any(p1 != p2 for p1, p2 in zip(abinit_input.pseudos, abinit_input.pseudos)):
+        if any(p1 != p2 for p1, p2 in zip(abinit_input.pseudos, abinit_input.pseudos, strict=False)):
             raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
         self._inputs.append(abinit_input)
 
@@ -3514,7 +3508,7 @@ class MultiDataset:
         """Extends self with a list of |AbinitInput| objects."""
         assert all(isinstance(inp, AbinitInput) for inp in abinit_inputs)
         for inp in abinit_inputs:
-            if any(p1 != p2 for p1, p2 in zip(self[0].pseudos, inp.pseudos)):
+            if any(p1 != p2 for p1, p2 in zip(self[0].pseudos, inp.pseudos, strict=False)):
                 raise ValueError("Pseudos must be consistent when from_inputs is invoked.")
         self._inputs.extend(abinit_inputs)
 
@@ -3620,13 +3614,12 @@ class MultiDataset:
 
             return "\n".join(lines) if mode == "text" else "\n".join(lines).replace("\n", "<br>")
 
-        else:
-            # single datasets ==> don't append the dataset index to the variables.
-            # this trick is needed because Abinit complains if ndtset is not specified
-            # and we have variables that end with the dataset index e.g. acell1
-            # We don't want to specify ndtset here since abinit will start to add DS# to
-            # the input and output files thus complicating the algorithms we have to use to locate the files.
-            return self[0].to_string(mode=mode, with_pseudos=with_pseudos)
+        # single datasets ==> don't append the dataset index to the variables.
+        # this trick is needed because Abinit complains if ndtset is not specified
+        # and we have variables that end with the dataset index e.g. acell1
+        # We don't want to specify ndtset here since abinit will start to add DS# to
+        # the input and output files thus complicating the algorithms we have to use to locate the files.
+        return self[0].to_string(mode=mode, with_pseudos=with_pseudos)
 
     def _repr_html_(self) -> str:
         """Integration with jupyter_ notebooks."""
@@ -3725,7 +3718,7 @@ class MultiDataset:
                 p = root + "DS%d" % i + ext
                 inp.write(filepath=p)
         else:
-            with open(filepath, "wt") as fh:
+            with open(filepath, "w") as fh:
                 fh.write(str(self))
 
     def make_targz(self, tarname: str = "input.tar.gz", **kwargs) -> str:
@@ -3738,7 +3731,7 @@ class MultiDataset:
         os.chdir(tmpdir)
 
         name = os.path.join(tmpdir, tarname)
-        with tarfile.open(name=name, mode='w:gz', **kwargs) as tar:
+        with tarfile.open(name=name, mode="w:gz", **kwargs) as tar:
             filepath = "run.abi"
             self.write(filepath=filepath, split=False)
             tar.add(filepath)
@@ -3747,7 +3740,7 @@ class MultiDataset:
                 #print("Adding dir:", dirname)
                 os.mkdir(dirname)
                 p = os.path.join(dirname, "__empty__")
-                with open(p, "wt") as fh:
+                with open(p, "w") as fh:
                     fh.write("Empty placeholder")
                 tar.add(p)
 
@@ -3805,7 +3798,6 @@ class AnaddbInput(AbiAbstractInput, MSONable, Has_Structure):
                  anaddb_args=None,
                  anaddb_kwargs=None,
                  spell_check: bool = True):
-
         """
         Args:
             structure: |Structure| object
@@ -4040,12 +4032,12 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if line_density:
             qph1l = kpoints_from_line_density(structure, line_density)
             # Set new variables
-            new['qph1l'] = [q.tolist()+[1] for q in qph1l]
-            new['nph1l'] = len(qph1l)
+            new["qph1l"] = [q.tolist()+[1] for q in qph1l]
+            new["nph1l"] = len(qph1l)
             qptbounds = structure.calc_kptbounds()
         else:
             new.set_qpath(ndivsm, qptbounds=qptbounds)
-            qptbounds = new['qpath']
+            qptbounds = new["qpath"]
 
         q1shft = np.reshape(q1shft, (-1, 3))
         new.set_vars(
@@ -4247,8 +4239,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         anaddb_input.set_vars(dieflag=dieflag, elaflag=elaflag, piezoflag=piezoflag)
 
-        if dieflag == 3 and 'nph2l' not in anaddb_input:
-            anaddb_input['nph2l'] = 1
+        if dieflag == 3 and "nph2l" not in anaddb_input:
+            anaddb_input["nph2l"] = 1
 
         if elaflag > 1:
             anaddb_input["instrflag"] = 1
@@ -4430,41 +4422,41 @@ class OpticInput(AbiAbstractInput, MSONable):
         #OpticVar(name="wfkfile",   default=None, help="Name of the ground-state wavefunction file"),
 
         # PARAMETERS section:
-        OpticVar(name="broadening", default=0.01, group='PARAMETERS',
+        OpticVar(name="broadening", default=0.01, group="PARAMETERS",
                  help="Value of the smearing factor, in Hartree"),
-        OpticVar(name="domega", default=0.010, group='PARAMETERS',
+        OpticVar(name="domega", default=0.010, group="PARAMETERS",
                  help="Frequency step (Ha)"),
-        OpticVar(name="maxomega", default=1, group='PARAMETERS',
+        OpticVar(name="maxomega", default=1, group="PARAMETERS",
                  help="Maximum frequency (Ha)"),
-        OpticVar(name="scissor", default=0.000, group='PARAMETERS',
+        OpticVar(name="scissor", default=0.000, group="PARAMETERS",
                  help="Scissor shift if needed, in Hartree"),
-        OpticVar(name="tolerance", default=0.001, group='PARAMETERS',
+        OpticVar(name="tolerance", default=0.001, group="PARAMETERS",
                  help="Tolerance on closeness of singularities (in Hartree)"),
-        OpticVar(name="autoparal", default=0, group='PARAMETERS',
+        OpticVar(name="autoparal", default=0, group="PARAMETERS",
                  help="Autoparal option"),
-        OpticVar(name="max_ncpus", default=0, group='PARAMETERS',
+        OpticVar(name="max_ncpus", default=0, group="PARAMETERS",
                  help="Max number of CPUs considered in autoparal mode"),
 
         # COMPUTATIONS section:
-        OpticVar(name="num_lin_comp", default=0, group='COMPUTATIONS',
+        OpticVar(name="num_lin_comp", default=0, group="COMPUTATIONS",
                  help="Number of components of linear optic tensor to be computed"),
-        OpticVar(name="lin_comp", default=0, group='COMPUTATIONS',
+        OpticVar(name="lin_comp", default=0, group="COMPUTATIONS",
                  help="Linear coefficients to be computed (x=1, y=2, z=3)"),
-        OpticVar(name="num_nonlin_comp", default=0, group='COMPUTATIONS',
+        OpticVar(name="num_nonlin_comp", default=0, group="COMPUTATIONS",
                  help="Number of components of nonlinear optic tensor to be computed"),
-        OpticVar(name="nonlin_comp", default=0, group='COMPUTATIONS',
+        OpticVar(name="nonlin_comp", default=0, group="COMPUTATIONS",
                  help="Non-linear coefficients to be computed"),
-        OpticVar(name="num_linel_comp", default=0, group='COMPUTATIONS',
+        OpticVar(name="num_linel_comp", default=0, group="COMPUTATIONS",
                  help="Number of components of linear electro-optic tensor to be computed"),
-        OpticVar(name="linel_comp", default=0, group='COMPUTATIONS',
+        OpticVar(name="linel_comp", default=0, group="COMPUTATIONS",
                  help="Linear electro-optic coefficients to be computed"),
-        OpticVar(name="num_nonlin2_comp", default=0, group='COMPUTATIONS',
+        OpticVar(name="num_nonlin2_comp", default=0, group="COMPUTATIONS",
                  help="Number of components of nonlinear optic tensor v2 to be computed"),
-        OpticVar(name="nonlin2_comp", default=0, group='COMPUTATIONS',
+        OpticVar(name="nonlin2_comp", default=0, group="COMPUTATIONS",
                  help="Non-linear coefficients v2 to be computed"),
     ]
 
-    _GROUPS = ['PARAMETERS','COMPUTATIONS']
+    _GROUPS = ["PARAMETERS","COMPUTATIONS"]
 
     # Variable names supported
     _VARNAMES = [v.name for v in _VARIABLES]
@@ -4658,14 +4650,14 @@ class Cut3DInput(MSONable):
         """Returns a string with the input."""
         lines = [self.infile_path]
         lines.extend(self.options)
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     def write(self, filepath: str) -> None:
         """Writes the input to a file."""
         if self.infile_path is None or self.options is None:
             raise ValueError("Infile path and options should be provided")
 
-        with open(filepath, 'wt') as f:
+        with open(filepath, "w") as f:
             f.write(self.to_string())
 
     @classmethod
@@ -4683,7 +4675,7 @@ class Cut3DInput(MSONable):
         """
         options = [str(out_option)]  # Option to convert a _DEN file
         options.append(output_filepath)  # Name of the output file
-        options.append('0')  # No more analysis
+        options.append("0")  # No more analysis
         return cls(infile_path=infile_path, output_filepath=output_filepath, options=options)
 
     @classmethod
@@ -4756,14 +4748,14 @@ class Cut3DInput(MSONable):
             shift: a list of three integers defining the shift along the x, y, z axis.
                 None if no shift is required.
         """
-        options = ['9']  # Option to convert a _DEN file to an .xsf file
+        options = ["9"]  # Option to convert a _DEN file to an .xsf file
         options.append(output_filepath)  # Name of the output .xsf file
         if shift is not None:
-            options.append('y')
+            options.append("y")
             options.append("{} {} {} ".format(*shift))
         else:
-            options.append('n')
-        options.append('0')  # No more analysis
+            options.append("n")
+        options.append("0")  # No more analysis
         return cls(infile_path=density_filepath, output_filepath=output_filepath, options=options)
 
     @classmethod
@@ -4791,10 +4783,10 @@ class Cut3DInput(MSONable):
             all_el_dens_paths: a list of paths to the all-electron density files corresponding to the elements defined
                 in the abinit input. See https://www.abinit.org/downloads/all_core_electron for files.
         """
-        options = ['11']  # Option to convert _DEN file to a .cube file
+        options = ["11"]  # Option to convert _DEN file to a .cube file
         for p in all_el_dens_paths:
             options.append(p)
-        options.append('0')
+        options.append("0")
 
         return cls(infile_path=density_filepath, options=options)
 
@@ -4817,7 +4809,7 @@ class Cut3DInput(MSONable):
         all_el_dens_paths = []
         # This relies on AbinitInput using Structure.species_by_znucl to define znucl when writing the input file.
         for e in structure.species_by_znucl:
-            all_el_dens_paths.append(os.path.join(fhi_all_el_path, "0.{:02}-{}.8.density.AE".format(e.number, e.name)))
+            all_el_dens_paths.append(os.path.join(fhi_all_el_path, f"0.{e.number:02}-{e.name}.8.density.AE"))
 
         return cls.hirshfeld(density_filepath, all_el_dens_paths)
 
@@ -4833,8 +4825,8 @@ class Cut3DInput(MSONable):
         """
         JSON interface used in pymatgen for easier serialization.
         """
-        return cls(infile_path=d.get('infile_path', None), output_filepath=d.get('output_filepath', None),
-                   options=d.get('options', None))
+        return cls(infile_path=d.get("infile_path"), output_filepath=d.get("output_filepath"),
+                   options=d.get("options"))
 
 
 class AtdepInputError(Exception):
@@ -4884,7 +4876,6 @@ class AtdepInput(AbiAbstractInput, MSONable, Has_Structure):
                  atdep_args=None,
                  atdep_kwargs=None,
                  spell_check: bool = False):
-
         """
         Args:
             structure: |Structure| object
@@ -4978,19 +4969,19 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             # cubic
             iholohedry = 7
 
-        if symbol.startswith('P'):
+        if symbol.startswith("P"):
             # No centering
             icentering = 0
-        elif symbol.startswith('I'):
+        elif symbol.startswith("I"):
             # Body centered
             icentering = -1
-        elif symbol.startswith('F'):
+        elif symbol.startswith("F"):
             # Face centered
             icentering = -3
-        elif symbol.startswith('A'):
+        elif symbol.startswith("A"):
             # A-face centered
             icentering = 1
-        elif symbol.startswith('C'):
+        elif symbol.startswith("C"):
             # B-face centered
             icentering = 3
         else:
@@ -4999,11 +4990,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return [iholohedry, icentering]
 
-    _unitcell_keys = ['brav', 'natom_unitcell',
-                      'xred_unitcell', 'typat_unitcell']
-    _supercell_keys = ['multiplicity']
-    _computational_details_keys = ['nstep_max', 'nstep_min',
-                                   'rcut', 'temperature']
+    _unitcell_keys = ["brav", "natom_unitcell",
+                      "xred_unitcell", "typat_unitcell"]
+    _supercell_keys = ["multiplicity"]
+    _computational_details_keys = ["nstep_max", "nstep_min",
+                                   "rcut", "temperature"]
     _mandatory_keys = (
         _unitcell_keys + _supercell_keys + _computational_details_keys)
 
@@ -5047,31 +5038,30 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 optional_keys.append(key)
 
         structure_abivars = self.structure.to_abivars()
-        self['brav'] = self.get_atdep_brav(self.structure)
-        self['natom_unitcell'] = structure_abivars['natom']
-        self['xred_unitcell'] = structure_abivars['xred']
-        self['typat_unitcell'] = structure_abivars['typat']
+        self["brav"] = self.get_atdep_brav(self.structure)
+        self["natom_unitcell"] = structure_abivars["natom"]
+        self["xred_unitcell"] = structure_abivars["xred"]
+        self["typat_unitcell"] = structure_abivars["typat"]
 
-        app('#DEFINE_UNITCELL')
+        app("#DEFINE_UNITCELL")
         addvars(self._unitcell_keys)
-        app('')
-        app('#DEFINE_SUPERCELL')
+        app("")
+        app("#DEFINE_SUPERCELL")
         addvars(self._supercell_keys)
-        app('')
-        app('#DEFINE_COMPUTATIONAL_DETAILS')
+        app("")
+        app("#DEFINE_COMPUTATIONAL_DETAILS")
         addvars(self._computational_details_keys)
-        app('')
-        app('#OPTIONAL_INPUT_VARIABLES')
+        app("")
+        app("#OPTIONAL_INPUT_VARIABLES")
         addvars(optional_keys)
-        app('')
+        app("")
 
         if self.comment:
             app("# " + self.comment.replace("\n", "\n#"))
 
         if mode == "text":
             return "\n".join(lines)
-        else:
-            return "\n".join(lines).replace("\n", "<br>")
+        return "\n".join(lines).replace("\n", "<br>")
 
     def _repr_html_(self) -> str:
         """Integration with jupyter_ notebooks."""
@@ -5117,7 +5107,7 @@ def product_dict(d: dict):
     vars_prod = []
 
     for prod_values in itertools.product(*values):
-        dprod = OrderedDict(zip(keys, prod_values))
+        dprod = OrderedDict(zip(keys, prod_values, strict=False))
         vars_prod.append(dprod)
 
     return vars_prod

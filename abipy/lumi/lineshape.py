@@ -1,16 +1,15 @@
-# coding: utf-8
 from __future__ import annotations
 
-import numpy as np
 import warnings
-import abipy.core.abinit_units as abu
 
+import numpy as np
 from pymatgen.io.phonopy import get_pmg_structure
-from abipy.tools.plotting import get_ax_fig_plt,add_fig_kwargs
+
+import abipy.core.abinit_units as abu
+from abipy.embedding.utils_ifc import clean_structure, localization_ratio
+from abipy.lumi.utils_lumi import A_hw_help, L_hw_help, plot_emission_spectrum_help
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.typing import Figure
-from abipy.embedding.utils_ifc import clean_structure
-from abipy.lumi.utils_lumi import A_hw_help,L_hw_help,plot_emission_spectrum_help
-from abipy.embedding.utils_ifc import localization_ratio
 
 
 class Lineshape:
@@ -72,7 +71,7 @@ class Lineshape:
         ph_freq_phonopy, ph_vec_phonopy = ph_modes
 
         freqs = ph_freq_phonopy * (1 / abu.eV_to_THz)   # THz to eV
-        vecs = ph_vec_phonopy.transpose() #
+        vecs = ph_vec_phonopy.transpose()
 
         dSCF_structure = clean_structure(dSCF_structure,coords_defect_dSCF)
 
@@ -130,7 +129,6 @@ class Lineshape:
         """
         List of masses of the atoms in the structure, in amu unit
         """
-        #
         amu_list = np.zeros(len(self.structure))
         for i, atom in enumerate(self.structure.species):
             amu_list[i] = atom.atomic_mass
@@ -225,13 +223,13 @@ class Lineshape:
 
     def localization_ratio(self):
         """
-        array of the phonon mode localisation, see equation (10) of https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537
+        Array of the phonon mode localisation, see equation (10) of https://pubs.acs.org/doi/10.1021/acs.chemmater.3c00537
         """
         return localization_ratio(self.ph_eigvec)
 
     #### Generating function ####
 
-    def A_hw(self,T, lamb=3, w=3, model='multi-D'):
+    def A_hw(self,T, lamb=3, w=3, model="multi-D"):
         """
         Lineshape function
         Eq. (2) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
@@ -247,9 +245,9 @@ class Lineshape:
         omega_nu = self.ph_eigfreq
         eff_freq = self.eff_freq_multiD()
         E_zpl = self.E_zpl
-        return A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w, model='multi-D')
+        return A_hw_help(S_nu,omega_nu,eff_freq,E_zpl,T, lamb, w, model="multi-D")
 
-    def L_hw(self, T=0,lamb=3, w=3, model='multi-D'):
+    def L_hw(self, T=0,lamb=3, w=3, model="multi-D"):
         """
         Normalized Luminescence intensity (area under the curve = 1)
         Eq. (1) of https://pubs.acs.org/doi/full/10.1021/acs.chemmater.3c00537
@@ -305,23 +303,23 @@ class Lineshape:
             ax2 = ax.twinx()
             ax2.scatter(omega_nu,S_nu,c=color_list,norm=norm,alpha=0.6)
             ax2.vlines(x=omega_nu, ymin=0, ymax=S_nu,colors=color_list,linestyles="solid",alpha=0.6,norm=norm)
-            cbar = plt.colorbar(sm,ax=ax2,location="top",shrink=0.6,label=r'$\beta_{\nu}$')
-            ax2.set_ylabel(r'$S_{\nu}$')
+            cbar = plt.colorbar(sm,ax=ax2,location="top",shrink=0.6,label=r"$\beta_{\nu}$")
+            ax2.set_ylabel(r"$S_{\nu}$")
 
         if with_S_nu:
             ax2 = ax.twinx()
             ax2.vlines(x=omega_nu, ymin=0, ymax=S_nu,linestyles="solid",alpha=0.6)
             ax2.scatter(omega_nu,S_nu,alpha=0.6)
-            ax2.set_ylabel(r'$S_{\nu}$')
+            ax2.set_ylabel(r"$S_{\nu}$")
 
         ax.plot(S_x,S_y,**kwargs)
-        ax.set_xlabel('Phonon energy (eV)')
-        ax.set_ylabel(r'$S(\hbar\omega)$  (1/eV)')
+        ax.set_xlabel("Phonon energy (eV)")
+        ax.set_ylabel(r"$S(\hbar\omega)$  (1/eV)")
 
         return fig
 
     @add_fig_kwargs
-    def plot_emission_spectrum(self,unit='eV',T=0,lamb=3,w=3,max_to_one=False,ax=None,**kwargs):
+    def plot_emission_spectrum(self,unit="eV",T=0,lamb=3,w=3,max_to_one=False,ax=None,**kwargs):
         """
         Plot the Luminescence intensity
 
@@ -332,7 +330,6 @@ class Lineshape:
             w: Gaussian broadening applied to the vibronic peaks, in meV
             max_to_one: True if max of the curve is normalized to 1.
         """
-
         x_eV, y_eV = self.L_hw(T=T,lamb=lamb,w=w)
         return plot_emission_spectrum_help(x_eV,y_eV,unit,max_to_one,ax,**kwargs)
 

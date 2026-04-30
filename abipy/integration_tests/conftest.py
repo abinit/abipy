@@ -1,16 +1,16 @@
 """Configuration file for pytest."""
 from __future__ import annotations
 
-import os
-import pytest
-import ruamel.yaml as yaml
 import copy
-import abipy.flowtk as flowtk
-
+import os
 from pprint import pformat
+
+import pytest
 from monty.collections import AttrDict
 from monty.string import marquee
-from abipy.tools.iotools import yaml_safe_load_path, yaml_dump
+
+from abipy import flowtk
+from abipy.tools.iotools import yaml_dump, yaml_safe_load_path
 
 # Are we running on travis?
 
@@ -81,7 +81,7 @@ def tvars(request):
 
 def pytest_addoption(parser):
     """Add extra command line options."""
-    parser.addoption('--loglevel', default="ERROR", type=str,
+    parser.addoption("--loglevel", default="ERROR", type=str,
                      help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
     #parser.addoption('--manager', default=None, help="TaskManager file (defaults to the manager.yml found in cwd"
 
@@ -120,7 +120,7 @@ def pytest_report_header(config):
     import logging
     numeric_level = getattr(logging, config.option.loglevel.upper(), None)
     if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % config.option.loglevel)
+        raise ValueError("Invalid log level: %s" % config.option.loglevel)
     logging.basicConfig(level=numeric_level)
 
     return lines

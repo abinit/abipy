@@ -6,8 +6,8 @@ Spin-polarized e-bands
 This example shows how to plot the band structure of nickel
 using the eigenvalues stored in the GSR file produced at the end of the GS run.
 """
-from abipy import abilab
 import abipy.data as abidata
+from abipy import abilab
 
 # Open the GSR file and extract the band structure.
 # (alternatively one can use the shell and `abiopen.py OUT_GSR.nc -nb`

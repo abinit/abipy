@@ -9,9 +9,8 @@ See also <~abinit/tutorial/Input/tspin_1.in>
 """
 import os
 import sys
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
 
+from abipy import abilab, flowtk
 
 CIF_STRING = """
 data_BaO

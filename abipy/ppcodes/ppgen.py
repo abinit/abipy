@@ -1,21 +1,20 @@
-# coding: utf-8
 """Interface for pseudopotential generators."""
 from __future__ import annotations
 
 import abc
-import os
-import tempfile
 import collections
+import logging
+import os
 import shutil
+import tempfile
 import time
-
-from typing import Optional
 from shutil import which
+
 from monty.termcolor import cprint
+
 from abipy.flowtk.pseudos import Pseudo
 from abipy.ppcodes.oncv_parser import OncvParser
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -46,9 +45,8 @@ class Status(int):
         """Convert obj into Status."""
         if isinstance(obj, cls):
             return obj
-        else:
-            # Assume string
-            return cls.from_string(obj)
+        # Assume string
+        return cls.from_string(obj)
 
     @classmethod
     def from_string(cls, s: str) -> Status:
@@ -56,8 +54,7 @@ class Status(int):
         for num, text in _STATUS2STR.items():
             if text == s:
                 return cls(num)
-        else:
-            raise ValueError(f"Wrong string: `{s}`")
+        raise ValueError(f"Wrong string: `{s}`")
 
 
 class _PseudoGenerator(metaclass=abc.ABCMeta):
@@ -73,7 +70,6 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         2) the object should have the input file stored in self.input_str
 
     Attributes:
-
         workdir: Working directory (output results are produced in workdir)
         status: Flag defining the status of the ps generator.
         retcode: Return code of the code
@@ -103,7 +99,7 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
     stdout_basename: str = "run.out"
     stderr_basename: str = "run.err"
 
-    def __init__(self, workdir: Optional[str] = None) -> None:
+    def __init__(self, workdir: str | None = None) -> None:
         # Set the initial status.
         self.set_status(self.S_INIT)
         self._parser = None
@@ -192,7 +188,7 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         args = [self.executable, "<", self.stdin_path, ">", self.stdout_path, "2>", self.stderr_path]
         self.cmd_str = " ".join(args)
 
-        from subprocess import Popen, PIPE
+        from subprocess import PIPE, Popen
         self.process = Popen(self.cmd_str, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.workdir)
         self.set_status(self.S_RUN, info_msg="Start on %s" % time.asctime)
 
@@ -256,14 +252,14 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         """
         Returns a string with the stdout of the calculation.
         """
-        with open(self.stdout_path, "rt") as out:
+        with open(self.stdout_path) as out:
             return out.read()
 
     def get_stderr(self) -> str:
         """
         Return string with the stderr of the calculation.
         """
-        with open(self.stderr_path, "rt") as err:
+        with open(self.stderr_path) as err:
             return err.read()
 
     def rmtree(self) -> int:
@@ -304,20 +300,19 @@ class OncvGenerator(_PseudoGenerator):
     to validate/analyze/plot the final results.
 
     Attributes:
-
         retcode: Retcode of oncvpsp
     """
 
     @classmethod
-    def from_file(cls, path: str, calc_type: str, use_mgga: bool, workdir: Optional[str] = None) -> OncvGenerator:
+    def from_file(cls, path: str, calc_type: str, use_mgga: bool, workdir: str | None = None) -> OncvGenerator:
         """
         Build the object from a file containing the input parameters.
         """
-        with open(path, "rt") as fh:
+        with open(path) as fh:
             input_str = fh.read()
             return cls(input_str, calc_type, use_mgga=use_mgga, workdir=workdir)
 
-    def __init__(self, input_str: str, calc_type: str, use_mgga: bool, workdir: Optional[str] = None):
+    def __init__(self, input_str: str, calc_type: str, use_mgga: bool, workdir: str | None = None):
         super().__init__(workdir=workdir)
 
         self._input_str = input_str
@@ -372,13 +367,13 @@ class OncvGenerator(_PseudoGenerator):
             # Write psp8 file.
             psp8_str = parser.get_psp8_str()
             if psp8_str is not None:
-                with open(psp8_filepath, "wt") as fh:
+                with open(psp8_filepath, "w") as fh:
                     fh.write(psp8_str)
 
             # Add UPF string if present.
             upf_str = parser.get_upf_str()
             if upf_str is not None:
-                with open(psp8_filepath.replace(".psp8", ".upf"), "wt") as fh:
+                with open(psp8_filepath.replace(".psp8", ".upf"), "w") as fh:
                     fh.write(upf_str)
 
             # Initialize self.pseudo from file.

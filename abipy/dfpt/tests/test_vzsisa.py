@@ -1,10 +1,11 @@
 """Tests for frozen_phonons"""
 import os
-import numpy as np
-import abipy.data as abidata
 
-from abipy.dfpt.vzsisa import Vzsisa
+import numpy as np
+
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
+from abipy.dfpt.vzsisa import Vzsisa
 
 
 class QhaTest(AbipyTest):
@@ -19,16 +20,16 @@ class QhaTest(AbipyTest):
         #ph_strains = [96, 98, 100, 102, 104] # EinfVib4(S)
         #ph_strains = [100, 102, 104] # EinfVib2(D)
 
-        gsr_paths = [os.path.join(root, "scale_{:d}_GSR.nc".format(s)) for s in bo_strains]
+        gsr_paths = [os.path.join(root, f"scale_{s:d}_GSR.nc") for s in bo_strains]
 
-        ddb_paths = [os.path.join(root, "scale_{:d}_DDB".format(s)) for s in ph_strains]
+        ddb_paths = [os.path.join(root, f"scale_{s:d}_DDB") for s in ph_strains]
         anaget_kwargs = {}
         # FIXME
         #FileNotFoundError: [Errno 2] No such file or directory: '/Users/giantomassi/git_repos/abipy/abipy/data/data_v-ZSISA-QHA.git/Si_v_ZSISA_approximation/scale_96_GSR.nc'
         #qha = Vzsisa.from_gsr_ddb_paths(4, gsr_paths, ddb_paths, anaget_kwargs, verbose=1)
 
-        ddb_paths = [os.path.join(root, "scale_{:d}_GSR_DDB".format(s)) for s in bo_strains]
-        phdos_paths = [os.path.join(root, "scale_{:d}_PHDOS.nc".format(s)) for s in ph_strains]
+        ddb_paths = [os.path.join(root, f"scale_{s:d}_GSR_DDB") for s in bo_strains]
+        phdos_paths = [os.path.join(root, f"scale_{s:d}_PHDOS.nc") for s in ph_strains]
 
         qha = Vzsisa.from_ddb_phdos_files(ddb_paths, phdos_paths)
         tstart, tstop = 0, 800

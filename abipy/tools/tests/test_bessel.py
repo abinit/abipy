@@ -1,9 +1,8 @@
-# coding: utf-8
 """Tests for bessel module."""
 import numpy as np
 
-from abipy.tools import bessel
 from abipy.core.testing import AbipyTest
+from abipy.tools import bessel
 
 
 class TestBessels(AbipyTest):

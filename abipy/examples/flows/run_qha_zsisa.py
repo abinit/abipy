@@ -56,13 +56,12 @@ ZsisaResults.json:
 ```
 """
 
-import sys
 import os
-import numpy as np
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import numpy as np
+
+from abipy import abilab, flowtk
 from abipy.flowtk.zsisa import ZsisaFlow
 
 

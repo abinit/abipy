@@ -1,13 +1,14 @@
-# coding: utf-8
 """Decorators for AbinitInput or MultiDataset objects."""
 from __future__ import annotations
 
 import abc
-import pymatgen.io.abinit.abiobjects as aobj
 
+import pymatgen.io.abinit.abiobjects as aobj
 from monty.json import MSONable
-from abipy.tools.serialization import pmg_serialize
+
 from abipy.flowtk.abiobjects import LdauParams, LexxParams
+from abipy.tools.serialization import pmg_serialize
+
 from .inputs import AbinitInput, MultiDataset
 
 
@@ -21,7 +22,6 @@ class AbinitInputDecorator(MSONable, metaclass=abc.ABCMeta):
     or an existing :class:`MultiDataset` without altering its structure. This is an abstract Base class.
 
     Example:
-
         decorator = MyDecorator(arguments)
 
         new_abinit_input = decorator(abinit_input)
@@ -51,14 +51,13 @@ class AbinitInputDecorator(MSONable, metaclass=abc.ABCMeta):
         Returns:
             New `AbinitInput` or new `MultiDataset` depending on obj.
         """
-
         if isinstance(obj, AbinitInput):
             new_inp = self._decorate(obj, deepcopy=deepcopy)
             # Log the decoration in new_inp.
             new_inp.register_decorator(self)
             return new_inp
 
-        elif isinstance(obj, MultiDataset):
+        if isinstance(obj, MultiDataset):
             new_inputs = []
             for inp in obj:
                 new_inp = self._decorate(inp, deepcopy=deepcopy)
@@ -68,8 +67,7 @@ class AbinitInputDecorator(MSONable, metaclass=abc.ABCMeta):
 
             return MultiDataset.from_inputs(new_inputs)
 
-        else:
-            raise TypeError("Don't know how to decorate type %s" % type(obj))
+        raise TypeError("Don't know how to decorate type %s" % type(obj))
 
     @abc.abstractmethod
     def _decorate(self, inp, deepcopy=True):

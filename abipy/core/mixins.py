@@ -1,31 +1,29 @@
-# coding: utf-8
 """Mixin classes"""
 from __future__ import annotations
 
 import abc
 import os
-import collections
-import tempfile
 import pickle
+import tempfile
+from functools import cached_property
+from shutil import which
+from time import ctime
+
 import numpy as np
 import pandas as pd
-
-from time import ctime
-from shutil import which
-from functools import cached_property
-from monty.termcolor import cprint
-from monty.string import list_strings
 from monty.collections import dict2namedtuple
-from abipy.tools.typing import Figure
+from monty.string import list_strings
+from monty.termcolor import cprint
 
+from abipy.tools.typing import Figure
 
 __all__ = [
     "AbinitNcFile",
-    "Has_Structure",
     "Has_ElectronBands",
-    "Has_PhononBands",
-    "NotebookWriter",
     "Has_Header",
+    "Has_PhononBands",
+    "Has_Structure",
+    "NotebookWriter",
     "SlotPickleMixin"
 ]
 
@@ -119,7 +117,7 @@ class TextFile(BaseFile):
     @cached_property
     def _file(self):
         """File object open in read-only mode."""
-        return open(self.filepath, mode="rt")
+        return open(self.filepath)
 
     def close(self) -> None:
         """Close the file."""
@@ -137,7 +135,7 @@ class TextFile(BaseFile):
         import panel.widgets as pnw
 
         root, ext = os.path.splitext(self.basename)
-        text = open(self.filepath, "rt").read()
+        text = open(self.filepath).read()
         if not text: text = "This file is empty!"
 
         # Use Markdown for selected extensions else Ace editor.
@@ -148,8 +146,8 @@ class TextFile(BaseFile):
             fmt = ext2format[ext]
             obj = pn.pane.Markdown(f"```{fmt}\n{text}\n```", sizing_mode="stretch_both")
         else:
-            obj = pnw.Ace(value=text, language='text', readonly=True,
-                          sizing_mode='stretch_width', height=1200)
+            obj = pnw.Ace(value=text, language="text", readonly=True,
+                          sizing_mode="stretch_width", height=1200)
 
         return pn.Column(f"## File: {self.filepath}",
                          obj,
@@ -165,6 +163,7 @@ class JsonFile(TextFile):
 
     def get_panel(self, **kwargs):
         import json
+
         from abipy.panels.viewers import JSONViewer
         with self:
             return JSONViewer(json.load(self._file))
@@ -215,7 +214,7 @@ class AbinitNcFile(BaseFile):
     @abc.abstractproperty
     def params(self) -> dict:
         """
-        dictionary with the convergence parameters used to construct |pandas-DataFrames|.
+        Dictionary with the convergence parameters used to construct |pandas-DataFrames|.
         """
 
     def get_dims_dataframe(self, as_dict=False, path="/") -> pd.DataFrame:
@@ -230,7 +229,7 @@ class AbinitNcFile(BaseFile):
 
         # Since this is a Series but we want a dataframe to facilitate interoperability.
         # we have to call init with additional kwargs.
-        return pd.DataFrame.from_dict(d, orient='index', columns=['value'])
+        return pd.DataFrame.from_dict(d, orient="index", columns=["value"])
 
     def get_input_string(self) -> str:
         """
@@ -239,8 +238,7 @@ class AbinitNcFile(BaseFile):
         """
         if "input_string" in self.reader.rootgrp.variables:
             return self.reader.read_string("input_string")
-        else:
-            return "Nc file does not contain `input_string`"
+        return "Nc file does not contain `input_string`"
 
     def get_ncfile_view(self, **kwargs):
         """
@@ -329,8 +327,7 @@ class Has_Structure(metaclass=abc.ABCMeta):
                 return self.export_structure(ext)
             except visu.Error:
                 pass
-        else:
-            raise visu.Error("Don't know how to export data for appname %s" % appname)
+        raise visu.Error("Don't know how to export data for appname %s" % appname)
 
     def _get_atomview(self, view, select_symbols=None, verbose=0):
         """
@@ -437,7 +434,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         return self.ebands.smearing.tsmear_ev.to("Ha")
 
     def get_ebands_params(self) -> dict:
-        """dictionary with the convergence parameters."""
+        """Dictionary with the convergence parameters."""
         return {
             "nsppol": self.nsppol,
             "nspinor": self.nspinor,
@@ -521,7 +518,7 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
         """Returns the |PhononBands| object."""
 
     def get_phbands_params(self) -> dict:
-        """dictionary  with the convergence parameters."""
+        """Dictionary  with the convergence parameters."""
         return {
             "nqpt": len(self.phbands.qpoints),
         }
@@ -564,7 +561,7 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
             e(self.yield_phbands_figs(**kwargs))
 
 
-class NcDumper(object):
+class NcDumper:
     """
     Wrapper object for the ncdump tool.
     """
@@ -583,18 +580,17 @@ class NcDumper(object):
         """Returns a string with the output of ncdump."""
         if self.ncdump is None:
             return "Cannot find ncdump tool in $PATH"
-        else:
-            from subprocess import check_output
-            return check_output(["ncdump", filepath])
+        from subprocess import check_output
+        return check_output(["ncdump", filepath])
 
 
 _ABBREVS = [
-    (1 << 50, 'PB'),
-    (1 << 40, 'TB'),
-    (1 << 30, 'GB'),
-    (1 << 20, 'MB'),
-    (1 << 10, 'kB'),
-    (1, 'B'),
+    (1 << 50, "PB"),
+    (1 << 40, "TB"),
+    (1 << 30, "GB"),
+    (1 << 20, "MB"),
+    (1 << 10, "kB"),
+    (1, "B"),
 ]
 
 
@@ -685,32 +681,30 @@ See also https://jupyter.readthedocs.io/en/latest/install.html
         if not no_browser:
             if foreground:
                 return os.system("%s %s" % (app_path, nbpath))
-            else:
-                fd, tmpname = tempfile.mkstemp(text=True)
-                print(tmpname)
-                cmd = "%s %s" % (app_path, nbpath)
-                print("Executing:", cmd, "\nstdout and stderr redirected to %s" % tmpname)
-                import subprocess
-                process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
-                cprint("pid: %s" % str(process.pid), "yellow")
-                return 0
+            fd, tmpname = tempfile.mkstemp(text=True)
+            print(tmpname)
+            cmd = "%s %s" % (app_path, nbpath)
+            print("Executing:", cmd, "\nstdout and stderr redirected to %s" % tmpname)
+            import subprocess
+            process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
+            cprint("pid: %s" % str(process.pid), "yellow")
+            return 0
 
-        else:
-            # Based on https://github.com/arose/nglview/blob/master/nglview/scripts/nglview.py
-            notebook_name = os.path.basename(nbpath)
-            dirname = os.path.dirname(nbpath)
-            print("nbpath:", nbpath)
+        # Based on https://github.com/arose/nglview/blob/master/nglview/scripts/nglview.py
+        notebook_name = os.path.basename(nbpath)
+        dirname = os.path.dirname(nbpath)
+        print("nbpath:", nbpath)
 
-            import socket
-            from abipy.tools.notebooks import find_free_port
-            username = os.getlogin()
-            hostname = socket.gethostname()
-            port = find_free_port()
+        import socket
 
-            client_cmd = "ssh -NL localhost:{port}:localhost:{port} {username}@{hostname}".format(
-                username=username, hostname=hostname, port=port)
+        from abipy.tools.notebooks import find_free_port
+        username = os.getlogin()
+        hostname = socket.gethostname()
+        port = find_free_port()
 
-            print(f"""
+        client_cmd = f"ssh -NL localhost:{port}:localhost:{port} {username}@{hostname}"
+
+        print(f"""
 Using port: {port}
 
 \033[32m In your local machine, run: \033[0m
@@ -722,15 +716,15 @@ Using port: {port}
 
 http://localhost:{port}/notebooks/{notebook_name}
 """)
-            if not classic_notebook:
-                cmd = f'{app_path} {notebook_name} --no-browser --port {port} --notebook-dir {dirname}'
-            else:
-                cmd = f'{app_path} notebook {notebook_name} --no-browser --port {port} --notebook-dir {dirname}'
+        if not classic_notebook:
+            cmd = f"{app_path} {notebook_name} --no-browser --port {port} --notebook-dir {dirname}"
+        else:
+            cmd = f"{app_path} notebook {notebook_name} --no-browser --port {port} --notebook-dir {dirname}"
 
-            print("Executing:", cmd)
-            print('NOTE: make sure to open `{}` in your local machine\n'.format(notebook_name))
+        print("Executing:", cmd)
+        print(f"NOTE: make sure to open `{notebook_name}` in your local machine\n")
 
-            return os.system(cmd)
+        return os.system(cmd)
 
     @staticmethod
     def get_nbformat_nbv() -> tuple:
@@ -786,13 +780,14 @@ abilab.enable_notebook(with_seaborn=True)
         This method must be called at the end of ``write_notebook``.
         nb is the jupyter notebook and nbpath the argument passed to ``write_notebook``.
         """
-        import io, os, tempfile
+        import os
+        import tempfile
         if nbpath is None:
-            _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
+            _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix=".ipynb", dir=os.getcwd(), text=True)
 
         # Write notebook
         import nbformat
-        with io.open(nbpath, 'wt', encoding="utf8") as fh:
+        with open(nbpath, "w", encoding="utf8") as fh:
             nbformat.write(nb, fh)
             return nbpath
 
@@ -844,7 +839,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
         Return: The name of the pickle file.
         """
         if filepath is None:
-            _, filepath = tempfile.mkstemp(suffix='.pickle')
+            _, filepath = tempfile.mkstemp(suffix=".pickle")
 
         with open(filepath, "wb") as fh:
             pickle.dump(self, fh)
@@ -867,7 +862,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
     def _get_panel_and_template(self) -> tuple:
         # Create panel template with matplotlib figures and show them in the browser.
         import panel as pn
-        pn.config.sizing_mode = 'stretch_width'
+        pn.config.sizing_mode = "stretch_width"
         from abipy.panels.core import get_template_cls_from_name
         cls = get_template_cls_from_name("FastGridTemplate")
 
@@ -898,8 +893,8 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
         else:
             # Create panel template with matplotlib figures and show them in the browser.
             pn, template = self._get_panel_and_template()
-            pn.config.sizing_mode = 'stretch_width'
-            from abipy.panels.core import mpl, dfc
+            pn.config.sizing_mode = "stretch_width"
+            from abipy.panels.core import mpl
             for i, fig in enumerate(self.yield_figs()):
                 row, col = divmod(i, 2)
                 #if isinstance(fig, pd.DataFrame, pd.Series):
@@ -923,7 +918,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
         """
         #print("in plotly expose")
         pn, template = self._get_panel_and_template()
-        pn.config.sizing_mode = 'stretch_width'
+        pn.config.sizing_mode = "stretch_width"
         from abipy.panels.core import mpl, ply
 
         # Insert figure in template.main.

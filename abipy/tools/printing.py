@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import sys
-import pandas as pd
-
 from io import StringIO
+
+import pandas as pd
 
 
 def print_dataframe(df: pd.DataFrame,

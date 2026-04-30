@@ -15,15 +15,14 @@ the efield variable sets the strength (in atomic units) and direction of the fie
 
 Based on tutorespfn/Input/tpolarization_6.abi
 """
-import sys
 import os
-import abipy.flowtk as flowtk
+import sys
 
-from abipy.core.structure import Structure
+from abipy import flowtk
 from abipy.abio.inputs import AbinitInput
-from abipy.flowtk.works import PhononWork
+from abipy.core.structure import Structure
 from abipy.flowtk.dfpt_works import ElasticWork
-from abipy.flowtk.finitediff import FiniteEfieldWork, FiniteDisplWork, FiniteStrainWork, FiniteHfieldWork
+from abipy.flowtk.finitediff import FiniteEfieldWork, FiniteStrainWork
 
 
 def build_flow(options):

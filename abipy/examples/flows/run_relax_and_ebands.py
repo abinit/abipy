@@ -9,11 +9,11 @@ followed by a band structure calculation
 WARNING: The API could change!
 """
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_ion_ioncell_inputs(paral_kgb=0):

@@ -19,8 +19,8 @@ See e.g. <https://journals.aps.org/prb/pdf/10.1103/PhysRevB.50.13035>
 # Open the DDB file for AlAs
 
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy import abilab
 
 filepath = os.path.join(abidata.dirpath, "refs", "alas_phonons", "trf2_3_DDB")

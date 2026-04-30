@@ -1,11 +1,8 @@
-# coding: utf-8
-import sys
-import abipy.data as abidata
-import abipy.abilab as abilab
 import abipy.abio.decorators as ideco
-
-from abipy.core.testing import AbipyTest
+import abipy.data as abidata
+from abipy import abilab
 from abipy.abio.factories import *
+from abipy.core.testing import AbipyTest
 
 
 class DecoratorTest(AbipyTest):
@@ -50,9 +47,8 @@ class DecoratorTest(AbipyTest):
             #assert len(dtset.decorators) == ndec
 
             if v.retcode != 0:
-                raise RuntimeError("Wrong input. See {0}".format(v))
-            else:
-                print("Valid input!")
+                raise RuntimeError(f"Wrong input. See {v}")
+            print("Valid input!")
 
     def test_spin_decorator(self):
         """Testing spin decorator."""
@@ -128,6 +124,6 @@ class DecoratorTest(AbipyTest):
         new_inp = self.si_ebands.new_with_decorators([spinor_deco, smearing_deco])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import unittest
     unittest.main()

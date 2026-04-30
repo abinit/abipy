@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Collection of low-level tools to facilitate the interface with resource managers.
 
@@ -9,14 +8,15 @@ The preferred way of importing this module is:
 from __future__ import annotations
 
 import os
+from subprocess import PIPE, Popen, run
 
-from subprocess import Popen, PIPE, run
-from monty.string import is_string
 from monty.os import cd
-from pymatgen.core.units import Time, Memory, UnitError
-from abipy.tools.typing import PathLike
+from monty.string import is_string
+from pymatgen.core.units import Memory, Time, UnitError
+
 from abipy.tools import duck
 from abipy.tools.text import rm_multiple_spaces
+from abipy.tools.typing import PathLike
 
 
 def slurm_parse_timestr(s: str) -> Time:
@@ -39,34 +39,33 @@ def slurm_parse_timestr(s: str) -> Time:
     if duck.is_number_like(s):
         return Time(s, "s")
 
-    if '-' in s:
+    if "-" in s:
         # "days-hours",
         # "days-hours:minutes",
         # "days-hours:minutes:seconds".
         days, s = s.split("-")
         days = int(days)
 
-        if ':' not in s:
+        if ":" not in s:
             hours = int(float(s))
-        elif s.count(':') == 1:
-            hours, minutes = map(int, s.split(':'))
-        elif s.count(':') == 2:
-            hours, minutes, seconds = map(int, s.split(':'))
+        elif s.count(":") == 1:
+            hours, minutes = map(int, s.split(":"))
+        elif s.count(":") == 2:
+            hours, minutes, seconds = map(int, s.split(":"))
         else:
             raise ValueError("More that 2 ':' in string!")
 
+    # "minutes",
+    # "minutes:seconds",
+    # "hours:minutes:seconds",
+    elif ":" not in s:
+        minutes = int(float(s))
+    elif s.count(":") == 1:
+        minutes, seconds = map(int, s.split(":"))
+    elif s.count(":") == 2:
+        hours, minutes, seconds = map(int, s.split(":"))
     else:
-        # "minutes",
-        # "minutes:seconds",
-        # "hours:minutes:seconds",
-        if ':' not in s:
-            minutes = int(float(s))
-        elif s.count(':') == 1:
-            minutes, seconds = map(int, s.split(':'))
-        elif s.count(':') == 2:
-            hours, minutes, seconds = map(int, s.split(':'))
-        else:
-            raise ValueError("More than 2 ':' in string!")
+        raise ValueError("More than 2 ':' in string!")
 
     return Time((days*24 + hours)*3600 + minutes*60 + seconds, "s")
 
@@ -152,17 +151,17 @@ def slurm_get_jobs() -> dict[int, dict]:
     Invoke squeue, parse output and return list of dictionaries with job info indexed by job id.
     """
     # Based on https://gist.github.com/stevekm/7831fac98473ea17d781330baa0dd7aa
-    process = Popen(["squeue", "--me", "-o", '%all'],
+    process = Popen(["squeue", "--me", "-o", "%all"],
                      stdout=PIPE, stderr=PIPE, shell=False, universal_newlines=True)
     proc_stdout, proc_stderr = process.communicate()
 
-    lines = proc_stdout.split('\n')
+    lines = proc_stdout.split("\n")
     header_line = lines.pop(0)
-    header_cols = header_line.split('|')
+    header_cols = header_line.split("|")
     entries = []
     error_lines = [] # do something with this later
     for line in lines:
-        parts = line.split('|')
+        parts = line.split("|")
         if len(parts) != len(header_cols):
             error_lines.append((len(parts), line, parts))
         else:
@@ -179,28 +178,27 @@ def slurm_get_jobs() -> dict[int, dict]:
 class SlurmJobArray:
     """
     Example:
-
     header = '''\
 #!/bin/bash
 
-#SBATCH --account=battab
-#SBATCH --job-name=abiml_md
-#SBATCH --time=0-16:0:0
-#SBATCH --partition=batch
-#SBATCH --nodes=1             # 1 node has 128 cores
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=1
+    #SBATCH --account=battab
+    #SBATCH --job-name=abiml_md
+    #SBATCH --time=0-16:0:0
+    #SBATCH --partition=batch
+    #SBATCH --nodes=1             # 1 node has 128 cores
+    #SBATCH --ntasks-per-node=1
+    #SBATCH --cpus-per-task=1
 
-conda activate env3.10
-export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
-ulimit -s unlimited
-'''
+    conda activate env3.10
+    export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+    ulimit -s unlimited
+    '''
 
-command = "abiml.py md"
-arr_options = ["--help", "--version"]
-job_array = SlurmJobArray(header, command, arr_options)
-print(job_array)
-queue_id = job_array.sbatch("job_array.sh")
+    command = "abiml.py md"
+    arr_options = ["--help", "--version"]
+    job_array = SlurmJobArray(header, command, arr_options)
+    print(job_array)
+    queue_id = job_array.sbatch("job_array.sh")
     """
 
     def __init__(self, header: str, command: str, arr_options: list[str]):
@@ -259,14 +257,14 @@ rm ${{me}}.qid
         # Make sure no slurm job is already running by checking for a .qid file.
         path_qid = slurm_filepath + ".qid"
         if os.path.exists(path_qid):
-            with open(path_qid, "rt") as fh:
+            with open(path_qid) as fh:
                 queue_id = int(fh.read().split("#"))
-                err_msg = f"Found slurm job ID {queue_id} in {path_qid}" + \
-                          "This usually indicates that a similar array job is already running\n" + \
+                err_msg = f"Found slurm job ID {queue_id} in {path_qid}" \
+                          "This usually indicates that a similar array job is already running\n" \
                           f"If this not the case, please remove {path_qid} and rerun the script."
                 raise RuntimeError(err_msg)
 
-        with open(slurm_filepath, "wt") as fh:
+        with open(slurm_filepath, "w") as fh:
             fh.write(str(self))
 
         queue_id = slurm_sbatch(slurm_filepath)
@@ -277,7 +275,7 @@ def slurm_write_and_sbatch(script_filepath: str, slurm_script_str: str) -> int:
     """
     Write job script and submit it to the queue with Slurm sbatch. Return Slurm JOB ID.
     """
-    with open(script_filepath, "wt") as fh:
+    with open(script_filepath, "w") as fh:
         fh.write(slurm_script_str)
         return slurm_sbatch(script_filepath)
 
@@ -303,13 +301,13 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
                 path_qid = slurm_filepath + ".qid"
                 print(f"Job submission was successful and queue_id: {queue_id}")
                 print("Saving slurm job ID in:", path_qid)
-                with open(path_qid, "wt") as fh:
+                with open(path_qid, "w") as fh:
                     fh.write(str(queue_id) + " # Slurm job id")
                 return queue_id
 
             except Exception as exc:
                 # probably error parsing job code
-                print('Could not parse job id following slurm...')
+                print("Could not parse job id following slurm...")
                 raise exc
         else:
             raise RuntimeError(f"Error while submitting {slurm_filepath=} with {process.returncode=},\n{out=}\n{err=}")
@@ -320,8 +318,8 @@ def get_sacct_info():
     Run the sacct command to get the job information
     """
     try:
-        result = run(['sacct', '--format=JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode', '--noheader'],
-                      stdout=PIPE, stderr=PIPE, text=True)
+        result = run(["sacct", "--format=JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode", "--noheader"],
+                      stdout=PIPE, stderr=PIPE, text=True, check=False)
 
         # Check if the command was successful
         if result.returncode != 0:
@@ -329,8 +327,8 @@ def get_sacct_info():
             return None
 
         # Process the output
-        jobs_info = result.stdout.strip().split('\n')
-        jobs = [dict(zip(['JobID', 'JobName', 'Partition', 'Account', 'AllocCPUS', 'State', 'ExitCode'], job.split()))
+        jobs_info = result.stdout.strip().split("\n")
+        jobs = [dict(zip(["JobID", "JobName", "Partition", "Account", "AllocCPUS", "State", "ExitCode"], job.split(), strict=False))
                 for job in jobs_info]
         return jobs
 
@@ -346,8 +344,8 @@ def get_completed_job_info(job_id: int | str):
 
         # Run the sacct command with the specified fields for the given job ID
         result = run(
-            ['sacct', '--jobs', str(job_id), '--format', fields, '--noheader', '--parsable2'],
-            stdout=PIPE, stderr=PIPE, text=True
+            ["sacct", "--jobs", str(job_id), "--format", fields, "--noheader", "--parsable2"],
+            stdout=PIPE, stderr=PIPE, text=True, check=False
         )
 
         # Check if the command was successful
@@ -356,8 +354,8 @@ def get_completed_job_info(job_id: int | str):
             return None
 
         # Process the output
-        lines = result.stdout.strip().split('\n')
-        jobs = [dict(zip(fields.split(','), line.split('|'))) for line in lines]
+        lines = result.stdout.strip().split("\n")
+        jobs = [dict(zip(fields.split(","), line.split("|"), strict=False)) for line in lines]
         return jobs
 
     except Exception as e:

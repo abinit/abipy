@@ -15,7 +15,7 @@ with abiopen(abidata.ref_file("si_scf_WFK.nc")) as wfk_file:
 
 # Select the valence and conduction bands to include in the JDOS
 # Here we include valence bands from 0 to 3 and the first conduction band (4).
-vrange = range(0, 4)
+vrange = range(4)
 crange = range(4, 5)
 
 # Plot joint-DOS.

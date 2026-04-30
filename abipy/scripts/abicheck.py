@@ -5,16 +5,17 @@ and the environment on the local machine are properly configured.
 """
 from __future__ import annotations
 
-import sys
-import os
 import argparse
-import abipy.flowtk as flowtk
-import abipy.data as abidata
-import abipy.tools.cli_parsers as cli
+import os
+import sys
 
 from monty import termcolor
 from monty.termcolor import cprint
-from abipy import abilab
+
+import abipy.data as abidata
+import abipy.tools.cli_parsers as cli
+from abipy import abilab, flowtk
+
 
 def show_managers(options):
     """
@@ -49,21 +50,21 @@ def get_parser(with_epilog=False):
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('--loglevel', default="ERROR", type=str,
+    parser.add_argument("--loglevel", default="ERROR", type=str,
                         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
-    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                        help='verbose, can be supplied multiple times to increase verbosity.')
-    parser.add_argument('--no-colors', default=False, action="store_true", help='Disable ASCII colors.')
-    parser.add_argument('--with-flow', default=False, action="store_true", help='Build and run small abipy flow for testing.')
-    parser.add_argument("-d", '--flow-dir', type=str, default=None,
-                        help='Create AbiPy flow in this directory. If None, a default directory is used,')
-    parser.add_argument("-m", '--show-managers', default=False, action="store_true",
+    parser.add_argument("-V", "--version", action="version", version=abilab.__version__)
+    parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+                        help="verbose, can be supplied multiple times to increase verbosity.")
+    parser.add_argument("--no-colors", default=False, action="store_true", help="Disable ASCII colors.")
+    parser.add_argument("--with-flow", default=False, action="store_true", help="Build and run small abipy flow for testing.")
+    parser.add_argument("-d", "--flow-dir", type=str, default=None,
+                        help="Create AbiPy flow in this directory. If None, a default directory is used,")
+    parser.add_argument("-m", "--show-managers", default=False, action="store_true",
                         help="Print table with manager files provided by AbiPy.")
 
-    parser.add_argument("-c", '--create-config', default=False, action="store_true",
+    parser.add_argument("-c", "--create-config", default=False, action="store_true",
                         help="Create yaml configuration files in ~/abinit/.abipy with predefined settings.")
-    parser.add_argument("-f", '--force-reinstall', default=False, action="store_true",
+    parser.add_argument("-f", "--force-reinstall", default=False, action="store_true",
                         help="Overwrite yaml configuration files if --create-config and files already exist.")
     return parser
 
@@ -103,12 +104,11 @@ def main():
     errmsg = abilab.abicheck(verbose=options.verbose)
     if errmsg:
         cprint(errmsg, "red")
-        cprint("TIP: Use `--show-managers` to print the manager files provided by AbiPy.\n" +
+        cprint("TIP: Use `--show-managers` to print the manager files provided by AbiPy.\n"
                "If abicheck.py is failing because it cannot find the manager.yml configuration file",
                "yellow")
         return 2
-    else:
-        cprint("\nAbipy requirements are properly configured\n", "green")
+    cprint("\nAbipy requirements are properly configured\n", "green")
 
     if not options.with_flow:
         return 0

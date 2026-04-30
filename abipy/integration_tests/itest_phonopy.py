@@ -5,12 +5,13 @@ from __future__ import annotations
 
 import os
 import unittest
+
 #import numpy.testing.utils as nptu
 import numpy.testing as nptu
-import abipy.data as abidata
-import abipy.flowtk as flowtk
-import abipy.flowtk.abiphonopy as abiph
 
+import abipy.data as abidata
+import abipy.flowtk.abiphonopy as abiph
+from abipy import flowtk
 from abipy.abio.factories import gs_input
 from abipy.core.testing import has_phonopy
 
@@ -52,7 +53,7 @@ def itest_phonopy_flow(fwp, tvars):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
     assert all(work.finalized for work in flow)
 
     # The WFK files should have been removed because we called set_garbage_collector
@@ -103,7 +104,7 @@ def itest_phonopy_gruneisen_flow(fwp, tvars):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
     # Initialial work + 3 phonopy works.
     assert len(flow) == 4
     assert all(work.finalized for work in flow)

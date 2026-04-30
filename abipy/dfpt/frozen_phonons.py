@@ -1,13 +1,13 @@
-# coding: utf-8
 """Objects to run and analyze the frozen phonons generated from displacements of atoms"""
 from __future__ import annotations
 
-import numpy as np
-import scipy.optimize as optimize
-
 from functools import cached_property
+
+import numpy as np
 from monty.collections import dict2namedtuple
-from abipy.core.abinit_units import phfactor_ev2units, amu_emass, Bohr_Ang, eV_Ha
+from scipy import optimize
+
+from abipy.core.abinit_units import Bohr_Ang, amu_emass, eV_Ha, phfactor_ev2units
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.typing import Figure
 
@@ -48,7 +48,6 @@ class FrozenPhonon:
             scale_matrix: the scaling matrix between the original cell and the supercell.
             energies: energies in eV corresponding to the structures.
         """
-
         self.original_structure = original_structure
         self.original_displ_cart = original_displ_cart
         self.structures = structures
@@ -137,7 +136,7 @@ class FrozenPhonon:
         displ_norms = np.linalg.norm(self.normalized_displ_cart, axis=1)
 
         mass_factor = sum(site.specie.atomic_mass * (df**2)
-                          for site, df in zip(self.structures[0], displ_norms / displ_norms.max())) / 2.
+                          for site, df in zip(self.structures[0], displ_norms / displ_norms.max(), strict=False)) / 2.
         mass_factor *= amu_emass
         return mass_factor
 
@@ -146,7 +145,6 @@ class FrozenPhonon:
         Helper function to convert from a frequency in eV to the quadratic coefficient corresponding to the
         energies in eV and the etas in Angstrom. Uses the conversions to a.u. to get the correct value.
         """
-
         return freq ** 2 * self.mass_factor * eV_Ha / Bohr_Ang ** 2
 
     def _quad_coeff_to_freq(self, coeff):
@@ -154,7 +152,6 @@ class FrozenPhonon:
         Helper function to convert from the quadratic coefficient corresponding to the fit of energies in eV and
         the etas in Angstrom to a frequency in eV. Uses the conversions to a.u. to get the correct value.
         """
-
         return np.sqrt(coeff / self.mass_factor / eV_Ha) * Bohr_Ang
 
     def fit_to_frequency(self, fit_function=None, units="eV", min_fit_eta=None, max_fit_eta=None):
@@ -177,7 +174,6 @@ class FrozenPhonon:
             'fit_params': the parameters obtained from the fit, 'cov': the estimated covariance of fit_params
             (see scipy.optimize.curve_fit documentation for more details).
         """
-
         if self.energies is None:
             raise ValueError("The energies are required to calculate the fit")
 
@@ -219,7 +215,6 @@ class FrozenPhonon:
         Returns:
             |matplotlib-Figure|
         """
-
         if fit_function is None:
             fit_function = quadratic_fit_function
 
@@ -273,7 +268,6 @@ class FrozenPhonon:
         Returns:
             |matplotlib-Figure|
         """
-
         if self.energies is None:
             raise ValueError("The energies are required to calculate the fit")
 
@@ -290,7 +284,7 @@ class FrozenPhonon:
         diff = np.abs(en_freq - np.array(self.energies))
 
         if relative:
-            diff = [d/(e-e0) * 100 if e != 0 else 0 for d, e in zip(diff, en_freq)]
+            diff = [d/(e-e0) * 100 if e != 0 else 0 for d, e in zip(diff, en_freq, strict=False)]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 

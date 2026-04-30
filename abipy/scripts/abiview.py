@@ -5,17 +5,19 @@ or convert data from Abinit files (usually netcdf) to other formats.
 """
 from __future__ import annotations
 
-import sys
-import os
 import argparse
-import abipy.tools.cli_parsers as cli
-
+import os
+import sys
 from pprint import pformat
+
 from monty.termcolor import cprint
+
+import abipy.tools.cli_parsers as cli
 from abipy import abilab
 from abipy.abio.outputs import AbinitOutputFile
 from abipy.iotools.visualizer import Visualizer
-from abipy.tools.plotting import MplExposer, PanelExposer, GenericDataFilePlotter
+from abipy.tools.plotting import GenericDataFilePlotter, MplExposer, PanelExposer
+
 # , plotlyfigs_to_browser, push_to_chart_studio
 
 
@@ -39,7 +41,7 @@ def df_to_clipboard(options, df) -> None:
 
 class NegateAction(argparse.Action):
     def __call__(self, parser, ns, values, option):
-        setattr(ns, self.dest, option[2:4] != 'no')
+        setattr(ns, self.dest, option[2:4] != "no")
 
 
 def abiview_structure(options):
@@ -156,8 +158,9 @@ def abiview_dirviz(options) -> int:
     """
     Visualize directory tree with graphviz.
     """
-    from abipy.flowtk.utils import Dirviz
     import tempfile
+
+    from abipy.flowtk.utils import Dirviz
     graph = Dirviz(options.filepath).get_cluster_graph(engine=options.engine)
     directory = tempfile.mkdtemp()
     print("Producing source files in:", directory)
@@ -301,10 +304,10 @@ Computing phonon bands and DOS from DDB file with:
         #    phbands.to_bxsf(handle_overwrite(outpath, options))
         #    return 0
 
-        elif options.phononwebsite:
+        if options.phononwebsite:
             return phbands.view_phononwebsite(browser=options.browser, verbose=options.verbose)
 
-        elif options.plotly:
+        if options.plotly:
             # Plotly + Panel version.
             phdos = phdos_file.phdos
             with PanelExposer(title=f"Vibrational properties of {phdos_file.structure.formula}") as e:
@@ -346,7 +349,7 @@ Computing phonon bands and DOS from DDB file with:
             # Save phonopy object in Yaml format.
             filename = "phonopy_params.yaml"
             print(f"Saving phonopy object to {filename}")
-            phonon.save(filename="phonopy_params.yaml", settings={'force_constants': True})
+            phonon.save(filename="phonopy_params.yaml", settings={"force_constants": True})
 
     return 0
 
@@ -752,15 +755,15 @@ def get_parser(with_epilog=False):
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
-    copts_parser.add_argument('filepath', type=str, help="File to visualize.")
+    copts_parser.add_argument("filepath", type=str, help="File to visualize.")
 
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
+    copts_parser.add_argument("--loglevel", default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-        help='verbose, can be supplied multiple times to increase verbosity.')
-    copts_parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
+    copts_parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+        help="verbose, can be supplied multiple times to increase verbosity.")
+    copts_parser.add_argument("-sns", "--seaborn", const="paper", default=None, action="store", nargs="?", type=str,
         help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
-    copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
+    copts_parser.add_argument("-mpl", "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
@@ -772,47 +775,47 @@ def get_parser(with_epilog=False):
     slide_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
             help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
     slide_parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
-            help='Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.')
+            help="Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.")
 
     # Parent parser for commands that operating on pandas dataframes
     pandas_parser = argparse.ArgumentParser(add_help=False)
-    pandas_parser.add_argument("-c", '--clipboard', default=False, action="store_true",
+    pandas_parser.add_argument("-c", "--clipboard", default=False, action="store_true",
             help="Copy dataframe to the system clipboard. This can be pasted into Excel, for example")
 
     # Parent parser for commands supporting ipython
     ipy_parser = argparse.ArgumentParser(add_help=False)
-    ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
+    ipy_parser.add_argument("-ipy", "--ipython", default=False, action="store_true", help="Invoke ipython terminal.")
 
     # Parent parser for commands supporting (jupyter notebooks)
     nb_parser = argparse.ArgumentParser(add_help=False)
-    nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
-    nb_parser.add_argument('--foreground', action='store_true', default=False,
+    nb_parser.add_argument("-nb", "--notebook", default=False, action="store_true", help="Generate jupyter notebook.")
+    nb_parser.add_argument("--foreground", action="store_true", default=False,
         help="Run jupyter notebook in the foreground.")
 
     # Parent parser for commands supporting plotly plots
     plotly_parser = argparse.ArgumentParser(add_help=False)
-    plotly_parser.add_argument("-ply", '--plotly', default=False, action="store_true",
-        help='Generate plotly plots in the browser instead of matplotlib.')
+    plotly_parser.add_argument("-ply", "--plotly", default=False, action="store_true",
+        help="Generate plotly plots in the browser instead of matplotlib.")
     plotly_parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
-        help="Push figure to plotly chart studio. " +
+        help="Push figure to plotly chart studio. "
              "Requires --plotly and user account at https://chart-studio.plotly.com.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
+    parser.add_argument("-V", "--version", action="version", version=abilab.__version__)
 
     # Create the parsers for the sub-command
-    subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
+    subparsers = parser.add_subparsers(dest="command", help="sub-command help", description="Valid subcommands")
 
     def add_args(p, *args):
         """Add arguments to subparser `p`."""
         for arg in args:
             if arg == "xmgrace":
-                p.add_argument('--xmgrace', default=False, action="store_true",
+                p.add_argument("--xmgrace", default=False, action="store_true",
                     help="Print bands in xmgrace format to stdout and exit.")
             elif arg == "bxsf":
-                p.add_argument('--bxsf', default=False, action="store_true",
+                p.add_argument("--bxsf", default=False, action="store_true",
                     help=("Generate BXSF file suitable for the visualization of isosurfaces with Xcrysden"
                           "(xcrysden --bxsf FILE).\n Requires k-points in IBZ. Print to stdout and exit."))
             elif arg == "phononweb":
@@ -824,22 +827,22 @@ def get_parser(with_epilog=False):
                     help="Define browser used by python webbrowser. "
                          "See https://docs.python.org/2/library/webbrowser.html#webbrowser.register")
             elif arg == "force":
-                p.add_argument("-f", '--force', default=False, action="store_true",
+                p.add_argument("-f", "--force", default=False, action="store_true",
                     help="Overwrite pre-existent files without prompting for confirmation.")
             else:
                 raise ValueError("Invalid arg: %s" % arg)
 
     # Subparser for structure command.
-    p_structure = subparsers.add_parser('structure', parents=[copts_parser], help=abiview_structure.__doc__)
+    p_structure = subparsers.add_parser("structure", parents=[copts_parser], help=abiview_structure.__doc__)
     p_structure.add_argument("-a", "--appname", nargs="?", type=str, default="vesta",
         help=("Application name. Default: vesta. "
               "Possible options: %s, mayavi, vtk" % ", ".join(Visualizer.all_visunames())))
 
     # Subparser for input command.
-    p_input = subparsers.add_parser('input', parents=[copts_parser], help=abiview_input.__doc__)
+    p_input = subparsers.add_parser("input", parents=[copts_parser], help=abiview_input.__doc__)
 
     # Subparser for hist command.
-    p_hist = subparsers.add_parser('hist', parents=[copts_parser], help=abiview_hist.__doc__)
+    p_hist = subparsers.add_parser("hist", parents=[copts_parser], help=abiview_hist.__doc__)
     p_hist.add_argument("-a", "--appname", nargs="?", default=None, const="ovito",
         help=("Application name. Default: ovito. "
               "Possible options: `%s`, `mpl` (matplotlib) `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
@@ -849,34 +852,34 @@ def get_parser(with_epilog=False):
     add_args(p_hist, "force")
 
     # Subparser for data command.
-    p_data = subparsers.add_parser('data', parents=[copts_parser], help=abiview_data.__doc__)
+    p_data = subparsers.add_parser("data", parents=[copts_parser], help=abiview_data.__doc__)
     p_data.add_argument("-i", "--use-index", default=False, action="store_true",
         help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
 
     # Subparser for abo command.
     #p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
 
-    p_timer = subparsers.add_parser('timer', parents=[copts_parser, slide_parser], help=abiview_timer.__doc__)
+    p_timer = subparsers.add_parser("timer", parents=[copts_parser, slide_parser], help=abiview_timer.__doc__)
 
-    p_memlog = subparsers.add_parser('memlog', parents=[copts_parser, slide_parser], help=abiview_memlog.__doc__)
+    p_memlog = subparsers.add_parser("memlog", parents=[copts_parser, slide_parser], help=abiview_memlog.__doc__)
 
     # Subparser for dirviz command.
-    p_dirviz = subparsers.add_parser('dirviz', parents=[copts_parser], help=abiview_dirviz.__doc__)
+    p_dirviz = subparsers.add_parser("dirviz", parents=[copts_parser], help=abiview_dirviz.__doc__)
     p_dirviz.add_argument("-e", "--engine", type=str, default="fdp",
         help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
             "See http://www.graphviz.org/pdf/dot.1.pdf "
             "Use `conda install python-graphviz` or `pip install graphviz` to install the python package."))
 
     # Subparser for ebands command.
-    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, slide_parser], help=abiview_ebands.__doc__)
+    p_ebands = subparsers.add_parser("ebands", parents=[copts_parser, slide_parser], help=abiview_ebands.__doc__)
     add_args(p_ebands, "xmgrace", "bxsf", "force")
 
     # Subparser for effmass command.
-    p_effmass = subparsers.add_parser('effmass', parents=[copts_parser, slide_parser], help=abiview_effmass.__doc__)
+    p_effmass = subparsers.add_parser("effmass", parents=[copts_parser, slide_parser], help=abiview_effmass.__doc__)
     #add_args(p_ebands, "xmgrace", "bxsf", "force")
 
     # Subparser for skw command.
-    p_skw = subparsers.add_parser('skw', parents=[copts_parser], help=abiview_skw.__doc__)
+    p_skw = subparsers.add_parser("skw", parents=[copts_parser], help=abiview_skw.__doc__)
     p_skw.add_argument("-lp", "--lpratio", type=int, default=5,
         help=("Ratio between the number of star functions and the number of ab-initio k-points. "
               "The default should be OK in many systems, larger values may be required for accurate derivatives."))
@@ -884,92 +887,92 @@ def get_parser(with_epilog=False):
                       help="Number of points in the smallest segment of the k-path.")
 
     # Subparser for fs command.
-    p_fs = subparsers.add_parser('fs', parents=[copts_parser], help=abiview_fs.__doc__)
+    p_fs = subparsers.add_parser("fs", parents=[copts_parser], help=abiview_fs.__doc__)
     p_fs.add_argument("-a", "--appname", type=str, default="mpl",
         help="Application name. Possible options: mpl (matplotlib, default), xsf (xcrysden), mayavi.")
 
     # Parent parser for ifermi commands
     ifermi_parser = argparse.ArgumentParser(add_help=False)
-    ifermi_parser.add_argument("-i", '--interpolation-factor', default=8, type=float,
+    ifermi_parser.add_argument("-i", "--interpolation-factor", default=8, type=float,
         help="interpolation factor for band structure  [default: 8.0]")
-    ifermi_parser.add_argument("--eref", default="fermie", type=str, choices=['fermie', 'cbm', 'vbm'],
-        help="Energy reference for isosurface. `eref` and `mu` define the energy level: isoe = eref + mu" +
-              "Use `fermie` for metals, `cbm` for the conduction band minimum, and `vbm` for the valence band maximum, " +
+    ifermi_parser.add_argument("--eref", default="fermie", type=str, choices=["fermie", "cbm", "vbm"],
+        help="Energy reference for isosurface. `eref` and `mu` define the energy level: isoe = eref + mu"
+              "Use `fermie` for metals, `cbm` for the conduction band minimum, and `vbm` for the valence band maximum, "
              "[default: `fermie`]")
-    ifermi_parser.add_argument("-t", '--plot-type', default="plotly", choices=["plotly", "matplotlib", "mayavi"],
+    ifermi_parser.add_argument("-t", "--plot-type", default="plotly", choices=["plotly", "matplotlib", "mayavi"],
         help="Plot type. Possible options: plotly (default), matplotlib, mayavi.")
-    ifermi_parser.add_argument('--wigner', '--no-wigner', dest='wigner', default=True, action=NegateAction, nargs=0,
+    ifermi_parser.add_argument("--wigner", "--no-wigner", dest="wigner", default=True, action=NegateAction, nargs=0,
             help="Use the Wigner-Seitz cell or the reciprocal lattice parallelepiped. Default is: wigner")
-    ifermi_parser.add_argument("-vel", '--with-velocities', default=False, action="store_true",
+    ifermi_parser.add_argument("-vel", "--with-velocities", default=False, action="store_true",
             help="Show color map with interpolated group velocities. Default is False.")
 
     # Subparser for ifermi_fs command.
-    p_ifermi_fs = subparsers.add_parser('ifermi_fs', parents=[ifermi_parser, copts_parser], help=abiview_ifermi_fs.__doc__)
-    p_ifermi_fs.add_argument("-m", '--mu', default=0.0, type=float,
+    p_ifermi_fs = subparsers.add_parser("ifermi_fs", parents=[ifermi_parser, copts_parser], help=abiview_ifermi_fs.__doc__)
+    p_ifermi_fs.add_argument("-m", "--mu", default=0.0, type=float,
         help="Offset in eV from the energy reference, eref, at which to calculate the isosurface. Default 0 i.e. use `eref`")
 
     # Subparser for ddb command.
-    p_ddb = subparsers.add_parser('ddb', parents=[copts_parser, slide_parser, plotly_parser], help=abiview_ddb.__doc__)
+    p_ddb = subparsers.add_parser("ddb", parents=[copts_parser, slide_parser, plotly_parser], help=abiview_ddb.__doc__)
     p_ddb.add_argument("--with-phonopy", default=False, action="store_true",
         help="Produce phonopy.yaml file. Use e.g. `abiopen.py  phonopy.yaml` to load the phonon object in the ipython terminal.")
     add_args(p_ddb, "xmgrace", "phononweb", "browser", "force")
 
     # Subparser for ddb_vs command.
-    p_ddb_vs = subparsers.add_parser('ddb_vs', parents=[copts_parser, pandas_parser, slide_parser],
+    p_ddb_vs = subparsers.add_parser("ddb_vs", parents=[copts_parser, pandas_parser, slide_parser],
                                      help=abiview_ddb_vs.__doc__)
 
     # Subparser for ddb_ir command.
-    p_ddb_becs = subparsers.add_parser('ddb_becs', parents=[copts_parser, pandas_parser],
+    p_ddb_becs = subparsers.add_parser("ddb_becs", parents=[copts_parser, pandas_parser],
                                        help=abiview_ddb_becs.__doc__)
 
     # Subparser for ddb_ir command.
-    p_ddb_ir = subparsers.add_parser('ddb_ir', parents=[copts_parser, pandas_parser, slide_parser],
+    p_ddb_ir = subparsers.add_parser("ddb_ir", parents=[copts_parser, pandas_parser, slide_parser],
                                      help=abiview_ddb_ir.__doc__)
 
     # Subparser for ddb_asr command.
-    p_ddb_asr = subparsers.add_parser('ddb_asr', parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
+    p_ddb_asr = subparsers.add_parser("ddb_asr", parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
                                       help=abiview_ddb_asr.__doc__)
 
     # Subparser for ddb_dipdip command.
-    p_ddb_dipdip = subparsers.add_parser('ddb_dipdip', parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
+    p_ddb_dipdip = subparsers.add_parser("ddb_dipdip", parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
                                          help=abiview_ddb_dipdip.__doc__)
 
     # Subparser for ddb_quad command.
-    p_ddb_quad = subparsers.add_parser('ddb_quad', parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
+    p_ddb_quad = subparsers.add_parser("ddb_quad", parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
                                        help=abiview_ddb_quad.__doc__)
 
     # Subparser for ddb_ph_isodistort command.
-    p_ddb_isodistort_ph = subparsers.add_parser('ddb_isodistort_ph', parents=[copts_parser],
+    p_ddb_isodistort_ph = subparsers.add_parser("ddb_isodistort_ph", parents=[copts_parser],
                                      help=abiview_ddb_isodistort_ph.__doc__)
     p_ddb_isodistort_ph.add_argument("-q", "--qpoint", nargs=3, type=float,
         help="q-point in reduced coordinates e.g. 0.25 0 0. Default: 0, 0, 0", default=[0, 0, 0])
 
     # Subparser for ddb_ifc command.
-    p_ddb_ifc = subparsers.add_parser('ddb_ifc', parents=[copts_parser, pandas_parser, slide_parser],
+    p_ddb_ifc = subparsers.add_parser("ddb_ifc", parents=[copts_parser, pandas_parser, slide_parser],
                                       help=abiview_ddb_ifc.__doc__)
 
     # Subparser for ddb_ifc command.
-    p_ddb_elastic = subparsers.add_parser('ddb_elastic', parents=[copts_parser, pandas_parser, slide_parser],
+    p_ddb_elastic = subparsers.add_parser("ddb_elastic", parents=[copts_parser, pandas_parser, slide_parser],
                                       help=abiview_ddb_elastic.__doc__)
 
     # Subparser for ddb_qpt command.
-    p_ddb_qpt = subparsers.add_parser('ddb_qpt', parents=[copts_parser, pandas_parser, slide_parser],
+    p_ddb_qpt = subparsers.add_parser("ddb_qpt", parents=[copts_parser, pandas_parser, slide_parser],
                                       help=abiview_ddb_qpt.__doc__)
 
     p_ddb_qpt.add_argument("-q", "--qpoint", nargs=3, type=float,
         help="q-point in reduced coordinates e.g. `-q 0.25 0 0`. Default: 0, 0, 0", default=[0, 0, 0])
 
     # Subparser for phbands command.
-    p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, slide_parser], help=abiview_phbands.__doc__)
+    p_phbands = subparsers.add_parser("phbands", parents=[copts_parser, slide_parser], help=abiview_phbands.__doc__)
     add_args(p_phbands, "xmgrace", "phononweb", "browser", "force")
 
     # Subparser for lobster command.
-    p_lobster = subparsers.add_parser('lobster', parents=[copts_parser, ipy_parser, nb_parser],
+    p_lobster = subparsers.add_parser("lobster", parents=[copts_parser, ipy_parser, nb_parser],
         help=abiview_lobster.__doc__)
     p_lobster.add_argument("--prefix", type=str, default="", help="Prefix for lobster output files. Default: ''")
 
     # Subparser for xrd.
-    p_xrd = subparsers.add_parser('xrd_traj', parents=[copts_parser],
+    p_xrd = subparsers.add_parser("xrd_traj", parents=[copts_parser],
         help="Compare X-ray diffraction for the first and the last structure in a trajectory file.")
     p_xrd.add_argument("-w", "--wavelength", default="CuKa", type=str, help=(
         "The wavelength can be specified as a string. It must be one of the "
@@ -984,7 +987,7 @@ def get_parser(with_epilog=False):
         help="Whether to annotate the peaks with plane information.")
 
     # Subparser for denpot command.
-    p_denpot = subparsers.add_parser('denpot', parents=[copts_parser], help=abiview_denpot.__doc__)
+    p_denpot = subparsers.add_parser("denpot", parents=[copts_parser], help=abiview_denpot.__doc__)
     p_denpot.add_argument("-a", "--appname", type=str, default="vesta",
             help=("Application name. Default: vesta. " +
                   "Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
@@ -1028,8 +1031,8 @@ def main():
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
-        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
-                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+        sns.set(context=options.seaborn, style="darkgrid", palette="deep",
+                font="sans-serif", font_scale=1, color_codes=False, rc=None)
 
     # Dispatch
     return globals()["abiview_" + options.command](options)

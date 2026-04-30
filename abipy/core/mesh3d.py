@@ -1,14 +1,13 @@
-# coding: utf-8
 """This module contains the class defining Uniform 3D meshes."""
 from __future__ import annotations
 
-import numpy as np
-
 #from itertools import product as iproduct
 from functools import cached_property
-from numpy.fft import fftn, ifftn, fftshift, ifftshift, fftfreq
-from abipy.tools import duck
 
+import numpy as np
+from numpy.fft import fftfreq, fftn, fftshift, ifftn, ifftshift
+
+from abipy.tools import duck
 
 __all__ = [
     "Mesh3D",
@@ -48,7 +47,6 @@ class Mesh3D:
             vectors: unit cell vectors in real space.
 
         Attributes:
-
         ==========  ========================================================
         ``shape``   Array of the number of grid points along the three axes.
         ``dv``      Volume per grid point.
@@ -130,8 +128,7 @@ class Mesh3D:
 
         if zero:
             return np.zeros(shape, dtype)
-        else:
-            return np.empty(shape, dtype)
+        return np.empty(shape, dtype)
 
     def zeros(self, dtype=float, extra_dims=()) -> np.ndarray:
         """
@@ -170,11 +167,10 @@ class Mesh3D:
         re = np.random.random(shape)
         if dtype == float:
             return re
-        elif dtype == complex:
+        if dtype == complex:
             im = self.random(extra_dims=extra_dims)
             return re + 1j*im
-        else:
-            raise ValueError("Wrong dtype: %s" % str(dtype))
+        raise ValueError("Wrong dtype: %s" % str(dtype))
 
     def crandom(self, extra_dims=()) -> np.ndarray:
         """Returns random complex |numpy-array| for this domain with val in [0.0, 1.0)."""
@@ -200,7 +196,7 @@ class Mesh3D:
             fr = np.reshape(fr, self.shape)
             return self.fft_r2g(fr, shift_fg=shift_fg).flatten()
 
-        elif ndim == 3:
+        if ndim == 3:
             assert self.size == np.prod(shape[-3:])
             fg = fftn(fr)
             if shift_fg: fg = fftshift(fg)
@@ -275,12 +271,11 @@ class Mesh3D:
         if ndim == 3:
             return fr.sum() * self.dv
 
-        elif ndim > 3:
+        if ndim > 3:
             sums = np.sum(np.reshape(fr, shape[:-3] + (-1,)), axis=-1)
             return sums * self.dv
 
-        else:
-            raise NotImplementedError("ndim < 3 are not supported")
+        raise NotImplementedError("ndim < 3 are not supported")
 
     @cached_property
     def gvecs(self) -> np.ndarray:

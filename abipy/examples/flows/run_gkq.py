@@ -6,12 +6,11 @@ e-ph matrix elements along a q-path
 This example shows how to compute the e-ph matrix elements in AlAs along a q-path with AbiPy flows.
 The final results are stored in the GKQ.nc file (one file for q-point) in the outdata of each task.
 """
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_input(ngkpt):

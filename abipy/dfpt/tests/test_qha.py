@@ -1,11 +1,11 @@
 """Tests for frozen_phonons"""
 import os
 import warnings
-import abipy.data as abidata
 
-from abipy.dfpt.qha import QHA, QHA3PF, QHA3P, QHAQmeshAnalyzer
-from abipy.dfpt.phonons import PhononBands
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
+from abipy.dfpt.phonons import PhononBands
+from abipy.dfpt.qha import QHA, QHA3P, QHA3PF, QHAQmeshAnalyzer
 
 
 class QhaTest(AbipyTest):
@@ -14,10 +14,10 @@ class QhaTest(AbipyTest):
     def setUpClass(cls):
         cls.strains = [-4, -2, 0, 2, 4, 6]
         dirpath = os.path.join(abidata.dirpath, "refs", "si_qha")
-        cls.gsr_paths = [os.path.join(dirpath, "mp-149_{:+d}_GSR.nc".format(s)) for s in cls.strains]
-        cls.dos_paths = [os.path.join(dirpath, "mp-149_{:+d}_PHDOS.nc".format(s)) for s in cls.strains]
-        cls.ddb_paths = [os.path.join(dirpath, "mp-149_{:+d}_DDB".format(s)) for s in cls.strains]
-        cls.phbs_list = [PhononBands.from_file(os.path.join(dirpath, "mp-149_{:+d}_PHBST.nc".format(s))) for s in
+        cls.gsr_paths = [os.path.join(dirpath, f"mp-149_{s:+d}_GSR.nc") for s in cls.strains]
+        cls.dos_paths = [os.path.join(dirpath, f"mp-149_{s:+d}_PHDOS.nc") for s in cls.strains]
+        cls.ddb_paths = [os.path.join(dirpath, f"mp-149_{s:+d}_DDB") for s in cls.strains]
+        cls.phbs_list = [PhononBands.from_file(os.path.join(dirpath, f"mp-149_{s:+d}_PHBST.nc")) for s in
                          cls.strains[2:4]]
 
     def test_qha(self):
@@ -99,12 +99,11 @@ class Qha3pfTest(AbipyTest):
     def setUpClass(cls):
         cls.strains = [-4, -2, 0, 2, 4, 6]
         path = os.path.join(abidata.dirpath, "refs", "si_qha")
-        cls.gsr_paths = [os.path.join(path, "mp-149_{:+d}_GSR.nc".format(s)) for s in cls.strains]
-        cls.dos_paths = [os.path.join(path, "mp-149_{:+d}_PHDOS.nc".format(s)) for s in cls.strains]
+        cls.gsr_paths = [os.path.join(path, f"mp-149_{s:+d}_GSR.nc") for s in cls.strains]
+        cls.dos_paths = [os.path.join(path, f"mp-149_{s:+d}_PHDOS.nc") for s in cls.strains]
 
     def test_qha3pf(self):
         """Testing QHA3PF"""
-
         qha = QHA3PF.from_files(self.gsr_paths, self.dos_paths[1:4], ind_doses=[1, 2, 3])
 
         self.assert_equal(qha.nvols, len(self.strains))
@@ -150,7 +149,7 @@ class Qha3pTest(AbipyTest):
     def setUpClass(cls):
         cls.strains = [-4, -2, 0, 2, 4, 6]
         path = os.path.join(abidata.dirpath, "refs", "si_qha")
-        cls.gsr_paths = [os.path.join(path, "mp-149_{:+d}_GSR.nc".format(s)) for s in cls.strains]
+        cls.gsr_paths = [os.path.join(path, f"mp-149_{s:+d}_GSR.nc") for s in cls.strains]
         cls.gruns_path = os.path.join(path, "mp-149_GRUNS.nc")
         warnings.simplefilter("ignore")
 

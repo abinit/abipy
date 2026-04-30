@@ -1,7 +1,7 @@
 """Tests for wannier90 module"""
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.wannier90 import Wannier90Input
 

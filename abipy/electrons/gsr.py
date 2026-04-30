@@ -1,32 +1,30 @@
-# coding: utf-8
 """
 Interface to the GSR.nc_ file storing the Ground-state results and the electron band structure.
 """
 from __future__ import annotations
 
-import sys
 import dataclasses
+import sys
+from collections import OrderedDict
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
-import pymatgen.core.units as units
-import abipy.core.abinit_units as abu
-
-from collections import OrderedDict
-from typing import Optional
-from functools import cached_property
-from tabulate import tabulate
+from monty.collections import AttrDict, dict2namedtuple
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
-from monty.collections import AttrDict, dict2namedtuple
+from pymatgen.core import units
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.core.structure import Structure
-from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, get_ax_fig_plt, set_grid_legend, set_ax_xylabels
-from abipy.tools.typing import Figure
-from abipy.abio.robots import Robot
-from abipy.electrons.ebands import ElectronsReader, RobotWithEbands, ElectronBands
+from tabulate import tabulate
 
+import abipy.core.abinit_units as abu
+from abipy.abio.robots import Robot
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
+from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend
+from abipy.tools.typing import Figure
 
 __all__ = [
     "GsrFile",
@@ -138,8 +136,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         # In principle one should use iscf but it's not available in the GSR.
         if "kptopt" in self.r.rootgrp.variables:
             return int(self.r.read_value("kptopt")) >= 0
-        else:
-            return abs(self.cart_stress_tensor[0, 0] - _INVALID_STRESS_TENSOR) > 0.1
+        return abs(self.cart_stress_tensor[0, 0] - _INVALID_STRESS_TENSOR) > 0.1
 
     @cached_property
     def ecut(self):
@@ -270,7 +267,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         od["ecut"] = float(self.ecut)
         #if self.hdr.usepaw == 1
@@ -307,9 +304,8 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         if inc_structure:
             return ComputedStructureEntry(self.structure, self.energy,
                                           correction=0.0, parameters=parameters, data=data)
-        else:
-            return ComputedEntry(self.structure.composition, self.energy,
-                                 parameters=parameters, data=data)
+        return ComputedEntry(self.structure.composition, self.energy,
+                             parameters=parameters, data=data)
 
     def print_efg_results(self, precision=4, file=sys.stdout) -> None:
         """
@@ -332,8 +328,8 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             _p("Found no quadrupole moment data, using 0.0 for all atoms")
 
         from numpy.linalg import eigvals
-        atom_species = self.r.read_value('atom_species')
-        atom_species_names = self.r.read_value('atom_species_names')
+        atom_species = self.r.read_value("atom_species")
+        atom_species_names = self.r.read_value("atom_species_names")
 
         #with np.set_printoptions(precision=precision):
         _p("Field gradient data")
@@ -347,7 +343,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             eta = (vxx - vyy) / vzz if abs(vzz) > 1.0E-8 else 0.0
 
             cq = vzz * quadmom[itypat-1] * scale_factor
-            _p('atom type '+ str(atom_species[iat]) + ' Cq(MHz): %7.3f   eta: %4.3f' % (cq, eta))
+            _p("atom type "+ str(atom_species[iat]) + " Cq(MHz): %7.3f   eta: %4.3f" % (cq, eta))
 
     def get_panel(self, **kwargs):
         """
@@ -415,7 +411,7 @@ class EnergyTerms(AttrDict):
     _NAME2DOC = OrderedDict([
         # (Name, help)
         ("e_localpsp", "Local psp energy"),
-        ("e_eigenvalues", "Sum of the eigenvalues - Band energy\n" +
+        ("e_eigenvalues", "Sum of the eigenvalues - Band energy\n"
                           "(valid for double-counting scheme dtset%optene == 1)"),
         ("e_ewald",  "Ewald energy, store also the ion/ion energy for free boundary conditions."),
         ("e_hartree", "Hartree part of the total energy"),
@@ -423,8 +419,8 @@ class EnergyTerms(AttrDict):
         ("e_corepspdc", "psp core-core energy double-counting"),
         ("e_kinetic", "Kinetic energy part of total energy. (valid for direct scheme, dtset%optene == 0"),
         ("e_nonlocalpsp", "Nonlocal pseudopotential part of total energy."),
-        ("e_entropy", "Entropy energy due to the occupation number smearing (if metal)\n" +
-                      "Value is multiplied by dtset%tsmear, see %entropy for the entropy alone\n." +
+        ("e_entropy", "Entropy energy due to the occupation number smearing (if metal)\n"
+                      "Value is multiplied by dtset%tsmear, see %entropy for the entropy alone\n."
                       "(valid for metals, dtset%occopt>=3 .and. dtset%occopt<=8)"),
         ("entropy", "Entropy term"),
         ("e_xc", "Exchange-correlation energy"),
@@ -440,8 +436,8 @@ class EnergyTerms(AttrDict):
         ("h0", "h0=e_kinetic+e_localpsp+e_nonlocalpsp"),
         ("e_electronpositron", "Electron-positron: electron-positron interaction energy"),
         ("edc_electronpositron", "Electron-positron: double-counting electron-positron interaction energy"),
-        ("e0_electronpositron", "Electron-positron: energy only due to unchanged particles\n" +
-                                "(if calctype=1, energy due to electrons only)\n" +
+        ("e0_electronpositron", "Electron-positron: energy only due to unchanged particles\n"
+                                "(if calctype=1, energy due to electrons only)\n"
                                 "(if calctype=2, energy due to positron only)\n"),
         ("e_monopole", "Monopole correction to the total energy for charged supercells"),
         # FIXME: Some names have been changed in Abinit8, I should recheck the code.
@@ -466,7 +462,7 @@ class EnergyTerms(AttrDict):
 
     @property
     def table(self):
-        """string with results in tabular form."""
+        """String with results in tabular form."""
         table = [["Term", "Value"]]
         for k, doc in self._NAME2DOC.items():
             table.append([k, self[k]])
@@ -519,7 +515,7 @@ class EnergyTermsPlotter:
 
     def get_dataframe(self) -> pd.DataFrame:
         df_list = []
-        for label, eterms in zip(self.labels, self.eterms_list):
+        for label, eterms in zip(self.labels, self.eterms_list, strict=False):
             df = eterms.get_dataframe()
             df["label"] = label
             df_list.append(df)
@@ -686,7 +682,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
         # Order data by volumes if needed.
         if np.any(np.diff(volumes) < 0):
-            ves = sorted(zip(volumes, energies), key=lambda t: t[0])
+            ves = sorted(zip(volumes, energies, strict=False), key=lambda t: t[0])
             volumes = [t[0] for t in ves]
             energies = [t[1] for t in ves]
 
@@ -717,7 +713,7 @@ class GsrRobot(Robot, RobotWithEbands):
         dataframe = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
         return dict2namedtuple(fits=fits, dataframe=dataframe)
 
-    def get_energyterms_dataframe(self, iref: Optional[int] = None) -> pd.DataFrame:
+    def get_energyterms_dataframe(self, iref: int | None = None) -> pd.DataFrame:
         """
         Build and return dataframe with the different contributions to the total energy in eV.
 
@@ -767,12 +763,12 @@ class GsrRobot(Robot, RobotWithEbands):
                                                 sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
-        for i, (fit, ax) in enumerate(zip(r.fits, ax_list)):
+        for i, (fit, ax) in enumerate(zip(r.fits, ax_list, strict=False)):
             fit.plot_ax(ax=ax, fontsize=fontsize, label="", show=False)
 
         # Get around a bug in matplotlib
         if num_plots % ncols != 0:
-            ax_list[-1].axis('off')
+            ax_list[-1].axis("off")
 
         return fig
 
@@ -911,8 +907,8 @@ class GsrRobot(Robot, RobotWithEbands):
                 # Get ticks and labels.
                 ticks, labels = data["iq"].values, data["qname"].values
                 # Filter and then unpack
-                filtered_pairs = [(x, y) for x, y in zip(ticks, labels) if y is not None]
-                ticks, labels = zip(*filtered_pairs)
+                filtered_pairs = [(x, y) for x, y in zip(ticks, labels, strict=False) if y is not None]
+                ticks, labels = zip(*filtered_pairs, strict=False)
 
             for ax, key in zip(ax_list, keys, strict=True):
                 if key in ("mx", "my", "mz"):
@@ -985,7 +981,7 @@ class GsrRobot(Robot, RobotWithEbands):
         ax.set_title(f"Minimum at q: {qmin} {qmin_name}", fontsize=fontsize)
 
         ticks, labels = zip(*[(i, qname) for i, qpt in enumerate(qpoints)
-            if (qname := structure0.findname_in_hsym_stars(qpt)) is not None])
+            if (qname := structure0.findname_in_hsym_stars(qpt)) is not None], strict=False)
 
         ax.set_xticks(ticks, minor=False)
         ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))

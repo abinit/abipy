@@ -1,4 +1,3 @@
-# coding: utf-8
 """Utilities for working with strings and text."""
 from __future__ import annotations
 
@@ -39,7 +38,7 @@ def nums_and_text(line: str) -> tuple:
 
 def rreplace(s, old, new, occurrence):
     """
-    replace old with new in string but, instead of starting from the beginning
+    Replace old with new in string but, instead of starting from the beginning
     as replace does, starting from the end.
 
     >>> s = '1232425'
@@ -55,6 +54,6 @@ def rreplace(s, old, new, occurrence):
 
 
 def rm_multiple_spaces(string: str) -> str:
-    """remove multiple spaces in a string."""
+    """Remove multiple spaces in a string."""
     import re
-    return re.sub(' +', ' ', string)
+    return re.sub(" +", " ", string)

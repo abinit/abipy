@@ -6,8 +6,8 @@ Eliashberg function
 This example shows how to plot the Eliashberg function a2F(w)
 and the total e-ph coupling strenght in metals.
 """
-from abipy import abilab
 import abipy.data as abidata
+from abipy import abilab
 
 a2file = abilab.abiopen(abidata.ref_file("al_888k_161616q_A2F.nc"))
 

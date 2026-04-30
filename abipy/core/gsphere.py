@@ -1,15 +1,15 @@
-# coding: utf-8
 """
 This module contains the class defining the G-sphere for wavefunctions, densities and potentials
 """
 from __future__ import annotations
 
 import collections
+
 import numpy as np
 
-from .kpoints import Kpoint
 from abipy.tools import duck
 
+from .kpoints import Kpoint
 
 __all__ = [
     "GSphere",
@@ -66,15 +66,14 @@ class GSphere(collections.abc.Sequence):
 
     def index(self, gvec) -> int:
         """
-        return the index of the G-vector ``gvec`` in self.
+        Return the index of the G-vector ``gvec`` in self.
         Raises: `ValueError` if the value is not present.
         """
         gvec = np.asarray(gvec)
         for i, g in enumerate(self):
             if np.all(g == gvec):
                 return i
-        else:
-            raise ValueError("Cannot find %s in Gsphere" % str(gvec))
+        raise ValueError("Cannot find %s in Gsphere" % str(gvec))
 
     def count(self, gvec) -> int:
         """Return number of occurrences of gvec."""
@@ -95,7 +94,7 @@ class GSphere(collections.abc.Sequence):
         return not (self == other)
 
     def copy(self) -> GSphere:
-        """shallow copy."""
+        """Shallow copy."""
         return self.__class__(self.ecut, self.lattice.copy(), self.kpoint.copy(), self.gvecs.copy(), istwfk=self.istwfk)
 
     def to_string(self, verbose=0) -> str:
@@ -115,8 +114,7 @@ class GSphere(collections.abc.Sequence):
 
         if zero:
             return np.zeros(shape, dtype)
-        else:
-            return np.empty(shape, dtype)
+        return np.empty(shape, dtype)
 
     def zeros(self, dtype=float, extra_dims=()) -> np.ndarray:
         """

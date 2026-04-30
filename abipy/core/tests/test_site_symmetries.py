@@ -1,12 +1,12 @@
 """Tests for core.site_symmetries module"""
 import os
+
 import numpy as np
 
-from abipy.core.testing import AbipyTest
-from abipy.core.structure import Structure
 #from abipy.core.site_symmetries import SiteSymmetries
-
 import abipy.data as abidata
+from abipy.core.structure import Structure
+from abipy.core.testing import AbipyTest
 
 
 class TestSiteSymmetries(AbipyTest):

@@ -1,10 +1,9 @@
 """Tests for tensors module"""
-import os
 import numpy as np
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.tools.tensors import DielectricTensor, NLOpticalSusceptibilityTensor
-import abipy.data as abidata
 
 
 class DielectricTensorTest(AbipyTest):

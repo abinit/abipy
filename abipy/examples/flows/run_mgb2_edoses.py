@@ -9,15 +9,13 @@ band structure and the electron DOS of MgB2 with different k-point samplings.
 
 import os
 import sys
-import abipy.data as abidata
-import abipy.abilab as abilab
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
-    """return GS, NSCF (band structure), and DOSes input."""
-
+    """Return GS, NSCF (band structure), and DOSes input."""
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=5)
 
     # Global variables

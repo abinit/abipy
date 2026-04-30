@@ -1,15 +1,15 @@
-# coding: utf-8
 """
 This modules provides subclasses of pymatgen tensor objects.
 """
 from __future__ import annotations
+
 import numpy as np
 import pandas as pd
-
-from pymatgen.core.tensors import Tensor, SquareTensor
 from pymatgen.analysis.elasticity.elastic import ElasticTensor  # noqa: F401
 from pymatgen.analysis.elasticity.stress import Stress as pmg_Stress
-from pymatgen.analysis.piezo import PiezoTensor # noqa: F401
+from pymatgen.analysis.piezo import PiezoTensor  # noqa: F401
+from pymatgen.core.tensors import SquareTensor, Tensor
+
 from abipy.iotools import ETSF_Reader
 
 
@@ -41,7 +41,7 @@ class _Tensor33:
         """
         tensor = self.zeroed(tol=tol)
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
-        d = {k: v for k, v in zip(columns, tensor.voigt)}
+        d = {k: v for k, v in zip(columns, tensor.voigt, strict=False)}
         return pd.DataFrame(d, index=[0], columns=columns)
 
 
@@ -86,7 +86,6 @@ class DielectricDataList(list):
     Useful for convergence studies.
 
     Example:
-
         diel_data = DielectricDataList()
         diel_data.append((eps0, structure0, params0))
         diel_data.append((eps1, structure1, params1))
@@ -199,7 +198,7 @@ class NLOpticalSusceptibilityTensor(Tensor):
         with ETSF_Reader(filepath) as reader:
             try:
                 return cls(reader.read_value("dchide"))
-            except Exception as exc:
+            except Exception:
                 import traceback
                 msg = traceback.format_exc()
                 msg += ("Error while trying to read from file.\n"

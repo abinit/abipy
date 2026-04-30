@@ -1,21 +1,21 @@
-# coding: utf-8
 """
 Interface to the PSPS.nc file containing the splined form factors computed by ABINIT.
 """
 from __future__ import annotations
 
 import os
-import numpy as np
-import pandas as pd
-
 from collections import OrderedDict
 from functools import cached_property
+
+import numpy as np
+import pandas as pd
 from monty.bisect import find_gt
-from monty.string import marquee # list_strings,
-from abipy.iotools import ETSF_Reader
-from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, NotebookWriter
+from monty.string import marquee  # list_strings,
+
 from abipy.abio.robots import Robot
+from abipy.core.mixins import AbinitNcFile, NotebookWriter
+from abipy.core.structure import Structure
+from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible
 from abipy.tools.typing import Figure
 
@@ -26,9 +26,8 @@ def _mklabel(fsym: str, der: int, arg: str) -> str:
     """
     if der == 0:
         return "$%s(%s)$" % (fsym, arg)
-    else:
-        fsym = fsym + "^{" + (der * r"\prime") + "}"
-        return "$%s(%s)$" % (fsym, arg)
+    fsym = fsym + "^{" + (der * r"\prime") + "}"
+    return "$%s(%s)$" % (fsym, arg)
 
 
 def _rescale(arr, scale=1.0):
@@ -84,7 +83,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         with PspsFile("out_PSPS.nc") as psps:
             psps.plot_tcore_rspace()
     """
-    linestyles_der = ["-", "--", '-.', ':', ":", ":"]
+    linestyles_der = ["-", "--", "-.", ":", ":", ":"]
 
     color_der = ["black", "red", "green", "orange", "cyan"]
 
@@ -176,7 +175,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
                                                 sharex=False, sharey=False, squeeze=True)
 
         ecut_ffnl = kwargs.pop("ecut_ffnl", None)
-        for m, ax in zip(methods, ax_list.ravel()):
+        for m, ax in zip(methods, ax_list.ravel(), strict=False):
             getattr(self, m)(ax=ax, ecut_ffnl=ecut_ffnl, show=False)
 
         return fig
@@ -199,7 +198,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         rmeshes, coresd = self.r.read_coresd(rmax=rmax)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        for rmesh, mcores in zip(rmeshes, coresd):
+        for rmesh, mcores in zip(rmeshes, coresd, strict=False):
             for der, values in enumerate(mcores):
                 if der not in ders: continue
                 yvals, fact, = _rescale(values, scale=scale)
@@ -347,7 +346,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         linewidth = kwargs.pop("linewidth", _LW)
 
         color_l = {-1: "black", 0: "red", 1: "blue", 2: "green", 3: "orange"}
-        linestyles_n = ["solid", '-', '--', '-.', ":"]
+        linestyles_n = ["solid", "-", "--", "-.", ":"]
         l_seen = set()
 
         # vlspl has shape [ntypat, 2, mqgrid_vl]
@@ -457,10 +456,9 @@ class PspsRobot(Robot):
         npseudos = len(self)
         if npseudos <= 2:
             return {0: "red", 1: "blue", 2: "green"}[count]
-        else:
-            import matplotlib.pyplot as plt
-            cmap = plt.get_cmap(cmap)
-            return cmap(float(count) / (npseudos - 1))
+        import matplotlib.pyplot as plt
+        cmap = plt.get_cmap(cmap)
+        return cmap(float(count) / (npseudos - 1))
 
     @add_fig_kwargs
     def plot_tcore_rspace(self, ders=(0, 1, 2, 3), scale=None, fontsize=8, **kwargs) -> Figure:
@@ -476,7 +474,7 @@ class PspsRobot(Robot):
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
 
-        fig.suptitle(f"Model core in r-space")
+        fig.suptitle("Model core in r-space")
         for i, (label, psps) in enumerate(self.items()):
             kws = dict(color=self._mkcolor(i), show=False)
             for j, der in enumerate(ders):
@@ -502,7 +500,7 @@ class PspsRobot(Robot):
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
 
-        fig.suptitle(f"Model core in q-space")
+        fig.suptitle("Model core in q-space")
         for i, (label, psps) in enumerate(self.items()):
             kws = dict(color=self._mkcolor(i), show=False)
             for j, der in enumerate(ders):
@@ -548,7 +546,7 @@ class PspsRobot(Robot):
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
 
-        fig.suptitle(f"ffnl in q-space")
+        fig.suptitle("ffnl in q-space")
         for i, (label, psps) in enumerate(self.items()):
             kws = dict(color=self._mkcolor(i), show=False)
             for j, l in enumerate(l_select):
@@ -636,7 +634,6 @@ class PspsReader(ETSF_Reader):
         xccc1d(n1xccc,ideriv,ntypat) give the ideriv-th derivative of the
         pseudo-core charge with respect to the radial distance.
         """
-
         xcccrc = self.read_value("xcccrc")
         try:
             all_coresd = self.read_value("xccc1d")

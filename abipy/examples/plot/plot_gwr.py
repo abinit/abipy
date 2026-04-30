@@ -5,15 +5,14 @@ GWR results
 
 This example shows how to visualize the results produced by the GWR code.
 """
-from abipy import abilab
 import abipy.data as abidata
 
 #%%
 # Open the GWR.nc file
 # Here we use one of the GSR files shipped with abipy.
 # Replace filename with the path to your GSR file or your WFK file.
-
 from abipy.electrons.gwr import GwrFile
+
 gwr = GwrFile(abidata.ref_file("t01o_DS3_GWR.nc"))
 print(gwr)
 

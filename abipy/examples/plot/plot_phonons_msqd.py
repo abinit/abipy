@@ -11,8 +11,8 @@ See :cite:`Lee1995` for the further details about the internal implementation an
 :cite:`Trueblood1996` for the different conventions used by crystallographers.
 """
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy import abilab
 
 # Open DDB file for alpha-SiO2 taken from https://materialsproject.org/materials/mp-7000/

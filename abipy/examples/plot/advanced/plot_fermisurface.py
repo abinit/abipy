@@ -5,8 +5,8 @@ MgB2 Fermi surface
 
 This example shows how to plot the Fermi surface with matplotlib
 """
-from abipy import abilab
 import abipy.data as abidata
+from abipy import abilab
 
 with abilab.abiopen(abidata.ref_file("mgb2_kmesh181818_FATBANDS.nc")) as fbnc_kmesh:
     ebands = fbnc_kmesh.ebands

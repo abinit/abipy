@@ -6,8 +6,8 @@ Density File
 This example shows how to analyze the electronic density
 stored in the DEN.nc file.
 """
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 # Open the DEN.nc file
 ncfile = abiopen(abidata.ref_file("si_DEN.nc"))

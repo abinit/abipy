@@ -1,43 +1,42 @@
-# coding: utf-8
 """
 This module defines basic objects representing the crystalline structure.
 """
 from __future__ import annotations
 
-import sys
-import os
 import collections
+import os
+import pickle
+import sys
 import tempfile
+from collections import OrderedDict
+from collections.abc import Sequence  # Callable, Iterable, Iterator,
+from functools import cached_property
+from pprint import pformat
+from typing import Any
+
 import numpy as np
 import pandas as pd
-import pickle
 import pymatgen.core.units as pmg_units
-
-from pprint import pformat
-from collections import OrderedDict
-from collections.abc import Sequence # Callable, Iterable, Iterator,
-from typing import Any
 from monty.collections import AttrDict, dict2namedtuple
-from functools import cached_property
-from monty.string import is_string, marquee, list_strings
+from monty.string import is_string, list_strings, marquee
 from monty.termcolor import cprint
-from pymatgen.core.structure import Structure as pmg_Structure
-from pymatgen.core.sites import PeriodicSite
 from pymatgen.core.lattice import Lattice
+from pymatgen.core.sites import PeriodicSite
+from pymatgen.core.structure import Structure as pmg_Structure
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, add_plotly_fig_kwargs
-from abipy.iotools import as_etsfreader, Visualizer
+from abipy.iotools import Visualizer, as_etsfreader
+from abipy.tools.plotting import add_fig_kwargs, add_plotly_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.typing import Figure, PathLike
 
-
 __all__ = [
+    "Structure",
+    "cod_search",
+    "dataframes_from_structures",
     "mp_match_structure",
     "mp_search",
-    "cod_search",
-    "Structure",
-    "dataframes_from_structures",
 ]
 
 
@@ -60,7 +59,7 @@ def mp_match_structure(obj):
     structures, mpids = [], []
     with restapi.get_mprester() as rest:
         try:
-            if getattr(rest, "get_data") is None:
+            if rest.get_data is None:
                 raise RuntimeError("mp_match_structure requires mp-api, please install it with `pip install mp-api`")
 
             mpids = rest.find_structure(structure)
@@ -97,11 +96,12 @@ def mp_search(chemsys_formula_id):
     chemsys_formula_id = chemsys_formula_id.replace(" ", "")
 
     structures, mpids, data = [], [], None
-    from abipy.core import restapi
     from pymatgen.ext.matproj import MPRestError
+
+    from abipy.core import restapi
     with restapi.get_mprester() as rest:
         try:
-            if getattr(rest, "get_data") is None:
+            if rest.get_data is None:
                 raise RuntimeError("mp_search requires mp-api, please install it with `pip install mp-api`")
 
             data = rest.get_data(chemsys_formula_id, prop="")
@@ -249,13 +249,12 @@ class Structure(pmg_Structure, NotebookWriter):
         if isinstance(obj, collections.abc.Mapping):
             if "@module" in obj:
                 return Structure.from_dict(obj)
-            else:
-                return Structure.from_abivars(obj)
+            return Structure.from_abivars(obj)
 
         if hasattr(obj, "structure"):
             return cls.as_structure(obj.structure)
 
-        elif hasattr(obj, "final_structure"):
+        if hasattr(obj, "final_structure"):
             # This for HIST.nc file
             return cls.as_structure(obj.final_structure)
 
@@ -331,7 +330,7 @@ class Structure(pmg_Structure, NotebookWriter):
             raise ValueError("Cannot find structure in Abinit output file `%s`" % filepath)
 
         elif filepath.endswith(".abivars") or filepath.endswith(".ucell"):
-            with open(filepath, "rt") as fh:
+            with open(filepath) as fh:
                 return cls.from_abistring(fh.read())
 
         elif filepath.endswith("_DDB") or root.endswith("_DDB") or filepath.endswith(".ddb"):
@@ -621,8 +620,7 @@ class Structure(pmg_Structure, NotebookWriter):
         if "xred_symbols" not in string:
             # Standard (verbose) input file with znucl, typat etc.
             return AbinitInputFile.from_string(string).structure
-        else:
-            return structure_from_abistruct_fmt(string)
+        return structure_from_abistruct_fmt(string)
 
     @classmethod
     def from_abivars(cls, *args, **kwargs) -> Structure:
@@ -653,7 +651,6 @@ class Structure(pmg_Structure, NotebookWriter):
         Return list of unique species found in the structure **ordered according to sites**.
 
         Example:
-
             Site0: 0.5 0 0 O
             Site1: 0   0 0 Si
 
@@ -699,7 +696,7 @@ class Structure(pmg_Structure, NotebookWriter):
             elif max_fnorm <= standard:
                 app(f"Forces are relaxed within standard criterion: {standard} eV/Ang")
             else:
-                app(f"FORCES ARE NOT FULLY RELAXED. THIS STRUCTURE SHOULD NOT BE USED FOR PHONONS!")
+                app("FORCES ARE NOT FULLY RELAXED. THIS STRUCTURE SHOULD NOT BE USED FOR PHONONS!")
 
         if verbose > 1:
             for i, vec in enumerate(self.lattice.matrix):
@@ -720,7 +717,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         if fmt in ("abi", "abivars", "abinit") or fname.endswith(".abi"):
             if filename:
-                with open(filename, "wt") as f:
+                with open(filename, "w") as f:
                     f.write(self.abi_string)
             else:
                 return self.abi_string
@@ -743,7 +740,7 @@ class Structure(pmg_Structure, NotebookWriter):
             site_match = False
             print(f"{len(self)=} != {len(other)=}", file=file)
 
-        for site1, site2 in zip(self.sites, other.sites):
+        for site1, site2 in zip(self.sites, other.sites, strict=False):
             if site1.species != site2.species:
                 print("Mismatch in atomic species:", site1.species, site2.species, file=file)
                 site_match = False
@@ -784,7 +781,7 @@ class Structure(pmg_Structure, NotebookWriter):
                       refine_struct=False))
 
         if not ret_string:
-            with open(filename, "wt") as fh:
+            with open(filename, "w") as fh:
                 fh.write(cif_str)
         else:
             return cif_str
@@ -882,7 +879,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 app(v_to_s(avec))
             app("# Atomic positions in reduced coordinates followed by element symbol.")
             app("xred_symbols")
-            for (frac_coords, symbol) in zip(xred, symbols):
+            for (frac_coords, symbol) in zip(xred, symbols, strict=False):
                 app(v_to_s(frac_coords) + f" {symbol}")
 
             return "\n".join(lines)
@@ -919,7 +916,7 @@ class Structure(pmg_Structure, NotebookWriter):
         try:
             from ase.atoms import Atoms
         except ImportError:
-            raise ImportError('Could not import Atoms from ase. Install it with `conda install ase` or pip')
+            raise ImportError("Could not import Atoms from ase. Install it with `conda install ase` or pip")
 
         s = self.get_sorted_structure()
         ase_adaptor = AseAtomsAdaptor()
@@ -1004,7 +1001,10 @@ class Structure(pmg_Structure, NotebookWriter):
             atol: Components whose absolute value are less than atol are set to zero.
                 Use None or zero to disable this step.
         """
-        from pymatgen.transformations.standard_transformations import PrimitiveCellTransformation, SupercellTransformation
+        from pymatgen.transformations.standard_transformations import (
+            PrimitiveCellTransformation,
+            SupercellTransformation,
+        )
         structure = self.__class__.from_sites(self)
 
         # Refine structure
@@ -1141,14 +1141,14 @@ class Structure(pmg_Structure, NotebookWriter):
                 for eqind in eqmap[irr_pos]:
                     if eqind == irr_pos: continue
                     print("\t[%d]: %s" % (eqind, repr(self[eqind])))
-            print("")
+            print()
 
         # Build list of labels from multiplicity and name: e.g. 3a
-        wyck_labels = np.array(["%s%s" % (wmul, wsymb) for wsymb, wmul in zip(wyckoffs, wyck_mult)])
+        wyck_labels = np.array(["%s%s" % (wmul, wsymb) for wsymb, wmul in zip(wyckoffs, wyck_mult, strict=False)])
 
         # Build labels for sites with chemical element.
         site_labels = []
-        for i, (site, wsymb, wmul) in enumerate(zip(self, wyckoffs, wyck_mult)):
+        for i, (site, wsymb, wmul) in enumerate(zip(self, wyckoffs, wyck_mult, strict=False)):
             site_labels.append("%s%d (%s%s)" % (site.specie.symbol, i, wmul, wsymb))
 
         return dict2namedtuple(irred_pos=irred_pos, eqmap=eqmap, wyckoffs=wyckoffs,
@@ -1172,8 +1172,8 @@ class Structure(pmg_Structure, NotebookWriter):
         abispg_number = None if self.abi_spacegroup is None else self.abi_spacegroup.spgid
 
         # Print lattice info
-        outs = ["Full Formula ({s})".format(s=self.composition.formula),
-                "Reduced Formula: {}".format(self.composition.reduced_formula)]
+        outs = [f"Full Formula ({self.composition.formula})",
+                f"Reduced Formula: {self.composition.reduced_formula}"]
         app = outs.append
         to_s = lambda x: "%0.6f" % x
         outs.append("abc   : " + " ".join([to_s(i).rjust(10) for i in self.lattice.abc]))
@@ -1257,8 +1257,8 @@ class Structure(pmg_Structure, NotebookWriter):
             is initialized from an output file produced by another code.
         """
         if self.has_abi_spacegroup and not overwrite:
-            raise ValueError(("Structure object already has an Abinit spacegroup object.\n"
-                              "Use `overwrite=True` to allow modification."))
+            raise ValueError("Structure object already has an Abinit spacegroup object.\n"
+                              "Use `overwrite=True` to allow modification.")
 
         msg = ("Structure object does not have symmetry operations computed from Abinit.\n"
                "Calling spglib to get symmetry operations.")
@@ -1335,8 +1335,8 @@ class Structure(pmg_Structure, NotebookWriter):
             tolsym: Abinit tolsym input variable. None corresponds to the default value.
             pre: Keywords in dictionary are prepended with this string
         """
-        from abipy.data.hgh_pseudos import HGH_TABLE
         from abipy.abio import factories
+        from abipy.data.hgh_pseudos import HGH_TABLE
         gsinp = factories.gs_input(self, HGH_TABLE, spin_mode="unpolarized")
         gsinp["chkprim"] = 0
         d = gsinp.abiget_spacegroup(tolsym=tolsym, retdict=True)
@@ -1353,11 +1353,11 @@ class Structure(pmg_Structure, NotebookWriter):
         print(" ")
 
         ns = self.get_all_neighbors_old(radius, include_index=False)
-        for i, (site, sited_list) in enumerate(zip(self, ns)):
+        for i, (site, sited_list) in enumerate(zip(self, ns, strict=False)):
             print("[%s] site %s has %s neighbors:" % (i, repr(site), len(sited_list)))
             for s, dist in sorted(sited_list, key=lambda t: t[1]):
                 print("\t", repr(s), " at distance", dist)
-            print("")
+            print()
 
     @cached_property
     def has_zero_dynamical_quadrupoles(self):
@@ -1514,7 +1514,6 @@ class Structure(pmg_Structure, NotebookWriter):
         Return a dictionary mapping chemical symbols to numpy array with the position of the atoms.
 
         Example:
-
             MgB2 --> {Mg: [0], B: [1, 2]}
         """
         return {symbol: np.array(self.indices_from_symbol(symbol)) for symbol in self.symbol_set}
@@ -1749,8 +1748,7 @@ class Structure(pmg_Structure, NotebookWriter):
         labels = None if not with_labels else self.hsym_kpath.kpath["kpoints"]
         if pmg_path:
             return plot_brillouin_zone_from_kpath(self.hsym_kpath, ax=ax, show=False, **kwargs)
-        else:
-            return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, labels=labels, show=False, **kwargs)
+        return plot_brillouin_zone(self.reciprocal_lattice, ax=ax, labels=labels, show=False, **kwargs)
 
     @add_plotly_fig_kwargs
     def plotly_bz(self, fig=None, pmg_path=True, with_labels=True, **kwargs):
@@ -1764,12 +1762,11 @@ class Structure(pmg_Structure, NotebookWriter):
 
         Returns: plotly.graph_objects.Figure
         """
-        from abipy.tools.plotting import plotly_brillouin_zone_from_kpath, plotly_brillouin_zone
+        from abipy.tools.plotting import plotly_brillouin_zone, plotly_brillouin_zone_from_kpath
         labels = None if not with_labels else self.hsym_kpath.kpath["kpoints"]
         if pmg_path:
             return plotly_brillouin_zone_from_kpath(self.hsym_kpath, fig=fig, show=False, **kwargs)
-        else:
-            return plotly_brillouin_zone(self.reciprocal_lattice, fig=fig, labels=labels, show=False, **kwargs)
+        return plotly_brillouin_zone(self.reciprocal_lattice, fig=fig, labels=labels, show=False, **kwargs)
 
     @add_fig_kwargs
     def plot_xrd(self, wavelength="CuKa", symprec=0, debye_waller_factors=None,
@@ -1851,13 +1848,12 @@ class Structure(pmg_Structure, NotebookWriter):
             if verbose:
                 print("Writing data to:", filename, "with fmt:", ext.lower())
             s = self.to(fmt=ext)
-            with open(filename, "wt") as fh:
+            with open(filename, "w") as fh:
                 fh.write(s)
 
         if visu is None:
             return Visualizer.from_file(filename)
-        else:
-            return visu(filename)
+        return visu(filename)
 
     def get_chemview(self, **kwargs): # pragma: no cover
         """
@@ -1921,7 +1917,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         from ase.visualize.plot import plot_atoms
         atoms = self.to_ase_atoms()
-        for rotation, ax in zip(rotations, ax_mat.flat):
+        for rotation, ax in zip(rotations, ax_mat.flat, strict=False):
             plot_atoms(atoms, ax=ax, rotation=rotation, **kwargs)
             ax.set_axis_off()
             if rotation:
@@ -1979,7 +1975,7 @@ class Structure(pmg_Structure, NotebookWriter):
         #   https://stackoverflow.com/questions/16852885/ipython-adding-javascript-scripts-to-ipython-notebook
         #display(HTML('<script type="text/javascript" src="/nbextensions/jupyter-jsmol/jsmol/JSmol.min.js"></script>'))
 
-        jsmol = JsmolView(color='white')
+        jsmol = JsmolView(color="white")
         #display(jsmol)
         cmd = 'load inline "%s" {1 1 1}' % cif_str
         if verbose: print("executing cmd:", cmd)
@@ -2007,9 +2003,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 return self.export(ext, visu=visu)()
             except visu.Error as exc:
                 cprint(str(exc), color="red")
-                pass
-        else:
-            raise visu.Error("Don't know how to export data for %s" % appname)
+        raise visu.Error("Don't know how to export data for %s" % appname)
 
     def convert(self, fmt: str = "cif", **kwargs) -> str:
         """
@@ -2018,17 +2012,17 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         if fmt in ("abivars", "abinit"):
             return self.abi_string
-        elif fmt == "abipython":
+        if fmt == "abipython":
             return pformat(self.to_abivars(), indent=4)
-        elif fmt == "qe":
+        if fmt == "qe":
             from pymatgen.io.pwscf import PWInput
             return str(PWInput(self, pseudo={s: s + ".pseudo" for s in self.symbol_set}))
-        elif fmt == "siesta":
+        if fmt == "siesta":
             return structure2siesta(self)
-        elif fmt in ("wannier90", "w90"):
+        if fmt in ("wannier90", "w90"):
             from abipy.wannier90.win import structure2wannier90
             return structure2wannier90(self)
-        elif fmt.lower() == "poscar":
+        if fmt.lower() == "poscar":
             # Don't call super for poscar because we need more significant_figures to
             # avoid problems with abinit space group routines where the default numerical tolerance is tight.
             from pymatgen.io.vasp import Poscar
@@ -2153,7 +2147,7 @@ class Structure(pmg_Structure, NotebookWriter):
                             scale_matrix[:, 0] = lnew
                             dmin = dnorm
         if not found:
-            raise ValueError('max_supercell is not large enough for this q-point')
+            raise ValueError("max_supercell is not large enough for this q-point")
 
         found = False
         dmin = np.inf
@@ -2174,7 +2168,7 @@ class Structure(pmg_Structure, NotebookWriter):
                                 scale_matrix[:, 1] = lnew
                                 dmin = dnorm
         if not found:
-            raise ValueError('max_supercell is not large enough for this q-point')
+            raise ValueError("max_supercell is not large enough for this q-point")
 
         dmin = np.inf
         found = False
@@ -2196,7 +2190,7 @@ class Structure(pmg_Structure, NotebookWriter):
                                 scale_matrix[:, 2] = lnew
                                 dmin = dnorm
         if not found:
-            raise ValueError('max_supercell is not large enough for this q-point')
+            raise ValueError("max_supercell is not large enough for this q-point")
 
         # Fortran 2 python!!!
         return scale_matrix.T.copy()
@@ -2308,7 +2302,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         new_displ = np.zeros(3, dtype=float)
 
-        fmtstr = "{{}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}} {{:.{0}f}}\n".format(6)
+        fmtstr = f"{{}} {{:.{6}f}} {{:.{6}f}} {{:.{6}f}} {{:.{6}f}} {{:.{6}f}} {{:.{6}f}}\n"
 
         for at, site in enumerate(self):
             for t in tvects:
@@ -2356,7 +2350,6 @@ class Structure(pmg_Structure, NotebookWriter):
             A namedtuple with a Structure with the displaced atoms, a numpy array containing the
             displacements applied to each atom and the scale matrix used to generate the supercell.
         """
-
         if scale_matrix is None:
             if max_supercell is None:
                 raise ValueError("scale_matrix is not provided, please provide max_supercell!")
@@ -2373,8 +2366,8 @@ class Structure(pmg_Structure, NotebookWriter):
         tvects = self.get_trans_vect(scale_matrix)
 
         if frac_coords:
-            displ1 = np.array((old_lattice.get_cartesian_coords(d) for d in displ1))
-            displ2 = np.array((old_lattice.get_cartesian_coords(d) for d in displ2))
+            displ1 = np.array(old_lattice.get_cartesian_coords(d) for d in displ1)
+            displ2 = np.array(old_lattice.get_cartesian_coords(d) for d in displ2)
         else:
             displ1 = np.array(displ1)
             displ2 = np.array(displ2)
@@ -2426,7 +2419,6 @@ class Structure(pmg_Structure, NotebookWriter):
             A namedtuple with a Structure with the displaced atoms, a numpy array containing the
             displacements applied to each atom and the scale matrix used to generate the supercell.
         """
-
         if scale_matrix is None:
             if max_supercell is None:
                 raise ValueError("If scale_matrix is not provided in input, please provide max_supercell!")
@@ -2715,7 +2707,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         # Use pickle files for data persistence.
         # The notebook will reconstruct the object from this file
-        _, tmpfile = tempfile.mkstemp(suffix='.pickle')
+        _, tmpfile = tempfile.mkstemp(suffix=".pickle")
         with open(tmpfile, "wb") as fh:
             pickle.dump(self, fh)
 
@@ -2918,6 +2910,7 @@ def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.st
 
     if mode == "table":
         from itertools import zip_longest  # Py3k
+
         from tabulate import tabulate
         table = [r for r in zip_longest(*outs, fillvalue=" ")]
         print(tabulate(table, headers=headers), file=file)
@@ -2941,7 +2934,6 @@ def structure2siesta(structure: Structure, verbose=0) -> str:
         structure: AbiPy structure.
         verbose: Verbosity level.
     """
-
     if not structure.is_ordered:
         raise NotImplementedError("""\
 Received disordered structure with partial occupancies that cannot be converted to a Siesta input
@@ -3022,7 +3014,7 @@ class StructDiff:
         Build dataframe with lattice parameters.
         """
         d_list = []
-        for label, structure in zip(self.labels, self.structs):
+        for label, structure in zip(self.labels, self.structs, strict=False):
             d = {"label": label}
             for i, k in enumerate(["a", "b", "c"]):
                 d[k] = structure.lattice.abc[i]
@@ -3046,7 +3038,7 @@ class StructDiff:
         d_list = []
         natom = len(self.structs[0])
         for isite in range(natom):
-            for label, structure in zip(self.labels, self.structs):
+            for label, structure in zip(self.labels, self.structs, strict=False):
                 site = structure[isite]
                 d = {"label": label, "site_index": isite}
                 for i, k in enumerate(["xred1", "xred2", "xred3"]):
@@ -3081,7 +3073,7 @@ class StructDiff:
 
         print("\nAtomic sites (Ang units):", file=file)
         print(df.to_string(), file=file)
-        print("", file=file)
+        print(file=file)
 
     #def diff(self, ref_label, with_cart_coords=False, file=sys.stdout) -> None:
     #    df = self.get_lattice_dataframe()

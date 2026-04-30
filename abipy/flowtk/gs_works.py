@@ -1,14 +1,15 @@
-# coding: utf-8
 """Work related to GS calculations."""
 from __future__ import annotations
 
 import json
 
 from pymatgen.analysis.eos import EOS
-from abipy.core.structure import Structure
-from abipy.core.kpoints import Kpath
+
 from abipy.abio.inputs import AbinitInput
+from abipy.core.kpoints import Kpath
+from abipy.core.structure import Structure
 from abipy.electrons.gsr import GsrRobot
+
 from .works import Work
 
 __all__ = [
@@ -246,7 +247,7 @@ class EosWork(Work):
                 eos_data[model] = {"exception": str(exc)}
 
         if write_json:
-            with open(self.outdir.path_in("eos_data.json"), "wt") as fh:
+            with open(self.outdir.path_in("eos_data.json"), "w") as fh:
                 json.dump(eos_data, fh, indent=4, sort_keys=True)
 
         return eos_data

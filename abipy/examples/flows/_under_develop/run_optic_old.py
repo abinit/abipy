@@ -5,13 +5,12 @@ Optic Flow
 
 Optical spectra with Optic.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options, paral_kgb=0):

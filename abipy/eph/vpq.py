@@ -7,30 +7,29 @@ For a theoretical introduction see ...
 from __future__ import annotations
 
 import dataclasses
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
-import abipy.core.abinit_units as abu
-
-from functools import cached_property
 from monty.string import marquee
 from scipy.interpolate import interp1d
+
+import abipy.core.abinit_units as abu
+from abipy.abio.robots import Robot
+
 #from monty.termcolor import cprint
 from abipy.core.func1d import Function1D
+from abipy.core.kpoints import kmesh_from_mpdivs, kpoints_indices  #, map_grid2ibz
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
-from abipy.core.kpoints import kpoints_indices, kmesh_from_mpdivs #, map_grid2ibz
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.tools.typing import PathLike
-from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt, set_axlims, set_visible,
-    Marker, set_grid_legend)
-from abipy.electrons.ebands import ElectronBands, RobotWithEbands
-from abipy.dfpt.phonons import PhononBands
 from abipy.dfpt.ddb import DdbFile
-from abipy.tools.typing import Figure
-from abipy.tools.numtools import BzRegularGridInterpolator, gaussian
-from abipy.iotools import bxsf_write
-from abipy.abio.robots import Robot
+from abipy.dfpt.phonons import PhononBands
+from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.eph.common import BaseEphReader
-
+from abipy.iotools import bxsf_write
+from abipy.tools.numtools import BzRegularGridInterpolator, gaussian
+from abipy.tools.plotting import Marker, add_fig_kwargs, get_axarray_fig_plt, set_axlims, set_grid_legend, set_visible
+from abipy.tools.typing import Figure, PathLike
 
 #TODO Finalize the implementation. Look at Pedro's implementation for GFR
 #from abipy.electrons.effmass_analyzer import EffMassAnalyzer
@@ -96,10 +95,10 @@ class Entry:
 
 # NB: All quantities are in atomic units!
 _ALL_ENTRIES = [
-    Entry(name="E_pol", latex=r'$E_{pol}$', info="Formation energy", utype="energy"),
-    Entry(name="E_el", latex=r'$E_{el}$', info="Electronic part", utype="energy"),
-    Entry(name="E_ph", latex=r'$E_{ph}$', info="Phonon part", utype="energy"),
-    Entry(name="elph", latex=r'$E_{elph}$', info="e-ph term", utype="energy"),
+    Entry(name="E_pol", latex=r"$E_{pol}$", info="Formation energy", utype="energy"),
+    Entry(name="E_el", latex=r"$E_{el}$", info="Electronic part", utype="energy"),
+    Entry(name="E_ph", latex=r"$E_{ph}$", info="Phonon part", utype="energy"),
+    Entry(name="elph", latex=r"$E_{elph}$", info="e-ph term", utype="energy"),
     Entry(name="epsilon", latex=r"$\varepsilon$", info="Polaron eigenvalue", utype="energy"),
     Entry(name="grs", latex=r"$|\nabla|$", info="||gradient||", utype="gradient"),
 ]
@@ -158,7 +157,7 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @cached_property
     def params(self) -> dict:
-        """dict with the convergence parameters, e.g. ``nbsum``."""
+        """Dict with the convergence parameters, e.g. ``nbsum``."""
         r = self.r
 
         ksampling = self.ebands.kpoints.ksampling
@@ -373,7 +372,7 @@ class Polaron:
         app(f"bstart: {self.bstart}, bstop: {self.bstop}")
         ksampling = self.ebands.kpoints.ksampling
         ngkpt, shifts = ksampling.mpdivs, ksampling.shifts
-        app(f"ksampling: {str(ksampling)}")
+        app(f"ksampling: {ksampling!s}")
         ngqpt = self.varpeq.r.ngqpt
         app(f"q-mesh: {ngqpt}")
         if verbose:
@@ -405,9 +404,8 @@ class Polaron:
         pre = "" if varpeq.ebands.nsppol == 1 else f"spin={self.spin}"
         if not with_gaps:
             return f"{pre}{varpeq.r.vpq_pkind} polaron"
-        else:
-            gaps_string = varpeq.ebands.get_gaps_string()
-            return f"{pre}{varpeq.r.vpq_pkind} polaron, {gaps_string}"
+        gaps_string = varpeq.ebands.get_gaps_string()
+        return f"{pre}{varpeq.r.vpq_pkind} polaron, {gaps_string}"
 
     def insert_a_inbox(self, fill_value=None) -> tuple:
         """
@@ -545,15 +543,15 @@ class Polaron:
                         # plot only the gradient residual on the 1st panel
                         if iax == 0:
                             energy_like = False
-                            ax.plot(xs, ys, label=entry.latex, c='k')
+                            ax.plot(xs, ys, label=entry.latex, c="k")
                             ax.set_yscale("log")
                     else:
                         if entry.name == "E_pol":
                             # Solid line for the *variational* quantity, also put it on top
-                            ls, zord = '-', 10
+                            ls, zord = "-", 10
                         else:
                             # Dashed lines for non-variational, put them below
-                            ls, zord = '--', 0
+                            ls, zord = "--", 0
 
                         if iax == 1:
                             energy_like = True
@@ -629,7 +627,7 @@ class Polaron:
             fontsize: fontsize for legends and titles
         """
         nrows, ncols = self.nstates, 2
-        gridspec_kw = {'width_ratios': [2, 1]}
+        gridspec_kw = {"width_ratios": [2, 1]}
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
                                                sharex=False, sharey=True, squeeze=False, gridspec_kw=gridspec_kw)
         # Get interpolators for |A_nk|^2
@@ -658,9 +656,7 @@ class Polaron:
                     allowed = True
                     if filter_value:
                         energy_window = filter_value * 1.1
-                        if pkind == "hole" and bm - e > energy_window:
-                            allowed = False
-                        elif pkind == "electron" and e - bm > energy_window:
+                        if (pkind == "hole" and bm - e > energy_window) or (pkind == "electron" and e - bm > energy_window):
                             allowed = False
 
                     if allowed:
@@ -671,7 +667,7 @@ class Polaron:
             ax = ax_mat[pstate, 0]
 
             points = Marker(x, y, s, color=marker_color, edgecolors=marker_edgecolor,
-                            alpha=marker_alpha, label=r'$|A_{n\mathbf{k}}|^2$')
+                            alpha=marker_alpha, label=r"$|A_{n\mathbf{k}}|^2$")
 
             ebands_kpath.plot(ax=ax, points=points, show=False, linewidth=lw_bands)
 
@@ -771,7 +767,7 @@ class Polaron:
                 colors.append(ibz_dos_opts["color"])
 
             # determine max x value for auto xlims
-            for dos, c in zip(dos_lines, colors):
+            for dos, c in zip(dos_lines, colors, strict=False):
                 for line in dos:
                     x_data, y_data = line.get_xdata(), line.get_ydata()
                     mask = (y_data > ymin-e0-span*0.1) & (y_data < ymax-e0+span*0.1)
@@ -782,10 +778,10 @@ class Polaron:
                 y_common = np.linspace(ymin-e0-span*0.1, ymax-e0+span*0.1, 2000)
                 xleft = np.zeros_like(y_common)
                 # skip eDOS, fill only ADOS
-                for dos, c in zip(dos_lines[1:], colors[1:]):
+                for dos, c in zip(dos_lines[1:], colors[1:], strict=False):
                     for line in dos:
                         x_data, y_data = line.get_xdata(), line.get_ydata()
-                        interp_x = interp1d(y_data, x_data, kind='linear', fill_value='extrapolate')
+                        interp_x = interp1d(y_data, x_data, kind="linear", fill_value="extrapolate")
                         xright = interp_x(y_common)
 
                         mask = (xright - xleft) > 0
@@ -821,12 +817,12 @@ class Polaron:
                 elif pkind == "electron":
                     fill_from, fill_to = shifted_bm, shifted_bm + filter_value
 
-                ax.axhline(fill_from, c='k', zorder=0, lw=lw_dos)
-                ax.axhline(fill_to, c='k', zorder=0, lw=lw_dos)
+                ax.axhline(fill_from, c="k", zorder=0, lw=lw_dos)
+                ax.axhline(fill_to, c="k", zorder=0, lw=lw_dos)
                 ax.fill_between(xrange, ylims[0], fill_from,
-                                color='lightgray', linewidth=0, alpha=0.5, zorder=0)
+                                color="lightgray", linewidth=0, alpha=0.5, zorder=0)
                 ax.fill_between(xrange, fill_to, ylims[1],
-                                color='lightgray', linewidth=0, alpha=0.5, zorder=0)
+                                color="lightgray", linewidth=0, alpha=0.5, zorder=0)
 
         if with_title:
             fig.suptitle(self.get_title(with_gaps=True))
@@ -862,7 +858,7 @@ class Polaron:
     def plot_bqnu_with_phbands(self, phbands_qpath, with_legend=True,
                                phdos_file=None, ddb=None, width=0.001, normalize: bool = True,
                                verbose=0, anaddb_kwargs=None, with_title=True, interp_method="linear",
-                               ax_mat=None, scale=50, marker_color="gold", marker_edgecolor='gray',
+                               ax_mat=None, scale=50, marker_color="gold", marker_edgecolor="gray",
                                marker_alpha=0.5, fontsize=12, lw_bands=1.0, lw_dos=1.0,
                                fill_dos=True, **kwargs) -> Figure:
         """
@@ -886,7 +882,7 @@ class Polaron:
         with_phdos = phdos_file is not None and ddb is not None
         nrows, ncols, gridspec_kw = self.nstates, 1, None
         if with_phdos:
-            ncols, gridspec_kw = 2, {'width_ratios': [2, 1]}
+            ncols, gridspec_kw = 2, {"width_ratios": [2, 1]}
 
         ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
                                                sharex=False, sharey=True, squeeze=False, gridspec_kw=gridspec_kw)
@@ -897,8 +893,8 @@ class Polaron:
         b2_interp_state = self.get_b2_interpolator_state(interp_method)
 
         # TODO: need to fix this hardcoded representation
-        units = 'meV'
-        units_scale = 1e3 if units == 'meV' else 1
+        units = "meV"
+        units_scale = 1e3 if units == "meV" else 1
 
         # Plot phonon bands with markers.
         ymin, ymax = +np.inf, -np.inf
@@ -930,7 +926,7 @@ class Polaron:
 
             ax = ax_mat[pstate, 0]
             points = Marker(x, y, s, color=marker_color, edgecolors=marker_edgecolor,
-                            alpha=marker_alpha, label=r'$|B_{\nu\mathbf{q}}|^2$')
+                            alpha=marker_alpha, label=r"$|B_{\nu\mathbf{q}}|^2$")
             phbands_qpath.plot(ax=ax, points=points, show=False, linewidth=lw_bands, units=units)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
@@ -1029,7 +1025,7 @@ class Polaron:
                 colors.append(ibz_dos_opts["color"])
 
             # determine max x value for auto xlims
-            for dos, c in zip(dos_lines, colors):
+            for dos, c in zip(dos_lines, colors, strict=False):
                 for line in dos:
                     x_data, y_data = line.get_xdata(), line.get_ydata()
                     mask = (y_data > ymin) & (y_data < ymax+span*0.1)
@@ -1043,10 +1039,10 @@ class Polaron:
                 #y_common = np.linspace(ymin, ymax+span*0.1, 2000)
                 xleft = np.zeros_like(y_common)
                 # skip phDOS, fill only BDOS
-                for dos, c in zip(dos_lines[1:], colors[1:]):
+                for dos, c in zip(dos_lines[1:], colors[1:], strict=False):
                     for line in dos:
                         x_data, y_data = line.get_xdata(), line.get_ydata()
-                        interp_x = interp1d(y_data, x_data, kind='linear', fill_value='extrapolate')
+                        interp_x = interp1d(y_data, x_data, kind="linear", fill_value="extrapolate")
                         xright = interp_x(y_common)
 
                         mask = (xright - xleft) > 0
@@ -1208,7 +1204,6 @@ class VpqRobot(Robot, RobotWithEbands):
         Returns:
             list: A list of figure objects.
         """
-
         df = self.get_final_results_df(spin)
 
         # check if dataframe contains entries with efilter
@@ -1242,15 +1237,15 @@ class VpqRobot(Robot, RobotWithEbands):
                 frohlich_label = " + LR" if avg_g else ""
 
                 # Convergence
-                ax_mat[0,0].plot(filter_values, epol, 's-', label=r'$E_{pol}$' + frohlich_label,
+                ax_mat[0,0].plot(filter_values, epol, "s-", label=r"$E_{pol}$" + frohlich_label,
                                  **kwargs)
-                ax_mat[1,0].plot(filter_values, eps, 's-', label=r"$\varepsilon$" + frohlich_label,
+                ax_mat[1,0].plot(filter_values, eps, "s-", label=r"$\varepsilon$" + frohlich_label,
                                  **kwargs)
 
                 # Relative error
-                ax_mat[0,1].plot(filter_values[:-1], np.abs((epol - epol[-1])/epol[-1])[:-1], 's-',
-                                   label=r'$E_{pol}$' + frohlich_label, **kwargs)
-                ax_mat[1,1].plot(filter_values[:-1], np.abs((eps - eps[-1])/eps[-1])[:-1], 's-',
+                ax_mat[0,1].plot(filter_values[:-1], np.abs((epol - epol[-1])/epol[-1])[:-1], "s-",
+                                   label=r"$E_{pol}$" + frohlich_label, **kwargs)
+                ax_mat[1,1].plot(filter_values[:-1], np.abs((eps - eps[-1])/eps[-1])[:-1], "s-",
                                    label=r"$\varepsilon$" + frohlich_label, **kwargs)
 
             for i, ax_row in enumerate(ax_mat):
@@ -1300,7 +1295,6 @@ class VpqRobot(Robot, RobotWithEbands):
         Returns:
             list[Figure]: A list of figure objects.
         """
-
         if convby not in {"invsc_linsize", "inv_k"}:
             raise ValueError(f"Invalid convby value '{convby}'. Choose 'invsc_linsize' or 'inv_k'.")
 
@@ -1339,13 +1333,13 @@ class VpqRobot(Robot, RobotWithEbands):
                 xrange = np.linspace(0, np.max(params[:local_nfit]))
 
                 # Plot energy data & extrapolation
-                line1, = ax_mat[0, 0].plot(params, e_pol, 'o', **kwargs)
-                ax_mat[0, 0].plot(xrange, epol_extr_line(xrange), '--', color=line1.get_color(),
-                                  label=rf'{filter_label} $E_{{pol}}$ {frohlich_label}: {epol_extr_line(0):.3f} eV')
+                line1, = ax_mat[0, 0].plot(params, e_pol, "o", **kwargs)
+                ax_mat[0, 0].plot(xrange, epol_extr_line(xrange), "--", color=line1.get_color(),
+                                  label=rf"{filter_label} $E_{{pol}}$ {frohlich_label}: {epol_extr_line(0):.3f} eV")
 
-                line2, = ax_mat[1, 0].plot(params, eps, 'o', **kwargs)
-                ax_mat[1, 0].plot(xrange, eps_extr_line(xrange), '--', color=line2.get_color(),
-                                  label=rf'{filter_label} $\varepsilon$ {frohlich_label}: {eps_extr_line(0):.3f} eV')
+                line2, = ax_mat[1, 0].plot(params, eps, "o", **kwargs)
+                ax_mat[1, 0].plot(xrange, eps_extr_line(xrange), "--", color=line2.get_color(),
+                                  label=rf"{filter_label} $\varepsilon$ {frohlich_label}: {eps_extr_line(0):.3f} eV")
 
             # Set axis labels and formatting
             xlabel_map = {
@@ -1359,8 +1353,8 @@ class VpqRobot(Robot, RobotWithEbands):
 
             for ax in ax_mat.ravel():
                 ax.set_ylabel("Energy (eV)")
-                ax.axhline(0, color='k', linestyle='-')
-                ax.axvline(0, color='k', linestyle='-')
+                ax.axhline(0, color="k", linestyle="-")
+                ax.axvline(0, color="k", linestyle="-")
                 ax.grid()
                 ax.legend(title="Extrapolation")
 

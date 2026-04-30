@@ -1,8 +1,6 @@
 """"Tests for analyzer module."""
-import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
-from abipy.dynamics.analyzer import MdAnalyzer, MultiMdAnalyzer, ArrheniusPlotter
 
 
 class AnalyzerTest(AbipyTest):

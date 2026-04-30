@@ -1,17 +1,18 @@
-# coding: utf-8
 """
 Flow subclasses related to DFPT.
 """
 from __future__ import annotations
 
 import dataclasses
+
 import numpy as np
 
-from abipy.tools.typing import TYPE_CHECKING, PathLike
-from abipy.tools.serialization import Serializable
 from abipy.dfpt.ddb import DdbRobot
-from .works import Work, PhononWork
+from abipy.tools.serialization import Serializable
+from abipy.tools.typing import TYPE_CHECKING, PathLike
+
 from .flows import Flow
+from .works import PhononWork, Work
 
 if TYPE_CHECKING:  # needed to avoid circular imports
     from abipy.abio.inputs import AbinitInput

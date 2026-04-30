@@ -1,12 +1,10 @@
-# coding: utf-8
 """Test for output files"""
 import os
-import pytest
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy import abilab
+from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, AboRobot
 from abipy.core.testing import AbipyTest
-from abipy.abio.outputs import AbinitOutputFile, AbinitLogFile, AboRobot
 
 
 class AbinitLogFileTest(AbipyTest):
@@ -154,7 +152,7 @@ class AbinitOutputTest(AbipyTest):
 
     def test_abinit_output_with_ctrlm(self):
         """Testing AbinitOutputFile with file containing CTRL+M char."""
-        test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
+        test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "test_files")
         with abilab.abiopen(os.path.join(test_dir, "ctrlM_run.abo")) as abo:
             assert abo.version == "8.7.1"
             assert abo.run_completed

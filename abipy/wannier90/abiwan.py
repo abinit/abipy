@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Interface to the ABIWAN netcdf file produced by abinit when calling wannier90 in library mode.
 Inspired to the Fortran version of wannier90.
@@ -6,21 +5,22 @@ Inspired to the Fortran version of wannier90.
 from __future__ import annotations
 
 import time
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
-
-from tabulate import tabulate
-from functools import cached_property
 from monty.string import marquee
 from monty.termcolor import cprint
-from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.core.kpoints import Kpath, IrredZone
-from abipy.core.skw import ElectronInterpolator
+from tabulate import tabulate
+
 from abipy.abio.robots import Robot
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_grid_legend #, get_axarray_fig_plt
+from abipy.core.kpoints import IrredZone, Kpath
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.skw import ElectronInterpolator
+from abipy.core.structure import Structure
+from abipy.electrons.ebands import ElectronBands, ElectronBandsPlotter, ElectronsReader, RobotWithEbands
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_grid_legend  #, get_axarray_fig_plt
 from abipy.tools.typing import Figure
-from abipy.electrons.ebands import ElectronBands, ElectronsReader, ElectronBandsPlotter, RobotWithEbands
 
 
 class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -126,7 +126,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         # TODO
         return od
@@ -185,7 +185,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
             if verbose >= 2:
                 app("irvec and ndegen")
-                for r, n in zip(self.irvec, self.ndegen):
+                for r, n in zip(self.irvec, self.ndegen, strict=False):
                     app("%s %s" % (r, n))
 
         return "\n".join(lines)
@@ -500,7 +500,7 @@ class HWanR(ElectronInterpolator):
         for spin in range(self.nsppol):
             amax_r = [np.abs(self.spin_rmn[spin][ir]).max() for ir in range(self.nrpts)]
             amax_r = [amax_r[i] for i in sortmap]
-            label = kwargs.get("label", None)
+            label = kwargs.get("label")
             if label is not None:
                 label = "spin: %d" % spin if self.nsppol == 2 else None
             if label: with_legend = True
@@ -628,14 +628,13 @@ class AbiwanRobot(Robot, RobotWithEbands):
             if ngkpt is not None:
                 # IBZ sampling
                 kpoints = IrredZone.from_ngkpt(nc0.structure, ngkpt, shiftk, kptopt=1, verbose=0)
+            # K-Path
+            elif knames is not None:
+                kpoints = Kpath.from_names(nc0.structure, knames, line_density=line_density)
             else:
-                # K-Path
-                if knames is not None:
-                    kpoints = Kpath.from_names(nc0.structure, knames, line_density=line_density)
-                else:
-                    if vertices_names is None:
-                        vertices_names = [(k.frac_coords, k.name) for k in nc0.structure.hsym_kpoints]
-                    kpoints = Kpath.from_vertices_and_names(nc0.structure, vertices_names, line_density=line_density)
+                if vertices_names is None:
+                    vertices_names = [(k.frac_coords, k.name) for k in nc0.structure.hsym_kpoints]
+                kpoints = Kpath.from_vertices_and_names(nc0.structure, vertices_names, line_density=line_density)
 
         plotter = ElectronBandsPlotter()
         for label, abiwan in self.items():
