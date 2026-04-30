@@ -498,13 +498,13 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         return self.r.read_value("qpz_gaps") * abu.Ha_eV
 
-    # @cached_property
-    # def qp_pade_dirgaps(self) -> np.ndarray:
-    #     """
-    #     QP direct gaps in eV computed with the quasi-particle equation
-    #     Shape: [nsppol, nkcalc]
-    #     """
-    #     return self.r.read_value("qp_pade_gaps") * abu.Ha_eV
+    @cached_property
+    def qp_pade_dirgaps(self) -> np.ndarray:
+        """
+        QP direct gaps in eV computed with the quasi-particle equation
+        Shape: [nsppol, nkcalc]
+        """
+        return self.r.read_value("qp_pade_gaps") * abu.Ha_eV
 
     @cached_property
     def minimax_mesh(self) -> MinimaxMesh:
@@ -666,16 +666,16 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             d["iteration"] = []
             d["ks_dirgaps"] = np.zeros(0)
             d["qpz0_dirgaps"] = np.zeros(0)
-            # d["qp_pade_dirgaps"] = np.zeros(0)
+            d["qp_pade_dirgaps"] = np.zeros(0)
             for iter in range(self.scf_iteration):
                 d["iteration"].extend([iter + 1] * len(self.sigma_kpoints) * self.nsppol)
                 d["ks_dirgaps"] = np.concatenate((d["ks_dirgaps"], (self.r.read_value("ks_gaps", path=f"iter{iter+1}") * abu.Ha_eV).ravel()))
                 d["qpz0_dirgaps"] = np.concatenate((d["qpz0_dirgaps"], (self.r.read_value("qpz_gaps", path=f"iter{iter+1}") * abu.Ha_eV).ravel()))
-                # d["qp_pade_dirgaps"] = np.concatenate((d["qp_pade_dirgaps"], (self.r.read_value("qp_pade_gaps", path=f"iter{iter+1}") * abu.Ha_eV).ravel()))
+                d["qp_pade_dirgaps"] = np.concatenate((d["qp_pade_dirgaps"], (self.r.read_value("qp_pade_gaps", path=f"iter{iter+1}") * abu.Ha_eV).ravel()))
         else:
             d["ks_dirgaps"] = self.ks_dirgaps.ravel()
             d["qpz0_dirgaps"] = self.qpz0_dirgaps.ravel()
-            # d["qp_pade_dirgaps"] = self.qp_pade_dirgaps.ravel()
+            d["qp_pade_dirgaps"] = self.qp_pade_dirgaps.ravel()
         d["spin"] = [0] * len(self.sigma_kpoints) * self.scf_iteration
         if self.nsppol == 2: d["spin"].extend([1] * len(self.sigma_kpoints) * self.scf_iteration)
 
