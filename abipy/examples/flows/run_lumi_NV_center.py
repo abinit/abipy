@@ -48,7 +48,7 @@ def scf_inp(structure):
     ### Setting of the occupations, for spin up-dn in the ground/excited state
     ### Only valid for NV center in this particular cell.
     n_val = gs_scf_inp.num_valence_electrons
-    n_cond = round(10)
+    n_cond = 10
 
     spin_up_gs = f"\n{int((n_val - 3) / 2)}*1 1 1   1 {n_cond}*0"
     spin_up_ex = f"\n{int((n_val - 3) / 2)}*1 1 1   1 {n_cond}*0"

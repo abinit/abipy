@@ -1,6 +1,35 @@
 #!/usr/bin/env python
 """
-Script to analyze/export/visualize the crystal structure saved in the netcdf files produced by ABINIT.
+Command-line tool for the analysis, conversion, and visualization of crystal structures.
+
+This script provides a comprehensive set of tools for manipulating crystal structures
+produced by Abinit and other codes. It supports symmetry analysis (via spglib),
+supercell generation, structure conversion (CIF, POSCAR, XYZ, etc.), k-point grid
+generation, and direct integration with online databases like Materials Project (MP)
+and the Crystallography Open Database (COD).
+
+Main Categories:
+    Symmetry:   Spglib analysis, primitive/conventional cell generation, re-symmetrization.
+    Conversion: Format conversion (Abinit, CIF, VASP, QE, etc.), supercell building.
+    K-points:   K-path generation, BZ visualization, k-mesh sampling (IBZ weights).
+    Databases:  Search and fetch structures from MP and COD using formulas or IDs.
+    Visualization: Export to VESTA, XCrySDen, OVITO, or generate interactive Dashboards.
+
+Examples:
+    Analyze the symmetry of an Abinit output file:
+        $ abistruct.py spglib out_GSR.nc
+
+    Convert a CIF file to Abinit input variables:
+        $ abistruct.py convert crystal.cif
+
+    Generate a 2x2x2 supercell from a POSCAR and save it as a CIF:
+        $ abistruct.py supercell POSCAR -s 2 2 2 --savefile super.cif
+
+    Search for MgB2 structures in the Materials Project database:
+        $ abistruct.py mp_search MgB2
+
+    Visualize a structure using VESTA:
+        $ abistruct.py visualize out_DDB -a vesta
 """
 
 from __future__ import annotations
@@ -26,7 +55,13 @@ from abipy.iotools.xsf import xsf_write_structure
 
 
 def save_structure(structure, options) -> None:
-    """Save structure to file."""
+    """
+    Save the crystalline structure to a file.
+
+    Args:
+        structure: Structure object to be saved.
+        options: Namespace object containing command-line options (must have `savefile`).
+    """
     if not options.savefile:
         return
     print("Saving structure to file:", options.savefile)
@@ -39,7 +74,12 @@ def save_structure(structure, options) -> None:
 
 
 def check_ordered_structure(structure) -> None:
-    """Print a warning and sys.exit 1 if structure is disordered."""
+    """
+    Check if the structure is ordered and exit if fractional occupancies are found.
+
+    Args:
+        structure: Structure object to check.
+    """
     if not structure.is_ordered:
         cprint(
             """

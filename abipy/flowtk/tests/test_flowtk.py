@@ -18,7 +18,6 @@ class TestFlowtk(AbipyTest):
             return flowtk.Flow.temporary_flow()
 
         mock = self.get_mock_module()
-        with mock.patch("sys.argv", ["test_main.py", "prof", "--help"]):
-            with self.assertRaises(SystemExit) as cm:
-                main()
+        with mock.patch("sys.argv", ["test_main.py", "prof", "--help"]), self.assertRaises(SystemExit) as cm:
+            main()
         assert cm.exception.code == 0

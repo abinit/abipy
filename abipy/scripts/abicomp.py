@@ -1,8 +1,34 @@
 #!/usr/bin/env python
 """
-Script to analyze/compare results stored in multiple netcdf/output files.
-By default the script displays the results/plots in the shell.
-Use --ipython to start an ipython terminal or -nb to generate an ipython notebook.
+Command-line tool to compare results from multiple Abinit files.
+
+This script allows users to perform comparative analysis of structures,
+electron band structures/DOS, phonon properties, and more across multiple
+output files. It uses "Robots" to aggregate data from many files and
+provides tools for grouping structures by similarity, comparing space groups,
+and generating multi-dataset plots.
+
+Main Categories:
+    Structure: Compare crystal structures, lattice parameters, and XRD patterns.
+    Electrons: Compare band structures and DOS on the same plot.
+    Phonons:   Compare phonon dispersion and DOS from different DDB/PHBST files.
+    Robots:    Batch process and compare data from netcdf files (GSR, SIGRES, etc.).
+
+Examples:
+    Compare lattice parameters for a list of CIF/netcdf files:
+        $ abicomp.py structure *.cif
+
+    Compare electron band structures from two GSR files:
+        $ abicomp.py ebands run1_GSR.nc run2_GSR.nc
+
+    Group structures by similarity (using pymatgen's StructureMatcher):
+        $ abicomp.py structure --group *.poscar
+
+    Compare space group recognition between Abinit and spglib:
+        $ abicomp.py spg out_GSR.nc
+
+    Batch compare results from all GSR files in a directory:
+        $ abicomp.py gsr .
 """
 
 from __future__ import annotations
@@ -41,7 +67,15 @@ def df_to_clipboard(options, df):
 
 def abicomp_structure(options):
     """
-    Compare crystalline structures. Use `--group` to compare for similarity.
+    Compare crystalline structures and print lattice parameters/coordinates.
+
+    Use the `--group` option to group structures by similarity.
+
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: System exit code.
     """
     if options.group:
         return compare_structures(options)
@@ -739,11 +773,16 @@ def _build_robot(options, trim_paths=True):
 
 def _invoke_robot(options):
     """
-    Analyze multiple files with a robot. Support list of files and/or list of directories passed on the CLI.
+    Aggregate and compare data from multiple files using a Robot instance.
 
-    By default, the script with call `robot.to_string(options.verbose)` to print info to terminal.
-    For finer control, use --ipy to start an ipython console to interact with the robot directly
-    or --nb to generate a jupyter notebook.
+    This function supports both a list of individual files and directories.
+    It can print a summary table, start an IPython shell, or generate a notebook.
+
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: System exit code.
     """
     robot = _build_robot(options)
 

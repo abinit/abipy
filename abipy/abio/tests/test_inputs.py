@@ -359,7 +359,7 @@ class TestAbinitInput(AbipyTest):
         )
 
         n_val = inp.num_valence_electrons
-        n_cond = round(10)
+        n_cond = 10
 
         spin_up_gs = f"\n{int((n_val - 3) / 2)}*1 1 1   1 {n_cond}*0"
         spin_dn_gs = f"\n{int((n_val - 3) / 2)}*1 1 0   0 {n_cond}*0"
@@ -850,7 +850,7 @@ class TestAbinitInput(AbipyTest):
         nsppol = 2
         ngkpt = [2, 2, 2]
         shiftk = [0.5, 0.5, 0.5]
-        n_cond = round(20)
+        n_cond = 20
         n_val = inp.num_valence_electrons
 
         spin_up_gs = f"\n{int((n_val - 7) / 2)}*1 7*1 {n_cond}*0"

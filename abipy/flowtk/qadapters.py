@@ -80,7 +80,7 @@ class MpiRunner:
             type: Type of the mpirunner (not used at present)
             options (str): String with options passed to the mpi runner e.g. "--bind-to None"
         """
-        self.name = name if name else ""
+        self.name = name or ""
         self.type = None
         self.options = str(options)
 
@@ -315,9 +315,8 @@ class _ExcludeNodesFile:
         if not os.path.exists(self.FILEPATH):
             if not os.path.exists(self.DIRPATH):
                 os.makedirs(self.DIRPATH, exist_ok=True)
-            with FileLock(self.FILEPATH):
-                with open(self.FILEPATH, "w") as fh:
-                    json.dump({}, fh)
+            with FileLock(self.FILEPATH), open(self.FILEPATH, "w") as fh:
+                json.dump({}, fh)
 
     def read_nodes(self, qname: str):
         with open(self.FILEPATH) as fh:
@@ -325,15 +324,14 @@ class _ExcludeNodesFile:
 
     def add_nodes(self, qname, nodes) -> None:
         nodes = (nodes,) if not isinstance(nodes, (tuple, list)) else nodes
-        with FileLock(self.FILEPATH):
-            with AtomicFile(self.FILEPATH, mode="w+") as fh:
-                d = json.load(fh)
-                if qname in d:
-                    d["qname"].extend(nodes)
-                    d["qname"] = list(set(d["qname"]))
-                else:
-                    d["qname"] = nodes
-                json.dump(d, fh)
+        with FileLock(self.FILEPATH), AtomicFile(self.FILEPATH, mode="w+") as fh:
+            d = json.load(fh)
+            if qname in d:
+                d["qname"].extend(nodes)
+                d["qname"] = list(set(d["qname"]))
+            else:
+                d["qname"] = nodes
+            json.dump(d, fh)
 
 
 _EXCL_NODES_FILE = _ExcludeNodesFile()

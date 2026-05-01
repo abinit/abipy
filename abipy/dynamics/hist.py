@@ -260,8 +260,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             # comment line  + scaling factor set to 1.0
             fh.write(comment)
             fh.write("1.0\n")
-            for vec in self.initial_structure.lattice.matrix:
-                fh.write("%.12f %.12f %.12f\n" % (vec[0], vec[1], vec[2]))
+            fh.writelines("%.12f %.12f %.12f\n" % (vec[0], vec[1], vec[2]) for vec in self.initial_structure.lattice.matrix)
             if not groupby_type:
                 fh.write(" ".join(symbols_atom) + "\n")
                 fh.write("1 " * len(symbols_atom) + "\n")
@@ -277,8 +276,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             for step in range(self.num_steps):
                 fh.write("Direct configuration= %d\n" % (step + 1))
                 frac_coords = xred_list[step, group_ids]
-                for fs in frac_coords:
-                    fh.write("%.12f %.12f %.12f\n" % (fs[0], fs[1], fs[2]))
+                fh.writelines("%.12f %.12f %.12f\n" % (fs[0], fs[1], fs[2]) for fs in frac_coords)
 
         return filepath
 

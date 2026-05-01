@@ -216,8 +216,7 @@ class Mrgddb(ExecWrapper):
         # Handle the case of a single file since mrgddb uses 1 to denote GS files!
         if len(ddb_files) == 1:
             with open(ddb_files[0]) as in_fh, open(out_ddb, "w") as out:
-                for line in in_fh:
-                    out.write(line)
+                out.writelines(in_fh)
             return out_ddb
 
         self.stdin_fname, self.stdout_fname, self.stderr_fname = map(
@@ -281,8 +280,7 @@ class Mrgdvdb(ExecWrapper):
         # Handle the case of a single file since mrgddb uses 1 to denote GS files!
         if len(pot_files) == 1:
             with open(pot_files[0]) as in_fh, open(out_dvdb, "w") as out:
-                for line in in_fh:
-                    out.write(line)
+                out.writelines(in_fh)
             return out_dvdb
 
         self.stdin_fname, self.stdout_fname, self.stderr_fname = map(

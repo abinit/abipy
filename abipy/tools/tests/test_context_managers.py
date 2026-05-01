@@ -27,10 +27,8 @@ class TestContextManagers(AbipyTest):
 
         assert s.x == 1 and s.y == 2
 
-        with self.assertRaises(ValueError):
-            with Timeout(seconds=0, message="Timeout"):
-                pass
+        with self.assertRaises(ValueError), Timeout(seconds=0, message="Timeout"):
+            pass
 
-        with self.assertRaises(TimeoutError):
-            with Timeout(seconds=2, message="Timeout"):
-                time.sleep(6)
+        with self.assertRaises(TimeoutError), Timeout(seconds=2, message="Timeout"):
+            time.sleep(6)

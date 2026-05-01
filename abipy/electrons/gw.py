@@ -1540,8 +1540,8 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                 continue
             ib_gw = band - self.min_bstart
             sigma = var[spin, :, ik_ibz, ib_gw, 0] + 1j * var[spin, :, ik_ibz, ib_gw, 1]
-            re_ax.plot(wmesh_ev, sigma.real, label=label if label else f"band: {band}", **plt_kwargs)
-            im_ax.plot(wmesh_ev, sigma.imag, label=label if label else f"band: {band}", **plt_kwargs)
+            re_ax.plot(wmesh_ev, sigma.real, label=label or f"band: {band}", **plt_kwargs)
+            im_ax.plot(wmesh_ev, sigma.imag, label=label or f"band: {band}", **plt_kwargs)
 
         re_ax.set_ylabel(r"$\Re{\Sigma_c}(i\omega)$ (eV)")
         im_ax.set_ylabel(r"$\Im{\Sigma_c}(i\omega)$ (eV)")
@@ -1550,7 +1550,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         re_ax.set_title(
             r"$\Sigma_{nk}$"
-            + f" at k-point: {kpoint},"
+             f" at k-point: {kpoint},"
             + (f" band: {band_list[0]}," if len(band_list) == 1 else "")
             + f" spin: {spin}",
             fontsize=fontsize,

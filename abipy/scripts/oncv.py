@@ -1,6 +1,32 @@
 #!/usr/bin/env python
 """
-Script to generate/analyze/plot ONCVPSP pseudopotentials.
+Command-line tool to generate, analyze, and plot ONCVPSP pseudopotentials.
+
+This script provides a comprehensive interface to the ONCVPSP code for
+generating norm-conserving pseudopotentials. It includes tools for running
+the generator, parsing and printing output results, plotting logarithmic
+derivatives and wavefunctions, and comparing different PS files. It also
+features an interactive Panel-based GUI for real-time PS generation.
+
+Main Commands:
+    run:      Execute ONCVPSP on an input file and generate PS files (psp8, UPF).
+    plot:     Visualize logarithmic derivatives, potentials, and wavefunctions.
+    compare:  Compare results from multiple ONCVPSP output files.
+    gui:      Start an interactive web application for PS generation.
+    print:    Parse and display summary info from ONCVPSP output.
+
+Examples:
+    Generate a pseudopotential from an input file (scalar-relativistic):
+        $ oncv.py run H.in
+
+    Plot results from an ONCVPSP output file using Matplotlib:
+        $ oncv.py plot H.out
+
+    Compare two different ONCVPSP runs:
+        $ oncv.py compare run1.out run2.out
+
+    Start the interactive GUI for a specific input file:
+        $ oncv.py gui H.in
 """
 
 from __future__ import annotations
@@ -22,8 +48,16 @@ from abipy.ppcodes.ppgen import OncvGenerator
 
 def _find_oncv_output(path: str) -> str:
     """
-    Fix possible error in the specification of filepath when we want a `.out` file.
-    Return output path.
+    Locate the corresponding ONCVPSP .out file for a given input or output path.
+
+    Args:
+        path: Path to the input file, output file, or base name.
+
+    Returns:
+        str: Absolute path to the validated .out file.
+
+    Raises:
+        ValueError: If no corresponding .out file can be found.
     """
     if path.endswith(".out"):
         return path

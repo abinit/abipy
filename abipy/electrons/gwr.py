@@ -841,7 +841,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             span_style: dictionary with options passed to ax.axhspan.
             fontsize: legend and label fontsize.
         """
-
         assert self.scf_iteration > 1, "GWR calculation was not self-consistent!"
 
         # Get labels from x and y and add units.

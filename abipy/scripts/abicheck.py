@@ -1,7 +1,26 @@
 #!/usr/bin/env python
 """
-This script checks that the options in ``manager.yml``, ``scheduler.yml``,
-and the environment on the local machine are properly configured.
+Diagnostic tool to verify the AbiPy environment and configuration.
+
+This script checks that the required Python packages are installed, the 
+Abinit executable is reachable, and the configuration files (manager.yml, 
+scheduler.yml) are correctly set up.
+
+It can also be used to automatically install template configuration files 
+and run a small test flow to verify the entire toolchain.
+
+Examples:
+    Run basic consistency checks:
+        $ abicheck.py
+
+    Run a full test including the execution of a small Abinit flow:
+        $ abicheck.py --with-flow
+
+    Install template configuration files in ~/.abinit/abipy/:
+        $ abicheck.py -c
+
+    Show available manager templates provided by AbiPy:
+        $ abicheck.py -m
 """
 
 from __future__ import annotations
@@ -20,7 +39,13 @@ from abipy import abilab, flowtk
 
 def show_managers(options):
     """
-    Print table with manager files provided by AbiPy.
+    Print a table with manager configuration files provided by AbiPy.
+
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: System exit code.
     """
     from tabulate import tabulate
 
@@ -200,7 +225,15 @@ def make_scf_nscf_inputs(paral_kgb=0):
 
 
 def run_flow(options):
-    """Run test flow, return exit code."""
+    """
+    Build and run a small Abinit flow to test the environment.
+
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: Exit code of the scheduler.
+    """
     import tempfile
 
     workdir = tempfile.mkdtemp(dir=options.flow_dir)

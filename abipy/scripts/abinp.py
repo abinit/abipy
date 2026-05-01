@@ -1,8 +1,27 @@
 #!/usr/bin/env python
 """
-This script provides a simplified interface to the AbiPy factory functions.
-For a more flexible interface, please use the AbiPy objects
-to generate input files and workflows.
+Command-line interface to AbiPy's input factory functions.
+
+This script provides a simplified way to generate input files for Abinit and other
+supported codes (VASP, Wannier90, Lobster) from various structure file formats.
+It also includes tools for validating Abinit inputs, finding space groups,
+analyzing k-point grids, and more.
+
+Examples:
+    Generate a ground-state Abinit input from a CIF file:
+        $ abinp.py gs crystal.cif > run.abi
+
+    Generate Abinit inputs for an electron band structure using a structure from MP:
+        $ abinp.py ebands mp-149
+
+    Validate an existing Abinit input file:
+        $ abinp.py validate run.abi
+
+    Generate VASP input files (INCAR, KPOINTS, etc.) from a POSCAR:
+        $ abinp.py vasp POSCAR
+
+Note: For more complex workflows or fine-grained control, it is recommended
+to use the AbiPy Python API directly.
 """
 
 from __future__ import annotations
@@ -136,7 +155,15 @@ def build_abinit_input_from_file(options, **abivars):
 
 
 def abinp_validate(options):
-    """Validate Abinit input file."""
+    """
+    Validate an Abinit input file by calling Abinit in dry-run mode.
+
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: Abinit exit code (0 if valid).
+    """
     inp = build_abinit_input_from_file(options)
     r = inp.abivalidate()
     if r.retcode == 0:
@@ -214,7 +241,15 @@ def abinp_phperts(options):
 
 
 def abinp_gs(options):
-    """Build Abinit input for ground-state calculation."""
+    """
+    Generate an Abinit input for a ground-state (GS) calculation.
+
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: System exit code.
+    """
     structure = abilab.Structure.from_file(options.filepath)
     pseudos = _get_pseudotable(options)
     gsinp = factories.gs_input(

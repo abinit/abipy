@@ -5135,7 +5135,7 @@ class AnaddbTask(Task):
         if isinstance(self.ddb_node, FileNode):
             return self.ddb_node.filepath
         path = self.ddb_node.outdir.has_abiext("DDB")
-        return path if path else None
+        return path or None
 
     @property
     def md_filepath(self) -> str:
@@ -5146,7 +5146,7 @@ class AnaddbTask(Task):
             return self.md_node.filepath
 
         path = self.md_node.outdir.has_abiext("MD")
-        return path if path else None
+        return path or None
 
     @property
     def gkk_filepath(self) -> str:
@@ -5157,7 +5157,7 @@ class AnaddbTask(Task):
             return self.gkk_node.filepath
 
         path = self.gkk_node.outdir.has_abiext("GKK")
-        return path if path else None
+        return path or None
 
     @property
     def ddk_filepath(self) -> str:
@@ -5168,7 +5168,7 @@ class AnaddbTask(Task):
             return self.ddk_node.filepath
 
         path = self.ddk_node.outdir.has_abiext("DDK")
-        return path if path else None
+        return path or None
 
     def setup(self):
         """Public method called before submitting the task."""
@@ -5313,7 +5313,7 @@ class AtdepTask(Task):
         if isinstance(self.hist_node, FileNode):
             return self.hist_node.filepath
         path = self.hist_node.outdir.has_abiext("HIST.nc")
-        return path if path else None
+        return path or None
 
     @property
     def ddb_filepath(self) -> str:

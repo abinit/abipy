@@ -1,6 +1,26 @@
 #!/usr/bin/env python
 """
-Script to download and install pseudopotential tables from the web.
+Command-line interface to manage and analyze pseudopotential (PS) tables.
+
+This script allows users to browse available PS tables on the web, install
+them locally, validate their checksums, and perform basic analysis such
+as computing form factors by calling the Abinit executable.
+
+Examples:
+    List all PS repositories available for download:
+        $ abips.py avail
+
+    List PS repositories already installed on the local machine:
+        $ abips.py list
+
+    Install a specific repository by name:
+        $ abips.py install ONCVPSP-PBEsol-SR-PDv0.4
+
+    Show details of installed pseudos for a specific element (e.g., Oxygen):
+        $ abips.py element O
+
+    Compute and plot the form factors for a PS file with a specific cutoff:
+        $ abips.py mkff Si.psp8 --ecut 20
 """
 
 from __future__ import annotations
@@ -22,9 +42,15 @@ from abipy.flowtk.psrepos import (
 )
 
 
-def abips_list(options) -> list:
+def abips_list(options) -> int:
     """
-    List installed pseudopotential repos.
+    List pseudopotential repositories installed on the local machine.
+
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: Number of checksum validation errors found (if requested).
     """
     repos, repos_root = get_installed_repos_and_root()
     if not repos:
@@ -198,7 +224,13 @@ def abips_element(options) -> int:
 
 def abips_mkff(options) -> int:
     """
-    Call Abinit to compute PSPS.nc files from a list of pseudos and show results.
+    Compute pseudopotential form factors (PSPS.nc) by calling Abinit.
+
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: System exit code.
     """
     from abipy.electrons.psps import PspsFile, PspsRobot
 

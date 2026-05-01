@@ -14,8 +14,8 @@ from abipy.electrons.gsr import GsrRobot
 from .works import Work
 
 __all__ = [
-    "GsKmeshConvWorkGsKmeshTsmearConvWork",
     "EosWork",
+    "GsKmeshConvWorkGsKmeshTsmearConvWork",
 ]
 
 

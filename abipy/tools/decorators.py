@@ -156,8 +156,8 @@ class Appender:
         self.debug = debug
 
     def __call__(self, func):
-        func.__doc__ = func.__doc__ if func.__doc__ else ""
-        self.addendum = self.addendum if self.addendum else ""
+        func.__doc__ = func.__doc__ or ""
+        self.addendum = self.addendum or ""
 
         if self.dedent:
             docitems = [dedent(func.__doc__), dedent(self.addendum)]

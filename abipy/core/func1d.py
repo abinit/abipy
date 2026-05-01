@@ -188,8 +188,7 @@ class Function1D:
         with open(path, "w") as fh:
             if header:
                 fh.write(header)
-            for x, y in zip(self.mesh, self.values, strict=False):
-                fh.write(fmt % (x, y))
+            fh.writelines(fmt % (x, y) for x, y in zip(self.mesh, self.values, strict=False))
 
     def __repr__(self) -> str:
         return "%s at %s, size = %d" % (self.__class__.__name__, id(self), len(self))

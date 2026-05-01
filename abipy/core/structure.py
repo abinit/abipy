@@ -2642,7 +2642,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 if not k.name:
                     continue
                 n = ik - prev_ik
-                app("{}  {:+.5f}  {:+.5f}  {:+.5f}  # {kname}".format(n if n else 1, *k.frac_coords, kname=k.name))
+                app("{}  {:+.5f}  {:+.5f}  {:+.5f}  # {kname}".format(n or 1, *k.frac_coords, kname=k.name))
                 prev_ik = ik
             app("%endblock BandLines")
 

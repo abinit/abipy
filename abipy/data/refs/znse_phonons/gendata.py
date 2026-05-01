@@ -8,7 +8,7 @@ class MyGenerator(AnaddbFilesGenerator):
     """This class generates the output files used in the unit tests and in the examples."""
 
     def __init__(self, **kwargs):
-        super(MyGenerator, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.files_to_keep.add("ddb_notes")
 

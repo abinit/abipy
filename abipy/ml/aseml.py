@@ -2198,12 +2198,10 @@ class MlRelaxer(MlBase):
             fh.write("%i # natom\n" % len(self.atoms))
             # Write lattice vectors.
             rprimd = self.atoms.cell.array * abu.Ang_Bohr
-            for i in range(3):
-                fh.write("%s # lattice vector %i\n" % (fmt_vec3(rprimd[i]), i + 1))
+            fh.writelines("%s # lattice vector %i\n" % (fmt_vec3(rprimd[i]), i + 1) for i in range(3))
             # Write relaxed fractional coordinates.
             fh.write("xred\n")
-            for atom in self.atoms:
-                fh.write(fmt_vec3(atom.scaled_position) + "\n")
+            fh.writelines(fmt_vec3(atom.scaled_position) + "\n" for atom in self.atoms)
 
         return filepath
 

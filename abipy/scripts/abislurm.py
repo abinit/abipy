@@ -1,6 +1,17 @@
 #!/usr/bin/env python
 """
-This script retrieve information on Slurm jobs.
+Command-line tool to retrieve information on Slurm jobs.
+
+This script provides a convenient way to monitor the status of Slurm jobs
+running on the cluster and retrieve detailed accounting information for
+completed jobs.
+
+Examples:
+    List all running jobs for the current user:
+        $ abislurm.py running
+
+    Get detailed information for a list of completed job IDs:
+        $ abislurm.py completed 123456 123457
 """
 
 from __future__ import annotations
@@ -13,8 +24,9 @@ import abipy.tools.cli_parsers as cli
 
 
 def get_epilog() -> str:
-    return """\
-Usage example:\n
+    """Return a string with usage examples."""
+    return """
+Usage example:
 
     abislurm.py running                => Get info on all the running jobs
     abislurm.py completed 111 112      => Get info on completed jobs

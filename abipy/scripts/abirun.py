@@ -1,7 +1,32 @@
 #!/usr/bin/env python
 """
-The abirun.py script allows the user to submit the calculations contained in an AbiPy `Flow`.
-It provides a command line interface as well graphical interfaces.
+Command-line tool to manage and execute Abinit workflows (Flows).
+
+This script is the primary interface for running calculations, monitoring their
+status, and analyzing results within an AbiPy Flow. It supports various
+execution modes, including a robust Python-based scheduler for large-scale
+simulations and a rapid-fire mode for smaller tasks.
+
+Main Commands:
+    scheduler: Run the flow using a persistent Python scheduler.
+    status:    Display a table with the current status of all tasks.
+    rapid:     Execute all currently ready tasks in rapid-fire mode.
+    cancel:    Cancel jobs currently running in the queue.
+    events:    Analyze log files for Abinit warnings, errors, and comments.
+    ipython:   Open the flow object in an interactive IPython session.
+
+Examples:
+    Monitor the status of a flow in the current directory:
+        $ abirun.py status
+
+    Start the scheduler with a 60-second check interval:
+        $ abirun.py FLOWDIR scheduler -s 60
+
+    Analyze the last 5 tasks for potential errors:
+        $ abirun.py FLOWDIR status -n -5:
+
+    Open the flow in a Jupyter notebook for custom analysis:
+        $ abirun.py FLOWDIR notebook
 """
 
 from __future__ import annotations
@@ -41,19 +66,20 @@ def parse_strings(s: str):
 
 
 def flowdir_wname_tname(dirname: str):
-    """ "
-    Given a initial directory `dirname` containing a node of the `Flow`,
-    this function locates the directory of the flow (e.g. the directory with the pickle file)
-    and returns the name of the work and/or of the node.
+    """
+    Locate the flow directory and identify the work/task context.
 
-    Return: flowdir, wname, tname
+    Args:
+        dirname: Path to a directory within a Flow structure.
 
-    where flowdir is the directory containing the pickle file,
-    wname and tname are the basenames of the work/task.
+    Returns:
+        tuple: (flow_dir, work_name, task_name)
+            flow_dir: Absolute path to the Flow root directory.
+            work_name: Basename of the work directory (if applicable).
+            task_name: Basename of the task directory (if applicable).
 
-    If dirname contains the pickle file we have (wname, tname) == (None, None)
-    If dirname is a work --> wname is it's basename and tname is None
-    If dirname is a task --> os.path.join(flowdir, wname, tname) == task.workdir.
+    Raises:
+        RuntimeError: If the Flow root (containing the pickle file) cannot be found.
     """
     if dirname is None:
         dirname = os.getcwd()

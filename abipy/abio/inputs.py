@@ -3901,7 +3901,7 @@ class MultiDataset:
             tags: A single tag or list/tuple/set of tags
             dtindeces: a list of indices to which the tags will be added. None=all the inputs.
         """
-        for i in dtindeces if dtindeces else range(len(self)):
+        for i in dtindeces or range(len(self)):
             self[i].add_tags(tags)
 
     def remove_tags(self, tags, dtindeces=None) -> None:
@@ -3912,7 +3912,7 @@ class MultiDataset:
             tags: A single tag or list/tuple/set of tags
             dtindeces: a list of indices from which the tags will be removed. None=all the inputs.
         """
-        for i in dtindeces if dtindeces else range(len(self)):
+        for i in dtindeces or range(len(self)):
             self[i].remove_tags(tags)
 
     def filter_by_runlevel(self, runlevel) -> MultiDataset:

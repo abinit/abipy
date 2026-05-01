@@ -1,9 +1,32 @@
 #!/usr/bin/env python
 """
-This script opens one of the output files produced by Abinit (usually in netcdf format but
-other files are supported as well). By default the script starts an interactive ipython
-session so that one can interact with the file and call its methods.
-Alternatively, it is possible to generate automatically a jupyter notebook to execute code.
+Interactive tool to open and analyze files produced by Abinit and other atomistic codes.
+
+This script supports a wide range of file formats, including NetCDF files (GSR, DDB, PHBST, etc.),
+Abinit input and output files, structure files (CIF, POSCAR, XYZ), and more.
+
+By default, the script starts an interactive IPython session with the file object
+loaded as `abifile` or `obj`. This allows for direct interaction with the data
+and execution of class methods.
+
+Alternatively, it can generate Jupyter notebooks, serve interactive Dashboards
+using the `panel` package, or automatically generate Matplotlib/Plotly figures.
+
+Examples:
+    Open a GSR file in an interactive shell:
+        $ abiopen.py out_GSR.nc
+
+    Print basic information about a structure file:
+        $ abiopen.py crystal.cif -p
+
+    Automatically generate and show plots for a phonon band structure:
+        $ abiopen.py out_PHBST.nc -e
+
+    Serve an interactive Dashboard for a DDB file:
+        $ abiopen.py out_DDB -pn
+
+    Generate a Jupyter-lab notebook to analyze a file:
+        $ abiopen.py out_SIGRES.nc -nb
 """
 
 from __future__ import annotations
@@ -23,11 +46,16 @@ from abipy.tools.plotting import Exposer
 
 def make_and_open_notebook(options):
     """
-    Generate a jupyter notebook and open it in the browser.
-    Return system exit code.
+    Generate a Jupyter notebook and open it in the browser.
 
-    Raise:
-        RuntimeError if jupyter is not in $PATH
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: System exit code (0 for success).
+
+    Raises:
+        RuntimeError: If `jupyter` is not found in the system PATH.
     """
     import os
 
@@ -402,7 +430,14 @@ Use `phonon.<TAB>` to list available methods.
 
 def handle_object(obj, options):
     """
-    Postprocess/visualize object according to CLI options.
+    Postprocess or visualize the object according to command-line options.
+
+    Args:
+        obj: The AbiPy object to handle.
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: System exit code.
     """
     if options.print:
         # Print object to terminal.
@@ -556,7 +591,15 @@ The pandas DataFrame initialized from the csv file can be accessed via the `df` 
 
 
 def handle_json(options):
-    """Handle JSON file."""
+    """
+    Handle JSON files by loading them with MSONable support.
+
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: System exit code.
+    """
     if options.notebook:
         # Visualize JSON document in jupyter
         cmd = "jupyter-lab %s" % options.filepath

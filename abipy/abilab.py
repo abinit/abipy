@@ -2,13 +2,11 @@
 This module gathers the most important classes and helper functions used for scripting.
 """
 
-import sys
-import os
 import collections
-
+import os
+import sys
 from itertools import chain
-from typing import ClassVar, Optional, List, Union
-from tabulate import tabulate
+from typing import ClassVar, List, Optional, Union
 
 ####################
 ### Monty import ###
@@ -19,7 +17,8 @@ from monty.termcolor import cprint
 ### Pymatgen import ###
 #######################
 # Tools for unit conversion
-import pymatgen.core.units as units
+from pymatgen.core import units
+from tabulate import tabulate
 
 FloatWithUnit = units.FloatWithUnit
 ArrayWithUnit = units.ArrayWithUnit
@@ -27,98 +26,97 @@ ArrayWithUnit = units.ArrayWithUnit
 ####################
 ### Abipy import ###
 ####################
-from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Flow, Work, TaskManager, AbinitBuild, flow_main
+from abipy.abio.abivars import AbinitInputFile
+
+# try:
+#    from abipy.ml.aseml import AseMdLog
+# except ImportError:
+#    AseMdLog = None
+# from abipy.electrons.abitk import ZinvConvFile, TetraTestFile
+# Abinit Documentation.
+from abipy.abio.abivars_db import abinit_help, docvar, get_abinit_variables
+from abipy.abio.factories import *
+from abipy.abio.inputs import AbinitInput, AnaddbInput, AtdepInput, MultiDataset, OpticInput
+from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, AboRobot, OutNcFile
+from abipy.abio.robots import Robot
+from abipy.core.func1d import Function1D
+from abipy.core.globals import disable_notebook, enable_notebook, in_notebook
+from abipy.core.kpoints import set_atol_kdiff
+from abipy.core.mixins import CubeFile, JsonFile, TextFile
 from abipy.core.release import __version__, min_abinit_version
-from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
 from abipy.core.structure import (
     Lattice,
     Structure,
     StructureModifier,
+    cod_search,
     dataframes_from_structures,
+    display_structure,
     mp_match_structure,
     mp_search,
-    cod_search,
-    display_structure,
 )
-from abipy.core.mixins import TextFile, JsonFile, CubeFile
-from abipy.core.func1d import Function1D
-from abipy.core.kpoints import set_atol_kdiff
-from abipy.abio.robots import Robot
-from abipy.abio.inputs import AbinitInput, MultiDataset, AnaddbInput, OpticInput, AtdepInput
-from abipy.abio.abivars import AbinitInputFile
-from abipy.abio.outputs import AbinitLogFile, AbinitOutputFile, OutNcFile, AboRobot
-from abipy.tools.printing import print_dataframe
-from abipy.tools.notebooks import print_source, print_doc
-from abipy.tools.serialization import mjson_load, mjson_loads, mjson_write
-from abipy.abio.factories import *
+from abipy.dfpt.anaddbnc import AnaddbNcFile, AnaddbNcRobot
+from abipy.dfpt.ddb import DdbFile, DdbRobot
+from abipy.dfpt.gruneisen import GrunsNcFile
+from abipy.dfpt.phonons import (
+    PhbstFile,
+    PhbstRobot,
+    PhdosFile,
+    PhdosReader,
+    PhononBands,
+    PhononBandsPlotter,
+    PhononDosPlotter,
+    phbands_gridplot,
+)
+from abipy.dynamics.cpx import EvpFile
+from abipy.dynamics.hist import HistFile, HistRobot
+from abipy.electrons.bse import MdfFile, MdfRobot
+from abipy.electrons.denpot import (
+    Cut3dDenPotNcFile,
+    DensityFortranFile,
+    DensityNcFile,
+    PotNcFile,
+    VhartreeNcFile,
+    VhxcNcFile,
+    VxcNcFile,
+)
 from abipy.electrons.ebands import (
+    EdosFile,
     ElectronBands,
     ElectronBandsPlotter,
     ElectronDos,
     ElectronDosPlotter,
     dataframe_from_ebands,
-    EdosFile,
 )
-from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.eskw import EskwFile
-from abipy.electrons.psps import PspsFile, PspsRobot
+from abipy.electrons.fatbands import FatBandsFile
+from abipy.electrons.fold2bloch import Fold2BlochNcfile
+from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.gw import SigresFile, SigresRobot
 from abipy.electrons.gwr import GwrFile
-from abipy.electrons.bse import MdfFile, MdfRobot
+from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterAnalyzer, LobsterDoscarFile, LobsterInput
+from abipy.electrons.optic import OpticNcFile, OpticRobot
+from abipy.electrons.psps import PspsFile, PspsRobot
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
-from abipy.electrons.denpot import (
-    DensityNcFile,
-    VhartreeNcFile,
-    VxcNcFile,
-    VhxcNcFile,
-    PotNcFile,
-    DensityFortranFile,
-    Cut3dDenPotNcFile,
-)
-from abipy.electrons.fatbands import FatBandsFile
-from abipy.electrons.optic import OpticNcFile, OpticRobot
-from abipy.electrons.fold2bloch import Fold2BlochNcfile
-from abipy.dfpt.phonons import (
-    PhbstFile,
-    PhbstRobot,
-    PhononBands,
-    PhononBandsPlotter,
-    PhdosFile,
-    PhononDosPlotter,
-    PhdosReader,
-    phbands_gridplot,
-)
-from abipy.dfpt.ddb import DdbFile, DdbRobot
-from abipy.dfpt.anaddbnc import AnaddbNcFile, AnaddbNcRobot
-from abipy.dfpt.gruneisen import GrunsNcFile
-from abipy.dynamics.hist import HistFile, HistRobot
-from abipy.waves import WfkFile
 from abipy.eph.a2f import A2fFile, A2fRobot
-from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 from abipy.eph.cumulant import CumulantEPhFile
-from abipy.eph.vpq import VpqFile
 from abipy.eph.eph_plotter import EphPlotter
-from abipy.eph.v1sym import V1symFile
 from abipy.eph.gkq import GkqFile, GkqRobot
-from abipy.eph.v1qnu import V1qnuFile
-from abipy.eph.v1qavg import V1qAvgFile
-from abipy.eph.rta import RtaFile, RtaRobot
-from abipy.eph.transportfile import TransportFile
-from abipy.eph.gstore import GstoreFile
 from abipy.eph.gpath import GpathFile
-from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
-from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
-from abipy.dynamics.cpx import EvpFile
-# try:
-#    from abipy.ml.aseml import AseMdLog
-# except ImportError:
-#    AseMdLog = None
-
-# from abipy.electrons.abitk import ZinvConvFile, TetraTestFile
-
-# Abinit Documentation.
-from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
+from abipy.eph.gstore import GstoreFile
+from abipy.eph.rta import RtaFile, RtaRobot
+from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
+from abipy.eph.transportfile import TransportFile
+from abipy.eph.v1qavg import V1qAvgFile
+from abipy.eph.v1qnu import V1qnuFile
+from abipy.eph.v1sym import V1symFile
+from abipy.eph.vpq import VpqFile
+from abipy.flowtk import AbinitBuild, Flow, Mrgddb, Mrgscr, Pseudo, PseudoTable, TaskManager, Work, flow_main
+from abipy.tools.notebooks import print_doc, print_source
+from abipy.tools.printing import print_dataframe
+from abipy.tools.serialization import mjson_load, mjson_loads, mjson_write
+from abipy.wannier90 import AbiwanFile, AbiwanRobot, WoutFile
+from abipy.waves import WfkFile
 
 
 def _straceback():
@@ -493,7 +491,7 @@ def abicheck(verbose: int = 0) -> str:
         from packaging.version import parse as parse_version
 
         op = operator_from_str(op)
-        return op(parse_version(this.split("-")[0]), parse_version(other.split("-")[0]))
+        return op(parse_version(this.split("-", maxsplit=1)[0]), parse_version(other.split("-", maxsplit=1)[0]))
 
     from abipy.flowtk import PyFlowScheduler
 

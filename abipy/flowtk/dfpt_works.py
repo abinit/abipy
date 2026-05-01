@@ -77,7 +77,7 @@ class ElasticWork(Work, MergeDdb):
         if with_piezo or with_dde:
             # Calculate the ddk wf's needed for piezoelectric tensor and Born effective charges.
             # ddk_tolerance = {"tolwfr": 1.0e-20}
-            ddk_tolerance = tolerances.get("ddk", None)
+            ddk_tolerance = tolerances.get("ddk")
             ddk_multi = scf_input.make_ddk_inputs(tolerance=ddk_tolerance, manager=manager)
             ddk_tasks = []
             for inp in ddk_multi:
@@ -87,7 +87,7 @@ class ElasticWork(Work, MergeDdb):
 
         if with_dde:
             # Add tasks for electric field perturbation.
-            dde_tolerance = tolerances.get("dde", None)
+            dde_tolerance = tolerances.get("dde")
             dde_multi = scf_input.make_dde_inputs(tolerance=dde_tolerance, use_symmetries=True, manager=manager)
             dde_deps = {wfk_task: "WFK"}
             dde_deps.update(ddk_deps)
@@ -96,7 +96,7 @@ class ElasticWork(Work, MergeDdb):
 
         # Build input files for strain and (optionally) phonons.
         # strain_tolerance = {"tolvrs": 1e-10}
-        strain_tolerance = tolerances.get("strain", None)
+        strain_tolerance = tolerances.get("strain")
         strain_multi = scf_input.make_strain_perts_inputs(
             tolerance=strain_tolerance, manager=manager, phonon_pert=with_relaxed_ion, kptopt=2
         )

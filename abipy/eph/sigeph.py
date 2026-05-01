@@ -1527,8 +1527,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
                         kpt = kpoints[ik]
                         fmt = "%20.12e " * 3 + "%d !kpt nband\n" % (bstop - bstart)
                         f.write(fmt % tuple(kpt))
-                        for ibnd in range(bstart, bstop):
-                            f.write("%20.12e\n" % (function(qpes[ispin, ik, ibnd, itemp])))
+                        f.writelines("%20.12e\n" % (function(qpes[ispin, ik, ibnd, itemp])) for ibnd in range(bstart, bstop))
 
         # write tau
         for itemp in range(ntemp):
@@ -1551,8 +1550,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
             f.write(fmt3 % tuple(struct.lattice.matrix[1] * abu.Ang_Bohr))
             f.write(fmt3 % tuple(struct.lattice.matrix[2] * abu.Ang_Bohr))
             f.write("%d\n" % len(struct))
-            for atom in struct:
-                f.write("%s " % atom.specie + fmt3 % tuple(atom.coords * abu.Ang_Bohr))
+            f.writelines("%s " % atom.specie + fmt3 % tuple(atom.coords * abu.Ang_Bohr) for atom in struct)
 
     def interpolate(
         self,

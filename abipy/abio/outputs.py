@@ -531,8 +531,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             with open(tmpname, "w") as fh:
                 if with_params:
                     fh.write(self.header)
-                for idt in dt_lists[i]:
-                    fh.write(self.datasets[idt])
+                fh.writelines(self.datasets[idt] for idt in dt_lists[i])
                 if with_params:
                     fh.write(self.footer)
 

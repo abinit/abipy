@@ -1,6 +1,32 @@
 #!/usr/bin/env python
 """
-Script to perform several types of calculations with ASE and ML potentials.
+Command-line tool for Machine Learning (ML) potential calculations with ASE.
+
+This script integrates Machine Learning potentials (e.g., CHGNet, MACE, M3GNet)
+with the Atomistic Simulation Environment (ASE) to perform geometry
+optimizations, molecular dynamics, and vibrational analysis (via Phonopy).
+It provides a simplified interface to various ML force fields and supports
+exporting results to standard formats.
+
+Main Tasks:
+    Opt:      Geometry optimization using various ASE optimizers.
+    MD:       Molecular dynamics simulations (NVE, NVT, NPT).
+    Phonon:   Phonon frequency calculations and band structures using ML potentials.
+    Elastic:  Computation of elastic constants.
+    Energy:   Single-point energy and force calculations.
+
+Examples:
+    Relax a structure using CHGNet (default):
+        $ abiml.py opt crystal.cif
+
+    Run NVT molecular dynamics for 1000 steps at 300K:
+        $ abiml.py md structure.poscar --steps 1000 --temperature 300 --ensemble nvt
+
+    Compute phonon bands using MACE potential:
+        $ abiml.py phonon structure.cif --potential-name mace
+
+    Calculate the elastic tensor of a material:
+        $ abiml.py elastic mp-149
 """
 
 from __future__ import annotations
@@ -24,6 +50,15 @@ DEFAULT_NN = "chgnet"
 
 
 def _get_atoms_from_filepath(filepath: str):
+    """
+    Read an ASE Atoms object from a file or Material Project ID.
+
+    Args:
+        filepath: Path to the structure file or MP ID (prefixed with __mp-).
+
+    Returns:
+        ase.Atoms: The loaded structure as an ASE Atoms object.
+    """
     if filepath.startswith("__mp-"):
         print(f"Fetching structure for mp-id {filepath[2:]} from the materials project database.")
         return aseml.get_atoms(Structure.from_mpid(filepath[2:]))

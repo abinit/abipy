@@ -262,8 +262,7 @@ def traj_to_qepos(traj_filepath: PathLike, pos_filepath: PathLike) -> None:
     with open(str(pos_filepath), "w") as fh:
         for it in range(nsteps):
             fh.write(str(it) + "\n")
-            for ia in range(natoms):
-                fh.write(str(pos_tac[it, ia, 0]) + " " + str(pos_tac[it, ia, 1]) + " " + str(pos_tac[it, ia, 2]) + "\n")
+            fh.writelines(str(pos_tac[it, ia, 0]) + " " + str(pos_tac[it, ia, 1]) + " " + str(pos_tac[it, ia, 2]) + "\n" for ia in range(natoms))
 
 
 class Qe2Extxyz:

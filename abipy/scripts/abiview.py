@@ -1,7 +1,34 @@
 #!/usr/bin/env python
 """
-This script visualizes results with external graphical applications.
-or convert data from Abinit files (usually netcdf) to other formats.
+Command-line tool to visualize and analyze Abinit results.
+
+This script provides specialized visualization tools for various Abinit output
+formats (GSR, DDB, PHBST, HIST, DEN/POT, etc.). It supports generating plots
+using Matplotlib or Plotly, and can export data to external applications like
+VESTA, XCrySDen, and OVITO.
+
+Main Categories:
+    Structure: Visualize crystal structures and relaxation/MD trajectories.
+    Electrons: Plot band structures, DOS, and Fermi surfaces.
+    Phonons:   Analyze vibrational properties, IR spectra, and elastic tensors from DDBs.
+    Fields:    Visualize volumetric data like electronic density and potentials.
+    Timing:    Analyze Abinit timer data and memory logs.
+
+Examples:
+    Plot electron bands from a GSR file:
+        $ abiview.py ebands out_GSR.nc
+
+    Visualize a structural relaxation trajectory in HIST.nc:
+        $ abiview.py hist out_HIST.nc
+
+    Compute and plot phonon bands and DOS from a DDB file:
+        $ abiview.py ddb out_DDB
+
+    Visualize the electronic density (DEN.nc) in VESTA:
+        $ abiview.py denpot out_DEN.nc -a vesta
+
+    Analyze the Abinit timer from an output file:
+        $ abiview.py timer out_ABO
 """
 
 from __future__ import annotations
@@ -47,8 +74,13 @@ class NegateAction(argparse.Action):
 
 def abiview_structure(options):
     """
-    Visualize the structure with the specified visualizer. Requires external app
-    or optional python modules (mayavi, vtk)
+    Visualize a crystal structure with an external application.
+
+    Args:
+        options: Namespace object containing command-line options (must have `filepath` and `appname`).
+
+    Returns:
+        int: System exit code.
     """
     structure = abilab.Structure.from_file(options.filepath)
     print(structure.to_string(verbose=options.verbose))
@@ -69,8 +101,13 @@ def abiview_input(options):
 
 def abiview_hist(options):
     """
-    Visualize structural relaxation/molecular-dynamics run
-    from data stored in the HIST.nc file. Requires mayavi.
+    Visualize a structural relaxation or molecular dynamics run.
+
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: System exit code.
     """
     with abilab.abiopen(options.filepath) as hist:
         print(hist.to_string(verbose=options.verbose))

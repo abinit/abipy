@@ -1,6 +1,27 @@
 #!/usr/bin/env python
 """
-Script to start the panel-based AbiPy web GUI.
+Command-line tool to start the interactive AbiPy web GUI.
+
+This script launches a multi-page web application built with the Panel framework.
+The GUI provides a user-friendly interface for Abinit input file generation,
+structure analysis, and comparative studies of electronic and vibrational
+properties against the Materials Project database.
+
+Main Pages:
+    Input Generator:    Interactive builder for Abinit input files.
+    Structure Analyzer: Tools for visualizing and analyzing crystal structures.
+    DDB/Ebands:         Comparative analysis of phonon and electron results.
+    Robot Analyzer:     Batch process and compare multiple netcdf files.
+
+Examples:
+    Start the GUI locally on the default port:
+        $ abigui.py
+
+    Start the GUI with 4 worker processes and verbose logging:
+        $ abigui.py --num_procs 4 --verbose
+
+    Start the GUI in "remote server" mode (restricts certain local operations):
+        $ abigui.py --has-remote-server
 """
 
 from __future__ import annotations
@@ -17,7 +38,8 @@ import abipy.tools.cli_parsers as cli
 def main():
 
     def str_examples():
-        return """\
+        """Return a string with usage examples."""
+        return """
 Usage example:
 
     abigui.py --verbose
@@ -175,7 +197,7 @@ with extensions that are not recognized by AbiPy.
         def __init__(self, app_cls, sidebar_links, app_kwargs=None):
             self.app_cls = app_cls
             self.sidebar_links = sidebar_links
-            self.app_kwargs = app_kwargs if app_kwargs else {}
+            self.app_kwargs = app_kwargs or {}
 
         def build(self):
             app = self.app_cls(**self.app_kwargs)

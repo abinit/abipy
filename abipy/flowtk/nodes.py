@@ -1426,9 +1426,8 @@ def save_lastnode_id() -> None:
     """Save the id of the last node created."""
     init_counter()
 
-    with FileLock(_COUNTER_FILE):
-        with AtomicFile(_COUNTER_FILE, mode="w") as fh:
-            fh.write("%d\n" % _COUNTER)
+    with FileLock(_COUNTER_FILE), AtomicFile(_COUNTER_FILE, mode="w") as fh:
+        fh.write("%d\n" % _COUNTER)
 
 
 # IMPORTANT: Register function atexit

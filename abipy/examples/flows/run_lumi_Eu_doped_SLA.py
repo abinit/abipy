@@ -89,7 +89,7 @@ def scf_inp(structure):
     ### Setting of the occupations, for spin up-dn in the ground/excited state
     ### Only valid for Eu doped
     n_val = gs_scf_inp.num_valence_electrons
-    n_cond = round(15)
+    n_cond = 15
 
     spin_up_gs = f"\n{int((n_val - 7) / 2)}*1 7*1 {n_cond}*0"
     spin_up_ex = f"\n{int((n_val - 7) / 2)}*1 6*1 0 1 {n_cond - 1}*0"

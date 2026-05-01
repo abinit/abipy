@@ -1,6 +1,26 @@
 #!/usr/bin/env python
 """
-Interface to the database of ABINIT input variables
+Command-line interface to access the documentation of ABINIT input variables.
+
+This script allows users to search for variables, view their documentation,
+browse them in an external web browser, and visualize variable dependencies.
+It also provides documentation for AbiPy's TaskManager and Scheduler options.
+
+Examples:
+    Show documentation for the `ecut` variable:
+        $ abidoc.py man ecut
+
+    Search for variables related to `paw`:
+        $ abidoc.py find paw
+
+    Open the official ABINIT documentation for `acell` in a web browser:
+        $ abidoc.py browse acell
+
+    Visualize dependencies for `tolvrs` using Graphviz:
+        $ abidoc.py graphviz tolvrs
+
+    List all variables in the `base` varset:
+        $ abidoc.py list --mode s
 """
 
 from __future__ import annotations
@@ -16,6 +36,13 @@ from abipy.core.release import __version__
 
 
 def print_vlist(vlist, options):
+    """
+    Print a list of variables to the terminal.
+
+    Args:
+        vlist: List of AbinitVariable objects.
+        options: Namespace object containing command-line options.
+    """
     for v in vlist:
         print(repr(v))
 

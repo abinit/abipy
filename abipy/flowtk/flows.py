@@ -348,9 +348,8 @@ class Flow(Node, NodeContainer, MSONable):
             except Exception:
                 pass
 
-        with FileLock(filepath):
-            with open(filepath, "rb") as fh:
-                flow = pmg_pickle_load(fh)
+        with FileLock(filepath), open(filepath, "rb") as fh:
+            flow = pmg_pickle_load(fh)
 
         # Check if versions match.
         if flow.VERSION != cls.VERSION:
@@ -2084,9 +2083,8 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         protocol = self.pickle_protocol
 
         # Atomic transaction with FileLock.
-        with FileLock(self.pickle_file):
-            with AtomicFile(self.pickle_file, mode="wb") as fh:
-                pmg_pickle_dump(self, fh, protocol=protocol)
+        with FileLock(self.pickle_file), AtomicFile(self.pickle_file, mode="wb") as fh:
+            pmg_pickle_dump(self, fh, protocol=protocol)
 
         return 0
 
