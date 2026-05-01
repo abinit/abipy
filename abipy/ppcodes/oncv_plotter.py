@@ -570,6 +570,7 @@ class OncvPlotter(NotebookWriter):
             yield self.plot_tau(show=False)
 
     def write_notebook(self, nbpath=None):
+        """Write an ipython notebook for the oncvpsp output file."""
         return oncv_make_open_notebook(self.parser.filepath)
 
 
@@ -1071,6 +1072,7 @@ class MultiOncvPlotter(NotebookWriter):
         #        yield self.plot_der_densities(order=order, show=False)
 
     def write_notebook(self, nbpath=None):
+        """Write an ipython notebook for the oncvpsp output files."""
         raise NotImplementedError("write_notebooks should be tested")
         # return oncv_make_open_notebook(self.parser.filepath)
 

@@ -748,12 +748,15 @@ class AbipyParameterized(param.Parameterized):
         return dict(show=False, fig_close=True)
 
     def pws_col(self, keys, **kwargs) -> pn.Column:
+        """Return a pn.Column with widgets/parameters for the given keys."""
         return pn.Column(*self.pws(keys), **kwargs)
 
     def pws_row(self, keys, **kwargs) -> pn.Row:
+        """Return a pn.Row with widgets/parameters for the given keys."""
         return pn.Row(*self.pws(keys), **kwargs)
 
     def wdg_box(self, keys, **kwargs) -> pn.WidgetBox:
+        """Return a pn.WidgetBox with widgets/parameters for the given keys."""
         return pn.WidgetBox(*self.pws(keys), **kwargs)
 
     def pws(self, keys):
@@ -1199,6 +1202,7 @@ class NcFileViewer(AbipyParameterized):
         self.netcdf_info_btn = pnw.Button(name="Show info", button_type="primary")
 
     def get_ncfile_view(self) -> pn.Column:
+        """Return a view with netcdf file information."""
         return pn.Column(
             self.netcdf_info_btn,
             self.on_netcdf_info_btn,
@@ -1359,6 +1363,7 @@ class PanelWithElectronBands(PanelWithStructure):
         self.skw_ebands_kpath = self._get_ebands_from_bstring(self.skw_ebands_kpath_fileinput)
 
     def get_plot_ebands_view(self) -> pn.Row:
+        """Return a view with options to plot electronic bands."""
         return pn.Row(
             self.pws_col(
                 [
@@ -1405,6 +1410,7 @@ class PanelWithElectronBands(PanelWithStructure):
         return col
 
     def get_plot_edos_view(self) -> pn.Row:
+        """Return a view with options to plot electronic DOS."""
         return pn.Row(
             self.pws_col(["## E-DOS Options", "edos_method", "edos_step_ev", "edos_width_ev", "plot_edos_btn"]),
             self.on_plot_edos_btn,
@@ -1736,6 +1742,7 @@ class PanelWithEbandsRobot(BaseRobotPanel):
         self.edos_plotter_btn = pnw.Button(name="Plot", button_type="primary")
 
     def get_ebands_plotter_widgets(self) -> pn.Column:
+        """Return a Column with widgets to plot electronic bands."""
         return pn.Column(self.ebands_plotter_mode, self.ebands_df_checkbox, self.ebands_plotter_btn)
 
     @depends_on_btn_click("ebands_plotter_btn")
@@ -1759,6 +1766,7 @@ class PanelWithEbandsRobot(BaseRobotPanel):
         return pn.Row(col, sizing_mode="scale_width")
 
     def get_edos_plotter_widgets(self) -> pn.Column:
+        """Return a Column with widgets to plot electronic DOS."""
         return pn.Column(self.edos_plotter_mode, self.edos_plotter_btn)
 
     @depends_on_btn_click("edos_plotter_btn")

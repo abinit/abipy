@@ -1250,9 +1250,11 @@ class ArrayPlotter:
         return self._arr_dict.__iter__()
 
     def keys(self):
+        """Return the keys of the underlying dictionary."""
         return self._arr_dict.keys()
 
     def items(self):
+        """Return the items of the underlying dictionary."""
         return self._arr_dict.items()
 
     def add_array(self, label: str, array) -> None:
@@ -1406,9 +1408,7 @@ class Exposer:
         return exposer_cls(**kwargs)
 
     def add_obj_with_yield_figs(self, obj: Any) -> None:
-        """
-        Add an object implementing a `yield_figs` method to the Exposer.
-        """
+        """Add an object implementing a `yield_figs` method to the Exposer."""
         if not hasattr(obj, "yield_figs"):
             raise TypeError(f"object of type {type(obj)} does not implement `yield_figs` method")
 
@@ -1852,6 +1852,9 @@ class GenericDataFilesPlotter:
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
+        """
+        String representation with verbosity level `verbose`.
+        """
         lines = []
         app = lines.append
         for od, filepath in zip(self.odlist, self.filepaths, strict=False):

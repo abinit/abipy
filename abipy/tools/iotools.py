@@ -118,6 +118,7 @@ class ExitStackWithFiles(ExitStack):
         super().__init__()
 
     def enter_context(self, myfile):
+        """Enter the context of `myfile` and return it."""
         # If my file is None, we add it to files but without registering the callback.
         self.files.append(myfile)
         if myfile is not None:
@@ -208,12 +209,14 @@ class Editor:  # pragma: no cover
             self.editor = str(editor)
 
     def edit_file(self, filepath):
+        """Open the file at `filepath` with the system editor."""
         retcode = call([self.editor, filepath])
         if retcode != 0:
             cprint("Retcode %s while editing file: %s" % (retcode, filepath), "red")
         return retcode
 
     def edit_files(self, filepaths, ask_for_exit=True):
+        """Open multiple files with the system editor."""
         for idx, fname in enumerate(list_strings(filepaths)):
             exit_status = self.edit_file(fname)
 

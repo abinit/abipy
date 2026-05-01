@@ -69,6 +69,7 @@ def df_to_clipboard(options, df) -> None:
 
 class NegateAction(argparse.Action):
     def __call__(self, parser, ns, values, option):
+        """Toggle the boolean value of the option."""
         setattr(ns, self.dest, option[2:4] != "no")
 
 

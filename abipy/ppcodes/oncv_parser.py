@@ -91,10 +91,12 @@ class OncvParser(BaseParser):
 
     @property
     def is_metapsp(self) -> bool:
+        """True if the pseudopotential is of type METAPSP."""
         return self.generator_type == "METAPSP"
 
     @property
     def is_oncvpsp(self) -> bool:
+        """True if the pseudopotential is of type ONCVPSP."""
         return self.generator_type == "ONCVPSP"
 
     def _scan(self, verbose: int = 0) -> OncvParser:
@@ -291,6 +293,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def min_ghost_empty_ha(self):
+        """Minimum ghost energy (in Hartree) found in the empty states."""
         ghost_ene = np.inf
         for line in self.warnings:
             if "GHOST(+)" not in line:
@@ -301,6 +304,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def lmax(self) -> int:
+        """Maximum angular momentum found in the file."""
         # Read lmax (not very robust because we assume the user didn't change the template but oh well)
         header = "# lmax"
         for i, line in enumerate(self.lines):

@@ -74,6 +74,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         self._gspheres = tuple(gspheres)
 
     def close(self) -> None:
+        """Close the file reader."""
         self.r.close()
 
     @cached_property
@@ -189,6 +190,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         raise visu.Error("Don't know how to export data for visualizer %s" % appname)
 
     def get_h1mat(self):
+        """Read and return the h1 matrix elements and the q-point."""
         pertcase = self.r.read_value("pertcase")
         # idir = mod(pertcase-1, 3) + 1
         # ipert = (pertcase - idir) / 3 + 1

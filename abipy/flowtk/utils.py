@@ -850,6 +850,7 @@ class Condition:
     __nonzero__ = __bool__
 
     def __call__(self, obj):
+        """Evaluate the condition on `obj`."""
         if not self:
             return True
         try:
@@ -870,6 +871,7 @@ class Editor:
         self.editor = os.getenv("EDITOR", "vi") if editor is None else str(editor)
 
     def edit_files(self, fnames, ask_for_exit=True):
+        """Edit a list of files."""
         exit_status = 0
         for idx, fname in enumerate(fnames):
             exit_status = self.edit_file(fname)
@@ -878,6 +880,7 @@ class Editor:
         return exit_status
 
     def edit_file(self, fname):
+        """Edit a single file."""
         from subprocess import call
 
         retcode = call([self.editor, fname])

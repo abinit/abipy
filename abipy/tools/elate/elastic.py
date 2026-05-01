@@ -159,9 +159,11 @@ class Elastic:
         ]
 
     def is2D(self):
+        """Return True if the material is 2D."""
         return False
 
     def isOrthorhombic(self):
+        """Return True if the elastic tensor is orthorhombic."""
         def iszero(x):
             return abs(x) < 1.0e-3
 
@@ -181,6 +183,7 @@ class Elastic:
         )
 
     def isCubic(self):
+        """Return True if the elastic tensor is cubic."""
         def iszero(x):
             return abs(x) < 1.0e-3
 
@@ -208,6 +211,7 @@ class Elastic:
         )
 
     def Young(self, x):
+        """Return the Young's modulus in the direction x=(theta, phi)."""
         a = dirVec(x[0], x[1])
         r = sum(
             [
@@ -221,6 +225,7 @@ class Elastic:
         return 1 / r
 
     def Young_2(self, x, y):
+        """Return the Young's modulus in the direction x, y."""
         a = dirVec(x, y)
         r = sum(
             [
@@ -234,16 +239,19 @@ class Elastic:
         return 1 / r
 
     def LC(self, x):
+        """Return the linear compressibility in the direction x=(theta, phi)."""
         a = dirVec(x[0], x[1])
         r = sum([a[i] * a[j] * self.Smat[i][j][k][k] for i in range(3) for j in range(3) for k in range(3)])
         return 1000 * r
 
     def LC_2(self, x, y):
+        """Return the linear compressibility in the direction x, y."""
         a = dirVec(x, y)
         r = sum([a[i] * a[j] * self.Smat[i][j][k][k] for i in range(3) for j in range(3) for k in range(3)])
         return 1000 * r
 
     def shear(self, x):
+        """Return the shear modulus in the direction x=(theta, phi, chi)."""
         a = dirVec(x[0], x[1])
         b = dirVec2(x[0], x[1], x[2])
         r = sum(
@@ -258,6 +266,7 @@ class Elastic:
         return 1 / (4 * r)
 
     def Poisson(self, x):
+        """Return the Poisson's ratio in the direction x=(theta, phi, chi)."""
         a = dirVec(x[0], x[1])
         b = dirVec2(x[0], x[1], x[2])
         r1 = sum(
@@ -281,6 +290,7 @@ class Elastic:
         return -r1 / r2
 
     def averages(self):
+        """Return the Voigt, Reuss, and Hill averages for the elastic tensor."""
         A = (self.CVoigt[0][0] + self.CVoigt[1][1] + self.CVoigt[2][2]) / 3
         B = (self.CVoigt[1][2] + self.CVoigt[0][2] + self.CVoigt[0][1]) / 3
         C = (self.CVoigt[3][3] + self.CVoigt[4][4] + self.CVoigt[5][5]) / 3
@@ -304,9 +314,11 @@ class Elastic:
         ]
 
     def eigenvalues(self):
+        """Return the eigenvalues of the stiffness matrix."""
         return np.sort(np.linalg.eig(self.CVoigt)[0])
 
     def shear2D(self, x):
+        """Find the minimum and maximum shear modulus for a given direction x=(theta, phi)."""
         ftol = 0.001
         xtol = 0.01
 
@@ -322,6 +334,7 @@ class Elastic:
         return (float(r1.fun), -float(r2.fun))
 
     def shear3D(self, x, y, guess1=np.pi / 2.0, guess2=np.pi / 2.0):
+        """Find the minimum and maximum shear modulus for a given direction (x, y)."""
         tol = 0.0005
 
         def func1(z):
@@ -336,6 +349,7 @@ class Elastic:
         return (float(r1.fun), -float(r2.fun), float(r1.x[0]), float(r2.x[0]))
 
     def Poisson2D(self, x):
+        """Find the minimum and maximum Poisson's ratio for a given direction x=(theta, phi)."""
         ftol = 0.001
         xtol = 0.01
 
@@ -351,6 +365,7 @@ class Elastic:
         return (min(0, float(r1.fun)), max(0, float(r1.fun)), -float(r2.fun))
 
     def Poisson3D(self, x, y, guess1=np.pi / 2.0, guess2=np.pi / 2.0):
+        """Find the minimum and maximum Poisson's ratio for a given direction (x, y)."""
         tol = 0.005
 
         def func1(z):
@@ -380,6 +395,7 @@ class ElasticOrtho(Elastic):
             raise TypeError("ElasticOrtho constructor argument should be string or Elastic object")
 
     def Young(self, x):
+        """Return the Young's modulus in the direction x=(theta, phi)."""
         ct2 = math.cos(x[0]) ** 2
         st2 = 1 - ct2
         cf2 = math.cos(x[1]) ** 2
@@ -406,6 +422,7 @@ class ElasticOrtho(Elastic):
         )
 
     def LC(self, x):
+        """Return the linear compressibility in the direction x=(theta, phi)."""
         ct2 = math.cos(x[0]) ** 2
         cf2 = math.cos(x[1]) ** 2
         s11 = self.Smat[0][0][0][0]
@@ -417,6 +434,7 @@ class ElasticOrtho(Elastic):
         return 1000 * (ct2 * (s13 + s23 + s33) + (cf2 * (s11 + s12 + s13) + (s12 + s22 + s23) * (1 - cf2)) * (1 - ct2))
 
     def shear(self, x):
+        """Return the shear modulus in the direction x=(theta, phi, chi)."""
         ct = math.cos(x[0])
         ct2 = ct * ct
         st2 = 1 - ct2
@@ -463,6 +481,7 @@ class ElasticOrtho(Elastic):
         return 1 / r
 
     def Poisson(self, x):
+        """Return the Poisson's ratio in the direction x=(theta, phi, chi)."""
         ct = math.cos(x[0])
         ct2 = ct * ct
         st2 = 1 - ct2
@@ -585,9 +604,11 @@ class Elastic2D:
         self.s66 = self.SVoigt[2][2]
 
     def is2D(self):
+        """Return True if the material is 2D."""
         return True
 
     def Young(self, theta):
+        """Return the Young's modulus in the direction theta."""
         ct = math.cos(theta)
         st = math.sin(theta)
 
@@ -600,6 +621,7 @@ class Elastic2D:
         )
 
     def shear(self, theta):
+        """Return the shear modulus in the direction theta."""
         ct = math.cos(theta)
         st = math.sin(theta)
 
@@ -612,6 +634,7 @@ class Elastic2D:
         return 1 / (4 * calc)
 
     def Poisson(self, theta):
+        """Return the Poisson's ratio in the direction theta."""
         ct = math.cos(theta)
         st = math.sin(theta)
 
@@ -631,4 +654,5 @@ class Elastic2D:
         return -num / denom
 
     def eigenvalues(self):
+        """Return the eigenvalues of the stiffness matrix."""
         return np.sort(np.linalg.eig(self.CVoigt)[0])

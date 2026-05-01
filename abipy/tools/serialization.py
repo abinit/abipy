@@ -26,6 +26,7 @@ class Serializable:
 
     @classmethod
     def pickle_load(cls, filepath: PathLike):
+        """Load an object from a pickle file."""
         with open(filepath, "rb") as f:
             obj = pickle.load(f)
 
@@ -35,15 +36,18 @@ class Serializable:
 
     @classmethod
     def json_load(cls, filepath: PathLike, **kwargs):
+        """Load an object from a JSON file."""
         obj = mjson_load(filepath, **kwargs)
         if obj.__class__ != cls:
             raise TypeError(f"{obj.__class__=} != {cls=}")
         return obj
 
     def json_write(self, filepath: PathLike, **kwargs) -> None:
+        """Write the object to a JSON file."""
         mjson_write(self, filepath, **kwargs)
 
     def pickle_dump(self, filepath: PathLike) -> None:
+        """Dump the object to a pickle file."""
         with open(filepath, "wb") as f:
             pickle.dump(self, f)
 

@@ -126,6 +126,7 @@ class Wannier90Input(AbstractInput, Has_Structure):
 
     @property
     def vars(self) -> dict:
+        """OrderedDict with the wannier90 input variables."""
         return self._vars
 
     # This stufff should be moved to the ABC

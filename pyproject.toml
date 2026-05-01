@@ -161,7 +161,7 @@ pydocstyle.convention = "google"
 [tool.ruff.lint.per-file-ignores]
 "abipy/abilab.py" = ["F401"]
 "__init__.py" = ["F401"] # unused-import
-"tests/**" = [
+"**/tests/**" = [
     "ANN201", # missing-return-type-undocumented-public-function
     "D", # pydocstyle
     "PLR0124", # comparison-with-itself
@@ -169,6 +169,7 @@ pydocstyle.convention = "google"
     "PLR6301", # no-self-use
     "S101", # Use of "assert"
 ]
+"**/test_*.py" = ["S101"]
 
 #[tool.pytest.ini_options]
 #addopts = "--durations=30 --quiet -r xXs --color=yes --import-mode=importlib"

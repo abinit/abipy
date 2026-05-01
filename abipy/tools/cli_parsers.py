@@ -256,6 +256,7 @@ class EnumAction(argparse.Action):
         self._enum = enum_type
 
     def __call__(self, parser, namespace, values, option_string=None):
+        """Call the action and set the Enum value in the namespace."""
         # Convert value back into an Enum
         value = self._enum(values)
         setattr(namespace, self.dest, value)

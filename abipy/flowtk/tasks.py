@@ -190,18 +190,22 @@ class ParalConf(AttrDict):
 
     @property
     def num_cores(self) -> int:
+        """Total number of cores (MPI * OMP)."""
         return self.mpi_procs * self.omp_threads
 
     @property
     def mem_per_proc(self) -> float:
+        """Estimated memory requirement per MPI processor in Megabytes."""
         return self.mem_per_cpu
 
     @property
     def mpi_procs(self) -> int:
+        """Number of MPI processes."""
         return self.mpi_ncpus
 
     @property
     def omp_threads(self) -> int:
+        """Number of OMP threads."""
         return self.omp_ncpus
 
     @property

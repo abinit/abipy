@@ -122,14 +122,17 @@ class DielectricDataList(list):
 
     @property
     def eps_list(self) -> list:
+        """Return the list of dielectric tensors."""
         return [obj[0] for obj in self]
 
     @property
     def structures(self) -> list:
+        """Return the list of structures."""
         return [obj[1] for obj in self]
 
     @property
     def params_list(self) -> list[dict]:
+        """Return the list of parameters."""
         return [obj[2] for obj in self]
 
     def has_same_structure(self) -> bool:

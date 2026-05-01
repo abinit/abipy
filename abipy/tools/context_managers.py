@@ -88,6 +88,7 @@ class Timeout:
         self.message = message
 
     def handle_timeout(self, signum, frame):
+        """Raise TimeoutError when the timeout is reached."""
         raise TimeoutError(self.message)
 
     def __enter__(self):

@@ -121,6 +121,7 @@ class FFTBenchmark:
 
     @classmethod
     def from_file(cls, fileobj):
+        """Create an instance from a PROF file."""
         return parse_prof_file(fileobj)
 
     def __init__(self, title, FFT_tests):

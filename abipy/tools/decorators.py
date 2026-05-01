@@ -156,6 +156,7 @@ class Appender:
         self.debug = debug
 
     def __call__(self, func):
+        """Append the addendum to the docstring of `func`."""
         func.__doc__ = func.__doc__ or ""
         self.addendum = self.addendum or ""
 
