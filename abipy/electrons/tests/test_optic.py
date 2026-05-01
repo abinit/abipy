@@ -1,9 +1,7 @@
-# coding: utf-8
 """Tests for optic module."""
 import abipy.data as abidata
-
-from abipy.core.testing import AbipyTest
 from abipy import abilab
+from abipy.core.testing import AbipyTest
 
 
 class OpticTest(AbipyTest):

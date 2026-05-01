@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 """Optical properties with excitonic effects (Bethe-Salpeter formalism)."""
-from __future__ import division, print_function
 
-import sys
 import os
-import numpy as np
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+import sys
+
 import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_nscf_bse_inputs(ngkpt=(6, 6, 6), ecut=6, ecuteps=3,

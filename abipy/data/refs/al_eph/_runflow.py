@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 """Electron-phonon calculations."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import sys
-import numpy as np
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

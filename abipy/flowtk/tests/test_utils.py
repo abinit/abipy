@@ -1,10 +1,8 @@
-# coding: utf-8
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.flowtk.utils import *
-
 
 # FIXME
 #class FilePathFixerTest(AbipyTest):
@@ -49,7 +47,7 @@ class DirectorTest(AbipyTest):
 class RpnTest(AbipyTest):
 
     def test_mongodb_like_conditions(self):
-        class Foo(object):
+        class Foo:
             one = 1.0
             two = 2.0
             three = 3.0
@@ -83,7 +81,7 @@ class ConditionTest(AbipyTest):
         assert not c
         print(c)
 
-        class A(object):
+        class A:
             def __init__(self):
                 self.one = 1.0
 

@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 import os
+
 #import param
 import panel as pn
 import panel.widgets as pnw
-
 from panel.viewable import Viewer
 
 
@@ -16,11 +16,11 @@ class AceViewer(Viewer):
         super().__init__(**params)
 
         basename = os.path.basename(filepath)
-        self.open_btn = pnw.Button(name=f"Open {basename}", button_type='primary')
+        self.open_btn = pnw.Button(name=f"Open {basename}", button_type="primary")
         self.open_btn.on_click(self.open_ace_editor)
 
-        self.ace = pnw.CodeEditor(language='text', readonly=True, theme=theme,
-                                  sizing_mode='stretch_width', height=height, visible=False)
+        self.ace = pnw.CodeEditor(language="text", readonly=True, theme=theme,
+                                  sizing_mode="stretch_width", height=height, visible=False)
 
         self.controls = pn.Card(self.ace.param.height, self.ace.param.theme, self.ace.param.visible,
                                 title="ACE controls", collapsed=True)
@@ -33,7 +33,7 @@ class AceViewer(Viewer):
 
     def open_ace_editor(self, event) -> None:
         self.ace.visible = True
-        self.ace.value = open(self.filepath, "rt").read()
+        self.ace.value = open(self.filepath).read()
         self.open_btn.name = "Reopen %s" % os.path.basename(self.filepath)
 
     def __panel__(self):

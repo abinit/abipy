@@ -1,10 +1,10 @@
-# coding: utf-8
 """Work subclasses for the computation of luminiscent properties."""
 from __future__ import annotations
 
-from .works import Work
 from abipy.abilab import abiopen
 from abipy.lumi.deltaSCF import DeltaSCF
+
+from .works import Work
 
 
 class LumiWork(Work):
@@ -100,7 +100,7 @@ class LumiWork(Work):
 
             return self.postpone_on_all_ok()
 
-        elif self.iteration_step == 1:
+        if self.iteration_step == 1:
             print("in iteration step 1")
             self.iteration_step += 1
 
@@ -151,7 +151,7 @@ class LumiWork(Work):
 
             return self.postpone_on_all_ok()
 
-        elif self.iteration_step == 2:
+        if self.iteration_step == 2:
 
             print("in iteration step 2")
             self.iteration_step += 1

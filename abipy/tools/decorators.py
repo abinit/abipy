@@ -1,14 +1,13 @@
-# coding: utf-8
 """Decorators."""
 from __future__ import annotations
 
-import time
 import functools
-import weakref
 import inspect
-
-from typing import Callable
+import time
+import weakref
+from collections.abc import Callable
 from textwrap import dedent
+
 
 class classproperty(property):
     """class-level property"""
@@ -46,7 +45,7 @@ def return_straceback_ifexc(func: Callable):
 
 def timeit(method):
     """
-    timeit decorator adapted from:
+    Timeit decorator adapted from:
     https://medium.com/pythonhive/python-decorator-to-measure-the-execution-time-of-methods-fa04cb6bb36d
     sets the timing of the routine as an attribute of the class
     """
@@ -133,7 +132,7 @@ class Appender:
     MG: Added dedent and debug args.
 
     """
-    def __init__(self, addendum, join='', indents=0, dedent=True, debug=False):
+    def __init__(self, addendum, join="", indents=0, dedent=True, debug=False):
         if indents > 0:
             self.addendum = indent(addendum, indents=indents)
         else:
@@ -146,8 +145,8 @@ class Appender:
         self.debug = debug
 
     def __call__(self, func):
-        func.__doc__ = func.__doc__ if func.__doc__ else ''
-        self.addendum = self.addendum if self.addendum else ''
+        func.__doc__ = func.__doc__ if func.__doc__ else ""
+        self.addendum = self.addendum if self.addendum else ""
 
         if self.dedent:
             docitems = [dedent(func.__doc__), dedent(self.addendum)]
@@ -168,6 +167,6 @@ class Appender:
 
 def indent(text: str, indents=1) -> str:
     if not text or not isinstance(text, str):
-        return ''
-    jointext = ''.join(['\n'] + ['    '] * indents)
-    return jointext.join(text.split('\n'))
+        return ""
+    jointext = "".join(["\n"] + ["    "] * indents)
+    return jointext.join(text.split("\n"))

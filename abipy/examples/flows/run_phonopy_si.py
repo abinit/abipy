@@ -14,12 +14,11 @@ for which DFPT in ABINIT is not yet implemented.
     This example requires the `phonopy package <http://atztogo.github.io/phonopy/examples.html>`_
 """
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
-import abipy.flowtk as flowtk
+import sys
 
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.flowtk.abiphonopy import PhonopyWork
 
 

@@ -1,12 +1,13 @@
 """Unit tests for oncvpsp"""
 
-import sys
 import os
-import numpy as np
-import abipy.data as abidata
+import sys
 
-from abipy.core.testing import AbipyTest
+import numpy as np
+
+import abipy.data as abidata
 from abipy.core.atom import NlkState
+from abipy.core.testing import AbipyTest
 from abipy.ppcodes.oncv_parser import OncvParser
 from abipy.ppcodes.oncv_plotter import MultiOncvPlotter, psp8_get_densities
 

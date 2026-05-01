@@ -1,10 +1,9 @@
-# coding: utf-8
 """Test manager files."""
 
 import os
-import abipy.data as abidata
-import abipy.flowtk as flowtk
 
+import abipy.data as abidata
+from abipy import flowtk
 from abipy.core.testing import AbipyTest
 
 

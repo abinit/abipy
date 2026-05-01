@@ -16,8 +16,8 @@ See also tutorial/lesson_rf2.html
 # In this case, for simplicity, we use the same file but we must
 # use different labels when adding them to the plotter with the add_phdos method.
 
-from abipy import abilab
 import abipy.data as abidata
+from abipy import abilab
 
 phdos_paths = [abidata.ref_file("trf2_5.out_PHDOS.nc")]
 

@@ -1,10 +1,10 @@
-# coding: utf-8
 """
 mayavi_ toolkit.
 
 WARNING: This code is still under development.
 """
 import itertools
+
 import numpy as np
 
 DEFAULT_FIGURE_KWARGS = dict(size=(1024, 768), bgcolor=(1, 1, 1), fgcolor=(0, 0, 0))
@@ -66,7 +66,7 @@ def plot_wigner_seitz(lattice, figure=None, **kwargs):  # pragma: no cover
                     #                         (kred1 >= 0) & (kred1 <= 0.5))
                     #    print(kred0, kred1, do_plot)
                     #if not do_plot: continue
-                    mlab.plot3d(*zip(line[0], line[1]), figure=figure, **kwargs)
+                    mlab.plot3d(*zip(line[0], line[1], strict=False), figure=figure, **kwargs)
 
     return figure
 
@@ -104,7 +104,7 @@ def plot_unit_cell(lattice, figure=None, **kwargs):  # pragma: no cover
 
     for i, j in ((0, 1), (1, 2), (2, 3), (0, 3), (3, 4), (4, 5), (5, 6),
                  (6, 7), (7, 4), (0, 7), (1, 6), (2, 5), (3, 4)):
-        mlab.plot3d(*zip(v[i], v[j]), figure=figure, **kwargs)
+        mlab.plot3d(*zip(v[i], v[j], strict=False), figure=figure, **kwargs)
 
     #mlab.xlabel("x-axis")
     #mlab.ylabel("y-axis")
@@ -136,11 +136,11 @@ def plot_lattice_vectors(lattice, figure=None, **kwargs): # pragma: no cover
 
     vertex1 = lattice.get_cartesian_coords([0.0, 0.0, 0.0])
     vertex2 = lattice.get_cartesian_coords([1.0, 0.0, 0.0])
-    mlab.plot3d(*zip(vertex1, vertex2), figure=figure, **kwargs)
+    mlab.plot3d(*zip(vertex1, vertex2, strict=False), figure=figure, **kwargs)
     vertex2 = lattice.get_cartesian_coords([0.0, 1.0, 0.0])
-    mlab.plot3d(*zip(vertex1, vertex2), figure=figure, **kwargs)
+    mlab.plot3d(*zip(vertex1, vertex2, strict=False), figure=figure, **kwargs)
     vertex2 = lattice.get_cartesian_coords([0.0, 0.0, 1.0])
-    mlab.plot3d(*zip(vertex1, vertex2), figure=figure, **kwargs)
+    mlab.plot3d(*zip(vertex1, vertex2, strict=False), figure=figure, **kwargs)
 
     return figure
 
@@ -178,7 +178,7 @@ def plot_structure(structure, frac_coords=False, to_unit_cell=False, style="poin
 
         if "points" in style:
             mlab.points3d(x, y, z, figure=figure, scale_factor=radius,
-                          resolution=20, color=color, scale_mode='none', **kwargs)
+                          resolution=20, color=color, scale_mode="none", **kwargs)
         if "labels" in style:
             mlab.text3d(x, y, z, symbol, figure=figure, color=(0, 0, 0), scale=0.2)
 
@@ -229,7 +229,7 @@ def plot_labels(labels, lattice=None, coords_are_cartesian=False, figure=None, *
     return figure
 
 
-class MayaviFieldAnimator(object): # pragma: no cover
+class MayaviFieldAnimator: # pragma: no cover
 
     def __init__(self, filepaths):
         self.filepaths = filepaths
@@ -277,9 +277,9 @@ class MayaviFieldAnimator(object): # pragma: no cover
         #                     #vmin=data_min + 0.65 * (data_max - data_min),
         #                     #vmax=data_min + 0.9 * (data_max - data_min))
         #mlab.pipeline.iso_surface(source)
-        mlab.pipeline.image_plane_widget(source, plane_orientation='x_axes', slice_index=0)
-        mlab.pipeline.image_plane_widget(source, plane_orientation='y_axes', slice_index=0)
-        mlab.pipeline.image_plane_widget(source, plane_orientation='z_axes', slice_index=0)
+        mlab.pipeline.image_plane_widget(source, plane_orientation="x_axes", slice_index=0)
+        mlab.pipeline.image_plane_widget(source, plane_orientation="y_axes", slice_index=0)
+        mlab.pipeline.image_plane_widget(source, plane_orientation="z_axes", slice_index=0)
 
         @mlab.show
         @mlab.animate(delay=1000, ui=True)

@@ -1,10 +1,10 @@
 """Tests for aseml module"""
 import numpy as np
-import abipy.data as abidata
-import abipy.ml.aseml as aseml
 
-from abipy.core.testing import AbipyTest
+import abipy.data as abidata
 from abipy.core.structure import Structure
+from abipy.core.testing import AbipyTest
+from abipy.ml import aseml
 
 
 class AbimlTest(AbipyTest):

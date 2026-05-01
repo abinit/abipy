@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Flows for electron-phonon calculations (high-level interface).
 """
@@ -6,11 +5,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from abipy.core.kpoints import kpath_from_bounds_and_ndivsm
 from abipy.abio.inputs import AbinitInput
-from .nodes import Node
-from .works import Work, PhononWork, PhononWfkqWork
+from abipy.core.kpoints import kpath_from_bounds_and_ndivsm
+
 from .flows import Flow
+from .nodes import Node
+from .works import PhononWfkqWork, PhononWork, Work
 
 
 class EphPotFlow(Flow):

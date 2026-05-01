@@ -1,7 +1,5 @@
-# coding: utf-8
 """Tools for computing derivatives by finite differences."""
 import numpy as np
-
 from monty.collections import dict2namedtuple
 
 __all__ = [
@@ -93,7 +91,7 @@ def check_num_points_for_order(num_points: int, order: int, kind: str) -> None:
     """
     Check if num_points is compatible with the stencil. Raises ValueError if invalid.
 
-    Args
+    Args:
         num_points: Number of points for finite difference.
         order: Derivative order.
         kind: "=" for central-difference, ">" for forward, "<" for backward.
@@ -163,8 +161,8 @@ def finite_diff(arr, h, order=1, acc=4, index=None):
             stop = i + len(forw_ws)
             if stop > n:
                 raise ValueError(
-                        ("\n\tDon't have enough points for index: %s in array of lenght: %s\n" +
-                         "\tto compute forward finite difference with order: %s, and acc: %s (num_weights: %s)\n" +
+                        ("\n\tDon't have enough points for index: %s in array of lenght: %s\n"
+                         "\tto compute forward finite difference with order: %s, and acc: %s (num_weights: %s)\n"
                          "\tDecrease acc or increase the number of sampling points.") % (i, n, order, acc, len(forw_ws)))
             ders[i] = npsum(forw_ws * arr[i:stop])
             npts = len(forw_ws)
@@ -176,8 +174,8 @@ def finite_diff(arr, h, order=1, acc=4, index=None):
             start = i - len(back_ws) + 1
             if start < 0:
                 raise ValueError(
-                    ("\n\tDon't have enough points for index: %s in array of length: %s\n" +
-                    "\tto compute backward finite difference with order: %s, and acc: %s (num_weights: %s)\n" +
+                    ("\n\tDon't have enough points for index: %s in array of length: %s\n"
+                    "\tto compute backward finite difference with order: %s, and acc: %s (num_weights: %s)\n"
                     "\tDecrease acc or increase the number of sampling points.") % (i, n, order, acc, len(back_ws)))
             ders[i] = npsum(back_ws * arr[start:i+1])
             npts = len(back_ws)
@@ -185,5 +183,4 @@ def finite_diff(arr, h, order=1, acc=4, index=None):
 
     if index is None:
         return ders / (h ** order)
-    else:
-        return dict2namedtuple(value=ders[index] / (h ** order), npts=npts, mode=mode)
+    return dict2namedtuple(value=ders[index] / (h ** order), npts=npts, mode=mode)

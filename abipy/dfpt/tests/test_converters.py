@@ -1,26 +1,30 @@
 """Tests for dfpt converters"""
 import os
 import tempfile
+
 import numpy as np
-import abipy.core.abinit_units as abu
-
-from abipy import abilab
-from abipy.core.testing import AbipyTest
-from abipy.dfpt.ddb import DdbFile
-from abipy.dfpt.converters import abinit_to_phonopy, phonopy_to_abinit, tdep_to_abinit, ddb_ucell_to_ddb_supercell
-from abipy.dfpt.converters import born_to_lotosplitting
-from abipy.core.kpoints import kmesh_from_mpdivs
-
-from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.io.phonopy import get_phonopy_structure
+from pymatgen.io.vasp.inputs import Poscar
+
+import abipy.core.abinit_units as abu
+from abipy import abilab
+from abipy.core.kpoints import kmesh_from_mpdivs
+from abipy.core.testing import AbipyTest
+from abipy.dfpt.converters import (
+    born_to_lotosplitting,
+    ddb_ucell_to_ddb_supercell,
+    phonopy_to_abinit,
+    tdep_to_abinit,
+)
+from abipy.dfpt.ddb import DdbFile
 
 try:
     from phonopy import Phonopy
-    from phonopy.file_IO import parse_FORCE_CONSTANTS, parse_BORN
+    from phonopy.file_IO import parse_BORN, parse_FORCE_CONSTANTS
 except ImportError:
     Phonopy = None
 
-test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
+test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "test_files")
 
 
 def find_anaddbnc_in_dir(dirpath):
@@ -73,7 +77,6 @@ class ConverterTest(AbipyTest):
         Checks the phonon frequencies, BECs and dielectric tensor when converting starting from
         a DDB then to phonopy and back to DDB.
         """
-
         self.skip_if_not_phonopy()
         tmp_dir = tempfile.mkdtemp()
         orig_run_ana = os.path.join(tmp_dir, "anaddb_orig")
@@ -195,7 +198,7 @@ class ConverterTest(AbipyTest):
 
         ddb_unit=DdbFile(os.path.join(test_dir, "AlAs_444_nobecs_DDB"))
 
-        # make sure we have all the qpts in the ddb 
+        # make sure we have all the qpts in the ddb
         qpts=kmesh_from_mpdivs(mpdivs=[4,4,4],shifts=[0,0,0],order="unit_cell")
         ddb_unit_444=ddb_unit.anaget_interpolated_ddb(qpt_list=qpts)
 

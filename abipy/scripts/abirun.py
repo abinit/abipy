@@ -5,26 +5,26 @@ It provides a command line interface as well graphical interfaces.
 """
 from __future__ import annotations
 
-import sys
-import os
 import argparse
-import shlex
-import time
+import os
 import platform
+import shlex
+import sys
 import tempfile
-import abipy.flowtk as flowtk
-import abipy.abilab as abilab
-import abipy.tools.cli_parsers as cli
-
-from pprint import pprint
+import time
 from collections import defaultdict
+from pprint import pprint
 from socket import gethostname
+
 from monty import termcolor
-from monty.termcolor import cprint, colored, get_terminal_size
 from monty.string import boxed, make_banner
-from abipy.tools import duck
+from monty.termcolor import colored, cprint, get_terminal_size
+
+import abipy.tools.cli_parsers as cli
+from abipy import abilab, flowtk
 from abipy.flowtk import Status
 from abipy.flowtk.flows import Flow
+from abipy.tools import duck
 
 
 def straceback() -> str:
@@ -157,14 +157,14 @@ def flow_debug_reset_tasks(flow: Flow, nids=None, verbose=0) -> None:
             continue
 
         ntasks += 1
-        with open(reset_file, "rt") as fh:
+        with open(reset_file) as fh:
             num_reset = int(fh.read())
 
         for i in range(num_reset):
             #("output_file", "log_file", "stderr_file", "qout_file", "qerr_file", "mpiabort_file")
             for fname in ("stderr_file", "qerr_file", "mpiabort_file"):
                 path = os.path.join(reset_dir, fname + "_" + str(i))
-                with open(path, "rt") as fh:
+                with open(path) as fh:
                     s = fh.read()
                     if not s: continue
                     print(2 * "\n")
@@ -377,16 +377,15 @@ Notes:
 def get_parser(with_epilog=False):
 
     def parse_nids(s):
-        """parse nids argument"""
+        """Parse nids argument"""
         if s is None: return s
         try:
             if "," in s:
                 return [int(t) for t in s.split(",")]
-            else:
-                # Convert string to slice and return list.
-                s = duck.as_slice(s)
-                if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
-                return list(range(s.start, s.stop, s.step))
+            # Convert string to slice and return list.
+            s = duck.as_slice(s)
+            if s.stop is None: raise argparse.ArgumentTypeError("stop must be specified")
+            return list(range(s.start, s.stop, s.step))
         except Exception:
             raise argparse.ArgumentTypeError(
                     "Invalid nids string %s\n Expecting None or int or comma-separated integers or slice syntax" % s)
@@ -401,96 +400,96 @@ def get_parser(with_epilog=False):
     # wslide and nids are mutually exclusive.
     flow_selector_parser = argparse.ArgumentParser(add_help=False)
     group = flow_selector_parser.add_mutually_exclusive_group()
-    group.add_argument("-n", '--nids', default=None, type=parse_nids, help=(
+    group.add_argument("-n", "--nids", default=None, type=parse_nids, help=(
         "Node identifier(s) used to select the task. Accept single integer, comma-separated list of integers or python slice.\n"
         "Use `status` command to get the node ids.\n"
         "Examples: --nids=12 --nids=12,13,16 --nids=10:12 to select 10 and 11 (slice syntax), --nids=2:5:2 to select 2,4."
         ))
 
-    group.add_argument("-w", '--wslice', default=None, type=parse_wslice,
+    group.add_argument("-w", "--wslice", default=None, type=parse_wslice,
         help=("Select the list of works to analyze (python syntax for slices): "
               "Examples: --wslice=1 to select the second workflow, --wslice=:3 for 0,1,2, "
               "--wslice=-1 for the last workflow, --wslice::2 for even indices."))
-    group.add_argument("-S", '--task-status', default=None, type=Status.as_status,
+    group.add_argument("-S", "--task-status", default=None, type=Status.as_status,
         help="Select only the tasks with the given status. Default: None i.e. ignored. Possible values: %s." %
              Status.all_status_strings())
-    group.add_argument("-t", '--task-class', type=str, default=None,
+    group.add_argument("-t", "--task-class", type=str, default=None,
         help="Select only tasks with the given class e.g. `-t NscfTask`.")
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
-    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-        help='verbose, can be supplied multiple times to increase verbosity.')
+    copts_parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+        help="verbose, can be supplied multiple times to increase verbosity.")
 
-    copts_parser.add_argument('--no-colors', default=False, action="store_true", help='Disable ASCII colors.')
-    copts_parser.add_argument('--no-logo', default=False, action="store_true", help='Disable AbiPy logo.')
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
+    copts_parser.add_argument("--no-colors", default=False, action="store_true", help="Disable ASCII colors.")
+    copts_parser.add_argument("--no-logo", default=False, action="store_true", help="Disable AbiPy logo.")
+    copts_parser.add_argument("--loglevel", default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
-    copts_parser.add_argument('--remove-lock', default=False, action="store_true",
+    copts_parser.add_argument("--remove-lock", default=False, action="store_true",
         help="Remove the lock on the pickle file used to save the status of the flow.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('flowdir', nargs="?", help=("File or directory containing the ABINIT flow/work/task. "
+    parser.add_argument("flowdir", nargs="?", help=("File or directory containing the ABINIT flow/work/task. "
                                                     "If not given, the flow in the current workdir is selected."))
-    parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
+    parser.add_argument("-V", "--version", action="version", version=abilab.__version__)
 
     # Create the parsers for the sub-commands
-    subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
+    subparsers = parser.add_subparsers(dest="command", help="sub-command help", description="Valid subcommands")
 
     # Subparser for scheduler command.
-    p_scheduler = subparsers.add_parser('scheduler', parents=[copts_parser],
+    p_scheduler = subparsers.add_parser("scheduler", parents=[copts_parser],
         help="Run all tasks with a Python scheduler. Requires scheduler.yml either in $PWD or ~/.abinit/abipy.")
-    p_scheduler.add_argument('-w', '--weeks', default=0, type=int, help="Number of weeks to wait.")
-    p_scheduler.add_argument('-d', '--days', default=0, type=int, help="Number of days to wait.")
-    p_scheduler.add_argument('-hs', '--hours', default=0, type=int, help="Number of hours to wait.")
-    p_scheduler.add_argument('-m', '--minutes', default=0, type=int, help="Number of minutes to wait.")
-    p_scheduler.add_argument('-s', '--seconds', default=0, type=int, help="Number of seconds to wait.")
+    p_scheduler.add_argument("-w", "--weeks", default=0, type=int, help="Number of weeks to wait.")
+    p_scheduler.add_argument("-d", "--days", default=0, type=int, help="Number of days to wait.")
+    p_scheduler.add_argument("-hs", "--hours", default=0, type=int, help="Number of hours to wait.")
+    p_scheduler.add_argument("-m", "--minutes", default=0, type=int, help="Number of minutes to wait.")
+    p_scheduler.add_argument("-s", "--seconds", default=0, type=int, help="Number of seconds to wait.")
 
     # Subparser for single command.
-    p_single = subparsers.add_parser('single', parents=[copts_parser], help="Run single task and exit.")
+    p_single = subparsers.add_parser("single", parents=[copts_parser], help="Run single task and exit.")
 
     # Subparser for rapid command.
-    p_rapid = subparsers.add_parser('rapid', parents=[copts_parser], help="Run all tasks in rapidfire mode.")
-    p_rapid.add_argument('-m', '--max-nlaunch', default=10, type=int,
+    p_rapid = subparsers.add_parser("rapid", parents=[copts_parser], help="Run all tasks in rapidfire mode.")
+    p_rapid.add_argument("-m", "--max-nlaunch", default=10, type=int,
         help="Maximum number of launches. default: 10. Use -1 for no limit.")
 
     # Subparser for status command.
-    p_status = subparsers.add_parser('status', parents=[copts_parser, flow_selector_parser], help="Show status table.")
-    p_status.add_argument('-d', '--delay', nargs="?", const=5, default=0, type=int,
+    p_status = subparsers.add_parser("status", parents=[copts_parser, flow_selector_parser], help="Show status table.")
+    p_status.add_argument("-d", "--delay", nargs="?", const=5, default=0, type=int,
         help="Enter an infinite loop and delay execution for the given number of seconds. (default: 5 secs).")
-    p_status.add_argument('-s', '--summary', default=False, action="store_true",
+    p_status.add_argument("-s", "--summary", default=False, action="store_true",
         help="Print short version with status counters.")
 
     # Subparser for set_status command.
-    p_set_status = subparsers.add_parser('set_status', parents=[copts_parser, flow_selector_parser],
+    p_set_status = subparsers.add_parser("set_status", parents=[copts_parser, flow_selector_parser],
         help="Change the status of the task. WARNING: Option for developers!")
-    p_set_status.add_argument('new_status', help="New value of status. Possible values: %s." % Status.all_status_strings())
+    p_set_status.add_argument("new_status", help="New value of status. Possible values: %s." % Status.all_status_strings())
 
     # Subparser for cancel command.
-    p_cancel = subparsers.add_parser('cancel', parents=[copts_parser, flow_selector_parser],
+    p_cancel = subparsers.add_parser("cancel", parents=[copts_parser, flow_selector_parser],
         help="Cancel the tasks in the queue. Not available if qtype is shell.")
     p_cancel.add_argument("-r", "--rmtree", action="store_true", default=False, help="Remove flow directory.")
 
     # Subparser for restart command.
-    p_restart = subparsers.add_parser('restart', parents=[copts_parser, flow_selector_parser],
+    p_restart = subparsers.add_parser("restart", parents=[copts_parser, flow_selector_parser],
         help=("Restart the tasks of the flow. By default, only the task whose status==Unconverged are restarted. "
               "Use -S `status` and/or -n node_ids to select particular tasks."))
 
     # Subparser for reset command.
-    p_reset = subparsers.add_parser('reset', parents=[copts_parser, flow_selector_parser],
+    p_reset = subparsers.add_parser("reset", parents=[copts_parser, flow_selector_parser],
         help="Reset the tasks of the flow with the specified status.")
 
     # Subparser for move command.
-    p_move = subparsers.add_parser('move', parents=[copts_parser],
+    p_move = subparsers.add_parser("move", parents=[copts_parser],
         help="Move the flow to a new directory and change the absolute paths.")
-    p_move.add_argument('dest', nargs=1)
+    p_move.add_argument("dest", nargs=1)
 
     # Subparser for open command.
-    p_open = subparsers.add_parser('open', parents=[copts_parser, flow_selector_parser],
+    p_open = subparsers.add_parser("open", parents=[copts_parser, flow_selector_parser],
         help="Open files in $EDITOR, type `abirun.py FLOWDIR open --help` for help).")
-    p_open.add_argument('what', nargs="?", default="o",
+    p_open.add_argument("what", nargs="?", default="o",
         choices=["i", "o", "f", "j", "l", "e", "q", "all"],
         help=r"""\
 Specify the files to open. Possible choices:
@@ -506,58 +505,58 @@ Default: o
 """)
 
     # Subparser for abiopen.
-    p_abiopen = subparsers.add_parser('abiopen', parents=[copts_parser], #, flow_selector_parser],
+    p_abiopen = subparsers.add_parser("abiopen", parents=[copts_parser], #, flow_selector_parser],
         help="Open FILE with abiopen. Same interface as abiopen.py")
-    p_abiopen.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
-    p_abiopen.add_argument('--foreground', action='store_true', default=False,
+    p_abiopen.add_argument("-nb", "--notebook", action="store_true", default=False, help="Open file in jupyter notebook")
+    p_abiopen.add_argument("--foreground", action="store_true", default=False,
                         help="Run jupyter notebook in the foreground.")
-    p_abiopen.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
+    p_abiopen.add_argument("-p", "--print", action="store_true", default=False, help="Print python object and return.")
 
     # Subparser for abibuild
-    p_abibuild = subparsers.add_parser('abibuild', parents=[copts_parser, flow_selector_parser],
+    p_abibuild = subparsers.add_parser("abibuild", parents=[copts_parser, flow_selector_parser],
         help="Show ABINIT build information and exit.")
 
     # Subparser for doc_scheduler
-    p_docsched = subparsers.add_parser('doc_scheduler', parents=[copts_parser],
+    p_docsched = subparsers.add_parser("doc_scheduler", parents=[copts_parser],
         help="Document the options available in scheduler.yml.")
 
     # Subparser for explain_(works|tasks)
-    p_explain_works = subparsers.add_parser('explain_works', parents=[copts_parser, flow_selector_parser],
+    p_explain_works = subparsers.add_parser("explain_works", parents=[copts_parser, flow_selector_parser],
         help="Explain operations performed by Works")
-    p_explain_tasks = subparsers.add_parser('explain_tasks', parents=[copts_parser, flow_selector_parser],
+    p_explain_tasks = subparsers.add_parser("explain_tasks", parents=[copts_parser, flow_selector_parser],
         help="Explain operations performed by Tasks")
 
     # Subparser for autoparal
-    p_autoparal = subparsers.add_parser('autoparal', parents=[copts_parser, flow_selector_parser],
+    p_autoparal = subparsers.add_parser("autoparal", parents=[copts_parser, flow_selector_parser],
         help="Show autoparal configurations and optimal ones.")
 
     # Subparser for panel
-    p_panel = subparsers.add_parser('panel', parents=[copts_parser, flow_selector_parser],
+    p_panel = subparsers.add_parser("panel", parents=[copts_parser, flow_selector_parser],
                                     help="Interact with the flow in the browser (requires panel package).")
     p_panel.add_argument("-pnt", "--panel-template", default="FastList", type=str,
-                        help="Specify template for panel dashboard." +
-                             "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
+                        help="Specify template for panel dashboard."
+                             "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla."
                              "Default: FastList"
                         )
-    p_panel.add_argument('--no-browser', action='store_true', default=False,
+    p_panel.add_argument("--no-browser", action="store_true", default=False,
                         help=("Start the bokeh server to serve the panel app "
                               "but don't open the app in the browser.\n"
                               "Use this option to connect remotely from localhost to the machine running the server"))
     p_panel.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
 
     # Subparser for new_manager.
-    p_new_manager = subparsers.add_parser('new_manager', parents=[copts_parser, flow_selector_parser],
+    p_new_manager = subparsers.add_parser("new_manager", parents=[copts_parser, flow_selector_parser],
         help="Change the TaskManager.")
     p_new_manager.add_argument("manager_file", default="", type=str, help="YAML file with the new manager.")
 
     # Subparser for tail.
-    p_tail = subparsers.add_parser('tail', parents=[copts_parser, flow_selector_parser],
+    p_tail = subparsers.add_parser("tail", parents=[copts_parser, flow_selector_parser],
         help="Use unix tail to follow the main output files of the flow.")
-    p_tail.add_argument('what_tail', nargs="?", type=str, default="o", choices=["o", "l", "e"],
+    p_tail.add_argument("what_tail", nargs="?", type=str, default="o", choices=["o", "l", "e"],
         help="What to follow: `o` for output (default), `l` for logfile, `e` for stderr.")
 
     # Subparser for tail.
-    p_timeit = subparsers.add_parser('timeit', parents=[copts_parser, flow_selector_parser],
+    p_timeit = subparsers.add_parser("timeit", parents=[copts_parser, flow_selector_parser],
         help="Extract timing data from Abinit output files.")
 
     # Subparser for qstat.
@@ -565,25 +564,25 @@ Default: o
     #p_qstat = subparsers.add_parser('qstat', parents=[copts_parser], help="Show additional info on the jobs in the queue.")
 
     # Subparser for deps.
-    p_deps = subparsers.add_parser('deps', parents=[copts_parser], help="Show dependencies.")
+    p_deps = subparsers.add_parser("deps", parents=[copts_parser], help="Show dependencies.")
 
     # Subparser for robot.
-    p_robot = subparsers.add_parser('robot', parents=[copts_parser, flow_selector_parser],
+    p_robot = subparsers.add_parser("robot", parents=[copts_parser, flow_selector_parser],
         help="Use a robot to analyze the results of multiple tasks (requires ipython).")
-    p_robot.add_argument('robot_ext', nargs="?", type=str, default="GSR",
+    p_robot.add_argument("robot_ext", nargs="?", type=str, default="GSR",
         help=("The file extension of the output file (case insensitive). "
               "Must be in: %s" % str(abilab.Robot.get_supported_extensions())))
-    p_robot.add_argument('-nb', '--notebook', action='store_true', default=False, help="Generate jupyter notebook.")
-    p_robot.add_argument('--foreground', action='store_true', default=False,
+    p_robot.add_argument("-nb", "--notebook", action="store_true", default=False, help="Generate jupyter notebook.")
+    p_robot.add_argument("--foreground", action="store_true", default=False,
         help="Run jupyter notebook in the foreground.")
-    p_robot.add_argument('-p', '--print-dataframe', action='store_true', default=False,
+    p_robot.add_argument("-p", "--print-dataframe", action="store_true", default=False,
         help="Invoke robot.get_dataframe() and printa table to terminal.")
 
     # Subparser for cycles.
-    p_cycles = subparsers.add_parser('cycles', parents=[copts_parser, flow_selector_parser],
+    p_cycles = subparsers.add_parser("cycles", parents=[copts_parser, flow_selector_parser],
         help=("Print self-consistent/relaxation cycles extracted from the output of the tasks."
               "Use `-t ScfTask` or `FLOWDIR/w0/` or `FLOWDIR/w0/t1/` to select tasks by class, by work or by workdir."))
-    p_cycles.add_argument("-wok", "--exclude-ok-tasks", action='store_true', default=False,
+    p_cycles.add_argument("-wok", "--exclude-ok-tasks", action="store_true", default=False,
         help="Exclude Tasks that have reached S_OK.")
     p_cycles.add_argument("-p", "--plot-mode", nargs="?", default=None, const="combiplot",
         choices=["combiplot", "slideshow"], #"gridplot",
@@ -591,75 +590,75 @@ Default: o
               "Use `-p slideshow` to iterate."))
 
     # Subparser for dims.
-    p_dims = subparsers.add_parser('dims', parents=[copts_parser, flow_selector_parser],
+    p_dims = subparsers.add_parser("dims", parents=[copts_parser, flow_selector_parser],
         help="Print table with dimensions extracted from the output of the tasks.")
 
     # Subparser for inspect.
-    p_inspect = subparsers.add_parser('inspect', parents=[copts_parser, flow_selector_parser],
+    p_inspect = subparsers.add_parser("inspect", parents=[copts_parser, flow_selector_parser],
         help="Call matplotlib to inspect the tasks (execute task.inspect method)")
 
     # Subparser for inputs.
-    p_inputs = subparsers.add_parser('inputs', parents=[copts_parser, flow_selector_parser],
+    p_inputs = subparsers.add_parser("inputs", parents=[copts_parser, flow_selector_parser],
         help="Show the input files of the tasks.")
     p_inputs.add_argument("-vn", "--varnames", nargs="?", default=None, type=parse_strings,
         help="Comma-separated variable names. Can be used to print only these variables.")
 
     # Subparser for abivars.
-    p_abivars = subparsers.add_parser('abivars', parents=[copts_parser, flow_selector_parser],
+    p_abivars = subparsers.add_parser("abivars", parents=[copts_parser, flow_selector_parser],
         help="Show pandas dataframe with Abinit input variables.")
     p_abivars.add_argument("-vn", "--varnames", required=True, type=parse_strings,
         help="Comma-separated variable names e.g. `-vn ecut,nband,ngkpt`.")
 
     # Subparser for structures command.
-    p_structures = subparsers.add_parser('structures', parents=[copts_parser, flow_selector_parser],
+    p_structures = subparsers.add_parser("structures", parents=[copts_parser, flow_selector_parser],
         help="Compare input/output structures of the tasks. Print max force and pressure if available.")
     p_structures.add_argument("--what", type=str, default="io",
         help="'i' for input structures, 'o' for output, 'io' for both.")
 
     # Subparser for ebands command.
-    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, flow_selector_parser],
+    p_ebands = subparsers.add_parser("ebands", parents=[copts_parser, flow_selector_parser],
         help="Compare electronic bands produced by the tasks.")
     p_ebands.add_argument("-p", "--plot-mode", nargs="?", default=None, const="gridplot",
         choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate"],
         help="Plot multiple bands if arg is specified. Use -p for gridplot. Supports multiple formats.")
 
     # Subparser for hist command.
-    p_hist = subparsers.add_parser('hist', parents=[copts_parser, flow_selector_parser],
+    p_hist = subparsers.add_parser("hist", parents=[copts_parser, flow_selector_parser],
         help="Compare HIST.nc files produced by the tasks.")
     p_hist.add_argument("-p", "--plot-mode", nargs="?", default=None, const="combiplot",
         choices=["gridplot", "combiplot"],
         help="Plot multiple HIST files if arg is present. Use -p for combiplot. Supports multiple formats.")
 
     # Subparser for manager.
-    p_manager = subparsers.add_parser('doc_manager', parents=[copts_parser], help="Document the TaskManager options.")
+    p_manager = subparsers.add_parser("doc_manager", parents=[copts_parser], help="Document the TaskManager options.")
     p_manager.add_argument("qtype", nargs="?", default=None, help=("Write job script to terminal if qtype='script' else "
         "document the qparams for the given QueueAdapter qtype e.g. slurm."))
 
     # Subparser for events.
-    p_events = subparsers.add_parser('events', parents=[copts_parser, flow_selector_parser],
+    p_events = subparsers.add_parser("events", parents=[copts_parser, flow_selector_parser],
         help="Show ABINIT events (error messages, warnings, comments).")
     #p_events.add_argument("-t", "event-type", default=)
 
     # Subparser for corrections.
-    p_corrections = subparsers.add_parser('corrections', parents=[copts_parser, flow_selector_parser],
+    p_corrections = subparsers.add_parser("corrections", parents=[copts_parser, flow_selector_parser],
         help="Show AbiPy corrections performed at runtime.")
 
     # Subparser for history.
-    p_history = subparsers.add_parser('history', parents=[copts_parser, flow_selector_parser], help="Show Node history.")
+    p_history = subparsers.add_parser("history", parents=[copts_parser, flow_selector_parser], help="Show Node history.")
     p_history.add_argument("-m", "--metadata", action="store_true", default=False, help="Print history metadata.")
     p_history.add_argument("-f", "--full-history", action="store_true", default=False,
         help="Print full history set, including nodes with an empty history.")
 
     # Subparser for handlers.
-    p_handlers = subparsers.add_parser('handlers', parents=[copts_parser],
+    p_handlers = subparsers.add_parser("handlers", parents=[copts_parser],
         help="Show event handlers installed in the flow.")
     p_handlers.add_argument("-d", "--doc", action="store_true", default=False,
         help="Show documentation about all the handlers that can be installed.")
 
     # Subparser for notebook.
-    p_notebook = subparsers.add_parser('notebook', parents=[copts_parser],
+    p_notebook = subparsers.add_parser("notebook", parents=[copts_parser],
         help="Create and open an ipython notebook to interact with the flow.")
-    p_notebook.add_argument('--foreground', action='store_true', default=False,
+    p_notebook.add_argument("--foreground", action="store_true", default=False,
         help="Run jupyter notebook in the foreground.")
 
     # TODO:
@@ -673,14 +672,14 @@ Default: o
     #                    help="Run jupyter notebook in the foreground.")
 
     # Subparser for ipython.
-    p_ipython = subparsers.add_parser('ipython', parents=[copts_parser],
+    p_ipython = subparsers.add_parser("ipython", parents=[copts_parser],
         help="Embed IPython. Useful for advanced operations or debugging purposes.")
-    p_ipython.add_argument('--argv', nargs="?", default="", type=shlex.split,
+    p_ipython.add_argument("--argv", nargs="?", default="", type=shlex.split,
         help="Command-line options passed to ipython. Must be enclosed by quotes. "
              "Example: --argv='--matplotlib=wx'")
 
     # Subparser for tar.
-    p_tar = subparsers.add_parser('tar', parents=[copts_parser], help="Create tarball file.")
+    p_tar = subparsers.add_parser("tar", parents=[copts_parser], help="Create tarball file.")
     p_tar.add_argument("-s", "--max-filesize", default=None,
         help="Exclude file whose size > max-filesize bytes. Accept integer or string e.g `1MB`.")
     p_tar.add_argument("-e", "--exclude-exts", default=None, type=parse_strings,
@@ -691,20 +690,20 @@ Default: o
         help="Create light-weight version of the tarball for debugging purposes. Other options are ignored.")
 
     # Subparser for tricky.
-    p_tricky = subparsers.add_parser('tricky', parents=[copts_parser],
+    p_tricky = subparsers.add_parser("tricky", parents=[copts_parser],
         help=("Show tricky tasks i.e. tasks that have been restarted, "
               "launched more than once or tasks that have been corrected."))
 
     # Subparser for debug.
-    p_debug = subparsers.add_parser('debug', parents=[copts_parser, flow_selector_parser],
+    p_debug = subparsers.add_parser("debug", parents=[copts_parser, flow_selector_parser],
         help="Analyze error files and log files for possible error messages.")
 
     # Subparser for debug_reset.
-    p_debug_reset = subparsers.add_parser('debug_reset', parents=[copts_parser, flow_selector_parser],
+    p_debug_reset = subparsers.add_parser("debug_reset", parents=[copts_parser, flow_selector_parser],
         help="Analyze error files and log files produced by reset tasks for possible error messages.")
 
     # Subparser for reset_jobids.
-    p_reset_jobids = subparsers.add_parser('reset_jobids', parents=[copts_parser, flow_selector_parser],
+    p_reset_jobids = subparsers.add_parser("reset_jobids", parents=[copts_parser, flow_selector_parser],
         help="Analyze error files and log files produced by reset tasks for possible error messages.")
 
     # Subparser for clone_task.
@@ -712,39 +711,39 @@ Default: o
     #    help="Clone task, change input variables and add new tasks to the flow. Requires clone_task.py.")
 
     # Subparser for group.
-    p_group = subparsers.add_parser('group', parents=[copts_parser, flow_selector_parser],
+    p_group = subparsers.add_parser("group", parents=[copts_parser, flow_selector_parser],
         help="Group tasks according to property.")
-    p_group.add_argument("-g", '--groupby', default="status", type=str, choices=["status", "task_class"],
+    p_group.add_argument("-g", "--groupby", default="status", type=str, choices=["status", "task_class"],
         help="Select the attribute used to group tasks. Default: status.")
 
     # Subparser for diff.
-    p_diff = subparsers.add_parser('diff', parents=[copts_parser, flow_selector_parser],
+    p_diff = subparsers.add_parser("diff", parents=[copts_parser, flow_selector_parser],
         help="Compare files produced by two or three nodes.")
-    p_diff.add_argument('what_diff', nargs="?", type=str, default="i",
+    p_diff.add_argument("what_diff", nargs="?", type=str, default="i",
         help="What to diff: `i` for input (default), `o` for output, `l` for logfile, `e` for stderr.")
 
     # Subparser for networkx.
-    p_networkx = subparsers.add_parser('networkx', parents=[copts_parser],
+    p_networkx = subparsers.add_parser("networkx", parents=[copts_parser],
         help="Draw flow and node dependencies with networkx package.")
-    p_networkx.add_argument('--nxmode', default="status",
+    p_networkx.add_argument("--nxmode", default="status",
         help="Type of network plot. Possible values: `status`, `network`. Default: `status`.")
-    p_networkx.add_argument('--edge-labels', action="store_true", default=False, help="Show edge labels.")
+    p_networkx.add_argument("--edge-labels", action="store_true", default=False, help="Show edge labels.")
 
     # Subparser for graphviz.
-    p_graphviz = subparsers.add_parser('graphviz', parents=[copts_parser],
+    p_graphviz = subparsers.add_parser("graphviz", parents=[copts_parser],
         help=("Draw flow and node dependencies with graphviz package. Accept (FLOWDIR|WORKDIR|TASKDIR). "
              "See https://graphviz.readthedocs.io/."))
     p_graphviz.add_argument("-e", "--engine", type=str, default="automatic",
         help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
             "Default: automatic i.e. the engine is automatically selected. See http://www.graphviz.org/pdf/dot.1.pdf "
             "Use `conda install python-graphviz` or `pip install graphviz` to install the python package."))
-    p_graphviz.add_argument("-d", '--dirtree', default=False, action="store_true",
-        help='Visualize files and directories in workdir instead of tasks/works.')
+    p_graphviz.add_argument("-d", "--dirtree", default=False, action="store_true",
+        help="Visualize files and directories in workdir instead of tasks/works.")
 
     # Subparser for listext.
-    p_listext = subparsers.add_parser('listext', parents=[copts_parser],
+    p_listext = subparsers.add_parser("listext", parents=[copts_parser],
         help="List all the output files with the given extension that have been produced by the nodes.")
-    p_listext.add_argument('listexts', nargs="*", default=[], help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
+    p_listext.add_argument("listexts", nargs="*", default=[], help="List of Abinit file extensions. e.g DDB, GSR, WFK etc")
 
     return parser
 
@@ -789,7 +788,7 @@ def main():
     # Parse command line.
     try:
         options = parser.parse_args()
-    except Exception as exc:
+    except Exception:
         show_examples_and_exit(error_code=1)
 
     if not options.command:
@@ -860,7 +859,7 @@ def main():
         system, node, release, version, machine, processor = platform.uname()
         cprint("Running on %s -- system %s -- Python %s -- %s" % (
                gethostname(), system, platform.python_version(), "abirun" + "-" + abilab.__version__),
-               'yellow', attrs=['underline'])
+               "yellow", attrs=["underline"])
 
     wname, tname = None, None
     if options.flowdir is None:
@@ -920,7 +919,7 @@ def main():
         # Update the database.
         return flow.build_and_pickle_dump()
 
-    elif options.command in ("explain_works", "explain_tasks"):
+    if options.command in ("explain_works", "explain_tasks"):
         what = options.command.split("_")[1]
         s = flow.explain(what=what, nids=select_nids(flow, options), verbose=options.verbose)
         print(s)
@@ -944,7 +943,7 @@ def main():
                 print("Only the last node will be shown in the panel dashboard!\n")
                 for node in node_list:
                     print(node)
-                print("")
+                print()
 
             node = node_list[-1]
             app = node.get_panel(template=options.panel_template)
@@ -1099,7 +1098,7 @@ def main():
                 "l": task.log_file,
                 "e": task.stderr_file,
             }
-            return getattr(choices[options.what_tail], "path")
+            return choices[options.what_tail].path
 
         # Default status for tail is Running
         if options.task_status is None: options.task_status = Status.as_status("Running")
@@ -1179,7 +1178,7 @@ def main():
             cprint(repr(task), **task.status.color_opts)
             print("\n", cycle, "\n")
 
-            label = repr(task) if options.verbose else "{} {}".format(task.__class__.__name__, task.relworkdir)
+            label = repr(task) if options.verbose else f"{task.__class__.__name__} {task.relworkdir}"
             # Could have different kind of cycles e.g. Scf, Relax, DFPT ...
             # so we group them by building multiple plotters indexed by task class.
             # Plots are produced outside of the loop.
@@ -1247,14 +1246,13 @@ def main():
         if plot_mode is not None:
             if len(robot) == 1:
                 robot.abifiles[0].plot()
+            elif plot_mode == "gridplot":
+                for what in robot.what_list:
+                    robot.gridplot(what=what)
+            elif plot_mode == "combiplot":
+                robot.combiplot()
             else:
-                if plot_mode == "gridplot":
-                    for what in robot.what_list:
-                        robot.gridplot(what=what)
-                elif plot_mode == "combiplot":
-                    robot.combiplot()
-                else:
-                    raise ValueError(f"Invalid value of plot_mode: {plot_mode}")
+                raise ValueError(f"Invalid value of plot_mode: {plot_mode}")
 
     elif options.command == "notebook":
         return flow.write_open_notebook(options.foreground)
@@ -1335,15 +1333,14 @@ def main():
             if len(tasks) == 1:
                 cprint("task == task, returning\n", color="magenta", end="", flush=True)
                 return 0
-            else:
-                raise ValueError("Don't know how to compare files produced by %d tasks" % len(tasks))
+            raise ValueError("Don't know how to compare files produced by %d tasks" % len(tasks))
 
         # Build list of lists. Each sub-list contains the files associated to the i-th task.
         files_for_task = [None] * len(tasks)
         for i, task in enumerate(tasks):
             files_for_task[i] = task.select_files(options.what_diff)
 
-        for diff_files in zip(*files_for_task):
+        for diff_files in zip(*files_for_task, strict=False):
             print("Comparing", ", ".join(os.path.relpath(p) for p in diff_files))
             args = " ".join(os.path.relpath(p) for p in diff_files)
             # TODO: I should have written a Differ object somewhere!
@@ -1388,9 +1385,9 @@ def main():
             return 0
 
         for ext in options.listexts:
-            print("")
+            print()
             flow.listext(ext)
-            print("")
+            print()
 
     else:
         raise ValueError(f"Don't know what to do with command {options.command}!")

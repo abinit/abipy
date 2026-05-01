@@ -6,14 +6,14 @@ from __future__ import annotations
 
 import os
 import tempfile
-import numpy as np
-
-from subprocess import Popen, PIPE
 from shutil import which
+from subprocess import PIPE, Popen
+
+import numpy as np
 from monty.fnmatch import WildCard
+
 from abipy.tools.plotting import add_fig_kwargs
 from abipy.tools.typing import Figure
-
 
 __all__ = [
     "FFTBenchmark",
@@ -169,14 +169,14 @@ class FFTBenchmark:
         ax1.legend(loc="upper left")
         ax1.grid(True)
         ax1.set_title(self.title)
-        ax1.set_xlabel('Ecut [Hartree]')
-        ax1.set_ylabel('WALL time (s)')
+        ax1.set_xlabel("Ecut [Hartree]")
+        ax1.set_ylabel("WALL time (s)")
 
         ax2 = fig.add_subplot(2, 1, 2)
         ax2.grid(True)
 
-        ax2.set_xlabel('FFT divisions')
-        ax2.set_ylabel('Efficiency')
+        ax2.set_xlabel("FFT divisions")
+        ax2.set_ylabel("Efficiency")
 
         # Use FFT divs as labels.
         xticks = ax1.get_xticks()
@@ -216,7 +216,7 @@ class FFTBenchmark:
         labels = []
         for xtick in xticks:
             xecut = float(xtick)
-            for ecut, ndiv in zip(t0.ecut, t0.ngfft):
+            for ecut, ndiv in zip(t0.ecut, t0.ngfft, strict=False):
                 if abs(ecut - xecut) < 0.1:
                     #print(ecut, xecut, ndiv)
                     labels.append(str(ndiv))
@@ -261,7 +261,7 @@ def parse_prof_file(fileobj):
     #   30.0 101 101 100 0.0395 0.0494 0.0404 0.0333
 
     if not hasattr(fileobj, "readlines"):
-        with open(fileobj, "r") as fh:
+        with open(fileobj) as fh:
             lines = fh.readlines()
     else:
         lines = fileobj.readlines()
@@ -326,7 +326,7 @@ class FFTProf:
 
     @classmethod
     def from_file(cls, filename, executable="fftprof") -> FFTProf:
-        with open(filename, "r") as fh:
+        with open(filename) as fh:
             fft_input = fh.read()
 
         return cls(fft_input, executable=executable)
@@ -352,7 +352,7 @@ class FFTProf:
         self.returncode = p.returncode
 
         if self.returncode != 0:
-            with open(self.stdout_fname, "r") as out, open(self.stderr_fname, "r") as err:
+            with open(self.stdout_fname) as out, open(self.stderr_fname) as err:
                 self.stdout_data = out.read()
                 self.stderr_data = err.read()
 

@@ -1,47 +1,48 @@
-# coding: utf-8
 """
 This module defines the events signaled by abinit during the execution. It also
 provides a parser to extract these events form the main output file and the log file.
 """
 from __future__ import annotations
 
-import sys
-import os.path
-import datetime
+import abc
 import collections
 import dataclasses
-import abc
+import datetime
 import logging
+import os.path
+import sys
+from collections.abc import Iterator
+from io import StringIO
+
 import numpy as np
 import pandas as pd
-import ruamel.yaml as yaml
-
-from io import StringIO
-from typing import Union, Iterator
-from ruamel.yaml import YAML, yaml_object
-from monty.string import indent, is_string, list_strings
 from monty.fnmatch import WildCard
-from monty.termcolor import colored
 from monty.inspect import all_subclasses
 from monty.json import MontyDecoder, MSONable
+from monty.string import indent, is_string, list_strings
+from monty.termcolor import colored
 from pymatgen.core.structure import Structure
-from abipy.tools.typing import Figure
+from ruamel import yaml
+from ruamel.yaml import YAML, yaml_object
+
+from abipy.tools.iotools import yaml_unsafe_load
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, rotate_ticklabels, set_grid_legend
 from abipy.tools.serialization import pmg_serialize
-from abipy.tools.iotools import yaml_safe_load, yaml_unsafe_load
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend, rotate_ticklabels
+from abipy.tools.typing import Figure
+
 from .abiinspect import YamlTokenizer
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "EventsParser",
-    "get_event_handler_classes",
-    "ScfConvergenceWarning",
-    "NscfConvergenceWarning",
-    "RelaxConvergenceWarning",
     "Correction",
     "DilatmxError",
     "DilatmxErrorHandler",
+    "EventsParser",
+    "NscfConvergenceWarning",
+    "RelaxConvergenceWarning",
+    "ScfConvergenceWarning",
+    "get_event_handler_classes",
 ]
 
 
@@ -191,14 +192,14 @@ class AbinitEvent(yaml.YAMLObject):
 @yaml_object(_yaml)
 class AbinitComment(AbinitEvent):
     """Base class for Comment events"""
-    yaml_tag = '!COMMENT'
+    yaml_tag = "!COMMENT"
     color = "blue"
 
 
 @yaml_object(_yaml)
 class AbinitError(AbinitEvent):
     """Base class for Error events"""
-    yaml_tag = '!ERROR'
+    yaml_tag = "!ERROR"
     color = "red"
 
 
@@ -212,7 +213,7 @@ class AbinitYamlError(AbinitError):
 @yaml_object(_yaml)
 class AbinitBug(AbinitEvent):
     """Base class for Bug events"""
-    yaml_tag = '!BUG'
+    yaml_tag = "!BUG"
     color = "red"
 
 
@@ -223,7 +224,7 @@ class AbinitWarning(AbinitEvent):
     Developers should subclass this class to define the different exceptions
     raised by the code and the possible actions that can be performed.
     """
-    yaml_tag = '!WARNING'
+    yaml_tag = "!WARNING"
     color = "magenta"
 
 
@@ -244,19 +245,19 @@ class AbinitYamlWarning(AbinitCriticalWarning):
 @yaml_object(_yaml)
 class ScfConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the GS SCF cycle did not converge."""
-    yaml_tag = '!ScfConvergenceWarning'
+    yaml_tag = "!ScfConvergenceWarning"
 
 
 @yaml_object(_yaml)
 class NscfConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the GS NSCF cycle did not converge."""
-    yaml_tag = '!NscfConvergenceWarning'
+    yaml_tag = "!NscfConvergenceWarning"
 
 
 @yaml_object(_yaml)
 class RelaxConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the structural relaxation did not converge."""
-    yaml_tag = '!RelaxConvergenceWarning'
+    yaml_tag = "!RelaxConvergenceWarning"
 
 
 # TODO: for the time being we don't discern between GS and PhononCalculations.
@@ -268,13 +269,13 @@ class RelaxConvergenceWarning(AbinitCriticalWarning):
 @yaml_object(_yaml)
 class QPSConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the QPS iteration (GW) did not converge."""
-    yaml_tag = '!QPSConvergenceWarning'
+    yaml_tag = "!QPSConvergenceWarning"
 
 
 @yaml_object(_yaml)
 class HaydockConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the Haydock method (BSE) did not converge."""
-    yaml_tag = '!HaydockConvergenceWarning'
+    yaml_tag = "!HaydockConvergenceWarning"
 
 
 # Error classes providing a correct method.
@@ -324,7 +325,7 @@ class EventReport(collections.abc.Iterable, MSONable):
     def __iter__(self) -> Iterator[AbinitEvent]:
         return self._events.__iter__()
 
-    def __getitem__(self, slice) -> Union[AbinitEvent, list[AbinitEvent]]:
+    def __getitem__(self, slice) -> AbinitEvent | list[AbinitEvent]:
         return self._events[slice]
 
     def __str__(self) -> str:
@@ -389,7 +390,7 @@ class EventReport(collections.abc.Iterable, MSONable):
         return self.select(AbinitComment)
 
     @property
-    def errors(self) -> list[Union[AbinitError, AbinitBug]]:
+    def errors(self) -> list[AbinitError | AbinitBug]:
         """List of errors + bugs found."""
         return self.select(AbinitError) + self.select(AbinitBug)
 
@@ -465,7 +466,7 @@ class EventsParser:
                 if w.match(doc.tag):
                     #print("got doc.tag", doc.tag,"--")
                     try:
-                        doc.text  = doc.text.replace('\n    \n', '\n')
+                        doc.text  = doc.text.replace("\n    \n", "\n")
                         #print(doc.text)
                         # OLD VERSION
                         #event = yaml.load(doc.text)   # Can't use ruamel safe_load!
@@ -540,7 +541,7 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
     The default handlers are those that do not change the physics,
     other handlers can be installed by the user when constructing with the flow with
 
-        TODO
+    Todo:
 
     .. warning::
 
@@ -625,7 +626,7 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
 
         def vars_dict(d):
             """
-            make a simple dictionary and convert numpy arrays to lists
+            Make a simple dictionary and convert numpy arrays to lists
             """
             new_d = {}
             for key, value in d.items():
@@ -647,16 +648,16 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
 
         log_diff = {}
         if added_keys:
-            log_diff['_set'] = {k: new_vars[k] for k in added_keys}
+            log_diff["_set"] = {k: new_vars[k] for k in added_keys}
 
         if changed_keys:
-            log_diff['_update'] = ({k: {'new': new_vars[k], 'old': old_vars[k]} for k in changed_keys})
+            log_diff["_update"] = ({k: {"new": new_vars[k], "old": old_vars[k]} for k in changed_keys})
 
         if new_input.structure != old_input.structure:
-            log_diff['_change_structure'] = new_input.structure.as_dict()
+            log_diff["_change_structure"] = new_input.structure.as_dict()
 
         if removed_keys:
-            log_diff['_pop'] = {k: old_vars[k] for k in removed_keys}
+            log_diff["_pop"] = {k: old_vars[k] for k in removed_keys}
 
         return log_diff
 
@@ -676,8 +677,8 @@ class Correction(MSONable):
     @classmethod
     def from_dict(cls, d: dict) -> Correction:
         dec = MontyDecoder()
-        return cls(handler=dec.process_decoded(d['handler']), actions=d['actions'],
-                   event=dec.process_decoded(d['event']), reset=d['reset'])
+        return cls(handler=dec.process_decoded(d["handler"]), actions=d["actions"],
+                   event=dec.process_decoded(d["event"]), reset=d["reset"])
 
 
 #class WarningHandler(EventHandler):
@@ -746,7 +747,7 @@ class DilatmxError(AbinitError):
     This Error occurs in variable cell calculations when the increase in the
     unit cell volume is too large.
     """
-    yaml_tag = '!DilatmxError'
+    yaml_tag = "!DilatmxError"
 
 
 class DilatmxErrorHandler(ErrorHandler):
@@ -763,11 +764,11 @@ class DilatmxErrorHandler(ErrorHandler):
 
     @pmg_serialize
     def as_dict(self) -> dict:
-        return {'max_dilatmx': self.max_dilatmx}
+        return {"max_dilatmx": self.max_dilatmx}
 
     @classmethod
     def from_dict(cls, d: dict) -> DilatmxErrorHandler:
-        return cls(max_dilatmx=d['max_dilatmx'])
+        return cls(max_dilatmx=d["max_dilatmx"])
 
     def handle_task_event(self, task, event):
         # Read the last structure dumped by ABINIT before aborting.
@@ -800,7 +801,7 @@ class DilatmxErrorHandler(ErrorHandler):
             return Correction(self, self.compare_inputs(abi_input, old_abiinput), event, reset=True)
             # return Correction(self, self.compare_inputs(abi_input, old_abiinput), event, event=False)
         except Exception as exc:
-            logger.warning('Error while trying to apply the handler {}.'.format(str(self)), exc)
+            logger.warning(f"Error while trying to apply the handler {self!s}.", exc)
             return None
 
 
@@ -812,7 +813,7 @@ class TolSymError(AbinitError):
     We increase the value of tolsym in the input file (default 1-8) so that Abinit can find the space group
     and re-symmetrize the input structure.
     """
-    yaml_tag = '!TolSymError'
+    yaml_tag = "!TolSymError"
 
 
 class TolSymErrorHandler(ErrorHandler):
@@ -828,11 +829,11 @@ class TolSymErrorHandler(ErrorHandler):
 
     @pmg_serialize
     def as_dict(self) -> dict:
-        return {'max_nfixes': self.max_nfixes}
+        return {"max_nfixes": self.max_nfixes}
 
     @classmethod
     def from_dict(cls, d: dict) -> TolSymErrorHandler:
-        return cls(max_nfixes=d['max_nfixes'])
+        return cls(max_nfixes=d["max_nfixes"])
 
     def handle_task_event(self, task, event):
         # TODO: Add limit on the number of fixes one can do for the same error
@@ -855,7 +856,7 @@ class TolSymErrorHandler(ErrorHandler):
             abi_input.set_vars(tolsym=new_tolsym)
             return Correction(self, self.compare_inputs(abi_input, old_abiinput), event, reset=False)
         except Exception as exc:
-            logger.warning('Error while trying to apply the handler {}.'.format(str(self)), exc)
+            logger.warning(f"Error while trying to apply the handler {self!s}.", exc)
             return None
 
 
@@ -865,7 +866,7 @@ class MemanaError(AbinitError):
     Class of errors raised by the memory analyzer.
     (the section that estimates the memory requirements from the input parameters).
     """
-    yaml_tag = '!MemanaError'
+    yaml_tag = "!MemanaError"
 
 
 class MemanaErrorHandler(ErrorHandler):
@@ -887,7 +888,7 @@ class MemanaErrorHandler(ErrorHandler):
             abi_input.set_vars(mem_test=0)
             return Correction(self, self.compare_inputs(abi_input, old_abiinput), event, reset=False)
         except Exception as exc:
-            logger.warning('Error while trying to apply the handler {}.'.format(str(self)), exc)
+            logger.warning(f"Error while trying to apply the handler {self!s}.", exc)
             return None
 
 
@@ -897,7 +898,7 @@ class MemoryError(AbinitError):
     This error occurs when a checked allocation fails in Abinit
     The only way to go is to increase memory
     """
-    yaml_tag = '!MemoryError'
+    yaml_tag = "!MemoryError"
 
 
 class MemoryErrorHandler(ErrorHandler):
@@ -916,7 +917,7 @@ class MemoryErrorHandler(ErrorHandler):
         """
         Shouldn't do anything on the input
         """
-        return None
+        return
 
 
 
@@ -974,7 +975,7 @@ class MemLogParser:
 
         # NB: pstat is only supported by Linux.
         self.docs = []
-        _yaml = YAML(typ='safe', pure=True)
+        _yaml = YAML(typ="safe", pure=True)
         pstat_tag = "!PstatData"
         with YamlTokenizer(filepath) as tokens:
             for doc in tokens:
@@ -984,7 +985,7 @@ class MemLogParser:
 
         # Extract lines with MEM or TIME info.
         mem_lines, time_lines = [], []
-        with open(self.filepath, "rt") as fh:
+        with open(self.filepath) as fh:
             for line in fh:
                 line = line.strip()
                 if line.endswith(self.MEM_TAG):
@@ -1023,9 +1024,9 @@ class MemLogParser:
         #   `Chi my_ir [500/3375] (tot: 3375) , wall:  0.00 [s] , cpu:  0.00 [s] <<< TIME`
         import re
         pattern = (
-            r'^(?P<label>.*?),\s*'
-            r'wall:\s*(?P<wall_str>[\d:.]+\s*\[\w+\])\s*,\s*'
-            r'cpu:\s*(?P<cpu_str>[\d:.]+\s*\[\w+\])'
+            r"^(?P<label>.*?),\s*"
+            r"wall:\s*(?P<wall_str>[\d:.]+\s*\[\w+\])\s*,\s*"
+            r"cpu:\s*(?P<cpu_str>[\d:.]+\s*\[\w+\])"
         )
 
         for lineno, line in enumerate(time_lines):

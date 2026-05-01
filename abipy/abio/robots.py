@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 This module defines the Robot base class.
 Robots operate on multiple files and provide helper functions to plot data,
@@ -6,29 +5,38 @@ perform convergence studies and build pandas dataframes.
 """
 from __future__ import annotations
 
-import sys
-import os
 import inspect
 import itertools
 import json
+import os
+import sys
+from collections import deque
+from collections.abc import Callable
+from functools import wraps
+from typing import Any
+
 import numpy as np
 import pandas as pd
-
-from collections import deque
-from typing import Callable, Any
-from functools import wraps
+from monty.json import MontyEncoder
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
-from monty.json import MontyEncoder
-from abipy.tools.serialization import pmg_serialize
-from abipy.tools.iotools import make_executable
-from abipy.core.structure import Structure
+
 from abipy.core.mixins import NotebookWriter
-from abipy.tools.numtools import sort_and_groupby
+from abipy.core.structure import Structure
 from abipy.tools import duck
+from abipy.tools.iotools import make_executable
+from abipy.tools.numtools import sort_and_groupby
+from abipy.tools.plotting import (
+    ConvergenceAnalyzer,
+    add_fig_kwargs,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    plot_xy_with_hue,
+    rotate_ticklabels,
+    set_visible,
+)
+from abipy.tools.serialization import pmg_serialize
 from abipy.tools.typing import Figure
-from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    rotate_ticklabels, set_visible, ConvergenceAnalyzer)
 
 
 class Robot(NotebookWriter):
@@ -252,7 +260,6 @@ class Robot(NotebookWriter):
         and matching json_basename.
 
         Example:
-
             gwr_robot = Robot.from_top_and_json_basename(".", "gwr_robot.json")
         """
         json_paths = []
@@ -273,7 +280,7 @@ class Robot(NotebookWriter):
         robot_filepaths = []
         _module, _class = None, None
         for path in json_paths:
-            with open(path, "rt") as fh:
+            with open(path) as fh:
                 d = json.load(fh)
 
             if "filepaths" not in d:
@@ -414,7 +421,7 @@ class Robot(NotebookWriter):
 
             # Filter by task_class (class or string with class name)
             if task_class is not None and not node.isinstance(task_class):
-                return None
+                return
 
             self.add_file(label, filepath)
 
@@ -482,7 +489,7 @@ class Robot(NotebookWriter):
         """
         Write json file with paths needed to rebuild the robot.
         """
-        with open(filepath, "wt") as fh:
+        with open(filepath, "w") as fh:
             fh.write(self.to_json(indent=4))
 
     def get_pyscript(self, filepath: str) -> RobotPythonScript:
@@ -558,7 +565,7 @@ class Robot(NotebookWriter):
         if not dryrun:
             old_abifiles, self._abifiles = self._abifiles, {}
         new2old = {}
-        for old, new in zip(old_labels, new_labels):
+        for old, new in zip(old_labels, new_labels, strict=False):
             new2old[new] = old
             if not dryrun:
                 self._abifiles[new] = old_abifiles[old]
@@ -663,7 +670,7 @@ class Robot(NotebookWriter):
         def get_obj_list(what: str):
             if what == "abifiles":
                 return self.abifiles
-            elif what == "r":
+            if what == "r":
                 return [abifile.r for abifile in self.abifiles]
 
             raise ValueError(f"Invalid {what=}")
@@ -794,7 +801,7 @@ class Robot(NotebookWriter):
             attrs = []
             for key, obj in inspect.getmembers(self.abifiles[0]):
                 # Ignores anything starting with underscore
-                if key.startswith('_') or callable(obj) or hasattr(obj, "__len__"): continue
+                if key.startswith("_") or callable(obj) or hasattr(obj, "__len__"): continue
                 attrs.append(key)
 
             # Add all keys in params dict.
@@ -819,10 +826,9 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
             items = [(label, abifile, label) for (label, abifile) in labelfile_list]
             if not unpack:
                 return items
-            else:
-                return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
+            return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
 
-        elif callable(func_or_string):
+        if callable(func_or_string):
             items = [(label, abifile, func_or_string(abifile)) for (label, abifile) in labelfile_list]
 
         else:
@@ -846,8 +852,7 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
         items = sorted(items, key=lambda t: t[2], reverse=reverse)
         if not unpack:
             return items
-        else:
-            return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
+        return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
 
     def sortby(self, func_or_string: Callable | str | None,
                reverse: bool = False, unpack: bool = False) -> list[tuple]:
@@ -892,16 +897,14 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
 
         if callable(hue):
             key = lambda t: hue(t[1])
+        # Assume string.
+        elif duck.hasattrd(self.abifiles[0], hue):
+            key = lambda t: duck.getattrd(t[1], hue)
+        # Try in abifile.params
+        elif hasattr(self.abifiles[0], "params") and hue in self.abifiles[0].params:
+            key = lambda t: t[1].params[hue]
         else:
-            # Assume string.
-            if duck.hasattrd(self.abifiles[0], hue):
-                key = lambda t: duck.getattrd(t[1], hue)
-            else:
-                # Try in abifile.params
-                if hasattr(self.abifiles[0], "params") and hue in self.abifiles[0].params:
-                    key = lambda t: t[1].params[hue]
-                else:
-                    raise TypeError("""\
+            raise TypeError("""\
 Cannot interpret hue argument of type `%s` and value `%s`.
 Expecting callable or attribute name or key in abifile.params""" % (type(hue), str(hue)))
 
@@ -1010,13 +1013,11 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         """
         if func_or_string is None:
             return ""
-        elif callable(func_or_string):
+        if callable(func_or_string):
             if getattr(func_or_string, "__doc__", ""):
                 return func_or_string.__doc__.strip()
-            else:
-                return func_or_string.__name__
-        else:
-            return str(func_or_string)
+            return func_or_string.__name__
+        return str(func_or_string)
 
     @add_fig_kwargs
     def plot_convergence(self, item: str | Callable,
@@ -1048,7 +1049,6 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         Returns: |matplotlib-Figure|
 
         Example:
-
              robot.plot_convergence("energy")
              robot.plot_convergence("energy", sortby="nkpt")
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear")
@@ -1146,7 +1146,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         if "marker" not in kwargs:
             kwargs["marker"] = "o"
 
-        for i, (ax_row, item) in enumerate(zip(ax_mat, items)):
+        for i, (ax_row, item) in enumerate(zip(ax_mat, items, strict=False)):
             ax1 = ax_row[0]
             ax2 = ax_row[1] if abs_conv is not None else None
 
@@ -1230,7 +1230,6 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         Returns: |matplotlib-Figure|
 
         Example:
-
              robot.plot_lattice_convergence()
              robot.plot_lattice_convergence(sortby="nkpt")
              robot.plot_lattice_convergence(sortby="nkpt", hue="tsmear")
@@ -1248,25 +1247,25 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
         # Define callbacks. docstrings will be used as ylabels.
         def a(abi_file):
-            "a (Ang)"
+            """A (Ang)"""
             return getattr(abi_file, key).lattice.a
         def b(abi_file):
-            "b (Ang)"
+            """B (Ang)"""
             return getattr(abi_file, key).lattice.b
         def c(abi_file):
-            "c (Ang)"
+            """C (Ang)"""
             return getattr(abi_file, key).lattice.c
         def volume(abi_file):
-            r"$V$"
+            r"""$V$"""
             return getattr(abi_file, key).lattice.volume
         def alpha(abi_file):
-            r"$\alpha$"
+            r"""$\alpha$"""
             return getattr(abi_file, key).lattice.alpha
         def beta(abi_file):
-            r"$\beta$"
+            r"""$\beta$"""
             return getattr(abi_file, key).lattice.beta
         def gamma(abi_file):
-            r"$\gamma$"
+            r"""$\gamma$"""
             return getattr(abi_file, key).lattice.gamma
 
         items = [a, b, c, volume, alpha, beta, gamma]
@@ -1280,7 +1279,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                                                 sharex=True, sharey=False, squeeze=False)
 
         marker = kwargs.pop("marker", "o")
-        for i, (ax, item) in enumerate(zip(ax_list.ravel(), items)):
+        for i, (ax, item) in enumerate(zip(ax_list.ravel(), items, strict=False)):
             self.plot_convergence(item, sortby=sortby, hue=hue, ax=ax, fontsize=fontsize, marker=marker, show=False)
             if i != 0:
                 set_visible(ax, False, "legend")
@@ -1316,8 +1315,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
         if callable(item):
             return np.array([_float(item(a)) for a in abifiles])
-        else:
-            return np.array([_float(duck.getattrd(a, item)) for a in abifiles])
+        return np.array([_float(duck.getattrd(a, item)) for a in abifiles])
 
     @staticmethod
     def plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, **kwargs) -> list:
@@ -1379,7 +1377,7 @@ class HueGroup:
 
     def __iter__(self):
         """Iterate over (label, abifile, xvalue)."""
-        return zip(self.labels, self.abifiles, self.xvalues)
+        return zip(self.labels, self.abifiles, self.xvalues, strict=False)
 
 
 class RobotPythonScript:
@@ -1442,9 +1440,9 @@ print(robot)
         """
         Write python script and json file with the list of files in the Robot.
         """
-        with open(self.filepath_py, "wt") as fh:
+        with open(self.filepath_py, "w") as fh:
             fh.write(self.pytext)
         make_executable(self.filepath_py)
 
-        with open(self.filepath_json, "wt") as fh:
+        with open(self.filepath_json, "w") as fh:
             fh.write(self.robot.to_json())

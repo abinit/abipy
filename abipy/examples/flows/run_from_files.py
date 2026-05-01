@@ -6,11 +6,11 @@ Starting a Flow from external files
 This example shows how to build a flow for NSCF calculations
 in which the dependency is given by an external density file.
 """
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_scf_nscf_inputs(paral_kgb=1):

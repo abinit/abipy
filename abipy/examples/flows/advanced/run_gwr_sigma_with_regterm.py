@@ -10,10 +10,8 @@ in order to monitor the convergence and stability wrt gwr_ntau.
 
 import os
 import sys
-import abipy.data as data
-import abipy.abilab as abilab
 
-from abipy import flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

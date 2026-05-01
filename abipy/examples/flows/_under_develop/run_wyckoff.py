@@ -6,14 +6,13 @@ Wyckoff Flow
 This example shows how to compute the band structure of a set of
 crystalline structures obtained by changing the set of internal parameters (wyckoff positions).
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 import sys
-import abipy.data as abidata
 
-from abipy import abilab
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
+
 
 def special_positions(lattice, u):
     """Construct the crystalline `Structure` for given value of the internal parameter u."""
@@ -49,7 +48,7 @@ def build_flow(options):
     flow = flowtk.Flow(options.workdir, manager=options.manager)
 
     # Create the list of workflows. Each workflow defines a band structure calculation.
-    for new_structure, u in zip(news, uparams):
+    for new_structure, u in zip(news, uparams, strict=False):
         # Generate the workflow and register it.
         flow.register_work(make_workflow(new_structure, pseudos))
 
@@ -61,7 +60,6 @@ def make_workflow(structure, pseudos, paral_kgb=1):
     Return a `Workflow` object defining a band structure calculation
     for given `Structure`.
     """
-
     # GS + NSCF run
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=2)
     nval = structure.num_valence_electrons(pseudos)

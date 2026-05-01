@@ -8,12 +8,11 @@ the dielectric tensors (e0, einf) of AlAs with AbiPy flows.
 We perform multiple calculations by varying the number of k-points
 to analyze the convergence of the results wrt nkpt.
 """
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.flowtk.dfpt_flows import ConvBecsEpsFlow
 
 

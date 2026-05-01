@@ -1,11 +1,11 @@
 """Tests for electrons.lobster module"""
-import sys
 import os
-import numpy as np
-import abipy.data as abidata
 
+import numpy as np
+
+import abipy.data as abidata
+from abipy.abilab import LobsterAnalyzer, abiopen
 from abipy.core.testing import AbipyTest
-from abipy.abilab import abiopen, LobsterAnalyzer
 from abipy.electrons.lobster import LobsterInput
 
 lobster_gaas_dir = os.path.join(abidata.dirpath, "refs", "lobster_gaas")
@@ -14,7 +14,6 @@ class CoxpTest(AbipyTest):
 
     def test_coxp(self):
         """Test files based on the GaAs lobster test. Extracted from abinit calculation."""
-
         # Test COHPCAR
         with abiopen(os.path.join(lobster_gaas_dir, "GaAs_COHPCAR.lobster.gz")) as cohp:
             repr(cohp); str(cohp)
@@ -92,7 +91,7 @@ class CoxpTest(AbipyTest):
             vals = np.where(np.abs(vals) > 1e-3, vals, ref_values)
             #print("ref_values")
             #print(ref_values)
-            for x, y in zip(ref_values, vals):
+            for x, y in zip(ref_values, vals, strict=False):
                 print(x, y, y/x if abs(x) > 0 else 0)
             self.assert_almost_equal(ref_values, vals, decimal=3)
 
@@ -106,7 +105,7 @@ class ICoxpTest(AbipyTest):
             assert icohp.to_string(verbose=2)
             assert (0, 1) in icohp.values
             assert 0 in icohp.values[(0, 1)]
-            self.assertAlmostEqual(icohp.values[(0, 1)][0]['average'], -4.36062)
+            self.assertAlmostEqual(icohp.values[(0, 1)][0]["average"], -4.36062)
             self.assertAlmostEqual(icohp.dataframe.average[0], -4.36062)
 
             assert icohp.cop_type == "cohp"

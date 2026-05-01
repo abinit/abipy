@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
 import sys
-import os
+
 #import abipy.data as abidata
 #import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-
-from abipy.dfpt.qha_general_stress import QHA_ZSISA
+from abipy import flowtk
 from abipy.flowtk.zsisa import ThermalRelaxWork
+
 
 def build_flow(options):
     #nqsmall_or_qppa = 2

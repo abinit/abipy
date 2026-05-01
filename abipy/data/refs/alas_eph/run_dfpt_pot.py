@@ -7,15 +7,13 @@ This example shows how to compute the phonon band structure of AlAs with AbiPy f
 The final results (out_DDB, out_DVDB) will be produced automatically at the end of the run
 and saved in ``flow_phonons/outdata/``.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
-import numpy as np
+import sys
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
+
 
 def make_scf_input(ngkpt):
     """

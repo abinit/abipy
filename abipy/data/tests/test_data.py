@@ -1,7 +1,7 @@
 """Tests for data module"""
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 
 

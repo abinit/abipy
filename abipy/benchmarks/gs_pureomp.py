@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 """Analyze the scalability of the OpenMP sections in the GS part. 1 k-point, cg method."""
 import sys
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
 
-from abipy.benchmarks import bench_main, BenchmarkFlow
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_input(paw=False):
-    """Build a template input file for GS calculations with k-point parallelism """
+    """Build a template input file for GS calculations with k-point parallelism"""
     pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc") if not paw else \
               abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "o.paw")
     structure = abidata.structure_from_ucell("SiO2-alpha")
@@ -62,7 +61,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
 
     return build_flow(options)
 

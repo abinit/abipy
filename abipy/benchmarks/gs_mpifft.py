@@ -5,11 +5,10 @@ Use paral_kgb=1 and fftalg_list = [312, 402, 401]
 """
 
 import sys
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
 
-from abipy.benchmarks import bench_main, BenchmarkFlow
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_input(paw=False):
@@ -77,7 +76,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
 
     return build_flow(options)
 

@@ -1,8 +1,7 @@
-# coding: utf-8
 """Tests for fftprof module."""
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.tools.fftprof import FFTBenchmark
 
@@ -11,7 +10,6 @@ class FftProfTest(AbipyTest):
 
     def test_fft_benchmark(self):
         """Testing FFt benchmark."""
-
         # Plot the benchmark results saved in the files
         path = os.path.join(abidata.dirpath, "PROF_fourwf_cplex0_option3_istwfk1")
         bench = FFTBenchmark.from_file(path)

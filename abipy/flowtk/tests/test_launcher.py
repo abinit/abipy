@@ -1,11 +1,10 @@
-# coding: utf-8
 
 from abipy.core.testing import AbipyTest
-from abipy.flowtk.launcher import ScriptEditor, PyFlowScheduler, MultiFlowScheduler
+from abipy.flowtk.launcher import MultiFlowScheduler, PyFlowScheduler, ScriptEditor
 
 
 def test_script_editor():
-    """base tests for ScriptEditor"""
+    """Base tests for ScriptEditor"""
     se = ScriptEditor()
     se.shebang()
     se.declare_var("FOO", "BAR")
@@ -23,7 +22,6 @@ class PyFlowSchedulerTest(AbipyTest):
 
     def test_pyflowscheduler_api(self):
         """Testing PyFlowScheduler API."""
-
         assert "weeks:" in PyFlowScheduler.autodoc()
 
         with self.assertRaises(PyFlowScheduler.Error):

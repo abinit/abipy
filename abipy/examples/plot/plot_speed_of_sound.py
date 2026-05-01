@@ -16,8 +16,8 @@ For a command line interface use:
 # Initialize object from DDB file.
 
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy import abilab
 from abipy.dfpt.vsound import SoundVelocity
 

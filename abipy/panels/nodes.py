@@ -1,24 +1,24 @@
 """"Panels to interact with AbiPy flows."""
 from __future__ import annotations
 
-import textwrap
 import traceback
 
-import pandas as pd
-import param
 import bokeh.models.widgets as bkw
+import pandas as pd
 import panel as pn
 import panel.widgets as pnw
+import param
 
-from abipy.panels.core import AbipyParameterized, Loading, ButtonContext, depends_on_btn_click, dfc, ply
 from abipy.flowtk.nodes import Node
+from abipy.panels.core import AbipyParameterized, ButtonContext, Loading, depends_on_btn_click, dfc, ply
+
 #from abipy import flowtk
 
 
 class FilePathSelect(pnw.Select):
 
     @classmethod
-    def from_filepaths(cls, filepaths: list[str], 
+    def from_filepaths(cls, filepaths: list[str],
                        filter_files=True, **kwargs):
         import os
         items = [(os.path.basename(p), p) for p in filepaths ]
@@ -72,20 +72,20 @@ class NodeParameterized(AbipyParameterized):
             raise ValueError(f"Don't know how to handle type: `{type(node)}`")
 
         self.engine = pnw.Select(value="fdp", name="engine",
-                                 options=['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage'])
-        self.dirtree = pnw.Checkbox(name='Dirtree', value=False)
-        self.graphviz_btn = pnw.Button(name="Show Graph", button_type='primary')
+                                 options=["dot", "neato", "twopi", "circo", "fdp", "sfdp", "patchwork", "osage"])
+        self.dirtree = pnw.Checkbox(name="Dirtree", value=False)
+        self.graphviz_btn = pnw.Button(name="Show Graph", button_type="primary")
 
-        self.status_btn = pnw.Button(name="Show Status", button_type='primary')
+        self.status_btn = pnw.Button(name="Show Status", button_type="primary")
 
-        self.history_btn = pnw.Button(name="Show history", button_type='primary')
-        self.debug_btn = pnw.Button(name="Debug", button_type='primary')
-        self.events_btn = pnw.Button(name="Show Events", button_type='primary')
-        self.corrections_btn = pnw.Button(name="Show Corrections", button_type='primary')
-        self.handlers_btn = pnw.Button(name="Show Handlers", button_type='primary')
-        self.vars_text = pnw.TextInput(name='Abivars',
-                                       placeholder='Enter list of variables separated by comma e.g. `ecut, natom`')
-        self.vars_btn = pnw.Button(name="Show Variables", button_type='primary')
+        self.history_btn = pnw.Button(name="Show history", button_type="primary")
+        self.debug_btn = pnw.Button(name="Debug", button_type="primary")
+        self.events_btn = pnw.Button(name="Show Events", button_type="primary")
+        self.corrections_btn = pnw.Button(name="Show Corrections", button_type="primary")
+        self.handlers_btn = pnw.Button(name="Show Handlers", button_type="primary")
+        self.vars_text = pnw.TextInput(name="Abivars",
+                                       placeholder="Enter list of variables separated by comma e.g. `ecut, natom`")
+        self.vars_btn = pnw.Button(name="Show Variables", button_type="primary")
         #self.dims_btn = pnw.Button(name="Show Dimensions", button_type='primary')
 
         self.workdir_fileselector = pnw.FileSelector(node.workdir, only_files=True)
@@ -103,14 +103,14 @@ class NodeParameterized(AbipyParameterized):
 
     def get_status_view(self) -> pn.Column:
         return pn.Column(
-            f"## Show the status of: `{repr(self.node)}`",
+            f"## Show the status of: `{self.node!r}`",
             pn.Row(
                 self.wdg_box(["verbose", "status_btn"]),
                 bkw.PreText(text=self.node.str_deps()),
             ),
             pn.layout.Divider(),
             self.on_status_btn,
-            sizing_mode='stretch_width',
+            sizing_mode="stretch_width",
         )
 
     @depends_on_btn_click("status_btn")
@@ -121,7 +121,7 @@ class NodeParameterized(AbipyParameterized):
         term = pnw.Terminal(
             output="\n\n",
             height=1200, # Need this one else the terminal is not shown properly
-            sizing_mode='stretch_width',
+            sizing_mode="stretch_width",
         )
         term.write("\n")
 
@@ -164,11 +164,11 @@ class NodeParameterized(AbipyParameterized):
 
     def get_history_view(self) -> pn.Column:
         return pn.Column(
-            f"## Show the history of: `{repr(self.node)}`",
+            f"## Show the history of: `{self.node!r}`",
             self.wdg_box(["verbose", "history_btn"]),
             pn.layout.Divider(),
             self.on_history_btn,
-            sizing_mode='stretch_width',
+            sizing_mode="stretch_width",
        )
 
     @depends_on_btn_click("history_btn")
@@ -179,7 +179,7 @@ class NodeParameterized(AbipyParameterized):
         term = pnw.Terminal(
             output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
-            sizing_mode='stretch_width',
+            sizing_mode="stretch_width",
         )
 
         self.flow.show_history(nids=self.nids,
@@ -192,7 +192,7 @@ class NodeParameterized(AbipyParameterized):
 
     def get_graphviz_view(self) -> pn.Column:
         return pn.Column(
-                f"## Graphviz options for node: `{repr(self.node)}`",
+                f"## Graphviz options for node: `{self.node!r}`",
                 pn.WidgetBox(self.engine, self.dirtree, self.graphviz_btn),
                 pn.layout.Divider(),
                 self.on_graphviz_btn,
@@ -220,11 +220,11 @@ class NodeParameterized(AbipyParameterized):
 
     def get_debug_view(self) -> pn.Column:
         return pn.Column(
-            f"## Debug node:`{repr(self.node)}`",
+            f"## Debug node:`{self.node!r}`",
             self.pws_col(["verbose", "debug_btn"]),
             self.on_debug_btn,
             pn.layout.Divider(),
-            sizing_mode='stretch_width',
+            sizing_mode="stretch_width",
         )
 
         #d["Corrections"] = pn.Row(self.corrections_btn, self.on_corrections_btn)
@@ -234,18 +234,18 @@ class NodeParameterized(AbipyParameterized):
     def on_debug_btn(self) -> None:
         term = pnw.Terminal(output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
-            sizing_mode='stretch_width',
+            sizing_mode="stretch_width",
         )
         self.flow.debug(stream=term, nids=self.nids) # status=options.task_status,
         return term
 
     def get_events_view(self) -> pn.Column:
         return pn.Column(
-            f"## Show the events of: `{repr(self.node)}`",
+            f"## Show the events of: `{self.node!r}`",
             self.pws_col(["verbose", "events_btn"]),
             self.on_events_btn,
             pn.layout.Divider(),
-            sizing_mode='stretch_width',
+            sizing_mode="stretch_width",
         )
 
     @depends_on_btn_click("events_btn")
@@ -253,7 +253,7 @@ class NodeParameterized(AbipyParameterized):
         term = pnw.Terminal(
             output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
-            sizing_mode='stretch_width',
+            sizing_mode="stretch_width",
         )
         self.flow.show_events(stream=term, nids=self.nids) # status=options.task_status,
         return term
@@ -263,7 +263,7 @@ class NodeParameterized(AbipyParameterized):
         term = pnw.Terminal(
             output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
-            sizing_mode='stretch_width',
+            sizing_mode="stretch_width",
         )
         self.flow.show_corrections(stream=term, nids=self.nids)
         return term
@@ -273,7 +273,7 @@ class NodeParameterized(AbipyParameterized):
         term = pnw.Terminal(
             output="\n\n",
             height=1200, # Need this one else the terminal is not show properly
-            sizing_mode='stretch_width',
+            sizing_mode="stretch_width",
         )
         self.flow.show_event_handlers(stream=term, verbose=self.verbose) #, nids=self.nids,  status=None,
         return term
@@ -285,7 +285,7 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("vars_btn")
     def on_vars_btn(self):
-        if not self.vars_text.value: return
+        if not self.vars_text.value: return None
         varnames = [s.strip() for s in self.vars_text.value.split(",")]
         df = self.flow.compare_abivars(varnames=varnames, nids=self.nids,
                                        printout=False, with_colors=False)
@@ -303,7 +303,7 @@ class NodeParameterized(AbipyParameterized):
         select = self.filepath_select_dir[where]
         if not select: return None
 
-        btn = pnw.Button(name="Analyze", button_type='primary')
+        btn = pnw.Button(name="Analyze", button_type="primary")
         output_area = pn.Column(sizing_mode="stretch_width")
 
         from abipy.abilab import abiopen
@@ -315,7 +315,7 @@ class NodeParameterized(AbipyParameterized):
                     # Cannot close the file at this level because it may be needed by the new app.
                     abifile = abiopen(select.filepath)
                     output_area.objects = [abifile.get_panel()]
-                except Exception as exc:
+                except Exception:
                     #print(exc)
                     #if select.filepath.endswith(".nc"):
                     #    # We have a nc file but it's not supported by abiopen.
@@ -379,7 +379,7 @@ class NodeParameterized(AbipyParameterized):
 
         if as_dict: return d
 
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None), closable=False)
+        return self.get_template_from_tabs(d, template=kwargs.get("template"), closable=False)
 
 
 class StatusCards(param.Parameterized):
@@ -392,7 +392,7 @@ class StatusCards(param.Parameterized):
         # we need this dict in add_vrect to shadow the region associated to the work.
         self.w_start_stop = {}
         for w_idx in df["work_idx"].unique():
-            lst = sorted(df.index[(df['work_idx'] == w_idx)].tolist())
+            lst = sorted(df.index[(df["work_idx"] == w_idx)].tolist())
             self.w_start_stop[w_idx] = (lst[0], lst[-1])
 
         header_list = [
@@ -412,16 +412,16 @@ class StatusCards(param.Parameterized):
         for header in header_list:
             card = pn.layout.Card(None, header=header, collapsed=True, sizing_mode="stretch_width")
             # Compute stuff only when user opens the card.
-            card.param.watch(self.update_card, ['collapsed'])
+            card.param.watch(self.update_card, ["collapsed"])
             self.cards[header] = card
             self.done[header] = False
 
         # Compute this card
         self.cards["## Task status histogram"].collapsed = False
 
-        open_btn = pnw.Button(name="Open all cards", button_type='primary')
+        open_btn = pnw.Button(name="Open all cards", button_type="primary")
         open_btn.on_click(self.open_all_cards)
-        close_btn = pnw.Button(name="Close all cards", button_type='primary')
+        close_btn = pnw.Button(name="Close all cards", button_type="primary")
         close_btn.on_click(self.close_all_cards)
 
         self.layout = pn.Column(pn.Row(open_btn, close_btn),
@@ -504,9 +504,9 @@ class StatusCards(param.Parameterized):
                 simple_df = df.drop(columns=["node_id", "queue_id", "qname",
                                              "task_queue_time_s", "submission_datetime",
                                              "start_datetime", "end_datetime", "task_widx"]) # "work_idx",
-                simple_df.set_index('name', inplace=True)
+                simple_df.set_index("name", inplace=True)
 
-                pane = pnw.Tabulator(simple_df, groupby=['work_idx']) #, height=240)
+                pane = pnw.Tabulator(simple_df, groupby=["work_idx"]) #, height=240)
                 has_pane = True
 
             else:

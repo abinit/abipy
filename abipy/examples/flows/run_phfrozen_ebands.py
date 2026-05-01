@@ -6,12 +6,12 @@ e-Bands with frozen phonon
 Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
-import abipy.data as data
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+
+from abipy import abilab, data, flowtk
 
 
 def make_scf_nscf_inputs(structure, paral_kgb=1):

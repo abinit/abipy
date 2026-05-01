@@ -1,6 +1,5 @@
 """Tests for electrons.arpes module"""
 import abipy.data as abidata
-
 from abipy.core.testing import AbipyTest
 from abipy.electrons.arpes import ArpesPlotter
 

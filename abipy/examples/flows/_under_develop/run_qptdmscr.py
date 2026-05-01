@@ -6,14 +6,11 @@ Screening Flow with q-point parallelism
 This example shows how to compute the SCR file by splitting the calculation of the SCR file
 over q-points with the input variables nqptdm and qptdm.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as data
+import sys
 
-from abipy import flowtk
+from abipy import abilab, data, flowtk
 
 
 def all_inputs(paral_kgb=1):

@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Base class for pseudopotential parsers
 """
@@ -19,7 +18,6 @@ class BaseParser(metaclass=abc.ABCMeta):
     a pseudopotential generator a.k.a. ppgen
 
     Attributes:
-
         errors: List of strings with errors reported by the pp generator
         warnings: List of strings with the warnings reported by the pp generator.
     """

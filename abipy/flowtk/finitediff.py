@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 This module provide Works for finite difference calculations and related post-processing tools.
 
@@ -6,40 +5,46 @@ IMPORTANT: In Abinit, the  stress is equal to dE/d_strain * (1/ucvol). See m_for
 """
 from __future__ import annotations
 
+import dataclasses
+import itertools
+import pickle
+
 # Handle
 #=   KILLED BY SIGNAL: 9 (Killed)
 # slurmstepd: error: Detected 1 oom_kill event in StepId=8214672.0. Some of the step tasks have been OOM Killed.
 #srun: error: cns264: task 1: Out Of Memory
-
 import sys
-import pickle
-import itertools
-import dataclasses
-import numpy as np
-import pandas as pd
-import abipy.core.abinit_units as abu
-
 from dataclasses import field
-from typing import Optional
+from functools import cached_property
 from io import StringIO
 from pathlib import Path
-from functools import cached_property
-from monty.string import list_strings #, marquee
+
+import numpy as np
+import pandas as pd
+from monty.string import list_strings  #, marquee
 from monty.termcolor import cprint
 from pymatgen.analysis.elasticity.strain import Strain
-from abipy.core.structure import Structure
-from abipy.tools.numtools import build_mesh
-from abipy.tools.derivatives import central_fdiff_weights
-from abipy.tools.tensors import DielectricDataList
-from abipy.tools import duck
-from abipy.tools.typing import Figure
-from abipy.abio.inputs import AbinitInput
+
+import abipy.core.abinit_units as abu
 from abipy.abio.enums import StrEnum
+from abipy.abio.inputs import AbinitInput
+from abipy.core.structure import Structure
+from abipy.tools import duck
+from abipy.tools.derivatives import central_fdiff_weights
+from abipy.tools.numtools import build_mesh
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    get_axarray_fig_plt,
+    quadratic_fit_ax,  # linear_fit_ax, get_ax_fig_plt,
+    set_grid_legend,
+)
 from abipy.tools.serialization import HasPickleIO
-from abipy.tools.plotting import (add_fig_kwargs, set_grid_legend, get_axarray_fig_plt,
-    quadratic_fit_ax) # linear_fit_ax, get_ax_fig_plt,
+from abipy.tools.tensors import DielectricDataList
+from abipy.tools.typing import Figure
+
 #from abipy.tools.serialization import Serializble
 from .works import Work
+
 #from .flows import Flow
 
 #def centered_indices(n):
@@ -72,7 +77,7 @@ def _mesh_for_fd_accuracy(acc, order, step) -> tuple:
     return num_points, values, ip0
 
 
-def vec2str(vec, variables: str = 'xyz') -> str:
+def vec2str(vec, variables: str = "xyz") -> str:
     """
     >>> vec2str((1, 2, 3)))
     "x + 2y + 3z"
@@ -87,14 +92,14 @@ def vec2str(vec, variables: str = 'xyz') -> str:
     for coeff, var in zip(vec, variables, strict=True):
         if coeff == 0:
             continue  # Skip terms with a coefficient of 0
-        elif coeff == 1:
+        if coeff == 1:
             terms.append(f"{var}")
         elif coeff == -1:
             terms.append(f"-{var}")
         else:
             terms.append(f"{coeff}{var}")
 
-    return ' + '.join(terms).replace('+ -', '- ')
+    return " + ".join(terms).replace("+ -", "- ")
 
 
 def mat33_to_voigt(mat: np.ndarray, engineering_strain: bool = False) -> np.ndarray:
@@ -163,12 +168,12 @@ class _FdData(HasPickleIO):
     carts_stresses_pv: np.ndarray     # (npert, np_vals, 6) Voigt form
 
     # Macro Polarization computed with Berry phase
-    cart_pol_pv: Optional[np.ndarray] = None      # (npert, np_vals, 3)
-    cart_pole_pv: Optional[np.ndarray] = None     # (npert, np_vals, 3)
-    cart_poli_pv: Optional[np.ndarray] = None     # (npert, np_vals, 3)
+    cart_pol_pv: np.ndarray | None = None      # (npert, np_vals, 3)
+    cart_pole_pv: np.ndarray | None = None     # (npert, np_vals, 3)
+    cart_poli_pv: np.ndarray | None = None     # (npert, np_vals, 3)
 
     # Magnetization (spin part).
-    cart_mag_pv: Optional[np.ndarray] = None      # (npert, np_vals, 3)
+    cart_mag_pv: np.ndarray | None = None      # (npert, np_vals, 3)
 
     # npts -> dForce/dPert with shape (natom, 3, npert) in Cart. coords.
     dforces_dpert_npts: dict[int, np.array] = field(init=False)
@@ -767,7 +772,7 @@ class ElectricFieldData(_FdData, _HasExternalField):
             # Compute proper tensor. Eq (A9) of WVH.
             if not self.has_pol:
                 raise RuntimeError("Polarization is needed to compute the proper piezoelectric tensor.")
-            raise NotImplementedError()
+            raise NotImplementedError
             # Go from Voigt to (3,3)
             # Add polarization terms
             # Shape: (npert, np_vals, 3)
@@ -951,7 +956,7 @@ class Perturbation:
     # TODO: Is this safe to use?
     @cached_property
     def ipv0(self) -> int:
-        """Index of the """
+        """Index of the"""
         return np.argmin(np.abs(self.values))
 
     @cached_property
@@ -1521,7 +1526,7 @@ class FiniteEfieldWork(_FieldWork):
             new_inp = scf_input.new_with_vars(efield=p_val * pert.cart_dir, **relax_ions_opts)
 
             if tasks_pv[ip, ipv] is not None:
-                raise RuntimeError(f"Expecting None for {ip=}, {ipv=} but got {str(tasks_pv[ip, ipv])}")
+                raise RuntimeError(f"Expecting None for {ip=}, {ipv=} but got {tasks_pv[ip, ipv]!s}")
 
             if is_pv0:
                 # Avoid computing the zero-field case multiple times.
@@ -1544,7 +1549,7 @@ class FiniteEfieldWork(_FieldWork):
 
         # Now add dependencies for GS tasks: connect tasks with +E and -E starting from E = 0.
         if ions_mode == IonsMode.CLAMPED:
-            for ipv in range(0, pert.ipv0):
+            for ipv in range(pert.ipv0):
                 tasks_pv[ip, ipv].add_deps({tasks_pv[ip, ipv+1]: "WFK"})
 
             for ipv in range(pert.ipv0+1, len(tasks_pv[ip])):

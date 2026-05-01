@@ -1,8 +1,9 @@
 """Tests for electrons.bse module"""
 import os
-import numpy as np
-import abipy.data as abidata
 
+import numpy as np
+
+import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.electrons.bse import *

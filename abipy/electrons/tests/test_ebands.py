@@ -1,14 +1,21 @@
 """Tests for electrons.ebands module"""
 import sys
-import numpy as np
-import unittest
-import pymatgen.core.units as units
-import abipy.data as abidata
 
+import numpy as np
+from pymatgen.core import units
+
+import abipy.data as abidata
 from abipy import abilab
-from abipy.electrons.ebands import (ElectronBands, ElectronDos, ElectronBandsPlotter, ElectronDosPlotter,
-    ElectronsReader, dataframe_from_ebands, Smearing)
 from abipy.core.testing import AbipyTest
+from abipy.electrons.ebands import (
+    ElectronBands,
+    ElectronBandsPlotter,
+    ElectronDos,
+    ElectronDosPlotter,
+    ElectronsReader,
+    Smearing,
+    dataframe_from_ebands,
+)
 
 
 class SmearingTest(AbipyTest):
@@ -30,7 +37,6 @@ class EbandsReaderTest(AbipyTest):
 
     def test_reader(self):
         """Testing ElectronsReader with WFK file."""
-
         with ElectronsReader(abidata.ref_file("si_scf_WFK.nc")) as r:
             nsppol = r.read_nsppol()
             nspden = r.read_nspden()
@@ -132,8 +138,9 @@ class ElectronBandsTest(AbipyTest):
 
         self.assert_msonable(ni_ebands_kmesh, test_is_subclass=False)
         #d = ni_ebands_kmesh.as_dict()
-        from monty.json import MontyDecoder #, MSONable
         import json
+
+        from monty.json import MontyDecoder  #, MSONable
         assert ni_ebands_kmesh.smearing is not None
         new = json.loads(ni_ebands_kmesh.to_json(), cls=MontyDecoder)
         assert new.smearing is not None
@@ -338,7 +345,7 @@ class ElectronBandsTest(AbipyTest):
             assert si_ebands_kmesh.plot_with_edos(edos=si_edos, klabels=klabels, with_gaps=True, show=False)
             assert si_ebands_kmesh.kpoints.plot(show=False)
 
-            vrange, crange = range(0, 4), range(4, 5)
+            vrange, crange = range(4), range(4, 5)
             assert si_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=False, show=False)
             assert si_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=True, show=False)
             assert si_ebands_kmesh.kpoints.plot(show=False)
@@ -368,7 +375,7 @@ class ElectronBandsTest(AbipyTest):
         spin = 0
         conduction = [4,]
         for v in range(1, 5):
-            valence = range(0, v)
+            valence = range(v)
             jdos = si_ebands_kmesh.get_ejdos(spin, valence, conduction)
             intg = jdos.integral()[-1][-1]
             self.assert_almost_equal(intg, len(conduction) * len(valence))
@@ -565,7 +572,6 @@ class ElectronBandsFromRestApi(AbipyTest):
 
     def test_from_mpid(self):
         """Testing interpolation of SnO2 band energies from MP database."""
-
         if self.test_mprester():
             with self.assertRaises(ValueError):
                 abilab.ElectronBands.from_mpid("foobar")
@@ -595,9 +601,8 @@ class ElectronBandsFromRestApi(AbipyTest):
 
     def test_ebands_from_mpid_magnetic_semiconductor_nelect_automatically_computed(self):
         """https://github.com/abinit/abipy/issues/232"""
-
         if self.test_mprester():
-            ebands = ElectronBands.from_mpid('mp-565814')
+            ebands = ElectronBands.from_mpid("mp-565814")
             assert ebands.nsppol == 2
             self.assert_almost_equal(ebands.direct_gaps[0].energy, 3.6776999999999997)
             self.assert_almost_equal(ebands.direct_gaps[1].energy, 2.0054000000000003)

@@ -1,12 +1,12 @@
 """Tests for frozen_phonons"""
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
+from abipy.core.testing import AbipyTest
 from abipy.dfpt.frozen_phonons import FrozenPhonon
 from abipy.dfpt.phonons import PhononBands
-from abipy.core.testing import AbipyTest
 
-test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
+test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "test_files")
 
 
 class FrozenPhononTest(AbipyTest):

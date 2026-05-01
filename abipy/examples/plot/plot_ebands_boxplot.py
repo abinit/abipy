@@ -6,8 +6,8 @@ Electron bands box plot
 This example shows how to use seaborn or plotly to draw a box plot
 showing the distributions of eigenvalues with respect to the band index.
 """
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 # Open the file with energies computed with a homogeneous sampling
 # of the BZ and extract the band structure.

@@ -13,8 +13,8 @@ See also tutorial/lesson_rf2.html
 # Note that the treatment of the LO-TO splitting for q--> 0 requires
 # additional steps. See `plot_phonons_lo_to.py`.
 
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 with abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as ncfile:
     phbands = ncfile.phbands

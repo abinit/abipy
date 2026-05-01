@@ -1,12 +1,13 @@
 """Objects for post-processing Raman results produced by anaddb."""
 from __future__ import annotations
 
-import numpy as np
-import abipy.core.abinit_units as abu
-
 from collections import namedtuple
-from abipy.iotools import ETSF_Reader
+
+import numpy as np
+
+import abipy.core.abinit_units as abu
 from abipy.core.func1d import Function1D
+from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.typing import Figure
 
@@ -28,7 +29,6 @@ class Raman:
         Args:
             filepath: path to the netcdf file.
         """
-
         with ETSF_Reader(filepath) as r:
             try:
                 susceptibility = r.read_value("raman_sus").T
@@ -254,7 +254,6 @@ class Raman:
             components of the intensities. Otherwise a single Function1D with the intensities of
             the selected polarizations. Each Function1D has "num" points.
         """
-
         i = self.get_modes_intensities(temp=temp, laser_freq=laser_freq, non_anal_dir=non_anal_dir,
                                        units=units, pol_in=pol_in, pol_out=pol_out)
 
@@ -271,18 +270,17 @@ class Raman:
 
             return Function1D(x, li)
 
-        else:
-            li = np.einsum("ij, ikl -> jkl", lorentz, i)
-            li_func = [[None]*3]*3
+        li = np.einsum("ij, ikl -> jkl", lorentz, i)
+        li_func = [[None]*3]*3
 
-            for i in range(3):
-                for j in range(3):
-                    y = li[:, i, j]
-                    if relative:
-                        y /= y.max()
-                    li_func[i][j] = Function1D(x, y)
+        for i in range(3):
+            for j in range(3):
+                y = li[:, i, j]
+                if relative:
+                    y /= y.max()
+                li_func[i][j] = Function1D(x, y)
 
-            return li_func
+        return li_func
 
     def get_powder_intensity(self, temp, laser_freq, non_anal_dir=None,
                              relative=False, units="eV") -> PowderIntensity:

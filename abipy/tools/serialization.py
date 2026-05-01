@@ -9,12 +9,13 @@ from __future__ import annotations
 import functools
 import json
 import pickle
-
-from typing import Any
 from pathlib import Path
+from typing import Any
+
 from monty.json import MontyDecoder, MontyEncoder
-from abipy.tools.typing import PathLike
+
 from abipy.tools.context_managers import Timer
+from abipy.tools.typing import PathLike
 
 
 class Serializable:
@@ -24,7 +25,7 @@ class Serializable:
 
     @classmethod
     def pickle_load(cls, filepath: PathLike):
-        with open(filepath, 'rb') as f:
+        with open(filepath, "rb") as f:
             obj = pickle.load(f)
 
         if obj.__class__ != cls:
@@ -42,7 +43,7 @@ class Serializable:
         mjson_write(self, filepath, **kwargs)
 
     def pickle_dump(self, filepath: PathLike) -> None:
-        with open(filepath, 'wb') as f:
+        with open(filepath, "wb") as f:
             pickle.dump(self, f)
 
 
@@ -149,7 +150,7 @@ def mjson_load(filepath: PathLike, **kwargs) -> Any:
     """
     Read JSON file in MSONable format with MontyDecoder.
     """
-    with open(filepath, "rt") as fh:
+    with open(filepath) as fh:
         return json.load(fh, cls=MontyDecoder, **kwargs)
 
 
@@ -164,7 +165,7 @@ def mjson_write(obj: Any, filepath: PathLike, **kwargs) -> None:
     """
     Write object to filepath in JSON format using MontyDecoder.
     """
-    with open(filepath, "wt") as fh:
+    with open(filepath, "w") as fh:
         json.dump(obj, fh, cls=MontyEncoder, **kwargs)
 
 
@@ -179,12 +180,12 @@ class HasPickleIO:
         Reconstruct the object from a pickle file located in workdir.
         """
         filepath = Path(workdir) / f"{cls.__name__}.pickle" if basename is None else Path(workdir) / basename
-        with open(filepath, "rb") as fh, Timer(header=f"Reconstructing {cls.__name__} instance from file: {str(filepath)}", footer="") as timer:
+        with open(filepath, "rb") as fh, Timer(header=f"Reconstructing {cls.__name__} instance from file: {filepath!s}", footer="") as timer:
             return pickle.load(fh)
 
     def pickle_dump(self, workdir: PathLike, basename: str | None = None) -> Path:
         """Write pickle file. Return path to file"""
         filepath = Path(workdir) / f"{self.__class__.__name__}.pickle" if basename is None else Path(workdir) / basename
-        with open(filepath, "wb") as fh, Timer(header=f"Saving {self.__class__.__name__} instance to file: {str(filepath)}", footer="") as timer:
+        with open(filepath, "wb") as fh, Timer(header=f"Saving {self.__class__.__name__} instance to file: {filepath!s}", footer="") as timer:
             pickle.dump(self, fh)
         return filepath

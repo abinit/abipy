@@ -1,8 +1,9 @@
-import os
 import ast
+import os
 import types
 
 from monty.termcolor import cprint
+
 from abipy.flowtk import Flow
 
 
@@ -11,7 +12,6 @@ def as_orderedset(token, options):
     Helper function used to parse --mpi-list argument.
     Return OrderedSet
     """
-
     if token.startswith("range"):
         # start(1,4,2)
         token = token[5:]
@@ -89,9 +89,8 @@ class BenchmarkFlow(Flow):
 
         if parser is None:
             print("flow.parse_timing returned None!")
-        else:
-            if len(parser) != len(nids):
-                print("Not all timing sections have been parsed!")
+        elif len(parser) != len(nids):
+            print("Not all timing sections have been parsed!")
 
         return parser
 
@@ -137,7 +136,7 @@ def bench_main(main):
         import logging
         numeric_level = getattr(logging, options.loglevel.upper(), None)
         if not isinstance(numeric_level, int):
-            raise ValueError('Invalid log level: %s' % options.loglevel)
+            raise ValueError("Invalid log level: %s" % options.loglevel)
         logging.basicConfig(level=numeric_level)
 
         bench_monkey_patch_options(options)
@@ -165,9 +164,8 @@ def bench_main(main):
                     print("Last 50 line from logfile:")
                     print("".join(lines[i:]))
                 raise RuntimeError("flow.abivalidate_input failed. See messages above.")
-            else:
-                print("Validation succeeded")
-                return 0
+            print("Validation succeeded")
+            return 0
 
         #if options.remove and os.path.isdir(options.workdir):
         #    print("Removing old directory:", options.workdir)
@@ -176,8 +174,7 @@ def bench_main(main):
 
         if options.scheduler:
             return flow.make_scheduler().start()
-        else:
-            return flow.build_and_pickle_dump()
+        return flow.build_and_pickle_dump()
 
     return wrapper
 
@@ -187,15 +184,15 @@ def build_bench_main_parser():
     import argparse
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--loglevel', default="ERROR", type=str,
+    parser.add_argument("--loglevel", default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
-    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                              help='verbose, can be supplied multiple times to increase verbosity')
+    parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+                              help="verbose, can be supplied multiple times to increase verbosity")
 
-    parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
+    parser.add_argument("-w", "--workdir", default="", type=str, help="Working directory of the flow.")
 
-    parser.add_argument("-m", '--manager', default=None,
+    parser.add_argument("-m", "--manager", default=None,
                         help="YAML file with the parameters of the task manager. "
                              "Default None i.e. the manager is read from standard locations: "
                              "working directory first then ~/.abinit/abipy/manager.yml.")
@@ -210,11 +207,11 @@ def build_bench_main_parser():
     parser.add_argument("--max-ncpus", default=248, type=int, help="Maximum number of CPUs to be tested. Default: 248.")
     parser.add_argument("--min-eff", default=None, type=float, help="Minimum parallel efficiency accepted. Default None.")
 
-    parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if available")
-    parser.add_argument("-a", '--abivalidate', default=False, action="store_true",
+    parser.add_argument("--paw", default=False, action="store_true", help="Run PAW calculation if available")
+    parser.add_argument("-a", "--abivalidate", default=False, action="store_true",
                         help="Call Abinit to validate input files and return")
 
-    parser.add_argument("-i", '--info', default=False, action="store_true", help="Show benchmark info and exit")
+    parser.add_argument("-i", "--info", default=False, action="store_true", help="Show benchmark info and exit")
     parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
 
     parser.add_argument("--scheduler", "-s", default=False, action="store_true", help="Run with the scheduler")

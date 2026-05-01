@@ -11,12 +11,11 @@ The final results (out_DDB, out_DVDB) are produced automatically at the end of t
 and saved in ``flow_phonons/w1/outdata/``.
 """
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_input(paral_kgb=0):

@@ -1,29 +1,29 @@
-# coding: utf-8
 """This module contains the class describing densities in real space on uniform 3D meshes."""
 from __future__ import annotations
 
 import collections
 import os
 import typing
-import numpy as np
-import pandas as pd
-
 from collections import OrderedDict
 from functools import cached_property
+
+import numpy as np
+import pandas as pd
 from monty.collections import AttrDict
+from monty.inspect import all_subclasses
 from monty.string import is_string, marquee
 from monty.termcolor import cprint
-from monty.inspect import all_subclasses
-from pymatgen.core.units import bohr_to_angstrom, Ha_to_eV
-from abipy.core.structure import Structure
-from abipy.core.mesh3d import Mesh3D
+from pymatgen.core.units import Ha_to_eV, bohr_to_angstrom
+
 from abipy.core.func1d import Function1D
+from abipy.core.mesh3d import Mesh3D
 from abipy.core.mixins import Has_Structure
+from abipy.core.structure import Structure
+from abipy.iotools import ETSF_Reader, Visualizer, cube, xsf
 from abipy.tools import duck
 from abipy.tools.numtools import transpose_last3dims
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend
 from abipy.tools.typing import Figure
-from abipy.iotools import Visualizer, xsf, ETSF_Reader, cube
 
 if typing.TYPE_CHECKING:
     from pymatgen.io.vasp.outputs import Chgcar
@@ -31,10 +31,10 @@ if typing.TYPE_CHECKING:
 
 __all__ = [
     "Density",
-    "VxcPotential",
     "VhartreePotential",
     "VhxcPotential",
     "VksPotential",
+    "VxcPotential",
 ]
 
 
@@ -43,12 +43,11 @@ def latexlabel_ispden(ispden: int, nspden: int):
     if nspden == 1:
         return None
 
-    elif nspden == 2:
+    if nspden == 2:
         return {k: v.replace("myuparrow", "uparrow") for k, v in
                {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispden]
 
-    else:
-        raise NotImplementedError()
+    raise NotImplementedError
 
 
 class _Field(Has_Structure):
@@ -118,33 +117,33 @@ class _Field(Has_Structure):
             try:
                 return self.__class__, float(other)
             except Exception:
-                raise TypeError('object of class %s is not an instance of _Field and cannot be converted to float' %
+                raise TypeError("object of class %s is not an instance of _Field and cannot be converted to float" %
                     (other.__class__))
 
         if any([self.nspinor != other.nspinor, self.nsppol != other.nsppol, self.nspden != other.nspden,
                 self.structure != other.structure, self.mesh != other.mesh]):
-            raise ValueError('Incompatible scalar fields')
+            raise ValueError("Incompatible scalar fields")
 
         new_cls = self.__class__ if isinstance(other, self.__class__) else _Field
 
         return new_cls, other.datar
 
     def __add__(self, other):
-        """self + other"""
+        """Self + other"""
         new_cls, datar = self._check_and_get_datar(other)
         return new_cls(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
                        datar=self.datar + datar,
                        structure=self.structure, iorder="c")
 
     def __sub__(self, other):
-        """self - other"""
+        """Self - other"""
         new_cls, datar = self._check_and_get_datar(other)
         return new_cls(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
                        datar=self.datar - datar,
                        structure=self.structure, iorder="c")
 
     def __mul__(self, other):
-        """self * other"""
+        """Self * other"""
         new_cls, datar = self._check_and_get_datar(other)
         return new_cls(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
                        datar=self.datar * datar,
@@ -153,7 +152,7 @@ class _Field(Has_Structure):
     __rmul__ = __mul__
 
     def __truediv__(self, other):
-        """self / other"""
+        """Self / other"""
         new_cls, datar = self._check_and_get_datar(other)
         return new_cls(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
                        datar=self.datar / datar,
@@ -254,19 +253,17 @@ class _Field(Has_Structure):
         """
         Returns the average of the array elements along the given axis.
         """
-        if "r" == self._check_space(space):
+        if self._check_space(space) == "r":
             return self.datar.mean(axis=axis)
-        else:
-            return self.datag.mean(axis=axis)
+        return self.datag.mean(axis=axis)
 
     def std(self, space="r", axis=0):
         """
         Returns the standard deviation of the array elements along the given axis.
         """
-        if "r" == self._check_space(space):
+        if self._check_space(space) == "r":
             return self.datar.std(axis=axis)
-        else:
-            return self.datag.std(axis=axis)
+        return self.datag.std(axis=axis)
 
     def export(self, filename, visu=None, verbose=1):
         """
@@ -302,7 +299,7 @@ class _Field(Has_Structure):
             from abipy.core.globals import abinb_mkstemp
             _, filename = abinb_mkstemp(suffix="." + ext, text=True)
 
-        with open(filename, mode="wt") as fh:
+        with open(filename, mode="w") as fh:
             if ext == "xsf":
                 # xcrysden
                 xsf.xsf_write_structure(fh, self.structure)
@@ -313,8 +310,7 @@ class _Field(Has_Structure):
 
         if visu is None:
             return Visualizer.from_file(filename)
-        else:
-            return visu(filename)
+        return visu(filename)
 
     def visualize(self, appname: str):
         """
@@ -332,8 +328,7 @@ class _Field(Has_Structure):
                 return self.export(ext, visu=visu)()
             except visu.Error:
                 pass
-        else:
-            raise visu.Error("Don't know how to export data for visualizer %s" % appname)
+        raise visu.Error("Don't know how to export data for visualizer %s" % appname)
 
     def get_interpolator(self):
         """
@@ -423,7 +418,7 @@ class _Field(Has_Structure):
             return None
 
         # Sort sites by distance.
-        nn_list = list(sorted(nn_list, key=lambda t: t.nn_distance))
+        nn_list = sorted(nn_list, key=lambda t: t.nn_distance)
 
         if max_nn is not None and len(nn_list) > max_nn:
             cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
@@ -438,7 +433,7 @@ class _Field(Has_Structure):
 
         interpolator = self.get_interpolator()
 
-        for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
+        for i, (nn, ax) in enumerate(zip(nn_list, ax_list, strict=False)):
             #nn_site, nn_dist, nn_sc_index = nn
             nn_site = nn
             nn_dist = nn.nn_distance
@@ -513,7 +508,7 @@ class _Field(Has_Structure):
                     ntot, mz = nup + ndown, nup - ndown
 
             elif self.nspinor == 2:
-                raise NotImplementedError()
+                raise NotImplementedError
                 #ntot, mx, my, mz = scalvec_from_spinmat(res_nspden)
                 nup, ndown = 0.5 * (ntot + mz), 0.5 * (ntot - mz)
 
@@ -527,7 +522,7 @@ class _Field(Has_Structure):
 
         df = pd.DataFrame(rows, columns=list(rows[0].keys()))
         # Use iatom as index and remove columns with None.
-        df = df.set_index("iatom").dropna(axis="columns", how='any')
+        df = df.set_index("iatom").dropna(axis="columns", how="any")
 
         if out:
             print(self.structure)
@@ -610,26 +605,25 @@ def core_density_from_file(filepath: str) -> np.ndarray:
     """
     ext = os.path.splitext(filepath)[1]
 
-    if ext == '.fc':
-        with open(filepath, 'r') as f:
+    if ext == ".fc":
+        with open(filepath) as f:
             lines = f.readlines()
             r, rho = [], []
             for l in lines[1:]:
                 if not l.strip():
                     continue
-                if l.startswith('<JSON>'):
+                if l.startswith("<JSON>"):
                     break
                 l = l.split()
                 r.append(float(l[0]))
                 rho.append(float(l[1]))
         return np.array(r) * bohr_to_angstrom, np.array(rho) / (4.0*np.pi) / (bohr_to_angstrom ** 3)
 
-    elif ext == '.rhoc':
+    if ext == ".rhoc":
         rhoc = np.loadtxt(filepath)
         return rhoc[:, 0] * bohr_to_angstrom, rhoc[:,1] / (4.0*np.pi) / (bohr_to_angstrom ** 3)
 
-    else:
-        raise ValueError('Exension not supported: {}'.format(ext))
+    raise ValueError(f"Exension not supported: {ext}")
 
 
 class Density(_DensityField):
@@ -649,7 +643,7 @@ class Density(_DensityField):
     @classmethod
     def ae_core_density_on_mesh(cls, valence_density, structure, rhoc,
                                 maxr=2.0, nelec=None, tol=0.01,
-                                method='get_sites_in_sphere', small_dist_mesh=(8, 8, 8), small_dist_factor=1.5):
+                                method="get_sites_in_sphere", small_dist_mesh=(8, 8, 8), small_dist_factor=1.5):
         """
         Initialize the all electron core density of the structure from the pseudopotentials *rhoc* files.
         For points close to the atoms, the value at the grid point would be defined as the average on a finer grid
@@ -682,14 +676,14 @@ class Density(_DensityField):
 
         if isinstance(rhoc, (list, tuple)):
             if len(structure) != len(rhoc):
-                raise ValueError('Number of rhoc files should be equal to the number of sites in the structure')
+                raise ValueError("Number of rhoc files should be equal to the number of sites in the structure")
         elif isinstance(rhoc, collections.abc.Mapping):
             atoms_symbols = [elmt.symbol for elmt in structure.composition]
             if not np.all([atom in rhoc for atom in atoms_symbols]):
-                raise ValueError('The rhoc files should be provided for all the atoms in the structure')
+                raise ValueError("The rhoc files should be provided for all the atoms in the structure")
             rhoc = [rhoc[site.specie.symbol] for site in structure]
         else:
-            raise ValueError('Unsuported format for rhoc')
+            raise ValueError("Unsuported format for rhoc")
 
         for ir, r in enumerate(rhoc):
             func1d = Function1D(r[0], r[1])
@@ -722,7 +716,7 @@ class Density(_DensityField):
 
         # The vectorized methods are faster. Keep the older methods for cross checks of the implementation for the
         # time being
-        if method == 'get_sites_in_sphere_legacy':
+        if method == "get_sites_in_sphere_legacy":
             for ix in range(valence_density.mesh.nx):
                 for iy in range(valence_density.mesh.ny):
                     for iz in range(valence_density.mesh.nz):
@@ -750,7 +744,7 @@ class Density(_DensityField):
                                 total /= (nnx*nny*nnz)
                                 core_den[0, ix, iy, iz] += total
 
-        elif method == 'mesh3d_dist_gridpoints_legacy':
+        elif method == "mesh3d_dist_gridpoints_legacy":
             site_coords = [site.coords for site in structure]
             dist_gridpoints_sites = valence_density.mesh.dist_gridpoints_in_spheres(points=site_coords, radius=maxr)
             for isite, dist_gridpoints_site in enumerate(dist_gridpoints_sites):
@@ -775,7 +769,7 @@ class Density(_DensityField):
                                     total += rhoc_atom_splines[isite](dist2)
                         total /= (nnx*nny*nnz)
                         core_den[0, igp_uc[0], igp_uc[1], igp_uc[2]] += total
-        elif method == 'mesh3d_dist_gridpoints':
+        elif method == "mesh3d_dist_gridpoints":
             import time
             site_coords = [site.coords for site in structure]
             start = time.time()
@@ -800,7 +794,7 @@ class Density(_DensityField):
                         total /= (nnx*nny*nnz)
                         core_den[0, igp_uc[0], igp_uc[1], igp_uc[2]] += total
 
-        elif method == 'get_sites_in_sphere':
+        elif method == "get_sites_in_sphere":
             nnx, nny, nnz = small_dist_mesh
             meshgrid = np.meshgrid(np.linspace(-0.5, 0.5, nnx, endpoint=False) + 0.5 / nnx,
                                    np.linspace(-0.5, 0.5, nny, endpoint=False) + 0.5 / nny,
@@ -827,18 +821,18 @@ class Density(_DensityField):
                                 core_den[0, ix, iy, iz] += total
 
         else:
-            raise ValueError('Method "{}" is not allowed'.format(method))
+            raise ValueError(f'Method "{method}" is not allowed')
 
         if nelec is not None:
             sum_elec = np.sum(core_den) * valence_density.mesh.dv
             diff = np.abs(sum_elec-nelec) / nelec
             if diff > tol:
-                raise ValueError('Summed electrons is different from the actual number of electrons by '
-                                 'more than {:.2f}% : {:.2f}%'.format(tol*100, diff*100))
+                raise ValueError("Summed electrons is different from the actual number of electrons by "
+                                 f"more than {tol*100:.2f}% : {diff*100:.2f}%")
             core_den = core_den / sum_elec * nelec
 
         return cls(nspinor=valence_density.nspinor, nsppol=valence_density.nsppol, nspden=valence_density.nspden,
-                   datar=core_den, structure=structure, iorder='c')
+                   datar=core_den, structure=structure, iorder="c")
 
     def get_nelect(self, spin=None):
         """
@@ -849,9 +843,8 @@ class Density(_DensityField):
         if self.is_collinear:
             nelect = self.mesh.integrate(self.datar)
             return np.sum(nelect) if spin is None else nelect[spin]
-        else:
-            raise NotImplementedError()
-            return self.mesh.integrate(self.datar[0])
+        raise NotImplementedError
+        return self.mesh.integrate(self.datar[0])
 
     @cached_property
     def total_rhor(self) -> np.ndarray:
@@ -860,12 +853,11 @@ class Density(_DensityField):
         """
         if self.is_collinear:
             if self.nsppol == 1:
-                if self.nspden == 2: raise NotImplementedError()
+                if self.nspden == 2: raise NotImplementedError
                 return self.datar[0]
-            elif self.nsppol == 2:
+            if self.nsppol == 2:
                 return self.datar[0] + self.datar[1]
-            else:
-                raise ValueError("You should not be here")
+            raise ValueError("You should not be here")
 
         raise NotImplementedError("Non collinear case.")
 
@@ -893,12 +885,10 @@ class Density(_DensityField):
             if self.nsppol == 1 and self.nspden == 1:
                 # zero magnetization by definition.
                 return self.mesh.zeros()
-            else:
-                # spin_up - spin_down.
-                return self.datar[0] - self.datar[1]
-        else:
-            # mx, my, mz
-            return self.datar[1:]
+            # spin_up - spin_down.
+            return self.datar[0] - self.datar[1]
+        # mx, my, mz
+        return self.datar[1:]
 
     @cached_property
     def magnetization(self):
@@ -918,7 +908,7 @@ class Density(_DensityField):
             return None, None
 
         if self.nsppol == 1:
-            if self.nspden == 2: raise NotImplementedError()
+            if self.nspden == 2: raise NotImplementedError
             nup = ndown = self.mesh.integrate(self.datar[0]/2)
         else:
             nup = self.mesh.integrate(self.datar[0])
@@ -964,24 +954,24 @@ class Density(_DensityField):
     #    vhr = self.mesh.fft_g2r(vhg, fg_ishifted=False)
     #    return vhr, vhg
 
-    def export_to_cube(self, filename, spin='total') -> None:
+    def export_to_cube(self, filename, spin="total") -> None:
         """
         Export real space density to CUBE file ``filename``.
         """
-        if spin != 'total':
+        if spin != "total":
             raise ValueError('Argument "spin" should be "total"')
 
-        with open(filename, mode="wt") as fh:
+        with open(filename, mode="w") as fh:
             cube.cube_write_structure_mesh(file=fh, structure=self.structure, mesh=self.mesh)
             cube.cube_write_data(file=fh, data=self.total_rhor, mesh=self.mesh)
 
     @classmethod
-    def from_cube(cls, filename, spin='total'):
+    def from_cube(cls, filename, spin="total"):
         """
         Read real space density to CUBE file ``filename``.
         Return new :class:`Density` instance.
         """
-        if spin != 'total':
+        if spin != "total":
             raise ValueError('Argument "spin" should be "total"')
 
         structure, mesh, datar = cube.cube_read_structure_mesh_data(filepath=filename)
@@ -992,7 +982,7 @@ class Density(_DensityField):
         #"""Compute the kinetic energy density in real- and reciprocal-space."""
         #return kindr, kindgg
 
-    def to_chgcar(self, filename=None) -> 'Chgcar':
+    def to_chgcar(self, filename=None) -> Chgcar:
         """
         Convert a :class:`Density` object into a ``Chgar`` object.
         If ``filename`` is not None, density is written to this file in Chgar format
@@ -1231,9 +1221,8 @@ class FieldReader(ETSF_Reader):
             else:
                 raise ValueError(f"Invalid {dims.nspinor}, {dims.nspden=} and {dims.nsppol}")
 
-        else:
-            if dims.nspden == 4:
-                raise NotImplementedError()
+        elif dims.nspden == 4:
+            raise NotImplementedError
 
                 #if issubclass(field_cls, _DensityField):
                     #datar_ab = np.empty_like(datar)
@@ -1269,5 +1258,4 @@ class FieldReader(ETSF_Reader):
         # stores data in Fortran order while AbiPy uses C-ordering.
         if cplex == 1:
             return field_cls(dims.nspinor, dims.nsppol, dims.nspden, datar, structure, iorder="f")
-        else:
-            raise NotImplementedError(f"{cplex=} not coded")
+        raise NotImplementedError(f"{cplex=} not coded")

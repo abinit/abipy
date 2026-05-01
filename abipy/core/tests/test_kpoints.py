@@ -1,15 +1,33 @@
 #!/usr/bin/env python
 """Tests for kpoints.kpoints module."""
 import itertools
-import unittest
-import numpy as np
-import abipy.data as abidata
 
+import numpy as np
 from pymatgen.core.lattice import Lattice
+
+import abipy.data as abidata
 from abipy import abilab
-from abipy.core.kpoints import (wrap_to_ws, wrap_to_bz, issamek, Kpoint, KpointList, IrredZone, Kpath, KpointsReader,
-    has_timrev_from_kptopt, KSamplingInfo, as_kpoints, rc_list, kmesh_from_mpdivs, map_grid2ibz,
-    set_atol_kdiff, set_spglib_tols, kpath_from_bounds_and_ndivsm, build_segments, kpoints_indices)  #Ktables,
+from abipy.core.kpoints import (
+    IrredZone,
+    Kpath,
+    Kpoint,
+    KpointList,
+    KpointsReader,
+    KSamplingInfo,
+    as_kpoints,
+    build_segments,
+    has_timrev_from_kptopt,
+    issamek,
+    kmesh_from_mpdivs,
+    kpath_from_bounds_and_ndivsm,
+    kpoints_indices,
+    map_grid2ibz,
+    rc_list,
+    set_atol_kdiff,  #Ktables,
+    set_spglib_tols,
+    wrap_to_bz,
+    wrap_to_ws,
+)
 from abipy.core.testing import AbipyTest
 
 

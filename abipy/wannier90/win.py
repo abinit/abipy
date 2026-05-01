@@ -1,15 +1,15 @@
-# coding: utf-8
 """Interface to the win input file used by Wannier90."""
 from __future__ import annotations
 
-import numpy as np
-import abipy.core.abinit_units as abu
-
 from collections import OrderedDict
+
+import numpy as np
+
+import abipy.core.abinit_units as abu
+from abipy.abio.inputs import AbstractInput
+from abipy.abio.variable import InputVariable
 from abipy.core.mixins import Has_Structure
 from abipy.core.structure import Structure
-from abipy.abio.variable import InputVariable
-from abipy.abio.inputs import AbstractInput
 
 
 def structure2wannier90(structure, units="Bohr") -> str:
@@ -94,7 +94,6 @@ class Wannier90Input(AbstractInput, Has_Structure):
             return new
 
     def __init__(self, structure, comment="", win_args=None, win_kwargs=None, spell_check=True):
-
         """
         Args:
             structure: |Structure| object

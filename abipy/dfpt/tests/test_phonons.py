@@ -1,19 +1,26 @@
 """Tests for phonons"""
-import unittest
-import sys
 import os
 import pickle
+import unittest
+
 import numpy as np
-import abipy.data as abidata
+
 import abipy.core.abinit_units as abu
-
+import abipy.data as abidata
 from abipy import abilab
-from abipy.dfpt.phonons import (PhononBands, PhononDos, PhdosFile, phbands_gridplot,
-        PhononBandsPlotter, PhononDosPlotter, dataframe_from_phbands)
-from abipy.dfpt.ddb import DdbFile
 from abipy.core.testing import AbipyTest
+from abipy.dfpt.ddb import DdbFile
+from abipy.dfpt.phonons import (
+    PhdosFile,
+    PhononBands,
+    PhononBandsPlotter,
+    PhononDos,
+    PhononDosPlotter,
+    dataframe_from_phbands,
+    phbands_gridplot,
+)
 
-test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
+test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "test_files")
 
 
 class PhononBandsTest(AbipyTest):
@@ -65,7 +72,7 @@ class PhononBandsTest(AbipyTest):
         # Test ascii file
         phbands.create_ascii_vib(iqpts=0, filename=self.get_tmpname(text=True), pre_factor=1)
         # Test phononwebsite file
-        phbands.create_phononwebsite_json(filename=self.get_tmpname(text=True), name='test')
+        phbands.create_phononwebsite_json(filename=self.get_tmpname(text=True), name="test")
         assert phbands.view_phononwebsite(verbose=1, dryrun=True) == 0
         # Test xmgrace
         phbands.to_xmgrace(self.get_tmpname(text=True))

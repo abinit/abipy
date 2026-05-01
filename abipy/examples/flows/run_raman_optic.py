@@ -7,12 +7,13 @@ This script shows how to perform a Raman calculation with excitonic effects
 included with the BSE formalism.
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
-import abipy.abilab as abilab
+
 import abipy.data as abidata
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -45,7 +46,7 @@ def build_flow(options):
     shift1D = np.arange(1, 2*ndiv+1, 2) / (2 * ndiv)
     all_shifts = [[x, y, z] for x in shift1D for y in shift1D for z in shift1D]
 
-    for structure, eta in zip(displaced_structures, etas):
+    for structure, eta in zip(displaced_structures, etas, strict=False):
         for ishift,shift in enumerate(all_shifts):
             flow.register_work(raman_work(structure, pseudos, ngkpt, shift),
                                workdir="eta_" + str(eta) + "shift_" + str(ishift))

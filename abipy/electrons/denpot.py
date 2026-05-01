@@ -1,29 +1,36 @@
-# coding: utf-8
 """Density/potential files in netcdf/fortran format."""
 from __future__ import annotations
 
 import os
-#import numpy as np
 
+#import numpy as np
 from functools import cached_property
+
 from monty.string import marquee
 from monty.termcolor import cprint
-from abipy.core.globals import get_workdir
-from abipy.core.mixins import (AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter,
-    AbinitFortranFile, CubeFile)
-from abipy.core.structure import Structure
-from abipy.core.fields import FieldReader
-from abipy.electrons.ebands import ElectronBands, ElectronsReader
-from abipy.abio.inputs import Cut3DInput
-from abipy.flowtk import Cut3D
 
+from abipy.abio.inputs import Cut3DInput
+from abipy.core.fields import FieldReader
+from abipy.core.globals import get_workdir
+from abipy.core.mixins import (
+    AbinitFortranFile,
+    AbinitNcFile,
+    CubeFile,
+    Has_ElectronBands,
+    Has_Header,
+    Has_Structure,
+    NotebookWriter,
+)
+from abipy.core.structure import Structure
+from abipy.electrons.ebands import ElectronBands, ElectronsReader
+from abipy.flowtk import Cut3D
 
 __all__ = [
     "DensityNcFile",
-    "VhartreeNcFile",
-    "VxcNcFile",
-    "VhxcNcFile",
     "PotNcFile",
+    "VhartreeNcFile",
+    "VhxcNcFile",
+    "VxcNcFile",
 ]
 
 
@@ -52,7 +59,7 @@ class Cut3dDenPotNcFile(AbinitNcFile, Has_Structure):
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         return {}
 
 
@@ -92,7 +99,7 @@ class _NcFileWithField(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 

@@ -6,8 +6,8 @@ Structural relaxation
 This example shows how to analyze the results of a
 structure relaxation using the HIST.nc file.
 """
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 #%%
 # Open the HIST file.

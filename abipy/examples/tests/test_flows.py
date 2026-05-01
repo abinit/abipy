@@ -1,14 +1,13 @@
 """
 This script runs all the flows in the `flow` directory.
 """
-import sys
 import os
+import sys
 import tempfile
 import warnings
 
-from subprocess import call
+from abipy import flowtk
 from abipy.core.testing import AbipyTest
-import abipy.flowtk as flowtk
 
 root = os.path.join(os.path.dirname(__file__), "..", "flows")
 
@@ -41,7 +40,7 @@ class TestScripts(AbipyTest):
                     continue
 
             # flow will be produced in a temporary workdir.
-            workdir = tempfile.mkdtemp(prefix='flow_' + os.path.basename(fname))
+            workdir = tempfile.mkdtemp(prefix="flow_" + os.path.basename(fname))
             options = parser.parse_args(["--workdir", workdir])
             # Instantiate the manager.
             options.manager = flowtk.TaskManager.as_manager(options.manager)

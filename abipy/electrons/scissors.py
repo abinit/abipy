@@ -1,15 +1,14 @@
-# coding: utf-8
 """Scissors operator."""
 from __future__ import annotations
 
 import os
 import pickle
-import numpy as np
 
+import numpy as np
 from monty.collections import AttrDict
+
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.typing import Figure
-
 
 __all__ = [
     "Scissors",
@@ -163,8 +162,8 @@ class ScissorsBuilder:
 
     def pickle_dump(self, filepath, protocol=-1):
         """Save the object in Pickle format"""
-        assert all(s1 == s2 for s1, s2 in zip(self.domains_spin.keys(), self.bounds_spin.keys()))
-        assert all(s1 == s2 for s1, s2 in zip(self.domains_spin.keys(), range(self.nsppol)))
+        assert all(s1 == s2 for s1, s2 in zip(self.domains_spin.keys(), self.bounds_spin.keys(), strict=False))
+        assert all(s1 == s2 for s1, s2 in zip(self.domains_spin.keys(), range(self.nsppol), strict=False))
 
         bounds_spin = None
         if any(v is not None for v in self.bounds_spin.values()):
@@ -252,14 +251,13 @@ class ScissorsBuilder:
                 domains_spin[spin] = [[self.e0min - 0.2 * abs(self.e0min), gap_mid],
                                       [gap_mid, self.e0max + 0.2 * abs(self.e0max)]]
                 #print("domains", domains_spin[spin])
+        elif nsppol == 1:
+            domains_spin = np.reshape(domains_spin, (1, -1, 2))
+        elif nsppol == 2:
+            assert len(domains_spin) == nsppol
+            if bounds_spin is not None: assert len(bounds_spin) == nsppol
         else:
-            if nsppol == 1:
-                domains_spin = np.reshape(domains_spin, (1, -1, 2))
-            elif nsppol == 2:
-                assert len(domains_spin) == nsppol
-                if bounds_spin is not None: assert len(bounds_spin) == nsppol
-            else:
-                raise ValueError("Wrong number of spins %d" % nsppol)
+            raise ValueError("Wrong number of spins %d" % nsppol)
             #if len(domains_spin) != nsppol:
             #    raise ValueError("len(domains_spin) == %s != nsppol %s" % (len(domains_spin), nsppol))
 
@@ -310,8 +308,8 @@ class ScissorsBuilder:
             ax.plot(e0mesh, intp_qpc, label="Scissors operator, spin %s" % spin)
 
         ax.grid(True)
-        ax.set_xlabel('KS energy (eV)')
-        ax.set_ylabel('QP-KS (eV)')
+        ax.set_xlabel("KS energy (eV)")
+        ax.set_ylabel("QP-KS (eV)")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
@@ -333,7 +331,7 @@ class ScissorsBuilder:
 
         Return: |matplotlib-Figure|
         """
-        from abipy.abilab import abiopen, ElectronBandsPlotter
+        from abipy.abilab import ElectronBandsPlotter, abiopen
 
         # Read the KS band energies from bands_filepath and apply the scissors operator.
         with abiopen(bands_filepath) as ncfile:

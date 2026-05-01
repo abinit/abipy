@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 This module contains objects for postprocessing e-ph calculations
 using the results stored in the SIGEPH.nc file.
@@ -7,40 +6,49 @@ For a theoretical introduction see :cite:`Giustino2017`
 """
 from __future__ import annotations
 
-import tempfile
-import pickle
 import os
-import numpy as np
-import pandas as pd
-import abipy.core.abinit_units as abu
-
+import pickle
+import tempfile
 from collections import namedtuple
 from collections.abc import Iterable
 from functools import cached_property
-from tabulate import tabulate
-from monty.string import marquee, list_strings
+
+import numpy as np
+import pandas as pd
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
+from tabulate import tabulate
+
+import abipy.core.abinit_units as abu
+from abipy.abio.robots import Robot
+from abipy.core.kpoints import IrredZone, Kpath, Kpoint, KpointList, find_points_along_path, has_timrev_from_kptopt
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt, find_points_along_path
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
+from abipy.electrons.ebands import ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter, RobotWithEbands
+from abipy.eph.common import BaseEphReader
 from abipy.tools import duck
 from abipy.tools.numtools import gaussian
-from abipy.electrons.ebands import ElectronBands, ElectronDos, RobotWithEbands, ElectronBandsPlotter, ElectronDosPlotter
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    ax_append_title,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    linestyles,
+    rotate_ticklabels,
+    set_ax_xylabels,
+    set_axlims,
+    set_visible,
+)
 from abipy.tools.typing import Figure
-from abipy.abio.robots import Robot
-from abipy.eph.common import BaseEphReader
-
 
 __all__ = [
-    "QpTempState",
-    "QpTempList",
     "EphSelfEnergy",
+    "QpTempList",
+    "QpTempState",
     "SigEPhFile",
     "SigEPhRobot",
-    "TdepElectronBands",
     "SigmaPhReader",
+    "TdepElectronBands",
 ]
 
 # TODO QPState and QPList from electrons.gw (Define base abstract class?).
@@ -172,9 +180,7 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
             with_fields:
             exclude_fields:
         """
-        if vs == "temp":
-            all_fields = list(cls.get_fields(exclude=["spin", "kpoint", "band", "e0", "tmesh"]))
-        elif vs == "e0":
+        if vs == "temp" or vs == "e0":
             all_fields = list(cls.get_fields(exclude=["spin", "kpoint", "band", "e0", "tmesh"]))
         else:
             raise ValueError("Invalid vs: `%s`" % str(vs))
@@ -229,7 +235,7 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
         linestyle = kwargs.pop("linestyle", "o")
         #kw_color = kwargs.pop("color", None)
         #kw_label = kwargs.pop("label", None)
-        for ix, (field, ax) in enumerate(zip(fields, ax_list)):
+        for ix, (field, ax) in enumerate(zip(fields, ax_list, strict=False)):
             irow, icol = divmod(ix, ncols)
             ax.grid(True)
             if irow == nrows - 1: ax.set_xlabel("Temperature [K]")
@@ -245,7 +251,7 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
             ax.plot(self.tmesh, yy.real, linestyle, label=lbl, **kwargs)
 
         # Get around a bug in matplotlib
-        if num_plots % ncols != 0: ax_list[-1].axis('off')
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
 
         if lbl is not None:
             ax_list[0].legend(loc="best", fontsize=fontsize, shadow=True)
@@ -309,8 +315,7 @@ class QpTempList(list):
         #return np.array([getattr(qp, field)[itemp] for qp in self])
         if field in {"tmesh", "qpe", "ze0", "fan0", "dw", "qpe_oms"}:
             return np.array([getattr(qp, field)[itemp] for qp in self])
-        else:
-            return np.array([getattr(qp, field) for qp in self])
+        return np.array([getattr(qp, field) for qp in self])
 
     #def get_skb_field(self, skb, field):
     #    """Return the value of field for the given spin kp band tuple, None if not found"""
@@ -401,7 +406,7 @@ class QpTempList(list):
         kw_label = kwargs.pop("label", None)
 
         itemp_list = list(range(self.ntemp)) if itemp_list is None else duck.list_ints(itemp_list)
-        for ix, (field, ax) in enumerate(zip(fields, ax_list)):
+        for ix, (field, ax) in enumerate(zip(fields, ax_list, strict=False)):
             irow, icol = divmod(ix, ncols)
             ax.grid(True)
             if irow == nrows - 1:
@@ -438,7 +443,7 @@ class QpTempList(list):
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         # Get around a bug in matplotlib
-        if num_plots % ncols != 0: ax_list[-1].axis('off')
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
 
         return fig
 
@@ -533,12 +538,11 @@ class EphSelfEnergy:
                 im=self.vals_wr[itemp].imag,
                 spfunc=self.spfunc_wr[itemp],
             )[what]
-        else:
-            return dict(
-                re=self.frohl_vals_wr[itemp].real,
-                im=self.frohl_vals_wr[itemp].imag,
-                spfunc=self.frohl_spfunc_wr[itemp],
-            )[what]
+        return dict(
+            re=self.frohl_vals_wr[itemp].real,
+            im=self.frohl_vals_wr[itemp].imag,
+            spfunc=self.frohl_spfunc_wr[itemp],
+        )[what]
 
     def _get_itemps_labels(self, itemps):
         """Return list of temperature indices and labels from itemps."""
@@ -590,8 +594,8 @@ class EphSelfEnergy:
         xs, xlabel = self._get_wmesh_xlabel(zero_energy)
 
         itemps, tlabels = self._get_itemps_labels(itemps)
-        kw_color = kwargs.get("color", None)
-        kw_label = kwargs.get("label", None)
+        kw_color = kwargs.get("color")
+        kw_label = kwargs.get("label")
 
         if not isinstance(ax_list,np.ndarray):
             ax_list = np.array([ax_list])
@@ -616,7 +620,7 @@ class EphSelfEnergy:
         while len(ylims) < len(what_list):
             ylims.append(ylims[-1])
 
-        for ix, (what, ax) in enumerate(zip(what_list, ax_list)):
+        for ix, (what, ax) in enumerate(zip(what_list, ax_list, strict=False)):
             ax.grid(True)
             ax.set_ylabel(self.latex_symbol[what])
             if (ix == len(ax_list) - 1): ax.set_xlabel(xlabel)
@@ -692,7 +696,7 @@ class EphSelfEnergy:
 
         lins_x0 = self.qp.qpe[itemp].real - self.qp.e0
         y0 = sig0.real + aa * lins_x0
-        scatter_opts = dict(color="blue", marker="o", alpha=0.8, s=50, zorder=100, edgecolor='black')
+        scatter_opts = dict(color="blue", marker="o", alpha=0.8, s=50, zorder=100, edgecolor="black")
         ax0.scatter(lins_x0, y0, label="Linearized solution", **scatter_opts)
         text = r"$Z = %.2f$" % ze0
         ax0.annotate(text, (lins_x0 + 0.02, y0 + 0.1), textcoords="data", size=8)
@@ -717,10 +721,10 @@ class EphSelfEnergy:
             second_line = LineString(np.column_stack((xs, self.wmesh - self.qp.e0)))
             intersection = first_line.intersection(second_line)
             sol_xs, sol_ys = intersection.xy
-            for i, (x, y) in enumerate(zip(sol_xs, sol_ys)):
+            for i, (x, y) in enumerate(zip(sol_xs, sol_ys, strict=False)):
                 data[f"NonLinear_#{i}"] = x
 
-        df = pd.DataFrame.from_dict(data, orient='index')
+        df = pd.DataFrame.from_dict(data, orient="index")
         print("QP corrections computed with different approximations. All in eV")
         print(df)
         #ax0.table(cellText=df.values, colLabels=df.keys(), loc='center')
@@ -743,7 +747,7 @@ class EphSelfEnergy:
 
         # Plot on the mass shell energy as vertical line
         ax1.axvline(sig0.real, lw=1, color="red", ls="--")
-        ax1.annotate("OTMS", (sig0.real + 0.02, 5.0), textcoords='data', size=8)
+        ax1.annotate("OTMS", (sig0.real + 0.02, 5.0), textcoords="data", size=8)
 
         ax1.set_xlabel(xlabel)
         ax1.set_ylabel(r"$A(\omega - \epsilon^0)\,$(1/eV)")
@@ -1181,11 +1185,11 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         if errors:
             raise ValueError("\n".join(errors))
 
-        return _MyQpkindsList(zip(items[0], items[1]))
+        return _MyQpkindsList(zip(items[0], items[1], strict=False))
 
     @cached_property
     def params(self) -> dict:
-        """dict with the convergence parameters, e.g. ``nbsum``."""
+        """Dict with the convergence parameters, e.g. ``nbsum``."""
         od = {
             "nbsum": self.nbsum,
             "zcut": self.zcut,
@@ -1393,7 +1397,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         workdir = os.getcwd() if workdir is None else str(workdir)
 
         # get the lifetimes as an array
-        qpes = self.get_qp_array(mode='ks+lifetimes', rta_type=rta_type)
+        qpes = self.get_qp_array(mode="ks+lifetimes", rta_type=rta_type)
 
         # read from this class
         nkibz = self.nkpt
@@ -1407,35 +1411,35 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         def write_file(filename, tag, function, T=None):
             """Function to write files for BoltzTraP"""
-            with open(os.path.join(workdir, filename), 'wt') as f:
-                ttag = ' for T=%12.6lf' % T if T else ''
-                f.write('BoltzTraP %s file generated by abipy%s.\n' % (tag, ttag))
-                f.write('%5d %5d %20.12e ! nk, nspin : lifetimes below in s \n' % (nkibz, self.nsppol, fermie_ry))
+            with open(os.path.join(workdir, filename), "w") as f:
+                ttag = " for T=%12.6lf" % T if T else ""
+                f.write("BoltzTraP %s file generated by abipy%s.\n" % (tag, ttag))
+                f.write("%5d %5d %20.12e ! nk, nspin : lifetimes below in s \n" % (nkibz, self.nsppol, fermie_ry))
                 for ispin in range(self.nsppol):
                     for ik in range(nkibz):
                         kpt = kpoints[ik]
-                        fmt = '%20.12e ' * 3 + '%d !kpt nband\n' % (bstop - bstart)
+                        fmt = "%20.12e " * 3 + "%d !kpt nband\n" % (bstop - bstart)
                         f.write(fmt % tuple(kpt))
                         for ibnd in range(bstart, bstop):
-                            f.write('%20.12e\n' % (function(qpes[ispin, ik, ibnd, itemp])))
+                            f.write("%20.12e\n" % (function(qpes[ispin, ik, ibnd, itemp])))
 
         # write tau
         for itemp in range(ntemp):
             T = tmesh[itemp]
-            filename_tau = basename + '_%dK_BLZTRP.tau_k' % T
+            filename_tau = basename + "_%dK_BLZTRP.tau_k" % T
             function = lambda x: 1.0 / (2 * abs(x.imag) * abu.eV_s)
-            write_file(filename_tau, 'tau_k', function,T)
+            write_file(filename_tau, "tau_k", function,T)
 
         # write energies
-        filename_ene = basename + '_BLZTRP.energy'
+        filename_ene = basename + "_BLZTRP.energy"
         function = lambda x: x.real * abu.eV_Ry
-        write_file(filename_ene, 'eigen-enegies', function)
+        write_file(filename_ene, "eigen-enegies", function)
 
         # write structure
-        fmt3 = "%20.12e "*3 + '\n'
-        path = os.path.join(workdir, basename + '_BLZTRP.structure')
-        with open(path, 'wt') as f:
-            f.write('BoltzTraP geometry file generated by abipy.\n')
+        fmt3 = "%20.12e "*3 + "\n"
+        path = os.path.join(workdir, basename + "_BLZTRP.structure")
+        with open(path, "w") as f:
+            f.write("BoltzTraP geometry file generated by abipy.\n")
             f.write(fmt3 % tuple(struct.lattice.matrix[0] * abu.Ang_Bohr))
             f.write(fmt3 % tuple(struct.lattice.matrix[1] * abu.Ang_Bohr))
             f.write(fmt3 % tuple(struct.lattice.matrix[2] * abu.Ang_Bohr))
@@ -1502,7 +1506,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
         # Get symmetries from abinit spacegroup (read from file).
         abispg = self.structure.abi_spacegroup
-        fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
+        fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm, strict=False) if afm == 1]
 
         if ks_ebands_kpath is None:
             # Generate k-points for interpolation. Will interpolate all bands available in the sigeph file.
@@ -1645,7 +1649,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         if qp_type not in {"qpz0", "otms"}:
             raise ValueError("Invalid qp_type: `%s`" % qp_type)
 
-        for ix, ((kpt, ikc), ax) in enumerate(zip(qpkinds, ax_list)):
+        for ix, ((kpt, ikc), ax) in enumerate(zip(qpkinds, ax_list, strict=False)):
             for spin in range(self.nsppol):
                 if not plot_qpmks:
                     # Plot QP_{spin,kpt}(T)
@@ -1701,7 +1705,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         # Read all QPs for this (spin, kpoint) and all bands.
         qp_list = self.r.read_qplist_sk(spin, kpoint)
 
-        for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
+        for ix, (ax, what) in enumerate(zip(ax_list, what_list, strict=False)):
             # Plot QP(T)
             for qp in qp_list:
                 if band_list is not None and qp.band not in band_list: continue
@@ -1801,7 +1805,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         qpes = self.r.read_value("qp_enes", cmode="c") * abu.Ha_eV
         band_range = (self.r.max_bstart, self.r.min_bstop)
 
-        for spin, ax in zip(range(self.nsppol), ax_list):
+        for spin, ax in zip(range(self.nsppol), ax_list, strict=False):
             # Plot KS bands in the band range included in self-energy calculation.
             self.ebands.plot(ax=ax, e0=e0, spin=spin, band_range=band_range, show=False)
             # Add (scattered) QP(T) energies for the calculated k-points.
@@ -2308,7 +2312,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         Plot the sum of the Eliashberg functions a2F_{n,k,spin}(w) (gkq2/Fan-Migdal/DW/Total contribution)
         over the k-points and bands for which self-energy matrix elements have been computed.
 
-       .. note::
+        .. note::
 
             This quantity is supposed to give a qualitative
             The value indeed is not an integral in the BZ, besides the absolute value depends
@@ -2546,9 +2550,9 @@ class SigEPhRobot(Robot, RobotWithEbands):
             cprint("Files with different values of `nkcalc`", color="yellow")
 
         for nc in self.abifiles[1:]:
-            for k0, k1 in zip(nc0.sigma_kpoints, nc.sigma_kpoints):
+            for k0, k1 in zip(nc0.sigma_kpoints, nc.sigma_kpoints, strict=False):
                 if k0 != k1:
-                    cprint("Files with different values of `sigma_kpoints`\n" +
+                    cprint("Files with different values of `sigma_kpoints`\n"
                            "Specify the kpoint via reduced coordinates and not via the index", "yellow")
                     break
 
@@ -2707,7 +2711,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         """
         if hue is None:
             ax_list = None
-            for ix, ((label, ncfile, param), lineopt) in enumerate(zip(self.sortby(sortby), self.iter_lineopt())):
+            for ix, ((label, ncfile, param), lineopt) in enumerate(zip(self.sortby(sortby), self.iter_lineopt(), strict=False)):
                 fig = ncfile.plot_qpgaps_t(qp_kpoints=qp_kpoints, qp_type=qp_type, ax_list=ax_list,
                     plot_qpmks=plot_qpmks, label=label, show=False, fontsize=fontsize, **lineopt)
                     #label=label if ix == 0 else None, show=False, fontsize=fontsize, **lineopt)
@@ -2793,7 +2797,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         name = "QP dirgap" if not plot_qpmks else "QP - KS dirgap"
         name = "%s (%s)" % (name, qp_type.upper())
 
-        for ix, ((kpt, ikc), ax) in enumerate(zip(qpkinds, ax_list)):
+        for ix, ((kpt, ikc), ax) in enumerate(zip(qpkinds, ax_list, strict=False)):
             for spin in range(nsppol):
                 ax.set_title("%s k:%s, T = %.1f K" % (
                     name, repr(kpt), nc0.tmesh[itemp]), fontsize=fontsize)
@@ -2888,7 +2892,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
                 lst = [ncfile.r.read_qp(spin, kpoint, band) for ncfile in g.abifiles]
                 qplist_group.append(lst)
 
-        for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
+        for ix, (ax, what) in enumerate(zip(ax_list, what_list, strict=False)):
             if hue is None:
                 # Extract QP data.
                 yvals = [getattr(qp, what)[itemp] for qp in qplist]
@@ -2901,7 +2905,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
                     ax.set_xticks(xn)
                     ax.set_xticklabels(params, fontsize=fontsize)
             else:
-                for g, qplist in zip(groups, qplist_group):
+                for g, qplist in zip(groups, qplist_group, strict=False):
                     # Extract QP data.
                     yvals = [getattr(qp, what)[itemp] for qp in qplist]
                     label = "%s: %s" % (self._get_label(hue), g.hvalue)
@@ -3030,7 +3034,7 @@ class SigEPhRobot(Robot, RobotWithEbands):
         cmap = plt.get_cmap(colormap)
 
         import itertools
-        marker = itertools.cycle(("o", ',', '+', '.', '*'))
+        marker = itertools.cycle(("o", ",", "+", ".", "*"))
 
         for itemp, ax in enumerate(ax_list):
             for ifile, ncfile in enumerate(self.abifiles):
@@ -3186,7 +3190,7 @@ class TdepElectronBands: # pragma: no cover
         Return: name of the pickle file.
         """
         if filepath is None:
-            _, filepath = tempfile.mkstemp(suffix='.pickle')
+            _, filepath = tempfile.mkstemp(suffix=".pickle")
 
         with open(filepath, "wb") as fh:
             pickle.dump(self, fh)
@@ -3483,8 +3487,7 @@ class SigmaPhReader(BaseEphReader):
             ikc = int(sigma_kpoint)
             if self.nkcalc > ikc >= 0: return ikc
             raise ValueError("kpoint index should be in [0, %d[ but received: %d" % (self.nkcalc, ikc))
-        else:
-            return self.sigma_kpoints.index(sigma_kpoint)
+        return self.sigma_kpoints.index(sigma_kpoint)
 
     def read_qplist_sk(self, spin, kpoint, ignore_imag=False):
         """

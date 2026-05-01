@@ -4,24 +4,26 @@ the e-ph matrix elements along a k/q path
 """
 from __future__ import annotations
 
-import numpy as np
-import abipy.core.abinit_units as abu
-
 from functools import cached_property
+
+import numpy as np
 from monty.string import marquee
-#from monty.termcolor import cprint
-from abipy.core.structure import Structure
+
+import abipy.core.abinit_units as abu
+from abipy.abio.robots import Robot
 from abipy.core.kpoints import Kpath
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
-from abipy.tools.typing import PathLike
-#from abipy.tools.numtools import nparr_to_df
-from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt, set_axlims, Marker, set_grid_legend)
-from abipy.electrons.ebands import ElectronBands, RobotWithEbands
+
+#from monty.termcolor import cprint
+from abipy.core.structure import Structure
 from abipy.dfpt.phonons import PhononBands
 from abipy.dfpt.phtk import NonAnalyticalPh
-from abipy.tools.typing import Figure
-from abipy.abio.robots import Robot
+from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.eph.common import BaseEphReader
+
+#from abipy.tools.numtools import nparr_to_df
+from abipy.tools.plotting import Marker, add_fig_kwargs, get_axarray_fig_plt, set_axlims, set_grid_legend
+from abipy.tools.typing import Figure, PathLike
 
 
 def k2s(k_vector, fmt=".3f", threshold=1e-8) -> str:
@@ -84,7 +86,7 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @cached_property
     def params(self) -> dict:
-        """dict with the convergence parameters, e.g. ``nbsum``."""
+        """Dict with the convergence parameters, e.g. ``nbsum``."""
         #od = OrderedDict([
         #    ("nbsum", self.nbsum),
         #    ("nqibz", self.r.nqibz),
@@ -205,12 +207,12 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
                     for w, g2 in zip(omegas_nu, g_nuq_avg[:,iq], strict=True):
                         x.append(iq); y.append(w); s.append(scale * g2)
 
-                label = r'$|g^{\text{avg}}_{\mathbf{q}}|$' if with_qexp == 0 else \
-                        r'$|g^{\text{avg}}_{\mathbf{q}}| |q|^{%s}$' % with_qexp
+                label = r"$|g^{\text{avg}}_{\mathbf{q}}|$" if with_qexp == 0 else \
+                        r"$|g^{\text{avg}}_{\mathbf{q}}| |q|^{%s}$" % with_qexp
 
                 ax = ax_mat[ax_cnt, spin]
 
-                points = Marker(x, y, s, color=marker_color, edgecolors='gray', alpha=0.8, label=label)
+                points = Marker(x, y, s, color=marker_color, edgecolors="gray", alpha=0.8, label=label)
                 self.phbands.plot(ax=ax, points=points, show=False)
                 set_grid_legend(ax, fontsize) #, xlabel=r"Wavevector $\mathbf{q}$")
                 ax.set_title("Phonons", fontsize=fontsize)
@@ -406,7 +408,7 @@ class GpathReader(BaseEphReader):
         """
         amu_list = self.read_value("atomic_mass_units")
         atomic_numbers = self.read_value("atomic_numbers")
-        amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
+        amu = {at: a for at, a in zip(atomic_numbers, amu_list, strict=False)}
 
         # phfreqs are in eV for historical reason
         phfreqs = self.read_value("phfreqs")
@@ -663,7 +665,7 @@ class GpathRobot(Robot, RobotWithEbands):
         """
         Compare the g matrix elements stored in the Robot along a q-path.
 
-        Args
+        Args:
             which_g: "avg" to plot the symmetrized ``|g|``, "raw" for unsymmetrized ``|g|``."all" for both.
             ph_modes: List of ph branch indices to show (start from 0). If None all modes are show.
             colormap: Color map. Have a look at the colormaps here and decide which one you like:

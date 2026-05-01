@@ -1,9 +1,8 @@
 """Tests for electrons.bse module"""
 import abipy.data as abidata
-
+from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.electrons.scissors import *
-from abipy import abilab
 
 
 class TestScissors(AbipyTest):

@@ -7,8 +7,8 @@ This example shows how to use the GSR.nc and PHDOS.nc files computed with differ
 to compute thermodynamic properties within the quasi-harmonic approximation.
 """
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.dfpt.phonons import PhononBands
 from abipy.dfpt.qha import QHA
 
@@ -17,8 +17,8 @@ from abipy.dfpt.qha import QHA
 strains = [-4, -2, 0, 2, 4, 6]
 dirpath = os.path.join(abidata.dirpath, "refs", "si_qha")
 
-gsr_paths = [os.path.join(dirpath, "mp-149_{:+d}_GSR.nc".format(s)) for s in strains]
-dos_paths = [os.path.join(dirpath, "mp-149_{:+d}_PHDOS.nc".format(s)) for s in strains]
+gsr_paths = [os.path.join(dirpath, f"mp-149_{s:+d}_GSR.nc") for s in strains]
+dos_paths = [os.path.join(dirpath, f"mp-149_{s:+d}_PHDOS.nc") for s in strains]
 
 # Initialize QHA object from files.
 # The PHDOS.nc files can be obtained from the DDB used ddb.anaget_phbst_and_phdos_files(...)
@@ -34,7 +34,7 @@ qha.plot_thermal_expansion_coeff(title="Thermal expansion coefficient as a funct
 qha.plot_vol_vs_t(title="Volume as a function of T")
 
 # Fake temperatures to test the plotting function.
-phbs_list = [PhononBands.from_file(os.path.join(dirpath, "mp-149_{:+d}_PHBST.nc".format(s))) for s in
+phbs_list = [PhononBands.from_file(os.path.join(dirpath, f"mp-149_{s:+d}_PHBST.nc")) for s in
              strains[2:4]]
 
 qha.plot_phbs(phbs_list, temperatures=[10, 20], title="Phonon band structures with color depending on T")

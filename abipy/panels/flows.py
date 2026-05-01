@@ -1,16 +1,17 @@
 """"Panels to interact with AbiPy flows."""
 from __future__ import annotations
 
-import param
 import panel as pn
 import panel.widgets as pnw
-#import bokeh.models.widgets as bkw
+import param
 
+#import bokeh.models.widgets as bkw
 from panel.viewable import Viewer
-from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click
-from abipy.panels.nodes import NodeParameterized
-from abipy.flowtk.tasks import AbinitTask
+
 from abipy.flowtk.flows import Flow
+from abipy.flowtk.tasks import AbinitTask
+from abipy.panels.core import depends_on_btn_click, dfc
+from abipy.panels.nodes import NodeParameterized
 
 
 class WorkTaskSelector(Viewer):
@@ -23,7 +24,7 @@ class WorkTaskSelector(Viewer):
         options = list(self._wstr2work.keys())
         self.work_select = pnw.Select(name="Select a Work", value=options[0], options=options)
 
-        options = [f"t{i} ({task.__class__.__name__}, {str(task.status)})"
+        options = [f"t{i} ({task.__class__.__name__}, {task.status!s})"
                    for (i, task) in enumerate(flow[0])]
         self.task_select = pnw.Select(name="Select a Task in the Work", value=options[0], options=options)
 
@@ -35,14 +36,14 @@ class WorkTaskSelector(Viewer):
     def __panel__(self):
         return self.layout
 
-    @pn.depends('work_select.value', watch=True)
+    @pn.depends("work_select.value", watch=True)
     def update_work(self) -> None:
         self.work = self._wstr2work[self.work_select.value]
-        self.task_select.options = [f"t{i} ({task.__class__.__name__}, {str(task.status)})"
+        self.task_select.options = [f"t{i} ({task.__class__.__name__}, {task.status!s})"
                                     for (i, task) in enumerate(self.work)]
         self.task = self.work[0]
 
-    @pn.depends('task_select.value', watch=True)
+    @pn.depends("task_select.value", watch=True)
     def sync_widgets(self) -> None:
         self.work = self._wstr2work[self.work_select.value]
         task_idx = int(self.task_select.value[1:].split()[0])
@@ -57,12 +58,12 @@ class FlowPanel(NodeParameterized):
     def __init__(self, flow: Flow, **params):
         NodeParameterized.__init__(self, node=flow, **params)
 
-        self.structures_btn = pnw.Button(name="Show Structures", button_type='primary')
+        self.structures_btn = pnw.Button(name="Show Structures", button_type="primary")
         self.structures_io_checkbox = pnw.CheckBoxGroup(
-            name='Input/Output Structure', value=['output'], options=['input', 'output'], inline=True)
+            name="Input/Output Structure", value=["output"], options=["input", "output"], inline=True)
 
         self.wt_selector = WorkTaskSelector(flow)
-        self.task_btn = pnw.Button(name="Analyze Task", button_type='primary')
+        self.task_btn = pnw.Button(name="Analyze Task", button_type="primary")
 
     def get_task_view(self) -> pn.Column:
         wbox = pn.WidgetBox
@@ -74,7 +75,7 @@ class FlowPanel(NodeParameterized):
             ),
             pn.layout.Divider(),
             self.on_task_btn,
-            sizing_mode='stretch_width',
+            sizing_mode="stretch_width",
         )
 
     @depends_on_btn_click("task_btn")
@@ -84,7 +85,7 @@ class FlowPanel(NodeParameterized):
         """
         task = self.wt_selector.task
         return pn.Column(
-            f"## {repr(task)}",
+            f"## {task!r}",
             task.get_panel(),
             sizing_mode="stretch_width",
         )
@@ -103,7 +104,6 @@ class FlowPanel(NodeParameterized):
 
     def get_panel(self, as_dict=False, **kwargs):
         """Return tabs with widgets to interact with the flow."""
-
         d = super().get_panel(as_dict=True)
 
         #row = pn.Row(bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both"))
@@ -116,7 +116,7 @@ class FlowPanel(NodeParameterized):
 
         if as_dict: return d
 
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None), closable=False)
+        return self.get_template_from_tabs(d, template=kwargs.get("template"), closable=False)
 
 
 class JsPane(pn.pane.HTML):
@@ -132,7 +132,7 @@ class JsPane(pn.pane.HTML):
         self.object = ""
 
 
-class FlowMultiPageApp():
+class FlowMultiPageApp:
 
     def __init__(self, flow: Flow, template, spectator_mode=True, **kwargs):
 
@@ -144,9 +144,9 @@ class FlowMultiPageApp():
         self.template = template
 
         self.wt_selector = WorkTaskSelector(flow)
-        goto_work_btn = pnw.Button(name="Go to Work", button_type='primary')
+        goto_work_btn = pnw.Button(name="Go to Work", button_type="primary")
         goto_work_btn.on_click(self.on_goto_work_bnt)
-        goto_task_btn = pnw.Button(name="Go to Task", button_type='primary')
+        goto_task_btn = pnw.Button(name="Go to Task", button_type="primary")
         goto_task_btn.on_click(self.on_goto_task_bnt)
         self.new_tab = pnw.Checkbox(value=True, name="Open in new Tab")
         self.js_panel = JsPane()

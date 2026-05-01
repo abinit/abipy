@@ -1,16 +1,17 @@
-# coding: utf-8
 """This module provides objects and helper functions for atomic calculations."""
 from __future__ import annotations
 
 import collections
-import numpy as np
-
-from io import StringIO
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Optional, Iterable
 from functools import cached_property
+from io import StringIO
+from typing import Any
+
+import numpy as np
 from monty.string import marquee  # is_string, list_strings,
 from scipy.interpolate import UnivariateSpline
+
 try :
     from scipy.integrate import cumulative_trapezoid as cumtrapz
 except ImportError:
@@ -24,9 +25,9 @@ __author__ = "Matteo Giantomassi"
 __maintainer__ = "Matteo Giantomassi"
 
 __all__ = [
+    "AtomicConfiguration",
     "NlkState",
     "QState",
-    "AtomicConfiguration",
     "RadialFunction",
     "RadialWaveFunction",
 ]
@@ -98,7 +99,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
     # loops over this "ikap=1,2" index referring to the additional quantum number of
     # the radial Dirac equations kappa (kap) =l, -(l+1) for j=l -/+ 1/2.
 
-    def __new__(cls, n: int, l: int, k: Optional[int] = None):
+    def __new__(cls, n: int, l: int, k: int | None = None):
         """
         Extends super.__new__ adding type conversion and default values.
         """
@@ -134,8 +135,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
         lc = l2char[self.l]
         if self.k is None:
             return f"{self.n}{lc}"  # e.g. 2s
-        else:
-            return f"{self.n}{lc}{self.ksign}"  # e.g. 2s+
+        return f"{self.n}{lc}{self.ksign}"  # e.g. 2s+
 
     @cached_property
     def latex(self) -> str:
@@ -194,9 +194,9 @@ class QState(collections.namedtuple("QState", "n, l, occ, eig, j, s")):
     # Spin +1, -1 or 1,2 or 0,1?
 
     def __new__(cls, n: int, l: int, occ: float,
-                eig: Optional[float] = None,
-                j: Optional[int] = None,
-                s: Optional[int] = None):
+                eig: float | None = None,
+                j: int | None = None,
+                s: int | None = None):
         """
         Extends super.__new__ adding type conversion and default values.
         """
@@ -264,7 +264,7 @@ class AtomicConfiguration:
             return False
 
         return (self.Z == other.Z and
-                all(s1 == s2 for s1, s2 in zip(self.states, other.states)))
+                all(s1 == s2 for s1, s2 in zip(self.states, other.states, strict=False)))
 
     def __ne__(self, other) -> bool:
         return not self == other
@@ -358,7 +358,7 @@ class RadialFunction:
 
     def __iter__(self) -> Iterable:
         """Iterate over (rpoint, value)."""
-        return iter(zip(self.rmesh, self.values))
+        return iter(zip(self.rmesh, self.values, strict=False))
 
     def __getitem__(self, rslice):
         return self.rmesh[rslice], self.values[rslice]
@@ -383,7 +383,7 @@ class RadialFunction:
         )
 
     def pprint(self, what: str = "rmesh+values", stream=None) -> None:
-        """pprint method (useful for debugging)"""
+        """Pprint method (useful for debugging)"""
         from pprint import pprint
         if "rmesh" in what:
             pprint("rmesh:", stream=stream)
@@ -484,8 +484,7 @@ class RadialFunction:
 
         if rpoint == self.rmesh[-1]:
             return len(self.rmesh)
-        else:
-            raise ValueError("Cannot find %s in rmesh" % rpoint)
+        raise ValueError("Cannot find %s in rmesh" % rpoint)
 
     def ir_small(self, abs_tol: float = 0.01) -> int:
         """

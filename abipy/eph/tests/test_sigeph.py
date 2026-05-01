@@ -1,11 +1,11 @@
 """Tests for sigeph module."""
-import os
 import collections
-import numpy as np
-import abipy.data as abidata
 
-from abipy.core.testing import AbipyTest
+import numpy as np
+
+import abipy.data as abidata
 from abipy import abilab
+from abipy.core.testing import AbipyTest
 
 
 class SigEPhFileTest(AbipyTest):
@@ -58,7 +58,7 @@ class SigEPhFileTest(AbipyTest):
         assert ikc == 1 and kpt == sigeph.sigma_kpoints[ikc]
         kpt, ikc = sigeph.find_qpkinds([[0.5, 0, 0]])[0]
         assert ikc == 1 and kpt == sigeph.sigma_kpoints[ikc]
-        kpt_list, ikc_list = zip(*sigeph.find_qpkinds([0, 1]))
+        kpt_list, ikc_list = zip(*sigeph.find_qpkinds([0, 1]), strict=False)
         assert len(kpt_list) == 2
         assert ikc_list == (0, 1)
         qpkinds = sigeph.find_qpkinds([[0, 0, 0], [0.5, 0, 0]])

@@ -6,8 +6,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import sympy as sp
-
 from monty.termcolor import cprint
+
 from abipy.core.mixins import Has_Structure
 from abipy.core.structure import Structure
 
@@ -36,11 +36,11 @@ class SiteSymmetries(Has_Structure):
         self.sp_tnons, self.sp_inv_symrel = [], []
         from abipy.core.symmetries import mati3inv
 
-        for symr, symc, tau in zip(abispg.symrel, abispg.symrec, abispg.tnons):
-            self.sp_symrel.append(sp.Matrix((symr)))
+        for symr, symc, tau in zip(abispg.symrel, abispg.symrec, abispg.tnons, strict=False):
+            self.sp_symrel.append(sp.Matrix(symr))
             inv_symr = mati3inv(symr, trans=False)
-            self.sp_inv_symrel.append(sp.Matrix((inv_symr)))
-            self.sp_symrec.append(sp.Matrix((symc)))
+            self.sp_inv_symrel.append(sp.Matrix(inv_symr))
+            self.sp_symrec.append(sp.Matrix(symc))
             # FIXME: Should convert to rational numbers
             # Permissible translations are unit cell translations or fractions thereof
             # that are consistent with the rotational symmetry (e.g. 1/2, 1/3, 1/4, and 1/6), plus combinations.
@@ -105,15 +105,15 @@ class SiteSymmetries(Has_Structure):
         sitesym_labels = self.structure.spget_site_symmetries()
 
         frac_symbols = sp.symbols("xfrac, yfrac, zfrac")
-        vector = sp.Matrix((frac_symbols))
+        vector = sp.Matrix(frac_symbols)
 
         indsym = self.structure.indsym
         abispg = self.structure.abi_spacegroup
         rows = []
-        for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels):
+        for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels, strict=False):
             site = self.structure[iatom]
             system = []
-            for isym, (rm1, tau) in enumerate(zip(self.sp_inv_symrel, self.sp_tnons)):
+            for isym, (rm1, tau) in enumerate(zip(self.sp_inv_symrel, self.sp_tnons, strict=False)):
                 if indsym[iatom, isym, 3] != iatom: continue
                 l0 = indsym[iatom, isym, :3]
                 l0 = sp.Matrix(l0)
@@ -172,12 +172,12 @@ class SiteSymmetries(Has_Structure):
         # Symmetric tensor in reduced coordinates (direct lattice)
         # Operations in reduced coords are given by integer matrices and this facilitates the solution
         # of the system of equations with sympy.
-        Txx, Tyy, Tzz, Txy, Txz, Tyz = symbols = sp.symbols('Txx, Tyy, Tzz, Txy, Txz, Tyz')
+        Txx, Tyy, Tzz, Txy, Txz, Tyz = symbols = sp.symbols("Txx, Tyy, Tzz, Txy, Txz, Tyz")
         tensor = sp.Matrix(([Txx, Txy, Txz], [Txy, Tyy, Tyz], [Txz, Tyz, Tzz]))
 
         indsym = self.structure.indsym
         rows = []
-        for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels):
+        for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels, strict=False):
             site = self.structure[iatom]
             system = []
             for isym, rotf in enumerate(self.sp_symrel):

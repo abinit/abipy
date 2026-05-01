@@ -12,11 +12,12 @@ extended to holes (and combination of e/h as well).
 """
 #%%
 
-import numpy as np
-import matplotlib as mlp
-import matplotlib.pyplot as plt
-from abipy.abilab import abiopen
 import glob
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from abipy.abilab import abiopen
 from abipy.eph.rta import RtaRobot
 
 root = "../../flows/flow_eph_mob/"
@@ -27,10 +28,10 @@ mz = 2  # Markersize for dots (linewidths plot)
 fig, axes = plt.subplots(2, 2)
 plt.subplots_adjust(wspace=0.35, hspace=0.33)
 
-axes[0, 0].text(-0.1,1.05, '(a)', size=fz, transform=axes[0, 0].transAxes)
-axes[1, 0].text(-0.1,1.05, '(b)', size=fz, transform=axes[1, 0].transAxes)
-axes[0, 1].text(-0.1,1.05, '(c)', size=fz, transform=axes[0, 1].transAxes)
-axes[1, 1].text(-0.1,1.05, '(d)', size=fz, transform=axes[1, 1].transAxes)
+axes[0, 0].text(-0.1,1.05, "(a)", size=fz, transform=axes[0, 0].transAxes)
+axes[1, 0].text(-0.1,1.05, "(b)", size=fz, transform=axes[1, 0].transAxes)
+axes[0, 1].text(-0.1,1.05, "(c)", size=fz, transform=axes[0, 1].transAxes)
+axes[1, 1].text(-0.1,1.05, "(d)", size=fz, transform=axes[1, 1].transAxes)
 
 ###
 ### Upper left : electronic band structure
@@ -49,7 +50,7 @@ fig.suptitle(pretty_formula)
 ebands.plot(ax=axes[0,0], show=False, linewidth=1.5, ylims=(-3, 6), ax_grid=False)
 
 # Set label
-axes[0, 0].set_ylabel('Energy (eV)', fontsize=fz)
+axes[0, 0].set_ylabel("Energy (eV)", fontsize=fz)
 axes[0, 0].set_xlabel(None)
 
 ###
@@ -65,7 +66,7 @@ with abiopen(root + "w1/outdata/out_DDB") as abifile:
 phbst.phbands.plot(ax=axes[1,0], show=False, units="mev", linewidth=1.5, ax_grid=False)
 
 # Set label
-axes[1, 0].set_ylabel('Frequency (meV)', fontsize=fz)
+axes[1, 0].set_ylabel("Frequency (meV)", fontsize=fz)
 axes[1, 0].set_xlabel(None)
 
 ###
@@ -74,7 +75,7 @@ axes[1, 0].set_xlabel(None)
 
 # We get the linewidths for the densest mesh computed
 # We open the SIGEPH file corresponding to this task
-with abiopen(root + 'w3/t2/outdata/out_SIGEPH.nc') as abifile:
+with abiopen(root + "w3/t2/outdata/out_SIGEPH.nc") as abifile:
     # First within SERTA
     qparray = abifile.get_qp_array(mode="ks+lifetimes", rta_type="serta")
     qparray = qparray[np.nonzero(qparray)]
@@ -88,15 +89,15 @@ with abiopen(root + 'w3/t2/outdata/out_SIGEPH.nc') as abifile:
     lws_mrta = 2000*qparray_mrta.imag
 
 # Plot 1/tau
-axes[0, 1].plot(eigs, lws, 'ob', markersize=mz, label='SERTA')
-axes[0, 1].plot(eigs_mrta, lws_mrta, 'xr', markersize=mz, label='MRTA')
+axes[0, 1].plot(eigs, lws, "ob", markersize=mz, label="SERTA")
+axes[0, 1].plot(eigs_mrta, lws_mrta, "xr", markersize=mz, label="MRTA")
 
-axes[0, 1].set_xticks([0, 0.25], ['0', '0.25'])
+axes[0, 1].set_xticks([0, 0.25], ["0", "0.25"])
 
 # Set the axis labels and legend
-axes[0, 1].set_xlabel(r'$\varepsilon_{n\mathbf{k}} - \varepsilon_{\mathrm{CBM}}$ (eV)', labelpad=2, fontsize=fz)
-axes[0, 1].set_ylabel(r'$\tau_{n\mathbf{k}}^{-1}$ (meV)', fontsize=fz)
-axes[0, 1].legend(loc='best', labelcolor='linecolor')
+axes[0, 1].set_xlabel(r"$\varepsilon_{n\mathbf{k}} - \varepsilon_{\mathrm{CBM}}$ (eV)", labelpad=2, fontsize=fz)
+axes[0, 1].set_ylabel(r"$\tau_{n\mathbf{k}}^{-1}$ (meV)", fontsize=fz)
+axes[0, 1].legend(loc="best", labelcolor="linecolor")
 
 
 ###
@@ -104,7 +105,7 @@ axes[0, 1].legend(loc='best', labelcolor='linecolor')
 ###
 
 # First we find all the RTA.nc files
-abifiles = glob.glob(root+'w*/t*/outdata/*RTA.nc')
+abifiles = glob.glob(root+"w*/t*/outdata/*RTA.nc")
 
 # We create a robot with these files and plot the mobilities
 robot = RtaRobot.from_files(abifiles)
@@ -113,12 +114,12 @@ robot.plot_mobility_kconv(ax=axes[1, 1], eh=0, bte=["ibte", "mrta", "serta"], sh
 # Tune the plot
 axes[1, 1].set_title(None)
 axes[1, 1].legend(fontsize=fz, framealpha=0.5)
-axes[1, 1].set_xlabel('$N_k \\times$ $N_k \\times$ $N_k$ $\\mathbf{k}$-point grid', fontsize=fz)
-axes[1, 1].set_ylabel(r'$\mu_e$'+' (cm$^2$/(V$\\cdot$s))', fontsize=fz)
+axes[1, 1].set_xlabel("$N_k \\times$ $N_k \\times$ $N_k$ $\\mathbf{k}$-point grid", fontsize=fz)
+axes[1, 1].set_ylabel(r"$\mu_e$"+" (cm$^2$/(V$\\cdot$s))", fontsize=fz)
 
 # Reactivate the grid on the x-axis for the band structures
-axes[0, 0].grid(True, axis='x')
-axes[1, 0].grid(True, axis='x')
+axes[0, 0].grid(True, axis="x")
+axes[1, 0].grid(True, axis="x")
 
 # We save the figure in pdf format
-fig.savefig(pretty_formula + ".pdf", bbox_inches='tight')
+fig.savefig(pretty_formula + ".pdf", bbox_inches="tight")

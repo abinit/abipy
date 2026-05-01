@@ -1,9 +1,8 @@
 """Tests for abiphonopy module"""
 import abipy.data as abidata
-import abipy.flowtk as flowtk
-
-from abipy.core.testing import AbipyTest
+from abipy import flowtk
 from abipy.abio.factories import gs_input
+from abipy.core.testing import AbipyTest
 from abipy.flowtk.gruneisen import GruneisenWork
 
 

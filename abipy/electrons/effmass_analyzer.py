@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 This module provides objects to compute electronic effective masses
 via finite differences starting from a GSR file with KS energies defined
@@ -8,16 +7,16 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-import abipy.core.abinit_units as abu
-
 from monty.termcolor import cprint
+
+import abipy.core.abinit_units as abu
+from abipy.core.mixins import Has_ElectronBands, Has_Structure
 from abipy.core.structure import Structure
-from abipy.core.mixins import Has_Structure, Has_ElectronBands
+from abipy.electrons.ebands import ElectronBands
 from abipy.tools.derivatives import finite_diff
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend, set_visible
 from abipy.tools.printing import print_dataframe
 from abipy.tools.typing import Figure
-from abipy.electrons.ebands import ElectronBands
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, set_grid_legend
 
 
 class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
@@ -198,7 +197,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
 
         self.segments = []
 
-        for ik, bids in zip(ik_indices, band_inds_k):
+        for ik, bids in zip(ik_indices, band_inds_k, strict=False):
             for iline, line in enumerate(self.kpoints.lines):
                 if line[-1] >= ik >= line[0]: break
             else:
@@ -253,7 +252,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
                                                 sharex=False, sharey=sharey, squeeze=False)
         ax_list = ax_list.ravel()
 
-        for iseg, (segment, ax) in enumerate(zip(self.segments, ax_list)):
+        for iseg, (segment, ax) in enumerate(zip(self.segments, ax_list, strict=False)):
             if verbose:
                 print(f"== SEGMENT NUMBER: {iseg}")
                 print(segment)
@@ -293,7 +292,7 @@ class EffMassAnalyzer(Has_Structure, Has_ElectronBands):
             pad += 10
 
         #title = "k: %s, spin: %s, nband: %d" % (repr(self.efm_kpoint), self.spin, segment.nb)
-        set_grid_legend(ax, fontsize, ylabel='Energy (eV)') #, title=title)
+        set_grid_legend(ax, fontsize, ylabel="Energy (eV)") #, title=title)
 
         return fig
 
@@ -375,14 +374,13 @@ class Segment:
                 except (ValueError, KeyError) as exc:
                     cprint(exc, color="red")
                     #emass_dict["effm_b%d" % ib] = None
-                    pass
 
             if emass_dict:
                 od = {"accuracy": acc, "npts": d2.npts}
                 od.update(emass_dict)
                 rows.append(od)
 
-        return pd.DataFrame(rows, columns=list(rows[0].keys())).set_index('accuracy')
+        return pd.DataFrame(rows, columns=list(rows[0].keys())).set_index("accuracy")
 
     @add_fig_kwargs
     def plot_emass(self, acc: int = 4, units="eV", ax=None, fontsize: int = 8,
@@ -411,7 +409,7 @@ class Segment:
             try:
                 #print("enes_kline", enes_kline)
                 emass, d2 = self.get_fd_emass_d2(enes_kline, acc)
-            except Exception as exc:
+            except Exception:
                 cprint("Exception for segment: %s" % str(self), "red")
                 continue
 
@@ -425,6 +423,6 @@ class Segment:
         title = r"${\bf k}_0$: %s, direction: %s, step: %.3f $\AA^{-1}$" % (
                 repr(self.k0), self.kdir.tos(m="fracart", scale=True), self.dk)
 
-        set_grid_legend(ax, fontsize, ylabel=f'Energy ({units})', title=title)
+        set_grid_legend(ax, fontsize, ylabel=f"Energy ({units})", title=title)
 
         return fig

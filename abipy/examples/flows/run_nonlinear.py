@@ -5,12 +5,11 @@ Non-linear optical properties with DFPT
 
 Flow to compute non-linear optical properties with DFPT (static limit).
 """
-import sys
 import os
-import abipy.flowtk as flowtk
-import abipy.data as abidata
+import sys
 
-from abipy import abilab
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 # NB: This flow requires abinit >= "8.5.2"
 

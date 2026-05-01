@@ -9,12 +9,12 @@ Flow to compute dynamical magnetic charges with finite differences.
 Z_jv^m=Ω_0 (∂M_v)/(∂u_j ) = (∂F_j)/(∂H_v ) = Ω_0 (∂^2 E)/(∂H_β ∂u_i ).
 """
 
-import sys
 import os
-import abipy.flowtk as flowtk
+import sys
 
-from abipy.core.structure import Structure
+from abipy import flowtk
 from abipy.abio.inputs import AbinitInput
+from abipy.core.structure import Structure
 from abipy.flowtk.finitediff import FiniteHfieldWork
 
 

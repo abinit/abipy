@@ -6,8 +6,8 @@ DFPT SCF cycle
 This example shows how to plot the results of the DFPT
 self-consistent cycle reported in the main output file.
 """
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 # Open the output file with DFPT calculations (Note the .abo extension).
 # Alternatively, one can use `abiopen.py run.abo -nb` to generate a jupyter notebook.

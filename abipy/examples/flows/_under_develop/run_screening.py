@@ -9,13 +9,11 @@ Each screening calculation is automatically parallelized over q-points and the
 partial SCR files are then merged with the mrgscr utility.
 The total SCR file is available in the outdata directory of the ScreeningWork.
 """
-import sys
 import os
-import numpy as np
+import sys
 
-import abipy.abilab as abilab
 import abipy.data as abidata
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

@@ -8,12 +8,11 @@ Usage:
 """
 from __future__ import annotations
 
-import sys
-import os
-import time
 import argparse
-
-from subprocess import call, Popen
+import os
+import sys
+import time
+from subprocess import Popen, call
 
 
 def str_examples():
@@ -36,11 +35,11 @@ def show_examples_and_exit(err_msg=None, error_code=1):
 def main():
     parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-b', '--backend', type=str, default="Agg",
+    parser.add_argument("-b", "--backend", type=str, default="Agg",
                         help="matplotlib backend e.g. Agg for non-graphical display.")
-    parser.add_argument('-m', '--mode', type=str, default="automatic",
+    parser.add_argument("-m", "--mode", type=str, default="automatic",
                         help="execution mode. Either s (sequential) or a (automatic)")
-    parser.add_argument('-t', '--time', type=float, default=8,
+    parser.add_argument("-t", "--time", type=float, default=8,
                         help="wait time seconds before running next demo.")
     #parser.add_argument('-p', '--ply-show', type=bool, default=False,
     #                     help="Show plotly figures in browser.")

@@ -6,25 +6,30 @@ from __future__ import annotations
 
 import dataclasses
 import itertools
+
+#import abipy.core.abinit_units as abu
+from functools import cached_property, lru_cache
+
 import numpy as np
 import pandas as pd
-#import abipy.core.abinit_units as abu
-
-from functools import cached_property
-from monty.string import marquee #, list_strings
+from monty.string import marquee  #, list_strings
 from monty.termcolor import cprint
-from abipy.core.structure import Structure
+
+from abipy.abio.robots import Robot
 from abipy.core.kpoints import kpoints_indices
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
-from abipy.tools.typing import PathLike
-from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible, set_grid_legend,
-    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure  #, NotebookWriter
+from abipy.core.structure import Structure
+
 #from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
-from abipy.tools.typing import Figure
-from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
+from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    get_axarray_fig_plt,
+    set_grid_legend,
+)
+from abipy.tools.typing import Figure, PathLike
 
 
 def _allclose(arr_name, array1, array2, verbose: int, rtol=1e-5, atol=1e-8) -> bool:
@@ -104,7 +109,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
     @cached_property
     def params(self) -> dict:
-        """dict with the convergence parameters, e.g. ``nbsum``."""
+        """Dict with the convergence parameters, e.g. ``nbsum``."""
         #od = OrderedDict([
         #    ("nbsum", self.nbsum),
         #    ("zcut", self.zcut),
@@ -173,6 +178,114 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
             if self.r.kfilter == "none":
                 raise ValueError("when kfilter == 'none' all the entries in gvals should have been written!")
+
+    @lru_cache
+    def get_gwpt_label_data(self, what: str, spin: int) -> tuple[str, np.array]:
+        """Return label and numpy array to analyze according to `what`."""
+        gqk = self.gqk_spin[spin]
+        # TODO: Handle 1/0 and little group with huge values
+
+        where = (np.abs(gqk.gvals_ks) > 1e-10) & (np.abs(gqk.gvals_ks) < 1e+10)
+
+        if what == "ratio":
+            label = r"Ratio $|g^{\text{GWPT}}|/|g^{\text{KS}}|$"
+            #data = np.abs(gqk.gvals) / np.abs(gqk.gvals_ks)
+
+            data = np.ones_like(gqk.gvals, dtype=float)
+            np.divide(
+                np.abs(gqk.gvals),
+                np.abs(gqk.gvals_ks),
+                out=data,
+                where=where,
+            )
+
+        elif what == "gwpt":
+            label = r"$|g|^{\text{GWPT}}$"
+            data = np.abs(gqk.gvals)
+
+        elif what == "gks":
+            label = r"$|g|^\text{KS}}$"
+            data = np.abs(gqk.gvals_ks)
+
+        else:
+            raise ValueError(f"Invalid value for {what=}")
+
+        return label, data
+
+    @add_fig_kwargs
+    def plot_gwpt_hist(self, what: str = "ratio", spin: int = 0, ax=None, hist_kwargs: dict | None = None,
+                       **kwargs) -> Figure:
+        """
+        Plot histogram with the ratio between the GWPT and the KS e-ph matrix elements.
+
+        Args:
+            what:
+            spin: spin index
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            hist_kwargs:
+            fontsize: legend and label fontsize.
+        """
+        if not self.has_gwpt:
+            raise ValueError("GSTORE does not contain GWPT matrix elements.")
+
+        what_list = ("gwpt", "gks", "ratio")
+
+        ax_list = None
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=len(what_list), ncols=1,
+                                               sharex=False, sharey=True, squeeze=True)
+
+        for what, ax in zip(what_list, ax_list, strict=False):
+            xlabel, data = self.get_gwpt_label_data(what, spin)
+            data_flat = data.flatten()
+            #print(data_flat)
+            hist_kwargs_ = hist_kwargs or {}
+            ax.hist(data_flat, **hist_kwargs_)
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel("Count")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_gwpt_heatmap_kq(self, kpoint, qpoint,
+                             what: str = "ratio", spin: int = 0, ax=None,
+                             **kwargs) -> Figure:
+        """
+        Plot heatmap with the ratio between the GWPT and the KS e-ph matrix elements.
+
+        Args:
+            kpoint:
+            qpoint:
+            what:
+            spin: spin index
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            hist_kwargs:
+            fontsize: legend and label fontsize.
+        """
+        if not self.has_gwpt:
+            raise ValueError("GSTORE does not contain GWPT matrix elements.")
+
+        ik_glob, kpoint = self.r.find_ik_glob_kpoint(kpoint, spin)
+        iq_glob, qpoint = self.r.find_iq_glob_qpoint(qpoint, spin)
+
+        label, data = self.get_gwpt_label_data(what, spin)
+
+        natom = len(self.structure)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=natom, ncols=3,
+                                               sharex=True, sharey=True, squeeze=False)
+
+        for iat, idir in itertools.product(range(natom), range(3)):
+            # (glob_nq, glob_nk, natom3, nb_kq, nb_k)
+            ipc = idir + iat * 3
+            grid_mn = data[iq_glob, ik_glob, ipc]
+
+            ax = ax_mat[iat, idir]
+            ax.imshow(grid_mn, aspect="auto", origin="lower")
+            #ax.set_colorbar(label=label)
+            ax.set_xlabel("m band index")
+            ax.set_ylabel("n band index")
+            #ax.set_title("A/B averaged over bands")
+
+        return fig
 
     @add_fig_kwargs
     def plot_gwpt_vs_qpts(self,
@@ -308,7 +421,7 @@ class Gqk:
 
     gstore: GstoreFile
 
-    gvals: np.ndarray             # Array of shape (glob_nk, glob_nk, natom3, nb_kq, nb_k)
+    gvals: np.ndarray             # Array of shape (glob_nq, glob_nk, natom3, nb_kq, nb_k)
                                   # storing complex g(k,q) in the atom representation.
 
     gvals_ks: np.ndarray | None   # Same as gvals but for KS if we are in GWPT mode.
@@ -466,7 +579,7 @@ class Gqk:
         # Insert g2 in g2_grid
         g2_grid = np.empty((nb_k, nb_kq, natom3, nx, ny, nz))
         for nu in range(natom3):
-            for g2_mn, q_inds in zip(g2_qph_mn[:,nu], q_indices):
+            for g2_mn, q_inds in zip(g2_qph_mn[:,nu], q_indices, strict=False):
                 ix, iy, iz = q_inds
                 g2_grid[:, :, nu, ix, iy, iz] = g2_mn
 

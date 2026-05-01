@@ -1,8 +1,8 @@
 """Tests for htc.FilesFile."""
 import sys
 
+from abipy.abio.abivars_db import abinit_help, docvar, get_abinit_variables
 from abipy.core.testing import AbipyTest
-from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
 
 
 class AbinitVariableDatabaseTest(AbipyTest):
@@ -22,7 +22,7 @@ class AbinitVariableDatabaseTest(AbipyTest):
             assert var.name == name
             repr(var); str(var)
             str(var.info)
-            if sys.version[0:3] > '2.7':
+            if sys.version[0:3] > "2.7":
                 str(var._repr_html_())
 
         # Database methods.
@@ -44,7 +44,7 @@ class AbinitVariableDatabaseTest(AbipyTest):
         name2varset = database.name2varset
         assert name2varset["ecut"] == "basic" and name2varset["ionmov"] == "dev"
 
-        assert database.group_by_varset("ecut") == {'basic': ['ecut']}
+        assert database.group_by_varset("ecut") == {"basic": ["ecut"]}
 
         natom_var = database["natom"]
         ecut_var = database["ecut"]

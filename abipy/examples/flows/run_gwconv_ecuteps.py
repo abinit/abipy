@@ -5,13 +5,13 @@ G0W0 convergence study
 
 G0W0 convergence study wrt ecuteps and the number of bands in W.
 """
-import sys
 import os
+import sys
+
 import numpy as np
 
-import abipy.abilab as abilab
 import abipy.data as abidata
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_inputs(paral_kgb=1):

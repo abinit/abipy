@@ -1,11 +1,10 @@
-# coding: utf-8
 import os
 
 from abipy.core.testing import AbipyTest
 from abipy.flowtk.tasks import *
-from abipy.flowtk.tasks import TaskPolicy, ParalHints
+from abipy.flowtk.tasks import ParalHints
 
-test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", 'test_files', "abinit")
+test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "test_files", "abinit")
 
 
 class TaskManagerTest(AbipyTest):

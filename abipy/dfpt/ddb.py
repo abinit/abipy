@@ -1,49 +1,57 @@
-# coding: utf-8
 """
 Python API for the DDB file containing the derivatives of the total Energy wrt different perturbations.
 """
 from __future__ import annotations
 
-import sys
-import os
-import tempfile
-import itertools
 import dataclasses
+import itertools
+import os
+import sys
+import tempfile
+from functools import cached_property, lru_cache
+from typing import Any
+
 import numpy as np
 import pandas as pd
-import abipy.core.abinit_units as abu
-
-from functools import lru_cache
-from typing import Any
-from functools import cached_property
-from monty.string import marquee, list_strings
-from monty.json import MSONable
 from monty.collections import AttrDict, dict2namedtuple
+from monty.json import MSONable
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
-from pymatgen.core.units import eV_to_Ha, bohr_to_angstrom, Energy
-from abipy.tools.decorators import cached_classproperty
-from abipy.tools.serialization import pmg_serialize
-from abipy.flowtk import AnaddbTask
-from abipy.core.mixins import TextFile, Has_Structure, NotebookWriter
-from abipy.core.symmetries import AbinitSpaceGroup
-from abipy.core.structure import Structure
-from abipy.core.kpoints import KpointList, Kpoint
-from abipy.iotools import ETSF_Reader
-from abipy.tools.numtools import data_from_cplx_mode
-from abipy.tools import duck
-from abipy.tools.typing import Figure, PathLike
-from abipy.tools.iotools import ExitStackWithFiles
-from abipy.tools.tensors import DielectricTensor, ZstarTensor, Stress
+from pymatgen.core.units import Energy, bohr_to_angstrom, eV_to_Ha
+
+import abipy.core.abinit_units as abu
 from abipy.abio.inputs import AnaddbInput
 from abipy.abio.robots import Robot
-from abipy.dfpt.phonons import PhononDosPlotter, PhononBandsPlotter
-from abipy.dfpt.ifc import InteratomicForceConstants
-from abipy.dfpt.elastic import ElasticData
-from abipy.dfpt.raman import Raman
 from abipy.core.abinit_units import phfactor_ev2units, phunit_tag
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, get_figs_plotly, get_fig_plotly,
-                                  add_plotly_fig_kwargs, PlotlyRowColDesc, plotlyfigs_to_browser, push_to_chart_studio,
-                                  SUBSCRIPT_UNICODE, plot_xy_with_hue, symbol_with_components, set_visible)
+from abipy.core.kpoints import Kpoint, KpointList
+from abipy.core.mixins import Has_Structure, NotebookWriter, TextFile
+from abipy.core.structure import Structure
+from abipy.core.symmetries import AbinitSpaceGroup
+from abipy.dfpt.elastic import ElasticData
+from abipy.dfpt.ifc import InteratomicForceConstants
+from abipy.dfpt.phonons import PhononBandsPlotter, PhononDosPlotter
+from abipy.dfpt.raman import Raman
+from abipy.flowtk import AnaddbTask
+from abipy.iotools import ETSF_Reader
+from abipy.tools import duck
+from abipy.tools.decorators import cached_classproperty
+from abipy.tools.iotools import ExitStackWithFiles
+from abipy.tools.numtools import data_from_cplx_mode
+from abipy.tools.plotting import (
+    SUBSCRIPT_UNICODE,
+    PlotlyRowColDesc,
+    add_fig_kwargs,
+    add_plotly_fig_kwargs,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    get_fig_plotly,
+    plot_xy_with_hue,
+    set_visible,
+    symbol_with_components,
+)
+from abipy.tools.serialization import pmg_serialize
+from abipy.tools.tensors import DielectricTensor, Stress, ZstarTensor
+from abipy.tools.typing import Figure, PathLike
 
 
 class DdbError(Exception):
@@ -109,7 +117,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     def from_string(cls, string: str) -> DdbFile:
         """Build object from string using temporary file."""
         fd, tmp_filepath = tempfile.mkstemp(text=True, prefix="_DDB")
-        with open(tmp_filepath, "wt") as fh:
+        with open(tmp_filepath, "w") as fh:
             fh.write(string)
 
         return cls(tmp_filepath)
@@ -131,13 +139,13 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         from abipy.core import restapi
         with restapi.get_mprester() as rest:
-            if getattr(rest, "_make_request") is None:
+            if rest._make_request is None:
                 raise RuntimeError("from_mpid requires mp-api, please install it with `pip install mp-api`")
 
             ddb_string = rest._make_request("/materials/%s/abinit_ddb" % material_id)
 
-        _, tmpfile = tempfile.mkstemp(prefix=material_id, suffix='_DDB')
-        with open(tmpfile, "wt") as fh:
+        _, tmpfile = tempfile.mkstemp(prefix=material_id, suffix="_DDB")
+        with open(tmpfile, "w") as fh:
             fh.write(ddb_string)
 
         return cls(tmpfile)
@@ -229,7 +237,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     def get_string(self) -> str:
         """Return string with DDB content."""
-        with open(self.filepath, "rt") as fh:
+        with open(self.filepath) as fh:
             return fh.read()
 
     @property
@@ -380,7 +388,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
     @cached_property
     def computed_dynmat(self) -> dict:
         """
-        dict mapping q-point object to --> pandas Dataframe.
+        Dict mapping q-point object to --> pandas Dataframe.
         The |pandas-DataFrame| contains the columns: "idir1", "ipert1", "idir2", "ipert2", "cvalue"
         and (idir1, ipert1, idir2, ipert2) as index.
 
@@ -484,7 +492,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                 dord = {"Total energy": 0,
                         "1st derivatives": 1,
                         "2nd derivatives": 2,
-                        "3rd derivatives": 3}.get(s, None)
+                        "3rd derivatives": 3}.get(s)
                 if dord is None:
                     raise RuntimeError("Cannot detect derivative order from string: `%s`" % s)
 
@@ -529,8 +537,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         if duck.is_intlike(qpoint):
             return int(qpoint)
-        else:
-            return self.qpoints.index(qpoint)
+        return self.qpoints.index(qpoint)
 
     @cached_property
     def guessed_ngqpt(self) -> np.ndarray:
@@ -573,7 +580,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
     @cached_property
     def params(self) -> dict:
-        """dictionary with the parameters that might be subject to convergence studies."""
+        """Dictionary with the parameters that might be subject to convergence studies."""
         names = ("nkpt", "nsppol", "ecut", "tsmear", "occopt", "ixc", "nband", "usepaw")
         od = {}
         for k in names:
@@ -1134,10 +1141,9 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         if self.has_epsinf_terms():
             if anaddb_kwargs is None:
-                anaddb_kwargs = {'dieflag' : 2}
-            else:
-                if "dieflag" not in anaddb_kwargs:
-                    anaddb_kwargs.setdefault('dieflag', 2)
+                anaddb_kwargs = {"dieflag" : 2}
+            elif "dieflag" not in anaddb_kwargs:
+                anaddb_kwargs.setdefault("dieflag", 2)
 
         inp = AnaddbInput.modes_at_qpoints(self.structure, qpoints, asr=asr, chneut=chneut, dipdip=dipdip,
                                            dipquad=dipquad, quadquad=quadquad,
@@ -1267,8 +1273,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         """
         # Check if ngqpt is a sub-mesh of ngqpt
         ngqpt_fine = self.guessed_ngqpt
-        if any([a % b for a, b in zip(ngqpt_fine, ngqpt_coarse)]):
-            raise ValueError('Coarse q-mesh is not a sub-mesh of the current q-mesh')
+        if any([a % b for a, b in zip(ngqpt_fine, ngqpt_coarse, strict=False)]):
+            raise ValueError("Coarse q-mesh is not a sub-mesh of the current q-mesh")
 
         # Get the points in the fine mesh
         fine_qpoints = [q.frac_coords for q in self.qpoints]
@@ -1458,8 +1464,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
                     phdoses[phdos_index] = phdos
                     q.task_done()
 
-            from threading import Thread
             from queue import Queue
+            from threading import Thread
 
             q = Queue()
             for i in range(num_cpus):
@@ -1485,7 +1491,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         # Fill the plotter.
         plotter = PhononDosPlotter()
-        for nqsmall, phdos in zip(nqsmalls, phdoses):
+        for nqsmall, phdos in zip(nqsmalls, phdoses, strict=False):
             plotter.add_phdos(label="nqsmall %d" % nqsmall, phdos=phdos)
 
         return dict2namedtuple(phdoses=phdoses, plotter=plotter)
@@ -1624,8 +1630,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             # and we don't want to break backward compatibility
             if return_input:
                 return dict2namedtuple(epsinf=epsinf, becs=becs, anaddb_input=inp)
-            else:
-                return dict2namedtuple(epsinf=epsinf, becs=becs)
+            return dict2namedtuple(epsinf=epsinf, becs=becs)
 
     def anaget_ifc(self, ifcout=None, asr=2, chneut=1, dipdip=1, ngqpt=None,
                    mpi_procs=1, workdir=None, manager=None, verbose=0,  anaddb_kwargs=None, return_input=False
@@ -1681,7 +1686,6 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         Returns:
             A 2nd or 3rd rank tensor containing the nonlinear coefficients.
         """
-
         inp = AnaddbInput.dfpt(self.structure, dte=True, anaddb_kwargs=anaddb_kwargs)
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
@@ -1696,8 +1700,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
 
         if voigt:
             return dij.voigt if not return_input else (dij.voigt, inp)
-        else:
-            return dij if not return_input else (dij, inp)
+        return dij if not return_input else (dij, inp)
 
     def anaget_phonopy_ifc(self, ngqpt=None, supercell_matrix=None, asr=0, chneut=0, dipdip=0,
                            manager=None, workdir=None, mpi_procs=1, symmetrize_tensors=False,
@@ -1792,8 +1795,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             quadquad=quadquad,
         )
 
-        inp['qph1l'] = [list(q) + [1] for q in qpt_list]
-        inp['nph1l'] = len(qpt_list)
+        inp["qph1l"] = [list(q) + [1] for q in qpt_list]
+        inp["nph1l"] = len(qpt_list)
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose=verbose)
 
@@ -1829,8 +1832,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         inp = AnaddbInput.modes_at_qpoint(self.structure, (0, 0, 0), asr=asr, chneut=chneut, dipdip=dipdip,
                                           lo_to_splitting=False, anaddb_kwargs=anaddb_kwargs)
 
-        if anaddb_kwargs is None or 'dieflag' not in anaddb_kwargs:
-            inp['dieflag'] = 1
+        if anaddb_kwargs is None or "dieflag" not in anaddb_kwargs:
+            inp["dieflag"] = 1
 
         task = self._run_anaddb_task(inp, mpi_procs, workdir, manager, verbose)
 
@@ -1986,7 +1989,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             blocks = [self.blocks[i] for i in filter_blocks]
 
         lines.append(" **** Database of total energy derivatives ****")
-        lines.append(" Number of data blocks={0:5}".format(len(blocks)))
+        lines.append(f" Number of data blocks={len(blocks):5}")
         lines.append(" ")
 
         for b in blocks:
@@ -2000,7 +2003,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
             lines.extend(b["data"][:2])
             lines.append(" ")
 
-        with open(filepath, "wt") as f:
+        with open(filepath, "w") as f:
             f.write("\n".join(lines))
 
     def get_block_for_qpoint(self, qpt) -> list[str]:
@@ -2011,7 +2014,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if hasattr(qpt, "frac_coords"): qpt = qpt.frac_coords
 
         for b in self.blocks:
-            if b['qpt'] is not None and np.allclose(b['qpt'], qpt):
+            if b["qpt"] is not None and np.allclose(b["qpt"], qpt):
                 return b["data"]
 
     def replace_block_for_qpoint(self, qpt, data) -> bool:
@@ -2026,7 +2029,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         if hasattr(qpt, "frac_coords"): qpt = qpt.frac_coords
 
         for b in self.blocks:
-            if b['qpt'] is not None and np.allclose(b['qpt'], qpt):
+            if b["qpt"] is not None and np.allclose(b["qpt"], qpt):
                 b["data"] = data
                 return True
 
@@ -2050,13 +2053,12 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         for i, b in enumerate(self.blocks):
             if dord == b["dord"] and \
                     (dord in (0, 1) or
-                    (dord == 2 and np.allclose(b['qpt'], data["qpt"])) or
-                    (dord == 3 and np.allclose(b['qpt3'], data["qpt3"]))):
+                    (dord == 2 and np.allclose(b["qpt"], data["qpt"])) or
+                    (dord == 3 and np.allclose(b["qpt3"], data["qpt3"]))):
                 if replace:
                     self.blocks[i] = data
                     return True
-                else:
-                    return False
+                return False
 
         self.blocks.append(data)
         return True
@@ -2082,8 +2084,8 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         for i, b in enumerate(self.blocks):
             if dord == b["dord"] and \
                     (dord in (0, 1) or
-                    (dord == 2 and np.allclose(b['qpt'], qpt)) or
-                    (dord == 3 and np.allclose(b['qpt3'], qpt3))):
+                    (dord == 2 and np.allclose(b["qpt"], qpt)) or
+                    (dord == 3 and np.allclose(b["qpt3"], qpt3))):
                 self.blocks.pop(i)
                 return True
 
@@ -2263,7 +2265,7 @@ class Zeffs(Has_Structure, MSONable):
         # Values is a numpy array while zstars is a list of Tensor objects.
         self.values = np.empty((len(structure), 3, 3))
         for iat, bec in enumerate(zeff_adf):
-            self.values[iat] = zeff_adf[iat]
+            self.values[iat] = bec
 
         self.zstars = [ZstarTensor(mat) for mat in self.values]
 
@@ -2284,7 +2286,7 @@ class Zeffs(Has_Structure, MSONable):
 
         if verbose:
             app(f"{self.name} effective charges (full tensor)")
-            for site, bec in zip(self.structure, self.values):
+            for site, bec in zip(self.structure, self.values, strict=False):
                 app("Z* at site: %s" % repr(site))
                 app(str(bec))
                 app("")
@@ -2314,7 +2316,7 @@ class Zeffs(Has_Structure, MSONable):
         """
         Return |pandas-dataframe| with zeff values as columns and natom rows.
 
-        args:
+        Args:
             view: "inequivalent" to show only inequivalent atoms. "all" for all sites.
             elements: string or list of strings with chemical symbols. used to select atoms of this type.
             with_geo: true if structure info should be added to the dataframe
@@ -2529,7 +2531,7 @@ class DielectricTensorGenerator(Has_Structure):
                 phfreqs = full_phfreqs[i].copy()
                 break
         else:
-            raise ValueError('The PHBST does not contain frequencies at gamma')
+            raise ValueError("The PHBST does not contain frequencies at gamma")
 
         with ETSF_Reader(anaddbnc_filepath) as reader:
             epsinf = DielectricTensor(reader.read_value("emacro_cart").T.copy())
@@ -2537,7 +2539,7 @@ class DielectricTensorGenerator(Has_Structure):
             try:
                 oscillator_strength = reader.read_value("oscillator_strength", cmode="c")
                 oscillator_strength = oscillator_strength.transpose((0, 2, 1)).copy()
-            except Exception as exc:
+            except Exception:
                 import traceback
                 msg = traceback.format_exc()
                 msg += ("Error while trying to read from file.\n"
@@ -2644,7 +2646,7 @@ class DielectricTensorGenerator(Has_Structure):
         df.index.name = "mode"
         return df
 
-    def tensor_at_frequency(self, w, gamma_ev=1e-4, units='eV') -> DielectricTensor:
+    def tensor_at_frequency(self, w, gamma_ev=1e-4, units="eV") -> DielectricTensor:
         """
         Returns a |DielectricTensor| object representing the dielectric tensor
         in atomic units at the specified frequency w. Eq.(53-54) in PRB55, 10355 (1997).
@@ -2680,7 +2682,7 @@ class DielectricTensorGenerator(Has_Structure):
         return DielectricTensor(t)
 
     @add_fig_kwargs
-    def plot(self, w_min=0, w_max=None, gamma_ev=1e-4, num=500, component='diag', reim="reim", units='eV',
+    def plot(self, w_min=0, w_max=None, gamma_ev=1e-4, num=500, component="diag", reim="reim", units="eV",
              with_phfreqs=True, ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the selected components of the dielectric tensor as a function of frequency with matplotlib.
@@ -2716,37 +2718,37 @@ class DielectricTensorGenerator(Has_Structure):
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        if 'linewidth' not in kwargs:
-            kwargs['linewidth'] = 2
+        if "linewidth" not in kwargs:
+            kwargs["linewidth"] = 2
 
-        ax.set_xlabel('Frequency {}'.format(phunit_tag(units)), fontsize=fontsize)
-        ax.set_ylabel(r'$\epsilon(\omega)$', fontsize=fontsize)
+        ax.set_xlabel(f"Frequency {phunit_tag(units)}", fontsize=fontsize)
+        ax.set_ylabel(r"$\epsilon(\omega)$", fontsize=fontsize)
         ax.grid(True)
 
         reimfs = []
-        if 're' in reim: reimfs.append((np.real, "Re{%s}"))
-        if 'im' in reim: reimfs.append((np.imag, "Im{%s}"))
+        if "re" in reim: reimfs.append((np.real, "Re{%s}"))
+        if "im" in reim: reimfs.append((np.imag, "Im{%s}"))
 
         for reimf, reims in reimfs:
             if isinstance(component, (list, tuple)):
-                label = reims % r'$\epsilon_{%d%d}$' % tuple(component)
+                label = reims % r"$\epsilon_{%d%d}$" % tuple(component)
                 ax.plot(wmesh, reimf(t[:,component[0], component[1]]), label=label, **kwargs)
 
-            elif component == 'diag':
+            elif component == "diag":
                 for i in range(3):
-                    label = reims % r'$\epsilon_{%d%d}$' % (i, i)
+                    label = reims % r"$\epsilon_{%d%d}$" % (i, i)
                     ax.plot(wmesh, reimf(t[:, i, i]), label=label, **kwargs)
 
-            elif component in ('all', "offdiag"):
+            elif component in ("all", "offdiag"):
                 for i in range(3):
                     for j in range(3):
                         if component == "all" and i > j: continue
                         if component == "offdiag" and i >= j: continue
-                        label = reims % r'$\epsilon_{%d%d}$' % (i, j)
+                        label = reims % r"$\epsilon_{%d%d}$" % (i, j)
                         ax.plot(wmesh, reimf(t[:, i, j]), label=label, **kwargs)
 
-            elif component == 'diag_av':
-                label = r'Average %s' % (reims % r'$\epsilon_{ii}$')
+            elif component == "diag_av":
+                label = r"Average %s" % (reims % r"$\epsilon_{ii}$")
                 ax.plot(wmesh, np.trace(reimf(t), axis1=1, axis2=2)/3, label=label, **kwargs)
 
             else:
@@ -2758,7 +2760,7 @@ class DielectricTensorGenerator(Has_Structure):
         return fig
 
     @add_plotly_fig_kwargs
-    def plotly(self, w_min=0, w_max=None, gamma_ev=1e-4, num=500, component='diag', reim="reim", units='eV',
+    def plotly(self, w_min=0, w_max=None, gamma_ev=1e-4, num=500, component="diag", reim="reim", units="eV",
                with_phfreqs=True, fig=None, rcd=None, fontsize=16, **kwargs):
         """
         Plots the selected components of the dielectric tensor as a function of frequency with plotly.
@@ -2796,39 +2798,39 @@ class DielectricTensorGenerator(Has_Structure):
 
         rcd = PlotlyRowColDesc.from_object(rcd)
         iax, ply_row, ply_col = rcd.iax, rcd.ply_row, rcd.ply_col
-        xaxis = 'xaxis%u' % iax
-        yaxis = 'yaxis%u' % iax
-        fig.layout[xaxis].title = dict(text='Frequency {}'.format(phunit_tag(units, unicode=True)), font_size=fontsize)
-        fig.layout[yaxis].title = dict(text='ε(ω)', font_size=fontsize)
+        xaxis = "xaxis%u" % iax
+        yaxis = "yaxis%u" % iax
+        fig.layout[xaxis].title = dict(text=f"Frequency {phunit_tag(units, unicode=True)}", font_size=fontsize)
+        fig.layout[yaxis].title = dict(text="ε(ω)", font_size=fontsize)
 
-        if 'line_width' not in kwargs:
-            kwargs['line_width'] = 2
+        if "line_width" not in kwargs:
+            kwargs["line_width"] = 2
 
         reimfs = []
-        if 're' in reim: reimfs.append((np.real, "Re{%s}"))
-        if 'im' in reim: reimfs.append((np.imag, "Im{%s}"))
+        if "re" in reim: reimfs.append((np.real, "Re{%s}"))
+        if "im" in reim: reimfs.append((np.imag, "Im{%s}"))
 
         for reimf, reims in reimfs:
             if isinstance(component, (list, tuple)):
-                label = reims % r'ε%s%s' % (SUBSCRIPT_UNICODE[str(component[0])], SUBSCRIPT_UNICODE[str(component[1])])
-                fig.add_scatter(x=wmesh, y=reimf(t[:,component[0], component[1]]), mode='lines', showlegend=True,
+                label = reims % r"ε%s%s" % (SUBSCRIPT_UNICODE[str(component[0])], SUBSCRIPT_UNICODE[str(component[1])])
+                fig.add_scatter(x=wmesh, y=reimf(t[:,component[0], component[1]]), mode="lines", showlegend=True,
                                 name=label, row=ply_row, col=ply_col, **kwargs)
-            elif component == 'diag':
+            elif component == "diag":
                 for i in range(3):
                     s = SUBSCRIPT_UNICODE[str(i)]
-                    label = reims % r'ε%s%s' % (s, s)
-                    fig.add_scatter(x=wmesh, y=reimf(t[:, i, i]), mode='lines', name=label, row=ply_row, col=ply_col, **kwargs)
-            elif component in ('all', "offdiag"):
+                    label = reims % r"ε%s%s" % (s, s)
+                    fig.add_scatter(x=wmesh, y=reimf(t[:, i, i]), mode="lines", name=label, row=ply_row, col=ply_col, **kwargs)
+            elif component in ("all", "offdiag"):
                 for i in range(3):
                     for j in range(3):
                         if component == "all" and i > j: continue
                         if component == "offdiag" and i >= j: continue
-                        label = reims % r'ε%s%s' % (SUBSCRIPT_UNICODE[str(i)], SUBSCRIPT_UNICODE[str(j)])
-                        fig.add_scatter(x=wmesh, y=reimf(t[:, i, j]), mode='lines', name=label, row=ply_row,
+                        label = reims % r"ε%s%s" % (SUBSCRIPT_UNICODE[str(i)], SUBSCRIPT_UNICODE[str(j)])
+                        fig.add_scatter(x=wmesh, y=reimf(t[:, i, j]), mode="lines", name=label, row=ply_row,
                                         col=ply_col, **kwargs)
-            elif component == 'diag_av':
-                label = r'Average %s' % (reims % r'εᵢᵢ')
-                fig.add_scatter(x=wmesh, y=np.trace(reimf(t), axis1=1, axis2=2)/3, mode='lines', name=label,
+            elif component == "diag_av":
+                label = r"Average %s" % (reims % r"εᵢᵢ")
+                fig.add_scatter(x=wmesh, y=np.trace(reimf(t), axis1=1, axis2=2)/3, mode="lines", name=label,
                                 row=ply_row, col=ply_col, **kwargs)
             else:
                 raise ValueError(f"Unkwnown {component=}")
@@ -2885,7 +2887,7 @@ class DielectricTensorGenerator(Has_Structure):
 
     @add_fig_kwargs
     def plot_e0w_qdirs(self, qdirs=None, w_min=0, w_max=None, gamma_ev=1e-4, num=500, reim="reim", func="direct",
-                       units='eV', with_phfreqs=True, ax=None, fontsize=8, **kwargs) -> Figure:
+                       units="eV", with_phfreqs=True, ax=None, fontsize=8, **kwargs) -> Figure:
         r"""
         Plots the dielectric tensor and/or -epsinf_q**2 / \epsilon_q along a set of specified directions.
         With \epsilon_q as defined in eq. (56) in :cite:`Gonze1997` PRB55, 10355 (1997).
@@ -2915,17 +2917,17 @@ class DielectricTensorGenerator(Has_Structure):
         for i, w in enumerate(wmesh):
             t[i] = self.tensor_at_frequency(w, units=units, gamma_ev=gamma_ev)
 
-        if 'linewidth' not in kwargs:
-            kwargs['linewidth'] = 2
+        if "linewidth" not in kwargs:
+            kwargs["linewidth"] = 2
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.set_xlabel('Frequency {}'.format(phunit_tag(units)))
-        ax.set_ylabel(r'$\epsilon(\omega)$')
+        ax.set_xlabel(f"Frequency {phunit_tag(units)}")
+        ax.set_ylabel(r"$\epsilon(\omega)$")
         ax.grid(True)
 
         reimfs = []
-        if 're' in reim: reimfs.append((np.real, "Re{%s}"))
-        if 'im' in reim: reimfs.append((np.imag, "Im{%s}"))
+        if "re" in reim: reimfs.append((np.real, "Re{%s}"))
+        if "im" in reim: reimfs.append((np.imag, "Im{%s}"))
 
         if func == "both":
             func = ["direct", "inverse"]
@@ -2963,6 +2965,7 @@ class DielectricTensorGenerator(Has_Structure):
     def _add_phfreqs(self, ax, units, with_phfreqs) -> None:
         """
         Helper functions to add the phonon frequencies to the x axis.
+
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             units: string specifying the units used for phonon frequencies. Possible values in
@@ -2977,6 +2980,7 @@ class DielectricTensorGenerator(Has_Structure):
     def _add_phfreqs_plotly(self, fig, rcd, units, with_phfreqs) -> None:
         """
         Helper functions to add the phonon frequencies to the plotly fig.
+
         Args:
             fig: |plotly.graph_objects.Figure|
             rcd: PlotlyRowColDesc object used when fig is not None to specify the (row, col) of the subplot in the grid.
@@ -2987,10 +2991,10 @@ class DielectricTensorGenerator(Has_Structure):
         # Add points showing phonon energies.
         if with_phfreqs:
             wvals = self.phfreqs[3:] * phfactor_ev2units(units)
-            fig.add_scatter(x=wvals, y=np.zeros_like(wvals), mode='markers', marker=dict(color='blue', size=10),
-                            name='', row=rcd.ply_row, col=rcd.ply_col, showlegend=False)
+            fig.add_scatter(x=wvals, y=np.zeros_like(wvals), mode="markers", marker=dict(color="blue", size=10),
+                            name="", row=rcd.ply_row, col=rcd.ply_col, showlegend=False)
 
-    def reflectivity(self, qdir, w, gamma_ev=1e-4, units='eV') -> np.ndarray:
+    def reflectivity(self, qdir, w, gamma_ev=1e-4, units="eV") -> np.ndarray:
         """
         Calculates the reflectivity from the dielectric tensor along the specified direction
         according to Eq. (58) in :cite:`Gonze1997` PRB55, 10355 (1997).
@@ -3016,7 +3020,7 @@ class DielectricTensorGenerator(Has_Structure):
 
     @add_fig_kwargs
     def plot_reflectivity(self, qdirs=None, w_min=0, w_max=None, gamma_ev=1e-4, num=500,
-                          units='eV', with_phfreqs=True, ax=None, fontsize=8, **kwargs) -> Figure:
+                          units="eV", with_phfreqs=True, ax=None, fontsize=8, **kwargs) -> Figure:
         """
         Plots the reflectivity from the dielectric tensor along the specified directions,
         according to eq. (58) in :cite:`Gonze1997` PRB55, 10355 (1997).
@@ -3052,12 +3056,12 @@ class DielectricTensorGenerator(Has_Structure):
         n = np.einsum("li,kij,lj->lk", qdirs, t, qdirs) ** 0.5
         r = np.abs((n - 1) / (n + 1)) ** 2
 
-        if 'linewidth' not in kwargs:
-            kwargs['linewidth'] = 2
+        if "linewidth" not in kwargs:
+            kwargs["linewidth"] = 2
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.set_xlabel('Frequency {}'.format(phunit_tag(units)))
-        ax.set_ylabel(r'$R(\omega)$')
+        ax.set_xlabel(f"Frequency {phunit_tag(units)}")
+        ax.set_ylabel(r"$R(\omega)$")
         ax.grid(True)
 
         for i in range(len(qdirs)):
@@ -3368,7 +3372,7 @@ class DdbRobot(Robot):
 
         with restapi.get_mprester() as rest:
 
-            if getattr(rest, "_make_request") is None:
+            if rest._make_request is None:
                 raise RuntimeError("from_mpid_list requires mp-api, please install it with `pip install mp-api`")
 
             for mpid in mpid_list:
@@ -3378,9 +3382,9 @@ class DdbRobot(Robot):
                     cprint("Cannot get DDB for mp-id: %s, ignoring error" % mpid, "yellow")
                     continue
 
-                _, tmpfile = tempfile.mkstemp(prefix=mpid, suffix='_DDB')
+                _, tmpfile = tempfile.mkstemp(prefix=mpid, suffix="_DDB")
                 ddb_files.append(tmpfile)
-                with open(tmpfile, "wt") as fh:
+                with open(tmpfile, "w") as fh:
                     fh.write(ddb_string)
 
         return cls.from_files(ddb_files, labels=mpid_list)
@@ -3767,8 +3771,8 @@ def get_2nd_ord_block_string(qpt, data: dict) -> list:
 
 
 def _find_anaddb_ncpath(filepath) -> tuple[str, bool]:
-    from abipy.flowtk.utils import Directory
     from abipy.dfpt.anaddbnc import AnaddbNcFile
+    from abipy.flowtk.utils import Directory
     directory = Directory(os.path.dirname(filepath))
     p = directory.has_abiext("anaddb.nc")
     if not p:

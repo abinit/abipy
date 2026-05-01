@@ -6,11 +6,11 @@ G0W0 flow with factory functions
 G0W0 corrections with the HT interface.
 """
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.flowtk as flowtk
-from abipy import abilab
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

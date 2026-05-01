@@ -1,11 +1,10 @@
 """Tests for ml_phonopy module"""
 import os
-import numpy as np
-import abipy.data as abidata
 
-from abipy.core.testing import AbipyTest
+import abipy.data as abidata
 from abipy.core.structure import Structure
-from abipy.ml.ml_phonopy import MlPhonopyWithDDB, MlPhonopy, MlVZSISAQHAPhonopy
+from abipy.core.testing import AbipyTest
+from abipy.ml.ml_phonopy import MlPhonopy, MlPhonopyWithDDB, MlVZSISAQHAPhonopy
 
 
 class AbimlTest(AbipyTest):

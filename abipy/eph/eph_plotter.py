@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Objects to plot electronic, vibrational and e-ph properties.
 """
@@ -6,12 +5,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt, set_axlims, set_visible, ax_share)
-from abipy.tools import duck
-from abipy.electrons.ebands import ElectronBands
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhbstFile, PhdosFile
+from abipy.electrons.ebands import ElectronBands
 from abipy.eph.sigeph import SigEPhFile
+from abipy.tools import duck
+from abipy.tools.plotting import add_fig_kwargs, ax_share, get_axarray_fig_plt, set_axlims, set_visible
 from abipy.tools.typing import Figure
 
 
@@ -127,7 +126,7 @@ class EphPlotter:
                                                 sharex=True, sharey=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        for ax, temp in zip(ax_list, temps.ravel()):
+        for ax, temp in zip(ax_list, temps.ravel(), strict=False):
             self.phb_qpath.plot(ax=ax, units="eV", temp=temp, fontsize=8, show=False)
 
         return fig

@@ -1,7 +1,7 @@
 """Tests for varpeq module."""
-import pytest
 import os
-import abipy.data as abidata
+
+import pytest
 
 from abipy.core.testing import AbipyTest
 from abipy.eph.vpq import VpqFile
@@ -15,7 +15,6 @@ class VarpeqTest(AbipyTest):
     @pytest.mark.xfail(condition=not os.path.exists(root), reason=f"{root=} does not exist")
     def test_varpeq_file(self):
         """Testing VpqFile."""
-
         filepath = os.path.join(root, "teph4vpq_9o_VPQ.nc")
         with VpqFile(filepath) as vpq:
             repr(vpq)

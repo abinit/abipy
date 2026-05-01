@@ -1,19 +1,20 @@
-# coding: utf-8
 """
 Tools to analyze the V1QAVG file produced by the E-PH code (eph_task +15 or -15)
 """
 from __future__ import annotations
-import numpy as np
 
 from functools import cached_property
+
+import numpy as np
 from monty.string import list_strings, marquee
+
+from abipy.abio.robots import Robot
+from abipy.core.kpoints import Kpath
+from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
+from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.typing import Figure
-from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
-from abipy.core.kpoints import Kpath
-from abipy.abio.robots import Robot
-from abipy.iotools import ETSF_Reader
 
 
 def _get_style(reim, what, marker=None, markersize=None, alpha=1.0) -> str:
@@ -73,7 +74,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @cached_property
     def qpoints(self) -> Kpath:
         """List of q-points."""
-        frac_coords = self.reader.read_value('qpoints')
+        frac_coords = self.reader.read_value("qpoints")
         return Kpath(self.structure.reciprocal_lattice, frac_coords, ksampling=None)
 
     @cached_property
@@ -422,7 +423,7 @@ class V1qAvgRobot(Robot):
 
         for abifile in self.abifiles[1:]:
             if np.any(np.abs(abifile.qpoints.frac_coords - self.abifiles[0].qpoints.frac_coords) > self.atol):
-                for q1, q2 in zip(self.abifiles[0].qpoints, abifile.qpoints):
+                for q1, q2 in zip(self.abifiles[0].qpoints, abifile.qpoints, strict=False):
                     print("q1:", q1, ", q2:", q2)
                 raise RuntimeError("Found different q-points with tolerance: %s!" % self.atol)
 

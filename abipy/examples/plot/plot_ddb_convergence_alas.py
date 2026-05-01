@@ -9,6 +9,7 @@ with respect to the number of k-points.
 """
 
 import os
+
 import abipy.data as abidata
 
 #%%
@@ -20,6 +21,7 @@ paths = ["AlAs_222k_DDB", "AlAs_444k_DDB","AlAs_666k_DDB", "AlAs_888k_DDB"]
 paths = [os.path.join(abidata.dirpath, "refs", "alas_eps_and_becs_vs_ngkpt", f) for f in paths]
 
 from abipy.dfpt.ddb import DdbRobot
+
 ddb_robot = DdbRobot.from_files(paths)
 
 #%%

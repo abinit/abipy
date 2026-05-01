@@ -23,18 +23,17 @@ and stored in outdata/Delta_SCF.json of each work, with relevant luminescent pro
 (ZPL energy, Stoke Shift, \Delta Q,...), see abipy/lumi/delta_scf.py .
 """
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
+import sys
 
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.core.structure import Structure
 from abipy.flowtk.lumi_works import LumiWork
 
 
 def get_non_eq_sites(structure, replaced_atom):
-    """return a list of positions of non-equivalent sites for the replaced atom."""
+    """Return a list of positions of non-equivalent sites for the replaced atom."""
     irred = structure.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
     positions = structure.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
 
@@ -48,7 +47,7 @@ def get_non_eq_sites(structure, replaced_atom):
 
 
 def make_doped_supercell(prim_structure,supercell_size,replaced_atom,dopant_atom):
-    """return a list of doped supercell structure, one for each non-equivalent site of the replaced atom"""
+    """Return a list of doped supercell structure, one for each non-equivalent site of the replaced atom"""
     my_structure = prim_structure.copy()
     my_structure.make_supercell(supercell_size)
 
@@ -120,10 +119,10 @@ def relax_kwargs():
     )
 
     relax_kwargs_gs = relax_kwargs.copy()
-    relax_kwargs_gs['optcell'] = 0 # in the ground state, allow relaxation of the cell
+    relax_kwargs_gs["optcell"] = 0 # in the ground state, allow relaxation of the cell
 
     relax_kwargs_ex = relax_kwargs.copy()
-    relax_kwargs_ex['optcell'] = 0 # in the excited state, no relaxation of the cell
+    relax_kwargs_ex["optcell"] = 0 # in the excited state, no relaxation of the cell
 
     return relax_kwargs_gs, relax_kwargs_ex
 
@@ -141,7 +140,7 @@ def build_flow(options):
     #prim_structure=structure.Structure.from_file('SLA_prim.cif')
     prim_structure = Structure.from_file(abidata.cif_file("SLA_prim.cif"))
     supercell_matrix = [1,1,1]  # Too small, just for test
-    strus=prim_structure.make_doped_supercells(supercell_matrix,'Sr','Eu')
+    strus=prim_structure.make_doped_supercells(supercell_matrix,"Sr","Eu")
 
     ####### Delta SCF part of the flow #######
 
@@ -175,6 +174,6 @@ def main(options):
     return build_flow(options)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
 

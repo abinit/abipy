@@ -3,24 +3,25 @@ from __future__ import annotations
 
 import os
 import warnings
-import numpy as np
-
-from pprint import pformat #, pprint
 from functools import cached_property
-from monty.string import is_string, boxed
+from pprint import pformat  #, pprint
+
+import numpy as np
+from monty.string import boxed, is_string
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
-from abipy.core.structure import Structure, dataframes_from_structures
-from abipy.core.mixins import Has_Structure, TextFile, NotebookWriter
+
 from abipy.abio.abivar_database.variables import get_codevars
+from abipy.core.mixins import Has_Structure, NotebookWriter, TextFile
+from abipy.core.structure import Structure, dataframes_from_structures
 
 __all__ = [
+    "AbinitInputFile",
+    "AbinitInputParser",
+    "is_abiunit",
     "is_abivar",
     "is_anaddb_var",
     "is_atdep_var",
-    "is_abiunit",
-    "AbinitInputFile",
-    "AbinitInputParser",
     "structure_from_abistruct_fmt",
 ]
 
@@ -77,9 +78,8 @@ def expand_star_syntax(s: str) -> str:
     s = s.strip()
     if "*" not in s:
         return s
-    else:
-        # Handle e.g `pawecutdg*`
-        if s[0].isalpha() and s[-1] == "*": return s
+    # Handle e.g `pawecutdg*`
+    if s[0].isalpha() and s[-1] == "*": return s
 
     s = s.replace("*", " * ").strip()
     tokens = s.split()
@@ -121,10 +121,9 @@ def str2array_bohr(obj):
     unit = tokens[-1]
     if unit in ("angstr", "angstrom", "angstroms"):
         return np.fromstring(" ".join(tokens[:-1]), sep=" ") / bohr_to_ang
-    elif unit in ("bohr", "bohrs", "au"):
+    if unit in ("bohr", "bohrs", "au"):
         return np.fromstring(" ".join(tokens[:-1]), sep=" ")
-    else:
-        raise ValueError("Don't know how to handle unit: %s" % str(unit))
+    raise ValueError("Don't know how to handle unit: %s" % str(unit))
 
 
 def str2array(obj, dtype=float) -> np.ndarray:
@@ -146,7 +145,7 @@ def eval_abinit_operators(tokens: list[str]) -> list[str]:
 
         This function is not recursive hence expr like sqrt(1/2) are not supported
     """
-    import math # noqa: F401
+    import math  # noqa: F401
     import re
     re_sqrt = re.compile(r"[+|-]?sqrt\((.+)\)")
 
@@ -214,7 +213,6 @@ class Dataset(dict, Has_Structure):
         """
         The initial structure associated to the dataset.
         """
-
         # First of all check whether the structure is defined through an external file.
         if "structure" in self:
             s = self["structure"].replace('"', "")
@@ -224,8 +222,8 @@ class Dataset(dict, Has_Structure):
             if filetype == "poscar":
                 return abilab.Structure.from_file(path)
 
-            elif filetype == "abivars":
-                with open(path, "rt") as fh:
+            if filetype == "abivars":
+                with open(path) as fh:
                     return structure_from_abistruct_fmt(fh.read())
 
             else:
@@ -233,8 +231,7 @@ class Dataset(dict, Has_Structure):
                     with abilab.abiopen(path) as abifile:
                         if hasattr(abifile, "final_structure"):
                             return abifile.final_structure
-                        else:
-                            return abifile.structure
+                        return abifile.structure
                 except Exception as exc:
                     raise RuntimeError("Error while opening file: `%s`:\n%s" % (path, exc))
 
@@ -349,14 +346,14 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
         """Build the object from string."""
         import tempfile
         _, filename = tempfile.mkstemp(suffix=".abi", text=True)
-        with open(filename, "wt") as fh:
+        with open(filename, "w") as fh:
             fh.write(string)
         return cls(filename)
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
 
-        with open(filepath, "rt") as fh:
+        with open(filepath) as fh:
             self.string = fh.read()
 
         self.datasets = AbinitInputParser().parse(self.string)
@@ -502,10 +499,8 @@ for dataset in abinp.datasets:
             self_dataset_dict = dict(self_dataset)
             other_dataset_dict = dict(other_dataset)
             for k in to_ignore:
-                if k in self_dataset_dict:
-                    del self_dataset_dict[k]
-                if k in other_dataset_dict:
-                    del other_dataset_dict[k]
+                self_dataset_dict.pop(k, None)
+                other_dataset_dict.pop(k, None)
 
             common_keys = set(self_dataset_dict.keys()).intersection(other_dataset_dict.keys())
             self_only_keys = set(self_dataset_dict.keys()).difference(other_dataset_dict.keys())
@@ -771,7 +766,6 @@ def format_string_abivars(varname: str, value, code: str = "abinit") -> str:
 
     Returns: The properly formatted value.
     """
-
     var = get_codevars()[code].get(varname)
     if var and var.vartype == "string":
         if not isinstance(value, (list, tuple)):
@@ -911,7 +905,7 @@ def validate_input_parser(abitests_dir=None, input_files=None) -> int:
         if path.endswith(".abi"): return True
         if not path.endswith(".in"): return False
 
-        with open(path, "rt") as fh:
+        with open(path) as fh:
             for line in fh:
                 if "executable" in line and "abinit" in line: return True
             return False

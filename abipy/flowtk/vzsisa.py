@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Workflows for calculations within the VZISA approximation to the quasi-harmonic approximation.
 
@@ -7,15 +6,16 @@ See [Phys. Rev. B 110, 014103](https://doi.org/10.1103/PhysRevB.110.014103)
 from __future__ import annotations
 
 import dataclasses
+
 import numpy as np
 
-from abipy.tools.serialization import Serializable
-from abipy.core.structure import Structure
-from abipy.tools.typing import PathLike, VectorLike
 from abipy.abio.inputs import AbinitInput
+from abipy.core.structure import Structure
 from abipy.dfpt.vzsisa import Vzsisa
-from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.flows import Flow
+from abipy.flowtk.works import PhononWork, Work
+from abipy.tools.serialization import Serializable
+from abipy.tools.typing import PathLike, VectorLike
 
 
 class VzsisaFlow(Flow):
@@ -195,7 +195,7 @@ class VzsisaWork(Work):
         self.ph_works = []
 
         # Build phonon works for the different relaxed structures associated to ph_vol_scales.
-        for task, bo_scale in zip(self.relax_tasks_vol, self.bo_vol_scales):
+        for task, bo_scale in zip(self.relax_tasks_vol, self.bo_vol_scales, strict=False):
             if all(abs(bo_scale - self.ph_vol_scales)) > 1e-3: continue
             relaxed_structure = task.get_final_structure()
             scf_input = self.initial_scf_input.new_with_structure(relaxed_structure)

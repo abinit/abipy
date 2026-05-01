@@ -9,11 +9,11 @@ This script shows how to perform a structural relaxation in two steps:
     2) Full relaxation (atoms + cell) with the initial configuration read from step 1)
 """
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_ion_ioncell_inputs(paral_kgb=0):

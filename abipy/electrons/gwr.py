@@ -1,34 +1,41 @@
-# coding: utf-8
 """
 Objects to analyze and visualize the results of GWR calculations.
 """
 from __future__ import annotations
 
 import dataclasses
+from collections.abc import Iterable
+from functools import cached_property
+from typing import Any
+
 import numpy as np
 import pandas as pd
-import abipy.core.abinit_units as abu
-
-from collections.abc import Iterable
-from typing import Any
-from functools import cached_property
 from monty.collections import dict2namedtuple
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
+
+import abipy.core.abinit_units as abu
+from abipy.abio.enums import GWR_TASK
+from abipy.abio.robots import Robot
+from abipy.core.kpoints import IrredZone, Kpath, Kpoint, KpointList, has_timrev_from_kptopt
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.core.kpoints import Kpoint, KpointList, Kpath, IrredZone, has_timrev_from_kptopt
+from abipy.electrons.ebands import ElectronBands, RobotWithEbands
+from abipy.electrons.gw import Axis, QPList, QPState, SelfEnergy
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
-from abipy.tools.typing import Figure, KptSelect, VectorLike
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker, plot_xy_with_hue,
-    set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line, Exposer)
-from abipy.abio.robots import Robot
-from abipy.electrons.ebands import ElectronBands, RobotWithEbands
-from abipy.electrons.gw import SelfEnergy, QPState, QPList, Axis
-from abipy.abio.enums import GWR_TASK
-from abipy.tools.pade import pade, dpade, SigmaPade
-
+from abipy.tools.pade import SigmaPade, dpade
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    plot_xy_with_hue,
+    rotate_ticklabels,
+    set_axlims,
+    set_grid_legend,
+    set_visible,
+)
+from abipy.tools.typing import Figure, KptSelect
 
 __all__ = [
     "GwrFile",
@@ -154,8 +161,8 @@ class MinimaxMesh:
         }
 
         for irow in range(nrows):
-            for iax, (ax, data, label) in enumerate(zip(ax_mat[irow], select_irow[irow], label_irow[irow])):
-                im = ax.matshow(data, cmap='seismic')
+            for iax, (ax, data, label) in enumerate(zip(ax_mat[irow], select_irow[irow], label_irow[irow], strict=False)):
+                im = ax.matshow(data, cmap="seismic")
                 fig.colorbar(im, ax=ax)
                 ax.set_title(label, fontsize=fontsize)
 
@@ -560,12 +567,12 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         if errors:
             raise ValueError("\n".join(errors))
 
-        return _MyQpkindsList(zip(items[0], items[1]))
+        return _MyQpkindsList(zip(items[0], items[1], strict=False))
 
     @cached_property
     def params(self) -> dict:
         """
-        dict with parameters that might be subject to convergence studies e.g ecuteps.
+        Dict with parameters that might be subject to convergence studies e.g ecuteps.
         """
         minimax_mesh = self.minimax_mesh
         r = self.r
@@ -693,7 +700,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         if kpoint is not None:
             ikcalc, kpoint = self.r.get_ikcalc_kpoint(kpoint)
-            df = df[df['kpoint'].apply(lambda x: np.all(x == kpoint.frac_coords))]
+            df = df[df["kpoint"].apply(lambda x: np.all(x == kpoint.frac_coords))]
 
         return df
 
@@ -910,7 +917,6 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             verbose: Verbosity level.
 
         Returns:
-
             :class:`namedtuple` with the following attributes::
 
                 * qp_ebands_kpath: |ElectronBands| with the QP energies interpolated along the k-path.
@@ -937,7 +943,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         # Get symmetries from abinit spacegroup (read from file).
         abispg = self.structure.abi_spacegroup
-        fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm) if afm == 1]
+        fm_symrel = [s for (s, afm) in zip(abispg.symrel, abispg.symafm, strict=False) if afm == 1]
 
         if ks_ebands_kpath is None:
             # Generate k-points for interpolation. Will interpolate all bands available in the GWR file.
@@ -1315,7 +1321,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         Plot the ab-initio results and the fit in imaginary-time
         for all bands at the given kpoint and spin index.
 
-        Args
+        Args:
             spin: Spin index.
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             fontsize: Legend and title fontsize.
@@ -1460,8 +1466,7 @@ class GwrReader(ETSF_Reader):
         """
         if duck.is_intlike(kpoint):
             return int(kpoint)
-        else:
-            return self.sigma_kpoints.index(kpoint)
+        return self.sigma_kpoints.index(kpoint)
 
     def get_wr_mesh(self, e0: float) -> np.ndarray:
         """
@@ -1682,9 +1687,9 @@ class GwrRobot(Robot, RobotWithEbands):
             cprint("Files with different values of `nkcalc`", color="yellow")
 
         for nc in self.abifiles[1:]:
-            for k0, k1 in zip(nc0.sigma_kpoints, nc.sigma_kpoints):
+            for k0, k1 in zip(nc0.sigma_kpoints, nc.sigma_kpoints, strict=False):
                 if k0 != k1:
-                    cprint("Files with different values of `sigma_kpoints`\n" +
+                    cprint("Files with different values of `sigma_kpoints`\n"
                            "Specify the kpoint via reduced coordinates and not via the index", "yellow")
                     break
 
@@ -1887,7 +1892,7 @@ class GwrRobot(Robot, RobotWithEbands):
                             # Show position of KS energy as vertical line.
                             ikcalc, _ = ncfile.r.get_ikcalc_kpoint(kpoint)
                             ib = band - ncfile.r.min_bstart
-                            for ax, l in zip(ax_list, lines):
+                            for ax, l in zip(ax_list, lines, strict=False):
                                 ax.axvline(ncfile.r.e0_kcalc[spin, ikcalc, ib], lw=1, color=l[0].get_color(), ls="--")
 
                     elif axis == Axis.wimag:
@@ -2046,7 +2051,7 @@ class GwrRobot(Robot, RobotWithEbands):
                 lst = [ncfile.r.read_qp(spin, kpoint, band) for ncfile in g.abifiles]
                 qplist_group.append(lst)
 
-        for ix, (ax, what) in enumerate(zip(ax_list, what_list)):
+        for ix, (ax, what) in enumerate(zip(ax_list, what_list, strict=False)):
             if hue is None:
                 # Extract QP data.
                 yvals = [getattr(qp, what) for qp in qplist]
@@ -2059,7 +2064,7 @@ class GwrRobot(Robot, RobotWithEbands):
                     ax.set_xticks(xn)
                     ax.set_xticklabels(params, fontsize=fontsize)
             else:
-                for g, qplist in zip(groups, qplist_group):
+                for g, qplist in zip(groups, qplist_group, strict=False):
                     # Extract QP data.
                     yvals = [getattr(qp, what) for qp in qplist]
                     label = "%s: %s" % (self._get_label(hue), g.hvalue)

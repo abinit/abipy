@@ -1,22 +1,19 @@
-# coding: utf-8
 """
 Workflows for calculations within the ZSISA quasi-harmonic approximation
 and two degrees of freedom. The main entry point is Qha2dFlow.
 """
 from __future__ import annotations
 
-import itertools
 import dataclasses
+import itertools
+
 import numpy as np
 
-from abipy.tools.serialization import mjson_write, Serializable
-from abipy.tools.typing import PathLike, VectorLike
-from abipy.dfpt.deformation_utils import generate_deformations
-from abipy.dfpt.qha_2D import QHA_2D
 from abipy.abio.inputs import AbinitInput
-from abipy.flowtk.works import Work, PhononWork
-from abipy.flowtk.tasks import RelaxTask
+from abipy.dfpt.qha_2D import QHA_2D
 from abipy.flowtk.flows import Flow
+from abipy.flowtk.works import PhononWork, Work
+from abipy.tools.typing import PathLike, VectorLike
 
 
 class Qha2dFlow(Flow):

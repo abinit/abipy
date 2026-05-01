@@ -3,16 +3,16 @@ Integration tests for flows (require pytest, ABINIT and a properly configured en
 """
 from __future__ import annotations
 
-import pytest
 import os
-import numpy as np
-import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+import socket
 
+import numpy as np
+import pytest
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.core.testing import has_matplotlib
 
-import socket
 hostname = socket.gethostname()
 
 skip_hosts = [
@@ -130,7 +130,7 @@ def itest_unconverged_scf(fwp, tvars):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     assert flow.explain(verbose=1)
 
@@ -242,7 +242,7 @@ def itest_bandstructure_flow(fwp, tvars):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     assert all(work.finalized for work in flow)
 
@@ -325,7 +325,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     assert all(work.finalized for work in flow)
 
@@ -385,7 +385,7 @@ def itest_htc_bandstructure(fwp, tvars):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     assert all(work.finalized for work in flow)
 
@@ -450,5 +450,5 @@ def itest_metagga_ebands_flow(fwp, tvars):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
     assert all(work.finalized for work in flow)

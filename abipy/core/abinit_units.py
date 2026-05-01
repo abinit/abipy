@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 This module defines constants and conversion factors matching those present in abinit that can be used when
 it is important to preserve consistency with the results produced by abinit.
@@ -117,13 +116,13 @@ def phfactor_ev2units(units: str) -> float:
     Return conversion factor eV --> units for phonons (case-insensitive)
     """
     d = {"ev": 1, "mev": 1000, "ha": eV_Ha,
-         "cm-1": eV_to_cm1, 'cm^-1': eV_to_cm1,
+         "cm-1": eV_to_cm1, "cm^-1": eV_to_cm1,
          "thz": eV_to_THz,
          }
     try:
         return d[units.lower().strip()]
     except KeyError:
-        raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
+        raise KeyError(f"Value for units `{units}` unknown\nPossible values are:\n {list(d.keys())}")
 
 
 def phunit_tag(units: str, unicode=False) -> str:
@@ -132,16 +131,16 @@ def phunit_tag(units: str, unicode=False) -> str:
     Return latex string from ``units``.
     If unicode is True, replace Latex superscript with unitcode.
     """
-    d = {"ev": "(eV)", "mev": "(meV)", "ha": '(Ha)',
-         "cm-1": "(cm$^{-1}$)", 'cm^-1': "(cm$^{-1}$)", "thz": '(Thz)',
+    d = {"ev": "(eV)", "mev": "(meV)", "ha": "(Ha)",
+         "cm-1": "(cm$^{-1}$)", "cm^-1": "(cm$^{-1}$)", "thz": "(Thz)",
          }
     try:
         s = d[units.lower().strip()]
     except KeyError:
-        raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
+        raise KeyError(f"Value for units `{units}` unknown\nPossible values are:\n {list(d.keys())}")
 
     if unicode:
-        s = s.replace('$^{-1}$', '⁻¹')
+        s = s.replace("$^{-1}$", "⁻¹")
 
     return s
 
@@ -150,19 +149,19 @@ def wlabel_from_units(units: str, unicode=False) -> str:
     """
     Return latex string for phonon frequencies in ``units``.
     """
-    d = {'ev': 'Energy (eV)', 'mev': 'Energy (meV)', 'ha': 'Energy (Ha)',
-         'cm-1': r'Frequency (cm$^{-1}$)',
-         'cm^-1': r'Frequency (cm$^{-1}$)',
-         'thz': r'Frequency (Thz)',
-         'hbar': r'Angular momentum ($\hbar$)',
+    d = {"ev": "Energy (eV)", "mev": "Energy (meV)", "ha": "Energy (Ha)",
+         "cm-1": r"Frequency (cm$^{-1}$)",
+         "cm^-1": r"Frequency (cm$^{-1}$)",
+         "thz": r"Frequency (Thz)",
+         "hbar": r"Angular momentum ($\hbar$)",
     }
     try:
         s = d[units.lower().strip()]
     except KeyError:
-        raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
+        raise KeyError(f"Value for units `{units}` unknown\nPossible values are:\n {list(d.keys())}")
 
     if unicode:
-        s = s.replace('$^{-1}$', '⁻¹')
+        s = s.replace("$^{-1}$", "⁻¹")
 
     return s
 
@@ -171,17 +170,17 @@ def phdos_label_from_units(units: str, unicode=False) -> str:
     """
     Return latex string for phonon DOS values in ``units``.
     """
-    d = {"ev": "(states/eV)", "mev": "(states/meV)", "ha": '(states/Ha)',
-         "cm-1": "(states/cm$^{-1}$)", 'cm^-1': "(states/cm$^{-1}$)",
-         "thz": '(states/Thz)',
+    d = {"ev": "(states/eV)", "mev": "(states/meV)", "ha": "(states/Ha)",
+         "cm-1": "(states/cm$^{-1}$)", "cm^-1": "(states/cm$^{-1}$)",
+         "thz": "(states/Thz)",
         }
     try:
         s = d[units.lower().strip()]
     except KeyError:
-        raise KeyError('Value for units `{}` unknown\nPossible values are:\n {}'.format(units, list(d.keys())))
+        raise KeyError(f"Value for units `{units}` unknown\nPossible values are:\n {list(d.keys())}")
 
     if unicode:
-        s = s.replace('$^{-1}$', '⁻¹')
+        s = s.replace("$^{-1}$", "⁻¹")
 
     return s
 
@@ -198,10 +197,9 @@ def s2itup(comp: str) -> tuple:
     comp = str(comp).strip()
     if len(comp) == 2:
         return d[comp[0]], d[comp[1]]
-    elif len(comp) == 3:
+    if len(comp) == 3:
         return d[comp[0]], d[comp[1]], d[comp[2]]
-    else:
-        raise ValueError("Expecting component in the form `xy` or `xyz` but got `%s`" % comp)
+    raise ValueError("Expecting component in the form `xy` or `xyz` but got `%s`" % comp)
 
 
 def itup2s(t: tuple) -> str:
@@ -245,14 +243,13 @@ def occ_fd(ee, kT, mu):
             occ_fd = 1.0
         else:
             occ_fd = 1.0 / (np.exp(arg) + 1.0)
+    # Heaviside
+    elif ee_mu > 0.0:
+        occ_fd = 0.0
+    elif ee_mu < 0.0:
+        occ_fd = 1.0
     else:
-        # Heaviside
-        if ee_mu > 0.0:
-            occ_fd = 0.0
-        elif ee_mu < 0.0:
-            occ_fd = 1.0
-        else:
-            occ_fd = 0.5
+        occ_fd = 0.5
 
     return occ_fd
 

@@ -6,8 +6,8 @@ GW Convergence
 This example shows how to use the SigresRobot to visualize the convergence of the
 QP results stored in the SIGRES.nc files produced by the GW code (sigma run).
 """
-from abipy.abilab import SigresRobot
 import abipy.data as abidata
+from abipy.abilab import SigresRobot
 
 # List of SIGRES files computed with different values of nband.
 filenames = [

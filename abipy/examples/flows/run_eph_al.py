@@ -6,11 +6,11 @@ Isotropic superconductivity
 This flow computes the phonon linewidths and the
 isotropic Eliashberg function in Al.
 """
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

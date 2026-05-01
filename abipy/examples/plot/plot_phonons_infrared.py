@@ -11,8 +11,8 @@ For a command line interfase, use:
     abiview.py ddb_ir in_DDB
 """
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy import abilab
 
 # Open DDB file for alpha-SiO2 taken from https://materialsproject.org/materials/mp-7000/

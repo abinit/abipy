@@ -6,7 +6,8 @@ import panel as pn
 import panel.widgets as pnw
 
 from abipy.electrons.fatbands import FatBandsFile
-from .core import PanelWithElectronBands, ply, mpl, dfc, depends_on_btn_click #, PanelWithEbandsRobot
+
+from .core import PanelWithElectronBands, depends_on_btn_click, ply  #, PanelWithEbandsRobot
 
 
 class FatBandsFilePanel(PanelWithElectronBands):
@@ -19,10 +20,10 @@ class FatBandsFilePanel(PanelWithElectronBands):
         self.ncfile = ncfile
 
         # Create buttons
-        self.plot_fatbands_btn = pnw.Button(name="Plot fatbands", button_type='primary')
-        self.plot_fatdos_btn = pnw.Button(name="Plot fatdos", button_type='primary')
+        self.plot_fatbands_btn = pnw.Button(name="Plot fatbands", button_type="primary")
+        self.plot_fatdos_btn = pnw.Button(name="Plot fatdos", button_type="primary")
 
-    @depends_on_btn_click('plot_fatbands_btn')
+    @depends_on_btn_click("plot_fatbands_btn")
     def on_plot_fatbands_btn(self) -> pn.Column:
         """
         Plot fatbands grouped by atomic type and angular momentum l
@@ -44,7 +45,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
 
         return col
 
-    @depends_on_btn_click('plot_fatdos_btn')
+    @depends_on_btn_click("plot_fatdos_btn")
     def on_plot_fatdos_btn(self) -> pn.Column:
         """
         Plot PJDOS grouped by atomic type and angular momentum l
@@ -105,7 +106,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
 
         if as_dict: return d
 
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template"))
 
 
 #class FatbandsRobotPanel(PanelWithEbandsRobot):

@@ -5,14 +5,12 @@ Gruneisen with Phonopy and AbiPy
 
 Compute Gruneisedn parameters with phonopy (supercells and finite-difference method).
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
-import abipy.flowtk as flowtk
+import sys
 
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.flowtk.abiphonopy import PhonopyGruneisenWork
 
 

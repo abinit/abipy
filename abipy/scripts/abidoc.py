@@ -4,14 +4,14 @@ Interface to the database of ABINIT input variables
 """
 from __future__ import annotations
 
-import sys
 import argparse
-import abipy.tools.cli_parsers as cli
-import abipy.flowtk as flowtk
+import sys
 
 from monty.termcolor import cprint
+
+import abipy.tools.cli_parsers as cli
+from abipy import abilab, flowtk
 from abipy.core.release import __version__
-from abipy import abilab
 
 
 def print_vlist(vlist, options):
@@ -48,28 +48,28 @@ def get_parser(with_epilog=False):
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-V', '--version', action='version', version=__version__)
+    parser.add_argument("-V", "--version", action="version", version=__version__)
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
-    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                              help='verbose, can be supplied multiple times to increase verbosity')
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
+    copts_parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+                              help="verbose, can be supplied multiple times to increase verbosity")
+    copts_parser.add_argument("--loglevel", default="ERROR", type=str,
                               help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    copts_parser.add_argument("-c", '--codename', type=str, default="abinit",
+    copts_parser.add_argument("-c", "--codename", type=str, default="abinit",
                               help="Code name e.g. anaddb, optic... Default: abinit")
 
     var_parser = argparse.ArgumentParser(add_help=False)
-    var_parser.add_argument('varname', help="ABINIT variable")
+    var_parser.add_argument("varname", help="ABINIT variable")
 
     # Create the parsers for the sub-commands
-    subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
+    subparsers = parser.add_subparsers(dest="command", help="sub-command help", description="Valid subcommands")
 
     # Subparser for man.
-    p_man = subparsers.add_parser('man', parents=[copts_parser, var_parser], help="Show documentation for varname.")
+    p_man = subparsers.add_parser("man", parents=[copts_parser, var_parser], help="Show documentation for varname.")
 
     # Subparser for graphviz.
-    p_graphviz = subparsers.add_parser('graphviz', parents=[copts_parser, var_parser],
+    p_graphviz = subparsers.add_parser("graphviz", parents=[copts_parser, var_parser],
         help=("Draw variable dependencies with graphviz package."
               "See https://graphviz.readthedocs.io/."))
     p_graphviz.add_argument("-e", "--engine", type=str, default="automatic",
@@ -78,42 +78,42 @@ def get_parser(with_epilog=False):
             "Use `conda install python-graphviz` or `pip install graphviz` to install the python package"))
 
     # Subparser for browse.
-    p_browse = subparsers.add_parser('browse', parents=[copts_parser, var_parser], help="Open documentation in browser.")
+    p_browse = subparsers.add_parser("browse", parents=[copts_parser, var_parser], help="Open documentation in browser.")
 
     # Subparser for apropos.
-    p_apropos = subparsers.add_parser('apropos', parents=[copts_parser, var_parser],
+    p_apropos = subparsers.add_parser("apropos", parents=[copts_parser, var_parser],
                                       help="Find variables related to varname.")
     # Subparser for find.
-    p_find = subparsers.add_parser('find', parents=[copts_parser, var_parser],
+    p_find = subparsers.add_parser("find", parents=[copts_parser, var_parser],
                                    help="Find all variables whose name contains varname.")
     # Subparser for require.
     #p_require = subparsers.add_parser('require', parents=[copts_parser], help="Find all variables required by varname.")
 
     # Subparser for withdim.
-    p_withdim = subparsers.add_parser('withdim', parents=[copts_parser],
+    p_withdim = subparsers.add_parser("withdim", parents=[copts_parser],
                                       help="Find all arrays depending on the given dimension.")
     p_withdim.add_argument("dimname", help="Dimension name")
 
     # Subparser for list.
-    p_list = subparsers.add_parser('list', parents=[copts_parser], help="List all variables.")
-    p_list.add_argument('--mode', default="a",
+    p_list = subparsers.add_parser("list", parents=[copts_parser], help="List all variables.")
+    p_list.add_argument("--mode", default="a",
                         help="Sort mode, `a` for alphabethical, `s` for varset, `c` for characteristics.")
 
     # Subparser for manager.
-    p_manager = subparsers.add_parser('manager', parents=[copts_parser], help="Document the TaskManager options.")
+    p_manager = subparsers.add_parser("manager", parents=[copts_parser], help="Document the TaskManager options.")
     p_manager.add_argument("qtype", nargs="?", default=None, help=("Write job script to terminal if qtype='script' else "
         "document the qparams for the given QueueAdapter qtype e.g. slurm."))
 
     # Subparser for scheduler
-    p_docsched = subparsers.add_parser('scheduler', parents=[copts_parser],
+    p_docsched = subparsers.add_parser("scheduler", parents=[copts_parser],
         help="Document the options available in scheduler.yml.")
 
     # Subparser for abibuild
-    p_abibuild = subparsers.add_parser('abibuild', parents=[copts_parser],
+    p_abibuild = subparsers.add_parser("abibuild", parents=[copts_parser],
         help="Show ABINIT build information and exit.")
 
     # Subparser for links
-    p_urls = subparsers.add_parser('urls', parents=[copts_parser],
+    p_urls = subparsers.add_parser("urls", parents=[copts_parser],
         help="Produce Yaml file with varname --> ulrs.")
 
     return parser
@@ -132,7 +132,7 @@ def main():
 
     try:
         options = parser.parse_args()
-    except Exception as exc:
+    except Exception:
         show_examples_and_exit(error_code=1)
 
     # loglevel is bound to the string value obtained from the command line argument.
@@ -140,7 +140,7 @@ def main():
     import logging
     numeric_level = getattr(logging, options.loglevel.upper(), None)
     if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
+        raise ValueError("Invalid log level: %s" % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
     # Get the database of variables for codename.

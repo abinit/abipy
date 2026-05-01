@@ -7,12 +7,10 @@ This example shows how to build a very simple Flow for the structural relaxation
 One could use a similar logic to perform multiple relaxations with different input parameters.
 """
 
-import sys
 import os
+import sys
 
-import abipy.abilab as abilab
-import abipy.data as data
-import abipy.flowtk as flowtk
+from abipy import abilab, data, flowtk
 
 
 def build_flow(options):

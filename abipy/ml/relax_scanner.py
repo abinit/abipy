@@ -3,33 +3,36 @@ Objects to perform ASE calculations with machine-learning potentials.
 """
 from __future__ import annotations
 
-import sys
+import dataclasses
+import itertools
 import os
 import pickle
-import json
-import itertools
-import warnings
-import dataclasses
-import shutil
+from functools import cached_property
+from multiprocessing import Pool
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-
-from pathlib import Path
-from multiprocessing import Pool
-from functools import cached_property
-from monty.json import MontyEncoder
-from monty.collections import dict2namedtuple
+from ase.io.vasp import write_vasp  # write_vasp_xdatcar,
 from pymatgen.core.lattice import Lattice
 from pymatgen.util.coord import pbc_shortest_vectors
-from ase.io.vasp import write_vasp # write_vasp_xdatcar,
-from abipy.core import Structure
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt,
-from abipy.tools.iotools import workdir_with_prefix, PythonScript, ShellScript
-from abipy.tools.serialization import HasPickleIO
-from abipy.tools.printing import print_dataframe
-from abipy.ml.aseml import (relax_atoms, get_atoms, as_calculator, ase_optimizer_cls, RX_MODE, fix_atoms,
-                            MlNeb, MlGsList, CalcBuilder, make_ase_neb)
 
+from abipy.core import Structure
+from abipy.ml.aseml import (
+    RX_MODE,
+    CalcBuilder,
+    MlGsList,
+    MlNeb,
+    as_calculator,
+    fix_atoms,
+    get_atoms,
+    make_ase_neb,
+    relax_atoms,
+)
+from abipy.tools.iotools import PythonScript, workdir_with_prefix
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt  #, get_axarray_fig_plt,
+from abipy.tools.printing import print_dataframe
+from abipy.tools.serialization import HasPickleIO
 
 
 def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
@@ -98,7 +101,7 @@ class Entry:
         return abs(self.energy - other.energy) / len(self.structure) < 1e-4 and \
                np.abs(self.structure.lattice.matrix - other.structure.lattice.matrix).max() < 1e-3 and \
                all(np.abs(site1.frac_coords - site2.frac_coords).max() < 1e-3
-                   for site1, site2 in zip(self.structure, other.structure))
+                   for site1, site2 in zip(self.structure, other.structure, strict=False))
 
 
 @dataclasses.dataclass
@@ -196,7 +199,7 @@ class RelaxScanner(HasPickleIO):
      pressure    = {self.pressure}
      calculator  = {self.nn_name}
      verbose     = {self.verbose}
-     workdir     = {str(self.workdir)}
+     workdir     = {self.workdir!s}
 
 === INITIAL STRUCTURE ===
 
@@ -310,7 +313,7 @@ class RelaxScanner(HasPickleIO):
         with open(directory / "entries.pickle", "wb") as fh:
             pickle.dump(entries, fh)
 
-        with open(directory / "COMPLETED", "wt") as fh:
+        with open(directory / "COMPLETED", "w") as fh:
             fh.write("completed")
 
         return directory
@@ -389,7 +392,6 @@ class RelaxScannerAnalyzer:
     The object is usually constructed by calling `from_topdir`:
 
     Example:
-
         from abipy.ml.relax_scanner import RelaxScannerAnalyzer
         rsa = RelaxScannerAnalyzer.from_topdir(".")
 
@@ -473,8 +475,8 @@ class RelaxScannerAnalyzer:
         df = pd.DataFrame(dict_list).sort_values(by="energy", ignore_index=True)
 
         # Add metadata
-        df.attrs['lattice_matrix'] = entries[0].structure.lattice.matrix
-        df.attrs['structure'] = entries[0].structure
+        df.attrs["lattice_matrix"] = entries[0].structure.lattice.matrix
+        df.attrs["structure"] = entries[0].structure
         return df
 
     def __str__(self):
@@ -526,7 +528,7 @@ class RelaxScannerAnalyzer:
         # Find pairs.
         pairs = []
         inds = np.triu_indices_from(aediff_mat)
-        for i, j in zip(inds[0], inds[1]):
+        for i, j in zip(inds[0], inds[1], strict=False):
             if i == j or not (ediff_max >= aediff_mat[i,j] >= ediff_min): continue
             _, d2 = pbc_shortest_vectors(self.lattice, xreds[i], xreds[j], return_d2=True)
             dist = np.sqrt(float(d2))
@@ -599,7 +601,7 @@ class RelaxScannerAnalyzer:
             calculators = [calc_builder.get_calculator() for i in range(nimages)]
             neb = make_ase_neb(initial_atoms, final_atoms, nimages,
                                calculators, "aseneb", climb,
-                               method='linear', mic=False)
+                               method="linear", mic=False)
 
             #from abipy.ase.neb import interpolate
             #interpolate(images, mic=False, apply_constraint=False)

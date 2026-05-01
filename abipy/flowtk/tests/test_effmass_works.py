@@ -1,11 +1,9 @@
 """Tests for abiphonopy module"""
 import abipy.data as abidata
-import abipy.flowtk as flowtk
-import abipy.data as abidata
-
-from abipy.core.testing import AbipyTest
+from abipy import flowtk
 from abipy.abio.factories import gs_input
-from abipy.flowtk.effmass_works import EffMassLineWork, EffMassDFPTWork, EffMassAutoDFPTWork, FrohlichZPRFlow
+from abipy.core.testing import AbipyTest
+from abipy.flowtk.effmass_works import EffMassAutoDFPTWork, EffMassDFPTWork, EffMassLineWork, FrohlichZPRFlow
 
 
 class TestEffMassWorks(AbipyTest):

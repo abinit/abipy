@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import print_function, unicode_literals, division, absolute_import
-import sys
 import os
 
 from abipy.data import AbinitFilesGenerator
@@ -22,9 +20,8 @@ class MyGenerator(AbinitFilesGenerator):
         Args:
             params: Dictionary with the parameters to be used in the abi file.
         """
-
         if params is not None:
-            inputfile = open("tmp.abi", "r")
+            inputfile = open("tmp.abi")
             lines = inputfile.readlines()
             for i in range(len(lines)):
                 for j in params.keys():
@@ -36,7 +33,7 @@ class MyGenerator(AbinitFilesGenerator):
             for i in range(len(lines)):
                 inputfile.write(lines[i])
 
-        filename = "si_gw_%s_SIGRES.nc" % ('_'.join([i+"_"+str(params[i]) for i in params.keys()]).replace('.', ''))
+        filename = "si_gw_%s_SIGRES.nc" % ("_".join([i+"_"+str(params[i]) for i in params.keys()]).replace(".", ""))
 
         self.files_to_save["out_DS4_SIGRES.nc"] = filename
 

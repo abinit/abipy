@@ -1,7 +1,5 @@
 """Tests for Fold2Bloch module."""
-import numpy as np
 import abipy.data as abidata
-
 from abipy.core.testing import AbipyTest
 from abipy.electrons.fold2bloch import Fold2BlochNcfile
 

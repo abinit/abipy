@@ -1,9 +1,7 @@
 """Tests for htc.FilesFile."""
-from __future__ import print_function, division, unicode_literals
-
-from abipy.core.testing import AbipyTest
 
 from abipy.abio.abivar_database.variables import get_codevars
+from abipy.core.testing import AbipyTest
 
 
 class AbinitVariableDatabaseTest(AbipyTest):
@@ -47,7 +45,7 @@ class AbinitVariableDatabaseTest(AbipyTest):
         name2varset = database.name2varset
         assert name2varset["ecut"] == "basic" and name2varset["ionmov"] == "dev"
 
-        assert database.group_by_varset("ecut") == {'basic': ['ecut']}
+        assert database.group_by_varset("ecut") == {"basic": ["ecut"]}
 
         natom_var = database["natom"]
         ecut_var = database["ecut"]

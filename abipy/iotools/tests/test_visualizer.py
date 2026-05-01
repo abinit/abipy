@@ -1,7 +1,7 @@
 """Tests for visualizer module"""
 
 from abipy.core.testing import AbipyTest
-from abipy.iotools.visualizer import Visualizer, Xcrysden, Vesta, V_Sim, Ovito, Avogadro
+from abipy.iotools.visualizer import Avogadro, Ovito, V_Sim, Vesta, Visualizer, Xcrysden
 
 
 class TestVisualizer(AbipyTest):

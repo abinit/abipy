@@ -5,24 +5,18 @@ and generate extended XYZ files.
 from __future__ import annotations
 
 import os
-import shutil
-import abipy.core.abinit_units as abu
 
-from pathlib import Path
 from ase.calculators.singlepoint import SinglePointCalculator
-from monty.string import list_strings  # marquee,
-from monty.termcolor import cprint
-from ase.io import read
-from ase.stress import full_3x3_to_voigt_6_stress
 from ase.io import write
-from pymatgen.io.vasp.outputs import Vasprun, Outcar
-from pymatgen.io.vasp.sets import MatPESStaticSet # , MPStaticSet
-from abipy.core import Structure
-from abipy.electrons.gsr import GsrFile
+from ase.stress import full_3x3_to_voigt_6_stress
+from monty.string import list_strings  # marquee,
+from pymatgen.io.vasp.outputs import Outcar, Vasprun
+
+import abipy.core.abinit_units as abu
 from abipy.dynamics.hist import HistFile
-from abipy.tools.typing import PathLike
-import abipy.flowtk.qutils as qu
+from abipy.electrons.gsr import GsrFile
 from abipy.ml.tools import get_energy_step
+from abipy.tools.typing import PathLike
 
 
 class ExtxyzIOWriter:
@@ -31,7 +25,6 @@ class ExtxyzIOWriter:
     to extended XYZ files that can be used to train ML models.
 
     Example:
-
         # To find all the vasprun.xml files starting from a top-level directory, use:
 
             xyz_writer = ExtxyzIOWriter.from_top(".", "vasprun.xml")
@@ -118,10 +111,10 @@ class ExtxyzIOWriter:
         if not overwrite and os.path.isfile(xyz_filepath):
             raise RuntimeError(f"Cannot overwrite pre-existent file: {xyz_filepath=}, use overwrite=True to allow overwriting.")
 
-        with open(xyz_filepath, "wt") as fh:
+        with open(xyz_filepath, "w") as fh:
             for filepath in self.filepaths:
                 for atoms in self.yield_atoms_filepath(filepath, traj_range):
-                    write(fh, atoms, format='extxyz', append=True)
+                    write(fh, atoms, format="extxyz", append=True)
 
     def yield_atoms_filepath(self, filepath, traj_range):
         """

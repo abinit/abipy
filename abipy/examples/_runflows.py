@@ -4,17 +4,15 @@ This script runs all the python scripts located in this directory
 """
 from __future__ import annotations
 
-import sys
-import os
 import argparse
+import os
 import shutil
+import sys
 import tempfile
-import abipy.tools.cli_parsers as cli
-
 from subprocess import call
-from abipy import __version__
-from abipy import flowtk
 
+import abipy.tools.cli_parsers as cli
+from abipy import __version__, flowtk
 
 
 def main():
@@ -34,15 +32,15 @@ def main():
 
     parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
-    parser.add_argument('--loglevel', default="ERROR", type=str,
+    parser.add_argument("-V", "--version", action="version", version="%(prog)s version " + __version__)
+    parser.add_argument("--loglevel", default="ERROR", type=str,
                         help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
-    parser.add_argument('-m', '--mode', type=str, default="sequential", help="execution mode. Default is sequential.")
-    parser.add_argument('-e', '--exclude', type=str, default="", help="Exclude scripts. Comma-separated names")
-    parser.add_argument('-x', '--execute', default=False, action="store_true", help="Execute flows.")
-    parser.add_argument('--keep-dirs', action="store_true", default=False, help="Do not remove flow directories.")
-    parser.add_argument('-b', '--bail-on-failure', default=False, help="Exit at the first error.")
+    parser.add_argument("-m", "--mode", type=str, default="sequential", help="execution mode. Default is sequential.")
+    parser.add_argument("-e", "--exclude", type=str, default="", help="Exclude scripts. Comma-separated names")
+    parser.add_argument("-x", "--execute", default=False, action="store_true", help="Execute flows.")
+    parser.add_argument("--keep-dirs", action="store_true", default=False, help="Do not remove flow directories.")
+    parser.add_argument("-b", "--bail-on-failure", default=False, help="Exit at the first error.")
 
     options = parser.parse_args()
 
@@ -69,7 +67,7 @@ def main():
     if options.mode in ["s", "sequential"]:
         for script in scripts:
             # flow will be produced in a temporary workdir.
-            workdir = tempfile.mkdtemp(prefix='flow_' + os.path.basename(script))
+            workdir = tempfile.mkdtemp(prefix="flow_" + os.path.basename(script))
             ret = call(["python", script, "--workdir", workdir])
             retcode += ret
 

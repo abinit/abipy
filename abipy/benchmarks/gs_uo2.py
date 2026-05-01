@@ -4,17 +4,17 @@ UO2 with 96 atoms. PAW and nsppol=2
 GS calculations with paral_kgb == 1.
 Compare wfoptalg in [default, 1].
 """
-import sys
 import operator
-import numpy as np
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
-
+import sys
 from functools import reduce
 from itertools import product
+
+import numpy as np
 from pymatgen.core.units import bohr_to_ang
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_input():
@@ -220,7 +220,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
 
     return build_flow(options)
 

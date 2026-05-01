@@ -7,6 +7,7 @@ from __future__ import annotations
 from abipy.core.mixins import NotebookWriter
 from abipy.flowtk import AbinitTimerParser as _Parser
 
+
 class AbinitTimerParser(_Parser, NotebookWriter):
 
     def yield_figs(self, **kwargs):  # pragma: no cover

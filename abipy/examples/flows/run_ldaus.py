@@ -6,12 +6,11 @@ This example shows how to compute the KS + U band structure of NiO
 with PAW for several values of U and J.
 """
 
-import sys
 import os
-import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+import sys
 
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.flowtk.abiobjects import LdauParams
 
 
@@ -21,7 +20,6 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
 
     # Global variables
     global_vars = dict(
-        #
         ecut=12,
         pawecutdg=30,
         nband=40,

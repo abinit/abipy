@@ -1,14 +1,14 @@
-# coding: utf-8
 """
 Object to analyze the results stored in the WR.nc file
 """
-import numpy as np
-
 from functools import cached_property
+
+import numpy as np
 from monty.string import marquee
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt #, get_axarray_fig_plt
+
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 from abipy.iotools import ETSF_Reader
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt  #, get_axarray_fig_plt
 
 
 class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -36,7 +36,7 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         nx, ny, nz = self.ngfft
         nqx, nqy, nqz = self.ngqpt
         box_shape = self.ngqpt * self.ngfft
-        box_size = np.product(box_shape)
+        box_size = np.prod(box_shape)
         print("ngqpt:", self.ngqpt)
         print("nrpt:", self.nrpt)
         print("Unit cell FFT shape:", self.ngfft)
@@ -113,7 +113,7 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         print("Max |Re Wsr|:", np.max(np.abs(wsr.real)), "Max |Im Wsr|:", np.max(np.abs(wsr.imag)))
         #print("Max |Re Wlr|:", np.max(np.abs(wlr.real)), "Max |Im Wlr|:", np.max(np.abs(wlr.imag)))
 
-        r0 = np.array([0, 0, 0], dtype=np.int)
+        r0 = np.array([0, 0, 0], dtype=int)
         qgrid = np.where(self.ngqpt > 2, self.ngqpt, 0)
         r0 = - (self.ngqpt - 1) // 2
         print("Origin of datagrid set at R0:", r0)
@@ -128,7 +128,7 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         for ix in range(box_shape[0]):
             for iy in range(box_shape[1]):
                 for iz in range(box_shape[2]):
-                    y = np.array((ix, iy, iz), dtype=np.int)
+                    y = np.array((ix, iy, iz), dtype=int)
                     x = (y + r0) % box_shape
                     key = tuple(map(int, x))
                     try:

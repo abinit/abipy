@@ -17,12 +17,11 @@ Note that only selected features are compatible with dynamical quadrupoles.
 Please consult <https://docs.abinit.org/topics/longwave/>
 """
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

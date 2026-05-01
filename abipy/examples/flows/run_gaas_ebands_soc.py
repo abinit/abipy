@@ -14,11 +14,11 @@ Some of the variables in the input files must be changed depending on the value 
 We use relativistic NC pseudos made of two terms: scalar pseudo + SOC term.
 The SOC term can be deactivated with the input variable `so_psp`.
 """
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

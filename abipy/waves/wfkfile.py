@@ -1,19 +1,18 @@
-# coding: utf-8
 """Wavefunction file."""
 from __future__ import annotations
 
-import numpy as np
-
 from functools import cached_property
-from monty.string import marquee
-from abipy.core import Mesh3D, GSphere
-from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.iotools import Visualizer
-from abipy.electrons.ebands import ElectronsReader, ElectronBands
-from abipy.waves.pwwave import PWWaveFunction
-from abipy.tools import duck
 
+import numpy as np
+from monty.string import marquee
+
+from abipy.core import GSphere, Mesh3D
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
+from abipy.electrons.ebands import ElectronBands, ElectronsReader
+from abipy.iotools import Visualizer
+from abipy.tools import duck
+from abipy.waves.pwwave import PWWaveFunction
 
 __all__ = [
     "WfkFile",
@@ -77,7 +76,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
@@ -160,7 +159,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         Export :math:`|u(r)|^2` on file filename.
 
-        return:
+        Return:
             Instance of :class:`Visualizer`
         """
         # Read the wavefunction from file.
@@ -169,8 +168,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         # Export data uding the format specified by filename.
         if visu is None:
             return wave.export_ur2(filepath)
-        else:
-            return wave.export_ur2(filepath, visu=visu)
+        return wave.export_ur2(filepath, visu=visu)
 
     def visualize_ur2(self, spin, kpoint, band, appname="vesta"):
         """
@@ -186,8 +184,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                 return v()
             except visu.Error:
                 pass
-        else:
-            raise visu.Error("Don't know how to export data for visualizer %s" % appname)
+        raise visu.Error("Don't know how to export data for visualizer %s" % appname)
 
     def get_h1mat(self):
         pertcase = self.r.read_value("pertcase")
@@ -353,7 +350,7 @@ class WFK_Reader(ElectronsReader):
     def basis_set(self) -> str:
         """String defining the basis set."""
         basis_set = self.read_value("basis_set")
-        return "".join(str(basis_set, encoding='UTF-8')).strip()
+        return "".join(str(basis_set, encoding="UTF-8")).strip()
 
     @property
     def has_pwbasis_set(self) -> bool:
@@ -373,8 +370,7 @@ class WFK_Reader(ElectronsReader):
         """
         if duck.is_intlike(kpoint):
             return int(kpoint)
-        else:
-            return self.kpoints.index(kpoint)
+        return self.kpoints.index(kpoint)
 
     def read_gvecs_istwfk(self, kpoint) -> tuple:
         """

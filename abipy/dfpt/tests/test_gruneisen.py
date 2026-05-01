@@ -1,10 +1,11 @@
 """Tests for Grunesein module."""
 import os
-import numpy as np
-import abipy.data as abidata
 
-from abipy.core.testing import AbipyTest
+import numpy as np
+
+import abipy.data as abidata
 from abipy import abilab
+from abipy.core.testing import AbipyTest
 from abipy.dfpt.gruneisen import GrunsNcFile, calculate_gruns_finite_differences
 
 
@@ -63,9 +64,9 @@ class GrunsFileTest(AbipyTest):
                 assert plotter.combiboxplot(show=False)
                 assert plotter.animate(show=False)
 
-                assert ncfile.plot_gruns_scatter(units='cm-1', show=False)
-                assert ncfile.plot_gruns_scatter(values="groupv", units='cm-1', show=False)
-                assert ncfile.plot_gruns_scatter(values="gruns_fd", units='cm-1', show=False)
+                assert ncfile.plot_gruns_scatter(units="cm-1", show=False)
+                assert ncfile.plot_gruns_scatter(values="groupv", units="cm-1", show=False)
+                assert ncfile.plot_gruns_scatter(values="gruns_fd", units="cm-1", show=False)
 
                 assert ncfile.plot_gruns_bs(match_bands=True, show=False)
                 assert ncfile.plot_gruns_bs(values="groupv", match_bands=False, show=False)
@@ -76,11 +77,10 @@ class GrunsFileTest(AbipyTest):
 
     def test_from_ddb_list(self):
         """Testsing GrunsFile generation from ddblist."""
-
         # shuffled list as the function should also sort the values
         strains = [0, +4, -2, 2, -4]
         path = os.path.join(abidata.dirpath, "refs", "si_qha")
-        ddb_list = [os.path.join(path, "mp-149_{:+d}_DDB".format(s)) for s in strains]
+        ddb_list = [os.path.join(path, f"mp-149_{s:+d}_DDB") for s in strains]
 
         g = GrunsNcFile.from_ddb_list(ddb_list, ndivsm=3, nqsmall=3)
 

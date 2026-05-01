@@ -3,11 +3,10 @@ Global variables used to initialize AbiPy environment in notebooks.
 """
 from __future__ import annotations
 
-from monty.termcolor import cprint
-
 import os
 import tempfile
 
+from monty.termcolor import cprint
 
 __IN_NOTEBOOK = False
 
@@ -33,8 +32,8 @@ def enable_notebook(with_seaborn=True) -> None:
     # Use seaborn settings for plots (optional)
     if with_seaborn:
         import seaborn as sns
-        sns.set(context='notebook', style='darkgrid', palette='deep',
-                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+        sns.set(context="notebook", style="darkgrid", palette="deep",
+                font="sans-serif", font_scale=1, color_codes=False, rc=None)
 
 
 def get_abinb_workdir() -> str:

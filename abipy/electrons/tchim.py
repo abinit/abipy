@@ -1,28 +1,35 @@
-# coding: utf-8
 """
 Objects to analyze the TCHIM file produced by the GWR code.
 """
 from __future__ import annotations
 
 import itertools
-import numpy as np
-#import pandas as pd
-import abipy.core.abinit_units as abu
 
 #from typing import Any
 from functools import cached_property
-from monty.string import marquee #, list_strings
+
+import numpy as np
+from monty.string import marquee  #, list_strings
+
+#import pandas as pd
+import abipy.core.abinit_units as abu
+
+#from abipy.core.kpoints import Kpoint, KpointList
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Structure  # , NotebookWriter
+
 #from monty.termcolor import cprint
 from abipy.core.structure import Structure
-#from abipy.core.kpoints import Kpoint, KpointList
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands # , NotebookWriter
-from abipy.electrons.ebands import ElectronBands, RobotWithEbands, ElectronsReader
+from abipy.electrons.ebands import ElectronBands, ElectronsReader
 from abipy.tools import duck
-from abipy.tools.typing import Figure, KptSelect, GvecSelect, PathLike
-from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, Marker,
-    set_axlims, set_ax_xylabels, set_visible, rotate_ticklabels, set_grid_legend, hspan_ax_line, Exposer)
 from abipy.tools.numtools import data_from_cplx_mode
-
+from abipy.tools.plotting import (
+    Exposer,
+    add_fig_kwargs,
+    get_axarray_fig_plt,
+    set_axlims,
+    set_grid_legend,
+)
+from abipy.tools.typing import Figure, GvecSelect, KptSelect, PathLike
 
 __all__ = [
     "TchimFile",
@@ -90,7 +97,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     @cached_property
     def params(self) -> dict:
         """
-        dict with parameters that might be subject to convergence studies e.g ecuteps.
+        Dict with parameters that might be subject to convergence studies e.g ecuteps.
         """
         r = self.r
         return dict(
@@ -197,10 +204,10 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
                 return 100 * diff / np.maximum(np.abs(x_ref), epsilon)
                 #return 100 * diff / np.maximum((np.abs(x_ref) + np.abs(y) / 2), epsilon)
 
-            elif mode == "diff":
+            if mode == "diff":
                 return x_ref - y
 
-            elif mode == "abs_diff":
+            if mode == "abs_diff":
                 return np.abs(x_ref - y)
 
             raise ValueError(f"Invalid {mode=}")
@@ -454,7 +461,6 @@ class TchimVsSus:
     produced by the legacy algorithm based on the Adler-Wiser expression.
 
     Example:
-
         gpairs = [
             ((0, 0, 0), (1, 0, 0)),
             ((1, 0, 0), (0, 1, 0)),
@@ -553,7 +559,7 @@ class TchimVsSus:
         ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
                                                sharex=True, sharey=False, squeeze=False)
 
-        for i, ((g1, g2), (sus_ig1, sus_ig2), (chi_ig1, chi_ig2)) in enumerate(zip(gpairs, sus_inds, chi_inds)):
+        for i, ((g1, g2), (sus_ig1, sus_ig2), (chi_ig1, chi_ig2)) in enumerate(zip(gpairs, sus_inds, chi_inds, strict=False)):
             re_ax, im_ax = ax_mat[i]
 
             # number_of_qpoints_dielectric_function, number_of_frequencies_dielectric_function,
@@ -583,12 +589,12 @@ class TchimVsSus:
             im_ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
             #if i == 0:
-            re_ax.set_ylabel(r'$\Re{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
-            im_ax.set_ylabel(r'$\Im{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$')
+            re_ax.set_ylabel(r"$\Re{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$")
+            im_ax.set_ylabel(r"$\Im{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$")
 
             if i == len(gpairs) - 1:
-                re_ax.set_xlabel(r'$i \omega$ (Ha)')
-                im_ax.set_xlabel(r'$i \omega$ (Ha)')
+                re_ax.set_xlabel(r"$i \omega$ (Ha)")
+                im_ax.set_xlabel(r"$i \omega$ (Ha)")
 
             # The two files may store chi on different meshes.
             # Here we select the min value for comparison purposes.
@@ -694,7 +700,7 @@ class TchimVsSus:
                                                 squeeze=False)
         ax_list = ax_list.ravel()
 
-        import matplotlib.colors as colors
+        from matplotlib import colors
         mat = data_from_cplx_mode("abs", tchi_data - sus_data)
         ax = ax_list[0]
         im = ax.matshow(mat, cmap=cmap, norm=colors.LogNorm(vmin=mat.min(), vmax=mat.max()))

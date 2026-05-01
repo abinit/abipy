@@ -43,7 +43,7 @@ ax_mat, fig, plt = abilab.get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
 # In the band structure plot, we show the fundamental/direct gap as well as the possible
 # phonon-absorption (-emission) processes allowed by energy-conservation.
 # (This is a qualitative analysis of e-ph scattering, quasi-momentum and ph dispersion are not taken into account).
-for i, (ebands, phbands) in enumerate(zip(ebands_list, phbands_list)):
+for i, (ebands, phbands) in enumerate(zip(ebands_list, phbands_list, strict=False)):
     ebands.plot(ax=ax_mat[i, 0], with_gaps=True, ylims=(-5, 10), max_phfreq=phbands.maxfreq, show=False)
     phbands.plot(ax=ax_mat[i, 1], show=False)
 

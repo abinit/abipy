@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import sys
-
 from collections import OrderedDict
 
 ##############
@@ -54,7 +53,7 @@ def abinit_help(varname: str, info=True, stream=sys.stdout) -> None:
     try:
         stream.write(text)
     except UnicodeEncodeError:
-        stream.write(text.encode('ascii', 'ignore'))
+        stream.write(text.encode("ascii", "ignore"))
     stream.write("\n")
 
 

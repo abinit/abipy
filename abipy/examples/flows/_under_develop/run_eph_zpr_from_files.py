@@ -9,13 +9,13 @@ using the DDB/DVDB/POT files produced by a previous flow.
 More specifically, we perform NSCF calculations with different dense k-meshes and empty states.
 Then we use these dense WFK files to compute the e-ph self-energy by varying the value of zcut and nband.
 """
-import sys
-import os
 import itertools
-import numpy as np
-import abipy.abilab as abilab
+import os
+import sys
 
-from abipy import flowtk
+import numpy as np
+
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

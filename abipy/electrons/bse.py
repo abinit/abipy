@@ -1,32 +1,30 @@
-# coding: utf-8
 """Classes for the analysis of Bethe-Salpeter calculations"""
 from __future__ import annotations
 
-import os
 import itertools
+import os
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
+from monty.string import is_string, marquee
 
-from functools import cached_property
-from monty.string import marquee, is_string
+from abipy.abio.robots import Robot
 from abipy.core.func1d import Function1D
-from abipy.core.structure import Structure
 from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
-from abipy.iotools import ETSF_Reader
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
-from abipy.tools.plotting import set_axlims
-from abipy.tools import duck
-from abipy.tools.typing import Figure
-from abipy.abio.robots import Robot
+from abipy.core.structure import Structure
 from abipy.electrons.ebands import RobotWithEbands
-
+from abipy.iotools import ETSF_Reader
+from abipy.tools import duck
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
+from abipy.tools.typing import Figure
 
 __all__ = [
     "DielectricFunction",
     "MdfFile",
-    "MdfReader",
     "MdfPlotter",
+    "MdfReader",
     "MultipleMdfPlotter",
 ]
 
@@ -112,8 +110,8 @@ class _DielectricTensor:
         red_coords = kwargs.pop("red_coords", True)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
-        ax.set_xlabel('Frequency (eV)')
-        ax.set_ylabel('Dielectric tensor')
+        ax.set_xlabel("Frequency (eV)")
+        ax.set_ylabel("Dielectric tensor")
 
         #if not kwargs:
         #    kwargs = {"color": "black", "linewidth": 2.0}
@@ -253,8 +251,8 @@ class DielectricFunction:
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
-        ax.set_xlabel('Frequency (eV)')
-        ax.set_ylabel('Macroscopic DF')
+        ax.set_xlabel("Frequency (eV)")
+        ax.set_ylabel("Macroscopic DF")
 
         #if not kwargs:
         #    kwargs = {"color": "black", "linewidth": 2.0}
@@ -359,7 +357,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @cached_property
     def exc_mdf(self):
-        "Excitonic macroscopic dieletric function."""
+        """Excitonic macroscopic dieletric function."""
         return self.r.read_exc_mdf()
 
     @cached_property
@@ -599,8 +597,8 @@ class MdfPlotter:
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
-        ax.set_xlabel('Frequency (eV)')
-        ax.set_ylabel('Macroscopic DF')
+        ax.set_xlabel("Frequency (eV)")
+        ax.set_ylabel("Macroscopic DF")
 
         cmodes = cplx_mode.split("-")
         qtag = "avg" if qpoint is None else repr(qpoint)
@@ -614,7 +612,7 @@ class MdfPlotter:
                 legends.append(r"%s: %s, %s $\varepsilon$" % (cmode, qtag, label))
 
         # Set legends.
-        ax.legend(lines, legends, loc='best', fontsize=fontsize, shadow=True)
+        ax.legend(lines, legends, loc="best", fontsize=fontsize, shadow=True)
         set_axlims(ax, xlims, "x")
         set_axlims(ax, ylims, "y")
 
@@ -831,9 +829,8 @@ class MultipleMdfPlotter:
             lines.append(l)
             if can_use_basename:
                 label = os.path.basename(label)
-            else:
-                # Use relative paths if label is a file.
-                if os.path.isfile(label): label = os.path.relpath(label)
+            # Use relative paths if label is a file.
+            elif os.path.isfile(label): label = os.path.relpath(label)
 
             legends.append(r"%s: %s, %s $\varepsilon$" % (cplx_mode, qtag, label))
 
@@ -842,7 +839,7 @@ class MultipleMdfPlotter:
 
         # Set legends.
         if with_legend:
-            ax.legend(lines, legends, loc='best', fontsize=fontsize, shadow=True)
+            ax.legend(lines, legends, loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -860,9 +857,8 @@ class MultipleMdfPlotter:
             mdf = d[self.MDF_TYPES[0]]
             if i == 0:
                 qpoints = mdf.qpoints
-            else:
-                if qpoints != mdf.qpoints:
-                    eapp("List of q-points for MDF index %i does not agree with first set:\n" % str(qpoints))
+            elif qpoints != mdf.qpoints:
+                eapp("List of q-points for MDF index %i does not agree with first set:\n" % str(qpoints))
 
         if errors:
             msg = "\n".join(errors)

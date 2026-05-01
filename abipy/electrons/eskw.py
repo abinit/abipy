@@ -1,12 +1,13 @@
-# coding: utf-8
 """
 Interface to the ESKW.nc file storing the (star-function) interpolated band structure produced by Abinit.
 """
 from functools import cached_property
+
 from monty.string import marquee
+
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.electrons.ebands import ElectronsReader, ElectronBands
+from abipy.electrons.ebands import ElectronBands, ElectronsReader
 
 
 class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -78,7 +79,7 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @cached_property
     def params(self) -> dict:
-        """dictionary with parameters that might be subject to convergence studies."""
+        """Dictionary with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         od["einterp"] = self.interp
         od["einterp"] = self.einterp

@@ -24,9 +24,7 @@ class StrEnum(str, enum.Enum):
         for arg in args:
             if not isinstance(arg, (str, enum.auto)):
                 raise TypeError(
-                    "Values of StrEnums must be strings: {} is a {}".format(
-                        repr(arg), type(arg)
-                    )
+                    f"Values of StrEnums must be strings: {arg!r} is a {type(arg)}"
                 )
         return super().__new__(cls, *args)
 

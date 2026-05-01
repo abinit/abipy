@@ -5,15 +5,12 @@ G0W0 convergence study
 
 G0W0 convergence study wrt ecuteps and the number of bands in W.
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
 
-import sys
 import os
-import numpy as np
+import sys
 
-import abipy.abilab as abilab
 import abipy.data as abidata
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 # system aopt SR DFT FR DFT SR G0W0 FR G0W0 aexpt157 SR DFT SR G0W0 expt.157
 alatt = {

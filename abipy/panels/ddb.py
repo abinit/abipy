@@ -2,16 +2,25 @@
 from __future__ import annotations
 
 import sys
-import param
+
 import panel as pn
 import panel.widgets as pnw
+import param
 
 from abipy.core.structure import Structure
-from abipy.panels.core import (AbipyParameterized, PanelWithStructure, BaseRobotPanel,
-        mpl, ply, dfc, depends_on_btn_click, Loading, ActiveBar)
-from abipy.dfpt.ddb import PhononBandsPlotter, DdbFile, DdbRobot
+from abipy.dfpt.ddb import DdbFile, DdbRobot, PhononBandsPlotter
+from abipy.panels.core import (
+    AbipyParameterized,
+    ActiveBar,
+    BaseRobotPanel,
+    Loading,
+    PanelWithStructure,
+    depends_on_btn_click,
+    dfc,
+    mpl,
+    ply,
+)
 from abipy.tools.decorators import Appender
-
 
 add_lr_docstring = Appender("""
 The variables [[dipdip@anaddb]], [[dipquad@anaddb]] and [[quadquad@anaddb]]
@@ -75,18 +84,18 @@ class PanelWithAnaddbParams(param.Parameterized):
     def __init__(self, **params):
         super().__init__(**params)
         # FIXME
-        self.nqsmall_list = pnw.LiteralInput(name='nqmall_list (python syntax)', value=[10, 20, 30], type=list)
+        self.nqsmall_list = pnw.LiteralInput(name="nqmall_list (python syntax)", value=[10, 20, 30], type=list)
         #nqqpt = pnw.LiteralInput(name='nsmalls (list)', value=[10, 20, 30], type=list)
 
         self.eps0_wrange = pnw.EditableRangeSlider(name="Frequency range (eV)", value=(0.0, 0.1),
                                                    start=0.0, end=1.0, step=0.01)
 
-        self.temp_range = pnw.EditableRangeSlider(name='T-range in K', value=(100.0, 400),
+        self.temp_range = pnw.EditableRangeSlider(name="T-range in K", value=(100.0, 400),
                                                   start=0, end=1000, step=50)
 
         # Base buttons
         self.plot_without_asr_dipdip_btn = pnw.Button(name="Compute phonons with/wo ASR and DIPDIP",
-                                                      button_type='primary')
+                                                      button_type="primary")
 
         #if self.has_remote_serve:
         #    self.param.nqsmall.bounds = (1, 50)
@@ -124,15 +133,15 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         self.ddb = ddb
 
         # Add buttons
-        self.get_epsinf_btn = pnw.Button(name="Compute", button_type='primary')
-        self.plot_phbands_btn = pnw.Button(name="Plot Bands and DOS", button_type='primary')
-        self.plot_eps0w_btn = pnw.Button(name="Plot eps0(omega)", button_type='primary')
+        self.get_epsinf_btn = pnw.Button(name="Compute", button_type="primary")
+        self.plot_phbands_btn = pnw.Button(name="Plot Bands and DOS", button_type="primary")
+        self.plot_eps0w_btn = pnw.Button(name="Plot eps0(omega)", button_type="primary")
 
-        self.plot_vsound_btn = pnw.Button(name="Calculate speed of sound", button_type='primary')
-        self.plot_ifc_btn = pnw.Button(name="Compute IFC(R)", button_type='primary')
-        self.plot_phbands_quad_btn = pnw.Button(name="Plot PHbands with/without quadrupoles", button_type='primary')
-        self.plot_dos_vs_qmesh_btn = pnw.Button(name="Plot PHDos vs Qmesh", button_type='primary')
-        self.compute_elastic_btn = pnw.Button(name="Compute Elastic", button_type='primary')
+        self.plot_vsound_btn = pnw.Button(name="Calculate speed of sound", button_type="primary")
+        self.plot_ifc_btn = pnw.Button(name="Compute IFC(R)", button_type="primary")
+        self.plot_phbands_quad_btn = pnw.Button(name="Plot PHbands with/without quadrupoles", button_type="primary")
+        self.plot_dos_vs_qmesh_btn = pnw.Button(name="Plot PHDos vs Qmesh", button_type="primary")
+        self.compute_elastic_btn = pnw.Button(name="Compute Elastic", button_type="primary")
 
         self.stacked_pjdos = pnw.Checkbox(name="Stacked PJDOS", value=True)
         self.with_qpath = pnw.Checkbox(name="Show q-path with plotly", value=True)
@@ -145,7 +154,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
             self.get_epsinf
         )
 
-    @depends_on_btn_click('get_epsinf_btn')
+    @depends_on_btn_click("get_epsinf_btn")
     def get_epsinf(self) -> pn.Column:
         """
         Compute eps_infinity and Born effective charges from DDB.
@@ -158,7 +167,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                                                                return_input=True)
 
         # Fill column
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
         eps0 = gen.tensor_at_frequency(w=0, gamma_ev=self.eps0_gamma_ev)
 
         df_kwargs = {}
@@ -190,7 +199,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                 self.plot_eps0w
             )
 
-    @depends_on_btn_click('plot_eps0w_btn')
+    @depends_on_btn_click("plot_eps0w_btn")
     def plot_eps0w(self) -> pn.Column:
         """
         Compute eps0(omega) from DDB and plot the results.
@@ -207,7 +216,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                               reim=reim, units=self.units, show=False)
             return ply(fig, with_help=False)
 
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
 
         # Add figures
         ca("## epsilon(w):")
@@ -241,7 +250,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                 self.on_plot_phbands_and_phdos
             )
 
-    @depends_on_btn_click('plot_phbands_btn')
+    @depends_on_btn_click("plot_phbands_btn")
     @add_lr_docstring
     def on_plot_phbands_and_phdos(self) -> pn.Column:
         """
@@ -251,8 +260,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         - Total phonon DOS and atom-projected phonon DOSes
         - Thermodynamic properties in the Harmonic approximation
 
-        Important
-
+        Important:
             Note that **anaddb** uses the **q**-mesh found in the DDB file to build the
             interatomic force constants (IFCs) in real space and then compute phonon quantities
             at arbitrary **q**-points by Fourier interpolation.
@@ -266,7 +274,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
             phbands, phdos = phbst_file.phbands, phdos_file.phdos
 
             # Fill column
-            col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+            col = pn.Column(sizing_mode="stretch_width"); ca = col.append
 
             ca("## Phonon band structure and DOS:")
             ca(ply(phbands.plotly_with_phdos(phdos, units=self.units, show=False)))
@@ -303,7 +311,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                 self.plot_vsound
             )
 
-    @depends_on_btn_click('plot_vsound_btn')
+    @depends_on_btn_click("plot_vsound_btn")
     @add_lr_docstring
     def plot_vsound(self) -> pn.Column:
         """
@@ -336,7 +344,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                     self.plot_without_asr_dipdip
                 )
 
-    @depends_on_btn_click('plot_without_asr_dipdip_btn')
+    @depends_on_btn_click("plot_without_asr_dipdip_btn")
     def plot_without_asr_dipdip(self) -> pn.Column:
         """
         This Tab provides widgets to compare phonon bands and DOSes computed with/without
@@ -355,7 +363,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                                                     verbose=self.verbose, mpi_procs=self.mpi_procs)
 
         # Fill column
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
         ca("## Phonon bands and DOS with/wo acoustic sum rule:")
         ca(ply(asr_plotter.combiplotly(show=False)))
         ca("## Phonon bands and DOS with/without the treatment of the dipole-dipole interaction:")
@@ -373,7 +381,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                 self.plot_dos_vs_qmesh
             )
 
-    @depends_on_btn_click('plot_dos_vs_qmesh_btn')
+    @depends_on_btn_click("plot_dos_vs_qmesh_btn")
     @add_lr_docstring
     def plot_dos_vs_qmesh(self) -> pn.Column:
         """
@@ -388,7 +396,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         #r.phdoses: List of |PhononDos| objects
 
         # Fill column
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
         ca("## Phonon DOSes obtained with different q-meshes:")
         ca(ply(r.plotter.combiplotly(show=False)))
 
@@ -410,7 +418,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
             self.plot_phbands_quad
         )
 
-    @depends_on_btn_click('plot_phbands_quad_btn')
+    @depends_on_btn_click("plot_phbands_quad_btn")
     def plot_phbands_quad(self) -> pn.Column:
         """
         This Tab provides widgets to compare phonon bands and DOSes computed with/without the inclusion
@@ -423,7 +431,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                                            verbose=self.verbose, mpi_procs=self.mpi_procs)
 
         # Fill column
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
         ca("## Phonon Bands obtained with different q-meshes:")
         ca(ply(plotter.combiplotly(show=False)))
 
@@ -437,7 +445,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
                 self.on_plot_ifc
             )
 
-    @depends_on_btn_click('plot_ifc_btn')
+    @depends_on_btn_click("plot_ifc_btn")
     def on_plot_ifc(self):
         """
         Plot the Interatomic Force Constants in real space.
@@ -449,7 +457,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         #print(kwds)
 
         # Fill column
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
         ca(mpl(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", **kwds)))
         ca(mpl(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", **kwds)))
         ca(mpl(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", **kwds)))
@@ -466,7 +474,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
             self.on_compute_elastic_btn
         )
 
-    @depends_on_btn_click('compute_elastic_btn')
+    @depends_on_btn_click("compute_elastic_btn")
     def on_compute_elastic_btn(self) -> pn.Column:
         """
         Call anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.
@@ -476,12 +484,11 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         This behaviour can be changed by setting explicitly the value of:
         `relaxed_ion` and `piezo`.
         """
-
         edata, inp = self.ddb.anaget_elastic(relaxed_ion="automatic", piezo="automatic",
                                              dde=False, stress_correction=False, asr=self.asr, chneut=self.chneut,
                                              mpi_procs=1, verbose=self.verbose, return_input=True)
 
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
 
         #print(edata)
         #edata.elastic_relaxed
@@ -538,7 +545,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         )
 
         if as_dict: return d
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template"))
 
 
 class PanelWithFileInput(AbipyParameterized):
@@ -570,7 +577,7 @@ Also, avoid uploading big files (size > XXX).
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
 
-        self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press ⏎')
+        self.mpid_input = pnw.TextInput(name="mp-id", placeholder="Enter e.g. mp-149 for Silicon and press ⏎")
         self.mpid_input.param.watch(self.on_mpid_input, "value")
         self.mpid_err_wdg = pn.pane.Markdown("")
         #self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website', bar_color="warning",
@@ -658,7 +665,7 @@ the results.
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
 
-        self.mpid_input = pnw.TextInput(name='mp-id', placeholder='Enter e.g. mp-149 for Silicon and press ⏎')
+        self.mpid_input = pnw.TextInput(name="mp-id", placeholder="Enter e.g. mp-149 for Silicon and press ⏎")
         self.mpid_input.param.watch(self.on_mpid_input, "value")
         self.mpid_err_wdg = pn.pane.Markdown("")
         #self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website', bar_color="warning",
@@ -721,13 +728,13 @@ This app alllows users to upload a DDB file and compare it with the one availabl
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
 
-        self.mp_progress = pn.indicators.Progress(name='Fetching DDB from the MP website', bar_color="warning",
+        self.mp_progress = pn.indicators.Progress(name="Fetching DDB from the MP website", bar_color="warning",
                                                   active=False, width=100, height=10, align="center")
         self.mp_err_wdg = pn.pane.Markdown("")
 
     def on_file_input(self, event) -> None:
         abinit_ddb = self.get_abifile_from_file_input(self.file_input)
-        from abipy.dfpt.ddb import DdbFile, DdbRobot
+        from abipy.dfpt.ddb import DdbRobot
 
         # Match Abinit structure with MP.
         mp = abinit_ddb.structure.mp_match()
@@ -763,9 +770,9 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
         PanelWithAnaddbParams.__init__(self)
 
         # Buttons
-        self.plot_combiplot_btn = pnw.Button(name="Compute", button_type='primary')
-        self.combiplot_check_btn = pnw.CheckButtonGroup(name='Check Button Group',
-                                                        value=['combiplot'], options=['combiplot', 'gridplot'])
+        self.plot_combiplot_btn = pnw.Button(name="Compute", button_type="primary")
+        self.combiplot_check_btn = pnw.CheckButtonGroup(name="Check Button Group",
+                                                        value=["combiplot"], options=["combiplot", "gridplot"])
 
     def kwargs_for_anaget_phbst_and_phdos_files(self, **extra_kwargs) -> dict:
         """Extend method of base class to handle lo_to_splitting"""
@@ -779,7 +786,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
 
         return kwargs
 
-    @depends_on_btn_click('plot_combiplot_btn')
+    @depends_on_btn_click("plot_combiplot_btn")
     def plot_combiplot(self, **kwargs) -> pn.Column:
         """Plot phonon band structures."""
         kwargs = self.kwargs_for_anaget_phbst_and_phdos_files()
@@ -789,7 +796,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
         #r = self.robot.anaget_phonon_plotters()
 
         # Fill column
-        col = pn.Column(sizing_mode='stretch_both'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_both"); ca = col.append
 
         if "combiplot" in self.combiplot_check_btn.value:
             ca("## Combiplot:")
@@ -927,7 +934,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
     #        return gspec
 
     # THIS OK but I don't think it's very useful
-    @depends_on_btn_click('plot_without_asr_dipdip_btn')
+    @depends_on_btn_click("plot_without_asr_dipdip_btn")
     def plot_without_asr_dipdip(self) -> pn.Column:
         """
         Compare phonon bands and DOSes computed with/without the acoustic sum rule
@@ -956,7 +963,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
             dipdip_plotter.append_plotter(dipdip_p)
 
         # Fill column
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
 
         ca("## Phonon bands and DOS with/wo the acoustic sum rule:")
         ca(ply(asr_plotter.combiplotly(show=False)))
@@ -1043,7 +1050,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
 
         if as_dict: return d
 
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template"))
 
 
 class RobotWithFileInput(AbipyParameterized):
@@ -1072,7 +1079,7 @@ a set of ABINIT output files of the same type.
         top = "/Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_phonons_nkpt_tsmear"
         top = "~"
         self.file_selector = pnw.FileSelector(top)
-        self.robot_files_btn = pnw.Button(name="Load files", button_type='primary', sizing_mode="stretch_width")
+        self.robot_files_btn = pnw.Button(name="Load files", button_type="primary", sizing_mode="stretch_width")
         self.robot_files_btn.on_click(self.on_load_files)
 
     #@depends_on_btn_click("robot_files_btn")

@@ -8,16 +8,14 @@ Flow to compute conductivity in metals.
 
 import os
 import sys
-import abipy.data as abidata
-import abipy.abilab as abilab
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.abio.factories import conduc_kerange_from_inputs
 
 
 def make_scf_input(structure, pseudos, ngkpt=(2, 2, 2), shiftk=(0, 0, 0), **variables):
     """Build and return SCF input given the structure and pseudopotentials"""
-
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
     # Global variables

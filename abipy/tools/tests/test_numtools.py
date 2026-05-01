@@ -1,10 +1,11 @@
 import itertools
+
 import numpy as np
 import pytest
-
 from pymatgen.core.lattice import Lattice
-from abipy.core.testing import AbipyTest
+
 from abipy.core.structure import Structure
+from abipy.core.testing import AbipyTest
 from abipy.tools.numtools import *
 
 
@@ -98,7 +99,7 @@ class TestNumTools(AbipyTest):
         assert list(iflat(nested_list)) == [0, 1, 2, 3, 4]
 
     def test_grouper(self):
-        assert grouper(3, "ABCDEFG", "x") == [('A', 'B', 'C'), ('D', 'E', 'F'), ('G', 'x', 'x')]
+        assert grouper(3, "ABCDEFG", "x") == [("A", "B", "C"), ("D", "E", "F"), ("G", "x", "x")]
 
     def test_sort_and_groupby(self):
         keys, groups = sort_and_groupby([1, 2, 1], ret_lists=True)
@@ -111,7 +112,7 @@ class TestNumTools(AbipyTest):
     def test_smooth(self):
         x = np.linspace(-2, 2, 50)
         y = np.sin(x)
-        smoothed = smooth(y, window_len=11, window='hanning')
+        smoothed = smooth(y, window_len=11, window="hanning")
         assert len(smoothed) == len(y)
 
     def test_find_convindex(self):

@@ -1,11 +1,10 @@
-# coding: utf-8
-import os
 import datetime
+import os
 
 from abipy.core.testing import AbipyTest
 from abipy.flowtk import events
 
-_test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
+_test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "test_files")
 
 def ref_file(filename):
     return os.path.join(_test_dir, filename)
@@ -75,4 +74,4 @@ class EventHandlersTest(AbipyTest):
             self.assert_msonable(handler)
 
         assert events.as_event_class(events.AbinitWarning) == events.AbinitWarning
-        assert events.as_event_class('!WARNING') == events.AbinitWarning
+        assert events.as_event_class("!WARNING") == events.AbinitWarning

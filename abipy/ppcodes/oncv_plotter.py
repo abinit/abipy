@@ -1,26 +1,24 @@
-# coding: utf-8
 """
 Classes and functions for parsing ONCVPSP output files and plotting results.
 """
 from __future__ import annotations
 
-import io
-import os
 import json
+import os
 import tempfile
-import numpy as np
-
-from typing import Optional
 from shutil import which
+
+import numpy as np
 from monty.collections import dict2namedtuple
 from monty.termcolor import cprint
 from scipy.interpolate import UnivariateSpline
-from abipy.core.atom import l2char # NlkState, RadialFunction, RadialWaveFunction,
+
+from abipy.core.atom import l2char  # NlkState, RadialFunction, RadialWaveFunction,
 from abipy.core.mixins import NotebookWriter
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, set_axlims
-from abipy.tools.typing import Figure
-from abipy.tools.derivatives import finite_diff
 from abipy.ppcodes.oncv_parser import OncvParser
+from abipy.tools.derivatives import finite_diff
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible
+from abipy.tools.typing import Figure
 
 
 class OncvPlotter(NotebookWriter):
@@ -207,7 +205,7 @@ class OncvPlotter(NotebookWriter):
 
         for nlk, proj in self.parser.projectors.items():
             ax.plot(proj.rmesh, proj.values,
-                    color=self.color_l.get(nlk.l, 'black'),
+                    color=self.color_l.get(nlk.l, "black"),
                     linestyle=linestyle_n[nlk.n],
                     linewidth=self.linewidth,
                     markersize=self.markersize,
@@ -414,7 +412,7 @@ class OncvPlotter(NotebookWriter):
         ax_list = ax_list.ravel()
 
         self.plot_atan_logders(ax=ax_list[0], fontsize=fontsize, show=False)
-        ax_list[0].xaxis.set_label_position('top')
+        ax_list[0].xaxis.set_label_position("top")
 
         self.plot_kene_vs_ecut(ax=ax_list[1], fontsize=fontsize, show=False)
 
@@ -480,12 +478,12 @@ class OncvPlotter(NotebookWriter):
         ax, fig, plt = get_ax_fig_plt(ax, figsize=figsize)
         ax.scatter(xs, enes, s=90000, marker="_", linewidth=2, zorder=3)
 
-        for xi, yi, level in zip(xs, enes, atm_levels):
+        for xi, yi, level in zip(xs, enes, atm_levels, strict=False):
             text = f"{level.nlk.latex}" + f", occ={level.occ}"
             #xy = .65*xi, yi
             #xy = xi, yi
             xy = xi, 0.95 * yi
-            ax.annotate(text, xy=xy, xytext=(8, 4), size=8, ha="center", va='top', textcoords="offset points")
+            ax.annotate(text, xy=xy, xytext=(8, 4), size=8, ha="center", va="top", textcoords="offset points")
 
         span_style = {}
         span_style.setdefault("alpha", 0.2)
@@ -497,11 +495,11 @@ class OncvPlotter(NotebookWriter):
         #p2 = patches.FancyArrowPatch((1, 0), (0, 1), arrowstyle='<|-|>', mutation_scale=20)
 
         #ax.margins(0.1)
-        ax.set_ylabel('Eigenvalue (Ha)')
-        ax.set_title('Atomic energy levels')
+        ax.set_ylabel("Eigenvalue (Ha)")
+        ax.set_title("Atomic energy levels")
         ax.set_xticks([])
         #ax.yaxis.set_minor_locator(mpl.ticker.MaxNLocator(50))
-        ax.grid(axis='y')
+        ax.grid(axis="y")
         #ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
@@ -592,32 +590,30 @@ See also https://jupyter.readthedocs.io/en/latest/install.html
     if not no_browser:
         if foreground:
             return os.system("%s %s" % (app_path, nbpath))
-        else:
-            fd, tmpname = tempfile.mkstemp(text=True)
-            print(tmpname)
-            cmd = "%s %s" % (app_path, nbpath)
-            print("Executing:", cmd, "\nstdout and stderr redirected to %s" % tmpname)
-            import subprocess
-            process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
-            cprint("pid: %s" % str(process.pid), "yellow")
-            return 0
+        fd, tmpname = tempfile.mkstemp(text=True)
+        print(tmpname)
+        cmd = "%s %s" % (app_path, nbpath)
+        print("Executing:", cmd, "\nstdout and stderr redirected to %s" % tmpname)
+        import subprocess
+        process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
+        cprint("pid: %s" % str(process.pid), "yellow")
+        return 0
 
-    else:
-        # Based on https://github.com/arose/nglview/blob/master/nglview/scripts/nglview.py
-        notebook_name = os.path.basename(nbpath)
-        dirname = os.path.dirname(nbpath)
-        #print("nbpath:", nbpath)
+    # Based on https://github.com/arose/nglview/blob/master/nglview/scripts/nglview.py
+    notebook_name = os.path.basename(nbpath)
+    dirname = os.path.dirname(nbpath)
+    #print("nbpath:", nbpath)
 
-        import socket
-        from abipy.tools.notebooks import find_free_port
-        username = os.getlogin()
-        hostname = socket.gethostname()
-        port = find_free_port()
+    import socket
 
-        client_cmd = "ssh -NL localhost:{port}:localhost:{port} {username}@{hostname}".format(
-            username=username, hostname=hostname, port=port)
+    from abipy.tools.notebooks import find_free_port
+    username = os.getlogin()
+    hostname = socket.gethostname()
+    port = find_free_port()
 
-        print(f"""
+    client_cmd = f"ssh -NL localhost:{port}:localhost:{port} {username}@{hostname}"
+
+    print(f"""
 Using port: {port}
 
 \033[32m In your local machine, run: \033[0m
@@ -629,18 +625,18 @@ Using port: {port}
 
 http://localhost:{port}/notebooks/{notebook_name}
 """)
-        if not classic_notebook:
-            cmd = f'{app_path} {notebook_name} --no-browser --port {port} --notebook-dir {dirname}'
-        else:
-            cmd = f'{app_path} notebook {notebook_name} --no-browser --port {port} --notebook-dir {dirname}'
+    if not classic_notebook:
+        cmd = f"{app_path} {notebook_name} --no-browser --port {port} --notebook-dir {dirname}"
+    else:
+        cmd = f"{app_path} notebook {notebook_name} --no-browser --port {port} --notebook-dir {dirname}"
 
-        print("Executing:", cmd)
-        print('NOTE: make sure to open `{}` in your local machine\n'.format(notebook_name))
+    print("Executing:", cmd)
+    print(f"NOTE: make sure to open `{notebook_name}` in your local machine\n")
 
-        return os.system(cmd)
+    return os.system(cmd)
 
 
-def oncv_write_notebook(outpath: str, nbpath: Optional[str] = None) -> str:
+def oncv_write_notebook(outpath: str, nbpath: str | None = None) -> str:
     """
     Write an ipython notebook to nbpath
     If nbpath is None, a temporary file is created.
@@ -707,9 +703,9 @@ plotter = onc_parser.get_plotter()"""),
     #plotter.plot_den_formfact()
 
     if nbpath is None:
-        _, nbpath = tempfile.mkstemp(suffix='.ipynb', text=True)
+        _, nbpath = tempfile.mkstemp(suffix=".ipynb", text=True)
 
-    with io.open(nbpath, 'wt', encoding="utf8") as f:
+    with open(nbpath, "w", encoding="utf8") as f:
         nbformat.write(nb, f)
 
     return nbpath
@@ -799,7 +795,7 @@ class MultiOncvPlotter(NotebookWriter):
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
 
-        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items(), strict=False)):
             plotter.plot_atan_logders(ax=ax, with_xlabel=with_xlabel, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
             set_axlims(ax, xlims, "x")
@@ -821,7 +817,7 @@ class MultiOncvPlotter(NotebookWriter):
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
 
-        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items(), strict=False)):
             plotter.plot_radial_wfs(ax=ax, what=what, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
             if i != len(ax_list) - 1:
@@ -840,7 +836,7 @@ class MultiOncvPlotter(NotebookWriter):
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
 
-        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items(), strict=False)):
             plotter.plot_projectors(ax=ax, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
             if i != len(ax_list) - 1:
@@ -859,7 +855,7 @@ class MultiOncvPlotter(NotebookWriter):
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
-        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items(), strict=False)):
             plotter.plot_densities(ax=ax, timesr2=timesr2, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
             if i != len(ax_list) - 1:
@@ -878,7 +874,7 @@ class MultiOncvPlotter(NotebookWriter):
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
-        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items(), strict=False)):
             plotter.plot_der_densities(ax=ax, order=order, acc=acc, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
             if i != len(ax_list) - 1:
@@ -896,7 +892,7 @@ class MultiOncvPlotter(NotebookWriter):
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
-        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items(), strict=False)):
             plotter.plot_potentials(ax=ax, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
             if i != len(ax_list) - 1:
@@ -915,7 +911,7 @@ class MultiOncvPlotter(NotebookWriter):
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
-        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items(), strict=False)):
             plotter.plot_der_potentials(ax=ax, order=order, acc=4, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
             if i != len(ax_list) - 1:
@@ -933,7 +929,7 @@ class MultiOncvPlotter(NotebookWriter):
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
 
-        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items(), strict=False)):
             plotter.plot_kene_vs_ecut(ax=ax, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
             if i != len(ax_list) - 1:
@@ -976,7 +972,7 @@ class MultiOncvPlotter(NotebookWriter):
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
-        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items(), strict=False)):
             plotter.plot_den_formfact(ax=ax, ecut=ecut, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
             if i != len(ax_list) - 1:
@@ -996,7 +992,7 @@ class MultiOncvPlotter(NotebookWriter):
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False, sharey=True, layout="r")
 
-        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items())):
+        for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items(), strict=False)):
             plotter.plot_atomic_levels(ax=ax, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
             #if i != len(ax_list) - 1:
@@ -1086,7 +1082,7 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
     pseudo = Pseudo.from_file(path)
 
     from pymatgen.io.abinit.pseudos import _dict_from_lines
-    with open(path, "rt") as fh:
+    with open(path) as fh:
         lines = [fh.readline() for _ in range(6)]
 
         header = _dict_from_lines(lines[1:3], [3, 6])

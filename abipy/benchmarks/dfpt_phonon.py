@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 """Benchmark for phonon calculation with DFPT."""
 import sys
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
-
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_inputs(paw=False):
@@ -115,7 +114,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
     return build_flow(options)
 
 

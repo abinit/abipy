@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import numpy as np
-
 from phonopy import Phonopy
-from pymatgen.io.phonopy import get_pmg_structure,get_phonopy_structure
+from pymatgen.io.phonopy import get_phonopy_structure, get_pmg_structure
+
 from abipy.core.abinit_units import eV_to_THz
 from abipy.core.structure import Structure
 from abipy.dfpt.converters import phonopy_to_abinit
-from abipy.embedding.utils_ifc import map_two_structures_coords, clean_structure # accoustic_sum
+from abipy.embedding.utils_ifc import clean_structure, map_two_structures_coords  # accoustic_sum
 
 
 class Embedded_phonons(Phonopy):
@@ -53,7 +53,7 @@ class Embedded_phonons(Phonopy):
                                vacancies_list: list = None,      # index in pristine ex: [13,14]
                                interstitial_list: list = None,   # species, cart_coord ex: [['Eu',[0,0,0]],['Ce','[0,0,3]']]
                                tol_mapping: float = 0.01,
-                               cut_off_mode: str = 'auto',
+                               cut_off_mode: str = "auto",
                                rc_1: float | None = None,
                                rc_2: float | None = None,
                                factor_ifc: float = 1.0,
@@ -163,11 +163,11 @@ class Embedded_phonons(Phonopy):
 
         ifc_emb = np.zeros(shape=np.shape(ifc_pristine))
 
-        if cut_off_mode == 'auto':
+        if cut_off_mode == "auto":
             rc_1 = 100000 # very large value to include all the ifcs, no sparse matrix.
             rc_2 = 0.99*min(np.array(structure_defect_wo_relax.lattice.abc)/2) # largest sphere inscribed in defect supercell,
                                                                              # 0.99 to avoid problem with atoms at the border
-        if cut_off_mode == 'manual':
+        if cut_off_mode == "manual":
             rc_1 = rc_1
             rc_2 = rc_2
 
@@ -203,9 +203,9 @@ class Embedded_phonons(Phonopy):
 
                     ifc_emb[i][j] = factor_ifc * ifc_defect[mapping.index(i)][mapping.index(j)]
 
-        # enforce ASR, following formalism of https://doi.org/10.1103/PhysRevMaterials.5.084603 
+        # enforce ASR, following formalism of https://doi.org/10.1103/PhysRevMaterials.5.084603
         # and https://doi.org/10.1103/PhysRevB.104.045303
-        if asr: 
+        if asr:
             print("\n Enforcing ASR")
             sum_ac = np.sum(ifc_emb,axis=1)
             for i, atom1 in enumerate(stru_emb):
@@ -244,7 +244,6 @@ class Embedded_phonons(Phonopy):
         Returns:
             phonons frequencies, phonon eigenvectors
         """
-
         ph_freq_phonopy, ph_vec_phonopy = self.get_frequencies_with_eigenvectors(q=[0,0,0])
 
         ph_freq = ph_freq_phonopy / (eV_to_THz)  # put it in eV
@@ -252,7 +251,7 @@ class Embedded_phonons(Phonopy):
 
         return ph_freq, ph_vec
 
-    def to_ddb(self, embedded_ddb_path='out_DDB', workdir=None):
+    def to_ddb(self, embedded_ddb_path="out_DDB", workdir=None):
         """
         Call the converter to go from phonopy to Abinit DDB.
 

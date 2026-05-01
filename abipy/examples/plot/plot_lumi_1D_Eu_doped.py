@@ -13,10 +13,10 @@ See also examples/flows/run_lumi_Eu_doped_SLA.py
 #%%
 # Read the 4 points netcdf file produced by the two LumiWork
 
-from abipy.lumi.deltaSCF import DeltaSCF
-import abipy.data as abidata
 import pandas as pd
-import abipy.abilab as abilab
+
+import abipy.data as abidata
+from abipy.lumi.deltaSCF import DeltaSCF
 
 SLA_site_1 = DeltaSCF.from_four_points_file([
     abidata.ref_file("site_1_relaxed_gs_out_GSR.nc"),
@@ -40,13 +40,13 @@ SLA_site_1.plot_lineshape_1D_zero_temp(
     max_m=20,
     phonon_width=0.02,
     with_omega_cube=True,
-    normalized='Area');
+    normalized="Area")
 
 #%%
 # To get a panda dataframe with the main results:
 dataframes = []
-df_1 = SLA_site_1.get_dataframe('Site_1')
-df_2 = SLA_site_2.get_dataframe('Site_2')
+df_1 = SLA_site_1.get_dataframe("Site_1")
+df_2 = SLA_site_2.get_dataframe("Site_2")
 
 pd.concat([df_1,df_2])
 
@@ -56,5 +56,5 @@ SLA_site_1.plot_delta_R_distance(defect_symbol="Eu")
 
 # %%
 # To draw the configuration coordinates diagram.
-SLA_site_1.draw_displaced_parabolas(scale_eff_freq=2.5);
-SLA_site_2.draw_displaced_parabolas(scale_eff_freq=2.5);
+SLA_site_1.draw_displaced_parabolas(scale_eff_freq=2.5)
+SLA_site_2.draw_displaced_parabolas(scale_eff_freq=2.5)

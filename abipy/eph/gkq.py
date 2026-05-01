@@ -7,22 +7,23 @@ To analyze the e-ph scattering potentials, use v1qavg and eph_task 15 or -15
 """
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd
-import abipy.core.abinit_units as abu
-
 from collections import OrderedDict
 from functools import cached_property
+
+import numpy as np
+import pandas as pd
 from monty.string import marquee
-from abipy.core.structure import Structure
-from abipy.core.kpoints import Kpoint
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
-from abipy.tools import duck
-from abipy.tools.typing import Figure, PathLike
+
+import abipy.core.abinit_units as abu
 from abipy.abio.robots import Robot
+from abipy.core.kpoints import Kpoint
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
-from abipy.eph.common import glr_frohlich, EPH_WTOL
+from abipy.eph.common import EPH_WTOL, glr_frohlich
+from abipy.tools import duck
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.typing import Figure, PathLike
 
 
 class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -57,7 +58,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         app(str(self.epsinf_cart))
         app("")
         app("Born effective charges in Cartesian coordinates:")
-        for i, (site, bec) in enumerate(zip(self.structure, self.becs_cart)):
+        for i, (site, bec) in enumerate(zip(self.structure, self.becs_cart, strict=False)):
             app("[%d]: %s" % (i, repr(site)))
             app(str(bec))
             app("")
@@ -95,7 +96,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     @cached_property
     def qpoint(self) -> Kpoint:
         """Q-point object."""
-        return Kpoint(self.r.read_value('qpoint'), self.structure.reciprocal_lattice)
+        return Kpoint(self.r.read_value("qpoint"), self.structure.reciprocal_lattice)
 
     @cached_property
     def phfreqs_ha(self) -> np.ndarray:
@@ -355,7 +356,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                          (nu, self.phfreqs_ha[nu] * abu.Ha_meV), fontsize=fontsize)
 
             if with_glr:
-                ax.axhline(gkq2_lr[nu], color='k', linestyle='dashed', linewidth=2)
+                ax.axhline(gkq2_lr[nu], color="k", linestyle="dashed", linewidth=2)
 
         fig.suptitle("qpoint: %s" % repr(self.qpoint), fontsize=fontsize)
         return fig
@@ -409,7 +410,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         xs = np.arange(len(data))
 
         ax = ax_list[0]
-        ax.scatter(xs, data, alpha=0.9, s=30, label=labels[0], facecolors='none', edgecolors='orange')
+        ax.scatter(xs, data, alpha=0.9, s=30, label=labels[0], facecolors="none", edgecolors="orange")
 
         data = other_gkq[absdiff_gkq > threshold].ravel()
         ax.scatter(xs, data, alpha=0.3, s=10, marker="x", label=labels[1], facecolors="g", edgecolors="none")
@@ -423,15 +424,15 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         ax = ax_list[1]
-        ax.hist(absdiff_gkq.ravel(), facecolor='g', alpha=0.75)
+        ax.hist(absdiff_gkq.ravel(), facecolor="g", alpha=0.75)
         ax.grid(True)
         ax.set_xlabel("Absolute Error" if mode == "atom" else "Absolute Error (meV)")
         ax.set_ylabel("Count")
 
-        ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
+        ax.axvline(stats["mean"], color="k", linestyle="dashed", linewidth=1)
         _, max_ = ax.get_ylim()
         ax.text(0.7, 0.7,  "\n".join("%s = %.1E" % item for item in stats.items()),
-                fontsize=fontsize, horizontalalignment='center', verticalalignment='center',
+                fontsize=fontsize, horizontalalignment="center", verticalalignment="center",
                 transform=ax.transAxes)
 
         return fig
@@ -491,7 +492,7 @@ class GkqRobot(Robot, RobotWithEbands):
         for i, abifile in enumerate(self.abifiles):
             if i == 0: continue
             if abifile.kpoints != ref_kpoints:
-                for k1, k2 in zip(ref_kpoints, abifile.kpoints):
+                for k1, k2 in zip(ref_kpoints, abifile.kpoints, strict=False):
                     print("k1:", k1, "--- k2:", k2)
                 raise ValueError("Found different list of kpoints in %s" % str(abifile.filepath))
         return ref_kpoints
@@ -625,7 +626,7 @@ class GkqRobot(Robot, RobotWithEbands):
 
         ref_gkq, ref_label = self.abifiles[iref], self.labels[iref]
         cnt = -1
-        for ifile, (other_label, other_gkq) in enumerate(zip(self.labels, self.abifiles)):
+        for ifile, (other_label, other_gkq) in enumerate(zip(self.labels, self.abifiles, strict=False)):
             if ifile == iref: continue
             cnt += 1
             labels = [ref_label, other_label]

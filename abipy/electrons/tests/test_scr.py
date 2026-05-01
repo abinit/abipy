@@ -1,13 +1,11 @@
-# coding: utf-8
 """Tests for scr module."""
 import numpy as np
 import pymatgen.core.units as pmgu
+
 import abipy.data as abidata
-
-
 from abipy.core.gsphere import GSphere
 from abipy.core.testing import AbipyTest
-from abipy.electrons.scr import _AwggMatrix, ScrFile, InverseDielectricFunction
+from abipy.electrons.scr import InverseDielectricFunction, ScrFile, _AwggMatrix
 
 
 class AwggMatTest(AbipyTest):

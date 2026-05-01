@@ -1,13 +1,18 @@
 """
 Tests for psrepos.py module
 """
-import tempfile
 import os
 
 from abipy.core.testing import AbipyTest
-from abipy.flowtk.psrepos import (OncvpspRepo, get_repo_from_name, encode_pseudopath, decode_pseudopath,
-                                  download_repo_from_url, tabulate_repos, get_all_registered_repos,
-                                  get_installed_repos_and_root)
+from abipy.flowtk.psrepos import (
+    OncvpspRepo,
+    decode_pseudopath,
+    encode_pseudopath,
+    get_all_registered_repos,
+    get_installed_repos_and_root,
+    get_repo_from_name,
+    tabulate_repos,
+)
 
 
 class TestPsRepos(AbipyTest):
@@ -76,7 +81,7 @@ class TestPsRepos(AbipyTest):
             # 301 requested resource has permanently moved to a new URL
             # 302 corresponds to redirection and it's returned by github.
             if response.status_code not in (200, 301, 302):
-                raise RuntimeError(f'{url=} returned {response.status_code}')
+                raise RuntimeError(f"{url=} returned {response.status_code}")
 
         repos = get_all_registered_repos()
         assert repos

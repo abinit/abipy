@@ -4,27 +4,26 @@ Classes to compute vibrational properties with phonopy and ML potentials.
 from __future__ import annotations
 
 import os
-import json
-import numpy as np
-import abipy.core.abinit_units as abu
 
-from monty.dev import requires
-from monty.string import list_strings, marquee
-from monty.termcolor import cprint
-from ase.calculators.calculator import Calculator
+import numpy as np
 from ase.atoms import Atoms
-from ase.filters import FrechetCellFilter # ExpCellFilter,
-from pymatgen.io.phonopy import get_phonopy_structure
+from ase.calculators.calculator import Calculator
+from ase.filters import FrechetCellFilter  # ExpCellFilter,
+from monty.dev import requires
+from monty.string import list_strings
+from monty.termcolor import cprint
+
+import abipy.core.abinit_units as abu
 from abipy.core.structure import Structure
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBands, PhononBandsPlotter
+from abipy.ml.aseml import RX_MODE, CalcBuilder, MlBase, relax_atoms
 from abipy.tools.context_managers import Timer
-from abipy.ml.aseml import RX_MODE, CalcBuilder, AseResults, MlBase, relax_atoms, dataframe_from_results_list
+
 try:
     import phonopy
-    from phonopy import Phonopy
+    from phonopy import Phonopy, PhonopyQHA
     from phonopy.structure.atoms import PhonopyAtoms
-    from phonopy import PhonopyQHA
 except ImportError:
     phonopy = None
     Phonopy = None
@@ -33,7 +32,6 @@ except ImportError:
 def cprint_traceback(color="red") -> None:
     """Print traceback."""
     import traceback
-    from monty.termcolor import cprint
     cprint(traceback.format_exc(), color=color)
 
 
@@ -262,7 +260,7 @@ class MlPhonopyWithDDB(MlBase):
                 phonon.nac_params = self.abi_nac_params
 
         # Save phonopy object in Yaml format.
-        phonon.save(filename=workdir / f"phonopy_params.yaml", settings={'force_constants': True})
+        phonon.save(filename=workdir / "phonopy_params.yaml", settings={"force_constants": True})
 
         with Timer(header="Starting phonopy ph-band computation...", footer=""):
             phonon.run_band_structure(self.py_qpoints, with_eigenvectors=True)
@@ -274,7 +272,7 @@ class MlPhonopyWithDDB(MlBase):
         bands_dict = phonon.get_band_structure_dict()
         nqpt = 0
         py_phfreqs, py_displ_cart = [], []
-        for q_list, w_list, eig_list in zip(bands_dict['qpoints'], bands_dict['frequencies'], bands_dict['eigenvectors'], strict=True):
+        for q_list, w_list, eig_list in zip(bands_dict["qpoints"], bands_dict["frequencies"], bands_dict["eigenvectors"], strict=True):
             nqpt += len(q_list)
             py_phfreqs.extend(w_list)
             py_displ_cart.extend(eig_list)
@@ -465,7 +463,7 @@ class MlPhonopy(MlBase):
         plt.close()
 
         # Save phonopy object in Yaml format.
-        phonon.save(filename=workdir / f"phonopy_params.yaml", settings={'force_constants': True})
+        phonon.save(filename=workdir / "phonopy_params.yaml", settings={"force_constants": True})
 
         # Compute phonon DOS and generate file with figure.
         phonon.auto_total_dos(plot=True)
@@ -631,13 +629,13 @@ class MlVZSISAQHAPhonopy(MlBase):
                   with_group_velocities=False,
                   plot=True,
                   write_yaml=True,
-                  filename=vol_workdir / f"band.yml",
+                  filename=vol_workdir / "band.yml",
             )
             plt.savefig(vol_workdir / f"phonopy_phbands{self.fig_ext}")
             plt.close()
 
             # Save phonopy object in Yaml format.
-            phonon.save(filename=vol_workdir / f"phonopy_params.yaml", settings={'force_constants': True})
+            phonon.save(filename=vol_workdir / "phonopy_params.yaml", settings={"force_constants": True})
 
             # Compute phonon DOS and generate file with figure.
             dos_filepath = vol_workdir / "phonopy_phdos.dat"

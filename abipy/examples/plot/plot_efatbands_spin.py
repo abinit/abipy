@@ -12,8 +12,8 @@ using the results stored in the FATBANDS.nc files produced with prtdos 3.
 # to open the file in a jupyter notebook
 # This file has been produced on a k-path so it's not suitable for DOS calculations.
 
-import abipy.abilab as abilab
 import abipy.data as abidata
+from abipy import abilab
 
 fbnc_kpath = abilab.abiopen(abidata.ref_file("ni_kpath_FATBANDS.nc"))
 

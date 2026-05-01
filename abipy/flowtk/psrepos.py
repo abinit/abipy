@@ -25,21 +25,21 @@ Low-level API:
 """
 from __future__ import annotations
 
-import os
-import time
 import abc
-import json
-import posixpath
-import tempfile
-import shutil
 import hashlib
-import requests
-
-from typing import Optional
+import json
+import os
+import posixpath
+import shutil
+import tempfile
+import time
 from urllib.parse import urlsplit
-from tqdm import tqdm
-from monty.termcolor import cprint, colored
+
+import requests
+from monty.termcolor import colored, cprint
 from pymatgen.io.abinit.pseudos import Pseudo, PseudoTable
+from tqdm import tqdm
+
 from abipy.tools.decorators import memoized_method
 
 # Installation directory.
@@ -117,10 +117,10 @@ def download_repo_from_url(url: str, save_dirpath: str,
             if verbose:
                 print("Writing temporary file:", tmp_filepath)
 
-            total_size_in_bytes = int(r.headers.get('content-length', 0))
-            progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
+            total_size_in_bytes = int(r.headers.get("content-length", 0))
+            progress_bar = tqdm(total=total_size_in_bytes, unit="iB", unit_scale=True)
 
-            with open(tmp_filepath, 'wb') as fd:
+            with open(tmp_filepath, "wb") as fd:
                 for chunk in r.iter_content(chunk_size=chunk_size):
                     fd.write(chunk)
                     progress_bar.update(len(chunk))
@@ -146,7 +146,7 @@ def md5_for_filepath(filepath: str) -> str:
     """
     Compute and return the md5 of a file.
     """
-    with open(filepath, "rt") as fh:
+    with open(filepath) as fh:
         text = fh.read()
         m = hashlib.md5(text.encode("utf-8"))
         return m.hexdigest()
@@ -160,12 +160,11 @@ def get_repo_from_name(repo_name: str) -> PseudosRepo:
     for repo in _ALL_REPOS:
         if repo.name == repo_name:
             return repo
-    else:
-        all_names = [repo.name for repo in _ALL_REPOS]
-        raise KeyError(f"Couldn't find {repo_name} in the list of registered repos:\n{all_names}")
+    all_names = [repo.name for repo in _ALL_REPOS]
+    raise KeyError(f"Couldn't find {repo_name} in the list of registered repos:\n{all_names}")
 
 
-def get_installed_repos_and_root(dirpath: Optional[str] = None) -> tuple[list[PseudosRepo], str]:
+def get_installed_repos_and_root(dirpath: str | None = None) -> tuple[list[PseudosRepo], str]:
     """
     Return (all_repos, dirpath)
     """
@@ -287,7 +286,7 @@ class PseudosRepo(abc.ABC):
         Install the repository in the standard location relative to the `REPOS_ROOT` directory.
         """
         print(f"Downloading repository from: {self.url} ...")
-        print(f"Installing {repr(self)} in: {self.dirpath}")
+        print(f"Installing {self!r} in: {self.dirpath}")
         start = time.time()
         if not os.path.exists(REPOS_ROOT): os.mkdir(REPOS_ROOT)
         download_repo_from_url(self.url, self.dirpath, verbose=verbose)
@@ -368,13 +367,13 @@ class OncvpspRepo(PseudosRepo):
         """
         Compare checksums given in the djson file with the ones computed from file after the download.
         """
-        print(f"\nValidating md5 checksums of {repr(self)}...")
+        print(f"\nValidating md5 checksums of {self!r}...")
         djson_paths = [os.path.join(self.dirpath, jfile) for jfile in ("standard.djson", "stringent.djson")]
 
         seen = set()
         errors = []
         for djson_path in djson_paths:
-            with open(djson_path, "rt") as fh:
+            with open(djson_path) as fh:
                 djson = json.load(fh)
 
             for symbol, d in djson["pseudos_metadata"].items():
@@ -386,17 +385,15 @@ class OncvpspRepo(PseudosRepo):
                 this_md5 = md5_for_filepath(this_path)
                 if ref_md5 != this_md5:
                     errors.append(f"Different md5 checksums for {this_path}")
-                else:
-                    if verbose:
-                        print(f"MD5 checksum for {this_path} is OK")
+                elif verbose:
+                    print(f"MD5 checksum for {this_path} is OK")
 
         if errors:
             cprint("Checksum test: FAILED", color="red")
             errstr = "\n".join(errors)
             raise ValueError(f"Checksum test failed for the following pseudos:\n{errstr}\n"
-                             f"Data is corrupted. Try to download {repr(self)} again")
-        else:
-            cprint("Checksum test: OK", color="green")
+                             f"Data is corrupted. Try to download {self!r} again")
+        cprint("Checksum test: OK", color="green")
 
     @memoized_method()
     def get_pseudos(self, table_name: str) -> PseudoTable:
@@ -406,7 +403,7 @@ class OncvpspRepo(PseudosRepo):
         """
         djson_path = os.path.join(self.dirpath, f"{table_name}.djson")
         pseudos = []
-        with open(djson_path, "rt") as fh:
+        with open(djson_path) as fh:
             djson = json.load(fh)
             for symbol, d in djson["pseudos_metadata"].items():
                 bname = d["basename"]
@@ -450,7 +447,7 @@ class JthRepo(PseudosRepo):
         return f"{self.ps_generator}-{self.xc_name}-{self.project_name}v{self.version}"
 
     def validate_checksums(self, verbose: int) -> None:
-        print(f"\nValidating md5 checksums of {repr(self)} ...")
+        print(f"\nValidating md5 checksums of {self!r} ...")
         cprint("WARNING: JTH-PAW repository does not support md5 checksums!!!", color="red")
 
     @memoized_method()
@@ -463,7 +460,7 @@ class JthRepo(PseudosRepo):
 
         # Read the list of pseudopotential paths (relative to dirpath)
         txt_path = os.path.join(self.dirpath, f"{table_name}.txt")
-        with open(txt_path, "rt") as fh:
+        with open(txt_path) as fh:
             relpaths = fh.readlines()
             relpaths = [l for l in relpaths if l.strip()]
 
@@ -501,7 +498,7 @@ def repo_from_name(repo_name: str) -> PseudosRepo:
     return id2repo[repo_name]
 
 
-def tabulate_repos(repos: list[PseudosRepo], exclude: Optional[list[str]] = None,
+def tabulate_repos(repos: list[PseudosRepo], exclude: list[str] | None = None,
                    with_citations: bool = False, verbose: int = 0) -> str:
     """
     Return string with info on a list of PseudosRepo.

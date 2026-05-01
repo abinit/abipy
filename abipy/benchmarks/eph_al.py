@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """Benchmark for electron-phonon calculations."""
 import sys
-import numpy as np
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
-
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+import numpy as np
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_flow_ephinp(options):
@@ -125,7 +125,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
 
     return build_flow(options)
 

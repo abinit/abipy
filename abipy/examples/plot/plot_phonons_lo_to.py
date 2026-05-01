@@ -13,8 +13,8 @@ See also tutorial/lesson_rf2.html
 # (alternatively one can use the shell and `abiopen.py OUT_PHBST.nc -nb`
 # to open the file in a jupyter notebook.
 
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 with abiopen(abidata.ref_file("ZnSe_hex_886.out_PHBST.nc")) as ncfile:
     phbands = ncfile.phbands

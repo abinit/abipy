@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Flows and Works for GWR calculations (GW in supercells).
 
@@ -9,9 +8,10 @@ from __future__ import annotations
 
 import os
 
-from abipy.tools.iotools import make_executable
-from abipy.abio.inputs import AbinitInput, RUNL, GWR_TASK
+from abipy.abio.inputs import GWR_TASK, RUNL, AbinitInput
 from abipy.electrons.gwr import GwrRobot
+from abipy.tools.iotools import make_executable
+
 from .nodes import Node
 from .tasks import TaskManager
 from .works import Work
@@ -72,7 +72,6 @@ class _BaseGWRWork(Work):
             manager: Abipy Task Manager.
 
         Example:
-
             varname_values = ("nband", [8, 12, 14])
             Work.from_varname_values(varname_values, gwr_template, den_node, wfk_node)
 
@@ -213,7 +212,7 @@ o.expose_qpoints_gpairs(qpoint_list, gpairs, exposer="mpl")
 #o.plot_matdiff(qpoint=0, iw_index=0)
 """
         py_path = os.path.join(self.workdir, "plot_tchi_sus.py")
-        with open(py_path, "wt") as fh:
+        with open(py_path, "w") as fh:
             fh.write(py_text)
         make_executable(py_path)
 

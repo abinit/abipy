@@ -1,6 +1,5 @@
 """Tests for deformation_utils module"""
 import numpy as np
-import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
 from abipy.dfpt.deformation_utils import generate_deformations

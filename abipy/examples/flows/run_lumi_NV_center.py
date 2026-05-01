@@ -21,12 +21,11 @@ and stored in /w0/outdata/Delta_SCF.json, with relevant luminescent properties
 (ZPL energy, Stoke Shift, \Delta Q,...), see abipy/lumi/delta_scf.py
 """
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
+import sys
 
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.core.structure import Structure
 from abipy.flowtk.lumi_works import LumiWork
 
@@ -82,11 +81,11 @@ def relax_kwargs():
     )
     # Relaxation settings could be different between excited and ground state...
     relax_kwargs_gs=relax_kwargs.copy()
-    relax_kwargs_gs['optcell']=0 # in the ground state, no relaxation of the cell
+    relax_kwargs_gs["optcell"]=0 # in the ground state, no relaxation of the cell
     # Could be different!
 
     relax_kwargs_ex=relax_kwargs.copy()
-    relax_kwargs_ex['optcell']=0 # in the excited state, no relaxation of the cell
+    relax_kwargs_ex["optcell"]=0 # in the excited state, no relaxation of the cell
 
     return relax_kwargs_gs, relax_kwargs_ex
 
@@ -134,5 +133,5 @@ def main(options):
     return build_flow(options)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

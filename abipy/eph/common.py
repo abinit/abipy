@@ -1,14 +1,14 @@
-# coding: utf-8
 """
 Objects and functions common to other eph modules.
 """
 from __future__ import annotations
 
-import numpy as np
-import abipy.core.abinit_units as abu
-
 from collections import OrderedDict
 from functools import cached_property
+
+import numpy as np
+
+import abipy.core.abinit_units as abu
 from abipy.electrons.ebands import ElectronsReader
 
 # Phonon frequency in Ha below which e-ph matrix elements are set to zero.

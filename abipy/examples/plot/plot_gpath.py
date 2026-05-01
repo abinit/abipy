@@ -6,9 +6,7 @@ e-ph matrix along a path in the BZ
 This example shows how to use the GPATH.nc file produced by ABINIT
 to plot e-ph matrix elements along a path in the BZ.
 """
-import os
 import abipy.data as abidata
-
 from abipy.eph.gpath import GpathFile
 
 #%%

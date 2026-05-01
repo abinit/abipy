@@ -11,10 +11,8 @@ can be implemented on the basis of this example.
 
 import os
 import sys
-import abipy.data as data
-import abipy.abilab as abilab
 
-from abipy import flowtk
+from abipy import abilab, data, flowtk
 from abipy.flowtk.gwr_works import DirectDiagoWork, GWRSigmaConvWork
 
 

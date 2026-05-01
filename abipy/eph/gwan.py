@@ -7,26 +7,29 @@ For a theoretical introduction see :cite:`Giustino2017`
 from __future__ import annotations
 
 import dataclasses
+
+#import abipy.core.abinit_units as abu
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
-#import abipy.core.abinit_units as abu
-
-from functools import cached_property
-from monty.string import marquee #, list_strings
+from monty.string import marquee  #, list_strings
 from monty.termcolor import cprint
-from abipy.core.structure import Structure
+
+#from abipy.tools.typing import Figure
+from abipy.abio.robots import Robot
 from abipy.core.kpoints import kpoints_indices
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
-from abipy.tools.typing import PathLike
-from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure  #, NotebookWriter
+from abipy.core.structure import Structure
+
 #from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
 #    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
 #from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
-#from abipy.tools.typing import Figure
-from abipy.abio.robots import Robot
 from abipy.eph.common import BaseEphReader
-from abipy.eph.gstore import GstoreFile #, GstoreReader, Gqk
+from abipy.eph.gstore import GstoreFile  #, GstoreReader, Gqk
+from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
+from abipy.tools.typing import PathLike
 
 
 class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , NotebookWriter):
@@ -82,7 +85,7 @@ class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , 
 
     @cached_property
     def params(self) -> dict:
-        """dict with the convergence parameters, e.g. ``nbsum``."""
+        """Dict with the convergence parameters, e.g. ``nbsum``."""
         #od = OrderedDict([
         #    ("nbsum", self.nbsum),
         #    ("nqibz", self.r.nqibz),
@@ -259,7 +262,7 @@ class Gqk:
         # Insert g2 in g2_grid
         g2_grid = np.empty((nb, nb, natom3, nx, ny, nz))
         for nu in range(natom3):
-            for g2_mn, q_inds in zip(g2_qph_mn[:,nu], q_indices):
+            for g2_mn, q_inds in zip(g2_qph_mn[:,nu], q_indices, strict=False):
                 ix, iy, iz = q_inds
                 g2_grid[:, :, nu, ix, iy, iz] = g2_mn
 

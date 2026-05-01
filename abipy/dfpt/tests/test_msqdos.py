@@ -1,11 +1,12 @@
 """Tests for msqdos module."""
 import os
-import numpy as np
-import abipy.data as abidata
 
-from abipy.core.testing import AbipyTest
+import numpy as np
+
+import abipy.data as abidata
 from abipy import abilab
 from abipy.core.symmetries import indsym_from_symrel
+from abipy.core.testing import AbipyTest
 
 
 class MsqdTest(AbipyTest):
@@ -112,7 +113,7 @@ O8    0.01922    0.01518    0.01356   -0.00661   -0.00412    0.01157"""
         # is initialized from_angles_and_lenghts
         #self.assert_almost_equal(same_structure.lattice.matrix, msqd_dos.structure.lattice.matrix)
 
-        for s1, s2 in zip(same_structure, msqd_dos.structure):
+        for s1, s2 in zip(same_structure, msqd_dos.structure, strict=False):
             assert s1.specie.symbol == s2.specie.symbol
             self.assert_almost_equal(s1.frac_coords, s2.frac_coords, decimal=5)
             #self.assert_almost_equal(s1.coords, s2.coords, decimal=5)
@@ -122,7 +123,7 @@ O8    0.01922    0.01518    0.01356   -0.00661   -0.00412    0.01157"""
 
         # Get dict with results and try to encode with MontyEncoder
         jdoc = msqd_dos.get_json_doc(tstart=10, tstop=10, num=1)
-        from monty.json import json, MontyEncoder
+        from monty.json import MontyEncoder, json
         assert json.dumps(jdoc, cls=MontyEncoder)
 
         if self.has_matplotlib():

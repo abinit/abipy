@@ -1,15 +1,13 @@
-# coding: utf-8
 """Classes used to execute a visualizer within the Python interpreter."""
 from __future__ import annotations
 
-import sys
-import os
 import abc
-
-from shutil import which
+import os
+import sys
 from functools import cached_property
-from monty.termcolor import cprint
+from shutil import which
 
+from monty.termcolor import cprint
 
 __all__ = [
     "Visualizer",
@@ -105,11 +103,10 @@ class Visualizer(metaclass=abc.ABCMeta):
                 raise RuntimeError("binpath is None, please make sure that executable can be found in $PATH")
             return call([self.binpath, self.cmdarg, self.filepath])
 
-        else:
-            # Mac-OSx applications can be launched with `open -a Vesta --args si.cif`
-            cmd = "open -a %s --args %s %s" % (self.name, self.cmdarg, self.filepath)
-            cprint("Executing MacOSx open command: %s" % cmd, "yellow")
-            return call(cmd, shell=True)
+        # Mac-OSx applications can be launched with `open -a Vesta --args si.cif`
+        cmd = "open -a %s --args %s %s" % (self.name, self.cmdarg, self.filepath)
+        cprint("Executing MacOSx open command: %s" % cmd, "yellow")
+        return call(cmd, shell=True)
 
     @property
     def cmdarg(self):
@@ -145,7 +142,7 @@ class Visualizer(metaclass=abc.ABCMeta):
     @classmethod
     def support_ext(cls, ext) -> bool:
         """True if visualizer supports the extension ext."""
-        if ext.startswith("."): ext = ext[1:]
+        ext = ext.removeprefix(".")
         return any(e == ext for e, _ in cls.EXTS)
 
     @classmethod

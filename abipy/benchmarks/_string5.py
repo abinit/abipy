@@ -5,14 +5,12 @@ Moving the proton from H2O to NH3 keeping O and H atoms fixed.
 Based on tutoparal/tstring_04.in
 """
 import sys
-import operator
-import numpy as np
-import abipy.abilab as abilab
-import abipy.data as abidata
-import abipy.flowtk as flowtk
 
-from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+import numpy as np
+
+import abipy.data as abidata
+from abipy import abilab
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_input(): # pragma: no cover
@@ -146,7 +144,7 @@ def main(options):  # pragma: no cover
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
 
     return build_flow(options)
 

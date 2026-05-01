@@ -1,6 +1,5 @@
 """Tests for electrons.effmass_analyzer module"""
 import abipy.data as abidata
-
 from abipy.core.testing import AbipyTest
 from abipy.electrons.effmass_analyzer import EffMassAnalyzer
 

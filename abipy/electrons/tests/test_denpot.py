@@ -1,8 +1,7 @@
-# coding: utf-8
 """Tests for DEN/POT files."""
 import numpy as np
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.electrons.denpot import DensityNcFile

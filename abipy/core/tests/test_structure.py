@@ -1,11 +1,12 @@
 """Tests for structure module"""
-import numpy as np
 import sys
-import abipy.data as abidata
-import abipy.core.abinit_units as abu
 
+import numpy as np
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.units import bohr_to_ang
+
+import abipy.core.abinit_units as abu
+import abipy.data as abidata
 from abipy.core.structure import *
 from abipy.core.testing import AbipyTest
 
@@ -15,7 +16,6 @@ class TestStructure(AbipyTest):
 
     def test_structure_from_ncfiles(self):
         """Initialize Structure from Netcdf data files"""
-
         for filename in abidata.WFK_NCFILES + abidata.GSR_NCFILES:
             #print("About to read file %s" % filename)
             structure = Structure.from_file(filename)
@@ -148,7 +148,7 @@ class TestStructure(AbipyTest):
             assert si.plot_bz(show=False)
             assert si.plot_bz(pmg_path=False, show=False)
             assert si.plot(show=False)
-            if sys.version[0:3] > '2.7':
+            if sys.version[0:3] > "2.7":
                 # pmg broke py compatibility
                 assert si.plot_xrd(show=False)
 
@@ -322,7 +322,6 @@ xred_symbols
 
     def test_znucl_typat(self):
         """Test the order of typat and znucl in the Abinit input and enforce_typat, enforce_znucl."""
-
         # Ga  Ga1  1  0.33333333333333  0.666666666666667  0.500880  1.0
         # Ga  Ga2  1  0.66666666666667  0.333333333333333  0.000880  1.0
         # N  N3  1  0.333333333333333  0.666666666666667  0.124120  1.0
@@ -346,7 +345,7 @@ xred_symbols
 
         assert [s.symbol for s in gan2.species_by_znucl] == ["Ga", "N"]
 
-        for itype1, itype2 in zip(def_typat, enforce_typat):
+        for itype1, itype2 in zip(def_typat, enforce_typat, strict=False):
             assert def_znucl[itype1 - 1] == enforce_znucl[itype2 -1]
 
         with self.assertRaises(Exception):

@@ -1,10 +1,10 @@
 """Tests for electrons.bse module"""
 import itertools
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy import abilab
-from abipy.electrons.fatbands import FatBandsFile
 from abipy.core.testing import AbipyTest
+from abipy.electrons.fatbands import FatBandsFile
 
 
 class TestElectronFatbands(AbipyTest):

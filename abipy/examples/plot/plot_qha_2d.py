@@ -8,9 +8,10 @@ with different volumes to compute thermodynamic properties within
 the quasi-harmonic approximation.
 """
 import os
-import numpy as np
-import abipy.data as abidata
 
+import numpy as np
+
+import abipy.data as abidata
 from abipy.dfpt.qha_2D import QHA_2D
 
 bo_strains_a = [995, 1000, 1005, 1010, 1015]

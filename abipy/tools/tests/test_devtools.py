@@ -1,10 +1,7 @@
-# coding: utf-8
 """Tests for devtools module."""
-import numpy as np
 import abipy.data as abidata
-
 from abipy.core.testing import AbipyTest
-from abipy.tools.devtools import profile, HtmlDiff
+from abipy.tools.devtools import HtmlDiff, profile
 
 
 class DevtoolsTest(AbipyTest):

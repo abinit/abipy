@@ -1,7 +1,5 @@
 """Tests for gs_works module"""
-import abipy.data as abidata
-import abipy.flowtk as flowtk
-
+from abipy import flowtk
 from abipy.core.testing import AbipyTest
 from abipy.flowtk import gs_works
 

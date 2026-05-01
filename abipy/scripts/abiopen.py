@@ -7,17 +7,17 @@ Alternatively, it is possible to generate automatically a jupyter notebook to ex
 """
 from __future__ import annotations
 
-import sys
-import os
 import argparse
+import os
 import subprocess
-import abipy.tools.cli_parsers as cli
-
-from pprint import pprint
+import sys
 from shutil import which
+
 from monty.termcolor import cprint
-from abipy.tools.plotting import Exposer
+
+import abipy.tools.cli_parsers as cli
 from abipy import abilab
+from abipy.tools.plotting import Exposer
 
 
 def make_and_open_notebook(options):
@@ -29,6 +29,7 @@ def make_and_open_notebook(options):
         RuntimeError if jupyter is not in $PATH
     """
     import os
+
     import nbformat
     nbf = nbformat.v4
     nb = nbf.new_notebook()
@@ -48,10 +49,10 @@ from abipy import abilab
         nbf.new_code_cell("abifile = abilab.abiopen('%s')" % options.filepath)
     ])
 
-    import io, tempfile
-    _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
+    import tempfile
+    _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix=".ipynb", dir=os.getcwd(), text=True)
 
-    with io.open(nbpath, 'wt', encoding="utf8") as f:
+    with open(nbpath, "w", encoding="utf8") as f:
         nbformat.write(nb, f)
 
     if which("jupyter") is None:
@@ -66,14 +67,13 @@ from abipy import abilab
 
     if options.foreground:
         return os.system("%s %s" % (appname, nbpath))
-    else:
-        fd, tmpname = tempfile.mkstemp(text=True)
-        print(tmpname)
-        cmd = "%s %s" % (appname, nbpath)
-        print("Executing:", cmd, "\nstdout and stderr redirected to %s" % tmpname)
-        process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
-        cprint("pid: %s" % str(process.pid), "yellow")
-        return 0
+    fd, tmpname = tempfile.mkstemp(text=True)
+    print(tmpname)
+    cmd = "%s %s" % (appname, nbpath)
+    print("Executing:", cmd, "\nstdout and stderr redirected to %s" % tmpname)
+    process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
+    cprint("pid: %s" % str(process.pid), "yellow")
+    return 0
 
 
 def get_epilog() -> str:
@@ -111,57 +111,57 @@ def get_parser(with_epilog=False):
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('--loglevel', default="ERROR", type=str,
+    parser.add_argument("--loglevel", default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
+    parser.add_argument("-V", "--version", action="version", version=abilab.__version__)
 
-    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-        help='verbose, can be supplied multiple times to increase verbosity')
+    parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+        help="verbose, can be supplied multiple times to increase verbosity")
 
     parser.add_argument("filepath", help="File to open. See table below for the list of supported extensions.")
 
     # notebook options.
-    parser.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
-    parser.add_argument('--classic-notebook', "-cnb", action='store_true', default=False,
+    parser.add_argument("-nb", "--notebook", action="store_true", default=False, help="Open file in jupyter notebook")
+    parser.add_argument("--classic-notebook", "-cnb", action="store_true", default=False,
                         help="Use classic jupyter notebook instead of jupyterlab.")
-    parser.add_argument('--no-browser', action='store_true', default=False,
+    parser.add_argument("--no-browser", action="store_true", default=False,
                         help=("Start the jupyter server to serve the notebook "
                               "but don't open the notebook in the browser.\n"
                               "Use this option to connect remotely from localhost to the machine running the kernel"))
-    parser.add_argument('--foreground', action='store_true', default=False,
+    parser.add_argument("--foreground", action="store_true", default=False,
                         help="Run jupyter notebook in the foreground.")
 
     # print option
-    parser.add_argument('-p', '--print', action='store_true', default=False, help="Print python object and return.")
+    parser.add_argument("-p", "--print", action="store_true", default=False, help="Print python object and return.")
 
     # panel options
-    parser.add_argument("-pn", '--panel', action='store_true', default=False,
+    parser.add_argument("-pn", "--panel", action="store_true", default=False,
                         help="Open Dashboard in web browser, requires panel package.")
     parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
-                        help="Specify template for panel dashboard." +
-                             "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
+                        help="Specify template for panel dashboard."
+                             "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla."
                              "Default: FastList"
                         )
     parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
     #add_expose_options_to_parser(parser)
 
     # Expose option.
-    parser.add_argument('-e', '--expose', action='store_true', default=False,
+    parser.add_argument("-e", "--expose", action="store_true", default=False,
         help="Open file and generate matplotlib figures automatically by calling expose method.")
     parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
         help="Iterate over figures. Expose all figures at once if not given on the CLI.")
     parser.add_argument("-t", "--slide-timeout", type=int, default=None,
         help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
-    parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
+    parser.add_argument("-sns", "--seaborn", const="paper", default=None, action="store", nargs="?", type=str,
             help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
-    parser.add_argument('-mpl', "--mpl-backend", default=None,
+    parser.add_argument("-mpl", "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
     parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
-            help='Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.')
+            help="Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.")
     parser.add_argument("-ply", "--plotly", default=False, action="store_true",
-            help='Generate plotly plots in $BROWSER instead of matplotlib. WARNING: Not all the features are supported.')
+            help="Generate plotly plots in $BROWSER instead of matplotlib. WARNING: Not all the features are supported.")
 
     return parser
 
@@ -228,8 +228,8 @@ def main():
     # Use seaborn settings.
     if options.seaborn:
         import seaborn as sns
-        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
-                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+        sns.set(context=options.seaborn, style="darkgrid", palette="deep",
+                font="sans-serif", font_scale=1, color_codes=False, rc=None)
 
     if not os.path.exists(options.filepath):
         raise RuntimeError("%s: no such file" % options.filepath)
@@ -284,23 +284,22 @@ Use `phonon.<TAB>` to list available methods.
         abifile = abilab.abiopen(options.filepath)
         return handle_object(abifile, options)
 
-    else:
-        # Call specialized method if the object is a NotebookWriter
-        # else generate simple notebook by calling `make_and_open_notebook`
-        cls = abilab.abifile_subclass_from_filename(options.filepath)
-        if hasattr(cls, "make_and_open_notebook"):
-            if hasattr(cls, "__exit__"):
-                with abilab.abiopen(options.filepath) as abifile:
-                    return abifile.make_and_open_notebook(foreground=options.foreground,
-                                                          classic_notebook=options.classic_notebook,
-                                                          no_browser=options.no_browser)
-            else:
-                abifile = abilab.abiopen(options.filepath)
+    # Call specialized method if the object is a NotebookWriter
+    # else generate simple notebook by calling `make_and_open_notebook`
+    cls = abilab.abifile_subclass_from_filename(options.filepath)
+    if hasattr(cls, "make_and_open_notebook"):
+        if hasattr(cls, "__exit__"):
+            with abilab.abiopen(options.filepath) as abifile:
                 return abifile.make_and_open_notebook(foreground=options.foreground,
                                                       classic_notebook=options.classic_notebook,
                                                       no_browser=options.no_browser)
         else:
-            return make_and_open_notebook(options)
+            abifile = abilab.abiopen(options.filepath)
+            return abifile.make_and_open_notebook(foreground=options.foreground,
+                                                  classic_notebook=options.classic_notebook,
+                                                  no_browser=options.no_browser)
+    else:
+        return make_and_open_notebook(options)
 
     return 0
 
@@ -317,7 +316,7 @@ def handle_object(obj, options):
             print(obj)
         return 0
 
-    elif options.expose:
+    if options.expose:
         # Print info to terminal
         if hasattr(obj, "to_string"):
             print(obj.to_string(verbose=options.verbose))
@@ -415,7 +414,7 @@ def handle_csv(options):
         #cprint("pid: %s" % str(process.pid), "yellow")
         return 0
 
-    elif options.panel:
+    if options.panel:
         raise NotImplementedError("")
         # Visualize JSON document in panel dashboard.
         #pn = abilab.abipanel()
@@ -425,21 +424,20 @@ def handle_csv(options):
         #serve_kwargs = serve_kwargs_from_options(options)
         #return pn.serve(app, **serve_kwargs)
 
-    else:
-        if options.print:
-            # Print python object to terminal.
-            print_df()
-            return 0
-        elif options.expose:
-            print_df()
-            raise NotImplementedError("")
-            return 0
-
-        # Start ipython shell with namespace
-        # Use embed because I don't know how to show a header with start_ipython.
+    if options.print:
+        # Print python object to terminal.
         print_df()
-        import IPython
-        IPython.embed(header="""
+        return 0
+    if options.expose:
+        print_df()
+        raise NotImplementedError("")
+        return 0
+
+    # Start ipython shell with namespace
+    # Use embed because I don't know how to show a header with start_ipython.
+    print_df()
+    import IPython
+    IPython.embed(header="""
 The pandas DataFrame initialized from the csv file can be accessed via the `df` python variable.
 """)
 
@@ -456,7 +454,7 @@ def handle_json(options):
         cprint("pid: %s" % str(process.pid), "yellow")
         return 0
 
-    elif options.panel:
+    if options.panel:
         # Visualize JSON document in panel dashboard.
         pn = abilab.abipanel()
         with abilab.abiopen(options.filepath) as json_file:
@@ -465,9 +463,8 @@ def handle_json(options):
         serve_kwargs = serve_kwargs_from_options(options)
         return pn.serve(app, **serve_kwargs)
 
-    else:
-        obj = abilab.mjson_load(options.filepath)
-        handle_object(obj, options)
+    obj = abilab.mjson_load(options.filepath)
+    handle_object(obj, options)
 
     return 0
 

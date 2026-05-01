@@ -1,8 +1,9 @@
 """Tests for xsf module"""
 import tempfile
-import numpy as np
-import abipy.data as abidata
 
+import numpy as np
+
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.iotools.xsf import *
 

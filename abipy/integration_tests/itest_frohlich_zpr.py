@@ -1,13 +1,14 @@
 """Integration tests for phonon flows."""
 from __future__ import annotations
 
-import pytest
-import abipy.data as abidata
-import abipy.abilab as abilab
+import socket
 
+import pytest
+
+import abipy.data as abidata
+from abipy import abilab
 from abipy.dfpt.ddb import DdbFile
 
-import socket
 hostname = socket.gethostname()
 
 skip_hosts = [
@@ -72,21 +73,21 @@ def itest_frohlich_zpr_flow(fwp, tvars):
     assert all(work.finalized for work in flow)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
     assert flow.on_all_ok_num_calls == 1
 
     # Reconstruct python objects from JSON file.
     data = abilab.mjson_load(flow.outdir.path_in("zprfrohl_results.json"))
 
     assert data["metadata"]["mp_id"] == "mp-123"
-    assert data["structure"].formula == 'Ca1 O1'
+    assert data["structure"].formula == "Ca1 O1"
     ebands_kpath = data["ebands_kpath"]
     assert ebands_kpath.nsppol == 1
     assert ebands_kpath.kpoints.is_path
     assert ebands_kpath.homos[0].kpoint == [0, 0, 0]
     assert ebands_kpath.lumos[0].kpoint == [0.5, 0, 0.5]
     with DdbFile.from_string(data["ddb_string"]) as ddb:
-        assert ddb.structure.formula == 'Ca1 O1'
+        assert ddb.structure.formula == "Ca1 O1"
         assert ddb.has_bec_terms(select="at_least_one")
         assert ddb.has_epsinf_terms(select="at_least_one_diagoterm")
     assert data["epsinf_cart"].shape == data["eps0_cart"].shape

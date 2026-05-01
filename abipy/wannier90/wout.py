@@ -1,13 +1,13 @@
-# coding: utf-8
 """Interface to the wout output file produced by Wannier90."""
 from __future__ import annotations
 
+from collections import OrderedDict
+
 import numpy as np
 import pandas as pd
-
-from collections import OrderedDict
 from monty.string import marquee
 from monty.termcolor import cprint
+
 from abipy.core.mixins import BaseFile, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
@@ -35,7 +35,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         self.use_disentangle = False
         self.conv_df, self.dis_df = None, None
 
-        with open(self.filepath, "rt") as fh:
+        with open(self.filepath) as fh:
             self.lines = fh.readlines()
 
         self._parse_dims()
@@ -115,7 +115,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
 
         for iln, line in enumerate(self.lines):
             # Check for any warnings
-            if 'Warning' in line:
+            if "Warning" in line:
                 self.warnings.append(line)
                 continue
 
@@ -316,7 +316,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
         marker = "."
-        for ax, item in zip(ax_list, items):
+        for ax, item in zip(ax_list, items, strict=False):
             ax.grid(True)
             ax.set_xlabel("Iteration Step")
             ax.set_ylabel(item)

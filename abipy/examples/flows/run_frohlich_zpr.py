@@ -10,11 +10,11 @@ The flow uses DFPT to compute the effective masses at the band edges
 BECS, eps_inf and phonon frequencies at Gamma.
 """
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_scf_input(usepaw=0):

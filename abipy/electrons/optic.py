@@ -1,22 +1,21 @@
-# coding: utf-8
 """
 Objects to read and analyze optical properties stored in the optic.nc file produced
 by optic executable.
 """
 from __future__ import annotations
 
-import numpy as np
-import abipy.core.abinit_units as abu
-
 from collections import OrderedDict
 from functools import cached_property
-from monty.string import marquee, list_strings
-from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, data_from_cplx_mode
-from abipy.abio.robots import Robot
-from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
 
+import numpy as np
+from monty.string import list_strings, marquee
+
+import abipy.core.abinit_units as abu
+from abipy.abio.robots import Robot
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
+from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
+from abipy.tools.plotting import add_fig_kwargs, data_from_cplx_mode, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
 
 ALL_CHIS = OrderedDict([
     ("linopt", {
@@ -284,7 +283,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
                     label=self.get_linopt_latex_label(what, comp) if label is None else label)
 
         ax.grid(True)
-        if with_xlabel: ax.set_xlabel('Photon Energy (eV)')
+        if with_xlabel: ax.set_xlabel("Photon Energy (eV)")
         set_axlims(ax, xlims, "x")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -313,7 +312,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
                                                sharex=True, sharey=False, squeeze=True)
 
         components = self.reader.computed_components[key]
-        for i, (what, ax) in enumerate(zip(select, ax_mat)):
+        for i, (what, ax) in enumerate(zip(select, ax_mat, strict=False)):
             self.plot_linear_epsilon(what=what, itemp=itemp, components=components,
                                      ax=ax, xlims=xlims, with_xlabel=(i == len(select) - 1),
                                      show=False)
@@ -354,7 +353,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
                 )
 
         ax.grid(True)
-        if with_xlabel: ax.set_xlabel('Photon Energy (eV)')
+        if with_xlabel: ax.set_xlabel("Photon Energy (eV)")
         set_axlims(ax, xlims, "x")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 

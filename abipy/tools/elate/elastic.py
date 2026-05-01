@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 import json
 import math
@@ -31,7 +30,6 @@ def dirVec2(theta, phi, chi):
 # Functions to minimize/maximize
 def minimize(func, dim):
     """Find the global minimum of a function with 2 (theta, phi) or 3 (theta, phi, chi) parameters"""
-
     if dim == 2:
         # Mechanical properties are centrosymmetric so we reduce the range for phi
         r = ((0, np.pi), (0, np.pi))
@@ -48,7 +46,6 @@ def minimize(func, dim):
 
 def maximize(func, dim):
     """Find the global maximum of a function with 2 (theta, phi) or 3 (theta, phi, chi) parameters"""
-
     res = minimize(lambda x: -func(x), dim)
     return (res[0], -res[1])
 
@@ -63,7 +60,6 @@ class Elastic:
 
     def __init__(self, s):
         """Initialize the elastic tensor from a string"""
-
         # Argument can be a 6-line string, a list of list, or a string representation of the list of list
 
         # If the argument is JSON, decode it
@@ -81,7 +77,7 @@ class Elastic:
             s = s.replace("|", " ").replace("(", " ").replace(")", " ")
 
             # Remove empty lines
-            lines = [line for line in s.split('\n') if line.strip()]
+            lines = [line for line in s.split("\n") if line.strip()]
             if len(lines) == 3:
                 raise TypeError("is a 2D material")
             if len(lines) != 6:
@@ -129,7 +125,7 @@ class Elastic:
             mat = mat + np.tril(mat, -1).transpose()
         if np.linalg.norm(mat - mat.transpose()) > 1e-3:
             raise ValueError("should be symmetric, or triangular")
-        elif np.linalg.norm(mat - mat.transpose()) > 0:
+        if np.linalg.norm(mat - mat.transpose()) > 0:
             # It was almost symmetric: symmetrize it completely
             mat = 0.5 * (mat + mat.transpose())
 
@@ -148,7 +144,6 @@ class Elastic:
 
         self.Smat = [[[[ SVoigtCoeff(VoigtMat[i][j], VoigtMat[k][l]) * self.SVoigt[VoigtMat[i][j]][VoigtMat[k][l]]
                          for i in range(3) ] for j in range(3) ] for k in range(3) ] for l in range(3) ]
-        return
 
     def is2D(self):
         return False
@@ -239,34 +234,34 @@ class Elastic:
         ftol = 0.001
         xtol = 0.01
         def func1(z): return self.shear([x[0], x[1], z[0]])
-        r1 = optimize.minimize(func1, np.pi/2.0, args=(), method = 'Powell', options={"xtol":xtol, "ftol":ftol})
+        r1 = optimize.minimize(func1, np.pi/2.0, args=(), method = "Powell", options={"xtol":xtol, "ftol":ftol})
         def func2(z): return -self.shear([x[0], x[1], z[0]])
-        r2 = optimize.minimize(func2, np.pi/2.0, args=(), method = 'Powell', options={"xtol":xtol, "ftol":ftol})
+        r2 = optimize.minimize(func2, np.pi/2.0, args=(), method = "Powell", options={"xtol":xtol, "ftol":ftol})
         return (float(r1.fun), -float(r2.fun))
 
     def shear3D(self, x, y, guess1 = np.pi/2.0, guess2 = np.pi/2.0):
         tol = 0.0005
         def func1(z): return self.shear([x, y, z[0]])
-        r1 = optimize.minimize(func1, guess1, args=(), method = 'L-BFGS-B')
+        r1 = optimize.minimize(func1, guess1, args=(), method = "L-BFGS-B")
         def func2(z): return -self.shear([x, y, z[0]])
-        r2 = optimize.minimize(func2, guess2, args=(), method = 'L-BFGS-B')
+        r2 = optimize.minimize(func2, guess2, args=(), method = "L-BFGS-B")
         return (float(r1.fun), -float(r2.fun), float(r1.x[0]), float(r2.x[0]))
 
     def Poisson2D(self, x):
         ftol = 0.001
         xtol = 0.01
         def func1(z): return self.Poisson([x[0], x[1], z[0]])
-        r1 = optimize.minimize(func1, np.pi/2.0, args=(), method = 'Powell', options={"xtol":xtol, "ftol":ftol})
+        r1 = optimize.minimize(func1, np.pi/2.0, args=(), method = "Powell", options={"xtol":xtol, "ftol":ftol})
         def func2(z): return -self.Poisson([x[0], x[1], z[0]])
-        r2 = optimize.minimize(func2, np.pi/2.0, args=(), method = 'Powell', options={"xtol":xtol, "ftol":ftol})
+        r2 = optimize.minimize(func2, np.pi/2.0, args=(), method = "Powell", options={"xtol":xtol, "ftol":ftol})
         return (min(0,float(r1.fun)), max(0,float(r1.fun)), -float(r2.fun))
 
     def Poisson3D(self, x, y, guess1 = np.pi/2.0, guess2 = np.pi/2.0):
         tol = 0.005
         def func1(z): return self.Poisson([x, y, z[0]])
-        r1 = optimize.minimize(func1, guess1, args=(), method = 'L-BFGS-B')
+        r1 = optimize.minimize(func1, guess1, args=(), method = "L-BFGS-B")
         def func2(z): return -self.Poisson([x, y, z[0]])
-        r2 = optimize.minimize(func2, guess2, args=(), method = 'L-BFGS-B')
+        r2 = optimize.minimize(func2, guess2, args=(), method = "L-BFGS-B")
         return (min(0,float(r1.fun)), max(0,float(r1.fun)), -float(r2.fun), float(r1.x[0]), float(r2.x[0]))
 
 
@@ -374,7 +369,6 @@ class Elastic2D:
 
     def __init__(self, s):
         """Initialize the elastic tensor from a string"""
-
         # Argument can be a 3-line string, a list of list, or a string representation of the list of list
         try:
             if isinstance(json.loads(s), list):
@@ -387,7 +381,7 @@ class Elastic2D:
             s = s.replace("|", " ").replace("(", " ").replace(")", " ")
 
             # Remove empty lines
-            lines = [line for line in s.split('\n') if line.strip()]
+            lines = [line for line in s.split("\n") if line.strip()]
             if len(lines) != 3:
                 raise ValueError("should have three rows")
 
@@ -428,7 +422,7 @@ class Elastic2D:
             mat = mat + np.tril(mat, -1).transpose()
         if np.linalg.norm(mat - mat.transpose()) > 1e-3:
             raise ValueError("should be symmetric, or triangular")
-        elif np.linalg.norm(mat - mat.transpose()) > 0:
+        if np.linalg.norm(mat - mat.transpose()) > 0:
             mat = 0.5 * (mat + mat.transpose())
 
         # Store it
@@ -447,7 +441,6 @@ class Elastic2D:
         self.s22 = self.SVoigt[1][1]
         self.s26 = self.SVoigt[1][2]
         self.s66 = self.SVoigt[2][2]
-        return
 
     def is2D(self):
         return True

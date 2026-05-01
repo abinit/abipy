@@ -1,6 +1,5 @@
 """Tests for core.abinit_units"""
 import abipy.core.abinit_units as abu
-
 from abipy.core.testing import AbipyTest
 
 #from abipy.dfpt.phonons import factor_ev2units, unit_tag, dos_label_from_units, wlabel_from_units

@@ -3,15 +3,14 @@
 Benchmark paral_kgb=1 algorithm with wfoptalg in [default, 1].
 default corresponds to the LOBPCG algorithm, 1 enables the Chebyschev solver.
 """
-import sys
 import operator
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
-
-from itertools import product
+import sys
 from functools import reduce
-from abipy.benchmarks import bench_main, BenchmarkFlow
+from itertools import product
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_input(paw=False):
@@ -87,7 +86,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
 
     return build_flow(options)
 

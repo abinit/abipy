@@ -11,11 +11,11 @@ Two options are available:
     - EffMassAutoDFPTWork --> Run NSCF calculations to find band edges, then use DFPT.
 """
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_scf_input(usepaw=0, nspinor=1):
@@ -69,7 +69,7 @@ def build_flow(options):
     scf_input = make_scf_input(nspinor=1, usepaw=1)
 
     # Build the flow.
-    from abipy.flowtk.effmass_works import EffMassDFPTWork, EffMassAutoDFPTWork
+    from abipy.flowtk.effmass_works import EffMassAutoDFPTWork, EffMassDFPTWork
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
     # Compute effective masses for each k in k0_list.

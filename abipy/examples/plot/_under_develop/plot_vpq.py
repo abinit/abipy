@@ -6,8 +6,8 @@ Variational Polaron Equation
 This example shows how to analyze the VPQ.nc file produced by ABINIT
 """
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.eph.vpq import VpqFile
 
 root = "/Users/giantomassi/git_repos/abinit/_build/tests/tutorespfn_teph4vpq_1-teph4vpq_2-teph4vpq_3-teph4vpq_4-teph4vpq_5-teph4vpq_6-teph4vpq_7-teph4vpq_8-teph4vpq_9-teph4vpq_10"

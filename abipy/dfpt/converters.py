@@ -5,24 +5,25 @@ developed by Hu Xe, Eric Bousquet and Aldo Romero.
 """
 from __future__ import annotations
 
-import os
 import itertools
+import os
 import warnings
-import numpy as np
-import abipy.core.abinit_units as abu
 
+import numpy as np
 from monty.os import makedirs_p
+from phonopy import Phonopy, load
+from phonopy.file_IO import parse_BORN, parse_FORCE_CONSTANTS, parse_FORCE_SETS, write_FORCE_CONSTANTS
+from phonopy.harmonic import force_constants
+from phonopy.interface.calculator import get_default_physical_units, get_force_constant_conversion_factor
 from pymatgen.io.phonopy import get_phonopy_structure, get_pmg_structure
 from pymatgen.io.vasp.inputs import Poscar
-from phonopy import Phonopy, load
-from phonopy.file_IO import write_FORCE_CONSTANTS, parse_FORCE_CONSTANTS, parse_BORN, parse_FORCE_SETS
-from phonopy.interface.calculator import get_default_physical_units, get_force_constant_conversion_factor
-from phonopy.harmonic import force_constants
-from abipy.core.structure import Structure
-from abipy.tools.typing import VectorLike
-from abipy.dfpt.ddb import DdbFile
+
+import abipy.core.abinit_units as abu
 from abipy.abio.factories import minimal_scf_input
+from abipy.core.structure import Structure
+from abipy.dfpt.ddb import DdbFile
 from abipy.electrons.gsr import GsrFile
+from abipy.tools.typing import VectorLike
 
 
 def abinit_to_phonopy(anaddbnc,
@@ -108,7 +109,7 @@ def abinit_to_phonopy(anaddbnc,
 
     # loop over the atoms in the primitive cell
     # other operations are vectorized using numpy arrays. Some array may require large allocations
-    for i, (site, c_list, w_list) in enumerate(zip(s, at_cart, weights)):
+    for i, (site, c_list, w_list) in enumerate(zip(s, at_cart, weights, strict=False)):
         ind_w = np.where(w_list > 0)
         ifccc_loc = ifccc[i, ind_w[0]]
 
@@ -128,7 +129,7 @@ def abinit_to_phonopy(anaddbnc,
         dist_and_img = [latt.get_distance_and_image(f_list[0], fc) for fc in sc_fcoords]
         # the function gives the translation of the image, but it should be applied to the coordinates.
         # Only the positions are needed
-        nearest_sc_fcoords = [fc + trasl for (_, trasl), fc in zip(dist_and_img, sc_fcoords)]
+        nearest_sc_fcoords = [fc + trasl for (_, trasl), fc in zip(dist_and_img, sc_fcoords, strict=False)]
 
         # divide by the corresponding weights. Elements with weights 0 were discarded above
         ifccc_loc = np.transpose(ifccc_loc, (0, 2, 1)) / w_list[:, None, None]
@@ -499,7 +500,7 @@ def add_data_ddb(ddb: DdbFile, dm_list: list, qpt_list: list, born_data) -> None
     """
     dm_data = {}
     natom = len(ddb.structure)
-    for q, dm in zip(qpt_list, dm_list):
+    for q, dm in zip(qpt_list, dm_list, strict=False):
         q_data = {}
         for ipert1 in range(natom):
             for idir1 in range(3):
@@ -602,7 +603,7 @@ def parse_tdep_fc(fc_path: str, unit_cell: Structure, supercell) -> np.ndarray:
     fc = np.zeros((natoms, len(supercell), 3, 3))
     # parse the fc file and put it in the format required for phonopy
     # this will be sorted according to the tdep supercell atoms order, not the phonopy supercell.
-    with open(fc_path, "rt") as f:
+    with open(fc_path) as f:
         lines = f.readlines()
     u_latt = unit_cell.lattice
     sc_latt = supercell.lattice
@@ -686,7 +687,6 @@ def born_to_lotosplitting(born, lotosplitting_path="infile.lotosplitting") -> No
             values should be in default phonopy units.
         lotosplitting_path: the path where the lotosplitting file should be written.
     """
-
     eps = born["dielectric"]
     becs = born["born"]
     write_tdep_lotosplitting(eps, becs, lotosplitting_path)
@@ -698,8 +698,8 @@ def write_BORN(primitive, borns, epsilon, filename="BORN", symmetrize_tensors=Fa
     Contrarily to the original, it does not symmetrize the tensor.
     """
     lines = get_BORN_lines(primitive, borns, epsilon, symmetrize_tensors=symmetrize_tensors)
-    with open(filename, 'w') as w:
-        w.write('\n'.join(lines))
+    with open(filename, "w") as w:
+        w.write("\n".join(lines))
 
 
 def get_BORN_lines(unitcell, borns, epsilon,
@@ -719,7 +719,7 @@ def get_BORN_lines(unitcell, borns, epsilon,
         symprec=symprec)
 
     text = "# epsilon and Z* of atoms "
-    text += ' '.join(["%d" % n for n in atom_indices + 1])
+    text += " ".join(["%d" % n for n in atom_indices + 1])
     lines = [text, ]
     lines.append(("%13.8f " * 9) % tuple(epsilon.flatten()))
     for z in borns:
@@ -727,7 +727,7 @@ def get_BORN_lines(unitcell, borns, epsilon,
     return lines
 
 
-def ddb_ucell_to_ddb_supercell(unit_ddb=None, unit_ddb_filepath=None, supercell_ddb_path='out_DDB', nac=True) -> DdbFile:
+def ddb_ucell_to_ddb_supercell(unit_ddb=None, unit_ddb_filepath=None, supercell_ddb_path="out_DDB", nac=True) -> DdbFile:
     """
     Convert a DDB file or DDB instance of a unit cell on a q-mesh to the corresponding supercell at q=Gamma.
 
@@ -767,7 +767,6 @@ def ddb_ucell_to_phonopy_supercell(unit_ddb=None, unit_ddb_filepath=None, nac=Tr
     Returns:
         a Phonopy instance.
     """
-
     if unit_ddb_filepath is not None:
         unit_ddb = DdbFile(unit_ddb_filepath)
         # close

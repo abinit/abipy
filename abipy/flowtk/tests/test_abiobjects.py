@@ -1,7 +1,5 @@
 """Tests for flowtk.abiobjects module."""
-import numpy as np
 import abipy.data as abidata
-
 from abipy.core.testing import AbipyTest
 from abipy.flowtk.abiobjects import LdauParams, LexxParams
 

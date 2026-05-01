@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 """Benchmark for Optic calculations."""
 import sys
-import os
-import abipy.data as data
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+from abipy import abilab, data, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_base_flow(options):
@@ -124,7 +121,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
     return build_flow(options)
 
 

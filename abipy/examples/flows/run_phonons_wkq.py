@@ -14,12 +14,11 @@ The final results (out_DDB, out_DVDB) will be produced automatically at the end 
 and saved in the ``outdata/`` of the work.
 """
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_input(paral_kgb=0):

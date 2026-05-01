@@ -1,16 +1,17 @@
-# coding: utf-8
 """
 Object to plot DFPT potentials in the phonon mode representation.
 """
-import numpy as np
-
 from functools import cached_property
+
+import numpy as np
 from monty.string import marquee
+
 #from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
+
 #from abipy.core.kpoints import Kpoint #KpointList,
 #from abipy.tools import duck
-from abipy.iotools import xsf, ETSF_Reader #, cube Visualizer,
+from abipy.iotools import ETSF_Reader, xsf  #, cube Visualizer,
 
 
 class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -72,7 +73,7 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
         #iq, qpoint = self._find_iqpt_qpoint(qpoint)
 
         def xsf_write(filename, datar):
-            with open(filename, mode="wt") as fh:
+            with open(filename, mode="w") as fh:
                 xsf.xsf_write_structure(fh, self.structure)
                 xsf.xsf_write_data(fh, self.structure, datar, add_replicas=True)
 

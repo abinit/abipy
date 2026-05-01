@@ -1,8 +1,7 @@
 """Tests for psps module."""
-import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
-import abipy.display.mvtk as mvtk
+from abipy.display import mvtk
 
 
 class MayaviTest(AbipyTest):

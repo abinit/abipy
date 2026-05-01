@@ -1,11 +1,11 @@
 """Tests for core.restapi module"""
 import contextlib
-import pytest
-import abipy.data as abidata
 
+import pytest
+
+import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
-from abipy.core import restapi
 
 
 class TestMpRestApi(AbipyTest):
@@ -14,7 +14,6 @@ class TestMpRestApi(AbipyTest):
     @pytest.mark.skip(reason="Interface with MP rester is broken")
     def test_mprester(self):
         """Testing MP Rest API wrappers."""
-
         # Test mp_search
         mp = abilab.mp_search("MgB2")
         repr(mp); str(mp)

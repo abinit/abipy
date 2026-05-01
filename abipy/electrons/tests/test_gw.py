@@ -1,12 +1,13 @@
 """Tests for electrons.gw module"""
-import os
 import collections
-import numpy as np
-import abipy.data as abidata
+import os
 
+import numpy as np
+
+import abipy.data as abidata
 from abipy import abilab
-from abipy.electrons.gw import *
 from abipy.core.testing import AbipyTest
+from abipy.electrons.gw import *
 
 
 class TestQPList(AbipyTest):
@@ -157,7 +158,7 @@ class TestSigresFile(AbipyTest):
             if self.has_matplotlib():
                 assert sigma.plot(what_list="aw", xlims=(-10, 10), fontsize=12, show=False)
                 assert sigres.plot_spectral_functions(show=False)
-                assert sigres.plot_spectral_functions(include_bands=range(0, 4), show=False)
+                assert sigres.plot_spectral_functions(include_bands=range(4), show=False)
 
             with abilab.SigresRobot() as robot:
                 robot.add_file("foo", filepath)

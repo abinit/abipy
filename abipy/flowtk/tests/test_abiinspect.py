@@ -1,9 +1,9 @@
 import os
 import tempfile
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.flowtk.abiinspect import *
-import abipy.data as abidata
 
 
 class YamlTokenizerTest(AbipyTest):

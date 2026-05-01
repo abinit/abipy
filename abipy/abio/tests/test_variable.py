@@ -1,8 +1,7 @@
 """Tests for variable module."""
-import abipy.data as abidata
 
-from abipy.core.testing import AbipyTest
 from abipy.abio.variable import InputVariable
+from abipy.core.testing import AbipyTest
 
 
 class TestInputVariable(AbipyTest):

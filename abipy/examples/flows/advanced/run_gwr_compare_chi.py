@@ -10,10 +10,8 @@ using the same minimax mesh on the imaginary axis so that one can then compare t
 
 import os
 import sys
-import abipy.data as data
-import abipy.abilab as abilab
 
-from abipy import flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

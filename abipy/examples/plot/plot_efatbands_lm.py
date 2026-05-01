@@ -6,8 +6,8 @@ LM-fatbands
 This example shows how to plot the LM-projected fatbands.
 The FATBANDS file must have benn produced with prtdos 3 and prtdosm 1.
 """
-import abipy.abilab as abilab
 import abipy.data as abidata
+from abipy import abilab
 
 fbnc_kpath = abilab.abiopen(abidata.ref_file("ni_kpath_FATBANDS.nc"))
 print(fbnc_kpath)

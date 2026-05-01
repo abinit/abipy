@@ -5,10 +5,11 @@ from __future__ import annotations
 
 import os
 import warnings
-import numpy as np
-
 from fnmatch import fnmatch
+
+import numpy as np
 from monty.string import list_strings
+
 from abipy.core.structure import Structure
 from abipy.dynamics.hist import HistFile
 

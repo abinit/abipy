@@ -6,22 +6,23 @@ Use --ipython to start an ipython terminal or -nb to generate an ipython noteboo
 """
 from __future__ import annotations
 
-import sys
-import os
 import argparse
-import numpy as np
-import abipy.tools.cli_parsers as cli
-
+import os
+import sys
 from pprint import pprint
+
+import numpy as np
 from monty.termcolor import cprint
+
+import abipy.tools.cli_parsers as cli
 from abipy import abilab
-from abipy.tools.plotting import get_ax_fig_plt, GenericDataFilesPlotter, FilesPlotter, Exposer
+from abipy.tools.plotting import Exposer, FilesPlotter, GenericDataFilesPlotter, get_ax_fig_plt
 
 
 def remove_disordered(structures, paths):
     """Remove disordered structures and print warning message."""
     slist = []
-    for s, p in zip(structures, paths):
+    for s, p in zip(structures, paths, strict=False):
         if not s.is_ordered:
             cprint("Removing disordered structure: %s found in %s" % (s.formula, p), "magenta")
         else:
@@ -68,12 +69,12 @@ from abipy import abilab"""),
             nbv.new_code_cell("# for structure in dfs.structures: display(structure)"),
         ])
 
-        import io, tempfile # os,
-        _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix='.ipynb', dir=os.getcwd(), text=True)
+        import tempfile  # os,
+        _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix=".ipynb", dir=os.getcwd(), text=True)
 
         # Write notebook
         import nbformat
-        with io.open(nbpath, 'wt', encoding="utf8") as fh:
+        with open(nbpath, "w", encoding="utf8") as fh:
             nbformat.write(nb, fh)
 
         cmd = "jupyter notebook %s" % nbpath
@@ -110,17 +111,16 @@ def compare_structures(options):
         print(str(ex))
         return 1
 
-    from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
+    from pymatgen.analysis.structure_matcher import ElementComparator, StructureMatcher
     compareby = "species" if options.anonymous else "element"
     m = StructureMatcher() if compareby == "species" else StructureMatcher(comparator=ElementComparator())
     print("Grouping %s structures by `%s` with `anonymous: %s`" % (len(structures), compareby, options.anonymous))
 
     for i, grp in enumerate(m.group_structures(structures, anonymous=options.anonymous)):
-        print("Group {}: ".format(i))
+        print(f"Group {i}: ")
         for s in grp:
             spg_symbol, international_number = s.get_space_group_info()
-            print("\t- {} ({}), vol: {:.2f} A^3, {} ({})".format(
-                  paths[structures.index(s)], s.formula, s.volume, spg_symbol, international_number))
+            print(f"\t- {paths[structures.index(s)]} ({s.formula}), vol: {s.volume:.2f} A^3, {spg_symbol} ({international_number})")
         print()
 
     if options.verbose:
@@ -159,7 +159,7 @@ def abicomp_spg(options):
 
     print("Spglib options: symprec=", options.symprec, "angle_tolerance=", options.angle_tolerance)
     print("Abinit options: tolsym=", options.tolsym)
-    print("")
+    print()
     abilab.print_dataframe(df, title="Spacegroup found by Abinit and Spglib:")
     df_to_clipboard(options, df)
 
@@ -195,10 +195,10 @@ def _compare_with_database(options):
     # Filter by spglib space group number.
     if getattr(options, "same_spgnum", False):
         spgnums = [struct.get_space_group_info()[1] for struct in structures]
-        mpres = [r.filter_by_spgnum(spgnum) for spgnum, r in zip(spgnums, mpres)]
+        mpres = [r.filter_by_spgnum(spgnum) for spgnum, r in zip(spgnums, mpres, strict=False)]
 
     retcode = 0
-    for this_structure, r in zip(structures, mpres):
+    for this_structure, r in zip(structures, mpres, strict=False):
         if r.structures:
             if options.notebook:
                 new = r.add_entry(this_structure, "this")
@@ -392,7 +392,7 @@ def abicomp_phbands(options):
             app = plotter.get_panel(template=options.panel_template)
             return pn.serve(app, **serve_kwargs)
 
-        elif options.plot_mode != "None":
+        if options.plot_mode != "None":
             plotfunc = getattr(plotter, options.plot_mode, None)
             if plotfunc is None:
                 raise ValueError("Don't know how to handle plot_mode: %s" % options.plot_mode)
@@ -476,7 +476,7 @@ def abicomp_getattr(options):
         ax.set_ylabel(attr_name)
         ax.set_xticks(xs)
         xlabels = options.paths[1:]
-        s = set((os.path.basename(s) for s in xlabels))
+        s = set(os.path.basename(s) for s in xlabels)
         if len(s) == len(xlabels): xlabels = s
         ax.set_xticklabels(xlabels) #, rotation='vertical')
         plt.show()
@@ -998,78 +998,78 @@ def get_parser(with_epilog=False):
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
-    copts_parser.add_argument('paths', nargs="+", help="List of files to compare.")
-    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-        help='Verbose, can be supplied multiple times to increase verbosity.')
-    copts_parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
+    copts_parser.add_argument("paths", nargs="+", help="List of files to compare.")
+    copts_parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+        help="Verbose, can be supplied multiple times to increase verbosity.")
+    copts_parser.add_argument("-sns", "--seaborn", const="paper", default=None, action="store", nargs="?", type=str,
         help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
-    copts_parser.add_argument('-mpl', "--mpl-backend", default=None,
+    copts_parser.add_argument("-mpl", "--mpl-backend", default=None,
         help=("Set matplotlib interactive backend. "
               "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
               "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
+    copts_parser.add_argument("--loglevel", default="ERROR", type=str,
         help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG.")
 
     # Parent parser for commands calling spglib.
     spgopt_parser = argparse.ArgumentParser(add_help=False)
-    spgopt_parser.add_argument('--symprec', default=1e-3, type=float,
+    spgopt_parser.add_argument("--symprec", default=1e-3, type=float,
         help="""\
 symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
 which is fairly strict and works well for properly refined structures with atoms in the proper symmetry coordinates.
 For structures with slight deviations from their proper atomic positions (e.g., structures relaxed with electronic structure
 codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.""")
-    spgopt_parser.add_argument('--angle-tolerance', default=5.0, type=float,
+    spgopt_parser.add_argument("--angle-tolerance", default=5.0, type=float,
         help="angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0")
     #spgopt_parser.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
 
     # Parent parser for commands operating on pandas dataframes
     pandas_parser = argparse.ArgumentParser(add_help=False)
-    pandas_parser.add_argument("-c", '--clipboard', default=False, action="store_true",
+    pandas_parser.add_argument("-c", "--clipboard", default=False, action="store_true",
             help="Copy dataframe to the system clipboard. This can be pasted into Excel, for example")
 
     # Parent parser for commands supporting (ipython/jupyter)
     ipy_parser = argparse.ArgumentParser(add_help=False)
-    ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
-    ipy_parser.add_argument('--classic-notebook', action='store_true', default=False,
+    ipy_parser.add_argument("-nb", "--notebook", default=False, action="store_true", help="Generate jupyter notebook.")
+    ipy_parser.add_argument("--classic-notebook", action="store_true", default=False,
                             help="Use classic notebook instead of jupyterlab.")
-    ipy_parser.add_argument('--no-browser', action='store_true', default=False,
+    ipy_parser.add_argument("--no-browser", action="store_true", default=False,
                             help=("Start the jupyter server to serve the notebook "
                                   "but don't open the notebook in the browser.\n"
                                   "Use this option to connect remotely from localhost to the machine running the kernel"))
-    ipy_parser.add_argument('--foreground', action='store_true', default=False,
+    ipy_parser.add_argument("--foreground", action="store_true", default=False,
         help="Run jupyter notebook in the foreground.")
-    ipy_parser.add_argument('-ipy', '--ipython', default=False, action="store_true", help='Invoke ipython terminal.')
+    ipy_parser.add_argument("-ipy", "--ipython", default=False, action="store_true", help="Invoke ipython terminal.")
 
     # Parent parser for commands supporting (jupyter notebooks)
     nb_parser = argparse.ArgumentParser(add_help=False)
-    nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
-    nb_parser.add_argument('--foreground', action='store_true', default=False,
+    nb_parser.add_argument("-nb", "--notebook", default=False, action="store_true", help="Generate jupyter notebook.")
+    nb_parser.add_argument("--foreground", action="store_true", default=False,
         help="Run jupyter notebook in the foreground.")
 
     # Parent parser for commands supporting expose
     expose_parser = argparse.ArgumentParser(add_help=False)
-    expose_parser.add_argument("-e", '--expose', default=False, action="store_true",
-            help='Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.')
+    expose_parser.add_argument("-e", "--expose", default=False, action="store_true",
+            help="Execute robot.expose to produce a pre-defined list of (matplotlib|plotly) figures.")
     expose_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
             help="Used if --expose to iterate over figures. Expose all figures at once if not given on the CLI.")
     expose_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
             help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
     expose_parser.add_argument("-ply", "--plotly", default=False, action="store_true",
-            help='Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.')
+            help="Generate plotly plots in browser instead of matplotlib. WARNING: Not all the features are supported.")
     expose_parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
-            help="Push figure to plotly chart studio ." +
+            help="Push figure to plotly chart studio ."
                  "Requires --plotly option and user account at https://chart-studio.plotly.com.")
 
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
+    parser.add_argument("-V", "--version", action="version", version=abilab.__version__)
 
     # Create the parsers for the sub-commands
-    subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
+    subparsers = parser.add_subparsers(dest="command", help="sub-command help", description="Valid subcommands")
 
     # Subparser for structure command.
-    p_struct = subparsers.add_parser('structure', parents=[copts_parser, ipy_parser, spgopt_parser, pandas_parser],
+    p_struct = subparsers.add_parser("structure", parents=[copts_parser, ipy_parser, spgopt_parser, pandas_parser],
             help=abicomp_structure.__doc__)
     p_struct.add_argument("-g", "--group", default=False, action="store_true",
         help="Compare a set of structures for similarity.")
@@ -1077,7 +1077,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
         help="Whether to use anonymous mode in StructureMatcher. Default False")
 
     # Subparser for spg command.
-    p_spg = subparsers.add_parser('spg', parents=[copts_parser, spgopt_parser, pandas_parser],
+    p_spg = subparsers.add_parser("spg", parents=[copts_parser, spgopt_parser, pandas_parser],
             help=abicomp_spg.__doc__)
     p_spg.add_argument("-t", "--tolsym", type=float, default=None, help="""\
 Gives the tolerance on the atomic positions (reduced coordinates), primitive vectors, or magnetization,
@@ -1086,19 +1086,19 @@ of symmetries of the system, or the application of the symmetry operations to ge
 the full set of atoms. Note that a value larger than 0.01 is considered to be unacceptable.""")
 
     # Subparser for mp_structure command.
-    p_mpstruct = subparsers.add_parser('mp_structure', parents=[copts_parser, nb_parser],
+    p_mpstruct = subparsers.add_parser("mp_structure", parents=[copts_parser, nb_parser],
         help=abicomp_mp_structure.__doc__)
     p_mpstruct.add_argument("--same-spgnum", default=False, action="store_true",
         help="Select only MP structures with same space group number as input structure.")
 
     # Subparser for cod_structure command.
-    p_codstruct = subparsers.add_parser('cod_structure', parents=[copts_parser, nb_parser],
+    p_codstruct = subparsers.add_parser("cod_structure", parents=[copts_parser, nb_parser],
         help=abicomp_cod_structure.__doc__)
     #p_codstruct.add_argument("--same-spgnum", default=False, action="store_true",
     #    help="Select only COD structures with same space group number as input structure.")
 
     # Subparser for xrd.
-    p_xrd = subparsers.add_parser('xrd', parents=[copts_parser], help="Compare X-ray diffraction plots.")
+    p_xrd = subparsers.add_parser("xrd", parents=[copts_parser], help="Compare X-ray diffraction plots.")
     p_xrd.add_argument("-w", "--wavelength", default="CuKa", type=str, help=(
         "The wavelength can be specified as a string. It must be one of the "
         "supported definitions in the WAVELENGTHS dict declared in pymatgen/analysis/diffraction/xrd.py."
@@ -1112,15 +1112,15 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
         help="Whether to annotate the peaks with plane information.")
 
     # Subparser for data command.
-    p_data = subparsers.add_parser('data', parents=[copts_parser, expose_parser], help=abicomp_data.__doc__)
+    p_data = subparsers.add_parser("data", parents=[copts_parser, expose_parser], help=abicomp_data.__doc__)
     p_data.add_argument("-i", "--use-index", default=False, action="store_true",
         help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
 
     # Subparser for png command.
-    p_png = subparsers.add_parser('png', parents=[copts_parser], help=abicomp_png.__doc__)
+    p_png = subparsers.add_parser("png", parents=[copts_parser], help=abicomp_png.__doc__)
 
     # Subparser for ebands command.
-    p_ebands = subparsers.add_parser('ebands', parents=[copts_parser, ipy_parser, pandas_parser],
+    p_ebands = subparsers.add_parser("ebands", parents=[copts_parser, ipy_parser, pandas_parser],
             help=abicomp_ebands.__doc__)
     p_ebands.add_argument("-p", "--plot-mode", default="gridplot",
         choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "plot_band_edges", "animate", "None"],
@@ -1129,7 +1129,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
         help="Option used to define the zero of energy in the band structure plot. Default is `fermie`.")
 
     # Subparser for edos command.
-    p_edos = subparsers.add_parser('edos', parents=[copts_parser, ipy_parser, expose_parser],
+    p_edos = subparsers.add_parser("edos", parents=[copts_parser, ipy_parser, expose_parser],
         help=abicomp_edos.__doc__)
     p_edos.add_argument("-p", "--plot-mode", default="gridplot",
         choices=["gridplot", "combiplot", "None"],
@@ -1138,7 +1138,7 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
         help="Option used to define the zero of energy in the DOS plot. Default is `fermie`.")
 
     # Subparser for phbands command.
-    p_phbands = subparsers.add_parser('phbands', parents=[copts_parser, ipy_parser, expose_parser],
+    p_phbands = subparsers.add_parser("phbands", parents=[copts_parser, ipy_parser, expose_parser],
         help=abicomp_phbands.__doc__)
     p_phbands.add_argument("-p", "--plot-mode", default="gridplot",
         choices=["gridplot", "combiplot", "boxplot", "combiboxplot", "animate", "panel", "None"],
@@ -1146,87 +1146,87 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
              "Use `panel` for GUI in web browser. Default is `gridplot`.")
 
     # Subparser for phdos command.
-    p_phdos = subparsers.add_parser('phdos', parents=[copts_parser, ipy_parser, expose_parser],
+    p_phdos = subparsers.add_parser("phdos", parents=[copts_parser, ipy_parser, expose_parser],
         help=abicomp_phdos.__doc__)
     p_phdos.add_argument("-p", "--plot-mode", default="gridplot",
         choices=["gridplot", "combiplot", "None"],
         help="Plot mode e.g. `-p combiplot` to plot DOSes on the same figure. Default is `gridplot`.")
 
     # Subparser for getattr command.
-    p_getattr = subparsers.add_parser('getattr', parents=[copts_parser], help=abicomp_getattr.__doc__)
-    p_getattr.add_argument('--plot', default=False, action="store_true", help="Plot data with matplotlib (requires floats).")
-    p_getattr.add_argument('--list', default=False, action="store_true", help="Print attributes available in file")
+    p_getattr = subparsers.add_parser("getattr", parents=[copts_parser], help=abicomp_getattr.__doc__)
+    p_getattr.add_argument("--plot", default=False, action="store_true", help="Plot data with matplotlib (requires floats).")
+    p_getattr.add_argument("--list", default=False, action="store_true", help="Print attributes available in file")
 
     # Subparser for robot commands
     # Use own version of ipy_parser with different default values.
     robot_ipy_parser = argparse.ArgumentParser(add_help=False)
-    robot_ipy_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
-    robot_ipy_parser.add_argument('--foreground', action='store_true', default=False,
+    robot_ipy_parser.add_argument("-nb", "--notebook", default=False, action="store_true", help="Generate jupyter notebook.")
+    robot_ipy_parser.add_argument("--foreground", action="store_true", default=False,
         help="Run jupyter notebook in the foreground.")
     #robot_ipy_parser.add_argument('-ipy', '--ipython', default=True, action="store_true", help='Invoke ipython terminal.')
-    robot_ipy_parser.add_argument('-p', '--print', default=False, action="store_true", help='Print robot and return.')
+    robot_ipy_parser.add_argument("-p", "--print", default=False, action="store_true", help="Print robot and return.")
 
     # Parent parser for *robot* commands
     robot_parser = argparse.ArgumentParser(add_help=False)
-    robot_parser.add_argument('--no-walk', default=False, action="store_true", help="Don't enter subdirectories.")
-    robot_parser.add_argument("-pn", '--panel', default=False, action="store_true",
+    robot_parser.add_argument("--no-walk", default=False, action="store_true", help="Don't enter subdirectories.")
+    robot_parser.add_argument("-pn", "--panel", default=False, action="store_true",
                               help="Open GUI in web browser, requires panel package. WARNING: Experimental")
     robot_parser.add_argument("-pnt", "--panel-template", default="FastList", type=str,
-                              help="Specify template for panel dashboard." +
-                                   "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
+                              help="Specify template for panel dashboard."
+                                   "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla."
                                    "Default: FastList"
                               )
     robot_parser.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
     robot_parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
-                              help="Generate matplotlib plots in $BROWSER instead of X-server.\n" +
+                              help="Generate matplotlib plots in $BROWSER instead of X-server.\n"
                                    "WARNING: Not all the features are supported.")
 
     robot_parents = [copts_parser, robot_ipy_parser, robot_parser, expose_parser, pandas_parser]
-    p_gsr = subparsers.add_parser('gsr', parents=robot_parents, help=abicomp_gsr.__doc__)
-    p_hist = subparsers.add_parser('hist', parents=robot_parents, help=abicomp_hist.__doc__)
-    p_ddb = subparsers.add_parser('ddb', parents=robot_parents, help=abicomp_ddb.__doc__)
-    p_anaddb = subparsers.add_parser('anaddb', parents=robot_parents, help=abicomp_anaddb.__doc__)
-    p_phbst = subparsers.add_parser('phbst', parents=robot_parents, help=abicomp_phbst.__doc__)
-    p_sigres = subparsers.add_parser('sigres', parents=robot_parents, help=abicomp_sigres.__doc__)
-    p_mdf = subparsers.add_parser('mdf', parents=robot_parents, help=abicomp_mdf.__doc__)
-    p_optic = subparsers.add_parser('optic', parents=robot_parents, help=abicomp_optic.__doc__)
-    p_a2f = subparsers.add_parser('a2f', parents=robot_parents, help=abicomp_a2f.__doc__)
-    p_sigeph = subparsers.add_parser('sigeph', parents=robot_parents, help=abicomp_sigeph.__doc__)
-    p_rta = subparsers.add_parser('rta', parents=robot_parents, help=abicomp_rta.__doc__)
-    p_gkq = subparsers.add_parser('gkq', parents=robot_parents, help=abicomp_gkq.__doc__)
-    p_gkq.add_argument('-d', '--diff', default=False, action="store_true", help='Plot difference between eph matrix elements.')
-    p_v1qavg = subparsers.add_parser('v1qavg', parents=robot_parents, help=abicomp_v1qavg.__doc__)
+    p_gsr = subparsers.add_parser("gsr", parents=robot_parents, help=abicomp_gsr.__doc__)
+    p_hist = subparsers.add_parser("hist", parents=robot_parents, help=abicomp_hist.__doc__)
+    p_ddb = subparsers.add_parser("ddb", parents=robot_parents, help=abicomp_ddb.__doc__)
+    p_anaddb = subparsers.add_parser("anaddb", parents=robot_parents, help=abicomp_anaddb.__doc__)
+    p_phbst = subparsers.add_parser("phbst", parents=robot_parents, help=abicomp_phbst.__doc__)
+    p_sigres = subparsers.add_parser("sigres", parents=robot_parents, help=abicomp_sigres.__doc__)
+    p_mdf = subparsers.add_parser("mdf", parents=robot_parents, help=abicomp_mdf.__doc__)
+    p_optic = subparsers.add_parser("optic", parents=robot_parents, help=abicomp_optic.__doc__)
+    p_a2f = subparsers.add_parser("a2f", parents=robot_parents, help=abicomp_a2f.__doc__)
+    p_sigeph = subparsers.add_parser("sigeph", parents=robot_parents, help=abicomp_sigeph.__doc__)
+    p_rta = subparsers.add_parser("rta", parents=robot_parents, help=abicomp_rta.__doc__)
+    p_gkq = subparsers.add_parser("gkq", parents=robot_parents, help=abicomp_gkq.__doc__)
+    p_gkq.add_argument("-d", "--diff", default=False, action="store_true", help="Plot difference between eph matrix elements.")
+    p_v1qavg = subparsers.add_parser("v1qavg", parents=robot_parents, help=abicomp_v1qavg.__doc__)
     #p_wrmax = subparsers.add_parser('wrmax', parents=robot_parents, help=abicomp_wrmax.__doc__)
-    p_abiwan = subparsers.add_parser('abiwan', parents=robot_parents, help=abicomp_abiwan.__doc__)
-    p_gwr = subparsers.add_parser('gwr', parents=robot_parents, help=abicomp_gwr.__doc__)
+    p_abiwan = subparsers.add_parser("abiwan", parents=robot_parents, help=abicomp_abiwan.__doc__)
+    p_gwr = subparsers.add_parser("gwr", parents=robot_parents, help=abicomp_gwr.__doc__)
 
     # Subparser for abiwan_ebands command.
-    p_abiwan_ebands = subparsers.add_parser('abiwan_ebands', parents=[copts_parser], help=abicomp_abiwan_ebands.__doc__)
+    p_abiwan_ebands = subparsers.add_parser("abiwan_ebands", parents=[copts_parser], help=abicomp_abiwan_ebands.__doc__)
 
     # Subparser for skw_ibz_kpath command.
-    p_skw_ibz_kpath = subparsers.add_parser('skw_ibz_kpath', parents=[copts_parser], help=abicomp_skw_ibz_kpath.__doc__)
+    p_skw_ibz_kpath = subparsers.add_parser("skw_ibz_kpath", parents=[copts_parser], help=abicomp_skw_ibz_kpath.__doc__)
     p_skw_ibz_kpath.add_argument("-l", "--lpratio", default=5,
-                                help="Ratio between the number of star functions and the number of ab-initio k-points." +
+                                help="Ratio between the number of star functions and the number of ab-initio k-points."
                                      "The default should be OK in many systems, larger values may be required for accurate derivatives.")
     # Subparser for pseudos command.
-    p_pseudos = subparsers.add_parser('pseudos', parents=[copts_parser], help=abicomp_pseudos.__doc__)
+    p_pseudos = subparsers.add_parser("pseudos", parents=[copts_parser], help=abicomp_pseudos.__doc__)
 
     # Subparser for psps command.
-    p_pspsp = subparsers.add_parser('psps', parents=robot_parents, help=abicomp_psps.__doc__)
+    p_pspsp = subparsers.add_parser("psps", parents=robot_parents, help=abicomp_psps.__doc__)
 
     # Subparser for time command.
-    p_time = subparsers.add_parser('time', parents=[copts_parser, ipy_parser], help=abicomp_time.__doc__)
+    p_time = subparsers.add_parser("time", parents=[copts_parser, ipy_parser], help=abicomp_time.__doc__)
     p_time.add_argument("-e", "--ext", default=".abo", help=("File extension for Abinit output files. "
                         "Used when the first argument is a directory. Default is `.abo`"))
 
     # Subparser for gs_scf command.
-    p_gs_scf = subparsers.add_parser('gs_scf', parents=[copts_parser], help=abicomp_gs_scf.__doc__)
+    p_gs_scf = subparsers.add_parser("gs_scf", parents=[copts_parser], help=abicomp_gs_scf.__doc__)
 
     # Subparser for dfpt2_scf command.
-    p_dftp2_scf = subparsers.add_parser('dfpt2_scf', parents=[copts_parser], help=abicomp_dfpt2_scf.__doc__)
+    p_dftp2_scf = subparsers.add_parser("dfpt2_scf", parents=[copts_parser], help=abicomp_dfpt2_scf.__doc__)
 
     # Subparser for text command.
-    p_text = subparsers.add_parser('text', parents=[copts_parser], help=abicomp_text.__doc__)
+    p_text = subparsers.add_parser("text", parents=[copts_parser], help=abicomp_text.__doc__)
     p_text.add_argument("-d", "--diffmode", default="difflib", help=("Select diff application. "
         "Possible values: difflib (default), pygmentize (requires package)."))
 
@@ -1290,8 +1290,8 @@ def main():
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
-        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
-                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+        sns.set(context=options.seaborn, style="darkgrid", palette="deep",
+                font="sans-serif", font_scale=1, color_codes=False, rc=None)
 
     ##############################################################################################
     # Handle meta options i.e. options that set other options.

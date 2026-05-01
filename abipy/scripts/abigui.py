@@ -4,14 +4,14 @@ Script to start the panel-based AbiPy web GUI.
 """
 from __future__ import annotations
 
-import sys
-import os
 import argparse
+import sys
+from pprint import pformat
+
 import panel as pn
+
 import abipy.tools.cli_parsers as cli
 
-from pprint import pformat
-from abipy.core.release import version
 
 def main():
 
@@ -34,14 +34,14 @@ NB: To deploy the GUI, use the ~abipy/dev_scripts/deploy_abigui.sh script.
     def get_copts_parser():
         # Parent parser implementing common options.
         p = argparse.ArgumentParser(add_help=False)
-        p.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                       help='Verbose, can be supplied multiple times to increase verbosity')
+        p.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+                       help="Verbose, can be supplied multiple times to increase verbosity")
 
-        p.add_argument('--loglevel', default="ERROR", type=str,
+        p.add_argument("--loglevel", default="ERROR", type=str,
                             help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
         from abipy.core.release import __version__
-        p.add_argument('-V', '--version', action='version', version=__version__)
+        p.add_argument("-V", "--version", action="version", version=__version__)
 
         return p
 
@@ -58,7 +58,7 @@ NB: To deploy the GUI, use the ~abipy/dev_scripts/deploy_abigui.sh script.
     # Parse command line.
     try:
         options = parser.parse_args()
-    except Exception as exc:
+    except Exception:
         show_examples_and_exit(error_code=1)
 
     # loglevel is bound to the string value obtained from the command line argument.
@@ -66,10 +66,10 @@ NB: To deploy the GUI, use the ~abipy/dev_scripts/deploy_abigui.sh script.
     import logging
     numeric_level = getattr(logging, options.loglevel.upper(), None)
     if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % options.loglevel)
+        raise ValueError("Invalid log level: %s" % options.loglevel)
     logging.basicConfig(level=numeric_level)
 
-    from abipy.panels.core import abipanel, get_abinit_template_cls_kwds, AbipyParameterized
+    from abipy.panels.core import AbipyParameterized, abipanel, get_abinit_template_cls_kwds
 
     # Load abipy/panel extensions and set the default template
     #tmpl_kwds.update(dict(
@@ -84,11 +84,16 @@ NB: To deploy the GUI, use the ~abipy/dev_scripts/deploy_abigui.sh script.
         AbipyParameterized.has_remote_server = options.has_remote_server
 
     # Import the apps and define routes for each page.
-    from abipy.panels.structure import InputFileGenerator
-    from abipy.panels.ddb import (PanelWithFileInput, PanelWithStructureInput, DdbPanelWithFileInput, CompareDdbWithMP,
-                                  RobotWithFileInput)
-    from abipy.panels.electrons import SkwPanelWithFileInput, CompareEbandsWithMP
+    from abipy.panels.ddb import (
+        CompareDdbWithMP,
+        DdbPanelWithFileInput,
+        PanelWithFileInput,
+        PanelWithStructureInput,
+        RobotWithFileInput,
+    )
+    from abipy.panels.electrons import CompareEbandsWithMP, SkwPanelWithFileInput
     from abipy.panels.outputs import AbinitOutputFilePanelWithFileInput as abo_cls
+    from abipy.panels.structure import InputFileGenerator
 
     intro = """
 ![AbiPy Logo](assets/img/abipy_logo.png)

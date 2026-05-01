@@ -6,8 +6,8 @@ Thermodynamic properties
 This example shows how to compute and plot thermodynamic properties within
 the harmonic approximation using the phonon DOS produced by anaddb.
 """
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 #%%
 # Read the Phonon DOS from the netcd file produced by anaddb (prtdos 2)

@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import os
@@ -14,8 +13,8 @@ def profile(statement, global_vars, local_vars):
 
         stats = profile("main()", global_vars=globals(), local_vars=locals())
     """
-    import pstats
     import cProfile
+    import pstats
     _, filename = tempfile.mkstemp()
     cProfile.runctx(statement, global_vars, local_vars, filename=filename)
 
@@ -69,12 +68,12 @@ class HtmlDiff:
         Use difflib to generate a HTML file with the diff.
         Open file in the browser.
         """
-        with open(self.filepaths[0], 'rt') as fh:
+        with open(self.filepaths[0]) as fh:
             fromlines = fh.readlines()
 
         diffs = []
         for path in self.filepaths[1:]:
-            with open(path, 'rt') as fh:
+            with open(path) as fh:
                 tolines = fh.readlines()
 
             _, tmpname = tempfile.mkstemp(suffix=".html", text=True)
@@ -82,7 +81,7 @@ class HtmlDiff:
             #diff = difflib.HtmlDiff().make_table(fromlines, tolines,
             diff = difflib.HtmlDiff().make_file(fromlines, tolines,
                                                 self.filepaths[0], path) #context=options.c, numlines=n)
-            with open(tmpname, "wt") as fh:
+            with open(tmpname, "w") as fh:
                 fh.writelines(diff)
 
             return self._launch_browser(tmpname)
@@ -110,7 +109,7 @@ class HtmlDiff:
             return self._launch_browser(tmpname)
 
 
-def display_top(snapshot, key_type='lineno', limit=3):
+def display_top(snapshot, key_type="lineno", limit=3):
     """
     Profile memory usage in Python.
     Taken from https://stackoverflow.com/questions/552744/how-do-i-profile-memory-usage-in-python
@@ -122,8 +121,8 @@ def display_top(snapshot, key_type='lineno', limit=3):
         snapshot = tracemalloc.take_snapshot()
         display_top(snapshot)
     """
-    import tracemalloc
     import linecache
+    import tracemalloc
     snapshot = snapshot.filter_traces((
         tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
         tracemalloc.Filter(False, "<unknown>"),
@@ -139,7 +138,7 @@ def display_top(snapshot, key_type='lineno', limit=3):
               % (index, filename, frame.lineno, stat.size / 1024))
         line = linecache.getline(frame.filename, frame.lineno).strip()
         if line:
-            print('    %s' % line)
+            print("    %s" % line)
 
     other = top_stats[limit:]
     if other:
@@ -240,11 +239,11 @@ def print_hardware_system_info() -> None:
     for interface_name, interface_addresses in if_addrs.items():
         for address in interface_addresses:
             print(f"=== Interface: {interface_name} ===")
-            if str(address.family) == 'AddressFamily.AF_INET':
+            if str(address.family) == "AddressFamily.AF_INET":
                 print(f"  IP Address: {address.address}")
                 print(f"  Netmask: {address.netmask}")
                 print(f"  Broadcast IP: {address.broadcast}")
-            elif str(address.family) == 'AddressFamily.AF_PACKET':
+            elif str(address.family) == "AddressFamily.AF_PACKET":
                 print(f"  MAC Address: {address.address}")
                 print(f"  Netmask: {address.netmask}")
                 print(f"  Broadcast MAC: {address.broadcast}")

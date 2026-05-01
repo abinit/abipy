@@ -89,7 +89,6 @@ from abipy.dynamics.cpx import EvpFile
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
 
-
 def _straceback():
     """Returns a string with the traceback."""
     import traceback
@@ -306,7 +305,7 @@ def abiopen(filepath: str):
             import tempfile
             _, tmp_path = tempfile.mkstemp(suffix=os.path.basename(root), text=True)
             cprint("Creating temporary file: %s" % tmp_path, "yellow")
-            with open(tmp_path, "wt") as t:
+            with open(tmp_path, "w") as t:
                 t.write(f.read())
             filepath = tmp_path
 
@@ -333,7 +332,7 @@ def abiopen(filepath: str):
     return cls.from_file(filepath)
 
 
-def abirobot(filepaths: Union[str, List[str]]) -> Robot:
+def abirobot(filepaths: str | list[str]) -> Robot:
     """
     Factory function to create and return a Robot subclass from a list of filenames
     The Robot subclass is detected from the extension of the first file hence
@@ -363,10 +362,15 @@ def software_stack(as_dataframe: bool = False):
     import platform
     system, node, release, version, machine, processor = platform.uname()
     # These packages are required
-    import numpy, scipy, netCDF4, pymatgen, apscheduler, pydispatch, plotly
-    import ruamel.yaml as yaml
-
     from importlib import import_module
+
+    import apscheduler
+    import netCDF4
+    import numpy
+    import pydispatch
+    import pymatgen
+    import scipy
+    from ruamel import yaml
 
     def get_version(pkg_name):
         """Return version of package from string."""
@@ -412,7 +416,6 @@ def abicheck(verbose: int = 0) -> str:
     can be found in $PATH and whether the python modules needed
     at run-time can be imported. Return string with error messages, empty if success.
     """
-
     err_lines = []
     app = err_lines.append
 
@@ -430,11 +433,11 @@ def abicheck(verbose: int = 0) -> str:
         Compare two version strings with the given operator ``op``
         >>> assert cmp_version("1.1.1", "1.1.0") and not cmp_version("1.1.1", "1.1.0", op="==")
         """
-        from packaging.version import parse as parse_version
         from monty.operator import operator_from_str
+        from packaging.version import parse as parse_version
         op = operator_from_str(op)
-        return op(parse_version(this.split('-')[0]),
-                  parse_version(other.split('-')[0]))
+        return op(parse_version(this.split("-")[0]),
+                  parse_version(other.split("-")[0]))
 
     from abipy.flowtk import PyFlowScheduler
 
@@ -452,7 +455,7 @@ def abicheck(verbose: int = 0) -> str:
     try:
         scheduler = PyFlowScheduler.from_user_config()
         cprint("Abipy Scheduler:\n%s\n" % str(scheduler), color="yellow")
-    except Exception as exc:
+    except Exception:
         app(_straceback())
 
     try:
@@ -471,7 +474,7 @@ def abicheck(verbose: int = 0) -> str:
     return "\n".join(err_lines)
 
 
-def install_config_files(workdir: Optional[str] = None, force_reinstall: Optional[bool] = False):
+def install_config_files(workdir: str | None = None, force_reinstall: bool | None = False):
     """
     Install pre-defined configuration files for the TaskManager and the Scheduler
     in the workdir directory.
@@ -557,14 +560,14 @@ qadapters:
 
     # Write configuration files.
     if not os.path.isfile(scheduler_path) or force_reinstall:
-        with open(scheduler_path, "wt") as fh:
+        with open(scheduler_path, "w") as fh:
             fh.write(scheduler_yaml)
         print("Scheduler configuration file written to:", scheduler_path)
     else:
         raise RuntimeError("Configuration file: %s already exists.\nUse force_reinstall option to overwrite it" % scheduler_path)
 
     if not os.path.isfile(manager_path) or force_reinstall:
-        with open(manager_path, "wt") as fh:
+        with open(manager_path, "w") as fh:
             fh.write(manager_yaml)
         print("Manager configuration file written to:", manager_path)
     else:

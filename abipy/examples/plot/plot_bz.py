@@ -10,8 +10,8 @@ with matplotlib or plotly.
 #%%
 # Open the WKF file and extract the crystalline structure.
 
-from abipy.abilab import abiopen
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 wfk_file = abiopen(abidata.ref_file("si_scf_WFK.nc"))
 structure = wfk_file.structure

@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import panel as pn
-#import panel.widgets as pnw
 
-from abipy.panels.viewers import AceViewer
+from abipy.flowtk.tasks import AbinitTask
+
 #from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click, Loading
 from abipy.panels.nodes import NodeParameterized
-from abipy.flowtk.tasks import AbinitTask
+
+#import panel.widgets as pnw
+from abipy.panels.viewers import AceViewer
 
 
 class TaskPanel(NodeParameterized):
@@ -44,7 +46,7 @@ class TaskPanel(NodeParameterized):
                            )
 
         return pn.Column(
-            f"## Input files of `{repr(self.task)}`",
+            f"## Input files of `{self.task!r}`",
             card("Input file", self.html_with_clipboard_btn(self.task.input), collapsed=False),
             pn.layout.Divider(),
             card("Submission script", job_file),
@@ -79,7 +81,7 @@ class TaskPanel(NodeParameterized):
         """
         Show the main text output files of the task.
         """
-        col = pn.Column(f"## Main output and log file of `{repr(self.task)}`",
+        col = pn.Column(f"## Main output and log file of `{self.task!r}`",
                         sizing_mode="stretch_width")
 
         for fname in ("output_file", "log_file"):
@@ -116,4 +118,4 @@ class TaskPanel(NodeParameterized):
 
         if as_dict: return d
 
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template"))

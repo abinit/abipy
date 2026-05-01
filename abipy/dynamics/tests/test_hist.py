@@ -1,9 +1,9 @@
 """"Tests for HIST.nc files."""
+import abipy.core.abinit_units as abu
 import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.dynamics.hist import HistFile, HistRobot
-import abipy.core.abinit_units as abu
 
 
 class HistFileTest(AbipyTest):

@@ -4,18 +4,19 @@ Script to generate/analyze/plot ONCVPSP pseudopotentials.
 """
 from __future__ import annotations
 
-import sys
-import os
 import argparse
+import os
 import shutil
-import abipy.tools.cli_parsers as cli
-
+import sys
 from pprint import pformat
+
 from monty.termcolor import cprint
+
+import abipy.tools.cli_parsers as cli
 from abipy.flowtk.pseudos import Pseudo
-from abipy.ppcodes.ppgen import OncvGenerator
 from abipy.ppcodes.oncv_parser import OncvParser
-from abipy.ppcodes.oncv_plotter import OncvPlotter, oncv_make_open_notebook, MultiOncvPlotter
+from abipy.ppcodes.oncv_plotter import MultiOncvPlotter, OncvPlotter, oncv_make_open_notebook
+from abipy.ppcodes.ppgen import OncvGenerator
 
 
 def _find_oncv_output(path: str) -> str:
@@ -212,13 +213,13 @@ def oncv_run(options):
         return 1
 
     # Extract psp8 files from the oncvpsp output and write it to file.
-    with open(psp8_path, "wt") as fh:
+    with open(psp8_path, "w") as fh:
         fh.write(onc_parser.get_psp8_str())
 
     # Write UPF2 file if available.
     upf_str = onc_parser.get_upf_str()
     if upf_str is not None:
-        with open(psp8_path.replace(".psp8", ".upf"), "wt") as fh:
+        with open(psp8_path.replace(".psp8", ".upf"), "w") as fh:
             fh.write(upf_str)
     else:
         cprint("UPF2 file has not been produced. Use `both` in input file!", color="red")
@@ -284,7 +285,7 @@ def oncv_ghost(options) -> int:
 
     import pandas as pd
     df = pd.DataFrame(rows)
-    df = df.sort_values(by='z')
+    df = df.sort_values(by="z")
     from abipy.tools.printing import print_dataframe
     print_dataframe(df)
 
@@ -296,8 +297,9 @@ def oncv_gui(options):
     Start a panel web app to generate pseudopotentials.
     """
     import panel as pn
+
+    from abipy.panels.core import AbipyParameterized, abipanel, get_abinit_template_cls_kwds
     from abipy.panels.oncvpsp_gui import OncvGui
-    from abipy.panels.core import abipanel, get_abinit_template_cls_kwds, AbipyParameterized
 
     # Load abipy/panel extensions and set the default template
     abipanel(panel_template=options.panel_template)
@@ -342,16 +344,16 @@ def get_parser(with_epilog=False):
     def get_copts_parser(multi=False):
         # Parent parser implementing common options.
         p = argparse.ArgumentParser(add_help=False)
-        p.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                       help='Verbose, can be supplied multiple times to increase verbosity')
+        p.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
+                       help="Verbose, can be supplied multiple times to increase verbosity")
 
-        p.add_argument('--loglevel', default="ERROR", type=str,
+        p.add_argument("--loglevel", default="ERROR", type=str,
                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
 
         if multi:
-            p.add_argument('filepaths', nargs="+", help="List of files to compare.")
+            p.add_argument("filepaths", nargs="+", help="List of files to compare.")
         else:
-            p.add_argument('filepath', default="", help="Path to the input/output file")
+            p.add_argument("filepath", default="", help="Path to the input/output file")
 
         return p
 
@@ -365,25 +367,25 @@ def get_parser(with_epilog=False):
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog(), formatter_class=argparse.RawDescriptionHelpFormatter)
     from abipy.core.release import __version__
-    parser.add_argument('-V', '--version', action='version', version=__version__)
+    parser.add_argument("-V", "--version", action="version", version=__version__)
 
     # Create the parsers for the sub-commands
-    subparsers = parser.add_subparsers(dest='command', help='sub-command help', description="Valid subcommands")
+    subparsers = parser.add_subparsers(dest="command", help="sub-command help", description="Valid subcommands")
 
     # Subparser for run command.
-    p_run = subparsers.add_parser('run', parents=[copts_parser, plot_parser], help=oncv_run.__doc__)
+    p_run = subparsers.add_parser("run", parents=[copts_parser, plot_parser], help=oncv_run.__doc__)
     p_run.add_argument("--rel", default="from_file", help=("Relativistic treatment: `nor` for non-relativistic, "
         "`sr` for scalar-relativistic, `fr` for fully-relativistic. Default: `from_file` i.e. detected from file"))
-    p_run.add_argument("--use-mgga", action='store_true', default=False, help="Produce mega-gga pseudo with oncvpspm.x")
+    p_run.add_argument("--use-mgga", action="store_true", default=False, help="Produce mega-gga pseudo with oncvpspm.x")
 
     # Subparser for print command.
-    p_print = subparsers.add_parser('print', parents=[copts_parser], help=oncv_print.__doc__)
+    p_print = subparsers.add_parser("print", parents=[copts_parser], help=oncv_print.__doc__)
 
     # Subparser for plot command.
-    p_plot = subparsers.add_parser('plot', parents=[copts_parser, plot_parser], help=oncv_plot.__doc__)
+    p_plot = subparsers.add_parser("plot", parents=[copts_parser, plot_parser], help=oncv_plot.__doc__)
 
     # Subparser for plot command.
-    p_plot_pseudo = subparsers.add_parser('plot_pseudo', parents=[copts_parser, plot_parser],
+    p_plot_pseudo = subparsers.add_parser("plot_pseudo", parents=[copts_parser, plot_parser],
                                           help=oncv_plot_pseudo.__doc__)
 
     # Subparser for compare command.
@@ -395,24 +397,24 @@ def get_parser(with_epilog=False):
                                       help=oncv_ghost.__doc__)
 
     # notebook options.
-    p_nb = subparsers.add_parser('notebook', parents=[copts_parser], help=oncv_notebook.__doc__)
-    p_nb.add_argument('-nb', '--notebook', action='store_true', default=False, help="Open file in jupyter notebook")
-    p_nb.add_argument('--classic-notebook', "-cnb", action='store_true', default=False,
+    p_nb = subparsers.add_parser("notebook", parents=[copts_parser], help=oncv_notebook.__doc__)
+    p_nb.add_argument("-nb", "--notebook", action="store_true", default=False, help="Open file in jupyter notebook")
+    p_nb.add_argument("--classic-notebook", "-cnb", action="store_true", default=False,
                           help="Use classic jupyter notebook instead of jupyterlab.")
-    p_nb.add_argument('--no-browser', action='store_true', default=False,
+    p_nb.add_argument("--no-browser", action="store_true", default=False,
                           help=("Start the jupyter server to serve the notebook "
                                 "but don't open the notebook in the browser.\n"
                                 "Use this option to connect remotely from localhost to the machine running the kernel"))
-    p_nb.add_argument('--foreground', action='store_true', default=False,
+    p_nb.add_argument("--foreground", action="store_true", default=False,
                           help="Run jupyter notebook in the foreground.")
 
     parents = [copts_parser, cli.pn_serve_parser(), plot_parser]
 
     # Subparser for gui command.
-    p_gui = subparsers.add_parser('gui', parents=parents, help=oncv_gui.__doc__)
+    p_gui = subparsers.add_parser("gui", parents=parents, help=oncv_gui.__doc__)
 
     # Subparser for gnuplot command.
-    p_gnuplot = subparsers.add_parser('gnuplot', parents=[copts_parser], help=oncv_gnuplot.__doc__)
+    p_gnuplot = subparsers.add_parser("gnuplot", parents=[copts_parser], help=oncv_gnuplot.__doc__)
 
     # Subparser for hints command.
     #p_hints = subparsers.add_parser('hints', parents=[copts_parser], help=oncv_hints.__doc__)
@@ -439,7 +441,7 @@ def main():
     # Parse command line.
     try:
         options = parser.parse_args()
-    except Exception as exc:
+    except Exception:
         show_examples_and_exit(error_code=1)
 
     cli.set_loglevel(options.loglevel)
@@ -447,8 +449,8 @@ def main():
     # Use seaborn settings.
     if getattr(options, "seaborn", None):
         import seaborn as sns
-        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
-                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+        sns.set(context=options.seaborn, style="darkgrid", palette="deep",
+                font="sans-serif", font_scale=1, color_codes=False, rc=None)
 
     # Dispatch
     return globals()["oncv_" + options.command](options)

@@ -1,17 +1,13 @@
-# coding: utf-8
 """Test AbiPy command line scripts."""
-import sys
 import os
+
 import pytest
-import abipy.data as abidata
-import abipy.flowtk as flowtk
-
 from scripttest import TestFileEnvironment
-from monty.inspect import all_subclasses
-from abipy.flowtk.qadapters import QueueAdapter
-from abipy.core.testing import AbipyTest
-from abipy import abilab
 
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.core.testing import AbipyTest
+from abipy.flowtk.qadapters import QueueAdapter
 
 script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -47,7 +43,7 @@ class ScriptTest(AbipyTest):
         env = TestFileEnvironment()
 
         # Use Agg backend for plots.
-        with open(os.path.join(env.base_path, "matplotlibrc"), "wt") as fh:
+        with open(os.path.join(env.base_path, "matplotlibrc"), "w") as fh:
             fh.write("backend: Agg\n")
 
         if check_help_version:
@@ -302,7 +298,7 @@ class TestAbicomp(ScriptTest):
         r = env.run(self.script, "pseudos", paths[0], paths[1], paths[2], self.loglevel, self.verbose,
                     expect_stderr=self.expect_stderr)
 
-        test_dir = os.path.join(os.path.dirname(__file__),  "..", 'test_files')
+        test_dir = os.path.join(os.path.dirname(__file__),  "..", "test_files")
         args = [
             os.path.join(abidata.dirpath, "refs", "znse_phonons","ZnSe_hex_qpt_DDB"),
             os.path.join(test_dir, "AlAs_444_nobecs_DDB"),

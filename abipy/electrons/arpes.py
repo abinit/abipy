@@ -1,15 +1,14 @@
-# coding: utf-8
 """
 Arpese Plotter (still under development)
 """
 import numpy as np
-
-from scipy.interpolate import UnivariateSpline
 from monty.collections import dict2namedtuple
-from abipy.core.mixins import Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.tools.typing import Figure
+from scipy.interpolate import UnivariateSpline
+
+from abipy.core.mixins import Has_ElectronBands, Has_Structure, NotebookWriter
 from abipy.electrons import ElectronBands
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_ax3d_fig_plt, get_axarray_fig_plt #set_axlims,
+from abipy.tools.plotting import add_fig_kwargs, get_ax3d_fig_plt, get_ax_fig_plt, get_axarray_fig_plt  #set_axlims,
+from abipy.tools.typing import Figure
 
 
 class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -207,7 +206,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         # Don't show the last ax if numeb is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
-        for itemp, ax in zip(temp_inds, ax_list):
+        for itemp, ax in zip(temp_inds, ax_list, strict=False):
             self.plot_ekmap_itemp(itemp=itemp, spins=spins, estep=estep, ax=ax, ylims=ylims,
                     with_colorbar=with_colorbar, show=False, **kwargs)
             ax.set_title("T = %.1f K" % self.tmesh[itemp], fontsize=fontsize)
@@ -310,7 +309,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
         for isp, spin in enumerate(spins):
             spin_sign = +1 if spin == 0 else -1
-            for ik, (ikpt, ax) in enumerate(zip(kpt_inds, ax_list)):
+            for ik, (ikpt, ax) in enumerate(zip(kpt_inds, ax_list, strict=False)):
                 ax.grid(True)
                 atw = self.get_atw(xs, spin, ikpt, band_inds, temp_inds)
                 for it, itemp in enumerate(temp_inds):

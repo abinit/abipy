@@ -1,13 +1,13 @@
-# coding: utf-8
 """Tests for derivatives module."""
 import os
+
 import numpy as np
 
-from abipy import abilab
 import abipy.data as abidata
+from abipy import abilab
+from abipy.core.testing import AbipyTest
 from abipy.tools.plotting import *
 from abipy.tools.plotting import is_mpl_figure, is_plotly_figure, latex_greek_2unicode
-from abipy.core.testing import AbipyTest
 
 
 class TestPlotting(AbipyTest):
@@ -67,7 +67,7 @@ class TestPlotting(AbipyTest):
 
         # A pandas data frame from the above data
         import pandas as pd
-        df = pd.DataFrame({'x': x, 'y': y, 'z': z})
+        df = pd.DataFrame({"x": x, "y": y, "z": z})
 
         from abipy.tools.plotting import plot_xy_with_hue
         if self.has_matplotlib():
@@ -105,7 +105,6 @@ class TestPlotting(AbipyTest):
 
     def test_marker(self):
         """Testing Marker."""
-
         x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
         marker = Marker(x, y, s)
 

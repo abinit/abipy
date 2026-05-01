@@ -1,15 +1,15 @@
-# coding: utf-8
 """
 Phonon Toolkit: This module gathers low-level tools to operate on phonons.
 """
 from __future__ import annotations
 
-import warnings
 import sys
-import numpy as np
-import abipy.core.abinit_units as abu
-
+import warnings
 from functools import cached_property
+
+import numpy as np
+
+import abipy.core.abinit_units as abu
 from abipy.core.mixins import Has_Structure
 from abipy.iotools import ETSF_Reader
 
@@ -78,7 +78,7 @@ def match_eigenvectors(v1, v2) -> np.ndarray:
             missing_v1[i] = missing_v2[j] = False
             if not any(missing_v1):
                 if any(missing_v2):
-                    raise RuntimeError('Something went wrong in matching vectors: {} {}'.format(v1, v2))
+                    raise RuntimeError(f"Something went wrong in matching vectors: {v1} {v2}")
                 break
 
     return indices
@@ -142,7 +142,7 @@ class NonAnalyticalPh(Has_Structure):
         if amu_list is not None:
             # ntypat arrays
             atomic_numbers = r.read_value("atomic_numbers")
-            amu = {at: a for at, a in zip(atomic_numbers, amu_list)}
+            amu = {at: a for at, a in zip(atomic_numbers, amu_list, strict=False)}
         else:
             amu = None
 
@@ -229,18 +229,18 @@ def open_file_phononwebsite(filename,
     class CORSRequestHandler(SimpleHTTPRequestHandler):
         def end_headers(self):
             #self.send_header('Access-Control-Allow-Origin', website)
-            self.send_header('Access-Control-Allow-Origin', "http://henriquemiranda.github.io")
+            self.send_header("Access-Control-Allow-Origin", "http://henriquemiranda.github.io")
             SimpleHTTPRequestHandler.end_headers(self)
 
         def log_message(self, format, *args):
             return
 
     # Initialize http server thread
-    print('Starting HTTP server at port %d ...' % port, end=" ")
+    print("Starting HTTP server at port %d ..." % port, end=" ")
     trial, max_ntrial = 0, 50
     while trial < max_ntrial:
         try:
-            server = HTTPServer(('', port), CORSRequestHandler)
+            server = HTTPServer(("", port), CORSRequestHandler)
             #print("got port:", port)
             break
         except OSError:
@@ -251,7 +251,7 @@ def open_file_phononwebsite(filename,
         raise RuntimeError("Cannot find available port after %s attempts" % max_ntrial)
 
     # Create threads python
-    server.url = 'http://{}:{}'.format(host, server.server_port)
+    server.url = f"http://{host}:{server.server_port}"
     from threading import Thread
     t = Thread(target=server.serve_forever, daemon=True)
     t.start()
@@ -262,13 +262,13 @@ def open_file_phononwebsite(filename,
     except ImportError:
         from urllib import quote
 
-    url_filename = 'http://{}:{}/{}'.format(host, server.server_port, quote(filename))
-    url = '%s/phonon.html?%s=%s' % (website, filetype, url_filename)
+    url_filename = f"http://{host}:{server.server_port}/{quote(filename)}"
+    url = "%s/phonon.html?%s=%s" % (website, filetype, url_filename)
     print("\nOpening URL:", url)
     print("Using default browser, if the webpage is not displayed correctly",
           "\ntry to change browser either via command line options or directly in the shell with e.g:\n\n"
           "     export BROWSER=firefox\n")
-    print('Press Ctrl+C to terminate the HTTP server')
+    print("Press Ctrl+C to terminate the HTTP server")
     import webbrowser
     webbrowser.get(browser).open_new_tab(url)
 

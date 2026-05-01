@@ -1,28 +1,27 @@
-# coding: utf-8
 """Objects used to deal with symmetry operations in crystals."""
 from __future__ import annotations
 
-import sys
 import abc
-import warnings
 import collections
+import sys
+import warnings
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
 import spglib
-
-from functools import cached_property
-from monty.string import is_string
-from monty.itertools import iuptri
-from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
+from monty.itertools import iuptri
+from monty.string import is_string
+from monty.termcolor import cprint
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from abipy.core.kpoints import wrap_to_ws, issamek, has_timrev_from_kptopt
+
+from abipy.core.kpoints import has_timrev_from_kptopt, issamek, wrap_to_ws
 from abipy.core.mixins import SlotPickleMixin
 
-
 __all__ = [
-    "LatticeRotation",
     "AbinitSpaceGroup",
+    "LatticeRotation",
 ]
 
 
@@ -86,15 +85,14 @@ def mati3inv(mat3, trans=True):
     mit = mit // dd
     if trans:
         return mit
-    else:
-        return mit.T.copy()
+    return mit.T.copy()
 
 
 def _get_det(mat) -> float:
     """
     Return the determinant of a 3x3 rotation matrix mat.
 
-    raises:
+    Raises:
         ValueError if abs(det) != 1.
     """
     det = mat[0,0] * (mat[1,1] * mat[2,2] - mat[1,2] * mat[2,1])\
@@ -160,14 +158,13 @@ def indsym_from_symrel(symrel, tnons, structure, tolsym=1e-8):
                     indsym[iatom, isym, 3] = jatm
                     # Break out of loop when agreement is within tolerance
                     break
-                else:
-                    # Keep track of smallest difference if greater than tol10
-                    if diff < testmn:
-                        testmn = diff
-                        # Note that abs() is not taken here
-                        difmin = test_vec
-                        indsym[iatom, isym, :3] = trans
-                        indsym[iatom, isym, 3] = jatm
+                # Keep track of smallest difference if greater than tol10
+                if diff < testmn:
+                    testmn = diff
+                    # Note that abs() is not taken here
+                    difmin = test_vec
+                    indsym[iatom, isym, :3] = trans
+                    indsym[iatom, isym, 3] = jatm
 
         # Keep track of maximum difference between transformed coordinates and nearest "target" coordinate
         difmax = np.abs(difmin).max()
@@ -245,14 +242,14 @@ class SymmOp(Operation, SlotPickleMixin):
     _ATOL_TAU = 1e-8
 
     __slots__ = [
+        "_det",
+        "_trace",
+        "afm_sign",
+        "rot_g",
         "rot_r",
         "rotm1_r",
         "tau",
         "time_sign",
-        "afm_sign",
-        "rot_g",
-        "_det",
-        "_trace",
     ]
 
     # TODO: Add lattice?
@@ -418,8 +415,7 @@ class SymmOp(Operation, SlotPickleMixin):
 
         if ret_g0:
             return issamek(sk, frac_coords), np.array(np.round(sk - frac_coords), dtype=int)
-        else:
-            return issamek(sk, frac_coords)
+        return issamek(sk, frac_coords)
 
     def rotate_r(self, frac_coords, in_ucell=False):
         """
@@ -816,7 +812,7 @@ class AbinitSpaceGroup(OpSequence):
             time_sign: If specified, only symmetries with time-reversal sign time_sign are returned.
             afm_sign: If specified, only symmetries with anti-ferromagnetic part afm_sign are returned.
 
-        returns:
+        Returns:
             tuple of :class:`SymmOp` instances.
         """
         symmops = []
@@ -855,7 +851,7 @@ class AbinitSpaceGroup(OpSequence):
             sk_coords = sym.rotate_k(k1_frac_coords, wrap_tows=False)
             if issamek(sk_coords, k2_frac_coords, atol=atol):
                 g0 = sym.rotate_k(k1_frac_coords) - k2_frac_coords
-                return dict2namedtuple(isym=isym, op=self[isym], g0=g0)
+                return dict2namedtuple(isym=isym, op=sym, g0=g0)
 
         return dict2namedtuple(isym=-1, op=None, g0=None)
 
@@ -946,7 +942,7 @@ class LittleGroup(OpSequence):
         return np.any(diff < 1e-8)
 
     def iter_symmop_g0(self):
-        for symmop, g0 in zip(self.symmops, self.g0vecs):
+        for symmop, g0 in zip(self.symmops, self.g0vecs, strict=False):
             yield symmop, g0
 
     def __repr__(self):
@@ -1296,7 +1292,7 @@ class BilbaoPointGroup:
         """
         # Caveat: class names are not necessarily unique --> use np.stack
         import pandas as pd
-        name_mult = [name + " [" + str(mult) + "]" for (name, mult) in zip(self.class_names, self.class_len)]
+        name_mult = [name + " [" + str(mult) + "]" for (name, mult) in zip(self.class_names, self.class_len, strict=False)]
         columns = ["name"] + name_mult
 
         stack = np.stack([irrep.character for irrep in self.irreps])
@@ -1359,7 +1355,7 @@ class BilbaoPointGroup:
         #print(calc_class_inds)
         assert len(calc_class_inds) == len(self.class_range)
 
-        for calc_inds, ref_range in zip(calc_class_inds, self.class_range):
+        for calc_inds, ref_range in zip(calc_class_inds, self.class_range, strict=False):
             ref_inds = list(range(ref_range[0], ref_range[1]))
             if calc_inds != ref_inds:
                 print("Rotations are not ordered in classes.", calc_inds, ref_inds)
@@ -1446,22 +1442,22 @@ sch_symbols = list(_SCH2HERM.keys())
 
 def sch2herm(sch_symbol):
     """Convert from Schoenflies to Hermann-Mauguin."""
-    return _SCH2HERM.get(sch_symbol, None)
+    return _SCH2HERM.get(sch_symbol)
 
 
 def sch2spgid(sch_symbol):
     """Convert from Schoenflies to the space group id."""
-    return _SCH2SPGID.get(sch_symbol, None)
+    return _SCH2SPGID.get(sch_symbol)
 
 
 def herm2sch(herm_symbol):
     """Convert from Hermann-Mauguin to Schoenflies."""
-    return _HERM2SCH.get(herm_symbol, None)
+    return _HERM2SCH.get(herm_symbol)
 
 
 def spgid2sch(spgid):
     """Return the Schoenflies symbol from the space group identifier."""
-    return _SPGID2SCH.get(spgid, None)
+    return _SPGID2SCH.get(spgid)
 
 
 def any2sch(obj):
@@ -1469,9 +1465,7 @@ def any2sch(obj):
     if is_string(obj):
         if obj in sch_symbols:
             return obj
-        else:
-            # Try Hermann-Mauguin
-            return herm2sch(obj)
-    else:
-        # Spacegroup ID?
-        return spgid2sch(obj)
+        # Try Hermann-Mauguin
+        return herm2sch(obj)
+    # Spacegroup ID?
+    return spgid2sch(obj)

@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Release data for the AbiPy project.
 """
@@ -7,7 +6,7 @@ from collections import OrderedDict
 
 # Name of the package for release purposes. This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
-name = 'abipy'
+name = "abipy"
 
 # version information.  An empty _version_extra corresponds to a full
 # release.  'dev' as a _version_extra string means this is a development version
@@ -15,14 +14,14 @@ _version_major = 0
 _version_minor = 9
 _version_micro = 8  # use '' for first of series, number for 1 and above
 #_version_extra = 'dev'
-_version_extra = ''  # Uncomment this for full releases
+_version_extra = ""  # Uncomment this for full releases
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor]
 if _version_micro: _ver.append(_version_micro)
 if _version_extra: _ver.append(_version_extra)
 
-__version__ = '.'.join(map(str, _ver))
+__version__ = ".".join(map(str, _ver))
 
 version = __version__  # backwards compatibility name
 
@@ -52,22 +51,22 @@ To learn more about the integration between jupyter and AbiPy, visit our collect
 The latest development version is always available from <https://github.com/abinit/abipy>
 """
 
-license = 'GPL'
+license = "GPL"
 
-author = 'M. Giantomassi and the AbiPy group'
-author_email = 'matteo.giantomassi@uclouvain.be'
+author = "M. Giantomassi and the AbiPy group"
+author_email = "matteo.giantomassi@uclouvain.be"
 maintainer = "Matteo Giantomassi"
 maintainer_email = author_email
 authors = OrderedDict([
-    ('Matteo', ('M. Giantomassi', 'nobody@nowhere')),
-    ('Michiel', ('M. J. van Setten', 'nobody@nowhere')),
-    ('Guido', ('G. Petretto', 'nobody@nowhere')),
-    ('Henrique', ('H. Miranda', 'nobody@nowhere')),
+    ("Matteo", ("M. Giantomassi", "nobody@nowhere")),
+    ("Michiel", ("M. J. van Setten", "nobody@nowhere")),
+    ("Guido", ("G. Petretto", "nobody@nowhere")),
+    ("Henrique", ("H. Miranda", "nobody@nowhere")),
 ])
 
 url = "https://github.com/abinit/abipy"
 download_url = "https://github.com/abinit/abipy"
-platforms = ['Linux', 'darwin']
+platforms = ["Linux", "darwin"]
 keywords = ["ABINIT", "ab-initio", "density-function-theory", "first-principles", "electronic-structure", "pymatgen"]
 classifiers = [
     "Programming Language :: Python :: 3.8",

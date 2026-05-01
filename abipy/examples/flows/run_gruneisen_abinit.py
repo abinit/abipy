@@ -13,11 +13,11 @@ One is calculated at the equilibrium volume and the remaining two are calculated
 at the slightly larger volume and smaller volume than the equilibrium volume.
 The unitcells at these volumes have to be fully relaxed under the constraint of each volume.
 """
-import sys
 import os
-import abipy.abilab as abilab
+import sys
+
 import abipy.data as abidata
-from abipy import flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):

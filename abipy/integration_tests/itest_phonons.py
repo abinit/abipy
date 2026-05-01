@@ -1,15 +1,15 @@
 """Integration tests for phonon flows."""
 from __future__ import annotations
 
+import logging
 import os
-import numpy as np
-import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
 
+import numpy as np
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.core.testing import has_matplotlib
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -89,7 +89,7 @@ def itest_phonon_flow(fwp, tvars):
     assert all(work.finalized for work in flow)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     with flow.open_final_ddb() as ddb:
         ddb_path = ddb.filepath
@@ -200,7 +200,7 @@ def itest_phonon_restart(fwp):
     assert all(work.finalized for work in flow)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     assert sum(task.num_restarts for task in flow.iflat_tasks()) > 0
 
@@ -209,6 +209,7 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
                 manager=None, flow_class=flowtk.PhononFlow, allocate=True):
     """
     Build a :class:`PhononFlow` for phonon calculations.
+
     Args:
         workdir: Working directory.
         scf_input: Input for the GS SCF run.
@@ -240,20 +241,20 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
     shell_manager = flow.manager.to_shell_manager(mpi_procs=1)
 
     if with_ddk:
-        logger.info('add ddk')
+        logger.info("add ddk")
         # TODO
         # MG Warning: be careful here because one should use tolde or tolwfr (tolvrs shall not be used!)
         ddk_input = ph_inputs[0].deepcopy()
         ddk_input.set_vars(qpt=[0, 0, 0], rfddk=1, rfelfd=2, rfdir=[1, 1, 1])
-        ddk_task = flow.register_task(ddk_input, deps={scf_task: 'WFK'}, task_class=flowtk.DdkTask)[0]
+        ddk_task = flow.register_task(ddk_input, deps={scf_task: "WFK"}, task_class=flowtk.DdkTask)[0]
 
     if with_dde:
-        logger.info('add dde')
+        logger.info("add dde")
         dde_input = ph_inputs[0].deepcopy()
         dde_input.set_vars(qpt=[0, 0, 0], rfddk=1, rfelfd=2)
         dde_input_idir = dde_input.deepcopy()
         dde_input_idir.set_vars(rfdir=[1, 1, 1])
-        dde_task = flow.register_task(dde_input, deps={scf_task: 'WFK', ddk_task: 'DDK'},
+        dde_task = flow.register_task(dde_input, deps={scf_task: "WFK", ddk_task: "DDK"},
                                       task_class=flowtk.DdeTask)[0]
 
     if not isinstance(ph_inputs, (list, tuple)):
@@ -298,16 +299,16 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
             # MG: Warning this code assume 0 is Gamma!
             import copy
             nscf_input = copy.deepcopy(scf_input)
-            nscf_input.set_vars(kptopt=3, iscf=-3, qpt=irred_perts[0]['qpt'], nqpt=1)
+            nscf_input.set_vars(kptopt=3, iscf=-3, qpt=irred_perts[0]["qpt"], nqpt=1)
             nscf_task = work_qpt.register_nscf_task(nscf_input, deps={scf_task: "DEN"})
             deps = {nscf_task: "WFQ", scf_task: "WFK"}
         else:
             deps = {scf_task: "WFK"}
 
         if with_ddk:
-            deps[ddk_task] = 'DDK'
+            deps[ddk_task] = "DDK"
 
-        logger.info(irred_perts[0]['qpt'])
+        logger.info(irred_perts[0]["qpt"])
 
         for irred_pert in irred_perts:
             #print(irred_pert)

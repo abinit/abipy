@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import signal
 import sys
-
 from contextlib import contextmanager
 from time import perf_counter
 
@@ -38,9 +37,9 @@ class Timer:
 
     def __exit__(self, type, value, traceback):
         self.time = perf_counter() - self.time
-        self.readout = f'Time: {self.time:.3f} seconds'
+        self.readout = f"Time: {self.time:.3f} seconds"
         if self.footer is not None:
-            msg = f'{self.footer} completed in {self.time:.3f} seconds'.lstrip()
+            msg = f"{self.footer} completed in {self.time:.3f} seconds".lstrip()
             print(msg, file=self.file)
 
 
@@ -80,7 +79,7 @@ class Timeout:
     Taken from https://stackoverflow.com/questions/2281850/timeout-function-if-it-takes-too-long-to-finish/22348885#22348885
     """
 
-    def __init__(self, seconds: int, message: str = 'Timeout'):
+    def __init__(self, seconds: int, message: str = "Timeout"):
         self.seconds = int(seconds)
         if self.seconds <= 0:
             raise ValueError(f"seconds should be > 0 while it is: {self.seconds}")

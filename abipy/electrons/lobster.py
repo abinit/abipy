@@ -1,26 +1,26 @@
-# coding: utf-8
 """Tools to analyze the output files produced by Lobster."""
 from __future__ import annotations
 
+import glob
 import os
 import re
-import glob
-import numpy as np
-
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict, defaultdict
 from functools import cached_property
-from monty.string import marquee
+
+import numpy as np
 from monty.collections import tree
 from monty.io import zopen
+from monty.string import marquee
 from monty.termcolor import cprint
 from pymatgen.electronic_structure.core import OrbitalType
 from pymatgen.io.abinit.pseudos import Pseudo
+
 from abipy.core.func1d import Function1D
 from abipy.core.mixins import BaseFile, NotebookWriter
 from abipy.electrons.gsr import GsrFile
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, set_ax_xylabels
-from abipy.tools.typing import Figure
 from abipy.tools import duck
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_ax_xylabels, set_visible
+from abipy.tools.typing import Figure
 
 
 class _LobsterFile(BaseFile, NotebookWriter):
@@ -42,17 +42,14 @@ class _LobsterFile(BaseFile, NotebookWriter):
     # TODOL ls
     params_orbs = {
       "s":  {"style": dict(color="red", ls="-", lw=1), "latex": "s"},
-      #
       "p_x": {"style": dict(color="blue", ls="-", lw=1), "latex": "p_x"},
       "p_y": {"style": dict(color="blue", ls="-", lw=1), "latex": "p_y"},
       "p_z": {"style": dict(color="blue", ls="-", lw=1), "latex": "p_z"},
-      #
       "d_xy":  {"style": dict(color="green", ls="-", lw=1), "latex": "d_{xy}"},
       "d_yz":  {"style": dict(color="green", ls="-", lw=1), "latex": "d_{yz}"},
       "d_z^2": {"style": dict(color="green", ls="-", lw=1), "latex": "d_{z^2}"},
       "d_xz":  {"style": dict(color="green", ls="-", lw=1), "latex": "d_{xz}"},
       "d_x^2-y^2": {"style": dict(color="green", ls="-", lw=1), "latex": "d_{x^2-y^2}"},
-      #
       "4f_y(3x^2-y^2)": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{y(3x^2-y^2)}"},
       "4f_xyz": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{xyz}"},
       "4f_yz^2": {"style": dict(color="orange", ls="-", lw=1), "latex": "4f_{yz^2}"},
@@ -200,10 +197,10 @@ class CoxpFile(_LobsterFile):
         # belongs to the first (up) spin and the other set (2N+4, 2N+5, ..., 4N+5) belongs to the
         # second (down) spin. Here N is the number of interactions.
 
-        float_patt = r'-?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?'
-        header_patt = re.compile(r'\s+(\d+)\s+(\d+)\s+(\d+)\s+(' + float_patt +
-                                 r')\s+(' + float_patt + r')\s+(' + float_patt + r')')
-        pair_patt = re.compile(r'No\.\d+:([a-zA-Z]+)(\d+)(?:\[([a-z0-9_\-^]+)\])?->([a-zA-Z]+)(\d+)(?:\[([a-z0-9_\-^]+)\])?')
+        float_patt = r"-?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?"
+        header_patt = re.compile(r"\s+(\d+)\s+(\d+)\s+(\d+)\s+(" + float_patt +
+                                 r")\s+(" + float_patt + r")\s+(" + float_patt + r")")
+        pair_patt = re.compile(r"No\.\d+:([a-zA-Z]+)(\d+)(?:\[([a-z0-9_\-^]+)\])?->([a-zA-Z]+)(\d+)(?:\[([a-z0-9_\-^]+)\])?")
 
         new = cls(filepath)
 
@@ -220,7 +217,7 @@ class CoxpFile(_LobsterFile):
                     new.fermie = float(match.group(6))
                     break
             else:
-                raise ValueError("Can't find the header in file {}".format(filepath))
+                raise ValueError(f"Can't find the header in file {filepath}")
 
             n_pairs = n_column_groups-1
 
@@ -248,7 +245,7 @@ class CoxpFile(_LobsterFile):
 
             spins = [0, 1][:n_spin]
 
-            data = np.fromstring(f.read(), dtype=float, sep=' ').reshape([n_en_steps, 1+n_spin*n_column_groups*2])
+            data = np.fromstring(f.read(), dtype=float, sep=" ").reshape([n_en_steps, 1+n_spin*n_column_groups*2])
 
             # Initialize and fill results
             new.energies = data[:, 0]
@@ -258,8 +255,8 @@ class CoxpFile(_LobsterFile):
 
             for i, s in enumerate(spins):
                 base_index = 1+i*n_column_groups*2
-                new.averaged[s]['single'] = data[:, base_index].copy()
-                new.averaged[s]['integrated'] = data[:, base_index+1].copy()
+                new.averaged[s]["single"] = data[:, base_index].copy()
+                new.averaged[s]["integrated"] = data[:, base_index+1].copy()
                 # NB (i, j) --> (j, i) symmetry is enforced to make API easier.
                 for j, p in enumerate(pairs_data):
                     index1 = p[1]
@@ -268,18 +265,18 @@ class CoxpFile(_LobsterFile):
                         # Partial
                         single = data[:, base_index+2*(j+1)].copy()
                         integrated = data[:, base_index+2*(j+1)+1].copy()
-                        new.partial[(index1, index2)][(p[2], p[5])][s]['single'] = single
-                        new.partial[(index2, index1)][(p[5], p[2])][s]['single'] = single
-                        new.partial[(index1, index2)][(p[2], p[5])][s]['integrated'] = integrated
-                        new.partial[(index2, index1)][(p[5], p[2])][s]['integrated'] = integrated
+                        new.partial[(index1, index2)][(p[2], p[5])][s]["single"] = single
+                        new.partial[(index2, index1)][(p[5], p[2])][s]["single"] = single
+                        new.partial[(index1, index2)][(p[2], p[5])][s]["integrated"] = integrated
+                        new.partial[(index2, index1)][(p[5], p[2])][s]["integrated"] = integrated
                     else:
                         # Total
                         single = data[:, base_index+2*(j+1)].copy()
                         integrated = data[:, base_index+2*(j+1)+1].copy()
-                        new.total[(index1, index2)][s]['single'] = single
-                        new.total[(index2, index1)][s]['single'] = single
-                        new.total[(index1, index2)][s]['integrated'] = integrated
-                        new.total[(index2, index1)][s]['integrated'] = integrated
+                        new.total[(index1, index2)][s]["single"] = single
+                        new.total[(index2, index1)][s]["single"] = single
+                        new.total[(index1, index2)][s]["integrated"] = integrated
+                        new.total[(index2, index1)][s]["integrated"] = integrated
 
         new.cop_type = "unknown"
         if "COOPCAR.lobster" in filepath: new.cop_type = "coop"
@@ -310,10 +307,10 @@ class CoxpFile(_LobsterFile):
                 k = (orbs[0].split("_")[0], orbs[1].split("_")[0])
                 if k in results[pair]:
                     for spin in orbs_data.keys():
-                        results[pair][k][spin] = results[pair][k][spin] + Function1D(self.energies,orbs_data[spin]['single'])
+                        results[pair][k][spin] = results[pair][k][spin] + Function1D(self.energies,orbs_data[spin]["single"])
                 else:
                     for spin in orbs_data.keys():
-                        results[pair][k][spin] = Function1D(self.energies, orbs_data[spin]['single'])
+                        results[pair][k][spin] = Function1D(self.energies, orbs_data[spin]["single"])
 
         return results
 
@@ -330,7 +327,7 @@ class CoxpFile(_LobsterFile):
         for pair, pair_data in self.partial.items():
             for orbs, orbs_data in pair_data.items():
                 for spin in orbs_data.keys():
-                    results[pair][orbs][spin] = Function1D(self.energies, orbs_data[spin]['single'])
+                    results[pair][orbs][spin] = Function1D(self.energies, orbs_data[spin]["single"])
         return results
 
     @cached_property
@@ -341,7 +338,7 @@ class CoxpFile(_LobsterFile):
         results = tree()
         for pair, pair_data in self.total.items():
             for spin in pair_data.keys():
-                results[pair][spin] = Function1D(self.energies, pair_data[spin]['single'])
+                results[pair][spin] = Function1D(self.energies, pair_data[spin]["single"])
         return results
 
     def to_string(self, verbose=0) -> str:
@@ -463,7 +460,7 @@ class CoxpFile(_LobsterFile):
         for spin, ax in enumerate(ax_list.ravel()):
             ax.grid(True)
             sum_all = np.zeros_like(self.energies)
-            for index, pairs in zip(with_site_index, all_pairs):
+            for index, pairs in zip(with_site_index, all_pairs, strict=False):
                 if not pairs: continue
                 ys = np.zeros_like(self.energies)
                 for pair in pairs:
@@ -525,7 +522,7 @@ class CoxpFile(_LobsterFile):
             ax_list, fig, plt = get_axarray_fig_plt(ax, nrows=nrows, ncols=1,
                                                     sharex=sharex, sharey=sharey, squeeze=False)
             # Recursive call.
-            for ax, index in zip(ax_list.ravel(), from_site_index):
+            for ax, index in zip(ax_list.ravel(), from_site_index, strict=False):
                 self.plot_site_pairs_total(index, what=what, exchange_xy=exchange_xy, ax=ax,
                     fontsize=fontsize, show=False)
 
@@ -600,7 +597,7 @@ class CoxpFile(_LobsterFile):
             ax_list, fig, plt = get_axarray_fig_plt(ax, nrows=nrows, ncols=ncols,
                                                     sharex=sharex, sharey=sharey, squeeze=False)
             # Recursive call.
-            for ax, index in zip(ax_list.ravel(), from_site_index):
+            for ax, index in zip(ax_list.ravel(), from_site_index, strict=False):
                 self.plot_site_pairs_partial(index, what=what, exchange_xy=exchange_xy, ax=ax,
                     fontsize=fontsize, show=False)
 
@@ -700,10 +697,10 @@ class ICoxpFile(_LobsterFile):
         Returns:
             A ICoxpFile.
         """
-        float_patt = r'-?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?'
-        header_patt = re.compile(r'.*?(over+\s#\s+bonds)?\s+for\s+spin\s+(\d).*')
-        data_patt = re.compile(r'\s+\d+\s+([a-zA-Z]+)(\d+)\s+([a-zA-Z]+)(\d+)\s+(' +
-                               float_patt + r')\s+(' + float_patt + r')(\d+)?')
+        float_patt = r"-?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?"
+        header_patt = re.compile(r".*?(over+\s#\s+bonds)?\s+for\s+spin\s+(\d).*")
+        data_patt = re.compile(r"\s+\d+\s+([a-zA-Z]+)(\d+)\s+([a-zA-Z]+)(\d+)\s+(" +
+                               float_patt + r")\s+(" + float_patt + r")(\d+)?")
 
         new = cls(filepath)
         new.values = tree()
@@ -725,7 +722,7 @@ class ICoxpFile(_LobsterFile):
                     index2 = int(index2) - 1
                     new.type_of_index[index1] = type1
                     new.type_of_index[index2] = type2
-                    avg_data = {'average': float(avg), 'distance': dist, 'n_bonds': int(n_bonds) if n_bonds else None}
+                    avg_data = {"average": float(avg), "distance": dist, "n_bonds": int(n_bonds) if n_bonds else None}
                     new.values[(index1, index2)][spin] = avg_data
                     new.values[(index2, index1)][spin] = avg_data
 
@@ -861,7 +858,7 @@ class LobsterDoscarFile(_LobsterFile):
 
             # read orbitals
             # 6.01503759     -14.03508772   401       2.29842595       1.00000000; Z= 31; 4s 4p_y 4p_z 4p_x
-            tokens = dos_data[i_first_line].split(';')
+            tokens = dos_data[i_first_line].split(";")
             orbitals = tokens[-1].split()
             Z = int(tokens[-2].split()[-1])
             from pymatgen.core.periodic_table import Element
@@ -955,7 +952,7 @@ class LobsterDoscarFile(_LobsterFile):
             ax_list, fig, plt = get_axarray_fig_plt(ax, nrows=nrows, ncols=1,
                                                     sharex=sharex, sharey=sharey, squeeze=False)
             # Recursive call.
-            for ax, index in zip(ax_list.ravel(), site_index):
+            for ax, index in zip(ax_list.ravel(), site_index, strict=False):
                 self.plot_pdos_site(index, exchange_xy=exchange_xy, ax=ax, fontsize=fontsize, show=False)
 
             return fig
@@ -999,7 +996,7 @@ class LobsterDoscarFile(_LobsterFile):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-class LobsterInput(object):
+class LobsterInput:
     """
     This object stores the basic variables for a Lobster input and generates the lobsterin file.
     """
@@ -1016,7 +1013,7 @@ class LobsterInput(object):
                  orbitalwise=True, start_en=None, end_en=None, en_steps=None, gaussian_smearing=None,
                  bwdf=None, advanced_options=None):
         """
-        Args
+        Args:
             basis_set: String containing one of the possible basis sets available: bunge, koga, pbevaspfit2015
             basis_functions: list of strings giving the symbol of each atom and the basis functions: "Ga 4s 4p"
             include_orbitals: string containing which types of valence orbitals to use. E.g. "s p d"
@@ -1033,7 +1030,7 @@ class LobsterInput(object):
             advanced_options: dict with additional advanced options. See lobster user guide for further details
         """
         if basis_set and basis_set.lower() not in self.accepted_basis_sets:
-            raise ValueError("Wrong basis set {}".format(basis_set))
+            raise ValueError(f"Wrong basis set {basis_set}")
         self.basis_set = basis_set
         self.basis_functions = basis_functions or []
         self.include_orbitals = include_orbitals
@@ -1062,8 +1059,8 @@ class LobsterInput(object):
         for p in pseudos:
             if not hasattr(p, "valence_states"):
                 raise RuntimeError("Only PAW pseudos in PAWXML format are supported by Lobster interface.")
-            el = p.symbol + " ".join(str(vs['n'] + OrbitalType(int(vs['l'])).name)
-                                     for vs in p.valence_states.values() if 'n' in vs)
+            el = p.symbol + " ".join(str(vs["n"] + OrbitalType(int(vs["l"])).name)
+                                     for vs in p.valence_states.values() if "n" in vs)
             basis_functions.append(el)
         return basis_functions
 
@@ -1110,10 +1107,10 @@ class LobsterInput(object):
         lines = []
 
         if self.basis_set:
-            lines.append("basisSet {}".format(self.basis_set))
+            lines.append(f"basisSet {self.basis_set}")
 
         for bf in self.basis_functions:
-            lines.append("basisFunctions {}".format(bf))
+            lines.append(f"basisFunctions {bf}")
 
         for ap in self.atom_pairs:
             line = "cohpBetween atom {} atom {}".format(*ap)
@@ -1122,30 +1119,30 @@ class LobsterInput(object):
             lines.append(line)
 
         for dr in self.dist_range:
-            line = "cohpGenerator from {} to {}".format(dr[0], dr[1])
+            line = f"cohpGenerator from {dr[0]} to {dr[1]}"
             if len(dr) > 2:
-                line += " type {} type {}".format(dr[2], dr[3])
+                line += f" type {dr[2]} type {dr[3]}"
             if self.orbitalwise:
                 line += " orbitalwise"
             lines.append(line)
 
         if self.start_en:
-            lines.append("COHPStartEnergy {}".format(self.start_en))
+            lines.append(f"COHPStartEnergy {self.start_en}")
 
         if self.end_en:
-            lines.append("COHPEndEnergy {}".format(self.end_en))
+            lines.append(f"COHPEndEnergy {self.end_en}")
 
         if self.en_steps:
-            lines.append("COHPSteps {}".format(self.en_steps))
+            lines.append(f"COHPSteps {self.en_steps}")
 
         if self.gaussian_smearing:
-            lines.append("gaussianSmearingWidth {}".format(self.gaussian_smearing))
+            lines.append(f"gaussianSmearingWidth {self.gaussian_smearing}")
 
         if self.bwdf:
-            lines.append("BWDF {}".format(self.bwdf))
+            lines.append(f"BWDF {self.bwdf}")
 
         for k, v in self.advanced_options.items():
-            lines.append("{} {}".format(k, v))
+            lines.append(f"{k} {v}")
 
         return "\n".join(lines)
 
@@ -1167,32 +1164,32 @@ class LobsterInput(object):
             A LobsterInput.
         """
         # These two libraries take a long time to import on HPC (07/02/24) so moved to method instead of header
-        from pymatgen.io.vasp.outputs import Vasprun
         from pymatgen.io.vasp.inputs import Potcar
+        from pymatgen.io.vasp.outputs import Vasprun
 
         # Try to determine the code used for the calculation
         dft_code = None
-        if os.path.isfile(os.path.join(dirpath, 'vasprun.xml')):
+        if os.path.isfile(os.path.join(dirpath, "vasprun.xml")):
             dft_code = "vasp"
-            vr = Vasprun(os.path.join(dirpath, 'vasprun.xml'))
+            vr = Vasprun(os.path.join(dirpath, "vasprun.xml"))
 
             en_min = np.min([bands_spin for bands_spin in vr.eigenvalues.values()])
             en_max = np.max([bands_spin for bands_spin in vr.eigenvalues.values()])
             fermie = vr.efermi
 
-            potcar = Potcar.from_file(os.path.join(dirpath, 'POTCAR'))
+            potcar = Potcar.from_file(os.path.join(dirpath, "POTCAR"))
             basis_functions = cls._get_basis_functions_from_potcar(potcar)
 
-        elif glob.glob(os.path.join(dirpath, '*.files')):
+        elif glob.glob(os.path.join(dirpath, "*.files")):
             dft_code = "abinit"
-            ff = glob.glob(os.path.join(dirpath, '*.files'))[0]
-            with open(ff, "rt") as files_file:
+            ff = glob.glob(os.path.join(dirpath, "*.files"))[0]
+            with open(ff) as files_file:
                 ff_lines = files_file.readlines()
             out_path = ff_lines[3].strip()
             if not os.path.isabs(out_path):
                 out_path = os.path.join(dirpath, out_path)
 
-            with GsrFile.from_file(out_path + '_GSR.nc') as gsr:
+            with GsrFile.from_file(out_path + "_GSR.nc") as gsr:
                 en_min = gsr.ebands.eigens.min()
                 en_max = gsr.ebands.eigens.max()
                 fermie = gsr.ebands.fermie
@@ -1209,7 +1206,7 @@ class LobsterInput(object):
 
             basis_functions = cls._get_basis_functions_from_abinit_pseudos(pseudos)
         else:
-            raise ValueError('Unable to determine the code used in dir {}'.format(dirpath))
+            raise ValueError(f"Unable to determine the code used in dir {dirpath}")
 
         start_en = en_min + fermie
         end_en = en_max - fermie
@@ -1222,7 +1219,7 @@ class LobsterInput(object):
 
         return cls(basis_functions=basis_functions, start_en=start_en, end_en=end_en, en_steps=en_steps, **kwargs)
 
-    def write(self, dirpath='.'):
+    def write(self, dirpath="."):
         """
         Write the input file 'lobsterin' in dirpath.
         """
@@ -1230,7 +1227,7 @@ class LobsterInput(object):
             os.makedirs(dirpath)
 
         # Write the input file.
-        with open(os.path.join(dirpath, 'lobsterin'), "wt") as f:
+        with open(os.path.join(dirpath, "lobsterin"), "w") as f:
             f.write(str(self))
 
 
@@ -1251,7 +1248,7 @@ class LobsterAnalyzer(NotebookWriter):
             "icohp_path": "ICOHPLIST.lobster",
             "lobdos_path": "DOSCAR.lobster",
         }
-        kwargs = {k: None for k in k2ext}
+        kwargs = dict.fromkeys(k2ext)
         for k, ext in k2ext.items():
             # Handle [prefix]COHPCAR.lobster
             p = "%s*%s" % (prefix, ext)
@@ -1324,7 +1321,7 @@ class LobsterAnalyzer(NotebookWriter):
 
         spins = range(self.nsppol) if spin is None else [spin]
         for spin in spins:
-            for ix, (label, ax) in enumerate(zip(entries, axmat[spin])):
+            for ix, (label, ax) in enumerate(zip(entries, axmat[spin], strict=False)):
                 obj = getattr(self, label)
                 obj.plot(ax=ax, spin=spin, exchange_xy=True, show=False)
                 if ix != 0:
@@ -1359,7 +1356,7 @@ class LobsterAnalyzer(NotebookWriter):
 
         # Plot (COHP|COOP) (total|projections) on the first ncols - 1 axes.
         coxp_file = getattr(self, what)
-        for ix, (ax, index) in enumerate(zip(ax_list[:-1], from_site_index)):
+        for ix, (ax, index) in enumerate(zip(ax_list[:-1], from_site_index, strict=False)):
             if with_orbitals:
                 coxp_file.plot_site_pairs_partial(index, exchange_xy=exchange_xy, ax=ax, fontsize=fontsize, show=False)
             else:

@@ -1,23 +1,22 @@
-# coding: utf-8
 """Tools and helper functions for abinit calculations"""
 from __future__ import annotations
 
+import collections
+import logging
+import operator
 import os
 import re
-import collections
 import shutil
-import operator
-import numpy as np
-
-from typing import Optional
 from fnmatch import fnmatch
+
+import numpy as np
 from monty.collections import dict2namedtuple
-from monty.string import list_strings
 from monty.fnmatch import WildCard
 from monty.shutil import copy_r
+from monty.string import list_strings
+
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -32,10 +31,9 @@ def as_bool(s: str | bool) -> bool:
     s = s.lower()
     if s in ("yes", "true"):
         return True
-    elif s in ("no", "false"):
+    if s in ("no", "false"):
         return False
-    else:
-        raise ValueError("Don't know how to convert type %s: %s into a boolean" % (type(s), s))
+    raise ValueError("Don't know how to convert type %s: %s into a boolean" % (type(s), s))
 
 
 class File:
@@ -98,12 +96,12 @@ class File:
 
     def read(self) -> str:
         """Read data from file."""
-        with open(self.path, "r") as f:
+        with open(self.path) as f:
             return f.read()
 
     def readlines(self) -> list[str]:
         """Read lines from files."""
-        with open(self.path, "r") as f:
+        with open(self.path) as f:
             return f.readlines()
 
     def write(self, string: str):
@@ -112,8 +110,7 @@ class File:
         with open(self.path, "w") as f:
             if not string.endswith("\n"):
                 return f.write(string + "\n")
-            else:
-                return f.write(string)
+            return f.write(string)
 
     def writelines(self, lines: list[str]):
         """Write a list of strings to file."""
@@ -231,7 +228,7 @@ class Directory:
         """Return the absolute path of filename in the directory."""
         return os.path.join(self.path, file_basename)
 
-    def list_filepaths(self, wildcard: Optional[str] = None) -> list[str]:
+    def list_filepaths(self, wildcard: str | None = None) -> list[str]:
         """
         Return the list of absolute filepaths in the directory.
 
@@ -239,7 +236,8 @@ class Directory:
             wildcard: String of tokens separated by "|". Each token represents a pattern.
                 If wildcard is not None, we return only those files whose basename matches
                 the given shell pattern (uses fnmatch).
-                Example:
+
+        Example:
                   wildcard="*.nc|*.pdf" selects only those files that end with .nc or .pdf
         """
         # Select the files in the directory.
@@ -264,7 +262,7 @@ class Directory:
         """
         path = self.has_abiext(ext, single_file=True)
         if not path:
-            raise FileNotFoundError(f"Cannot find file with extension: `{ext}` in directory `{repr(self)}`")
+            raise FileNotFoundError(f"Cannot find file with extension: `{ext}` in directory `{self!r}`")
 
         return path
 
@@ -284,7 +282,7 @@ class Directory:
             This implies that this method is not compatible with multiple datasets.
         """
         if ext != "abo":
-            ext = ext if ext.startswith('_') else '_' + ext
+            ext = ext if ext.startswith("_") else "_" + ext
 
         files = []
         for f in self.list_filepaths():
@@ -320,7 +318,6 @@ class Directory:
         given by the ABINIT file extension.
 
         Example:
-
             outdir.symlink_abiext('1WF', 'DDK')
 
         creates the link out_DDK that points to out_1WF
@@ -331,15 +328,15 @@ class Directory:
         """
         infile = self.has_abiext(inext)
         if not infile:
-            raise RuntimeError('no file with extension `%s` in `%s`' % (inext, self))
+            raise RuntimeError("no file with extension `%s` in `%s`" % (inext, self))
 
         for i in range(len(infile) - 1, -1, -1):
-            if infile[i] == '_':
+            if infile[i] == "_":
                 break
         else:
-            raise RuntimeError('Extension `%s` could not be detected in file `%s`' % (inext, infile))
+            raise RuntimeError("Extension `%s` could not be detected in file `%s`" % (inext, infile))
 
-        outfile = infile[:i] + '_' + outext
+        outfile = infile[:i] + "_" + outext
         if infile.endswith(".nc") and not outfile.endswith(".nc"):
             outfile = outfile + ".nc"
 
@@ -348,10 +345,8 @@ class Directory:
                 if os.path.realpath(outfile) == infile:
                     logger.debug("Link `%s` already exists but it's OK because it points to the correct file" % outfile)
                     return 0
-                else:
-                    raise RuntimeError("Expecting link at `%s` already exists but it does not point to `%s`" % (outfile, infile))
-            else:
-                raise RuntimeError('Expecting link at `%s` but found file.' % outfile)
+                raise RuntimeError("Expecting link at `%s` already exists but it does not point to `%s`" % (outfile, infile))
+            raise RuntimeError("Expecting link at `%s` but found file." % outfile)
 
         os.symlink(infile, outfile)
 
@@ -361,15 +356,15 @@ class Directory:
         """Rename the Abinit file with extension inext with the new extension outext"""
         infile = self.has_abiext(inext)
         if not infile:
-            raise RuntimeError('no file with extension %s in %s' % (inext, self))
+            raise RuntimeError("no file with extension %s in %s" % (inext, self))
 
         for i in range(len(infile) - 1, -1, -1):
-            if infile[i] == '_':
+            if infile[i] == "_":
                 break
         else:
-            raise RuntimeError('Extension %s could not be detected in file %s' % (inext, infile))
+            raise RuntimeError("Extension %s could not be detected in file %s" % (inext, infile))
 
-        outfile = infile[:i] + '_' + outext
+        outfile = infile[:i] + "_" + outext
         shutil.move(infile, outfile)
         return 0
 
@@ -377,15 +372,15 @@ class Directory:
         """Copy the Abinit file with extension inext to a new file with the extension outext"""
         infile = self.has_abiext(inext)
         if not infile:
-            raise RuntimeError('no file with extension %s in %s' % (inext, self))
+            raise RuntimeError("no file with extension %s in %s" % (inext, self))
 
         for i in range(len(infile) - 1, -1, -1):
-            if infile[i] == '_':
+            if infile[i] == "_":
                 break
         else:
-            raise RuntimeError('Extension %s could not be detected in file %s' % (inext, infile))
+            raise RuntimeError("Extension %s could not be detected in file %s" % (inext, infile))
 
-        outfile = infile[:i] + '_' + outext
+        outfile = infile[:i] + "_" + outext
         shutil.copy(infile, outfile)
         return 0
 
@@ -402,7 +397,7 @@ class Directory:
             try:
                 os.remove(path)
                 paths.append(path)
-            except IOError:
+            except OSError:
                 logger.warning("Exception while trying to remove file %s" % path)
 
         return paths
@@ -586,7 +581,6 @@ class FilepathFixer:
     `FilepathFixer` to fix the output files produced by the run.
 
     Example:
-
         fixer = FilepathFixer()
         fixer.fix_paths('/foo/out_1WF17') == {'/foo/out_1WF17': '/foo/out_1WF'}
         fixer.fix_paths('/foo/out_1WF5.nc') == {'/foo/out_1WF5.nc': '/foo/out_1WF.nc'}
@@ -799,7 +793,6 @@ class Condition:
     to the one used in mongodb (albeit not all the operators available in mongodb are supported here).
 
     Example:
-
     $gt: {field: {$gt: value} }
 
     $gt selects those documents where the value of the field is greater than (i.e. >) the specified value.
@@ -823,8 +816,7 @@ class Condition:
         """Convert obj into :class:`Condition`"""
         if isinstance(obj, cls):
             return obj
-        else:
-            return cls(cmap=obj)
+        return cls(cmap=obj)
 
     def __init__(self, cmap=None):
         self.cmap = {} if cmap is None else cmap
@@ -903,7 +895,7 @@ class SparseHistogram:
         from monty.bisect import find_le
 
         hist = defaultdict(list)
-        for item, value in zip(items, values):
+        for item, value in zip(items, values, strict=False):
             # Find rightmost value less than or equal to x.
             # hence each bin contains all items whose value is >= value
             pos = find_le(mesh, value)
@@ -965,7 +957,7 @@ class Dirviz:
         #g.attr(fontcolor="white", bgcolor='purple:pink')
         #g.attr(rankdir="LR", pagedir="BL")
         #g.attr(constraint="false", pack="true", packMode="clust")
-        g.node_attr.update(color='lightblue2', style='filled')
+        g.node_attr.update(color="lightblue2", style="filled")
         #g.node_attr.update(ranksep='equally')
 
         # Add input attributes.

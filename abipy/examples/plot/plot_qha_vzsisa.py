@@ -7,8 +7,8 @@ This example shows how to use the GSR.nc and PHDOS.nc files computed with differ
 to compute thermodynamic properties within the v-ZSISA approximation.
 """
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.dfpt.vzsisa import Vzsisa
 
 # Root points to the directory in the git submodule with the output results.
@@ -19,9 +19,9 @@ strains2 = [98, 100, 102, 104, 106] # EinfVib4(D)
 #strains2 = [96, 98, 100, 102, 104] # EinfVib4(S)
 #strains2 = [100, 102, 104] # EinfVib2(D)
 
-gsr_paths = [os.path.join(root, "scale_{:d}_GSR.nc".format(s)) for s in strains]
-ddb_paths = [os.path.join(root, "scale_{:d}_GSR_DDB".format(s)) for s in strains]
-phdos_paths = [os.path.join(root, "scale_{:d}_PHDOS.nc".format(s)) for s in strains2]
+gsr_paths = [os.path.join(root, f"scale_{s:d}_GSR.nc") for s in strains]
+ddb_paths = [os.path.join(root, f"scale_{s:d}_GSR_DDB") for s in strains]
+phdos_paths = [os.path.join(root, f"scale_{s:d}_PHDOS.nc") for s in strains2]
 
 qha = Vzsisa.from_ddb_phdos_files(ddb_paths, phdos_paths)
 tstart, tstop, num = 0, 800, 101

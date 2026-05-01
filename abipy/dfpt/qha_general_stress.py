@@ -4,21 +4,22 @@ across various crystallographic structures, from cubic to triclinic.
 """
 from __future__ import annotations
 
-import sys
-import os
-import math
 import dataclasses
-import numpy as np
-import abipy.core.abinit_units as abu
+import math
+import os
+import sys
 
+import numpy as np
+
+import abipy.core.abinit_units as abu
 from abipy.abio.enums import StrEnum
-from abipy.tools.serialization import HasPickleIO, Serializable
 from abipy.core.structure import Structure
 from abipy.core.symmetries import AbinitSpaceGroup
-from abipy.electrons.gsr import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhdosFile, PhononDosPlotter
 from abipy.dfpt.vzsisa import anaget_phdoses_with_gauss
+from abipy.electrons.gsr import GsrFile
+from abipy.tools.serialization import HasPickleIO, Serializable
 
 
 def spgnum_to_crystal_system(spgrp_number: int) -> str:
@@ -51,9 +52,9 @@ def spgnum_to_crystal_system(spgrp_number: int) -> str:
 
 class QhaModel(StrEnum):
     """Enumerator for the different kinds of QHA models."""
-    zsisa = 'zsisa'
-    v_zsisa = 'v_zsisa'
-    zsisa_slab = 'zsisa_slab'
+    zsisa = "zsisa"
+    v_zsisa = "v_zsisa"
+    zsisa_slab = "zsisa_slab"
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -141,7 +142,7 @@ class QHA_ZSISA(HasPickleIO):
     def from_files(cls,
                    phdos_paths_6D,
                    gsr_bo_path,
-                   qha_model: str = 'zsisa',
+                   qha_model: str = "zsisa",
                    verbose: int = 0,
                    ) -> QHA_ZSISA:
         """
@@ -181,11 +182,11 @@ class QHA_ZSISA(HasPickleIO):
 
         spgrp = AbinitSpaceGroup.from_structure(structure_bo)
         spgrp_number = spgrp.spgid
-        sym = 'unknown'
+        sym = "unknown"
         #print(spgrp)
 
         # Find the crystallographic symmetry from the BO structure.
-        if qha_model == 'zsisa':
+        if qha_model == "zsisa":
             sym = spgnum_to_crystal_system(spgrp_number)
 
         phdos_paths_6D = np.array(phdos_paths_6D)
@@ -250,8 +251,8 @@ class QHA_ZSISA(HasPickleIO):
             structures.append(dim1_structures)
 
         # If the structure is uniaxial and the input PHDOS data is 2D, expand it to 3D format.
-        if list(dim) == [3, 3, 1, 1, 1, 1] and qha_model == 'zsisa':
-            if not (sym in ('hexagonal', 'trigonal', 'tetragonal')):
+        if list(dim) == [3, 3, 1, 1, 1, 1] and qha_model == "zsisa":
+            if sym not in ("hexagonal", "trigonal", "tetragonal"):
                 raise RuntimeError("Only uniaxial structures (e.g., hexagonal, trigonal, tetragonal) are allowed to have 2D PHDOS data.")
             new_shape = (3, 3, 3, 1, 1, 1)
             dim = [3, 3, 3, 1, 1, 1]
@@ -268,8 +269,8 @@ class QHA_ZSISA(HasPickleIO):
             phdoses = phdoses2
 
         # If the structure is cubic and the input PHDOS data is 1D, expand it to a 3D format.
-        if list(dim) == [3, 1, 1, 1, 1, 1] and qha_model == 'zsisa':
-            if sym != 'cubic' :
+        if list(dim) == [3, 1, 1, 1, 1, 1] and qha_model == "zsisa":
+            if sym != "cubic" :
                 raise RuntimeError("Only cubic structure is allowed to have 1D PHDOS data.")
 
             new_shape = (3, 3, 3, 1, 1, 1)
@@ -793,7 +794,7 @@ class QHA_ZSISA(HasPickleIO):
         # If elastic constants are requested, compute shear strain steps and their related second derivatives
         # by fitting a quadratic curve. Section G in APPENDIX.
         # The necessary derivatives are related to the symmetries. See table II.
-        if mode == 'ECs':
+        if mode == "ECs":
             deyz= (self.ave_y[1,1,1,0,0,0] - self.ave_y[1,1,1,1,0,0])/ZBO
             #deyz= (self.ave_x[1,1,1,0,0,0] - self.ave_x[1,1,1,1,0,0])/ZBO
             Fyz = [e[1,1,1,2,0,0],e[1,1,1,1,0,0],e[1,1,1,1,0,0],e[1,1,1,2,0,0]]
@@ -1065,7 +1066,7 @@ class QHA_ZSISA(HasPickleIO):
         if all(dtol[i] < self.dtol_tolerance for i in range(6)):
             if self.bo_elastic_voigt is not None:
                 # If elastic constants are requested, compute the second derivatives for C44, C66, and C46
-                if mode == 'ECs':
+                if mode == "ECs":
                     dexy = (Bx0-Bx1)/(ByBO)
                     deyz = (Cy0-Cy1)/(CzBO)
                     d2F_dB12 = (e[1,1,1,1,1,0]-2*e[1,1,1,1,1,1]+e[1,1,1,1,1,0])/(deyz)**2
@@ -1564,7 +1565,7 @@ class QHA_ZSISA(HasPickleIO):
                     stress_guess,
                     bo_elastic_voigt) -> ThermalData:
         """
-        Args
+        Args:
             temp: Temperature in K.
             pressure_gpa: Pressure in GPa
             mode: "TEC" or "ECs"
@@ -1591,10 +1592,7 @@ class QHA_ZSISA(HasPickleIO):
         elif self.sym in ("trigonal", "hexagonal", "tetragonal") and mode == "TEC":
             dtol, gibbs, stress, therm = self.stress_ZSISA_2DOF(temp, pressure_au)
 
-        elif self.sym in ("cubic", "trigonal", "hexagonal", "tetragonal") and mode == "ECs":
-            dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_3DOF(temp, pressure_au, mode)
-
-        elif self.sym == "orthorhombic":
+        elif (self.sym in ("cubic", "trigonal", "hexagonal", "tetragonal") and mode == "ECs") or self.sym == "orthorhombic":
             dtol, gibbs, stress, therm, elastic = self.stress_ZSISA_3DOF(temp, pressure_au, mode)
 
         elif self.sym == "monoclinic":
@@ -1669,7 +1667,7 @@ def cmat_inds_names(sym: str, mode: str) -> tuple[list, list]:
         mode: "TEC" or "ECs".
     """
     if sym in ("cubic", "trigonal", "hexagonal", "tetragonal", "orthorhombic"):
-        if mode == 'ECs':
+        if mode == "ECs":
             if sym == "cubic":
                 inds_list = [(0,0), (0,1), (3,3)]
             elif sym == "hexagonal":
@@ -1681,14 +1679,14 @@ def cmat_inds_names(sym: str, mode: str) -> tuple[list, list]:
             if  sym == "orthorhombic":
                 inds_list = [(0,0), (0,1), (0,2), (1,1), (1,2), (2,2), (3,3), (4,4), (5,5)]
 
-        elif mode == 'TEC':
+        elif mode == "TEC":
             inds_list = [(0,0), (0,1), (0,2), (1,1), (1,2), (2,2)]
 
         else:
             raise ValueError(f"Invalid {mode=}")
 
     elif sym == "monoclinic":
-        if mode != 'ECs':
+        if mode != "ECs":
             print("Warning: C44, C46, and C66 do not include the free energy contribution (only BO energy).")
         inds_list = [
             (0,0), (0,1), (0,2), (0,3), (0,4), (0,5),

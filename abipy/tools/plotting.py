@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Utilities for generating matplotlib plots.
 
@@ -8,61 +7,59 @@ Utilities for generating matplotlib plots.
 """
 from __future__ import annotations
 
+import functools
+import itertools
 import os
 import time
-import itertools
-import functools
+from collections import OrderedDict
+from collections.abc import Callable, Iterator
+from typing import Any
+
+import matplotlib.collections as mcoll
 import numpy as np
 import pandas as pd
-import matplotlib.collections as mcoll
-
-from collections import OrderedDict
-from typing import Any, Callable, Iterator
-from monty.string import list_strings
 from matplotlib.ticker import StrMethodFormatter
+from monty.string import list_strings
+
 from abipy.tools import duck
 from abipy.tools.iotools import dataframe_from_filepath
-from abipy.tools.typing import Figure, Axes, VectorLike
 from abipy.tools.numtools import data_from_cplx_mode
-
+from abipy.tools.typing import Axes, Figure, VectorLike
 
 __all__ = [
-    "set_axlims",
-    "add_fig_kwargs",
-    "get_ax_fig_plt",
-    "get_axarray_fig_plt",
-    "get_ax3d_fig_plt",
-    "plot_array",
     "ArrayPlotter",
-    "data_from_cplx_mode",
-    "Marker",
-    "plot_unit_cell",
     "GenericDataFilePlotter",
     "GenericDataFilesPlotter",
+    "Marker",
+    "add_fig_kwargs",
     "add_plotly_fig_kwargs",
+    "data_from_cplx_mode",
+    "get_ax3d_fig_plt",
+    "get_ax_fig_plt",
+    "get_axarray_fig_plt",
     "get_fig_plotly",
     "get_figs_plotly",
+    "plot_array",
+    "plot_unit_cell",
+    "set_axlims",
 ]
 
 
 # https://matplotlib.org/gallery/lines_bars_and_markers/linestyles.html
 linestyles = OrderedDict(
-    [('solid',               (0, ())),
-     ('loosely_dotted',      (0, (1, 10))),
-     ('dotted',              (0, (1, 5))),
-     ('densely_dotted',      (0, (1, 1))),
-     #
-     ('loosely_dashed',      (0, (5, 10))),
-     ('dashed',              (0, (5, 5))),
-     ('densely_dashed',      (0, (5, 1))),
-     #
-     ('loosely_dashdotted',  (0, (3, 10, 1, 10))),
-     ('dashdotted',          (0, (3, 5, 1, 5))),
-     ('densely_dashdotted',  (0, (3, 1, 1, 1))),
-     #
-     ('loosely_dashdotdotted', (0, (3, 10, 1, 10, 1, 10))),
-     ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
-     ('densely_dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))]
+    [("solid",               (0, ())),
+     ("loosely_dotted",      (0, (1, 10))),
+     ("dotted",              (0, (1, 5))),
+     ("densely_dotted",      (0, (1, 1))),
+     ("loosely_dashed",      (0, (5, 10))),
+     ("dashed",              (0, (5, 5))),
+     ("densely_dashed",      (0, (5, 1))),
+     ("loosely_dashdotted",  (0, (3, 10, 1, 10))),
+     ("dashdotted",          (0, (3, 5, 1, 5))),
+     ("densely_dashdotted",  (0, (3, 1, 1, 1))),
+     ("loosely_dashdotdotted", (0, (3, 10, 1, 10, 1, 10))),
+     ("dashdotdotted",         (0, (3, 5, 1, 5, 1, 5))),
+     ("densely_dashdotdotted", (0, (3, 1, 1, 1, 1, 1)))]
 )
 
 SUBSCRIPT_UNICODE = {
@@ -139,7 +136,7 @@ def add_fig_kwargs(func: Callable) -> Callable:
             tags = ascii_letters
             if len(fig.axes) > len(tags):
                 tags = (1 + len(ascii_letters) // len(fig.axes)) * ascii_letters
-            for ax, tag in zip(fig.axes, tags):
+            for ax, tag in zip(fig.axes, tags, strict=False):
                 ax.annotate(f"({tag})", xy=(0.05, 0.95), xycoords="axes fraction")
 
         if tight_layout:
@@ -161,7 +158,6 @@ def add_fig_kwargs(func: Callable) -> Callable:
             except Exception as exc:
                 print("Exception while convertig matplotlib figure to plotly. Returning mpl figure!")
                 print(str(exc))
-                pass
 
         import matplotlib.pyplot as plt
         if show:
@@ -209,7 +205,6 @@ class FilesPlotter:
     Use matplotlib to plot multiple png files on a grid.
 
     Example:
-
         FilesPlotter(["file1.png", file2.png"]).plot()
     """
     def __init__(self, filepaths: list[str]):
@@ -232,8 +227,8 @@ class FilesPlotter:
         # don't show the last ax if num_plots is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
-        for i, (filepath, ax) in enumerate(zip(self.filepaths, ax_list)):
-            ax.axis('off')
+        for i, (filepath, ax) in enumerate(zip(self.filepaths, ax_list, strict=False)):
+            ax.axis("off")
             ax.imshow(plt.imread(filepath))
 
         return fig
@@ -271,7 +266,7 @@ def get_ax_fig_plt(ax=None, grid: bool = False, **kwargs):
         grid: True to add grid to ax.
         kwargs: keyword arguments are passed to plt.figure if ax is not None.
 
-      Returns:
+    Returns:
         ax: :class:`Axes` object
         figure: matplotlib figure
         plt: matplotlib pyplot module.
@@ -364,12 +359,11 @@ def get_axarray_fig_plt(ax_array,
         if hasattr(ax_array, "ravel"):
             for ax in ax_array.ravel():
                 ax.grid(grid)
+        elif hasattr(ax_array, "grid"):
+            ax_array.grid(grid)
         else:
-            if hasattr(ax_array, "grid"):
-                ax_array.grid(grid)
-            else:
-                for ax in ax_array:
-                    ax.grid(grid)
+            for ax in ax_array:
+                ax.grid(grid)
 
     if rescale_fig:
         fig.set_figheight(nrows * fig.get_figheight())
@@ -401,7 +395,6 @@ def ax_share(xy_string: str, *ax_list) -> None:
         ax_list: List of axes to share.
 
     Example:
-
         ax_share("y", ax0, ax1)
         ax_share("xy", *(ax0, ax1, ax2))
     """
@@ -501,10 +494,10 @@ def set_ticks_fontsize(ax_or_axlist,
 
     for ix, ax in enumerate(ax_list):
         if "x" in xy_string:
-            ax.tick_params(axis='x', labelsize=fontsize, **kwargs)
+            ax.tick_params(axis="x", labelsize=fontsize, **kwargs)
 
         if "y" in xy_string:
-            ax.tick_params(axis='y', labelsize=fontsize, **kwargs)
+            ax.tick_params(axis="y", labelsize=fontsize, **kwargs)
 
 
 def set_ticks_format(ax_or_axlist,
@@ -513,6 +506,7 @@ def set_ticks_format(ax_or_axlist,
                      **kwargs) -> None:
     """
     Set tick format for one axis or a list of axis.
+
     Args:
         ax_or_axlist: Axes or list of axes.
         xy_string: "x" to share x-axis, "xy" for both.
@@ -690,9 +684,9 @@ def plot_xy_with_hue(data: pd.DataFrame,
                                                 sharex=False, sharey=False, squeeze=False)
 
         ax_list = ax_list.ravel()
-        if num_plots % ncols != 0: ax_list[-1].axis('off')
+        if num_plots % ncols != 0: ax_list[-1].axis("off")
 
-        for ykey, ax in zip(y, ax_list):
+        for ykey, ax in zip(y, ax_list, strict=False):
             plot_xy_with_hue(data, x, str(ykey), hue, decimals=decimals, ax=ax,
                              xlims=xlims, ylims=ylims, fontsize=fontsize, show=False, **kwargs)
         return fig
@@ -713,10 +707,10 @@ def plot_xy_with_hue(data: pd.DataFrame,
 
     def _plot_key_grp(key, grp, span_style):
         # Sort xs and rearrange ys
-        xy = sorted(zip(grp[x], grp[y]), key=lambda t: t[0]) if x!="filename" else list(zip(grp[x], grp[y]))
+        xy = sorted(zip(grp[x], grp[y], strict=False), key=lambda t: t[0]) if x!="filename" else list(zip(grp[x], grp[y], strict=False))
         xs, ys = np.array([i[0] for i in xy]), np.array([i[1] for i in xy])
 
-        label = f"{hue}: {str(key)}" if hue is not None else ""
+        label = f"{hue}: {key!s}" if hue is not None else ""
         style_kws = dict()
         style_kws.update(kwargs)
         if abs_conv is None and "marker" not in kwargs:
@@ -800,7 +794,7 @@ def linear_fit_ax(ax, xs, ys,
     """
     from scipy.stats import linregress
     fit = linregress(xs, ys)
-    label = r"Linear fit $\alpha={:.2f}$, $r^2$={:.2f}".format(fit.slope, fit.rvalue**2)
+    label = rf"Linear fit $\alpha={fit.slope:.2f}$, $r^2$={fit.rvalue**2:.2f}"
     if "color" not in kwargs:
         kwargs["color"] = "r"
 
@@ -808,8 +802,8 @@ def linear_fit_ax(ax, xs, ys,
 
     if with_ideal_line:
         # Plot y = x line
-        ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color='k', linestyle='-',
-                linewidth=1, label='Ideal' if with_label else None)
+        ax.plot([xs[0], xs[-1]], [ys[0], ys[-1]], color="k", linestyle="-",
+                linewidth=1, label="Ideal" if with_label else None)
     return fit
 
 
@@ -844,7 +838,7 @@ def quadratic_fit_ax(ax, xs, ys,
     y_fit = quadratic(x_fit, *params)
 
     #label = r"Quad fit $a={:.2f}$, $b={:.2f}$ $c={:.2f}$ $\text{cov}$={:.2f}".format(a, b, c, covariance)
-    label = r"Quad fit $a={:.2f}$, $b={:.2f}$ $c={:.2f}$".format(a, b, c)
+    label = rf"Quad fit $a={a:.2f}$, $b={b:.2f}$ $c={c:.2f}$"
     if "color" not in kwargs:
         kwargs["color"] = "r"
 
@@ -881,16 +875,16 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs) -> Figure:
     from matplotlib import pyplot as plt
     if color_map is None:
         # make a color map of fixed colors
-        color_map = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                                 ['blue', 'black', 'red'], 256)
+        color_map = mpl.colors.LinearSegmentedColormap.from_list("my_colormap",
+                                                                 ["blue", "black", "red"], 256)
 
-    img = plt.imshow(array, interpolation='nearest', cmap=color_map, origin='lower')
+    img = plt.imshow(array, interpolation="nearest", cmap=color_map, origin="lower")
 
     # Make a color bar
     plt.colorbar(img, cmap=color_map)
 
     # Set grid
-    plt.grid(True, color='white')
+    plt.grid(True, color="white")
 
     fig = plt.gcf()
     return fig
@@ -1044,10 +1038,9 @@ class ConvergenceAnalyzer:
             self.ykey2label[key] = label
         elif key == self.xkey:
             self.xlabel = label
-        else:
-            if not ignore_exc:
-                raise ValueError(
-                    f"key:`{key}` should be either in {list(self.ykey2label.keys())} or {self.xname}")
+        elif not ignore_exc:
+            raise ValueError(
+                f"key:`{key}` should be either in {list(self.ykey2label.keys())} or {self.xname}")
 
     def get_ylabel(self, ykey: str) -> str:
         """Return the ylabel to be used for `ykey` in the plot."""
@@ -1057,7 +1050,7 @@ class ConvergenceAnalyzer:
         """
         Iterate over (ytols, ixs, and xs) for the given ``ykey`.
         """
-        return zip(self.ytols_dict[ykey], self.ykey_ixs[ykey] ,self.ykey_best_xs[ykey])
+        return zip(self.ytols_dict[ykey], self.ykey_ixs[ykey] ,self.ykey_best_xs[ykey], strict=False)
 
     def get_dataframe_ykey(self, ykey: str) -> pd.DataFrame:
         """Return dataframe with convergence params for `ykey`."""
@@ -1123,16 +1116,15 @@ class ConvergenceAnalyzer:
                     ax.axhspan(y0_log, y1_log, label=label, **span_style)
                 else:
                     raise ValueError(f"Invalid {yscale=}")
+            # Use limits of the next window to avoid overlapping patches.
+            elif yscale == "linear":
+                ax.axhspan(y0, ylims[il+1,0], label=label, **span_style)
+                ax.axhspan(ylims[il+1,1], y1, **span_style)
+            elif yscale == "log":
+                ax.axhspan(y0_log, ylims_log[il+1,0], label=label, **span_style)
+                ax.axhspan(ylims_log[il+1,1], y1_log, **span_style)
             else:
-                # Use limits of the next window to avoid overlapping patches.
-                if yscale == "linear":
-                    ax.axhspan(y0, ylims[il+1,0], label=label, **span_style)
-                    ax.axhspan(ylims[il+1,1], y1, **span_style)
-                elif yscale == "log":
-                    ax.axhspan(y0_log, ylims_log[il+1,0], label=label, **span_style)
-                    ax.axhspan(ylims_log[il+1,1], y1_log, **span_style)
-                else:
-                    raise ValueError(f"Invalid {yscale=}")
+                raise ValueError(f"Invalid {yscale=}")
 
             # Add vertical line to show best_xx.
             best_xx = self.ykey_best_xs[ykey][il]
@@ -1154,7 +1146,7 @@ class ConvergenceAnalyzer:
         #for icol in range(ncols):
         #    ax_share("x", ax_mat[0,icol], ax_mat[1,icol])
 
-        for irow, ((ykey, ys), ax_row) in enumerate(zip(self.yvals_dict.items(), ax_mat)):
+        for irow, ((ykey, ys), ax_row) in enumerate(zip(self.yvals_dict.items(), ax_mat, strict=False)):
             # Plot y(x)
             ax1, ax2 = ax_row
             ax1.plot(self.xs, ys, marker="o", color="k")
@@ -1230,7 +1222,7 @@ class ArrayPlotter:
             arr_list: List of arrays.
         """
         assert len(labels) == len(arr_list)
-        for label, arr in zip(labels, arr_list):
+        for label, arr in zip(labels, arr_list, strict=False):
             self.add_array(label, arr)
 
     @add_fig_kwargs
@@ -1252,13 +1244,13 @@ class ArrayPlotter:
         # Don't show the last ax if num_plots is odd.
         if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
 
-        from mpl_toolkits.axes_grid1 import make_axes_locatable
         from matplotlib.ticker import MultipleLocator
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-        for ax, (label, arr) in zip(ax_mat.flat, self.items()):
+        for ax, (label, arr) in zip(ax_mat.flat, self.items(), strict=False):
             data = data_from_cplx_mode(cplx_mode, arr)
             # Use origin to place the [0, 0] index of the array in the lower left corner of the axes.
-            img = ax.matshow(data, interpolation='nearest', cmap=colormap, origin='lower', aspect="auto")
+            img = ax.matshow(data, interpolation="nearest", cmap=colormap, origin="lower", aspect="auto")
             ax.set_title("(%s) %s" % (cplx_mode, label), fontsize=fontsize)
 
             # Make a color bar for this ax
@@ -1277,7 +1269,7 @@ class ArrayPlotter:
             #ax.set_yticks([0.0, 2.5, 3.14, 4.0, 5.2, 7.0])
 
             # Set grid
-            ax.grid(True, color='white')
+            ax.grid(True, color="white")
 
         fig.tight_layout()
         return fig
@@ -1320,7 +1312,7 @@ class Marker:
         pos_x, pos_y, pos_s = [], [], []
         neg_x, neg_y, neg_s = [], [], []
 
-        for x, y, s in zip(self.x, self.y, self.s):
+        for x, y, s in zip(self.x, self.y, self.s, strict=False):
             if s >= threshold:
                 pos_x.append(x)
                 pos_y.append(y)
@@ -1338,7 +1330,6 @@ class Exposer:
     Base class for Exposer objects.
 
     Example:
-
         plot_kws = dict(show=False)
         with Exposer.as_exposer("panel") as e:
             e(obj.plot1(**plot_kws))
@@ -1388,7 +1379,7 @@ class Exposer:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Activated at the end of the with statement. """
+        """Activated at the end of the with statement."""
         if exc_type is not None: return
         self.expose()
 
@@ -1400,7 +1391,6 @@ class MplExposer(Exposer): # pragma: no cover
     to visualize the next one.
 
     Example:
-
         plot_args = dict(show=False)
         with MplExposer() as e:
             e(obj.plot1(**plot_args))
@@ -1470,7 +1460,6 @@ class PanelExposer(Exposer):  # pragma: no cover
     and show all of them inside the web browser using a panel template.
 
     Example:
-
         with PanelExposer() as e:
             e(obj.plot1(show=False))
             e(obj.plot2(show=False))
@@ -1499,7 +1488,7 @@ class PanelExposer(Exposer):  # pragma: no cover
     def expose(self):
         """Show all figures. Clear figures if needed."""
         import panel as pn
-        pn.config.sizing_mode = 'stretch_width'
+        pn.config.sizing_mode = "stretch_width"
         from abipy.panels.core import get_template_cls_from_name
         cls = get_template_cls_from_name("FastGridTemplate")
 
@@ -1559,7 +1548,7 @@ def plot_unit_cell(lattice, ax=None, **kwargs) -> tuple[Figure, Axes]:
 
     for i, j in ((0, 1), (1, 2), (2, 3), (0, 3), (3, 4), (4, 5), (5, 6),
                  (6, 7), (7, 4), (0, 7), (1, 6), (2, 5), (3, 4)):
-        ax.plot(*zip(v[i], v[j]), **kwargs)
+        ax.plot(*zip(v[i], v[j], strict=False), **kwargs)
 
     # Plot cartesian frame
     ax_add_cartesian_frame(ax)
@@ -1592,9 +1581,9 @@ def ax_add_cartesian_frame(ax, start=(0, 0, 0)) -> Axes:
     start = np.array(start)
     for end in ((1, 0, 0), (0, 1, 0), (0, 0, 1)):
         end = start + np.array(end)
-        xs, ys, zs = list(zip(start, end))
+        xs, ys, zs = list(zip(start, end, strict=False))
         p = Arrow3D(xs, ys, zs,
-                   connectionstyle='arc3', mutation_scale=20,
+                   connectionstyle="arc3", mutation_scale=20,
                    alpha=0.8, **arrow_opts)
         ax.add_artist(p)
 
@@ -1686,7 +1675,7 @@ def _generic_parser_fh(fh) -> dict:
         raise RuntimeError("len(head_list) != len(arr_list), %d != %d" % (len(head_list), len(arr_list)))
 
     od = {}
-    for key, data in zip(head_list, arr_list):
+    for key, data in zip(head_list, arr_list, strict=False):
         key = " ".join(key.split())
         if key in od:
             print("Header %s already in dictionary. Using new key %s" % (key, 2 * key))
@@ -1704,7 +1693,7 @@ class GenericDataFilePlotter:
     Mainly used to handle text files written without any schema.
     """
     def __init__(self, filepath: str):
-        with open(filepath, "rt") as fh:
+        with open(filepath) as fh:
             self.od = _generic_parser_fh(fh)
 
     def __str__(self) -> str:
@@ -1743,7 +1732,7 @@ class GenericDataFilePlotter:
         # Don't show the last ax if num_plots is odd.
         if num_plots % ncols != 0: ax_list[-1].axis("off")
 
-        for ax, (key, arr) in zip(ax_list, self.od.items()):
+        for ax, (key, arr) in zip(ax_list, self.od.items(), strict=False):
             ax.set_title(key, fontsize=fontsize)
             ax.grid(True)
             xs = arr[0] if not use_index else list(range(len(arr[0])))
@@ -1775,7 +1764,7 @@ class GenericDataFilesPlotter:
     def to_string(self, verbose: int = 0) -> str:
         lines = []
         app = lines.append
-        for od, filepath in zip(self.odlist, self.filepaths):
+        for od, filepath in zip(self.odlist, self.filepaths, strict=False):
             app("File: %s" % filepath)
             for key, arr in od.items():
                 lines.append("\tkey: `%s` --> array shape: %s" % (key, str(arr.shape)))
@@ -1784,7 +1773,7 @@ class GenericDataFilesPlotter:
 
     def add_file(self, filepath: str) -> None:
         """Add data from `filepath`"""
-        with open(filepath, "rt") as fh:
+        with open(filepath) as fh:
             self.odlist.append(_generic_parser_fh(fh))
             self.filepaths.append(filepath)
 
@@ -1832,16 +1821,16 @@ class GenericDataFilesPlotter:
         # so we need different line styles that are consistent with input data.
         # Figure may be crowded but it's difficult to do better without metadata
         # so I'm not gonna spend time to implement more complicated logic.
-        for ax, key in zip(ax_list, keys):
+        for ax, key in zip(ax_list, keys, strict=False):
             ax.set_title(key, fontsize=fontsize)
             ax.grid(True)
-            for iod, (od, filepath) in enumerate(zip(self.odlist, self.filepaths)):
+            for iod, (od, filepath) in enumerate(zip(self.odlist, self.filepaths, strict=False)):
                 if key not in od: continue
                 arr = od[key]
                 color = cmap(iod / len(self.odlist))
                 xvals = arr[0] if not use_index else list(range(len(arr[0])))
                 arr_list = arr[1:] if not use_index else arr
-                for iarr, (ys, linestyle) in enumerate(zip(arr_list, line_cycle)):
+                for iarr, (ys, linestyle) in enumerate(zip(arr_list, line_cycle, strict=False)):
                     ax.plot(xvals, ys, color=color, linestyle=linestyle,
                             label=os.path.relpath(filepath) if iarr == 0 else None)
 
@@ -1943,7 +1932,7 @@ class PlotlyRowColDesc:
         # Assume list with 4 integers
         try:
             return cls(*obj)
-        except Exception as exc:
+        except Exception:
             raise TypeError(f"Dont know how to convert `{type(obj)}` into `{cls}`")
 
     def __init__(self, py_row: int, py_col: int, nrows: int, ncols: int):
@@ -1983,8 +1972,8 @@ def get_figs_plotly(nrows=1, ncols=1, subplot_titles=(), sharex=False, sharey=Fa
         figure: plotly graph_objects figure
         go: plotly graph_objects module.
     """
-    from plotly.subplots import make_subplots
     import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
 
     fig = make_subplots(rows=int(nrows), cols=int(ncols), subplot_titles=subplot_titles, shared_xaxes=sharex,
                         shared_yaxes=sharey, **fig_kw)
@@ -2204,7 +2193,6 @@ def plotlyfigs_to_browser(figs, filename=None, browser=None):
         browser: Open webpage in ``browser``. Use $BROWSER if None.
 
     Example:
-
         fig1 = plotter.combiplotly(renderer="browser", title="foo", show=False)
         fig2 = plotter.combiplotly(renderer="browser", title="bar", show=False)
         from abipy.tools.plotting import plotlyfigs_to_browser
@@ -2219,7 +2207,7 @@ def plotlyfigs_to_browser(figs, filename=None, browser=None):
     if not isinstance(figs, (list, tuple)): figs = [figs]
 
     # Based on https://stackoverflow.com/questions/46821554/multiple-plotly-plots-on-1-page-without-subplot
-    with open(filename, "wt") as fp:
+    with open(filename, "w") as fp:
         for i, fig in enumerate(figs):
             first = True if i == 0 else False
             fig.write_html(fp, include_plotlyjs=first, include_mathjax="cdn" if first else False)
@@ -2389,7 +2377,7 @@ def go_lines(V, name=None, color="black", width=2, **kwargs):
 
 
 def vectors(lattice, name=None, color="black", width=4, **kwargs):
-    gen = zip(lattice, ["a", "b", "c"])
+    gen = zip(lattice, ["a", "b", "c"], strict=False)
     v, label = next(gen)
 
     out = [
@@ -2864,7 +2852,6 @@ def plotly_brillouin_zone(
 
     Returns: plotly figure
     """
-
     fig = plotly_lattice_vectors(bz_lattice, fig=fig)
     plotly_wigner_seitz(bz_lattice, fig=fig)
     if lines is not None:
@@ -3036,7 +3023,7 @@ def mpl_to_ply(fig: Figure, latex: bool = False):
 
     # Iterate over the axes in the figure to retrieve the custom line attributes
     for ax in fig.get_axes():
-        if hasattr(ax, '_custom_rc_lines'):
+        if hasattr(ax, "_custom_rc_lines"):
             for rc, color in ax._custom_rc_lines:
                 # Add vertical lines to the Plotly figure
                 plotly_fig.add_vline(
@@ -3084,7 +3071,7 @@ class PolyfitPlotter:
 
             if i == 0:
                 # Plot the original data points
-                ax.scatter(xs, ys, color='red', marker="o", label='Data Points')
+                ax.scatter(xs, ys, color="red", marker="o", label="Data Points")
 
             # Generate (x, y) values for plotting the fit
             x_fit = np.linspace(min(xs), max(xs), num)

@@ -2,16 +2,14 @@
 import collections
 import os
 
-from abipy.core.testing import AbipyTest
-
 from abipy.core.atom import (
-    NlkState,
     #QState,
     AtomicConfiguration,
+    NlkState,
     RadialFunction,
     #RadialWaveFunction,
 )
-
+from abipy.core.testing import AbipyTest
 from abipy.data import nist_database
 
 

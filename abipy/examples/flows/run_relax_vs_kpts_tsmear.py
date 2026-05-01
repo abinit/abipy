@@ -13,12 +13,11 @@ overestimate the lattice parameters and ecut is way too low.
 If you replace GGA with LDA, you will observe that LDA tends to underestimate the parameters.
 """
 
-import sys
 import os
+import sys
 
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
 import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def relax_input(tsmear, nksmall):

@@ -1,12 +1,12 @@
-# coding: utf-8
 """Wrappers for ABINIT main executables"""
 from __future__ import annotations
 
 import os
-import numpy as np
-
 from io import StringIO
+
+import numpy as np
 from monty.string import list_strings
+
 from abipy.core.globals import get_workdir
 
 __author__ = "Matteo Giantomassi"
@@ -18,13 +18,13 @@ __status__ = "Development"
 __date__ = "$Feb 21, 2013M$"
 
 __all__ = [
-    "Mrgscr",
-    "Mrgddb",
-    "Mrgdvdb",
+    "Abitk",
     "Cut3D",
     "Fold2Bloch",
     "Lruj",
-    "Abitk",
+    "Mrgddb",
+    "Mrgdvdb",
+    "Mrgscr",
 ]
 
 
@@ -94,7 +94,7 @@ class ExecWrapper:
 
         # Write the script.
         script_file = os.path.join(workdir, "run_" + self.name + ".sh")
-        with open(script_file, "wt") as fh:
+        with open(script_file, "w") as fh:
             fh.write(script)
             os.chmod(script_file, 0o740)
 
@@ -207,7 +207,7 @@ class Mrgddb(ExecWrapper):
 
         # Handle the case of a single file since mrgddb uses 1 to denote GS files!
         if len(ddb_files) == 1:
-            with open(ddb_files[0], "r") as in_fh, open(out_ddb, "w") as out:
+            with open(ddb_files[0]) as in_fh, open(out_ddb, "w") as out:
                 for line in in_fh:
                     out.write(line)
             return out_ddb
@@ -226,19 +226,19 @@ class Mrgddb(ExecWrapper):
 
         self.stdin_data = [s for s in inp.getvalue()]
 
-        with open(self.stdin_fname, "wt") as fh:
+        with open(self.stdin_fname, "w") as fh:
             fh.writelines(self.stdin_data)
             # Force OS to write data to disk.
             fh.flush()
             os.fsync(fh.fileno())
 
-        retcode = self.execute(workdir, exec_args=['--nostrict'])
+        retcode = self.execute(workdir, exec_args=["--nostrict"])
         if retcode == 0 and delete_source_ddbs:
             # Remove ddb files.
             for f in ddb_files:
                 try:
                     os.remove(f)
-                except IOError:
+                except OSError:
                     pass
 
         return out_ddb
@@ -271,7 +271,7 @@ class Mrgdvdb(ExecWrapper):
 
         # Handle the case of a single file since mrgddb uses 1 to denote GS files!
         if len(pot_files) == 1:
-            with open(pot_files[0], "r") as in_fh, open(out_dvdb, "w") as out:
+            with open(pot_files[0]) as in_fh, open(out_dvdb, "w") as out:
                 for line in in_fh:
                     out.write(line)
             return out_dvdb
@@ -289,7 +289,7 @@ class Mrgdvdb(ExecWrapper):
 
         self.stdin_data = [s for s in inp.getvalue()]
 
-        with open(self.stdin_fname, "wt") as fh:
+        with open(self.stdin_fname, "w") as fh:
             fh.writelines(self.stdin_data)
             # Force OS to write data to disk.
             fh.flush()
@@ -301,7 +301,7 @@ class Mrgdvdb(ExecWrapper):
             for f in pot_files:
                 try:
                     os.remove(f)
-                except IOError:
+                except OSError:
                     pass
 
         return out_dvdb
@@ -334,10 +334,10 @@ class Cut3D(ExecWrapper):
             stdout = os.path.join(workdir, "cut3d.stdout")
             stderr = os.path.join(workdir, "cut3d.stderr")
             if os.path.exists(stdout):
-                with open(stdout, "rt") as fh:
+                with open(stdout) as fh:
                     print(fh.read())
             if os.path.exists(stderr):
-                with open(stderr, "rt") as fh:
+                with open(stderr) as fh:
                     print(fh.read())
 
             raise RuntimeError("Error while running cut3d in %s" % workdir)
@@ -367,10 +367,10 @@ class Fold2Bloch(ExecWrapper):
         self.stdout_fname, self.stderr_fname = \
             map(os.path.join, 2 * [workdir], ["fold2bloch.stdout", "fold2bloch.stderr"])
 
-        folds = np.array(folds, dtype=np.int).flatten()
+        folds = np.array(folds, dtype=int).flatten()
         if len(folds) not in (3, 9):
             raise ValueError("Expecting 3 ints or 3x3 matrix but got %s" % (str(folds)))
-        fold_arg = ":".join((str(f) for f in folds))
+        fold_arg = ":".join(str(f) for f in folds)
         wfkpath = os.path.abspath(wfkpath)
         if not os.path.isfile(wfkpath):
             raise RuntimeError("WFK file `%s` does not exist in %s" % (wfkpath, workdir))

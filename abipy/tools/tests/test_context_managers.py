@@ -1,9 +1,8 @@
-# coding: utf-8
 """Tests for context_managers module."""
 import time
 
 from abipy.core.testing import AbipyTest
-from abipy.tools.context_managers import Timer, temporary_change_attributes, Timeout
+from abipy.tools.context_managers import Timeout, Timer, temporary_change_attributes
 
 
 class TestContextManagers(AbipyTest):
@@ -12,7 +11,7 @@ class TestContextManagers(AbipyTest):
     def test_api(self):
         """Testing tonumber"""
 
-        class Something(object):
+        class Something:
             def __init__(self, x, y):
                 self.x = x
                 self.y = y
