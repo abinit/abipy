@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Union
 
 import numpy as np
+from pathlib import Path
 
 if TYPE_CHECKING:
     # needed to avoid circular imports
@@ -32,3 +33,5 @@ KptLike = Union["Kpoint", VectorLike]
 KptSelect = Union[int, "Kpoint", "VectorLike"]
 
 GvecSelect = Union[int, IVectorLike]
+
+PathLike = Union[str, Path]
