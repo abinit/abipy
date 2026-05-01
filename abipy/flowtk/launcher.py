@@ -59,6 +59,7 @@ class ScriptEditor:
 
     @property
     def shell(self) -> str:
+        """The shell used to execute the script."""
         return self._shell
 
     def _add(self, text, pre="") -> None:
@@ -116,12 +117,15 @@ class ScriptEditor:
             self.load_module(module)
 
     def load_module(self, module: str) -> None:
+        """Load the specified module."""
         self._add("module load " + module + " 2>> mods.err")
 
     def add_line(self, line: str) -> None:
+        """Add a line to the script."""
         self._add(line)
 
     def add_lines(self, lines: list[str]) -> None:
+        """Add a list of lines to the script."""
         self._add(lines)
 
     def get_script_str(self, reset=True) -> str:
@@ -965,12 +969,14 @@ class MultiFlowScheduler(BaseScheduler):
         self.incoming_flow_queue.put(flow)
 
     def register_flow_exception(self, flow_idx, exc) -> None:
+        """Register an exception for the flow with the given index."""
         flow = self.flows[flow_idx]
         self.history.append(f"Exception for {flow!r}")
         self.history.append(straceback())
         self._errored_flow_ids.append(flow_idx)
 
     def handle_flow_exception(self) -> None:
+        """Handle exceptions raised by the flows."""
         if not self._errored_flow_ids:
             return
         for idx in self._errored_flow_ids:
@@ -994,6 +1000,7 @@ class MultiFlowScheduler(BaseScheduler):
     # def restart(self):
 
     def sql_connect(self):
+        """Return a connection to the SQL database."""
         import sqlite3
 
         con = sqlite3.connect(
@@ -1003,6 +1010,7 @@ class MultiFlowScheduler(BaseScheduler):
         return con
 
     def create_sqldb(self) -> None:
+        """Create the SQL database if it does not exist."""
         if os.path.exists(self.sqldb_path):
             return
 
@@ -1023,6 +1031,7 @@ class MultiFlowScheduler(BaseScheduler):
         con.close()
 
     def get_incoming_flows(self) -> list[Flow]:
+        """Check for new flows in the incoming queue and add them to the database."""
         flows = []
         while True:
             try:
@@ -1055,12 +1064,14 @@ class MultiFlowScheduler(BaseScheduler):
         return flows
 
     def get_dataframe(self) -> pd.DataFrame:
+        """Return a pandas DataFrame with information on the flows."""
         with self.sql_connect() as con:
             df = pd.read_sql_query("SELECT * FROM flows", con)
             # print("dtype", df["upload_date"].dtype)
             return df
 
     def get_json_status(self) -> dict:
+        """Return a JSON dictionary with information on the status of the scheduler."""
         # https://stackoverflow.com/questions/25455067/pandas-dataframe-datetime-index-doesnt-survive-json-conversion-and-reconversion
         status = dict(
             dataframe=self.get_dataframe().to_json()  # , date_format='iso'#date_unit='ns'),
@@ -1068,6 +1079,7 @@ class MultiFlowScheduler(BaseScheduler):
         return status
 
     def get_flow_and_status_by_nodeid(self, node_id):
+        """Return the flow and its status for the given node ID."""
         from abipy.flowtk.flows import Flow
 
         with self.sql_connect() as con:
@@ -1081,6 +1093,7 @@ class MultiFlowScheduler(BaseScheduler):
         return None, None
 
     def get_sql_rows_with_node_ids(self, node_id_list):
+        """Return the SQL rows associated to the given node IDs."""
         with self.sql_connect() as con:
             cur = con.cursor()
             query = "SELECT * FROM flows WHERE flow_id IN (%s)" % ",".join("?" * len(node_id_list))
@@ -1090,6 +1103,7 @@ class MultiFlowScheduler(BaseScheduler):
         return rows
 
     def groupby_status(self):
+        """Return a dictionary mapping the status to the list of SQL rows."""
         from collections import defaultdict
 
         d = defaultdict(list)
@@ -1107,6 +1121,7 @@ class MultiFlowScheduler(BaseScheduler):
         return d
 
     def remove_flows_with_status(self, status):
+        """Remove all flows with the given status from the database and the filesystem."""
         if status == "Running":
             raise ValueError("You cannot remove a flow that is in `Running` mode!")
 
@@ -1220,6 +1235,7 @@ class MultiFlowScheduler(BaseScheduler):
         self.update_flows_and_slqdb()
 
     def update_flows_and_slqdb(self):
+        """Update the status of the flows in the database."""
 
         done = []
         for i, flow in enumerate(self.flows):

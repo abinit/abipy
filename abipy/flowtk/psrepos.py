@@ -353,10 +353,12 @@ class OncvpspRepo(PseudosRepo):
 
     @property
     def ps_type(self) -> str:
+        """The type of pseudopotentials in the repository."""
         return "NC"
 
     @property
     def name(self) -> str:
+        """The name of the repository."""
         # ONCVPSP-PBEsol-PDv0.4/
         # ONCVPSP-PBE-FR-PDv0.4/
         return f"{self.ps_generator}-{self.xc_name}-{self.relativity_type}-{self.project_name}v{self.version}"
@@ -442,6 +444,7 @@ class JthRepo(PseudosRepo):
 
     @classmethod
     def from_abinit_website(cls, xc_name: str, relativity_type: str, version: str) -> JthRepo:
+        """Build a JTH repository from the abinit website."""
         # https://www.abinit.org/ATOMICDATA/JTH-LDA-atomicdata.tar.gz
         # ATOMPAW-LDA-JTHv0.4
         # url = f"https://www.abinit.org/ATOMICDATA/JTH-{xc_name}-atomicdata.tar.gz"
@@ -450,14 +453,17 @@ class JthRepo(PseudosRepo):
 
     @property
     def ps_type(self) -> str:
+        """The type of pseudopotentials in the repository."""
         return "PAW"
 
     @property
     def name(self) -> str:
+        """The name of the repository."""
         # ATOMPAW-LDA-JTHv0.4
         return f"{self.ps_generator}-{self.xc_name}-{self.project_name}v{self.version}"
 
     def validate_checksums(self, verbose: int) -> None:
+        """Validate the checksums of the repository."""
         print(f"\nValidating md5 checksums of {self!r} ...")
         cprint("WARNING: JTH-PAW repository does not support md5 checksums!!!", color="red")
 
@@ -484,6 +490,7 @@ class JthRepo(PseudosRepo):
         return PseudoTable(pseudos)
 
     def get_citations(self) -> list[Citation]:
+        """Return the list of citations for the repository."""
         return [
             Citation(
                 title="Generation of Projector Augmented-Wave atomic data: A 71 element validated table in the XML format",

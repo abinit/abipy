@@ -108,6 +108,7 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
 
     @classmethod
     def get_fields(cls, exclude=()) -> tuple:
+        """Return list of fields in QPState."""
         fields = list(cls._fields) + ["qpeme0"]
         for e in exclude:
             fields.remove(e)
@@ -838,6 +839,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
 
     @cached_property
     def qpenes(self) -> np.ndarray:
+        """[nsppol, nkibz, mband] array with QP energies in eV."""
         return self.r.read_qpenes()
 
     @cached_property
@@ -2368,6 +2370,7 @@ class SigresRobot(Robot, RobotWithEbands):
             raise ValueError("Cannot compare multiple SIGRES.nc files. Reason:\n %s" % "\n".join(errors))
 
     def merge_dataframes_sk(self, spin, kpoint, **kwargs):
+        """Merge dataframes for a given spin and k-point from multiple SIGRES files."""
         for i, (label, sigr) in enumerate(self.items()):
             frame = sigr.get_dataframe_sk(spin, kpoint, index=label)
             if i == 0:

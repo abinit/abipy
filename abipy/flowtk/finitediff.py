@@ -587,6 +587,7 @@ class DisplData(_FdData):
     """
 
     def get_force_constants(self, npts: int) -> np.ndarray:
+        """Return the force constants matrix obtained with npts FD points."""
         # K_mn = d2E/{du_m du_n} = -dF_m/ du_n
         # dforces_dpert has shape (natom, 3, npert)
         # TODO: Singular value decomposition

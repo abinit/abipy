@@ -370,7 +370,7 @@ class LumiWorkFromRelax(Work):
         return new
 
     def on_all_ok(self):
-
+        """This method is called when all the tasks in the work have reached S_OK."""
         self.json_data["meta"] = self.meta
 
         # Get Ag total energy.

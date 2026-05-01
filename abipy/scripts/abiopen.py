@@ -285,7 +285,6 @@ def serve_kwargs_from_options(options):
     Args:
         options: Namespace object containing command-line options.
     """
-
     if options.no_browser:
         print("""
 Use:

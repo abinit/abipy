@@ -765,6 +765,7 @@ class ElectronBands(Has_Structure):
 
     @property
     def nband(self) -> int:
+        """Number of bands (assumed constant over spins and k-points)."""
         try:
             return self._nband
         except AttributeError:
@@ -1769,6 +1770,14 @@ class ElectronBands(Has_Structure):
     #    return count
 
     def get_edge_state(self, vbm_or_cbm, spin=None):
+        """
+        Return the HOMO or LUMO state.
+
+        Args:
+            vbm_or_cbm: String, either "vbm" (or "homo") or "cbm" (or "lumo").
+            spin: Spin index. If None, the state with the highest energy (for VBM)
+                or lowest energy (for CBM) across all spin channels is returned.
+        """
 
         if spin is None:
             # Return max/min over spins (if any)
@@ -3695,6 +3704,7 @@ class ElectronBands(Has_Structure):
 
     # @memoized_method(maxsize=5, typed=False)
     def get_ebands3d(self):
+        """Return an |ElectronBands3D| object."""
         if err_msg := self.isnot_ibz_sampling():
             raise ValueError(err_msg)
 

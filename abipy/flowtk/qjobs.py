@@ -147,29 +147,36 @@ class QueueJob:
 
     @property
     def is_completed(self) -> bool:
+        """True if the job is completed."""
         return self.status == self.S_COMPLETED
 
     @property
     def is_running(self) -> bool:
+        """True if the job is running."""
         return self.status == self.S_RUNNING
 
     @property
     def is_failed(self) -> bool:
+        """True if the job failed."""
         return self.status == self.S_FAILED
 
     @property
     def timeout(self) -> bool:
+        """True if the job timed out."""
         return self.status == self.S_TIMEOUT
 
     @property
     def has_node_failures(self) -> bool:
+        """True if the job failed due to node failures."""
         return self.status == self.S_NODEFAIL
 
     @property
     def unknown_status(self) -> bool:
+        """True if the status of the job is unknown."""
         return self.status == self.S_UNKNOWN
 
     def set_status_exitcode_signal(self, status, exitcode, signal):
+        """Set the status, exitcode and signal of the job."""
         self.status, self.exitcode, self.signal = status, exitcode, signal
 
     def likely_code_error(self):
@@ -222,6 +229,7 @@ class QueueJob:
         return False
 
     def received_signal(self, sig_name: str) -> bool:
+        """True if the job received the signal with name `sig_name`."""
         if self.signal is None:
             return False
         # Get the numeric value from signal and compare it with self.signal
@@ -238,12 +246,15 @@ class QueueJob:
         return
 
     def get_info(self, **kwargs):
+        """Return information about the job."""
         return None
 
     def get_nodes(self, **kwargs):
+        """Return the list of nodes used by the job."""
         return None
 
     def get_stats(self, **kwargs):
+        """Return statistics about the job."""
         return None
 
 
@@ -259,6 +270,7 @@ class SlurmJob(QueueJob):
     QTYPE = "slurm"
 
     def estimated_start_time(self):
+        """Return the estimated start time of the job."""
         # squeue  --start -j  116791
         #  JOBID PARTITION     NAME     USER  ST           START_TIME  NODES NODELIST(REASON)
         # 116791      defq gs6q2wop username  PD  2014-11-04T09:27:15     16 (QOSResourceLimit)

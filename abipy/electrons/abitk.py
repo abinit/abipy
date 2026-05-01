@@ -92,6 +92,7 @@ class KmeshFile(AbinitNcFile, Has_Structure):
         self.bz2ibz[1] -= 1
 
     def ngkpt_and_shifts(self):
+        """Return k-mesh divisions and shifts."""
         ngkpt = None if not is_diagonal(self.kptrlatt) else np.diag(self.kptrlatt)
         return ngkpt, self.shiftk
 
@@ -102,6 +103,7 @@ class KmeshFile(AbinitNcFile, Has_Structure):
 
     @cached_property
     def params(self) -> dict:
+        """Dictionary with parameters that might be subject to convergence studies."""
         return {}
 
     def close(self) -> None:

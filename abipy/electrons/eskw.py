@@ -42,10 +42,12 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @cached_property
     def einterp(self):
+        """Array with interpolated energies."""
         return self.reader.read_value("einterp")
 
     @cached_property
     def band_block(self):
+        """Initial and final band index to be interpolated (0-based)."""
         # band_block(2)=Initial and final band index to be interpolated. [0, 0] if all bands are used.
         band_block = self.reader.read_value("band_block")
         if all(band_block != [0, 0]):
@@ -73,6 +75,7 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return "\n".join(lines)
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     @property

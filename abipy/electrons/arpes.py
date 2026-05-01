@@ -20,6 +20,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @classmethod
     def model_from_ebands(cls, ebands, tmesh=(0, 300, 600), poorman_polaron=False):
+        """Build an instance from an ElectronBands object using a simple model for the spectral function."""
         ebands = ElectronBands.as_ebands(ebands)
 
         ntemp = len(tmesh)
@@ -156,6 +157,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         return np.arange(emin, emax, estep), emin, emax
 
     def get_data_nmtuple(self, itemp, estep, spins=None):
+        """Return a namedtuple with data for a color map at a given temperature."""
         nkpt = self.ebands.nkpt
         spins = range(self.ebands.nsppol) if spins is None else spins
 
@@ -175,6 +177,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         return dict2namedtuple(data=data, emesh=emesh, emin=emin, emax=emax, spins=spins, nkpt=nkpt)
 
     def get_atw(self, wmesh, spin, ikpt, band_inds, temp_inds):
+        """Return a 2D array with the spectral function for a given spin and k-point at different temperatures."""
         ntemp, nene = len(temp_inds), len(wmesh)
         atw = np.zeros((ntemp, nene))
         for band in range(self.ebands.nband_sk[spin, ikpt]):
@@ -419,6 +422,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @add_fig_kwargs
     def plot_3dlines(self, itemp=0, estep=0.02, spins=None, band_inds=None, ax=None, **kwargs) -> Figure:
+        """Plot the spectral function as 3D lines."""
         ax, fig, plt = get_ax3d_fig_plt(ax=ax)
 
         xs, emin, emax = self.get_emesh_eminmax(estep)
@@ -467,6 +471,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @add_fig_kwargs
     def plot_surface(self, itemp=0, estep=0.02, spins=None, ax=None, **kwargs):
+        """Plot the spectral function as a 3D surface."""
         ax, fig, plt = get_ax3d_fig_plt(ax=ax)
 
         xs, emin, emax = self.get_emesh_eminmax(estep)

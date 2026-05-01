@@ -299,7 +299,6 @@ def get_parser(with_epilog=False):
     Args:
         with_epilog: If True, include the epilog in the parser.
     """
-
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
     copts_parser.add_argument(

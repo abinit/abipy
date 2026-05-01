@@ -340,6 +340,7 @@ class LrujAnalyzer:
     #    self.add_ncpaths(key, nc_paths)
 
     def add_ncpaths(self, key: str, nc_paths: list[str]) -> None:
+        """Add list of netcdf files for the given key."""
         self.ncfiles_of_key[key] = nc_paths
         self.results_of_key[key] = None
         self.run()

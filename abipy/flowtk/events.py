@@ -691,10 +691,12 @@ class Correction(MSONable):
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return a MSONable dictionary."""
         return dict(handler=self.handler.as_dict(), actions=self.actions, event=self.event.as_dict(), reset=self.reset)
 
     @classmethod
     def from_dict(cls, d: dict) -> Correction:
+        """Build an instance from a dictionary."""
         dec = MontyDecoder()
         return cls(
             handler=dec.process_decoded(d["handler"]),
@@ -798,13 +800,16 @@ class DilatmxErrorHandler(ErrorHandler):
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return a MSONable dictionary."""
         return {"max_dilatmx": self.max_dilatmx}
 
     @classmethod
     def from_dict(cls, d: dict) -> DilatmxErrorHandler:
+        """Build an instance from a dictionary."""
         return cls(max_dilatmx=d["max_dilatmx"])
 
     def handle_task_event(self, task, event):
+        """Handle DilatmxError in a Task."""
         # Read the last structure dumped by ABINIT before aborting.
         filepath = task.outdir.has_abiext("DILATMX_STRUCT.nc")
         last_structure = Structure.from_file(filepath)
@@ -827,6 +832,7 @@ class DilatmxErrorHandler(ErrorHandler):
         return self.FIXED
 
     def handle_input_event(self, abi_input, outdir, event):
+        """Handle DilatmxError in an AbinitInput."""
         try:
             old_abiinput = abi_input.deepcopy()
             # Read the last structure dumped by ABINIT before aborting.
@@ -887,6 +893,7 @@ class TolSymErrorHandler(ErrorHandler):
         return self.FIXED
 
     def handle_input_event(self, abi_input, outdir, event):
+        """Handle TolSymError in an AbinitInput."""
         try:
             old_abiinput = abi_input.deepcopy()
             old_tolsym = abi_input["tolsym"]
@@ -923,6 +930,7 @@ class MemanaErrorHandler(ErrorHandler):
         return self.FIXED
 
     def handle_input_event(self, abi_input, outdir, event):
+        """Handle MemanaError in an AbinitInput."""
         try:
             old_abiinput = abi_input.deepcopy()
             abi_input.set_vars(mem_test=0)
@@ -957,7 +965,8 @@ class MemoryErrorHandler(ErrorHandler):
 
     def handle_input_event(self, abi_input, outdir, event):
         """
-        Shouldn't do anything on the input
+        Handle MemoryError in an AbinitInput.
+        Shouldn't do anything on the input.
         """
         return
 

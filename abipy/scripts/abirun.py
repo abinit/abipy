@@ -1102,7 +1102,6 @@ def serve_kwargs_from_options(options) -> dict:
     Args:
         options: Namespace object containing command-line options.
     """
-
     # address = "localhost"
     if options.no_browser:
         print("""

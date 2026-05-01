@@ -372,6 +372,7 @@ class Fold2Bloch(ExecWrapper):
     _name = "fold2Bloch"
 
     def unfold(self, wfkpath, folds, workdir=None) -> str:
+        """Unfold the wavefunctions from the supercell to the primitive cell."""
         workdir = get_workdir(workdir)
 
         self.stdin_fname = None

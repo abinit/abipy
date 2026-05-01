@@ -1121,19 +1121,24 @@ class FileNode(Node):
 
     @property
     def products(self) -> list[Product]:
+        """List of products produced by the node."""
         return [Product.from_file(self.filepath)]
 
     def opath_from_ext(self, ext: str) -> str:
+        """Return the path of the file produced by the node."""
         return self.filepath
 
     @property
     def status(self) -> Status:
+        """The status of the node."""
         return self.S_OK if os.path.exists(self.filepath) else self.S_ERROR
 
     def check_status(self) -> Status:
+        """Check the status of the node."""
         return self.status
 
     def get_results(self, **kwargs):
+        """Return a |NodeResults| object."""
         results = super().get_results(**kwargs)
         return results
 
@@ -1151,11 +1156,13 @@ class FileNode(Node):
     # a NscfTask will change the FFT grid to match the one used in the GsTask.
 
     def abiopen(self):
+        """Open the file with |abiopen|."""
         from abipy import abilab
 
         return abilab.abiopen(self.filepath)
 
     def open_gsr(self):
+        """Open the GSR file."""
         return self._abiopen_abiext("_GSR.nc")
 
     def _abiopen_abiext(self, abiext):
@@ -1305,6 +1312,7 @@ class HistoryRecord:
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return a MSONable dictionary representation of the object."""
         return {
             "level": self.levelno,
             "pathname": self.pathname,
@@ -1317,6 +1325,7 @@ class HistoryRecord:
 
     @classmethod
     def from_dict(cls, d: dict) -> HistoryRecord:
+        """Build an instance from a dictionary."""
         return cls(
             level=d["level"],
             pathname=d["pathname"],

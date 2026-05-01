@@ -466,6 +466,7 @@ class Flow(Node, NodeContainer, MSONable):
 
     @property
     def mongo_id(self):
+        """The MongoDB ID of the flow."""
         return self._mongo_id
 
     @mongo_id.setter
@@ -1686,6 +1687,7 @@ class Flow(Node, NodeContainer, MSONable):
         return figs
 
     def get_results(self, **kwargs):
+        """Return a |WorkResults| object."""
         results = self.Results.from_node(self)
         return results
 
@@ -2365,6 +2367,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         return True
 
     def on_dep_ok(self, signal, sender):
+        """Callback function called when a dependency reaches S_OK."""
         # TODO
         # Replace this callback with dynamic dispatch
         # on_all_S_OK for work
@@ -2459,6 +2462,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             cbk.disable()
 
     def show_receivers(self, sender=None, signal=None) -> None:
+        """Show the list of receivers connected to the given sender and signal."""
         sender = sender if sender is not None else dispatcher.Any
         signal = signal if signal is not None else dispatcher.Any
         print("*** live receivers ***")

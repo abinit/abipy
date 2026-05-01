@@ -287,10 +287,14 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return od
 
     def close(self) -> None:
+        """Close the file."""
         self.r.close()
 
     # FIXME: This is deprecated. Must keep it to avoid breaking ScfTask.get_results
     def as_dict(self) -> dict:
+        """
+        Required for Monty serialization. Returns an empty dict as it's deprecated.
+        """
         return {}
 
     def get_computed_entry(self, inc_structure=True, parameters=None, data=None):

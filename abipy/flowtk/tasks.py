@@ -594,6 +594,7 @@ class TaskManager(MSONable):
 
     @classmethod
     def autodoc(cls) -> str:
+        """Return the documentation for the |TaskManager|."""
         s = """
 # TaskManager configuration file (YAML Format)
 
@@ -617,7 +618,7 @@ qadapters:
 
     @classmethod
     def get_simple_manager(cls) -> str:
-
+        """Return a simple manager configuration in YAML format."""
         return """
 qadapters:
     # List of qadapters objects
@@ -746,6 +747,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return a MSONable dictionary representation of the object."""
         return copy.deepcopy(self._kwargs)
 
     def __init__(self, **kwargs):
@@ -1088,6 +1090,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise
 
     def increase_mem(self):
+        """Increase the memory per CPU."""
         # OLD
         # with GW calculations in mind with GW mem = 10,
         # the response function is in memory and not distributed
@@ -1111,6 +1114,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise ManagerIncreaseError("manager failed to increase ncpu")
 
     def increase_resources(self):
+        """Increase the resources (CPUs or memory) used by the task."""
         try:
             self.qadapter.more_cores()
             return
@@ -1124,6 +1128,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise ManagerIncreaseError("manager failed to increase resources")
 
     def exclude_nodes(self, nodes):
+        """Exclude nodes from the submission."""
         try:
             self.qadapter.exclude_nodes(nodes=nodes)
         except QueueAdapterError:
@@ -1131,6 +1136,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise ManagerIncreaseError("manager failed to exclude nodes")
 
     def increase_time(self):
+        """Increase the time limit of the job."""
         try:
             self.qadapter.more_time()
         except QueueAdapterError:
@@ -4429,6 +4435,7 @@ class SigmaTask(ManyBodyTask):
     color_rgb = np.array((0, 255, 0)) / 255
 
     def restart(self):
+        """Restart the Sigma calculation from the QPS file."""
         # Sigma calculations can be restarted only if we have the QPS file
         # from which we can read the results of the previous step.
         ext = "QPS"
@@ -4615,6 +4622,7 @@ class GwrTask(AbinitTask):
     color_rgb = np.array((255, 128, 0)) / 255
 
     def setup(self):
+        """Method called before submitting the task."""
 
         # if self["gwr_task"] in (GWR_TASK.HDIAGO_FULL, ):
         #    print("To perform full diago, need to know mpw...")
@@ -5189,6 +5197,7 @@ class AnaddbTask(Task):
         """
 
     def outpath_from_ext(self, ext: str) -> str:
+        """Return the absolute path of the output file with the given extension."""
         if ext == "anaddb.nc":
             path = os.path.join(self.outdir.path, "anaddb.nc")
             if os.path.isfile(path):
@@ -5343,11 +5352,13 @@ class AtdepTask(Task):
         """Public method called before submitting the task."""
 
     def make_links(self):
+        """Create symbolic links to the input files."""
         self.inlink_file(self.hist_filepath)
         if self.ddb_filepath is not None:
             self.inlink_file(self.ddb_filepath)
 
     def outpath_from_ext(self, ext):
+        """Return the absolute path of the output file with the given extension."""
         path = self.outdir.has_abiext(ext)
         if not path:
             raise RuntimeError("Atdep task `%s` didn't produce file with extension: `%s`" % (self, ext))

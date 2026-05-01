@@ -374,6 +374,13 @@ class Segment:
         return self.to_string()
 
     def get_fd_emass_d2(self, enes_kline, acc: int) -> tuple:
+        """
+        Compute effective mass and the second derivative using finite difference.
+
+        Args:
+            enes_kline: Energies along the line.
+            acc: Accuracy (number of points for finite difference).
+        """
         # Note the use of self.kpos so that the stencil is centered on the kpos index if we have points of both sides.
         d2 = finite_diff(enes_kline, self.dk, order=2, acc=acc, index=self.kpos)
         emass = 1.0 / (d2.value * (abu.eV_Ha / abu.Bohr_Ang**2))

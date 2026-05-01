@@ -682,11 +682,13 @@ class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         return self.ebands.structure
 
     @cached_property
-    def target_atom(self) -> tuple:
+    def target_atom(self) -> int:
+        """Index of the atom with non-zero nuclear magnetic dipole moment."""
         return self.target_atom_nucdipmom[0]
 
     @cached_property
-    def nucdipmom_atom(self) -> tuple:
+    def nucdipmom_atom(self) -> np.ndarray:
+        """Nuclear magnetic dipole moment of the target atom."""
         return self.target_atom_nucdipmom[1]
 
     @cached_property

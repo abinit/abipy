@@ -82,7 +82,6 @@ def get_parser(with_epilog=False):
     Args:
         with_epilog: If True, include the epilog in the parser.
     """
-
     parser = argparse.ArgumentParser(
         epilog=get_epilog() if with_epilog else "", formatter_class=argparse.RawDescriptionHelpFormatter
     )

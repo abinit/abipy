@@ -483,6 +483,7 @@ class PspsRobot(Robot):
     def from_abinit_run(cls, pseudos, ecut) -> PspsRobot:
         """
         Initialize the object from a list of filepaths or Pseudo objects
+        by invoking abinit with cutoff energy `ecut`.
         """
         filepaths = []
         for p in pseudos:
@@ -808,4 +809,5 @@ class VnlProjector:
 
     @property
     def sign_sqrtekb(self) -> np.ndarray:
+        """Sign(ekb) * sqrt(abs(ekb))."""
         return np.sign(self.ekb) * np.sqrt(np.abs(self.ekb))

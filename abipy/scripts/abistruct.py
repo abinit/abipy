@@ -196,7 +196,6 @@ def get_parser(with_epilog=False):
     Args:
         with_epilog: If True, include the epilog in the parser.
     """
-
     # Parent parser for commands that need to know the filepath
     path_selector = argparse.ArgumentParser(add_help=False)
     path_selector.add_argument(

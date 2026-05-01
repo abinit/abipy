@@ -18,6 +18,7 @@ class AbinitTaskMockedStart(AbinitTask):
     """A Task whose status is always self.mocked_status."""
 
     def start(self, **kwargs):
+        """Mock the start of the task."""
         self.set_status(self.mocked_status, msg="Mocking status with %s" % self.mocked_status)
         return 1
 
@@ -32,6 +33,7 @@ class InfiniteFlow(Flow):
     """A Flow that will never reach `all_ok`"""
 
     def check_status(self, **kwargs):
+        """Mock check_status to reset all_ok status."""
         super().check_status(**kwargs)
 
         for task in self.iflat_tasks(status=self.S_OK):
