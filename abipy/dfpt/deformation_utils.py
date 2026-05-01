@@ -8,6 +8,17 @@ from abipy.core.symmetries import AbinitSpaceGroup
 
 
 def generate_deformations_volumic(structure: Structure, eps_V: float = 0.02, scales=None):
+    """
+    Generate deformed structures by scaling the lattice volume.
+
+    Args:
+        structure: Input structure.
+        eps_V: Fractional volume change.
+        scales: List of scale factors for the volume change.
+
+    Returns:
+        Dictionary mapping formatted scale names to deformed structures.
+    """
     if scales is None:
         scales = [-1, 0, 1, 2, 3]
     rprim = structure.lattice.matrix

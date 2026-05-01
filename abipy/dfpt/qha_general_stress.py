@@ -24,6 +24,15 @@ from abipy.tools.serialization import HasPickleIO, Serializable
 
 
 def spgnum_to_crystal_system(spgrp_number: int) -> str:
+    """
+    Convert space group number to crystal system name.
+
+    Args:
+        spgrp_number: Space group number (1-230).
+
+    Returns:
+        String representing the crystal system.
+    """
     if 1 <= spgrp_number <= 2:
         # triclinic crystal system
         sym = "triclinic"

@@ -324,7 +324,6 @@ class CumulantSelfEnergy(EphSelfEnergy):
             frohl_dvals_de0ks: Derivative of Frohlich term at KS energy.
             frohl_spfunc_wr: Frohlich spectral function.
         """
-
         # Set dimensions
         ntemp = len(qp.tmesh)
         nwr = len(wmesh)

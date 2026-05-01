@@ -92,6 +92,9 @@ to build an appropriate supercell from partial occupancies.""",
 
 
 def get_epilog() -> str:
+    """
+    Return the epilog string for the command-line parser.
+    """
     return """\
 Usage example:
 
@@ -187,6 +190,12 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
 
 def get_parser(with_epilog=False):
+    """
+    Return the ArgumentParser object for the script.
+
+    Args:
+        with_epilog: If True, include the epilog in the parser.
+    """
 
     # Parent parser for commands that need to know the filepath
     path_selector = argparse.ArgumentParser(add_help=False)
@@ -835,6 +844,12 @@ closest points in this particular structure. This is usually what you want in a 
 
 
 def serve_kwargs_from_options(options) -> dict:
+    """
+    Build and return a dictionary with keyword arguments for serving the panel app.
+
+    Args:
+        options: Namespace object containing command-line options.
+    """
     if options.no_browser:
         print("""
 Use:
@@ -860,6 +875,9 @@ for port forwarding.
 
 @cli.prof_main
 def main():
+    """
+    Main entry point for the script.
+    """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""

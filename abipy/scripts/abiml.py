@@ -92,6 +92,9 @@ def set_default(ctx, param, filepath):
 
 
 def herald(f):
+    """
+    Decorator to print the name of the function and the execution time.
+    """
     @wraps(f)
     def wrapper(*args, **kw):
         verbose = kw.get("verbose", 0)
@@ -335,6 +338,9 @@ def _get_nn_names(nn_names: list[str]) -> list[str]:
     help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster").',
 )
 def main(ctx, seaborn):
+    """
+    Main entry point for the script.
+    """
     """Script to perform calculations with ML potentials."""
     ctx.ensure_object(dict)
 

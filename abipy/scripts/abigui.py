@@ -36,6 +36,9 @@ import abipy.tools.cli_parsers as cli
 
 
 def main():
+    """
+    Main entry point for the script.
+    """
 
     def str_examples():
         """Return a string with usage examples."""

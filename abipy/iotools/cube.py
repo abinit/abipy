@@ -17,6 +17,14 @@ __all__ = [
 
 
 def cube_write_structure_mesh(file, structure, mesh) -> None:
+    """
+    Write structure and mesh information to a cube file.
+
+    Args:
+        file: File-like object.
+        structure: Structure object.
+        mesh: Mesh3D object.
+    """
     fwrite = file.write
     fwrite("Density generated from abipy\n")
     fwrite("in the cube file format\n")
@@ -33,6 +41,14 @@ def cube_write_structure_mesh(file, structure, mesh) -> None:
 
 
 def cube_write_data(file, data, mesh) -> None:
+    """
+    Write data to a cube file.
+
+    Args:
+        file: File-like object.
+        data: Numpy array with the data.
+        mesh: Mesh3D object.
+    """
     fwrite = file.write
     data_bohrs = data * (bohr_to_angstrom**3)
     for ix in range(mesh.nx):

@@ -271,6 +271,9 @@ def abips_mkff(options) -> int:
 
 
 def get_epilog() -> str:
+    """
+    Return the epilog string for the command-line parser.
+    """
     return """\
 
 Usage example:
@@ -290,6 +293,12 @@ Usage example:
 
 
 def get_parser(with_epilog=False):
+    """
+    Return the ArgumentParser object for the script.
+
+    Args:
+        with_epilog: If True, include the epilog in the parser.
+    """
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
@@ -367,6 +376,9 @@ def get_parser(with_epilog=False):
 
 @cli.prof_main
 def main():
+    """
+    Main entry point for the script.
+    """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""

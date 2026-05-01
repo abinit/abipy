@@ -897,6 +897,9 @@ def abicomp_time(options):
 
 
 def get_epilog():
+    """
+    Return the epilog string for the command-line parser.
+    """
     return """\
 Usage example:
 
@@ -1029,6 +1032,12 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
 
 def get_parser(with_epilog=False):
+    """
+    Return the ArgumentParser object for the script.
+
+    Args:
+        with_epilog: If True, include the epilog in the parser.
+    """
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
@@ -1446,6 +1455,12 @@ the full set of atoms. Note that a value larger than 0.01 is considered to be un
 
 
 def serve_kwargs_from_options(options):
+    """
+    Build and return a dictionary with keyword arguments for serving the panel app.
+
+    Args:
+        options: Namespace object containing command-line options.
+    """
 
     # address = "localhost"
     if options.no_browser:
@@ -1473,6 +1488,9 @@ for port forwarding.
 
 @cli.prof_main
 def main():
+    """
+    Main entry point for the script.
+    """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""

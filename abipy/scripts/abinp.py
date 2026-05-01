@@ -110,6 +110,13 @@ def _get_pseudotable(options):
 
 
 def finalize(obj, options):
+    """
+    Finalize the object and print the input file to stdout.
+
+    Args:
+        obj: The object to finalize (e.g. AbinitInput or MultiDataset).
+        options: Namespace object containing command-line options.
+    """
     if options.mnemonics:
         obj.set_mnemonics(True)
     print(obj)
@@ -434,6 +441,9 @@ def abinp_slurm(options):
 
 
 def get_epilog():
+    """
+    Return the epilog string for the command-line parser.
+    """
     return r"""
 Usage example:
 
@@ -634,6 +644,9 @@ def get_parser(with_epilog=False):
 
 @cli.prof_main
 def main():
+    """
+    Main entry point for the script.
+    """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""

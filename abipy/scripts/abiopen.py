@@ -110,6 +110,9 @@ from abipy import abilab
 
 
 def get_epilog() -> str:
+    """
+    Return the epilog string for the command-line parser.
+    """
     s = """\
 ======================================================================================================
 Usage example:
@@ -141,6 +144,12 @@ Table mapping file extension to AbiPy object:
 
 
 def get_parser(with_epilog=False):
+    """
+    Return the ArgumentParser object for the script.
+
+    Args:
+        with_epilog: If True, include the epilog in the parser.
+    """
     parser = argparse.ArgumentParser(
         epilog=get_epilog() if with_epilog else "", formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -270,6 +279,12 @@ def get_parser(with_epilog=False):
 
 
 def serve_kwargs_from_options(options):
+    """
+    Build and return a dictionary with keyword arguments for serving the panel app.
+
+    Args:
+        options: Namespace object containing command-line options.
+    """
 
     if options.no_browser:
         print("""
@@ -296,6 +311,9 @@ for port forwarding.
 
 @cli.prof_main
 def main():
+    """
+    Main entry point for the script.
+    """
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(get_epilog())

@@ -317,6 +317,9 @@ def flow_watch_status(flow: Flow, delay=5, nids=None, verbose=0, func_name="show
 
 
 def get_epilog() -> str:
+    """
+    Return the epilog string for the command-line parser.
+    """
     usage = """\
 
 Usage example:
@@ -418,6 +421,12 @@ Notes:
 
 
 def get_parser(with_epilog=False):
+    """
+    Return the ArgumentParser object for the script.
+
+    Args:
+        with_epilog: If True, include the epilog in the parser.
+    """
 
     def parse_nids(s):
         """Parse nids argument"""
@@ -1087,6 +1096,12 @@ Default: o
 
 
 def serve_kwargs_from_options(options) -> dict:
+    """
+    Build and return a dictionary with keyword arguments for serving the panel app.
+
+    Args:
+        options: Namespace object containing command-line options.
+    """
 
     # address = "localhost"
     if options.no_browser:
@@ -1114,6 +1129,9 @@ for port forwarding.
 
 @cli.prof_main
 def main():
+    """
+    Main entry point for the script.
+    """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
