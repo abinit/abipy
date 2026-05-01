@@ -496,7 +496,7 @@ def add_data_ddb(ddb: DdbFile, dm_list: list, qpt_list: list, born_data) -> None
         dm_list: the list of dynamical matrices to be added.
         qpt_list: the list of q-points corresponding to dm_list.
         born_data: the data corresponding to BECs and dielectric tensor. If None
-            these part will not be set in the DDB.
+            this part will not be set in the DDB.
     """
     dm_data = {}
     natom = len(ddb.structure)
@@ -587,7 +587,7 @@ def tdep_to_abinit(unit_cell, fc_path, supercell_matrix, supercell, out_ddb_path
 
 def parse_tdep_fc(fc_path: str, unit_cell: Structure, supercell) -> np.ndarray:
     """
-    Parses a forceconstants file produced by TDEP an converts it to an array in the
+    Parses a forceconstants file produced by TDEP and converts it to an array in the
     phonopy format.
 
     Args:
@@ -597,7 +597,7 @@ def parse_tdep_fc(fc_path: str, unit_cell: Structure, supercell) -> np.ndarray:
         supercell: the supercell used for the calculation in TDEP.
 
     Returns:
-        a comple numpy array with shape (len(unit_cell), len(supercell), 3, 3)
+        a complex numpy array with shape (len(unit_cell), len(supercell), 3, 3)
     """
     natoms = len(unit_cell)
     fc = np.zeros((natoms, len(supercell), 3, 3))
@@ -678,7 +678,7 @@ def write_tdep_lotosplitting(eps, born, filepath="infile.lotosplitting", fmt="%1
 
 def born_to_lotosplitting(born, lotosplitting_path="infile.lotosplitting") -> None:
     """
-    Converted of a file from the BORN file produced from phonopy to the lotosplitting
+    Conversion of a file from the BORN file produced from phonopy to the lotosplitting
     file used by TDEP.
 
     Args:
@@ -759,10 +759,9 @@ def ddb_ucell_to_phonopy_supercell(unit_ddb=None, unit_ddb_filepath=None, nac=Tr
     at q=Gamma.
 
     Args:
-        ddb_unit_cell: an instance of DDB file.
-        unit_ddb_filepath : alternatively, a path to the input DDB.
-        supercell_ddb_path: DDB path of the output DDB on a supercell at Gamma
-        nac : Set the non-analytical correction
+        unit_ddb: an instance of DDB file.
+        unit_ddb_filepath: alternatively, a path to the input DDB.
+        nac: Set the non-analytical correction
 
     Returns:
         a Phonopy instance.

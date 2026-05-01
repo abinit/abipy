@@ -158,16 +158,17 @@ pydocstyle.convention = "google"
 #[tool.ruff.format]
 #docstring-code-format = true
 #
-#[tool.ruff.lint.per-file-ignores]
-#"__init__.py" = ["F401"] # unused-import
-#"tests/**" = [
-#    "ANN201", # missing-return-type-undocumented-public-function
-#    "D", # pydocstyle
-#    "PLR0124", # comparison-with-itself
-#    "PLR2004", # magic-value-comparison
-#    "PLR6301", # no-self-use
-#    "S101", # Use of "assert"
-#]
+[tool.ruff.lint.per-file-ignores]
+"abipy/abilab.py" = ["F401"]
+"__init__.py" = ["F401"] # unused-import
+"tests/**" = [
+    "ANN201", # missing-return-type-undocumented-public-function
+    "D", # pydocstyle
+    "PLR0124", # comparison-with-itself
+    "PLR2004", # magic-value-comparison
+    "PLR6301", # no-self-use
+    "S101", # Use of "assert"
+]
 
 #[tool.pytest.ini_options]
 #addopts = "--durations=30 --quiet -r xXs --color=yes --import-mode=importlib"
