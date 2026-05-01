@@ -107,9 +107,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         return self._structure
 
     def _parse_dims(self) -> None:
-        """
-        Parse basic dimensions and get structure from the header of the file.
-        """
+        """Parse basic dimensions and get structure from the header of the file."""
         self.version, self._structure, self.grid_size = None, None, None
         # Init dictionary with parameters.
         self.params_section = OrderedDict(
@@ -414,9 +412,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
-        """
-        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-        """
+        """This function *generates* a predefined list of matplotlib figures with minimal input from the user."""
         yield self.plot(show=False)
         yield self.plot_centers_spread(show=False)
 

@@ -83,9 +83,7 @@ class Mesh3D:
                     yield ix * self.dvx + iy * self.dvy + iz * self.dvz
 
     def iter_ixyz_r(self):
-        """
-        Iterator returning (ixyz, rr) where ixyz gives the index of the point and r is the point on the grid.
-        """
+        """Iterator returning (ixyz, rr) where ixyz gives the index of the point and r is the point on the grid."""
         for ix in range(self.nx):
             for iy in range(self.ny):
                 for iz in range(self.nz):
@@ -188,9 +186,7 @@ class Mesh3D:
         return np.reshape(arr, (-1,) + self.shape)
 
     def fft_r2g(self, fr, shift_fg=False) -> np.ndarray:
-        """
-        FFT of array ``fr`` given in real space.
-        """
+        """FFT of array ``fr`` given in real space."""
         ndim, shape = fr.ndim, fr.shape
 
         if ndim == 1:
@@ -216,9 +212,7 @@ class Mesh3D:
         return fg / self.size
 
     def fft_g2r(self, fg, fg_ishifted=False) -> np.ndarray:
-        """
-        FFT of array ``fg`` given in G-space.
-        """
+        """FFT of array ``fg`` given in G-space."""
         ndim, shape = fg.ndim, fg.shape
 
         if ndim == 1:
@@ -267,9 +261,7 @@ class Mesh3D:
     #    return new_mesh.fft_g2r(intp_datag)
 
     def integrate(self, fr):
-        """
-        Integrate array(s) fr.
-        """
+        """Integrate array(s) fr."""
         shape, ndim = fr.shape, fr.ndim
         assert self.size == np.prod(shape[-3:])
 
@@ -433,9 +425,7 @@ class Mesh3D:
     #    return irottable
 
     def i_closest_gridpoints(self, points) -> np.ndarray:
-        """
-        Given a list of points, this function return a |numpy-array| with the indices of the closest gridpoint.
-        """
+        """Given a list of points, this function return a |numpy-array| with the indices of the closest gridpoint."""
         points = np.reshape(points, (-1, 3))
         inv_vectors = self.inv_vectors
         fcoords = [np.dot(point, inv_vectors) for point in points]

@@ -77,9 +77,7 @@ def temporary_change_attributes(something, **kwargs):
 
 
 class Timeout:
-    """
-    Taken from https://stackoverflow.com/questions/2281850/timeout-function-if-it-takes-too-long-to-finish/22348885#22348885
-    """
+    """Taken from https://stackoverflow.com/questions/2281850/timeout-function-if-it-takes-too-long-to-finish/22348885#22348885"""
 
     def __init__(self, seconds: int, message: str = "Timeout"):
         self.seconds = int(seconds)

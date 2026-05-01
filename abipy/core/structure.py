@@ -1,6 +1,4 @@
-"""
-This module defines basic objects representing the crystalline structure.
-"""
+"""This module defines basic objects representing the crystalline structure."""
 
 from __future__ import annotations
 
@@ -175,9 +173,7 @@ def display_structure(obj, **kwargs):
 
 
 def get_structures_from_file(filepath: PathLike, index) -> list[Structure]:
-    """
-    Read and return list of structures from filepath
-    """
+    """Read and return list of structures from filepath."""
     # if index is None:
     #    index = -1
 
@@ -433,9 +429,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     @classmethod
     def from_phonopy_atoms(cls, atoms) -> Structure:
-        """
-        Returns structure from phonopy Atoms.
-        """
+        """Returns structure from phonopy Atoms."""
         from pymatgen.io.phonopy import get_pmg_structure
 
         new = get_pmg_structure(atoms)
@@ -462,9 +456,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return len(self.types_of_species)
 
     def to_ase_atoms(self, calc=None):
-        """
-        Returns ASE Atoms object from structure and attach calculator calc.
-        """
+        """Returns ASE Atoms object from structure and attach calculator calc."""
         import pymatgen.io.ase as aio
 
         atoms = aio.AseAtomsAdaptor.get_atoms(self)
@@ -473,9 +465,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return atoms
 
     def get_phonopy_atoms(self):
-        """
-        Convert a pymatgen Structure object to a PhonopyAtoms object.
-        """
+        """Convert a pymatgen Structure object to a PhonopyAtoms object."""
         from pymatgen.io.phonopy import get_phonopy_structure
 
         return get_phonopy_structure(self)
@@ -639,9 +629,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     @classmethod
     def from_abistring(cls, string: str) -> Structure:
-        """
-        Initialize Structure from a string with Abinit input variables.
-        """
+        """Initialize Structure from a string with Abinit input variables."""
         from abipy.abio.abivars import AbinitInputFile, structure_from_abistruct_fmt
 
         if "xred_symbols" not in string:
@@ -696,9 +684,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return self.to_string()
 
     def to_string(self, title=None, verbose=0) -> str:
-        """
-        String representation. Extends the implementation of the superclass.
-        """
+        """String representation. Extends the implementation of the superclass."""
         lines = []
         app = lines.append
         if title is not None:
@@ -1454,9 +1440,7 @@ class Structure(pmg_Structure, NotebookWriter):
             return image
 
         def check_image(structure, site):
-            """
-            Checks if a fictitious site is an image of a site of the structure
-            """
+            """Checks if a fictitious site is an image of a site of the structure."""
             for site in structure.sites:
                 if site.is_periodic_image(site):
                     return True
@@ -1563,9 +1547,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return self.__class__.from_sites(sorted(self.sites, key=lambda site: site.specie.Z))
 
     def findname_in_hsym_stars(self, kpoint) -> str | None:
-        """
-        Returns the name of the special k-point, None if kpoint is unknown.
-        """
+        """Returns the name of the special k-point, None if kpoint is unknown."""
         if self.abi_spacegroup is None:
             return None
 
@@ -1913,9 +1895,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
-        """
-        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-        """
+        """This function *generates* a predefined list of matplotlib figures with minimal input from the user."""
         yield self.plot(show=False)
         yield self.plot_bz(show=False)
 
@@ -1965,9 +1945,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return visu(filename)
 
     def get_chemview(self, **kwargs):  # pragma: no cover
-        """
-        Visualize structure inside the jupyter notebook using chemview package.
-        """
+        """Visualize structure inside the jupyter notebook using chemview package."""
         from pymatgen.vis.structure_chemview import quick_view
 
         return quick_view(self, **kwargs)
@@ -2044,9 +2022,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return fig
 
     def get_ngl_view(self):  # pragma: no cover
-        """
-        Visualize the structure with nglview inside the jupyter notebook.
-        """
+        """Visualize the structure with nglview inside the jupyter notebook."""
         try:
             import nglview as nv
         except ImportError:
@@ -2057,9 +2033,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return view
 
     def get_crystaltk_view(self):  # pragma: no cover
-        """
-        Visualize the structure with crystal_toolkit inside the jupyter notebook.
-        """
+        """Visualize the structure with crystal_toolkit inside the jupyter notebook."""
         try:
             # FIXME: It seems they changed the API.
             from crystal_toolkit import view
@@ -3125,9 +3099,7 @@ to build an appropriate supercell from partial occupancies or alternatively use 
 
 
 class StructDiff:
-    """
-    Print difference among structures.
-    """
+    """Print difference among structures."""
 
     def __init__(self, labels: list[str], structures):
         """
@@ -3155,9 +3127,7 @@ class StructDiff:
                 del self.structs[il]
 
     def get_lattice_dataframe(self) -> pd.DataFrame:
-        """
-        Build dataframe with lattice parameters.
-        """
+        """Build dataframe with lattice parameters."""
         d_list = []
         for label, structure in zip(self.labels, self.structs, strict=False):
             d = {"label": label}
@@ -3170,9 +3140,7 @@ class StructDiff:
         return pd.DataFrame(d_list).set_index("label", inplace=False)
 
     def get_sites_dataframe(self, with_cart_coords=False) -> pd.DataFrame:
-        """
-        Build dataframe with site positions.
-        """
+        """Build dataframe with site positions."""
         # Handle possible rigid shift.
         # shift_cart, shift_frac = np.zeros(3), np.zeros(3)
         # if allow_rigid_shift:

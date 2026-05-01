@@ -11,9 +11,7 @@ from abipy.panels.core import AbipyParameterized, depends_on_btn_click, ply
 
 
 class HistFilePanel(AbipyParameterized):
-    """
-    Panel with widgets to interact with a |HistFile|.
-    """
+    """Panel with widgets to interact with a |HistFile|."""
 
     def __init__(self, hist: HistFile, **params):
         self.hist = hist
@@ -44,9 +42,7 @@ class HistFilePanel(AbipyParameterized):
 
     @depends_on_btn_click("view_relax_btn")
     def on_view_relax_btn(self):
-        """
-        Visalize the structural relaxation with an external application.
-        """
+        """Visalize the structural relaxation with an external application."""
         return self.hist.visualize(appname=self.appname.value, to_unit_cell=self.to_unit_cell.value)
 
     def get_panel(self, as_dict=False, **kwargs):

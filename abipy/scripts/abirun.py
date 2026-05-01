@@ -110,9 +110,7 @@ def flowdir_wname_tname(dirname: str):
 
 
 def select_nids(flow: Flow, options) -> set:
-    """
-    Return the set of node ids selected by the user via the command line interface.
-    """
+    """Return the set of node ids selected by the user via the command line interface."""
     # print("options.nids:", options.nids)
     task_ids = [
         task.node_id

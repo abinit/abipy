@@ -6,9 +6,7 @@ import numpy as np
 
 
 class Pauli:
-    """
-    Pauli matrices
-    """
+    """Pauli matrices."""
 
     def __init__(self):
         self.sigma_0 = np.eye(2)  # 2x2 identity matrix

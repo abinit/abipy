@@ -52,9 +52,7 @@ class WorkTaskSelector(Viewer):
 
 
 class FlowPanel(NodeParameterized):
-    """
-    Provides widgets and callbacks to interact with an AbiPy Flow.
-    """
+    """Provides widgets and callbacks to interact with an AbiPy Flow."""
 
     def __init__(self, flow: Flow, **params):
         NodeParameterized.__init__(self, node=flow, **params)
@@ -83,9 +81,7 @@ class FlowPanel(NodeParameterized):
 
     @depends_on_btn_click("task_btn")
     def on_task_btn(self) -> pn.Column:
-        """
-        Return panel associated to the selected task.
-        """
+        """Return panel associated to the selected task."""
         task = self.wt_selector.task
         return pn.Column(
             f"## {task!r}",
@@ -130,9 +126,7 @@ class FlowPanel(NodeParameterized):
 
 
 class JsPane(pn.pane.HTML):
-    """
-    Based on: https://discourse.holoviz.org/t/how-to-make-a-dynamic-link-in-panel/2137
-    """
+    """Based on: https://discourse.holoviz.org/t/how-to-make-a-dynamic-link-in-panel/2137"""
 
     def __init__(self):
         super().__init__(width=0, height=0, margin=0, sizing_mode="fixed")

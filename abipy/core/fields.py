@@ -296,17 +296,13 @@ class _Field(Has_Structure):
         return space
 
     def mean(self, space="r", axis=0) -> np.ndarray:
-        """
-        Returns the average of the array elements along the given axis.
-        """
+        """Returns the average of the array elements along the given axis."""
         if self._check_space(space) == "r":
             return self.datar.mean(axis=axis)
         return self.datag.mean(axis=axis)
 
     def std(self, space="r", axis=0):
-        """
-        Returns the standard deviation of the array elements along the given axis.
-        """
+        """Returns the standard deviation of the array elements along the given axis."""
         if self._check_space(space) == "r":
             return self.datar.std(axis=axis)
         return self.datag.std(axis=axis)
@@ -378,9 +374,7 @@ class _Field(Has_Structure):
         raise visu.Error("Don't know how to export data for visualizer %s" % appname)
 
     def get_interpolator(self):
-        """
-        Return an interpolator object that interpolates periodic functions in real space.
-        """
+        """Return an interpolator object that interpolates periodic functions in real space."""
         from abipy.tools.numtools import BlochRegularGridInterpolator
 
         return BlochRegularGridInterpolator(self.structure, self.datar)
@@ -638,9 +632,7 @@ class _Field(Has_Structure):
 
     @add_fig_kwargs
     def plot_planar_average(self, direction, spin=0, ax=None, fontsize=12, **kwargs) -> Figure:
-        """
-        Plot planar average
-        """
+        """Plot planar average."""
         dists, averages = self.get_planar_average(direction, spin)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -935,9 +927,7 @@ class Density(_DensityField):
 
     @cached_property
     def total_rhor(self) -> np.ndarray:
-        """
-        |numpy-array| with the total density in real space on the FFT mesh.
-        """
+        """|numpy-array| with the total density in real space on the FFT mesh."""
         if self.is_collinear:
             if self.nsppol == 1:
                 if self.nspden == 2:
@@ -1008,9 +998,7 @@ class Density(_DensityField):
 
     @cached_property
     def zeta(self) -> np.ndarray:
-        """
-        |numpy-array| with Magnetization(r) / total_density(r)
-        """
+        """|numpy-array| with Magnetization(r) / total_density(r)."""
         return self.magnetization * np.where(self.total_rhor > 1e-16, 1 / self.total_rhor, 0.0)
 
     # def vhartree(self):
@@ -1045,9 +1033,7 @@ class Density(_DensityField):
     #    return vhr, vhg
 
     def export_to_cube(self, filename, spin="total") -> None:
-        """
-        Export real space density to CUBE file ``filename``.
-        """
+        """Export real space density to CUBE file ``filename``."""
         if spin != "total":
             raise ValueError('Argument "spin" should be "total"')
 

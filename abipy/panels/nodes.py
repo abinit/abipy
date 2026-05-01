@@ -118,9 +118,7 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("status_btn")
     def on_status_btn(self) -> None:
-        """
-        Show the status of the node.
-        """
+        """Show the status of the node."""
         term = pnw.Terminal(
             output="\n\n",
             height=1200,  # Need this one else the terminal is not shown properly
@@ -184,9 +182,7 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("history_btn")
     def on_history_btn(self) -> None:
-        """
-        Show the history of the node.
-        """
+        """Show the history of the node."""
         term = pnw.Terminal(
             output="\n\n",
             height=1200,  # Need this one else the terminal is not show properly
@@ -213,9 +209,7 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("graphviz_btn")
     def on_graphviz_btn(self) -> None:
-        """
-        Visualize node dependencies with [graphviz package](https://graphviz.readthedocs.io/en/stable/index.html)
-        """
+        """Visualize node dependencies with [graphviz package](https://graphviz.readthedocs.io/en/stable/index.html)"""
         if self.dirtree.value:
             graph = self.node.get_graphviz_dirtree(engine=self.engine.value)
         else:
@@ -306,9 +300,7 @@ class NodeParameterized(AbipyParameterized):
         return pn.Row(dfc(df), sizing_mode="scale_width")
 
     def get_files_in_dir_view(self, where):
-        """
-        Return None if no file is found
-        """
+        """Return None if no file is found."""
         select = self.filepath_select_dir[where]
         if not select:
             return None
@@ -368,9 +360,7 @@ class NodeParameterized(AbipyParameterized):
     #    self.workdir_selector_output_area.objects = objects
 
     def get_panel(self, as_dict=False, **kwargs):
-        """
-        Return tabs with widgets to interact with the flow.
-        """
+        """Return tabs with widgets to interact with the flow."""
         d = {}
 
         d["Status"] = self.get_status_view()
@@ -449,9 +439,7 @@ class StatusCards(param.Parameterized):
             card.collapsed = True
 
     def add_vrect_to_fig(self, fig):
-        """
-        Add vertical rectangles to the plotly fig in order to group tasks belonging to the same Work.
-        """
+        """Add vertical rectangles to the plotly fig in order to group tasks belonging to the same Work."""
         for w_idx, (x0, x1) in self.w_start_stop.items():
             fig.add_vrect(
                 x0=x0,

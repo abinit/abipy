@@ -1,6 +1,4 @@
-"""
-Release data for the AbiPy project.
-"""
+"""Release data for the AbiPy project."""
 
 from collections import OrderedDict
 

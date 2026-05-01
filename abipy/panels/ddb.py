@@ -189,9 +189,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
     @depends_on_btn_click("get_epsinf_btn")
     def get_epsinf(self) -> pn.Column:
-        """
-        Compute eps_infinity and Born effective charges from DDB.
-        """
+        """Compute eps_infinity and Born effective charges from DDB."""
         epsinf, becs = self.ddb.anaget_epsinf_and_becs(
             chneut=self.chneut, mpi_procs=self.mpi_procs, verbose=self.verbose
         )
@@ -250,9 +248,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
     @depends_on_btn_click("plot_eps0w_btn")
     def plot_eps0w(self) -> pn.Column:
-        """
-        Compute eps0(omega) from DDB and plot the results.
-        """
+        """Compute eps0(omega) from DDB and plot the results."""
         gen, inp = self.ddb.anaget_dielectric_tensor_generator(
             asr=self.asr,
             chneut=self.chneut,
@@ -608,9 +604,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
     @depends_on_btn_click("plot_ifc_btn")
     def on_plot_ifc(self):
-        """
-        Plot the Interatomic Force Constants in real space.
-        """
+        """Plot the Interatomic Force Constants in real space."""
         ifc, inp = self.ddb.anaget_ifc(asr=self.asr, chneut=self.chneut, dipdip=self.dipdip, return_input=True)
 
         kwds = self.mpl_kwargs.copy()
@@ -683,9 +677,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         return col
 
     def get_panel(self, as_dict=False, **kwargs):
-        """
-        Return tabs with widgets to interact with the DDB file.
-        """
+        """Return tabs with widgets to interact with the DDB file."""
         ddb = self.ddb
         d = {}
         d["Summary"] = self.get_summary_view_for_abiobj(self.ddb)

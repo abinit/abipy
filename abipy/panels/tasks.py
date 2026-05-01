@@ -14,9 +14,7 @@ from abipy.panels.viewers import AceViewer
 
 
 class TaskPanel(NodeParameterized):
-    """
-    Provides widgets to interact with an AbiPy Task.
-    """
+    """Provides widgets to interact with an AbiPy Task."""
 
     def __init__(self, task: AbinitTask, **params):
         NodeParameterized.__init__(self, node=task, **params)
@@ -27,9 +25,7 @@ class TaskPanel(NodeParameterized):
         #    name='Input/Output Structure', value=['output'], options=['input', 'output'], inline=Tru
 
     def get_inputs_view(self):
-        """
-        Show the input files of the task: input file, submission script and TaskManager
-        """
+        """Show the input files of the task: input file, submission script and TaskManager."""
         file = self.task.job_file
         text = file.read() if file.exists else "Cannot find job_file!"
         job_file = pn.pane.Markdown(f"```shell\n{text}\n```")
@@ -79,9 +75,7 @@ class TaskPanel(NodeParameterized):
         return col if count > 0 else None
 
     def get_main_text_outs_view(self) -> pn.Column:
-        """
-        Show the main text output files of the task.
-        """
+        """Show the main text output files of the task."""
         col = pn.Column(f"## Main output and log file of `{self.task!r}`", sizing_mode="stretch_width")
 
         for fname in ("output_file", "log_file"):

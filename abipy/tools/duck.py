@@ -19,9 +19,7 @@ def is_string(s: Any) -> bool:
 
 
 def is_intlike(obj: Any) -> bool:
-    """
-    True if obj represents an integer (floats such as 1.0 are included as well).
-    """
+    """True if obj represents an integer (floats such as 1.0 are included as well)."""
     # isinstance(i, numbers.Integral)
     try:
         # This to get rid of warnings about casting complex to real.

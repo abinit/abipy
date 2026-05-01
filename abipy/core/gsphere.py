@@ -1,6 +1,4 @@
-"""
-This module contains the class defining the G-sphere for wavefunctions, densities and potentials
-"""
+"""This module contains the class defining the G-sphere for wavefunctions, densities and potentials."""
 
 from __future__ import annotations
 
@@ -195,9 +193,7 @@ class GSphere(collections.abc.Sequence):
         return arr_on_mesh
 
     def fromfftmesh(self, mesh, arr_on_mesh) -> np.ndarray:
-        """
-        Transfer ``arr_on_mesh`` given on the FFT mesh to the G-sphere.
-        """
+        """Transfer ``arr_on_mesh`` given on the FFT mesh to the G-sphere."""
         indim = arr_on_mesh.ndim
         arr_on_mesh = mesh.reshape(arr_on_mesh)
         ishape = arr_on_mesh.shape

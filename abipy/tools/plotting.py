@@ -219,9 +219,7 @@ class FilesPlotter:
 
     @add_fig_kwargs
     def plot(self, **kwargs) -> Figure:
-        """
-        Loop through the PNG files and display them in subplots.
-        """
+        """Loop through the PNG files and display them in subplots."""
         # Build grid of plots.
         num_plots, ncols, nrows = len(self.filepaths), 1, 1
         if num_plots > 1:
@@ -462,9 +460,7 @@ def set_axlims(ax, lims: tuple, axname: str) -> tuple:
 
 
 def set_ax_xylabels(ax, xlabel: str, ylabel: str, exchange_xy: bool = False) -> None:
-    """
-    Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy.
-    """
+    """Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy."""
     if exchange_xy:
         xlabel, ylabel = ylabel, xlabel
     ax.set_xlabel(xlabel)
@@ -950,9 +946,7 @@ class ConvergenceAnalyzer:
 
     @classmethod
     def from_xy_label_vals(cls, xlabel, xs, ylabel, yvalues, tols) -> ConvergenceAnalyzer:
-        """
-        Simplified interface to analyze a single list of values.
-        """
+        """Simplified interface to analyze a single list of values."""
         yvals_dict = {ylabel: yvalues}
         ytols_dict = {ylabel: tols}
         return cls(xlabel, xs, yvals_dict, ytols_dict)
@@ -1095,9 +1089,7 @@ class ConvergenceAnalyzer:
         return self.ykey2label[ykey]
 
     def ytol_ix_xx(self, ykey) -> Iterator[tuple]:
-        """
-        Iterate over (ytols, ixs, and xs) for the given ``ykey`.
-        """
+        """Iterate over (ytols, ixs, and xs) for the given ``ykey``."""
         return zip(self.ytols_dict[ykey], self.ykey_ixs[ykey], self.ykey_best_xs[ykey], strict=False)
 
     def get_dataframe_ykey(self, ykey: str) -> pd.DataFrame:
@@ -1109,9 +1101,7 @@ class ConvergenceAnalyzer:
         return pd.DataFrame(rows)
 
     def to_string(self, verbose: int = 0) -> str:
-        """
-        String representation with verbosity level `verbose`.
-        """
+        """String representation with verbosity level `verbose`."""
         lines = []
         app = lines.append
         app(f"Number of points for x-axis: {len(self.xs)}")
@@ -1183,9 +1173,7 @@ class ConvergenceAnalyzer:
 
     @add_fig_kwargs
     def plot(self, ax_mat=None, fontsize=8, **kwargs) -> Figure:
-        """
-        Plot convergence profile. A new grid is built if `ax_mat` is None:
-        """
+        """Plot convergence profile. A new grid is built if `ax_mat` is None."""
         nrows, ncols = len(self.yvals_dict), 2
 
         ax_mat, fig, plt = get_axarray_fig_plt(
@@ -1475,9 +1463,7 @@ class MplExposer(Exposer):  # pragma: no cover
         self.start_time = time.time()
 
     def add_fig(self, fig: Figure) -> None:
-        """
-        Add a matplotlib figure.
-        """
+        """Add a matplotlib figure."""
         if fig is None:
             return
 
@@ -1498,9 +1484,7 @@ class MplExposer(Exposer):  # pragma: no cover
                 fig.clear()
 
     def expose(self) -> None:
-        """
-        Show all figures. Clear figures if needed.
-        """
+        """Show all figures. Clear figures if needed."""
         if not self.slide_mode:
             print("All figures in memory, elapsed time: %.3f s" % (time.time() - self.start_time))
             import matplotlib.pyplot as plt
@@ -1636,9 +1620,7 @@ def plot_unit_cell(lattice, ax=None, **kwargs) -> tuple[Figure, Axes]:
 
 
 def ax_add_cartesian_frame(ax, start=(0, 0, 0)) -> Axes:
-    """
-    Add cartesian frame to 3d axis at point `start`.
-    """
+    """Add cartesian frame to 3d axis at point `start`."""
     # https://stackoverflow.com/questions/22867620/putting-arrowheads-on-vectors-in-matplotlibs-3d-plot
     from matplotlib.patches import FancyArrowPatch
     from mpl_toolkits.mplot3d import proj3d
@@ -1836,9 +1818,7 @@ class GenericDataFilePlotter:
 class GenericDataFilesPlotter:
     @classmethod
     def from_files(cls, filepaths: list[str]) -> GenericDataFilesPlotter:
-        """
-        Build object from a list of `filenames`.
-        """
+        """Build object from a list of `filenames`."""
         new = cls()
         for filepath in filepaths:
             new.add_file(filepath)
@@ -1852,9 +1832,7 @@ class GenericDataFilesPlotter:
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
-        """
-        String representation with verbosity level `verbose`.
-        """
+        """String representation with verbosity level `verbose`."""
         lines = []
         app = lines.append
         for od, filepath in zip(self.odlist, self.filepaths, strict=False):
@@ -2008,9 +1986,7 @@ _LATEX_GREEK_TO_UNICODE["lambda"] = "λ"
 
 
 def latex_greek_2unicode(latex: str) -> str:
-    """
-    Convert a single greek letter in latex notation into unicode
-    """
+    """Convert a single greek letter in latex notation into unicode."""
     s = latex.replace("$", "").replace("\\", "").strip()
     return _LATEX_GREEK_TO_UNICODE[s]
 
@@ -2373,9 +2349,7 @@ def plotly_klabels(labels: list, allow_dupes=False) -> list:
 
 
 def plotly_set_xylabels(fig, xlabel, ylabel, exchange_xy):
-    """
-    Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy
-    """
+    """Set the x- and the y-label of axis ax, exchanging x and y if exchange_xy."""
     if exchange_xy:
         xlabel, ylabel = ylabel, xlabel
     fig.layout.xaxis.title.text = xlabel
@@ -2428,9 +2402,7 @@ PLOTLY_API_KEY: secret  # to get your api_key go to profile > settings > regener
 
 
 def push_to_chart_studio(figs) -> None:
-    """
-    Push a plotly figure or a list of figures to the chart studio cloud.
-    """
+    """Push a plotly figure or a list of figures to the chart studio cloud."""
     plotly_chartstudio_authenticate()
     import chart_studio.plotly as py
 
@@ -3074,9 +3046,7 @@ def add_colorscale_dropwdowns(fig):
 
 
 def mpl_to_ply(fig: Figure, latex: bool = False):
-    """
-    Nasty workaround for plotly latex rendering in legend/breaking exception
-    """
+    """Nasty workaround for plotly latex rendering in legend/breaking exception."""
     if is_plotly_figure(fig):
         return fig
 
@@ -3157,9 +3127,7 @@ def mpl_to_ply(fig: Figure, latex: bool = False):
 
 
 class PolyfitPlotter:
-    """
-    Fit data with polynomials of different degrees and visualize the results.
-    """
+    """Fit data with polynomials of different degrees and visualize the results."""
 
     def __init__(self, xs, ys):
         self.xs, self.ys = np.array(xs), np.array(ys)

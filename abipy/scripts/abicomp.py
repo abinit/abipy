@@ -272,9 +272,7 @@ def _compare_with_database(options):
 
 
 def abicomp_xrd(options):
-    """
-    Compare X-ray diffraction plots (requires FILES with structure).
-    """
+    """Compare X-ray diffraction plots (requires FILES with structure)."""
     if len(options.paths) < 2:
         print("You need more than one structures to compare!")
         return 1
@@ -301,9 +299,7 @@ def abicomp_xrd(options):
 
 
 def abicomp_data(options):
-    """
-    Compare results stored in multiple files with data in tabular format.
-    """
+    """Compare results stored in multiple files with data in tabular format."""
     plotter = GenericDataFilesPlotter.from_files(options.paths)
     print(plotter.to_string(verbose=options.verbose))
     plotter.plot(use_index=options.use_index)
@@ -311,18 +307,14 @@ def abicomp_data(options):
 
 
 def abicomp_png(options):
-    """
-    Use matplotlib to plot multiple png files on a grid.
-    """
+    """Use matplotlib to plot multiple png files on a grid."""
     plotter = FilesPlotter(options.paths)
     plotter.plot()
     return 0
 
 
 def abicomp_ebands(options):
-    """
-    Plot electron bands on a grid.
-    """
+    """Plot electron bands on a grid."""
     paths, e0 = options.paths, options.e0
     plotter = abilab.ElectronBandsPlotter(key_ebands=[(os.path.relpath(p), p) for p in paths])
 
@@ -362,9 +354,7 @@ def abicomp_ebands(options):
 
 
 def abicomp_edos(options):
-    """
-    Plot electron DOSes on a grid.
-    """
+    """Plot electron DOSes on a grid."""
     paths, e0 = options.paths, options.e0
     plotter = abilab.ElectronDosPlotter(key_edos=[(os.path.relpath(p), p) for p in paths])
 
@@ -408,9 +398,7 @@ def abicomp_edos(options):
 
 
 def abicomp_phbands(options):
-    """
-    Plot phonon bands on a grid.
-    """
+    """Plot phonon bands on a grid."""
     paths = options.paths
     plotter = abilab.PhononBandsPlotter(key_phbands=[(os.path.relpath(p), p) for p in paths])
 
@@ -463,9 +451,7 @@ def abicomp_phbands(options):
 
 
 def abicomp_phdos(options):
-    """
-    Compare multiple PHDOS files.
-    """
+    """Compare multiple PHDOS files."""
     paths = options.paths
     plotter = abilab.PhononDosPlotter(key_phdos=[(os.path.relpath(p), p) for p in paths])
 
@@ -554,16 +540,12 @@ def abicomp_getattr(options):
 
 
 def abicomp_gsr(options):
-    """
-    Compare multiple GSR files.
-    """
+    """Compare multiple GSR files."""
     return _invoke_robot(options)
 
 
 def abicomp_hist(options):
-    """
-    Compare multiple HIST files.
-    """
+    """Compare multiple HIST files."""
     return _invoke_robot(options)
 
 
@@ -576,51 +558,37 @@ def abicomp_ddb(options):
 
 
 def abicomp_anaddb(options):
-    """
-    Compare multiple anaddb.nc files.
-    """
+    """Compare multiple anaddb.nc files."""
     return _invoke_robot(options)
 
 
 def abicomp_phbst(options):
-    """
-    Compare multiple PHBST.nc files.
-    """
+    """Compare multiple PHBST.nc files."""
     return _invoke_robot(options)
 
 
 def abicomp_sigres(options):
-    """
-    Compare multiple SIGRES files.
-    """
+    """Compare multiple SIGRES files."""
     return _invoke_robot(options)
 
 
 def abicomp_mdf(options):
-    """
-    Compare macroscopic dielectric functions stored in multiple MDF files.
-    """
+    """Compare macroscopic dielectric functions stored in multiple MDF files."""
     return _invoke_robot(options)
 
 
 def abicomp_optic(options):
-    """
-    Compare results stored in OPTIC.nc files.
-    """
+    """Compare results stored in OPTIC.nc files."""
     return _invoke_robot(options)
 
 
 def abicomp_a2f(options):
-    """
-    Compare results stored in A2f.nc files.
-    """
+    """Compare results stored in A2f.nc files."""
     return _invoke_robot(options)
 
 
 def abicomp_gkq(options):
-    """
-    Compare multiple GKQ files with EPH matrix elements for a given q-point.
-    """
+    """Compare multiple GKQ files with EPH matrix elements for a given q-point."""
     if options.diff:
         robot = _build_robot(options, trim_paths=True)
         robot.plot_gkq2_diff()
@@ -629,30 +597,22 @@ def abicomp_gkq(options):
 
 
 def abicomp_v1qavg(options):
-    """
-    Compare multiple V1QAVG files with the average of the DFPT V1 potentials as function of q-point.
-    """
+    """Compare multiple V1QAVG files with the average of the DFPT V1 potentials as function of q-point."""
     return _invoke_robot(options)
 
 
 def abicomp_sigeph(options):
-    """
-    Compare multiple SIGEPH files storing the e-ph self-energy.
-    """
+    """Compare multiple SIGEPH files storing the e-ph self-energy."""
     return _invoke_robot(options)
 
 
 def abicomp_rta(options):
-    """
-    Compare multiple RTA files.
-    """
+    """Compare multiple RTA files."""
     return _invoke_robot(options)
 
 
 def abicomp_abiwan(options):
-    """
-    Compare multiple ABIWAN files.
-    """
+    """Compare multiple ABIWAN files."""
     return _invoke_robot(options)
 
 
@@ -680,9 +640,7 @@ def abicomp_abiwan_ebands(options):
 
 
 def abicomp_skw_ibz_kpath(options):
-    """
-    Compare star-function-interpolated band structure with ab-initio band structure computed along a k-path.
-    """
+    """Compare star-function-interpolated band structure with ab-initio band structure computed along a k-path."""
     if len(options.paths) != 2:
         raise ValueError("Two arguments with netcdf files providing ElectronBands are required!")
 
@@ -730,9 +688,7 @@ def abicomp_psps(options):
 
 
 def abicomp_gwr(options):
-    """
-    Compare multiple GWR files.
-    """
+    """Compare multiple GWR files."""
     return _invoke_robot(options)
 
 
@@ -856,9 +812,7 @@ def _invoke_robot(options):
 
 
 def abicomp_gs_scf(options):
-    """
-    Compare ground-state SCF cycles.
-    """
+    """Compare ground-state SCF cycles."""
     paths = options.paths
     f0 = abilab.AbinitOutputFile(paths[0])
     figures = f0.compare_gs_scf_cycles(paths[1:])
@@ -868,9 +822,7 @@ def abicomp_gs_scf(options):
 
 
 def abicomp_dfpt2_scf(options):
-    """
-    Compare DFPT SCF cycles.
-    """
+    """Compare DFPT SCF cycles."""
     paths = options.paths
     f0 = abilab.AbinitOutputFile(paths[0])
     figures = f0.compare_d2de_scf_cycles(paths[1:])
@@ -880,18 +832,14 @@ def abicomp_dfpt2_scf(options):
 
 
 def abicomp_text(options):
-    """
-    Compare 2+ text files in the browser
-    """
+    """Compare 2+ text files in the browser."""
     from abipy.tools.devtools import HtmlDiff
 
     return HtmlDiff(options.paths).open_browser(diffmode=options.diffmode)
 
 
 def abicomp_time(options):
-    """
-    Analyze/plot the timing data of single or multiple runs.
-    """
+    """Analyze/plot the timing data of single or multiple runs."""
     paths = options.paths
     from abipy.abio.timer import AbinitTimerParser
 

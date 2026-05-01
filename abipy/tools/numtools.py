@@ -77,9 +77,7 @@ def build_mesh(x0: float, num: int, step: float, direction: str) -> tuple[list, 
 
 
 def transpose_last3dims(arr) -> np.ndarray:
-    """
-    Transpose the last three dimensions of arr: (...,x,y,z) --> (...,z,y,x).
-    """
+    """Transpose the last three dimensions of arr: (...,x,y,z) --> (...,z,y,x)."""
     axes = np.arange(arr.ndim)
     axes[-3:] = axes[::-1][:3]
 
@@ -158,9 +156,7 @@ def data_from_cplx_mode(cplx_mode: str, arr, tol=None):
 
 
 def is_diagonal(matrix, atol=1e-12) -> bool:
-    """
-    Return True if matrix is diagonal.
-    """
+    """Return True if matrix is diagonal."""
     m = matrix.copy()
     np.fill_diagonal(m, 0)
 
@@ -434,9 +430,7 @@ def find_degs_sk(enesb, atol):
 
 
 class BlochRegularGridInterpolator:
-    """
-    This object interpolates the periodic part of a Bloch wavefunction in real space.
-    """
+    """This object interpolates the periodic part of a Bloch wavefunction in real space."""
 
     def __init__(self, structure, datar, add_replicas=True, **kwargs):
         """
@@ -563,9 +557,7 @@ class BlochRegularGridInterpolator:
 
 
 class BzRegularGridInterpolator:
-    """
-    This object interpolates quantities defined in the BZ.
-    """
+    """This object interpolates quantities defined in the BZ."""
 
     def __init__(self, structure, shifts, datak, add_replicas=True, **kwargs):
         """

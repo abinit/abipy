@@ -1,6 +1,4 @@
-"""
-This modules provides subclasses of pymatgen tensor objects.
-"""
+"""This modules provides subclasses of pymatgen tensor objects."""
 
 from __future__ import annotations
 

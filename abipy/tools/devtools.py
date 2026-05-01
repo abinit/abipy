@@ -43,9 +43,7 @@ class HtmlDiff:
         self.filepaths = filepaths
 
     def open_browser(self, diffmode="difflib", **kwargs):
-        """
-        Generate diff with ``diffmode``, open browser, return exit code.
-        """
+        """Generate diff with ``diffmode``, open browser, return exit code."""
         try:
             func = getattr(self, diffmode)
         except AttributeError:
@@ -173,9 +171,7 @@ def get_size(bytes, suffix="B"):
 
 
 def print_hardware_system_info() -> None:
-    """
-    Taken from <https://thepythoncode.com/article/get-hardware-system-information-python>
-    """
+    """Taken from <https://thepythoncode.com/article/get-hardware-system-information-python>"""
     import platform
 
     uname = platform.uname()

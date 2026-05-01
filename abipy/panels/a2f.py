@@ -10,9 +10,7 @@ from .core import PanelWithElectronBands, depends_on_btn_click, mpl
 
 
 class A2fFilePanel(PanelWithElectronBands):
-    """
-    Panel with widgets to interact with a |GsrFile|.
-    """
+    """Panel with widgets to interact with a |GsrFile|."""
 
     def __init__(self, ncfile, **params):
         PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
@@ -21,9 +19,7 @@ class A2fFilePanel(PanelWithElectronBands):
         self.a2f_view_btn = pnw.Button(name="Plot a2F", button_type="primary")
 
     def get_a2f_view(self) -> pn.Row:
-        """
-        Return Row with widgets to visualize the structure.
-        """
+        """Return Row with widgets to visualize the structure."""
         return pn.Row(
             self.pws_col(
                 [
@@ -70,9 +66,7 @@ class A2fFilePanel(PanelWithElectronBands):
         return col
 
     def get_panel(self, as_dict=False, **kwargs):
-        """
-        Return tabs with widgets to interact with the A2F file.
-        """
+        """Return tabs with widgets to interact with the A2F file."""
         d = {}
 
         # d["Summary"] = self.get_summary_view_for_abiobj(self.gsr)

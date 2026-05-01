@@ -14,9 +14,7 @@ from abipy.core.structure import Structure
 
 
 def structure2wannier90(structure, units="Bohr") -> str:
-    """
-    Return string with structure in wannier90 format.
-    """
+    """Return string with structure in wannier90 format."""
     if not structure.is_ordered:
         raise NotImplementedError("""\
 Received disordered structure with partial occupancies that cannot be converted into a Wannier90 input

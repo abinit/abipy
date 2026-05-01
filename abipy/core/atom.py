@@ -65,9 +65,7 @@ def _asl(obj: Any) -> int:
 
 
 def states_from_string(confstr: str) -> list[QState]:
-    """
-    Parse a string with an atomic configuration and build a list of `QState` instance.
-    """
+    """Parse a string with an atomic configuration and build a list of `QState` instance."""
     states = []
     tokens = confstr.split()
 
@@ -102,9 +100,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
     # the radial Dirac equations kappa (kap) =l, -(l+1) for j=l -/+ 1/2.
 
     def __new__(cls, n: int, l: int, k: int | None = None):
-        """
-        Extends super.__new__ adding type conversion and default values.
-        """
+        """Extends super.__new__ adding type conversion and default values."""
         if k is not None:
             if k not in (1, 2):
                 raise ValueError(f"Invalid k index: {k} for l: {l}")
@@ -173,9 +169,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
         return {k: v for k, v in self.as_dict().items() if not k.startswith("@")}
 
     def from_dict(cls, d: dict) -> NlkState:
-        """
-        Reconstruct object from the dictionary in MSONable format produced by as_dict.
-        """
+        """Reconstruct object from the dictionary in MSONable format produced by as_dict."""
         return cls(n=d["n"], l=d["l"], k=d["k"])
 
 
@@ -198,9 +192,7 @@ class QState(collections.namedtuple("QState", "n, l, occ, eig, j, s")):
     # Spin +1, -1 or 1,2 or 0,1?
 
     def __new__(cls, n: int, l: int, occ: float, eig: float | None = None, j: int | None = None, s: int | None = None):
-        """
-        Extends super.__new__ adding type conversion and default values.
-        """
+        """Extends super.__new__ adding type conversion and default values."""
         eig = float(eig) if eig is not None else eig
         j = int(j) if j is not None else j
         s = int(s) if s is not None else s
@@ -216,9 +208,7 @@ class QState(collections.namedtuple("QState", "n, l, occ, eig, j, s")):
 
 
 class AtomicConfiguration:
-    """
-    Atomic configuration of an all-electron atom.
-    """
+    """Atomic configuration of an all-electron atom."""
 
     def __init__(self, Z: int, states: list[QState]) -> None:
         """
@@ -322,9 +312,7 @@ class AtomicConfiguration:
 
 
 class RadialFunction:
-    """
-    A RadialFunction has a name, a radial mesh and values defined on this mesh.
-    """
+    """A RadialFunction has a name, a radial mesh and values defined on this mesh."""
 
     def __init__(self, name: str, rmesh, values):
         """
@@ -406,9 +394,7 @@ class RadialFunction:
 
     @property
     def minmax_ridx(self) -> tuple[int, int]:
-        """
-        Returns the indices of the values in a list with the maximum and minimum value.
-        """
+        """Returns the indices of the values in a list with the maximum and minimum value."""
         minimum = min(enumerate(self.values), key=lambda s: s[1])
         maximum = max(enumerate(self.values), key=lambda s: s[1])
         return minimum[0], maximum[0]
@@ -476,9 +462,7 @@ class RadialFunction:
         return r2v2_spline.integral(a, b)
 
     def ifromr(self, rpoint) -> int:
-        """
-        The index of the point in the radial mesh.
-        """
+        """The index of the point in the radial mesh."""
         for i, r in enumerate(self.rmesh):
             if r > rpoint:
                 return i - 1
@@ -504,9 +488,7 @@ class RadialFunction:
         return i
 
     def r2f2_integral(self):
-        """
-        Cumulatively integrate r**2 f**2(r) using the composite trapezoidal rule.
-        """
+        """Cumulatively integrate r**2 f**2(r) using the composite trapezoidal rule."""
         integ = cumtrapz(self.rmesh**2 * self.values**2, x=self.rmesh)
         pad_intg = np.zeros(len(self))
         pad_intg[1:] = integ
@@ -514,18 +496,14 @@ class RadialFunction:
         return pad_intg
 
     def r2f_integral(self):
-        """
-        Cumulatively integrate r**2 f(r) using the composite trapezoidal rule.
-        """
+        """Cumulatively integrate r**2 f(r) using the composite trapezoidal rule."""
         integ = cumtrapz(self.rmesh**2 * self.values, x=self.rmesh)
         pad_intg = np.empty(len(self))
         pad_intg[1:] = integ
         return pad_intg
 
     def get_intr2j0(self, ecut: float, numq: float = 3001):
-        r"""
-        Compute 4\pi\int[(\frac{\sin(2\pi q r)}{2\pi q r})(r^2 n(r))dr].
-        """
+        """Compute 4\pi\int[(\frac{\sin(2\pi q r)}{2\pi q r})(r^2 n(r))dr]."""
         qmax = np.sqrt(ecut / 2) / np.pi
         qmesh = np.linspace(0, qmax, num=numq, endpoint=True)
         outs = np.empty(len(qmesh))
@@ -558,9 +536,7 @@ class RadialWaveFunction(RadialFunction):
 
 @dataclass
 class Peaks:
-    """
-    Store information on the peaks of the radial functions.
-    """
+    """Store information on the peaks of the radial functions."""
 
     xs: np.ndarray  # Absissas of the peaks
     ys: np.ndarray  # Values of the peaks
@@ -574,9 +550,7 @@ class Peaks:
         return self.to_string()
 
     def to_string(self, title=None, verbose=0) -> str:
-        """
-        String representation.
-        """
+        """String representation."""
         lines = []
         app = lines.append
         if title is not None:

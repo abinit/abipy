@@ -10,9 +10,7 @@ import numpy as np
 
 
 class SigmaPade:
-    """
-    High-level interface to perform the analytic continuation of the self-energy with the Pade' method.
-    """
+    """High-level interface to perform the analytic continuation of the self-energy with the Pade' method."""
 
     def __init__(self, zs, f_zs):
         """
@@ -41,9 +39,7 @@ class SigmaPade:
         return sws, dsdws
 
     def _eval_one(self, z_eval) -> tuple:
-        """
-        Pade for a single point z_eval.
-        """
+        """Pade for a single point z_eval."""
         # if z_eval is in 2 or 3 quadrant, avoid the branch cut in the complex plane using Sigma(-iw) = Sigma(iw)*.
         # See also sigma_pade_eval in m_dyson_solver.F90
         if z_eval.real > 0.0:

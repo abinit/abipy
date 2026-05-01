@@ -1,6 +1,4 @@
-"""
-This module provides functions to compute integrals of Bessel functions.
-"""
+"""This module provides functions to compute integrals of Bessel functions."""
 
 from __future__ import annotations
 

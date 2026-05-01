@@ -22,9 +22,7 @@ __all__ = [
 
 
 class Function1D:
-    """
-    Immutable object representing a real|complex function of real variable.
-    """
+    """Immutable object representing a real|complex function of real variable."""
 
     @classmethod
     def from_constant(cls, mesh, const) -> Function1D:
@@ -50,9 +48,7 @@ class Function1D:
 
     @classmethod
     def from_dict(cls, d: dict) -> Function1D:
-        """
-        Reconstruct object from the dictionary in MSONable format produced by as_dict.
-        """
+        """Reconstruct object from the dictionary in MSONable format produced by as_dict."""
         return cls(d["mesh"], d["values"])
 
     @classmethod
@@ -181,9 +177,7 @@ class Function1D:
         return self.__class__(self.mesh, np.abs(self.values))
 
     def to_file(self, path, fmt="%.18e", header="") -> None:
-        """
-        Save data in a text file. Use format fmr. A header is added at the beginning.
-        """
+        """Save data in a text file. Use format fmr. A header is added at the beginning."""
         fmt = "%s %s\n" % (fmt, fmt)
         with open(path, "w") as fh:
             if header:

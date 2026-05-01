@@ -24,9 +24,7 @@ from abipy.tools.typing import Figure  # , KptSelect
 
 
 class ElectronInterpolator(metaclass=abc.ABCMeta):
-    """
-    Abstract class for band structure interpolator.
-    """
+    """Abstract class for band structure interpolator."""
 
     # Tolerances passed to spglib.
     symprec = 1e-5
@@ -427,9 +425,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         return arr
 
     def _cache_eigens(self, kmesh, is_shift, eigens, kzone):
-        """
-        Save interpolated eigenvalues associated to (kmesh, is_shift, kzone).
-        """
+        """Save interpolated eigenvalues associated to (kmesh, is_shift, kzone)."""
         if not self.use_cache:
             return
         if not hasattr(self, "_cached_eigens"):
@@ -454,9 +450,7 @@ class ElectronInterpolator(metaclass=abc.ABCMeta):
         return self._cached_edos.get((kmesh, is_shift))
 
     def _cache_edos(self, kmesh, is_shift, edos):
-        """
-        Save the electron DOS obtained from the interpolated eigenvalues associated to (kmesh, is_shift).
-        """
+        """Save the electron DOS obtained from the interpolated eigenvalues associated to (kmesh, is_shift)."""
         if not self.use_cache:
             return
         if not hasattr(self, "_cached_edos"):

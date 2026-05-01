@@ -47,9 +47,7 @@ def get_abinit_template_cls_kwds() -> tuple:
 
 
 def open_html(html_string: str, browser: str = None) -> None:
-    """
-    Open a string with an HTML document in browser.
-    """
+    """Open a string with an HTML document in browser."""
     import tempfile
     import webbrowser
 
@@ -609,9 +607,7 @@ class ButtonContext:
 
 
 class Loading:
-    """
-    A context manager for setting the loading attribute of a panel object.
-    """
+    """A context manager for setting the loading attribute of a panel object."""
 
     def __init__(self, panel_obj, err_wdg=None, width=70):
         self.panel_obj = panel_obj
@@ -633,9 +629,7 @@ class Loading:
 
 
 class ActiveBar:
-    """
-    A context manager that sets progress.active to True on entry and False when we exit.
-    """
+    """A context manager that sets progress.active to True on entry and False when we exit."""
 
     def __init__(self, progress, err_wdg=None, width=70):
         self.progress = progress
@@ -799,9 +793,7 @@ class AbipyParameterized(param.Parameterized):
         return view
 
     def wdg_exts_with_get_panel(self, name="File extensions supported:"):
-        """
-        Return Select widget with the list of file extensions implementing a get_panel method.
-        """
+        """Return Select widget with the list of file extensions implementing a get_panel method."""
         from abipy.abilab import extcls_supporting_panel
 
         exts = [e[0] for e in extcls_supporting_panel(as_table=False)]
@@ -1025,9 +1017,7 @@ $(function() {
 
 
 class PanelWithStructure(AbipyParameterized):
-    """
-    A paremeterized object with a |Structure| object.
-    """
+    """A paremeterized object with a |Structure| object."""
 
     structure_viewer = param.ObjectSelector(
         default="jsmol",
@@ -1118,9 +1108,7 @@ class PanelWithStructure(AbipyParameterized):
         return self.structure.visualize(appname=self.structure_viewer)
 
     def get_structure_view(self) -> pn.Row:
-        """
-        Return Row with widgets to visualize the structure.
-        """
+        """Return Row with widgets to visualize the structure."""
         return pn.Row(
             self.pws_col(
                 [
@@ -1133,16 +1121,12 @@ class PanelWithStructure(AbipyParameterized):
         )
 
     def get_structure_info(self) -> pn.Column:
-        """
-        Return Column with lattice parameters, angles and atomic positions grouped by type.
-        """
+        """Return Column with lattice parameters, angles and atomic positions grouped by type."""
         return get_structure_info(self.structure)
 
 
 def get_structure_info(structure: Structure) -> pn.Column:
-    """
-    Return Column with lattice parameters, angles and atomic positions grouped by type.
-    """
+    """Return Column with lattice parameters, angles and atomic positions grouped by type."""
     col = pn.Column(sizing_mode="scale_width")
     ca = col.append
     cext = col.extend
@@ -1211,9 +1195,7 @@ class NcFileViewer(AbipyParameterized):
 
     @depends_on_btn_click("netcdf_info_btn")
     def on_netcdf_info_btn(self) -> pn.Column:
-        """
-        This Tab allows one to
-        """
+        """This Tab allows one to"""
         # TODO: Finalize the implementation.
         col = pn.Column(sizing_mode="stretch_width")
         ca = col.append
@@ -1235,9 +1217,7 @@ class NcFileViewer(AbipyParameterized):
 
 
 class PanelWithElectronBands(PanelWithStructure):
-    """
-    Provide widgets and views for operating on |ElectronBands| object.
-    """
+    """Provide widgets and views for operating on |ElectronBands| object."""
 
     # Bands plot
     with_gaps = param.Boolean(False)
@@ -1343,23 +1323,17 @@ class PanelWithElectronBands(PanelWithStructure):
 
     @pn.depends("ebands_kpath_fileinput", watch=True)
     def get_ebands_kpath(self):
-        """
-        Receives the netcdf file selected by the user as binary string.
-        """
+        """Receives the netcdf file selected by the user as binary string."""
         self.ebands_kpath = self._get_ebands_from_bstring(self.ebands_kpath_fileinput)
 
     @pn.depends("ebands_kmesh_fileinput", watch=True)
     def get_ebands_kmesh(self):
-        """
-        Receives the netcdf file selected by the user as binary string.
-        """
+        """Receives the netcdf file selected by the user as binary string."""
         self.ebands_kmesh = self._get_ebands_from_bstring(self.ebands_kmesh_fileinput)
 
     @pn.depends("skw_ebands_kpath_fileinput", watch=True)
     def get_skw_ebands_kpath(self):
-        """
-        Receives the netcdf file selected by the user as binary string.
-        """
+        """Receives the netcdf file selected by the user as binary string."""
         self.skw_ebands_kpath = self._get_ebands_from_bstring(self.skw_ebands_kpath_fileinput)
 
     def get_plot_ebands_view(self) -> pn.Row:
@@ -1418,17 +1392,13 @@ class PanelWithElectronBands(PanelWithStructure):
 
     @depends_on_btn_click("plot_edos_btn")
     def on_plot_edos_btn(self) -> pn.Row:
-        """
-        Button triggering edos plot.
-        """
+        """Button triggering edos plot."""
         edos = self.ebands.get_edos(method=self.edos_method, step=self.edos_step_ev, width=self.edos_width_ev)
 
         return pn.Row(ply(edos.plotly(show=False)), sizing_mode="scale_width")
 
     def get_skw_view(self) -> pn.Row:
-        """
-        Column with widgets to use SKW.
-        """
+        """Column with widgets to use SKW."""
         wdg = pn.Param(
             self.param["skw_ebands_kpath_fileinput"], widgets={"skw_ebands_kpath_fileinput": pn.widgets.FileInput}
         )
@@ -1450,9 +1420,7 @@ class PanelWithElectronBands(PanelWithStructure):
 
     @depends_on_btn_click("plot_skw_btn")
     def on_plot_skw_btn(self) -> pn.Column:
-        """
-        Button triggering SKW plot.
-        """
+        """Button triggering SKW plot."""
         col = pn.Column(sizing_mode="stretch_width")
         ca = col.append
 
@@ -1498,9 +1466,7 @@ class PanelWithElectronBands(PanelWithStructure):
         return col
 
     def get_effmass_view(self) -> pn.Row:
-        """
-        Return Row with widgets to compute effective masses with finite diff.
-        """
+        """Return Row with widgets to compute effective masses with finite diff."""
         return pn.Row(
             self.pws_col(
                 [
@@ -1550,9 +1516,7 @@ class PanelWithElectronBands(PanelWithStructure):
         return col
 
     def get_ifermi_view(self):
-        """
-        Widgets to visualize the Fermi surface with ifermi package.
-        """
+        """Widgets to visualize the Fermi surface with ifermi package."""
         controls = self.pws_col(
             [
                 "ifermi_offset_eV",
@@ -1678,9 +1642,7 @@ class PanelWithElectronBands(PanelWithStructure):
 
 
 class BaseRobotPanel(AbipyParameterized):
-    """
-    Base class for panels with AbiPy robot.
-    """
+    """Base class for panels with AbiPy robot."""
 
     def __init__(self, robot, **params):
         self.robot = robot
@@ -1691,9 +1653,7 @@ class BaseRobotPanel(AbipyParameterized):
 
     @depends_on_btn_click("compare_params_btn")
     def on_compare_params_btn(self):
-        """
-        Compare lattice parameters and atomic positions.
-        """
+        """Compare lattice parameters and atomic positions."""
         col = pn.Column(sizing_mode="stretch_width")
         ca = col.append
         transpose = self.transpose_params.value
@@ -1722,9 +1682,7 @@ class BaseRobotPanel(AbipyParameterized):
 
 
 class PanelWithEbandsRobot(BaseRobotPanel):
-    """
-    Mixin class for panels with a robot that owns a list of of |ElectronBands|.
-    """
+    """Mixin class for panels with a robot that owns a list of of |ElectronBands|."""
 
     def __init__(self, robot, **params):
 
@@ -1747,9 +1705,7 @@ class PanelWithEbandsRobot(BaseRobotPanel):
 
     @depends_on_btn_click("ebands_plotter_btn")
     def on_ebands_plotter_btn(self) -> pn.Row:
-        """
-        Plot the electronic density of states.
-        """
+        """Plot the electronic density of states."""
         ebands_plotter = self.robot.get_ebands_plotter()
         plot_mode = self.ebands_plotter_mode.value
         plot_func = getattr(ebands_plotter, plot_mode, None)
@@ -1771,9 +1727,7 @@ class PanelWithEbandsRobot(BaseRobotPanel):
 
     @depends_on_btn_click("edos_plotter_btn")
     def on_edos_plotter_btn(self) -> pn.Row:
-        """
-        Plot the electronic density of states.
-        """
+        """Plot the electronic density of states."""
         edos_plotter = self.robot.get_edos_plotter()
         plot_mode = self.edos_plotter_mode.value
         plot_func = getattr(edos_plotter, plot_mode, None)

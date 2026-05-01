@@ -196,9 +196,7 @@ GE_ANNOTATED = """
 
 
 class Lparams(AbipyParameterized):
-    """
-    Stores all the oncvpsp pseudization parameters for a given l.
-    """
+    """Stores all the oncvpsp pseudization parameters for a given l."""
 
     l = param.Integer(None, bounds=(0, None))
     rc = param.Number(None, bounds=(0, None))
@@ -217,9 +215,7 @@ class Lparams(AbipyParameterized):
 
 
 class Nlf(AbipyParameterized):
-    """
-    Stores the value of n, l and occupancy f.
-    """
+    """Stores the value of n, l and occupancy f."""
 
     n = param.Integer(None, bounds=(1, None))
     l = param.Integer(None, bounds=(0, None))
@@ -262,9 +258,7 @@ class OncvInput(AbipyParameterized):
 
     @classmethod
     def from_file(cls, path: str) -> OncvInput:
-        """
-        Initialize the object from file.
-        """
+        """Initialize the object from file."""
         with open(path) as fh:
             return cls.from_string(fh.read())
 
@@ -542,9 +536,7 @@ class OncvGui(AbipyParameterized):
 
     @classmethod
     def from_file(cls, path: str, plotlyFlag: bool) -> OncvGui:
-        """
-        Build an instance from a file with the oncvpsp input variables.
-        """
+        """Build an instance from a file with the oncvpsp input variables."""
         return cls(oncv_input=OncvInput.from_file(path), plotlyFlag=plotlyFlag, in_filepath=path)
 
     def __init__(self, oncv_input, plotlyFlag, in_filepath="", **params):
@@ -801,9 +793,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
         return pn.GridBox(*figs, ncols=ncols, nrows=nrows)
 
     def on_change_qcut(self, event) -> None:
-        """
-        Change the value of qcut(l), run oncvpsp and show the results.
-        """
+        """Change the value of qcut(l), run oncvpsp and show the results."""
         with ButtonContext(event.obj), Loading(self.out_area):
             # Get initial qc(l) from input.
             l = int(event.new)
@@ -867,9 +857,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
         return dfw
 
     def on_change_debl(self, event) -> None:
-        """
-        Change the value of debl(l), run oncvpsp and show the results.
-        """
+        """Change the value of debl(l), run oncvpsp and show the results."""
         with ButtonContext(event.obj), Loading(self.out_area):
             # Get initial qc(l) from input.
             l = int(event.new)
@@ -913,9 +901,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             self.out_area.objects = col.objects
 
     def on_change_rc5(self, event) -> None:
-        """
-        Change the value of rc5 for the local part, run oncvpsp and show the results.
-        """
+        """Change the value of rc5 for the local part, run oncvpsp and show the results."""
         with ButtonContext(event.obj), Loading(self.out_area):
             oncv_input = self.get_oncv_input()
 
@@ -959,9 +945,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             self.out_area.objects = col.objects
 
     def on_change_dvloc0(self, event) -> None:
-        """
-        Change the value of dvloc0 for the local part, run oncvpsp and show the results.
-        """
+        """Change the value of dvloc0 for the local part, run oncvpsp and show the results."""
         with ButtonContext(event.obj), Loading(self.out_area):
             oncv_input = self.get_oncv_input()
 
@@ -1005,9 +989,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             self.out_area.objects = col.objects
 
     def on_change_rc(self, event) -> None:
-        """
-        Change the value of rc(l), run oncvpsp and show the results.
-        """
+        """Change the value of rc(l), run oncvpsp and show the results."""
         with ButtonContext(event.obj), Loading(self.out_area):
             # Get initial rc(l) from input.
             l = int(event.new)
@@ -1049,9 +1031,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             self.out_area.objects = col.objects
 
     def on_change_rhomodel(self, event) -> None:
-        """
-        Change the parameters for the model core charge, run oncvpsp and show the results.
-        """
+        """Change the parameters for the model core charge, run oncvpsp and show the results."""
         with ButtonContext(event.obj), Loading(self.out_area):
             # Get initial values from input.
             oncv_input = self.get_oncv_input()
@@ -1148,9 +1128,7 @@ The present values of rc_l are: {rc_l}
 
     # @depends_on_btn_click('rc_qcut_btn')
     def on_change_rc_qcut(self, event) -> None:
-        """
-        Generate pseudos using a grid of (rc, qcut) values for given l.
-        """
+        """Generate pseudos using a grid of (rc, qcut) values for given l."""
         with ButtonContext(event.obj), Loading(self.rc_qcut_out_area):
             # Get initial rc(l) from input.
             l = int(event.new)
@@ -1201,9 +1179,7 @@ The present values of rc_l are: {rc_l}
 
     # @depends_on_btn_click('execute_btn')
     def on_execute_btn(self, event) -> None:
-        """
-        Build a new generator from the input file, run it and update out_area.
-        """
+        """Build a new generator from the input file, run it and update out_area."""
         with ButtonContext(event.obj), Loading(self.out_area):
             oncv_input = self.get_oncv_input()
             psgen = OncvGenerator(input_str=str(oncv_input), calc_type=self.calc_type, use_mgga=False)

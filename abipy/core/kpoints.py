@@ -109,17 +109,13 @@ def issamek(k1, k2, atol=None):
 
 
 def wrap_to_ws(x):
-    """
-    Transforms x in its corresponding reduced number in the interval ]-1/2,1/2].
-    """
+    """Transforms x in its corresponding reduced number in the interval ]-1/2,1/2]."""
     w = x % 1
     return np.where(w > 0.5, w - 1.0, w)
 
 
 def wrap_to_bz(x):
-    """
-    Transforms x in its corresponding reduced number in the interval [0,1[."
-    """
+    """Transforms x in its corresponding reduced number in the interval [0,1[."""
     return x % 1
 
 
@@ -276,17 +272,13 @@ def map_grid2ibz(structure, ibz, ngkpt, shifts, has_timrev, pbc=False):
 
 
 def has_timrev_from_kptopt(kptopt):
-    """
-    True if time-reversal symmetry can be used to generate k-points in the IBZ.
-    """
+    """True if time-reversal symmetry can be used to generate k-points in the IBZ."""
     # note: We assume TR if negative value i.e. band structure k-sampling.
     return int(kptopt) not in (3, 4)
 
 
 def kptopt2str(kptopt, verbose=0):
-    """
-    Return human-readable string with meaning of kptopt.
-    """
+    """Return human-readable string with meaning of kptopt."""
     if kptopt < 0:
         t = (
             "Band structure run. Use kptbounds, and ndivk (ndivsm)"
@@ -624,9 +616,7 @@ class Kpoint(SlotPickleMixin):
 
     @classmethod
     def from_name_and_structure(cls, name, structure):
-        """
-        Build Kpoint object from string with name and structure.
-        """
+        """Build Kpoint object from string with name and structure."""
         frac_coords = structure.get_kcoords_from_names(name)
         frac_coords = np.reshape(frac_coords, (3,))
         return cls(frac_coords, structure.reciprocal_lattice, weight=None, name=name)
@@ -711,9 +701,7 @@ class Kpoint(SlotPickleMixin):
 
     @cached_property
     def on_border(self):
-        """
-        True if the k-point is on the border of the BZ (lattice translations are taken into account).
-        """
+        """True if the k-point is on the border of the BZ (lattice translations are taken into account)."""
         kreds = wrap_to_ws(self.frac_coords)
         diff = np.abs(np.abs(kreds) - 0.5)
         return np.any(diff < _ATOL_KDIFF)
@@ -902,9 +890,7 @@ class KpointList(collections.abc.Sequence):
 
     @classmethod
     def from_dict(cls, d: dict):
-        """
-        Makes Kpoints obey the general json interface used in pymatgen for easier serialization.
-        """
+        """Makes Kpoints obey the general json interface used in pymatgen for easier serialization."""
         from pymatgen.core.lattice import Lattice
 
         reciprocal_lattice = Lattice.from_dict(d["reciprocal_lattice"])
@@ -914,9 +900,7 @@ class KpointList(collections.abc.Sequence):
 
     @pmg_serialize
     def as_dict(self):
-        """
-        Makes Kpoints obey the general json interface used in pymatgen for easier serialization.
-        """
+        """Makes Kpoints obey the general json interface used in pymatgen for easier serialization."""
         if self.weights is not None:
             weights = self.weights.tolist()
         return dict(
@@ -1039,9 +1023,7 @@ class KpointList(collections.abc.Sequence):
         return np.array(kinds)
 
     def find(self, kpoint) -> int:
-        """
-        Returns: first index of kpoint. -1 if not found
-        """
+        """Returns: first index of kpoint. -1 if not found."""
         try:
             return self.index(kpoint)
         except ValueError:
@@ -1180,9 +1162,7 @@ class KpointList(collections.abc.Sequence):
         return df
 
     def remove_duplicated(self):
-        """
-        Remove duplicated k-points from self. Returns new :class:`KpointList` instance.
-        """
+        """Remove duplicated k-points from self. Returns new :class:`KpointList` instance."""
         frac_coords, good_indices = [self[0].frac_coords], [0]
 
         for i, kpoint in enumerate(self[1:]):
@@ -1210,9 +1190,7 @@ class KpointList(collections.abc.Sequence):
         return np.array(self.frac_coords.copy())
 
     def to_json(self) -> str:
-        """
-        Returns a JSON_ string representation of the MSONable object.
-        """
+        """Returns a JSON_ string representation of the MSONable object."""
         from monty.json import MontyEncoder
 
         return json.dumps(self.as_dict(), cls=MontyEncoder)
@@ -1457,9 +1435,7 @@ class Kpath(KpointList):
 
     @cached_property
     def versors(self) -> tuple:
-        """
-        Tuple of len(self) - 1 elements with the versors connecting k[i] to k[i+1].
-        """
+        """Tuple of len(self) - 1 elements with the versors connecting k[i] to k[i+1]."""
         versors = (len(self) - 1) * [
             None,
         ]
@@ -1498,18 +1474,14 @@ class Kpath(KpointList):
 
     @cached_property
     def frac_bounds(self) -> np.ndarray:
-        """
-        Numpy array of shape [M, 3] with the vertices of the path in frac coords.
-        """
+        """Numpy array of shape [M, 3] with the vertices of the path in frac coords."""
         frac_bounds = [self[line[0]].frac_coords for line in self.lines]
         frac_bounds.append(self[self.lines[-1][-1]].frac_coords)
         return np.reshape(frac_bounds, (-1, 3))
 
     @cached_property
     def cart_bounds(self) -> np.ndarray:
-        """
-        Numpy array of shape [M, 3] with the vertices of the path in frac coords.
-        """
+        """Numpy array of shape [M, 3] with the vertices of the path in frac coords."""
         cart_bounds = [self[line[0]].cart_coords for line in self.lines]
         cart_bounds.append(self[self.lines[-1][-1]].cart_coords)
         return np.reshape(cart_bounds, (-1, 3))
@@ -1585,9 +1557,7 @@ class IrredZone(KpointList):
 
     @classmethod
     def from_ngkpt(cls, structure, ngkpt, shiftk, kptopt=1, spin_mode="unpolarized", verbose=0) -> IrredZone:
-        """
-        Build an IrredZone instance from (ngkpt, shift) by calling Abinit to get the list of IBZ k-points.
-        """
+        """Build an IrredZone instance from (ngkpt, shift) by calling Abinit to get the list of IBZ k-points."""
         from abipy.abio.factories import gs_input
         from abipy.data.hgh_pseudos import HGH_TABLE
 
@@ -1599,9 +1569,7 @@ class IrredZone(KpointList):
 
     @classmethod
     def from_kppa(cls, structure, kppa, shiftk, kptopt=1, verbose=0) -> IrredZone:
-        """
-        Build an IrredZone instance from (kppa, shift) by calling Abinit to get the list of IBZ k-points.
-        """
+        """Build an IrredZone instance from (kppa, shift) by calling Abinit to get the list of IBZ k-points."""
         from abipy.abio.factories import gs_input
         from abipy.data.hgh_pseudos import HGH_TABLE
 
@@ -1743,9 +1711,7 @@ class KSamplingInfo(AttrDict):
 
     @classmethod
     def from_kbounds(cls, kbounds) -> KSamplingInfo:
-        """
-        Metadata associated to a k-path specified in terms of boundaries.
-        """
+        """Metadata associated to a k-path specified in terms of boundaries."""
         mpdivs, kptrlatt, kptrlatt_orig, shifts, shifts_orig = 5 * (None,)
         kptopt = -(len(np.reshape(kbounds, (-1, 3))) - 1)  # Note -1
 
@@ -1875,9 +1841,7 @@ class KpointsReaderMixin:
         return IrredZone(structure.reciprocal_lattice, frac_coords, weights=weights, ksampling=ksampling)
 
     def read_ksampling_info(self) -> KSamplingInfo:
-        """
-        Read information on the k-point sampling. Return :class:`KSamplingInfo` object.
-        """
+        """Read information on the k-point sampling. Return :class:`KSamplingInfo` object."""
         # FIXME: in v8.0, the SIGRES files does not have kptopt, kptrlatt_orig and shiftk_orig
         kptrlatt = self.read_kptrlatt()
         shifts = self.read_kshifts()

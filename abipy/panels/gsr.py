@@ -12,9 +12,7 @@ from .core import PanelWithEbandsRobot, PanelWithElectronBands, depends_on_btn_c
 
 
 class GsrFilePanel(PanelWithElectronBands):
-    """
-    Panel with widgets to interact with a |GsrFile|.
-    """
+    """Panel with widgets to interact with a |GsrFile|."""
 
     def __init__(self, ncfile: GsrFile, **params):
         PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
@@ -57,9 +55,7 @@ class GsrFilePanel(PanelWithElectronBands):
 
 
 class GsrRobotPanel(PanelWithEbandsRobot):
-    """
-    A Panel to interact with multiple GSR files.
-    """
+    """A Panel to interact with multiple GSR files."""
 
     def __init__(self, robot: GsrRobot, **params):
         PanelWithEbandsRobot.__init__(self, robot=robot, **params)

@@ -33,9 +33,7 @@ MP_KEYS_FOR_DATAFRAME = (
 
 
 def get_mprester():
-    """
-    Args:
-    """
+    """Build and return MPRester instance."""
     rester = MPRester()
     # print(f"{type(rester)=}")
     return rester
@@ -286,9 +284,7 @@ class MpStructures(DatabaseStructures):
 
     @cached_property
     def dataframe(self) -> pd.DataFrame:
-        """
-        Pandas dataframe constructed from self.data. None if data is not available.
-        """
+        """Pandas dataframe constructed from self.data. None if data is not available."""
         if not self.data:
             return None
         import pandas as pd
@@ -345,9 +341,7 @@ class CodStructures(DatabaseStructures):
 
 class Dotdict(dict):
     def dotget(self, key, default=None):
-        """
-        d.dotget["foo.bar"] --> d["foo"]["bar"] if "foo.bar" not in self
-        """
+        """d.dotget["foo.bar"] --> d["foo"]["bar"] if "foo.bar" not in self."""
         # if key is in dict access as normal
         if key in self:
             return super().__getitem__(key)

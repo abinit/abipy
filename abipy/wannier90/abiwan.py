@@ -219,9 +219,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     @cached_property
     def hwan(self) -> HWanR:
-        """
-        Construct the matrix elements of the KS Hamiltonian in real space
-        """
+        """Construct the matrix elements of the KS Hamiltonian in real space."""
         start = time.time()
 
         nrpts, num_kpts = len(self.irvec), self.ebands.nkpt
@@ -419,9 +417,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return plotter.combiplot(linestyle_dict=linestyle_dict, **kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
-        """
-        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-        """
+        """This function *generates* a predefined list of matplotlib figures with minimal input from the user."""
         yield self.interpolate_ebands().plot(show=False)
         yield self.hwan.plot(show=False)
 

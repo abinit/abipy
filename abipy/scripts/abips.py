@@ -80,9 +80,7 @@ def abips_list(options) -> int:
 
 
 def abips_avail(options) -> int:
-    """
-    Show available pseudopotential repos.
-    """
+    """Show available pseudopotential repos."""
     print("List of available pseudopotential repositories:\n")
     all_repos = get_all_registered_repos()
     print(tabulate_repos(all_repos, with_citations=True, verbose=options.verbose))
@@ -164,9 +162,7 @@ def abips_install(options) -> int:
 
 
 def abips_show(options) -> int:
-    """
-    Show info on pseudopotential table(s).
-    """
+    """Show info on pseudopotential table(s)."""
     repos = repos_from_names(options.repo_names)
     repos = [repo for repo in repos if repo.is_installed()]
 
@@ -188,9 +184,7 @@ def abips_show(options) -> int:
 
 
 def abips_element(options) -> int:
-    """
-    Find all pseudos in the installed tables for the given element (symbol or znucl).
-    """
+    """Find all pseudos in the installed tables for the given element (symbol or znucl)."""
     # Accept symbol string or Z.
     from pymatgen.core.periodic_table import Element
 

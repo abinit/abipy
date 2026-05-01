@@ -1,6 +1,4 @@
-"""
-Global variables used to initialize AbiPy environment in notebooks.
-"""
+"""Global variables used to initialize AbiPy environment in notebooks."""
 
 from __future__ import annotations
 
@@ -24,9 +22,7 @@ def disable_notebook() -> None:
 
 
 def enable_notebook(with_seaborn=True) -> None:
-    """
-    Set ``in_notebook`` flag to True and activate seaborn settings for notebooks if ``with_seaborn``.
-    """
+    """Set ``in_notebook`` flag to True and activate seaborn settings for notebooks if ``with_seaborn``."""
     global __IN_NOTEBOOK
     __IN_NOTEBOOK = True
 

@@ -4,9 +4,7 @@ from __future__ import annotations
 
 
 def tonumber(s: str) -> float:
-    """
-    Convert string to number, raise ValueError if s cannot be converted.
-    """
+    """Convert string to number, raise ValueError if s cannot be converted."""
     # Duck test.
     try:
         stnum = s.upper().replace("D", "E")  # D-01 is not recognized by python: Replace it with E.
@@ -21,9 +19,7 @@ def tonumber(s: str) -> float:
 
 
 def nums_and_text(line: str) -> tuple:
-    """
-    Split line into (numbers, text).
-    """
+    """Split line into (numbers, text)."""
     tokens = line.split()
     text = ""
     numbers = []

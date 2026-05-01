@@ -57,9 +57,7 @@ def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
 
 @dataclasses.dataclass
 class Entry:
-    """
-    Stores the relaxed structure with the associated energy and the Cartesian forces.
-    """
+    """Stores the relaxed structure with the associated energy and the Cartesian forces."""
 
     isite: int  # Index of the site being relaxed.
     structure: Structure  # pymatgen Structure
@@ -84,9 +82,7 @@ class Entry:
 
     @classmethod
     def from_traj(cls, isite, traj) -> Entry:
-        """
-        Build an Entry by taking the last Atoms object from an ASE trajectory.
-        """
+        """Build an Entry by taking the last Atoms object from an ASE trajectory."""
         atoms = traj[-1]
         structure = Structure.as_structure(atoms)
         # NB: Keep sites within the unit cell so that we can compare entries in __eq__
@@ -99,9 +95,7 @@ class Entry:
         )
 
     def __eq__(self, other: Entry) -> bool:
-        """
-        Invoked by python to evaluate `self == other`.
-        """
+        """Invoked by python to evaluate `self == other`."""
         return (
             abs(self.energy - other.energy) / len(self.structure) < 1e-4
             and np.abs(self.structure.lattice.matrix - other.structure.lattice.matrix).max() < 1e-3
@@ -114,9 +108,7 @@ class Entry:
 
 @dataclasses.dataclass
 class Pair:
-    """
-    Stores info on a possible transition between two relaxed configurations.
-    """
+    """Stores info on a possible transition between two relaxed configurations."""
 
     index1: int  # Index of first configuration in entries
     index2: int
@@ -266,9 +258,7 @@ class RelaxScanner(HasPickleIO):
         return atoms
 
     def get_structure_with_two_frac_coords(self, frac_coords1, frac_coords2) -> Structure:
-        """
-        Return Structure instance with frac_coords at site index `isite`.
-        """
+        """Return Structure instance with frac_coords at site index `isite`."""
         new_structure = self.initial_structure.copy()
         species = new_structure._sites[self.isite].species
         new_structure._sites[self.isite].frac_coords = np.array(frac_coords1)
@@ -424,9 +414,7 @@ class RelaxScannerAnalyzer:
 
     @classmethod
     def from_topdir(cls, topdir: Path) -> RelaxScannerAnalyzer:
-        """
-        Merge all entries starting from directory `topdir`.
-        """
+        """Merge all entries starting from directory `topdir`."""
         topdir = Path(topdir)
         top = str(topdir)
         dirpaths = [
@@ -705,9 +693,7 @@ class RelaxScannerAnalyzer:
 
     @add_fig_kwargs
     def histplot(self, ax=None, **kwargs):
-        """
-        Plot histogram to show energy distribution.
-        """
+        """Plot histogram to show energy distribution."""
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         import seaborn as sns
 

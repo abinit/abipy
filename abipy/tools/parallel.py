@@ -1,6 +1,4 @@
-"""
-Tools used to parallelize sections of python code with multiprocessing or threads.
-"""
+"""Tools used to parallelize sections of python code with multiprocessing or threads."""
 
 from __future__ import annotations
 
@@ -12,9 +10,7 @@ _MAX_NPROCS = os.cpu_count()
 
 
 def get_max_nprocs() -> int:
-    """
-    Return the maximum number of procs that can be used by AbiPy.
-    """
+    """Return the maximum number of procs that can be used by AbiPy."""
     return _MAX_NPROCS
 
 

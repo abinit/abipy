@@ -9,9 +9,7 @@ from abipy.panels.core import AbipyParameterized, Loading, dfc, ply
 
 
 class AbinitOutputFilePanel(AbipyParameterized):
-    """
-    Panel with widgets to interact with the main Abinit output file.
-    """
+    """Panel with widgets to interact with the main Abinit output file."""
 
     def __init__(self, outfile, **params):
         super().__init__(**params)

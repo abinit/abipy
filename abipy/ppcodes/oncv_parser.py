@@ -1,6 +1,4 @@
-"""
-Classes and functions for parsing the ONCVPSP output file and plotting the results.
-"""
+"""Classes and functions for parsing the ONCVPSP output file and plotting the results."""
 
 from __future__ import annotations
 
@@ -32,9 +30,7 @@ AtanLogDer = namedtuple("AtanLogDer", "l, energies, values")
 
 @dataclass
 class AtomicLevel:
-    """
-    Stores the energy levels of the AE isolated atom.
-    """
+    """Stores the energy levels of the AE isolated atom."""
 
     nlk: NlkState
     eig: float
@@ -313,9 +309,7 @@ class OncvParser(BaseParser):
         raise self.Error(f"Cannot find line with `#lmax` in: {self.filepath}")
 
     def to_string(self, verbose: int = 0) -> str:
-        """
-        String representation.
-        """
+        """String representation."""
         lines = []
         app = lines.append
 
@@ -361,9 +355,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def rc_l(self) -> dict[int, float]:
-        """
-        Core radii as a function of l extracted from the output file.
-        """
+        """Core radii as a function of l extracted from the output file."""
         rc_l = {}
         header = "#   l,   rc,"
         for i, line in enumerate(self.lines):
@@ -387,9 +379,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def kinerr_nlk(self) -> dict[NlkState, namedtuple]:
-        """
-        Dictionary with the error on the kinetic energy indexed by nlk.
-        """
+        """Dictionary with the error on the kinetic energy indexed by nlk."""
         # In relativistic mode we write data inside the following loops:
 
         # do l1=1,lmax+1
@@ -515,9 +505,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def densities(self) -> dict[str, RadialFunction]:
-        """
-        Dictionary with charge densities on the radial mesh.
-        """
+        """Dictionary with charge densities on the radial mesh."""
         # radii, charge, core charge, model core charge
         # !r   0.0100642   4.7238866  53.4149287   0.0000000
         rho_data = self._grep("!r").data
@@ -530,9 +518,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def kin_densities(self) -> dict[str, RadialFunction]:
-        """
-        Dictionary with Kinetic energy densities on the radial mesh.
-        """
+        """Dictionary with Kinetic energy densities on the radial mesh."""
         if not self.is_metapsp:
             raise ValueError("kin_densities are only available in pseudos generated with metapsp")
 
@@ -547,9 +533,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def vtaus(self) -> dict[str, RadialFunction]:
-        """
-        Dictionary with Vtau ptotentials on the radial mesh.
-        """
+        """Dictionary with Vtau ptotentials on the radial mesh."""
         if not self.is_metapsp:
             raise ValueError("kin_densities are only available in pseudos generated with metapsp")
 
@@ -581,16 +565,12 @@ class OncvParser(BaseParser):
 
     @property
     def has_scattering_wfs(self) -> bool:
-        """
-        True if pp generation included scattering states.
-        """
+        """True if pp generation included scattering states."""
         return bool(self.scattering_wfs.ae)
 
     @cached_property
     def scattering_wfs(self) -> AePsNamedTuple:
-        """
-        Read and set the scattering wavefunctions.
-        """
+        """Read and set the scattering wavefunctions."""
         return self._get_radial_wavefunctions(what="scattering_states")
 
     def _get_radial_wavefunctions(self, what: str) -> AePsNamedTuple:
@@ -677,9 +657,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def projectors(self) -> dict[NlkState, RadialFunction]:
-        """
-        Dict with projector wave functions indexed by nlk.
-        """
+        """Dict with projector wave functions indexed by nlk."""
         #
         # @     0    0.009945    0.015274   -0.009284
         beg = 0
@@ -723,9 +701,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def atan_logders(self) -> AePsNamedTuple:
-        """
-        Atan of the log derivatives for different l-values.
-        """
+        """Atan of the log derivatives for different l-values."""
         # log derivativve data for plotting, l= 0
         # atan(r * ((d psi(r)/dr)/psi(r))), r=  1.60
         # l, energy, all-electron, pseudopotential
@@ -763,9 +739,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def kene_vs_ecut(self) -> dict[int, ConvData]:
-        """
-        Dict with the convergence of the kinetic energy versus ecut for different l-values.
-        """
+        """Dict with the convergence of the kinetic energy versus ecut for different l-values."""
         # convergence profiles, (ll=0,lmax)
         #!C     0    5.019345    0.010000
         # ...
@@ -781,9 +755,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def hints(self) -> dict:
-        """
-        Hints for the cutoff energy as provided by oncvpsp.
-        """
+        """Hints for the cutoff energy as provided by oncvpsp."""
         # Extract the hints
         hints = 3 * [-np.inf]
         for i in range(3):
@@ -802,9 +774,7 @@ class OncvParser(BaseParser):
         )
 
     def get_results(self) -> AttrDict:
-        """
-        Return the most important results extracted from the output file.
-        """
+        """Return the most important results extracted from the output file."""
         # Init return values
         # d = AttrDict(
         #    max_ecut=None,
@@ -924,9 +894,7 @@ class OncvParser(BaseParser):
         return "\n".join(self.lines[start + 1 : stop])
 
     def get_plotter(self):  # -> OncvPlotter | None:
-        """
-        Return an instance of OncvPlotter or None
-        """
+        """Return an instance of OncvPlotter or None."""
         from abipy.ppcodes.oncv_plotter import OncvPlotter
 
         try:
@@ -1002,9 +970,7 @@ class OncvParser(BaseParser):
         os.rmdir(workdir)
 
     def get_atomic_levels_df(self) -> pd.DataFrame:
-        """
-        Return pandas dataframe with the atomic levels. Columns: (n, l, k, eig, occ, is_valence)
-        """
+        """Return pandas dataframe with the atomic levels. Columns: (n, l, k, eig, occ, is_valence)"""
         d_list = []
         from dataclasses import asdict
 
@@ -1017,9 +983,7 @@ class OncvParser(BaseParser):
         return pd.DataFrame(d_list)
 
     def get_peaks_df(self) -> pd.DataFrame:
-        """
-        Return pandas dataframe with the position of the last peak.
-        """
+        """Return pandas dataframe with the position of the last peak."""
         d_list = []
 
         def _push(typ, nkl, wf) -> None:

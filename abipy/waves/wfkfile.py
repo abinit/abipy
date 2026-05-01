@@ -48,9 +48,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     """
 
     def __init__(self, filepath: str):
-        """
-        Initialize the object from a Netcdf file.
-        """
+        """Initialize the object from a Netcdf file."""
         super().__init__(filepath)
         self.reader = self.r = r = WFK_Reader(filepath)
         assert r.has_pwbasis_set

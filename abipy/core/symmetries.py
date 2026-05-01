@@ -27,9 +27,7 @@ __all__ = [
 
 
 def wrap_in_ucell(x):
-    """
-    Transforms x in its corresponding reduced number in the interval [0,1[."
-    """
+    """Transforms x in its corresponding reduced number in the interval [0,1[."""
     return x % 1
 
 
@@ -90,12 +88,7 @@ def mati3inv(mat3, trans=True):
 
 
 def _get_det(mat) -> float:
-    """
-    Return the determinant of a 3x3 rotation matrix mat.
-
-    Raises:
-        ValueError if abs(det) != 1.
-    """
+    """Return the determinant of a 3x3 rotation matrix mat. Raises ValueError if abs(det) != 1."""
     det = (
         mat[0, 0] * (mat[1, 1] * mat[2, 2] - mat[1, 2] * mat[2, 1])
         - mat[0, 1] * (mat[1, 0] * mat[2, 2] - mat[1, 2] * mat[2, 0])
@@ -199,10 +192,7 @@ Should check atomic coordinates and symmetry group input data.
 
 
 class Operation(metaclass=abc.ABCMeta):
-    """
-    Abstract base class that defines the methods that must be
-    implemented by the concrete class representing some sort of operation
-    """
+    """Abstract base class that defines the methods that must be implemented by the concrete class representing some sort of operation."""
 
     @abc.abstractmethod
     def __eq__(self, other):
@@ -244,9 +234,7 @@ class Operation(metaclass=abc.ABCMeta):
 
 
 class SymmOp(Operation, SlotPickleMixin):
-    """
-    Crystalline symmetry.
-    """
+    """Crystalline symmetry."""
 
     _ATOL_TAU = 1e-8
 
@@ -433,22 +421,14 @@ class SymmOp(Operation, SlotPickleMixin):
         return issamek(sk, frac_coords)
 
     def rotate_r(self, frac_coords, in_ucell=False):
-        """
-        Apply the symmetry operation to a point in real space given in reduced coordinates.
-
-        .. NOTE::
-
-            We use the convention: symmop(r) = R^{-1] (r - tau)
-        """
+        """Apply the symmetry operation to a point in real space given in reduced coordinates."""
         rotm1_rmt = np.dot(self.rotm1_r, frac_coords - self.tau)
 
         return wrap_in_ucell(rotm1_rmt) if in_ucell else rotm1_rmt
 
 
 class OpSequence(collections.abc.Sequence):
-    """
-    Mixin class providing the basic method that are common to containers of operations.
-    """
+    """Mixin class providing the basic method that are common to containers of operations."""
 
     def __len__(self):
         return len(self._ops)
@@ -646,15 +626,11 @@ class OpSequence(collections.abc.Sequence):
 
 
 class AbinitSpaceGroup(OpSequence):
-    """
-    Container storing the space group symmetries.
-    """
+    """Container storing the space group symmetries."""
 
     @classmethod
     def from_ncreader(cls, r, inord="F") -> AbinitSpaceGroup:
-        """
-        Builds the object from a netcdf reader
-        """
+        """Builds the object from a netcdf reader."""
         kptopt = int(r.read_value("kptopt", default=1))
         symrel = r.read_value("reduced_symmetry_matrices")
 
@@ -800,23 +776,17 @@ class AbinitSpaceGroup(OpSequence):
 
     @property
     def symrel(self):
-        """
-        [nsym, 3, 3] int array with symmetries in reduced coordinates of the direct lattice.
-        """
+        """[nsym, 3, 3] int array with symmetries in reduced coordinates of the direct lattice."""
         return self._symrel
 
     @property
     def tnons(self):
-        """
-        [nsym, 3] float array with fractional translations in reduced coordinates of the direct lattice.
-        """
+        """[nsym, 3] float array with fractional translations in reduced coordinates of the direct lattice."""
         return self._tnons
 
     @property
     def symrec(self):
-        """
-        [nsym, 3, 3] int array with symmetries in reduced coordinates of the reciprocal lattice.
-        """
+        """[nsym, 3, 3] int array with symmetries in reduced coordinates of the reciprocal lattice."""
         return self._symrec
 
     @property
@@ -965,9 +935,7 @@ class LittleGroup(OpSequence):
 
     @cached_property
     def on_bz_border(self) -> bool:
-        """
-        True if the k-point is on the border of the BZ.
-        """
+        """True if the k-point is on the border of the BZ."""
         frac_coords = np.array(self.kpoint)
         kreds = wrap_to_ws(frac_coords)
         diff = np.abs(np.abs(kreds) - 0.5)
@@ -1030,7 +998,7 @@ class LatticePointGroup(OpSequence):
 
     @property
     def sch_symbol(self) -> str:
-        """Schoenflies symbol"""
+        """Schoenflies symbol."""
         return herm2sch(self.herm_symbol)
 
     @property
@@ -1060,9 +1028,7 @@ class LatticeRotation(Operation):
         self.mat.shape = (3, 3)
 
     def _find_order_and_rootinv(self):
-        """
-        Returns the order of the rotation and if self is a root of the inverse.
-        """
+        """Returns the order of the rotation and if self is a root of the inverse."""
         order, root_inv = None, 0
         for ior in range(1, 7):
             rn = self**ior
@@ -1098,10 +1064,7 @@ class LatticeRotation(Operation):
         return int(8 * self.trace + 4 * self.det)
 
     def inverse(self):
-        """
-        Invert an orthogonal 3x3 matrix of INTEGER elements.
-        Note use of integer arithmetic. Raise ValueError if not invertible.
-        """
+        """Invert an orthogonal 3x3 matrix of INTEGER elements. Raise ValueError if not invertible."""
         return self.__class__(mati3inv(self.mat, trans=False))
 
     @cached_property
@@ -1148,12 +1111,12 @@ class LatticeRotation(Operation):
 
     @cached_property
     def det(self):
-        """Return the determinant of a symmetry matrix mat[3,3]. It must be +-1"""
+        """Return the determinant of a symmetry matrix mat[3,3]. It must be +-1."""
         return _get_det(self.mat)
 
     @cached_property
     def trace(self):
-        """The trace of the rotation matrix"""
+        """The trace of the rotation matrix."""
         return self.mat.trace()
 
     @cached_property
@@ -1274,9 +1237,7 @@ def bilbao_ptgroup(sch_symbol: str):
 
 
 class BilbaoPointGroup:
-    """
-    A :class:`BilbaoPointGroup` is a :class:`Pointgroup` with irreducible representations
-    """
+    """A :class:`BilbaoPointGroup` is a :class:`Pointgroup` with irreducible representations."""
 
     def __init__(self, sch_symbol, rotations, class_names, class_range, irreps):
         # Rotations are grouped in classes.
@@ -1327,9 +1288,7 @@ class BilbaoPointGroup:
 
     @cached_property
     def character_table(self) -> pd.DataFrame:
-        """
-        Dataframe with irreps.
-        """
+        """Dataframe with irreps."""
         # Caveat: class names are not necessarily unique --> use np.stack
         import pandas as pd
 
@@ -1355,9 +1314,7 @@ class BilbaoPointGroup:
         return df
 
     def to_string(self, verbose=0) -> str:
-        """
-        Return string with the character_table
-        """
+        """Return string with the character_table."""
         return self.character_table.to_string()
 
     # def decompose(self, character):
@@ -1382,9 +1339,7 @@ class BilbaoPointGroup:
     # def map_rotation(self, rotations_in_classes)
 
     def auto_test(self):
-        """
-        Perform internal consistency check. Return 0 if success
-        """
+        """Perform internal consistency check. Return 0 if success."""
         # print("rotations\n", self.rotations)
         rot_group = LatticePointGroup(self.rotations)
         if not rot_group.is_group():

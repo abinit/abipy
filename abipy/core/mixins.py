@@ -80,9 +80,7 @@ class BaseFile(metaclass=abc.ABCMeta):
         return self.__class__.__name__
 
     def filestat(self, as_string: bool = False) -> dict:
-        """
-        Dictionary with file metadata, if ``as_string`` is True, a string is returned.
-        """
+        """Dictionary with file metadata, if ``as_string`` is True, a string is returned."""
         d = get_filestat(self.filepath)
         if not as_string:
             return d
@@ -215,9 +213,7 @@ class AbinitNcFile(BaseFile):
 
     @abc.abstractproperty
     def params(self) -> dict:
-        """
-        Dictionary with the convergence parameters used to construct |pandas-DataFrames|.
-        """
+        """Dictionary with the convergence parameters used to construct |pandas-DataFrames|."""
 
     def get_dims_dataframe(self, as_dict=False, path="/") -> pd.DataFrame:
         """
@@ -254,9 +250,7 @@ class AbinitNcFile(BaseFile):
 
 
 class AbinitFortranFile(BaseFile):
-    """
-    Abstract class representing a Fortran file containing output data from abinit.
-    """
+    """Abstract class representing a Fortran file containing output data from abinit."""
 
     def close(self) -> None:
         """nop, just to fulfill the abstract interface."""
@@ -294,18 +288,14 @@ class CubeFile(BaseFile):
 
 
 class Has_Structure(metaclass=abc.ABCMeta):
-    """
-    Mixin class for |AbinitNcFile| containing crystallographic data.
-    """
+    """Mixin class for |AbinitNcFile| containing crystallographic data."""
 
     @abc.abstractproperty
     def structure(self):
         """Returns the |Structure| object."""
 
     def plot_bz(self, **kwargs) -> Figure:
-        """
-        Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
-        """
+        """Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone."""
         return self.structure.plot_bz(**kwargs)
 
     # To maintain backward compatibility
@@ -492,9 +482,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
             yield edos.plotly(show=False)
 
     def expose_ebands(self, slide_mode=False, slide_timeout=None, expose_web=False, **kwargs):
-        """
-        Shows a predefined list of matplotlib figures for electron bands with minimal input from the user.
-        """
+        """Shows a predefined list of matplotlib figures for electron bands with minimal input from the user."""
         from abipy.tools.plotting import MplExposer, PanelExposer
 
         if expose_web:
@@ -520,9 +508,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
 
 
 class Has_PhononBands(metaclass=abc.ABCMeta):
-    """
-    Mixin class for |AbinitNcFile| containing phonon data.
-    """
+    """Mixin class for |AbinitNcFile| containing phonon data."""
 
     @abc.abstractproperty
     def phbands(self):
@@ -535,9 +521,7 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
         }
 
     def plot_phbands(self, **kwargs) -> Figure:
-        """
-        Plot the electron energy bands. See the :func:`PhononBands.plot` for the signature.""
-        """
+        """Plot the electron energy bands. See the :func:`PhononBands.plot` for the signature."""
         return self.phbands.plot(**kwargs)
 
     # def plot_phbands_with_phdos(self, phdos, **kwargs):
@@ -564,9 +548,7 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
         yield self.phbands.plot_colored_matched(units=units, show=False)
 
     def expose_phbands(self, slide_mode=False, slide_timeout=None, **kwargs):
-        """
-        Show a predefined list of matplotlib figures for phonon bands with minimal input from the user.
-        """
+        """Show a predefined list of matplotlib figures for phonon bands with minimal input from the user."""
         from abipy.tools.plotting import MplExposer
 
         with MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
@@ -574,9 +556,7 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
 
 
 class NcDumper:
-    """
-    Wrapper object for the ncdump tool.
-    """
+    """Wrapper object for the ncdump tool."""
 
     def __init__(self, *nc_args, **nc_kwargs):
         """
@@ -629,9 +609,7 @@ def get_filestat(filepath: str) -> dict:
 
 class HasNotebookTools:
     def has_panel(self):
-        """
-        Return panel module (that evaluates to True) if panel is installed else False.
-        """
+        """Return panel module (that evaluates to True) if panel is installed else False."""
         try:
             import panel as pn
 
@@ -844,9 +822,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
 
     @classmethod
     def pickle_load(cls, filepath: str):
-        """
-        Loads the object from a pickle file.
-        """
+        """Loads the object from a pickle file."""
         with open(filepath, "rb") as fh:
             new = pickle.load(fh)
             # assert cls is new.__class__
@@ -976,9 +952,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
 
 
 class Has_Header:
-    """
-    Mixin class for netcdf files containing the Abinit header.
-    """
+    """Mixin class for netcdf files containing the Abinit header."""
 
     @cached_property
     def hdr(self):
@@ -991,9 +965,7 @@ class Has_Header:
 
 
 class SlotPickleMixin:
-    """
-    This mixin makes it possible to pickle/unpickle objects with __slots__
-    """
+    """This mixin makes it possible to pickle/unpickle objects with __slots__."""
 
     def __getstate__(self) -> dict:
         return {slot: getattr(self, slot) for slot in self.__slots__ if hasattr(self, slot)}

@@ -141,9 +141,7 @@ def flows(ctx):
 
 @task
 def pygrep(ctx, pattern):
-    """
-    Grep for `pattern` in all py files contained in the project.
-    """
+    """Grep for `pattern` in all py files contained in the project."""
     # grep -r -i --include \*.h
     # Syntax notes:
     #    -r - search recursively

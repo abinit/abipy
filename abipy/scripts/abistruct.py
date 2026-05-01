@@ -288,9 +288,7 @@ codes), a looser tolerance of 0.1 (the value used in Materials Project) is often
     supported_formats = "(abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, lammps, fleur-inpgen, None)"
 
     def add_format_arg(parser, default, option=True, formats=None):
-        """
-        Add --format option to a parser with default value `default`.
-        """
+        """Add --format option to a parser with default value `default`."""
         formats = supported_formats if formats is None else formats
         if option:
             parser.add_argument(

@@ -85,9 +85,7 @@ def yaml_safe_load_path(filepath: str) -> Any:
 
 
 def dataframe_from_filepath(filepath: str, **kwargs) -> pd.DataFrame:
-    """
-    Try to read a dataframe from an external file according to the file extension.
-    """
+    """Try to read a dataframe from an external file according to the file extension."""
     _, ext = os.path.splitext(filepath)
     if ext == "csv":
         return pd.read_csv(filepath, **kwargs)
@@ -328,9 +326,7 @@ class AtomicFile:
         self.close()
 
     def close(self) -> None:
-        """
-        Close the file.
-        """
+        """Close the file."""
         if not self._fp.closed:
             self._fp.close()
             # This to avoid:
@@ -342,9 +338,7 @@ class AtomicFile:
             os.rename(self._tempname, self.__name)
 
     def discard(self) -> None:
-        """
-        Discard the file.
-        """
+        """Discard the file."""
         if not self._fp.closed:
             try:
                 os.unlink(self._tempname)
@@ -431,9 +425,7 @@ def change_ext_from_top(top: PathLike, old_ext: str, new_ext: str) -> int:
 
 
 class _Script:
-    """
-    Base class for Script objects.
-    """
+    """Base class for Script objects."""
 
     def __init__(self, filepath: str):
         self.filepath = filepath
@@ -465,9 +457,7 @@ if False:
         return self
 
     def write(self):
-        """
-        Write python script and json file with the list of files in the Robot.
-        """
+        """Write python script and json file with the list of files in the Robot."""
         with open(self.filepath, "w") as fh:
             fh.write(self.text)
         make_executable(self.filepath)

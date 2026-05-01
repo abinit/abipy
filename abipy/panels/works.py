@@ -6,9 +6,7 @@ from abipy.panels.nodes import NodeParameterized
 
 
 class WorkPanel(NodeParameterized):
-    """
-    Panel to interact with an AbiPy Work
-    """
+    """Panel to interact with an AbiPy Work."""
 
     def __init__(self, work, **params):
         NodeParameterized.__init__(self, node=work, **params)

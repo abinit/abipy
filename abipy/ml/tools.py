@@ -1,6 +1,4 @@
-"""
-Low-level tools used in abipy.ml module
-"""
+"""Low-level tools used in abipy.ml module"""
 
 from __future__ import annotations
 

@@ -1,6 +1,4 @@
-"""
-Tools and helper functions to build the command line interface of the AbiPy scripts.
-"""
+"""Tools and helper functions to build the command line interface of the AbiPy scripts."""
 
 from __future__ import annotations
 
@@ -33,9 +31,7 @@ def set_loglevel(loglevel: str) -> None:
 
 
 def pn_serve_parser(**kwargs) -> argparse.ArgumentParser:
-    """
-    Parent parser implementing cli options for panel.serve
-    """
+    """Parent parser implementing cli options for panel.serve."""
     p = argparse.ArgumentParser(add_help=False)
 
     p.add_argument("--port", default=0, type=int, help="Port to listen on.")
@@ -86,9 +82,7 @@ def pn_serve_parser(**kwargs) -> argparse.ArgumentParser:
 
 
 def get_pn_serve_kwargs(options) -> dict:
-    """
-    Return dict with the arguments to be passed to pn.serve.
-    """
+    """Return dict with the arguments to be passed to pn.serve."""
     import abipy.panels as mod
 
     assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
@@ -152,9 +146,7 @@ def customize_mpl(options) -> None:
 
 
 def add_expose_options_to_parser(parser, with_mpl_options=True) -> None:
-    """
-    Add Expose options to the parser.
-    """
+    """Add Expose options to the parser."""
     parser.add_argument(
         "-e",
         "--expose",
@@ -263,9 +255,7 @@ class EnumAction(argparse.Action):
 
 
 def fix_omp_num_threads() -> int:
-    """
-    Set OMP_NUM_THREADS to 1 if env var is not defined. Return num_threads.
-    """
+    """Set OMP_NUM_THREADS to 1 if env var is not defined. Return num_threads."""
     num_threads = os.getenv("OMP_NUM_THREADS", default=None)
     if num_threads is None:
         num_threads = 1
@@ -275,9 +265,7 @@ def fix_omp_num_threads() -> int:
 
 
 def range_from_str(string: str) -> range:
-    """
-    Convert string into a range object.
-    """
+    """Convert string into a range object."""
     if string is None:
         return None
 

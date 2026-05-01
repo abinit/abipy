@@ -1,6 +1,4 @@
-"""
-This module provides objects related to site symmetries
-"""
+"""This module provides objects related to site symmetries."""
 
 from __future__ import annotations
 

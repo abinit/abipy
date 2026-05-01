@@ -396,9 +396,7 @@ def abinp_anaph(options):
 
 
 def abinp_vasp(options):
-    """
-    Build VASP input files from a FILE defining the structure.
-    """
+    """Build VASP input files from a FILE defining the structure."""
     structure = abilab.Structure.from_file(options.filepath)
     cls = vasp_dict_set_cls(options.dict_set)
     cprint(f"Generating VASP input using {cls}. Use -d option to change settings.", color="yellow")
@@ -428,9 +426,7 @@ def abinp_lobster(options):
 
 
 def abinp_slurm(options):
-    """
-    Print template for Slurm submmission script
-    """
+    """Print template for Slurm submmission script."""
     from abipy.flowtk.qutils import get_slurm_template
 
     body = "srun abinit run.abi > run.log 2> run.err"

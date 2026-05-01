@@ -30,9 +30,7 @@ def latex_label_ispinor(ispinor: int, nspinor: int) -> str:
 
 
 class WaveFunction:
-    """
-    Abstract class defining base and abstract methods for wavefunction objects.
-    """
+    """Abstract class defining base and abstract methods for wavefunction objects."""
 
     def __eq__(self, other):
         if other is None:
@@ -207,9 +205,7 @@ class WaveFunction:
     # TODO: get_ur2?
     @property
     def ur2(self):
-        """
-        [nx, ny, nz] array with :math:`||u(r)||^2` in real space.
-        """
+        """[nx, ny, nz] array with :math:`||u(r)||^2` in real space."""
         ur2 = (self.ur.conj() * self.ur).real.copy()
         # if self.nspinor == 2: ur2 = ur2.sum(axis=3)
         return ur2
@@ -292,9 +288,7 @@ class PWWaveFunction(WaveFunction):
         raise ValueError("Wrong space: %s" % str(space))
 
     def get_interpolator(self):
-        """
-        Return an interpolator object that interpolates periodic functions in real space.
-        """
+        """Return an interpolator object that interpolates periodic functions in real space."""
         from abipy.tools.numtools import BlochRegularGridInterpolator
 
         return BlochRegularGridInterpolator(self.structure, self.ur)

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""
-Git pre-commit hook script that runs tests only for the modified Python files using pytest.
-"""
+"""Git pre-commit hook script that runs tests only for the modified Python files using pytest."""
 
 import subprocess
 import sys

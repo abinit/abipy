@@ -90,9 +90,7 @@ class FFT_Test:
         return FFT_Test(self.ecut, self.ngfft, self.wall_time, info)
 
     def plot_ax(self, ax, ydata=None, fact=1.0):
-        """
-        Plot ydata on the axis ax. If data is None, the wall_time is plotted.
-        """
+        """Plot ydata on the axis ax. If data is None, the wall_time is plotted."""
         color = _color_fftalg[self.fftalg]
         linestyle = _linestyle_nt[self.nthreads]
         marker = _markers_nt[self.nthreads]
@@ -150,9 +148,7 @@ class FFTBenchmark:
 
     @add_fig_kwargs
     def plot(self, exclude_algs=None, exclude_threads=None, **kwargs) -> Figure:
-        """
-        Plot the wall-time and the speed-up.
-        """
+        """Plot the wall-time and the speed-up."""
         import matplotlib.pyplot as plt
 
         fig = plt.figure()

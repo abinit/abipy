@@ -1,6 +1,4 @@
-"""
-Classes and functions for parsing ONCVPSP output files and plotting results.
-"""
+"""Classes and functions for parsing ONCVPSP output files and plotting results."""
 
 from __future__ import annotations
 
@@ -23,9 +21,7 @@ from abipy.tools.typing import Figure
 
 
 class OncvPlotter(NotebookWriter):
-    """
-    Plots the results produced by a pseudopotential generator.
-    """
+    """Plots the results produced by a pseudopotential generator."""
 
     # TODO: Improve support for fully-relativistic case.
 
@@ -61,9 +57,7 @@ class OncvPlotter(NotebookWriter):
 
     @staticmethod
     def decorate_ax(ax, xlabel=None, ylabel=None, title=None, fontsize=8):
-        """
-        Decorate a `matplotlib` Axis adding xlabel, ylabel, title, grid and legend
-        """
+        """Decorate a `matplotlib` Axis adding xlabel, ylabel, title, grid and legend."""
         if title:
             ax.set_title(title, fontsize=fontsize)
         if xlabel:
@@ -74,9 +68,7 @@ class OncvPlotter(NotebookWriter):
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
     def _mpl_opts_laeps(self, l: int, aeps: str) -> dict:
-        """
-        Return dict with matplotlib ax.plot options to plot AE/PS quantities depending on l.
-        """
+        """Return dict with matplotlib ax.plot options to plot AE/PS quantities depending on l."""
         return dict(
             color=self.color_l[l],
             linestyle=self.linestyle_aeps[aeps],
@@ -544,9 +536,7 @@ class OncvPlotter(NotebookWriter):
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
-        """
-        Generate a predefined list of matplotlib figures with minimal input from the user.
-        """
+        """Generate a predefined list of matplotlib figures with minimal input from the user."""
         verbose = kwargs.get("verbose", 0)
 
         yield self.plot_atanlogder_econv(show=False)
@@ -768,9 +758,7 @@ class MultiOncvPlotter(NotebookWriter):
 
     @classmethod
     def from_files(cls, files: list[str]) -> MultiOncvPlotter:
-        """
-        Create an instance from a list of oncvpsp output files.
-        """
+        """Create an instance from a list of oncvpsp output files."""
         new = cls()
         for file in files:
             new.add_file(file, file)
@@ -781,9 +769,7 @@ class MultiOncvPlotter(NotebookWriter):
         self._plotters_dict = {}
 
     def add_file(self, label: str, filepath: str) -> None:
-        """
-        Add a oncvps output file to the plotter with label
-        """
+        """Add a oncvps output file to the plotter with label."""
         if label in self._plotters_dict:
             raise ValueError(f"Cannot overwrite label: {label}")
 
@@ -1049,9 +1035,7 @@ class MultiOncvPlotter(NotebookWriter):
             #    set_visible(ax, False, "legend", "xlabel", "ylabel")
 
     def yield_figs(self, **kwargs):  # pragma: no cover
-        """
-        Generate a predefined list of matplotlib figures with minimal input from the user.
-        """
+        """Generate a predefined list of matplotlib figures with minimal input from the user."""
         verbose = kwargs.get("verbose", 0)
 
         yield self.plot_atan_logders(show=False)

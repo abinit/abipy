@@ -40,9 +40,7 @@ At the end of the page, there is a button to download a targz file with all the 
 
 
 def _make_targz_bytes(inp_or_multi, remove_dir=True):
-    """
-    Return bytesIO with the targz file containing input and pseudos.
-    """
+    """Return bytesIO with the targz file containing input and pseudos."""
     targz_path = inp_or_multi.make_targz()
     output = io.BytesIO()
     with open(targz_path, "rb") as fh:
@@ -53,9 +51,7 @@ def _make_targz_bytes(inp_or_multi, remove_dir=True):
 
 
 class StructurePanel(PanelWithStructure):
-    """
-    Panel with widgets to interact with an AbiPy Structure.
-    """
+    """Panel with widgets to interact with an AbiPy Structure."""
 
     def __init__(self, structure: Structure, with_inputs: bool = True, **params):
         """
@@ -189,9 +185,7 @@ class StructurePanel(PanelWithStructure):
 
     @pn.depends("kpath_format.value", "line_density.value")
     def get_kpath(self) -> pn.Column:
-        """
-        Generate high-symmetry k-path from input structure in the ABINIT format.
-        """
+        """Generate high-symmetry k-path from input structure in the ABINIT format."""
         col = pn.Column(sizing_mode="stretch_width")
         ca = col.append
 
@@ -291,9 +285,7 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
         return pn.Column(*items, sizing_mode="stretch_width")
 
     def get_gs_input(self) -> AbinitInput:
-        """
-        Return an AbinitInput for GS calculation from the parameters selected via the widgets.
-        """
+        """Return an AbinitInput for GS calculation from the parameters selected via the widgets."""
         from abipy.abio.factories import gs_input
 
         pseudos, ecut, pawecutdg = self._get_pseudos_ecut_pawecutdg()

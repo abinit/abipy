@@ -11,9 +11,7 @@ from .core import PanelWithElectronBands, depends_on_btn_click, mpl  # , PanelWi
 
 
 class SigEPhFilePanel(PanelWithElectronBands):
-    """
-    Panel with widgets to interact with a |SigEphFile|.
-    """
+    """Panel with widgets to interact with a |SigEphFile|."""
 
     def __init__(self, sigeph: SigEPhFile, **params):
         PanelWithElectronBands.__init__(self, ebands=sigeph.ebands, **params)
@@ -56,6 +54,7 @@ class SigEPhFilePanel(PanelWithElectronBands):
 
     @depends_on_btn_click("plot_qpsolution_btn")
     def on_plot_qpsolution_sk(self):
+        """Plot the electronic density of states."""
         fig = self.sigeph.plot_qpsolution_sk(
             self.sigma_spin_select.value,
             self.sigma_kpoint_select.value,

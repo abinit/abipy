@@ -151,9 +151,7 @@ def abiview_data(options):
 
 
 def abiview_timer(options):
-    """
-    Plot the ABINIT timer reported in the main output file. Requires timopt != 0.
-    """
+    """Plot the ABINIT timer reported in the main output file. Requires timopt != 0."""
     key = "wall_time"
     nmax = 5
     from abipy.tools.plotting import MplExposer
@@ -176,9 +174,7 @@ def abiview_timer(options):
 
 
 def abiview_memlog(options):
-    """
-    Analyze the ABINIT log file to extract virtual memory info (requires Linux).
-    """
+    """Analyze the ABINIT log file to extract virtual memory info (requires Linux)."""
     from abipy.flowtk.events import MemLogParser
 
     parser = MemLogParser(options.filepath)
@@ -198,9 +194,7 @@ def abiview_memlog(options):
 
 
 def abiview_dirviz(options) -> int:
-    """
-    Visualize directory tree with graphviz.
-    """
+    """Visualize directory tree with graphviz."""
     import tempfile
 
     from abipy.flowtk.utils import Dirviz
@@ -314,9 +308,7 @@ def abiview_ifermi_fs(options) -> int:
 
 
 def abiview_ddb(options) -> int:
-    """
-    Invoke anaddb to compute phonon bands and DOS from the DDB, plot the results.
-    """
+    """Invoke anaddb to compute phonon bands and DOS from the DDB, plot the results."""
     with abilab.abiopen(options.filepath) as ddb:
         print(ddb.to_string(verbose=options.verbose))
 
@@ -421,9 +413,7 @@ Computing phonon bands and DOS from DDB file with:
 
 
 def abiview_ddb_becs(options) -> int:
-    """
-    Invoke anaddb to compute eps_inf and Born effective charges.
-    """
+    """Invoke anaddb to compute eps_inf and Born effective charges."""
     with abilab.abiopen(options.filepath) as ddb:
         print(ddb.to_string(verbose=options.verbose))
 
@@ -443,9 +433,7 @@ and the Born effective charges in Cartesian coordinates.
 
 
 def abiview_ddb_vs(options) -> int:
-    """
-    Compute speed of sound by fitting phonon frequencies along selected directions.
-    """
+    """Compute speed of sound by fitting phonon frequencies along selected directions."""
     num_points = 20
     asr = 2
     chneut = 1
@@ -470,9 +458,7 @@ Computing phonon frequencies for linear least-squares with:
 
 
 def abiview_ddb_ir(options) -> int:
-    """
-    Compute infra-red spectrum from DDB. Plot results.
-    """
+    """Compute infra-red spectrum from DDB. Plot results."""
     asr = 2
     chneut = 1
     dipdip = 1
@@ -498,9 +484,7 @@ Computing phonon frequencies for infra-red spectrum with:
 
 
 def abiview_ddb_asr(options) -> int:
-    """
-    Compute phonon band structure from DDB with/without acoustic sum rule. Plot results.
-    """
+    """Compute phonon band structure from DDB with/without acoustic sum rule. Plot results."""
     print("Computing phonon frequencies with/without ASR")
 
     with abilab.abiopen(options.filepath) as ddb:
@@ -526,9 +510,7 @@ def abiview_ddb_asr(options) -> int:
 
 
 def abiview_ddb_dipdip(options) -> int:
-    """
-    Compute phonon band structure from DDB with/without dipole-dipole interaction. Plot results.
-    """
+    """Compute phonon band structure from DDB with/without dipole-dipole interaction. Plot results."""
     print("Computing phonon frequencies with/without dipdip.")
 
     with abilab.abiopen(options.filepath) as ddb:
@@ -553,9 +535,7 @@ def abiview_ddb_dipdip(options) -> int:
 
 
 def abiview_ddb_quad(options) -> int:
-    """
-    Compute phonon band structure from DDB with/without quadrupole terms. Plot results.
-    """
+    """Compute phonon band structure from DDB with/without quadrupole terms. Plot results."""
     print("Computing phonon frequencies with/without dip-quad and quad-quad terms.")
 
     with abilab.abiopen(options.filepath) as ddb:
@@ -631,9 +611,7 @@ def abiview_ddb_qpt(options) -> int:
 
 
 def abiview_ddb_ifc(options) -> int:
-    """
-    Visualize interatomic force constants in real space.
-    """
+    """Visualize interatomic force constants in real space."""
     asr = 2
     chneut = 1
     dipdip = 1
@@ -701,9 +679,7 @@ Calling anaddb to compute elastic and piezoelectric tensors. Require DDB with st
 
 
 def abiview_phbands(options) -> int:
-    """
-    Plot phonon bands. Accept any file with PhononBands e.g. PHBST.nc, ...
-    """
+    """Plot phonon bands. Accept any file with PhononBands e.g. PHBST.nc, ..."""
     with abilab.abiopen(options.filepath) as abifile:
         if options.xmgrace:
             outpath = options.filepath + ".agr"
@@ -749,9 +725,7 @@ def abiview_denpot(options) -> int:
 
 
 def abiview_lobster(options) -> int:
-    """
-    Analyze lobster output files in directory.
-    """
+    """Analyze lobster output files in directory."""
     from abipy.electrons.lobster import LobsterAnalyzer
 
     lobana = LobsterAnalyzer.from_dir(os.path.dirname(options.filepath), prefix=options.prefix)
@@ -775,9 +749,7 @@ def abiview_lobster(options) -> int:
 
 
 def abiview_xrd_traj(options) -> int:
-    """
-    Compare XRD spectra using the first and the last structure read from a trajectory file.
-    """
+    """Compare XRD spectra using the first and the last structure read from a trajectory file."""
     from abipy.core.structure import get_first_and_last_structure_from_file
 
     structures = get_first_and_last_structure_from_file(options.filepath)

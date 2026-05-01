@@ -113,9 +113,7 @@ dipole_moment_debye = 0.393430307
 
 
 def phfactor_ev2units(units: str) -> float:
-    """
-    Return conversion factor eV --> units for phonons (case-insensitive)
-    """
+    """Return conversion factor eV --> units for phonons (case-insensitive)."""
     d = {
         "ev": 1,
         "mev": 1000,
@@ -156,9 +154,7 @@ def phunit_tag(units: str, unicode=False) -> str:
 
 
 def wlabel_from_units(units: str, unicode=False) -> str:
-    """
-    Return latex string for phonon frequencies in ``units``.
-    """
+    """Return latex string for phonon frequencies in ``units``."""
     d = {
         "ev": "Energy (eV)",
         "mev": "Energy (meV)",
@@ -180,9 +176,7 @@ def wlabel_from_units(units: str, unicode=False) -> str:
 
 
 def phdos_label_from_units(units: str, unicode=False) -> str:
-    """
-    Return latex string for phonon DOS values in ``units``.
-    """
+    """Return latex string for phonon DOS values in ``units``."""
     d = {
         "ev": "(states/eV)",
         "mev": "(states/meV)",

@@ -413,9 +413,7 @@ def relax(
     expose_value=False,
 )
 def abinit_relax(ctx, filepath, workdir, verbose):
-    """
-    Interact with ABINIT in hybrid relaxation mode.
-    """
+    """Interact with ABINIT in hybrid relaxation mode."""
     ml_relaxer = aseml.MlRelaxer.from_abinit_yaml_file(filepath)
     print(ml_relaxer.to_string(verbose=verbose))
     ml_relaxer.run()
@@ -1115,9 +1113,7 @@ def validate(ctx, filepaths, nn_names, traj_range, symbol, stress, delta, traj, 
 @click.pass_context
 @click.option("-v", "--verbose", count=True, help="Verbosity level")
 def show(ctx, verbose):
-    """
-    Show the NN potentials installed in the environment.
-    """
+    """Show the NN potentials installed in the environment."""
     installed, versions = aseml.get_installed_nn_names(verbose=verbose, printout=True)
     return 0 if installed else 1
 
@@ -1131,9 +1127,7 @@ def show(ctx, verbose):
 @click.option("-U", "--update", is_flag=True, default=False, show_default=True, help="Update packages.")
 @click.option("-v", "--verbose", count=True, help="Verbosity level")
 def install(ctx, nn_names, update, verbose):
-    """
-    Install NN potentials in the environment using pip.
-    """
+    """Install NN potentials in the environment using pip."""
     aseml.install_nn_names(nn_names=nn_names, update=update, verbose=verbose)
     installed, versions = aseml.get_installed_nn_names(verbose=verbose, printout=True)
 
@@ -1164,9 +1158,7 @@ def install(ctx, nn_names, update, verbose):
     "--config", default="abiml_compare.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False
 )
 def compare(ctx, filepath, nn_names, num_tests, rattle, stdev_rvol, workdir, verbose):
-    """
-    Compare different neural networks.
-    """
+    """Compare different neural networks."""
     atoms = _get_atoms_from_filepath(filepath)
     nn_names = _get_nn_names(nn_names)
     ml_comp = aseml.MlCompareNNs(
@@ -1193,9 +1185,7 @@ def gs(
     workdir,
     verbose,
 ):
-    """
-    Compute ground-state properties and magnetic moments with ML potential(s).
-    """
+    """Compute ground-state properties and magnetic moments with ML potential(s)."""
     atoms = _get_atoms_from_filepath(filepath)
     gs = aseml.GsMl(atoms, nn_name, verbose, workdir, prefix="_abiml_gs_")
     gs.run()
@@ -1220,9 +1210,7 @@ def phddb_frozen(
     workdir,
     verbose,
 ):
-    """
-    Frozen-phonon calculation with ML potential.
-    """
+    """Frozen-phonon calculation with ML potential."""
     qpoint = [0, 0, 0]
     eta_list = [1, 2]
     frozen_ph = aseml.FrozenPhononMl.from_ddb_file(
@@ -1243,9 +1231,7 @@ def phddb_frozen(
     "--config", default="abiml_cwf_eos.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False
 )
 def cwf_eos(ctx, elements, nn_names, workdir, verbose):
-    """
-    Compute CWF EOS with ML potentials.
-    """
+    """Compute CWF EOS with ML potentials."""
     nn_names = _get_nn_names(nn_names)
     if "all" in elements:
         if len(elements) != 1:

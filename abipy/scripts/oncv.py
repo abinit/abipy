@@ -70,9 +70,7 @@ def _find_oncv_output(path: str) -> str:
 
 
 def oncv_notebook(options):
-    """
-    Generate jupyter notebook to plot data. Requires oncvpsp output file.
-    """
+    """Generate jupyter notebook to plot data. Requires oncvpsp output file."""
     out_path = _find_oncv_output(options.filepath)
     return oncv_make_open_notebook(
         out_path,
@@ -83,9 +81,7 @@ def oncv_notebook(options):
 
 
 def oncv_gnuplot(options):
-    """
-    Plot data with gnuplot.
-    """
+    """Plot data with gnuplot."""
     out_path = _find_oncv_output(options.filepath)
 
     # Parse output file.
@@ -99,9 +95,7 @@ def oncv_gnuplot(options):
 
 
 def oncv_print(options) -> int:
-    """
-    Parse oncvps output file and print results to terminal.
-    """
+    """Parse oncvps output file and print results to terminal."""
     out_path = _find_oncv_output(options.filepath)
     p = OncvParser(out_path).scan()
     if not p.run_completed:
@@ -112,9 +106,7 @@ def oncv_print(options) -> int:
 
 
 def oncv_plot(options) -> int:
-    """
-    Plot data with matplotlib. Requires oncvpsp output file.
-    """
+    """Plot data with matplotlib. Requires oncvpsp output file."""
     cli.customize_mpl(options)
 
     out_path = _find_oncv_output(options.filepath)
@@ -133,9 +125,7 @@ def oncv_plot(options) -> int:
 
 
 def oncv_plot_pseudo(options) -> int:
-    """
-    Plot data with matplotlib. Requires pseudopotential file (UPF2 or pawxml).
-    """
+    """Plot data with matplotlib. Requires pseudopotential file (UPF2 or pawxml)."""
     cli.customize_mpl(options)
 
     pseudo = Pseudo.from_file(options.filepath)
@@ -151,9 +141,7 @@ def oncv_plot_pseudo(options) -> int:
 
 
 def oncv_compare(options) -> int:
-    """
-    Compare multiple oncvpsp output files.
-    """
+    """Compare multiple oncvpsp output files."""
     cli.customize_mpl(options)
 
     out_paths = [_find_oncv_output(p) for p in options.filepaths]
@@ -185,9 +173,7 @@ def oncv_compare(options) -> int:
 
 
 def oncv_run(options):
-    """
-    Run oncvpsp, generate djrepo file, plot results. Requires oncvps input file.
-    """
+    """Run oncvpsp, generate djrepo file, plot results. Requires oncvps input file."""
     # Build names of psp8 and djson files from input and relativistic mode.
     in_path = options.filepath
     root, _ = os.path.splitext(in_path)
@@ -300,9 +286,7 @@ def oncv_run(options):
 
 
 def oncv_ghost(options) -> int:
-    """
-    Scan directories for oncvpsp output files and build dataframe with ghost position
-    """
+    """Scan directories for oncvpsp output files and build dataframe with ghost position."""
     # cli.customize_mpl(options)
 
     # Walk through the directory tree and find all .out files.
@@ -351,9 +335,7 @@ def oncv_ghost(options) -> int:
 
 
 def oncv_gui(options):
-    """
-    Start a panel web app to generate pseudopotentials.
-    """
+    """Start a panel web app to generate pseudopotentials."""
     import panel as pn
 
     from abipy.panels.core import AbipyParameterized, abipanel, get_abinit_template_cls_kwds
